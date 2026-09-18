@@ -119,14 +119,28 @@ function Usuarios() {
               />
             </Campo>
             <Campo etiqueta="Contraseña">
-              <Input
-                required
-                type="password"
-                minLength={6}
-                maxLength={72}
-                value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
-              />
+              <div className="relative">
+                <Input
+                  required
+                  type={verPassword ? "text" : "password"}
+                  minLength={8}
+                  maxLength={72}
+                  value={form.password}
+                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  onFocus={() => setMostrarInstructivo(true)}
+                  onBlur={() => setMostrarInstructivo(false)}
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  onClick={() => setVerPassword((v) => !v)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground hover:text-ink"
+                  aria-label={verPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                >
+                  {verPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
             </Campo>
             <Campo etiqueta="Rol asignado">
               <Select value={form.rol} onChange={(e) => setForm({ ...form, rol: e.target.value as Rol })}>
