@@ -39,9 +39,11 @@ function colorDia(tipo: TipoDia | undefined): string {
   return "border-line bg-card";
 }
 
-function tipoDeAsistencia(asistencia: number): TipoDia {
-  if (asistencia === 1) return "dia";
-  if (asistencia === 0.5) return "viaje";
+function tipoDeTareo(t: { tipo?: string; asistencia: number | string }): TipoDia {
+  if (t.tipo === "viaje" || t.tipo === "extras" || t.tipo === "dia") return t.tipo;
+  const a = Number(t.asistencia);
+  if (a === 1) return "dia";
+  if (a === 0.5) return "viaje";
   return "extras";
 }
 
@@ -113,12 +115,18 @@ function TareoPage() {
         fecha: f,
         trabajador_id: form.trabajador_id,
         proyecto_id: form.proyecto_id,
+        tipo,
         asistencia,
         costo_soles: asistencia * Number(trabajador.jornal_diario),
       };
     });
     const { error: err } = await supabase.from("tareos").insert(filas);
-    if (err) return setError(err.message);
+    if (err)
+      return setError(
+        err.code === "23505"
+          ? "Ya existe un registro de este tipo para ese día. Elige otro tipo (por ejemplo Horas Extras) o corrige el día desde el consolidado."
+          : err.message,
+      );
     setDiasSel({ [hoy()]: "dia" });
     setHorasExtras("");
     qc.invalidateQueries({ queryKey: ["tareos"] });
