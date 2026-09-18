@@ -8,12 +8,12 @@ export const Route = createFileRoute("/")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Iniciar sesión — Control de Obra" },
+      { title: "Iniciar sesión — Control de Proyectos" },
       {
         name: "description",
         content: "Acceso al sistema de control de proyectos de construcción: avance, tareo, gastos y ventas.",
       },
-      { property: "og:title", content: "Iniciar sesión — Control de Obra" },
+      { property: "og:title", content: "Iniciar sesión — Control de Proyectos" },
       {
         property: "og:description",
         content: "Acceso al sistema de control de proyectos de construcción.",
@@ -77,7 +77,7 @@ function Login() {
             CO
           </span>
           <div className="leading-none">
-            <p className="text-base font-bold tracking-tight">Control de Obra</p>
+            <p className="text-base font-bold tracking-tight">Control de Proyectos</p>
             <p className="mt-1 label-mono">Gestión de Proyectos de Construcción</p>
           </div>
         </div>

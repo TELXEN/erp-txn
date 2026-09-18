@@ -43,7 +43,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             CO
           </span>
           <div className="leading-none">
-            <p className="text-sm font-bold tracking-tight">Control de Obra</p>
+            <p className="text-sm font-bold tracking-tight">Control de Proyectos</p>
             <p className="mt-1 label-mono">Gestión de Proyectos</p>
           </div>
         </div>

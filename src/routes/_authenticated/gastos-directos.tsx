@@ -12,9 +12,9 @@ import { exportarExcel } from "@/lib/exportar";
 export const Route = createFileRoute("/_authenticated/gastos-directos")({
   head: () => ({
     meta: [
-      { title: "Gastos Directos — Control de Obra" },
+      { title: "Gastos Directos — Control de Proyectos" },
       { name: "description", content: "Compras vinculadas a partidas con lógica bimoneda y tipo de cambio manual." },
-      { property: "og:title", content: "Gastos Directos — Control de Obra" },
+      { property: "og:title", content: "Gastos Directos — Control de Proyectos" },
       { property: "og:description", content: "Compras por partida con conversión a Soles." },
     ],
   }),

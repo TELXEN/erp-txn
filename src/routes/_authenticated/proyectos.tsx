@@ -10,9 +10,9 @@ import { useProyectos } from "@/lib/datos";
 export const Route = createFileRoute("/_authenticated/proyectos")({
   head: () => ({
     meta: [
-      { title: "Proyectos — Control de Obra" },
+      { title: "Proyectos — Control de Proyectos" },
       { name: "description", content: "Registro y estado de los proyectos de la empresa constructora." },
-      { property: "og:title", content: "Proyectos — Control de Obra" },
+      { property: "og:title", content: "Proyectos — Control de Proyectos" },
       { property: "og:description", content: "Registro y estado de los proyectos de la empresa." },
     ],
   }),

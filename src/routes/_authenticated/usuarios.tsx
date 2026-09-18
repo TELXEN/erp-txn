@@ -8,9 +8,9 @@ import { ETIQUETA_ROL, useAuth, type Rol } from "@/lib/auth";
 export const Route = createFileRoute("/_authenticated/usuarios")({
   head: () => ({
     meta: [
-      { title: "Usuarios y Roles — Control de Obra" },
+      { title: "Usuarios y Roles — Control de Proyectos" },
       { name: "description", content: "Asignación de roles: ingeniero de campo, administrador de oficina y gerente." },
-      { property: "og:title", content: "Usuarios y Roles — Control de Obra" },
+      { property: "og:title", content: "Usuarios y Roles — Control de Proyectos" },
       { property: "og:description", content: "Asignación de roles del sistema." },
     ],
   }),
