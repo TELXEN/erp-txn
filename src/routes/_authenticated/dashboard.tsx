@@ -71,7 +71,7 @@ function Dashboard() {
       .filter((p) => p.proyecto_id === seleccion)
       .map((p) => {
         const presupuesto = Number(p.presupuesto_inicial);
-        const costo = costoRealPartida(p.id, tareos, gastosD);
+        const costo = costoRealPartida(p.id, gastosD);
         return {
           partida: `${p.especialidad} · ${p.nombre}`,
           avance: Number(p.avance_pct),
