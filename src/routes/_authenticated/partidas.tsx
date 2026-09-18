@@ -92,7 +92,7 @@ function Partidas() {
   }
 
   async function eliminar(id: string) {
-    if (!window.confirm("¿Eliminar esta partida? Se perderán los tareos y gastos vinculados.")) return;
+    if (!window.confirm("¿Eliminar esta partida? Se perderán los gastos directos vinculados.")) return;
     setError("");
     const { error: err } = await supabase.from("partidas").delete().eq("id", id);
     if (err) return setError(err.message);
