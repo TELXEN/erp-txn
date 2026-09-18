@@ -109,7 +109,7 @@ function TareoPage() {
     if (hayExtras && (!Number(horasExtras) || Number(horasExtras) <= 0))
       return setError("Ingresa las horas extras.");
     const filas = fechasOrdenadas.map((f) => {
-      const tipo = diasSel[f];
+      const tipo: TipoDia = diasSel[f] ?? "dia";
       const asistencia = tipo === "viaje" ? 0.5 : tipo === "extras" ? piso2(Number(horasExtras) / 10.5) : 1;
       return {
         fecha: f,
@@ -142,7 +142,7 @@ function TareoPage() {
     tareos
       .filter((t) => t.trabajador_id === id && t.fecha.slice(0, 7) === mes)
       .forEach((t) => {
-        const tipo = tipoDeAsistencia(Number(t.asistencia));
+        const tipo = tipoDeTareo(t);
         const previo = mapa[t.fecha];
         if (!previo || tipo === "extras" || (tipo === "viaje" && previo !== "extras")) mapa[t.fecha] = tipo;
       });
