@@ -69,6 +69,7 @@ function GastosDirectos() {
   }
 
   async function eliminar(id: string) {
+    if (!window.confirm("¿Eliminar esta compra registrada? Esta acción no se puede deshacer.")) return;
     await supabase.from("gastos_directos").delete().eq("id", id);
     qc.invalidateQueries({ queryKey: ["gastos_directos"] });
   }
