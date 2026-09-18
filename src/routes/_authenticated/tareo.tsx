@@ -30,6 +30,21 @@ function cambiarMes(mes: string, delta: number) {
 
 const DIAS_SEMANA = ["L", "M", "M", "J", "V", "S", "D"];
 
+type TipoDia = "dia" | "viaje" | "extras";
+
+function colorDia(tipo: TipoDia | undefined): string {
+  if (tipo === "dia") return "border-primary bg-primary text-primary-foreground";
+  if (tipo === "viaje") return "border-good/50 bg-good/20 text-ink";
+  if (tipo === "extras") return "border-sky-400/60 bg-sky-200/70 text-ink";
+  return "border-line bg-card";
+}
+
+function tipoDeAsistencia(asistencia: number): TipoDia {
+  if (asistencia === 1) return "dia";
+  if (asistencia === 0.5) return "viaje";
+  return "extras";
+}
+
 function TareoPage() {
   const { rol } = useAuth();
   const qc = useQueryClient();
@@ -37,7 +52,7 @@ function TareoPage() {
   const { data: trabajadores = [] } = useTrabajadores();
   const { data: tareos = [] } = useTareos();
 
-  const [diasSel, setDiasSel] = useState<Record<string, "dia" | "viaje">>({ [hoy()]: "dia" });
+  const [diasSel, setDiasSel] = useState<Record<string, TipoDia>>({ [hoy()]: "dia" });
   const [mesCal, setMesCal] = useState(mesActual());
   const [form, setForm] = useState({ trabajador_id: "", proyecto_id: "", asistencia: "dia" });
   const [horasExtras, setHorasExtras] = useState("");
@@ -45,7 +60,7 @@ function TareoPage() {
   const [error, setError] = useState("");
   const [trabajadorVisible, setTrabajadorVisible] = useState<string | null>(null);
   const [editandoCalendario, setEditandoCalendario] = useState(false);
-  const [diasEditados, setDiasEditados] = useState<string[]>([]);
+  const [diasEditados, setDiasEditados] = useState<Record<string, TipoDia>>({});
   const [proyectoEdicion, setProyectoEdicion] = useState("");
   const [guardandoEdicion, setGuardandoEdicion] = useState(false);
 
@@ -59,8 +74,8 @@ function TareoPage() {
   const alternarDia = (f: string) =>
     setDiasSel((actual) => {
       const copia = { ...actual };
-      if (copia[f]) delete copia[f];
-      else copia[f] = form.asistencia === "viaje" ? "viaje" : "dia";
+      if (copia[f] && form.asistencia !== "extras") delete copia[f];
+      else copia[f] = form.asistencia as TipoDia;
       return copia;
     });
   const fechasOrdenadas = Object.keys(diasSel).sort();
@@ -88,11 +103,12 @@ function TareoPage() {
     setError("");
     const trabajador = trabajadores.find((t) => t.id === form.trabajador_id);
     if (!trabajador || fechasOrdenadas.length === 0) return setError("Selecciona trabajador y al menos una fecha.");
-    if (form.asistencia === "extras" && (!Number(horasExtras) || Number(horasExtras) <= 0))
+    const hayExtras = fechasOrdenadas.some((f) => diasSel[f] === "extras");
+    if (hayExtras && (!Number(horasExtras) || Number(horasExtras) <= 0))
       return setError("Ingresa las horas extras.");
     const filas = fechasOrdenadas.map((f) => {
-      const asistencia =
-        diasSel[f] === "viaje" ? 0.5 : form.asistencia === "extras" ? piso2(Number(horasExtras) / 10.5) : 1;
+      const tipo = diasSel[f];
+      const asistencia = tipo === "viaje" ? 0.5 : tipo === "extras" ? piso2(Number(horasExtras) / 10.5) : 1;
       return {
         fecha: f,
         trabajador_id: form.trabajador_id,
@@ -114,18 +130,22 @@ function TareoPage() {
   }
 
   function diasTrabajados(id: string) {
-    return [...new Set(
-      tareos
-        .filter((t) => t.trabajador_id === id && t.fecha.slice(0, 7) === mes)
-        .map((t) => t.fecha),
-    )].sort();
+    const mapa: Record<string, TipoDia> = {};
+    tareos
+      .filter((t) => t.trabajador_id === id && t.fecha.slice(0, 7) === mes)
+      .forEach((t) => {
+        const tipo = tipoDeAsistencia(Number(t.asistencia));
+        const previo = mapa[t.fecha];
+        if (!previo || tipo === "extras" || (tipo === "viaje" && previo !== "extras")) mapa[t.fecha] = tipo;
+      });
+    return mapa;
   }
 
   function verCalendario(id: string) {
     const registros = tareos.filter((t) => t.trabajador_id === id && t.fecha.slice(0, 7) === mes);
     setTrabajadorVisible(id);
     setMesCal(mes);
-    setDiasEditados([...new Set(registros.map((t) => t.fecha))].sort());
+    setDiasEditados(diasTrabajados(id));
     setProyectoEdicion(registros[0]?.proyecto_id ?? proyectos[0]?.id ?? "");
     setEditandoCalendario(false);
     setError("");
@@ -138,9 +158,12 @@ function TareoPage() {
 
   function alternarDiaEditado(f: string) {
     if (!editandoCalendario) return;
-    setDiasEditados((actuales) =>
-      actuales.includes(f) ? actuales.filter((x) => x !== f) : [...actuales, f].sort(),
-    );
+    setDiasEditados((actuales) => {
+      const copia = { ...actuales };
+      if (copia[f]) delete copia[f];
+      else copia[f] = "dia";
+      return copia;
+    });
   }
 
   async function guardarCorreccion() {
@@ -154,8 +177,9 @@ function TareoPage() {
     setGuardandoEdicion(true);
     setError("");
     const actuales = diasTrabajados(trabajadorVisible);
-    const quitar = actuales.filter((f) => !diasEditados.includes(f));
-    const agregar = diasEditados.filter((f) => !actuales.includes(f));
+    const fechasActuales = Object.keys(actuales);
+    const quitar = fechasActuales.filter((f) => !diasEditados[f]);
+    const agregar = Object.keys(diasEditados).filter((f) => !actuales[f]);
 
     if (quitar.length > 0) {
       const { error: err } = await supabase
@@ -311,13 +335,9 @@ function TareoPage() {
                     type="button"
                     onClick={() => alternarDia(f)}
                     aria-pressed={Boolean(diasSel[f])}
-                    className={`flex h-9 items-center justify-center rounded-md border font-mono text-xs transition-colors ${
-                      diasSel[f] === "dia"
-                        ? "border-primary bg-primary text-primary-foreground"
-                        : diasSel[f] === "viaje"
-                          ? "border-good/50 bg-good/20 text-ink"
-                          : "border-line bg-card hover:border-primary"
-                    }`}
+                    className={`flex h-9 items-center justify-center rounded-md border font-mono text-xs transition-colors ${colorDia(
+                      diasSel[f],
+                    )} ${diasSel[f] ? "" : "hover:border-primary"}`}
                   >
                     {Number(f.slice(8))}
                   </button>
@@ -327,8 +347,10 @@ function TareoPage() {
               )}
             </div>
             <p className="mt-2 font-mono text-[11px] text-muted-foreground">
-              {fechasOrdenadas.length} día(s) seleccionado(s) — verde oscuro: día trabajado; verde claro: viaje (medio día).
-              {form.asistencia === "extras" && " Las horas extras se convierten a días: horas ÷ 10.5."}
+              {fechasOrdenadas.length} día(s) seleccionado(s) — verde: día trabajado; verde claro: viaje (medio día); azul
+              claro: horas extras.
+              {form.asistencia === "extras" &&
+                " Las horas extras se registran aunque el día ya esté contabilizado y se convierten a días: horas ÷ 10.5."}
             </p>
           </div>
 
@@ -417,7 +439,9 @@ function TareoPage() {
               <div>
                 <p className="label-mono">{editandoCalendario ? "Corrección de asistencia" : "Asistencia registrada"}</p>
                 <p className="mt-1 font-mono text-[11px] text-muted-foreground">
-                  {editandoCalendario ? "Marca o desmarca días y guarda los cambios." : "Los días trabajados aparecen marcados en verde."}
+                  {editandoCalendario
+                    ? "Marca o desmarca días y guarda los cambios. Verde: día trabajado; verde claro: viaje; azul claro: horas extras."
+                    : "Verde: día trabajado; verde claro: viaje (medio día); azul claro: horas extras."}
                 </p>
               </div>
               {editandoCalendario && (
@@ -449,12 +473,10 @@ function TareoPage() {
                       type="button"
                       disabled={!editandoCalendario}
                       onClick={() => alternarDiaEditado(f)}
-                      aria-pressed={diasEditados.includes(f)}
-                      className={`flex h-9 items-center justify-center rounded-md border font-mono text-xs transition-colors ${
-                        diasEditados.includes(f)
-                          ? "border-primary bg-primary text-primary-foreground"
-                          : "border-line bg-card"
-                      } ${editandoCalendario ? "hover:border-primary" : "cursor-default"}`}
+                      aria-pressed={Boolean(diasEditados[f])}
+                      className={`flex h-9 items-center justify-center rounded-md border font-mono text-xs transition-colors ${colorDia(
+                        diasEditados[f],
+                      )} ${editandoCalendario ? "hover:border-primary" : "cursor-default"}`}
                     >
                       {Number(f.slice(8))}
                     </button>
