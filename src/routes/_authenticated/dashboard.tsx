@@ -44,12 +44,25 @@ function Dashboard() {
     const vd = global ? ventas : ventas.filter((v) => v.proyecto_id === seleccion);
     const gd = global ? gastosD : gastosD.filter((g) => g.proyecto_id === seleccion);
     const td = global ? tareos : tareos.filter((t) => t.proyecto_id === seleccion);
-    const totalVentas = vd.reduce((s, v) => s + Number(v.monto_soles), 0);
+    const totalVentas = vd
+      .filter((v) => v.estado === "Pagado")
+      .reduce((s, v) => s + Number(v.monto_soles), 0);
+    const ventasPendientes = vd
+      .filter((v) => v.estado !== "Pagado")
+      .reduce((s, v) => s + Number(v.monto_soles), 0);
     const totalDirectos = gd.reduce((s, g) => s + Number(g.monto_soles), 0);
     const totalTareo = td.reduce((s, t) => s + Number(t.costo_soles), 0);
     const totalGenerales = global ? gastosG.reduce((s, g) => s + Number(g.monto_soles), 0) : 0;
     const totalGastos = totalDirectos + totalTareo + totalGenerales;
-    return { totalVentas, totalDirectos, totalTareo, totalGenerales, totalGastos, margen: totalVentas - totalGastos };
+    return {
+      totalVentas,
+      ventasPendientes,
+      totalDirectos,
+      totalTareo,
+      totalGenerales,
+      totalGastos,
+      margen: totalVentas - totalGastos,
+    };
   }, [global, seleccion, ventas, gastosD, tareos, gastosG]);
 
   const barras = useMemo(() => {
@@ -71,7 +84,7 @@ function Dashboard() {
   if (rol !== "gerente") return <SinAcceso />;
 
   const kpis = [
-    { etiqueta: "Total Ventas", valor: datos.totalVentas },
+    { etiqueta: "Total Ventas (Cobrado)", valor: datos.totalVentas },
     { etiqueta: "Total Gastos", valor: datos.totalGastos },
     { etiqueta: "Margen de Utilidad", valor: datos.margen },
   ];
@@ -81,7 +94,8 @@ function Dashboard() {
       {
         nombre: "KPIs",
         filas: [
-          { Indicador: "Total Ventas (S/)", Valor: datos.totalVentas },
+          { Indicador: "Total Ventas Cobradas (S/)", Valor: datos.totalVentas },
+          { Indicador: "Ventas Pendientes de Pago (S/)", Valor: datos.ventasPendientes },
           { Indicador: "Compras Directas (S/)", Valor: datos.totalDirectos },
           { Indicador: "Mano de Obra / Tareo (S/)", Valor: datos.totalTareo },
           { Indicador: "Gastos Generales (S/)", Valor: datos.totalGenerales },
@@ -135,7 +149,11 @@ function Dashboard() {
       />
 
       <div className="mb-4 grid gap-3 sm:grid-cols-3">
-        <Tarjeta etiqueta="Total Ventas" valor={datos.totalVentas} detalle="Valorizaciones registradas" />
+        <Tarjeta
+          etiqueta="Total Ventas (Cobrado)"
+          valor={datos.totalVentas}
+          detalle={`Solo valorizaciones pagadas · Pendiente ${soles(datos.ventasPendientes)}`}
+        />
         <Tarjeta
           etiqueta="Total Gastos"
           valor={datos.totalGastos}
