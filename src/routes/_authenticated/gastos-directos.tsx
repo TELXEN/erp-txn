@@ -76,6 +76,31 @@ function GastosDirectos() {
     qc.invalidateQueries({ queryKey: ["gastos_directos"] });
   }
 
+  function iniciarEdicion(g: (typeof gastos)[number]) {
+    setEditando({ id: g.id, descripcion: g.descripcion, monto: String(g.monto) });
+  }
+
+  function cancelarEdicion() {
+    setEditando(null);
+  }
+
+  async function actualizarEdicion(e?: React.FormEvent) {
+    e?.preventDefault();
+    if (!editando) return;
+    const monto = Number(editando.monto);
+    if (monto < 0) return setError("El monto no puede ser negativo.");
+    const original = gastos.find((g) => g.id === editando.id);
+    if (!original) return;
+    const tc = original.moneda === "USD" ? Number(original.tipo_cambio) : 1;
+    const { error: err } = await supabase
+      .from("gastos_directos")
+      .update({ descripcion: editando.descripcion.trim(), monto, monto_soles: monto * tc })
+      .eq("id", editando.id);
+    if (err) return setError(err.message);
+    setEditando(null);
+    qc.invalidateQueries({ queryKey: ["gastos_directos"] });
+  }
+
   return (
     <>
       <Encabezado
