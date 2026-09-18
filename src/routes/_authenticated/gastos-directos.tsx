@@ -39,6 +39,7 @@ function GastosDirectos() {
     fecha: hoy(),
   });
   const [error, setError] = useState("");
+  const [editando, setEditando] = useState<{ id: string; descripcion: string; monto: string } | null>(null);
 
   const partidasProyecto = partidas.filter((p) => p.proyecto_id === form.proyecto_id);
   const nombreProy = (id: string) => proyectos.find((p) => p.id === id)?.nombre ?? "—";
