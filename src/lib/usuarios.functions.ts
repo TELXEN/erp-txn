@@ -62,20 +62,25 @@ export const actualizarUsuario = createServerFn({ method: "POST" })
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const { error } = await supabaseAdmin.auth.admin.updateUserById(data.id, {
+    const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(data.id, {
       email: data.email,
       email_confirm: true,
       user_metadata: { nombre: data.nombre },
     });
-    if (error) throw new Error(error.message ?? "No se pudo actualizar el usuario.");
+    if (authError) throw new Error(authError.message ?? "No se pudo actualizar el usuario.");
 
-    await supabaseAdmin
+    const { error: profileError } = await supabaseAdmin
       .from("profiles")
       .upsert({ id: data.id, nombre: data.nombre, email: data.email }, { onConflict: "id" });
-    await supabaseAdmin.from("user_roles").delete().eq("user_id", data.id);
-    await supabaseAdmin.from("user_roles").insert({ user_id: data.id, role: data.rol });
+    if (profileError) throw new Error(profileError.message);
 
-    return { ok: true };
+    const { error: deleteError } = await supabaseAdmin.from("user_roles").delete().eq("user_id", data.id);
+    if (deleteError) throw new Error(deleteError.message);
+
+    const { error: insertError } = await supabaseAdmin.from("user_roles").insert({ user_id: data.id, role: data.rol });
+    if (insertError) throw new Error(insertError.message);
+
+    return { ok: true, rolGuardado: data.rol };
   });
 
 export const eliminarUsuario = createServerFn({ method: "POST" })
