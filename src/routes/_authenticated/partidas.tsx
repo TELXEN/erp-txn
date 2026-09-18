@@ -33,7 +33,6 @@ function Partidas() {
   const qc = useQueryClient();
   const { data: proyectos = [] } = useProyectos();
   const { data: partidas = [] } = usePartidas();
-  const { data: tareos = [] } = useTareos();
   const { data: gastos = [] } = useGastosDirectos();
 
   const [filtroProyecto, setFiltroProyecto] = useState("");
