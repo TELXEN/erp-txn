@@ -12,7 +12,6 @@ import {
   useGastosDirectos,
   usePartidas,
   useProyectos,
-  useTareos,
 } from "@/lib/datos";
 import { exportarExcel } from "@/lib/exportar";
 import { Pencil, Trash2, Check, X } from "lucide-react";
