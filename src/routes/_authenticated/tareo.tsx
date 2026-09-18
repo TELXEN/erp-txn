@@ -177,8 +177,9 @@ function TareoPage() {
     setGuardandoEdicion(true);
     setError("");
     const actuales = diasTrabajados(trabajadorVisible);
-    const quitar = actuales.filter((f) => !diasEditados.includes(f));
-    const agregar = diasEditados.filter((f) => !actuales.includes(f));
+    const fechasActuales = Object.keys(actuales);
+    const quitar = fechasActuales.filter((f) => !diasEditados[f]);
+    const agregar = Object.keys(diasEditados).filter((f) => !actuales[f]);
 
     if (quitar.length > 0) {
       const { error: err } = await supabase
@@ -472,12 +473,10 @@ function TareoPage() {
                       type="button"
                       disabled={!editandoCalendario}
                       onClick={() => alternarDiaEditado(f)}
-                      aria-pressed={diasEditados.includes(f)}
-                      className={`flex h-9 items-center justify-center rounded-md border font-mono text-xs transition-colors ${
-                        diasEditados.includes(f)
-                          ? "border-primary bg-primary text-primary-foreground"
-                          : "border-line bg-card"
-                      } ${editandoCalendario ? "hover:border-primary" : "cursor-default"}`}
+                      aria-pressed={Boolean(diasEditados[f])}
+                      className={`flex h-9 items-center justify-center rounded-md border font-mono text-xs transition-colors ${colorDia(
+                        diasEditados[f],
+                      )} ${editandoCalendario ? "hover:border-primary" : "cursor-default"}`}
                     >
                       {Number(f.slice(8))}
                     </button>
