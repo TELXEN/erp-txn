@@ -261,6 +261,7 @@ function TareoPage() {
         filas: consolidado.map((c) => ({
           Trabajador: c.nombre,
           "Dias Laborados": c.dias,
+          "Horas Extras": c.horas,
           "Costo Mano de Obra (S/)": c.costo,
         })),
       },
