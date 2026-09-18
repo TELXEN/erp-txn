@@ -310,11 +310,13 @@ function TareoPage() {
                     key={f}
                     type="button"
                     onClick={() => alternarDia(f)}
-                    aria-pressed={fechas.includes(f)}
+                    aria-pressed={Boolean(diasSel[f])}
                     className={`flex h-9 items-center justify-center rounded-md border font-mono text-xs transition-colors ${
-                      fechas.includes(f)
+                      diasSel[f] === "dia"
                         ? "border-primary bg-primary text-primary-foreground"
-                        : "border-line bg-card hover:border-primary"
+                        : diasSel[f] === "viaje"
+                          ? "border-good/50 bg-good/20 text-ink"
+                          : "border-line bg-card hover:border-primary"
                     }`}
                   >
                     {Number(f.slice(8))}
@@ -325,12 +327,13 @@ function TareoPage() {
               )}
             </div>
             <p className="mt-2 font-mono text-[11px] text-muted-foreground">
-              {fechas.length} día(s) seleccionado(s) — cada día marcado cuenta como un día de trabajo.
+              {fechasOrdenadas.length} día(s) seleccionado(s) — verde oscuro: día trabajado; verde claro: viaje (medio día).
+              {form.asistencia === "extras" && " Las horas extras se convierten a días: horas ÷ 10.5."}
             </p>
           </div>
 
           {error && <p className="font-mono text-xs text-bad">{error}</p>}
-          <Boton type="submit">Registrar tareo ({fechas.length} día(s))</Boton>
+          <Boton type="submit">Registrar tareo ({fechasOrdenadas.length} día(s))</Boton>
         </form>
       </Panel>
 
