@@ -83,13 +83,13 @@ function Proyectos() {
         {proyectos.length === 0 ? (
           <Vacio texto="Aún no hay proyectos registrados." />
         ) : (
-          <table className="w-full font-mono text-xs">
+          <table className="w-full table-fixed font-mono text-xs">
             <thead>
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                <th className="px-5 py-2 font-medium">Obra</th>
-                <th className="px-3 py-2 font-medium">Cliente</th>
-                <th className="px-3 py-2 font-medium">Ubicación</th>
-                <th className="px-5 py-2 text-right font-medium">Estado</th>
+                <th className="w-5/12 px-5 py-2 font-medium">Obra</th>
+                <th className="w-2/12 px-3 py-2 font-medium">Cliente</th>
+                <th className="w-3/12 px-3 py-2 font-medium">Ubicación</th>
+                <th className="w-2/12 px-5 py-2 text-right font-medium">Estado</th>
               </tr>
             </thead>
             <tbody>
@@ -104,12 +104,12 @@ function Proyectos() {
                         {p.estado === "Finalizado" ? "Finalizado" : "En Ejecución"}
                       </Etiqueta>
                       <Select
-                        className="w-36"
+                        className="w-24"
                         value={p.estado}
                         onChange={(e) => cambiarEstado(p.id, e.target.value)}
                       >
-                        <option value="En Ejecucion">En Ejecución</option>
-                        <option value="Finalizado">Finalizado</option>
+                        <option value="En Ejecucion">En Ejec.</option>
+                        <option value="Finalizado">Finaliz.</option>
                       </Select>
                     </div>
                   </td>
