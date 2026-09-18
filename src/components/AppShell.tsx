@@ -127,12 +127,12 @@ export function Encabezado({
   acciones?: ReactNode;
 }) {
   return (
-    <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
-      <div>
-        <p className="label-mono">{subtitulo}</p>
-        <h1 className="mt-1 text-2xl font-bold tracking-tight">{titulo}</h1>
+    <div className="mb-5">
+      <p className="label-mono mb-1">{subtitulo}</p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-bold tracking-tight">{titulo}</h1>
+        {acciones && <div className="no-print flex flex-wrap items-center gap-2">{acciones}</div>}
       </div>
-      {acciones && <div className="no-print flex flex-wrap items-center gap-2">{acciones}</div>}
     </div>
   );
 }
