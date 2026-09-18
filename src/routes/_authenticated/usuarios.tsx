@@ -49,6 +49,8 @@ function Usuarios() {
   const [abierto, setAbierto] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [mensaje, setMensaje] = useState<{ tipo: "ok" | "error"; texto: string } | null>(null);
+  const [verPassword, setVerPassword] = useState(false);
+  const [mostrarInstructivo, setMostrarInstructivo] = useState(false);
 
   if (rol !== "gerente") return <SinAcceso />;
 
