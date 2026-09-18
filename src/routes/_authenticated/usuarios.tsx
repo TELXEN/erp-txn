@@ -134,6 +134,7 @@ function Usuarios() {
                 <button
                   type="button"
                   tabIndex={-1}
+                  onMouseDown={(e) => e.preventDefault()}
                   onClick={() => setVerPassword((v) => !v)}
                   className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground hover:text-ink"
                   aria-label={verPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
@@ -141,6 +142,21 @@ function Usuarios() {
                   {verPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
+              {mostrarInstructivo && (
+                <div className="mt-2 rounded-md border border-primary/20 bg-primary/5 p-2.5 text-xs text-ink">
+                  <span className="mb-1 flex items-center gap-1.5 font-semibold text-primary">
+                    <Info className="h-3.5 w-3.5" />
+                    Requisitos de una contraseña fuerte
+                  </span>
+                  <ul className="list-disc space-y-0.5 pl-4 font-mono text-[11px] text-muted-foreground">
+                    <li>Mínimo 8 caracteres.</li>
+                    <li>Al menos una letra mayúscula.</li>
+                    <li>Al menos una letra minúscula.</li>
+                    <li>Al menos un número.</li>
+                    <li>Al menos un carácter especial (ej. !@#$%^&*).</li>
+                  </ul>
+                </div>
+              )}
             </Campo>
             <Campo etiqueta="Rol asignado">
               <Select value={form.rol} onChange={(e) => setForm({ ...form, rol: e.target.value as Rol })}>
