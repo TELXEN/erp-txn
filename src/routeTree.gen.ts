@@ -16,6 +16,7 @@ import { Route as AuthenticatedPanelRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedPartidasRouteImport } from './routes/_authenticated/partidas'
 import { Route as AuthenticatedPersonalRouteImport } from './routes/_authenticated/personal'
 import { Route as AuthenticatedProyectosRouteImport } from './routes/_authenticated/proyectos'
+import { Route as AuthenticatedTareoRouteImport } from './routes/_authenticated/tareo'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -51,6 +52,11 @@ const AuthenticatedProyectosRoute = AuthenticatedProyectosRouteImport.update({
   path: '/proyectos',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedTareoRoute = AuthenticatedTareoRouteImport.update({
+  id: '/tareo',
+  path: '/tareo',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -59,6 +65,7 @@ export interface FileRoutesByFullPath {
   '/partidas': typeof AuthenticatedPartidasRoute
   '/personal': typeof AuthenticatedPersonalRoute
   '/proyectos': typeof AuthenticatedProyectosRoute
+  '/tareo': typeof AuthenticatedTareoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -67,6 +74,7 @@ export interface FileRoutesByTo {
   '/partidas': typeof AuthenticatedPartidasRoute
   '/personal': typeof AuthenticatedPersonalRoute
   '/proyectos': typeof AuthenticatedProyectosRoute
+  '/tareo': typeof AuthenticatedTareoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -77,13 +85,27 @@ export interface FileRoutesById {
   '/_authenticated/partidas': typeof AuthenticatedPartidasRoute
   '/_authenticated/personal': typeof AuthenticatedPersonalRoute
   '/_authenticated/proyectos': typeof AuthenticatedProyectosRoute
+  '/_authenticated/tareo': typeof AuthenticatedTareoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/avance' | '/panel' | '/partidas' | '/personal' | '/proyectos'
+    | '/'
+    | '/avance'
+    | '/panel'
+    | '/partidas'
+    | '/personal'
+    | '/proyectos'
+    | '/tareo'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/avance' | '/panel' | '/partidas' | '/personal' | '/proyectos'
+  to:
+    | '/'
+    | '/avance'
+    | '/panel'
+    | '/partidas'
+    | '/personal'
+    | '/proyectos'
+    | '/tareo'
   id:
     | '__root__'
     | '/'
@@ -93,6 +115,7 @@ export interface FileRouteTypes {
     | '/_authenticated/partidas'
     | '/_authenticated/personal'
     | '/_authenticated/proyectos'
+    | '/_authenticated/tareo'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -151,6 +174,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProyectosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/tareo': {
+      id: '/_authenticated/tareo'
+      path: '/tareo'
+      fullPath: '/tareo'
+      preLoaderRoute: typeof AuthenticatedTareoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -160,6 +190,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPartidasRoute: typeof AuthenticatedPartidasRoute
   AuthenticatedPersonalRoute: typeof AuthenticatedPersonalRoute
   AuthenticatedProyectosRoute: typeof AuthenticatedProyectosRoute
+  AuthenticatedTareoRoute: typeof AuthenticatedTareoRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -168,6 +199,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPartidasRoute: AuthenticatedPartidasRoute,
   AuthenticatedPersonalRoute: AuthenticatedPersonalRoute,
   AuthenticatedProyectosRoute: AuthenticatedProyectosRoute,
+  AuthenticatedTareoRoute: AuthenticatedTareoRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
