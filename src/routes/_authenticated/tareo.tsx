@@ -89,7 +89,7 @@ function TareoPage() {
     const trabajador = trabajadores.find((t) => t.id === form.trabajador_id);
     if (!trabajador || fechasOrdenadas.length === 0) return setError("Selecciona trabajador y al menos una fecha.");
     if (form.asistencia === "extras" && (!Number(horasExtras) || Number(horasExtras) <= 0))
-      return setError("Ingresa la cantidad de horas extras.");
+      return setError("Ingresa las horas extras.");
     const filas = fechasOrdenadas.map((f) => {
       const asistencia =
         diasSel[f] === "viaje" ? 0.5 : form.asistencia === "extras" ? piso2(Number(horasExtras) / 10.5) : 1;
