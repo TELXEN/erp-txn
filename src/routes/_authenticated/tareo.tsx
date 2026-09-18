@@ -133,23 +133,13 @@ function TareoPage() {
             <Campo etiqueta="Proyecto">
               <Select
                 value={form.proyecto_id}
-                onChange={(e) => setForm({ ...form, proyecto_id: e.target.value, partida_id: "" })}
+                onChange={(e) => setForm({ ...form, proyecto_id: e.target.value })}
                 required
               >
                 <option value="">Selecciona...</option>
                 {proyectos.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.nombre}
-                  </option>
-                ))}
-              </Select>
-            </Campo>
-            <Campo etiqueta="Partida">
-              <Select value={form.partida_id} onChange={(e) => setForm({ ...form, partida_id: e.target.value })}>
-                <option value="">Sin partida</option>
-                {partidasProyecto.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.especialidad} · {p.nombre}
                   </option>
                 ))}
               </Select>
