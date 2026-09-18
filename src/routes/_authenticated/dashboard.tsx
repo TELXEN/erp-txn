@@ -94,7 +94,8 @@ function Dashboard() {
       {
         nombre: "KPIs",
         filas: [
-          { Indicador: "Total Ventas (S/)", Valor: datos.totalVentas },
+          { Indicador: "Total Ventas Cobradas (S/)", Valor: datos.totalVentas },
+          { Indicador: "Ventas Pendientes de Pago (S/)", Valor: datos.ventasPendientes },
           { Indicador: "Compras Directas (S/)", Valor: datos.totalDirectos },
           { Indicador: "Mano de Obra / Tareo (S/)", Valor: datos.totalTareo },
           { Indicador: "Gastos Generales (S/)", Valor: datos.totalGenerales },
