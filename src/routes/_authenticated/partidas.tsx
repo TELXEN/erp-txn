@@ -213,7 +213,7 @@ function Partidas() {
                 </thead>
                 <tbody>
                   {lista.map((p) => {
-                    const costo = costoRealPartida(p.id, tareos, gastos);
+                    const costo = costoRealPartida(p.id, gastos);
                     const dif = Number(p.presupuesto_inicial) - costo;
                     const enEdicion = editando?.id === p.id;
                     if (enEdicion) {
