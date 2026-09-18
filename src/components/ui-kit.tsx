@@ -1,0 +1,92 @@
+import type { ReactNode, InputHTMLAttributes, SelectHTMLAttributes, ButtonHTMLAttributes } from "react";
+
+export function Panel({
+  titulo,
+  extra,
+  children,
+  className = "",
+}: {
+  titulo?: string;
+  extra?: ReactNode;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <section className={`panel rise overflow-hidden ${className}`}>
+      {(titulo || extra) && (
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-5 py-3">
+          {titulo && <h2 className="text-base font-semibold tracking-tight">{titulo}</h2>}
+          {extra}
+        </div>
+      )}
+      {children}
+    </section>
+  );
+}
+
+export function Campo({ etiqueta, children }: { etiqueta: string; children: ReactNode }) {
+  return (
+    <label className="block">
+      <span className="label-mono">{etiqueta}</span>
+      <div className="mt-1">{children}</div>
+    </label>
+  );
+}
+
+const baseInput =
+  "w-full rounded-md border border-line bg-card px-3 py-2 text-sm text-foreground outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15 disabled:opacity-50";
+
+export function Input(props: InputHTMLAttributes<HTMLInputElement>) {
+  return <input {...props} className={`${baseInput} ${props.className ?? ""}`} />;
+}
+
+export function Select(props: SelectHTMLAttributes<HTMLSelectElement>) {
+  return <select {...props} className={`${baseInput} ${props.className ?? ""}`} />;
+}
+
+export function Boton({
+  variante = "primario",
+  ...props
+}: ButtonHTMLAttributes<HTMLButtonElement> & { variante?: "primario" | "linea" | "peligro" }) {
+  const estilos = {
+    primario: "bg-primary text-primary-foreground hover:opacity-90",
+    linea: "border border-line bg-card text-foreground hover:bg-ink hover:text-paper",
+    peligro: "border border-bad/40 text-bad hover:bg-bad hover:text-paper",
+  }[variante];
+  return (
+    <button
+      {...props}
+      className={`inline-flex items-center justify-center gap-2 rounded-md px-3 py-2 font-mono text-xs font-medium transition-colors disabled:opacity-50 ${estilos} ${props.className ?? ""}`}
+    />
+  );
+}
+
+export function Etiqueta({ tono, children }: { tono: "good" | "bad" | "neutro"; children: ReactNode }) {
+  const c =
+    tono === "good"
+      ? "text-good bg-good/10 ring-good/20"
+      : tono === "bad"
+        ? "text-bad bg-bad/10 ring-bad/20"
+        : "text-muted-foreground bg-muted ring-line";
+  return (
+    <span className={`inline-flex items-center rounded-full px-2 py-0.5 font-mono text-[11px] ring-1 ${c}`}>
+      {children}
+    </span>
+  );
+}
+
+export function Vacio({ texto }: { texto: string }) {
+  return <p className="px-5 py-8 text-center font-mono text-xs text-muted-foreground">{texto}</p>;
+}
+
+export function SinAcceso() {
+  return (
+    <div className="panel p-10 text-center">
+      <p className="label-mono">Acceso restringido</p>
+      <h2 className="mt-2 text-lg font-semibold">Tu rol no tiene permiso para ver esta pantalla</h2>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Comunícate con el Gerente si necesitas acceso a este módulo.
+      </p>
+    </div>
+  );
+}

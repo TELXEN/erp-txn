@@ -1,0 +1,500 @@
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
+
+export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.5"
+  }
+  public: {
+    Tables: {
+      gastos_directos: {
+        Row: {
+          created_at: string
+          descripcion: string
+          fecha: string
+          id: string
+          moneda: Database["public"]["Enums"]["moneda"]
+          monto: number
+          monto_soles: number
+          partida_id: string
+          proveedor: string
+          proyecto_id: string
+          tipo_cambio: number
+        }
+        Insert: {
+          created_at?: string
+          descripcion: string
+          fecha?: string
+          id?: string
+          moneda?: Database["public"]["Enums"]["moneda"]
+          monto?: number
+          monto_soles?: number
+          partida_id: string
+          proveedor?: string
+          proyecto_id: string
+          tipo_cambio?: number
+        }
+        Update: {
+          created_at?: string
+          descripcion?: string
+          fecha?: string
+          id?: string
+          moneda?: Database["public"]["Enums"]["moneda"]
+          monto?: number
+          monto_soles?: number
+          partida_id?: string
+          proveedor?: string
+          proyecto_id?: string
+          tipo_cambio?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gastos_directos_partida_id_fkey"
+            columns: ["partida_id"]
+            isOneToOne: false
+            referencedRelation: "partidas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gastos_directos_proyecto_id_fkey"
+            columns: ["proyecto_id"]
+            isOneToOne: false
+            referencedRelation: "proyectos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gastos_generales: {
+        Row: {
+          created_at: string
+          descripcion: string
+          fecha: string
+          id: string
+          moneda: Database["public"]["Enums"]["moneda"]
+          monto: number
+          monto_soles: number
+          proveedor: string
+          tipo_cambio: number
+        }
+        Insert: {
+          created_at?: string
+          descripcion: string
+          fecha?: string
+          id?: string
+          moneda?: Database["public"]["Enums"]["moneda"]
+          monto?: number
+          monto_soles?: number
+          proveedor?: string
+          tipo_cambio?: number
+        }
+        Update: {
+          created_at?: string
+          descripcion?: string
+          fecha?: string
+          id?: string
+          moneda?: Database["public"]["Enums"]["moneda"]
+          monto?: number
+          monto_soles?: number
+          proveedor?: string
+          tipo_cambio?: number
+        }
+        Relationships: []
+      }
+      partidas: {
+        Row: {
+          avance_pct: number
+          created_at: string
+          especialidad: string
+          id: string
+          nombre: string
+          presupuesto_inicial: number
+          proyecto_id: string
+        }
+        Insert: {
+          avance_pct?: number
+          created_at?: string
+          especialidad: string
+          id?: string
+          nombre: string
+          presupuesto_inicial?: number
+          proyecto_id: string
+        }
+        Update: {
+          avance_pct?: number
+          created_at?: string
+          especialidad?: string
+          id?: string
+          nombre?: string
+          presupuesto_inicial?: number
+          proyecto_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partidas_proyecto_id_fkey"
+            columns: ["proyecto_id"]
+            isOneToOne: false
+            referencedRelation: "proyectos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          nombre: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string
+          id: string
+          nombre?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          nombre?: string
+        }
+        Relationships: []
+      }
+      proyectos: {
+        Row: {
+          cliente: string
+          created_at: string
+          estado: Database["public"]["Enums"]["estado_proyecto"]
+          id: string
+          nombre: string
+          ubicacion: string
+        }
+        Insert: {
+          cliente?: string
+          created_at?: string
+          estado?: Database["public"]["Enums"]["estado_proyecto"]
+          id?: string
+          nombre: string
+          ubicacion?: string
+        }
+        Update: {
+          cliente?: string
+          created_at?: string
+          estado?: Database["public"]["Enums"]["estado_proyecto"]
+          id?: string
+          nombre?: string
+          ubicacion?: string
+        }
+        Relationships: []
+      }
+      tareos: {
+        Row: {
+          asistencia: number
+          costo_soles: number
+          created_at: string
+          fecha: string
+          id: string
+          partida_id: string | null
+          proyecto_id: string
+          trabajador_id: string
+        }
+        Insert: {
+          asistencia?: number
+          costo_soles?: number
+          created_at?: string
+          fecha: string
+          id?: string
+          partida_id?: string | null
+          proyecto_id: string
+          trabajador_id: string
+        }
+        Update: {
+          asistencia?: number
+          costo_soles?: number
+          created_at?: string
+          fecha?: string
+          id?: string
+          partida_id?: string | null
+          proyecto_id?: string
+          trabajador_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tareos_partida_id_fkey"
+            columns: ["partida_id"]
+            isOneToOne: false
+            referencedRelation: "partidas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tareos_proyecto_id_fkey"
+            columns: ["proyecto_id"]
+            isOneToOne: false
+            referencedRelation: "proyectos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tareos_trabajador_id_fkey"
+            columns: ["trabajador_id"]
+            isOneToOne: false
+            referencedRelation: "trabajadores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trabajadores: {
+        Row: {
+          activo: boolean
+          categoria: Database["public"]["Enums"]["categoria_obrero"]
+          created_at: string
+          id: string
+          jornal_diario: number
+          nombre: string
+        }
+        Insert: {
+          activo?: boolean
+          categoria?: Database["public"]["Enums"]["categoria_obrero"]
+          created_at?: string
+          id?: string
+          jornal_diario?: number
+          nombre: string
+        }
+        Update: {
+          activo?: boolean
+          categoria?: Database["public"]["Enums"]["categoria_obrero"]
+          created_at?: string
+          id?: string
+          jornal_diario?: number
+          nombre?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ventas: {
+        Row: {
+          concepto: string
+          created_at: string
+          estado: Database["public"]["Enums"]["estado_venta"]
+          fecha_pago: string | null
+          id: string
+          moneda: Database["public"]["Enums"]["moneda"]
+          monto: number
+          monto_soles: number
+          numero_factura: string
+          proyecto_id: string
+          tipo_cambio: number
+        }
+        Insert: {
+          concepto: string
+          created_at?: string
+          estado?: Database["public"]["Enums"]["estado_venta"]
+          fecha_pago?: string | null
+          id?: string
+          moneda?: Database["public"]["Enums"]["moneda"]
+          monto?: number
+          monto_soles?: number
+          numero_factura?: string
+          proyecto_id: string
+          tipo_cambio?: number
+        }
+        Update: {
+          concepto?: string
+          created_at?: string
+          estado?: Database["public"]["Enums"]["estado_venta"]
+          fecha_pago?: string | null
+          id?: string
+          moneda?: Database["public"]["Enums"]["moneda"]
+          monto?: number
+          monto_soles?: number
+          numero_factura?: string
+          proyecto_id?: string
+          tipo_cambio?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ventas_proyecto_id_fkey"
+            columns: ["proyecto_id"]
+            isOneToOne: false
+            referencedRelation: "proyectos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_admin_o_gerente: { Args: { _user_id: string }; Returns: boolean }
+    }
+    Enums: {
+      app_role: "ingeniero" | "administrador" | "gerente"
+      categoria_obrero: "Operario" | "Oficial" | "Peon"
+      estado_proyecto: "En Ejecucion" | "Finalizado"
+      estado_venta: "Pagado" | "Pendiente de Pago"
+      moneda: "PEN" | "USD"
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
+}
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never) = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never) = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never) = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never) = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never) = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {
+      app_role: ["ingeniero", "administrador", "gerente"],
+      categoria_obrero: ["Operario", "Oficial", "Peon"],
+      estado_proyecto: ["En Ejecucion", "Finalizado"],
+      estado_venta: ["Pagado", "Pendiente de Pago"],
+      moneda: ["PEN", "USD"],
+    },
+  },
+} as const
