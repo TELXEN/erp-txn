@@ -149,7 +149,11 @@ function Dashboard() {
       />
 
       <div className="mb-4 grid gap-3 sm:grid-cols-3">
-        <Tarjeta etiqueta="Total Ventas" valor={datos.totalVentas} detalle="Valorizaciones registradas" />
+        <Tarjeta
+          etiqueta="Total Ventas (Cobrado)"
+          valor={datos.totalVentas}
+          detalle={`Solo valorizaciones pagadas · Pendiente ${soles(datos.ventasPendientes)}`}
+        />
         <Tarjeta
           etiqueta="Total Gastos"
           valor={datos.totalGastos}
