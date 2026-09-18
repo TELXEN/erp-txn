@@ -208,6 +208,7 @@ function TareoPage() {
           fecha: f,
           trabajador_id: trabajadorVisible,
           proyecto_id: proyectoEdicion,
+          tipo: "dia",
           asistencia: 1,
           costo_soles: Number(trabajador.jornal_diario),
         })),
