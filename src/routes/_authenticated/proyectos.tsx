@@ -89,7 +89,7 @@ function Proyectos() {
                 <th className="w-5/12 px-5 py-2 font-medium">Obra</th>
                 <th className="w-2/12 px-3 py-2 font-medium">Cliente</th>
                 <th className="w-3/12 px-3 py-2 font-medium">Ubicación</th>
-                <th className="w-2/12 px-5 py-2 text-right font-medium">Estado</th>
+                <th className="w-2/12 px-3 py-2 text-right font-medium">Estado</th>
               </tr>
             </thead>
             <tbody>
@@ -98,9 +98,9 @@ function Proyectos() {
                   <td className="px-5 py-2.5 font-semibold text-ink">{p.nombre}</td>
                   <td className="px-3 py-2.5 text-muted-foreground">{p.cliente || "—"}</td>
                   <td className="px-3 py-2.5 text-muted-foreground">{p.ubicacion || "—"}</td>
-                  <td className="px-5 py-2.5 text-right">
+                  <td className="px-3 py-2.5 text-right">
                     <Select
-                      className={`w-24 text-right ${
+                      className={`w-full text-right ${
                         p.estado === "Finalizado"
                           ? "border-muted-foreground text-muted-foreground"
                           : "border-primary text-primary"
