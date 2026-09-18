@@ -200,7 +200,6 @@ export type Database = {
           created_at: string
           fecha: string
           id: string
-          partida_id: string | null
           proyecto_id: string
           trabajador_id: string
         }
@@ -210,7 +209,6 @@ export type Database = {
           created_at?: string
           fecha: string
           id?: string
-          partida_id?: string | null
           proyecto_id: string
           trabajador_id: string
         }
@@ -220,18 +218,10 @@ export type Database = {
           created_at?: string
           fecha?: string
           id?: string
-          partida_id?: string | null
           proyecto_id?: string
           trabajador_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "tareos_partida_id_fkey"
-            columns: ["partida_id"]
-            isOneToOne: false
-            referencedRelation: "partidas"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "tareos_proyecto_id_fkey"
             columns: ["proyecto_id"]
