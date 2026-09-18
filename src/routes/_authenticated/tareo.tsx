@@ -38,7 +38,6 @@ function TareoPage() {
   const partidasProyecto = partidas.filter((p) => p.proyecto_id === form.proyecto_id);
   const nombreTrab = (id: string) => trabajadores.find((t) => t.id === id)?.nombre ?? "—";
   const nombreProy = (id: string) => proyectos.find((p) => p.id === id)?.nombre ?? "—";
-  const nombrePart = (id: string | null) => partidas.find((p) => p.id === id)?.nombre ?? "—";
 
   const consolidado = useMemo(() => {
     const delMes = tareos.filter((t) => t.fecha.slice(0, 7) === mes);
