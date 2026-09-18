@@ -31,7 +31,7 @@ function TareoPage() {
 
   const [fechas, setFechas] = useState<string[]>([hoy()]);
   const [nuevaFecha, setNuevaFecha] = useState(hoy());
-  const [form, setForm] = useState({ trabajador_id: "", proyecto_id: "", partida_id: "", asistencia: "1" });
+  const [form, setForm] = useState({ trabajador_id: "", proyecto_id: "", asistencia: "1" });
   const [mes, setMes] = useState(mesActual());
   const [error, setError] = useState("");
 
