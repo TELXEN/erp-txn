@@ -76,7 +76,7 @@ function TareoPage() {
   const alternarDia = (f: string) =>
     setDiasSel((actual) => {
       const copia = { ...actual };
-      if (copia[f] && form.asistencia !== "extras") delete copia[f];
+      if (copia[f]) delete copia[f];
       else copia[f] = form.asistencia as TipoDia;
       return copia;
     });
@@ -88,14 +88,19 @@ function TareoPage() {
 
   const consolidado = useMemo(() => {
     const delMes = tareos.filter((t) => t.fecha.slice(0, 7) === mes);
-    const mapa = new Map<string, { dias: number; costo: number }>();
+    const mapa = new Map<string, { dias: number; horas: number }>();
     delMes.forEach((t) => {
-      const acc = mapa.get(t.trabajador_id) ?? { dias: 0, costo: 0 };
-      acc.dias += Number(t.asistencia);
-      acc.costo += Number(t.costo_soles);
+      const acc = mapa.get(t.trabajador_id) ?? { dias: 0, horas: 0 };
+      if (tipoDeTareo(t) === "extras") acc.horas += Number(t.asistencia) * 10.5;
+      else acc.dias += Number(t.asistencia);
       mapa.set(t.trabajador_id, acc);
     });
-    return [...mapa.entries()].map(([id, v]) => ({ id, nombre: nombreTrab(id), ...v }));
+    return [...mapa.entries()].map(([id, v]) => {
+      const trabajador = trabajadores.find((t) => t.id === id);
+      const jornal = Number(trabajador?.jornal_diario ?? 0);
+      const diasTotal = v.dias + piso2(v.horas / 10.5); // valor de cálculo, no se muestra
+      return { id, nombre: nombreTrab(id), dias: v.dias, horas: v.horas, costo: diasTotal * jornal };
+    });
   }, [tareos, mes, trabajadores]);
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
@@ -105,12 +110,9 @@ function TareoPage() {
     setError("");
     const trabajador = trabajadores.find((t) => t.id === form.trabajador_id);
     if (!trabajador || fechasOrdenadas.length === 0) return setError("Selecciona trabajador y al menos una fecha.");
-    const hayExtras = fechasOrdenadas.some((f) => diasSel[f] === "extras");
-    if (hayExtras && (!Number(horasExtras) || Number(horasExtras) <= 0))
-      return setError("Ingresa las horas extras.");
     const filas = fechasOrdenadas.map((f) => {
-      const tipo: TipoDia = diasSel[f] ?? "dia";
-      const asistencia = tipo === "viaje" ? 0.5 : tipo === "extras" ? piso2(Number(horasExtras) / 10.5) : 1;
+      const tipo: TipoDia = diasSel[f] === "viaje" ? "viaje" : "dia";
+      const asistencia = tipo === "viaje" ? 0.5 : 1;
       return {
         fecha: f,
         trabajador_id: form.trabajador_id,
@@ -125,6 +127,33 @@ function TareoPage() {
       return setError(
         err.code === "23505"
           ? "Ya existe un registro de este tipo para ese día. Elige otro tipo (por ejemplo Horas Extras) o corrige el día desde el consolidado."
+          : err.message,
+      );
+    setDiasSel({ [hoy()]: "dia" });
+    qc.invalidateQueries({ queryKey: ["tareos"] });
+  }
+
+  async function registrarExtras() {
+    setError("");
+    const trabajador = trabajadores.find((t) => t.id === form.trabajador_id);
+    const horas = Number(horasExtras);
+    if (!trabajador || !form.proyecto_id) return setError("Selecciona trabajador y proyecto.");
+    if (!horas || horas <= 0) return setError("Ingresa las horas extras.");
+    if (fechasOrdenadas.length === 0) return setError("Marca al menos un día en el calendario.");
+    const asistencia = piso2(horas / 10.5);
+    const filas = fechasOrdenadas.map((f) => ({
+      fecha: f,
+      trabajador_id: form.trabajador_id,
+      proyecto_id: form.proyecto_id,
+      tipo: "extras" as TipoDia,
+      asistencia,
+      costo_soles: asistencia * Number(trabajador.jornal_diario),
+    }));
+    const { error: err } = await supabase.from("tareos").insert(filas);
+    if (err)
+      return setError(
+        err.code === "23505"
+          ? "Ya hay horas extras registradas en uno de esos días. Corrige el día desde el consolidado."
           : err.message,
       );
     setDiasSel({ [hoy()]: "dia" });
