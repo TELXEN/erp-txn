@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedAvanceRouteImport } from './routes/_authenticated/avance'
 import { Route as AuthenticatedPanelRouteImport } from './routes/_authenticated/panel'
 import { Route as AuthenticatedPartidasRouteImport } from './routes/_authenticated/partidas'
+import { Route as AuthenticatedPersonalRouteImport } from './routes/_authenticated/personal'
 import { Route as AuthenticatedProyectosRouteImport } from './routes/_authenticated/proyectos'
 
 const IndexRoute = IndexRouteImport.update({
@@ -40,6 +41,11 @@ const AuthenticatedPartidasRoute = AuthenticatedPartidasRouteImport.update({
   path: '/partidas',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedPersonalRoute = AuthenticatedPersonalRouteImport.update({
+  id: '/personal',
+  path: '/personal',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedProyectosRoute = AuthenticatedProyectosRouteImport.update({
   id: '/proyectos',
   path: '/proyectos',
@@ -51,6 +57,7 @@ export interface FileRoutesByFullPath {
   '/avance': typeof AuthenticatedAvanceRoute
   '/panel': typeof AuthenticatedPanelRoute
   '/partidas': typeof AuthenticatedPartidasRoute
+  '/personal': typeof AuthenticatedPersonalRoute
   '/proyectos': typeof AuthenticatedProyectosRoute
 }
 export interface FileRoutesByTo {
@@ -58,6 +65,7 @@ export interface FileRoutesByTo {
   '/avance': typeof AuthenticatedAvanceRoute
   '/panel': typeof AuthenticatedPanelRoute
   '/partidas': typeof AuthenticatedPartidasRoute
+  '/personal': typeof AuthenticatedPersonalRoute
   '/proyectos': typeof AuthenticatedProyectosRoute
 }
 export interface FileRoutesById {
@@ -67,13 +75,15 @@ export interface FileRoutesById {
   '/_authenticated/avance': typeof AuthenticatedAvanceRoute
   '/_authenticated/panel': typeof AuthenticatedPanelRoute
   '/_authenticated/partidas': typeof AuthenticatedPartidasRoute
+  '/_authenticated/personal': typeof AuthenticatedPersonalRoute
   '/_authenticated/proyectos': typeof AuthenticatedProyectosRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/avance' | '/panel' | '/partidas' | '/proyectos'
+  fullPaths:
+    '/' | '/avance' | '/panel' | '/partidas' | '/personal' | '/proyectos'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/avance' | '/panel' | '/partidas' | '/proyectos'
+  to: '/' | '/avance' | '/panel' | '/partidas' | '/personal' | '/proyectos'
   id:
     | '__root__'
     | '/'
@@ -81,6 +91,7 @@ export interface FileRouteTypes {
     | '/_authenticated/avance'
     | '/_authenticated/panel'
     | '/_authenticated/partidas'
+    | '/_authenticated/personal'
     | '/_authenticated/proyectos'
   fileRoutesById: FileRoutesById
 }
@@ -126,6 +137,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPartidasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/personal': {
+      id: '/_authenticated/personal'
+      path: '/personal'
+      fullPath: '/personal'
+      preLoaderRoute: typeof AuthenticatedPersonalRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/proyectos': {
       id: '/_authenticated/proyectos'
       path: '/proyectos'
@@ -140,6 +158,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAvanceRoute: typeof AuthenticatedAvanceRoute
   AuthenticatedPanelRoute: typeof AuthenticatedPanelRoute
   AuthenticatedPartidasRoute: typeof AuthenticatedPartidasRoute
+  AuthenticatedPersonalRoute: typeof AuthenticatedPersonalRoute
   AuthenticatedProyectosRoute: typeof AuthenticatedProyectosRoute
 }
 
@@ -147,6 +166,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAvanceRoute: AuthenticatedAvanceRoute,
   AuthenticatedPanelRoute: AuthenticatedPanelRoute,
   AuthenticatedPartidasRoute: AuthenticatedPartidasRoute,
+  AuthenticatedPersonalRoute: AuthenticatedPersonalRoute,
   AuthenticatedProyectosRoute: AuthenticatedProyectosRoute,
 }
 
