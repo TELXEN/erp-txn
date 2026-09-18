@@ -54,8 +54,12 @@ function Proyectos() {
     <>
       <Encabezado titulo="Proyectos" subtitulo="Obras de la empresa" />
 
-      <Panel titulo="Nuevo proyecto" className="mb-4">
-        <form onSubmit={guardar} className="grid gap-3 p-5 sm:grid-cols-4">
+      <Panel
+        titulo="Nuevo proyecto"
+        className="mb-4"
+        extra={<Boton type="submit" form="form-proyecto">Registrar</Boton>}
+      >
+        <form id="form-proyecto" onSubmit={guardar} className="grid gap-3 p-5 sm:grid-cols-4">
           <Campo etiqueta="Nombre de la obra">
             <Input value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} required maxLength={120} />
           </Campo>
@@ -65,15 +69,12 @@ function Proyectos() {
           <Campo etiqueta="Ubicación">
             <Input value={form.ubicacion} onChange={(e) => setForm({ ...form, ubicacion: e.target.value })} maxLength={120} />
           </Campo>
-          <div className="flex items-end gap-2">
-            <Campo etiqueta="Estado">
-              <Select value={form.estado} onChange={(e) => setForm({ ...form, estado: e.target.value })}>
-                <option value="En Ejecucion">En Ejecución</option>
-                <option value="Finalizado">Finalizado</option>
-              </Select>
-            </Campo>
-            <Boton type="submit">Registrar</Boton>
-          </div>
+          <Campo etiqueta="Estado">
+            <Select value={form.estado} onChange={(e) => setForm({ ...form, estado: e.target.value })}>
+              <option value="En Ejecucion">En Ejecución</option>
+              <option value="Finalizado">Finalizado</option>
+            </Select>
+          </Campo>
           {error && <p className="font-mono text-xs text-bad sm:col-span-4">{error}</p>}
         </form>
       </Panel>
