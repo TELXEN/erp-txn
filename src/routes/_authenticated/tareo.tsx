@@ -76,7 +76,7 @@ function TareoPage() {
   const alternarDia = (f: string) =>
     setDiasSel((actual) => {
       const copia = { ...actual };
-      if (copia[f] && form.asistencia !== "extras") delete copia[f];
+      if (copia[f]) delete copia[f];
       else copia[f] = form.asistencia as TipoDia;
       return copia;
     });
@@ -88,14 +88,19 @@ function TareoPage() {
 
   const consolidado = useMemo(() => {
     const delMes = tareos.filter((t) => t.fecha.slice(0, 7) === mes);
-    const mapa = new Map<string, { dias: number; costo: number }>();
+    const mapa = new Map<string, { dias: number; horas: number }>();
     delMes.forEach((t) => {
-      const acc = mapa.get(t.trabajador_id) ?? { dias: 0, costo: 0 };
-      acc.dias += Number(t.asistencia);
-      acc.costo += Number(t.costo_soles);
+      const acc = mapa.get(t.trabajador_id) ?? { dias: 0, horas: 0 };
+      if (tipoDeTareo(t) === "extras") acc.horas += Number(t.asistencia) * 10.5;
+      else acc.dias += Number(t.asistencia);
       mapa.set(t.trabajador_id, acc);
     });
-    return [...mapa.entries()].map(([id, v]) => ({ id, nombre: nombreTrab(id), ...v }));
+    return [...mapa.entries()].map(([id, v]) => {
+      const trabajador = trabajadores.find((t) => t.id === id);
+      const jornal = Number(trabajador?.jornal_diario ?? 0);
+      const diasTotal = v.dias + piso2(v.horas / 10.5); // valor de cálculo, no se muestra
+      return { id, nombre: nombreTrab(id), dias: v.dias, horas: v.horas, costo: diasTotal * jornal };
+    });
   }, [tareos, mes, trabajadores]);
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
@@ -105,12 +110,9 @@ function TareoPage() {
     setError("");
     const trabajador = trabajadores.find((t) => t.id === form.trabajador_id);
     if (!trabajador || fechasOrdenadas.length === 0) return setError("Selecciona trabajador y al menos una fecha.");
-    const hayExtras = fechasOrdenadas.some((f) => diasSel[f] === "extras");
-    if (hayExtras && (!Number(horasExtras) || Number(horasExtras) <= 0))
-      return setError("Ingresa las horas extras.");
     const filas = fechasOrdenadas.map((f) => {
-      const tipo: TipoDia = diasSel[f] ?? "dia";
-      const asistencia = tipo === "viaje" ? 0.5 : tipo === "extras" ? piso2(Number(horasExtras) / 10.5) : 1;
+      const tipo: TipoDia = diasSel[f] === "viaje" ? "viaje" : "dia";
+      const asistencia = tipo === "viaje" ? 0.5 : 1;
       return {
         fecha: f,
         trabajador_id: form.trabajador_id,
@@ -125,6 +127,33 @@ function TareoPage() {
       return setError(
         err.code === "23505"
           ? "Ya existe un registro de este tipo para ese día. Elige otro tipo (por ejemplo Horas Extras) o corrige el día desde el consolidado."
+          : err.message,
+      );
+    setDiasSel({ [hoy()]: "dia" });
+    qc.invalidateQueries({ queryKey: ["tareos"] });
+  }
+
+  async function registrarExtras() {
+    setError("");
+    const trabajador = trabajadores.find((t) => t.id === form.trabajador_id);
+    const horas = Number(horasExtras);
+    if (!trabajador || !form.proyecto_id) return setError("Selecciona trabajador y proyecto.");
+    if (!horas || horas <= 0) return setError("Ingresa las horas extras.");
+    if (fechasOrdenadas.length === 0) return setError("Marca al menos un día en el calendario.");
+    const asistencia = piso2(horas / 10.5);
+    const filas = fechasOrdenadas.map((f) => ({
+      fecha: f,
+      trabajador_id: form.trabajador_id,
+      proyecto_id: form.proyecto_id,
+      tipo: "extras" as TipoDia,
+      asistencia,
+      costo_soles: asistencia * Number(trabajador.jornal_diario),
+    }));
+    const { error: err } = await supabase.from("tareos").insert(filas);
+    if (err)
+      return setError(
+        err.code === "23505"
+          ? "Ya hay horas extras registradas en uno de esos días. Corrige el día desde el consolidado."
           : err.message,
       );
     setDiasSel({ [hoy()]: "dia" });
@@ -232,6 +261,7 @@ function TareoPage() {
         filas: consolidado.map((c) => ({
           Trabajador: c.nombre,
           "Dias Laborados": c.dias,
+          "Horas Extras": c.horas,
           "Costo Mano de Obra (S/)": c.costo,
         })),
       },
@@ -295,11 +325,10 @@ function TareoPage() {
               <Select value={form.asistencia} onChange={(e) => setForm({ ...form, asistencia: e.target.value })}>
                 <option value="dia">Día Trabajado</option>
                 <option value="viaje">Viaje</option>
-                <option value="extras">Horas Extras</option>
               </Select>
             </Campo>
-            {form.asistencia === "extras" && (
-              <Campo etiqueta="Horas extra">
+            <Campo etiqueta="Horas extra">
+              <div className="flex gap-2">
                 <Input
                   type="number"
                   min="0"
@@ -307,10 +336,12 @@ function TareoPage() {
                   value={horasExtras}
                   onChange={(e) => setHorasExtras(e.target.value)}
                   placeholder="Ej. 4"
-                  required
                 />
-              </Campo>
-            )}
+                <Boton type="button" variante="linea" className="shrink-0" onClick={registrarExtras}>
+                  Registrar
+                </Boton>
+              </div>
+            </Campo>
           </div>
 
           <div className="rounded-md border border-line bg-muted/40 p-3">
@@ -357,9 +388,8 @@ function TareoPage() {
             </div>
             <p className="mt-2 font-mono text-[11px] text-muted-foreground">
               {fechasOrdenadas.length} día(s) seleccionado(s) — verde: día trabajado; verde claro: viaje (medio día); azul
-              claro: horas extras.
-              {form.asistencia === "extras" &&
-                " Las horas extras se registran aunque el día ya esté contabilizado y se convierten a días: horas ÷ 10.5."}
+              claro: horas extras. Las horas extras se registran con su propio botón y se convierten a días: horas ÷
+              10.5.
             </p>
           </div>
 
@@ -386,6 +416,7 @@ function TareoPage() {
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
                 <th className="px-5 py-2 font-medium">Trabajador</th>
                 <th className="px-3 py-2 text-right font-medium">Días laborados</th>
+                <th className="px-3 py-2 text-right font-medium">Horas extras</th>
                 <th className="px-5 py-2 text-right font-medium">Costo acumulado</th>
               </tr>
             </thead>
@@ -394,6 +425,7 @@ function TareoPage() {
                 <tr key={c.id} className="border-b border-line/60 last:border-0">
                   <td className="px-5 py-2.5 font-semibold text-ink">{c.nombre}</td>
                   <td className="px-3 py-2.5 text-right">{c.dias}</td>
+                  <td className="px-3 py-2.5 text-right">{c.horas}</td>
                   <td className="px-5 py-2.5">
                     <div className="flex items-center justify-end gap-1.5">
                       <span className="mr-2">{soles(c.costo)}</span>
