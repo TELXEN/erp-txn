@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
+import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { useAuth, puedeVerDinero } from "@/lib/auth";
 import { useProyectos } from "@/lib/datos";
 
@@ -83,13 +83,13 @@ function Proyectos() {
         {proyectos.length === 0 ? (
           <Vacio texto="Aún no hay proyectos registrados." />
         ) : (
-          <table className="w-full font-mono text-xs">
+          <table className="w-full table-fixed font-mono text-xs">
             <thead>
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                <th className="px-5 py-2 font-medium">Obra</th>
-                <th className="px-3 py-2 font-medium">Cliente</th>
-                <th className="px-3 py-2 font-medium">Ubicación</th>
-                <th className="px-5 py-2 text-right font-medium">Estado</th>
+                <th className="w-5/12 px-5 py-2 font-medium">Obra</th>
+                <th className="w-2/12 px-3 py-2 font-medium">Cliente</th>
+                <th className="w-3/12 px-3 py-2 font-medium">Ubicación</th>
+                <th className="w-2/12 px-3 py-2 text-right font-medium">Estado</th>
               </tr>
             </thead>
             <tbody>
@@ -98,20 +98,19 @@ function Proyectos() {
                   <td className="px-5 py-2.5 font-semibold text-ink">{p.nombre}</td>
                   <td className="px-3 py-2.5 text-muted-foreground">{p.cliente || "—"}</td>
                   <td className="px-3 py-2.5 text-muted-foreground">{p.ubicacion || "—"}</td>
-                  <td className="px-5 py-2.5 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <Etiqueta tono={p.estado === "Finalizado" ? "neutro" : "good"}>
-                        {p.estado === "Finalizado" ? "Finalizado" : "En Ejecución"}
-                      </Etiqueta>
-                      <Select
-                        className="w-36"
-                        value={p.estado}
-                        onChange={(e) => cambiarEstado(p.id, e.target.value)}
-                      >
-                        <option value="En Ejecucion">En Ejecución</option>
-                        <option value="Finalizado">Finalizado</option>
-                      </Select>
-                    </div>
+                  <td className="px-3 py-2.5 text-right">
+                    <Select
+                      className={`w-full text-right ${
+                        p.estado === "Finalizado"
+                          ? "border-muted-foreground text-muted-foreground"
+                          : "border-primary text-primary"
+                      }`}
+                      value={p.estado}
+                      onChange={(e) => cambiarEstado(p.id, e.target.value)}
+                    >
+                      <option value="En Ejecucion">En Ejecución</option>
+                      <option value="Finalizado">Finalizado</option>
+                    </Select>
                   </td>
                 </tr>
               ))}
