@@ -132,6 +132,30 @@ export function agruparPorEspecialidad(partidas: Partida[]) {
   return [...mapa.entries()].sort((a, b) => a[0].localeCompare(b[0]));
 }
 
+export function agruparPorProyectoYEspecialidad(
+  partidas: Partida[],
+  nombreProyecto: (id: string) => string,
+) {
+  const porProyecto = new Map<string, Map<string, Partida[]>>();
+  partidas.forEach((p) => {
+    const proyecto = nombreProyecto(p.proyecto_id);
+    let porEspecialidad = porProyecto.get(proyecto);
+    if (!porEspecialidad) {
+      porEspecialidad = new Map<string, Partida[]>();
+      porProyecto.set(proyecto, porEspecialidad);
+    }
+    const lista = porEspecialidad.get(p.especialidad) ?? [];
+    lista.push(p);
+    porEspecialidad.set(p.especialidad, lista);
+  });
+  return [...porProyecto.entries()]
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([proyecto, porEspecialidad]) => ({
+      proyecto,
+      grupos: [...porEspecialidad.entries()].sort((a, b) => a[0].localeCompare(b[0])),
+    }));
+}
+
 export function costoRealPartida(partidaId: string, gastos: GastoDirecto[]) {
   return gastos.filter((g) => g.partida_id === partidaId).reduce((s, g) => s + Number(g.monto_soles), 0);
 }

@@ -7,7 +7,7 @@ import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio } from "@/componen
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { ESPECIALIDADES, pct, soles } from "@/lib/format";
 import {
-  agruparPorEspecialidad,
+  agruparPorProyectoYEspecialidad,
   costoRealPartida,
   useGastosDirectos,
   usePartidas,
@@ -20,9 +20,9 @@ export const Route = createFileRoute("/_authenticated/partidas")({
   head: () => ({
     meta: [
       { title: "Partidas — Control de Proyectos" },
-      { name: "description", content: "Partidas agrupadas por tipo de instalación o especialidad, con presupuesto y costo real." },
+      { name: "description", content: "Partidas organizadas por proyecto y especialidad, con presupuesto y costo real." },
       { property: "og:title", content: "Partidas — Control de Proyectos" },
-      { property: "og:description", content: "Partidas por especialidad con presupuesto y costo real." },
+      { property: "og:description", content: "Partidas por proyecto y especialidad con presupuesto y costo real." },
     ],
   }),
   component: Partidas,
@@ -46,6 +46,8 @@ function Partidas() {
   const [error, setError] = useState("");
   const [editando, setEditando] = useState<{ id: string; nombre: string; especialidad: string; presupuesto_inicial: string } | null>(null);
 
+  const nombreProyecto = (id: string) => proyectos.find((p) => p.id === id)?.nombre ?? "—";
+
   const visibles = useMemo(
     () =>
       partidas.filter(
@@ -55,8 +57,7 @@ function Partidas() {
       ),
     [partidas, filtroProyecto, filtroEsp],
   );
-  const grupos = useMemo(() => agruparPorEspecialidad(visibles), [visibles]);
-  const nombreProyecto = (id: string) => proyectos.find((p) => p.id === id)?.nombre ?? "—";
+  const grupos = useMemo(() => agruparPorProyectoYEspecialidad(visibles, nombreProyecto), [visibles, nombreProyecto]);
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
@@ -119,7 +120,7 @@ function Partidas() {
     <>
       <Encabezado
         titulo="Partidas"
-        subtitulo="Agrupadas por especialidad"
+        subtitulo="Organizadas por proyecto y especialidad"
         acciones={
           <Boton variante="linea" onClick={exportar}>
             Exportar a Excel
@@ -171,7 +172,7 @@ function Partidas() {
       </Panel>
 
       <Panel
-        titulo="Listado por especialidad"
+        titulo="Listado por proyecto y especialidad"
         extra={
           <div className="flex gap-2">
             <Select className="w-52" value={filtroProyecto} onChange={(e) => setFiltroProyecto(e.target.value)}>
@@ -196,117 +197,122 @@ function Partidas() {
         {grupos.length === 0 ? (
           <Vacio texto="No hay partidas con estos filtros." />
         ) : (
-          grupos.map(([esp, lista]) => (
-            <div key={esp} className="border-b border-line/60 last:border-0">
-              <p className="bg-muted/60 px-5 py-2 label-mono">{esp}</p>
-              <table className="w-full table-fixed font-mono text-xs">
-                <thead>
-                  <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                    <th className="w-4/12 px-5 py-2 font-medium">Partida</th>
-                    <th className="w-2/12 px-3 py-2 font-medium">Proyecto</th>
-                    <th className="w-1/12 px-3 py-2 text-right font-medium">Presupuesto</th>
-                    <th className="w-1/12 px-3 py-2 text-right font-medium">Costo real</th>
-                    <th className="w-1/12 px-3 py-2 text-right font-medium">Avance</th>
-                    <th className="w-1/12 px-3 py-2 text-right font-medium">Saldo</th>
-                    <th className="w-2/12 px-5 py-2 text-right font-medium">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {lista.map((p) => {
-                    const costo = costoRealPartida(p.id, gastos);
-                    const dif = Number(p.presupuesto_inicial) - costo;
-                    const enEdicion = editando?.id === p.id;
-                    if (enEdicion) {
-                      return (
-                        <tr key={p.id} className="border-b border-line/40 last:border-0">
-                          <td className="px-5 py-2">
-                            <Input
-                              value={editando.nombre}
-                              onChange={(e) => setEditando({ ...editando, nombre: e.target.value })}
-                              className="py-1 text-xs"
-                            />
-                          </td>
-                          <td className="px-3 py-2 text-muted-foreground">{nombreProyecto(p.proyecto_id)}</td>
-                          <td className="px-3 py-2">
-                            <Input
-                              type="number"
-                              step="0.01"
-                              min="0"
-                              value={editando.presupuesto_inicial}
-                              onChange={(e) => setEditando({ ...editando, presupuesto_inicial: e.target.value })}
-                              className="py-1 text-right text-xs"
-                            />
-                          </td>
-                          <td className="px-3 py-2.5 text-right">{soles(costo)}</td>
-                          <td className="px-3 py-2.5 text-right">{pct(Number(p.avance_pct))}</td>
-                          <td className={`px-3 py-2.5 text-right font-semibold ${dif < 0 ? "text-bad" : "text-good"}`}>
-                            {soles(dif)}
-                          </td>
-                          <td className="px-5 py-2">
-                            <div className="flex items-center justify-end gap-1">
-                              <button
-                                type="button"
-                                onClick={actualizar}
-                                className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground"
-                                title="Guardar"
-                              >
-                                <Check size={14} />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setEditando(null)}
-                                className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line hover:bg-muted"
-                                title="Cancelar"
-                              >
-                                <X size={14} />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    }
-                    return (
-                      <tr key={p.id} className="border-b border-line/40 last:border-0">
-                        <td className="px-5 py-2.5 font-semibold text-ink">{p.nombre}</td>
-                        <td className="px-3 py-2.5 text-muted-foreground">{nombreProyecto(p.proyecto_id)}</td>
-                        <td className="px-3 py-2.5 text-right">{soles(Number(p.presupuesto_inicial))}</td>
-                        <td className="px-3 py-2.5 text-right">{soles(costo)}</td>
-                        <td className="px-3 py-2.5 text-right">{pct(Number(p.avance_pct))}</td>
-                        <td className={`px-3 py-2.5 text-right font-semibold ${dif < 0 ? "text-bad" : "text-good"}`}>
-                          {soles(dif)}
-                        </td>
-                        <td className="px-5 py-2.5">
-                          <div className="flex items-center justify-end gap-1">
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setEditando({
-                                  id: p.id,
-                                  nombre: p.nombre,
-                                  especialidad: p.especialidad,
-                                  presupuesto_inicial: String(p.presupuesto_inicial),
-                                })
-                              }
-                              className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"
-                              title="Editar"
-                            >
-                              <Pencil size={14} />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => eliminar(p.id)}
-                              className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-bad hover:text-bad"
-                              title="Eliminar"
-                            >
-                              <Trash2 size={14} />
-                            </button>
-                          </div>
-                        </td>
+          grupos.map(({ proyecto, grupos: espGrupos }) => (
+            <div key={proyecto} className="border-b border-line last:border-0">
+              <p className="bg-ink px-5 py-2 text-xs font-semibold uppercase tracking-wider text-paper">{proyecto}</p>
+              {espGrupos.map(([esp, lista]) => (
+                <div key={esp} className="border-b border-line/60 last:border-0">
+                  <p className="bg-muted/60 px-5 py-1.5 label-mono">{esp}</p>
+                  <table className="w-full table-fixed font-mono text-xs">
+                    <thead>
+                      <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+                        <th className="w-3/12 px-5 py-2 font-medium">Proyecto</th>
+                        <th className="w-3/12 px-3 py-2 font-medium">Partida</th>
+                        <th className="w-1/12 px-3 py-2 text-right font-medium">Presupuesto</th>
+                        <th className="w-1/12 px-3 py-2 text-right font-medium">Costo real</th>
+                        <th className="w-1/12 px-3 py-2 text-right font-medium">Avance</th>
+                        <th className="w-1/12 px-3 py-2 text-right font-medium">Saldo</th>
+                        <th className="w-2/12 px-5 py-2 text-right font-medium">Acciones</th>
                       </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                    </thead>
+                    <tbody>
+                      {lista.map((p) => {
+                        const costo = costoRealPartida(p.id, gastos);
+                        const dif = Number(p.presupuesto_inicial) - costo;
+                        const enEdicion = editando?.id === p.id;
+                        if (enEdicion) {
+                          return (
+                            <tr key={p.id} className="border-b border-line/40 last:border-0">
+                              <td className="px-5 py-2.5 font-semibold text-ink">{nombreProyecto(p.proyecto_id)}</td>
+                              <td className="px-3 py-2">
+                                <Input
+                                  value={editando.nombre}
+                                  onChange={(e) => setEditando({ ...editando, nombre: e.target.value })}
+                                  className="py-1 text-xs"
+                                />
+                              </td>
+                              <td className="px-3 py-2">
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  min="0"
+                                  value={editando.presupuesto_inicial}
+                                  onChange={(e) => setEditando({ ...editando, presupuesto_inicial: e.target.value })}
+                                  className="py-1 text-right text-xs"
+                                />
+                              </td>
+                              <td className="px-3 py-2.5 text-right">{soles(costo)}</td>
+                              <td className="px-3 py-2.5 text-right">{pct(Number(p.avance_pct))}</td>
+                              <td className={`px-3 py-2.5 text-right font-semibold ${dif < 0 ? "text-bad" : "text-good"}`}>
+                                {soles(dif)}
+                              </td>
+                              <td className="px-5 py-2">
+                                <div className="flex items-center justify-end gap-1">
+                                  <button
+                                    type="button"
+                                    onClick={actualizar}
+                                    className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground"
+                                    title="Guardar"
+                                  >
+                                    <Check size={14} />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setEditando(null)}
+                                    className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line hover:bg-muted"
+                                    title="Cancelar"
+                                  >
+                                    <X size={14} />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        }
+                        return (
+                          <tr key={p.id} className="border-b border-line/40 last:border-0">
+                            <td className="px-5 py-2.5 font-semibold text-ink">{nombreProyecto(p.proyecto_id)}</td>
+                            <td className="px-3 py-2.5 font-semibold text-ink">{p.nombre}</td>
+                            <td className="px-3 py-2.5 text-right">{soles(Number(p.presupuesto_inicial))}</td>
+                            <td className="px-3 py-2.5 text-right">{soles(costo)}</td>
+                            <td className="px-3 py-2.5 text-right">{pct(Number(p.avance_pct))}</td>
+                            <td className={`px-3 py-2.5 text-right font-semibold ${dif < 0 ? "text-bad" : "text-good"}`}>
+                              {soles(dif)}
+                            </td>
+                            <td className="px-5 py-2.5">
+                              <div className="flex items-center justify-end gap-1">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setEditando({
+                                      id: p.id,
+                                      nombre: p.nombre,
+                                      especialidad: p.especialidad,
+                                      presupuesto_inicial: String(p.presupuesto_inicial),
+                                    })
+                                  }
+                                  className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"
+                                  title="Editar"
+                                >
+                                  <Pencil size={14} />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => eliminar(p.id)}
+                                  className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-bad hover:text-bad"
+                                  title="Eliminar"
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              ))}
             </div>
           ))
         )}
