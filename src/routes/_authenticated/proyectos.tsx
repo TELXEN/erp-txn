@@ -99,19 +99,18 @@ function Proyectos() {
                   <td className="px-3 py-2.5 text-muted-foreground">{p.cliente || "—"}</td>
                   <td className="px-3 py-2.5 text-muted-foreground">{p.ubicacion || "—"}</td>
                   <td className="px-5 py-2.5 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <Etiqueta tono={p.estado === "Finalizado" ? "neutro" : "good"}>
-                        {p.estado === "Finalizado" ? "Finalizado" : "En Ejecución"}
-                      </Etiqueta>
-                      <Select
-                        className="w-24"
-                        value={p.estado}
-                        onChange={(e) => cambiarEstado(p.id, e.target.value)}
-                      >
-                        <option value="En Ejecucion">En Ejec.</option>
-                        <option value="Finalizado">Finaliz.</option>
-                      </Select>
-                    </div>
+                    <Select
+                      className={`w-24 text-right ${
+                        p.estado === "Finalizado"
+                          ? "border-muted-foreground text-muted-foreground"
+                          : "border-primary text-primary"
+                      }`}
+                      value={p.estado}
+                      onChange={(e) => cambiarEstado(p.id, e.target.value)}
+                    >
+                      <option value="En Ejecucion">En Ejecución</option>
+                      <option value="Finalizado">Finalizado</option>
+                    </Select>
                   </td>
                 </tr>
               ))}
