@@ -35,6 +35,7 @@ function GastosGenerales() {
     fecha: hoy(),
   });
   const [error, setError] = useState("");
+  const [editando, setEditando] = useState<{ id: string; descripcion: string; monto: string } | null>(null);
   const equivalente = Number(form.monto || 0) * (form.moneda === "USD" ? Number(form.tipo_cambio || 0) : 1);
   const total = gastos.reduce((s, g) => s + Number(g.monto_soles), 0);
 
