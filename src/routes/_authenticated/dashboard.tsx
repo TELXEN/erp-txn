@@ -132,14 +132,16 @@ function Dashboard() {
         subtitulo="Consolidación en Soles (PEN)"
         acciones={
           <>
-            <Select className="w-60" value={seleccion} onChange={(e) => setSeleccion(e.target.value)}>
-              <option value="global">Consolidado Global</option>
-              {proyectos.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.nombre}
-                </option>
-              ))}
-            </Select>
+            <div className="w-60">
+              <Select value={seleccion} onChange={(e) => setSeleccion(e.target.value)}>
+                <option value="global">Consolidado Global</option>
+                {proyectos.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.nombre}
+                  </option>
+                ))}
+              </Select>
+            </div>
             <Boton variante="linea" onClick={excel}>
               Exportar a Excel
             </Boton>
