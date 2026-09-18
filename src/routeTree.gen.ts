@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedAvanceRouteImport } from './routes/_authenticated/avance'
 import { Route as AuthenticatedGastosDirectosRouteImport } from './routes/_authenticated/gastos-directos'
+import { Route as AuthenticatedGastosGeneralesRouteImport } from './routes/_authenticated/gastos-generales'
 import { Route as AuthenticatedPanelRouteImport } from './routes/_authenticated/panel'
 import { Route as AuthenticatedPartidasRouteImport } from './routes/_authenticated/partidas'
 import { Route as AuthenticatedPersonalRouteImport } from './routes/_authenticated/personal'
@@ -37,6 +38,12 @@ const AuthenticatedGastosDirectosRoute =
   AuthenticatedGastosDirectosRouteImport.update({
     id: '/gastos-directos',
     path: '/gastos-directos',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedGastosGeneralesRoute =
+  AuthenticatedGastosGeneralesRouteImport.update({
+    id: '/gastos-generales',
+    path: '/gastos-generales',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedPanelRoute = AuthenticatedPanelRouteImport.update({
@@ -69,6 +76,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/avance': typeof AuthenticatedAvanceRoute
   '/gastos-directos': typeof AuthenticatedGastosDirectosRoute
+  '/gastos-generales': typeof AuthenticatedGastosGeneralesRoute
   '/panel': typeof AuthenticatedPanelRoute
   '/partidas': typeof AuthenticatedPartidasRoute
   '/personal': typeof AuthenticatedPersonalRoute
@@ -79,6 +87,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/avance': typeof AuthenticatedAvanceRoute
   '/gastos-directos': typeof AuthenticatedGastosDirectosRoute
+  '/gastos-generales': typeof AuthenticatedGastosGeneralesRoute
   '/panel': typeof AuthenticatedPanelRoute
   '/partidas': typeof AuthenticatedPartidasRoute
   '/personal': typeof AuthenticatedPersonalRoute
@@ -91,6 +100,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/_authenticated/avance': typeof AuthenticatedAvanceRoute
   '/_authenticated/gastos-directos': typeof AuthenticatedGastosDirectosRoute
+  '/_authenticated/gastos-generales': typeof AuthenticatedGastosGeneralesRoute
   '/_authenticated/panel': typeof AuthenticatedPanelRoute
   '/_authenticated/partidas': typeof AuthenticatedPartidasRoute
   '/_authenticated/personal': typeof AuthenticatedPersonalRoute
@@ -103,6 +113,7 @@ export interface FileRouteTypes {
     | '/'
     | '/avance'
     | '/gastos-directos'
+    | '/gastos-generales'
     | '/panel'
     | '/partidas'
     | '/personal'
@@ -113,6 +124,7 @@ export interface FileRouteTypes {
     | '/'
     | '/avance'
     | '/gastos-directos'
+    | '/gastos-generales'
     | '/panel'
     | '/partidas'
     | '/personal'
@@ -124,6 +136,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/_authenticated/avance'
     | '/_authenticated/gastos-directos'
+    | '/_authenticated/gastos-generales'
     | '/_authenticated/panel'
     | '/_authenticated/partidas'
     | '/_authenticated/personal'
@@ -164,6 +177,13 @@ declare module '@tanstack/react-router' {
       path: '/gastos-directos'
       fullPath: '/gastos-directos'
       preLoaderRoute: typeof AuthenticatedGastosDirectosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/gastos-generales': {
+      id: '/_authenticated/gastos-generales'
+      path: '/gastos-generales'
+      fullPath: '/gastos-generales'
+      preLoaderRoute: typeof AuthenticatedGastosGeneralesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/panel': {
@@ -207,6 +227,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAvanceRoute: typeof AuthenticatedAvanceRoute
   AuthenticatedGastosDirectosRoute: typeof AuthenticatedGastosDirectosRoute
+  AuthenticatedGastosGeneralesRoute: typeof AuthenticatedGastosGeneralesRoute
   AuthenticatedPanelRoute: typeof AuthenticatedPanelRoute
   AuthenticatedPartidasRoute: typeof AuthenticatedPartidasRoute
   AuthenticatedPersonalRoute: typeof AuthenticatedPersonalRoute
@@ -217,6 +238,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAvanceRoute: AuthenticatedAvanceRoute,
   AuthenticatedGastosDirectosRoute: AuthenticatedGastosDirectosRoute,
+  AuthenticatedGastosGeneralesRoute: AuthenticatedGastosGeneralesRoute,
   AuthenticatedPanelRoute: AuthenticatedPanelRoute,
   AuthenticatedPartidasRoute: AuthenticatedPartidasRoute,
   AuthenticatedPersonalRoute: AuthenticatedPersonalRoute,
