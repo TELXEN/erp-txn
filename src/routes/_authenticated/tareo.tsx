@@ -260,10 +260,24 @@ function TareoPage() {
             </Campo>
             <Campo etiqueta="Asistencia">
               <Select value={form.asistencia} onChange={(e) => setForm({ ...form, asistencia: e.target.value })}>
-                <option value="1">Día Completo (1)</option>
-                <option value="0.5">Medio Día (0.5)</option>
+                <option value="dia">Día Trabajado</option>
+                <option value="viaje">Viaje</option>
+                <option value="extras">Horas Extras</option>
               </Select>
             </Campo>
+            {form.asistencia === "extras" && (
+              <Campo etiqueta="Cantidad de horas extras">
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.5"
+                  value={horasExtras}
+                  onChange={(e) => setHorasExtras(e.target.value)}
+                  placeholder="Ej. 4"
+                  required
+                />
+              </Campo>
+            )}
           </div>
 
           <div className="rounded-md border border-line bg-muted/40 p-3">
