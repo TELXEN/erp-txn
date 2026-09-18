@@ -10,33 +10,94 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthenticatedAvanceRouteImport } from './routes/_authenticated/avance'
+import { Route as AuthenticatedPanelRouteImport } from './routes/_authenticated/panel'
+import { Route as AuthenticatedPartidasRouteImport } from './routes/_authenticated/partidas'
+import { Route as AuthenticatedPersonalRouteImport } from './routes/_authenticated/personal'
+import { Route as AuthenticatedProyectosRouteImport } from './routes/_authenticated/proyectos'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAvanceRoute = AuthenticatedAvanceRouteImport.update({
+  id: '/avance',
+  path: '/avance',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPanelRoute = AuthenticatedPanelRouteImport.update({
+  id: '/panel',
+  path: '/panel',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPartidasRoute = AuthenticatedPartidasRouteImport.update({
+  id: '/partidas',
+  path: '/partidas',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPersonalRoute = AuthenticatedPersonalRouteImport.update({
+  id: '/personal',
+  path: '/personal',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedProyectosRoute = AuthenticatedProyectosRouteImport.update({
+  id: '/proyectos',
+  path: '/proyectos',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/avance': typeof AuthenticatedAvanceRoute
+  '/panel': typeof AuthenticatedPanelRoute
+  '/partidas': typeof AuthenticatedPartidasRoute
+  '/personal': typeof AuthenticatedPersonalRoute
+  '/proyectos': typeof AuthenticatedProyectosRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/avance': typeof AuthenticatedAvanceRoute
+  '/panel': typeof AuthenticatedPanelRoute
+  '/partidas': typeof AuthenticatedPartidasRoute
+  '/personal': typeof AuthenticatedPersonalRoute
+  '/proyectos': typeof AuthenticatedProyectosRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/_authenticated/avance': typeof AuthenticatedAvanceRoute
+  '/_authenticated/panel': typeof AuthenticatedPanelRoute
+  '/_authenticated/partidas': typeof AuthenticatedPartidasRoute
+  '/_authenticated/personal': typeof AuthenticatedPersonalRoute
+  '/_authenticated/proyectos': typeof AuthenticatedProyectosRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    '/' | '/avance' | '/panel' | '/partidas' | '/personal' | '/proyectos'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/avance' | '/panel' | '/partidas' | '/personal' | '/proyectos'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/_authenticated/avance'
+    | '/_authenticated/panel'
+    | '/_authenticated/partidas'
+    | '/_authenticated/personal'
+    | '/_authenticated/proyectos'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +109,73 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/avance': {
+      id: '/_authenticated/avance'
+      path: '/avance'
+      fullPath: '/avance'
+      preLoaderRoute: typeof AuthenticatedAvanceRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/panel': {
+      id: '/_authenticated/panel'
+      path: '/panel'
+      fullPath: '/panel'
+      preLoaderRoute: typeof AuthenticatedPanelRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/partidas': {
+      id: '/_authenticated/partidas'
+      path: '/partidas'
+      fullPath: '/partidas'
+      preLoaderRoute: typeof AuthenticatedPartidasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/personal': {
+      id: '/_authenticated/personal'
+      path: '/personal'
+      fullPath: '/personal'
+      preLoaderRoute: typeof AuthenticatedPersonalRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/proyectos': {
+      id: '/_authenticated/proyectos'
+      path: '/proyectos'
+      fullPath: '/proyectos'
+      preLoaderRoute: typeof AuthenticatedProyectosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAvanceRoute: typeof AuthenticatedAvanceRoute
+  AuthenticatedPanelRoute: typeof AuthenticatedPanelRoute
+  AuthenticatedPartidasRoute: typeof AuthenticatedPartidasRoute
+  AuthenticatedPersonalRoute: typeof AuthenticatedPersonalRoute
+  AuthenticatedProyectosRoute: typeof AuthenticatedProyectosRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAvanceRoute: AuthenticatedAvanceRoute,
+  AuthenticatedPanelRoute: AuthenticatedPanelRoute,
+  AuthenticatedPartidasRoute: AuthenticatedPartidasRoute,
+  AuthenticatedPersonalRoute: AuthenticatedPersonalRoute,
+  AuthenticatedProyectosRoute: AuthenticatedProyectosRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
