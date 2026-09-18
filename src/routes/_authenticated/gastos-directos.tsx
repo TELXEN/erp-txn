@@ -84,7 +84,7 @@ function GastosDirectos() {
     setEditando(null);
   }
 
-  async function actualizarEdicion(e?: React.FormEvent) {
+  async function actualizarEdicion(e?: React.MouseEvent | React.FormEvent) {
     e?.preventDefault();
     if (!editando) return;
     const monto = Number(editando.monto);
