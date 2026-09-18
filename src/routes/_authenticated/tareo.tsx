@@ -21,6 +21,14 @@ export const Route = createFileRoute("/_authenticated/tareo")({
   component: TareoPage,
 });
 
+function cambiarMes(mes: string, delta: number) {
+  const [y, m] = mes.split("-").map(Number);
+  const d = new Date(y, m - 1 + delta, 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
+
+const DIAS_SEMANA = ["L", "M", "M", "J", "V", "S", "D"];
+
 function TareoPage() {
   const { rol } = useAuth();
   const qc = useQueryClient();
@@ -30,10 +38,20 @@ function TareoPage() {
   const { data: tareos = [] } = useTareos();
 
   const [fechas, setFechas] = useState<string[]>([hoy()]);
-  const [nuevaFecha, setNuevaFecha] = useState(hoy());
+  const [mesCal, setMesCal] = useState(mesActual());
   const [form, setForm] = useState({ trabajador_id: "", proyecto_id: "", asistencia: "1" });
   const [mes, setMes] = useState(mesActual());
   const [error, setError] = useState("");
+
+  const [anioCal, mesNumCal] = mesCal.split("-").map(Number);
+  const primerDia = (new Date(anioCal, mesNumCal - 1, 1).getDay() + 6) % 7;
+  const diasEnMes = new Date(anioCal, mesNumCal, 0).getDate();
+  const celdas: (string | null)[] = [
+    ...Array<string | null>(primerDia).fill(null),
+    ...Array.from({ length: diasEnMes }, (_, i) => `${mesCal}-${String(i + 1).padStart(2, "0")}`),
+  ];
+  const alternarDia = (f: string) =>
+    setFechas(fechas.includes(f) ? fechas.filter((x) => x !== f) : [...fechas, f].sort());
 
   const partidasProyecto = partidas.filter((p) => p.proyecto_id === form.proyecto_id);
   const nombreTrab = (id: string) => trabajadores.find((t) => t.id === id)?.nombre ?? "—";
