@@ -15,6 +15,7 @@ import {
   useTareos,
 } from "@/lib/datos";
 import { exportarExcel } from "@/lib/exportar";
+import { Pencil, Trash2, Check, X } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/partidas")({
   head: () => ({
