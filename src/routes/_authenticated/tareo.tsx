@@ -37,9 +37,10 @@ function TareoPage() {
   const { data: trabajadores = [] } = useTrabajadores();
   const { data: tareos = [] } = useTareos();
 
-  const [fechas, setFechas] = useState<string[]>([hoy()]);
+  const [diasSel, setDiasSel] = useState<Record<string, "dia" | "viaje">>({ [hoy()]: "dia" });
   const [mesCal, setMesCal] = useState(mesActual());
-  const [form, setForm] = useState({ trabajador_id: "", proyecto_id: "", asistencia: "1" });
+  const [form, setForm] = useState({ trabajador_id: "", proyecto_id: "", asistencia: "dia" });
+  const [horasExtras, setHorasExtras] = useState("");
   const [mes, setMes] = useState(mesActual());
   const [error, setError] = useState("");
   const [trabajadorVisible, setTrabajadorVisible] = useState<string | null>(null);
@@ -56,7 +57,14 @@ function TareoPage() {
     ...Array.from({ length: diasEnMes }, (_, i) => `${mesCal}-${String(i + 1).padStart(2, "0")}`),
   ];
   const alternarDia = (f: string) =>
-    setFechas(fechas.includes(f) ? fechas.filter((x) => x !== f) : [...fechas, f].sort());
+    setDiasSel((actual) => {
+      const copia = { ...actual };
+      if (copia[f]) delete copia[f];
+      else copia[f] = form.asistencia === "viaje" ? "viaje" : "dia";
+      return copia;
+    });
+  const fechasOrdenadas = Object.keys(diasSel).sort();
+  const piso2 = (n: number) => Math.floor(n * 100) / 100;
 
   const nombreTrab = (id: string) => trabajadores.find((t) => t.id === id)?.nombre ?? "—";
   const nombreProy = (id: string) => proyectos.find((p) => p.id === id)?.nombre ?? "—";
@@ -79,18 +87,24 @@ function TareoPage() {
     e.preventDefault();
     setError("");
     const trabajador = trabajadores.find((t) => t.id === form.trabajador_id);
-    if (!trabajador || fechas.length === 0) return setError("Selecciona trabajador y al menos una fecha.");
-    const asistencia = Number(form.asistencia);
-    const filas = fechas.map((f) => ({
-      fecha: f,
-      trabajador_id: form.trabajador_id,
-      proyecto_id: form.proyecto_id,
-      asistencia,
-      costo_soles: asistencia * Number(trabajador.jornal_diario),
-    }));
+    if (!trabajador || fechasOrdenadas.length === 0) return setError("Selecciona trabajador y al menos una fecha.");
+    if (form.asistencia === "extras" && (!Number(horasExtras) || Number(horasExtras) <= 0))
+      return setError("Ingresa la cantidad de horas extras.");
+    const filas = fechasOrdenadas.map((f) => {
+      const asistencia =
+        diasSel[f] === "viaje" ? 0.5 : form.asistencia === "extras" ? piso2(Number(horasExtras) / 10.5) : 1;
+      return {
+        fecha: f,
+        trabajador_id: form.trabajador_id,
+        proyecto_id: form.proyecto_id,
+        asistencia,
+        costo_soles: asistencia * Number(trabajador.jornal_diario),
+      };
+    });
     const { error: err } = await supabase.from("tareos").insert(filas);
     if (err) return setError(err.message);
-    setFechas([hoy()]);
+    setDiasSel({ [hoy()]: "dia" });
+    setHorasExtras("");
     qc.invalidateQueries({ queryKey: ["tareos"] });
   }
 
@@ -246,10 +260,24 @@ function TareoPage() {
             </Campo>
             <Campo etiqueta="Asistencia">
               <Select value={form.asistencia} onChange={(e) => setForm({ ...form, asistencia: e.target.value })}>
-                <option value="1">Día Completo (1)</option>
-                <option value="0.5">Medio Día (0.5)</option>
+                <option value="dia">Día Trabajado</option>
+                <option value="viaje">Viaje</option>
+                <option value="extras">Horas Extras</option>
               </Select>
             </Campo>
+            {form.asistencia === "extras" && (
+              <Campo etiqueta="Cantidad de horas extras">
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.5"
+                  value={horasExtras}
+                  onChange={(e) => setHorasExtras(e.target.value)}
+                  placeholder="Ej. 4"
+                  required
+                />
+              </Campo>
+            )}
           </div>
 
           <div className="rounded-md border border-line bg-muted/40 p-3">
@@ -282,11 +310,13 @@ function TareoPage() {
                     key={f}
                     type="button"
                     onClick={() => alternarDia(f)}
-                    aria-pressed={fechas.includes(f)}
+                    aria-pressed={Boolean(diasSel[f])}
                     className={`flex h-9 items-center justify-center rounded-md border font-mono text-xs transition-colors ${
-                      fechas.includes(f)
+                      diasSel[f] === "dia"
                         ? "border-primary bg-primary text-primary-foreground"
-                        : "border-line bg-card hover:border-primary"
+                        : diasSel[f] === "viaje"
+                          ? "border-good/50 bg-good/20 text-ink"
+                          : "border-line bg-card hover:border-primary"
                     }`}
                   >
                     {Number(f.slice(8))}
@@ -297,12 +327,13 @@ function TareoPage() {
               )}
             </div>
             <p className="mt-2 font-mono text-[11px] text-muted-foreground">
-              {fechas.length} día(s) seleccionado(s) — cada día marcado cuenta como un día de trabajo.
+              {fechasOrdenadas.length} día(s) seleccionado(s) — verde oscuro: día trabajado; verde claro: viaje (medio día).
+              {form.asistencia === "extras" && " Las horas extras se convierten a días: horas ÷ 10.5."}
             </p>
           </div>
 
           {error && <p className="font-mono text-xs text-bad">{error}</p>}
-          <Boton type="submit">Registrar tareo ({fechas.length} día(s))</Boton>
+          <Boton type="submit">Registrar tareo ({fechasOrdenadas.length} día(s))</Boton>
         </form>
       </Panel>
 
