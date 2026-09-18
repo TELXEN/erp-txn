@@ -4,6 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
+import { Check, Pencil, Trash2, X } from "lucide-react";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
 import { useGastosGenerales } from "@/lib/datos";
@@ -34,6 +35,7 @@ function GastosGenerales() {
     fecha: hoy(),
   });
   const [error, setError] = useState("");
+  const [editando, setEditando] = useState<{ id: string; descripcion: string; monto: string } | null>(null);
   const equivalente = Number(form.monto || 0) * (form.moneda === "USD" ? Number(form.tipo_cambio || 0) : 1);
   const total = gastos.reduce((s, g) => s + Number(g.monto_soles), 0);
 
@@ -60,7 +62,33 @@ function GastosGenerales() {
   }
 
   async function eliminar(id: string) {
+    if (!window.confirm("¿Eliminar este gasto general? Esta acción no se puede deshacer.")) return;
     await supabase.from("gastos_generales").delete().eq("id", id);
+    qc.invalidateQueries({ queryKey: ["gastos_generales"] });
+  }
+
+  function iniciarEdicion(g: (typeof gastos)[number]) {
+    setEditando({ id: g.id, descripcion: g.descripcion, monto: String(g.monto) });
+  }
+
+  function cancelarEdicion() {
+    setEditando(null);
+  }
+
+  async function actualizarEdicion(e?: React.MouseEvent | React.FormEvent) {
+    e?.preventDefault();
+    if (!editando) return;
+    const monto = Number(editando.monto);
+    if (monto < 0) return setError("El monto no puede ser negativo.");
+    const original = gastos.find((g) => g.id === editando.id);
+    if (!original) return;
+    const tc = original.moneda === "USD" ? Number(original.tipo_cambio) : 1;
+    const { error: err } = await supabase
+      .from("gastos_generales")
+      .update({ descripcion: editando.descripcion.trim(), monto, monto_soles: monto * tc })
+      .eq("id", editando.id);
+    if (err) return setError(err.message);
+    setEditando(null);
     qc.invalidateQueries({ queryKey: ["gastos_generales"] });
   }
 
@@ -142,37 +170,95 @@ function GastosGenerales() {
         {gastos.length === 0 ? (
           <Vacio texto="Aún no hay gastos generales." />
         ) : (
-          <table className="w-full font-mono text-xs">
+          <table className="w-full table-fixed font-mono text-xs">
             <thead>
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                <th className="px-5 py-2 font-medium">Fecha</th>
-                <th className="px-3 py-2 font-medium">Descripción</th>
-                <th className="px-3 py-2 font-medium">Proveedor</th>
-                <th className="px-3 py-2 text-right font-medium">Monto</th>
-                <th className="px-3 py-2 text-right font-medium">Equiv. S/</th>
-                <th className="px-5 py-2"></th>
+                <th className="w-2/12 px-5 py-2 font-medium">Fecha</th>
+                <th className="w-4/12 px-3 py-2 font-medium">Descripción</th>
+                <th className="w-2/12 px-3 py-2 font-medium">Proveedor</th>
+                <th className="w-2/12 px-3 py-2 text-right font-medium">Monto</th>
+                <th className="w-2/12 px-5 py-2"></th>
               </tr>
             </thead>
             <tbody>
-              {gastos.map((g) => (
-                <tr key={g.id} className="border-b border-line/60 last:border-0">
-                  <td className="px-5 py-2.5">{fmtFecha(g.fecha)}</td>
-                  <td className="px-3 py-2.5 font-semibold text-ink">{g.descripcion}</td>
-                  <td className="px-3 py-2.5 text-muted-foreground">{g.proveedor || "—"}</td>
-                  <td className="px-3 py-2.5 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      {g.moneda === "USD" ? `US$ ${Number(g.monto).toFixed(2)}` : soles(Number(g.monto))}
-                      <Etiqueta tono="neutro">{g.moneda === "USD" ? `TC ${Number(g.tipo_cambio)}` : "PEN"}</Etiqueta>
-                    </div>
-                  </td>
-                  <td className="px-3 py-2.5 text-right font-semibold">{soles(Number(g.monto_soles))}</td>
-                  <td className="px-5 py-2.5 text-right">
-                    <button onClick={() => eliminar(g.id)} className="font-mono text-[11px] text-bad">
-                      Eliminar
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {gastos.map((g) =>
+                editando?.id === g.id ? (
+                  <tr key={g.id} className="border-b border-line/60 last:border-0">
+                    <td className="px-5 py-2.5">{fmtFecha(g.fecha)}</td>
+                    <td className="px-3 py-2">
+                      <Input
+                        value={editando.descripcion}
+                        onChange={(e) => setEditando({ ...editando, descripcion: e.target.value })}
+                        className="py-1 text-xs"
+                        maxLength={160}
+                      />
+                    </td>
+                    <td className="px-3 py-2.5 text-muted-foreground">{g.proveedor || "—"}</td>
+                    <td className="px-3 py-2">
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={editando.monto}
+                        onChange={(e) => setEditando({ ...editando, monto: e.target.value })}
+                        className="py-1 text-xs"
+                      />
+                    </td>
+                    <td className="px-5 py-2">
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          type="button"
+                          onClick={actualizarEdicion}
+                          className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground"
+                          title="Guardar"
+                        >
+                          <Check size={14} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={cancelarEdicion}
+                          className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line hover:bg-muted"
+                          title="Cancelar"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  <tr key={g.id} className="border-b border-line/60 last:border-0">
+                    <td className="px-5 py-2.5">{fmtFecha(g.fecha)}</td>
+                    <td className="px-3 py-2.5 font-semibold text-ink">{g.descripcion}</td>
+                    <td className="px-3 py-2.5 text-muted-foreground">{g.proveedor || "—"}</td>
+                    <td className="px-3 py-2.5 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        {g.moneda === "USD" ? `US$ ${Number(g.monto).toFixed(2)}` : soles(Number(g.monto))}
+                        <Etiqueta tono="neutro">{g.moneda === "USD" ? `TC ${Number(g.tipo_cambio)}` : "PEN"}</Etiqueta>
+                      </div>
+                    </td>
+                    <td className="px-5 py-2">
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          type="button"
+                          onClick={() => iniciarEdicion(g)}
+                          className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"
+                          title="Editar"
+                        >
+                          <Pencil size={14} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => eliminar(g.id)}
+                          className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-bad hover:text-bad"
+                          title="Eliminar"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                )
+              )}
             </tbody>
           </table>
         )}
