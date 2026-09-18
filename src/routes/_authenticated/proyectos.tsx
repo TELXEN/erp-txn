@@ -103,34 +103,93 @@ function Proyectos() {
           <table className="w-full table-fixed font-mono text-xs">
             <thead>
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                <th className="w-5/12 px-5 py-2 font-medium">Obra</th>
+                <th className="w-4/12 px-5 py-2 font-medium">Descripción</th>
                 <th className="w-2/12 px-3 py-2 font-medium">Cliente</th>
                 <th className="w-2/12 px-3 py-2 font-medium">Ubicación</th>
-                <th className="w-3/12 px-3 py-2 text-right font-medium">Estado</th>
+                <th className="w-2/12 px-3 py-2 font-medium">Estado</th>
+                <th className="w-2/12 px-5 py-2 text-right font-medium">Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {proyectos.map((p) => (
-                <tr key={p.id} className="border-b border-line/60">
-                  <td className="px-5 py-2.5 font-semibold text-ink">{p.nombre}</td>
-                  <td className="px-3 py-2.5 text-muted-foreground">{p.cliente || "—"}</td>
-                  <td className="px-3 py-2.5 text-muted-foreground">{p.ubicacion || "—"}</td>
-                  <td className="px-3 py-2.5 text-right">
-                    <Select
-                      className={`w-full text-right ${
-                        p.estado === "Finalizado"
-                          ? "border-muted-foreground text-muted-foreground"
-                          : "border-primary text-primary"
-                      }`}
-                      value={p.estado}
-                      onChange={(e) => cambiarEstado(p.id, e.target.value)}
-                    >
-                      <option value="En Ejecucion">En Ejecución</option>
-                      <option value="Finalizado">Finalizado</option>
-                    </Select>
-                  </td>
-                </tr>
-              ))}
+              {proyectos.map((p) => {
+                const enEdicion = editando?.id === p.id;
+                return (
+                  <tr key={p.id} className="border-b border-line/60">
+                    {enEdicion ? (
+                      <>
+                        <td className="px-5 py-2">
+                          <Input
+                            value={editando.nombre}
+                            onChange={(e) => setEditando({ ...editando, nombre: e.target.value })}
+                            maxLength={120}
+                            autoFocus
+                          />
+                        </td>
+                        <td className="px-3 py-2.5 text-muted-foreground">{p.cliente || "—"}</td>
+                        <td className="px-3 py-2.5 text-muted-foreground">{p.ubicacion || "—"}</td>
+                        <td className="px-3 py-2">
+                          <Select
+                            value={editando.estado}
+                            onChange={(e) =>
+                              setEditando({ ...editando, estado: e.target.value as "En Ejecucion" | "Finalizado" })
+                            }
+                          >
+                            <option value="En Ejecucion">En Ejecución</option>
+                            <option value="Finalizado">Finalizado</option>
+                          </Select>
+                        </td>
+                        <td className="px-5 py-2 text-right">
+                          <div className="inline-flex items-center gap-1.5">
+                            <button
+                              onClick={() => actualizar()}
+                              className="grid h-7 w-7 place-items-center rounded-md border border-line hover:border-primary hover:text-primary"
+                              title="Guardar"
+                            >
+                              <Check className="size-4" />
+                            </button>
+                            <button
+                              onClick={() => setEditando(null)}
+                              className="grid h-7 w-7 place-items-center rounded-md border border-line hover:border-bad hover:text-bad"
+                              title="Cancelar"
+                            >
+                              <X className="size-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </>
+                    ) : (
+                      <>
+                        <td className="px-5 py-2.5 font-semibold text-ink">{p.nombre}</td>
+                        <td className="px-3 py-2.5 text-muted-foreground">{p.cliente || "—"}</td>
+                        <td className="px-3 py-2.5 text-muted-foreground">{p.ubicacion || "—"}</td>
+                        <td className="px-3 py-2.5 text-muted-foreground">
+                          {p.estado === "En Ejecucion" ? "En Ejecución" : "Finalizado"}
+                        </td>
+                        <td className="px-5 py-2.5 text-right">
+                          <div className="inline-flex items-center gap-1.5">
+                            <button
+                              onClick={() =>
+                                setEditando({ id: p.id, nombre: p.nombre, estado: p.estado })
+                              }
+                              className="grid h-7 w-7 place-items-center rounded-md border border-line hover:border-primary hover:text-primary"
+                              title="Editar"
+                            >
+                              <Pencil className="size-4" />
+                            </button>
+                            <button
+                              onClick={() => eliminar(p.id)}
+                              className="grid h-7 w-7 place-items-center rounded-md border border-line hover:border-bad hover:text-bad"
+                              title="Eliminar"
+                            >
+                              <Trash2 className="size-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </>
+                    )}
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         )}
