@@ -63,7 +63,6 @@ function TareoPage() {
       fecha: f,
       trabajador_id: form.trabajador_id,
       proyecto_id: form.proyecto_id,
-      partida_id: form.partida_id || null,
       asistencia,
       costo_soles: asistencia * Number(trabajador.jornal_diario),
     }));
