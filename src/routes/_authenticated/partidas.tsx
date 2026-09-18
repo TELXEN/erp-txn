@@ -46,6 +46,7 @@ function Partidas() {
     presupuesto_inicial: "",
   });
   const [error, setError] = useState("");
+  const [editando, setEditando] = useState<{ id: string; nombre: string; especialidad: string; presupuesto_inicial: string } | null>(null);
 
   const visibles = useMemo(
     () =>
