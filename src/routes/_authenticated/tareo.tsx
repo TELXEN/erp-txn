@@ -74,8 +74,8 @@ function TareoPage() {
   const alternarDia = (f: string) =>
     setDiasSel((actual) => {
       const copia = { ...actual };
-      if (copia[f]) delete copia[f];
-      else copia[f] = form.asistencia === "viaje" ? "viaje" : "dia";
+      if (copia[f] && form.asistencia !== "extras") delete copia[f];
+      else copia[f] = form.asistencia as TipoDia;
       return copia;
     });
   const fechasOrdenadas = Object.keys(diasSel).sort();
