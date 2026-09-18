@@ -387,9 +387,8 @@ function TareoPage() {
             </div>
             <p className="mt-2 font-mono text-[11px] text-muted-foreground">
               {fechasOrdenadas.length} día(s) seleccionado(s) — verde: día trabajado; verde claro: viaje (medio día); azul
-              claro: horas extras.
-              {form.asistencia === "extras" &&
-                " Las horas extras se registran aunque el día ya esté contabilizado y se convierten a días: horas ÷ 10.5."}
+              claro: horas extras. Las horas extras se registran con su propio botón y se convierten a días: horas ÷
+              10.5.
             </p>
           </div>
 
@@ -416,6 +415,7 @@ function TareoPage() {
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
                 <th className="px-5 py-2 font-medium">Trabajador</th>
                 <th className="px-3 py-2 text-right font-medium">Días laborados</th>
+                <th className="px-3 py-2 text-right font-medium">Horas extras</th>
                 <th className="px-5 py-2 text-right font-medium">Costo acumulado</th>
               </tr>
             </thead>
@@ -424,6 +424,7 @@ function TareoPage() {
                 <tr key={c.id} className="border-b border-line/60 last:border-0">
                   <td className="px-5 py-2.5 font-semibold text-ink">{c.nombre}</td>
                   <td className="px-3 py-2.5 text-right">{c.dias}</td>
+                  <td className="px-3 py-2.5 text-right">{c.horas}</td>
                   <td className="px-5 py-2.5">
                     <div className="flex items-center justify-end gap-1.5">
                       <span className="mr-2">{soles(c.costo)}</span>
