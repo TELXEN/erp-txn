@@ -1,13 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Eye, EyeOff, Info, UserPlus } from "lucide-react";
+import { Check, Eye, EyeOff, Info, Pencil, Trash2, UserPlus, X } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { ETIQUETA_ROL, useAuth, type Rol } from "@/lib/auth";
-import { crearUsuario } from "@/lib/usuarios.functions";
+import { crearUsuario, actualizarUsuario, eliminarUsuario } from "@/lib/usuarios.functions";
 
 export const Route = createFileRoute("/_authenticated/usuarios")({
   head: () => ({
@@ -24,7 +24,7 @@ export const Route = createFileRoute("/_authenticated/usuarios")({
 type Fila = { id: string; nombre: string; email: string; rol: Rol | null };
 
 function Usuarios() {
-  const { rol } = useAuth();
+  const { rol, session } = useAuth();
   const qc = useQueryClient();
 
   const { data: usuarios = [] } = useQuery({
@@ -44,6 +44,9 @@ function Usuarios() {
   });
 
   const crear = useServerFn(crearUsuario);
+  const actualizar = useServerFn(actualizarUsuario);
+  const eliminarFn = useServerFn(eliminarUsuario);
+
   const vacio = { nombre: "", email: "", password: "", rol: "ingeniero" as Rol };
   const [form, setForm] = useState(vacio);
   const [abierto, setAbierto] = useState(false);
@@ -51,6 +54,10 @@ function Usuarios() {
   const [mensaje, setMensaje] = useState<{ tipo: "ok" | "error"; texto: string } | null>(null);
   const [verPassword, setVerPassword] = useState(false);
   const [mostrarInstructivo, setMostrarInstructivo] = useState(false);
+
+  type Edicion = { id: string; nombre: string; email: string; rol: Rol };
+  const [editando, setEditando] = useState<Edicion | null>(null);
+  const [guardandoEdicion, setGuardandoEdicion] = useState(false);
 
   if (rol !== "gerente") return <SinAcceso />;
 
@@ -70,12 +77,43 @@ function Usuarios() {
     }
   }
 
-
-  async function asignar(userId: string, nuevo: Rol) {
-    await supabase.from("user_roles").delete().eq("user_id", userId);
-    await supabase.from("user_roles").insert({ user_id: userId, role: nuevo });
-    qc.invalidateQueries({ queryKey: ["usuarios"] });
+  function iniciarEdicion(u: Fila) {
+    setEditando({ id: u.id, nombre: u.nombre, email: u.email, rol: u.rol ?? "ingeniero" });
   }
+
+  function cancelarEdicion() {
+    setEditando(null);
+  }
+
+  async function guardarEdicion(e?: React.MouseEvent | React.FormEvent) {
+    e?.preventDefault();
+    if (!editando) return;
+    setGuardandoEdicion(true);
+    setMensaje(null);
+    try {
+      await actualizar({ data: editando });
+      setEditando(null);
+      setMensaje({ tipo: "ok", texto: "Usuario actualizado correctamente." });
+      qc.invalidateQueries({ queryKey: ["usuarios"] });
+    } catch (err) {
+      setMensaje({ tipo: "error", texto: err instanceof Error ? err.message : "No se pudo actualizar el usuario." });
+    } finally {
+      setGuardandoEdicion(false);
+    }
+  }
+
+  async function eliminar(id: string) {
+    if (!window.confirm("¿Eliminar este usuario? Esta acción no se puede deshacer.")) return;
+    setMensaje(null);
+    try {
+      await eliminarFn({ data: { id } });
+      setMensaje({ tipo: "ok", texto: "Usuario eliminado correctamente." });
+      qc.invalidateQueries({ queryKey: ["usuarios"] });
+    } catch (err) {
+      setMensaje({ tipo: "error", texto: err instanceof Error ? err.message : "No se pudo eliminar el usuario." });
+    }
+  }
+
 
   return (
     <>
@@ -182,37 +220,117 @@ function Usuarios() {
         {usuarios.length === 0 ? (
           <Vacio texto="No hay usuarios registrados." />
         ) : (
-          <table className="w-full font-mono text-xs">
+          <table className="w-full table-fixed font-mono text-xs">
             <thead>
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                <th className="px-5 py-2 font-medium">Nombre</th>
-                <th className="px-3 py-2 font-medium">Correo</th>
-                <th className="px-5 py-2 text-right font-medium">Rol asignado</th>
+                <th className="px-5 py-2 font-medium w-4/12">Nombre</th>
+                <th className="px-3 py-2 font-medium w-3/12">Correo</th>
+                <th className="px-3 py-2 font-medium w-3/12">Rol asignado</th>
+                <th className="px-5 py-2 text-right font-medium w-2/12">Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {usuarios.map((u) => (
-                <tr key={u.id} className="border-b border-line/60 last:border-0">
-                  <td className="px-5 py-2.5 font-semibold text-ink">{u.nombre || "—"}</td>
-                  <td className="px-3 py-2.5 text-muted-foreground">{u.email}</td>
-                  <td className="px-5 py-2.5 text-right">
-                    <Select
-                      className="w-56"
-                      value={u.rol ?? ""}
-                      onChange={(e) => asignar(u.id, e.target.value as Rol)}
-                    >
-                      <option value="" disabled>
-                        Sin rol
-                      </option>
-                      {(Object.keys(ETIQUETA_ROL) as Rol[]).map((r) => (
-                        <option key={r} value={r}>
-                          {ETIQUETA_ROL[r]}
-                        </option>
-                      ))}
-                    </Select>
-                  </td>
-                </tr>
-              ))}
+              {usuarios.map((u) => {
+                const esPropio = u.id === session?.user.id;
+                const enEdicion = editando?.id === u.id;
+                return (
+                  <tr key={u.id} className="border-b border-line/60 last:border-0">
+                    {enEdicion ? (
+                      <>
+                        <td className="px-5 py-2">
+                          <Input
+                            value={editando.nombre}
+                            onChange={(e) => setEditando({ ...editando, nombre: e.target.value })}
+                            disabled={guardandoEdicion}
+                          />
+                        </td>
+                        <td className="px-3 py-2">
+                          <Input
+                            type="email"
+                            value={editando.email}
+                            onChange={(e) => setEditando({ ...editando, email: e.target.value })}
+                            disabled={guardandoEdicion}
+                          />
+                        </td>
+                        <td className="px-3 py-2">
+                          <Select
+                            value={editando.rol}
+                            onChange={(e) => setEditando({ ...editando, rol: e.target.value as Rol })}
+                            disabled={guardandoEdicion || esPropio}
+                          >
+                            {(Object.keys(ETIQUETA_ROL) as Rol[]).map((r) => (
+                              <option key={r} value={r}>
+                                {ETIQUETA_ROL[r]}
+                              </option>
+                            ))}
+                          </Select>
+                        </td>
+                        <td className="px-5 py-2 text-right">
+                          <div className="inline-flex items-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={guardarEdicion}
+                              disabled={guardandoEdicion}
+                              className="inline-flex h-7 w-7 items-center justify-center rounded border border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground disabled:opacity-50"
+                              aria-label="Guardar"
+                            >
+                              <Check className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={cancelarEdicion}
+                              disabled={guardandoEdicion}
+                              className="inline-flex h-7 w-7 items-center justify-center rounded border border-line hover:bg-muted disabled:opacity-50"
+                              aria-label="Cancelar"
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                      </>
+                    ) : (
+                      <>
+                        <td className="px-5 py-2.5 font-semibold text-ink truncate" title={u.nombre || undefined}>
+                          {u.nombre || "—"}
+                        </td>
+                        <td className="px-3 py-2.5 text-muted-foreground truncate" title={u.email}>
+                          {u.email}
+                        </td>
+                        <td className="px-3 py-2.5">
+                          {u.rol ? (
+                            <span className="inline-flex rounded-md border border-line bg-card px-2 py-0.5 text-[11px]">
+                              {ETIQUETA_ROL[u.rol]}
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground">Sin rol</span>
+                          )}
+                        </td>
+                        <td className="px-5 py-2.5 text-right">
+                          <div className="inline-flex items-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => iniciarEdicion(u)}
+                              className="inline-flex h-7 w-7 items-center justify-center rounded border border-line text-muted-foreground hover:border-primary hover:text-primary"
+                              aria-label="Editar"
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => eliminar(u.id)}
+                              disabled={esPropio}
+                              className="inline-flex h-7 w-7 items-center justify-center rounded border border-line text-muted-foreground hover:border-bad hover:text-bad disabled:opacity-40"
+                              aria-label="Eliminar"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                      </>
+                    )}
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         )}
