@@ -95,7 +95,6 @@ function TareoPage() {
             Fecha: t.fecha,
             Trabajador: nombreTrab(t.trabajador_id),
             Proyecto: nombreProy(t.proyecto_id),
-            Partida: nombrePart(t.partida_id),
             Asistencia: Number(t.asistencia),
             "Costo (S/)": Number(t.costo_soles),
           })),
