@@ -24,7 +24,7 @@ export const Route = createFileRoute("/_authenticated/usuarios")({
 type Fila = { id: string; nombre: string; email: string; rol: Rol | null };
 
 function Usuarios() {
-  const { rol } = useAuth();
+  const { rol, session } = useAuth();
   const qc = useQueryClient();
 
   const { data: usuarios = [] } = useQuery({
