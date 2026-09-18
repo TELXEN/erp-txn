@@ -240,22 +240,22 @@ function GastosDirectos() {
                     </td>
                     <td className="px-5 py-2">
                       <div className="flex items-center justify-end gap-1">
-                        <Boton
+                        <button
                           type="button"
-                          variante="primario"
-                          className="h-7 w-7 p-0"
-                          onClick={() => actualizarEdicion()}
+                          onClick={actualizarEdicion}
+                          className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground"
+                          title="Guardar"
                         >
                           <Check size={14} />
-                        </Boton>
-                        <Boton
+                        </button>
+                        <button
                           type="button"
-                          variante="linea"
-                          className="h-7 w-7 p-0"
                           onClick={cancelarEdicion}
+                          className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line hover:bg-muted"
+                          title="Cancelar"
                         >
                           <X size={14} />
-                        </Boton>
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -273,24 +273,22 @@ function GastosDirectos() {
                     </td>
                     <td className="px-5 py-2">
                       <div className="flex items-center justify-end gap-1">
-                        <Boton
+                        <button
                           type="button"
-                          variante="linea"
-                          className="h-7 w-7 p-0"
                           onClick={() => iniciarEdicion(g)}
+                          className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"
                           title="Editar"
                         >
                           <Pencil size={14} />
-                        </Boton>
-                        <Boton
+                        </button>
+                        <button
                           type="button"
-                          variante="peligro"
-                          className="h-7 w-7 p-0"
                           onClick={() => eliminar(g.id)}
+                          className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-bad hover:text-bad"
                           title="Eliminar"
                         >
                           <Trash2 size={14} />
-                        </Boton>
+                        </button>
                       </div>
                     </td>
                   </tr>
