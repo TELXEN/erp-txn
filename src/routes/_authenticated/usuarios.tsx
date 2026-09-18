@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { UserPlus } from "lucide-react";
+import { Eye, EyeOff, Info, UserPlus } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
@@ -49,6 +49,8 @@ function Usuarios() {
   const [abierto, setAbierto] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [mensaje, setMensaje] = useState<{ tipo: "ok" | "error"; texto: string } | null>(null);
+  const [verPassword, setVerPassword] = useState(false);
+  const [mostrarInstructivo, setMostrarInstructivo] = useState(false);
 
   if (rol !== "gerente") return <SinAcceso />;
 
@@ -117,14 +119,44 @@ function Usuarios() {
               />
             </Campo>
             <Campo etiqueta="Contraseña">
-              <Input
-                required
-                type="password"
-                minLength={6}
-                maxLength={72}
-                value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
-              />
+              <div className="relative">
+                <Input
+                  required
+                  type={verPassword ? "text" : "password"}
+                  minLength={8}
+                  maxLength={72}
+                  value={form.password}
+                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  onFocus={() => setMostrarInstructivo(true)}
+                  onBlur={() => setMostrarInstructivo(false)}
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => setVerPassword((v) => !v)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground hover:text-ink"
+                  aria-label={verPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                >
+                  {verPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+              {mostrarInstructivo && (
+                <div className="mt-2 rounded-md border border-primary/20 bg-primary/5 p-2.5 text-xs text-ink">
+                  <span className="mb-1 flex items-center gap-1.5 font-semibold text-primary">
+                    <Info className="h-3.5 w-3.5" />
+                    Requisitos de una contraseña fuerte
+                  </span>
+                  <ul className="list-disc space-y-0.5 pl-4 font-mono text-[11px] text-muted-foreground">
+                    <li>Mínimo 8 caracteres.</li>
+                    <li>Al menos una letra mayúscula.</li>
+                    <li>Al menos una letra minúscula.</li>
+                    <li>Al menos un número.</li>
+                    <li>Al menos un carácter especial (ej. !@#$%^&*).</li>
+                  </ul>
+                </div>
+              )}
             </Campo>
             <Campo etiqueta="Rol asignado">
               <Select value={form.rol} onChange={(e) => setForm({ ...form, rol: e.target.value as Rol })}>
