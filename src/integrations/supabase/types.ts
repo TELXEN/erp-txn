@@ -201,6 +201,7 @@ export type Database = {
           fecha: string
           id: string
           proyecto_id: string
+          tipo: string
           trabajador_id: string
         }
         Insert: {
@@ -210,6 +211,7 @@ export type Database = {
           fecha: string
           id?: string
           proyecto_id: string
+          tipo?: string
           trabajador_id: string
         }
         Update: {
@@ -219,6 +221,7 @@ export type Database = {
           fecha?: string
           id?: string
           proyecto_id?: string
+          tipo?: string
           trabajador_id?: string
         }
         Relationships: [

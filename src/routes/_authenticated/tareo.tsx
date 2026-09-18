@@ -39,9 +39,11 @@ function colorDia(tipo: TipoDia | undefined): string {
   return "border-line bg-card";
 }
 
-function tipoDeAsistencia(asistencia: number): TipoDia {
-  if (asistencia === 1) return "dia";
-  if (asistencia === 0.5) return "viaje";
+function tipoDeTareo(t: { tipo?: string; asistencia: number | string }): TipoDia {
+  if (t.tipo === "viaje" || t.tipo === "extras" || t.tipo === "dia") return t.tipo;
+  const a = Number(t.asistencia);
+  if (a === 1) return "dia";
+  if (a === 0.5) return "viaje";
   return "extras";
 }
 
@@ -107,18 +109,24 @@ function TareoPage() {
     if (hayExtras && (!Number(horasExtras) || Number(horasExtras) <= 0))
       return setError("Ingresa las horas extras.");
     const filas = fechasOrdenadas.map((f) => {
-      const tipo = diasSel[f];
+      const tipo: TipoDia = diasSel[f] ?? "dia";
       const asistencia = tipo === "viaje" ? 0.5 : tipo === "extras" ? piso2(Number(horasExtras) / 10.5) : 1;
       return {
         fecha: f,
         trabajador_id: form.trabajador_id,
         proyecto_id: form.proyecto_id,
+        tipo,
         asistencia,
         costo_soles: asistencia * Number(trabajador.jornal_diario),
       };
     });
     const { error: err } = await supabase.from("tareos").insert(filas);
-    if (err) return setError(err.message);
+    if (err)
+      return setError(
+        err.code === "23505"
+          ? "Ya existe un registro de este tipo para ese día. Elige otro tipo (por ejemplo Horas Extras) o corrige el día desde el consolidado."
+          : err.message,
+      );
     setDiasSel({ [hoy()]: "dia" });
     setHorasExtras("");
     qc.invalidateQueries({ queryKey: ["tareos"] });
@@ -134,7 +142,7 @@ function TareoPage() {
     tareos
       .filter((t) => t.trabajador_id === id && t.fecha.slice(0, 7) === mes)
       .forEach((t) => {
-        const tipo = tipoDeAsistencia(Number(t.asistencia));
+        const tipo = tipoDeTareo(t);
         const previo = mapa[t.fecha];
         if (!previo || tipo === "extras" || (tipo === "viaje" && previo !== "extras")) mapa[t.fecha] = tipo;
       });
@@ -200,6 +208,7 @@ function TareoPage() {
           fecha: f,
           trabajador_id: trabajadorVisible,
           proyecto_id: proyectoEdicion,
+          tipo: "dia",
           asistencia: 1,
           costo_soles: Number(trabajador.jornal_diario),
         })),
