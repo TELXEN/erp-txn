@@ -335,13 +335,9 @@ function TareoPage() {
                     type="button"
                     onClick={() => alternarDia(f)}
                     aria-pressed={Boolean(diasSel[f])}
-                    className={`flex h-9 items-center justify-center rounded-md border font-mono text-xs transition-colors ${
-                      diasSel[f] === "dia"
-                        ? "border-primary bg-primary text-primary-foreground"
-                        : diasSel[f] === "viaje"
-                          ? "border-good/50 bg-good/20 text-ink"
-                          : "border-line bg-card hover:border-primary"
-                    }`}
+                    className={`flex h-9 items-center justify-center rounded-md border font-mono text-xs transition-colors ${colorDia(
+                      diasSel[f],
+                    )} ${diasSel[f] ? "" : "hover:border-primary"}`}
                   >
                     {Number(f.slice(8))}
                   </button>
@@ -351,8 +347,10 @@ function TareoPage() {
               )}
             </div>
             <p className="mt-2 font-mono text-[11px] text-muted-foreground">
-              {fechasOrdenadas.length} día(s) seleccionado(s) — verde oscuro: día trabajado; verde claro: viaje (medio día).
-              {form.asistencia === "extras" && " Las horas extras se convierten a días: horas ÷ 10.5."}
+              {fechasOrdenadas.length} día(s) seleccionado(s) — verde: día trabajado; verde claro: viaje (medio día); azul
+              claro: horas extras.
+              {form.asistencia === "extras" &&
+                " Las horas extras se registran aunque el día ya esté contabilizado y se convierten a días: horas ÷ 10.5."}
             </p>
           </div>
 
