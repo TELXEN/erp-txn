@@ -108,7 +108,7 @@ function Partidas() {
           Especialidad: p.especialidad,
           Partida: p.nombre,
           "Presupuesto (S/)": Number(p.presupuesto_inicial),
-          "Costo Real (S/)": costoRealPartida(p.id, tareos, gastos),
+          "Costo Real (S/)": costoRealPartida(p.id, gastos),
           "Avance Fisico %": Number(p.avance_pct),
         })),
       },
