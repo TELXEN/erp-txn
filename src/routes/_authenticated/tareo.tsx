@@ -222,7 +222,6 @@ function TareoPage() {
                 <th className="px-5 py-2 font-medium">Fecha</th>
                 <th className="px-3 py-2 font-medium">Trabajador</th>
                 <th className="px-3 py-2 font-medium">Proyecto</th>
-                <th className="px-3 py-2 font-medium">Partida</th>
                 <th className="px-3 py-2 text-right font-medium">Asist.</th>
                 <th className="px-3 py-2 text-right font-medium">Costo</th>
                 <th className="px-5 py-2"></th>
@@ -234,7 +233,6 @@ function TareoPage() {
                   <td className="px-5 py-2.5">{fmtFecha(t.fecha)}</td>
                   <td className="px-3 py-2.5 font-semibold text-ink">{nombreTrab(t.trabajador_id)}</td>
                   <td className="px-3 py-2.5 text-muted-foreground">{nombreProy(t.proyecto_id)}</td>
-                  <td className="px-3 py-2.5 text-muted-foreground">{nombrePart(t.partida_id)}</td>
                   <td className="px-3 py-2.5 text-right">{Number(t.asistencia)}</td>
                   <td className="px-3 py-2.5 text-right">{soles(Number(t.costo_soles))}</td>
                   <td className="px-5 py-2.5 text-right">
