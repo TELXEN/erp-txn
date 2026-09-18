@@ -103,11 +103,12 @@ function TareoPage() {
     setError("");
     const trabajador = trabajadores.find((t) => t.id === form.trabajador_id);
     if (!trabajador || fechasOrdenadas.length === 0) return setError("Selecciona trabajador y al menos una fecha.");
-    if (form.asistencia === "extras" && (!Number(horasExtras) || Number(horasExtras) <= 0))
+    const hayExtras = fechasOrdenadas.some((f) => diasSel[f] === "extras");
+    if (hayExtras && (!Number(horasExtras) || Number(horasExtras) <= 0))
       return setError("Ingresa las horas extras.");
     const filas = fechasOrdenadas.map((f) => {
-      const asistencia =
-        diasSel[f] === "viaje" ? 0.5 : form.asistencia === "extras" ? piso2(Number(horasExtras) / 10.5) : 1;
+      const tipo = diasSel[f];
+      const asistencia = tipo === "viaje" ? 0.5 : tipo === "extras" ? piso2(Number(horasExtras) / 10.5) : 1;
       return {
         fecha: f,
         trabajador_id: form.trabajador_id,
@@ -129,18 +130,22 @@ function TareoPage() {
   }
 
   function diasTrabajados(id: string) {
-    return [...new Set(
-      tareos
-        .filter((t) => t.trabajador_id === id && t.fecha.slice(0, 7) === mes)
-        .map((t) => t.fecha),
-    )].sort();
+    const mapa: Record<string, TipoDia> = {};
+    tareos
+      .filter((t) => t.trabajador_id === id && t.fecha.slice(0, 7) === mes)
+      .forEach((t) => {
+        const tipo = tipoDeAsistencia(Number(t.asistencia));
+        const previo = mapa[t.fecha];
+        if (!previo || tipo === "extras" || (tipo === "viaje" && previo !== "extras")) mapa[t.fecha] = tipo;
+      });
+    return mapa;
   }
 
   function verCalendario(id: string) {
     const registros = tareos.filter((t) => t.trabajador_id === id && t.fecha.slice(0, 7) === mes);
     setTrabajadorVisible(id);
     setMesCal(mes);
-    setDiasEditados([...new Set(registros.map((t) => t.fecha))].sort());
+    setDiasEditados(diasTrabajados(id));
     setProyectoEdicion(registros[0]?.proyecto_id ?? proyectos[0]?.id ?? "");
     setEditandoCalendario(false);
     setError("");
@@ -153,9 +158,12 @@ function TareoPage() {
 
   function alternarDiaEditado(f: string) {
     if (!editandoCalendario) return;
-    setDiasEditados((actuales) =>
-      actuales.includes(f) ? actuales.filter((x) => x !== f) : [...actuales, f].sort(),
-    );
+    setDiasEditados((actuales) => {
+      const copia = { ...actuales };
+      if (copia[f]) delete copia[f];
+      else copia[f] = "dia";
+      return copia;
+    });
   }
 
   async function guardarCorreccion() {
