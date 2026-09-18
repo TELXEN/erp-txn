@@ -57,7 +57,14 @@ function TareoPage() {
     ...Array.from({ length: diasEnMes }, (_, i) => `${mesCal}-${String(i + 1).padStart(2, "0")}`),
   ];
   const alternarDia = (f: string) =>
-    setFechas(fechas.includes(f) ? fechas.filter((x) => x !== f) : [...fechas, f].sort());
+    setDiasSel((actual) => {
+      const copia = { ...actual };
+      if (copia[f]) delete copia[f];
+      else copia[f] = form.asistencia === "viaje" ? "viaje" : "dia";
+      return copia;
+    });
+  const fechasOrdenadas = Object.keys(diasSel).sort();
+  const piso2 = (n: number) => Math.floor(n * 100) / 100;
 
   const nombreTrab = (id: string) => trabajadores.find((t) => t.id === id)?.nombre ?? "—";
   const nombreProy = (id: string) => proyectos.find((p) => p.id === id)?.nombre ?? "—";
