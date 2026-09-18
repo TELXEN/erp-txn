@@ -52,7 +52,7 @@ function TareoPage() {
   const { data: trabajadores = [] } = useTrabajadores();
   const { data: tareos = [] } = useTareos();
 
-  const [diasSel, setDiasSel] = useState<Record<string, "dia" | "viaje">>({ [hoy()]: "dia" });
+  const [diasSel, setDiasSel] = useState<Record<string, TipoDia>>({ [hoy()]: "dia" });
   const [mesCal, setMesCal] = useState(mesActual());
   const [form, setForm] = useState({ trabajador_id: "", proyecto_id: "", asistencia: "dia" });
   const [horasExtras, setHorasExtras] = useState("");
@@ -60,7 +60,7 @@ function TareoPage() {
   const [error, setError] = useState("");
   const [trabajadorVisible, setTrabajadorVisible] = useState<string | null>(null);
   const [editandoCalendario, setEditandoCalendario] = useState(false);
-  const [diasEditados, setDiasEditados] = useState<string[]>([]);
+  const [diasEditados, setDiasEditados] = useState<Record<string, TipoDia>>({});
   const [proyectoEdicion, setProyectoEdicion] = useState("");
   const [guardandoEdicion, setGuardandoEdicion] = useState(false);
 
