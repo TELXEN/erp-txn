@@ -88,8 +88,8 @@ function Proyectos() {
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
                 <th className="w-5/12 px-5 py-2 font-medium">Obra</th>
                 <th className="w-2/12 px-3 py-2 font-medium">Cliente</th>
-                <th className="w-3/12 px-3 py-2 font-medium">Ubicación</th>
-                <th className="w-2/12 px-3 py-2 text-right font-medium">Estado</th>
+                <th className="w-2/12 px-3 py-2 font-medium">Ubicación</th>
+                <th className="w-3/12 px-3 py-2 text-right font-medium">Estado</th>
               </tr>
             </thead>
             <tbody>
