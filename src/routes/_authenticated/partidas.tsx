@@ -200,22 +200,24 @@ function Partidas() {
           grupos.map(({ proyecto, grupos: espGrupos }) => (
             <div key={proyecto} className="border-b border-line last:border-0">
               <p className="bg-ink px-5 py-2 text-xs font-semibold uppercase tracking-wider text-paper">{proyecto}</p>
-              {espGrupos.map(([esp, lista]) => (
-                <div key={esp} className="border-b border-line/60 last:border-0">
-                  <p className="bg-muted/60 px-5 py-1.5 label-mono">{esp}</p>
-                  <table className="w-full table-fixed font-mono text-xs">
-                    <thead>
-                      <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                        <th className="w-3/12 px-5 py-2 font-medium">Proyecto</th>
-                        <th className="w-3/12 px-3 py-2 font-medium">Partida</th>
-                        <th className="w-1/12 px-3 py-2 text-right font-medium">Presupuesto</th>
-                        <th className="w-1/12 px-3 py-2 text-right font-medium">Costo real</th>
-                        <th className="w-1/12 px-3 py-2 text-right font-medium">Avance</th>
-                        <th className="w-1/12 px-3 py-2 text-right font-medium">Saldo</th>
-                        <th className="w-2/12 px-5 py-2 text-right font-medium">Acciones</th>
+              <table className="w-full table-fixed font-mono text-xs">
+                <thead>
+                  <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+                    <th className="w-3/12 whitespace-nowrap px-5 py-2 font-medium">Proyecto</th>
+                    <th className="w-3/12 whitespace-nowrap px-3 py-2 font-medium">Partida</th>
+                    <th className="w-1/12 whitespace-nowrap px-3 py-2 text-right font-medium">Presupuesto</th>
+                    <th className="w-1/12 whitespace-nowrap px-3 py-2 text-right font-medium">Costo real</th>
+                    <th className="w-1/12 whitespace-nowrap px-3 py-2 text-right font-medium">Avance</th>
+                    <th className="w-1/12 whitespace-nowrap px-3 py-2 text-right font-medium">Saldo</th>
+                    <th className="w-2/12 whitespace-nowrap px-5 py-2 text-right font-medium">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {espGrupos.map(([esp, lista]) => (
+                    <>
+                      <tr key={`${esp}-header`} className="border-b border-line/40 bg-muted/40">
+                        <td colSpan={7} className="px-5 py-1.5 label-mono">{esp}</td>
                       </tr>
-                    </thead>
-                    <tbody>
                       {lista.map((p) => {
                         const costo = costoRealPartida(p.id, gastos);
                         const dif = Number(p.presupuesto_inicial) - costo;
@@ -309,10 +311,10 @@ function Partidas() {
                           </tr>
                         );
                       })}
-                    </tbody>
-                  </table>
-                </div>
-              ))}
+                    </>
+                  ))}
+                </tbody>
+              </table>
             </div>
           ))
         )}
