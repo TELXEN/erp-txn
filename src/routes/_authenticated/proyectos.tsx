@@ -26,6 +26,11 @@ function Proyectos() {
   const { data: proyectos = [] } = useProyectos();
   const [form, setForm] = useState({ nombre: "", cliente: "", ubicacion: "", estado: "En Ejecucion" });
   const [error, setError] = useState("");
+  const [editando, setEditando] = useState<{
+    id: string;
+    nombre: string;
+    estado: "En Ejecucion" | "Finalizado";
+  } | null>(null);
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
@@ -43,11 +48,22 @@ function Proyectos() {
     qc.invalidateQueries({ queryKey: ["proyectos"] });
   }
 
-  async function cambiarEstado(id: string, estado: string) {
-    await supabase
+  async function actualizar(e?: React.FormEvent) {
+    e?.preventDefault();
+    if (!editando) return;
+    setError("");
+    const { error: err } = await supabase
       .from("proyectos")
-      .update({ estado: estado as "En Ejecucion" | "Finalizado" })
-      .eq("id", id);
+      .update({ nombre: editando.nombre.trim(), estado: editando.estado })
+      .eq("id", editando.id);
+    if (err) return setError(err.message);
+    setEditando(null);
+    qc.invalidateQueries({ queryKey: ["proyectos"] });
+  }
+
+  async function eliminar(id: string) {
+    if (!window.confirm("¿Eliminar este proyecto? Se perderán las partidas, tareos y gastos vinculados.")) return;
+    await supabase.from("proyectos").delete().eq("id", id);
     qc.invalidateQueries({ queryKey: ["proyectos"] });
   }
 
