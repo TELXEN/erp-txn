@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthenticatedAvanceRouteImport } from './routes/_authenticated/avance'
 import { Route as AuthenticatedPanelRouteImport } from './routes/_authenticated/panel'
 import { Route as AuthenticatedPartidasRouteImport } from './routes/_authenticated/partidas'
 import { Route as AuthenticatedProyectosRouteImport } from './routes/_authenticated/proyectos'
@@ -23,6 +24,11 @@ const IndexRoute = IndexRouteImport.update({
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAvanceRoute = AuthenticatedAvanceRouteImport.update({
+  id: '/avance',
+  path: '/avance',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedPanelRoute = AuthenticatedPanelRouteImport.update({
   id: '/panel',
@@ -42,12 +48,14 @@ const AuthenticatedProyectosRoute = AuthenticatedProyectosRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/avance': typeof AuthenticatedAvanceRoute
   '/panel': typeof AuthenticatedPanelRoute
   '/partidas': typeof AuthenticatedPartidasRoute
   '/proyectos': typeof AuthenticatedProyectosRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/avance': typeof AuthenticatedAvanceRoute
   '/panel': typeof AuthenticatedPanelRoute
   '/partidas': typeof AuthenticatedPartidasRoute
   '/proyectos': typeof AuthenticatedProyectosRoute
@@ -56,19 +64,21 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/_authenticated/avance': typeof AuthenticatedAvanceRoute
   '/_authenticated/panel': typeof AuthenticatedPanelRoute
   '/_authenticated/partidas': typeof AuthenticatedPartidasRoute
   '/_authenticated/proyectos': typeof AuthenticatedProyectosRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/panel' | '/partidas' | '/proyectos'
+  fullPaths: '/' | '/avance' | '/panel' | '/partidas' | '/proyectos'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/panel' | '/partidas' | '/proyectos'
+  to: '/' | '/avance' | '/panel' | '/partidas' | '/proyectos'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/_authenticated/avance'
     | '/_authenticated/panel'
     | '/_authenticated/partidas'
     | '/_authenticated/proyectos'
@@ -95,6 +105,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/avance': {
+      id: '/_authenticated/avance'
+      path: '/avance'
+      fullPath: '/avance'
+      preLoaderRoute: typeof AuthenticatedAvanceRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/panel': {
       id: '/_authenticated/panel'
       path: '/panel'
@@ -120,12 +137,14 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAvanceRoute: typeof AuthenticatedAvanceRoute
   AuthenticatedPanelRoute: typeof AuthenticatedPanelRoute
   AuthenticatedPartidasRoute: typeof AuthenticatedPartidasRoute
   AuthenticatedProyectosRoute: typeof AuthenticatedProyectosRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAvanceRoute: AuthenticatedAvanceRoute,
   AuthenticatedPanelRoute: AuthenticatedPanelRoute,
   AuthenticatedPartidasRoute: AuthenticatedPartidasRoute,
   AuthenticatedProyectosRoute: AuthenticatedProyectosRoute,
