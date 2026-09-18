@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedAvanceRouteImport } from './routes/_authenticated/avance'
+import { Route as AuthenticatedGastosDirectosRouteImport } from './routes/_authenticated/gastos-directos'
 import { Route as AuthenticatedPanelRouteImport } from './routes/_authenticated/panel'
 import { Route as AuthenticatedPartidasRouteImport } from './routes/_authenticated/partidas'
 import { Route as AuthenticatedPersonalRouteImport } from './routes/_authenticated/personal'
@@ -32,6 +33,12 @@ const AuthenticatedAvanceRoute = AuthenticatedAvanceRouteImport.update({
   path: '/avance',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedGastosDirectosRoute =
+  AuthenticatedGastosDirectosRouteImport.update({
+    id: '/gastos-directos',
+    path: '/gastos-directos',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedPanelRoute = AuthenticatedPanelRouteImport.update({
   id: '/panel',
   path: '/panel',
@@ -61,6 +68,7 @@ const AuthenticatedTareoRoute = AuthenticatedTareoRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/avance': typeof AuthenticatedAvanceRoute
+  '/gastos-directos': typeof AuthenticatedGastosDirectosRoute
   '/panel': typeof AuthenticatedPanelRoute
   '/partidas': typeof AuthenticatedPartidasRoute
   '/personal': typeof AuthenticatedPersonalRoute
@@ -70,6 +78,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/avance': typeof AuthenticatedAvanceRoute
+  '/gastos-directos': typeof AuthenticatedGastosDirectosRoute
   '/panel': typeof AuthenticatedPanelRoute
   '/partidas': typeof AuthenticatedPartidasRoute
   '/personal': typeof AuthenticatedPersonalRoute
@@ -81,6 +90,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/_authenticated/avance': typeof AuthenticatedAvanceRoute
+  '/_authenticated/gastos-directos': typeof AuthenticatedGastosDirectosRoute
   '/_authenticated/panel': typeof AuthenticatedPanelRoute
   '/_authenticated/partidas': typeof AuthenticatedPartidasRoute
   '/_authenticated/personal': typeof AuthenticatedPersonalRoute
@@ -92,6 +102,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/avance'
+    | '/gastos-directos'
     | '/panel'
     | '/partidas'
     | '/personal'
@@ -101,6 +112,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/avance'
+    | '/gastos-directos'
     | '/panel'
     | '/partidas'
     | '/personal'
@@ -111,6 +123,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/_authenticated/avance'
+    | '/_authenticated/gastos-directos'
     | '/_authenticated/panel'
     | '/_authenticated/partidas'
     | '/_authenticated/personal'
@@ -144,6 +157,13 @@ declare module '@tanstack/react-router' {
       path: '/avance'
       fullPath: '/avance'
       preLoaderRoute: typeof AuthenticatedAvanceRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/gastos-directos': {
+      id: '/_authenticated/gastos-directos'
+      path: '/gastos-directos'
+      fullPath: '/gastos-directos'
+      preLoaderRoute: typeof AuthenticatedGastosDirectosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/panel': {
@@ -186,6 +206,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAvanceRoute: typeof AuthenticatedAvanceRoute
+  AuthenticatedGastosDirectosRoute: typeof AuthenticatedGastosDirectosRoute
   AuthenticatedPanelRoute: typeof AuthenticatedPanelRoute
   AuthenticatedPartidasRoute: typeof AuthenticatedPartidasRoute
   AuthenticatedPersonalRoute: typeof AuthenticatedPersonalRoute
@@ -195,6 +216,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAvanceRoute: AuthenticatedAvanceRoute,
+  AuthenticatedGastosDirectosRoute: AuthenticatedGastosDirectosRoute,
   AuthenticatedPanelRoute: AuthenticatedPanelRoute,
   AuthenticatedPartidasRoute: AuthenticatedPartidasRoute,
   AuthenticatedPersonalRoute: AuthenticatedPersonalRoute,
