@@ -12,10 +12,16 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedAvanceRouteImport } from './routes/_authenticated/avance'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedGastosDirectosRouteImport } from './routes/_authenticated/gastos-directos'
+import { Route as AuthenticatedGastosGeneralesRouteImport } from './routes/_authenticated/gastos-generales'
 import { Route as AuthenticatedPanelRouteImport } from './routes/_authenticated/panel'
 import { Route as AuthenticatedPartidasRouteImport } from './routes/_authenticated/partidas'
 import { Route as AuthenticatedPersonalRouteImport } from './routes/_authenticated/personal'
 import { Route as AuthenticatedProyectosRouteImport } from './routes/_authenticated/proyectos'
+import { Route as AuthenticatedTareoRouteImport } from './routes/_authenticated/tareo'
+import { Route as AuthenticatedUsuariosRouteImport } from './routes/_authenticated/usuarios'
+import { Route as AuthenticatedValorizacionesRouteImport } from './routes/_authenticated/valorizaciones'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -31,6 +37,23 @@ const AuthenticatedAvanceRoute = AuthenticatedAvanceRouteImport.update({
   path: '/avance',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedGastosDirectosRoute =
+  AuthenticatedGastosDirectosRouteImport.update({
+    id: '/gastos-directos',
+    path: '/gastos-directos',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedGastosGeneralesRoute =
+  AuthenticatedGastosGeneralesRouteImport.update({
+    id: '/gastos-generales',
+    path: '/gastos-generales',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedPanelRoute = AuthenticatedPanelRouteImport.update({
   id: '/panel',
   path: '/panel',
@@ -51,48 +74,111 @@ const AuthenticatedProyectosRoute = AuthenticatedProyectosRouteImport.update({
   path: '/proyectos',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedTareoRoute = AuthenticatedTareoRouteImport.update({
+  id: '/tareo',
+  path: '/tareo',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedUsuariosRoute = AuthenticatedUsuariosRouteImport.update({
+  id: '/usuarios',
+  path: '/usuarios',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedValorizacionesRoute =
+  AuthenticatedValorizacionesRouteImport.update({
+    id: '/valorizaciones',
+    path: '/valorizaciones',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/avance': typeof AuthenticatedAvanceRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/gastos-directos': typeof AuthenticatedGastosDirectosRoute
+  '/gastos-generales': typeof AuthenticatedGastosGeneralesRoute
   '/panel': typeof AuthenticatedPanelRoute
   '/partidas': typeof AuthenticatedPartidasRoute
   '/personal': typeof AuthenticatedPersonalRoute
   '/proyectos': typeof AuthenticatedProyectosRoute
+  '/tareo': typeof AuthenticatedTareoRoute
+  '/usuarios': typeof AuthenticatedUsuariosRoute
+  '/valorizaciones': typeof AuthenticatedValorizacionesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/avance': typeof AuthenticatedAvanceRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/gastos-directos': typeof AuthenticatedGastosDirectosRoute
+  '/gastos-generales': typeof AuthenticatedGastosGeneralesRoute
   '/panel': typeof AuthenticatedPanelRoute
   '/partidas': typeof AuthenticatedPartidasRoute
   '/personal': typeof AuthenticatedPersonalRoute
   '/proyectos': typeof AuthenticatedProyectosRoute
+  '/tareo': typeof AuthenticatedTareoRoute
+  '/usuarios': typeof AuthenticatedUsuariosRoute
+  '/valorizaciones': typeof AuthenticatedValorizacionesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/_authenticated/avance': typeof AuthenticatedAvanceRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/gastos-directos': typeof AuthenticatedGastosDirectosRoute
+  '/_authenticated/gastos-generales': typeof AuthenticatedGastosGeneralesRoute
   '/_authenticated/panel': typeof AuthenticatedPanelRoute
   '/_authenticated/partidas': typeof AuthenticatedPartidasRoute
   '/_authenticated/personal': typeof AuthenticatedPersonalRoute
   '/_authenticated/proyectos': typeof AuthenticatedProyectosRoute
+  '/_authenticated/tareo': typeof AuthenticatedTareoRoute
+  '/_authenticated/usuarios': typeof AuthenticatedUsuariosRoute
+  '/_authenticated/valorizaciones': typeof AuthenticatedValorizacionesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/avance' | '/panel' | '/partidas' | '/personal' | '/proyectos'
+    | '/'
+    | '/avance'
+    | '/dashboard'
+    | '/gastos-directos'
+    | '/gastos-generales'
+    | '/panel'
+    | '/partidas'
+    | '/personal'
+    | '/proyectos'
+    | '/tareo'
+    | '/usuarios'
+    | '/valorizaciones'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/avance' | '/panel' | '/partidas' | '/personal' | '/proyectos'
+  to:
+    | '/'
+    | '/avance'
+    | '/dashboard'
+    | '/gastos-directos'
+    | '/gastos-generales'
+    | '/panel'
+    | '/partidas'
+    | '/personal'
+    | '/proyectos'
+    | '/tareo'
+    | '/usuarios'
+    | '/valorizaciones'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/_authenticated/avance'
+    | '/_authenticated/dashboard'
+    | '/_authenticated/gastos-directos'
+    | '/_authenticated/gastos-generales'
     | '/_authenticated/panel'
     | '/_authenticated/partidas'
     | '/_authenticated/personal'
     | '/_authenticated/proyectos'
+    | '/_authenticated/tareo'
+    | '/_authenticated/usuarios'
+    | '/_authenticated/valorizaciones'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -123,6 +209,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAvanceRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/gastos-directos': {
+      id: '/_authenticated/gastos-directos'
+      path: '/gastos-directos'
+      fullPath: '/gastos-directos'
+      preLoaderRoute: typeof AuthenticatedGastosDirectosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/gastos-generales': {
+      id: '/_authenticated/gastos-generales'
+      path: '/gastos-generales'
+      fullPath: '/gastos-generales'
+      preLoaderRoute: typeof AuthenticatedGastosGeneralesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/panel': {
       id: '/_authenticated/panel'
       path: '/panel'
@@ -151,23 +258,56 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProyectosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/tareo': {
+      id: '/_authenticated/tareo'
+      path: '/tareo'
+      fullPath: '/tareo'
+      preLoaderRoute: typeof AuthenticatedTareoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/usuarios': {
+      id: '/_authenticated/usuarios'
+      path: '/usuarios'
+      fullPath: '/usuarios'
+      preLoaderRoute: typeof AuthenticatedUsuariosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/valorizaciones': {
+      id: '/_authenticated/valorizaciones'
+      path: '/valorizaciones'
+      fullPath: '/valorizaciones'
+      preLoaderRoute: typeof AuthenticatedValorizacionesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAvanceRoute: typeof AuthenticatedAvanceRoute
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedGastosDirectosRoute: typeof AuthenticatedGastosDirectosRoute
+  AuthenticatedGastosGeneralesRoute: typeof AuthenticatedGastosGeneralesRoute
   AuthenticatedPanelRoute: typeof AuthenticatedPanelRoute
   AuthenticatedPartidasRoute: typeof AuthenticatedPartidasRoute
   AuthenticatedPersonalRoute: typeof AuthenticatedPersonalRoute
   AuthenticatedProyectosRoute: typeof AuthenticatedProyectosRoute
+  AuthenticatedTareoRoute: typeof AuthenticatedTareoRoute
+  AuthenticatedUsuariosRoute: typeof AuthenticatedUsuariosRoute
+  AuthenticatedValorizacionesRoute: typeof AuthenticatedValorizacionesRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAvanceRoute: AuthenticatedAvanceRoute,
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedGastosDirectosRoute: AuthenticatedGastosDirectosRoute,
+  AuthenticatedGastosGeneralesRoute: AuthenticatedGastosGeneralesRoute,
   AuthenticatedPanelRoute: AuthenticatedPanelRoute,
   AuthenticatedPartidasRoute: AuthenticatedPartidasRoute,
   AuthenticatedPersonalRoute: AuthenticatedPersonalRoute,
   AuthenticatedProyectosRoute: AuthenticatedProyectosRoute,
+  AuthenticatedTareoRoute: AuthenticatedTareoRoute,
+  AuthenticatedUsuariosRoute: AuthenticatedUsuariosRoute,
+  AuthenticatedValorizacionesRoute: AuthenticatedValorizacionesRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
