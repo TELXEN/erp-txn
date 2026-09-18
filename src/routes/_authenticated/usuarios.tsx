@@ -42,7 +42,31 @@ function Usuarios() {
     },
   });
 
+  const crear = useServerFn(crearUsuario);
+  const vacio = { nombre: "", email: "", password: "", rol: "ingeniero" as Rol };
+  const [form, setForm] = useState(vacio);
+  const [abierto, setAbierto] = useState(false);
+  const [guardando, setGuardando] = useState(false);
+  const [mensaje, setMensaje] = useState<{ tipo: "ok" | "error"; texto: string } | null>(null);
+
   if (rol !== "gerente") return <SinAcceso />;
+
+  async function registrar(e: React.FormEvent) {
+    e.preventDefault();
+    setGuardando(true);
+    setMensaje(null);
+    try {
+      await crear({ data: form });
+      setForm(vacio);
+      setMensaje({ tipo: "ok", texto: "Usuario creado correctamente." });
+      qc.invalidateQueries({ queryKey: ["usuarios"] });
+    } catch (err) {
+      setMensaje({ tipo: "error", texto: err instanceof Error ? err.message : "No se pudo crear el usuario." });
+    } finally {
+      setGuardando(false);
+    }
+  }
+
 
   async function asignar(userId: string, nuevo: Rol) {
     await supabase.from("user_roles").delete().eq("user_id", userId);
