@@ -84,7 +84,7 @@ function Dashboard() {
   if (rol !== "gerente") return <SinAcceso />;
 
   const kpis = [
-    { etiqueta: "Total Ventas", valor: datos.totalVentas },
+    { etiqueta: "Total Ventas (Cobrado)", valor: datos.totalVentas },
     { etiqueta: "Total Gastos", valor: datos.totalGastos },
     { etiqueta: "Margen de Utilidad", valor: datos.margen },
   ];
