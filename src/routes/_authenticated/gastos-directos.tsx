@@ -204,9 +204,9 @@ function GastosDirectos() {
                   </td>
                   <td className="px-3 py-2.5 text-right font-semibold">{soles(Number(g.monto_soles))}</td>
                   <td className="px-5 py-2.5 text-right">
-                    <button onClick={() => eliminar(g.id)} className="font-mono text-[11px] text-bad">
+                    <Boton variante="peligro" className="px-2 py-1 text-[10px]" onClick={() => eliminar(g.id)}>
                       Eliminar
-                    </button>
+                    </Boton>
                   </td>
                 </tr>
               ))}
