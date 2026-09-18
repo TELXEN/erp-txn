@@ -1,9 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
+import { UserPlus } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
-import { Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
+import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { ETIQUETA_ROL, useAuth, type Rol } from "@/lib/auth";
+import { crearUsuario } from "@/lib/usuarios.functions";
 
 export const Route = createFileRoute("/_authenticated/usuarios")({
   head: () => ({
@@ -39,7 +43,31 @@ function Usuarios() {
     },
   });
 
+  const crear = useServerFn(crearUsuario);
+  const vacio = { nombre: "", email: "", password: "", rol: "ingeniero" as Rol };
+  const [form, setForm] = useState(vacio);
+  const [abierto, setAbierto] = useState(false);
+  const [guardando, setGuardando] = useState(false);
+  const [mensaje, setMensaje] = useState<{ tipo: "ok" | "error"; texto: string } | null>(null);
+
   if (rol !== "gerente") return <SinAcceso />;
+
+  async function registrar(e: React.FormEvent) {
+    e.preventDefault();
+    setGuardando(true);
+    setMensaje(null);
+    try {
+      await crear({ data: form });
+      setForm(vacio);
+      setMensaje({ tipo: "ok", texto: "Usuario creado correctamente." });
+      qc.invalidateQueries({ queryKey: ["usuarios"] });
+    } catch (err) {
+      setMensaje({ tipo: "error", texto: err instanceof Error ? err.message : "No se pudo crear el usuario." });
+    } finally {
+      setGuardando(false);
+    }
+  }
+
 
   async function asignar(userId: string, nuevo: Rol) {
     await supabase.from("user_roles").delete().eq("user_id", userId);
@@ -49,7 +77,75 @@ function Usuarios() {
 
   return (
     <>
-      <Encabezado titulo="Usuarios y Roles" subtitulo="Control de accesos" />
+      <Encabezado
+        titulo="Usuarios y Roles"
+        subtitulo="Control de accesos"
+        acciones={
+          <Boton onClick={() => setAbierto((v) => !v)}>
+            <UserPlus className="h-3.5 w-3.5" />
+            {abierto ? "Cerrar" : "Añadir usuario"}
+          </Boton>
+        }
+      />
+
+      {abierto && (
+        <Panel
+          titulo="Nuevo usuario"
+          className="mb-4"
+          extra={
+            <Boton type="submit" form="form-usuario" disabled={guardando}>
+              {guardando ? "Creando…" : "Registrar"}
+            </Boton>
+          }
+        >
+          <form id="form-usuario" onSubmit={registrar} className="grid gap-4 px-5 py-4 md:grid-cols-4">
+            <Campo etiqueta="Nombre">
+              <Input
+                required
+                maxLength={100}
+                value={form.nombre}
+                onChange={(e) => setForm({ ...form, nombre: e.target.value })}
+              />
+            </Campo>
+            <Campo etiqueta="Correo">
+              <Input
+                required
+                type="email"
+                maxLength={255}
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+              />
+            </Campo>
+            <Campo etiqueta="Contraseña">
+              <Input
+                required
+                type="password"
+                minLength={6}
+                maxLength={72}
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+              />
+            </Campo>
+            <Campo etiqueta="Rol asignado">
+              <Select value={form.rol} onChange={(e) => setForm({ ...form, rol: e.target.value as Rol })}>
+                {(Object.keys(ETIQUETA_ROL) as Rol[]).map((r) => (
+                  <option key={r} value={r}>
+                    {ETIQUETA_ROL[r]}
+                  </option>
+                ))}
+              </Select>
+            </Campo>
+            {mensaje && (
+              <p
+                className={`md:col-span-4 font-mono text-xs ${mensaje.tipo === "ok" ? "text-good" : "text-bad"}`}
+              >
+                {mensaje.texto}
+              </p>
+            )}
+          </form>
+        </Panel>
+      )}
+
       <Panel titulo="Usuarios registrados">
         {usuarios.length === 0 ? (
           <Vacio texto="No hay usuarios registrados." />
