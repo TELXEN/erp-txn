@@ -266,7 +266,7 @@ function TareoPage() {
               </Select>
             </Campo>
             {form.asistencia === "extras" && (
-              <Campo etiqueta="Cantidad de horas extras">
+              <Campo etiqueta="Horas extra">
                 <Input
                   type="number"
                   min="0"
