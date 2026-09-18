@@ -30,6 +30,21 @@ function cambiarMes(mes: string, delta: number) {
 
 const DIAS_SEMANA = ["L", "M", "M", "J", "V", "S", "D"];
 
+type TipoDia = "dia" | "viaje" | "extras";
+
+function colorDia(tipo: TipoDia | undefined): string {
+  if (tipo === "dia") return "border-primary bg-primary text-primary-foreground";
+  if (tipo === "viaje") return "border-good/50 bg-good/20 text-ink";
+  if (tipo === "extras") return "border-sky-400/60 bg-sky-200/70 text-ink";
+  return "border-line bg-card";
+}
+
+function tipoDeAsistencia(asistencia: number): TipoDia {
+  if (asistencia === 1) return "dia";
+  if (asistencia === 0.5) return "viaje";
+  return "extras";
+}
+
 function TareoPage() {
   const { rol } = useAuth();
   const qc = useQueryClient();
