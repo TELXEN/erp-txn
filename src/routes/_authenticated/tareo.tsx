@@ -37,9 +37,10 @@ function TareoPage() {
   const { data: trabajadores = [] } = useTrabajadores();
   const { data: tareos = [] } = useTareos();
 
-  const [fechas, setFechas] = useState<string[]>([hoy()]);
+  const [diasSel, setDiasSel] = useState<Record<string, "dia" | "viaje">>({ [hoy()]: "dia" });
   const [mesCal, setMesCal] = useState(mesActual());
-  const [form, setForm] = useState({ trabajador_id: "", proyecto_id: "", asistencia: "1" });
+  const [form, setForm] = useState({ trabajador_id: "", proyecto_id: "", asistencia: "dia" });
+  const [horasExtras, setHorasExtras] = useState("");
   const [mes, setMes] = useState(mesActual());
   const [error, setError] = useState("");
   const [trabajadorVisible, setTrabajadorVisible] = useState<string | null>(null);
