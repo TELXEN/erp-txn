@@ -76,6 +76,31 @@ function Partidas() {
     qc.invalidateQueries({ queryKey: ["partidas"] });
   }
 
+  async function actualizar(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editando) return;
+    setError("");
+    const { error: err } = await supabase
+      .from("partidas")
+      .update({
+        nombre: editando.nombre.trim(),
+        especialidad: editando.especialidad,
+        presupuesto_inicial: Number(editando.presupuesto_inicial || 0),
+      })
+      .eq("id", editando.id);
+    if (err) return setError(err.message);
+    setEditando(null);
+    qc.invalidateQueries({ queryKey: ["partidas"] });
+  }
+
+  async function eliminar(id: string) {
+    if (!window.confirm("¿Eliminar esta partida? Se perderán los tareos y gastos vinculados.")) return;
+    setError("");
+    const { error: err } = await supabase.from("partidas").delete().eq("id", id);
+    if (err) return setError(err.message);
+    qc.invalidateQueries({ queryKey: ["partidas"] });
+  }
+
   function exportar() {
     exportarExcel("partidas", [
       {
