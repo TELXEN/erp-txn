@@ -1,22 +1,35 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import type { ReactNode } from "react";
+import {
+  Activity,
+  ArrowDownCircle,
+  ArrowUpCircle,
+  Banknote,
+  BarChart3,
+  Building2,
+  CalendarDays,
+  ClipboardList,
+  Layers,
+  ShieldCheck,
+  Users,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ETIQUETA_ROL, useAuth, type Rol } from "@/lib/auth";
 
-type Item = { a: string; texto: string; roles: Rol[] };
+type Item = { a: string; texto: string; roles: Rol[]; icono: React.ElementType };
 
 const MENU: Item[] = [
-  { a: "/dashboard", texto: "Dashboard Financiero", roles: ["gerente"] },
-  { a: "/proyectos", texto: "Proyectos", roles: ["administrador", "gerente"] },
-  { a: "/partidas", texto: "Partidas", roles: ["administrador", "gerente"] },
-  { a: "/avance", texto: "Avance Físico", roles: ["ingeniero", "gerente"] },
-  { a: "/personal", texto: "Personal", roles: ["administrador", "gerente"] },
-  { a: "/tareo", texto: "Tareo Diario", roles: ["administrador", "gerente"] },
-  { a: "/gastos-directos", texto: "Gastos Directos", roles: ["administrador", "gerente"] },
-  { a: "/gastos-generales", texto: "Gastos Generales", roles: ["administrador", "gerente"] },
-  { a: "/valorizaciones", texto: "Valorizaciones", roles: ["administrador", "gerente"] },
-  { a: "/usuarios", texto: "Usuarios y Roles", roles: ["gerente"] },
+  { a: "/dashboard", texto: "Dashboard Financiero", roles: ["gerente"], icono: BarChart3 },
+  { a: "/proyectos", texto: "Proyectos", roles: ["administrador", "gerente"], icono: Building2 },
+  { a: "/partidas", texto: "Partidas", roles: ["administrador", "gerente"], icono: Layers },
+  { a: "/avance", texto: "Avance Físico", roles: ["ingeniero", "gerente"], icono: Activity },
+  { a: "/personal", texto: "Personal", roles: ["administrador", "gerente"], icono: Users },
+  { a: "/tareo", texto: "Tareo Diario", roles: ["administrador", "gerente"], icono: CalendarDays },
+  { a: "/gastos-directos", texto: "Gastos Directos", roles: ["administrador", "gerente"], icono: ArrowDownCircle },
+  { a: "/gastos-generales", texto: "Gastos Generales", roles: ["administrador", "gerente"], icono: ArrowUpCircle },
+  { a: "/valorizaciones", texto: "Valorizaciones", roles: ["administrador", "gerente"], icono: Banknote },
+  { a: "/usuarios", texto: "Usuarios y Roles", roles: ["gerente"], icono: ShieldCheck },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -74,15 +87,17 @@ export function AppShell({ children }: { children: ReactNode }) {
           <nav className="space-y-1 text-sm">
             {items.map((m) => {
               const activo = pathname === m.a;
+              const Icono = m.icono;
               return (
                 <Link
                   key={m.a}
                   to={m.a}
-                  className={`block rounded-md px-3 py-2 transition-colors ${
+                  className={`flex items-center gap-2.5 rounded-md px-3 py-2 transition-colors ${
                     activo ? "bg-primary/10 font-semibold text-primary" : "text-ink hover:bg-ink/5"
                   }`}
                 >
-                  {m.texto}
+                  <Icono className="size-4 shrink-0 opacity-90" />
+                  <span>{m.texto}</span>
                 </Link>
               );
             })}
