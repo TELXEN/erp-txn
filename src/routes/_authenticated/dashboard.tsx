@@ -54,7 +54,15 @@ function Dashboard() {
     const totalTareo = td.reduce((s, t) => s + Number(t.costo_soles), 0);
     const totalGenerales = global ? gastosG.reduce((s, g) => s + Number(g.monto_soles), 0) : 0;
     const totalGastos = totalDirectos + totalTareo + totalGenerales;
-    return { totalVentas, totalDirectos, totalTareo, totalGenerales, totalGastos, margen: totalVentas - totalGastos };
+    return {
+      totalVentas,
+      ventasPendientes,
+      totalDirectos,
+      totalTareo,
+      totalGenerales,
+      totalGastos,
+      margen: totalVentas - totalGastos,
+    };
   }, [global, seleccion, ventas, gastosD, tareos, gastosG]);
 
   const barras = useMemo(() => {
