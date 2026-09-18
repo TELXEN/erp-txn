@@ -7,7 +7,7 @@ import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, mesActual, soles } from "@/lib/format";
-import { usePartidas, useProyectos, useTareos, useTrabajadores } from "@/lib/datos";
+import { useProyectos, useTareos, useTrabajadores } from "@/lib/datos";
 import { exportarExcel } from "@/lib/exportar";
 
 export const Route = createFileRoute("/_authenticated/tareo")({
@@ -34,7 +34,6 @@ function TareoPage() {
   const { rol } = useAuth();
   const qc = useQueryClient();
   const { data: proyectos = [] } = useProyectos();
-  usePartidas();
   const { data: trabajadores = [] } = useTrabajadores();
   const { data: tareos = [] } = useTareos();
 
