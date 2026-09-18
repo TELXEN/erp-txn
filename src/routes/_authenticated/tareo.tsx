@@ -127,7 +127,7 @@ function TareoPage() {
                 <option value="">Selecciona...</option>
                 {trabajadores.filter((t) => t.activo).map((t) => (
                   <option key={t.id} value={t.id}>
-                    {t.nombre} — {soles(Number(t.jornal_diario))}/día
+                    {t.nombre}
                   </option>
                 ))}
               </Select>
