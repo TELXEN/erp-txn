@@ -41,7 +41,7 @@ function Partidas() {
   const [form, setForm] = useState({
     proyecto_id: "",
     nombre: "",
-    especialidad: ESPECIALIDADES[0],
+    especialidad: ESPECIALIDADES[0] as string,
     presupuesto_inicial: "",
   });
   const [error, setError] = useState("");
