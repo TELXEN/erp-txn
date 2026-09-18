@@ -19,6 +19,7 @@ import { Route as AuthenticatedPartidasRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedPersonalRouteImport } from './routes/_authenticated/personal'
 import { Route as AuthenticatedProyectosRouteImport } from './routes/_authenticated/proyectos'
 import { Route as AuthenticatedTareoRouteImport } from './routes/_authenticated/tareo'
+import { Route as AuthenticatedUsuariosRouteImport } from './routes/_authenticated/usuarios'
 import { Route as AuthenticatedValorizacionesRouteImport } from './routes/_authenticated/valorizaciones'
 
 const IndexRoute = IndexRouteImport.update({
@@ -72,6 +73,11 @@ const AuthenticatedTareoRoute = AuthenticatedTareoRouteImport.update({
   path: '/tareo',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedUsuariosRoute = AuthenticatedUsuariosRouteImport.update({
+  id: '/usuarios',
+  path: '/usuarios',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedValorizacionesRoute =
   AuthenticatedValorizacionesRouteImport.update({
     id: '/valorizaciones',
@@ -89,6 +95,7 @@ export interface FileRoutesByFullPath {
   '/personal': typeof AuthenticatedPersonalRoute
   '/proyectos': typeof AuthenticatedProyectosRoute
   '/tareo': typeof AuthenticatedTareoRoute
+  '/usuarios': typeof AuthenticatedUsuariosRoute
   '/valorizaciones': typeof AuthenticatedValorizacionesRoute
 }
 export interface FileRoutesByTo {
@@ -101,6 +108,7 @@ export interface FileRoutesByTo {
   '/personal': typeof AuthenticatedPersonalRoute
   '/proyectos': typeof AuthenticatedProyectosRoute
   '/tareo': typeof AuthenticatedTareoRoute
+  '/usuarios': typeof AuthenticatedUsuariosRoute
   '/valorizaciones': typeof AuthenticatedValorizacionesRoute
 }
 export interface FileRoutesById {
@@ -115,6 +123,7 @@ export interface FileRoutesById {
   '/_authenticated/personal': typeof AuthenticatedPersonalRoute
   '/_authenticated/proyectos': typeof AuthenticatedProyectosRoute
   '/_authenticated/tareo': typeof AuthenticatedTareoRoute
+  '/_authenticated/usuarios': typeof AuthenticatedUsuariosRoute
   '/_authenticated/valorizaciones': typeof AuthenticatedValorizacionesRoute
 }
 export interface FileRouteTypes {
@@ -129,6 +138,7 @@ export interface FileRouteTypes {
     | '/personal'
     | '/proyectos'
     | '/tareo'
+    | '/usuarios'
     | '/valorizaciones'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -141,6 +151,7 @@ export interface FileRouteTypes {
     | '/personal'
     | '/proyectos'
     | '/tareo'
+    | '/usuarios'
     | '/valorizaciones'
   id:
     | '__root__'
@@ -154,6 +165,7 @@ export interface FileRouteTypes {
     | '/_authenticated/personal'
     | '/_authenticated/proyectos'
     | '/_authenticated/tareo'
+    | '/_authenticated/usuarios'
     | '/_authenticated/valorizaciones'
   fileRoutesById: FileRoutesById
 }
@@ -234,6 +246,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTareoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/usuarios': {
+      id: '/_authenticated/usuarios'
+      path: '/usuarios'
+      fullPath: '/usuarios'
+      preLoaderRoute: typeof AuthenticatedUsuariosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/valorizaciones': {
       id: '/_authenticated/valorizaciones'
       path: '/valorizaciones'
@@ -253,6 +272,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPersonalRoute: typeof AuthenticatedPersonalRoute
   AuthenticatedProyectosRoute: typeof AuthenticatedProyectosRoute
   AuthenticatedTareoRoute: typeof AuthenticatedTareoRoute
+  AuthenticatedUsuariosRoute: typeof AuthenticatedUsuariosRoute
   AuthenticatedValorizacionesRoute: typeof AuthenticatedValorizacionesRoute
 }
 
@@ -265,6 +285,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPersonalRoute: AuthenticatedPersonalRoute,
   AuthenticatedProyectosRoute: AuthenticatedProyectosRoute,
   AuthenticatedTareoRoute: AuthenticatedTareoRoute,
+  AuthenticatedUsuariosRoute: AuthenticatedUsuariosRoute,
   AuthenticatedValorizacionesRoute: AuthenticatedValorizacionesRoute,
 }
 
