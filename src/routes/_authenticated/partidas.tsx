@@ -203,13 +203,13 @@ function Partidas() {
               <table className="w-full table-fixed font-mono text-xs">
                 <thead>
                   <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                    <th className="w-3/12 whitespace-nowrap px-5 py-2 font-medium">Proyecto</th>
-                    <th className="w-3/12 whitespace-nowrap px-3 py-2 font-medium">Partida</th>
-                    <th className="w-1/12 whitespace-nowrap px-3 py-2 text-right font-medium">Presupuesto</th>
-                    <th className="w-1/12 whitespace-nowrap px-3 py-2 text-right font-medium">Costo real</th>
-                    <th className="w-1/12 whitespace-nowrap px-3 py-2 text-right font-medium">Avance</th>
-                    <th className="w-1/12 whitespace-nowrap px-3 py-2 text-right font-medium">Saldo</th>
-                    <th className="w-2/12 whitespace-nowrap px-5 py-2 text-right font-medium">Acciones</th>
+                    <th style={{ width: "22.5%" }} className="whitespace-nowrap px-5 py-2 font-medium">Proyecto</th>
+                    <th style={{ width: "22.5%" }} className="whitespace-nowrap px-3 py-2 font-medium">Partida</th>
+                    <th style={{ width: "11%" }} className="whitespace-nowrap px-3 py-2 text-right font-medium">Presupuesto</th>
+                    <th style={{ width: "12%" }} className="whitespace-nowrap px-3 py-2 text-right font-medium">Costo real</th>
+                    <th style={{ width: "10%" }} className="whitespace-nowrap px-3 py-2 text-right font-medium">Avance</th>
+                    <th style={{ width: "10%" }} className="whitespace-nowrap px-3 py-2 text-right font-medium">Saldo</th>
+                    <th style={{ width: "12%" }} className="whitespace-nowrap px-5 py-2 text-right font-medium">Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
