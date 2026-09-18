@@ -21,6 +21,14 @@ export const Route = createFileRoute("/_authenticated/tareo")({
   component: TareoPage,
 });
 
+function cambiarMes(mes: string, delta: number) {
+  const [y = 0, m = 1] = mes.split("-").map(Number);
+  const d = new Date(y, m - 1 + delta, 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
+
+const DIAS_SEMANA = ["L", "M", "M", "J", "V", "S", "D"];
+
 function TareoPage() {
   const { rol } = useAuth();
   const qc = useQueryClient();
@@ -30,10 +38,20 @@ function TareoPage() {
   const { data: tareos = [] } = useTareos();
 
   const [fechas, setFechas] = useState<string[]>([hoy()]);
-  const [nuevaFecha, setNuevaFecha] = useState(hoy());
+  const [mesCal, setMesCal] = useState(mesActual());
   const [form, setForm] = useState({ trabajador_id: "", proyecto_id: "", asistencia: "1" });
   const [mes, setMes] = useState(mesActual());
   const [error, setError] = useState("");
+
+  const [anioCal = 2026, mesNumCal = 1] = mesCal.split("-").map(Number);
+  const primerDia = (new Date(anioCal, mesNumCal - 1, 1).getDay() + 6) % 7;
+  const diasEnMes = new Date(anioCal, mesNumCal, 0).getDate();
+  const celdas: (string | null)[] = [
+    ...Array<string | null>(primerDia).fill(null),
+    ...Array.from({ length: diasEnMes }, (_, i) => `${mesCal}-${String(i + 1).padStart(2, "0")}`),
+  ];
+  const alternarDia = (f: string) =>
+    setFechas(fechas.includes(f) ? fechas.filter((x) => x !== f) : [...fechas, f].sort());
 
   const partidasProyecto = partidas.filter((p) => p.proyecto_id === form.proyecto_id);
   const nombreTrab = (id: string) => trabajadores.find((t) => t.id === id)?.nombre ?? "—";
@@ -152,25 +170,52 @@ function TareoPage() {
           </div>
 
           <div className="rounded-md border border-line bg-muted/40 p-3">
-            <p className="label-mono">Fechas del registro</p>
-            <div className="mt-2 flex flex-wrap items-center gap-2">
-              {fechas.map((f) => (
-                <span key={f} className="inline-flex items-center gap-2 rounded-full bg-card px-3 py-1 font-mono text-[11px] ring-1 ring-line">
-                  {fmtFecha(f)}
-                  <button type="button" onClick={() => setFechas(fechas.filter((x) => x !== f))} className="text-bad">
-                    ×
-                  </button>
-                </span>
-              ))}
-              <Input type="date" className="w-40" value={nuevaFecha} onChange={(e) => setNuevaFecha(e.target.value)} />
-              <Boton
-                type="button"
-                variante="linea"
-                onClick={() => !fechas.includes(nuevaFecha) && setFechas([...fechas, nuevaFecha])}
-              >
-                Añadir fecha
-              </Boton>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="label-mono">Calendario de asistencia</p>
+              <div className="flex items-center gap-2">
+                <Boton type="button" variante="linea" className="px-2" onClick={() => setMesCal(cambiarMes(mesCal, -1))}>
+                  ‹
+                </Boton>
+                <Input
+                  type="month"
+                  className="w-40"
+                  value={mesCal}
+                  onChange={(e) => e.target.value && setMesCal(e.target.value)}
+                />
+                <Boton type="button" variante="linea" className="px-2" onClick={() => setMesCal(cambiarMes(mesCal, 1))}>
+                  ›
+                </Boton>
+              </div>
             </div>
+            <div className="mt-3 grid grid-cols-7 gap-1">
+              {DIAS_SEMANA.map((d, i) => (
+                <div key={i} className="label-mono py-1 text-center">
+                  {d}
+                </div>
+              ))}
+              {celdas.map((f, i) =>
+                f ? (
+                  <button
+                    key={f}
+                    type="button"
+                    onClick={() => alternarDia(f)}
+                    aria-pressed={fechas.includes(f)}
+                    className={`flex h-9 items-center justify-center rounded-md border font-mono text-xs transition-colors ${
+                      fechas.includes(f)
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-line bg-card hover:border-primary"
+                    }`}
+                  >
+                    {Number(f.slice(8))}
+                  </button>
+                ) : (
+                  <div key={`vacio-${i}`} />
+                ),
+              )}
+            </div>
+            <p className="mt-2 font-mono text-[11px] text-muted-foreground">
+              {fechas.length} día(s) seleccionado(s) — cada día marcado cuenta como un día de trabajo.
+            </p>
           </div>
 
           {error && <p className="font-mono text-xs text-bad">{error}</p>}
