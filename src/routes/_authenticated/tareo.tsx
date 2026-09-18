@@ -439,7 +439,9 @@ function TareoPage() {
               <div>
                 <p className="label-mono">{editandoCalendario ? "Corrección de asistencia" : "Asistencia registrada"}</p>
                 <p className="mt-1 font-mono text-[11px] text-muted-foreground">
-                  {editandoCalendario ? "Marca o desmarca días y guarda los cambios." : "Los días trabajados aparecen marcados en verde."}
+                  {editandoCalendario
+                    ? "Marca o desmarca días y guarda los cambios. Verde: día trabajado; verde claro: viaje; azul claro: horas extras."
+                    : "Verde: día trabajado; verde claro: viaje (medio día); azul claro: horas extras."}
                 </p>
               </div>
               {editandoCalendario && (
