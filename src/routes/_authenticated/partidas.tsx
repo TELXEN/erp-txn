@@ -12,7 +12,6 @@ import {
   useGastosDirectos,
   usePartidas,
   useProyectos,
-  useTareos,
 } from "@/lib/datos";
 import { exportarExcel } from "@/lib/exportar";
 import { Pencil, Trash2, Check, X } from "lucide-react";
@@ -34,7 +33,6 @@ function Partidas() {
   const qc = useQueryClient();
   const { data: proyectos = [] } = useProyectos();
   const { data: partidas = [] } = usePartidas();
-  const { data: tareos = [] } = useTareos();
   const { data: gastos = [] } = useGastosDirectos();
 
   const [filtroProyecto, setFiltroProyecto] = useState("");
@@ -94,7 +92,7 @@ function Partidas() {
   }
 
   async function eliminar(id: string) {
-    if (!window.confirm("¿Eliminar esta partida? Se perderán los tareos y gastos vinculados.")) return;
+    if (!window.confirm("¿Eliminar esta partida? Se perderán los gastos directos vinculados.")) return;
     setError("");
     const { error: err } = await supabase.from("partidas").delete().eq("id", id);
     if (err) return setError(err.message);
@@ -110,7 +108,7 @@ function Partidas() {
           Especialidad: p.especialidad,
           Partida: p.nombre,
           "Presupuesto (S/)": Number(p.presupuesto_inicial),
-          "Costo Real (S/)": costoRealPartida(p.id, tareos, gastos),
+          "Costo Real (S/)": costoRealPartida(p.id, gastos),
           "Avance Fisico %": Number(p.avance_pct),
         })),
       },
@@ -215,7 +213,7 @@ function Partidas() {
                 </thead>
                 <tbody>
                   {lista.map((p) => {
-                    const costo = costoRealPartida(p.id, tareos, gastos);
+                    const costo = costoRealPartida(p.id, gastos);
                     const dif = Number(p.presupuesto_inicial) - costo;
                     const enEdicion = editando?.id === p.id;
                     if (enEdicion) {

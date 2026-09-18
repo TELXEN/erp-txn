@@ -39,7 +39,6 @@ export type Tareo = {
   fecha: string;
   trabajador_id: string;
   proyecto_id: string;
-  partida_id: string | null;
   asistencia: number;
   costo_soles: number;
 };
@@ -133,8 +132,6 @@ export function agruparPorEspecialidad(partidas: Partida[]) {
   return [...mapa.entries()].sort((a, b) => a[0].localeCompare(b[0]));
 }
 
-export function costoRealPartida(partidaId: string, tareos: Tareo[], gastos: GastoDirecto[]) {
-  const mano = tareos.filter((t) => t.partida_id === partidaId).reduce((s, t) => s + Number(t.costo_soles), 0);
-  const compras = gastos.filter((g) => g.partida_id === partidaId).reduce((s, g) => s + Number(g.monto_soles), 0);
-  return mano + compras;
+export function costoRealPartida(partidaId: string, gastos: GastoDirecto[]) {
+  return gastos.filter((g) => g.partida_id === partidaId).reduce((s, g) => s + Number(g.monto_soles), 0);
 }

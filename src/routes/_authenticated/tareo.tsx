@@ -31,14 +31,13 @@ function TareoPage() {
 
   const [fechas, setFechas] = useState<string[]>([hoy()]);
   const [nuevaFecha, setNuevaFecha] = useState(hoy());
-  const [form, setForm] = useState({ trabajador_id: "", proyecto_id: "", partida_id: "", asistencia: "1" });
+  const [form, setForm] = useState({ trabajador_id: "", proyecto_id: "", asistencia: "1" });
   const [mes, setMes] = useState(mesActual());
   const [error, setError] = useState("");
 
   const partidasProyecto = partidas.filter((p) => p.proyecto_id === form.proyecto_id);
   const nombreTrab = (id: string) => trabajadores.find((t) => t.id === id)?.nombre ?? "—";
   const nombreProy = (id: string) => proyectos.find((p) => p.id === id)?.nombre ?? "—";
-  const nombrePart = (id: string | null) => partidas.find((p) => p.id === id)?.nombre ?? "—";
 
   const consolidado = useMemo(() => {
     const delMes = tareos.filter((t) => t.fecha.slice(0, 7) === mes);
@@ -64,7 +63,6 @@ function TareoPage() {
       fecha: f,
       trabajador_id: form.trabajador_id,
       proyecto_id: form.proyecto_id,
-      partida_id: form.partida_id || null,
       asistencia,
       costo_soles: asistencia * Number(trabajador.jornal_diario),
     }));
@@ -97,7 +95,6 @@ function TareoPage() {
             Fecha: t.fecha,
             Trabajador: nombreTrab(t.trabajador_id),
             Proyecto: nombreProy(t.proyecto_id),
-            Partida: nombrePart(t.partida_id),
             Asistencia: Number(t.asistencia),
             "Costo (S/)": Number(t.costo_soles),
           })),
@@ -135,23 +132,13 @@ function TareoPage() {
             <Campo etiqueta="Proyecto">
               <Select
                 value={form.proyecto_id}
-                onChange={(e) => setForm({ ...form, proyecto_id: e.target.value, partida_id: "" })}
+                onChange={(e) => setForm({ ...form, proyecto_id: e.target.value })}
                 required
               >
                 <option value="">Selecciona...</option>
                 {proyectos.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.nombre}
-                  </option>
-                ))}
-              </Select>
-            </Campo>
-            <Campo etiqueta="Partida">
-              <Select value={form.partida_id} onChange={(e) => setForm({ ...form, partida_id: e.target.value })}>
-                <option value="">Sin partida</option>
-                {partidasProyecto.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.especialidad} · {p.nombre}
                   </option>
                 ))}
               </Select>
@@ -235,7 +222,6 @@ function TareoPage() {
                 <th className="px-5 py-2 font-medium">Fecha</th>
                 <th className="px-3 py-2 font-medium">Trabajador</th>
                 <th className="px-3 py-2 font-medium">Proyecto</th>
-                <th className="px-3 py-2 font-medium">Partida</th>
                 <th className="px-3 py-2 text-right font-medium">Asist.</th>
                 <th className="px-3 py-2 text-right font-medium">Costo</th>
                 <th className="px-5 py-2"></th>
@@ -247,7 +233,6 @@ function TareoPage() {
                   <td className="px-5 py-2.5">{fmtFecha(t.fecha)}</td>
                   <td className="px-3 py-2.5 font-semibold text-ink">{nombreTrab(t.trabajador_id)}</td>
                   <td className="px-3 py-2.5 text-muted-foreground">{nombreProy(t.proyecto_id)}</td>
-                  <td className="px-3 py-2.5 text-muted-foreground">{nombrePart(t.partida_id)}</td>
                   <td className="px-3 py-2.5 text-right">{Number(t.asistencia)}</td>
                   <td className="px-3 py-2.5 text-right">{soles(Number(t.costo_soles))}</td>
                   <td className="px-5 py-2.5 text-right">
