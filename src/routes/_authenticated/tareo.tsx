@@ -324,11 +324,10 @@ function TareoPage() {
               <Select value={form.asistencia} onChange={(e) => setForm({ ...form, asistencia: e.target.value })}>
                 <option value="dia">Día Trabajado</option>
                 <option value="viaje">Viaje</option>
-                <option value="extras">Horas Extras</option>
               </Select>
             </Campo>
-            {form.asistencia === "extras" && (
-              <Campo etiqueta="Horas extra">
+            <Campo etiqueta="Horas extra">
+              <div className="flex gap-2">
                 <Input
                   type="number"
                   min="0"
@@ -336,10 +335,12 @@ function TareoPage() {
                   value={horasExtras}
                   onChange={(e) => setHorasExtras(e.target.value)}
                   placeholder="Ej. 4"
-                  required
                 />
-              </Campo>
-            )}
+                <Boton type="button" variante="linea" className="shrink-0" onClick={registrarExtras}>
+                  Registrar
+                </Boton>
+              </div>
+            </Campo>
           </div>
 
           <div className="rounded-md border border-line bg-muted/40 p-3">
