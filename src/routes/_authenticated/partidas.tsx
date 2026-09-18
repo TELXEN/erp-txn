@@ -76,8 +76,8 @@ function Partidas() {
     qc.invalidateQueries({ queryKey: ["partidas"] });
   }
 
-  async function actualizar(e: React.FormEvent) {
-    e.preventDefault();
+  async function actualizar(e?: React.MouseEvent | React.FormEvent) {
+    e?.preventDefault();
     if (!editando) return;
     setError("");
     const { error: err } = await supabase
