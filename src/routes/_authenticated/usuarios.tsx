@@ -44,6 +44,9 @@ function Usuarios() {
   });
 
   const crear = useServerFn(crearUsuario);
+  const actualizar = useServerFn(actualizarUsuario);
+  const eliminarFn = useServerFn(eliminarUsuario);
+
   const vacio = { nombre: "", email: "", password: "", rol: "ingeniero" as Rol };
   const [form, setForm] = useState(vacio);
   const [abierto, setAbierto] = useState(false);
@@ -51,6 +54,10 @@ function Usuarios() {
   const [mensaje, setMensaje] = useState<{ tipo: "ok" | "error"; texto: string } | null>(null);
   const [verPassword, setVerPassword] = useState(false);
   const [mostrarInstructivo, setMostrarInstructivo] = useState(false);
+
+  type Edicion = { id: string; nombre: string; email: string; rol: Rol };
+  const [editando, setEditando] = useState<Edicion | null>(null);
+  const [guardandoEdicion, setGuardandoEdicion] = useState(false);
 
   if (rol !== "gerente") return <SinAcceso />;
 
@@ -70,12 +77,43 @@ function Usuarios() {
     }
   }
 
-
-  async function asignar(userId: string, nuevo: Rol) {
-    await supabase.from("user_roles").delete().eq("user_id", userId);
-    await supabase.from("user_roles").insert({ user_id: userId, role: nuevo });
-    qc.invalidateQueries({ queryKey: ["usuarios"] });
+  function iniciarEdicion(u: Fila) {
+    setEditando({ id: u.id, nombre: u.nombre, email: u.email, rol: u.rol ?? "ingeniero" });
   }
+
+  function cancelarEdicion() {
+    setEditando(null);
+  }
+
+  async function guardarEdicion(e?: React.MouseEvent | React.FormEvent) {
+    e?.preventDefault();
+    if (!editando) return;
+    setGuardandoEdicion(true);
+    setMensaje(null);
+    try {
+      await actualizar({ data: editando });
+      setEditando(null);
+      setMensaje({ tipo: "ok", texto: "Usuario actualizado correctamente." });
+      qc.invalidateQueries({ queryKey: ["usuarios"] });
+    } catch (err) {
+      setMensaje({ tipo: "error", texto: err instanceof Error ? err.message : "No se pudo actualizar el usuario." });
+    } finally {
+      setGuardandoEdicion(false);
+    }
+  }
+
+  async function eliminar(id: string) {
+    if (!window.confirm("¿Eliminar este usuario? Esta acción no se puede deshacer.")) return;
+    setMensaje(null);
+    try {
+      await eliminarFn({ data: { id } });
+      setMensaje({ tipo: "ok", texto: "Usuario eliminado correctamente." });
+      qc.invalidateQueries({ queryKey: ["usuarios"] });
+    } catch (err) {
+      setMensaje({ tipo: "error", texto: err instanceof Error ? err.message : "No se pudo eliminar el usuario." });
+    }
+  }
+
 
   return (
     <>
