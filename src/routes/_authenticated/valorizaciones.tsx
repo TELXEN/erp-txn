@@ -18,7 +18,7 @@ export const Route = createFileRoute("/_authenticated/valorizaciones")({
       { property: "og:description", content: "Ingresos y valorizaciones por proyecto." },
     ],
   }),
-  component: Valorizaciones;
+  component: Valorizaciones,
 });
 
 function Valorizaciones() {
