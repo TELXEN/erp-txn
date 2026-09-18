@@ -39,7 +39,6 @@ export type Tareo = {
   fecha: string;
   trabajador_id: string;
   proyecto_id: string;
-  partida_id: string | null;
   asistencia: number;
   costo_soles: number;
 };
