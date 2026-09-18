@@ -19,9 +19,9 @@ import { exportarExcel } from "@/lib/exportar";
 export const Route = createFileRoute("/_authenticated/partidas")({
   head: () => ({
     meta: [
-      { title: "Partidas — Control de Obra" },
+      { title: "Partidas — Control de Proyectos" },
       { name: "description", content: "Partidas agrupadas por tipo de instalación o especialidad, con presupuesto y costo real." },
-      { property: "og:title", content: "Partidas — Control de Obra" },
+      { property: "og:title", content: "Partidas — Control de Proyectos" },
       { property: "og:description", content: "Partidas por especialidad con presupuesto y costo real." },
     ],
   }),

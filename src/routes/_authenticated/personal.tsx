@@ -12,9 +12,9 @@ import { exportarExcel } from "@/lib/exportar";
 export const Route = createFileRoute("/_authenticated/personal")({
   head: () => ({
     meta: [
-      { title: "Personal — Control de Obra" },
+      { title: "Personal — Control de Proyectos" },
       { name: "description", content: "Registro global de personal con jornal diario fijo en Soles." },
-      { property: "og:title", content: "Personal — Control de Obra" },
+      { property: "og:title", content: "Personal — Control de Proyectos" },
       { property: "og:description", content: "Registro de personal y jornal diario en Soles." },
     ],
   }),
