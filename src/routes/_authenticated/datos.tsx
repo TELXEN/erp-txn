@@ -38,6 +38,15 @@ type Tercero = {
 };
 
 type Banco = { id: string; nombre: string; monedas: string; activo: boolean };
+type Catalogo = {
+  id: string;
+  codigo: string;
+  nombre: string;
+  descripcion: string;
+  activo: boolean;
+  tipo?: string;
+};
+type Pestana = "terceros" | "bancos" | "costos" | "ingresos" | "centros";
 
 const TIPOS_DOC = ["RUC", "DNI", "CE", "OTRO"];
 const CONDICIONES = ["Contado", "Credito 15 dias", "Credito 30 dias", "Credito 60 dias"];
@@ -64,7 +73,7 @@ const formVacio = {
 function Datos() {
   const { rol } = useAuth();
   const qc = useQueryClient();
-  const [pestana, setPestana] = useState<"terceros" | "bancos">("terceros");
+  const [pestana, setPestana] = useState<Pestana>("terceros");
   const [filtro, setFiltro] = useState<"todos" | "clientes" | "proveedores">("todos");
   const [error, setError] = useState("");
   const [form, setForm] = useState(formVacio);
@@ -87,6 +96,27 @@ function Datos() {
       const { data, error: err } = await supabase.from("bancos").select("*").order("nombre");
       if (err) throw err;
       return (data ?? []) as Banco[];
+    },
+  });
+
+  const { data: categorias = [] } = useQuery({
+    queryKey: ["categorias_financieras"],
+    queryFn: async () => {
+      const { data, error: err } = await supabase
+        .from("categorias_financieras")
+        .select("*")
+        .order("codigo");
+      if (err) throw err;
+      return (data ?? []) as Catalogo[];
+    },
+  });
+
+  const { data: centros = [] } = useQuery({
+    queryKey: ["centros_costos"],
+    queryFn: async () => {
+      const { data, error: err } = await supabase.from("centros_costos").select("*").order("codigo");
+      if (err) throw err;
+      return (data ?? []) as Catalogo[];
     },
   });
 
@@ -206,6 +236,22 @@ function Datos() {
                   nombre: "Bancos",
                   filas: bancos.map((b) => ({ Banco: b.nombre, Monedas: b.monedas })),
                 },
+                {
+                  nombre: "Costos",
+                  filas: categorias
+                    .filter((c) => c.tipo === "Costo")
+                    .map((c) => ({ Código: c.codigo, Nombre: c.nombre, Descripción: c.descripcion })),
+                },
+                {
+                  nombre: "Ingresos",
+                  filas: categorias
+                    .filter((c) => c.tipo === "Ingreso")
+                    .map((c) => ({ Código: c.codigo, Nombre: c.nombre, Descripción: c.descripcion })),
+                },
+                {
+                  nombre: "Centros de costos",
+                  filas: centros.map((c) => ({ Código: c.codigo, Nombre: c.nombre, Descripción: c.descripcion })),
+                },
               ])
             }
           >
@@ -214,8 +260,8 @@ function Datos() {
         }
       />
 
-      <div className="mb-4 flex gap-2">
-        {(["terceros", "bancos"] as const).map((p) => (
+      <div className="mb-4 flex flex-wrap gap-2">
+        {(["terceros", "bancos", "costos", "ingresos", "centros"] as const).map((p) => (
           <button
             key={p}
             type="button"
@@ -229,7 +275,13 @@ function Datos() {
                 : "border border-line text-muted-foreground hover:border-primary hover:text-primary"
             }`}
           >
-            {p === "terceros" ? "Clientes y Proveedores" : "Bancos"}
+            {{
+              terceros: "Clientes y Proveedores",
+              bancos: "Bancos",
+              costos: "Costos",
+              ingresos: "Ingresos",
+              centros: "Centro de costos",
+            }[p]}
           </button>
         ))}
       </div>
@@ -514,7 +566,7 @@ function Datos() {
             )}
           </Panel>
         </>
-      ) : (
+      ) : pestana === "bancos" ? (
         <>
           <Panel titulo="Nuevo banco" className="mb-4">
             <form onSubmit={guardarBanco} className="grid gap-2 p-3 sm:grid-cols-4">
@@ -638,7 +690,175 @@ function Datos() {
             )}
           </Panel>
         </>
+      ) : (
+        <CatalogoMaestro
+          clase={pestana === "centros" ? "centro" : pestana === "costos" ? "Costo" : "Ingreso"}
+          registros={
+            pestana === "centros"
+              ? centros
+              : categorias.filter((c) => c.tipo === (pestana === "costos" ? "Costo" : "Ingreso"))
+          }
+        />
       )}
+    </>
+  );
+}
+
+function CatalogoMaestro({
+  clase,
+  registros,
+}: {
+  clase: "Costo" | "Ingreso" | "centro";
+  registros: Catalogo[];
+}) {
+  const qc = useQueryClient();
+  const [form, setForm] = useState({ codigo: "", nombre: "", descripcion: "" });
+  const [editando, setEditando] = useState<Catalogo | null>(null);
+  const [error, setError] = useState("");
+  const esCentro = clase === "centro";
+  const singular = esCentro ? "centro de costos" : clase.toLowerCase();
+  const titulo = esCentro ? "Centros de costos" : `${clase}s`;
+  const queryKey = esCentro ? "centros_costos" : "categorias_financieras";
+
+  async function guardar(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    const campos = {
+      codigo: form.codigo.trim().toUpperCase(),
+      nombre: form.nombre.trim(),
+      descripcion: form.descripcion.trim(),
+    };
+    const resultado = esCentro
+      ? await supabase.from("centros_costos").insert(campos)
+      : await supabase.from("categorias_financieras").insert({ ...campos, tipo: clase });
+    if (resultado.error) {
+      setError(resultado.error.code === "23505" ? `Ya existe un ${singular} con ese código.` : resultado.error.message);
+      return;
+    }
+    setForm({ codigo: "", nombre: "", descripcion: "" });
+    qc.invalidateQueries({ queryKey: [queryKey] });
+  }
+
+  async function actualizar() {
+    if (!editando) return;
+    setError("");
+    const campos = {
+      codigo: editando.codigo.trim().toUpperCase(),
+      nombre: editando.nombre.trim(),
+      descripcion: editando.descripcion.trim(),
+    };
+    const resultado = esCentro
+      ? await supabase.from("centros_costos").update(campos).eq("id", editando.id)
+      : await supabase.from("categorias_financieras").update(campos).eq("id", editando.id);
+    if (resultado.error) {
+      setError(resultado.error.code === "23505" ? `Ya existe un ${singular} con ese código.` : resultado.error.message);
+      return;
+    }
+    setEditando(null);
+    qc.invalidateQueries({ queryKey: [queryKey] });
+  }
+
+  async function eliminar(id: string) {
+    if (!window.confirm(`¿Eliminar este ${singular}? Esta acción no se puede deshacer.`)) return;
+    const resultado = esCentro
+      ? await supabase.from("centros_costos").delete().eq("id", id)
+      : await supabase.from("categorias_financieras").delete().eq("id", id);
+    if (resultado.error) return setError(resultado.error.message);
+    qc.invalidateQueries({ queryKey: [queryKey] });
+  }
+
+  return (
+    <>
+      <Panel titulo={`Nuevo ${singular}`} className="mb-4">
+        <form onSubmit={guardar} className="grid gap-2 p-3 sm:grid-cols-[1fr_2fr_3fr_auto]">
+          <Campo etiqueta="Código">
+            <Input
+              className="py-1.5 uppercase"
+              value={form.codigo}
+              onChange={(e) => setForm({ ...form, codigo: e.target.value })}
+              required
+              maxLength={30}
+            />
+          </Campo>
+          <Campo etiqueta="Nombre">
+            <Input
+              className="py-1.5"
+              value={form.nombre}
+              onChange={(e) => setForm({ ...form, nombre: e.target.value })}
+              required
+              maxLength={120}
+            />
+          </Campo>
+          <Campo etiqueta="Descripción">
+            <Input
+              className="py-1.5"
+              value={form.descripcion}
+              onChange={(e) => setForm({ ...form, descripcion: e.target.value })}
+              maxLength={240}
+            />
+          </Campo>
+          <div className="flex items-end">
+            <Boton type="submit">Registrar</Boton>
+          </div>
+        </form>
+      </Panel>
+
+      {error && <p className="mb-3 font-mono text-xs text-bad">{error}</p>}
+
+      <Panel
+        titulo={`${titulo} registrados`}
+        extra={<span className="font-mono text-[11px] text-muted-foreground">{registros.length} registros</span>}
+      >
+        {registros.length === 0 ? (
+          <Vacio texto={`Aún no hay ${titulo.toLowerCase()} registrados.`} />
+        ) : (
+          <table className="w-full table-fixed font-mono text-xs">
+            <thead>
+              <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+                <th className="w-2/12 px-5 py-2 font-medium">Código</th>
+                <th className="w-3/12 px-3 py-2 font-medium">Nombre</th>
+                <th className="w-5/12 px-3 py-2 font-medium">Descripción</th>
+                <th className="w-2/12 px-5 py-2"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {registros.map((registro) =>
+                editando?.id === registro.id ? (
+                  <tr key={registro.id} className="border-b border-line/60 last:border-0">
+                    <td className="px-5 py-2">
+                      <Input className="py-1 uppercase" value={editando.codigo} onChange={(e) => setEditando({ ...editando, codigo: e.target.value })} />
+                    </td>
+                    <td className="px-3 py-2">
+                      <Input className="py-1" value={editando.nombre} onChange={(e) => setEditando({ ...editando, nombre: e.target.value })} />
+                    </td>
+                    <td className="px-3 py-2">
+                      <Input className="py-1" value={editando.descripcion} onChange={(e) => setEditando({ ...editando, descripcion: e.target.value })} />
+                    </td>
+                    <td className="px-5 py-2">
+                      <div className="flex items-center justify-end gap-1">
+                        <button type="button" onClick={actualizar} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground" title="Guardar"><Check size={14} /></button>
+                        <button type="button" onClick={() => setEditando(null)} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line hover:bg-muted" title="Cancelar"><X size={14} /></button>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  <tr key={registro.id} className="border-b border-line/60 last:border-0">
+                    <td className="px-5 py-2.5 font-semibold text-ink">{registro.codigo}</td>
+                    <td className="px-3 py-2.5">{registro.nombre}</td>
+                    <td className="px-3 py-2.5 text-muted-foreground">{registro.descripcion || "—"}</td>
+                    <td className="px-5 py-2">
+                      <div className="flex items-center justify-end gap-1">
+                        <button type="button" onClick={() => setEditando(registro)} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary" title="Editar"><Pencil size={14} /></button>
+                        <button type="button" onClick={() => eliminar(registro.id)} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-bad hover:text-bad" title="Eliminar"><Trash2 size={14} /></button>
+                      </div>
+                    </td>
+                  </tr>
+                ),
+              )}
+            </tbody>
+          </table>
+        )}
+      </Panel>
     </>
   );
 }
