@@ -115,6 +115,7 @@ export type Database = {
           monto_soles: number
           partida_id: string
           proveedor: string
+          proveedor_id: string | null
           proyecto_id: string
           tipo_cambio: number
         }
@@ -128,6 +129,7 @@ export type Database = {
           monto_soles?: number
           partida_id: string
           proveedor?: string
+          proveedor_id?: string | null
           proyecto_id: string
           tipo_cambio?: number
         }
@@ -141,6 +143,7 @@ export type Database = {
           monto_soles?: number
           partida_id?: string
           proveedor?: string
+          proveedor_id?: string | null
           proyecto_id?: string
           tipo_cambio?: number
         }
@@ -150,6 +153,13 @@ export type Database = {
             columns: ["partida_id"]
             isOneToOne: false
             referencedRelation: "partidas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gastos_directos_proveedor_id_fkey"
+            columns: ["proveedor_id"]
+            isOneToOne: false
+            referencedRelation: "terceros"
             referencedColumns: ["id"]
           },
           {
@@ -171,6 +181,7 @@ export type Database = {
           monto: number
           monto_soles: number
           proveedor: string
+          proveedor_id: string | null
           tipo_cambio: number
         }
         Insert: {
@@ -182,6 +193,7 @@ export type Database = {
           monto?: number
           monto_soles?: number
           proveedor?: string
+          proveedor_id?: string | null
           tipo_cambio?: number
         }
         Update: {
@@ -193,9 +205,18 @@ export type Database = {
           monto?: number
           monto_soles?: number
           proveedor?: string
+          proveedor_id?: string | null
           tipo_cambio?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "gastos_generales_proveedor_id_fkey"
+            columns: ["proveedor_id"]
+            isOneToOne: false
+            referencedRelation: "terceros"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       partidas: {
         Row: {
