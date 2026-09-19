@@ -18,19 +18,44 @@ import { supabase } from "@/integrations/supabase/client";
 import { ETIQUETA_ROL, useAuth, type Rol } from "@/lib/auth";
 
 type Item = { a: string; texto: string; roles: Rol[]; icono: React.ElementType };
+type Categoria = { titulo: string; items: Item[] };
 
-const MENU: Item[] = [
-  { a: "/dashboard", texto: "Dashboard Financiero", roles: ["gerente"], icono: BarChart3 },
-  { a: "/proyectos", texto: "Proyectos", roles: ["administrador", "gerente"], icono: Building2 },
-  { a: "/partidas", texto: "Partidas", roles: ["administrador", "gerente"], icono: Layers },
-  { a: "/avance", texto: "Avance Físico", roles: ["ingeniero", "gerente"], icono: Activity },
-  { a: "/personal", texto: "Personal", roles: ["administrador", "gerente"], icono: Users },
-  { a: "/tareo", texto: "Tareo Diario", roles: ["administrador", "gerente"], icono: CalendarDays },
-  { a: "/gastos-directos", texto: "Gastos Directos", roles: ["administrador", "gerente"], icono: ArrowDownCircle },
-  { a: "/gastos-generales", texto: "Gastos Generales", roles: ["administrador", "gerente"], icono: ArrowUpCircle },
-  { a: "/valorizaciones", texto: "Valorizaciones", roles: ["administrador", "gerente"], icono: Banknote },
-  { a: "/usuarios", texto: "Usuarios y Roles", roles: ["gerente"], icono: ShieldCheck },
+const MENU: Categoria[] = [
+  {
+    titulo: "Operaciones",
+    items: [
+      { a: "/proyectos", texto: "Proyectos", roles: ["administrador", "gerente"], icono: Building2 },
+      { a: "/partidas", texto: "Partidas", roles: ["administrador", "gerente"], icono: Layers },
+      { a: "/avance", texto: "Avance Físico", roles: ["ingeniero", "gerente"], icono: Activity },
+    ],
+  },
+  {
+    titulo: "Recursos Humanos",
+    items: [
+      { a: "/personal", texto: "Personal", roles: ["administrador", "gerente"], icono: Users },
+      { a: "/tareo", texto: "Tareo Diario", roles: ["administrador", "gerente"], icono: CalendarDays },
+    ],
+  },
+  {
+    titulo: "Finanzas y Contabilidad",
+    items: [
+      { a: "/dashboard", texto: "Dashboard Financiero", roles: ["gerente"], icono: BarChart3 },
+      { a: "/gastos-directos", texto: "Gastos Directos", roles: ["administrador", "gerente"], icono: ArrowDownCircle },
+      { a: "/gastos-generales", texto: "Gastos Generales", roles: ["administrador", "gerente"], icono: ArrowUpCircle },
+    ],
+  },
+  {
+    titulo: "Comercial",
+    items: [
+      { a: "/valorizaciones", texto: "Valorizaciones", roles: ["administrador", "gerente"], icono: Banknote },
+    ],
+  },
+  {
+    titulo: "Administración",
+    items: [{ a: "/usuarios", texto: "Usuarios y Roles", roles: ["gerente"], icono: ShieldCheck }],
+  },
 ];
+
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { nombre, email, rol } = useAuth();
@@ -38,7 +63,11 @@ export function AppShell({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
-  const items = MENU.filter((m) => (rol ? m.roles.includes(rol) : false));
+  const categorias = MENU.map((c) => ({
+    ...c,
+    items: c.items.filter((m) => (rol ? m.roles.includes(rol) : false)),
+  })).filter((c) => c.items.length > 0);
+
   const iniciales = (nombre || email || "??").slice(0, 2).toUpperCase();
 
   async function cerrarSesion() {
@@ -84,24 +113,32 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="grid grid-cols-1 md:grid-cols-[236px_1fr]">
         <aside className="no-print border-r border-line px-3 py-5">
           <p className="px-2 pb-2 label-mono">Módulos</p>
-          <nav className="space-y-1 text-sm">
-            {items.map((m) => {
-              const activo = pathname === m.a;
-              const Icono = m.icono;
-              return (
-                <Link
-                  key={m.a}
-                  to={m.a}
-                  className={`flex items-center gap-2.5 rounded-md px-3 py-2 transition-colors ${
-                    activo ? "bg-primary/10 font-semibold text-primary" : "text-ink hover:bg-ink/5"
-                  }`}
-                >
-                  <Icono className="size-4 shrink-0 opacity-90" />
-                  <span>{m.texto}</span>
-                </Link>
-              );
-            })}
+          <nav className="space-y-4 text-sm">
+            {categorias.map((c) => (
+              <div key={c.titulo} className="space-y-1">
+                <p className="px-3 pb-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                  {c.titulo}
+                </p>
+                {c.items.map((m) => {
+                  const activo = pathname === m.a;
+                  const Icono = m.icono;
+                  return (
+                    <Link
+                      key={m.a}
+                      to={m.a}
+                      className={`flex items-center gap-2.5 rounded-md px-3 py-2 transition-colors ${
+                        activo ? "bg-primary/10 font-semibold text-primary" : "text-ink hover:bg-ink/5"
+                      }`}
+                    >
+                      <Icono className="size-4 shrink-0 opacity-90" />
+                      <span>{m.texto}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            ))}
           </nav>
+
           <div className="mt-6 rounded-md border border-line bg-card p-3">
             <p className="label-mono">Rol activo</p>
             <p className="mt-1 text-sm font-semibold">{rol ? ETIQUETA_ROL[rol] : "Sin rol asignado"}</p>
