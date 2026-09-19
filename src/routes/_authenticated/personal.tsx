@@ -187,32 +187,30 @@ function Personal() {
       />
 
       <Panel titulo="Nuevo trabajador" className="mb-4">
-        <form onSubmit={guardar} className="grid gap-3 p-5 sm:grid-cols-2 xl:grid-cols-4">
+        <form onSubmit={guardar} className="grid gap-1.5 p-3 sm:grid-cols-2 xl:grid-cols-4">
           <Campo etiqueta="DNI">
-            <Input inputMode="numeric" pattern="[0-9]{8}" maxLength={8} value={form.dni} onChange={(e) => setForm({ ...form, dni: e.target.value.replace(/\D/g, "") })} required />
+            <Input inputMode="numeric" pattern="[0-9]{8}" maxLength={8} value={form.dni} onChange={(e) => setForm({ ...form, dni: e.target.value.replace(/\D/g, "") })} required className="py-1.5" />
           </Campo>
           <Campo etiqueta="Nombre">
-            <Input value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} required maxLength={100} />
+            <Input value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} required maxLength={100} className="py-1.5" />
           </Campo>
           <Campo etiqueta="Cargo">
-            <Select value={form.cargo} onChange={(e) => setForm({ ...form, cargo: e.target.value as FormPersonal["cargo"] })} required>
-              {CARGOS.map((cargo) => <option key={cargo} value={cargo}>{cargo}</option>)}
-            </Select>
+            <Select value={form.cargo} onChange={(e) => setForm({ ...form, cargo: e.target.value as FormPersonal["cargo"] })} required className="py-1.5" />
           </Campo>
           <Campo etiqueta="Jornal diario (S/)">
-            <Input type="number" step="0.01" min="0" value={form.jornal_diario} onChange={(e) => setForm({ ...form, jornal_diario: e.target.value })} required />
+            <Input type="number" step="0.01" min="0" value={form.jornal_diario} onChange={(e) => setForm({ ...form, jornal_diario: e.target.value })} required className="py-1.5" />
           </Campo>
           <Campo etiqueta="N° Cuenta">
-            <Input value={form.numero_cuenta} onChange={(e) => setForm({ ...form, numero_cuenta: e.target.value })} required maxLength={30} />
+            <Input value={form.numero_cuenta} onChange={(e) => setForm({ ...form, numero_cuenta: e.target.value })} required maxLength={30} className="py-1.5" />
           </Campo>
           <Campo etiqueta="CCI">
-            <Input inputMode="numeric" pattern="[0-9]{20}" maxLength={20} value={form.cci} onChange={(e) => setForm({ ...form, cci: e.target.value.replace(/\D/g, "") })} required />
+            <Input inputMode="numeric" pattern="[0-9]{20}" maxLength={20} value={form.cci} onChange={(e) => setForm({ ...form, cci: e.target.value.replace(/\D/g, "") })} required className="py-1.5" />
           </Campo>
           <Campo etiqueta="Banco">
-            <Input value={form.banco} onChange={(e) => setForm({ ...form, banco: e.target.value })} required maxLength={80} />
+            <Input value={form.banco} onChange={(e) => setForm({ ...form, banco: e.target.value })} required maxLength={80} className="py-1.5" />
           </Campo>
           <Campo etiqueta="N° Celular">
-            <Input inputMode="tel" pattern="[0-9]{9}" maxLength={9} value={form.numero_celular} onChange={(e) => setForm({ ...form, numero_celular: e.target.value.replace(/\D/g, "") })} required />
+            <Input inputMode="tel" pattern="[0-9]{9}" maxLength={9} value={form.numero_celular} onChange={(e) => setForm({ ...form, numero_celular: e.target.value.replace(/\D/g, "") })} required className="py-1.5" />
           </Campo>
           <div className="flex justify-end sm:col-span-2 xl:col-span-4">
             <Boton type="submit" className="min-w-36">Registrar</Boton>
