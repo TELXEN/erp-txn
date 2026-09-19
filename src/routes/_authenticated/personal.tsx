@@ -169,7 +169,7 @@ function Personal() {
                   nombre: "Personal",
                   filas: trabajadores.map((t) => ({
                     DNI: t.dni,
-                    Nombre: t.nombre,
+                    "Apellidos y Nombre(s)": t.nombre,
                     Cargo: t.cargo,
                     "Jornal Diario (S/)": Number(t.jornal_diario),
                     "N° Cuenta": t.numero_cuenta,
@@ -191,7 +191,7 @@ function Personal() {
           <Campo etiqueta="DNI">
             <Input inputMode="numeric" pattern="[0-9]{8}" maxLength={8} value={form.dni} onChange={(e) => setForm({ ...form, dni: e.target.value.replace(/\D/g, "") })} required className="py-1.5" />
           </Campo>
-          <Campo etiqueta="Nombre">
+          <Campo etiqueta="Apellidos y Nombre(s)">
             <Input value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} required maxLength={100} className="py-1.5" />
           </Campo>
           <Campo etiqueta="Cargo">
@@ -229,7 +229,7 @@ function Personal() {
               <thead>
                 <tr className="border-b border-line text-left text-[10px] uppercase text-muted-foreground">
                   <th className="w-[9%] px-4 py-2 font-medium">DNI</th>
-                  <th className="w-[15%] px-3 py-2 font-medium">Nombre</th>
+                  <th className="w-[15%] px-3 py-2 font-medium">Apellidos y Nombre(s)</th>
                   <th className="w-[16%] px-3 py-2 font-medium">Cargo</th>
                   <th className="w-[11%] px-3 py-2 text-right font-medium whitespace-nowrap">Jornal diario</th>
                   <th className="w-[13%] px-3 py-2 font-medium">N° Cuenta</th>
