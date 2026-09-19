@@ -194,7 +194,9 @@ function Personal() {
             <Input value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} required maxLength={100} className="py-1.5" />
           </Campo>
           <Campo etiqueta="Cargo">
-            <Select value={form.cargo} onChange={(e) => setForm({ ...form, cargo: e.target.value as FormPersonal["cargo"] })} required className="py-1.5" />
+            <Select value={form.cargo} onChange={(e) => setForm({ ...form, cargo: e.target.value as FormPersonal["cargo"] })} required className="py-1.5">
+              {CARGOS.map((cargo) => <option key={cargo} value={cargo}>{cargo}</option>)}
+            </Select>
           </Campo>
           <Campo etiqueta="Jornal diario (S/)">
             <Input type="number" step="0.01" min="0" value={form.jornal_diario} onChange={(e) => setForm({ ...form, jornal_diario: e.target.value })} required className="py-1.5" />
