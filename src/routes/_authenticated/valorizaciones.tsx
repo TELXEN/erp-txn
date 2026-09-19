@@ -12,9 +12,9 @@ import { exportarExcel } from "@/lib/exportar";
 export const Route = createFileRoute("/_authenticated/valorizaciones")({
   head: () => ({
     meta: [
-      { title: "Valorizaciones — Control de Proyectos" },
+      { title: "Valorizaciones — ERP TELXEN" },
       { name: "description", content: "Ventas e ingresos por valorizaciones cobradas al cliente, con conversión a Soles." },
-      { property: "og:title", content: "Valorizaciones — Control de Proyectos" },
+      { property: "og:title", content: "Valorizaciones — ERP TELXEN" },
       { property: "og:description", content: "Ingresos y valorizaciones por proyecto." },
     ],
   }),

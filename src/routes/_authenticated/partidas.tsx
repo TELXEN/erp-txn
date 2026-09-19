@@ -19,9 +19,9 @@ import { Pencil, Trash2, Check, X } from "lucide-react";
 export const Route = createFileRoute("/_authenticated/partidas")({
   head: () => ({
     meta: [
-      { title: "Partidas — Control de Proyectos" },
+      { title: "Partidas — ERP TELXEN" },
       { name: "description", content: "Partidas organizadas por proyecto y especialidad, con presupuesto y costo real." },
-      { property: "og:title", content: "Partidas — Control de Proyectos" },
+      { property: "og:title", content: "Partidas — ERP TELXEN" },
       { property: "og:description", content: "Partidas por proyecto y especialidad con presupuesto y costo real." },
     ],
   }),

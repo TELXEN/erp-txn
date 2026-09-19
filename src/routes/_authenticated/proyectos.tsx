@@ -11,9 +11,9 @@ import { useProyectos } from "@/lib/datos";
 export const Route = createFileRoute("/_authenticated/proyectos")({
   head: () => ({
     meta: [
-      { title: "Proyectos — Control de Proyectos" },
+      { title: "Proyectos — ERP TELXEN" },
       { name: "description", content: "Registro y estado de los proyectos de la empresa constructora." },
-      { property: "og:title", content: "Proyectos — Control de Proyectos" },
+      { property: "og:title", content: "Proyectos — ERP TELXEN" },
       { property: "og:description", content: "Registro y estado de los proyectos de la empresa." },
     ],
   }),

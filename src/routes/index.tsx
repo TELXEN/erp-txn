@@ -8,15 +8,15 @@ export const Route = createFileRoute("/")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Iniciar sesión — Control de Proyectos" },
+      { title: "Iniciar sesión — ERP TELXEN" },
       {
         name: "description",
-        content: "Acceso al sistema de control de proyectos de construcción: avance, tareo, gastos y ventas.",
+        content: "Acceso al sistema de ERP TELXEN de construcción: avance, tareo, gastos y ventas.",
       },
-      { property: "og:title", content: "Iniciar sesión — Control de Proyectos" },
+      { property: "og:title", content: "Iniciar sesión — ERP TELXEN" },
       {
         property: "og:description",
-        content: "Acceso al sistema de control de proyectos de construcción.",
+        content: "Acceso al sistema de ERP TELXEN de construcción.",
       },
     ],
   }),
@@ -77,7 +77,7 @@ function Login() {
             CO
           </span>
           <div className="leading-none">
-            <p className="text-base font-bold tracking-tight">Control de Proyectos</p>
+            <p className="text-base font-bold tracking-tight">ERP TELXEN</p>
             <p className="mt-1 label-mono">Gestión de Proyectos de Construcción</p>
           </div>
         </div>
