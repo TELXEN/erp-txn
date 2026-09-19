@@ -244,27 +244,45 @@ export type Database = {
       trabajadores: {
         Row: {
           activo: boolean
+          banco: string
+          cargo: string
           categoria: Database["public"]["Enums"]["categoria_obrero"]
+          cci: string
           created_at: string
+          dni: string
           id: string
           jornal_diario: number
           nombre: string
+          numero_celular: string
+          numero_cuenta: string
         }
         Insert: {
           activo?: boolean
+          banco?: string
+          cargo?: string
           categoria?: Database["public"]["Enums"]["categoria_obrero"]
+          cci?: string
           created_at?: string
+          dni?: string
           id?: string
           jornal_diario?: number
           nombre: string
+          numero_celular?: string
+          numero_cuenta?: string
         }
         Update: {
           activo?: boolean
+          banco?: string
+          cargo?: string
           categoria?: Database["public"]["Enums"]["categoria_obrero"]
+          cci?: string
           created_at?: string
+          dni?: string
           id?: string
           jornal_diario?: number
           nombre?: string
+          numero_celular?: string
+          numero_cuenta?: string
         }
         Relationships: []
       }
