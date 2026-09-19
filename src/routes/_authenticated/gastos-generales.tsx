@@ -13,9 +13,9 @@ import { exportarExcel } from "@/lib/exportar";
 export const Route = createFileRoute("/_authenticated/gastos-generales")({
   head: () => ({
     meta: [
-      { title: "Gastos Generales — Control de Proyectos" },
+      { title: "Gastos Generales — ERP TELXEN" },
       { name: "description", content: "Compras indirectas y costos de oficina no vinculados a partidas, en Soles." },
-      { property: "og:title", content: "Gastos Generales — Control de Proyectos" },
+      { property: "og:title", content: "Gastos Generales — ERP TELXEN" },
       { property: "og:description", content: "Costos administrativos consolidados en Soles." },
     ],
   }),

@@ -12,9 +12,9 @@ import { agruparPorEspecialidad, usePartidas, useProyectos } from "@/lib/datos";
 export const Route = createFileRoute("/_authenticated/avance")({
   head: () => ({
     meta: [
-      { title: "Avance Físico — Control de Proyectos" },
+      { title: "Avance Físico — ERP TELXEN" },
       { name: "description", content: "Registro del porcentaje de avance físico actual por partida en obra." },
-      { property: "og:title", content: "Avance Físico — Control de Proyectos" },
+      { property: "og:title", content: "Avance Físico — ERP TELXEN" },
       { property: "og:description", content: "Registro del avance físico por partida." },
     ],
   }),

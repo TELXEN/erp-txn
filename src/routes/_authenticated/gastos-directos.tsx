@@ -13,9 +13,9 @@ import { exportarExcel } from "@/lib/exportar";
 export const Route = createFileRoute("/_authenticated/gastos-directos")({
   head: () => ({
     meta: [
-      { title: "Gastos Directos — Control de Proyectos" },
+      { title: "Gastos Directos — ERP TELXEN" },
       { name: "description", content: "Compras vinculadas a partidas con lógica bimoneda y tipo de cambio manual." },
-      { property: "og:title", content: "Gastos Directos — Control de Proyectos" },
+      { property: "og:title", content: "Gastos Directos — ERP TELXEN" },
       { property: "og:description", content: "Compras por partida con conversión a Soles." },
     ],
   }),

@@ -13,9 +13,9 @@ import { exportarExcel } from "@/lib/exportar";
 export const Route = createFileRoute("/_authenticated/personal")({
   head: () => ({
     meta: [
-      { title: "Personal — Control de Proyectos" },
+      { title: "Personal — ERP TELXEN" },
       { name: "description", content: "Planilla global de personal, cargos y datos bancarios." },
-      { property: "og:title", content: "Personal — Control de Proyectos" },
+      { property: "og:title", content: "Personal — ERP TELXEN" },
       { property: "og:description", content: "Planilla de personal y jornal diario en Soles." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

@@ -13,9 +13,9 @@ import { exportarExcel } from "@/lib/exportar";
 export const Route = createFileRoute("/_authenticated/tareo")({
   head: () => ({
     meta: [
-      { title: "Tareo Diario — Control de Proyectos" },
+      { title: "Tareo Diario — ERP TELXEN" },
       { name: "description", content: "Registro de asistencia diaria y costo de mano de obra en Soles por partida." },
-      { property: "og:title", content: "Tareo Diario — Control de Proyectos" },
+      { property: "og:title", content: "Tareo Diario — ERP TELXEN" },
       { property: "og:description", content: "Asistencia diaria y costo de mano de obra en Soles." },
     ],
   }),

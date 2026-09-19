@@ -12,9 +12,9 @@ import { crearUsuario, actualizarUsuario, eliminarUsuario } from "@/lib/usuarios
 export const Route = createFileRoute("/_authenticated/usuarios")({
   head: () => ({
     meta: [
-      { title: "Usuarios y Roles — Control de Proyectos" },
+      { title: "Usuarios y Roles — ERP TELXEN" },
       { name: "description", content: "Asignación de roles: ingeniero de campo, administrador de oficina y gerente." },
-      { property: "og:title", content: "Usuarios y Roles — Control de Proyectos" },
+      { property: "og:title", content: "Usuarios y Roles — ERP TELXEN" },
       { property: "og:description", content: "Asignación de roles del sistema." },
     ],
   }),

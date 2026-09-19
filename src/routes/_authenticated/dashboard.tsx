@@ -18,9 +18,9 @@ import { exportarExcel, exportarPdf } from "@/lib/exportar";
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
-      { title: "Dashboard Financiero — Control de Proyectos" },
+      { title: "Dashboard Financiero — ERP TELXEN" },
       { name: "description", content: "Consolidado global en Soles: ventas, gastos, utilidad y rendimiento por partida." },
-      { property: "og:title", content: "Dashboard Financiero — Control de Proyectos" },
+      { property: "og:title", content: "Dashboard Financiero — ERP TELXEN" },
       { property: "og:description", content: "Ventas, gastos y utilidad consolidados en Soles." },
     ],
   }),
