@@ -28,9 +28,15 @@ export type Partida = {
 
 export type Trabajador = {
   id: string;
+  dni: string;
   nombre: string;
+  cargo: string;
   categoria: "Operario" | "Oficial" | "Peon";
   jornal_diario: number;
+  numero_cuenta: string;
+  cci: string;
+  banco: string;
+  numero_celular: string;
   activo: boolean;
 };
 
