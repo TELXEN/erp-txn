@@ -3,9 +3,11 @@ import { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, Input, Panel, Select, Vacio } from "@/components/ui-kit";
+import { Boton, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
+import { useAuth } from "@/lib/auth";
 import { ESPECIALIDADES } from "@/lib/format";
 import { agruparPorEspecialidad, usePartidas, useProyectos } from "@/lib/datos";
+
 
 export const Route = createFileRoute("/_authenticated/avance")({
   head: () => ({
