@@ -139,6 +139,12 @@ export const useGastosGenerales = () =>
     queryFn: () => pedir<GastoGeneral>("gastos_generales", "*", { col: "fecha", asc: false }),
   });
 
+export const useTerceros = () =>
+  useQuery({
+    queryKey: ["terceros"],
+    queryFn: () => pedir<Tercero>("terceros", "*", { col: "razon_social" }),
+  });
+
 export const useVentas = () =>
   useQuery({
     queryKey: ["ventas"],
