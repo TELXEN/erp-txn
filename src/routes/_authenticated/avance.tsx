@@ -23,7 +23,9 @@ export const Route = createFileRoute("/_authenticated/avance")({
 
 function Avance() {
   const qc = useQueryClient();
+  const { rol } = useAuth();
   const { data: proyectos = [] } = useProyectos();
+
   const { data: partidas = [] } = usePartidas();
   const [filtroProyecto, setFiltroProyecto] = useState("");
   const [filtroEsp, setFiltroEsp] = useState("");
