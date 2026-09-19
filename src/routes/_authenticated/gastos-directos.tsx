@@ -124,7 +124,7 @@ function GastosDirectos() {
                     Proyecto: nombreProy(g.proyecto_id),
                     Partida: nombrePart(g.partida_id),
                     Descripcion: g.descripcion,
-                    Proveedor: g.proveedor,
+                    Proveedor: nombreProv(g),
                     Monto: Number(g.monto),
                     Moneda: g.moneda,
                     "Tipo de Cambio": Number(g.tipo_cambio),
@@ -169,7 +169,14 @@ function GastosDirectos() {
             <Input value={form.descripcion} onChange={(e) => setForm({ ...form, descripcion: e.target.value })} required maxLength={160} />
           </Campo>
           <Campo etiqueta="Proveedor">
-            <Input value={form.proveedor} onChange={(e) => setForm({ ...form, proveedor: e.target.value })} maxLength={120} />
+            <Select value={form.proveedor_id} onChange={(e) => setForm({ ...form, proveedor_id: e.target.value })} required>
+              <option value="">Selecciona...</option>
+              {proveedores.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.razon_social}
+                </option>
+              ))}
+            </Select>
           </Campo>
           <Campo etiqueta="Monto presupuestado">
             <Input type="number" step="0.01" min="0" value={form.monto} onChange={(e) => setForm({ ...form, monto: e.target.value })} required />
@@ -233,7 +240,7 @@ function GastosDirectos() {
                         maxLength={160}
                       />
                     </td>
-                    <td className="px-3 py-2.5 text-muted-foreground">{g.proveedor || "—"}</td>
+                    <td className="px-3 py-2.5 text-muted-foreground">{nombreProv(g)}</td>
                     <td className="px-3 py-2">
                       <Input
                         type="number"
@@ -270,7 +277,7 @@ function GastosDirectos() {
                     <td className="px-5 py-2.5">{fmtFecha(g.fecha)}</td>
                     <td className="px-3 py-2.5 text-muted-foreground">{nombreProy(g.proyecto_id)}</td>
                     <td className="px-3 py-2.5 font-semibold text-ink">{g.descripcion}</td>
-                    <td className="px-3 py-2.5 text-muted-foreground">{g.proveedor || "—"}</td>
+                    <td className="px-3 py-2.5 text-muted-foreground">{nombreProv(g)}</td>
                     <td className="px-3 py-2.5 text-right">
                       <div className="flex items-center justify-end gap-2">
                         {g.moneda === "USD" ? `US$ ${Number(g.monto).toFixed(2)}` : soles(Number(g.monto))}
