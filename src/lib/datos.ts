@@ -49,12 +49,27 @@ export type Tareo = {
   costo_soles: number;
 };
 
+export type Tercero = {
+  id: string;
+  tipo_documento: string;
+  numero_documento: string;
+  razon_social: string;
+  es_cliente: boolean;
+  es_proveedor: boolean;
+  direccion: string;
+  telefono: string;
+  email: string;
+  condicion_pago: string;
+  activo: boolean;
+};
+
 export type GastoDirecto = {
   id: string;
   proyecto_id: string;
   partida_id: string;
   descripcion: string;
   proveedor: string;
+  proveedor_id: string | null;
   monto: number;
   moneda: "PEN" | "USD";
   tipo_cambio: number;
@@ -66,6 +81,7 @@ export type GastoGeneral = {
   id: string;
   descripcion: string;
   proveedor: string;
+  proveedor_id: string | null;
   monto: number;
   moneda: "PEN" | "USD";
   tipo_cambio: number;
