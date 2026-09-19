@@ -18,19 +18,44 @@ import { supabase } from "@/integrations/supabase/client";
 import { ETIQUETA_ROL, useAuth, type Rol } from "@/lib/auth";
 
 type Item = { a: string; texto: string; roles: Rol[]; icono: React.ElementType };
+type Categoria = { titulo: string; items: Item[] };
 
-const MENU: Item[] = [
-  { a: "/dashboard", texto: "Dashboard Financiero", roles: ["gerente"], icono: BarChart3 },
-  { a: "/proyectos", texto: "Proyectos", roles: ["administrador", "gerente"], icono: Building2 },
-  { a: "/partidas", texto: "Partidas", roles: ["administrador", "gerente"], icono: Layers },
-  { a: "/avance", texto: "Avance Físico", roles: ["ingeniero", "gerente"], icono: Activity },
-  { a: "/personal", texto: "Personal", roles: ["administrador", "gerente"], icono: Users },
-  { a: "/tareo", texto: "Tareo Diario", roles: ["administrador", "gerente"], icono: CalendarDays },
-  { a: "/gastos-directos", texto: "Gastos Directos", roles: ["administrador", "gerente"], icono: ArrowDownCircle },
-  { a: "/gastos-generales", texto: "Gastos Generales", roles: ["administrador", "gerente"], icono: ArrowUpCircle },
-  { a: "/valorizaciones", texto: "Valorizaciones", roles: ["administrador", "gerente"], icono: Banknote },
-  { a: "/usuarios", texto: "Usuarios y Roles", roles: ["gerente"], icono: ShieldCheck },
+const MENU: Categoria[] = [
+  {
+    titulo: "Operaciones",
+    items: [
+      { a: "/proyectos", texto: "Proyectos", roles: ["administrador", "gerente"], icono: Building2 },
+      { a: "/partidas", texto: "Partidas", roles: ["administrador", "gerente"], icono: Layers },
+      { a: "/avance", texto: "Avance Físico", roles: ["ingeniero", "gerente"], icono: Activity },
+    ],
+  },
+  {
+    titulo: "Recursos Humanos",
+    items: [
+      { a: "/personal", texto: "Personal", roles: ["administrador", "gerente"], icono: Users },
+      { a: "/tareo", texto: "Tareo Diario", roles: ["administrador", "gerente"], icono: CalendarDays },
+    ],
+  },
+  {
+    titulo: "Finanzas y Contabilidad",
+    items: [
+      { a: "/dashboard", texto: "Dashboard Financiero", roles: ["gerente"], icono: BarChart3 },
+      { a: "/gastos-directos", texto: "Gastos Directos", roles: ["administrador", "gerente"], icono: ArrowDownCircle },
+      { a: "/gastos-generales", texto: "Gastos Generales", roles: ["administrador", "gerente"], icono: ArrowUpCircle },
+    ],
+  },
+  {
+    titulo: "Comercial",
+    items: [
+      { a: "/valorizaciones", texto: "Valorizaciones", roles: ["administrador", "gerente"], icono: Banknote },
+    ],
+  },
+  {
+    titulo: "Administración",
+    items: [{ a: "/usuarios", texto: "Usuarios y Roles", roles: ["gerente"], icono: ShieldCheck }],
+  },
 ];
+
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { nombre, email, rol } = useAuth();
