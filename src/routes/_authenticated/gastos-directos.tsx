@@ -7,7 +7,7 @@ import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "
 import { Check, Pencil, Trash2, X } from "lucide-react";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
-import { useGastosDirectos, usePartidas, useProyectos } from "@/lib/datos";
+import { useGastosDirectos, usePartidas, useProyectos, useTerceros } from "@/lib/datos";
 import { exportarExcel } from "@/lib/exportar";
 
 export const Route = createFileRoute("/_authenticated/gastos-directos")({
@@ -28,11 +28,13 @@ function GastosDirectos() {
   const { data: proyectos = [] } = useProyectos();
   const { data: partidas = [] } = usePartidas();
   const { data: gastos = [] } = useGastosDirectos();
+  const { data: terceros = [] } = useTerceros();
+  const proveedores = terceros.filter((t) => t.es_proveedor && t.activo);
   const [form, setForm] = useState({
     proyecto_id: "",
     partida_id: "",
     descripcion: "",
-    proveedor: "",
+    proveedor_id: "",
     monto: "",
     moneda: "PEN",
     tipo_cambio: "3.75",
@@ -44,6 +46,8 @@ function GastosDirectos() {
   const partidasProyecto = partidas.filter((p) => p.proyecto_id === form.proyecto_id);
   const nombreProy = (id: string) => proyectos.find((p) => p.id === id)?.nombre ?? "—";
   const nombrePart = (id: string) => partidas.find((p) => p.id === id)?.nombre ?? "—";
+  const nombreProv = (g: (typeof gastos)[number]) =>
+    (g.proveedor_id ? terceros.find((t) => t.id === g.proveedor_id)?.razon_social : null) ?? g.proveedor ?? "—";
   const equivalente = Number(form.monto || 0) * (form.moneda === "USD" ? Number(form.tipo_cambio || 0) : 1);
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
@@ -54,11 +58,13 @@ function GastosDirectos() {
     if (form.moneda === "USD" && Number(form.tipo_cambio) <= 0)
       return setError("Ingresa un tipo de cambio válido para dólares.");
     const tc = form.moneda === "USD" ? Number(form.tipo_cambio) : 1;
+    const prov = terceros.find((t) => t.id === form.proveedor_id);
     const { error: err } = await supabase.from("gastos_directos").insert({
       proyecto_id: form.proyecto_id,
       partida_id: form.partida_id,
       descripcion: form.descripcion.trim(),
-      proveedor: form.proveedor.trim(),
+      proveedor: prov?.razon_social ?? "",
+      proveedor_id: form.proveedor_id || null,
       monto: Number(form.monto || 0),
       moneda: form.moneda as "PEN" | "USD",
       tipo_cambio: tc,
@@ -66,7 +72,7 @@ function GastosDirectos() {
       fecha: form.fecha,
     });
     if (err) return setError(err.message);
-    setForm({ ...form, descripcion: "", proveedor: "", monto: "" });
+    setForm({ ...form, descripcion: "", proveedor_id: "", monto: "" });
     qc.invalidateQueries({ queryKey: ["gastos_directos"] });
   }
 
