@@ -187,7 +187,7 @@ function Personal() {
       />
 
       <Panel titulo="Nuevo trabajador" className="mb-4">
-        <form onSubmit={guardar} className="grid gap-3 p-5 sm:grid-cols-2 xl:grid-cols-4">
+        <form onSubmit={guardar} className="grid gap-2 p-4 sm:grid-cols-2 xl:grid-cols-4">
           <Campo etiqueta="DNI">
             <Input inputMode="numeric" pattern="[0-9]{8}" maxLength={8} value={form.dni} onChange={(e) => setForm({ ...form, dni: e.target.value.replace(/\D/g, "") })} required />
           </Campo>
