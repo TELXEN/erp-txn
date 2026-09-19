@@ -63,7 +63,11 @@ export function AppShell({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
-  const items = MENU.filter((m) => (rol ? m.roles.includes(rol) : false));
+  const categorias = MENU.map((c) => ({
+    ...c,
+    items: c.items.filter((m) => (rol ? m.roles.includes(rol) : false)),
+  })).filter((c) => c.items.length > 0);
+
   const iniciales = (nombre || email || "??").slice(0, 2).toUpperCase();
 
   async function cerrarSesion() {
