@@ -27,13 +27,12 @@ export const Route = createFileRoute("/_authenticated/personal")({
 const CARGOS = [
   "RESIDENTE",
   "SUPERVISOR",
+  "SEGURIDAD",
   "TÉCNICO ELECTRICISTA",
   "TÉCNICO INSTRUMENTISTA",
   "SOLDADOR",
   "AYUDANTE",
   "CONDUCTOR CAMIONETA",
-  "ALMACÉN",
-  "ADMINISTRADOR(A)",
 ] as const;
 
 type FormPersonal = {
