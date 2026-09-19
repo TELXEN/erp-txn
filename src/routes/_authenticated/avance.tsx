@@ -57,7 +57,10 @@ function Avance() {
     qc.invalidateQueries({ queryKey: ["partidas"] });
   }
 
+  if (rol !== "ingeniero" && rol !== "gerente") return <SinAcceso />;
+
   return (
+
     <>
       <Encabezado titulo="Avance Físico por Partida" subtitulo="Registro de campo" />
 
