@@ -54,8 +54,13 @@ const MENU: Categoria[] = [
   {
     titulo: "Administración",
     items: [
-      { a: "/datos", texto: "Datos", roles: ["administrador", "gerente"], icono: BookUser },
       { a: "/usuarios", texto: "Usuarios y Roles", roles: ["gerente"], icono: ShieldCheck },
+    ],
+  },
+  {
+    titulo: "Datos",
+    items: [
+      { a: "/datos", texto: "Catálogos Maestros", roles: ["administrador", "gerente"], icono: BookUser },
     ],
   },
 ];
