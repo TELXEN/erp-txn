@@ -41,6 +41,69 @@ export type Database = {
         }
         Relationships: []
       }
+      categorias_financieras: {
+        Row: {
+          activo: boolean
+          codigo: string
+          created_at: string
+          descripcion: string
+          id: string
+          nombre: string
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          codigo: string
+          created_at?: string
+          descripcion?: string
+          id?: string
+          nombre: string
+          tipo: string
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          codigo?: string
+          created_at?: string
+          descripcion?: string
+          id?: string
+          nombre?: string
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      centros_costos: {
+        Row: {
+          activo: boolean
+          codigo: string
+          created_at: string
+          descripcion: string
+          id: string
+          nombre: string
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          codigo: string
+          created_at?: string
+          descripcion?: string
+          id?: string
+          nombre: string
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          codigo?: string
+          created_at?: string
+          descripcion?: string
+          id?: string
+          nombre?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       gastos_directos: {
         Row: {
           created_at: string
