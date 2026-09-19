@@ -186,7 +186,7 @@ function Personal() {
       />
 
       <Panel titulo="Nuevo trabajador" className="mb-4">
-        <form onSubmit={guardar} className="grid gap-1.5 p-3 sm:grid-cols-4">
+        <form onSubmit={guardar} className="grid gap-1.5 p-3 grid-cols-1 sm:grid-cols-[3fr_5fr_4fr_4fr]">
           <Campo etiqueta="DNI">
             <Input inputMode="numeric" pattern="[0-9]{8}" maxLength={8} value={form.dni} onChange={(e) => setForm({ ...form, dni: e.target.value.replace(/\D/g, "") })} required className="py-1.5" />
           </Campo>
@@ -211,10 +211,10 @@ function Personal() {
           <Campo etiqueta="N° Celular">
             <Input inputMode="tel" pattern="[0-9]{9}" maxLength={9} value={form.numero_celular} onChange={(e) => setForm({ ...form, numero_celular: e.target.value.replace(/\D/g, "") })} required className="py-1.5" />
           </Campo>
-          <div className="flex justify-end sm:col-span-4">
+          <div className="flex justify-end col-span-full">
             <Boton type="submit" className="min-w-36">Registrar</Boton>
           </div>
-          {error && <p className="font-mono text-xs text-bad sm:col-span-4">{error}</p>}
+          {error && <p className="font-mono text-xs text-bad col-span-full">{error}</p>}
         </form>
       </Panel>
 
