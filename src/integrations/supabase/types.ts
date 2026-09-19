@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      bancos: {
+        Row: {
+          activo: boolean
+          created_at: string
+          id: string
+          monedas: string
+          nombre: string
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          created_at?: string
+          id?: string
+          monedas?: string
+          nombre: string
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          created_at?: string
+          id?: string
+          monedas?: string
+          nombre?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       gastos_directos: {
         Row: {
           created_at: string
@@ -240,6 +267,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      terceros: {
+        Row: {
+          activo: boolean
+          condicion_pago: string
+          created_at: string
+          direccion: string
+          email: string
+          es_cliente: boolean
+          es_proveedor: boolean
+          id: string
+          numero_documento: string
+          razon_social: string
+          telefono: string
+          tipo_documento: string
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          condicion_pago?: string
+          created_at?: string
+          direccion?: string
+          email?: string
+          es_cliente?: boolean
+          es_proveedor?: boolean
+          id?: string
+          numero_documento?: string
+          razon_social: string
+          telefono?: string
+          tipo_documento?: string
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          condicion_pago?: string
+          created_at?: string
+          direccion?: string
+          email?: string
+          es_cliente?: boolean
+          es_proveedor?: boolean
+          id?: string
+          numero_documento?: string
+          razon_social?: string
+          telefono?: string
+          tipo_documento?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       trabajadores: {
         Row: {
