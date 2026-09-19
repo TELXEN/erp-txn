@@ -7,6 +7,7 @@ import {
   ArrowUpCircle,
   Banknote,
   BarChart3,
+  BookUser,
   Building2,
   CalendarDays,
   ClipboardList,
@@ -52,7 +53,10 @@ const MENU: Categoria[] = [
   },
   {
     titulo: "Administración",
-    items: [{ a: "/usuarios", texto: "Usuarios y Roles", roles: ["gerente"], icono: ShieldCheck }],
+    items: [
+      { a: "/datos", texto: "Datos", roles: ["administrador", "gerente"], icono: BookUser },
+      { a: "/usuarios", texto: "Usuarios y Roles", roles: ["gerente"], icono: ShieldCheck },
+    ],
   },
 ];
 
