@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
@@ -26,8 +26,22 @@ function Valorizaciones() {
   const qc = useQueryClient();
   const { data: proyectos = [] } = useProyectos();
   const { data: ventas = [] } = useVentas();
+  const { data: clientes = [] } = useQuery({
+    queryKey: ["terceros", "clientes-activos"],
+    queryFn: async () => {
+      const { data, error: err } = await supabase
+        .from("terceros")
+        .select("id, razon_social, numero_documento")
+        .eq("es_cliente", true)
+        .eq("activo", true)
+        .order("razon_social");
+      if (err) throw err;
+      return data ?? [];
+    },
+  });
   const [form, setForm] = useState({
     proyecto_id: "",
+    cliente_id: "",
     concepto: "",
     monto: "",
     moneda: "PEN",
@@ -39,6 +53,7 @@ function Valorizaciones() {
   const [error, setError] = useState("");
 
   const nombreProy = (id: string) => proyectos.find((p) => p.id === id)?.nombre ?? "—";
+  const nombreCliente = (id: string | null) => clientes.find((c) => c.id === id)?.razon_social ?? "—";
   const equivalente = Number(form.monto || 0) * (form.moneda === "USD" ? Number(form.tipo_cambio || 0) : 1);
   const totalCobrado = ventas.filter((v) => v.estado === "Pagado").reduce((s, v) => s + Number(v.monto_soles), 0);
   const totalPendiente = ventas.filter((v) => v.estado !== "Pagado").reduce((s, v) => s + Number(v.monto_soles), 0);
@@ -53,6 +68,7 @@ function Valorizaciones() {
     const tc = form.moneda === "USD" ? Number(form.tipo_cambio) : 1;
     const { error: err } = await supabase.from("ventas").insert({
       proyecto_id: form.proyecto_id,
+      cliente_id: form.cliente_id,
       concepto: form.concepto.trim(),
       monto: Number(form.monto || 0),
       moneda: form.moneda as "PEN" | "USD",
@@ -63,7 +79,7 @@ function Valorizaciones() {
       estado: form.estado as "Pagado" | "Pendiente de Pago",
     });
     if (err) return setError(err.message);
-    setForm({ ...form, concepto: "", monto: "", numero_factura: "" });
+    setForm({ ...form, cliente_id: "", concepto: "", monto: "", numero_factura: "" });
     qc.invalidateQueries({ queryKey: ["ventas"] });
   }
 
@@ -89,6 +105,7 @@ function Valorizaciones() {
                   nombre: "Ingresos",
                   filas: ventas.map((v) => ({
                     Proyecto: nombreProy(v.proyecto_id),
+                    Cliente: nombreCliente(v.cliente_id),
                     Concepto: v.concepto,
                     Monto: Number(v.monto),
                     Moneda: v.moneda,
@@ -115,6 +132,16 @@ function Valorizaciones() {
               {proyectos.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.nombre}
+                </option>
+              ))}
+            </Select>
+          </Campo>
+          <Campo etiqueta="Cliente">
+            <Select value={form.cliente_id} onChange={(e) => setForm({ ...form, cliente_id: e.target.value })} required>
+              <option value="">Selecciona...</option>
+              {clientes.map((cliente) => (
+                <option key={cliente.id} value={cliente.id}>
+                  {cliente.razon_social} · {cliente.numero_documento}
                 </option>
               ))}
             </Select>
@@ -179,6 +206,7 @@ function Valorizaciones() {
             <thead>
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
                 <th className="px-5 py-2 font-medium">Concepto</th>
+                <th className="px-3 py-2 font-medium">Cliente</th>
                 <th className="px-3 py-2 font-medium">Proyecto</th>
                 <th className="px-3 py-2 font-medium">Factura</th>
                 <th className="px-3 py-2 font-medium">Pago</th>
@@ -191,6 +219,7 @@ function Valorizaciones() {
               {ventas.map((v) => (
                 <tr key={v.id} className="border-b border-line/60 last:border-0">
                   <td className="px-5 py-2.5 font-semibold text-ink">{v.concepto}</td>
+                  <td className="px-3 py-2.5 text-muted-foreground">{nombreCliente(v.cliente_id)}</td>
                   <td className="px-3 py-2.5 text-muted-foreground">{nombreProy(v.proyecto_id)}</td>
                   <td className="px-3 py-2.5 text-muted-foreground">{v.numero_factura || "—"}</td>
                   <td className="px-3 py-2.5 text-muted-foreground">{v.fecha_pago ? fmtFecha(v.fecha_pago) : "—"}</td>

@@ -444,6 +444,7 @@ export type Database = {
       }
       ventas: {
         Row: {
+          cliente_id: string | null
           concepto: string
           created_at: string
           estado: Database["public"]["Enums"]["estado_venta"]
@@ -457,6 +458,7 @@ export type Database = {
           tipo_cambio: number
         }
         Insert: {
+          cliente_id?: string | null
           concepto: string
           created_at?: string
           estado?: Database["public"]["Enums"]["estado_venta"]
@@ -470,6 +472,7 @@ export type Database = {
           tipo_cambio?: number
         }
         Update: {
+          cliente_id?: string | null
           concepto?: string
           created_at?: string
           estado?: Database["public"]["Enums"]["estado_venta"]
@@ -483,6 +486,13 @@ export type Database = {
           tipo_cambio?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "ventas_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "terceros"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "ventas_proyecto_id_fkey"
             columns: ["proyecto_id"]

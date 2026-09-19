@@ -76,6 +76,7 @@ export type GastoGeneral = {
 export type Venta = {
   id: string;
   proyecto_id: string;
+  cliente_id: string | null;
   concepto: string;
   monto: number;
   moneda: "PEN" | "USD";
