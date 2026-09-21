@@ -866,3 +866,37 @@ function CatalogoMaestro({
     </>
   );
 }
+
+function ConfiguracionProyectos() {
+  return (
+    <div className="grid gap-4 lg:grid-cols-2">
+      <Panel titulo="Status de proyecto">
+        <div className="space-y-2 p-5">
+          <p className="mb-3 text-xs text-muted-foreground">
+            Escala de estados usada en los tableros Kanban de proyectos y partidas.
+          </p>
+          {SITUACIONES.map((s) => (
+            <div key={s} className="flex items-center justify-between gap-3 rounded-md border border-line px-3 py-2">
+              <InsigniaSituacion valor={s} />
+              <span className="font-mono text-[10px] text-muted-foreground">{tonoSituacion(s).fondo}</span>
+            </div>
+          ))}
+        </div>
+      </Panel>
+
+      <Panel titulo="Prioridad">
+        <div className="space-y-2 p-5">
+          <p className="mb-3 text-xs text-muted-foreground">
+            Nivel de urgencia asignado a cada proyecto y partida.
+          </p>
+          {PRIORIDADES.map((p) => (
+            <div key={p} className="flex items-center justify-between gap-3 rounded-md border border-line px-3 py-2">
+              <InsigniaPrioridad valor={p} />
+              <span className="font-mono text-[10px] text-muted-foreground">{tonoPrioridad(p).fondo}</span>
+            </div>
+          ))}
+        </div>
+      </Panel>
+    </div>
+  );
+}
