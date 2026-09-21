@@ -201,12 +201,13 @@ function Proyectos() {
           <table className="w-full table-fixed font-mono text-xs">
             <thead>
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                <th className="w-3/12 px-5 py-2 font-medium">Descripción</th>
-                <th className="w-2/12 px-3 py-2 font-medium">Cliente</th>
-                <th className="w-2/12 px-3 py-2 font-medium">Ubicación</th>
-                <th className="w-2/12 px-3 py-2 font-medium">Status</th>
-                <th className="w-1/12 px-3 py-2 font-medium">Prioridad</th>
-                <th className="w-2/12 px-5 py-2 text-right font-medium">Acciones</th>
+                <th className="w-[24%] px-5 py-2 font-medium">Nombre de la obra</th>
+                <th className="w-[14%] px-3 py-2 font-medium">Cliente</th>
+                <th className="w-[14%] px-3 py-2 text-right font-medium">Presupuesto</th>
+                <th className="w-[14%] px-3 py-2 text-right font-medium">Costo real</th>
+                <th className="w-[12%] px-3 py-2 font-medium">Status</th>
+                <th className="w-[11%] px-3 py-2 font-medium">Prioridad</th>
+                <th className="w-[11%] px-5 py-2 text-right font-medium">Acciones</th>
               </tr>
             </thead>
             <tbody>
