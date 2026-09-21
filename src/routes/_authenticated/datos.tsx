@@ -7,6 +7,8 @@ import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "
 import { Check, Pencil, Trash2, X } from "lucide-react";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { exportarExcel } from "@/lib/exportar";
+import { InsigniaPrioridad, InsigniaSituacion } from "@/components/estado-ui";
+import { PRIORIDADES, SITUACIONES, tonoPrioridad, tonoSituacion } from "@/lib/configuracion";
 
 export const Route = createFileRoute("/_authenticated/datos")({
   head: () => ({
@@ -46,7 +48,7 @@ type Catalogo = {
   activo: boolean;
   tipo?: string;
 };
-type Pestana = "terceros" | "bancos" | "costos" | "ingresos" | "centros";
+type Pestana = "terceros" | "bancos" | "costos" | "ingresos" | "centros" | "configuracion";
 
 const TIPOS_DOC = ["RUC", "DNI", "CE", "OTRO"];
 const CONDICIONES = ["Contado", "Credito 15 dias", "Credito 30 dias", "Credito 60 dias"];
@@ -261,7 +263,7 @@ function Datos() {
       />
 
       <div className="mb-4 flex flex-wrap gap-2">
-        {(["terceros", "bancos", "costos", "ingresos", "centros"] as const).map((p) => (
+        {(["terceros", "bancos", "costos", "ingresos", "centros", "configuracion"] as const).map((p) => (
           <button
             key={p}
             type="button"
@@ -281,10 +283,12 @@ function Datos() {
               costos: "Costos",
               ingresos: "Ingresos",
               centros: "Centro de costos",
+              configuracion: "Configuración proyectos",
             }[p]}
           </button>
         ))}
       </div>
+
 
       {error && <p className="mb-3 font-mono text-xs text-bad">{error}</p>}
 
@@ -690,6 +694,8 @@ function Datos() {
             )}
           </Panel>
         </>
+      ) : pestana === "configuracion" ? (
+        <ConfiguracionProyectos />
       ) : (
         <CatalogoMaestro
           clase={pestana === "centros" ? "centro" : pestana === "costos" ? "Costo" : "Ingreso"}
@@ -860,5 +866,39 @@ function CatalogoMaestro({
         )}
       </Panel>
     </>
+  );
+}
+
+function ConfiguracionProyectos() {
+  return (
+    <div className="grid gap-4 lg:grid-cols-2">
+      <Panel titulo="Status de proyecto">
+        <div className="space-y-2 p-5">
+          <p className="mb-3 text-xs text-muted-foreground">
+            Escala de estados usada en los tableros Kanban de proyectos y partidas.
+          </p>
+          {SITUACIONES.map((s) => (
+            <div key={s} className="flex items-center justify-between gap-3 rounded-md border border-line px-3 py-2">
+              <InsigniaSituacion valor={s} />
+              <span className="font-mono text-[10px] text-muted-foreground">{tonoSituacion(s).fondo}</span>
+            </div>
+          ))}
+        </div>
+      </Panel>
+
+      <Panel titulo="Prioridad">
+        <div className="space-y-2 p-5">
+          <p className="mb-3 text-xs text-muted-foreground">
+            Nivel de urgencia asignado a cada proyecto y partida.
+          </p>
+          {PRIORIDADES.map((p) => (
+            <div key={p} className="flex items-center justify-between gap-3 rounded-md border border-line px-3 py-2">
+              <InsigniaPrioridad valor={p} />
+              <span className="font-mono text-[10px] text-muted-foreground">{tonoPrioridad(p).fondo}</span>
+            </div>
+          ))}
+        </div>
+      </Panel>
+    </div>
   );
 }

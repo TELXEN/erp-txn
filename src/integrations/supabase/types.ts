@@ -226,7 +226,9 @@ export type Database = {
           id: string
           nombre: string
           presupuesto_inicial: number
+          prioridad: string
           proyecto_id: string
+          situacion: string
         }
         Insert: {
           avance_pct?: number
@@ -235,7 +237,9 @@ export type Database = {
           id?: string
           nombre: string
           presupuesto_inicial?: number
+          prioridad?: string
           proyecto_id: string
+          situacion?: string
         }
         Update: {
           avance_pct?: number
@@ -244,7 +248,9 @@ export type Database = {
           id?: string
           nombre?: string
           presupuesto_inicial?: number
+          prioridad?: string
           proyecto_id?: string
+          situacion?: string
         }
         Relationships: [
           {
@@ -284,6 +290,8 @@ export type Database = {
           estado: Database["public"]["Enums"]["estado_proyecto"]
           id: string
           nombre: string
+          prioridad: string
+          situacion: string
           ubicacion: string
         }
         Insert: {
@@ -292,6 +300,8 @@ export type Database = {
           estado?: Database["public"]["Enums"]["estado_proyecto"]
           id?: string
           nombre: string
+          prioridad?: string
+          situacion?: string
           ubicacion?: string
         }
         Update: {
@@ -300,6 +310,8 @@ export type Database = {
           estado?: Database["public"]["Enums"]["estado_proyecto"]
           id?: string
           nombre?: string
+          prioridad?: string
+          situacion?: string
           ubicacion?: string
         }
         Relationships: []

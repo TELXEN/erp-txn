@@ -14,7 +14,10 @@ import {
   useProyectos,
 } from "@/lib/datos";
 import { exportarExcel } from "@/lib/exportar";
-import { Pencil, Trash2, Check, X } from "lucide-react";
+import { Pencil, Trash2, Check, X, LayoutGrid, Table2 } from "lucide-react";
+import { Kanban } from "@/components/Kanban";
+import { InsigniaPrioridad } from "@/components/estado-ui";
+import { PRIORIDADES, type Situacion } from "@/lib/configuracion";
 
 export const Route = createFileRoute("/_authenticated/partidas")({
   head: () => ({
@@ -37,11 +40,13 @@ function Partidas() {
 
   const [filtroProyecto, setFiltroProyecto] = useState("");
   const [filtroEsp, setFiltroEsp] = useState("");
+  const [vista, setVista] = useState<"tabla" | "kanban">("tabla");
   const [form, setForm] = useState({
     proyecto_id: "",
     nombre: "",
     especialidad: ESPECIALIDADES[0] as string,
     presupuesto_inicial: "",
+    prioridad: "Media",
   });
   const [error, setError] = useState("");
   const [editando, setEditando] = useState<{ id: string; nombre: string; especialidad: string; presupuesto_inicial: string } | null>(null);
@@ -68,6 +73,7 @@ function Partidas() {
       proyecto_id: form.proyecto_id,
       nombre: form.nombre.trim(),
       especialidad: form.especialidad,
+      prioridad: form.prioridad,
       presupuesto_inicial: Number(form.presupuesto_inicial || 0),
     });
     if (err) return setError(err.message);
@@ -116,20 +122,45 @@ function Partidas() {
     ]);
   }
 
+  async function mover(id: string, situacion: Situacion) {
+    setError("");
+    const { error: err } = await supabase.from("partidas").update({ situacion }).eq("id", id);
+    if (err) return setError(err.message);
+    qc.invalidateQueries({ queryKey: ["partidas"] });
+  }
+
   return (
     <>
       <Encabezado
         titulo="Partidas"
         subtitulo="Organizadas por proyecto y especialidad"
         acciones={
-          <Boton variante="linea" onClick={exportar}>
-            Exportar a Excel
-          </Boton>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 rounded-md border border-line bg-card p-1">
+              <button
+                type="button"
+                onClick={() => setVista("tabla")}
+                className={`inline-flex items-center gap-1.5 rounded px-2.5 py-1.5 font-mono text-[11px] ${vista === "tabla" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-ink"}`}
+              >
+                <Table2 size={13} /> Tabla
+              </button>
+              <button
+                type="button"
+                onClick={() => setVista("kanban")}
+                className={`inline-flex items-center gap-1.5 rounded px-2.5 py-1.5 font-mono text-[11px] ${vista === "kanban" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-ink"}`}
+              >
+                <LayoutGrid size={13} /> Kanban
+              </button>
+            </div>
+            <Boton variante="linea" onClick={exportar}>
+              Exportar a Excel
+            </Boton>
+          </div>
         }
       />
 
       <Panel titulo="Nueva partida" className="mb-4">
-        <form onSubmit={guardar} className="grid gap-3 p-5 sm:grid-cols-5">
+        <form onSubmit={guardar} className="grid gap-3 p-5 sm:grid-cols-6">
           <Campo etiqueta="Proyecto">
             <Select value={form.proyecto_id} onChange={(e) => setForm({ ...form, proyecto_id: e.target.value })} required>
               <option value="">Selecciona...</option>
@@ -162,17 +193,26 @@ function Partidas() {
               required
             />
           </Campo>
+          <Campo etiqueta="Prioridad">
+            <Select value={form.prioridad} onChange={(e) => setForm({ ...form, prioridad: e.target.value })}>
+              {PRIORIDADES.map((p) => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
+              ))}
+            </Select>
+          </Campo>
           <div className="flex items-end">
             <Boton type="submit" className="w-full py-2.5">
               Registrar partida
             </Boton>
           </div>
-          {error && <p className="font-mono text-xs text-bad sm:col-span-5">{error}</p>}
+          {error && <p className="font-mono text-xs text-bad sm:col-span-6">{error}</p>}
         </form>
       </Panel>
 
       <Panel
-        titulo="Listado por proyecto y especialidad"
+        titulo={vista === "kanban" ? "Tablero Kanban de partidas" : "Listado por proyecto y especialidad"}
         extra={
           <div className="flex gap-2">
             <Select className="w-52" value={filtroProyecto} onChange={(e) => setFiltroProyecto(e.target.value)}>
@@ -196,6 +236,40 @@ function Partidas() {
       >
         {grupos.length === 0 ? (
           <Vacio texto="No hay partidas con estos filtros." />
+        ) : vista === "kanban" ? (
+          <Kanban
+            onMover={mover}
+            tarjetas={visibles.map((p) => {
+              const costo = costoRealPartida(p.id, gastos);
+              const presu = Number(p.presupuesto_inicial);
+              const gastoPct = presu > 0 ? (costo / presu) * 100 : 0;
+              const sano = gastoPct <= Number(p.avance_pct);
+              return {
+                id: p.id,
+                situacion: p.situacion,
+                contenido: (
+                  <div className="space-y-1.5">
+                    <p className="text-xs font-semibold leading-tight text-ink">{p.nombre}</p>
+                    <p className="font-mono text-[10px] text-muted-foreground">{nombreProyecto(p.proyecto_id)}</p>
+                    <p className="font-mono text-[10px] text-muted-foreground">{p.especialidad}</p>
+                    <div className="h-1.5 w-full rounded-full bg-muted">
+                      <div
+                        className="h-1.5 rounded-full bg-primary"
+                        style={{ width: `${Math.min(100, Number(p.avance_pct))}%` }}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-mono text-[10px] text-muted-foreground">{pct(Number(p.avance_pct))}</span>
+                      <span className={`font-mono text-[10px] font-semibold ${sano ? "text-good" : "text-bad"}`}>
+                        {soles(costo)} / {soles(presu)}
+                      </span>
+                    </div>
+                    <InsigniaPrioridad valor={p.prioridad} />
+                  </div>
+                ),
+              };
+            })}
+          />
         ) : (
           grupos.map(({ proyecto, grupos: espGrupos }) => (
             <div key={proyecto} className="border-b border-line last:border-0">

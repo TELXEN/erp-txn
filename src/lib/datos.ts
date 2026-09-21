@@ -15,6 +15,8 @@ export type Proyecto = {
   cliente: string;
   ubicacion: string;
   estado: "En Ejecucion" | "Finalizado";
+  situacion: string;
+  prioridad: string;
 };
 
 export type Partida = {
@@ -24,6 +26,8 @@ export type Partida = {
   especialidad: string;
   presupuesto_inicial: number;
   avance_pct: number;
+  situacion: string;
+  prioridad: string;
 };
 
 export type Trabajador = {
