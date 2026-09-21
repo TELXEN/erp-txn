@@ -182,6 +182,7 @@ export type Database = {
           monto_soles: number
           proveedor: string
           proveedor_id: string | null
+          proyecto_id: string | null
           tipo_cambio: number
         }
         Insert: {
@@ -194,6 +195,7 @@ export type Database = {
           monto_soles?: number
           proveedor?: string
           proveedor_id?: string | null
+          proyecto_id?: string | null
           tipo_cambio?: number
         }
         Update: {
@@ -206,6 +208,7 @@ export type Database = {
           monto_soles?: number
           proveedor?: string
           proveedor_id?: string | null
+          proyecto_id?: string | null
           tipo_cambio?: number
         }
         Relationships: [
@@ -214,6 +217,13 @@ export type Database = {
             columns: ["proveedor_id"]
             isOneToOne: false
             referencedRelation: "terceros"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gastos_generales_proyecto_id_fkey"
+            columns: ["proyecto_id"]
+            isOneToOne: false
+            referencedRelation: "proyectos"
             referencedColumns: ["id"]
           },
         ]
