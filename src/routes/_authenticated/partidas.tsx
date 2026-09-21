@@ -73,6 +73,7 @@ function Partidas() {
       proyecto_id: form.proyecto_id,
       nombre: form.nombre.trim(),
       especialidad: form.especialidad,
+      prioridad: form.prioridad,
       presupuesto_inicial: Number(form.presupuesto_inicial || 0),
     });
     if (err) return setError(err.message);
@@ -211,7 +212,7 @@ function Partidas() {
       </Panel>
 
       <Panel
-        titulo="Listado por proyecto y especialidad"
+        titulo={vista === "kanban" ? "Tablero Kanban de partidas" : "Listado por proyecto y especialidad"}
         extra={
           <div className="flex gap-2">
             <Select className="w-52" value={filtroProyecto} onChange={(e) => setFiltroProyecto(e.target.value)}>
