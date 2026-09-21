@@ -281,7 +281,7 @@ function Proyectos() {
                       </>
                     ) : (
                       <>
-                        <td className="truncate whitespace-nowrap px-5 py-2.5 font-semibold text-ink" title={p.nombre}>
+                        <td className="px-5 py-2.5 align-top font-semibold text-ink break-words whitespace-normal">
                           {p.nombre}
                         </td>
                         <td className="truncate px-3 py-2.5 text-muted-foreground">{p.cliente || "—"}</td>
