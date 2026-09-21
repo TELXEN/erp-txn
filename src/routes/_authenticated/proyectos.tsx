@@ -9,7 +9,16 @@ import { InsigniaPrioridad, InsigniaSituacion } from "@/components/estado-ui";
 import { Kanban } from "@/components/Kanban";
 import { PRIORIDADES, SITUACIONES, type Situacion } from "@/lib/configuracion";
 import { useAuth, puedeVerDinero } from "@/lib/auth";
-import { useProyectos } from "@/lib/datos";
+import { soles } from "@/lib/format";
+import {
+  costoRealProyecto,
+  presupuestoProyecto,
+  useGastosDirectos,
+  useGastosGenerales,
+  usePartidas,
+  useProyectos,
+  useTareos,
+} from "@/lib/datos";
 
 export const Route = createFileRoute("/_authenticated/proyectos")({
   head: () => ({
@@ -27,6 +36,10 @@ function Proyectos() {
   const { rol } = useAuth();
   const qc = useQueryClient();
   const { data: proyectos = [] } = useProyectos();
+  const { data: partidas = [] } = usePartidas();
+  const { data: gastosD = [] } = useGastosDirectos();
+  const { data: gastosG = [] } = useGastosGenerales();
+  const { data: tareos = [] } = useTareos();
   const [vista, setVista] = useState<"tabla" | "kanban">("tabla");
   const [form, setForm] = useState({
     nombre: "",
@@ -188,17 +201,20 @@ function Proyectos() {
           <table className="w-full table-fixed font-mono text-xs">
             <thead>
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                <th className="w-3/12 px-5 py-2 font-medium">Descripción</th>
-                <th className="w-2/12 px-3 py-2 font-medium">Cliente</th>
-                <th className="w-2/12 px-3 py-2 font-medium">Ubicación</th>
-                <th className="w-2/12 px-3 py-2 font-medium">Status</th>
-                <th className="w-1/12 px-3 py-2 font-medium">Prioridad</th>
-                <th className="w-2/12 px-5 py-2 text-right font-medium">Acciones</th>
+                <th className="w-[24%] px-5 py-2 font-medium">Nombre de la obra</th>
+                <th className="w-[14%] px-3 py-2 font-medium">Cliente</th>
+                <th className="w-[14%] px-3 py-2 text-right font-medium">Presupuesto</th>
+                <th className="w-[14%] px-3 py-2 text-right font-medium">Costo real</th>
+                <th className="w-[12%] px-3 py-2 font-medium">Status</th>
+                <th className="w-[11%] px-3 py-2 font-medium">Prioridad</th>
+                <th className="w-[11%] px-5 py-2 text-right font-medium">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {proyectos.map((p) => {
                 const enEdicion = editando?.id === p.id;
+                const presupuesto = presupuestoProyecto(p.id, partidas);
+                const costoReal = costoRealProyecto(p.id, gastosD, tareos, gastosG);
                 return (
                   <tr key={p.id} className="border-b border-line/60">
                     {enEdicion ? (
@@ -211,8 +227,13 @@ function Proyectos() {
                             autoFocus
                           />
                         </td>
-                        <td className="px-3 py-2.5 text-muted-foreground">{p.cliente || "—"}</td>
-                        <td className="px-3 py-2.5 text-muted-foreground">{p.ubicacion || "—"}</td>
+                        <td className="truncate px-3 py-2.5 text-muted-foreground">{p.cliente || "—"}</td>
+                        <td className="px-3 py-2.5 text-right whitespace-nowrap">{soles(presupuesto)}</td>
+                        <td
+                          className={`px-3 py-2.5 text-right whitespace-nowrap ${costoReal > presupuesto && presupuesto > 0 ? "text-bad" : "text-ink"}`}
+                        >
+                          {soles(costoReal)}
+                        </td>
                         <td className="px-3 py-2">
                           <Select
                             value={editando.situacion}
@@ -260,9 +281,16 @@ function Proyectos() {
                       </>
                     ) : (
                       <>
-                        <td className="px-5 py-2.5 font-semibold text-ink">{p.nombre}</td>
-                        <td className="px-3 py-2.5 text-muted-foreground">{p.cliente || "—"}</td>
-                        <td className="px-3 py-2.5 text-muted-foreground">{p.ubicacion || "—"}</td>
+                        <td className="truncate whitespace-nowrap px-5 py-2.5 font-semibold text-ink" title={p.nombre}>
+                          {p.nombre}
+                        </td>
+                        <td className="truncate px-3 py-2.5 text-muted-foreground">{p.cliente || "—"}</td>
+                        <td className="px-3 py-2.5 text-right whitespace-nowrap">{soles(presupuesto)}</td>
+                        <td
+                          className={`px-3 py-2.5 text-right whitespace-nowrap ${costoReal > presupuesto && presupuesto > 0 ? "text-bad" : "text-ink"}`}
+                        >
+                          {soles(costoReal)}
+                        </td>
                         <td className="px-3 py-2.5">
                           <InsigniaSituacion valor={p.situacion} />
                         </td>

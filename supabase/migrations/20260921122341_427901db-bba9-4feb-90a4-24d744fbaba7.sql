@@ -1,0 +1,2 @@
+ALTER TABLE public.gastos_generales ADD COLUMN IF NOT EXISTS proyecto_id uuid REFERENCES public.proyectos(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS gastos_generales_proyecto_id_idx ON public.gastos_generales(proyecto_id);

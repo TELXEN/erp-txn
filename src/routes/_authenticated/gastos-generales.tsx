@@ -7,7 +7,7 @@ import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "
 import { Check, Pencil, Trash2, X } from "lucide-react";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
-import { useGastosGenerales, useTerceros } from "@/lib/datos";
+import { useGastosGenerales, useProyectos, useTerceros } from "@/lib/datos";
 import { exportarExcel } from "@/lib/exportar";
 
 export const Route = createFileRoute("/_authenticated/gastos-generales")({
@@ -27,10 +27,12 @@ function GastosGenerales() {
   const qc = useQueryClient();
   const { data: gastos = [] } = useGastosGenerales();
   const { data: terceros = [] } = useTerceros();
+  const { data: proyectos = [] } = useProyectos();
   const proveedores = terceros.filter((t) => t.es_proveedor && t.activo);
   const [form, setForm] = useState({
     descripcion: "",
     proveedor_id: "",
+    proyecto_id: "",
     monto: "",
     moneda: "PEN",
     tipo_cambio: "3.75",
@@ -56,6 +58,7 @@ function GastosGenerales() {
       descripcion: form.descripcion.trim(),
       proveedor: prov?.razon_social ?? "",
       proveedor_id: form.proveedor_id || null,
+      proyecto_id: form.proyecto_id || null,
       monto: Number(form.monto || 0),
       moneda: form.moneda as "PEN" | "USD",
       tipo_cambio: tc,
@@ -139,6 +142,16 @@ function GastosGenerales() {
               {proveedores.map((t) => (
                 <option key={t.id} value={t.id}>
                   {t.razon_social}
+                </option>
+              ))}
+            </Select>
+          </Campo>
+          <Campo etiqueta="Obra asignada (opcional)">
+            <Select value={form.proyecto_id} onChange={(e) => setForm({ ...form, proyecto_id: e.target.value })}>
+              <option value="">Sin asignar (oficina)</option>
+              {proyectos.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.nombre}
                 </option>
               ))}
             </Select>
