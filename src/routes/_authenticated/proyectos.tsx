@@ -324,6 +324,8 @@ function Proyectos() {
                                   estado: p.estado,
                                   situacion: p.situacion,
                                   prioridad: p.prioridad,
+                                  fecha_inicio: p.fecha_inicio ?? "",
+                                  fecha_fin: p.fecha_fin ?? "",
                                 })
                               }
                               className="grid h-7 w-7 place-items-center rounded-md border border-line hover:border-primary hover:text-primary"
