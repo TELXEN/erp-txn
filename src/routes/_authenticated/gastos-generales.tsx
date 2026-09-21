@@ -146,6 +146,16 @@ function GastosGenerales() {
               ))}
             </Select>
           </Campo>
+          <Campo etiqueta="Obra asignada (opcional)">
+            <Select value={form.proyecto_id} onChange={(e) => setForm({ ...form, proyecto_id: e.target.value })}>
+              <option value="">Sin asignar (oficina)</option>
+              {proyectos.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.nombre}
+                </option>
+              ))}
+            </Select>
+          </Campo>
           <Campo etiqueta="Monto gastado">
             <Input type="number" step="0.01" min="0" value={form.monto} onChange={(e) => setForm({ ...form, monto: e.target.value })} required />
           </Campo>
