@@ -7,7 +7,7 @@ import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "
 import { Check, Pencil, Trash2, X } from "lucide-react";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
-import { useGastosGenerales, useTerceros } from "@/lib/datos";
+import { useGastosGenerales, useProyectos, useTerceros } from "@/lib/datos";
 import { exportarExcel } from "@/lib/exportar";
 
 export const Route = createFileRoute("/_authenticated/gastos-generales")({

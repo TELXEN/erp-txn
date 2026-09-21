@@ -36,6 +36,10 @@ function Proyectos() {
   const { rol } = useAuth();
   const qc = useQueryClient();
   const { data: proyectos = [] } = useProyectos();
+  const { data: partidas = [] } = usePartidas();
+  const { data: gastosD = [] } = useGastosDirectos();
+  const { data: gastosG = [] } = useGastosGenerales();
+  const { data: tareos = [] } = useTareos();
   const [vista, setVista] = useState<"tabla" | "kanban">("tabla");
   const [form, setForm] = useState({
     nombre: "",
