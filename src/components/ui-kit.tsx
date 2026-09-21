@@ -93,3 +93,30 @@ export function SinAcceso() {
     </div>
   );
 }
+
+export function InfoTooltip({ content }: { content: ReactNode }) {
+  const [visible, setVisible] = useState(false);
+  return (
+    <span
+      className="relative inline-flex items-center align-middle"
+      onMouseEnter={() => setVisible(true)}
+      onMouseLeave={() => setVisible(false)}
+    >
+      <button
+        type="button"
+        className="ml-1 inline-flex h-4 w-4 items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-ink focus:outline-none"
+        onClick={() => setVisible((v) => !v)}
+        aria-label="Información"
+      >
+        <Info className="h-3.5 w-3.5" />
+      </button>
+      {visible && (
+        <span className="absolute bottom-full left-1/2 z-50 mb-1.5 block w-56 -translate-x-1/2 rounded-md border border-line bg-paper p-2.5 text-[11px] leading-relaxed text-ink shadow-md">
+          {content}
+          <span className="absolute left-1/2 top-full -mt-1 block h-2 w-2 -translate-x-1/2 rotate-45 border-b border-r border-line bg-paper" />
+        </span>
+      )}
+    </span>
+  );
+}
+
