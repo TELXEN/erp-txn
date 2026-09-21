@@ -85,6 +85,19 @@ function DashboardProyectos() {
     };
   }, [filas, proyectos]);
 
+  const obraSel = filas.find((f) => f.proyecto.id === obraId) ?? filas[0];
+
+  const movimientos = useMemo(() => {
+    const id = obraSel?.proyecto.id;
+    if (!id) return [];
+    return [
+      ...gastosD.filter((g) => g.proyecto_id === id).map((g) => ({ fecha: g.fecha, monto: Number(g.monto_soles) })),
+      ...gastosG.filter((g) => g.proyecto_id === id).map((g) => ({ fecha: g.fecha, monto: Number(g.monto_soles) })),
+      ...tareos.filter((t) => t.proyecto_id === id).map((t) => ({ fecha: t.fecha, monto: Number(t.costo_soles) })),
+    ];
+  }, [obraSel, gastosD, gastosG, tareos]);
+
+
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
   function excel() {
