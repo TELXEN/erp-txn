@@ -9,7 +9,16 @@ import { InsigniaPrioridad, InsigniaSituacion } from "@/components/estado-ui";
 import { Kanban } from "@/components/Kanban";
 import { PRIORIDADES, SITUACIONES, type Situacion } from "@/lib/configuracion";
 import { useAuth, puedeVerDinero } from "@/lib/auth";
-import { useProyectos } from "@/lib/datos";
+import { soles } from "@/lib/format";
+import {
+  costoRealProyecto,
+  presupuestoProyecto,
+  useGastosDirectos,
+  useGastosGenerales,
+  usePartidas,
+  useProyectos,
+  useTareos,
+} from "@/lib/datos";
 
 export const Route = createFileRoute("/_authenticated/proyectos")({
   head: () => ({
