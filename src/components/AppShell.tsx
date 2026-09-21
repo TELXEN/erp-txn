@@ -49,7 +49,6 @@ const MENU: Categoria[] = [
   {
     titulo: "Finanzas y Contabilidad",
     items: [
-      { a: "/dashboard", texto: "Dashboard Financiero", roles: ["gerente"], icono: BarChart3 },
       { a: "/gastos-directos", texto: "Gastos Directos", roles: ["administrador", "gerente"], icono: ArrowDownCircle },
       { a: "/gastos-generales", texto: "Gastos Generales", roles: ["administrador", "gerente"], icono: ArrowUpCircle },
     ],
