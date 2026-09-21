@@ -257,6 +257,22 @@ function Proyectos() {
                             maxLength={120}
                             autoFocus
                           />
+                          <div className="mt-1.5 grid grid-cols-2 gap-1.5">
+                            <Input
+                              type="date"
+                              className="py-1 text-[11px]"
+                              value={editando.fecha_inicio}
+                              onChange={(e) => setEditando({ ...editando, fecha_inicio: e.target.value })}
+                              title="Fecha de inicio"
+                            />
+                            <Input
+                              type="date"
+                              className="py-1 text-[11px]"
+                              value={editando.fecha_fin}
+                              onChange={(e) => setEditando({ ...editando, fecha_fin: e.target.value })}
+                              title="Fecha de fin estimada"
+                            />
+                          </div>
                         </td>
                         <td className="truncate px-3 py-2.5 text-muted-foreground">{p.cliente || "—"}</td>
                         <td className="px-3 py-2.5 text-right whitespace-nowrap">{soles(presupuesto)}</td>
