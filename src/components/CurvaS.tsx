@@ -1,5 +1,8 @@
-import { useMemo } from "react";
+import { useMemo, type ReactNode } from "react";
+import { InfoTooltip } from "@/components/ui-kit";
 import { soles } from "@/lib/format";
+
+
 
 export type Movimiento = { fecha: string; monto: number };
 
@@ -106,10 +109,27 @@ export function CurvaS({
         <Mini etiqueta="Avance físico real" valor={`${avanceFisico.toFixed(1)} %`} tono={atrasado ? "bad" : "good"} />
         <Mini etiqueta="Costo acumulado" valor={soles(datos.gastadoSoles)} />
         <Mini
-          etiqueta="SPI / CPI"
+          etiqueta={
+            <span className="inline-flex items-center">
+              SPI / CPI
+              <InfoTooltip
+                content={
+                  <span>
+                    <strong>SPI</strong> = avance físico real ÷ avance programado a hoy.{" "}
+                    <em>{"\u003e 1"}</em> = adelanto; <em>{"< 1"}</em> = retraso.
+                    <br />
+                    <strong>CPI</strong> = avance físico real ÷ % de presupuesto gastado.{" "}
+                    <em>{"\u003e 1"}</em> = ahorro; <em>{"< 1"}</em> = sobrecosto.
+                  </span>
+                }
+              />
+            </span>
+          }
           valor={`${datos.spi.toFixed(2)} / ${datos.cpi.toFixed(2)}`}
           tono={datos.spi < 1 || datos.cpi < 1 ? "bad" : "good"}
         />
+
+
       </div>
 
       <div className="overflow-x-auto">
@@ -157,7 +177,7 @@ export function CurvaS({
   );
 }
 
-function Mini({ etiqueta, valor, tono }: { etiqueta: string; valor: string; tono?: "good" | "bad" }) {
+function Mini({ etiqueta, valor, tono }: { etiqueta: ReactNode; valor: string; tono?: "good" | "bad" }) {
   return (
     <div className="rounded-md border border-line bg-card px-3 py-2">
       <p className="label-mono">{etiqueta}</p>
