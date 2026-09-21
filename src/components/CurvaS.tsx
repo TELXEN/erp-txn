@@ -115,11 +115,11 @@ export function CurvaS({
               <InfoTooltip
                 content={
                   <span>
-                    <strong>SPI</strong> = avance físico real ÷ avance programado a hoy. {" "}
-                    <em>{"">1</em> = adelanto; <em>{"<"}1</em> = retraso.
+                    <strong>SPI</strong> = avance físico real ÷ avance programado a hoy.{" "}
+                    <em>{"\u003e 1"}</em> = adelanto; <em>{"< 1"}</em> = retraso.
                     <br />
-                    <strong>CPI</strong> = avance físico real ÷ % de presupuesto gastado. {" "}
-                    <em>{"">1</em> = ahorro; <em>{"<"}1</em> = sobrecosto.
+                    <strong>CPI</strong> = avance físico real ÷ % de presupuesto gastado.{" "}
+                    <em>{"\u003e 1"}</em> = ahorro; <em>{"< 1"}</em> = sobrecosto.
                   </span>
                 }
               />
@@ -128,6 +128,7 @@ export function CurvaS({
           valor={`${datos.spi.toFixed(2)} / ${datos.cpi.toFixed(2)}`}
           tono={datos.spi < 1 || datos.cpi < 1 ? "bad" : "good"}
         />
+
 
       </div>
 
