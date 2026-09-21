@@ -1,5 +1,7 @@
 import { useMemo } from "react";
+import { InfoTooltip } from "@/components/ui-kit";
 import { soles } from "@/lib/format";
+
 
 export type Movimiento = { fecha: string; monto: number };
 
