@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, Panel, SinAcceso, Vacio } from "@/components/ui-kit";
+import { Boton, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
+import { CurvaS } from "@/components/CurvaS";
 import { InsigniaPrioridad, InsigniaSituacion } from "@/components/estado-ui";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { pct, soles } from "@/lib/format";
