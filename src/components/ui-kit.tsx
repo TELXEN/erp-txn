@@ -1,4 +1,7 @@
 import type { ReactNode, InputHTMLAttributes, SelectHTMLAttributes, ButtonHTMLAttributes } from "react";
+import { useState } from "react";
+import { Info } from "lucide-react";
+
 
 export function Panel({
   titulo,
