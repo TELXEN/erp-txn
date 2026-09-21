@@ -213,6 +213,8 @@ function Proyectos() {
             <tbody>
               {proyectos.map((p) => {
                 const enEdicion = editando?.id === p.id;
+                const presupuesto = presupuestoProyecto(p.id, partidas);
+                const costoReal = costoRealProyecto(p.id, gastosD, tareos, gastosG);
                 return (
                   <tr key={p.id} className="border-b border-line/60">
                     {enEdicion ? (
