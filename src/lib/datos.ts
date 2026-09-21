@@ -17,6 +17,8 @@ export type Proyecto = {
   estado: "En Ejecucion" | "Finalizado";
   situacion: string;
   prioridad: string;
+  fecha_inicio: string | null;
+  fecha_fin: string | null;
 };
 
 export type Partida = {
