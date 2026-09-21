@@ -108,10 +108,26 @@ export function CurvaS({
         <Mini etiqueta="Avance físico real" valor={`${avanceFisico.toFixed(1)} %`} tono={atrasado ? "bad" : "good"} />
         <Mini etiqueta="Costo acumulado" valor={soles(datos.gastadoSoles)} />
         <Mini
-          etiqueta="SPI / CPI"
+          etiqueta={
+            <span className="inline-flex items-center">
+              SPI / CPI
+              <InfoTooltip
+                content={
+                  <span>
+                    <strong>SPI</strong> = avance físico real ÷ avance programado a hoy. {" "}
+                    <em>{"">1</em> = adelanto; <em>{"<"}1</em> = retraso.
+                    <br />
+                    <strong>CPI</strong> = avance físico real ÷ % de presupuesto gastado. {" "}
+                    <em>{"">1</em> = ahorro; <em>{"<"}1</em> = sobrecosto.
+                  </span>
+                }
+              />
+            </span>
+          }
           valor={`${datos.spi.toFixed(2)} / ${datos.cpi.toFixed(2)}`}
           tono={datos.spi < 1 || datos.cpi < 1 ? "bad" : "good"}
         />
+
       </div>
 
       <div className="overflow-x-auto">
