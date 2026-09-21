@@ -12,6 +12,7 @@ import {
   Building2,
   CalendarDays,
   ClipboardList,
+  Gauge,
   Layers,
   ShieldCheck,
   Users,
@@ -23,6 +24,13 @@ type Item = { a: string; texto: string; roles: Rol[]; icono: React.ElementType }
 type Categoria = { titulo: string; items: Item[] };
 
 const MENU: Categoria[] = [
+  {
+    titulo: "Dashboards",
+    items: [
+      { a: "/dashboard", texto: "Dashboard Financiero", roles: ["gerente"], icono: BarChart3 },
+      { a: "/dashboard-proyectos", texto: "Dashboard de Proyectos", roles: ["administrador", "gerente"], icono: Gauge },
+    ],
+  },
   {
     titulo: "Operaciones",
     items: [
