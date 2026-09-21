@@ -110,7 +110,7 @@ function GastosDirectos() {
   return (
     <>
       <Encabezado
-        titulo="Gastos Directos"
+        titulo="Costos Directos"
         subtitulo="Compras vinculadas a partidas"
         acciones={
           <Boton
@@ -178,7 +178,7 @@ function GastosDirectos() {
               ))}
             </Select>
           </Campo>
-          <Campo etiqueta="Monto presupuestado">
+          <Campo etiqueta="COSTO REAL">
             <Input type="number" step="0.01" min="0" value={form.monto} onChange={(e) => setForm({ ...form, monto: e.target.value })} required />
           </Campo>
           <Campo etiqueta="Moneda">
