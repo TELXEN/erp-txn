@@ -188,6 +188,20 @@ function Proyectos() {
               ))}
             </Select>
           </Campo>
+          <Campo etiqueta="Fecha de inicio">
+            <Input
+              type="date"
+              value={form.fecha_inicio}
+              onChange={(e) => setForm({ ...form, fecha_inicio: e.target.value })}
+            />
+          </Campo>
+          <Campo etiqueta="Fecha de fin estimada">
+            <Input
+              type="date"
+              value={form.fecha_fin}
+              onChange={(e) => setForm({ ...form, fecha_fin: e.target.value })}
+            />
+          </Campo>
           {error && <p className="font-mono text-xs text-bad sm:col-span-6">{error}</p>}
         </form>
       </Panel>
