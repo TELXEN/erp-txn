@@ -14,7 +14,10 @@ import {
   useProyectos,
 } from "@/lib/datos";
 import { exportarExcel } from "@/lib/exportar";
-import { Pencil, Trash2, Check, X } from "lucide-react";
+import { Pencil, Trash2, Check, X, LayoutGrid, Table2 } from "lucide-react";
+import { Kanban } from "@/components/Kanban";
+import { InsigniaPrioridad } from "@/components/estado-ui";
+import { PRIORIDADES, type Situacion } from "@/lib/configuracion";
 
 export const Route = createFileRoute("/_authenticated/partidas")({
   head: () => ({
