@@ -58,6 +58,7 @@ function GastosGenerales() {
       descripcion: form.descripcion.trim(),
       proveedor: prov?.razon_social ?? "",
       proveedor_id: form.proveedor_id || null,
+      proyecto_id: form.proyecto_id || null,
       monto: Number(form.monto || 0),
       moneda: form.moneda as "PEN" | "USD",
       tipo_cambio: tc,
