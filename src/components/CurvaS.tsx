@@ -177,7 +177,7 @@ export function CurvaS({
   );
 }
 
-function Mini({ etiqueta, valor, tono }: { etiqueta: string; valor: string; tono?: "good" | "bad" }) {
+function Mini({ etiqueta, valor, tono }: { etiqueta: ReactNode; valor: string; tono?: "good" | "bad" }) {
   return (
     <div className="rounded-md border border-line bg-card px-3 py-2">
       <p className="label-mono">{etiqueta}</p>
