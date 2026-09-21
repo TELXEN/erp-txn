@@ -165,6 +165,35 @@ function DashboardProyectos() {
         />
       </div>
 
+      <Panel
+        titulo="Curva S — Avance programado vs. ejecución real"
+        className="mb-4"
+        extra={
+          <div className="w-64">
+            <Select value={obraSel?.proyecto.id ?? ""} onChange={(e) => setObraId(e.target.value)}>
+              {filas.length === 0 && <option value="">Sin obras registradas</option>}
+              {filas.map((f) => (
+                <option key={f.proyecto.id} value={f.proyecto.id}>
+                  {f.proyecto.nombre}
+                </option>
+              ))}
+            </Select>
+          </div>
+        }
+      >
+        {!obraSel ? (
+          <Vacio texto="Registra una obra para visualizar su curva S." />
+        ) : (
+          <CurvaS
+            fechaInicio={obraSel.proyecto.fecha_inicio}
+            fechaFin={obraSel.proyecto.fecha_fin}
+            presupuesto={obraSel.presupuesto}
+            avanceFisico={obraSel.avance}
+            movimientos={movimientos}
+          />
+        )}
+      </Panel>
+
       <Panel titulo="Radiografía por obra">
         {filas.length === 0 ? (
           <Vacio texto="Aún no hay proyectos registrados." />
