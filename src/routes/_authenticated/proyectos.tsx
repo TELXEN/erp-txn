@@ -74,9 +74,20 @@ function Proyectos() {
       estado: form.estado as "En Ejecucion" | "Finalizado",
       situacion: form.situacion,
       prioridad: form.prioridad,
+      fecha_inicio: form.fecha_inicio || null,
+      fecha_fin: form.fecha_fin || null,
     });
     if (err) return setError(err.message);
-    setForm({ nombre: "", cliente: "", ubicacion: "", estado: "En Ejecucion", situacion: "No iniciado", prioridad: "Media" });
+    setForm({
+      nombre: "",
+      cliente: "",
+      ubicacion: "",
+      estado: "En Ejecucion",
+      situacion: "No iniciado",
+      prioridad: "Media",
+      fecha_inicio: "",
+      fecha_fin: "",
+    });
     qc.invalidateQueries({ queryKey: ["proyectos"] });
   }
 
@@ -91,6 +102,8 @@ function Proyectos() {
         estado: editando.estado,
         situacion: editando.situacion,
         prioridad: editando.prioridad,
+        fecha_inicio: editando.fecha_inicio || null,
+        fecha_fin: editando.fecha_fin || null,
       })
       .eq("id", editando.id);
     if (err) return setError(err.message);
