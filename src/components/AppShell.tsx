@@ -49,7 +49,7 @@ const MENU: Categoria[] = [
   {
     titulo: "Finanzas y Contabilidad",
     items: [
-      { a: "/gastos-directos", texto: "Gastos Directos", roles: ["administrador", "gerente"], icono: ArrowDownCircle },
+      { a: "/gastos-directos", texto: "Costos Directos", roles: ["administrador", "gerente"], icono: ArrowDownCircle },
       { a: "/gastos-generales", texto: "Gastos Generales", roles: ["administrador", "gerente"], icono: ArrowUpCircle },
     ],
   },
