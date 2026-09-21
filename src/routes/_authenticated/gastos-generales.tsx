@@ -27,10 +27,12 @@ function GastosGenerales() {
   const qc = useQueryClient();
   const { data: gastos = [] } = useGastosGenerales();
   const { data: terceros = [] } = useTerceros();
+  const { data: proyectos = [] } = useProyectos();
   const proveedores = terceros.filter((t) => t.es_proveedor && t.activo);
   const [form, setForm] = useState({
     descripcion: "",
     proveedor_id: "",
+    proyecto_id: "",
     monto: "",
     moneda: "PEN",
     tipo_cambio: "3.75",
