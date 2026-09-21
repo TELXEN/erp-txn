@@ -692,6 +692,8 @@ function Datos() {
             )}
           </Panel>
         </>
+      ) : pestana === "configuracion" ? (
+        <ConfiguracionProyectos />
       ) : (
         <CatalogoMaestro
           clase={pestana === "centros" ? "centro" : pestana === "costos" ? "Costo" : "Ingreso"}
