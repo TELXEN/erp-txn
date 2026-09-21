@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, Panel, SinAcceso, Vacio } from "@/components/ui-kit";
+import { Boton, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
+import { CurvaS } from "@/components/CurvaS";
 import { InsigniaPrioridad, InsigniaSituacion } from "@/components/estado-ui";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { pct, soles } from "@/lib/format";
@@ -38,6 +39,8 @@ function DashboardProyectos() {
   const { data: gastosD = [] } = useGastosDirectos();
   const { data: gastosG = [] } = useGastosGenerales();
   const { data: tareos = [] } = useTareos();
+  const [obraId, setObraId] = useState("");
+
 
   const filas = useMemo(
     () =>
@@ -81,6 +84,19 @@ function DashboardProyectos() {
       desviadas: filas.filter((f) => f.desviado).length,
     };
   }, [filas, proyectos]);
+
+  const obraSel = filas.find((f) => f.proyecto.id === obraId) ?? filas[0];
+
+  const movimientos = useMemo(() => {
+    const id = obraSel?.proyecto.id;
+    if (!id) return [];
+    return [
+      ...gastosD.filter((g) => g.proyecto_id === id).map((g) => ({ fecha: g.fecha, monto: Number(g.monto_soles) })),
+      ...gastosG.filter((g) => g.proyecto_id === id).map((g) => ({ fecha: g.fecha, monto: Number(g.monto_soles) })),
+      ...tareos.filter((t) => t.proyecto_id === id).map((t) => ({ fecha: t.fecha, monto: Number(t.costo_soles) })),
+    ];
+  }, [obraSel, gastosD, gastosG, tareos]);
+
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
@@ -161,6 +177,35 @@ function DashboardProyectos() {
           tono={resumen.diferencia < 0 ? "bad" : "good"}
         />
       </div>
+
+      <Panel
+        titulo="Curva S — Avance programado vs. ejecución real"
+        className="mb-4"
+        extra={
+          <div className="w-64">
+            <Select value={obraSel?.proyecto.id ?? ""} onChange={(e) => setObraId(e.target.value)}>
+              {filas.length === 0 && <option value="">Sin obras registradas</option>}
+              {filas.map((f) => (
+                <option key={f.proyecto.id} value={f.proyecto.id}>
+                  {f.proyecto.nombre}
+                </option>
+              ))}
+            </Select>
+          </div>
+        }
+      >
+        {!obraSel ? (
+          <Vacio texto="Registra una obra para visualizar su curva S." />
+        ) : (
+          <CurvaS
+            fechaInicio={obraSel.proyecto.fecha_inicio}
+            fechaFin={obraSel.proyecto.fecha_fin}
+            presupuesto={obraSel.presupuesto}
+            avanceFisico={obraSel.avance}
+            movimientos={movimientos}
+          />
+        )}
+      </Panel>
 
       <Panel titulo="Radiografía por obra">
         {filas.length === 0 ? (

@@ -48,6 +48,8 @@ function Proyectos() {
     estado: "En Ejecucion",
     situacion: "No iniciado",
     prioridad: "Media",
+    fecha_inicio: "",
+    fecha_fin: "",
   });
   const [error, setError] = useState("");
   const [editando, setEditando] = useState<{
@@ -56,6 +58,8 @@ function Proyectos() {
     estado: "En Ejecucion" | "Finalizado";
     situacion: string;
     prioridad: string;
+    fecha_inicio: string;
+    fecha_fin: string;
   } | null>(null);
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
@@ -70,9 +74,20 @@ function Proyectos() {
       estado: form.estado as "En Ejecucion" | "Finalizado",
       situacion: form.situacion,
       prioridad: form.prioridad,
+      fecha_inicio: form.fecha_inicio || null,
+      fecha_fin: form.fecha_fin || null,
     });
     if (err) return setError(err.message);
-    setForm({ nombre: "", cliente: "", ubicacion: "", estado: "En Ejecucion", situacion: "No iniciado", prioridad: "Media" });
+    setForm({
+      nombre: "",
+      cliente: "",
+      ubicacion: "",
+      estado: "En Ejecucion",
+      situacion: "No iniciado",
+      prioridad: "Media",
+      fecha_inicio: "",
+      fecha_fin: "",
+    });
     qc.invalidateQueries({ queryKey: ["proyectos"] });
   }
 
@@ -87,6 +102,8 @@ function Proyectos() {
         estado: editando.estado,
         situacion: editando.situacion,
         prioridad: editando.prioridad,
+        fecha_inicio: editando.fecha_inicio || null,
+        fecha_fin: editando.fecha_fin || null,
       })
       .eq("id", editando.id);
     if (err) return setError(err.message);
@@ -171,6 +188,20 @@ function Proyectos() {
               ))}
             </Select>
           </Campo>
+          <Campo etiqueta="Fecha de inicio">
+            <Input
+              type="date"
+              value={form.fecha_inicio}
+              onChange={(e) => setForm({ ...form, fecha_inicio: e.target.value })}
+            />
+          </Campo>
+          <Campo etiqueta="Fecha de fin estimada">
+            <Input
+              type="date"
+              value={form.fecha_fin}
+              onChange={(e) => setForm({ ...form, fecha_fin: e.target.value })}
+            />
+          </Campo>
           {error && <p className="font-mono text-xs text-bad sm:col-span-6">{error}</p>}
         </form>
       </Panel>
@@ -226,6 +257,22 @@ function Proyectos() {
                             maxLength={120}
                             autoFocus
                           />
+                          <div className="mt-1.5 grid grid-cols-2 gap-1.5">
+                            <Input
+                              type="date"
+                              className="py-1 text-[11px]"
+                              value={editando.fecha_inicio}
+                              onChange={(e) => setEditando({ ...editando, fecha_inicio: e.target.value })}
+                              title="Fecha de inicio"
+                            />
+                            <Input
+                              type="date"
+                              className="py-1 text-[11px]"
+                              value={editando.fecha_fin}
+                              onChange={(e) => setEditando({ ...editando, fecha_fin: e.target.value })}
+                              title="Fecha de fin estimada"
+                            />
+                          </div>
                         </td>
                         <td className="truncate px-3 py-2.5 text-muted-foreground">{p.cliente || "—"}</td>
                         <td className="px-3 py-2.5 text-right whitespace-nowrap">{soles(presupuesto)}</td>
@@ -307,6 +354,8 @@ function Proyectos() {
                                   estado: p.estado,
                                   situacion: p.situacion,
                                   prioridad: p.prioridad,
+                                  fecha_inicio: p.fecha_inicio ?? "",
+                                  fecha_fin: p.fecha_fin ?? "",
                                 })
                               }
                               className="grid h-7 w-7 place-items-center rounded-md border border-line hover:border-primary hover:text-primary"

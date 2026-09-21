@@ -298,6 +298,8 @@ export type Database = {
           cliente: string
           created_at: string
           estado: Database["public"]["Enums"]["estado_proyecto"]
+          fecha_fin: string | null
+          fecha_inicio: string | null
           id: string
           nombre: string
           prioridad: string
@@ -308,6 +310,8 @@ export type Database = {
           cliente?: string
           created_at?: string
           estado?: Database["public"]["Enums"]["estado_proyecto"]
+          fecha_fin?: string | null
+          fecha_inicio?: string | null
           id?: string
           nombre: string
           prioridad?: string
@@ -318,6 +322,8 @@ export type Database = {
           cliente?: string
           created_at?: string
           estado?: Database["public"]["Enums"]["estado_proyecto"]
+          fecha_fin?: string | null
+          fecha_inicio?: string | null
           id?: string
           nombre?: string
           prioridad?: string
