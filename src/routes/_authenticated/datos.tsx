@@ -261,7 +261,7 @@ function Datos() {
       />
 
       <div className="mb-4 flex flex-wrap gap-2">
-        {(["terceros", "bancos", "costos", "ingresos", "centros"] as const).map((p) => (
+        {(["terceros", "bancos", "costos", "ingresos", "centros", "configuracion"] as const).map((p) => (
           <button
             key={p}
             type="button"
@@ -281,10 +281,12 @@ function Datos() {
               costos: "Costos",
               ingresos: "Ingresos",
               centros: "Centro de costos",
+              configuracion: "Configuración proyectos",
             }[p]}
           </button>
         ))}
       </div>
+
 
       {error && <p className="mb-3 font-mono text-xs text-bad">{error}</p>}
 
