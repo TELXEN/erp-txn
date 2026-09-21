@@ -67,6 +67,18 @@ const MENU: Categoria[] = [
 ];
 
 
+const LS_KEY = "erp-telxen-menu-abiertas";
+
+function leerAbiertas(): string[] {
+  try {
+    const raw = window.localStorage.getItem(LS_KEY);
+    const arr = raw ? JSON.parse(raw) : null;
+    return Array.isArray(arr) ? arr.filter((x) => typeof x === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
 export function AppShell({ children }: { children: ReactNode }) {
   const { nombre, email, rol } = useAuth();
   const navigate = useNavigate();
@@ -77,6 +89,32 @@ export function AppShell({ children }: { children: ReactNode }) {
     ...c,
     items: c.items.filter((m) => (rol ? m.roles.includes(rol) : false)),
   })).filter((c) => c.items.length > 0);
+
+  const [abiertas, setAbiertas] = useState<string[] | null>(null);
+
+  useEffect(() => {
+    setAbiertas(leerAbiertas());
+  }, []);
+
+  function alternarCategoria(titulo: string) {
+    setAbiertas((prev) => {
+      const actuales = prev ?? [];
+      const siguientes = actuales.includes(titulo)
+        ? actuales.filter((t) => t !== titulo)
+        : [...actuales, titulo];
+      try {
+        window.localStorage.setItem(LS_KEY, JSON.stringify(siguientes));
+      } catch {
+        // almacenamiento no disponible
+      }
+      return siguientes;
+    });
+  }
+
+  function estaAbierta(c: Categoria): boolean {
+    if (c.items.some((m) => pathname === m.a)) return true;
+    return abiertas?.includes(c.titulo) ?? false;
+  }
 
   const iniciales = (nombre || email || "??").slice(0, 2).toUpperCase();
 
