@@ -48,6 +48,8 @@ function Proyectos() {
     estado: "En Ejecucion",
     situacion: "No iniciado",
     prioridad: "Media",
+    fecha_inicio: "",
+    fecha_fin: "",
   });
   const [error, setError] = useState("");
   const [editando, setEditando] = useState<{
@@ -56,6 +58,8 @@ function Proyectos() {
     estado: "En Ejecucion" | "Finalizado";
     situacion: string;
     prioridad: string;
+    fecha_inicio: string;
+    fecha_fin: string;
   } | null>(null);
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
