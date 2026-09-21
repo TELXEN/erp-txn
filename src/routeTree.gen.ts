@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedAvanceRouteImport } from './routes/_authenticated/avance'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedDashboardProyectosRouteImport } from './routes/_authenticated/dashboard-proyectos'
 import { Route as AuthenticatedDatosRouteImport } from './routes/_authenticated/datos'
 import { Route as AuthenticatedGastosDirectosRouteImport } from './routes/_authenticated/gastos-directos'
 import { Route as AuthenticatedGastosGeneralesRouteImport } from './routes/_authenticated/gastos-generales'
@@ -43,6 +44,12 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedDashboardProyectosRoute =
+  AuthenticatedDashboardProyectosRouteImport.update({
+    id: '/dashboard-proyectos',
+    path: '/dashboard-proyectos',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDatosRoute = AuthenticatedDatosRouteImport.update({
   id: '/datos',
   path: '/datos',
@@ -101,6 +108,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/avance': typeof AuthenticatedAvanceRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/dashboard-proyectos': typeof AuthenticatedDashboardProyectosRoute
   '/datos': typeof AuthenticatedDatosRoute
   '/gastos-directos': typeof AuthenticatedGastosDirectosRoute
   '/gastos-generales': typeof AuthenticatedGastosGeneralesRoute
@@ -116,6 +124,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/avance': typeof AuthenticatedAvanceRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/dashboard-proyectos': typeof AuthenticatedDashboardProyectosRoute
   '/datos': typeof AuthenticatedDatosRoute
   '/gastos-directos': typeof AuthenticatedGastosDirectosRoute
   '/gastos-generales': typeof AuthenticatedGastosGeneralesRoute
@@ -133,6 +142,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/_authenticated/avance': typeof AuthenticatedAvanceRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/dashboard-proyectos': typeof AuthenticatedDashboardProyectosRoute
   '/_authenticated/datos': typeof AuthenticatedDatosRoute
   '/_authenticated/gastos-directos': typeof AuthenticatedGastosDirectosRoute
   '/_authenticated/gastos-generales': typeof AuthenticatedGastosGeneralesRoute
@@ -150,6 +160,7 @@ export interface FileRouteTypes {
     | '/'
     | '/avance'
     | '/dashboard'
+    | '/dashboard-proyectos'
     | '/datos'
     | '/gastos-directos'
     | '/gastos-generales'
@@ -165,6 +176,7 @@ export interface FileRouteTypes {
     | '/'
     | '/avance'
     | '/dashboard'
+    | '/dashboard-proyectos'
     | '/datos'
     | '/gastos-directos'
     | '/gastos-generales'
@@ -181,6 +193,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/_authenticated/avance'
     | '/_authenticated/dashboard'
+    | '/_authenticated/dashboard-proyectos'
     | '/_authenticated/datos'
     | '/_authenticated/gastos-directos'
     | '/_authenticated/gastos-generales'
@@ -226,6 +239,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dashboard-proyectos': {
+      id: '/_authenticated/dashboard-proyectos'
+      path: '/dashboard-proyectos'
+      fullPath: '/dashboard-proyectos'
+      preLoaderRoute: typeof AuthenticatedDashboardProyectosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/datos': {
@@ -304,6 +324,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAvanceRoute: typeof AuthenticatedAvanceRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedDashboardProyectosRoute: typeof AuthenticatedDashboardProyectosRoute
   AuthenticatedDatosRoute: typeof AuthenticatedDatosRoute
   AuthenticatedGastosDirectosRoute: typeof AuthenticatedGastosDirectosRoute
   AuthenticatedGastosGeneralesRoute: typeof AuthenticatedGastosGeneralesRoute
@@ -319,6 +340,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAvanceRoute: AuthenticatedAvanceRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedDashboardProyectosRoute: AuthenticatedDashboardProyectosRoute,
   AuthenticatedDatosRoute: AuthenticatedDatosRoute,
   AuthenticatedGastosDirectosRoute: AuthenticatedGastosDirectosRoute,
   AuthenticatedGastosGeneralesRoute: AuthenticatedGastosGeneralesRoute,
