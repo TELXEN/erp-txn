@@ -39,6 +39,8 @@ function DashboardProyectos() {
   const { data: gastosD = [] } = useGastosDirectos();
   const { data: gastosG = [] } = useGastosGenerales();
   const { data: tareos = [] } = useTareos();
+  const [obraId, setObraId] = useState("");
+
 
   const filas = useMemo(
     () =>
