@@ -180,7 +180,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   <div
                     className={`grid transition-all duration-200 ${abierta ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}
                   >
-                    <div className="space-y-1 overflow-hidden">
+                    <div className="ml-2 space-y-1 overflow-hidden border-l border-line pl-2">
                       {c.items.map((m) => {
                         const activo = pathname === m.a;
                         const Icono = m.icono;
