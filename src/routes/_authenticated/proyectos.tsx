@@ -281,9 +281,16 @@ function Proyectos() {
                       </>
                     ) : (
                       <>
-                        <td className="px-5 py-2.5 font-semibold text-ink">{p.nombre}</td>
-                        <td className="px-3 py-2.5 text-muted-foreground">{p.cliente || "—"}</td>
-                        <td className="px-3 py-2.5 text-muted-foreground">{p.ubicacion || "—"}</td>
+                        <td className="truncate whitespace-nowrap px-5 py-2.5 font-semibold text-ink" title={p.nombre}>
+                          {p.nombre}
+                        </td>
+                        <td className="truncate px-3 py-2.5 text-muted-foreground">{p.cliente || "—"}</td>
+                        <td className="px-3 py-2.5 text-right whitespace-nowrap">{soles(presupuesto)}</td>
+                        <td
+                          className={`px-3 py-2.5 text-right whitespace-nowrap ${costoReal > presupuesto && presupuesto > 0 ? "text-bad" : "text-ink"}`}
+                        >
+                          {soles(costoReal)}
+                        </td>
                         <td className="px-3 py-2.5">
                           <InsigniaSituacion valor={p.situacion} />
                         </td>
