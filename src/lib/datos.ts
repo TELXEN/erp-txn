@@ -83,6 +83,7 @@ export type GastoDirecto = {
 
 export type GastoGeneral = {
   id: string;
+  proyecto_id: string | null;
   descripcion: string;
   proveedor: string;
   proveedor_id: string | null;
@@ -191,4 +192,28 @@ export function agruparPorProyectoYEspecialidad(
 
 export function costoRealPartida(partidaId: string, gastos: GastoDirecto[]) {
   return gastos.filter((g) => g.partida_id === partidaId).reduce((s, g) => s + Number(g.monto_soles), 0);
+}
+
+export function presupuestoProyecto(proyectoId: string, partidas: Partida[]) {
+  return partidas
+    .filter((p) => p.proyecto_id === proyectoId)
+    .reduce((s, p) => s + Number(p.presupuesto_inicial), 0);
+}
+
+export function costoRealProyecto(
+  proyectoId: string,
+  gastosDirectos: GastoDirecto[],
+  tareos: Tareo[],
+  gastosGenerales: GastoGeneral[],
+) {
+  const directos = gastosDirectos
+    .filter((g) => g.proyecto_id === proyectoId)
+    .reduce((s, g) => s + Number(g.monto_soles), 0);
+  const manoObra = tareos
+    .filter((t) => t.proyecto_id === proyectoId)
+    .reduce((s, t) => s + Number(t.costo_soles), 0);
+  const generales = gastosGenerales
+    .filter((g) => g.proyecto_id === proyectoId)
+    .reduce((s, g) => s + Number(g.monto_soles), 0);
+  return directos + manoObra + generales;
 }
