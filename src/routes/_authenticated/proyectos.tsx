@@ -227,8 +227,13 @@ function Proyectos() {
                             autoFocus
                           />
                         </td>
-                        <td className="px-3 py-2.5 text-muted-foreground">{p.cliente || "—"}</td>
-                        <td className="px-3 py-2.5 text-muted-foreground">{p.ubicacion || "—"}</td>
+                        <td className="truncate px-3 py-2.5 text-muted-foreground">{p.cliente || "—"}</td>
+                        <td className="px-3 py-2.5 text-right whitespace-nowrap">{soles(presupuesto)}</td>
+                        <td
+                          className={`px-3 py-2.5 text-right whitespace-nowrap ${costoReal > presupuesto && presupuesto > 0 ? "text-bad" : "text-ink"}`}
+                        >
+                          {soles(costoReal)}
+                        </td>
                         <td className="px-3 py-2">
                           <Select
                             value={editando.situacion}
