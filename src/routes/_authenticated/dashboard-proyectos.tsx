@@ -429,7 +429,7 @@ function MedidorCompacto({ valor }: { valor: number }) {
           fill="none"
           stroke="#3E9E62"
           strokeWidth="14"
-          strokeLinecap="round"
+          strokeLinecap="butt"
           strokeDasharray={`0 ${(75 / 100) * largo} ${tramo(75, 100)} ${largo}`}
         />
       </svg>
