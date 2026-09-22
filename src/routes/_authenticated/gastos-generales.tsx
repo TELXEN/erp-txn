@@ -44,6 +44,8 @@ function GastosGenerales() {
   });
   const [error, setError] = useState("");
   const [filtroCategoria, setFiltroCategoria] = useState("Todas");
+  const [guiaVisible, setGuiaVisible] = useState(false);
+  const ayudaCategoria = categorias.find((c) => c.nombre === form.categoria)?.descripcion ?? "";
   const [editando, setEditando] = useState<{
     id: string;
     descripcion: string;
@@ -158,7 +160,20 @@ function GastosGenerales() {
         }
       />
 
-      <Panel titulo="Nuevo gasto general" className="mb-4">
+      <Panel
+        titulo="Nuevo gasto general"
+        className="mb-4"
+        extra={
+          <button
+            type="button"
+            onClick={() => setGuiaVisible((v) => !v)}
+            aria-pressed={guiaVisible}
+            className="inline-flex items-center gap-1.5 rounded-md border border-line px-2.5 py-1 font-mono text-[11px] text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+          >
+            <Info size={13} /> Guía de categorías
+          </button>
+        }
+      >
         <form onSubmit={guardar} className="grid gap-3 p-5 sm:grid-cols-4">
           <Campo etiqueta="Descripción">
             <Input value={form.descripcion} onChange={(e) => setForm({ ...form, descripcion: e.target.value })} required maxLength={160} />
