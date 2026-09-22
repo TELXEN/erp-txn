@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState, type ReactNode } from "react";
-import { AlertTriangle, CalendarDays, Clock3, Flag, Layers3, ListTodo, MapPin } from "lucide-react";
+import { AlertTriangle, CalendarDays, Clock3, Flag, Layers3, ListTodo } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { CurvaS } from "@/components/CurvaS";
@@ -205,13 +205,7 @@ function DashboardProyectos() {
           ) : (
             <>
               <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="label-mono">Avance general</p>
-                  <h2 className="mt-1 line-clamp-2 text-base font-bold leading-tight">{obraSel.proyecto.nombre}</h2>
-                  <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
-                    <MapPin className="h-3.5 w-3.5" /> {obraSel.proyecto.ubicacion || "Ubicación no registrada"}
-                  </p>
-                </div>
+                <p className="label-mono">Avance general</p>
                 <InsigniaPrioridad valor={obraSel.proyecto.prioridad} />
               </div>
 
@@ -403,16 +397,25 @@ function Barra({ etiqueta, valor, clase }: { etiqueta: string; valor: number; cl
 
 function MedidorCompacto({ valor }: { valor: number }) {
   const limitado = Math.min(Math.max(valor, 0), 100);
-  const radio = 56;
+  const radio = 72;
   const largo = Math.PI * radio;
+  const angulo = -90 + (limitado / 100) * 180;
   return (
-    <div className="relative mx-auto h-24 w-32 overflow-hidden" aria-label={`Avance físico ${pct(valor)}`}>
-      <svg viewBox="0 0 140 80" className="h-full w-full" aria-hidden="true">
-        <path d="M 14 70 A 56 56 0 0 1 126 70" fill="none" className="stroke-muted" strokeWidth="12" strokeLinecap="round" />
-        <path d="M 14 70 A 56 56 0 0 1 126 70" fill="none" className={valor < 50 ? "stroke-bad" : "stroke-primary"} strokeWidth="12" strokeLinecap="round" strokeDasharray={`${(limitado / 100) * largo} ${largo}`} />
+    <div className="relative mx-auto h-36 w-full max-w-60 overflow-hidden" aria-label={`Avance físico ${pct(valor)}`}>
+      <svg viewBox="0 0 180 110" className="h-full w-full" aria-hidden="true">
+        <path d="M 18 92 A 72 72 0 0 1 162 92" fill="none" className="stroke-muted" strokeWidth="14" strokeLinecap="round" />
+        <path d="M 18 92 A 72 72 0 0 1 162 92" fill="none" className={valor < 50 ? "stroke-bad" : "stroke-primary"} strokeWidth="14" strokeLinecap="round" strokeDasharray={`${(limitado / 100) * largo} ${largo}`} />
+        <g
+          className="transition-transform duration-700 ease-out motion-reduce:transition-none"
+          style={{ transform: `rotate(${angulo}deg)`, transformOrigin: "90px 92px" }}
+        >
+          <line x1="90" y1="92" x2="90" y2="35" className="stroke-foreground" strokeWidth="3" strokeLinecap="round" />
+        </g>
+        <circle cx="90" cy="92" r="7" className="fill-foreground" />
+        <circle cx="90" cy="92" r="3" className="fill-card" />
       </svg>
       <div className="absolute inset-x-0 bottom-0 text-center">
-        <p className="font-mono text-2xl font-bold">{pct(valor)}</p>
+        <p className="font-mono text-3xl font-bold">{pct(valor)}</p>
         <p className="label-mono text-[10px]">Ejecutado</p>
       </div>
     </div>
