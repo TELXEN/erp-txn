@@ -203,6 +203,15 @@ function GastosDirectos() {
               ))}
             </Select>
           </Campo>
+          <Campo etiqueta="Rubro del recurso">
+            <Select value={form.rubro} onChange={(e) => setForm({ ...form, rubro: e.target.value as RubroCosto })}>
+              {RUBROS_COSTO.map((r) => (
+                <option key={r} value={r}>
+                  {r}
+                </option>
+              ))}
+            </Select>
+          </Campo>
           <Campo etiqueta="COSTO REAL">
             <Input type="number" step="0.01" min="0" value={form.monto} onChange={(e) => setForm({ ...form, monto: e.target.value })} required />
           </Campo>
