@@ -41,6 +41,16 @@ export type TipoPresupuesto = {
   activo: boolean;
 };
 
+export type ClasificacionCargo = "Directo" | "Indirecto";
+
+export type Cargo = {
+  id: string;
+  nombre: string;
+  clasificacion: ClasificacionCargo;
+  orden: number;
+  activo: boolean;
+};
+
 export type Trabajador = {
   id: string;
   dni: string;
