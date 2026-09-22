@@ -50,7 +50,16 @@ type Catalogo = {
   activo: boolean;
   tipo?: string;
 };
-type Pestana = "terceros" | "bancos" | "cargos" | "costos" | "ingresos" | "centros" | "configuracion" | "empresa";
+type Pestana =
+  | "terceros"
+  | "bancos"
+  | "cargos"
+  | "categoriasgg"
+  | "costos"
+  | "ingresos"
+  | "centros"
+  | "configuracion"
+  | "empresa";
 
 const TIPOS_DOC = ["RUC", "DNI", "CE", "OTRO"];
 const CONDICIONES = ["Contado", "Credito 15 dias", "Credito 30 dias", "Credito 60 dias"];
