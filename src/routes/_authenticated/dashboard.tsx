@@ -450,7 +450,7 @@ function Dashboard() {
 
 
         <div className="lg:col-span-3">
-          <Panel titulo="Indicadores de control">
+          <Panel titulo="Indicadores de control" className="h-full">
             <div className="space-y-4 px-5 py-4">
               <Termometro
                 etiqueta="Consumo de presupuesto (costo directo)"
