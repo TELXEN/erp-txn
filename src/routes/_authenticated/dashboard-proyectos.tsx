@@ -401,7 +401,6 @@ function MedidorCompacto({ valor }: { valor: number }) {
   const limitado = Math.min(Math.max(valor, 0), 100);
   const radio = 72;
   const largo = Math.PI * radio;
-  const angulo = -90 + (limitado / 100) * 180;
   return (
     <div className="relative mx-auto h-36 w-full max-w-60 overflow-hidden" aria-label={`Avance físico ${pct(valor)}`}>
       <svg viewBox="0 0 180 110" className="h-full w-full" aria-hidden="true">
