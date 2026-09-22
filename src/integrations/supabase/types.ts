@@ -338,7 +338,9 @@ export type Database = {
       }
       partidas: {
         Row: {
+          aplica_gg: boolean
           aplica_gg_utilidad: boolean
+          aplica_utilidad: boolean
           avance_pct: number
           created_at: string
           especialidad: string
@@ -351,7 +353,9 @@ export type Database = {
           tipo_presupuesto: string
         }
         Insert: {
+          aplica_gg?: boolean
           aplica_gg_utilidad?: boolean
+          aplica_utilidad?: boolean
           avance_pct?: number
           created_at?: string
           especialidad: string
@@ -364,7 +368,9 @@ export type Database = {
           tipo_presupuesto?: string
         }
         Update: {
+          aplica_gg?: boolean
           aplica_gg_utilidad?: boolean
+          aplica_utilidad?: boolean
           avance_pct?: number
           created_at?: string
           especialidad?: string

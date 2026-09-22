@@ -1,0 +1,2 @@
+ALTER TABLE public.partidas ADD COLUMN IF NOT EXISTS aplica_gg boolean NOT NULL DEFAULT true, ADD COLUMN IF NOT EXISTS aplica_utilidad boolean NOT NULL DEFAULT true;
+UPDATE public.partidas SET aplica_gg = aplica_gg_utilidad, aplica_utilidad = aplica_gg_utilidad;
