@@ -49,3 +49,24 @@ export function InsigniaRubro({ valor }: { valor: string }) {
   return <Insignia tono={tonoRubro(valor)}>{valor || "Materiales"}</Insignia>;
 }
 
+const PALETA_CATEGORIA: Tono[] = [
+  { fondo: "#D5DFF8", borde: "#A3B6EA" },
+  { fondo: "#CFEEDC", borde: "#8FCFAC" },
+  { fondo: "#FBE1C4", borde: "#EFB673" },
+  { fondo: "#DED5F8", borde: "#B3A3EA" },
+  { fondo: "#F8D2CD", borde: "#E79E97" },
+  { fondo: "#E9E9E6", borde: "#C6C6C0" },
+  { fondo: "#CFE9EE", borde: "#8FC4CF" },
+];
+
+export function tonoCategoriaGasto(valor: string): Tono {
+  const texto = valor || "";
+  let suma = 0;
+  for (let i = 0; i < texto.length; i += 1) suma += texto.charCodeAt(i);
+  return PALETA_CATEGORIA[suma % PALETA_CATEGORIA.length]!;
+}
+
+export function InsigniaCategoriaGasto({ valor }: { valor: string }) {
+  return <Insignia tono={tonoCategoriaGasto(valor)}>{valor || "Sin categoría"}</Insignia>;
+}
+

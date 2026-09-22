@@ -4,10 +4,11 @@ import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
+import { InsigniaCategoriaGasto } from "@/components/estado-ui";
 import { Check, Pencil, Trash2, X } from "lucide-react";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
-import { useGastosGenerales, useProyectos, useTerceros } from "@/lib/datos";
+import { useCategoriasGastoGeneral, useGastosGenerales, useProyectos, useTerceros } from "@/lib/datos";
 import { exportarExcel } from "@/lib/exportar";
 
 export const Route = createFileRoute("/_authenticated/gastos-generales")({
@@ -28,28 +29,46 @@ function GastosGenerales() {
   const { data: gastos = [] } = useGastosGenerales();
   const { data: terceros = [] } = useTerceros();
   const { data: proyectos = [] } = useProyectos();
+  const { data: categorias = [] } = useCategoriasGastoGeneral();
   const proveedores = terceros.filter((t) => t.es_proveedor && t.activo);
+  const categoriasActivas = categorias.filter((c) => c.activo);
   const [form, setForm] = useState({
     descripcion: "",
     proveedor_id: "",
     proyecto_id: "",
+    categoria: "",
     monto: "",
     moneda: "PEN",
     tipo_cambio: "3.75",
     fecha: hoy(),
   });
   const [error, setError] = useState("");
-  const [editando, setEditando] = useState<{ id: string; descripcion: string; monto: string } | null>(null);
+  const [filtroCategoria, setFiltroCategoria] = useState("Todas");
+  const [editando, setEditando] = useState<{
+    id: string;
+    descripcion: string;
+    monto: string;
+    categoria: string;
+  } | null>(null);
   const nombreProv = (g: (typeof gastos)[number]) =>
     (g.proveedor_id ? terceros.find((t) => t.id === g.proveedor_id)?.razon_social : null) ?? g.proveedor ?? "—";
+  const nombreProy = (id: string | null) =>
+    id ? (proyectos.find((p) => p.id === id)?.nombre ?? "—") : "Oficina";
   const equivalente = Number(form.monto || 0) * (form.moneda === "USD" ? Number(form.tipo_cambio || 0) : 1);
-  const total = gastos.reduce((s, g) => s + Number(g.monto_soles), 0);
+  const gastosFiltrados =
+    filtroCategoria === "Todas" ? gastos : gastos.filter((g) => (g.categoria ?? "") === filtroCategoria);
+  const totalesCategoria = categoriasActivas.map((c) => ({
+    nombre: c.nombre,
+    total: gastos.filter((g) => (g.categoria ?? "") === c.nombre).reduce((s, g) => s + Number(g.monto_soles), 0),
+  }));
+  const total = gastosFiltrados.reduce((s, g) => s + Number(g.monto_soles), 0);
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
   async function guardar(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    if (!form.categoria) return setError("Selecciona la categoría del gasto general.");
     if (form.moneda === "USD" && Number(form.tipo_cambio) <= 0)
       return setError("Ingresa un tipo de cambio válido para dólares.");
     const tc = form.moneda === "USD" ? Number(form.tipo_cambio) : 1;
@@ -59,6 +78,7 @@ function GastosGenerales() {
       proveedor: prov?.razon_social ?? "",
       proveedor_id: form.proveedor_id || null,
       proyecto_id: form.proyecto_id || null,
+      categoria: form.categoria,
       monto: Number(form.monto || 0),
       moneda: form.moneda as "PEN" | "USD",
       tipo_cambio: tc,
@@ -77,7 +97,7 @@ function GastosGenerales() {
   }
 
   function iniciarEdicion(g: (typeof gastos)[number]) {
-    setEditando({ id: g.id, descripcion: g.descripcion, monto: String(g.monto) });
+    setEditando({ id: g.id, descripcion: g.descripcion, monto: String(g.monto), categoria: g.categoria ?? "" });
   }
 
   function cancelarEdicion() {
@@ -94,7 +114,12 @@ function GastosGenerales() {
     const tc = original.moneda === "USD" ? Number(original.tipo_cambio) : 1;
     const { error: err } = await supabase
       .from("gastos_generales")
-      .update({ descripcion: editando.descripcion.trim(), monto, monto_soles: monto * tc })
+      .update({
+        descripcion: editando.descripcion.trim(),
+        categoria: editando.categoria,
+        monto,
+        monto_soles: monto * tc,
+      })
       .eq("id", editando.id);
     if (err) return setError(err.message);
     setEditando(null);
@@ -113,9 +138,11 @@ function GastosGenerales() {
               exportarExcel("gastos-generales", [
                 {
                   nombre: "Gastos Generales",
-                  filas: gastos.map((g) => ({
+                  filas: gastosFiltrados.map((g) => ({
                     Fecha: g.fecha,
                     Descripcion: g.descripcion,
+                    Categoria: g.categoria ?? "",
+                    Obra: nombreProy(g.proyecto_id),
                     Proveedor: nombreProv(g),
                     Monto: Number(g.monto),
                     Moneda: g.moneda,
@@ -135,6 +162,16 @@ function GastosGenerales() {
         <form onSubmit={guardar} className="grid gap-3 p-5 sm:grid-cols-4">
           <Campo etiqueta="Descripción">
             <Input value={form.descripcion} onChange={(e) => setForm({ ...form, descripcion: e.target.value })} required maxLength={160} />
+          </Campo>
+          <Campo etiqueta="Categoría del gasto">
+            <Select value={form.categoria} onChange={(e) => setForm({ ...form, categoria: e.target.value })} required>
+              <option value="">Selecciona...</option>
+              {categoriasActivas.map((c) => (
+                <option key={c.id} value={c.nombre}>
+                  {c.nombre}
+                </option>
+              ))}
+            </Select>
           </Campo>
           <Campo etiqueta="Proveedor">
             <Select value={form.proveedor_id} onChange={(e) => setForm({ ...form, proveedor_id: e.target.value })} required>
@@ -179,7 +216,7 @@ function GastosGenerales() {
           <Campo etiqueta="Fecha">
             <Input type="date" value={form.fecha} onChange={(e) => setForm({ ...form, fecha: e.target.value })} />
           </Campo>
-          <div className="sm:col-span-2 flex flex-wrap items-end gap-3">
+          <div className="sm:col-span-4 flex flex-wrap items-end gap-3">
             <Boton type="submit">Registrar gasto</Boton>
             <span className="pb-2 font-mono text-xs text-muted-foreground">
               Equivalente: <strong className="text-ink">{soles(equivalente)}</strong>
@@ -189,25 +226,64 @@ function GastosGenerales() {
         </form>
       </Panel>
 
+      {totalesCategoria.length > 0 && (
+        <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {totalesCategoria.map((t) => (
+            <button
+              key={t.nombre}
+              type="button"
+              onClick={() => setFiltroCategoria(filtroCategoria === t.nombre ? "Todas" : t.nombre)}
+              aria-pressed={filtroCategoria === t.nombre}
+              className={`panel rise p-4 text-left transition ${
+                filtroCategoria === t.nombre ? "border-primary ring-1 ring-primary/40" : ""
+              }`}
+            >
+              <InsigniaCategoriaGasto valor={t.nombre} />
+              <p className="mt-2 font-mono text-lg font-bold tracking-tight text-ink">{soles(t.total)}</p>
+            </button>
+          ))}
+        </div>
+      )}
+
       <Panel
         titulo="Gastos registrados"
-        extra={<span className="font-mono text-[11px] text-muted-foreground">Total: {soles(total)}</span>}
+        extra={
+          <div className="flex items-center gap-3">
+            {filtroCategoria !== "Todas" && (
+              <button
+                type="button"
+                onClick={() => setFiltroCategoria("Todas")}
+                className="font-mono text-[11px] text-primary underline-offset-2 hover:underline"
+              >
+                Ver todas
+              </button>
+            )}
+            <span className="font-mono text-[11px] text-muted-foreground">Total: {soles(total)}</span>
+          </div>
+        }
       >
-        {gastos.length === 0 ? (
-          <Vacio texto="Aún no hay gastos generales." />
+        {gastosFiltrados.length === 0 ? (
+          <Vacio
+            texto={
+              filtroCategoria === "Todas"
+                ? "Aún no hay gastos generales."
+                : `No hay gastos de la categoría ${filtroCategoria}.`
+            }
+          />
         ) : (
           <table className="w-full table-fixed font-mono text-xs">
             <thead>
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                <th className="w-2/12 px-5 py-2 font-medium">Fecha</th>
-                <th className="w-4/12 px-3 py-2 font-medium">Descripción</th>
+                <th className="w-1/12 px-5 py-2 font-medium">Fecha</th>
+                <th className="w-3/12 px-3 py-2 font-medium">Descripción</th>
+                <th className="w-3/12 px-3 py-2 font-medium">Categoría</th>
                 <th className="w-2/12 px-3 py-2 font-medium">Proveedor</th>
                 <th className="w-2/12 px-3 py-2 text-right font-medium">Monto</th>
-                <th className="w-2/12 px-5 py-2"></th>
+                <th className="w-1/12 px-5 py-2"></th>
               </tr>
             </thead>
             <tbody>
-              {gastos.map((g) =>
+              {gastosFiltrados.map((g) =>
                 editando?.id === g.id ? (
                   <tr key={g.id} className="border-b border-line/60 last:border-0">
                     <td className="px-5 py-2.5">{fmtFecha(g.fecha)}</td>
@@ -218,6 +294,20 @@ function GastosGenerales() {
                         className="py-1 text-xs"
                         maxLength={160}
                       />
+                    </td>
+                    <td className="px-3 py-2">
+                      <Select
+                        value={editando.categoria}
+                        onChange={(e) => setEditando({ ...editando, categoria: e.target.value })}
+                        className="py-1 text-xs"
+                      >
+                        <option value="">Sin categoría</option>
+                        {categoriasActivas.map((c) => (
+                          <option key={c.id} value={c.nombre}>
+                            {c.nombre}
+                          </option>
+                        ))}
+                      </Select>
                     </td>
                     <td className="px-3 py-2.5 text-muted-foreground">{nombreProv(g)}</td>
                     <td className="px-3 py-2">
@@ -255,6 +345,9 @@ function GastosGenerales() {
                   <tr key={g.id} className="border-b border-line/60 last:border-0">
                     <td className="px-5 py-2.5">{fmtFecha(g.fecha)}</td>
                     <td className="px-3 py-2.5 font-semibold text-ink">{g.descripcion}</td>
+                    <td className="px-3 py-2.5">
+                      <InsigniaCategoriaGasto valor={g.categoria ?? ""} />
+                    </td>
                     <td className="px-3 py-2.5 text-muted-foreground">{nombreProv(g)}</td>
                     <td className="px-3 py-2.5 text-right">
                       <div className="flex items-center justify-end gap-2">

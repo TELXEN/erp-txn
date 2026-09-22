@@ -104,6 +104,33 @@ export type Database = {
         }
         Relationships: []
       }
+      categorias_gasto_general: {
+        Row: {
+          activo: boolean
+          created_at: string
+          id: string
+          nombre: string
+          orden: number
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          created_at?: string
+          id?: string
+          nombre: string
+          orden?: number
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          created_at?: string
+          id?: string
+          nombre?: string
+          orden?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       centros_costos: {
         Row: {
           activo: boolean
@@ -248,6 +275,7 @@ export type Database = {
       }
       gastos_generales: {
         Row: {
+          categoria: string
           created_at: string
           descripcion: string
           fecha: string
@@ -261,6 +289,7 @@ export type Database = {
           tipo_cambio: number
         }
         Insert: {
+          categoria?: string
           created_at?: string
           descripcion: string
           fecha?: string
@@ -274,6 +303,7 @@ export type Database = {
           tipo_cambio?: number
         }
         Update: {
+          categoria?: string
           created_at?: string
           descripcion?: string
           fecha?: string

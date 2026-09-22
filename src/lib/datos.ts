@@ -107,6 +107,13 @@ export type GastoDirecto = {
 };
 
 
+export type CategoriaGastoGeneral = {
+  id: string;
+  nombre: string;
+  orden: number;
+  activo: boolean;
+};
+
 export type GastoGeneral = {
   id: string;
   proyecto_id: string | null;
@@ -118,6 +125,7 @@ export type GastoGeneral = {
   tipo_cambio: number;
   monto_soles: number;
   fecha: string;
+  categoria: string;
 };
 
 export type Venta = {
@@ -150,6 +158,12 @@ export const useTrabajadores = () =>
   useQuery({
     queryKey: ["trabajadores"],
     queryFn: () => pedir<Trabajador>("trabajadores", "*", { col: "nombre" }),
+  });
+
+export const useCategoriasGastoGeneral = () =>
+  useQuery({
+    queryKey: ["categorias_gasto_general"],
+    queryFn: () => pedir<CategoriaGastoGeneral>("categorias_gasto_general", "*", { col: "orden" }),
   });
 
 export const useCargos = () =>
