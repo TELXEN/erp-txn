@@ -35,13 +35,20 @@ function GastosDirectos() {
     partida_id: "",
     descripcion: "",
     proveedor_id: "",
+    rubro: "Materiales" as RubroCosto,
     monto: "",
     moneda: "PEN",
     tipo_cambio: "3.75",
     fecha: hoy(),
   });
   const [error, setError] = useState("");
-  const [editando, setEditando] = useState<{ id: string; descripcion: string; monto: string } | null>(null);
+  const [filtroRubro, setFiltroRubro] = useState("Todos");
+  const [editando, setEditando] = useState<{
+    id: string;
+    descripcion: string;
+    monto: string;
+    rubro: RubroCosto;
+  } | null>(null);
 
   const partidasProyecto = partidas.filter((p) => p.proyecto_id === form.proyecto_id);
   const nombreProy = (id: string) => proyectos.find((p) => p.id === id)?.nombre ?? "—";
@@ -49,6 +56,13 @@ function GastosDirectos() {
   const nombreProv = (g: (typeof gastos)[number]) =>
     (g.proveedor_id ? terceros.find((t) => t.id === g.proveedor_id)?.razon_social : null) ?? g.proveedor ?? "—";
   const equivalente = Number(form.monto || 0) * (form.moneda === "USD" ? Number(form.tipo_cambio || 0) : 1);
+  const gastosFiltrados =
+    filtroRubro === "Todos" ? gastos : gastos.filter((g) => (g.rubro ?? "Materiales") === filtroRubro);
+  const totalesRubro = RUBROS_COSTO.map((r) => ({
+    rubro: r,
+    total: gastos.filter((g) => (g.rubro ?? "Materiales") === r).reduce((s, g) => s + Number(g.monto_soles), 0),
+  }));
+
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
