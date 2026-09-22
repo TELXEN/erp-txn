@@ -9,6 +9,7 @@ import { ESPECIALIDADES, pct, soles } from "@/lib/format";
 import {
   agruparPorProyectoYEspecialidad,
   costoRealPartida,
+  esContractual,
   resumenPresupuesto,
   useGastosDirectos,
   usePartidas,
@@ -53,6 +54,7 @@ function Partidas() {
     presupuesto_inicial: "",
     prioridad: "Media",
     tipo_presupuesto: "Contractual",
+    aplica_gg_utilidad: true,
   });
   const [error, setError] = useState("");
   const [editando, setEditando] = useState<{
@@ -61,6 +63,7 @@ function Partidas() {
     especialidad: string;
     presupuesto_inicial: string;
     tipo_presupuesto: string;
+    aplica_gg_utilidad: boolean;
   } | null>(null);
 
   const nombreProyecto = (id: string) => proyectos.find((p) => p.id === id)?.nombre ?? "—";
@@ -94,6 +97,7 @@ function Partidas() {
       especialidad: form.especialidad,
       prioridad: form.prioridad,
       tipo_presupuesto: form.tipo_presupuesto,
+      aplica_gg_utilidad: esContractual(form.tipo_presupuesto, tipos) ? true : form.aplica_gg_utilidad,
       presupuesto_inicial: Number(form.presupuesto_inicial || 0),
     });
     if (err) return setError(err.message);
@@ -111,6 +115,7 @@ function Partidas() {
         nombre: editando.nombre.trim(),
         especialidad: editando.especialidad,
         tipo_presupuesto: editando.tipo_presupuesto,
+        aplica_gg_utilidad: esContractual(editando.tipo_presupuesto, tipos) ? true : editando.aplica_gg_utilidad,
         presupuesto_inicial: Number(editando.presupuesto_inicial || 0),
       })
       .eq("id", editando.id);
@@ -137,6 +142,7 @@ function Partidas() {
           Partida: p.nombre,
           "Tipo de Presupuesto": p.tipo_presupuesto ?? "Contractual",
           "Presupuesto (S/)": Number(p.presupuesto_inicial),
+          "Aplica GG y Utilidad": esContractual(p.tipo_presupuesto ?? "Contractual", tipos) || p.aplica_gg_utilidad !== false ? "Si" : "No",
           "Costo Real (S/)": costoRealPartida(p.id, gastos),
           "Avance Fisico %": Number(p.avance_pct),
         })),
@@ -242,6 +248,17 @@ function Partidas() {
               ))}
               <option value="__nuevo__">+ Agregar tipo…</option>
             </Select>
+            {!esContractual(form.tipo_presupuesto, tipos) && (
+              <label className="mt-1.5 flex items-center gap-2 text-[11px] text-muted-foreground">
+                <input
+                  type="checkbox"
+                  checked={form.aplica_gg_utilidad}
+                  onChange={(e) => setForm({ ...form, aplica_gg_utilidad: e.target.checked })}
+                  className="size-3.5 accent-[var(--color-primary)]"
+                />
+                Cobrar gastos generales y utilidad en este adicional
+              </label>
+            )}
           </Campo>
           <Campo etiqueta="Prioridad">
             <Select value={form.prioridad} onChange={(e) => setForm({ ...form, prioridad: e.target.value })}>
@@ -394,6 +411,17 @@ function Partidas() {
                                     </option>
                                   ))}
                                 </Select>
+                                {!esContractual(editando.tipo_presupuesto, tipos) && (
+                                  <label className="mt-1 flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                                    <input
+                                      type="checkbox"
+                                      checked={editando.aplica_gg_utilidad}
+                                      onChange={(e) => setEditando({ ...editando, aplica_gg_utilidad: e.target.checked })}
+                                      className="size-3 accent-[var(--color-primary)]"
+                                    />
+                                    Con GG y utilidad
+                                  </label>
+                                )}
                               </td>
                               <td className="px-3 py-2">
                                 <Input
@@ -439,6 +467,9 @@ function Partidas() {
                             <td className="px-3 py-2.5 font-semibold text-ink">{p.nombre}</td>
                             <td className="px-3 py-2.5">
                               <InsigniaTipoPresupuesto valor={p.tipo_presupuesto ?? "Contractual"} />
+                              {!esContractual(p.tipo_presupuesto ?? "Contractual", tipos) && p.aplica_gg_utilidad === false && (
+                                <span className="mt-1 block font-mono text-[10px] text-muted-foreground">Sin GG ni utilidad</span>
+                              )}
                             </td>
                             <td className="px-3 py-2.5 text-right">{soles(Number(p.presupuesto_inicial))}</td>
                             <td className="px-3 py-2.5 text-right">{soles(costo)}</td>
@@ -457,6 +488,7 @@ function Partidas() {
                                       especialidad: p.especialidad,
                                       presupuesto_inicial: String(p.presupuesto_inicial),
                                       tipo_presupuesto: p.tipo_presupuesto ?? "Contractual",
+                                      aplica_gg_utilidad: p.aplica_gg_utilidad !== false,
                                     })
                                   }
                                   className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"

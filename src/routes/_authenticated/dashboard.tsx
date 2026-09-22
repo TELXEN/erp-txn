@@ -100,7 +100,7 @@ function Dashboard() {
           avanceFacturado: presupuesto > 0 ? (cobrado / presupuesto) * 100 : 0,
         };
       }),
-    [proyectos, partidas, ventas, gastosD, tareos, gastosG],
+    [proyectos, partidas, ventas, gastosD, tareos, gastosG, tiposPresupuesto],
   );
 
   const datos = useMemo(() => {
