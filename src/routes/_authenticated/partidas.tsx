@@ -433,15 +433,26 @@ function Partidas() {
                                   ))}
                                 </Select>
                                 {!esContractual(editando.tipo_presupuesto, tipos) && (
-                                  <label className="mt-1 flex items-center gap-1.5 text-[10px] text-muted-foreground">
-                                    <input
-                                      type="checkbox"
-                                      checked={editando.aplica_gg_utilidad}
-                                      onChange={(e) => setEditando({ ...editando, aplica_gg_utilidad: e.target.checked })}
-                                      className="size-3 accent-[var(--color-primary)]"
-                                    />
-                                    Con GG y utilidad
-                                  </label>
+                                  <div className="mt-1 space-y-0.5">
+                                    <label className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                                      <input
+                                        type="checkbox"
+                                        checked={editando.aplica_gg}
+                                        onChange={(e) => setEditando({ ...editando, aplica_gg: e.target.checked })}
+                                        className="size-3 accent-[var(--color-primary)]"
+                                      />
+                                      Con GG
+                                    </label>
+                                    <label className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                                      <input
+                                        type="checkbox"
+                                        checked={editando.aplica_utilidad}
+                                        onChange={(e) => setEditando({ ...editando, aplica_utilidad: e.target.checked })}
+                                        className="size-3 accent-[var(--color-primary)]"
+                                      />
+                                      Con utilidad
+                                    </label>
+                                  </div>
                                 )}
                               </td>
                               <td className="px-3 py-2">
