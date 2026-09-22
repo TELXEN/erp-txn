@@ -224,14 +224,14 @@ function DashboardProyectos() {
             etiqueta="Prioridad"
             valor={(obraSel?.proyecto.prioridad ?? "Sin definir").toUpperCase()}
             detalle="Nivel de atención de la obra"
-            tono={obraSel?.proyecto.prioridad === "Alta" ? "bad" : undefined}
+            {...(obraSel?.proyecto.prioridad === "Alta" ? { tono: "bad" as const } : {})}
           />
           <IndicadorOperacion
             icono={<Clock3 />}
             etiqueta={plazo?.vencido ? "Plazo vencido" : "Días restantes"}
             valor={plazo ? String(Math.abs(plazo.dias)) : "—"}
             detalle={plazo ? (plazo.vencido ? "días fuera de plazo" : `hasta el ${fecha(obraSel?.proyecto.fecha_fin ?? null)}`) : "Sin fecha de fin"}
-            tono={plazo?.vencido ? "bad" : undefined}
+            {...(plazo?.vencido ? { tono: "bad" as const } : {})}
           />
         </div>
       </section>
