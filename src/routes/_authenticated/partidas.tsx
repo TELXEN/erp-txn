@@ -9,14 +9,16 @@ import { ESPECIALIDADES, pct, soles } from "@/lib/format";
 import {
   agruparPorProyectoYEspecialidad,
   costoRealPartida,
+  resumenPresupuesto,
   useGastosDirectos,
   usePartidas,
   useProyectos,
+  useTiposPresupuesto,
 } from "@/lib/datos";
 import { exportarExcel } from "@/lib/exportar";
 import { Pencil, Trash2, Check, X, LayoutGrid, Table2 } from "lucide-react";
 import { Kanban } from "@/components/Kanban";
-import { InsigniaPrioridad } from "@/components/estado-ui";
+import { InsigniaPrioridad, InsigniaTipoPresupuesto } from "@/components/estado-ui";
 import { PRIORIDADES, type Situacion } from "@/lib/configuracion";
 
 export const Route = createFileRoute("/_authenticated/partidas")({
@@ -38,8 +40,11 @@ function Partidas() {
   const { data: partidas = [] } = usePartidas();
   const { data: gastos = [] } = useGastosDirectos();
 
+  const { data: tipos = [] } = useTiposPresupuesto();
+
   const [filtroProyecto, setFiltroProyecto] = useState("");
   const [filtroEsp, setFiltroEsp] = useState("");
+  const [filtroTipo, setFiltroTipo] = useState("");
   const [vista, setVista] = useState<"tabla" | "kanban">("tabla");
   const [form, setForm] = useState({
     proyecto_id: "",
@@ -47,9 +52,16 @@ function Partidas() {
     especialidad: ESPECIALIDADES[0] as string,
     presupuesto_inicial: "",
     prioridad: "Media",
+    tipo_presupuesto: "Contractual",
   });
   const [error, setError] = useState("");
-  const [editando, setEditando] = useState<{ id: string; nombre: string; especialidad: string; presupuesto_inicial: string } | null>(null);
+  const [editando, setEditando] = useState<{
+    id: string;
+    nombre: string;
+    especialidad: string;
+    presupuesto_inicial: string;
+    tipo_presupuesto: string;
+  } | null>(null);
 
   const nombreProyecto = (id: string) => proyectos.find((p) => p.id === id)?.nombre ?? "—";
 
@@ -58,10 +70,12 @@ function Partidas() {
       partidas.filter(
         (p) =>
           (!filtroProyecto || p.proyecto_id === filtroProyecto) &&
-          (!filtroEsp || p.especialidad === filtroEsp),
+          (!filtroEsp || p.especialidad === filtroEsp) &&
+          (!filtroTipo || (p.tipo_presupuesto ?? "Contractual") === filtroTipo),
       ),
-    [partidas, filtroProyecto, filtroEsp],
+    [partidas, filtroProyecto, filtroEsp, filtroTipo],
   );
+  const resumen = useMemo(() => resumenPresupuesto(visibles, tipos), [visibles, tipos]);
   const grupos = useMemo(() => agruparPorProyectoYEspecialidad(visibles, nombreProyecto), [visibles, nombreProyecto]);
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
@@ -74,6 +88,7 @@ function Partidas() {
       nombre: form.nombre.trim(),
       especialidad: form.especialidad,
       prioridad: form.prioridad,
+      tipo_presupuesto: form.tipo_presupuesto,
       presupuesto_inicial: Number(form.presupuesto_inicial || 0),
     });
     if (err) return setError(err.message);
@@ -90,6 +105,7 @@ function Partidas() {
       .update({
         nombre: editando.nombre.trim(),
         especialidad: editando.especialidad,
+        tipo_presupuesto: editando.tipo_presupuesto,
         presupuesto_inicial: Number(editando.presupuesto_inicial || 0),
       })
       .eq("id", editando.id);
