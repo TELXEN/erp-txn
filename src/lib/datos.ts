@@ -78,6 +78,9 @@ export type Tercero = {
   activo: boolean;
 };
 
+export const RUBROS_COSTO = ["Materiales", "Subcontratos", "Equipos", "Servicios"] as const;
+export type RubroCosto = (typeof RUBROS_COSTO)[number];
+
 export type GastoDirecto = {
   id: string;
   proyecto_id: string;
@@ -90,7 +93,9 @@ export type GastoDirecto = {
   tipo_cambio: number;
   monto_soles: number;
   fecha: string;
+  rubro: RubroCosto;
 };
+
 
 export type GastoGeneral = {
   id: string;
