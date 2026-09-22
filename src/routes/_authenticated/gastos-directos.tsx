@@ -7,8 +7,10 @@ import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "
 import { Check, Pencil, Trash2, X } from "lucide-react";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
-import { useGastosDirectos, usePartidas, useProyectos, useTerceros } from "@/lib/datos";
+import { RUBROS_COSTO, type RubroCosto, useGastosDirectos, usePartidas, useProyectos, useTerceros } from "@/lib/datos";
+import { InsigniaRubro } from "@/components/estado-ui";
 import { exportarExcel } from "@/lib/exportar";
+
 
 export const Route = createFileRoute("/_authenticated/gastos-directos")({
   head: () => ({
