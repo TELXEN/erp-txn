@@ -9,6 +9,7 @@ import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { exportarExcel } from "@/lib/exportar";
 import { InsigniaPrioridad, InsigniaSituacion } from "@/components/estado-ui";
 import { PRIORIDADES, SITUACIONES, tonoPrioridad, tonoSituacion } from "@/lib/configuracion";
+import { DatosEmpresa } from "@/components/DatosEmpresa";
 
 export const Route = createFileRoute("/_authenticated/datos")({
   head: () => ({
@@ -48,7 +49,7 @@ type Catalogo = {
   activo: boolean;
   tipo?: string;
 };
-type Pestana = "terceros" | "bancos" | "costos" | "ingresos" | "centros" | "configuracion";
+type Pestana = "terceros" | "bancos" | "costos" | "ingresos" | "centros" | "configuracion" | "empresa";
 
 const TIPOS_DOC = ["RUC", "DNI", "CE", "OTRO"];
 const CONDICIONES = ["Contado", "Credito 15 dias", "Credito 30 dias", "Credito 60 dias"];
@@ -263,7 +264,7 @@ function Datos() {
       />
 
       <div className="mb-4 flex flex-wrap gap-2">
-        {(["terceros", "bancos", "costos", "ingresos", "centros", "configuracion"] as const).map((p) => (
+        {(["terceros", "bancos", "costos", "ingresos", "centros", "configuracion", "empresa"] as const).map((p) => (
           <button
             key={p}
             type="button"
@@ -284,6 +285,7 @@ function Datos() {
               ingresos: "Ingresos",
               centros: "Centro de costos",
               configuracion: "Configuración proyectos",
+              empresa: "Datos de la empresa",
             }[p]}
           </button>
         ))}
@@ -696,6 +698,8 @@ function Datos() {
         </>
       ) : pestana === "configuracion" ? (
         <ConfiguracionProyectos />
+      ) : pestana === "empresa" ? (
+        <DatosEmpresa />
       ) : (
         <CatalogoMaestro
           clase={pestana === "centros" ? "centro" : pestana === "costos" ? "Costo" : "Ingreso"}
