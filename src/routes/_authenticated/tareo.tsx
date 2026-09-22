@@ -415,7 +415,13 @@ function TareoPage() {
         titulo="Consolidado mensual"
         className="mb-4"
         extra={
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="font-mono text-[11px] text-muted-foreground">
+              Mano de obra directa: <strong className="text-ink">{soles(totalDirecto)}</strong>
+            </span>
+            <span className="font-mono text-[11px] text-muted-foreground">
+              Staff (gasto general): <strong className="text-ink">{soles(totalStaff)}</strong>
+            </span>
             <span className="font-mono text-[11px] text-muted-foreground">Total: {soles(totalMes)}</span>
             <Input type="month" className="w-40" value={mes} onChange={(e) => setMes(e.target.value)} />
           </div>
