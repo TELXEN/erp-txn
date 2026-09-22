@@ -100,9 +100,7 @@ function Personal() {
       datos: {
         dni: trabajador.dni === "PENDIENTE" ? "" : trabajador.dni,
         nombre: trabajador.nombre,
-        cargo: CARGOS.includes(trabajador.cargo as (typeof CARGOS)[number])
-          ? (trabajador.cargo as (typeof CARGOS)[number])
-          : "AYUDANTE",
+        cargo: cargosActivos.some((c) => c.nombre === trabajador.cargo) ? trabajador.cargo : "",
         jornal_diario: String(trabajador.jornal_diario),
         numero_cuenta: trabajador.numero_cuenta === "PENDIENTE" ? "" : trabajador.numero_cuenta,
         cci: trabajador.cci === "PENDIENTE" ? "" : trabajador.cci,
