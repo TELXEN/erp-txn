@@ -85,10 +85,12 @@ function GastosDirectos() {
       moneda: form.moneda as "PEN" | "USD",
       tipo_cambio: tc,
       monto_soles: Number(form.monto || 0) * tc,
+      rubro: form.rubro,
       fecha: form.fecha,
     });
     if (err) return setError(err.message);
     setForm({ ...form, descripcion: "", proveedor_id: "", monto: "" });
+
     qc.invalidateQueries({ queryKey: ["gastos_directos"] });
   }
 
