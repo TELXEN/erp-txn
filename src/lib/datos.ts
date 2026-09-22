@@ -30,6 +30,15 @@ export type Partida = {
   avance_pct: number;
   situacion: string;
   prioridad: string;
+  tipo_presupuesto: string;
+};
+
+export type TipoPresupuesto = {
+  id: string;
+  nombre: string;
+  es_contractual: boolean;
+  orden: number;
+  activo: boolean;
 };
 
 export type Trabajador = {
@@ -157,6 +166,28 @@ export const useVentas = () =>
     queryKey: ["ventas"],
     queryFn: () => pedir<Venta>("ventas", "*", { col: "created_at", asc: false }),
   });
+
+export const useTiposPresupuesto = () =>
+  useQuery({
+    queryKey: ["tipos_presupuesto"],
+    queryFn: () => pedir<TipoPresupuesto>("tipos_presupuesto", "*", { col: "orden" }),
+  });
+
+export function esContractual(tipo: string, tipos: TipoPresupuesto[]) {
+  const encontrado = tipos.find((t) => t.nombre === tipo);
+  return encontrado ? encontrado.es_contractual : tipo === "Contractual";
+}
+
+export function resumenPresupuesto(partidas: Partida[], tipos: TipoPresupuesto[]) {
+  let contractual = 0;
+  let adicionales = 0;
+  partidas.forEach((p) => {
+    const monto = Number(p.presupuesto_inicial);
+    if (esContractual(p.tipo_presupuesto ?? "Contractual", tipos)) contractual += monto;
+    else adicionales += monto;
+  });
+  return { contractual, adicionales, vigente: contractual + adicionales };
+}
 
 export function agruparPorEspecialidad(partidas: Partida[]) {
   const mapa = new Map<string, Partida[]>();
