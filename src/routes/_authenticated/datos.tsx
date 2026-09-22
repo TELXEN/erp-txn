@@ -877,6 +877,138 @@ function CatalogoMaestro({
   );
 }
 
+function CargosPersonal() {
+  const qc = useQueryClient();
+  const { data: cargos = [] } = useCargos();
+  const { data: trabajadores = [] } = useTrabajadores();
+  const [nuevo, setNuevo] = useState<{ nombre: string; clasificacion: ClasificacionCargo }>({
+    nombre: "",
+    clasificacion: "Directo",
+  });
+  const [editando, setEditando] = useState<{ id: string; nombre: string; clasificacion: ClasificacionCargo; original: string } | null>(null);
+  const [error, setError] = useState("");
+
+  const refrescar = async () => {
+    await qc.invalidateQueries({ queryKey: ["cargos"] });
+    await qc.invalidateQueries({ queryKey: ["trabajadores"] });
+  };
+
+  async function agregar(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    const nombre = nuevo.nombre.trim().toUpperCase();
+    if (!nombre) return;
+    const { error: err } = await supabase
+      .from("cargos")
+      .insert({ nombre, clasificacion: nuevo.clasificacion, orden: cargos.length + 1 });
+    if (err) return setError(err.code === "23505" ? "Ese cargo ya existe." : err.message);
+    setNuevo({ nombre: "", clasificacion: "Directo" });
+    await refrescar();
+  }
+
+  async function guardar() {
+    if (!editando) return;
+    setError("");
+    const nombre = editando.nombre.trim().toUpperCase();
+    if (!nombre) return setError("Ingresa el nombre del cargo.");
+    const { error: err } = await supabase
+      .from("cargos")
+      .update({ nombre, clasificacion: editando.clasificacion })
+      .eq("id", editando.id);
+    if (err) return setError(err.code === "23505" ? "Ese cargo ya existe." : err.message);
+    if (nombre !== editando.original) {
+      const { error: err2 } = await supabase
+        .from("trabajadores")
+        .update({ cargo: nombre })
+        .eq("cargo", editando.original);
+      if (err2) return setError(err2.message);
+    }
+    setEditando(null);
+    await refrescar();
+  }
+
+  async function eliminar(id: string, nombre: string) {
+    const enUso = trabajadores.filter((t) => t.cargo === nombre).length;
+    if (enUso > 0) return setError(`No se puede eliminar: ${enUso} persona(s) tienen el cargo ${nombre}.`);
+    if (!window.confirm(`¿Eliminar el cargo ${nombre}?`)) return;
+    setError("");
+    const { error: err } = await supabase.from("cargos").delete().eq("id", id);
+    if (err) return setError(err.message);
+    await refrescar();
+  }
+
+  return (
+    <Panel titulo="Cargos del personal">
+      <div className="p-5">
+        <p className="mb-3 text-xs text-muted-foreground">
+          Cada cargo define si el pago de esa persona se costea como <strong>mano de obra directa</strong> (va al costo de
+          la obra) o como <strong>personal técnico / staff</strong> (se acumula en gastos generales). El tareo separa los
+          montos automáticamente según esta clasificación.
+        </p>
+
+        <form onSubmit={agregar} className="mb-3 grid gap-2 sm:grid-cols-[1fr_220px_auto]">
+          <Input
+            value={nuevo.nombre}
+            onChange={(e) => setNuevo({ ...nuevo, nombre: e.target.value })}
+            placeholder="Ej. INGENIERO DE CALIDAD"
+            maxLength={60}
+          />
+          <Select
+            value={nuevo.clasificacion}
+            onChange={(e) => setNuevo({ ...nuevo, clasificacion: e.target.value as ClasificacionCargo })}
+          >
+            <option value="Directo">Mano de obra directa</option>
+            <option value="Indirecto">Staff técnico (gasto general)</option>
+          </Select>
+          <Boton type="submit">Agregar</Boton>
+        </form>
+        {error && <p className="mb-2 font-mono text-xs text-bad">{error}</p>}
+
+        <div className="space-y-2">
+          {cargos.map((c) => {
+            const esEdicion = editando?.id === c.id;
+            const personas = trabajadores.filter((t) => t.cargo === c.nombre).length;
+            return (
+              <div key={c.id} className="flex flex-wrap items-center gap-2 rounded-md border border-line px-3 py-2">
+                {esEdicion && editando ? (
+                  <>
+                    <Input
+                      className="min-w-40 flex-1 py-1 text-xs"
+                      value={editando.nombre}
+                      onChange={(e) => setEditando({ ...editando, nombre: e.target.value })}
+                      maxLength={60}
+                    />
+                    <Select
+                      className="w-56 py-1 text-xs"
+                      value={editando.clasificacion}
+                      onChange={(e) => setEditando({ ...editando, clasificacion: e.target.value as ClasificacionCargo })}
+                    >
+                      <option value="Directo">Mano de obra directa</option>
+                      <option value="Indirecto">Staff técnico (gasto general)</option>
+                    </Select>
+                    <button type="button" onClick={guardar} title="Guardar" className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground"><Check size={14} /></button>
+                    <button type="button" onClick={() => setEditando(null)} title="Cancelar" className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line hover:bg-muted"><X size={14} /></button>
+                  </>
+                ) : (
+                  <>
+                    <span className="flex-1 font-mono text-xs font-semibold text-ink">{c.nombre}</span>
+                    <Etiqueta tono={c.clasificacion === "Indirecto" ? "neutro" : "good"}>
+                      {c.clasificacion === "Indirecto" ? "Staff · Gasto general" : "Mano de obra directa"}
+                    </Etiqueta>
+                    <span className="font-mono text-[10px] text-muted-foreground">{personas} persona(s)</span>
+                    <button type="button" onClick={() => setEditando({ id: c.id, nombre: c.nombre, clasificacion: c.clasificacion, original: c.nombre })} title="Editar" className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"><Pencil size={14} /></button>
+                    <button type="button" onClick={() => eliminar(c.id, c.nombre)} title="Eliminar" className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-bad hover:text-bad"><Trash2 size={14} /></button>
+                  </>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </Panel>
+  );
+}
+
 function TiposPresupuesto() {
   const qc = useQueryClient();
   const [nombre, setNombre] = useState("");
