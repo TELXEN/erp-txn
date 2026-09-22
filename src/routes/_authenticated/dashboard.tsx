@@ -17,7 +17,8 @@ import { pct, soles } from "@/lib/format";
 import {
   costoRealPartida,
   costoRealProyecto,
-  estructuraOferta,
+  ofertaProyecto,
+  useTiposPresupuesto,
   presupuestoProyecto,
   useGastosDirectos,
   useGastosGenerales,
@@ -59,6 +60,7 @@ function Dashboard() {
   const { data: gastosD = [] } = useGastosDirectos();
   const { data: gastosG = [] } = useGastosGenerales();
   const { data: ventas = [] } = useVentas();
+  const { data: tiposPresupuesto = [] } = useTiposPresupuesto();
   const [seleccion, setSeleccion] = useState("global");
 
   const global = seleccion === "global";
@@ -73,7 +75,12 @@ function Dashboard() {
         const pendiente = vd.filter((v) => v.estado !== "Pagado").reduce((s, v) => s + Number(v.monto_soles), 0);
         const presupuesto = presupuestoProyecto(p.id, partidas);
         const costoReal = costoRealProyecto(p.id, gastosD, tareos, gastosG);
-        const oferta = estructuraOferta(presupuesto, p.pct_gastos_generales, p.pct_utilidad);
+        const oferta = ofertaProyecto(
+          partidas.filter((x) => x.proyecto_id === p.id),
+          tiposPresupuesto,
+          p.pct_gastos_generales,
+          p.pct_utilidad,
+        );
         const margen = cobrado - costoReal;
         return {
           id: p.id,
