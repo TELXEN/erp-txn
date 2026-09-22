@@ -413,6 +413,8 @@ export type Database = {
           fecha_inicio: string | null
           id: string
           nombre: string
+          pct_gastos_generales: number
+          pct_utilidad: number
           prioridad: string
           situacion: string
           ubicacion: string
@@ -425,6 +427,8 @@ export type Database = {
           fecha_inicio?: string | null
           id?: string
           nombre: string
+          pct_gastos_generales?: number
+          pct_utilidad?: number
           prioridad?: string
           situacion?: string
           ubicacion?: string
@@ -437,6 +441,8 @@ export type Database = {
           fecha_inicio?: string | null
           id?: string
           nombre?: string
+          pct_gastos_generales?: number
+          pct_utilidad?: number
           prioridad?: string
           situacion?: string
           ubicacion?: string
