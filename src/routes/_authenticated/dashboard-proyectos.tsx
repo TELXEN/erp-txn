@@ -238,7 +238,7 @@ function DashboardProyectos() {
         </div>
 
         <div className="panel rise flex flex-col overflow-hidden">
-          <div className="border-b border-line px-4 py-3"><p className="label-mono">Status</p></div>
+           <div className="border-b border-line px-4 py-3"><p className="label-mono">STATUS DE PROYECTOS</p></div>
           <div className="flex flex-1 flex-col">
             {SITUACIONES.map((situacion) => {
               const cantidad = proyectos.filter((proyecto) => proyecto.situacion === situacion).length;
