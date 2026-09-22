@@ -1050,7 +1050,13 @@ function CategoriasGastoGeneral() {
   const { data: categorias = [] } = useCategoriasGastoGeneral();
   const { data: gastos = [] } = useGastosGenerales();
   const [nombre, setNombre] = useState("");
-  const [editando, setEditando] = useState<{ id: string; nombre: string; original: string } | null>(null);
+  const [descripcion, setDescripcion] = useState("");
+  const [editando, setEditando] = useState<{
+    id: string;
+    nombre: string;
+    descripcion: string;
+    original: string;
+  } | null>(null);
   const [error, setError] = useState("");
 
   const refrescar = async () => {
