@@ -185,7 +185,8 @@ function Personal() {
           </Campo>
           <Campo etiqueta="Cargo">
             <Select value={form.cargo} onChange={(e) => setForm({ ...form, cargo: e.target.value as FormPersonal["cargo"] })} required className="py-1.5">
-              {CARGOS.map((cargo) => <option key={cargo} value={cargo}>{cargo}</option>)}
+              <option value="">Selecciona un cargo…</option>
+              {cargosActivos.map((c) => <option key={c.id} value={c.nombre}>{c.nombre}{c.clasificacion === "Indirecto" ? " · Staff" : ""}</option>)}
             </Select>
           </Campo>
           <Campo etiqueta="Jornal diario (S/)">
