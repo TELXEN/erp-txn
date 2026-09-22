@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState, type ReactNode } from "react";
-import { CalendarDays, CircleDollarSign, Clock3, Flag, MapPin, WalletCards } from "lucide-react";
+import { AlertTriangle, CalendarDays, Clock3, Flag, Layers3, ListTodo, MapPin, WalletCards } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { CurvaS } from "@/components/CurvaS";
 import { InsigniaPrioridad, InsigniaSituacion } from "@/components/estado-ui";
+import { SITUACIONES, tonoSituacion } from "@/lib/configuracion";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha, pct, soles } from "@/lib/format";
 import {
@@ -62,6 +63,7 @@ function DashboardProyectos() {
         return {
           proyecto: p,
           partidas: propias.length,
+          partidasPendientes: propias.filter((x) => x.situacion !== "Completado" && Number(x.avance_pct) < 100).length,
           presupuesto,
           costoReal,
           avance,
@@ -78,9 +80,11 @@ function DashboardProyectos() {
     const costoReal = filas.reduce((s, f) => s + f.costoReal, 0);
     return {
       total: proyectos.length,
+      noIniciados: proyectos.filter((p) => p.situacion === "No iniciado").length,
       enProceso: proyectos.filter((p) => p.situacion === "En proceso").length,
       retrasados: proyectos.filter((p) => p.situacion === "Retrasado").length,
       completados: proyectos.filter((p) => p.situacion === "Completado").length,
+      cancelados: proyectos.filter((p) => p.situacion === "Cancelado").length,
       presupuesto,
       costoReal,
       diferencia: presupuesto - costoReal,
@@ -117,9 +121,11 @@ function DashboardProyectos() {
         nombre: "Resumen",
         filas: [
           { Indicador: "Obras registradas", Valor: resumen.total },
+          { Indicador: "No iniciadas", Valor: resumen.noIniciados },
           { Indicador: "En proceso", Valor: resumen.enProceso },
           { Indicador: "Retrasadas", Valor: resumen.retrasados },
           { Indicador: "Completadas", Valor: resumen.completados },
+          { Indicador: "Canceladas", Valor: resumen.cancelados },
           { Indicador: "Presupuesto total (S/)", Valor: resumen.presupuesto },
           { Indicador: "Costo real total (S/)", Valor: resumen.costoReal },
           { Indicador: "Diferencia (S/)", Valor: resumen.diferencia },
@@ -191,6 +197,44 @@ function DashboardProyectos() {
           </Select>
         </div>
       </div>
+
+      <section className="panel rise mb-4 overflow-hidden" aria-label="Resumen de estados y operación">
+        <div className="grid grid-cols-2 gap-px bg-line sm:grid-cols-3 lg:grid-cols-5">
+          {SITUACIONES.map((situacion) => {
+            const cantidad = proyectos.filter((proyecto) => proyecto.situacion === situacion).length;
+            return <EstadoProyecto key={situacion} situacion={situacion} cantidad={cantidad} />;
+          })}
+        </div>
+        <div className="grid gap-px border-t border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
+          <IndicadorOperacion
+            icono={<Layers3 />}
+            etiqueta="Total de partidas"
+            valor={String(obraSel?.partidas ?? 0)}
+            detalle={obraSel?.proyecto.nombre ?? "Sin obra seleccionada"}
+          />
+          <IndicadorOperacion
+            icono={<ListTodo />}
+            etiqueta="Partidas pendientes"
+            valor={String(obraSel?.partidasPendientes ?? 0)}
+            detalle={`${Math.max((obraSel?.partidas ?? 0) - (obraSel?.partidasPendientes ?? 0), 0)} completadas`}
+            tono={(obraSel?.partidasPendientes ?? 0) > 0 ? "bad" : "good"}
+          />
+          <IndicadorOperacion
+            icono={<AlertTriangle />}
+            etiqueta="Prioridad"
+            valor={(obraSel?.proyecto.prioridad ?? "Sin definir").toUpperCase()}
+            detalle="Nivel de atención de la obra"
+            tono={obraSel?.proyecto.prioridad === "Alta" ? "bad" : undefined}
+          />
+          <IndicadorOperacion
+            icono={<Clock3 />}
+            etiqueta={plazo?.vencido ? "Plazo vencido" : "Días restantes"}
+            valor={plazo ? String(Math.abs(plazo.dias)) : "—"}
+            detalle={plazo ? (plazo.vencido ? "días fuera de plazo" : `hasta el ${fecha(obraSel?.proyecto.fecha_fin ?? null)}`) : "Sin fecha de fin"}
+            tono={plazo?.vencido ? "bad" : undefined}
+          />
+        </div>
+      </section>
 
       {!obraSel ? (
         <Panel><Vacio texto="Registra una obra para visualizar el tablero." /></Panel>
@@ -339,6 +383,46 @@ function Tarjeta({
         {valor}
       </p>
       <p className="mt-1 font-mono text-[11px] text-muted-foreground">{detalle}</p>
+    </div>
+  );
+}
+
+function EstadoProyecto({ situacion, cantidad }: { situacion: string; cantidad: number }) {
+  const tono = tonoSituacion(situacion);
+  return (
+    <div className="flex min-h-28 flex-col justify-between p-4" style={{ backgroundColor: tono.fondo }}>
+      <div className="flex items-center justify-between gap-2">
+        <span className="font-mono text-[10px] font-semibold uppercase text-ink">{situacion}</span>
+        <span className="h-2.5 w-2.5 rounded-full border" style={{ backgroundColor: tono.borde, borderColor: tono.borde }} />
+      </div>
+      <strong className="font-mono text-4xl font-bold text-ink">{cantidad}</strong>
+    </div>
+  );
+}
+
+function IndicadorOperacion({
+  icono,
+  etiqueta,
+  valor,
+  detalle,
+  tono,
+}: {
+  icono: ReactNode;
+  etiqueta: string;
+  valor: string;
+  detalle: string;
+  tono?: "good" | "bad";
+}) {
+  return (
+    <div className="flex min-h-32 items-center gap-4 bg-card p-4">
+      <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-muted [&>svg]:h-5 [&>svg]:w-5 ${tono === "bad" ? "text-bad" : tono === "good" ? "text-good" : "text-primary"}`}>
+        {icono}
+      </span>
+      <div className="min-w-0">
+        <p className="label-mono">{etiqueta}</p>
+        <p className={`mt-1 break-words font-mono text-2xl font-bold ${tono === "bad" ? "text-bad" : tono === "good" ? "text-good" : "text-ink"}`}>{valor}</p>
+        <p className="mt-1 truncate text-xs text-muted-foreground">{detalle}</p>
+      </div>
     </div>
   );
 }
