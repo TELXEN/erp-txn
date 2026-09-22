@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { InsigniaCategoriaGasto } from "@/components/estado-ui";
-import { Check, Pencil, Trash2, X } from "lucide-react";
+import { Check, Info, Pencil, Trash2, X } from "lucide-react";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
 import { useCategoriasGastoGeneral, useGastosGenerales, useProyectos, useTerceros } from "@/lib/datos";
@@ -174,6 +174,21 @@ function GastosGenerales() {
           </button>
         }
       >
+        {guiaVisible && (
+          <div className="border-b border-line bg-muted/40 px-5 py-4">
+            <p className="label-mono mb-2">Qué incluye cada categoría</p>
+            <ul className="grid gap-2 sm:grid-cols-2">
+              {categoriasActivas.map((c) => (
+                <li key={c.id} className="flex flex-col gap-1 rounded-md border border-line bg-card px-3 py-2">
+                  <InsigniaCategoriaGasto valor={c.nombre} />
+                  <span className="text-[11px] leading-snug text-muted-foreground">
+                    {c.descripcion || "Sin descripción registrada. Agrégala en Datos > Catálogos Maestros."}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
         <form onSubmit={guardar} className="grid gap-3 p-5 sm:grid-cols-4">
           <Campo etiqueta="Descripción">
             <Input value={form.descripcion} onChange={(e) => setForm({ ...form, descripcion: e.target.value })} required maxLength={160} />
