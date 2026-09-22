@@ -12,7 +12,8 @@ import { useAuth, puedeVerDinero } from "@/lib/auth";
 import { soles } from "@/lib/format";
 import {
   costoRealProyecto,
-  estructuraOferta,
+  ofertaProyecto,
+  useTiposPresupuesto,
   presupuestoProyecto,
   useGastosDirectos,
   useGastosGenerales,
@@ -41,6 +42,7 @@ function Proyectos() {
   const { data: gastosD = [] } = useGastosDirectos();
   const { data: gastosG = [] } = useGastosGenerales();
   const { data: tareos = [] } = useTareos();
+  const { data: tiposPresupuesto = [] } = useTiposPresupuesto();
   const [vista, setVista] = useState<"tabla" | "kanban">("tabla");
   const [form, setForm] = useState({
     nombre: "",
@@ -390,7 +392,12 @@ function Proyectos() {
                           <span className="mt-1 block font-mono text-[10px] font-normal text-muted-foreground">
                             GG {Number(p.pct_gastos_generales ?? 0)}% · Utilidad {Number(p.pct_utilidad ?? 0)}% · Oferta{" "}
                             {soles(
-                              estructuraOferta(presupuesto, p.pct_gastos_generales, p.pct_utilidad).ofertado,
+                              ofertaProyecto(
+                                partidas.filter((x) => x.proyecto_id === p.id),
+                                tiposPresupuesto,
+                                p.pct_gastos_generales,
+                                p.pct_utilidad,
+                              ).ofertado,
                             )}
                           </span>
                         </td>

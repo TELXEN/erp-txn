@@ -45,6 +45,7 @@ export type Partida = {
   situacion: string;
   prioridad: string;
   tipo_presupuesto: string;
+  aplica_gg_utilidad: boolean;
 };
 
 export type TipoPresupuesto = {
@@ -241,6 +242,39 @@ export function resumenPresupuesto(partidas: Partida[], tipos: TipoPresupuesto[]
     else adicionales += monto;
   });
   return { contractual, adicionales, vigente: contractual + adicionales };
+}
+
+/**
+ * Oferta de un proyecto a partir de sus partidas.
+ * Las partidas contractuales siempre llevan GG y utilidad; las adicionales
+ * solo si tienen marcado `aplica_gg_utilidad`.
+ */
+export function ofertaProyecto(
+  partidas: Partida[],
+  tipos: TipoPresupuesto[],
+  pctGG: number,
+  pctUtilidad: number,
+) {
+  let costoDirecto = 0;
+  let baseRecargo = 0;
+  let sinRecargo = 0;
+  partidas.forEach((p) => {
+    const monto = Number(p.presupuesto_inicial);
+    costoDirecto += monto;
+    const contractual = esContractual(p.tipo_presupuesto ?? "Contractual", tipos);
+    if (contractual || p.aplica_gg_utilidad !== false) baseRecargo += monto;
+    else sinRecargo += monto;
+  });
+  const gastosGenerales = (baseRecargo * Number(pctGG || 0)) / 100;
+  const utilidad = (baseRecargo * Number(pctUtilidad || 0)) / 100;
+  return {
+    costoDirecto,
+    baseRecargo,
+    sinRecargo,
+    gastosGenerales,
+    utilidad,
+    ofertado: costoDirecto + gastosGenerales + utilidad,
+  };
 }
 
 export function agruparPorEspecialidad(partidas: Partida[]) {
