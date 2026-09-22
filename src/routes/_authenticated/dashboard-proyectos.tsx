@@ -413,7 +413,7 @@ function MedidorCompacto({ valor }: { valor: number }) {
           fill="none"
           stroke="#D64B3C"
           strokeWidth="14"
-          strokeLinecap="round"
+          strokeLinecap="butt"
           strokeDasharray={`${tramo(0, 50)} ${largo}`}
         />
         <path
@@ -421,6 +421,7 @@ function MedidorCompacto({ valor }: { valor: number }) {
           fill="none"
           stroke="#E08A2E"
           strokeWidth="14"
+          strokeLinecap="butt"
           strokeDasharray={`0 ${(50 / 100) * largo} ${tramo(50, 75)} ${largo}`}
         />
         <path
