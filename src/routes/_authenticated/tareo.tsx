@@ -53,6 +53,7 @@ function TareoPage() {
   const { data: proyectos = [] } = useProyectos();
   const { data: trabajadores = [] } = useTrabajadores();
   const { data: tareos = [] } = useTareos();
+  const { data: cargos = [] } = useCargos();
 
   const [diasSel, setDiasSel] = useState<Record<string, TipoDia>>({ [hoy()]: "dia" });
   const [mesCal, setMesCal] = useState(mesActual());
