@@ -245,23 +245,42 @@ function GastosDirectos() {
         </form>
       </Panel>
 
+      <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {totalesRubro.map((t) => (
+          <button
+            key={t.rubro}
+            type="button"
+            onClick={() => setFiltroRubro(filtroRubro === t.rubro ? "Todos" : t.rubro)}
+            aria-pressed={filtroRubro === t.rubro}
+            className={`panel rise p-4 text-left transition ${
+              filtroRubro === t.rubro ? "border-primary ring-1 ring-primary/40" : ""
+            }`}
+          >
+            <InsigniaRubro valor={t.rubro} />
+            <p className="mt-2 font-mono text-lg font-bold tracking-tight text-ink">{soles(t.total)}</p>
+          </button>
+        ))}
+      </div>
+
       <Panel titulo="Compras registradas">
-        {gastos.length === 0 ? (
-          <Vacio texto="Aún no hay gastos directos." />
+        {gastosFiltrados.length === 0 ? (
+          <Vacio texto={filtroRubro === "Todos" ? "Aún no hay gastos directos." : `No hay compras del rubro ${filtroRubro}.`} />
         ) : (
           <table className="w-full table-fixed font-mono text-xs">
             <thead>
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                <th className="w-2/12 px-5 py-2 font-medium">Fecha</th>
-                <th className="w-3/12 px-3 py-2 font-medium">Proyecto</th>
+                <th className="w-1/12 px-5 py-2 font-medium">Fecha</th>
+                <th className="w-2/12 px-3 py-2 font-medium">Proyecto</th>
                 <th className="w-3/12 px-3 py-2 font-medium">Descripción</th>
                 <th className="w-2/12 px-3 py-2 font-medium">Proveedor</th>
+                <th className="w-2/12 px-3 py-2 font-medium">Rubro</th>
                 <th className="w-2/12 px-3 py-2 text-right font-medium">Monto</th>
                 <th className="w-2/12 px-5 py-2"></th>
               </tr>
             </thead>
             <tbody>
-              {gastos.map((g) =>
+              {gastosFiltrados.map((g) =>
+
                 editando?.id === g.id ? (
                   <tr key={g.id} className="border-b border-line/60 last:border-0">
                     <td className="px-5 py-2.5">{fmtFecha(g.fecha)}</td>
