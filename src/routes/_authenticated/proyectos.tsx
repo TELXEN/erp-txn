@@ -50,6 +50,8 @@ function Proyectos() {
     prioridad: "Media",
     fecha_inicio: "",
     fecha_fin: "",
+    pct_gastos_generales: "10",
+    pct_utilidad: "10",
   });
   const [error, setError] = useState("");
   const [editando, setEditando] = useState<{
@@ -60,6 +62,8 @@ function Proyectos() {
     prioridad: string;
     fecha_inicio: string;
     fecha_fin: string;
+    pct_gastos_generales: string;
+    pct_utilidad: string;
   } | null>(null);
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
