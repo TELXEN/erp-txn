@@ -199,7 +199,7 @@ function DashboardProyectos() {
         </div>
       </div>
 
-      <section className="mb-4 grid gap-3 lg:grid-cols-3" aria-label="Resumen del proyecto seleccionado">
+      <section className="mb-4 grid gap-3 lg:grid-cols-4" aria-label="Resumen del proyecto seleccionado">
         <div className="panel rise flex flex-col justify-between p-4">
           {!obraSel ? (
             <Vacio texto="Registra una obra para visualizar el avance." />
