@@ -245,59 +245,41 @@ function DashboardProyectos() {
         <Panel><Vacio texto="Registra una obra para visualizar el tablero." /></Panel>
       ) : (
         <>
-          <div className="mb-4 grid gap-3 lg:grid-cols-12">
-            <section className="panel rise flex flex-col justify-between p-5 lg:col-span-5">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="label-mono">Avance general</p>
-                  <h2 className="mt-2 line-clamp-3 text-xl font-bold leading-tight">{obraSel.proyecto.nombre}</h2>
-                  <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <MapPin className="h-3.5 w-3.5" /> {obraSel.proyecto.ubicacion || "Ubicación no registrada"}
-                  </p>
-                </div>
-                <InsigniaPrioridad valor={obraSel.proyecto.prioridad} />
+          <section className="panel rise mb-4 flex flex-col justify-between p-5">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="label-mono">Avance general</p>
+                <h2 className="mt-2 line-clamp-3 text-xl font-bold leading-tight">{obraSel.proyecto.nombre}</h2>
+                <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <MapPin className="h-3.5 w-3.5" /> {obraSel.proyecto.ubicacion || "Ubicación no registrada"}
+                </p>
               </div>
+              <InsigniaPrioridad valor={obraSel.proyecto.prioridad} />
+            </div>
 
-              <div className="my-4 grid grid-cols-3 gap-2 rounded-lg border border-line bg-muted/30 p-3">
-                <div className="text-center">
-                  <p className="label-mono text-[10px]">Inicio</p>
-                  <p className="mt-1 font-mono text-xs font-semibold">{fecha(obraSel.proyecto.fecha_inicio)}</p>
-                </div>
-                <div className="border-x border-line px-2 text-center">
-                  <p className="label-mono text-[10px]">Fin previsto</p>
-                  <p className="mt-1 font-mono text-xs font-semibold">{fecha(obraSel.proyecto.fecha_fin)}</p>
-                </div>
-                <div className="text-center">
-                  <p className="label-mono text-[10px]">{plazo?.vencido ? "Plazo vencido" : "Días restantes"}</p>
-                  <p className={`mt-1 font-mono text-xs font-semibold ${plazo?.vencido ? "text-bad" : ""}`}>
-                    {plazo ? `${Math.abs(plazo.dias)} días` : "Sin fecha"}
-                  </p>
-                </div>
+            <div className="my-4 grid grid-cols-1 gap-2 rounded-lg border border-line bg-muted/30 p-3 sm:grid-cols-3">
+              <div className="text-center">
+                <p className="label-mono text-[10px]">Inicio</p>
+                <p className="mt-1 font-mono text-sm font-semibold">{fecha(obraSel.proyecto.fecha_inicio)}</p>
               </div>
-
-              <Medidor valor={obraSel.avance} />
-              <div className="flex items-center justify-between border-t border-line pt-3">
-                <InsigniaSituacion valor={obraSel.proyecto.situacion} />
-                <span className="font-mono text-[11px] text-muted-foreground">{obraSel.partidas} partidas</span>
+              <div className="text-center sm:border-x sm:border-line sm:px-2">
+                <p className="label-mono text-[10px]">Fin previsto</p>
+                <p className="mt-1 font-mono text-sm font-semibold">{fecha(obraSel.proyecto.fecha_fin)}</p>
               </div>
-            </section>
+              <div className="text-center">
+                <p className="label-mono text-[10px]">{plazo?.vencido ? "Plazo vencido" : "Días restantes"}</p>
+                <p className={`mt-1 font-mono text-sm font-semibold ${plazo?.vencido ? "text-bad" : ""}`}>
+                  {plazo ? `${Math.abs(plazo.dias)} días` : "Sin fecha"}
+                </p>
+              </div>
+            </div>
 
-            <section className="panel rise flex min-h-64 flex-col p-5 lg:col-span-7">
-              <p className="label-mono mb-3">Curva S — Vista rápida</p>
-              {!obraSel ? (
-                <Vacio texto="Registra una obra para visualizar su curva S." />
-              ) : (
-                <CurvaS
-                  fechaInicio={obraSel.proyecto.fecha_inicio}
-                  fechaFin={obraSel.proyecto.fecha_fin}
-                  presupuesto={obraSel.presupuesto}
-                  avanceFisico={obraSel.avance}
-                  movimientos={movimientos}
-                  compacto
-                />
-              )}
-            </section>
-          </div>
+            <Medidor valor={obraSel.avance} />
+            <div className="flex items-center justify-between border-t border-line pt-3">
+              <InsigniaSituacion valor={obraSel.proyecto.situacion} />
+              <span className="font-mono text-[11px] text-muted-foreground">{obraSel.partidas} partidas</span>
+            </div>
+          </section>
         </>
       )}
 
