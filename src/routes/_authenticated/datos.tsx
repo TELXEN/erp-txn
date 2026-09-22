@@ -8,7 +8,7 @@ import { Check, Pencil, Trash2, X } from "lucide-react";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { exportarExcel } from "@/lib/exportar";
 import { InsigniaPrioridad, InsigniaSituacion, InsigniaTipoPresupuesto } from "@/components/estado-ui";
-import { useTiposPresupuesto } from "@/lib/datos";
+import { type ClasificacionCargo, useCargos, useTiposPresupuesto, useTrabajadores } from "@/lib/datos";
 import { PRIORIDADES, SITUACIONES, tonoPrioridad, tonoSituacion } from "@/lib/configuracion";
 import { DatosEmpresa } from "@/components/DatosEmpresa";
 
