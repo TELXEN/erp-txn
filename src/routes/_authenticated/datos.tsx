@@ -722,6 +722,8 @@ function Datos() {
         </>
       ) : pestana === "cargos" ? (
         <CargosPersonal />
+      ) : pestana === "categoriasgg" ? (
+        <CategoriasGastoGeneral />
       ) : pestana === "configuracion" ? (
         <ConfiguracionProyectos />
       ) : pestana === "empresa" ? (
