@@ -48,6 +48,7 @@ function DashboardProyectos() {
   const { data: tareos = [] } = useTareos();
   const { data: tiposPresupuesto = [] } = useTiposPresupuesto();
   const [obraId, setObraId] = useState("");
+  const [filtroEstado, setFiltroEstado] = useState<string>("Todos");
 
 
   const filas = useMemo(
@@ -108,6 +109,11 @@ function DashboardProyectos() {
   }, [filas, proyectos]);
 
   const obraSel = filas.find((f) => f.proyecto.id === obraId) ?? filas[0];
+
+  const cartera = useMemo(
+    () => (filtroEstado === "Todos" ? filas : filas.filter((f) => f.proyecto.situacion === filtroEstado)),
+    [filas, filtroEstado],
+  );
 
   const plazo = useMemo(() => {
     if (!obraSel?.proyecto.fecha_fin) return null;
@@ -219,7 +225,7 @@ function DashboardProyectos() {
         </div>
       </div>
 
-      <section className="mb-4 grid gap-3 lg:grid-cols-4" aria-label="Resumen del proyecto seleccionado">
+      <section className="mb-4 grid gap-3 lg:grid-cols-3" aria-label="Resumen del proyecto seleccionado">
         <div className="panel rise flex flex-col justify-between p-4">
           {!obraSel ? (
             <Vacio texto="Registra una obra para visualizar el avance." />
@@ -255,16 +261,6 @@ function DashboardProyectos() {
               </div>
             </>
           )}
-        </div>
-
-        <div className="panel rise flex flex-col overflow-hidden">
-           <div className="border-b border-line px-4 py-3"><p className="label-mono">STATUS DE PROYECTOS</p></div>
-          <div className="flex flex-1 flex-col">
-            {SITUACIONES.map((situacion) => {
-              const cantidad = proyectos.filter((proyecto) => proyecto.situacion === situacion).length;
-              return <CartillaEstado key={situacion} situacion={situacion} cantidad={cantidad} />;
-            })}
-          </div>
         </div>
 
         <div className="panel rise overflow-hidden">
@@ -322,12 +318,34 @@ function DashboardProyectos() {
         )}
       </Panel>
 
-      <Panel titulo="Cartera de proyectos">
-        {filas.length === 0 ? (
-          <Vacio texto="Aún no hay proyectos registrados." />
+      <Panel
+        titulo="Cartera de proyectos"
+        extra={
+          <div className="flex flex-wrap items-center gap-1.5">
+            <PildoraEstado
+              etiqueta="Todos"
+              cantidad={proyectos.length}
+              activa={filtroEstado === "Todos"}
+              onClick={() => setFiltroEstado("Todos")}
+            />
+            {SITUACIONES.map((situacion) => (
+              <PildoraEstado
+                key={situacion}
+                etiqueta={situacion}
+                cantidad={proyectos.filter((p) => p.situacion === situacion).length}
+                color={tonoSituacion(situacion).borde}
+                activa={filtroEstado === situacion}
+                onClick={() => setFiltroEstado(situacion)}
+              />
+            ))}
+          </div>
+        }
+      >
+        {cartera.length === 0 ? (
+          <Vacio texto={filtroEstado === "Todos" ? "Aún no hay proyectos registrados." : `No hay obras con status "${filtroEstado}".`} />
         ) : (
           <ul className="grid gap-px bg-line sm:grid-cols-2">
-            {filas.map((f) => (
+            {cartera.map((f) => (
               <li key={f.proyecto.id} className={`bg-card px-5 py-4 transition-colors ${f.proyecto.id === obraSel?.proyecto.id ? "ring-2 ring-inset ring-primary" : ""}`}>
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-64 flex-1">
@@ -383,16 +401,32 @@ function DatoFinanciero({ etiqueta, valor, tono }: { etiqueta: string; valor: st
 }
 
 
-function CartillaEstado({ situacion, cantidad }: { situacion: string; cantidad: number }) {
-  const tono = tonoSituacion(situacion);
+function PildoraEstado({
+  etiqueta,
+  cantidad,
+  color,
+  activa,
+  onClick,
+}: {
+  etiqueta: string;
+  cantidad: number;
+  color?: string;
+  activa: boolean;
+  onClick: () => void;
+}) {
   return (
-    <div className="flex flex-1 items-center justify-between gap-2 border-b border-line px-3 py-2 last:border-b-0" style={{ backgroundColor: tono.fondo }}>
-      <div className="flex items-center gap-2">
-        <span className="h-2 w-2 shrink-0 rounded-full border" style={{ backgroundColor: tono.borde, borderColor: tono.borde }} />
-        <span className="font-mono text-[10px] font-semibold uppercase leading-tight text-ink">{situacion === "Completado" ? "" : situacion}</span>
-      </div>
-      <strong className="font-mono text-lg font-bold text-ink">{cantidad}</strong>
-    </div>
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={activa}
+      className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-wide transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+        activa ? "border-primary bg-primary/10 text-primary" : "border-line bg-card text-muted-foreground hover:text-ink"
+      }`}
+    >
+      {color && <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: color }} />}
+      <span>{etiqueta}</span>
+      <span className={`rounded-full px-1.5 ${activa ? "bg-primary/15 text-primary" : "bg-muted text-ink"}`}>{cantidad}</span>
+    </button>
   );
 }
 
