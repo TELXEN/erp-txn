@@ -172,6 +172,9 @@ function GastosGenerales() {
                 </option>
               ))}
             </Select>
+            {ayudaCategoria && (
+              <p className="mt-1 text-[11px] leading-snug text-muted-foreground">{ayudaCategoria}</p>
+            )}
           </Campo>
           <Campo etiqueta="Proveedor">
             <Select value={form.proveedor_id} onChange={(e) => setForm({ ...form, proveedor_id: e.target.value })} required>
