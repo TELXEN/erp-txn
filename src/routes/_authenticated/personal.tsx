@@ -24,21 +24,10 @@ export const Route = createFileRoute("/_authenticated/personal")({
   component: Personal,
 });
 
-const CARGOS = [
-  "RESIDENTE",
-  "SUPERVISOR",
-  "SEGURIDAD",
-  "TÉCNICO ELECTRICISTA",
-  "TÉCNICO INSTRUMENTISTA",
-  "SOLDADOR",
-  "AYUDANTE",
-  "CONDUCTOR CAMIONETA",
-] as const;
-
 type FormPersonal = {
   dni: string;
   nombre: string;
-  cargo: (typeof CARGOS)[number];
+  cargo: string;
   jornal_diario: string;
   numero_cuenta: string;
   cci: string;
@@ -49,7 +38,7 @@ type FormPersonal = {
 const FORM_INICIAL: FormPersonal = {
   dni: "",
   nombre: "",
-  cargo: "RESIDENTE",
+  cargo: "",
   jornal_diario: "",
   numero_cuenta: "",
   cci: "",
@@ -60,7 +49,7 @@ const FORM_INICIAL: FormPersonal = {
 function validar(form: FormPersonal) {
   if (!/^\d{8}$/.test(form.dni)) return "El DNI debe tener 8 dígitos.";
   if (!form.nombre.trim()) return "Ingresa el nombre.";
-  if (!CARGOS.includes(form.cargo)) return "Selecciona un cargo válido.";
+  if (!form.cargo) return "Selecciona un cargo válido.";
   if (!form.jornal_diario || Number(form.jornal_diario) < 0) return "Ingresa un jornal diario válido.";
   if (!form.numero_cuenta.trim()) return "Ingresa el número de cuenta.";
   if (!/^\d{20}$/.test(form.cci)) return "El CCI debe tener 20 dígitos.";
