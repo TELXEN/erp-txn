@@ -289,9 +289,8 @@ function DashboardProyectos() {
             </section>
           </div>
 
-          <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             <Tarjeta etiqueta="Obras registradas" valor={String(resumen.total)} detalle={`${resumen.enProceso} en proceso · ${resumen.completados} completadas`} />
-            <Tarjeta etiqueta="Obras retrasadas" valor={String(resumen.retrasados)} detalle={`${resumen.desviadas} con desviación de costo`} tono={resumen.retrasados > 0 ? "bad" : "good"} />
             <Tarjeta etiqueta="Presupuesto cartera" valor={soles(resumen.presupuesto)} detalle="Total de todas las obras" />
             <Tarjeta etiqueta="Costo real cartera" valor={soles(resumen.costoReal)} detalle={`Saldo ${soles(resumen.diferencia)}`} tono={resumen.diferencia < 0 ? "bad" : "good"} />
           </div>
