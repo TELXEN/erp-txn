@@ -434,6 +434,7 @@ function TareoPage() {
             <thead>
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
                 <th className="px-5 py-2 font-medium">Trabajador</th>
+                <th className="px-3 py-2 font-medium">Clasificación</th>
                 <th className="px-3 py-2 text-right font-medium">Días laborados</th>
                 <th className="px-3 py-2 text-right font-medium">Horas extras</th>
                 <th className="px-5 py-2 text-right font-medium">Costo acumulado</th>
