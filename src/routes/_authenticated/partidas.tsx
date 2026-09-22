@@ -76,6 +76,11 @@ function Partidas() {
     [partidas, filtroProyecto, filtroEsp, filtroTipo],
   );
   const resumen = useMemo(() => resumenPresupuesto(visibles, tipos), [visibles, tipos]);
+  const nombresTipos = useMemo(() => {
+    const activos = tipos.filter((t) => t.activo).map((t) => t.nombre);
+    const usados = partidas.map((p) => p.tipo_presupuesto ?? "Contractual");
+    return [...new Set(["Contractual", ...activos, ...usados])];
+  }, [tipos, partidas]);
   const grupos = useMemo(() => agruparPorProyectoYEspecialidad(visibles, nombreProyecto), [visibles, nombreProyecto]);
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
@@ -137,6 +142,18 @@ function Partidas() {
         })),
       },
     ]);
+  }
+
+  async function crearTipo() {
+    const nombre = window.prompt("Nombre del nuevo tipo de presupuesto (ej. Adicional 04)")?.trim();
+    if (!nombre) return;
+    setError("");
+    const { error: err } = await supabase
+      .from("tipos_presupuesto")
+      .insert({ nombre, es_contractual: false, orden: tipos.length + 1 });
+    if (err && !err.message.includes("duplicate")) return setError(err.message);
+    await qc.invalidateQueries({ queryKey: ["tipos_presupuesto"] });
+    setForm((f) => ({ ...f, tipo_presupuesto: nombre }));
   }
 
   async function mover(id: string, situacion: Situacion) {
@@ -350,6 +367,19 @@ function Partidas() {
                                 />
                               </td>
                               <td className="px-3 py-2">
+                                <Select
+                                  value={editando.tipo_presupuesto}
+                                  onChange={(e) => setEditando({ ...editando, tipo_presupuesto: e.target.value })}
+                                  className="py-1 text-xs"
+                                >
+                                  {nombresTipos.map((t) => (
+                                    <option key={t} value={t}>
+                                      {t}
+                                    </option>
+                                  ))}
+                                </Select>
+                              </td>
+                              <td className="px-3 py-2">
                                 <Input
                                   type="number"
                                   step="0.01"
@@ -391,6 +421,9 @@ function Partidas() {
                           <tr key={p.id} className="border-b border-line/40 last:border-0">
                             <td className="px-5 py-2.5 font-semibold text-ink">{nombreProyecto(p.proyecto_id)}</td>
                             <td className="px-3 py-2.5 font-semibold text-ink">{p.nombre}</td>
+                            <td className="px-3 py-2.5">
+                              <InsigniaTipoPresupuesto valor={p.tipo_presupuesto ?? "Contractual"} />
+                            </td>
                             <td className="px-3 py-2.5 text-right">{soles(Number(p.presupuesto_inicial))}</td>
                             <td className="px-3 py-2.5 text-right">{soles(costo)}</td>
                             <td className="px-3 py-2.5 text-right">{pct(Number(p.avance_pct))}</td>
@@ -407,6 +440,7 @@ function Partidas() {
                                       nombre: p.nombre,
                                       especialidad: p.especialidad,
                                       presupuesto_inicial: String(p.presupuesto_inicial),
+                                      tipo_presupuesto: p.tipo_presupuesto ?? "Contractual",
                                     })
                                   }
                                   className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"
