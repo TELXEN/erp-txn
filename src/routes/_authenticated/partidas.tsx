@@ -259,15 +259,26 @@ function Partidas() {
               <option value="__nuevo__">+ Agregar tipo…</option>
             </Select>
             {!esContractual(form.tipo_presupuesto, tipos) && (
-              <label className="mt-1.5 flex items-center gap-2 text-[11px] text-muted-foreground">
-                <input
-                  type="checkbox"
-                  checked={form.aplica_gg_utilidad}
-                  onChange={(e) => setForm({ ...form, aplica_gg_utilidad: e.target.checked })}
-                  className="size-3.5 accent-[var(--color-primary)]"
-                />
-                Cobrar gastos generales y utilidad en este adicional
-              </label>
+              <div className="mt-1.5 space-y-1">
+                <label className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                  <input
+                    type="checkbox"
+                    checked={form.aplica_gg}
+                    onChange={(e) => setForm({ ...form, aplica_gg: e.target.checked })}
+                    className="size-3.5 accent-[var(--color-primary)]"
+                  />
+                  Cobrar gastos generales en este adicional
+                </label>
+                <label className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                  <input
+                    type="checkbox"
+                    checked={form.aplica_utilidad}
+                    onChange={(e) => setForm({ ...form, aplica_utilidad: e.target.checked })}
+                    className="size-3.5 accent-[var(--color-primary)]"
+                  />
+                  Cobrar utilidad en este adicional
+                </label>
+              </div>
             )}
           </Campo>
           <Campo etiqueta="Prioridad">
