@@ -104,6 +104,48 @@ export type Database = {
         }
         Relationships: []
       }
+      empresa_config: {
+        Row: {
+          color_marca: string
+          created_at: string
+          direccion: string
+          email: string
+          id: string
+          logo_url: string
+          razon_social: string
+          ruc: string
+          telefono: string
+          updated_at: string
+          web: string
+        }
+        Insert: {
+          color_marca?: string
+          created_at?: string
+          direccion?: string
+          email?: string
+          id?: string
+          logo_url?: string
+          razon_social?: string
+          ruc?: string
+          telefono?: string
+          updated_at?: string
+          web?: string
+        }
+        Update: {
+          color_marca?: string
+          created_at?: string
+          direccion?: string
+          email?: string
+          id?: string
+          logo_url?: string
+          razon_social?: string
+          ruc?: string
+          telefono?: string
+          updated_at?: string
+          web?: string
+        }
+        Relationships: []
+      }
       gastos_directos: {
         Row: {
           created_at: string
