@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState, type ReactNode } from "react";
-import { AlertTriangle, CalendarDays, Clock3, Flag, Layers3, ListTodo, MapPin, WalletCards } from "lucide-react";
+import { AlertTriangle, CalendarDays, Clock3, Flag, Layers3, ListTodo, MapPin } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { CurvaS } from "@/components/CurvaS";
@@ -198,41 +198,46 @@ function DashboardProyectos() {
         </div>
       </div>
 
-      <section className="panel rise mb-4 overflow-hidden" aria-label="Resumen de estados y operación">
-        <div className="grid grid-cols-5 gap-px bg-line lg:w-1/3">
-          {SITUACIONES.map((situacion) => {
-            const cantidad = proyectos.filter((proyecto) => proyecto.situacion === situacion).length;
-            return <EstadoProyecto key={situacion} situacion={situacion} cantidad={cantidad} />;
-          })}
+      <section className="mb-4 grid gap-3 lg:grid-cols-3" aria-label="Resumen del proyecto seleccionado">
+        <div className="panel rise overflow-hidden">
+          <div className="border-b border-line px-4 py-3">
+            <p className="label-mono">Status</p>
+            <div className="mt-2"><InsigniaSituacion valor={obraSel?.proyecto.situacion ?? "No iniciado"} /></div>
+          </div>
+          <div className="grid grid-cols-5 gap-px bg-line">
+            {SITUACIONES.map((situacion) => {
+              const cantidad = proyectos.filter((proyecto) => proyecto.situacion === situacion).length;
+              return <EstadoProyecto key={situacion} situacion={situacion} cantidad={cantidad} />;
+            })}
+          </div>
         </div>
-        <div className="grid gap-px border-t border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
-          <IndicadorOperacion
-            icono={<Layers3 />}
-            etiqueta="Total de partidas"
-            valor={String(obraSel?.partidas ?? 0)}
-            detalle={obraSel?.proyecto.nombre ?? "Sin obra seleccionada"}
-          />
-          <IndicadorOperacion
-            icono={<ListTodo />}
-            etiqueta="Partidas pendientes"
-            valor={String(obraSel?.partidasPendientes ?? 0)}
-            detalle={`${Math.max((obraSel?.partidas ?? 0) - (obraSel?.partidasPendientes ?? 0), 0)} completadas`}
-            tono={(obraSel?.partidasPendientes ?? 0) > 0 ? "bad" : "good"}
-          />
-          <IndicadorOperacion
-            icono={<AlertTriangle />}
-            etiqueta="Prioridad"
-            valor={(obraSel?.proyecto.prioridad ?? "Sin definir").toUpperCase()}
-            detalle="Nivel de atención de la obra"
-            {...(obraSel?.proyecto.prioridad === "Alta" ? { tono: "bad" as const } : {})}
-          />
-          <IndicadorOperacion
-            icono={<Clock3 />}
-            etiqueta={plazo?.vencido ? "Plazo vencido" : "Días restantes"}
-            valor={plazo ? String(Math.abs(plazo.dias)) : "—"}
-            detalle={plazo ? (plazo.vencido ? "días fuera de plazo" : `hasta el ${fecha(obraSel?.proyecto.fecha_fin ?? null)}`) : "Sin fecha de fin"}
-            {...(plazo?.vencido ? { tono: "bad" as const } : {})}
-          />
+
+        <div className="panel rise overflow-hidden">
+          <div className="border-b border-line px-4 py-3"><p className="label-mono">Partidas y prioridad</p></div>
+          <div className="divide-y divide-line">
+            <IndicadorCompacto icono={<Layers3 />} etiqueta="Total partidas" valor={String(obraSel?.partidas ?? 0)} />
+            <IndicadorCompacto
+              icono={<ListTodo />}
+              etiqueta="Partidas pendientes"
+              valor={String(obraSel?.partidasPendientes ?? 0)}
+              tono={(obraSel?.partidasPendientes ?? 0) > 0 ? "bad" : "good"}
+            />
+            <IndicadorCompacto
+              icono={<AlertTriangle />}
+              etiqueta="Prioridad"
+              valor={(obraSel?.proyecto.prioridad ?? "Sin definir").toUpperCase()}
+              {...(obraSel?.proyecto.prioridad === "Alta" ? { tono: "bad" as const } : {})}
+            />
+          </div>
+        </div>
+
+        <div className="panel rise overflow-hidden">
+          <div className="border-b border-line px-4 py-3"><p className="label-mono">Resumen financiero del proyecto</p></div>
+          <div className="divide-y divide-line">
+            <DatoFinanciero etiqueta="Presupuesto total" valor={soles(obraSel?.presupuesto ?? 0)} />
+            <DatoFinanciero etiqueta="Costo real" valor={soles(obraSel?.costoReal ?? 0)} {...(obraSel?.desviado ? { tono: "bad" as const } : {})} />
+            <DatoFinanciero etiqueta="Saldo disponible" valor={soles(obraSel?.diferencia ?? 0)} tono={(obraSel?.diferencia ?? 0) < 0 ? "bad" : "good"} />
+          </div>
         </div>
       </section>
 
@@ -241,7 +246,7 @@ function DashboardProyectos() {
       ) : (
         <>
           <div className="mb-4 grid gap-3 lg:grid-cols-12">
-            <section className="panel rise flex min-h-64 flex-col justify-between p-5 lg:col-span-4">
+            <section className="panel rise flex min-h-64 flex-col justify-between p-5 lg:col-span-5">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="label-mono">Avance general</p>
@@ -259,7 +264,7 @@ function DashboardProyectos() {
               </div>
             </section>
 
-            <section className="panel rise grid sm:grid-cols-2 lg:col-span-5">
+            <section className="panel rise grid sm:grid-cols-3 lg:col-span-7">
               <DatoIcono icono={<CalendarDays />} etiqueta="Inicio" valor={fecha(obraSel.proyecto.fecha_inicio)} />
               <DatoIcono icono={<Flag />} etiqueta="Fin previsto" valor={fecha(obraSel.proyecto.fecha_fin)} />
               <DatoIcono
@@ -268,30 +273,7 @@ function DashboardProyectos() {
                 valor={plazo ? `${Math.abs(plazo.dias)} días` : "Sin fecha"}
                 {...(plazo?.vencido ? { tono: "bad" as const } : {})}
               />
-              <DatoIcono icono={<WalletCards />} etiqueta="Saldo disponible" valor={soles(obraSel.diferencia)} tono={obraSel.diferencia < 0 ? "bad" : "good"} />
             </section>
-
-            <section className="panel rise flex flex-col justify-between p-5 lg:col-span-3">
-              <div>
-                <p className="label-mono">Control de presupuesto</p>
-                <p className="mt-3 font-mono text-2xl font-bold">{soles(obraSel.presupuesto)}</p>
-                <p className="mt-1 text-xs text-muted-foreground">Presupuesto aprobado</p>
-              </div>
-              <div className="my-5">
-                <div className="mb-2 flex justify-between font-mono text-[11px]">
-                  <span>Costo real</span><strong>{pct(obraSel.gastado)}</strong>
-                </div>
-                <div className="h-3 overflow-hidden rounded-full bg-muted">
-                  <div className={`growx h-full rounded-full ${obraSel.desviado ? "bg-bad" : "bg-primary"}`} style={{ width: `${Math.min(obraSel.gastado, 100)}%` }} />
-                </div>
-              </div>
-              <p className={`font-mono text-lg font-semibold ${obraSel.desviado ? "text-bad" : "text-good"}`}>{soles(obraSel.costoReal)}</p>
-            </section>
-          </div>
-
-          <div className="mb-4 grid gap-3 sm:grid-cols-2">
-            <Tarjeta etiqueta="Presupuesto cartera" valor={soles(resumen.presupuesto)} detalle="Total de todas las obras" />
-            <Tarjeta etiqueta="Costo real cartera" valor={soles(resumen.costoReal)} detalle={`Saldo ${soles(resumen.diferencia)}`} tono={resumen.diferencia < 0 ? "bad" : "good"} />
           </div>
         </>
       )}
@@ -359,28 +341,17 @@ function DashboardProyectos() {
   );
 }
 
-function Tarjeta({
-  etiqueta,
-  valor,
-  detalle,
-  tono,
-}: {
-  etiqueta: string;
-  valor: string;
-  detalle: string;
-  tono?: "good" | "bad";
-}) {
+function DatoFinanciero({ etiqueta, valor, tono }: { etiqueta: string; valor: string; tono?: "good" | "bad" }) {
   return (
-    <div className="panel rise p-5">
+    <div className="flex min-h-20 items-center justify-between gap-3 px-4 py-3">
       <p className="label-mono">{etiqueta}</p>
       <p
-        className={`mt-2 font-mono text-2xl font-bold tracking-tight ${
+        className={`text-right font-mono text-lg font-bold ${
           tono === "bad" ? "text-bad" : tono === "good" ? "text-good" : "text-ink"
         }`}
       >
         {valor}
       </p>
-      <p className="mt-1 font-mono text-[11px] text-muted-foreground">{detalle}</p>
     </div>
   );
 }
@@ -398,29 +369,14 @@ function EstadoProyecto({ situacion, cantidad }: { situacion: string; cantidad: 
   );
 }
 
-function IndicadorOperacion({
-  icono,
-  etiqueta,
-  valor,
-  detalle,
-  tono,
-}: {
-  icono: ReactNode;
-  etiqueta: string;
-  valor: string;
-  detalle: string;
-  tono?: "good" | "bad";
-}) {
+function IndicadorCompacto({ icono, etiqueta, valor, tono }: { icono: ReactNode; etiqueta: string; valor: string; tono?: "good" | "bad" }) {
   return (
-    <div className="flex min-h-32 items-center gap-4 bg-card p-4">
-      <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-muted [&>svg]:h-5 [&>svg]:w-5 ${tono === "bad" ? "text-bad" : tono === "good" ? "text-good" : "text-primary"}`}>
+    <div className="flex min-h-20 items-center gap-3 px-4 py-3">
+      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-muted [&>svg]:h-4 [&>svg]:w-4 ${tono === "bad" ? "text-bad" : tono === "good" ? "text-good" : "text-primary"}`}>
         {icono}
       </span>
-      <div className="min-w-0">
-        <p className="label-mono">{etiqueta}</p>
-        <p className={`mt-1 break-words font-mono text-2xl font-bold ${tono === "bad" ? "text-bad" : tono === "good" ? "text-good" : "text-ink"}`}>{valor}</p>
-        <p className="mt-1 truncate text-xs text-muted-foreground">{detalle}</p>
-      </div>
+      <p className="label-mono min-w-0 flex-1">{etiqueta}</p>
+      <strong className={`font-mono text-xl ${tono === "bad" ? "text-bad" : tono === "good" ? "text-good" : "text-ink"}`}>{valor}</strong>
     </div>
   );
 }
