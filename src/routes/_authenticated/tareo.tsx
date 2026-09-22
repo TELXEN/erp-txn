@@ -290,6 +290,10 @@ function TareoPage() {
   }
 
   const totalMes = consolidado.reduce((s, c) => s + c.costo, 0);
+  const totalDirecto = consolidado
+    .filter((c) => c.clasificacion === "Directo")
+    .reduce((s, c) => s + c.costo, 0);
+  const totalStaff = totalMes - totalDirecto;
 
   return (
     <>
