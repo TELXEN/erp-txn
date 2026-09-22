@@ -287,7 +287,12 @@ function Dashboard() {
             datos.totalGenerales,
           )}`}
         />
-        <Tarjeta etiqueta="Margen de Utilidad Actual" valor={datos.margen} detalle="Ventas − Gastos" resaltar />
+        <Tarjeta
+          etiqueta="Utilidad Real Actual"
+          valor={datos.margen}
+          detalle={`Ventas − Gastos · vs prevista ${soles(datos.variacionUtilidad)}`}
+          resaltar
+        />
       </div>
 
       <Panel titulo={`Presupuesto vs Ventas vs Costo Real — ${nombreVista}`}>
