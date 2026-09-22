@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { CalendarDays, CircleDollarSign, Clock3, Flag, MapPin, WalletCards } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
@@ -220,7 +220,7 @@ function DashboardProyectos() {
                 icono={<Clock3 />}
                 etiqueta={plazo?.vencido ? "Plazo vencido" : "Días restantes"}
                 valor={plazo ? `${Math.abs(plazo.dias)} días` : "Sin fecha"}
-                tono={plazo?.vencido ? "bad" : undefined}
+                {...(plazo?.vencido ? { tono: "bad" as const } : {})}
               />
               <DatoIcono icono={<WalletCards />} etiqueta="Saldo disponible" valor={soles(obraSel.diferencia)} tono={obraSel.diferencia < 0 ? "bad" : "good"} />
             </section>
@@ -373,7 +373,7 @@ function Medidor({ valor }: { valor: number }) {
   );
 }
 
-function DatoIcono({ icono, etiqueta, valor, tono }: { icono: React.ReactNode; etiqueta: string; valor: string; tono?: "good" | "bad" }) {
+function DatoIcono({ icono, etiqueta, valor, tono }: { icono: ReactNode; etiqueta: string; valor: string; tono?: "good" | "bad" }) {
   return (
     <div className="flex min-h-32 items-center gap-4 border-b border-line p-5 last:border-b-0 sm:border-r sm:[&:nth-child(2n)]:border-r-0 sm:[&:nth-child(n+3)]:border-b-0">
       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-primary [&>svg]:h-5 [&>svg]:w-5">{icono}</span>
