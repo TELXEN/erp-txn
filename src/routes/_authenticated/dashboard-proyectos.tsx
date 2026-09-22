@@ -246,7 +246,7 @@ function DashboardProyectos() {
       ) : (
         <>
           <div className="mb-4 grid gap-3 lg:grid-cols-12">
-            <section className="panel rise flex min-h-64 flex-col justify-between p-5 lg:col-span-5">
+            <section className="panel rise flex flex-col justify-between p-5 lg:col-span-5">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="label-mono">Avance general</p>
@@ -257,6 +257,24 @@ function DashboardProyectos() {
                 </div>
                 <InsigniaPrioridad valor={obraSel.proyecto.prioridad} />
               </div>
+
+              <div className="my-4 grid grid-cols-3 gap-2 rounded-lg border border-line bg-muted/30 p-3">
+                <div className="text-center">
+                  <p className="label-mono text-[10px]">Inicio</p>
+                  <p className="mt-1 font-mono text-xs font-semibold">{fecha(obraSel.proyecto.fecha_inicio)}</p>
+                </div>
+                <div className="border-x border-line px-2 text-center">
+                  <p className="label-mono text-[10px]">Fin previsto</p>
+                  <p className="mt-1 font-mono text-xs font-semibold">{fecha(obraSel.proyecto.fecha_fin)}</p>
+                </div>
+                <div className="text-center">
+                  <p className="label-mono text-[10px]">{plazo?.vencido ? "Plazo vencido" : "Días restantes"}</p>
+                  <p className={`mt-1 font-mono text-xs font-semibold ${plazo?.vencido ? "text-bad" : ""}`}>
+                    {plazo ? `${Math.abs(plazo.dias)} días` : "Sin fecha"}
+                  </p>
+                </div>
+              </div>
+
               <Medidor valor={obraSel.avance} />
               <div className="flex items-center justify-between border-t border-line pt-3">
                 <InsigniaSituacion valor={obraSel.proyecto.situacion} />
@@ -264,15 +282,20 @@ function DashboardProyectos() {
               </div>
             </section>
 
-            <section className="panel rise grid sm:grid-cols-3 lg:col-span-7">
-              <DatoIcono icono={<CalendarDays />} etiqueta="Inicio" valor={fecha(obraSel.proyecto.fecha_inicio)} />
-              <DatoIcono icono={<Flag />} etiqueta="Fin previsto" valor={fecha(obraSel.proyecto.fecha_fin)} />
-              <DatoIcono
-                icono={<Clock3 />}
-                etiqueta={plazo?.vencido ? "Plazo vencido" : "Días restantes"}
-                valor={plazo ? `${Math.abs(plazo.dias)} días` : "Sin fecha"}
-                {...(plazo?.vencido ? { tono: "bad" as const } : {})}
-              />
+            <section className="panel rise flex min-h-64 flex-col p-5 lg:col-span-7">
+              <p className="label-mono mb-3">Curva S — Vista rápida</p>
+              {!obraSel ? (
+                <Vacio texto="Registra una obra para visualizar su curva S." />
+              ) : (
+                <CurvaS
+                  fechaInicio={obraSel.proyecto.fecha_inicio}
+                  fechaFin={obraSel.proyecto.fecha_fin}
+                  presupuesto={obraSel.presupuesto}
+                  avanceFisico={obraSel.avance}
+                  movimientos={movimientos}
+                  compacto
+                />
+              )}
             </section>
           </div>
         </>
