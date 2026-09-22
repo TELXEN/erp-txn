@@ -265,18 +265,6 @@ function DashboardProyectos() {
         </div>
       </section>
 
-      <section className="panel rise mb-4 overflow-hidden">
-        <div className="border-b border-line px-4 py-3">
-          <p className="label-mono">Status</p>
-          <div className="mt-2"><InsigniaSituacion valor={obraSel?.proyecto.situacion ?? "No iniciado"} /></div>
-        </div>
-        <div className="grid grid-cols-5 gap-px bg-line">
-          {SITUACIONES.map((situacion) => {
-            const cantidad = proyectos.filter((proyecto) => proyecto.situacion === situacion).length;
-            return <EstadoProyecto key={situacion} situacion={situacion} cantidad={cantidad} />;
-          })}
-        </div>
-      </section>
 
       <Panel
         titulo="Curva S — Plan contra ejecución"
