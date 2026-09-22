@@ -160,10 +160,12 @@ function Dashboard() {
   if (rol !== "gerente") return <SinAcceso />;
 
   const kpis = [
-    { etiqueta: "Presupuesto Total", valor: datos.presupuesto },
+    { etiqueta: "Costo Directo (Partidas)", valor: datos.presupuesto },
+    { etiqueta: "GG Presupuestados", valor: datos.ggPresupuestado },
+    { etiqueta: "Utilidad Prevista", valor: datos.utilidadPrevista },
     { etiqueta: "Total Ventas (Cobrado)", valor: datos.totalVentas },
     { etiqueta: "Total Gastos", valor: datos.totalGastos },
-    { etiqueta: "Margen de Utilidad", valor: datos.margen },
+    { etiqueta: "Utilidad Real", valor: datos.margen },
   ];
 
   function excel() {
@@ -171,7 +173,10 @@ function Dashboard() {
       {
         nombre: "KPIs",
         filas: [
-          { Indicador: "Presupuesto Total (S/)", Valor: datos.presupuesto },
+          { Indicador: "Costo Directo - Partidas (S/)", Valor: datos.presupuesto },
+          { Indicador: "Gastos Generales Presupuestados (S/)", Valor: datos.ggPresupuestado },
+          { Indicador: "Utilidad Prevista (S/)", Valor: datos.utilidadPrevista },
+          { Indicador: "Presupuesto Ofertado (S/)", Valor: datos.ofertado },
           { Indicador: "Total Ventas Cobradas (S/)", Valor: datos.totalVentas },
           { Indicador: "Ventas Pendientes de Pago (S/)", Valor: datos.ventasPendientes },
           { Indicador: "Compras Directas (S/)", Valor: datos.totalDirectos },
@@ -185,11 +190,17 @@ function Dashboard() {
         nombre: "Por Proyecto",
         filas: (global ? porProyecto : porProyecto.filter((f) => f.id === seleccion)).map((f) => ({
           Obra: f.nombre,
-          "Presupuesto (S/)": f.presupuesto,
+          "Costo Directo (S/)": f.presupuesto,
+          "% GG": f.pctGG,
+          "GG Presupuestados (S/)": f.ggPresupuestado,
+          "% Utilidad": f.pctUtilidad,
+          "Utilidad Prevista (S/)": f.utilidadPrevista,
+          "Presupuesto Ofertado (S/)": f.ofertado,
           "Ventas Cobradas (S/)": f.cobrado,
           "Ventas por Cobrar (S/)": f.pendiente,
           "Costo Real (S/)": f.costoReal,
-          "Margen (S/)": f.margen,
+          "Utilidad Real (S/)": f.margen,
+          "Variacion vs Prevista (S/)": f.variacionUtilidad,
           "% Cobrado vs Presupuesto": Number(f.avanceFacturado.toFixed(1)),
         })),
       },
