@@ -698,6 +698,8 @@ function Datos() {
             )}
           </Panel>
         </>
+      ) : pestana === "cargos" ? (
+        <CargosPersonal />
       ) : pestana === "configuracion" ? (
         <ConfiguracionProyectos />
       ) : pestana === "empresa" ? (
