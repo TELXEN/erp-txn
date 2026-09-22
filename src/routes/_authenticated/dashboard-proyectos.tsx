@@ -361,7 +361,7 @@ function EstadoProyecto({ situacion, cantidad }: { situacion: string; cantidad: 
   return (
     <div className="flex min-h-20 flex-col justify-between p-2" style={{ backgroundColor: tono.fondo }}>
       <div className="flex items-center justify-between gap-1">
-        <span className="font-mono text-[9px] font-semibold uppercase leading-tight text-ink">{situacion}</span>
+        <span className="font-mono text-[9px] font-semibold uppercase leading-tight text-ink">{situacion === "Completado" ? "" : situacion}</span>
         <span className="h-2 w-2 shrink-0 rounded-full border" style={{ backgroundColor: tono.borde, borderColor: tono.borde }} />
       </div>
       <strong className="font-mono text-2xl font-bold text-ink">{cantidad}</strong>
