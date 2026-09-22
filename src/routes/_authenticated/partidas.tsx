@@ -261,6 +261,19 @@ function Partidas() {
         </form>
       </Panel>
 
+      <div className="mb-4 grid gap-3 sm:grid-cols-3">
+        {[
+          { etiqueta: "Presupuesto contractual", valor: resumen.contractual },
+          { etiqueta: "Total adicionales", valor: resumen.adicionales },
+          { etiqueta: "Presupuesto vigente", valor: resumen.vigente },
+        ].map((d) => (
+          <div key={d.etiqueta} className="rounded-md border border-line bg-card p-4">
+            <p className="label-mono text-muted-foreground">{d.etiqueta}</p>
+            <p className="mt-1 font-mono text-lg font-semibold text-ink">{soles(d.valor)}</p>
+          </div>
+        ))}
+      </div>
+
       <Panel
         titulo={vista === "kanban" ? "Tablero Kanban de partidas" : "Listado por proyecto y especialidad"}
         extra={
@@ -322,7 +335,10 @@ function Partidas() {
                         {soles(costo)} / {soles(presu)}
                       </span>
                     </div>
-                    <InsigniaPrioridad valor={p.prioridad} />
+                    <div className="flex flex-wrap items-center gap-1">
+                      <InsigniaPrioridad valor={p.prioridad} />
+                      <InsigniaTipoPresupuesto valor={p.tipo_presupuesto ?? "Contractual"} />
+                    </div>
                   </div>
                 ),
               };
