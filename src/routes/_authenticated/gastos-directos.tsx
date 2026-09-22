@@ -344,6 +344,9 @@ function GastosDirectos() {
                     <td className="px-3 py-2.5 text-muted-foreground">{nombreProy(g.proyecto_id)}</td>
                     <td className="px-3 py-2.5 font-semibold text-ink">{g.descripcion}</td>
                     <td className="px-3 py-2.5 text-muted-foreground">{nombreProv(g)}</td>
+                    <td className="px-3 py-2.5">
+                      <InsigniaRubro valor={g.rubro ?? "Materiales"} />
+                    </td>
                     <td className="px-3 py-2.5 text-right">
                       <div className="flex items-center justify-end gap-2">
                         {g.moneda === "USD" ? `US$ ${Number(g.monto).toFixed(2)}` : soles(Number(g.monto))}
