@@ -4,15 +4,15 @@ import { useEffect, useState, type ReactNode } from "react";
 import { ChevronDown } from "lucide-react";
 import {
   Activity,
-  ArrowDownCircle,
-  ArrowUpCircle,
   Banknote,
   BarChart3,
   BookUser,
+  Briefcase,
   Building2,
   CalendarDays,
   ClipboardList,
   Gauge,
+  HardHat,
   Layers,
   ShieldCheck,
   Users,
