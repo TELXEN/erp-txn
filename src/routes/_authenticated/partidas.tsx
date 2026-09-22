@@ -501,9 +501,15 @@ function Partidas() {
                             <td className="px-3 py-2.5 font-semibold text-ink">{p.nombre}</td>
                             <td className="px-3 py-2.5">
                               <InsigniaTipoPresupuesto valor={p.tipo_presupuesto ?? "Contractual"} />
-                              {!esContractual(p.tipo_presupuesto ?? "Contractual", tipos) && p.aplica_gg_utilidad === false && (
-                                <span className="mt-1 block font-mono text-[10px] text-muted-foreground">Sin GG ni utilidad</span>
-                              )}
+                              {(() => {
+                                const gg = cobraGG(p, tipos);
+                                const ut = cobraUtilidad(p, tipos);
+                                if (gg && ut) return null;
+                                const texto = !gg && !ut ? "Costo neto" : !gg ? "Sin GG" : "Sin utilidad";
+                                return (
+                                  <span className="mt-1 block font-mono text-[10px] text-muted-foreground">{texto}</span>
+                                );
+                              })()}
                             </td>
                             <td className="px-3 py-2.5 text-right">{soles(Number(p.presupuesto_inicial))}</td>
                             <td className="px-3 py-2.5 text-right">{soles(costo)}</td>
