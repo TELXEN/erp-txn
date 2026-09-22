@@ -5,7 +5,6 @@ import { Encabezado } from "@/components/AppShell";
 import { Boton, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { CurvaS } from "@/components/CurvaS";
 import { InsigniaPrioridad, InsigniaSituacion } from "@/components/estado-ui";
-import { SITUACIONES, tonoSituacion } from "@/lib/configuracion";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha, pct, soles } from "@/lib/format";
 import {
@@ -265,18 +264,6 @@ function DashboardProyectos() {
         </div>
       </section>
 
-      <section className="panel rise mb-4 overflow-hidden">
-        <div className="border-b border-line px-4 py-3">
-          <p className="label-mono">Status</p>
-          <div className="mt-2"><InsigniaSituacion valor={obraSel?.proyecto.situacion ?? "No iniciado"} /></div>
-        </div>
-        <div className="grid grid-cols-5 gap-px bg-line">
-          {SITUACIONES.map((situacion) => {
-            const cantidad = proyectos.filter((proyecto) => proyecto.situacion === situacion).length;
-            return <EstadoProyecto key={situacion} situacion={situacion} cantidad={cantidad} />;
-          })}
-        </div>
-      </section>
 
       <Panel
         titulo="Curva S — Plan contra ejecución"
@@ -356,18 +343,6 @@ function DatoFinanciero({ etiqueta, valor, tono }: { etiqueta: string; valor: st
   );
 }
 
-function EstadoProyecto({ situacion, cantidad }: { situacion: string; cantidad: number }) {
-  const tono = tonoSituacion(situacion);
-  return (
-    <div className="flex min-h-20 flex-col justify-between p-2" style={{ backgroundColor: tono.fondo }}>
-      <div className="flex items-center justify-between gap-1">
-        <span className="font-mono text-[9px] font-semibold uppercase leading-tight text-ink">{situacion === "Completado" ? "" : situacion}</span>
-        <span className="h-2 w-2 shrink-0 rounded-full border" style={{ backgroundColor: tono.borde, borderColor: tono.borde }} />
-      </div>
-      <strong className="font-mono text-2xl font-bold text-ink">{cantidad}</strong>
-    </div>
-  );
-}
 
 function IndicadorCompacto({ icono, etiqueta, valor, tono }: { icono: ReactNode; etiqueta: string; valor: string; tono?: "good" | "bad" }) {
   return (
