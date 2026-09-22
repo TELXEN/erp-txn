@@ -345,7 +345,7 @@ function Dashboard() {
                     <th className="label-mono px-4 py-2 text-right">Ventas cobradas</th>
                     <th className="label-mono px-4 py-2 text-right">Por cobrar</th>
                     <th className="label-mono px-4 py-2 text-right">Costo real</th>
-                    <th className="label-mono px-4 py-2 text-right">Margen</th>
+                    <th className="label-mono px-4 py-2 text-right">Utilidad real</th>
                     <th className="label-mono px-4 py-2 text-right">% Cobrado</th>
                   </tr>
                 </thead>
