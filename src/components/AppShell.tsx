@@ -4,15 +4,15 @@ import { useEffect, useState, type ReactNode } from "react";
 import { ChevronDown } from "lucide-react";
 import {
   Activity,
-  ArrowDownCircle,
-  ArrowUpCircle,
   Banknote,
   BarChart3,
   BookUser,
+  Briefcase,
   Building2,
   CalendarDays,
   ClipboardList,
   Gauge,
+  HardHat,
   Layers,
   ShieldCheck,
   Users,
@@ -49,8 +49,8 @@ const MENU: Categoria[] = [
   {
     titulo: "Finanzas y Contabilidad",
     items: [
-      { a: "/gastos-directos", texto: "Costos Directos", roles: ["administrador", "gerente"], icono: ArrowDownCircle },
-      { a: "/gastos-generales", texto: "Gastos Generales", roles: ["administrador", "gerente"], icono: ArrowUpCircle },
+      { a: "/gastos-directos", texto: "Costos Directos", roles: ["administrador", "gerente"], icono: HardHat },
+      { a: "/gastos-generales", texto: "Gastos Generales", roles: ["administrador", "gerente"], icono: Briefcase },
     ],
   },
   {
