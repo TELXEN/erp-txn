@@ -971,6 +971,10 @@ function ConfiguracionProyectos() {
           ))}
         </div>
       </Panel>
+
+      <div className="lg:col-span-2">
+        <TiposPresupuesto />
+      </div>
     </div>
   );
 }
