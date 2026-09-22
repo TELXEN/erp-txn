@@ -28,6 +28,8 @@ export const Route = createFileRoute("/_authenticated/dashboard-proyectos")({
       },
       { property: "og:title", content: "Dashboard de Proyectos — ERP TELXEN" },
       { property: "og:description", content: "Avance físico y control de costos por obra." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: DashboardProyectos,
