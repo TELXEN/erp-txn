@@ -130,6 +130,7 @@ function Partidas() {
           Proyecto: nombreProyecto(p.proyecto_id),
           Especialidad: p.especialidad,
           Partida: p.nombre,
+          "Tipo de Presupuesto": p.tipo_presupuesto ?? "Contractual",
           "Presupuesto (S/)": Number(p.presupuesto_inicial),
           "Costo Real (S/)": costoRealPartida(p.id, gastos),
           "Avance Fisico %": Number(p.avance_pct),
@@ -209,6 +210,22 @@ function Partidas() {
               required
             />
           </Campo>
+          <Campo etiqueta="Tipo de presupuesto">
+            <Select
+              value={form.tipo_presupuesto}
+              onChange={(e) => {
+                if (e.target.value === "__nuevo__") void crearTipo();
+                else setForm({ ...form, tipo_presupuesto: e.target.value });
+              }}
+            >
+              {nombresTipos.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+              <option value="__nuevo__">+ Agregar tipo…</option>
+            </Select>
+          </Campo>
           <Campo etiqueta="Prioridad">
             <Select value={form.prioridad} onChange={(e) => setForm({ ...form, prioridad: e.target.value })}>
               {PRIORIDADES.map((p) => (
@@ -244,6 +261,14 @@ function Partidas() {
               {ESPECIALIDADES.map((e) => (
                 <option key={e} value={e}>
                   {e}
+                </option>
+              ))}
+            </Select>
+            <Select className="w-52" value={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value)}>
+              <option value="">Todos los tipos</option>
+              {nombresTipos.map((t) => (
+                <option key={t} value={t}>
+                  {t}
                 </option>
               ))}
             </Select>
@@ -293,20 +318,21 @@ function Partidas() {
               <table className="w-full table-fixed font-mono text-xs">
                 <thead>
                   <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                    <th style={{ width: "22.5%" }} className="whitespace-nowrap px-5 py-2 font-medium">Proyecto</th>
-                    <th style={{ width: "22.5%" }} className="whitespace-nowrap px-3 py-2 font-medium">Partida</th>
+                    <th style={{ width: "18%" }} className="whitespace-nowrap px-5 py-2 font-medium">Proyecto</th>
+                    <th style={{ width: "20%" }} className="whitespace-nowrap px-3 py-2 font-medium">Partida</th>
+                    <th style={{ width: "13%" }} className="whitespace-nowrap px-3 py-2 font-medium">Tipo</th>
                     <th style={{ width: "11%" }} className="whitespace-nowrap px-3 py-2 text-right font-medium">Presupuesto</th>
-                    <th style={{ width: "12%" }} className="whitespace-nowrap px-3 py-2 text-right font-medium">Costo real</th>
-                    <th style={{ width: "10%" }} className="whitespace-nowrap px-3 py-2 text-right font-medium">Avance</th>
-                    <th style={{ width: "10%" }} className="whitespace-nowrap px-3 py-2 text-right font-medium">Saldo</th>
-                    <th style={{ width: "12%" }} className="whitespace-nowrap px-5 py-2 text-right font-medium">Acciones</th>
+                    <th style={{ width: "11%" }} className="whitespace-nowrap px-3 py-2 text-right font-medium">Costo real</th>
+                    <th style={{ width: "9%" }} className="whitespace-nowrap px-3 py-2 text-right font-medium">Avance</th>
+                    <th style={{ width: "9%" }} className="whitespace-nowrap px-3 py-2 text-right font-medium">Saldo</th>
+                    <th style={{ width: "9%" }} className="whitespace-nowrap px-5 py-2 text-right font-medium">Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
                   {espGrupos.map(([esp, lista]) => (
                     <>
                       <tr key={`${esp}-header`} className="border-b border-line/40 bg-muted/40">
-                        <td colSpan={7} className="px-5 py-1.5 label-mono">{esp}</td>
+                        <td colSpan={8} className="px-5 py-1.5 label-mono">{esp}</td>
                       </tr>
                       {lista.map((p) => {
                         const costo = costoRealPartida(p.id, gastos);
