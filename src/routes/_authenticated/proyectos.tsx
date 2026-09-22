@@ -80,6 +80,8 @@ function Proyectos() {
       prioridad: form.prioridad,
       fecha_inicio: form.fecha_inicio || null,
       fecha_fin: form.fecha_fin || null,
+      pct_gastos_generales: Number(form.pct_gastos_generales) || 0,
+      pct_utilidad: Number(form.pct_utilidad) || 0,
     });
     if (err) return setError(err.message);
     setForm({
@@ -91,6 +93,8 @@ function Proyectos() {
       prioridad: "Media",
       fecha_inicio: "",
       fecha_fin: "",
+      pct_gastos_generales: "10",
+      pct_utilidad: "10",
     });
     qc.invalidateQueries({ queryKey: ["proyectos"] });
   }
@@ -108,6 +112,8 @@ function Proyectos() {
         prioridad: editando.prioridad,
         fecha_inicio: editando.fecha_inicio || null,
         fecha_fin: editando.fecha_fin || null,
+        pct_gastos_generales: Number(editando.pct_gastos_generales) || 0,
+        pct_utilidad: Number(editando.pct_utilidad) || 0,
       })
       .eq("id", editando.id);
     if (err) return setError(err.message);
@@ -358,9 +364,11 @@ function Proyectos() {
                                   estado: p.estado,
                                   situacion: p.situacion,
                                   prioridad: p.prioridad,
-                                  fecha_inicio: p.fecha_inicio ?? "",
-                                  fecha_fin: p.fecha_fin ?? "",
-                                })
+                  fecha_inicio: p.fecha_inicio ?? "",
+                  fecha_fin: p.fecha_fin ?? "",
+                  pct_gastos_generales: String(p.pct_gastos_generales ?? 0),
+                  pct_utilidad: String(p.pct_utilidad ?? 0),
+                })
                               }
                               className="grid h-7 w-7 place-items-center rounded-md border border-line hover:border-primary hover:text-primary"
                               title="Editar"
