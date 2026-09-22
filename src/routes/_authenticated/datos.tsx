@@ -1071,9 +1071,10 @@ function CategoriasGastoGeneral() {
     if (!limpio) return;
     const { error: err } = await supabase
       .from("categorias_gasto_general")
-      .insert({ nombre: limpio, orden: categorias.length + 1 });
+      .insert({ nombre: limpio, descripcion: descripcion.trim(), orden: categorias.length + 1 });
     if (err) return setError(err.code === "23505" ? "Esa categoría ya existe." : err.message);
     setNombre("");
+    setDescripcion("");
     await refrescar();
   }
 
@@ -1084,7 +1085,7 @@ function CategoriasGastoGeneral() {
     if (!limpio) return setError("Ingresa el nombre de la categoría.");
     const { error: err } = await supabase
       .from("categorias_gasto_general")
-      .update({ nombre: limpio })
+      .update({ nombre: limpio, descripcion: editando.descripcion.trim() })
       .eq("id", editando.id);
     if (err) return setError(err.code === "23505" ? "Esa categoría ya existe." : err.message);
     if (limpio !== editando.original) {
@@ -1123,12 +1124,18 @@ function CategoriasGastoGeneral() {
           asesorías. Cada gasto general se registra con una de estas categorías y se puede filtrar por ellas.
         </p>
 
-        <form onSubmit={agregar} className="mb-3 flex gap-2">
+        <form onSubmit={agregar} className="mb-3 grid gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_auto]">
           <Input
             value={nombre}
             onChange={(e) => setNombre(e.target.value)}
             placeholder="Ej. Mantenimiento de vehículos"
             maxLength={60}
+          />
+          <Input
+            value={descripcion}
+            onChange={(e) => setDescripcion(e.target.value)}
+            placeholder="Qué gastos incluye esta categoría (guía para quien registra)"
+            maxLength={200}
           />
           <Boton type="submit">Agregar</Boton>
         </form>
