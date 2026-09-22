@@ -237,7 +237,18 @@ function DashboardProyectos() {
           )}
         </div>
 
+        <div className="panel rise flex flex-col overflow-hidden">
+          <div className="border-b border-line px-4 py-3"><p className="label-mono">Status</p></div>
+          <div className="flex flex-1 flex-col">
+            {SITUACIONES.map((situacion) => {
+              const cantidad = proyectos.filter((proyecto) => proyecto.situacion === situacion).length;
+              return <CartillaEstado key={situacion} situacion={situacion} cantidad={cantidad} />;
+            })}
+          </div>
+        </div>
+
         <div className="panel rise overflow-hidden">
+
           <div className="border-b border-line px-4 py-3"><p className="label-mono">Partidas y prioridad</p></div>
           <div className="divide-y divide-line">
             <IndicadorCompacto icono={<Layers3 />} etiqueta="Total partidas" valor={String(obraSel?.partidas ?? 0)} />
