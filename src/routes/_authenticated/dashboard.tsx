@@ -396,7 +396,7 @@ function Dashboard() {
               <Vacio texto="Aún no hay costos registrados." />
             ) : (
               <div className="flex items-center gap-4 px-4 py-3">
-                <div className="relative h-44 w-44 shrink-0">
+                <div className="relative h-36 w-36 shrink-0">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
@@ -433,7 +433,7 @@ function Dashboard() {
                       <span className="h-2.5 w-2.5 shrink-0 rounded-sm" style={{ background: c.color }} />
                       <span className="flex-1 truncate">{c.nombre}</span>
                       <span className="font-mono text-[11px] text-muted-foreground">{pct(c.porcentaje)}</span>
-                      <span className="w-24 text-right font-mono text-[11px]">{soles(c.valor)}</span>
+                      <span className="shrink-0 text-right font-mono text-[11px]">{soles(c.valor)}</span>
                     </li>
                   ))}
                 </ul>
