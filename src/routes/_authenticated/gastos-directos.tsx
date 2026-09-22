@@ -101,8 +101,14 @@ function GastosDirectos() {
   }
 
   function iniciarEdicion(g: (typeof gastos)[number]) {
-    setEditando({ id: g.id, descripcion: g.descripcion, monto: String(g.monto) });
+    setEditando({
+      id: g.id,
+      descripcion: g.descripcion,
+      monto: String(g.monto),
+      rubro: (g.rubro ?? "Materiales") as RubroCosto,
+    });
   }
+
 
   function cancelarEdicion() {
     setEditando(null);
