@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState, type ReactNode } from "react";
-import { AlertTriangle, CalendarDays, Clock3, Flag, Layers3, ListTodo, MapPin, WalletCards } from "lucide-react";
+import { AlertTriangle, CalendarDays, Clock3, Flag, Layers3, ListTodo, MapPin } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { CurvaS } from "@/components/CurvaS";
@@ -235,7 +235,7 @@ function DashboardProyectos() {
           <div className="border-b border-line px-4 py-3"><p className="label-mono">Resumen financiero del proyecto</p></div>
           <div className="divide-y divide-line">
             <DatoFinanciero etiqueta="Presupuesto total" valor={soles(obraSel?.presupuesto ?? 0)} />
-            <DatoFinanciero etiqueta="Costo real" valor={soles(obraSel?.costoReal ?? 0)} tono={obraSel?.desviado ? "bad" : undefined} />
+            <DatoFinanciero etiqueta="Costo real" valor={soles(obraSel?.costoReal ?? 0)} {...(obraSel?.desviado ? { tono: "bad" as const } : {})} />
             <DatoFinanciero etiqueta="Saldo disponible" valor={soles(obraSel?.diferencia ?? 0)} tono={(obraSel?.diferencia ?? 0) < 0 ? "bad" : "good"} />
           </div>
         </div>
@@ -365,33 +365,6 @@ function EstadoProyecto({ situacion, cantidad }: { situacion: string; cantidad: 
         <span className="h-2 w-2 shrink-0 rounded-full border" style={{ backgroundColor: tono.borde, borderColor: tono.borde }} />
       </div>
       <strong className="font-mono text-2xl font-bold text-ink">{cantidad}</strong>
-    </div>
-  );
-}
-
-function IndicadorOperacion({
-  icono,
-  etiqueta,
-  valor,
-  detalle,
-  tono,
-}: {
-  icono: ReactNode;
-  etiqueta: string;
-  valor: string;
-  detalle: string;
-  tono?: "good" | "bad";
-}) {
-  return (
-    <div className="flex min-h-32 items-center gap-4 bg-card p-4">
-      <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-muted [&>svg]:h-5 [&>svg]:w-5 ${tono === "bad" ? "text-bad" : tono === "good" ? "text-good" : "text-primary"}`}>
-        {icono}
-      </span>
-      <div className="min-w-0">
-        <p className="label-mono">{etiqueta}</p>
-        <p className={`mt-1 break-words font-mono text-2xl font-bold ${tono === "bad" ? "text-bad" : tono === "good" ? "text-good" : "text-ink"}`}>{valor}</p>
-        <p className="mt-1 truncate text-xs text-muted-foreground">{detalle}</p>
-      </div>
     </div>
   );
 }
