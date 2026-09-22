@@ -108,15 +108,23 @@ function Dashboard() {
     const totalTareo = td.reduce((s, t) => s + Number(t.costo_soles), 0);
     const totalGenerales = gg.reduce((s, g) => s + Number(g.monto_soles), 0);
     const totalGastos = totalDirectos + totalTareo + totalGenerales;
+    const ggPresupuestado = filas.reduce((s, f) => s + f.ggPresupuestado, 0);
+    const utilidadPrevista = filas.reduce((s, f) => s + f.utilidadPrevista, 0);
+    const ofertado = filas.reduce((s, f) => s + f.ofertado, 0);
+    const margen = totalVentas - totalGastos;
     return {
       presupuesto,
+      ggPresupuestado,
+      utilidadPrevista,
+      ofertado,
       totalVentas,
       ventasPendientes,
       totalDirectos,
       totalTareo,
       totalGenerales,
       totalGastos,
-      margen: totalVentas - totalGastos,
+      margen,
+      variacionUtilidad: margen - utilidadPrevista,
     };
   }, [global, seleccion, porProyecto, gastosD, tareos, gastosG]);
 
