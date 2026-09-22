@@ -1,30 +1,23 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Legend,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { useAuth } from "@/lib/auth";
 import { pct, soles } from "@/lib/format";
 import {
+  clasificacionDeCargo,
   costoRealPartida,
-  costoRealProyecto,
   ofertaProyecto,
-  useTiposPresupuesto,
   presupuestoProyecto,
+  useCargos,
   useGastosDirectos,
   useGastosGenerales,
   usePartidas,
   useProyectos,
   useTareos,
+  useTiposPresupuesto,
+  useTrabajadores,
   useVentas,
 } from "@/lib/datos";
 import { exportarExcel, exportarPdf } from "@/lib/exportar";
@@ -33,24 +26,31 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
       { title: "Dashboard Financiero — ERP TELXEN" },
-      { name: "description", content: "Consolidado global en Soles: presupuesto, ventas, gastos y utilidad por obra." },
+      {
+        name: "description",
+        content: "Consolidado en Soles: oferta, ventas, costos por recurso y utilidad real por obra.",
+      },
       { property: "og:title", content: "Dashboard Financiero — ERP TELXEN" },
-      { property: "og:description", content: "Presupuesto, ventas, gastos y utilidad consolidados en Soles." },
+      { property: "og:description", content: "Oferta, ventas, costos por recurso y utilidad real por obra." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Dashboard,
 });
 
-const COLOR_PRESUPUESTO = "oklch(0.46 0.083 162)";
-const COLOR_VENTAS = "oklch(0.53 0.12 152)";
-const COLOR_COSTO = "oklch(0.56 0.19 29)";
+/** Composición del costo real ejecutado. */
+const COMPOSICION = [
+  { clave: "materiales", etiqueta: "Materiales", color: "#2563EB" },
+  { clave: "subcontratos", etiqueta: "Subcontratos", color: "#F59E0B" },
+  { clave: "equipos", etiqueta: "Equipos y Maquinaria", color: "#EA580C" },
+  { clave: "servicios", etiqueta: "Servicios de Terceros", color: "#7C3AED" },
+  { clave: "mod", etiqueta: "Mano de Obra Directa", color: "#10B981" },
+  { clave: "staff", etiqueta: "Staff Técnico", color: "#0EA5E9" },
+  { clave: "generales", etiqueta: "Gastos Generales", color: "#64748B" },
+] as const;
 
-function corto(n: number) {
-  const abs = Math.abs(n);
-  if (abs >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (abs >= 1_000) return `${Math.round(n / 1_000)}k`;
-  return String(Math.round(n));
-}
+type ClaveComposicion = (typeof COMPOSICION)[number]["clave"];
 
 function Dashboard() {
   const { rol } = useAuth();
@@ -61,12 +61,21 @@ function Dashboard() {
   const { data: gastosG = [] } = useGastosGenerales();
   const { data: ventas = [] } = useVentas();
   const { data: tiposPresupuesto = [] } = useTiposPresupuesto();
+  const { data: trabajadores = [] } = useTrabajadores();
+  const { data: cargos = [] } = useCargos();
   const [seleccion, setSeleccion] = useState("global");
 
   const global = seleccion === "global";
   const nombreVista = global ? "Consolidado Global" : (proyectos.find((p) => p.id === seleccion)?.nombre ?? "");
 
-  /** Una fila financiera por obra: presupuesto, ventas y costo real. */
+  /** Clasificación (Directo / Indirecto) de cada trabajador. */
+  const clasifTrabajador = useMemo(() => {
+    const mapa = new Map<string, "Directo" | "Indirecto">();
+    trabajadores.forEach((t) => mapa.set(t.id, clasificacionDeCargo(t.cargo ?? "", cargos)));
+    return mapa;
+  }, [trabajadores, cargos]);
+
+  /** Una fila financiera completa por obra. */
   const porProyecto = useMemo(
     () =>
       proyectos.map((p) => {
@@ -74,14 +83,40 @@ function Dashboard() {
         const cobrado = vd.filter((v) => v.estado === "Pagado").reduce((s, v) => s + Number(v.monto_soles), 0);
         const pendiente = vd.filter((v) => v.estado !== "Pagado").reduce((s, v) => s + Number(v.monto_soles), 0);
         const presupuesto = presupuestoProyecto(p.id, partidas);
-        const costoReal = costoRealProyecto(p.id, gastosD, tareos, gastosG);
         const oferta = ofertaProyecto(
           partidas.filter((x) => x.proyecto_id === p.id),
           tiposPresupuesto,
           p.pct_gastos_generales,
           p.pct_utilidad,
         );
+
+        const gd = gastosD.filter((g) => g.proyecto_id === p.id);
+        const porRubro = (rubro: string) =>
+          gd.filter((g) => (g.rubro ?? "Materiales") === rubro).reduce((s, g) => s + Number(g.monto_soles), 0);
+        const materiales = porRubro("Materiales");
+        const subcontratos = porRubro("Subcontratos");
+        const equipos = porRubro("Equipos");
+        const servicios = porRubro("Servicios");
+
+        const td = tareos.filter((t) => t.proyecto_id === p.id);
+        let mod = 0;
+        let staff = 0;
+        td.forEach((t) => {
+          const monto = Number(t.costo_soles);
+          if (clasifTrabajador.get(t.trabajador_id) === "Indirecto") staff += monto;
+          else mod += monto;
+        });
+
+        const generales = gastosG
+          .filter((g) => g.proyecto_id === p.id)
+          .reduce((s, g) => s + Number(g.monto_soles), 0);
+
+        const costoDirectoReal = materiales + subcontratos + equipos + servicios + mod;
+        const ggReal = generales + staff;
+        const costoReal = costoDirectoReal + ggReal;
         const margen = cobrado - costoReal;
+        const facturado = cobrado + pendiente;
+
         return {
           id: p.id,
           nombre: p.nombre,
@@ -93,60 +128,97 @@ function Dashboard() {
           ofertado: oferta.ofertado,
           cobrado,
           pendiente,
-          facturado: cobrado + pendiente,
+          facturado,
+          materiales,
+          subcontratos,
+          equipos,
+          servicios,
+          mod,
+          staff,
+          generales,
+          costoDirectoReal,
+          ggReal,
           costoReal,
           margen,
+          margenPct: cobrado > 0 ? (margen / cobrado) * 100 : 0,
           variacionUtilidad: margen - oferta.utilidad,
+          cobranzaPct: facturado > 0 ? (cobrado / facturado) * 100 : 0,
           avanceFacturado: presupuesto > 0 ? (cobrado / presupuesto) * 100 : 0,
         };
       }),
-    [proyectos, partidas, ventas, gastosD, tareos, gastosG, tiposPresupuesto],
+    [proyectos, partidas, ventas, gastosD, tareos, gastosG, tiposPresupuesto, clasifTrabajador],
+  );
+
+  const filasTabla = useMemo(
+    () => (global ? porProyecto : porProyecto.filter((f) => f.id === seleccion)),
+    [global, seleccion, porProyecto],
   );
 
   const datos = useMemo(() => {
-    const filas = global ? porProyecto : porProyecto.filter((f) => f.id === seleccion);
-    const gd = global ? gastosD : gastosD.filter((g) => g.proyecto_id === seleccion);
-    const td = global ? tareos : tareos.filter((t) => t.proyecto_id === seleccion);
-    const gg = global ? gastosG : gastosG.filter((g) => g.proyecto_id === seleccion);
-    const totalVentas = filas.reduce((s, f) => s + f.cobrado, 0);
-    const ventasPendientes = filas.reduce((s, f) => s + f.pendiente, 0);
-    const presupuesto = filas.reduce((s, f) => s + f.presupuesto, 0);
-    const totalDirectos = gd.reduce((s, g) => s + Number(g.monto_soles), 0);
-    const totalTareo = td.reduce((s, t) => s + Number(t.costo_soles), 0);
-    const totalGenerales = gg.reduce((s, g) => s + Number(g.monto_soles), 0);
-    const totalGastos = totalDirectos + totalTareo + totalGenerales;
-    const ggPresupuestado = filas.reduce((s, f) => s + f.ggPresupuestado, 0);
-    const utilidadPrevista = filas.reduce((s, f) => s + f.utilidadPrevista, 0);
-    const ofertado = filas.reduce((s, f) => s + f.ofertado, 0);
-    const margen = totalVentas - totalGastos;
+    const sum = (f: (x: (typeof filasTabla)[number]) => number) => filasTabla.reduce((s, x) => s + f(x), 0);
+    const presupuesto = sum((f) => f.presupuesto);
+    const ggPresupuestado = sum((f) => f.ggPresupuestado);
+    const utilidadPrevista = sum((f) => f.utilidadPrevista);
+    const ofertado = sum((f) => f.ofertado);
+    const cobrado = sum((f) => f.cobrado);
+    const pendiente = sum((f) => f.pendiente);
+    const materiales = sum((f) => f.materiales);
+    const subcontratos = sum((f) => f.subcontratos);
+    const equipos = sum((f) => f.equipos);
+    const servicios = sum((f) => f.servicios);
+    const mod = sum((f) => f.mod);
+    const staff = sum((f) => f.staff);
+    const generales = sum((f) => f.generales);
+    const costoDirectoReal = materiales + subcontratos + equipos + servicios + mod;
+    const ggReal = generales + staff;
+    const costoReal = costoDirectoReal + ggReal;
+    const facturado = cobrado + pendiente;
+    const margen = cobrado - costoReal;
     return {
       presupuesto,
       ggPresupuestado,
       utilidadPrevista,
       ofertado,
-      totalVentas,
-      ventasPendientes,
-      totalDirectos,
-      totalTareo,
-      totalGenerales,
-      totalGastos,
+      cobrado,
+      pendiente,
+      facturado,
+      materiales,
+      subcontratos,
+      equipos,
+      servicios,
+      mod,
+      staff,
+      generales,
+      costoDirectoReal,
+      ggReal,
+      costoReal,
       margen,
+      margenPct: cobrado > 0 ? (margen / cobrado) * 100 : 0,
+      margenSobreOferta: ofertado > 0 ? (margen / ofertado) * 100 : 0,
       variacionUtilidad: margen - utilidadPrevista,
+      cobranzaPct: facturado > 0 ? (cobrado / facturado) * 100 : 0,
+      consumoPresupuesto: presupuesto > 0 ? (costoDirectoReal / presupuesto) * 100 : 0,
+      consumoGG: ggPresupuestado > 0 ? (ggReal / ggPresupuestado) * 100 : 0,
     };
-  }, [global, seleccion, porProyecto, gastosD, tareos, gastosG]);
+  }, [filasTabla]);
 
-  const grafico = useMemo(() => {
-    const filas = global ? porProyecto : porProyecto.filter((f) => f.id === seleccion);
-    return filas
-      .filter((f) => f.presupuesto > 0 || f.facturado > 0 || f.costoReal > 0)
-      .map((f) => ({
-        obra: f.nombre.length > 18 ? `${f.nombre.slice(0, 17)}…` : f.nombre,
-        nombre: f.nombre,
-        Presupuesto: f.presupuesto,
-        Ventas: f.cobrado,
-        "Costo real": f.costoReal,
-      }));
-  }, [global, seleccion, porProyecto]);
+  const composicion = useMemo(() => {
+    const valores: Record<ClaveComposicion, number> = {
+      materiales: datos.materiales,
+      subcontratos: datos.subcontratos,
+      equipos: datos.equipos,
+      servicios: datos.servicios,
+      mod: datos.mod,
+      staff: datos.staff,
+      generales: datos.generales,
+    };
+    return COMPOSICION.map((c) => ({
+      nombre: c.etiqueta,
+      color: c.color,
+      valor: valores[c.clave],
+      porcentaje: datos.costoReal > 0 ? (valores[c.clave] / datos.costoReal) * 100 : 0,
+    })).filter((c) => c.valor > 0);
+  }, [datos]);
 
   const barras = useMemo(() => {
     if (global) return [];
@@ -167,11 +239,12 @@ function Dashboard() {
   if (rol !== "gerente") return <SinAcceso />;
 
   const kpis = [
+    { etiqueta: "Presupuesto Ofertado", valor: datos.ofertado },
     { etiqueta: "Costo Directo (Partidas)", valor: datos.presupuesto },
     { etiqueta: "GG Presupuestados", valor: datos.ggPresupuestado },
     { etiqueta: "Utilidad Prevista", valor: datos.utilidadPrevista },
-    { etiqueta: "Total Ventas (Cobrado)", valor: datos.totalVentas },
-    { etiqueta: "Total Gastos", valor: datos.totalGastos },
+    { etiqueta: "Ventas Cobradas", valor: datos.cobrado },
+    { etiqueta: "Costo Real Total", valor: datos.costoReal },
     { etiqueta: "Utilidad Real", valor: datos.margen },
   ];
 
@@ -184,18 +257,27 @@ function Dashboard() {
           { Indicador: "Gastos Generales Presupuestados (S/)", Valor: datos.ggPresupuestado },
           { Indicador: "Utilidad Prevista (S/)", Valor: datos.utilidadPrevista },
           { Indicador: "Presupuesto Ofertado (S/)", Valor: datos.ofertado },
-          { Indicador: "Total Ventas Cobradas (S/)", Valor: datos.totalVentas },
-          { Indicador: "Ventas Pendientes de Pago (S/)", Valor: datos.ventasPendientes },
-          { Indicador: "Compras Directas (S/)", Valor: datos.totalDirectos },
-          { Indicador: "Mano de Obra / Tareo (S/)", Valor: datos.totalTareo },
-          { Indicador: "Gastos Generales (S/)", Valor: datos.totalGenerales },
-          { Indicador: "Total Gastos (S/)", Valor: datos.totalGastos },
-          { Indicador: "Margen de Utilidad (S/)", Valor: datos.margen },
+          { Indicador: "Ventas Cobradas (S/)", Valor: datos.cobrado },
+          { Indicador: "Ventas por Cobrar (S/)", Valor: datos.pendiente },
+          { Indicador: "Efectividad de Cobranza (%)", Valor: Number(datos.cobranzaPct.toFixed(1)) },
+          { Indicador: "Materiales (S/)", Valor: datos.materiales },
+          { Indicador: "Subcontratos (S/)", Valor: datos.subcontratos },
+          { Indicador: "Equipos y Maquinaria (S/)", Valor: datos.equipos },
+          { Indicador: "Servicios de Terceros (S/)", Valor: datos.servicios },
+          { Indicador: "Mano de Obra Directa (S/)", Valor: datos.mod },
+          { Indicador: "Staff Tecnico - Indirecto (S/)", Valor: datos.staff },
+          { Indicador: "Gastos Generales Ejecutados (S/)", Valor: datos.generales },
+          { Indicador: "Costo Directo Real (S/)", Valor: datos.costoDirectoReal },
+          { Indicador: "Gastos Generales Reales + Staff (S/)", Valor: datos.ggReal },
+          { Indicador: "Costo Real Total (S/)", Valor: datos.costoReal },
+          { Indicador: "Utilidad Real (S/)", Valor: datos.margen },
+          { Indicador: "Margen sobre Ventas (%)", Valor: Number(datos.margenPct.toFixed(1)) },
+          { Indicador: "Variacion vs Utilidad Prevista (S/)", Valor: datos.variacionUtilidad },
         ],
       },
       {
         nombre: "Por Proyecto",
-        filas: (global ? porProyecto : porProyecto.filter((f) => f.id === seleccion)).map((f) => ({
+        filas: filasTabla.map((f) => ({
           Obra: f.nombre,
           "Costo Directo (S/)": f.presupuesto,
           "% GG": f.pctGG,
@@ -205,10 +287,19 @@ function Dashboard() {
           "Presupuesto Ofertado (S/)": f.ofertado,
           "Ventas Cobradas (S/)": f.cobrado,
           "Ventas por Cobrar (S/)": f.pendiente,
-          "Costo Real (S/)": f.costoReal,
+          "Materiales (S/)": f.materiales,
+          "Subcontratos (S/)": f.subcontratos,
+          "Equipos (S/)": f.equipos,
+          "Servicios (S/)": f.servicios,
+          "Mano de Obra Directa (S/)": f.mod,
+          "Staff Tecnico (S/)": f.staff,
+          "Gastos Generales Ejecutados (S/)": f.generales,
+          "Costo Real Total (S/)": f.costoReal,
           "Utilidad Real (S/)": f.margen,
+          "Margen (%)": Number(f.margenPct.toFixed(1)),
           "Variacion vs Prevista (S/)": f.variacionUtilidad,
-          "% Cobrado vs Presupuesto": Number(f.avanceFacturado.toFixed(1)),
+          "Cobranza (%)": Number(f.cobranzaPct.toFixed(1)),
+          Condicion: salud(f).texto,
         })),
       },
       {
@@ -232,8 +323,6 @@ function Dashboard() {
       archivo: `reporte-${global ? "global" : "proyecto"}`,
     });
   }
-
-  const filasTabla = global ? porProyecto : porProyecto.filter((f) => f.id === seleccion);
 
   return (
     <>
@@ -260,81 +349,121 @@ function Dashboard() {
         }
       />
 
-      <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-        <Tarjeta
+      {/* Nivel 1: KPIs ejecutivos */}
+      <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <Kpi
           etiqueta="Presupuesto Ofertado"
           valor={datos.ofertado}
-          detalle={`Costo Directo ${soles(datos.presupuesto)} · GG ${soles(datos.ggPresupuestado)} · Utilidad ${soles(
-            datos.utilidadPrevista,
-          )}`}
+          lineas={[
+            `Costo directo ${soles(datos.presupuesto)}`,
+            `GG ${soles(datos.ggPresupuestado)} · Utilidad ${soles(datos.utilidadPrevista)}`,
+          ]}
         />
-        <Tarjeta
-          etiqueta="Gastos Generales Presupuestados"
-          valor={datos.ggPresupuestado}
-          detalle={`Ejecutado ${soles(datos.totalGenerales)} · ${pct(
-            datos.ggPresupuestado > 0 ? (datos.totalGenerales / datos.ggPresupuestado) * 100 : 0,
-          )} consumido`}
+        <Kpi
+          etiqueta="Ventas y Cobranza"
+          valor={datos.cobrado}
+          lineas={[
+            `Por cobrar ${soles(datos.pendiente)}`,
+            `Efectividad de cobranza ${pct(datos.cobranzaPct)}`,
+          ]}
         />
-        <Tarjeta
-          etiqueta="Utilidad Prevista"
-          valor={datos.utilidadPrevista}
-          detalle={`Utilidad real ${soles(datos.margen)} · Variación ${soles(datos.variacionUtilidad)}`}
+        <Kpi
+          etiqueta="Costo Real Consolidado"
+          valor={datos.costoReal}
+          lineas={[
+            `Directos ${soles(datos.materiales + datos.subcontratos + datos.equipos + datos.servicios)} · MOD ${soles(
+              datos.mod,
+            )}`,
+            `GG + Staff ${soles(datos.ggReal)}`,
+          ]}
         />
-        <Tarjeta
-          etiqueta="Total Ventas (Cobrado)"
-          valor={datos.totalVentas}
-          detalle={`Por cobrar ${soles(datos.ventasPendientes)} · ${pct(
-            datos.presupuesto > 0 ? (datos.totalVentas / datos.presupuesto) * 100 : 0,
-          )} del presupuesto`}
-        />
-        <Tarjeta
-          etiqueta="Total Gastos"
-          valor={datos.totalGastos}
-          detalle={`Directos ${soles(datos.totalDirectos)} · Tareo ${soles(datos.totalTareo)} · Generales ${soles(
-            datos.totalGenerales,
-          )}`}
-        />
-        <Tarjeta
-          etiqueta="Utilidad Real Actual"
+        <Kpi
+          etiqueta="Utilidad Real"
           valor={datos.margen}
-          detalle={`Ventas − Gastos · vs prevista ${soles(datos.variacionUtilidad)}`}
-          resaltar
+          tono={datos.margen < 0 ? "bad" : "good"}
+          lineas={[
+            `Prevista ${soles(datos.utilidadPrevista)} · Variación ${soles(datos.variacionUtilidad)}`,
+            `Margen ${pct(datos.margenPct)} sobre ventas cobradas`,
+          ]}
         />
       </div>
 
-      <Panel titulo={`Presupuesto vs Ventas vs Costo Real — ${nombreVista}`}>
-        {grafico.length === 0 ? (
-          <Vacio texto="Aún no hay presupuesto, ventas ni costos registrados." />
-        ) : (
-          <div className="h-80 w-full px-3 py-4">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={grafico} margin={{ top: 8, right: 12, left: 4, bottom: 8 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--line)" />
-                <XAxis
-                  dataKey="obra"
-                  tick={{ fontSize: 11 }}
-                  interval={0}
-                  angle={grafico.length > 4 ? -20 : 0}
-                  textAnchor={grafico.length > 4 ? "end" : "middle"}
-                  height={grafico.length > 4 ? 56 : 30}
-                />
-                <YAxis tick={{ fontSize: 11 }} tickFormatter={corto} width={56} />
-                <Tooltip
-                  cursor={{ fill: "var(--muted)" }}
-                  formatter={(v: number) => soles(Number(v))}
-                  labelFormatter={(_l, p) => p?.[0]?.payload?.nombre ?? ""}
-                  contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid var(--line)" }}
-                />
-                <Legend wrapperStyle={{ fontSize: 12 }} />
-                <Bar dataKey="Presupuesto" fill={COLOR_PRESUPUESTO} radius={[4, 4, 0, 0]} maxBarSize={44} />
-                <Bar dataKey="Ventas" fill={COLOR_VENTAS} radius={[4, 4, 0, 0]} maxBarSize={44} />
-                <Bar dataKey="Costo real" fill={COLOR_COSTO} radius={[4, 4, 0, 0]} maxBarSize={44} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        )}
-      </Panel>
+      {/* Nivel 2: composición y termómetros */}
+      <div className="grid gap-4 lg:grid-cols-5">
+        <div className="lg:col-span-2">
+          <Panel titulo="Composición del costo real">
+            {composicion.length === 0 ? (
+              <Vacio texto="Aún no hay costos registrados." />
+            ) : (
+              <div className="flex items-center gap-4 px-4 py-3">
+                <div className="relative h-36 w-36 shrink-0">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={composicion}
+                        dataKey="valor"
+                        nameKey="nombre"
+                        innerRadius={52}
+                        outerRadius={78}
+                        paddingAngle={2}
+                        stroke="none"
+                      >
+                        {composicion.map((c) => (
+                          <Cell key={c.nombre} fill={c.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        formatter={(v: number) => soles(Number(v))}
+                        contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid var(--line)" }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="label-mono text-[10px]">Margen</span>
+                    <span
+                      className={`font-mono text-lg font-bold ${datos.margen < 0 ? "text-bad" : "text-good"}`}
+                    >
+                      {pct(datos.margenPct)}
+                    </span>
+                  </div>
+                </div>
+                <ul className="min-w-0 flex-1 space-y-1.5">
+                  {composicion.map((c) => (
+                    <li key={c.nombre} className="flex items-center gap-2 text-[12px]">
+                      <span className="h-2.5 w-2.5 shrink-0 rounded-sm" style={{ background: c.color }} />
+                      <span className="flex-1 truncate">{c.nombre}</span>
+                      <span className="font-mono text-[11px] text-muted-foreground">{pct(c.porcentaje)}</span>
+                      <span className="shrink-0 text-right font-mono text-[11px]">{soles(c.valor)}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </Panel>
+        </div>
 
+        <div className="lg:col-span-3">
+          <Panel titulo="Indicadores de control">
+            <div className="space-y-4 px-5 py-4">
+              <Termometro
+                etiqueta="Consumo de presupuesto (costo directo)"
+                actual={datos.costoDirectoReal}
+                meta={datos.presupuesto}
+                invertido
+              />
+              <Termometro
+                etiqueta="Consumo de gastos generales"
+                actual={datos.ggReal}
+                meta={datos.ggPresupuestado}
+                invertido
+              />
+              <Termometro etiqueta="Efectividad de cobranza" actual={datos.cobrado} meta={datos.facturado} />
+            </div>
+          </Panel>
+        </div>
+      </div>
+
+      {/* Tabla por obra con semáforos */}
       <div className="mt-4">
         <Panel titulo="Resumen financiero por obra">
           {filasTabla.length === 0 ? (
@@ -346,49 +475,64 @@ function Dashboard() {
                   <tr className="border-b border-line/60 text-left">
                     <th className="label-mono px-4 py-2">Obra</th>
                     <th className="label-mono px-4 py-2 text-right">Costo directo</th>
-                    <th className="label-mono px-4 py-2 text-right">GG ({"%"})</th>
-                    <th className="label-mono px-4 py-2 text-right">Utilidad prevista ({"%"})</th>
+                    <th className="label-mono px-4 py-2 text-right">GG previsto</th>
+                    <th className="label-mono px-4 py-2 text-right">Utilidad prevista</th>
                     <th className="label-mono px-4 py-2 text-right">Ofertado</th>
-                    <th className="label-mono px-4 py-2 text-right">Ventas cobradas</th>
+                    <th className="label-mono px-4 py-2 text-right">Cobrado</th>
                     <th className="label-mono px-4 py-2 text-right">Por cobrar</th>
                     <th className="label-mono px-4 py-2 text-right">Costo real</th>
                     <th className="label-mono px-4 py-2 text-right">Utilidad real</th>
-                    <th className="label-mono px-4 py-2 text-right">% Cobrado</th>
+                    <th className="label-mono px-4 py-2 text-right">Margen</th>
+                    <th className="label-mono px-4 py-2">Condición</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-line/60">
-                  {filasTabla.map((f) => (
-                    <tr key={f.id}>
-                      <td className="px-4 py-2 font-medium">{f.nombre}</td>
-                      <td className="px-4 py-2 text-right font-mono">{soles(f.presupuesto)}</td>
-                      <td className="px-4 py-2 text-right font-mono">
-                        {soles(f.ggPresupuestado)}
-                        <span className="ml-1 text-[11px] text-muted-foreground">({f.pctGG}%)</span>
-                      </td>
-                      <td className="px-4 py-2 text-right font-mono">
-                        {soles(f.utilidadPrevista)}
-                        <span className="ml-1 text-[11px] text-muted-foreground">({f.pctUtilidad}%)</span>
-                      </td>
-                      <td className="px-4 py-2 text-right font-mono font-semibold">{soles(f.ofertado)}</td>
-                      <td className="px-4 py-2 text-right font-mono">{soles(f.cobrado)}</td>
-                      <td className="px-4 py-2 text-right font-mono text-muted-foreground">{soles(f.pendiente)}</td>
-                      <td
-                        className={`px-4 py-2 text-right font-mono ${
-                          f.costoReal > f.presupuesto && f.presupuesto > 0 ? "text-bad" : ""
-                        }`}
-                      >
-                        {soles(f.costoReal)}
-                      </td>
-                      <td
-                        className={`px-4 py-2 text-right font-mono font-semibold ${
-                          f.margen < 0 ? "text-bad" : "text-good"
-                        }`}
-                      >
-                        {soles(f.margen)}
-                      </td>
-                      <td className="px-4 py-2 text-right font-mono">{pct(f.avanceFacturado)}</td>
-                    </tr>
-                  ))}
+                  {filasTabla.map((f) => {
+                    const s = salud(f);
+                    return (
+                      <tr key={f.id}>
+                        <td className="px-4 py-2 font-medium">{f.nombre}</td>
+                        <td className="px-4 py-2 text-right font-mono">{soles(f.presupuesto)}</td>
+                        <td className="px-4 py-2 text-right font-mono">
+                          {soles(f.ggPresupuestado)}
+                          <span className="ml-1 text-[11px] text-muted-foreground">({f.pctGG}%)</span>
+                          <span className="block text-[11px] text-muted-foreground">
+                            real {soles(f.ggReal)}
+                          </span>
+                        </td>
+                        <td className="px-4 py-2 text-right font-mono">
+                          {soles(f.utilidadPrevista)}
+                          <span className="ml-1 text-[11px] text-muted-foreground">({f.pctUtilidad}%)</span>
+                        </td>
+                        <td className="px-4 py-2 text-right font-mono font-semibold">{soles(f.ofertado)}</td>
+                        <td className="px-4 py-2 text-right font-mono">{soles(f.cobrado)}</td>
+                        <td className="px-4 py-2 text-right font-mono text-muted-foreground">
+                          {soles(f.pendiente)}
+                        </td>
+                        <td
+                          className={`px-4 py-2 text-right font-mono ${
+                            f.costoDirectoReal > f.presupuesto && f.presupuesto > 0 ? "text-bad" : ""
+                          }`}
+                        >
+                          {soles(f.costoReal)}
+                        </td>
+                        <td
+                          className={`px-4 py-2 text-right font-mono font-semibold ${
+                            f.margen < 0 ? "text-bad" : "text-good"
+                          }`}
+                        >
+                          {soles(f.margen)}
+                        </td>
+                        <td className="px-4 py-2 text-right font-mono">{pct(f.margenPct)}</td>
+                        <td className="px-4 py-2">
+                          <span className="inline-flex items-center gap-2 text-[12px]">
+                            <span className="h-2.5 w-2.5 rounded-full" style={{ background: s.color }} />
+                            {s.texto}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -412,11 +556,7 @@ function Dashboard() {
                       <p className="text-sm font-semibold">{b.partida}</p>
                       <div className="mt-2 space-y-1.5">
                         <Barra etiqueta="Avance Físico" valor={b.avance} clase="bg-primary" />
-                        <Barra
-                          etiqueta="Presupuesto Gastado"
-                          valor={b.gastado}
-                          clase={sobre ? "bg-bad" : "bg-good"}
-                        />
+                        <Barra etiqueta="Presupuesto Gastado" valor={b.gastado} clase={sobre ? "bg-bad" : "bg-good"} />
                       </div>
                     </div>
                     <div className="text-right">
@@ -436,28 +576,86 @@ function Dashboard() {
   );
 }
 
-function Tarjeta({
+/** Semáforo de salud financiera de una obra. */
+function salud(f: { margen: number; margenPct: number; cobranzaPct: number; costoDirectoReal: number; presupuesto: number }) {
+  if (f.margen < 0 || (f.presupuesto > 0 && f.costoDirectoReal > f.presupuesto))
+    return { color: "#DC2626", texto: "Déficit / Sobrecosto" };
+  if (f.cobranzaPct < 70 || f.margenPct < 15) return { color: "#F59E0B", texto: "Alerta" };
+  return { color: "#10B981", texto: "Saludable" };
+}
+
+function Kpi({
   etiqueta,
   valor,
-  detalle,
-  resaltar,
+  lineas,
+  tono,
 }: {
   etiqueta: string;
   valor: number;
-  detalle: string;
-  resaltar?: boolean;
+  lineas: string[];
+  tono?: "good" | "bad";
 }) {
   return (
     <div className="panel rise p-5">
       <p className="label-mono">{etiqueta}</p>
       <p
         className={`mt-2 font-mono text-2xl font-bold tracking-tight ${
-          resaltar ? (valor < 0 ? "text-bad" : "text-good") : "text-ink"
+          tono === "bad" ? "text-bad" : tono === "good" ? "text-good" : "text-ink"
         }`}
       >
         {soles(valor)}
       </p>
-      <p className="mt-1 font-mono text-[11px] text-muted-foreground">{detalle}</p>
+      <div className="mt-1 space-y-0.5">
+        {lineas.map((l) => (
+          <p key={l} className="font-mono text-[11px] text-muted-foreground">
+            {l}
+          </p>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function Termometro({
+  etiqueta,
+  actual,
+  meta,
+  invertido,
+}: {
+  etiqueta: string;
+  actual: number;
+  meta: number;
+  invertido?: boolean;
+}) {
+  const porcentaje = meta > 0 ? (actual / meta) * 100 : 0;
+  const color = invertido
+    ? porcentaje > 100
+      ? "#DC2626"
+      : porcentaje > 85
+        ? "#F59E0B"
+        : "#10B981"
+    : porcentaje >= 70
+      ? "#10B981"
+      : porcentaje >= 40
+        ? "#F59E0B"
+        : "#DC2626";
+  return (
+    <div>
+      <div className="flex items-baseline justify-between">
+        <span className="label-mono">{etiqueta}</span>
+        <span className="font-mono text-sm font-semibold" style={{ color }}>
+          {pct(porcentaje)}
+        </span>
+      </div>
+      <div className="mt-1.5 h-3 w-full overflow-hidden rounded-full bg-muted">
+        <div
+          className="growx h-full rounded-full"
+          style={{ width: `${Math.min(porcentaje, 100)}%`, background: color }}
+        />
+      </div>
+      <p className="mt-1 font-mono text-[11px] text-muted-foreground">
+        {soles(actual)} de {soles(meta)}
+      </p>
     </div>
   );
 }
