@@ -520,7 +520,8 @@ function Partidas() {
                                       especialidad: p.especialidad,
                                       presupuesto_inicial: String(p.presupuesto_inicial),
                                       tipo_presupuesto: p.tipo_presupuesto ?? "Contractual",
-                                      aplica_gg_utilidad: p.aplica_gg_utilidad !== false,
+                                      aplica_gg: cobraGG({ ...p, tipo_presupuesto: "__adicional__" }, tipos),
+                                      aplica_utilidad: cobraUtilidad({ ...p, tipo_presupuesto: "__adicional__" }, tipos),
                                     })
                                   }
                                   className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"
