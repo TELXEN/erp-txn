@@ -159,6 +159,7 @@ export type Database = {
           proveedor: string
           proveedor_id: string | null
           proyecto_id: string
+          rubro: string
           tipo_cambio: number
         }
         Insert: {
@@ -173,6 +174,7 @@ export type Database = {
           proveedor?: string
           proveedor_id?: string | null
           proyecto_id: string
+          rubro?: string
           tipo_cambio?: number
         }
         Update: {
@@ -187,6 +189,7 @@ export type Database = {
           proveedor?: string
           proveedor_id?: string | null
           proyecto_id?: string
+          rubro?: string
           tipo_cambio?: number
         }
         Relationships: [
