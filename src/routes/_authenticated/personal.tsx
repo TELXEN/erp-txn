@@ -160,6 +160,7 @@ function Personal() {
                     DNI: t.dni,
                     "Apellidos y Nombre(s)": t.nombre,
                     Cargo: t.cargo,
+                    Clasificación: clasifDe(t.cargo) === "Indirecto" ? "Staff (Gasto general)" : "Mano de obra directa",
                     "Jornal Diario (S/)": Number(t.jornal_diario),
                     "N° Cuenta": t.numero_cuenta,
                     CCI: t.cci,
