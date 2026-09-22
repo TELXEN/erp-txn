@@ -1155,6 +1155,13 @@ function CategoriasGastoGeneral() {
                       onChange={(e) => setEditando({ ...editando, nombre: e.target.value })}
                       maxLength={60}
                     />
+                    <Input
+                      className="min-w-56 flex-[2] py-1 text-xs"
+                      value={editando.descripcion}
+                      onChange={(e) => setEditando({ ...editando, descripcion: e.target.value })}
+                      placeholder="Descripción de la categoría"
+                      maxLength={200}
+                    />
                     <button
                       type="button"
                       onClick={guardar}
@@ -1174,8 +1181,13 @@ function CategoriasGastoGeneral() {
                   </>
                 ) : (
                   <>
-                    <span className="flex-1">
+                    <span className="flex-1 basis-full sm:basis-auto">
                       <InsigniaCategoriaGasto valor={c.nombre} />
+                      {c.descripcion && (
+                        <span className="mt-1 block text-[11px] leading-snug text-muted-foreground">
+                          {c.descripcion}
+                        </span>
+                      )}
                     </span>
                     <span className="font-mono text-[10px] text-muted-foreground">{usos} gasto(s)</span>
                     <button
@@ -1187,7 +1199,14 @@ function CategoriasGastoGeneral() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setEditando({ id: c.id, nombre: c.nombre, original: c.nombre })}
+                      onClick={() =>
+                        setEditando({
+                          id: c.id,
+                          nombre: c.nombre,
+                          descripcion: c.descripcion ?? "",
+                          original: c.nombre,
+                        })
+                      }
                       title="Editar"
                       className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"
                     >
