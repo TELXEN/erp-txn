@@ -99,9 +99,16 @@ function TareoPage() {
       const trabajador = trabajadores.find((t) => t.id === id);
       const jornal = Number(trabajador?.jornal_diario ?? 0);
       const diasTotal = v.dias + piso2(v.horas / 10.5); // valor de cálculo, no se muestra
-      return { id, nombre: nombreTrab(id), dias: v.dias, horas: v.horas, costo: diasTotal * jornal };
+      return {
+        id,
+        nombre: nombreTrab(id),
+        dias: v.dias,
+        horas: v.horas,
+        costo: diasTotal * jornal,
+        clasificacion: clasificacionDeCargo(trabajador?.cargo ?? "", cargos),
+      };
     });
-  }, [tareos, mes, trabajadores]);
+  }, [tareos, mes, trabajadores, cargos]);
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
