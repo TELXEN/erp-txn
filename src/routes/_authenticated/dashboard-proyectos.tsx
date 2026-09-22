@@ -199,17 +199,47 @@ function DashboardProyectos() {
       </div>
 
       <section className="mb-4 grid gap-3 lg:grid-cols-3" aria-label="Resumen del proyecto seleccionado">
-        <div className="panel rise overflow-hidden">
-          <div className="border-b border-line px-4 py-3">
-            <p className="label-mono">Status</p>
-            <div className="mt-2"><InsigniaSituacion valor={obraSel?.proyecto.situacion ?? "No iniciado"} /></div>
-          </div>
-          <div className="grid grid-cols-5 gap-px bg-line">
-            {SITUACIONES.map((situacion) => {
-              const cantidad = proyectos.filter((proyecto) => proyecto.situacion === situacion).length;
-              return <EstadoProyecto key={situacion} situacion={situacion} cantidad={cantidad} />;
-            })}
-          </div>
+        <div className="panel rise flex flex-col justify-between p-4">
+          {!obraSel ? (
+            <Vacio texto="Registra una obra para visualizar el avance." />
+          ) : (
+            <>
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="label-mono">Avance general</p>
+                  <h2 className="mt-1 line-clamp-2 text-base font-bold leading-tight">{obraSel.proyecto.nombre}</h2>
+                  <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                    <MapPin className="h-3.5 w-3.5" /> {obraSel.proyecto.ubicacion || "Ubicación no registrada"}
+                  </p>
+                </div>
+                <InsigniaPrioridad valor={obraSel.proyecto.prioridad} />
+              </div>
+
+              <div className="my-2 grid grid-cols-3 gap-1 rounded-lg border border-line bg-muted/30 p-2 text-center">
+                <div>
+                  <p className="label-mono text-[9px]">Inicio</p>
+                  <p className="mt-0.5 font-mono text-[11px] font-semibold">{fecha(obraSel.proyecto.fecha_inicio)}</p>
+                </div>
+                <div className="border-x border-line px-1">
+                  <p className="label-mono text-[9px]">Fin previsto</p>
+                  <p className="mt-0.5 font-mono text-[11px] font-semibold">{fecha(obraSel.proyecto.fecha_fin)}</p>
+                </div>
+                <div>
+                  <p className="label-mono text-[9px]">{plazo?.vencido ? "Plazo vencido" : "Días restantes"}</p>
+                  <p className={`mt-0.5 font-mono text-[11px] font-semibold ${plazo?.vencido ? "text-bad" : ""}`}>
+                    {plazo ? `${Math.abs(plazo.dias)} días` : "Sin fecha"}
+                  </p>
+                </div>
+              </div>
+
+              <MedidorCompacto valor={obraSel.avance} />
+
+              <div className="flex items-center justify-between border-t border-line pt-2">
+                <InsigniaSituacion valor={obraSel.proyecto.situacion} />
+                <span className="font-mono text-[10px] text-muted-foreground">{obraSel.partidas} partidas</span>
+              </div>
+            </>
+          )}
         </div>
 
         <div className="panel rise overflow-hidden">
@@ -241,47 +271,18 @@ function DashboardProyectos() {
         </div>
       </section>
 
-      {!obraSel ? (
-        <Panel><Vacio texto="Registra una obra para visualizar el tablero." /></Panel>
-      ) : (
-        <>
-          <section className="panel rise mb-4 flex flex-col justify-between p-5">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="label-mono">Avance general</p>
-                <h2 className="mt-2 line-clamp-3 text-xl font-bold leading-tight">{obraSel.proyecto.nombre}</h2>
-                <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <MapPin className="h-3.5 w-3.5" /> {obraSel.proyecto.ubicacion || "Ubicación no registrada"}
-                </p>
-              </div>
-              <InsigniaPrioridad valor={obraSel.proyecto.prioridad} />
-            </div>
-
-            <div className="my-4 grid grid-cols-1 gap-2 rounded-lg border border-line bg-muted/30 p-3 sm:grid-cols-3">
-              <div className="text-center">
-                <p className="label-mono text-[10px]">Inicio</p>
-                <p className="mt-1 font-mono text-sm font-semibold">{fecha(obraSel.proyecto.fecha_inicio)}</p>
-              </div>
-              <div className="text-center sm:border-x sm:border-line sm:px-2">
-                <p className="label-mono text-[10px]">Fin previsto</p>
-                <p className="mt-1 font-mono text-sm font-semibold">{fecha(obraSel.proyecto.fecha_fin)}</p>
-              </div>
-              <div className="text-center">
-                <p className="label-mono text-[10px]">{plazo?.vencido ? "Plazo vencido" : "Días restantes"}</p>
-                <p className={`mt-1 font-mono text-sm font-semibold ${plazo?.vencido ? "text-bad" : ""}`}>
-                  {plazo ? `${Math.abs(plazo.dias)} días` : "Sin fecha"}
-                </p>
-              </div>
-            </div>
-
-            <Medidor valor={obraSel.avance} />
-            <div className="flex items-center justify-between border-t border-line pt-3">
-              <InsigniaSituacion valor={obraSel.proyecto.situacion} />
-              <span className="font-mono text-[11px] text-muted-foreground">{obraSel.partidas} partidas</span>
-            </div>
-          </section>
-        </>
-      )}
+      <section className="panel rise mb-4 overflow-hidden">
+        <div className="border-b border-line px-4 py-3">
+          <p className="label-mono">Status</p>
+          <div className="mt-2"><InsigniaSituacion valor={obraSel?.proyecto.situacion ?? "No iniciado"} /></div>
+        </div>
+        <div className="grid grid-cols-5 gap-px bg-line">
+          {SITUACIONES.map((situacion) => {
+            const cantidad = proyectos.filter((proyecto) => proyecto.situacion === situacion).length;
+            return <EstadoProyecto key={situacion} situacion={situacion} cantidad={cantidad} />;
+          })}
+        </div>
+      </section>
 
       <Panel
         titulo="Curva S — Plan contra ejecución"
@@ -400,19 +401,19 @@ function Barra({ etiqueta, valor, clase }: { etiqueta: string; valor: number; cl
   );
 }
 
-function Medidor({ valor }: { valor: number }) {
+function MedidorCompacto({ valor }: { valor: number }) {
   const limitado = Math.min(Math.max(valor, 0), 100);
-  const radio = 72;
+  const radio = 56;
   const largo = Math.PI * radio;
   return (
-    <div className="relative mx-auto h-32 w-44 overflow-hidden" aria-label={`Avance físico ${pct(valor)}`}>
-      <svg viewBox="0 0 180 100" className="h-full w-full" aria-hidden="true">
-        <path d="M 18 88 A 72 72 0 0 1 162 88" fill="none" className="stroke-muted" strokeWidth="15" strokeLinecap="round" />
-        <path d="M 18 88 A 72 72 0 0 1 162 88" fill="none" className={valor < 50 ? "stroke-bad" : "stroke-primary"} strokeWidth="15" strokeLinecap="round" strokeDasharray={`${(limitado / 100) * largo} ${largo}`} />
+    <div className="relative mx-auto h-24 w-32 overflow-hidden" aria-label={`Avance físico ${pct(valor)}`}>
+      <svg viewBox="0 0 140 80" className="h-full w-full" aria-hidden="true">
+        <path d="M 14 70 A 56 56 0 0 1 126 70" fill="none" className="stroke-muted" strokeWidth="12" strokeLinecap="round" />
+        <path d="M 14 70 A 56 56 0 0 1 126 70" fill="none" className={valor < 50 ? "stroke-bad" : "stroke-primary"} strokeWidth="12" strokeLinecap="round" strokeDasharray={`${(limitado / 100) * largo} ${largo}`} />
       </svg>
-      <div className="absolute inset-x-0 bottom-1 text-center">
-        <p className="font-mono text-3xl font-bold">{pct(valor)}</p>
-        <p className="label-mono">Ejecutado</p>
+      <div className="absolute inset-x-0 bottom-0 text-center">
+        <p className="font-mono text-2xl font-bold">{pct(valor)}</p>
+        <p className="label-mono text-[10px]">Ejecutado</p>
       </div>
     </div>
   );
