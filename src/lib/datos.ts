@@ -246,10 +246,24 @@ export function resumenPresupuesto(partidas: Partida[], tipos: TipoPresupuesto[]
   return { contractual, adicionales, vigente: contractual + adicionales };
 }
 
+/** Indica si una partida cobra gastos generales. */
+export function cobraGG(p: Partida, tipos: TipoPresupuesto[]) {
+  if (esContractual(p.tipo_presupuesto ?? "Contractual", tipos)) return true;
+  if (p.aplica_gg !== undefined && p.aplica_gg !== null) return p.aplica_gg !== false;
+  return p.aplica_gg_utilidad !== false;
+}
+
+/** Indica si una partida cobra utilidad. */
+export function cobraUtilidad(p: Partida, tipos: TipoPresupuesto[]) {
+  if (esContractual(p.tipo_presupuesto ?? "Contractual", tipos)) return true;
+  if (p.aplica_utilidad !== undefined && p.aplica_utilidad !== null) return p.aplica_utilidad !== false;
+  return p.aplica_gg_utilidad !== false;
+}
+
 /**
  * Oferta de un proyecto a partir de sus partidas.
- * Las partidas contractuales siempre llevan GG y utilidad; las adicionales
- * solo si tienen marcado `aplica_gg_utilidad`.
+ * Las contractuales siempre llevan GG y utilidad; las adicionales llevan
+ * cada recargo de forma independiente.
  */
 export function ofertaProyecto(
   partidas: Partida[],
@@ -258,20 +272,25 @@ export function ofertaProyecto(
   pctUtilidad: number,
 ) {
   let costoDirecto = 0;
-  let baseRecargo = 0;
+  let baseGG = 0;
+  let baseUtilidad = 0;
   let sinRecargo = 0;
   partidas.forEach((p) => {
     const monto = Number(p.presupuesto_inicial);
     costoDirecto += monto;
-    const contractual = esContractual(p.tipo_presupuesto ?? "Contractual", tipos);
-    if (contractual || p.aplica_gg_utilidad !== false) baseRecargo += monto;
-    else sinRecargo += monto;
+    const gg = cobraGG(p, tipos);
+    const ut = cobraUtilidad(p, tipos);
+    if (gg) baseGG += monto;
+    if (ut) baseUtilidad += monto;
+    if (!gg && !ut) sinRecargo += monto;
   });
-  const gastosGenerales = (baseRecargo * Number(pctGG || 0)) / 100;
-  const utilidad = (baseRecargo * Number(pctUtilidad || 0)) / 100;
+  const gastosGenerales = (baseGG * Number(pctGG || 0)) / 100;
+  const utilidad = (baseUtilidad * Number(pctUtilidad || 0)) / 100;
   return {
     costoDirecto,
-    baseRecargo,
+    baseGG,
+    baseUtilidad,
+    baseRecargo: baseGG,
     sinRecargo,
     gastosGenerales,
     utilidad,
