@@ -199,7 +199,7 @@ function DashboardProyectos() {
       </div>
 
       <section className="panel rise mb-4 overflow-hidden" aria-label="Resumen de estados y operación">
-        <div className="grid grid-cols-2 gap-px bg-line sm:grid-cols-3 lg:grid-cols-5">
+        <div className="grid grid-cols-5 gap-px bg-line lg:w-1/3">
           {SITUACIONES.map((situacion) => {
             const cantidad = proyectos.filter((proyecto) => proyecto.situacion === situacion).length;
             return <EstadoProyecto key={situacion} situacion={situacion} cantidad={cantidad} />;
@@ -388,12 +388,12 @@ function Tarjeta({
 function EstadoProyecto({ situacion, cantidad }: { situacion: string; cantidad: number }) {
   const tono = tonoSituacion(situacion);
   return (
-    <div className="flex min-h-28 flex-col justify-between p-4" style={{ backgroundColor: tono.fondo }}>
-      <div className="flex items-center justify-between gap-2">
-        <span className="font-mono text-[10px] font-semibold uppercase text-ink">{situacion}</span>
-        <span className="h-2.5 w-2.5 rounded-full border" style={{ backgroundColor: tono.borde, borderColor: tono.borde }} />
+    <div className="flex min-h-20 flex-col justify-between p-2" style={{ backgroundColor: tono.fondo }}>
+      <div className="flex items-center justify-between gap-1">
+        <span className="font-mono text-[9px] font-semibold uppercase leading-tight text-ink">{situacion}</span>
+        <span className="h-2 w-2 shrink-0 rounded-full border" style={{ backgroundColor: tono.borde, borderColor: tono.borde }} />
       </div>
-      <strong className="font-mono text-4xl font-bold text-ink">{cantidad}</strong>
+      <strong className="font-mono text-2xl font-bold text-ink">{cantidad}</strong>
     </div>
   );
 }
