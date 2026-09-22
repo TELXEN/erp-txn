@@ -124,7 +124,7 @@ function GastosDirectos() {
     const tc = original.moneda === "USD" ? Number(original.tipo_cambio) : 1;
     const { error: err } = await supabase
       .from("gastos_directos")
-      .update({ descripcion: editando.descripcion.trim(), monto, monto_soles: monto * tc })
+      .update({ descripcion: editando.descripcion.trim(), monto, monto_soles: monto * tc, rubro: editando.rubro })
       .eq("id", editando.id);
     if (err) return setError(err.message);
     setEditando(null);
