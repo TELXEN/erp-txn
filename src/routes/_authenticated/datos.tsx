@@ -1050,7 +1050,13 @@ function CategoriasGastoGeneral() {
   const { data: categorias = [] } = useCategoriasGastoGeneral();
   const { data: gastos = [] } = useGastosGenerales();
   const [nombre, setNombre] = useState("");
-  const [editando, setEditando] = useState<{ id: string; nombre: string; original: string } | null>(null);
+  const [descripcion, setDescripcion] = useState("");
+  const [editando, setEditando] = useState<{
+    id: string;
+    nombre: string;
+    descripcion: string;
+    original: string;
+  } | null>(null);
   const [error, setError] = useState("");
 
   const refrescar = async () => {
@@ -1065,9 +1071,10 @@ function CategoriasGastoGeneral() {
     if (!limpio) return;
     const { error: err } = await supabase
       .from("categorias_gasto_general")
-      .insert({ nombre: limpio, orden: categorias.length + 1 });
+      .insert({ nombre: limpio, descripcion: descripcion.trim(), orden: categorias.length + 1 });
     if (err) return setError(err.code === "23505" ? "Esa categoría ya existe." : err.message);
     setNombre("");
+    setDescripcion("");
     await refrescar();
   }
 
@@ -1078,7 +1085,7 @@ function CategoriasGastoGeneral() {
     if (!limpio) return setError("Ingresa el nombre de la categoría.");
     const { error: err } = await supabase
       .from("categorias_gasto_general")
-      .update({ nombre: limpio })
+      .update({ nombre: limpio, descripcion: editando.descripcion.trim() })
       .eq("id", editando.id);
     if (err) return setError(err.code === "23505" ? "Esa categoría ya existe." : err.message);
     if (limpio !== editando.original) {
@@ -1117,12 +1124,18 @@ function CategoriasGastoGeneral() {
           asesorías. Cada gasto general se registra con una de estas categorías y se puede filtrar por ellas.
         </p>
 
-        <form onSubmit={agregar} className="mb-3 flex gap-2">
+        <form onSubmit={agregar} className="mb-3 grid gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_auto]">
           <Input
             value={nombre}
             onChange={(e) => setNombre(e.target.value)}
             placeholder="Ej. Mantenimiento de vehículos"
             maxLength={60}
+          />
+          <Input
+            value={descripcion}
+            onChange={(e) => setDescripcion(e.target.value)}
+            placeholder="Qué gastos incluye esta categoría (guía para quien registra)"
+            maxLength={200}
           />
           <Boton type="submit">Agregar</Boton>
         </form>
@@ -1141,6 +1154,13 @@ function CategoriasGastoGeneral() {
                       value={editando.nombre}
                       onChange={(e) => setEditando({ ...editando, nombre: e.target.value })}
                       maxLength={60}
+                    />
+                    <Input
+                      className="min-w-56 flex-[2] py-1 text-xs"
+                      value={editando.descripcion}
+                      onChange={(e) => setEditando({ ...editando, descripcion: e.target.value })}
+                      placeholder="Descripción de la categoría"
+                      maxLength={200}
                     />
                     <button
                       type="button"
@@ -1161,8 +1181,13 @@ function CategoriasGastoGeneral() {
                   </>
                 ) : (
                   <>
-                    <span className="flex-1">
+                    <span className="flex-1 basis-full sm:basis-auto">
                       <InsigniaCategoriaGasto valor={c.nombre} />
+                      {c.descripcion && (
+                        <span className="mt-1 block text-[11px] leading-snug text-muted-foreground">
+                          {c.descripcion}
+                        </span>
+                      )}
                     </span>
                     <span className="font-mono text-[10px] text-muted-foreground">{usos} gasto(s)</span>
                     <button
@@ -1174,7 +1199,14 @@ function CategoriasGastoGeneral() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setEditando({ id: c.id, nombre: c.nombre, original: c.nombre })}
+                      onClick={() =>
+                        setEditando({
+                          id: c.id,
+                          nombre: c.nombre,
+                          descripcion: c.descripcion ?? "",
+                          original: c.nombre,
+                        })
+                      }
                       title="Editar"
                       className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"
                     >

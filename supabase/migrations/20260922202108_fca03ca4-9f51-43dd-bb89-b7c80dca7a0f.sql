@@ -1,0 +1,1 @@
+ALTER TABLE public.categorias_gasto_general ADD COLUMN IF NOT EXISTS descripcion text NOT NULL DEFAULT '';

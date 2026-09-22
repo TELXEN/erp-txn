@@ -110,6 +110,7 @@ export type GastoDirecto = {
 export type CategoriaGastoGeneral = {
   id: string;
   nombre: string;
+  descripcion: string;
   orden: number;
   activo: boolean;
 };
