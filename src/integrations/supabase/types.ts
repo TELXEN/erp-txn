@@ -41,6 +41,36 @@ export type Database = {
         }
         Relationships: []
       }
+      cargos: {
+        Row: {
+          activo: boolean
+          clasificacion: string
+          created_at: string
+          id: string
+          nombre: string
+          orden: number
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          clasificacion?: string
+          created_at?: string
+          id?: string
+          nombre: string
+          orden?: number
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          clasificacion?: string
+          created_at?: string
+          id?: string
+          nombre?: string
+          orden?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       categorias_financieras: {
         Row: {
           activo: boolean
