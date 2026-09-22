@@ -17,6 +17,7 @@ import { pct, soles } from "@/lib/format";
 import {
   costoRealPartida,
   costoRealProyecto,
+  estructuraOferta,
   presupuestoProyecto,
   useGastosDirectos,
   useGastosGenerales,
@@ -72,15 +73,23 @@ function Dashboard() {
         const pendiente = vd.filter((v) => v.estado !== "Pagado").reduce((s, v) => s + Number(v.monto_soles), 0);
         const presupuesto = presupuestoProyecto(p.id, partidas);
         const costoReal = costoRealProyecto(p.id, gastosD, tareos, gastosG);
+        const oferta = estructuraOferta(presupuesto, p.pct_gastos_generales, p.pct_utilidad);
+        const margen = cobrado - costoReal;
         return {
           id: p.id,
           nombre: p.nombre,
           presupuesto,
+          pctGG: Number(p.pct_gastos_generales ?? 0),
+          pctUtilidad: Number(p.pct_utilidad ?? 0),
+          ggPresupuestado: oferta.gastosGenerales,
+          utilidadPrevista: oferta.utilidad,
+          ofertado: oferta.ofertado,
           cobrado,
           pendiente,
           facturado: cobrado + pendiente,
           costoReal,
-          margen: cobrado - costoReal,
+          margen,
+          variacionUtilidad: margen - oferta.utilidad,
           avanceFacturado: presupuesto > 0 ? (cobrado / presupuesto) * 100 : 0,
         };
       }),

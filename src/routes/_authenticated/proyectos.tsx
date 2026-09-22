@@ -12,6 +12,7 @@ import { useAuth, puedeVerDinero } from "@/lib/auth";
 import { soles } from "@/lib/format";
 import {
   costoRealProyecto,
+  estructuraOferta,
   presupuestoProyecto,
   useGastosDirectos,
   useGastosGenerales,
