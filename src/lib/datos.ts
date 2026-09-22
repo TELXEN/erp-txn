@@ -160,6 +160,12 @@ export const useTrabajadores = () =>
     queryFn: () => pedir<Trabajador>("trabajadores", "*", { col: "nombre" }),
   });
 
+export const useCategoriasGastoGeneral = () =>
+  useQuery({
+    queryKey: ["categorias_gasto_general"],
+    queryFn: () => pedir<CategoriaGastoGeneral>("categorias_gasto_general", "*", { col: "orden" }),
+  });
+
 export const useCargos = () =>
   useQuery({
     queryKey: ["cargos"],
