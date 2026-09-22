@@ -149,6 +149,7 @@ function GastosDirectos() {
                     Partida: nombrePart(g.partida_id),
                     Descripcion: g.descripcion,
                     Proveedor: nombreProv(g),
+                    Rubro: g.rubro ?? "Materiales",
                     Monto: Number(g.monto),
                     Moneda: g.moneda,
                     "Tipo de Cambio": Number(g.tipo_cambio),
