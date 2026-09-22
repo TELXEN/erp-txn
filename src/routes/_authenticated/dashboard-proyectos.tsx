@@ -5,6 +5,8 @@ import { Encabezado } from "@/components/AppShell";
 import { Boton, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { CurvaS } from "@/components/CurvaS";
 import { InsigniaPrioridad, InsigniaSituacion } from "@/components/estado-ui";
+import { SITUACIONES, tonoSituacion } from "@/lib/configuracion";
+
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha, pct, soles } from "@/lib/format";
 import {
@@ -197,7 +199,7 @@ function DashboardProyectos() {
         </div>
       </div>
 
-      <section className="mb-4 grid gap-3 lg:grid-cols-3" aria-label="Resumen del proyecto seleccionado">
+      <section className="mb-4 grid gap-3 lg:grid-cols-4" aria-label="Resumen del proyecto seleccionado">
         <div className="panel rise flex flex-col justify-between p-4">
           {!obraSel ? (
             <Vacio texto="Registra una obra para visualizar el avance." />
@@ -235,7 +237,18 @@ function DashboardProyectos() {
           )}
         </div>
 
+        <div className="panel rise flex flex-col overflow-hidden">
+          <div className="border-b border-line px-4 py-3"><p className="label-mono">Status</p></div>
+          <div className="flex flex-1 flex-col">
+            {SITUACIONES.map((situacion) => {
+              const cantidad = proyectos.filter((proyecto) => proyecto.situacion === situacion).length;
+              return <CartillaEstado key={situacion} situacion={situacion} cantidad={cantidad} />;
+            })}
+          </div>
+        </div>
+
         <div className="panel rise overflow-hidden">
+
           <div className="border-b border-line px-4 py-3"><p className="label-mono">Partidas y prioridad</p></div>
           <div className="divide-y divide-line">
             <IndicadorCompacto icono={<Layers3 />} etiqueta="Total partidas" valor={String(obraSel?.partidas ?? 0)} />
@@ -344,7 +357,21 @@ function DatoFinanciero({ etiqueta, valor, tono }: { etiqueta: string; valor: st
 }
 
 
+function CartillaEstado({ situacion, cantidad }: { situacion: string; cantidad: number }) {
+  const tono = tonoSituacion(situacion);
+  return (
+    <div className="flex flex-1 items-center justify-between gap-2 border-b border-line px-3 py-2 last:border-b-0" style={{ backgroundColor: tono.fondo }}>
+      <div className="flex items-center gap-2">
+        <span className="h-2 w-2 shrink-0 rounded-full border" style={{ backgroundColor: tono.borde, borderColor: tono.borde }} />
+        <span className="font-mono text-[10px] font-semibold uppercase leading-tight text-ink">{situacion === "Completado" ? "" : situacion}</span>
+      </div>
+      <strong className="font-mono text-lg font-bold text-ink">{cantidad}</strong>
+    </div>
+  );
+}
+
 function IndicadorCompacto({ icono, etiqueta, valor, tono }: { icono: ReactNode; etiqueta: string; valor: string; tono?: "good" | "bad" }) {
+
   return (
     <div className="flex min-h-20 items-center gap-3 px-4 py-3">
       <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-muted [&>svg]:h-4 [&>svg]:w-4 ${tono === "bad" ? "text-bad" : tono === "good" ? "text-good" : "text-primary"}`}>
@@ -374,18 +401,11 @@ function MedidorCompacto({ valor }: { valor: number }) {
   const limitado = Math.min(Math.max(valor, 0), 100);
   const radio = 72;
   const largo = Math.PI * radio;
-  const angulo = -90 + (limitado / 100) * 180;
   return (
     <div className="relative mx-auto h-36 w-full max-w-60 overflow-hidden" aria-label={`Avance físico ${pct(valor)}`}>
       <svg viewBox="0 0 180 110" className="h-full w-full" aria-hidden="true">
         <path d="M 18 92 A 72 72 0 0 1 162 92" fill="none" className="stroke-muted" strokeWidth="14" strokeLinecap="round" />
         <path d="M 18 92 A 72 72 0 0 1 162 92" fill="none" className={valor < 50 ? "stroke-bad" : "stroke-primary"} strokeWidth="14" strokeLinecap="round" strokeDasharray={`${(limitado / 100) * largo} ${largo}`} />
-        <g
-          className="transition-transform duration-700 ease-out motion-reduce:transition-none"
-          style={{ transform: `rotate(${angulo}deg)`, transformOrigin: "90px 92px" }}
-        >
-          <line x1="90" y1="92" x2="90" y2="35" className="stroke-foreground" strokeWidth="3" strokeLinecap="round" />
-        </g>
         <circle cx="90" cy="92" r="7" className="fill-foreground" />
         <circle cx="90" cy="92" r="3" className="fill-card" />
       </svg>
