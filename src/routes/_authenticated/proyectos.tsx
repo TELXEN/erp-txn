@@ -12,6 +12,7 @@ import { useAuth, puedeVerDinero } from "@/lib/auth";
 import { soles } from "@/lib/format";
 import {
   costoRealProyecto,
+  estructuraOferta,
   presupuestoProyecto,
   useGastosDirectos,
   useGastosGenerales,
@@ -50,6 +51,8 @@ function Proyectos() {
     prioridad: "Media",
     fecha_inicio: "",
     fecha_fin: "",
+    pct_gastos_generales: "10",
+    pct_utilidad: "10",
   });
   const [error, setError] = useState("");
   const [editando, setEditando] = useState<{
@@ -60,6 +63,8 @@ function Proyectos() {
     prioridad: string;
     fecha_inicio: string;
     fecha_fin: string;
+    pct_gastos_generales: string;
+    pct_utilidad: string;
   } | null>(null);
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
@@ -76,6 +81,8 @@ function Proyectos() {
       prioridad: form.prioridad,
       fecha_inicio: form.fecha_inicio || null,
       fecha_fin: form.fecha_fin || null,
+      pct_gastos_generales: Number(form.pct_gastos_generales) || 0,
+      pct_utilidad: Number(form.pct_utilidad) || 0,
     });
     if (err) return setError(err.message);
     setForm({
@@ -87,6 +94,8 @@ function Proyectos() {
       prioridad: "Media",
       fecha_inicio: "",
       fecha_fin: "",
+      pct_gastos_generales: "10",
+      pct_utilidad: "10",
     });
     qc.invalidateQueries({ queryKey: ["proyectos"] });
   }
@@ -104,6 +113,8 @@ function Proyectos() {
         prioridad: editando.prioridad,
         fecha_inicio: editando.fecha_inicio || null,
         fecha_fin: editando.fecha_fin || null,
+        pct_gastos_generales: Number(editando.pct_gastos_generales) || 0,
+        pct_utilidad: Number(editando.pct_utilidad) || 0,
       })
       .eq("id", editando.id);
     if (err) return setError(err.message);
@@ -202,6 +213,30 @@ function Proyectos() {
               onChange={(e) => setForm({ ...form, fecha_fin: e.target.value })}
             />
           </Campo>
+          <Campo etiqueta="% Gastos Generales">
+            <Input
+              type="number"
+              min={0}
+              max={100}
+              step="0.1"
+              value={form.pct_gastos_generales}
+              onChange={(e) => setForm({ ...form, pct_gastos_generales: e.target.value })}
+            />
+          </Campo>
+          <Campo etiqueta="% Utilidad Prevista">
+            <Input
+              type="number"
+              min={0}
+              max={100}
+              step="0.1"
+              value={form.pct_utilidad}
+              onChange={(e) => setForm({ ...form, pct_utilidad: e.target.value })}
+            />
+          </Campo>
+          <p className="font-mono text-[11px] text-muted-foreground sm:col-span-6">
+            Ambos porcentajes se aplican sobre el costo directo neto de las partidas: Oferta = Costo Directo + Gastos
+            Generales + Utilidad.
+          </p>
           {error && <p className="font-mono text-xs text-bad sm:col-span-6">{error}</p>}
         </form>
       </Panel>
@@ -273,6 +308,28 @@ function Proyectos() {
                               title="Fecha de fin estimada"
                             />
                           </div>
+                          <div className="mt-1.5 grid grid-cols-2 gap-1.5">
+                            <Input
+                              type="number"
+                              min={0}
+                              max={100}
+                              step="0.1"
+                              className="py-1 text-[11px]"
+                              value={editando.pct_gastos_generales}
+                              onChange={(e) => setEditando({ ...editando, pct_gastos_generales: e.target.value })}
+                              title="% Gastos Generales"
+                            />
+                            <Input
+                              type="number"
+                              min={0}
+                              max={100}
+                              step="0.1"
+                              className="py-1 text-[11px]"
+                              value={editando.pct_utilidad}
+                              onChange={(e) => setEditando({ ...editando, pct_utilidad: e.target.value })}
+                              title="% Utilidad Prevista"
+                            />
+                          </div>
                         </td>
                         <td className="truncate px-3 py-2.5 text-muted-foreground">{p.cliente || "—"}</td>
                         <td className="px-3 py-2.5 text-right whitespace-nowrap">{soles(presupuesto)}</td>
@@ -330,6 +387,12 @@ function Proyectos() {
                       <>
                         <td className="px-5 py-2.5 align-top font-semibold text-ink break-words whitespace-normal">
                           {p.nombre}
+                          <span className="mt-1 block font-mono text-[10px] font-normal text-muted-foreground">
+                            GG {Number(p.pct_gastos_generales ?? 0)}% · Utilidad {Number(p.pct_utilidad ?? 0)}% · Oferta{" "}
+                            {soles(
+                              estructuraOferta(presupuesto, p.pct_gastos_generales, p.pct_utilidad).ofertado,
+                            )}
+                          </span>
                         </td>
                         <td className="truncate px-3 py-2.5 text-muted-foreground">{p.cliente || "—"}</td>
                         <td className="px-3 py-2.5 text-right whitespace-nowrap">{soles(presupuesto)}</td>
@@ -354,9 +417,11 @@ function Proyectos() {
                                   estado: p.estado,
                                   situacion: p.situacion,
                                   prioridad: p.prioridad,
-                                  fecha_inicio: p.fecha_inicio ?? "",
-                                  fecha_fin: p.fecha_fin ?? "",
-                                })
+                  fecha_inicio: p.fecha_inicio ?? "",
+                  fecha_fin: p.fecha_fin ?? "",
+                  pct_gastos_generales: String(p.pct_gastos_generales ?? 0),
+                  pct_utilidad: String(p.pct_utilidad ?? 0),
+                })
                               }
                               className="grid h-7 w-7 place-items-center rounded-md border border-line hover:border-primary hover:text-primary"
                               title="Editar"

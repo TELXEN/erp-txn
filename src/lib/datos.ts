@@ -19,7 +19,21 @@ export type Proyecto = {
   prioridad: string;
   fecha_inicio: string | null;
   fecha_fin: string | null;
+  pct_gastos_generales: number;
+  pct_utilidad: number;
 };
+
+/** Estructura de oferta: CD neto + GG (% del CD) + Utilidad (% del CD). */
+export function estructuraOferta(costoDirecto: number, pctGG: number, pctUtilidad: number) {
+  const gastosGenerales = (costoDirecto * Number(pctGG || 0)) / 100;
+  const utilidad = (costoDirecto * Number(pctUtilidad || 0)) / 100;
+  return {
+    costoDirecto,
+    gastosGenerales,
+    utilidad,
+    ofertado: costoDirecto + gastosGenerales + utilidad,
+  };
+}
 
 export type Partida = {
   id: string;

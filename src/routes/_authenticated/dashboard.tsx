@@ -17,6 +17,7 @@ import { pct, soles } from "@/lib/format";
 import {
   costoRealPartida,
   costoRealProyecto,
+  estructuraOferta,
   presupuestoProyecto,
   useGastosDirectos,
   useGastosGenerales,
@@ -72,15 +73,23 @@ function Dashboard() {
         const pendiente = vd.filter((v) => v.estado !== "Pagado").reduce((s, v) => s + Number(v.monto_soles), 0);
         const presupuesto = presupuestoProyecto(p.id, partidas);
         const costoReal = costoRealProyecto(p.id, gastosD, tareos, gastosG);
+        const oferta = estructuraOferta(presupuesto, p.pct_gastos_generales, p.pct_utilidad);
+        const margen = cobrado - costoReal;
         return {
           id: p.id,
           nombre: p.nombre,
           presupuesto,
+          pctGG: Number(p.pct_gastos_generales ?? 0),
+          pctUtilidad: Number(p.pct_utilidad ?? 0),
+          ggPresupuestado: oferta.gastosGenerales,
+          utilidadPrevista: oferta.utilidad,
+          ofertado: oferta.ofertado,
           cobrado,
           pendiente,
           facturado: cobrado + pendiente,
           costoReal,
-          margen: cobrado - costoReal,
+          margen,
+          variacionUtilidad: margen - oferta.utilidad,
           avanceFacturado: presupuesto > 0 ? (cobrado / presupuesto) * 100 : 0,
         };
       }),
@@ -99,15 +108,23 @@ function Dashboard() {
     const totalTareo = td.reduce((s, t) => s + Number(t.costo_soles), 0);
     const totalGenerales = gg.reduce((s, g) => s + Number(g.monto_soles), 0);
     const totalGastos = totalDirectos + totalTareo + totalGenerales;
+    const ggPresupuestado = filas.reduce((s, f) => s + f.ggPresupuestado, 0);
+    const utilidadPrevista = filas.reduce((s, f) => s + f.utilidadPrevista, 0);
+    const ofertado = filas.reduce((s, f) => s + f.ofertado, 0);
+    const margen = totalVentas - totalGastos;
     return {
       presupuesto,
+      ggPresupuestado,
+      utilidadPrevista,
+      ofertado,
       totalVentas,
       ventasPendientes,
       totalDirectos,
       totalTareo,
       totalGenerales,
       totalGastos,
-      margen: totalVentas - totalGastos,
+      margen,
+      variacionUtilidad: margen - utilidadPrevista,
     };
   }, [global, seleccion, porProyecto, gastosD, tareos, gastosG]);
 
@@ -143,10 +160,12 @@ function Dashboard() {
   if (rol !== "gerente") return <SinAcceso />;
 
   const kpis = [
-    { etiqueta: "Presupuesto Total", valor: datos.presupuesto },
+    { etiqueta: "Costo Directo (Partidas)", valor: datos.presupuesto },
+    { etiqueta: "GG Presupuestados", valor: datos.ggPresupuestado },
+    { etiqueta: "Utilidad Prevista", valor: datos.utilidadPrevista },
     { etiqueta: "Total Ventas (Cobrado)", valor: datos.totalVentas },
     { etiqueta: "Total Gastos", valor: datos.totalGastos },
-    { etiqueta: "Margen de Utilidad", valor: datos.margen },
+    { etiqueta: "Utilidad Real", valor: datos.margen },
   ];
 
   function excel() {
@@ -154,7 +173,10 @@ function Dashboard() {
       {
         nombre: "KPIs",
         filas: [
-          { Indicador: "Presupuesto Total (S/)", Valor: datos.presupuesto },
+          { Indicador: "Costo Directo - Partidas (S/)", Valor: datos.presupuesto },
+          { Indicador: "Gastos Generales Presupuestados (S/)", Valor: datos.ggPresupuestado },
+          { Indicador: "Utilidad Prevista (S/)", Valor: datos.utilidadPrevista },
+          { Indicador: "Presupuesto Ofertado (S/)", Valor: datos.ofertado },
           { Indicador: "Total Ventas Cobradas (S/)", Valor: datos.totalVentas },
           { Indicador: "Ventas Pendientes de Pago (S/)", Valor: datos.ventasPendientes },
           { Indicador: "Compras Directas (S/)", Valor: datos.totalDirectos },
@@ -168,11 +190,17 @@ function Dashboard() {
         nombre: "Por Proyecto",
         filas: (global ? porProyecto : porProyecto.filter((f) => f.id === seleccion)).map((f) => ({
           Obra: f.nombre,
-          "Presupuesto (S/)": f.presupuesto,
+          "Costo Directo (S/)": f.presupuesto,
+          "% GG": f.pctGG,
+          "GG Presupuestados (S/)": f.ggPresupuestado,
+          "% Utilidad": f.pctUtilidad,
+          "Utilidad Prevista (S/)": f.utilidadPrevista,
+          "Presupuesto Ofertado (S/)": f.ofertado,
           "Ventas Cobradas (S/)": f.cobrado,
           "Ventas por Cobrar (S/)": f.pendiente,
           "Costo Real (S/)": f.costoReal,
-          "Margen (S/)": f.margen,
+          "Utilidad Real (S/)": f.margen,
+          "Variacion vs Prevista (S/)": f.variacionUtilidad,
           "% Cobrado vs Presupuesto": Number(f.avanceFacturado.toFixed(1)),
         })),
       },
@@ -225,11 +253,25 @@ function Dashboard() {
         }
       />
 
-      <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         <Tarjeta
-          etiqueta="Presupuesto Total"
-          valor={datos.presupuesto}
-          detalle="Suma de todas las partidas"
+          etiqueta="Presupuesto Ofertado"
+          valor={datos.ofertado}
+          detalle={`Costo Directo ${soles(datos.presupuesto)} · GG ${soles(datos.ggPresupuestado)} · Utilidad ${soles(
+            datos.utilidadPrevista,
+          )}`}
+        />
+        <Tarjeta
+          etiqueta="Gastos Generales Presupuestados"
+          valor={datos.ggPresupuestado}
+          detalle={`Ejecutado ${soles(datos.totalGenerales)} · ${pct(
+            datos.ggPresupuestado > 0 ? (datos.totalGenerales / datos.ggPresupuestado) * 100 : 0,
+          )} consumido`}
+        />
+        <Tarjeta
+          etiqueta="Utilidad Prevista"
+          valor={datos.utilidadPrevista}
+          detalle={`Utilidad real ${soles(datos.margen)} · Variación ${soles(datos.variacionUtilidad)}`}
         />
         <Tarjeta
           etiqueta="Total Ventas (Cobrado)"
@@ -245,7 +287,12 @@ function Dashboard() {
             datos.totalGenerales,
           )}`}
         />
-        <Tarjeta etiqueta="Margen de Utilidad Actual" valor={datos.margen} detalle="Ventas − Gastos" resaltar />
+        <Tarjeta
+          etiqueta="Utilidad Real Actual"
+          valor={datos.margen}
+          detalle={`Ventas − Gastos · vs prevista ${soles(datos.variacionUtilidad)}`}
+          resaltar
+        />
       </div>
 
       <Panel titulo={`Presupuesto vs Ventas vs Costo Real — ${nombreVista}`}>
@@ -291,11 +338,14 @@ function Dashboard() {
                 <thead>
                   <tr className="border-b border-line/60 text-left">
                     <th className="label-mono px-4 py-2">Obra</th>
-                    <th className="label-mono px-4 py-2 text-right">Presupuesto</th>
+                    <th className="label-mono px-4 py-2 text-right">Costo directo</th>
+                    <th className="label-mono px-4 py-2 text-right">GG ({"%"})</th>
+                    <th className="label-mono px-4 py-2 text-right">Utilidad prevista ({"%"})</th>
+                    <th className="label-mono px-4 py-2 text-right">Ofertado</th>
                     <th className="label-mono px-4 py-2 text-right">Ventas cobradas</th>
                     <th className="label-mono px-4 py-2 text-right">Por cobrar</th>
                     <th className="label-mono px-4 py-2 text-right">Costo real</th>
-                    <th className="label-mono px-4 py-2 text-right">Margen</th>
+                    <th className="label-mono px-4 py-2 text-right">Utilidad real</th>
                     <th className="label-mono px-4 py-2 text-right">% Cobrado</th>
                   </tr>
                 </thead>
@@ -304,6 +354,15 @@ function Dashboard() {
                     <tr key={f.id}>
                       <td className="px-4 py-2 font-medium">{f.nombre}</td>
                       <td className="px-4 py-2 text-right font-mono">{soles(f.presupuesto)}</td>
+                      <td className="px-4 py-2 text-right font-mono">
+                        {soles(f.ggPresupuestado)}
+                        <span className="ml-1 text-[11px] text-muted-foreground">({f.pctGG}%)</span>
+                      </td>
+                      <td className="px-4 py-2 text-right font-mono">
+                        {soles(f.utilidadPrevista)}
+                        <span className="ml-1 text-[11px] text-muted-foreground">({f.pctUtilidad}%)</span>
+                      </td>
+                      <td className="px-4 py-2 text-right font-mono font-semibold">{soles(f.ofertado)}</td>
                       <td className="px-4 py-2 text-right font-mono">{soles(f.cobrado)}</td>
                       <td className="px-4 py-2 text-right font-mono text-muted-foreground">{soles(f.pendiente)}</td>
                       <td
