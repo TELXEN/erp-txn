@@ -357,7 +357,21 @@ function DatoFinanciero({ etiqueta, valor, tono }: { etiqueta: string; valor: st
 }
 
 
+function CartillaEstado({ situacion, cantidad }: { situacion: string; cantidad: number }) {
+  const tono = tonoSituacion(situacion);
+  return (
+    <div className="flex flex-1 items-center justify-between gap-2 border-b border-line px-3 py-2 last:border-b-0" style={{ backgroundColor: tono.fondo }}>
+      <div className="flex items-center gap-2">
+        <span className="h-2 w-2 shrink-0 rounded-full border" style={{ backgroundColor: tono.borde, borderColor: tono.borde }} />
+        <span className="font-mono text-[10px] font-semibold uppercase leading-tight text-ink">{situacion === "Completado" ? "" : situacion}</span>
+      </div>
+      <strong className="font-mono text-lg font-bold text-ink">{cantidad}</strong>
+    </div>
+  );
+}
+
 function IndicadorCompacto({ icono, etiqueta, valor, tono }: { icono: ReactNode; etiqueta: string; valor: string; tono?: "good" | "bad" }) {
+
   return (
     <div className="flex min-h-20 items-center gap-3 px-4 py-3">
       <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-muted [&>svg]:h-4 [&>svg]:w-4 ${tono === "bad" ? "text-bad" : tono === "good" ? "text-good" : "text-primary"}`}>
