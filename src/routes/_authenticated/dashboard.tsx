@@ -253,11 +253,25 @@ function Dashboard() {
         }
       />
 
-      <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         <Tarjeta
-          etiqueta="Presupuesto Total"
-          valor={datos.presupuesto}
-          detalle="Suma de todas las partidas"
+          etiqueta="Presupuesto Ofertado"
+          valor={datos.ofertado}
+          detalle={`Costo Directo ${soles(datos.presupuesto)} · GG ${soles(datos.ggPresupuestado)} · Utilidad ${soles(
+            datos.utilidadPrevista,
+          )}`}
+        />
+        <Tarjeta
+          etiqueta="Gastos Generales Presupuestados"
+          valor={datos.ggPresupuestado}
+          detalle={`Ejecutado ${soles(datos.totalGenerales)} · ${pct(
+            datos.ggPresupuestado > 0 ? (datos.totalGenerales / datos.ggPresupuestado) * 100 : 0,
+          )} consumido`}
+        />
+        <Tarjeta
+          etiqueta="Utilidad Prevista"
+          valor={datos.utilidadPrevista}
+          detalle={`Utilidad real ${soles(datos.margen)} · Variación ${soles(datos.variacionUtilidad)}`}
         />
         <Tarjeta
           etiqueta="Total Ventas (Cobrado)"
