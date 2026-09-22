@@ -46,6 +46,8 @@ export type Partida = {
   prioridad: string;
   tipo_presupuesto: string;
   aplica_gg_utilidad: boolean;
+  aplica_gg: boolean;
+  aplica_utilidad: boolean;
 };
 
 export type TipoPresupuesto = {
