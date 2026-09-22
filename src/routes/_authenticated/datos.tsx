@@ -263,7 +263,7 @@ function Datos() {
       />
 
       <div className="mb-4 flex flex-wrap gap-2">
-        {(["terceros", "bancos", "costos", "ingresos", "centros", "configuracion"] as const).map((p) => (
+        {(["terceros", "bancos", "costos", "ingresos", "centros", "configuracion", "empresa"] as const).map((p) => (
           <button
             key={p}
             type="button"
