@@ -295,6 +295,19 @@ function GastosDirectos() {
                     </td>
                     <td className="px-3 py-2.5 text-muted-foreground">{nombreProv(g)}</td>
                     <td className="px-3 py-2">
+                      <Select
+                        value={editando.rubro}
+                        onChange={(e) => setEditando({ ...editando, rubro: e.target.value as RubroCosto })}
+                        className="py-1 text-xs"
+                      >
+                        {RUBROS_COSTO.map((r) => (
+                          <option key={r} value={r}>
+                            {r}
+                          </option>
+                        ))}
+                      </Select>
+                    </td>
+                    <td className="px-3 py-2">
                       <Input
                         type="number"
                         step="0.01"
