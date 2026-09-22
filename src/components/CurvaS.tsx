@@ -50,6 +50,12 @@ export function CurvaS({
     const hoy = new Date();
     const total = meses.length - 1;
 
+    const iniReal = new Date(`${fechaInicio}T00:00:00`);
+    const finReal = new Date(`${fechaFin}T23:59:59`);
+    const plazo = finReal.getTime() - iniReal.getTime();
+    const transcurrido = hoy.getTime() - iniReal.getTime();
+    const progHoy = plazo > 0 ? programado(transcurrido / plazo) : hoy >= finReal ? 100 : 0;
+
     const gastos = movimientos
       .map((m) => ({ fecha: new Date(`${m.fecha}T00:00:00`), monto: Number(m.monto) || 0 }))
       .filter((m) => !Number.isNaN(m.fecha.getTime()));
@@ -58,18 +64,17 @@ export function CurvaS({
     const puntos = meses.map((mes, i) => {
       const cierre = new Date(mes.getFullYear(), mes.getMonth() + 1, 0, 23, 59, 59);
       acumulado = gastos.filter((g) => g.fecha <= cierre).reduce((s, g) => s + g.monto, 0);
-      const vencido = cierre <= hoy;
+      // El mes en curso también se dibuja, con lo acumulado hasta hoy.
+      const iniciado = mes <= hoy;
       return {
         etiqueta: etiquetaMes(mes),
         prog: programado(total > 0 ? i / total : 1),
-        real: vencido && presupuesto > 0 ? (acumulado / presupuesto) * 100 : null,
-        soles: vencido ? acumulado : null,
+        real: iniciado && presupuesto > 0 ? (acumulado / presupuesto) * 100 : null,
+        soles: iniciado ? acumulado : null,
       };
     });
 
     const ultimoReal = [...puntos].reverse().find((p) => p.real !== null);
-    const idxHoy = puntos.reduce((acc, p, i) => (p.real !== null ? i : acc), 0);
-    const progHoy = puntos[idxHoy]?.prog ?? 0;
 
     return {
       puntos,
@@ -80,6 +85,7 @@ export function CurvaS({
       cpi: (ultimoReal?.real ?? 0) > 0 ? avanceFisico / (ultimoReal?.real ?? 1) : 0,
     };
   }, [fechaInicio, fechaFin, presupuesto, avanceFisico, movimientos]);
+
 
   if (!datos) {
     return (
