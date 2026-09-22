@@ -268,6 +268,7 @@ function TareoPage() {
         nombre: "Consolidado Mensual",
         filas: consolidado.map((c) => ({
           Trabajador: c.nombre,
+          Clasificación: c.clasificacion === "Indirecto" ? "Staff (Gasto general)" : "Mano de obra directa",
           "Dias Laborados": c.dias,
           "Horas Extras": c.horas,
           "Costo Mano de Obra (S/)": c.costo,
