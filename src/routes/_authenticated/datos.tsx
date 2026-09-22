@@ -7,7 +7,8 @@ import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "
 import { Check, Pencil, Trash2, X } from "lucide-react";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { exportarExcel } from "@/lib/exportar";
-import { InsigniaPrioridad, InsigniaSituacion } from "@/components/estado-ui";
+import { InsigniaPrioridad, InsigniaSituacion, InsigniaTipoPresupuesto } from "@/components/estado-ui";
+import { useTiposPresupuesto } from "@/lib/datos";
 import { PRIORIDADES, SITUACIONES, tonoPrioridad, tonoSituacion } from "@/lib/configuracion";
 import { DatosEmpresa } from "@/components/DatosEmpresa";
 
