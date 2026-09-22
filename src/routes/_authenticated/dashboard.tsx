@@ -427,7 +427,7 @@ function Dashboard() {
                     </span>
                   </div>
                 </div>
-                <ul className="flex-1 space-y-1.5">
+                <ul className="min-w-0 flex-1 space-y-1.5">
                   {composicion.map((c) => (
                     <li key={c.nombre} className="flex items-center gap-2 text-[12px]">
                       <span className="h-2.5 w-2.5 shrink-0 rounded-sm" style={{ background: c.color }} />
