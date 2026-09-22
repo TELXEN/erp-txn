@@ -282,6 +282,7 @@ function Datos() {
             {{
               terceros: "Clientes y Proveedores",
               bancos: "Bancos",
+              cargos: "Cargos del personal",
               costos: "Costos",
               ingresos: "Ingresos",
               centros: "Centro de costos",
