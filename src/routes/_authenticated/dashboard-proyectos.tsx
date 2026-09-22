@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
+import { CalendarDays, CircleDollarSign, Clock3, Flag, MapPin, WalletCards } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { CurvaS } from "@/components/CurvaS";
 import { InsigniaPrioridad, InsigniaSituacion } from "@/components/estado-ui";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
-import { pct, soles } from "@/lib/format";
+import { fecha, pct, soles } from "@/lib/format";
 import {
   costoRealProyecto,
   presupuestoProyecto,
@@ -27,6 +28,8 @@ export const Route = createFileRoute("/_authenticated/dashboard-proyectos")({
       },
       { property: "og:title", content: "Dashboard de Proyectos — ERP TELXEN" },
       { property: "og:description", content: "Avance físico y control de costos por obra." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: DashboardProyectos,
@@ -86,6 +89,14 @@ function DashboardProyectos() {
   }, [filas, proyectos]);
 
   const obraSel = filas.find((f) => f.proyecto.id === obraId) ?? filas[0];
+
+  const plazo = useMemo(() => {
+    if (!obraSel?.proyecto.fecha_fin) return null;
+    const fin = new Date(`${obraSel.proyecto.fecha_fin}T23:59:59`);
+    const hoy = new Date();
+    const dias = Math.ceil((fin.getTime() - hoy.getTime()) / 86_400_000);
+    return { dias, vencido: dias < 0 };
+  }, [obraSel]);
 
   const movimientos = useMemo(() => {
     const id = obraSel?.proyecto.id;
@@ -155,7 +166,7 @@ function DashboardProyectos() {
     <>
       <Encabezado
         titulo="Dashboard de Proyectos"
-        subtitulo="Control operativo de obras"
+        subtitulo="Centro de control operativo"
         acciones={
           <>
             <Boton variante="linea" onClick={excel}>
@@ -166,33 +177,86 @@ function DashboardProyectos() {
         }
       />
 
-      <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <Tarjeta etiqueta="Obras registradas" valor={String(resumen.total)} detalle={`${resumen.enProceso} en proceso · ${resumen.completados} completadas`} />
-        <Tarjeta etiqueta="Obras retrasadas" valor={String(resumen.retrasados)} detalle={`${resumen.desviadas} con sobrecosto frente al avance`} tono={resumen.retrasados > 0 ? "bad" : "good"} />
-        <Tarjeta etiqueta="Presupuesto total" valor={soles(resumen.presupuesto)} detalle="Suma de partidas de todas las obras" />
-        <Tarjeta
-          etiqueta="Costo real total"
-          valor={soles(resumen.costoReal)}
-          detalle={`Diferencia ${soles(resumen.diferencia)}`}
-          tono={resumen.diferencia < 0 ? "bad" : "good"}
-        />
+      <div className="mb-4 flex flex-col gap-3 border-y border-line bg-card px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="label-mono">Obra analizada</p>
+          <p className="mt-1 text-sm font-semibold">{obraSel?.proyecto.nombre ?? "Sin obras registradas"}</p>
+        </div>
+        <div className="w-full sm:w-80">
+          <Select value={obraSel?.proyecto.id ?? ""} onChange={(e) => setObraId(e.target.value)}>
+            {filas.length === 0 && <option value="">Sin obras registradas</option>}
+            {filas.map((f) => (
+              <option key={f.proyecto.id} value={f.proyecto.id}>{f.proyecto.nombre}</option>
+            ))}
+          </Select>
+        </div>
       </div>
 
-      <Panel
-        titulo="Curva S — Avance programado vs. ejecución real"
-        className="mb-4"
-        extra={
-          <div className="w-64">
-            <Select value={obraSel?.proyecto.id ?? ""} onChange={(e) => setObraId(e.target.value)}>
-              {filas.length === 0 && <option value="">Sin obras registradas</option>}
-              {filas.map((f) => (
-                <option key={f.proyecto.id} value={f.proyecto.id}>
-                  {f.proyecto.nombre}
-                </option>
-              ))}
-            </Select>
+      {!obraSel ? (
+        <Panel><Vacio texto="Registra una obra para visualizar el tablero." /></Panel>
+      ) : (
+        <>
+          <div className="mb-4 grid gap-3 lg:grid-cols-12">
+            <section className="panel rise flex min-h-64 flex-col justify-between p-5 lg:col-span-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="label-mono">Avance general</p>
+                  <h2 className="mt-2 line-clamp-3 text-xl font-bold leading-tight">{obraSel.proyecto.nombre}</h2>
+                  <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <MapPin className="h-3.5 w-3.5" /> {obraSel.proyecto.ubicacion || "Ubicación no registrada"}
+                  </p>
+                </div>
+                <InsigniaPrioridad valor={obraSel.proyecto.prioridad} />
+              </div>
+              <Medidor valor={obraSel.avance} />
+              <div className="flex items-center justify-between border-t border-line pt-3">
+                <InsigniaSituacion valor={obraSel.proyecto.situacion} />
+                <span className="font-mono text-[11px] text-muted-foreground">{obraSel.partidas} partidas</span>
+              </div>
+            </section>
+
+            <section className="panel rise grid sm:grid-cols-2 lg:col-span-5">
+              <DatoIcono icono={<CalendarDays />} etiqueta="Inicio" valor={fecha(obraSel.proyecto.fecha_inicio)} />
+              <DatoIcono icono={<Flag />} etiqueta="Fin previsto" valor={fecha(obraSel.proyecto.fecha_fin)} />
+              <DatoIcono
+                icono={<Clock3 />}
+                etiqueta={plazo?.vencido ? "Plazo vencido" : "Días restantes"}
+                valor={plazo ? `${Math.abs(plazo.dias)} días` : "Sin fecha"}
+                {...(plazo?.vencido ? { tono: "bad" as const } : {})}
+              />
+              <DatoIcono icono={<WalletCards />} etiqueta="Saldo disponible" valor={soles(obraSel.diferencia)} tono={obraSel.diferencia < 0 ? "bad" : "good"} />
+            </section>
+
+            <section className="panel rise flex flex-col justify-between p-5 lg:col-span-3">
+              <div>
+                <p className="label-mono">Control de presupuesto</p>
+                <p className="mt-3 font-mono text-2xl font-bold">{soles(obraSel.presupuesto)}</p>
+                <p className="mt-1 text-xs text-muted-foreground">Presupuesto aprobado</p>
+              </div>
+              <div className="my-5">
+                <div className="mb-2 flex justify-between font-mono text-[11px]">
+                  <span>Costo real</span><strong>{pct(obraSel.gastado)}</strong>
+                </div>
+                <div className="h-3 overflow-hidden rounded-full bg-muted">
+                  <div className={`growx h-full rounded-full ${obraSel.desviado ? "bg-bad" : "bg-primary"}`} style={{ width: `${Math.min(obraSel.gastado, 100)}%` }} />
+                </div>
+              </div>
+              <p className={`font-mono text-lg font-semibold ${obraSel.desviado ? "text-bad" : "text-good"}`}>{soles(obraSel.costoReal)}</p>
+            </section>
           </div>
-        }
+
+          <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <Tarjeta etiqueta="Obras registradas" valor={String(resumen.total)} detalle={`${resumen.enProceso} en proceso · ${resumen.completados} completadas`} />
+            <Tarjeta etiqueta="Obras retrasadas" valor={String(resumen.retrasados)} detalle={`${resumen.desviadas} con desviación de costo`} tono={resumen.retrasados > 0 ? "bad" : "good"} />
+            <Tarjeta etiqueta="Presupuesto cartera" valor={soles(resumen.presupuesto)} detalle="Total de todas las obras" />
+            <Tarjeta etiqueta="Costo real cartera" valor={soles(resumen.costoReal)} detalle={`Saldo ${soles(resumen.diferencia)}`} tono={resumen.diferencia < 0 ? "bad" : "good"} />
+          </div>
+        </>
+      )}
+
+      <Panel
+        titulo="Curva S — Plan contra ejecución"
+        className="mb-4"
       >
         {!obraSel ? (
           <Vacio texto="Registra una obra para visualizar su curva S." />
@@ -207,16 +271,16 @@ function DashboardProyectos() {
         )}
       </Panel>
 
-      <Panel titulo="Radiografía por obra">
+      <Panel titulo="Cartera de proyectos">
         {filas.length === 0 ? (
           <Vacio texto="Aún no hay proyectos registrados." />
         ) : (
-          <ul className="divide-y divide-line/60">
+          <ul className="grid gap-px bg-line sm:grid-cols-2">
             {filas.map((f) => (
-              <li key={f.proyecto.id} className="px-5 py-4">
+              <li key={f.proyecto.id} className={`bg-card px-5 py-4 transition-colors ${f.proyecto.id === obraSel?.proyecto.id ? "ring-2 ring-inset ring-primary" : ""}`}>
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-64 flex-1">
-                    <p className="text-sm font-semibold">{f.proyecto.nombre}</p>
+                    <button type="button" onClick={() => setObraId(f.proyecto.id)} className="text-left text-sm font-semibold hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">{f.proyecto.nombre}</button>
                     <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">
                       {f.proyecto.cliente} · {f.partidas} partidas
                     </p>
@@ -289,6 +353,36 @@ function Barra({ etiqueta, valor, clase }: { etiqueta: string; valor: number; cl
         <div className={`h-full growx rounded-full ${clase}`} style={{ width: `${Math.min(valor, 100)}%` }} />
       </div>
       <span className="w-14 text-right font-mono text-[11px]">{pct(valor)}</span>
+    </div>
+  );
+}
+
+function Medidor({ valor }: { valor: number }) {
+  const limitado = Math.min(Math.max(valor, 0), 100);
+  const radio = 72;
+  const largo = Math.PI * radio;
+  return (
+    <div className="relative mx-auto h-32 w-44 overflow-hidden" aria-label={`Avance físico ${pct(valor)}`}>
+      <svg viewBox="0 0 180 100" className="h-full w-full" aria-hidden="true">
+        <path d="M 18 88 A 72 72 0 0 1 162 88" fill="none" className="stroke-muted" strokeWidth="15" strokeLinecap="round" />
+        <path d="M 18 88 A 72 72 0 0 1 162 88" fill="none" className={valor < 50 ? "stroke-bad" : "stroke-primary"} strokeWidth="15" strokeLinecap="round" strokeDasharray={`${(limitado / 100) * largo} ${largo}`} />
+      </svg>
+      <div className="absolute inset-x-0 bottom-1 text-center">
+        <p className="font-mono text-3xl font-bold">{pct(valor)}</p>
+        <p className="label-mono">Ejecutado</p>
+      </div>
+    </div>
+  );
+}
+
+function DatoIcono({ icono, etiqueta, valor, tono }: { icono: ReactNode; etiqueta: string; valor: string; tono?: "good" | "bad" }) {
+  return (
+    <div className="flex min-h-32 items-center gap-4 border-b border-line p-5 last:border-b-0 sm:border-r sm:[&:nth-child(2n)]:border-r-0 sm:[&:nth-child(n+3)]:border-b-0">
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-primary [&>svg]:h-5 [&>svg]:w-5">{icono}</span>
+      <div className="min-w-0">
+        <p className="label-mono">{etiqueta}</p>
+        <p className={`mt-1 font-mono text-sm font-semibold ${tono === "bad" ? "text-bad" : tono === "good" ? "text-good" : "text-ink"}`}>{valor}</p>
+      </div>
     </div>
   );
 }
