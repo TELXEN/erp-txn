@@ -401,19 +401,19 @@ function Barra({ etiqueta, valor, clase }: { etiqueta: string; valor: number; cl
   );
 }
 
-function Medidor({ valor }: { valor: number }) {
+function MedidorCompacto({ valor }: { valor: number }) {
   const limitado = Math.min(Math.max(valor, 0), 100);
-  const radio = 72;
+  const radio = 56;
   const largo = Math.PI * radio;
   return (
-    <div className="relative mx-auto h-32 w-44 overflow-hidden" aria-label={`Avance físico ${pct(valor)}`}>
-      <svg viewBox="0 0 180 100" className="h-full w-full" aria-hidden="true">
-        <path d="M 18 88 A 72 72 0 0 1 162 88" fill="none" className="stroke-muted" strokeWidth="15" strokeLinecap="round" />
-        <path d="M 18 88 A 72 72 0 0 1 162 88" fill="none" className={valor < 50 ? "stroke-bad" : "stroke-primary"} strokeWidth="15" strokeLinecap="round" strokeDasharray={`${(limitado / 100) * largo} ${largo}`} />
+    <div className="relative mx-auto h-24 w-32 overflow-hidden" aria-label={`Avance físico ${pct(valor)}`}>
+      <svg viewBox="0 0 140 80" className="h-full w-full" aria-hidden="true">
+        <path d="M 14 70 A 56 56 0 0 1 126 70" fill="none" className="stroke-muted" strokeWidth="12" strokeLinecap="round" />
+        <path d="M 14 70 A 56 56 0 0 1 126 70" fill="none" className={valor < 50 ? "stroke-bad" : "stroke-primary"} strokeWidth="12" strokeLinecap="round" strokeDasharray={`${(limitado / 100) * largo} ${largo}`} />
       </svg>
-      <div className="absolute inset-x-0 bottom-1 text-center">
-        <p className="font-mono text-3xl font-bold">{pct(valor)}</p>
-        <p className="label-mono">Ejecutado</p>
+      <div className="absolute inset-x-0 bottom-0 text-center">
+        <p className="font-mono text-2xl font-bold">{pct(valor)}</p>
+        <p className="label-mono text-[10px]">Ejecutado</p>
       </div>
     </div>
   );
