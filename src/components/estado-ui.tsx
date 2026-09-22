@@ -31,3 +31,21 @@ export function tonoTipoPresupuesto(valor: string): Tono {
 export function InsigniaTipoPresupuesto({ valor }: { valor: string }) {
   return <Insignia tono={tonoTipoPresupuesto(valor)}>{valor || "Contractual"}</Insignia>;
 }
+
+export function tonoRubro(valor: string): Tono {
+  switch (valor) {
+    case "Subcontratos":
+      return { fondo: "#DED5F8", borde: "#B3A3EA" };
+    case "Equipos":
+      return { fondo: "#FBE1C4", borde: "#EFB673" };
+    case "Servicios":
+      return { fondo: "#CFEEDC", borde: "#8FCFAC" };
+    default:
+      return { fondo: "#D5DFF8", borde: "#A3B6EA" };
+  }
+}
+
+export function InsigniaRubro({ valor }: { valor: string }) {
+  return <Insignia tono={tonoRubro(valor)}>{valor || "Materiales"}</Insignia>;
+}
+

@@ -7,8 +7,10 @@ import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "
 import { Check, Pencil, Trash2, X } from "lucide-react";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
-import { useGastosDirectos, usePartidas, useProyectos, useTerceros } from "@/lib/datos";
+import { RUBROS_COSTO, type RubroCosto, useGastosDirectos, usePartidas, useProyectos, useTerceros } from "@/lib/datos";
+import { InsigniaRubro } from "@/components/estado-ui";
 import { exportarExcel } from "@/lib/exportar";
+
 
 export const Route = createFileRoute("/_authenticated/gastos-directos")({
   head: () => ({
@@ -35,13 +37,20 @@ function GastosDirectos() {
     partida_id: "",
     descripcion: "",
     proveedor_id: "",
+    rubro: "Materiales" as RubroCosto,
     monto: "",
     moneda: "PEN",
     tipo_cambio: "3.75",
     fecha: hoy(),
   });
   const [error, setError] = useState("");
-  const [editando, setEditando] = useState<{ id: string; descripcion: string; monto: string } | null>(null);
+  const [filtroRubro, setFiltroRubro] = useState("Todos");
+  const [editando, setEditando] = useState<{
+    id: string;
+    descripcion: string;
+    monto: string;
+    rubro: RubroCosto;
+  } | null>(null);
 
   const partidasProyecto = partidas.filter((p) => p.proyecto_id === form.proyecto_id);
   const nombreProy = (id: string) => proyectos.find((p) => p.id === id)?.nombre ?? "—";
@@ -49,6 +58,13 @@ function GastosDirectos() {
   const nombreProv = (g: (typeof gastos)[number]) =>
     (g.proveedor_id ? terceros.find((t) => t.id === g.proveedor_id)?.razon_social : null) ?? g.proveedor ?? "—";
   const equivalente = Number(form.monto || 0) * (form.moneda === "USD" ? Number(form.tipo_cambio || 0) : 1);
+  const gastosFiltrados =
+    filtroRubro === "Todos" ? gastos : gastos.filter((g) => (g.rubro ?? "Materiales") === filtroRubro);
+  const totalesRubro = RUBROS_COSTO.map((r) => ({
+    rubro: r,
+    total: gastos.filter((g) => (g.rubro ?? "Materiales") === r).reduce((s, g) => s + Number(g.monto_soles), 0),
+  }));
+
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
@@ -69,10 +85,12 @@ function GastosDirectos() {
       moneda: form.moneda as "PEN" | "USD",
       tipo_cambio: tc,
       monto_soles: Number(form.monto || 0) * tc,
+      rubro: form.rubro,
       fecha: form.fecha,
     });
     if (err) return setError(err.message);
     setForm({ ...form, descripcion: "", proveedor_id: "", monto: "" });
+
     qc.invalidateQueries({ queryKey: ["gastos_directos"] });
   }
 
@@ -83,8 +101,14 @@ function GastosDirectos() {
   }
 
   function iniciarEdicion(g: (typeof gastos)[number]) {
-    setEditando({ id: g.id, descripcion: g.descripcion, monto: String(g.monto) });
+    setEditando({
+      id: g.id,
+      descripcion: g.descripcion,
+      monto: String(g.monto),
+      rubro: (g.rubro ?? "Materiales") as RubroCosto,
+    });
   }
+
 
   function cancelarEdicion() {
     setEditando(null);
@@ -100,7 +124,7 @@ function GastosDirectos() {
     const tc = original.moneda === "USD" ? Number(original.tipo_cambio) : 1;
     const { error: err } = await supabase
       .from("gastos_directos")
-      .update({ descripcion: editando.descripcion.trim(), monto, monto_soles: monto * tc })
+      .update({ descripcion: editando.descripcion.trim(), monto, monto_soles: monto * tc, rubro: editando.rubro })
       .eq("id", editando.id);
     if (err) return setError(err.message);
     setEditando(null);
@@ -125,6 +149,7 @@ function GastosDirectos() {
                     Partida: nombrePart(g.partida_id),
                     Descripcion: g.descripcion,
                     Proveedor: nombreProv(g),
+                    Rubro: g.rubro ?? "Materiales",
                     Monto: Number(g.monto),
                     Moneda: g.moneda,
                     "Tipo de Cambio": Number(g.tipo_cambio),
@@ -178,6 +203,15 @@ function GastosDirectos() {
               ))}
             </Select>
           </Campo>
+          <Campo etiqueta="Rubro del recurso">
+            <Select value={form.rubro} onChange={(e) => setForm({ ...form, rubro: e.target.value as RubroCosto })}>
+              {RUBROS_COSTO.map((r) => (
+                <option key={r} value={r}>
+                  {r}
+                </option>
+              ))}
+            </Select>
+          </Campo>
           <Campo etiqueta="COSTO REAL">
             <Input type="number" step="0.01" min="0" value={form.monto} onChange={(e) => setForm({ ...form, monto: e.target.value })} required />
           </Campo>
@@ -211,23 +245,42 @@ function GastosDirectos() {
         </form>
       </Panel>
 
+      <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {totalesRubro.map((t) => (
+          <button
+            key={t.rubro}
+            type="button"
+            onClick={() => setFiltroRubro(filtroRubro === t.rubro ? "Todos" : t.rubro)}
+            aria-pressed={filtroRubro === t.rubro}
+            className={`panel rise p-4 text-left transition ${
+              filtroRubro === t.rubro ? "border-primary ring-1 ring-primary/40" : ""
+            }`}
+          >
+            <InsigniaRubro valor={t.rubro} />
+            <p className="mt-2 font-mono text-lg font-bold tracking-tight text-ink">{soles(t.total)}</p>
+          </button>
+        ))}
+      </div>
+
       <Panel titulo="Compras registradas">
-        {gastos.length === 0 ? (
-          <Vacio texto="Aún no hay gastos directos." />
+        {gastosFiltrados.length === 0 ? (
+          <Vacio texto={filtroRubro === "Todos" ? "Aún no hay gastos directos." : `No hay compras del rubro ${filtroRubro}.`} />
         ) : (
           <table className="w-full table-fixed font-mono text-xs">
             <thead>
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                <th className="w-2/12 px-5 py-2 font-medium">Fecha</th>
-                <th className="w-3/12 px-3 py-2 font-medium">Proyecto</th>
+                <th className="w-1/12 px-5 py-2 font-medium">Fecha</th>
+                <th className="w-2/12 px-3 py-2 font-medium">Proyecto</th>
                 <th className="w-3/12 px-3 py-2 font-medium">Descripción</th>
                 <th className="w-2/12 px-3 py-2 font-medium">Proveedor</th>
+                <th className="w-2/12 px-3 py-2 font-medium">Rubro</th>
                 <th className="w-2/12 px-3 py-2 text-right font-medium">Monto</th>
                 <th className="w-2/12 px-5 py-2"></th>
               </tr>
             </thead>
             <tbody>
-              {gastos.map((g) =>
+              {gastosFiltrados.map((g) =>
+
                 editando?.id === g.id ? (
                   <tr key={g.id} className="border-b border-line/60 last:border-0">
                     <td className="px-5 py-2.5">{fmtFecha(g.fecha)}</td>
@@ -241,6 +294,19 @@ function GastosDirectos() {
                       />
                     </td>
                     <td className="px-3 py-2.5 text-muted-foreground">{nombreProv(g)}</td>
+                    <td className="px-3 py-2">
+                      <Select
+                        value={editando.rubro}
+                        onChange={(e) => setEditando({ ...editando, rubro: e.target.value as RubroCosto })}
+                        className="py-1 text-xs"
+                      >
+                        {RUBROS_COSTO.map((r) => (
+                          <option key={r} value={r}>
+                            {r}
+                          </option>
+                        ))}
+                      </Select>
+                    </td>
                     <td className="px-3 py-2">
                       <Input
                         type="number"
@@ -278,6 +344,9 @@ function GastosDirectos() {
                     <td className="px-3 py-2.5 text-muted-foreground">{nombreProy(g.proyecto_id)}</td>
                     <td className="px-3 py-2.5 font-semibold text-ink">{g.descripcion}</td>
                     <td className="px-3 py-2.5 text-muted-foreground">{nombreProv(g)}</td>
+                    <td className="px-3 py-2.5">
+                      <InsigniaRubro valor={g.rubro ?? "Materiales"} />
+                    </td>
                     <td className="px-3 py-2.5 text-right">
                       <div className="flex items-center justify-end gap-2">
                         {g.moneda === "USD" ? `US$ ${Number(g.monto).toFixed(2)}` : soles(Number(g.monto))}
