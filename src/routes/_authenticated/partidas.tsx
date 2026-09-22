@@ -10,6 +10,8 @@ import {
   agruparPorProyectoYEspecialidad,
   costoRealPartida,
   esContractual,
+  cobraGG,
+  cobraUtilidad,
   resumenPresupuesto,
   useGastosDirectos,
   usePartidas,
