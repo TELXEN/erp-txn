@@ -401,7 +401,7 @@ function MedidorCompacto({ valor }: { valor: number }) {
   const limitado = Math.min(Math.max(valor, 0), 100);
   const radio = 72;
   const largo = Math.PI * radio;
-  const color = limitado < 50 ? "#D64B3C" : limitado < 75 ? "#E08A2E" : "#3E9E62";
+  const color = limitado < 50 ? "#4F46E5" : limitado < 75 ? "#F59E0B" : "#10B981";
   const tramo = (desde: number, hasta: number) =>
     Math.max(0, Math.min(limitado, hasta) - desde) / 100 * largo;
   return (
@@ -411,7 +411,7 @@ function MedidorCompacto({ valor }: { valor: number }) {
         <path
           d="M 18 92 A 72 72 0 0 1 162 92"
           fill="none"
-          stroke="#D64B3C"
+          stroke="#4F46E5"
           strokeWidth="14"
           strokeLinecap="butt"
           strokeDasharray={`${tramo(0, 50)} ${largo}`}
@@ -419,7 +419,7 @@ function MedidorCompacto({ valor }: { valor: number }) {
         <path
           d="M 18 92 A 72 72 0 0 1 162 92"
           fill="none"
-          stroke="#E08A2E"
+          stroke="#F59E0B"
           strokeWidth="14"
           strokeLinecap="butt"
           strokeDasharray={`0 ${(50 / 100) * largo} ${tramo(50, 75)} ${largo}`}
@@ -427,7 +427,7 @@ function MedidorCompacto({ valor }: { valor: number }) {
         <path
           d="M 18 92 A 72 72 0 0 1 162 92"
           fill="none"
-          stroke="#3E9E62"
+          stroke="#10B981"
           strokeWidth="14"
           strokeLinecap="butt"
           strokeDasharray={`0 ${(75 / 100) * largo} ${tramo(75, 100)} ${largo}`}
