@@ -338,7 +338,10 @@ function Dashboard() {
                 <thead>
                   <tr className="border-b border-line/60 text-left">
                     <th className="label-mono px-4 py-2">Obra</th>
-                    <th className="label-mono px-4 py-2 text-right">Presupuesto</th>
+                    <th className="label-mono px-4 py-2 text-right">Costo directo</th>
+                    <th className="label-mono px-4 py-2 text-right">GG ({"%"})</th>
+                    <th className="label-mono px-4 py-2 text-right">Utilidad prevista ({"%"})</th>
+                    <th className="label-mono px-4 py-2 text-right">Ofertado</th>
                     <th className="label-mono px-4 py-2 text-right">Ventas cobradas</th>
                     <th className="label-mono px-4 py-2 text-right">Por cobrar</th>
                     <th className="label-mono px-4 py-2 text-right">Costo real</th>
@@ -351,6 +354,15 @@ function Dashboard() {
                     <tr key={f.id}>
                       <td className="px-4 py-2 font-medium">{f.nombre}</td>
                       <td className="px-4 py-2 text-right font-mono">{soles(f.presupuesto)}</td>
+                      <td className="px-4 py-2 text-right font-mono">
+                        {soles(f.ggPresupuestado)}
+                        <span className="ml-1 text-[11px] text-muted-foreground">({f.pctGG}%)</span>
+                      </td>
+                      <td className="px-4 py-2 text-right font-mono">
+                        {soles(f.utilidadPrevista)}
+                        <span className="ml-1 text-[11px] text-muted-foreground">({f.pctUtilidad}%)</span>
+                      </td>
+                      <td className="px-4 py-2 text-right font-mono font-semibold">{soles(f.ofertado)}</td>
                       <td className="px-4 py-2 text-right font-mono">{soles(f.cobrado)}</td>
                       <td className="px-4 py-2 text-right font-mono text-muted-foreground">{soles(f.pendiente)}</td>
                       <td
