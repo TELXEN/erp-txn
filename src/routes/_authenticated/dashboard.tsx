@@ -391,20 +391,20 @@ function Dashboard() {
       {/* Nivel 2: composición y termómetros */}
       <div className="grid gap-4 lg:grid-cols-5">
         <div className="lg:col-span-2">
-          <Panel titulo="Composición del costo real">
+          <Panel titulo="Composición del costo real" className="flex h-full flex-col">
             {composicion.length === 0 ? (
               <Vacio texto="Aún no hay costos registrados." />
             ) : (
-              <div className="flex items-center gap-4 px-4 py-3">
-                <div className="relative h-36 w-36 shrink-0">
+              <div className="flex flex-1 flex-col items-center gap-4 px-5 py-4 sm:flex-row sm:items-center">
+                <div className="relative h-40 w-40 shrink-0">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
                         data={composicion}
                         dataKey="valor"
                         nameKey="nombre"
-                        innerRadius={52}
-                        outerRadius={78}
+                        innerRadius={50}
+                        outerRadius={72}
                         paddingAngle={2}
                         stroke="none"
                       >
@@ -427,13 +427,19 @@ function Dashboard() {
                     </span>
                   </div>
                 </div>
-                <ul className="min-w-0 flex-1 space-y-1.5">
+                <ul className="min-w-0 flex-1 space-y-2 self-stretch">
                   {composicion.map((c) => (
-                    <li key={c.nombre} className="flex items-center gap-2 text-[12px]">
-                      <span className="h-2.5 w-2.5 shrink-0 rounded-sm" style={{ background: c.color }} />
-                      <span className="flex-1 truncate">{c.nombre}</span>
-                      <span className="font-mono text-[11px] text-muted-foreground">{pct(c.porcentaje)}</span>
-                      <span className="shrink-0 text-right font-mono text-[11px]">{soles(c.valor)}</span>
+                    <li key={c.nombre} className="flex items-start gap-2 text-[12px] leading-tight">
+                      <span
+                        className="mt-1 h-2.5 w-2.5 shrink-0 rounded-sm"
+                        style={{ background: c.color }}
+                      />
+                      <span className="min-w-0 flex-1">
+                        <span className="block break-words">{c.nombre}</span>
+                        <span className="block font-mono text-[11px] text-muted-foreground">
+                          {soles(c.valor)} · {pct(c.porcentaje)}
+                        </span>
+                      </span>
                     </li>
                   ))}
                 </ul>
@@ -441,6 +447,7 @@ function Dashboard() {
             )}
           </Panel>
         </div>
+
 
         <div className="lg:col-span-3">
           <Panel titulo="Indicadores de control">
