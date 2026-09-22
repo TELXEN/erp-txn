@@ -212,6 +212,30 @@ function Proyectos() {
               onChange={(e) => setForm({ ...form, fecha_fin: e.target.value })}
             />
           </Campo>
+          <Campo etiqueta="% Gastos Generales">
+            <Input
+              type="number"
+              min={0}
+              max={100}
+              step="0.1"
+              value={form.pct_gastos_generales}
+              onChange={(e) => setForm({ ...form, pct_gastos_generales: e.target.value })}
+            />
+          </Campo>
+          <Campo etiqueta="% Utilidad Prevista">
+            <Input
+              type="number"
+              min={0}
+              max={100}
+              step="0.1"
+              value={form.pct_utilidad}
+              onChange={(e) => setForm({ ...form, pct_utilidad: e.target.value })}
+            />
+          </Campo>
+          <p className="font-mono text-[11px] text-muted-foreground sm:col-span-6">
+            Ambos porcentajes se aplican sobre el costo directo neto de las partidas: Oferta = Costo Directo + Gastos
+            Generales + Utilidad.
+          </p>
           {error && <p className="font-mono text-xs text-bad sm:col-span-6">{error}</p>}
         </form>
       </Panel>
@@ -283,6 +307,28 @@ function Proyectos() {
                               title="Fecha de fin estimada"
                             />
                           </div>
+                          <div className="mt-1.5 grid grid-cols-2 gap-1.5">
+                            <Input
+                              type="number"
+                              min={0}
+                              max={100}
+                              step="0.1"
+                              className="py-1 text-[11px]"
+                              value={editando.pct_gastos_generales}
+                              onChange={(e) => setEditando({ ...editando, pct_gastos_generales: e.target.value })}
+                              title="% Gastos Generales"
+                            />
+                            <Input
+                              type="number"
+                              min={0}
+                              max={100}
+                              step="0.1"
+                              className="py-1 text-[11px]"
+                              value={editando.pct_utilidad}
+                              onChange={(e) => setEditando({ ...editando, pct_utilidad: e.target.value })}
+                              title="% Utilidad Prevista"
+                            />
+                          </div>
                         </td>
                         <td className="truncate px-3 py-2.5 text-muted-foreground">{p.cliente || "—"}</td>
                         <td className="px-3 py-2.5 text-right whitespace-nowrap">{soles(presupuesto)}</td>
@@ -340,6 +386,12 @@ function Proyectos() {
                       <>
                         <td className="px-5 py-2.5 align-top font-semibold text-ink break-words whitespace-normal">
                           {p.nombre}
+                          <span className="mt-1 block font-mono text-[10px] font-normal text-muted-foreground">
+                            GG {Number(p.pct_gastos_generales ?? 0)}% · Utilidad {Number(p.pct_utilidad ?? 0)}% · Oferta{" "}
+                            {soles(
+                              estructuraOferta(presupuesto, p.pct_gastos_generales, p.pct_utilidad).ofertado,
+                            )}
+                          </span>
                         </td>
                         <td className="truncate px-3 py-2.5 text-muted-foreground">{p.cliente || "—"}</td>
                         <td className="px-3 py-2.5 text-right whitespace-nowrap">{soles(presupuesto)}</td>
