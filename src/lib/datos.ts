@@ -152,6 +152,16 @@ export const useTrabajadores = () =>
     queryFn: () => pedir<Trabajador>("trabajadores", "*", { col: "nombre" }),
   });
 
+export const useCargos = () =>
+  useQuery({
+    queryKey: ["cargos"],
+    queryFn: () => pedir<Cargo>("cargos", "*", { col: "orden" }),
+  });
+
+export function clasificacionDeCargo(cargo: string, cargos: Cargo[]): ClasificacionCargo {
+  return cargos.find((c) => c.nombre === cargo)?.clasificacion ?? "Directo";
+}
+
 export const useTareos = () =>
   useQuery({
     queryKey: ["tareos"],
