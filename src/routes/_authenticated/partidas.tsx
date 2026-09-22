@@ -99,7 +99,11 @@ function Partidas() {
       especialidad: form.especialidad,
       prioridad: form.prioridad,
       tipo_presupuesto: form.tipo_presupuesto,
-      aplica_gg_utilidad: esContractual(form.tipo_presupuesto, tipos) ? true : form.aplica_gg_utilidad,
+      aplica_gg: esContractual(form.tipo_presupuesto, tipos) ? true : form.aplica_gg,
+      aplica_utilidad: esContractual(form.tipo_presupuesto, tipos) ? true : form.aplica_utilidad,
+      aplica_gg_utilidad: esContractual(form.tipo_presupuesto, tipos)
+        ? true
+        : form.aplica_gg || form.aplica_utilidad,
       presupuesto_inicial: Number(form.presupuesto_inicial || 0),
     });
     if (err) return setError(err.message);
