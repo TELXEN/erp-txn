@@ -1,0 +1,1 @@
+ALTER TABLE public.partidas ADD COLUMN IF NOT EXISTS aplica_gg_utilidad boolean NOT NULL DEFAULT true;
