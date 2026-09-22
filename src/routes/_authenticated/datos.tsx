@@ -1033,6 +1033,160 @@ function CargosPersonal() {
   );
 }
 
+function CategoriasGastoGeneral() {
+  const qc = useQueryClient();
+  const { data: categorias = [] } = useCategoriasGastoGeneral();
+  const { data: gastos = [] } = useGastosGenerales();
+  const [nombre, setNombre] = useState("");
+  const [editando, setEditando] = useState<{ id: string; nombre: string; original: string } | null>(null);
+  const [error, setError] = useState("");
+
+  const refrescar = async () => {
+    await qc.invalidateQueries({ queryKey: ["categorias_gasto_general"] });
+    await qc.invalidateQueries({ queryKey: ["gastos_generales"] });
+  };
+
+  async function agregar(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    const limpio = nombre.trim();
+    if (!limpio) return;
+    const { error: err } = await supabase
+      .from("categorias_gasto_general")
+      .insert({ nombre: limpio, orden: categorias.length + 1 });
+    if (err) return setError(err.code === "23505" ? "Esa categoría ya existe." : err.message);
+    setNombre("");
+    await refrescar();
+  }
+
+  async function guardar() {
+    if (!editando) return;
+    setError("");
+    const limpio = editando.nombre.trim();
+    if (!limpio) return setError("Ingresa el nombre de la categoría.");
+    const { error: err } = await supabase
+      .from("categorias_gasto_general")
+      .update({ nombre: limpio })
+      .eq("id", editando.id);
+    if (err) return setError(err.code === "23505" ? "Esa categoría ya existe." : err.message);
+    if (limpio !== editando.original) {
+      const { error: err2 } = await supabase
+        .from("gastos_generales")
+        .update({ categoria: limpio })
+        .eq("categoria", editando.original);
+      if (err2) return setError(err2.message);
+    }
+    setEditando(null);
+    await refrescar();
+  }
+
+  async function alternarActivo(id: string, activo: boolean) {
+    setError("");
+    const { error: err } = await supabase.from("categorias_gasto_general").update({ activo: !activo }).eq("id", id);
+    if (err) return setError(err.message);
+    await refrescar();
+  }
+
+  async function eliminar(id: string, nombreCat: string) {
+    const enUso = gastos.filter((g) => (g.categoria ?? "") === nombreCat).length;
+    if (enUso > 0) return setError(`No se puede eliminar: ${enUso} gasto(s) usan la categoría ${nombreCat}.`);
+    if (!window.confirm(`¿Eliminar la categoría ${nombreCat}?`)) return;
+    setError("");
+    const { error: err } = await supabase.from("categorias_gasto_general").delete().eq("id", id);
+    if (err) return setError(err.message);
+    await refrescar();
+  }
+
+  return (
+    <Panel titulo="Categorías de gastos generales">
+      <div className="p-5">
+        <p className="mb-3 text-xs text-muted-foreground">
+          Clasifica los costos indirectos de obra y oficina: alquileres, servicios, seguridad, viáticos, seguros y
+          asesorías. Cada gasto general se registra con una de estas categorías y se puede filtrar por ellas.
+        </p>
+
+        <form onSubmit={agregar} className="mb-3 flex gap-2">
+          <Input
+            value={nombre}
+            onChange={(e) => setNombre(e.target.value)}
+            placeholder="Ej. Mantenimiento de vehículos"
+            maxLength={60}
+          />
+          <Boton type="submit">Agregar</Boton>
+        </form>
+        {error && <p className="mb-2 font-mono text-xs text-bad">{error}</p>}
+
+        <div className="space-y-2">
+          {categorias.map((c) => {
+            const esEdicion = editando?.id === c.id;
+            const usos = gastos.filter((g) => (g.categoria ?? "") === c.nombre).length;
+            return (
+              <div key={c.id} className="flex flex-wrap items-center gap-2 rounded-md border border-line px-3 py-2">
+                {esEdicion && editando ? (
+                  <>
+                    <Input
+                      className="min-w-40 flex-1 py-1 text-xs"
+                      value={editando.nombre}
+                      onChange={(e) => setEditando({ ...editando, nombre: e.target.value })}
+                      maxLength={60}
+                    />
+                    <button
+                      type="button"
+                      onClick={guardar}
+                      title="Guardar"
+                      className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground"
+                    >
+                      <Check size={14} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditando(null)}
+                      title="Cancelar"
+                      className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line hover:bg-muted"
+                    >
+                      <X size={14} />
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <span className="flex-1">
+                      <InsigniaCategoriaGasto valor={c.nombre} />
+                    </span>
+                    <span className="font-mono text-[10px] text-muted-foreground">{usos} gasto(s)</span>
+                    <button
+                      type="button"
+                      onClick={() => alternarActivo(c.id, c.activo)}
+                      className="font-mono text-[10px] text-muted-foreground underline-offset-2 hover:text-primary hover:underline"
+                    >
+                      {c.activo ? "Activa" : "Inactiva"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditando({ id: c.id, nombre: c.nombre, original: c.nombre })}
+                      title="Editar"
+                      className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"
+                    >
+                      <Pencil size={14} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => eliminar(c.id, c.nombre)}
+                      title="Eliminar"
+                      className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-bad hover:text-bad"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </Panel>
+  );
+}
+
 function TiposPresupuesto() {
   const qc = useQueryClient();
   const [nombre, setNombre] = useState("");
