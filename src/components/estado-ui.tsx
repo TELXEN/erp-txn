@@ -19,3 +19,15 @@ export function InsigniaSituacion({ valor }: { valor: string }) {
 export function InsigniaPrioridad({ valor }: { valor: string }) {
   return <Insignia tono={tonoPrioridad(valor)}>{valor}</Insignia>;
 }
+
+export function tonoTipoPresupuesto(valor: string): Tono {
+  const v = (valor || "").toLowerCase();
+  if (v.includes("deductivo")) return { fondo: "#F8D2CD", borde: "#E79E97" };
+  if (v.includes("contractual")) return { fondo: "#E9E9E6", borde: "#C6C6C0" };
+  if (v.includes("metrado")) return { fondo: "#D5DFF8", borde: "#A3B6EA" };
+  return { fondo: "#FBE1C4", borde: "#EFB673" };
+}
+
+export function InsigniaTipoPresupuesto({ valor }: { valor: string }) {
+  return <Insignia tono={tonoTipoPresupuesto(valor)}>{valor || "Contractual"}</Insignia>;
+}

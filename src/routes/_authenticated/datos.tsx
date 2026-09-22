@@ -7,7 +7,8 @@ import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "
 import { Check, Pencil, Trash2, X } from "lucide-react";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { exportarExcel } from "@/lib/exportar";
-import { InsigniaPrioridad, InsigniaSituacion } from "@/components/estado-ui";
+import { InsigniaPrioridad, InsigniaSituacion, InsigniaTipoPresupuesto } from "@/components/estado-ui";
+import { useTiposPresupuesto } from "@/lib/datos";
 import { PRIORIDADES, SITUACIONES, tonoPrioridad, tonoSituacion } from "@/lib/configuracion";
 import { DatosEmpresa } from "@/components/DatosEmpresa";
 
@@ -873,6 +874,73 @@ function CatalogoMaestro({
   );
 }
 
+function TiposPresupuesto() {
+  const qc = useQueryClient();
+  const [nombre, setNombre] = useState("");
+  const [error, setError] = useState("");
+  const { data: tipos = [] } = useTiposPresupuesto();
+
+  async function agregar(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    const limpio = nombre.trim();
+    if (!limpio) return;
+    const { error: err } = await supabase
+      .from("tipos_presupuesto")
+      .insert({ nombre: limpio, es_contractual: false, orden: tipos.length + 1 });
+    if (err) return setError(err.message);
+    setNombre("");
+    qc.invalidateQueries({ queryKey: ["tipos_presupuesto"] });
+  }
+
+  async function eliminar(id: string) {
+    if (!window.confirm("¿Eliminar este tipo de presupuesto?")) return;
+    const { error: err } = await supabase.from("tipos_presupuesto").delete().eq("id", id);
+    if (err) return setError(err.message);
+    qc.invalidateQueries({ queryKey: ["tipos_presupuesto"] });
+  }
+
+  return (
+    <Panel titulo="Tipos de presupuesto (adicionales)">
+      <div className="p-5">
+        <p className="mb-3 text-xs text-muted-foreground">
+          Clasificación de cada partida: contrato original, adicionales, mayores metrados y deductivos.
+        </p>
+        <form onSubmit={agregar} className="mb-3 flex gap-2">
+          <Input
+            value={nombre}
+            onChange={(e) => setNombre(e.target.value)}
+            placeholder="Ej. Adicional 04 / Adenda Muro de Contención"
+            maxLength={60}
+          />
+          <Boton type="submit">Agregar</Boton>
+        </form>
+        {error && <p className="mb-2 font-mono text-xs text-bad">{error}</p>}
+        <div className="space-y-2">
+          {tipos.map((t) => (
+            <div key={t.id} className="flex items-center justify-between gap-3 rounded-md border border-line px-3 py-2">
+              <InsigniaTipoPresupuesto valor={t.nombre} />
+              <div className="flex items-center gap-3">
+                <span className="font-mono text-[10px] text-muted-foreground">
+                  {t.es_contractual ? "Contrato original" : "Adicional"}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => eliminar(t.id)}
+                  className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-bad hover:text-bad"
+                  title="Eliminar"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </Panel>
+  );
+}
+
 function ConfiguracionProyectos() {
   return (
     <div className="grid gap-4 lg:grid-cols-2">
@@ -903,6 +971,10 @@ function ConfiguracionProyectos() {
           ))}
         </div>
       </Panel>
+
+      <div className="lg:col-span-2">
+        <TiposPresupuesto />
+      </div>
     </div>
   );
 }

@@ -9,14 +9,16 @@ import { ESPECIALIDADES, pct, soles } from "@/lib/format";
 import {
   agruparPorProyectoYEspecialidad,
   costoRealPartida,
+  resumenPresupuesto,
   useGastosDirectos,
   usePartidas,
   useProyectos,
+  useTiposPresupuesto,
 } from "@/lib/datos";
 import { exportarExcel } from "@/lib/exportar";
 import { Pencil, Trash2, Check, X, LayoutGrid, Table2 } from "lucide-react";
 import { Kanban } from "@/components/Kanban";
-import { InsigniaPrioridad } from "@/components/estado-ui";
+import { InsigniaPrioridad, InsigniaTipoPresupuesto } from "@/components/estado-ui";
 import { PRIORIDADES, type Situacion } from "@/lib/configuracion";
 
 export const Route = createFileRoute("/_authenticated/partidas")({
@@ -38,8 +40,11 @@ function Partidas() {
   const { data: partidas = [] } = usePartidas();
   const { data: gastos = [] } = useGastosDirectos();
 
+  const { data: tipos = [] } = useTiposPresupuesto();
+
   const [filtroProyecto, setFiltroProyecto] = useState("");
   const [filtroEsp, setFiltroEsp] = useState("");
+  const [filtroTipo, setFiltroTipo] = useState("");
   const [vista, setVista] = useState<"tabla" | "kanban">("tabla");
   const [form, setForm] = useState({
     proyecto_id: "",
@@ -47,9 +52,16 @@ function Partidas() {
     especialidad: ESPECIALIDADES[0] as string,
     presupuesto_inicial: "",
     prioridad: "Media",
+    tipo_presupuesto: "Contractual",
   });
   const [error, setError] = useState("");
-  const [editando, setEditando] = useState<{ id: string; nombre: string; especialidad: string; presupuesto_inicial: string } | null>(null);
+  const [editando, setEditando] = useState<{
+    id: string;
+    nombre: string;
+    especialidad: string;
+    presupuesto_inicial: string;
+    tipo_presupuesto: string;
+  } | null>(null);
 
   const nombreProyecto = (id: string) => proyectos.find((p) => p.id === id)?.nombre ?? "—";
 
@@ -58,10 +70,17 @@ function Partidas() {
       partidas.filter(
         (p) =>
           (!filtroProyecto || p.proyecto_id === filtroProyecto) &&
-          (!filtroEsp || p.especialidad === filtroEsp),
+          (!filtroEsp || p.especialidad === filtroEsp) &&
+          (!filtroTipo || (p.tipo_presupuesto ?? "Contractual") === filtroTipo),
       ),
-    [partidas, filtroProyecto, filtroEsp],
+    [partidas, filtroProyecto, filtroEsp, filtroTipo],
   );
+  const resumen = useMemo(() => resumenPresupuesto(visibles, tipos), [visibles, tipos]);
+  const nombresTipos = useMemo(() => {
+    const activos = tipos.filter((t) => t.activo).map((t) => t.nombre);
+    const usados = partidas.map((p) => p.tipo_presupuesto ?? "Contractual");
+    return [...new Set(["Contractual", ...activos, ...usados])];
+  }, [tipos, partidas]);
   const grupos = useMemo(() => agruparPorProyectoYEspecialidad(visibles, nombreProyecto), [visibles, nombreProyecto]);
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
@@ -74,6 +93,7 @@ function Partidas() {
       nombre: form.nombre.trim(),
       especialidad: form.especialidad,
       prioridad: form.prioridad,
+      tipo_presupuesto: form.tipo_presupuesto,
       presupuesto_inicial: Number(form.presupuesto_inicial || 0),
     });
     if (err) return setError(err.message);
@@ -90,6 +110,7 @@ function Partidas() {
       .update({
         nombre: editando.nombre.trim(),
         especialidad: editando.especialidad,
+        tipo_presupuesto: editando.tipo_presupuesto,
         presupuesto_inicial: Number(editando.presupuesto_inicial || 0),
       })
       .eq("id", editando.id);
@@ -114,12 +135,25 @@ function Partidas() {
           Proyecto: nombreProyecto(p.proyecto_id),
           Especialidad: p.especialidad,
           Partida: p.nombre,
+          "Tipo de Presupuesto": p.tipo_presupuesto ?? "Contractual",
           "Presupuesto (S/)": Number(p.presupuesto_inicial),
           "Costo Real (S/)": costoRealPartida(p.id, gastos),
           "Avance Fisico %": Number(p.avance_pct),
         })),
       },
     ]);
+  }
+
+  async function crearTipo() {
+    const nombre = window.prompt("Nombre del nuevo tipo de presupuesto (ej. Adicional 04)")?.trim();
+    if (!nombre) return;
+    setError("");
+    const { error: err } = await supabase
+      .from("tipos_presupuesto")
+      .insert({ nombre, es_contractual: false, orden: tipos.length + 1 });
+    if (err && !err.message.includes("duplicate")) return setError(err.message);
+    await qc.invalidateQueries({ queryKey: ["tipos_presupuesto"] });
+    setForm((f) => ({ ...f, tipo_presupuesto: nombre }));
   }
 
   async function mover(id: string, situacion: Situacion) {
@@ -193,6 +227,22 @@ function Partidas() {
               required
             />
           </Campo>
+          <Campo etiqueta="Tipo de presupuesto">
+            <Select
+              value={form.tipo_presupuesto}
+              onChange={(e) => {
+                if (e.target.value === "__nuevo__") void crearTipo();
+                else setForm({ ...form, tipo_presupuesto: e.target.value });
+              }}
+            >
+              {nombresTipos.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+              <option value="__nuevo__">+ Agregar tipo…</option>
+            </Select>
+          </Campo>
           <Campo etiqueta="Prioridad">
             <Select value={form.prioridad} onChange={(e) => setForm({ ...form, prioridad: e.target.value })}>
               {PRIORIDADES.map((p) => (
@@ -211,6 +261,19 @@ function Partidas() {
         </form>
       </Panel>
 
+      <div className="mb-4 grid gap-3 sm:grid-cols-3">
+        {[
+          { etiqueta: "Presupuesto contractual", valor: resumen.contractual },
+          { etiqueta: "Total adicionales", valor: resumen.adicionales },
+          { etiqueta: "Presupuesto vigente", valor: resumen.vigente },
+        ].map((d) => (
+          <div key={d.etiqueta} className="rounded-md border border-line bg-card p-4">
+            <p className="label-mono text-muted-foreground">{d.etiqueta}</p>
+            <p className="mt-1 font-mono text-lg font-semibold text-ink">{soles(d.valor)}</p>
+          </div>
+        ))}
+      </div>
+
       <Panel
         titulo={vista === "kanban" ? "Tablero Kanban de partidas" : "Listado por proyecto y especialidad"}
         extra={
@@ -228,6 +291,14 @@ function Partidas() {
               {ESPECIALIDADES.map((e) => (
                 <option key={e} value={e}>
                   {e}
+                </option>
+              ))}
+            </Select>
+            <Select className="w-52" value={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value)}>
+              <option value="">Todos los tipos</option>
+              {nombresTipos.map((t) => (
+                <option key={t} value={t}>
+                  {t}
                 </option>
               ))}
             </Select>
@@ -264,7 +335,10 @@ function Partidas() {
                         {soles(costo)} / {soles(presu)}
                       </span>
                     </div>
-                    <InsigniaPrioridad valor={p.prioridad} />
+                    <div className="flex flex-wrap items-center gap-1">
+                      <InsigniaPrioridad valor={p.prioridad} />
+                      <InsigniaTipoPresupuesto valor={p.tipo_presupuesto ?? "Contractual"} />
+                    </div>
                   </div>
                 ),
               };
@@ -277,20 +351,21 @@ function Partidas() {
               <table className="w-full table-fixed font-mono text-xs">
                 <thead>
                   <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                    <th style={{ width: "22.5%" }} className="whitespace-nowrap px-5 py-2 font-medium">Proyecto</th>
-                    <th style={{ width: "22.5%" }} className="whitespace-nowrap px-3 py-2 font-medium">Partida</th>
+                    <th style={{ width: "18%" }} className="whitespace-nowrap px-5 py-2 font-medium">Proyecto</th>
+                    <th style={{ width: "20%" }} className="whitespace-nowrap px-3 py-2 font-medium">Partida</th>
+                    <th style={{ width: "13%" }} className="whitespace-nowrap px-3 py-2 font-medium">Tipo</th>
                     <th style={{ width: "11%" }} className="whitespace-nowrap px-3 py-2 text-right font-medium">Presupuesto</th>
-                    <th style={{ width: "12%" }} className="whitespace-nowrap px-3 py-2 text-right font-medium">Costo real</th>
-                    <th style={{ width: "10%" }} className="whitespace-nowrap px-3 py-2 text-right font-medium">Avance</th>
-                    <th style={{ width: "10%" }} className="whitespace-nowrap px-3 py-2 text-right font-medium">Saldo</th>
-                    <th style={{ width: "12%" }} className="whitespace-nowrap px-5 py-2 text-right font-medium">Acciones</th>
+                    <th style={{ width: "11%" }} className="whitespace-nowrap px-3 py-2 text-right font-medium">Costo real</th>
+                    <th style={{ width: "9%" }} className="whitespace-nowrap px-3 py-2 text-right font-medium">Avance</th>
+                    <th style={{ width: "9%" }} className="whitespace-nowrap px-3 py-2 text-right font-medium">Saldo</th>
+                    <th style={{ width: "9%" }} className="whitespace-nowrap px-5 py-2 text-right font-medium">Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
                   {espGrupos.map(([esp, lista]) => (
                     <>
                       <tr key={`${esp}-header`} className="border-b border-line/40 bg-muted/40">
-                        <td colSpan={7} className="px-5 py-1.5 label-mono">{esp}</td>
+                        <td colSpan={8} className="px-5 py-1.5 label-mono">{esp}</td>
                       </tr>
                       {lista.map((p) => {
                         const costo = costoRealPartida(p.id, gastos);
@@ -306,6 +381,19 @@ function Partidas() {
                                   onChange={(e) => setEditando({ ...editando, nombre: e.target.value })}
                                   className="py-1 text-xs"
                                 />
+                              </td>
+                              <td className="px-3 py-2">
+                                <Select
+                                  value={editando.tipo_presupuesto}
+                                  onChange={(e) => setEditando({ ...editando, tipo_presupuesto: e.target.value })}
+                                  className="py-1 text-xs"
+                                >
+                                  {nombresTipos.map((t) => (
+                                    <option key={t} value={t}>
+                                      {t}
+                                    </option>
+                                  ))}
+                                </Select>
                               </td>
                               <td className="px-3 py-2">
                                 <Input
@@ -349,6 +437,9 @@ function Partidas() {
                           <tr key={p.id} className="border-b border-line/40 last:border-0">
                             <td className="px-5 py-2.5 font-semibold text-ink">{nombreProyecto(p.proyecto_id)}</td>
                             <td className="px-3 py-2.5 font-semibold text-ink">{p.nombre}</td>
+                            <td className="px-3 py-2.5">
+                              <InsigniaTipoPresupuesto valor={p.tipo_presupuesto ?? "Contractual"} />
+                            </td>
                             <td className="px-3 py-2.5 text-right">{soles(Number(p.presupuesto_inicial))}</td>
                             <td className="px-3 py-2.5 text-right">{soles(costo)}</td>
                             <td className="px-3 py-2.5 text-right">{pct(Number(p.avance_pct))}</td>
@@ -365,6 +456,7 @@ function Partidas() {
                                       nombre: p.nombre,
                                       especialidad: p.especialidad,
                                       presupuesto_inicial: String(p.presupuesto_inicial),
+                                      tipo_presupuesto: p.tipo_presupuesto ?? "Contractual",
                                     })
                                   }
                                   className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"
