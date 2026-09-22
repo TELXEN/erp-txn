@@ -427,13 +427,14 @@ function Dashboard() {
                     </span>
                   </div>
                 </div>
-                <ul className="min-w-0 flex-1 space-y-2 self-stretch">
+                <ul className="my-auto flex min-w-0 flex-1 flex-col justify-center space-y-2 self-stretch">
                   {composicion.map((c) => (
-                    <li key={c.nombre} className="flex items-start gap-2 text-[12px] leading-tight">
+                    <li key={c.nombre} className="flex items-center gap-2 text-[12px] leading-tight">
                       <span
-                        className="mt-1 h-2.5 w-2.5 shrink-0 rounded-sm"
+                        className="h-2.5 w-2.5 shrink-0 rounded-sm"
                         style={{ background: c.color }}
                       />
+
                       <span className="min-w-0 flex-1">
                         <span className="block break-words">{c.nombre}</span>
                         <span className="block font-mono text-[11px] text-muted-foreground">
