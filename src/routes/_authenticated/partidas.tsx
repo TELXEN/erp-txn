@@ -121,7 +121,11 @@ function Partidas() {
         nombre: editando.nombre.trim(),
         especialidad: editando.especialidad,
         tipo_presupuesto: editando.tipo_presupuesto,
-        aplica_gg_utilidad: esContractual(editando.tipo_presupuesto, tipos) ? true : editando.aplica_gg_utilidad,
+        aplica_gg: esContractual(editando.tipo_presupuesto, tipos) ? true : editando.aplica_gg,
+        aplica_utilidad: esContractual(editando.tipo_presupuesto, tipos) ? true : editando.aplica_utilidad,
+        aplica_gg_utilidad: esContractual(editando.tipo_presupuesto, tipos)
+          ? true
+          : editando.aplica_gg || editando.aplica_utilidad,
         presupuesto_inicial: Number(editando.presupuesto_inicial || 0),
       })
       .eq("id", editando.id);
