@@ -10,6 +10,8 @@ import {
   agruparPorProyectoYEspecialidad,
   costoRealPartida,
   esContractual,
+  cobraGG,
+  cobraUtilidad,
   resumenPresupuesto,
   useGastosDirectos,
   usePartidas,
@@ -54,7 +56,8 @@ function Partidas() {
     presupuesto_inicial: "",
     prioridad: "Media",
     tipo_presupuesto: "Contractual",
-    aplica_gg_utilidad: true,
+    aplica_gg: true,
+    aplica_utilidad: true,
   });
   const [error, setError] = useState("");
   const [editando, setEditando] = useState<{
@@ -63,7 +66,8 @@ function Partidas() {
     especialidad: string;
     presupuesto_inicial: string;
     tipo_presupuesto: string;
-    aplica_gg_utilidad: boolean;
+    aplica_gg: boolean;
+    aplica_utilidad: boolean;
   } | null>(null);
 
   const nombreProyecto = (id: string) => proyectos.find((p) => p.id === id)?.nombre ?? "—";
@@ -97,7 +101,11 @@ function Partidas() {
       especialidad: form.especialidad,
       prioridad: form.prioridad,
       tipo_presupuesto: form.tipo_presupuesto,
-      aplica_gg_utilidad: esContractual(form.tipo_presupuesto, tipos) ? true : form.aplica_gg_utilidad,
+      aplica_gg: esContractual(form.tipo_presupuesto, tipos) ? true : form.aplica_gg,
+      aplica_utilidad: esContractual(form.tipo_presupuesto, tipos) ? true : form.aplica_utilidad,
+      aplica_gg_utilidad: esContractual(form.tipo_presupuesto, tipos)
+        ? true
+        : form.aplica_gg || form.aplica_utilidad,
       presupuesto_inicial: Number(form.presupuesto_inicial || 0),
     });
     if (err) return setError(err.message);
@@ -115,7 +123,11 @@ function Partidas() {
         nombre: editando.nombre.trim(),
         especialidad: editando.especialidad,
         tipo_presupuesto: editando.tipo_presupuesto,
-        aplica_gg_utilidad: esContractual(editando.tipo_presupuesto, tipos) ? true : editando.aplica_gg_utilidad,
+        aplica_gg: esContractual(editando.tipo_presupuesto, tipos) ? true : editando.aplica_gg,
+        aplica_utilidad: esContractual(editando.tipo_presupuesto, tipos) ? true : editando.aplica_utilidad,
+        aplica_gg_utilidad: esContractual(editando.tipo_presupuesto, tipos)
+          ? true
+          : editando.aplica_gg || editando.aplica_utilidad,
         presupuesto_inicial: Number(editando.presupuesto_inicial || 0),
       })
       .eq("id", editando.id);
@@ -142,7 +154,8 @@ function Partidas() {
           Partida: p.nombre,
           "Tipo de Presupuesto": p.tipo_presupuesto ?? "Contractual",
           "Presupuesto (S/)": Number(p.presupuesto_inicial),
-          "Aplica GG y Utilidad": esContractual(p.tipo_presupuesto ?? "Contractual", tipos) || p.aplica_gg_utilidad !== false ? "Si" : "No",
+          "Aplica GG": cobraGG(p, tipos) ? "Si" : "No",
+          "Aplica Utilidad": cobraUtilidad(p, tipos) ? "Si" : "No",
           "Costo Real (S/)": costoRealPartida(p.id, gastos),
           "Avance Fisico %": Number(p.avance_pct),
         })),
@@ -249,15 +262,26 @@ function Partidas() {
               <option value="__nuevo__">+ Agregar tipo…</option>
             </Select>
             {!esContractual(form.tipo_presupuesto, tipos) && (
-              <label className="mt-1.5 flex items-center gap-2 text-[11px] text-muted-foreground">
-                <input
-                  type="checkbox"
-                  checked={form.aplica_gg_utilidad}
-                  onChange={(e) => setForm({ ...form, aplica_gg_utilidad: e.target.checked })}
-                  className="size-3.5 accent-[var(--color-primary)]"
-                />
-                Cobrar gastos generales y utilidad en este adicional
-              </label>
+              <div className="mt-1.5 space-y-1">
+                <label className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                  <input
+                    type="checkbox"
+                    checked={form.aplica_gg}
+                    onChange={(e) => setForm({ ...form, aplica_gg: e.target.checked })}
+                    className="size-3.5 accent-[var(--color-primary)]"
+                  />
+                  Cobrar gastos generales en este adicional
+                </label>
+                <label className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                  <input
+                    type="checkbox"
+                    checked={form.aplica_utilidad}
+                    onChange={(e) => setForm({ ...form, aplica_utilidad: e.target.checked })}
+                    className="size-3.5 accent-[var(--color-primary)]"
+                  />
+                  Cobrar utilidad en este adicional
+                </label>
+              </div>
             )}
           </Campo>
           <Campo etiqueta="Prioridad">
@@ -412,15 +436,26 @@ function Partidas() {
                                   ))}
                                 </Select>
                                 {!esContractual(editando.tipo_presupuesto, tipos) && (
-                                  <label className="mt-1 flex items-center gap-1.5 text-[10px] text-muted-foreground">
-                                    <input
-                                      type="checkbox"
-                                      checked={editando.aplica_gg_utilidad}
-                                      onChange={(e) => setEditando({ ...editando, aplica_gg_utilidad: e.target.checked })}
-                                      className="size-3 accent-[var(--color-primary)]"
-                                    />
-                                    Con GG y utilidad
-                                  </label>
+                                  <div className="mt-1 space-y-0.5">
+                                    <label className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                                      <input
+                                        type="checkbox"
+                                        checked={editando.aplica_gg}
+                                        onChange={(e) => setEditando({ ...editando, aplica_gg: e.target.checked })}
+                                        className="size-3 accent-[var(--color-primary)]"
+                                      />
+                                      Con GG
+                                    </label>
+                                    <label className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                                      <input
+                                        type="checkbox"
+                                        checked={editando.aplica_utilidad}
+                                        onChange={(e) => setEditando({ ...editando, aplica_utilidad: e.target.checked })}
+                                        className="size-3 accent-[var(--color-primary)]"
+                                      />
+                                      Con utilidad
+                                    </label>
+                                  </div>
                                 )}
                               </td>
                               <td className="px-3 py-2">
@@ -467,9 +502,15 @@ function Partidas() {
                             <td className="px-3 py-2.5 font-semibold text-ink">{p.nombre}</td>
                             <td className="px-3 py-2.5">
                               <InsigniaTipoPresupuesto valor={p.tipo_presupuesto ?? "Contractual"} />
-                              {!esContractual(p.tipo_presupuesto ?? "Contractual", tipos) && p.aplica_gg_utilidad === false && (
-                                <span className="mt-1 block font-mono text-[10px] text-muted-foreground">Sin GG ni utilidad</span>
-                              )}
+                              {(() => {
+                                const gg = cobraGG(p, tipos);
+                                const ut = cobraUtilidad(p, tipos);
+                                if (gg && ut) return null;
+                                const texto = !gg && !ut ? "Costo neto" : !gg ? "Sin GG" : "Sin utilidad";
+                                return (
+                                  <span className="mt-1 block font-mono text-[10px] text-muted-foreground">{texto}</span>
+                                );
+                              })()}
                             </td>
                             <td className="px-3 py-2.5 text-right">{soles(Number(p.presupuesto_inicial))}</td>
                             <td className="px-3 py-2.5 text-right">{soles(costo)}</td>
@@ -488,7 +529,8 @@ function Partidas() {
                                       especialidad: p.especialidad,
                                       presupuesto_inicial: String(p.presupuesto_inicial),
                                       tipo_presupuesto: p.tipo_presupuesto ?? "Contractual",
-                                      aplica_gg_utilidad: p.aplica_gg_utilidad !== false,
+                                      aplica_gg: cobraGG({ ...p, tipo_presupuesto: "__adicional__" }, tipos),
+                                      aplica_utilidad: cobraUtilidad({ ...p, tipo_presupuesto: "__adicional__" }, tipos),
                                     })
                                   }
                                   className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"
