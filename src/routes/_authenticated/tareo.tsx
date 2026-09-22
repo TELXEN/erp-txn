@@ -444,6 +444,11 @@ function TareoPage() {
               {consolidado.map((c) => (
                 <tr key={c.id} className="border-b border-line/60 last:border-0">
                   <td className="px-5 py-2.5 font-semibold text-ink">{c.nombre}</td>
+                  <td className="px-3 py-2.5">
+                    <span className={c.clasificacion === "Indirecto" ? "text-primary" : "text-muted-foreground"}>
+                      {c.clasificacion === "Indirecto" ? "Staff · Gasto general" : "Mano de obra directa"}
+                    </span>
+                  </td>
                   <td className="px-3 py-2.5 text-right">{c.dias}</td>
                   <td className="px-3 py-2.5 text-right">{c.horas}</td>
                   <td className="px-5 py-2.5">
