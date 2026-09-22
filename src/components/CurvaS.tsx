@@ -24,12 +24,16 @@ export function CurvaS({
   fechaInicio,
   fechaFin,
   presupuesto,
+  presupuestoContractual,
+  adicionales,
   avanceFisico,
   movimientos,
 }: {
   fechaInicio: string | null;
   fechaFin: string | null;
   presupuesto: number;
+  presupuestoContractual: number;
+  adicionales: number;
   avanceFisico: number;
   movimientos: Movimiento[];
 }) {
@@ -110,7 +114,7 @@ export function CurvaS({
 
   return (
     <div className="space-y-4 p-5">
-      <div className="grid gap-3 sm:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Mini etiqueta="Avance programado a hoy" valor={`${datos.progHoy.toFixed(1)} %`} />
         <Mini etiqueta="Avance físico real" valor={`${avanceFisico.toFixed(1)} %`} tono={atrasado ? "bad" : "good"} />
         <Mini etiqueta="Costo acumulado" valor={soles(datos.gastadoSoles)} />
@@ -134,8 +138,12 @@ export function CurvaS({
           valor={`${datos.spi.toFixed(2)} / ${datos.cpi.toFixed(2)}`}
           tono={datos.spi < 1 || datos.cpi < 1 ? "bad" : "good"}
         />
+      </div>
 
-
+      <div className="grid overflow-hidden rounded-md border border-line bg-line sm:grid-cols-3 sm:gap-px">
+        <ReferenciaPresupuesto etiqueta="Presupuesto contractual" valor={presupuestoContractual} />
+        <ReferenciaPresupuesto etiqueta="Adicionales de obra" valor={adicionales} destacado={adicionales > 0} />
+        <ReferenciaPresupuesto etiqueta="Presupuesto vigente" valor={presupuesto} fuerte />
       </div>
 
       <div className="overflow-x-auto">
@@ -176,9 +184,30 @@ export function CurvaS({
           <span className="h-0.5 w-6 bg-primary" /> Curva programada (plan)
         </span>
         <span className="inline-flex items-center gap-2">
-          <span className={`h-0.5 w-6 ${atrasado ? "bg-bad" : "bg-good"}`} /> Ejecución real (costo acumulado / presupuesto)
+          <span className={`h-0.5 w-6 ${atrasado ? "bg-bad" : "bg-good"}`} /> Ejecución real (costo acumulado / presupuesto vigente)
         </span>
       </div>
+    </div>
+  );
+}
+
+function ReferenciaPresupuesto({
+  etiqueta,
+  valor,
+  destacado = false,
+  fuerte = false,
+}: {
+  etiqueta: string;
+  valor: number;
+  destacado?: boolean;
+  fuerte?: boolean;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3 bg-card px-4 py-3 sm:block">
+      <p className="label-mono">{etiqueta}</p>
+      <p className={`font-mono text-sm ${fuerte ? "font-bold text-ink" : destacado ? "font-semibold text-primary" : "text-ink"}`}>
+        {soles(valor)}
+      </p>
     </div>
   );
 }

@@ -11,12 +11,14 @@ import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha, pct, soles } from "@/lib/format";
 import {
   costoRealProyecto,
-  presupuestoProyecto,
+  esContractual,
+  resumenPresupuesto,
   useGastosDirectos,
   useGastosGenerales,
   usePartidas,
   useProyectos,
   useTareos,
+  useTiposPresupuesto,
 } from "@/lib/datos";
 import { exportarExcel, exportarPdf } from "@/lib/exportar";
 
@@ -44,6 +46,7 @@ function DashboardProyectos() {
   const { data: gastosD = [] } = useGastosDirectos();
   const { data: gastosG = [] } = useGastosGenerales();
   const { data: tareos = [] } = useTareos();
+  const { data: tiposPresupuesto = [] } = useTiposPresupuesto();
   const [obraId, setObraId] = useState("");
 
 
@@ -51,8 +54,11 @@ function DashboardProyectos() {
     () =>
       proyectos.map((p) => {
         const propias = partidas.filter((x) => x.proyecto_id === p.id);
-        const presupuesto = presupuestoProyecto(p.id, partidas);
+        const presupuestoDesglosado = resumenPresupuesto(propias, tiposPresupuesto);
+        const presupuesto = presupuestoDesglosado.vigente;
         const costoReal = costoRealProyecto(p.id, gastosD, tareos, gastosG);
+        const partidasContractuales = propias.filter((x) => esContractual(x.tipo_presupuesto ?? "Contractual", tiposPresupuesto)).length;
+        const partidasAdicionales = propias.length - partidasContractuales;
         const baseAvance = propias.reduce((s, x) => s + Number(x.presupuesto_inicial), 0);
         const avance =
           baseAvance > 0
@@ -64,7 +70,11 @@ function DashboardProyectos() {
         return {
           proyecto: p,
           partidas: propias.length,
+          partidasContractuales,
+          partidasAdicionales,
           partidasPendientes: propias.filter((x) => x.situacion !== "Completado" && Number(x.avance_pct) < 100).length,
+          presupuestoContractual: presupuestoDesglosado.contractual,
+          adicionales: presupuestoDesglosado.adicionales,
           presupuesto,
           costoReal,
           avance,
@@ -73,11 +83,13 @@ function DashboardProyectos() {
           desviado: gastado > avance,
         };
       }),
-    [proyectos, partidas, gastosD, gastosG, tareos],
+    [proyectos, partidas, gastosD, gastosG, tareos, tiposPresupuesto],
   );
 
   const resumen = useMemo(() => {
     const presupuesto = filas.reduce((s, f) => s + f.presupuesto, 0);
+    const presupuestoContractual = filas.reduce((s, f) => s + f.presupuestoContractual, 0);
+    const adicionales = filas.reduce((s, f) => s + f.adicionales, 0);
     const costoReal = filas.reduce((s, f) => s + f.costoReal, 0);
     return {
       total: proyectos.length,
@@ -87,6 +99,8 @@ function DashboardProyectos() {
       completados: proyectos.filter((p) => p.situacion === "Completado").length,
       cancelados: proyectos.filter((p) => p.situacion === "Cancelado").length,
       presupuesto,
+      presupuestoContractual,
+      adicionales,
       costoReal,
       diferencia: presupuesto - costoReal,
       desviadas: filas.filter((f) => f.desviado).length,
@@ -127,7 +141,9 @@ function DashboardProyectos() {
           { Indicador: "Retrasadas", Valor: resumen.retrasados },
           { Indicador: "Completadas", Valor: resumen.completados },
           { Indicador: "Canceladas", Valor: resumen.cancelados },
-          { Indicador: "Presupuesto total (S/)", Valor: resumen.presupuesto },
+          { Indicador: "Presupuesto contractual (S/)", Valor: resumen.presupuestoContractual },
+          { Indicador: "Adicionales de obra (S/)", Valor: resumen.adicionales },
+          { Indicador: "Presupuesto vigente (S/)", Valor: resumen.presupuesto },
           { Indicador: "Costo real total (S/)", Valor: resumen.costoReal },
           { Indicador: "Diferencia (S/)", Valor: resumen.diferencia },
         ],
@@ -140,7 +156,9 @@ function DashboardProyectos() {
           Status: f.proyecto.situacion,
           Prioridad: f.proyecto.prioridad,
           Partidas: f.partidas,
-          "Presupuesto (S/)": f.presupuesto,
+          "Presupuesto Contractual (S/)": f.presupuestoContractual,
+          "Adicionales de Obra (S/)": f.adicionales,
+          "Presupuesto Vigente (S/)": f.presupuesto,
           "Costo Real (S/)": f.costoReal,
           "Avance Fisico %": Number(f.avance.toFixed(1)),
           "Presupuesto Gastado %": Number(f.gastado.toFixed(1)),
@@ -155,7 +173,9 @@ function DashboardProyectos() {
       titulo: "Dashboard de Proyectos",
       subtitulo: "Avance físico y control de costos por obra — Moneda base: Soles (PEN)",
       kpis: [
-        { etiqueta: "Presupuesto Total", valor: resumen.presupuesto },
+        { etiqueta: "Presupuesto Contractual", valor: resumen.presupuestoContractual },
+        { etiqueta: "Adicionales de Obra", valor: resumen.adicionales },
+        { etiqueta: "Presupuesto Vigente", valor: resumen.presupuesto },
         { etiqueta: "Costo Real Total", valor: resumen.costoReal },
         { etiqueta: "Diferencia", valor: resumen.diferencia },
       ],
@@ -251,7 +271,12 @@ function DashboardProyectos() {
 
           <div className="border-b border-line px-4 py-3"><p className="label-mono">Partidas y prioridad</p></div>
           <div className="divide-y divide-line">
-            <IndicadorCompacto icono={<Layers3 />} etiqueta="Total partidas" valor={String(obraSel?.partidas ?? 0)} />
+            <IndicadorCompacto
+              icono={<Layers3 />}
+              etiqueta="Total partidas"
+              valor={String(obraSel?.partidas ?? 0)}
+              detalle={`${obraSel?.partidasContractuales ?? 0} contractual · ${obraSel?.partidasAdicionales ?? 0} adicionales`}
+            />
             <IndicadorCompacto
               icono={<ListTodo />}
               etiqueta="Partidas pendientes"
@@ -270,9 +295,9 @@ function DashboardProyectos() {
         <div className="panel rise overflow-hidden">
           <div className="border-b border-line px-4 py-3"><p className="label-mono">Resumen financiero del proyecto</p></div>
           <div className="divide-y divide-line">
-            <DatoFinanciero etiqueta="Presupuesto total" valor={soles(obraSel?.presupuesto ?? 0)} />
-            <DatoFinanciero etiqueta="Costo real" valor={soles(obraSel?.costoReal ?? 0)} {...(obraSel?.desviado ? { tono: "bad" as const } : {})} />
-            <DatoFinanciero etiqueta="Saldo disponible" valor={soles(obraSel?.diferencia ?? 0)} tono={(obraSel?.diferencia ?? 0) < 0 ? "bad" : "good"} />
+            <DatoFinanciero etiqueta="Presupuesto contractual" valor={soles(obraSel?.presupuestoContractual ?? 0)} />
+            <DatoFinanciero etiqueta="Adicionales de obra" valor={soles(obraSel?.adicionales ?? 0)} {...((obraSel?.adicionales ?? 0) > 0 ? { tono: "primary" as const } : {})} />
+            <DatoFinanciero etiqueta="Presupuesto vigente" valor={soles(obraSel?.presupuesto ?? 0)} tono="good" />
           </div>
         </div>
       </section>
@@ -289,6 +314,8 @@ function DashboardProyectos() {
             fechaInicio={obraSel.proyecto.fecha_inicio}
             fechaFin={obraSel.proyecto.fecha_fin}
             presupuesto={obraSel.presupuesto}
+            presupuestoContractual={obraSel.presupuestoContractual}
+            adicionales={obraSel.adicionales}
             avanceFisico={obraSel.avance}
             movimientos={movimientos}
           />
@@ -314,11 +341,10 @@ function DashboardProyectos() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="label-mono">Presupuesto / Costo real</p>
-                    <p className="font-mono text-sm font-semibold">
-                      {soles(f.presupuesto)}{" "}
-                      <span className={f.desviado ? "text-bad" : "text-good"}>/ {soles(f.costoReal)}</span>
-                    </p>
+                    <p className="label-mono">Contractual + adicionales</p>
+                    <p className="font-mono text-xs text-muted-foreground">{soles(f.presupuestoContractual)} + <span className="text-primary">{soles(f.adicionales)}</span></p>
+                    <p className="font-mono text-sm font-semibold">Vigente {soles(f.presupuesto)}</p>
+                    <p className={`font-mono text-[11px] ${f.desviado ? "text-bad" : "text-good"}`}>Costo real {soles(f.costoReal)}</p>
                     <p className={`font-mono text-[11px] ${f.diferencia < 0 ? "text-bad" : "text-muted-foreground"}`}>
                       Diferencia {soles(f.diferencia)}
                     </p>
@@ -341,13 +367,13 @@ function DashboardProyectos() {
   );
 }
 
-function DatoFinanciero({ etiqueta, valor, tono }: { etiqueta: string; valor: string; tono?: "good" | "bad" }) {
+function DatoFinanciero({ etiqueta, valor, tono }: { etiqueta: string; valor: string; tono?: "good" | "bad" | "primary" }) {
   return (
     <div className="flex min-h-20 items-center justify-between gap-3 px-4 py-3">
       <p className="label-mono">{etiqueta}</p>
       <p
         className={`text-right font-mono text-lg font-bold ${
-          tono === "bad" ? "text-bad" : tono === "good" ? "text-good" : "text-ink"
+          tono === "bad" ? "text-bad" : tono === "good" ? "text-good" : tono === "primary" ? "text-primary" : "text-ink"
         }`}
       >
         {valor}
@@ -370,14 +396,17 @@ function CartillaEstado({ situacion, cantidad }: { situacion: string; cantidad: 
   );
 }
 
-function IndicadorCompacto({ icono, etiqueta, valor, tono }: { icono: ReactNode; etiqueta: string; valor: string; tono?: "good" | "bad" }) {
+function IndicadorCompacto({ icono, etiqueta, valor, detalle, tono }: { icono: ReactNode; etiqueta: string; valor: string; detalle?: string; tono?: "good" | "bad" }) {
 
   return (
     <div className="flex min-h-20 items-center gap-3 px-4 py-3">
       <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-muted [&>svg]:h-4 [&>svg]:w-4 ${tono === "bad" ? "text-bad" : tono === "good" ? "text-good" : "text-primary"}`}>
         {icono}
       </span>
-      <p className="label-mono min-w-0 flex-1">{etiqueta}</p>
+      <div className="min-w-0 flex-1">
+        <p className="label-mono">{etiqueta}</p>
+        {detalle && <p className="mt-1 font-mono text-[10px] text-muted-foreground">{detalle}</p>}
+      </div>
       <strong className={`font-mono text-xl ${tono === "bad" ? "text-bad" : tono === "good" ? "text-good" : "text-ink"}`}>{valor}</strong>
     </div>
   );
