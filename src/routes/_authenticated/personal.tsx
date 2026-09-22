@@ -62,6 +62,9 @@ function Personal() {
   const { rol } = useAuth();
   const qc = useQueryClient();
   const { data: trabajadores = [] } = useTrabajadores();
+  const { data: cargos = [] } = useCargos();
+  const cargosActivos = cargos.filter((c) => c.activo);
+  const clasifDe = (nombre: string) => clasificacionDeCargo(nombre, cargos);
   const [form, setForm] = useState<FormPersonal>(FORM_INICIAL);
   const [editando, setEditando] = useState<{ id: string; datos: FormPersonal } | null>(null);
   const [error, setError] = useState("");
