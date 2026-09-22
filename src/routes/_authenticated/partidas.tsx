@@ -54,7 +54,8 @@ function Partidas() {
     presupuesto_inicial: "",
     prioridad: "Media",
     tipo_presupuesto: "Contractual",
-    aplica_gg_utilidad: true,
+    aplica_gg: true,
+    aplica_utilidad: true,
   });
   const [error, setError] = useState("");
   const [editando, setEditando] = useState<{
@@ -63,7 +64,8 @@ function Partidas() {
     especialidad: string;
     presupuesto_inicial: string;
     tipo_presupuesto: string;
-    aplica_gg_utilidad: boolean;
+    aplica_gg: boolean;
+    aplica_utilidad: boolean;
   } | null>(null);
 
   const nombreProyecto = (id: string) => proyectos.find((p) => p.id === id)?.nombre ?? "—";
