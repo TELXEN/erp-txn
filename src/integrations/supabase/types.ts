@@ -281,6 +281,7 @@ export type Database = {
           prioridad: string
           proyecto_id: string
           situacion: string
+          tipo_presupuesto: string
         }
         Insert: {
           avance_pct?: number
@@ -292,6 +293,7 @@ export type Database = {
           prioridad?: string
           proyecto_id: string
           situacion?: string
+          tipo_presupuesto?: string
         }
         Update: {
           avance_pct?: number
@@ -303,6 +305,7 @@ export type Database = {
           prioridad?: string
           proyecto_id?: string
           situacion?: string
+          tipo_presupuesto?: string
         }
         Relationships: [
           {
@@ -466,6 +469,36 @@ export type Database = {
           razon_social?: string
           telefono?: string
           tipo_documento?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      tipos_presupuesto: {
+        Row: {
+          activo: boolean
+          created_at: string
+          es_contractual: boolean
+          id: string
+          nombre: string
+          orden: number
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          created_at?: string
+          es_contractual?: boolean
+          id?: string
+          nombre: string
+          orden?: number
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          created_at?: string
+          es_contractual?: boolean
+          id?: string
+          nombre?: string
+          orden?: number
           updated_at?: string
         }
         Relationships: []
