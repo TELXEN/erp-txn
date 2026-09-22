@@ -406,12 +406,6 @@ function MedidorCompacto({ valor }: { valor: number }) {
       <svg viewBox="0 0 180 110" className="h-full w-full" aria-hidden="true">
         <path d="M 18 92 A 72 72 0 0 1 162 92" fill="none" className="stroke-muted" strokeWidth="14" strokeLinecap="round" />
         <path d="M 18 92 A 72 72 0 0 1 162 92" fill="none" className={valor < 50 ? "stroke-bad" : "stroke-primary"} strokeWidth="14" strokeLinecap="round" strokeDasharray={`${(limitado / 100) * largo} ${largo}`} />
-        <g
-          className="transition-transform duration-700 ease-out motion-reduce:transition-none"
-          style={{ transform: `rotate(${angulo}deg)`, transformOrigin: "90px 92px" }}
-        >
-          <line x1="90" y1="92" x2="90" y2="35" className="stroke-foreground" strokeWidth="3" strokeLinecap="round" />
-        </g>
         <circle cx="90" cy="92" r="7" className="fill-foreground" />
         <circle cx="90" cy="92" r="3" className="fill-card" />
       </svg>
