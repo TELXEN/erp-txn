@@ -7,7 +7,7 @@ import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, mesActual, soles } from "@/lib/format";
-import { useProyectos, useTareos, useTrabajadores } from "@/lib/datos";
+import { clasificacionDeCargo, useCargos, useProyectos, useTareos, useTrabajadores } from "@/lib/datos";
 import { exportarExcel } from "@/lib/exportar";
 
 export const Route = createFileRoute("/_authenticated/tareo")({
@@ -53,6 +53,7 @@ function TareoPage() {
   const { data: proyectos = [] } = useProyectos();
   const { data: trabajadores = [] } = useTrabajadores();
   const { data: tareos = [] } = useTareos();
+  const { data: cargos = [] } = useCargos();
 
   const [diasSel, setDiasSel] = useState<Record<string, TipoDia>>({ [hoy()]: "dia" });
   const [mesCal, setMesCal] = useState(mesActual());
@@ -99,9 +100,16 @@ function TareoPage() {
       const trabajador = trabajadores.find((t) => t.id === id);
       const jornal = Number(trabajador?.jornal_diario ?? 0);
       const diasTotal = v.dias + piso2(v.horas / 10.5); // valor de cálculo, no se muestra
-      return { id, nombre: nombreTrab(id), dias: v.dias, horas: v.horas, costo: diasTotal * jornal };
+      return {
+        id,
+        nombre: nombreTrab(id),
+        dias: v.dias,
+        horas: v.horas,
+        costo: diasTotal * jornal,
+        clasificacion: clasificacionDeCargo(trabajador?.cargo ?? "", cargos),
+      };
     });
-  }, [tareos, mes, trabajadores]);
+  }, [tareos, mes, trabajadores, cargos]);
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
@@ -260,6 +268,7 @@ function TareoPage() {
         nombre: "Consolidado Mensual",
         filas: consolidado.map((c) => ({
           Trabajador: c.nombre,
+          Clasificación: c.clasificacion === "Indirecto" ? "Staff (Gasto general)" : "Mano de obra directa",
           "Dias Laborados": c.dias,
           "Horas Extras": c.horas,
           "Costo Mano de Obra (S/)": c.costo,
@@ -281,6 +290,10 @@ function TareoPage() {
   }
 
   const totalMes = consolidado.reduce((s, c) => s + c.costo, 0);
+  const totalDirecto = consolidado
+    .filter((c) => c.clasificacion === "Directo")
+    .reduce((s, c) => s + c.costo, 0);
+  const totalStaff = totalMes - totalDirecto;
 
   return (
     <>
@@ -402,7 +415,13 @@ function TareoPage() {
         titulo="Consolidado mensual"
         className="mb-4"
         extra={
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="font-mono text-[11px] text-muted-foreground">
+              Mano de obra directa: <strong className="text-ink">{soles(totalDirecto)}</strong>
+            </span>
+            <span className="font-mono text-[11px] text-muted-foreground">
+              Staff (gasto general): <strong className="text-ink">{soles(totalStaff)}</strong>
+            </span>
             <span className="font-mono text-[11px] text-muted-foreground">Total: {soles(totalMes)}</span>
             <Input type="month" className="w-40" value={mes} onChange={(e) => setMes(e.target.value)} />
           </div>
@@ -415,6 +434,7 @@ function TareoPage() {
             <thead>
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
                 <th className="px-5 py-2 font-medium">Trabajador</th>
+                <th className="px-3 py-2 font-medium">Clasificación</th>
                 <th className="px-3 py-2 text-right font-medium">Días laborados</th>
                 <th className="px-3 py-2 text-right font-medium">Horas extras</th>
                 <th className="px-5 py-2 text-right font-medium">Costo acumulado</th>
@@ -424,6 +444,11 @@ function TareoPage() {
               {consolidado.map((c) => (
                 <tr key={c.id} className="border-b border-line/60 last:border-0">
                   <td className="px-5 py-2.5 font-semibold text-ink">{c.nombre}</td>
+                  <td className="px-3 py-2.5">
+                    <span className={c.clasificacion === "Indirecto" ? "text-primary" : "text-muted-foreground"}>
+                      {c.clasificacion === "Indirecto" ? "Staff · Gasto general" : "Mano de obra directa"}
+                    </span>
+                  </td>
                   <td className="px-3 py-2.5 text-right">{c.dias}</td>
                   <td className="px-3 py-2.5 text-right">{c.horas}</td>
                   <td className="px-5 py-2.5">

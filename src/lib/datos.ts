@@ -41,6 +41,16 @@ export type TipoPresupuesto = {
   activo: boolean;
 };
 
+export type ClasificacionCargo = "Directo" | "Indirecto";
+
+export type Cargo = {
+  id: string;
+  nombre: string;
+  clasificacion: ClasificacionCargo;
+  orden: number;
+  activo: boolean;
+};
+
 export type Trabajador = {
   id: string;
   dni: string;
@@ -141,6 +151,16 @@ export const useTrabajadores = () =>
     queryKey: ["trabajadores"],
     queryFn: () => pedir<Trabajador>("trabajadores", "*", { col: "nombre" }),
   });
+
+export const useCargos = () =>
+  useQuery({
+    queryKey: ["cargos"],
+    queryFn: () => pedir<Cargo>("cargos", "*", { col: "orden" }),
+  });
+
+export function clasificacionDeCargo(cargo: string, cargos: Cargo[]): ClasificacionCargo {
+  return cargos.find((c) => c.nombre === cargo)?.clasificacion ?? "Directo";
+}
 
 export const useTareos = () =>
   useQuery({

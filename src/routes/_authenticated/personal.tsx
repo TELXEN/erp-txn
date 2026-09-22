@@ -7,7 +7,7 @@ import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { soles } from "@/lib/format";
-import { type Trabajador, useTrabajadores } from "@/lib/datos";
+import { clasificacionDeCargo, type Trabajador, useCargos, useTrabajadores } from "@/lib/datos";
 import { exportarExcel } from "@/lib/exportar";
 
 export const Route = createFileRoute("/_authenticated/personal")({
@@ -24,21 +24,10 @@ export const Route = createFileRoute("/_authenticated/personal")({
   component: Personal,
 });
 
-const CARGOS = [
-  "RESIDENTE",
-  "SUPERVISOR",
-  "SEGURIDAD",
-  "TÉCNICO ELECTRICISTA",
-  "TÉCNICO INSTRUMENTISTA",
-  "SOLDADOR",
-  "AYUDANTE",
-  "CONDUCTOR CAMIONETA",
-] as const;
-
 type FormPersonal = {
   dni: string;
   nombre: string;
-  cargo: (typeof CARGOS)[number];
+  cargo: string;
   jornal_diario: string;
   numero_cuenta: string;
   cci: string;
@@ -49,7 +38,7 @@ type FormPersonal = {
 const FORM_INICIAL: FormPersonal = {
   dni: "",
   nombre: "",
-  cargo: "RESIDENTE",
+  cargo: "",
   jornal_diario: "",
   numero_cuenta: "",
   cci: "",
@@ -60,7 +49,7 @@ const FORM_INICIAL: FormPersonal = {
 function validar(form: FormPersonal) {
   if (!/^\d{8}$/.test(form.dni)) return "El DNI debe tener 8 dígitos.";
   if (!form.nombre.trim()) return "Ingresa el nombre.";
-  if (!CARGOS.includes(form.cargo)) return "Selecciona un cargo válido.";
+  if (!form.cargo) return "Selecciona un cargo válido.";
   if (!form.jornal_diario || Number(form.jornal_diario) < 0) return "Ingresa un jornal diario válido.";
   if (!form.numero_cuenta.trim()) return "Ingresa el número de cuenta.";
   if (!/^\d{20}$/.test(form.cci)) return "El CCI debe tener 20 dígitos.";
@@ -73,6 +62,9 @@ function Personal() {
   const { rol } = useAuth();
   const qc = useQueryClient();
   const { data: trabajadores = [] } = useTrabajadores();
+  const { data: cargos = [] } = useCargos();
+  const cargosActivos = cargos.filter((c) => c.activo);
+  const clasifDe = (nombre: string) => clasificacionDeCargo(nombre, cargos);
   const [form, setForm] = useState<FormPersonal>(FORM_INICIAL);
   const [editando, setEditando] = useState<{ id: string; datos: FormPersonal } | null>(null);
   const [error, setError] = useState("");
@@ -108,9 +100,7 @@ function Personal() {
       datos: {
         dni: trabajador.dni === "PENDIENTE" ? "" : trabajador.dni,
         nombre: trabajador.nombre,
-        cargo: CARGOS.includes(trabajador.cargo as (typeof CARGOS)[number])
-          ? (trabajador.cargo as (typeof CARGOS)[number])
-          : "AYUDANTE",
+        cargo: cargosActivos.some((c) => c.nombre === trabajador.cargo) ? trabajador.cargo : "",
         jornal_diario: String(trabajador.jornal_diario),
         numero_cuenta: trabajador.numero_cuenta === "PENDIENTE" ? "" : trabajador.numero_cuenta,
         cci: trabajador.cci === "PENDIENTE" ? "" : trabajador.cci,
@@ -170,6 +160,7 @@ function Personal() {
                     DNI: t.dni,
                     "Apellidos y Nombre(s)": t.nombre,
                     Cargo: t.cargo,
+                    Clasificación: clasifDe(t.cargo) === "Indirecto" ? "Staff (Gasto general)" : "Mano de obra directa",
                     "Jornal Diario (S/)": Number(t.jornal_diario),
                     "N° Cuenta": t.numero_cuenta,
                     CCI: t.cci,
@@ -195,7 +186,8 @@ function Personal() {
           </Campo>
           <Campo etiqueta="Cargo">
             <Select value={form.cargo} onChange={(e) => setForm({ ...form, cargo: e.target.value as FormPersonal["cargo"] })} required className="py-1.5">
-              {CARGOS.map((cargo) => <option key={cargo} value={cargo}>{cargo}</option>)}
+              <option value="">Selecciona un cargo…</option>
+              {cargosActivos.map((c) => <option key={c.id} value={c.nombre}>{c.nombre}{c.clasificacion === "Indirecto" ? " · Staff" : ""}</option>)}
             </Select>
           </Campo>
           <Campo etiqueta="Jornal diario (S/)">
@@ -248,7 +240,7 @@ function Personal() {
                     <tr key={t.id} className="border-b border-line/60 align-top last:border-0">
                       <td className="px-4 py-2">{esEdicion && d ? <Input inputMode="numeric" maxLength={8} value={d.dni} onChange={(e) => actualizarCampo("dni", e.target.value.replace(/\D/g, ""))} className="py-1 text-xs" required /> : t.dni}</td>
                       <td className="px-3 py-2 font-semibold text-ink">{esEdicion && d ? <Input value={d.nombre} onChange={(e) => actualizarCampo("nombre", e.target.value)} className="py-1 text-xs" maxLength={100} required /> : t.nombre}</td>
-                      <td className="px-3 py-2 text-muted-foreground">{esEdicion && d ? <Select value={d.cargo} onChange={(e) => actualizarCampo("cargo", e.target.value)} className="py-1 text-xs">{CARGOS.map((cargo) => <option key={cargo} value={cargo}>{cargo}</option>)}</Select> : t.cargo}</td>
+                      <td className="px-3 py-2 text-muted-foreground">{esEdicion && d ? <Select value={d.cargo} onChange={(e) => actualizarCampo("cargo", e.target.value)} className="py-1 text-xs"><option value="">Selecciona…</option>{cargosActivos.map((c) => <option key={c.id} value={c.nombre}>{c.nombre}</option>)}</Select> : <span className="block">{t.cargo}<span className={`mt-0.5 block text-[10px] ${clasifDe(t.cargo) === "Indirecto" ? "text-primary" : "text-muted-foreground"}`}>{clasifDe(t.cargo) === "Indirecto" ? "Staff · Gasto general" : "Mano de obra directa"}</span></span>}</td>
                       <td className="px-3 py-2 text-right">{esEdicion && d ? <Input type="number" step="0.01" min="0" value={d.jornal_diario} onChange={(e) => actualizarCampo("jornal_diario", e.target.value)} className="py-1 text-right text-xs" required /> : soles(Number(t.jornal_diario))}</td>
                       <td className="px-3 py-2 break-all">{esEdicion && d ? <Input value={d.numero_cuenta} onChange={(e) => actualizarCampo("numero_cuenta", e.target.value)} className="py-1 text-xs" maxLength={30} required /> : t.numero_cuenta}</td>
                       <td className="px-3 py-2 break-all">{esEdicion && d ? <Input inputMode="numeric" maxLength={20} value={d.cci} onChange={(e) => actualizarCampo("cci", e.target.value.replace(/\D/g, ""))} className="py-1 text-xs" required /> : t.cci}</td>
