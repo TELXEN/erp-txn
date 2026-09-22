@@ -401,14 +401,39 @@ function MedidorCompacto({ valor }: { valor: number }) {
   const limitado = Math.min(Math.max(valor, 0), 100);
   const radio = 72;
   const largo = Math.PI * radio;
+  const color = limitado < 50 ? "#D64B3C" : limitado < 75 ? "#E08A2E" : "#3E9E62";
+  const tramo = (desde: number, hasta: number) =>
+    Math.max(0, Math.min(limitado, hasta) - desde) / 100 * largo;
   return (
     <div className="relative mx-auto h-36 w-full max-w-60 overflow-hidden" aria-label={`Avance físico ${pct(valor)}`}>
       <svg viewBox="0 0 180 110" className="h-full w-full" aria-hidden="true">
         <path d="M 18 92 A 72 72 0 0 1 162 92" fill="none" className="stroke-muted" strokeWidth="14" strokeLinecap="round" />
-        <path d="M 18 92 A 72 72 0 0 1 162 92" fill="none" className={valor < 50 ? "stroke-bad" : "stroke-primary"} strokeWidth="14" strokeLinecap="round" strokeDasharray={`${(limitado / 100) * largo} ${largo}`} />
+        <path
+          d="M 18 92 A 72 72 0 0 1 162 92"
+          fill="none"
+          stroke="#D64B3C"
+          strokeWidth="14"
+          strokeLinecap="round"
+          strokeDasharray={`${tramo(0, 50)} ${largo}`}
+        />
+        <path
+          d="M 18 92 A 72 72 0 0 1 162 92"
+          fill="none"
+          stroke="#E08A2E"
+          strokeWidth="14"
+          strokeDasharray={`0 ${(50 / 100) * largo} ${tramo(50, 75)} ${largo}`}
+        />
+        <path
+          d="M 18 92 A 72 72 0 0 1 162 92"
+          fill="none"
+          stroke="#3E9E62"
+          strokeWidth="14"
+          strokeLinecap="round"
+          strokeDasharray={`0 ${(75 / 100) * largo} ${tramo(75, 100)} ${largo}`}
+        />
       </svg>
       <div className="absolute inset-x-0 bottom-0 text-center">
-        <p className="font-mono text-3xl font-bold">{pct(valor)}</p>
+        <p className="font-mono text-3xl font-bold" style={{ color }}>{pct(valor)}</p>
         <p className="label-mono text-[10px]">Ejecutado</p>
       </div>
     </div>
