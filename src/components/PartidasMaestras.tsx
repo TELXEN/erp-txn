@@ -254,12 +254,28 @@ export function PartidasMaestras() {
                       <Select
                         className="py-1 text-xs"
                         value={editando.especialidad}
-                        onChange={(ev) => setEditando({ ...editando, especialidad: ev.target.value })}
+                        onChange={(ev) =>
+                          setEditando({ ...editando, especialidad: ev.target.value, categoria: "" })
+                        }
                       >
                         <option value="">Sin especialidad</option>
                         {opcionesEspecialidad.map((e) => (
                           <option key={e.id} value={e.nombre}>
                             {e.codigo} {e.nombre}
+                          </option>
+                        ))}
+                      </Select>
+                    </td>
+                    <td className="px-3 py-2">
+                      <Select
+                        className="py-1 text-xs"
+                        value={editando.categoria ?? ""}
+                        onChange={(ev) => setEditando({ ...editando, categoria: ev.target.value })}
+                      >
+                        <option value="">Sin categoría</option>
+                        {categoriasDe(editando.especialidad, categorias).map((c) => (
+                          <option key={c.id} value={c.nombre}>
+                            {c.codigo} {c.nombre}
                           </option>
                         ))}
                       </Select>
@@ -324,6 +340,7 @@ export function PartidasMaestras() {
                     <td className="px-5 py-2.5 font-semibold text-primary">{p.codigo || "—"}</td>
                     <td className="px-3 py-2.5 text-ink">{p.nombre}</td>
                     <td className="px-3 py-2.5 text-muted-foreground">{p.especialidad || "—"}</td>
+                    <td className="px-3 py-2.5 text-muted-foreground">{p.categoria || "—"}</td>
                     <td className="px-3 py-2.5 text-muted-foreground">{p.unidad}</td>
                     <td className="px-3 py-2.5 text-right">{soles(Number(p.precio_unitario))}</td>
                     <td className="px-3 py-2.5">
