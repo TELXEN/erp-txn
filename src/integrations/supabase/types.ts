@@ -41,6 +41,63 @@ export type Database = {
         }
         Relationships: []
       }
+      cajas_chicas: {
+        Row: {
+          created_at: string
+          estado: string
+          fecha_entrega: string
+          fecha_liquidacion: string | null
+          id: string
+          monto_entregado: number
+          motivo: string
+          observacion: string
+          proyecto_id: string
+          responsable_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          estado?: string
+          fecha_entrega?: string
+          fecha_liquidacion?: string | null
+          id?: string
+          monto_entregado?: number
+          motivo?: string
+          observacion?: string
+          proyecto_id: string
+          responsable_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          estado?: string
+          fecha_entrega?: string
+          fecha_liquidacion?: string | null
+          id?: string
+          monto_entregado?: number
+          motivo?: string
+          observacion?: string
+          proyecto_id?: string
+          responsable_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cajas_chicas_proyecto_id_fkey"
+            columns: ["proyecto_id"]
+            isOneToOne: false
+            referencedRelation: "proyectos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cajas_chicas_responsable_id_fkey"
+            columns: ["responsable_id"]
+            isOneToOne: false
+            referencedRelation: "trabajadores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cargos: {
         Row: {
           activo: boolean
@@ -208,6 +265,7 @@ export type Database = {
       }
       gastos_directos: {
         Row: {
+          caja_chica_id: string | null
           created_at: string
           descripcion: string
           fecha: string
@@ -223,6 +281,7 @@ export type Database = {
           tipo_cambio: number
         }
         Insert: {
+          caja_chica_id?: string | null
           created_at?: string
           descripcion: string
           fecha?: string
@@ -238,6 +297,7 @@ export type Database = {
           tipo_cambio?: number
         }
         Update: {
+          caja_chica_id?: string | null
           created_at?: string
           descripcion?: string
           fecha?: string
@@ -253,6 +313,13 @@ export type Database = {
           tipo_cambio?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "gastos_directos_caja_chica_id_fkey"
+            columns: ["caja_chica_id"]
+            isOneToOne: false
+            referencedRelation: "cajas_chicas"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "gastos_directos_partida_id_fkey"
             columns: ["partida_id"]
@@ -278,6 +345,7 @@ export type Database = {
       }
       gastos_generales: {
         Row: {
+          caja_chica_id: string | null
           categoria: string
           created_at: string
           descripcion: string
@@ -292,6 +360,7 @@ export type Database = {
           tipo_cambio: number
         }
         Insert: {
+          caja_chica_id?: string | null
           categoria?: string
           created_at?: string
           descripcion: string
@@ -306,6 +375,7 @@ export type Database = {
           tipo_cambio?: number
         }
         Update: {
+          caja_chica_id?: string | null
           categoria?: string
           created_at?: string
           descripcion?: string
@@ -320,6 +390,13 @@ export type Database = {
           tipo_cambio?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "gastos_generales_caja_chica_id_fkey"
+            columns: ["caja_chica_id"]
+            isOneToOne: false
+            referencedRelation: "cajas_chicas"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "gastos_generales_proveedor_id_fkey"
             columns: ["proveedor_id"]
