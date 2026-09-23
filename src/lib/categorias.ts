@@ -63,6 +63,17 @@ export function siguienteCodigoDeCategoria(capitulo: string, catalogo: Categoria
   return `${capitulo}.${String(siguiente).padStart(2, "0")}`;
 }
 
+/** Agrupa filas solo por categoría, conservando el orden de aparición. */
+export function agruparSoloPorCategoria<T extends { categoria?: string | null }>(filas: T[]) {
+  const mapa = new Map<string, T[]>();
+  for (const f of filas) {
+    const cat = (f.categoria ?? "").trim() || "Sin categoría";
+    if (!mapa.has(cat)) mapa.set(cat, []);
+    mapa.get(cat)!.push(f);
+  }
+  return [...mapa.entries()].map(([categoria, items]) => ({ categoria, items }));
+}
+
 /** Agrupa filas por especialidad y luego por categoría, conservando el orden del catálogo. */
 export function agruparPorCategoria<T extends { especialidad: string; categoria?: string | null }>(
   filas: T[],
