@@ -78,6 +78,7 @@ function Cotizaciones() {
     condiciones: "Precios en Soles, no incluyen IGV. Forma de pago: 50% adelanto y 50% contra entrega.",
   });
 
+  const [maestraSel, setMaestraSel] = useState("");
   const [item, setItem] = useState({
     codigo: "",
     nombre: "",
