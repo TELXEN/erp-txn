@@ -97,7 +97,10 @@ export function PartidasMaestras() {
             <Input
               className="py-1.5 font-mono"
               value={form.codigo}
-              onChange={(e) => setForm({ ...form, codigo: e.target.value })}
+              onChange={(e) => {
+                setCodigoManual(true);
+                setForm({ ...form, codigo: e.target.value });
+              }}
               maxLength={20}
               placeholder="05.01"
             />
