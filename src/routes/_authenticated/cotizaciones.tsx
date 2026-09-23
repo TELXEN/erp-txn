@@ -88,6 +88,9 @@ function Cotizaciones() {
     precio_unitario: "",
   });
 
+  const sugerirCodigo = (especialidad: string) =>
+    siguienteCodigoEnCapitulo(especialidad, items.map((i) => i.codigo), especialidades);
+
   const cot = cotizaciones.find((c) => c.id === seleccion) ?? null;
   const totales = cot
     ? totalesCotizacion(items, Number(cot.pct_gastos_generales), Number(cot.pct_utilidad))
