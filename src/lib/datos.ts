@@ -226,6 +226,12 @@ export const useGastosGenerales = () =>
     queryFn: () => pedir<GastoGeneral>("gastos_generales", "*", { col: "fecha", asc: false }),
   });
 
+export const useCajasChicas = () =>
+  useQuery({
+    queryKey: ["cajas_chicas"],
+    queryFn: () => pedir<CajaChica>("cajas_chicas", "*", { col: "fecha_entrega", asc: false }),
+  });
+
 export const useTerceros = () =>
   useQuery({
     queryKey: ["terceros"],
