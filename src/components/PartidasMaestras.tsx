@@ -36,21 +36,28 @@ export function PartidasMaestras() {
     const t = busqueda.trim().toLowerCase();
     if (!t) return lista;
     return lista.filter((p) =>
-      `${p.codigo} ${p.nombre} ${p.especialidad}`.toLowerCase().includes(t),
+      `${p.codigo} ${p.nombre} ${p.especialidad} ${p.categoria ?? ""}`.toLowerCase().includes(t),
     );
   }, [lista, busqueda]);
+
+  /** Código sugerido: dentro de la categoría (05.01.01) o del capítulo (05.01). */
+  const sugerir = (especialidad: string, categoria: string, extra: string[] = []) => {
+    const usados = [...lista.map((p) => p.codigo), ...extra];
+    return categoria
+      ? siguienteCodigoEnCategoria(categoria, usados, categorias)
+      : siguienteCodigoEnCapitulo(especialidad, usados, especialidades);
+  };
 
   async function crear(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     if (!form.nombre.trim()) return setError("Escribe la descripción de la partida.");
-    const codigoFinal =
-      form.codigo.trim() ||
-      siguienteCodigoEnCapitulo(form.especialidad, lista.map((p) => p.codigo), especialidades);
+    const codigoFinal = form.codigo.trim() || sugerir(form.especialidad, form.categoria);
     const { error: err } = await supabase.from("partidas_maestras").insert({
       codigo: codigoFinal,
       nombre: form.nombre.trim(),
       especialidad: form.especialidad,
+      categoria: form.categoria,
       unidad: form.unidad,
       precio_unitario: Number(form.precio_unitario || 0),
     });
@@ -58,12 +65,9 @@ export function PartidasMaestras() {
     setForm({
       ...vacio,
       especialidad: form.especialidad,
+      categoria: form.categoria,
       unidad: form.unidad,
-      codigo: siguienteCodigoEnCapitulo(
-        form.especialidad,
-        [...lista.map((p) => p.codigo), codigoFinal],
-        especialidades,
-      ),
+      codigo: sugerir(form.especialidad, form.categoria, [codigoFinal]),
     });
     setCodigoManual(false);
     refrescar();
