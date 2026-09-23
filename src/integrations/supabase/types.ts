@@ -535,7 +535,7 @@ export type Database = {
           nombre: string
           pct_gastos_generales: number
           pct_utilidad: number
-          prioridad: string
+          responsable_id: string | null
           situacion: string
           ubicacion: string
         }
@@ -550,7 +550,7 @@ export type Database = {
           nombre: string
           pct_gastos_generales?: number
           pct_utilidad?: number
-          prioridad?: string
+          responsable_id?: string | null
           situacion?: string
           ubicacion?: string
         }
@@ -565,11 +565,19 @@ export type Database = {
           nombre?: string
           pct_gastos_generales?: number
           pct_utilidad?: number
-          prioridad?: string
+          responsable_id?: string | null
           situacion?: string
           ubicacion?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "proyectos_responsable_id_fkey"
+            columns: ["responsable_id"]
+            isOneToOne: false
+            referencedRelation: "trabajadores"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tareos: {
         Row: {
