@@ -307,6 +307,7 @@ function Datos() {
             "centros",
             "configuracion",
             "codificacion",
+            "codificacioncot",
             "especialidades",
             "unidades",
             "maestras",
