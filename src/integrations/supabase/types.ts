@@ -221,6 +221,39 @@ export type Database = {
         }
         Relationships: []
       }
+      codificacion_config: {
+        Row: {
+          correlativo_actual: number
+          created_at: string
+          digitos: number
+          id: string
+          incluir_anio: boolean
+          prefijo: string
+          separador: string
+          updated_at: string
+        }
+        Insert: {
+          correlativo_actual?: number
+          created_at?: string
+          digitos?: number
+          id?: string
+          incluir_anio?: boolean
+          prefijo?: string
+          separador?: string
+          updated_at?: string
+        }
+        Update: {
+          correlativo_actual?: number
+          created_at?: string
+          digitos?: number
+          id?: string
+          incluir_anio?: boolean
+          prefijo?: string
+          separador?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       empresa_config: {
         Row: {
           color_marca: string
@@ -493,6 +526,7 @@ export type Database = {
       proyectos: {
         Row: {
           cliente: string
+          codigo: string | null
           created_at: string
           estado: Database["public"]["Enums"]["estado_proyecto"]
           fecha_fin: string | null
@@ -507,6 +541,7 @@ export type Database = {
         }
         Insert: {
           cliente?: string
+          codigo?: string | null
           created_at?: string
           estado?: Database["public"]["Enums"]["estado_proyecto"]
           fecha_fin?: string | null
@@ -521,6 +556,7 @@ export type Database = {
         }
         Update: {
           cliente?: string
+          codigo?: string | null
           created_at?: string
           estado?: Database["public"]["Enums"]["estado_proyecto"]
           fecha_fin?: string | null
@@ -797,6 +833,7 @@ export type Database = {
         Returns: boolean
       }
       is_admin_o_gerente: { Args: { _user_id: string }; Returns: boolean }
+      siguiente_codigo_proyecto: { Args: never; Returns: string }
     }
     Enums: {
       app_role: "ingeniero" | "administrador" | "gerente"
