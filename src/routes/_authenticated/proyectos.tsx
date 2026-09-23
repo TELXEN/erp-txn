@@ -290,6 +290,9 @@ function Proyectos() {
               situacion: p.situacion,
               contenido: (
                 <div className="space-y-1.5">
+                  {p.codigo && (
+                    <p className="font-mono text-[10px] font-semibold text-primary">{p.codigo}</p>
+                  )}
                   <p className="text-xs font-semibold leading-tight text-ink">{p.nombre}</p>
                   <p className="font-mono text-[10px] text-muted-foreground">{p.cliente || "Sin cliente"}</p>
                   <p className="font-mono text-[10px] text-muted-foreground">{p.ubicacion || "Sin ubicación"}</p>
