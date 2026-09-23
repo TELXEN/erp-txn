@@ -298,6 +298,7 @@ function Datos() {
             "ingresos",
             "centros",
             "configuracion",
+            "codificacion",
             "empresa",
           ] as const
         ).map((p) => (
@@ -323,6 +324,7 @@ function Datos() {
               ingresos: "Ingresos",
               centros: "Centro de costos",
               configuracion: "Configuración proyectos",
+              codificacion: "Codificación de proyectos",
               empresa: "Datos de la empresa",
             }[p]}
           </button>
@@ -740,6 +742,8 @@ function Datos() {
         <CategoriasGastoGeneral />
       ) : pestana === "configuracion" ? (
         <ConfiguracionProyectos />
+      ) : pestana === "codificacion" ? (
+        <CodificacionProyectos />
       ) : pestana === "empresa" ? (
         <DatosEmpresa />
       ) : (
