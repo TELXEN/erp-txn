@@ -296,6 +296,36 @@ export type Database = {
         }
         Relationships: []
       }
+      especialidades_partida: {
+        Row: {
+          activo: boolean
+          codigo: string
+          created_at: string
+          id: string
+          nombre: string
+          orden: number
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          codigo: string
+          created_at?: string
+          id?: string
+          nombre: string
+          orden?: number
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          codigo?: string
+          created_at?: string
+          id?: string
+          nombre?: string
+          orden?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       gastos_directos: {
         Row: {
           caja_chica_id: string | null
@@ -452,6 +482,7 @@ export type Database = {
           aplica_gg_utilidad: boolean
           aplica_utilidad: boolean
           avance_pct: number
+          codigo: string
           created_at: string
           especialidad: string
           id: string
@@ -467,6 +498,7 @@ export type Database = {
           aplica_gg_utilidad?: boolean
           aplica_utilidad?: boolean
           avance_pct?: number
+          codigo?: string
           created_at?: string
           especialidad: string
           id?: string
@@ -482,6 +514,7 @@ export type Database = {
           aplica_gg_utilidad?: boolean
           aplica_utilidad?: boolean
           avance_pct?: number
+          codigo?: string
           created_at?: string
           especialidad?: string
           id?: string
