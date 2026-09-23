@@ -24,6 +24,7 @@ import {
 import { PRIORIDADES, SITUACIONES, tonoPrioridad, tonoSituacion } from "@/lib/configuracion";
 import { DatosEmpresa } from "@/components/DatosEmpresa";
 import { CodificacionProyectos } from "@/components/CodificacionProyectos";
+import { CodificacionCotizaciones } from "@/components/CodificacionCotizaciones";
 import { EspecialidadesPartida } from "@/components/EspecialidadesPartida";
 import { UnidadesMedida } from "@/components/UnidadesMedida";
 import { PartidasMaestras } from "@/components/PartidasMaestras";
@@ -76,6 +77,7 @@ type Pestana =
   | "centros"
   | "configuracion"
   | "codificacion"
+  | "codificacioncot"
   | "especialidades"
   | "unidades"
   | "maestras"
