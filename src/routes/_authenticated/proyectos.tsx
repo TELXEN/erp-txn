@@ -316,6 +316,14 @@ function Proyectos() {
                       <>
                         <td className="px-5 py-2">
                           <Input
+                            className="mb-1.5 py-1 text-[11px] uppercase"
+                            value={editando.codigo}
+                            onChange={(e) => setEditando({ ...editando, codigo: e.target.value })}
+                            maxLength={30}
+                            placeholder="Código"
+                            title="Código de la obra"
+                          />
+                          <Input
                             value={editando.nombre}
                             onChange={(e) => setEditando({ ...editando, nombre: e.target.value })}
                             maxLength={120}
@@ -415,6 +423,11 @@ function Proyectos() {
                     ) : (
                       <>
                         <td className="px-5 py-2.5 align-top font-semibold text-ink break-words whitespace-normal">
+                          {p.codigo && (
+                            <span className="mr-1.5 rounded bg-primary/10 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-primary">
+                              {p.codigo}
+                            </span>
+                          )}
                           {p.nombre}
                           <span className="mt-1 block font-mono text-[10px] font-normal text-muted-foreground">
                             GG {Number(p.pct_gastos_generales ?? 0)}% · Utilidad {Number(p.pct_utilidad ?? 0)}% · Oferta{" "}
