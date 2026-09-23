@@ -31,6 +31,7 @@ import {
   useCategoriasPartida,
 } from "@/lib/categorias";
 import { montoPartida, useUnidadesMedida } from "@/lib/unidades";
+import { ImportarExcel } from "@/components/ImportarExcel";
 
 const cantidad = (n: number) =>
   Number(n || 0).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -262,6 +263,7 @@ function Partidas() {
                 <LayoutGrid size={13} /> Kanban
               </button>
             </div>
+            <ImportarExcel />
             <Boton variante="linea" onClick={exportar}>
               Exportar a Excel
             </Boton>
