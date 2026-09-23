@@ -337,6 +337,7 @@ function Datos() {
               centros: "Centro de costos",
               configuracion: "Configuración proyectos",
               codificacion: "Codificación de proyectos",
+              codificacioncot: "Codificación de cotizaciones",
               especialidades: "Codificación de partidas",
               unidades: "Unidades de medida",
               maestras: "Banco de partidas",
