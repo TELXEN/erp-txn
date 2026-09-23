@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import React, { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
@@ -610,7 +610,6 @@ function Cotizaciones() {
                 <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
                   <th className="px-5 py-2 font-medium">Código</th>
                   <th className="px-3 py-2 font-medium">Partida</th>
-                  <th className="px-3 py-2 font-medium">Especialidad</th>
                   <th className="px-3 py-2 font-medium">Und.</th>
                   <th className="px-3 py-2 text-right font-medium">Metrado</th>
                   <th className="px-3 py-2 text-right font-medium">P.U. (S/)</th>
@@ -618,26 +617,49 @@ function Cotizaciones() {
                   <th className="px-5 py-2 text-right font-medium">Acciones</th>
                 </tr>
               </thead>
-              <tbody>
-                {items.map((i) => (
-                  <tr key={i.id} className="border-b border-line/60 last:border-0">
-                    <td className="px-5 py-2.5 text-primary">{i.codigo || "—"}</td>
-                    <td className="px-3 py-2.5 font-semibold text-ink">{i.nombre}</td>
-                    <td className="px-3 py-2.5 text-muted-foreground">{i.especialidad || "—"}</td>
-                    <td className="px-3 py-2.5 text-muted-foreground">{i.unidad}</td>
-                    <td className="px-3 py-2.5 text-right">{cantidad(i.metrado)}</td>
-                    <td className="px-3 py-2.5 text-right">{soles(Number(i.precio_unitario))}</td>
-                    <td className="px-3 py-2.5 text-right font-semibold">
-                      {soles(Number(i.metrado) * Number(i.precio_unitario))}
-                    </td>
-                    <td className="px-5 py-2.5 text-right">
-                      <Boton variante="peligro" onClick={() => borrarItem(i.id)}>
-                        Quitar
-                      </Boton>
+              {agruparPorCategoria(items).map((grupo) => (
+                <tbody key={grupo.especialidad}>
+                  <tr className="bg-muted/40">
+                    <td colSpan={7} className="px-5 py-2 text-[11px] font-semibold uppercase tracking-wide text-ink">
+                      {grupo.especialidad}
                     </td>
                   </tr>
-                ))}
-              </tbody>
+                  {grupo.categorias.map((sub) => {
+                    const subtotal = sub.items.reduce(
+                      (s, i) => s + Number(i.metrado) * Number(i.precio_unitario),
+                      0,
+                    );
+                    return (
+                      <React.Fragment key={`${grupo.especialidad}-${sub.categoria}`}>
+                        <tr className="bg-muted/20">
+                          <td colSpan={5} className="px-5 py-1.5 pl-8 text-[11px] font-semibold text-muted-foreground">
+                            {sub.categoria}
+                          </td>
+                          <td className="px-3 py-1.5 text-right font-semibold text-ink">{soles(subtotal)}</td>
+                          <td />
+                        </tr>
+                        {sub.items.map((i) => (
+                          <tr key={i.id} className="border-b border-line/60">
+                            <td className="px-5 py-2.5 pl-8 text-primary">{i.codigo || "—"}</td>
+                            <td className="px-3 py-2.5 font-semibold text-ink">{i.nombre}</td>
+                            <td className="px-3 py-2.5 text-muted-foreground">{i.unidad}</td>
+                            <td className="px-3 py-2.5 text-right">{cantidad(i.metrado)}</td>
+                            <td className="px-3 py-2.5 text-right">{soles(Number(i.precio_unitario))}</td>
+                            <td className="px-3 py-2.5 text-right font-semibold">
+                              {soles(Number(i.metrado) * Number(i.precio_unitario))}
+                            </td>
+                            <td className="px-5 py-2.5 text-right">
+                              <Boton variante="peligro" onClick={() => borrarItem(i.id)}>
+                                Quitar
+                              </Boton>
+                            </td>
+                          </tr>
+                        ))}
+                      </React.Fragment>
+                    );
+                  })}
+                </tbody>
+              ))}
             </table>
           )}
 
