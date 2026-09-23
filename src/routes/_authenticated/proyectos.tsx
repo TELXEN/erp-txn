@@ -103,6 +103,7 @@ function Proyectos() {
     });
     if (err) return setError(err.message);
     setForm({
+      codigo: "",
       nombre: "",
       cliente: "",
       ubicacion: "",
@@ -435,6 +436,7 @@ function Proyectos() {
                               onClick={() =>
                                 setEditando({
                                   id: p.id,
+                                  codigo: p.codigo ?? "",
                                   nombre: p.nombre,
                                   estado: p.estado,
                                   situacion: p.situacion,
