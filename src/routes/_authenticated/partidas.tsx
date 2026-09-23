@@ -165,18 +165,23 @@ function Partidas() {
     exportarExcel("partidas", [
       {
         nombre: "Partidas",
-        filas: visibles.map((p) => ({
-          Proyecto: nombreProyecto(p.proyecto_id),
-          Especialidad: p.especialidad,
-          "Código de Partida": p.codigo ?? "",
-          Partida: p.nombre,
-          "Tipo de Presupuesto": p.tipo_presupuesto ?? "Contractual",
-          "Presupuesto (S/)": Number(p.presupuesto_inicial),
-          "Aplica GG": cobraGG(p, tipos) ? "Si" : "No",
-          "Aplica Utilidad": cobraUtilidad(p, tipos) ? "Si" : "No",
-          "Costo Real (S/)": costoRealPartida(p.id, gastos),
-          "Avance Fisico %": Number(p.avance_pct),
-        })),
+        filas: visibles.map((p) => {
+          const costo = costoRealPartida(p.id, gastos);
+          return {
+            Proyecto: nombreProyecto(p.proyecto_id),
+            Especialidad: p.especialidad,
+            Código: p.codigo ?? "",
+            Partida: p.nombre,
+            "Tipo de Presupuesto": p.tipo_presupuesto ?? "Contractual",
+            Prioridad: p.prioridad,
+            "Presupuesto (S/)": Number(p.presupuesto_inicial),
+            "Costo Ejecutado (S/)": costo,
+            "Saldo (S/)": Number(p.presupuesto_inicial) - costo,
+            "Avance Fisico %": Number(p.avance_pct),
+            "Aplica GG": cobraGG(p, tipos) ? "Si" : "No",
+            "Aplica Utilidad": cobraUtilidad(p, tipos) ? "Si" : "No",
+          };
+        }),
       },
     ]);
   }
