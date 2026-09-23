@@ -57,7 +57,7 @@ export function siguienteCodigoDeCategoria(capitulo: string, catalogo: Categoria
   if (!capitulo) return "";
   const usados = catalogo
     .filter((c) => c.codigo.startsWith(`${capitulo}.`))
-    .map((c) => Number(c.split(".")[1]))
+    .map((c) => Number(c.codigo.split(".")[1]))
     .filter((n) => Number.isFinite(n));
   const siguiente = (usados.length ? Math.max(...usados) : 0) + 1;
   return `${capitulo}.${String(siguiente).padStart(2, "0")}`;
