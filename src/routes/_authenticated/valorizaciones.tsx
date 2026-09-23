@@ -122,6 +122,21 @@ function Valorizaciones() {
   }
 
   async function cambiarEstado(id: string, estado: string) {
+    setAvisoCobro("");
+    const venta = ventas.find((v) => v.id === id);
+    if (venta && estado === "Pagado") {
+      const ofertado = ofertadoDe(venta.proyecto_id);
+      const cobrado = ventas
+        .filter((v) => v.proyecto_id === venta.proyecto_id && v.estado === "Pagado" && v.id !== id)
+        .reduce((s, v) => s + Number(v.monto_soles), 0);
+      if (cobrado + Number(venta.monto_soles) > ofertado + 0.01) {
+        setAvisoCobro(
+          `No se puede marcar como cobrado: el total cobrado llegaría a ${soles(cobrado + Number(venta.monto_soles))} ` +
+            `y el presupuesto ofertado de la obra es ${soles(ofertado)}.`,
+        );
+        return;
+      }
+    }
     await supabase
       .from("ventas")
       .update({ estado: estado as "Pagado" | "Pendiente de Pago" })
