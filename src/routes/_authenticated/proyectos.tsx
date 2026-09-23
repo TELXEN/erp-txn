@@ -62,6 +62,7 @@ function Proyectos() {
   const [error, setError] = useState("");
   const [editando, setEditando] = useState<{
     id: string;
+    codigo: string;
     nombre: string;
     estado: "En Ejecucion" | "Finalizado";
     situacion: string;
@@ -77,7 +78,18 @@ function Proyectos() {
   async function guardar(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    let codigo = form.codigo.trim().toUpperCase();
+    if (!codigo) {
+      try {
+        codigo = await generarCodigoProyecto();
+      } catch (e2) {
+        return setError(
+          e2 instanceof Error ? e2.message : "No se pudo generar el código automático de la obra.",
+        );
+      }
+    }
     const { error: err } = await supabase.from("proyectos").insert({
+      codigo,
       nombre: form.nombre.trim(),
       cliente: form.cliente.trim(),
       ubicacion: form.ubicacion.trim(),
