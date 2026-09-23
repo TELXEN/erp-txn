@@ -46,7 +46,17 @@ export function PartidasMaestras() {
       precio_unitario: Number(form.precio_unitario || 0),
     });
     if (err) return setError(err.message);
-    setForm({ ...vacio, especialidad: form.especialidad, unidad: form.unidad });
+    setForm({
+      ...vacio,
+      especialidad: form.especialidad,
+      unidad: form.unidad,
+      codigo: siguienteCodigoEnCapitulo(
+        form.especialidad,
+        [...lista.map((p) => p.codigo), codigoFinal],
+        especialidades,
+      ),
+    });
+    setCodigoManual(false);
     refrescar();
   }
 
