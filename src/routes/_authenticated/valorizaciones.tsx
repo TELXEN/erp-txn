@@ -53,6 +53,7 @@ function Valorizaciones() {
     estado: "Pendiente de Pago",
   });
   const [error, setError] = useState("");
+  const [avisoCobro, setAvisoCobro] = useState("");
 
   const nombreProy = (id: string) => proyectos.find((p) => p.id === id)?.nombre ?? "—";
   const nombreCliente = (id: string | null) => clientes.find((c) => c.id === id)?.razon_social ?? "—";
