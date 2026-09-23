@@ -60,6 +60,28 @@ function Valorizaciones() {
   const totalCobrado = ventas.filter((v) => v.estado === "Pagado").reduce((s, v) => s + Number(v.monto_soles), 0);
   const totalPendiente = ventas.filter((v) => v.estado !== "Pagado").reduce((s, v) => s + Number(v.monto_soles), 0);
 
+  /** Presupuesto ofertado neto (costo directo + GG + utilidad) de una obra. */
+  function ofertadoDe(proyectoId: string) {
+    const proy = proyectos.find((p) => p.id === proyectoId);
+    if (!proy) return 0;
+    return ofertaProyecto(
+      partidas.filter((p) => p.proyecto_id === proyectoId),
+      tiposPresupuesto,
+      Number(proy.pct_gastos_generales ?? 0),
+      Number(proy.pct_utilidad ?? 0),
+    ).ofertado;
+  }
+
+  function facturadoDe(proyectoId: string, excluirId?: string) {
+    return ventas
+      .filter((v) => v.proyecto_id === proyectoId && v.id !== excluirId)
+      .reduce((s, v) => s + Number(v.monto_soles), 0);
+  }
+
+  const ofertadoSel = form.proyecto_id ? ofertadoDe(form.proyecto_id) : 0;
+  const facturadoSel = form.proyecto_id ? facturadoDe(form.proyecto_id) : 0;
+  const saldoSel = ofertadoSel - facturadoSel;
+
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
   async function guardar(e: React.FormEvent) {
@@ -68,6 +90,20 @@ function Valorizaciones() {
     if (form.moneda === "USD" && Number(form.tipo_cambio) <= 0)
       return setError("Ingresa un tipo de cambio válido para dólares.");
     const tc = form.moneda === "USD" ? Number(form.tipo_cambio) : 1;
+    const nuevoSoles = Number(form.monto || 0) * tc;
+    const ofertado = ofertadoDe(form.proyecto_id);
+    const facturado = facturadoDe(form.proyecto_id);
+    const saldo = ofertado - facturado;
+    if (ofertado <= 0)
+      return setError(
+        "Esta obra aún no tiene presupuesto ofertado. Registra primero sus partidas y los porcentajes de gastos generales y utilidad.",
+      );
+    if (nuevoSoles > saldo + 0.01)
+      return setError(
+        `El importe de ${soles(nuevoSoles)} supera el saldo disponible por facturar (${soles(Math.max(saldo, 0))}). ` +
+          `El presupuesto ofertado de la obra es ${soles(ofertado)} y ya hay ${soles(facturado)} registrados. ` +
+          "Registra las partidas contractuales o adicionales que falten, o corrige el valor neto.",
+      );
     const { error: err } = await supabase.from("ventas").insert({
       proyecto_id: form.proyecto_id,
       cliente_id: form.cliente_id,
