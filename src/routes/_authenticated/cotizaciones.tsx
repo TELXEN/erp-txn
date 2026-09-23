@@ -152,6 +152,22 @@ function Cotizaciones() {
     qc.invalidateQueries({ queryKey: ["cotizacion_items", cot.id] });
   }
 
+  async function guardarEnBanco() {
+    setError("");
+    setAviso("");
+    if (!item.nombre.trim()) return setError("Escribe la descripción antes de guardarla en el banco.");
+    const { error: err } = await supabase.from("partidas_maestras").insert({
+      codigo: item.codigo.trim(),
+      nombre: item.nombre.trim(),
+      especialidad: item.especialidad,
+      unidad: item.unidad,
+      precio_unitario: Number(item.precio_unitario || 0),
+    });
+    if (err) return setError(err.message);
+    qc.invalidateQueries({ queryKey: ["partidas_maestras"] });
+    setAviso("Partida guardada en el banco maestro.");
+  }
+
   async function borrarItem(id: string) {
     await supabase.from("cotizacion_items").delete().eq("id", id);
     qc.invalidateQueries({ queryKey: ["cotizacion_items", seleccion] });
@@ -489,6 +505,9 @@ function Cotizaciones() {
             </Campo>
             <div className="flex items-end gap-3 sm:col-span-5">
               <Boton type="submit">Agregar partida</Boton>
+              <Boton type="button" variante="linea" onClick={guardarEnBanco}>
+                Guardar en el banco
+              </Boton>
               <span className="font-mono text-xs text-muted-foreground">
                 Parcial:{" "}
                 <strong className="text-ink">
