@@ -45,6 +45,7 @@ function Partidas() {
   const { data: gastos = [] } = useGastosDirectos();
 
   const { data: tipos = [] } = useTiposPresupuesto();
+  const { data: capitulos = [] } = useEspecialidadesPartida();
 
   const [filtroProyecto, setFiltroProyecto] = useState("");
   const [filtroEsp, setFiltroEsp] = useState("");
@@ -52,8 +53,9 @@ function Partidas() {
   const [vista, setVista] = useState<"tabla" | "kanban">("tabla");
   const [form, setForm] = useState({
     proyecto_id: "",
+    codigo: "",
     nombre: "",
-    especialidad: ESPECIALIDADES[0] as string,
+    especialidad: "",
     presupuesto_inicial: "",
     prioridad: "Media",
     tipo_presupuesto: "Contractual",
@@ -63,6 +65,7 @@ function Partidas() {
   const [error, setError] = useState("");
   const [editando, setEditando] = useState<{
     id: string;
+    codigo: string;
     nombre: string;
     especialidad: string;
     presupuesto_inicial: string;
