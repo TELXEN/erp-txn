@@ -5,11 +5,11 @@ import { Check, LayoutGrid, Pencil, Table2, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
-import { InsigniaPrioridad, InsigniaSituacion } from "@/components/estado-ui";
+import { InsigniaSituacion } from "@/components/estado-ui";
 import { Kanban } from "@/components/Kanban";
-import { PRIORIDADES, SITUACIONES, type Situacion } from "@/lib/configuracion";
+import { SITUACIONES, type Situacion } from "@/lib/configuracion";
 import { useAuth, puedeVerDinero } from "@/lib/auth";
-import { soles } from "@/lib/format";
+import { fecha, soles } from "@/lib/format";
 import {
   costoRealProyecto,
   ofertaProyecto,
@@ -20,6 +20,7 @@ import {
   usePartidas,
   useProyectos,
   useTareos,
+  useTrabajadores,
 } from "@/lib/datos";
 import { generarCodigoProyecto, previsualizarCodigo, useCodificacion } from "@/lib/codificacion";
 
@@ -43,6 +44,7 @@ function Proyectos() {
   const { data: gastosD = [] } = useGastosDirectos();
   const { data: gastosG = [] } = useGastosGenerales();
   const { data: tareos = [] } = useTareos();
+  const { data: trabajadores = [] } = useTrabajadores();
   const { data: tiposPresupuesto = [] } = useTiposPresupuesto();
   const { data: codificacion } = useCodificacion();
   const [vista, setVista] = useState<"tabla" | "kanban">("tabla");
@@ -53,7 +55,7 @@ function Proyectos() {
     ubicacion: "",
     estado: "En Ejecucion",
     situacion: "No iniciado",
-    prioridad: "Media",
+    responsable_id: "",
     fecha_inicio: "",
     fecha_fin: "",
     pct_gastos_generales: "10",
@@ -66,7 +68,7 @@ function Proyectos() {
     nombre: string;
     estado: "En Ejecucion" | "Finalizado";
     situacion: string;
-    prioridad: string;
+    responsable_id: string;
     fecha_inicio: string;
     fecha_fin: string;
     pct_gastos_generales: string;
@@ -95,7 +97,7 @@ function Proyectos() {
       ubicacion: form.ubicacion.trim(),
       estado: form.estado as "En Ejecucion" | "Finalizado",
       situacion: form.situacion,
-      prioridad: form.prioridad,
+      responsable_id: form.responsable_id || null,
       fecha_inicio: form.fecha_inicio || null,
       fecha_fin: form.fecha_fin || null,
       pct_gastos_generales: Number(form.pct_gastos_generales) || 0,
@@ -112,7 +114,7 @@ function Proyectos() {
       ubicacion: "",
       estado: "En Ejecucion",
       situacion: "No iniciado",
-      prioridad: "Media",
+      responsable_id: "",
       fecha_inicio: "",
       fecha_fin: "",
       pct_gastos_generales: "10",
@@ -132,7 +134,7 @@ function Proyectos() {
         nombre: editando.nombre.trim(),
         estado: editando.estado,
         situacion: editando.situacion,
-        prioridad: editando.prioridad,
+        responsable_id: editando.responsable_id || null,
         fecha_inicio: editando.fecha_inicio || null,
         fecha_fin: editando.fecha_fin || null,
         pct_gastos_generales: Number(editando.pct_gastos_generales) || 0,
@@ -225,12 +227,11 @@ function Proyectos() {
               ))}
             </Select>
           </Campo>
-          <Campo etiqueta="Prioridad">
-            <Select value={form.prioridad} onChange={(e) => setForm({ ...form, prioridad: e.target.value })}>
-              {PRIORIDADES.map((p) => (
-                <option key={p} value={p}>
-                  {p}
-                </option>
+          <Campo etiqueta="Responsable">
+            <Select value={form.responsable_id} onChange={(e) => setForm({ ...form, responsable_id: e.target.value })}>
+              <option value="">Sin asignar</option>
+              {trabajadores.filter((t) => t.activo).map((t) => (
+                <option key={t.id} value={t.id}>{t.nombre} · {t.cargo}</option>
               ))}
             </Select>
           </Campo>
@@ -296,22 +297,30 @@ function Proyectos() {
                   <p className="text-xs font-semibold leading-tight text-ink">{p.nombre}</p>
                   <p className="font-mono text-[10px] text-muted-foreground">{p.cliente || "Sin cliente"}</p>
                   <p className="font-mono text-[10px] text-muted-foreground">{p.ubicacion || "Sin ubicación"}</p>
-                  <InsigniaPrioridad valor={p.prioridad} />
+                  <p className="font-mono text-[10px] text-muted-foreground">
+                    {trabajadores.find((t) => t.id === p.responsable_id)?.nombre ?? "Sin responsable"}
+                  </p>
+                  <p className="font-mono text-[10px] text-muted-foreground">
+                    {fecha(p.fecha_inicio)} — {fecha(p.fecha_fin)}
+                  </p>
                 </div>
               ),
             }))}
           />
         ) : (
-          <table className="w-full table-fixed font-mono text-xs">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[1180px] table-fixed font-mono text-xs">
             <thead>
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                <th className="w-[24%] px-5 py-2 font-medium">Nombre de la obra</th>
-                <th className="w-[14%] px-3 py-2 font-medium">Cliente</th>
-                <th className="w-[14%] px-3 py-2 text-right font-medium">Presupuesto</th>
-                <th className="w-[14%] px-3 py-2 text-right font-medium">Costo real</th>
-                <th className="w-[12%] px-3 py-2 font-medium">Status</th>
-                <th className="w-[11%] px-3 py-2 font-medium">Prioridad</th>
-                <th className="w-[11%] px-5 py-2 text-right font-medium">Acciones</th>
+                <th className="w-[11%] px-5 py-2 font-medium">Código</th>
+                <th className="w-[20%] px-3 py-2 font-medium">Nombre de la obra</th>
+                <th className="w-[14%] px-3 py-2 font-medium">Responsable</th>
+                <th className="w-[13%] px-3 py-2 font-medium">Plazo</th>
+                <th className="w-[12%] px-3 py-2 font-medium">Cliente</th>
+                <th className="w-[10%] px-3 py-2 text-right font-medium">Presupuesto</th>
+                <th className="w-[10%] px-3 py-2 text-right font-medium">Costo ejecutado</th>
+                <th className="w-[7%] px-3 py-2 font-medium">Status</th>
+                <th className="w-[7%] px-5 py-2 text-right font-medium">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -323,37 +332,23 @@ function Proyectos() {
                   <tr key={p.id} className="border-b border-line/60">
                     {enEdicion ? (
                       <>
-                        <td className="px-5 py-2">
+                        <td className="px-5 py-2 align-top">
                           <Input
-                            className="mb-1.5 py-1 text-[11px] uppercase"
+                            className="py-1 text-[11px] uppercase"
                             value={editando.codigo}
                             onChange={(e) => setEditando({ ...editando, codigo: e.target.value })}
                             maxLength={30}
                             placeholder="Código"
                             title="Código de la obra"
                           />
+                        </td>
+                        <td className="px-3 py-2 align-top">
                           <Input
                             value={editando.nombre}
                             onChange={(e) => setEditando({ ...editando, nombre: e.target.value })}
                             maxLength={120}
                             autoFocus
                           />
-                          <div className="mt-1.5 grid grid-cols-2 gap-1.5">
-                            <Input
-                              type="date"
-                              className="py-1 text-[11px]"
-                              value={editando.fecha_inicio}
-                              onChange={(e) => setEditando({ ...editando, fecha_inicio: e.target.value })}
-                              title="Fecha de inicio"
-                            />
-                            <Input
-                              type="date"
-                              className="py-1 text-[11px]"
-                              value={editando.fecha_fin}
-                              onChange={(e) => setEditando({ ...editando, fecha_fin: e.target.value })}
-                              title="Fecha de fin estimada"
-                            />
-                          </div>
                           <div className="mt-1.5 grid grid-cols-2 gap-1.5">
                             <Input
                               type="number"
@@ -377,6 +372,37 @@ function Proyectos() {
                             />
                           </div>
                         </td>
+                        <td className="px-3 py-2 align-top">
+                          <Select
+                            value={editando.responsable_id}
+                            onChange={(e) => setEditando({ ...editando, responsable_id: e.target.value })}
+                            className="py-1 text-[11px]"
+                          >
+                            <option value="">Sin asignar</option>
+                            {trabajadores.filter((t) => t.activo || t.id === editando.responsable_id).map((t) => (
+                              <option key={t.id} value={t.id}>{t.nombre}</option>
+                            ))}
+                          </Select>
+                        </td>
+                        <td className="px-3 py-2 align-top">
+                          <div className="grid gap-1.5">
+                            <Input
+                              type="date"
+                              className="py-1 text-[11px]"
+                              value={editando.fecha_inicio}
+                              onChange={(e) => setEditando({ ...editando, fecha_inicio: e.target.value })}
+                              title="Fecha de inicio"
+                            />
+                            <Input
+                              type="date"
+                              className="py-1 text-[11px]"
+                              value={editando.fecha_fin}
+                              onChange={(e) => setEditando({ ...editando, fecha_fin: e.target.value })}
+                              title="Fecha de fin estimada"
+                            />
+                          </div>
+                          </div>
+                        </td>
                         <td className="truncate px-3 py-2.5 text-muted-foreground">{p.cliente || "—"}</td>
                         <td className="px-3 py-2.5 text-right whitespace-nowrap">{soles(presupuesto)}</td>
                         <td
@@ -393,19 +419,6 @@ function Proyectos() {
                             {SITUACIONES.map((s) => (
                               <option key={s} value={s}>
                                 {s}
-                              </option>
-                            ))}
-                          </Select>
-                        </td>
-                        <td className="px-3 py-2">
-                          <Select
-                            value={editando.prioridad}
-                            onChange={(e) => setEditando({ ...editando, prioridad: e.target.value })}
-                            className="py-1 text-xs"
-                          >
-                            {PRIORIDADES.map((x) => (
-                              <option key={x} value={x}>
-                                {x}
                               </option>
                             ))}
                           </Select>
@@ -431,12 +444,8 @@ function Proyectos() {
                       </>
                     ) : (
                       <>
-                        <td className="px-5 py-2.5 align-top font-semibold text-ink break-words whitespace-normal">
-                          {p.codigo && (
-                            <span className="mr-1.5 rounded bg-primary/10 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-primary">
-                              {p.codigo}
-                            </span>
-                          )}
+                        <td className="px-5 py-2.5 align-top font-semibold text-primary break-words">{p.codigo || "—"}</td>
+                        <td className="px-3 py-2.5 align-top font-semibold text-ink break-words whitespace-normal">
                           {p.nombre}
                           <span className="mt-1 block font-mono text-[10px] font-normal text-muted-foreground">
                             GG {Number(p.pct_gastos_generales ?? 0)}% · Utilidad {Number(p.pct_utilidad ?? 0)}% · Oferta{" "}
@@ -450,6 +459,13 @@ function Proyectos() {
                             )}
                           </span>
                         </td>
+                        <td className="px-3 py-2.5 align-top text-muted-foreground break-words">
+                          {trabajadores.find((t) => t.id === p.responsable_id)?.nombre ?? "Sin asignar"}
+                        </td>
+                        <td className="px-3 py-2.5 align-top text-muted-foreground">
+                          <span className="block">{fecha(p.fecha_inicio)}</span>
+                          <span className="block">{fecha(p.fecha_fin)}</span>
+                        </td>
                         <td className="truncate px-3 py-2.5 text-muted-foreground">{p.cliente || "—"}</td>
                         <td className="px-3 py-2.5 text-right whitespace-nowrap">{soles(presupuesto)}</td>
                         <td
@@ -459,9 +475,6 @@ function Proyectos() {
                         </td>
                         <td className="px-3 py-2.5">
                           <InsigniaSituacion valor={p.situacion} />
-                        </td>
-                        <td className="px-3 py-2.5">
-                          <InsigniaPrioridad valor={p.prioridad} />
                         </td>
                         <td className="px-5 py-2.5 text-right">
                           <div className="inline-flex items-center gap-1.5">
@@ -473,12 +486,12 @@ function Proyectos() {
                                   nombre: p.nombre,
                                   estado: p.estado,
                                   situacion: p.situacion,
-                                  prioridad: p.prioridad,
-                  fecha_inicio: p.fecha_inicio ?? "",
-                  fecha_fin: p.fecha_fin ?? "",
-                  pct_gastos_generales: String(p.pct_gastos_generales ?? 0),
-                  pct_utilidad: String(p.pct_utilidad ?? 0),
-                })
+                                  responsable_id: p.responsable_id ?? "",
+                                  fecha_inicio: p.fecha_inicio ?? "",
+                                  fecha_fin: p.fecha_fin ?? "",
+                                  pct_gastos_generales: String(p.pct_gastos_generales ?? 0),
+                                  pct_utilidad: String(p.pct_utilidad ?? 0),
+                                })
                               }
                               className="grid h-7 w-7 place-items-center rounded-md border border-line hover:border-primary hover:text-primary"
                               title="Editar"
@@ -501,6 +514,7 @@ function Proyectos() {
               })}
             </tbody>
           </table>
+          </div>
         )}
       </Panel>
     </>

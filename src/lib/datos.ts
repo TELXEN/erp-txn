@@ -12,12 +12,12 @@ async function pedir<T>(tabla: string, columnas = "*", orden?: { col: string; as
 export type Proyecto = {
   id: string;
   codigo: string | null;
+  responsable_id: string | null;
   nombre: string;
   cliente: string;
   ubicacion: string;
   estado: "En Ejecucion" | "Finalizado";
   situacion: string;
-  prioridad: string;
   fecha_inicio: string | null;
   fecha_fin: string | null;
   pct_gastos_generales: number;

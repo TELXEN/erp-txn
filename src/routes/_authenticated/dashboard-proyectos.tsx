@@ -160,7 +160,6 @@ function DashboardProyectos() {
           Obra: f.proyecto.nombre,
           Cliente: f.proyecto.cliente,
           Status: f.proyecto.situacion,
-          Prioridad: f.proyecto.prioridad,
           Partidas: f.partidas,
           "Presupuesto Contractual (S/)": f.presupuestoContractual,
           "Adicionales de Obra (S/)": f.adicionales,
@@ -233,7 +232,7 @@ function DashboardProyectos() {
             <>
               <div className="flex items-start justify-between gap-2">
                 <p className="label-mono">Avance general</p>
-                <InsigniaPrioridad valor={obraSel.proyecto.prioridad} />
+                <InsigniaSituacion valor={obraSel.proyecto.situacion} />
               </div>
 
               <div className="my-2 grid grid-cols-3 gap-1 rounded-lg border border-line bg-muted/30 p-2 text-center">
@@ -281,9 +280,9 @@ function DashboardProyectos() {
             />
             <IndicadorCompacto
               icono={<AlertTriangle />}
-              etiqueta="Prioridad"
-              valor={(obraSel?.proyecto.prioridad ?? "Sin definir").toUpperCase()}
-              {...(obraSel?.proyecto.prioridad === "Alta" ? { tono: "bad" as const } : {})}
+              etiqueta="Partidas de prioridad alta"
+              valor={String(obraSel?.proyecto ? partidas.filter((p) => p.proyecto_id === obraSel.proyecto.id && p.prioridad === "Alta").length : 0)}
+              {...((obraSel?.proyecto ? partidas.filter((p) => p.proyecto_id === obraSel.proyecto.id && p.prioridad === "Alta").length : 0) > 0 ? { tono: "bad" as const } : {})}
             />
           </div>
         </div>
@@ -355,7 +354,6 @@ function DashboardProyectos() {
                     </p>
                     <div className="mt-2 flex flex-wrap items-center gap-2">
                       <InsigniaSituacion valor={f.proyecto.situacion} />
-                      <InsigniaPrioridad valor={f.proyecto.prioridad} />
                     </div>
                   </div>
                   <div className="text-right">
