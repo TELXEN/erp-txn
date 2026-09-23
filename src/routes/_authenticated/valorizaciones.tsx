@@ -282,6 +282,7 @@ function Valorizaciones() {
           </span>
         }
       >
+        {avisoCobro && <p className="px-5 pt-3 font-mono text-xs text-bad">{avisoCobro}</p>}
         {ventas.length === 0 ? (
           <Vacio texto="Aún no hay valorizaciones." />
         ) : (
