@@ -24,7 +24,12 @@ import { Kanban } from "@/components/Kanban";
 import { InsigniaPrioridad, InsigniaTipoPresupuesto } from "@/components/estado-ui";
 import { PRIORIDADES, type Situacion } from "@/lib/configuracion";
 import { siguienteCodigoPartida, useEspecialidadesPartida } from "@/lib/especialidades";
-import { categoriasDe, siguienteCodigoEnCategoria, useCategoriasPartida } from "@/lib/categorias";
+import {
+  agruparSoloPorCategoria,
+  categoriasDe,
+  siguienteCodigoEnCategoria,
+  useCategoriasPartida,
+} from "@/lib/categorias";
 import { montoPartida, useUnidadesMedida } from "@/lib/unidades";
 
 const cantidad = (n: number) =>
@@ -772,6 +777,8 @@ function Partidas() {
                           </tr>
                         );
                       })}
+                      </React.Fragment>
+                      ))}
                     </React.Fragment>
                   ))}
                 </tbody>
