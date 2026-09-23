@@ -547,7 +547,23 @@ function Partidas() {
                       <tr className="border-b border-line/40 bg-muted/40">
                         <td colSpan={12} className="px-5 py-1.5 label-mono">{esp}</td>
                       </tr>
-                      {lista.map((p) => {
+                      {agruparSoloPorCategoria(lista).map((sub) => (
+                      <React.Fragment key={`${esp}-${sub.categoria}`}>
+                      {sub.categoria !== "Sin categoría" && (
+                        <tr className="border-b border-line/30 bg-muted/20">
+                          <td colSpan={5} className="px-5 py-1.5 pl-8 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                            {sub.categoria}
+                          </td>
+                          <td className="px-3 py-1.5 text-right font-semibold text-ink">
+                            {soles(sub.items.reduce((s, x) => s + Number(x.presupuesto_inicial), 0))}
+                          </td>
+                          <td className="px-3 py-1.5 text-right text-muted-foreground">
+                            {soles(sub.items.reduce((s, x) => s + costoRealPartida(x.id, gastos), 0))}
+                          </td>
+                          <td colSpan={5} />
+                        </tr>
+                      )}
+                      {sub.items.map((p) => {
                         const costo = costoRealPartida(p.id, gastos);
                         const dif = Number(p.presupuesto_inicial) - costo;
                         const enEdicion = editando?.id === p.id;
