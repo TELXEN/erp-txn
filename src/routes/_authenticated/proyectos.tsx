@@ -342,6 +342,7 @@ function Proyectos() {
                             title="Código de la obra"
                           />
                         </td>
+                        <td className="truncate px-3 py-2.5 text-muted-foreground">{p.cliente || "—"}</td>
                         <td className="px-3 py-2 align-top">
                           <Input
                             value={editando.nombre}
