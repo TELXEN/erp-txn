@@ -523,6 +523,8 @@ export type Database = {
       gastos_directos: {
         Row: {
           caja_chica_id: string | null
+          cantidad: number
+          comprobante: string
           created_at: string
           descripcion: string
           fecha: string
@@ -531,6 +533,7 @@ export type Database = {
           monto: number
           monto_soles: number
           partida_id: string
+          precio_unitario: number
           proveedor: string
           proveedor_id: string | null
           proyecto_id: string
@@ -539,6 +542,8 @@ export type Database = {
         }
         Insert: {
           caja_chica_id?: string | null
+          cantidad?: number
+          comprobante?: string
           created_at?: string
           descripcion: string
           fecha?: string
@@ -547,6 +552,7 @@ export type Database = {
           monto?: number
           monto_soles?: number
           partida_id: string
+          precio_unitario?: number
           proveedor?: string
           proveedor_id?: string | null
           proyecto_id: string
@@ -555,6 +561,8 @@ export type Database = {
         }
         Update: {
           caja_chica_id?: string | null
+          cantidad?: number
+          comprobante?: string
           created_at?: string
           descripcion?: string
           fecha?: string
@@ -563,6 +571,7 @@ export type Database = {
           monto?: number
           monto_soles?: number
           partida_id?: string
+          precio_unitario?: number
           proveedor?: string
           proveedor_id?: string | null
           proyecto_id?: string
