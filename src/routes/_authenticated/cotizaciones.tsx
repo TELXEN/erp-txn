@@ -156,9 +156,10 @@ function Cotizaciones() {
     setError("");
     const { error: err } = await supabase.from("cotizacion_items").insert({
       cotizacion_id: cot.id,
-      codigo: item.codigo.trim() || sugerirCodigo(item.especialidad),
+      codigo: item.codigo.trim() || sugerirCodigo(item.especialidad, item.categoria),
       nombre: item.nombre.trim(),
       especialidad: item.especialidad,
+      categoria: item.categoria,
       unidad: item.unidad,
       metrado: Number(item.metrado || 0),
       precio_unitario: Number(item.precio_unitario || 0),
@@ -178,6 +179,7 @@ function Cotizaciones() {
       codigo: item.codigo.trim(),
       nombre: item.nombre.trim(),
       especialidad: item.especialidad,
+      categoria: item.categoria,
       unidad: item.unidad,
       precio_unitario: Number(item.precio_unitario || 0),
     });
@@ -453,6 +455,7 @@ function Cotizaciones() {
                         codigo: "",
                         nombre: "",
                         especialidad: "",
+                        categoria: "",
                         unidad: item.unidad,
                         metrado: "1",
                         precio_unitario: "",
@@ -462,9 +465,10 @@ function Cotizaciones() {
                     const m = maestras.find((x) => x.id === v);
                     if (!m) return;
                     setItem({
-                      codigo: m.codigo || sugerirCodigo(m.especialidad),
+                      codigo: m.codigo || sugerirCodigo(m.especialidad, m.categoria ?? ""),
                       nombre: m.nombre,
                       especialidad: m.especialidad,
+                      categoria: m.categoria ?? "",
                       unidad: m.unidad,
                       metrado: "1",
                       precio_unitario: String(m.precio_unitario ?? 0),
