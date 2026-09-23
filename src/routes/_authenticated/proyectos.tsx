@@ -203,11 +203,11 @@ function Proyectos() {
               title="Déjalo vacío para asignar el código automático"
             />
           </Campo>
-          <Campo etiqueta="Nombre de la obra">
-            <Input value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} required maxLength={120} />
-          </Campo>
           <Campo etiqueta="Cliente">
             <Input value={form.cliente} onChange={(e) => setForm({ ...form, cliente: e.target.value })} maxLength={120} />
+          </Campo>
+          <Campo etiqueta="Nombre de la obra">
+            <Input value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} required maxLength={120} />
           </Campo>
           <Campo etiqueta="Ubicación">
             <Input value={form.ubicacion} onChange={(e) => setForm({ ...form, ubicacion: e.target.value })} maxLength={120} />
@@ -313,10 +313,10 @@ function Proyectos() {
             <thead>
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
                 <th className="w-[11%] px-5 py-2 font-medium">Código</th>
+                <th className="w-[12%] px-3 py-2 font-medium">Cliente</th>
                 <th className="w-[20%] px-3 py-2 font-medium">Nombre de la obra</th>
                 <th className="w-[14%] px-3 py-2 font-medium">Responsable</th>
                 <th className="w-[13%] px-3 py-2 font-medium">Plazo</th>
-                <th className="w-[12%] px-3 py-2 font-medium">Cliente</th>
                 <th className="w-[10%] px-3 py-2 text-right font-medium">Presupuesto</th>
                 <th className="w-[10%] px-3 py-2 text-right font-medium">Costo ejecutado</th>
                 <th className="w-[7%] px-3 py-2 font-medium">Status</th>
@@ -342,6 +342,7 @@ function Proyectos() {
                             title="Código de la obra"
                           />
                         </td>
+                        <td className="truncate px-3 py-2.5 text-muted-foreground">{p.cliente || "—"}</td>
                         <td className="px-3 py-2 align-top">
                           <Input
                             value={editando.nombre}
@@ -402,7 +403,6 @@ function Proyectos() {
                             />
                           </div>
                         </td>
-                        <td className="truncate px-3 py-2.5 text-muted-foreground">{p.cliente || "—"}</td>
                         <td className="px-3 py-2.5 text-right whitespace-nowrap">{soles(presupuesto)}</td>
                         <td
                           className={`px-3 py-2.5 text-right whitespace-nowrap ${costoReal > presupuesto && presupuesto > 0 ? "text-bad" : "text-ink"}`}
@@ -444,6 +444,7 @@ function Proyectos() {
                     ) : (
                       <>
                         <td className="px-5 py-2.5 align-top font-semibold text-primary break-words">{p.codigo || "—"}</td>
+                        <td className="truncate px-3 py-2.5 text-muted-foreground">{p.cliente || "—"}</td>
                         <td className="px-3 py-2.5 align-top font-semibold text-ink break-words whitespace-normal">
                           {p.nombre}
                           <span className="mt-1 block font-mono text-[10px] font-normal text-muted-foreground">
@@ -465,7 +466,6 @@ function Proyectos() {
                           <span className="block">{fecha(p.fecha_inicio)}</span>
                           <span className="block">{fecha(p.fecha_fin)}</span>
                         </td>
-                        <td className="truncate px-3 py-2.5 text-muted-foreground">{p.cliente || "—"}</td>
                         <td className="px-3 py-2.5 text-right whitespace-nowrap">{soles(presupuesto)}</td>
                         <td
                           className={`px-3 py-2.5 text-right whitespace-nowrap ${costoReal > presupuesto && presupuesto > 0 ? "text-bad" : "text-ink"}`}
