@@ -203,11 +203,11 @@ function Proyectos() {
               title="Déjalo vacío para asignar el código automático"
             />
           </Campo>
-          <Campo etiqueta="Nombre de la obra">
-            <Input value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} required maxLength={120} />
-          </Campo>
           <Campo etiqueta="Cliente">
             <Input value={form.cliente} onChange={(e) => setForm({ ...form, cliente: e.target.value })} maxLength={120} />
+          </Campo>
+          <Campo etiqueta="Nombre de la obra">
+            <Input value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} required maxLength={120} />
           </Campo>
           <Campo etiqueta="Ubicación">
             <Input value={form.ubicacion} onChange={(e) => setForm({ ...form, ubicacion: e.target.value })} maxLength={120} />
@@ -313,10 +313,10 @@ function Proyectos() {
             <thead>
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
                 <th className="w-[11%] px-5 py-2 font-medium">Código</th>
+                <th className="w-[12%] px-3 py-2 font-medium">Cliente</th>
                 <th className="w-[20%] px-3 py-2 font-medium">Nombre de la obra</th>
                 <th className="w-[14%] px-3 py-2 font-medium">Responsable</th>
                 <th className="w-[13%] px-3 py-2 font-medium">Plazo</th>
-                <th className="w-[12%] px-3 py-2 font-medium">Cliente</th>
                 <th className="w-[10%] px-3 py-2 text-right font-medium">Presupuesto</th>
                 <th className="w-[10%] px-3 py-2 text-right font-medium">Costo ejecutado</th>
                 <th className="w-[7%] px-3 py-2 font-medium">Status</th>
