@@ -149,6 +149,7 @@ function Cotizaciones() {
       orden: items.length + 1,
     });
     if (err) return setError(err.message);
+    setMaestraSel("");
     setItem({ ...item, codigo: "", nombre: "", metrado: "1", precio_unitario: "" });
     qc.invalidateQueries({ queryKey: ["cotizacion_items", cot.id] });
   }
