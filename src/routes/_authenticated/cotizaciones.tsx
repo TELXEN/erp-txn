@@ -449,7 +449,7 @@ function Cotizaciones() {
                     const m = maestras.find((x) => x.id === v);
                     if (!m) return;
                     setItem({
-                      codigo: m.codigo,
+                      codigo: m.codigo || sugerirCodigo(m.especialidad),
                       nombre: m.nombre,
                       especialidad: m.especialidad,
                       unidad: m.unidad,
