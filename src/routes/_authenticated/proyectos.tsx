@@ -401,7 +401,6 @@ function Proyectos() {
                               title="Fecha de fin estimada"
                             />
                           </div>
-                          </div>
                         </td>
                         <td className="truncate px-3 py-2.5 text-muted-foreground">{p.cliente || "—"}</td>
                         <td className="px-3 py-2.5 text-right whitespace-nowrap">{soles(presupuesto)}</td>
