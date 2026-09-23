@@ -760,6 +760,8 @@ function Datos() {
         <ConfiguracionProyectos />
       ) : pestana === "codificacion" ? (
         <CodificacionProyectos />
+      ) : pestana === "codificacioncot" ? (
+        <CodificacionCotizaciones />
       ) : pestana === "especialidades" ? (
         <EspecialidadesPartida />
       ) : pestana === "unidades" ? (
