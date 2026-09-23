@@ -403,7 +403,6 @@ function Proyectos() {
                             />
                           </div>
                         </td>
-                        <td className="truncate px-3 py-2.5 text-muted-foreground">{p.cliente || "—"}</td>
                         <td className="px-3 py-2.5 text-right whitespace-nowrap">{soles(presupuesto)}</td>
                         <td
                           className={`px-3 py-2.5 text-right whitespace-nowrap ${costoReal > presupuesto && presupuesto > 0 ? "text-bad" : "text-ink"}`}
@@ -466,7 +465,6 @@ function Proyectos() {
                           <span className="block">{fecha(p.fecha_inicio)}</span>
                           <span className="block">{fecha(p.fecha_fin)}</span>
                         </td>
-                        <td className="truncate px-3 py-2.5 text-muted-foreground">{p.cliente || "—"}</td>
                         <td className="px-3 py-2.5 text-right whitespace-nowrap">{soles(presupuesto)}</td>
                         <td
                           className={`px-3 py-2.5 text-right whitespace-nowrap ${costoReal > presupuesto && presupuesto > 0 ? "text-bad" : "text-ink"}`}
