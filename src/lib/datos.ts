@@ -42,6 +42,9 @@ export type Partida = {
   codigo: string;
   nombre: string;
   especialidad: string;
+  unidad: string;
+  metrado: number;
+  precio_unitario: number;
   presupuesto_inicial: number;
   avance_pct: number;
   situacion: string;

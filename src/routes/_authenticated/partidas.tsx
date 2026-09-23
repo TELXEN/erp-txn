@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
@@ -24,6 +24,10 @@ import { Kanban } from "@/components/Kanban";
 import { InsigniaPrioridad, InsigniaTipoPresupuesto } from "@/components/estado-ui";
 import { PRIORIDADES, type Situacion } from "@/lib/configuracion";
 import { siguienteCodigoPartida, useEspecialidadesPartida } from "@/lib/especialidades";
+import { montoPartida, useUnidadesMedida } from "@/lib/unidades";
+
+const cantidad = (n: number) =>
+  Number(n || 0).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 export const Route = createFileRoute("/_authenticated/partidas")({
   head: () => ({
@@ -46,6 +50,7 @@ function Partidas() {
 
   const { data: tipos = [] } = useTiposPresupuesto();
   const { data: capitulos = [] } = useEspecialidadesPartida();
+  const { data: unidades = [] } = useUnidadesMedida();
 
   const [filtroProyecto, setFiltroProyecto] = useState("");
   const [filtroEsp, setFiltroEsp] = useState("");
@@ -56,7 +61,9 @@ function Partidas() {
     codigo: "",
     nombre: "",
     especialidad: "",
-    presupuesto_inicial: "",
+    unidad: "glb",
+    metrado: "1",
+    precio_unitario: "",
     prioridad: "Media",
     tipo_presupuesto: "Contractual",
     aplica_gg: true,
@@ -68,7 +75,9 @@ function Partidas() {
     codigo: string;
     nombre: string;
     especialidad: string;
-    presupuesto_inicial: string;
+    unidad: string;
+    metrado: string;
+    precio_unitario: string;
     tipo_presupuesto: string;
     aplica_gg: boolean;
     aplica_utilidad: boolean;
@@ -122,10 +131,13 @@ function Partidas() {
       aplica_gg_utilidad: esContractual(form.tipo_presupuesto, tipos)
         ? true
         : form.aplica_gg || form.aplica_utilidad,
-      presupuesto_inicial: Number(form.presupuesto_inicial || 0),
+      unidad: form.unidad,
+      metrado: Number(form.metrado || 0),
+      precio_unitario: Number(form.precio_unitario || 0),
+      presupuesto_inicial: montoPartida(form.metrado, form.precio_unitario),
     });
     if (err) return setError(err.message);
-    setForm({ ...form, codigo: "", nombre: "", presupuesto_inicial: "" });
+    setForm({ ...form, codigo: "", nombre: "", metrado: "1", precio_unitario: "" });
     qc.invalidateQueries({ queryKey: ["partidas"] });
   }
 
@@ -145,7 +157,10 @@ function Partidas() {
         aplica_gg_utilidad: esContractual(editando.tipo_presupuesto, tipos)
           ? true
           : editando.aplica_gg || editando.aplica_utilidad,
-        presupuesto_inicial: Number(editando.presupuesto_inicial || 0),
+        unidad: editando.unidad,
+        metrado: Number(editando.metrado || 0),
+        precio_unitario: Number(editando.precio_unitario || 0),
+        presupuesto_inicial: montoPartida(editando.metrado, editando.precio_unitario),
       })
       .eq("id", editando.id);
     if (err) return setError(err.message);
@@ -172,6 +187,9 @@ function Partidas() {
             Especialidad: p.especialidad,
             Código: p.codigo ?? "",
             Partida: p.nombre,
+            Unidad: p.unidad ?? "",
+            Metrado: Number(p.metrado ?? 0),
+            "Precio Unitario (S/)": Number(p.precio_unitario ?? 0),
             "Tipo de Presupuesto": p.tipo_presupuesto ?? "Contractual",
             Prioridad: p.prioridad,
             "Presupuesto (S/)": Number(p.presupuesto_inicial),
@@ -282,15 +300,42 @@ function Partidas() {
           <Campo etiqueta="Descripción de partida">
             <Input value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} required maxLength={140} />
           </Campo>
-          <Campo etiqueta="Presupuesto inicial (S/)">
+          <Campo etiqueta="Unidad">
+            <Select value={form.unidad} onChange={(e) => setForm({ ...form, unidad: e.target.value })} required>
+              {[...new Set([...unidades.filter((u) => u.activo).map((u) => u.simbolo), form.unidad])].map((u) => (
+                <option key={u} value={u}>
+                  {u}
+                </option>
+              ))}
+            </Select>
+          </Campo>
+          <Campo etiqueta="Metrado (cantidad)">
             <Input
               type="number"
               step="0.01"
               min="0"
-              value={form.presupuesto_inicial}
-              onChange={(e) => setForm({ ...form, presupuesto_inicial: e.target.value })}
+              value={form.metrado}
+              onChange={(e) => setForm({ ...form, metrado: e.target.value })}
               required
+              className="text-right"
             />
+          </Campo>
+          <Campo etiqueta="Precio unitario (S/)">
+            <Input
+              type="number"
+              step="0.01"
+              min="0"
+              value={form.precio_unitario}
+              onChange={(e) => setForm({ ...form, precio_unitario: e.target.value })}
+              required
+              className="text-right"
+            />
+          </Campo>
+          <Campo etiqueta="Presupuesto (S/)">
+            <div className="rounded-md border border-line bg-muted/40 px-3 py-2 text-right font-mono text-sm font-semibold text-ink">
+              {soles(montoPartida(form.metrado, form.precio_unitario))}
+            </div>
+            <p className="mt-1 text-[10px] text-muted-foreground">Metrado × precio unitario.</p>
           </Campo>
           <Campo etiqueta="Tipo de presupuesto">
             <Select
@@ -441,22 +486,25 @@ function Partidas() {
               <table className="w-full table-fixed font-mono text-xs">
                 <thead>
                   <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                    <th style={{ width: "10%" }} className="whitespace-nowrap px-5 py-2 font-medium">Código</th>
-                    <th style={{ width: "26%" }} className="whitespace-nowrap px-3 py-2 font-medium">Partida</th>
-                    <th style={{ width: "12%" }} className="whitespace-nowrap px-3 py-2 font-medium">Tipo</th>
-                    <th style={{ width: "9%" }} className="whitespace-nowrap px-3 py-2 font-medium">Prioridad</th>
-                    <th style={{ width: "11%" }} className="whitespace-nowrap px-3 py-2 text-right font-medium">Presupuesto</th>
-                    <th style={{ width: "11%" }} className="whitespace-nowrap px-3 py-2 text-right font-medium">Costo ejecutado</th>
-                    <th style={{ width: "10%" }} className="whitespace-nowrap px-3 py-2 text-right font-medium">Saldo</th>
-                    <th style={{ width: "8%" }} className="whitespace-nowrap px-3 py-2 text-right font-medium">Avance</th>
-                    <th style={{ width: "7%" }} className="whitespace-nowrap px-5 py-2 text-right font-medium">Acciones</th>
+                    <th style={{ width: "7%" }} className="whitespace-nowrap px-5 py-2 font-medium">Código</th>
+                    <th style={{ width: "20%" }} className="whitespace-nowrap px-3 py-2 font-medium">Partida</th>
+                    <th style={{ width: "5%" }} className="whitespace-nowrap px-2 py-2 font-medium">Und.</th>
+                    <th style={{ width: "7%" }} className="whitespace-nowrap px-2 py-2 text-right font-medium">Metrado</th>
+                    <th style={{ width: "8%" }} className="whitespace-nowrap px-2 py-2 text-right font-medium">P.U. (S/)</th>
+                    <th style={{ width: "9%" }} className="whitespace-nowrap px-3 py-2 text-right font-medium">Presupuesto</th>
+                    <th style={{ width: "9%" }} className="whitespace-nowrap px-3 py-2 text-right font-medium">Costo ejecutado</th>
+                    <th style={{ width: "8%" }} className="whitespace-nowrap px-3 py-2 text-right font-medium">Saldo</th>
+                    <th style={{ width: "7%" }} className="whitespace-nowrap px-3 py-2 text-right font-medium">Avance</th>
+                    <th style={{ width: "7%" }} className="whitespace-nowrap px-3 py-2 font-medium">Tipo</th>
+                    <th style={{ width: "7%" }} className="whitespace-nowrap px-3 py-2 font-medium">Prioridad</th>
+                    <th style={{ width: "6%" }} className="whitespace-nowrap px-5 py-2 text-right font-medium">Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
                   {espGrupos.map(([esp, lista]) => (
-                    <>
-                      <tr key={`${esp}-header`} className="border-b border-line/40 bg-muted/40">
-                        <td colSpan={9} className="px-5 py-1.5 label-mono">{esp}</td>
+                    <React.Fragment key={esp}>
+                      <tr className="border-b border-line/40 bg-muted/40">
+                        <td colSpan={12} className="px-5 py-1.5 label-mono">{esp}</td>
                       </tr>
                       {lista.map((p) => {
                         const costo = costoRealPartida(p.id, gastos);
@@ -481,6 +529,58 @@ function Partidas() {
                                   className="py-1 text-xs"
                                 />
                               </td>
+                              <td className="px-2 py-2">
+                                <Select
+                                  value={editando.unidad}
+                                  onChange={(e) => setEditando({ ...editando, unidad: e.target.value })}
+                                  className="py-1 text-xs"
+                                >
+                                  {[
+                                    ...new Set([
+                                      ...unidades.filter((u) => u.activo).map((u) => u.simbolo),
+                                      editando.unidad,
+                                    ]),
+                                  ].map((u) => (
+                                    <option key={u} value={u}>
+                                      {u}
+                                    </option>
+                                  ))}
+                                </Select>
+                              </td>
+                              <td className="px-2 py-2">
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  min="0"
+                                  value={editando.metrado}
+                                  onChange={(e) => setEditando({ ...editando, metrado: e.target.value })}
+                                  className="py-1 text-right text-xs"
+                                />
+                              </td>
+                              <td className="px-2 py-2">
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  min="0"
+                                  value={editando.precio_unitario}
+                                  onChange={(e) => setEditando({ ...editando, precio_unitario: e.target.value })}
+                                  className="py-1 text-right text-xs"
+                                />
+                              </td>
+                              <td className="px-3 py-2.5 text-right font-semibold text-ink">
+                                {soles(montoPartida(editando.metrado, editando.precio_unitario))}
+                              </td>
+                              <td className="px-3 py-2.5 text-right">{soles(costo)}</td>
+                              <td
+                                className={`px-3 py-2.5 text-right font-semibold ${
+                                  montoPartida(editando.metrado, editando.precio_unitario) - costo < 0
+                                    ? "text-bad"
+                                    : "text-good"
+                                }`}
+                              >
+                                {soles(montoPartida(editando.metrado, editando.precio_unitario) - costo)}
+                              </td>
+                              <td className="px-3 py-2.5 text-right">{pct(Number(p.avance_pct))}</td>
                               <td className="px-3 py-2">
                                 <Select
                                   value={editando.tipo_presupuesto}
@@ -519,21 +619,6 @@ function Partidas() {
                               <td className="px-3 py-2.5">
                                 <InsigniaPrioridad valor={p.prioridad} />
                               </td>
-                              <td className="px-3 py-2">
-                                <Input
-                                  type="number"
-                                  step="0.01"
-                                  min="0"
-                                  value={editando.presupuesto_inicial}
-                                  onChange={(e) => setEditando({ ...editando, presupuesto_inicial: e.target.value })}
-                                  className="py-1 text-right text-xs"
-                                />
-                              </td>
-                              <td className="px-3 py-2.5 text-right">{soles(costo)}</td>
-                              <td className={`px-3 py-2.5 text-right font-semibold ${dif < 0 ? "text-bad" : "text-good"}`}>
-                                {soles(dif)}
-                              </td>
-                              <td className="px-3 py-2.5 text-right">{pct(Number(p.avance_pct))}</td>
                               <td className="px-5 py-2">
                                 <div className="flex items-center justify-end gap-1">
                                   <button
@@ -569,6 +654,15 @@ function Partidas() {
                               )}
                             </td>
                             <td className="px-3 py-2.5 font-semibold text-ink">{p.nombre}</td>
+                            <td className="px-2 py-2.5 text-muted-foreground">{p.unidad || "—"}</td>
+                            <td className="px-2 py-2.5 text-right">{cantidad(Number(p.metrado ?? 0))}</td>
+                            <td className="px-2 py-2.5 text-right">{soles(Number(p.precio_unitario ?? 0))}</td>
+                            <td className="px-3 py-2.5 text-right">{soles(Number(p.presupuesto_inicial))}</td>
+                            <td className="px-3 py-2.5 text-right">{soles(costo)}</td>
+                            <td className={`px-3 py-2.5 text-right font-semibold ${dif < 0 ? "text-bad" : "text-good"}`}>
+                              {soles(dif)}
+                            </td>
+                            <td className="px-3 py-2.5 text-right">{pct(Number(p.avance_pct))}</td>
                             <td className="px-3 py-2.5">
                               <InsigniaTipoPresupuesto valor={p.tipo_presupuesto ?? "Contractual"} />
                               {(() => {
@@ -584,12 +678,6 @@ function Partidas() {
                             <td className="px-3 py-2.5">
                               <InsigniaPrioridad valor={p.prioridad} />
                             </td>
-                            <td className="px-3 py-2.5 text-right">{soles(Number(p.presupuesto_inicial))}</td>
-                            <td className="px-3 py-2.5 text-right">{soles(costo)}</td>
-                            <td className={`px-3 py-2.5 text-right font-semibold ${dif < 0 ? "text-bad" : "text-good"}`}>
-                              {soles(dif)}
-                            </td>
-                            <td className="px-3 py-2.5 text-right">{pct(Number(p.avance_pct))}</td>
                             <td className="px-5 py-2.5">
                               <div className="flex items-center justify-end gap-1">
                                 <button
@@ -600,7 +688,9 @@ function Partidas() {
                                       codigo: p.codigo ?? "",
                                       nombre: p.nombre,
                                       especialidad: p.especialidad,
-                                      presupuesto_inicial: String(p.presupuesto_inicial),
+                                      unidad: p.unidad || "glb",
+                                      metrado: String(p.metrado ?? 1),
+                                      precio_unitario: String(p.precio_unitario ?? p.presupuesto_inicial),
                                       tipo_presupuesto: p.tipo_presupuesto ?? "Contractual",
                                       aplica_gg: cobraGG({ ...p, tipo_presupuesto: "__adicional__" }, tipos),
                                       aplica_utilidad: cobraUtilidad({ ...p, tipo_presupuesto: "__adicional__" }, tipos),
@@ -624,7 +714,7 @@ function Partidas() {
                           </tr>
                         );
                       })}
-                    </>
+                    </React.Fragment>
                   ))}
                 </tbody>
               </table>
