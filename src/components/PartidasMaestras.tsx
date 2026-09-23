@@ -7,8 +7,16 @@ import { soles } from "@/lib/format";
 import { siguienteCodigoEnCapitulo, useEspecialidadesPartida } from "@/lib/especialidades";
 import { useUnidadesMedida } from "@/lib/unidades";
 import { usePartidasMaestras, type PartidaMaestra } from "@/lib/cotizaciones";
+import { categoriasDe, siguienteCodigoEnCategoria, useCategoriasPartida } from "@/lib/categorias";
 
-const vacio = { codigo: "", nombre: "", especialidad: "", unidad: "glb", precio_unitario: "" };
+const vacio = {
+  codigo: "",
+  nombre: "",
+  especialidad: "",
+  categoria: "",
+  unidad: "glb",
+  precio_unitario: "",
+};
 
 export function PartidasMaestras() {
   const qc = useQueryClient();
