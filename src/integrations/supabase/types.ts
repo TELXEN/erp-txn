@@ -486,12 +486,15 @@ export type Database = {
           created_at: string
           especialidad: string
           id: string
+          metrado: number
           nombre: string
+          precio_unitario: number
           presupuesto_inicial: number
           prioridad: string
           proyecto_id: string
           situacion: string
           tipo_presupuesto: string
+          unidad: string
         }
         Insert: {
           aplica_gg?: boolean
@@ -502,12 +505,15 @@ export type Database = {
           created_at?: string
           especialidad: string
           id?: string
+          metrado?: number
           nombre: string
+          precio_unitario?: number
           presupuesto_inicial?: number
           prioridad?: string
           proyecto_id: string
           situacion?: string
           tipo_presupuesto?: string
+          unidad?: string
         }
         Update: {
           aplica_gg?: boolean
@@ -518,12 +524,15 @@ export type Database = {
           created_at?: string
           especialidad?: string
           id?: string
+          metrado?: number
           nombre?: string
+          precio_unitario?: number
           presupuesto_inicial?: number
           prioridad?: string
           proyecto_id?: string
           situacion?: string
           tipo_presupuesto?: string
+          unidad?: string
         }
         Relationships: [
           {
@@ -780,6 +789,36 @@ export type Database = {
           nombre?: string
           numero_celular?: string
           numero_cuenta?: string
+        }
+        Relationships: []
+      }
+      unidades_medida: {
+        Row: {
+          activo: boolean
+          created_at: string
+          descripcion: string
+          id: string
+          orden: number
+          simbolo: string
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          created_at?: string
+          descripcion?: string
+          id?: string
+          orden?: number
+          simbolo: string
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          created_at?: string
+          descripcion?: string
+          id?: string
+          orden?: number
+          simbolo?: string
+          updated_at?: string
         }
         Relationships: []
       }
