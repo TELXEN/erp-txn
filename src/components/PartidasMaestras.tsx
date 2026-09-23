@@ -197,10 +197,10 @@ export function PartidasMaestras() {
               placeholder="0.00"
             />
           </Campo>
-          <div className="sm:col-span-6">
+          <div className="sm:col-span-7">
             <Boton type="submit">Agregar al banco</Boton>
           </div>
-          {error && <p className="font-mono text-xs text-bad sm:col-span-6">{error}</p>}
+          {error && <p className="font-mono text-xs text-bad sm:col-span-7">{error}</p>}
         </form>
       </Panel>
 
@@ -211,7 +211,7 @@ export function PartidasMaestras() {
             className="w-64 py-1.5 text-xs"
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
-            placeholder="Buscar por código, partida o especialidad"
+            placeholder="Buscar por código, partida, categoría o especialidad"
           />
         }
       >
@@ -221,13 +221,14 @@ export function PartidasMaestras() {
           <table className="w-full table-fixed font-mono text-xs">
             <thead>
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                <th className="w-[10%] px-5 py-2 font-medium">Código</th>
-                <th className="w-[32%] px-3 py-2 font-medium">Partida</th>
-                <th className="w-[20%] px-3 py-2 font-medium">Especialidad</th>
-                <th className="w-[8%] px-3 py-2 font-medium">Und.</th>
-                <th className="w-[13%] px-3 py-2 text-right font-medium">P.U. (S/)</th>
-                <th className="w-[9%] px-3 py-2 font-medium">Estado</th>
-                <th className="w-[8%] px-5 py-2 text-right font-medium">Acciones</th>
+                <th className="w-[9%] px-5 py-2 font-medium">Código</th>
+                <th className="w-[26%] px-3 py-2 font-medium">Partida</th>
+                <th className="w-[16%] px-3 py-2 font-medium">Especialidad</th>
+                <th className="w-[17%] px-3 py-2 font-medium">Categoría</th>
+                <th className="w-[7%] px-3 py-2 font-medium">Und.</th>
+                <th className="w-[11%] px-3 py-2 text-right font-medium">P.U. (S/)</th>
+                <th className="w-[8%] px-3 py-2 font-medium">Estado</th>
+                <th className="w-[6%] px-5 py-2 text-right font-medium">Acciones</th>
               </tr>
             </thead>
             <tbody>
