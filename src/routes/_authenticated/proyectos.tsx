@@ -139,7 +139,10 @@ function Proyectos() {
         pct_utilidad: Number(editando.pct_utilidad) || 0,
       })
       .eq("id", editando.id);
-    if (err) return setError(err.message);
+    if (err)
+      return setError(
+        err.code === "23505" ? "Ese código ya está asignado a otra obra." : err.message,
+      );
     setEditando(null);
     qc.invalidateQueries({ queryKey: ["proyectos"] });
   }
