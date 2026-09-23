@@ -398,7 +398,10 @@ function Partidas() {
                 situacion: p.situacion,
                 contenido: (
                   <div className="space-y-1.5">
-                    <p className="text-xs font-semibold leading-tight text-ink">{p.nombre}</p>
+                    <p className="text-xs font-semibold leading-tight text-ink">
+                      {p.codigo && <span className="mr-1 font-mono text-[10px] text-primary">{p.codigo}</span>}
+                      {p.nombre}
+                    </p>
                     <p className="font-mono text-[10px] text-muted-foreground">{nombreProyecto(p.proyecto_id)}</p>
                     <p className="font-mono text-[10px] text-muted-foreground">{p.especialidad}</p>
                     <div className="h-1.5 w-full rounded-full bg-muted">
