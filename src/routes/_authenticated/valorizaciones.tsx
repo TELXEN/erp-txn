@@ -246,6 +246,24 @@ function Valorizaciones() {
               <option value="Pagado">Pagado</option>
             </Select>
           </Campo>
+          {form.proyecto_id && (
+            <div className="sm:col-span-4 grid gap-3 rounded-lg border border-line bg-muted/30 p-3 sm:grid-cols-3">
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">Presupuesto ofertado (neto)</p>
+                <p className="font-mono text-sm font-semibold text-ink">{soles(ofertadoSel)}</p>
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">Facturado a la fecha</p>
+                <p className="font-mono text-sm font-semibold text-ink">{soles(facturadoSel)}</p>
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">Saldo disponible</p>
+                <p className={`font-mono text-sm font-semibold ${saldoSel > 0 ? "text-good" : "text-bad"}`}>
+                  {saldoSel > 0 ? soles(saldoSel) : `${soles(saldoSel)} · sin saldo`}
+                </p>
+              </div>
+            </div>
+          )}
           <div className="sm:col-span-4 flex flex-wrap items-center gap-3">
             <Boton type="submit">Registrar valorización</Boton>
             <span className="font-mono text-xs text-muted-foreground">
