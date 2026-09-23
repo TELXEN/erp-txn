@@ -319,7 +319,7 @@ function Proyectos() {
                 <th className="w-[13%] px-3 py-2 font-medium">Plazo</th>
                 <th className="w-[10%] px-3 py-2 text-right font-medium">Presupuesto</th>
                 <th className="w-[10%] px-3 py-2 text-right font-medium">Costo ejecutado</th>
-                <th className="w-[7%] px-3 py-2 font-medium">Status</th>
+                <th className="w-[7%] px-3 py-2 font-medium">ESTADO</th>
                 <th className="w-[7%] px-5 py-2 text-right font-medium">Acciones</th>
               </tr>
             </thead>
