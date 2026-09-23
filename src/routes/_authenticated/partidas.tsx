@@ -74,7 +74,11 @@ function Partidas() {
     aplica_utilidad: boolean;
   } | null>(null);
 
-  const nombreProyecto = (id: string) => proyectos.find((p) => p.id === id)?.nombre ?? "—";
+  const nombreProyecto = (id: string) => {
+    const p = proyectos.find((x) => x.id === id);
+    if (!p) return "—";
+    return p.codigo ? `${p.codigo} · ${p.nombre}` : p.nombre;
+  };
 
   const visibles = useMemo(
     () =>
