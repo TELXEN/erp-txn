@@ -47,6 +47,25 @@ export function siguienteCodigoPartida(
   return `${capitulo}.${String(siguiente).padStart(2, "0")}`;
 }
 
+/**
+ * Sugiere el siguiente código dentro del capítulo a partir de una lista
+ * de códigos ya usados (banco maestro, cotización, etc.).
+ */
+export function siguienteCodigoEnCapitulo(
+  especialidad: string,
+  codigosUsados: (string | null | undefined)[],
+  catalogo: EspecialidadPartida[],
+) {
+  const capitulo = codigoEspecialidad(especialidad, catalogo);
+  if (!capitulo) return "";
+  const usados = codigosUsados
+    .filter((c): c is string => Boolean(c) && (c as string).startsWith(`${capitulo}.`))
+    .map((c) => Number(c.split(".")[1]))
+    .filter((n) => Number.isFinite(n));
+  const siguiente = (usados.length ? Math.max(...usados) : 0) + 1;
+  return `${capitulo}.${String(siguiente).padStart(2, "0")}`;
+}
+
 /** Etiqueta de partida con su código delante. */
 export const etiquetaPartida = (p: { codigo?: string | null; nombre: string }) =>
   p.codigo ? `[${p.codigo}] ${p.nombre}` : p.nombre;

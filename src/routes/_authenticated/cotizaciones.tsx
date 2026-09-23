@@ -6,7 +6,7 @@ import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
-import { useEspecialidadesPartida } from "@/lib/especialidades";
+import { siguienteCodigoEnCapitulo, useEspecialidadesPartida } from "@/lib/especialidades";
 import { useUnidadesMedida } from "@/lib/unidades";
 import { generarCodigoProyecto } from "@/lib/codificacion";
 import { exportarExcel } from "@/lib/exportar";
@@ -88,6 +88,9 @@ function Cotizaciones() {
     precio_unitario: "",
   });
 
+  const sugerirCodigo = (especialidad: string) =>
+    siguienteCodigoEnCapitulo(especialidad, items.map((i) => i.codigo), especialidades);
+
   const cot = cotizaciones.find((c) => c.id === seleccion) ?? null;
   const totales = cot
     ? totalesCotizacion(items, Number(cot.pct_gastos_generales), Number(cot.pct_utilidad))
@@ -140,7 +143,7 @@ function Cotizaciones() {
     setError("");
     const { error: err } = await supabase.from("cotizacion_items").insert({
       cotizacion_id: cot.id,
-      codigo: item.codigo.trim(),
+      codigo: item.codigo.trim() || sugerirCodigo(item.especialidad),
       nombre: item.nombre.trim(),
       especialidad: item.especialidad,
       unidad: item.unidad,
@@ -446,7 +449,7 @@ function Cotizaciones() {
                     const m = maestras.find((x) => x.id === v);
                     if (!m) return;
                     setItem({
-                      codigo: m.codigo,
+                      codigo: m.codigo || sugerirCodigo(m.especialidad),
                       nombre: m.nombre,
                       especialidad: m.especialidad,
                       unidad: m.unidad,
@@ -493,7 +496,17 @@ function Cotizaciones() {
               </Campo>
             </div>
             <Campo etiqueta="Especialidad">
-              <Select value={item.especialidad} onChange={(e) => setItem({ ...item, especialidad: e.target.value })}>
+              <Select
+                value={item.especialidad}
+                onChange={(e) => {
+                  const especialidad = e.target.value;
+                  setItem({
+                    ...item,
+                    especialidad,
+                    codigo: item.codigo.trim() || sugerirCodigo(especialidad),
+                  });
+                }}
+              >
                 <option value="">Selecciona...</option>
                 {especialidades
                   .filter((e) => e.activo)

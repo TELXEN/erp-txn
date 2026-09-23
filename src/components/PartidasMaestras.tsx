@@ -4,7 +4,7 @@ import { Check, Pencil, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Boton, Campo, Input, Panel, Select, Vacio } from "@/components/ui-kit";
 import { soles } from "@/lib/format";
-import { useEspecialidadesPartida } from "@/lib/especialidades";
+import { siguienteCodigoEnCapitulo, useEspecialidadesPartida } from "@/lib/especialidades";
 import { useUnidadesMedida } from "@/lib/unidades";
 import { usePartidasMaestras, type PartidaMaestra } from "@/lib/cotizaciones";
 
@@ -16,6 +16,7 @@ export function PartidasMaestras() {
   const { data: especialidades = [] } = useEspecialidadesPartida();
   const { data: unidades = [] } = useUnidadesMedida();
   const [form, setForm] = useState(vacio);
+  const [codigoManual, setCodigoManual] = useState(false);
   const [editando, setEditando] = useState<PartidaMaestra | null>(null);
   const [busqueda, setBusqueda] = useState("");
   const [error, setError] = useState("");
@@ -34,15 +35,28 @@ export function PartidasMaestras() {
     e.preventDefault();
     setError("");
     if (!form.nombre.trim()) return setError("Escribe la descripción de la partida.");
+    const codigoFinal =
+      form.codigo.trim() ||
+      siguienteCodigoEnCapitulo(form.especialidad, lista.map((p) => p.codigo), especialidades);
     const { error: err } = await supabase.from("partidas_maestras").insert({
-      codigo: form.codigo.trim(),
+      codigo: codigoFinal,
       nombre: form.nombre.trim(),
       especialidad: form.especialidad,
       unidad: form.unidad,
       precio_unitario: Number(form.precio_unitario || 0),
     });
     if (err) return setError(err.message);
-    setForm({ ...vacio, especialidad: form.especialidad, unidad: form.unidad });
+    setForm({
+      ...vacio,
+      especialidad: form.especialidad,
+      unidad: form.unidad,
+      codigo: siguienteCodigoEnCapitulo(
+        form.especialidad,
+        [...lista.map((p) => p.codigo), codigoFinal],
+        especialidades,
+      ),
+    });
+    setCodigoManual(false);
     refrescar();
   }
 
@@ -83,7 +97,10 @@ export function PartidasMaestras() {
             <Input
               className="py-1.5 font-mono"
               value={form.codigo}
-              onChange={(e) => setForm({ ...form, codigo: e.target.value })}
+              onChange={(e) => {
+                setCodigoManual(true);
+                setForm({ ...form, codigo: e.target.value });
+              }}
               maxLength={20}
               placeholder="05.01"
             />
@@ -103,7 +120,19 @@ export function PartidasMaestras() {
             <Select
               className="py-1.5"
               value={form.especialidad}
-              onChange={(e) => setForm({ ...form, especialidad: e.target.value })}
+              onChange={(e) => {
+                const especialidad = e.target.value;
+                const sugerido = siguienteCodigoEnCapitulo(
+                  especialidad,
+                  lista.map((p) => p.codigo),
+                  especialidades,
+                );
+                setForm({
+                  ...form,
+                  especialidad,
+                  codigo: codigoManual && form.codigo ? form.codigo : sugerido,
+                });
+              }}
             >
               <option value="">Selecciona...</option>
               {opcionesEspecialidad.map((e) => (
