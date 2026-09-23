@@ -545,15 +545,16 @@ function Partidas() {
                         }
                         return (
                           <tr key={p.id} className="border-b border-line/40 last:border-0">
-                            <td className="px-5 py-2.5 font-semibold text-ink">{nombreProyecto(p.proyecto_id)}</td>
-                            <td className="px-3 py-2.5 font-semibold text-ink">
-                              {p.codigo && (
-                                <span className="mr-1.5 rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] text-primary">
+                            <td className="px-5 py-2.5">
+                              {p.codigo ? (
+                                <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] text-primary">
                                   {p.codigo}
                                 </span>
+                              ) : (
+                                <span className="text-muted-foreground">—</span>
                               )}
-                              {p.nombre}
                             </td>
+                            <td className="px-3 py-2.5 font-semibold text-ink">{p.nombre}</td>
                             <td className="px-3 py-2.5">
                               <InsigniaTipoPresupuesto valor={p.tipo_presupuesto ?? "Contractual"} />
                               {(() => {
@@ -566,12 +567,15 @@ function Partidas() {
                                 );
                               })()}
                             </td>
+                            <td className="px-3 py-2.5">
+                              <InsigniaPrioridad valor={p.prioridad} />
+                            </td>
                             <td className="px-3 py-2.5 text-right">{soles(Number(p.presupuesto_inicial))}</td>
                             <td className="px-3 py-2.5 text-right">{soles(costo)}</td>
-                            <td className="px-3 py-2.5 text-right">{pct(Number(p.avance_pct))}</td>
                             <td className={`px-3 py-2.5 text-right font-semibold ${dif < 0 ? "text-bad" : "text-good"}`}>
                               {soles(dif)}
                             </td>
+                            <td className="px-3 py-2.5 text-right">{pct(Number(p.avance_pct))}</td>
                             <td className="px-5 py-2.5">
                               <div className="flex items-center justify-end gap-1">
                                 <button
