@@ -73,6 +73,7 @@ type Pestana =
   | "centros"
   | "configuracion"
   | "codificacion"
+  | "especialidades"
   | "empresa";
 
 const TIPOS_DOC = ["RUC", "DNI", "CE", "OTRO"];

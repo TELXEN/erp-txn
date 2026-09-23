@@ -39,6 +39,7 @@ export function estructuraOferta(costoDirecto: number, pctGG: number, pctUtilida
 export type Partida = {
   id: string;
   proyecto_id: string;
+  codigo: string;
   nombre: string;
   especialidad: string;
   presupuesto_inicial: number;
