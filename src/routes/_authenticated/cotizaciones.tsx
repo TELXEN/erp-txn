@@ -7,6 +7,12 @@ import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
 import { siguienteCodigoEnCapitulo, useEspecialidadesPartida } from "@/lib/especialidades";
+import {
+  agruparPorCategoria,
+  categoriasDe,
+  siguienteCodigoEnCategoria,
+  useCategoriasPartida,
+} from "@/lib/categorias";
 import { useUnidadesMedida } from "@/lib/unidades";
 import { generarCodigoProyecto } from "@/lib/codificacion";
 import { exportarExcel } from "@/lib/exportar";
