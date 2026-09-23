@@ -54,6 +54,7 @@ function Cotizaciones() {
   const { data: especialidades = [] } = useEspecialidadesPartida();
   const { data: unidades = [] } = useUnidadesMedida();
   const { data: maestras = [] } = usePartidasMaestras();
+  const { data: categorias = [] } = useCategoriasPartida();
   const { data: clientes = [] } = useQuery({
     queryKey: ["terceros", "clientes-activos"],
     queryFn: async () => {
@@ -89,13 +90,19 @@ function Cotizaciones() {
     codigo: "",
     nombre: "",
     especialidad: "",
+    categoria: "",
     unidad: "glb",
     metrado: "1",
     precio_unitario: "",
   });
 
-  const sugerirCodigo = (especialidad: string) =>
-    siguienteCodigoEnCapitulo(especialidad, items.map((i) => i.codigo), especialidades);
+  /** Código sugerido: dentro de la categoría (05.01.01) o del capítulo (05.01). */
+  const sugerirCodigo = (especialidad: string, categoria = "") => {
+    const usados = items.map((i) => i.codigo);
+    return categoria
+      ? siguienteCodigoEnCategoria(categoria, usados, categorias)
+      : siguienteCodigoEnCapitulo(especialidad, usados, especialidades);
+  };
 
   const cot = cotizaciones.find((c) => c.id === seleccion) ?? null;
   const totales = cot
