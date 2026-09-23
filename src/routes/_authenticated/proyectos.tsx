@@ -125,6 +125,7 @@ function Proyectos() {
     const { error: err } = await supabase
       .from("proyectos")
       .update({
+        codigo: editando.codigo.trim().toUpperCase() || null,
         nombre: editando.nombre.trim(),
         estado: editando.estado,
         situacion: editando.situacion,
@@ -184,6 +185,16 @@ function Proyectos() {
         extra={<Boton type="submit" form="form-proyecto">Registrar</Boton>}
       >
         <form id="form-proyecto" onSubmit={guardar} className="grid gap-3 p-5 sm:grid-cols-6">
+          <Campo etiqueta="Código de la obra">
+            <Input
+              className="uppercase"
+              value={form.codigo}
+              onChange={(e) => setForm({ ...form, codigo: e.target.value })}
+              maxLength={30}
+              placeholder={codificacion ? previsualizarCodigo(codificacion) : "Automático"}
+              title="Déjalo vacío para asignar el código automático"
+            />
+          </Campo>
           <Campo etiqueta="Nombre de la obra">
             <Input value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} required maxLength={120} />
           </Campo>
