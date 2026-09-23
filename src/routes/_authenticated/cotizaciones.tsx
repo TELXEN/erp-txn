@@ -407,6 +407,35 @@ function Cotizaciones() {
           </div>
 
           <form onSubmit={agregarItem} className="grid gap-3 border-b border-line p-5 sm:grid-cols-6">
+            <div className="sm:col-span-6">
+              <Campo etiqueta="Importar del banco de partidas">
+                <Select
+                  value=""
+                  onChange={(e) => {
+                    const m = maestras.find((x) => x.id === e.target.value);
+                    if (!m) return;
+                    setItem({
+                      codigo: m.codigo,
+                      nombre: m.nombre,
+                      especialidad: m.especialidad,
+                      unidad: m.unidad,
+                      metrado: "1",
+                      precio_unitario: String(m.precio_unitario ?? 0),
+                    });
+                  }}
+                >
+                  <option value="">Escribir una partida nueva o elegir del banco...</option>
+                  {maestras
+                    .filter((m) => m.activo)
+                    .map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.codigo ? `[${m.codigo}] ` : ""}
+                        {m.nombre} · {m.unidad} · {soles(Number(m.precio_unitario))}
+                      </option>
+                    ))}
+                </Select>
+              </Campo>
+            </div>
             <Campo etiqueta="Código">
               <Input value={item.codigo} onChange={(e) => setItem({ ...item, codigo: e.target.value })} maxLength={20} />
             </Campo>
