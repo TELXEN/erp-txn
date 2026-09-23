@@ -143,7 +143,7 @@ function Cotizaciones() {
     setError("");
     const { error: err } = await supabase.from("cotizacion_items").insert({
       cotizacion_id: cot.id,
-      codigo: item.codigo.trim(),
+      codigo: item.codigo.trim() || sugerirCodigo(item.especialidad),
       nombre: item.nombre.trim(),
       especialidad: item.especialidad,
       unidad: item.unidad,
