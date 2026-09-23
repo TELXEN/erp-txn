@@ -21,6 +21,7 @@ import {
   useProyectos,
   useTareos,
 } from "@/lib/datos";
+import { generarCodigoProyecto, previsualizarCodigo, useCodificacion } from "@/lib/codificacion";
 
 export const Route = createFileRoute("/_authenticated/proyectos")({
   head: () => ({
@@ -43,8 +44,10 @@ function Proyectos() {
   const { data: gastosG = [] } = useGastosGenerales();
   const { data: tareos = [] } = useTareos();
   const { data: tiposPresupuesto = [] } = useTiposPresupuesto();
+  const { data: codificacion } = useCodificacion();
   const [vista, setVista] = useState<"tabla" | "kanban">("tabla");
   const [form, setForm] = useState({
+    codigo: "",
     nombre: "",
     cliente: "",
     ubicacion: "",
