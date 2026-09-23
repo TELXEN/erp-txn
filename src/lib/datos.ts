@@ -157,6 +157,7 @@ export type GastoGeneral = {
   monto_soles: number;
   fecha: string;
   categoria: string;
+  caja_chica_id: string | null;
 };
 
 export type Venta = {
