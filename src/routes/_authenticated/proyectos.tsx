@@ -21,6 +21,7 @@ import {
   useProyectos,
   useTareos,
 } from "@/lib/datos";
+import { generarCodigoProyecto, previsualizarCodigo, useCodificacion } from "@/lib/codificacion";
 
 export const Route = createFileRoute("/_authenticated/proyectos")({
   head: () => ({
@@ -43,8 +44,10 @@ function Proyectos() {
   const { data: gastosG = [] } = useGastosGenerales();
   const { data: tareos = [] } = useTareos();
   const { data: tiposPresupuesto = [] } = useTiposPresupuesto();
+  const { data: codificacion } = useCodificacion();
   const [vista, setVista] = useState<"tabla" | "kanban">("tabla");
   const [form, setForm] = useState({
+    codigo: "",
     nombre: "",
     cliente: "",
     ubicacion: "",
@@ -59,6 +62,7 @@ function Proyectos() {
   const [error, setError] = useState("");
   const [editando, setEditando] = useState<{
     id: string;
+    codigo: string;
     nombre: string;
     estado: "En Ejecucion" | "Finalizado";
     situacion: string;
@@ -74,7 +78,18 @@ function Proyectos() {
   async function guardar(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    let codigo = form.codigo.trim().toUpperCase();
+    if (!codigo) {
+      try {
+        codigo = await generarCodigoProyecto();
+      } catch (e2) {
+        return setError(
+          e2 instanceof Error ? e2.message : "No se pudo generar el código automático de la obra.",
+        );
+      }
+    }
     const { error: err } = await supabase.from("proyectos").insert({
+      codigo,
       nombre: form.nombre.trim(),
       cliente: form.cliente.trim(),
       ubicacion: form.ubicacion.trim(),
@@ -86,8 +101,12 @@ function Proyectos() {
       pct_gastos_generales: Number(form.pct_gastos_generales) || 0,
       pct_utilidad: Number(form.pct_utilidad) || 0,
     });
-    if (err) return setError(err.message);
+    if (err)
+      return setError(
+        err.code === "23505" ? "Ese código ya está asignado a otra obra." : err.message,
+      );
     setForm({
+      codigo: "",
       nombre: "",
       cliente: "",
       ubicacion: "",
@@ -109,6 +128,7 @@ function Proyectos() {
     const { error: err } = await supabase
       .from("proyectos")
       .update({
+        codigo: editando.codigo.trim().toUpperCase() || null,
         nombre: editando.nombre.trim(),
         estado: editando.estado,
         situacion: editando.situacion,
@@ -119,7 +139,10 @@ function Proyectos() {
         pct_utilidad: Number(editando.pct_utilidad) || 0,
       })
       .eq("id", editando.id);
-    if (err) return setError(err.message);
+    if (err)
+      return setError(
+        err.code === "23505" ? "Ese código ya está asignado a otra obra." : err.message,
+      );
     setEditando(null);
     qc.invalidateQueries({ queryKey: ["proyectos"] });
   }
@@ -168,6 +191,16 @@ function Proyectos() {
         extra={<Boton type="submit" form="form-proyecto">Registrar</Boton>}
       >
         <form id="form-proyecto" onSubmit={guardar} className="grid gap-3 p-5 sm:grid-cols-6">
+          <Campo etiqueta="Código de la obra">
+            <Input
+              className="uppercase"
+              value={form.codigo}
+              onChange={(e) => setForm({ ...form, codigo: e.target.value })}
+              maxLength={30}
+              placeholder={codificacion ? previsualizarCodigo(codificacion) : "Automático"}
+              title="Déjalo vacío para asignar el código automático"
+            />
+          </Campo>
           <Campo etiqueta="Nombre de la obra">
             <Input value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} required maxLength={120} />
           </Campo>
@@ -257,6 +290,9 @@ function Proyectos() {
               situacion: p.situacion,
               contenido: (
                 <div className="space-y-1.5">
+                  {p.codigo && (
+                    <p className="font-mono text-[10px] font-semibold text-primary">{p.codigo}</p>
+                  )}
                   <p className="text-xs font-semibold leading-tight text-ink">{p.nombre}</p>
                   <p className="font-mono text-[10px] text-muted-foreground">{p.cliente || "Sin cliente"}</p>
                   <p className="font-mono text-[10px] text-muted-foreground">{p.ubicacion || "Sin ubicación"}</p>
@@ -288,6 +324,14 @@ function Proyectos() {
                     {enEdicion ? (
                       <>
                         <td className="px-5 py-2">
+                          <Input
+                            className="mb-1.5 py-1 text-[11px] uppercase"
+                            value={editando.codigo}
+                            onChange={(e) => setEditando({ ...editando, codigo: e.target.value })}
+                            maxLength={30}
+                            placeholder="Código"
+                            title="Código de la obra"
+                          />
                           <Input
                             value={editando.nombre}
                             onChange={(e) => setEditando({ ...editando, nombre: e.target.value })}
@@ -388,6 +432,11 @@ function Proyectos() {
                     ) : (
                       <>
                         <td className="px-5 py-2.5 align-top font-semibold text-ink break-words whitespace-normal">
+                          {p.codigo && (
+                            <span className="mr-1.5 rounded bg-primary/10 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-primary">
+                              {p.codigo}
+                            </span>
+                          )}
                           {p.nombre}
                           <span className="mt-1 block font-mono text-[10px] font-normal text-muted-foreground">
                             GG {Number(p.pct_gastos_generales ?? 0)}% · Utilidad {Number(p.pct_utilidad ?? 0)}% · Oferta{" "}
@@ -420,6 +469,7 @@ function Proyectos() {
                               onClick={() =>
                                 setEditando({
                                   id: p.id,
+                                  codigo: p.codigo ?? "",
                                   nombre: p.nombre,
                                   estado: p.estado,
                                   situacion: p.situacion,

@@ -11,6 +11,7 @@ async function pedir<T>(tabla: string, columnas = "*", orden?: { col: string; as
 
 export type Proyecto = {
   id: string;
+  codigo: string | null;
   nombre: string;
   cliente: string;
   ubicacion: string;
