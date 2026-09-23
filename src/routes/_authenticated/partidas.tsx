@@ -23,6 +23,7 @@ import { Pencil, Trash2, Check, X, LayoutGrid, Table2 } from "lucide-react";
 import { Kanban } from "@/components/Kanban";
 import { InsigniaPrioridad, InsigniaTipoPresupuesto } from "@/components/estado-ui";
 import { PRIORIDADES, type Situacion } from "@/lib/configuracion";
+import { siguienteCodigoPartida, useEspecialidadesPartida } from "@/lib/especialidades";
 
 export const Route = createFileRoute("/_authenticated/partidas")({
   head: () => ({
