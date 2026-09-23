@@ -191,6 +191,39 @@ export type Database = {
         }
         Relationships: []
       }
+      categorias_partida: {
+        Row: {
+          activo: boolean
+          codigo: string
+          created_at: string
+          especialidad: string
+          id: string
+          nombre: string
+          orden: number
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          codigo?: string
+          created_at?: string
+          especialidad?: string
+          id?: string
+          nombre: string
+          orden?: number
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          codigo?: string
+          created_at?: string
+          especialidad?: string
+          id?: string
+          nombre?: string
+          orden?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       centros_costos: {
         Row: {
           activo: boolean
@@ -289,6 +322,7 @@ export type Database = {
       }
       cotizacion_items: {
         Row: {
+          categoria: string
           codigo: string
           cotizacion_id: string
           created_at: string
@@ -302,6 +336,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          categoria?: string
           codigo?: string
           cotizacion_id: string
           created_at?: string
@@ -315,6 +350,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          categoria?: string
           codigo?: string
           cotizacion_id?: string
           created_at?: string
@@ -640,6 +676,7 @@ export type Database = {
           aplica_gg_utilidad: boolean
           aplica_utilidad: boolean
           avance_pct: number
+          categoria: string
           codigo: string
           created_at: string
           especialidad: string
@@ -659,6 +696,7 @@ export type Database = {
           aplica_gg_utilidad?: boolean
           aplica_utilidad?: boolean
           avance_pct?: number
+          categoria?: string
           codigo?: string
           created_at?: string
           especialidad: string
@@ -678,6 +716,7 @@ export type Database = {
           aplica_gg_utilidad?: boolean
           aplica_utilidad?: boolean
           avance_pct?: number
+          categoria?: string
           codigo?: string
           created_at?: string
           especialidad?: string
@@ -705,6 +744,7 @@ export type Database = {
       partidas_maestras: {
         Row: {
           activo: boolean
+          categoria: string
           codigo: string
           created_at: string
           especialidad: string
@@ -716,6 +756,7 @@ export type Database = {
         }
         Insert: {
           activo?: boolean
+          categoria?: string
           codigo?: string
           created_at?: string
           especialidad?: string
@@ -727,6 +768,7 @@ export type Database = {
         }
         Update: {
           activo?: boolean
+          categoria?: string
           codigo?: string
           created_at?: string
           especialidad?: string
