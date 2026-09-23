@@ -24,6 +24,7 @@ import {
 import { PRIORIDADES, SITUACIONES, tonoPrioridad, tonoSituacion } from "@/lib/configuracion";
 import { DatosEmpresa } from "@/components/DatosEmpresa";
 import { CodificacionProyectos } from "@/components/CodificacionProyectos";
+import { EspecialidadesPartida } from "@/components/EspecialidadesPartida";
 
 export const Route = createFileRoute("/_authenticated/datos")({
   head: () => ({
@@ -73,6 +74,7 @@ type Pestana =
   | "centros"
   | "configuracion"
   | "codificacion"
+  | "especialidades"
   | "empresa";
 
 const TIPOS_DOC = ["RUC", "DNI", "CE", "OTRO"];
@@ -299,6 +301,7 @@ function Datos() {
             "centros",
             "configuracion",
             "codificacion",
+            "especialidades",
             "empresa",
           ] as const
         ).map((p) => (
@@ -325,6 +328,7 @@ function Datos() {
               centros: "Centro de costos",
               configuracion: "Configuración proyectos",
               codificacion: "Codificación de proyectos",
+              especialidades: "Codificación de partidas",
               empresa: "Datos de la empresa",
             }[p]}
           </button>
@@ -744,6 +748,8 @@ function Datos() {
         <ConfiguracionProyectos />
       ) : pestana === "codificacion" ? (
         <CodificacionProyectos />
+      ) : pestana === "especialidades" ? (
+        <EspecialidadesPartida />
       ) : pestana === "empresa" ? (
         <DatosEmpresa />
       ) : (

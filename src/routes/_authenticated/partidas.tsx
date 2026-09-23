@@ -23,6 +23,7 @@ import { Pencil, Trash2, Check, X, LayoutGrid, Table2 } from "lucide-react";
 import { Kanban } from "@/components/Kanban";
 import { InsigniaPrioridad, InsigniaTipoPresupuesto } from "@/components/estado-ui";
 import { PRIORIDADES, type Situacion } from "@/lib/configuracion";
+import { siguienteCodigoPartida, useEspecialidadesPartida } from "@/lib/especialidades";
 
 export const Route = createFileRoute("/_authenticated/partidas")({
   head: () => ({
@@ -44,6 +45,7 @@ function Partidas() {
   const { data: gastos = [] } = useGastosDirectos();
 
   const { data: tipos = [] } = useTiposPresupuesto();
+  const { data: capitulos = [] } = useEspecialidadesPartida();
 
   const [filtroProyecto, setFiltroProyecto] = useState("");
   const [filtroEsp, setFiltroEsp] = useState("");
@@ -51,8 +53,9 @@ function Partidas() {
   const [vista, setVista] = useState<"tabla" | "kanban">("tabla");
   const [form, setForm] = useState({
     proyecto_id: "",
+    codigo: "",
     nombre: "",
-    especialidad: ESPECIALIDADES[0] as string,
+    especialidad: "",
     presupuesto_inicial: "",
     prioridad: "Media",
     tipo_presupuesto: "Contractual",
@@ -62,6 +65,7 @@ function Partidas() {
   const [error, setError] = useState("");
   const [editando, setEditando] = useState<{
     id: string;
+    codigo: string;
     nombre: string;
     especialidad: string;
     presupuesto_inicial: string;
@@ -88,6 +92,13 @@ function Partidas() {
     const usados = partidas.map((p) => p.tipo_presupuesto ?? "Contractual");
     return [...new Set(["Contractual", ...activos, ...usados])];
   }, [tipos, partidas]);
+  const nombresEspecialidades = useMemo(() => {
+    const activos = capitulos.filter((c) => c.activo).map((c) => c.nombre);
+    const usados = partidas.map((p) => p.especialidad).filter(Boolean);
+    return [...new Set([...activos, ...usados])];
+  }, [capitulos, partidas]);
+  const sugerir = (proyectoId: string, especialidad: string) =>
+    siguienteCodigoPartida(especialidad, proyectoId, partidas, capitulos);
   const grupos = useMemo(() => agruparPorProyectoYEspecialidad(visibles, nombreProyecto), [visibles, nombreProyecto]);
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
@@ -97,6 +108,7 @@ function Partidas() {
     setError("");
     const { error: err } = await supabase.from("partidas").insert({
       proyecto_id: form.proyecto_id,
+      codigo: (form.codigo || sugerir(form.proyecto_id, form.especialidad)).trim(),
       nombre: form.nombre.trim(),
       especialidad: form.especialidad,
       prioridad: form.prioridad,
@@ -120,6 +132,7 @@ function Partidas() {
     const { error: err } = await supabase
       .from("partidas")
       .update({
+        codigo: editando.codigo.trim(),
         nombre: editando.nombre.trim(),
         especialidad: editando.especialidad,
         tipo_presupuesto: editando.tipo_presupuesto,
@@ -151,6 +164,7 @@ function Partidas() {
         filas: visibles.map((p) => ({
           Proyecto: nombreProyecto(p.proyecto_id),
           Especialidad: p.especialidad,
+          "Código de Partida": p.codigo ?? "",
           Partida: p.nombre,
           "Tipo de Presupuesto": p.tipo_presupuesto ?? "Contractual",
           "Presupuesto (S/)": Number(p.presupuesto_inicial),
@@ -215,7 +229,13 @@ function Partidas() {
       <Panel titulo="Nueva partida" className="mb-4">
         <form onSubmit={guardar} className="grid gap-3 p-5 sm:grid-cols-6">
           <Campo etiqueta="Proyecto">
-            <Select value={form.proyecto_id} onChange={(e) => setForm({ ...form, proyecto_id: e.target.value })} required>
+            <Select
+              value={form.proyecto_id}
+              onChange={(e) =>
+                setForm({ ...form, proyecto_id: e.target.value, codigo: sugerir(e.target.value, form.especialidad) })
+              }
+              required
+            >
               <option value="">Selecciona...</option>
               {proyectos.map((p) => (
                 <option key={p.id} value={p.id}>
@@ -224,14 +244,31 @@ function Partidas() {
               ))}
             </Select>
           </Campo>
-          <Campo etiqueta="Tipo de Instalación / Especialidad">
-            <Select value={form.especialidad} onChange={(e) => setForm({ ...form, especialidad: e.target.value })}>
-              {ESPECIALIDADES.map((e) => (
+          <Campo etiqueta="Capítulo / Especialidad">
+            <Select
+              value={form.especialidad}
+              onChange={(e) =>
+                setForm({ ...form, especialidad: e.target.value, codigo: sugerir(form.proyecto_id, e.target.value) })
+              }
+              required
+            >
+              <option value="">Selecciona...</option>
+              {nombresEspecialidades.map((e) => (
                 <option key={e} value={e}>
                   {e}
                 </option>
               ))}
             </Select>
+          </Campo>
+          <Campo etiqueta="Código de partida">
+            <Input
+              value={form.codigo}
+              onChange={(e) => setForm({ ...form, codigo: e.target.value })}
+              maxLength={20}
+              placeholder={sugerir(form.proyecto_id, form.especialidad) || "05.01"}
+              className="font-mono"
+            />
+            <p className="mt-1 text-[10px] text-muted-foreground">Sugerido automáticamente, puedes editarlo.</p>
           </Campo>
           <Campo etiqueta="Descripción de partida">
             <Input value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} required maxLength={140} />
@@ -329,7 +366,7 @@ function Partidas() {
             </Select>
             <Select className="w-60" value={filtroEsp} onChange={(e) => setFiltroEsp(e.target.value)}>
               <option value="">Todas las especialidades</option>
-              {ESPECIALIDADES.map((e) => (
+              {nombresEspecialidades.map((e) => (
                 <option key={e} value={e}>
                   {e}
                 </option>
