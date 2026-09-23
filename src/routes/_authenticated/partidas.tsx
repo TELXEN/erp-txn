@@ -203,6 +203,7 @@ function Partidas() {
           return {
             Proyecto: nombreProyecto(p.proyecto_id),
             Especialidad: p.especialidad,
+            Categoría: p.categoria ?? "",
             Código: p.codigo ?? "",
             Partida: p.nombre,
             Unidad: p.unidad ?? "",
