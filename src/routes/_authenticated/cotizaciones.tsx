@@ -424,11 +424,24 @@ function Cotizaciones() {
 
           <form onSubmit={agregarItem} className="grid gap-3 border-b border-line p-5 sm:grid-cols-6">
             <div className="sm:col-span-6">
-              <Campo etiqueta="Importar del banco de partidas">
+              <Campo etiqueta="Partida del catálogo maestro">
                 <Select
-                  value=""
+                  value={maestraSel}
                   onChange={(e) => {
-                    const m = maestras.find((x) => x.id === e.target.value);
+                    const v = e.target.value;
+                    setMaestraSel(v);
+                    if (v === "manual" || v === "") {
+                      setItem({
+                        codigo: "",
+                        nombre: "",
+                        especialidad: "",
+                        unidad: item.unidad,
+                        metrado: "1",
+                        precio_unitario: "",
+                      });
+                      return;
+                    }
+                    const m = maestras.find((x) => x.id === v);
                     if (!m) return;
                     setItem({
                       codigo: m.codigo,
@@ -440,7 +453,8 @@ function Cotizaciones() {
                     });
                   }}
                 >
-                  <option value="">Escribir una partida nueva o elegir del banco...</option>
+                  <option value="">Elige una partida del catálogo maestro...</option>
+                  <option value="manual">Escribir manualmente (partida libre)</option>
                   {maestras
                     .filter((m) => m.activo)
                     .map((m) => (
@@ -451,13 +465,29 @@ function Cotizaciones() {
                     ))}
                 </Select>
               </Campo>
+              <p className="mt-1 font-mono text-[10px] text-muted-foreground">
+                {maestraSel && maestraSel !== "manual"
+                  ? "Código y descripción vinculados al catálogo maestro."
+                  : "Campos libres: escribe el código y la descripción de la partida."}
+              </p>
             </div>
             <Campo etiqueta="Código">
-              <Input value={item.codigo} onChange={(e) => setItem({ ...item, codigo: e.target.value })} maxLength={20} />
+              <Input
+                value={item.codigo}
+                onChange={(e) => setItem({ ...item, codigo: e.target.value })}
+                maxLength={20}
+                placeholder="05.01"
+              />
             </Campo>
             <div className="sm:col-span-2">
               <Campo etiqueta="Descripción de la partida">
-                <Input value={item.nombre} onChange={(e) => setItem({ ...item, nombre: e.target.value })} required maxLength={160} />
+                <Input
+                  value={item.nombre}
+                  onChange={(e) => setItem({ ...item, nombre: e.target.value })}
+                  required
+                  maxLength={160}
+                  placeholder="Escribe la descripción de la partida"
+                />
               </Campo>
             </div>
             <Campo etiqueta="Especialidad">
