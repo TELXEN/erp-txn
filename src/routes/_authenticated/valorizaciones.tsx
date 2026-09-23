@@ -203,8 +203,19 @@ function Valorizaciones() {
           <Campo etiqueta="Concepto">
             <Input value={form.concepto} onChange={(e) => setForm({ ...form, concepto: e.target.value })} required maxLength={160} />
           </Campo>
-          <Campo etiqueta="Monto valorizado">
-            <Input type="number" step="0.01" min="0" value={form.monto} onChange={(e) => setForm({ ...form, monto: e.target.value })} required />
+          <Campo etiqueta="Monto valorizado (valor neto sin IGV)">
+            <Input
+              type="number"
+              step="0.01"
+              min="0"
+              placeholder="0.00 (neto sin IGV)"
+              value={form.monto}
+              onChange={(e) => setForm({ ...form, monto: e.target.value })}
+              required
+            />
+            <p className="mt-1 text-[11px] leading-snug text-muted-foreground">
+              Ingresa solo la base imponible, sin IGV. Este importe se compara con el presupuesto ofertado de la obra.
+            </p>
           </Campo>
           <Campo etiqueta="Moneda">
             <Select value={form.moneda} onChange={(e) => setForm({ ...form, moneda: e.target.value })}>
