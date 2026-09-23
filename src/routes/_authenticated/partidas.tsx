@@ -502,8 +502,8 @@ function Partidas() {
                 </thead>
                 <tbody>
                   {espGrupos.map(([esp, lista]) => (
-                    <>
-                      <tr key={`${esp}-header`} className="border-b border-line/40 bg-muted/40">
+                    <React.Fragment key={esp}>
+                      <tr className="border-b border-line/40 bg-muted/40">
                         <td colSpan={12} className="px-5 py-1.5 label-mono">{esp}</td>
                       </tr>
                       {lista.map((p) => {
