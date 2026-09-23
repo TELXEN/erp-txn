@@ -292,7 +292,12 @@ function Partidas() {
             <Select
               value={form.especialidad}
               onChange={(e) =>
-                setForm({ ...form, especialidad: e.target.value, codigo: sugerir(form.proyecto_id, e.target.value) })
+                setForm({
+                  ...form,
+                  especialidad: e.target.value,
+                  categoria: "",
+                  codigo: sugerir(form.proyecto_id, e.target.value),
+                })
               }
               required
             >
@@ -300,6 +305,25 @@ function Partidas() {
               {nombresEspecialidades.map((e) => (
                 <option key={e} value={e}>
                   {e}
+                </option>
+              ))}
+            </Select>
+          </Campo>
+          <Campo etiqueta="Categoría">
+            <Select
+              value={form.categoria}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  categoria: e.target.value,
+                  codigo: sugerir(form.proyecto_id, form.especialidad, e.target.value),
+                })
+              }
+            >
+              <option value="">Sin categoría</option>
+              {categoriasDe(form.especialidad, categorias).map((c) => (
+                <option key={c.id} value={c.nombre}>
+                  {c.codigo} {c.nombre}
                 </option>
               ))}
             </Select>
