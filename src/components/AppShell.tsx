@@ -16,6 +16,7 @@ import {
   Layers,
   ShieldCheck,
   Users,
+  Wallet,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ETIQUETA_ROL, useAuth, type Rol } from "@/lib/auth";
@@ -51,6 +52,7 @@ const MENU: Categoria[] = [
     items: [
       { a: "/gastos-directos", texto: "Costos Directos", roles: ["administrador", "gerente"], icono: HardHat },
       { a: "/gastos-generales", texto: "Gastos Generales", roles: ["administrador", "gerente"], icono: Briefcase },
+      { a: "/caja-chica", texto: "Caja Chica", roles: ["administrador", "gerente"], icono: Wallet },
     ],
   },
   {

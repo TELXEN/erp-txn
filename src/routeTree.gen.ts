@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedAvanceRouteImport } from './routes/_authenticated/avance'
+import { Route as AuthenticatedCajaChicaRouteImport } from './routes/_authenticated/caja-chica'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedDashboardProyectosRouteImport } from './routes/_authenticated/dashboard-proyectos'
 import { Route as AuthenticatedDatosRouteImport } from './routes/_authenticated/datos'
@@ -37,6 +38,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const AuthenticatedAvanceRoute = AuthenticatedAvanceRouteImport.update({
   id: '/avance',
   path: '/avance',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedCajaChicaRoute = AuthenticatedCajaChicaRouteImport.update({
+  id: '/caja-chica',
+  path: '/caja-chica',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
@@ -107,6 +113,7 @@ const AuthenticatedValorizacionesRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/avance': typeof AuthenticatedAvanceRoute
+  '/caja-chica': typeof AuthenticatedCajaChicaRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/dashboard-proyectos': typeof AuthenticatedDashboardProyectosRoute
   '/datos': typeof AuthenticatedDatosRoute
@@ -123,6 +130,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/avance': typeof AuthenticatedAvanceRoute
+  '/caja-chica': typeof AuthenticatedCajaChicaRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/dashboard-proyectos': typeof AuthenticatedDashboardProyectosRoute
   '/datos': typeof AuthenticatedDatosRoute
@@ -141,6 +149,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/_authenticated/avance': typeof AuthenticatedAvanceRoute
+  '/_authenticated/caja-chica': typeof AuthenticatedCajaChicaRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/dashboard-proyectos': typeof AuthenticatedDashboardProyectosRoute
   '/_authenticated/datos': typeof AuthenticatedDatosRoute
@@ -159,6 +168,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/avance'
+    | '/caja-chica'
     | '/dashboard'
     | '/dashboard-proyectos'
     | '/datos'
@@ -175,6 +185,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/avance'
+    | '/caja-chica'
     | '/dashboard'
     | '/dashboard-proyectos'
     | '/datos'
@@ -192,6 +203,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/_authenticated/avance'
+    | '/_authenticated/caja-chica'
     | '/_authenticated/dashboard'
     | '/_authenticated/dashboard-proyectos'
     | '/_authenticated/datos'
@@ -232,6 +244,13 @@ declare module '@tanstack/react-router' {
       path: '/avance'
       fullPath: '/avance'
       preLoaderRoute: typeof AuthenticatedAvanceRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/caja-chica': {
+      id: '/_authenticated/caja-chica'
+      path: '/caja-chica'
+      fullPath: '/caja-chica'
+      preLoaderRoute: typeof AuthenticatedCajaChicaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/dashboard': {
@@ -323,6 +342,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAvanceRoute: typeof AuthenticatedAvanceRoute
+  AuthenticatedCajaChicaRoute: typeof AuthenticatedCajaChicaRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDashboardProyectosRoute: typeof AuthenticatedDashboardProyectosRoute
   AuthenticatedDatosRoute: typeof AuthenticatedDatosRoute
@@ -339,6 +359,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAvanceRoute: AuthenticatedAvanceRoute,
+  AuthenticatedCajaChicaRoute: AuthenticatedCajaChicaRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDashboardProyectosRoute: AuthenticatedDashboardProyectosRoute,
   AuthenticatedDatosRoute: AuthenticatedDatosRoute,

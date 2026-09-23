@@ -121,6 +121,19 @@ export type GastoDirecto = {
   monto_soles: number;
   fecha: string;
   rubro: RubroCosto;
+  caja_chica_id: string | null;
+};
+
+export type CajaChica = {
+  id: string;
+  proyecto_id: string;
+  responsable_id: string;
+  motivo: string;
+  monto_entregado: number;
+  fecha_entrega: string;
+  fecha_liquidacion: string | null;
+  estado: "Abierta" | "Liquidada";
+  observacion: string;
 };
 
 
@@ -144,6 +157,7 @@ export type GastoGeneral = {
   monto_soles: number;
   fecha: string;
   categoria: string;
+  caja_chica_id: string | null;
 };
 
 export type Venta = {
@@ -210,6 +224,12 @@ export const useGastosGenerales = () =>
   useQuery({
     queryKey: ["gastos_generales"],
     queryFn: () => pedir<GastoGeneral>("gastos_generales", "*", { col: "fecha", asc: false }),
+  });
+
+export const useCajasChicas = () =>
+  useQuery({
+    queryKey: ["cajas_chicas"],
+    queryFn: () => pedir<CajaChica>("cajas_chicas", "*", { col: "fecha_entrega", asc: false }),
   });
 
 export const useTerceros = () =>
