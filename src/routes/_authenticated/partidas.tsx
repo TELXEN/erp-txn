@@ -113,8 +113,15 @@ function Partidas() {
     const usados = partidas.map((p) => p.especialidad).filter(Boolean);
     return [...new Set([...activos, ...usados])];
   }, [capitulos, partidas]);
-  const sugerir = (proyectoId: string, especialidad: string) =>
-    siguienteCodigoPartida(especialidad, proyectoId, partidas, capitulos);
+  /** Código sugerido: dentro de la categoría (05.01.01) o del capítulo (05.01). */
+  const sugerir = (proyectoId: string, especialidad: string, categoria = "") =>
+    categoria
+      ? siguienteCodigoEnCategoria(
+          categoria,
+          partidas.filter((p) => p.proyecto_id === proyectoId).map((p) => p.codigo),
+          categorias,
+        )
+      : siguienteCodigoPartida(especialidad, proyectoId, partidas, capitulos);
   const grupos = useMemo(() => agruparPorProyectoYEspecialidad(visibles, nombreProyecto), [visibles, nombreProyecto]);
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
@@ -124,9 +131,10 @@ function Partidas() {
     setError("");
     const { error: err } = await supabase.from("partidas").insert({
       proyecto_id: form.proyecto_id,
-      codigo: (form.codigo || sugerir(form.proyecto_id, form.especialidad)).trim(),
+      codigo: (form.codigo || sugerir(form.proyecto_id, form.especialidad, form.categoria)).trim(),
       nombre: form.nombre.trim(),
       especialidad: form.especialidad,
+      categoria: form.categoria,
       prioridad: form.prioridad,
       tipo_presupuesto: form.tipo_presupuesto,
       aplica_gg: esContractual(form.tipo_presupuesto, tipos) ? true : form.aplica_gg,
