@@ -506,6 +506,9 @@ function Partidas() {
                                   </div>
                                 )}
                               </td>
+                              <td className="px-3 py-2.5">
+                                <InsigniaPrioridad valor={p.prioridad} />
+                              </td>
                               <td className="px-3 py-2">
                                 <Input
                                   type="number"
@@ -517,10 +520,10 @@ function Partidas() {
                                 />
                               </td>
                               <td className="px-3 py-2.5 text-right">{soles(costo)}</td>
-                              <td className="px-3 py-2.5 text-right">{pct(Number(p.avance_pct))}</td>
                               <td className={`px-3 py-2.5 text-right font-semibold ${dif < 0 ? "text-bad" : "text-good"}`}>
                                 {soles(dif)}
                               </td>
+                              <td className="px-3 py-2.5 text-right">{pct(Number(p.avance_pct))}</td>
                               <td className="px-5 py-2">
                                 <div className="flex items-center justify-end gap-1">
                                   <button
