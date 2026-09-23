@@ -23,6 +23,7 @@ export function PartidasMaestras() {
   const { data: lista = [] } = usePartidasMaestras();
   const { data: especialidades = [] } = useEspecialidadesPartida();
   const { data: unidades = [] } = useUnidadesMedida();
+  const { data: categorias = [] } = useCategoriasPartida();
   const [form, setForm] = useState(vacio);
   const [codigoManual, setCodigoManual] = useState(false);
   const [editando, setEditando] = useState<PartidaMaestra | null>(null);
