@@ -58,6 +58,7 @@ const MENU: Categoria[] = [
   {
     titulo: "Comercial",
     items: [
+      { a: "/cotizaciones", texto: "Cotizaciones", roles: ["administrador", "gerente"], icono: FileText },
       { a: "/valorizaciones", texto: "Registro de Ventas", roles: ["administrador", "gerente"], icono: Banknote },
     ],
   },
