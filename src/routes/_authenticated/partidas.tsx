@@ -24,6 +24,12 @@ import { Kanban } from "@/components/Kanban";
 import { InsigniaPrioridad, InsigniaTipoPresupuesto } from "@/components/estado-ui";
 import { PRIORIDADES, type Situacion } from "@/lib/configuracion";
 import { siguienteCodigoPartida, useEspecialidadesPartida } from "@/lib/especialidades";
+import {
+  agruparSoloPorCategoria,
+  categoriasDe,
+  siguienteCodigoEnCategoria,
+  useCategoriasPartida,
+} from "@/lib/categorias";
 import { montoPartida, useUnidadesMedida } from "@/lib/unidades";
 
 const cantidad = (n: number) =>
@@ -50,6 +56,7 @@ function Partidas() {
 
   const { data: tipos = [] } = useTiposPresupuesto();
   const { data: capitulos = [] } = useEspecialidadesPartida();
+  const { data: categorias = [] } = useCategoriasPartida();
   const { data: unidades = [] } = useUnidadesMedida();
 
   const [filtroProyecto, setFiltroProyecto] = useState("");
@@ -61,6 +68,7 @@ function Partidas() {
     codigo: "",
     nombre: "",
     especialidad: "",
+    categoria: "",
     unidad: "glb",
     metrado: "1",
     precio_unitario: "",
@@ -75,6 +83,7 @@ function Partidas() {
     codigo: string;
     nombre: string;
     especialidad: string;
+    categoria: string;
     unidad: string;
     metrado: string;
     precio_unitario: string;
@@ -110,8 +119,15 @@ function Partidas() {
     const usados = partidas.map((p) => p.especialidad).filter(Boolean);
     return [...new Set([...activos, ...usados])];
   }, [capitulos, partidas]);
-  const sugerir = (proyectoId: string, especialidad: string) =>
-    siguienteCodigoPartida(especialidad, proyectoId, partidas, capitulos);
+  /** Código sugerido: dentro de la categoría (05.01.01) o del capítulo (05.01). */
+  const sugerir = (proyectoId: string, especialidad: string, categoria = "") =>
+    categoria
+      ? siguienteCodigoEnCategoria(
+          categoria,
+          partidas.filter((p) => p.proyecto_id === proyectoId).map((p) => p.codigo),
+          categorias,
+        )
+      : siguienteCodigoPartida(especialidad, proyectoId, partidas, capitulos);
   const grupos = useMemo(() => agruparPorProyectoYEspecialidad(visibles, nombreProyecto), [visibles, nombreProyecto]);
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
@@ -121,9 +137,10 @@ function Partidas() {
     setError("");
     const { error: err } = await supabase.from("partidas").insert({
       proyecto_id: form.proyecto_id,
-      codigo: (form.codigo || sugerir(form.proyecto_id, form.especialidad)).trim(),
+      codigo: (form.codigo || sugerir(form.proyecto_id, form.especialidad, form.categoria)).trim(),
       nombre: form.nombre.trim(),
       especialidad: form.especialidad,
+      categoria: form.categoria,
       prioridad: form.prioridad,
       tipo_presupuesto: form.tipo_presupuesto,
       aplica_gg: esContractual(form.tipo_presupuesto, tipos) ? true : form.aplica_gg,
@@ -151,6 +168,7 @@ function Partidas() {
         codigo: editando.codigo.trim(),
         nombre: editando.nombre.trim(),
         especialidad: editando.especialidad,
+        categoria: editando.categoria,
         tipo_presupuesto: editando.tipo_presupuesto,
         aplica_gg: esContractual(editando.tipo_presupuesto, tipos) ? true : editando.aplica_gg,
         aplica_utilidad: esContractual(editando.tipo_presupuesto, tipos) ? true : editando.aplica_utilidad,
@@ -185,6 +203,7 @@ function Partidas() {
           return {
             Proyecto: nombreProyecto(p.proyecto_id),
             Especialidad: p.especialidad,
+            Categoría: p.categoria ?? "",
             Código: p.codigo ?? "",
             Partida: p.nombre,
             Unidad: p.unidad ?? "",
@@ -259,7 +278,11 @@ function Partidas() {
             <Select
               value={form.proyecto_id}
               onChange={(e) =>
-                setForm({ ...form, proyecto_id: e.target.value, codigo: sugerir(e.target.value, form.especialidad) })
+                setForm({
+                  ...form,
+                  proyecto_id: e.target.value,
+                  codigo: sugerir(e.target.value, form.especialidad, form.categoria),
+                })
               }
               required
             >
@@ -275,7 +298,12 @@ function Partidas() {
             <Select
               value={form.especialidad}
               onChange={(e) =>
-                setForm({ ...form, especialidad: e.target.value, codigo: sugerir(form.proyecto_id, e.target.value) })
+                setForm({
+                  ...form,
+                  especialidad: e.target.value,
+                  categoria: "",
+                  codigo: sugerir(form.proyecto_id, e.target.value),
+                })
               }
               required
             >
@@ -283,6 +311,25 @@ function Partidas() {
               {nombresEspecialidades.map((e) => (
                 <option key={e} value={e}>
                   {e}
+                </option>
+              ))}
+            </Select>
+          </Campo>
+          <Campo etiqueta="Categoría">
+            <Select
+              value={form.categoria}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  categoria: e.target.value,
+                  codigo: sugerir(form.proyecto_id, form.especialidad, e.target.value),
+                })
+              }
+            >
+              <option value="">Sin categoría</option>
+              {categoriasDe(form.especialidad, categorias).map((c) => (
+                <option key={c.id} value={c.nombre}>
+                  {c.codigo} {c.nombre}
                 </option>
               ))}
             </Select>
@@ -506,7 +553,23 @@ function Partidas() {
                       <tr className="border-b border-line/40 bg-muted/40">
                         <td colSpan={12} className="px-5 py-1.5 label-mono">{esp}</td>
                       </tr>
-                      {lista.map((p) => {
+                      {agruparSoloPorCategoria(lista).map((sub) => (
+                      <React.Fragment key={`${esp}-${sub.categoria}`}>
+                      {sub.categoria !== "Sin categoría" && (
+                        <tr className="border-b border-line/30 bg-muted/20">
+                          <td colSpan={5} className="px-5 py-1.5 pl-8 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                            {sub.categoria}
+                          </td>
+                          <td className="px-3 py-1.5 text-right font-semibold text-ink">
+                            {soles(sub.items.reduce((s, x) => s + Number(x.presupuesto_inicial), 0))}
+                          </td>
+                          <td className="px-3 py-1.5 text-right text-muted-foreground">
+                            {soles(sub.items.reduce((s, x) => s + costoRealPartida(x.id, gastos), 0))}
+                          </td>
+                          <td colSpan={5} />
+                        </tr>
+                      )}
+                      {sub.items.map((p) => {
                         const costo = costoRealPartida(p.id, gastos);
                         const dif = Number(p.presupuesto_inicial) - costo;
                         const enEdicion = editando?.id === p.id;
@@ -688,6 +751,7 @@ function Partidas() {
                                       codigo: p.codigo ?? "",
                                       nombre: p.nombre,
                                       especialidad: p.especialidad,
+                                      categoria: p.categoria ?? "",
                                       unidad: p.unidad || "glb",
                                       metrado: String(p.metrado ?? 1),
                                       precio_unitario: String(p.precio_unitario ?? p.presupuesto_inicial),
@@ -714,6 +778,8 @@ function Partidas() {
                           </tr>
                         );
                       })}
+                      </React.Fragment>
+                      ))}
                     </React.Fragment>
                   ))}
                 </tbody>

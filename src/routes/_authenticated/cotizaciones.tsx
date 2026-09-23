@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import React, { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
@@ -7,6 +7,12 @@ import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
 import { siguienteCodigoEnCapitulo, useEspecialidadesPartida } from "@/lib/especialidades";
+import {
+  agruparPorCategoria,
+  categoriasDe,
+  siguienteCodigoEnCategoria,
+  useCategoriasPartida,
+} from "@/lib/categorias";
 import { useUnidadesMedida } from "@/lib/unidades";
 import { generarCodigoProyecto } from "@/lib/codificacion";
 import { exportarExcel } from "@/lib/exportar";
@@ -48,6 +54,7 @@ function Cotizaciones() {
   const { data: especialidades = [] } = useEspecialidadesPartida();
   const { data: unidades = [] } = useUnidadesMedida();
   const { data: maestras = [] } = usePartidasMaestras();
+  const { data: categorias = [] } = useCategoriasPartida();
   const { data: clientes = [] } = useQuery({
     queryKey: ["terceros", "clientes-activos"],
     queryFn: async () => {
@@ -83,13 +90,19 @@ function Cotizaciones() {
     codigo: "",
     nombre: "",
     especialidad: "",
+    categoria: "",
     unidad: "glb",
     metrado: "1",
     precio_unitario: "",
   });
 
-  const sugerirCodigo = (especialidad: string) =>
-    siguienteCodigoEnCapitulo(especialidad, items.map((i) => i.codigo), especialidades);
+  /** Código sugerido: dentro de la categoría (05.01.01) o del capítulo (05.01). */
+  const sugerirCodigo = (especialidad: string, categoria = "") => {
+    const usados = items.map((i) => i.codigo);
+    return categoria
+      ? siguienteCodigoEnCategoria(categoria, usados, categorias)
+      : siguienteCodigoEnCapitulo(especialidad, usados, especialidades);
+  };
 
   const cot = cotizaciones.find((c) => c.id === seleccion) ?? null;
   const totales = cot
@@ -143,9 +156,10 @@ function Cotizaciones() {
     setError("");
     const { error: err } = await supabase.from("cotizacion_items").insert({
       cotizacion_id: cot.id,
-      codigo: item.codigo.trim() || sugerirCodigo(item.especialidad),
+      codigo: item.codigo.trim() || sugerirCodigo(item.especialidad, item.categoria),
       nombre: item.nombre.trim(),
       especialidad: item.especialidad,
+      categoria: item.categoria,
       unidad: item.unidad,
       metrado: Number(item.metrado || 0),
       precio_unitario: Number(item.precio_unitario || 0),
@@ -165,6 +179,7 @@ function Cotizaciones() {
       codigo: item.codigo.trim(),
       nombre: item.nombre.trim(),
       especialidad: item.especialidad,
+      categoria: item.categoria,
       unidad: item.unidad,
       precio_unitario: Number(item.precio_unitario || 0),
     });
@@ -220,6 +235,7 @@ function Cotizaciones() {
           codigo: i.codigo,
           nombre: i.nombre,
           especialidad: i.especialidad || "OTROS",
+          categoria: i.categoria ?? "",
           unidad: i.unidad,
           metrado: Number(i.metrado),
           precio_unitario: Number(i.precio_unitario),
@@ -262,6 +278,7 @@ function Cotizaciones() {
                       Código: i.codigo,
                       Partida: i.nombre,
                       Especialidad: i.especialidad,
+                      Categoría: i.categoria ?? "",
                       Unidad: i.unidad,
                       Metrado: Number(i.metrado),
                       "Precio Unitario (S/)": Number(i.precio_unitario),
@@ -440,6 +457,7 @@ function Cotizaciones() {
                         codigo: "",
                         nombre: "",
                         especialidad: "",
+                        categoria: "",
                         unidad: item.unidad,
                         metrado: "1",
                         precio_unitario: "",
@@ -449,9 +467,10 @@ function Cotizaciones() {
                     const m = maestras.find((x) => x.id === v);
                     if (!m) return;
                     setItem({
-                      codigo: m.codigo || sugerirCodigo(m.especialidad),
+                      codigo: m.codigo || sugerirCodigo(m.especialidad, m.categoria ?? ""),
                       nombre: m.nombre,
                       especialidad: m.especialidad,
+                      categoria: m.categoria ?? "",
                       unidad: m.unidad,
                       metrado: "1",
                       precio_unitario: String(m.precio_unitario ?? 0),
@@ -503,6 +522,7 @@ function Cotizaciones() {
                   setItem({
                     ...item,
                     especialidad,
+                    categoria: "",
                     codigo: item.codigo.trim() || sugerirCodigo(especialidad),
                   });
                 }}
@@ -515,6 +535,26 @@ function Cotizaciones() {
                       {e.codigo} {e.nombre}
                     </option>
                   ))}
+              </Select>
+            </Campo>
+            <Campo etiqueta="Categoría">
+              <Select
+                value={item.categoria}
+                onChange={(e) => {
+                  const categoria = e.target.value;
+                  setItem({
+                    ...item,
+                    categoria,
+                    codigo: item.codigo.trim() || sugerirCodigo(item.especialidad, categoria),
+                  });
+                }}
+              >
+                <option value="">Sin categoría</option>
+                {categoriasDe(item.especialidad, categorias).map((c) => (
+                  <option key={c.id} value={c.nombre}>
+                    {c.codigo} {c.nombre}
+                  </option>
+                ))}
               </Select>
             </Campo>
             <Campo etiqueta="Unidad">
@@ -570,7 +610,6 @@ function Cotizaciones() {
                 <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
                   <th className="px-5 py-2 font-medium">Código</th>
                   <th className="px-3 py-2 font-medium">Partida</th>
-                  <th className="px-3 py-2 font-medium">Especialidad</th>
                   <th className="px-3 py-2 font-medium">Und.</th>
                   <th className="px-3 py-2 text-right font-medium">Metrado</th>
                   <th className="px-3 py-2 text-right font-medium">P.U. (S/)</th>
@@ -578,26 +617,49 @@ function Cotizaciones() {
                   <th className="px-5 py-2 text-right font-medium">Acciones</th>
                 </tr>
               </thead>
-              <tbody>
-                {items.map((i) => (
-                  <tr key={i.id} className="border-b border-line/60 last:border-0">
-                    <td className="px-5 py-2.5 text-primary">{i.codigo || "—"}</td>
-                    <td className="px-3 py-2.5 font-semibold text-ink">{i.nombre}</td>
-                    <td className="px-3 py-2.5 text-muted-foreground">{i.especialidad || "—"}</td>
-                    <td className="px-3 py-2.5 text-muted-foreground">{i.unidad}</td>
-                    <td className="px-3 py-2.5 text-right">{cantidad(i.metrado)}</td>
-                    <td className="px-3 py-2.5 text-right">{soles(Number(i.precio_unitario))}</td>
-                    <td className="px-3 py-2.5 text-right font-semibold">
-                      {soles(Number(i.metrado) * Number(i.precio_unitario))}
-                    </td>
-                    <td className="px-5 py-2.5 text-right">
-                      <Boton variante="peligro" onClick={() => borrarItem(i.id)}>
-                        Quitar
-                      </Boton>
+              {agruparPorCategoria(items).map((grupo) => (
+                <tbody key={grupo.especialidad}>
+                  <tr className="bg-muted/40">
+                    <td colSpan={7} className="px-5 py-2 text-[11px] font-semibold uppercase tracking-wide text-ink">
+                      {grupo.especialidad}
                     </td>
                   </tr>
-                ))}
-              </tbody>
+                  {grupo.categorias.map((sub) => {
+                    const subtotal = sub.items.reduce(
+                      (s, i) => s + Number(i.metrado) * Number(i.precio_unitario),
+                      0,
+                    );
+                    return (
+                      <React.Fragment key={`${grupo.especialidad}-${sub.categoria}`}>
+                        <tr className="bg-muted/20">
+                          <td colSpan={5} className="px-5 py-1.5 pl-8 text-[11px] font-semibold text-muted-foreground">
+                            {sub.categoria}
+                          </td>
+                          <td className="px-3 py-1.5 text-right font-semibold text-ink">{soles(subtotal)}</td>
+                          <td />
+                        </tr>
+                        {sub.items.map((i) => (
+                          <tr key={i.id} className="border-b border-line/60">
+                            <td className="px-5 py-2.5 pl-8 text-primary">{i.codigo || "—"}</td>
+                            <td className="px-3 py-2.5 font-semibold text-ink">{i.nombre}</td>
+                            <td className="px-3 py-2.5 text-muted-foreground">{i.unidad}</td>
+                            <td className="px-3 py-2.5 text-right">{cantidad(i.metrado)}</td>
+                            <td className="px-3 py-2.5 text-right">{soles(Number(i.precio_unitario))}</td>
+                            <td className="px-3 py-2.5 text-right font-semibold">
+                              {soles(Number(i.metrado) * Number(i.precio_unitario))}
+                            </td>
+                            <td className="px-5 py-2.5 text-right">
+                              <Boton variante="peligro" onClick={() => borrarItem(i.id)}>
+                                Quitar
+                              </Boton>
+                            </td>
+                          </tr>
+                        ))}
+                      </React.Fragment>
+                    );
+                  })}
+                </tbody>
+              ))}
             </table>
           )}
 

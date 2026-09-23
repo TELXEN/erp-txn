@@ -7,14 +7,23 @@ import { soles } from "@/lib/format";
 import { siguienteCodigoEnCapitulo, useEspecialidadesPartida } from "@/lib/especialidades";
 import { useUnidadesMedida } from "@/lib/unidades";
 import { usePartidasMaestras, type PartidaMaestra } from "@/lib/cotizaciones";
+import { categoriasDe, siguienteCodigoEnCategoria, useCategoriasPartida } from "@/lib/categorias";
 
-const vacio = { codigo: "", nombre: "", especialidad: "", unidad: "glb", precio_unitario: "" };
+const vacio = {
+  codigo: "",
+  nombre: "",
+  especialidad: "",
+  categoria: "",
+  unidad: "glb",
+  precio_unitario: "",
+};
 
 export function PartidasMaestras() {
   const qc = useQueryClient();
   const { data: lista = [] } = usePartidasMaestras();
   const { data: especialidades = [] } = useEspecialidadesPartida();
   const { data: unidades = [] } = useUnidadesMedida();
+  const { data: categorias = [] } = useCategoriasPartida();
   const [form, setForm] = useState(vacio);
   const [codigoManual, setCodigoManual] = useState(false);
   const [editando, setEditando] = useState<PartidaMaestra | null>(null);
@@ -27,21 +36,28 @@ export function PartidasMaestras() {
     const t = busqueda.trim().toLowerCase();
     if (!t) return lista;
     return lista.filter((p) =>
-      `${p.codigo} ${p.nombre} ${p.especialidad}`.toLowerCase().includes(t),
+      `${p.codigo} ${p.nombre} ${p.especialidad} ${p.categoria ?? ""}`.toLowerCase().includes(t),
     );
   }, [lista, busqueda]);
+
+  /** Código sugerido: dentro de la categoría (05.01.01) o del capítulo (05.01). */
+  const sugerir = (especialidad: string, categoria: string, extra: string[] = []) => {
+    const usados = [...lista.map((p) => p.codigo), ...extra];
+    return categoria
+      ? siguienteCodigoEnCategoria(categoria, usados, categorias)
+      : siguienteCodigoEnCapitulo(especialidad, usados, especialidades);
+  };
 
   async function crear(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     if (!form.nombre.trim()) return setError("Escribe la descripción de la partida.");
-    const codigoFinal =
-      form.codigo.trim() ||
-      siguienteCodigoEnCapitulo(form.especialidad, lista.map((p) => p.codigo), especialidades);
+    const codigoFinal = form.codigo.trim() || sugerir(form.especialidad, form.categoria);
     const { error: err } = await supabase.from("partidas_maestras").insert({
       codigo: codigoFinal,
       nombre: form.nombre.trim(),
       especialidad: form.especialidad,
+      categoria: form.categoria,
       unidad: form.unidad,
       precio_unitario: Number(form.precio_unitario || 0),
     });
@@ -49,12 +65,9 @@ export function PartidasMaestras() {
     setForm({
       ...vacio,
       especialidad: form.especialidad,
+      categoria: form.categoria,
       unidad: form.unidad,
-      codigo: siguienteCodigoEnCapitulo(
-        form.especialidad,
-        [...lista.map((p) => p.codigo), codigoFinal],
-        especialidades,
-      ),
+      codigo: sugerir(form.especialidad, form.categoria, [codigoFinal]),
     });
     setCodigoManual(false);
     refrescar();
@@ -69,6 +82,7 @@ export function PartidasMaestras() {
         codigo: editando.codigo.trim(),
         nombre: editando.nombre.trim(),
         especialidad: editando.especialidad,
+        categoria: editando.categoria ?? "",
         unidad: editando.unidad,
         precio_unitario: Number(editando.precio_unitario || 0),
         activo: editando.activo,
@@ -92,7 +106,7 @@ export function PartidasMaestras() {
   return (
     <>
       <Panel titulo="Nueva partida maestra" className="mb-4">
-        <form onSubmit={crear} className="grid gap-3 p-4 sm:grid-cols-6">
+        <form onSubmit={crear} className="grid gap-3 p-4 sm:grid-cols-7">
           <Campo etiqueta="Código">
             <Input
               className="py-1.5 font-mono"
@@ -122,14 +136,11 @@ export function PartidasMaestras() {
               value={form.especialidad}
               onChange={(e) => {
                 const especialidad = e.target.value;
-                const sugerido = siguienteCodigoEnCapitulo(
-                  especialidad,
-                  lista.map((p) => p.codigo),
-                  especialidades,
-                );
+                const sugerido = sugerir(especialidad, "");
                 setForm({
                   ...form,
                   especialidad,
+                  categoria: "",
                   codigo: codigoManual && form.codigo ? form.codigo : sugerido,
                 });
               }}
@@ -138,6 +149,30 @@ export function PartidasMaestras() {
               {opcionesEspecialidad.map((e) => (
                 <option key={e.id} value={e.nombre}>
                   {e.codigo} {e.nombre}
+                </option>
+              ))}
+            </Select>
+          </Campo>
+          <Campo etiqueta="Categoría">
+            <Select
+              className="py-1.5"
+              value={form.categoria}
+              onChange={(e) => {
+                const categoria = e.target.value;
+                setForm({
+                  ...form,
+                  categoria,
+                  codigo:
+                    codigoManual && form.codigo
+                      ? form.codigo
+                      : sugerir(form.especialidad, categoria),
+                });
+              }}
+            >
+              <option value="">Sin categoría</option>
+              {categoriasDe(form.especialidad, categorias).map((c) => (
+                <option key={c.id} value={c.nombre}>
+                  {c.codigo} {c.nombre}
                 </option>
               ))}
             </Select>
@@ -162,10 +197,10 @@ export function PartidasMaestras() {
               placeholder="0.00"
             />
           </Campo>
-          <div className="sm:col-span-6">
+          <div className="sm:col-span-7">
             <Boton type="submit">Agregar al banco</Boton>
           </div>
-          {error && <p className="font-mono text-xs text-bad sm:col-span-6">{error}</p>}
+          {error && <p className="font-mono text-xs text-bad sm:col-span-7">{error}</p>}
         </form>
       </Panel>
 
@@ -176,7 +211,7 @@ export function PartidasMaestras() {
             className="w-64 py-1.5 text-xs"
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
-            placeholder="Buscar por código, partida o especialidad"
+            placeholder="Buscar por código, partida, categoría o especialidad"
           />
         }
       >
@@ -186,13 +221,14 @@ export function PartidasMaestras() {
           <table className="w-full table-fixed font-mono text-xs">
             <thead>
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                <th className="w-[10%] px-5 py-2 font-medium">Código</th>
-                <th className="w-[32%] px-3 py-2 font-medium">Partida</th>
-                <th className="w-[20%] px-3 py-2 font-medium">Especialidad</th>
-                <th className="w-[8%] px-3 py-2 font-medium">Und.</th>
-                <th className="w-[13%] px-3 py-2 text-right font-medium">P.U. (S/)</th>
-                <th className="w-[9%] px-3 py-2 font-medium">Estado</th>
-                <th className="w-[8%] px-5 py-2 text-right font-medium">Acciones</th>
+                <th className="w-[9%] px-5 py-2 font-medium">Código</th>
+                <th className="w-[26%] px-3 py-2 font-medium">Partida</th>
+                <th className="w-[16%] px-3 py-2 font-medium">Especialidad</th>
+                <th className="w-[17%] px-3 py-2 font-medium">Categoría</th>
+                <th className="w-[7%] px-3 py-2 font-medium">Und.</th>
+                <th className="w-[11%] px-3 py-2 text-right font-medium">P.U. (S/)</th>
+                <th className="w-[8%] px-3 py-2 font-medium">Estado</th>
+                <th className="w-[6%] px-5 py-2 text-right font-medium">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -218,12 +254,28 @@ export function PartidasMaestras() {
                       <Select
                         className="py-1 text-xs"
                         value={editando.especialidad}
-                        onChange={(ev) => setEditando({ ...editando, especialidad: ev.target.value })}
+                        onChange={(ev) =>
+                          setEditando({ ...editando, especialidad: ev.target.value, categoria: "" })
+                        }
                       >
                         <option value="">Sin especialidad</option>
                         {opcionesEspecialidad.map((e) => (
                           <option key={e.id} value={e.nombre}>
                             {e.codigo} {e.nombre}
+                          </option>
+                        ))}
+                      </Select>
+                    </td>
+                    <td className="px-3 py-2">
+                      <Select
+                        className="py-1 text-xs"
+                        value={editando.categoria ?? ""}
+                        onChange={(ev) => setEditando({ ...editando, categoria: ev.target.value })}
+                      >
+                        <option value="">Sin categoría</option>
+                        {categoriasDe(editando.especialidad, categorias).map((c) => (
+                          <option key={c.id} value={c.nombre}>
+                            {c.codigo} {c.nombre}
                           </option>
                         ))}
                       </Select>
@@ -288,6 +340,7 @@ export function PartidasMaestras() {
                     <td className="px-5 py-2.5 font-semibold text-primary">{p.codigo || "—"}</td>
                     <td className="px-3 py-2.5 text-ink">{p.nombre}</td>
                     <td className="px-3 py-2.5 text-muted-foreground">{p.especialidad || "—"}</td>
+                    <td className="px-3 py-2.5 text-muted-foreground">{p.categoria || "—"}</td>
                     <td className="px-3 py-2.5 text-muted-foreground">{p.unidad}</td>
                     <td className="px-3 py-2.5 text-right">{soles(Number(p.precio_unitario))}</td>
                     <td className="px-3 py-2.5">

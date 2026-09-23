@@ -28,6 +28,7 @@ import { CodificacionCotizaciones } from "@/components/CodificacionCotizaciones"
 import { EspecialidadesPartida } from "@/components/EspecialidadesPartida";
 import { UnidadesMedida } from "@/components/UnidadesMedida";
 import { PartidasMaestras } from "@/components/PartidasMaestras";
+import { CategoriasPartida } from "@/components/CategoriasPartida";
 
 export const Route = createFileRoute("/_authenticated/datos")({
   head: () => ({
@@ -79,6 +80,7 @@ type Pestana =
   | "codificacion"
   | "codificacioncot"
   | "especialidades"
+  | "categorias"
   | "unidades"
   | "maestras"
   | "empresa";
@@ -309,6 +311,7 @@ function Datos() {
             "codificacion",
             "codificacioncot",
             "especialidades",
+            "categorias",
             "unidades",
             "maestras",
             "empresa",
@@ -339,6 +342,7 @@ function Datos() {
               codificacion: "Codificación de proyectos",
               codificacioncot: "Codificación de cotizaciones",
               especialidades: "Codificación de partidas",
+              categorias: "Categorías de partidas",
               unidades: "Unidades de medida",
               maestras: "Banco de partidas",
               empresa: "Datos de la empresa",
@@ -764,6 +768,8 @@ function Datos() {
         <CodificacionCotizaciones />
       ) : pestana === "especialidades" ? (
         <EspecialidadesPartida />
+      ) : pestana === "categorias" ? (
+        <CategoriasPartida />
       ) : pestana === "unidades" ? (
         <UnidadesMedida />
       ) : pestana === "maestras" ? (
