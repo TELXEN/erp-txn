@@ -235,6 +235,7 @@ function Cotizaciones() {
           codigo: i.codigo,
           nombre: i.nombre,
           especialidad: i.especialidad || "OTROS",
+          categoria: i.categoria ?? "",
           unidad: i.unidad,
           metrado: Number(i.metrado),
           precio_unitario: Number(i.precio_unitario),
@@ -277,6 +278,7 @@ function Cotizaciones() {
                       Código: i.codigo,
                       Partida: i.nombre,
                       Especialidad: i.especialidad,
+                      Categoría: i.categoria ?? "",
                       Unidad: i.unidad,
                       Metrado: Number(i.metrado),
                       "Precio Unitario (S/)": Number(i.precio_unitario),
@@ -520,6 +522,7 @@ function Cotizaciones() {
                   setItem({
                     ...item,
                     especialidad,
+                    categoria: "",
                     codigo: item.codigo.trim() || sugerirCodigo(especialidad),
                   });
                 }}
@@ -532,6 +535,26 @@ function Cotizaciones() {
                       {e.codigo} {e.nombre}
                     </option>
                   ))}
+              </Select>
+            </Campo>
+            <Campo etiqueta="Categoría">
+              <Select
+                value={item.categoria}
+                onChange={(e) => {
+                  const categoria = e.target.value;
+                  setItem({
+                    ...item,
+                    categoria,
+                    codigo: item.codigo.trim() || sugerirCodigo(item.especialidad, categoria),
+                  });
+                }}
+              >
+                <option value="">Sin categoría</option>
+                {categoriasDe(item.especialidad, categorias).map((c) => (
+                  <option key={c.id} value={c.nombre}>
+                    {c.codigo} {c.nombre}
+                  </option>
+                ))}
               </Select>
             </Campo>
             <Campo etiqueta="Unidad">
