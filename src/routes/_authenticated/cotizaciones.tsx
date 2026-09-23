@@ -16,6 +16,7 @@ import {
   totalesCotizacion,
   useCotizacionItems,
   useCotizaciones,
+  usePartidasMaestras,
   vigenciaHasta,
   type EstadoCotizacion,
 } from "@/lib/cotizaciones";
@@ -46,6 +47,7 @@ function Cotizaciones() {
   const { data: cotizaciones = [] } = useCotizaciones();
   const { data: especialidades = [] } = useEspecialidadesPartida();
   const { data: unidades = [] } = useUnidadesMedida();
+  const { data: maestras = [] } = usePartidasMaestras();
   const { data: clientes = [] } = useQuery({
     queryKey: ["terceros", "clientes-activos"],
     queryFn: async () => {
@@ -148,6 +150,22 @@ function Cotizaciones() {
     if (err) return setError(err.message);
     setItem({ ...item, codigo: "", nombre: "", metrado: "1", precio_unitario: "" });
     qc.invalidateQueries({ queryKey: ["cotizacion_items", cot.id] });
+  }
+
+  async function guardarEnBanco() {
+    setError("");
+    setAviso("");
+    if (!item.nombre.trim()) return setError("Escribe la descripción antes de guardarla en el banco.");
+    const { error: err } = await supabase.from("partidas_maestras").insert({
+      codigo: item.codigo.trim(),
+      nombre: item.nombre.trim(),
+      especialidad: item.especialidad,
+      unidad: item.unidad,
+      precio_unitario: Number(item.precio_unitario || 0),
+    });
+    if (err) return setError(err.message);
+    qc.invalidateQueries({ queryKey: ["partidas_maestras"] });
+    setAviso("Partida guardada en el banco maestro.");
   }
 
   async function borrarItem(id: string) {
@@ -405,6 +423,35 @@ function Cotizaciones() {
           </div>
 
           <form onSubmit={agregarItem} className="grid gap-3 border-b border-line p-5 sm:grid-cols-6">
+            <div className="sm:col-span-6">
+              <Campo etiqueta="Importar del banco de partidas">
+                <Select
+                  value=""
+                  onChange={(e) => {
+                    const m = maestras.find((x) => x.id === e.target.value);
+                    if (!m) return;
+                    setItem({
+                      codigo: m.codigo,
+                      nombre: m.nombre,
+                      especialidad: m.especialidad,
+                      unidad: m.unidad,
+                      metrado: "1",
+                      precio_unitario: String(m.precio_unitario ?? 0),
+                    });
+                  }}
+                >
+                  <option value="">Escribir una partida nueva o elegir del banco...</option>
+                  {maestras
+                    .filter((m) => m.activo)
+                    .map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.codigo ? `[${m.codigo}] ` : ""}
+                        {m.nombre} · {m.unidad} · {soles(Number(m.precio_unitario))}
+                      </option>
+                    ))}
+                </Select>
+              </Campo>
+            </div>
             <Campo etiqueta="Código">
               <Input value={item.codigo} onChange={(e) => setItem({ ...item, codigo: e.target.value })} maxLength={20} />
             </Campo>
@@ -458,6 +505,9 @@ function Cotizaciones() {
             </Campo>
             <div className="flex items-end gap-3 sm:col-span-5">
               <Boton type="submit">Agregar partida</Boton>
+              <Boton type="button" variante="linea" onClick={guardarEnBanco}>
+                Guardar en el banco
+              </Boton>
               <span className="font-mono text-xs text-muted-foreground">
                 Parcial:{" "}
                 <strong className="text-ink">

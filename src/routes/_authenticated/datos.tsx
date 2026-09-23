@@ -26,6 +26,7 @@ import { DatosEmpresa } from "@/components/DatosEmpresa";
 import { CodificacionProyectos } from "@/components/CodificacionProyectos";
 import { EspecialidadesPartida } from "@/components/EspecialidadesPartida";
 import { UnidadesMedida } from "@/components/UnidadesMedida";
+import { PartidasMaestras } from "@/components/PartidasMaestras";
 
 export const Route = createFileRoute("/_authenticated/datos")({
   head: () => ({
@@ -77,6 +78,7 @@ type Pestana =
   | "codificacion"
   | "especialidades"
   | "unidades"
+  | "maestras"
   | "empresa";
 
 const TIPOS_DOC = ["RUC", "DNI", "CE", "OTRO"];
@@ -305,6 +307,7 @@ function Datos() {
             "codificacion",
             "especialidades",
             "unidades",
+            "maestras",
             "empresa",
           ] as const
         ).map((p) => (
@@ -333,6 +336,7 @@ function Datos() {
               codificacion: "Codificación de proyectos",
               especialidades: "Codificación de partidas",
               unidades: "Unidades de medida",
+              maestras: "Banco de partidas",
               empresa: "Datos de la empresa",
             }[p]}
           </button>
@@ -756,6 +760,8 @@ function Datos() {
         <EspecialidadesPartida />
       ) : pestana === "unidades" ? (
         <UnidadesMedida />
+      ) : pestana === "maestras" ? (
+        <PartidasMaestras />
       ) : pestana === "empresa" ? (
         <DatosEmpresa />
       ) : (
