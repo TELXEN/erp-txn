@@ -65,7 +65,7 @@ function GastosDirectos() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!proyectoId && proyectos.length) setProyectoId(proyectos[0].id);
+    if (!proyectoId && proyectos.length) setProyectoId(proyectos[0]!.id);
   }, [proyectos, proyectoId]);
 
   const proyecto = proyectos.find((p) => p.id === proyectoId);
@@ -275,7 +275,7 @@ function GastosDirectos() {
 
       <Panel
         titulo="Control por partida"
-        acciones={<Boton onClick={() => abrirCompra("")} disabled={!proyecto}><Plus size={14} /> Registrar compra</Boton>}
+        extra={<Boton onClick={() => abrirCompra("")} disabled={!proyecto}><Plus size={14} /> Registrar compra</Boton>}
       >
         {partidasProy.length === 0 ? (
           <Vacio texto="Esta obra aún no tiene partidas registradas." />
@@ -342,7 +342,7 @@ function GastosDirectos() {
                               {soles(presu - costo)}
                             </td>
                             <td className="px-3 py-2.5 text-right">
-                              <Etiqueta tono={uso > 100 ? "malo" : uso > 85 ? "alerta" : "bueno"}>{uso.toFixed(0)}%</Etiqueta>
+                              <Etiqueta tono={uso > 100 ? "bad" : uso > 85 ? "neutro" : "good"}>{uso.toFixed(0)}%</Etiqueta>
                             </td>
                             <td className="px-5 py-2 text-right">
                               <button
