@@ -24,6 +24,10 @@ import { Kanban } from "@/components/Kanban";
 import { InsigniaPrioridad, InsigniaTipoPresupuesto } from "@/components/estado-ui";
 import { PRIORIDADES, type Situacion } from "@/lib/configuracion";
 import { siguienteCodigoPartida, useEspecialidadesPartida } from "@/lib/especialidades";
+import { montoPartida, useUnidadesMedida } from "@/lib/unidades";
+
+const cantidad = (n: number) =>
+  Number(n || 0).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 export const Route = createFileRoute("/_authenticated/partidas")({
   head: () => ({
@@ -46,6 +50,7 @@ function Partidas() {
 
   const { data: tipos = [] } = useTiposPresupuesto();
   const { data: capitulos = [] } = useEspecialidadesPartida();
+  const { data: unidades = [] } = useUnidadesMedida();
 
   const [filtroProyecto, setFiltroProyecto] = useState("");
   const [filtroEsp, setFiltroEsp] = useState("");
@@ -56,7 +61,9 @@ function Partidas() {
     codigo: "",
     nombre: "",
     especialidad: "",
-    presupuesto_inicial: "",
+    unidad: "glb",
+    metrado: "1",
+    precio_unitario: "",
     prioridad: "Media",
     tipo_presupuesto: "Contractual",
     aplica_gg: true,
@@ -68,7 +75,9 @@ function Partidas() {
     codigo: string;
     nombre: string;
     especialidad: string;
-    presupuesto_inicial: string;
+    unidad: string;
+    metrado: string;
+    precio_unitario: string;
     tipo_presupuesto: string;
     aplica_gg: boolean;
     aplica_utilidad: boolean;
@@ -122,10 +131,13 @@ function Partidas() {
       aplica_gg_utilidad: esContractual(form.tipo_presupuesto, tipos)
         ? true
         : form.aplica_gg || form.aplica_utilidad,
-      presupuesto_inicial: Number(form.presupuesto_inicial || 0),
+      unidad: form.unidad,
+      metrado: Number(form.metrado || 0),
+      precio_unitario: Number(form.precio_unitario || 0),
+      presupuesto_inicial: montoPartida(form.metrado, form.precio_unitario),
     });
     if (err) return setError(err.message);
-    setForm({ ...form, codigo: "", nombre: "", presupuesto_inicial: "" });
+    setForm({ ...form, codigo: "", nombre: "", metrado: "1", precio_unitario: "" });
     qc.invalidateQueries({ queryKey: ["partidas"] });
   }
 
@@ -145,7 +157,10 @@ function Partidas() {
         aplica_gg_utilidad: esContractual(editando.tipo_presupuesto, tipos)
           ? true
           : editando.aplica_gg || editando.aplica_utilidad,
-        presupuesto_inicial: Number(editando.presupuesto_inicial || 0),
+        unidad: editando.unidad,
+        metrado: Number(editando.metrado || 0),
+        precio_unitario: Number(editando.precio_unitario || 0),
+        presupuesto_inicial: montoPartida(editando.metrado, editando.precio_unitario),
       })
       .eq("id", editando.id);
     if (err) return setError(err.message);
@@ -172,6 +187,9 @@ function Partidas() {
             Especialidad: p.especialidad,
             Código: p.codigo ?? "",
             Partida: p.nombre,
+            Unidad: p.unidad ?? "",
+            Metrado: Number(p.metrado ?? 0),
+            "Precio Unitario (S/)": Number(p.precio_unitario ?? 0),
             "Tipo de Presupuesto": p.tipo_presupuesto ?? "Contractual",
             Prioridad: p.prioridad,
             "Presupuesto (S/)": Number(p.presupuesto_inicial),
