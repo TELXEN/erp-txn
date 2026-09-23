@@ -74,7 +74,11 @@ function Partidas() {
     aplica_utilidad: boolean;
   } | null>(null);
 
-  const nombreProyecto = (id: string) => proyectos.find((p) => p.id === id)?.nombre ?? "—";
+  const nombreProyecto = (id: string) => {
+    const p = proyectos.find((x) => x.id === id);
+    if (!p) return "—";
+    return p.codigo ? `${p.codigo} · ${p.nombre}` : p.nombre;
+  };
 
   const visibles = useMemo(
     () =>
@@ -161,18 +165,23 @@ function Partidas() {
     exportarExcel("partidas", [
       {
         nombre: "Partidas",
-        filas: visibles.map((p) => ({
-          Proyecto: nombreProyecto(p.proyecto_id),
-          Especialidad: p.especialidad,
-          "Código de Partida": p.codigo ?? "",
-          Partida: p.nombre,
-          "Tipo de Presupuesto": p.tipo_presupuesto ?? "Contractual",
-          "Presupuesto (S/)": Number(p.presupuesto_inicial),
-          "Aplica GG": cobraGG(p, tipos) ? "Si" : "No",
-          "Aplica Utilidad": cobraUtilidad(p, tipos) ? "Si" : "No",
-          "Costo Real (S/)": costoRealPartida(p.id, gastos),
-          "Avance Fisico %": Number(p.avance_pct),
-        })),
+        filas: visibles.map((p) => {
+          const costo = costoRealPartida(p.id, gastos);
+          return {
+            Proyecto: nombreProyecto(p.proyecto_id),
+            Especialidad: p.especialidad,
+            Código: p.codigo ?? "",
+            Partida: p.nombre,
+            "Tipo de Presupuesto": p.tipo_presupuesto ?? "Contractual",
+            Prioridad: p.prioridad,
+            "Presupuesto (S/)": Number(p.presupuesto_inicial),
+            "Costo Ejecutado (S/)": costo,
+            "Saldo (S/)": Number(p.presupuesto_inicial) - costo,
+            "Avance Fisico %": Number(p.avance_pct),
+            "Aplica GG": cobraGG(p, tipos) ? "Si" : "No",
+            "Aplica Utilidad": cobraUtilidad(p, tipos) ? "Si" : "No",
+          };
+        }),
       },
     ]);
   }
@@ -432,21 +441,22 @@ function Partidas() {
               <table className="w-full table-fixed font-mono text-xs">
                 <thead>
                   <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                    <th style={{ width: "18%" }} className="whitespace-nowrap px-5 py-2 font-medium">Proyecto</th>
-                    <th style={{ width: "20%" }} className="whitespace-nowrap px-3 py-2 font-medium">Partida</th>
-                    <th style={{ width: "13%" }} className="whitespace-nowrap px-3 py-2 font-medium">Tipo</th>
+                    <th style={{ width: "10%" }} className="whitespace-nowrap px-5 py-2 font-medium">Código</th>
+                    <th style={{ width: "26%" }} className="whitespace-nowrap px-3 py-2 font-medium">Partida</th>
+                    <th style={{ width: "12%" }} className="whitespace-nowrap px-3 py-2 font-medium">Tipo</th>
+                    <th style={{ width: "9%" }} className="whitespace-nowrap px-3 py-2 font-medium">Prioridad</th>
                     <th style={{ width: "11%" }} className="whitespace-nowrap px-3 py-2 text-right font-medium">Presupuesto</th>
-                    <th style={{ width: "11%" }} className="whitespace-nowrap px-3 py-2 text-right font-medium">Costo real</th>
-                    <th style={{ width: "9%" }} className="whitespace-nowrap px-3 py-2 text-right font-medium">Avance</th>
-                    <th style={{ width: "9%" }} className="whitespace-nowrap px-3 py-2 text-right font-medium">Saldo</th>
-                    <th style={{ width: "9%" }} className="whitespace-nowrap px-5 py-2 text-right font-medium">Acciones</th>
+                    <th style={{ width: "11%" }} className="whitespace-nowrap px-3 py-2 text-right font-medium">Costo ejecutado</th>
+                    <th style={{ width: "10%" }} className="whitespace-nowrap px-3 py-2 text-right font-medium">Saldo</th>
+                    <th style={{ width: "8%" }} className="whitespace-nowrap px-3 py-2 text-right font-medium">Avance</th>
+                    <th style={{ width: "7%" }} className="whitespace-nowrap px-5 py-2 text-right font-medium">Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
                   {espGrupos.map(([esp, lista]) => (
                     <>
                       <tr key={`${esp}-header`} className="border-b border-line/40 bg-muted/40">
-                        <td colSpan={8} className="px-5 py-1.5 label-mono">{esp}</td>
+                        <td colSpan={9} className="px-5 py-1.5 label-mono">{esp}</td>
                       </tr>
                       {lista.map((p) => {
                         const costo = costoRealPartida(p.id, gastos);
@@ -455,15 +465,16 @@ function Partidas() {
                         if (enEdicion) {
                           return (
                             <tr key={p.id} className="border-b border-line/40 last:border-0">
-                              <td className="px-5 py-2.5 font-semibold text-ink">{nombreProyecto(p.proyecto_id)}</td>
-                              <td className="px-3 py-2">
+                              <td className="px-5 py-2">
                                 <Input
                                   value={editando.codigo}
                                   onChange={(e) => setEditando({ ...editando, codigo: e.target.value })}
-                                  className="mb-1 py-1 font-mono text-xs"
+                                  className="py-1 font-mono text-xs"
                                   placeholder="05.01"
                                   maxLength={20}
                                 />
+                              </td>
+                              <td className="px-3 py-2">
                                 <Input
                                   value={editando.nombre}
                                   onChange={(e) => setEditando({ ...editando, nombre: e.target.value })}
@@ -505,6 +516,9 @@ function Partidas() {
                                   </div>
                                 )}
                               </td>
+                              <td className="px-3 py-2.5">
+                                <InsigniaPrioridad valor={p.prioridad} />
+                              </td>
                               <td className="px-3 py-2">
                                 <Input
                                   type="number"
@@ -516,10 +530,10 @@ function Partidas() {
                                 />
                               </td>
                               <td className="px-3 py-2.5 text-right">{soles(costo)}</td>
-                              <td className="px-3 py-2.5 text-right">{pct(Number(p.avance_pct))}</td>
                               <td className={`px-3 py-2.5 text-right font-semibold ${dif < 0 ? "text-bad" : "text-good"}`}>
                                 {soles(dif)}
                               </td>
+                              <td className="px-3 py-2.5 text-right">{pct(Number(p.avance_pct))}</td>
                               <td className="px-5 py-2">
                                 <div className="flex items-center justify-end gap-1">
                                   <button
@@ -545,15 +559,16 @@ function Partidas() {
                         }
                         return (
                           <tr key={p.id} className="border-b border-line/40 last:border-0">
-                            <td className="px-5 py-2.5 font-semibold text-ink">{nombreProyecto(p.proyecto_id)}</td>
-                            <td className="px-3 py-2.5 font-semibold text-ink">
-                              {p.codigo && (
-                                <span className="mr-1.5 rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] text-primary">
+                            <td className="px-5 py-2.5">
+                              {p.codigo ? (
+                                <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] text-primary">
                                   {p.codigo}
                                 </span>
+                              ) : (
+                                <span className="text-muted-foreground">—</span>
                               )}
-                              {p.nombre}
                             </td>
+                            <td className="px-3 py-2.5 font-semibold text-ink">{p.nombre}</td>
                             <td className="px-3 py-2.5">
                               <InsigniaTipoPresupuesto valor={p.tipo_presupuesto ?? "Contractual"} />
                               {(() => {
@@ -566,12 +581,15 @@ function Partidas() {
                                 );
                               })()}
                             </td>
+                            <td className="px-3 py-2.5">
+                              <InsigniaPrioridad valor={p.prioridad} />
+                            </td>
                             <td className="px-3 py-2.5 text-right">{soles(Number(p.presupuesto_inicial))}</td>
                             <td className="px-3 py-2.5 text-right">{soles(costo)}</td>
-                            <td className="px-3 py-2.5 text-right">{pct(Number(p.avance_pct))}</td>
                             <td className={`px-3 py-2.5 text-right font-semibold ${dif < 0 ? "text-bad" : "text-good"}`}>
                               {soles(dif)}
                             </td>
+                            <td className="px-3 py-2.5 text-right">{pct(Number(p.avance_pct))}</td>
                             <td className="px-5 py-2.5">
                               <div className="flex items-center justify-end gap-1">
                                 <button
