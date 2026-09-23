@@ -83,6 +83,43 @@ export const usePartidasMaestras = () =>
     },
   });
 
+export type CodificacionCotizacionConfig = {
+  id: string;
+  prefijo: string;
+  incluir_anio: boolean;
+  separador: string;
+  digitos: number;
+  correlativo_actual: number;
+};
+
+export const useCodificacionCotizacion = () =>
+  useQuery({
+    queryKey: ["codificacion_cotizacion"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("codificacion_cotizacion")
+        .select("*")
+        .order("created_at")
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return (data ?? null) as CodificacionCotizacionConfig | null;
+    },
+  });
+
+/** Vista previa del siguiente código de cotización sin consumir el correlativo. */
+export function previsualizarCodigoCotizacion(
+  cfg: Partial<CodificacionCotizacionConfig>,
+  correlativo?: number,
+) {
+  const prefijo = (cfg.prefijo ?? "COT").trim();
+  const separador = cfg.separador ?? "-";
+  const digitos = Math.max(Number(cfg.digitos ?? 3) || 1, 1);
+  const numero = correlativo ?? Number(cfg.correlativo_actual ?? 0) + 1;
+  const anio = cfg.incluir_anio === false ? "" : `${separador}${new Date().getFullYear()}`;
+  return `${prefijo}${anio}${separador}${String(numero).padStart(digitos, "0")}`;
+}
+
 /** Reserva y devuelve el siguiente código correlativo de cotización. */
 export async function generarCodigoCotizacion(): Promise<string> {
   const { data, error } = await supabase.rpc("siguiente_codigo_cotizacion");
