@@ -82,6 +82,7 @@ export function PartidasMaestras() {
         codigo: editando.codigo.trim(),
         nombre: editando.nombre.trim(),
         especialidad: editando.especialidad,
+        categoria: editando.categoria ?? "",
         unidad: editando.unidad,
         precio_unitario: Number(editando.precio_unitario || 0),
         activo: editando.activo,
