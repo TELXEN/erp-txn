@@ -455,15 +455,16 @@ function Partidas() {
                         if (enEdicion) {
                           return (
                             <tr key={p.id} className="border-b border-line/40 last:border-0">
-                              <td className="px-5 py-2.5 font-semibold text-ink">{nombreProyecto(p.proyecto_id)}</td>
-                              <td className="px-3 py-2">
+                              <td className="px-5 py-2">
                                 <Input
                                   value={editando.codigo}
                                   onChange={(e) => setEditando({ ...editando, codigo: e.target.value })}
-                                  className="mb-1 py-1 font-mono text-xs"
+                                  className="py-1 font-mono text-xs"
                                   placeholder="05.01"
                                   maxLength={20}
                                 />
+                              </td>
+                              <td className="px-3 py-2">
                                 <Input
                                   value={editando.nombre}
                                   onChange={(e) => setEditando({ ...editando, nombre: e.target.value })}
