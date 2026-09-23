@@ -101,7 +101,10 @@ function Proyectos() {
       pct_gastos_generales: Number(form.pct_gastos_generales) || 0,
       pct_utilidad: Number(form.pct_utilidad) || 0,
     });
-    if (err) return setError(err.message);
+    if (err)
+      return setError(
+        err.code === "23505" ? "Ese código ya está asignado a otra obra." : err.message,
+      );
     setForm({
       codigo: "",
       nombre: "",
