@@ -16,6 +16,7 @@ import {
   totalesCotizacion,
   useCotizacionItems,
   useCotizaciones,
+  usePartidasMaestras,
   vigenciaHasta,
   type EstadoCotizacion,
 } from "@/lib/cotizaciones";
