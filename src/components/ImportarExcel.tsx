@@ -3,7 +3,7 @@ import * as XLSX from "xlsx";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Boton, Etiqueta } from "@/components/ui-kit";
-import { FileSpreadsheet, Upload, X } from "lucide-react";
+import { Download, FileSpreadsheet, Upload, X } from "lucide-react";
 import { usePartidas, useProyectos } from "@/lib/datos";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
 import { useCategoriasPartida } from "@/lib/categorias";
@@ -220,7 +220,7 @@ export function ImportarExcel() {
   return (
     <>
       <Boton variante="linea" onClick={() => setAbierto(true)}>
-        <Upload size={13} /> Importar Excel
+        <Download size={13} /> Importar Excel
       </Boton>
       {abierto && (
         <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/50 p-4">

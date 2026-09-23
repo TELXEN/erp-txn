@@ -19,7 +19,7 @@ import {
   useTiposPresupuesto,
 } from "@/lib/datos";
 import { exportarExcel } from "@/lib/exportar";
-import { Pencil, Trash2, Check, X, LayoutGrid, Table2 } from "lucide-react";
+import { Pencil, Trash2, Check, X, LayoutGrid, Table2, Upload } from "lucide-react";
 import { Kanban } from "@/components/Kanban";
 import { InsigniaPrioridad, InsigniaTipoPresupuesto } from "@/components/estado-ui";
 import { PRIORIDADES, type Situacion } from "@/lib/configuracion";
@@ -265,7 +265,7 @@ function Partidas() {
             </div>
             <ImportarExcel />
             <Boton variante="linea" onClick={exportar}>
-              Exportar a Excel
+              <Upload size={13} /> Exportar a Excel
             </Boton>
           </div>
         }
