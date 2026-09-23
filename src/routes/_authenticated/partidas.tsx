@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
-import { ESPECIALIDADES, pct, soles } from "@/lib/format";
+import { pct, soles } from "@/lib/format";
 import {
   agruparPorProyectoYEspecialidad,
   costoRealPartida,
@@ -455,6 +455,13 @@ function Partidas() {
                               <td className="px-5 py-2.5 font-semibold text-ink">{nombreProyecto(p.proyecto_id)}</td>
                               <td className="px-3 py-2">
                                 <Input
+                                  value={editando.codigo}
+                                  onChange={(e) => setEditando({ ...editando, codigo: e.target.value })}
+                                  className="mb-1 py-1 font-mono text-xs"
+                                  placeholder="05.01"
+                                  maxLength={20}
+                                />
+                                <Input
                                   value={editando.nombre}
                                   onChange={(e) => setEditando({ ...editando, nombre: e.target.value })}
                                   className="py-1 text-xs"
@@ -536,7 +543,14 @@ function Partidas() {
                         return (
                           <tr key={p.id} className="border-b border-line/40 last:border-0">
                             <td className="px-5 py-2.5 font-semibold text-ink">{nombreProyecto(p.proyecto_id)}</td>
-                            <td className="px-3 py-2.5 font-semibold text-ink">{p.nombre}</td>
+                            <td className="px-3 py-2.5 font-semibold text-ink">
+                              {p.codigo && (
+                                <span className="mr-1.5 rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] text-primary">
+                                  {p.codigo}
+                                </span>
+                              )}
+                              {p.nombre}
+                            </td>
                             <td className="px-3 py-2.5">
                               <InsigniaTipoPresupuesto valor={p.tipo_presupuesto ?? "Contractual"} />
                               {(() => {
@@ -562,6 +576,7 @@ function Partidas() {
                                   onClick={() =>
                                     setEditando({
                                       id: p.id,
+                                      codigo: p.codigo ?? "",
                                       nombre: p.nombre,
                                       especialidad: p.especialidad,
                                       presupuesto_inicial: String(p.presupuesto_inicial),
