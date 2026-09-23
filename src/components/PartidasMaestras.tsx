@@ -4,7 +4,7 @@ import { Check, Pencil, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Boton, Campo, Input, Panel, Select, Vacio } from "@/components/ui-kit";
 import { soles } from "@/lib/format";
-import { useEspecialidadesPartida } from "@/lib/especialidades";
+import { siguienteCodigoEnCapitulo, useEspecialidadesPartida } from "@/lib/especialidades";
 import { useUnidadesMedida } from "@/lib/unidades";
 import { usePartidasMaestras, type PartidaMaestra } from "@/lib/cotizaciones";
 
