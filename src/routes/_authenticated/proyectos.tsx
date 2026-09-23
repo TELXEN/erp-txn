@@ -444,6 +444,7 @@ function Proyectos() {
                     ) : (
                       <>
                         <td className="px-5 py-2.5 align-top font-semibold text-primary break-words">{p.codigo || "—"}</td>
+                        <td className="truncate px-3 py-2.5 text-muted-foreground">{p.cliente || "—"}</td>
                         <td className="px-3 py-2.5 align-top font-semibold text-ink break-words whitespace-normal">
                           {p.nombre}
                           <span className="mt-1 block font-mono text-[10px] font-normal text-muted-foreground">
