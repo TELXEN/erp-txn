@@ -16,6 +16,7 @@ export function PartidasMaestras() {
   const { data: especialidades = [] } = useEspecialidadesPartida();
   const { data: unidades = [] } = useUnidadesMedida();
   const [form, setForm] = useState(vacio);
+  const [codigoManual, setCodigoManual] = useState(false);
   const [editando, setEditando] = useState<PartidaMaestra | null>(null);
   const [busqueda, setBusqueda] = useState("");
   const [error, setError] = useState("");
