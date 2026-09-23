@@ -121,7 +121,7 @@ function Partidas() {
       presupuesto_inicial: Number(form.presupuesto_inicial || 0),
     });
     if (err) return setError(err.message);
-    setForm({ ...form, nombre: "", presupuesto_inicial: "" });
+    setForm({ ...form, codigo: "", nombre: "", presupuesto_inicial: "" });
     qc.invalidateQueries({ queryKey: ["partidas"] });
   }
 
