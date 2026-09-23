@@ -47,6 +47,7 @@ function Cotizaciones() {
   const { data: cotizaciones = [] } = useCotizaciones();
   const { data: especialidades = [] } = useEspecialidadesPartida();
   const { data: unidades = [] } = useUnidadesMedida();
+  const { data: maestras = [] } = usePartidasMaestras();
   const { data: clientes = [] } = useQuery({
     queryKey: ["terceros", "clientes-activos"],
     queryFn: async () => {
