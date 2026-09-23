@@ -432,21 +432,22 @@ function Partidas() {
               <table className="w-full table-fixed font-mono text-xs">
                 <thead>
                   <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                    <th style={{ width: "18%" }} className="whitespace-nowrap px-5 py-2 font-medium">Proyecto</th>
-                    <th style={{ width: "20%" }} className="whitespace-nowrap px-3 py-2 font-medium">Partida</th>
-                    <th style={{ width: "13%" }} className="whitespace-nowrap px-3 py-2 font-medium">Tipo</th>
+                    <th style={{ width: "10%" }} className="whitespace-nowrap px-5 py-2 font-medium">Código</th>
+                    <th style={{ width: "26%" }} className="whitespace-nowrap px-3 py-2 font-medium">Partida</th>
+                    <th style={{ width: "12%" }} className="whitespace-nowrap px-3 py-2 font-medium">Tipo</th>
+                    <th style={{ width: "9%" }} className="whitespace-nowrap px-3 py-2 font-medium">Prioridad</th>
                     <th style={{ width: "11%" }} className="whitespace-nowrap px-3 py-2 text-right font-medium">Presupuesto</th>
-                    <th style={{ width: "11%" }} className="whitespace-nowrap px-3 py-2 text-right font-medium">Costo real</th>
-                    <th style={{ width: "9%" }} className="whitespace-nowrap px-3 py-2 text-right font-medium">Avance</th>
-                    <th style={{ width: "9%" }} className="whitespace-nowrap px-3 py-2 text-right font-medium">Saldo</th>
-                    <th style={{ width: "9%" }} className="whitespace-nowrap px-5 py-2 text-right font-medium">Acciones</th>
+                    <th style={{ width: "11%" }} className="whitespace-nowrap px-3 py-2 text-right font-medium">Costo ejecutado</th>
+                    <th style={{ width: "10%" }} className="whitespace-nowrap px-3 py-2 text-right font-medium">Saldo</th>
+                    <th style={{ width: "8%" }} className="whitespace-nowrap px-3 py-2 text-right font-medium">Avance</th>
+                    <th style={{ width: "7%" }} className="whitespace-nowrap px-5 py-2 text-right font-medium">Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
                   {espGrupos.map(([esp, lista]) => (
                     <>
                       <tr key={`${esp}-header`} className="border-b border-line/40 bg-muted/40">
-                        <td colSpan={8} className="px-5 py-1.5 label-mono">{esp}</td>
+                        <td colSpan={9} className="px-5 py-1.5 label-mono">{esp}</td>
                       </tr>
                       {lista.map((p) => {
                         const costo = costoRealPartida(p.id, gastos);
