@@ -121,6 +121,19 @@ export type GastoDirecto = {
   monto_soles: number;
   fecha: string;
   rubro: RubroCosto;
+  caja_chica_id: string | null;
+};
+
+export type CajaChica = {
+  id: string;
+  proyecto_id: string;
+  responsable_id: string;
+  motivo: string;
+  monto_entregado: number;
+  fecha_entrega: string;
+  fecha_liquidacion: string | null;
+  estado: "Abierta" | "Liquidada";
+  observacion: string;
 };
 
 
