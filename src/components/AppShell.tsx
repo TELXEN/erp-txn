@@ -11,6 +11,7 @@ import {
   Building2,
   CalendarDays,
   ClipboardList,
+  FileText,
   Gauge,
   HardHat,
   Layers,
