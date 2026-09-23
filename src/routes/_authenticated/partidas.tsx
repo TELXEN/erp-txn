@@ -163,6 +163,7 @@ function Partidas() {
         codigo: editando.codigo.trim(),
         nombre: editando.nombre.trim(),
         especialidad: editando.especialidad,
+        categoria: editando.categoria,
         tipo_presupuesto: editando.tipo_presupuesto,
         aplica_gg: esContractual(editando.tipo_presupuesto, tipos) ? true : editando.aplica_gg,
         aplica_utilidad: esContractual(editando.tipo_presupuesto, tipos) ? true : editando.aplica_utilidad,
@@ -271,7 +272,11 @@ function Partidas() {
             <Select
               value={form.proyecto_id}
               onChange={(e) =>
-                setForm({ ...form, proyecto_id: e.target.value, codigo: sugerir(e.target.value, form.especialidad) })
+                setForm({
+                  ...form,
+                  proyecto_id: e.target.value,
+                  codigo: sugerir(e.target.value, form.especialidad, form.categoria),
+                })
               }
               required
             >
