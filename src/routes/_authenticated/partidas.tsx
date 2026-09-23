@@ -24,6 +24,7 @@ import { Kanban } from "@/components/Kanban";
 import { InsigniaPrioridad, InsigniaTipoPresupuesto } from "@/components/estado-ui";
 import { PRIORIDADES, type Situacion } from "@/lib/configuracion";
 import { siguienteCodigoPartida, useEspecialidadesPartida } from "@/lib/especialidades";
+import { categoriasDe, siguienteCodigoEnCategoria, useCategoriasPartida } from "@/lib/categorias";
 import { montoPartida, useUnidadesMedida } from "@/lib/unidades";
 
 const cantidad = (n: number) =>
@@ -61,6 +62,7 @@ function Partidas() {
     codigo: "",
     nombre: "",
     especialidad: "",
+    categoria: "",
     unidad: "glb",
     metrado: "1",
     precio_unitario: "",
@@ -75,6 +77,7 @@ function Partidas() {
     codigo: string;
     nombre: string;
     especialidad: string;
+    categoria: string;
     unidad: string;
     metrado: string;
     precio_unitario: string;
