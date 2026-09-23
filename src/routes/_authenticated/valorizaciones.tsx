@@ -26,6 +26,8 @@ function Valorizaciones() {
   const qc = useQueryClient();
   const { data: proyectos = [] } = useProyectos();
   const { data: ventas = [] } = useVentas();
+  const { data: partidas = [] } = usePartidas();
+  const { data: tiposPresupuesto = [] } = useTiposPresupuesto();
   const { data: clientes = [] } = useQuery({
     queryKey: ["terceros", "clientes-activos"],
     queryFn: async () => {
