@@ -496,7 +496,17 @@ function Cotizaciones() {
               </Campo>
             </div>
             <Campo etiqueta="Especialidad">
-              <Select value={item.especialidad} onChange={(e) => setItem({ ...item, especialidad: e.target.value })}>
+              <Select
+                value={item.especialidad}
+                onChange={(e) => {
+                  const especialidad = e.target.value;
+                  setItem({
+                    ...item,
+                    especialidad,
+                    codigo: item.codigo.trim() || sugerirCodigo(especialidad),
+                  });
+                }}
+              >
                 <option value="">Selecciona...</option>
                 {especialidades
                   .filter((e) => e.activo)
