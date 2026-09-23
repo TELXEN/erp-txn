@@ -106,7 +106,7 @@ export function PartidasMaestras() {
   return (
     <>
       <Panel titulo="Nueva partida maestra" className="mb-4">
-        <form onSubmit={crear} className="grid gap-3 p-4 sm:grid-cols-6">
+        <form onSubmit={crear} className="grid gap-3 p-4 sm:grid-cols-7">
           <Campo etiqueta="Código">
             <Input
               className="py-1.5 font-mono"
@@ -136,14 +136,11 @@ export function PartidasMaestras() {
               value={form.especialidad}
               onChange={(e) => {
                 const especialidad = e.target.value;
-                const sugerido = siguienteCodigoEnCapitulo(
-                  especialidad,
-                  lista.map((p) => p.codigo),
-                  especialidades,
-                );
+                const sugerido = sugerir(especialidad, "");
                 setForm({
                   ...form,
                   especialidad,
+                  categoria: "",
                   codigo: codigoManual && form.codigo ? form.codigo : sugerido,
                 });
               }}
@@ -152,6 +149,30 @@ export function PartidasMaestras() {
               {opcionesEspecialidad.map((e) => (
                 <option key={e.id} value={e.nombre}>
                   {e.codigo} {e.nombre}
+                </option>
+              ))}
+            </Select>
+          </Campo>
+          <Campo etiqueta="Categoría">
+            <Select
+              className="py-1.5"
+              value={form.categoria}
+              onChange={(e) => {
+                const categoria = e.target.value;
+                setForm({
+                  ...form,
+                  categoria,
+                  codigo:
+                    codigoManual && form.codigo
+                      ? form.codigo
+                      : sugerir(form.especialidad, categoria),
+                });
+              }}
+            >
+              <option value="">Sin categoría</option>
+              {categoriasDe(form.especialidad, categorias).map((c) => (
+                <option key={c.id} value={c.nombre}>
+                  {c.codigo} {c.nombre}
                 </option>
               ))}
             </Select>
