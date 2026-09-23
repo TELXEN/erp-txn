@@ -35,8 +35,11 @@ export function PartidasMaestras() {
     e.preventDefault();
     setError("");
     if (!form.nombre.trim()) return setError("Escribe la descripción de la partida.");
+    const codigoFinal =
+      form.codigo.trim() ||
+      siguienteCodigoEnCapitulo(form.especialidad, lista.map((p) => p.codigo), especialidades);
     const { error: err } = await supabase.from("partidas_maestras").insert({
-      codigo: form.codigo.trim(),
+      codigo: codigoFinal,
       nombre: form.nombre.trim(),
       especialidad: form.especialidad,
       unidad: form.unidad,
