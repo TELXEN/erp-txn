@@ -24,6 +24,7 @@ import {
 import { PRIORIDADES, SITUACIONES, tonoPrioridad, tonoSituacion } from "@/lib/configuracion";
 import { DatosEmpresa } from "@/components/DatosEmpresa";
 import { CodificacionProyectos } from "@/components/CodificacionProyectos";
+import { CodificacionCotizaciones } from "@/components/CodificacionCotizaciones";
 import { EspecialidadesPartida } from "@/components/EspecialidadesPartida";
 import { UnidadesMedida } from "@/components/UnidadesMedida";
 import { PartidasMaestras } from "@/components/PartidasMaestras";
@@ -76,6 +77,7 @@ type Pestana =
   | "centros"
   | "configuracion"
   | "codificacion"
+  | "codificacioncot"
   | "especialidades"
   | "unidades"
   | "maestras"
@@ -305,6 +307,7 @@ function Datos() {
             "centros",
             "configuracion",
             "codificacion",
+            "codificacioncot",
             "especialidades",
             "unidades",
             "maestras",
@@ -334,6 +337,7 @@ function Datos() {
               centros: "Centro de costos",
               configuracion: "Configuración proyectos",
               codificacion: "Codificación de proyectos",
+              codificacioncot: "Codificación de cotizaciones",
               especialidades: "Codificación de partidas",
               unidades: "Unidades de medida",
               maestras: "Banco de partidas",
@@ -756,6 +760,8 @@ function Datos() {
         <ConfiguracionProyectos />
       ) : pestana === "codificacion" ? (
         <CodificacionProyectos />
+      ) : pestana === "codificacioncot" ? (
+        <CodificacionCotizaciones />
       ) : pestana === "especialidades" ? (
         <EspecialidadesPartida />
       ) : pestana === "unidades" ? (
