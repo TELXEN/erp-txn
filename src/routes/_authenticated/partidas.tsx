@@ -691,6 +691,7 @@ function Partidas() {
                                       codigo: p.codigo ?? "",
                                       nombre: p.nombre,
                                       especialidad: p.especialidad,
+                                      categoria: p.categoria ?? "",
                                       unidad: p.unidad || "glb",
                                       metrado: String(p.metrado ?? 1),
                                       precio_unitario: String(p.precio_unitario ?? p.presupuesto_inicial),
