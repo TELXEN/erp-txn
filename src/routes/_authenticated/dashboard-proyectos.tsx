@@ -150,7 +150,7 @@ function DashboardProyectos() {
           { Indicador: "Presupuesto contractual (S/)", Valor: resumen.presupuestoContractual },
           { Indicador: "Adicionales de obra (S/)", Valor: resumen.adicionales },
           { Indicador: "Presupuesto vigente (S/)", Valor: resumen.presupuesto },
-          { Indicador: "Costo real total (S/)", Valor: resumen.costoReal },
+          { Indicador: "Costo ejecutado total (S/)", Valor: resumen.costoReal },
           { Indicador: "Diferencia (S/)", Valor: resumen.diferencia },
         ],
       },
@@ -360,7 +360,7 @@ function DashboardProyectos() {
                     <p className="label-mono">Contractual + adicionales</p>
                     <p className="font-mono text-xs text-muted-foreground">{soles(f.presupuestoContractual)} + <span className="text-primary">{soles(f.adicionales)}</span></p>
                     <p className="font-mono text-sm font-semibold">Vigente {soles(f.presupuesto)}</p>
-                    <p className={`font-mono text-[11px] ${f.desviado ? "text-bad" : "text-good"}`}>Costo real {soles(f.costoReal)}</p>
+                    <p className={`font-mono text-[11px] ${f.desviado ? "text-bad" : "text-good"}`}>Costo ejecutado {soles(f.costoReal)}</p>
                     <p className={`font-mono text-[11px] ${f.diferencia < 0 ? "text-bad" : "text-muted-foreground"}`}>
                       Diferencia {soles(f.diferencia)}
                     </p>
