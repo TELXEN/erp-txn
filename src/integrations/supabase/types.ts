@@ -254,6 +254,164 @@ export type Database = {
         }
         Relationships: []
       }
+      codificacion_cotizacion: {
+        Row: {
+          correlativo_actual: number
+          created_at: string
+          digitos: number
+          id: string
+          incluir_anio: boolean
+          prefijo: string
+          separador: string
+          updated_at: string
+        }
+        Insert: {
+          correlativo_actual?: number
+          created_at?: string
+          digitos?: number
+          id?: string
+          incluir_anio?: boolean
+          prefijo?: string
+          separador?: string
+          updated_at?: string
+        }
+        Update: {
+          correlativo_actual?: number
+          created_at?: string
+          digitos?: number
+          id?: string
+          incluir_anio?: boolean
+          prefijo?: string
+          separador?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      cotizacion_items: {
+        Row: {
+          codigo: string
+          cotizacion_id: string
+          created_at: string
+          especialidad: string
+          id: string
+          metrado: number
+          nombre: string
+          orden: number
+          precio_unitario: number
+          unidad: string
+          updated_at: string
+        }
+        Insert: {
+          codigo?: string
+          cotizacion_id: string
+          created_at?: string
+          especialidad?: string
+          id?: string
+          metrado?: number
+          nombre: string
+          orden?: number
+          precio_unitario?: number
+          unidad?: string
+          updated_at?: string
+        }
+        Update: {
+          codigo?: string
+          cotizacion_id?: string
+          created_at?: string
+          especialidad?: string
+          id?: string
+          metrado?: number
+          nombre?: string
+          orden?: number
+          precio_unitario?: number
+          unidad?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cotizacion_items_cotizacion_id_fkey"
+            columns: ["cotizacion_id"]
+            isOneToOne: false
+            referencedRelation: "cotizaciones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cotizaciones: {
+        Row: {
+          cliente: string
+          cliente_id: string | null
+          codigo: string | null
+          condiciones: string
+          created_at: string
+          estado: string
+          fecha_emision: string
+          id: string
+          moneda: Database["public"]["Enums"]["moneda"]
+          nombre: string
+          pct_gastos_generales: number
+          pct_utilidad: number
+          proyecto_id: string | null
+          tipo_cambio: number
+          ubicacion: string
+          updated_at: string
+          validez_dias: number
+        }
+        Insert: {
+          cliente?: string
+          cliente_id?: string | null
+          codigo?: string | null
+          condiciones?: string
+          created_at?: string
+          estado?: string
+          fecha_emision?: string
+          id?: string
+          moneda?: Database["public"]["Enums"]["moneda"]
+          nombre: string
+          pct_gastos_generales?: number
+          pct_utilidad?: number
+          proyecto_id?: string | null
+          tipo_cambio?: number
+          ubicacion?: string
+          updated_at?: string
+          validez_dias?: number
+        }
+        Update: {
+          cliente?: string
+          cliente_id?: string | null
+          codigo?: string | null
+          condiciones?: string
+          created_at?: string
+          estado?: string
+          fecha_emision?: string
+          id?: string
+          moneda?: Database["public"]["Enums"]["moneda"]
+          nombre?: string
+          pct_gastos_generales?: number
+          pct_utilidad?: number
+          proyecto_id?: string | null
+          tipo_cambio?: number
+          ubicacion?: string
+          updated_at?: string
+          validez_dias?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cotizaciones_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "terceros"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cotizaciones_proyecto_id_fkey"
+            columns: ["proyecto_id"]
+            isOneToOne: false
+            referencedRelation: "proyectos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       empresa_config: {
         Row: {
           color_marca: string
@@ -543,6 +701,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      partidas_maestras: {
+        Row: {
+          activo: boolean
+          codigo: string
+          created_at: string
+          especialidad: string
+          id: string
+          nombre: string
+          precio_unitario: number
+          unidad: string
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          codigo?: string
+          created_at?: string
+          especialidad?: string
+          id?: string
+          nombre: string
+          precio_unitario?: number
+          unidad?: string
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          codigo?: string
+          created_at?: string
+          especialidad?: string
+          id?: string
+          nombre?: string
+          precio_unitario?: number
+          unidad?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -913,6 +1107,7 @@ export type Database = {
         Returns: boolean
       }
       is_admin_o_gerente: { Args: { _user_id: string }; Returns: boolean }
+      siguiente_codigo_cotizacion: { Args: never; Returns: string }
       siguiente_codigo_proyecto: { Args: never; Returns: string }
     }
     Enums: {
