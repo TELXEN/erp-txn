@@ -199,7 +199,6 @@ function Partidas() {
       {
         nombre: "Partidas",
         filas: visibles.map((p) => {
-          const costo = costoRealPartida(p.id, gastos);
           return {
             Proyecto: nombreProyecto(p.proyecto_id),
             Especialidad: p.especialidad,
@@ -212,8 +211,6 @@ function Partidas() {
             "Tipo de Presupuesto": p.tipo_presupuesto ?? "Contractual",
             Prioridad: p.prioridad,
             "Presupuesto (S/)": Number(p.presupuesto_inicial),
-            "Costo Ejecutado (S/)": costo,
-            "Saldo (S/)": Number(p.presupuesto_inicial) - costo,
             "Avance Fisico %": Number(p.avance_pct),
             "Aplica GG": cobraGG(p, tipos) ? "Si" : "No",
             "Aplica Utilidad": cobraUtilidad(p, tipos) ? "Si" : "No",
@@ -539,19 +536,17 @@ function Partidas() {
                     <th style={{ width: "7%" }} className="whitespace-nowrap px-2 py-2 text-right font-medium">Metrado</th>
                     <th style={{ width: "8%" }} className="whitespace-nowrap px-2 py-2 text-right font-medium">P.U. (S/)</th>
                     <th style={{ width: "9%" }} className="whitespace-nowrap px-3 py-2 text-right font-medium">Presupuesto</th>
-                    <th style={{ width: "9%" }} className="whitespace-nowrap px-3 py-2 text-right font-medium">Costo ejecutado</th>
-                    <th style={{ width: "8%" }} className="whitespace-nowrap px-3 py-2 text-right font-medium">Saldo</th>
                     <th style={{ width: "7%" }} className="whitespace-nowrap px-3 py-2 text-right font-medium">Avance</th>
-                    <th style={{ width: "7%" }} className="whitespace-nowrap px-3 py-2 font-medium">Tipo</th>
-                    <th style={{ width: "7%" }} className="whitespace-nowrap px-3 py-2 font-medium">Prioridad</th>
-                    <th style={{ width: "6%" }} className="whitespace-nowrap px-5 py-2 text-right font-medium">Acciones</th>
+                    <th style={{ width: "9%" }} className="whitespace-nowrap px-3 py-2 font-medium">Tipo</th>
+                    <th style={{ width: "8%" }} className="whitespace-nowrap px-3 py-2 font-medium">Prioridad</th>
+                    <th style={{ width: "7%" }} className="whitespace-nowrap px-5 py-2 text-right font-medium">Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
                   {espGrupos.map(([esp, lista]) => (
                     <React.Fragment key={esp}>
                       <tr className="border-b border-line/40 bg-muted/40">
-                        <td colSpan={12} className="px-5 py-1.5 label-mono">{esp}</td>
+                        <td colSpan={10} className="px-5 py-1.5 label-mono">{esp}</td>
                       </tr>
                       {agruparSoloPorCategoria(lista).map((sub) => (
                       <React.Fragment key={`${esp}-${sub.categoria}`}>
@@ -563,15 +558,10 @@ function Partidas() {
                           <td className="px-3 py-1.5 text-right font-semibold text-ink">
                             {soles(sub.items.reduce((s, x) => s + Number(x.presupuesto_inicial), 0))}
                           </td>
-                          <td className="px-3 py-1.5 text-right text-muted-foreground">
-                            {soles(sub.items.reduce((s, x) => s + costoRealPartida(x.id, gastos), 0))}
-                          </td>
-                          <td colSpan={5} />
+                          <td colSpan={4} />
                         </tr>
                       )}
                       {sub.items.map((p) => {
-                        const costo = costoRealPartida(p.id, gastos);
-                        const dif = Number(p.presupuesto_inicial) - costo;
                         const enEdicion = editando?.id === p.id;
                         if (enEdicion) {
                           return (
@@ -632,16 +622,6 @@ function Partidas() {
                               </td>
                               <td className="px-3 py-2.5 text-right font-semibold text-ink">
                                 {soles(montoPartida(editando.metrado, editando.precio_unitario))}
-                              </td>
-                              <td className="px-3 py-2.5 text-right">{soles(costo)}</td>
-                              <td
-                                className={`px-3 py-2.5 text-right font-semibold ${
-                                  montoPartida(editando.metrado, editando.precio_unitario) - costo < 0
-                                    ? "text-bad"
-                                    : "text-good"
-                                }`}
-                              >
-                                {soles(montoPartida(editando.metrado, editando.precio_unitario) - costo)}
                               </td>
                               <td className="px-3 py-2.5 text-right">{pct(Number(p.avance_pct))}</td>
                               <td className="px-3 py-2">
@@ -721,10 +701,6 @@ function Partidas() {
                             <td className="px-2 py-2.5 text-right">{cantidad(Number(p.metrado ?? 0))}</td>
                             <td className="px-2 py-2.5 text-right">{soles(Number(p.precio_unitario ?? 0))}</td>
                             <td className="px-3 py-2.5 text-right">{soles(Number(p.presupuesto_inicial))}</td>
-                            <td className="px-3 py-2.5 text-right">{soles(costo)}</td>
-                            <td className={`px-3 py-2.5 text-right font-semibold ${dif < 0 ? "text-bad" : "text-good"}`}>
-                              {soles(dif)}
-                            </td>
                             <td className="px-3 py-2.5 text-right">{pct(Number(p.avance_pct))}</td>
                             <td className="px-3 py-2.5">
                               <InsigniaTipoPresupuesto valor={p.tipo_presupuesto ?? "Contractual"} />
