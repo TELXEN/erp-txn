@@ -120,7 +120,19 @@ export function PartidasMaestras() {
             <Select
               className="py-1.5"
               value={form.especialidad}
-              onChange={(e) => setForm({ ...form, especialidad: e.target.value })}
+              onChange={(e) => {
+                const especialidad = e.target.value;
+                const sugerido = siguienteCodigoEnCapitulo(
+                  especialidad,
+                  lista.map((p) => p.codigo),
+                  especialidades,
+                );
+                setForm({
+                  ...form,
+                  especialidad,
+                  codigo: codigoManual && form.codigo ? form.codigo : sugerido,
+                });
+              }}
             >
               <option value="">Selecciona...</option>
               {opcionesEspecialidad.map((e) => (
