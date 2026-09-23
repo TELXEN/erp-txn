@@ -51,6 +51,7 @@ function Partidas() {
 
   const { data: tipos = [] } = useTiposPresupuesto();
   const { data: capitulos = [] } = useEspecialidadesPartida();
+  const { data: categorias = [] } = useCategoriasPartida();
   const { data: unidades = [] } = useUnidadesMedida();
 
   const [filtroProyecto, setFiltroProyecto] = useState("");
