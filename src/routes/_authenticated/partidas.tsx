@@ -32,6 +32,7 @@ import {
 } from "@/lib/categorias";
 import { montoPartida, useUnidadesMedida } from "@/lib/unidades";
 import { ImportarExcel } from "@/components/ImportarExcel";
+import { usePartidasMaestras } from "@/lib/cotizaciones";
 
 const cantidad = (n: number) =>
   Number(n || 0).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -59,6 +60,7 @@ function Partidas() {
   const { data: capitulos = [] } = useEspecialidadesPartida();
   const { data: categorias = [] } = useCategoriasPartida();
   const { data: unidades = [] } = useUnidadesMedida();
+  const { data: maestras = [] } = usePartidasMaestras();
 
   const [filtroProyecto, setFiltroProyecto] = useState("");
   const [filtroEsp, setFiltroEsp] = useState("");
@@ -273,6 +275,35 @@ function Partidas() {
 
       <Panel titulo="Nueva partida" className="mb-4">
         <form onSubmit={guardar} className="grid gap-3 p-5 sm:grid-cols-6">
+          <div className="sm:col-span-6">
+            <Campo etiqueta="Cargar desde el registro maestro">
+              <Select
+                value=""
+                onChange={(e) => {
+                  const m = maestras.find((x) => x.id === e.target.value);
+                  if (!m) return;
+                  setForm({
+                    ...form,
+                    nombre: m.nombre,
+                    especialidad: m.especialidad,
+                    categoria: m.categoria ?? "",
+                    unidad: m.unidad,
+                    precio_unitario: String(m.precio_unitario ?? 0),
+                    codigo: sugerir(form.proyecto_id, m.especialidad, m.categoria ?? ""),
+                  });
+                }}
+              >
+                <option value="">Elige una partida del registro maestro (opcional)...</option>
+                {maestras
+                  .filter((m) => m.activo)
+                  .map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.nombre} · {m.especialidad || "—"} · {m.unidad}
+                    </option>
+                  ))}
+              </Select>
+            </Campo>
+          </div>
           <Campo etiqueta="Proyecto">
             <Select
               value={form.proyecto_id}
