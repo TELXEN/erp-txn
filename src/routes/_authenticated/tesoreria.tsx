@@ -59,6 +59,7 @@ type R = {
   categoria?: string | number | null;
   fecha?: string | number | null;
   estado?: string | number | null;
+  descripcion?: string | number | null;
 };
 
 type Pendiente = {
@@ -139,7 +140,8 @@ function Tesoreria() {
         tercero: nombreTercero(x.cliente_id as string | null),
         documento: String(x.numero_factura || "—"),
         obra: nombreObra(x.proyecto_id as string),
-        detalle: String(x.concepto ?? ""),
+        detalle: "Valorización / factura",
+        descripcion: String(x.concepto ?? ""),
         emision: String(x.fecha_emision ?? String(x.created_at).slice(0, 10)),
         vencimiento: (x.fecha_vencimiento as string) ?? null,
         condicion: String(x.condicion_pago ?? "Crédito"),
@@ -161,6 +163,7 @@ function Tesoreria() {
       documento: String(x.comprobante || "—"),
       obra: nombreObra(x.proyecto_id as string | null),
       detalle: tabla === "gastos_directos" ? `Costo directo · ${x.rubro ?? ""}` : `Gasto general · ${x.categoria ?? ""}`,
+      descripcion: String(x.descripcion ?? ""),
       emision: String(x.fecha),
       vencimiento: (x.fecha_vencimiento as string) ?? null,
       condicion: "Crédito",
