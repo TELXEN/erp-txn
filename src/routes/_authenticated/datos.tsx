@@ -56,6 +56,8 @@ type Tercero = {
   direccion: string;
   telefono: string;
   email: string;
+  contacto: string;
+  celular_contacto: string;
   activo: boolean;
 };
 
