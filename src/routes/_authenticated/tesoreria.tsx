@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
@@ -59,6 +59,7 @@ type R = {
   categoria?: string | number | null;
   fecha?: string | number | null;
   estado?: string | number | null;
+  descripcion?: string | number | null;
 };
 
 type Pendiente = {
@@ -68,6 +69,7 @@ type Pendiente = {
   documento: string;
   obra: string;
   detalle: string;
+  descripcion: string;
   emision: string;
   vencimiento: string | null;
   condicion: string;
@@ -92,6 +94,7 @@ function Tesoreria() {
   const { rol } = useAuth();
   const qc = useQueryClient();
   const [pestana, setPestana] = useState<"cxc" | "cxp">("cxc");
+  const [cerrados, setCerrados] = useState<Set<string>>(new Set());
   const [accion, setAccion] = useState<{ p: Pendiente; banco_id: string; fecha: string } | null>(null);
   const [error, setError] = useState("");
 
@@ -137,7 +140,8 @@ function Tesoreria() {
         tercero: nombreTercero(x.cliente_id as string | null),
         documento: String(x.numero_factura || "—"),
         obra: nombreObra(x.proyecto_id as string),
-        detalle: String(x.concepto ?? ""),
+        detalle: "Valorización / factura",
+        descripcion: String(x.concepto ?? ""),
         emision: String(x.fecha_emision ?? String(x.created_at).slice(0, 10)),
         vencimiento: (x.fecha_vencimiento as string) ?? null,
         condicion: String(x.condicion_pago ?? "Crédito"),
@@ -159,6 +163,7 @@ function Tesoreria() {
       documento: String(x.comprobante || "—"),
       obra: nombreObra(x.proyecto_id as string | null),
       detalle: tabla === "gastos_directos" ? `Costo directo · ${x.rubro ?? ""}` : `Gasto general · ${x.categoria ?? ""}`,
+      descripcion: String(x.descripcion ?? ""),
       emision: String(x.fecha),
       vencimiento: (x.fecha_vencimiento as string) ?? null,
       condicion: "Crédito",
@@ -287,7 +292,7 @@ function Tesoreria() {
         {tarjeta("Vence en 30 días", soles(k.mes))}
       </div>
 
-      <Panel titulo={pestana === "cxc" ? "Facturas emitidas pendientes de cobro" : "Compras al crédito pendientes de pago"}>
+<Panel titulo={pestana === "cxc" ? "Facturas emitidas pendientes de cobro" : "Compras al crédito pendientes de pago"}>
         {lista.length === 0 ? (
           <Vacio texto={pestana === "cxc" ? "No hay facturas por cobrar." : "No hay compras al crédito por pagar."} />
         ) : (
@@ -297,7 +302,7 @@ function Tesoreria() {
                 <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
                   <th className="px-4 py-2 font-medium">{pestana === "cxc" ? "Cliente" : "Proveedor"}</th>
                   <th className="px-3 py-2 font-medium">Documento</th>
-                  <th className="px-3 py-2 font-medium">Obra</th>
+                  <th className="px-3 py-2 font-medium">Descripción</th>
                   <th className="px-3 py-2 font-medium">Emisión</th>
                   <th className="px-3 py-2 font-medium">Vencimiento</th>
                   <th className="px-3 py-2 text-right font-medium">Monto</th>
@@ -306,49 +311,76 @@ function Tesoreria() {
                 </tr>
               </thead>
               <tbody>
-                {lista.map((p) => {
-                  const d = diasA(p.vencimiento);
-                  const abierta = accion?.p.id === p.id;
+                {Array.from(
+                  lista.reduce((m, p) => m.set(p.obra, [...(m.get(p.obra) ?? []), p]), new Map<string, Pendiente[]>()),
+                ).map(([obra, filas]) => {
+                  const cerrado = cerrados.has(obra);
+                  const sub = filas.reduce((s, p) => s + p.soles, 0);
                   return (
-                    <tr key={p.tabla + p.id} className="border-b border-line/60 align-top last:border-0">
-                      <td className="px-4 py-2.5">
-                        <b className="text-ink">{p.tercero}</b>
-                        <div className="text-[10px] text-muted-foreground">{p.detalle}</div>
-                      </td>
-                      <td className="px-3 py-2.5">{p.documento}</td>
-                      <td className="px-3 py-2.5 text-muted-foreground">{p.obra}</td>
-                      <td className="px-3 py-2.5">{fmtFecha(p.emision)}</td>
-                      <td className="px-3 py-2.5">
-                        <InsigniaPago condicion={p.condicion === "Contado" ? "Crédito" : p.condicion} vencimiento={p.vencimiento} pagado={false} />
-                        <div className={`text-[10px] ${d < 0 ? "text-bad" : "text-muted-foreground"}`}>
-                          {d < 0 ? `${-d} días de atraso` : d === 0 ? "Vence hoy" : `Faltan ${d} días`}
-                        </div>
-                      </td>
-                      <td className="px-3 py-2.5 text-right">{dinero(p.monto, p.moneda)}</td>
-                      <td className="px-3 py-2.5 text-right font-semibold">{soles(p.soles)}</td>
-                      <td className="px-4 py-2 text-right">
-                        {abierta && accion ? (
-                          <div className="flex min-w-64 flex-col gap-1.5">
-                            <Select value={accion.banco_id} onChange={(e) => setAccion({ ...accion, banco_id: e.target.value })}>
-                              <option value="">{pestana === "cxc" ? "Cuenta de ingreso…" : "Cuenta de egreso…"}</option>
-                              {cuentas.filter((c) => c.activo).map((c) => (
-                                <option key={c.id} value={c.id}>{c.nombre} · {c.monedas} · {c.numero_cuenta}</option>
-                              ))}
-                            </Select>
-                            <Input type="date" value={accion.fecha} onChange={(e) => setAccion({ ...accion, fecha: e.target.value })} />
-                            <div className="flex justify-end gap-1">
-                              <Boton type="button" onClick={confirmar}>Confirmar</Boton>
-                              <Boton type="button" variante="linea" onClick={() => setAccion(null)}>Cancelar</Boton>
-                            </div>
-                            {error && <p className="text-[10px] text-bad">{error}</p>}
-                          </div>
-                        ) : (
-                          <Boton type="button" variante="linea" onClick={() => { setError(""); setAccion({ p, banco_id: "", fecha: hoy() }); }}>
-                            {pestana === "cxc" ? "Registrar cobro" : "Registrar pago"}
-                          </Boton>
-                        )}
-                      </td>
-                    </tr>
+                    <Fragment key={obra}>
+                      <tr
+                        className="cursor-pointer border-b border-line bg-muted/60 hover:bg-muted"
+                        onClick={() =>
+                          setCerrados((prev) => {
+                            const n = new Set(prev);
+                            if (n.has(obra)) n.delete(obra); else n.add(obra);
+                            return n;
+                          })
+                        }
+                      >
+                        <td colSpan={6} className="px-4 py-2 font-semibold text-ink">
+                          {cerrado ? "▸" : "▾"} {obra}{" "}
+                          <span className="font-normal text-muted-foreground">({filas.length})</span>
+                        </td>
+                        <td className="px-3 py-2 text-right font-semibold text-ink">{soles(sub)}</td>
+                        <td />
+                      </tr>
+                      {!cerrado && filas.map((p) => {
+                        const d = diasA(p.vencimiento);
+                        const abierta = accion?.p.id === p.id;
+                        return (
+                          <tr key={p.tabla + p.id} className="border-b border-line/60 align-top last:border-0">
+                            <td className="px-4 py-2.5"><b className="text-ink">{p.tercero}</b></td>
+                            <td className="px-3 py-2.5">{p.documento}</td>
+                            <td className="max-w-64 px-3 py-2.5">
+                              <div className="text-ink">{p.descripcion || "—"}</div>
+                              <div className="text-[10px] text-muted-foreground">{p.detalle}</div>
+                            </td>
+                            <td className="px-3 py-2.5">{fmtFecha(p.emision)}</td>
+                            <td className="px-3 py-2.5">
+                              <InsigniaPago condicion={p.condicion === "Contado" ? "Crédito" : p.condicion} vencimiento={p.vencimiento} pagado={false} />
+                              <div className={`text-[10px] ${d < 0 ? "text-bad" : "text-muted-foreground"}`}>
+                                {d < 0 ? `${-d} días de atraso` : d === 0 ? "Vence hoy" : `Faltan ${d} días`}
+                              </div>
+                            </td>
+                            <td className="px-3 py-2.5 text-right">{dinero(p.monto, p.moneda)}</td>
+                            <td className="px-3 py-2.5 text-right font-semibold">{soles(p.soles)}</td>
+                            <td className="px-4 py-2 text-right">
+                              {abierta && accion ? (
+                                <div className="flex min-w-64 flex-col gap-1.5">
+                                  <Select value={accion.banco_id} onChange={(e) => setAccion({ ...accion, banco_id: e.target.value })}>
+                                    <option value="">{pestana === "cxc" ? "Cuenta de ingreso…" : "Cuenta de egreso…"}</option>
+                                    {cuentas.filter((c) => c.activo).map((c) => (
+                                      <option key={c.id} value={c.id}>{c.nombre} · {c.monedas} · {c.numero_cuenta}</option>
+                                    ))}
+                                  </Select>
+                                  <Input type="date" value={accion.fecha} onChange={(e) => setAccion({ ...accion, fecha: e.target.value })} />
+                                  <div className="flex justify-end gap-1">
+                                    <Boton type="button" onClick={confirmar}>Confirmar</Boton>
+                                    <Boton type="button" variante="linea" onClick={() => setAccion(null)}>Cancelar</Boton>
+                                  </div>
+                                  {error && <p className="text-[10px] text-bad">{error}</p>}
+                                </div>
+                              ) : (
+                                <Boton type="button" variante="linea" onClick={() => { setError(""); setAccion({ p, banco_id: "", fecha: hoy() }); }}>
+                                  {pestana === "cxc" ? "Registrar cobro" : "Registrar pago"}
+                                </Boton>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </Fragment>
                   );
                 })}
               </tbody>
