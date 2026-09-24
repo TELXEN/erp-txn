@@ -38,6 +38,29 @@ type Mov = {
   estado_pago?: string;
 };
 
+type R = {
+  id?: string | number | null;
+  cliente_id?: string | number | null;
+  numero_factura?: string | number | null;
+  proyecto_id?: string | number | null;
+  concepto?: string | number | null;
+  fecha_emision?: string | number | null;
+  created_at?: string | number | null;
+  fecha_vencimiento?: string | number | null;
+  condicion_pago?: string | number | null;
+  moneda?: string | number | null;
+  monto?: string | number | null;
+  monto_soles?: string | number | null;
+  estado_pago?: string | number | null;
+  proveedor_id?: string | number | null;
+  proveedor?: string | number | null;
+  comprobante?: string | number | null;
+  rubro?: string | number | null;
+  categoria?: string | number | null;
+  fecha?: string | number | null;
+  estado?: string | number | null;
+};
+
 type Pendiente = {
   id: string;
   tabla: "ventas" | "gastos_directos" | "gastos_generales";
@@ -107,7 +130,7 @@ function Tesoreria() {
   const cxc: Pendiente[] = (ventas as unknown as (Mov & Record<string, never>)[])
     .filter((v) => (v as unknown as { estado: string }).estado !== "Pagado")
     .map((v) => {
-      const x = v as unknown as Record<string, string | number | null>;
+      const x = v as unknown as R;
       return {
         id: String(x.id),
         tabla: "ventas" as const,
@@ -125,8 +148,8 @@ function Tesoreria() {
     });
 
   const cxp: Pendiente[] = [
-    ...(gd as unknown as Record<string, string | number | null>[]).map((x) => ({ x, tabla: "gastos_directos" as const })),
-    ...(gg as unknown as Record<string, string | number | null>[]).map((x) => ({ x, tabla: "gastos_generales" as const })),
+    ...(gd as unknown as R[]).map((x) => ({ x, tabla: "gastos_directos" as const })),
+    ...(gg as unknown as R[]).map((x) => ({ x, tabla: "gastos_generales" as const })),
   ]
     .filter(({ x }) => x.condicion_pago === "Crédito" && x.estado_pago !== "Pagada")
     .map(({ x, tabla }) => ({
