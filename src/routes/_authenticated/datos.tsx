@@ -321,7 +321,7 @@ function Datos() {
               especialidades: "Codificación de partidas",
               categorias: "Categorías de partidas",
               unidades: "Unidades de medida",
-              maestras: "Banco de partidas",
+              maestras: "Registro de partidas",
               empresa: "Datos de la empresa",
             }[p]}
           </button>
