@@ -63,13 +63,22 @@ export function CodificacionProyectos() {
     <form onSubmit={guardar} className="grid gap-4 lg:grid-cols-[1fr_320px]">
       <Panel titulo="Codificación personalizada de proyectos">
         <div className="grid gap-3 p-4 sm:grid-cols-2">
-          <Campo etiqueta="Prefijo">
+          <Campo etiqueta="Sigla de la empresa">
             <Input
               className="py-1.5 uppercase"
               value={form.prefijo}
               onChange={(e) => setForm({ ...form, prefijo: e.target.value })}
               maxLength={12}
               required
+            />
+          </Campo>
+          <Campo etiqueta="Letra del documento">
+            <Input
+              className="py-1.5 uppercase"
+              value={form.tipo_letra}
+              onChange={(e) => setForm({ ...form, tipo_letra: e.target.value })}
+              maxLength={3}
+              placeholder="P"
             />
           </Campo>
           <Campo etiqueta="Separador">
@@ -84,16 +93,24 @@ export function CodificacionProyectos() {
               <option value="">Sin separador</option>
             </Select>
           </Campo>
-          <Campo etiqueta="Incluir el año">
+          <Campo etiqueta="Formato del año">
             <Select
               className="py-1.5"
-              value={form.incluir_anio ? "si" : "no"}
-              onChange={(e) => setForm({ ...form, incluir_anio: e.target.value === "si" })}
+              value={!form.incluir_anio ? "no" : form.anio_dos_digitos ? "corto" : "largo"}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  incluir_anio: e.target.value !== "no",
+                  anio_dos_digitos: e.target.value === "corto",
+                })
+              }
             >
-              <option value="si">Sí, incluir el año</option>
+              <option value="corto">Dos dígitos (26)</option>
+              <option value="largo">Cuatro dígitos (2026)</option>
               <option value="no">No incluir el año</option>
             </Select>
           </Campo>
+
           <Campo etiqueta="Dígitos del correlativo">
             <Input
               className="py-1.5"
