@@ -565,6 +565,7 @@ export type Database = {
           moneda: Database["public"]["Enums"]["moneda"]
           monto: number
           monto_soles: number
+          numero_operacion: string
           partida_id: string
           precio_unitario: number
           proveedor: string
@@ -590,6 +591,7 @@ export type Database = {
           moneda?: Database["public"]["Enums"]["moneda"]
           monto?: number
           monto_soles?: number
+          numero_operacion?: string
           partida_id: string
           precio_unitario?: number
           proveedor?: string
@@ -615,6 +617,7 @@ export type Database = {
           moneda?: Database["public"]["Enums"]["moneda"]
           monto?: number
           monto_soles?: number
+          numero_operacion?: string
           partida_id?: string
           precio_unitario?: number
           proveedor?: string
@@ -679,6 +682,7 @@ export type Database = {
           moneda: Database["public"]["Enums"]["moneda"]
           monto: number
           monto_soles: number
+          numero_operacion: string
           proveedor: string
           proveedor_id: string | null
           proyecto_id: string | null
@@ -701,6 +705,7 @@ export type Database = {
           moneda?: Database["public"]["Enums"]["moneda"]
           monto?: number
           monto_soles?: number
+          numero_operacion?: string
           proveedor?: string
           proveedor_id?: string | null
           proyecto_id?: string | null
@@ -723,6 +728,7 @@ export type Database = {
           moneda?: Database["public"]["Enums"]["moneda"]
           monto?: number
           monto_soles?: number
+          numero_operacion?: string
           proveedor?: string
           proveedor_id?: string | null
           proyecto_id?: string | null
@@ -1188,6 +1194,7 @@ export type Database = {
           monto: number
           monto_soles: number
           numero_factura: string
+          numero_operacion: string
           proyecto_id: string
           tipo_cambio: number
         }
@@ -1207,6 +1214,7 @@ export type Database = {
           monto?: number
           monto_soles?: number
           numero_factura?: string
+          numero_operacion?: string
           proyecto_id: string
           tipo_cambio?: number
         }
@@ -1226,6 +1234,7 @@ export type Database = {
           monto?: number
           monto_soles?: number
           numero_factura?: string
+          numero_operacion?: string
           proyecto_id?: string
           tipo_cambio?: number
         }
