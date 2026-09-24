@@ -50,10 +50,11 @@ export function Select(props: SelectHTMLAttributes<HTMLSelectElement>) {
 export function Boton({
   variante = "primario",
   ...props
-}: ButtonHTMLAttributes<HTMLButtonElement> & { variante?: "primario" | "linea" | "peligro" }) {
+}: ButtonHTMLAttributes<HTMLButtonElement> & { variante?: "primario" | "linea" | "peligro" | "accion" }) {
   const estilos = {
-    primario: "bg-primary text-primary-foreground hover:opacity-90",
-    linea: "border border-line bg-card text-foreground hover:bg-ink hover:text-paper",
+    primario: "bg-primary text-primary-foreground hover:ring-2 hover:ring-cta/70",
+    accion: "bg-cta font-semibold text-cta-foreground hover:brightness-95",
+    linea: "border border-primary/40 bg-card text-primary hover:bg-primary hover:text-primary-foreground",
     peligro: "border border-bad/40 text-bad hover:bg-bad hover:text-paper",
   }[variante];
   return (

@@ -140,31 +140,31 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen w-full text-ink">
-      <header className="no-print sticky top-0 z-20 flex items-center gap-4 border-b border-line bg-paper/95 px-5 py-3 backdrop-blur">
+      <header className="no-print sticky top-0 z-20 flex items-center gap-4 border-b border-brand bg-brand px-5 py-3 text-brand-foreground">
         <div className="flex w-[212px] shrink-0 items-center gap-2.5">
-          <span className="grid size-8 place-items-center rounded-md bg-primary font-mono text-sm font-semibold text-primary-foreground">
-            CO
+          <span className="grid size-8 place-items-center rounded-md bg-cta font-mono text-sm font-bold text-cta-foreground">
+            TX
           </span>
           <div className="leading-none">
             <p className="text-sm font-bold tracking-tight">ERP TELXEN</p>
-            <p className="mt-1 label-mono">Gestión de Proyectos</p>
+            <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.14em] text-brand-foreground/70">Gestión de Proyectos</p>
           </div>
         </div>
         <div className="flex flex-1 items-center justify-end gap-3">
           <div className="flex items-center gap-2">
-            <span className="grid size-8 place-items-center rounded-full bg-primary/15 text-xs font-semibold text-primary">
+            <span className="grid size-8 place-items-center rounded-full bg-cta text-xs font-semibold text-cta-foreground">
               {iniciales}
             </span>
             <div className="hidden leading-tight sm:block">
               <p className="text-xs font-semibold">{nombre || email}</p>
-              <p className="font-mono text-[10px] uppercase tracking-wide text-muted-foreground">
+              <p className="font-mono text-[10px] uppercase tracking-wide text-brand-foreground/70">
                 {rol ? ETIQUETA_ROL[rol] : "Sin rol"}
               </p>
             </div>
           </div>
           <button
             onClick={cerrarSesion}
-            className="rounded-md border border-line px-3 py-1.5 font-mono text-xs text-muted-foreground transition-colors hover:border-bad hover:text-bad"
+            className="rounded-md border border-brand-foreground/30 px-3 py-1.5 font-mono text-xs text-brand-foreground transition-colors hover:border-cta hover:text-cta"
           >
             Cerrar Sesión
           </button>
@@ -172,8 +172,8 @@ export function AppShell({ children }: { children: ReactNode }) {
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-[236px_1fr]">
-        <aside className="no-print border-r border-line px-3 py-5">
-          <p className="px-2 pb-2 label-mono">Módulos</p>
+        <aside className="no-print bg-brand px-3 py-5 text-brand-foreground md:min-h-[calc(100vh-57px)]">
+          <p className="px-2 pb-2 font-mono text-[10px] uppercase tracking-[0.14em] text-cta">Módulos</p>
           <nav className="space-y-2 text-sm">
             {categorias.map((c) => {
               const abierta = estaAbierta(c);
@@ -183,7 +183,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                     type="button"
                     onClick={() => alternarCategoria(c.titulo)}
                     aria-expanded={abierta}
-                    className="flex w-full items-center justify-between rounded-md px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground transition-colors hover:bg-ink/5 hover:text-ink"
+                    className="flex w-full items-center justify-between rounded-md px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider text-brand-foreground/60 transition-colors hover:bg-brand-foreground/10 hover:text-brand-foreground"
                   >
                     <span>{c.titulo}</span>
                     <ChevronDown
@@ -193,7 +193,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   <div
                     className={`grid transition-all duration-200 ${abierta ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}
                   >
-                    <div className="ml-2 space-y-1 overflow-hidden border-l border-line pl-2">
+                    <div className="ml-2 space-y-1 overflow-hidden border-l border-brand-foreground/15 pl-2">
                       {c.items.map((m) => {
                         const activo = pathname === m.a;
                         const Icono = m.icono;
@@ -202,7 +202,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                             key={m.a}
                             to={m.a}
                             className={`flex items-center gap-2.5 rounded-md px-3 py-2 transition-colors ${
-                              activo ? "bg-primary/10 font-semibold text-primary" : "text-ink hover:bg-ink/5"
+                              activo ? "bg-cta font-semibold text-cta-foreground" : "text-brand-foreground/85 hover:bg-brand-foreground/10 hover:text-brand-foreground"
                             }`}
                           >
                             <Icono className="size-4 shrink-0 opacity-90" />
@@ -217,10 +217,10 @@ export function AppShell({ children }: { children: ReactNode }) {
             })}
           </nav>
 
-          <div className="mt-6 rounded-md border border-line bg-card p-3">
-            <p className="label-mono">Rol activo</p>
+          <div className="mt-6 rounded-md border border-brand-foreground/15 bg-brand-foreground/5 p-3">
+            <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-cta">Rol activo</p>
             <p className="mt-1 text-sm font-semibold">{rol ? ETIQUETA_ROL[rol] : "Sin rol asignado"}</p>
-            <p className="mt-1 font-mono text-[10px] text-muted-foreground">
+            <p className="mt-1 font-mono text-[10px] text-brand-foreground/60">
               {rol === "ingeniero" ? "Solo avance físico" : "Moneda base: PEN"}
             </p>
           </div>
