@@ -106,7 +106,7 @@ export function codigoContextual(especialidad: string, categoria: string, filas:
   const seg = (c: string) => c.split(".").map((s) => Number(s));
   const conCodigo = filas.filter((f) => (f.codigo ?? "").trim());
   const pad = (n: number) => String(n).padStart(2, "0");
-  const maxDe = (nums: number[]) => nums.filter(Number.isFinite).reduce((a, b) => Math.max(a, b), 0);
+  const maxDe = (nums: (number | undefined)[]) => nums.filter((n): n is number => Number.isFinite(n)).reduce((a, b) => Math.max(a, b), 0);
 
   const propia = conCodigo.find((f) => f.especialidad === especialidad);
   const capitulo = propia

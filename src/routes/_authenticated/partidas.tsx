@@ -1,3 +1,4 @@
+import { codigoContextual } from "@/lib/categorias";
 import { createFileRoute } from "@tanstack/react-router";
 import React, { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
