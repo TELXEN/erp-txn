@@ -14,6 +14,7 @@ import {
   FileText,
   Gauge,
   HardHat,
+  Landmark,
   Layers,
   ShieldCheck,
   Users,
@@ -54,6 +55,7 @@ const MENU: Categoria[] = [
       { a: "/gastos-directos", texto: "Costos Directos", roles: ["administrador", "gerente"], icono: HardHat },
       { a: "/gastos-generales", texto: "Gastos Generales", roles: ["administrador", "gerente"], icono: Briefcase },
       { a: "/caja-chica", texto: "Caja Chica", roles: ["administrador", "gerente"], icono: Wallet },
+      { a: "/tesoreria", texto: "Tesorería", roles: ["administrador", "gerente"], icono: Landmark },
     ],
   },
   {
