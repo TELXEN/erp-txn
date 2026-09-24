@@ -288,7 +288,7 @@ function GastosDirectos() {
 
       <Panel
         titulo="Control por partida"
-        extra={<Boton onClick={() => abrirCompra("")} disabled={!proyecto}><Plus size={14} /> Registrar compra</Boton>}
+        extra={<Boton variante="accion" onClick={() => abrirCompra("")} disabled={!proyecto}><Plus size={14} /> Registrar compra</Boton>}
       >
         {partidasProy.length === 0 ? (
           <Vacio texto="Esta obra aún no tiene partidas registradas." />
