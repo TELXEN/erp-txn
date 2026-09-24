@@ -27,7 +27,9 @@ export function CodificacionCotizaciones() {
       setForm({
         prefijo: cfg.prefijo,
         incluir_anio: cfg.incluir_anio,
+        anio_dos_digitos: cfg.anio_dos_digitos,
         separador: cfg.separador,
+        tipo_letra: cfg.tipo_letra,
         digitos: cfg.digitos,
         correlativo_actual: cfg.correlativo_actual,
       });
@@ -37,12 +39,14 @@ export function CodificacionCotizaciones() {
     e.preventDefault();
     setError("");
     setAviso("");
-    if (!form.prefijo.trim()) return setError("Escribe un prefijo para la codificación.");
+    if (!form.prefijo.trim()) return setError("Escribe la sigla de la empresa para la codificación.");
     setGuardando(true);
     const campos = {
       prefijo: form.prefijo.trim().toUpperCase(),
       incluir_anio: form.incluir_anio,
+      anio_dos_digitos: form.anio_dos_digitos,
       separador: form.separador,
+      tipo_letra: form.tipo_letra.trim().toUpperCase(),
       digitos: Math.min(Math.max(Number(form.digitos) || 1, 1), 8),
       correlativo_actual: Math.max(Number(form.correlativo_actual) || 0, 0),
     };
