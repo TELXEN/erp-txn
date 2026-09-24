@@ -183,7 +183,7 @@ function Cotizaciones() {
     setAviso("");
     if (!item.nombre.trim()) return setError("Escribe la descripción antes de guardarla en el banco.");
     const { error: err } = await supabase.from("partidas_maestras").insert({
-      codigo: item.codigo.trim(),
+      codigo: "",
       nombre: item.nombre.trim(),
       especialidad: item.especialidad,
       categoria: item.categoria,
@@ -484,7 +484,7 @@ function Cotizaciones() {
                     const m = maestras.find((x) => x.id === v);
                     if (!m) return;
                     setItem({
-                      codigo: m.codigo || sugerirCodigo(m.especialidad, m.categoria ?? ""),
+                      codigo: sugerirCodigo(m.especialidad, m.categoria ?? ""),
                       nombre: m.nombre,
                       especialidad: m.especialidad,
                       categoria: m.categoria ?? "",
@@ -500,7 +500,6 @@ function Cotizaciones() {
                     .filter((m) => m.activo)
                     .map((m) => (
                       <option key={m.id} value={m.id}>
-                        {m.codigo ? `[${m.codigo}] ` : ""}
                         {m.nombre} · {m.unidad} · {soles(Number(m.precio_unitario))}
                       </option>
                     ))}

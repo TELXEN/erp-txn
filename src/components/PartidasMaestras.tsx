@@ -4,13 +4,12 @@ import { Check, Pencil, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Boton, Campo, Input, Panel, Select, Vacio } from "@/components/ui-kit";
 import { soles } from "@/lib/format";
-import { siguienteCodigoEnCapitulo, useEspecialidadesPartida } from "@/lib/especialidades";
+import { useEspecialidadesPartida } from "@/lib/especialidades";
 import { useUnidadesMedida } from "@/lib/unidades";
 import { usePartidasMaestras, type PartidaMaestra } from "@/lib/cotizaciones";
-import { categoriasDe, siguienteCodigoEnCategoria, useCategoriasPartida } from "@/lib/categorias";
+import { categoriasDe, useCategoriasPartida } from "@/lib/categorias";
 
 const vacio = {
-  codigo: "",
   nombre: "",
   especialidad: "",
   categoria: "",
@@ -25,7 +24,6 @@ export function PartidasMaestras() {
   const { data: unidades = [] } = useUnidadesMedida();
   const { data: categorias = [] } = useCategoriasPartida();
   const [form, setForm] = useState(vacio);
-  const [codigoManual, setCodigoManual] = useState(false);
   const [editando, setEditando] = useState<PartidaMaestra | null>(null);
   const [busqueda, setBusqueda] = useState("");
   const [error, setError] = useState("");
@@ -36,25 +34,16 @@ export function PartidasMaestras() {
     const t = busqueda.trim().toLowerCase();
     if (!t) return lista;
     return lista.filter((p) =>
-      `${p.codigo} ${p.nombre} ${p.especialidad} ${p.categoria ?? ""}`.toLowerCase().includes(t),
+      `${p.nombre} ${p.especialidad} ${p.categoria ?? ""}`.toLowerCase().includes(t),
     );
   }, [lista, busqueda]);
-
-  /** Código sugerido: dentro de la categoría (05.01.01) o del capítulo (05.01). */
-  const sugerir = (especialidad: string, categoria: string, extra: string[] = []) => {
-    const usados = [...lista.map((p) => p.codigo), ...extra];
-    return categoria
-      ? siguienteCodigoEnCategoria(categoria, usados, categorias)
-      : siguienteCodigoEnCapitulo(especialidad, usados, especialidades);
-  };
 
   async function crear(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     if (!form.nombre.trim()) return setError("Escribe la descripción de la partida.");
-    const codigoFinal = form.codigo.trim() || sugerir(form.especialidad, form.categoria);
     const { error: err } = await supabase.from("partidas_maestras").insert({
-      codigo: codigoFinal,
+      codigo: "",
       nombre: form.nombre.trim(),
       especialidad: form.especialidad,
       categoria: form.categoria,
@@ -67,9 +56,7 @@ export function PartidasMaestras() {
       especialidad: form.especialidad,
       categoria: form.categoria,
       unidad: form.unidad,
-      codigo: sugerir(form.especialidad, form.categoria, [codigoFinal]),
     });
-    setCodigoManual(false);
     refrescar();
   }
 
@@ -79,7 +66,6 @@ export function PartidasMaestras() {
     const { error: err } = await supabase
       .from("partidas_maestras")
       .update({
-        codigo: editando.codigo.trim(),
         nombre: editando.nombre.trim(),
         especialidad: editando.especialidad,
         categoria: editando.categoria ?? "",
@@ -106,19 +92,7 @@ export function PartidasMaestras() {
   return (
     <>
       <Panel titulo="Nueva partida maestra" className="mb-4">
-        <form onSubmit={crear} className="grid gap-3 p-4 sm:grid-cols-7">
-          <Campo etiqueta="Código">
-            <Input
-              className="py-1.5 font-mono"
-              value={form.codigo}
-              onChange={(e) => {
-                setCodigoManual(true);
-                setForm({ ...form, codigo: e.target.value });
-              }}
-              maxLength={20}
-              placeholder="05.01"
-            />
-          </Campo>
+        <form onSubmit={crear} className="grid gap-3 p-4 sm:grid-cols-6">
           <div className="sm:col-span-2">
             <Campo etiqueta="Descripción de la partida">
               <Input
@@ -136,12 +110,10 @@ export function PartidasMaestras() {
               value={form.especialidad}
               onChange={(e) => {
                 const especialidad = e.target.value;
-                const sugerido = sugerir(especialidad, "");
                 setForm({
                   ...form,
                   especialidad,
                   categoria: "",
-                  codigo: codigoManual && form.codigo ? form.codigo : sugerido,
                 });
               }}
             >
@@ -162,10 +134,6 @@ export function PartidasMaestras() {
                 setForm({
                   ...form,
                   categoria,
-                  codigo:
-                    codigoManual && form.codigo
-                      ? form.codigo
-                      : sugerir(form.especialidad, categoria),
                 });
               }}
             >
@@ -197,10 +165,10 @@ export function PartidasMaestras() {
               placeholder="0.00"
             />
           </Campo>
-          <div className="sm:col-span-7">
+          <div className="sm:col-span-6">
             <Boton type="submit">Agregar al registro</Boton>
           </div>
-          {error && <p className="font-mono text-xs text-bad sm:col-span-7">{error}</p>}
+          {error && <p className="font-mono text-xs text-bad sm:col-span-6">{error}</p>}
         </form>
       </Panel>
 
@@ -211,7 +179,7 @@ export function PartidasMaestras() {
             className="w-64 py-1.5 text-xs"
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
-            placeholder="Buscar por código, partida, categoría o especialidad"
+            placeholder="Buscar por partida, categoría o especialidad"
           />
         }
       >
@@ -221,8 +189,7 @@ export function PartidasMaestras() {
           <table className="w-full table-fixed font-mono text-xs">
             <thead>
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                <th className="w-[9%] px-5 py-2 font-medium">Código</th>
-                <th className="w-[26%] px-3 py-2 font-medium">Partida</th>
+                <th className="w-[35%] px-5 py-2 font-medium">Partida</th>
                 <th className="w-[16%] px-3 py-2 font-medium">Especialidad</th>
                 <th className="w-[17%] px-3 py-2 font-medium">Categoría</th>
                 <th className="w-[7%] px-3 py-2 font-medium">Und.</th>
@@ -236,14 +203,6 @@ export function PartidasMaestras() {
                 editando?.id === p.id ? (
                   <tr key={p.id} className="border-b border-line/40 last:border-0">
                     <td className="px-5 py-2">
-                      <Input
-                        className="py-1 font-mono text-xs"
-                        value={editando.codigo}
-                        onChange={(ev) => setEditando({ ...editando, codigo: ev.target.value })}
-                        maxLength={20}
-                      />
-                    </td>
-                    <td className="px-3 py-2">
                       <Input
                         className="py-1 text-xs"
                         value={editando.nombre}
@@ -337,8 +296,7 @@ export function PartidasMaestras() {
                   </tr>
                 ) : (
                   <tr key={p.id} className="border-b border-line/40 last:border-0">
-                    <td className="px-5 py-2.5 font-semibold text-primary">{p.codigo || "—"}</td>
-                    <td className="px-3 py-2.5 text-ink">{p.nombre}</td>
+                    <td className="px-5 py-2.5 text-ink">{p.nombre}</td>
                     <td className="px-3 py-2.5 text-muted-foreground">{p.especialidad || "—"}</td>
                     <td className="px-3 py-2.5 text-muted-foreground">{p.categoria || "—"}</td>
                     <td className="px-3 py-2.5 text-muted-foreground">{p.unidad}</td>
@@ -375,8 +333,8 @@ export function PartidasMaestras() {
           </table>
         )}
         <p className="border-t border-line px-5 py-3 font-mono text-[10px] leading-relaxed text-muted-foreground">
-          Estas partidas se reutilizan al armar una cotización: al elegir una del banco se copian su código,
-          unidad y precio unitario, y puedes ajustarlos en la propuesta sin alterar el catálogo.
+          Estas partidas se reutilizan al armar una cotización: al elegir una del banco se copian su descripción,
+          unidad y precio unitario; el código se asigna recién al cargarla en un proyecto, y puedes ajustarlos en la propuesta sin alterar el catálogo.
         </p>
       </Panel>
     </>
