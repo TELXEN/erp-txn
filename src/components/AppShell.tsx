@@ -143,10 +143,10 @@ export function AppShell({ children }: { children: ReactNode }) {
       <header className="no-print sticky top-0 z-20 flex items-center gap-4 border-b border-brand bg-brand px-5 py-3 text-brand-foreground">
         <div className="flex w-[212px] shrink-0 items-center gap-2.5">
           <span className="grid size-8 place-items-center rounded-md bg-cta font-mono text-sm font-bold text-cta-foreground">
-            TX
+            TXN
           </span>
           <div className="leading-none">
-            <p className="text-sm font-bold tracking-tight">ERP TELXEN</p>
+            <p className="text-sm font-bold tracking-tight">ERP TELXEN SAC</p>
             <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.14em] text-brand-foreground/70">Gestión de Proyectos</p>
           </div>
         </div>
