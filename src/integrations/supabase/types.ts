@@ -537,6 +537,7 @@ export type Database = {
       }
       gastos_directos: {
         Row: {
+          banco_id: string | null
           caja_chica_id: string | null
           cantidad: number
           comprobante: string
@@ -546,6 +547,7 @@ export type Database = {
           dias_credito: number
           estado_pago: string
           fecha: string
+          fecha_pago: string | null
           fecha_vencimiento: string | null
           id: string
           moneda: Database["public"]["Enums"]["moneda"]
@@ -560,6 +562,7 @@ export type Database = {
           tipo_cambio: number
         }
         Insert: {
+          banco_id?: string | null
           caja_chica_id?: string | null
           cantidad?: number
           comprobante?: string
@@ -569,6 +572,7 @@ export type Database = {
           dias_credito?: number
           estado_pago?: string
           fecha?: string
+          fecha_pago?: string | null
           fecha_vencimiento?: string | null
           id?: string
           moneda?: Database["public"]["Enums"]["moneda"]
@@ -583,6 +587,7 @@ export type Database = {
           tipo_cambio?: number
         }
         Update: {
+          banco_id?: string | null
           caja_chica_id?: string | null
           cantidad?: number
           comprobante?: string
@@ -592,6 +597,7 @@ export type Database = {
           dias_credito?: number
           estado_pago?: string
           fecha?: string
+          fecha_pago?: string | null
           fecha_vencimiento?: string | null
           id?: string
           moneda?: Database["public"]["Enums"]["moneda"]
@@ -606,6 +612,13 @@ export type Database = {
           tipo_cambio?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "gastos_directos_banco_id_fkey"
+            columns: ["banco_id"]
+            isOneToOne: false
+            referencedRelation: "bancos"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "gastos_directos_caja_chica_id_fkey"
             columns: ["caja_chica_id"]
@@ -638,6 +651,7 @@ export type Database = {
       }
       gastos_generales: {
         Row: {
+          banco_id: string | null
           caja_chica_id: string | null
           categoria: string
           condicion_pago: string
@@ -646,6 +660,7 @@ export type Database = {
           dias_credito: number
           estado_pago: string
           fecha: string
+          fecha_pago: string | null
           fecha_vencimiento: string | null
           id: string
           moneda: Database["public"]["Enums"]["moneda"]
@@ -657,6 +672,7 @@ export type Database = {
           tipo_cambio: number
         }
         Insert: {
+          banco_id?: string | null
           caja_chica_id?: string | null
           categoria?: string
           condicion_pago?: string
@@ -665,6 +681,7 @@ export type Database = {
           dias_credito?: number
           estado_pago?: string
           fecha?: string
+          fecha_pago?: string | null
           fecha_vencimiento?: string | null
           id?: string
           moneda?: Database["public"]["Enums"]["moneda"]
@@ -676,6 +693,7 @@ export type Database = {
           tipo_cambio?: number
         }
         Update: {
+          banco_id?: string | null
           caja_chica_id?: string | null
           categoria?: string
           condicion_pago?: string
@@ -684,6 +702,7 @@ export type Database = {
           dias_credito?: number
           estado_pago?: string
           fecha?: string
+          fecha_pago?: string | null
           fecha_vencimiento?: string | null
           id?: string
           moneda?: Database["public"]["Enums"]["moneda"]
@@ -695,6 +714,13 @@ export type Database = {
           tipo_cambio?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "gastos_generales_banco_id_fkey"
+            columns: ["banco_id"]
+            isOneToOne: false
+            referencedRelation: "bancos"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "gastos_generales_caja_chica_id_fkey"
             columns: ["caja_chica_id"]
@@ -1126,6 +1152,7 @@ export type Database = {
       }
       ventas: {
         Row: {
+          banco_id: string | null
           cliente_id: string | null
           concepto: string
           condicion_pago: string
@@ -1144,6 +1171,7 @@ export type Database = {
           tipo_cambio: number
         }
         Insert: {
+          banco_id?: string | null
           cliente_id?: string | null
           concepto: string
           condicion_pago?: string
@@ -1162,6 +1190,7 @@ export type Database = {
           tipo_cambio?: number
         }
         Update: {
+          banco_id?: string | null
           cliente_id?: string | null
           concepto?: string
           condicion_pago?: string
@@ -1180,6 +1209,13 @@ export type Database = {
           tipo_cambio?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "ventas_banco_id_fkey"
+            columns: ["banco_id"]
+            isOneToOne: false
+            referencedRelation: "bancos"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "ventas_cliente_id_fkey"
             columns: ["cliente_id"]
