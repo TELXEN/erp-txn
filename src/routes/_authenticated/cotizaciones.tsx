@@ -1,4 +1,3 @@
-import { codigoContextual } from "@/lib/categorias";
 import { createFileRoute } from "@tanstack/react-router";
 import React, { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -7,11 +6,13 @@ import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
-import { siguienteCodigoEnCapitulo, useEspecialidadesPartida } from "@/lib/especialidades";
+import { useEspecialidadesPartida } from "@/lib/especialidades";
 import {
   agruparPorCategoria,
   categoriasDe,
-  siguienteCodigoEnCategoria,
+  codigoContextual,
+  prefijosWBS,
+  renumerarWBS,
   useCategoriasPartida,
 } from "@/lib/categorias";
 import { useUnidadesMedida } from "@/lib/unidades";
@@ -29,6 +30,7 @@ import {
   vigenciaHasta,
   type EstadoCotizacion,
 } from "@/lib/cotizaciones";
+import { ListOrdered, Upload } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/cotizaciones")({
   head: () => ({
@@ -197,6 +199,50 @@ function Cotizaciones() {
     qc.invalidateQueries({ queryKey: ["cotizacion_items", seleccion] });
   }
 
+  async function renumerarCotizacion() {
+    if (!cot) return;
+    const cambios = renumerarWBS(items);
+    if (!cambios.length) return window.alert("La numeración de esta cotización ya está ordenada.");
+    if (
+      !window.confirm(
+        `Se reasignarán códigos correlativos (01, 01.01, 01.01.01) a ${cambios.length} partida(s). ¿Continuar?`,
+      )
+    )
+      return;
+    setError("");
+    for (const cambio of cambios) {
+      const { error: err } = await supabase
+        .from("cotizacion_items")
+        .update({ codigo: cambio.codigo })
+        .eq("id", cambio.id);
+      if (err) return setError(err.message);
+    }
+    await qc.invalidateQueries({ queryKey: ["cotizacion_items", cot.id] });
+    setAviso("Jerarquía WBS renumerada correctamente.");
+  }
+
+  function exportarCotizacion() {
+    if (!cot) return;
+    const wbs = prefijosWBS(items);
+    exportarExcel(`cotizacion-${cot.codigo ?? cot.id}`, [
+      {
+        nombre: "Partidas",
+        filas: items.map((i) => ({
+          "Cód. Especialidad": wbs.capitulo(i.especialidad),
+          Especialidad: i.especialidad,
+          "Cód. Categoría": wbs.categoria(i.especialidad, i.categoria),
+          Categoría: i.categoria ?? "",
+          "Cód. Partida": i.codigo,
+          Partida: i.nombre,
+          Unidad: i.unidad,
+          Metrado: Number(i.metrado),
+          "Precio Unitario (S/)": Number(i.precio_unitario),
+          "Parcial (S/)": Number(i.metrado) * Number(i.precio_unitario),
+        })),
+      },
+    ]);
+  }
+
   async function cambiarEstado(id: string, estado: EstadoCotizacion) {
     await supabase.from("cotizaciones").update({ estado }).eq("id", id);
     qc.invalidateQueries({ queryKey: ["cotizaciones"] });
@@ -272,27 +318,8 @@ function Cotizaciones() {
         subtitulo="Propuestas comerciales a clientes"
         acciones={
           cot && (
-            <Boton
-              variante="linea"
-              onClick={() =>
-                exportarExcel(`cotizacion-${cot.codigo ?? cot.id}`, [
-                  {
-                    nombre: "Partidas",
-                    filas: items.map((i) => ({
-                      Código: i.codigo,
-                      Partida: i.nombre,
-                      Especialidad: i.especialidad,
-                      Categoría: i.categoria ?? "",
-                      Unidad: i.unidad,
-                      Metrado: Number(i.metrado),
-                      "Precio Unitario (S/)": Number(i.precio_unitario),
-                      "Parcial (S/)": Number(i.metrado) * Number(i.precio_unitario),
-                    })),
-                  },
-                ])
-              }
-            >
-              Exportar cotización
+            <Boton variante="linea" onClick={exportarCotizacion}>
+              <Upload size={13} /> Exportar cotización
             </Boton>
           )
         }
@@ -436,6 +463,9 @@ function Cotizaciones() {
               <Boton onClick={convertirEnObra} disabled={Boolean(cot.proyecto_id)}>
                 {cot.proyecto_id ? "Obra generada" : "Convertir en obra"}
               </Boton>
+              <Boton variante="linea" onClick={() => void renumerarCotizacion()}>
+                <ListOrdered size={13} /> Renumerar WBS
+              </Boton>
             </div>
           }
         >
@@ -504,8 +534,8 @@ function Cotizaciones() {
               </Campo>
               <p className="mt-1 font-mono text-[10px] text-muted-foreground">
                 {maestraSel && maestraSel !== "manual"
-                  ? "Código y descripción vinculados al catálogo maestro."
-                  : "Campos libres: escribe el código y la descripción de la partida."}
+                  ? "Descripción y clasificación vinculadas al catálogo maestro."
+                  : "Campos libres: escribe la descripción y selecciona su clasificación."}
               </p>
             </div>
             <Campo etiqueta="Código">
@@ -513,7 +543,7 @@ function Cotizaciones() {
                 value={item.codigo}
                 onChange={(e) => setItem({ ...item, codigo: e.target.value })}
                 maxLength={20}
-                placeholder="05.01"
+                placeholder="01.01.01"
               />
             </Campo>
             <div className="sm:col-span-2">
@@ -536,7 +566,7 @@ function Cotizaciones() {
                     ...item,
                     especialidad,
                     categoria: "",
-                    codigo: item.codigo.trim() || sugerirCodigo(especialidad),
+                    codigo: sugerirCodigo(especialidad),
                   });
                 }}
               >
@@ -545,7 +575,7 @@ function Cotizaciones() {
                   .filter((e) => e.activo)
                   .map((e) => (
                     <option key={e.id} value={e.nombre}>
-                      {e.codigo} {e.nombre}
+                      {e.nombre}
                     </option>
                   ))}
               </Select>
@@ -558,14 +588,14 @@ function Cotizaciones() {
                   setItem({
                     ...item,
                     categoria,
-                    codigo: item.codigo.trim() || sugerirCodigo(item.especialidad, categoria),
+                    codigo: sugerirCodigo(item.especialidad, categoria),
                   });
                 }}
               >
                 <option value="">Sin categoría</option>
                 {categoriasDe(item.especialidad, categorias).map((c) => (
                   <option key={c.id} value={c.nombre}>
-                    {c.codigo} {c.nombre}
+                    {c.nombre}
                   </option>
                 ))}
               </Select>
@@ -630,12 +660,22 @@ function Cotizaciones() {
                   <th className="px-5 py-2 text-right font-medium">Acciones</th>
                 </tr>
               </thead>
-              {agruparPorCategoria(items).map((grupo) => (
+              {agruparPorCategoria(items).map((grupo) => {
+                const wbs = prefijosWBS(items);
+                const subtotalEspecialidad = grupo.categorias.reduce(
+                  (total, sub) =>
+                    total + sub.items.reduce((s, i) => s + Number(i.metrado) * Number(i.precio_unitario), 0),
+                  0,
+                );
+                return (
                 <tbody key={grupo.especialidad}>
-                  <tr className="bg-muted/40">
-                    <td colSpan={7} className="px-5 py-2 text-[11px] font-semibold uppercase tracking-wide text-ink">
+                  <tr className="border-b border-line/40 bg-muted/40">
+                    <td className="px-5 py-2 font-semibold text-ink">{wbs.capitulo(grupo.especialidad)}</td>
+                    <td colSpan={4} className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-ink">
                       {grupo.especialidad}
                     </td>
+                    <td className="px-3 py-2 text-right font-semibold text-ink">{soles(subtotalEspecialidad)}</td>
+                    <td />
                   </tr>
                   {grupo.categorias.map((sub) => {
                     const subtotal = sub.items.reduce(
@@ -645,7 +685,10 @@ function Cotizaciones() {
                     return (
                       <React.Fragment key={`${grupo.especialidad}-${sub.categoria}`}>
                         <tr className="bg-muted/20">
-                          <td colSpan={5} className="px-5 py-1.5 pl-8 text-[11px] font-semibold text-muted-foreground">
+                          <td className="px-5 py-1.5 pl-8 text-[10px] font-semibold text-ink">
+                            {wbs.categoria(grupo.especialidad, sub.categoria)}
+                          </td>
+                          <td colSpan={4} className="px-3 py-1.5 text-[11px] font-semibold text-muted-foreground">
                             {sub.categoria}
                           </td>
                           <td className="px-3 py-1.5 text-right font-semibold text-ink">{soles(subtotal)}</td>
@@ -672,7 +715,8 @@ function Cotizaciones() {
                     );
                   })}
                 </tbody>
-              ))}
+                );
+              })}
             </table>
           )}
 
