@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { InsigniaCategoriaGasto } from "@/components/estado-ui";
-import { Check, ChevronDown, ChevronRight, Info, Pencil, Trash2, X } from "lucide-react";
+import { Check, ChevronDown, ChevronRight, Info, Pencil, Trash2, Upload, X } from "lucide-react";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
 import { useCategoriasGastoGeneral, useGastosGenerales, useProyectos, useTerceros } from "@/lib/datos";
@@ -238,7 +238,7 @@ function GastosGenerales() {
               ])
             }
           >
-            Exportar a Excel
+            <Upload size={13} /> Exportar a Excel
           </Boton>
         }
       />

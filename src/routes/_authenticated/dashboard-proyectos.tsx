@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState, type ReactNode } from "react";
-import { AlertTriangle, CalendarDays, Clock3, Flag, Layers3, ListTodo } from "lucide-react";
+import { AlertTriangle, CalendarDays, Clock3, Flag, Layers3, ListTodo, Upload } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { CurvaS } from "@/components/CurvaS";
@@ -202,7 +202,7 @@ function DashboardProyectos() {
         acciones={
           <>
             <Boton variante="linea" onClick={excel}>
-              Exportar a Excel
+              <Upload size={13} /> Exportar a Excel
             </Boton>
             <Boton onClick={pdf}>Exportar a PDF</Boton>
           </>

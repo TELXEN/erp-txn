@@ -4,7 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
-import { Lock, Trash2 } from "lucide-react";
+import { Lock, Trash2, Upload } from "lucide-react";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
 import {
@@ -224,7 +224,7 @@ function CajaChica() {
               ])
             }
           >
-            Exportar a Excel
+            <Upload size={13} /> Exportar a Excel
           </Boton>
         }
       />

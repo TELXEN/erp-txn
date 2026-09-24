@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Check, Pencil, Trash2, X } from "lucide-react";
+import { Check, Pencil, Trash2, Upload, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
@@ -171,7 +171,7 @@ function Personal() {
               ])
             }
           >
-            Exportar a Excel
+            <Upload size={13} /> Exportar a Excel
           </Boton>
         }
       />
