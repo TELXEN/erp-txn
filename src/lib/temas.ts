@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export type TemaId = "telxen" | "esmeralda" | "cobalto" | "zafiro" | "redwood";
+export type TemaId = "telxen" | "esmeralda" | "cobalto" | "zafiro" | "redwood" | "monocromo";
 
 export type Tema = {
   id: TemaId;
