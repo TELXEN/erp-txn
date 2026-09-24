@@ -1181,7 +1181,7 @@ function TiposPresupuesto() {
 function ConfiguracionProyectos() {
   return (
     <div className="grid gap-4 lg:grid-cols-2">
-      <Panel titulo="Status de proyecto">
+      <Panel titulo="Estado del proyecto">
         <div className="space-y-2 p-5">
           <p className="mb-3 text-xs text-muted-foreground">
             Escala de estados usada en los tableros Kanban de proyectos y partidas.
