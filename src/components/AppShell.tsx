@@ -30,7 +30,7 @@ type Categoria = { titulo: string; items: Item[] };
 
 const MENU: Categoria[] = [
   {
-    titulo: "Dashboards",
+    titulo: "REPORTES Y ANALISIS",
     items: [
       { a: "/dashboard", texto: "Dashboard Financiero", roles: ["gerente"], icono: BarChart3 },
       { a: "/dashboard-proyectos", texto: "Dashboard de Proyectos", roles: ["administrador", "gerente"], icono: Gauge },
