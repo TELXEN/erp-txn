@@ -231,7 +231,7 @@ export function CategoriasPartida() {
                     </td>
                   </tr>
                 ) : (
-                    <td className="px-5 py-2.5 font-semibold text-primary">{c.codigo || "—"}</td>
+                    <tr key={c.id} className="border-b border-line/40 last:border-0">
                     <td className="px-3 py-2.5 font-semibold text-ink">{c.nombre}</td>
                     <td className="px-3 py-2.5 text-muted-foreground">{c.especialidad || "—"}</td>
                     <td className="px-3 py-2.5 text-right text-muted-foreground">{c.orden}</td>
@@ -257,8 +257,8 @@ export function CategoriasPartida() {
                           className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-bad hover:text-bad"
                         >
                           <Trash2 size={14} />
-          Las categorías agrupan las partidas dentro de cada especialidad. No llevan código fijo: el código
-          (01.01, 01.02...) se asigna al cargarlas en cada obra o cotización.
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ),
