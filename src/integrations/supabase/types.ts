@@ -17,26 +17,41 @@ export type Database = {
       bancos: {
         Row: {
           activo: boolean
+          cci: string
           created_at: string
+          fecha_saldo_inicial: string
           id: string
           monedas: string
           nombre: string
+          numero_cuenta: string
+          saldo_inicial: number
+          tipo_cuenta: string
           updated_at: string
         }
         Insert: {
           activo?: boolean
+          cci?: string
           created_at?: string
+          fecha_saldo_inicial?: string
           id?: string
           monedas?: string
           nombre: string
+          numero_cuenta?: string
+          saldo_inicial?: number
+          tipo_cuenta?: string
           updated_at?: string
         }
         Update: {
           activo?: boolean
+          cci?: string
           created_at?: string
+          fecha_saldo_inicial?: string
           id?: string
           monedas?: string
           nombre?: string
+          numero_cuenta?: string
+          saldo_inicial?: number
+          tipo_cuenta?: string
           updated_at?: string
         }
         Relationships: []

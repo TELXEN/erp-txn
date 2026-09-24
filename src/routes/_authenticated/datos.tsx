@@ -28,6 +28,7 @@ import { CodificacionCotizaciones } from "@/components/CodificacionCotizaciones"
 import { EspecialidadesPartida } from "@/components/EspecialidadesPartida";
 import { UnidadesMedida } from "@/components/UnidadesMedida";
 import { PartidasMaestras } from "@/components/PartidasMaestras";
+import { CuentasBancarias, type CuentaBancaria } from "@/components/CuentasBancarias";
 import { CategoriasPartida } from "@/components/CategoriasPartida";
 
 export const Route = createFileRoute("/_authenticated/datos")({
@@ -59,7 +60,7 @@ type Tercero = {
   activo: boolean;
 };
 
-type Banco = { id: string; nombre: string; monedas: string; activo: boolean };
+type Banco = CuentaBancaria;
 type Catalogo = {
   id: string;
   codigo: string;
@@ -115,8 +116,6 @@ function Datos() {
   const [error, setError] = useState("");
   const [form, setForm] = useState(formVacio);
   const [editando, setEditando] = useState<Tercero | null>(null);
-  const [formBanco, setFormBanco] = useState({ nombre: "", monedas: "PEN" });
-  const [editandoBanco, setEditandoBanco] = useState<Banco | null>(null);
 
   const { data: terceros = [] } = useQuery({
     queryKey: ["terceros"],
@@ -213,37 +212,6 @@ function Datos() {
     qc.invalidateQueries({ queryKey: ["terceros"] });
   }
 
-  async function guardarBanco(e: React.FormEvent) {
-    e.preventDefault();
-    setError("");
-    const { error: err } = await supabase
-      .from("bancos")
-      .insert({ nombre: formBanco.nombre.trim(), monedas: formBanco.monedas });
-    if (err)
-      return setError(err.code === "23505" ? "Ese banco ya está registrado." : err.message);
-    setFormBanco({ nombre: "", monedas: "PEN" });
-    qc.invalidateQueries({ queryKey: ["bancos"] });
-  }
-
-  async function actualizarBanco() {
-    if (!editandoBanco) return;
-    setError("");
-    const { error: err } = await supabase
-      .from("bancos")
-      .update({ nombre: editandoBanco.nombre.trim(), monedas: editandoBanco.monedas })
-      .eq("id", editandoBanco.id);
-    if (err)
-      return setError(err.code === "23505" ? "Ese banco ya está registrado." : err.message);
-    setEditandoBanco(null);
-    qc.invalidateQueries({ queryKey: ["bancos"] });
-  }
-
-  async function eliminarBanco(id: string) {
-    if (!window.confirm("¿Eliminar este banco del catálogo? Esta acción no se puede deshacer.")) return;
-    const { error: err } = await supabase.from("bancos").delete().eq("id", id);
-    if (err) return setError(err.message);
-    qc.invalidateQueries({ queryKey: ["bancos"] });
-  }
 
   return (
     <>
@@ -271,7 +239,16 @@ function Datos() {
                 },
                 {
                   nombre: "Bancos",
-                  filas: bancos.map((b) => ({ Banco: b.nombre, Monedas: b.monedas })),
+                  filas: bancos.map((b) => ({
+                    Banco: b.nombre,
+                    Moneda: b.monedas,
+                    Tipo: b.tipo_cuenta,
+                    "N° Cuenta": b.numero_cuenta,
+                    CCI: b.cci,
+                    "Saldo Inicial": Number(b.saldo_inicial),
+                    "Fecha Saldo": b.fecha_saldo_inicial,
+                    Estado: b.activo ? "Activa" : "Inactiva",
+                  })),
                 },
                 {
                   nombre: "Costos",
@@ -633,129 +610,7 @@ function Datos() {
           </Panel>
         </>
       ) : pestana === "bancos" ? (
-        <>
-          <Panel titulo="Nuevo banco" className="mb-4">
-            <form onSubmit={guardarBanco} className="grid gap-2 p-3 sm:grid-cols-4">
-              <Campo etiqueta="Nombre del banco">
-                <Input
-                  className="py-1.5"
-                  value={formBanco.nombre}
-                  onChange={(e) => setFormBanco({ ...formBanco, nombre: e.target.value })}
-                  required
-                  maxLength={120}
-                />
-              </Campo>
-              <Campo etiqueta="Monedas admitidas">
-                <Select
-                  className="py-1.5"
-                  value={formBanco.monedas}
-                  onChange={(e) => setFormBanco({ ...formBanco, monedas: e.target.value })}
-                >
-                  {MONEDAS.map((m) => (
-                    <option key={m} value={m}>
-                      {ETIQUETA_MONEDA[m]}
-                    </option>
-                  ))}
-                </Select>
-              </Campo>
-              <div className="flex items-end">
-                <Boton type="submit">Registrar banco</Boton>
-              </div>
-            </form>
-          </Panel>
-
-          <Panel
-            titulo="Bancos registrados"
-            extra={<span className="font-mono text-[11px] text-muted-foreground">{bancos.length} registros</span>}
-          >
-            {bancos.length === 0 ? (
-              <Vacio texto="Aún no hay bancos registrados." />
-            ) : (
-              <table className="w-full table-fixed font-mono text-xs">
-                <thead>
-                  <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                    <th className="w-6/12 px-5 py-2 font-medium">Banco</th>
-                    <th className="w-4/12 px-3 py-2 font-medium">Monedas</th>
-                    <th className="w-2/12 px-5 py-2"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {bancos.map((b) =>
-                    editandoBanco?.id === b.id ? (
-                      <tr key={b.id} className="border-b border-line/60 last:border-0">
-                        <td className="px-5 py-2">
-                          <Input
-                            className="py-1 text-xs"
-                            value={editandoBanco.nombre}
-                            onChange={(e) => setEditandoBanco({ ...editandoBanco, nombre: e.target.value })}
-                          />
-                        </td>
-                        <td className="px-3 py-2">
-                          <Select
-                            className="py-1 text-xs"
-                            value={editandoBanco.monedas}
-                            onChange={(e) => setEditandoBanco({ ...editandoBanco, monedas: e.target.value })}
-                          >
-                            {MONEDAS.map((m) => (
-                              <option key={m} value={m}>
-                                {ETIQUETA_MONEDA[m]}
-                              </option>
-                            ))}
-                          </Select>
-                        </td>
-                        <td className="px-5 py-2">
-                          <div className="flex items-center justify-end gap-1">
-                            <button
-                              type="button"
-                              onClick={actualizarBanco}
-                              className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground"
-                              title="Guardar"
-                            >
-                              <Check size={14} />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setEditandoBanco(null)}
-                              className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line hover:bg-muted"
-                              title="Cancelar"
-                            >
-                              <X size={14} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ) : (
-                      <tr key={b.id} className="border-b border-line/60 last:border-0">
-                        <td className="px-5 py-2.5 font-semibold text-ink">{b.nombre}</td>
-                        <td className="px-3 py-2.5 text-muted-foreground">{ETIQUETA_MONEDA[b.monedas]}</td>
-                        <td className="px-5 py-2">
-                          <div className="flex items-center justify-end gap-1">
-                            <button
-                              type="button"
-                              onClick={() => setEditandoBanco(b)}
-                              className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"
-                              title="Editar"
-                            >
-                              <Pencil size={14} />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => eliminarBanco(b.id)}
-                              className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-bad hover:text-bad"
-                              title="Eliminar"
-                            >
-                              <Trash2 size={14} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ),
-                  )}
-                </tbody>
-              </table>
-            )}
-          </Panel>
-        </>
+        <CuentasBancarias />
       ) : pestana === "cargos" ? (
         <CargosPersonal />
       ) : pestana === "categoriasgg" ? (
