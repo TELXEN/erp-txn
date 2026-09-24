@@ -198,14 +198,35 @@ function Partidas() {
     qc.invalidateQueries({ queryKey: ["partidas"] });
   }
 
+  async function renumerar(proyectoId: string, etiqueta: string) {
+    const lista = partidas.filter((p) => p.proyecto_id === proyectoId);
+    const cambios = renumerarWBS(lista);
+    if (!cambios.length) return window.alert(`La numeración de ${etiqueta} ya está ordenada.`);
+    if (
+      !window.confirm(
+        `Se reasignarán códigos correlativos (01, 01.01, 01.01.01) a ${cambios.length} partida(s) de ${etiqueta}. ¿Continuar?`,
+      )
+    )
+      return;
+    setError("");
+    for (const c of cambios) {
+      const { error: err } = await supabase.from("partidas").update({ codigo: c.codigo }).eq("id", c.id);
+      if (err) return setError(err.message);
+    }
+    qc.invalidateQueries({ queryKey: ["partidas"] });
+  }
+
   function exportar() {
     exportarExcel("partidas", [
       {
         nombre: "Partidas",
         filas: visibles.map((p) => {
+          const wbs = prefijosWBS(partidas.filter((x) => x.proyecto_id === p.proyecto_id));
           return {
             Proyecto: nombreProyecto(p.proyecto_id),
+            "Cód. Especialidad": wbs.capitulo(p.especialidad),
             Especialidad: p.especialidad,
+            "Cód. Categoría": wbs.categoria(p.especialidad, p.categoria),
             Categoría: p.categoria ?? "",
             Código: p.codigo ?? "",
             Partida: p.nombre,
@@ -220,6 +241,9 @@ function Partidas() {
             "Aplica Utilidad": cobraUtilidad(p, tipos) ? "Si" : "No",
           };
         }),
+      },
+    ]);
+  }
       },
     ]);
   }
