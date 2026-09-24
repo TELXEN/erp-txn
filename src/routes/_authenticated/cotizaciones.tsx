@@ -73,6 +73,11 @@ function Cotizaciones() {
   const { data: codificacionCot } = useCodificacionCotizacion();
 
   const [seleccion, setSeleccion] = useState<string | null>(null);
+  const { data: items = [] } = useCotizacionItems(seleccion);
+  const [error, setError] = useState("");
+  const [aviso, setAviso] = useState("");
+
+  const [form, setForm] = useState({
     codigo: "",
     cliente_id: "",
     nombre: "",
