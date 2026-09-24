@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Fragment, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
@@ -236,7 +237,7 @@ function Tesoreria() {
               ])
             }
           >
-            Exportar a Excel
+            <Upload size={13} /> Exportar a Excel
           </Boton>
         }
       />

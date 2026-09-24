@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
+import { Upload } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { useAuth } from "@/lib/auth";
@@ -342,7 +343,7 @@ function Dashboard() {
               </Select>
             </div>
             <Boton variante="linea" onClick={excel}>
-              Exportar a Excel
+              <Upload size={13} /> Exportar a Excel
             </Boton>
             <Boton onClick={pdf}>Exportar a PDF</Boton>
           </>
