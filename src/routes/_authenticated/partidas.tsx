@@ -1,3 +1,4 @@
+import { codigoContextual } from "@/lib/categorias";
 import { createFileRoute } from "@tanstack/react-router";
 import React, { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -122,15 +123,13 @@ function Partidas() {
     const usados = partidas.map((p) => p.especialidad).filter(Boolean);
     return [...new Set([...activos, ...usados])];
   }, [capitulos, partidas]);
-  /** Código sugerido: dentro de la categoría (05.01.01) o del capítulo (05.01). */
+  /** Código contextual de la obra: capítulo y categoría según lo ya cargado en ese proyecto. */
   const sugerir = (proyectoId: string, especialidad: string, categoria = "") =>
-    categoria
-      ? siguienteCodigoEnCategoria(
-          categoria,
-          partidas.filter((p) => p.proyecto_id === proyectoId).map((p) => p.codigo),
-          categorias,
-        )
-      : siguienteCodigoPartida(especialidad, proyectoId, partidas, capitulos);
+    codigoContextual(
+      especialidad,
+      categoria,
+      partidas.filter((p) => p.proyecto_id === proyectoId),
+    );
   const grupos = useMemo(() => agruparPorProyectoYEspecialidad(visibles, nombreProyecto), [visibles, nombreProyecto]);
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;

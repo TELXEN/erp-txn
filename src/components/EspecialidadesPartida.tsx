@@ -22,16 +22,15 @@ export function EspecialidadesPartida() {
   async function crear(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    const codigo = form.codigo.trim().padStart(2, "0");
     const nombre = form.nombre.trim();
-    if (!codigo || !nombre) return setError("Escribe el código y el nombre del capítulo.");
+    if (!nombre) return setError("Escribe el nombre de la especialidad.");
     const orden = Number(form.orden) || lista.length + 1;
     const { error: err } = await supabase
       .from("especialidades_partida")
-      .insert({ codigo, nombre, orden });
+      .insert({ codigo: "", nombre, orden });
     if (err)
       return setError(
-        err.message.includes("duplicate") ? "Ya existe un capítulo con ese código o nombre." : err.message,
+        err.message.includes("duplicate") ? "Ya existe una especialidad con ese nombre." : err.message,
       );
     setForm(vacio);
     refrescar();
@@ -44,7 +43,6 @@ export function EspecialidadesPartida() {
     const { error: err } = await supabase
       .from("especialidades_partida")
       .update({
-        codigo: editando.codigo.trim().padStart(2, "0"),
         nombre: editando.nombre.trim(),
         orden: Number(editando.orden) || 0,
         activo: editando.activo,
@@ -73,16 +71,7 @@ export function EspecialidadesPartida() {
   return (
     <>
       <Panel titulo="Nuevo registro de especialidades" className="mb-4">
-        <form onSubmit={crear} className="grid gap-3 p-4 sm:grid-cols-4">
-          <Campo etiqueta="Código">
-            <Input
-              className="py-1.5"
-              value={form.codigo}
-              onChange={(e) => setForm({ ...form, codigo: e.target.value })}
-              maxLength={4}
-              placeholder="09"
-            />
-          </Campo>
+        <form onSubmit={crear} className="grid gap-3 p-4 sm:grid-cols-3">
           <Campo etiqueta="Nombre del capítulo">
             <Input
               className="py-1.5"
@@ -107,7 +96,7 @@ export function EspecialidadesPartida() {
               Agregar especialidad
             </Boton>
           </div>
-          {error && <p className="font-mono text-xs text-bad sm:col-span-4">{error}</p>}
+          {error && <p className="font-mono text-xs text-bad sm:col-span-3">{error}</p>}
         </form>
       </Panel>
 
@@ -118,8 +107,7 @@ export function EspecialidadesPartida() {
           <table className="w-full table-fixed font-mono text-xs">
             <thead>
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                <th className="w-[12%] px-5 py-2 font-medium">Código</th>
-                <th className="w-[46%] px-3 py-2 font-medium">Capítulo / Especialidad</th>
+                <th className="w-[58%] px-5 py-2 font-medium">Especialidad</th>
                 <th className="w-[12%] px-3 py-2 text-right font-medium">Orden</th>
                 <th className="w-[15%] px-3 py-2 font-medium">Estado</th>
                 <th className="w-[15%] px-5 py-2 text-right font-medium">Acciones</th>
@@ -129,14 +117,6 @@ export function EspecialidadesPartida() {
               {lista.map((e) =>
                 editando?.id === e.id ? (
                   <tr key={e.id} className="border-b border-line/40 last:border-0">
-                    <td className="px-5 py-2">
-                      <Input
-                        className="py-1 text-xs"
-                        value={editando.codigo}
-                        onChange={(ev) => setEditando({ ...editando, codigo: ev.target.value })}
-                        maxLength={4}
-                      />
-                    </td>
                     <td className="px-3 py-2">
                       <Input
                         className="py-1 text-xs"
@@ -185,7 +165,6 @@ export function EspecialidadesPartida() {
                   </tr>
                 ) : (
                   <tr key={e.id} className="border-b border-line/40 last:border-0">
-                    <td className="px-5 py-2.5 font-semibold text-primary">{e.codigo}</td>
                     <td className="px-3 py-2.5 font-semibold text-ink">{e.nombre}</td>
                     <td className="px-3 py-2.5 text-right text-muted-foreground">{e.orden}</td>
                     <td className="px-3 py-2.5">
@@ -220,8 +199,7 @@ export function EspecialidadesPartida() {
           </table>
         )}
         <p className="border-t border-line px-5 py-3 font-mono text-[10px] leading-relaxed text-muted-foreground">
-          Al registrar una partida el sistema sugiere el código del capítulo elegido (por ejemplo 05.01, 05.02),
-          y puedes editarlo libremente si el expediente del cliente usa otra numeración.
+          Las especialidades no llevan código fijo: el capítulo (01, 02...) se asigna según el orden en que se cargan en cada obra o cotización.
         </p>
       </Panel>
     </>

@@ -120,7 +120,7 @@ export function PartidasMaestras() {
               <option value="">Selecciona...</option>
               {opcionesEspecialidad.map((e) => (
                 <option key={e.id} value={e.nombre}>
-                  {e.codigo} {e.nombre}
+                  {e.nombre}
                 </option>
               ))}
             </Select>
@@ -140,7 +140,7 @@ export function PartidasMaestras() {
               <option value="">Sin categoría</option>
               {categoriasDe(form.especialidad, categorias).map((c) => (
                 <option key={c.id} value={c.nombre}>
-                  {c.codigo} {c.nombre}
+                  {c.nombre}
                 </option>
               ))}
             </Select>
@@ -220,7 +220,7 @@ export function PartidasMaestras() {
                         <option value="">Sin especialidad</option>
                         {opcionesEspecialidad.map((e) => (
                           <option key={e.id} value={e.nombre}>
-                            {e.codigo} {e.nombre}
+                            {e.nombre}
                           </option>
                         ))}
                       </Select>
@@ -234,7 +234,7 @@ export function PartidasMaestras() {
                         <option value="">Sin categoría</option>
                         {categoriasDe(editando.especialidad, categorias).map((c) => (
                           <option key={c.id} value={c.nombre}>
-                            {c.codigo} {c.nombre}
+                            {c.nombre}
                           </option>
                         ))}
                       </Select>

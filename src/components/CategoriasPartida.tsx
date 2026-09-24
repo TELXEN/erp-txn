@@ -3,9 +3,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Check, Pencil, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Boton, Campo, Input, Panel, Select, Vacio } from "@/components/ui-kit";
-import { codigoEspecialidad, useEspecialidadesPartida } from "@/lib/especialidades";
+import { useEspecialidadesPartida } from "@/lib/especialidades";
 import {
-  siguienteCodigoDeCategoria,
   useCategoriasPartida,
   type CategoriaPartida,
 } from "@/lib/categorias";
@@ -17,7 +16,6 @@ export function CategoriasPartida() {
   const { data: lista = [] } = useCategoriasPartida();
   const { data: especialidades = [] } = useEspecialidadesPartida();
   const [form, setForm] = useState(vacio);
-  const [codigoManual, setCodigoManual] = useState(false);
   const [editando, setEditando] = useState<CategoriaPartida | null>(null);
   const [filtro, setFiltro] = useState("");
   const [error, setError] = useState("");
@@ -41,19 +39,16 @@ export function CategoriasPartida() {
     const nombre = form.nombre.trim();
     if (!nombre) return setError("Escribe el nombre de la categoría.");
     if (!form.especialidad) return setError("Elige la especialidad a la que pertenece.");
-    const capitulo = codigoEspecialidad(form.especialidad, especialidades);
-    const codigo = form.codigo.trim() || siguienteCodigoDeCategoria(capitulo, lista);
     const orden =
       Number(form.orden) || lista.filter((c) => c.especialidad === form.especialidad).length + 1;
     const { error: err } = await supabase
       .from("categorias_partida")
-      .insert({ codigo, nombre, especialidad: form.especialidad, orden });
+      .insert({ codigo: "", nombre, especialidad: form.especialidad, orden });
     if (err)
       return setError(
         err.code === "23505" ? "Ya existe esa categoría en la especialidad elegida." : err.message,
       );
     setForm({ ...vacio, especialidad: form.especialidad });
-    setCodigoManual(false);
     refrescar();
   }
 
@@ -65,7 +60,6 @@ export function CategoriasPartida() {
     const { error: err } = await supabase
       .from("categorias_partida")
       .update({
-        codigo: editando.codigo.trim(),
         nombre,
         especialidad: editando.especialidad,
         orden: Number(editando.orden) || 0,
@@ -98,43 +92,23 @@ export function CategoriasPartida() {
   return (
     <>
       <Panel titulo="Nuevo registro de categorías" className="mb-4">
-        <form onSubmit={crear} className="grid gap-3 p-4 sm:grid-cols-5">
+        <form onSubmit={crear} className="grid gap-3 p-4 sm:grid-cols-4">
           <Campo etiqueta="Especialidad">
             <Select
               className="py-1.5"
               value={form.especialidad}
               onChange={(e) => {
                 const especialidad = e.target.value;
-                const capitulo = codigoEspecialidad(especialidad, especialidades);
-                setForm({
-                  ...form,
-                  especialidad,
-                  codigo:
-                    codigoManual && form.codigo
-                      ? form.codigo
-                      : siguienteCodigoDeCategoria(capitulo, lista),
-                });
+                setForm({ ...form, especialidad });
               }}
             >
               <option value="">Selecciona...</option>
               {opcionesEspecialidad.map((e) => (
                 <option key={e.id} value={e.nombre}>
-                  {e.codigo} {e.nombre}
+                  {e.nombre}
                 </option>
               ))}
             </Select>
-          </Campo>
-          <Campo etiqueta="Código">
-            <Input
-              className="py-1.5 font-mono"
-              value={form.codigo}
-              onChange={(e) => {
-                setCodigoManual(true);
-                setForm({ ...form, codigo: e.target.value });
-              }}
-              maxLength={20}
-              placeholder="05.01"
-            />
           </Campo>
           <div className="sm:col-span-2">
             <Campo etiqueta="Nombre de la categoría">
@@ -157,10 +131,10 @@ export function CategoriasPartida() {
               placeholder="1"
             />
           </Campo>
-          <div className="sm:col-span-5">
+          <div className="sm:col-span-4">
             <Boton type="submit">Agregar categoría</Boton>
           </div>
-          {error && <p className="font-mono text-xs text-bad sm:col-span-5">{error}</p>}
+          {error && <p className="font-mono text-xs text-bad sm:col-span-4">{error}</p>}
         </form>
       </Panel>
 
@@ -172,7 +146,7 @@ export function CategoriasPartida() {
               <option value="">Todas las especialidades</option>
               {opcionesEspecialidad.map((e) => (
                 <option key={e.id} value={e.nombre}>
-                  {e.codigo} {e.nombre}
+                  {e.nombre}
                 </option>
               ))}
             </Select>
@@ -185,8 +159,7 @@ export function CategoriasPartida() {
           <table className="w-full table-fixed font-mono text-xs">
             <thead>
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                <th className="w-[12%] px-5 py-2 font-medium">Código</th>
-                <th className="w-[36%] px-3 py-2 font-medium">Categoría</th>
+                <th className="w-[48%] px-3 py-2 font-medium">Categoría</th>
                 <th className="w-[24%] px-3 py-2 font-medium">Especialidad</th>
                 <th className="w-[9%] px-3 py-2 text-right font-medium">Orden</th>
                 <th className="w-[11%] px-3 py-2 font-medium">Estado</th>
@@ -197,14 +170,6 @@ export function CategoriasPartida() {
               {visibles.map((c) =>
                 editando?.id === c.id ? (
                   <tr key={c.id} className="border-b border-line/40 last:border-0">
-                    <td className="px-5 py-2">
-                      <Input
-                        className="py-1 font-mono text-xs"
-                        value={editando.codigo}
-                        onChange={(ev) => setEditando({ ...editando, codigo: ev.target.value })}
-                        maxLength={20}
-                      />
-                    </td>
                     <td className="px-3 py-2">
                       <Input
                         className="py-1 text-xs"
@@ -221,7 +186,7 @@ export function CategoriasPartida() {
                         <option value="">Sin especialidad</option>
                         {opcionesEspecialidad.map((e) => (
                           <option key={e.id} value={e.nombre}>
-                            {e.codigo} {e.nombre}
+                            {e.nombre}
                           </option>
                         ))}
                       </Select>
@@ -266,8 +231,7 @@ export function CategoriasPartida() {
                     </td>
                   </tr>
                 ) : (
-                  <tr key={c.id} className="border-b border-line/40 last:border-0">
-                    <td className="px-5 py-2.5 font-semibold text-primary">{c.codigo || "—"}</td>
+                    <tr key={c.id} className="border-b border-line/40 last:border-0">
                     <td className="px-3 py-2.5 font-semibold text-ink">{c.nombre}</td>
                     <td className="px-3 py-2.5 text-muted-foreground">{c.especialidad || "—"}</td>
                     <td className="px-3 py-2.5 text-right text-muted-foreground">{c.orden}</td>
@@ -303,8 +267,8 @@ export function CategoriasPartida() {
           </table>
         )}
         <p className="border-t border-line px-5 py-3 font-mono text-[10px] leading-relaxed text-muted-foreground">
-          Las categorías agrupan las partidas dentro de cada especialidad (por ejemplo 05.01 Suministro de
-          tableros eléctricos). Las partidas se numeran dentro de su categoría: 05.01.01, 05.01.02, etc.
+          Las categorías agrupan las partidas dentro de cada especialidad. No llevan código fijo: el código
+          (01.01, 01.02...) se asigna al cargarlas en cada obra o cotización.
         </p>
       </Panel>
     </>
