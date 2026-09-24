@@ -540,9 +540,13 @@ export type Database = {
           caja_chica_id: string | null
           cantidad: number
           comprobante: string
+          condicion_pago: string
           created_at: string
           descripcion: string
+          dias_credito: number
+          estado_pago: string
           fecha: string
+          fecha_vencimiento: string | null
           id: string
           moneda: Database["public"]["Enums"]["moneda"]
           monto: number
@@ -559,9 +563,13 @@ export type Database = {
           caja_chica_id?: string | null
           cantidad?: number
           comprobante?: string
+          condicion_pago?: string
           created_at?: string
           descripcion: string
+          dias_credito?: number
+          estado_pago?: string
           fecha?: string
+          fecha_vencimiento?: string | null
           id?: string
           moneda?: Database["public"]["Enums"]["moneda"]
           monto?: number
@@ -578,9 +586,13 @@ export type Database = {
           caja_chica_id?: string | null
           cantidad?: number
           comprobante?: string
+          condicion_pago?: string
           created_at?: string
           descripcion?: string
+          dias_credito?: number
+          estado_pago?: string
           fecha?: string
+          fecha_vencimiento?: string | null
           id?: string
           moneda?: Database["public"]["Enums"]["moneda"]
           monto?: number
@@ -628,9 +640,13 @@ export type Database = {
         Row: {
           caja_chica_id: string | null
           categoria: string
+          condicion_pago: string
           created_at: string
           descripcion: string
+          dias_credito: number
+          estado_pago: string
           fecha: string
+          fecha_vencimiento: string | null
           id: string
           moneda: Database["public"]["Enums"]["moneda"]
           monto: number
@@ -643,9 +659,13 @@ export type Database = {
         Insert: {
           caja_chica_id?: string | null
           categoria?: string
+          condicion_pago?: string
           created_at?: string
           descripcion: string
+          dias_credito?: number
+          estado_pago?: string
           fecha?: string
+          fecha_vencimiento?: string | null
           id?: string
           moneda?: Database["public"]["Enums"]["moneda"]
           monto?: number
@@ -658,9 +678,13 @@ export type Database = {
         Update: {
           caja_chica_id?: string | null
           categoria?: string
+          condicion_pago?: string
           created_at?: string
           descripcion?: string
+          dias_credito?: number
+          estado_pago?: string
           fecha?: string
+          fecha_vencimiento?: string | null
           id?: string
           moneda?: Database["public"]["Enums"]["moneda"]
           monto?: number
@@ -1104,9 +1128,13 @@ export type Database = {
         Row: {
           cliente_id: string | null
           concepto: string
+          condicion_pago: string
           created_at: string
+          dias_credito: number
           estado: Database["public"]["Enums"]["estado_venta"]
+          fecha_emision: string
           fecha_pago: string | null
+          fecha_vencimiento: string | null
           id: string
           moneda: Database["public"]["Enums"]["moneda"]
           monto: number
@@ -1118,9 +1146,13 @@ export type Database = {
         Insert: {
           cliente_id?: string | null
           concepto: string
+          condicion_pago?: string
           created_at?: string
+          dias_credito?: number
           estado?: Database["public"]["Enums"]["estado_venta"]
+          fecha_emision?: string
           fecha_pago?: string | null
+          fecha_vencimiento?: string | null
           id?: string
           moneda?: Database["public"]["Enums"]["moneda"]
           monto?: number
@@ -1132,9 +1164,13 @@ export type Database = {
         Update: {
           cliente_id?: string | null
           concepto?: string
+          condicion_pago?: string
           created_at?: string
+          dias_credito?: number
           estado?: Database["public"]["Enums"]["estado_venta"]
+          fecha_emision?: string
           fecha_pago?: string | null
+          fecha_vencimiento?: string | null
           id?: string
           moneda?: Database["public"]["Enums"]["moneda"]
           monto?: number
