@@ -111,6 +111,8 @@ const formVacio = {
   direccion: "",
   telefono: "",
   email: "",
+  contacto: "",
+  celular_contacto: "",
 };
 
 function Datos() {
@@ -239,6 +241,8 @@ function Datos() {
                     Proveedor: t.es_proveedor ? "Sí" : "No",
                     Dirección: t.direccion,
                     Teléfono: t.telefono,
+                    Contacto: t.contacto,
+                    "Celular Contacto": t.celular_contacto,
                     Correo: t.email,
                   })),
                 },
@@ -375,6 +379,22 @@ function Datos() {
                   maxLength={120}
                 />
               </Campo>
+              <Campo etiqueta="Persona de contacto">
+                <Input
+                  className="py-1.5"
+                  value={form.contacto}
+                  onChange={(e) => setForm({ ...form, contacto: e.target.value })}
+                  maxLength={120}
+                />
+              </Campo>
+              <Campo etiqueta="Celular / Teléfono del contacto">
+                <Input
+                  className="py-1.5"
+                  value={form.celular_contacto}
+                  onChange={(e) => setForm({ ...form, celular_contacto: e.target.value })}
+                  maxLength={30}
+                />
+              </Campo>
               <div className="flex flex-wrap items-end gap-3">
                 <label className="flex items-center gap-1.5 font-mono text-xs">
                   <input
@@ -424,13 +444,14 @@ function Datos() {
               <table className="w-full table-fixed font-mono text-xs">
                 <thead>
                   <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                    <th className="w-[12%] px-5 py-2 font-medium">Documento</th>
-                    <th className="w-[24%] px-3 py-2 font-medium">Razón social</th>
-                    <th className="w-[12%] px-3 py-2 font-medium">Tipo</th>
-                    <th className="w-[16%] px-3 py-2 font-medium">Dirección</th>
-                    <th className="w-[10%] px-3 py-2 font-medium">Teléfono</th>
-                    <th className="w-[14%] px-3 py-2 font-medium">Correo</th>
-                    <th className="w-[22%] px-5 py-2"></th>
+                    <th className="w-[11%] px-5 py-2 font-medium">Documento</th>
+                    <th className="w-[20%] px-3 py-2 font-medium">Razón social</th>
+                    <th className="w-[10%] px-3 py-2 font-medium">Tipo</th>
+                    <th className="w-[13%] px-3 py-2 font-medium">Dirección</th>
+                    <th className="w-[9%] px-3 py-2 font-medium">Teléfono</th>
+                    <th className="w-[14%] px-3 py-2 font-medium">Contacto</th>
+                    <th className="w-[13%] px-3 py-2 font-medium">Correo</th>
+                    <th className="w-[10%] px-5 py-2"></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -497,6 +518,20 @@ function Datos() {
                         <td className="px-3 py-2">
                           <Input
                             className="py-1 text-xs"
+                            placeholder="Persona de contacto"
+                            value={editando.contacto}
+                            onChange={(e) => setEditando({ ...editando, contacto: e.target.value })}
+                          />
+                          <Input
+                            className="mt-1 py-1 text-xs"
+                            placeholder="Celular / Teléfono"
+                            value={editando.celular_contacto}
+                            onChange={(e) => setEditando({ ...editando, celular_contacto: e.target.value })}
+                          />
+                        </td>
+                        <td className="px-3 py-2">
+                          <Input
+                            className="py-1 text-xs"
                             value={editando.email}
                             onChange={(e) => setEditando({ ...editando, email: e.target.value })}
                           />
@@ -536,6 +571,16 @@ function Datos() {
                         </td>
                         <td className="truncate px-3 py-2.5 text-muted-foreground">{t.direccion || "—"}</td>
                         <td className="px-3 py-2.5 text-muted-foreground">{t.telefono || "—"}</td>
+                        <td className="px-3 py-2.5 text-muted-foreground">
+                          {t.contacto ? (
+                            <>
+                              <span className="block truncate text-ink">{t.contacto}</span>
+                              <span className="block truncate text-[10px]">{t.celular_contacto || "—"}</span>
+                            </>
+                          ) : (
+                            "—"
+                          )}
+                        </td>
                         <td className="truncate px-3 py-2.5 text-muted-foreground">{t.email || "—"}</td>
                         <td className="px-5 py-2">
                           <div className="flex items-center justify-end gap-1">
