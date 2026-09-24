@@ -115,9 +115,6 @@ export function codigoContextual(especialidad: string, categoria: string, filas:
   const delCapitulo = conCodigo.filter((f) => (f.codigo as string).split(".")[0] === capitulo);
 
   const cat = categoria.trim();
-  if (!cat) {
-    return `${capitulo}.${pad(maxDe(delCapitulo.map((f) => seg(f.codigo as string)[1])) + 1)}`;
-  }
   const mismaCat = delCapitulo.find(
     (f) => (f.categoria ?? "").trim() === cat && (f.codigo as string).split(".").length >= 3,
   );
@@ -128,4 +125,87 @@ export function codigoContextual(especialidad: string, categoria: string, filas:
     .filter((f) => (f.codigo as string).startsWith(`${base}.`))
     .map((f) => seg(f.codigo as string)[2]);
   return `${base}.${pad(maxDe(items) + 1)}`;
+}
+
+const pad2 = (n: number) => String(n).padStart(2, "0");
+const SIN_CAT = "Sin categoría";
+const claveCat = (c?: string | null) => (c ?? "").trim() || SIN_CAT;
+
+function agrupar<T>(filas: T[], clave: (f: T) => string) {
+  const mapa = new Map<string, T[]>();
+  for (const f of filas) {
+    const k = clave(f);
+    if (!mapa.has(k)) mapa.set(k, []);
+    mapa.get(k)!.push(f);
+  }
+  return mapa;
+}
+
+/**
+ * Códigos de encabezado (capítulo y subcapítulo) de una obra/cotización.
+ * Reutiliza el prefijo de las partidas ya codificadas; si faltan, numera por orden de aparición.
+ */
+export function prefijosWBS(filas: FilaCodigo[]) {
+  const capitulos = new Map<string, string>();
+  const categorias = new Map<string, string>();
+  const usadosCap = new Set<string>();
+  let nextCap = 0;
+
+  for (const [esp, lista] of agrupar(filas, (f) => f.especialidad || "Sin especialidad")) {
+    const conCod = lista.find((f) => /^\d+/.test((f.codigo ?? "").trim()));
+    let cap = conCod ? (conCod.codigo as string).trim().split(".")[0] : "";
+    if (!cap || usadosCap.has(cap)) {
+      do {
+        nextCap += 1;
+        cap = pad2(nextCap);
+      } while (usadosCap.has(cap));
+    }
+    usadosCap.add(cap);
+    nextCap = Math.max(nextCap, Number(cap) || 0);
+    capitulos.set(esp, cap);
+
+    const usadosSub = new Set<string>();
+    let nextSub = 0;
+    for (const [cat, items] of agrupar(lista, (f) => claveCat(f.categoria))) {
+      const conCod3 = items.find((f) => (f.codigo ?? "").trim().split(".").length >= 3);
+      let sub = conCod3 ? (conCod3.codigo as string).trim().split(".")[1] : "";
+      if (!sub || usadosSub.has(sub)) {
+        do {
+          nextSub += 1;
+          sub = pad2(nextSub);
+        } while (usadosSub.has(sub));
+      }
+      usadosSub.add(sub);
+      nextSub = Math.max(nextSub, Number(sub) || 0);
+      categorias.set(`${esp}||${cat}`, `${cap}.${sub}`);
+    }
+  }
+
+  return {
+    capitulo: (esp: string) => capitulos.get(esp || "Sin especialidad") ?? "",
+    categoria: (esp: string, cat?: string | null) =>
+      categorias.get(`${esp || "Sin especialidad"}||${claveCat(cat)}`) ?? "",
+  };
+}
+
+/**
+ * Renumera toda la EDT/WBS de una obra: 01, 01.01, 01.01.01...
+ * Devuelve solo las partidas cuyo código cambia.
+ */
+export function renumerarWBS<T extends FilaCodigo & { id: string }>(filas: T[]) {
+  const cambios: { id: string; codigo: string }[] = [];
+  let iCap = 0;
+  for (const [, lista] of agrupar(filas, (f) => f.especialidad || "Sin especialidad")) {
+    iCap += 1;
+    const cap = pad2(iCap);
+    let iSub = 0;
+    for (const [, items] of agrupar(lista, (f) => claveCat(f.categoria))) {
+      iSub += 1;
+      items.forEach((f, i) => {
+        const codigo = `${cap}.${pad2(iSub)}.${pad2(i + 1)}`;
+        if ((f.codigo ?? "").trim() !== codigo) cambios.push({ id: f.id, codigo });
+      });
+    }
+  }
+  return cambios;
 }
