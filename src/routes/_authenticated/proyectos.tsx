@@ -207,7 +207,14 @@ function Proyectos() {
             />
           </Campo>
           <Campo etiqueta="Cliente">
-            <Input value={form.cliente} onChange={(e) => setForm({ ...form, cliente: e.target.value })} maxLength={120} />
+            <Select value={form.cliente} onChange={(e) => setForm({ ...form, cliente: e.target.value })}>
+              <option value="">Sin cliente</option>
+              {clientes.map((c) => (
+                <option key={c.id} value={c.razon_social}>
+                  {c.razon_social}
+                </option>
+              ))}
+            </Select>
           </Campo>
           <Campo etiqueta="Nombre de la obra">
             <Input value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} required maxLength={120} />
