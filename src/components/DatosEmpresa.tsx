@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Trash2, Upload } from "lucide-react";
+import { Download, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Boton, Campo, Input, Panel } from "@/components/ui-kit";
 import { useEmpresa, type Empresa } from "@/lib/empresa";
@@ -170,7 +170,7 @@ export function DatosEmpresa() {
           />
           <div className="flex flex-wrap gap-2">
             <Boton type="button" variante="linea" onClick={() => archivo.current?.click()}>
-              <Upload size={14} /> Cargar imagen
+              <Download size={14} /> Cargar imagen
             </Boton>
             {form.logo_url && (
               <Boton type="button" variante="peligro" onClick={() => setForm({ ...form, logo_url: "" })}>
