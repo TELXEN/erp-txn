@@ -198,7 +198,7 @@ export function PartidasMaestras() {
             />
           </Campo>
           <div className="sm:col-span-7">
-            <Boton type="submit">Agregar al banco</Boton>
+            <Boton type="submit">Agregar al registro</Boton>
           </div>
           {error && <p className="font-mono text-xs text-bad sm:col-span-7">{error}</p>}
         </form>
