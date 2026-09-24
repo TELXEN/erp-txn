@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
-import { Check, Pencil, Trash2, Upload, X } from "lucide-react";
+import { Building2, Check, Coins, FolderKanban, HardHat, Pencil, Ruler, Trash2, Upload, X } from "lucide-react";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { exportarExcel } from "@/lib/exportar";
 import {
@@ -85,6 +85,14 @@ type Pestana =
   | "unidades"
   | "maestras"
   | "empresa";
+
+const GRUPOS_CONFIG: { titulo: string; icono: React.ElementType; items: [Pestana, string][] }[] = [
+  { titulo: "Empresa y Terceros", icono: Building2, items: [["empresa", "Datos de la empresa"], ["bancos", "Cuentas bancarias"], ["terceros", "Clientes y Proveedores"]] },
+  { titulo: "Catálogo técnico (WBS)", icono: Ruler, items: [["maestras", "Registro de partidas"], ["categorias", "Categorías de partidas"], ["especialidades", "Codificación de partidas"], ["unidades", "Unidades de medida"]] },
+  { titulo: "Proyectos y Cotizaciones", icono: FolderKanban, items: [["codificacion", "Codificación de proyectos"], ["codificacioncot", "Codificación de cotizaciones"], ["configuracion", "Parámetros de proyectos"]] },
+  { titulo: "Costos y Finanzas", icono: Coins, items: [["categoriasgg", "Categorías de gastos generales"], ["centros", "Centro de costos"], ["costos", "Rubros de costos"], ["ingresos", "Rubros de ingresos"]] },
+  { titulo: "Recursos Humanos", icono: HardHat, items: [["cargos", "Cargos del personal"]] },
+];
 
 const TIPOS_DOC = ["RUC", "DNI", "CE", "OTRO"];
 const CONDICIONES = ["Contado", "Credito 15 dias", "Credito 30 dias", "Credito 60 dias"];
@@ -620,6 +628,8 @@ function Datos() {
           }
         />
       )}
+        </div>
+      </div>
     </>
   );
 }
