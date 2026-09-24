@@ -56,7 +56,6 @@ type Tercero = {
   direccion: string;
   telefono: string;
   email: string;
-  condicion_pago: string;
   activo: boolean;
 };
 
@@ -95,7 +94,6 @@ const GRUPOS_CONFIG: { titulo: string; icono: React.ElementType; items: [Pestana
 ];
 
 const TIPOS_DOC = ["RUC", "DNI", "CE", "OTRO"];
-const CONDICIONES = ["Contado", "Credito 15 dias", "Credito 30 dias", "Credito 60 dias"];
 const MONEDAS = ["PEN", "USD", "PEN/USD"];
 
 const ETIQUETA_MONEDA: Record<string, string> = {
