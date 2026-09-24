@@ -6,7 +6,6 @@ import {
   Activity,
   Banknote,
   BarChart3,
-  BookUser,
   Briefcase,
   Building2,
   CalendarDays,
@@ -16,6 +15,7 @@ import {
   HardHat,
   Landmark,
   Layers,
+  Settings,
   ShieldCheck,
   Users,
   Wallet,
@@ -76,7 +76,7 @@ const MENU: Categoria[] = [
   {
     titulo: "Datos",
     items: [
-      { a: "/datos", texto: "Catálogos Maestros", roles: ["administrador", "gerente"], icono: BookUser },
+      { a: "/datos", texto: "Configuración", roles: ["administrador", "gerente"], icono: Settings },
     ],
   },
 ];
