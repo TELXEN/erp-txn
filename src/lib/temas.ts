@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export type TemaId = "telxen" | "esmeralda" | "cobalto";
+export type TemaId = "telxen" | "esmeralda" | "cobalto" | "zafiro" | "redwood";
 
 export type Tema = {
   id: TemaId;
@@ -64,6 +64,42 @@ export const TEMAS: Tema[] = [
       "--accent": "#EA580C",
       "--accent-foreground": "#FFFFFF",
       "--ring": "#1E40AF",
+    },
+  },
+  {
+    id: "zafiro",
+    nombre: "Zafiro y Cian",
+    descripcion: "Línea SAP Fiori Horizon",
+    muestraBase: "#0A2647",
+    muestraAcento: "#0FAAFF",
+    vars: {
+      "--brand": "oklch(0.975 0.006 235)",
+      "--brand-foreground": "#0A2647",
+      "--cta": "#0FAAFF",
+      "--cta-foreground": "#0A2647",
+      "--primary": "#0A2647",
+      "--primary-foreground": "#FFFFFF",
+      "--accent": "#0FAAFF",
+      "--accent-foreground": "#0A2647",
+      "--ring": "#0FAAFF",
+    },
+  },
+  {
+    id: "redwood",
+    nombre: "Naranja Redwood",
+    descripcion: "Línea Oracle Redwood",
+    muestraBase: "#161513",
+    muestraAcento: "#C74634",
+    vars: {
+      "--brand": "oklch(0.975 0.004 90)",
+      "--brand-foreground": "#161513",
+      "--cta": "#C74634",
+      "--cta-foreground": "#FFFFFF",
+      "--primary": "#161513",
+      "--primary-foreground": "#FFFFFF",
+      "--accent": "#C74634",
+      "--accent-foreground": "#FFFFFF",
+      "--ring": "#C74634",
     },
   },
 ];
