@@ -22,6 +22,8 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ETIQUETA_ROL, useAuth, type Rol } from "@/lib/auth";
+import { TEMAS, useTema } from "@/lib/temas";
+
 
 type Item = { a: string; texto: string; roles: Rol[]; icono: React.ElementType };
 type Categoria = { titulo: string; items: Item[] };
@@ -97,6 +99,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { tema, cambiarTema } = useTema();
+
 
   const categorias = MENU.map((c) => ({
     ...c,
