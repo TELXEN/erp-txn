@@ -274,60 +274,39 @@ function Datos() {
         }
       />
 
-      <div className="mb-4 flex flex-wrap gap-2">
-        {(
-          [
-            "terceros",
-            "bancos",
-            "cargos",
-            "categoriasgg",
-            "costos",
-            "ingresos",
-            "centros",
-            "configuracion",
-            "codificacion",
-            "codificacioncot",
-            "especialidades",
-            "categorias",
-            "unidades",
-            "maestras",
-            "empresa",
-          ] as const
-        ).map((p) => (
-          <button
-            key={p}
-            type="button"
-            onClick={() => {
-              setPestana(p);
-              setError("");
-            }}
-            className={`rounded-md px-3 py-2 font-mono text-xs transition-colors ${
-              pestana === p
-                ? "bg-primary text-primary-foreground"
-                : "border border-line text-muted-foreground hover:border-primary hover:text-primary"
-            }`}
-          >
-            {{
-              terceros: "Clientes y Proveedores",
-              bancos: "Bancos",
-              cargos: "Cargos del personal",
-              categoriasgg: "Categorías de gastos generales",
-              costos: "Costos",
-              ingresos: "Ingresos",
-              centros: "Centro de costos",
-              configuracion: "Configuración proyectos",
-              codificacion: "Codificación de proyectos",
-              codificacioncot: "Codificación de cotizaciones",
-              especialidades: "Codificación de partidas",
-              categorias: "Categorías de partidas",
-              unidades: "Unidades de medida",
-              maestras: "Registro de partidas",
-              empresa: "Datos de la empresa",
-            }[p]}
-          </button>
-        ))}
-      </div>
-
+      <div className="grid gap-5 lg:grid-cols-[230px_1fr]">
+        <nav className="h-fit space-y-4 rounded-md border border-line bg-card p-3 lg:sticky lg:top-20">
+          {GRUPOS_CONFIG.map((g) => {
+            const Icono = g.icono;
+            return (
+              <div key={g.titulo}>
+                <p className="mb-1 flex items-center gap-1.5 px-2 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                  <Icono size={12} /> {g.titulo}
+                </p>
+                <div className="space-y-0.5">
+                  {g.items.map(([p, texto]) => (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => {
+                        setPestana(p);
+                        setError("");
+                      }}
+                      className={`block w-full rounded-md border-l-2 px-3 py-1.5 text-left text-xs transition-colors ${
+                        pestana === p
+                          ? "border-cta bg-primary/10 font-semibold text-primary"
+                          : "border-transparent text-muted-foreground hover:bg-muted hover:text-primary"
+                      }`}
+                    >
+                      {texto}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </nav>
+        <div className="min-w-0">
 
       {error && <p className="mb-3 font-mono text-xs text-bad">{error}</p>}
 
