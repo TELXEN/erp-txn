@@ -72,7 +72,7 @@ export function EspecialidadesPartida() {
 
   return (
     <>
-      <Panel titulo="Nuevo capítulo de partidas" className="mb-4">
+      <Panel titulo="Nuevo registro de especialidades" className="mb-4">
         <form onSubmit={crear} className="grid gap-3 p-4 sm:grid-cols-4">
           <Campo etiqueta="Código">
             <Input
@@ -104,14 +104,14 @@ export function EspecialidadesPartida() {
           </Campo>
           <div className="flex items-end">
             <Boton type="submit" className="w-full py-2.5">
-              Agregar capítulo
+              Agregar especialidad
             </Boton>
           </div>
           {error && <p className="font-mono text-xs text-bad sm:col-span-4">{error}</p>}
         </form>
       </Panel>
 
-      <Panel titulo="Capítulos de partidas">
+      <Panel titulo="Listado de especialidades">
         {lista.length === 0 ? (
           <Vacio texto="Aún no hay capítulos registrados." />
         ) : (
