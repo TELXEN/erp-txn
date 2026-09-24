@@ -172,8 +172,8 @@ export function AppShell({ children }: { children: ReactNode }) {
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-[236px_1fr]">
-        <aside className="no-print bg-brand px-3 py-5 text-brand-foreground md:min-h-[calc(100vh-57px)]">
-          <p className="px-2 pb-2 font-mono text-[10px] uppercase tracking-[0.14em] text-cta">Módulos</p>
+        <aside className="no-print border-r border-line bg-brand px-3 py-5 text-brand-foreground md:min-h-[calc(100vh-57px)]">
+          <p className="px-2 pb-2 font-mono text-[10px] uppercase tracking-[0.14em] text-primary/60">Módulos</p>
           <nav className="space-y-2 text-sm">
             {categorias.map((c) => {
               const abierta = estaAbierta(c);
@@ -217,8 +217,8 @@ export function AppShell({ children }: { children: ReactNode }) {
             })}
           </nav>
 
-          <div className="mt-6 rounded-md border border-brand-foreground/15 bg-brand-foreground/5 p-3">
-            <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-cta">Rol activo</p>
+          <div className="mt-6 rounded-md border border-line bg-card p-3">
+            <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-primary/60">Rol activo</p>
             <p className="mt-1 text-sm font-semibold">{rol ? ETIQUETA_ROL[rol] : "Sin rol asignado"}</p>
             <p className="mt-1 font-mono text-[10px] text-brand-foreground/60">
               {rol === "ingeniero" ? "Solo avance físico" : "Moneda base: PEN"}
