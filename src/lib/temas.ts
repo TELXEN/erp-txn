@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export type TemaId = "telxen" | "esmeralda" | "cobalto" | "zafiro" | "redwood";
+export type TemaId = "telxen" | "esmeralda" | "cobalto" | "zafiro" | "redwood" | "monocromo";
 
 export type Tema = {
   id: TemaId;
@@ -100,6 +100,24 @@ export const TEMAS: Tema[] = [
       "--accent": "#C74634",
       "--accent-foreground": "#FFFFFF",
       "--ring": "#C74634",
+    },
+  },
+  {
+    id: "monocromo",
+    nombre: "Monocromo Grafito",
+    descripcion: "Blanco y negro de bajo contraste",
+    muestraBase: "#27272A",
+    muestraAcento: "#71717A",
+    vars: {
+      "--brand": "oklch(0.972 0.002 260)",
+      "--brand-foreground": "#27272A",
+      "--cta": "#3F3F46",
+      "--cta-foreground": "#F4F4F5",
+      "--primary": "#27272A",
+      "--primary-foreground": "#F4F4F5",
+      "--accent": "#71717A",
+      "--accent-foreground": "#F4F4F5",
+      "--ring": "#52525B",
     },
   },
 ];
