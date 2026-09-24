@@ -58,8 +58,8 @@
   --card-foreground: var(--ink);
   --popover: oklch(1 0 0);
   --popover-foreground: var(--ink);
-  --brand: #003352;
-  --brand-foreground: oklch(0.985 0.005 95);
+  --brand: oklch(0.975 0.006 240);
+  --brand-foreground: #003352;
   --cta: #FFC709;
   --cta-foreground: #003352;
   --primary: #003352;

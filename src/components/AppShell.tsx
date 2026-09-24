@@ -164,7 +164,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
           <button
             onClick={cerrarSesion}
-            className="rounded-md border border-brand-foreground/30 px-3 py-1.5 font-mono text-xs text-brand-foreground transition-colors hover:border-cta hover:text-cta"
+            className="rounded-md border border-brand-foreground/25 px-3 py-1.5 font-mono text-xs text-brand-foreground transition-colors hover:border-primary hover:bg-primary hover:text-primary-foreground"
           >
             Cerrar Sesión
           </button>
