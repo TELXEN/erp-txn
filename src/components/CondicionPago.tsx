@@ -78,8 +78,8 @@ export function InsigniaPago({
   vencimiento,
   pagado,
 }: {
-  condicion?: string | null;
-  vencimiento?: string | null;
+  condicion?: string | null | undefined;
+  vencimiento?: string | null | undefined;
   pagado: boolean;
 }) {
   if (condicion !== "Crédito")
