@@ -244,9 +244,6 @@ function Partidas() {
       },
     ]);
   }
-      },
-    ]);
-  }
 
   async function crearTipo() {
     const nombre = window.prompt("Nombre del nuevo tipo de presupuesto (ej. Adicional 04)")?.trim();
