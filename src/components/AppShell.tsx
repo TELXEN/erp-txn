@@ -68,15 +68,10 @@ const MENU: Categoria[] = [
     ],
   },
   {
-    titulo: "Administración",
-    items: [
-      { a: "/usuarios", texto: "Usuarios y Roles", roles: ["gerente"], icono: ShieldCheck },
-    ],
-  },
-  {
     titulo: "Datos",
     items: [
       { a: "/datos", texto: "Configuración", roles: ["administrador", "gerente"], icono: Settings },
+      { a: "/usuarios", texto: "Usuarios y Roles", roles: ["gerente"], icono: ShieldCheck },
     ],
   },
 ];
