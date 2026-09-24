@@ -46,6 +46,8 @@ function Proyectos() {
   const { data: gastosG = [] } = useGastosGenerales();
   const { data: tareos = [] } = useTareos();
   const { data: trabajadores = [] } = useTrabajadores();
+  const { data: terceros = [] } = useTerceros();
+  const clientes = terceros.filter((t) => t.es_cliente && t.activo);
   const { data: tiposPresupuesto = [] } = useTiposPresupuesto();
   const { data: codificacion } = useCodificacion();
   const [vista, setVista] = useState<"tabla" | "kanban">("tabla");
