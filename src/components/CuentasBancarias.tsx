@@ -4,6 +4,7 @@ import { Check, Pencil, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Boton, Campo, Input, Panel, Select, Vacio } from "@/components/ui-kit";
 import { fecha, hoy } from "@/lib/format";
+import { useAuth } from "@/lib/auth";
 
 export type CuentaBancaria = {
   id: string;
@@ -44,6 +45,8 @@ function validar(f: { nombre: string; numero_cuenta: string; cci: string; saldo_
 
 export function CuentasBancarias() {
   const qc = useQueryClient();
+  const { rol } = useAuth();
+  const esGerente = rol === "gerente";
   const [form, setForm] = useState(vacio);
   const [edit, setEdit] = useState<(typeof vacio & { id: string; activo: boolean }) | null>(null);
   const [error, setError] = useState("");
@@ -113,7 +116,7 @@ export function CuentasBancarias() {
   const totalPEN = cuentas.filter((c) => c.activo && c.monedas === "PEN").reduce((s, c) => s + Number(c.saldo_inicial), 0);
   const totalUSD = cuentas.filter((c) => c.activo && c.monedas === "USD").reduce((s, c) => s + Number(c.saldo_inicial), 0);
 
-  const campos = (f: typeof vacio, set: (f: typeof vacio) => void) => (
+  const campos = (f: typeof vacio, set: (f: typeof vacio) => void, nueva = false) => (
     <>
       <Campo etiqueta="Banco">
         <Input className="py-1.5" value={f.nombre} maxLength={120} required
@@ -130,19 +133,19 @@ export function CuentasBancarias() {
         </Select>
       </Campo>
       <Campo etiqueta="N° de cuenta">
-        <Input className="py-1.5" value={f.numero_cuenta} maxLength={30} required
+        <Input className="py-1.5" value={f.numero_cuenta} maxLength={30} required disabled={!esGerente && !nueva}
           onChange={(e) => set({ ...f, numero_cuenta: e.target.value })} />
       </Campo>
       <Campo etiqueta="Cuenta interbancaria (CCI)">
-        <Input className="py-1.5" value={f.cci} maxLength={24} inputMode="numeric" placeholder="20 dígitos"
+        <Input className="py-1.5" value={f.cci} maxLength={24} disabled={!esGerente && !nueva} inputMode="numeric" placeholder="20 dígitos"
           onChange={(e) => set({ ...f, cci: e.target.value })} />
       </Campo>
       <Campo etiqueta="Saldo inicial">
-        <Input className="py-1.5 text-right" type="number" step="0.01" value={f.saldo_inicial}
+        <Input className="py-1.5 text-right" type="number" step="0.01" value={f.saldo_inicial} disabled={!esGerente} title={esGerente ? undefined : "Solo la Gerencia puede definir el saldo inicial"}
           onChange={(e) => set({ ...f, saldo_inicial: e.target.value })} />
       </Campo>
       <Campo etiqueta="Fecha del saldo inicial">
-        <Input className="py-1.5" type="date" value={f.fecha_saldo_inicial}
+        <Input className="py-1.5" type="date" value={f.fecha_saldo_inicial} disabled={!esGerente}
           onChange={(e) => set({ ...f, fecha_saldo_inicial: e.target.value })} />
       </Campo>
     </>
@@ -152,11 +155,12 @@ export function CuentasBancarias() {
     <>
       <Panel titulo="Nueva cuenta bancaria" className="mb-4">
         <form onSubmit={crear} className="grid gap-2 p-3 sm:grid-cols-4">
-          {campos(form, setForm)}
+          {campos(form, setForm, true)}
           <div className="flex items-end">
             <Boton type="submit">Registrar cuenta</Boton>
           </div>
         </form>
+        {!esGerente && <p className="px-3 pb-2 font-mono text-[11px] text-muted-foreground">El saldo inicial, N° de cuenta, CCI y la eliminación de cuentas están reservados a la Gerencia.</p>}
         {error && <p className="px-3 pb-3 font-mono text-xs text-bad">{error}</p>}
       </Panel>
 
@@ -227,10 +231,10 @@ export function CuentasBancarias() {
                           className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary">
                           <Pencil size={14} />
                         </button>
-                        <button type="button" title="Eliminar" onClick={() => eliminar(c.id)}
+                        {esGerente && <button type="button" title="Eliminar" onClick={() => eliminar(c.id)}
                           className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-bad hover:text-bad">
                           <Trash2 size={14} />
-                        </button>
+                        </button>}
                       </div>
                     </td>
                   </tr>
