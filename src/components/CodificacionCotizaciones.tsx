@@ -5,9 +5,11 @@ import { Boton, Campo, Input, Panel, Select } from "@/components/ui-kit";
 import { previsualizarCodigoCotizacion, useCodificacionCotizacion } from "@/lib/cotizaciones";
 
 const vacio = {
-  prefijo: "COT",
+  prefijo: "TXN",
   incluir_anio: true,
+  anio_dos_digitos: true,
   separador: "-",
+  tipo_letra: "C",
   digitos: 3,
   correlativo_actual: 0,
 };

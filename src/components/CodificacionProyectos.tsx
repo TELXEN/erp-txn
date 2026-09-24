@@ -5,9 +5,11 @@ import { Boton, Campo, Input, Panel, Select } from "@/components/ui-kit";
 import { previsualizarCodigo, useCodificacion } from "@/lib/codificacion";
 
 const vacio = {
-  prefijo: "PRY",
+  prefijo: "TXN",
   incluir_anio: true,
+  anio_dos_digitos: true,
   separador: "-",
+  tipo_letra: "P",
   digitos: 3,
   correlativo_actual: 0,
 };
