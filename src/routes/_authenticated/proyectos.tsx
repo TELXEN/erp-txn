@@ -20,6 +20,7 @@ import {
   usePartidas,
   useProyectos,
   useTareos,
+  useTerceros,
   useTrabajadores,
 } from "@/lib/datos";
 import { generarCodigoProyecto, previsualizarCodigo, useCodificacion } from "@/lib/codificacion";
