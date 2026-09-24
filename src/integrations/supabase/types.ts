@@ -654,6 +654,7 @@ export type Database = {
           banco_id: string | null
           caja_chica_id: string | null
           categoria: string
+          comprobante: string
           condicion_pago: string
           created_at: string
           descripcion: string
@@ -675,6 +676,7 @@ export type Database = {
           banco_id?: string | null
           caja_chica_id?: string | null
           categoria?: string
+          comprobante?: string
           condicion_pago?: string
           created_at?: string
           descripcion: string
@@ -696,6 +698,7 @@ export type Database = {
           banco_id?: string | null
           caja_chica_id?: string | null
           categoria?: string
+          comprobante?: string
           condicion_pago?: string
           created_at?: string
           descripcion?: string

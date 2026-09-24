@@ -1,0 +1,1 @@
+ALTER TABLE public.gastos_generales ADD COLUMN IF NOT EXISTS comprobante text NOT NULL DEFAULT '';
