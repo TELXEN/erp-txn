@@ -267,8 +267,8 @@ export function CategoriasPartida() {
           </table>
         )}
         <p className="border-t border-line px-5 py-3 font-mono text-[10px] leading-relaxed text-muted-foreground">
-          Las categorías agrupan las partidas dentro de cada especialidad (por ejemplo 05.01 Suministro de
-          tableros eléctricos). Las partidas se numeran dentro de su categoría: 05.01.01, 05.01.02, etc.
+          Las categorías agrupan las partidas dentro de cada especialidad. No llevan código fijo: el código
+          (01.01, 01.02...) se asigna al cargarlas en cada obra o cotización.
         </p>
       </Panel>
     </>
