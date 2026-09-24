@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
@@ -462,8 +462,8 @@ function GastosGenerales() {
                 const subtotal = filas.reduce((s, g) => s + Number(g.monto_soles), 0);
                 const abierto = !cerrados.has(cat);
                 return (
-                  <>
-                    <tr key={`h-${cat}`} className="border-b border-line bg-muted/40">
+                  <Fragment key={cat}>
+                    <tr className="border-b border-line bg-muted/40">
                       <td colSpan={7} className="px-5 py-2">
                         <button
                           type="button"
@@ -603,7 +603,7 @@ function GastosGenerales() {
                           </tr>
                         )
                       )}
-                  </>
+                  </Fragment>
                 );
               })}
             </tbody>
