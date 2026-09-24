@@ -97,7 +97,7 @@ export function CategoriasPartida() {
 
   return (
     <>
-      <Panel titulo="Nueva categoría de partidas" className="mb-4">
+      <Panel titulo="Nuevo egistro de categorías" className="mb-4">
         <form onSubmit={crear} className="grid gap-3 p-4 sm:grid-cols-5">
           <Campo etiqueta="Especialidad">
             <Select
@@ -165,7 +165,7 @@ export function CategoriasPartida() {
       </Panel>
 
       <Panel
-        titulo="Categorías de partidas"
+        titulo="Listado de categorías "
         extra={
           <div className="w-64">
             <Select className="py-1 text-xs" value={filtro} onChange={(e) => setFiltro(e.target.value)}>
