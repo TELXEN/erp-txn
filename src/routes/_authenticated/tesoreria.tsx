@@ -96,7 +96,7 @@ function Tesoreria() {
   const qc = useQueryClient();
   const [pestana, setPestana] = useState<"cxc" | "cxp">("cxc");
   const [cerrados, setCerrados] = useState<Set<string>>(new Set());
-  const [accion, setAccion] = useState<{ p: Pendiente; banco_id: string; fecha: string } | null>(null);
+  const [accion, setAccion] = useState<{ p: Pendiente; banco_id: string; fecha: string; operacion: string } | null>(null);
   const [error, setError] = useState("");
 
   const { data: cuentas = [] } = useQuery({
@@ -191,12 +191,14 @@ function Tesoreria() {
   async function confirmar() {
     if (!accion) return;
     if (!accion.banco_id) return setError("Elige la cuenta bancaria.");
+    if (!accion.operacion.trim()) return setError("Ingresa el N° de operación.");
     setError("");
     const { p, banco_id, fecha } = accion;
+    const numero_operacion = accion.operacion.trim();
     const cambios =
       p.tabla === "ventas"
-        ? { estado: "Pagado", fecha_pago: fecha, banco_id }
-        : { estado_pago: "Pagada", fecha_pago: fecha, banco_id };
+        ? { estado: "Pagado", fecha_pago: fecha, banco_id, numero_operacion }
+        : { estado_pago: "Pagada", fecha_pago: fecha, banco_id, numero_operacion };
     const { error: err } = await supabase.from(p.tabla).update(cambios as never).eq("id", p.id);
     if (err) return setError(err.message);
     setAccion(null);
@@ -365,6 +367,12 @@ function Tesoreria() {
                                       <option key={c.id} value={c.id}>{c.nombre} · {c.monedas} · {c.numero_cuenta}</option>
                                     ))}
                                   </Select>
+                                  {accion.banco_id && (
+                                    <p className="text-left text-[10px] text-muted-foreground">
+                                      N° cuenta: <b className="text-ink">{cuentas.find((c) => c.id === accion.banco_id)?.numero_cuenta || "—"}</b>
+                                    </p>
+                                  )}
+                                  <Input placeholder="N° de operación" value={accion.operacion} onChange={(e) => setAccion({ ...accion, operacion: e.target.value })} />
                                   <Input type="date" value={accion.fecha} onChange={(e) => setAccion({ ...accion, fecha: e.target.value })} />
                                   <div className="flex justify-end gap-1">
                                     <Boton type="button" onClick={confirmar}>Confirmar</Boton>
@@ -373,7 +381,7 @@ function Tesoreria() {
                                   {error && <p className="text-[10px] text-bad">{error}</p>}
                                 </div>
                               ) : (
-                                <Boton type="button" variante="linea" onClick={() => { setError(""); setAccion({ p, banco_id: "", fecha: hoy() }); }}>
+                                <Boton type="button" variante="linea" onClick={() => { setError(""); setAccion({ p, banco_id: "", fecha: hoy(), operacion: "" }); }}>
                                   {pestana === "cxc" ? "Registrar cobro" : "Registrar pago"}
                                 </Boton>
                               )}
