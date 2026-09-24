@@ -100,13 +100,9 @@ function Cotizaciones() {
     precio_unitario: "",
   });
 
-  /** Código sugerido: dentro de la categoría (05.01.01) o del capítulo (05.01). */
-  const sugerirCodigo = (especialidad: string, categoria = "") => {
-    const usados = items.map((i) => i.codigo);
-    return categoria
-      ? siguienteCodigoEnCategoria(categoria, usados, categorias)
-      : siguienteCodigoEnCapitulo(especialidad, usados, especialidades);
-  };
+  /** Código contextual de la cotización: capítulo y categoría según lo ya agregado. */
+  const sugerirCodigo = (especialidad: string, categoria = "") =>
+    codigoContextual(especialidad, categoria, items);
 
   const cot = cotizaciones.find((c) => c.id === seleccion) ?? null;
   const totales = cot

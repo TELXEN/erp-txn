@@ -119,7 +119,7 @@ export function CategoriasPartida() {
               <option value="">Selecciona...</option>
               {opcionesEspecialidad.map((e) => (
                 <option key={e.id} value={e.nombre}>
-                  {e.codigo} {e.nombre}
+                  {e.nombre}
                 </option>
               ))}
             </Select>
@@ -172,7 +172,7 @@ export function CategoriasPartida() {
               <option value="">Todas las especialidades</option>
               {opcionesEspecialidad.map((e) => (
                 <option key={e.id} value={e.nombre}>
-                  {e.codigo} {e.nombre}
+                  {e.nombre}
                 </option>
               ))}
             </Select>
@@ -221,7 +221,7 @@ export function CategoriasPartida() {
                         <option value="">Sin especialidad</option>
                         {opcionesEspecialidad.map((e) => (
                           <option key={e.id} value={e.nombre}>
-                            {e.codigo} {e.nombre}
+                            {e.nombre}
                           </option>
                         ))}
                       </Select>
