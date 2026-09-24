@@ -19,8 +19,9 @@ import {
 import { InsigniaRubro } from "@/components/estado-ui";
 import { exportarExcel } from "@/lib/exportar";
 import { agruparSoloPorCategoria } from "@/lib/categorias";
+import { CamposCondicion, InsigniaPago, condicionVacia, datosCondicion } from "@/components/CondicionPago";
 
-type Compra = GastoDirecto & { cantidad?: number; precio_unitario?: number; comprobante?: string };
+type Compra = GastoDirecto & { cantidad?: number; precio_unitario?: number; comprobante?: string; condicion_pago?: string; fecha_vencimiento?: string | null; estado_pago?: string };
 
 const num = (n: number) =>
   Number(n || 0).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -47,6 +48,7 @@ const formVacio = (partida_id = "") => ({
   moneda: "PEN",
   tipo_cambio: "3.75",
   fecha: hoy(),
+  ...condicionVacia(),
 });
 
 function GastosDirectos() {
@@ -121,10 +123,17 @@ function GastosDirectos() {
       monto_soles: montoForm * tc,
       rubro: form.rubro,
       fecha: form.fecha,
+      ...datosCondicion(form, form.fecha),
+      estado_pago: form.condicion_pago === "Crédito" ? "Pendiente" : "Pagada",
     } as never);
     if (err) return setError(err.message);
     setAbiertas((a) => ({ ...a, [form.partida_id]: true }));
     setForm(formVacio(form.partida_id));
+    qc.invalidateQueries({ queryKey: ["gastos_directos"] });
+  }
+
+  async function alternarPago(g: Compra) {
+    await supabase.from("gastos_directos").update({ estado_pago: g.estado_pago === "Pagada" ? "Pendiente" : "Pagada" } as never).eq("id", g.id);
     qc.invalidateQueries({ queryKey: ["gastos_directos"] });
   }
 
@@ -162,6 +171,9 @@ function GastosDirectos() {
           Código: nomPart(g.partida_id)?.codigo ?? "",
           Partida: nomPart(g.partida_id)?.nombre ?? "",
           Comprobante: g.comprobante ?? "",
+          Condición: g.condicion_pago ?? "Contado",
+          Vencimiento: g.fecha_vencimiento ?? "",
+          "Estado de pago": g.estado_pago ?? "Pagada",
           Proveedor: nombreProv(g),
           Rubro: g.rubro,
           Cantidad: Number(g.cantidad ?? 0),
@@ -259,6 +271,7 @@ function GastosDirectos() {
             <Campo etiqueta="Fecha">
               <Input type="date" value={form.fecha} onChange={(e) => setForm({ ...form, fecha: e.target.value })} />
             </Campo>
+            <CamposCondicion valor={form} fechaBase={form.fecha} onChange={(c) => setForm({ ...form, ...c })} />
             <div className="flex flex-wrap items-center gap-3 sm:col-span-4">
               <Boton type="submit">Registrar compra</Boton>
               <Boton type="button" variante="linea" onClick={() => setMostrarForm(false)}>Cerrar</Boton>
@@ -367,6 +380,7 @@ function GastosDirectos() {
                                         <th>Comprobante</th>
                                         <th>Proveedor</th>
                                         <th>Rubro</th>
+                                        <th>Pago</th>
                                         <th className="text-right">Cantidad</th>
                                         <th className="text-right">P.U. compra</th>
                                         <th className="text-right">Costo real</th>
@@ -380,6 +394,11 @@ function GastosDirectos() {
                                           <td>{g.comprobante || "—"}</td>
                                           <td>{nombreProv(g)}</td>
                                           <td><InsigniaRubro valor={g.rubro ?? "Materiales"} /></td>
+                                          <td>
+                                            <button type="button" title="Cambiar estado de pago" disabled={g.condicion_pago !== "Crédito"} onClick={() => alternarPago(g)}>
+                                              <InsigniaPago condicion={g.condicion_pago} vencimiento={g.fecha_vencimiento} pagado={g.estado_pago === "Pagada"} />
+                                            </button>
+                                          </td>
                                           <td className="text-right">{num(Number(g.cantidad ?? 0))}</td>
                                           <td className="text-right">
                                             {g.moneda === "USD" ? "US$ " : "S/ "}

@@ -10,6 +10,7 @@ import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
 import { useCategoriasGastoGeneral, useGastosGenerales, useProyectos, useTerceros } from "@/lib/datos";
 import { exportarExcel } from "@/lib/exportar";
+import { CamposCondicion, InsigniaPago, condicionVacia, datosCondicion } from "@/components/CondicionPago";
 
 export const Route = createFileRoute("/_authenticated/gastos-generales")({
   head: () => ({
@@ -22,6 +23,8 @@ export const Route = createFileRoute("/_authenticated/gastos-generales")({
   }),
   component: GastosGenerales,
 });
+
+type Pago = { condicion_pago?: string; fecha_vencimiento?: string | null; estado_pago?: string };
 
 function GastosGenerales() {
   const { rol } = useAuth();
@@ -41,6 +44,7 @@ function GastosGenerales() {
     moneda: "PEN",
     tipo_cambio: "3.75",
     fecha: hoy(),
+    ...condicionVacia(),
   });
   const [error, setError] = useState("");
   const [filtroCategoria, setFiltroCategoria] = useState("Todas");
@@ -86,9 +90,16 @@ function GastosGenerales() {
       tipo_cambio: tc,
       monto_soles: Number(form.monto || 0) * tc,
       fecha: form.fecha,
-    });
+      ...datosCondicion(form, form.fecha),
+      estado_pago: form.condicion_pago === "Crédito" ? "Pendiente" : "Pagada",
+    } as never);
     if (err) return setError(err.message);
     setForm({ ...form, descripcion: "", proveedor_id: "", monto: "" });
+    qc.invalidateQueries({ queryKey: ["gastos_generales"] });
+  }
+
+  async function alternarPago(g: Pago & { id: string }) {
+    await supabase.from("gastos_generales").update({ estado_pago: g.estado_pago === "Pagada" ? "Pendiente" : "Pagada" } as never).eq("id", g.id);
     qc.invalidateQueries({ queryKey: ["gastos_generales"] });
   }
 
@@ -249,6 +260,7 @@ function GastosGenerales() {
           <Campo etiqueta="Fecha">
             <Input type="date" value={form.fecha} onChange={(e) => setForm({ ...form, fecha: e.target.value })} />
           </Campo>
+          <CamposCondicion valor={form} fechaBase={form.fecha} onChange={(c) => setForm({ ...form, ...c })} />
           <div className="sm:col-span-4 flex flex-wrap items-end gap-3">
             <Boton type="submit">Registrar gasto</Boton>
             <span className="pb-2 font-mono text-xs text-muted-foreground">
@@ -381,7 +393,14 @@ function GastosGenerales() {
                     <td className="px-3 py-2.5">
                       <InsigniaCategoriaGasto valor={g.categoria ?? ""} />
                     </td>
-                    <td className="px-3 py-2.5 text-muted-foreground">{nombreProv(g)}</td>
+                    <td className="px-3 py-2.5 text-muted-foreground">
+                      {nombreProv(g)}
+                      <div className="mt-1">
+                        <button type="button" title="Cambiar estado de pago" disabled={(g as Pago).condicion_pago !== "Crédito"} onClick={() => alternarPago(g as Pago & { id: string })}>
+                          <InsigniaPago condicion={(g as Pago).condicion_pago} vencimiento={(g as Pago).fecha_vencimiento} pagado={(g as Pago).estado_pago === "Pagada"} />
+                        </button>
+                      </div>
+                    </td>
                     <td className="px-3 py-2.5 text-right">
                       <div className="flex items-center justify-end gap-2">
                         {g.moneda === "USD" ? `US$ ${Number(g.monto).toFixed(2)}` : soles(Number(g.monto))}

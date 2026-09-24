@@ -8,6 +8,7 @@ import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
 import { ofertaProyecto, usePartidas, useProyectos, useTiposPresupuesto, useVentas } from "@/lib/datos";
 import { exportarExcel } from "@/lib/exportar";
+import { CamposCondicion, InsigniaPago, condicionVacia, datosCondicion } from "@/components/CondicionPago";
 
 export const Route = createFileRoute("/_authenticated/valorizaciones")({
   head: () => ({
@@ -51,6 +52,8 @@ function Valorizaciones() {
     numero_factura: "",
     fecha_pago: hoy(),
     estado: "Pendiente de Pago",
+    fecha_emision: hoy(),
+    ...condicionVacia("Crédito"),
   });
   const [error, setError] = useState("");
   const [avisoCobro, setAvisoCobro] = useState("");
@@ -116,7 +119,9 @@ function Valorizaciones() {
       numero_factura: form.numero_factura.trim(),
       fecha_pago: form.fecha_pago || null,
       estado: form.estado as "Pagado" | "Pendiente de Pago",
-    });
+      fecha_emision: form.fecha_emision,
+      ...datosCondicion(form, form.fecha_emision),
+    } as never);
     if (err) return setError(err.message);
     setForm({ ...form, cliente_id: "", concepto: "", monto: "", numero_factura: "" });
     qc.invalidateQueries({ queryKey: ["ventas"] });
@@ -237,6 +242,10 @@ function Valorizaciones() {
           <Campo etiqueta="N° de factura emitida">
             <Input value={form.numero_factura} onChange={(e) => setForm({ ...form, numero_factura: e.target.value })} maxLength={40} />
           </Campo>
+          <Campo etiqueta="Fecha de emisión">
+            <Input type="date" value={form.fecha_emision} onChange={(e) => setForm({ ...form, fecha_emision: e.target.value })} />
+          </Campo>
+          <CamposCondicion valor={form} fechaBase={form.fecha_emision} onChange={(c) => setForm({ ...form, ...c })} />
           <Campo etiqueta="Fecha de pago">
             <Input type="date" value={form.fecha_pago} onChange={(e) => setForm({ ...form, fecha_pago: e.target.value })} />
           </Campo>
@@ -293,6 +302,7 @@ function Valorizaciones() {
                 <th className="px-3 py-2 font-medium">Cliente</th>
                 <th className="px-3 py-2 font-medium">Proyecto</th>
                 <th className="px-3 py-2 font-medium">Factura</th>
+                <th className="px-3 py-2 font-medium">Condición</th>
                 <th className="px-3 py-2 font-medium">Pago</th>
                 <th className="px-3 py-2 text-right font-medium">Monto</th>
                 <th className="px-3 py-2 text-right font-medium">Equiv. S/</th>
@@ -306,6 +316,13 @@ function Valorizaciones() {
                   <td className="px-3 py-2.5 text-muted-foreground">{nombreCliente(v.cliente_id)}</td>
                   <td className="px-3 py-2.5 text-muted-foreground">{nombreProy(v.proyecto_id)}</td>
                   <td className="px-3 py-2.5 text-muted-foreground">{v.numero_factura || "—"}</td>
+                  <td className="px-3 py-2.5">
+                    <InsigniaPago
+                      condicion={(v as { condicion_pago?: string }).condicion_pago}
+                      vencimiento={(v as { fecha_vencimiento?: string | null }).fecha_vencimiento}
+                      pagado={v.estado === "Pagado"}
+                    />
+                  </td>
                   <td className="px-3 py-2.5 text-muted-foreground">{v.fecha_pago ? fmtFecha(v.fecha_pago) : "—"}</td>
                   <td className="px-3 py-2.5 text-right">
                     {v.moneda === "USD" ? `US$ ${Number(v.monto).toFixed(2)}` : soles(Number(v.monto))}

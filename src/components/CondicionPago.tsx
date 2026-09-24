@@ -88,7 +88,7 @@ export function InsigniaPago({
     return <span className="rounded bg-good/15 px-1.5 py-0.5 text-[10px] text-good">Crédito · Pagada</span>;
   const vencida = !!vencimiento && vencimiento < hoy();
   return (
-    <span className={`whitespace-nowrap rounded px-1.5 py-0.5 text-[10px] ${vencida ? "bg-bad/15 text-bad" : "bg-warn/15 text-warn"}`}>
+    <span className={`whitespace-nowrap rounded px-1.5 py-0.5 text-[10px] ${vencida ? "bg-bad/15 text-bad" : "bg-accent text-accent-foreground"}`}>
       {vencida ? "Vencida" : "Crédito"} · {fmtFecha(vencimiento ?? null)}
     </span>
   );
