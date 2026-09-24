@@ -529,7 +529,7 @@ export type Database = {
         }
         Insert: {
           activo?: boolean
-          codigo: string
+          codigo?: string
           created_at?: string
           id?: string
           nombre: string
