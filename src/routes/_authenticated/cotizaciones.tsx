@@ -145,8 +145,11 @@ function Cotizaciones() {
         })
         .select("id")
         .single();
-      if (err) throw err;
-      setForm({ ...form, nombre: "", ubicacion: "" });
+      if (err) {
+        if (err.code === "23505") throw new Error("Ese código ya está asignado a otra cotización.");
+        throw err;
+      }
+      setForm({ ...form, codigo: "", nombre: "", ubicacion: "" });
       qc.invalidateQueries({ queryKey: ["cotizaciones"] });
       setSeleccion(data.id);
     } catch (e2) {
