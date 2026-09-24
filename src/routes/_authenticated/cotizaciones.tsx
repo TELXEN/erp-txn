@@ -19,7 +19,9 @@ import { exportarExcel } from "@/lib/exportar";
 import {
   ESTADOS_COTIZACION,
   generarCodigoCotizacion,
+  previsualizarCodigoCotizacion,
   totalesCotizacion,
+  useCodificacionCotizacion,
   useCotizacionItems,
   useCotizaciones,
   usePartidasMaestras,
@@ -60,7 +62,7 @@ function Cotizaciones() {
     queryFn: async () => {
       const { data, error: err } = await supabase
         .from("terceros")
-        .select("id, razon_social, numero_documento")
+        .select("id, razon_social")
         .eq("es_cliente", true)
         .eq("activo", true)
         .order("razon_social");
@@ -68,6 +70,7 @@ function Cotizaciones() {
       return data ?? [];
     },
   });
+  const { data: codificacionCot } = useCodificacionCotizacion();
 
   const [seleccion, setSeleccion] = useState<string | null>(null);
   const { data: items = [] } = useCotizacionItems(seleccion);
@@ -75,6 +78,7 @@ function Cotizaciones() {
   const [aviso, setAviso] = useState("");
 
   const [form, setForm] = useState({
+    codigo: "",
     cliente_id: "",
     nombre: "",
     ubicacion: "",
@@ -122,7 +126,7 @@ function Cotizaciones() {
     setError("");
     setAviso("");
     try {
-      const codigo = await generarCodigoCotizacion();
+      const codigo = form.codigo.trim().toUpperCase() || (await generarCodigoCotizacion());
       const cliente = clientes.find((c) => c.id === form.cliente_id);
       const { data, error: err } = await supabase
         .from("cotizaciones")
@@ -141,8 +145,11 @@ function Cotizaciones() {
         })
         .select("id")
         .single();
-      if (err) throw err;
-      setForm({ ...form, nombre: "", ubicacion: "" });
+      if (err) {
+        if (err.code === "23505") throw new Error("Ese código ya está asignado a otra cotización.");
+        throw err;
+      }
+      setForm({ ...form, codigo: "", nombre: "", ubicacion: "" });
       qc.invalidateQueries({ queryKey: ["cotizaciones"] });
       setSeleccion(data.id);
     } catch (e2) {
@@ -296,12 +303,22 @@ function Cotizaciones() {
 
       <Panel titulo="Nueva cotización" className="mb-4">
         <form onSubmit={crear} className="grid gap-3 p-5 sm:grid-cols-4">
+          <Campo etiqueta="Código de cotización">
+            <Input
+              className="uppercase"
+              value={form.codigo}
+              onChange={(e) => setForm({ ...form, codigo: e.target.value })}
+              maxLength={30}
+              placeholder={codificacionCot ? previsualizarCodigoCotizacion(codificacionCot) : "Automático"}
+              title="Déjalo vacío para asignar el código automático"
+            />
+          </Campo>
           <Campo etiqueta="Cliente">
             <Select value={form.cliente_id} onChange={(e) => setForm({ ...form, cliente_id: e.target.value })} required>
               <option value="">Selecciona...</option>
               {clientes.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.razon_social} · {c.numero_documento}
+                  {c.razon_social}
                 </option>
               ))}
             </Select>
