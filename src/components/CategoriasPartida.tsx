@@ -97,7 +97,7 @@ export function CategoriasPartida() {
 
   return (
     <>
-      <Panel titulo="Nuevo egistro de categorías" className="mb-4">
+      <Panel titulo="Nuevo registro de categorías" className="mb-4">
         <form onSubmit={crear} className="grid gap-3 p-4 sm:grid-cols-5">
           <Campo etiqueta="Especialidad">
             <Select
