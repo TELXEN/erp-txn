@@ -90,7 +90,7 @@ const GRUPOS_CONFIG: { titulo: string; icono: React.ElementType; items: [Pestana
   { titulo: "Empresa y Terceros", icono: Building2, items: [["empresa", "Datos de la empresa"], ["bancos", "Cuentas bancarias"], ["terceros", "Clientes y proveedores"]] },
   { titulo: "Catálogo técnico (WBS)", icono: Ruler, items: [["especialidades", "Capítulos y especialidades (Nivel 1)"], ["categorias", "Categorías de partidas (Nivel 2)"], ["maestras", "Registro de partidas (Nivel 3)"], ["unidades", "Unidades de medida"]] },
   { titulo: "Proyectos y Cotizaciones", icono: FolderKanban, items: [["codificacion", "Codificación de proyectos"], ["codificacioncot", "Codificación de cotizaciones"], ["configuracion", "Parámetros de proyectos"]] },
-  { titulo: "Costos y Finanzas", icono: Coins, items: [["categoriasgg", "Categorías de gastos generales"], ["centros", "Centro de costos"], ["costos", "Rubros de costos"], ["ingresos", "Rubros de ingresos"]] },
+  { titulo: "Costos y Finanzas", icono: Coins, items: [["categoriasgg", "Categorías de gastos generales"], ["centros", "Centros de costos"], ["costos", "Rubros de costos"], ["ingresos", "Rubros de ingresos"]] },
   { titulo: "Recursos Humanos", icono: HardHat, items: [["cargos", "Cargos del personal"]] },
 ];
 
