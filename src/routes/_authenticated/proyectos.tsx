@@ -20,6 +20,7 @@ import {
   usePartidas,
   useProyectos,
   useTareos,
+  useTerceros,
   useTrabajadores,
 } from "@/lib/datos";
 import { generarCodigoProyecto, previsualizarCodigo, useCodificacion } from "@/lib/codificacion";
@@ -45,6 +46,8 @@ function Proyectos() {
   const { data: gastosG = [] } = useGastosGenerales();
   const { data: tareos = [] } = useTareos();
   const { data: trabajadores = [] } = useTrabajadores();
+  const { data: terceros = [] } = useTerceros();
+  const clientes = terceros.filter((t) => t.es_cliente && t.activo);
   const { data: tiposPresupuesto = [] } = useTiposPresupuesto();
   const { data: codificacion } = useCodificacion();
   const [vista, setVista] = useState<"tabla" | "kanban">("tabla");
@@ -204,7 +207,14 @@ function Proyectos() {
             />
           </Campo>
           <Campo etiqueta="Cliente">
-            <Input value={form.cliente} onChange={(e) => setForm({ ...form, cliente: e.target.value })} maxLength={120} />
+            <Select value={form.cliente} onChange={(e) => setForm({ ...form, cliente: e.target.value })}>
+              <option value="">Sin cliente</option>
+              {clientes.map((c) => (
+                <option key={c.id} value={c.razon_social}>
+                  {c.razon_social}
+                </option>
+              ))}
+            </Select>
           </Campo>
           <Campo etiqueta="Nombre de la obra">
             <Input value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} required maxLength={120} />
