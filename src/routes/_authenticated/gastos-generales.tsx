@@ -1,11 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { InsigniaCategoriaGasto } from "@/components/estado-ui";
-import { Check, Info, Pencil, Trash2, X } from "lucide-react";
+import { Check, ChevronDown, ChevronRight, Info, Pencil, Trash2, X } from "lucide-react";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
 import { useCategoriasGastoGeneral, useGastosGenerales, useProyectos, useTerceros } from "@/lib/datos";
@@ -24,7 +24,15 @@ export const Route = createFileRoute("/_authenticated/gastos-generales")({
   component: GastosGenerales,
 });
 
-type Pago = { condicion_pago?: string; fecha_vencimiento?: string | null; estado_pago?: string };
+type Pago = {
+  condicion_pago?: string;
+  fecha_vencimiento?: string | null;
+  estado_pago?: string;
+  comprobante?: string;
+  banco_id?: string | null;
+};
+
+type Cuenta = { id: string; nombre: string; monedas: string; tipo_cuenta: string; numero_cuenta: string; activo: boolean };
 
 function GastosGenerales() {
   const { rol } = useAuth();
@@ -33,10 +41,20 @@ function GastosGenerales() {
   const { data: terceros = [] } = useTerceros();
   const { data: proyectos = [] } = useProyectos();
   const { data: categorias = [] } = useCategoriasGastoGeneral();
+  const { data: cuentas = [] } = useQuery({
+    queryKey: ["bancos"],
+    queryFn: async () => {
+      const { data, error: err } = await supabase.from("bancos").select("*").order("nombre");
+      if (err) throw err;
+      return (data ?? []) as unknown as Cuenta[];
+    },
+  });
+  const cuentasActivas = cuentas.filter((c) => c.activo);
   const proveedores = terceros.filter((t) => t.es_proveedor && t.activo);
   const categoriasActivas = categorias.filter((c) => c.activo);
   const [form, setForm] = useState({
     descripcion: "",
+    comprobante: "",
     proveedor_id: "",
     proyecto_id: "",
     categoria: "",
@@ -44,32 +62,64 @@ function GastosGenerales() {
     moneda: "PEN",
     tipo_cambio: "3.75",
     fecha: hoy(),
+    banco_id: "",
     ...condicionVacia(),
   });
   const [error, setError] = useState("");
+  const [ambito, setAmbito] = useState("Todas");
   const [filtroCategoria, setFiltroCategoria] = useState("Todas");
+  const [cerrados, setCerrados] = useState<Set<string>>(new Set());
   const [guiaVisible, setGuiaVisible] = useState(false);
   const ayudaCategoria = categorias.find((c) => c.nombre === form.categoria)?.descripcion ?? "";
   const [editando, setEditando] = useState<{
     id: string;
     descripcion: string;
+    comprobante: string;
     monto: string;
     categoria: string;
   } | null>(null);
   const nombreProv = (g: (typeof gastos)[number]) =>
     (g.proveedor_id ? terceros.find((t) => t.id === g.proveedor_id)?.razon_social : null) ?? g.proveedor ?? "—";
-  const nombreProy = (id: string | null) =>
-    id ? (proyectos.find((p) => p.id === id)?.nombre ?? "—") : "Oficina";
+  const nombreProy = (id: string | null) => (id ? (proyectos.find((p) => p.id === id)?.nombre ?? "—") : "Oficina Central");
+  const nombreBanco = (id: string | null | undefined) => {
+    const c = cuentas.find((x) => x.id === id);
+    return c ? `${c.nombre} · ${c.monedas}` : "";
+  };
   const equivalente = Number(form.monto || 0) * (form.moneda === "USD" ? Number(form.tipo_cambio || 0) : 1);
+
+  const porAmbito =
+    ambito === "Todas"
+      ? gastos
+      : ambito === "Oficina"
+        ? gastos.filter((g) => !g.proyecto_id)
+        : gastos.filter((g) => g.proyecto_id === ambito);
   const gastosFiltrados =
-    filtroCategoria === "Todas" ? gastos : gastos.filter((g) => (g.categoria ?? "") === filtroCategoria);
-  const totalesCategoria = categoriasActivas.map((c) => ({
-    nombre: c.nombre,
-    total: gastos.filter((g) => (g.categoria ?? "") === c.nombre).reduce((s, g) => s + Number(g.monto_soles), 0),
-  }));
+    filtroCategoria === "Todas" ? porAmbito : porAmbito.filter((g) => (g.categoria ?? "") === filtroCategoria);
+
+  const totalesCategoria = categoriasActivas
+    .map((c) => ({
+      nombre: c.nombre,
+      total: porAmbito.filter((g) => (g.categoria ?? "") === c.nombre).reduce((s, g) => s + Number(g.monto_soles), 0),
+    }))
+    .filter((t) => t.total > 0 || filtroCategoria === t.nombre);
   const total = gastosFiltrados.reduce((s, g) => s + Number(g.monto_soles), 0);
+  const pagado = gastosFiltrados
+    .filter((g) => (g as Pago).estado_pago === "Pagada")
+    .reduce((s, g) => s + Number(g.monto_soles), 0);
+  const porPagar = total - pagado;
+
+  const gruposCategoria = Array.from(new Set(gastosFiltrados.map((g) => g.categoria || "Sin categoría"))).sort();
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
+
+  function alternarGrupo(nombre: string) {
+    setCerrados((prev) => {
+      const s = new Set(prev);
+      if (s.has(nombre)) s.delete(nombre);
+      else s.add(nombre);
+      return s;
+    });
+  }
 
   async function guardar(e: React.FormEvent) {
     e.preventDefault();
@@ -77,10 +127,13 @@ function GastosGenerales() {
     if (!form.categoria) return setError("Selecciona la categoría del gasto general.");
     if (form.moneda === "USD" && Number(form.tipo_cambio) <= 0)
       return setError("Ingresa un tipo de cambio válido para dólares.");
+    const contado = form.condicion_pago !== "Crédito";
+    if (contado && !form.banco_id) return setError("Elige la cuenta bancaria o Caja Chica del egreso.");
     const tc = form.moneda === "USD" ? Number(form.tipo_cambio) : 1;
     const prov = terceros.find((t) => t.id === form.proveedor_id);
     const { error: err } = await supabase.from("gastos_generales").insert({
       descripcion: form.descripcion.trim(),
+      comprobante: form.comprobante.trim(),
       proveedor: prov?.razon_social ?? "",
       proveedor_id: form.proveedor_id || null,
       proyecto_id: form.proyecto_id || null,
@@ -91,15 +144,20 @@ function GastosGenerales() {
       monto_soles: Number(form.monto || 0) * tc,
       fecha: form.fecha,
       ...datosCondicion(form, form.fecha),
-      estado_pago: form.condicion_pago === "Crédito" ? "Pendiente" : "Pagada",
+      estado_pago: contado ? "Pagada" : "Pendiente",
+      banco_id: contado && form.banco_id !== "caja" ? form.banco_id : null,
+      fecha_pago: contado ? form.fecha : null,
     } as never);
     if (err) return setError(err.message);
-    setForm({ ...form, descripcion: "", proveedor_id: "", monto: "" });
+    setForm({ ...form, descripcion: "", comprobante: "", proveedor_id: "", monto: "" });
     qc.invalidateQueries({ queryKey: ["gastos_generales"] });
   }
 
   async function alternarPago(g: Pago & { id: string }) {
-    await supabase.from("gastos_generales").update({ estado_pago: g.estado_pago === "Pagada" ? "Pendiente" : "Pagada" } as never).eq("id", g.id);
+    await supabase
+      .from("gastos_generales")
+      .update({ estado_pago: g.estado_pago === "Pagada" ? "Pendiente" : "Pagada" } as never)
+      .eq("id", g.id);
     qc.invalidateQueries({ queryKey: ["gastos_generales"] });
   }
 
@@ -110,7 +168,13 @@ function GastosGenerales() {
   }
 
   function iniciarEdicion(g: (typeof gastos)[number]) {
-    setEditando({ id: g.id, descripcion: g.descripcion, monto: String(g.monto), categoria: g.categoria ?? "" });
+    setEditando({
+      id: g.id,
+      descripcion: g.descripcion,
+      comprobante: (g as Pago).comprobante ?? "",
+      monto: String(g.monto),
+      categoria: g.categoria ?? "",
+    });
   }
 
   function cancelarEdicion() {
@@ -129,15 +193,18 @@ function GastosGenerales() {
       .from("gastos_generales")
       .update({
         descripcion: editando.descripcion.trim(),
+        comprobante: editando.comprobante.trim(),
         categoria: editando.categoria,
         monto,
         monto_soles: monto * tc,
-      })
+      } as never)
       .eq("id", editando.id);
     if (err) return setError(err.message);
     setEditando(null);
     qc.invalidateQueries({ queryKey: ["gastos_generales"] });
   }
+
+  const contado = form.condicion_pago !== "Crédito";
 
   return (
     <>
@@ -153,10 +220,15 @@ function GastosGenerales() {
                   nombre: "Gastos Generales",
                   filas: gastosFiltrados.map((g) => ({
                     Fecha: g.fecha,
+                    Comprobante: (g as Pago).comprobante ?? "",
                     Descripcion: g.descripcion,
                     Categoria: g.categoria ?? "",
-                    Obra: nombreProy(g.proyecto_id),
+                    Ambito: nombreProy(g.proyecto_id),
                     Proveedor: nombreProv(g),
+                    Condicion: (g as Pago).condicion_pago ?? "Contado",
+                    Vencimiento: (g as Pago).fecha_vencimiento ?? "",
+                    Estado: (g as Pago).estado_pago ?? "",
+                    Cuenta: nombreBanco((g as Pago).banco_id),
                     Monto: Number(g.monto),
                     Moneda: g.moneda,
                     "Tipo de Cambio": Number(g.tipo_cambio),
@@ -170,6 +242,39 @@ function GastosGenerales() {
           </Boton>
         }
       />
+
+      <Panel className="mb-4">
+        <div className="flex flex-wrap items-end gap-4 p-5">
+          <div className="min-w-[240px] flex-1">
+            <Campo etiqueta="Ámbito">
+              <Select value={ambito} onChange={(e) => setAmbito(e.target.value)}>
+                <option value="Todas">Todas las imputaciones</option>
+                <option value="Oficina">Oficina Central (gastos de sede)</option>
+                {proyectos.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.codigo ? `${p.codigo} · ` : ""}
+                    {p.nombre}
+                  </option>
+                ))}
+              </Select>
+            </Campo>
+          </div>
+          <div className="grid flex-[2] gap-3 sm:grid-cols-3">
+            <div className="rounded-md border border-line px-3 py-2">
+              <p className="label-mono">Total gastos generales</p>
+              <p className="font-mono text-lg font-bold text-ink">{soles(total)}</p>
+            </div>
+            <div className="rounded-md border border-line px-3 py-2">
+              <p className="label-mono">Pagado</p>
+              <p className="font-mono text-lg font-bold text-good">{soles(pagado)}</p>
+            </div>
+            <div className="rounded-md border border-line px-3 py-2">
+              <p className="label-mono">Por pagar (crédito)</p>
+              <p className="font-mono text-lg font-bold text-bad">{soles(porPagar)}</p>
+            </div>
+          </div>
+        </div>
+      </Panel>
 
       <Panel
         titulo="Nuevo gasto general"
@@ -204,6 +309,14 @@ function GastosGenerales() {
           <Campo etiqueta="Descripción">
             <Input value={form.descripcion} onChange={(e) => setForm({ ...form, descripcion: e.target.value })} required maxLength={160} />
           </Campo>
+          <Campo etiqueta="N° comprobante">
+            <Input
+              value={form.comprobante}
+              onChange={(e) => setForm({ ...form, comprobante: e.target.value })}
+              placeholder="F001-4520"
+              maxLength={40}
+            />
+          </Campo>
           <Campo etiqueta="Categoría del gasto">
             <Select value={form.categoria} onChange={(e) => setForm({ ...form, categoria: e.target.value })} required>
               <option value="">Selecciona...</option>
@@ -213,9 +326,7 @@ function GastosGenerales() {
                 </option>
               ))}
             </Select>
-            {ayudaCategoria && (
-              <p className="mt-1 text-[11px] leading-snug text-muted-foreground">{ayudaCategoria}</p>
-            )}
+            {ayudaCategoria && <p className="mt-1 text-[11px] leading-snug text-muted-foreground">{ayudaCategoria}</p>}
           </Campo>
           <Campo etiqueta="Proveedor">
             <Select value={form.proveedor_id} onChange={(e) => setForm({ ...form, proveedor_id: e.target.value })} required>
@@ -227,11 +338,12 @@ function GastosGenerales() {
               ))}
             </Select>
           </Campo>
-          <Campo etiqueta="Obra asignada (opcional)">
+          <Campo etiqueta="Imputación (obra u oficina)">
             <Select value={form.proyecto_id} onChange={(e) => setForm({ ...form, proyecto_id: e.target.value })}>
-              <option value="">Sin asignar (oficina)</option>
+              <option value="">Oficina Central</option>
               {proyectos.map((p) => (
                 <option key={p.id} value={p.id}>
+                  {p.codigo ? `${p.codigo} · ` : ""}
                   {p.nombre}
                 </option>
               ))}
@@ -261,8 +373,24 @@ function GastosGenerales() {
             <Input type="date" value={form.fecha} onChange={(e) => setForm({ ...form, fecha: e.target.value })} />
           </Campo>
           <CamposCondicion valor={form} fechaBase={form.fecha} onChange={(c) => setForm({ ...form, ...c })} />
+          {contado && (
+            <Campo etiqueta="Medio de egreso">
+              <Select value={form.banco_id} onChange={(e) => setForm({ ...form, banco_id: e.target.value })}>
+                <option value="">Selecciona...</option>
+                {cuentasActivas.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.nombre} · {c.tipo_cuenta} · {c.monedas}
+                    {c.numero_cuenta ? ` · ${c.numero_cuenta}` : ""}
+                  </option>
+                ))}
+                <option value="caja">Caja Chica (efectivo)</option>
+              </Select>
+            </Campo>
+          )}
           <div className="sm:col-span-4 flex flex-wrap items-end gap-3">
-            <Boton type="submit">Registrar gasto</Boton>
+            <Boton type="submit" variante="accion">
+              Registrar gasto
+            </Boton>
             <span className="pb-2 font-mono text-xs text-muted-foreground">
               Equivalente: <strong className="text-ink">{soles(equivalente)}</strong>
             </span>
@@ -291,7 +419,7 @@ function GastosGenerales() {
       )}
 
       <Panel
-        titulo="Gastos registrados"
+        titulo={`Gastos registrados · ${ambito === "Todas" ? "Todas las imputaciones" : ambito === "Oficina" ? "Oficina Central" : nombreProy(ambito)}`}
         extra={
           <div className="flex items-center gap-3">
             {filtroCategoria !== "Todas" && (
@@ -311,7 +439,7 @@ function GastosGenerales() {
           <Vacio
             texto={
               filtroCategoria === "Todas"
-                ? "Aún no hay gastos generales."
+                ? "Aún no hay gastos generales en este ámbito."
                 : `No hay gastos de la categoría ${filtroCategoria}.`
             }
           />
@@ -320,116 +448,164 @@ function GastosGenerales() {
             <thead>
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
                 <th className="w-1/12 px-5 py-2 font-medium">Fecha</th>
+                <th className="w-2/12 px-3 py-2 font-medium">Comprobante</th>
                 <th className="w-3/12 px-3 py-2 font-medium">Descripción</th>
-                <th className="w-3/12 px-3 py-2 font-medium">Categoría</th>
                 <th className="w-2/12 px-3 py-2 font-medium">Proveedor</th>
+                <th className="w-2/12 px-3 py-2 font-medium">Pago</th>
                 <th className="w-2/12 px-3 py-2 text-right font-medium">Monto</th>
                 <th className="w-1/12 px-5 py-2"></th>
               </tr>
             </thead>
             <tbody>
-              {gastosFiltrados.map((g) =>
-                editando?.id === g.id ? (
-                  <tr key={g.id} className="border-b border-line/60 last:border-0">
-                    <td className="px-5 py-2.5">{fmtFecha(g.fecha)}</td>
-                    <td className="px-3 py-2">
-                      <Input
-                        value={editando.descripcion}
-                        onChange={(e) => setEditando({ ...editando, descripcion: e.target.value })}
-                        className="py-1 text-xs"
-                        maxLength={160}
-                      />
-                    </td>
-                    <td className="px-3 py-2">
-                      <Select
-                        value={editando.categoria}
-                        onChange={(e) => setEditando({ ...editando, categoria: e.target.value })}
-                        className="py-1 text-xs"
-                      >
-                        <option value="">Sin categoría</option>
-                        {categoriasActivas.map((c) => (
-                          <option key={c.id} value={c.nombre}>
-                            {c.nombre}
-                          </option>
-                        ))}
-                      </Select>
-                    </td>
-                    <td className="px-3 py-2.5 text-muted-foreground">{nombreProv(g)}</td>
-                    <td className="px-3 py-2">
-                      <Input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={editando.monto}
-                        onChange={(e) => setEditando({ ...editando, monto: e.target.value })}
-                        className="py-1 text-xs"
-                      />
-                    </td>
-                    <td className="px-5 py-2">
-                      <div className="flex items-center justify-end gap-1">
+              {gruposCategoria.map((cat) => {
+                const filas = gastosFiltrados.filter((g) => (g.categoria || "Sin categoría") === cat);
+                const subtotal = filas.reduce((s, g) => s + Number(g.monto_soles), 0);
+                const abierto = !cerrados.has(cat);
+                return (
+                  <>
+                    <tr key={`h-${cat}`} className="border-b border-line bg-muted/40">
+                      <td colSpan={7} className="px-5 py-2">
                         <button
                           type="button"
-                          onClick={actualizarEdicion}
-                          className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground"
-                          title="Guardar"
+                          onClick={() => alternarGrupo(cat)}
+                          className="flex w-full items-center justify-between gap-3 text-left"
                         >
-                          <Check size={14} />
+                          <span className="flex items-center gap-2">
+                            {abierto ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
+                            <InsigniaCategoriaGasto valor={cat} />
+                            <span className="text-[10px] text-muted-foreground">{filas.length} comprobante(s)</span>
+                          </span>
+                          <span className="font-semibold text-ink">{soles(subtotal)}</span>
                         </button>
-                        <button
-                          type="button"
-                          onClick={cancelarEdicion}
-                          className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line hover:bg-muted"
-                          title="Cancelar"
-                        >
-                          <X size={14} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ) : (
-                  <tr key={g.id} className="border-b border-line/60 last:border-0">
-                    <td className="px-5 py-2.5">{fmtFecha(g.fecha)}</td>
-                    <td className="px-3 py-2.5 font-semibold text-ink">{g.descripcion}</td>
-                    <td className="px-3 py-2.5">
-                      <InsigniaCategoriaGasto valor={g.categoria ?? ""} />
-                    </td>
-                    <td className="px-3 py-2.5 text-muted-foreground">
-                      {nombreProv(g)}
-                      <div className="mt-1">
-                        <button type="button" title="Cambiar estado de pago" disabled={(g as Pago).condicion_pago !== "Crédito"} onClick={() => alternarPago(g as Pago & { id: string })}>
-                          <InsigniaPago condicion={(g as Pago).condicion_pago} vencimiento={(g as Pago).fecha_vencimiento} pagado={(g as Pago).estado_pago === "Pagada"} />
-                        </button>
-                      </div>
-                    </td>
-                    <td className="px-3 py-2.5 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        {g.moneda === "USD" ? `US$ ${Number(g.monto).toFixed(2)}` : soles(Number(g.monto))}
-                        <Etiqueta tono="neutro">{g.moneda === "USD" ? `TC ${Number(g.tipo_cambio)}` : "PEN"}</Etiqueta>
-                      </div>
-                    </td>
-                    <td className="px-5 py-2">
-                      <div className="flex items-center justify-end gap-1">
-                        <button
-                          type="button"
-                          onClick={() => iniciarEdicion(g)}
-                          className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"
-                          title="Editar"
-                        >
-                          <Pencil size={14} />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => eliminar(g.id)}
-                          className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-bad hover:text-bad"
-                          title="Eliminar"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                )
-              )}
+                      </td>
+                    </tr>
+                    {abierto &&
+                      filas.map((g) =>
+                        editando?.id === g.id ? (
+                          <tr key={g.id} className="border-b border-line/60">
+                            <td className="px-5 py-2.5">{fmtFecha(g.fecha)}</td>
+                            <td className="px-3 py-2">
+                              <Input
+                                value={editando.comprobante}
+                                onChange={(e) => setEditando({ ...editando, comprobante: e.target.value })}
+                                className="py-1 text-xs"
+                                maxLength={40}
+                              />
+                            </td>
+                            <td className="px-3 py-2">
+                              <Input
+                                value={editando.descripcion}
+                                onChange={(e) => setEditando({ ...editando, descripcion: e.target.value })}
+                                className="py-1 text-xs"
+                                maxLength={160}
+                              />
+                            </td>
+                            <td className="px-3 py-2.5 text-muted-foreground">{nombreProv(g)}</td>
+                            <td className="px-3 py-2">
+                              <Select
+                                value={editando.categoria}
+                                onChange={(e) => setEditando({ ...editando, categoria: e.target.value })}
+                                className="py-1 text-xs"
+                              >
+                                <option value="">Sin categoría</option>
+                                {categoriasActivas.map((c) => (
+                                  <option key={c.id} value={c.nombre}>
+                                    {c.nombre}
+                                  </option>
+                                ))}
+                              </Select>
+                            </td>
+                            <td className="px-3 py-2">
+                              <Input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                value={editando.monto}
+                                onChange={(e) => setEditando({ ...editando, monto: e.target.value })}
+                                className="py-1 text-xs"
+                              />
+                            </td>
+                            <td className="px-5 py-2">
+                              <div className="flex items-center justify-end gap-1">
+                                <button
+                                  type="button"
+                                  onClick={actualizarEdicion}
+                                  className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground"
+                                  title="Guardar"
+                                >
+                                  <Check size={14} />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={cancelarEdicion}
+                                  className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line hover:bg-muted"
+                                  title="Cancelar"
+                                >
+                                  <X size={14} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ) : (
+                          <tr key={g.id} className="border-b border-line/60">
+                            <td className="px-5 py-2.5">{fmtFecha(g.fecha)}</td>
+                            <td className="px-3 py-2.5 text-muted-foreground">{(g as Pago).comprobante || "—"}</td>
+                            <td className="px-3 py-2.5 font-semibold text-ink">
+                              {g.descripcion}
+                              {ambito === "Todas" && (
+                                <div className="text-[10px] font-normal text-muted-foreground">{nombreProy(g.proyecto_id)}</div>
+                              )}
+                            </td>
+                            <td className="px-3 py-2.5 text-muted-foreground">{nombreProv(g)}</td>
+                            <td className="px-3 py-2.5">
+                              <button
+                                type="button"
+                                title="Cambiar estado de pago"
+                                disabled={(g as Pago).condicion_pago !== "Crédito"}
+                                onClick={() => alternarPago(g as Pago & { id: string })}
+                              >
+                                <InsigniaPago
+                                  condicion={(g as Pago).condicion_pago}
+                                  vencimiento={(g as Pago).fecha_vencimiento}
+                                  pagado={(g as Pago).estado_pago === "Pagada"}
+                                />
+                              </button>
+                              {nombreBanco((g as Pago).banco_id) && (
+                                <div className="mt-1 text-[10px] text-muted-foreground">{nombreBanco((g as Pago).banco_id)}</div>
+                              )}
+                            </td>
+                            <td className="px-3 py-2.5 text-right">
+                              <div className="flex items-center justify-end gap-2">
+                                {g.moneda === "USD" ? `US$ ${Number(g.monto).toFixed(2)}` : soles(Number(g.monto))}
+                                <Etiqueta tono="neutro">{g.moneda === "USD" ? `TC ${Number(g.tipo_cambio)}` : "PEN"}</Etiqueta>
+                              </div>
+                            </td>
+                            <td className="px-5 py-2">
+                              <div className="flex items-center justify-end gap-1">
+                                <button
+                                  type="button"
+                                  onClick={() => iniciarEdicion(g)}
+                                  className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"
+                                  title="Editar"
+                                >
+                                  <Pencil size={14} />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => eliminar(g.id)}
+                                  className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-bad hover:text-bad"
+                                  title="Eliminar"
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        )
+                      )}
+                  </>
+                );
+              })}
             </tbody>
           </table>
         )}
