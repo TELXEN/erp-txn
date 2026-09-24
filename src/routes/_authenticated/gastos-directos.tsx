@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import React, { useEffect, useMemo, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
@@ -21,7 +21,7 @@ import { exportarExcel } from "@/lib/exportar";
 import { agruparSoloPorCategoria } from "@/lib/categorias";
 import { CamposCondicion, InsigniaPago, condicionVacia, datosCondicion } from "@/components/CondicionPago";
 
-type Compra = GastoDirecto & { cantidad?: number; precio_unitario?: number; comprobante?: string; condicion_pago?: string; fecha_vencimiento?: string | null; estado_pago?: string };
+type Compra = GastoDirecto & { cantidad?: number; precio_unitario?: number; comprobante?: string; condicion_pago?: string; fecha_vencimiento?: string | null; estado_pago?: string; banco_id?: string | null; numero_operacion?: string };
 
 const num = (n: number) =>
   Number(n || 0).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -48,6 +48,8 @@ const formVacio = (partida_id = "") => ({
   moneda: "PEN",
   tipo_cambio: "3.75",
   fecha: hoy(),
+  banco_id: "",
+  numero_operacion: "",
   ...condicionVacia(),
 });
 
@@ -65,6 +67,20 @@ function GastosDirectos() {
   const [form, setForm] = useState(formVacio());
   const [mostrarForm, setMostrarForm] = useState(false);
   const [error, setError] = useState("");
+  const { data: cuentas = [] } = useQuery({
+    queryKey: ["bancos"],
+    queryFn: async () => {
+      const { data, error: err } = await supabase.from("bancos").select("*").order("nombre");
+      if (err) throw err;
+      return data ?? [];
+    },
+  });
+  const cuentasActivas = cuentas.filter((c) => c.activo);
+  const contado = form.condicion_pago !== "Crédito";
+  const nombreBanco = (id?: string | null) => {
+    const c = cuentas.find((x) => x.id === id);
+    return c ? `${c.nombre}${c.numero_cuenta ? ` · ${c.numero_cuenta}` : ""}` : "";
+  };
 
   useEffect(() => {
     if (!proyectoId && proyectos.length) setProyectoId(proyectos[0]!.id);
@@ -107,6 +123,8 @@ function GastosDirectos() {
     if (Number(form.cantidad) <= 0) return setError("La cantidad debe ser mayor a cero.");
     if (Number(form.precio_unitario) < 0) return setError("El precio unitario no puede ser negativo.");
     if (form.moneda === "USD" && tc <= 0) return setError("Ingresa un tipo de cambio válido.");
+    if (contado && !form.banco_id) return setError("Elige la cuenta bancaria o Caja Chica del egreso.");
+    if (contado && form.banco_id !== "caja" && !form.numero_operacion.trim()) return setError("Ingresa el N° de operación.");
     const prov = terceros.find((t) => t.id === form.proveedor_id);
     const { error: err } = await supabase.from("gastos_directos").insert({
       proyecto_id: proyectoId,
@@ -124,7 +142,10 @@ function GastosDirectos() {
       rubro: form.rubro,
       fecha: form.fecha,
       ...datosCondicion(form, form.fecha),
-      estado_pago: form.condicion_pago === "Crédito" ? "Pendiente" : "Pagada",
+      estado_pago: contado ? "Pagada" : "Pendiente",
+      banco_id: contado && form.banco_id !== "caja" ? form.banco_id : null,
+      fecha_pago: contado ? form.fecha : null,
+      numero_operacion: contado && form.banco_id !== "caja" ? form.numero_operacion.trim() : "",
     } as never);
     if (err) return setError(err.message);
     setAbiertas((a) => ({ ...a, [form.partida_id]: true }));
@@ -174,6 +195,8 @@ function GastosDirectos() {
           Condición: g.condicion_pago ?? "Contado",
           Vencimiento: g.fecha_vencimiento ?? "",
           "Estado de pago": g.estado_pago ?? "Pagada",
+          "Cuenta bancaria": nombreBanco(g.banco_id),
+          "N° operación": g.numero_operacion ?? "",
           Proveedor: nombreProv(g),
           Rubro: g.rubro,
           Cantidad: Number(g.cantidad ?? 0),
@@ -272,6 +295,25 @@ function GastosDirectos() {
               <Input type="date" value={form.fecha} onChange={(e) => setForm({ ...form, fecha: e.target.value })} />
             </Campo>
             <CamposCondicion valor={form} fechaBase={form.fecha} onChange={(c) => setForm({ ...form, ...c })} />
+            {contado && (
+              <Campo etiqueta="Cuenta bancaria de egreso">
+                <Select value={form.banco_id} onChange={(e) => setForm({ ...form, banco_id: e.target.value })}>
+                  <option value="">Selecciona...</option>
+                  {cuentasActivas.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.nombre} · {c.tipo_cuenta} · {c.monedas}
+                      {c.numero_cuenta ? ` · ${c.numero_cuenta}` : ""}
+                    </option>
+                  ))}
+                  <option value="caja">Caja Chica (efectivo)</option>
+                </Select>
+              </Campo>
+            )}
+            {contado && form.banco_id && form.banco_id !== "caja" && (
+              <Campo etiqueta="N° de operación">
+                <Input value={form.numero_operacion} onChange={(e) => setForm({ ...form, numero_operacion: e.target.value })} placeholder="00123456" maxLength={40} />
+              </Campo>
+            )}
             <div className="flex flex-wrap items-center gap-3 sm:col-span-4">
               <Boton type="submit">Registrar compra</Boton>
               <Boton type="button" variante="linea" onClick={() => setMostrarForm(false)}>Cerrar</Boton>
@@ -398,6 +440,11 @@ function GastosDirectos() {
                                             <button type="button" title="Cambiar estado de pago" disabled={g.condicion_pago !== "Crédito"} onClick={() => alternarPago(g)}>
                                               <InsigniaPago condicion={g.condicion_pago} vencimiento={g.fecha_vencimiento} pagado={g.estado_pago === "Pagada"} />
                                             </button>
+                                            {g.banco_id && (
+                                              <div className="text-[10px] text-muted-foreground">
+                                                {nombreBanco(g.banco_id)}{g.numero_operacion ? ` · Op. ${g.numero_operacion}` : ""}
+                                              </div>
+                                            )}
                                           </td>
                                           <td className="text-right">{num(Number(g.cantidad ?? 0))}</td>
                                           <td className="text-right">
