@@ -92,3 +92,40 @@ export function agruparPorCategoria<T extends { especialidad: string; categoria?
     categorias: [...sub.entries()].map(([categoria, items]) => ({ categoria, items })),
   }));
 }
+
+type FilaCodigo = { codigo?: string | null; especialidad: string; categoria?: string | null };
+
+/**
+ * Código contextual dentro de una obra o cotización (sin códigos fijos de catálogo):
+ * - Capítulo: reutiliza el de la especialidad si ya existe; si no, el siguiente libre (01, 02...).
+ * - Categoría: reutiliza la de esa especialidad; si no, la siguiente libre (01.01, 01.02...).
+ * - Partida: siguiente correlativo (01.01.01, 01.01.02...).
+ */
+export function codigoContextual(especialidad: string, categoria: string, filas: FilaCodigo[]) {
+  if (!especialidad) return "";
+  const seg = (c: string) => c.split(".").map((s) => Number(s));
+  const conCodigo = filas.filter((f) => (f.codigo ?? "").trim());
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const maxDe = (nums: number[]) => nums.filter(Number.isFinite).reduce((a, b) => Math.max(a, b), 0);
+
+  const propia = conCodigo.find((f) => f.especialidad === especialidad);
+  const capitulo = propia
+    ? (propia.codigo as string).split(".")[0]
+    : pad(maxDe(conCodigo.map((f) => seg(f.codigo as string)[0])) + 1);
+  const delCapitulo = conCodigo.filter((f) => (f.codigo as string).split(".")[0] === capitulo);
+
+  const cat = categoria.trim();
+  if (!cat) {
+    return `${capitulo}.${pad(maxDe(delCapitulo.map((f) => seg(f.codigo as string)[1])) + 1)}`;
+  }
+  const mismaCat = delCapitulo.find(
+    (f) => (f.categoria ?? "").trim() === cat && (f.codigo as string).split(".").length >= 3,
+  );
+  const base = mismaCat
+    ? (mismaCat.codigo as string).split(".").slice(0, 2).join(".")
+    : `${capitulo}.${pad(maxDe(delCapitulo.map((f) => seg(f.codigo as string)[1])) + 1)}`;
+  const items = conCodigo
+    .filter((f) => (f.codigo as string).startsWith(`${base}.`))
+    .map((f) => seg(f.codigo as string)[2]);
+  return `${base}.${pad(maxDe(items) + 1)}`;
+}
