@@ -56,7 +56,6 @@ type Tercero = {
   direccion: string;
   telefono: string;
   email: string;
-  condicion_pago: string;
   activo: boolean;
 };
 
@@ -95,7 +94,6 @@ const GRUPOS_CONFIG: { titulo: string; icono: React.ElementType; items: [Pestana
 ];
 
 const TIPOS_DOC = ["RUC", "DNI", "CE", "OTRO"];
-const CONDICIONES = ["Contado", "Credito 15 dias", "Credito 30 dias", "Credito 60 dias"];
 const MONEDAS = ["PEN", "USD", "PEN/USD"];
 
 const ETIQUETA_MONEDA: Record<string, string> = {
@@ -113,7 +111,6 @@ const formVacio = {
   direccion: "",
   telefono: "",
   email: "",
-  condicion_pago: "Contado",
 };
 
 function Datos() {
@@ -187,6 +184,7 @@ function Datos() {
       ...form,
       numero_documento: form.numero_documento.trim(),
       razon_social: form.razon_social.trim(),
+      condicion_pago: "Contado",
     });
     if (err)
       return setError(
@@ -242,7 +240,6 @@ function Datos() {
                     Dirección: t.direccion,
                     Teléfono: t.telefono,
                     Correo: t.email,
-                    "Condición de Pago": t.condicion_pago,
                   })),
                 },
                 {
@@ -353,19 +350,6 @@ function Datos() {
                   maxLength={160}
                 />
               </Campo>
-              <Campo etiqueta="Condición de pago">
-                <Select
-                  className="py-1.5"
-                  value={form.condicion_pago}
-                  onChange={(e) => setForm({ ...form, condicion_pago: e.target.value })}
-                >
-                  {CONDICIONES.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </Select>
-              </Campo>
               <Campo etiqueta="Dirección">
                 <Input
                   className="py-1.5"
@@ -446,8 +430,7 @@ function Datos() {
                     <th className="w-[16%] px-3 py-2 font-medium">Dirección</th>
                     <th className="w-[10%] px-3 py-2 font-medium">Teléfono</th>
                     <th className="w-[14%] px-3 py-2 font-medium">Correo</th>
-                    <th className="w-[12%] px-3 py-2 font-medium">Condición</th>
-                    <th className="w-[10%] px-5 py-2"></th>
+                    <th className="w-[22%] px-5 py-2"></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -518,19 +501,6 @@ function Datos() {
                             onChange={(e) => setEditando({ ...editando, email: e.target.value })}
                           />
                         </td>
-                        <td className="px-3 py-2">
-                          <Select
-                            className="py-1 text-xs"
-                            value={editando.condicion_pago}
-                            onChange={(e) => setEditando({ ...editando, condicion_pago: e.target.value })}
-                          >
-                            {CONDICIONES.map((c) => (
-                              <option key={c} value={c}>
-                                {c}
-                              </option>
-                            ))}
-                          </Select>
-                        </td>
                         <td className="px-5 py-2">
                           <div className="flex items-center justify-end gap-1">
                             <button
@@ -567,7 +537,6 @@ function Datos() {
                         <td className="truncate px-3 py-2.5 text-muted-foreground">{t.direccion || "—"}</td>
                         <td className="px-3 py-2.5 text-muted-foreground">{t.telefono || "—"}</td>
                         <td className="truncate px-3 py-2.5 text-muted-foreground">{t.email || "—"}</td>
-                        <td className="px-3 py-2.5 text-muted-foreground">{t.condicion_pago}</td>
                         <td className="px-5 py-2">
                           <div className="flex items-center justify-end gap-1">
                             <button
