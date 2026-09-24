@@ -836,7 +836,8 @@ function Partidas() {
                 </tbody>
               </table>
             </div>
-          ))
+            );
+          })
         )}
       </Panel>
     </>
