@@ -62,7 +62,7 @@ function Cotizaciones() {
     queryFn: async () => {
       const { data, error: err } = await supabase
         .from("terceros")
-        .select("id, razon_social, numero_documento")
+        .select("id, razon_social")
         .eq("es_cliente", true)
         .eq("activo", true)
         .order("razon_social");
@@ -70,13 +70,10 @@ function Cotizaciones() {
       return data ?? [];
     },
   });
-
-  const [seleccion, setSeleccion] = useState<string | null>(null);
-  const { data: items = [] } = useCotizacionItems(seleccion);
-  const [error, setError] = useState("");
-  const [aviso, setAviso] = useState("");
-
+  const { data: codificacionCot } = useCodificacionCotizacion();
+...
   const [form, setForm] = useState({
+    codigo: "",
     cliente_id: "",
     nombre: "",
     ubicacion: "",
