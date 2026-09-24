@@ -997,7 +997,9 @@ export type Database = {
       terceros: {
         Row: {
           activo: boolean
+          celular_contacto: string
           condicion_pago: string
+          contacto: string
           created_at: string
           direccion: string
           email: string
@@ -1012,7 +1014,9 @@ export type Database = {
         }
         Insert: {
           activo?: boolean
+          celular_contacto?: string
           condicion_pago?: string
+          contacto?: string
           created_at?: string
           direccion?: string
           email?: string
@@ -1027,7 +1031,9 @@ export type Database = {
         }
         Update: {
           activo?: boolean
+          celular_contacto?: string
           condicion_pago?: string
+          contacto?: string
           created_at?: string
           direccion?: string
           email?: string

@@ -1,0 +1,1 @@
+ALTER TABLE public.terceros ADD COLUMN contacto TEXT NOT NULL DEFAULT '', ADD COLUMN celular_contacto TEXT NOT NULL DEFAULT '';
