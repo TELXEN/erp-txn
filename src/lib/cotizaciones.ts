@@ -89,7 +89,9 @@ export type CodificacionCotizacionConfig = {
   id: string;
   prefijo: string;
   incluir_anio: boolean;
+  anio_dos_digitos: boolean;
   separador: string;
+  tipo_letra: string;
   digitos: number;
   correlativo_actual: number;
 };
@@ -109,18 +111,22 @@ export const useCodificacionCotizacion = () =>
     },
   });
 
-/** Vista previa del siguiente código de cotización sin consumir el correlativo. */
+/** Vista previa del siguiente código de cotización sin consumir el correlativo. Ej.: TXN26-C001 */
 export function previsualizarCodigoCotizacion(
   cfg: Partial<CodificacionCotizacionConfig>,
   correlativo?: number,
 ) {
-  const prefijo = (cfg.prefijo ?? "COT").trim();
+  const prefijo = (cfg.prefijo ?? "TXN").trim().toUpperCase();
   const separador = cfg.separador ?? "-";
   const digitos = Math.max(Number(cfg.digitos ?? 3) || 1, 1);
   const numero = correlativo ?? Number(cfg.correlativo_actual ?? 0) + 1;
-  const anio = cfg.incluir_anio === false ? "" : `${separador}${new Date().getFullYear()}`;
-  return `${prefijo}${anio}${separador}${String(numero).padStart(digitos, "0")}`;
+  const anioCompleto = String(new Date().getFullYear());
+  const anio =
+    cfg.incluir_anio === false ? "" : cfg.anio_dos_digitos === false ? anioCompleto : anioCompleto.slice(-2);
+  const letra = (cfg.tipo_letra ?? "C").trim().toUpperCase();
+  return `${prefijo}${anio}${separador}${letra}${String(numero).padStart(digitos, "0")}`;
 }
+
 
 /** Reserva y devuelve el siguiente código correlativo de cotización. */
 export async function generarCodigoCotizacion(): Promise<string> {

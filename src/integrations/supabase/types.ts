@@ -271,6 +271,7 @@ export type Database = {
       }
       codificacion_config: {
         Row: {
+          anio_dos_digitos: boolean
           correlativo_actual: number
           created_at: string
           digitos: number
@@ -278,9 +279,11 @@ export type Database = {
           incluir_anio: boolean
           prefijo: string
           separador: string
+          tipo_letra: string
           updated_at: string
         }
         Insert: {
+          anio_dos_digitos?: boolean
           correlativo_actual?: number
           created_at?: string
           digitos?: number
@@ -288,9 +291,11 @@ export type Database = {
           incluir_anio?: boolean
           prefijo?: string
           separador?: string
+          tipo_letra?: string
           updated_at?: string
         }
         Update: {
+          anio_dos_digitos?: boolean
           correlativo_actual?: number
           created_at?: string
           digitos?: number
@@ -298,12 +303,14 @@ export type Database = {
           incluir_anio?: boolean
           prefijo?: string
           separador?: string
+          tipo_letra?: string
           updated_at?: string
         }
         Relationships: []
       }
       codificacion_cotizacion: {
         Row: {
+          anio_dos_digitos: boolean
           correlativo_actual: number
           created_at: string
           digitos: number
@@ -311,9 +318,11 @@ export type Database = {
           incluir_anio: boolean
           prefijo: string
           separador: string
+          tipo_letra: string
           updated_at: string
         }
         Insert: {
+          anio_dos_digitos?: boolean
           correlativo_actual?: number
           created_at?: string
           digitos?: number
@@ -321,9 +330,11 @@ export type Database = {
           incluir_anio?: boolean
           prefijo?: string
           separador?: string
+          tipo_letra?: string
           updated_at?: string
         }
         Update: {
+          anio_dos_digitos?: boolean
           correlativo_actual?: number
           created_at?: string
           digitos?: number
@@ -331,6 +342,7 @@ export type Database = {
           incluir_anio?: boolean
           prefijo?: string
           separador?: string
+          tipo_letra?: string
           updated_at?: string
         }
         Relationships: []

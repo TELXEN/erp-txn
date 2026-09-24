@@ -5,9 +5,11 @@ import { Boton, Campo, Input, Panel, Select } from "@/components/ui-kit";
 import { previsualizarCodigoCotizacion, useCodificacionCotizacion } from "@/lib/cotizaciones";
 
 const vacio = {
-  prefijo: "COT",
+  prefijo: "TXN",
   incluir_anio: true,
+  anio_dos_digitos: true,
   separador: "-",
+  tipo_letra: "C",
   digitos: 3,
   correlativo_actual: 0,
 };
@@ -25,7 +27,9 @@ export function CodificacionCotizaciones() {
       setForm({
         prefijo: cfg.prefijo,
         incluir_anio: cfg.incluir_anio,
+        anio_dos_digitos: cfg.anio_dos_digitos,
         separador: cfg.separador,
+        tipo_letra: cfg.tipo_letra,
         digitos: cfg.digitos,
         correlativo_actual: cfg.correlativo_actual,
       });
@@ -35,12 +39,14 @@ export function CodificacionCotizaciones() {
     e.preventDefault();
     setError("");
     setAviso("");
-    if (!form.prefijo.trim()) return setError("Escribe un prefijo para la codificación.");
+    if (!form.prefijo.trim()) return setError("Escribe la sigla de la empresa para la codificación.");
     setGuardando(true);
     const campos = {
       prefijo: form.prefijo.trim().toUpperCase(),
       incluir_anio: form.incluir_anio,
+      anio_dos_digitos: form.anio_dos_digitos,
       separador: form.separador,
+      tipo_letra: form.tipo_letra.trim().toUpperCase(),
       digitos: Math.min(Math.max(Number(form.digitos) || 1, 1), 8),
       correlativo_actual: Math.max(Number(form.correlativo_actual) || 0, 0),
     };
@@ -57,13 +63,22 @@ export function CodificacionCotizaciones() {
     <form onSubmit={guardar} className="grid gap-4 lg:grid-cols-[1fr_320px]">
       <Panel titulo="Codificación personalizada de cotizaciones">
         <div className="grid gap-3 p-4 sm:grid-cols-2">
-          <Campo etiqueta="Prefijo">
+          <Campo etiqueta="Sigla de la empresa">
             <Input
               className="py-1.5 uppercase"
               value={form.prefijo}
               onChange={(e) => setForm({ ...form, prefijo: e.target.value })}
               maxLength={12}
               required
+            />
+          </Campo>
+          <Campo etiqueta="Letra del documento">
+            <Input
+              className="py-1.5 uppercase"
+              value={form.tipo_letra}
+              onChange={(e) => setForm({ ...form, tipo_letra: e.target.value })}
+              maxLength={3}
+              placeholder="C"
             />
           </Campo>
           <Campo etiqueta="Separador">
@@ -78,16 +93,24 @@ export function CodificacionCotizaciones() {
               <option value="">Sin separador</option>
             </Select>
           </Campo>
-          <Campo etiqueta="Incluir el año">
+          <Campo etiqueta="Formato del año">
             <Select
               className="py-1.5"
-              value={form.incluir_anio ? "si" : "no"}
-              onChange={(e) => setForm({ ...form, incluir_anio: e.target.value === "si" })}
+              value={!form.incluir_anio ? "no" : form.anio_dos_digitos ? "corto" : "largo"}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  incluir_anio: e.target.value !== "no",
+                  anio_dos_digitos: e.target.value === "corto",
+                })
+              }
             >
-              <option value="si">Sí, incluir el año</option>
+              <option value="corto">Dos dígitos (26)</option>
+              <option value="largo">Cuatro dígitos (2026)</option>
               <option value="no">No incluir el año</option>
             </Select>
           </Campo>
+
           <Campo etiqueta="Dígitos del correlativo">
             <Input
               className="py-1.5"
