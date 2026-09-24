@@ -126,7 +126,7 @@ function Cotizaciones() {
     setError("");
     setAviso("");
     try {
-      const codigo = await generarCodigoCotizacion();
+      const codigo = form.codigo.trim().toUpperCase() || (await generarCodigoCotizacion());
       const cliente = clientes.find((c) => c.id === form.cliente_id);
       const { data, error: err } = await supabase
         .from("cotizaciones")
