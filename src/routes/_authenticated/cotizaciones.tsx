@@ -300,12 +300,22 @@ function Cotizaciones() {
 
       <Panel titulo="Nueva cotización" className="mb-4">
         <form onSubmit={crear} className="grid gap-3 p-5 sm:grid-cols-4">
+          <Campo etiqueta="Código de cotización">
+            <Input
+              className="uppercase"
+              value={form.codigo}
+              onChange={(e) => setForm({ ...form, codigo: e.target.value })}
+              maxLength={30}
+              placeholder={codificacionCot ? previsualizarCodigoCotizacion(codificacionCot) : "Automático"}
+              title="Déjalo vacío para asignar el código automático"
+            />
+          </Campo>
           <Campo etiqueta="Cliente">
             <Select value={form.cliente_id} onChange={(e) => setForm({ ...form, cliente_id: e.target.value })} required>
               <option value="">Selecciona...</option>
               {clientes.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.razon_social} · {c.numero_documento}
+                  {c.razon_social}
                 </option>
               ))}
             </Select>
