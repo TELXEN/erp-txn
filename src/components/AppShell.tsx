@@ -221,9 +221,9 @@ export function AppShell({ children }: { children: ReactNode }) {
             })}
           </nav>
 
-          <div className="mt-4">
-            <p className="px-3 pb-1.5 font-mono text-[10px] uppercase tracking-wider text-brand-foreground/60">Temas</p>
-            <div className="ml-2 space-y-1 border-l border-brand-foreground/15 pl-2">
+          <div className="mt-4 flex items-center gap-2 px-3">
+            <span className="font-mono text-[9px] uppercase tracking-wider text-brand-foreground/45">Tema</span>
+            <div className="flex items-center gap-1.5">
               {TEMAS.map((t) => {
                 const activo = tema === t.id;
                 return (
@@ -231,25 +231,23 @@ export function AppShell({ children }: { children: ReactNode }) {
                     key={t.id}
                     type="button"
                     onClick={() => cambiarTema(t.id)}
-                    className={`flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left transition-colors ${
-                      activo
-                        ? "bg-cta font-semibold text-cta-foreground"
-                        : "text-brand-foreground/85 hover:bg-brand-foreground/10 hover:text-brand-foreground"
+                    title={t.nombre}
+                    aria-label={t.nombre}
+                    aria-pressed={activo}
+                    className={`grid size-4 place-items-center rounded-full transition-all ${
+                      activo ? "ring-2 ring-brand-foreground/70 ring-offset-1 ring-offset-brand" : "opacity-60 hover:opacity-100"
                     }`}
                   >
-                    <span className="flex shrink-0 overflow-hidden rounded-full border border-brand-foreground/20">
-                      <span className="size-2.5" style={{ background: t.muestraBase }} />
-                      <span className="size-2.5" style={{ background: t.muestraAcento }} />
-                    </span>
-                    <span className="min-w-0">
-                      <span className="block truncate text-sm">{t.nombre}</span>
-                      <span className="block truncate font-mono text-[9px] opacity-70">{t.descripcion}</span>
+                    <span className="flex size-3 overflow-hidden rounded-full border border-brand-foreground/20">
+                      <span className="h-full w-1/2" style={{ background: t.muestraBase }} />
+                      <span className="h-full w-1/2" style={{ background: t.muestraAcento }} />
                     </span>
                   </button>
                 );
               })}
             </div>
           </div>
+
 
           <div className="mt-6 rounded-md border border-line bg-card p-3">
             <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-primary/60">Rol activo</p>
