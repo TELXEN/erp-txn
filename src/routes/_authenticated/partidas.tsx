@@ -579,9 +579,21 @@ function Partidas() {
             })}
           />
         ) : (
-          grupos.map(({ proyecto, grupos: espGrupos }) => (
+          grupos.map(({ proyecto, grupos: espGrupos }) => {
+            const proyectoId = espGrupos[0]?.[1]?.[0]?.proyecto_id ?? "";
+            const wbs = prefijosWBS(partidas.filter((x) => x.proyecto_id === proyectoId));
+            return (
             <div key={proyecto} className="border-b border-line last:border-0">
-              <p className="bg-ink px-5 py-2 text-xs font-semibold uppercase tracking-wider text-paper">{proyecto}</p>
+              <div className="flex items-center justify-between gap-3 bg-ink px-5 py-2">
+                <p className="text-xs font-semibold uppercase tracking-wider text-paper">{proyecto}</p>
+                <button
+                  type="button"
+                  onClick={() => void renumerar(proyectoId, proyecto)}
+                  className="inline-flex items-center gap-1.5 rounded border border-paper/30 px-2 py-1 font-mono text-[10px] text-paper hover:bg-paper/10"
+                >
+                  <ListOrdered size={12} /> Renumerar WBS
+                </button>
+              </div>
               <table className="w-full table-fixed font-mono text-xs">
                 <thead>
                   <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
@@ -601,13 +613,21 @@ function Partidas() {
                   {espGrupos.map(([esp, lista]) => (
                     <React.Fragment key={esp}>
                       <tr className="border-b border-line/40 bg-muted/40">
-                        <td colSpan={10} className="px-5 py-1.5 label-mono">{esp}</td>
+                        <td className="px-5 py-1.5 font-semibold text-ink">{wbs.capitulo(esp)}</td>
+                        <td colSpan={4} className="px-3 py-1.5 label-mono">{esp}</td>
+                        <td className="px-3 py-1.5 text-right font-semibold text-ink">
+                          {soles(lista.reduce((s, x) => s + Number(x.presupuesto_inicial), 0))}
+                        </td>
+                        <td colSpan={4} />
                       </tr>
                       {agruparSoloPorCategoria(lista).map((sub) => (
                       <React.Fragment key={`${esp}-${sub.categoria}`}>
                       {sub.categoria !== "Sin categoría" && (
                         <tr className="border-b border-line/30 bg-muted/20">
-                          <td colSpan={5} className="px-5 py-1.5 pl-8 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                          <td className="px-5 py-1.5 pl-8 text-[10px] font-semibold text-ink">
+                            {wbs.categoria(esp, sub.categoria)}
+                          </td>
+                          <td colSpan={4} className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                             {sub.categoria}
                           </td>
                           <td className="px-3 py-1.5 text-right font-semibold text-ink">
