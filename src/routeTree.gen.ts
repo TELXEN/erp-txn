@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthenticatedAlmacenRouteImport } from './routes/_authenticated/almacen'
 import { Route as AuthenticatedAvanceRouteImport } from './routes/_authenticated/avance'
 import { Route as AuthenticatedCajaChicaRouteImport } from './routes/_authenticated/caja-chica'
 import { Route as AuthenticatedCotizacionesRouteImport } from './routes/_authenticated/cotizaciones'
@@ -19,10 +20,13 @@ import { Route as AuthenticatedDashboardProyectosRouteImport } from './routes/_a
 import { Route as AuthenticatedDatosRouteImport } from './routes/_authenticated/datos'
 import { Route as AuthenticatedGastosDirectosRouteImport } from './routes/_authenticated/gastos-directos'
 import { Route as AuthenticatedGastosGeneralesRouteImport } from './routes/_authenticated/gastos-generales'
+import { Route as AuthenticatedInventarioRouteImport } from './routes/_authenticated/inventario'
+import { Route as AuthenticatedOrdenesCompraRouteImport } from './routes/_authenticated/ordenes-compra'
 import { Route as AuthenticatedPanelRouteImport } from './routes/_authenticated/panel'
 import { Route as AuthenticatedPartidasRouteImport } from './routes/_authenticated/partidas'
 import { Route as AuthenticatedPersonalRouteImport } from './routes/_authenticated/personal'
 import { Route as AuthenticatedProyectosRouteImport } from './routes/_authenticated/proyectos'
+import { Route as AuthenticatedRequerimientosRouteImport } from './routes/_authenticated/requerimientos'
 import { Route as AuthenticatedTareoRouteImport } from './routes/_authenticated/tareo'
 import { Route as AuthenticatedTesoreriaRouteImport } from './routes/_authenticated/tesoreria'
 import { Route as AuthenticatedUsuariosRouteImport } from './routes/_authenticated/usuarios'
@@ -36,6 +40,11 @@ const IndexRoute = IndexRouteImport.update({
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAlmacenRoute = AuthenticatedAlmacenRouteImport.update({
+  id: '/almacen',
+  path: '/almacen',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedAvanceRoute = AuthenticatedAvanceRouteImport.update({
   id: '/avance',
@@ -81,6 +90,17 @@ const AuthenticatedGastosGeneralesRoute =
     path: '/gastos-generales',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedInventarioRoute = AuthenticatedInventarioRouteImport.update({
+  id: '/inventario',
+  path: '/inventario',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedOrdenesCompraRoute =
+  AuthenticatedOrdenesCompraRouteImport.update({
+    id: '/ordenes-compra',
+    path: '/ordenes-compra',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedPanelRoute = AuthenticatedPanelRouteImport.update({
   id: '/panel',
   path: '/panel',
@@ -101,6 +121,12 @@ const AuthenticatedProyectosRoute = AuthenticatedProyectosRouteImport.update({
   path: '/proyectos',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedRequerimientosRoute =
+  AuthenticatedRequerimientosRouteImport.update({
+    id: '/requerimientos',
+    path: '/requerimientos',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedTareoRoute = AuthenticatedTareoRouteImport.update({
   id: '/tareo',
   path: '/tareo',
@@ -125,6 +151,7 @@ const AuthenticatedValorizacionesRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/almacen': typeof AuthenticatedAlmacenRoute
   '/avance': typeof AuthenticatedAvanceRoute
   '/caja-chica': typeof AuthenticatedCajaChicaRoute
   '/cotizaciones': typeof AuthenticatedCotizacionesRoute
@@ -133,10 +160,13 @@ export interface FileRoutesByFullPath {
   '/datos': typeof AuthenticatedDatosRoute
   '/gastos-directos': typeof AuthenticatedGastosDirectosRoute
   '/gastos-generales': typeof AuthenticatedGastosGeneralesRoute
+  '/inventario': typeof AuthenticatedInventarioRoute
+  '/ordenes-compra': typeof AuthenticatedOrdenesCompraRoute
   '/panel': typeof AuthenticatedPanelRoute
   '/partidas': typeof AuthenticatedPartidasRoute
   '/personal': typeof AuthenticatedPersonalRoute
   '/proyectos': typeof AuthenticatedProyectosRoute
+  '/requerimientos': typeof AuthenticatedRequerimientosRoute
   '/tareo': typeof AuthenticatedTareoRoute
   '/tesoreria': typeof AuthenticatedTesoreriaRoute
   '/usuarios': typeof AuthenticatedUsuariosRoute
@@ -144,6 +174,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/almacen': typeof AuthenticatedAlmacenRoute
   '/avance': typeof AuthenticatedAvanceRoute
   '/caja-chica': typeof AuthenticatedCajaChicaRoute
   '/cotizaciones': typeof AuthenticatedCotizacionesRoute
@@ -152,10 +183,13 @@ export interface FileRoutesByTo {
   '/datos': typeof AuthenticatedDatosRoute
   '/gastos-directos': typeof AuthenticatedGastosDirectosRoute
   '/gastos-generales': typeof AuthenticatedGastosGeneralesRoute
+  '/inventario': typeof AuthenticatedInventarioRoute
+  '/ordenes-compra': typeof AuthenticatedOrdenesCompraRoute
   '/panel': typeof AuthenticatedPanelRoute
   '/partidas': typeof AuthenticatedPartidasRoute
   '/personal': typeof AuthenticatedPersonalRoute
   '/proyectos': typeof AuthenticatedProyectosRoute
+  '/requerimientos': typeof AuthenticatedRequerimientosRoute
   '/tareo': typeof AuthenticatedTareoRoute
   '/tesoreria': typeof AuthenticatedTesoreriaRoute
   '/usuarios': typeof AuthenticatedUsuariosRoute
@@ -165,6 +199,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/_authenticated/almacen': typeof AuthenticatedAlmacenRoute
   '/_authenticated/avance': typeof AuthenticatedAvanceRoute
   '/_authenticated/caja-chica': typeof AuthenticatedCajaChicaRoute
   '/_authenticated/cotizaciones': typeof AuthenticatedCotizacionesRoute
@@ -173,10 +208,13 @@ export interface FileRoutesById {
   '/_authenticated/datos': typeof AuthenticatedDatosRoute
   '/_authenticated/gastos-directos': typeof AuthenticatedGastosDirectosRoute
   '/_authenticated/gastos-generales': typeof AuthenticatedGastosGeneralesRoute
+  '/_authenticated/inventario': typeof AuthenticatedInventarioRoute
+  '/_authenticated/ordenes-compra': typeof AuthenticatedOrdenesCompraRoute
   '/_authenticated/panel': typeof AuthenticatedPanelRoute
   '/_authenticated/partidas': typeof AuthenticatedPartidasRoute
   '/_authenticated/personal': typeof AuthenticatedPersonalRoute
   '/_authenticated/proyectos': typeof AuthenticatedProyectosRoute
+  '/_authenticated/requerimientos': typeof AuthenticatedRequerimientosRoute
   '/_authenticated/tareo': typeof AuthenticatedTareoRoute
   '/_authenticated/tesoreria': typeof AuthenticatedTesoreriaRoute
   '/_authenticated/usuarios': typeof AuthenticatedUsuariosRoute
@@ -186,6 +224,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/almacen'
     | '/avance'
     | '/caja-chica'
     | '/cotizaciones'
@@ -194,10 +233,13 @@ export interface FileRouteTypes {
     | '/datos'
     | '/gastos-directos'
     | '/gastos-generales'
+    | '/inventario'
+    | '/ordenes-compra'
     | '/panel'
     | '/partidas'
     | '/personal'
     | '/proyectos'
+    | '/requerimientos'
     | '/tareo'
     | '/tesoreria'
     | '/usuarios'
@@ -205,6 +247,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/almacen'
     | '/avance'
     | '/caja-chica'
     | '/cotizaciones'
@@ -213,10 +256,13 @@ export interface FileRouteTypes {
     | '/datos'
     | '/gastos-directos'
     | '/gastos-generales'
+    | '/inventario'
+    | '/ordenes-compra'
     | '/panel'
     | '/partidas'
     | '/personal'
     | '/proyectos'
+    | '/requerimientos'
     | '/tareo'
     | '/tesoreria'
     | '/usuarios'
@@ -225,6 +271,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/_authenticated/almacen'
     | '/_authenticated/avance'
     | '/_authenticated/caja-chica'
     | '/_authenticated/cotizaciones'
@@ -233,10 +280,13 @@ export interface FileRouteTypes {
     | '/_authenticated/datos'
     | '/_authenticated/gastos-directos'
     | '/_authenticated/gastos-generales'
+    | '/_authenticated/inventario'
+    | '/_authenticated/ordenes-compra'
     | '/_authenticated/panel'
     | '/_authenticated/partidas'
     | '/_authenticated/personal'
     | '/_authenticated/proyectos'
+    | '/_authenticated/requerimientos'
     | '/_authenticated/tareo'
     | '/_authenticated/tesoreria'
     | '/_authenticated/usuarios'
@@ -263,6 +313,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/almacen': {
+      id: '/_authenticated/almacen'
+      path: '/almacen'
+      fullPath: '/almacen'
+      preLoaderRoute: typeof AuthenticatedAlmacenRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/avance': {
       id: '/_authenticated/avance'
@@ -320,6 +377,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGastosGeneralesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/inventario': {
+      id: '/_authenticated/inventario'
+      path: '/inventario'
+      fullPath: '/inventario'
+      preLoaderRoute: typeof AuthenticatedInventarioRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/ordenes-compra': {
+      id: '/_authenticated/ordenes-compra'
+      path: '/ordenes-compra'
+      fullPath: '/ordenes-compra'
+      preLoaderRoute: typeof AuthenticatedOrdenesCompraRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/panel': {
       id: '/_authenticated/panel'
       path: '/panel'
@@ -346,6 +417,13 @@ declare module '@tanstack/react-router' {
       path: '/proyectos'
       fullPath: '/proyectos'
       preLoaderRoute: typeof AuthenticatedProyectosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/requerimientos': {
+      id: '/_authenticated/requerimientos'
+      path: '/requerimientos'
+      fullPath: '/requerimientos'
+      preLoaderRoute: typeof AuthenticatedRequerimientosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/tareo': {
@@ -380,6 +458,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAlmacenRoute: typeof AuthenticatedAlmacenRoute
   AuthenticatedAvanceRoute: typeof AuthenticatedAvanceRoute
   AuthenticatedCajaChicaRoute: typeof AuthenticatedCajaChicaRoute
   AuthenticatedCotizacionesRoute: typeof AuthenticatedCotizacionesRoute
@@ -388,10 +467,13 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDatosRoute: typeof AuthenticatedDatosRoute
   AuthenticatedGastosDirectosRoute: typeof AuthenticatedGastosDirectosRoute
   AuthenticatedGastosGeneralesRoute: typeof AuthenticatedGastosGeneralesRoute
+  AuthenticatedInventarioRoute: typeof AuthenticatedInventarioRoute
+  AuthenticatedOrdenesCompraRoute: typeof AuthenticatedOrdenesCompraRoute
   AuthenticatedPanelRoute: typeof AuthenticatedPanelRoute
   AuthenticatedPartidasRoute: typeof AuthenticatedPartidasRoute
   AuthenticatedPersonalRoute: typeof AuthenticatedPersonalRoute
   AuthenticatedProyectosRoute: typeof AuthenticatedProyectosRoute
+  AuthenticatedRequerimientosRoute: typeof AuthenticatedRequerimientosRoute
   AuthenticatedTareoRoute: typeof AuthenticatedTareoRoute
   AuthenticatedTesoreriaRoute: typeof AuthenticatedTesoreriaRoute
   AuthenticatedUsuariosRoute: typeof AuthenticatedUsuariosRoute
@@ -399,6 +481,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAlmacenRoute: AuthenticatedAlmacenRoute,
   AuthenticatedAvanceRoute: AuthenticatedAvanceRoute,
   AuthenticatedCajaChicaRoute: AuthenticatedCajaChicaRoute,
   AuthenticatedCotizacionesRoute: AuthenticatedCotizacionesRoute,
@@ -407,10 +490,13 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDatosRoute: AuthenticatedDatosRoute,
   AuthenticatedGastosDirectosRoute: AuthenticatedGastosDirectosRoute,
   AuthenticatedGastosGeneralesRoute: AuthenticatedGastosGeneralesRoute,
+  AuthenticatedInventarioRoute: AuthenticatedInventarioRoute,
+  AuthenticatedOrdenesCompraRoute: AuthenticatedOrdenesCompraRoute,
   AuthenticatedPanelRoute: AuthenticatedPanelRoute,
   AuthenticatedPartidasRoute: AuthenticatedPartidasRoute,
   AuthenticatedPersonalRoute: AuthenticatedPersonalRoute,
   AuthenticatedProyectosRoute: AuthenticatedProyectosRoute,
+  AuthenticatedRequerimientosRoute: AuthenticatedRequerimientosRoute,
   AuthenticatedTareoRoute: AuthenticatedTareoRoute,
   AuthenticatedTesoreriaRoute: AuthenticatedTesoreriaRoute,
   AuthenticatedUsuariosRoute: AuthenticatedUsuariosRoute,
