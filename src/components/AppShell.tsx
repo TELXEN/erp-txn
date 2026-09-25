@@ -99,15 +99,14 @@ const MENU: Categoria[] = [
 ];
 
 
-const LS_KEY = "erp-telxen-menu-abiertas";
+const LS_KEY = "erp-telxen-menu-abierta";
 
-function leerAbiertas(): string[] {
+function leerAbierta(): string | null {
   try {
     const raw = window.localStorage.getItem(LS_KEY);
-    const arr = raw ? JSON.parse(raw) : null;
-    return Array.isArray(arr) ? arr.filter((x) => typeof x === "string") : [];
+    return typeof raw === "string" && raw ? raw : null;
   } catch {
-    return [];
+    return null;
   }
 }
 
@@ -124,30 +123,31 @@ export function AppShell({ children }: { children: ReactNode }) {
     items: c.items.filter((m) => (rol ? m.roles.includes(rol) : false)),
   })).filter((c) => c.items.length > 0);
 
-  const [abiertas, setAbiertas] = useState<string[] | null>(null);
+  const [abierta, setAbierta] = useState<string | null>(null);
 
   useEffect(() => {
-    setAbiertas(leerAbiertas());
+    setAbierta(leerAbierta());
   }, []);
 
   function alternarCategoria(titulo: string) {
-    setAbiertas((prev) => {
-      const actuales = prev ?? [];
-      const siguientes = actuales.includes(titulo)
-        ? actuales.filter((t) => t !== titulo)
-        : [...actuales, titulo];
+    setAbierta((prev) => {
+      const siguiente = prev === titulo ? null : titulo;
       try {
-        window.localStorage.setItem(LS_KEY, JSON.stringify(siguientes));
+        if (siguiente) {
+          window.localStorage.setItem(LS_KEY, siguiente);
+        } else {
+          window.localStorage.removeItem(LS_KEY);
+        }
       } catch {
         // almacenamiento no disponible
       }
-      return siguientes;
+      return siguiente;
     });
   }
 
   function estaAbierta(c: Categoria): boolean {
     if (c.items.some((m) => pathname === m.a)) return true;
-    return abiertas?.includes(c.titulo) ?? false;
+    return abierta === c.titulo;
   }
 
   const iniciales = (nombre || email || "??").slice(0, 2).toUpperCase();
