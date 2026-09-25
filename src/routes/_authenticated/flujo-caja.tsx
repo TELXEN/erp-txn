@@ -21,6 +21,8 @@ import { MESES, pct, soles } from "@/lib/format";
 import { useCajasChicas, useGastosDirectos, useGastosGenerales, useVentas } from "@/lib/datos";
 import { exportarExcel } from "@/lib/exportar";
 
+const corto = (n: number) => new Intl.NumberFormat("es-PE", { maximumFractionDigits: 0 }).format(Math.round(n || 0));
+
 export const Route = createFileRoute("/_authenticated/flujo-caja")({
   head: () => ({
     meta: [
@@ -369,7 +371,7 @@ function FlujoCaja() {
               <tr>
                 <th className="sticky left-0 z-10 border-b border-r border-line bg-paper px-2 py-1.5 text-left font-semibold">Resultado objetivo</th>
                 {filas.map((f) => (
-                  <td key={f.mes} className="border-b border-line px-1 py-1.5 text-right font-mono font-semibold">{soles(f.resultadoObjetivo)}</td>
+                  <td key={f.mes} className="border-b border-line px-1 py-1.5 text-right font-mono font-semibold">{corto(f.resultadoObjetivo)}</td>
                 ))}
                 <td className="sticky right-0 z-10 border-b border-l border-line bg-muted px-2 py-1.5 text-right font-mono font-semibold">{soles(resultadoObjetivoAnual)}</td>
               </tr>
@@ -382,14 +384,14 @@ function FlujoCaja() {
               <tr>
                 <th className="sticky left-0 z-10 border-b border-r border-line bg-paper px-2 py-1.5 text-left font-medium">Ingreso realizado</th>
                 {filas.map((f) => (
-                  <td key={f.mes} className="border-b border-line px-1 py-1.5 text-right font-mono">{soles(f.ingresoReal)}</td>
+                  <td key={f.mes} className="border-b border-line px-1 py-1.5 text-right font-mono">{corto(f.ingresoReal)}</td>
                 ))}
                 <td className="sticky right-0 z-10 border-b border-l border-line bg-muted px-2 py-1.5 text-right font-mono font-semibold">{soles(total.ingresoReal)}</td>
               </tr>
               <tr>
                 <th className="sticky left-0 z-10 border-b border-r border-line bg-paper px-2 py-1.5 text-left font-medium">Costo realizado</th>
                 {filas.map((f) => (
-                  <td key={f.mes} className="border-b border-line px-1 py-1.5 text-right font-mono">{soles(f.costoReal)}</td>
+                  <td key={f.mes} className="border-b border-line px-1 py-1.5 text-right font-mono">{corto(f.costoReal)}</td>
                 ))}
                 <td className="sticky right-0 z-10 border-b border-l border-line bg-muted px-2 py-1.5 text-right font-mono font-semibold">{soles(total.costoReal)}</td>
               </tr>
@@ -397,7 +399,7 @@ function FlujoCaja() {
                 <th className="sticky left-0 z-10 border-b border-r border-line bg-paper px-2 py-1.5 text-left font-semibold">Resultado realizado</th>
                 {filas.map((f) => {
                   const tono = f.resultadoReal >= f.resultadoObjetivo ? "text-good" : f.resultadoReal >= f.resultadoObjetivo * 0.9 ? "text-warn" : "text-bad";
-                  return <td key={f.mes} className={`border-b border-line px-1 py-1.5 text-right font-mono font-semibold ${tono}`}>{soles(f.resultadoReal)}</td>;
+                  return <td key={f.mes} className={`border-b border-line px-1 py-1.5 text-right font-mono font-semibold ${tono}`}>{corto(f.resultadoReal)}</td>;
                 })}
                 <td className={`sticky right-0 z-10 border-b border-l border-line bg-muted px-2 py-1.5 text-right font-mono font-semibold ${resultadoRealAnual >= resultadoObjetivoAnual ? "text-good" : "text-bad"}`}>{soles(resultadoRealAnual)}</td>
               </tr>
@@ -410,7 +412,7 @@ function FlujoCaja() {
               <tr>
                 <th className="sticky left-0 z-10 border-b border-r border-line bg-paper px-2 py-1.5 text-left font-medium">Variación</th>
                 {filas.map((f) => (
-                  <td key={f.mes} className={`border-b border-line px-1 py-1.5 text-right font-mono ${f.variacion >= 0 ? "text-good" : "text-bad"}`}>{soles(f.variacion)}</td>
+                  <td key={f.mes} className={`border-b border-line px-1 py-1.5 text-right font-mono ${f.variacion >= 0 ? "text-good" : "text-bad"}`}>{corto(f.variacion)}</td>
                 ))}
                 <td className={`sticky right-0 z-10 border-b border-l border-line bg-muted px-2 py-1.5 text-right font-mono font-semibold ${resultadoRealAnual - resultadoObjetivoAnual >= 0 ? "text-good" : "text-bad"}`}>{soles(resultadoRealAnual - resultadoObjetivoAnual)}</td>
               </tr>
@@ -427,7 +429,7 @@ function FlujoCaja() {
               <tr>
                 <th className="sticky left-0 z-10 border-r border-line bg-paper px-2 py-1.5 text-left font-semibold">Flujo acumulado</th>
                 {filas.map((f) => (
-                  <td key={f.mes} className={`px-1 py-1.5 text-right font-mono font-semibold ${f.acumulado < 0 ? "text-bad" : ""}`}>{soles(f.acumulado)}</td>
+                  <td key={f.mes} className={`px-1 py-1.5 text-right font-mono font-semibold ${f.acumulado < 0 ? "text-bad" : ""}`}>{corto(f.acumulado)}</td>
                 ))}
                 <td className={`sticky right-0 z-10 border-l border-line bg-muted px-2 py-1.5 text-right font-mono font-semibold ${resultadoRealAnual < 0 ? "text-bad" : ""}`}>{soles(resultadoRealAnual)}</td>
               </tr>
