@@ -203,8 +203,63 @@ function OrdenesCompraPage() {
       })),
     );
     if (err) return setError(err.message);
+
+    // Compra en Costos Directos + cuenta por pagar (el pago se registra en Tesorería).
+    const { data: parts } = await apuDb.from("partidas").select("id,padre_id").eq("proyecto_id", oc.proyecto_id);
+    const lista = (parts ?? []) as { id: string; padre_id: string | null }[];
+    const hojas = lista.filter((p) => !lista.some((h) => h.padre_id === p.id)).map((p) => p.id);
+    if (!hojas.length) {
+      setError(`${oc.codigo} recibida en almacén, pero la obra no tiene partidas: la compra no se cargó a Costos Directos.`);
+    } else {
+      const { data: comps } = await apuDb.from("apu_componentes").select("partida_id,insumo_id,cantidad,cuadrilla").in("partida_id", hojas);
+      const partidaDe = (insumoId: string | null) => {
+        const c = ((comps ?? []) as { partida_id: string; insumo_id: string; cantidad: number }[])
+          .filter((x) => x.insumo_id === insumoId)
+          .sort((a, b) => Number(b.cantidad) - Number(a.cantidad))[0];
+        return c?.partida_id ?? hojas[0];
+      };
+      const m = oc.condicion_pago.match(/(\d+)/);
+      const dias = m ? Number(m[1]) : 0;
+      const venc = new Date(hoy());
+      venc.setDate(venc.getDate() + dias);
+      const prov = terceros.find((t) => t.id === oc.proveedor_id);
+      const rubroDe = (id: string | null) => {
+        const t = insumos.find((x) => x.id === id)?.tipo;
+        return t === "EQ" ? "Equipos" : t === "SC" ? "Subcontratos" : t === "MO" ? "Servicios" : "Materiales";
+      };
+      const { error: e2 } = await apuDb.from("gastos_directos").insert(
+        pendientes.map(({ i, saldo }) => {
+          const cant = Math.round(saldo * 10000) / 10000;
+          const monto = cant * Number(i.precio_unitario);
+          return {
+            proyecto_id: oc.proyecto_id,
+            partida_id: partidaDe(i.insumo_id),
+            descripcion: i.descripcion,
+            proveedor: prov?.razon_social ?? "",
+            proveedor_id: oc.proveedor_id,
+            cantidad: cant,
+            precio_unitario: Number(i.precio_unitario),
+            comprobante: oc.codigo,
+            monto,
+            moneda: "PEN",
+            tipo_cambio: 1,
+            monto_soles: monto,
+            rubro: rubroDe(i.insumo_id),
+            fecha: hoy(),
+            condicion_pago: dias > 0 ? "Crédito" : "Contado",
+            dias_credito: dias,
+            fecha_vencimiento: venc.toISOString().slice(0, 10),
+            estado_pago: "Pendiente",
+            numero_operacion: "",
+          };
+        }),
+      );
+      if (e2) setError(`Recibida en almacén, pero no se pudo cargar a Costos Directos: ${e2.message}`);
+    }
+
     await apuDb.from("ordenes_compra").update({ estado: "Recibida" }).eq("id", ocId);
-    setAviso(`${oc.codigo} recibida en almacén.`);
+    setAviso(`${oc.codigo} recibida en almacén, cargada a Costos Directos y registrada como cuenta por pagar en Tesorería.`);
+    qc.invalidateQueries({ queryKey: ["gastos_directos"] });
     qc.invalidateQueries({ queryKey: ["movimientos_almacen"] });
     qc.invalidateQueries({ queryKey: ["ordenes_compra"] });
   }
