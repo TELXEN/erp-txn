@@ -128,15 +128,20 @@ function CajaChica() {
     if (!form.proyecto_id) return setError("Selecciona la obra a la que se destina el efectivo.");
     if (!form.responsable_id) return setError("Selecciona al líder responsable del efectivo.");
     if (Number(form.monto_entregado) <= 0) return setError("Ingresa el monto entregado en efectivo.");
+    if (!form.banco_id) return setError("Selecciona la cuenta bancaria de la que sale el efectivo.");
+    if (!form.numero_operacion.trim())
+      return setError("Ingresa el N° de operación bancaria (voucher, cheque o transferencia).");
     const { error: err } = await supabase.from("cajas_chicas").insert({
       proyecto_id: form.proyecto_id,
       responsable_id: form.responsable_id,
       motivo: form.motivo.trim(),
       monto_entregado: Number(form.monto_entregado),
       fecha_entrega: form.fecha_entrega,
+      banco_id: form.banco_id,
+      numero_operacion: form.numero_operacion.trim(),
     });
     if (err) return setError(err.message);
-    setForm({ ...form, motivo: "", monto_entregado: "" });
+    setForm({ ...form, motivo: "", monto_entregado: "", numero_operacion: "" });
     qc.invalidateQueries({ queryKey: ["cajas_chicas"] });
   }
 
