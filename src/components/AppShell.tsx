@@ -34,13 +34,6 @@ type Categoria = { titulo: string; items: Item[] };
 
 const MENU: Categoria[] = [
   {
-    titulo: "REPORTES Y ANALISIS",
-    items: [
-      { a: "/dashboard", texto: "Dashboard Financiero", roles: ["gerente"], icono: BarChart3 },
-      { a: "/dashboard-proyectos", texto: "Dashboard de Proyectos", roles: ["administrador", "gerente"], icono: Gauge },
-    ],
-  },
-  {
     titulo: "Comercial",
     items: [
       { a: "/cotizaciones", texto: "Cotizaciones", roles: ["administrador", "gerente"], icono: FileText },
@@ -79,6 +72,13 @@ const MENU: Categoria[] = [
     titulo: "Recursos Humanos",
     items: [
       { a: "/personal", texto: "Personal", roles: ["administrador", "gerente"], icono: Users },
+    ],
+  },
+  {
+    titulo: "REPORTES Y ANALISIS",
+    items: [
+      { a: "/dashboard", texto: "Dashboard Financiero", roles: ["gerente"], icono: BarChart3 },
+      { a: "/dashboard-proyectos", texto: "Dashboard de Proyectos", roles: ["administrador", "gerente"], icono: Gauge },
     ],
   },
   {
