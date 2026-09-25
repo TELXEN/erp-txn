@@ -142,6 +142,8 @@ export type CajaChica = {
   fecha_liquidacion: string | null;
   estado: "Abierta" | "Liquidada";
   observacion: string;
+  banco_id: string | null;
+  numero_operacion: string;
 };
 
 

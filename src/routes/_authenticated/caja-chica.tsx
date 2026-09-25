@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
@@ -46,6 +46,19 @@ function CajaChica() {
   const { data: categorias = [] } = useCategoriasGastoGeneral();
   const { data: directos = [] } = useGastosDirectos();
   const { data: generales = [] } = useGastosGenerales();
+  const { data: cuentas = [] } = useQuery({
+    queryKey: ["bancos"],
+    queryFn: async () => {
+      const { data, error: err } = await supabase.from("bancos").select("*").order("nombre");
+      if (err) throw err;
+      return data ?? [];
+    },
+  });
+  const cuentasActivas = cuentas.filter((c) => c.activo);
+  const nombreBanco = (id?: string | null) => {
+    const c = cuentas.find((x) => x.id === id);
+    return c ? `${c.nombre}${c.numero_cuenta ? ` · ${c.numero_cuenta}` : ""}` : "—";
+  };
 
   const categoriasActivas = categorias.filter((c) => c.activo);
   const trabajadoresActivos = trabajadores.filter((t) => t.activo);
@@ -56,6 +69,8 @@ function CajaChica() {
     motivo: "",
     monto_entregado: "",
     fecha_entrega: hoy(),
+    banco_id: "",
+    numero_operacion: "",
   });
   const [error, setError] = useState("");
   const [abierta, setAbierta] = useState<string | null>(null);
@@ -113,15 +128,20 @@ function CajaChica() {
     if (!form.proyecto_id) return setError("Selecciona la obra a la que se destina el efectivo.");
     if (!form.responsable_id) return setError("Selecciona al líder responsable del efectivo.");
     if (Number(form.monto_entregado) <= 0) return setError("Ingresa el monto entregado en efectivo.");
+    if (!form.banco_id) return setError("Selecciona la cuenta bancaria de la que sale el efectivo.");
+    if (!form.numero_operacion.trim())
+      return setError("Ingresa el N° de operación bancaria (voucher, cheque o transferencia).");
     const { error: err } = await supabase.from("cajas_chicas").insert({
       proyecto_id: form.proyecto_id,
       responsable_id: form.responsable_id,
       motivo: form.motivo.trim(),
       monto_entregado: Number(form.monto_entregado),
       fecha_entrega: form.fecha_entrega,
+      banco_id: form.banco_id,
+      numero_operacion: form.numero_operacion.trim(),
     });
     if (err) return setError(err.message);
-    setForm({ ...form, motivo: "", monto_entregado: "" });
+    setForm({ ...form, motivo: "", monto_entregado: "", numero_operacion: "" });
     qc.invalidateQueries({ queryKey: ["cajas_chicas"] });
   }
 
@@ -214,6 +234,8 @@ function CajaChica() {
                     Obra: nombreProy(c.proyecto_id),
                     Responsable: nombreResp(c.responsable_id),
                     Motivo: c.motivo,
+                    "Cuenta bancaria de origen": nombreBanco(c.banco_id),
+                    "N° de operación": c.numero_operacion ?? "",
                     "Entregado (S/)": Number(c.monto_entregado),
                     "Rendido (S/)": rendidoDe(c.id),
                     "Saldo (S/)": Number(c.monto_entregado) - rendidoDe(c.id),
@@ -302,6 +324,26 @@ function CajaChica() {
               onChange={(e) => setForm({ ...form, fecha_entrega: e.target.value })}
             />
           </Campo>
+          <Campo etiqueta="Cuenta bancaria de origen">
+            <Select value={form.banco_id} onChange={(e) => setForm({ ...form, banco_id: e.target.value })} required>
+              <option value="">Selecciona...</option>
+              {cuentasActivas.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.nombre} · {c.monedas}
+                  {c.numero_cuenta ? ` · ${c.numero_cuenta}` : ""}
+                </option>
+              ))}
+            </Select>
+          </Campo>
+          <Campo etiqueta="N° de operación bancaria">
+            <Input
+              value={form.numero_operacion}
+              onChange={(e) => setForm({ ...form, numero_operacion: e.target.value })}
+              maxLength={30}
+              placeholder="Voucher, cheque o transferencia"
+              required
+            />
+          </Campo>
           <div className="flex items-end">
             <Boton type="submit">Registrar entrega</Boton>
           </div>
@@ -337,6 +379,10 @@ function CajaChica() {
                       <p className="font-mono text-[11px] text-muted-foreground">
                         {nombreProy(c.proyecto_id)} · {fmtFecha(c.fecha_entrega)}
                         {c.motivo ? ` · ${c.motivo}` : ""}
+                      </p>
+                      <p className="font-mono text-[11px] text-muted-foreground">
+                        Origen: {nombreBanco(c.banco_id)}
+                        {c.numero_operacion ? ` · Op. ${c.numero_operacion}` : ""}
                       </p>
                     </div>
                     <div className="flex flex-wrap items-center gap-4 font-mono text-xs">
