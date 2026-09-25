@@ -304,11 +304,6 @@ function Valorizaciones() {
             </span>
           </div>
         }
-        extra={
-          <span className="font-mono text-[11px] text-muted-foreground">
-            Cobrado {soles(totalCobrado)} · Pendiente {soles(totalPendiente)}
-          </span>
-        }
       >
         {avisoCobro && <p className="px-5 pt-3 font-mono text-xs text-bad">{avisoCobro}</p>}
         {ventasFiltradas.length === 0 ? (

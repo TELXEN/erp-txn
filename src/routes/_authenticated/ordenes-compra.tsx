@@ -412,12 +412,15 @@ function OrdenesCompraPage() {
       </Panel>
 
       <Panel
-        titulo="Órdenes emitidas" extra={<Buscador valor={busqueda} onChange={setBusqueda} placeholder="Buscar por código, obra, proveedor..." total={visibles.length} />}
+        titulo="Órdenes emitidas"
         extra={
+          <div className="flex flex-wrap items-center gap-2">
+          <Buscador valor={busqueda} onChange={setBusqueda} placeholder="Buscar por código, obra, proveedor..." total={visibles.length} />
           <Select className="w-64 py-1 text-xs" value={filtro} onChange={(e) => setFiltro(e.target.value)}>
             <option value="">Todas las obras</option>
             {proyectos.map((p) => <option key={p.id} value={p.id}>{nombreProy(p.id)}</option>)}
           </Select>
+          </div>
         }
       >
         {visibles.length === 0 ? (

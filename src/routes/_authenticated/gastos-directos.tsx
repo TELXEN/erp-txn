@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { ChevronDown, ChevronRight, Plus, Trash2, Upload } from "lucide-react";
+import { Buscador, Resaltar, coincide } from "@/components/Buscador";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
 import {
