@@ -429,7 +429,7 @@ function FlujoCaja() {
               <tr>
                 <th className="sticky left-0 z-10 border-r border-line bg-paper px-2 py-1.5 text-left font-semibold">Flujo acumulado</th>
                 {filas.map((f) => (
-                  <td key={f.mes} className={`px-1 py-1.5 text-right font-mono text-[11px] font-semibold ${f.acumulado < 0 ? "text-bad" : ""}`}>{corto(f.acumulado)}</td>
+                  <td key={f.mes} className={`px-0.5 py-1.5 text-right font-mono text-[10px] font-semibold ${f.acumulado < 0 ? "text-bad" : ""}`}>{corto(f.acumulado)}</td>
                 ))}
                 <td className={`sticky right-0 z-10 border-l border-line bg-muted px-2 py-1.5 text-right font-mono text-[11px] font-semibold ${resultadoRealAnual < 0 ? "text-bad" : ""}`}>{corto(resultadoRealAnual)}</td>
               </tr>
