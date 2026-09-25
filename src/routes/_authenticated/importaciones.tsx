@@ -79,6 +79,7 @@ function ImportacionesPage() {
   const [filtro, setFiltro] = useState("");
   const [error, setError] = useState("");
   const [aviso, setAviso] = useState("");
+  const [busqueda, setBusqueda] = useState("");
   const [guardando, setGuardando] = useState(false);
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
@@ -190,7 +191,7 @@ function ImportacionesPage() {
     qc.invalidateQueries({ queryKey: ["importacion_items"] });
   }
 
-  const lista = imps.filter((i) => !filtro || i.estado === filtro);
+  const lista = imps.filter((i) => (!filtro || i.estado === filtro) && coincide(busqueda, i.codigo, nombreProv(i), nombreProy(i.proyecto_id), i.tracking, i.observacion));
   const activas = imps.filter((i) => i.estado === "En tránsito" || i.estado === "En aduana");
   const fobActivo = activas.reduce((s, i) => s + (i.moneda === "USD" ? fobDe(i.id) : 0), 0);
   const sobre2000 = form.moneda === "USD" && totalForm > 2000;

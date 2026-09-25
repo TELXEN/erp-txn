@@ -29,6 +29,7 @@ function InventarioPage() {
   const { data: movs = [] } = useMovimientos();
   const [filtro, setFiltro] = useState("");
   const [soloConStock, setSoloConStock] = useState(true);
+  const [busqueda, setBusqueda] = useState("");
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
@@ -38,6 +39,7 @@ function InventarioPage() {
   };
   const tipoDe = (id: string | null) => insumos.find((i) => i.id === id)?.tipo ?? "MAT";
   const filas = calcularStock(movs)
+    .filter((s) => coincide(busqueda, s.descripcion, nombreProy(s.proyecto_id)))
     .filter((s) => (!filtro || s.proyecto_id === filtro) && (!soloConStock || s.stock > 0.0001))
     .sort((a, b) => a.descripcion.localeCompare(b.descripcion));
   const obras = [...new Set(filas.map((f) => f.proyecto_id))];
@@ -90,7 +92,7 @@ function InventarioPage() {
 
       <Panel
         titulo="Stock por obra"
-        extra={
+        <extra_tag>
           <div className="flex items-center gap-3 font-mono text-xs">
             <label className="flex items-center gap-1.5">
               <input type="checkbox" className="size-3.5 accent-[var(--color-primary)]" checked={soloConStock} onChange={(e) => setSoloConStock(e.target.checked)} />
@@ -104,7 +106,7 @@ function InventarioPage() {
         }
       >
         {filas.length === 0 ? (
-          <Vacio texto="No hay stock registrado. Los ingresos llegan al recibir órdenes de compra en almacén." />
+          {busqueda ? <Vacio texto={`Sin coincidencias para «${busqueda}»`} /> : <Vacio texto="No hay stock registrado. Los ingresos llegan al recibir órdenes de compra en almacén." />}
         ) : (
           <table className="w-full font-mono text-xs">
             <thead>
@@ -130,7 +132,7 @@ function InventarioPage() {
                     </tr>
                     {deObra.map((f) => (
                       <tr key={f.clave} className="border-b border-line/40">
-                        <td className="px-5 py-2 text-ink">{f.descripcion}</td>
+                        <td className="px-5 py-2 text-ink"><Resaltar texto={f.descripcion} termino={busqueda} /></td>
                         <td className="px-3 py-2 text-muted-foreground">{nombreTipo(tipoDe(f.insumo_id))}</td>
                         <td className="px-3 py-2 text-muted-foreground">{f.unidad}</td>
                         <td className="px-3 py-2 text-right">{num(f.ingresos)}</td>

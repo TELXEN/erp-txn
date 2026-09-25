@@ -114,8 +114,11 @@ export function Insumos() {
         titulo="Maestro de insumos"
         extra={
           <div className="flex items-center gap-2">
+            <Buscador valor={busqueda} onChange={setBusqueda} total={visibles.length} placeholder="Buscar por código o descripción..." />
+          <div className="flex items-center gap-2">
           <Buscador valor={busqueda} onChange={setBusqueda} total={visibles.length} placeholder="Buscar por código o descripción..." />
             <Select className="py-1 text-xs" value={filtro} onChange={(e) => setFiltro(e.target.value as "" | TipoInsumo)}>
+            
             <option value="">Todos los tipos</option>
             {TIPOS_INSUMO.map(([k, t]) => <option key={k} value={k}>{t}</option>)}
           </Select>

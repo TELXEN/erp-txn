@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, Trash2, Upload } from "lucide-react";
@@ -70,6 +71,10 @@ function Honorarios() {
 
   const prestadores = trabajadores.filter((t) => t.tipo_contratacion === "Honorarios");
   const [form, setForm] = useState({ trabajador_id: "", proyecto_id: "", numero_recibo: "", fecha_emision: hoy(), concepto: "", monto_bruto: "" });
+  const [busqueda, setBusqueda] = useState("");
+  const recibosFiltrados = recibos.filter((r) =>
+    coincide(busqueda, nombreDe(r.trabajador_id), r.numero_recibo, r.concepto),
+  );
   const [pago, setPago] = useState<{ id: string; banco_id: string; fecha_pago: string; numero_operacion: string } | null>(null);
   const [error, setError] = useState("");
 
@@ -216,8 +221,27 @@ function Honorarios() {
         {error && <p className="px-3 pb-3 font-mono text-xs text-bad">{error}</p>}
       </Panel>
 
-      <Panel titulo="Recibos registrados" extra={<span className="font-mono text-[11px] text-muted-foreground">{recibos.length} recibos</span>}>
-        {recibos.length === 0 ? (
+      <Panel titulo="Recibos registrados"
+        extra={
+          <div className="flex items-center gap-2">
+            <Buscador
+              valor={busqueda}
+              onChange={setBusqueda}
+              total={recibosFiltrados.length}
+              placeholder="Buscar por prestador, recibo o concepto..."
+            />
+            <span className="font-mono text-[11px] text-muted-foreground">{recibos.length} recibos</span>
+          </div>
+        }>
+        {recibosFiltrados.length === 0 ? (
+          <Vacio
+            texto={
+              busqueda
+                ? `Sin coincidencias para «${busqueda}»`
+                : "Aún no hay recibos registrados."
+            }
+          />
+        ) : recibos.length === 0 ? (
           <Vacio texto="Aún no hay recibos registrados." />
         ) : (
           <div className="overflow-x-auto">
@@ -230,7 +254,7 @@ function Honorarios() {
                 </tr>
               </thead>
               <tbody>
-                {recibos.map((r) => (
+                {recibosFiltrados.map((r) => (
                   <tr key={r.id} className="border-b border-line/60 align-top last:border-0">
                     <td className="px-4 py-2">{fecha(r.fecha_emision)}</td>
                     <td className="px-3 py-2 font-semibold text-ink">{nombreDe(r.trabajador_id)}<span className="block text-[10px] font-normal text-muted-foreground">{r.concepto}</span></td>
