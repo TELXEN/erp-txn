@@ -37,6 +37,13 @@ const MENU: Categoria[] = [
     ],
   },
   {
+    titulo: "Comercial",
+    items: [
+      { a: "/cotizaciones", texto: "Cotizaciones", roles: ["administrador", "gerente"], icono: FileText },
+      { a: "/valorizaciones", texto: "Registro de Ventas", roles: ["administrador", "gerente"], icono: Banknote },
+    ],
+  },
+  {
     titulo: "Operaciones",
     items: [
       { a: "/proyectos", texto: "Proyectos", roles: ["administrador", "gerente"], icono: Building2 },
@@ -58,13 +65,6 @@ const MENU: Categoria[] = [
       { a: "/gastos-generales", texto: "Gastos Generales", roles: ["administrador", "gerente"], icono: Briefcase },
       { a: "/caja-chica", texto: "Caja Chica", roles: ["administrador", "gerente"], icono: Wallet },
       { a: "/tesoreria", texto: "Tesorería", roles: ["administrador", "gerente"], icono: Landmark },
-    ],
-  },
-  {
-    titulo: "Comercial",
-    items: [
-      { a: "/cotizaciones", texto: "Cotizaciones", roles: ["administrador", "gerente"], icono: FileText },
-      { a: "/valorizaciones", texto: "Registro de Ventas", roles: ["administrador", "gerente"], icono: Banknote },
     ],
   },
   {
