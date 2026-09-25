@@ -25,6 +25,7 @@ import { Route as AuthenticatedGastosDirectosRouteImport } from './routes/_authe
 import { Route as AuthenticatedGastosGeneralesRouteImport } from './routes/_authenticated/gastos-generales'
 import { Route as AuthenticatedHonorariosRouteImport } from './routes/_authenticated/honorarios'
 import { Route as AuthenticatedInventarioRouteImport } from './routes/_authenticated/inventario'
+import { Route as AuthenticatedNominaRouteImport } from './routes/_authenticated/nomina'
 import { Route as AuthenticatedOrdenesCompraRouteImport } from './routes/_authenticated/ordenes-compra'
 import { Route as AuthenticatedPanelRouteImport } from './routes/_authenticated/panel'
 import { Route as AuthenticatedPartidasRouteImport } from './routes/_authenticated/partidas'
@@ -121,6 +122,11 @@ const AuthenticatedInventarioRoute = AuthenticatedInventarioRouteImport.update({
   path: '/inventario',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedNominaRoute = AuthenticatedNominaRouteImport.update({
+  id: '/nomina',
+  path: '/nomina',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedOrdenesCompraRoute =
   AuthenticatedOrdenesCompraRouteImport.update({
     id: '/ordenes-compra',
@@ -197,6 +203,7 @@ export interface FileRoutesByFullPath {
   '/gastos-generales': typeof AuthenticatedGastosGeneralesRoute
   '/honorarios': typeof AuthenticatedHonorariosRoute
   '/inventario': typeof AuthenticatedInventarioRoute
+  '/nomina': typeof AuthenticatedNominaRoute
   '/ordenes-compra': typeof AuthenticatedOrdenesCompraRoute
   '/panel': typeof AuthenticatedPanelRoute
   '/partidas': typeof AuthenticatedPartidasRoute
@@ -225,6 +232,7 @@ export interface FileRoutesByTo {
   '/gastos-generales': typeof AuthenticatedGastosGeneralesRoute
   '/honorarios': typeof AuthenticatedHonorariosRoute
   '/inventario': typeof AuthenticatedInventarioRoute
+  '/nomina': typeof AuthenticatedNominaRoute
   '/ordenes-compra': typeof AuthenticatedOrdenesCompraRoute
   '/panel': typeof AuthenticatedPanelRoute
   '/partidas': typeof AuthenticatedPartidasRoute
@@ -255,6 +263,7 @@ export interface FileRoutesById {
   '/_authenticated/gastos-generales': typeof AuthenticatedGastosGeneralesRoute
   '/_authenticated/honorarios': typeof AuthenticatedHonorariosRoute
   '/_authenticated/inventario': typeof AuthenticatedInventarioRoute
+  '/_authenticated/nomina': typeof AuthenticatedNominaRoute
   '/_authenticated/ordenes-compra': typeof AuthenticatedOrdenesCompraRoute
   '/_authenticated/panel': typeof AuthenticatedPanelRoute
   '/_authenticated/partidas': typeof AuthenticatedPartidasRoute
@@ -285,6 +294,7 @@ export interface FileRouteTypes {
     | '/gastos-generales'
     | '/honorarios'
     | '/inventario'
+    | '/nomina'
     | '/ordenes-compra'
     | '/panel'
     | '/partidas'
@@ -313,6 +323,7 @@ export interface FileRouteTypes {
     | '/gastos-generales'
     | '/honorarios'
     | '/inventario'
+    | '/nomina'
     | '/ordenes-compra'
     | '/panel'
     | '/partidas'
@@ -342,6 +353,7 @@ export interface FileRouteTypes {
     | '/_authenticated/gastos-generales'
     | '/_authenticated/honorarios'
     | '/_authenticated/inventario'
+    | '/_authenticated/nomina'
     | '/_authenticated/ordenes-compra'
     | '/_authenticated/panel'
     | '/_authenticated/partidas'
@@ -474,6 +486,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedInventarioRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/nomina': {
+      id: '/_authenticated/nomina'
+      path: '/nomina'
+      fullPath: '/nomina'
+      preLoaderRoute: typeof AuthenticatedNominaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/ordenes-compra': {
       id: '/_authenticated/ordenes-compra'
       path: '/ordenes-compra'
@@ -569,6 +588,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedGastosGeneralesRoute: typeof AuthenticatedGastosGeneralesRoute
   AuthenticatedHonorariosRoute: typeof AuthenticatedHonorariosRoute
   AuthenticatedInventarioRoute: typeof AuthenticatedInventarioRoute
+  AuthenticatedNominaRoute: typeof AuthenticatedNominaRoute
   AuthenticatedOrdenesCompraRoute: typeof AuthenticatedOrdenesCompraRoute
   AuthenticatedPanelRoute: typeof AuthenticatedPanelRoute
   AuthenticatedPartidasRoute: typeof AuthenticatedPartidasRoute
@@ -598,6 +618,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedGastosGeneralesRoute: AuthenticatedGastosGeneralesRoute,
   AuthenticatedHonorariosRoute: AuthenticatedHonorariosRoute,
   AuthenticatedInventarioRoute: AuthenticatedInventarioRoute,
+  AuthenticatedNominaRoute: AuthenticatedNominaRoute,
   AuthenticatedOrdenesCompraRoute: AuthenticatedOrdenesCompraRoute,
   AuthenticatedPanelRoute: AuthenticatedPanelRoute,
   AuthenticatedPartidasRoute: AuthenticatedPartidasRoute,

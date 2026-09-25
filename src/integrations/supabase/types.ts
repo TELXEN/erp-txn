@@ -121,6 +121,106 @@ export type Database = {
         }
         Relationships: []
       }
+      boletas: {
+        Row: {
+          aporte_pension: number
+          asignacion_familiar: number
+          banco_id: string | null
+          created_at: string
+          dias_laborados: number
+          essalud: number
+          estado_pago: string
+          fecha_pago: string | null
+          horas_extra: number
+          id: string
+          neto_pagar: number
+          numero_operacion: string
+          otros_descuentos: number
+          otros_ingresos: number
+          planilla_id: string
+          regimen_laboral: string
+          renta_quinta: number
+          sistema_pensiones: string
+          sueldo_basico: number
+          total_descuentos: number
+          total_ingresos: number
+          trabajador_id: string
+          updated_at: string
+        }
+        Insert: {
+          aporte_pension?: number
+          asignacion_familiar?: number
+          banco_id?: string | null
+          created_at?: string
+          dias_laborados?: number
+          essalud?: number
+          estado_pago?: string
+          fecha_pago?: string | null
+          horas_extra?: number
+          id?: string
+          neto_pagar?: number
+          numero_operacion?: string
+          otros_descuentos?: number
+          otros_ingresos?: number
+          planilla_id: string
+          regimen_laboral?: string
+          renta_quinta?: number
+          sistema_pensiones?: string
+          sueldo_basico?: number
+          total_descuentos?: number
+          total_ingresos?: number
+          trabajador_id: string
+          updated_at?: string
+        }
+        Update: {
+          aporte_pension?: number
+          asignacion_familiar?: number
+          banco_id?: string | null
+          created_at?: string
+          dias_laborados?: number
+          essalud?: number
+          estado_pago?: string
+          fecha_pago?: string | null
+          horas_extra?: number
+          id?: string
+          neto_pagar?: number
+          numero_operacion?: string
+          otros_descuentos?: number
+          otros_ingresos?: number
+          planilla_id?: string
+          regimen_laboral?: string
+          renta_quinta?: number
+          sistema_pensiones?: string
+          sueldo_basico?: number
+          total_descuentos?: number
+          total_ingresos?: number
+          trabajador_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "boletas_banco_id_fkey"
+            columns: ["banco_id"]
+            isOneToOne: false
+            referencedRelation: "bancos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "boletas_planilla_id_fkey"
+            columns: ["planilla_id"]
+            isOneToOne: false
+            referencedRelation: "planillas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "boletas_trabajador_id_fkey"
+            columns: ["trabajador_id"]
+            isOneToOne: false
+            referencedRelation: "trabajadores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cajas_chicas: {
         Row: {
           banco_id: string | null
@@ -1253,6 +1353,33 @@ export type Database = {
           precio_unitario?: number
           rendimiento?: number
           unidad?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      planillas: {
+        Row: {
+          anio: number
+          created_at: string
+          estado: string
+          id: string
+          mes: number
+          updated_at: string
+        }
+        Insert: {
+          anio: number
+          created_at?: string
+          estado?: string
+          id?: string
+          mes: number
+          updated_at?: string
+        }
+        Update: {
+          anio?: number
+          created_at?: string
+          estado?: string
+          id?: string
+          mes?: number
           updated_at?: string
         }
         Relationships: []
