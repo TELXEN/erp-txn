@@ -17,6 +17,7 @@ import {
   Layers,
   Package,
   ShoppingCart,
+  Plane,
   Warehouse,
   Settings,
   ShieldCheck,
