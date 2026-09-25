@@ -117,6 +117,7 @@ function Tesoreria() {
   const { data: ventas = [] } = useVentas();
   const { data: gd = [] } = useGastosDirectos();
   const { data: gg = [] } = useGastosGenerales();
+  const { data: cajas = [] } = useCajasChicas();
   const { data: proyectos = [] } = useProyectos();
   const { data: terceros = [] } = useTerceros();
 
