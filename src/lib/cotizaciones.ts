@@ -134,9 +134,8 @@ export function previsualizarCodigoCotizacion(
 
 /** Reserva y devuelve el siguiente código correlativo de cotización. */
 export async function generarCodigoCotizacion(): Promise<string> {
-  const { data, error } = await supabase.rpc("siguiente_codigo_cotizacion");
-  if (error) throw error;
-  return String(data);
+  const { reservarCodigo } = await import("./codigos.functions");
+  return reservarCodigo({ data: { tipo: "cotizacion" } });
 }
 
 /** Costo directo + gastos generales + utilidad de una cotización. */

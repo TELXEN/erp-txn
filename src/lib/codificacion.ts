@@ -44,9 +44,8 @@ export function previsualizarCodigo(cfg: Partial<CodificacionConfig>, correlativ
 
 /** Reserva y devuelve el siguiente código correlativo de proyecto. */
 export async function generarCodigoProyecto(): Promise<string> {
-  const { data, error } = await supabase.rpc("siguiente_codigo_proyecto");
-  if (error) throw error;
-  return String(data);
+  const { reservarCodigo } = await import("./codigos.functions");
+  return reservarCodigo({ data: { tipo: "proyecto" } });
 }
 
 /** Texto de proyecto con código delante, para listas desplegables. */
