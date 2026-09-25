@@ -5,6 +5,7 @@ import { Check, LayoutGrid, Pencil, Table2, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
+import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { InsigniaSituacion } from "@/components/estado-ui";
 import { Kanban } from "@/components/Kanban";
 import { SITUACIONES, type Situacion } from "@/lib/configuracion";
@@ -40,7 +41,7 @@ export const Route = createFileRoute("/_authenticated/proyectos")({
 function Proyectos() {
   const { rol } = useAuth();
   const qc = useQueryClient();
-  const { data: proyectos = [] } = useProyectos();
+  const { data: todosProyectos = [] } = useProyectos();
   const { data: partidas = [] } = usePartidas();
   const { data: gastosD = [] } = useGastosDirectos();
   const { data: gastosG = [] } = useGastosGenerales();
@@ -51,6 +52,7 @@ function Proyectos() {
   const { data: tiposPresupuesto = [] } = useTiposPresupuesto();
   const { data: codificacion } = useCodificacion();
   const [vista, setVista] = useState<"tabla" | "kanban">("tabla");
+  const [busqueda, setBusqueda] = useState("");
   const [form, setForm] = useState({
     codigo: "",
     nombre: "",
@@ -79,6 +81,10 @@ function Proyectos() {
   } | null>(null);
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
+
+  const proyectos = todosProyectos.filter((p) =>
+    coincide(busqueda, p.codigo, p.nombre, p.cliente, p.ubicacion),
+  );
 
   async function guardar(e: React.FormEvent) {
     e.preventDefault();
@@ -289,10 +295,10 @@ function Proyectos() {
 
       <Panel
         titulo={vista === "tabla" ? "Listado de proyectos" : "Tablero Kanban de proyectos"}
-        extra={<span className="font-mono text-[11px] text-muted-foreground">{proyectos.length} proyectos</span>}
+        extra={<Buscador valor={busqueda} onChange={setBusqueda} total={proyectos.length} placeholder="Buscar proyecto..." />}
       >
         {proyectos.length === 0 ? (
-          <Vacio texto="Aún no hay proyectos registrados." />
+          <Vacio texto={busqueda ? `Sin coincidencias para «${busqueda}»` : "Aún no hay proyectos registrados."} />
         ) : vista === "kanban" ? (
           <Kanban
             onMover={mover}
@@ -302,11 +308,11 @@ function Proyectos() {
               contenido: (
                 <div className="space-y-1.5">
                   {p.codigo && (
-                    <p className="font-mono text-[10px] font-semibold text-primary">{p.codigo}</p>
+                    <p className="font-mono text-[10px] font-semibold text-primary"><Resaltar texto={p.codigo} termino={busqueda} /></p>
                   )}
-                  <p className="text-xs font-semibold leading-tight text-ink">{p.nombre}</p>
-                  <p className="font-mono text-[10px] text-muted-foreground">{p.cliente || "Sin cliente"}</p>
-                  <p className="font-mono text-[10px] text-muted-foreground">{p.ubicacion || "Sin ubicación"}</p>
+                  <p className="text-xs font-semibold leading-tight text-ink"><Resaltar texto={p.nombre} termino={busqueda} /></p>
+                  <p className="font-mono text-[10px] text-muted-foreground"><Resaltar texto={p.cliente || "Sin cliente"} termino={busqueda} /></p>
+                  <p className="font-mono text-[10px] text-muted-foreground"><Resaltar texto={p.ubicacion || "Sin ubicación"} termino={busqueda} /></p>
                   <p className="font-mono text-[10px] text-muted-foreground">
                     {trabajadores.find((t) => t.id === p.responsable_id)?.nombre ?? "Sin responsable"}
                   </p>
@@ -453,10 +459,10 @@ function Proyectos() {
                       </>
                     ) : (
                       <>
-                        <td className="px-5 py-2.5 align-top font-semibold text-primary break-words">{p.codigo || "—"}</td>
-                        <td className="truncate px-3 py-2.5 text-muted-foreground">{p.cliente || "—"}</td>
+                        <td className="px-5 py-2.5 align-top font-semibold text-primary break-words"><Resaltar texto={p.codigo || "—"} termino={busqueda} /></td>
+                        <td className="truncate px-3 py-2.5 text-muted-foreground"><Resaltar texto={p.cliente || "—"} termino={busqueda} /></td>
                         <td className="px-3 py-2.5 align-top font-semibold text-ink break-words whitespace-normal">
-                          {p.nombre}
+                          <Resaltar texto={p.nombre} termino={busqueda} />
                           <span className="mt-1 block font-mono text-[10px] font-normal text-muted-foreground">
                             GG {Number(p.pct_gastos_generales ?? 0)}% · Utilidad {Number(p.pct_utilidad ?? 0)}% · Oferta{" "}
                             {soles(

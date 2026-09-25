@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { ChevronDown, ChevronRight, Plus, Trash2, Upload } from "lucide-react";
+import { Buscador, Resaltar, coincide } from "@/components/Buscador";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
 import {
@@ -67,6 +68,7 @@ function GastosDirectos() {
   const [form, setForm] = useState(formVacio());
   const [mostrarForm, setMostrarForm] = useState(false);
   const [error, setError] = useState("");
+  const [busqueda, setBusqueda] = useState("");
   const { data: cuentas = [] } = useQuery({
     queryKey: ["bancos"],
     queryFn: async () => {
@@ -90,9 +92,9 @@ function GastosDirectos() {
   const partidasProy = useMemo(
     () =>
       partidas
-        .filter((p) => p.proyecto_id === proyectoId)
+        .filter((p) => p.proyecto_id === proyectoId && coincide(busqueda, p.codigo, p.nombre, p.categoria))
         .sort((a, b) => (a.codigo ?? "").localeCompare(b.codigo ?? "", undefined, { numeric: true })),
-    [partidas, proyectoId],
+    [partidas, proyectoId, busqueda],
   );
   const comprasProy = gastos.filter((g) => g.proyecto_id === proyectoId);
   const costoDe = (pid: string) => comprasProy.filter((g) => g.partida_id === pid).reduce((s, g) => s + Number(g.monto_soles), 0);
@@ -330,10 +332,10 @@ function GastosDirectos() {
 
       <Panel
         titulo="Control por partida"
-        extra={<Boton variante="accion" onClick={() => abrirCompra("")} disabled={!proyecto}><Plus size={14} /> Registrar compra</Boton>}
+        extra={<div className="flex gap-2"><Buscador valor={busqueda} onChange={setBusqueda} placeholder="Buscar por código o partida..." total={partidasProy.length} /><Boton variante="accion" onClick={() => abrirCompra("")} disabled={!proyecto}><Plus size={14} /> Registrar compra</Boton></div>}
       >
         {partidasProy.length === 0 ? (
-          <Vacio texto="Esta obra aún no tiene partidas registradas." />
+          busqueda ? <Vacio texto={`Sin coincidencias para «${busqueda}»`} /> : <Vacio texto="Esta obra aún no tiene partidas registradas." />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[980px] font-mono text-xs">
@@ -356,7 +358,7 @@ function GastosDirectos() {
                 {agruparSoloPorCategoria(partidasProy).map((grupo) => (
                   <React.Fragment key={grupo.categoria}>
                     <tr className="border-b border-line/40 bg-muted/40">
-                      <td colSpan={5} className="px-5 py-1.5 label-mono">{grupo.categoria}</td>
+                      <td colSpan={5} className="px-5 py-1.5 label-mono"><Resaltar texto={grupo.categoria} termino={busqueda} /></td>
                       <td className="px-3 py-1.5 text-right font-semibold">
                         {soles(grupo.items.reduce((s, p) => s + Number(p.presupuesto_inicial), 0))}
                       </td>
@@ -383,10 +385,10 @@ function GastosDirectos() {
                                 title="Ver compras"
                               >
                                 {abierta ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
-                                {p.codigo || "—"}
+                                <Resaltar texto={p.codigo || "—"} termino={busqueda} />
                               </button>
                             </td>
-                            <td className="px-3 py-2.5 font-semibold text-ink">{p.nombre}</td>
+                            <td className="px-3 py-2.5 font-semibold text-ink"><Resaltar texto={p.nombre} termino={busqueda} /></td>
                             <td className="px-2 py-2.5 text-muted-foreground">{p.unidad || "—"}</td>
                             <td className="px-2 py-2.5 text-right">{num(Number(p.metrado ?? 0))}</td>
                             <td className="px-2 py-2.5 text-right">{num(Number(p.precio_unitario ?? 0))}</td>

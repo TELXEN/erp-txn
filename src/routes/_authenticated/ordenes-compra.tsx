@@ -4,6 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, ChevronRight, PackageCheck, Plus, Trash2, Upload } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
+import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { soles } from "@/lib/format";
 import { useProyectos, useTerceros } from "@/lib/datos";
@@ -60,6 +61,7 @@ function OrdenesCompraPage() {
   const [filtro, setFiltro] = useState("");
   const [error, setError] = useState("");
   const [aviso, setAviso] = useState("");
+  const [busqueda, setBusqueda] = useState("");
 
   const proveedores = terceros.filter((t) => t.es_proveedor && t.activo);
   const nombreProy = (id: string) => {
@@ -274,7 +276,7 @@ function OrdenesCompraPage() {
     qc.invalidateQueries({ queryKey: ["orden_compra_items"] });
   }
 
-  const visibles = ordenes.filter((o) => !filtro || o.proyecto_id === filtro);
+  const visibles = ordenes.filter((o) => (!filtro || o.proyecto_id === filtro) && coincide(busqueda, o.codigo, nombreProy(o.proyecto_id), nombreProv(o.proveedor_id), o.observacion));
   const totalOC = (id: string) =>
     itemsOC.filter((i) => i.orden_id === id).reduce((s, i) => s + Number(i.cantidad) * Number(i.precio_unitario), 0);
 
@@ -412,14 +414,17 @@ function OrdenesCompraPage() {
       <Panel
         titulo="Órdenes emitidas"
         extra={
+          <div className="flex flex-wrap items-center gap-2">
+          <Buscador valor={busqueda} onChange={setBusqueda} placeholder="Buscar por código, obra, proveedor..." total={visibles.length} />
           <Select className="w-64 py-1 text-xs" value={filtro} onChange={(e) => setFiltro(e.target.value)}>
             <option value="">Todas las obras</option>
             {proyectos.map((p) => <option key={p.id} value={p.id}>{nombreProy(p.id)}</option>)}
           </Select>
+          </div>
         }
       >
         {visibles.length === 0 ? (
-          <Vacio texto="Todavía no hay órdenes de compra." />
+          busqueda ? <Vacio texto={`Sin coincidencias para «${busqueda}»`} /> : <Vacio texto="Todavía no hay órdenes de compra." />
         ) : (
           <table className="w-full font-mono text-xs">
             <thead>
@@ -443,11 +448,11 @@ function OrdenesCompraPage() {
                     <tr className="border-b border-line/40">
                       <td className="px-5 py-2">
                         <button type="button" onClick={() => setAbierto(ver ? null : o.id)} className="inline-flex items-center gap-1 text-primary">
-                          {ver ? <ChevronDown size={13} /> : <ChevronRight size={13} />} {o.codigo}
+                          {ver ? <ChevronDown size={13} /> : <ChevronRight size={13} />} <Resaltar texto={o.codigo} termino={busqueda} />
                         </button>
                       </td>
-                      <td className="px-3 py-2 text-ink">{nombreProy(o.proyecto_id)}</td>
-                      <td className="px-3 py-2">{nombreProv(o.proveedor_id)}</td>
+                      <td className="px-3 py-2 text-ink"><Resaltar texto={nombreProy(o.proyecto_id)} termino={busqueda} /></td>
+                      <td className="px-3 py-2"><Resaltar texto={nombreProv(o.proveedor_id)} termino={busqueda} /></td>
                       <td className="px-3 py-2">{o.fecha}</td>
                       <td className="px-3 py-2">{o.fecha_entrega ?? "—"}</td>
                       <td className="px-3 py-2 text-right">{soles(totalOC(o.id))}</td>

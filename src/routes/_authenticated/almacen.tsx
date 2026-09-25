@@ -4,6 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ArrowDownToLine, ArrowUpFromLine, Trash2, Upload } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
+import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { soles } from "@/lib/format";
 import { useProyectos } from "@/lib/datos";
@@ -44,6 +45,7 @@ function AlmacenPage() {
   const [filtroObra, setFiltroObra] = useState("");
   const [filtroTipo, setFiltroTipo] = useState("");
   const [error, setError] = useState("");
+  const [busqueda, setBusqueda] = useState("");
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
@@ -95,7 +97,7 @@ function AlmacenPage() {
     qc.invalidateQueries({ queryKey: ["movimientos_almacen"] });
   }
 
-  const visibles = movs.filter((m) => (!filtroObra || m.proyecto_id === filtroObra) && (!filtroTipo || m.tipo === filtroTipo));
+  const visibles = movs.filter((m) => (!filtroObra || m.proyecto_id === filtroObra) && (!filtroTipo || m.tipo === filtroTipo) && coincide(busqueda, m.descripcion, nombreProy(m.proyecto_id), m.documento, m.observacion));
 
   function exportar() {
     exportarExcel("almacen-movimientos", [
@@ -180,6 +182,7 @@ function AlmacenPage() {
         titulo="Movimientos"
         extra={
           <div className="flex gap-2">
+            <Buscador valor={busqueda} onChange={setBusqueda} placeholder="Buscar por insumo, obra, documento..." total={visibles.length} />
             <Select className="w-56 py-1 text-xs" value={filtroObra} onChange={(e) => setFiltroObra(e.target.value)}>
               <option value="">Todas las obras</option>
               {proyectos.map((p) => <option key={p.id} value={p.id}>{nombreProy(p.id)}</option>)}
@@ -193,7 +196,7 @@ function AlmacenPage() {
         }
       >
         {visibles.length === 0 ? (
-          <Vacio texto="Todavía no hay movimientos de almacén." />
+          busqueda ? <Vacio texto={`Sin coincidencias para «${busqueda}»`} /> : <Vacio texto="Todavía no hay movimientos de almacén." />
         ) : (
           <table className="w-full font-mono text-xs">
             <thead>
@@ -217,11 +220,11 @@ function AlmacenPage() {
                       {m.tipo === "Ingreso" ? <ArrowDownToLine size={12} /> : <ArrowUpFromLine size={12} />} {m.tipo}
                     </span>
                   </td>
-                  <td className="px-3 py-2 text-ink">{nombreProy(m.proyecto_id)}</td>
-                  <td className="px-3 py-2">{m.descripcion}</td>
+                  <td className="px-3 py-2 text-ink"><Resaltar texto={nombreProy(m.proyecto_id)} termino={busqueda} /></td>
+                  <td className="px-3 py-2"><Resaltar texto={m.descripcion} termino={busqueda} /></td>
                   <td className="px-3 py-2 text-right">{num(Number(m.cantidad))} {m.unidad}</td>
                   <td className="px-3 py-2 text-right">{soles(Number(m.cantidad) * Number(m.costo_unitario))}</td>
-                  <td className="px-3 py-2 text-muted-foreground">{m.documento || "—"}</td>
+                  <td className="px-3 py-2 text-muted-foreground"><Resaltar texto={m.documento || "—"} termino={busqueda} /></td>
                   <td className="px-5 py-2 text-right">
                     <button type="button" title="Eliminar" onClick={() => void eliminar(m.id)} className="text-muted-foreground hover:text-bad">
                       <Trash2 size={13} />

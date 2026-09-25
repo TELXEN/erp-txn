@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { Fragment, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Check, Pencil, Trash2, Upload, X } from "lucide-react";
@@ -88,6 +89,10 @@ function Personal() {
   const cargosActivos = cargos.filter((c) => c.activo);
   const clasifDe = (nombre: string) => clasificacionDeCargo(nombre, cargos);
   const [form, setForm] = useState<FormPersonal>(FORM_INICIAL);
+  const [busqueda, setBusqueda] = useState("");
+  const trabajadoresFiltrados = trabajadores.filter((t) =>
+    coincide(busqueda, t.nombre, t.dni, t.cargo),
+  );
   const [editando, setEditando] = useState<{ id: string; datos: FormPersonal } | null>(null);
   const [error, setError] = useState("");
 
@@ -305,9 +310,28 @@ function Personal() {
         </form>
       </Panel>
 
-      <Panel titulo="Planilla" extra={<span className="font-mono text-[11px] text-muted-foreground">{trabajadores.length} trabajadores</span>}>
+      <Panel titulo="Planilla"
+        extra={
+          <div className="flex items-center gap-2">
+            <Buscador
+              valor={busqueda}
+              onChange={setBusqueda}
+              total={trabajadoresFiltrados.length}
+              placeholder="Buscar por nombre, DNI o cargo..."
+            />
+            <span className="font-mono text-[11px] text-muted-foreground">{trabajadores.length} trabajadores</span>
+          </div>
+        }>
         {error && <p className="border-b border-line px-5 py-2 font-mono text-xs text-bad">{error}</p>}
-        {trabajadores.length === 0 ? (
+        {trabajadoresFiltrados.length === 0 ? (
+          <Vacio
+            texto={
+              busqueda
+                ? `Sin coincidencias para «${busqueda}»`
+                : "Aún no hay personal registrado."
+            }
+          />
+        ) : trabajadores.length === 0 ? (
           <Vacio texto="Aún no hay personal registrado." />
         ) : (
           <div className="overflow-x-auto">
@@ -327,15 +351,15 @@ function Personal() {
                 </tr>
               </thead>
               <tbody>
-                {trabajadores.map((t) => {
+                {trabajadoresFiltrados.map((t) => {
                   const esEdicion = editando?.id === t.id;
                   const d = editando?.datos;
                   return (
                     <Fragment key={t.id}>
                     <tr className="border-b border-line/60 align-top last:border-0">
-                      <td className="px-4 py-2">{esEdicion && d ? <Input inputMode="numeric" maxLength={8} value={d.dni} onChange={(e) => actualizarCampo("dni", e.target.value.replace(/\D/g, ""))} className="py-1 text-xs" required /> : t.dni}</td>
-                      <td className="px-3 py-2 font-semibold text-ink">{esEdicion && d ? <Input value={d.nombre} onChange={(e) => actualizarCampo("nombre", e.target.value)} className="py-1 text-xs" maxLength={100} required /> : t.nombre}</td>
-                      <td className="px-3 py-2 text-muted-foreground">{esEdicion && d ? <Select value={d.cargo} onChange={(e) => actualizarCampo("cargo", e.target.value)} className="py-1 text-xs"><option value="">Selecciona…</option>{cargosActivos.map((c) => <option key={c.id} value={c.nombre}>{c.nombre}</option>)}</Select> : <span className="block">{t.cargo}<span className={`mt-0.5 block text-[10px] ${clasifDe(t.cargo) === "Indirecto" ? "text-primary" : "text-muted-foreground"}`}>{clasifDe(t.cargo) === "Indirecto" ? "Staff · Gasto general" : "Mano de obra directa"}</span></span>}</td>
+                      <td className="px-4 py-2">{esEdicion && d ? <Input inputMode="numeric" maxLength={8} value={d.dni} onChange={(e) => actualizarCampo("dni", e.target.value.replace(/\D/g, ""))} className="py-1 text-xs" required /> : <Resaltar texto={t.dni} termino={busqueda}/>}</td>
+                      <td className="px-3 py-2 font-semibold text-ink">{esEdicion && d ? <Input value={d.nombre} onChange={(e) => actualizarCampo("nombre", e.target.value)} className="py-1 text-xs" maxLength={100} required /> : <Resaltar texto={t.nombre} termino={busqueda}/>}</td>
+                      <td className="px-3 py-2 text-muted-foreground">{esEdicion && d ? <Select value={d.cargo} onChange={(e) => actualizarCampo("cargo", e.target.value)} className="py-1 text-xs"><option value="">Selecciona…</option>{cargosActivos.map((c) => <option key={c.id} value={c.nombre}>{c.nombre}</option>)}</Select> : <span className="block"><Resaltar texto={t.cargo} termino={busqueda}/><span className={`mt-0.5 block text-[10px] ${clasifDe(t.cargo) === "Indirecto" ? "text-primary" : "text-muted-foreground"}`}>{clasifDe(t.cargo) === "Indirecto" ? "Staff · Gasto general" : "Mano de obra directa"}</span></span>}</td>
                       <td className="px-3 py-2 text-right">{esEdicion && d ? <Input type="number" step="0.01" min="0" value={d.jornal_diario} onChange={(e) => actualizarCampo("jornal_diario", e.target.value)} className="py-1 text-right text-xs" required /> : soles(Number(t.jornal_diario))}</td>
                       <td className="px-3 py-2 break-all">{esEdicion && d ? <Input value={d.numero_cuenta} onChange={(e) => actualizarCampo("numero_cuenta", e.target.value)} className="py-1 text-xs" maxLength={30} required /> : t.numero_cuenta}</td>
                       <td className="px-3 py-2 break-all">{esEdicion && d ? <Input inputMode="numeric" maxLength={20} value={d.cci} onChange={(e) => actualizarCampo("cci", e.target.value.replace(/\D/g, ""))} className="py-1 text-xs" required /> : t.cci}</td>

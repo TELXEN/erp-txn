@@ -1,4 +1,5 @@
 import { codigoContextual } from "@/lib/categorias";
+import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { createFileRoute } from "@tanstack/react-router";
 import React, { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -100,6 +101,7 @@ function Partidas() {
     aplica_gg: boolean;
     aplica_utilidad: boolean;
   } | null>(null);
+  const [busqueda, setBusqueda] = useState("");
 
   const [apu, setApu] = useState<(typeof partidas)[number] | null>(null);
   const [nuevaSub, setNuevaSub] = useState<{
@@ -117,13 +119,34 @@ function Partidas() {
     return p.codigo ? `${p.codigo} · ${p.nombre}` : p.nombre;
   };
 
+  const coincidentes = useMemo(() => {
+    const match = new Set<string>();
+    const check = (id: string) => {
+      if (match.has(id)) return true;
+      const p = partidas.find((x) => x.id === id);
+      if (!p) return false;
+      if (coincide(busqueda, p.nombre, p.codigo)) {
+        match.add(id);
+        return true;
+      }
+      const hijos = partidas.filter((x) => x.padre_id === id);
+      if (hijos.some((h) => check(h.id))) {
+        match.add(id);
+        return true;
+      }
+      return false;
+    };
+    partidas.forEach((p) => check(p.id));
+    return match;
+  }, [partidas, busqueda]);
+
   const visibles = useMemo(
     () =>
       partidas.filter(
         (p) =>
           (!filtroProyecto || p.proyecto_id === filtroProyecto) &&
           (!filtroEsp || p.especialidad === filtroEsp) &&
-          (!filtroTipo || (p.tipo_presupuesto ?? "Contractual") === filtroTipo),
+          (!filtroTipo || (p.tipo_presupuesto ?? "Contractual") === filtroTipo) && (!busqueda || coincidentes.has(p.id)),
       ),
     [partidas, filtroProyecto, filtroEsp, filtroTipo],
   );
@@ -338,6 +361,12 @@ function Partidas() {
         subtitulo="Organizadas por proyecto y especialidad"
         acciones={
           <div className="flex items-center gap-2">
+            <Buscador
+              valor={busqueda}
+              onChange={setBusqueda}
+              total={visibles.length}
+              placeholder="Buscar partidas o códigos..."
+            />
             <div className="flex items-center gap-1 rounded-md border border-line bg-card p-1">
               <button
                 type="button"
@@ -408,7 +437,7 @@ function Partidas() {
               <option value="">Selecciona...</option>
               {proyectos.map((p) => (
                 <option key={p.id} value={p.id}>
-                  {p.nombre}
+                  <Resaltar texto={p.nombre} termino={busqueda}/>
                 </option>
               ))}
             </Select>
@@ -580,7 +609,7 @@ function Partidas() {
               <option value="">Todos los proyectos</option>
               {proyectos.map((p) => (
                 <option key={p.id} value={p.id}>
-                  {p.nombre}
+                  <Resaltar texto={p.nombre} termino={busqueda}/>
                 </option>
               ))}
             </Select>
@@ -619,8 +648,8 @@ function Partidas() {
                 contenido: (
                   <div className="space-y-1.5">
                     <p className="text-xs font-semibold leading-tight text-ink">
-                      {p.codigo && <span className="mr-1 font-mono text-[10px] text-primary">{p.codigo}</span>}
-                      {p.nombre}
+                      {p.codigo && <span className="mr-1 font-mono text-[10px] text-primary"><Resaltar texto={p.codigo} termino={busqueda}/></span>}
+                      <Resaltar texto={p.nombre} termino={busqueda}/>
                     </p>
                     <p className="font-mono text-[10px] text-muted-foreground">{nombreProyecto(p.proyecto_id)}</p>
                     <p className="font-mono text-[10px] text-muted-foreground">{p.especialidad}</p>
@@ -900,7 +929,7 @@ function Partidas() {
                             <td className={`py-2.5 pr-2 ${nivel === 4 ? "pl-9" : "pl-5"}`}>
                               {p.codigo ? (
                                 <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] text-primary">
-                                  {p.codigo}
+                                  <Resaltar texto={p.codigo} termino={busqueda}/>
                                 </span>
                               ) : (
                                 <span className="text-muted-foreground">—</span>
@@ -908,7 +937,7 @@ function Partidas() {
                             </td>
                             <td className={`px-3 py-2.5 text-ink ${nivel === 4 ? "pl-6 font-normal" : "font-semibold"}`}>
                               {nivel === 4 && <CornerDownRight size={11} className="mr-1 inline text-muted-foreground" />}
-                              {p.nombre}
+                              <Resaltar texto={p.nombre} termino={busqueda}/>
                               {agrupadora && (
                                 <span className="ml-1.5 font-mono text-[9px] uppercase text-muted-foreground">
                                   ({hijos.length} subpartidas)

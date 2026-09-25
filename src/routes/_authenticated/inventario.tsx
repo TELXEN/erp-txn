@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { Upload } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
+import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { soles } from "@/lib/format";
 import { useProyectos } from "@/lib/datos";
@@ -29,6 +30,7 @@ function InventarioPage() {
   const { data: movs = [] } = useMovimientos();
   const [filtro, setFiltro] = useState("");
   const [soloConStock, setSoloConStock] = useState(true);
+  const [busqueda, setBusqueda] = useState("");
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
@@ -38,6 +40,7 @@ function InventarioPage() {
   };
   const tipoDe = (id: string | null) => insumos.find((i) => i.id === id)?.tipo ?? "MAT";
   const filas = calcularStock(movs)
+    .filter((s) => coincide(busqueda, s.descripcion, nombreProy(s.proyecto_id)))
     .filter((s) => (!filtro || s.proyecto_id === filtro) && (!soloConStock || s.stock > 0.0001))
     .sort((a, b) => a.descripcion.localeCompare(b.descripcion));
   const obras = [...new Set(filas.map((f) => f.proyecto_id))];
@@ -92,6 +95,7 @@ function InventarioPage() {
         titulo="Stock por obra"
         extra={
           <div className="flex items-center gap-3 font-mono text-xs">
+            <Buscador valor={busqueda} onChange={setBusqueda} placeholder="Buscar insumo u obra..." total={filas.length} />
             <label className="flex items-center gap-1.5">
               <input type="checkbox" className="size-3.5 accent-[var(--color-primary)]" checked={soloConStock} onChange={(e) => setSoloConStock(e.target.checked)} />
               Solo con stock
@@ -104,7 +108,7 @@ function InventarioPage() {
         }
       >
         {filas.length === 0 ? (
-          <Vacio texto="No hay stock registrado. Los ingresos llegan al recibir órdenes de compra en almacén." />
+          busqueda ? <Vacio texto={`Sin coincidencias para «${busqueda}»`} /> : <Vacio texto="No hay stock registrado. Los ingresos llegan al recibir órdenes de compra en almacén." />
         ) : (
           <table className="w-full font-mono text-xs">
             <thead>
@@ -125,12 +129,12 @@ function InventarioPage() {
                 return (
                   <React.Fragment key={o}>
                     <tr className="bg-ink">
-                      <td colSpan={7} className="px-5 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-paper">{nombreProy(o)}</td>
+                      <td colSpan={7} className="px-5 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-paper"><Resaltar texto={nombreProy(o)} termino={busqueda} /></td>
                       <td className="px-5 py-1.5 text-right font-semibold text-paper">{soles(deObra.reduce((s, f) => s + f.valor, 0))}</td>
                     </tr>
                     {deObra.map((f) => (
                       <tr key={f.clave} className="border-b border-line/40">
-                        <td className="px-5 py-2 text-ink">{f.descripcion}</td>
+                        <td className="px-5 py-2 text-ink"><Resaltar texto={f.descripcion} termino={busqueda} /></td>
                         <td className="px-3 py-2 text-muted-foreground">{nombreTipo(tipoDe(f.insumo_id))}</td>
                         <td className="px-3 py-2 text-muted-foreground">{f.unidad}</td>
                         <td className="px-3 py-2 text-right">{num(f.ingresos)}</td>

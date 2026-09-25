@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { Fragment, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -67,6 +68,7 @@ function GastosGenerales() {
   });
   const [error, setError] = useState("");
   const [ambito, setAmbito] = useState("Todas");
+  const [busqueda, setBusqueda] = useState("");
   const [filtroCategoria, setFiltroCategoria] = useState("Todas");
   const [cerrados, setCerrados] = useState<Set<string>>(new Set());
   const [guiaVisible, setGuiaVisible] = useState(false);
@@ -95,6 +97,9 @@ function GastosGenerales() {
         : gastos.filter((g) => g.proyecto_id === ambito);
   const gastosFiltrados =
     filtroCategoria === "Todas" ? porAmbito : porAmbito.filter((g) => (g.categoria ?? "") === filtroCategoria);
+  const gastosBusqueda = gastosFiltrados.filter((g) =>
+    coincide(busqueda, g.descripcion, nombreProv(g), (g as Pago).comprobante),
+  );
 
   const totalesCategoria = categoriasActivas
     .map((c) => ({
@@ -102,13 +107,13 @@ function GastosGenerales() {
       total: porAmbito.filter((g) => (g.categoria ?? "") === c.nombre).reduce((s, g) => s + Number(g.monto_soles), 0),
     }))
     .filter((t) => t.total > 0 || filtroCategoria === t.nombre);
-  const total = gastosFiltrados.reduce((s, g) => s + Number(g.monto_soles), 0);
-  const pagado = gastosFiltrados
+  const total = gastosBusqueda.reduce((s, g) => s + Number(g.monto_soles), 0);
+  const pagado = gastosBusqueda
     .filter((g) => (g as Pago).estado_pago === "Pagada")
     .reduce((s, g) => s + Number(g.monto_soles), 0);
   const porPagar = total - pagado;
 
-  const gruposCategoria = Array.from(new Set(gastosFiltrados.map((g) => g.categoria || "Sin categoría"))).sort();
+  const gruposCategoria = Array.from(new Set(gastosBusqueda.map((g) => g.categoria || "Sin categoría"))).sort();
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
@@ -422,6 +427,12 @@ function GastosGenerales() {
         titulo={`Gastos registrados · ${ambito === "Todas" ? "Todas las imputaciones" : ambito === "Oficina" ? "Oficina Central" : nombreProy(ambito)}`}
         extra={
           <div className="flex items-center gap-3">
+            <Buscador
+              valor={busqueda}
+              onChange={setBusqueda}
+              total={gastosBusqueda.length}
+              placeholder="Buscar por descripción, proveedor o comprobante..."
+            />
             {filtroCategoria !== "Todas" && (
               <button
                 type="button"
@@ -435,7 +446,15 @@ function GastosGenerales() {
           </div>
         }
       >
-        {gastosFiltrados.length === 0 ? (
+        {gastosBusqueda.length === 0 ? (
+              <Vacio
+                texto={
+                  busqueda
+                    ? `Sin coincidencias para «${busqueda}»`
+                    : "No hay gastos registrados en este ámbito y categoría."
+                }
+              />
+            ) : gastosFiltrados.length === 0 ? (
           <Vacio
             texto={
               filtroCategoria === "Todas"
@@ -500,7 +519,7 @@ function GastosGenerales() {
                                 maxLength={160}
                               />
                             </td>
-                            <td className="px-3 py-2.5 text-muted-foreground">{nombreProv(g)}</td>
+                            <td className="px-3 py-2.5 text-muted-foreground"><Resaltar texto={nombreProv(g)} termino={busqueda}/></td>
                             <td className="px-3 py-2">
                               <Select
                                 value={editando.categoria}
@@ -549,14 +568,14 @@ function GastosGenerales() {
                         ) : (
                           <tr key={g.id} className="border-b border-line/60">
                             <td className="px-5 py-2.5">{fmtFecha(g.fecha)}</td>
-                            <td className="px-3 py-2.5 text-muted-foreground">{(g as Pago).comprobante || "—"}</td>
+                            <td className="px-3 py-2.5 text-muted-foreground"><Resaltar texto={(g as Pago).comprobante || "—"} termino={busqueda}/></td>
                             <td className="px-3 py-2.5 font-semibold text-ink">
-                              {g.descripcion}
+                              <Resaltar texto={g.descripcion} termino={busqueda}/>
                               {ambito === "Todas" && (
                                 <div className="text-[10px] font-normal text-muted-foreground">{nombreProy(g.proyecto_id)}</div>
                               )}
                             </td>
-                            <td className="px-3 py-2.5 text-muted-foreground">{nombreProv(g)}</td>
+                            <td className="px-3 py-2.5 text-muted-foreground"><Resaltar texto={nombreProv(g)} termino={busqueda}/></td>
                             <td className="px-3 py-2.5">
                               <button
                                 type="button"

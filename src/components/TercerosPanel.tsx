@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, Vacio } from "@/components/ui-kit";
+import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { Check, Pencil, Trash2, Upload, X } from "lucide-react";
 import { exportarExcel } from "@/lib/exportar";
 
@@ -51,6 +52,7 @@ export function TercerosPanel({ modo }: { modo: "cliente" | "proveedor" }) {
   const [error, setError] = useState("");
   const [form, setForm] = useState(formVacio);
   const [editando, setEditando] = useState<Tercero | null>(null);
+  const [busqueda, setBusqueda] = useState("");
 
   const { data: terceros = [] } = useQuery({
     queryKey: ["terceros"],
@@ -61,7 +63,9 @@ export function TercerosPanel({ modo }: { modo: "cliente" | "proveedor" }) {
     },
   });
 
-  const lista = terceros.filter((t) => (esCliente ? t.es_cliente : t.es_proveedor));
+  const lista = terceros.filter((t) => (esCliente ? t.es_cliente : t.es_proveedor)).filter((t) =>
+    coincide(busqueda, t.numero_documento, t.razon_social, t.contacto, t.email),
+  );
 
   async function guardarTercero(e: React.FormEvent) {
     e.preventDefault();
@@ -219,12 +223,10 @@ export function TercerosPanel({ modo }: { modo: "cliente" | "proveedor" }) {
 
       <Panel
         titulo={nombrePlural}
-        extra={
-          <span className="font-mono text-[11px] text-muted-foreground">{lista.length} registros</span>
-        }
+        extra={<Buscador valor={busqueda} onChange={setBusqueda} total={lista.length} placeholder={`Buscar ${nombreSingular}...`} />}
       >
         {lista.length === 0 ? (
-          <Vacio texto={`Aún no hay ${nombrePlural.toLowerCase()} registrados.`} />
+          <Vacio texto={busqueda ? `Sin coincidencias para «${busqueda}»` : `Aún no hay ${nombrePlural.toLowerCase()} registrados.`} />
         ) : (
           <table className="w-full table-fixed font-mono text-xs">
             <thead>
@@ -344,10 +346,10 @@ export function TercerosPanel({ modo }: { modo: "cliente" | "proveedor" }) {
                 ) : (
                   <tr key={t.id} className="border-b border-line/60 last:border-0">
                     <td className="px-5 py-2.5">
-                      <span className="text-muted-foreground">{t.tipo_documento}</span> {t.numero_documento}
+                      <span className="text-muted-foreground">{t.tipo_documento}</span> <Resaltar texto={t.numero_documento} termino={busqueda} />
                     </td>
                     <td className="px-3 py-2.5 font-semibold text-ink">
-                      {t.razon_social}
+                      <Resaltar texto={t.razon_social} termino={busqueda} />
                       {esCliente && t.es_proveedor && (
                         <span className="ml-1"><Etiqueta tono="neutro">También proveedor</Etiqueta></span>
                       )}
@@ -360,14 +362,14 @@ export function TercerosPanel({ modo }: { modo: "cliente" | "proveedor" }) {
                     <td className="px-3 py-2.5 text-muted-foreground">
                       {t.contacto ? (
                         <>
-                          <span className="block truncate text-ink">{t.contacto}</span>
+                          <span className="block truncate text-ink"><Resaltar texto={t.contacto} termino={busqueda} /></span>
                           <span className="block truncate text-[10px]">{t.celular_contacto || "—"}</span>
                         </>
                       ) : (
                         "—"
                       )}
                     </td>
-                    <td className="truncate px-3 py-2.5 text-muted-foreground">{t.email || "—"}</td>
+                    <td className="truncate px-3 py-2.5 text-muted-foreground"><Resaltar texto={t.email || "—"} termino={busqueda} /></td>
                     <td className="px-5 py-2">
                       <div className="flex items-center justify-end gap-1">
                         <button

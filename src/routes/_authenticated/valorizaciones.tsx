@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Upload } from "lucide-react";
@@ -56,6 +57,10 @@ function Valorizaciones() {
     fecha_emision: hoy(),
     ...condicionVacia("Crédito"),
   });
+  const [busqueda, setBusqueda] = useState("");
+  const ventasFiltradas = ventas.filter((v) =>
+    coincide(busqueda, v.concepto, nombreCliente(v.cliente_id), nombreProy(v.proyecto_id), v.numero_factura),
+  );
   const [error, setError] = useState("");
   const [avisoCobro, setAvisoCobro] = useState("");
 
@@ -287,13 +292,29 @@ function Valorizaciones() {
       <Panel
         titulo="Valorizaciones registradas"
         extra={
-          <span className="font-mono text-[11px] text-muted-foreground">
-            Cobrado {soles(totalCobrado)} · Pendiente {soles(totalPendiente)}
-          </span>
+          <div className="flex items-center gap-2">
+            <Buscador
+              valor={busqueda}
+              onChange={setBusqueda}
+              total={ventasFiltradas.length}
+              placeholder="Buscar por concepto, cliente, proyecto o factura..."
+            />
+            <span className="font-mono text-[11px] text-muted-foreground">
+              Cobrado {soles(totalCobrado)} · Pendiente {soles(totalPendiente)}
+            </span>
+          </div>
         }
       >
         {avisoCobro && <p className="px-5 pt-3 font-mono text-xs text-bad">{avisoCobro}</p>}
-        {ventas.length === 0 ? (
+        {ventasFiltradas.length === 0 ? (
+          <Vacio
+            texto={
+              busqueda
+                ? `Sin coincidencias para «${busqueda}»`
+                : "Aún no hay valorizaciones."
+            }
+          />
+        ) : ventas.length === 0 ? (
           <Vacio texto="Aún no hay valorizaciones." />
         ) : (
           <table className="w-full font-mono text-xs">
@@ -311,12 +332,12 @@ function Valorizaciones() {
               </tr>
             </thead>
             <tbody>
-              {ventas.map((v) => (
+              {ventasFiltradas.map((v) => (
                 <tr key={v.id} className="border-b border-line/60 last:border-0">
-                  <td className="px-5 py-2.5 font-semibold text-ink">{v.concepto}</td>
-                  <td className="px-3 py-2.5 text-muted-foreground">{nombreCliente(v.cliente_id)}</td>
-                  <td className="px-3 py-2.5 text-muted-foreground">{nombreProy(v.proyecto_id)}</td>
-                  <td className="px-3 py-2.5 text-muted-foreground">{v.numero_factura || "—"}</td>
+                  <td className="px-5 py-2.5 font-semibold text-ink"><Resaltar texto={v.concepto} termino={busqueda}/></td>
+                  <td className="px-3 py-2.5 text-muted-foreground"><Resaltar texto={nombreCliente(v.cliente_id)} termino={busqueda}/></td>
+                  <td className="px-3 py-2.5 text-muted-foreground"><Resaltar texto={nombreProy(v.proyecto_id)} termino={busqueda}/></td>
+                  <td className="px-3 py-2.5 text-muted-foreground"><Resaltar texto={v.numero_factura || "—"} termino={busqueda}/></td>
                   <td className="px-3 py-2.5">
                     <InsigniaPago
                       condicion={(v as { condicion_pago?: string }).condicion_pago}

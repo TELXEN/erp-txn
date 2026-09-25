@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, ChevronRight, Plus, Trash2, Upload } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
+import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { useProyectos, useTerceros } from "@/lib/datos";
 import { apuDb, useInsumos } from "@/lib/apu";
@@ -79,6 +80,7 @@ function ImportacionesPage() {
   const [filtro, setFiltro] = useState("");
   const [error, setError] = useState("");
   const [aviso, setAviso] = useState("");
+  const [busqueda, setBusqueda] = useState("");
   const [guardando, setGuardando] = useState(false);
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
@@ -190,7 +192,7 @@ function ImportacionesPage() {
     qc.invalidateQueries({ queryKey: ["importacion_items"] });
   }
 
-  const lista = imps.filter((i) => !filtro || i.estado === filtro);
+  const lista = imps.filter((i) => (!filtro || i.estado === filtro) && coincide(busqueda, i.codigo, nombreProv(i), nombreProy(i.proyecto_id), i.tracking, i.observacion));
   const activas = imps.filter((i) => i.estado === "En tránsito" || i.estado === "En aduana");
   const fobActivo = activas.reduce((s, i) => s + (i.moneda === "USD" ? fobDe(i.id) : 0), 0);
   const sobre2000 = form.moneda === "USD" && totalForm > 2000;
@@ -328,14 +330,17 @@ function ImportacionesPage() {
       <Panel
         titulo="Carpetas de importación"
         extra={
-          <Select className="w-48 py-1 text-xs" value={filtro} onChange={(e) => setFiltro(e.target.value)}>
-            <option value="">Todos los estados</option>
-            {ESTADOS.map((s) => <option key={s}>{s}</option>)}
-          </Select>
+          <div className="flex flex-wrap items-center gap-2">
+            <Buscador valor={busqueda} onChange={setBusqueda} placeholder="Buscar por código, proveedor, obra, tracking..." total={lista.length} />
+            <Select className="w-48 py-1 text-xs" value={filtro} onChange={(e) => setFiltro(e.target.value)}>
+              <option value="">Todos los estados</option>
+              {ESTADOS.map((s) => <option key={s}>{s}</option>)}
+            </Select>
+          </div>
         }
       >
         {lista.length === 0 ? (
-          <Vacio texto="Aún no hay importaciones registradas." />
+          <Vacio texto={busqueda ? `Sin coincidencias para «${busqueda}»` : "Aún no hay importaciones registradas."} />
         ) : (
           <table className="w-full font-mono text-xs">
             <thead>
