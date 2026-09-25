@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState, type ReactNode } from "react";
 import { AlertTriangle, CalendarDays, Clock3, Flag, Layers3, ListTodo, Upload } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
+import { Boton, Panel, Select, Vacio } from "@/components/ui-kit";
 import { CurvaS } from "@/components/CurvaS";
 import { InsigniaPrioridad, InsigniaSituacion } from "@/components/estado-ui";
 import { SITUACIONES, tonoSituacion } from "@/lib/configuracion";
@@ -134,7 +134,8 @@ function DashboardProyectos() {
   }, [obraSel, gastosD, gastosG, tareos]);
 
 
-  if (!puedeVerDinero(rol)) return <SinAcceso />;
+  const verDinero = puedeVerDinero(rol);
+  const programadoSel = obraSel ? avanceProgramado(obraSel.proyecto.fecha_inicio, obraSel.proyecto.fecha_fin) : null;
 
   function excel() {
     exportarExcel("dashboard-proyectos", [
@@ -200,7 +201,7 @@ function DashboardProyectos() {
         titulo="Dashboard de Proyectos"
         subtitulo="Centro de control operativo"
         acciones={
-          <>
+          verDinero && <>
             <Boton variante="linea" onClick={excel}>
               <Upload size={13} /> Exportar a Excel
             </Boton>
@@ -287,6 +288,22 @@ function DashboardProyectos() {
           </div>
         </div>
 
+        {!verDinero ? (
+          <div className="panel rise overflow-hidden">
+            <div className="border-b border-line px-4 py-3"><p className="label-mono">Control de cronograma</p></div>
+            <div className="space-y-3 p-4">
+              <Barra etiqueta="Avance físico" valor={obraSel?.avance ?? 0} clase="bg-primary" />
+              <Barra etiqueta="Avance programado" valor={programadoSel ?? 0} clase="bg-muted-foreground" />
+              {programadoSel === null ? (
+                <p className="font-mono text-[11px] text-muted-foreground">Registra fechas de inicio y fin para comparar.</p>
+              ) : (obraSel?.avance ?? 0) + 0.05 < programadoSel ? (
+                <p className="font-mono text-xs font-semibold text-bad">Retraso de {pct(programadoSel - (obraSel?.avance ?? 0))} frente al cronograma</p>
+              ) : (
+                <p className="font-mono text-xs font-semibold text-good">En plazo o adelantada ({pct((obraSel?.avance ?? 0) - programadoSel)})</p>
+              )}
+            </div>
+          </div>
+        ) : (
         <div className="panel rise overflow-hidden">
           <div className="border-b border-line px-4 py-3"><p className="label-mono">Resumen financiero del proyecto</p></div>
           <div className="divide-y divide-line">
@@ -295,10 +312,11 @@ function DashboardProyectos() {
             <DatoFinanciero etiqueta="Presupuesto vigente" valor={soles(obraSel?.presupuesto ?? 0)} tono="good" />
           </div>
         </div>
+        )}
       </section>
 
 
-      <Panel
+      {verDinero && <Panel
         titulo="Curva S — Plan contra ejecución"
         className="mb-4"
       >
@@ -315,7 +333,7 @@ function DashboardProyectos() {
             movimientos={movimientos}
           />
         )}
-      </Panel>
+      </Panel>}
 
       <Panel
         titulo="Cartera de proyectos"
@@ -356,7 +374,7 @@ function DashboardProyectos() {
                       <InsigniaSituacion valor={f.proyecto.situacion} />
                     </div>
                   </div>
-                  <div className="text-right">
+                  {verDinero && <div className="text-right">
                     <p className="label-mono">Contractual + adicionales</p>
                     <p className="font-mono text-xs text-muted-foreground">{soles(f.presupuestoContractual)} + <span className="text-primary">{soles(f.adicionales)}</span></p>
                     <p className="font-mono text-sm font-semibold">Vigente {soles(f.presupuesto)}</p>
@@ -364,15 +382,23 @@ function DashboardProyectos() {
                     <p className={`font-mono text-[11px] ${f.diferencia < 0 ? "text-bad" : "text-muted-foreground"}`}>
                       Diferencia {soles(f.diferencia)}
                     </p>
-                  </div>
+                  </div>}
                 </div>
                 <div className="mt-3 space-y-1.5">
                   <Barra etiqueta="Avance Físico" valor={f.avance} clase="bg-primary" />
-                  <Barra
-                    etiqueta="Presupuesto Gastado"
-                    valor={f.gastado}
-                    clase={f.desviado ? "bg-bad" : "bg-good"}
-                  />
+                  {verDinero ? (
+                    <Barra
+                      etiqueta="Presupuesto Gastado"
+                      valor={f.gastado}
+                      clase={f.desviado ? "bg-bad" : "bg-good"}
+                    />
+                  ) : (
+                    <Barra
+                      etiqueta="Avance Programado"
+                      valor={avanceProgramado(f.proyecto.fecha_inicio, f.proyecto.fecha_fin) ?? 0}
+                      clase="bg-muted-foreground"
+                    />
+                  )}
                 </div>
               </li>
             ))}
@@ -512,4 +538,12 @@ function DatoIcono({ icono, etiqueta, valor, tono }: { icono: ReactNode; etiquet
       </div>
     </div>
   );
+}
+
+function avanceProgramado(inicio: string | null, fin: string | null): number | null {
+  if (!inicio || !fin) return null;
+  const a = new Date(`${inicio}T00:00:00`).getTime();
+  const b = new Date(`${fin}T23:59:59`).getTime();
+  if (b <= a) return null;
+  return Math.min(100, Math.max(0, ((Date.now() - a) / (b - a)) * 100));
 }
