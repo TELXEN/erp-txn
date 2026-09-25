@@ -1334,6 +1334,82 @@ export type Database = {
           },
         ]
       }
+      recibos_honorarios: {
+        Row: {
+          banco_id: string | null
+          concepto: string
+          created_at: string
+          estado_pago: string
+          fecha_emision: string
+          fecha_pago: string | null
+          id: string
+          monto_bruto: number
+          monto_neto: number
+          numero_operacion: string
+          numero_recibo: string
+          proyecto_id: string | null
+          retencion: number
+          trabajador_id: string
+          updated_at: string
+        }
+        Insert: {
+          banco_id?: string | null
+          concepto?: string
+          created_at?: string
+          estado_pago?: string
+          fecha_emision?: string
+          fecha_pago?: string | null
+          id?: string
+          monto_bruto: number
+          monto_neto: number
+          numero_operacion?: string
+          numero_recibo: string
+          proyecto_id?: string | null
+          retencion?: number
+          trabajador_id: string
+          updated_at?: string
+        }
+        Update: {
+          banco_id?: string | null
+          concepto?: string
+          created_at?: string
+          estado_pago?: string
+          fecha_emision?: string
+          fecha_pago?: string | null
+          id?: string
+          monto_bruto?: number
+          monto_neto?: number
+          numero_operacion?: string
+          numero_recibo?: string
+          proyecto_id?: string | null
+          retencion?: number
+          trabajador_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recibos_honorarios_banco_id_fkey"
+            columns: ["banco_id"]
+            isOneToOne: false
+            referencedRelation: "bancos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recibos_honorarios_proyecto_id_fkey"
+            columns: ["proyecto_id"]
+            isOneToOne: false
+            referencedRelation: "proyectos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recibos_honorarios_trabajador_id_fkey"
+            columns: ["trabajador_id"]
+            isOneToOne: false
+            referencedRelation: "trabajadores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       requerimiento_items: {
         Row: {
           cantidad: number
