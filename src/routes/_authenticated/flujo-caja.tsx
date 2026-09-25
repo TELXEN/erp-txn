@@ -333,7 +333,7 @@ function FlujoCaja() {
                     <Input
                       type="number"
                       step="0.01"
-                      className="h-7 w-full min-w-0 px-1 text-right text-[11px]"
+                      className="h-7 w-full min-w-0 px-0.5 text-right text-[10px]"
                       defaultValue={f.metaIngreso}
                       key={`i-${anio}-${f.mes}-${f.metaIngreso}`}
                       aria-label={`Meta de ingreso ${f.etiqueta}`}
@@ -354,7 +354,7 @@ function FlujoCaja() {
                     <Input
                       type="number"
                       step="0.01"
-                      className="h-7 w-full min-w-0 px-1 text-right text-[11px]"
+                      className="h-7 w-full min-w-0 px-0.5 text-right text-[10px]"
                       defaultValue={f.metaCosto}
                       key={`c-${anio}-${f.mes}-${f.metaCosto}`}
                       aria-label={`Meta de costo ${f.etiqueta}`}
