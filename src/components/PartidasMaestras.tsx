@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Check, Pencil, Trash2, X } from "lucide-react";
+import { Calculator, Check, Pencil, Trash2, X } from "lucide-react";
+import { ApuPartida } from "@/components/ApuPartida";
 import { supabase } from "@/integrations/supabase/client";
 import { Boton, Campo, Input, Panel, Select, Vacio } from "@/components/ui-kit";
 import { soles } from "@/lib/format";
@@ -27,6 +28,7 @@ export function PartidasMaestras() {
   const [editando, setEditando] = useState<PartidaMaestra | null>(null);
   const [busqueda, setBusqueda] = useState("");
   const [error, setError] = useState("");
+  const [apu, setApu] = useState<PartidaMaestra | null>(null);
 
   const refrescar = () => qc.invalidateQueries({ queryKey: ["partidas_maestras"] });
 
@@ -189,13 +191,13 @@ export function PartidasMaestras() {
           <table className="w-full table-fixed font-mono text-xs">
             <thead>
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                <th className="w-[35%] px-5 py-2 font-medium">Partida</th>
+                <th className="w-[32%] px-5 py-2 font-medium">Partida</th>
                 <th className="w-[16%] px-3 py-2 font-medium">Especialidad</th>
                 <th className="w-[17%] px-3 py-2 font-medium">Categoría</th>
                 <th className="w-[7%] px-3 py-2 font-medium">Und.</th>
                 <th className="w-[11%] px-3 py-2 text-right font-medium">P.U. (S/)</th>
                 <th className="w-[8%] px-3 py-2 font-medium">Estado</th>
-                <th className="w-[6%] px-5 py-2 text-right font-medium">Acciones</th>
+                <th className="w-[9%] px-5 py-2 text-right font-medium">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -310,6 +312,14 @@ export function PartidasMaestras() {
                       <div className="flex items-center justify-end gap-1">
                         <button
                           type="button"
+                          onClick={() => setApu(p)}
+                          title="Análisis de precios unitarios"
+                          className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"
+                        >
+                          <Calculator size={14} />
+                        </button>
+                        <button
+                          type="button"
                           onClick={() => setEditando(p)}
                           title="Editar"
                           className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"
@@ -337,6 +347,7 @@ export function PartidasMaestras() {
           unidad y precio unitario; el código se asigna recién al cargarla en un proyecto, y puedes ajustarlos en la propuesta sin alterar el catálogo.
         </p>
       </Panel>
+    {apu && <ApuPartida partida={apu} onCerrar={() => setApu(null)} />}
     </>
   );
 }

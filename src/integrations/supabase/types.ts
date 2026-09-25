@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      apu_componentes: {
+        Row: {
+          cantidad: number
+          created_at: string
+          cuadrilla: number
+          id: string
+          insumo_id: string
+          partida_maestra_id: string
+          updated_at: string
+        }
+        Insert: {
+          cantidad?: number
+          created_at?: string
+          cuadrilla?: number
+          id?: string
+          insumo_id: string
+          partida_maestra_id: string
+          updated_at?: string
+        }
+        Update: {
+          cantidad?: number
+          created_at?: string
+          cuadrilla?: number
+          id?: string
+          insumo_id?: string
+          partida_maestra_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "apu_componentes_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "insumos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "apu_componentes_partida_maestra_id_fkey"
+            columns: ["partida_maestra_id"]
+            isOneToOne: false
+            referencedRelation: "partidas_maestras"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bancos: {
         Row: {
           activo: boolean
@@ -778,6 +823,42 @@ export type Database = {
           },
         ]
       }
+      insumos: {
+        Row: {
+          activo: boolean
+          codigo: string
+          created_at: string
+          id: string
+          nombre: string
+          precio: number
+          tipo: string
+          unidad: string
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          codigo?: string
+          created_at?: string
+          id?: string
+          nombre: string
+          precio?: number
+          tipo?: string
+          unidad?: string
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          codigo?: string
+          created_at?: string
+          id?: string
+          nombre?: string
+          precio?: number
+          tipo?: string
+          unidad?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       metas_flujo_caja: {
         Row: {
           anio: number
@@ -890,8 +971,11 @@ export type Database = {
           created_at: string
           especialidad: string
           id: string
+          jornada: number
           nombre: string
+          pct_herramientas: number
           precio_unitario: number
+          rendimiento: number
           unidad: string
           updated_at: string
         }
@@ -902,8 +986,11 @@ export type Database = {
           created_at?: string
           especialidad?: string
           id?: string
+          jornada?: number
           nombre: string
+          pct_herramientas?: number
           precio_unitario?: number
+          rendimiento?: number
           unidad?: string
           updated_at?: string
         }
@@ -914,8 +1001,11 @@ export type Database = {
           created_at?: string
           especialidad?: string
           id?: string
+          jornada?: number
           nombre?: string
+          pct_herramientas?: number
           precio_unitario?: number
+          rendimiento?: number
           unidad?: string
           updated_at?: string
         }

@@ -28,6 +28,7 @@ import { CodificacionCotizaciones } from "@/components/CodificacionCotizaciones"
 import { EspecialidadesPartida } from "@/components/EspecialidadesPartida";
 import { UnidadesMedida } from "@/components/UnidadesMedida";
 import { PartidasMaestras } from "@/components/PartidasMaestras";
+import { Insumos } from "@/components/Insumos";
 import { CuentasBancarias, type CuentaBancaria } from "@/components/CuentasBancarias";
 import { CategoriasPartida } from "@/components/CategoriasPartida";
 
@@ -69,11 +70,12 @@ type Pestana =
   | "categorias"
   | "unidades"
   | "maestras"
+  | "insumos"
   | "empresa";
 
 const GRUPOS_CONFIG: { titulo: string; icono: React.ElementType; items: [Pestana, string][] }[] = [
   { titulo: "Empresa", icono: Building2, items: [["empresa", "Datos de la empresa"], ["bancos", "Cuentas bancarias"]] },
-  { titulo: "Catálogo técnico (WBS)", icono: Ruler, items: [["especialidades", "Especialidad de partidas"], ["categorias", "Categorías de partidas"], ["maestras", "Registro de partidas"], ["unidades", "Unidades de medida"]] },
+  { titulo: "Catálogo técnico (WBS)", icono: Ruler, items: [["especialidades", "Especialidad de partidas"], ["categorias", "Categorías de partidas"], ["maestras", "Registro de partidas"], ["insumos", "Maestro de insumos"], ["unidades", "Unidades de medida"]] },
   { titulo: "Proyectos y Cotizaciones", icono: FolderKanban, items: [["codificacion", "Codificación de proyectos"], ["codificacioncot", "Codificación de cotizaciones"], ["configuracion", "Parámetros de proyectos"]] },
   { titulo: "Costos y Finanzas", icono: Coins, items: [["categoriasgg", "Categorías de gastos generales"], ["centros", "Centros de costos"], ["costos", "Rubros de costos"], ["ingresos", "Rubros de ingresos"]] },
   { titulo: "Recursos Humanos", icono: HardHat, items: [["cargos", "Cargos del personal"]] },
@@ -226,6 +228,8 @@ function Datos() {
         <CategoriasPartida />
       ) : pestana === "unidades" ? (
         <UnidadesMedida />
+      ) : pestana === "insumos" ? (
+        <Insumos />
       ) : pestana === "maestras" ? (
         <PartidasMaestras />
       ) : pestana === "empresa" ? (
