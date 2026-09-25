@@ -380,6 +380,10 @@ function CajaChica() {
                         {nombreProy(c.proyecto_id)} · {fmtFecha(c.fecha_entrega)}
                         {c.motivo ? ` · ${c.motivo}` : ""}
                       </p>
+                      <p className="font-mono text-[11px] text-muted-foreground">
+                        Origen: {nombreBanco(c.banco_id)}
+                        {c.numero_operacion ? ` · Op. ${c.numero_operacion}` : ""}
+                      </p>
                     </div>
                     <div className="flex flex-wrap items-center gap-4 font-mono text-xs">
                       <span className="text-muted-foreground">
