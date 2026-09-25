@@ -36,13 +36,6 @@ type Categoria = { titulo: string; items: Item[] };
 
 const MENU: Categoria[] = [
   {
-    titulo: "REPORTES Y ANALISIS",
-    items: [
-      { a: "/dashboard", texto: "Dashboard Financiero", roles: ["gerente"], icono: BarChart3 },
-      { a: "/dashboard-proyectos", texto: "Dashboard de Proyectos", roles: ["administrador", "gerente"], icono: Gauge },
-    ],
-  },
-  {
     titulo: "Comercial",
     items: [
       { a: "/clientes", texto: "Clientes", roles: ["administrador", "gerente"], icono: Users },
@@ -53,6 +46,7 @@ const MENU: Categoria[] = [
   {
     titulo: "Operaciones",
     items: [
+      { a: "/dashboard-proyectos", texto: "Dashboard de Proyectos", roles: ["administrador", "gerente"], icono: Gauge },
       { a: "/proyectos", texto: "Proyectos", roles: ["administrador", "gerente"], icono: Building2 },
       { a: "/partidas", texto: "Partidas", roles: ["administrador", "gerente"], icono: Layers },
       { a: "/avance", texto: "Avance Físico", roles: ["ingeniero", "gerente"], icono: Activity },
@@ -72,6 +66,7 @@ const MENU: Categoria[] = [
   {
     titulo: "Finanzas y Contabilidad",
     items: [
+      { a: "/dashboard", texto: "Dashboard Financiero", roles: ["gerente"], icono: BarChart3 },
       { a: "/gastos-directos", texto: "Costos Directos", roles: ["administrador", "gerente"], icono: ShoppingBag },
       { a: "/gastos-generales", texto: "Gastos Generales", roles: ["administrador", "gerente"], icono: Briefcase },
       { a: "/caja-chica", texto: "Caja Chica", roles: ["administrador", "gerente"], icono: Wallet },
