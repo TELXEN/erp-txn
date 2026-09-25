@@ -1947,6 +1947,7 @@ export type Database = {
           costo_soles: number
           created_at: string
           fecha: string
+          horas: number
           id: string
           proyecto_id: string
           tipo: string
@@ -1957,6 +1958,7 @@ export type Database = {
           costo_soles?: number
           created_at?: string
           fecha: string
+          horas?: number
           id?: string
           proyecto_id: string
           tipo?: string
@@ -1967,6 +1969,7 @@ export type Database = {
           costo_soles?: number
           created_at?: string
           fecha?: string
+          horas?: number
           id?: string
           proyecto_id?: string
           tipo?: string
