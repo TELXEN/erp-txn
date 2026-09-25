@@ -3,6 +3,8 @@ import React, { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
+import { ApuPartida } from "@/components/ApuPartida";
+import { apuDb } from "@/lib/apu";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
@@ -32,7 +34,7 @@ import {
   vigenciaHasta,
   type EstadoCotizacion,
 } from "@/lib/cotizaciones";
-import { Check, CornerDownRight, ListOrdered, Upload, X } from "lucide-react";
+import { Check, Calculator, CornerDownRight, ListOrdered, Upload, X } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/cotizaciones")({
   head: () => ({
@@ -196,6 +198,7 @@ function Cotizaciones() {
     setAviso("Partida guardada en el banco maestro.");
   }
 
+  const [apu, setApu] = useState<(typeof items)[number] | null>(null);
   const [nuevaSub, setNuevaSub] = useState<{
     padre_id: string;
     codigo: string;
@@ -351,6 +354,9 @@ function Cotizaciones() {
           precio_unitario: Number(i.precio_unitario),
           presupuesto_inicial: Math.round(Number(i.metrado) * Number(i.precio_unitario) * 100) / 100,
           tipo_presupuesto: "Contractual",
+          rendimiento: Number(i.rendimiento ?? 1),
+          jornada: Number(i.jornada ?? 8),
+          pct_herramientas: Number(i.pct_herramientas ?? 3),
         });
       const { error: errP } = await supabase.from("partidas").insert(items.filter((i) => !i.padre_id).map(aFila));
       if (errP) throw errP;
@@ -358,6 +364,21 @@ function Cotizaciones() {
       if (hijos.length) {
         const { error: errH } = await supabase.from("partidas").insert(hijos.map(aFila));
         if (errH) throw errH;
+      }
+      const { data: apuCot } = await apuDb
+        .from("apu_componentes")
+        .select("cotizacion_item_id, insumo_id, cuadrilla, cantidad")
+        .in("cotizacion_item_id", items.map((i) => i.id));
+      if (apuCot?.length) {
+        const { error: errA } = await apuDb.from("apu_componentes").insert(
+          apuCot.map((c: { cotizacion_item_id: string; insumo_id: string; cuadrilla: number; cantidad: number }) => ({
+            partida_id: nuevosIds.get(c.cotizacion_item_id),
+            insumo_id: c.insumo_id,
+            cuadrilla: c.cuadrilla,
+            cantidad: c.cantidad,
+          })),
+        );
+        if (errA) throw errA;
       }
 
       await supabase
@@ -786,6 +807,16 @@ function Cotizaciones() {
                                 <td className="px-3 py-2.5 text-right font-semibold">{soles(parcial)}</td>
                                 <td className="px-5 py-2.5 text-right">
                                   <div className="flex items-center justify-end gap-2">
+                                    {!agrupadora && (
+                                      <button
+                                        type="button"
+                                        onClick={() => setApu(i)}
+                                        title="Análisis de precios unitarios"
+                                        className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"
+                                      >
+                                        <Calculator size={14} />
+                                      </button>
+                                    )}
                                     {nivel === 3 && (
                                       <button
                                         type="button"
@@ -857,6 +888,14 @@ function Cotizaciones() {
             {cot.condiciones || "Sin condiciones comerciales registradas."}
           </p>
         </Panel>
+      )}
+      {apu && (
+        <ApuPartida
+          origen="cotizacion"
+          partida={{ ...apu, rendimiento: Number(apu.rendimiento ?? 1), jornada: Number(apu.jornada ?? 8), pct_herramientas: Number(apu.pct_herramientas ?? 3), metrado: Number(apu.metrado ?? 0) }}
+          invalidar={[["cotizacion_items", seleccion]]}
+          onCerrar={() => setApu(null)}
+        />
       )}
     </>
   );
