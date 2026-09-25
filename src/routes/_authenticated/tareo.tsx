@@ -60,7 +60,7 @@ function horasDe(t: { horas?: number | string; asistencia: number | string }) {
   return h > 0 ? h : Math.round(Number(t.asistencia) * HORAS_JORNADA * 100) / 100;
 }
 
-function Celda({ f, marca, onClick, disabled }: { f: string; marca?: Marca; onClick: () => void; disabled?: boolean }) {
+function Celda({ f, marca, onClick, disabled }: { f: string; marca?: Marca | undefined; onClick: () => void; disabled?: boolean }) {
   const base = marca?.base ? infoTipo(marca.base) : null;
   const soloExtras = !base && marca?.extras;
   const clase = base ? base.clase : soloExtras ? infoTipo("extras").clase : "border-line bg-card";
