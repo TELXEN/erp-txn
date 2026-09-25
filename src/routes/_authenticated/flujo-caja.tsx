@@ -19,7 +19,7 @@ import { Boton, Input, Panel, Select, SinAcceso } from "@/components/ui-kit";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { MESES, pct, soles } from "@/lib/format";
 import { usePagosRRHH } from "@/lib/pagos-rrhh";
-import { useCajasChicas, useGastosDirectos, useGastosGenerales, useVentas } from "@/lib/datos";
+import { useCajasChicas, useGastosDirectos, useGastosGenerales, useProyectos, useVentas } from "@/lib/datos";
 import { exportarExcel } from "@/lib/exportar";
 
 const fmtCorto = (n: number) =>
@@ -67,6 +67,17 @@ function FlujoCaja() {
   const { rol } = useAuth();
   const queryClient = useQueryClient();
   const [anio, setAnio] = useState(new Date().getFullYear());
+  const [obra, setObra] = useState("global");
+  const global = obra === "global";
+  const { data: proyectos = [] } = useProyectos();
+  const { data: bancos = [] } = useQuery({
+    queryKey: ["bancos"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("bancos").select("*").order("nombre");
+      if (error) throw error;
+      return (data ?? []) as unknown as { activo: boolean; monedas: string; saldo_inicial: number }[];
+    },
+  });
 
   const { data: ventas = [] } = useVentas();
   const { data: gastosD = [] } = useGastosDirectos();
@@ -101,6 +112,26 @@ function FlujoCaja() {
   });
 
   const filas = useMemo(() => {
+    type Mov = {
+      proyecto_id?: string | null;
+      fecha_pago?: string | null;
+      fecha_vencimiento?: string | null;
+      fecha_emision?: string | null;
+      fecha?: string | null;
+      monto_soles: number;
+      caja_chica_id?: string | null;
+      condicion_pago?: string;
+      estado_pago?: string | null;
+      estado?: string;
+    };
+    const deObra = (x: { proyecto_id?: string | null }) => global || x.proyecto_id === obra;
+    const V = (ventas as unknown as Mov[]).filter(deObra);
+    const GD = (gastosD as unknown as Mov[]).filter(deObra);
+    const GG = (gastosG as unknown as Mov[]).filter(deObra);
+    const CC = cajas.filter(deObra);
+    const RH = global ? (rrhh?.egresos ?? []) : [];
+    const RHP = global ? (rrhh?.pendientes ?? []) : [];
+
     const base = Array.from({ length: 12 }, (_, i) => ({
       mes: i + 1,
       etiqueta: MESES_CORTOS[i] ?? MESES[i] ?? String(i + 1),
@@ -108,43 +139,79 @@ function FlujoCaja() {
       metaCosto: 0,
       ingresoReal: 0,
       costoReal: 0,
+      egCompras: 0,
+      egGenerales: 0,
+      egCaja: 0,
+      egRRHH: 0,
+      ingresoProy: 0,
+      egresoProy: 0,
     }));
 
-    metas.forEach((m) => {
-      const f = base[m.mes - 1];
-      if (!f) return;
-      f.metaIngreso = Number(m.meta_ingreso) || 0;
-      f.metaCosto = Number(m.meta_costo) || 0;
-    });
+    if (global)
+      metas.forEach((m) => {
+        const f = base[m.mes - 1];
+        if (!f) return;
+        f.metaIngreso = Number(m.meta_ingreso) || 0;
+        f.metaCosto = Number(m.meta_costo) || 0;
+      });
 
-    ventas.forEach((v) => {
-      const mes = mesDe(v.fecha_pago, anio);
-      if (mes) base[mes - 1]!.ingresoReal += Number(v.monto_soles) || 0;
-    });
+    // Saldo de apertura: saldo inicial de cuentas en soles + movimientos de años anteriores
+    const inicioAnio = `${anio}-01-01`;
+    const previo = (f: string | null | undefined) => !!f && f.slice(0, 10) < inicioAnio;
+    let apertura = global
+      ? bancos.filter((b) => b.activo && b.monedas === "PEN").reduce((s, b) => s + Number(b.saldo_inicial || 0), 0)
+      : 0;
 
-    const cobrarEgreso = (fecha: string | null | undefined, monto: unknown) => {
+    const sumar = (fecha: string | null | undefined, monto: unknown, campo: "egCompras" | "egGenerales" | "egCaja" | "egRRHH") => {
+      const n = Number(monto) || 0;
+      if (previo(fecha)) apertura -= n;
       const mes = mesDe(fecha, anio);
-      if (mes) base[mes - 1]!.costoReal += Number(monto) || 0;
+      if (mes) {
+        base[mes - 1]![campo] += n;
+        base[mes - 1]!.costoReal += n;
+      }
     };
 
-    gastosD.forEach((g) => {
-      const r = g as unknown as { fecha_pago?: string | null; monto_soles: number; caja_chica_id: string | null };
-      if (r.caja_chica_id) return; // ya salió del banco al entregar la Caja Chica
-      cobrarEgreso(r.fecha_pago, r.monto_soles);
+    V.forEach((v) => {
+      const n = Number(v.monto_soles) || 0;
+      if (v.estado === "Pagado") {
+        if (previo(v.fecha_pago)) apertura += n;
+        const mes = mesDe(v.fecha_pago, anio);
+        if (mes) base[mes - 1]!.ingresoReal += n;
+      } else {
+        const mes = mesDe(v.fecha_vencimiento ?? v.fecha_emision, anio);
+        if (mes) base[mes - 1]!.ingresoProy += n;
+      }
     });
-    gastosG.forEach((g) => {
-      const r = g as unknown as { fecha_pago?: string | null; monto_soles: number; caja_chica_id: string | null };
-      if (r.caja_chica_id) return;
-      cobrarEgreso(r.fecha_pago, r.monto_soles);
+
+    const gasto = (g: Mov, campo: "egCompras" | "egGenerales") => {
+      if (g.caja_chica_id) return; // ya salió del banco al entregar la Caja Chica
+      if (g.estado_pago === "Pagada" || g.condicion_pago !== "Crédito") {
+        sumar(g.fecha_pago ?? (g.condicion_pago !== "Crédito" ? g.fecha : null), g.monto_soles, campo);
+      } else {
+        const mes = mesDe(g.fecha_vencimiento ?? g.fecha, anio);
+        if (mes) base[mes - 1]!.egresoProy += Number(g.monto_soles) || 0;
+      }
+    };
+    GD.forEach((g) => gasto(g, "egCompras"));
+    GG.forEach((g) => gasto(g, "egGenerales"));
+    CC.forEach((c) => sumar(c.fecha_entrega, c.monto_entregado, "egCaja"));
+    RH.forEach((e) => sumar(e.fecha_pago, e.monto, "egRRHH"));
+    RHP.forEach((d) => {
+      const mes = mesDe(d.vencimiento ?? d.emision, anio);
+      if (mes) base[mes - 1]!.egresoProy += Number(d.monto) || 0;
     });
-    cajas.forEach((c) => cobrarEgreso(c.fecha_entrega, c.monto_entregado));
-    (rrhh?.egresos ?? []).forEach((e) => cobrarEgreso(e.fecha_pago, e.monto));
 
     let acumulado = 0;
+    let saldo = apertura;
+    let saldoProy = apertura;
     return base.map((f) => {
       const resultadoObjetivo = f.metaIngreso - f.metaCosto;
       const resultadoReal = f.ingresoReal - f.costoReal;
       acumulado += resultadoReal;
+      const saldoInicioMes = saldo;
+      saldo += resultadoReal;
+      saldoProy += resultadoReal + f.ingresoProy - f.egresoProy;
       return {
         ...f,
         resultadoObjetivo,
@@ -154,9 +221,12 @@ function FlujoCaja() {
         variacion: resultadoReal - resultadoObjetivo,
         cumplimiento: resultadoObjetivo !== 0 ? (resultadoReal / resultadoObjetivo) * 100 : 0,
         acumulado,
+        saldoInicioMes,
+        saldoCierre: saldo,
+        saldoProyectado: saldoProy,
       };
     });
-  }, [metas, ventas, gastosD, gastosG, cajas, rrhh, anio]);
+  }, [metas, ventas, gastosD, gastosG, cajas, rrhh, anio, bancos, global, obra]);
 
   const total = useMemo(
     () =>
@@ -166,14 +236,36 @@ function FlujoCaja() {
           metaCosto: a.metaCosto + f.metaCosto,
           ingresoReal: a.ingresoReal + f.ingresoReal,
           costoReal: a.costoReal + f.costoReal,
+          egCompras: a.egCompras + f.egCompras,
+          egGenerales: a.egGenerales + f.egGenerales,
+          egCaja: a.egCaja + f.egCaja,
+          egRRHH: a.egRRHH + f.egRRHH,
+          ingresoProy: a.ingresoProy + f.ingresoProy,
+          egresoProy: a.egresoProy + f.egresoProy,
         }),
-        { metaIngreso: 0, metaCosto: 0, ingresoReal: 0, costoReal: 0 },
+        { metaIngreso: 0, metaCosto: 0, ingresoReal: 0, costoReal: 0, egCompras: 0, egGenerales: 0, egCaja: 0, egRRHH: 0, ingresoProy: 0, egresoProy: 0 },
       ),
     [filas],
   );
 
   const resultadoObjetivoAnual = total.metaIngreso - total.metaCosto;
   const resultadoRealAnual = total.ingresoReal - total.costoReal;
+  const apertura = filas[0]?.saldoInicioMes ?? 0;
+  const cierre = filas[11]?.saldoCierre ?? 0;
+  const cierreProy = filas[11]?.saldoProyectado ?? 0;
+  const lineasTesoreria: { concepto: string; valores: number[]; total: number; fuerte?: boolean; alerta?: boolean }[] = [
+    { concepto: "Saldo inicial del mes", valores: filas.map((f) => f.saldoInicioMes), total: apertura },
+    { concepto: "Saldo al cierre (real)", valores: filas.map((f) => f.saldoCierre), total: cierre, fuerte: true, alerta: true },
+    { concepto: "Ingreso proyectado (CxC)", valores: filas.map((f) => f.ingresoProy), total: total.ingresoProy },
+    { concepto: "Egreso proyectado (CxP)", valores: filas.map((f) => f.egresoProy), total: total.egresoProy },
+    { concepto: "Saldo proyectado", valores: filas.map((f) => f.saldoProyectado), total: cierreProy, fuerte: true, alerta: true },
+  ];
+  const desglose = [
+    { concepto: "↳ Compras y costos directos", valores: filas.map((f) => f.egCompras), total: total.egCompras },
+    { concepto: "↳ Gastos generales", valores: filas.map((f) => f.egGenerales), total: total.egGenerales },
+    { concepto: "↳ Entregas de Caja Chica", valores: filas.map((f) => f.egCaja), total: total.egCaja },
+    ...(global ? [{ concepto: "↳ Planilla, honorarios y tributos", valores: filas.map((f) => f.egRRHH), total: total.egRRHH }] : []),
+  ];
 
   const anios = useMemo(() => {
     const actual = new Date().getFullYear();
@@ -193,7 +285,7 @@ function FlujoCaja() {
       "Total anual": totalAnual,
     });
 
-    exportarExcel(`Flujo_de_Caja_${anio}`, [
+    exportarExcel(`Flujo_de_Caja_${anio}${global ? "" : "_obra"}`, [
       {
         nombre: "Flujo de Caja",
         filas: [
@@ -228,6 +320,8 @@ function FlujoCaja() {
               : "—",
           ),
           filaHorizontal("CONTROL", "Flujo acumulado", filas.map((f) => f.acumulado), resultadoRealAnual),
+          ...desglose.map((d) => filaHorizontal("DESGLOSE EGRESOS", d.concepto.replace("↳ ", ""), d.valores, d.total)),
+          ...lineasTesoreria.map((d) => filaHorizontal("TESORERÍA", d.concepto, d.valores, d.total)),
         ],
       },
     ]);
@@ -236,9 +330,20 @@ function FlujoCaja() {
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
   const kpis = [
-    { etiqueta: "Meta de ingreso", valor: total.metaIngreso, extra: "" },
-    { etiqueta: "Meta de costo", valor: total.metaCosto, extra: "" },
-    { etiqueta: "Resultado objetivo", valor: resultadoObjetivoAnual, extra: "" },
+    ...(global
+      ? [
+          { etiqueta: "Saldo en bancos al 1 de enero", valor: apertura, extra: "" },
+          { etiqueta: "Saldo al cierre (real)", valor: cierre, extra: "" },
+          { etiqueta: "Saldo proyectado a diciembre", valor: cierreProy, extra: "" },
+          { etiqueta: "Meta de ingreso", valor: total.metaIngreso, extra: "" },
+          { etiqueta: "Meta de costo", valor: total.metaCosto, extra: "" },
+          { etiqueta: "Resultado objetivo", valor: resultadoObjetivoAnual, extra: "" },
+        ]
+      : [
+          { etiqueta: "Por cobrar (CxC)", valor: total.ingresoProy, extra: "" },
+          { etiqueta: "Por pagar (CxP)", valor: total.egresoProy, extra: "" },
+          { etiqueta: "Flujo proyectado de la obra", valor: cierreProy, extra: "" },
+        ]),
     {
       etiqueta: "Ingreso realizado",
       valor: total.ingresoReal,
@@ -260,9 +365,17 @@ function FlujoCaja() {
     <>
       <Encabezado
         titulo="Flujo de Caja"
-        subtitulo="Finanzas y Contabilidad · Consolidado global en Soles"
+        subtitulo={global ? "Finanzas y Contabilidad · Consolidado global en Soles" : `Flujo de la obra ${proyectos.find((p) => p.id === obra)?.nombre ?? ""} en Soles`}
         acciones={
           <div className="flex items-center gap-2">
+            <Select value={obra} onChange={(e) => setObra(e.target.value)} className="w-56">
+              <option value="global">Consolidado global</option>
+              {proyectos.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.codigo ? `${p.codigo} · ` : ""}{p.nombre}
+                </option>
+              ))}
+            </Select>
             <Select value={anio} onChange={(e) => setAnio(Number(e.target.value))} className="w-32">
               {anios.map((a) => (
                 <option key={a} value={a}>
@@ -282,7 +395,7 @@ function FlujoCaja() {
           <div key={k.etiqueta} className="panel rise px-4 py-3">
             <p className="label-mono">{k.etiqueta}</p>
             <p className={`mt-1 text-xl font-semibold ${k.valor < 0 ? "text-bad" : ""}`}>{soles(k.valor)}</p>
-            {k.extra && <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">{k.extra} del objetivo</p>}
+            {k.extra && global && <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">{k.extra} del objetivo</p>}
           </div>
         ))}
       </div>
@@ -326,6 +439,7 @@ function FlujoCaja() {
               </tr>
             </thead>
             <tbody>
+              {global && (<>
               <tr>
                 <th colSpan={14} className="border-b border-line bg-primary/10 px-2 py-1.5 text-left font-mono text-[11px] font-semibold uppercase text-primary">
                   Metas
@@ -382,6 +496,7 @@ function FlujoCaja() {
                 ))}
                 <td className="sticky right-0 z-10 border-b border-l border-line bg-muted px-2 py-1.5 text-right font-mono text-[11px] font-semibold">{corto(resultadoObjetivoAnual)}</td>
               </tr>
+              </>)}
 
               <tr>
                 <th colSpan={14} className="border-b border-line bg-cta/15 px-2 py-1.5 text-left font-mono text-[11px] font-semibold uppercase text-foreground">
@@ -402,6 +517,15 @@ function FlujoCaja() {
                 ))}
                 <td className="sticky right-0 z-10 border-b border-l border-line bg-muted px-2 py-1.5 text-right font-mono text-[11px] font-semibold">{corto(total.costoReal)}</td>
               </tr>
+              {desglose.map((d) => (
+                <tr key={d.concepto}>
+                  <th className="sticky left-0 z-10 border-b border-r border-line bg-paper px-2 py-1 pl-4 text-left text-[11px] font-normal text-muted-foreground">{d.concepto}</th>
+                  {d.valores.map((v, i) => (
+                    <td key={i} className="border-b border-line px-1 py-1 text-right font-mono text-[10px] text-muted-foreground">{v ? corto(v) : "—"}</td>
+                  ))}
+                  <td className="sticky right-0 z-10 border-b border-l border-line bg-muted px-2 py-1 text-right font-mono text-[10px]">{corto(d.total)}</td>
+                </tr>
+              ))}
               <tr>
                 <th className="sticky left-0 z-10 border-b border-r border-line bg-paper px-2 py-1.5 text-left font-semibold">Resultado realizado</th>
                 {filas.map((f) => {
@@ -440,6 +564,20 @@ function FlujoCaja() {
                 ))}
                 <td className={`sticky right-0 z-10 border-l border-line bg-muted px-2 py-1.5 text-right font-mono text-[11px] font-semibold ${resultadoRealAnual < 0 ? "text-bad" : ""}`}>{corto(resultadoRealAnual)}</td>
               </tr>
+              <tr>
+                <th colSpan={14} className="border-b border-t border-line bg-primary/10 px-2 py-1.5 text-left font-mono text-[11px] font-semibold uppercase text-primary">
+                  {global ? "Tesorería y proyección (CxC / CxP)" : "Proyección de la obra (CxC / CxP)"}
+                </th>
+              </tr>
+              {lineasTesoreria.filter((l) => global || !l.concepto.startsWith("Saldo inicial") && !l.concepto.startsWith("Saldo al cierre")).map((l) => (
+                <tr key={l.concepto}>
+                  <th className={`sticky left-0 z-10 border-b border-r border-line bg-paper px-2 py-1.5 text-left ${l.fuerte ? "font-semibold" : "font-medium"}`}>{global || !l.concepto.startsWith("Saldo") ? l.concepto : "Flujo proyectado"}</th>
+                  {l.valores.map((v, i) => (
+                    <td key={i} className={`border-b border-line px-0.5 py-1.5 text-right font-mono text-[10px] ${l.fuerte ? "font-semibold" : ""} ${l.alerta && v < 0 ? "bg-bad/10 text-bad" : ""}`}>{corto(v)}</td>
+                  ))}
+                  <td className={`sticky right-0 z-10 border-b border-l border-line bg-muted px-2 py-1.5 text-right font-mono text-[11px] font-semibold ${l.alerta && l.total < 0 ? "text-bad" : ""}`}>{corto(l.total)}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
@@ -447,7 +585,9 @@ function FlujoCaja() {
 
       <p className="mt-3 font-mono text-[11px] text-muted-foreground">
         El ingreso realizado suma las facturas cobradas en el mes. El costo realizado suma las compras y gastos pagados
-        más las entregas de Caja Chica; los gastos rendidos con Caja Chica no se vuelven a contar.
+        más las entregas de Caja Chica; los gastos rendidos con Caja Chica no se vuelven a contar. El saldo inicial toma
+        las cuentas en soles de Catálogos Maestros. La proyección usa la fecha de vencimiento de las facturas por cobrar,
+        compras al crédito y pagos pendientes de RR. HH. En la vista por obra no se incluyen planillas ni tributos.
       </p>
     </>
   );
