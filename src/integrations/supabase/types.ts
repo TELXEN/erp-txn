@@ -1110,6 +1110,7 @@ export type Database = {
           estado: string
           fecha_arribo: string | null
           fecha_embarque: string | null
+          fecha_integracion: string | null
           fecha_liquidacion: string | null
           fecha_pedido: string
           flete: number
@@ -1120,6 +1121,7 @@ export type Database = {
           gasto_otros: number
           id: string
           incoterm: string
+          integrado: boolean
           moneda: Database["public"]["Enums"]["moneda"]
           observacion: string
           orden_id: string | null
@@ -1141,6 +1143,7 @@ export type Database = {
           estado?: string
           fecha_arribo?: string | null
           fecha_embarque?: string | null
+          fecha_integracion?: string | null
           fecha_liquidacion?: string | null
           fecha_pedido?: string
           flete?: number
@@ -1151,6 +1154,7 @@ export type Database = {
           gasto_otros?: number
           id?: string
           incoterm?: string
+          integrado?: boolean
           moneda?: Database["public"]["Enums"]["moneda"]
           observacion?: string
           orden_id?: string | null
@@ -1172,6 +1176,7 @@ export type Database = {
           estado?: string
           fecha_arribo?: string | null
           fecha_embarque?: string | null
+          fecha_integracion?: string | null
           fecha_liquidacion?: string | null
           fecha_pedido?: string
           flete?: number
@@ -1182,6 +1187,7 @@ export type Database = {
           gasto_otros?: number
           id?: string
           incoterm?: string
+          integrado?: boolean
           moneda?: Database["public"]["Enums"]["moneda"]
           observacion?: string
           orden_id?: string | null
