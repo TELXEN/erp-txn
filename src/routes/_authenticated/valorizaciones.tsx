@@ -58,14 +58,14 @@ function Valorizaciones() {
     ...condicionVacia("Crédito"),
   });
   const [busqueda, setBusqueda] = useState("");
-  const ventasFiltradas = ventas.filter((v) =>
-    coincide(busqueda, v.concepto, nombreCliente(v.cliente_id), nombreProy(v.proyecto_id), v.numero_factura),
-  );
   const [error, setError] = useState("");
   const [avisoCobro, setAvisoCobro] = useState("");
 
   const nombreProy = (id: string) => proyectos.find((p) => p.id === id)?.nombre ?? "—";
   const nombreCliente = (id: string | null) => clientes.find((c) => c.id === id)?.razon_social ?? "—";
+  const ventasFiltradas = ventas.filter((v) =>
+    coincide(busqueda, v.concepto, nombreCliente(v.cliente_id), nombreProy(v.proyecto_id), v.numero_factura),
+  );
   const equivalente = Number(form.monto || 0) * (form.moneda === "USD" ? Number(form.tipo_cambio || 0) : 1);
   const totalCobrado = ventas.filter((v) => v.estado === "Pagado").reduce((s, v) => s + Number(v.monto_soles), 0);
   const totalPendiente = ventas.filter((v) => v.estado !== "Pagado").reduce((s, v) => s + Number(v.monto_soles), 0);
