@@ -121,6 +121,90 @@ export type Database = {
         }
         Relationships: []
       }
+      beneficios_sociales: {
+        Row: {
+          anio: number
+          banco_id: string | null
+          bonificacion: number
+          created_at: string
+          detalle: Json
+          dias: number
+          estado_pago: string
+          fecha_desde: string
+          fecha_hasta: string
+          fecha_pago: string | null
+          id: string
+          meses: number
+          monto: number
+          numero_operacion: string
+          periodo: string
+          remuneracion_computable: number
+          tipo: string
+          total: number
+          trabajador_id: string
+          updated_at: string
+        }
+        Insert: {
+          anio: number
+          banco_id?: string | null
+          bonificacion?: number
+          created_at?: string
+          detalle?: Json
+          dias?: number
+          estado_pago?: string
+          fecha_desde: string
+          fecha_hasta: string
+          fecha_pago?: string | null
+          id?: string
+          meses?: number
+          monto?: number
+          numero_operacion?: string
+          periodo: string
+          remuneracion_computable?: number
+          tipo: string
+          total?: number
+          trabajador_id: string
+          updated_at?: string
+        }
+        Update: {
+          anio?: number
+          banco_id?: string | null
+          bonificacion?: number
+          created_at?: string
+          detalle?: Json
+          dias?: number
+          estado_pago?: string
+          fecha_desde?: string
+          fecha_hasta?: string
+          fecha_pago?: string | null
+          id?: string
+          meses?: number
+          monto?: number
+          numero_operacion?: string
+          periodo?: string
+          remuneracion_computable?: number
+          tipo?: string
+          total?: number
+          trabajador_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "beneficios_sociales_banco_id_fkey"
+            columns: ["banco_id"]
+            isOneToOne: false
+            referencedRelation: "bancos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "beneficios_sociales_trabajador_id_fkey"
+            columns: ["trabajador_id"]
+            isOneToOne: false
+            referencedRelation: "trabajadores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       boletas: {
         Row: {
           aporte_pension: number
@@ -1775,6 +1859,7 @@ export type Database = {
           created_at: string
           cuspp: string
           dni: string
+          fecha_cese: string | null
           fecha_ingreso: string | null
           id: string
           jornal_diario: number
@@ -1797,6 +1882,7 @@ export type Database = {
           created_at?: string
           cuspp?: string
           dni?: string
+          fecha_cese?: string | null
           fecha_ingreso?: string | null
           id?: string
           jornal_diario?: number
@@ -1819,6 +1905,7 @@ export type Database = {
           created_at?: string
           cuspp?: string
           dni?: string
+          fecha_cese?: string | null
           fecha_ingreso?: string | null
           id?: string
           jornal_diario?: number
