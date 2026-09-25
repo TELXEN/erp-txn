@@ -15,6 +15,9 @@ import {
   HardHat,
   Landmark,
   Layers,
+  Package,
+  ShoppingCart,
+  Warehouse,
   Settings,
   ShieldCheck,
   Users,
@@ -50,6 +53,15 @@ const MENU: Categoria[] = [
       { a: "/partidas", texto: "Partidas", roles: ["administrador", "gerente"], icono: Layers },
       { a: "/avance", texto: "Avance Físico", roles: ["ingeniero", "gerente"], icono: Activity },
       { a: "/tareo", texto: "Tareo Diario", roles: ["administrador", "gerente"], icono: CalendarDays },
+    ],
+  },
+  {
+    titulo: "Logística",
+    items: [
+      { a: "/requerimientos", texto: "Requerimientos", roles: ["ingeniero", "administrador", "gerente"], icono: ClipboardList },
+      { a: "/ordenes-compra", texto: "Órdenes de Compra", roles: ["administrador", "gerente"], icono: ShoppingCart },
+      { a: "/almacen", texto: "Almacén", roles: ["administrador", "gerente"], icono: Warehouse },
+      { a: "/inventario", texto: "Inventario", roles: ["administrador", "gerente"], icono: Package },
     ],
   },
   {
