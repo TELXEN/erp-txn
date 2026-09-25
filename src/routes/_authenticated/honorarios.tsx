@@ -257,8 +257,8 @@ function Honorarios() {
                 {recibosFiltrados.map((r) => (
                   <tr key={r.id} className="border-b border-line/60 align-top last:border-0">
                     <td className="px-4 py-2">{fecha(r.fecha_emision)}</td>
-                    <td className="px-3 py-2 font-semibold text-ink">{nombreDe(r.trabajador_id)}<span className="block text-[10px] font-normal text-muted-foreground">{r.concepto}</span></td>
-                    <td className="px-3 py-2">{r.numero_recibo}</td>
+                    <td className="px-3 py-2 font-semibold text-ink"><Resaltar texto={nombreDe(r.trabajador_id)} termino={busqueda}/><span className="block text-[10px] font-normal text-muted-foreground"><Resaltar texto={r.concepto} termino={busqueda}/></span></td>
+                    <td className="px-3 py-2"><Resaltar texto={r.numero_recibo} termino={busqueda}/></td>
                     <td className="px-3 py-2 text-muted-foreground">{obraDe(r.proyecto_id)}</td>
                     <td className="px-3 py-2 text-right">{soles(Number(r.monto_bruto))}</td>
                     <td className="px-3 py-2 text-right">{soles(Number(r.retencion))}</td>

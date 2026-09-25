@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, ChevronRight, Trash2, Upload, Zap } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Panel, Select, Vacio } from "@/components/ui-kit";
+import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { useAuth, puedeVerDinero } from "@/lib/auth";
 import { soles } from "@/lib/format";
 import { usePartidas, useProyectos } from "@/lib/datos";
@@ -302,7 +303,7 @@ function RequerimientosPage() {
 
       <Panel titulo="Requerimientos registrados" extra={<Buscador valor={busqueda} onChange={setBusqueda} placeholder="Buscar por código, obra u observación..." total={reqsVisibles.length} />}>
         {reqsVisibles.length === 0 ? (
-          {busqueda ? <Vacio texto={`Sin coincidencias para «${busqueda}»`} /> : <Vacio texto="Todavía no hay requerimientos." />}
+          busqueda ? <Vacio texto={`Sin coincidencias para «${busqueda}»`} /> : <Vacio texto="Todavía no hay requerimientos." />
         ) : (
           <table className="w-full font-mono text-xs">
             <thead>

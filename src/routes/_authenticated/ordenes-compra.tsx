@@ -4,6 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, ChevronRight, PackageCheck, Plus, Trash2, Upload } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
+import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { soles } from "@/lib/format";
 import { useProyectos, useTerceros } from "@/lib/datos";
@@ -411,7 +412,7 @@ function OrdenesCompraPage() {
       </Panel>
 
       <Panel
-        titulo="Órdenes emitidas"
+        titulo="Órdenes emitidas" extra={<Buscador valor={busqueda} onChange={setBusqueda} placeholder="Buscar por código, obra, proveedor..." total={visibles.length} />}
         extra={
           <Select className="w-64 py-1 text-xs" value={filtro} onChange={(e) => setFiltro(e.target.value)}>
             <option value="">Todas las obras</option>
@@ -420,7 +421,7 @@ function OrdenesCompraPage() {
         }
       >
         {visibles.length === 0 ? (
-          {busqueda ? <Vacio texto={`Sin coincidencias para «${busqueda}»`} /> : <Vacio texto="Todavía no hay órdenes de compra." />}
+          busqueda ? <Vacio texto={`Sin coincidencias para «${busqueda}»`} /> : <Vacio texto="Todavía no hay órdenes de compra." />
         ) : (
           <table className="w-full font-mono text-xs">
             <thead>

@@ -334,7 +334,7 @@ function GastosDirectos() {
         extra={<div className="flex gap-2"><Buscador valor={busqueda} onChange={setBusqueda} placeholder="Buscar por código o partida..." total={partidasProy.length} /><Boton variante="accion" onClick={() => abrirCompra("")} disabled={!proyecto}><Plus size={14} /> Registrar compra</Boton></div>}
       >
         {partidasProy.length === 0 ? (
-          <Vacio texto="Esta obra aún no tiene partidas registradas." />
+          busqueda ? <Vacio texto={`Sin coincidencias para «${busqueda}»`} /> : <Vacio texto="Esta obra aún no tiene partidas registradas." />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[980px] font-mono text-xs">
@@ -376,7 +376,7 @@ function GastosDirectos() {
                       return (
                         <React.Fragment key={p.id}>
                           <tr className="border-b border-line/40">
-                            <td className="px-5 py-2.5"><Resaltar texto={p.codigo} termino={busqueda} />
+                            <td className="px-5 py-2.5">
                               <button
                                 type="button"
                                 onClick={() => setAbiertas({ ...abiertas, [p.id]: !abierta })}
@@ -384,10 +384,10 @@ function GastosDirectos() {
                                 title="Ver compras"
                               >
                                 {abierta ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
-                                {p.codigo || "—"}
+                                <Resaltar texto={p.codigo || "—"} termino={busqueda} />
                               </button>
                             </td>
-                            <td className="px-3 py-2.5 font-semibold text-ink">{p.nombre}</td>
+                            <td className="px-3 py-2.5 font-semibold text-ink"><Resaltar texto={p.nombre} termino={busqueda} /></td>
                             <td className="px-2 py-2.5 text-muted-foreground">{p.unidad || "—"}</td>
                             <td className="px-2 py-2.5 text-right">{num(Number(p.metrado ?? 0))}</td>
                             <td className="px-2 py-2.5 text-right">{num(Number(p.precio_unitario ?? 0))}</td>

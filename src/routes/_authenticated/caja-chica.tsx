@@ -72,8 +72,8 @@ function CajaChica() {
     fecha_entrega: hoy(),
     banco_id: "",
     numero_operacion: "",
-  const [busqueda, setBusqueda] = useState("");
   });
+  const [busqueda, setBusqueda] = useState("");
   const [error, setError] = useState("");
   const [abierta, setAbierta] = useState<string | null>(null);
   const [rend, setRend] = useState({
@@ -360,7 +360,15 @@ function CajaChica() {
         </p>
       </Panel>
 
-      <Panel titulo="Cajas chicas registradas">
+      <Panel titulo="Cajas chicas registradas"
+        extra={
+          <Buscador
+            valor={busqueda}
+            onChange={setBusqueda}
+            total={cajasFiltradas.length}
+            placeholder="Buscar por responsable, obra o motivo..."
+          />
+        }>
         {cajasFiltradas.length === 0 ? (
           <Vacio
             texto={
@@ -388,10 +396,10 @@ function CajaChica() {
                     className="flex w-full flex-wrap items-center justify-between gap-3 px-5 py-3 text-left transition-colors hover:bg-ink/5"
                   >
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold text-ink">{nombreResp(c.responsable_id)}</p>
+                      <p className="text-sm font-semibold text-ink"><Resaltar texto={nombreResp(c.responsable_id)} termino={busqueda}/></p>
                       <p className="font-mono text-[11px] text-muted-foreground">
-                        {nombreProy(c.proyecto_id)} · {fmtFecha(c.fecha_entrega)}
-                        {c.motivo ? ` · ${c.motivo}` : ""}
+                        <Resaltar texto={nombreProy(c.proyecto_id)} termino={busqueda}/> · {fmtFecha(c.fecha_entrega)}
+                        {c.motivo ? <> · <Resaltar texto={c.motivo} termino={busqueda}/></> : ""}
                       </p>
                       <p className="font-mono text-[11px] text-muted-foreground">
                         Origen: {nombreBanco(c.banco_id)}

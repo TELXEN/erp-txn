@@ -94,12 +94,12 @@ function GastosGenerales() {
       ? gastos
       : ambito === "Oficina"
         ? gastos.filter((g) => !g.proyecto_id)
-  const gastosBusqueda = gastosFiltrados.filter((g) =>
-    coincide(busqueda, g.descripcion, nombreProv(g), (g as Pago).comprobante),
-  );
         : gastos.filter((g) => g.proyecto_id === ambito);
   const gastosFiltrados =
     filtroCategoria === "Todas" ? porAmbito : porAmbito.filter((g) => (g.categoria ?? "") === filtroCategoria);
+  const gastosBusqueda = gastosFiltrados.filter((g) =>
+    coincide(busqueda, g.descripcion, nombreProv(g), (g as Pago).comprobante),
+  );
 
   const totalesCategoria = categoriasActivas
     .map((c) => ({
@@ -427,6 +427,12 @@ function GastosGenerales() {
         titulo={`Gastos registrados · ${ambito === "Todas" ? "Todas las imputaciones" : ambito === "Oficina" ? "Oficina Central" : nombreProy(ambito)}`}
         extra={
           <div className="flex items-center gap-3">
+            <Buscador
+              valor={busqueda}
+              onChange={setBusqueda}
+              total={gastosBusqueda.length}
+              placeholder="Buscar por descripción, proveedor o comprobante..."
+            />
             {filtroCategoria !== "Todas" && (
               <button
                 type="button"
@@ -513,7 +519,7 @@ function GastosGenerales() {
                                 maxLength={160}
                               />
                             </td>
-                            <td className="px-3 py-2.5 text-muted-foreground">{nombreProv(g)}</td>
+                            <td className="px-3 py-2.5 text-muted-foreground"><Resaltar texto={nombreProv(g)} termino={busqueda}/></td>
                             <td className="px-3 py-2">
                               <Select
                                 value={editando.categoria}
@@ -562,14 +568,14 @@ function GastosGenerales() {
                         ) : (
                           <tr key={g.id} className="border-b border-line/60">
                             <td className="px-5 py-2.5">{fmtFecha(g.fecha)}</td>
-                            <td className="px-3 py-2.5 text-muted-foreground">{(g as Pago).comprobante || "—"}</td>
+                            <td className="px-3 py-2.5 text-muted-foreground"><Resaltar texto={(g as Pago).comprobante || "—"} termino={busqueda}/></td>
                             <td className="px-3 py-2.5 font-semibold text-ink">
-                              {g.descripcion}
+                              <Resaltar texto={g.descripcion} termino={busqueda}/>
                               {ambito === "Todas" && (
                                 <div className="text-[10px] font-normal text-muted-foreground">{nombreProy(g.proyecto_id)}</div>
                               )}
                             </td>
-                            <td className="px-3 py-2.5 text-muted-foreground">{nombreProv(g)}</td>
+                            <td className="px-3 py-2.5 text-muted-foreground"><Resaltar texto={nombreProv(g)} termino={busqueda}/></td>
                             <td className="px-3 py-2.5">
                               <button
                                 type="button"

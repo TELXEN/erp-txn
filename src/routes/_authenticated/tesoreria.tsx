@@ -360,7 +360,6 @@ function Tesoreria() {
                 : (pestana === "cxc" ? "No hay facturas por cobrar." : "No hay compras al crédito por pagar.")
             }
           />
-          <Vacio texto={pestana === "cxc" ? "No hay facturas por cobrar." : "No hay compras al crédito por pagar."} />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full font-mono text-xs">
@@ -406,11 +405,11 @@ function Tesoreria() {
                         const abierta = accion?.p.id === p.id;
                         return (
                           <tr key={p.tabla + p.id} className="border-b border-line/60 align-top last:border-0">
-                            <td className="px-4 py-2.5"><b className="text-ink">{p.tercero}</b></td>
-                            <td className="px-3 py-2.5">{p.documento}</td>
+                            <td className="px-4 py-2.5"><b className="text-ink"><Resaltar texto={p.tercero} termino={busqueda}/></b></td>
+                            <td className="px-3 py-2.5"><Resaltar texto={p.documento} termino={busqueda}/></td>
                             <td className="max-w-64 px-3 py-2.5">
-                              <div className="text-ink">{p.descripcion || "—"}</div>
-                              <div className="text-[10px] text-muted-foreground">{p.detalle}</div>
+                              <div className="text-ink"><Resaltar texto={p.descripcion || "—"} termino={busqueda}/></div>
+                              <div className="text-[10px] text-muted-foreground"><Resaltar texto={p.detalle} termino={busqueda}/></div>
                             </td>
                             <td className="px-3 py-2.5">{fmtFecha(p.emision)}</td>
                             <td className="px-3 py-2.5">

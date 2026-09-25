@@ -2,8 +2,8 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, Vacio } from "@/components/ui-kit";
-import { Check, Pencil, Trash2, Upload, X } from "lucide-react";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
+import { Check, Pencil, Trash2, Upload, X } from "lucide-react";
 import { exportarExcel } from "@/lib/exportar";
 
 export type Tercero = {
@@ -223,14 +223,10 @@ export function TercerosPanel({ modo }: { modo: "cliente" | "proveedor" }) {
 
       <Panel
         titulo={nombrePlural}
-        extra={
-          <span className="font-mono text-[11px] text-muted-foreground">{lista.length} registros</span>
-        }
+        extra={<Buscador valor={busqueda} onChange={setBusqueda} total={lista.length} placeholder={`Buscar ${nombreSingular}...`} />}
       >
-         {lista.length === 0 ? (
+        {lista.length === 0 ? (
           <Vacio texto={busqueda ? `Sin coincidencias para «${busqueda}»` : `Aún no hay ${nombrePlural.toLowerCase()} registrados.`} />
-        ) : (
-          <Vacio texto={`Aún no hay ${nombrePlural.toLowerCase()} registrados.`} />
         ) : (
           <table className="w-full table-fixed font-mono text-xs">
             <thead>

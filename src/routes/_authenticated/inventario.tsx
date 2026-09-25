@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { Upload } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
+import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { soles } from "@/lib/format";
 import { useProyectos } from "@/lib/datos";
@@ -92,8 +93,9 @@ function InventarioPage() {
 
       <Panel
         titulo="Stock por obra"
-        <extra_tag>
+        extra={
           <div className="flex items-center gap-3 font-mono text-xs">
+            <Buscador valor={busqueda} onChange={setBusqueda} placeholder="Buscar insumo u obra..." total={filas.length} />
             <label className="flex items-center gap-1.5">
               <input type="checkbox" className="size-3.5 accent-[var(--color-primary)]" checked={soloConStock} onChange={(e) => setSoloConStock(e.target.checked)} />
               Solo con stock
@@ -106,7 +108,7 @@ function InventarioPage() {
         }
       >
         {filas.length === 0 ? (
-          {busqueda ? <Vacio texto={`Sin coincidencias para «${busqueda}»`} /> : <Vacio texto="No hay stock registrado. Los ingresos llegan al recibir órdenes de compra en almacén." />}
+          busqueda ? <Vacio texto={`Sin coincidencias para «${busqueda}»`} /> : <Vacio texto="No hay stock registrado. Los ingresos llegan al recibir órdenes de compra en almacén." />
         ) : (
           <table className="w-full font-mono text-xs">
             <thead>

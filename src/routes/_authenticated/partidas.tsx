@@ -100,8 +100,8 @@ function Partidas() {
     tipo_presupuesto: string;
     aplica_gg: boolean;
     aplica_utilidad: boolean;
-  const [busqueda, setBusqueda] = useState("");
   } | null>(null);
+  const [busqueda, setBusqueda] = useState("");
 
   const [apu, setApu] = useState<(typeof partidas)[number] | null>(null);
   const [nuevaSub, setNuevaSub] = useState<{
@@ -119,11 +119,6 @@ function Partidas() {
     return p.codigo ? `${p.codigo} · ${p.nombre}` : p.nombre;
   };
 
-  const visibles = useMemo(
-    () =>
-      partidas.filter(
-        (p) =>
-          (!filtroProyecto || p.proyecto_id === filtroProyecto) &&
   const coincidentes = useMemo(() => {
     const match = new Set<string>();
     const check = (id: string) => {
@@ -144,6 +139,12 @@ function Partidas() {
     partidas.forEach((p) => check(p.id));
     return match;
   }, [partidas, busqueda]);
+
+  const visibles = useMemo(
+    () =>
+      partidas.filter(
+        (p) =>
+          (!filtroProyecto || p.proyecto_id === filtroProyecto) &&
           (!filtroEsp || p.especialidad === filtroEsp) &&
           (!filtroTipo || (p.tipo_presupuesto ?? "Contractual") === filtroTipo) && (!busqueda || coincidentes.has(p.id)),
       ),
@@ -436,7 +437,7 @@ function Partidas() {
               <option value="">Selecciona...</option>
               {proyectos.map((p) => (
                 <option key={p.id} value={p.id}>
-                  {p.nombre}
+                  <Resaltar texto={p.nombre} termino={busqueda}/>
                 </option>
               ))}
             </Select>
@@ -608,7 +609,7 @@ function Partidas() {
               <option value="">Todos los proyectos</option>
               {proyectos.map((p) => (
                 <option key={p.id} value={p.id}>
-                  {p.nombre}
+                  <Resaltar texto={p.nombre} termino={busqueda}/>
                 </option>
               ))}
             </Select>
@@ -647,8 +648,8 @@ function Partidas() {
                 contenido: (
                   <div className="space-y-1.5">
                     <p className="text-xs font-semibold leading-tight text-ink">
-                      {p.codigo && <span className="mr-1 font-mono text-[10px] text-primary">{p.codigo}</span>}
-                      {p.nombre}
+                      {p.codigo && <span className="mr-1 font-mono text-[10px] text-primary"><Resaltar texto={p.codigo} termino={busqueda}/></span>}
+                      <Resaltar texto={p.nombre} termino={busqueda}/>
                     </p>
                     <p className="font-mono text-[10px] text-muted-foreground">{nombreProyecto(p.proyecto_id)}</p>
                     <p className="font-mono text-[10px] text-muted-foreground">{p.especialidad}</p>
@@ -928,7 +929,7 @@ function Partidas() {
                             <td className={`py-2.5 pr-2 ${nivel === 4 ? "pl-9" : "pl-5"}`}>
                               {p.codigo ? (
                                 <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] text-primary">
-                                  {p.codigo}
+                                  <Resaltar texto={p.codigo} termino={busqueda}/>
                                 </span>
                               ) : (
                                 <span className="text-muted-foreground">—</span>
@@ -936,7 +937,7 @@ function Partidas() {
                             </td>
                             <td className={`px-3 py-2.5 text-ink ${nivel === 4 ? "pl-6 font-normal" : "font-semibold"}`}>
                               {nivel === 4 && <CornerDownRight size={11} className="mr-1 inline text-muted-foreground" />}
-                              {p.nombre}
+                              <Resaltar texto={p.nombre} termino={busqueda}/>
                               {agrupadora && (
                                 <span className="ml-1.5 font-mono text-[9px] uppercase text-muted-foreground">
                                   ({hijos.length} subpartidas)

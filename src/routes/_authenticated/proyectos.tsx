@@ -2,10 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Check, LayoutGrid, Pencil, Table2, Trash2, X } from "lucide-react";
-import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
+import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { InsigniaSituacion } from "@/components/estado-ui";
 import { Kanban } from "@/components/Kanban";
 import { SITUACIONES, type Situacion } from "@/lib/configuracion";
@@ -42,9 +42,6 @@ function Proyectos() {
   const { rol } = useAuth();
   const qc = useQueryClient();
   const { data: todosProyectos = [] } = useProyectos();
-  const proyectos = todosProyectos.filter((p) =>
-    coincide(busqueda, p.codigo, p.nombre, p.cliente, p.ubicacion),
-  );
   const { data: partidas = [] } = usePartidas();
   const { data: gastosD = [] } = useGastosDirectos();
   const { data: gastosG = [] } = useGastosGenerales();
@@ -55,6 +52,7 @@ function Proyectos() {
   const { data: tiposPresupuesto = [] } = useTiposPresupuesto();
   const { data: codificacion } = useCodificacion();
   const [vista, setVista] = useState<"tabla" | "kanban">("tabla");
+  const [busqueda, setBusqueda] = useState("");
   const [form, setForm] = useState({
     codigo: "",
     nombre: "",
@@ -69,7 +67,6 @@ function Proyectos() {
     pct_utilidad: "10",
   });
   const [error, setError] = useState("");
-  const [busqueda, setBusqueda] = useState("");
   const [editando, setEditando] = useState<{
     id: string;
     codigo: string;
@@ -84,6 +81,10 @@ function Proyectos() {
   } | null>(null);
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
+
+  const proyectos = todosProyectos.filter((p) =>
+    coincide(busqueda, p.codigo, p.nombre, p.cliente, p.ubicacion),
+  );
 
   async function guardar(e: React.FormEvent) {
     e.preventDefault();
@@ -294,12 +295,10 @@ function Proyectos() {
 
       <Panel
         titulo={vista === "tabla" ? "Listado de proyectos" : "Tablero Kanban de proyectos"}
-        extra={<Buscador valor={busqueda} onChange={setBusqueda} total={proyectos.length} placeholder="Buscar proyecto por código, nombre o cliente..." />}
+        extra={<Buscador valor={busqueda} onChange={setBusqueda} total={proyectos.length} placeholder="Buscar proyecto..." />}
       >
-         {proyectos.length === 0 ? (
+        {proyectos.length === 0 ? (
           <Vacio texto={busqueda ? `Sin coincidencias para «${busqueda}»` : "Aún no hay proyectos registrados."} />
-        ) : (
-          <Vacio texto="Aún no hay proyectos registrados." />
         ) : vista === "kanban" ? (
           <Kanban
             onMover={mover}
@@ -359,7 +358,7 @@ function Proyectos() {
                             title="Código de la obra"
                           />
                         </td>
-                        <td className="truncate px-3 py-2.5 text-muted-foreground"><Resaltar texto={p.cliente || "—"} termino={busqueda} /></td>
+                        <td className="truncate px-3 py-2.5 text-muted-foreground">{p.cliente || "—"}</td>
                         <td className="px-3 py-2 align-top">
                           <Input
                             value={editando.nombre}
@@ -460,7 +459,7 @@ function Proyectos() {
                       </>
                     ) : (
                       <>
-                        <td className="px-5 py-2.5 align-top font-semibold text-primary break-words">{p.codigo || "—"}</td>
+                        <td className="px-5 py-2.5 align-top font-semibold text-primary break-words"><Resaltar texto={p.codigo || "—"} termino={busqueda} /></td>
                         <td className="truncate px-3 py-2.5 text-muted-foreground"><Resaltar texto={p.cliente || "—"} termino={busqueda} /></td>
                         <td className="px-3 py-2.5 align-top font-semibold text-ink break-words whitespace-normal">
                           <Resaltar texto={p.nombre} termino={busqueda} />

@@ -88,6 +88,7 @@ function Cotizaciones() {
   const [error, setError] = useState("");
   const [aviso, setAviso] = useState("");
   const [busqueda, setBusqueda] = useState("");
+  const [busqueda, setBusqueda] = useState("");
 
   const [form, setForm] = useState({
     codigo: "",
@@ -510,7 +511,7 @@ function Cotizaciones() {
                   >
                     <td className="px-5 py-2.5 font-semibold text-primary">{c.codigo ?? "—"}</td>
                     <td className="px-3 py-2.5 text-muted-foreground">{c.cliente || "—"}</td>
-                    <td className="px-3 py-2.5 font-semibold text-ink"><Resaltar texto={c.nombre} termino={busqueda} /></td>
+                    <td className="px-3 py-2.5 font-semibold text-ink"><Resaltar texto=<Resaltar texto={c.nombre} termino={busqueda} /> termino={busqueda} /></td>
                     <td className="px-3 py-2.5 text-muted-foreground">{fmtFecha(c.fecha_emision)}</td>
                     <td className="px-3 py-2.5 text-muted-foreground">
                       {fmtFecha(vigenciaHasta(c.fecha_emision, Number(c.validez_dias)))}
@@ -687,8 +688,8 @@ function Cotizaciones() {
               >
                 <option value="">Sin categoría</option>
                 {categoriasDe(item.especialidad, categorias).map((c) => (
-                  <option key={c.id} value=<Resaltar texto={c.nombre} termino={busqueda} />>
-                    <Resaltar texto={c.nombre} termino={busqueda} />
+                  <option key={c.id} value=<Resaltar texto=<Resaltar texto={c.nombre} termino={busqueda} /> termino={busqueda} />>
+                    <Resaltar texto=<Resaltar texto={c.nombre} termino={busqueda} /> termino={busqueda} />
                   </option>
                 ))}
               </Select>

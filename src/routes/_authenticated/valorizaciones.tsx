@@ -339,10 +339,10 @@ function Valorizaciones() {
             <tbody>
               {ventasFiltradas.map((v) => (
                 <tr key={v.id} className="border-b border-line/60 last:border-0">
-                  <td className="px-5 py-2.5 font-semibold text-ink">{v.concepto}</td>
-                  <td className="px-3 py-2.5 text-muted-foreground">{nombreCliente(v.cliente_id)}</td>
-                  <td className="px-3 py-2.5 text-muted-foreground">{nombreProy(v.proyecto_id)}</td>
-                  <td className="px-3 py-2.5 text-muted-foreground">{v.numero_factura || "—"}</td>
+                  <td className="px-5 py-2.5 font-semibold text-ink"><Resaltar texto={v.concepto} termino={busqueda}/></td>
+                  <td className="px-3 py-2.5 text-muted-foreground"><Resaltar texto={nombreCliente(v.cliente_id)} termino={busqueda}/></td>
+                  <td className="px-3 py-2.5 text-muted-foreground"><Resaltar texto={nombreProy(v.proyecto_id)} termino={busqueda}/></td>
+                  <td className="px-3 py-2.5 text-muted-foreground"><Resaltar texto={v.numero_factura || "—"} termino={busqueda}/></td>
                   <td className="px-3 py-2.5">
                     <InsigniaPago
                       condicion={(v as { condicion_pago?: string }).condicion_pago}

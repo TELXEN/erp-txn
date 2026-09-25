@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Check, Pencil, Trash2, X } from "lucide-react";
-import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { Boton, Campo, Input, Panel, Select, Vacio } from "@/components/ui-kit";
+import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { soles } from "@/lib/format";
 import { useUnidadesMedida } from "@/lib/unidades";
 import { TIPOS_INSUMO, apuDb, nombreTipo, useInsumos, type Insumo, type TipoInsumo } from "@/lib/apu";
@@ -26,6 +26,7 @@ export function Insumos() {
     const s = unidades.filter((u) => u.activo).map((u) => u.simbolo);
     return [...new Set([...s, "hh", "hm", "und", "%mo"])];
   }, [unidades]);
+  
   const visibles = (filtro ? lista.filter((i) => i.tipo === filtro) : lista).filter((i) =>
     coincide(busqueda, i.codigo, i.nombre),
   );
@@ -84,7 +85,6 @@ export function Insumos() {
                 <option key={k} value={k}>{t}</option>
               ))}
             </Select>
-          </div>
           </Campo>
           <Campo etiqueta="Código">
             <Input className="py-1.5 font-mono" value={form.codigo} onChange={(e) => setForm({ ...form, codigo: e.target.value })} placeholder="Opcional" />
@@ -98,7 +98,6 @@ export function Insumos() {
             <Select className="py-1.5" value={form.unidad} onChange={(e) => setForm({ ...form, unidad: e.target.value })}>
               {simbolos.map((s) => <option key={s} value={s}>{s}</option>)}
             </Select>
-          </div>
           </Campo>
           <Campo etiqueta="Precio sin IGV (S/)">
             <Input className="py-1.5" type="number" step="0.01" min={0} value={form.precio} onChange={(e) => setForm({ ...form, precio: e.target.value })} />
@@ -114,21 +113,16 @@ export function Insumos() {
         titulo="Maestro de insumos"
         extra={
           <div className="flex items-center gap-2">
-            <Buscador valor={busqueda} onChange={setBusqueda} total={visibles.length} placeholder="Buscar por código o descripción..." />
-          <div className="flex items-center gap-2">
-          <Buscador valor={busqueda} onChange={setBusqueda} total={visibles.length} placeholder="Buscar por código o descripción..." />
+            <Buscador valor={busqueda} onChange={setBusqueda} total={visibles.length} placeholder="Buscar insumo por código o descripción..." />
             <Select className="py-1 text-xs" value={filtro} onChange={(e) => setFiltro(e.target.value as "" | TipoInsumo)}>
-            
-            <option value="">Todos los tipos</option>
-            {TIPOS_INSUMO.map(([k, t]) => <option key={k} value={k}>{t}</option>)}
-          </Select>
+              <option value="">Todos los tipos</option>
+              {TIPOS_INSUMO.map(([k, t]) => <option key={k} value={k}>{t}</option>)}
+            </Select>
           </div>
         }
       >
-         {visibles.length === 0 ? (
+        {visibles.length === 0 ? (
           <Vacio texto={busqueda ? `Sin coincidencias para «${busqueda}»` : "Aún no hay insumos registrados."} />
-        ) : (
-          <Vacio texto="Aún no hay insumos registrados." />
         ) : (
           <table className="w-full table-fixed font-mono text-xs">
             <thead>
@@ -150,7 +144,6 @@ export function Insumos() {
                       <Select className="py-1 text-xs" value={editando.tipo} onChange={(e) => setEditando({ ...editando, tipo: e.target.value as TipoInsumo })}>
                         {TIPOS_INSUMO.map(([k, t]) => <option key={k} value={k}>{t}</option>)}
                       </Select>
-          </div>
                     </td>
                     <td className="px-3 py-2"><Input className="py-1 text-xs" value={editando.codigo} onChange={(e) => setEditando({ ...editando, codigo: e.target.value })} /></td>
                     <td className="px-3 py-2"><Input className="py-1 text-xs" value={editando.nombre} onChange={(e) => setEditando({ ...editando, nombre: e.target.value })} /></td>
@@ -158,7 +151,6 @@ export function Insumos() {
                       <Select className="py-1 text-xs" value={editando.unidad} onChange={(e) => setEditando({ ...editando, unidad: e.target.value })}>
                         {[...new Set([editando.unidad, ...simbolos])].map((s) => <option key={s} value={s}>{s}</option>)}
                       </Select>
-          </div>
                     </td>
                     <td className="px-3 py-2"><Input className="py-1 text-right text-xs" type="number" step="0.01" value={editando.precio} onChange={(e) => setEditando({ ...editando, precio: Number(e.target.value) })} /></td>
                     <td className="px-3 py-2">
@@ -166,7 +158,6 @@ export function Insumos() {
                         <option value="si">Activo</option>
                         <option value="no">Inactivo</option>
                       </Select>
-          </div>
                     </td>
                     <td className="px-5 py-2">
                       <div className="flex justify-end gap-1">
@@ -178,8 +169,8 @@ export function Insumos() {
                 ) : (
                   <tr key={i.id} className="border-b border-line/40 last:border-0">
                     <td className="px-5 py-2.5 text-muted-foreground">{nombreTipo(i.tipo)}</td>
-                    <td className="px-3 py-2.5 text-muted-foreground"><Resaltar texto=<Resaltar texto={i.codigo || "—"} termino={busqueda} /> termino={busqueda} /></td>
-                    <td className="px-3 py-2.5 text-ink"><Resaltar texto=<Resaltar texto={i.nombre} termino={busqueda} /> termino={busqueda} /></td>
+                    <td className="px-3 py-2.5 text-muted-foreground"><Resaltar texto={i.codigo || "—"} termino={busqueda} /></td>
+                    <td className="px-3 py-2.5 text-ink"><Resaltar texto={i.nombre} termino={busqueda} /></td>
                     <td className="px-3 py-2.5 text-muted-foreground">{i.unidad}</td>
                     <td className="px-3 py-2.5 text-right">{soles(Number(i.precio))}</td>
                     <td className="px-3 py-2.5"><span className={i.activo ? "text-good" : "text-muted-foreground"}>{i.activo ? "Activo" : "Inactivo"}</span></td>

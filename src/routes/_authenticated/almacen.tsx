@@ -4,6 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ArrowDownToLine, ArrowUpFromLine, Trash2, Upload } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
+import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { soles } from "@/lib/format";
 import { useProyectos } from "@/lib/datos";
@@ -179,8 +180,9 @@ function AlmacenPage() {
 
       <Panel
         titulo="Movimientos"
-        <extra_tag>
+        extra={
           <div className="flex gap-2">
+            <Buscador valor={busqueda} onChange={setBusqueda} placeholder="Buscar por insumo, obra, documento..." total={visibles.length} />
             <Select className="w-56 py-1 text-xs" value={filtroObra} onChange={(e) => setFiltroObra(e.target.value)}>
               <option value="">Todas las obras</option>
               {proyectos.map((p) => <option key={p.id} value={p.id}>{nombreProy(p.id)}</option>)}
@@ -194,7 +196,7 @@ function AlmacenPage() {
         }
       >
         {visibles.length === 0 ? (
-          {busqueda ? <Vacio texto={`Sin coincidencias para «${busqueda}»`} /> : <Vacio texto="Todavía no hay movimientos de almacén." />}
+          busqueda ? <Vacio texto={`Sin coincidencias para «${busqueda}»`} /> : <Vacio texto="Todavía no hay movimientos de almacén." />
         ) : (
           <table className="w-full font-mono text-xs">
             <thead>
