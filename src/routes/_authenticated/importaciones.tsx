@@ -398,7 +398,10 @@ function ImportacionesPage() {
                           ) : i.estado === "Liquidado" && deImp.length > 0 ? (
                             <div className="mt-3 flex items-center gap-3">
                               <Boton onClick={() => integrar(i, deImp)}>Integrar a Almacén, Costos Directos y Tesorería</Boton>
-                              {!i.proyecto_id && <span className="text-bad">Requiere una obra de destino.</span>}
+                              <Select className="w-64 py-1 text-xs" value={i.proyecto_id ?? ""} onChange={(e) => actualizar(i.id, { proyecto_id: e.target.value || null })}>
+                                <option value="">— Elige la obra de destino —</option>
+                                {proyectos.map((p) => <option key={p.id} value={p.id}>{nombreProy(p.id)}</option>)}
+                              </Select>
                             </div>
                           ) : null}
                           {!i.integrado && deImp.length > 0 && i.estado !== "Anulado" && (
