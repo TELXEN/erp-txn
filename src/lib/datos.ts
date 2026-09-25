@@ -98,6 +98,7 @@ export type Trabajador = {
   sueldo_mensual: number;
   asignacion_familiar: boolean;
   suspension_cuarta: boolean;
+  fecha_cese: string | null;
 };
 
 export type Tareo = {
