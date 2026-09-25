@@ -12,7 +12,7 @@ import {
   ClipboardList,
   FileText,
   Gauge,
-  HardHat,
+  ShoppingBag,
   Landmark,
   Layers,
   Package,
@@ -74,7 +74,7 @@ const MENU: Categoria[] = [
   {
     titulo: "Finanzas y Contabilidad",
     items: [
-      { a: "/gastos-directos", texto: "Costos Directos", roles: ["administrador", "gerente"], icono: HardHat },
+      { a: "/gastos-directos", texto: "Costos Directos", roles: ["administrador", "gerente"], icono: ShoppingBag },
       { a: "/gastos-generales", texto: "Gastos Generales", roles: ["administrador", "gerente"], icono: Briefcase },
       { a: "/caja-chica", texto: "Caja Chica", roles: ["administrador", "gerente"], icono: Wallet },
       { a: "/tesoreria", texto: "Tesorería", roles: ["administrador", "gerente"], icono: Landmark },
