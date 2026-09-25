@@ -15,6 +15,7 @@ import { Route as AuthenticatedAlmacenRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedAvanceRouteImport } from './routes/_authenticated/avance'
 import { Route as AuthenticatedCajaChicaRouteImport } from './routes/_authenticated/caja-chica'
 import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticated/clientes'
+import { Route as AuthenticatedConfiguracionSistemaRouteImport } from './routes/_authenticated/configuracion-sistema'
 import { Route as AuthenticatedCotizacionesRouteImport } from './routes/_authenticated/cotizaciones'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedDashboardProyectosRouteImport } from './routes/_authenticated/dashboard-proyectos'
@@ -64,6 +65,12 @@ const AuthenticatedClientesRoute = AuthenticatedClientesRouteImport.update({
   path: '/clientes',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedConfiguracionSistemaRoute =
+  AuthenticatedConfiguracionSistemaRouteImport.update({
+    id: '/configuracion-sistema',
+    path: '/configuracion-sistema',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedCotizacionesRoute =
   AuthenticatedCotizacionesRouteImport.update({
     id: '/cotizaciones',
@@ -174,6 +181,7 @@ export interface FileRoutesByFullPath {
   '/avance': typeof AuthenticatedAvanceRoute
   '/caja-chica': typeof AuthenticatedCajaChicaRoute
   '/clientes': typeof AuthenticatedClientesRoute
+  '/configuracion-sistema': typeof AuthenticatedConfiguracionSistemaRoute
   '/cotizaciones': typeof AuthenticatedCotizacionesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/dashboard-proyectos': typeof AuthenticatedDashboardProyectosRoute
@@ -200,6 +208,7 @@ export interface FileRoutesByTo {
   '/avance': typeof AuthenticatedAvanceRoute
   '/caja-chica': typeof AuthenticatedCajaChicaRoute
   '/clientes': typeof AuthenticatedClientesRoute
+  '/configuracion-sistema': typeof AuthenticatedConfiguracionSistemaRoute
   '/cotizaciones': typeof AuthenticatedCotizacionesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/dashboard-proyectos': typeof AuthenticatedDashboardProyectosRoute
@@ -228,6 +237,7 @@ export interface FileRoutesById {
   '/_authenticated/avance': typeof AuthenticatedAvanceRoute
   '/_authenticated/caja-chica': typeof AuthenticatedCajaChicaRoute
   '/_authenticated/clientes': typeof AuthenticatedClientesRoute
+  '/_authenticated/configuracion-sistema': typeof AuthenticatedConfiguracionSistemaRoute
   '/_authenticated/cotizaciones': typeof AuthenticatedCotizacionesRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/dashboard-proyectos': typeof AuthenticatedDashboardProyectosRoute
@@ -256,6 +266,7 @@ export interface FileRouteTypes {
     | '/avance'
     | '/caja-chica'
     | '/clientes'
+    | '/configuracion-sistema'
     | '/cotizaciones'
     | '/dashboard'
     | '/dashboard-proyectos'
@@ -282,6 +293,7 @@ export interface FileRouteTypes {
     | '/avance'
     | '/caja-chica'
     | '/clientes'
+    | '/configuracion-sistema'
     | '/cotizaciones'
     | '/dashboard'
     | '/dashboard-proyectos'
@@ -309,6 +321,7 @@ export interface FileRouteTypes {
     | '/_authenticated/avance'
     | '/_authenticated/caja-chica'
     | '/_authenticated/clientes'
+    | '/_authenticated/configuracion-sistema'
     | '/_authenticated/cotizaciones'
     | '/_authenticated/dashboard'
     | '/_authenticated/dashboard-proyectos'
@@ -377,6 +390,13 @@ declare module '@tanstack/react-router' {
       path: '/clientes'
       fullPath: '/clientes'
       preLoaderRoute: typeof AuthenticatedClientesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/configuracion-sistema': {
+      id: '/_authenticated/configuracion-sistema'
+      path: '/configuracion-sistema'
+      fullPath: '/configuracion-sistema'
+      preLoaderRoute: typeof AuthenticatedConfiguracionSistemaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/cotizaciones': {
@@ -520,6 +540,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAvanceRoute: typeof AuthenticatedAvanceRoute
   AuthenticatedCajaChicaRoute: typeof AuthenticatedCajaChicaRoute
   AuthenticatedClientesRoute: typeof AuthenticatedClientesRoute
+  AuthenticatedConfiguracionSistemaRoute: typeof AuthenticatedConfiguracionSistemaRoute
   AuthenticatedCotizacionesRoute: typeof AuthenticatedCotizacionesRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDashboardProyectosRoute: typeof AuthenticatedDashboardProyectosRoute
@@ -546,6 +567,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAvanceRoute: AuthenticatedAvanceRoute,
   AuthenticatedCajaChicaRoute: AuthenticatedCajaChicaRoute,
   AuthenticatedClientesRoute: AuthenticatedClientesRoute,
+  AuthenticatedConfiguracionSistemaRoute:
+    AuthenticatedConfiguracionSistemaRoute,
   AuthenticatedCotizacionesRoute: AuthenticatedCotizacionesRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDashboardProyectosRoute: AuthenticatedDashboardProyectosRoute,
