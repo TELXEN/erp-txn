@@ -161,7 +161,7 @@ export function ApuPartida({ partida, onCerrar }: { partida: P; onCerrar: () => 
               </optgroup>
             ))}
           </Select>
-          <Boton type="button" variante="secundario" onClick={agregar}>Agregar</Boton>
+          <Boton type="button" variante="linea" onClick={agregar}>Agregar</Boton>
           <Boton type="button" onClick={guardar}>Guardar y aplicar P.U.</Boton>
         </div>
         {error && <p className="px-5 pb-3 font-mono text-xs text-bad">{error}</p>}
