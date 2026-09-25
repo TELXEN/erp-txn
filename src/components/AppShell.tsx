@@ -17,6 +17,7 @@ import {
   Layers,
   Package,
   ShoppingCart,
+  Plane,
   Warehouse,
   Settings,
   ShieldCheck,
@@ -61,6 +62,7 @@ const MENU: Categoria[] = [
     items: [
       { a: "/requerimientos", texto: "Requerimientos", roles: ["ingeniero", "administrador", "gerente"], icono: ClipboardList },
       { a: "/ordenes-compra", texto: "Órdenes de Compra", roles: ["administrador", "gerente"], icono: ShoppingCart },
+      { a: "/importaciones", texto: "Importaciones", roles: ["administrador", "gerente"], icono: Plane },
       { a: "/almacen", texto: "Almacén", roles: ["administrador", "gerente"], icono: Warehouse },
       { a: "/inventario", texto: "Inventario", roles: ["administrador", "gerente"], icono: Package },
       { a: "/proveedores", texto: "Proveedores", roles: ["administrador", "gerente"], icono: Truck },
