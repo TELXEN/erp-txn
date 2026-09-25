@@ -329,7 +329,7 @@ function FlujoCaja() {
               <tr>
                 <th className="sticky left-0 z-10 border-b border-r border-line bg-paper px-2 py-1.5 text-left font-medium">Meta de ingreso</th>
                 {filas.map((f) => (
-                  <td key={f.mes} className="border-b border-line px-2 py-1.5">
+                  <td key={f.mes} className="border-b border-line px-0.5 py-1">
                     <Input
                       type="number"
                       step="0.01"
@@ -351,7 +351,7 @@ function FlujoCaja() {
               <tr>
                 <th className="sticky left-0 z-10 border-b border-r border-line bg-paper px-2 py-1.5 text-left font-medium">Meta de costo</th>
                 {filas.map((f) => (
-                  <td key={f.mes} className="border-b border-line px-2 py-1.5">
+                  <td key={f.mes} className="border-b border-line px-0.5 py-1">
                     <Input
                       type="number"
                       step="0.01"
