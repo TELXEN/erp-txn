@@ -1,0 +1,1 @@
+DELETE FROM public.metas_flujo_caja WHERE anio = 2026 AND mes = 1 AND meta_ingreso = 50000 AND meta_costo = 0;
