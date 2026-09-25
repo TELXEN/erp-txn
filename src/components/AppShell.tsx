@@ -20,6 +20,7 @@ import {
   Warehouse,
   Settings,
   ShieldCheck,
+  TrendingUp,
   Users,
   Wallet,
 } from "lucide-react";
