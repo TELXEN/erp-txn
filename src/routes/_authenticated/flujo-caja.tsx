@@ -303,7 +303,7 @@ function FlujoCaja() {
       </Panel>
 
       <Panel titulo="Matriz anual" extra={<span className="label-mono">Las metas se editan directamente en la tabla</span>}>
-        <div className="w-full">
+        <div className="w-full overflow-x-auto">
           <table className="w-full table-fixed border-separate border-spacing-0 text-xs">
             <thead>
               <tr>
