@@ -46,21 +46,6 @@ export const Route = createFileRoute("/_authenticated/datos")({
   component: Datos,
 });
 
-type Tercero = {
-  id: string;
-  tipo_documento: string;
-  numero_documento: string;
-  razon_social: string;
-  es_cliente: boolean;
-  es_proveedor: boolean;
-  direccion: string;
-  telefono: string;
-  email: string;
-  contacto: string;
-  celular_contacto: string;
-  activo: boolean;
-};
-
 type Banco = CuentaBancaria;
 type Catalogo = {
   id: string;
@@ -71,7 +56,6 @@ type Catalogo = {
   tipo?: string;
 };
 type Pestana =
-  | "terceros"
   | "bancos"
   | "cargos"
   | "categoriasgg"
@@ -88,14 +72,13 @@ type Pestana =
   | "empresa";
 
 const GRUPOS_CONFIG: { titulo: string; icono: React.ElementType; items: [Pestana, string][] }[] = [
-  { titulo: "Empresa y Terceros", icono: Building2, items: [["empresa", "Datos de la empresa"], ["bancos", "Cuentas bancarias"], ["terceros", "Clientes y proveedores"]] },
+  { titulo: "Empresa", icono: Building2, items: [["empresa", "Datos de la empresa"], ["bancos", "Cuentas bancarias"]] },
   { titulo: "Catálogo técnico (WBS)", icono: Ruler, items: [["especialidades", "Especialidad de partidas"], ["categorias", "Categorías de partidas"], ["maestras", "Registro de partidas"], ["unidades", "Unidades de medida"]] },
   { titulo: "Proyectos y Cotizaciones", icono: FolderKanban, items: [["codificacion", "Codificación de proyectos"], ["codificacioncot", "Codificación de cotizaciones"], ["configuracion", "Parámetros de proyectos"]] },
   { titulo: "Costos y Finanzas", icono: Coins, items: [["categoriasgg", "Categorías de gastos generales"], ["centros", "Centros de costos"], ["costos", "Rubros de costos"], ["ingresos", "Rubros de ingresos"]] },
   { titulo: "Recursos Humanos", icono: HardHat, items: [["cargos", "Cargos del personal"]] },
 ];
 
-const TIPOS_DOC = ["RUC", "DNI", "CE", "OTRO"];
 const MONEDAS = ["PEN", "USD", "PEN/USD"];
 
 const ETIQUETA_MONEDA: Record<string, string> = {
@@ -104,36 +87,11 @@ const ETIQUETA_MONEDA: Record<string, string> = {
   "PEN/USD": "Soles y Dólares",
 };
 
-const formVacio = {
-  tipo_documento: "RUC",
-  numero_documento: "",
-  razon_social: "",
-  es_cliente: true,
-  es_proveedor: false,
-  direccion: "",
-  telefono: "",
-  email: "",
-  contacto: "",
-  celular_contacto: "",
-};
-
 function Datos() {
   const { rol } = useAuth();
   const qc = useQueryClient();
-  const [pestana, setPestana] = useState<Pestana>("terceros");
-  const [filtro, setFiltro] = useState<"todos" | "clientes" | "proveedores">("todos");
+  const [pestana, setPestana] = useState<Pestana>("empresa");
   const [error, setError] = useState("");
-  const [form, setForm] = useState(formVacio);
-  const [editando, setEditando] = useState<Tercero | null>(null);
-
-  const { data: terceros = [] } = useQuery({
-    queryKey: ["terceros"],
-    queryFn: async () => {
-      const { data, error: err } = await supabase.from("terceros").select("*").order("razon_social");
-      if (err) throw err;
-      return (data ?? []) as Tercero[];
-    },
-  });
 
   const { data: bancos = [] } = useQuery({
     queryKey: ["bancos"],
