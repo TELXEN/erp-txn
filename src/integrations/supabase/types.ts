@@ -416,6 +416,7 @@ export type Database = {
           metrado: number
           nombre: string
           orden: number
+          padre_id: string | null
           precio_unitario: number
           unidad: string
           updated_at: string
@@ -430,6 +431,7 @@ export type Database = {
           metrado?: number
           nombre: string
           orden?: number
+          padre_id?: string | null
           precio_unitario?: number
           unidad?: string
           updated_at?: string
@@ -444,6 +446,7 @@ export type Database = {
           metrado?: number
           nombre?: string
           orden?: number
+          padre_id?: string | null
           precio_unitario?: number
           unidad?: string
           updated_at?: string
@@ -454,6 +457,13 @@ export type Database = {
             columns: ["cotizacion_id"]
             isOneToOne: false
             referencedRelation: "cotizaciones"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cotizacion_items_padre_id_fkey"
+            columns: ["padre_id"]
+            isOneToOne: false
+            referencedRelation: "cotizacion_items"
             referencedColumns: ["id"]
           },
         ]
@@ -905,6 +915,7 @@ export type Database = {
           id: string
           metrado: number
           nombre: string
+          padre_id: string | null
           precio_unitario: number
           presupuesto_inicial: number
           prioridad: string
@@ -925,6 +936,7 @@ export type Database = {
           id?: string
           metrado?: number
           nombre: string
+          padre_id?: string | null
           precio_unitario?: number
           presupuesto_inicial?: number
           prioridad?: string
@@ -945,6 +957,7 @@ export type Database = {
           id?: string
           metrado?: number
           nombre?: string
+          padre_id?: string | null
           precio_unitario?: number
           presupuesto_inicial?: number
           prioridad?: string
@@ -954,6 +967,13 @@ export type Database = {
           unidad?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "partidas_padre_id_fkey"
+            columns: ["padre_id"]
+            isOneToOne: false
+            referencedRelation: "partidas"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "partidas_proyecto_id_fkey"
             columns: ["proyecto_id"]
