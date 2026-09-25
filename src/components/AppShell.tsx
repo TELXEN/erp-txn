@@ -66,12 +66,6 @@ const MENU: Categoria[] = [
     ],
   },
   {
-    titulo: "Recursos Humanos",
-    items: [
-      { a: "/personal", texto: "Personal", roles: ["administrador", "gerente"], icono: Users },
-    ],
-  },
-  {
     titulo: "Finanzas y Contabilidad",
     items: [
       { a: "/gastos-directos", texto: "Costos Directos", roles: ["administrador", "gerente"], icono: ShoppingBag },
@@ -79,6 +73,12 @@ const MENU: Categoria[] = [
       { a: "/caja-chica", texto: "Caja Chica", roles: ["administrador", "gerente"], icono: Wallet },
       { a: "/tesoreria", texto: "Tesorería", roles: ["administrador", "gerente"], icono: Landmark },
       { a: "/flujo-caja", texto: "Flujo de Caja", roles: ["administrador", "gerente"], icono: TrendingUp },
+    ],
+  },
+  {
+    titulo: "Recursos Humanos",
+    items: [
+      { a: "/personal", texto: "Personal", roles: ["administrador", "gerente"], icono: Users },
     ],
   },
   {
