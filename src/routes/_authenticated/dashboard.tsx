@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { Upload } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
@@ -11,6 +13,7 @@ import {
   costoRealPartida,
   ofertaProyecto,
   presupuestoProyecto,
+  resumenPresupuesto,
   useCargos,
   useGastosDirectos,
   useGastosGenerales,
@@ -47,6 +50,7 @@ const COMPOSICION = [
   { clave: "equipos", etiqueta: "Equipos y Maquinaria", color: "#EA580C" },
   { clave: "servicios", etiqueta: "Servicios de Terceros", color: "#7C3AED" },
   { clave: "mod", etiqueta: "Mano de Obra Directa", color: "#10B981" },
+  { clave: "honorarios", etiqueta: "Honorarios (locadores)", color: "#DB2777" },
   { clave: "staff", etiqueta: "Staff Técnico", color: "#0EA5E9" },
   { clave: "generales", etiqueta: "Gastos Generales", color: "#64748B" },
 ] as const;
@@ -64,6 +68,14 @@ function Dashboard() {
   const { data: tiposPresupuesto = [] } = useTiposPresupuesto();
   const { data: trabajadores = [] } = useTrabajadores();
   const { data: cargos = [] } = useCargos();
+  const { data: recibos = [] } = useQuery({
+    queryKey: ["recibos_honorarios"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("recibos_honorarios").select("proyecto_id,monto_bruto");
+      if (error) throw error;
+      return (data ?? []) as { proyecto_id: string | null; monto_bruto: number }[];
+    },
+  });
   const [seleccion, setSeleccion] = useState("global");
 
   const global = seleccion === "global";
@@ -112,7 +124,15 @@ function Dashboard() {
           .filter((g) => g.proyecto_id === p.id)
           .reduce((s, g) => s + Number(g.monto_soles), 0);
 
-        const costoDirectoReal = materiales + subcontratos + equipos + servicios + mod;
+        const honorarios = recibos
+          .filter((r) => r.proyecto_id === p.id)
+          .reduce((s, r) => s + Number(r.monto_bruto), 0);
+        const resumen = resumenPresupuesto(
+          partidas.filter((x) => x.proyecto_id === p.id),
+          tiposPresupuesto,
+        );
+
+        const costoDirectoReal = materiales + subcontratos + equipos + servicios + mod + honorarios;
         const ggReal = generales + staff;
         const costoReal = costoDirectoReal + ggReal;
         const margen = cobrado - costoReal;
@@ -122,6 +142,9 @@ function Dashboard() {
           id: p.id,
           nombre: p.nombre,
           presupuesto,
+          contractual: resumen.contractual,
+          adicionales: resumen.adicionales,
+          honorarios,
           pctGG: Number(p.pct_gastos_generales ?? 0),
           pctUtilidad: Number(p.pct_utilidad ?? 0),
           ggPresupuestado: oferta.gastosGenerales,
@@ -142,12 +165,13 @@ function Dashboard() {
           costoReal,
           margen,
           margenPct: cobrado > 0 ? (margen / cobrado) * 100 : 0,
+          roiPct: costoReal > 0 ? (margen / costoReal) * 100 : 0,
           variacionUtilidad: margen - oferta.utilidad,
           cobranzaPct: facturado > 0 ? (cobrado / facturado) * 100 : 0,
           avanceFacturado: presupuesto > 0 ? (cobrado / presupuesto) * 100 : 0,
         };
       }),
-    [proyectos, partidas, ventas, gastosD, tareos, gastosG, tiposPresupuesto, clasifTrabajador],
+    [proyectos, partidas, ventas, gastosD, tareos, gastosG, tiposPresupuesto, clasifTrabajador, recibos],
   );
 
   const filasTabla = useMemo(
@@ -170,13 +194,19 @@ function Dashboard() {
     const mod = sum((f) => f.mod);
     const staff = sum((f) => f.staff);
     const generales = sum((f) => f.generales);
-    const costoDirectoReal = materiales + subcontratos + equipos + servicios + mod;
+    const honorarios = sum((f) => f.honorarios);
+    const contractual = sum((f) => f.contractual);
+    const adicionales = sum((f) => f.adicionales);
+    const costoDirectoReal = materiales + subcontratos + equipos + servicios + mod + honorarios;
     const ggReal = generales + staff;
     const costoReal = costoDirectoReal + ggReal;
     const facturado = cobrado + pendiente;
     const margen = cobrado - costoReal;
     return {
       presupuesto,
+      contractual,
+      adicionales,
+      honorarios,
       ggPresupuestado,
       utilidadPrevista,
       ofertado,
@@ -195,6 +225,7 @@ function Dashboard() {
       costoReal,
       margen,
       margenPct: cobrado > 0 ? (margen / cobrado) * 100 : 0,
+      roiPct: costoReal > 0 ? (margen / costoReal) * 100 : 0,
       margenSobreOferta: ofertado > 0 ? (margen / ofertado) * 100 : 0,
       variacionUtilidad: margen - utilidadPrevista,
       cobranzaPct: facturado > 0 ? (cobrado / facturado) * 100 : 0,
@@ -210,6 +241,7 @@ function Dashboard() {
       equipos: datos.equipos,
       servicios: datos.servicios,
       mod: datos.mod,
+      honorarios: datos.honorarios,
       staff: datos.staff,
       generales: datos.generales,
     };
@@ -255,6 +287,8 @@ function Dashboard() {
         nombre: "KPIs",
         filas: [
           { Indicador: "Costo Directo - Partidas (S/)", Valor: datos.presupuesto },
+          { Indicador: "Presupuesto Contractual (S/)", Valor: datos.contractual },
+          { Indicador: "Presupuestos Adicionales (S/)", Valor: datos.adicionales },
           { Indicador: "Gastos Generales Presupuestados (S/)", Valor: datos.ggPresupuestado },
           { Indicador: "Utilidad Prevista (S/)", Valor: datos.utilidadPrevista },
           { Indicador: "Presupuesto Ofertado (S/)", Valor: datos.ofertado },
@@ -266,6 +300,7 @@ function Dashboard() {
           { Indicador: "Equipos y Maquinaria (S/)", Valor: datos.equipos },
           { Indicador: "Servicios de Terceros (S/)", Valor: datos.servicios },
           { Indicador: "Mano de Obra Directa (S/)", Valor: datos.mod },
+          { Indicador: "Honorarios de obra (S/)", Valor: datos.honorarios },
           { Indicador: "Staff Tecnico - Indirecto (S/)", Valor: datos.staff },
           { Indicador: "Gastos Generales Ejecutados (S/)", Valor: datos.generales },
           { Indicador: "Costo Directo Real (S/)", Valor: datos.costoDirectoReal },
@@ -273,6 +308,7 @@ function Dashboard() {
           { Indicador: "Costo Real Total (S/)", Valor: datos.costoReal },
           { Indicador: "Utilidad Real (S/)", Valor: datos.margen },
           { Indicador: "Margen sobre Ventas (%)", Valor: Number(datos.margenPct.toFixed(1)) },
+          { Indicador: "Retorno sobre Costo (%)", Valor: Number(datos.roiPct.toFixed(1)) },
           { Indicador: "Variacion vs Utilidad Prevista (S/)", Valor: datos.variacionUtilidad },
         ],
       },
@@ -281,6 +317,8 @@ function Dashboard() {
         filas: filasTabla.map((f) => ({
           Obra: f.nombre,
           "Costo Directo (S/)": f.presupuesto,
+          "Contractual (S/)": f.contractual,
+          "Adicionales (S/)": f.adicionales,
           "% GG": f.pctGG,
           "GG Presupuestados (S/)": f.ggPresupuestado,
           "% Utilidad": f.pctUtilidad,
@@ -293,11 +331,13 @@ function Dashboard() {
           "Equipos (S/)": f.equipos,
           "Servicios (S/)": f.servicios,
           "Mano de Obra Directa (S/)": f.mod,
+          "Honorarios (S/)": f.honorarios,
           "Staff Tecnico (S/)": f.staff,
           "Gastos Generales Ejecutados (S/)": f.generales,
           "Costo Real Total (S/)": f.costoReal,
           "Utilidad Real (S/)": f.margen,
           "Margen (%)": Number(f.margenPct.toFixed(1)),
+          "Retorno s/ Costo (%)": Number(f.roiPct.toFixed(1)),
           "Variacion vs Prevista (S/)": f.variacionUtilidad,
           "Cobranza (%)": Number(f.cobranzaPct.toFixed(1)),
           Condicion: salud(f).texto,
@@ -356,7 +396,7 @@ function Dashboard() {
           etiqueta="Presupuesto Ofertado"
           valor={datos.ofertado}
           lineas={[
-            `Costo directo ${soles(datos.presupuesto)}`,
+            `Contractual ${soles(datos.contractual)} · Adicionales ${soles(datos.adicionales)}`,
             `GG ${soles(datos.ggPresupuestado)} · Utilidad ${soles(datos.utilidadPrevista)}`,
           ]}
         />
@@ -375,6 +415,7 @@ function Dashboard() {
             `Directos ${soles(datos.materiales + datos.subcontratos + datos.equipos + datos.servicios)} · MOD ${soles(
               datos.mod,
             )}`,
+            `Honorarios ${soles(datos.honorarios)}`,
             `GG + Staff ${soles(datos.ggReal)}`,
           ]}
         />
@@ -384,7 +425,7 @@ function Dashboard() {
           tono={datos.margen < 0 ? "bad" : "good"}
           lineas={[
             `Prevista ${soles(datos.utilidadPrevista)} · Variación ${soles(datos.variacionUtilidad)}`,
-            `Margen ${pct(datos.margenPct)} sobre ventas cobradas`,
+            `Margen ${pct(datos.margenPct)} s/ ventas · ${pct(datos.roiPct)} s/ costo`,
           ]}
         />
       </div>
@@ -501,7 +542,14 @@ function Dashboard() {
                     return (
                       <tr key={f.id}>
                         <td className="px-4 py-2 font-medium">{f.nombre}</td>
-                        <td className="px-4 py-2 text-right font-mono">{soles(f.presupuesto)}</td>
+                        <td className="px-4 py-2 text-right font-mono">
+                          {soles(f.presupuesto)}
+                          {f.adicionales !== 0 && (
+                            <span className="block text-[11px] text-muted-foreground">
+                              contr. {soles(f.contractual)} · adic. {soles(f.adicionales)}
+                            </span>
+                          )}
+                        </td>
                         <td className="px-4 py-2 text-right font-mono">
                           {soles(f.ggPresupuestado)}
                           <span className="ml-1 text-[11px] text-muted-foreground">({f.pctGG}%)</span>
@@ -532,7 +580,10 @@ function Dashboard() {
                         >
                           {soles(f.margen)}
                         </td>
-                        <td className="px-4 py-2 text-right font-mono">{pct(f.margenPct)}</td>
+                        <td className="px-4 py-2 text-right font-mono">
+                          {pct(f.margenPct)}
+                          <span className="block text-[11px] text-muted-foreground">{pct(f.roiPct)} s/ costo</span>
+                        </td>
                         <td className="px-4 py-2">
                           <span className="inline-flex items-center gap-2 text-[12px]">
                             <span className="h-2.5 w-2.5 rounded-full" style={{ background: s.color }} />
