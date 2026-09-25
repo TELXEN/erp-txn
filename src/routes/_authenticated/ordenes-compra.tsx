@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, ChevronRight, PackageCheck, Plus, Trash2, Upload } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
@@ -219,7 +219,7 @@ function OrdenesCompraPage() {
     qc.invalidateQueries({ queryKey: ["orden_compra_items"] });
   }
 
-  const visibles = useMemo(() => ordenes.filter((o) => !filtro || o.proyecto_id === filtro), [ordenes, filtro]);
+  const visibles = ordenes.filter((o) => !filtro || o.proyecto_id === filtro);
   const totalOC = (id: string) =>
     itemsOC.filter((i) => i.orden_id === id).reduce((s, i) => s + Number(i.cantidad) * Number(i.precio_unitario), 0);
 
