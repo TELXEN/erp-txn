@@ -118,6 +118,16 @@ function Cotizaciones() {
     ? totalesCotizacion(items, Number(cot.pct_gastos_generales), Number(cot.pct_utilidad))
     : null;
 
+  const [apu, setApu] = useState<(typeof items)[number] | null>(null);
+  const [nuevaSub, setNuevaSub] = useState<{
+    padre_id: string;
+    codigo: string;
+    nombre: string;
+    unidad: string;
+    metrado: string;
+    precio_unitario: string;
+  } | null>(null);
+
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
   const totalDe = (id: string) => {
@@ -200,15 +210,6 @@ function Cotizaciones() {
     setAviso("Partida guardada en el banco maestro.");
   }
 
-  const [apu, setApu] = useState<(typeof items)[number] | null>(null);
-  const [nuevaSub, setNuevaSub] = useState<{
-    padre_id: string;
-    codigo: string;
-    nombre: string;
-    unidad: string;
-    metrado: string;
-    precio_unitario: string;
-  } | null>(null);
 
   function abrirSubpartida(padre: (typeof items)[number]) {
     setNuevaSub({
