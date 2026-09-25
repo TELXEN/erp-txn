@@ -234,6 +234,8 @@ function CajaChica() {
                     Obra: nombreProy(c.proyecto_id),
                     Responsable: nombreResp(c.responsable_id),
                     Motivo: c.motivo,
+                    "Cuenta bancaria de origen": nombreBanco(c.banco_id),
+                    "N° de operación": c.numero_operacion ?? "",
                     "Entregado (S/)": Number(c.monto_entregado),
                     "Rendido (S/)": rendidoDe(c.id),
                     "Saldo (S/)": Number(c.monto_entregado) - rendidoDe(c.id),
