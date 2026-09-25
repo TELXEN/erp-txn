@@ -129,7 +129,7 @@ function InventarioPage() {
                 return (
                   <React.Fragment key={o}>
                     <tr className="bg-ink">
-                      <td colSpan={7} className="px-5 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-paper">{nombreProy(o)}</td>
+                      <td colSpan={7} className="px-5 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-paper"><Resaltar texto={nombreProy(o)} termino={busqueda} /></td>
                       <td className="px-5 py-1.5 text-right font-semibold text-paper">{soles(deObra.reduce((s, f) => s + f.valor, 0))}</td>
                     </tr>
                     {deObra.map((f) => (

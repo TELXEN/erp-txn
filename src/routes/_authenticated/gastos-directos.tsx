@@ -357,7 +357,7 @@ function GastosDirectos() {
                 {agruparSoloPorCategoria(partidasProy).map((grupo) => (
                   <React.Fragment key={grupo.categoria}>
                     <tr className="border-b border-line/40 bg-muted/40">
-                      <td colSpan={5} className="px-5 py-1.5 label-mono">{grupo.categoria}</td>
+                      <td colSpan={5} className="px-5 py-1.5 label-mono"><Resaltar texto={grupo.categoria} termino={busqueda} /></td>
                       <td className="px-3 py-1.5 text-right font-semibold">
                         {soles(grupo.items.reduce((s, p) => s + Number(p.presupuesto_inicial), 0))}
                       </td>
