@@ -20,6 +20,7 @@ import {
   Warehouse,
   Settings,
   ShieldCheck,
+  SlidersHorizontal,
   TrendingUp,
   Truck,
   Users,
@@ -88,6 +89,7 @@ const MENU: Categoria[] = [
     titulo: "Datos",
     items: [
       { a: "/datos", texto: "Catalogos Maestros", roles: ["administrador", "gerente"], icono: Settings },
+      { a: "/configuracion-sistema", texto: "Configuración del Sistema", roles: ["gerente"], icono: SlidersHorizontal },
       { a: "/usuarios", texto: "Usuarios y Roles", roles: ["gerente"], icono: ShieldCheck },
     ],
   },
