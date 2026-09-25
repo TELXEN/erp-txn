@@ -234,7 +234,7 @@ function Tesoreria() {
       const { error: e2 } = await pagarRRHH(p.doc, banco_id, fecha, numero_operacion);
       if (e2) return setError(e2.message);
       setAccion(null);
-      ["pagos_rrhh", "recibos_honorarios", "boletas", "beneficios_sociales", "planillas"].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+      qc.invalidateQueries();
       return;
     }
     const cambios =
