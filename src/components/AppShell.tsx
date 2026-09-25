@@ -42,13 +42,13 @@ const MENU: Categoria[] = [
       { a: "/proyectos", texto: "Proyectos", roles: ["administrador", "gerente"], icono: Building2 },
       { a: "/partidas", texto: "Partidas", roles: ["administrador", "gerente"], icono: Layers },
       { a: "/avance", texto: "Avance Físico", roles: ["ingeniero", "gerente"], icono: Activity },
+      { a: "/tareo", texto: "Tareo Diario", roles: ["administrador", "gerente"], icono: CalendarDays },
     ],
   },
   {
     titulo: "Recursos Humanos",
     items: [
       { a: "/personal", texto: "Personal", roles: ["administrador", "gerente"], icono: Users },
-      { a: "/tareo", texto: "Tareo Diario", roles: ["administrador", "gerente"], icono: CalendarDays },
     ],
   },
   {
