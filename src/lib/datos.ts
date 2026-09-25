@@ -54,6 +54,7 @@ export type Partida = {
   aplica_gg_utilidad: boolean;
   aplica_gg: boolean;
   aplica_utilidad: boolean;
+  padre_id?: string | null;
 };
 
 export type TipoPresupuesto = {

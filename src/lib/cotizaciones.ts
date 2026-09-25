@@ -34,6 +34,7 @@ export type CotizacionItem = {
   metrado: number;
   precio_unitario: number;
   orden: number;
+  padre_id?: string | null;
 };
 
 export type PartidaMaestra = {
