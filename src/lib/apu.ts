@@ -40,7 +40,14 @@ export const useInsumos = () =>
     },
   });
 
-export const useComponentesApu = (partidaId: string | null) =>
+export type OrigenApu = "maestra" | "obra" | "cotizacion";
+export const ORIGEN_APU: Record<OrigenApu, { columna: string; tabla: string }> = {
+  maestra: { columna: "partida_maestra_id", tabla: "partidas_maestras" },
+  obra: { columna: "partida_id", tabla: "partidas" },
+  cotizacion: { columna: "cotizacion_item_id", tabla: "cotizacion_items" },
+};
+
+export const useComponentesApu = (partidaId: string | null, origen: OrigenApu = "maestra") =>
   useQuery({
     queryKey: ["apu_componentes", partidaId],
     enabled: !!partidaId,
@@ -48,7 +55,7 @@ export const useComponentesApu = (partidaId: string | null) =>
       const { data, error } = await db
         .from("apu_componentes")
         .select("*")
-        .eq("partida_maestra_id", partidaId)
+        .eq(ORIGEN_APU[origen].columna, partidaId)
         .order("created_at");
       if (error) throw error;
       return (data ?? []) as ComponenteApu[];

@@ -17,37 +17,57 @@ export type Database = {
       apu_componentes: {
         Row: {
           cantidad: number
+          cotizacion_item_id: string | null
           created_at: string
           cuadrilla: number
           id: string
           insumo_id: string
-          partida_maestra_id: string
+          partida_id: string | null
+          partida_maestra_id: string | null
           updated_at: string
         }
         Insert: {
           cantidad?: number
+          cotizacion_item_id?: string | null
           created_at?: string
           cuadrilla?: number
           id?: string
           insumo_id: string
-          partida_maestra_id: string
+          partida_id?: string | null
+          partida_maestra_id?: string | null
           updated_at?: string
         }
         Update: {
           cantidad?: number
+          cotizacion_item_id?: string | null
           created_at?: string
           cuadrilla?: number
           id?: string
           insumo_id?: string
-          partida_maestra_id?: string
+          partida_id?: string | null
+          partida_maestra_id?: string | null
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "apu_componentes_cotizacion_item_id_fkey"
+            columns: ["cotizacion_item_id"]
+            isOneToOne: false
+            referencedRelation: "cotizacion_items"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "apu_componentes_insumo_id_fkey"
             columns: ["insumo_id"]
             isOneToOne: false
             referencedRelation: "insumos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "apu_componentes_partida_id_fkey"
+            columns: ["partida_id"]
+            isOneToOne: false
+            referencedRelation: "partidas"
             referencedColumns: ["id"]
           },
           {
@@ -413,11 +433,14 @@ export type Database = {
           created_at: string
           especialidad: string
           id: string
+          jornada: number
           metrado: number
           nombre: string
           orden: number
           padre_id: string | null
+          pct_herramientas: number
           precio_unitario: number
+          rendimiento: number
           unidad: string
           updated_at: string
         }
@@ -428,11 +451,14 @@ export type Database = {
           created_at?: string
           especialidad?: string
           id?: string
+          jornada?: number
           metrado?: number
           nombre: string
           orden?: number
           padre_id?: string | null
+          pct_herramientas?: number
           precio_unitario?: number
+          rendimiento?: number
           unidad?: string
           updated_at?: string
         }
@@ -443,11 +469,14 @@ export type Database = {
           created_at?: string
           especialidad?: string
           id?: string
+          jornada?: number
           metrado?: number
           nombre?: string
           orden?: number
           padre_id?: string | null
+          pct_herramientas?: number
           precio_unitario?: number
+          rendimiento?: number
           unidad?: string
           updated_at?: string
         }
@@ -913,13 +942,16 @@ export type Database = {
           created_at: string
           especialidad: string
           id: string
+          jornada: number
           metrado: number
           nombre: string
           padre_id: string | null
+          pct_herramientas: number
           precio_unitario: number
           presupuesto_inicial: number
           prioridad: string
           proyecto_id: string
+          rendimiento: number
           situacion: string
           tipo_presupuesto: string
           unidad: string
@@ -934,13 +966,16 @@ export type Database = {
           created_at?: string
           especialidad: string
           id?: string
+          jornada?: number
           metrado?: number
           nombre: string
           padre_id?: string | null
+          pct_herramientas?: number
           precio_unitario?: number
           presupuesto_inicial?: number
           prioridad?: string
           proyecto_id: string
+          rendimiento?: number
           situacion?: string
           tipo_presupuesto?: string
           unidad?: string
@@ -955,13 +990,16 @@ export type Database = {
           created_at?: string
           especialidad?: string
           id?: string
+          jornada?: number
           metrado?: number
           nombre?: string
           padre_id?: string | null
+          pct_herramientas?: number
           precio_unitario?: number
           presupuesto_inicial?: number
           prioridad?: string
           proyecto_id?: string
+          rendimiento?: number
           situacion?: string
           tipo_presupuesto?: string
           unidad?: string

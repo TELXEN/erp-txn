@@ -35,6 +35,9 @@ export type CotizacionItem = {
   precio_unitario: number;
   orden: number;
   padre_id?: string | null;
+  rendimiento?: number;
+  jornada?: number;
+  pct_herramientas?: number;
 };
 
 export type PartidaMaestra = {

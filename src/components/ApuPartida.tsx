@@ -1,17 +1,40 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Trash2, X } from "lucide-react";
+import { Copy, Trash2, X } from "lucide-react";
 import { Boton, Input, Select } from "@/components/ui-kit";
 import { soles } from "@/lib/format";
 import type { PartidaMaestra } from "@/lib/cotizaciones";
-import { TIPOS_INSUMO, apuDb, calcularApu, useComponentesApu, useInsumos } from "@/lib/apu";
+import { ORIGEN_APU, TIPOS_INSUMO, apuDb, calcularApu, useComponentesApu, useInsumos, type OrigenApu } from "@/lib/apu";
+import { usePartidasMaestras } from "@/lib/cotizaciones";
 
-type P = PartidaMaestra & { rendimiento?: number; jornada?: number; pct_herramientas?: number };
+type P = Pick<PartidaMaestra, "id" | "nombre" | "unidad"> & {
+  rendimiento?: number;
+  jornada?: number;
+  pct_herramientas?: number;
+  metrado?: number;
+};
 
-export function ApuPartida({ partida, onCerrar }: { partida: P; onCerrar: () => void }) {
+export function ApuPartida({
+  partida,
+  onCerrar,
+  origen = "maestra",
+  invalidar = [],
+}: {
+  partida: P;
+  onCerrar: () => void;
+  origen?: OrigenApu;
+  /** Claves de consulta a refrescar tras aplicar el P.U. */
+  invalidar?: unknown[][];
+}) {
   const qc = useQueryClient();
+  const { columna, tabla } = ORIGEN_APU[origen];
   const { data: insumos = [] } = useInsumos();
-  const { data: comps = [] } = useComponentesApu(partida.id);
+  const { data: maestras = [] } = usePartidasMaestras();
+  const { data: comps = [] } = useComponentesApu(partida.id, origen);
+  const maestraIgual =
+    origen !== "maestra"
+      ? maestras.find((m) => m.nombre.trim().toLowerCase() === partida.nombre.trim().toLowerCase())
+      : undefined;
   const [rend, setRend] = useState(String(partida.rendimiento ?? 1));
   const [jornada, setJornada] = useState(String(partida.jornada ?? 8));
   const [pctH, setPctH] = useState(String(partida.pct_herramientas ?? 3));
@@ -25,7 +48,7 @@ export function ApuPartida({ partida, onCerrar }: { partida: P; onCerrar: () => 
     const ins = insumos.find((i) => i.id === nuevo);
     const conCuadrilla = ins?.tipo === "MO" || (ins?.tipo === "EQ" && ins.unidad === "hm");
     const { error: err } = await apuDb.from("apu_componentes").insert({
-      partida_maestra_id: partida.id,
+      [columna]: partida.id,
       insumo_id: nuevo,
       cuadrilla: conCuadrilla ? 1 : 0,
       cantidad: conCuadrilla ? 0 : 1,
@@ -45,20 +68,43 @@ export function ApuPartida({ partida, onCerrar }: { partida: P; onCerrar: () => 
     refrescar();
   }
 
+  async function copiarDelBanco() {
+    if (!maestraIgual) return;
+    if (comps.length && !window.confirm("Se reemplazarán los insumos actuales por los del banco de partidas. ¿Continuar?")) return;
+    setError("");
+    const { data: base, error: e1 } = await apuDb
+      .from("apu_componentes")
+      .select("insumo_id, cuadrilla, cantidad")
+      .eq("partida_maestra_id", maestraIgual.id);
+    if (e1) return setError(e1.message);
+    if (!base?.length) return setError("La partida del banco todavía no tiene análisis de precios.");
+    await apuDb.from("apu_componentes").delete().eq(columna, partida.id);
+    const { error: e2 } = await apuDb
+      .from("apu_componentes")
+      .insert(base.map((b: { insumo_id: string; cuadrilla: number; cantidad: number }) => ({ ...b, [columna]: partida.id })));
+    if (e2) return setError(e2.message);
+    const m = maestraIgual as P;
+    setRend(String(m.rendimiento ?? 1));
+    setJornada(String(m.jornada ?? 8));
+    setPctH(String(m.pct_herramientas ?? 3));
+    refrescar();
+  }
+
   async function guardar() {
     setError("");
     if (!(Number(rend) > 0)) return setError("El rendimiento debe ser mayor que cero.");
-    const { error: err } = await apuDb
-      .from("partidas_maestras")
-      .update({
-        rendimiento: Number(rend),
-        jornada: Number(jornada) || 8,
-        pct_herramientas: Number(pctH) || 0,
-        precio_unitario: calc.pu,
-      })
-      .eq("id", partida.id);
+    const cambios: Record<string, number> = {
+      rendimiento: Number(rend),
+      jornada: Number(jornada) || 8,
+      pct_herramientas: Number(pctH) || 0,
+      precio_unitario: calc.pu,
+    };
+    if (origen === "obra")
+      cambios['presupuesto_inicial'] = Math.round(Number(partida.metrado ?? 0) * calc.pu * 100) / 100;
+    const { error: err } = await apuDb.from(tabla).update(cambios).eq("id", partida.id);
     if (err) return setError(err.message);
     qc.invalidateQueries({ queryKey: ["partidas_maestras"] });
+    for (const k of invalidar) qc.invalidateQueries({ queryKey: k });
     onCerrar();
   }
 
@@ -162,6 +208,11 @@ export function ApuPartida({ partida, onCerrar }: { partida: P; onCerrar: () => 
             ))}
           </Select>
           <Boton type="button" variante="linea" onClick={agregar}>Agregar</Boton>
+          {maestraIgual && (
+            <Boton type="button" variante="linea" onClick={() => void copiarDelBanco()}>
+              <Copy size={13} className="mr-1 inline" /> Copiar del banco
+            </Boton>
+          )}
           <Boton type="button" onClick={guardar}>Guardar y aplicar P.U.</Boton>
         </div>
         {error && <p className="px-5 pb-3 font-mono text-xs text-bad">{error}</p>}

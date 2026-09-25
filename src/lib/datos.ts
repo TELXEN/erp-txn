@@ -55,6 +55,9 @@ export type Partida = {
   aplica_gg: boolean;
   aplica_utilidad: boolean;
   padre_id?: string | null;
+  rendimiento?: number;
+  jornada?: number;
+  pct_herramientas?: number;
 };
 
 export type TipoPresupuesto = {

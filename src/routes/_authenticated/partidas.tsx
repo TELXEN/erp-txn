@@ -20,7 +20,7 @@ import {
   useTiposPresupuesto,
 } from "@/lib/datos";
 import { exportarExcel } from "@/lib/exportar";
-import { Pencil, Trash2, Check, X, LayoutGrid, Table2, Upload, ListOrdered, CornerDownRight } from "lucide-react";
+import { Pencil, Trash2, Check, X, LayoutGrid, Table2, Upload, ListOrdered, Calculator, CornerDownRight } from "lucide-react";
 import { Kanban } from "@/components/Kanban";
 import { InsigniaPrioridad, InsigniaTipoPresupuesto } from "@/components/estado-ui";
 import { PRIORIDADES, type Situacion } from "@/lib/configuracion";
@@ -37,6 +37,7 @@ import {
 } from "@/lib/categorias";
 import { montoPartida, useUnidadesMedida } from "@/lib/unidades";
 import { ImportarExcel } from "@/components/ImportarExcel";
+import { ApuPartida } from "@/components/ApuPartida";
 import { usePartidasMaestras } from "@/lib/cotizaciones";
 
 const cantidad = (n: number) =>
@@ -100,6 +101,7 @@ function Partidas() {
     aplica_utilidad: boolean;
   } | null>(null);
 
+  const [apu, setApu] = useState<(typeof partidas)[number] | null>(null);
   const [nuevaSub, setNuevaSub] = useState<{
     padre_id: string;
     codigo: string;
@@ -935,6 +937,16 @@ function Partidas() {
                             </td>
                             <td className="px-5 py-2.5">
                               <div className="flex items-center justify-end gap-1">
+                                {!agrupadora && (
+                                  <button
+                                    type="button"
+                                    onClick={() => setApu(p)}
+                                    title="Análisis de precios unitarios"
+                                    className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"
+                                  >
+                                    <Calculator size={14} />
+                                  </button>
+                                )}
                                 {nivel === 3 && (
                                   <button
                                     type="button"
@@ -993,6 +1005,14 @@ function Partidas() {
           })
         )}
       </Panel>
+      {apu && (
+        <ApuPartida
+          origen="obra"
+          partida={{ ...apu, rendimiento: Number(apu.rendimiento ?? 1), jornada: Number(apu.jornada ?? 8), pct_herramientas: Number(apu.pct_herramientas ?? 3), metrado: Number(apu.metrado ?? 0) }}
+          invalidar={[["partidas"]]}
+          onCerrar={() => setApu(null)}
+        />
+      )}
     </>
   );
 }
