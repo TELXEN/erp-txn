@@ -50,7 +50,7 @@ const MENU: Categoria[] = [
   {
     titulo: "Operaciones",
     items: [
-      { a: "/dashboard-proyectos", texto: "Dashboard de Proyectos", roles: ["administrador", "gerente"], icono: Gauge },
+      { a: "/dashboard-proyectos", texto: "Dashboard de Proyectos", roles: ["ingeniero", "administrador", "gerente"], icono: Gauge },
       { a: "/proyectos", texto: "Proyectos", roles: ["administrador", "gerente"], icono: Building2 },
       { a: "/partidas", texto: "Partidas", roles: ["administrador", "gerente"], icono: Layers },
       { a: "/avance", texto: "Avance Físico", roles: ["ingeniero", "gerente"], icono: Activity },
