@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedAlmacenRouteImport } from './routes/_authenticated/almacen'
 import { Route as AuthenticatedAvanceRouteImport } from './routes/_authenticated/avance'
 import { Route as AuthenticatedCajaChicaRouteImport } from './routes/_authenticated/caja-chica'
+import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticated/clientes'
 import { Route as AuthenticatedCotizacionesRouteImport } from './routes/_authenticated/cotizaciones'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedDashboardProyectosRouteImport } from './routes/_authenticated/dashboard-proyectos'
@@ -26,6 +27,7 @@ import { Route as AuthenticatedOrdenesCompraRouteImport } from './routes/_authen
 import { Route as AuthenticatedPanelRouteImport } from './routes/_authenticated/panel'
 import { Route as AuthenticatedPartidasRouteImport } from './routes/_authenticated/partidas'
 import { Route as AuthenticatedPersonalRouteImport } from './routes/_authenticated/personal'
+import { Route as AuthenticatedProveedoresRouteImport } from './routes/_authenticated/proveedores'
 import { Route as AuthenticatedProyectosRouteImport } from './routes/_authenticated/proyectos'
 import { Route as AuthenticatedRequerimientosRouteImport } from './routes/_authenticated/requerimientos'
 import { Route as AuthenticatedTareoRouteImport } from './routes/_authenticated/tareo'
@@ -55,6 +57,11 @@ const AuthenticatedAvanceRoute = AuthenticatedAvanceRouteImport.update({
 const AuthenticatedCajaChicaRoute = AuthenticatedCajaChicaRouteImport.update({
   id: '/caja-chica',
   path: '/caja-chica',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedClientesRoute = AuthenticatedClientesRouteImport.update({
+  id: '/clientes',
+  path: '/clientes',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedCotizacionesRoute =
@@ -122,6 +129,12 @@ const AuthenticatedPersonalRoute = AuthenticatedPersonalRouteImport.update({
   path: '/personal',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedProveedoresRoute =
+  AuthenticatedProveedoresRouteImport.update({
+    id: '/proveedores',
+    path: '/proveedores',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedProyectosRoute = AuthenticatedProyectosRouteImport.update({
   id: '/proyectos',
   path: '/proyectos',
@@ -160,6 +173,7 @@ export interface FileRoutesByFullPath {
   '/almacen': typeof AuthenticatedAlmacenRoute
   '/avance': typeof AuthenticatedAvanceRoute
   '/caja-chica': typeof AuthenticatedCajaChicaRoute
+  '/clientes': typeof AuthenticatedClientesRoute
   '/cotizaciones': typeof AuthenticatedCotizacionesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/dashboard-proyectos': typeof AuthenticatedDashboardProyectosRoute
@@ -172,6 +186,7 @@ export interface FileRoutesByFullPath {
   '/panel': typeof AuthenticatedPanelRoute
   '/partidas': typeof AuthenticatedPartidasRoute
   '/personal': typeof AuthenticatedPersonalRoute
+  '/proveedores': typeof AuthenticatedProveedoresRoute
   '/proyectos': typeof AuthenticatedProyectosRoute
   '/requerimientos': typeof AuthenticatedRequerimientosRoute
   '/tareo': typeof AuthenticatedTareoRoute
@@ -184,6 +199,7 @@ export interface FileRoutesByTo {
   '/almacen': typeof AuthenticatedAlmacenRoute
   '/avance': typeof AuthenticatedAvanceRoute
   '/caja-chica': typeof AuthenticatedCajaChicaRoute
+  '/clientes': typeof AuthenticatedClientesRoute
   '/cotizaciones': typeof AuthenticatedCotizacionesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/dashboard-proyectos': typeof AuthenticatedDashboardProyectosRoute
@@ -196,6 +212,7 @@ export interface FileRoutesByTo {
   '/panel': typeof AuthenticatedPanelRoute
   '/partidas': typeof AuthenticatedPartidasRoute
   '/personal': typeof AuthenticatedPersonalRoute
+  '/proveedores': typeof AuthenticatedProveedoresRoute
   '/proyectos': typeof AuthenticatedProyectosRoute
   '/requerimientos': typeof AuthenticatedRequerimientosRoute
   '/tareo': typeof AuthenticatedTareoRoute
@@ -210,6 +227,7 @@ export interface FileRoutesById {
   '/_authenticated/almacen': typeof AuthenticatedAlmacenRoute
   '/_authenticated/avance': typeof AuthenticatedAvanceRoute
   '/_authenticated/caja-chica': typeof AuthenticatedCajaChicaRoute
+  '/_authenticated/clientes': typeof AuthenticatedClientesRoute
   '/_authenticated/cotizaciones': typeof AuthenticatedCotizacionesRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/dashboard-proyectos': typeof AuthenticatedDashboardProyectosRoute
@@ -222,6 +240,7 @@ export interface FileRoutesById {
   '/_authenticated/panel': typeof AuthenticatedPanelRoute
   '/_authenticated/partidas': typeof AuthenticatedPartidasRoute
   '/_authenticated/personal': typeof AuthenticatedPersonalRoute
+  '/_authenticated/proveedores': typeof AuthenticatedProveedoresRoute
   '/_authenticated/proyectos': typeof AuthenticatedProyectosRoute
   '/_authenticated/requerimientos': typeof AuthenticatedRequerimientosRoute
   '/_authenticated/tareo': typeof AuthenticatedTareoRoute
@@ -236,6 +255,7 @@ export interface FileRouteTypes {
     | '/almacen'
     | '/avance'
     | '/caja-chica'
+    | '/clientes'
     | '/cotizaciones'
     | '/dashboard'
     | '/dashboard-proyectos'
@@ -248,6 +268,7 @@ export interface FileRouteTypes {
     | '/panel'
     | '/partidas'
     | '/personal'
+    | '/proveedores'
     | '/proyectos'
     | '/requerimientos'
     | '/tareo'
@@ -260,6 +281,7 @@ export interface FileRouteTypes {
     | '/almacen'
     | '/avance'
     | '/caja-chica'
+    | '/clientes'
     | '/cotizaciones'
     | '/dashboard'
     | '/dashboard-proyectos'
@@ -272,6 +294,7 @@ export interface FileRouteTypes {
     | '/panel'
     | '/partidas'
     | '/personal'
+    | '/proveedores'
     | '/proyectos'
     | '/requerimientos'
     | '/tareo'
@@ -285,6 +308,7 @@ export interface FileRouteTypes {
     | '/_authenticated/almacen'
     | '/_authenticated/avance'
     | '/_authenticated/caja-chica'
+    | '/_authenticated/clientes'
     | '/_authenticated/cotizaciones'
     | '/_authenticated/dashboard'
     | '/_authenticated/dashboard-proyectos'
@@ -297,6 +321,7 @@ export interface FileRouteTypes {
     | '/_authenticated/panel'
     | '/_authenticated/partidas'
     | '/_authenticated/personal'
+    | '/_authenticated/proveedores'
     | '/_authenticated/proyectos'
     | '/_authenticated/requerimientos'
     | '/_authenticated/tareo'
@@ -345,6 +370,13 @@ declare module '@tanstack/react-router' {
       path: '/caja-chica'
       fullPath: '/caja-chica'
       preLoaderRoute: typeof AuthenticatedCajaChicaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/clientes': {
+      id: '/_authenticated/clientes'
+      path: '/clientes'
+      fullPath: '/clientes'
+      preLoaderRoute: typeof AuthenticatedClientesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/cotizaciones': {
@@ -431,6 +463,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPersonalRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/proveedores': {
+      id: '/_authenticated/proveedores'
+      path: '/proveedores'
+      fullPath: '/proveedores'
+      preLoaderRoute: typeof AuthenticatedProveedoresRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/proyectos': {
       id: '/_authenticated/proyectos'
       path: '/proyectos'
@@ -480,6 +519,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAlmacenRoute: typeof AuthenticatedAlmacenRoute
   AuthenticatedAvanceRoute: typeof AuthenticatedAvanceRoute
   AuthenticatedCajaChicaRoute: typeof AuthenticatedCajaChicaRoute
+  AuthenticatedClientesRoute: typeof AuthenticatedClientesRoute
   AuthenticatedCotizacionesRoute: typeof AuthenticatedCotizacionesRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDashboardProyectosRoute: typeof AuthenticatedDashboardProyectosRoute
@@ -492,6 +532,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPanelRoute: typeof AuthenticatedPanelRoute
   AuthenticatedPartidasRoute: typeof AuthenticatedPartidasRoute
   AuthenticatedPersonalRoute: typeof AuthenticatedPersonalRoute
+  AuthenticatedProveedoresRoute: typeof AuthenticatedProveedoresRoute
   AuthenticatedProyectosRoute: typeof AuthenticatedProyectosRoute
   AuthenticatedRequerimientosRoute: typeof AuthenticatedRequerimientosRoute
   AuthenticatedTareoRoute: typeof AuthenticatedTareoRoute
@@ -504,6 +545,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAlmacenRoute: AuthenticatedAlmacenRoute,
   AuthenticatedAvanceRoute: AuthenticatedAvanceRoute,
   AuthenticatedCajaChicaRoute: AuthenticatedCajaChicaRoute,
+  AuthenticatedClientesRoute: AuthenticatedClientesRoute,
   AuthenticatedCotizacionesRoute: AuthenticatedCotizacionesRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDashboardProyectosRoute: AuthenticatedDashboardProyectosRoute,
@@ -516,6 +558,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPanelRoute: AuthenticatedPanelRoute,
   AuthenticatedPartidasRoute: AuthenticatedPartidasRoute,
   AuthenticatedPersonalRoute: AuthenticatedPersonalRoute,
+  AuthenticatedProveedoresRoute: AuthenticatedProveedoresRoute,
   AuthenticatedProyectosRoute: AuthenticatedProyectosRoute,
   AuthenticatedRequerimientosRoute: AuthenticatedRequerimientosRoute,
   AuthenticatedTareoRoute: AuthenticatedTareoRoute,
