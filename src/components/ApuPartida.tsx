@@ -100,7 +100,7 @@ export function ApuPartida({
       precio_unitario: calc.pu,
     };
     if (origen === "obra")
-      cambios.presupuesto_inicial = Math.round(Number(partida.metrado ?? 0) * calc.pu * 100) / 100;
+      cambios['presupuesto_inicial'] = Math.round(Number(partida.metrado ?? 0) * calc.pu * 100) / 100;
     const { error: err } = await apuDb.from(tabla).update(cambios).eq("id", partida.id);
     if (err) return setError(err.message);
     qc.invalidateQueries({ queryKey: ["partidas_maestras"] });
