@@ -6,6 +6,7 @@ import { Encabezado } from "@/components/AppShell";
 import { ApuPartida } from "@/components/ApuPartida";
 import { apuDb } from "@/lib/apu";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
+import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
@@ -35,7 +36,6 @@ import {
   type EstadoCotizacion,
 } from "@/lib/cotizaciones";
 import { Check, Calculator, CornerDownRight, ListOrdered, Upload, X } from "lucide-react";
-import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 
 export const Route = createFileRoute("/_authenticated/cotizaciones")({
   head: () => ({
@@ -61,9 +61,6 @@ function Cotizaciones() {
   const { rol } = useAuth();
   const qc = useQueryClient();
   const { data: todasCotizaciones = [] } = useCotizaciones();
-  const cotizaciones = todasCotizaciones.filter((c) =>
-    coincide(busqueda, c.codigo, c.nombre, c.cliente, c.ubicacion),
-  );
   const { data: especialidades = [] } = useEspecialidadesPartida();
   const { data: unidades = [] } = useUnidadesMedida();
   const { data: maestras = [] } = usePartidasMaestras();
@@ -88,7 +85,10 @@ function Cotizaciones() {
   const [error, setError] = useState("");
   const [aviso, setAviso] = useState("");
   const [busqueda, setBusqueda] = useState("");
-  const [busqueda, setBusqueda] = useState("");
+
+  const cotizaciones = todasCotizaciones.filter((c) =>
+    coincide(busqueda, c.codigo, c.nombre, c.cliente, c.ubicacion),
+  );
 
   const [form, setForm] = useState({
     codigo: "",
@@ -117,7 +117,7 @@ function Cotizaciones() {
   const sugerirCodigo = (especialidad: string, categoria = "") =>
     codigoContextual(especialidad, categoria, items);
 
-  const cot = cotizaciones.find((c) => c.id === seleccion) ?? null;
+  const cot = todasCotizaciones.find((c) => c.id === seleccion) ?? null;
   const totales = cot
     ? totalesCotizacion(items, Number(cot.pct_gastos_generales), Number(cot.pct_utilidad))
     : null;
@@ -125,8 +125,8 @@ function Cotizaciones() {
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
   const totalDe = (id: string) => {
-    const c = cotizaciones.find((x) => x.id === id);
-    if (!c || c.id !== seleccion) return null;
+    const c = todasCotizaciones.find((x) => x.id === id);
+    if (!c) return null;
     return totalesCotizacion(items, Number(c.pct_gastos_generales), Number(c.pct_utilidad)).total;
   };
 
@@ -470,440 +470,429 @@ function Cotizaciones() {
             />
           </Campo>
           <div className="sm:col-span-4">
-            <Campo etiqueta="Condiciones comerciales">
-              <Input value={form.condiciones} onChange={(e) => setForm({ ...form, condiciones: e.target.value })} maxLength={300} />
+            <Campo etiqueta="Condiciones comerciales (notas al pie)">
+              <textarea
+                className="w-full rounded-md border border-line bg-card p-2 text-xs outline-none focus:border-primary"
+                rows={2}
+                value={form.condiciones}
+                onChange={(e) => setForm({ ...form, condiciones: e.target.value })}
+              />
             </Campo>
           </div>
-          <div className="sm:col-span-4">
-            <Boton type="submit">Crear cotización</Boton>
+          <div className="sm:col-span-4 flex justify-end">
+            <Boton type="submit">Crear borrador</Boton>
           </div>
-          {error && <p className="font-mono text-xs text-bad sm:col-span-4">{error}</p>}
-          {aviso && <p className="font-mono text-xs text-good sm:col-span-4">{aviso}</p>}
         </form>
       </Panel>
 
-      <Panel titulo="Cotizaciones registradas" className="mb-4">
-         {cotizaciones.length === 0 ? (
-          <Vacio texto={busqueda ? `Sin coincidencias para «${busqueda}»` : "Aún no hay cotizaciones registradas."} />
-        ) : (
-          <Vacio texto="Aún no hay cotizaciones." />
-        ) : (
-          <table className="w-full font-mono text-xs">
-            <thead>
-              <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                <th className="px-5 py-2 font-medium">Código</th>
-                <th className="px-3 py-2 font-medium">Cliente</th>
-                <th className="px-3 py-2 font-medium">Trabajo</th>
-                <th className="px-3 py-2 font-medium">Emisión</th>
-                <th className="px-3 py-2 font-medium">Vigente hasta</th>
-                <th className="px-3 py-2 text-right font-medium">Total</th>
-                <th className="px-3 py-2 font-medium">Estado</th>
-                <th className="px-5 py-2 text-right font-medium">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {cotizaciones.map((c) => {
-                const total = totalDe(c.id);
-                return (
-                  <tr
-                    key={c.id}
-                    className={`border-b border-line/60 last:border-0 ${c.id === seleccion ? "bg-primary/5" : ""}`}
-                  >
-                    <td className="px-5 py-2.5 font-semibold text-primary">{c.codigo ?? "—"}</td>
-                    <td className="px-3 py-2.5 text-muted-foreground">{c.cliente || "—"}</td>
-                    <td className="px-3 py-2.5 font-semibold text-ink"><Resaltar texto=<Resaltar texto={c.nombre} termino={busqueda} /> termino={busqueda} /></td>
-                    <td className="px-3 py-2.5 text-muted-foreground">{fmtFecha(c.fecha_emision)}</td>
-                    <td className="px-3 py-2.5 text-muted-foreground">
-                      {fmtFecha(vigenciaHasta(c.fecha_emision, Number(c.validez_dias)))}
-                    </td>
-                    <td className="px-3 py-2.5 text-right">{total === null ? "—" : soles(total)}</td>
-                    <td className="px-3 py-2.5">
-                      <Etiqueta tono={tonoEstado(c.estado)}>{c.estado}</Etiqueta>
-                    </td>
-                    <td className="px-5 py-2.5 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Boton variante="linea" onClick={() => setSeleccion(c.id === seleccion ? null : c.id)}>
-                          {c.id === seleccion ? "Cerrar" : "Abrir"}
-                        </Boton>
-                        <Boton variante="peligro" onClick={() => borrarCotizacion(c.id)}>
-                          Eliminar
-                        </Boton>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        )}
-      </Panel>
-
-      {cot && totales && (
+      <div className="grid gap-4 lg:grid-cols-12">
         <Panel
-          titulo={`${cot.codigo ?? "Cotización"} · ${cot.nombre}`}
-          extra={
-            <div className="flex flex-wrap items-center gap-2">
-              <Select
-                className="w-40"
-                value={cot.estado}
-                onChange={(e) => cambiarEstado(cot.id, e.target.value as EstadoCotizacion)}
-              >
-                {ESTADOS_COTIZACION.map((e) => (
-                  <option key={e} value={e}>
-                    {e}
-                  </option>
-                ))}
-              </Select>
-              <Boton onClick={convertirEnObra} disabled={Boolean(cot.proyecto_id)}>
-                {cot.proyecto_id ? "Obra generada" : "Convertir en obra"}
-              </Boton>
-              <Boton variante="linea" onClick={() => void renumerarCotizacion()}>
-                <ListOrdered size={13} /> Renumerar WBS
-              </Boton>
-            </div>
-          }
+          titulo="Listado de cotizaciones"
+          className="lg:col-span-4"
+          extra={<Buscador valor={busqueda} onChange={setBusqueda} total={cotizaciones.length} placeholder="Buscar cotización..." />}
         >
-          <div className="grid gap-3 border-b border-line bg-muted/30 p-4 sm:grid-cols-4">
-            <div>
-              <p className="label-mono">Costo directo</p>
-              <p className="font-mono text-sm font-semibold">{soles(totales.costoDirecto)}</p>
-            </div>
-            <div>
-              <p className="label-mono">Gastos generales ({cantidad(cot.pct_gastos_generales)}%)</p>
-              <p className="font-mono text-sm font-semibold">{soles(totales.gastosGenerales)}</p>
-            </div>
-            <div>
-              <p className="label-mono">Utilidad ({cantidad(cot.pct_utilidad)}%)</p>
-              <p className="font-mono text-sm font-semibold">{soles(totales.utilidad)}</p>
-            </div>
-            <div>
-              <p className="label-mono">Total ofertado (sin IGV)</p>
-              <p className="font-mono text-sm font-semibold text-primary">{soles(totales.total)}</p>
-            </div>
-          </div>
-
-          <form onSubmit={agregarItem} className="grid gap-3 border-b border-line p-5 sm:grid-cols-6">
-            <div className="sm:col-span-6">
-              <Campo etiqueta="Partida del catálogo maestro">
-                <Select
-                  value={maestraSel}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    setMaestraSel(v);
-                    if (v === "manual" || v === "") {
-                      setItem({
-                        codigo: "",
-                        nombre: "",
-                        especialidad: "",
-                        categoria: "",
-                        unidad: item.unidad,
-                        metrado: "1",
-                        precio_unitario: "",
-                      });
-                      return;
-                    }
-                    const m = maestras.find((x) => x.id === v);
-                    if (!m) return;
-                    setItem({
-                      codigo: sugerirCodigo(m.especialidad, m.categoria ?? ""),
-                      nombre: m.nombre,
-                      especialidad: m.especialidad,
-                      categoria: m.categoria ?? "",
-                      unidad: m.unidad,
-                      metrado: "1",
-                      precio_unitario: String(m.precio_unitario ?? 0),
-                    });
-                  }}
-                >
-                  <option value="">Elige una partida del catálogo maestro...</option>
-                  <option value="manual">Escribir manualmente (partida libre)</option>
-                  {maestras
-                    .filter((m) => m.activo)
-                    .map((m) => (
-                      <option key={m.id} value={m.id}>
-                        {m.nombre} · {m.unidad} · {soles(Number(m.precio_unitario))}
-                      </option>
-                    ))}
-                </Select>
-              </Campo>
-              <p className="mt-1 font-mono text-[10px] text-muted-foreground">
-                {maestraSel && maestraSel !== "manual"
-                  ? "Descripción y clasificación vinculadas al catálogo maestro."
-                  : "Campos libres: escribe la descripción y selecciona su clasificación."}
-              </p>
-            </div>
-            <Campo etiqueta="Código">
-              <Input
-                value={item.codigo}
-                onChange={(e) => setItem({ ...item, codigo: e.target.value })}
-                maxLength={20}
-                placeholder="01.01.01"
-              />
-            </Campo>
-            <div className="sm:col-span-2">
-              <Campo etiqueta="Descripción de la partida">
-                <Input
-                  value={item.nombre}
-                  onChange={(e) => setItem({ ...item, nombre: e.target.value })}
-                  required
-                  maxLength={160}
-                  placeholder="Escribe la descripción de la partida"
-                />
-              </Campo>
-            </div>
-            <Campo etiqueta="Especialidad">
-              <Select
-                value={item.especialidad}
-                onChange={(e) => {
-                  const especialidad = e.target.value;
-                  setItem({
-                    ...item,
-                    especialidad,
-                    categoria: "",
-                    codigo: sugerirCodigo(especialidad),
-                  });
-                }}
-              >
-                <option value="">Selecciona...</option>
-                {especialidades
-                  .filter((e) => e.activo)
-                  .map((e) => (
-                    <option key={e.id} value={e.nombre}>
-                      {e.nombre}
-                    </option>
-                  ))}
-              </Select>
-            </Campo>
-            <Campo etiqueta="Categoría">
-              <Select
-                value={item.categoria}
-                onChange={(e) => {
-                  const categoria = e.target.value;
-                  setItem({
-                    ...item,
-                    categoria,
-                    codigo: sugerirCodigo(item.especialidad, categoria),
-                  });
-                }}
-              >
-                <option value="">Sin categoría</option>
-                {categoriasDe(item.especialidad, categorias).map((c) => (
-                  <option key={c.id} value=<Resaltar texto=<Resaltar texto={c.nombre} termino={busqueda} /> termino={busqueda} />>
-                    <Resaltar texto=<Resaltar texto={c.nombre} termino={busqueda} /> termino={busqueda} />
-                  </option>
-                ))}
-              </Select>
-            </Campo>
-            <Campo etiqueta="Unidad">
-              <Select value={item.unidad} onChange={(e) => setItem({ ...item, unidad: e.target.value })}>
-                {unidades
-                  .filter((u) => u.activo)
-                  .map((u) => (
-                    <option key={u.id} value={u.simbolo}>
-                      {u.simbolo}
-                    </option>
-                  ))}
-              </Select>
-            </Campo>
-            <Campo etiqueta="Metrado">
-              <Input
-                type="number"
-                step="0.01"
-                min="0"
-                value={item.metrado}
-                onChange={(e) => setItem({ ...item, metrado: e.target.value })}
-                required
-              />
-            </Campo>
-            <Campo etiqueta="Precio unitario (S/)">
-              <Input
-                type="number"
-                step="0.01"
-                min="0"
-                value={item.precio_unitario}
-                onChange={(e) => setItem({ ...item, precio_unitario: e.target.value })}
-                required
-              />
-            </Campo>
-            <div className="flex items-end gap-3 sm:col-span-5">
-              <Boton type="submit">Agregar partida</Boton>
-              <Boton type="button" variante="linea" onClick={guardarEnBanco}>
-                Guardar en el banco
-              </Boton>
-              <span className="font-mono text-xs text-muted-foreground">
-                Parcial:{" "}
-                <strong className="text-ink">
-                  {soles(Number(item.metrado || 0) * Number(item.precio_unitario || 0))}
-                </strong>
-              </span>
-            </div>
-          </form>
-
-          {items.length === 0 ? (
-            <Vacio texto="Esta cotización todavía no tiene partidas." />
+          {cotizaciones.length === 0 ? (
+            <Vacio texto={busqueda ? `Sin coincidencias para «${busqueda}»` : "Aún no hay cotizaciones registradas."} />
           ) : (
-            <table className="w-full font-mono text-xs">
-              <thead>
-                <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                  <th className="px-5 py-2 font-medium">Código</th>
-                  <th className="px-3 py-2 font-medium">Partida</th>
-                  <th className="px-3 py-2 font-medium">Und.</th>
-                  <th className="px-3 py-2 text-right font-medium">Metrado</th>
-                  <th className="px-3 py-2 text-right font-medium">P.U. (S/)</th>
-                  <th className="px-3 py-2 text-right font-medium">Parcial (S/)</th>
-                  <th className="px-5 py-2 text-right font-medium">Acciones</th>
-                </tr>
-              </thead>
-              {agruparPorCategoria(items).map((grupo) => {
-                const wbs = prefijosWBS(items);
-                const subtotalEspecialidad = grupo.categorias.reduce(
-                  (total, sub) =>
-                    total + sub.items.reduce((s, i) => s + Number(i.metrado) * Number(i.precio_unitario), 0),
-                  0,
-                );
-                return (
-                <tbody key={grupo.especialidad}>
-                  <tr className="border-b border-line/40 bg-muted/40">
-                    <td className="px-5 py-2 font-semibold text-ink">{wbs.capitulo(grupo.especialidad)}</td>
-                    <td colSpan={4} className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-ink">
-                      {grupo.especialidad}
-                    </td>
-                    <td className="px-3 py-2 text-right font-semibold text-ink">{soles(subtotalEspecialidad)}</td>
-                    <td />
-                  </tr>
-                  {grupo.categorias.map((sub) => {
-                    const subtotal = sub.items.reduce(
-                      (s, i) => s + Number(i.metrado) * Number(i.precio_unitario),
-                      0,
-                    );
-                    return (
-                      <React.Fragment key={`${grupo.especialidad}-${sub.categoria}`}>
-                        <tr className="bg-muted/20">
-                          <td className="px-5 py-1.5 pl-8 text-[10px] font-semibold text-ink">
-                            {wbs.categoria(grupo.especialidad, sub.categoria)}
-                          </td>
-                          <td colSpan={4} className="px-3 py-1.5 text-[11px] font-semibold text-muted-foreground">
-                            {sub.categoria}
-                          </td>
-                          <td className="px-3 py-1.5 text-right font-semibold text-ink">{soles(subtotal)}</td>
-                          <td />
+            <div className="space-y-1 p-2">
+              {cotizaciones.map((c) => (
+                <button
+                  key={c.id}
+                  onClick={() => setSeleccion(c.id)}
+                  className={`w-full rounded-md border p-3 text-left transition-all ${
+                    seleccion === c.id ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-line bg-card hover:bg-muted/50"
+                  }`}
+                >
+                  <div className="mb-1 flex items-start justify-between gap-2">
+                    <span className="font-mono text-[10px] font-bold text-primary"><Resaltar texto={c.codigo} termino={busqueda} /></span>
+                    <Etiqueta tono={tonoEstado(c.estado as EstadoCotizacion)}>{c.estado}</Etiqueta>
+                  </div>
+                  <p className="line-clamp-2 text-xs font-semibold text-ink"><Resaltar texto={c.nombre} termino={busqueda} /></p>
+                  <p className="mt-1 truncate font-mono text-[10px] text-muted-foreground"><Resaltar texto={c.cliente} termino={busqueda} /></p>
+                  <div className="mt-2 flex items-center justify-between border-t border-line/40 pt-2 font-mono text-[10px]">
+                    <span className="text-muted-foreground">{fmtFecha(c.fecha_emision)}</span>
+                    <span className="font-bold text-ink">{soles(totalDe(c.id) ?? 0)}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </Panel>
+
+        <div className="lg:col-span-8">
+          {!cot ? (
+            <Vacio texto="Selecciona una cotización del listado para ver su detalle y gestionar sus partidas." />
+          ) : (
+            <div className="space-y-4">
+              {error && <p className="font-mono text-xs text-bad">{error}</p>}
+              {aviso && <p className="font-mono text-xs text-good">{aviso}</p>}
+
+              <Panel
+                titulo={`Detalle: ${cot.codigo}`}
+                extra={
+                  <div className="flex items-center gap-2">
+                    <Select
+                      className="py-1 text-[10px]"
+                      value={cot.estado}
+                      onChange={(e) => cambiarEstado(cot.id, e.target.value as EstadoCotizacion)}
+                    >
+                      {ESTADOS_COTIZACION.map((e) => (
+                        <option key={e} value={e}>
+                          {e}
+                        </option>
+                      ))}
+                    </Select>
+                    <Boton variante="linea" onClick={convertirEnObra} deshabilitado={cot.estado === "Aprobada" || !!cot.proyecto_id}>
+                      Convertir en Obra
+                    </Boton>
+                    <button
+                      onClick={() => borrarCotizacion(cot.id)}
+                      className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-bad hover:text-bad"
+                      title="Eliminar cotización"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                }
+              >
+                <div className="grid gap-4 border-b border-line bg-muted/20 p-4 text-[11px] sm:grid-cols-3">
+                  <div>
+                    <span className="block text-[9px] uppercase tracking-wider text-muted-foreground">Cliente</span>
+                    <span className="font-semibold">{cot.cliente}</span>
+                  </div>
+                  <div>
+                    <span className="block text-[9px] uppercase tracking-wider text-muted-foreground">Ubicación</span>
+                    <span className="font-semibold"><Resaltar texto={cot.ubicacion} termino={busqueda} /></span>
+                  </div>
+                  <div>
+                    <span className="block text-[9px] uppercase tracking-wider text-muted-foreground">Validez</span>
+                    <span className="font-semibold">
+                      Hasta el {fmtFecha(vigenciaHasta(cot.fecha_emision, Number(cot.validez_dias)))} ({cot.validez_dias} días)
+                    </span>
+                  </div>
+                </div>
+
+                <div className="p-4">
+                  <h4 className="mb-3 font-mono text-[10px] font-bold uppercase tracking-widest text-primary">
+                    Agregar partida a la propuesta
+                  </h4>
+                  <form onSubmit={agregarItem} className="grid gap-3 sm:grid-cols-6">
+                    <Campo etiqueta="Banco maestro">
+                      <Select
+                        className="py-1.5"
+                        value={maestraSel}
+                        onChange={(e) => {
+                          const m = maestras.find((x) => x.id === e.target.value);
+                          setMaestraSel(e.target.value);
+                          if (m) {
+                            setItem({
+                              ...item,
+                              nombre: m.nombre,
+                              especialidad: m.especialidad || "",
+                              categoria: m.categoria || "",
+                              unidad: m.unidad,
+                              precio_unitario: String(m.precio_unitario),
+                            });
+                          }
+                        }}
+                      >
+                        <option value="">(Nueva partida libre)</option>
+                        {maestras
+                          .filter((m) => m.activo)
+                          .map((m) => (
+                            <option key={m.id} value={m.id}>
+                              {m.nombre}
+                            </option>
+                          ))}
+                      </Select>
+                    </Campo>
+                    <div className="sm:col-span-2">
+                      <Campo etiqueta="Descripción de partida">
+                        <Input
+                          value={item.nombre}
+                          onChange={(e) => setItem({ ...item, nombre: e.target.value })}
+                          required
+                          maxLength={160}
+                        />
+                      </Campo>
+                    </div>
+                    <Campo etiqueta="Especialidad">
+                      <Select
+                        value={item.especialidad}
+                        onChange={(e) => setItem({ ...item, especialidad: e.target.value, categoria: "" })}
+                      >
+                        <option value="">Otros/Varios</option>
+                        {especialidades.filter((e) => e.activo).map((e) => (
+                          <option key={e.id} value={e.nombre}>
+                            {e.nombre}
+                          </option>
+                        ))}
+                      </Select>
+                    </Campo>
+                    <Campo etiqueta="Categoría">
+                      <Select
+                        value={item.categoria}
+                        onChange={(e) => setItem({ ...item, categoria: e.target.value })}
+                      >
+                        <option value="">Sin categoría</option>
+                        {categoriasDe(item.especialidad, categorias).map((c) => (
+                          <option key={c.id} value={c.nombre}>
+                            {c.nombre}
+                          </option>
+                        ))}
+                      </Select>
+                    </Campo>
+                    <Campo etiqueta="Código WBS">
+                      <Input
+                        className="font-mono"
+                        placeholder={sugerirCodigo(item.especialidad, item.categoria)}
+                        value={item.codigo}
+                        onChange={(e) => setItem({ ...item, codigo: e.target.value })}
+                      />
+                    </Campo>
+                    <Campo etiqueta="Unidad">
+                      <Select value={item.unidad} onChange={(e) => setItem({ ...item, unidad: e.target.value })}>
+                        {unidades.filter((u) => u.activo).map((u) => (
+                          <option key={u.id} value={u.simbolo}>
+                            {u.simbolo}
+                          </option>
+                        ))}
+                      </Select>
+                    </Campo>
+                    <Campo etiqueta="Metrado">
+                      <Input
+                        type="number"
+                        step="any"
+                        value={item.metrado}
+                        onChange={(e) => setItem({ ...item, metrado: e.target.value })}
+                      />
+                    </Campo>
+                    <Campo etiqueta="Precio Unitario (S/)">
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={item.precio_unitario}
+                        onChange={(e) => setItem({ ...item, precio_unitario: e.target.value })}
+                      />
+                    </Campo>
+                    <div className="flex items-end gap-2 sm:col-span-2">
+                      <Boton type="submit" className="w-full">
+                        Agregar partida
+                      </Boton>
+                      <button
+                        type="button"
+                        onClick={guardarEnBanco}
+                        title="Guardar esta descripción y precio en el banco maestro"
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-line hover:bg-muted"
+                      >
+                        <Upload size={16} />
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </Panel>
+
+              <Panel
+                titulo="Cuerpo de la cotización"
+                extra={
+                  <div className="flex items-center gap-3 font-mono text-[10px]">
+                    <button
+                      onClick={renumerarCotizacion}
+                      className="flex items-center gap-1.5 text-muted-foreground hover:text-primary"
+                    >
+                      <ListOrdered size={13} /> Renumerar WBS
+                    </button>
+                    <span className="text-muted-foreground">Total partidas: {items.length}</span>
+                  </div>
+                }
+              >
+                {items.length === 0 ? (
+                  <Vacio texto="No hay partidas en esta cotización. Agrega una arriba para comenzar." />
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full min-w-[900px] table-fixed font-mono text-[11px]">
+                      <thead>
+                        <tr className="border-b border-line bg-muted/10 text-left text-[9px] uppercase tracking-wider text-muted-foreground">
+                          <th className="w-[8%] px-4 py-2 font-medium">Ítem</th>
+                          <th className="w-[38%] px-2 py-2 font-medium">Descripción</th>
+                          <th className="w-[8%] px-2 py-2 font-medium">Unidad</th>
+                          <th className="w-[10%] px-2 py-2 text-right font-medium">Metrado</th>
+                          <th className="w-[12%] px-2 py-2 text-right font-medium">P. Unitario</th>
+                          <th className="w-[12%] px-2 py-2 text-right font-medium">Parcial</th>
+                          <th className="w-[12%] px-4 py-2"></th>
                         </tr>
-                        {ordenarJerarquia(sub.items).map(({ fila: i, nivel, agrupadora, hijos }) => {
-                          const parcial = agrupadora
-                            ? hijos.reduce((s, h) => s + Number(h.metrado) * Number(h.precio_unitario), 0)
-                            : Number(i.metrado) * Number(i.precio_unitario);
-                          const ultimoHijo =
-                            nivel === 4 && sub.items.filter((x) => x.padre_id === i.padre_id).at(-1)?.id === i.id;
-                          const formAqui =
-                            nuevaSub &&
-                            ((nivel === 4 && ultimoHijo && nuevaSub.padre_id === i.padre_id) ||
-                              (nivel === 3 && !agrupadora && nuevaSub.padre_id === i.id));
-                          return (
-                            <React.Fragment key={i.id}>
-                              <tr className={`border-b border-line/60 ${agrupadora ? "bg-muted/10" : ""}`}>
-                                <td className={`px-5 py-2.5 text-primary ${nivel === 4 ? "pl-12" : "pl-8"}`}>{i.codigo || "—"}</td>
-                                <td className={`px-3 py-2.5 text-ink ${nivel === 4 ? "pl-6" : "font-semibold"}`}>
-                                  {nivel === 4 && <CornerDownRight size={11} className="mr-1 inline text-muted-foreground" />}
-                                  {i.nombre}
-                                  {agrupadora && (
-                                    <span className="ml-1.5 text-[9px] uppercase text-muted-foreground">({hijos.length} subpartidas)</span>
-                                  )}
-                                </td>
-                                <td className="px-3 py-2.5 text-muted-foreground">{agrupadora ? "—" : i.unidad}</td>
-                                <td className="px-3 py-2.5 text-right">{agrupadora ? "—" : cantidad(i.metrado)}</td>
-                                <td className="px-3 py-2.5 text-right">{agrupadora ? "—" : soles(Number(i.precio_unitario))}</td>
-                                <td className="px-3 py-2.5 text-right font-semibold">{soles(parcial)}</td>
-                                <td className="px-5 py-2.5 text-right">
-                                  <div className="flex items-center justify-end gap-2">
-                                    {!agrupadora && (
+                      </thead>
+                      <tbody>
+                        {agruparPorCategoria(items).map((g) => (
+                          <React.Fragment key={g.titulo}>
+                            <tr className="bg-muted/30 font-bold text-primary">
+                              <td colSpan={7} className="px-4 py-1.5 uppercase tracking-wide">
+                                {g.titulo}
+                              </td>
+                            </tr>
+                            {ordenarJerarquia(g.items).map((i) => {
+                              const esPadre = items.some((x) => x.padre_id === i.id);
+                              const sangria = i.padre_id ? "pl-8" : "pl-4";
+                              return (
+                                <tr key={i.id} className="group border-b border-line/50 hover:bg-muted/20">
+                                  <td className={`py-2 pr-2 font-bold text-muted-foreground ${sangria}`}>
+                                    {i.codigo}
+                                  </td>
+                                  <td className="px-2 py-2 text-ink">
+                                    <div className="flex items-start gap-1.5">
+                                      {i.padre_id && <CornerDownRight size={10} className="mt-1 flex-shrink-0 text-muted-foreground/50" />}
+                                      <span className={esPadre ? "font-bold" : ""}>{i.nombre}</span>
+                                    </div>
+                                  </td>
+                                  <td className="px-2 py-2 text-muted-foreground">{i.unidad}</td>
+                                  <td className="px-2 py-2 text-right">
+                                    {esPadre ? "—" : cantidad(i.metrado)}
+                                  </td>
+                                  <td className="px-2 py-2 text-right">
+                                    {esPadre ? "—" : soles(Number(i.precio_unitario))}
+                                  </td>
+                                  <td className="px-2 py-2 text-right font-bold">
+                                    {soles(Number(i.metrado) * Number(i.precio_unitario))}
+                                  </td>
+                                  <td className="px-4 py-2 text-right opacity-0 transition-opacity group-hover:opacity-100">
+                                    <div className="flex justify-end gap-1.5">
+                                      {!i.padre_id && (
+                                        <button
+                                          onClick={() => abrirSubpartida(i)}
+                                          className="flex h-6 w-6 items-center justify-center rounded border border-line bg-card hover:border-primary hover:text-primary"
+                                          title="Añadir subpartida"
+                                        >
+                                          <CornerDownRight size={12} />
+                                        </button>
+                                      )}
                                       <button
-                                        type="button"
                                         onClick={() => setApu(i)}
-                                        title="Análisis de precios unitarios"
-                                        className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"
+                                        className="flex h-6 w-6 items-center justify-center rounded border border-line bg-card hover:border-primary hover:text-primary"
+                                        title="Análisis de Precios Unitarios (APU)"
                                       >
-                                        <Calculator size={14} />
+                                        <Calculator size={12} />
                                       </button>
-                                    )}
-                                    {nivel === 3 && (
                                       <button
-                                        type="button"
-                                        onClick={() => abrirSubpartida(i)}
-                                        title="Agregar subpartida (4.° nivel)"
-                                        className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"
+                                        onClick={() => borrarItem(i.id)}
+                                        className="flex h-6 w-6 items-center justify-center rounded border border-line bg-card hover:border-bad hover:text-bad"
+                                        title="Quitar"
                                       >
-                                        <CornerDownRight size={14} />
-                                      </button>
-                                    )}
-                                    <Boton variante="peligro" onClick={() => borrarItem(i.id)}>
-                                      Quitar
-                                    </Boton>
-                                  </div>
-                                </td>
-                              </tr>
-                              {formAqui && (
-                                <tr className="border-b border-line/60 bg-primary/5">
-                                  <td className="px-5 py-2 pl-12">
-                                    <Input value={nuevaSub.codigo} onChange={(e) => setNuevaSub({ ...nuevaSub, codigo: e.target.value })}
-                                      className="py-1 font-mono text-xs" placeholder="01.01.01.01" />
-                                  </td>
-                                  <td className="px-3 py-2">
-                                    <Input autoFocus value={nuevaSub.nombre} onChange={(e) => setNuevaSub({ ...nuevaSub, nombre: e.target.value })}
-                                      className="py-1 text-xs" placeholder="Descripción de la subpartida" />
-                                  </td>
-                                  <td className="px-3 py-2">
-                                    <Input value={nuevaSub.unidad} onChange={(e) => setNuevaSub({ ...nuevaSub, unidad: e.target.value })}
-                                      className="py-1 text-xs" />
-                                  </td>
-                                  <td className="px-3 py-2">
-                                    <Input type="number" step="0.01" min="0" value={nuevaSub.metrado}
-                                      onChange={(e) => setNuevaSub({ ...nuevaSub, metrado: e.target.value })} className="py-1 text-right text-xs" />
-                                  </td>
-                                  <td className="px-3 py-2">
-                                    <Input type="number" step="0.01" min="0" value={nuevaSub.precio_unitario}
-                                      onChange={(e) => setNuevaSub({ ...nuevaSub, precio_unitario: e.target.value })} className="py-1 text-right text-xs" />
-                                  </td>
-                                  <td className="px-3 py-2 text-right font-semibold">
-                                    {soles(Number(nuevaSub.metrado || 0) * Number(nuevaSub.precio_unitario || 0))}
-                                  </td>
-                                  <td className="px-5 py-2">
-                                    <div className="flex items-center justify-end gap-1">
-                                      <button type="button" onClick={() => void guardarSubpartida()} title="Guardar subpartida"
-                                        className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground">
-                                        <Check size={14} />
-                                      </button>
-                                      <button type="button" onClick={() => setNuevaSub(null)} title="Cancelar"
-                                        className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line hover:bg-muted">
-                                        <X size={14} />
+                                        <X size={12} />
                                       </button>
                                     </div>
                                   </td>
                                 </tr>
-                              )}
-                            </React.Fragment>
-                          );
-                        })}
-                      </React.Fragment>
-                    );
-                  })}
-                </tbody>
-                );
-              })}
-            </table>
+                              );
+                            })}
+                          </React.Fragment>
+                        ))}
+                      </tbody>
+                      <tfoot>
+                        <tr className="border-t-2 border-primary/20 bg-muted/5 font-mono text-[11px]">
+                          <td colSpan={5} className="px-4 py-2 text-right font-bold uppercase tracking-wider text-muted-foreground">
+                            Costo Directo Total
+                          </td>
+                          <td className="px-2 py-2 text-right font-bold text-ink">
+                            {soles(totales?.costoDirecto ?? 0)}
+                          </td>
+                          <td></td>
+                        </tr>
+                        <tr className="border-b border-line bg-card text-[10px]">
+                          <td colSpan={5} className="px-4 py-1.5 text-right text-muted-foreground">
+                            Gastos Generales ({cot.pct_gastos_generales}%)
+                          </td>
+                          <td className="px-2 py-1.5 text-right text-ink">
+                            {soles(totales?.gastosGenerales ?? 0)}
+                          </td>
+                          <td></td>
+                        </tr>
+                        <tr className="border-b border-line bg-card text-[10px]">
+                          <td colSpan={5} className="px-4 py-1.5 text-right text-muted-foreground">
+                            Utilidad ({cot.pct_utilidad}%)
+                          </td>
+                          <td className="px-2 py-1.5 text-right text-ink">{soles(totales?.utilidad ?? 0)}</td>
+                          <td></td>
+                        </tr>
+                        <tr className="bg-primary/5 text-xs font-bold">
+                          <td colSpan={5} className="px-4 py-3 text-right uppercase tracking-widest text-primary">
+                            Total Presupuesto (Soles, sin IGV)
+                          </td>
+                          <td className="px-2 py-3 text-right text-primary">{soles(totales?.total ?? 0)}</td>
+                          <td></td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                )}
+                {cot.condiciones && (
+                  <div className="mt-4 border-t border-line p-4">
+                    <h5 className="mb-1 text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
+                      Condiciones comerciales
+                    </h5>
+                    <p className="whitespace-pre-wrap text-[10px] text-muted-foreground">
+                      {cot.condiciones}
+                    </p>
+                  </div>
+                )}
+              </Panel>
+            </div>
           )}
+        </div>
+      </div>
 
-          <p className="border-t border-line px-5 py-3 text-[11px] leading-snug text-muted-foreground">
-            {cot.condiciones || "Sin condiciones comerciales registradas."}
-          </p>
-        </Panel>
-      )}
-      {apu && (
-        <ApuPartida
-          origen="cotizacion"
-          partida={{ ...apu, rendimiento: Number(apu.rendimiento ?? 1), jornada: Number(apu.jornada ?? 8), pct_herramientas: Number(apu.pct_herramientas ?? 3), metrado: Number(apu.metrado ?? 0) }}
-          invalidar={[["cotizacion_items", seleccion]]}
-          onCerrar={() => setApu(null)}
-        />
+      {apu && <ApuPartida partida={apu} cotizacionId={cot?.id} onCerrar={() => setApu(null)} />}
+
+      {nuevaSub && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-ink/40 p-4 backdrop-blur-sm">
+          <Panel titulo="Nueva subpartida" className="w-full max-w-md shadow-2xl">
+            <div className="grid gap-3 p-4">
+              <Campo etiqueta="Código WBS">
+                <Input
+                  className="font-mono"
+                  value={nuevaSub.codigo}
+                  onChange={(e) => setNuevaSub({ ...nuevaSub, codigo: e.target.value })}
+                />
+              </Campo>
+              <Campo etiqueta="Descripción">
+                <Input
+                  value={nuevaSub.nombre}
+                  onChange={(e) => setNuevaSub({ ...nuevaSub, nombre: e.target.value })}
+                  autoFocus
+                />
+              </Campo>
+              <div className="grid grid-cols-3 gap-3">
+                <Campo etiqueta="Und.">
+                  <Input
+                    value={nuevaSub.unidad}
+                    onChange={(e) => setNuevaSub({ ...nuevaSub, unidad: e.target.value })}
+                  />
+                </Campo>
+                <Campo etiqueta="Metrado">
+                  <Input
+                    type="number"
+                    step="any"
+                    value={nuevaSub.metrado}
+                    onChange={(e) => setNuevaSub({ ...nuevaSub, metrado: e.target.value })}
+                  />
+                </Campo>
+                <Campo etiqueta="P.U. (S/)">
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={nuevaSub.precio_unitario}
+                    onChange={(e) => setNuevaSub({ ...nuevaSub, precio_unitario: e.target.value })}
+                  />
+                </Campo>
+              </div>
+              <div className="mt-2 flex justify-end gap-2">
+                <Boton variante="linea" onClick={() => setNuevaSub(null)}>
+                  Cancelar
+                </Boton>
+                <Boton onClick={guardarSubpartida}>Agregar subpartida</Boton>
+              </div>
+            </div>
+          </Panel>
+        </div>
       )}
     </>
   );
