@@ -931,6 +931,194 @@ export type Database = {
         }
         Relationships: []
       }
+      movimientos_almacen: {
+        Row: {
+          cantidad: number
+          costo_unitario: number
+          creado_por: string | null
+          created_at: string
+          descripcion: string
+          documento: string
+          fecha: string
+          id: string
+          insumo_id: string | null
+          observacion: string
+          orden_item_id: string | null
+          proyecto_id: string
+          tipo: string
+          unidad: string
+        }
+        Insert: {
+          cantidad: number
+          costo_unitario?: number
+          creado_por?: string | null
+          created_at?: string
+          descripcion: string
+          documento?: string
+          fecha?: string
+          id?: string
+          insumo_id?: string | null
+          observacion?: string
+          orden_item_id?: string | null
+          proyecto_id: string
+          tipo: string
+          unidad?: string
+        }
+        Update: {
+          cantidad?: number
+          costo_unitario?: number
+          creado_por?: string | null
+          created_at?: string
+          descripcion?: string
+          documento?: string
+          fecha?: string
+          id?: string
+          insumo_id?: string | null
+          observacion?: string
+          orden_item_id?: string | null
+          proyecto_id?: string
+          tipo?: string
+          unidad?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "movimientos_almacen_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "insumos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "movimientos_almacen_orden_item_id_fkey"
+            columns: ["orden_item_id"]
+            isOneToOne: false
+            referencedRelation: "orden_compra_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "movimientos_almacen_proyecto_id_fkey"
+            columns: ["proyecto_id"]
+            isOneToOne: false
+            referencedRelation: "proyectos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orden_compra_items: {
+        Row: {
+          cantidad: number
+          created_at: string
+          descripcion: string
+          id: string
+          insumo_id: string | null
+          orden_id: string
+          precio_unitario: number
+          unidad: string
+        }
+        Insert: {
+          cantidad?: number
+          created_at?: string
+          descripcion: string
+          id?: string
+          insumo_id?: string | null
+          orden_id: string
+          precio_unitario?: number
+          unidad?: string
+        }
+        Update: {
+          cantidad?: number
+          created_at?: string
+          descripcion?: string
+          id?: string
+          insumo_id?: string | null
+          orden_id?: string
+          precio_unitario?: number
+          unidad?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orden_compra_items_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "insumos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orden_compra_items_orden_id_fkey"
+            columns: ["orden_id"]
+            isOneToOne: false
+            referencedRelation: "ordenes_compra"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ordenes_compra: {
+        Row: {
+          codigo: string
+          condicion_pago: string
+          created_at: string
+          estado: string
+          fecha: string
+          fecha_entrega: string | null
+          id: string
+          observacion: string
+          proveedor_id: string | null
+          proyecto_id: string
+          requerimiento_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          codigo?: string
+          condicion_pago?: string
+          created_at?: string
+          estado?: string
+          fecha?: string
+          fecha_entrega?: string | null
+          id?: string
+          observacion?: string
+          proveedor_id?: string | null
+          proyecto_id: string
+          requerimiento_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          codigo?: string
+          condicion_pago?: string
+          created_at?: string
+          estado?: string
+          fecha?: string
+          fecha_entrega?: string | null
+          id?: string
+          observacion?: string
+          proveedor_id?: string | null
+          proyecto_id?: string
+          requerimiento_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ordenes_compra_proveedor_id_fkey"
+            columns: ["proveedor_id"]
+            isOneToOne: false
+            referencedRelation: "terceros"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ordenes_compra_proyecto_id_fkey"
+            columns: ["proyecto_id"]
+            isOneToOne: false
+            referencedRelation: "proyectos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ordenes_compra_requerimiento_id_fkey"
+            columns: ["requerimiento_id"]
+            isOneToOne: false
+            referencedRelation: "requerimientos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partidas: {
         Row: {
           aplica_gg: boolean
