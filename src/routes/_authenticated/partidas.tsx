@@ -1,4 +1,5 @@
 import { codigoContextual } from "@/lib/categorias";
+import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { createFileRoute } from "@tanstack/react-router";
 import React, { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -99,6 +100,7 @@ function Partidas() {
     tipo_presupuesto: string;
     aplica_gg: boolean;
     aplica_utilidad: boolean;
+  const [busqueda, setBusqueda] = useState("");
   } | null>(null);
 
   const [apu, setApu] = useState<(typeof partidas)[number] | null>(null);
@@ -122,8 +124,28 @@ function Partidas() {
       partidas.filter(
         (p) =>
           (!filtroProyecto || p.proyecto_id === filtroProyecto) &&
+  const coincidentes = useMemo(() => {
+    const match = new Set<string>();
+    const check = (id: string) => {
+      if (match.has(id)) return true;
+      const p = partidas.find((x) => x.id === id);
+      if (!p) return false;
+      if (coincide(busqueda, p.nombre, p.codigo)) {
+        match.add(id);
+        return true;
+      }
+      const hijos = partidas.filter((x) => x.padre_id === id);
+      if (hijos.some((h) => check(h.id))) {
+        match.add(id);
+        return true;
+      }
+      return false;
+    };
+    partidas.forEach((p) => check(p.id));
+    return match;
+  }, [partidas, busqueda]);
           (!filtroEsp || p.especialidad === filtroEsp) &&
-          (!filtroTipo || (p.tipo_presupuesto ?? "Contractual") === filtroTipo),
+          (!filtroTipo || (p.tipo_presupuesto ?? "Contractual") === filtroTipo) && (!busqueda || coincidentes.has(p.id)),
       ),
     [partidas, filtroProyecto, filtroEsp, filtroTipo],
   );
@@ -338,6 +360,12 @@ function Partidas() {
         subtitulo="Organizadas por proyecto y especialidad"
         acciones={
           <div className="flex items-center gap-2">
+            <Buscador
+              valor={busqueda}
+              onChange={setBusqueda}
+              total={visibles.length}
+              placeholder="Buscar partidas o códigos..."
+            />
             <div className="flex items-center gap-1 rounded-md border border-line bg-card p-1">
               <button
                 type="button"

@@ -178,8 +178,8 @@ export function Insumos() {
                 ) : (
                   <tr key={i.id} className="border-b border-line/40 last:border-0">
                     <td className="px-5 py-2.5 text-muted-foreground">{nombreTipo(i.tipo)}</td>
-                    <td className="px-3 py-2.5 text-muted-foreground"><Resaltar texto={i.codigo || "—"} termino={busqueda} /></td>
-                    <td className="px-3 py-2.5 text-ink"><Resaltar texto={i.nombre} termino={busqueda} /></td>
+                    <td className="px-3 py-2.5 text-muted-foreground"><Resaltar texto=<Resaltar texto={i.codigo || "—"} termino={busqueda} /> termino={busqueda} /></td>
+                    <td className="px-3 py-2.5 text-ink"><Resaltar texto=<Resaltar texto={i.nombre} termino={busqueda} /> termino={busqueda} /></td>
                     <td className="px-3 py-2.5 text-muted-foreground">{i.unidad}</td>
                     <td className="px-3 py-2.5 text-right">{soles(Number(i.precio))}</td>
                     <td className="px-3 py-2.5"><span className={i.activo ? "text-good" : "text-muted-foreground"}>{i.activo ? "Activo" : "Inactivo"}</span></td>

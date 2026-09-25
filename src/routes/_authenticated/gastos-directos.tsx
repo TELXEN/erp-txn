@@ -67,6 +67,7 @@ function GastosDirectos() {
   const [form, setForm] = useState(formVacio());
   const [mostrarForm, setMostrarForm] = useState(false);
   const [error, setError] = useState("");
+  const [busqueda, setBusqueda] = useState("");
   const { data: cuentas = [] } = useQuery({
     queryKey: ["bancos"],
     queryFn: async () => {
@@ -90,9 +91,9 @@ function GastosDirectos() {
   const partidasProy = useMemo(
     () =>
       partidas
-        .filter((p) => p.proyecto_id === proyectoId)
+        .filter((p) => p.proyecto_id === proyectoId && coincide(busqueda, p.codigo, p.nombre, p.categoria))
         .sort((a, b) => (a.codigo ?? "").localeCompare(b.codigo ?? "", undefined, { numeric: true })),
-    [partidas, proyectoId],
+    [partidas, proyectoId, busqueda],
   );
   const comprasProy = gastos.filter((g) => g.proyecto_id === proyectoId);
   const costoDe = (pid: string) => comprasProy.filter((g) => g.partida_id === pid).reduce((s, g) => s + Number(g.monto_soles), 0);
@@ -330,7 +331,7 @@ function GastosDirectos() {
 
       <Panel
         titulo="Control por partida"
-        extra={<Boton variante="accion" onClick={() => abrirCompra("")} disabled={!proyecto}><Plus size={14} /> Registrar compra</Boton>}
+        extra={<div className="flex gap-2"><Buscador valor={busqueda} onChange={setBusqueda} placeholder="Buscar por código o partida..." total={partidasProy.length} /><Boton variante="accion" onClick={() => abrirCompra("")} disabled={!proyecto}><Plus size={14} /> Registrar compra</Boton></div>}
       >
         {partidasProy.length === 0 ? (
           <Vacio texto="Esta obra aún no tiene partidas registradas." />
@@ -375,7 +376,7 @@ function GastosDirectos() {
                       return (
                         <React.Fragment key={p.id}>
                           <tr className="border-b border-line/40">
-                            <td className="px-5 py-2.5">
+                            <td className="px-5 py-2.5"><Resaltar texto={p.codigo} termino={busqueda} />
                               <button
                                 type="button"
                                 onClick={() => setAbiertas({ ...abiertas, [p.id]: !abierta })}
