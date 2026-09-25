@@ -25,6 +25,7 @@ import {
   Truck,
   Users,
   ReceiptText,
+  FileSpreadsheet,
   Wallet,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -80,6 +81,7 @@ const MENU: Categoria[] = [
     items: [
       { a: "/personal", texto: "Personal", roles: ["administrador", "gerente"], icono: Users },
       { a: "/honorarios", texto: "Recibos por Honorarios", roles: ["administrador", "gerente"], icono: ReceiptText },
+      { a: "/nomina", texto: "Nómina y Boletas", roles: ["administrador", "gerente"], icono: FileSpreadsheet },
     ],
   },
   {
