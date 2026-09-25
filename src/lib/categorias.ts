@@ -192,8 +192,11 @@ export function prefijosWBS(filas: FilaCodigo[]) {
  * Renumera toda la EDT/WBS de una obra: 01, 01.01, 01.01.01...
  * Devuelve solo las partidas cuyo código cambia.
  */
-export function renumerarWBS<T extends FilaCodigo & { id: string }>(filas: T[]) {
+export function renumerarWBS<T extends FilaCodigo & { id: string; padre_id?: string | null }>(filas: T[]) {
   const cambios: { id: string; codigo: string }[] = [];
+  const ids = new Set(filas.map((f) => f.id));
+  const esHijo = (f: T) => Boolean(f.padre_id && ids.has(f.padre_id));
+  const hijosDe = (id: string) => filas.filter((f) => f.padre_id === id);
   let iCap = 0;
   for (const [, lista] of agrupar(filas, (f) => f.especialidad || "Sin especialidad")) {
     iCap += 1;
@@ -201,11 +204,55 @@ export function renumerarWBS<T extends FilaCodigo & { id: string }>(filas: T[]) 
     let iSub = 0;
     for (const [, items] of agrupar(lista, (f) => claveCat(f.categoria))) {
       iSub += 1;
-      items.forEach((f, i) => {
+      items.filter((f) => !esHijo(f)).forEach((f, i) => {
         const codigo = `${cap}.${pad2(iSub)}.${pad2(i + 1)}`;
         if ((f.codigo ?? "").trim() !== codigo) cambios.push({ id: f.id, codigo });
+        hijosDe(f.id).forEach((h, j) => {
+          const c4 = `${codigo}.${pad2(j + 1)}`;
+          if ((h.codigo ?? "").trim() !== c4) cambios.push({ id: h.id, codigo: c4 });
+        });
       });
     }
   }
   return cambios;
+}
+
+type FilaJerarquia = { id: string; padre_id?: string | null };
+
+/**
+ * Ordena filas de un grupo en árbol: cada partida seguida de sus subpartidas (4.° nivel).
+ * Devuelve la fila, su nivel (3 = partida, 4 = subpartida) y si es agrupadora.
+ */
+export function ordenarJerarquia<T extends FilaJerarquia>(filas: T[]) {
+  const ids = new Set(filas.map((f) => f.id));
+  const hijos = new Map<string, T[]>();
+  for (const f of filas) {
+    if (f.padre_id && ids.has(f.padre_id)) {
+      if (!hijos.has(f.padre_id)) hijos.set(f.padre_id, []);
+      hijos.get(f.padre_id)!.push(f);
+    }
+  }
+  const out: { fila: T; nivel: 3 | 4; agrupadora: boolean; hijos: T[] }[] = [];
+  for (const f of filas) {
+    if (f.padre_id && ids.has(f.padre_id)) continue;
+    const h = hijos.get(f.id) ?? [];
+    out.push({ fila: f, nivel: 3, agrupadora: h.length > 0, hijos: h });
+    for (const c of h) out.push({ fila: c, nivel: 4, agrupadora: false, hijos: [] });
+  }
+  return out;
+}
+
+/** Siguiente código de subpartida: 01.01.01 → 01.01.01.01, 01.01.01.02... */
+export function siguienteCodigoSubpartida(
+  codigoPadre: string,
+  hermanos: { codigo?: string | null }[],
+) {
+  const base = (codigoPadre ?? "").trim();
+  const usados = hermanos
+    .map((h) => (h.codigo ?? "").trim())
+    .filter((c) => base && c.startsWith(`${base}.`))
+    .map((c) => Number(c.slice(base.length + 1).split(".")[0]))
+    .filter((n) => Number.isFinite(n));
+  const n = (usados.length ? Math.max(...usados) : 0) + 1;
+  return base ? `${base}.${pad2(n)}` : "";
 }

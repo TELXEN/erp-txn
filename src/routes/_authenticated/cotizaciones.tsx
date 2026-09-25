@@ -13,6 +13,8 @@ import {
   codigoContextual,
   prefijosWBS,
   renumerarWBS,
+  ordenarJerarquia,
+  siguienteCodigoSubpartida,
   useCategoriasPartida,
 } from "@/lib/categorias";
 import { useUnidadesMedida } from "@/lib/unidades";
@@ -30,7 +32,7 @@ import {
   vigenciaHasta,
   type EstadoCotizacion,
 } from "@/lib/cotizaciones";
-import { ListOrdered, Upload } from "lucide-react";
+import { Check, CornerDownRight, ListOrdered, Upload, X } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/cotizaciones")({
   head: () => ({
@@ -194,6 +196,62 @@ function Cotizaciones() {
     setAviso("Partida guardada en el banco maestro.");
   }
 
+  const [nuevaSub, setNuevaSub] = useState<{
+    padre_id: string;
+    codigo: string;
+    nombre: string;
+    unidad: string;
+    metrado: string;
+    precio_unitario: string;
+  } | null>(null);
+
+  function abrirSubpartida(padre: (typeof items)[number]) {
+    setNuevaSub({
+      padre_id: padre.id,
+      codigo: siguienteCodigoSubpartida(padre.codigo, items.filter((x) => x.padre_id === padre.id)),
+      nombre: "",
+      unidad: padre.unidad || "glb",
+      metrado: "1",
+      precio_unitario: "",
+    });
+  }
+
+  async function guardarSubpartida() {
+    if (!cot || !nuevaSub) return;
+    const padre = items.find((x) => x.id === nuevaSub.padre_id);
+    if (!padre) return;
+    if (!nuevaSub.nombre.trim()) return setError("Escribe la descripción de la subpartida.");
+    const primera = !items.some((x) => x.padre_id === padre.id);
+    const parcialPadre = Number(padre.metrado) * Number(padre.precio_unitario);
+    if (
+      primera &&
+      parcialPadre > 0 &&
+      !window.confirm(
+        `"${padre.nombre}" pasará a ser partida agrupadora: su parcial será la suma de sus subpartidas y su metrado/P.U. propios (${soles(parcialPadre)}) se pondrán en cero. ¿Continuar?`,
+      )
+    )
+      return;
+    setError("");
+    const { error: err } = await supabase.from("cotizacion_items").insert({
+      cotizacion_id: cot.id,
+      padre_id: padre.id,
+      codigo: nuevaSub.codigo.trim(),
+      nombre: nuevaSub.nombre.trim(),
+      especialidad: padre.especialidad,
+      categoria: padre.categoria ?? "",
+      unidad: nuevaSub.unidad,
+      metrado: Number(nuevaSub.metrado || 0),
+      precio_unitario: Number(nuevaSub.precio_unitario || 0),
+      orden: items.length + 1,
+    });
+    if (err) return setError(err.message);
+    if (primera) {
+      await supabase.from("cotizacion_items").update({ metrado: 1, precio_unitario: 0 }).eq("id", padre.id);
+    }
+    setNuevaSub(null);
+    qc.invalidateQueries({ queryKey: ["cotizacion_items", cot.id] });
+  }
+
   async function borrarItem(id: string) {
     await supabase.from("cotizacion_items").delete().eq("id", id);
     qc.invalidateQueries({ queryKey: ["cotizacion_items", seleccion] });
@@ -279,8 +337,10 @@ function Cotizaciones() {
         .single();
       if (err) throw err;
 
-      const { error: errP } = await supabase.from("partidas").insert(
-        items.map((i) => ({
+      const nuevosIds = new Map(items.map((i) => [i.id, crypto.randomUUID()]));
+      const aFila = (i: (typeof items)[number]) => ({
+          id: nuevosIds.get(i.id)!,
+          padre_id: i.padre_id ? nuevosIds.get(i.padre_id) ?? null : null,
           proyecto_id: proy.id,
           codigo: i.codigo,
           nombre: i.nombre,
@@ -291,9 +351,14 @@ function Cotizaciones() {
           precio_unitario: Number(i.precio_unitario),
           presupuesto_inicial: Math.round(Number(i.metrado) * Number(i.precio_unitario) * 100) / 100,
           tipo_presupuesto: "Contractual",
-        })),
-      );
+        });
+      const { error: errP } = await supabase.from("partidas").insert(items.filter((i) => !i.padre_id).map(aFila));
       if (errP) throw errP;
+      const hijos = items.filter((i) => i.padre_id);
+      if (hijos.length) {
+        const { error: errH } = await supabase.from("partidas").insert(hijos.map(aFila));
+        if (errH) throw errH;
+      }
 
       await supabase
         .from("cotizaciones")
@@ -694,23 +759,91 @@ function Cotizaciones() {
                           <td className="px-3 py-1.5 text-right font-semibold text-ink">{soles(subtotal)}</td>
                           <td />
                         </tr>
-                        {sub.items.map((i) => (
-                          <tr key={i.id} className="border-b border-line/60">
-                            <td className="px-5 py-2.5 pl-8 text-primary">{i.codigo || "—"}</td>
-                            <td className="px-3 py-2.5 font-semibold text-ink">{i.nombre}</td>
-                            <td className="px-3 py-2.5 text-muted-foreground">{i.unidad}</td>
-                            <td className="px-3 py-2.5 text-right">{cantidad(i.metrado)}</td>
-                            <td className="px-3 py-2.5 text-right">{soles(Number(i.precio_unitario))}</td>
-                            <td className="px-3 py-2.5 text-right font-semibold">
-                              {soles(Number(i.metrado) * Number(i.precio_unitario))}
-                            </td>
-                            <td className="px-5 py-2.5 text-right">
-                              <Boton variante="peligro" onClick={() => borrarItem(i.id)}>
-                                Quitar
-                              </Boton>
-                            </td>
-                          </tr>
-                        ))}
+                        {ordenarJerarquia(sub.items).map(({ fila: i, nivel, agrupadora, hijos }) => {
+                          const parcial = agrupadora
+                            ? hijos.reduce((s, h) => s + Number(h.metrado) * Number(h.precio_unitario), 0)
+                            : Number(i.metrado) * Number(i.precio_unitario);
+                          const ultimoHijo =
+                            nivel === 4 && sub.items.filter((x) => x.padre_id === i.padre_id).at(-1)?.id === i.id;
+                          const formAqui =
+                            nuevaSub &&
+                            ((nivel === 4 && ultimoHijo && nuevaSub.padre_id === i.padre_id) ||
+                              (nivel === 3 && !agrupadora && nuevaSub.padre_id === i.id));
+                          return (
+                            <React.Fragment key={i.id}>
+                              <tr className={`border-b border-line/60 ${agrupadora ? "bg-muted/10" : ""}`}>
+                                <td className={`px-5 py-2.5 text-primary ${nivel === 4 ? "pl-12" : "pl-8"}`}>{i.codigo || "—"}</td>
+                                <td className={`px-3 py-2.5 text-ink ${nivel === 4 ? "pl-6" : "font-semibold"}`}>
+                                  {nivel === 4 && <CornerDownRight size={11} className="mr-1 inline text-muted-foreground" />}
+                                  {i.nombre}
+                                  {agrupadora && (
+                                    <span className="ml-1.5 text-[9px] uppercase text-muted-foreground">({hijos.length} subpartidas)</span>
+                                  )}
+                                </td>
+                                <td className="px-3 py-2.5 text-muted-foreground">{agrupadora ? "—" : i.unidad}</td>
+                                <td className="px-3 py-2.5 text-right">{agrupadora ? "—" : cantidad(i.metrado)}</td>
+                                <td className="px-3 py-2.5 text-right">{agrupadora ? "—" : soles(Number(i.precio_unitario))}</td>
+                                <td className="px-3 py-2.5 text-right font-semibold">{soles(parcial)}</td>
+                                <td className="px-5 py-2.5 text-right">
+                                  <div className="flex items-center justify-end gap-2">
+                                    {nivel === 3 && (
+                                      <button
+                                        type="button"
+                                        onClick={() => abrirSubpartida(i)}
+                                        title="Agregar subpartida (4.° nivel)"
+                                        className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"
+                                      >
+                                        <CornerDownRight size={14} />
+                                      </button>
+                                    )}
+                                    <Boton variante="peligro" onClick={() => borrarItem(i.id)}>
+                                      Quitar
+                                    </Boton>
+                                  </div>
+                                </td>
+                              </tr>
+                              {formAqui && (
+                                <tr className="border-b border-line/60 bg-primary/5">
+                                  <td className="px-5 py-2 pl-12">
+                                    <Input value={nuevaSub.codigo} onChange={(e) => setNuevaSub({ ...nuevaSub, codigo: e.target.value })}
+                                      className="py-1 font-mono text-xs" placeholder="01.01.01.01" />
+                                  </td>
+                                  <td className="px-3 py-2">
+                                    <Input autoFocus value={nuevaSub.nombre} onChange={(e) => setNuevaSub({ ...nuevaSub, nombre: e.target.value })}
+                                      className="py-1 text-xs" placeholder="Descripción de la subpartida" />
+                                  </td>
+                                  <td className="px-3 py-2">
+                                    <Input value={nuevaSub.unidad} onChange={(e) => setNuevaSub({ ...nuevaSub, unidad: e.target.value })}
+                                      className="py-1 text-xs" />
+                                  </td>
+                                  <td className="px-3 py-2">
+                                    <Input type="number" step="0.01" min="0" value={nuevaSub.metrado}
+                                      onChange={(e) => setNuevaSub({ ...nuevaSub, metrado: e.target.value })} className="py-1 text-right text-xs" />
+                                  </td>
+                                  <td className="px-3 py-2">
+                                    <Input type="number" step="0.01" min="0" value={nuevaSub.precio_unitario}
+                                      onChange={(e) => setNuevaSub({ ...nuevaSub, precio_unitario: e.target.value })} className="py-1 text-right text-xs" />
+                                  </td>
+                                  <td className="px-3 py-2 text-right font-semibold">
+                                    {soles(Number(nuevaSub.metrado || 0) * Number(nuevaSub.precio_unitario || 0))}
+                                  </td>
+                                  <td className="px-5 py-2">
+                                    <div className="flex items-center justify-end gap-1">
+                                      <button type="button" onClick={() => void guardarSubpartida()} title="Guardar subpartida"
+                                        className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground">
+                                        <Check size={14} />
+                                      </button>
+                                      <button type="button" onClick={() => setNuevaSub(null)} title="Cancelar"
+                                        className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line hover:bg-muted">
+                                        <X size={14} />
+                                      </button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              )}
+                            </React.Fragment>
+                          );
+                        })}
                       </React.Fragment>
                     );
                   })}
