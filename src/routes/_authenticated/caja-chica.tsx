@@ -46,6 +46,19 @@ function CajaChica() {
   const { data: categorias = [] } = useCategoriasGastoGeneral();
   const { data: directos = [] } = useGastosDirectos();
   const { data: generales = [] } = useGastosGenerales();
+  const { data: cuentas = [] } = useQuery({
+    queryKey: ["bancos"],
+    queryFn: async () => {
+      const { data, error: err } = await supabase.from("bancos").select("*").order("nombre");
+      if (err) throw err;
+      return data ?? [];
+    },
+  });
+  const cuentasActivas = cuentas.filter((c) => c.activo);
+  const nombreBanco = (id?: string | null) => {
+    const c = cuentas.find((x) => x.id === id);
+    return c ? `${c.nombre}${c.numero_cuenta ? ` · ${c.numero_cuenta}` : ""}` : "—";
+  };
 
   const categoriasActivas = categorias.filter((c) => c.activo);
   const trabajadoresActivos = trabajadores.filter((t) => t.activo);
@@ -56,6 +69,8 @@ function CajaChica() {
     motivo: "",
     monto_entregado: "",
     fecha_entrega: hoy(),
+    banco_id: "",
+    numero_operacion: "",
   });
   const [error, setError] = useState("");
   const [abierta, setAbierta] = useState<string | null>(null);
