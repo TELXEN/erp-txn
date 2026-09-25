@@ -4,7 +4,8 @@ import { MESES } from "@/lib/format";
 
 /** Pagos de Recursos Humanos y obligaciones con el Estado, para Tesorería y Flujo de Caja. */
 
-type Fila = Record<string, unknown>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Fila = any;
 
 async function todo(tabla: string, columnas = "*") {
   const { data, error } = await supabase.from(tabla as never).select(columnas);
