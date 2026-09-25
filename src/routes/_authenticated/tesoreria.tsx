@@ -123,12 +123,29 @@ function Tesoreria() {
         const ingresos = (ventas as unknown as (Mov & { estado: string })[])
           .filter((v) => v.banco_id === c.id && v.estado === "Pagado")
           .reduce((s, v) => s + enMonedaCuenta(v, c), 0);
-        const egresos = [...(gd as unknown as Mov[]), ...(gg as unknown as Mov[])]
-          .filter((g) => g.banco_id === c.id && g.estado_pago === "Pagada")
-          .reduce((s, g) => s + enMonedaCuenta(g, c), 0);
+        const egresos =
+          [...(gd as unknown as Mov[]), ...(gg as unknown as Mov[])]
+            .filter((g) => g.banco_id === c.id && g.estado_pago === "Pagada")
+            .reduce((s, g) => s + enMonedaCuenta(g, c), 0) +
+          cajas
+            .filter((k) => k.banco_id === c.id)
+            .reduce(
+              (s, k) =>
+                s +
+                enMonedaCuenta(
+                  {
+                    moneda: "PEN",
+                    monto: Number(k.monto_entregado),
+                    monto_soles: Number(k.monto_entregado),
+                    tipo_cambio: 1,
+                  } as Mov,
+                  c,
+                ),
+              0,
+            );
         return { c, ingresos, egresos, saldo: Number(c.saldo_inicial) + ingresos - egresos };
       }),
-    [cuentas, ventas, gd, gg],
+    [cuentas, ventas, gd, gg, cajas],
   );
 
   const cxc: Pendiente[] = (ventas as unknown as (Mov & Record<string, never>)[])
