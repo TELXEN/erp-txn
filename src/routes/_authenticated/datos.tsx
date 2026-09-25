@@ -37,7 +37,7 @@ export const Route = createFileRoute("/_authenticated/datos")({
       { title: "Datos — ERP TELXEN" },
       {
         name: "description",
-        content: "Catálogos maestros de terceros (clientes y proveedores) y bancos del ERP TELXEN.",
+        content: "Configuración y catálogos maestros del ERP TELXEN.",
       },
       { property: "og:title", content: "Datos — ERP TELXEN" },
       { property: "og:description", content: "Registro central de clientes, proveedores y bancos." },
