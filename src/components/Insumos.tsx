@@ -106,7 +106,7 @@ export function Insumos() {
 
       <Panel
         titulo="Maestro de insumos"
-        accion={
+        extra={
           <Select className="py-1 text-xs" value={filtro} onChange={(e) => setFiltro(e.target.value as "" | TipoInsumo)}>
             <option value="">Todos los tipos</option>
             {TIPOS_INSUMO.map(([k, t]) => <option key={k} value={k}>{t}</option>)}
