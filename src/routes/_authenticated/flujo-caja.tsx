@@ -18,6 +18,7 @@ import { Encabezado } from "@/components/AppShell";
 import { Boton, Input, Panel, Select, SinAcceso } from "@/components/ui-kit";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { MESES, pct, soles } from "@/lib/format";
+import { usePagosRRHH } from "@/lib/pagos-rrhh";
 import { useCajasChicas, useGastosDirectos, useGastosGenerales, useVentas } from "@/lib/datos";
 import { exportarExcel } from "@/lib/exportar";
 
@@ -71,6 +72,7 @@ function FlujoCaja() {
   const { data: gastosD = [] } = useGastosDirectos();
   const { data: gastosG = [] } = useGastosGenerales();
   const { data: cajas = [] } = useCajasChicas();
+  const { data: rrhh } = usePagosRRHH();
 
   const { data: metas = [] } = useQuery({
     queryKey: ["metas_flujo_caja", anio],
@@ -136,6 +138,7 @@ function FlujoCaja() {
       cobrarEgreso(r.fecha_pago, r.monto_soles);
     });
     cajas.forEach((c) => cobrarEgreso(c.fecha_entrega, c.monto_entregado));
+    (rrhh?.egresos ?? []).forEach((e) => cobrarEgreso(e.fecha_pago, e.monto));
 
     let acumulado = 0;
     return base.map((f) => {
@@ -153,7 +156,7 @@ function FlujoCaja() {
         acumulado,
       };
     });
-  }, [metas, ventas, gastosD, gastosG, cajas, anio]);
+  }, [metas, ventas, gastosD, gastosG, cajas, rrhh, anio]);
 
   const total = useMemo(
     () =>

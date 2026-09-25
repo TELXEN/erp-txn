@@ -1303,6 +1303,50 @@ export type Database = {
           },
         ]
       }
+      pagos_estado: {
+        Row: {
+          anio: number
+          banco_id: string | null
+          concepto: string
+          created_at: string
+          fecha_pago: string
+          id: string
+          mes: number
+          monto: number
+          numero_operacion: string
+        }
+        Insert: {
+          anio: number
+          banco_id?: string | null
+          concepto: string
+          created_at?: string
+          fecha_pago?: string
+          id?: string
+          mes: number
+          monto?: number
+          numero_operacion?: string
+        }
+        Update: {
+          anio?: number
+          banco_id?: string | null
+          concepto?: string
+          created_at?: string
+          fecha_pago?: string
+          id?: string
+          mes?: number
+          monto?: number
+          numero_operacion?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pagos_estado_banco_id_fkey"
+            columns: ["banco_id"]
+            isOneToOne: false
+            referencedRelation: "bancos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partidas: {
         Row: {
           aplica_gg: boolean
