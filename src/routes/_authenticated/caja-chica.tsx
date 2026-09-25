@@ -324,6 +324,26 @@ function CajaChica() {
               onChange={(e) => setForm({ ...form, fecha_entrega: e.target.value })}
             />
           </Campo>
+          <Campo etiqueta="Cuenta bancaria de origen">
+            <Select value={form.banco_id} onChange={(e) => setForm({ ...form, banco_id: e.target.value })} required>
+              <option value="">Selecciona...</option>
+              {cuentasActivas.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.nombre} · {c.monedas}
+                  {c.numero_cuenta ? ` · ${c.numero_cuenta}` : ""}
+                </option>
+              ))}
+            </Select>
+          </Campo>
+          <Campo etiqueta="N° de operación bancaria">
+            <Input
+              value={form.numero_operacion}
+              onChange={(e) => setForm({ ...form, numero_operacion: e.target.value })}
+              maxLength={30}
+              placeholder="Voucher, cheque o transferencia"
+              required
+            />
+          </Campo>
           <div className="flex items-end">
             <Boton type="submit">Registrar entrega</Boton>
           </div>
