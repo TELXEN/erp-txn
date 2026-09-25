@@ -1049,34 +1049,40 @@ export type Database = {
       importacion_items: {
         Row: {
           cantidad: number
+          costo_unitario_pen: number
           created_at: string
           descripcion: string
           id: string
           importacion_id: string
           insumo_id: string | null
           partida_arancelaria: string
+          pct_advalorem: number
           precio_fob: number
           unidad: string
         }
         Insert: {
           cantidad?: number
+          costo_unitario_pen?: number
           created_at?: string
           descripcion: string
           id?: string
           importacion_id: string
           insumo_id?: string | null
           partida_arancelaria?: string
+          pct_advalorem?: number
           precio_fob?: number
           unidad?: string
         }
         Update: {
           cantidad?: number
+          costo_unitario_pen?: number
           created_at?: string
           descripcion?: string
           id?: string
           importacion_id?: string
           insumo_id?: string | null
           partida_arancelaria?: string
+          pct_advalorem?: number
           precio_fob?: number
           unidad?: string
         }
@@ -1104,16 +1110,26 @@ export type Database = {
           estado: string
           fecha_arribo: string | null
           fecha_embarque: string | null
+          fecha_liquidacion: string | null
           fecha_pedido: string
+          flete: number
+          gasto_almacenaje: number
+          gasto_flete_local: number
+          gasto_handling: number
+          gasto_honorarios: number
+          gasto_otros: number
           id: string
           incoterm: string
           moneda: Database["public"]["Enums"]["moneda"]
           observacion: string
           orden_id: string | null
           pais_origen: string
+          pct_percepcion: number
           proveedor_extranjero: string
           proveedor_id: string | null
           proyecto_id: string | null
+          seguro: number
+          tipo_cambio: number
           tipo_despacho: string
           tracking: string
           transportista: string
@@ -1125,16 +1141,26 @@ export type Database = {
           estado?: string
           fecha_arribo?: string | null
           fecha_embarque?: string | null
+          fecha_liquidacion?: string | null
           fecha_pedido?: string
+          flete?: number
+          gasto_almacenaje?: number
+          gasto_flete_local?: number
+          gasto_handling?: number
+          gasto_honorarios?: number
+          gasto_otros?: number
           id?: string
           incoterm?: string
           moneda?: Database["public"]["Enums"]["moneda"]
           observacion?: string
           orden_id?: string | null
           pais_origen?: string
+          pct_percepcion?: number
           proveedor_extranjero?: string
           proveedor_id?: string | null
           proyecto_id?: string | null
+          seguro?: number
+          tipo_cambio?: number
           tipo_despacho?: string
           tracking?: string
           transportista?: string
@@ -1146,16 +1172,26 @@ export type Database = {
           estado?: string
           fecha_arribo?: string | null
           fecha_embarque?: string | null
+          fecha_liquidacion?: string | null
           fecha_pedido?: string
+          flete?: number
+          gasto_almacenaje?: number
+          gasto_flete_local?: number
+          gasto_handling?: number
+          gasto_honorarios?: number
+          gasto_otros?: number
           id?: string
           incoterm?: string
           moneda?: Database["public"]["Enums"]["moneda"]
           observacion?: string
           orden_id?: string | null
           pais_origen?: string
+          pct_percepcion?: number
           proveedor_extranjero?: string
           proveedor_id?: string | null
           proyecto_id?: string | null
+          seguro?: number
+          tipo_cambio?: number
           tipo_despacho?: string
           tracking?: string
           transportista?: string
