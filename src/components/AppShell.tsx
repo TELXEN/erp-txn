@@ -24,6 +24,7 @@ import {
   TrendingUp,
   Truck,
   Users,
+  ReceiptText,
   Wallet,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -78,6 +79,7 @@ const MENU: Categoria[] = [
     titulo: "Recursos Humanos",
     items: [
       { a: "/personal", texto: "Personal", roles: ["administrador", "gerente"], icono: Users },
+      { a: "/honorarios", texto: "Recibos por Honorarios", roles: ["administrador", "gerente"], icono: ReceiptText },
     ],
   },
   {
