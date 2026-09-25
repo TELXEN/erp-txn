@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedAlmacenRouteImport } from './routes/_authenticated/almacen'
 import { Route as AuthenticatedAvanceRouteImport } from './routes/_authenticated/avance'
+import { Route as AuthenticatedBeneficiosRouteImport } from './routes/_authenticated/beneficios'
 import { Route as AuthenticatedCajaChicaRouteImport } from './routes/_authenticated/caja-chica'
 import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticated/clientes'
 import { Route as AuthenticatedConfiguracionSistemaRouteImport } from './routes/_authenticated/configuracion-sistema'
@@ -55,6 +56,11 @@ const AuthenticatedAlmacenRoute = AuthenticatedAlmacenRouteImport.update({
 const AuthenticatedAvanceRoute = AuthenticatedAvanceRouteImport.update({
   id: '/avance',
   path: '/avance',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedBeneficiosRoute = AuthenticatedBeneficiosRouteImport.update({
+  id: '/beneficios',
+  path: '/beneficios',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedCajaChicaRoute = AuthenticatedCajaChicaRouteImport.update({
@@ -191,6 +197,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/almacen': typeof AuthenticatedAlmacenRoute
   '/avance': typeof AuthenticatedAvanceRoute
+  '/beneficios': typeof AuthenticatedBeneficiosRoute
   '/caja-chica': typeof AuthenticatedCajaChicaRoute
   '/clientes': typeof AuthenticatedClientesRoute
   '/configuracion-sistema': typeof AuthenticatedConfiguracionSistemaRoute
@@ -220,6 +227,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/almacen': typeof AuthenticatedAlmacenRoute
   '/avance': typeof AuthenticatedAvanceRoute
+  '/beneficios': typeof AuthenticatedBeneficiosRoute
   '/caja-chica': typeof AuthenticatedCajaChicaRoute
   '/clientes': typeof AuthenticatedClientesRoute
   '/configuracion-sistema': typeof AuthenticatedConfiguracionSistemaRoute
@@ -251,6 +259,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/_authenticated/almacen': typeof AuthenticatedAlmacenRoute
   '/_authenticated/avance': typeof AuthenticatedAvanceRoute
+  '/_authenticated/beneficios': typeof AuthenticatedBeneficiosRoute
   '/_authenticated/caja-chica': typeof AuthenticatedCajaChicaRoute
   '/_authenticated/clientes': typeof AuthenticatedClientesRoute
   '/_authenticated/configuracion-sistema': typeof AuthenticatedConfiguracionSistemaRoute
@@ -282,6 +291,7 @@ export interface FileRouteTypes {
     | '/'
     | '/almacen'
     | '/avance'
+    | '/beneficios'
     | '/caja-chica'
     | '/clientes'
     | '/configuracion-sistema'
@@ -311,6 +321,7 @@ export interface FileRouteTypes {
     | '/'
     | '/almacen'
     | '/avance'
+    | '/beneficios'
     | '/caja-chica'
     | '/clientes'
     | '/configuracion-sistema'
@@ -341,6 +352,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/_authenticated/almacen'
     | '/_authenticated/avance'
+    | '/_authenticated/beneficios'
     | '/_authenticated/caja-chica'
     | '/_authenticated/clientes'
     | '/_authenticated/configuracion-sistema'
@@ -400,6 +412,13 @@ declare module '@tanstack/react-router' {
       path: '/avance'
       fullPath: '/avance'
       preLoaderRoute: typeof AuthenticatedAvanceRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/beneficios': {
+      id: '/_authenticated/beneficios'
+      path: '/beneficios'
+      fullPath: '/beneficios'
+      preLoaderRoute: typeof AuthenticatedBeneficiosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/caja-chica': {
@@ -576,6 +595,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAlmacenRoute: typeof AuthenticatedAlmacenRoute
   AuthenticatedAvanceRoute: typeof AuthenticatedAvanceRoute
+  AuthenticatedBeneficiosRoute: typeof AuthenticatedBeneficiosRoute
   AuthenticatedCajaChicaRoute: typeof AuthenticatedCajaChicaRoute
   AuthenticatedClientesRoute: typeof AuthenticatedClientesRoute
   AuthenticatedConfiguracionSistemaRoute: typeof AuthenticatedConfiguracionSistemaRoute
@@ -605,6 +625,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAlmacenRoute: AuthenticatedAlmacenRoute,
   AuthenticatedAvanceRoute: AuthenticatedAvanceRoute,
+  AuthenticatedBeneficiosRoute: AuthenticatedBeneficiosRoute,
   AuthenticatedCajaChicaRoute: AuthenticatedCajaChicaRoute,
   AuthenticatedClientesRoute: AuthenticatedClientesRoute,
   AuthenticatedConfiguracionSistemaRoute:

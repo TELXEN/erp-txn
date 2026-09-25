@@ -257,7 +257,7 @@ function Beneficios() {
     <>
       <Encabezado
         titulo="Beneficios Sociales"
-        subtitulo="CTS (mayo/noviembre), gratificaciones (julio/diciembre) y liquicaciones por cese"
+        subtitulo="CTS (mayo/noviembre), gratificaciones (julio/diciembre) y liquidaciones por cese"
         acciones={
           registros.length > 0 && (
             <Boton
