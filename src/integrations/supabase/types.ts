@@ -58,6 +58,7 @@ export type Database = {
       }
       cajas_chicas: {
         Row: {
+          banco_id: string | null
           created_at: string
           estado: string
           fecha_entrega: string
@@ -65,12 +66,14 @@ export type Database = {
           id: string
           monto_entregado: number
           motivo: string
+          numero_operacion: string
           observacion: string
           proyecto_id: string
           responsable_id: string
           updated_at: string
         }
         Insert: {
+          banco_id?: string | null
           created_at?: string
           estado?: string
           fecha_entrega?: string
@@ -78,12 +81,14 @@ export type Database = {
           id?: string
           monto_entregado?: number
           motivo?: string
+          numero_operacion?: string
           observacion?: string
           proyecto_id: string
           responsable_id: string
           updated_at?: string
         }
         Update: {
+          banco_id?: string | null
           created_at?: string
           estado?: string
           fecha_entrega?: string
@@ -91,12 +96,20 @@ export type Database = {
           id?: string
           monto_entregado?: number
           motivo?: string
+          numero_operacion?: string
           observacion?: string
           proyecto_id?: string
           responsable_id?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "cajas_chicas_banco_id_fkey"
+            columns: ["banco_id"]
+            isOneToOne: false
+            referencedRelation: "bancos"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "cajas_chicas_proyecto_id_fkey"
             columns: ["proyecto_id"]
