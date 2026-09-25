@@ -174,41 +174,48 @@ function Datos() {
         }
       />
 
-      <div className="grid gap-5 lg:grid-cols-[230px_1fr]">
-        <nav className="h-fit space-y-4 rounded-md border border-line bg-card p-3 lg:sticky lg:top-20">
-          {GRUPOS_CONFIG.map((g) => {
-            const Icono = g.icono;
-            return (
-              <div key={g.titulo}>
-                <p className="mb-1 flex items-center gap-1.5 px-2 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                  <Icono size={12} /> {g.titulo}
-                </p>
-                <div className="space-y-0.5">
-                  {g.items.map(([p, texto]) => (
-                    <button
-                      key={p}
-                      type="button"
-                      onClick={() => {
-                        setPestana(p);
-                        setError("");
-                      }}
-                      className={`block w-full rounded-md border-l-2 px-3 py-1.5 text-left text-xs transition-colors ${
-                        pestana === p
-                          ? "border-cta bg-primary/10 font-semibold text-primary"
-                          : "border-transparent text-muted-foreground hover:bg-muted hover:text-primary"
-                      }`}
-                    >
-                      {texto}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-        </nav>
-        <div className="min-w-0">
+      <div className="mb-3 flex flex-wrap gap-1">
+        {GRUPOS_CONFIG.map((g) => {
+          const Icono = g.icono;
+          const activo = g.items.some(([p]) => p === pestana);
+          return (
+            <Boton
+              key={g.titulo}
+              variante={activo ? "primario" : "linea"}
+              onClick={() => {
+                const primero = g.items[0];
+                if (primero) setPestana(primero[0]);
+                setError("");
+              }}
+            >
+              <Icono size={13} /> {g.titulo}
+            </Boton>
+          );
+        })}
+      </div>
+
+      <div className="mb-4 flex flex-wrap gap-1 border-b border-line pb-3">
+        {(GRUPOS_CONFIG.find((g) => g.items.some(([p]) => p === pestana)) ?? GRUPOS_CONFIG[0]!).items.map(([p, texto]) => (
+          <button
+            key={p}
+            type="button"
+            onClick={() => {
+              setPestana(p);
+              setError("");
+            }}
+            className={`rounded-md border-b-2 px-3 py-1.5 text-xs transition-colors ${
+              pestana === p
+                ? "border-cta bg-primary/10 font-semibold text-primary"
+                : "border-transparent text-muted-foreground hover:bg-muted hover:text-primary"
+            }`}
+          >
+            {texto}
+          </button>
+        ))}
+      </div>
 
       {error && <p className="mb-3 font-mono text-xs text-bad">{error}</p>}
+
 
       {pestana === "bancos" ? (
         <CuentasBancarias />
@@ -244,9 +251,8 @@ function Datos() {
           }
         />
       )}
-        </div>
-      </div>
     </>
+
   );
 }
 
