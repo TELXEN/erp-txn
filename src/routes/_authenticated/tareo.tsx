@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
-import { fecha as fmtFecha, hoy, mesActual, soles } from "@/lib/format";
+import { fecha as fmtFecha, mesActual, soles } from "@/lib/format";
 import { clasificacionDeCargo, useCargos, useProyectos, useTareos, useTrabajadores } from "@/lib/datos";
 import { exportarExcel } from "@/lib/exportar";
 
@@ -432,7 +432,6 @@ function TareoPage() {
               <Boton type="button" variante="linea" onClick={() => setDiasSel({})}>Limpiar</Boton>
             )}
           </div>
-          <span className="hidden">{hoy()}</span>
         </form>
       </Panel>
 
