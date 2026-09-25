@@ -1564,45 +1564,69 @@ export type Database = {
       trabajadores: {
         Row: {
           activo: boolean
+          asignacion_familiar: boolean
           banco: string
           cargo: string
           categoria: Database["public"]["Enums"]["categoria_obrero"]
           cci: string
           created_at: string
+          cuspp: string
           dni: string
+          fecha_ingreso: string | null
           id: string
           jornal_diario: number
           nombre: string
           numero_celular: string
           numero_cuenta: string
+          regimen_laboral: string
+          sistema_pensiones: string
+          sueldo_mensual: number
+          suspension_cuarta: boolean
+          tipo_contratacion: string
         }
         Insert: {
           activo?: boolean
+          asignacion_familiar?: boolean
           banco?: string
           cargo?: string
           categoria?: Database["public"]["Enums"]["categoria_obrero"]
           cci?: string
           created_at?: string
+          cuspp?: string
           dni?: string
+          fecha_ingreso?: string | null
           id?: string
           jornal_diario?: number
           nombre: string
           numero_celular?: string
           numero_cuenta?: string
+          regimen_laboral?: string
+          sistema_pensiones?: string
+          sueldo_mensual?: number
+          suspension_cuarta?: boolean
+          tipo_contratacion?: string
         }
         Update: {
           activo?: boolean
+          asignacion_familiar?: boolean
           banco?: string
           cargo?: string
           categoria?: Database["public"]["Enums"]["categoria_obrero"]
           cci?: string
           created_at?: string
+          cuspp?: string
           dni?: string
+          fecha_ingreso?: string | null
           id?: string
           jornal_diario?: number
           nombre?: string
           numero_celular?: string
           numero_cuenta?: string
+          regimen_laboral?: string
+          sistema_pensiones?: string
+          sueldo_mensual?: number
+          suspension_cuarta?: boolean
+          tipo_contratacion?: string
         }
         Relationships: []
       }
