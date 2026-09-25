@@ -251,9 +251,8 @@ function Datos() {
           }
         />
       )}
-        </div>
-      </div>
     </>
+
   );
 }
 
