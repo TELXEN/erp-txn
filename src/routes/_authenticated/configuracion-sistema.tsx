@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { SlidersHorizontal } from "lucide-react";
-import { Tarjeta } from "@/components/ui-kit";
+import { Panel, Vacio } from "@/components/ui-kit";
 
 export const Route = createFileRoute("/_authenticated/configuracion-sistema")({
   head: () => ({
