@@ -125,62 +125,6 @@ function Datos() {
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
-  const lista = terceros.filter((t) =>
-    filtro === "clientes" ? t.es_cliente : filtro === "proveedores" ? t.es_proveedor : true,
-  );
-
-  function validarDoc(tipo: string, numero: string) {
-    if (tipo === "RUC" && !/^\d{11}$/.test(numero)) return "El RUC debe tener 11 dígitos.";
-    if (tipo === "DNI" && !/^\d{8}$/.test(numero)) return "El DNI debe tener 8 dígitos.";
-    if (!numero.trim()) return "Ingresa el número de documento.";
-    return "";
-  }
-
-  async function guardarTercero(e: React.FormEvent) {
-    e.preventDefault();
-    setError("");
-    const msg = validarDoc(form.tipo_documento, form.numero_documento);
-    if (msg) return setError(msg);
-    if (!form.es_cliente && !form.es_proveedor) return setError("Marca si es Cliente, Proveedor o ambos.");
-    const { error: err } = await supabase.from("terceros").insert({
-      ...form,
-      numero_documento: form.numero_documento.trim(),
-      razon_social: form.razon_social.trim(),
-      condicion_pago: "Contado",
-    });
-    if (err)
-      return setError(
-        err.code === "23505" ? "Ya existe un registro con ese número de documento." : err.message,
-      );
-    setForm(formVacio);
-    qc.invalidateQueries({ queryKey: ["terceros"] });
-  }
-
-  async function actualizarTercero() {
-    if (!editando) return;
-    setError("");
-    const msg = validarDoc(editando.tipo_documento, editando.numero_documento);
-    if (msg) return setError(msg);
-    if (!editando.es_cliente && !editando.es_proveedor)
-      return setError("Marca si es Cliente, Proveedor o ambos.");
-    const { id, ...campos } = editando;
-    const { error: err } = await supabase.from("terceros").update(campos).eq("id", id);
-    if (err)
-      return setError(
-        err.code === "23505" ? "Ya existe un registro con ese número de documento." : err.message,
-      );
-    setEditando(null);
-    qc.invalidateQueries({ queryKey: ["terceros"] });
-  }
-
-  async function eliminarTercero(id: string) {
-    if (!window.confirm("¿Eliminar este registro del catálogo? Esta acción no se puede deshacer.")) return;
-    const { error: err } = await supabase.from("terceros").delete().eq("id", id);
-    if (err) return setError(err.message);
-    qc.invalidateQueries({ queryKey: ["terceros"] });
-  }
-
-
   return (
     <>
       <Encabezado
