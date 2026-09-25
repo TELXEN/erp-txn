@@ -1,0 +1,1 @@
+ALTER TABLE public.importaciones ADD COLUMN integrado boolean NOT NULL DEFAULT false, ADD COLUMN fecha_integracion date;

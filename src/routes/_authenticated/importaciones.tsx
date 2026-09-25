@@ -10,6 +10,7 @@ import { apuDb, useInsumos } from "@/lib/apu";
 import { exportarExcel } from "@/lib/exportar";
 import { num, useOrdenesCompra } from "@/lib/logistica";
 import { LiquidacionImportacion } from "@/components/LiquidacionImportacion";
+import { integrarImportacion } from "@/lib/importaciones-integrar";
 
 export const Route = createFileRoute("/_authenticated/importaciones")({
   head: () => ({
@@ -29,7 +30,7 @@ type Importacion = {
   id: string; codigo: string; proveedor_id: string | null; proveedor_extranjero: string; pais_origen: string;
   proyecto_id: string | null; orden_id: string | null; tipo_despacho: string; transportista: string; tracking: string;
   incoterm: string; moneda: "USD" | "PEN"; fecha_pedido: string; fecha_embarque: string | null; fecha_arribo: string | null;
-  estado: string; observacion: string; tipo_cambio: number; fecha_liquidacion: string | null; flete: number; seguro: number;
+  estado: string; observacion: string; integrado: boolean; fecha_integracion: string | null; tipo_cambio: number; fecha_liquidacion: string | null; flete: number; seguro: number;
   pct_percepcion: number; gasto_handling: number; gasto_almacenaje: number; gasto_honorarios: number; gasto_flete_local: number; gasto_otros: number;
 };
 type ItemImp = {
@@ -167,7 +168,20 @@ function ImportacionesPage() {
     qc.invalidateQueries({ queryKey: ["importaciones"] });
   }
 
+  async function integrar(i: Importacion, deImp: ItemImp[]) {
+    setError(""); setAviso("");
+    if (!confirm(`Se registrará ${i.codigo} en Almacén, Costos Directos y Tesorería (cuentas por pagar). ¿Continuar?`)) return;
+    try {
+      const r = await integrarImportacion(i, deImp, nombreProv(i), (id) => insumos.find((x) => x.id === id)?.tipo);
+      setAviso(`${i.codigo} integrada: costo S/ ${num(r.costo)} cargado a la obra y crédito fiscal S/ ${num(r.credito)} registrado.`);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    }
+    qc.invalidateQueries();
+  }
+
   async function eliminar(i: Importacion) {
+    if (i.integrado) return setError("No se puede eliminar una importación integrada al ERP.");
     if (i.estado === "Liquidado") return setError("No se puede eliminar una importación liquidada.");
     if (!confirm(`¿Eliminar la importación ${i.codigo}?`)) return;
     const { error: e } = await apuDb.from("importaciones").delete().eq("id", i.id);
@@ -351,7 +365,7 @@ function ImportacionesPage() {
                       <td className="px-3 text-right">{usd(fobDe(i.id), i.moneda)}</td>
                       <td className="px-3 text-right">{(() => { const c = deImp.reduce((t, x) => t + Number(x.cantidad) * Number(x.costo_unitario_pen), 0); return c > 0 ? usd(c, "PEN") : "—"; })()}</td>
                       <td className="px-3">
-                        <Select className="py-0.5 text-xs" value={i.estado} onChange={(e) => actualizar(i.id, { estado: e.target.value })}>
+                        <Select className="py-0.5 text-xs" disabled={i.integrado} value={i.estado} onChange={(e) => actualizar(i.id, { estado: e.target.value })}>
                           {ESTADOS.map((s) => <option key={s}>{s}</option>)}
                         </Select>
                       </td>
@@ -379,7 +393,18 @@ function ImportacionesPage() {
                               ))}
                             </tbody>
                           </table>
-                          {deImp.length > 0 && i.estado !== "Anulado" && (
+                          {i.integrado ? (
+                            <p className="mt-3 text-primary">Integrada al ERP el {i.fecha_integracion}: ingreso en Almacén, compra en Costos Directos y cuentas por pagar en Tesorería.</p>
+                          ) : i.estado === "Liquidado" && deImp.length > 0 ? (
+                            <div className="mt-3 flex items-center gap-3">
+                              <Boton onClick={() => integrar(i, deImp)}>Integrar a Almacén, Costos Directos y Tesorería</Boton>
+                              <Select className="w-64 py-1 text-xs" value={i.proyecto_id ?? ""} onChange={(e) => actualizar(i.id, { proyecto_id: e.target.value || null })}>
+                                <option value="">— Elige la obra de destino —</option>
+                                {proyectos.map((p) => <option key={p.id} value={p.id}>{nombreProy(p.id)}</option>)}
+                              </Select>
+                            </div>
+                          ) : null}
+                          {!i.integrado && deImp.length > 0 && i.estado !== "Anulado" && (
                             <LiquidacionImportacion
                               key={`${i.id}-${i.estado}`}
                               imp={i}
