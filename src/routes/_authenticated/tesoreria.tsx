@@ -18,6 +18,7 @@ import {
 import { InsigniaPago } from "@/components/CondicionPago";
 import type { CuentaBancaria } from "@/components/CuentasBancarias";
 import { exportarExcel } from "@/lib/exportar";
+import { pagarRRHH, usePagosRRHH, type DocRRHH } from "@/lib/pagos-rrhh";
 
 export const Route = createFileRoute("/_authenticated/tesoreria")({
   head: () => ({
@@ -72,7 +73,8 @@ type R = {
 
 type Pendiente = {
   id: string;
-  tabla: "ventas" | "gastos_directos" | "gastos_generales";
+  tabla: "ventas" | "gastos_directos" | "gastos_generales" | "rrhh";
+  doc?: DocRRHH;
   tercero: string;
   documento: string;
   obra: string;
@@ -120,6 +122,7 @@ function Tesoreria() {
   const { data: cajas = [] } = useCajasChicas();
   const { data: proyectos = [] } = useProyectos();
   const { data: terceros = [] } = useTerceros();
+  const { data: rrhh } = usePagosRRHH();
 
   const nombreObra = (id: string | null) => (id ? (proyectos.find((p) => p.id === id)?.nombre ?? "—") : "Oficina");
   const nombreTercero = (id: string | null, respaldo = "") =>
@@ -153,7 +156,7 @@ function Tesoreria() {
             );
         return { c, ingresos, egresos, saldo: Number(c.saldo_inicial) + ingresos - egresos };
       }),
-    [cuentas, ventas, gd, gg, cajas],
+    [cuentas, ventas, gd, gg, cajas, rrhh],
   );
 
   const cxc: Pendiente[] = (ventas as unknown as (Mov & Record<string, never>)[])
@@ -178,6 +181,7 @@ function Tesoreria() {
     });
 
   const cxp: Pendiente[] = [
+    ...[
     ...(gd as unknown as R[]).map((x) => ({ x, tabla: "gastos_directos" as const })),
     ...(gg as unknown as R[]).map((x) => ({ x, tabla: "gastos_generales" as const })),
   ]
@@ -196,7 +200,13 @@ function Tesoreria() {
       moneda: String(x.moneda),
       monto: Number(x.monto),
       soles: Number(x.monto_soles),
-    }));
+    })),
+    ...(rrhh?.pendientes ?? []).map((d) => ({
+      id: d.tabla + d.id, tabla: "rrhh" as const, doc: d, tercero: d.tercero, documento: d.documento, obra: d.obra,
+      detalle: d.detalle, descripcion: d.descripcion, emision: d.emision, vencimiento: d.vencimiento,
+      condicion: "Crédito", moneda: "PEN", monto: d.monto, soles: d.monto,
+    })),
+  ];
 
   const lista = (pestana === "cxc" ? cxc : cxp).sort((a, b) => (a.vencimiento ?? "").localeCompare(b.vencimiento ?? ""));
   const kpi = (l: Pendiente[]) => ({
@@ -220,11 +230,18 @@ function Tesoreria() {
     setError("");
     const { p, banco_id, fecha } = accion;
     const numero_operacion = accion.operacion.trim();
+    if (p.tabla === "rrhh" && p.doc) {
+      const { error: e2 } = await pagarRRHH(p.doc, banco_id, fecha, numero_operacion);
+      if (e2) return setError(e2.message);
+      setAccion(null);
+      ["pagos_rrhh", "recibos_honorarios", "boletas", "beneficios_sociales", "planillas"].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+      return;
+    }
     const cambios =
       p.tabla === "ventas"
         ? { estado: "Pagado", fecha_pago: fecha, banco_id, numero_operacion }
         : { estado_pago: "Pagada", fecha_pago: fecha, banco_id, numero_operacion };
-    const { error: err } = await supabase.from(p.tabla).update(cambios as never).eq("id", p.id);
+    const { error: err } = await supabase.from(p.tabla as "ventas").update(cambios as never).eq("id", p.id);
     if (err) return setError(err.message);
     setAccion(null);
     qc.invalidateQueries({ queryKey: [p.tabla] });
@@ -320,7 +337,7 @@ function Tesoreria() {
         {tarjeta("Vence en 30 días", soles(k.mes))}
       </div>
 
-<Panel titulo={pestana === "cxc" ? "Facturas emitidas pendientes de cobro" : "Compras al crédito pendientes de pago"}>
+<Panel titulo={pestana === "cxc" ? "Facturas emitidas pendientes de cobro" : "Compras al crédito, planillas, honorarios, beneficios y obligaciones con el Estado"}>
         {lista.length === 0 ? (
           <Vacio texto={pestana === "cxc" ? "No hay facturas por cobrar." : "No hay compras al crédito por pagar."} />
         ) : (
