@@ -36,7 +36,7 @@ export function PartidasMaestras() {
     const t = busqueda.trim().toLowerCase();
     if (!t) return lista;
     return lista.filter((p) =>
-      `${p.nombre} ${p.especialidad} ${p.categoria ?? ""}`.toLowerCase().includes(t),
+      `$<Resaltar texto={p.nombre} termino={busqueda} /> ${p.especialidad} ${p.categoria ?? ""}`.toLowerCase().includes(t),
     );
   }, [lista, busqueda]);
 
@@ -185,7 +185,9 @@ export function PartidasMaestras() {
           />
         }
       >
-        {filtradas.length === 0 ? (
+         {filtradas.length === 0 ? (
+          <Vacio texto={busqueda ? `Sin coincidencias para «${busqueda}»` : "Aún no hay partidas en el banco maestro."} />
+        ) : (
           <Vacio texto="Aún no hay partidas en el banco maestro." />
         ) : (
           <table className="w-full table-fixed font-mono text-xs">
@@ -298,9 +300,9 @@ export function PartidasMaestras() {
                   </tr>
                 ) : (
                   <tr key={p.id} className="border-b border-line/40 last:border-0">
-                    <td className="px-5 py-2.5 text-ink">{p.nombre}</td>
-                    <td className="px-3 py-2.5 text-muted-foreground">{p.especialidad || "—"}</td>
-                    <td className="px-3 py-2.5 text-muted-foreground">{p.categoria || "—"}</td>
+                    <td className="px-5 py-2.5 text-ink"><Resaltar texto={p.nombre} termino={busqueda} /></td>
+                    <td className="px-3 py-2.5 text-muted-foreground"><Resaltar texto={p.especialidad || "—"} termino={busqueda} /></td>
+                    <td className="px-3 py-2.5 text-muted-foreground"><Resaltar texto={p.categoria || "—"} termino={busqueda} /></td>
                     <td className="px-3 py-2.5 text-muted-foreground">{p.unidad}</td>
                     <td className="px-3 py-2.5 text-right">{soles(Number(p.precio_unitario))}</td>
                     <td className="px-3 py-2.5">
