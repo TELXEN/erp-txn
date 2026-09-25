@@ -124,11 +124,11 @@ function RequerimientosPage() {
   }, [comps, hojas, insumos, reqs, reqItems, proyectoId]);
 
   const sinApu = hojas.filter((h) => !comps.some((c) => c.partida_id === h.id)).length;
-  const reqsVisibles = reqs.filter((r) => (!proyectoId || r.proyecto_id === proyectoId) && coincide(busqueda, r.codigo, nombreProy(r.proyecto_id), r.observacion));
   const nombreProy = (id: string) => {
     const p = proyectos.find((x) => x.id === id);
     return p ? (p.codigo ? `${p.codigo} · ${p.nombre}` : p.nombre) : "—";
   };
+  const reqsVisibles = reqs.filter((r) => (!proyectoId || r.proyecto_id === proyectoId) && coincide(busqueda, r.codigo, nombreProy(r.proyecto_id), r.observacion));
 
   async function generar() {
     setError("");
