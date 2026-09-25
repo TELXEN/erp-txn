@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Check, Pencil, Trash2, Upload, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -223,7 +223,7 @@ function Personal() {
     await qc.invalidateQueries({ queryKey: ["trabajadores"] });
   }
 
-  const actualizarCampo = (campo: keyof FormPersonal, valor: string) => {
+  const actualizarCampo = (campo: keyof FormPersonal, valor: string | boolean) => {
     if (!editando) return;
     setEditando({ ...editando, datos: { ...editando.datos, [campo]: valor } });
   };
@@ -250,6 +250,14 @@ function Personal() {
                     CCI: t.cci,
                     Banco: t.banco,
                     "N° Celular": t.numero_celular,
+                    "Tipo contratación": t.tipo_contratacion === "Honorarios" ? "Recibo por Honorarios" : "Planilla",
+                    "Régimen laboral": t.regimen_laboral,
+                    "Sistema pensiones": t.sistema_pensiones,
+                    CUSPP: t.cuspp,
+                    "Fecha ingreso": t.fecha_ingreso ?? "",
+                    "Sueldo/Honorario mensual (S/)": Number(t.sueldo_mensual ?? 0),
+                    "Asignación familiar": t.asignacion_familiar ? "Sí" : "No",
+                    "Suspensión 4ta": t.suspension_cuarta ? "Sí" : "No",
                   })),
                 },
               ])
@@ -289,6 +297,7 @@ function Personal() {
           <Campo etiqueta="N° Celular">
             <Input inputMode="tel" pattern="[0-9]{9}" maxLength={9} value={form.numero_celular} onChange={(e) => setForm({ ...form, numero_celular: e.target.value.replace(/\D/g, "") })} required className="py-1.5" />
           </Campo>
+          {camposContrato(form, (c, v) => setForm((f) => ({ ...f, [c]: v })))}
           <div className="flex justify-end col-span-full">
             <Boton type="submit" className="min-w-36">Registrar</Boton>
           </div>
@@ -302,7 +311,7 @@ function Personal() {
           <Vacio texto="Aún no hay personal registrado." />
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-[1280px] w-full table-fixed font-mono text-xs">
+            <table className="min-w-[1440px] w-full table-fixed font-mono text-xs">
               <thead>
                 <tr className="border-b border-line text-left text-[10px] uppercase text-muted-foreground">
                   <th className="w-[9%] px-4 py-2 font-medium">DNI</th>
@@ -313,6 +322,7 @@ function Personal() {
                   <th className="w-[15%] px-3 py-2 font-medium">CCI</th>
                   <th className="w-[10%] px-3 py-2 font-medium">Banco</th>
                   <th className="w-[8%] px-3 py-2 font-medium">N° Celular</th>
+                  <th className="w-[12%] px-3 py-2 font-medium">Contrato</th>
                   <th className="w-[7%] px-4 py-2 text-right font-medium">Acciones</th>
                 </tr>
               </thead>
@@ -321,7 +331,8 @@ function Personal() {
                   const esEdicion = editando?.id === t.id;
                   const d = editando?.datos;
                   return (
-                    <tr key={t.id} className="border-b border-line/60 align-top last:border-0">
+                    <Fragment key={t.id}>
+                    <tr className="border-b border-line/60 align-top last:border-0">
                       <td className="px-4 py-2">{esEdicion && d ? <Input inputMode="numeric" maxLength={8} value={d.dni} onChange={(e) => actualizarCampo("dni", e.target.value.replace(/\D/g, ""))} className="py-1 text-xs" required /> : t.dni}</td>
                       <td className="px-3 py-2 font-semibold text-ink">{esEdicion && d ? <Input value={d.nombre} onChange={(e) => actualizarCampo("nombre", e.target.value)} className="py-1 text-xs" maxLength={100} required /> : t.nombre}</td>
                       <td className="px-3 py-2 text-muted-foreground">{esEdicion && d ? <Select value={d.cargo} onChange={(e) => actualizarCampo("cargo", e.target.value)} className="py-1 text-xs"><option value="">Selecciona…</option>{cargosActivos.map((c) => <option key={c.id} value={c.nombre}>{c.nombre}</option>)}</Select> : <span className="block">{t.cargo}<span className={`mt-0.5 block text-[10px] ${clasifDe(t.cargo) === "Indirecto" ? "text-primary" : "text-muted-foreground"}`}>{clasifDe(t.cargo) === "Indirecto" ? "Staff · Gasto general" : "Mano de obra directa"}</span></span>}</td>
@@ -330,6 +341,10 @@ function Personal() {
                       <td className="px-3 py-2 break-all">{esEdicion && d ? <Input inputMode="numeric" maxLength={20} value={d.cci} onChange={(e) => actualizarCampo("cci", e.target.value.replace(/\D/g, ""))} className="py-1 text-xs" required /> : t.cci}</td>
                       <td className="px-3 py-2">{esEdicion && d ? <Input value={d.banco} onChange={(e) => actualizarCampo("banco", e.target.value)} className="py-1 text-xs" maxLength={80} required /> : t.banco}</td>
                       <td className="px-3 py-2">{esEdicion && d ? <Input inputMode="tel" maxLength={9} value={d.numero_celular} onChange={(e) => actualizarCampo("numero_celular", e.target.value.replace(/\D/g, ""))} className="py-1 text-xs" required /> : t.numero_celular}</td>
+                      <td className="px-3 py-2">
+                        <span className="block font-semibold text-ink">{t.tipo_contratacion === "Honorarios" ? "RxH" : "Planilla"}</span>
+                        <span className="block text-[10px] text-muted-foreground">{t.tipo_contratacion === "Honorarios" ? (t.suspension_cuarta ? "Suspensión 4ta" : "Retención 8%") : `${t.regimen_laboral} · ${t.sistema_pensiones}`}</span>
+                      </td>
                       <td className="px-4 py-2">
                         <div className="flex items-center justify-end gap-1">
                           {esEdicion ? (
@@ -346,6 +361,14 @@ function Personal() {
                         </div>
                       </td>
                     </tr>
+                    {esEdicion && d && (
+                      <tr className="border-b border-line/60 bg-muted/30">
+                        <td colSpan={10} className="px-4 py-2">
+                          <div className="grid gap-1.5 grid-cols-2 sm:grid-cols-4 lg:grid-cols-7">{camposContrato(d, actualizarCampo)}</div>
+                        </td>
+                      </tr>
+                    )}
+                    </Fragment>
                   );
                 })}
               </tbody>
