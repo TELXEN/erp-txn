@@ -333,7 +333,7 @@ function FlujoCaja() {
                     <Input
                       type="number"
                       step="0.01"
-                      className="h-7 w-full min-w-0 text-right"
+                      className="h-7 w-full min-w-0 text-right [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                       style={{ fontSize: "10px", paddingLeft: 2, paddingRight: 2 }}
                       defaultValue={f.metaIngreso}
                       key={`i-${anio}-${f.mes}-${f.metaIngreso}`}
@@ -355,7 +355,7 @@ function FlujoCaja() {
                     <Input
                       type="number"
                       step="0.01"
-                      className="h-7 w-full min-w-0 text-right"
+                      className="h-7 w-full min-w-0 text-right [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                       style={{ fontSize: "10px", paddingLeft: 2, paddingRight: 2 }}
                       defaultValue={f.metaCosto}
                       key={`c-${anio}-${f.mes}-${f.metaCosto}`}
