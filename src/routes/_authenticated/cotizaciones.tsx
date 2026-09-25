@@ -35,6 +35,7 @@ import {
   type EstadoCotizacion,
 } from "@/lib/cotizaciones";
 import { Check, Calculator, CornerDownRight, ListOrdered, Upload, X } from "lucide-react";
+import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 
 export const Route = createFileRoute("/_authenticated/cotizaciones")({
   head: () => ({

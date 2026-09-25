@@ -420,7 +420,7 @@ function OrdenesCompraPage() {
         }
       >
         {visibles.length === 0 ? (
-          <Vacio texto="Todavía no hay órdenes de compra." />
+          {busqueda ? <Vacio texto={`Sin coincidencias para «${busqueda}»`} /> : <Vacio texto="Todavía no hay órdenes de compra." />}
         ) : (
           <table className="w-full font-mono text-xs">
             <thead>
@@ -444,11 +444,11 @@ function OrdenesCompraPage() {
                     <tr className="border-b border-line/40">
                       <td className="px-5 py-2">
                         <button type="button" onClick={() => setAbierto(ver ? null : o.id)} className="inline-flex items-center gap-1 text-primary">
-                          {ver ? <ChevronDown size={13} /> : <ChevronRight size={13} />} {o.codigo}
+                          {ver ? <ChevronDown size={13} /> : <ChevronRight size={13} />} <Resaltar texto={o.codigo} termino={busqueda} />
                         </button>
                       </td>
-                      <td className="px-3 py-2 text-ink">{nombreProy(o.proyecto_id)}</td>
-                      <td className="px-3 py-2">{nombreProv(o.proveedor_id)}</td>
+                      <td className="px-3 py-2 text-ink"><Resaltar texto={nombreProy(o.proyecto_id)} termino={busqueda} /></td>
+                      <td className="px-3 py-2"><Resaltar texto={nombreProv(o.proveedor_id)} termino={busqueda} /></td>
                       <td className="px-3 py-2">{o.fecha}</td>
                       <td className="px-3 py-2">{o.fecha_entrega ?? "—"}</td>
                       <td className="px-3 py-2 text-right">{soles(totalOC(o.id))}</td>

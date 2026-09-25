@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { Fragment, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Check, Pencil, Trash2, Upload, X } from "lucide-react";
@@ -88,6 +89,10 @@ function Personal() {
   const cargosActivos = cargos.filter((c) => c.activo);
   const clasifDe = (nombre: string) => clasificacionDeCargo(nombre, cargos);
   const [form, setForm] = useState<FormPersonal>(FORM_INICIAL);
+  const [busqueda, setBusqueda] = useState("");
+  const trabajadoresFiltrados = trabajadores.filter((t) =>
+    coincide(busqueda, t.nombre, t.dni, t.cargo),
+  );
   const [editando, setEditando] = useState<{ id: string; datos: FormPersonal } | null>(null);
   const [error, setError] = useState("");
 
@@ -305,9 +310,28 @@ function Personal() {
         </form>
       </Panel>
 
-      <Panel titulo="Planilla" extra={<span className="font-mono text-[11px] text-muted-foreground">{trabajadores.length} trabajadores</span>}>
+      <Panel titulo="Planilla"
+        extra={
+          <div className="flex items-center gap-2">
+            <Buscador
+              valor={busqueda}
+              onChange={setBusqueda}
+              total={trabajadoresFiltrados.length}
+              placeholder="Buscar por nombre, DNI o cargo..."
+            />
+            <span className="font-mono text-[11px] text-muted-foreground">{trabajadores.length} trabajadores</span>
+          </div>
+        }>
         {error && <p className="border-b border-line px-5 py-2 font-mono text-xs text-bad">{error}</p>}
-        {trabajadores.length === 0 ? (
+        {trabajadoresFiltrados.length === 0 ? (
+          <Vacio
+            texto={
+              busqueda
+                ? `Sin coincidencias para «${busqueda}»`
+                : "Aún no hay personal registrado."
+            }
+          />
+        ) : trabajadores.length === 0 ? (
           <Vacio texto="Aún no hay personal registrado." />
         ) : (
           <div className="overflow-x-auto">
@@ -327,7 +351,7 @@ function Personal() {
                 </tr>
               </thead>
               <tbody>
-                {trabajadores.map((t) => {
+                {trabajadoresFiltrados.map((t) => {
                   const esEdicion = editando?.id === t.id;
                   const d = editando?.datos;
                   return (

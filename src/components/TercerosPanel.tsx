@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, Vacio } from "@/components/ui-kit";
 import { Check, Pencil, Trash2, Upload, X } from "lucide-react";
+import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { exportarExcel } from "@/lib/exportar";
 
 export type Tercero = {

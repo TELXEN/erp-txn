@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { Fragment, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Upload } from "lucide-react";
@@ -104,6 +105,7 @@ function Tesoreria() {
   const { rol } = useAuth();
   const qc = useQueryClient();
   const [pestana, setPestana] = useState<"cxc" | "cxp">("cxc");
+  const [busqueda, setBusqueda] = useState("");
   const [cerrados, setCerrados] = useState<Set<string>>(new Set());
   const [accion, setAccion] = useState<{ p: Pendiente; banco_id: string; fecha: string; operacion: string } | null>(null);
   const [error, setError] = useState("");
@@ -208,7 +210,11 @@ function Tesoreria() {
     })),
   ];
 
-  const lista = (pestana === "cxc" ? cxc : cxp).sort((a, b) => (a.vencimiento ?? "").localeCompare(b.vencimiento ?? ""));
+  const listaBase = (pestana === "cxc" ? cxc : cxp);
+  const listaFiltrada = listaBase.filter((p) =>
+    coincide(busqueda, p.tercero, p.documento, p.descripcion, p.detalle),
+  );
+  const lista = listaFiltrada.sort((a, b) => (a.vencimiento ?? "").localeCompare(b.vencimiento ?? ""));
   const kpi = (l: Pendiente[]) => ({
     total: l.reduce((s, p) => s + p.soles, 0),
     vencido: l.filter((p) => diasA(p.vencimiento) < 0).reduce((s, p) => s + p.soles, 0),
@@ -337,8 +343,23 @@ function Tesoreria() {
         {tarjeta("Vence en 30 días", soles(k.mes))}
       </div>
 
-<Panel titulo={pestana === "cxc" ? "Facturas emitidas pendientes de cobro" : "Compras al crédito, planillas, honorarios, beneficios y obligaciones con el Estado"}>
+<Panel titulo={pestana === "cxc" ? "Facturas emitidas pendientes de cobro" : "Compras al crédito, planillas, honorarios, beneficios y obligaciones con el Estado"}
+        extra={
+          <Buscador
+            valor={busqueda}
+            onChange={setBusqueda}
+            total={lista.length}
+            placeholder={`Buscar en ${pestana === "cxc" ? "cobranzas" : "pagos"}...`}
+          />
+        }>
         {lista.length === 0 ? (
+          <Vacio
+            texto={
+              busqueda
+                ? `Sin coincidencias para «${busqueda}»`
+                : (pestana === "cxc" ? "No hay facturas por cobrar." : "No hay compras al crédito por pagar.")
+            }
+          />
           <Vacio texto={pestana === "cxc" ? "No hay facturas por cobrar." : "No hay compras al crédito por pagar."} />
         ) : (
           <div className="overflow-x-auto">

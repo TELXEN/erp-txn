@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Check, Pencil, Trash2, X } from "lucide-react";
+import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { Boton, Campo, Input, Panel, Select, Vacio } from "@/components/ui-kit";
 import { soles } from "@/lib/format";
 import { useUnidadesMedida } from "@/lib/unidades";

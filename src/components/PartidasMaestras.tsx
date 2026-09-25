@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Calculator, Check, Pencil, Trash2, X } from "lucide-react";
+import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { ApuPartida } from "@/components/ApuPartida";
 import { supabase } from "@/integrations/supabase/client";
 import { Boton, Campo, Input, Panel, Select, Vacio } from "@/components/ui-kit";
