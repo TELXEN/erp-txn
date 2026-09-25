@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { Fragment, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -67,6 +68,7 @@ function GastosGenerales() {
   });
   const [error, setError] = useState("");
   const [ambito, setAmbito] = useState("Todas");
+  const [busqueda, setBusqueda] = useState("");
   const [filtroCategoria, setFiltroCategoria] = useState("Todas");
   const [cerrados, setCerrados] = useState<Set<string>>(new Set());
   const [guiaVisible, setGuiaVisible] = useState(false);
@@ -92,6 +94,9 @@ function GastosGenerales() {
       ? gastos
       : ambito === "Oficina"
         ? gastos.filter((g) => !g.proyecto_id)
+  const gastosBusqueda = gastosFiltrados.filter((g) =>
+    coincide(busqueda, g.descripcion, nombreProv(g), (g as Pago).comprobante),
+  );
         : gastos.filter((g) => g.proyecto_id === ambito);
   const gastosFiltrados =
     filtroCategoria === "Todas" ? porAmbito : porAmbito.filter((g) => (g.categoria ?? "") === filtroCategoria);
@@ -102,13 +107,13 @@ function GastosGenerales() {
       total: porAmbito.filter((g) => (g.categoria ?? "") === c.nombre).reduce((s, g) => s + Number(g.monto_soles), 0),
     }))
     .filter((t) => t.total > 0 || filtroCategoria === t.nombre);
-  const total = gastosFiltrados.reduce((s, g) => s + Number(g.monto_soles), 0);
-  const pagado = gastosFiltrados
+  const total = gastosBusqueda.reduce((s, g) => s + Number(g.monto_soles), 0);
+  const pagado = gastosBusqueda
     .filter((g) => (g as Pago).estado_pago === "Pagada")
     .reduce((s, g) => s + Number(g.monto_soles), 0);
   const porPagar = total - pagado;
 
-  const gruposCategoria = Array.from(new Set(gastosFiltrados.map((g) => g.categoria || "Sin categoría"))).sort();
+  const gruposCategoria = Array.from(new Set(gastosBusqueda.map((g) => g.categoria || "Sin categoría"))).sort();
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
@@ -435,7 +440,15 @@ function GastosGenerales() {
           </div>
         }
       >
-        {gastosFiltrados.length === 0 ? (
+        {gastosBusqueda.length === 0 ? (
+              <Vacio
+                texto={
+                  busqueda
+                    ? `Sin coincidencias para «${busqueda}»`
+                    : "No hay gastos registrados en este ámbito y categoría."
+                }
+              />
+            ) : gastosFiltrados.length === 0 ? (
           <Vacio
             texto={
               filtroCategoria === "Todas"

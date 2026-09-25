@@ -60,6 +60,7 @@ function OrdenesCompraPage() {
   const [filtro, setFiltro] = useState("");
   const [error, setError] = useState("");
   const [aviso, setAviso] = useState("");
+  const [busqueda, setBusqueda] = useState("");
 
   const proveedores = terceros.filter((t) => t.es_proveedor && t.activo);
   const nombreProy = (id: string) => {
@@ -274,7 +275,7 @@ function OrdenesCompraPage() {
     qc.invalidateQueries({ queryKey: ["orden_compra_items"] });
   }
 
-  const visibles = ordenes.filter((o) => !filtro || o.proyecto_id === filtro);
+  const visibles = ordenes.filter((o) => (!filtro || o.proyecto_id === filtro) && coincide(busqueda, o.codigo, nombreProy(o.proyecto_id), nombreProv(o.proveedor_id), o.observacion));
   const totalOC = (id: string) =>
     itemsOC.filter((i) => i.orden_id === id).reduce((s, i) => s + Number(i.cantidad) * Number(i.precio_unitario), 0);
 

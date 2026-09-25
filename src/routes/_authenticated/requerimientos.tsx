@@ -58,6 +58,7 @@ function RequerimientosPage() {
   const [abierto, setAbierto] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [aviso, setAviso] = useState("");
+  const [busqueda, setBusqueda] = useState("");
 
   const proyecto = proyectos.find((p) => p.id === proyectoId);
   const delProyecto = useMemo(() => partidas.filter((p) => p.proyecto_id === proyectoId), [partidas, proyectoId]);
@@ -122,7 +123,7 @@ function RequerimientosPage() {
   }, [comps, hojas, insumos, reqs, reqItems, proyectoId]);
 
   const sinApu = hojas.filter((h) => !comps.some((c) => c.partida_id === h.id)).length;
-  const reqsVisibles = reqs.filter((r) => !proyectoId || r.proyecto_id === proyectoId);
+  const reqsVisibles = reqs.filter((r) => (!proyectoId || r.proyecto_id === proyectoId) && coincide(busqueda, r.codigo, nombreProy(r.proyecto_id), r.observacion));
   const nombreProy = (id: string) => {
     const p = proyectos.find((x) => x.id === id);
     return p ? (p.codigo ? `${p.codigo} · ${p.nombre}` : p.nombre) : "—";
@@ -299,9 +300,9 @@ function RequerimientosPage() {
         )}
       </Panel>
 
-      <Panel titulo="Requerimientos registrados">
+      <Panel titulo="Requerimientos registrados" extra={<Buscador valor={busqueda} onChange={setBusqueda} placeholder="Buscar por código, obra u observación..." total={reqsVisibles.length} />}>
         {reqsVisibles.length === 0 ? (
-          <Vacio texto="Todavía no hay requerimientos." />
+          {busqueda ? <Vacio texto={`Sin coincidencias para «${busqueda}»`} /> : <Vacio texto="Todavía no hay requerimientos." />}
         ) : (
           <table className="w-full font-mono text-xs">
             <thead>
@@ -324,10 +325,10 @@ function RequerimientosPage() {
                     <tr className="border-b border-line/40">
                       <td className="px-5 py-2">
                         <button type="button" onClick={() => setAbierto(ver ? null : r.id)} className="inline-flex items-center gap-1 text-primary">
-                          {ver ? <ChevronDown size={13} /> : <ChevronRight size={13} />} {r.codigo}
+                          {ver ? <ChevronDown size={13} /> : <ChevronRight size={13} />} <Resaltar texto={r.codigo} termino={busqueda} />
                         </button>
                       </td>
-                      <td className="px-3 py-2 text-ink">{nombreProy(r.proyecto_id)}</td>
+                      <td className="px-3 py-2 text-ink"><Resaltar texto={nombreProy(r.proyecto_id)} termino={busqueda} /></td>
                       <td className="px-3 py-2">{r.fecha}</td>
                       <td className="px-3 py-2 text-right">{its.length}</td>
                       {gestiona && (

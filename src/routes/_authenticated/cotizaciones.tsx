@@ -59,7 +59,10 @@ const cantidad = (n: number | string) =>
 function Cotizaciones() {
   const { rol } = useAuth();
   const qc = useQueryClient();
-  const { data: cotizaciones = [] } = useCotizaciones();
+  const { data: todasCotizaciones = [] } = useCotizaciones();
+  const cotizaciones = todasCotizaciones.filter((c) =>
+    coincide(busqueda, c.codigo, c.nombre, c.cliente, c.ubicacion),
+  );
   const { data: especialidades = [] } = useEspecialidadesPartida();
   const { data: unidades = [] } = useUnidadesMedida();
   const { data: maestras = [] } = usePartidasMaestras();
@@ -83,6 +86,7 @@ function Cotizaciones() {
   const { data: items = [] } = useCotizacionItems(seleccion);
   const [error, setError] = useState("");
   const [aviso, setAviso] = useState("");
+  const [busqueda, setBusqueda] = useState("");
 
   const [form, setForm] = useState({
     codigo: "",
@@ -477,7 +481,9 @@ function Cotizaciones() {
       </Panel>
 
       <Panel titulo="Cotizaciones registradas" className="mb-4">
-        {cotizaciones.length === 0 ? (
+         {cotizaciones.length === 0 ? (
+          <Vacio texto={busqueda ? `Sin coincidencias para «${busqueda}»` : "Aún no hay cotizaciones registradas."} />
+        ) : (
           <Vacio texto="Aún no hay cotizaciones." />
         ) : (
           <table className="w-full font-mono text-xs">
@@ -503,7 +509,7 @@ function Cotizaciones() {
                   >
                     <td className="px-5 py-2.5 font-semibold text-primary">{c.codigo ?? "—"}</td>
                     <td className="px-3 py-2.5 text-muted-foreground">{c.cliente || "—"}</td>
-                    <td className="px-3 py-2.5 font-semibold text-ink">{c.nombre}</td>
+                    <td className="px-3 py-2.5 font-semibold text-ink"><Resaltar texto={c.nombre} termino={busqueda} /></td>
                     <td className="px-3 py-2.5 text-muted-foreground">{fmtFecha(c.fecha_emision)}</td>
                     <td className="px-3 py-2.5 text-muted-foreground">
                       {fmtFecha(vigenciaHasta(c.fecha_emision, Number(c.validez_dias)))}
@@ -680,8 +686,8 @@ function Cotizaciones() {
               >
                 <option value="">Sin categoría</option>
                 {categoriasDe(item.especialidad, categorias).map((c) => (
-                  <option key={c.id} value={c.nombre}>
-                    {c.nombre}
+                  <option key={c.id} value=<Resaltar texto={c.nombre} termino={busqueda} />>
+                    <Resaltar texto={c.nombre} termino={busqueda} />
                   </option>
                 ))}
               </Select>
