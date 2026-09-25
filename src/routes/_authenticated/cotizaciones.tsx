@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Buscador, Resaltar, coincide } from "@/components/Buscador";
 import React, { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -83,6 +84,7 @@ function Cotizaciones() {
   const { data: items = [] } = useCotizacionItems(seleccion);
   const [error, setError] = useState("");
   const [aviso, setAviso] = useState("");
+  const [busqueda, setBusqueda] = useState("");
 
   const [form, setForm] = useState({
     codigo: "",
@@ -476,9 +478,11 @@ function Cotizaciones() {
         </form>
       </Panel>
 
-      <Panel titulo="Cotizaciones registradas" className="mb-4">
+      <Panel titulo="Cotizaciones registradas" className="mb-4" extra={<Buscador valor={busqueda} onChange={setBusqueda} placeholder="Buscar por código, cliente o trabajo..." total={cotizaciones.filter((c) => coincide(busqueda, c.codigo, c.cliente, c.nombre, c.estado)).length} />}>
         {cotizaciones.length === 0 ? (
           <Vacio texto="Aún no hay cotizaciones." />
+        ) : cotizaciones.filter((c) => coincide(busqueda, c.codigo, c.cliente, c.nombre, c.estado)).length === 0 ? (
+          <Vacio texto={`Sin coincidencias para «${busqueda}».`} />
         ) : (
           <table className="w-full font-mono text-xs">
             <thead>
@@ -494,16 +498,16 @@ function Cotizaciones() {
               </tr>
             </thead>
             <tbody>
-              {cotizaciones.map((c) => {
+              {cotizaciones.filter((c) => coincide(busqueda, c.codigo, c.cliente, c.nombre, c.estado)).map((c) => {
                 const total = totalDe(c.id);
                 return (
                   <tr
                     key={c.id}
                     className={`border-b border-line/60 last:border-0 ${c.id === seleccion ? "bg-primary/5" : ""}`}
                   >
-                    <td className="px-5 py-2.5 font-semibold text-primary">{c.codigo ?? "—"}</td>
-                    <td className="px-3 py-2.5 text-muted-foreground">{c.cliente || "—"}</td>
-                    <td className="px-3 py-2.5 font-semibold text-ink">{c.nombre}</td>
+                    <td className="px-5 py-2.5 font-semibold text-primary"><Resaltar texto={c.codigo ?? "—"} termino={busqueda} /></td>
+                    <td className="px-3 py-2.5 text-muted-foreground"><Resaltar texto={c.cliente || "—"} termino={busqueda} /></td>
+                    <td className="px-3 py-2.5 font-semibold text-ink"><Resaltar texto={c.nombre} termino={busqueda} /></td>
                     <td className="px-3 py-2.5 text-muted-foreground">{fmtFecha(c.fecha_emision)}</td>
                     <td className="px-3 py-2.5 text-muted-foreground">
                       {fmtFecha(vigenciaHasta(c.fecha_emision, Number(c.validez_dias)))}
