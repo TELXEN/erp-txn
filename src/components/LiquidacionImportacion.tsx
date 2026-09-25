@@ -89,6 +89,7 @@ export function LiquidacionImportacion({ imp, items, onGuardado }: { imp: Imp; i
         <tbody>
           {items.map((i, k) => {
             const f = r.filas[k];
+            if (!f) return null;
             return (
               <tr key={i.id} className="border-b border-line/30">
                 <td className="py-1">{i.descripcion} <span className="text-muted-foreground">({num(i.cantidad)} {i.unidad})</span></td>
