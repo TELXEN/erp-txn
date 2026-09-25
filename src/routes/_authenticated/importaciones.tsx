@@ -330,14 +330,17 @@ function ImportacionesPage() {
       <Panel
         titulo="Carpetas de importación"
         extra={
-          <Select className="w-48 py-1 text-xs" value={filtro} onChange={(e) => setFiltro(e.target.value)}>
-            <option value="">Todos los estados</option>
-            {ESTADOS.map((s) => <option key={s}>{s}</option>)}
-          </Select>
+          <div className="flex flex-wrap items-center gap-2">
+            <Buscador valor={busqueda} onChange={setBusqueda} placeholder="Buscar por código, proveedor, obra, tracking..." total={lista.length} />
+            <Select className="w-48 py-1 text-xs" value={filtro} onChange={(e) => setFiltro(e.target.value)}>
+              <option value="">Todos los estados</option>
+              {ESTADOS.map((s) => <option key={s}>{s}</option>)}
+            </Select>
+          </div>
         }
       >
         {lista.length === 0 ? (
-          <Vacio texto="Aún no hay importaciones registradas." />
+          <Vacio texto={busqueda ? `Sin coincidencias para «${busqueda}»` : "Aún no hay importaciones registradas."} />
         ) : (
           <table className="w-full font-mono text-xs">
             <thead>
