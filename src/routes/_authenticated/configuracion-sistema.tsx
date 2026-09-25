@@ -28,11 +28,9 @@ function ConfiguracionSistema() {
           </p>
         </div>
       </div>
-      <Tarjeta>
-        <p className="py-6 text-center text-sm text-muted-foreground">
-          No hay parámetros configurables por el momento.
-        </p>
-      </Tarjeta>
+      <Panel>
+        <Vacio texto="No hay parámetros configurables por el momento." />
+      </Panel>
     </div>
   );
 }
