@@ -21,7 +21,9 @@ import { MESES, pct, soles } from "@/lib/format";
 import { useCajasChicas, useGastosDirectos, useGastosGenerales, useVentas } from "@/lib/datos";
 import { exportarExcel } from "@/lib/exportar";
 
-const corto = (n: number) => new Intl.NumberFormat("es-PE", { maximumFractionDigits: 0 }).format(Math.round(n || 0));
+const fmtCorto = (n: number) =>
+  new Intl.NumberFormat("es-PE", { maximumFractionDigits: 0 }).format(Math.round(Math.abs(n || 0)));
+const corto = (n: number) => (n < 0 ? `-S/ ${fmtCorto(n)}` : `S/ ${fmtCorto(n)}`);
 
 export const Route = createFileRoute("/_authenticated/flujo-caja")({
   head: () => ({
