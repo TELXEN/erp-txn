@@ -1146,6 +1146,101 @@ export type Database = {
           },
         ]
       }
+      requerimiento_items: {
+        Row: {
+          cantidad: number
+          created_at: string
+          descripcion: string
+          id: string
+          insumo_id: string | null
+          precio_referencial: number
+          requerimiento_id: string
+          tipo: string
+          unidad: string
+        }
+        Insert: {
+          cantidad?: number
+          created_at?: string
+          descripcion: string
+          id?: string
+          insumo_id?: string | null
+          precio_referencial?: number
+          requerimiento_id: string
+          tipo?: string
+          unidad?: string
+        }
+        Update: {
+          cantidad?: number
+          created_at?: string
+          descripcion?: string
+          id?: string
+          insumo_id?: string | null
+          precio_referencial?: number
+          requerimiento_id?: string
+          tipo?: string
+          unidad?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "requerimiento_items_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "insumos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "requerimiento_items_requerimiento_id_fkey"
+            columns: ["requerimiento_id"]
+            isOneToOne: false
+            referencedRelation: "requerimientos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      requerimientos: {
+        Row: {
+          codigo: string
+          creado_por: string | null
+          created_at: string
+          estado: string
+          fecha: string
+          id: string
+          observacion: string
+          proyecto_id: string
+          updated_at: string
+        }
+        Insert: {
+          codigo?: string
+          creado_por?: string | null
+          created_at?: string
+          estado?: string
+          fecha?: string
+          id?: string
+          observacion?: string
+          proyecto_id: string
+          updated_at?: string
+        }
+        Update: {
+          codigo?: string
+          creado_por?: string | null
+          created_at?: string
+          estado?: string
+          fecha?: string
+          id?: string
+          observacion?: string
+          proyecto_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "requerimientos_proyecto_id_fkey"
+            columns: ["proyecto_id"]
+            isOneToOne: false
+            referencedRelation: "proyectos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tareos: {
         Row: {
           asistencia: number
