@@ -230,18 +230,18 @@ function FlujoCaja() {
 
   const kpis = [
     { etiqueta: "Meta de ingreso", valor: total.metaIngreso, extra: "" },
+    { etiqueta: "Meta de costo", valor: total.metaCosto, extra: "" },
+    { etiqueta: "Resultado objetivo", valor: resultadoObjetivoAnual, extra: "" },
     {
       etiqueta: "Ingreso realizado",
       valor: total.ingresoReal,
       extra: total.metaIngreso ? pct((total.ingresoReal / total.metaIngreso) * 100) : "",
     },
-    { etiqueta: "Meta de costo", valor: total.metaCosto, extra: "" },
     {
       etiqueta: "Costo realizado",
       valor: total.costoReal,
       extra: total.metaCosto ? pct((total.costoReal / total.metaCosto) * 100) : "",
     },
-    { etiqueta: "Resultado objetivo", valor: resultadoObjetivoAnual, extra: "" },
     {
       etiqueta: "Resultado realizado",
       valor: resultadoRealAnual,
