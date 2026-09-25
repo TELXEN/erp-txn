@@ -311,11 +311,11 @@ function FlujoCaja() {
                   Concepto
                 </th>
                 {filas.map((f) => (
-                  <th key={f.mes} className="border-b border-line bg-paper px-1 py-2 text-right font-mono text-[11px] text-[10px] uppercase">
+                  <th key={f.mes} className="border-b border-line bg-paper px-1 py-2 text-right font-mono text-[10px] uppercase">
                     {f.etiqueta}
                   </th>
                 ))}
-                <th className="sticky right-0 z-20 w-[11%] border-b border-l border-line bg-muted px-2 py-2 text-right font-mono text-[11px] text-[10px] uppercase">
+                <th className="sticky right-0 z-20 w-[11%] border-b border-l border-line bg-muted px-2 py-2 text-right font-mono text-[10px] uppercase">
                   Total anual
                 </th>
               </tr>
@@ -371,7 +371,7 @@ function FlujoCaja() {
               <tr>
                 <th className="sticky left-0 z-10 border-b border-r border-line bg-paper px-2 py-1.5 text-left font-semibold">Resultado objetivo</th>
                 {filas.map((f) => (
-                  <td key={f.mes} className="border-b border-line px-1 py-1.5 text-right font-mono text-[11px] font-semibold">{corto(f.resultadoObjetivo)}</td>
+                  <td key={f.mes} className="border-b border-line px-1 py-1.5 text-right font-mono text-[10px] font-semibold">{corto(f.resultadoObjetivo)}</td>
                 ))}
                 <td className="sticky right-0 z-10 border-b border-l border-line bg-muted px-2 py-1.5 text-right font-mono text-[11px] font-semibold">{corto(resultadoObjetivoAnual)}</td>
               </tr>
@@ -384,14 +384,14 @@ function FlujoCaja() {
               <tr>
                 <th className="sticky left-0 z-10 border-b border-r border-line bg-paper px-2 py-1.5 text-left font-medium">Ingreso realizado</th>
                 {filas.map((f) => (
-                  <td key={f.mes} className="border-b border-line px-1 py-1.5 text-right font-mono text-[11px]">{corto(f.ingresoReal)}</td>
+                  <td key={f.mes} className="border-b border-line px-1 py-1.5 text-right font-mono text-[10px]">{corto(f.ingresoReal)}</td>
                 ))}
                 <td className="sticky right-0 z-10 border-b border-l border-line bg-muted px-2 py-1.5 text-right font-mono text-[11px] font-semibold">{corto(total.ingresoReal)}</td>
               </tr>
               <tr>
                 <th className="sticky left-0 z-10 border-b border-r border-line bg-paper px-2 py-1.5 text-left font-medium">Costo realizado</th>
                 {filas.map((f) => (
-                  <td key={f.mes} className="border-b border-line px-1 py-1.5 text-right font-mono text-[11px]">{corto(f.costoReal)}</td>
+                  <td key={f.mes} className="border-b border-line px-1 py-1.5 text-right font-mono text-[10px]">{corto(f.costoReal)}</td>
                 ))}
                 <td className="sticky right-0 z-10 border-b border-l border-line bg-muted px-2 py-1.5 text-right font-mono text-[11px] font-semibold">{corto(total.costoReal)}</td>
               </tr>
@@ -399,7 +399,7 @@ function FlujoCaja() {
                 <th className="sticky left-0 z-10 border-b border-r border-line bg-paper px-2 py-1.5 text-left font-semibold">Resultado realizado</th>
                 {filas.map((f) => {
                   const tono = f.resultadoReal >= f.resultadoObjetivo ? "text-good" : f.resultadoReal >= f.resultadoObjetivo * 0.9 ? "text-warn" : "text-bad";
-                  return <td key={f.mes} className={`border-b border-line px-1 py-1.5 text-right font-mono text-[11px] font-semibold ${tono}`}>{corto(f.resultadoReal)}</td>;
+                  return <td key={f.mes} className={`border-b border-line px-1 py-1.5 text-right font-mono text-[10px] font-semibold ${tono}`}>{corto(f.resultadoReal)}</td>;
                 })}
                 <td className={`sticky right-0 z-10 border-b border-l border-line bg-muted px-2 py-1.5 text-right font-mono text-[11px] font-semibold ${resultadoRealAnual >= resultadoObjetivoAnual ? "text-good" : "text-bad"}`}>{corto(resultadoRealAnual)}</td>
               </tr>
@@ -412,7 +412,7 @@ function FlujoCaja() {
               <tr>
                 <th className="sticky left-0 z-10 border-b border-r border-line bg-paper px-2 py-1.5 text-left font-medium">Variación</th>
                 {filas.map((f) => (
-                  <td key={f.mes} className={`border-b border-line px-1 py-1.5 text-right font-mono text-[11px] ${f.variacion >= 0 ? "text-good" : "text-bad"}`}>{corto(f.variacion)}</td>
+                  <td key={f.mes} className={`border-b border-line px-1 py-1.5 text-right font-mono text-[10px] ${f.variacion >= 0 ? "text-good" : "text-bad"}`}>{corto(f.variacion)}</td>
                 ))}
                 <td className={`sticky right-0 z-10 border-b border-l border-line bg-muted px-2 py-1.5 text-right font-mono text-[11px] font-semibold ${resultadoRealAnual - resultadoObjetivoAnual >= 0 ? "text-good" : "text-bad"}`}>{corto(resultadoRealAnual - resultadoObjetivoAnual)}</td>
               </tr>
@@ -420,7 +420,7 @@ function FlujoCaja() {
                 <th className="sticky left-0 z-10 border-b border-r border-line bg-paper px-2 py-1.5 text-left font-medium">Cumplimiento</th>
                 {filas.map((f) => {
                   const tono = f.cumplimiento >= 100 ? "text-good" : f.cumplimiento >= 90 ? "text-warn" : "text-bad";
-                  return <td key={f.mes} className={`border-b border-line px-1 py-1.5 text-right font-mono text-[11px] ${f.resultadoObjetivo ? tono : "text-muted-foreground"}`}>{f.resultadoObjetivo ? pct(f.cumplimiento) : "—"}</td>;
+                  return <td key={f.mes} className={`border-b border-line px-1 py-1.5 text-right font-mono text-[10px] ${f.resultadoObjetivo ? tono : "text-muted-foreground"}`}>{f.resultadoObjetivo ? pct(f.cumplimiento) : "—"}</td>;
                 })}
                 <td className="sticky right-0 z-10 border-b border-l border-line bg-muted px-2 py-1.5 text-right font-mono text-[11px] font-semibold">
                   {resultadoObjetivoAnual ? pct((resultadoRealAnual / resultadoObjetivoAnual) * 100) : "—"}
