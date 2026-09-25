@@ -35,7 +35,8 @@ const FACTORES: Record<string, { grat: number; cts: number; vac: number }> = {
   "MYPE Micro": { grat: 0, cts: 0, vac: 0.5 },
   Agrario: { grat: 0, cts: 0, vac: 1 },
 };
-const factores = (r: string) => FACTORES[r] ?? FACTORES.General;
+const BASE_FACT = { grat: 1, cts: 1, vac: 1 };
+const factores = (r: string) => FACTORES[r] ?? BASE_FACT;
 
 type Beneficio = {
   id: string;
@@ -377,7 +378,7 @@ function Beneficios() {
                         {r.meses} m{r.dias ? ` ${r.dias} d` : ""}
                         {tipo === "Liquidación" && (
                           <span className="block text-[10px] text-muted-foreground">
-                            CTS {soles(Number(r.detalle.cts_trunca))} · Grat. {soles(Number(r.detalle.gratificacion_trunca))} · Vac. {soles(Number(r.detalle.vacaciones_truncas))}
+                            CTS {soles(Number(r.detalle["cts_trunca"]))} · Grat. {soles(Number(r.detalle["gratificacion_trunca"]))} · Vac. {soles(Number(r.detalle["vacaciones_truncas"]))}
                           </span>
                         )}
                       </td>
