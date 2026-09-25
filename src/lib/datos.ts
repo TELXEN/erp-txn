@@ -90,6 +90,14 @@ export type Trabajador = {
   banco: string;
   numero_celular: string;
   activo: boolean;
+  tipo_contratacion: string;
+  regimen_laboral: string;
+  sistema_pensiones: string;
+  cuspp: string;
+  fecha_ingreso: string | null;
+  sueldo_mensual: number;
+  asignacion_familiar: boolean;
+  suspension_cuarta: boolean;
 };
 
 export type Tareo = {
