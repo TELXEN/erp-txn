@@ -136,21 +136,6 @@ function Datos() {
             onClick={() =>
               exportarExcel("datos-maestros", [
                 {
-                  nombre: "Terceros",
-                  filas: terceros.map((t) => ({
-                    "Tipo Documento": t.tipo_documento,
-                    "N° Documento": t.numero_documento,
-                    "Razón Social": t.razon_social,
-                    Cliente: t.es_cliente ? "Sí" : "No",
-                    Proveedor: t.es_proveedor ? "Sí" : "No",
-                    Dirección: t.direccion,
-                    Teléfono: t.telefono,
-                    Contacto: t.contacto,
-                    "Celular Contacto": t.celular_contacto,
-                    Correo: t.email,
-                  })),
-                },
-                {
                   nombre: "Bancos",
                   filas: bancos.map((b) => ({
                     Banco: b.nombre,
