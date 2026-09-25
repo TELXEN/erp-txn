@@ -9,6 +9,7 @@ import { useProyectos, useTerceros } from "@/lib/datos";
 import { apuDb, useInsumos } from "@/lib/apu";
 import { exportarExcel } from "@/lib/exportar";
 import { num, useOrdenesCompra } from "@/lib/logistica";
+import { LiquidacionImportacion } from "@/components/LiquidacionImportacion";
 
 export const Route = createFileRoute("/_authenticated/importaciones")({
   head: () => ({
@@ -28,11 +29,12 @@ type Importacion = {
   id: string; codigo: string; proveedor_id: string | null; proveedor_extranjero: string; pais_origen: string;
   proyecto_id: string | null; orden_id: string | null; tipo_despacho: string; transportista: string; tracking: string;
   incoterm: string; moneda: "USD" | "PEN"; fecha_pedido: string; fecha_embarque: string | null; fecha_arribo: string | null;
-  estado: string; observacion: string;
+  estado: string; observacion: string; tipo_cambio: number; fecha_liquidacion: string | null; flete: number; seguro: number;
+  pct_percepcion: number; gasto_handling: number; gasto_almacenaje: number; gasto_honorarios: number; gasto_flete_local: number; gasto_otros: number;
 };
 type ItemImp = {
   id: string; importacion_id: string; insumo_id: string | null; descripcion: string; partida_arancelaria: string;
-  unidad: string; cantidad: number; precio_fob: number;
+  unidad: string; cantidad: number; precio_fob: number; pct_advalorem: number; costo_unitario_pen: number;
 };
 type Linea = { insumo_id: string | null; descripcion: string; partida_arancelaria: string; unidad: string; cantidad: string; precio_fob: string };
 
@@ -196,6 +198,7 @@ function ImportacionesPage() {
           Importación: imps.find((i) => i.id === x.importacion_id)?.codigo ?? "", Equipo: x.descripcion,
           "Partida arancelaria": x.partida_arancelaria, Unidad: x.unidad, Cantidad: Number(x.cantidad),
           "Precio FOB": Number(x.precio_fob), "Total FOB": Math.round(Number(x.cantidad) * Number(x.precio_fob) * 100) / 100,
+          "% Ad-Valorem": Number(x.pct_advalorem), "Costo unit. nacionalizado (S/)": Number(x.costo_unitario_pen),
         })),
       },
     ]);
@@ -326,7 +329,7 @@ function ImportacionesPage() {
                 <th className="px-5 py-2 font-medium">Código</th><th className="px-3 font-medium">Proveedor</th>
                 <th className="px-3 font-medium">Destino</th><th className="px-3 font-medium">Despacho</th>
                 <th className="px-3 font-medium">Tracking</th><th className="px-3 font-medium">Arribo</th>
-                <th className="px-3 text-right font-medium">FOB</th><th className="px-3 font-medium">Estado</th><th />
+                <th className="px-3 text-right font-medium">FOB</th><th className="px-3 text-right font-medium">Costo S/</th><th className="px-3 font-medium">Estado</th><th />
               </tr>
             </thead>
             <tbody>
@@ -346,6 +349,7 @@ function ImportacionesPage() {
                       <td className="px-3">{i.tracking || "—"}</td>
                       <td className="px-3">{i.fecha_arribo ?? "—"}</td>
                       <td className="px-3 text-right">{usd(fobDe(i.id), i.moneda)}</td>
+                      <td className="px-3 text-right">{(() => { const c = deImp.reduce((t, x) => t + Number(x.cantidad) * Number(x.costo_unitario_pen), 0); return c > 0 ? usd(c, "PEN") : "—"; })()}</td>
                       <td className="px-3">
                         <Select className="py-0.5 text-xs" value={i.estado} onChange={(e) => actualizar(i.id, { estado: e.target.value })}>
                           {ESTADOS.map((s) => <option key={s}>{s}</option>)}
@@ -355,7 +359,7 @@ function ImportacionesPage() {
                     </tr>
                     {abierto === i.id && (
                       <tr className="bg-muted/40">
-                        <td colSpan={9} className="px-8 py-3">
+                        <td colSpan={10} className="px-8 py-3">
                           <div className="mb-2 flex flex-wrap gap-4 text-muted-foreground">
                             <span>Incoterm: {i.incoterm}</span><span>Pedido: {i.fecha_pedido}</span>
                             <span>Embarque: {i.fecha_embarque ?? "—"}</span>
@@ -375,6 +379,17 @@ function ImportacionesPage() {
                               ))}
                             </tbody>
                           </table>
+                          {deImp.length > 0 && i.estado !== "Anulado" && (
+                            <LiquidacionImportacion
+                              key={`${i.id}-${i.estado}`}
+                              imp={i}
+                              items={deImp}
+                              onGuardado={() => {
+                                qc.invalidateQueries({ queryKey: ["importaciones"] });
+                                qc.invalidateQueries({ queryKey: ["importacion_items"] });
+                              }}
+                            />
+                          )}
                         </td>
                       </tr>
                     )}
