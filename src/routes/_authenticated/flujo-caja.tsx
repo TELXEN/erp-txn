@@ -174,22 +174,54 @@ function FlujoCaja() {
   }, []);
 
   function exportar() {
+    const filaHorizontal = (
+      bloque: string,
+      concepto: string,
+      valores: (string | number)[],
+      totalAnual: string | number,
+    ) => ({
+      Bloque: bloque,
+      Concepto: concepto,
+      ...Object.fromEntries(filas.map((f, i) => [f.etiqueta, valores[i] ?? 0])),
+      "Total anual": totalAnual,
+    });
+
     exportarExcel(`Flujo_de_Caja_${anio}`, [
       {
         nombre: "Flujo de Caja",
-        filas: filas.map((f) => ({
-          Mes: f.etiqueta,
-          "Meta de ingreso": f.metaIngreso,
-          "Ingreso realizado": f.ingresoReal,
-          "Desvío ingreso": f.desvioIngreso,
-          "Meta de costo": f.metaCosto,
-          "Costo realizado": f.costoReal,
-          "Desvío costo": f.desvioCosto,
-          "Resultado objetivo": f.resultadoObjetivo,
-          "Resultado realizado": f.resultadoReal,
-          "Cumplimiento %": Number(f.cumplimiento.toFixed(1)),
-          "Flujo acumulado": f.acumulado,
-        })),
+        filas: [
+          filaHorizontal("METAS", "Meta de ingreso", filas.map((f) => f.metaIngreso), total.metaIngreso),
+          filaHorizontal("METAS", "Meta de costo", filas.map((f) => f.metaCosto), total.metaCosto),
+          filaHorizontal(
+            "METAS",
+            "Resultado objetivo",
+            filas.map((f) => f.resultadoObjetivo),
+            resultadoObjetivoAnual,
+          ),
+          filaHorizontal("REALIZADO", "Ingreso realizado", filas.map((f) => f.ingresoReal), total.ingresoReal),
+          filaHorizontal("REALIZADO", "Costo realizado", filas.map((f) => f.costoReal), total.costoReal),
+          filaHorizontal(
+            "REALIZADO",
+            "Resultado realizado",
+            filas.map((f) => f.resultadoReal),
+            resultadoRealAnual,
+          ),
+          filaHorizontal(
+            "CONTROL",
+            "Variación",
+            filas.map((f) => f.variacion),
+            resultadoRealAnual - resultadoObjetivoAnual,
+          ),
+          filaHorizontal(
+            "CONTROL",
+            "Cumplimiento %",
+            filas.map((f) => (f.resultadoObjetivo ? Number(f.cumplimiento.toFixed(1)) : "—")),
+            resultadoObjetivoAnual
+              ? Number(((resultadoRealAnual / resultadoObjetivoAnual) * 100).toFixed(1))
+              : "—",
+          ),
+          filaHorizontal("CONTROL", "Flujo acumulado", filas.map((f) => f.acumulado), resultadoRealAnual),
+        ],
       },
     ]);
   }
@@ -270,88 +302,136 @@ function FlujoCaja() {
 
       <Panel titulo="Matriz anual" extra={<span className="label-mono">Las metas se editan directamente en la tabla</span>}>
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[980px] text-sm">
+          <table className="w-full min-w-[1660px] border-separate border-spacing-0 text-sm">
             <thead>
-              <tr className="border-b border-line text-left">
-                <th className="px-4 py-2 font-mono text-[11px] uppercase tracking-wide">Mes</th>
-                <th className="px-3 py-2 text-right font-mono text-[11px] uppercase">Meta ingreso</th>
-                <th className="px-3 py-2 text-right font-mono text-[11px] uppercase">Ingreso real</th>
-                <th className="px-3 py-2 text-right font-mono text-[11px] uppercase">Meta costo</th>
-                <th className="px-3 py-2 text-right font-mono text-[11px] uppercase">Costo real</th>
-                <th className="px-3 py-2 text-right font-mono text-[11px] uppercase">Result. objetivo</th>
-                <th className="px-3 py-2 text-right font-mono text-[11px] uppercase">Result. realizado</th>
-                <th className="px-3 py-2 text-right font-mono text-[11px] uppercase">Cumpl.</th>
-                <th className="px-3 py-2 text-right font-mono text-[11px] uppercase">Acumulado</th>
+              <tr>
+                <th className="sticky left-0 z-20 w-48 border-b border-r border-line bg-paper px-4 py-3 text-left font-mono text-[11px] uppercase">
+                  Concepto
+                </th>
+                {filas.map((f) => (
+                  <th key={f.mes} className="w-28 border-b border-line bg-paper px-3 py-3 text-right font-mono text-[11px] uppercase">
+                    {f.etiqueta}
+                  </th>
+                ))}
+                <th className="sticky right-0 z-20 w-32 border-b border-l border-line bg-muted px-4 py-3 text-right font-mono text-[11px] uppercase">
+                  Total anual
+                </th>
               </tr>
             </thead>
             <tbody>
-              {filas.map((f) => {
-                const tono =
-                  f.resultadoReal >= f.resultadoObjetivo
-                    ? "text-good"
-                    : f.resultadoReal >= f.resultadoObjetivo * 0.9
-                      ? "text-warn"
-                      : "text-bad";
-                return (
-                  <tr key={f.mes} className="border-b border-line/60">
-                    <td className="px-4 py-1.5 font-medium">{f.etiqueta}</td>
-                    <td className="px-3 py-1.5">
-                      <Input
-                        type="number"
-                        step="0.01"
-                        className="w-32 text-right"
-                        defaultValue={f.metaIngreso}
-                        key={`i-${anio}-${f.mes}-${f.metaIngreso}`}
-                        onBlur={(e) => {
-                          const valor = Number(e.target.value) || 0;
-                          if (valor !== f.metaIngreso)
-                            guardar.mutate({ mes: f.mes, meta_ingreso: valor, meta_costo: f.metaCosto });
-                        }}
-                      />
-                    </td>
-                    <td className="px-3 py-1.5 text-right font-mono">{soles(f.ingresoReal)}</td>
-                    <td className="px-3 py-1.5">
-                      <Input
-                        type="number"
-                        step="0.01"
-                        className="w-32 text-right"
-                        defaultValue={f.metaCosto}
-                        key={`c-${anio}-${f.mes}-${f.metaCosto}`}
-                        onBlur={(e) => {
-                          const valor = Number(e.target.value) || 0;
-                          if (valor !== f.metaCosto)
-                            guardar.mutate({ mes: f.mes, meta_ingreso: f.metaIngreso, meta_costo: valor });
-                        }}
-                      />
-                    </td>
-                    <td className="px-3 py-1.5 text-right font-mono">{soles(f.costoReal)}</td>
-                    <td className="px-3 py-1.5 text-right font-mono">{soles(f.resultadoObjetivo)}</td>
-                    <td className={`px-3 py-1.5 text-right font-mono font-semibold ${tono}`}>
-                      {soles(f.resultadoReal)}
-                    </td>
-                    <td className={`px-3 py-1.5 text-right font-mono ${tono}`}>
-                      {f.resultadoObjetivo ? pct(f.cumplimiento) : "—"}
-                    </td>
-                    <td className="px-3 py-1.5 text-right font-mono">{soles(f.acumulado)}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-            <tfoot>
-              <tr className="border-t-2 border-line font-semibold">
-                <td className="px-4 py-2">Total {anio}</td>
-                <td className="px-3 py-2 text-right font-mono">{soles(total.metaIngreso)}</td>
-                <td className="px-3 py-2 text-right font-mono">{soles(total.ingresoReal)}</td>
-                <td className="px-3 py-2 text-right font-mono">{soles(total.metaCosto)}</td>
-                <td className="px-3 py-2 text-right font-mono">{soles(total.costoReal)}</td>
-                <td className="px-3 py-2 text-right font-mono">{soles(resultadoObjetivoAnual)}</td>
-                <td className="px-3 py-2 text-right font-mono">{soles(resultadoRealAnual)}</td>
-                <td className="px-3 py-2 text-right font-mono">
+              <tr>
+                <th colSpan={14} className="border-b border-line bg-primary/10 px-4 py-2 text-left font-mono text-[11px] font-semibold uppercase text-primary">
+                  Metas
+                </th>
+              </tr>
+              <tr>
+                <th className="sticky left-0 z-10 border-b border-r border-line bg-paper px-4 py-2 text-left font-medium">Meta de ingreso</th>
+                {filas.map((f) => (
+                  <td key={f.mes} className="border-b border-line px-2 py-1.5">
+                    <Input
+                      type="number"
+                      step="0.01"
+                      className="w-full min-w-24 text-right"
+                      defaultValue={f.metaIngreso}
+                      key={`i-${anio}-${f.mes}-${f.metaIngreso}`}
+                      aria-label={`Meta de ingreso ${f.etiqueta}`}
+                      onBlur={(e) => {
+                        const valor = Number(e.target.value) || 0;
+                        if (valor !== f.metaIngreso)
+                          guardar.mutate({ mes: f.mes, meta_ingreso: valor, meta_costo: f.metaCosto });
+                      }}
+                    />
+                  </td>
+                ))}
+                <td className="sticky right-0 z-10 border-b border-l border-line bg-muted px-4 py-2 text-right font-mono font-semibold">{soles(total.metaIngreso)}</td>
+              </tr>
+              <tr>
+                <th className="sticky left-0 z-10 border-b border-r border-line bg-paper px-4 py-2 text-left font-medium">Meta de costo</th>
+                {filas.map((f) => (
+                  <td key={f.mes} className="border-b border-line px-2 py-1.5">
+                    <Input
+                      type="number"
+                      step="0.01"
+                      className="w-full min-w-24 text-right"
+                      defaultValue={f.metaCosto}
+                      key={`c-${anio}-${f.mes}-${f.metaCosto}`}
+                      aria-label={`Meta de costo ${f.etiqueta}`}
+                      onBlur={(e) => {
+                        const valor = Number(e.target.value) || 0;
+                        if (valor !== f.metaCosto)
+                          guardar.mutate({ mes: f.mes, meta_ingreso: f.metaIngreso, meta_costo: valor });
+                      }}
+                    />
+                  </td>
+                ))}
+                <td className="sticky right-0 z-10 border-b border-l border-line bg-muted px-4 py-2 text-right font-mono font-semibold">{soles(total.metaCosto)}</td>
+              </tr>
+              <tr>
+                <th className="sticky left-0 z-10 border-b border-r border-line bg-paper px-4 py-2 text-left font-semibold">Resultado objetivo</th>
+                {filas.map((f) => (
+                  <td key={f.mes} className="border-b border-line px-3 py-2 text-right font-mono font-semibold">{soles(f.resultadoObjetivo)}</td>
+                ))}
+                <td className="sticky right-0 z-10 border-b border-l border-line bg-muted px-4 py-2 text-right font-mono font-semibold">{soles(resultadoObjetivoAnual)}</td>
+              </tr>
+
+              <tr>
+                <th colSpan={14} className="border-b border-line bg-cta/15 px-4 py-2 text-left font-mono text-[11px] font-semibold uppercase text-foreground">
+                  Realizado
+                </th>
+              </tr>
+              <tr>
+                <th className="sticky left-0 z-10 border-b border-r border-line bg-paper px-4 py-2 text-left font-medium">Ingreso realizado</th>
+                {filas.map((f) => (
+                  <td key={f.mes} className="border-b border-line px-3 py-2 text-right font-mono">{soles(f.ingresoReal)}</td>
+                ))}
+                <td className="sticky right-0 z-10 border-b border-l border-line bg-muted px-4 py-2 text-right font-mono font-semibold">{soles(total.ingresoReal)}</td>
+              </tr>
+              <tr>
+                <th className="sticky left-0 z-10 border-b border-r border-line bg-paper px-4 py-2 text-left font-medium">Costo realizado</th>
+                {filas.map((f) => (
+                  <td key={f.mes} className="border-b border-line px-3 py-2 text-right font-mono">{soles(f.costoReal)}</td>
+                ))}
+                <td className="sticky right-0 z-10 border-b border-l border-line bg-muted px-4 py-2 text-right font-mono font-semibold">{soles(total.costoReal)}</td>
+              </tr>
+              <tr>
+                <th className="sticky left-0 z-10 border-b border-r border-line bg-paper px-4 py-2 text-left font-semibold">Resultado realizado</th>
+                {filas.map((f) => {
+                  const tono = f.resultadoReal >= f.resultadoObjetivo ? "text-good" : f.resultadoReal >= f.resultadoObjetivo * 0.9 ? "text-warn" : "text-bad";
+                  return <td key={f.mes} className={`border-b border-line px-3 py-2 text-right font-mono font-semibold ${tono}`}>{soles(f.resultadoReal)}</td>;
+                })}
+                <td className={`sticky right-0 z-10 border-b border-l border-line bg-muted px-4 py-2 text-right font-mono font-semibold ${resultadoRealAnual >= resultadoObjetivoAnual ? "text-good" : "text-bad"}`}>{soles(resultadoRealAnual)}</td>
+              </tr>
+
+              <tr>
+                <th colSpan={14} className="border-b border-line bg-muted px-4 py-2 text-left font-mono text-[11px] font-semibold uppercase text-muted-foreground">
+                  Control
+                </th>
+              </tr>
+              <tr>
+                <th className="sticky left-0 z-10 border-b border-r border-line bg-paper px-4 py-2 text-left font-medium">Variación</th>
+                {filas.map((f) => (
+                  <td key={f.mes} className={`border-b border-line px-3 py-2 text-right font-mono ${f.variacion >= 0 ? "text-good" : "text-bad"}`}>{soles(f.variacion)}</td>
+                ))}
+                <td className={`sticky right-0 z-10 border-b border-l border-line bg-muted px-4 py-2 text-right font-mono font-semibold ${resultadoRealAnual - resultadoObjetivoAnual >= 0 ? "text-good" : "text-bad"}`}>{soles(resultadoRealAnual - resultadoObjetivoAnual)}</td>
+              </tr>
+              <tr>
+                <th className="sticky left-0 z-10 border-b border-r border-line bg-paper px-4 py-2 text-left font-medium">Cumplimiento</th>
+                {filas.map((f) => {
+                  const tono = f.cumplimiento >= 100 ? "text-good" : f.cumplimiento >= 90 ? "text-warn" : "text-bad";
+                  return <td key={f.mes} className={`border-b border-line px-3 py-2 text-right font-mono ${f.resultadoObjetivo ? tono : "text-muted-foreground"}`}>{f.resultadoObjetivo ? pct(f.cumplimiento) : "—"}</td>;
+                })}
+                <td className="sticky right-0 z-10 border-b border-l border-line bg-muted px-4 py-2 text-right font-mono font-semibold">
                   {resultadoObjetivoAnual ? pct((resultadoRealAnual / resultadoObjetivoAnual) * 100) : "—"}
                 </td>
-                <td className="px-3 py-2 text-right font-mono">{soles(resultadoRealAnual)}</td>
               </tr>
-            </tfoot>
+              <tr>
+                <th className="sticky left-0 z-10 border-r border-line bg-paper px-4 py-2 text-left font-semibold">Flujo acumulado</th>
+                {filas.map((f) => (
+                  <td key={f.mes} className={`px-3 py-2 text-right font-mono font-semibold ${f.acumulado < 0 ? "text-bad" : ""}`}>{soles(f.acumulado)}</td>
+                ))}
+                <td className={`sticky right-0 z-10 border-l border-line bg-muted px-4 py-2 text-right font-mono font-semibold ${resultadoRealAnual < 0 ? "text-bad" : ""}`}>{soles(resultadoRealAnual)}</td>
+              </tr>
+            </tbody>
           </table>
         </div>
       </Panel>
