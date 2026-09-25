@@ -7,7 +7,14 @@ import { Encabezado } from "@/components/AppShell";
 import { Boton, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
-import { useGastosDirectos, useGastosGenerales, useProyectos, useTerceros, useVentas } from "@/lib/datos";
+import {
+  useCajasChicas,
+  useGastosDirectos,
+  useGastosGenerales,
+  useProyectos,
+  useTerceros,
+  useVentas,
+} from "@/lib/datos";
 import { InsigniaPago } from "@/components/CondicionPago";
 import type { CuentaBancaria } from "@/components/CuentasBancarias";
 import { exportarExcel } from "@/lib/exportar";
