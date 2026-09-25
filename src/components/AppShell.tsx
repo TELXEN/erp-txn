@@ -21,6 +21,7 @@ import {
   Settings,
   ShieldCheck,
   TrendingUp,
+  Truck,
   Users,
   Wallet,
 } from "lucide-react";
@@ -43,6 +44,7 @@ const MENU: Categoria[] = [
   {
     titulo: "Comercial",
     items: [
+      { a: "/clientes", texto: "Clientes", roles: ["administrador", "gerente"], icono: Users },
       { a: "/cotizaciones", texto: "Cotizaciones", roles: ["administrador", "gerente"], icono: FileText },
       { a: "/valorizaciones", texto: "Registro de Ventas", roles: ["administrador", "gerente"], icono: Banknote },
     ],
@@ -63,6 +65,7 @@ const MENU: Categoria[] = [
       { a: "/ordenes-compra", texto: "Órdenes de Compra", roles: ["administrador", "gerente"], icono: ShoppingCart },
       { a: "/almacen", texto: "Almacén", roles: ["administrador", "gerente"], icono: Warehouse },
       { a: "/inventario", texto: "Inventario", roles: ["administrador", "gerente"], icono: Package },
+      { a: "/proveedores", texto: "Proveedores", roles: ["administrador", "gerente"], icono: Truck },
     ],
   },
   {

@@ -349,10 +349,10 @@ export function TercerosPanel({ modo }: { modo: "cliente" | "proveedor" }) {
                     <td className="px-3 py-2.5 font-semibold text-ink">
                       {t.razon_social}
                       {esCliente && t.es_proveedor && (
-                        <Etiqueta tono="neutro" className="ml-1">También proveedor</Etiqueta>
+                        <span className="ml-1"><Etiqueta tono="neutro">También proveedor</Etiqueta></span>
                       )}
                       {!esCliente && t.es_cliente && (
-                        <Etiqueta tono="neutro" className="ml-1">También cliente</Etiqueta>
+                        <span className="ml-1"><Etiqueta tono="neutro">También cliente</Etiqueta></span>
                       )}
                     </td>
                     <td className="truncate px-3 py-2.5 text-muted-foreground">{t.direccion || "—"}</td>
