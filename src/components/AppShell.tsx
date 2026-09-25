@@ -20,6 +20,7 @@ import {
   Warehouse,
   Settings,
   ShieldCheck,
+  SlidersHorizontal,
   TrendingUp,
   Truck,
   Users,
