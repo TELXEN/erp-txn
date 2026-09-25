@@ -778,6 +778,39 @@ export type Database = {
           },
         ]
       }
+      metas_flujo_caja: {
+        Row: {
+          anio: number
+          created_at: string
+          id: string
+          mes: number
+          meta_costo: number
+          meta_ingreso: number
+          notas: string
+          updated_at: string
+        }
+        Insert: {
+          anio: number
+          created_at?: string
+          id?: string
+          mes: number
+          meta_costo?: number
+          meta_ingreso?: number
+          notas?: string
+          updated_at?: string
+        }
+        Update: {
+          anio?: number
+          created_at?: string
+          id?: string
+          mes?: number
+          meta_costo?: number
+          meta_ingreso?: number
+          notas?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       partidas: {
         Row: {
           aplica_gg: boolean

@@ -20,6 +20,7 @@ import {
   Warehouse,
   Settings,
   ShieldCheck,
+  TrendingUp,
   Users,
   Wallet,
 } from "lucide-react";
@@ -77,6 +78,7 @@ const MENU: Categoria[] = [
       { a: "/gastos-generales", texto: "Gastos Generales", roles: ["administrador", "gerente"], icono: Briefcase },
       { a: "/caja-chica", texto: "Caja Chica", roles: ["administrador", "gerente"], icono: Wallet },
       { a: "/tesoreria", texto: "Tesorería", roles: ["administrador", "gerente"], icono: Landmark },
+      { a: "/flujo-caja", texto: "Flujo de Caja", roles: ["administrador", "gerente"], icono: TrendingUp },
     ],
   },
   {
