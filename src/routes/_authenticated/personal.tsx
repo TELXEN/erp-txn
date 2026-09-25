@@ -24,6 +24,9 @@ export const Route = createFileRoute("/_authenticated/personal")({
   component: Personal,
 });
 
+const REGIMENES = ["General", "MYPE Pequeña", "MYPE Micro", "Construcción Civil", "Agrario"];
+const PENSIONES = ["ONP", "AFP Integra", "AFP Prima", "AFP Profuturo", "AFP Habitat", "Ninguno"];
+
 type FormPersonal = {
   dni: string;
   nombre: string;
@@ -33,6 +36,14 @@ type FormPersonal = {
   cci: string;
   banco: string;
   numero_celular: string;
+  tipo_contratacion: string;
+  regimen_laboral: string;
+  sistema_pensiones: string;
+  cuspp: string;
+  fecha_ingreso: string;
+  sueldo_mensual: string;
+  asignacion_familiar: boolean;
+  suspension_cuarta: boolean;
 };
 
 const FORM_INICIAL: FormPersonal = {
@@ -44,6 +55,14 @@ const FORM_INICIAL: FormPersonal = {
   cci: "",
   banco: "",
   numero_celular: "",
+  tipo_contratacion: "Planilla",
+  regimen_laboral: "General",
+  sistema_pensiones: "ONP",
+  cuspp: "",
+  fecha_ingreso: "",
+  sueldo_mensual: "",
+  asignacion_familiar: false,
+  suspension_cuarta: false,
 };
 
 function validar(form: FormPersonal) {
@@ -55,6 +74,9 @@ function validar(form: FormPersonal) {
   if (!/^\d{20}$/.test(form.cci)) return "El CCI debe tener 20 dígitos.";
   if (!form.banco.trim()) return "Ingresa el banco.";
   if (!/^\d{9}$/.test(form.numero_celular)) return "El número de celular debe tener 9 dígitos.";
+  if (Number(form.sueldo_mensual || 0) < 0) return "El sueldo mensual no puede ser negativo.";
+  if (form.tipo_contratacion === "Planilla" && form.sistema_pensiones.startsWith("AFP") && !form.cuspp.trim())
+    return "Ingresa el CUSPP de la AFP.";
   return "";
 }
 
@@ -71,16 +93,27 @@ function Personal() {
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
-  const datosGuardar = (datos: FormPersonal) => ({
-    dni: datos.dni.trim(),
-    nombre: datos.nombre.trim(),
-    cargo: datos.cargo,
-    jornal_diario: Number(datos.jornal_diario),
-    numero_cuenta: datos.numero_cuenta.trim(),
-    cci: datos.cci.trim(),
-    banco: datos.banco.trim(),
-    numero_celular: datos.numero_celular.trim(),
-  });
+  const datosGuardar = (datos: FormPersonal) => {
+    const planilla = datos.tipo_contratacion === "Planilla";
+    return {
+      dni: datos.dni.trim(),
+      nombre: datos.nombre.trim(),
+      cargo: datos.cargo,
+      jornal_diario: Number(datos.jornal_diario),
+      numero_cuenta: datos.numero_cuenta.trim(),
+      cci: datos.cci.trim(),
+      banco: datos.banco.trim(),
+      numero_celular: datos.numero_celular.trim(),
+      tipo_contratacion: datos.tipo_contratacion,
+      regimen_laboral: datos.regimen_laboral,
+      sistema_pensiones: planilla ? datos.sistema_pensiones : "Ninguno",
+      cuspp: planilla && datos.sistema_pensiones.startsWith("AFP") ? datos.cuspp.trim() : "",
+      fecha_ingreso: datos.fecha_ingreso || null,
+      sueldo_mensual: Number(datos.sueldo_mensual || 0),
+      asignacion_familiar: planilla && datos.asignacion_familiar,
+      suspension_cuarta: !planilla && datos.suspension_cuarta,
+    };
+  };
 
   async function guardar(e: React.FormEvent) {
     e.preventDefault();
@@ -106,9 +139,60 @@ function Personal() {
         cci: trabajador.cci === "PENDIENTE" ? "" : trabajador.cci,
         banco: trabajador.banco === "PENDIENTE" ? "" : trabajador.banco,
         numero_celular: trabajador.numero_celular === "PENDIENTE" ? "" : trabajador.numero_celular,
+        tipo_contratacion: trabajador.tipo_contratacion ?? "Planilla",
+        regimen_laboral: trabajador.regimen_laboral ?? "General",
+        sistema_pensiones: trabajador.sistema_pensiones ?? "ONP",
+        cuspp: trabajador.cuspp ?? "",
+        fecha_ingreso: trabajador.fecha_ingreso ?? "",
+        sueldo_mensual: String(trabajador.sueldo_mensual ?? 0),
+        asignacion_familiar: !!trabajador.asignacion_familiar,
+        suspension_cuarta: !!trabajador.suspension_cuarta,
       },
     });
   }
+
+  const camposContrato = (
+    f: FormPersonal,
+    set: (campo: keyof FormPersonal, valor: string | boolean) => void,
+  ) => {
+    const planilla = f.tipo_contratacion === "Planilla";
+    return (
+      <>
+        <Campo etiqueta="Tipo de contratación">
+          <Select value={f.tipo_contratacion} onChange={(e) => set("tipo_contratacion", e.target.value)} className="py-1.5">
+            <option value="Planilla">Planilla (5ta categoría)</option>
+            <option value="Honorarios">Recibo por Honorarios (4ta)</option>
+          </Select>
+        </Campo>
+        <Campo etiqueta="Régimen laboral">
+          <Select value={f.regimen_laboral} onChange={(e) => set("regimen_laboral", e.target.value)} disabled={!planilla} className="py-1.5">
+            {REGIMENES.map((r) => <option key={r} value={r}>{r}</option>)}
+          </Select>
+        </Campo>
+        <Campo etiqueta="Sistema de pensiones">
+          <Select value={planilla ? f.sistema_pensiones : "Ninguno"} onChange={(e) => set("sistema_pensiones", e.target.value)} disabled={!planilla} className="py-1.5">
+            {PENSIONES.map((p) => <option key={p} value={p}>{p}</option>)}
+          </Select>
+        </Campo>
+        <Campo etiqueta="CUSPP">
+          <Input value={f.cuspp} onChange={(e) => set("cuspp", e.target.value.toUpperCase())} disabled={!planilla || !f.sistema_pensiones.startsWith("AFP")} maxLength={12} className="py-1.5" />
+        </Campo>
+        <Campo etiqueta="Fecha de ingreso">
+          <Input type="date" value={f.fecha_ingreso} onChange={(e) => set("fecha_ingreso", e.target.value)} className="py-1.5" />
+        </Campo>
+        <Campo etiqueta={planilla ? "Sueldo mensual (S/)" : "Honorario mensual (S/)"}>
+          <Input type="number" step="0.01" min="0" value={f.sueldo_mensual} onChange={(e) => set("sueldo_mensual", e.target.value)} className="py-1.5" />
+        </Campo>
+        <label className="flex items-center gap-2 self-end pb-2 font-mono text-xs">
+          {planilla ? (
+            <><input type="checkbox" checked={f.asignacion_familiar} onChange={(e) => set("asignacion_familiar", e.target.checked)} /> Asignación familiar</>
+          ) : (
+            <><input type="checkbox" checked={f.suspension_cuarta} onChange={(e) => set("suspension_cuarta", e.target.checked)} /> Suspensión de retención 4ta</>
+          )}
+        </label>
+      </>
+    );
+  };
 
   async function actualizar(e?: React.MouseEvent) {
     e?.preventDefault();
