@@ -1046,6 +1046,145 @@ export type Database = {
           },
         ]
       }
+      importacion_items: {
+        Row: {
+          cantidad: number
+          created_at: string
+          descripcion: string
+          id: string
+          importacion_id: string
+          insumo_id: string | null
+          partida_arancelaria: string
+          precio_fob: number
+          unidad: string
+        }
+        Insert: {
+          cantidad?: number
+          created_at?: string
+          descripcion: string
+          id?: string
+          importacion_id: string
+          insumo_id?: string | null
+          partida_arancelaria?: string
+          precio_fob?: number
+          unidad?: string
+        }
+        Update: {
+          cantidad?: number
+          created_at?: string
+          descripcion?: string
+          id?: string
+          importacion_id?: string
+          insumo_id?: string | null
+          partida_arancelaria?: string
+          precio_fob?: number
+          unidad?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "importacion_items_importacion_id_fkey"
+            columns: ["importacion_id"]
+            isOneToOne: false
+            referencedRelation: "importaciones"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "importacion_items_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "insumos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      importaciones: {
+        Row: {
+          codigo: string
+          created_at: string
+          estado: string
+          fecha_arribo: string | null
+          fecha_embarque: string | null
+          fecha_pedido: string
+          id: string
+          incoterm: string
+          moneda: Database["public"]["Enums"]["moneda"]
+          observacion: string
+          orden_id: string | null
+          pais_origen: string
+          proveedor_extranjero: string
+          proveedor_id: string | null
+          proyecto_id: string | null
+          tipo_despacho: string
+          tracking: string
+          transportista: string
+          updated_at: string
+        }
+        Insert: {
+          codigo: string
+          created_at?: string
+          estado?: string
+          fecha_arribo?: string | null
+          fecha_embarque?: string | null
+          fecha_pedido?: string
+          id?: string
+          incoterm?: string
+          moneda?: Database["public"]["Enums"]["moneda"]
+          observacion?: string
+          orden_id?: string | null
+          pais_origen?: string
+          proveedor_extranjero?: string
+          proveedor_id?: string | null
+          proyecto_id?: string | null
+          tipo_despacho?: string
+          tracking?: string
+          transportista?: string
+          updated_at?: string
+        }
+        Update: {
+          codigo?: string
+          created_at?: string
+          estado?: string
+          fecha_arribo?: string | null
+          fecha_embarque?: string | null
+          fecha_pedido?: string
+          id?: string
+          incoterm?: string
+          moneda?: Database["public"]["Enums"]["moneda"]
+          observacion?: string
+          orden_id?: string | null
+          pais_origen?: string
+          proveedor_extranjero?: string
+          proveedor_id?: string | null
+          proyecto_id?: string | null
+          tipo_despacho?: string
+          tracking?: string
+          transportista?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "importaciones_orden_id_fkey"
+            columns: ["orden_id"]
+            isOneToOne: false
+            referencedRelation: "ordenes_compra"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "importaciones_proveedor_id_fkey"
+            columns: ["proveedor_id"]
+            isOneToOne: false
+            referencedRelation: "terceros"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "importaciones_proyecto_id_fkey"
+            columns: ["proyecto_id"]
+            isOneToOne: false
+            referencedRelation: "proyectos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       insumos: {
         Row: {
           activo: boolean
