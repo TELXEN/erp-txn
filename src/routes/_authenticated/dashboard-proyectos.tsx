@@ -18,6 +18,9 @@ import {
   usePartidas,
   useProyectos,
   useTareos,
+  useCronograma,
+  programadoCronograma,
+  claveMes,
   useTiposPresupuesto,
 } from "@/lib/datos";
 import { exportarExcel, exportarPdf } from "@/lib/exportar";
@@ -47,6 +50,7 @@ function DashboardProyectos() {
   const { data: gastosG = [] } = useGastosGenerales();
   const { data: tareos = [] } = useTareos();
   const { data: tiposPresupuesto = [] } = useTiposPresupuesto();
+  const { data: cronograma = [] } = useCronograma();
   const [obraId, setObraId] = useState("");
   const [filtroEstado, setFiltroEstado] = useState<string>("Todos");
 
@@ -68,7 +72,9 @@ function DashboardProyectos() {
               ? propias.reduce((s, x) => s + Number(x.avance_pct), 0) / propias.length
               : 0;
         const gastado = presupuesto > 0 ? (costoReal / presupuesto) * 100 : 0;
-        const programado = p.avance_programado_pct === null ? null : Number(p.avance_programado_pct);
+        const ahora = new Date();
+        const porCronograma = programadoCronograma(propias, cronograma, claveMes(ahora.getFullYear(), ahora.getMonth() + 1));
+        const programado = porCronograma ?? (p.avance_programado_pct == null ? null : Number(p.avance_programado_pct));
         const desviacion = programado === null ? null : avance - programado;
         return {
           proyecto: p,
@@ -88,7 +94,7 @@ function DashboardProyectos() {
           desviado: gastado > avance,
         };
       }),
-    [proyectos, partidas, gastosD, gastosG, tareos, tiposPresupuesto],
+    [proyectos, partidas, gastosD, gastosG, tareos, tiposPresupuesto, cronograma],
   );
 
   const resumen = useMemo(() => {

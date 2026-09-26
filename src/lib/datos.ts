@@ -404,3 +404,40 @@ export function costoRealProyecto(
     .reduce((s, g) => s + Number(g.monto_soles), 0);
   return directos + manoObra + generales;
 }
+
+export type CronogramaPartida = {
+  id: string;
+  partida_id: string;
+  anio: number;
+  mes: number;
+  pct: number;
+};
+
+export const useCronograma = () =>
+  useQuery({
+    queryKey: ["cronograma_partidas"],
+    queryFn: () => pedir<CronogramaPartida>("cronograma_partidas", "*"),
+  });
+
+/** Clave año-mes comparable: 2026*12+mes */
+export const claveMes = (anio: number, mes: number) => anio * 12 + mes;
+
+/** % programado acumulado de una partida hasta el mes indicado (incluido). */
+export function programadoPartida(partidaId: string, cron: CronogramaPartida[], hasta: number) {
+  return Math.min(
+    100,
+    cron
+      .filter((c) => c.partida_id === partidaId && claveMes(c.anio, c.mes) <= hasta)
+      .reduce((s, c) => s + Number(c.pct), 0),
+  );
+}
+
+/** Avance programado ponderado de la obra según cronograma mensual; null si no hay cronograma. */
+export function programadoCronograma(partidas: Partida[], cron: CronogramaPartida[], hasta: number) {
+  const ids = new Set(partidas.map((p) => p.id));
+  if (!cron.some((c) => ids.has(c.partida_id))) return null;
+  const base = partidas.reduce((s, p) => s + Number(p.presupuesto_inicial), 0);
+  if (base > 0)
+    return partidas.reduce((s, p) => s + programadoPartida(p.id, cron, hasta) * Number(p.presupuesto_inicial), 0) / base;
+  return partidas.reduce((s, p) => s + programadoPartida(p.id, cron, hasta), 0) / (partidas.length || 1);
+}
