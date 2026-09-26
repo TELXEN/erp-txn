@@ -154,7 +154,15 @@ export function CronogramaObra() {
     await navigator.clipboard.writeText(texto);
   }, [seleccion, valorCelda]);
 
-  const pegarPortapapeles = async () => pegarTexto(await navigator.clipboard.readText());
+  const borrarSeleccion = useCallback(() => {
+    if (!seleccion) return;
+    const r = normalizar(seleccion);
+    const cambios = new Map<string, number>();
+    for (let fila = r.filaInicio; fila <= r.filaFin; fila += 1)
+      for (let columna = r.columnaInicio; columna <= r.columnaFin; columna += 1)
+        cambios.set(clave(fila, columna), 0);
+    void guardarCambios(cambios);
+  }, [guardarCambios, seleccion]);
 
   const aplicarRelleno = useCallback(() => {
     if (!seleccion || !destinoRelleno) return;
