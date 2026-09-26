@@ -121,9 +121,9 @@ export function CurvaS({
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Mini
           etiqueta={fechaCorteProgramado ? `Avance programado oficial · ${fechaCorteProgramado}` : "Avance programado oficial"}
-          valor={avanceProgramadoOficial === null ? "Sin registro" : `${avanceProgramadoOficial.toFixed(1)} %`}
+          valor={avanceProgramadoOficial == null ? "Sin registro" : `${Number(avanceProgramadoOficial).toFixed(1)} %`}
         />
-        <Mini etiqueta="Avance físico real" valor={`${avanceFisico.toFixed(1)} %`} tono={atrasado ? "bad" : "good"} />
+        <Mini etiqueta="Avance físico real" valor={`${Number(avanceFisico ?? 0).toFixed(1)} %`} tono={atrasado ? "bad" : "good"} />
         <Mini etiqueta="Costo acumulado" valor={soles(datos.gastadoSoles)} />
         <Mini
           etiqueta={
@@ -142,7 +142,7 @@ export function CurvaS({
               />
             </span>
           }
-          valor={`${datos.spi.toFixed(2)} / ${datos.cpi.toFixed(2)}`}
+          valor={`${Number(datos.spi ?? 0).toFixed(2)} / ${Number(datos.cpi ?? 0).toFixed(2)}`}
           tono={datos.spi < 1 || datos.cpi < 1 ? "bad" : "good"}
         />
       </div>
