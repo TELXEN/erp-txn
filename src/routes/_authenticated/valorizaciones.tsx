@@ -333,9 +333,24 @@ function Valorizaciones() {
             <Input type="date" value={form.fecha_emision} onChange={(e) => setForm({ ...form, fecha_emision: e.target.value })} />
           </Campo>
           <CamposCondicion valor={form} fechaBase={form.fecha_emision} onChange={(c) => setForm({ ...form, ...c })} />
-          <Campo etiqueta="% Detracción (SPOT)">
-            <Input type="number" step="0.01" min="0" max="100" value={form.pct_detraccion} onChange={(e) => setForm({ ...form, pct_detraccion: e.target.value })} />
+          <Campo etiqueta="Régimen tributario">
+            <Select
+              value={`${form.tipo_tributario}|${form.pct_detraccion}`}
+              onChange={(e) => {
+                const [t, p] = e.target.value.split("|");
+                setForm({ ...form, tipo_tributario: t as TipoTributario, pct_detraccion: p });
+              }}
+            >
+              {REGIMENES.map((r) => <option key={r.etiqueta} value={`${r.valor}|${r.pct}`}>{r.etiqueta}</option>)}
+              <option value={`${form.tipo_tributario}|${form.pct_detraccion}`} hidden>
+                {form.tipo_tributario} {form.pct_detraccion}%
+              </option>
+            </Select>
           </Campo>
+          <Campo etiqueta="% aplicado">
+            <Input type="number" step="0.01" min="0" max="100" value={form.pct_detraccion} disabled={form.tipo_tributario === "ninguno"} onChange={(e) => setForm({ ...form, pct_detraccion: e.target.value })} />
+          </Campo>
+
           <Campo etiqueta="Fecha de pago">
             <Input type="date" value={form.fecha_pago} onChange={(e) => setForm({ ...form, fecha_pago: e.target.value })} />
           </Campo>
