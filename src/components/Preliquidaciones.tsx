@@ -384,6 +384,9 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
   }
 
   function imprimir(p: Preliquidacion) {
+    const bruto = brutoDe(p.id);
+    const amort = amortDe(p.id);
+    const cc = ctaComercial(p.moneda);
     const its = itemsDe(p.id);
     const neto = netoDe(p.id);
     const mm = calcularMontos(neto, Number(p.pct_detraccion), Number(p.tipo_cambio), p.tipo_tributario ?? "detraccion");
@@ -411,6 +414,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
     ${its.map((i, k) => `<tr><td>${k + 1}</td><td>${esc(i.descripcion)}</td><td>${esc(i.unidad)}</td><td class="r">${Number(i.cantidad)}</td><td class="r">${f(Number(i.precio_unitario))}</td><td class="r">${f(Number(i.cantidad) * Number(i.precio_unitario))}</td></tr>`).join("")}
     </tbody></table>
     <table class="tot" style="width:360px;margin-left:auto">
+      ${amort > 0 ? `<tr><td>Valor ejecutado</td><td class="r">${f(bruto)}</td></tr><tr><td>Amortización de adelanto (−)</td><td class="r">${f(amort)}</td></tr>` : ""}
       <tr><td>Valor neto</td><td class="r">${f(mm.neto)}</td></tr>
       <tr><td>IGV 18%</td><td class="r">${f(mm.igv)}</td></tr>
       <tr class="b"><td>Total</td><td class="r">${f(mm.total)}</td></tr>
@@ -418,10 +422,12 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
       ${mm.retencionPen > 0 ? `<tr><td>Retención IGV ${p.pct_detraccion}%</td><td class="r">${soles2(mm.retencionPen)}</td></tr>` : ""}
       ${!mm.aplica ? `<tr><td>Detracción / retención</td><td class="r">No aplica</td></tr>` : ""}
       <tr class="b"><td>Neto a depositar en cuenta</td><td class="r">${f(mm.cobrar)}</td></tr>
+      ${p.moneda === "USD" ? `<tr><td colspan="2" style="font-size:10px;color:#666">T.C. referencial: ${Number(p.tipo_cambio).toFixed(3)} · Total en soles: ${soles2(mm.total * Number(p.tipo_cambio))}</td></tr>` : ""}
     </table>
     <p><b>Condición de pago:</b> ${esc(p.condicion_pago)}${p.condicion_pago === "Crédito" ? ` a ${p.dias_credito} días · vence ${fmtFecha(p.fecha_vencimiento)}` : ""}</p>
+    <p><b>Cuenta para abono del neto (${p.moneda === "USD" ? "dólares" : "soles"}):</b> ${cc ? `${esc(cc.nombre)} · Cta. N° ${esc(cc.numero_cuenta || "—")}${cc.cci ? ` · CCI ${esc(cc.cci)}` : ""}` : "Registrar una cuenta bancaria en esta moneda en Catálogos Maestros"}</p>
     ${mm.detraccionPen > 0 ? `<p><b>Cuenta de detracciones (Banco de la Nación):</b> ${ctaDetraccion ? `${esc(ctaDetraccion.nombre)} · Cta. N° ${esc(ctaDetraccion.numero_cuenta || "—")}${ctaDetraccion.cci ? ` · CCI ${esc(ctaDetraccion.cci)}` : ""}` : "Registrar una cuenta de tipo Detracciones en Catálogos Maestros"}</p>` : ""}
-    ${p.observacion ? `<p><b>Observaciones:</b> ${esc(p.observacion)}</p>` : ""}
+    ${p.observacion ? `<p><b>Observaciones:</b> ${esc(p.observacion).replace(/\n/g, "<br/>")}</p>` : ""}
     <p class="nota">Documento referencial previo a la emisión del comprobante electrónico. No tiene valor tributario.</p>
     <script>window.onload=()=>window.print()</script></body></html>`);
     w.document.close();
@@ -536,14 +542,58 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
                   })}
                 </tbody>
               </table>
-              <div className="border-t border-line p-2">
+              <div className="flex flex-wrap gap-2 border-t border-line p-2">
                 <Boton type="button" variante="linea" onClick={() => setLineas([...lineas, itemVacio()])}><Plus size={13} /> Agregar línea</Boton>
+                <Boton type="button" variante="linea" disabled={!form.proyecto_id} onClick={() => setSelectorPartidas(!selectorPartidas)}>
+                  <ListPlus size={13} /> Cargar partidas de la obra
+                </Boton>
               </div>
+              {selectorPartidas && (
+                <div className="border-t border-line bg-muted/20 p-3">
+                  {partidasObra.length === 0 ? (
+                    <p className="font-mono text-xs text-muted-foreground">Esta obra no tiene partidas registradas.</p>
+                  ) : (
+                    <>
+                      <p className="mb-2 font-mono text-[10px] text-muted-foreground">
+                        P.U. incluye gastos generales y utilidad de la obra. Marca las partidas a cobrar:
+                      </p>
+                      <div className="max-h-56 space-y-1 overflow-y-auto">
+                        {partidasObra.map((p) => (
+                          <label key={p.id} className="flex cursor-pointer items-center gap-2 font-mono text-xs">
+                            <input
+                              type="checkbox"
+                              checked={marcadas.includes(p.id)}
+                              onChange={(e) => setMarcadas(e.target.checked ? [...marcadas, p.id] : marcadas.filter((x) => x !== p.id))}
+                            />
+                            <span className="text-muted-foreground">{p.codigo}</span> {p.nombre}
+                            <span className="ml-auto text-muted-foreground">{Number(p.metrado)} {p.unidad}</span>
+                          </label>
+                        ))}
+                      </div>
+                      <div className="mt-2 flex gap-2">
+                        <Boton type="button" disabled={!marcadas.length} onClick={cargarPartidas}>Agregar {marcadas.length || ""} partida(s)</Boton>
+                        <Boton type="button" variante="linea" onClick={() => setMarcadas(marcadas.length === partidasObra.length ? [] : partidasObra.map((p) => p.id))}>
+                          {marcadas.length === partidasObra.length ? "Quitar todas" : "Marcar todas"}
+                        </Boton>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="sm:col-span-4 grid gap-3 rounded-lg border border-line bg-muted/30 p-3 sm:grid-cols-4">
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">Valor ejecutado</p>
+                <p className="font-mono text-sm font-semibold text-ink">{form.moneda === "USD" ? `US$ ${brutoForm.toFixed(2)}` : soles(brutoForm)}</p>
+              </div>
+              <Campo etiqueta="Amortización de adelanto (−)">
+                <Input type="number" step="0.01" min="0" value={form.amortizacion} onChange={(e) => setForm({ ...form, amortizacion: e.target.value })} />
+              </Campo>
+              <div className="hidden sm:block" />
+              <div className="hidden sm:block" />
               {[
-                ["Valor neto", m.neto],
+                ["Valor neto (base imponible)", m.neto],
                 ["IGV 18%", m.igv],
                 ["Total", m.total],
               ].map(([t, v]) => (
@@ -628,6 +678,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
                       return {
                         Código: p.codigo, Fecha: p.fecha, Obra: nombreProy(p.proyecto_id), Cliente: nombreCliente(p.cliente_id),
                         RUC: rucCliente(p.cliente_id), Dirección: dirCliente(p.cliente_id),
+                        "Amortización adelanto": amortDe(p.id), Factura: facturaDe(p.id)?.numero_factura ?? "",
                         "Orden de compra": p.concepto, Moneda: p.moneda, Neto: mm.neto, IGV: mm.igv, Total: mm.total,
                         Régimen: mm.tipo === "detraccion" ? `Detracción ${p.pct_detraccion}%` : mm.tipo === "retencion" ? `Retención ${p.pct_detraccion}%` : "Ninguno",
                         "Detracción (S/)": mm.detraccionPen, "Retención (S/)": mm.retencionPen,
@@ -689,11 +740,21 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
                     <td className="px-3 py-2.5 text-right font-semibold">{fm(mm.cobrar)}</td>
                     <td className="px-3 py-2.5">
                       {p.estado === "Facturada" ? (
-                        <Etiqueta tono="good">Facturada</Etiqueta>
+                        <>
+                          <Etiqueta tono="good">Facturada</Etiqueta>
+                          {facturaDe(p.id) && (
+                            <div className="mt-1 text-[10px] text-muted-foreground">
+                              <Resaltar texto={facturaDe(p.id)!.numero_factura} termino={busqueda} /> · {fmtFecha(facturaDe(p.id)!.fecha_emision)}
+                            </div>
+                          )}
+                        </>
                       ) : (
                         <Select className="w-32" value={p.estado} onChange={(e) => cambiarEstado(p, e.target.value)}>
                           {["Borrador", "Enviada", "Aprobada", "Observada"].map((s) => <option key={s} value={s}>{s}</option>)}
                         </Select>
+                      )}
+                      {p.estado === "Observada" && p.observacion && (
+                        <div className="mt-1 max-w-[180px] truncate text-[10px] text-bad" title={p.observacion}>{p.observacion.split("\n").pop()}</div>
                       )}
                       <span className="sr-only"><Etiqueta tono={ESTADO_TONO[p.estado] ?? "neutro"}>{p.estado}</Etiqueta></span>
                     </td>
@@ -703,6 +764,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
                           <Boton onClick={() => onFacturar(p, netoDe(p.id))}><Receipt size={13} /> Facturar</Boton>
                         )}
                         <button onClick={() => imprimir(p)} className="text-muted-foreground hover:text-ink" aria-label="Imprimir / PDF"><Printer size={14} /></button>
+                        <button onClick={() => duplicar(p)} className="text-muted-foreground hover:text-ink" aria-label="Duplicar" title="Duplicar"><Copy size={14} /></button>
                         {editable(p) && (
                           <>
                             <button onClick={() => editar(p)} className="text-muted-foreground hover:text-ink" aria-label="Editar"><Pencil size={14} /></button>
