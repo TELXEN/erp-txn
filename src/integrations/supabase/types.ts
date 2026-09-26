@@ -1736,6 +1736,7 @@ export type Database = {
       }
       preliquidaciones: {
         Row: {
+          amortizacion: number
           cliente_id: string | null
           codigo: string
           concepto: string
@@ -1755,6 +1756,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          amortizacion?: number
           cliente_id?: string | null
           codigo: string
           concepto?: string
@@ -1774,6 +1776,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          amortizacion?: number
           cliente_id?: string | null
           codigo?: string
           concepto?: string

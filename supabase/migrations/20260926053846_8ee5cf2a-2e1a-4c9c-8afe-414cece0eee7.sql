@@ -1,0 +1,1 @@
+ALTER TABLE public.preliquidaciones ADD COLUMN IF NOT EXISTS amortizacion numeric NOT NULL DEFAULT 0;
