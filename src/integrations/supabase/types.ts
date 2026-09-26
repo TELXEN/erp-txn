@@ -756,6 +756,44 @@ export type Database = {
           },
         ]
       }
+      cronograma_partidas: {
+        Row: {
+          anio: number
+          created_at: string
+          id: string
+          mes: number
+          partida_id: string
+          pct: number
+          updated_at: string
+        }
+        Insert: {
+          anio: number
+          created_at?: string
+          id?: string
+          mes: number
+          partida_id: string
+          pct?: number
+          updated_at?: string
+        }
+        Update: {
+          anio?: number
+          created_at?: string
+          id?: string
+          mes?: number
+          partida_id?: string
+          pct?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cronograma_partidas_partida_id_fkey"
+            columns: ["partida_id"]
+            isOneToOne: false
+            referencedRelation: "partidas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       empresa_config: {
         Row: {
           color_marca: string
