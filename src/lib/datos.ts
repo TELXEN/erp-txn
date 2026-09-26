@@ -22,6 +22,7 @@ export type Proyecto = {
   fecha_fin: string | null;
   avance_programado_pct: number | null;
   fecha_corte_programado: string | null;
+  periodicidad_cronograma?: "dia" | "semana" | "quincena" | "mes";
   pct_gastos_generales: number;
   pct_utilidad: number;
 };
@@ -405,12 +406,23 @@ export function costoRealProyecto(
   return directos + manoObra + generales;
 }
 
+export type Periodicidad = "dia" | "semana" | "quincena" | "mes";
+
+export const PERIODICIDADES: { valor: Periodicidad; nombre: string }[] = [
+  { valor: "dia", nombre: "Días" },
+  { valor: "semana", nombre: "Semanas" },
+  { valor: "quincena", nombre: "Quincenas" },
+  { valor: "mes", nombre: "Meses" },
+];
+
 export type CronogramaPartida = {
   id: string;
   partida_id: string;
   anio: number;
   mes: number;
   pct: number;
+  periodicidad: Periodicidad;
+  fecha_inicio: string;
 };
 
 export const useCronograma = () =>
@@ -422,22 +434,71 @@ export const useCronograma = () =>
 /** Clave año-mes comparable: 2026*12+mes */
 export const claveMes = (anio: number, mes: number) => anio * 12 + mes;
 
-/** % programado acumulado de una partida hasta el mes indicado (incluido). */
-export function programadoPartida(partidaId: string, cron: CronogramaPartida[], hasta: number) {
+const iso = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+export const hoyISO = () => iso(new Date());
+
+export type PeriodoCronograma = { inicio: string; fin: string; etiqueta: string; corta: string };
+
+const MES3 = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+
+/** Genera las columnas del cronograma entre inicio y fin según la periodicidad. */
+export function generarPeriodos(inicio: string | null, fin: string | null, per: Periodicidad): PeriodoCronograma[] {
+  const a = inicio ? new Date(inicio + "T00:00:00") : new Date();
+  a.setHours(0, 0, 0, 0);
+  const porDefecto = { dia: 14, semana: 42, quincena: 90, mes: 180 }[per];
+  let b = fin ? new Date(fin + "T00:00:00") : new Date(a.getTime() + porDefecto * 86400000);
+  if (b < a) b = new Date(a);
+  const max = { dia: 120, semana: 104, quincena: 72, mes: 36 }[per];
+  const lista: PeriodoCronograma[] = [];
+  let cur = new Date(a);
+  let n = 1;
+  while (cur <= b && lista.length < max) {
+    let sig: Date;
+    let etiqueta: string;
+    let corta: string;
+    if (per === "dia") {
+      sig = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate() + 1);
+      etiqueta = `Día ${n}`;
+      corta = `${cur.getDate()} ${MES3[cur.getMonth()]}`;
+    } else if (per === "semana") {
+      sig = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate() + 7);
+      etiqueta = `Sem ${n}`;
+      corta = `${cur.getDate()} ${MES3[cur.getMonth()]}`;
+    } else if (per === "quincena") {
+      const primera = cur.getDate() <= 15;
+      sig = primera ? new Date(cur.getFullYear(), cur.getMonth(), 16) : new Date(cur.getFullYear(), cur.getMonth() + 1, 1);
+      etiqueta = `${primera ? "Q1" : "Q2"} ${MES3[cur.getMonth()]}`;
+      corta = String(cur.getFullYear()).slice(2);
+    } else {
+      sig = new Date(cur.getFullYear(), cur.getMonth() + 1, 1);
+      etiqueta = `${MES3[cur.getMonth()]} ${String(cur.getFullYear()).slice(2)}`;
+      corta = `Mes ${n}`;
+    }
+    const finP = new Date(sig.getTime() - 86400000);
+    lista.push({ inicio: iso(cur), fin: iso(finP > b ? b : finP), etiqueta, corta });
+    cur = sig;
+    n += 1;
+  }
+  return lista;
+}
+
+/** % programado acumulado de una partida en periodos iniciados hasta la fecha (incluida). */
+export function programadoPartida(partidaId: string, cron: CronogramaPartida[], hasta: string, per: Periodicidad) {
   return Math.min(
     100,
     cron
-      .filter((c) => c.partida_id === partidaId && claveMes(c.anio, c.mes) <= hasta)
+      .filter((c) => c.partida_id === partidaId && (c.periodicidad ?? "mes") === per && c.fecha_inicio <= hasta)
       .reduce((s, c) => s + Number(c.pct), 0),
   );
 }
 
-/** Avance programado ponderado de la obra según cronograma mensual; null si no hay cronograma. */
-export function programadoCronograma(partidas: Partida[], cron: CronogramaPartida[], hasta: number) {
+/** Avance programado ponderado de la obra según su cronograma; null si no hay cronograma. */
+export function programadoCronograma(partidas: Partida[], cron: CronogramaPartida[], hasta: string, per: Periodicidad) {
   const ids = new Set(partidas.map((p) => p.id));
-  if (!cron.some((c) => ids.has(c.partida_id))) return null;
+  if (!cron.some((c) => ids.has(c.partida_id) && (c.periodicidad ?? "mes") === per)) return null;
   const base = partidas.reduce((s, p) => s + Number(p.presupuesto_inicial), 0);
   if (base > 0)
-    return partidas.reduce((s, p) => s + programadoPartida(p.id, cron, hasta) * Number(p.presupuesto_inicial), 0) / base;
-  return partidas.reduce((s, p) => s + programadoPartida(p.id, cron, hasta), 0) / (partidas.length || 1);
+    return partidas.reduce((s, p) => s + programadoPartida(p.id, cron, hasta, per) * Number(p.presupuesto_inicial), 0) / base;
+  return partidas.reduce((s, p) => s + programadoPartida(p.id, cron, hasta, per), 0) / (partidas.length || 1);
 }

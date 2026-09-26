@@ -760,28 +760,34 @@ export type Database = {
         Row: {
           anio: number
           created_at: string
+          fecha_inicio: string
           id: string
           mes: number
           partida_id: string
           pct: number
+          periodicidad: string
           updated_at: string
         }
         Insert: {
           anio: number
           created_at?: string
+          fecha_inicio: string
           id?: string
           mes: number
           partida_id: string
           pct?: number
+          periodicidad?: string
           updated_at?: string
         }
         Update: {
           anio?: number
           created_at?: string
+          fecha_inicio?: string
           id?: string
           mes?: number
           partida_id?: string
           pct?: number
+          periodicidad?: string
           updated_at?: string
         }
         Relationships: [
@@ -1885,6 +1891,7 @@ export type Database = {
           nombre: string
           pct_gastos_generales: number
           pct_utilidad: number
+          periodicidad_cronograma: string
           responsable_id: string | null
           situacion: string
           ubicacion: string
@@ -1902,6 +1909,7 @@ export type Database = {
           nombre: string
           pct_gastos_generales?: number
           pct_utilidad?: number
+          periodicidad_cronograma?: string
           responsable_id?: string | null
           situacion?: string
           ubicacion?: string
@@ -1919,6 +1927,7 @@ export type Database = {
           nombre?: string
           pct_gastos_generales?: number
           pct_utilidad?: number
+          periodicidad_cronograma?: string
           responsable_id?: string | null
           situacion?: string
           ubicacion?: string
