@@ -446,6 +446,10 @@ function Valorizaciones() {
         titulo="Facturas emitidas"
         extra={
           <div className="flex items-center gap-2">
+            <Select className="py-1 text-xs" value={filtroRubro} onChange={(e) => setFiltroRubro(e.target.value)}>
+              <option value="">Todos los rubros</option>
+              {rubros.map((r) => <option key={r.id} value={r.nombre}>{r.nombre}</option>)}
+            </Select>
             <Buscador
               valor={busqueda}
               onChange={setBusqueda}
@@ -458,6 +462,25 @@ function Valorizaciones() {
           </div>
         }
       >
+        {(() => {
+          const porRubro = new Map<string, number>();
+          ventas.forEach((v) => {
+            const k = (v as { rubro?: string }).rubro ?? "Proyectos / Obras";
+            porRubro.set(k, (porRubro.get(k) ?? 0) + Number(v.monto_soles));
+          });
+          const total = [...porRubro.values()].reduce((x, y) => x + y, 0) || 1;
+          return porRubro.size > 0 ? (
+            <div className="flex flex-wrap gap-2 border-b border-line px-5 py-3">
+              {[...porRubro.entries()].sort((x, y) => y[1] - x[1]).map(([k, m]) => (
+                <button key={k} type="button" onClick={() => setFiltroRubro(filtroRubro === k ? "" : k)}
+                  className={`rounded-md border px-3 py-1.5 text-left font-mono text-[11px] ${filtroRubro === k ? "border-primary bg-primary/10" : "border-line hover:bg-muted"}`}>
+                  <div className="text-muted-foreground">{k}</div>
+                  <div className="font-semibold text-ink">{soles(m)} <span className="font-normal text-muted-foreground">· {Math.round((m / total) * 100)}%</span></div>
+                </button>
+              ))}
+            </div>
+          ) : null;
+        })()}
         {avisoCobro && <p className="px-5 pt-3 font-mono text-xs text-bad">{avisoCobro}</p>}
         {ventasFiltradas.length === 0 ? (
           <Vacio
