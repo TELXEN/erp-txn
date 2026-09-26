@@ -273,7 +273,7 @@ export function CronogramaObra() {
                           >
                             <input
                               type="number" min="0" max="100" aria-label={`${p.nombre} ${m.etiqueta}`}
-                              className="h-7 w-14 rounded-sm border border-line bg-background px-1 text-right font-mono text-xs focus:border-primary focus:outline-none"
+                              className="h-7 w-14 rounded-sm border border-line bg-background px-1 text-right font-mono text-xs focus:border-primary focus:outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                               value={borrador[k] ?? (v ? String(v) : "")}
                               placeholder="0"
                               onFocus={() => setSeleccion({ inicio: { fila, columna }, fin: { fila, columna } })}
