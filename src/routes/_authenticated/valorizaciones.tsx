@@ -158,14 +158,17 @@ function Valorizaciones() {
           `El presupuesto ofertado de la obra es ${soles(ofertado)} y ya hay ${soles(facturado)} registrados. ` +
           "Registra las partidas contractuales o adicionales que falten, o corrige el valor neto.",
       );
-    const mm = calcularMontos(Number(form.monto || 0), Number(form.pct_detraccion || 0), tc);
+    const mm = calcularMontos(Number(form.monto || 0), Number(form.pct_detraccion || 0), tc, form.tipo_tributario);
     const { error: err } = await supabase.from("ventas").insert({
       preliquidacion_id: form.preliquidacion_id || null,
       igv: mm.igv,
       total: mm.total,
+      tipo_tributario: form.tipo_tributario,
       pct_detraccion: mm.aplica ? Number(form.pct_detraccion || 0) : 0,
-      monto_detraccion: mm.detraccion,
-      detraccion_estado: mm.aplica ? "Pendiente" : "No aplica",
+      monto_detraccion: mm.tipo === "detraccion" ? mm.detraccion : 0,
+      monto_retencion: mm.retencionPen,
+      detraccion_estado: mm.aplica && mm.tipo === "detraccion" ? "Pendiente" : "No aplica",
+
       proyecto_id: form.proyecto_id,
       cliente_id: form.cliente_id,
       concepto: form.concepto.trim(),
