@@ -353,7 +353,9 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
             <Campo etiqueta="Cliente">
               <Select value={form.cliente_id} onChange={(e) => setForm({ ...form, cliente_id: e.target.value })} required>
                 <option value="">Selecciona...</option>
-                {clientes.map((c) => <option key={c.id} value={c.id}>{c.razon_social}</option>)}
+                {clientes.map((c) => (
+                  <option key={c.id} value={c.id}>{c.numero_documento ? `${c.numero_documento} · ` : ""}{c.razon_social}</option>
+                ))}
               </Select>
             </Campo>
             <Campo etiqueta="Concepto / periodo">
@@ -362,6 +364,13 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
             <Campo etiqueta="Fecha">
               <Input type="date" value={form.fecha} onChange={(e) => setForm({ ...form, fecha: e.target.value })} required />
             </Campo>
+            {clienteSel && (
+              <div className="sm:col-span-4 rounded-lg border border-line bg-muted/30 p-3 font-mono text-xs text-muted-foreground">
+                <span className="font-semibold text-ink">{clienteSel.razon_social}</span>
+                {" · RUC "}{clienteSel.numero_documento || "—"}
+                {" · "}{clienteSel.direccion || "Sin dirección registrada"}
+              </div>
+            )}
             <Campo etiqueta="Moneda">
               <Select value={form.moneda} onChange={(e) => setForm({ ...form, moneda: e.target.value })}>
                 <option value="PEN">Soles (S/)</option>
@@ -371,9 +380,24 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
             <Campo etiqueta="Tipo de cambio">
               <Input type="number" step="0.001" min="0" value={form.tipo_cambio} disabled={form.moneda === "PEN"} onChange={(e) => setForm({ ...form, tipo_cambio: e.target.value })} />
             </Campo>
-            <Campo etiqueta="% Detracción (SPOT)">
-              <Input type="number" step="0.01" min="0" max="100" value={form.pct_detraccion} onChange={(e) => setForm({ ...form, pct_detraccion: e.target.value })} />
+            <Campo etiqueta="Régimen tributario">
+              <Select
+                value={`${form.tipo_tributario}|${form.pct_detraccion}`}
+                onChange={(e) => {
+                  const [t, p] = e.target.value.split("|");
+                  setForm({ ...form, tipo_tributario: t as TipoTributario, pct_detraccion: p });
+                }}
+              >
+                {REGIMENES.map((r) => <option key={r.etiqueta} value={`${r.valor}|${r.pct}`}>{r.etiqueta}</option>)}
+                <option value={`${form.tipo_tributario}|${form.pct_detraccion}`} hidden>
+                  {form.tipo_tributario} {form.pct_detraccion}%
+                </option>
+              </Select>
             </Campo>
+            <Campo etiqueta="% aplicado">
+              <Input type="number" step="0.01" min="0" max="100" value={form.pct_detraccion} disabled={form.tipo_tributario === "ninguno"} onChange={(e) => setForm({ ...form, pct_detraccion: e.target.value })} />
+            </Campo>
+
             <CamposCondicion valor={form} fechaBase={form.fecha} onChange={(c) => setForm({ ...form, ...c })} />
 
             <div className="sm:col-span-4 rounded-lg border border-line">
