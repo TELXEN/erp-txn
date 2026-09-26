@@ -180,8 +180,11 @@ export function CurvaS({
               </text>
             );
           })}
-          {datos.tieneCronograma && <path d={lineaProg} fill="none" className="stroke-primary" strokeWidth={2.5} />}
-          {mostrarDinero && costoPts.length > 0 && <path d={lineaCosto} fill="none" className="stroke-muted-foreground" strokeWidth={2} strokeDasharray="5 4" />}
+          {datos.tieneCronograma && <path d={lineaProg} fill="none" className="text-primary" stroke="currentColor" strokeWidth={2.5} strokeDasharray="6 4" />}
+          {datos.tieneCronograma && datos.puntos.map((p, i) => (
+            <circle key={`p${i}`} cx={x(i)} cy={y(p.prog)} r={2.5} className="text-primary" fill="currentColor" />
+          ))}
+          {mostrarDinero && costoPts.length > 0 && <path d={lineaCosto} fill="none" className="text-muted-foreground" stroke="currentColor" strokeWidth={2} strokeDasharray="3 3" />}
           {mostrarDinero && costoPts.map((d) => (
             <circle
               key={d.i}
@@ -199,7 +202,7 @@ export function CurvaS({
 
       <div className="flex flex-wrap items-center gap-4 font-mono text-[11px] text-muted-foreground">
         <span className="inline-flex items-center gap-2">
-          <span className="h-0.5 w-6 bg-primary" /> Avance programado acumulado por partidas
+          <span className="w-6 border-t-2 border-dashed border-primary" /> Avance programado acumulado por partidas
         </span>
         <span className="inline-flex items-center gap-2">
           <span className={`h-2.5 w-2.5 rounded-full ${atrasado ? "bg-bad" : "bg-good"}`} /> Avance físico real al corte
