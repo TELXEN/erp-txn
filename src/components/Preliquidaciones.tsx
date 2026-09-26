@@ -293,7 +293,10 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
   function imprimir(p: Preliquidacion) {
     const its = itemsDe(p.id);
     const neto = netoDe(p.id);
-    const mm = calcularMontos(neto, Number(p.pct_detraccion), Number(p.tipo_cambio));
+    const mm = calcularMontos(neto, Number(p.pct_detraccion), Number(p.tipo_cambio), p.tipo_tributario ?? "detraccion");
+    const soles2 = (n: number) => `S/ ${n.toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    const solesEnt = (n: number) => `S/ ${n.toLocaleString("es-PE", { maximumFractionDigits: 0 })}`;
+
     const sim = p.moneda === "USD" ? "US$" : "S/";
     const f = (n: number) => `${sim} ${n.toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
