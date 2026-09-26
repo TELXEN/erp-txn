@@ -562,7 +562,11 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
                       {p.condicion_pago}{p.condicion_pago === "Crédito" && <div className="text-[10px]">{p.dias_credito} d · {fmtFecha(p.fecha_vencimiento)}</div>}
                     </td>
                     <td className="px-3 py-2.5 text-right">{fm(mm.total)}</td>
-                    <td className="px-3 py-2.5 text-right text-muted-foreground">{mm.aplica ? fm(mm.detraccion) : "—"}</td>
+                    <td className="px-3 py-2.5 text-right text-muted-foreground">
+                      {!mm.aplica ? "—" : mm.tipo === "detraccion" ? `S/ ${mm.detraccionPen.toLocaleString("es-PE")}` : soles(mm.retencionPen)}
+                      <div className="text-[10px]">{mm.aplica ? `${mm.tipo === "detraccion" ? "Detracción" : "Retención"} ${p.pct_detraccion}%` : ""}</div>
+                    </td>
+
                     <td className="px-3 py-2.5 text-right font-semibold">{fm(mm.cobrar)}</td>
                     <td className="px-3 py-2.5">
                       {p.estado === "Facturada" ? (
