@@ -68,7 +68,10 @@ function Valorizaciones() {
   const [avisoCobro, setAvisoCobro] = useState("");
 
   const nombreProy = (id: string) => proyectos.find((p) => p.id === id)?.nombre ?? "—";
-  const nombreCliente = (id: string | null) => clientes.find((c) => c.id === id)?.razon_social ?? "—";
+  const datosCliente = (id: string | null) => clientes.find((c) => c.id === id) ?? null;
+  const nombreCliente = (id: string | null) => datosCliente(id)?.razon_social ?? "—";
+  const clienteSel = datosCliente(form.cliente_id || null);
+
   const ventasFiltradas = ventas.filter((v) =>
     coincide(busqueda, v.concepto, nombreCliente(v.cliente_id), nombreProy(v.proyecto_id), v.numero_factura),
   );
