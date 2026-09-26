@@ -460,9 +460,11 @@ function Valorizaciones() {
                   <td className="px-3 py-2.5 text-right font-semibold">{soles(Number(v.monto_soles))}</td>
                   <td className="px-3 py-2.5 text-right">
                     {(() => {
-                      const x = v as unknown as { monto_detraccion?: number; detraccion_estado?: string; detraccion_constancia?: string };
+                      const x = v as unknown as { monto_detraccion?: number; monto_retencion?: number; detraccion_estado?: string; detraccion_constancia?: string };
+                      if (Number(x.monto_retencion) > 0)
+                        return <span className="text-muted-foreground">{soles(Number(x.monto_retencion))} · Retención</span>;
                       if (!x.monto_detraccion) return <span className="text-muted-foreground">—</span>;
-                      const monto = Number(x.monto_detraccion) * Number(v.tipo_cambio || 1);
+                      const monto = Math.round(Number(x.monto_detraccion) * Number(v.tipo_cambio || 1));
                       return x.detraccion_estado === "Depositada" ? (
                         <span className="text-good" title={`Constancia ${x.detraccion_constancia ?? ""}`}>{soles(monto)} · Depositada</span>
                       ) : (
@@ -471,6 +473,7 @@ function Valorizaciones() {
                         </button>
                       );
                     })()}
+
                   </td>
                   <td className="px-5 py-2.5 text-right">
                     <div className="flex items-center justify-end gap-2">
