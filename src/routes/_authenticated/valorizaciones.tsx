@@ -382,8 +382,14 @@ function Valorizaciones() {
             <Boton type="submit">Registrar factura</Boton>
             <span className="font-mono text-xs text-muted-foreground">
               Neto: <strong className="text-ink">{soles(equivalente)}</strong> · IGV {soles(montosForm.igv * tcForm)} · Total{" "}
-              <strong className="text-ink">{soles(montosForm.total * tcForm)}</strong> · Detracción {soles(montosForm.detraccion * tcForm)} · Neto a cobrar{" "}
-              <strong className="text-ink">{soles(montosForm.cobrar * tcForm)}</strong>
+              <strong className="text-ink">{soles(montosForm.total * tcForm)}</strong> ·{" "}
+              {!montosForm.aplica
+                ? "Sin detracción ni retención"
+                : montosForm.tipo === "detraccion"
+                  ? `Detracción S/ ${montosForm.detraccionPen.toLocaleString("es-PE")}`
+                  : `Retención ${soles(montosForm.retencionPen)}`}{" "}
+              · Neto a cobrar <strong className="text-ink">{soles(montosForm.cobrar * tcForm)}</strong>
+
             </span>
           </div>
           {error && <p className="font-mono text-xs text-bad sm:col-span-4">{error}</p>}
