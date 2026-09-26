@@ -452,7 +452,6 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
                 ["Valor neto", m.neto],
                 ["IGV 18%", m.igv],
                 ["Total", m.total],
-                [m.aplica ? `Detracción ${form.pct_detraccion}%` : "Detracción (no aplica)", m.detraccion],
                 ["Neto a cobrar", m.cobrar],
               ].map(([t, v]) => (
                 <div key={t as string}>
@@ -461,11 +460,25 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
                 </div>
               ))}
               <div>
+                <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+                  {!m.aplica ? "Detracción / retención" : m.tipo === "detraccion" ? `Detracción ${form.pct_detraccion}% (S/)` : `Retención ${form.pct_detraccion}%`}
+                </p>
+                <p className="font-mono text-sm font-semibold text-ink">
+                  {!m.aplica ? "No aplica" : m.tipo === "detraccion" ? `S/ ${m.detraccionPen.toLocaleString("es-PE")}` : soles(m.retencionPen)}
+                </p>
+                {m.tipo === "detraccion" && m.aplica && (
+                  <p className="font-mono text-[10px] text-muted-foreground">
+                    {ctaDetraccion ? `Cta. detracciones ${ctaDetraccion.numero_cuenta || "—"}` : "Sin cuenta de detracciones registrada"}
+                  </p>
+                )}
+              </div>
+              <div>
                 <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">Saldo obra / vence</p>
                 <p className={`font-mono text-sm font-semibold ${saldoSel - netoForm * tc >= 0 ? "text-good" : "text-bad"}`}>{soles(saldoSel)}</p>
                 <p className="font-mono text-[10px] text-muted-foreground">{form.condicion_pago === "Crédito" ? fmtFecha(venc) : "Contado"}</p>
               </div>
             </div>
+
             <div className="sm:col-span-4">
               <Campo etiqueta="Observaciones">
                 <Input value={form.observacion} onChange={(e) => setForm({ ...form, observacion: e.target.value })} maxLength={300} />
