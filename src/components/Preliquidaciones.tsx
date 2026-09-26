@@ -505,11 +505,15 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
                   {
                     nombre: "Preliquidaciones",
                     filas: lista.map((p) => {
-                      const mm = calcularMontos(netoDe(p.id), Number(p.pct_detraccion), Number(p.tipo_cambio));
+                      const mm = calcularMontos(netoDe(p.id), Number(p.pct_detraccion), Number(p.tipo_cambio), p.tipo_tributario ?? "detraccion");
                       return {
                         Código: p.codigo, Fecha: p.fecha, Obra: nombreProy(p.proyecto_id), Cliente: nombreCliente(p.cliente_id),
+                        RUC: rucCliente(p.cliente_id), Dirección: dirCliente(p.cliente_id),
                         Concepto: p.concepto, Moneda: p.moneda, Neto: mm.neto, IGV: mm.igv, Total: mm.total,
-                        Detracción: mm.detraccion, "Neto a cobrar": mm.cobrar, Condición: p.condicion_pago,
+                        Régimen: mm.tipo === "detraccion" ? `Detracción ${p.pct_detraccion}%` : mm.tipo === "retencion" ? `Retención ${p.pct_detraccion}%` : "Ninguno",
+                        "Detracción (S/)": mm.detraccionPen, "Retención (S/)": mm.retencionPen,
+                        "Neto a cobrar": mm.cobrar, Condición: p.condicion_pago,
+
                         Vencimiento: p.fecha_vencimiento ?? "", Estado: p.estado,
                       };
                     }),
