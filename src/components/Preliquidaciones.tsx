@@ -237,6 +237,8 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
       moneda: form.moneda as "PEN" | "USD",
       tipo_cambio: tc,
       pct_detraccion: Number(form.pct_detraccion || 0),
+      tipo_tributario: form.tipo_tributario,
+
       observacion: form.observacion.trim(),
       ...cond,
     };
