@@ -11,6 +11,18 @@ import {
 
 export type Movimiento = { fecha: string; monto: number };
 
+const NOMBRE_EJE: Record<Periodicidad, string> = {
+  dia: "Días",
+  semana: "Semanas",
+  quincena: "Quincenas",
+  mes: "Meses",
+};
+
+function pasoEtiquetas(cantidad: number, periodicidad: Periodicidad) {
+  const maximas = periodicidad === "dia" ? 10 : periodicidad === "semana" ? 12 : 14;
+  return Math.max(1, Math.ceil(cantidad / maximas));
+}
+
 export function CurvaS({
   fechaInicio,
   fechaFin,
@@ -103,6 +115,7 @@ export function CurvaS({
   const lineaProg = datos.puntos.map((p, i) => `${i === 0 ? "M" : "L"}${x(i)},${y(p.prog)}`).join(" ");
   const costoPts = datos.puntos.map((p, i) => ({ p, i })).filter((d) => d.p.costo !== null);
   const lineaCosto = costoPts.map((d, k) => `${k === 0 ? "M" : "L"}${x(d.i)},${y(d.p.costo as number)}`).join(" ");
+  const pasoEje = pasoEtiquetas(datos.puntos.length, periodicidad);
 
   const atrasado = avanceFisico + 0.05 < datos.programadoHoy;
 
@@ -152,13 +165,21 @@ export function CurvaS({
               </text>
             </g>
           ))}
-          {datos.puntos.map((p, i) =>
-            i % Math.ceil(datos.puntos.length / 12) === 0 ? (
-              <text key={p.etiqueta + i} x={x(i)} y={H - 12} textAnchor="middle" className="fill-muted-foreground" fontSize={9}>
-                {p.etiqueta}
+          {datos.puntos.map((p, i) => {
+            const mostrar = i === 0 || i === datos.puntos.length - 1 || i % pasoEje === 0;
+            if (!mostrar) return null;
+            const fechaCorta = new Date(`${p.fecha}T00:00:00`).toLocaleDateString("es-PE", {
+              day: periodicidad === "mes" ? undefined : "2-digit",
+              month: "short",
+              year: periodicidad === "mes" ? "2-digit" : undefined,
+            }).replace(".", "");
+            return (
+              <text key={p.etiqueta + i} x={x(i)} y={H - 20} textAnchor="middle" className="fill-muted-foreground" fontSize={8.5}>
+                <tspan x={x(i)}>{p.etiqueta}</tspan>
+                <tspan x={x(i)} dy={10} fontSize={7.5}>{fechaCorta}</tspan>
               </text>
-            ) : null,
-          )}
+            );
+          })}
           {datos.tieneCronograma && <path d={lineaProg} fill="none" className="stroke-primary" strokeWidth={2.5} />}
           {mostrarDinero && costoPts.length > 0 && <path d={lineaCosto} fill="none" className="stroke-muted-foreground" strokeWidth={2} strokeDasharray="5 4" />}
           {mostrarDinero && costoPts.map((d) => (
@@ -184,6 +205,7 @@ export function CurvaS({
           <span className={`h-2.5 w-2.5 rounded-full ${atrasado ? "bg-bad" : "bg-good"}`} /> Avance físico real al corte
         </span>
         {mostrarDinero && <span className="inline-flex items-center gap-2"><span className="h-0.5 w-6 border-t-2 border-dashed border-muted-foreground" /> Costo acumulado / presupuesto vigente</span>}
+        <span className="ml-auto">Eje horizontal: {NOMBRE_EJE[periodicidad]}</span>
       </div>
       {!datos.tieneCronograma && <p className="font-mono text-xs text-muted-foreground">Completa el Avance programado de la obra para trazar la línea contractual.</p>}
     </div>
