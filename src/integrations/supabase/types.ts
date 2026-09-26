@@ -1751,6 +1751,7 @@ export type Database = {
           pct_detraccion: number
           proyecto_id: string
           tipo_cambio: number
+          tipo_tributario: string
           updated_at: string
         }
         Insert: {
@@ -1769,6 +1770,7 @@ export type Database = {
           pct_detraccion?: number
           proyecto_id: string
           tipo_cambio?: number
+          tipo_tributario?: string
           updated_at?: string
         }
         Update: {
@@ -1787,6 +1789,7 @@ export type Database = {
           pct_detraccion?: number
           proyecto_id?: string
           tipo_cambio?: number
+          tipo_tributario?: string
           updated_at?: string
         }
         Relationships: [
@@ -2329,6 +2332,7 @@ export type Database = {
           moneda: Database["public"]["Enums"]["moneda"]
           monto: number
           monto_detraccion: number
+          monto_retencion: number
           monto_soles: number
           numero_factura: string
           numero_operacion: string
@@ -2336,6 +2340,7 @@ export type Database = {
           preliquidacion_id: string | null
           proyecto_id: string
           tipo_cambio: number
+          tipo_tributario: string
           total: number
         }
         Insert: {
@@ -2357,6 +2362,7 @@ export type Database = {
           moneda?: Database["public"]["Enums"]["moneda"]
           monto?: number
           monto_detraccion?: number
+          monto_retencion?: number
           monto_soles?: number
           numero_factura?: string
           numero_operacion?: string
@@ -2364,6 +2370,7 @@ export type Database = {
           preliquidacion_id?: string | null
           proyecto_id: string
           tipo_cambio?: number
+          tipo_tributario?: string
           total?: number
         }
         Update: {
@@ -2385,6 +2392,7 @@ export type Database = {
           moneda?: Database["public"]["Enums"]["moneda"]
           monto?: number
           monto_detraccion?: number
+          monto_retencion?: number
           monto_soles?: number
           numero_factura?: string
           numero_operacion?: string
@@ -2392,6 +2400,7 @@ export type Database = {
           preliquidacion_id?: string | null
           proyecto_id?: string
           tipo_cambio?: number
+          tipo_tributario?: string
           total?: number
         }
         Relationships: [

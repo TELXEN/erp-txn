@@ -11,7 +11,7 @@ import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
 import { ofertaProyecto, usePartidas, useProyectos, useTiposPresupuesto, useVentas } from "@/lib/datos";
 import { exportarExcel } from "@/lib/exportar";
 import { CamposCondicion, InsigniaPago, condicionVacia, datosCondicion } from "@/components/CondicionPago";
-import { Preliquidaciones, calcularMontos, type Preliquidacion } from "@/components/Preliquidaciones";
+import { Preliquidaciones, calcularMontos, REGIMENES, type Preliquidacion, type TipoTributario } from "@/components/Preliquidaciones";
 
 export const Route = createFileRoute("/_authenticated/valorizaciones")({
   head: () => ({
@@ -37,7 +37,7 @@ function Valorizaciones() {
     queryFn: async () => {
       const { data, error: err } = await supabase
         .from("terceros")
-        .select("id, razon_social, numero_documento")
+        .select("id, razon_social, numero_documento, direccion")
         .eq("es_cliente", true)
         .eq("activo", true)
         .order("razon_social");
@@ -57,7 +57,9 @@ function Valorizaciones() {
     estado: "Pendiente de Pago",
     fecha_emision: hoy(),
     ...condicionVacia("Crédito"),
-    pct_detraccion: "4",
+    pct_detraccion: "12",
+    tipo_tributario: "detraccion" as TipoTributario,
+
     preliquidacion_id: "",
   });
   const [pestana, setPestana] = useState<"pre" | "fac">("pre");
@@ -66,7 +68,10 @@ function Valorizaciones() {
   const [avisoCobro, setAvisoCobro] = useState("");
 
   const nombreProy = (id: string) => proyectos.find((p) => p.id === id)?.nombre ?? "—";
-  const nombreCliente = (id: string | null) => clientes.find((c) => c.id === id)?.razon_social ?? "—";
+  const datosCliente = (id: string | null) => clientes.find((c) => c.id === id) ?? null;
+  const nombreCliente = (id: string | null) => datosCliente(id)?.razon_social ?? "—";
+  const clienteSel = datosCliente(form.cliente_id || null);
+
   const ventasFiltradas = ventas.filter((v) =>
     coincide(busqueda, v.concepto, nombreCliente(v.cliente_id), nombreProy(v.proyecto_id), v.numero_factura),
   );
@@ -96,7 +101,7 @@ function Valorizaciones() {
   const facturadoSel = form.proyecto_id ? facturadoDe(form.proyecto_id) : 0;
   const saldoSel = ofertadoSel - facturadoSel;
   const tcForm = form.moneda === "USD" ? Number(form.tipo_cambio || 0) : 1;
-  const montosForm = calcularMontos(Number(form.monto || 0), Number(form.pct_detraccion || 0), tcForm);
+  const montosForm = calcularMontos(Number(form.monto || 0), Number(form.pct_detraccion || 0), tcForm, form.tipo_tributario);
 
   function facturarDesde(pl: Preliquidacion, neto: number) {
     setForm({
@@ -113,6 +118,8 @@ function Valorizaciones() {
       dias_credito: String(pl.dias_credito),
       estado: "Pendiente de Pago",
       pct_detraccion: String(pl.pct_detraccion),
+      tipo_tributario: (pl.tipo_tributario ?? "detraccion") as TipoTributario,
+
       preliquidacion_id: pl.id,
     });
     setError("");
@@ -151,14 +158,17 @@ function Valorizaciones() {
           `El presupuesto ofertado de la obra es ${soles(ofertado)} y ya hay ${soles(facturado)} registrados. ` +
           "Registra las partidas contractuales o adicionales que falten, o corrige el valor neto.",
       );
-    const mm = calcularMontos(Number(form.monto || 0), Number(form.pct_detraccion || 0), tc);
+    const mm = calcularMontos(Number(form.monto || 0), Number(form.pct_detraccion || 0), tc, form.tipo_tributario);
     const { error: err } = await supabase.from("ventas").insert({
       preliquidacion_id: form.preliquidacion_id || null,
       igv: mm.igv,
       total: mm.total,
+      tipo_tributario: form.tipo_tributario,
       pct_detraccion: mm.aplica ? Number(form.pct_detraccion || 0) : 0,
-      monto_detraccion: mm.detraccion,
-      detraccion_estado: mm.aplica ? "Pendiente" : "No aplica",
+      monto_detraccion: mm.tipo === "detraccion" ? mm.detraccion : 0,
+      monto_retencion: mm.retencionPen,
+      detraccion_estado: mm.aplica && mm.tipo === "detraccion" ? "Pendiente" : "No aplica",
+
       proyecto_id: form.proyecto_id,
       cliente_id: form.cliente_id,
       concepto: form.concepto.trim(),
@@ -274,6 +284,14 @@ function Valorizaciones() {
               ))}
             </Select>
           </Campo>
+          {clienteSel && (
+            <div className="sm:col-span-2 rounded-lg border border-line bg-muted/30 p-3 font-mono text-xs text-muted-foreground">
+              <span className="font-semibold text-ink">{clienteSel.razon_social}</span>
+              {" · RUC "}{clienteSel.numero_documento || "—"}
+              {" · "}{clienteSel.direccion || "Sin dirección registrada"}
+            </div>
+          )}
+
           <Campo etiqueta="Concepto">
             <Input value={form.concepto} onChange={(e) => setForm({ ...form, concepto: e.target.value })} required maxLength={160} />
           </Campo>
@@ -315,9 +333,24 @@ function Valorizaciones() {
             <Input type="date" value={form.fecha_emision} onChange={(e) => setForm({ ...form, fecha_emision: e.target.value })} />
           </Campo>
           <CamposCondicion valor={form} fechaBase={form.fecha_emision} onChange={(c) => setForm({ ...form, ...c })} />
-          <Campo etiqueta="% Detracción (SPOT)">
-            <Input type="number" step="0.01" min="0" max="100" value={form.pct_detraccion} onChange={(e) => setForm({ ...form, pct_detraccion: e.target.value })} />
+          <Campo etiqueta="Régimen tributario">
+            <Select
+              value={`${form.tipo_tributario}|${form.pct_detraccion}`}
+              onChange={(e) => {
+                const [t, p] = e.target.value.split("|");
+                setForm({ ...form, tipo_tributario: t as TipoTributario, pct_detraccion: p ?? "0" });
+              }}
+            >
+              {REGIMENES.map((r) => <option key={r.etiqueta} value={`${r.valor}|${r.pct}`}>{r.etiqueta}</option>)}
+              <option value={`${form.tipo_tributario}|${form.pct_detraccion}`} hidden>
+                {form.tipo_tributario} {form.pct_detraccion}%
+              </option>
+            </Select>
           </Campo>
+          <Campo etiqueta="% aplicado">
+            <Input type="number" step="0.01" min="0" max="100" value={form.pct_detraccion} disabled={form.tipo_tributario === "ninguno"} onChange={(e) => setForm({ ...form, pct_detraccion: e.target.value })} />
+          </Campo>
+
           <Campo etiqueta="Fecha de pago">
             <Input type="date" value={form.fecha_pago} onChange={(e) => setForm({ ...form, fecha_pago: e.target.value })} />
           </Campo>
@@ -349,8 +382,14 @@ function Valorizaciones() {
             <Boton type="submit">Registrar factura</Boton>
             <span className="font-mono text-xs text-muted-foreground">
               Neto: <strong className="text-ink">{soles(equivalente)}</strong> · IGV {soles(montosForm.igv * tcForm)} · Total{" "}
-              <strong className="text-ink">{soles(montosForm.total * tcForm)}</strong> · Detracción {soles(montosForm.detraccion * tcForm)} · Neto a cobrar{" "}
-              <strong className="text-ink">{soles(montosForm.cobrar * tcForm)}</strong>
+              <strong className="text-ink">{soles(montosForm.total * tcForm)}</strong> ·{" "}
+              {!montosForm.aplica
+                ? "Sin detracción ni retención"
+                : montosForm.tipo === "detraccion"
+                  ? `Detracción S/ ${montosForm.detraccionPen.toLocaleString("es-PE")}`
+                  : `Retención ${soles(montosForm.retencionPen)}`}{" "}
+              · Neto a cobrar <strong className="text-ink">{soles(montosForm.cobrar * tcForm)}</strong>
+
             </span>
           </div>
           {error && <p className="font-mono text-xs text-bad sm:col-span-4">{error}</p>}
@@ -421,9 +460,11 @@ function Valorizaciones() {
                   <td className="px-3 py-2.5 text-right font-semibold">{soles(Number(v.monto_soles))}</td>
                   <td className="px-3 py-2.5 text-right">
                     {(() => {
-                      const x = v as unknown as { monto_detraccion?: number; detraccion_estado?: string; detraccion_constancia?: string };
+                      const x = v as unknown as { monto_detraccion?: number; monto_retencion?: number; detraccion_estado?: string; detraccion_constancia?: string };
+                      if (Number(x.monto_retencion) > 0)
+                        return <span className="text-muted-foreground">{soles(Number(x.monto_retencion))} · Retención</span>;
                       if (!x.monto_detraccion) return <span className="text-muted-foreground">—</span>;
-                      const monto = Number(x.monto_detraccion) * Number(v.tipo_cambio || 1);
+                      const monto = Math.round(Number(x.monto_detraccion) * Number(v.tipo_cambio || 1));
                       return x.detraccion_estado === "Depositada" ? (
                         <span className="text-good" title={`Constancia ${x.detraccion_constancia ?? ""}`}>{soles(monto)} · Depositada</span>
                       ) : (
@@ -432,6 +473,7 @@ function Valorizaciones() {
                         </button>
                       );
                     })()}
+
                   </td>
                   <td className="px-5 py-2.5 text-right">
                     <div className="flex items-center justify-end gap-2">
