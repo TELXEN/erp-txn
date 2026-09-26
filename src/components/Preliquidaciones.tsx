@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Pencil, Plus, Printer, Receipt, Trash2, Upload } from "lucide-react";
+import { Copy, ListPlus, Pencil, Plus, Printer, Receipt, Trash2, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, Vacio } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
@@ -40,6 +40,7 @@ export type Preliquidacion = {
   fecha_vencimiento: string | null;
   estado: string;
   observacion: string;
+  amortizacion?: number;
 };
 export type ItemPL = { id?: string; descripcion: string; unidad: string; cantidad: string; precio_unitario: string };
 
@@ -90,31 +91,44 @@ const itemVacio = (): ItemPL => ({ descripcion: "", unidad: "glb", cantidad: "1"
 export type ClientePL = { id: string; razon_social: string; numero_documento?: string | null; direccion?: string | null };
 
 type Props = {
-  proyectos: { id: string; nombre: string; codigo: string | null }[];
+  proyectos: { id: string; nombre: string; codigo: string | null; cliente?: string; pct_gastos_generales?: number; pct_utilidad?: number }[];
   clientes: ClientePL[];
   ofertadoDe: (proyectoId: string) => number;
   facturadoDe: (proyectoId: string) => number;
   onFacturar: (pl: Preliquidacion, neto: number) => void;
 };
 
+type CuentaBanco = { nombre: string; numero_cuenta: string; cci: string; monedas: string; tipo_cuenta: string };
+type PartidaObra = { id: string; codigo: string; nombre: string; unidad: string; metrado: number; precio_unitario: number; padre_id: string | null };
+
 export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe, onFacturar }: Props) {
   const qc = useQueryClient();
   const { data: empresa } = useEmpresa();
   const { data: unidades = [] } = useUnidadesMedida();
-  const { data: ctaDetraccion } = useQuery({
-    queryKey: ["bancos", "detracciones"],
+  const { data: cuentas = [] } = useQuery({
+    queryKey: ["bancos", "cuentas-cobro"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("bancos")
-        .select("nombre, numero_cuenta, cci, tipo_cuenta, activo")
-        .eq("tipo_cuenta", "Detracciones")
+        .select("nombre, numero_cuenta, cci, tipo_cuenta, monedas, activo")
         .eq("activo", true)
-        .limit(1)
-        .maybeSingle();
+        .order("created_at");
       if (error) throw error;
-      return (data ?? null) as { nombre: string; numero_cuenta: string; cci: string } | null;
+      return (data ?? []) as CuentaBanco[];
     },
   });
+  const ctaDetraccion = cuentas.find((c) => c.tipo_cuenta === "Detracciones") ?? null;
+  const ctaComercial = (moneda: string) =>
+    cuentas.find((c) => c.tipo_cuenta !== "Detracciones" && c.monedas === moneda) ?? null;
+  const { data: facturas = [] } = useQuery({
+    queryKey: ["ventas", "por-preliquidacion"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("ventas").select("numero_factura, preliquidacion_id, fecha_emision, total, monto_soles").not("preliquidacion_id", "is", null);
+      if (error) throw error;
+      return (data ?? []) as { numero_factura: string; preliquidacion_id: string; fecha_emision: string; total: number; monto_soles: number }[];
+    },
+  });
+  const facturaDe = (id: string) => facturas.find((f) => f.preliquidacion_id === id) ?? null;
   const { data: lista = [] } = useQuery({
     queryKey: ["preliquidaciones"],
     queryFn: async () => {
@@ -144,6 +158,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
     condicion_pago: "Crédito",
     dias_credito: "30",
     observacion: "",
+    amortizacion: "0",
   });
 
   const [form, setForm] = useState(formVacio());
@@ -152,6 +167,24 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
   const [abierto, setAbierto] = useState(false);
   const [error, setError] = useState("");
   const [busqueda, setBusqueda] = useState("");
+  const [selectorPartidas, setSelectorPartidas] = useState(false);
+  const [marcadas, setMarcadas] = useState<string[]>([]);
+
+  const { data: partidasObra = [] } = useQuery({
+    queryKey: ["partidas", "obra-pl", form.proyecto_id],
+    enabled: !!form.proyecto_id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("partidas")
+        .select("id, codigo, nombre, unidad, metrado, precio_unitario, padre_id")
+        .eq("proyecto_id", form.proyecto_id)
+        .order("codigo");
+      if (error) throw error;
+      const todas = (data ?? []) as PartidaObra[];
+      const padres = new Set(todas.map((p) => p.padre_id).filter(Boolean));
+      return todas.filter((p) => !padres.has(p.id));
+    },
+  });
 
   const nombreProy = (id: string) => proyectos.find((p) => p.id === id)?.nombre ?? "—";
   const datosCliente = (id: string | null) => clientes.find((c) => c.id === id) ?? null;
@@ -159,10 +192,14 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
   const rucCliente = (id: string | null) => datosCliente(id)?.numero_documento ?? "";
   const dirCliente = (id: string | null) => datosCliente(id)?.direccion ?? "";
   const itemsDe = (id: string) => items.filter((i) => i.preliquidacion_id === id);
-  const netoDe = (id: string) => itemsDe(id).reduce((s, i) => s + Number(i.cantidad) * Number(i.precio_unitario), 0);
+  const brutoDe = (id: string) => itemsDe(id).reduce((s, i) => s + Number(i.cantidad) * Number(i.precio_unitario), 0);
+  const amortDe = (id: string) => Number(lista.find((p) => p.id === id)?.amortizacion ?? 0);
+  const netoDe = (id: string) => brutoDe(id) - amortDe(id);
 
   const tc = form.moneda === "USD" ? Number(form.tipo_cambio || 0) : 1;
-  const netoForm = lineas.reduce((s, l) => s + Number(l.cantidad || 0) * Number(l.precio_unitario || 0), 0);
+  const brutoForm = lineas.reduce((s, l) => s + Number(l.cantidad || 0) * Number(l.precio_unitario || 0), 0);
+  const amortForm = Number(form.amortizacion || 0);
+  const netoForm = brutoForm - amortForm;
   const m = calcularMontos(netoForm, Number(form.pct_detraccion || 0), tc, form.tipo_tributario);
   const clienteSel = datosCliente(form.cliente_id || null);
 
@@ -178,8 +215,44 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
     : 0;
 
   const filtradas = lista.filter((p) =>
-    coincide(busqueda, p.codigo, p.concepto, nombreProy(p.proyecto_id), nombreCliente(p.cliente_id), p.estado),
+    coincide(busqueda, p.codigo, p.concepto, nombreProy(p.proyecto_id), nombreCliente(p.cliente_id), p.estado, facturaDe(p.id)?.numero_factura ?? ""),
   );
+
+  // KPIs (en soles)
+  const netoPen = (p: Preliquidacion) => netoDe(p.id) * Number(p.tipo_cambio || 1);
+  const mesHoy = hoy().slice(0, 7);
+  const kpis = [
+    { t: "En elaboración / enviadas", v: lista.filter((p) => ["Borrador", "Enviada", "Observada"].includes(p.estado)).reduce((s, p) => s + netoPen(p), 0), n: lista.filter((p) => ["Borrador", "Enviada", "Observada"].includes(p.estado)).length },
+    { t: "Aprobadas por facturar", v: lista.filter((p) => p.estado === "Aprobada").reduce((s, p) => s + netoPen(p), 0), n: lista.filter((p) => p.estado === "Aprobada").length },
+    { t: "Facturadas del mes", v: lista.filter((p) => p.estado === "Facturada" && (facturaDe(p.id)?.fecha_emision ?? p.fecha).slice(0, 7) === mesHoy).reduce((s, p) => s + netoPen(p), 0), n: lista.filter((p) => p.estado === "Facturada" && (facturaDe(p.id)?.fecha_emision ?? p.fecha).slice(0, 7) === mesHoy).length },
+  ];
+
+  function elegirProyecto(id: string) {
+    const proy = proyectos.find((p) => p.id === id);
+    const nombre = (proy?.cliente ?? "").trim().toLowerCase();
+    const cli = nombre ? clientes.find((c) => c.razon_social.trim().toLowerCase() === nombre) : undefined;
+    setForm({ ...form, proyecto_id: id, cliente_id: cli?.id ?? form.cliente_id });
+    setSelectorPartidas(false);
+    setMarcadas([]);
+  }
+
+  function cargarPartidas() {
+    const proy = proyectos.find((p) => p.id === form.proyecto_id);
+    const factor = 1 + (Number(proy?.pct_gastos_generales ?? 0) + Number(proy?.pct_utilidad ?? 0)) / 100;
+    const nuevas: ItemPL[] = partidasObra
+      .filter((p) => marcadas.includes(p.id))
+      .map((p) => ({
+        descripcion: `${p.codigo ? p.codigo + " " : ""}${p.nombre}`,
+        unidad: p.unidad || "glb",
+        cantidad: String(Number(p.metrado) || 1),
+        precio_unitario: String(Math.round(Number(p.precio_unitario) * factor * 100) / 100),
+      }));
+    const actuales = lineas.filter((l) => l.descripcion.trim() || Number(l.precio_unitario) > 0);
+    setLineas([...actuales, ...nuevas].length ? [...actuales, ...nuevas] : [itemVacio()]);
+    setSelectorPartidas(false);
+    setMarcadas([]);
+  }
+
 
   function nuevo() {
     setForm(formVacio());
