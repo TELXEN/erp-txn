@@ -82,9 +82,11 @@ const ESTADO_TONO: Record<string, "good" | "bad" | "neutro"> = {
 
 const itemVacio = (): ItemPL => ({ descripcion: "", unidad: "glb", cantidad: "1", precio_unitario: "" });
 
+export type ClientePL = { id: string; razon_social: string; numero_documento?: string | null; direccion?: string | null };
+
 type Props = {
   proyectos: { id: string; nombre: string; codigo: string | null }[];
-  clientes: { id: string; razon_social: string }[];
+  clientes: ClientePL[];
   ofertadoDe: (proyectoId: string) => number;
   facturadoDe: (proyectoId: string) => number;
   onFacturar: (pl: Preliquidacion, neto: number) => void;
@@ -93,6 +95,21 @@ type Props = {
 export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe, onFacturar }: Props) {
   const qc = useQueryClient();
   const { data: empresa } = useEmpresa();
+  const { data: unidades = [] } = useUnidadesMedida();
+  const { data: ctaDetraccion } = useQuery({
+    queryKey: ["bancos", "detracciones"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("bancos")
+        .select("nombre, numero_cuenta, cci, tipo_cuenta, activo")
+        .eq("tipo_cuenta", "Detracciones")
+        .eq("activo", true)
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return (data ?? null) as { nombre: string; numero_cuenta: string; cci: string } | null;
+    },
+  });
   const { data: lista = [] } = useQuery({
     queryKey: ["preliquidaciones"],
     queryFn: async () => {
@@ -117,11 +134,13 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
     fecha: hoy(),
     moneda: "PEN",
     tipo_cambio: "3.75",
-    pct_detraccion: "4",
+    pct_detraccion: "12",
+    tipo_tributario: "detraccion" as TipoTributario,
     condicion_pago: "Crédito",
     dias_credito: "30",
     observacion: "",
   });
+
   const [form, setForm] = useState(formVacio());
   const [lineas, setLineas] = useState<ItemPL[]>([itemVacio()]);
   const [editando, setEditando] = useState<string | null>(null);
