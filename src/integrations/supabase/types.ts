@@ -1835,10 +1835,12 @@ export type Database = {
       }
       proyectos: {
         Row: {
+          avance_programado_pct: number | null
           cliente: string
           codigo: string | null
           created_at: string
           estado: Database["public"]["Enums"]["estado_proyecto"]
+          fecha_corte_programado: string | null
           fecha_fin: string | null
           fecha_inicio: string | null
           id: string
@@ -1850,10 +1852,12 @@ export type Database = {
           ubicacion: string
         }
         Insert: {
+          avance_programado_pct?: number | null
           cliente?: string
           codigo?: string | null
           created_at?: string
           estado?: Database["public"]["Enums"]["estado_proyecto"]
+          fecha_corte_programado?: string | null
           fecha_fin?: string | null
           fecha_inicio?: string | null
           id?: string
@@ -1865,10 +1869,12 @@ export type Database = {
           ubicacion?: string
         }
         Update: {
+          avance_programado_pct?: number | null
           cliente?: string
           codigo?: string | null
           created_at?: string
           estado?: Database["public"]["Enums"]["estado_proyecto"]
+          fecha_corte_programado?: string | null
           fecha_fin?: string | null
           fecha_inicio?: string | null
           id?: string
