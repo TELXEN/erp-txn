@@ -20,6 +20,8 @@ export type Proyecto = {
   situacion: string;
   fecha_inicio: string | null;
   fecha_fin: string | null;
+  avance_programado_pct: number | null;
+  fecha_corte_programado: string | null;
   pct_gastos_generales: number;
   pct_utilidad: number;
 };

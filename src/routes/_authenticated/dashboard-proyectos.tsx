@@ -68,6 +68,8 @@ function DashboardProyectos() {
               ? propias.reduce((s, x) => s + Number(x.avance_pct), 0) / propias.length
               : 0;
         const gastado = presupuesto > 0 ? (costoReal / presupuesto) * 100 : 0;
+        const programado = p.avance_programado_pct === null ? null : Number(p.avance_programado_pct);
+        const desviacion = programado === null ? null : avance - programado;
         return {
           proyecto: p,
           partidas: propias.length,
@@ -80,6 +82,8 @@ function DashboardProyectos() {
           costoReal,
           avance,
           gastado,
+          programado,
+          desviacion,
           diferencia: presupuesto - costoReal,
           desviado: gastado > avance,
         };
@@ -135,7 +139,7 @@ function DashboardProyectos() {
 
 
   const verDinero = puedeVerDinero(rol);
-  const programadoSel = obraSel ? avanceProgramado(obraSel.proyecto.fecha_inicio, obraSel.proyecto.fecha_fin) : null;
+  const programadoSel = obraSel?.programado ?? null;
 
   function excel() {
     exportarExcel("dashboard-proyectos", [
@@ -148,6 +152,8 @@ function DashboardProyectos() {
           { Indicador: "Retrasadas", Valor: resumen.retrasados },
           { Indicador: "Completadas", Valor: resumen.completados },
           { Indicador: "Canceladas", Valor: resumen.cancelados },
+          { Indicador: "Avance programado obra seleccionada (%)", Valor: Number((programadoSel ?? 0).toFixed(2)) },
+          { Indicador: "Desviación obra seleccionada (%)", Valor: Number((obraSel?.desviacion ?? 0).toFixed(2)) },
           { Indicador: "Presupuesto contractual (S/)", Valor: resumen.presupuestoContractual },
           { Indicador: "Adicionales de obra (S/)", Valor: resumen.adicionales },
           { Indicador: "Presupuesto vigente (S/)", Valor: resumen.presupuesto },
@@ -167,6 +173,10 @@ function DashboardProyectos() {
           "Presupuesto Vigente (S/)": f.presupuesto,
           "Costo Real (S/)": f.costoReal,
           "Avance Fisico %": Number(f.avance.toFixed(1)),
+          "Avance Programado %": f.programado === null ? "Sin registro" : Number(f.programado.toFixed(2)),
+          "Fecha de Corte": f.proyecto.fecha_corte_programado ?? "Sin registro",
+          "Desviación %": f.desviacion === null ? "Sin registro" : Number(f.desviacion.toFixed(2)),
+          "Estado Cronograma": f.desviacion === null ? "Sin registro" : f.desviacion < -0.05 ? "Retrasada" : f.desviacion > 0.05 ? "Adelantada" : "En plazo",
           "Presupuesto Gastado %": Number(f.gastado.toFixed(1)),
           "Diferencia (S/)": f.diferencia,
         })),
@@ -191,6 +201,16 @@ function DashboardProyectos() {
         gastado: f.gastado,
         diferencia: f.diferencia,
       })),
+      tabla: {
+        columnas: ["Obra", "Avance físico", "Avance programado", "Desviación", "Fecha de corte"],
+        filas: filas.map((f) => [
+          f.proyecto.nombre,
+          `${f.avance.toFixed(1)}%`,
+          f.programado === null ? "Sin registro" : `${f.programado.toFixed(2)}%`,
+          f.desviacion === null ? "—" : `${f.desviacion >= 0 ? "+" : ""}${f.desviacion.toFixed(2)}%`,
+          f.proyecto.fecha_corte_programado ? fecha(f.proyecto.fecha_corte_programado) : "Sin registro",
+        ]),
+      },
       archivo: "dashboard-proyectos",
     });
   }
@@ -225,7 +245,7 @@ function DashboardProyectos() {
         </div>
       </div>
 
-      <section className="mb-4 grid gap-3 lg:grid-cols-3" aria-label="Resumen del proyecto seleccionado">
+      <section className={`mb-4 grid gap-3 ${verDinero ? "lg:grid-cols-3" : "lg:grid-cols-2"}`} aria-label="Resumen del proyecto seleccionado">
         <div className="panel rise flex flex-col justify-between p-4">
           {!obraSel ? (
             <Vacio texto="Registra una obra para visualizar el avance." />
@@ -288,22 +308,7 @@ function DashboardProyectos() {
           </div>
         </div>
 
-        {!verDinero ? (
-          <div className="panel rise overflow-hidden">
-            <div className="border-b border-line px-4 py-3"><p className="label-mono">Control de cronograma</p></div>
-            <div className="space-y-3 p-4">
-              <Barra etiqueta="Avance físico" valor={obraSel?.avance ?? 0} clase="bg-primary" />
-              <Barra etiqueta="Avance programado" valor={programadoSel ?? 0} clase="bg-muted-foreground" />
-              {programadoSel === null ? (
-                <p className="font-mono text-[11px] text-muted-foreground">Registra fechas de inicio y fin para comparar.</p>
-              ) : (obraSel?.avance ?? 0) + 0.05 < programadoSel ? (
-                <p className="font-mono text-xs font-semibold text-bad">Retraso de {pct(programadoSel - (obraSel?.avance ?? 0))} frente al cronograma</p>
-              ) : (
-                <p className="font-mono text-xs font-semibold text-good">En plazo o adelantada ({pct((obraSel?.avance ?? 0) - programadoSel)})</p>
-              )}
-            </div>
-          </div>
-        ) : (
+        {verDinero && (
         <div className="panel rise overflow-hidden">
           <div className="border-b border-line px-4 py-3"><p className="label-mono">Resumen financiero del proyecto</p></div>
           <div className="divide-y divide-line">
@@ -315,9 +320,31 @@ function DashboardProyectos() {
         )}
       </section>
 
+      <Panel titulo="Control de cronograma oficial" className="mb-4">
+        <div className="grid gap-4 p-5 lg:grid-cols-[1fr_220px] lg:items-center">
+          <div className="space-y-3">
+            <Barra etiqueta="Avance físico real" valor={obraSel?.avance ?? null} clase="bg-primary" />
+            <Barra etiqueta="Avance programado" valor={programadoSel} clase="bg-muted-foreground" />
+          </div>
+          <div className="border-t border-line pt-4 lg:border-l lg:border-t-0 lg:pl-5 lg:pt-0">
+            <p className="label-mono">Desviación a la fecha de corte</p>
+            {programadoSel === null ? (
+              <p className="mt-2 font-mono text-xs text-muted-foreground">Sin avance programado oficial registrado.</p>
+            ) : (obraSel?.avance ?? 0) + 0.05 < programadoSel ? (
+              <p className="mt-2 font-mono text-sm font-semibold text-bad">-{pct(programadoSel - (obraSel?.avance ?? 0))} · Retraso</p>
+            ) : (
+              <p className="mt-2 font-mono text-sm font-semibold text-good">+{pct((obraSel?.avance ?? 0) - programadoSel)} · En plazo o adelantada</p>
+            )}
+            <p className="mt-1 font-mono text-[10px] text-muted-foreground">
+              Corte: {obraSel?.proyecto.fecha_corte_programado ? fecha(obraSel.proyecto.fecha_corte_programado) : "Sin registrar"}
+            </p>
+          </div>
+        </div>
+      </Panel>
+
 
       {verDinero && <Panel
-        titulo="Curva S — Plan contra ejecución"
+        titulo="Curva S — Referencia teórica y ejecución financiera"
         className="mb-4"
       >
         {!obraSel ? (
@@ -330,6 +357,8 @@ function DashboardProyectos() {
             presupuestoContractual={obraSel.presupuestoContractual}
             adicionales={obraSel.adicionales}
             avanceFisico={obraSel.avance}
+            avanceProgramadoOficial={obraSel.programado}
+            fechaCorteProgramado={obraSel.proyecto.fecha_corte_programado}
             movimientos={movimientos}
           />
         )}
@@ -386,18 +415,22 @@ function DashboardProyectos() {
                 </div>
                 <div className="mt-3 space-y-1.5">
                   <Barra etiqueta="Avance Físico" valor={f.avance} clase="bg-primary" />
-                  {verDinero ? (
+                  <Barra
+                    etiqueta="Avance Programado"
+                    valor={f.programado}
+                    clase="bg-muted-foreground"
+                  />
+                  {verDinero && (
                     <Barra
                       etiqueta="Presupuesto Gastado"
                       valor={f.gastado}
                       clase={f.desviado ? "bg-bad" : "bg-good"}
                     />
-                  ) : (
-                    <Barra
-                      etiqueta="Avance Programado"
-                      valor={avanceProgramado(f.proyecto.fecha_inicio, f.proyecto.fecha_fin) ?? 0}
-                      clase="bg-muted-foreground"
-                    />
+                  )}
+                  {f.desviacion !== null && (
+                    <p className={`text-right font-mono text-[10px] font-semibold ${f.desviacion < -0.05 ? "text-bad" : "text-good"}`}>
+                      {f.desviacion < -0.05 ? `${pct(Math.abs(f.desviacion))} de retraso` : `${pct(f.desviacion)} en plazo o adelantada`}
+                    </p>
                   )}
                 </div>
               </li>
@@ -470,16 +503,16 @@ function IndicadorCompacto({ icono, etiqueta, valor, detalle, tono }: { icono: R
   );
 }
 
-function Barra({ etiqueta, valor, clase }: { etiqueta: string; valor: number; clase: string }) {
+function Barra({ etiqueta, valor, clase }: { etiqueta: string; valor: number | null; clase: string }) {
   return (
     <div className="flex items-center gap-3">
       <span className="w-40 shrink-0 font-mono text-[10px] uppercase tracking-wide text-muted-foreground">
         {etiqueta}
       </span>
       <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-muted">
-        <div className={`h-full growx rounded-full ${clase}`} style={{ width: `${Math.min(valor, 100)}%` }} />
+        <div className={`h-full growx rounded-full ${clase}`} style={{ width: `${Math.min(valor ?? 0, 100)}%` }} />
       </div>
-      <span className="w-14 text-right font-mono text-[11px]">{pct(valor)}</span>
+      <span className="w-14 text-right font-mono text-[11px]">{valor === null ? "Sin dato" : pct(valor)}</span>
     </div>
   );
 }
@@ -540,10 +573,3 @@ function DatoIcono({ icono, etiqueta, valor, tono }: { icono: ReactNode; etiquet
   );
 }
 
-function avanceProgramado(inicio: string | null, fin: string | null): number | null {
-  if (!inicio || !fin) return null;
-  const a = new Date(`${inicio}T00:00:00`).getTime();
-  const b = new Date(`${fin}T23:59:59`).getTime();
-  if (b <= a) return null;
-  return Math.min(100, Math.max(0, ((Date.now() - a) / (b - a)) * 100));
-}

@@ -33,6 +33,8 @@ export const Route = createFileRoute("/_authenticated/proyectos")({
       { name: "description", content: "Registro y estado de los proyectos de la empresa constructora." },
       { property: "og:title", content: "Proyectos — ERP TELXEN" },
       { property: "og:description", content: "Registro y estado de los proyectos de la empresa." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Proyectos,
@@ -63,6 +65,8 @@ function Proyectos() {
     responsable_id: "",
     fecha_inicio: "",
     fecha_fin: "",
+    avance_programado_pct: "",
+    fecha_corte_programado: "",
     pct_gastos_generales: "10",
     pct_utilidad: "10",
   });
@@ -76,6 +80,8 @@ function Proyectos() {
     responsable_id: string;
     fecha_inicio: string;
     fecha_fin: string;
+    avance_programado_pct: string;
+    fecha_corte_programado: string;
     pct_gastos_generales: string;
     pct_utilidad: string;
   } | null>(null);
@@ -89,6 +95,9 @@ function Proyectos() {
   async function guardar(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    if ((form.avance_programado_pct && !form.fecha_corte_programado) || (!form.avance_programado_pct && form.fecha_corte_programado)) {
+      return setError("Registra juntos el avance programado y su fecha de corte.");
+    }
     let codigo = form.codigo.trim().toUpperCase();
     if (!codigo) {
       try {
@@ -109,6 +118,8 @@ function Proyectos() {
       responsable_id: form.responsable_id || null,
       fecha_inicio: form.fecha_inicio || null,
       fecha_fin: form.fecha_fin || null,
+      avance_programado_pct: form.avance_programado_pct === "" ? null : Number(form.avance_programado_pct),
+      fecha_corte_programado: form.fecha_corte_programado || null,
       pct_gastos_generales: Number(form.pct_gastos_generales) || 0,
       pct_utilidad: Number(form.pct_utilidad) || 0,
     });
@@ -126,6 +137,8 @@ function Proyectos() {
       responsable_id: "",
       fecha_inicio: "",
       fecha_fin: "",
+      avance_programado_pct: "",
+      fecha_corte_programado: "",
       pct_gastos_generales: "10",
       pct_utilidad: "10",
     });
@@ -136,6 +149,9 @@ function Proyectos() {
     e?.preventDefault();
     if (!editando) return;
     setError("");
+    if ((editando.avance_programado_pct && !editando.fecha_corte_programado) || (!editando.avance_programado_pct && editando.fecha_corte_programado)) {
+      return setError("Registra juntos el avance programado y su fecha de corte.");
+    }
     const { error: err } = await supabase
       .from("proyectos")
       .update({
@@ -146,6 +162,8 @@ function Proyectos() {
         responsable_id: editando.responsable_id || null,
         fecha_inicio: editando.fecha_inicio || null,
         fecha_fin: editando.fecha_fin || null,
+        avance_programado_pct: editando.avance_programado_pct === "" ? null : Number(editando.avance_programado_pct),
+        fecha_corte_programado: editando.fecha_corte_programado || null,
         pct_gastos_generales: Number(editando.pct_gastos_generales) || 0,
         pct_utilidad: Number(editando.pct_utilidad) || 0,
       })
@@ -263,6 +281,24 @@ function Proyectos() {
               type="date"
               value={form.fecha_fin}
               onChange={(e) => setForm({ ...form, fecha_fin: e.target.value })}
+            />
+          </Campo>
+          <Campo etiqueta="Avance programado acumulado (%)">
+            <Input
+              type="number"
+              min={0}
+              max={100}
+              step="0.01"
+              value={form.avance_programado_pct}
+              onChange={(e) => setForm({ ...form, avance_programado_pct: e.target.value })}
+              placeholder="Según cronograma oficial"
+            />
+          </Campo>
+          <Campo etiqueta="Fecha de corte programada">
+            <Input
+              type="date"
+              value={form.fecha_corte_programado}
+              onChange={(e) => setForm({ ...form, fecha_corte_programado: e.target.value })}
             />
           </Campo>
           <Campo etiqueta="% Gastos Generales">
@@ -417,6 +453,26 @@ function Proyectos() {
                               onChange={(e) => setEditando({ ...editando, fecha_fin: e.target.value })}
                               title="Fecha de fin estimada"
                             />
+                            <div className="grid grid-cols-2 gap-1.5">
+                              <Input
+                                type="number"
+                                min={0}
+                                max={100}
+                                step="0.01"
+                                className="py-1 text-[11px]"
+                                value={editando.avance_programado_pct}
+                                onChange={(e) => setEditando({ ...editando, avance_programado_pct: e.target.value })}
+                                placeholder="Prog. %"
+                                title="Avance programado acumulado"
+                              />
+                              <Input
+                                type="date"
+                                className="py-1 text-[11px]"
+                                value={editando.fecha_corte_programado}
+                                onChange={(e) => setEditando({ ...editando, fecha_corte_programado: e.target.value })}
+                                title="Fecha de corte programada"
+                              />
+                            </div>
                           </div>
                         </td>
                         <td className="px-3 py-2.5 text-right whitespace-nowrap">{soles(presupuesto)}</td>
@@ -481,6 +537,10 @@ function Proyectos() {
                         <td className="px-3 py-2.5 align-top text-muted-foreground">
                           <span className="block">{fecha(p.fecha_inicio)}</span>
                           <span className="block">{fecha(p.fecha_fin)}</span>
+                           <span className="mt-1 block text-primary">
+                             Programado {p.avance_programado_pct === null ? "—" : `${Number(p.avance_programado_pct).toFixed(2)}%`}
+                           </span>
+                           <span className="block text-[10px]">Corte {fecha(p.fecha_corte_programado)}</span>
                         </td>
                         <td className="px-3 py-2.5 text-right whitespace-nowrap">{soles(presupuesto)}</td>
                         <td
@@ -504,6 +564,8 @@ function Proyectos() {
                                   responsable_id: p.responsable_id ?? "",
                                   fecha_inicio: p.fecha_inicio ?? "",
                                   fecha_fin: p.fecha_fin ?? "",
+                                   avance_programado_pct: p.avance_programado_pct === null ? "" : String(p.avance_programado_pct),
+                                   fecha_corte_programado: p.fecha_corte_programado ?? "",
                                   pct_gastos_generales: String(p.pct_gastos_generales ?? 0),
                                   pct_utilidad: String(p.pct_utilidad ?? 0),
                                 })
