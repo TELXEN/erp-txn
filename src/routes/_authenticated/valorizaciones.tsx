@@ -118,6 +118,8 @@ function Valorizaciones() {
       dias_credito: String(pl.dias_credito),
       estado: "Pendiente de Pago",
       pct_detraccion: String(pl.pct_detraccion),
+      tipo_tributario: (pl.tipo_tributario ?? "detraccion") as TipoTributario,
+
       preliquidacion_id: pl.id,
     });
     setError("");
