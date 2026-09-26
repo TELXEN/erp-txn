@@ -8,6 +8,8 @@ import { CamposCondicion, datosCondicion } from "@/components/CondicionPago";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
 import { exportarExcel } from "@/lib/exportar";
 import { useEmpresa } from "@/lib/empresa";
+import { useUnidadesMedida } from "@/lib/unidades";
+
 
 export const IGV = 0.18;
 export const UMBRAL_DETRACCION = 700;
