@@ -538,7 +538,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
                 <th className="px-3 py-2 font-medium">Cliente / Obra</th>
                 <th className="px-3 py-2 font-medium">Condición</th>
                 <th className="px-3 py-2 text-right font-medium">Total</th>
-                <th className="px-3 py-2 text-right font-medium">Detracción</th>
+                <th className="px-3 py-2 text-right font-medium">Detracción / Retención</th>
                 <th className="px-3 py-2 text-right font-medium">Neto a cobrar</th>
                 <th className="px-3 py-2 font-medium">Estado</th>
                 <th className="px-5 py-2 text-right font-medium">Acciones</th>
