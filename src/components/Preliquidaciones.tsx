@@ -12,6 +12,16 @@ import { useEmpresa } from "@/lib/empresa";
 export const IGV = 0.18;
 export const UMBRAL_DETRACCION = 700;
 
+export type TipoTributario = "detraccion" | "retencion" | "ninguno";
+
+/** Regímenes SUNAT disponibles al emitir. El % es editable. */
+export const REGIMENES: { valor: TipoTributario; pct: string; etiqueta: string }[] = [
+  { valor: "detraccion", pct: "12", etiqueta: "Detracción 12% — Servicios (SPOT)" },
+  { valor: "detraccion", pct: "4", etiqueta: "Detracción 4% — Contratos de construcción" },
+  { valor: "retencion", pct: "3", etiqueta: "Retención 3% — Venta de bienes" },
+  { valor: "ninguno", pct: "0", etiqueta: "Sin detracción ni retención" },
+];
+
 export type Preliquidacion = {
   id: string;
   codigo: string;
@@ -22,6 +32,7 @@ export type Preliquidacion = {
   moneda: "PEN" | "USD";
   tipo_cambio: number;
   pct_detraccion: number;
+  tipo_tributario: TipoTributario;
   condicion_pago: string;
   dias_credito: number;
   fecha_vencimiento: string | null;
@@ -30,14 +41,36 @@ export type Preliquidacion = {
 };
 export type ItemPL = { id?: string; descripcion: string; unidad: string; cantidad: string; precio_unitario: string };
 
-/** Neto, IGV, total, detracción y neto a cobrar (en la moneda del documento). */
-export function calcularMontos(neto: number, pctDet: number, tc: number) {
+/**
+ * Neto, IGV, total y el descuento del régimen tributario.
+ * La detracción se calcula SIEMPRE en soles y redondeada al entero más cercano (SPOT).
+ * La retención de IGV (3%) se calcula en soles con dos decimales.
+ */
+export function calcularMontos(neto: number, pctDet: number, tc: number, tipo: TipoTributario = "detraccion") {
   const igv = Math.round(neto * IGV * 100) / 100;
   const total = neto + igv;
-  const aplica = total * tc > UMBRAL_DETRACCION && pctDet > 0;
-  const detraccion = aplica ? Math.round(total * (pctDet / 100) * 100) / 100 : 0;
-  return { neto, igv, total, detraccion, aplica, cobrar: total - detraccion };
+  const tipoCambio = tc > 0 ? tc : 1;
+  const totalPen = total * tipoCambio;
+  const aplica = tipo !== "ninguno" && pctDet > 0 && totalPen > UMBRAL_DETRACCION;
+  const brutoPen = aplica ? (totalPen * pctDet) / 100 : 0;
+  const detraccionPen = tipo === "detraccion" ? Math.round(brutoPen) : 0;
+  const retencionPen = tipo === "retencion" ? Math.round(brutoPen * 100) / 100 : 0;
+  const descuentoPen = detraccionPen + retencionPen;
+  const detraccion = descuentoPen / tipoCambio;
+  return {
+    neto,
+    igv,
+    total,
+    tipo,
+    aplica,
+    detraccion,
+    detraccionPen,
+    retencionPen,
+    descuentoPen,
+    cobrar: total - detraccion,
+  };
 }
+
 
 const ESTADO_TONO: Record<string, "good" | "bad" | "neutro"> = {
   Borrador: "neutro",
