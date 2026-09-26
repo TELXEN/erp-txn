@@ -195,6 +195,8 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
       moneda: p.moneda,
       tipo_cambio: String(p.tipo_cambio),
       pct_detraccion: String(p.pct_detraccion),
+      tipo_tributario: (p.tipo_tributario ?? "detraccion") as TipoTributario,
+
       condicion_pago: p.condicion_pago,
       dias_credito: String(p.dias_credito),
       observacion: p.observacion,
