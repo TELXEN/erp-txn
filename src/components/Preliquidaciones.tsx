@@ -554,7 +554,9 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
                     <td className="px-3 py-2.5"><Resaltar texto={p.concepto} termino={busqueda} /></td>
                     <td className="px-3 py-2.5 text-muted-foreground">
                       <Resaltar texto={nombreCliente(p.cliente_id)} termino={busqueda} />
+                      {rucCliente(p.cliente_id) && <div className="text-[10px]">RUC <Resaltar texto={rucCliente(p.cliente_id)} termino={busqueda} /></div>}
                       <div className="text-[10px]"><Resaltar texto={nombreProy(p.proyecto_id)} termino={busqueda} /></div>
+
                     </td>
                     <td className="px-3 py-2.5 text-muted-foreground">
                       {p.condicion_pago}{p.condicion_pago === "Crédito" && <div className="text-[10px]">{p.dias_credito} d · {fmtFecha(p.fecha_vencimiento)}</div>}
