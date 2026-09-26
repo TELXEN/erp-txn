@@ -313,22 +313,26 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
     <div class="cab"><div>${empresa?.logo_url ? `<img src="${esc(empresa.logo_url)}" style="height:48px"/><br/>` : ""}
       <b>${esc(empresa?.razon_social || "TELXEN SAC")}</b><br/>RUC ${esc(empresa?.ruc || "")}<br/>${esc(empresa?.direccion || "")}</div>
       <div style="text-align:right"><h1>PRELIQUIDACIÓN</h1><b>${esc(p.codigo)}</b><br/>Fecha: ${fmtFecha(p.fecha)}<br/>Estado: ${esc(p.estado)}</div></div>
-    <p><b>Cliente:</b> ${esc(nombreCliente(p.cliente_id))}<br/><b>Obra:</b> ${esc(nombreProy(p.proyecto_id))}<br/><b>Concepto:</b> ${esc(p.concepto)}</p>
+    <p><b>Cliente:</b> ${esc(nombreCliente(p.cliente_id))}<br/><b>RUC:</b> ${esc(rucCliente(p.cliente_id) || "—")}<br/><b>Dirección:</b> ${esc(dirCliente(p.cliente_id) || "—")}<br/><b>Obra:</b> ${esc(nombreProy(p.proyecto_id))}<br/><b>Concepto:</b> ${esc(p.concepto)}</p>
     <table><thead><tr><th>#</th><th>Descripción</th><th>Und</th><th class="r">Cant.</th><th class="r">P.U.</th><th class="r">Subtotal</th></tr></thead><tbody>
     ${its.map((i, k) => `<tr><td>${k + 1}</td><td>${esc(i.descripcion)}</td><td>${esc(i.unidad)}</td><td class="r">${Number(i.cantidad)}</td><td class="r">${f(Number(i.precio_unitario))}</td><td class="r">${f(Number(i.cantidad) * Number(i.precio_unitario))}</td></tr>`).join("")}
     </tbody></table>
-    <table class="tot" style="width:320px;margin-left:auto">
+    <table class="tot" style="width:360px;margin-left:auto">
       <tr><td>Valor neto</td><td class="r">${f(mm.neto)}</td></tr>
       <tr><td>IGV 18%</td><td class="r">${f(mm.igv)}</td></tr>
       <tr class="b"><td>Total</td><td class="r">${f(mm.total)}</td></tr>
-      <tr><td>Detracción ${mm.aplica ? p.pct_detraccion + "%" : "(no aplica)"}</td><td class="r">${f(mm.detraccion)}</td></tr>
+      ${mm.detraccionPen > 0 ? `<tr><td>Detracción ${p.pct_detraccion}% (SPOT, en soles)</td><td class="r">${solesEnt(mm.detraccionPen)}</td></tr>` : ""}
+      ${mm.retencionPen > 0 ? `<tr><td>Retención IGV ${p.pct_detraccion}%</td><td class="r">${soles2(mm.retencionPen)}</td></tr>` : ""}
+      ${!mm.aplica ? `<tr><td>Detracción / retención</td><td class="r">No aplica</td></tr>` : ""}
       <tr class="b"><td>Neto a depositar en cuenta</td><td class="r">${f(mm.cobrar)}</td></tr>
     </table>
     <p><b>Condición de pago:</b> ${esc(p.condicion_pago)}${p.condicion_pago === "Crédito" ? ` a ${p.dias_credito} días · vence ${fmtFecha(p.fecha_vencimiento)}` : ""}</p>
+    ${mm.detraccionPen > 0 ? `<p><b>Cuenta de detracciones (Banco de la Nación):</b> ${ctaDetraccion ? `${esc(ctaDetraccion.nombre)} · Cta. N° ${esc(ctaDetraccion.numero_cuenta || "—")}${ctaDetraccion.cci ? ` · CCI ${esc(ctaDetraccion.cci)}` : ""}` : "Registrar una cuenta de tipo Detracciones en Catálogos Maestros"}</p>` : ""}
     ${p.observacion ? `<p><b>Observaciones:</b> ${esc(p.observacion)}</p>` : ""}
     <p class="nota">Documento referencial previo a la emisión del comprobante electrónico. No tiene valor tributario.</p>
     <script>window.onload=()=>window.print()</script></body></html>`);
     w.document.close();
+
   }
 
   const editable = (p: Preliquidacion) => p.estado === "Borrador" || p.estado === "Observada";
