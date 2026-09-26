@@ -313,7 +313,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
     <div class="cab"><div>${empresa?.logo_url ? `<img src="${esc(empresa.logo_url)}" style="height:48px"/><br/>` : ""}
       <b>${esc(empresa?.razon_social || "TELXEN SAC")}</b><br/>RUC ${esc(empresa?.ruc || "")}<br/>${esc(empresa?.direccion || "")}</div>
       <div style="text-align:right"><h1>PRELIQUIDACIÓN</h1><b>${esc(p.codigo)}</b><br/>Fecha: ${fmtFecha(p.fecha)}<br/>Estado: ${esc(p.estado)}</div></div>
-    <p><b>Cliente:</b> ${esc(nombreCliente(p.cliente_id))}<br/><b>RUC:</b> ${esc(rucCliente(p.cliente_id) || "—")}<br/><b>Dirección:</b> ${esc(dirCliente(p.cliente_id) || "—")}<br/><b>Obra:</b> ${esc(nombreProy(p.proyecto_id))}<br/><b>Concepto:</b> ${esc(p.concepto)}</p>
+    <p><b>Cliente:</b> ${esc(nombreCliente(p.cliente_id))}<br/><b>RUC:</b> ${esc(rucCliente(p.cliente_id) || "—")}<br/><b>Dirección:</b> ${esc(dirCliente(p.cliente_id) || "—")}<br/><b>Obra:</b> ${esc(nombreProy(p.proyecto_id))}<br/><b>Orden de compra:</b> ${esc(p.concepto)}</p>
     <table><thead><tr><th>#</th><th>Descripción</th><th>Und</th><th class="r">Cant.</th><th class="r">P.U.</th><th class="r">Subtotal</th></tr></thead><tbody>
     ${its.map((i, k) => `<tr><td>${k + 1}</td><td>${esc(i.descripcion)}</td><td>${esc(i.unidad)}</td><td class="r">${Number(i.cantidad)}</td><td class="r">${f(Number(i.precio_unitario))}</td><td class="r">${f(Number(i.cantidad) * Number(i.precio_unitario))}</td></tr>`).join("")}
     </tbody></table>
@@ -535,7 +535,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
                       return {
                         Código: p.codigo, Fecha: p.fecha, Obra: nombreProy(p.proyecto_id), Cliente: nombreCliente(p.cliente_id),
                         RUC: rucCliente(p.cliente_id), Dirección: dirCliente(p.cliente_id),
-                        Concepto: p.concepto, Moneda: p.moneda, Neto: mm.neto, IGV: mm.igv, Total: mm.total,
+                        "Orden de compra": p.concepto, Moneda: p.moneda, Neto: mm.neto, IGV: mm.igv, Total: mm.total,
                         Régimen: mm.tipo === "detraccion" ? `Detracción ${p.pct_detraccion}%` : mm.tipo === "retencion" ? `Retención ${p.pct_detraccion}%` : "Ninguno",
                         "Detracción (S/)": mm.detraccionPen, "Retención (S/)": mm.retencionPen,
                         "Neto a cobrar": mm.cobrar, Condición: p.condicion_pago,
@@ -560,7 +560,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
             <thead>
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
                 <th className="px-5 py-2 font-medium">Código</th>
-                <th className="px-3 py-2 font-medium">Concepto</th>
+                <th className="px-3 py-2 font-medium">Orden de compra</th>
                 <th className="px-3 py-2 font-medium">Cliente / Obra</th>
                 <th className="px-3 py-2 font-medium">Condición</th>
                 <th className="px-3 py-2 text-right font-medium">Total</th>

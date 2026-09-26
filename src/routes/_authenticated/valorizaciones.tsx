@@ -229,7 +229,7 @@ function Valorizaciones() {
                   filas: ventas.map((v) => ({
                     Proyecto: nombreProy(v.proyecto_id),
                     Cliente: nombreCliente(v.cliente_id),
-                    Concepto: v.concepto,
+                    "Orden de compra": v.concepto,
                     Monto: Number(v.monto),
                     Moneda: v.moneda,
                     "Tipo de Cambio": Number(v.tipo_cambio),
@@ -292,7 +292,7 @@ function Valorizaciones() {
             </div>
           )}
 
-          <Campo etiqueta="Concepto">
+          <Campo etiqueta="Orden de compra">
             <Input value={form.concepto} onChange={(e) => setForm({ ...form, concepto: e.target.value })} required maxLength={160} />
           </Campo>
           <Campo etiqueta="Monto valorizado (valor neto sin IGV)">
@@ -427,7 +427,7 @@ function Valorizaciones() {
           <table className="w-full font-mono text-xs">
             <thead>
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                <th className="px-5 py-2 font-medium">Concepto</th>
+                <th className="px-5 py-2 font-medium">Orden de compra</th>
                 <th className="px-3 py-2 font-medium">Cliente</th>
                 <th className="px-3 py-2 font-medium">Proyecto</th>
                 <th className="px-3 py-2 font-medium">Factura</th>
