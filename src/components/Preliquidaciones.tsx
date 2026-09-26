@@ -151,13 +151,18 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
   const [busqueda, setBusqueda] = useState("");
 
   const nombreProy = (id: string) => proyectos.find((p) => p.id === id)?.nombre ?? "—";
-  const nombreCliente = (id: string | null) => clientes.find((c) => c.id === id)?.razon_social ?? "—";
+  const datosCliente = (id: string | null) => clientes.find((c) => c.id === id) ?? null;
+  const nombreCliente = (id: string | null) => datosCliente(id)?.razon_social ?? "—";
+  const rucCliente = (id: string | null) => datosCliente(id)?.numero_documento ?? "";
+  const dirCliente = (id: string | null) => datosCliente(id)?.direccion ?? "";
   const itemsDe = (id: string) => items.filter((i) => i.preliquidacion_id === id);
   const netoDe = (id: string) => itemsDe(id).reduce((s, i) => s + Number(i.cantidad) * Number(i.precio_unitario), 0);
 
   const tc = form.moneda === "USD" ? Number(form.tipo_cambio || 0) : 1;
   const netoForm = lineas.reduce((s, l) => s + Number(l.cantidad || 0) * Number(l.precio_unitario || 0), 0);
-  const m = calcularMontos(netoForm, Number(form.pct_detraccion || 0), tc);
+  const m = calcularMontos(netoForm, Number(form.pct_detraccion || 0), tc, form.tipo_tributario);
+  const clienteSel = datosCliente(form.cliente_id || null);
+
   const venc = datosCondicion(form, form.fecha).fecha_vencimiento;
 
   function comprometidoDe(proyectoId: string, excluir?: string | null) {
