@@ -37,7 +37,7 @@ function Valorizaciones() {
     queryFn: async () => {
       const { data, error: err } = await supabase
         .from("terceros")
-        .select("id, razon_social, numero_documento")
+        .select("id, razon_social, numero_documento, direccion")
         .eq("es_cliente", true)
         .eq("activo", true)
         .order("razon_social");
