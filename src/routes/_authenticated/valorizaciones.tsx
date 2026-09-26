@@ -338,7 +338,7 @@ function Valorizaciones() {
               value={`${form.tipo_tributario}|${form.pct_detraccion}`}
               onChange={(e) => {
                 const [t, p] = e.target.value.split("|");
-                setForm({ ...form, tipo_tributario: t as TipoTributario, pct_detraccion: p });
+                setForm({ ...form, tipo_tributario: t as TipoTributario, pct_detraccion: p ?? "0" });
               }}
             >
               {REGIMENES.map((r) => <option key={r.etiqueta} value={`${r.valor}|${r.pct}`}>{r.etiqueta}</option>)}
