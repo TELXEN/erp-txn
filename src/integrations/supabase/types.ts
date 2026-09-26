@@ -1693,6 +1693,119 @@ export type Database = {
         }
         Relationships: []
       }
+      preliquidacion_items: {
+        Row: {
+          cantidad: number
+          created_at: string
+          descripcion: string
+          id: string
+          orden: number
+          precio_unitario: number
+          preliquidacion_id: string
+          unidad: string
+        }
+        Insert: {
+          cantidad?: number
+          created_at?: string
+          descripcion?: string
+          id?: string
+          orden?: number
+          precio_unitario?: number
+          preliquidacion_id: string
+          unidad?: string
+        }
+        Update: {
+          cantidad?: number
+          created_at?: string
+          descripcion?: string
+          id?: string
+          orden?: number
+          precio_unitario?: number
+          preliquidacion_id?: string
+          unidad?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "preliquidacion_items_preliquidacion_id_fkey"
+            columns: ["preliquidacion_id"]
+            isOneToOne: false
+            referencedRelation: "preliquidaciones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      preliquidaciones: {
+        Row: {
+          cliente_id: string | null
+          codigo: string
+          concepto: string
+          condicion_pago: string
+          created_at: string
+          dias_credito: number
+          estado: string
+          fecha: string
+          fecha_vencimiento: string | null
+          id: string
+          moneda: Database["public"]["Enums"]["moneda"]
+          observacion: string
+          pct_detraccion: number
+          proyecto_id: string
+          tipo_cambio: number
+          updated_at: string
+        }
+        Insert: {
+          cliente_id?: string | null
+          codigo: string
+          concepto?: string
+          condicion_pago?: string
+          created_at?: string
+          dias_credito?: number
+          estado?: string
+          fecha?: string
+          fecha_vencimiento?: string | null
+          id?: string
+          moneda?: Database["public"]["Enums"]["moneda"]
+          observacion?: string
+          pct_detraccion?: number
+          proyecto_id: string
+          tipo_cambio?: number
+          updated_at?: string
+        }
+        Update: {
+          cliente_id?: string | null
+          codigo?: string
+          concepto?: string
+          condicion_pago?: string
+          created_at?: string
+          dias_credito?: number
+          estado?: string
+          fecha?: string
+          fecha_vencimiento?: string | null
+          id?: string
+          moneda?: Database["public"]["Enums"]["moneda"]
+          observacion?: string
+          pct_detraccion?: number
+          proyecto_id?: string
+          tipo_cambio?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "preliquidaciones_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "terceros"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "preliquidaciones_proyecto_id_fkey"
+            columns: ["proyecto_id"]
+            isOneToOne: false
+            referencedRelation: "proyectos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -2203,19 +2316,27 @@ export type Database = {
           concepto: string
           condicion_pago: string
           created_at: string
+          detraccion_constancia: string
+          detraccion_estado: string
+          detraccion_fecha: string | null
           dias_credito: number
           estado: Database["public"]["Enums"]["estado_venta"]
           fecha_emision: string
           fecha_pago: string | null
           fecha_vencimiento: string | null
           id: string
+          igv: number
           moneda: Database["public"]["Enums"]["moneda"]
           monto: number
+          monto_detraccion: number
           monto_soles: number
           numero_factura: string
           numero_operacion: string
+          pct_detraccion: number
+          preliquidacion_id: string | null
           proyecto_id: string
           tipo_cambio: number
+          total: number
         }
         Insert: {
           banco_id?: string | null
@@ -2223,19 +2344,27 @@ export type Database = {
           concepto: string
           condicion_pago?: string
           created_at?: string
+          detraccion_constancia?: string
+          detraccion_estado?: string
+          detraccion_fecha?: string | null
           dias_credito?: number
           estado?: Database["public"]["Enums"]["estado_venta"]
           fecha_emision?: string
           fecha_pago?: string | null
           fecha_vencimiento?: string | null
           id?: string
+          igv?: number
           moneda?: Database["public"]["Enums"]["moneda"]
           monto?: number
+          monto_detraccion?: number
           monto_soles?: number
           numero_factura?: string
           numero_operacion?: string
+          pct_detraccion?: number
+          preliquidacion_id?: string | null
           proyecto_id: string
           tipo_cambio?: number
+          total?: number
         }
         Update: {
           banco_id?: string | null
@@ -2243,19 +2372,27 @@ export type Database = {
           concepto?: string
           condicion_pago?: string
           created_at?: string
+          detraccion_constancia?: string
+          detraccion_estado?: string
+          detraccion_fecha?: string | null
           dias_credito?: number
           estado?: Database["public"]["Enums"]["estado_venta"]
           fecha_emision?: string
           fecha_pago?: string | null
           fecha_vencimiento?: string | null
           id?: string
+          igv?: number
           moneda?: Database["public"]["Enums"]["moneda"]
           monto?: number
+          monto_detraccion?: number
           monto_soles?: number
           numero_factura?: string
           numero_operacion?: string
+          pct_detraccion?: number
+          preliquidacion_id?: string | null
           proyecto_id?: string
           tipo_cambio?: number
+          total?: number
         }
         Relationships: [
           {
@@ -2270,6 +2407,13 @@ export type Database = {
             columns: ["cliente_id"]
             isOneToOne: false
             referencedRelation: "terceros"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ventas_preliquidacion_id_fkey"
+            columns: ["preliquidacion_id"]
+            isOneToOne: false
+            referencedRelation: "preliquidaciones"
             referencedColumns: ["id"]
           },
           {
