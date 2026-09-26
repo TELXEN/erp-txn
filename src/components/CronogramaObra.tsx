@@ -232,6 +232,7 @@ export function CronogramaObra() {
             <span>Avance real: <b>{pct(realObra)}</b></span>
             {programadoObra != null && <span className={realObra + 0.05 < programadoObra ? "font-semibold text-bad" : "font-semibold text-good"}>{realObra + 0.05 < programadoObra ? `Retraso ${pct(programadoObra - realObra)}` : "En plazo"}</span>}
             <span className="text-muted-foreground">{guardando ? "Guardando…" : `${periodos.length} periodos`}</span>
+            <span className="text-muted-foreground">Arrastra para seleccionar · Ctrl+C copiar · Ctrl+V pegar · Supr borrar</span>
           </div>
           <div
             ref={tablaRef}
