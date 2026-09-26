@@ -55,8 +55,11 @@ export function calcularMontos(neto: number, pctDet: number, tc: number, tipo: T
   const totalPen = total * tipoCambio;
   const aplica = tipo !== "ninguno" && pctDet > 0 && totalPen > UMBRAL_DETRACCION;
   const brutoPen = aplica ? (totalPen * pctDet) / 100 : 0;
-  const detraccionPen = tipo === "detraccion" ? Math.round(brutoPen) : 0;
-  const retencionPen = tipo === "retencion" ? Math.round(brutoPen * 100) / 100 : 0;
+  // SPOT: fracción < 0.5 se elimina; fracción >= 0.5 sube a la unidad entera superior.
+  const detraccionPen = tipo === "detraccion" ? Math.floor(brutoPen + 0.5) : 0;
+  // Retención IGV 3%: estrictamente dos decimales.
+  const retencionPen = tipo === "retencion" ? Number(brutoPen.toFixed(2)) : 0;
+
   const descuentoPen = detraccionPen + retencionPen;
   const detraccion = descuentoPen / tipoCambio;
   return {
