@@ -239,6 +239,7 @@ export function CronogramaObra() {
             tabIndex={0}
             onCopy={(e) => { if (seleccion) { e.preventDefault(); void copiarSeleccion(); } }}
             onPaste={(e) => { if (seleccion) { e.preventDefault(); pegarTexto(e.clipboardData.getData("text")); } }}
+            onKeyDown={(e) => { if ((e.key === "Delete" || e.key === "Backspace") && seleccion && !(e.target as HTMLElement).closest("input")) { e.preventDefault(); borrarSeleccion(); } }}
           >
             <table className="w-max min-w-full table-fixed select-none text-xs">
               <thead className="sticky top-0 z-20">
