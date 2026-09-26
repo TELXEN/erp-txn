@@ -101,7 +101,7 @@ function Valorizaciones() {
   const facturadoSel = form.proyecto_id ? facturadoDe(form.proyecto_id) : 0;
   const saldoSel = ofertadoSel - facturadoSel;
   const tcForm = form.moneda === "USD" ? Number(form.tipo_cambio || 0) : 1;
-  const montosForm = calcularMontos(Number(form.monto || 0), Number(form.pct_detraccion || 0), tcForm);
+  const montosForm = calcularMontos(Number(form.monto || 0), Number(form.pct_detraccion || 0), tcForm, form.tipo_tributario);
 
   function facturarDesde(pl: Preliquidacion, neto: number) {
     setForm({
