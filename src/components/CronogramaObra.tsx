@@ -204,8 +204,6 @@ export function CronogramaObra() {
       titulo="Calendario de avance de obra"
       extra={
         <div className="flex flex-wrap items-center gap-2">
-          {seleccion && <Boton variante="linea" onClick={() => void copiarSeleccion()} title="Copiar celdas"><ClipboardCopy size={14} /></Boton>}
-          {seleccion && <Boton variante="linea" onClick={() => void pegarPortapapeles()} title="Pegar celdas"><ClipboardPaste size={14} /></Boton>}
           <Select className="w-64" value={obraId} onChange={(e) => { setObraId(e.target.value); setSeleccion(null); }}>
             <option value="">Selecciona una obra</option>
             {proyectos.map((p) => <option key={p.id} value={p.id}>{p.codigo ? `${p.codigo} · ` : ""}{p.nombre}</option>)}
