@@ -11,14 +11,15 @@ import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
 import { ofertaProyecto, usePartidas, useProyectos, useTiposPresupuesto, useVentas } from "@/lib/datos";
 import { exportarExcel } from "@/lib/exportar";
 import { CamposCondicion, InsigniaPago, condicionVacia, datosCondicion } from "@/components/CondicionPago";
+import { Preliquidaciones, calcularMontos, type Preliquidacion } from "@/components/Preliquidaciones";
 
 export const Route = createFileRoute("/_authenticated/valorizaciones")({
   head: () => ({
     meta: [
-      { title: "Valorizaciones — ERP TELXEN" },
-      { name: "description", content: "Ventas e ingresos por valorizaciones cobradas al cliente, con conversión a Soles." },
-      { property: "og:title", content: "Valorizaciones — ERP TELXEN" },
-      { property: "og:description", content: "Ingresos y valorizaciones por proyecto." },
+      { title: "Facturación — ERP TELXEN" },
+      { name: "description", content: "Preliquidaciones y facturas emitidas con detracciones, crédito y cobranza." },
+      { property: "og:title", content: "Facturación — ERP TELXEN" },
+      { property: "og:description", content: "Preliquidaciones y facturas emitidas por obra." },
     ],
   }),
   component: Valorizaciones,
@@ -56,7 +57,10 @@ function Valorizaciones() {
     estado: "Pendiente de Pago",
     fecha_emision: hoy(),
     ...condicionVacia("Crédito"),
+    pct_detraccion: "4",
+    preliquidacion_id: "",
   });
+  const [pestana, setPestana] = useState<"pre" | "fac">("pre");
   const [busqueda, setBusqueda] = useState("");
   const [error, setError] = useState("");
   const [avisoCobro, setAvisoCobro] = useState("");
@@ -91,6 +95,39 @@ function Valorizaciones() {
   const ofertadoSel = form.proyecto_id ? ofertadoDe(form.proyecto_id) : 0;
   const facturadoSel = form.proyecto_id ? facturadoDe(form.proyecto_id) : 0;
   const saldoSel = ofertadoSel - facturadoSel;
+  const tcForm = form.moneda === "USD" ? Number(form.tipo_cambio || 0) : 1;
+  const montosForm = calcularMontos(Number(form.monto || 0), Number(form.pct_detraccion || 0), tcForm);
+
+  function facturarDesde(pl: Preliquidacion, neto: number) {
+    setForm({
+      ...form,
+      proyecto_id: pl.proyecto_id,
+      cliente_id: pl.cliente_id ?? "",
+      concepto: pl.concepto,
+      monto: String(Math.round(neto * 100) / 100),
+      moneda: pl.moneda,
+      tipo_cambio: String(pl.tipo_cambio),
+      numero_factura: "",
+      fecha_emision: hoy(),
+      condicion_pago: pl.condicion_pago,
+      dias_credito: String(pl.dias_credito),
+      estado: "Pendiente de Pago",
+      pct_detraccion: String(pl.pct_detraccion),
+      preliquidacion_id: pl.id,
+    });
+    setError("");
+    setPestana("fac");
+  }
+
+  async function marcarDetraccion(id: string) {
+    const constancia = window.prompt("N° de constancia de depósito de detracción (Banco de la Nación):");
+    if (constancia === null) return;
+    await supabase
+      .from("ventas")
+      .update({ detraccion_estado: "Depositada", detraccion_fecha: hoy(), detraccion_constancia: constancia.trim().slice(0, 40) } as never)
+      .eq("id", id);
+    qc.invalidateQueries({ queryKey: ["ventas"] });
+  }
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
@@ -114,7 +151,14 @@ function Valorizaciones() {
           `El presupuesto ofertado de la obra es ${soles(ofertado)} y ya hay ${soles(facturado)} registrados. ` +
           "Registra las partidas contractuales o adicionales que falten, o corrige el valor neto.",
       );
+    const mm = calcularMontos(Number(form.monto || 0), Number(form.pct_detraccion || 0), tc);
     const { error: err } = await supabase.from("ventas").insert({
+      preliquidacion_id: form.preliquidacion_id || null,
+      igv: mm.igv,
+      total: mm.total,
+      pct_detraccion: mm.aplica ? Number(form.pct_detraccion || 0) : 0,
+      monto_detraccion: mm.detraccion,
+      detraccion_estado: mm.aplica ? "Pendiente" : "No aplica",
       proyecto_id: form.proyecto_id,
       cliente_id: form.cliente_id,
       concepto: form.concepto.trim(),
@@ -129,7 +173,11 @@ function Valorizaciones() {
       ...datosCondicion(form, form.fecha_emision),
     } as never);
     if (err) return setError(err.message);
-    setForm({ ...form, cliente_id: "", concepto: "", monto: "", numero_factura: "" });
+    if (form.preliquidacion_id) {
+      await supabase.from("preliquidaciones").update({ estado: "Facturada" } as never).eq("id", form.preliquidacion_id);
+      qc.invalidateQueries({ queryKey: ["preliquidaciones"] });
+    }
+    setForm({ ...form, cliente_id: "", concepto: "", monto: "", numero_factura: "", preliquidacion_id: "" });
     qc.invalidateQueries({ queryKey: ["ventas"] });
   }
 
@@ -159,8 +207,8 @@ function Valorizaciones() {
   return (
     <>
       <Encabezado
-        titulo="Ventas y Valorizaciones"
-        subtitulo="Ingresos cobrados al cliente"
+        titulo="Facturación"
+        subtitulo="Comercial · preliquidaciones y facturas emitidas"
         acciones={
           <Boton
             variante="linea"
@@ -189,7 +237,22 @@ function Valorizaciones() {
         }
       />
 
-      <Panel titulo="Nueva valorización" className="mb-4">
+      <div className="mb-4 flex gap-2">
+        <Boton variante={pestana === "pre" ? "primario" : "linea"} onClick={() => setPestana("pre")}>Preliquidaciones</Boton>
+        <Boton variante={pestana === "fac" ? "primario" : "linea"} onClick={() => setPestana("fac")}>Facturas emitidas</Boton>
+      </div>
+
+      {pestana === "pre" ? (
+        <Preliquidaciones
+          proyectos={proyectos}
+          clientes={clientes}
+          ofertadoDe={ofertadoDe}
+          facturadoDe={(id) => facturadoDe(id)}
+          onFacturar={facturarDesde}
+        />
+      ) : (
+      <>
+      <Panel titulo={form.preliquidacion_id ? "Registrar factura desde preliquidación" : "Registrar factura emitida"} className="mb-4">
         <form onSubmit={guardar} className="grid gap-3 p-5 sm:grid-cols-4">
           <Campo etiqueta="Proyecto">
             <Select value={form.proyecto_id} onChange={(e) => setForm({ ...form, proyecto_id: e.target.value })} required>
@@ -245,13 +308,16 @@ function Valorizaciones() {
               required={form.moneda === "USD"}
             />
           </Campo>
-          <Campo etiqueta="N° de factura emitida">
+          <Campo etiqueta="Serie y N° SUNAT (ej. F001-123)">
             <Input value={form.numero_factura} onChange={(e) => setForm({ ...form, numero_factura: e.target.value })} maxLength={40} />
           </Campo>
           <Campo etiqueta="Fecha de emisión">
             <Input type="date" value={form.fecha_emision} onChange={(e) => setForm({ ...form, fecha_emision: e.target.value })} />
           </Campo>
           <CamposCondicion valor={form} fechaBase={form.fecha_emision} onChange={(c) => setForm({ ...form, ...c })} />
+          <Campo etiqueta="% Detracción (SPOT)">
+            <Input type="number" step="0.01" min="0" max="100" value={form.pct_detraccion} onChange={(e) => setForm({ ...form, pct_detraccion: e.target.value })} />
+          </Campo>
           <Campo etiqueta="Fecha de pago">
             <Input type="date" value={form.fecha_pago} onChange={(e) => setForm({ ...form, fecha_pago: e.target.value })} />
           </Campo>
@@ -280,9 +346,11 @@ function Valorizaciones() {
             </div>
           )}
           <div className="sm:col-span-4 flex flex-wrap items-center gap-3">
-            <Boton type="submit">Registrar valorización</Boton>
+            <Boton type="submit">Registrar factura</Boton>
             <span className="font-mono text-xs text-muted-foreground">
-              Equivalente: <strong className="text-ink">{soles(equivalente)}</strong>
+              Neto: <strong className="text-ink">{soles(equivalente)}</strong> · IGV {soles(montosForm.igv * tcForm)} · Total{" "}
+              <strong className="text-ink">{soles(montosForm.total * tcForm)}</strong> · Detracción {soles(montosForm.detraccion * tcForm)} · Neto a cobrar{" "}
+              <strong className="text-ink">{soles(montosForm.cobrar * tcForm)}</strong>
             </span>
           </div>
           {error && <p className="font-mono text-xs text-bad sm:col-span-4">{error}</p>}
@@ -290,7 +358,7 @@ function Valorizaciones() {
       </Panel>
 
       <Panel
-        titulo="Valorizaciones registradas"
+        titulo="Facturas emitidas"
         extra={
           <div className="flex items-center gap-2">
             <Buscador
@@ -311,7 +379,7 @@ function Valorizaciones() {
             texto={
               busqueda
                 ? `Sin coincidencias para «${busqueda}»`
-                : "Aún no hay valorizaciones."
+                : "Aún no hay facturas registradas."
             }
           />
         ) : ventas.length === 0 ? (
@@ -327,7 +395,8 @@ function Valorizaciones() {
                 <th className="px-3 py-2 font-medium">Condición</th>
                 <th className="px-3 py-2 font-medium">Pago</th>
                 <th className="px-3 py-2 text-right font-medium">Monto</th>
-                <th className="px-3 py-2 text-right font-medium">Equiv. S/</th>
+                <th className="px-3 py-2 text-right font-medium">Neto S/</th>
+                <th className="px-3 py-2 text-right font-medium">Detracción</th>
                 <th className="px-5 py-2 text-right font-medium">Estado</th>
               </tr>
             </thead>
@@ -350,6 +419,20 @@ function Valorizaciones() {
                     {v.moneda === "USD" ? `US$ ${Number(v.monto).toFixed(2)}` : soles(Number(v.monto))}
                   </td>
                   <td className="px-3 py-2.5 text-right font-semibold">{soles(Number(v.monto_soles))}</td>
+                  <td className="px-3 py-2.5 text-right">
+                    {(() => {
+                      const x = v as unknown as { monto_detraccion?: number; detraccion_estado?: string; detraccion_constancia?: string };
+                      if (!x.monto_detraccion) return <span className="text-muted-foreground">—</span>;
+                      const monto = Number(x.monto_detraccion) * Number(v.tipo_cambio || 1);
+                      return x.detraccion_estado === "Depositada" ? (
+                        <span className="text-good" title={`Constancia ${x.detraccion_constancia ?? ""}`}>{soles(monto)} · Depositada</span>
+                      ) : (
+                        <button onClick={() => marcarDetraccion(v.id)} className="text-bad underline-offset-2 hover:underline" title="Marcar como depositada">
+                          {soles(monto)} · Pendiente
+                        </button>
+                      );
+                    })()}
+                  </td>
                   <td className="px-5 py-2.5 text-right">
                     <div className="flex items-center justify-end gap-2">
                       <Etiqueta tono={v.estado === "Pagado" ? "good" : "bad"}>{v.estado}</Etiqueta>
@@ -365,6 +448,8 @@ function Valorizaciones() {
           </table>
         )}
       </Panel>
+      </>
+      )}
     </>
   );
 }
