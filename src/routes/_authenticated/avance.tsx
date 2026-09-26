@@ -6,6 +6,7 @@ import { Encabezado } from "@/components/AppShell";
 import { Boton, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { useAuth } from "@/lib/auth";
 import { ESPECIALIDADES } from "@/lib/format";
+import { CronogramaObra } from "@/components/CronogramaObra";
 import { agruparPorEspecialidad, usePartidas, useProyectos } from "@/lib/datos";
 
 
@@ -32,6 +33,7 @@ function Avance() {
   const [valores, setValores] = useState<Record<string, string>>({});
   const [guardando, setGuardando] = useState("");
   const [error, setError] = useState("");
+  const [vista, setVista] = useState<"real" | "cronograma">("real");
 
   const visibles = useMemo(
     () =>
@@ -57,12 +59,17 @@ function Avance() {
     qc.invalidateQueries({ queryKey: ["partidas"] });
   }
 
-  if (rol !== "ingeniero" && rol !== "gerente") return <SinAcceso />;
+  if (rol !== "ingeniero" && rol !== "gerente" && rol !== "administrador") return <SinAcceso />;
 
   return (
 
     <>
       <Encabezado titulo="Avance Físico por Partida" subtitulo="Registro de campo" />
+      <div className="mb-4 flex gap-2">
+        <Boton variante={vista === "real" ? undefined : "secundario"} onClick={() => setVista("real")}>Avance real</Boton>
+        <Boton variante={vista === "cronograma" ? undefined : "secundario"} onClick={() => setVista("cronograma")}>Cronograma mensual</Boton>
+      </div>
+      {vista === "cronograma" ? <CronogramaObra /> : (<>
 
       {error && <p className="mb-3 rounded-md bg-bad/10 px-3 py-2 font-mono text-xs text-bad">{error}</p>}
 
@@ -130,6 +137,7 @@ function Avance() {
           ))
         )}
       </Panel>
+      </>)}
     </>
   );
 }
