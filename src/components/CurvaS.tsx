@@ -27,6 +27,8 @@ export function CurvaS({
   presupuestoContractual,
   adicionales,
   avanceFisico,
+  avanceProgramadoOficial,
+  fechaCorteProgramado,
   movimientos,
 }: {
   fechaInicio: string | null;
@@ -35,6 +37,8 @@ export function CurvaS({
   presupuestoContractual: number;
   adicionales: number;
   avanceFisico: number;
+  avanceProgramadoOficial: number | null;
+  fechaCorteProgramado: string | null;
   movimientos: Movimiento[];
 }) {
   const datos = useMemo(() => {
@@ -85,10 +89,10 @@ export function CurvaS({
       gastadoPct: ultimoReal?.real ?? 0,
       gastadoSoles: ultimoReal?.soles ?? 0,
       progHoy,
-      spi: progHoy > 0 ? avanceFisico / progHoy : 0,
+      spi: (avanceProgramadoOficial ?? 0) > 0 ? avanceFisico / Number(avanceProgramadoOficial) : 0,
       cpi: (ultimoReal?.real ?? 0) > 0 ? avanceFisico / (ultimoReal?.real ?? 1) : 0,
     };
-  }, [fechaInicio, fechaFin, presupuesto, avanceFisico, movimientos]);
+  }, [fechaInicio, fechaFin, presupuesto, avanceFisico, avanceProgramadoOficial, movimientos]);
 
 
   if (!datos) {
@@ -115,7 +119,10 @@ export function CurvaS({
   return (
     <div className="space-y-4 p-5">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Mini etiqueta="Avance programado a hoy" valor={`${datos.progHoy.toFixed(1)} %`} />
+        <Mini
+          etiqueta={fechaCorteProgramado ? `Avance programado oficial · ${fechaCorteProgramado}` : "Avance programado oficial"}
+          valor={avanceProgramadoOficial === null ? "Sin registro" : `${avanceProgramadoOficial.toFixed(1)} %`}
+        />
         <Mini etiqueta="Avance físico real" valor={`${avanceFisico.toFixed(1)} %`} tono={atrasado ? "bad" : "good"} />
         <Mini etiqueta="Costo acumulado" valor={soles(datos.gastadoSoles)} />
         <Mini
@@ -125,7 +132,7 @@ export function CurvaS({
               <InfoTooltip
                 content={
                   <span>
-                    <strong>SPI</strong> = avance físico real ÷ avance programado a hoy.{" "}
+                    <strong>SPI</strong> = avance físico real ÷ avance programado oficial.{" "}
                     <em>{"\u003e 1"}</em> = adelanto; <em>{"< 1"}</em> = retraso.
                     <br />
                     <strong>CPI</strong> = avance físico real ÷ % de presupuesto gastado.{" "}
@@ -181,7 +188,7 @@ export function CurvaS({
 
       <div className="flex flex-wrap items-center gap-4 font-mono text-[11px] text-muted-foreground">
         <span className="inline-flex items-center gap-2">
-          <span className="h-0.5 w-6 bg-primary" /> Curva programada (plan)
+          <span className="h-0.5 w-6 bg-primary" /> Referencia teórica por fechas
         </span>
         <span className="inline-flex items-center gap-2">
           <span className={`h-0.5 w-6 ${atrasado ? "bg-bad" : "bg-good"}`} /> Ejecución real (costo acumulado / presupuesto vigente)

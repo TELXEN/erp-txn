@@ -33,6 +33,8 @@ export const Route = createFileRoute("/_authenticated/proyectos")({
       { name: "description", content: "Registro y estado de los proyectos de la empresa constructora." },
       { property: "og:title", content: "Proyectos — ERP TELXEN" },
       { property: "og:description", content: "Registro y estado de los proyectos de la empresa." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Proyectos,

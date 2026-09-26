@@ -344,7 +344,7 @@ function DashboardProyectos() {
 
 
       {verDinero && <Panel
-        titulo="Curva S — Plan contra ejecución"
+        titulo="Curva S — Referencia teórica y ejecución financiera"
         className="mb-4"
       >
         {!obraSel ? (
@@ -357,6 +357,8 @@ function DashboardProyectos() {
             presupuestoContractual={obraSel.presupuestoContractual}
             adicionales={obraSel.adicionales}
             avanceFisico={obraSel.avance}
+            avanceProgramadoOficial={obraSel.programado}
+            fechaCorteProgramado={obraSel.proyecto.fecha_corte_programado}
             movimientos={movimientos}
           />
         )}
