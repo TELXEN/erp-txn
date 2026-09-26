@@ -67,7 +67,7 @@ function Avance() {
       <Encabezado titulo="Avance Físico por Partida" subtitulo="Registro de campo" />
       <div className="mb-4 flex gap-2">
         <Boton variante={vista === "real" ? "primario" : "linea"} onClick={() => setVista("real")}>Avance real</Boton>
-        <Boton variante={vista === "cronograma" ? "primario" : "linea"} onClick={() => setVista("cronograma")}>Cronograma mensual</Boton>
+        <Boton variante={vista === "cronograma" ? "primario" : "linea"} onClick={() => setVista("cronograma")}>Avance programado</Boton>
       </div>
       {vista === "cronograma" ? <CronogramaObra /> : (<>
 
