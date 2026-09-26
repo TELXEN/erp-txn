@@ -309,6 +309,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
     const validas = lineas.filter((l) => l.descripcion.trim() && Number(l.cantidad) > 0);
     if (!validas.length) return setError("Agrega al menos una línea con descripción y cantidad.");
     if (form.moneda === "USD" && tc <= 0) return setError("Ingresa un tipo de cambio válido.");
+    if (amortForm < 0 || amortForm > brutoForm) return setError("La amortización no puede ser negativa ni mayor al valor ejecutado.");
     if (netoForm * tc > saldoSel + 0.01)
       setError(`Aviso: el neto (${soles(netoForm * tc)}) supera el saldo disponible de la obra (${soles(Math.max(saldoSel, 0))}). Se guardó igual como borrador.`);
     const cond = datosCondicion(form, form.fecha);
@@ -321,7 +322,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
       tipo_cambio: tc,
       pct_detraccion: Number(form.pct_detraccion || 0),
       tipo_tributario: form.tipo_tributario,
-
+      amortizacion: amortForm,
       observacion: form.observacion.trim(),
       ...cond,
     };
@@ -363,7 +364,16 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
       if (neto > saldo + 0.01)
         return alert(`No se puede aprobar: el neto ${soles(neto)} supera el saldo disponible de la obra (${soles(Math.max(saldo, 0))}).`);
     }
-    await supabase.from("preliquidaciones").update({ estado } as never).eq("id", p.id);
+    const cambios: Record<string, unknown> = { estado };
+    if (estado === "Observada") {
+      const motivo = window.prompt("¿Qué observó el cliente?", "");
+      if (motivo === null) return;
+      if (motivo.trim()) {
+        const linea = `[Observada ${fmtFecha(hoy())}] ${motivo.trim()}`;
+        cambios.observacion = p.observacion ? `${p.observacion}\n${linea}` : linea;
+      }
+    }
+    await supabase.from("preliquidaciones").update(cambios as never).eq("id", p.id);
     qc.invalidateQueries({ queryKey: ["preliquidaciones"] });
   }
 
