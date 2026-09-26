@@ -20,7 +20,7 @@ import {
   useTareos,
   useCronograma,
   programadoCronograma,
-  claveMes,
+  hoyISO,
   useTiposPresupuesto,
 } from "@/lib/datos";
 import { exportarExcel, exportarPdf } from "@/lib/exportar";
@@ -72,8 +72,7 @@ function DashboardProyectos() {
               ? propias.reduce((s, x) => s + Number(x.avance_pct), 0) / propias.length
               : 0;
         const gastado = presupuesto > 0 ? (costoReal / presupuesto) * 100 : 0;
-        const ahora = new Date();
-        const porCronograma = programadoCronograma(propias, cronograma, claveMes(ahora.getFullYear(), ahora.getMonth() + 1));
+        const porCronograma = programadoCronograma(propias, cronograma, hoyISO(), p.periodicidad_cronograma ?? "mes");
         const programado = porCronograma ?? (p.avance_programado_pct == null ? null : Number(p.avance_programado_pct));
         const desviacion = programado === null ? null : avance - programado;
         return {
