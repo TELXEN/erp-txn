@@ -11,7 +11,7 @@ import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
 import { ofertaProyecto, usePartidas, useProyectos, useTiposPresupuesto, useVentas } from "@/lib/datos";
 import { exportarExcel } from "@/lib/exportar";
 import { CamposCondicion, InsigniaPago, condicionVacia, datosCondicion } from "@/components/CondicionPago";
-import { Preliquidaciones, calcularMontos, type Preliquidacion } from "@/components/Preliquidaciones";
+import { Preliquidaciones, calcularMontos, REGIMENES, type Preliquidacion, type TipoTributario } from "@/components/Preliquidaciones";
 
 export const Route = createFileRoute("/_authenticated/valorizaciones")({
   head: () => ({
