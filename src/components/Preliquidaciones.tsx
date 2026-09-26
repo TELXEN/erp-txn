@@ -418,7 +418,15 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
                     return (
                       <tr key={i} className="border-b border-line/60 last:border-0">
                         <td className="px-3 py-1.5"><Input value={l.descripcion} onChange={(e) => upd({ descripcion: e.target.value })} maxLength={200} /></td>
-                        <td className="px-2 py-1.5"><Input value={l.unidad} onChange={(e) => upd({ unidad: e.target.value })} maxLength={10} /></td>
+                        <td className="px-2 py-1.5">
+                          <Select value={l.unidad} onChange={(e) => upd({ unidad: e.target.value })}>
+                            {!unidades.some((u) => u.simbolo === l.unidad) && <option value={l.unidad}>{l.unidad}</option>}
+                            {unidades.filter((u) => u.activo).map((u) => (
+                              <option key={u.id} value={u.simbolo}>{u.simbolo}</option>
+                            ))}
+                          </Select>
+                        </td>
+
                         <td className="px-2 py-1.5"><Input type="number" step="0.01" min="0" value={l.cantidad} onChange={(e) => upd({ cantidad: e.target.value })} /></td>
                         <td className="px-2 py-1.5"><Input type="number" step="0.01" min="0" value={l.precio_unitario} onChange={(e) => upd({ precio_unitario: e.target.value })} /></td>
                         <td className="px-2 py-1.5 text-right">{(Number(l.cantidad || 0) * Number(l.precio_unitario || 0)).toLocaleString("es-PE", { minimumFractionDigits: 2 })}</td>
