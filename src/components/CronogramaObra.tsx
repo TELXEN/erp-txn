@@ -259,7 +259,7 @@ export function CronogramaObra() {
                         const k = clave(fila, columna);
                         const v = valorCelda(fila, columna);
                         const activa = seleccionada(fila, columna);
-                        const rangoRelleno = destinoRelleno && seleccion ? (() => { const r = normalizar({ inicio: normalizar(seleccion), fin: destinoRelleno } as never); return fila >= r.filaInicio && fila <= r.filaFin && columna >= r.columnaInicio && columna <= r.columnaFin; })() : false;
+                        const rangoRelleno = destinoRelleno && seleccion ? (() => { const r = normalizar({ inicio: seleccion.inicio, fin: destinoRelleno }); return fila >= r.filaInicio && fila <= r.filaFin && columna >= r.columnaInicio && columna <= r.columnaFin; })() : false;
                         const borde = seleccion && fila === normalizar(seleccion).filaFin && columna === normalizar(seleccion).columnaFin;
                         return (
                           <td
