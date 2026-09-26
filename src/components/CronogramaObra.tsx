@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { ClipboardCopy, ClipboardPaste } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { Boton, Panel, Select, Vacio } from "@/components/ui-kit";
+import { Panel, Select, Vacio } from "@/components/ui-kit";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha, pct, soles } from "@/lib/format";
 import {
@@ -155,7 +154,15 @@ export function CronogramaObra() {
     await navigator.clipboard.writeText(texto);
   }, [seleccion, valorCelda]);
 
-  const pegarPortapapeles = async () => pegarTexto(await navigator.clipboard.readText());
+  const borrarSeleccion = useCallback(() => {
+    if (!seleccion) return;
+    const r = normalizar(seleccion);
+    const cambios = new Map<string, number>();
+    for (let fila = r.filaInicio; fila <= r.filaFin; fila += 1)
+      for (let columna = r.columnaInicio; columna <= r.columnaFin; columna += 1)
+        cambios.set(clave(fila, columna), 0);
+    void guardarCambios(cambios);
+  }, [guardarCambios, seleccion]);
 
   const aplicarRelleno = useCallback(() => {
     if (!seleccion || !destinoRelleno) return;
@@ -205,8 +212,6 @@ export function CronogramaObra() {
       titulo="Calendario de avance de obra"
       extra={
         <div className="flex flex-wrap items-center gap-2">
-          {seleccion && <Boton variante="linea" onClick={() => void copiarSeleccion()} title="Copiar celdas"><ClipboardCopy size={14} /></Boton>}
-          {seleccion && <Boton variante="linea" onClick={() => void pegarPortapapeles()} title="Pegar celdas"><ClipboardPaste size={14} /></Boton>}
           <Select className="w-64" value={obraId} onChange={(e) => { setObraId(e.target.value); setSeleccion(null); }}>
             <option value="">Selecciona una obra</option>
             {proyectos.map((p) => <option key={p.id} value={p.id}>{p.codigo ? `${p.codigo} · ` : ""}{p.nombre}</option>)}
@@ -227,6 +232,7 @@ export function CronogramaObra() {
             <span>Avance real: <b>{pct(realObra)}</b></span>
             {programadoObra != null && <span className={realObra + 0.05 < programadoObra ? "font-semibold text-bad" : "font-semibold text-good"}>{realObra + 0.05 < programadoObra ? `Retraso ${pct(programadoObra - realObra)}` : "En plazo"}</span>}
             <span className="text-muted-foreground">{guardando ? "Guardando…" : `${periodos.length} periodos`}</span>
+            <span className="text-muted-foreground">Arrastra para seleccionar · Ctrl+C copiar · Ctrl+V pegar · Supr borrar</span>
           </div>
           <div
             ref={tablaRef}
@@ -234,6 +240,7 @@ export function CronogramaObra() {
             tabIndex={0}
             onCopy={(e) => { if (seleccion) { e.preventDefault(); void copiarSeleccion(); } }}
             onPaste={(e) => { if (seleccion) { e.preventDefault(); pegarTexto(e.clipboardData.getData("text")); } }}
+            onKeyDown={(e) => { if ((e.key === "Delete" || e.key === "Backspace") && seleccion && !(e.target as HTMLElement).closest("input")) { e.preventDefault(); borrarSeleccion(); } }}
           >
             <table className="w-max min-w-full table-fixed select-none text-xs">
               <thead className="sticky top-0 z-20">
