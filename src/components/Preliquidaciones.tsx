@@ -358,9 +358,10 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
                 ))}
               </Select>
             </Campo>
-            <Campo etiqueta="Concepto / periodo">
-              <Input value={form.concepto} onChange={(e) => setForm({ ...form, concepto: e.target.value })} required maxLength={160} placeholder="Ej. Avance de obra septiembre" />
+            <Campo etiqueta="Orden de compra">
+              <Input value={form.concepto} onChange={(e) => setForm({ ...form, concepto: e.target.value })} required maxLength={160} placeholder="Ej. OC-2026-0154" />
             </Campo>
+
             <Campo etiqueta="Fecha">
               <Input type="date" value={form.fecha} onChange={(e) => setForm({ ...form, fecha: e.target.value })} required />
             </Campo>
