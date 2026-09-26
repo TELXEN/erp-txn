@@ -370,7 +370,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
       if (motivo === null) return;
       if (motivo.trim()) {
         const linea = `[Observada ${fmtFecha(hoy())}] ${motivo.trim()}`;
-        cambios.observacion = p.observacion ? `${p.observacion}\n${linea}` : linea;
+        cambios["observacion"] = p.observacion ? `${p.observacion}\n${linea}` : linea;
       }
     }
     await supabase.from("preliquidaciones").update(cambios as never).eq("id", p.id);
