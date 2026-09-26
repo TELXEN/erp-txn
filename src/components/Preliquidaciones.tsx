@@ -442,7 +442,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
         <Panel titulo={editando ? "Editar preliquidación" : "Nueva preliquidación"} className="mb-4">
           <form onSubmit={guardar} className="grid gap-3 p-5 sm:grid-cols-4">
             <Campo etiqueta="Proyecto">
-              <Select value={form.proyecto_id} onChange={(e) => setForm({ ...form, proyecto_id: e.target.value })} required>
+              <Select value={form.proyecto_id} onChange={(e) => elegirProyecto(e.target.value)} required>
                 <option value="">Selecciona...</option>
                 {proyectos.map((p) => (
                   <option key={p.id} value={p.id}>{p.codigo ? `${p.codigo} · ` : ""}{p.nombre}</option>
@@ -661,6 +661,16 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
           </form>
         </Panel>
       )}
+
+      <div className="mb-4 grid gap-3 sm:grid-cols-3">
+        {kpis.map((k) => (
+          <div key={k.t} className="rounded-lg border border-line bg-card p-4">
+            <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">{k.t}</p>
+            <p className="font-mono text-lg font-semibold text-ink">{soles(k.v)}</p>
+            <p className="font-mono text-[10px] text-muted-foreground">{k.n} preliquidación(es)</p>
+          </div>
+        ))}
+      </div>
 
       <Panel
         titulo="Preliquidaciones"
