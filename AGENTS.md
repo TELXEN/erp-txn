@@ -10,3 +10,4 @@
 <!-- LOVABLE:END -->
 - Project/quotation codes are generated only via server fn reservarCodigo (src/lib/codigos.functions.ts); the SQL functions are service_role-only — prevents direct calls from the browser.
 - The programmed-progress matrix stores one percentage per leaf work item and project-defined period; dashboard calculations must exclude grouping rows to avoid double counting.
+- The project S-curve uses the configured work-item schedule for its planned line, the current physical progress as the real cut-off marker, and only exposes cost progress to money-authorized roles — this preserves truthful history and role visibility.

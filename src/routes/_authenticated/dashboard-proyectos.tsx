@@ -351,8 +351,8 @@ function DashboardProyectos() {
       </Panel>
 
 
-      {verDinero && <Panel
-        titulo="Curva S — Referencia teórica y ejecución financiera"
+      <Panel
+        titulo={verDinero ? "Curva S — Avance programado, real y costo" : "Curva S — Avance programado versus real"}
         className="mb-4"
       >
         {!obraSel ? (
@@ -368,9 +368,13 @@ function DashboardProyectos() {
             avanceProgramadoOficial={obraSel.programado}
             fechaCorteProgramado={obraSel.proyecto.fecha_corte_programado}
             movimientos={movimientos}
+            partidas={partidas.filter((p) => p.proyecto_id === obraSel.proyecto.id && !new Set(partidas.filter((x) => x.proyecto_id === obraSel.proyecto.id).map((x) => x.padre_id).filter(Boolean)).has(p.id))}
+            cronograma={cronograma}
+            periodicidad={obraSel.proyecto.periodicidad_cronograma ?? "mes"}
+            mostrarDinero={verDinero}
           />
         )}
-      </Panel>}
+      </Panel>
 
       <Panel
         titulo="Cartera de proyectos"

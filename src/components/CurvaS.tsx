@@ -1,24 +1,15 @@
 import { useMemo, type ReactNode } from "react";
 import { InfoTooltip } from "@/components/ui-kit";
-import { soles } from "@/lib/format";
-
-
+import { fecha, soles } from "@/lib/format";
+import {
+  generarPeriodos,
+  programadoCronograma,
+  type CronogramaPartida,
+  type Partida,
+  type Periodicidad,
+} from "@/lib/datos";
 
 export type Movimiento = { fecha: string; monto: number };
-
-function inicioMes(d: Date) {
-  return new Date(d.getFullYear(), d.getMonth(), 1);
-}
-
-function etiquetaMes(d: Date) {
-  return d.toLocaleDateString("es-PE", { month: "short", year: "2-digit" }).replace(".", "");
-}
-
-/** Curva S programada: avance acumulado teórico (smoothstep) entre inicio y fin. */
-function programado(t: number) {
-  const x = Math.min(Math.max(t, 0), 1);
-  return (3 * x * x - 2 * x * x * x) * 100;
-}
 
 export function CurvaS({
   fechaInicio,
@@ -30,6 +21,10 @@ export function CurvaS({
   avanceProgramadoOficial,
   fechaCorteProgramado,
   movimientos,
+  partidas,
+  cronograma,
+  periodicidad,
+  mostrarDinero,
 }: {
   fechaInicio: string | null;
   fechaFin: string | null;
@@ -40,59 +35,54 @@ export function CurvaS({
   avanceProgramadoOficial: number | null;
   fechaCorteProgramado: string | null;
   movimientos: Movimiento[];
+  partidas: Partida[];
+  cronograma: CronogramaPartida[];
+  periodicidad: Periodicidad;
+  mostrarDinero: boolean;
 }) {
   const datos = useMemo(() => {
     if (!fechaInicio || !fechaFin) return null;
-    const ini = inicioMes(new Date(`${fechaInicio}T00:00:00`));
-    const fin = inicioMes(new Date(`${fechaFin}T00:00:00`));
-    if (Number.isNaN(ini.getTime()) || Number.isNaN(fin.getTime()) || fin < ini) return null;
-
-    const meses: Date[] = [];
-    const cursor = new Date(ini);
-    while (cursor <= fin && meses.length < 120) {
-      meses.push(new Date(cursor));
-      cursor.setMonth(cursor.getMonth() + 1);
-    }
-    if (meses.length < 2) meses.push(new Date(fin.getFullYear(), fin.getMonth() + 1, 1));
-
+    const periodos = generarPeriodos(fechaInicio, fechaFin, periodicidad);
+    if (periodos.length === 0) return null;
     const hoy = new Date();
-    const total = meses.length - 1;
-
-    const iniReal = new Date(`${fechaInicio}T00:00:00`);
-    const finReal = new Date(`${fechaFin}T23:59:59`);
-    const plazo = finReal.getTime() - iniReal.getTime();
-    const transcurrido = hoy.getTime() - iniReal.getTime();
-    const progHoy = plazo > 0 ? programado(transcurrido / plazo) : hoy >= finReal ? 100 : 0;
+    const hoyTexto = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}-${String(hoy.getDate()).padStart(2, "0")}`;
+    const tieneCronograma = cronograma.some(
+      (c) => partidas.some((p) => p.id === c.partida_id) && (c.periodicidad ?? "mes") === periodicidad,
+    );
 
     const gastos = movimientos
       .map((m) => ({ fecha: new Date(`${m.fecha}T00:00:00`), monto: Number(m.monto) || 0 }))
       .filter((m) => !Number.isNaN(m.fecha.getTime()));
 
-    let acumulado = 0;
-    const puntos = meses.map((mes, i) => {
-      const cierre = new Date(mes.getFullYear(), mes.getMonth() + 1, 0, 23, 59, 59);
-      acumulado = gastos.filter((g) => g.fecha <= cierre).reduce((s, g) => s + g.monto, 0);
-      // El mes en curso también se dibuja, con lo acumulado hasta hoy.
-      const iniciado = mes <= hoy;
+    const puntos = periodos.map((periodo) => {
+      const cierre = new Date(`${periodo.fin}T23:59:59`);
+      const acumulado = gastos.filter((g) => g.fecha <= cierre).reduce((s, g) => s + g.monto, 0);
+      const iniciado = periodo.inicio <= hoyTexto;
       return {
-        etiqueta: etiquetaMes(mes),
-        prog: programado(total > 0 ? i / total : 1),
-        real: iniciado && presupuesto > 0 ? (acumulado / presupuesto) * 100 : null,
+        etiqueta: periodo.etiqueta,
+        fecha: periodo.fin,
+        prog: programadoCronograma(partidas, cronograma, periodo.fin, periodicidad) ?? 0,
+        costo: iniciado && presupuesto > 0 ? (acumulado / presupuesto) * 100 : null,
         soles: iniciado ? acumulado : null,
       };
     });
-
-    const ultimoReal = [...puntos].reverse().find((p) => p.real !== null);
+    const ultimoCosto = [...puntos].reverse().find((p) => p.costo !== null);
+    const indiceHoy = periodos.findIndex((p) => p.inicio <= hoyTexto && hoyTexto <= p.fin);
+    const ultimoPeriodo = periodos.at(-1);
+    const indiceCorte = indiceHoy >= 0 ? indiceHoy : ultimoPeriodo && hoyTexto > ultimoPeriodo.fin ? periodos.length - 1 : 0;
+    const programadoHoy = programadoCronograma(partidas, cronograma, hoyTexto, periodicidad) ?? avanceProgramadoOficial ?? 0;
 
     return {
       puntos,
-      gastadoPct: ultimoReal?.real ?? 0,
-      gastadoSoles: ultimoReal?.soles ?? 0,
-      progHoy,
-      spi: (avanceProgramadoOficial ?? 0) > 0 ? avanceFisico / Number(avanceProgramadoOficial) : 0,
-      cpi: (ultimoReal?.real ?? 0) > 0 ? avanceFisico / (ultimoReal?.real ?? 1) : 0,
+      tieneCronograma,
+      indiceCorte,
+      gastadoPct: ultimoCosto?.costo ?? 0,
+      gastadoSoles: ultimoCosto?.soles ?? 0,
+      programadoHoy,
+      spi: programadoHoy > 0 ? avanceFisico / programadoHoy : 0,
+      cpi: (ultimoCosto?.costo ?? 0) > 0 ? avanceFisico / (ultimoCosto?.costo ?? 1) : 0,
     };
-  }, [fechaInicio, fechaFin, presupuesto, avanceFisico, avanceProgramadoOficial, movimientos]);
+  }, [fechaInicio, fechaFin, periodicidad, cronograma, partidas, presupuesto, avanceFisico, avanceProgramadoOficial, movimientos]);
 
 
   if (!datos) {
@@ -111,47 +101,46 @@ export function CurvaS({
   const y = (v: number) => P.t + (1 - Math.min(v, 120) / 120) * (H - P.t - P.b);
 
   const lineaProg = datos.puntos.map((p, i) => `${i === 0 ? "M" : "L"}${x(i)},${y(p.prog)}`).join(" ");
-  const realPts = datos.puntos.map((p, i) => ({ p, i })).filter((d) => d.p.real !== null);
-  const lineaReal = realPts.map((d, k) => `${k === 0 ? "M" : "L"}${x(d.i)},${y(d.p.real as number)}`).join(" ");
+  const costoPts = datos.puntos.map((p, i) => ({ p, i })).filter((d) => d.p.costo !== null);
+  const lineaCosto = costoPts.map((d, k) => `${k === 0 ? "M" : "L"}${x(d.i)},${y(d.p.costo as number)}`).join(" ");
 
-  const atrasado = avanceFisico < datos.progHoy;
+  const atrasado = avanceFisico + 0.05 < datos.programadoHoy;
 
   return (
     <div className="space-y-4 p-5">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Mini
-          etiqueta={fechaCorteProgramado ? `Avance programado oficial · ${fechaCorteProgramado}` : "Avance programado oficial"}
-          valor={avanceProgramadoOficial == null ? "Sin registro" : `${Number(avanceProgramadoOficial).toFixed(1)} %`}
+          etiqueta={datos.tieneCronograma ? `Programado a hoy · ${fecha(new Date().toISOString().slice(0, 10))}` : fechaCorteProgramado ? `Programado oficial · ${fecha(fechaCorteProgramado)}` : "Avance programado"}
+          valor={datos.tieneCronograma || avanceProgramadoOficial != null ? `${Number(datos.programadoHoy).toFixed(1)} %` : "Sin registro"}
         />
         <Mini etiqueta="Avance físico real" valor={`${Number(avanceFisico ?? 0).toFixed(1)} %`} tono={atrasado ? "bad" : "good"} />
-        <Mini etiqueta="Costo acumulado" valor={soles(datos.gastadoSoles)} />
+        <Mini etiqueta="Desviación física" valor={datos.tieneCronograma || avanceProgramadoOficial != null ? `${avanceFisico - datos.programadoHoy >= 0 ? "+" : ""}${(avanceFisico - datos.programadoHoy).toFixed(1)} pp` : "Sin registro"} tono={atrasado ? "bad" : "good"} />
+        {mostrarDinero && <Mini etiqueta="Costo acumulado" valor={soles(datos.gastadoSoles)} />}
         <Mini
           etiqueta={
             <span className="inline-flex items-center">
-              SPI / CPI
+              {mostrarDinero ? "SPI / CPI" : "SPI"}
               <InfoTooltip
                 content={
                   <span>
                     <strong>SPI</strong> = avance físico real ÷ avance programado oficial.{" "}
                     <em>{"\u003e 1"}</em> = adelanto; <em>{"< 1"}</em> = retraso.
-                    <br />
-                    <strong>CPI</strong> = avance físico real ÷ % de presupuesto gastado.{" "}
-                    <em>{"\u003e 1"}</em> = ahorro; <em>{"< 1"}</em> = sobrecosto.
+                    {mostrarDinero && <><br /><strong>CPI</strong> = avance físico real ÷ % de presupuesto gastado. <em>{"\u003e 1"}</em> = ahorro; <em>{"< 1"}</em> = sobrecosto.</>}
                   </span>
                 }
               />
             </span>
           }
-          valor={`${Number(datos.spi ?? 0).toFixed(2)} / ${Number(datos.cpi ?? 0).toFixed(2)}`}
-          tono={datos.spi < 1 || datos.cpi < 1 ? "bad" : "good"}
+          valor={mostrarDinero ? `${Number(datos.spi).toFixed(2)} / ${Number(datos.cpi).toFixed(2)}` : Number(datos.spi).toFixed(2)}
+          tono={datos.spi < 1 || (mostrarDinero && datos.cpi < 1) ? "bad" : "good"}
         />
       </div>
 
-      <div className="grid overflow-hidden rounded-md border border-line bg-line sm:grid-cols-3 sm:gap-px">
+      {mostrarDinero && <div className="grid overflow-hidden rounded-md border border-line bg-line sm:grid-cols-3 sm:gap-px">
         <ReferenciaPresupuesto etiqueta="Presupuesto contractual" valor={presupuestoContractual} />
         <ReferenciaPresupuesto etiqueta="Adicionales de obra" valor={adicionales} destacado={adicionales > 0} />
         <ReferenciaPresupuesto etiqueta="Presupuesto vigente" valor={presupuesto} fuerte />
-      </div>
+      </div>}
 
       <div className="overflow-x-auto">
         <svg viewBox={`0 0 ${W} ${H}`} className="min-w-[640px] w-full">
@@ -170,30 +159,33 @@ export function CurvaS({
               </text>
             ) : null,
           )}
-          <path d={lineaProg} fill="none" className="stroke-primary" strokeWidth={2} strokeDasharray="5 4" />
-          {realPts.length > 0 && (
-            <path d={lineaReal} fill="none" className={atrasado ? "stroke-bad" : "stroke-good"} strokeWidth={2.5} />
-          )}
-          {realPts.map((d) => (
+          {datos.tieneCronograma && <path d={lineaProg} fill="none" className="stroke-primary" strokeWidth={2.5} />}
+          {mostrarDinero && costoPts.length > 0 && <path d={lineaCosto} fill="none" className="stroke-muted-foreground" strokeWidth={2} strokeDasharray="5 4" />}
+          {mostrarDinero && costoPts.map((d) => (
             <circle
               key={d.i}
               cx={x(d.i)}
-              cy={y(d.p.real as number)}
-              r={2.5}
-              className={atrasado ? "fill-bad" : "fill-good"}
+              cy={y(d.p.costo as number)}
+              r={2}
+              className="fill-muted-foreground"
             />
           ))}
+          <line x1={x(datos.indiceCorte)} x2={x(datos.indiceCorte)} y1={P.t} y2={H - P.b} className="stroke-line" strokeWidth={1} strokeDasharray="3 3" />
+          <circle cx={x(datos.indiceCorte)} cy={y(avanceFisico)} r={5} className={atrasado ? "fill-bad" : "fill-good"} />
+          <text x={x(datos.indiceCorte)} y={Math.max(P.t + 10, y(avanceFisico) - 9)} textAnchor="middle" className={atrasado ? "fill-bad" : "fill-good"} fontSize={10} fontWeight={700}>{Number(avanceFisico).toFixed(1)}%</text>
         </svg>
       </div>
 
       <div className="flex flex-wrap items-center gap-4 font-mono text-[11px] text-muted-foreground">
         <span className="inline-flex items-center gap-2">
-          <span className="h-0.5 w-6 bg-primary" /> Referencia teórica por fechas
+          <span className="h-0.5 w-6 bg-primary" /> Avance programado acumulado por partidas
         </span>
         <span className="inline-flex items-center gap-2">
-          <span className={`h-0.5 w-6 ${atrasado ? "bg-bad" : "bg-good"}`} /> Ejecución real (costo acumulado / presupuesto vigente)
+          <span className={`h-2.5 w-2.5 rounded-full ${atrasado ? "bg-bad" : "bg-good"}`} /> Avance físico real al corte
         </span>
+        {mostrarDinero && <span className="inline-flex items-center gap-2"><span className="h-0.5 w-6 border-t-2 border-dashed border-muted-foreground" /> Costo acumulado / presupuesto vigente</span>}
       </div>
+      {!datos.tieneCronograma && <p className="font-mono text-xs text-muted-foreground">Completa el Avance programado de la obra para trazar la línea contractual.</p>}
     </div>
   );
 }
