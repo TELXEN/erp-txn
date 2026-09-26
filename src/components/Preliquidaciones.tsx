@@ -546,7 +546,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
             </thead>
             <tbody>
               {filtradas.map((p) => {
-                const mm = calcularMontos(netoDe(p.id), Number(p.pct_detraccion), Number(p.tipo_cambio));
+                const mm = calcularMontos(netoDe(p.id), Number(p.pct_detraccion), Number(p.tipo_cambio), p.tipo_tributario ?? "detraccion");
                 const fm = (n: number) => (p.moneda === "USD" ? `US$ ${n.toFixed(2)}` : soles(n));
                 return (
                   <tr key={p.id} className="border-b border-line/60 last:border-0">
