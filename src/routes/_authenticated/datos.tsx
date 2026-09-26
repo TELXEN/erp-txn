@@ -31,6 +31,7 @@ import { PartidasMaestras } from "@/components/PartidasMaestras";
 import { Insumos } from "@/components/Insumos";
 import { CuentasBancarias, type CuentaBancaria } from "@/components/CuentasBancarias";
 import { CategoriasPartida } from "@/components/CategoriasPartida";
+import { RubrosIngreso } from "@/components/RubrosIngreso";
 
 export const Route = createFileRoute("/_authenticated/datos")({
   head: () => ({
@@ -241,6 +242,8 @@ function Datos() {
         <PartidasMaestras />
       ) : pestana === "empresa" ? (
         <DatosEmpresa />
+      ) : pestana === "ingresos" ? (
+        <RubrosIngreso />
       ) : (
         <CatalogoMaestro
           clase={pestana === "centros" ? "centro" : pestana === "costos" ? "Costo" : "Ingreso"}
