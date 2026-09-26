@@ -229,7 +229,7 @@ function Valorizaciones() {
                   filas: ventas.map((v) => ({
                     Proyecto: nombreProy(v.proyecto_id),
                     Cliente: nombreCliente(v.cliente_id),
-                    Concepto: v.concepto,
+                    "Orden de compra": v.concepto,
                     Monto: Number(v.monto),
                     Moneda: v.moneda,
                     "Tipo de Cambio": Number(v.tipo_cambio),
@@ -292,7 +292,7 @@ function Valorizaciones() {
             </div>
           )}
 
-          <Campo etiqueta="Concepto">
+          <Campo etiqueta="Orden de compra">
             <Input value={form.concepto} onChange={(e) => setForm({ ...form, concepto: e.target.value })} required maxLength={160} />
           </Campo>
           <Campo etiqueta="Monto valorizado (valor neto sin IGV)">
@@ -378,20 +378,49 @@ function Valorizaciones() {
               </div>
             </div>
           )}
-          <div className="sm:col-span-4 flex flex-wrap items-center gap-3">
-            <Boton type="submit">Registrar factura</Boton>
-            <span className="font-mono text-xs text-muted-foreground">
-              Neto: <strong className="text-ink">{soles(equivalente)}</strong> · IGV {soles(montosForm.igv * tcForm)} · Total{" "}
-              <strong className="text-ink">{soles(montosForm.total * tcForm)}</strong> ·{" "}
-              {!montosForm.aplica
-                ? "Sin detracción ni retención"
-                : montosForm.tipo === "detraccion"
-                  ? `Detracción S/ ${montosForm.detraccionPen.toLocaleString("es-PE")}`
-                  : `Retención ${soles(montosForm.retencionPen)}`}{" "}
-              · Neto a cobrar <strong className="text-ink">{soles(montosForm.cobrar * tcForm)}</strong>
-
-            </span>
+          <div className="sm:col-span-4 rounded-lg border-2 border-line bg-card p-4">
+            <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Liquidación y cobro</p>
+            <div className="grid gap-3 sm:grid-cols-5">
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">Valor neto</p>
+                <p className="font-mono text-sm font-semibold text-ink">{soles(equivalente)}</p>
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">IGV 18%</p>
+                <p className="font-mono text-sm font-semibold text-ink">{soles(montosForm.igv * tcForm)}</p>
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">Total</p>
+                <p className="font-mono text-sm font-semibold text-ink">{soles(montosForm.total * tcForm)}</p>
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+                  {montosForm.tipo === "retencion" ? "Retención IGV" : "Detracción"}{" "}
+                  {montosForm.aplica ? `${form.pct_detraccion}%` : ""}
+                </p>
+                <p className="font-mono text-sm font-semibold text-ink">
+                  {!montosForm.aplica
+                    ? "No aplica"
+                    : montosForm.tipo === "detraccion"
+                      ? `S/ ${montosForm.detraccionPen.toLocaleString("es-PE")}`
+                      : soles(montosForm.retencionPen)}
+                </p>
+                {montosForm.aplica && (
+                  <p className="font-mono text-[10px] text-muted-foreground">
+                    {montosForm.tipo === "detraccion" ? "Soles enteros · cuenta BN" : "Dos decimales"}
+                  </p>
+                )}
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">Neto a pagar</p>
+                <p className="font-mono text-sm font-semibold text-good">{soles(montosForm.cobrar * tcForm)}</p>
+              </div>
+            </div>
           </div>
+          <div className="sm:col-span-4">
+            <Boton type="submit">Registrar factura</Boton>
+          </div>
+
           {error && <p className="font-mono text-xs text-bad sm:col-span-4">{error}</p>}
         </form>
       </Panel>
@@ -427,7 +456,7 @@ function Valorizaciones() {
           <table className="w-full font-mono text-xs">
             <thead>
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                <th className="px-5 py-2 font-medium">Concepto</th>
+                <th className="px-5 py-2 font-medium">Orden de compra</th>
                 <th className="px-3 py-2 font-medium">Cliente</th>
                 <th className="px-3 py-2 font-medium">Proyecto</th>
                 <th className="px-3 py-2 font-medium">Factura</th>

@@ -55,8 +55,11 @@ export function calcularMontos(neto: number, pctDet: number, tc: number, tipo: T
   const totalPen = total * tipoCambio;
   const aplica = tipo !== "ninguno" && pctDet > 0 && totalPen > UMBRAL_DETRACCION;
   const brutoPen = aplica ? (totalPen * pctDet) / 100 : 0;
-  const detraccionPen = tipo === "detraccion" ? Math.round(brutoPen) : 0;
-  const retencionPen = tipo === "retencion" ? Math.round(brutoPen * 100) / 100 : 0;
+  // SPOT: fracción < 0.5 se elimina; fracción >= 0.5 sube a la unidad entera superior.
+  const detraccionPen = tipo === "detraccion" ? Math.floor(brutoPen + 0.5) : 0;
+  // Retención IGV 3%: estrictamente dos decimales.
+  const retencionPen = tipo === "retencion" ? Number(brutoPen.toFixed(2)) : 0;
+
   const descuentoPen = detraccionPen + retencionPen;
   const detraccion = descuentoPen / tipoCambio;
   return {
@@ -313,7 +316,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
     <div class="cab"><div>${empresa?.logo_url ? `<img src="${esc(empresa.logo_url)}" style="height:48px"/><br/>` : ""}
       <b>${esc(empresa?.razon_social || "TELXEN SAC")}</b><br/>RUC ${esc(empresa?.ruc || "")}<br/>${esc(empresa?.direccion || "")}</div>
       <div style="text-align:right"><h1>PRELIQUIDACIÓN</h1><b>${esc(p.codigo)}</b><br/>Fecha: ${fmtFecha(p.fecha)}<br/>Estado: ${esc(p.estado)}</div></div>
-    <p><b>Cliente:</b> ${esc(nombreCliente(p.cliente_id))}<br/><b>RUC:</b> ${esc(rucCliente(p.cliente_id) || "—")}<br/><b>Dirección:</b> ${esc(dirCliente(p.cliente_id) || "—")}<br/><b>Obra:</b> ${esc(nombreProy(p.proyecto_id))}<br/><b>Concepto:</b> ${esc(p.concepto)}</p>
+    <p><b>Cliente:</b> ${esc(nombreCliente(p.cliente_id))}<br/><b>RUC:</b> ${esc(rucCliente(p.cliente_id) || "—")}<br/><b>Dirección:</b> ${esc(dirCliente(p.cliente_id) || "—")}<br/><b>Obra:</b> ${esc(nombreProy(p.proyecto_id))}<br/><b>Orden de compra:</b> ${esc(p.concepto)}</p>
     <table><thead><tr><th>#</th><th>Descripción</th><th>Und</th><th class="r">Cant.</th><th class="r">P.U.</th><th class="r">Subtotal</th></tr></thead><tbody>
     ${its.map((i, k) => `<tr><td>${k + 1}</td><td>${esc(i.descripcion)}</td><td>${esc(i.unidad)}</td><td class="r">${Number(i.cantidad)}</td><td class="r">${f(Number(i.precio_unitario))}</td><td class="r">${f(Number(i.cantidad) * Number(i.precio_unitario))}</td></tr>`).join("")}
     </tbody></table>
@@ -358,9 +361,10 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
                 ))}
               </Select>
             </Campo>
-            <Campo etiqueta="Concepto / periodo">
-              <Input value={form.concepto} onChange={(e) => setForm({ ...form, concepto: e.target.value })} required maxLength={160} placeholder="Ej. Avance de obra septiembre" />
+            <Campo etiqueta="Orden de compra">
+              <Input value={form.concepto} onChange={(e) => setForm({ ...form, concepto: e.target.value })} required maxLength={160} placeholder="Ej. OC-2026-0154" />
             </Campo>
+
             <Campo etiqueta="Fecha">
               <Input type="date" value={form.fecha} onChange={(e) => setForm({ ...form, fecha: e.target.value })} required />
             </Campo>
@@ -447,31 +451,17 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
               </div>
             </div>
 
-            <div className="sm:col-span-4 grid gap-3 rounded-lg border border-line bg-muted/30 p-3 sm:grid-cols-6">
+            <div className="sm:col-span-4 grid gap-3 rounded-lg border border-line bg-muted/30 p-3 sm:grid-cols-4">
               {[
                 ["Valor neto", m.neto],
                 ["IGV 18%", m.igv],
                 ["Total", m.total],
-                ["Neto a cobrar", m.cobrar],
               ].map(([t, v]) => (
                 <div key={t as string}>
                   <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">{t}</p>
                   <p className="font-mono text-sm font-semibold text-ink">{form.moneda === "USD" ? `US$ ${(v as number).toFixed(2)}` : soles(v as number)}</p>
                 </div>
               ))}
-              <div>
-                <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                  {!m.aplica ? "Detracción / retención" : m.tipo === "detraccion" ? `Detracción ${form.pct_detraccion}% (S/)` : `Retención ${form.pct_detraccion}%`}
-                </p>
-                <p className="font-mono text-sm font-semibold text-ink">
-                  {!m.aplica ? "No aplica" : m.tipo === "detraccion" ? `S/ ${m.detraccionPen.toLocaleString("es-PE")}` : soles(m.retencionPen)}
-                </p>
-                {m.tipo === "detraccion" && m.aplica && (
-                  <p className="font-mono text-[10px] text-muted-foreground">
-                    {ctaDetraccion ? `Cta. detracciones ${ctaDetraccion.numero_cuenta || "—"}` : "Sin cuenta de detracciones registrada"}
-                  </p>
-                )}
-              </div>
               <div>
                 <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">Saldo obra / vence</p>
                 <p className={`font-mono text-sm font-semibold ${saldoSel - netoForm * tc >= 0 ? "text-good" : "text-bad"}`}>{soles(saldoSel)}</p>
@@ -484,6 +474,45 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
                 <Input value={form.observacion} onChange={(e) => setForm({ ...form, observacion: e.target.value })} maxLength={300} />
               </Campo>
             </div>
+
+            <div className="sm:col-span-4 rounded-lg border-2 border-line bg-card p-4">
+              <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Liquidación y cobro</p>
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+                    Detracción {m.tipo === "detraccion" && m.aplica ? `${form.pct_detraccion}% (S/ entero)` : ""}
+                  </p>
+                  <p className="font-mono text-base font-semibold text-ink">
+                    {m.tipo === "detraccion" && m.aplica ? `S/ ${m.detraccionPen.toLocaleString("es-PE")}` : "No aplica"}
+                  </p>
+                  {m.tipo === "detraccion" && m.aplica && (
+                    <p className="font-mono text-[10px] text-muted-foreground">
+                      {ctaDetraccion
+                        ? `Cta. detracciones BN ${ctaDetraccion.numero_cuenta || "—"}`
+                        : "Sin cuenta de detracciones registrada"}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+                    Retención IGV {m.tipo === "retencion" && m.aplica ? `${form.pct_detraccion}%` : ""}
+                  </p>
+                  <p className="font-mono text-base font-semibold text-ink">
+                    {m.tipo === "retencion" && m.aplica ? soles(m.retencionPen) : "No aplica"}
+                  </p>
+                  {m.tipo === "retencion" && m.aplica && (
+                    <p className="font-mono text-[10px] text-muted-foreground">Importe con dos decimales</p>
+                  )}
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">Neto a pagar</p>
+                  <p className="font-mono text-base font-semibold text-good">
+                    {form.moneda === "USD" ? `US$ ${m.cobrar.toFixed(2)}` : soles(m.cobrar)}
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <div className="sm:col-span-4 flex gap-2">
               <Boton type="submit">{editando ? "Guardar cambios" : "Guardar borrador"}</Boton>
               <Boton type="button" variante="linea" onClick={() => setAbierto(false)}>Cancelar</Boton>
@@ -509,7 +538,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
                       return {
                         Código: p.codigo, Fecha: p.fecha, Obra: nombreProy(p.proyecto_id), Cliente: nombreCliente(p.cliente_id),
                         RUC: rucCliente(p.cliente_id), Dirección: dirCliente(p.cliente_id),
-                        Concepto: p.concepto, Moneda: p.moneda, Neto: mm.neto, IGV: mm.igv, Total: mm.total,
+                        "Orden de compra": p.concepto, Moneda: p.moneda, Neto: mm.neto, IGV: mm.igv, Total: mm.total,
                         Régimen: mm.tipo === "detraccion" ? `Detracción ${p.pct_detraccion}%` : mm.tipo === "retencion" ? `Retención ${p.pct_detraccion}%` : "Ninguno",
                         "Detracción (S/)": mm.detraccionPen, "Retención (S/)": mm.retencionPen,
                         "Neto a cobrar": mm.cobrar, Condición: p.condicion_pago,
@@ -534,7 +563,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
             <thead>
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
                 <th className="px-5 py-2 font-medium">Código</th>
-                <th className="px-3 py-2 font-medium">Concepto</th>
+                <th className="px-3 py-2 font-medium">Orden de compra</th>
                 <th className="px-3 py-2 font-medium">Cliente / Obra</th>
                 <th className="px-3 py-2 font-medium">Condición</th>
                 <th className="px-3 py-2 text-right font-medium">Total</th>
