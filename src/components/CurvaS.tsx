@@ -142,7 +142,7 @@ export function CurvaS({
               />
             </span>
           }
-          valor={`${datos.spi.toFixed(2)} / ${datos.cpi.toFixed(2)}`}
+          valor={`${Number(datos.spi ?? 0).toFixed(2)} / ${Number(datos.cpi ?? 0).toFixed(2)}`}
           tono={datos.spi < 1 || datos.cpi < 1 ? "bad" : "good"}
         />
       </div>
