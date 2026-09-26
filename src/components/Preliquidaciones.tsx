@@ -447,31 +447,17 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
               </div>
             </div>
 
-            <div className="sm:col-span-4 grid gap-3 rounded-lg border border-line bg-muted/30 p-3 sm:grid-cols-6">
+            <div className="sm:col-span-4 grid gap-3 rounded-lg border border-line bg-muted/30 p-3 sm:grid-cols-4">
               {[
                 ["Valor neto", m.neto],
                 ["IGV 18%", m.igv],
                 ["Total", m.total],
-                ["Neto a cobrar", m.cobrar],
               ].map(([t, v]) => (
                 <div key={t as string}>
                   <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">{t}</p>
                   <p className="font-mono text-sm font-semibold text-ink">{form.moneda === "USD" ? `US$ ${(v as number).toFixed(2)}` : soles(v as number)}</p>
                 </div>
               ))}
-              <div>
-                <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                  {!m.aplica ? "Detracción / retención" : m.tipo === "detraccion" ? `Detracción ${form.pct_detraccion}% (S/)` : `Retención ${form.pct_detraccion}%`}
-                </p>
-                <p className="font-mono text-sm font-semibold text-ink">
-                  {!m.aplica ? "No aplica" : m.tipo === "detraccion" ? `S/ ${m.detraccionPen.toLocaleString("es-PE")}` : soles(m.retencionPen)}
-                </p>
-                {m.tipo === "detraccion" && m.aplica && (
-                  <p className="font-mono text-[10px] text-muted-foreground">
-                    {ctaDetraccion ? `Cta. detracciones ${ctaDetraccion.numero_cuenta || "—"}` : "Sin cuenta de detracciones registrada"}
-                  </p>
-                )}
-              </div>
               <div>
                 <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">Saldo obra / vence</p>
                 <p className={`font-mono text-sm font-semibold ${saldoSel - netoForm * tc >= 0 ? "text-good" : "text-bad"}`}>{soles(saldoSel)}</p>
@@ -484,6 +470,45 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
                 <Input value={form.observacion} onChange={(e) => setForm({ ...form, observacion: e.target.value })} maxLength={300} />
               </Campo>
             </div>
+
+            <div className="sm:col-span-4 rounded-lg border-2 border-line bg-card p-4">
+              <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Liquidación y cobro</p>
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+                    Detracción {m.tipo === "detraccion" && m.aplica ? `${form.pct_detraccion}% (S/ entero)` : ""}
+                  </p>
+                  <p className="font-mono text-base font-semibold text-ink">
+                    {m.tipo === "detraccion" && m.aplica ? `S/ ${m.detraccionPen.toLocaleString("es-PE")}` : "No aplica"}
+                  </p>
+                  {m.tipo === "detraccion" && m.aplica && (
+                    <p className="font-mono text-[10px] text-muted-foreground">
+                      {ctaDetraccion
+                        ? `Cta. detracciones BN ${ctaDetraccion.numero_cuenta || "—"}`
+                        : "Sin cuenta de detracciones registrada"}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+                    Retención IGV {m.tipo === "retencion" && m.aplica ? `${form.pct_detraccion}%` : ""}
+                  </p>
+                  <p className="font-mono text-base font-semibold text-ink">
+                    {m.tipo === "retencion" && m.aplica ? soles(m.retencionPen) : "No aplica"}
+                  </p>
+                  {m.tipo === "retencion" && m.aplica && (
+                    <p className="font-mono text-[10px] text-muted-foreground">Importe con dos decimales</p>
+                  )}
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">Neto a pagar</p>
+                  <p className="font-mono text-base font-semibold text-good">
+                    {form.moneda === "USD" ? `US$ ${m.cobrar.toFixed(2)}` : soles(m.cobrar)}
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <div className="sm:col-span-4 flex gap-2">
               <Boton type="submit">{editando ? "Guardar cambios" : "Guardar borrador"}</Boton>
               <Boton type="button" variante="linea" onClick={() => setAbierto(false)}>Cancelar</Boton>
