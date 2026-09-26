@@ -57,7 +57,9 @@ function Valorizaciones() {
     estado: "Pendiente de Pago",
     fecha_emision: hoy(),
     ...condicionVacia("Crédito"),
-    pct_detraccion: "4",
+    pct_detraccion: "12",
+    tipo_tributario: "detraccion" as TipoTributario,
+
     preliquidacion_id: "",
   });
   const [pestana, setPestana] = useState<"pre" | "fac">("pre");
