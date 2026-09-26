@@ -67,8 +67,9 @@ export function CurvaS({
       };
     });
     const ultimoCosto = [...puntos].reverse().find((p) => p.costo !== null);
-    const indiceHoy = Math.max(0, periodos.findIndex((p) => p.inicio <= hoyTexto && hoyTexto <= p.fin));
-    const indiceCorte = indiceHoy >= 0 ? indiceHoy : hoyTexto > periodos[periodos.length - 1]!.fin ? periodos.length - 1 : 0;
+    const indiceHoy = periodos.findIndex((p) => p.inicio <= hoyTexto && hoyTexto <= p.fin);
+    const ultimoPeriodo = periodos.at(-1);
+    const indiceCorte = indiceHoy >= 0 ? indiceHoy : ultimoPeriodo && hoyTexto > ultimoPeriodo.fin ? periodos.length - 1 : 0;
     const programadoHoy = programadoCronograma(partidas, cronograma, hoyTexto, periodicidad) ?? avanceProgramadoOficial ?? 0;
 
     return {
