@@ -284,6 +284,14 @@ function Valorizaciones() {
               ))}
             </Select>
           </Campo>
+          {clienteSel && (
+            <div className="sm:col-span-2 rounded-lg border border-line bg-muted/30 p-3 font-mono text-xs text-muted-foreground">
+              <span className="font-semibold text-ink">{clienteSel.razon_social}</span>
+              {" · RUC "}{clienteSel.numero_documento || "—"}
+              {" · "}{clienteSel.direccion || "Sin dirección registrada"}
+            </div>
+          )}
+
           <Campo etiqueta="Concepto">
             <Input value={form.concepto} onChange={(e) => setForm({ ...form, concepto: e.target.value })} required maxLength={160} />
           </Campo>
