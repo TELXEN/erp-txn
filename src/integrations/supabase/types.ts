@@ -2060,6 +2060,36 @@ export type Database = {
           },
         ]
       }
+      rubros_ingreso: {
+        Row: {
+          activo: boolean
+          created_at: string
+          descripcion: string
+          id: string
+          nombre: string
+          orden: number
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          created_at?: string
+          descripcion?: string
+          id?: string
+          nombre: string
+          orden?: number
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          created_at?: string
+          descripcion?: string
+          id?: string
+          nombre?: string
+          orden?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       tareos: {
         Row: {
           asistencia: number
@@ -2341,7 +2371,8 @@ export type Database = {
           numero_operacion: string
           pct_detraccion: number
           preliquidacion_id: string | null
-          proyecto_id: string
+          proyecto_id: string | null
+          rubro: string
           tipo_cambio: number
           tipo_tributario: string
           total: number
@@ -2371,7 +2402,8 @@ export type Database = {
           numero_operacion?: string
           pct_detraccion?: number
           preliquidacion_id?: string | null
-          proyecto_id: string
+          proyecto_id?: string | null
+          rubro?: string
           tipo_cambio?: number
           tipo_tributario?: string
           total?: number
@@ -2401,7 +2433,8 @@ export type Database = {
           numero_operacion?: string
           pct_detraccion?: number
           preliquidacion_id?: string | null
-          proyecto_id?: string
+          proyecto_id?: string | null
+          rubro?: string
           tipo_cambio?: number
           tipo_tributario?: string
           total?: number

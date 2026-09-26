@@ -11,6 +11,7 @@ import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
 import { ofertaProyecto, usePartidas, useProyectos, useTiposPresupuesto, useVentas } from "@/lib/datos";
 import { exportarExcel } from "@/lib/exportar";
 import { CamposCondicion, InsigniaPago, condicionVacia, datosCondicion } from "@/components/CondicionPago";
+import { useRubrosIngreso } from "@/components/RubrosIngreso";
 import { Preliquidaciones, calcularMontos, REGIMENES, type Preliquidacion, type TipoTributario } from "@/components/Preliquidaciones";
 
 export const Route = createFileRoute("/_authenticated/valorizaciones")({
@@ -30,6 +31,8 @@ function Valorizaciones() {
   const qc = useQueryClient();
   const { data: proyectos = [] } = useProyectos();
   const { data: ventas = [] } = useVentas();
+  const { data: rubros = [] } = useRubrosIngreso();
+  const [filtroRubro, setFiltroRubro] = useState("");
   const { data: partidas = [] } = usePartidas();
   const { data: tiposPresupuesto = [] } = useTiposPresupuesto();
   const { data: clientes = [] } = useQuery({
@@ -47,6 +50,7 @@ function Valorizaciones() {
   });
   const [form, setForm] = useState({
     proyecto_id: "",
+    rubro: "Proyectos / Obras",
     cliente_id: "",
     concepto: "",
     monto: "",
@@ -67,13 +71,14 @@ function Valorizaciones() {
   const [error, setError] = useState("");
   const [avisoCobro, setAvisoCobro] = useState("");
 
-  const nombreProy = (id: string) => proyectos.find((p) => p.id === id)?.nombre ?? "—";
+  const nombreProy = (id: string | null) => proyectos.find((p) => p.id === id)?.nombre ?? "—";
   const datosCliente = (id: string | null) => clientes.find((c) => c.id === id) ?? null;
   const nombreCliente = (id: string | null) => datosCliente(id)?.razon_social ?? "—";
   const clienteSel = datosCliente(form.cliente_id || null);
 
   const ventasFiltradas = ventas.filter((v) =>
-    coincide(busqueda, v.concepto, nombreCliente(v.cliente_id), nombreProy(v.proyecto_id), v.numero_factura),
+    (!filtroRubro || ((v as { rubro?: string }).rubro ?? "Proyectos / Obras") === filtroRubro) &&
+    coincide(busqueda, (v as { rubro?: string }).rubro ?? "", v.concepto, nombreCliente(v.cliente_id), nombreProy(v.proyecto_id), v.numero_factura),
   );
   const equivalente = Number(form.monto || 0) * (form.moneda === "USD" ? Number(form.tipo_cambio || 0) : 1);
   const totalCobrado = ventas.filter((v) => v.estado === "Pagado").reduce((s, v) => s + Number(v.monto_soles), 0);
@@ -107,6 +112,7 @@ function Valorizaciones() {
     setForm({
       ...form,
       proyecto_id: pl.proyecto_id,
+      rubro: "Proyectos / Obras",
       cliente_id: pl.cliente_id ?? "",
       concepto: pl.concepto,
       monto: String(Math.round(neto * 100) / 100),
@@ -145,10 +151,11 @@ function Valorizaciones() {
       return setError("Ingresa un tipo de cambio válido para dólares.");
     const tc = form.moneda === "USD" ? Number(form.tipo_cambio) : 1;
     const nuevoSoles = Number(form.monto || 0) * tc;
-    const ofertado = ofertadoDe(form.proyecto_id);
-    const facturado = facturadoDe(form.proyecto_id);
+    if (!form.rubro) return setError("Elige el rubro del ingreso.");
+    const ofertado = form.proyecto_id ? ofertadoDe(form.proyecto_id) : Infinity;
+    const facturado = form.proyecto_id ? facturadoDe(form.proyecto_id) : 0;
     const saldo = ofertado - facturado;
-    if (ofertado <= 0)
+    if (form.proyecto_id && ofertado <= 0)
       return setError(
         "Esta obra aún no tiene presupuesto ofertado. Registra primero sus partidas y los porcentajes de gastos generales y utilidad.",
       );
@@ -169,7 +176,8 @@ function Valorizaciones() {
       monto_retencion: mm.retencionPen,
       detraccion_estado: mm.aplica && mm.tipo === "detraccion" ? "Pendiente" : "No aplica",
 
-      proyecto_id: form.proyecto_id,
+      proyecto_id: form.proyecto_id || null,
+      rubro: form.rubro,
       cliente_id: form.cliente_id,
       concepto: form.concepto.trim(),
       monto: Number(form.monto || 0),
@@ -194,7 +202,7 @@ function Valorizaciones() {
   async function cambiarEstado(id: string, estado: string) {
     setAvisoCobro("");
     const venta = ventas.find((v) => v.id === id);
-    if (venta && estado === "Pagado") {
+    if (venta && venta.proyecto_id && estado === "Pagado") {
       const ofertado = ofertadoDe(venta.proyecto_id);
       const cobrado = ventas
         .filter((v) => v.proyecto_id === venta.proyecto_id && v.estado === "Pagado" && v.id !== id)
@@ -227,6 +235,7 @@ function Valorizaciones() {
                 {
                   nombre: "Ingresos",
                   filas: ventas.map((v) => ({
+                    Rubro: (v as { rubro?: string }).rubro ?? "Proyectos / Obras",
                     Proyecto: nombreProy(v.proyecto_id),
                     Cliente: nombreCliente(v.cliente_id),
                     "Orden de compra": v.concepto,
@@ -264,9 +273,17 @@ function Valorizaciones() {
       <>
       <Panel titulo={form.preliquidacion_id ? "Registrar factura desde preliquidación" : "Registrar factura emitida"} className="mb-4">
         <form onSubmit={guardar} className="grid gap-3 p-5 sm:grid-cols-4">
-          <Campo etiqueta="Proyecto">
-            <Select value={form.proyecto_id} onChange={(e) => setForm({ ...form, proyecto_id: e.target.value })} required>
+          <Campo etiqueta="Rubro de ingreso">
+            <Select value={form.rubro} onChange={(e) => setForm({ ...form, rubro: e.target.value })} required>
               <option value="">Selecciona...</option>
+              {rubros.filter((r) => r.activo || r.nombre === form.rubro).map((r) => (
+                <option key={r.id} value={r.nombre}>{r.nombre}</option>
+              ))}
+            </Select>
+          </Campo>
+          <Campo etiqueta="Proyecto (opcional)">
+            <Select value={form.proyecto_id} onChange={(e) => setForm({ ...form, proyecto_id: e.target.value })}>
+              <option value="">Sin obra (ingreso independiente)</option>
               {proyectos.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.nombre}
@@ -429,6 +446,10 @@ function Valorizaciones() {
         titulo="Facturas emitidas"
         extra={
           <div className="flex items-center gap-2">
+            <Select className="py-1 text-xs" value={filtroRubro} onChange={(e) => setFiltroRubro(e.target.value)}>
+              <option value="">Todos los rubros</option>
+              {rubros.map((r) => <option key={r.id} value={r.nombre}>{r.nombre}</option>)}
+            </Select>
             <Buscador
               valor={busqueda}
               onChange={setBusqueda}
@@ -441,6 +462,25 @@ function Valorizaciones() {
           </div>
         }
       >
+        {(() => {
+          const porRubro = new Map<string, number>();
+          ventas.forEach((v) => {
+            const k = (v as { rubro?: string }).rubro ?? "Proyectos / Obras";
+            porRubro.set(k, (porRubro.get(k) ?? 0) + Number(v.monto_soles));
+          });
+          const total = [...porRubro.values()].reduce((x, y) => x + y, 0) || 1;
+          return porRubro.size > 0 ? (
+            <div className="flex flex-wrap gap-2 border-b border-line px-5 py-3">
+              {[...porRubro.entries()].sort((x, y) => y[1] - x[1]).map(([k, m]) => (
+                <button key={k} type="button" onClick={() => setFiltroRubro(filtroRubro === k ? "" : k)}
+                  className={`rounded-md border px-3 py-1.5 text-left font-mono text-[11px] ${filtroRubro === k ? "border-primary bg-primary/10" : "border-line hover:bg-muted"}`}>
+                  <div className="text-muted-foreground">{k}</div>
+                  <div className="font-semibold text-ink">{soles(m)} <span className="font-normal text-muted-foreground">· {Math.round((m / total) * 100)}%</span></div>
+                </button>
+              ))}
+            </div>
+          ) : null;
+        })()}
         {avisoCobro && <p className="px-5 pt-3 font-mono text-xs text-bad">{avisoCobro}</p>}
         {ventasFiltradas.length === 0 ? (
           <Vacio
@@ -458,7 +498,7 @@ function Valorizaciones() {
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
                 <th className="px-5 py-2 font-medium">Orden de compra</th>
                 <th className="px-3 py-2 font-medium">Cliente</th>
-                <th className="px-3 py-2 font-medium">Proyecto</th>
+                <th className="px-3 py-2 font-medium">Rubro / Proyecto</th>
                 <th className="px-3 py-2 font-medium">Factura</th>
                 <th className="px-3 py-2 font-medium">Condición</th>
                 <th className="px-3 py-2 font-medium">Pago</th>
@@ -473,7 +513,7 @@ function Valorizaciones() {
                 <tr key={v.id} className="border-b border-line/60 last:border-0">
                   <td className="px-5 py-2.5 font-semibold text-ink"><Resaltar texto={v.concepto} termino={busqueda}/></td>
                   <td className="px-3 py-2.5 text-muted-foreground"><Resaltar texto={nombreCliente(v.cliente_id)} termino={busqueda}/></td>
-                  <td className="px-3 py-2.5 text-muted-foreground"><Resaltar texto={nombreProy(v.proyecto_id)} termino={busqueda}/></td>
+                  <td className="px-3 py-2.5 text-muted-foreground"><div className="text-ink"><Resaltar texto={(v as { rubro?: string }).rubro ?? "Proyectos / Obras"} termino={busqueda}/></div><Resaltar texto={nombreProy(v.proyecto_id)} termino={busqueda}/></td>
                   <td className="px-3 py-2.5 text-muted-foreground"><Resaltar texto={v.numero_factura || "—"} termino={busqueda}/></td>
                   <td className="px-3 py-2.5">
                     <InsigniaPago
