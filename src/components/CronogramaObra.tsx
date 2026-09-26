@@ -95,11 +95,14 @@ export function CronogramaObra() {
         return false;
       }
     }
-    const registros = [...cambios.entries()].map(([k, porcentaje]) => {
+    const registros = [...cambios.entries()].flatMap(([k, porcentaje]) => {
       const [partidaId, fechaInicio] = k.split("|");
-      const [anio, mes] = fechaInicio?.split("-").map(Number) ?? [];
-      return { partida_id: partidaId, periodicidad: per, fecha_inicio: fechaInicio, anio, mes, pct: porcentaje };
+      if (!partidaId || !fechaInicio) return [];
+      const [anio, mes] = fechaInicio.split("-").map(Number);
+      if (anio === undefined || mes === undefined) return [];
+      return [{ partida_id: partidaId, periodicidad: per, fecha_inicio: fechaInicio, anio, mes, pct: porcentaje }];
     });
+    if (registros.length === 0) return false;
     setGuardando(true);
     setError("");
     const { error: err } = await supabase
