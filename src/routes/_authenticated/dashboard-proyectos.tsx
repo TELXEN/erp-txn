@@ -59,20 +59,22 @@ function DashboardProyectos() {
     () =>
       proyectos.map((p) => {
         const propias = partidas.filter((x) => x.proyecto_id === p.id);
+        const idsPadre = new Set(propias.map((x) => x.padre_id).filter(Boolean));
+        const partidasAvance = propias.filter((x) => !idsPadre.has(x.id));
         const presupuestoDesglosado = resumenPresupuesto(propias, tiposPresupuesto);
         const presupuesto = presupuestoDesglosado.vigente;
         const costoReal = costoRealProyecto(p.id, gastosD, tareos, gastosG);
         const partidasContractuales = propias.filter((x) => esContractual(x.tipo_presupuesto ?? "Contractual", tiposPresupuesto)).length;
         const partidasAdicionales = propias.length - partidasContractuales;
-        const baseAvance = propias.reduce((s, x) => s + Number(x.presupuesto_inicial), 0);
+        const baseAvance = partidasAvance.reduce((s, x) => s + Number(x.presupuesto_inicial), 0);
         const avance =
           baseAvance > 0
-            ? propias.reduce((s, x) => s + Number(x.avance_pct) * Number(x.presupuesto_inicial), 0) / baseAvance
-            : propias.length > 0
-              ? propias.reduce((s, x) => s + Number(x.avance_pct), 0) / propias.length
+            ? partidasAvance.reduce((s, x) => s + Number(x.avance_pct) * Number(x.presupuesto_inicial), 0) / baseAvance
+            : partidasAvance.length > 0
+              ? partidasAvance.reduce((s, x) => s + Number(x.avance_pct), 0) / partidasAvance.length
               : 0;
         const gastado = presupuesto > 0 ? (costoReal / presupuesto) * 100 : 0;
-        const porCronograma = programadoCronograma(propias, cronograma, hoyISO(), p.periodicidad_cronograma ?? "mes");
+        const porCronograma = programadoCronograma(partidasAvance, cronograma, hoyISO(), p.periodicidad_cronograma ?? "mes");
         const programado = porCronograma ?? (p.avance_programado_pct == null ? null : Number(p.avance_programado_pct));
         const desviacion = programado === null ? null : avance - programado;
         return {
@@ -88,6 +90,7 @@ function DashboardProyectos() {
           avance,
           gastado,
           programado,
+          usaCalendario: porCronograma !== null,
           desviacion,
           diferencia: presupuesto - costoReal,
           desviado: gastado > avance,
@@ -179,7 +182,7 @@ function DashboardProyectos() {
           "Costo Real (S/)": f.costoReal,
           "Avance Fisico %": Number(f.avance.toFixed(1)),
           "Avance Programado %": f.programado === null ? "Sin registro" : Number(f.programado.toFixed(2)),
-          "Fecha de Corte": f.proyecto.fecha_corte_programado ?? "Sin registro",
+          "Fecha de Corte": f.usaCalendario ? hoyISO() : (f.proyecto.fecha_corte_programado ?? "Sin registro"),
           "Desviación %": f.desviacion === null ? "Sin registro" : Number(f.desviacion.toFixed(2)),
           "Estado Cronograma": f.desviacion === null ? "Sin registro" : f.desviacion < -0.05 ? "Retrasada" : f.desviacion > 0.05 ? "Adelantada" : "En plazo",
           "Presupuesto Gastado %": Number(f.gastado.toFixed(1)),
@@ -213,7 +216,7 @@ function DashboardProyectos() {
           `${f.avance.toFixed(1)}%`,
           f.programado === null ? "Sin registro" : `${f.programado.toFixed(2)}%`,
           f.desviacion === null ? "—" : `${f.desviacion >= 0 ? "+" : ""}${f.desviacion.toFixed(2)}%`,
-          f.proyecto.fecha_corte_programado ? fecha(f.proyecto.fecha_corte_programado) : "Sin registro",
+           f.usaCalendario ? fecha(hoyISO()) : f.proyecto.fecha_corte_programado ? fecha(f.proyecto.fecha_corte_programado) : "Sin registro",
         ]),
       },
       archivo: "dashboard-proyectos",
@@ -341,7 +344,7 @@ function DashboardProyectos() {
               <p className="mt-2 font-mono text-sm font-semibold text-good">+{pct((obraSel?.avance ?? 0) - programadoSel)} · En plazo o adelantada</p>
             )}
             <p className="mt-1 font-mono text-[10px] text-muted-foreground">
-              Corte: {obraSel?.proyecto.fecha_corte_programado ? fecha(obraSel.proyecto.fecha_corte_programado) : "Sin registrar"}
+              Corte: {obraSel?.usaCalendario ? fecha(hoyISO()) : obraSel?.proyecto.fecha_corte_programado ? fecha(obraSel.proyecto.fecha_corte_programado) : "Sin registrar"}
             </p>
           </div>
         </div>
