@@ -276,6 +276,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
       condicion_pago: p.condicion_pago,
       dias_credito: String(p.dias_credito),
       observacion: p.observacion,
+      amortizacion: String(p.amortizacion ?? 0),
     });
     const its = itemsDe(p.id);
     setLineas(
@@ -286,6 +287,12 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
     setEditando(p.id);
     setError("");
     setAbierto(true);
+  }
+
+  function duplicar(p: Preliquidacion) {
+    editar(p);
+    setEditando(null);
+    setForm((f) => ({ ...f, fecha: hoy(), concepto: p.concepto, observacion: "" }));
   }
 
   function generarCodigo(proyectoId: string) {
