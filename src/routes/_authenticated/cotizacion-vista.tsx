@@ -52,7 +52,7 @@ function altoEstimadoItem(item: ItemParaPagina) {
   const lineasNombre = Math.max(1, Math.ceil((item.nombre || "").length / 48));
   const detalle = [item.especialidad, item.categoria].filter(Boolean).join(" · ");
   const lineasDetalle = detalle ? Math.max(1, Math.ceil(detalle.length / 58)) : 0;
-  return 34 + Math.max(0, lineasNombre - 1) * 14 + lineasDetalle * 14;
+  return 44 + Math.max(0, lineasNombre - 1) * 14 + lineasDetalle * 14;
 }
 
 function paginarItems<T extends ItemParaPagina>(items: T[]) {
@@ -62,8 +62,8 @@ function paginarItems<T extends ItemParaPagina>(items: T[]) {
   let primeraHoja = true;
 
   while (pendientes.length > 0) {
-    const capacidad = primeraHoja ? 500 : 690;
-    const capacidadFinal = capacidad - 235;
+    const capacidad = primeraHoja ? 430 : 690;
+    const capacidadFinal = primeraHoja ? 200 : 390;
     const altoPendiente = pendientes.reduce((suma, item) => suma + altoEstimadoItem(item), 0);
 
     if (altoPendiente <= capacidadFinal) {
@@ -79,6 +79,7 @@ function paginarItems<T extends ItemParaPagina>(items: T[]) {
       if (!proximo) break;
       const siguiente = altoEstimadoItem(proximo);
       if (pagina.length > 0 && usado + siguiente > capacidad) break;
+      if (pagina.length > 0 && pendientes.length === 1) break;
       const item = pendientes.shift();
       if (!item) break;
       pagina.push(item);
@@ -148,7 +149,7 @@ function VistaCotizacion() {
           image: { type: "jpeg", quality: 0.98 },
           html2canvas: { scale: 3, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: 700, backgroundColor: "#ffffff", logging: false },
           jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-          pagebreak: { mode: ["css", "legacy"], before: ".cotizacion-hoja-siguiente", avoid: ["tr", ".bloque-final"] },
+          pagebreak: { mode: ["css", "legacy"], avoid: ["tr", ".bloque-final"] },
         } as never)
         .from(el)
         .save();
@@ -283,7 +284,7 @@ function VistaCotizacion() {
             return (
               <section
                 key={`hoja-${paginaIndex + 1}`}
-                className={`cotizacion-hoja ${paginaIndex > 0 ? "cotizacion-hoja-siguiente" : ""}`}
+                className="cotizacion-hoja"
                 style={{ position: "relative", width: 700, height: 990, padding: "34px 30px 38px", overflow: "hidden", background: C.white, pageBreakAfter: esUltima ? "auto" : "always", boxSizing: "border-box" }}
               >
                 {encabezadoHoja(paginaIndex + 1, paginas.length)}
