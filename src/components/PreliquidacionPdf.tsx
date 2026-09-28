@@ -47,7 +47,7 @@ export type DatosPreliquidacionPdf = {
   diasCredito: number;
   fechaVencimiento: string;
   cuentaDetracciones: CuentaPdf;
-  cuentasTodas: { nombre: string; numero: string; cci: string; moneda: string; tipoCuenta: string }[];
+  cuentasTodas: { nombre: string; numero: string; cci: string; moneda: string; tipoCuenta: string; esDetraccion?: boolean }[];
   observacion: string;
 };
 
