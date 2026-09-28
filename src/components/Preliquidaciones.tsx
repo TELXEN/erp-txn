@@ -296,12 +296,9 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
     setForm((f) => ({ ...f, fecha: hoy(), concepto: p.concepto, observacion: "" }));
   }
 
-  function generarCodigo(proyectoId: string) {
-    const proy = proyectos.find((p) => p.id === proyectoId);
-    const base = `PL-${proy?.codigo || "OBRA"}-`;
-    let n = lista.filter((p) => p.codigo.startsWith(base)).length + 1;
-    while (lista.some((p) => p.codigo === base + String(n).padStart(3, "0"))) n++;
-    return base + String(n).padStart(3, "0");
+  async function generarCodigo() {
+    const { reservarCodigo } = await import("@/lib/codigos.functions");
+    return reservarCodigo({ data: { tipo: "preliquidacion" } });
   }
 
   async function guardar(e: React.FormEvent) {
@@ -333,9 +330,15 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
       if (err) return setError(err.message);
       await supabase.from("preliquidacion_items").delete().eq("preliquidacion_id", editando);
     } else {
+      let codigo: string;
+      try {
+        codigo = await generarCodigo();
+      } catch (ex) {
+        return setError(ex instanceof Error ? ex.message : "No se pudo generar el código.");
+      }
       const { data, error: err } = await supabase
         .from("preliquidaciones")
-        .insert({ ...datos, codigo: generarCodigo(form.proyecto_id) } as never)
+        .insert({ ...datos, codigo } as never)
         .select("id")
         .single();
       if (err) return setError(err.message);
