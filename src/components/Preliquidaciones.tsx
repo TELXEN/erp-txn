@@ -9,6 +9,7 @@ import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
 import { exportarExcel } from "@/lib/exportar";
 import { useEmpresa } from "@/lib/empresa";
 import { useUnidadesMedida } from "@/lib/unidades";
+import { descargarPreliquidacionPdf } from "@/components/PreliquidacionPdf";
 
 
 export const IGV = 0.18;
@@ -169,6 +170,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
   const [busqueda, setBusqueda] = useState("");
   const [selectorPartidas, setSelectorPartidas] = useState(false);
   const [marcadas, setMarcadas] = useState<string[]>([]);
+  const [exportandoPdf, setExportandoPdf] = useState<string | null>(null);
 
   const { data: partidasObra = [] } = useQuery({
     queryKey: ["partidas", "obra-pl", form.proyecto_id],
@@ -383,55 +385,66 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
     qc.invalidateQueries({ queryKey: ["preliquidaciones"] });
   }
 
-  function imprimir(p: Preliquidacion) {
+  async function imprimir(p: Preliquidacion) {
     const bruto = brutoDe(p.id);
     const amort = amortDe(p.id);
     const cc = ctaComercial(p.moneda);
     const its = itemsDe(p.id);
     const neto = netoDe(p.id);
     const mm = calcularMontos(neto, Number(p.pct_detraccion), Number(p.tipo_cambio), p.tipo_tributario ?? "detraccion");
-    const soles2 = (n: number) => `S/ ${n.toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-    const solesEnt = (n: number) => `S/ ${n.toLocaleString("es-PE", { maximumFractionDigits: 0 })}`;
-
-    const sim = p.moneda === "USD" ? "US$" : "S/";
-    const f = (n: number) => `${sim} ${n.toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-    const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
-    const color = empresa?.color_marca || "#003352";
-    const w = window.open("", "_blank");
-    if (!w) return;
-    w.document.write(`<html><head><title>${esc(p.codigo)}</title><style>
-      body{font-family:Arial,sans-serif;font-size:12px;color:#222;margin:32px}
-      .cab{display:flex;justify-content:space-between;border-bottom:3px solid ${color};padding-bottom:10px;margin-bottom:16px}
-      h1{font-size:18px;margin:0;color:${color}} table{width:100%;border-collapse:collapse;margin-top:12px}
-      th{background:${color};color:#fff;text-align:left;padding:6px;font-size:11px} td{padding:6px;border-bottom:1px solid #ddd}
-      .r{text-align:right} .tot td{border:0;padding:3px 6px} .b{font-weight:bold} .nota{margin-top:24px;font-size:10px;color:#666}
-    </style></head><body>
-    <div class="cab"><div>${empresa?.logo_url ? `<img src="${esc(empresa.logo_url)}" style="height:48px"/><br/>` : ""}
-      <b>${esc(empresa?.razon_social || "TELXEN SAC")}</b><br/>RUC ${esc(empresa?.ruc || "")}<br/>${esc(empresa?.direccion || "")}</div>
-      <div style="text-align:right"><h1>PRELIQUIDACIÓN</h1><b>${esc(p.codigo)}</b><br/>Fecha: ${fmtFecha(p.fecha)}<br/>Estado: ${esc(p.estado)}</div></div>
-    <p><b>Cliente:</b> ${esc(nombreCliente(p.cliente_id))}<br/><b>RUC:</b> ${esc(rucCliente(p.cliente_id) || "—")}<br/><b>Dirección:</b> ${esc(dirCliente(p.cliente_id) || "—")}<br/><b>Obra:</b> ${esc(nombreProy(p.proyecto_id))}<br/><b>Orden de compra:</b> ${esc(p.concepto)}</p>
-    <table><thead><tr><th>#</th><th>Descripción</th><th>Und</th><th class="r">Cant.</th><th class="r">P.U.</th><th class="r">Subtotal</th></tr></thead><tbody>
-    ${its.map((i, k) => `<tr><td>${k + 1}</td><td>${esc(i.descripcion)}</td><td>${esc(i.unidad)}</td><td class="r">${Number(i.cantidad)}</td><td class="r">${f(Number(i.precio_unitario))}</td><td class="r">${f(Number(i.cantidad) * Number(i.precio_unitario))}</td></tr>`).join("")}
-    </tbody></table>
-    <table class="tot" style="width:360px;margin-left:auto">
-      ${amort > 0 ? `<tr><td>Valor ejecutado</td><td class="r">${f(bruto)}</td></tr><tr><td>Amortización de adelanto (−)</td><td class="r">${f(amort)}</td></tr>` : ""}
-      <tr><td>Valor neto</td><td class="r">${f(mm.neto)}</td></tr>
-      <tr><td>IGV 18%</td><td class="r">${f(mm.igv)}</td></tr>
-      <tr class="b"><td>Total</td><td class="r">${f(mm.total)}</td></tr>
-      ${mm.detraccionPen > 0 ? `<tr><td>Detracción ${p.pct_detraccion}% (SPOT, en soles)</td><td class="r">${solesEnt(mm.detraccionPen)}</td></tr>` : ""}
-      ${mm.retencionPen > 0 ? `<tr><td>Retención IGV ${p.pct_detraccion}%</td><td class="r">${soles2(mm.retencionPen)}</td></tr>` : ""}
-      ${!mm.aplica ? `<tr><td>Detracción / retención</td><td class="r">No aplica</td></tr>` : ""}
-      <tr class="b"><td>Neto a depositar en cuenta</td><td class="r">${f(mm.cobrar)}</td></tr>
-      ${p.moneda === "USD" ? `<tr><td colspan="2" style="font-size:10px;color:#666">T.C. referencial: ${Number(p.tipo_cambio).toFixed(3)} · Total en soles: ${soles2(mm.total * Number(p.tipo_cambio))}</td></tr>` : ""}
-    </table>
-    <p><b>Condición de pago:</b> ${esc(p.condicion_pago)}${p.condicion_pago === "Crédito" ? ` a ${p.dias_credito} días · vence ${fmtFecha(p.fecha_vencimiento)}` : ""}</p>
-    <p><b>Cuenta para abono del neto (${p.moneda === "USD" ? "dólares" : "soles"}):</b> ${cc ? `${esc(cc.nombre)} · Cta. N° ${esc(cc.numero_cuenta || "—")}${cc.cci ? ` · CCI ${esc(cc.cci)}` : ""}` : "Registrar una cuenta bancaria en esta moneda en Catálogos Maestros"}</p>
-    ${mm.detraccionPen > 0 ? `<p><b>Cuenta de detracciones (Banco de la Nación):</b> ${ctaDetraccion ? `${esc(ctaDetraccion.nombre)} · Cta. N° ${esc(ctaDetraccion.numero_cuenta || "—")}${ctaDetraccion.cci ? ` · CCI ${esc(ctaDetraccion.cci)}` : ""}` : "Registrar una cuenta de tipo Detracciones en Catálogos Maestros"}</p>` : ""}
-    ${p.observacion ? `<p><b>Observaciones:</b> ${esc(p.observacion).replace(/\n/g, "<br/>")}</p>` : ""}
-    <p class="nota">Documento referencial previo a la emisión del comprobante electrónico. No tiene valor tributario.</p>
-    <script>window.onload=()=>window.print()</script></body></html>`);
-    w.document.close();
-
+    setExportandoPdf(p.id);
+    try {
+      await descargarPreliquidacionPdf({
+        codigo: p.codigo,
+        fecha: p.fecha,
+        estado: p.estado,
+        empresa: {
+          razonSocial: empresa?.razon_social || "TELXEN SAC",
+          ruc: empresa?.ruc || "",
+          direccion: empresa?.direccion || "",
+          telefono: empresa?.telefono || "",
+          email: empresa?.email || "",
+          web: empresa?.web || "",
+          logoUrl: empresa?.logo_url || "",
+        },
+        cliente: {
+          razonSocial: nombreCliente(p.cliente_id),
+          ruc: rucCliente(p.cliente_id),
+          direccion: dirCliente(p.cliente_id),
+        },
+        proyecto: nombreProy(p.proyecto_id),
+        ordenCompra: p.concepto,
+        moneda: p.moneda,
+        tipoCambio: Number(p.tipo_cambio || 1),
+        lineas: its.map((item) => ({
+          descripcion: item.descripcion,
+          unidad: item.unidad,
+          cantidad: Number(item.cantidad),
+          precioUnitario: Number(item.precio_unitario),
+        })),
+        valorEjecutado: bruto,
+        amortizacion: amort,
+        valorNeto: mm.neto,
+        igv: mm.igv,
+        total: mm.total,
+        tipoTributario: p.tipo_tributario ?? "detraccion",
+        porcentajeTributario: Number(p.pct_detraccion || 0),
+        aplicaTributo: mm.aplica,
+        detraccionPen: mm.detraccionPen,
+        retencionPen: mm.retencionPen,
+        netoDepositar: mm.cobrar,
+        condicionPago: p.condicion_pago,
+        diasCredito: Number(p.dias_credito || 0),
+        fechaVencimiento: p.fecha_vencimiento || "",
+        cuentaComercial: cc ? { nombre: cc.nombre, numero: cc.numero_cuenta, cci: cc.cci } : null,
+        cuentaDetracciones: ctaDetraccion ? { nombre: ctaDetraccion.nombre, numero: ctaDetraccion.numero_cuenta, cci: ctaDetraccion.cci } : null,
+        observacion: p.observacion || "",
+      });
+    } catch (err) {
+      window.alert(err instanceof Error ? `No se pudo generar el PDF: ${err.message}` : "No se pudo generar el PDF.");
+    } finally {
+      setExportandoPdf(null);
+    }
   }
 
   const editable = (p: Preliquidacion) => p.estado === "Borrador" || p.estado === "Observada";
@@ -773,7 +786,17 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
                         {p.estado === "Aprobada" && (
                           <Boton onClick={() => onFacturar(p, netoDe(p.id))}><Receipt size={13} /> Facturar</Boton>
                         )}
-                        <button onClick={() => imprimir(p)} className="text-muted-foreground hover:text-ink" aria-label="Imprimir / PDF"><Printer size={14} /></button>
+                        <Boton
+                          type="button"
+                          variante="linea"
+                          className="h-8 w-8 px-0"
+                          disabled={exportandoPdf === p.id}
+                          onClick={() => void imprimir(p)}
+                          aria-label={`Descargar preliquidación ${p.codigo} en PDF`}
+                          title="Descargar PDF"
+                        >
+                          <Printer size={14} />
+                        </Boton>
                         <button onClick={() => duplicar(p)} className="text-muted-foreground hover:text-ink" aria-label="Duplicar" title="Duplicar"><Copy size={14} /></button>
                         {editable(p) && (
                           <>
