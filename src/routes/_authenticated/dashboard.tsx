@@ -648,6 +648,7 @@ function Dashboard() {
           )}
         </Panel>
       </div>
+      </div>
     </>
   );
 }
