@@ -34,11 +34,10 @@ const C = {
   slate400: "#94a3b8",
   slate100: "#f1f5f9",
   slate50: "#f8fafc",
-  emerald600: "#059669",
+  emerald800: "#065f46",
+  emerald700: "#047857",
   emerald50: "#ecfdf5",
   white: "#ffffff",
-  marca: "#0f274a",
-  ambar: "#fbbf24",
 };
 
 const S = (n: number) =>
@@ -283,19 +282,19 @@ function VistaCotizacion() {
 
   function encabezadoHoja(numero: number, totalHojas: number) {
     return (
-      <div className="flex items-start justify-between gap-5" style={{ borderBottom: `2px solid ${C.marca}`, paddingBottom: 14 }}>
+      <div className="flex items-start justify-between gap-5" style={{ borderBottom: `2px solid ${C.emerald700}`, paddingBottom: 14 }}>
         <div className="flex items-center" style={{ minWidth: 150 }}>
           {empresa?.logo_url ? (
             <img src={empresa.logo_url} alt="Logotipo de la empresa" style={{ display: "block", maxWidth: 150, maxHeight: 62, objectFit: "contain" }} />
           ) : (
-            <div className="flex items-center justify-center" style={{ width: 62, height: 62, borderRadius: 12, background: C.marca, color: C.white, fontWeight: 700, fontSize: 20 }}>
+            <div className="flex items-center justify-center" style={{ width: 62, height: 62, borderRadius: 12, background: C.emerald700, color: C.white, fontWeight: 700, fontSize: 20 }}>
               {(empresa?.razon_social || "TELXEN").split(/\s+/).slice(0, 2).map((parte) => parte[0]).join("").toUpperCase()}
             </div>
           )}
         </div>
 
         <div style={{ flex: 1, textAlign: "right", paddingTop: 2 }}>
-          <div style={{ fontSize: 11.5, fontWeight: 700, color: C.marca, letterSpacing: 0.4, lineHeight: 1.35, textAlign: "right" }}>
+          <div style={{ fontSize: 11.5, fontWeight: 700, color: C.emerald800, letterSpacing: 0.4, lineHeight: 1.35, textAlign: "right" }}>
             {empresa?.razon_social || "TELXEN"}
           </div>
           {empresa?.eslogan?.trim()
@@ -305,14 +304,14 @@ function VistaCotizacion() {
                 const linea1 = idx >= 0 ? es.slice(0, idx + 1) : es;
                 const linea2 = idx >= 0 ? es.slice(idx + 1).trim() : "";
                 return (
-                  <div style={{ marginTop: 2, fontFamily: CALIBRI, fontSize: 9.5, fontWeight: 300, color: C.marca, letterSpacing: 0.4, lineHeight: 1.3, textAlign: "right" }}>
+                  <div style={{ marginTop: 2, fontFamily: CALIBRI, fontSize: 9.5, fontWeight: 300, color: C.emerald800, letterSpacing: 0.4, lineHeight: 1.3, textAlign: "right" }}>
                     <span style={{ display: "block" }}>{linea1}</span>
                     {linea2 && <span style={{ display: "block" }}>{linea2}</span>}
                   </div>
                 );
               })()
             : !empresa?.razon_social && (
-                <div style={{ marginTop: 2, fontFamily: CALIBRI, fontSize: 9.5, fontWeight: 300, color: C.marca, letterSpacing: 0.4, lineHeight: 1.3, textAlign: "right" }}>
+                <div style={{ marginTop: 2, fontFamily: CALIBRI, fontSize: 9.5, fontWeight: 300, color: C.emerald800, letterSpacing: 0.4, lineHeight: 1.3, textAlign: "right" }}>
                   <span style={{ display: "block" }}>SOLUCIONES INTEGRALES EN ENERGÍA,</span>
                   <span style={{ display: "block" }}>AUTOMATIZACIÓN Y CONTROL INDUSTRIAL</span>
                 </div>
@@ -323,12 +322,12 @@ function VistaCotizacion() {
           {empresa?.telefono && (
             <div style={{ marginTop: 2, fontFamily: CALIBRI, fontWeight: 300, fontSize: 9.5, color: C.slate700 }}>Teléfono: {empresa.telefono}</div>
           )}
-          {empresa?.web && <div style={{ marginTop: 2, fontFamily: CALIBRI, fontWeight: 300, fontSize: 9.5, color: C.marca }}>{empresa.web}</div>}
+          {empresa?.web && <div style={{ marginTop: 2, fontFamily: CALIBRI, fontWeight: 300, fontSize: 9.5, color: C.emerald800 }}>{empresa.web}</div>}
 
         </div>
 
         <div style={{ minWidth: 200 }}>
-          <div style={{ background: C.ambar, borderRadius: 14, padding: "10px 16px", textAlign: "center", color: C.slate900 }}>
+          <div style={{ background: C.emerald50, borderTop: `3px solid ${C.emerald700}`, borderRadius: 4, padding: "10px 16px", textAlign: "center", color: C.slate900 }}>
             <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: 2, lineHeight: 1.15 }}>COTIZACIÓN</div>
             <div style={{ marginTop: 3, fontSize: 12, fontWeight: 700 }}>RUC: {empresa?.ruc || "—"}</div>
             <div style={{ marginTop: 2, fontSize: 14, fontWeight: 800, letterSpacing: 0.6 }}>{cot?.codigo ?? "SIN CÓDIGO"}</div>
@@ -406,14 +405,14 @@ function VistaCotizacion() {
                   <div style={{ marginTop: 14 }}>
                     <div className="grid grid-cols-2" style={{ gap: "4px 28px", background: C.slate50, borderRadius: 10, padding: "10px 14px", fontFamily: '"Calibri Light", Calibri, Arial, sans-serif' }}>
                       <div>
-                        <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: 1.2, color: C.marca, textTransform: "uppercase", borderBottom: `1px solid ${C.slate100}`, paddingBottom: 3, marginBottom: 5 }}>Datos del cliente</div>
+                        <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: 1.2, color: C.emerald800, textTransform: "uppercase", borderBottom: `1px solid ${C.slate100}`, paddingBottom: 3, marginBottom: 5 }}>Datos del cliente</div>
                         {filaDato("Cliente", cliente?.razon_social || cot.cliente || "—")}
                         {filaDato("RUC / DNI", cliente?.numero_documento || "—")}
                         {filaDato("Atención", cliente?.contacto || "—")}
                         {filaDato("Ubicación", cot.ubicacion || cliente?.direccion || "—")}
                       </div>
                       <div>
-                        <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: 1.2, color: C.marca, textTransform: "uppercase", borderBottom: `1px solid ${C.slate100}`, paddingBottom: 3, marginBottom: 5 }}>Emisión y contacto</div>
+                        <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: 1.2, color: C.emerald800, textTransform: "uppercase", borderBottom: `1px solid ${C.slate100}`, paddingBottom: 3, marginBottom: 5 }}>Emisión y contacto</div>
                         {filaDato("Emisión", F(cot.fecha_emision))}
                         {filaDato("Vence", F(vigenciaHasta(cot.fecha_emision, Number(cot.validez_dias))))}
                         {filaDato("Por", nombre || email || "—")}
@@ -421,7 +420,7 @@ function VistaCotizacion() {
                         {filaDato("E-mail", empresa?.email || "—")}
                       </div>
                     </div>
-                    <div className="flex" style={{ marginTop: 8, background: C.marca, color: C.white, borderRadius: 8, padding: "7px 14px", fontFamily: CALIBRI, fontSize: "9pt", lineHeight: 1.3 }}>
+                    <div className="flex" style={{ marginTop: 8, background: C.emerald700, color: C.white, borderRadius: 4, padding: "7px 14px", fontFamily: CALIBRI, fontSize: "9pt", lineHeight: 1.3 }}>
                       <span style={{ fontWeight: 800, letterSpacing: 1, fontSize: 9, textTransform: "uppercase", paddingTop: 1, marginRight: 10 }}>Proyecto</span>
                       <span style={{ fontWeight: 300 }}>{cot.nombre || "—"}</span>
                     </div>
@@ -467,7 +466,7 @@ function VistaCotizacion() {
                                 padding: esGrupo ? "7px 6px" : "5px 6px",
                                 background: esGrupo ? C.slate100 : C.slate50,
                                 borderBottom: `1px solid ${C.slate100}`,
-                                color: esGrupo ? C.marca : C.slate700,
+                                 color: esGrupo ? C.emerald800 : C.slate700,
                                 fontWeight: esGrupo ? 700 : 600,
                                 fontSize: esGrupo ? "9pt" : "8.5pt",
                                 textAlign: "left",
@@ -481,7 +480,7 @@ function VistaCotizacion() {
                                 padding: esGrupo ? "7px 8px" : "5px 8px 5px 20px",
                                 background: esGrupo ? C.slate100 : C.slate50,
                                 borderBottom: `1px solid ${C.slate100}`,
-                                color: esGrupo ? C.marca : C.slate700,
+                                 color: esGrupo ? C.emerald800 : C.slate700,
                                 fontWeight: esGrupo ? 700 : 600,
                                 fontSize: esGrupo ? "9pt" : "8.5pt",
                                 letterSpacing: esGrupo ? 0.6 : 0.2,
