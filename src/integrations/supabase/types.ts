@@ -700,7 +700,7 @@ export type Database = {
           pct_gastos_generales: number
           pct_utilidad: number
           proyecto_id: string | null
-          revision: number
+          revision: string
           tipo_cambio: number
           ubicacion: string
           updated_at: string
@@ -721,7 +721,7 @@ export type Database = {
           pct_gastos_generales?: number
           pct_utilidad?: number
           proyecto_id?: string | null
-          revision?: number
+          revision?: string
           tipo_cambio?: number
           ubicacion?: string
           updated_at?: string
@@ -742,7 +742,7 @@ export type Database = {
           pct_gastos_generales?: number
           pct_utilidad?: number
           proyecto_id?: string | null
-          revision?: number
+          revision?: string
           tipo_cambio?: number
           ubicacion?: string
           updated_at?: string
