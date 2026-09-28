@@ -100,6 +100,7 @@ function VistaCotizacion() {
   const { data: cotizaciones = [], isLoading: cargandoCotizaciones } = useCotizaciones();
   const { data: items = [], isLoading: cargandoItems } = useCotizacionItems(id || null);
   const { data: empresa, isLoading: cargandoEmpresa } = useEmpresa();
+  const { nombre, email } = useAuth();
   const cot = cotizaciones.find((fila) => fila.id === id) ?? null;
   const { data: cliente } = useQuery({
     queryKey: ["tercero-cotizacion", cot?.cliente_id],
