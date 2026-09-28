@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Buscador, Resaltar, coincide } from "@/components/Buscador";
 import React, { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -406,11 +406,16 @@ function Cotizaciones() {
         titulo="Cotizaciones"
         subtitulo="Propuestas comerciales a clientes"
         acciones={
-          cot && (
-            <Boton variante="linea" onClick={exportarCotizacion}>
-              <Upload size={13} /> Exportar cotización
-            </Boton>
-          )
+          <div className="flex gap-2">
+            <Link to="/cotizacion-vista">
+              <Boton variante="linea">Vista previa comercial</Boton>
+            </Link>
+            {cot && (
+              <Boton variante="linea" onClick={exportarCotizacion}>
+                <Upload size={13} /> Exportar cotización
+              </Boton>
+            )}
+          </div>
         }
       />
 
