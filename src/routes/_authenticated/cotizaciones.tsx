@@ -105,6 +105,7 @@ function Cotizaciones() {
     nombre: "",
     especialidad: "",
     categoria: "",
+    marca: "",
     unidad: "glb",
     metrado: "1",
     precio_unitario: "",
