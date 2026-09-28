@@ -77,6 +77,7 @@ function Dashboard() {
     },
   });
   const [seleccion, setSeleccion] = useState("global");
+  const [exportandoPdf, setExportandoPdf] = useState(false);
 
   const global = seleccion === "global";
   const nombreVista = global ? "Consolidado Global" : (proyectos.find((p) => p.id === seleccion)?.nombre ?? "");
@@ -404,8 +405,9 @@ function Dashboard() {
         }
       />
 
-      {/* Nivel 1: KPIs ejecutivos */}
-      <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div id="reporte-financiero">
+        {/* Nivel 1: KPIs ejecutivos */}
+        <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Kpi
           etiqueta="Presupuesto Ofertado"
           valor={datos.ofertado}
