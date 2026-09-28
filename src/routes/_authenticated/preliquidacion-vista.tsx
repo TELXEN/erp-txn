@@ -223,6 +223,7 @@ function VistaPreliquidacion() {
         fechaVencimiento: pl.fecha_vencimiento || "",
         cuentaComercial: ctaComercial ? { nombre: ctaComercial.nombre, numero: ctaComercial.numero_cuenta, cci: ctaComercial.cci } : null,
         cuentaDetracciones: ctaDetraccion ? { nombre: ctaDetraccion.nombre, numero: ctaDetraccion.numero_cuenta, cci: ctaDetraccion.cci } : null,
+        cuentasTodas: cuentas.map((c) => ({ nombre: c.nombre, numero: c.numero_cuenta, cci: c.cci, moneda: c.monedas, tipoCuenta: c.tipo_cuenta })),
         observacion: pl.observacion || "",
       });
     } catch (err) {
