@@ -51,6 +51,13 @@ export type DatosPreliquidacionPdf = {
   observacion: string;
 };
 
+/** Separa el ítem jerárquico (01.02.01) de la descripción y lo vuelve código compacto (010201). */
+function separarCodigoPartida(descripcion: string) {
+  const m = /^\s*(\d{1,2}(?:\.\d{1,2})*)\s+(.*)$/.exec(descripcion || "");
+  if (!m || !m[1] || !m[2]) return { codigo: "", texto: (descripcion || "").trim() };
+  return { codigo: m[1].split(".").map((p) => p.padStart(2, "0")).join(""), texto: m[2].trim() };
+}
+
 const colors = {
   slate950: "#0f172a",
   slate700: "#334155",
