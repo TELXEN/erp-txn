@@ -167,10 +167,10 @@ function VistaCotizacion() {
               <Boton variante="linea"><ArrowLeft size={13} /> Volver</Boton>
             </Link>
             <Boton variante="linea" onClick={() => void exportarExcel()} disabled={items.length === 0}>
-              <FileSpreadsheet size={14} /> Exportar a Excel (Matriz de Costos)
+              <FileSpreadsheet size={14} /> Exportar a Excel
             </Boton>
             <Boton variante="accion" onClick={descargarPdf} disabled={pdfCargando}>
-              <FileDown size={14} /> {pdfCargando ? "Generando..." : "Descargar PDF Comercial"}
+              <FileDown size={14} /> {pdfCargando ? "Generando..." : "Descargar PDF"}
             </Boton>
           </div>
         }
