@@ -407,9 +407,11 @@ function Cotizaciones() {
         subtitulo="Propuestas comerciales a clientes"
         acciones={
           <div className="flex gap-2">
-            <Link to="/cotizacion-vista">
-              <Boton variante="linea">Vista previa comercial</Boton>
-            </Link>
+            {cot && (
+              <Link to="/cotizacion-vista" search={{ id: cot.id }}>
+                <Boton variante="linea">Vista previa comercial</Boton>
+              </Link>
+            )}
             {cot && (
               <Boton variante="linea" onClick={exportarCotizacion}>
                 <Upload size={13} /> Exportar cotización
@@ -527,6 +529,9 @@ function Cotizaciones() {
                         <Boton variante="linea" onClick={() => setSeleccion(c.id === seleccion ? null : c.id)}>
                           {c.id === seleccion ? "Cerrar" : "Abrir"}
                         </Boton>
+                        <Link to="/cotizacion-vista" search={{ id: c.id }}>
+                          <Boton variante="linea">Vista previa</Boton>
+                        </Link>
                         <Boton variante="peligro" onClick={() => borrarCotizacion(c.id)}>
                           Eliminar
                         </Boton>

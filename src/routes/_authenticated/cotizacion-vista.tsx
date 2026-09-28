@@ -1,10 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Encabezado } from "@/components/AppShell";
-import { Boton } from "@/components/ui-kit";
+import { Boton, Panel, Vacio } from "@/components/ui-kit";
+import { supabase } from "@/integrations/supabase/client";
+import { useEmpresa } from "@/lib/empresa";
+import { totalesCotizacion, useCotizacionItems, useCotizaciones, vigenciaHasta } from "@/lib/cotizaciones";
 import { ArrowLeft, FileDown, FileSpreadsheet } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/cotizacion-vista")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    id: typeof search.id === "string" ? search.id : "",
+  }),
   head: () => ({
     meta: [
       { title: "Vista previa de cotización — ERP TELXEN" },
@@ -31,46 +38,37 @@ const C = {
   white: "#ffffff",
 };
 
-const DEMO = {
-  empresa: {
-    nombre: "TELXEN S.A.C.",
-    ruc: "20600000001",
-    direccion: "Av. Javier Prado Este 1234, San Isidro, Lima",
-    telefono: "(01) 555-0100 · +51 999 888 777",
-  },
-  numero: "COT-2026-001",
-  cliente: {
-    razon: "Constructora Andina S.A.",
-    ruc: "20512345678",
-    atencion: "Ing. María Quispe",
-    emision: "2026-09-28",
-    validez: "2026-10-28",
-  },
-  items: [
-    { desc: "Suministro e instalación de tablero eléctrico general", espec: "Gabinete metálico IP65, 400×600 mm, interruptores termomagnéticos Schneider, barra de cobre 200 A.", cant: 1, und: "und", pu: 8450 },
-    { desc: "Cableado estructurado Cat 6A", espec: "Incluye canaletas, face plates, patch panel de 24 puertos y certificación Fluke por punto.", cant: 48, und: "pto", pu: 185 },
-    { desc: "Sistema de pozo a tierra", espec: "Varilla de cobre 5/8\" × 2.4 m, cemento conductivo y medición con protocolo.", cant: 2, und: "und", pu: 1250 },
-    { desc: "Luminarias LED panel 60×60", espec: "40 W, 4000 K, driver incluido.", cant: 36, und: "und", pu: 142.5 },
-    { desc: "Mano de obra especializada y supervisión", espec: "", cant: 1, und: "glb", pu: 6800 },
-  ],
-  terminos: {
-    pago: "50% de adelanto a la orden de compra, 50% contra entrega y conformidad.",
-    entrega: "15 días calendario desde la recepción del adelanto.",
-    banco: "BCP Cta. Cte. S/ 191-1234567-0-12 · CCI 002-191-001234567012-55",
-  },
-};
-
 const S = (n: number) =>
   "S/ " + n.toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const F = (d: string) => d.split("-").reverse().join("/");
 
 function VistaCotizacion() {
+  const { id } = Route.useSearch();
+  const { data: cotizaciones = [], isLoading: cargandoCotizaciones } = useCotizaciones();
+  const { data: items = [], isLoading: cargandoItems } = useCotizacionItems(id || null);
+  const { data: empresa, isLoading: cargandoEmpresa } = useEmpresa();
+  const cot = cotizaciones.find((fila) => fila.id === id) ?? null;
+  const { data: cliente } = useQuery({
+    queryKey: ["tercero-cotizacion", cot?.cliente_id],
+    enabled: Boolean(cot?.cliente_id),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("terceros")
+        .select("razon_social, numero_documento, direccion, contacto, telefono, celular_contacto")
+        .eq("id", cot?.cliente_id ?? "")
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
   const [pdfCargando, setPdfCargando] = useState(false);
-  const d = DEMO;
-  const subtotal = d.items.reduce((s, i) => s + i.cant * i.pu, 0);
+  const calculo = cot
+    ? totalesCotizacion(items, Number(cot.pct_gastos_generales), Number(cot.pct_utilidad))
+    : { costoDirecto: 0, gastosGenerales: 0, utilidad: 0, total: 0 };
+  const subtotal = calculo.total;
   const igv = Math.round(subtotal * 0.18 * 100) / 100;
   const total = subtotal + igv;
-  const nombreArchivo = `Cotizacion_${d.cliente.razon.replace(/[^\w-]+/g, "_")}_${d.numero}`;
+  const nombreArchivo = `Cotizacion_${(cot?.cliente || "Cliente").replace(/[^\w-]+/g, "_")}_${cot?.codigo ?? "sin_codigo"}`;
 
   async function descargarPdf() {
     const el = document.getElementById("cotizacion-impresion");
@@ -99,7 +97,8 @@ function VistaCotizacion() {
     const { saveAs } = await import("file-saver");
     const wb = new ExcelJS.Workbook();
     const ws = wb.addWorksheet("Matriz de costos");
-    ws.addRow([`${d.numero} — ${d.cliente.razon}`]).font = { bold: true, size: 13 };
+    if (!cot) return;
+    ws.addRow([`${cot.codigo ?? "Cotización"} — ${cot.cliente}`]).font = { bold: true, size: 13 };
     ws.addRow([]);
     const cab = ws.addRow(["Ítem", "Descripción", "Cantidad", "Unidad", "Precio Unitario", "Total"]);
     cab.eachCell((c) => {
@@ -108,8 +107,8 @@ function VistaCotizacion() {
       c.alignment = { vertical: "middle", horizontal: "center" };
     });
     const primera = ws.rowCount + 1;
-    d.items.forEach((it, i) => {
-      const r = ws.addRow([i + 1, it.espec ? `${it.desc} — ${it.espec}` : it.desc, it.cant, it.und, it.pu]);
+    items.forEach((it, i) => {
+      const r = ws.addRow([it.codigo || i + 1, it.nombre, Number(it.metrado), it.unidad, Number(it.precio_unitario)]);
       r.getCell(6).value = { formula: `C${r.number}*E${r.number}` };
     });
     const ultima = ws.rowCount;
@@ -128,18 +127,32 @@ function VistaCotizacion() {
   }
 
   const celda = { padding: "12px 14px", borderBottom: `1px solid ${C.slate100}` } as const;
+  const cargando = cargandoCotizaciones || cargandoItems || cargandoEmpresa;
+
+  if (cargando) {
+    return <Panel titulo="Vista previa de cotización"><div className="p-6 font-mono text-xs text-muted-foreground">Cargando cotización…</div></Panel>;
+  }
+
+  if (!id || !cot) {
+    return (
+      <Panel titulo="Vista previa de cotización">
+        <div className="p-5"><Vacio texto="Selecciona una cotización registrada para visualizarla." /></div>
+        <div className="border-t border-line p-4"><Link to="/cotizaciones"><Boton variante="linea"><ArrowLeft size={13} /> Volver a cotizaciones</Boton></Link></div>
+      </Panel>
+    );
+  }
 
   return (
     <>
       <Encabezado
         titulo="Vista previa de cotización"
-        subtitulo="Datos de prueba — revisa la estructura antes de exportar"
+        subtitulo={`${cot.codigo ?? "Sin código"} · ${cot.cliente || "Cliente sin registrar"}`}
         acciones={
           <div className="flex flex-wrap gap-2">
             <Link to="/cotizaciones">
               <Boton variante="linea"><ArrowLeft size={13} /> Volver</Boton>
             </Link>
-            <Boton variante="linea" onClick={exportarExcel}>
+            <Boton variante="linea" onClick={() => void exportarExcel()} disabled={items.length === 0}>
               <FileSpreadsheet size={14} /> Exportar a Excel (Matriz de Costos)
             </Boton>
             <Boton variante="accion" onClick={descargarPdf} disabled={pdfCargando}>
@@ -158,30 +171,38 @@ function VistaCotizacion() {
           {/* Encabezado */}
           <div className="flex items-start justify-between gap-6" style={{ borderBottom: `2px solid ${C.slate900}`, paddingBottom: 20 }}>
             <div className="flex gap-4">
-              <div className="flex items-center justify-center" style={{ width: 64, height: 64, borderRadius: 12, background: C.slate900, color: C.white, fontWeight: 700, fontSize: 20 }}>
-                TX
-              </div>
+              {empresa?.logo_url ? (
+                <div className="flex items-center justify-center" style={{ width: 92, height: 72 }}>
+                  <img src={empresa.logo_url} alt="Logotipo de la empresa" style={{ display: "block", maxWidth: 92, maxHeight: 72, objectFit: "contain" }} />
+                </div>
+              ) : (
+                <div className="flex items-center justify-center" style={{ width: 64, height: 64, borderRadius: 12, background: C.slate900, color: C.white, fontWeight: 700, fontSize: 20 }}>
+                  {(empresa?.razon_social || "TELXEN").split(/\s+/).slice(0, 2).map((parte) => parte[0]).join("").toUpperCase()}
+                </div>
+              )}
               <div className="grid" style={{ gap: 2 }}>
-                <div style={{ fontSize: 18, fontWeight: 700 }}>{d.empresa.nombre}</div>
-                <div style={{ color: C.slate500 }}>RUC {d.empresa.ruc}</div>
-                <div style={{ color: C.slate500 }}>{d.empresa.direccion}</div>
-                <div style={{ color: C.slate500 }}>{d.empresa.telefono}</div>
+                <div style={{ fontSize: 18, fontWeight: 700 }}>{empresa?.razon_social || "TELXEN S.A.C."}</div>
+                {empresa?.ruc && <div style={{ color: C.slate500 }}>RUC {empresa.ruc}</div>}
+                {empresa?.direccion && <div style={{ color: C.slate500 }}>{empresa.direccion}</div>}
+                {empresa?.telefono && <div style={{ color: C.slate500 }}>{empresa.telefono}</div>}
               </div>
             </div>
             <div style={{ border: `1px solid ${C.emerald600}`, background: C.emerald50, borderRadius: 10, padding: "12px 20px", textAlign: "right", minWidth: 190 }}>
               <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: 2, color: C.slate900 }}>COTIZACIÓN</div>
-              <div style={{ marginTop: 4, fontWeight: 700, color: C.emerald600, fontSize: 14 }}>{d.numero}</div>
+              <div style={{ marginTop: 4, fontWeight: 700, color: C.emerald600, fontSize: 14 }}>{cot.codigo ?? "SIN CÓDIGO"}</div>
             </div>
           </div>
 
           {/* Cliente */}
           <div className="grid grid-cols-3" style={{ gap: "14px 24px", marginTop: 24, background: C.slate50, borderRadius: 10, padding: 18 }}>
             {[
-              ["Cliente / Razón social", d.cliente.razon, "col-span-2"],
-              ["RUC / DNI", d.cliente.ruc, ""],
-              ["Atención", d.cliente.atencion, ""],
-              ["Fecha de emisión", F(d.cliente.emision), ""],
-              ["Válida hasta", F(d.cliente.validez), ""],
+              ["Cliente / Razón social", cliente?.razon_social || cot.cliente || "—", "col-span-2"],
+              ["RUC / DNI", cliente?.numero_documento || "—", ""],
+              ["Atención", cliente?.contacto || "—", ""],
+              ["Fecha de emisión", F(cot.fecha_emision), ""],
+              ["Válida hasta", F(vigenciaHasta(cot.fecha_emision, Number(cot.validez_dias))), ""],
+              ["Trabajo", cot.nombre || "—", "col-span-2"],
+              ["Ubicación", cot.ubicacion || cliente?.direccion || "—", ""],
             ].map(([k, v, cls]) => (
               <div key={k} className={cls}>
                 <div style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: 1, color: C.slate400, fontWeight: 700 }}>{k}</div>
@@ -202,17 +223,17 @@ function VistaCotizacion() {
               </tr>
             </thead>
             <tbody>
-              {d.items.map((it, i) => (
-                <tr key={i} style={{ pageBreakInside: "avoid" }}>
-                  <td style={{ ...celda, textAlign: "center", color: C.slate500 }}>{String(i + 1).padStart(2, "0")}</td>
+              {items.map((it, i) => (
+                <tr key={it.id} style={{ pageBreakInside: "avoid" }}>
+                  <td style={{ ...celda, textAlign: "center", color: C.slate500 }}>{it.codigo || String(i + 1).padStart(2, "0")}</td>
                   <td style={celda}>
-                    <div style={{ fontWeight: 600 }}>{it.desc}</div>
-                    {it.espec && <div style={{ marginTop: 3, fontSize: 10.5, color: C.slate500, lineHeight: 1.45 }}>{it.espec}</div>}
+                    <div style={{ fontWeight: 600 }}>{it.nombre}</div>
+                    {(it.especialidad || it.categoria) && <div style={{ marginTop: 3, fontSize: 10.5, color: C.slate500, lineHeight: 1.45 }}>{[it.especialidad, it.categoria].filter(Boolean).join(" · ")}</div>}
                   </td>
-                  <td style={{ ...celda, textAlign: "right" }}>{it.cant}</td>
-                  <td style={{ ...celda, textAlign: "center", color: C.slate500 }}>{it.und}</td>
-                  <td style={{ ...celda, textAlign: "right", whiteSpace: "nowrap" }}>{S(it.pu)}</td>
-                  <td style={{ ...celda, textAlign: "right", fontWeight: 600, whiteSpace: "nowrap" }}>{S(it.cant * it.pu)}</td>
+                  <td style={{ ...celda, textAlign: "right" }}>{Number(it.metrado).toLocaleString("es-PE", { maximumFractionDigits: 2 })}</td>
+                  <td style={{ ...celda, textAlign: "center", color: C.slate500 }}>{it.unidad}</td>
+                  <td style={{ ...celda, textAlign: "right", whiteSpace: "nowrap" }}>{S(Number(it.precio_unitario))}</td>
+                  <td style={{ ...celda, textAlign: "right", fontWeight: 600, whiteSpace: "nowrap" }}>{S(Number(it.metrado) * Number(it.precio_unitario))}</td>
                 </tr>
               ))}
             </tbody>
@@ -222,6 +243,8 @@ function VistaCotizacion() {
           <div className="flex justify-end" style={{ marginTop: 18 }}>
             <div style={{ width: 280 }}>
               <div className="flex justify-between" style={{ padding: "6px 0", color: C.slate700 }}><span>Subtotal</span><span>{S(subtotal)}</span></div>
+              {calculo.gastosGenerales > 0 && <div className="flex justify-between" style={{ padding: "6px 0", color: C.slate700 }}><span>Gastos generales ({Number(cot.pct_gastos_generales)}%)</span><span>{S(calculo.gastosGenerales)}</span></div>}
+              {calculo.utilidad > 0 && <div className="flex justify-between" style={{ padding: "6px 0", color: C.slate700 }}><span>Utilidad ({Number(cot.pct_utilidad)}%)</span><span>{S(calculo.utilidad)}</span></div>}
               <div className="flex justify-between" style={{ padding: "6px 0", color: C.slate700, borderBottom: `1px solid ${C.slate100}` }}><span>IGV (18%)</span><span>{S(igv)}</span></div>
               <div className="flex justify-between" style={{ marginTop: 8, padding: "12px 14px", background: C.slate900, color: C.white, borderRadius: 8, fontSize: 15, fontWeight: 700 }}>
                 <span>TOTAL</span><span>{S(total)}</span>
@@ -232,9 +255,7 @@ function VistaCotizacion() {
           {/* Términos */}
           <div style={{ marginTop: 32, borderTop: `1px solid ${C.slate100}`, paddingTop: 16, fontSize: 10.5, color: C.slate500, lineHeight: 1.6, pageBreakInside: "avoid" }}>
             <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, color: C.slate700, marginBottom: 6 }}>Términos y condiciones</div>
-            <div><b style={{ color: C.slate700 }}>Condiciones de pago:</b> {d.terminos.pago}</div>
-            <div><b style={{ color: C.slate700 }}>Tiempo de entrega:</b> {d.terminos.entrega}</div>
-            <div><b style={{ color: C.slate700 }}>Depósitos:</b> {d.terminos.banco}</div>
+            <div><b style={{ color: C.slate700 }}>Condiciones comerciales:</b> {cot.condiciones || "Sin condiciones registradas."}</div>
             <div style={{ marginTop: 10, color: C.slate400 }}>Precios expresados en soles. Oferta válida hasta la fecha indicada.</div>
           </div>
         </div>
