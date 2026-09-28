@@ -35,7 +35,7 @@ import {
   vigenciaHasta,
   type EstadoCotizacion,
 } from "@/lib/cotizaciones";
-import { Check, Calculator, CornerDownRight, ListOrdered, Upload, X } from "lucide-react";
+import { Check, Calculator, CornerDownRight, ListOrdered, Upload, X, Eye, Trash2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/cotizaciones")({
   head: () => ({
