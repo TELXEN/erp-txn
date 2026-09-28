@@ -202,7 +202,7 @@ function VistaCotizacion() {
           margin: [7, 5, 7, 5],
           filename: `${nombreArchivo}.pdf`,
           image: { type: "jpeg", quality: 0.98 },
-          html2canvas: { scale: 3, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: 700, backgroundColor: "#ffffff", logging: false },
+          html2canvas: { scale: 3, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: 794, backgroundColor: "#ffffff", logging: false },
           jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
           pagebreak: { mode: ["css", "legacy"], avoid: ["tr", ".bloque-final"] },
         } as never)
@@ -374,7 +374,7 @@ function VistaCotizacion() {
         <div className="mx-auto" style={{ width: 700 }}>
         <div
           id="cotizacion-impresion"
-          style={{ width: 700, background: C.white, color: C.slate900, fontFamily: "Helvetica, Arial, sans-serif", fontSize: 12, boxShadow: "0 10px 30px -12px rgba(15,23,42,.25)" }}
+          style={{ width: 794, background: C.white, color: C.slate900, fontFamily: "Helvetica, Arial, sans-serif", fontSize: 12, boxShadow: "0 10px 30px -12px rgba(15,23,42,.25)" }}
         >
           {paginas.map((itemsPagina, paginaIndex) => {
             const esPrimera = paginaIndex === 0;
@@ -383,7 +383,7 @@ function VistaCotizacion() {
               <section
                 key={`hoja-${paginaIndex + 1}`}
                 className="cotizacion-hoja"
-                style={{ position: "relative", width: 700, height: 990, padding: "34px 30px 38px", overflow: "hidden", background: C.white, pageBreakAfter: esUltima ? "auto" : "always", boxSizing: "border-box" }}
+                style={{ position: "relative", width: 700, height: 990, margin: "0 auto", padding: "34px 30px 38px", overflow: "hidden", background: C.white, pageBreakAfter: esUltima ? "auto" : "always", boxSizing: "border-box" }}
               >
                 {encabezadoHoja(paginaIndex + 1, paginas.length)}
 
