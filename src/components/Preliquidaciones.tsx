@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Copy, Eye, ListPlus, Pencil, Plus, Printer, Receipt, Trash2, Upload } from "lucide-react";
+import { Copy, Eye, ListPlus, Pencil, Plus, Receipt, Trash2, Upload } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, Vacio } from "@/components/ui-kit";
@@ -10,7 +10,6 @@ import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
 import { exportarExcel } from "@/lib/exportar";
 import { useEmpresa } from "@/lib/empresa";
 import { useUnidadesMedida } from "@/lib/unidades";
-import { descargarPreliquidacionPdf } from "@/components/PreliquidacionPdf";
 
 
 export const IGV = 0.18;
@@ -120,8 +119,6 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
     },
   });
   const ctaDetraccion = cuentas.find((c) => c.tipo_cuenta === "Detracciones") ?? null;
-  const ctaComercial = (moneda: string) =>
-    cuentas.find((c) => c.tipo_cuenta !== "Detracciones" && c.monedas === moneda) ?? null;
   const { data: facturas = [] } = useQuery({
     queryKey: ["ventas", "por-preliquidacion"],
     queryFn: async () => {
@@ -171,7 +168,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
   const [busqueda, setBusqueda] = useState("");
   const [selectorPartidas, setSelectorPartidas] = useState(false);
   const [marcadas, setMarcadas] = useState<string[]>([]);
-  const [exportandoPdf, setExportandoPdf] = useState<string | null>(null);
+
 
   const { data: partidasObra = [] } = useQuery({
     queryKey: ["partidas", "obra-pl", form.proyecto_id],
