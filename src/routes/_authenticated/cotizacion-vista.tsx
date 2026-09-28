@@ -228,7 +228,7 @@ function VistaCotizacion() {
 
         <div style={{ flex: 1, textAlign: "right", paddingTop: 2 }}>
           <div style={{ fontSize: 11.5, fontWeight: 700, color: C.marca, letterSpacing: 0.4, lineHeight: 1.35 }}>
-            {empresa?.razon_social || "TELXEN S.A.C."}
+            {empresa?.razon_social || "SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL"}
           </div>
           {empresa?.direccion && (
             <div style={{ marginTop: 4, fontSize: 9.5, color: C.slate700 }}>Dirección: {empresa.direccion}</div>
