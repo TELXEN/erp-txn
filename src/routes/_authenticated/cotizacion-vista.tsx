@@ -83,7 +83,7 @@ function VistaCotizacion() {
           margin: 12,
           filename: `${nombreArchivo}.pdf`,
           image: { type: "jpeg", quality: 0.98 },
-          html2canvas: { scale: 3, useCORS: true, backgroundColor: "#ffffff", logging: false },
+          html2canvas: { scale: 3, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: 700, backgroundColor: "#ffffff", logging: false },
           jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
           pagebreak: { mode: ["avoid-all", "css"] },
         } as never)
@@ -150,10 +150,10 @@ function VistaCotizacion() {
       />
 
       <div className="overflow-x-auto pb-8">
+        <div className="mx-auto" style={{ width: 700 }}>
         <div
           id="cotizacion-impresion"
-          className="mx-auto"
-          style={{ width: 794, background: C.white, color: C.slate900, padding: 40, fontFamily: "Helvetica, Arial, sans-serif", fontSize: 12, boxShadow: "0 10px 30px -12px rgba(15,23,42,.25)" }}
+          style={{ width: 700, background: C.white, color: C.slate900, padding: 28, fontFamily: "Helvetica, Arial, sans-serif", fontSize: 12, boxShadow: "0 10px 30px -12px rgba(15,23,42,.25)" }}
         >
           {/* Encabezado */}
           <div className="flex items-start justify-between gap-6" style={{ borderBottom: `2px solid ${C.slate900}`, paddingBottom: 20 }}>
@@ -237,6 +237,7 @@ function VistaCotizacion() {
             <div><b style={{ color: C.slate700 }}>Depósitos:</b> {d.terminos.banco}</div>
             <div style={{ marginTop: 10, color: C.slate400 }}>Precios expresados en soles. Oferta válida hasta la fecha indicada.</div>
           </div>
+        </div>
         </div>
       </div>
     </>
