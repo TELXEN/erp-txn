@@ -95,7 +95,8 @@ function Cotizaciones() {
     validez_dias: "15",
     pct_gastos_generales: "10",
     pct_utilidad: "10",
-    condiciones: "Precios en Soles, no incluyen IGV. Forma de pago: 50% adelanto y 50% contra entrega.",
+    condiciones: "Precios en Soles. Forma de pago: 50% adelanto y 50% contra entrega.",
+    aplica_igv: "si",
   });
 
   const [maestraSel, setMaestraSel] = useState("");
@@ -156,6 +157,7 @@ function Cotizaciones() {
           pct_gastos_generales: Number(form.pct_gastos_generales || 0),
           pct_utilidad: Number(form.pct_utilidad || 0),
           condiciones: form.condiciones,
+          aplica_igv: form.aplica_igv === "si",
           estado: "Borrador",
         })
         .select("id")
@@ -473,6 +475,12 @@ function Cotizaciones() {
               onChange={(e) => setForm({ ...form, pct_utilidad: e.target.value })}
             />
           </Campo>
+          <Campo etiqueta="IGV">
+            <Select value={form.aplica_igv} onChange={(e) => setForm({ ...form, aplica_igv: e.target.value })}>
+              <option value="si">Con IGV (18%)</option>
+              <option value="no">Sin IGV</option>
+            </Select>
+          </Campo>
           <div className="sm:col-span-4">
             <Campo etiqueta="Condiciones comerciales">
               <Input value={form.condiciones} onChange={(e) => setForm({ ...form, condiciones: e.target.value })} maxLength={300} />
@@ -551,6 +559,17 @@ function Cotizaciones() {
           extra={
             <div className="flex flex-wrap items-center gap-2">
               <Select
+                className="w-36"
+                value={cot.aplica_igv !== false ? "si" : "no"}
+                onChange={async (e) => {
+                  await supabase.from("cotizaciones").update({ aplica_igv: e.target.value === "si" }).eq("id", cot.id);
+                  qc.invalidateQueries({ queryKey: ["cotizaciones"] });
+                }}
+              >
+                <option value="si">Con IGV (18%)</option>
+                <option value="no">Sin IGV</option>
+              </Select>
+              <Select
                 className="w-40"
                 value={cot.estado}
                 onChange={(e) => cambiarEstado(cot.id, e.target.value as EstadoCotizacion)}
@@ -584,8 +603,10 @@ function Cotizaciones() {
               <p className="font-mono text-sm font-semibold">{soles(totales.utilidad)}</p>
             </div>
             <div>
-              <p className="label-mono">Total ofertado (sin IGV)</p>
-              <p className="font-mono text-sm font-semibold text-primary">{soles(totales.total)}</p>
+              <p className="label-mono">Total ofertado {cot.aplica_igv !== false ? "(inc. IGV 18%)" : "(sin IGV)"}</p>
+              <p className="font-mono text-sm font-semibold text-primary">
+                {soles(cot.aplica_igv !== false ? totales.total + Math.round(totales.total * 0.18 * 100) / 100 : totales.total)}
+              </p>
             </div>
           </div>
 

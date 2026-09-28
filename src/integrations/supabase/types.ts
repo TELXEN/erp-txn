@@ -683,6 +683,7 @@ export type Database = {
       }
       cotizaciones: {
         Row: {
+          aplica_igv: boolean
           cliente: string
           cliente_id: string | null
           codigo: string | null
@@ -702,6 +703,7 @@ export type Database = {
           validez_dias: number
         }
         Insert: {
+          aplica_igv?: boolean
           cliente?: string
           cliente_id?: string | null
           codigo?: string | null
@@ -721,6 +723,7 @@ export type Database = {
           validez_dias?: number
         }
         Update: {
+          aplica_igv?: boolean
           cliente?: string
           cliente_id?: string | null
           codigo?: string | null

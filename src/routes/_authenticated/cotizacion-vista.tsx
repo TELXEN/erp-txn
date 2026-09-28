@@ -67,7 +67,8 @@ function VistaCotizacion() {
     ? totalesCotizacion(items, Number(cot.pct_gastos_generales), Number(cot.pct_utilidad))
     : { costoDirecto: 0, gastosGenerales: 0, utilidad: 0, total: 0 };
   const subtotal = calculo.total;
-  const igv = Math.round(subtotal * 0.18 * 100) / 100;
+  const conIgv = cot?.aplica_igv !== false;
+  const igv = conIgv ? Math.round(subtotal * 0.18 * 100) / 100 : 0;
   const total = subtotal + igv;
   const nombreArchivo = `Cotizacion_${(cot?.cliente || "Cliente").replace(/[^\w-]+/g, "_")}_${cot?.codigo ?? "sin_codigo"}`;
 
@@ -126,7 +127,9 @@ function VistaCotizacion() {
       r.getCell(6).value = { formula: `C${r.number}*E${r.number}` };
     });
     const ultima = ws.rowCount;
-    const tot = ws.addRow(["", "TOTAL", "", "", "", { formula: `SUM(F${primera}:F${ultima})` }]);
+    const sub = ws.addRow(["", "SUBTOTAL", "", "", "", { formula: `SUM(F${primera}:F${ultima})` }]);
+    const filaIgv = ws.addRow(["", conIgv ? "IGV (18%)" : "IGV (0%)", "", "", "", { formula: conIgv ? `ROUND(F${sub.number}*0.18,2)` : "0" }]);
+    const tot = ws.addRow(["", "TOTAL", "", "", "", { formula: `F${sub.number}+F${filaIgv.number}` }]);
     tot.font = { bold: true };
     ["E", "F"].forEach((col) => (ws.getColumn(col).numFmt = '"S/" #,##0.00'));
     ws.columns.forEach((col) => {
@@ -259,7 +262,7 @@ function VistaCotizacion() {
               <div className="flex justify-between" style={{ padding: "6px 0", color: C.slate700 }}><span>Subtotal</span><span>{S(subtotal)}</span></div>
               {calculo.gastosGenerales > 0 && <div className="flex justify-between" style={{ padding: "6px 0", color: C.slate700 }}><span>Gastos generales ({Number(cot.pct_gastos_generales)}%)</span><span>{S(calculo.gastosGenerales)}</span></div>}
               {calculo.utilidad > 0 && <div className="flex justify-between" style={{ padding: "6px 0", color: C.slate700 }}><span>Utilidad ({Number(cot.pct_utilidad)}%)</span><span>{S(calculo.utilidad)}</span></div>}
-              <div className="flex justify-between" style={{ padding: "6px 0", color: C.slate700, borderBottom: `1px solid ${C.slate100}` }}><span>IGV (18%)</span><span>{S(igv)}</span></div>
+              <div className="flex justify-between" style={{ padding: "6px 0", color: C.slate700, borderBottom: `1px solid ${C.slate100}` }}><span>{conIgv ? "IGV (18%)" : "IGV (0%)"}</span><span>{S(igv)}</span></div>
               <div className="flex justify-between" style={{ marginTop: 8, padding: "12px 14px", background: C.slate900, color: C.white, borderRadius: 8, fontSize: 15, fontWeight: 700 }}>
                 <span>TOTAL</span><span>{S(total)}</span>
               </div>
@@ -270,7 +273,9 @@ function VistaCotizacion() {
           <div style={{ marginTop: 22, borderTop: `1px solid ${C.slate100}`, paddingTop: 12, fontSize: 10.5, color: C.slate500, lineHeight: 1.5, pageBreakInside: "avoid" }}>
             <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, color: C.slate700, marginBottom: 6 }}>Términos y condiciones</div>
             <div><b style={{ color: C.slate700 }}>Condiciones comerciales:</b> {cot.condiciones || "Sin condiciones registradas."}</div>
-            <div style={{ marginTop: 10, color: C.slate400 }}>Precios expresados en soles. Oferta válida hasta la fecha indicada.</div>
+            <div style={{ marginTop: 10, color: C.slate400 }}>
+              {conIgv ? "Precios expresados en soles, incluyen IGV (18%)." : "Precios expresados en soles, no afectos a IGV."} Oferta válida hasta la fecha indicada.
+            </div>
           </div>
         </div>
         </div>
