@@ -419,7 +419,7 @@ function VistaPreliquidacion() {
               ))}
             </div>
 
-            <div style={{ padding: 12, background: C.slate50, marginBottom: 14 }}>
+            <div style={{ padding: 12, background: C.slate50, marginBottom: 14, flex: 1, display: "flex", flexDirection: "column" }}>
               <div style={tituloSeccion}>Datos bancarios</div>
               <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-evenly" }}>
                 {mm.detraccionPen > 0 && (
