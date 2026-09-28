@@ -14,6 +14,7 @@ const vacio = {
   telefono: "",
   email: "",
   web: "",
+  eslogan: "",
   color_marca: "#1F6F54",
   logo_url: "",
 };
