@@ -5,6 +5,7 @@ import { Encabezado } from "@/components/AppShell";
 import { Boton, Panel, Vacio } from "@/components/ui-kit";
 import { supabase } from "@/integrations/supabase/client";
 import { useEmpresa } from "@/lib/empresa";
+import { useAuth } from "@/lib/auth";
 import { totalesCotizacion, useCotizacionItems, useCotizaciones, vigenciaHasta } from "@/lib/cotizaciones";
 import { ArrowLeft, FileDown, FileSpreadsheet } from "lucide-react";
 
@@ -312,6 +313,9 @@ function VistaCotizacion() {
                       ["Válida hasta", F(vigenciaHasta(cot.fecha_emision, Number(cot.validez_dias))), ""],
                       ["Trabajo", cot.nombre || "—", "col-span-2"],
                       ["Ubicación", cot.ubicacion || cliente?.direccion || "—", ""],
+                      ["Realizado por", nombre || email || "—", ""],
+                      ["Celular", empresa?.telefono || "—", ""],
+                      ["E-mail", empresa?.email || "—", ""],
                     ].map(([k, v, cls]) => (
                       <div key={k} className={cls}>
                         <div style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: 1, color: C.slate400, fontWeight: 700 }}>{k}</div>
