@@ -75,7 +75,9 @@ function paginarItems<T extends ItemParaPagina>(items: T[]) {
     const pagina: T[] = [];
     let usado = 0;
     while (pendientes.length > 0) {
-      const siguiente = altoEstimadoItem(pendientes[0]);
+      const proximo = pendientes[0];
+      if (!proximo) break;
+      const siguiente = altoEstimadoItem(proximo);
       if (pagina.length > 0 && usado + siguiente > capacidad) break;
       const item = pendientes.shift();
       if (!item) break;
