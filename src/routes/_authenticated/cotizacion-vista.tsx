@@ -127,7 +127,7 @@ function VistaCotizacion() {
       r.getCell(6).value = { formula: `C${r.number}*E${r.number}` };
     });
     const ultima = ws.rowCount;
-    const sub = ws.addRow(["", "SUBTOTAL", "", "", "", { formula: `SUM(F${primera}:F${ultima})` }]);
+    const sub = ws.addRow(["", "COSTO DIRECTO", "", "", "", { formula: `SUM(F${primera}:F${ultima})` }]);
     const filaIgv = ws.addRow(["", conIgv ? "IGV (18%)" : "IGV (0%)", "", "", "", { formula: conIgv ? `ROUND(F${sub.number}*0.18,2)` : "0" }]);
     const tot = ws.addRow(["", "TOTAL", "", "", "", { formula: `F${sub.number}+F${filaIgv.number}` }]);
     tot.font = { bold: true };
@@ -259,7 +259,7 @@ function VistaCotizacion() {
           {/* Totales */}
           <div className="flex justify-end" style={{ marginTop: 18 }}>
             <div style={{ width: 280 }}>
-              <div className="flex justify-between" style={{ padding: "6px 0", color: C.slate700 }}><span>Subtotal</span><span>{S(subtotal)}</span></div>
+              <div className="flex justify-between" style={{ padding: "6px 0", color: C.slate700 }}><span>Costo Directo</span><span>{S(subtotal)}</span></div>
               {calculo.gastosGenerales > 0 && <div className="flex justify-between" style={{ padding: "6px 0", color: C.slate700 }}><span>Gastos generales ({Number(cot.pct_gastos_generales)}%)</span><span>{S(calculo.gastosGenerales)}</span></div>}
               {calculo.utilidad > 0 && <div className="flex justify-between" style={{ padding: "6px 0", color: C.slate700 }}><span>Utilidad ({Number(cot.pct_utilidad)}%)</span><span>{S(calculo.utilidad)}</span></div>}
               <div className="flex justify-between" style={{ padding: "6px 0", color: C.slate700, borderBottom: `1px solid ${C.slate100}` }}><span>{conIgv ? "IGV (18%)" : "IGV (0%)"}</span><span>{S(igv)}</span></div>
