@@ -182,23 +182,23 @@ function VistaCotizacion() {
       r.getCell(7).value = { formula: `E${r.number}*F${r.number}` };
     });
     const ultima = ws.rowCount;
-    const sub = ws.addRow(["", "COSTO DIRECTO", "", "", "", { formula: `SUM(F${primera}:F${ultima})` }]);
+    const sub = ws.addRow(["", "COSTO DIRECTO", "", "", "", "", { formula: `SUM(G${primera}:G${ultima})` }]);
     const pctGg = Number(cot.pct_gastos_generales) || 0;
     const pctUt = Number(cot.pct_utilidad) || 0;
-    let base = `F${sub.number}`;
+    let base = `G${sub.number}`;
     if (pctGg > 0) {
-      const f = ws.addRow(["", `GASTOS GENERALES (${pctGg}%)`, "", "", "", { formula: `ROUND(F${sub.number}*${pctGg / 100},2)` }]);
-      base += `+F${f.number}`;
+      const f = ws.addRow(["", `GASTOS GENERALES (${pctGg}%)`, "", "", "", "", { formula: `ROUND(G${sub.number}*${pctGg / 100},2)` }]);
+      base += `+G${f.number}`;
     }
     if (pctUt > 0) {
-      const f = ws.addRow(["", `UTILIDAD (${pctUt}%)`, "", "", "", { formula: `ROUND(F${sub.number}*${pctUt / 100},2)` }]);
-      base += `+F${f.number}`;
+      const f = ws.addRow(["", `UTILIDAD (${pctUt}%)`, "", "", "", "", { formula: `ROUND(G${sub.number}*${pctUt / 100},2)` }]);
+      base += `+G${f.number}`;
     }
-    const filaSub = ws.addRow(["", "SUBTOTAL", "", "", "", { formula: base }]);
-    const filaIgv = ws.addRow(["", conIgv ? "IGV (18%)" : "IGV (0%)", "", "", "", { formula: conIgv ? `ROUND(F${filaSub.number}*0.18,2)` : "0" }]);
-    const tot = ws.addRow(["", "TOTAL", "", "", "", { formula: `F${filaSub.number}+F${filaIgv.number}` }]);
+    const filaSub = ws.addRow(["", "SUBTOTAL", "", "", "", "", { formula: base }]);
+    const filaIgv = ws.addRow(["", conIgv ? "IGV (18%)" : "IGV (0%)", "", "", "", "", { formula: conIgv ? `ROUND(G${filaSub.number}*0.18,2)` : "0" }]);
+    const tot = ws.addRow(["", "TOTAL", "", "", "", "", { formula: `G${filaSub.number}+G${filaIgv.number}` }]);
     tot.font = { bold: true };
-    ["E", "F"].forEach((col) => (ws.getColumn(col).numFmt = '"S/" #,##0.00'));
+    ["F", "G"].forEach((col) => (ws.getColumn(col).numFmt = '"S/" #,##0.00'));
     ws.columns.forEach((col) => {
       let max = 10;
       col.eachCell?.({ includeEmpty: false }, (c, n) => {
