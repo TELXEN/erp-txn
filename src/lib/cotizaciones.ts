@@ -31,6 +31,7 @@ export type CotizacionItem = {
   nombre: string;
   especialidad: string;
   categoria: string;
+  marca?: string;
   unidad: string;
   metrado: number;
   precio_unitario: number;
@@ -47,6 +48,7 @@ export type PartidaMaestra = {
   nombre: string;
   especialidad: string;
   categoria: string;
+  marca?: string;
   unidad: string;
   precio_unitario: number;
   activo: boolean;
