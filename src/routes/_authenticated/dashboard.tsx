@@ -362,27 +362,22 @@ function Dashboard() {
     setExportandoPdf(true);
     try {
       const html2pdf = (await import("html2pdf.js")).default;
-      // Ajuste solo durante la captura: el contenedor se ensancha al ancho real
-      // de la tabla para que nada se recorte ni parta, y el PDF escala todo
-      // proporcionalmente. El diseño en pantalla no cambia.
+      // Ajuste solo durante la captura: la tabla amplia se adapta al ancho A4
+      // con tipografía compacta para que nada se recorte ni parta. El diseño
+      // en pantalla no cambia.
       const estiloCaptura = document.createElement("style");
       estiloCaptura.textContent =
-        "#reporte-financiero .overflow-x-auto{overflow:visible!important}";
+        "#reporte-financiero .overflow-x-auto{overflow:visible!important}" +
+        "#reporte-financiero table{width:100%!important;table-layout:fixed!important}" +
+        "#reporte-financiero th,#reporte-financiero td{font-size:8px!important;padding:3px 4px!important;letter-spacing:normal!important}" +
+        "#reporte-financiero th span,#reporte-financiero td span,#reporte-financiero td div{white-space:nowrap!important;word-break:keep-all!important}";
       document.head.appendChild(estiloCaptura);
-      const anchoOriginal = elemento.style.width;
-      const anchoTabla = Array.from(elemento.querySelectorAll("table")).reduce(
-        (max, t) => Math.max(max, t.scrollWidth + 32),
-        0,
-      );
-      if (anchoTabla > elemento.clientWidth) {
-        elemento.style.width = `${anchoTabla}px`;
-      }
       // `pagebreak` existe en html2pdf.js pero no en los tipos antiguos del paquete.
       const opciones = {
         margin: 5,
         filename: `dashboard-financiero-${global ? "global" : nombreVista.replace(/[^\w-]+/g, "_")}.pdf`,
         image: { type: "jpeg", quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff", logging: false, windowWidth: anchoTabla || undefined },
+        html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff", logging: false },
         jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
         pagebreak: { mode: ["avoid-all", "css", "legacy"] },
       } as never;
@@ -390,7 +385,6 @@ function Dashboard() {
         .set(opciones)
         .from(elemento)
         .save();
-      elemento.style.width = anchoOriginal;
       estiloCaptura.remove();
     } finally {
       setExportandoPdf(false);
