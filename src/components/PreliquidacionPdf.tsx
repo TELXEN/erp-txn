@@ -229,7 +229,7 @@ function PreliquidacionDocument({ datos }: { datos: DatosPreliquidacionPdf }) {
             {datos.cuentasTodas.map((c, i) => (
               <View key={i}>
                 {c.esDetraccion ? <Text style={styles.bankLabel}>CUENTA DE DETRACCIONES · BANCO DE LA NACIÓN</Text> : null}
-                <Text style={styles.bankValue}>{`${c.nombre} · ${c.tipoCuenta} · ${c.moneda} · CTA. ${c.numero || "—"} · CCI ${c.cci || "—"}`.toUpperCase()}</Text>
+                <Text style={styles.bankValue}>{(c.esDetraccion ? `${c.nombre} · ${c.tipoCuenta} · CTA. ${c.numero || "—"}` : `${c.nombre} · ${c.tipoCuenta} · ${c.moneda} · CTA. ${c.numero || "—"} · CCI ${c.cci || "—"}`).toUpperCase()}</Text>
               </View>
             ))}
           </View>

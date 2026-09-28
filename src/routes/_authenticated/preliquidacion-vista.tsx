@@ -426,7 +426,9 @@ function VistaPreliquidacion() {
                   <div key={i} style={{ marginTop: 1 }}>
                     {c.tipo_cuenta === "Detracciones" && <div style={{ ...etiqueta, marginTop: 3 }}>Cuenta de detracciones · Banco de la Nación</div>}
                     <div style={valor}>
-                      {c.nombre} · {c.tipo_cuenta} · {c.monedas} · Cta. {c.numero_cuenta || "—"} · CCI {c.cci || "—"}
+                      {c.tipo_cuenta === "Detracciones"
+                        ? `${c.nombre} · ${c.tipo_cuenta} · Cta. ${c.numero_cuenta || "—"}`
+                        : `${c.nombre} · ${c.tipo_cuenta} · ${c.monedas} · Cta. ${c.numero_cuenta || "—"} · CCI ${c.cci || "—"}`}
                     </div>
                   </div>
                 ))}
