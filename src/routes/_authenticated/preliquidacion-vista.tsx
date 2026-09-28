@@ -390,7 +390,7 @@ function VistaPreliquidacion() {
             <div className="flex" style={{ gap: 9, marginBottom: 16 }}>
               {[
                 { t: "Régimen tributario", v: mm.aplica ? `${tipo === "detraccion" ? "Detracción" : "Retención"} ${N(Number(pl.pct_detraccion || 0))}%` : "No aplica" },
-                { t: "Importe descontado", v: descuento },
+                { t: mm.aplica ? (tipo === "detraccion" ? "Detracción" : "Retención") : "Importe descontado", v: descuento },
                 { t: "Neto a depositar", v: D(mm.cobrar) },
               ].map((c) => (
                 <div key={c.t} style={{ flex: 1, padding: 11, background: C.emerald50, borderTop: `2px solid ${C.emerald700}` }}>
