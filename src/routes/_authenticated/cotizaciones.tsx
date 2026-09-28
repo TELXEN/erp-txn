@@ -629,18 +629,17 @@ function Cotizaciones() {
                   }}
                 />
               </label>
-              <label className="flex items-center gap-1 text-xs text-muted-foreground" title="Versión de revisión que se imprime en la cotización">
+              <label className="flex items-center gap-1 text-xs text-muted-foreground" title="Versión de revisión que se imprime en la cotización (acepta números y letras: 01, A, 01B...)">
                 Rev.
                 <Input
-                  key={`rev-${cot.id}-${cot.revision ?? 1}`}
-                  type="number"
-                  min={1}
-                  step="1"
+                  key={`rev-${cot.id}-${cot.revision ?? "01"}`}
+                  type="text"
+                  maxLength={6}
                   className="w-16"
-                  defaultValue={Number(cot.revision ?? 1)}
+                  defaultValue={cot.revision ?? "01"}
                   onBlur={async (e) => {
-                    const v = Math.max(1, Math.round(Number(e.target.value) || 1));
-                    if (v === Number(cot.revision ?? 1)) return;
+                    const v = e.target.value.trim().toUpperCase() || "01";
+                    if (v === (cot.revision ?? "01")) return;
                     await supabase.from("cotizaciones").update({ revision: v }).eq("id", cot.id);
                     qc.invalidateQueries({ queryKey: ["cotizaciones"] });
                     qc.invalidateQueries({ queryKey: ["cotizacion"] });
