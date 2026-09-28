@@ -787,6 +787,19 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
                         {p.estado === "Aprobada" && (
                           <Boton onClick={() => onFacturar(p, netoDe(p.id))}><Receipt size={13} /> Facturar</Boton>
                         )}
+                        <div className="group/tip relative">
+                          <Link
+                            to="/preliquidacion-vista"
+                            search={{ id: p.id }}
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-line text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+                            aria-label="Vista previa"
+                          >
+                            <Eye size={15} />
+                          </Link>
+                          <span className="pointer-events-none absolute -top-8 right-0 whitespace-nowrap rounded-md bg-ink px-2 py-1 text-xs text-background opacity-0 shadow transition-opacity group-hover/tip:opacity-100">
+                            Vista previa
+                          </span>
+                        </div>
                         <Boton
                           type="button"
                           variante="linea"
