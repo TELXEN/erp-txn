@@ -415,14 +415,15 @@ function VistaCotizacion() {
 
                 <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 16, tableLayout: "fixed" }}>
                   <colgroup>
-                    <col style={{ width: "7%" }} />
-                    <col style={{ width: "49%" }} />
-                    <col style={{ width: "10%" }} />
-                    <col style={{ width: "7%" }} />
-                    <col style={{ width: "8%" }} />
                     <col style={{ width: "9%" }} />
-                    <col style={{ width: "10%" }} />
+                    <col style={{ width: "44%" }} />
+                    <col style={{ width: "9%" }} />
+                    <col style={{ width: "6%" }} />
+                    <col style={{ width: "8%" }} />
+                    <col style={{ width: "12%" }} />
+                    <col style={{ width: "12%" }} />
                   </colgroup>
+
                   <thead>
                     <tr style={{ background: C.slate900, color: C.white }}>
                       {[
