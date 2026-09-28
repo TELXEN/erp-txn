@@ -370,7 +370,7 @@ function Dashboard() {
         "#reporte-financiero .overflow-x-auto{overflow:visible!important}" +
         "#reporte-financiero table{width:100%!important;table-layout:fixed!important}" +
         "#reporte-financiero th,#reporte-financiero td{font-size:8px!important;padding:3px 4px!important;letter-spacing:normal!important}" +
-        "#reporte-financiero th span,#reporte-financiero td span,#reporte-financiero td div{white-space:nowrap!important;word-break:keep-all!important}";
+        "#reporte-financiero th span,#reporte-financiero td span{white-space:nowrap!important;word-break:keep-all!important}";
       document.head.appendChild(estiloCaptura);
       // `pagebreak` existe en html2pdf.js pero no en los tipos antiguos del paquete.
       const opciones = {
