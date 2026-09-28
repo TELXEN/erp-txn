@@ -83,7 +83,7 @@ function VistaCotizacion() {
           image: { type: "jpeg", quality: 0.98 },
           html2canvas: { scale: 3, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: 700, backgroundColor: "#ffffff", logging: false },
           jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-          pagebreak: { mode: ["avoid-all", "css"] },
+          pagebreak: { mode: ["css", "legacy"] },
         } as never)
         .from(el)
         .save();
