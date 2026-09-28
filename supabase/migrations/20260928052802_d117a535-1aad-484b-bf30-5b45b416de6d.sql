@@ -1,0 +1,1 @@
+ALTER TABLE public.cotizaciones ALTER COLUMN revision TYPE text USING revision::text; ALTER TABLE public.cotizaciones ALTER COLUMN revision SET DEFAULT '01'; UPDATE public.cotizaciones SET revision = lpad(revision, 2, '0') WHERE revision ~ '^[0-9]+$';
