@@ -336,24 +336,28 @@ function VistaCotizacion() {
                 {encabezadoHoja(paginaIndex + 1, paginas.length)}
 
                 {esPrimera && (
-                  <div className="grid grid-cols-3" style={{ gap: "11px 24px", marginTop: 16, background: C.slate50, borderRadius: 10, padding: 14 }}>
-                    {[
-                      ["Cliente / Razón social", cliente?.razon_social || cot.cliente || "—", "col-span-2"],
-                      ["RUC / DNI", cliente?.numero_documento || "—", ""],
-                      ["Atención", cliente?.contacto || "—", ""],
-                      ["Fecha de emisión", F(cot.fecha_emision), ""],
-                      ["Válida hasta", F(vigenciaHasta(cot.fecha_emision, Number(cot.validez_dias))), ""],
-                      ["Trabajo", cot.nombre || "—", "col-span-2"],
-                      ["Ubicación", cot.ubicacion || cliente?.direccion || "—", ""],
-                      ["Realizado por", nombre || email || "—", ""],
-                      ["Celular", empresa?.telefono || "—", ""],
-                      ["E-mail", empresa?.email || "—", ""],
-                    ].map(([k, v, cls]) => (
-                      <div key={k} className={cls}>
-                        <div style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: 1, color: C.slate400, fontWeight: 700 }}>{k}</div>
-                        <div style={{ marginTop: 3, fontWeight: 600 }}>{v}</div>
+                  <div style={{ marginTop: 14 }}>
+                    <div className="grid grid-cols-2" style={{ gap: "4px 28px", background: C.slate50, borderRadius: 10, padding: "10px 14px" }}>
+                      <div>
+                        <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: 1.2, color: C.marca, textTransform: "uppercase", borderBottom: `1px solid ${C.slate100}`, paddingBottom: 3, marginBottom: 5 }}>Datos del cliente</div>
+                        {filaDato("Cliente", cliente?.razon_social || cot.cliente || "—")}
+                        {filaDato("RUC / DNI", cliente?.numero_documento || "—")}
+                        {filaDato("Atención", cliente?.contacto || "—")}
+                        {filaDato("Ubicación", cot.ubicacion || cliente?.direccion || "—")}
                       </div>
-                    ))}
+                      <div>
+                        <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: 1.2, color: C.marca, textTransform: "uppercase", borderBottom: `1px solid ${C.slate100}`, paddingBottom: 3, marginBottom: 5 }}>Emisión y contacto</div>
+                        {filaDato("Emisión", F(cot.fecha_emision))}
+                        {filaDato("Vence", F(vigenciaHasta(cot.fecha_emision, Number(cot.validez_dias))))}
+                        {filaDato("Por", nombre || email || "—")}
+                        {filaDato("Celular", empresa?.telefono || "—")}
+                        {filaDato("E-mail", empresa?.email || "—")}
+                      </div>
+                    </div>
+                    <div className="flex" style={{ marginTop: 8, background: C.marca, color: C.white, borderRadius: 8, padding: "7px 14px", fontSize: 11, lineHeight: 1.4 }}>
+                      <span style={{ fontWeight: 800, letterSpacing: 1, fontSize: 9.5, textTransform: "uppercase", paddingTop: 1, marginRight: 10 }}>Proyecto</span>
+                      <span style={{ fontWeight: 600 }}>{cot.nombre || "—"}</span>
+                    </div>
                   </div>
                 )}
 
