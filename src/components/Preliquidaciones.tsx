@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Copy, Eye, ListPlus, Pencil, Plus, Printer, Receipt, Trash2, Upload } from "lucide-react";
+import { Copy, Eye, ListPlus, Pencil, Plus, Receipt, Trash2, Upload } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, Vacio } from "@/components/ui-kit";
@@ -10,7 +10,6 @@ import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
 import { exportarExcel } from "@/lib/exportar";
 import { useEmpresa } from "@/lib/empresa";
 import { useUnidadesMedida } from "@/lib/unidades";
-import { descargarPreliquidacionPdf } from "@/components/PreliquidacionPdf";
 
 
 export const IGV = 0.18;
@@ -120,8 +119,6 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
     },
   });
   const ctaDetraccion = cuentas.find((c) => c.tipo_cuenta === "Detracciones") ?? null;
-  const ctaComercial = (moneda: string) =>
-    cuentas.find((c) => c.tipo_cuenta !== "Detracciones" && c.monedas === moneda) ?? null;
   const { data: facturas = [] } = useQuery({
     queryKey: ["ventas", "por-preliquidacion"],
     queryFn: async () => {
@@ -171,7 +168,8 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
   const [busqueda, setBusqueda] = useState("");
   const [selectorPartidas, setSelectorPartidas] = useState(false);
   const [marcadas, setMarcadas] = useState<string[]>([]);
-  const [exportandoPdf, setExportandoPdf] = useState<string | null>(null);
+
+
 
   const { data: partidasObra = [] } = useQuery({
     queryKey: ["partidas", "obra-pl", form.proyecto_id],
@@ -386,67 +384,6 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
     qc.invalidateQueries({ queryKey: ["preliquidaciones"] });
   }
 
-  async function imprimir(p: Preliquidacion) {
-    const bruto = brutoDe(p.id);
-    const amort = amortDe(p.id);
-    const cc = ctaComercial(p.moneda);
-    const its = itemsDe(p.id);
-    const neto = netoDe(p.id);
-    const mm = calcularMontos(neto, Number(p.pct_detraccion), Number(p.tipo_cambio), p.tipo_tributario ?? "detraccion");
-    setExportandoPdf(p.id);
-    try {
-      await descargarPreliquidacionPdf({
-        codigo: p.codigo,
-        fecha: p.fecha,
-        estado: p.estado,
-        empresa: {
-          razonSocial: empresa?.razon_social || "TELXEN SAC",
-          ruc: empresa?.ruc || "",
-          direccion: empresa?.direccion || "",
-          telefono: empresa?.telefono || "",
-          email: empresa?.email || "",
-          web: empresa?.web || "",
-          logoUrl: empresa?.logo_url || "",
-        },
-        cliente: {
-          razonSocial: nombreCliente(p.cliente_id),
-          ruc: rucCliente(p.cliente_id),
-          direccion: dirCliente(p.cliente_id),
-        },
-        proyecto: nombreProy(p.proyecto_id),
-        ordenCompra: p.concepto,
-        moneda: p.moneda,
-        tipoCambio: Number(p.tipo_cambio || 1),
-        lineas: its.map((item) => ({
-          descripcion: item.descripcion,
-          unidad: item.unidad,
-          cantidad: Number(item.cantidad),
-          precioUnitario: Number(item.precio_unitario),
-        })),
-        valorEjecutado: bruto,
-        amortizacion: amort,
-        valorNeto: mm.neto,
-        igv: mm.igv,
-        total: mm.total,
-        tipoTributario: p.tipo_tributario ?? "detraccion",
-        porcentajeTributario: Number(p.pct_detraccion || 0),
-        aplicaTributo: mm.aplica,
-        detraccionPen: mm.detraccionPen,
-        retencionPen: mm.retencionPen,
-        netoDepositar: mm.cobrar,
-        condicionPago: p.condicion_pago,
-        diasCredito: Number(p.dias_credito || 0),
-        fechaVencimiento: p.fecha_vencimiento || "",
-        cuentaComercial: cc ? { nombre: cc.nombre, numero: cc.numero_cuenta, cci: cc.cci } : null,
-        cuentaDetracciones: ctaDetraccion ? { nombre: ctaDetraccion.nombre, numero: ctaDetraccion.numero_cuenta, cci: ctaDetraccion.cci } : null,
-        observacion: p.observacion || "",
-      });
-    } catch (err) {
-      window.alert(err instanceof Error ? `No se pudo generar el PDF: ${err.message}` : "No se pudo generar el PDF.");
-    } finally {
-      setExportandoPdf(null);
-    }
-  }
 
   const editable = (p: Preliquidacion) => p.estado === "Borrador" || p.estado === "Observada";
 
@@ -800,17 +737,6 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
                             Vista previa
                           </span>
                         </div>
-                        <Boton
-                          type="button"
-                          variante="linea"
-                          className="h-8 w-8 px-0"
-                          disabled={exportandoPdf === p.id}
-                          onClick={() => void imprimir(p)}
-                          aria-label={`Descargar preliquidación ${p.codigo} en PDF`}
-                          title="Descargar PDF"
-                        >
-                          <Printer size={18} />
-                        </Boton>
                         <button onClick={() => duplicar(p)} className="text-muted-foreground hover:text-ink" aria-label="Duplicar" title="Duplicar"><Copy size={14} /></button>
                         {editable(p) && (
                           <>
