@@ -52,10 +52,10 @@ type ItemParaPagina = {
 };
 
 function altoEstimadoItem(item: ItemParaPagina) {
-  const lineasNombre = Math.max(1, Math.ceil((item.nombre || "").length / 48));
+  const lineasNombre = Math.max(1, Math.ceil((item.nombre || "").length / 26));
   const detalle = [item.especialidad, item.categoria].filter(Boolean).join(" · ");
-  const lineasDetalle = detalle ? Math.max(1, Math.ceil(detalle.length / 58)) : 0;
-  return 44 + Math.max(0, lineasNombre - 1) * 14 + lineasDetalle * 14;
+  const lineasDetalle = detalle ? Math.max(1, Math.ceil(detalle.length / 34)) : 0;
+  return 30 + lineasNombre * 16 + lineasDetalle * 15;
 }
 
 function paginarItems<T extends ItemParaPagina>(items: T[]) {
@@ -65,8 +65,8 @@ function paginarItems<T extends ItemParaPagina>(items: T[]) {
   let primeraHoja = true;
 
   while (pendientes.length > 0) {
-    const capacidad = primeraHoja ? 430 : 690;
-    const capacidadFinal = primeraHoja ? 200 : 390;
+    const capacidad = primeraHoja ? 470 : 650;
+    const capacidadFinal = primeraHoja ? 250 : 350;
     const altoPendiente = pendientes.reduce((suma, item) => suma + altoEstimadoItem(item), 0);
 
     if (altoPendiente <= capacidadFinal) {
@@ -213,6 +213,8 @@ function VistaCotizacion() {
   const celda = { padding: "12px 14px", borderBottom: `1px solid ${C.slate100}` } as const;
   const cargando = cargandoCotizaciones || cargandoItems || cargandoEmpresa;
 
+  const revision = `Rev. ${String(Math.max(1, (cot as unknown as { revision?: number } | null)?.revision ?? 1)).padStart(2, "0")}`;
+
   function encabezadoHoja(numero: number, totalHojas: number) {
     return (
       <div className="flex items-start justify-between gap-5" style={{ borderBottom: `2px solid ${C.marca}`, paddingBottom: 14 }}>
@@ -264,10 +266,20 @@ function VistaCotizacion() {
             <div style={{ marginTop: 3, fontSize: 12, fontWeight: 700 }}>RUC: {empresa?.ruc || "—"}</div>
             <div style={{ marginTop: 2, fontSize: 14, fontWeight: 800, letterSpacing: 0.6 }}>{cot?.codigo ?? "SIN CÓDIGO"}</div>
           </div>
-          <div style={{ marginTop: 5, fontSize: 9.5, color: C.slate500, textAlign: "center" }}>
-            Hoja {numero} de {totalHojas}
+          <div className="flex justify-between" style={{ marginTop: 5, fontSize: 9.5, color: C.slate500 }}>
+            <span>Hoja {numero} de {totalHojas}</span>
+            <span>{revision}</span>
           </div>
         </div>
+      </div>
+    );
+  }
+
+  function filaDato(etiqueta: string, valor: string) {
+    return (
+      <div className="flex" style={{ fontSize: 10.5, lineHeight: 1.5 }}>
+        <span style={{ width: 74, flexShrink: 0, fontWeight: 700, color: C.slate500, textTransform: "uppercase", fontSize: 9, letterSpacing: 0.6, paddingTop: 1 }}>{etiqueta}</span>
+        <span style={{ fontWeight: 600, color: C.slate900 }}>{valor}</span>
       </div>
     );
   }
@@ -324,24 +336,28 @@ function VistaCotizacion() {
                 {encabezadoHoja(paginaIndex + 1, paginas.length)}
 
                 {esPrimera && (
-                  <div className="grid grid-cols-3" style={{ gap: "11px 24px", marginTop: 16, background: C.slate50, borderRadius: 10, padding: 14 }}>
-                    {[
-                      ["Cliente / Razón social", cliente?.razon_social || cot.cliente || "—", "col-span-2"],
-                      ["RUC / DNI", cliente?.numero_documento || "—", ""],
-                      ["Atención", cliente?.contacto || "—", ""],
-                      ["Fecha de emisión", F(cot.fecha_emision), ""],
-                      ["Válida hasta", F(vigenciaHasta(cot.fecha_emision, Number(cot.validez_dias))), ""],
-                      ["Trabajo", cot.nombre || "—", "col-span-2"],
-                      ["Ubicación", cot.ubicacion || cliente?.direccion || "—", ""],
-                      ["Realizado por", nombre || email || "—", ""],
-                      ["Celular", empresa?.telefono || "—", ""],
-                      ["E-mail", empresa?.email || "—", ""],
-                    ].map(([k, v, cls]) => (
-                      <div key={k} className={cls}>
-                        <div style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: 1, color: C.slate400, fontWeight: 700 }}>{k}</div>
-                        <div style={{ marginTop: 3, fontWeight: 600 }}>{v}</div>
+                  <div style={{ marginTop: 14 }}>
+                    <div className="grid grid-cols-2" style={{ gap: "4px 28px", background: C.slate50, borderRadius: 10, padding: "10px 14px" }}>
+                      <div>
+                        <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: 1.2, color: C.marca, textTransform: "uppercase", borderBottom: `1px solid ${C.slate100}`, paddingBottom: 3, marginBottom: 5 }}>Datos del cliente</div>
+                        {filaDato("Cliente", cliente?.razon_social || cot.cliente || "—")}
+                        {filaDato("RUC / DNI", cliente?.numero_documento || "—")}
+                        {filaDato("Atención", cliente?.contacto || "—")}
+                        {filaDato("Ubicación", cot.ubicacion || cliente?.direccion || "—")}
                       </div>
-                    ))}
+                      <div>
+                        <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: 1.2, color: C.marca, textTransform: "uppercase", borderBottom: `1px solid ${C.slate100}`, paddingBottom: 3, marginBottom: 5 }}>Emisión y contacto</div>
+                        {filaDato("Emisión", F(cot.fecha_emision))}
+                        {filaDato("Vence", F(vigenciaHasta(cot.fecha_emision, Number(cot.validez_dias))))}
+                        {filaDato("Por", nombre || email || "—")}
+                        {filaDato("Celular", empresa?.telefono || "—")}
+                        {filaDato("E-mail", empresa?.email || "—")}
+                      </div>
+                    </div>
+                    <div className="flex" style={{ marginTop: 8, background: C.marca, color: C.white, borderRadius: 8, padding: "7px 14px", fontSize: 11, lineHeight: 1.4 }}>
+                      <span style={{ fontWeight: 800, letterSpacing: 1, fontSize: 9.5, textTransform: "uppercase", paddingTop: 1, marginRight: 10 }}>Proyecto</span>
+                      <span style={{ fontWeight: 600 }}>{cot.nombre || "—"}</span>
+                    </div>
                   </div>
                 )}
 
