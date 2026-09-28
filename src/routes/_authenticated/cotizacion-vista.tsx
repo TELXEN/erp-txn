@@ -170,7 +170,7 @@ function VistaCotizacion() {
     if (!cot) return;
     ws.addRow([`${cot.codigo ?? "Cotización"} — ${cot.cliente}`]).font = { bold: true, size: 13 };
     ws.addRow([]);
-    const cab = ws.addRow(["Ítem", "Descripción", "Cantidad", "Unidad", "Precio Unitario", "Total"]);
+    const cab = ws.addRow(["Ítem", "Descripción", "Marca", "Unidad", "Cantidad", "C. Unitario", "Sub Total"]);
     cab.eachCell((c) => {
       c.font = { bold: true, color: { argb: "FFFFFFFF" } };
       c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
@@ -178,27 +178,27 @@ function VistaCotizacion() {
     });
     const primera = ws.rowCount + 1;
     items.forEach((it, i) => {
-      const r = ws.addRow([it.codigo || i + 1, it.nombre, Number(it.metrado), it.unidad, Number(it.precio_unitario)]);
-      r.getCell(6).value = { formula: `C${r.number}*E${r.number}` };
+      const r = ws.addRow([it.codigo || i + 1, it.nombre, it.marca?.trim() || "-", it.unidad, Number(it.metrado), Number(it.precio_unitario)]);
+      r.getCell(7).value = { formula: `E${r.number}*F${r.number}` };
     });
     const ultima = ws.rowCount;
-    const sub = ws.addRow(["", "COSTO DIRECTO", "", "", "", { formula: `SUM(F${primera}:F${ultima})` }]);
+    const sub = ws.addRow(["", "COSTO DIRECTO", "", "", "", "", { formula: `SUM(G${primera}:G${ultima})` }]);
     const pctGg = Number(cot.pct_gastos_generales) || 0;
     const pctUt = Number(cot.pct_utilidad) || 0;
-    let base = `F${sub.number}`;
+    let base = `G${sub.number}`;
     if (pctGg > 0) {
-      const f = ws.addRow(["", `GASTOS GENERALES (${pctGg}%)`, "", "", "", { formula: `ROUND(F${sub.number}*${pctGg / 100},2)` }]);
-      base += `+F${f.number}`;
+      const f = ws.addRow(["", `GASTOS GENERALES (${pctGg}%)`, "", "", "", "", { formula: `ROUND(G${sub.number}*${pctGg / 100},2)` }]);
+      base += `+G${f.number}`;
     }
     if (pctUt > 0) {
-      const f = ws.addRow(["", `UTILIDAD (${pctUt}%)`, "", "", "", { formula: `ROUND(F${sub.number}*${pctUt / 100},2)` }]);
-      base += `+F${f.number}`;
+      const f = ws.addRow(["", `UTILIDAD (${pctUt}%)`, "", "", "", "", { formula: `ROUND(G${sub.number}*${pctUt / 100},2)` }]);
+      base += `+G${f.number}`;
     }
-    const filaSub = ws.addRow(["", "SUBTOTAL", "", "", "", { formula: base }]);
-    const filaIgv = ws.addRow(["", conIgv ? "IGV (18%)" : "IGV (0%)", "", "", "", { formula: conIgv ? `ROUND(F${filaSub.number}*0.18,2)` : "0" }]);
-    const tot = ws.addRow(["", "TOTAL", "", "", "", { formula: `F${filaSub.number}+F${filaIgv.number}` }]);
+    const filaSub = ws.addRow(["", "SUBTOTAL", "", "", "", "", { formula: base }]);
+    const filaIgv = ws.addRow(["", conIgv ? "IGV (18%)" : "IGV (0%)", "", "", "", "", { formula: conIgv ? `ROUND(G${filaSub.number}*0.18,2)` : "0" }]);
+    const tot = ws.addRow(["", "TOTAL", "", "", "", "", { formula: `G${filaSub.number}+G${filaIgv.number}` }]);
     tot.font = { bold: true };
-    ["E", "F"].forEach((col) => (ws.getColumn(col).numFmt = '"S/" #,##0.00'));
+    ["F", "G"].forEach((col) => (ws.getColumn(col).numFmt = '"S/" #,##0.00'));
     ws.columns.forEach((col) => {
       let max = 10;
       col.eachCell?.({ includeEmpty: false }, (c, n) => {
@@ -329,8 +329,16 @@ function VistaCotizacion() {
                 <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 16 }}>
                   <thead>
                     <tr style={{ background: C.slate900, color: C.white }}>
-                      {["Ítem", "Descripción", "Cant.", "Und.", "P. Unitario", "Total"].map((h, i) => (
-                        <th key={h} style={{ padding: "10px 12px", fontSize: 10, textTransform: "uppercase", letterSpacing: 1, textAlign: i >= 4 || i === 2 ? "right" : i === 3 || i === 0 ? "center" : "left" }}>
+                      {[
+                        { h: "Ítem", a: "center" },
+                        { h: "Descripción", a: "left" },
+                        { h: "Marca", a: "center" },
+                        { h: "Unidad", a: "center" },
+                        { h: "Cantidad", a: "right" },
+                        { h: "C. Unitario", a: "right" },
+                        { h: "Sub Total", a: "right" },
+                      ].map(({ h, a }) => (
+                        <th key={h} style={{ padding: "10px 12px", fontSize: 10, textTransform: "uppercase", letterSpacing: 1, textAlign: a as "left" | "right" | "center" }}>
                           {h}
                         </th>
                       ))}
@@ -344,8 +352,9 @@ function VistaCotizacion() {
                           <div style={{ fontWeight: 600 }}>{it.nombre}</div>
                           {(it.especialidad || it.categoria) && <div style={{ marginTop: 3, fontSize: 10.5, color: C.slate500, lineHeight: 1.35 }}>{[it.especialidad, it.categoria].filter(Boolean).join(" · ")}</div>}
                         </td>
-                        <td style={{ ...celda, padding: "9px 12px", textAlign: "right" }}>{Number(it.metrado).toLocaleString("es-PE", { maximumFractionDigits: 2 })}</td>
+                        <td style={{ ...celda, padding: "9px 12px", textAlign: "center", color: C.slate500 }}>{it.marca?.trim() || "-"}</td>
                         <td style={{ ...celda, padding: "9px 12px", textAlign: "center", color: C.slate500 }}>{it.unidad}</td>
+                        <td style={{ ...celda, padding: "9px 12px", textAlign: "right" }}>{Number(it.metrado).toLocaleString("es-PE", { maximumFractionDigits: 2 })}</td>
                         <td style={{ ...celda, padding: "9px 12px", textAlign: "right", whiteSpace: "nowrap" }}>{S(Number(it.precio_unitario))}</td>
                         <td style={{ ...celda, padding: "9px 12px", textAlign: "right", fontWeight: 600, whiteSpace: "nowrap" }}>{S(Number(it.metrado) * Number(it.precio_unitario))}</td>
                       </tr>

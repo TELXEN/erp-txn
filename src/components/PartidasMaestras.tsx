@@ -15,6 +15,7 @@ const vacio = {
   nombre: "",
   especialidad: "",
   categoria: "",
+  marca: "",
   unidad: "glb",
   precio_unitario: "",
 };
@@ -35,7 +36,7 @@ export function PartidasMaestras() {
 
   const filtradas = useMemo(() => {
     return lista.filter((p) =>
-      coincide(busqueda, p.nombre, p.especialidad, p.categoria),
+      coincide(busqueda, p.nombre, p.especialidad, p.categoria, p.marca ?? ""),
     );
   }, [lista, busqueda]);
 
@@ -48,6 +49,7 @@ export function PartidasMaestras() {
       nombre: form.nombre.trim(),
       especialidad: form.especialidad,
       categoria: form.categoria,
+      marca: form.marca.trim(),
       unidad: form.unidad,
       precio_unitario: Number(form.precio_unitario || 0),
     });
@@ -70,6 +72,7 @@ export function PartidasMaestras() {
         nombre: editando.nombre.trim(),
         especialidad: editando.especialidad,
         categoria: editando.categoria ?? "",
+        marca: editando.marca ?? "",
         unidad: editando.unidad,
         precio_unitario: Number(editando.precio_unitario || 0),
         activo: editando.activo,
@@ -146,6 +149,15 @@ export function PartidasMaestras() {
               ))}
             </Select>
           </Campo>
+          <Campo etiqueta="Marca">
+            <Input
+              className="py-1.5"
+              value={form.marca}
+              onChange={(e) => setForm({ ...form, marca: e.target.value })}
+              maxLength={60}
+              placeholder="Sin marca"
+            />
+          </Campo>
           <Campo etiqueta="Unidad">
             <Select className="py-1.5" value={form.unidad} onChange={(e) => setForm({ ...form, unidad: e.target.value })}>
               {opcionesUnidad.map((u) => (
@@ -183,13 +195,14 @@ export function PartidasMaestras() {
           <table className="w-full table-fixed font-mono text-xs">
             <thead>
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                <th className="w-[32%] px-5 py-2 font-medium">Partida</th>
-                <th className="w-[16%] px-3 py-2 font-medium">Especialidad</th>
-                <th className="w-[17%] px-3 py-2 font-medium">Categoría</th>
-                <th className="w-[7%] px-3 py-2 font-medium">Und.</th>
+                <th className="w-[28%] px-5 py-2 font-medium">Partida</th>
+                <th className="w-[14%] px-3 py-2 font-medium">Especialidad</th>
+                <th className="w-[15%] px-3 py-2 font-medium">Categoría</th>
+                <th className="w-[10%] px-3 py-2 font-medium">Marca</th>
+                <th className="w-[6%] px-3 py-2 font-medium">Und.</th>
                 <th className="w-[11%] px-3 py-2 text-right font-medium">P.U. (S/)</th>
                 <th className="w-[8%] px-3 py-2 font-medium">Estado</th>
-                <th className="w-[9%] px-5 py-2 text-right font-medium">Acciones</th>
+                <th className="w-[8%] px-5 py-2 text-right font-medium">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -232,6 +245,14 @@ export function PartidasMaestras() {
                           </option>
                         ))}
                       </Select>
+                    </td>
+                    <td className="px-3 py-2">
+                      <Input
+                        className="py-1 text-xs"
+                        value={editando.marca ?? ""}
+                        placeholder="-"
+                        onChange={(ev) => setEditando({ ...editando, marca: ev.target.value })}
+                      />
                     </td>
                     <td className="px-3 py-2">
                       <Select
@@ -293,6 +314,7 @@ export function PartidasMaestras() {
                     <td className="px-5 py-2.5 text-ink"><Resaltar texto={p.nombre} termino={busqueda} /></td>
                     <td className="px-3 py-2.5 text-muted-foreground"><Resaltar texto={p.especialidad || "—"} termino={busqueda} /></td>
                     <td className="px-3 py-2.5 text-muted-foreground"><Resaltar texto={p.categoria || "—"} termino={busqueda} /></td>
+                    <td className="px-3 py-2.5 text-muted-foreground"><Resaltar texto={p.marca || "-"} termino={busqueda} /></td>
                     <td className="px-3 py-2.5 text-muted-foreground">{p.unidad}</td>
                     <td className="px-3 py-2.5 text-right">{soles(Number(p.precio_unitario))}</td>
                     <td className="px-3 py-2.5">

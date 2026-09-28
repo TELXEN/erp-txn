@@ -618,6 +618,7 @@ export type Database = {
           especialidad: string
           id: string
           jornada: number
+          marca: string
           metrado: number
           nombre: string
           orden: number
@@ -636,6 +637,7 @@ export type Database = {
           especialidad?: string
           id?: string
           jornada?: number
+          marca?: string
           metrado?: number
           nombre: string
           orden?: number
@@ -654,6 +656,7 @@ export type Database = {
           especialidad?: string
           id?: string
           jornada?: number
+          marca?: string
           metrado?: number
           nombre?: string
           orden?: number
@@ -1587,6 +1590,7 @@ export type Database = {
           especialidad: string
           id: string
           jornada: number
+          marca: string
           metrado: number
           nombre: string
           padre_id: string | null
@@ -1611,6 +1615,7 @@ export type Database = {
           especialidad: string
           id?: string
           jornada?: number
+          marca?: string
           metrado?: number
           nombre: string
           padre_id?: string | null
@@ -1635,6 +1640,7 @@ export type Database = {
           especialidad?: string
           id?: string
           jornada?: number
+          marca?: string
           metrado?: number
           nombre?: string
           padre_id?: string | null
@@ -1674,6 +1680,7 @@ export type Database = {
           especialidad: string
           id: string
           jornada: number
+          marca: string
           nombre: string
           pct_herramientas: number
           precio_unitario: number
@@ -1689,6 +1696,7 @@ export type Database = {
           especialidad?: string
           id?: string
           jornada?: number
+          marca?: string
           nombre: string
           pct_herramientas?: number
           precio_unitario?: number
@@ -1704,6 +1712,7 @@ export type Database = {
           especialidad?: string
           id?: string
           jornada?: number
+          marca?: string
           nombre?: string
           pct_herramientas?: number
           precio_unitario?: number

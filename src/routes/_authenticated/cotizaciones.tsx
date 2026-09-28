@@ -105,6 +105,7 @@ function Cotizaciones() {
     nombre: "",
     especialidad: "",
     categoria: "",
+    marca: "",
     unidad: "glb",
     metrado: "1",
     precio_unitario: "",
@@ -124,6 +125,7 @@ function Cotizaciones() {
     padre_id: string;
     codigo: string;
     nombre: string;
+    marca: string;
     unidad: string;
     metrado: string;
     precio_unitario: string;
@@ -184,6 +186,7 @@ function Cotizaciones() {
       nombre: item.nombre.trim(),
       especialidad: item.especialidad,
       categoria: item.categoria,
+      marca: item.marca.trim(),
       unidad: item.unidad,
       metrado: Number(item.metrado || 0),
       precio_unitario: Number(item.precio_unitario || 0),
@@ -191,7 +194,7 @@ function Cotizaciones() {
     });
     if (err) return setError(err.message);
     setMaestraSel("");
-    setItem({ ...item, codigo: "", nombre: "", metrado: "1", precio_unitario: "" });
+    setItem({ ...item, codigo: "", nombre: "", marca: "", metrado: "1", precio_unitario: "" });
     qc.invalidateQueries({ queryKey: ["cotizacion_items", cot.id] });
   }
 
@@ -204,6 +207,7 @@ function Cotizaciones() {
       nombre: item.nombre.trim(),
       especialidad: item.especialidad,
       categoria: item.categoria,
+      marca: item.marca.trim(),
       unidad: item.unidad,
       precio_unitario: Number(item.precio_unitario || 0),
     });
@@ -218,6 +222,7 @@ function Cotizaciones() {
       padre_id: padre.id,
       codigo: siguienteCodigoSubpartida(padre.codigo, items.filter((x) => x.padre_id === padre.id)),
       nombre: "",
+      marca: padre.marca ?? "",
       unidad: padre.unidad || "glb",
       metrado: "1",
       precio_unitario: "",
@@ -247,6 +252,7 @@ function Cotizaciones() {
       nombre: nuevaSub.nombre.trim(),
       especialidad: padre.especialidad,
       categoria: padre.categoria ?? "",
+      marca: nuevaSub.marca.trim(),
       unidad: nuevaSub.unidad,
       metrado: Number(nuevaSub.metrado || 0),
       precio_unitario: Number(nuevaSub.precio_unitario || 0),
@@ -300,6 +306,7 @@ function Cotizaciones() {
           Categoría: i.categoria ?? "",
           "Cód. Partida": i.codigo,
           Partida: i.nombre,
+          Marca: i.marca || "-",
           Unidad: i.unidad,
           Metrado: Number(i.metrado),
           "Precio Unitario (S/)": Number(i.precio_unitario),
@@ -354,6 +361,7 @@ function Cotizaciones() {
           nombre: i.nombre,
           especialidad: i.especialidad || "OTROS",
           categoria: i.categoria ?? "",
+          marca: i.marca ?? "",
           unidad: i.unidad,
           metrado: Number(i.metrado),
           precio_unitario: Number(i.precio_unitario),
@@ -676,6 +684,7 @@ function Cotizaciones() {
                         nombre: "",
                         especialidad: "",
                         categoria: "",
+                        marca: "",
                         unidad: item.unidad,
                         metrado: "1",
                         precio_unitario: "",
@@ -689,6 +698,7 @@ function Cotizaciones() {
                       nombre: m.nombre,
                       especialidad: m.especialidad,
                       categoria: m.categoria ?? "",
+                      marca: m.marca ?? "",
                       unidad: m.unidad,
                       metrado: "1",
                       precio_unitario: String(m.precio_unitario ?? 0),
@@ -774,6 +784,14 @@ function Cotizaciones() {
                 ))}
               </Select>
             </Campo>
+            <Campo etiqueta="Marca">
+              <Input
+                value={item.marca}
+                onChange={(e) => setItem({ ...item, marca: e.target.value })}
+                maxLength={60}
+                placeholder="Sin marca"
+              />
+            </Campo>
             <Campo etiqueta="Unidad">
               <Select value={item.unidad} onChange={(e) => setItem({ ...item, unidad: e.target.value })}>
                 {unidades
@@ -827,6 +845,7 @@ function Cotizaciones() {
                 <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
                   <th className="px-5 py-2 font-medium">Código</th>
                   <th className="px-3 py-2 font-medium">Partida</th>
+                  <th className="px-3 py-2 font-medium">Marca</th>
                   <th className="px-3 py-2 font-medium">Und.</th>
                   <th className="px-3 py-2 text-right font-medium">Metrado</th>
                   <th className="px-3 py-2 text-right font-medium">P.U. (S/)</th>
@@ -845,7 +864,7 @@ function Cotizaciones() {
                 <tbody key={grupo.especialidad}>
                   <tr className="border-b border-line/40 bg-muted/40">
                     <td className="px-5 py-2 font-semibold text-ink">{wbs.capitulo(grupo.especialidad)}</td>
-                    <td colSpan={4} className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-ink">
+                    <td colSpan={5} className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-ink">
                       {grupo.especialidad}
                     </td>
                     <td className="px-3 py-2 text-right font-semibold text-ink">{soles(subtotalEspecialidad)}</td>
@@ -862,7 +881,7 @@ function Cotizaciones() {
                           <td className="px-5 py-1.5 pl-8 text-[10px] font-semibold text-ink">
                             {wbs.categoria(grupo.especialidad, sub.categoria)}
                           </td>
-                          <td colSpan={4} className="px-3 py-1.5 text-[11px] font-semibold text-muted-foreground">
+                          <td colSpan={5} className="px-3 py-1.5 text-[11px] font-semibold text-muted-foreground">
                             {sub.categoria}
                           </td>
                           <td className="px-3 py-1.5 text-right font-semibold text-ink">{soles(subtotal)}</td>
@@ -889,6 +908,7 @@ function Cotizaciones() {
                                     <span className="ml-1.5 text-[9px] uppercase text-muted-foreground">({hijos.length} subpartidas)</span>
                                   )}
                                 </td>
+                                <td className="px-3 py-2.5 text-muted-foreground">{agrupadora ? "—" : i.marca || "-"}</td>
                                 <td className="px-3 py-2.5 text-muted-foreground">{agrupadora ? "—" : i.unidad}</td>
                                 <td className="px-3 py-2.5 text-right">{agrupadora ? "—" : cantidad(i.metrado)}</td>
                                 <td className="px-3 py-2.5 text-right">{agrupadora ? "—" : soles(Number(i.precio_unitario))}</td>
@@ -930,6 +950,10 @@ function Cotizaciones() {
                                   <td className="px-3 py-2">
                                     <Input autoFocus value={nuevaSub.nombre} onChange={(e) => setNuevaSub({ ...nuevaSub, nombre: e.target.value })}
                                       className="py-1 text-xs" placeholder="Descripción de la subpartida" />
+                                  </td>
+                                  <td className="px-3 py-2">
+                                    <Input value={nuevaSub.marca} onChange={(e) => setNuevaSub({ ...nuevaSub, marca: e.target.value })}
+                                      className="py-1 text-xs" placeholder="-" />
                                   </td>
                                   <td className="px-3 py-2">
                                     <Input value={nuevaSub.unidad} onChange={(e) => setNuevaSub({ ...nuevaSub, unidad: e.target.value })}
