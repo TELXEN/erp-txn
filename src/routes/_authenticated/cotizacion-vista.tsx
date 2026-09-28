@@ -330,7 +330,7 @@ function VistaCotizacion() {
   function filaDato(etiqueta: string, valor: string) {
     return (
       <div className="flex" style={{ fontFamily: CALIBRI, fontSize: "9pt", fontWeight: 300, lineHeight: 1.3 }}>
-        <span style={{ width: 66, flexShrink: 0, fontWeight: 300, color: C.slate500, textTransform: "uppercase", letterSpacing: 0, paddingTop: 1 }}>{etiqueta}</span>
+        <span style={{ width: 76, flexShrink: 0, fontWeight: 300, color: C.slate500, textTransform: "uppercase", letterSpacing: 0, paddingTop: 1 }}>{etiqueta}</span>
         <span style={{ fontWeight: 300, color: C.slate900 }}>{valor}</span>
       </div>
     );
