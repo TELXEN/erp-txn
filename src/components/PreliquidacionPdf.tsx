@@ -46,7 +46,6 @@ export type DatosPreliquidacionPdf = {
   condicionPago: string;
   diasCredito: number;
   fechaVencimiento: string;
-  cuentaComercial: CuentaPdf;
   cuentaDetracciones: CuentaPdf;
   cuentasTodas: { nombre: string; numero: string; cci: string; moneda: string; tipoCuenta: string }[];
   observacion: string;
@@ -114,8 +113,8 @@ const styles = StyleSheet.create({
   settlement: { flexDirection: "row", gap: 8, marginBottom: 15 },
   settlementCard: { flex: 1, padding: 10, backgroundColor: colors.emerald50, borderTopWidth: 2, borderTopColor: colors.emerald700 },
   settlementValue: { fontFamily: "Helvetica-Bold", fontSize: 11, color: colors.emerald800, marginTop: 4 },
-  banking: { padding: 11, backgroundColor: colors.slate50, marginBottom: 13 },
-  bankBlock: { marginTop: 6 },
+  banking: { padding: 11, backgroundColor: colors.slate50, marginBottom: 13, flexGrow: 1 },
+  bankList: { flexGrow: 1, justifyContent: "space-evenly" },
   notes: { padding: 10, borderLeftWidth: 3, borderLeftColor: colors.emerald700, backgroundColor: colors.emerald50, marginBottom: 14 },
   legal: { fontSize: 7, lineHeight: 1.4, color: colors.slate500, marginTop: "auto", paddingTop: 12, borderTopWidth: 0.7, borderTopColor: colors.slate300 },
   footer: { position: "absolute", left: 34, right: 34, bottom: 14, flexDirection: "row", justifyContent: "space-between", color: colors.slate500, fontSize: 6.5 },
@@ -134,7 +133,7 @@ function PreliquidacionDocument({ datos }: { datos: DatosPreliquidacionPdf }) {
   const simbolo = datos.moneda === "USD" ? "US$" : "S/";
   const dinero = (valor: number) => `${simbolo} ${numero(valor)}`;
   const cuentaTexto = (cuenta: CuentaPdf) =>
-    cuenta ? `${cuenta.nombre} · Cta. ${cuenta.numero || "—"}${cuenta.cci ? ` · CCI ${cuenta.cci}` : ""}` : "Cuenta bancaria pendiente de registrar";
+    cuenta ? `${cuenta.nombre} · Cta. ${cuenta.numero || "—"}${cuenta.cci ? ` · CCI ${cuenta.cci}` : ""}` : "—";
   const descuento = datos.detraccionPen > 0 ? `S/ ${numero(datos.detraccionPen, 0)}` : datos.retencionPen > 0 ? `S/ ${numero(datos.retencionPen)}` : "No aplica";
 
   return (
@@ -225,9 +224,8 @@ function PreliquidacionDocument({ datos }: { datos: DatosPreliquidacionPdf }) {
 
         <View style={styles.banking} wrap={false}>
           <Text style={styles.sectionTitle}>Datos bancarios</Text>
-          <View style={styles.bankBlock}><Text style={styles.label}>Cuenta para abono del neto</Text><Text style={styles.value}>{cuentaTexto(datos.cuentaComercial)}</Text></View>
-          {datos.detraccionPen > 0 ? <View style={styles.bankBlock}><Text style={styles.label}>Cuenta de detracciones · Banco de la Nación</Text><Text style={styles.value}>{cuentaTexto(datos.cuentaDetracciones)}</Text></View> : null}
-          <View style={styles.bankBlock}>
+          <View style={styles.bankList}>
+            {datos.detraccionPen > 0 ? <><Text style={styles.label}>Cuenta de detracciones · Banco de la Nación</Text><Text style={styles.value}>{cuentaTexto(datos.cuentaDetracciones)}</Text></> : null}
             <Text style={styles.label}>Todas las cuentas registradas</Text>
             {datos.cuentasTodas.length === 0 ? <Text style={styles.value}>No hay cuentas bancarias registradas.</Text> : null}
             {datos.cuentasTodas.map((c, i) => (

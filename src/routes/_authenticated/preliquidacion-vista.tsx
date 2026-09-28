@@ -159,9 +159,8 @@ function VistaPreliquidacion() {
   const simbolo = pl.moneda === "USD" ? "US$" : "S/";
   const D = (v: number) => `${simbolo} ${N(v)}`;
   const ctaDetraccion = cuentas.find((c) => c.tipo_cuenta === "Detracciones") ?? null;
-  const ctaComercial = cuentas.find((c) => c.tipo_cuenta !== "Detracciones" && c.monedas === pl.moneda) ?? null;
   const cuentaTexto = (c: CuentaBanco | null) =>
-    c ? `${c.nombre} · Cta. ${c.numero_cuenta || "—"}${c.cci ? ` · CCI ${c.cci}` : ""}` : "Cuenta bancaria pendiente de registrar";
+    c ? `${c.nombre} · Cta. ${c.numero_cuenta || "—"}${c.cci ? ` · CCI ${c.cci}` : ""}` : "—";
   const descuento = mm.detraccionPen > 0 ? `S/ ${N(mm.detraccionPen, 0)}` : mm.retencionPen > 0 ? `S/ ${N(mm.retencionPen)}` : "No aplica";
 
   function copiarEnlace() {
@@ -221,7 +220,6 @@ function VistaPreliquidacion() {
         condicionPago: pl.condicion_pago,
         diasCredito: Number(pl.dias_credito || 0),
         fechaVencimiento: pl.fecha_vencimiento || "",
-        cuentaComercial: ctaComercial ? { nombre: ctaComercial.nombre, numero: ctaComercial.numero_cuenta, cci: ctaComercial.cci } : null,
         cuentaDetracciones: ctaDetraccion ? { nombre: ctaDetraccion.nombre, numero: ctaDetraccion.numero_cuenta, cci: ctaDetraccion.cci } : null,
         cuentasTodas: cuentas.map((c) => ({ nombre: c.nombre, numero: c.numero_cuenta, cci: c.cci, moneda: c.monedas, tipoCuenta: c.tipo_cuenta })),
         observacion: pl.observacion || "",
@@ -273,6 +271,8 @@ function VistaPreliquidacion() {
               padding: "38px 40px 34px",
               boxSizing: "border-box",
               boxShadow: "0 10px 30px -12px rgba(15,23,42,.25)",
+              display: "flex",
+              flexDirection: "column",
             }}
           >
             <div style={{ height: 5, background: C.emerald700, marginBottom: 20 }} />
@@ -419,23 +419,19 @@ function VistaPreliquidacion() {
               ))}
             </div>
 
-            <div style={{ padding: 12, background: C.slate50, marginBottom: 14 }}>
+            <div style={{ padding: 12, background: C.slate50, marginBottom: 14, flex: 1, display: "flex", flexDirection: "column" }}>
               <div style={tituloSeccion}>Datos bancarios</div>
-              <div style={{ marginTop: 6 }}>
-                <div style={etiqueta}>Cuenta para abono del neto</div>
-                <div style={valor}>{cuentaTexto(ctaComercial)}</div>
-              </div>
-              {mm.detraccionPen > 0 && (
-                <div style={{ marginTop: 8 }}>
-                  <div style={etiqueta}>Cuenta de detracciones · Banco de la Nación</div>
-                  <div style={valor}>{cuentaTexto(ctaDetraccion)}</div>
-                </div>
-              )}
-              <div style={{ marginTop: 10, borderTop: `1px solid ${C.slate300}`, paddingTop: 8 }}>
+              <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-evenly" }}>
+                {mm.detraccionPen > 0 && (
+                  <div>
+                    <div style={etiqueta}>Cuenta de detracciones · Banco de la Nación</div>
+                    <div style={valor}>{cuentaTexto(ctaDetraccion)}</div>
+                  </div>
+                )}
                 <div style={etiqueta}>Todas las cuentas registradas</div>
                 {cuentas.length === 0 && <div style={valor}>No hay cuentas bancarias registradas.</div>}
                 {cuentas.map((c, i) => (
-                  <div key={i} style={{ ...valor, marginTop: 4 }}>
+                  <div key={i} style={valor}>
                     {c.nombre} · {c.tipo_cuenta} · {c.monedas} · Cta. {c.numero_cuenta || "—"} · CCI {c.cci || "—"}
                   </div>
                 ))}
