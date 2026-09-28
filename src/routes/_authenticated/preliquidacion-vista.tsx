@@ -421,17 +421,17 @@ function VistaPreliquidacion() {
 
             <div style={{ padding: 12, background: C.slate50, marginBottom: 14, flex: 1, display: "flex", flexDirection: "column" }}>
               <div style={tituloSeccion}>Datos bancarios</div>
-              <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-evenly" }}>
+              <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 2 }}>
                 {mm.detraccionPen > 0 && (
                   <div>
                     <div style={etiqueta}>Cuenta de detracciones · Banco de la Nación</div>
                     <div style={valor}>{cuentaTexto(ctaDetraccion)}</div>
                   </div>
                 )}
-                <div style={etiqueta}>Todas las cuentas registradas</div>
+                <div style={{ ...etiqueta, marginTop: 3 }}>Todas las cuentas registradas</div>
                 {cuentas.length === 0 && <div style={valor}>No hay cuentas bancarias registradas.</div>}
                 {cuentas.map((c, i) => (
-                  <div key={i} style={valor}>
+                  <div key={i} style={{ ...valor, marginTop: 1 }}>
                     {c.nombre} · {c.tipo_cuenta} · {c.monedas} · Cta. {c.numero_cuenta || "—"} · CCI {c.cci || "—"}
                   </div>
                 ))}
