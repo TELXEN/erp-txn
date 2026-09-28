@@ -537,12 +537,32 @@ function Cotizaciones() {
                         <Boton variante="linea" onClick={() => setSeleccion(c.id === seleccion ? null : c.id)}>
                           {c.id === seleccion ? "Cerrar" : "Abrir"}
                         </Boton>
-                        <Link to="/cotizacion-vista" search={{ id: c.id }}>
-                          <Boton variante="linea">Vista previa</Boton>
-                        </Link>
-                        <Boton variante="peligro" onClick={() => borrarCotizacion(c.id)}>
-                          Eliminar
-                        </Boton>
+                        <div className="group/tip relative">
+                          <Link
+                            to="/cotizacion-vista"
+                            search={{ id: c.id }}
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-line text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+                            aria-label="Vista previa"
+                          >
+                            <Eye size={15} />
+                          </Link>
+                          <span className="pointer-events-none absolute -top-8 right-0 whitespace-nowrap rounded-md bg-ink px-2 py-1 text-xs text-background opacity-0 shadow transition-opacity group-hover/tip:opacity-100">
+                            Vista previa
+                          </span>
+                        </div>
+                        <div className="group/tip relative">
+                          <button
+                            type="button"
+                            onClick={() => borrarCotizacion(c.id)}
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-line text-muted-foreground transition-colors hover:bg-danger/10 hover:text-danger"
+                            aria-label="Eliminar"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                          <span className="pointer-events-none absolute -top-8 right-0 whitespace-nowrap rounded-md bg-ink px-2 py-1 text-xs text-background opacity-0 shadow transition-opacity group-hover/tip:opacity-100">
+                            Eliminar
+                          </span>
+                        </div>
                       </div>
                     </td>
                   </tr>
