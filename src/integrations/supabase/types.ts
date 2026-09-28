@@ -691,6 +691,7 @@ export type Database = {
           cliente_id: string | null
           codigo: string | null
           condiciones: string
+          condiciones_pago: string
           created_at: string
           estado: string
           fecha_emision: string
@@ -700,7 +701,9 @@ export type Database = {
           pct_gastos_generales: number
           pct_utilidad: number
           proyecto_id: string | null
+          recursos_humanos: string
           revision: string
+          tiempo_ejecucion: string
           tipo_cambio: number
           ubicacion: string
           updated_at: string
@@ -712,6 +715,7 @@ export type Database = {
           cliente_id?: string | null
           codigo?: string | null
           condiciones?: string
+          condiciones_pago?: string
           created_at?: string
           estado?: string
           fecha_emision?: string
@@ -721,7 +725,9 @@ export type Database = {
           pct_gastos_generales?: number
           pct_utilidad?: number
           proyecto_id?: string | null
+          recursos_humanos?: string
           revision?: string
+          tiempo_ejecucion?: string
           tipo_cambio?: number
           ubicacion?: string
           updated_at?: string
@@ -733,6 +739,7 @@ export type Database = {
           cliente_id?: string | null
           codigo?: string | null
           condiciones?: string
+          condiciones_pago?: string
           created_at?: string
           estado?: string
           fecha_emision?: string
@@ -742,7 +749,9 @@ export type Database = {
           pct_gastos_generales?: number
           pct_utilidad?: number
           proyecto_id?: string | null
+          recursos_humanos?: string
           revision?: string
+          tiempo_ejecucion?: string
           tipo_cambio?: number
           ubicacion?: string
           updated_at?: string
