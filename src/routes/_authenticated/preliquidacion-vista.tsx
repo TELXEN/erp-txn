@@ -51,6 +51,17 @@ const N = (v: number, dec = 2) =>
 type ItemFila = { id: string; descripcion: string; unidad: string; cantidad: number; precio_unitario: number };
 type CuentaBanco = { nombre: string; numero_cuenta: string; cci: string; monedas: string; tipo_cuenta: string };
 
+/** Separa el ítem jerárquico (01.02.01) de la descripción y lo vuelve código compacto (010201). */
+export function separarCodigo(descripcion: string) {
+  const m = /^\s*(\d{1,2}(?:\.\d{1,2})*)\s+(.*)$/.exec(descripcion || "");
+  if (!m || !m[1] || !m[2]) return { codigo: "", texto: (descripcion || "").trim() };
+  return {
+    codigo: m[1].split(".").map((p) => p.padStart(2, "0")).join(""),
+    texto: m[2].trim(),
+  };
+}
+
+
 function VistaPreliquidacion() {
   const { id } = Route.useSearch();
   const { data: empresa, isLoading: cargandoEmpresa } = useEmpresa();
