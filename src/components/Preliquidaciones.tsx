@@ -795,7 +795,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
                           aria-label={`Descargar preliquidación ${p.codigo} en PDF`}
                           title="Descargar PDF"
                         >
-                          <Printer size={14} />
+                          <Printer size={18} />
                         </Boton>
                         <button onClick={() => duplicar(p)} className="text-muted-foreground hover:text-ink" aria-label="Duplicar" title="Duplicar"><Copy size={14} /></button>
                         {editable(p) && (
