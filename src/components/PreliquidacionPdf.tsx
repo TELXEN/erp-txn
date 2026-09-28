@@ -134,8 +134,6 @@ const numero = (valor: number, decimales = 2) =>
 function PreliquidacionDocument({ datos }: { datos: DatosPreliquidacionPdf }) {
   const simbolo = datos.moneda === "USD" ? "US$" : "S/";
   const dinero = (valor: number) => `${simbolo} ${numero(valor)}`;
-  const cuentaTexto = (cuenta: CuentaPdf) =>
-    cuenta ? `${cuenta.nombre} · Cta. ${cuenta.numero || "—"}${cuenta.cci ? ` · CCI ${cuenta.cci}` : ""}` : "—";
   const descuento = datos.detraccionPen > 0 ? `S/ ${numero(datos.detraccionPen, 0)}` : datos.retencionPen > 0 ? `S/ ${numero(datos.retencionPen)}` : "No aplica";
 
   return (
