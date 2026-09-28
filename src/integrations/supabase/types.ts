@@ -609,6 +609,45 @@ export type Database = {
         }
         Relationships: []
       }
+      codificacion_preliquidacion: {
+        Row: {
+          anio_dos_digitos: boolean
+          correlativo_actual: number
+          created_at: string
+          digitos: number
+          id: string
+          incluir_anio: boolean
+          prefijo: string
+          separador: string
+          tipo_letra: string
+          updated_at: string
+        }
+        Insert: {
+          anio_dos_digitos?: boolean
+          correlativo_actual?: number
+          created_at?: string
+          digitos?: number
+          id?: string
+          incluir_anio?: boolean
+          prefijo?: string
+          separador?: string
+          tipo_letra?: string
+          updated_at?: string
+        }
+        Update: {
+          anio_dos_digitos?: boolean
+          correlativo_actual?: number
+          created_at?: string
+          digitos?: number
+          id?: string
+          incluir_anio?: boolean
+          prefijo?: string
+          separador?: string
+          tipo_letra?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       cotizacion_items: {
         Row: {
           categoria: string
