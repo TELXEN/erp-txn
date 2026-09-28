@@ -44,6 +44,8 @@ const C = {
 const S = (n: number) =>
   "S/ " + n.toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const F = (d: string) => d.split("-").reverse().join("/");
+const CALIBRI = '"Calibri Light", Calibri, Arial, sans-serif';
+
 
 type ItemCot = {
   id: string;
