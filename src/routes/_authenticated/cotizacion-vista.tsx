@@ -65,8 +65,8 @@ function paginarItems<T extends ItemParaPagina>(items: T[]) {
   let primeraHoja = true;
 
   while (pendientes.length > 0) {
-    const capacidad = primeraHoja ? 430 : 690;
-    const capacidadFinal = primeraHoja ? 200 : 390;
+    const capacidad = primeraHoja ? 520 : 690;
+    const capacidadFinal = primeraHoja ? 290 : 390;
     const altoPendiente = pendientes.reduce((suma, item) => suma + altoEstimadoItem(item), 0);
 
     if (altoPendiente <= capacidadFinal) {
