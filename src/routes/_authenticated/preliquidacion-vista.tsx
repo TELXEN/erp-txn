@@ -159,6 +159,7 @@ function VistaPreliquidacion() {
   const simbolo = pl.moneda === "USD" ? "US$" : "S/";
   const D = (v: number) => `${simbolo} ${N(v)}`;
   const ctaDetraccion = cuentas.find((c) => c.tipo_cuenta === "Detracciones") ?? null;
+  const cuentasOrdenadas = [...cuentas].sort((a, b) => Number(a.tipo_cuenta === "Detracciones") - Number(b.tipo_cuenta === "Detracciones"));
   const cuentaTexto = (c: CuentaBanco | null) =>
     c ? `${c.nombre} · Cta. ${c.numero_cuenta || "—"}${c.cci ? ` · CCI ${c.cci}` : ""}` : "—";
   const descuento = mm.detraccionPen > 0 ? `S/ ${N(mm.detraccionPen, 0)}` : mm.retencionPen > 0 ? `S/ ${N(mm.retencionPen)}` : "No aplica";
