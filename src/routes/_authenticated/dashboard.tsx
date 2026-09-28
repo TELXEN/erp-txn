@@ -397,7 +397,7 @@ function Dashboard() {
             <Boton variante="linea" onClick={excel}>
               <Upload size={13} /> Exportar a Excel
             </Boton>
-            <Boton onClick={pdf} deshabilitado={exportandoPdf}>
+            <Boton onClick={pdf} disabled={exportandoPdf}>
               {exportandoPdf ? "Generando..." : "Exportar a PDF"}
             </Boton>
           </>
