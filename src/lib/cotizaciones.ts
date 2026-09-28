@@ -22,6 +22,7 @@ export type Cotizacion = {
   estado: EstadoCotizacion;
   proyecto_id: string | null;
   aplica_igv?: boolean;
+  revision?: number;
 };
 
 export type CotizacionItem = {
