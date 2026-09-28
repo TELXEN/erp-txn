@@ -1,0 +1,1 @@
+ALTER TABLE public.cotizaciones ADD COLUMN recursos_humanos text NOT NULL DEFAULT '', ADD COLUMN tiempo_ejecucion text NOT NULL DEFAULT '', ADD COLUMN condiciones_pago text NOT NULL DEFAULT '';

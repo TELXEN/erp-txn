@@ -525,7 +525,19 @@ function VistaCotizacion() {
                     </div>
                     <div style={{ marginTop: 16, borderTop: `1px solid ${C.slate100}`, paddingTop: 10, fontSize: 10.5, color: C.slate500, lineHeight: 1.45 }}>
                       <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, color: C.slate700, marginBottom: 5 }}>Términos y condiciones</div>
-                      <div><b style={{ color: C.slate700 }}>Condiciones comerciales:</b> {cot.condiciones || "Sin condiciones registradas."}</div>
+                      {([
+                        ["Recursos humanos", (cot as unknown as Record<string, string>)["recursos_humanos"]],
+                        ["Tiempo de ejecución", (cot as unknown as Record<string, string>)["tiempo_ejecucion"]],
+                        ["Condiciones de pago", (cot as unknown as Record<string, string>)["condiciones_pago"]],
+                        ["Condiciones comerciales", cot.condiciones],
+                      ] as const).filter(([, v]) => (v ?? "").trim()).map(([t, v]) => (
+                        <div key={t} style={{ marginTop: 5 }}>
+                          <b style={{ color: C.slate700 }}>{t}:</b>
+                          <ul style={{ margin: "2px 0 0 14px", padding: 0, listStyle: "disc" }}>
+                            {String(v).split("\n").map((l) => l.trim()).filter(Boolean).map((l, i) => <li key={i}>{l}</li>)}
+                          </ul>
+                        </div>
+                      ))}
                       <div style={{ marginTop: 7, color: C.slate400 }}>
                         {conIgv ? "Precios expresados en soles, incluyen IGV (18%)." : "Precios expresados en soles, no afectos a IGV."} Oferta válida hasta la fecha indicada.
                       </div>
