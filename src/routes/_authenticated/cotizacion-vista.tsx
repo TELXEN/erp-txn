@@ -166,7 +166,7 @@ function VistaCotizacion() {
         <div className="mx-auto" style={{ width: 700 }}>
         <div
           id="cotizacion-impresion"
-          style={{ width: 700, background: C.white, color: C.slate900, padding: 28, fontFamily: "Helvetica, Arial, sans-serif", fontSize: 12, boxShadow: "0 10px 30px -12px rgba(15,23,42,.25)" }}
+          style={{ width: 700, background: C.white, color: C.slate900, padding: 24, fontFamily: "Helvetica, Arial, sans-serif", fontSize: 12, boxShadow: "0 10px 30px -12px rgba(15,23,42,.25)" }}
         >
           {/* Encabezado */}
           <div className="flex items-start justify-between gap-6" style={{ borderBottom: `2px solid ${C.slate900}`, paddingBottom: 20 }}>
@@ -194,7 +194,7 @@ function VistaCotizacion() {
           </div>
 
           {/* Cliente */}
-          <div className="grid grid-cols-3" style={{ gap: "14px 24px", marginTop: 24, background: C.slate50, borderRadius: 10, padding: 18 }}>
+          <div className="grid grid-cols-3" style={{ gap: "11px 24px", marginTop: 20, background: C.slate50, borderRadius: 10, padding: 16 }}>
             {[
               ["Cliente / Razón social", cliente?.razon_social || cot.cliente || "—", "col-span-2"],
               ["RUC / DNI", cliente?.numero_documento || "—", ""],
@@ -212,7 +212,7 @@ function VistaCotizacion() {
           </div>
 
           {/* Tabla */}
-          <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 24 }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 20 }}>
             <thead>
               <tr style={{ background: C.slate900, color: C.white }}>
                 {["Ítem", "Descripción", "Cant.", "Und.", "P. Unitario", "Total"].map((h, i) => (
@@ -253,7 +253,7 @@ function VistaCotizacion() {
           </div>
 
           {/* Términos */}
-          <div style={{ marginTop: 32, borderTop: `1px solid ${C.slate100}`, paddingTop: 16, fontSize: 10.5, color: C.slate500, lineHeight: 1.6, pageBreakInside: "avoid" }}>
+          <div style={{ marginTop: 22, borderTop: `1px solid ${C.slate100}`, paddingTop: 12, fontSize: 10.5, color: C.slate500, lineHeight: 1.5, pageBreakInside: "avoid" }}>
             <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, color: C.slate700, marginBottom: 6 }}>Términos y condiciones</div>
             <div><b style={{ color: C.slate700 }}>Condiciones comerciales:</b> {cot.condiciones || "Sin condiciones registradas."}</div>
             <div style={{ marginTop: 10, color: C.slate400 }}>Precios expresados en soles. Oferta válida hasta la fecha indicada.</div>
