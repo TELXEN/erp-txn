@@ -221,7 +221,7 @@ function VistaPreliquidacion() {
         diasCredito: Number(pl.dias_credito || 0),
         fechaVencimiento: pl.fecha_vencimiento || "",
         cuentaDetracciones: ctaDetraccion ? { nombre: ctaDetraccion.nombre, numero: ctaDetraccion.numero_cuenta, cci: ctaDetraccion.cci } : null,
-        cuentasTodas: cuentas.map((c) => ({ nombre: c.nombre, numero: c.numero_cuenta, cci: c.cci, moneda: c.monedas, tipoCuenta: c.tipo_cuenta })),
+        cuentasTodas: cuentas.filter((c) => c.tipo_cuenta !== "Detracciones").map((c) => ({ nombre: c.nombre, numero: c.numero_cuenta, cci: c.cci, moneda: c.monedas, tipoCuenta: c.tipo_cuenta })),
         observacion: pl.observacion || "",
       });
     } catch (err) {

@@ -407,7 +407,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
               <Select value={form.cliente_id} onChange={(e) => setForm({ ...form, cliente_id: e.target.value })} required>
                 <option value="">Selecciona...</option>
                 {clientes.map((c) => (
-                  <option key={c.id} value={c.id}>{c.numero_documento ? `${c.numero_documento} · ` : ""}{c.razon_social}</option>
+                  <option key={c.id} value={c.id}>{c.razon_social}</option>
                 ))}
               </Select>
             </Campo>
@@ -421,7 +421,6 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
             {clienteSel && (
               <div className="sm:col-span-4 rounded-lg border border-line bg-muted/30 p-3 font-mono text-xs text-muted-foreground">
                 <span className="font-semibold text-ink">{clienteSel.razon_social}</span>
-                {" · RUC "}{clienteSel.numero_documento || "—"}
                 {" · "}{clienteSel.direccion || "Sin dirección registrada"}
               </div>
             )}
