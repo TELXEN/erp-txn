@@ -55,7 +55,7 @@ function altoEstimadoItem(item: ItemParaPagina) {
   const lineasNombre = Math.max(1, Math.ceil((item.nombre || "").length / 26));
   const detalle = [item.especialidad, item.categoria].filter(Boolean).join(" · ");
   const lineasDetalle = detalle ? Math.max(1, Math.ceil(detalle.length / 34)) : 0;
-  return 30 + lineasNombre * 16 + lineasDetalle * 15;
+  return 32 + lineasNombre * 19 + lineasDetalle * 17;
 }
 
 function paginarItems<T extends ItemParaPagina>(items: T[]) {
@@ -277,9 +277,9 @@ function VistaCotizacion() {
 
   function filaDato(etiqueta: string, valor: string) {
     return (
-      <div className="flex" style={{ fontSize: 10.5, lineHeight: 1.5 }}>
-        <span style={{ width: 74, flexShrink: 0, fontWeight: 700, color: C.slate500, textTransform: "uppercase", fontSize: 9, letterSpacing: 0.6, paddingTop: 1 }}>{etiqueta}</span>
-        <span style={{ fontWeight: 600, color: C.slate900 }}>{valor}</span>
+      <div className="flex" style={{ fontFamily: '"Calibri Light", Calibri, Arial, sans-serif', fontSize: "11pt", fontWeight: 300, lineHeight: 1.25 }}>
+        <span style={{ width: 74, flexShrink: 0, fontWeight: 300, color: C.slate500, textTransform: "uppercase", letterSpacing: 0, paddingTop: 1 }}>{etiqueta}</span>
+        <span style={{ fontWeight: 300, color: C.slate900 }}>{valor}</span>
       </div>
     );
   }
@@ -337,7 +337,7 @@ function VistaCotizacion() {
 
                 {esPrimera && (
                   <div style={{ marginTop: 14 }}>
-                    <div className="grid grid-cols-2" style={{ gap: "4px 28px", background: C.slate50, borderRadius: 10, padding: "10px 14px" }}>
+                    <div className="grid grid-cols-2" style={{ gap: "4px 28px", background: C.slate50, borderRadius: 10, padding: "10px 14px", fontFamily: '"Calibri Light", Calibri, Arial, sans-serif' }}>
                       <div>
                         <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: 1.2, color: C.marca, textTransform: "uppercase", borderBottom: `1px solid ${C.slate100}`, paddingBottom: 3, marginBottom: 5 }}>Datos del cliente</div>
                         {filaDato("Cliente", cliente?.razon_social || cot.cliente || "—")}
@@ -354,9 +354,9 @@ function VistaCotizacion() {
                         {filaDato("E-mail", empresa?.email || "—")}
                       </div>
                     </div>
-                    <div className="flex" style={{ marginTop: 8, background: C.marca, color: C.white, borderRadius: 8, padding: "7px 14px", fontSize: 11, lineHeight: 1.4 }}>
+                    <div className="flex" style={{ marginTop: 8, background: C.marca, color: C.white, borderRadius: 8, padding: "7px 14px", fontFamily: '"Calibri Light", Calibri, Arial, sans-serif', fontSize: "11pt", lineHeight: 1.25 }}>
                       <span style={{ fontWeight: 800, letterSpacing: 1, fontSize: 9.5, textTransform: "uppercase", paddingTop: 1, marginRight: 10 }}>Proyecto</span>
-                      <span style={{ fontWeight: 600 }}>{cot.nombre || "—"}</span>
+                      <span style={{ fontWeight: 300 }}>{cot.nombre || "—"}</span>
                     </div>
                   </div>
                 )}
@@ -379,19 +379,19 @@ function VistaCotizacion() {
                       ))}
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody style={{ fontFamily: '"Calibri Light", Calibri, Arial, sans-serif', fontSize: "11pt", fontWeight: 300, lineHeight: 1.25 }}>
                     {itemsPagina.map((it, i) => (
                       <tr key={it.id} style={{ pageBreakInside: "avoid" }}>
                         <td style={{ ...celda, padding: "9px 12px", textAlign: "center", color: C.slate500 }}>{it.codigo || String(indiceInicial + i + 1).padStart(2, "0")}</td>
                         <td style={{ ...celda, padding: "9px 12px" }}>
-                          <div style={{ fontWeight: 600 }}>{it.nombre}</div>
-                          {(it.especialidad || it.categoria) && <div style={{ marginTop: 3, fontSize: 10.5, color: C.slate500, lineHeight: 1.35 }}>{[it.especialidad, it.categoria].filter(Boolean).join(" · ")}</div>}
+                          <div style={{ fontWeight: 300 }}>{it.nombre}</div>
+                          {(it.especialidad || it.categoria) && <div style={{ marginTop: 3, fontSize: "11pt", fontWeight: 300, color: C.slate500, lineHeight: 1.25 }}>{[it.especialidad, it.categoria].filter(Boolean).join(" · ")}</div>}
                         </td>
                         <td style={{ ...celda, padding: "9px 12px", textAlign: "center", color: C.slate500 }}>{it.marca?.trim() || "-"}</td>
                         <td style={{ ...celda, padding: "9px 12px", textAlign: "center", color: C.slate500 }}>{it.unidad}</td>
                         <td style={{ ...celda, padding: "9px 12px", textAlign: "right" }}>{Number(it.metrado).toLocaleString("es-PE", { maximumFractionDigits: 2 })}</td>
                         <td style={{ ...celda, padding: "9px 12px", textAlign: "right", whiteSpace: "nowrap" }}>{S(Number(it.precio_unitario))}</td>
-                        <td style={{ ...celda, padding: "9px 12px", textAlign: "right", fontWeight: 600, whiteSpace: "nowrap" }}>{S(Number(it.metrado) * Number(it.precio_unitario))}</td>
+                        <td style={{ ...celda, padding: "9px 12px", textAlign: "right", fontWeight: 300, whiteSpace: "nowrap" }}>{S(Number(it.metrado) * Number(it.precio_unitario))}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -406,7 +406,7 @@ function VistaCotizacion() {
                         {calculo.utilidad > 0 && <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700 }}><span>Utilidad ({Number(cot.pct_utilidad)}%)</span><span>{S(calculo.utilidad)}</span></div>}
                         {(calculo.gastosGenerales > 0 || calculo.utilidad > 0) && <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700, fontWeight: 600 }}><span>Subtotal</span><span>{S(subtotal)}</span></div>}
                         <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700, borderBottom: `1px solid ${C.slate100}` }}><span>{conIgv ? "IGV (18%)" : "IGV (0%)"}</span><span>{S(igv)}</span></div>
-                        <div className="flex justify-between" style={{ marginTop: 7, padding: "10px 14px", background: C.slate900, color: C.white, borderRadius: 8, fontSize: 15, fontWeight: 700 }}>
+                        <div className="flex justify-between" style={{ marginTop: 7, padding: "10px 14px", background: C.slate900, color: C.white, borderRadius: 8, fontFamily: '"Calibri Light", Calibri, Arial, sans-serif', fontSize: "12pt", fontWeight: 300 }}>
                           <span>TOTAL</span><span>{S(total)}</span>
                         </div>
                       </div>
