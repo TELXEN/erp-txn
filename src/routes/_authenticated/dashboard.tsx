@@ -77,6 +77,7 @@ function Dashboard() {
     },
   });
   const [seleccion, setSeleccion] = useState("global");
+  const [exportandoPdf, setExportandoPdf] = useState(false);
 
   const global = seleccion === "global";
   const nombreVista = global ? "Consolidado Global" : (proyectos.find((p) => p.id === seleccion)?.nombre ?? "");
@@ -355,14 +356,39 @@ function Dashboard() {
     ]);
   }
 
-  function pdf() {
-    exportarPdf({
-      titulo: "Reporte Ejecutivo de Obra",
-      subtitulo: `${nombreVista} — Moneda base: Soles (PEN)`,
-      kpis,
-      barras,
-      archivo: `reporte-${global ? "global" : "proyecto"}`,
-    });
+  async function pdf() {
+    const elemento = document.getElementById("reporte-financiero");
+    if (!elemento || exportandoPdf) return;
+    setExportandoPdf(true);
+    try {
+      const html2pdf = (await import("html2pdf.js")).default;
+      // Ajuste solo durante la captura: la tabla amplia se adapta al ancho A4
+      // con tipografía compacta para que nada se recorte ni parta. El diseño
+      // en pantalla no cambia.
+      const estiloCaptura = document.createElement("style");
+      estiloCaptura.textContent =
+        "#reporte-financiero .overflow-x-auto{overflow:visible!important}" +
+        "#reporte-financiero table{width:100%!important;table-layout:fixed!important}" +
+        "#reporte-financiero th,#reporte-financiero td{font-size:8px!important;padding:3px 4px!important;letter-spacing:normal!important}" +
+        "#reporte-financiero th span,#reporte-financiero td span{white-space:nowrap!important;word-break:keep-all!important}";
+      document.head.appendChild(estiloCaptura);
+      // `pagebreak` existe en html2pdf.js pero no en los tipos antiguos del paquete.
+      const opciones = {
+        margin: 5,
+        filename: `dashboard-financiero-${global ? "global" : nombreVista.replace(/[^\w-]+/g, "_")}.pdf`,
+        image: { type: "jpeg", quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff", logging: false },
+        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+        pagebreak: { mode: ["avoid-all", "css", "legacy"] },
+      } as never;
+      await html2pdf()
+        .set(opciones)
+        .from(elemento)
+        .save();
+      estiloCaptura.remove();
+    } finally {
+      setExportandoPdf(false);
+    }
   }
 
   return (
@@ -385,13 +411,16 @@ function Dashboard() {
             <Boton variante="linea" onClick={excel}>
               <Upload size={13} /> Exportar a Excel
             </Boton>
-            <Boton onClick={pdf}>Exportar a PDF</Boton>
+            <Boton onClick={pdf} disabled={exportandoPdf}>
+              {exportandoPdf ? "Generando..." : "Exportar a PDF"}
+            </Boton>
           </>
         }
       />
 
-      {/* Nivel 1: KPIs ejecutivos */}
-      <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div id="reporte-financiero">
+        {/* Nivel 1: KPIs ejecutivos */}
+        <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Kpi
           etiqueta="Presupuesto Ofertado"
           valor={datos.ofertado}
@@ -522,7 +551,7 @@ function Dashboard() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-line/60 text-left">
+                  <tr className="border-b border-(--line-60) text-left">
                     <th className="label-mono px-4 py-2">Obra</th>
                     <th className="label-mono px-4 py-2 text-right">Costo directo</th>
                     <th className="label-mono px-4 py-2 text-right">GG previsto</th>
@@ -536,7 +565,7 @@ function Dashboard() {
                     <th className="label-mono px-4 py-2">Condición</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-line/60">
+                <tbody className="divide-y divide-(--line-60)">
                   {filasTabla.map((f) => {
                     const s = salud(f);
                     return (
@@ -607,7 +636,7 @@ function Dashboard() {
           ) : barras.length === 0 ? (
             <Vacio texto="Este proyecto aún no tiene partidas registradas." />
           ) : (
-            <ul className="divide-y divide-line/60">
+            <ul className="divide-y divide-(--line-60)">
               {barras.map((b) => {
                 const sobre = b.gastado > b.avance;
                 return (
@@ -631,6 +660,7 @@ function Dashboard() {
             </ul>
           )}
         </Panel>
+      </div>
       </div>
     </>
   );

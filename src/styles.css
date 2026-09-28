@@ -46,32 +46,33 @@
 :root {
   --radius: 0.5rem;
 
-  --paper: oklch(0.985 0.005 95);
-  --ink: oklch(0.19 0.006 285);
-  --line: oklch(0.912 0.014 88);
-  --good: oklch(0.53 0.12 152);
-  --bad: oklch(0.56 0.19 29);
+  --paper: rgb(251 250 246);
+  --ink: rgb(19 19 22);
+  --line: rgb(230 226 216);
+  --line-60: rgb(230 226 216 / 0.6);
+  --good: rgb(38 127 71);
+  --bad: rgb(204 53 41);
 
   --background: var(--paper);
   --foreground: var(--ink);
-  --card: oklch(1 0 0);
+  --card: #fff;
   --card-foreground: var(--ink);
-  --popover: oklch(1 0 0);
+  --popover: #fff;
   --popover-foreground: var(--ink);
-  --brand: oklch(0.975 0.006 240);
+  --brand: rgb(243 247 250);
   --brand-foreground: #003352;
   --cta: #FFC709;
   --cta-foreground: #003352;
   --primary: #003352;
-  --primary-foreground: oklch(0.985 0.005 95);
-  --secondary: oklch(0.955 0.009 90);
+  --primary-foreground: rgb(251 250 246);
+  --secondary: rgb(242 240 233);
   --secondary-foreground: var(--ink);
-  --muted: oklch(0.955 0.009 90);
-  --muted-foreground: oklch(0.52 0.012 92);
+  --muted: rgb(242 240 233);
+  --muted-foreground: rgb(107 105 97);
   --accent: #FFC709;
   --accent-foreground: #003352;
   --destructive: var(--bad);
-  --destructive-foreground: oklch(0.985 0.005 95);
+  --destructive-foreground: rgb(251 250 246);
   --border: var(--line);
   --input: var(--line);
   --ring: #003352;
