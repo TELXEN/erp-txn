@@ -227,8 +227,13 @@ function VistaCotizacion() {
         </div>
 
         <div style={{ flex: 1, textAlign: "right", paddingTop: 2 }}>
-          <div style={{ fontSize: 11.5, fontWeight: 700, color: C.marca, letterSpacing: 0.4, lineHeight: 1.35 }}>
-            {empresa?.razon_social || "SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL"}
+          <div style={{ fontSize: 11.5, fontWeight: 700, color: C.marca, letterSpacing: 0.4, lineHeight: 1.35, textAlign: "right" }}>
+            {empresa?.razon_social || (
+              <>
+                <span style={{ display: "block" }}>SOLUCIONES INTEGRALES EN ENERGÍA,</span>
+                <span style={{ display: "block" }}>AUTOMATIZACIÓN Y CONTROL INDUSTRIAL</span>
+              </>
+            )}
           </div>
           {empresa?.direccion && (
             <div style={{ marginTop: 4, fontSize: 9.5, color: C.slate700 }}>Dirección: {empresa.direccion}</div>
