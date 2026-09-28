@@ -91,6 +91,15 @@ export function DatosEmpresa() {
               required
             />
           </Campo>
+          <Campo etiqueta="Eslogan de la empresa">
+            <Input
+              className="py-1.5"
+              value={form.eslogan}
+              onChange={(e) => setForm({ ...form, eslogan: e.target.value })}
+              maxLength={160}
+              placeholder="SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL"
+            />
+          </Campo>
           <Campo etiqueta="RUC">
             <Input
               className="py-1.5"
