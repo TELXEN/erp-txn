@@ -114,7 +114,9 @@ const styles = StyleSheet.create({
   settlementCard: { flex: 1, padding: 10, backgroundColor: colors.emerald50, borderTopWidth: 2, borderTopColor: colors.emerald700 },
   settlementValue: { fontFamily: "Helvetica-Bold", fontSize: 11, color: colors.emerald800, marginTop: 4 },
   banking: { padding: 11, backgroundColor: colors.slate50, marginBottom: 13, flexGrow: 1 },
-  bankList: { flexGrow: 1, justifyContent: "space-evenly" },
+  bankList: { flexGrow: 1 },
+  bankLabel: { fontFamily: "Helvetica-Bold", fontSize: 6.7, color: colors.slate500, letterSpacing: 0.7, textTransform: "uppercase", marginBottom: 1, marginTop: 2 },
+  bankValue: { fontFamily: "Helvetica-Bold", fontSize: 9, color: colors.slate950, lineHeight: 1.2, marginTop: 1 },
   notes: { padding: 10, borderLeftWidth: 3, borderLeftColor: colors.emerald700, backgroundColor: colors.emerald50, marginBottom: 14 },
   legal: { fontSize: 7, lineHeight: 1.4, color: colors.slate500, marginTop: "auto", paddingTop: 12, borderTopWidth: 0.7, borderTopColor: colors.slate300 },
   footer: { position: "absolute", left: 34, right: 34, bottom: 14, flexDirection: "row", justifyContent: "space-between", color: colors.slate500, fontSize: 6.5 },
@@ -225,11 +227,11 @@ function PreliquidacionDocument({ datos }: { datos: DatosPreliquidacionPdf }) {
         <View style={styles.banking} wrap={false}>
           <Text style={styles.sectionTitle}>Datos bancarios</Text>
           <View style={styles.bankList}>
-            {datos.detraccionPen > 0 ? <><Text style={styles.label}>Cuenta de detracciones · Banco de la Nación</Text><Text style={styles.value}>{cuentaTexto(datos.cuentaDetracciones)}</Text></> : null}
-            <Text style={styles.label}>Todas las cuentas registradas</Text>
-            {datos.cuentasTodas.length === 0 ? <Text style={styles.value}>No hay cuentas bancarias registradas.</Text> : null}
+            {datos.detraccionPen > 0 ? <><Text style={styles.bankLabel}>Cuenta de detracciones · Banco de la Nación</Text><Text style={styles.bankValue}>{cuentaTexto(datos.cuentaDetracciones)}</Text></> : null}
+            <Text style={styles.bankLabel}>Todas las cuentas registradas</Text>
+            {datos.cuentasTodas.length === 0 ? <Text style={styles.bankValue}>No hay cuentas bancarias registradas.</Text> : null}
             {datos.cuentasTodas.map((c, i) => (
-              <Text key={i} style={styles.value}>{c.nombre} · {c.tipoCuenta} · {c.moneda} · Cta. {c.numero || "—"} · CCI {c.cci || "—"}</Text>
+              <Text key={i} style={styles.bankValue}>{c.nombre} · {c.tipoCuenta} · {c.moneda} · Cta. {c.numero || "—"} · CCI {c.cci || "—"}</Text>
             ))}
           </View>
         </View>
