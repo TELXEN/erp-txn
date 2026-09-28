@@ -442,7 +442,7 @@ function VistaCotizacion() {
                   <thead>
                     <tr style={{ background: C.slate900, color: C.white }}>
                       {[
-                        { h: "Ítem", a: "center" },
+                        { h: "Ítem", a: "left" },
                         { h: "Descripción", a: "left" },
                         { h: "Marca", a: "center" },
                         { h: "Unidad", a: "center" },
@@ -470,7 +470,7 @@ function VistaCotizacion() {
                                 color: esGrupo ? C.marca : C.slate700,
                                 fontWeight: esGrupo ? 700 : 600,
                                 fontSize: esGrupo ? "9pt" : "8.5pt",
-                                textAlign: "center",
+                                textAlign: "left",
                               }}
                             >
                               {fila.numero}
@@ -495,7 +495,7 @@ function VistaCotizacion() {
                       const it = fila.item;
                       return (
                         <tr key={fila.llave} style={{ pageBreakInside: "avoid" }}>
-                          <td style={{ ...celda, padding: "6px 6px", textAlign: "center", color: C.slate500 }}>{it.codigo || fila.numero}</td>
+                          <td style={{ ...celda, padding: "6px 6px", textAlign: "left", color: C.slate500 }}>{it.codigo || fila.numero}</td>
                           <td style={{ ...celda, padding: "6px 8px", wordBreak: "break-word" }}>{it.nombre}</td>
                           <td style={{ ...celda, padding: "6px 6px", textAlign: "center", color: C.slate500, wordBreak: "break-word" }}>{it.marca?.trim() || "-"}</td>
                           <td style={{ ...celda, padding: "6px 4px", textAlign: "center", color: C.slate500 }}>{it.unidad}</td>
