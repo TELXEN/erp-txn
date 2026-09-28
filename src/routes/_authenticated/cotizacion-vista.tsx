@@ -213,7 +213,7 @@ function VistaCotizacion() {
   const celda = { padding: "12px 14px", borderBottom: `1px solid ${C.slate100}` } as const;
   const cargando = cargandoCotizaciones || cargandoItems || cargandoEmpresa;
 
-  const revision = `Rev. ${String(Math.max(1, (cot as unknown as { revision?: number }).revision ?? 1)).padStart(2, "0")}`;
+  const revision = `Rev. ${String(Math.max(1, (cot as unknown as { revision?: number } | null)?.revision ?? 1)).padStart(2, "0")}`;
 
   function encabezadoHoja(numero: number, totalHojas: number) {
     return (
