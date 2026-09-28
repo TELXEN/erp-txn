@@ -14,6 +14,7 @@ const vacio = {
   telefono: "",
   email: "",
   web: "",
+  eslogan: "",
   color_marca: "#1F6F54",
   logo_url: "",
 };
@@ -88,6 +89,15 @@ export function DatosEmpresa() {
               onChange={(e) => setForm({ ...form, razon_social: e.target.value })}
               maxLength={160}
               required
+            />
+          </Campo>
+          <Campo etiqueta="Eslogan de la empresa">
+            <Input
+              className="py-1.5"
+              value={form.eslogan}
+              onChange={(e) => setForm({ ...form, eslogan: e.target.value })}
+              maxLength={160}
+              placeholder="SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL"
             />
           </Campo>
           <Campo etiqueta="RUC">

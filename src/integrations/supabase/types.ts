@@ -812,6 +812,7 @@ export type Database = {
           created_at: string
           direccion: string
           email: string
+          eslogan: string
           id: string
           logo_url: string
           razon_social: string
@@ -825,6 +826,7 @@ export type Database = {
           created_at?: string
           direccion?: string
           email?: string
+          eslogan?: string
           id?: string
           logo_url?: string
           razon_social?: string
@@ -838,6 +840,7 @@ export type Database = {
           created_at?: string
           direccion?: string
           email?: string
+          eslogan?: string
           id?: string
           logo_url?: string
           razon_social?: string

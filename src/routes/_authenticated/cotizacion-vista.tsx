@@ -228,13 +228,27 @@ function VistaCotizacion() {
 
         <div style={{ flex: 1, textAlign: "right", paddingTop: 2 }}>
           <div style={{ fontSize: 11.5, fontWeight: 700, color: C.marca, letterSpacing: 0.4, lineHeight: 1.35, textAlign: "right" }}>
-            {empresa?.razon_social || (
-              <>
-                <span style={{ display: "block" }}>SOLUCIONES INTEGRALES EN ENERGÍA,</span>
-                <span style={{ display: "block" }}>AUTOMATIZACIÓN Y CONTROL INDUSTRIAL</span>
-              </>
-            )}
+            {empresa?.razon_social || "TELXEN"}
           </div>
+          {empresa?.eslogan?.trim()
+            ? (() => {
+                const es = empresa.eslogan.trim();
+                const idx = es.indexOf(",");
+                const linea1 = idx >= 0 ? es.slice(0, idx + 1) : es;
+                const linea2 = idx >= 0 ? es.slice(idx + 1).trim() : "";
+                return (
+                  <div style={{ marginTop: 2, fontSize: 9.5, fontWeight: 700, color: C.marca, letterSpacing: 0.4, lineHeight: 1.3, textAlign: "right" }}>
+                    <span style={{ display: "block" }}>{linea1}</span>
+                    {linea2 && <span style={{ display: "block" }}>{linea2}</span>}
+                  </div>
+                );
+              })()
+            : !empresa?.razon_social && (
+                <div style={{ marginTop: 2, fontSize: 9.5, fontWeight: 700, color: C.marca, letterSpacing: 0.4, lineHeight: 1.3, textAlign: "right" }}>
+                  <span style={{ display: "block" }}>SOLUCIONES INTEGRALES EN ENERGÍA,</span>
+                  <span style={{ display: "block" }}>AUTOMATIZACIÓN Y CONTROL INDUSTRIAL</span>
+                </div>
+              )}
           {empresa?.direccion && (
             <div style={{ marginTop: 4, fontSize: 9.5, color: C.slate700 }}>Dirección: {empresa.direccion}</div>
           )}
