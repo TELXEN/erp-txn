@@ -429,8 +429,8 @@ function VistaPreliquidacion() {
                   </div>
                 )}
                 <div style={{ ...etiqueta, marginTop: 3 }}>Todas las cuentas registradas</div>
-                {cuentas.length === 0 && <div style={valor}>No hay cuentas bancarias registradas.</div>}
-                {cuentas.map((c, i) => (
+                {cuentas.filter((c) => c.tipo_cuenta !== "Detracciones").length === 0 && <div style={valor}>No hay cuentas bancarias registradas.</div>}
+                {cuentas.filter((c) => c.tipo_cuenta !== "Detracciones").map((c, i) => (
                   <div key={i} style={{ ...valor, marginTop: 1 }}>
                     {c.nombre} · {c.tipo_cuenta} · {c.monedas} · Cta. {c.numero_cuenta || "—"} · CCI {c.cci || "—"}
                   </div>
