@@ -538,7 +538,7 @@ function Dashboard() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-line/60 text-left">
+                  <tr className="border-b border-(--line-60) text-left">
                     <th className="label-mono px-4 py-2">Obra</th>
                     <th className="label-mono px-4 py-2 text-right">Costo directo</th>
                     <th className="label-mono px-4 py-2 text-right">GG previsto</th>
@@ -552,7 +552,7 @@ function Dashboard() {
                     <th className="label-mono px-4 py-2">Condición</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-line/60">
+                <tbody className="divide-y divide-(--line-60)">
                   {filasTabla.map((f) => {
                     const s = salud(f);
                     return (
@@ -623,7 +623,7 @@ function Dashboard() {
           ) : barras.length === 0 ? (
             <Vacio texto="Este proyecto aún no tiene partidas registradas." />
           ) : (
-            <ul className="divide-y divide-line/60">
+            <ul className="divide-y divide-(--line-60)">
               {barras.map((b) => {
                 const sobre = b.gastado > b.avance;
                 return (
