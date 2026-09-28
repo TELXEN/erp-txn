@@ -435,7 +435,7 @@ function VistaCotizacion() {
                         { h: "C. Unitario", a: "right" },
                         { h: "Sub Total", a: "right" },
                       ].map(({ h, a }) => (
-                        <th key={h} style={{ padding: "8px 6px", fontSize: 9, textTransform: "uppercase", letterSpacing: 0.6, textAlign: a as "left" | "right" | "center" }}>
+                        <th key={h} style={{ padding: "8px 5px", fontSize: 8, textTransform: "uppercase", letterSpacing: 0.2, textAlign: a as "left" | "right" | "center" }}>
                           {h}
                         </th>
                       ))}
