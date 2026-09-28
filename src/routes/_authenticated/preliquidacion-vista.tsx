@@ -223,6 +223,7 @@ function VistaPreliquidacion() {
         fechaVencimiento: pl.fecha_vencimiento || "",
         cuentaComercial: ctaComercial ? { nombre: ctaComercial.nombre, numero: ctaComercial.numero_cuenta, cci: ctaComercial.cci } : null,
         cuentaDetracciones: ctaDetraccion ? { nombre: ctaDetraccion.nombre, numero: ctaDetraccion.numero_cuenta, cci: ctaDetraccion.cci } : null,
+        cuentasTodas: cuentas.map((c) => ({ nombre: c.nombre, numero: c.numero_cuenta, cci: c.cci, moneda: c.monedas, tipoCuenta: c.tipo_cuenta })),
         observacion: pl.observacion || "",
       });
     } catch (err) {
@@ -430,6 +431,15 @@ function VistaPreliquidacion() {
                   <div style={valor}>{cuentaTexto(ctaDetraccion)}</div>
                 </div>
               )}
+              <div style={{ marginTop: 10, borderTop: `1px solid ${C.slate300}`, paddingTop: 8 }}>
+                <div style={etiqueta}>Todas las cuentas registradas</div>
+                {cuentas.length === 0 && <div style={valor}>No hay cuentas bancarias registradas.</div>}
+                {cuentas.map((c, i) => (
+                  <div key={i} style={{ ...valor, marginTop: 4 }}>
+                    {c.nombre} · {c.tipo_cuenta} · {c.monedas} · Cta. {c.numero_cuenta || "—"} · CCI {c.cci || "—"}
+                  </div>
+                ))}
+              </div>
             </div>
 
             {pl.observacion && (

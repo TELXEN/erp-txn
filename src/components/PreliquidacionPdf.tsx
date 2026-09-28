@@ -48,6 +48,7 @@ export type DatosPreliquidacionPdf = {
   fechaVencimiento: string;
   cuentaComercial: CuentaPdf;
   cuentaDetracciones: CuentaPdf;
+  cuentasTodas: { nombre: string; numero: string; cci: string; moneda: string; tipoCuenta: string }[];
   observacion: string;
 };
 
@@ -226,6 +227,13 @@ function PreliquidacionDocument({ datos }: { datos: DatosPreliquidacionPdf }) {
           <Text style={styles.sectionTitle}>Datos bancarios</Text>
           <View style={styles.bankBlock}><Text style={styles.label}>Cuenta para abono del neto</Text><Text style={styles.value}>{cuentaTexto(datos.cuentaComercial)}</Text></View>
           {datos.detraccionPen > 0 ? <View style={styles.bankBlock}><Text style={styles.label}>Cuenta de detracciones · Banco de la Nación</Text><Text style={styles.value}>{cuentaTexto(datos.cuentaDetracciones)}</Text></View> : null}
+          <View style={styles.bankBlock}>
+            <Text style={styles.label}>Todas las cuentas registradas</Text>
+            {datos.cuentasTodas.length === 0 ? <Text style={styles.value}>No hay cuentas bancarias registradas.</Text> : null}
+            {datos.cuentasTodas.map((c, i) => (
+              <Text key={i} style={styles.value}>{c.nombre} · {c.tipoCuenta} · {c.moneda} · Cta. {c.numero || "—"} · CCI {c.cci || "—"}</Text>
+            ))}
+          </View>
         </View>
 
         {datos.observacion ? <View style={styles.notes} wrap={false}><Text style={styles.label}>Observaciones</Text><Text>{datos.observacion}</Text></View> : null}
