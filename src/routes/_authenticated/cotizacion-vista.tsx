@@ -60,9 +60,9 @@ type ItemCot = {
 };
 
 type Fila =
-  | { clase: "grupo"; llave: string; texto: string }
-  | { clase: "sub"; llave: string; texto: string }
-  | { clase: "item"; llave: string; item: ItemCot; indice: number };
+  | { clase: "grupo"; llave: string; texto: string; numero: string }
+  | { clase: "sub"; llave: string; texto: string; numero: string }
+  | { clase: "item"; llave: string; item: ItemCot; indice: number; numero: string };
 
 /** Construye las filas de la hoja: especialidad y categoría como agrupadores. */
 function construirFilas(items: ItemCot[]): Fila[] {
@@ -77,15 +77,23 @@ function construirFilas(items: ItemCot[]): Fila[] {
     sub.get(cat)!.push(it);
   }
   let n = 0;
+  let i = 0;
   for (const [esp, sub] of porEsp) {
-    filas.push({ clase: "grupo", llave: `g-${esp}`, texto: esp.toUpperCase() });
+    i += 1;
+    filas.push({ clase: "grupo", llave: `g-${esp}`, texto: esp.toUpperCase(), numero: String(i).padStart(2, "0") });
+    let j = 0;
     for (const [cat, lista] of sub) {
-      if (sub.size > 1 || cat !== "Sin categoría") {
-        filas.push({ clase: "sub", llave: `s-${esp}-${cat}`, texto: cat });
+      const conSub = sub.size > 1 || cat !== "Sin categoría";
+      if (conSub) {
+        j += 1;
+        filas.push({ clase: "sub", llave: `s-${esp}-${cat}`, texto: cat, numero: `${String(i).padStart(2, "0")}.${j}` });
       }
+      let k = 0;
       for (const it of lista) {
         n += 1;
-        filas.push({ clase: "item", llave: it.id, item: it, indice: n });
+        k += 1;
+        const numero = conSub ? `${String(i).padStart(2, "0")}.${j}.${k}` : `${String(i).padStart(2, "0")}.${k}`;
+        filas.push({ clase: "item", llave: it.id, item: it, indice: n, numero });
       }
     }
   }
@@ -228,8 +236,15 @@ function VistaCotizacion() {
       c.alignment = { vertical: "middle", horizontal: "center" };
     });
     const primera = ws.rowCount + 1;
-    items.forEach((it, i) => {
-      const r = ws.addRow([it.codigo || i + 1, it.nombre, it.marca?.trim() || "-", it.unidad, Number(it.metrado), Number(it.precio_unitario)]);
+    construirFilas(items).forEach((fila) => {
+      if (fila.clase !== "item") {
+        const g = ws.addRow([fila.numero, fila.texto, "", "", "", "", ""]);
+        g.font = { bold: true, size: fila.clase === "grupo" ? 11 : 10 };
+        g.fill = { type: "pattern", pattern: "solid", fgColor: { argb: fila.clase === "grupo" ? "FFE2E8F0" : "FFF1F5F9" } };
+        return;
+      }
+      const it = fila.item;
+      const r = ws.addRow([it.codigo || fila.numero, it.nombre, it.marca?.trim() || "-", it.unidad, Number(it.metrado), Number(it.precio_unitario)]);
       r.getCell(7).value = { formula: `E${r.number}*F${r.number}` };
     });
     const ultima = ws.rowCount;
@@ -448,7 +463,20 @@ function VistaCotizacion() {
                         return (
                           <tr key={fila.llave} style={{ pageBreakInside: "avoid" }}>
                             <td
-                              colSpan={7}
+                              style={{
+                                padding: esGrupo ? "7px 6px" : "5px 6px",
+                                background: esGrupo ? C.slate100 : C.slate50,
+                                borderBottom: `1px solid ${C.slate100}`,
+                                color: esGrupo ? C.marca : C.slate700,
+                                fontWeight: esGrupo ? 700 : 600,
+                                fontSize: esGrupo ? "9pt" : "8.5pt",
+                                textAlign: "center",
+                              }}
+                            >
+                              {fila.numero}
+                            </td>
+                            <td
+                              colSpan={6}
                               style={{
                                 padding: esGrupo ? "7px 8px" : "5px 8px 5px 20px",
                                 background: esGrupo ? C.slate100 : C.slate50,
@@ -467,7 +495,7 @@ function VistaCotizacion() {
                       const it = fila.item;
                       return (
                         <tr key={fila.llave} style={{ pageBreakInside: "avoid" }}>
-                          <td style={{ ...celda, padding: "6px 6px", textAlign: "center", color: C.slate500 }}>{it.codigo || String(fila.indice).padStart(2, "0")}</td>
+                          <td style={{ ...celda, padding: "6px 6px", textAlign: "center", color: C.slate500 }}>{it.codigo || fila.numero}</td>
                           <td style={{ ...celda, padding: "6px 8px", wordBreak: "break-word" }}>{it.nombre}</td>
                           <td style={{ ...celda, padding: "6px 6px", textAlign: "center", color: C.slate500, wordBreak: "break-word" }}>{it.marca?.trim() || "-"}</td>
                           <td style={{ ...celda, padding: "6px 4px", textAlign: "center", color: C.slate500 }}>{it.unidad}</td>
