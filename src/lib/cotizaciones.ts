@@ -23,6 +23,9 @@ export type Cotizacion = {
   proyecto_id: string | null;
   aplica_igv?: boolean;
   revision?: string;
+  recursos_humanos?: string;
+  tiempo_ejecucion?: string;
+  condiciones_pago?: string;
 };
 
 export type CotizacionItem = {

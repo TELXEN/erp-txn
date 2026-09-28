@@ -95,7 +95,10 @@ function Cotizaciones() {
     validez_dias: "15",
     pct_gastos_generales: "10",
     pct_utilidad: "10",
-    condiciones: "Precios en Soles. Forma de pago: 50% adelanto y 50% contra entrega.",
+    condiciones: "Precios en Soles.",
+    recursos_humanos: "",
+    tiempo_ejecucion: "",
+    condiciones_pago: "50% adelanto.\n50% contra entrega.",
     aplica_igv: "si",
   });
 
@@ -158,7 +161,10 @@ function Cotizaciones() {
           validez_dias: Number(form.validez_dias || 0),
           pct_gastos_generales: Number(form.pct_gastos_generales || 0),
           pct_utilidad: Number(form.pct_utilidad || 0),
-          condiciones: form.condiciones,
+          condiciones: form.condiciones.trim(),
+          recursos_humanos: form.recursos_humanos.trim(),
+          tiempo_ejecucion: form.tiempo_ejecucion.trim(),
+          condiciones_pago: form.condiciones_pago.trim(),
           aplica_igv: form.aplica_igv === "si",
           estado: "Borrador",
         })
@@ -489,11 +495,24 @@ function Cotizaciones() {
               <option value="no">Sin IGV</option>
             </Select>
           </Campo>
-          <div className="sm:col-span-4">
-            <Campo etiqueta="Condiciones comerciales">
-              <Input value={form.condiciones} onChange={(e) => setForm({ ...form, condiciones: e.target.value })} maxLength={300} />
-            </Campo>
-          </div>
+          {([
+            ["recursos_humanos", "Recursos humanos"],
+            ["tiempo_ejecucion", "Tiempo de ejecución"],
+            ["condiciones_pago", "Condiciones de pago"],
+            ["condiciones", "Condiciones comerciales"],
+          ] as const).map(([campo, etiqueta]) => (
+            <div key={campo} className="sm:col-span-2">
+              <Campo etiqueta={etiqueta}>
+                <textarea
+                  rows={3}
+                  value={form[campo]}
+                  placeholder="Una línea por punto"
+                  onChange={(e) => setForm({ ...form, [campo]: e.target.value })}
+                  className="w-full rounded-md border border-line bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/15"
+                />
+              </Campo>
+            </div>
+          ))}
           <div className="sm:col-span-4">
             <Boton type="submit">Crear cotización</Boton>
           </div>
@@ -1013,9 +1032,33 @@ function Cotizaciones() {
             </table>
           )}
 
-          <p className="border-t border-line px-5 py-3 text-[11px] leading-snug text-muted-foreground">
-            {cot.condiciones || "Sin condiciones comerciales registradas."}
-          </p>
+          <div className="grid gap-3 border-t border-line px-5 py-4 sm:grid-cols-2">
+            {([
+              ["recursos_humanos", "Recursos humanos"],
+              ["tiempo_ejecucion", "Tiempo de ejecución"],
+              ["condiciones_pago", "Condiciones de pago"],
+              ["condiciones", "Condiciones comerciales"],
+            ] as const).map(([campo, etiqueta]) => {
+              const valor = String((cot as Record<string, unknown>)[campo] ?? "");
+              return (
+                <Campo key={`${cot.id}-${campo}-${valor}`} etiqueta={etiqueta}>
+                  <textarea
+                    rows={4}
+                    defaultValue={valor}
+                    placeholder="Una línea por punto"
+                    className="w-full rounded-md border border-line bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/15"
+                    onBlur={async (e) => {
+                      const v = e.target.value.trim();
+                      if (v === valor) return;
+                      await supabase.from("cotizaciones").update({ [campo]: v }).eq("id", cot.id);
+                      qc.invalidateQueries({ queryKey: ["cotizaciones"] });
+                      qc.invalidateQueries({ queryKey: ["cotizacion"] });
+                    }}
+                  />
+                </Campo>
+              );
+            })}
+          </div>
         </Panel>
       )}
       {apu && (
