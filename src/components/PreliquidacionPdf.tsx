@@ -141,26 +141,43 @@ function PreliquidacionDocument({ datos }: { datos: DatosPreliquidacionPdf }) {
   const simbolo = datos.moneda === "USD" ? "US$" : "S/";
   const dinero = (valor: number) => `${simbolo} ${numero(valor)}`;
   const descuento = datos.detraccionPen > 0 ? `S/ ${numero(datos.detraccionPen, 0)}` : datos.retencionPen > 0 ? `S/ ${numero(datos.retencionPen)}` : "No aplica";
+  const es = (datos.empresa.eslogan || "").trim();
+  const idxComa = es.indexOf(",");
+  const esloganLineas = es
+    ? (idxComa >= 0 ? [es.slice(0, idxComa + 1), es.slice(idxComa + 1).trim()].filter(Boolean) : [es])
+    : ["SOLUCIONES INTEGRALES EN ENERGÍA,", "AUTOMATIZACIÓN Y CONTROL INDUSTRIAL"];
 
   return (
     <Document title={`Preliquidación ${datos.codigo}`} author={datos.empresa.razonSocial} subject="Preliquidación comercial">
       <Page size="A4" style={styles.page}>
-        <View style={styles.topRule} fixed />
         <View style={styles.header} fixed>
           <View style={styles.brand}>
-            {datos.empresa.logoUrl ? <Image src={datos.empresa.logoUrl} style={styles.logo} /> : null}
-            <View style={styles.company}>
-              <Text style={styles.companyName}>{datos.empresa.razonSocial}</Text>
-              <Text style={styles.companyLine}>RUC {datos.empresa.ruc || "—"}</Text>
-              <Text style={styles.companyLine}>{datos.empresa.direccion || "Dirección no registrada"}</Text>
-              <Text style={styles.companyLine}>{[datos.empresa.telefono, datos.empresa.email, datos.empresa.web].filter(Boolean).join(" · ")}</Text>
-            </View>
+            {datos.empresa.logoUrl ? (
+              <Image src={datos.empresa.logoUrl} style={styles.logo} />
+            ) : (
+              <Text style={styles.logoFallback}>
+                {datos.empresa.razonSocial.split(/\s+/).slice(0, 2).map((p) => p[0]).join("").toUpperCase()}
+              </Text>
+            )}
           </View>
-          <View style={styles.titleBlock}>
-            <Text style={styles.eyebrow}>DOCUMENTO COMERCIAL</Text>
-            <Text style={styles.title}>PRELIQUIDACIÓN</Text>
-            <Text style={styles.code}>{datos.codigo}</Text>
-            <Text style={styles.status}>{datos.estado.toUpperCase()}</Text>
+          <View style={styles.company}>
+            <Text style={styles.companyName}>{datos.empresa.razonSocial}</Text>
+            {esloganLineas.map((linea, i) => (
+              <Text key={i} style={styles.slogan}>{linea}</Text>
+            ))}
+            {datos.empresa.direccion ? <Text style={styles.companyLine}>Dirección: {datos.empresa.direccion}</Text> : null}
+            {datos.empresa.telefono ? <Text style={styles.companyLineMt}>Teléfono: {datos.empresa.telefono}</Text> : null}
+            {datos.empresa.web ? <Text style={styles.companyWeb}>{datos.empresa.web}</Text> : null}
+          </View>
+          <View style={styles.titleCol}>
+            <View style={styles.titleBox}>
+              <Text style={styles.boxTitle}>PRELIQUIDACIÓN</Text>
+              <Text style={styles.boxRuc}>RUC: {datos.empresa.ruc || "—"}</Text>
+              <Text style={styles.boxCode}>{datos.codigo}</Text>
+            </View>
+            <View style={styles.statusLine}>
+              <Text style={styles.statusText}>{datos.estado.toUpperCase()}</Text>
+            </View>
           </View>
         </View>
 
