@@ -174,7 +174,7 @@ function VistaCotizacion() {
   const igv = conIgv ? Math.round(subtotal * 0.18 * 100) / 100 : 0;
   const total = subtotal + igv;
   const nombreArchivo = `Cotizacion_${(cot?.cliente || "Cliente").replace(/[^\w-]+/g, "_")}_${cot?.codigo ?? "sin_codigo"}`;
-  const paginas = paginarItems(items);
+  const paginas = paginarFilas(construirFilas(items as unknown as ItemCot[]));
 
   function copiarEnlace() {
     const url = `${window.location.origin}/cotizacion-vista?id=${id}`;
