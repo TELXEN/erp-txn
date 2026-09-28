@@ -5,6 +5,7 @@ import { Encabezado } from "@/components/AppShell";
 import { Boton, Panel, Vacio } from "@/components/ui-kit";
 import { supabase } from "@/integrations/supabase/client";
 import { useEmpresa } from "@/lib/empresa";
+import { useAuth } from "@/lib/auth";
 import { totalesCotizacion, useCotizacionItems, useCotizaciones, vigenciaHasta } from "@/lib/cotizaciones";
 import { ArrowLeft, FileDown, FileSpreadsheet } from "lucide-react";
 
@@ -36,6 +37,8 @@ const C = {
   emerald600: "#059669",
   emerald50: "#ecfdf5",
   white: "#ffffff",
+  marca: "#0f274a",
+  ambar: "#fbbf24",
 };
 
 const S = (n: number) =>
@@ -97,6 +100,7 @@ function VistaCotizacion() {
   const { data: cotizaciones = [], isLoading: cargandoCotizaciones } = useCotizaciones();
   const { data: items = [], isLoading: cargandoItems } = useCotizacionItems(id || null);
   const { data: empresa, isLoading: cargandoEmpresa } = useEmpresa();
+  const { nombre, email } = useAuth();
   const cot = cotizaciones.find((fila) => fila.id === id) ?? null;
   const { data: cliente } = useQuery({
     queryKey: ["tercero-cotizacion", cot?.cliente_id],
@@ -211,28 +215,39 @@ function VistaCotizacion() {
 
   function encabezadoHoja(numero: number, totalHojas: number) {
     return (
-      <div className="flex items-start justify-between gap-6" style={{ borderBottom: `2px solid ${C.slate900}`, paddingBottom: 16 }}>
-        <div className="flex gap-4">
+      <div className="flex items-start justify-between gap-5" style={{ borderBottom: `2px solid ${C.marca}`, paddingBottom: 14 }}>
+        <div className="flex items-center" style={{ minWidth: 150 }}>
           {empresa?.logo_url ? (
-            <div className="flex items-center justify-center" style={{ width: 92, height: 64 }}>
-              <img src={empresa.logo_url} alt="Logotipo de la empresa" style={{ display: "block", maxWidth: 92, maxHeight: 64, objectFit: "contain" }} />
-            </div>
+            <img src={empresa.logo_url} alt="Logotipo de la empresa" style={{ display: "block", maxWidth: 150, maxHeight: 62, objectFit: "contain" }} />
           ) : (
-            <div className="flex items-center justify-center" style={{ width: 64, height: 64, borderRadius: 12, background: C.slate900, color: C.white, fontWeight: 700, fontSize: 20 }}>
+            <div className="flex items-center justify-center" style={{ width: 62, height: 62, borderRadius: 12, background: C.marca, color: C.white, fontWeight: 700, fontSize: 20 }}>
               {(empresa?.razon_social || "TELXEN").split(/\s+/).slice(0, 2).map((parte) => parte[0]).join("").toUpperCase()}
             </div>
           )}
-          <div className="grid" style={{ gap: 2 }}>
-            <div style={{ fontSize: 18, fontWeight: 700 }}>{empresa?.razon_social || "TELXEN S.A.C."}</div>
-            {empresa?.direccion && <div style={{ color: C.slate500 }}>{empresa.direccion}</div>}
-            {empresa?.telefono && <div style={{ color: C.slate500 }}>{empresa.telefono}</div>}
-          </div>
         </div>
-        <div style={{ border: `1px solid ${C.emerald600}`, background: C.emerald50, borderRadius: 10, padding: "10px 18px", textAlign: "right", minWidth: 190 }}>
-          <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: 2, color: C.slate900 }}>COTIZACIÓN</div>
-          {empresa?.ruc && <div style={{ marginTop: 3, fontSize: 10, color: C.slate500 }}>RUC {empresa.ruc}</div>}
-          <div style={{ marginTop: 4, fontWeight: 700, color: C.emerald600, fontSize: 14 }}>{cot?.codigo ?? "SIN CÓDIGO"}</div>
-          <div style={{ marginTop: 5, fontSize: 9.5, color: C.slate500 }}>Hoja {numero} de {totalHojas}</div>
+
+        <div style={{ flex: 1, textAlign: "right", paddingTop: 2 }}>
+          <div style={{ fontSize: 11.5, fontWeight: 700, color: C.marca, letterSpacing: 0.4, lineHeight: 1.35 }}>
+            {empresa?.razon_social || "TELXEN S.A.C."}
+          </div>
+          {empresa?.direccion && (
+            <div style={{ marginTop: 4, fontSize: 9.5, color: C.slate700 }}>Dirección: {empresa.direccion}</div>
+          )}
+          {empresa?.telefono && (
+            <div style={{ marginTop: 2, fontSize: 9.5, color: C.slate700 }}>Teléfono: {empresa.telefono}</div>
+          )}
+          {empresa?.web && <div style={{ marginTop: 2, fontSize: 9.5, color: C.marca, fontWeight: 600 }}>{empresa.web}</div>}
+        </div>
+
+        <div style={{ minWidth: 200 }}>
+          <div style={{ background: C.ambar, borderRadius: 14, padding: "10px 16px", textAlign: "center", color: C.slate900 }}>
+            <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: 2, lineHeight: 1.15 }}>COTIZACIÓN</div>
+            <div style={{ marginTop: 3, fontSize: 12, fontWeight: 700 }}>RUC: {empresa?.ruc || "—"}</div>
+            <div style={{ marginTop: 2, fontSize: 14, fontWeight: 800, letterSpacing: 0.6 }}>{cot?.codigo ?? "SIN CÓDIGO"}</div>
+          </div>
+          <div style={{ marginTop: 5, fontSize: 9.5, color: C.slate500, textAlign: "center" }}>
+            Hoja {numero} de {totalHojas}
+          </div>
         </div>
       </div>
     );
@@ -299,6 +314,9 @@ function VistaCotizacion() {
                       ["Válida hasta", F(vigenciaHasta(cot.fecha_emision, Number(cot.validez_dias))), ""],
                       ["Trabajo", cot.nombre || "—", "col-span-2"],
                       ["Ubicación", cot.ubicacion || cliente?.direccion || "—", ""],
+                      ["Realizado por", nombre || email || "—", ""],
+                      ["Celular", empresa?.telefono || "—", ""],
+                      ["E-mail", empresa?.email || "—", ""],
                     ].map(([k, v, cls]) => (
                       <div key={k} className={cls}>
                         <div style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: 1, color: C.slate400, fontWeight: 700 }}>{k}</div>
