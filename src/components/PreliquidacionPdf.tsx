@@ -51,6 +51,13 @@ export type DatosPreliquidacionPdf = {
   observacion: string;
 };
 
+/** Separa el ítem jerárquico (01.02.01) de la descripción y lo vuelve código compacto (010201). */
+function separarCodigoPartida(descripcion: string) {
+  const m = /^\s*(\d{1,2}(?:\.\d{1,2})*)\s+(.*)$/.exec(descripcion || "");
+  if (!m || !m[1] || !m[2]) return { codigo: "", texto: (descripcion || "").trim() };
+  return { codigo: m[1].split(".").map((p) => p.padStart(2, "0")).join(""), texto: m[2].trim() };
+}
+
 const colors = {
   slate950: "#0f172a",
   slate700: "#334155",
@@ -91,7 +98,8 @@ const styles = StyleSheet.create({
   tableRowAlt: { backgroundColor: colors.slate50 },
   cell: { paddingHorizontal: 6 },
   number: { width: "5%", textAlign: "center" },
-  description: { width: "45%" },
+  codeCell: { width: "10%", textAlign: "left" },
+  description: { width: "35%" },
   unit: { width: "9%", textAlign: "center" },
   quantity: { width: "11%", textAlign: "right" },
   price: { width: "14%", textAlign: "right" },
@@ -175,17 +183,21 @@ function PreliquidacionDocument({ datos }: { datos: DatosPreliquidacionPdf }) {
         <Text style={styles.sectionTitle}>Detalle de la preliquidación</Text>
         <View style={styles.table}>
           <View style={styles.tableHeader} fixed>
-            <Text style={[styles.cell, styles.number]}>#</Text><Text style={[styles.cell, styles.description]}>DESCRIPCIÓN</Text>
+            <Text style={[styles.cell, styles.number]}>#</Text><Text style={[styles.cell, styles.codeCell]}>CÓDIGO</Text><Text style={[styles.cell, styles.description]}>DESCRIPCIÓN</Text>
             <Text style={[styles.cell, styles.unit]}>UND.</Text><Text style={[styles.cell, styles.quantity]}>CANT.</Text>
             <Text style={[styles.cell, styles.price]}>P. UNIT.</Text><Text style={[styles.cell, styles.subtotal]}>SUBTOTAL</Text>
           </View>
-          {datos.lineas.map((linea, index) => (
+          {datos.lineas.map((linea, index) => {
+            const partes = separarCodigoPartida(linea.descripcion);
+            return (
             <View key={`${linea.descripcion}-${index}`} style={[styles.tableRow, index % 2 === 1 ? styles.tableRowAlt : {}]} wrap={false}>
-              <Text style={[styles.cell, styles.number]}>{index + 1}</Text><Text style={[styles.cell, styles.description]}>{linea.descripcion}</Text>
+              <Text style={[styles.cell, styles.number]}>{index + 1}</Text><Text style={[styles.cell, styles.codeCell]}>{partes.codigo || "—"}</Text><Text style={[styles.cell, styles.description]}>{partes.texto}</Text>
               <Text style={[styles.cell, styles.unit]}>{linea.unidad}</Text><Text style={[styles.cell, styles.quantity]}>{numero(linea.cantidad)}</Text>
               <Text style={[styles.cell, styles.price]}>{dinero(linea.precioUnitario)}</Text><Text style={[styles.cell, styles.subtotal]}>{dinero(linea.cantidad * linea.precioUnitario)}</Text>
             </View>
-          ))}
+            );
+          })}
+
         </View>
 
         <View style={styles.summaryWrap} wrap={false}>

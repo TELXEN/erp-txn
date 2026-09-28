@@ -51,6 +51,17 @@ const N = (v: number, dec = 2) =>
 type ItemFila = { id: string; descripcion: string; unidad: string; cantidad: number; precio_unitario: number };
 type CuentaBanco = { nombre: string; numero_cuenta: string; cci: string; monedas: string; tipo_cuenta: string };
 
+/** Separa el ítem jerárquico (01.02.01) de la descripción y lo vuelve código compacto (010201). */
+export function separarCodigo(descripcion: string) {
+  const m = /^\s*(\d{1,2}(?:\.\d{1,2})*)\s+(.*)$/.exec(descripcion || "");
+  if (!m || !m[1] || !m[2]) return { codigo: "", texto: (descripcion || "").trim() };
+  return {
+    codigo: m[1].split(".").map((p) => p.padStart(2, "0")).join(""),
+    texto: m[2].trim(),
+  };
+}
+
+
 function VistaPreliquidacion() {
   const { id } = Route.useSearch();
   const { data: empresa, isLoading: cargandoEmpresa } = useEmpresa();
@@ -318,7 +329,8 @@ function VistaPreliquidacion() {
             <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: 16, tableLayout: "fixed" }}>
               <colgroup>
                 <col style={{ width: "5%" }} />
-                <col style={{ width: "45%" }} />
+                <col style={{ width: "10%" }} />
+                <col style={{ width: "35%" }} />
                 <col style={{ width: "9%" }} />
                 <col style={{ width: "11%" }} />
                 <col style={{ width: "14%" }} />
@@ -328,6 +340,7 @@ function VistaPreliquidacion() {
                 <tr style={{ background: C.slate950, color: C.white }}>
                   {[
                     { h: "#", a: "center" },
+                    { h: "Código", a: "left" },
                     { h: "Descripción", a: "left" },
                     { h: "Und.", a: "center" },
                     { h: "Cant.", a: "right" },
@@ -342,18 +355,23 @@ function VistaPreliquidacion() {
               </thead>
               <tbody>
                 {lineas.length === 0 && (
-                  <tr><td colSpan={6} style={{ ...celda, textAlign: "center", color: C.slate500 }}>Sin líneas registradas.</td></tr>
+                  <tr><td colSpan={7} style={{ ...celda, textAlign: "center", color: C.slate500 }}>Sin líneas registradas.</td></tr>
                 )}
-                {lineas.map((l, i) => (
+                {lineas.map((l, i) => {
+                  const { codigo, texto } = separarCodigo(l.descripcion);
+                  return (
                   <tr key={l.id} style={{ background: i % 2 === 1 ? C.slate50 : C.white }}>
                     <td style={{ ...celda, textAlign: "center" }}>{i + 1}</td>
-                    <td style={{ ...celda, wordBreak: "break-word" }}>{l.descripcion}</td>
+                    <td style={{ ...celda, textAlign: "left", color: C.slate500, whiteSpace: "nowrap" }}>{codigo || "—"}</td>
+                    <td style={{ ...celda, wordBreak: "break-word" }}>{texto}</td>
                     <td style={{ ...celda, textAlign: "center" }}>{l.unidad}</td>
                     <td style={{ ...celda, textAlign: "right" }}>{N(Number(l.cantidad))}</td>
                     <td style={{ ...celda, textAlign: "right", whiteSpace: "nowrap" }}>{D(Number(l.precio_unitario))}</td>
                     <td style={{ ...celda, textAlign: "right", whiteSpace: "nowrap" }}>{D(Number(l.cantidad) * Number(l.precio_unitario))}</td>
                   </tr>
-                ))}
+                  );
+                })}
+
               </tbody>
             </table>
 
