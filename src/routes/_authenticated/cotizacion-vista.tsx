@@ -44,30 +44,71 @@ const C = {
 const S = (n: number) =>
   "S/ " + n.toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const F = (d: string) => d.split("-").reverse().join("/");
+const CALIBRI = '"Calibri Light", Calibri, Arial, sans-serif';
 
-type ItemParaPagina = {
+
+type ItemCot = {
+  id: string;
+  codigo?: string | null;
   nombre: string;
-  especialidad?: string | null;
+  especialidad: string;
   categoria?: string | null;
+  marca?: string | null;
+  unidad: string;
+  metrado: number | string;
+  precio_unitario: number | string;
 };
 
-function altoEstimadoItem(item: ItemParaPagina) {
-  const lineasNombre = Math.max(1, Math.ceil((item.nombre || "").length / 26));
-  const detalle = [item.especialidad, item.categoria].filter(Boolean).join(" · ");
-  const lineasDetalle = detalle ? Math.max(1, Math.ceil(detalle.length / 34)) : 0;
-  return 32 + lineasNombre * 19 + lineasDetalle * 17;
+type Fila =
+  | { clase: "grupo"; llave: string; texto: string }
+  | { clase: "sub"; llave: string; texto: string }
+  | { clase: "item"; llave: string; item: ItemCot; indice: number };
+
+/** Construye las filas de la hoja: especialidad y categoría como agrupadores. */
+function construirFilas(items: ItemCot[]): Fila[] {
+  const filas: Fila[] = [];
+  const porEsp = new Map<string, Map<string, ItemCot[]>>();
+  for (const it of items) {
+    const esp = (it.especialidad || "").trim() || "Sin especialidad";
+    const cat = (it.categoria ?? "").trim() || "Sin categoría";
+    if (!porEsp.has(esp)) porEsp.set(esp, new Map());
+    const sub = porEsp.get(esp)!;
+    if (!sub.has(cat)) sub.set(cat, []);
+    sub.get(cat)!.push(it);
+  }
+  let n = 0;
+  for (const [esp, sub] of porEsp) {
+    filas.push({ clase: "grupo", llave: `g-${esp}`, texto: esp.toUpperCase() });
+    for (const [cat, lista] of sub) {
+      if (sub.size > 1 || cat !== "Sin categoría") {
+        filas.push({ clase: "sub", llave: `s-${esp}-${cat}`, texto: cat });
+      }
+      for (const it of lista) {
+        n += 1;
+        filas.push({ clase: "item", llave: it.id, item: it, indice: n });
+      }
+    }
+  }
+  return filas;
 }
 
-function paginarItems<T extends ItemParaPagina>(items: T[]) {
-  if (items.length === 0) return [[]] as T[][];
-  const paginas: T[][] = [];
-  let pendientes = [...items];
+function altoEstimadoFila(fila: Fila) {
+  if (fila.clase !== "item") return 22;
+  // Descripción ocupa ~49% del ancho útil: ~46 caracteres por línea a 9 pt.
+  const lineas = Math.max(1, Math.ceil((fila.item.nombre || "").length / 46));
+  return 14 + lineas * 15;
+}
+
+function paginarFilas(filas: Fila[]) {
+  if (filas.length === 0) return [[]] as Fila[][];
+  const paginas: Fila[][] = [];
+  let pendientes = [...filas];
   let primeraHoja = true;
 
   while (pendientes.length > 0) {
     const capacidad = primeraHoja ? 470 : 650;
     const capacidadFinal = primeraHoja ? 250 : 350;
-    const altoPendiente = pendientes.reduce((suma, item) => suma + altoEstimadoItem(item), 0);
+    const altoPendiente = pendientes.reduce((suma, fila) => suma + altoEstimadoFila(fila), 0);
 
     if (altoPendiente <= capacidadFinal) {
       paginas.push(pendientes);
@@ -75,18 +116,27 @@ function paginarItems<T extends ItemParaPagina>(items: T[]) {
       break;
     }
 
-    const pagina: T[] = [];
+    const pagina: Fila[] = [];
     let usado = 0;
     while (pendientes.length > 0) {
       const proximo = pendientes[0];
       if (!proximo) break;
-      const siguiente = altoEstimadoItem(proximo);
+      const siguiente = altoEstimadoFila(proximo);
       if (pagina.length > 0 && usado + siguiente > capacidad) break;
       if (pagina.length > 0 && pendientes.length === 1) break;
-      const item = pendientes.shift();
-      if (!item) break;
-      pagina.push(item);
+      const fila = pendientes.shift();
+      if (!fila) break;
+      pagina.push(fila);
       usado += siguiente;
+    }
+    // Evita dejar un título de grupo huérfano al final de la hoja.
+    while (pagina.length > 0 && pagina[pagina.length - 1]?.clase !== "item") {
+      const huerfano = pagina.pop();
+      if (huerfano) pendientes.unshift(huerfano);
+    }
+    if (pagina.length === 0) {
+      const forzado = pendientes.shift();
+      if (forzado) pagina.push(forzado);
     }
     paginas.push(pagina);
     primeraHoja = false;
@@ -94,6 +144,7 @@ function paginarItems<T extends ItemParaPagina>(items: T[]) {
 
   return paginas;
 }
+
 
 function VistaCotizacion() {
   const { id } = Route.useSearch();
@@ -125,7 +176,7 @@ function VistaCotizacion() {
   const igv = conIgv ? Math.round(subtotal * 0.18 * 100) / 100 : 0;
   const total = subtotal + igv;
   const nombreArchivo = `Cotizacion_${(cot?.cliente || "Cliente").replace(/[^\w-]+/g, "_")}_${cot?.codigo ?? "sin_codigo"}`;
-  const paginas = paginarItems(items);
+  const paginas = paginarFilas(construirFilas(items as unknown as ItemCot[]));
 
   function copiarEnlace() {
     const url = `${window.location.origin}/cotizacion-vista?id=${id}`;
@@ -239,25 +290,26 @@ function VistaCotizacion() {
                 const linea1 = idx >= 0 ? es.slice(0, idx + 1) : es;
                 const linea2 = idx >= 0 ? es.slice(idx + 1).trim() : "";
                 return (
-                  <div style={{ marginTop: 2, fontSize: 9.5, fontWeight: 700, color: C.marca, letterSpacing: 0.4, lineHeight: 1.3, textAlign: "right" }}>
+                  <div style={{ marginTop: 2, fontFamily: CALIBRI, fontSize: 9.5, fontWeight: 300, color: C.marca, letterSpacing: 0.4, lineHeight: 1.3, textAlign: "right" }}>
                     <span style={{ display: "block" }}>{linea1}</span>
                     {linea2 && <span style={{ display: "block" }}>{linea2}</span>}
                   </div>
                 );
               })()
             : !empresa?.razon_social && (
-                <div style={{ marginTop: 2, fontSize: 9.5, fontWeight: 700, color: C.marca, letterSpacing: 0.4, lineHeight: 1.3, textAlign: "right" }}>
+                <div style={{ marginTop: 2, fontFamily: CALIBRI, fontSize: 9.5, fontWeight: 300, color: C.marca, letterSpacing: 0.4, lineHeight: 1.3, textAlign: "right" }}>
                   <span style={{ display: "block" }}>SOLUCIONES INTEGRALES EN ENERGÍA,</span>
                   <span style={{ display: "block" }}>AUTOMATIZACIÓN Y CONTROL INDUSTRIAL</span>
                 </div>
               )}
           {empresa?.direccion && (
-            <div style={{ marginTop: 4, fontSize: 9.5, color: C.slate700 }}>Dirección: {empresa.direccion}</div>
+            <div style={{ marginTop: 4, fontFamily: CALIBRI, fontWeight: 300, fontSize: 9.5, color: C.slate700 }}>Dirección: {empresa.direccion}</div>
           )}
           {empresa?.telefono && (
-            <div style={{ marginTop: 2, fontSize: 9.5, color: C.slate700 }}>Teléfono: {empresa.telefono}</div>
+            <div style={{ marginTop: 2, fontFamily: CALIBRI, fontWeight: 300, fontSize: 9.5, color: C.slate700 }}>Teléfono: {empresa.telefono}</div>
           )}
-          {empresa?.web && <div style={{ marginTop: 2, fontSize: 9.5, color: C.marca, fontWeight: 600 }}>{empresa.web}</div>}
+          {empresa?.web && <div style={{ marginTop: 2, fontFamily: CALIBRI, fontWeight: 300, fontSize: 9.5, color: C.marca }}>{empresa.web}</div>}
+
         </div>
 
         <div style={{ minWidth: 200 }}>
@@ -277,12 +329,13 @@ function VistaCotizacion() {
 
   function filaDato(etiqueta: string, valor: string) {
     return (
-      <div className="flex" style={{ fontFamily: '"Calibri Light", Calibri, Arial, sans-serif', fontSize: "11pt", fontWeight: 300, lineHeight: 1.25 }}>
-        <span style={{ width: 74, flexShrink: 0, fontWeight: 300, color: C.slate500, textTransform: "uppercase", letterSpacing: 0, paddingTop: 1 }}>{etiqueta}</span>
+      <div className="flex" style={{ fontFamily: CALIBRI, fontSize: "9pt", fontWeight: 300, lineHeight: 1.3 }}>
+        <span style={{ width: 76, flexShrink: 0, fontWeight: 300, color: C.slate500, textTransform: "uppercase", letterSpacing: 0, paddingTop: 1 }}>{etiqueta}</span>
         <span style={{ fontWeight: 300, color: C.slate900 }}>{valor}</span>
       </div>
     );
   }
+
 
   if (cargando) {
     return <Panel titulo="Vista previa de cotización"><div className="p-6 font-mono text-xs text-muted-foreground">Cargando cotización…</div></Panel>;
@@ -326,7 +379,6 @@ function VistaCotizacion() {
           {paginas.map((itemsPagina, paginaIndex) => {
             const esPrimera = paginaIndex === 0;
             const esUltima = paginaIndex === paginas.length - 1;
-            const indiceInicial = paginas.slice(0, paginaIndex).reduce((suma, pagina) => suma + pagina.length, 0);
             return (
               <section
                 key={`hoja-${paginaIndex + 1}`}
@@ -354,14 +406,24 @@ function VistaCotizacion() {
                         {filaDato("E-mail", empresa?.email || "—")}
                       </div>
                     </div>
-                    <div className="flex" style={{ marginTop: 8, background: C.marca, color: C.white, borderRadius: 8, padding: "7px 14px", fontFamily: '"Calibri Light", Calibri, Arial, sans-serif', fontSize: "11pt", lineHeight: 1.25 }}>
-                      <span style={{ fontWeight: 800, letterSpacing: 1, fontSize: 9.5, textTransform: "uppercase", paddingTop: 1, marginRight: 10 }}>Proyecto</span>
+                    <div className="flex" style={{ marginTop: 8, background: C.marca, color: C.white, borderRadius: 8, padding: "7px 14px", fontFamily: CALIBRI, fontSize: "9pt", lineHeight: 1.3 }}>
+                      <span style={{ fontWeight: 800, letterSpacing: 1, fontSize: 9, textTransform: "uppercase", paddingTop: 1, marginRight: 10 }}>Proyecto</span>
                       <span style={{ fontWeight: 300 }}>{cot.nombre || "—"}</span>
                     </div>
                   </div>
                 )}
 
-                <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 16 }}>
+                <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 16, tableLayout: "fixed" }}>
+                  <colgroup>
+                    <col style={{ width: "9%" }} />
+                    <col style={{ width: "44%" }} />
+                    <col style={{ width: "8%" }} />
+                    <col style={{ width: "7%" }} />
+                    <col style={{ width: "8%" }} />
+                    <col style={{ width: "12%" }} />
+                    <col style={{ width: "12%" }} />
+                  </colgroup>
+
                   <thead>
                     <tr style={{ background: C.slate900, color: C.white }}>
                       {[
@@ -373,29 +435,51 @@ function VistaCotizacion() {
                         { h: "C. Unitario", a: "right" },
                         { h: "Sub Total", a: "right" },
                       ].map(({ h, a }) => (
-                        <th key={h} style={{ padding: "10px 12px", fontSize: 10, textTransform: "uppercase", letterSpacing: 1, textAlign: a as "left" | "right" | "center" }}>
+                        <th key={h} style={{ padding: "8px 5px", fontSize: 8, textTransform: "uppercase", letterSpacing: 0.2, textAlign: a as "left" | "right" | "center" }}>
                           {h}
                         </th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody style={{ fontFamily: '"Calibri Light", Calibri, Arial, sans-serif', fontSize: "11pt", fontWeight: 300, lineHeight: 1.25 }}>
-                    {itemsPagina.map((it, i) => (
-                      <tr key={it.id} style={{ pageBreakInside: "avoid" }}>
-                        <td style={{ ...celda, padding: "9px 12px", textAlign: "center", color: C.slate500 }}>{it.codigo || String(indiceInicial + i + 1).padStart(2, "0")}</td>
-                        <td style={{ ...celda, padding: "9px 12px" }}>
-                          <div style={{ fontWeight: 300 }}>{it.nombre}</div>
-                          {(it.especialidad || it.categoria) && <div style={{ marginTop: 3, fontSize: "11pt", fontWeight: 300, color: C.slate500, lineHeight: 1.25 }}>{[it.especialidad, it.categoria].filter(Boolean).join(" · ")}</div>}
-                        </td>
-                        <td style={{ ...celda, padding: "9px 12px", textAlign: "center", color: C.slate500 }}>{it.marca?.trim() || "-"}</td>
-                        <td style={{ ...celda, padding: "9px 12px", textAlign: "center", color: C.slate500 }}>{it.unidad}</td>
-                        <td style={{ ...celda, padding: "9px 12px", textAlign: "right" }}>{Number(it.metrado).toLocaleString("es-PE", { maximumFractionDigits: 2 })}</td>
-                        <td style={{ ...celda, padding: "9px 12px", textAlign: "right", whiteSpace: "nowrap" }}>{S(Number(it.precio_unitario))}</td>
-                        <td style={{ ...celda, padding: "9px 12px", textAlign: "right", fontWeight: 300, whiteSpace: "nowrap" }}>{S(Number(it.metrado) * Number(it.precio_unitario))}</td>
-                      </tr>
-                    ))}
+                  <tbody style={{ fontFamily: CALIBRI, fontSize: "9pt", fontWeight: 300, lineHeight: 1.3 }}>
+                    {itemsPagina.map((fila) => {
+                      if (fila.clase !== "item") {
+                        const esGrupo = fila.clase === "grupo";
+                        return (
+                          <tr key={fila.llave} style={{ pageBreakInside: "avoid" }}>
+                            <td
+                              colSpan={7}
+                              style={{
+                                padding: esGrupo ? "7px 8px" : "5px 8px 5px 20px",
+                                background: esGrupo ? C.slate100 : C.slate50,
+                                borderBottom: `1px solid ${C.slate100}`,
+                                color: esGrupo ? C.marca : C.slate700,
+                                fontWeight: esGrupo ? 700 : 600,
+                                fontSize: esGrupo ? "9pt" : "8.5pt",
+                                letterSpacing: esGrupo ? 0.6 : 0.2,
+                              }}
+                            >
+                              {fila.texto}
+                            </td>
+                          </tr>
+                        );
+                      }
+                      const it = fila.item;
+                      return (
+                        <tr key={fila.llave} style={{ pageBreakInside: "avoid" }}>
+                          <td style={{ ...celda, padding: "6px 6px", textAlign: "center", color: C.slate500 }}>{it.codigo || String(fila.indice).padStart(2, "0")}</td>
+                          <td style={{ ...celda, padding: "6px 8px", wordBreak: "break-word" }}>{it.nombre}</td>
+                          <td style={{ ...celda, padding: "6px 6px", textAlign: "center", color: C.slate500, wordBreak: "break-word" }}>{it.marca?.trim() || "-"}</td>
+                          <td style={{ ...celda, padding: "6px 4px", textAlign: "center", color: C.slate500 }}>{it.unidad}</td>
+                          <td style={{ ...celda, padding: "6px 6px", textAlign: "right" }}>{Number(it.metrado).toLocaleString("es-PE", { maximumFractionDigits: 2 })}</td>
+                          <td style={{ ...celda, padding: "6px 6px", textAlign: "right", whiteSpace: "nowrap" }}>{S(Number(it.precio_unitario))}</td>
+                          <td style={{ ...celda, padding: "6px 6px", textAlign: "right", whiteSpace: "nowrap" }}>{S(Number(it.metrado) * Number(it.precio_unitario))}</td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
+
 
                 {esUltima && (
                   <div className="bloque-final" style={{ pageBreakInside: "avoid" }}>
@@ -406,7 +490,7 @@ function VistaCotizacion() {
                         {calculo.utilidad > 0 && <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700 }}><span>Utilidad ({Number(cot.pct_utilidad)}%)</span><span>{S(calculo.utilidad)}</span></div>}
                         {(calculo.gastosGenerales > 0 || calculo.utilidad > 0) && <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700, fontWeight: 600 }}><span>Subtotal</span><span>{S(subtotal)}</span></div>}
                         <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700, borderBottom: `1px solid ${C.slate100}` }}><span>{conIgv ? "IGV (18%)" : "IGV (0%)"}</span><span>{S(igv)}</span></div>
-                        <div className="flex justify-between" style={{ marginTop: 7, padding: "10px 14px", background: C.slate900, color: C.white, borderRadius: 8, fontFamily: '"Calibri Light", Calibri, Arial, sans-serif', fontSize: "12pt", fontWeight: 300 }}>
+                        <div className="flex justify-between" style={{ marginTop: 7, padding: "10px 14px", background: C.slate900, color: C.white, borderRadius: 8, fontFamily: CALIBRI, fontSize: "11pt", fontWeight: 300 }}>
                           <span>TOTAL</span><span>{S(total)}</span>
                         </div>
                       </div>
