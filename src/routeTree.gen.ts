@@ -22,6 +22,7 @@ import { Route as AuthenticatedCotizacionesRouteImport } from './routes/_authent
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedDashboardProyectosRouteImport } from './routes/_authenticated/dashboard-proyectos'
 import { Route as AuthenticatedDatosRouteImport } from './routes/_authenticated/datos'
+import { Route as AuthenticatedFacturacionElectronicaRouteImport } from './routes/_authenticated/facturacion-electronica'
 import { Route as AuthenticatedFlujoCajaRouteImport } from './routes/_authenticated/flujo-caja'
 import { Route as AuthenticatedGastosDirectosRouteImport } from './routes/_authenticated/gastos-directos'
 import { Route as AuthenticatedGastosGeneralesRouteImport } from './routes/_authenticated/gastos-generales'
@@ -110,6 +111,12 @@ const AuthenticatedDatosRoute = AuthenticatedDatosRouteImport.update({
   path: '/datos',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedFacturacionElectronicaRoute =
+  AuthenticatedFacturacionElectronicaRouteImport.update({
+    id: '/facturacion-electronica',
+    path: '/facturacion-electronica',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedFlujoCajaRoute = AuthenticatedFlujoCajaRouteImport.update({
   id: '/flujo-caja',
   path: '/flujo-caja',
@@ -227,6 +234,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/dashboard-proyectos': typeof AuthenticatedDashboardProyectosRoute
   '/datos': typeof AuthenticatedDatosRoute
+  '/facturacion-electronica': typeof AuthenticatedFacturacionElectronicaRoute
   '/flujo-caja': typeof AuthenticatedFlujoCajaRoute
   '/gastos-directos': typeof AuthenticatedGastosDirectosRoute
   '/gastos-generales': typeof AuthenticatedGastosGeneralesRoute
@@ -260,6 +268,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/dashboard-proyectos': typeof AuthenticatedDashboardProyectosRoute
   '/datos': typeof AuthenticatedDatosRoute
+  '/facturacion-electronica': typeof AuthenticatedFacturacionElectronicaRoute
   '/flujo-caja': typeof AuthenticatedFlujoCajaRoute
   '/gastos-directos': typeof AuthenticatedGastosDirectosRoute
   '/gastos-generales': typeof AuthenticatedGastosGeneralesRoute
@@ -295,6 +304,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/dashboard-proyectos': typeof AuthenticatedDashboardProyectosRoute
   '/_authenticated/datos': typeof AuthenticatedDatosRoute
+  '/_authenticated/facturacion-electronica': typeof AuthenticatedFacturacionElectronicaRoute
   '/_authenticated/flujo-caja': typeof AuthenticatedFlujoCajaRoute
   '/_authenticated/gastos-directos': typeof AuthenticatedGastosDirectosRoute
   '/_authenticated/gastos-generales': typeof AuthenticatedGastosGeneralesRoute
@@ -330,6 +340,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/dashboard-proyectos'
     | '/datos'
+    | '/facturacion-electronica'
     | '/flujo-caja'
     | '/gastos-directos'
     | '/gastos-generales'
@@ -363,6 +374,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/dashboard-proyectos'
     | '/datos'
+    | '/facturacion-electronica'
     | '/flujo-caja'
     | '/gastos-directos'
     | '/gastos-generales'
@@ -397,6 +409,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/dashboard-proyectos'
     | '/_authenticated/datos'
+    | '/_authenticated/facturacion-electronica'
     | '/_authenticated/flujo-caja'
     | '/_authenticated/gastos-directos'
     | '/_authenticated/gastos-generales'
@@ -514,6 +527,13 @@ declare module '@tanstack/react-router' {
       path: '/datos'
       fullPath: '/datos'
       preLoaderRoute: typeof AuthenticatedDatosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/facturacion-electronica': {
+      id: '/_authenticated/facturacion-electronica'
+      path: '/facturacion-electronica'
+      fullPath: '/facturacion-electronica'
+      preLoaderRoute: typeof AuthenticatedFacturacionElectronicaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/flujo-caja': {
@@ -664,6 +684,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDashboardProyectosRoute: typeof AuthenticatedDashboardProyectosRoute
   AuthenticatedDatosRoute: typeof AuthenticatedDatosRoute
+  AuthenticatedFacturacionElectronicaRoute: typeof AuthenticatedFacturacionElectronicaRoute
   AuthenticatedFlujoCajaRoute: typeof AuthenticatedFlujoCajaRoute
   AuthenticatedGastosDirectosRoute: typeof AuthenticatedGastosDirectosRoute
   AuthenticatedGastosGeneralesRoute: typeof AuthenticatedGastosGeneralesRoute
@@ -698,6 +719,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDashboardProyectosRoute: AuthenticatedDashboardProyectosRoute,
   AuthenticatedDatosRoute: AuthenticatedDatosRoute,
+  AuthenticatedFacturacionElectronicaRoute:
+    AuthenticatedFacturacionElectronicaRoute,
   AuthenticatedFlujoCajaRoute: AuthenticatedFlujoCajaRoute,
   AuthenticatedGastosDirectosRoute: AuthenticatedGastosDirectosRoute,
   AuthenticatedGastosGeneralesRoute: AuthenticatedGastosGeneralesRoute,
