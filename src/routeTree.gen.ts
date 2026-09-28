@@ -16,6 +16,7 @@ import { Route as AuthenticatedAvanceRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedBeneficiosRouteImport } from './routes/_authenticated/beneficios'
 import { Route as AuthenticatedCajaChicaRouteImport } from './routes/_authenticated/caja-chica'
 import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticated/clientes'
+import { Route as AuthenticatedComprobanteVistaRouteImport } from './routes/_authenticated/comprobante-vista'
 import { Route as AuthenticatedConfiguracionSistemaRouteImport } from './routes/_authenticated/configuracion-sistema'
 import { Route as AuthenticatedCotizacionVistaRouteImport } from './routes/_authenticated/cotizacion-vista'
 import { Route as AuthenticatedCotizacionesRouteImport } from './routes/_authenticated/cotizaciones'
@@ -77,6 +78,12 @@ const AuthenticatedClientesRoute = AuthenticatedClientesRouteImport.update({
   path: '/clientes',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedComprobanteVistaRoute =
+  AuthenticatedComprobanteVistaRouteImport.update({
+    id: '/comprobante-vista',
+    path: '/comprobante-vista',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedConfiguracionSistemaRoute =
   AuthenticatedConfiguracionSistemaRouteImport.update({
     id: '/configuracion-sistema',
@@ -228,6 +235,7 @@ export interface FileRoutesByFullPath {
   '/beneficios': typeof AuthenticatedBeneficiosRoute
   '/caja-chica': typeof AuthenticatedCajaChicaRoute
   '/clientes': typeof AuthenticatedClientesRoute
+  '/comprobante-vista': typeof AuthenticatedComprobanteVistaRoute
   '/configuracion-sistema': typeof AuthenticatedConfiguracionSistemaRoute
   '/cotizacion-vista': typeof AuthenticatedCotizacionVistaRoute
   '/cotizaciones': typeof AuthenticatedCotizacionesRoute
@@ -262,6 +270,7 @@ export interface FileRoutesByTo {
   '/beneficios': typeof AuthenticatedBeneficiosRoute
   '/caja-chica': typeof AuthenticatedCajaChicaRoute
   '/clientes': typeof AuthenticatedClientesRoute
+  '/comprobante-vista': typeof AuthenticatedComprobanteVistaRoute
   '/configuracion-sistema': typeof AuthenticatedConfiguracionSistemaRoute
   '/cotizacion-vista': typeof AuthenticatedCotizacionVistaRoute
   '/cotizaciones': typeof AuthenticatedCotizacionesRoute
@@ -298,6 +307,7 @@ export interface FileRoutesById {
   '/_authenticated/beneficios': typeof AuthenticatedBeneficiosRoute
   '/_authenticated/caja-chica': typeof AuthenticatedCajaChicaRoute
   '/_authenticated/clientes': typeof AuthenticatedClientesRoute
+  '/_authenticated/comprobante-vista': typeof AuthenticatedComprobanteVistaRoute
   '/_authenticated/configuracion-sistema': typeof AuthenticatedConfiguracionSistemaRoute
   '/_authenticated/cotizacion-vista': typeof AuthenticatedCotizacionVistaRoute
   '/_authenticated/cotizaciones': typeof AuthenticatedCotizacionesRoute
@@ -334,6 +344,7 @@ export interface FileRouteTypes {
     | '/beneficios'
     | '/caja-chica'
     | '/clientes'
+    | '/comprobante-vista'
     | '/configuracion-sistema'
     | '/cotizacion-vista'
     | '/cotizaciones'
@@ -368,6 +379,7 @@ export interface FileRouteTypes {
     | '/beneficios'
     | '/caja-chica'
     | '/clientes'
+    | '/comprobante-vista'
     | '/configuracion-sistema'
     | '/cotizacion-vista'
     | '/cotizaciones'
@@ -403,6 +415,7 @@ export interface FileRouteTypes {
     | '/_authenticated/beneficios'
     | '/_authenticated/caja-chica'
     | '/_authenticated/clientes'
+    | '/_authenticated/comprobante-vista'
     | '/_authenticated/configuracion-sistema'
     | '/_authenticated/cotizacion-vista'
     | '/_authenticated/cotizaciones'
@@ -485,6 +498,13 @@ declare module '@tanstack/react-router' {
       path: '/clientes'
       fullPath: '/clientes'
       preLoaderRoute: typeof AuthenticatedClientesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/comprobante-vista': {
+      id: '/_authenticated/comprobante-vista'
+      path: '/comprobante-vista'
+      fullPath: '/comprobante-vista'
+      preLoaderRoute: typeof AuthenticatedComprobanteVistaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/configuracion-sistema': {
@@ -678,6 +698,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedBeneficiosRoute: typeof AuthenticatedBeneficiosRoute
   AuthenticatedCajaChicaRoute: typeof AuthenticatedCajaChicaRoute
   AuthenticatedClientesRoute: typeof AuthenticatedClientesRoute
+  AuthenticatedComprobanteVistaRoute: typeof AuthenticatedComprobanteVistaRoute
   AuthenticatedConfiguracionSistemaRoute: typeof AuthenticatedConfiguracionSistemaRoute
   AuthenticatedCotizacionVistaRoute: typeof AuthenticatedCotizacionVistaRoute
   AuthenticatedCotizacionesRoute: typeof AuthenticatedCotizacionesRoute
@@ -712,6 +733,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedBeneficiosRoute: AuthenticatedBeneficiosRoute,
   AuthenticatedCajaChicaRoute: AuthenticatedCajaChicaRoute,
   AuthenticatedClientesRoute: AuthenticatedClientesRoute,
+  AuthenticatedComprobanteVistaRoute: AuthenticatedComprobanteVistaRoute,
   AuthenticatedConfiguracionSistemaRoute:
     AuthenticatedConfiguracionSistemaRoute,
   AuthenticatedCotizacionVistaRoute: AuthenticatedCotizacionVistaRoute,
