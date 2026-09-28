@@ -33,6 +33,7 @@ import { Route as AuthenticatedOrdenesCompraRouteImport } from './routes/_authen
 import { Route as AuthenticatedPanelRouteImport } from './routes/_authenticated/panel'
 import { Route as AuthenticatedPartidasRouteImport } from './routes/_authenticated/partidas'
 import { Route as AuthenticatedPersonalRouteImport } from './routes/_authenticated/personal'
+import { Route as AuthenticatedPreliquidacionVistaRouteImport } from './routes/_authenticated/preliquidacion-vista'
 import { Route as AuthenticatedProveedoresRouteImport } from './routes/_authenticated/proveedores'
 import { Route as AuthenticatedProyectosRouteImport } from './routes/_authenticated/proyectos'
 import { Route as AuthenticatedRequerimientosRouteImport } from './routes/_authenticated/requerimientos'
@@ -168,6 +169,12 @@ const AuthenticatedPersonalRoute = AuthenticatedPersonalRouteImport.update({
   path: '/personal',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedPreliquidacionVistaRoute =
+  AuthenticatedPreliquidacionVistaRouteImport.update({
+    id: '/preliquidacion-vista',
+    path: '/preliquidacion-vista',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedProveedoresRoute =
   AuthenticatedProveedoresRouteImport.update({
     id: '/proveedores',
@@ -231,6 +238,7 @@ export interface FileRoutesByFullPath {
   '/panel': typeof AuthenticatedPanelRoute
   '/partidas': typeof AuthenticatedPartidasRoute
   '/personal': typeof AuthenticatedPersonalRoute
+  '/preliquidacion-vista': typeof AuthenticatedPreliquidacionVistaRoute
   '/proveedores': typeof AuthenticatedProveedoresRoute
   '/proyectos': typeof AuthenticatedProyectosRoute
   '/requerimientos': typeof AuthenticatedRequerimientosRoute
@@ -263,6 +271,7 @@ export interface FileRoutesByTo {
   '/panel': typeof AuthenticatedPanelRoute
   '/partidas': typeof AuthenticatedPartidasRoute
   '/personal': typeof AuthenticatedPersonalRoute
+  '/preliquidacion-vista': typeof AuthenticatedPreliquidacionVistaRoute
   '/proveedores': typeof AuthenticatedProveedoresRoute
   '/proyectos': typeof AuthenticatedProyectosRoute
   '/requerimientos': typeof AuthenticatedRequerimientosRoute
@@ -297,6 +306,7 @@ export interface FileRoutesById {
   '/_authenticated/panel': typeof AuthenticatedPanelRoute
   '/_authenticated/partidas': typeof AuthenticatedPartidasRoute
   '/_authenticated/personal': typeof AuthenticatedPersonalRoute
+  '/_authenticated/preliquidacion-vista': typeof AuthenticatedPreliquidacionVistaRoute
   '/_authenticated/proveedores': typeof AuthenticatedProveedoresRoute
   '/_authenticated/proyectos': typeof AuthenticatedProyectosRoute
   '/_authenticated/requerimientos': typeof AuthenticatedRequerimientosRoute
@@ -331,6 +341,7 @@ export interface FileRouteTypes {
     | '/panel'
     | '/partidas'
     | '/personal'
+    | '/preliquidacion-vista'
     | '/proveedores'
     | '/proyectos'
     | '/requerimientos'
@@ -363,6 +374,7 @@ export interface FileRouteTypes {
     | '/panel'
     | '/partidas'
     | '/personal'
+    | '/preliquidacion-vista'
     | '/proveedores'
     | '/proyectos'
     | '/requerimientos'
@@ -396,6 +408,7 @@ export interface FileRouteTypes {
     | '/_authenticated/panel'
     | '/_authenticated/partidas'
     | '/_authenticated/personal'
+    | '/_authenticated/preliquidacion-vista'
     | '/_authenticated/proveedores'
     | '/_authenticated/proyectos'
     | '/_authenticated/requerimientos'
@@ -580,6 +593,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPersonalRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/preliquidacion-vista': {
+      id: '/_authenticated/preliquidacion-vista'
+      path: '/preliquidacion-vista'
+      fullPath: '/preliquidacion-vista'
+      preLoaderRoute: typeof AuthenticatedPreliquidacionVistaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/proveedores': {
       id: '/_authenticated/proveedores'
       path: '/proveedores'
@@ -655,6 +675,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPanelRoute: typeof AuthenticatedPanelRoute
   AuthenticatedPartidasRoute: typeof AuthenticatedPartidasRoute
   AuthenticatedPersonalRoute: typeof AuthenticatedPersonalRoute
+  AuthenticatedPreliquidacionVistaRoute: typeof AuthenticatedPreliquidacionVistaRoute
   AuthenticatedProveedoresRoute: typeof AuthenticatedProveedoresRoute
   AuthenticatedProyectosRoute: typeof AuthenticatedProyectosRoute
   AuthenticatedRequerimientosRoute: typeof AuthenticatedRequerimientosRoute
@@ -688,6 +709,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPanelRoute: AuthenticatedPanelRoute,
   AuthenticatedPartidasRoute: AuthenticatedPartidasRoute,
   AuthenticatedPersonalRoute: AuthenticatedPersonalRoute,
+  AuthenticatedPreliquidacionVistaRoute: AuthenticatedPreliquidacionVistaRoute,
   AuthenticatedProveedoresRoute: AuthenticatedProveedoresRoute,
   AuthenticatedProyectosRoute: AuthenticatedProyectosRoute,
   AuthenticatedRequerimientosRoute: AuthenticatedRequerimientosRoute,

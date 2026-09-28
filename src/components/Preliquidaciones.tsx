@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Copy, ListPlus, Pencil, Plus, Printer, Receipt, Trash2, Upload } from "lucide-react";
+import { Copy, Eye, ListPlus, Pencil, Plus, Printer, Receipt, Trash2, Upload } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, Vacio } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
