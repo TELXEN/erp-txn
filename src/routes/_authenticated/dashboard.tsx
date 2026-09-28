@@ -355,14 +355,26 @@ function Dashboard() {
     ]);
   }
 
-  function pdf() {
-    exportarPdf({
-      titulo: "Reporte Ejecutivo de Obra",
-      subtitulo: `${nombreVista} — Moneda base: Soles (PEN)`,
-      kpis,
-      barras,
-      archivo: `reporte-${global ? "global" : "proyecto"}`,
-    });
+  async function pdf() {
+    const elemento = document.getElementById("reporte-financiero");
+    if (!elemento || exportandoPdf) return;
+    setExportandoPdf(true);
+    try {
+      const html2pdf = (await import("html2pdf.js")).default;
+      await html2pdf()
+        .set({
+          margin: 5,
+          filename: `dashboard-financiero-${global ? "global" : nombreVista.replace(/[^\w-]+/g, "_")}.pdf`,
+          image: { type: "jpeg", quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff", logging: false },
+          jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+          pagebreak: { mode: ["avoid-all", "css", "legacy"] },
+        })
+        .from(elemento)
+        .save();
+    } finally {
+      setExportandoPdf(false);
+    }
   }
 
   return (
@@ -385,7 +397,9 @@ function Dashboard() {
             <Boton variante="linea" onClick={excel}>
               <Upload size={13} /> Exportar a Excel
             </Boton>
-            <Boton onClick={pdf}>Exportar a PDF</Boton>
+            <Boton onClick={pdf} deshabilitado={exportandoPdf}>
+              {exportandoPdf ? "Generando..." : "Exportar a PDF"}
+            </Boton>
           </>
         }
       />
