@@ -153,7 +153,7 @@ function VistaCotizacion() {
         <div
           id="cotizacion-impresion"
           className="mx-auto"
-          style={{ width: 794, background: C.white, color: C.slate900, padding: 40, fontFamily: "Helvetica, Arial, sans-serif", fontSize: 12, boxShadow: "0 10px 30px -12px rgba(15,23,42,.25)" }}
+          style={{ width: 700, background: C.white, color: C.slate900, padding: 28, fontFamily: "Helvetica, Arial, sans-serif", fontSize: 12, boxShadow: "0 10px 30px -12px rgba(15,23,42,.25)" }}
         >
           {/* Encabezado */}
           <div className="flex items-start justify-between gap-6" style={{ borderBottom: `2px solid ${C.slate900}`, paddingBottom: 20 }}>
