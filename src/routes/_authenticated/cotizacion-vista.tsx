@@ -407,14 +407,23 @@ function VistaCotizacion() {
                         {filaDato("E-mail", empresa?.email || "—")}
                       </div>
                     </div>
-                    <div className="flex" style={{ marginTop: 8, background: C.marca, color: C.white, borderRadius: 8, padding: "7px 14px", fontFamily: '"Calibri Light", Calibri, Arial, sans-serif', fontSize: "11pt", lineHeight: 1.25 }}>
-                      <span style={{ fontWeight: 800, letterSpacing: 1, fontSize: 9.5, textTransform: "uppercase", paddingTop: 1, marginRight: 10 }}>Proyecto</span>
+                    <div className="flex" style={{ marginTop: 8, background: C.marca, color: C.white, borderRadius: 8, padding: "7px 14px", fontFamily: CALIBRI, fontSize: "9pt", lineHeight: 1.3 }}>
+                      <span style={{ fontWeight: 800, letterSpacing: 1, fontSize: 9, textTransform: "uppercase", paddingTop: 1, marginRight: 10 }}>Proyecto</span>
                       <span style={{ fontWeight: 300 }}>{cot.nombre || "—"}</span>
                     </div>
                   </div>
                 )}
 
-                <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 16 }}>
+                <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 16, tableLayout: "fixed" }}>
+                  <colgroup>
+                    <col style={{ width: "7%" }} />
+                    <col style={{ width: "49%" }} />
+                    <col style={{ width: "10%" }} />
+                    <col style={{ width: "7%" }} />
+                    <col style={{ width: "8%" }} />
+                    <col style={{ width: "9%" }} />
+                    <col style={{ width: "10%" }} />
+                  </colgroup>
                   <thead>
                     <tr style={{ background: C.slate900, color: C.white }}>
                       {[
@@ -426,29 +435,51 @@ function VistaCotizacion() {
                         { h: "C. Unitario", a: "right" },
                         { h: "Sub Total", a: "right" },
                       ].map(({ h, a }) => (
-                        <th key={h} style={{ padding: "10px 12px", fontSize: 10, textTransform: "uppercase", letterSpacing: 1, textAlign: a as "left" | "right" | "center" }}>
+                        <th key={h} style={{ padding: "8px 6px", fontSize: 9, textTransform: "uppercase", letterSpacing: 0.6, textAlign: a as "left" | "right" | "center" }}>
                           {h}
                         </th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody style={{ fontFamily: '"Calibri Light", Calibri, Arial, sans-serif', fontSize: "11pt", fontWeight: 300, lineHeight: 1.25 }}>
-                    {itemsPagina.map((it, i) => (
-                      <tr key={it.id} style={{ pageBreakInside: "avoid" }}>
-                        <td style={{ ...celda, padding: "9px 12px", textAlign: "center", color: C.slate500 }}>{it.codigo || String(indiceInicial + i + 1).padStart(2, "0")}</td>
-                        <td style={{ ...celda, padding: "9px 12px" }}>
-                          <div style={{ fontWeight: 300 }}>{it.nombre}</div>
-                          {(it.especialidad || it.categoria) && <div style={{ marginTop: 3, fontSize: "11pt", fontWeight: 300, color: C.slate500, lineHeight: 1.25 }}>{[it.especialidad, it.categoria].filter(Boolean).join(" · ")}</div>}
-                        </td>
-                        <td style={{ ...celda, padding: "9px 12px", textAlign: "center", color: C.slate500 }}>{it.marca?.trim() || "-"}</td>
-                        <td style={{ ...celda, padding: "9px 12px", textAlign: "center", color: C.slate500 }}>{it.unidad}</td>
-                        <td style={{ ...celda, padding: "9px 12px", textAlign: "right" }}>{Number(it.metrado).toLocaleString("es-PE", { maximumFractionDigits: 2 })}</td>
-                        <td style={{ ...celda, padding: "9px 12px", textAlign: "right", whiteSpace: "nowrap" }}>{S(Number(it.precio_unitario))}</td>
-                        <td style={{ ...celda, padding: "9px 12px", textAlign: "right", fontWeight: 300, whiteSpace: "nowrap" }}>{S(Number(it.metrado) * Number(it.precio_unitario))}</td>
-                      </tr>
-                    ))}
+                  <tbody style={{ fontFamily: CALIBRI, fontSize: "9pt", fontWeight: 300, lineHeight: 1.3 }}>
+                    {itemsPagina.map((fila) => {
+                      if (fila.clase !== "item") {
+                        const esGrupo = fila.clase === "grupo";
+                        return (
+                          <tr key={fila.llave} style={{ pageBreakInside: "avoid" }}>
+                            <td
+                              colSpan={7}
+                              style={{
+                                padding: esGrupo ? "7px 8px" : "5px 8px 5px 20px",
+                                background: esGrupo ? C.slate100 : C.slate50,
+                                borderBottom: `1px solid ${C.slate100}`,
+                                color: esGrupo ? C.marca : C.slate700,
+                                fontWeight: esGrupo ? 700 : 600,
+                                fontSize: esGrupo ? "9pt" : "8.5pt",
+                                letterSpacing: esGrupo ? 0.6 : 0.2,
+                              }}
+                            >
+                              {fila.texto}
+                            </td>
+                          </tr>
+                        );
+                      }
+                      const it = fila.item;
+                      return (
+                        <tr key={fila.llave} style={{ pageBreakInside: "avoid" }}>
+                          <td style={{ ...celda, padding: "6px 6px", textAlign: "center", color: C.slate500 }}>{it.codigo || String(fila.indice).padStart(2, "0")}</td>
+                          <td style={{ ...celda, padding: "6px 8px", wordBreak: "break-word" }}>{it.nombre}</td>
+                          <td style={{ ...celda, padding: "6px 6px", textAlign: "center", color: C.slate500, wordBreak: "break-word" }}>{it.marca?.trim() || "-"}</td>
+                          <td style={{ ...celda, padding: "6px 4px", textAlign: "center", color: C.slate500 }}>{it.unidad}</td>
+                          <td style={{ ...celda, padding: "6px 6px", textAlign: "right" }}>{Number(it.metrado).toLocaleString("es-PE", { maximumFractionDigits: 2 })}</td>
+                          <td style={{ ...celda, padding: "6px 6px", textAlign: "right", whiteSpace: "nowrap" }}>{S(Number(it.precio_unitario))}</td>
+                          <td style={{ ...celda, padding: "6px 6px", textAlign: "right", whiteSpace: "nowrap" }}>{S(Number(it.metrado) * Number(it.precio_unitario))}</td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
+
 
                 {esUltima && (
                   <div className="bloque-final" style={{ pageBreakInside: "avoid" }}>
