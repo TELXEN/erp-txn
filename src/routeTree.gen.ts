@@ -16,12 +16,14 @@ import { Route as AuthenticatedAvanceRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedBeneficiosRouteImport } from './routes/_authenticated/beneficios'
 import { Route as AuthenticatedCajaChicaRouteImport } from './routes/_authenticated/caja-chica'
 import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticated/clientes'
+import { Route as AuthenticatedComprobanteVistaRouteImport } from './routes/_authenticated/comprobante-vista'
 import { Route as AuthenticatedConfiguracionSistemaRouteImport } from './routes/_authenticated/configuracion-sistema'
 import { Route as AuthenticatedCotizacionVistaRouteImport } from './routes/_authenticated/cotizacion-vista'
 import { Route as AuthenticatedCotizacionesRouteImport } from './routes/_authenticated/cotizaciones'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedDashboardProyectosRouteImport } from './routes/_authenticated/dashboard-proyectos'
 import { Route as AuthenticatedDatosRouteImport } from './routes/_authenticated/datos'
+import { Route as AuthenticatedFacturacionElectronicaRouteImport } from './routes/_authenticated/facturacion-electronica'
 import { Route as AuthenticatedFlujoCajaRouteImport } from './routes/_authenticated/flujo-caja'
 import { Route as AuthenticatedGastosDirectosRouteImport } from './routes/_authenticated/gastos-directos'
 import { Route as AuthenticatedGastosGeneralesRouteImport } from './routes/_authenticated/gastos-generales'
@@ -76,6 +78,12 @@ const AuthenticatedClientesRoute = AuthenticatedClientesRouteImport.update({
   path: '/clientes',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedComprobanteVistaRoute =
+  AuthenticatedComprobanteVistaRouteImport.update({
+    id: '/comprobante-vista',
+    path: '/comprobante-vista',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedConfiguracionSistemaRoute =
   AuthenticatedConfiguracionSistemaRouteImport.update({
     id: '/configuracion-sistema',
@@ -110,6 +118,12 @@ const AuthenticatedDatosRoute = AuthenticatedDatosRouteImport.update({
   path: '/datos',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedFacturacionElectronicaRoute =
+  AuthenticatedFacturacionElectronicaRouteImport.update({
+    id: '/facturacion-electronica',
+    path: '/facturacion-electronica',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedFlujoCajaRoute = AuthenticatedFlujoCajaRouteImport.update({
   id: '/flujo-caja',
   path: '/flujo-caja',
@@ -221,12 +235,14 @@ export interface FileRoutesByFullPath {
   '/beneficios': typeof AuthenticatedBeneficiosRoute
   '/caja-chica': typeof AuthenticatedCajaChicaRoute
   '/clientes': typeof AuthenticatedClientesRoute
+  '/comprobante-vista': typeof AuthenticatedComprobanteVistaRoute
   '/configuracion-sistema': typeof AuthenticatedConfiguracionSistemaRoute
   '/cotizacion-vista': typeof AuthenticatedCotizacionVistaRoute
   '/cotizaciones': typeof AuthenticatedCotizacionesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/dashboard-proyectos': typeof AuthenticatedDashboardProyectosRoute
   '/datos': typeof AuthenticatedDatosRoute
+  '/facturacion-electronica': typeof AuthenticatedFacturacionElectronicaRoute
   '/flujo-caja': typeof AuthenticatedFlujoCajaRoute
   '/gastos-directos': typeof AuthenticatedGastosDirectosRoute
   '/gastos-generales': typeof AuthenticatedGastosGeneralesRoute
@@ -254,12 +270,14 @@ export interface FileRoutesByTo {
   '/beneficios': typeof AuthenticatedBeneficiosRoute
   '/caja-chica': typeof AuthenticatedCajaChicaRoute
   '/clientes': typeof AuthenticatedClientesRoute
+  '/comprobante-vista': typeof AuthenticatedComprobanteVistaRoute
   '/configuracion-sistema': typeof AuthenticatedConfiguracionSistemaRoute
   '/cotizacion-vista': typeof AuthenticatedCotizacionVistaRoute
   '/cotizaciones': typeof AuthenticatedCotizacionesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/dashboard-proyectos': typeof AuthenticatedDashboardProyectosRoute
   '/datos': typeof AuthenticatedDatosRoute
+  '/facturacion-electronica': typeof AuthenticatedFacturacionElectronicaRoute
   '/flujo-caja': typeof AuthenticatedFlujoCajaRoute
   '/gastos-directos': typeof AuthenticatedGastosDirectosRoute
   '/gastos-generales': typeof AuthenticatedGastosGeneralesRoute
@@ -289,12 +307,14 @@ export interface FileRoutesById {
   '/_authenticated/beneficios': typeof AuthenticatedBeneficiosRoute
   '/_authenticated/caja-chica': typeof AuthenticatedCajaChicaRoute
   '/_authenticated/clientes': typeof AuthenticatedClientesRoute
+  '/_authenticated/comprobante-vista': typeof AuthenticatedComprobanteVistaRoute
   '/_authenticated/configuracion-sistema': typeof AuthenticatedConfiguracionSistemaRoute
   '/_authenticated/cotizacion-vista': typeof AuthenticatedCotizacionVistaRoute
   '/_authenticated/cotizaciones': typeof AuthenticatedCotizacionesRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/dashboard-proyectos': typeof AuthenticatedDashboardProyectosRoute
   '/_authenticated/datos': typeof AuthenticatedDatosRoute
+  '/_authenticated/facturacion-electronica': typeof AuthenticatedFacturacionElectronicaRoute
   '/_authenticated/flujo-caja': typeof AuthenticatedFlujoCajaRoute
   '/_authenticated/gastos-directos': typeof AuthenticatedGastosDirectosRoute
   '/_authenticated/gastos-generales': typeof AuthenticatedGastosGeneralesRoute
@@ -324,12 +344,14 @@ export interface FileRouteTypes {
     | '/beneficios'
     | '/caja-chica'
     | '/clientes'
+    | '/comprobante-vista'
     | '/configuracion-sistema'
     | '/cotizacion-vista'
     | '/cotizaciones'
     | '/dashboard'
     | '/dashboard-proyectos'
     | '/datos'
+    | '/facturacion-electronica'
     | '/flujo-caja'
     | '/gastos-directos'
     | '/gastos-generales'
@@ -357,12 +379,14 @@ export interface FileRouteTypes {
     | '/beneficios'
     | '/caja-chica'
     | '/clientes'
+    | '/comprobante-vista'
     | '/configuracion-sistema'
     | '/cotizacion-vista'
     | '/cotizaciones'
     | '/dashboard'
     | '/dashboard-proyectos'
     | '/datos'
+    | '/facturacion-electronica'
     | '/flujo-caja'
     | '/gastos-directos'
     | '/gastos-generales'
@@ -391,12 +415,14 @@ export interface FileRouteTypes {
     | '/_authenticated/beneficios'
     | '/_authenticated/caja-chica'
     | '/_authenticated/clientes'
+    | '/_authenticated/comprobante-vista'
     | '/_authenticated/configuracion-sistema'
     | '/_authenticated/cotizacion-vista'
     | '/_authenticated/cotizaciones'
     | '/_authenticated/dashboard'
     | '/_authenticated/dashboard-proyectos'
     | '/_authenticated/datos'
+    | '/_authenticated/facturacion-electronica'
     | '/_authenticated/flujo-caja'
     | '/_authenticated/gastos-directos'
     | '/_authenticated/gastos-generales'
@@ -474,6 +500,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedClientesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/comprobante-vista': {
+      id: '/_authenticated/comprobante-vista'
+      path: '/comprobante-vista'
+      fullPath: '/comprobante-vista'
+      preLoaderRoute: typeof AuthenticatedComprobanteVistaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/configuracion-sistema': {
       id: '/_authenticated/configuracion-sistema'
       path: '/configuracion-sistema'
@@ -514,6 +547,13 @@ declare module '@tanstack/react-router' {
       path: '/datos'
       fullPath: '/datos'
       preLoaderRoute: typeof AuthenticatedDatosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/facturacion-electronica': {
+      id: '/_authenticated/facturacion-electronica'
+      path: '/facturacion-electronica'
+      fullPath: '/facturacion-electronica'
+      preLoaderRoute: typeof AuthenticatedFacturacionElectronicaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/flujo-caja': {
@@ -658,12 +698,14 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedBeneficiosRoute: typeof AuthenticatedBeneficiosRoute
   AuthenticatedCajaChicaRoute: typeof AuthenticatedCajaChicaRoute
   AuthenticatedClientesRoute: typeof AuthenticatedClientesRoute
+  AuthenticatedComprobanteVistaRoute: typeof AuthenticatedComprobanteVistaRoute
   AuthenticatedConfiguracionSistemaRoute: typeof AuthenticatedConfiguracionSistemaRoute
   AuthenticatedCotizacionVistaRoute: typeof AuthenticatedCotizacionVistaRoute
   AuthenticatedCotizacionesRoute: typeof AuthenticatedCotizacionesRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDashboardProyectosRoute: typeof AuthenticatedDashboardProyectosRoute
   AuthenticatedDatosRoute: typeof AuthenticatedDatosRoute
+  AuthenticatedFacturacionElectronicaRoute: typeof AuthenticatedFacturacionElectronicaRoute
   AuthenticatedFlujoCajaRoute: typeof AuthenticatedFlujoCajaRoute
   AuthenticatedGastosDirectosRoute: typeof AuthenticatedGastosDirectosRoute
   AuthenticatedGastosGeneralesRoute: typeof AuthenticatedGastosGeneralesRoute
@@ -691,6 +733,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedBeneficiosRoute: AuthenticatedBeneficiosRoute,
   AuthenticatedCajaChicaRoute: AuthenticatedCajaChicaRoute,
   AuthenticatedClientesRoute: AuthenticatedClientesRoute,
+  AuthenticatedComprobanteVistaRoute: AuthenticatedComprobanteVistaRoute,
   AuthenticatedConfiguracionSistemaRoute:
     AuthenticatedConfiguracionSistemaRoute,
   AuthenticatedCotizacionVistaRoute: AuthenticatedCotizacionVistaRoute,
@@ -698,6 +741,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDashboardProyectosRoute: AuthenticatedDashboardProyectosRoute,
   AuthenticatedDatosRoute: AuthenticatedDatosRoute,
+  AuthenticatedFacturacionElectronicaRoute:
+    AuthenticatedFacturacionElectronicaRoute,
   AuthenticatedFlujoCajaRoute: AuthenticatedFlujoCajaRoute,
   AuthenticatedGastosDirectosRoute: AuthenticatedGastosDirectosRoute,
   AuthenticatedGastosGeneralesRoute: AuthenticatedGastosGeneralesRoute,
