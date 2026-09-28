@@ -52,10 +52,10 @@ type ItemParaPagina = {
 };
 
 function altoEstimadoItem(item: ItemParaPagina) {
-  const lineasNombre = Math.max(1, Math.ceil((item.nombre || "").length / 48));
+  const lineasNombre = Math.max(1, Math.ceil((item.nombre || "").length / 26));
   const detalle = [item.especialidad, item.categoria].filter(Boolean).join(" · ");
-  const lineasDetalle = detalle ? Math.max(1, Math.ceil(detalle.length / 58)) : 0;
-  return 44 + Math.max(0, lineasNombre - 1) * 14 + lineasDetalle * 14;
+  const lineasDetalle = detalle ? Math.max(1, Math.ceil(detalle.length / 34)) : 0;
+  return 30 + lineasNombre * 16 + lineasDetalle * 15;
 }
 
 function paginarItems<T extends ItemParaPagina>(items: T[]) {
