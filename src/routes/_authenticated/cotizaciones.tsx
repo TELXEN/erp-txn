@@ -1050,7 +1050,7 @@ function Cotizaciones() {
                     onBlur={async (e) => {
                       const v = e.target.value.trim();
                       if (v === valor) return;
-                      await supabase.from("cotizaciones").update({ [campo]: v }).eq("id", cot.id);
+                      await supabase.from("cotizaciones").update({ [campo]: v } as { condiciones: string }).eq("id", cot.id);
                       qc.invalidateQueries({ queryKey: ["cotizaciones"] });
                       qc.invalidateQueries({ queryKey: ["cotizacion"] });
                     }}

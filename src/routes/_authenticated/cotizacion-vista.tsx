@@ -526,9 +526,9 @@ function VistaCotizacion() {
                     <div style={{ marginTop: 16, borderTop: `1px solid ${C.slate100}`, paddingTop: 10, fontSize: 10.5, color: C.slate500, lineHeight: 1.45 }}>
                       <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, color: C.slate700, marginBottom: 5 }}>Términos y condiciones</div>
                       {([
-                        ["Recursos humanos", (cot as unknown as Record<string, string>).recursos_humanos],
-                        ["Tiempo de ejecución", (cot as unknown as Record<string, string>).tiempo_ejecucion],
-                        ["Condiciones de pago", (cot as unknown as Record<string, string>).condiciones_pago],
+                        ["Recursos humanos", (cot as unknown as Record<string, string>)["recursos_humanos"]],
+                        ["Tiempo de ejecución", (cot as unknown as Record<string, string>)["tiempo_ejecucion"]],
+                        ["Condiciones de pago", (cot as unknown as Record<string, string>)["condiciones_pago"]],
                         ["Condiciones comerciales", cot.condiciones],
                       ] as const).filter(([, v]) => (v ?? "").trim()).map(([t, v]) => (
                         <div key={t} style={{ marginTop: 5 }}>
