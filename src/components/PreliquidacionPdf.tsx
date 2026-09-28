@@ -19,6 +19,7 @@ export type DatosPreliquidacionPdf = {
   estado: string;
   empresa: {
     razonSocial: string;
+    eslogan: string;
     ruc: string;
     direccion: string;
     telefono: string;
@@ -74,18 +75,23 @@ const colors = {
 
 const styles = StyleSheet.create({
   page: { padding: "32 34 30", fontFamily: "Helvetica", fontSize: 8.5, color: colors.slate700 },
-  topRule: { height: 5, backgroundColor: colors.emerald700, marginBottom: 18 },
-  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 17 },
-  brand: { width: "56%", flexDirection: "row", alignItems: "flex-start" },
-  logo: { width: 76, height: 48, objectFit: "contain", marginRight: 12 },
-  company: { flexGrow: 1 },
-  companyName: { fontFamily: "Helvetica-Bold", fontSize: 12, color: colors.slate950, marginBottom: 4 },
-  companyLine: { color: colors.slate500, lineHeight: 1.35, marginBottom: 1 },
-  titleBlock: { width: "39%", alignItems: "flex-end" },
-  eyebrow: { fontFamily: "Helvetica-Bold", fontSize: 7.5, color: colors.emerald700, letterSpacing: 1.2 },
-  title: { fontFamily: "Helvetica-Bold", fontSize: 20, color: colors.slate950, marginTop: 4 },
-  code: { fontFamily: "Helvetica-Bold", fontSize: 10, color: colors.emerald700, marginTop: 4 },
-  status: { marginTop: 7, padding: "4 8", borderRadius: 3, backgroundColor: colors.emerald50, color: colors.emerald800, fontFamily: "Helvetica-Bold", fontSize: 7.5 },
+  header: { flexDirection: "row", justifyContent: "space-between", borderBottomWidth: 2, borderBottomColor: colors.emerald700, paddingBottom: 12, marginBottom: 16 },
+  brand: { width: 96, alignItems: "center", justifyContent: "center" },
+  logo: { maxWidth: 96, maxHeight: 46, objectFit: "contain" },
+  logoFallback: { width: 46, height: 46, borderRadius: 9, backgroundColor: colors.emerald700, color: colors.white, fontFamily: "Helvetica-Bold", fontSize: 14, textAlign: "center", lineHeight: 46 },
+  company: { flex: 1, alignItems: "flex-end", paddingTop: 2 },
+  companyName: { fontFamily: "Helvetica-Bold", fontSize: 8.5, color: colors.emerald800, letterSpacing: 0.3, textAlign: "right" },
+  slogan: { fontFamily: "Helvetica", fontSize: 7, color: colors.emerald800, letterSpacing: 0.3, textAlign: "right", lineHeight: 1.3, marginTop: 2 },
+  companyLine: { fontFamily: "Helvetica", fontSize: 7, color: colors.slate700, textAlign: "right", lineHeight: 1.35, marginTop: 3 },
+  companyLineMt: { fontFamily: "Helvetica", fontSize: 7, color: colors.slate700, textAlign: "right", lineHeight: 1.35, marginTop: 1.5 },
+  companyWeb: { fontFamily: "Helvetica", fontSize: 7, color: colors.emerald800, textAlign: "right", lineHeight: 1.35, marginTop: 1.5 },
+  titleCol: { width: 145 },
+  titleBox: { alignItems: "center", backgroundColor: colors.emerald50, borderTopWidth: 3, borderTopColor: colors.emerald700, borderRadius: 4, paddingVertical: 8, paddingHorizontal: 12 },
+  boxTitle: { fontFamily: "Helvetica-Bold", fontSize: 14, color: colors.slate950, letterSpacing: 1.4, lineHeight: 1.15 },
+  boxRuc: { fontFamily: "Helvetica-Bold", fontSize: 8.5, color: colors.slate950, marginTop: 2 },
+  boxCode: { fontFamily: "Helvetica-Bold", fontSize: 10, color: colors.slate950, marginTop: 1.5, letterSpacing: 0.5 },
+  statusLine: { flexDirection: "row", justifyContent: "space-between", marginTop: 4 },
+  statusText: { fontFamily: "Helvetica-Bold", fontSize: 7, color: colors.slate500, letterSpacing: 0.8 },
   infoBand: { flexDirection: "row", gap: 16, padding: 12, backgroundColor: colors.slate50, borderTopWidth: 1, borderBottomWidth: 1, borderColor: colors.slate300, marginBottom: 17 },
   infoColumn: { flex: 1 },
   label: { fontFamily: "Helvetica-Bold", fontSize: 6.7, color: colors.slate500, letterSpacing: 0.7, textTransform: "uppercase", marginBottom: 3 },
@@ -135,26 +141,43 @@ function PreliquidacionDocument({ datos }: { datos: DatosPreliquidacionPdf }) {
   const simbolo = datos.moneda === "USD" ? "US$" : "S/";
   const dinero = (valor: number) => `${simbolo} ${numero(valor)}`;
   const descuento = datos.detraccionPen > 0 ? `S/ ${numero(datos.detraccionPen, 0)}` : datos.retencionPen > 0 ? `S/ ${numero(datos.retencionPen)}` : "No aplica";
+  const es = (datos.empresa.eslogan || "").trim();
+  const idxComa = es.indexOf(",");
+  const esloganLineas = es
+    ? (idxComa >= 0 ? [es.slice(0, idxComa + 1), es.slice(idxComa + 1).trim()].filter(Boolean) : [es])
+    : ["SOLUCIONES INTEGRALES EN ENERGÍA,", "AUTOMATIZACIÓN Y CONTROL INDUSTRIAL"];
 
   return (
     <Document title={`Preliquidación ${datos.codigo}`} author={datos.empresa.razonSocial} subject="Preliquidación comercial">
       <Page size="A4" style={styles.page}>
-        <View style={styles.topRule} fixed />
         <View style={styles.header} fixed>
           <View style={styles.brand}>
-            {datos.empresa.logoUrl ? <Image src={datos.empresa.logoUrl} style={styles.logo} /> : null}
-            <View style={styles.company}>
-              <Text style={styles.companyName}>{datos.empresa.razonSocial}</Text>
-              <Text style={styles.companyLine}>RUC {datos.empresa.ruc || "—"}</Text>
-              <Text style={styles.companyLine}>{datos.empresa.direccion || "Dirección no registrada"}</Text>
-              <Text style={styles.companyLine}>{[datos.empresa.telefono, datos.empresa.email, datos.empresa.web].filter(Boolean).join(" · ")}</Text>
-            </View>
+            {datos.empresa.logoUrl ? (
+              <Image src={datos.empresa.logoUrl} style={styles.logo} />
+            ) : (
+              <Text style={styles.logoFallback}>
+                {datos.empresa.razonSocial.split(/\s+/).slice(0, 2).map((p) => p[0]).join("").toUpperCase()}
+              </Text>
+            )}
           </View>
-          <View style={styles.titleBlock}>
-            <Text style={styles.eyebrow}>DOCUMENTO COMERCIAL</Text>
-            <Text style={styles.title}>PRELIQUIDACIÓN</Text>
-            <Text style={styles.code}>{datos.codigo}</Text>
-            <Text style={styles.status}>{datos.estado.toUpperCase()}</Text>
+          <View style={styles.company}>
+            <Text style={styles.companyName}>{datos.empresa.razonSocial}</Text>
+            {esloganLineas.map((linea, i) => (
+              <Text key={i} style={styles.slogan}>{linea}</Text>
+            ))}
+            {datos.empresa.direccion ? <Text style={styles.companyLine}>Dirección: {datos.empresa.direccion}</Text> : null}
+            {datos.empresa.telefono ? <Text style={styles.companyLineMt}>Teléfono: {datos.empresa.telefono}</Text> : null}
+            {datos.empresa.web ? <Text style={styles.companyWeb}>{datos.empresa.web}</Text> : null}
+          </View>
+          <View style={styles.titleCol}>
+            <View style={styles.titleBox}>
+              <Text style={styles.boxTitle}>PRELIQUIDACIÓN</Text>
+              <Text style={styles.boxRuc}>RUC: {datos.empresa.ruc || "—"}</Text>
+              <Text style={styles.boxCode}>{datos.codigo}</Text>
+            </View>
+            <View style={styles.statusLine}>
+              <Text style={styles.statusText}>{datos.estado.toUpperCase()}</Text>
+            </View>
           </View>
         </View>
 

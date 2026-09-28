@@ -40,6 +40,9 @@ const C = {
   white: "#ffffff",
 };
 
+const CALIBRI = '"Calibri Light", Calibri, Arial, sans-serif';
+
+
 const F = (v: string) => {
   if (!v) return "—";
   const [a, m, d] = v.slice(0, 10).split("-");
@@ -183,6 +186,7 @@ function VistaPreliquidacion() {
         estado: pl.estado,
         empresa: {
           razonSocial: empresa?.razon_social || "TELXEN SAC",
+          eslogan: empresa?.eslogan || "",
           ruc: empresa?.ruc || "",
           direccion: empresa?.direccion || "",
           telefono: empresa?.telefono || "",
@@ -274,28 +278,57 @@ function VistaPreliquidacion() {
               flexDirection: "column",
             }}
           >
-            <div style={{ height: 5, background: C.emerald700, marginBottom: 20 }} />
-
-            <div className="flex items-start justify-between" style={{ marginBottom: 18 }}>
-              <div className="flex items-start" style={{ width: "56%" }}>
-                {empresa?.logo_url && (
-                  <img src={empresa.logo_url} alt="Logotipo" style={{ width: 88, height: 56, objectFit: "contain", marginRight: 14 }} />
-                )}
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: C.slate950, marginBottom: 4 }}>{empresa?.razon_social || "TELXEN SAC"}</div>
-                  <div style={{ color: C.slate500, lineHeight: 1.4 }}>RUC {empresa?.ruc || "—"}</div>
-                  <div style={{ color: C.slate500, lineHeight: 1.4 }}>{empresa?.direccion || "Dirección no registrada"}</div>
-                  <div style={{ color: C.slate500, lineHeight: 1.4 }}>
-                    {[empresa?.telefono, empresa?.email, empresa?.web].filter(Boolean).join(" · ")}
+            <div className="flex items-start justify-between gap-5" style={{ borderBottom: `2px solid ${C.emerald700}`, paddingBottom: 14, marginBottom: 18 }}>
+              <div className="flex items-center" style={{ minWidth: 150 }}>
+                {empresa?.logo_url ? (
+                  <img src={empresa.logo_url} alt="Logotipo de la empresa" style={{ display: "block", maxWidth: 150, maxHeight: 62, objectFit: "contain" }} />
+                ) : (
+                  <div className="flex items-center justify-center" style={{ width: 62, height: 62, borderRadius: 12, background: C.emerald700, color: C.white, fontWeight: 700, fontSize: 20 }}>
+                    {(empresa?.razon_social || "TELXEN").split(/\s+/).slice(0, 2).map((parte) => parte[0]).join("").toUpperCase()}
                   </div>
-                </div>
+                )}
               </div>
-              <div style={{ width: "40%", textAlign: "right" }}>
-                <div style={{ fontSize: 8.5, fontWeight: 700, letterSpacing: 1.2, color: C.emerald700 }}>DOCUMENTO COMERCIAL</div>
-                <div style={{ fontSize: 23, fontWeight: 800, color: C.slate950, marginTop: 4 }}>PRELIQUIDACIÓN</div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: C.emerald700, marginTop: 4 }}>{pl.codigo}</div>
-                <div style={{ display: "inline-block", marginTop: 8, padding: "4px 10px", borderRadius: 4, background: C.emerald50, color: C.emerald800, fontWeight: 700, fontSize: 8.5 }}>
-                  {pl.estado.toUpperCase()}
+
+              <div style={{ flex: 1, textAlign: "right", paddingTop: 2 }}>
+                <div style={{ fontSize: 11.5, fontWeight: 700, color: C.emerald800, letterSpacing: 0.4, lineHeight: 1.35, textAlign: "right" }}>
+                  {empresa?.razon_social || "TELXEN"}
+                </div>
+                {empresa?.eslogan?.trim()
+                  ? (() => {
+                      const es = empresa.eslogan.trim();
+                      const idx = es.indexOf(",");
+                      const linea1 = idx >= 0 ? es.slice(0, idx + 1) : es;
+                      const linea2 = idx >= 0 ? es.slice(idx + 1).trim() : "";
+                      return (
+                        <div style={{ marginTop: 2, fontFamily: CALIBRI, fontSize: 9.5, fontWeight: 300, color: C.emerald800, letterSpacing: 0.4, lineHeight: 1.3, textAlign: "right" }}>
+                          <span style={{ display: "block" }}>{linea1}</span>
+                          {linea2 && <span style={{ display: "block" }}>{linea2}</span>}
+                        </div>
+                      );
+                    })()
+                  : (
+                      <div style={{ marginTop: 2, fontFamily: CALIBRI, fontSize: 9.5, fontWeight: 300, color: C.emerald800, letterSpacing: 0.4, lineHeight: 1.3, textAlign: "right" }}>
+                        <span style={{ display: "block" }}>SOLUCIONES INTEGRALES EN ENERGÍA,</span>
+                        <span style={{ display: "block" }}>AUTOMATIZACIÓN Y CONTROL INDUSTRIAL</span>
+                      </div>
+                    )}
+                {empresa?.direccion && (
+                  <div style={{ marginTop: 4, fontFamily: CALIBRI, fontWeight: 300, fontSize: 9.5, color: C.slate700 }}>Dirección: {empresa.direccion}</div>
+                )}
+                {empresa?.telefono && (
+                  <div style={{ marginTop: 2, fontFamily: CALIBRI, fontWeight: 300, fontSize: 9.5, color: C.slate700 }}>Teléfono: {empresa.telefono}</div>
+                )}
+                {empresa?.web && <div style={{ marginTop: 2, fontFamily: CALIBRI, fontWeight: 300, fontSize: 9.5, color: C.emerald800 }}>{empresa.web}</div>}
+              </div>
+
+              <div style={{ minWidth: 200 }}>
+                <div style={{ background: C.emerald50, borderTop: `3px solid ${C.emerald700}`, borderRadius: 4, padding: "10px 16px", textAlign: "center", color: C.slate950 }}>
+                  <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: 2, lineHeight: 1.15 }}>PRELIQUIDACIÓN</div>
+                  <div style={{ marginTop: 3, fontSize: 12, fontWeight: 700 }}>RUC: {empresa?.ruc || "—"}</div>
+                  <div style={{ marginTop: 2, fontSize: 14, fontWeight: 800, letterSpacing: 0.6 }}>{pl.codigo}</div>
+                </div>
+                <div className="flex justify-between" style={{ marginTop: 5, fontSize: 9.5, color: C.slate500 }}>
+                  <span>{pl.estado.toUpperCase()}</span>
                 </div>
               </div>
             </div>
