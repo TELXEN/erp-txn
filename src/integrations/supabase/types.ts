@@ -2603,6 +2603,7 @@ export type Database = {
       }
       is_admin_o_gerente: { Args: { _user_id: string }; Returns: boolean }
       siguiente_codigo_cotizacion: { Args: never; Returns: string }
+      siguiente_codigo_preliquidacion: { Args: never; Returns: string }
       siguiente_codigo_proyecto: { Args: never; Returns: string }
     }
     Enums: {
