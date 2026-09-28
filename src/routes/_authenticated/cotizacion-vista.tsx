@@ -45,29 +45,68 @@ const S = (n: number) =>
   "S/ " + n.toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const F = (d: string) => d.split("-").reverse().join("/");
 
-type ItemParaPagina = {
+type ItemCot = {
+  id: string;
+  codigo?: string | null;
   nombre: string;
-  especialidad?: string | null;
+  especialidad: string;
   categoria?: string | null;
+  marca?: string | null;
+  unidad: string;
+  metrado: number | string;
+  precio_unitario: number | string;
 };
 
-function altoEstimadoItem(item: ItemParaPagina) {
-  const lineasNombre = Math.max(1, Math.ceil((item.nombre || "").length / 26));
-  const detalle = [item.especialidad, item.categoria].filter(Boolean).join(" · ");
-  const lineasDetalle = detalle ? Math.max(1, Math.ceil(detalle.length / 34)) : 0;
-  return 32 + lineasNombre * 19 + lineasDetalle * 17;
+type Fila =
+  | { clase: "grupo"; llave: string; texto: string }
+  | { clase: "sub"; llave: string; texto: string }
+  | { clase: "item"; llave: string; item: ItemCot; indice: number };
+
+/** Construye las filas de la hoja: especialidad y categoría como agrupadores. */
+function construirFilas(items: ItemCot[]): Fila[] {
+  const filas: Fila[] = [];
+  const porEsp = new Map<string, Map<string, ItemCot[]>>();
+  for (const it of items) {
+    const esp = (it.especialidad || "").trim() || "Sin especialidad";
+    const cat = (it.categoria ?? "").trim() || "Sin categoría";
+    if (!porEsp.has(esp)) porEsp.set(esp, new Map());
+    const sub = porEsp.get(esp)!;
+    if (!sub.has(cat)) sub.set(cat, []);
+    sub.get(cat)!.push(it);
+  }
+  let n = 0;
+  for (const [esp, sub] of porEsp) {
+    filas.push({ clase: "grupo", llave: `g-${esp}`, texto: esp.toUpperCase() });
+    for (const [cat, lista] of sub) {
+      if (sub.size > 1 || cat !== "Sin categoría") {
+        filas.push({ clase: "sub", llave: `s-${esp}-${cat}`, texto: cat });
+      }
+      for (const it of lista) {
+        n += 1;
+        filas.push({ clase: "item", llave: it.id, item: it, indice: n });
+      }
+    }
+  }
+  return filas;
 }
 
-function paginarItems<T extends ItemParaPagina>(items: T[]) {
-  if (items.length === 0) return [[]] as T[][];
-  const paginas: T[][] = [];
-  let pendientes = [...items];
+function altoEstimadoFila(fila: Fila) {
+  if (fila.clase !== "item") return 22;
+  // Descripción ocupa ~49% del ancho útil: ~46 caracteres por línea a 9 pt.
+  const lineas = Math.max(1, Math.ceil((fila.item.nombre || "").length / 46));
+  return 14 + lineas * 15;
+}
+
+function paginarFilas(filas: Fila[]) {
+  if (filas.length === 0) return [[]] as Fila[][];
+  const paginas: Fila[][] = [];
+  let pendientes = [...filas];
   let primeraHoja = true;
 
   while (pendientes.length > 0) {
     const capacidad = primeraHoja ? 470 : 650;
     const capacidadFinal = primeraHoja ? 250 : 350;
-    const altoPendiente = pendientes.reduce((suma, item) => suma + altoEstimadoItem(item), 0);
+    const altoPendiente = pendientes.reduce((suma, fila) => suma + altoEstimadoFila(fila), 0);
 
     if (altoPendiente <= capacidadFinal) {
       paginas.push(pendientes);
@@ -75,18 +114,27 @@ function paginarItems<T extends ItemParaPagina>(items: T[]) {
       break;
     }
 
-    const pagina: T[] = [];
+    const pagina: Fila[] = [];
     let usado = 0;
     while (pendientes.length > 0) {
       const proximo = pendientes[0];
       if (!proximo) break;
-      const siguiente = altoEstimadoItem(proximo);
+      const siguiente = altoEstimadoFila(proximo);
       if (pagina.length > 0 && usado + siguiente > capacidad) break;
       if (pagina.length > 0 && pendientes.length === 1) break;
-      const item = pendientes.shift();
-      if (!item) break;
-      pagina.push(item);
+      const fila = pendientes.shift();
+      if (!fila) break;
+      pagina.push(fila);
       usado += siguiente;
+    }
+    // Evita dejar un título de grupo huérfano al final de la hoja.
+    while (pagina.length > 0 && pagina[pagina.length - 1]?.clase !== "item") {
+      const huerfano = pagina.pop();
+      if (huerfano) pendientes.unshift(huerfano);
+    }
+    if (pagina.length === 0) {
+      const forzado = pendientes.shift();
+      if (forzado) pagina.push(forzado);
     }
     paginas.push(pagina);
     primeraHoja = false;
@@ -94,6 +142,7 @@ function paginarItems<T extends ItemParaPagina>(items: T[]) {
 
   return paginas;
 }
+
 
 function VistaCotizacion() {
   const { id } = Route.useSearch();
