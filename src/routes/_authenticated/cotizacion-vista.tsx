@@ -236,8 +236,15 @@ function VistaCotizacion() {
       c.alignment = { vertical: "middle", horizontal: "center" };
     });
     const primera = ws.rowCount + 1;
-    items.forEach((it, i) => {
-      const r = ws.addRow([it.codigo || i + 1, it.nombre, it.marca?.trim() || "-", it.unidad, Number(it.metrado), Number(it.precio_unitario)]);
+    construirFilas(items).forEach((fila) => {
+      if (fila.clase !== "item") {
+        const g = ws.addRow([fila.numero, fila.texto, "", "", "", "", ""]);
+        g.font = { bold: true, size: fila.clase === "grupo" ? 11 : 10 };
+        g.fill = { type: "pattern", pattern: "solid", fgColor: { argb: fila.clase === "grupo" ? "FFE2E8F0" : "FFF1F5F9" } };
+        return;
+      }
+      const it = fila.item;
+      const r = ws.addRow([it.codigo || fila.numero, it.nombre, it.marca?.trim() || "-", it.unidad, Number(it.metrado), Number(it.precio_unitario)]);
       r.getCell(7).value = { formula: `E${r.number}*F${r.number}` };
     });
     const ultima = ws.rowCount;
