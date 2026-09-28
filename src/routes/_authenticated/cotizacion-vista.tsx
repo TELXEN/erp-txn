@@ -60,9 +60,9 @@ type ItemCot = {
 };
 
 type Fila =
-  | { clase: "grupo"; llave: string; texto: string }
-  | { clase: "sub"; llave: string; texto: string }
-  | { clase: "item"; llave: string; item: ItemCot; indice: number };
+  | { clase: "grupo"; llave: string; texto: string; numero: string }
+  | { clase: "sub"; llave: string; texto: string; numero: string }
+  | { clase: "item"; llave: string; item: ItemCot; indice: number; numero: string };
 
 /** Construye las filas de la hoja: especialidad y categoría como agrupadores. */
 function construirFilas(items: ItemCot[]): Fila[] {
@@ -77,15 +77,23 @@ function construirFilas(items: ItemCot[]): Fila[] {
     sub.get(cat)!.push(it);
   }
   let n = 0;
+  let i = 0;
   for (const [esp, sub] of porEsp) {
-    filas.push({ clase: "grupo", llave: `g-${esp}`, texto: esp.toUpperCase() });
+    i += 1;
+    filas.push({ clase: "grupo", llave: `g-${esp}`, texto: esp.toUpperCase(), numero: String(i).padStart(2, "0") });
+    let j = 0;
     for (const [cat, lista] of sub) {
-      if (sub.size > 1 || cat !== "Sin categoría") {
-        filas.push({ clase: "sub", llave: `s-${esp}-${cat}`, texto: cat });
+      const conSub = sub.size > 1 || cat !== "Sin categoría";
+      if (conSub) {
+        j += 1;
+        filas.push({ clase: "sub", llave: `s-${esp}-${cat}`, texto: cat, numero: `${String(i).padStart(2, "0")}.${j}` });
       }
+      let k = 0;
       for (const it of lista) {
         n += 1;
-        filas.push({ clase: "item", llave: it.id, item: it, indice: n });
+        k += 1;
+        const numero = conSub ? `${String(i).padStart(2, "0")}.${j}.${k}` : `${String(i).padStart(2, "0")}.${k}`;
+        filas.push({ clase: "item", llave: it.id, item: it, indice: n, numero });
       }
     }
   }
