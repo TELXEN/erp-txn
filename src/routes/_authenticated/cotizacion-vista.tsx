@@ -10,7 +10,7 @@ import { ArrowLeft, FileDown, FileSpreadsheet } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/cotizacion-vista")({
   validateSearch: (search: Record<string, unknown>) => ({
-    id: typeof search.id === "string" ? search.id : "",
+    id: typeof search["id"] === "string" ? search["id"] : "",
   }),
   head: () => ({
     meta: [
