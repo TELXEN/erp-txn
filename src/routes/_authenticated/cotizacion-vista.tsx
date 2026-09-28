@@ -379,7 +379,6 @@ function VistaCotizacion() {
           {paginas.map((itemsPagina, paginaIndex) => {
             const esPrimera = paginaIndex === 0;
             const esUltima = paginaIndex === paginas.length - 1;
-            const indiceInicial = paginas.slice(0, paginaIndex).reduce((suma, pagina) => suma + pagina.length, 0);
             return (
               <section
                 key={`hoja-${paginaIndex + 1}`}
