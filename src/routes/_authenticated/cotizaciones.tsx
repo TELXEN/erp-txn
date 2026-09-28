@@ -629,6 +629,24 @@ function Cotizaciones() {
                   }}
                 />
               </label>
+              <label className="flex items-center gap-1 text-xs text-muted-foreground" title="Versión de revisión que se imprime en la cotización">
+                Rev.
+                <Input
+                  key={`rev-${cot.id}-${cot.revision ?? 1}`}
+                  type="number"
+                  min={1}
+                  step="1"
+                  className="w-16"
+                  defaultValue={Number(cot.revision ?? 1)}
+                  onBlur={async (e) => {
+                    const v = Math.max(1, Math.round(Number(e.target.value) || 1));
+                    if (v === Number(cot.revision ?? 1)) return;
+                    await supabase.from("cotizaciones").update({ revision: v }).eq("id", cot.id);
+                    qc.invalidateQueries({ queryKey: ["cotizaciones"] });
+                    qc.invalidateQueries({ queryKey: ["cotizacion"] });
+                  }}
+                />
+              </label>
               <Select
                 className="w-40"
                 value={cot.estado}
