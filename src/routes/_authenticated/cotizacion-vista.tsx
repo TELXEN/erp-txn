@@ -456,7 +456,20 @@ function VistaCotizacion() {
                         return (
                           <tr key={fila.llave} style={{ pageBreakInside: "avoid" }}>
                             <td
-                              colSpan={7}
+                              style={{
+                                padding: esGrupo ? "7px 6px" : "5px 6px",
+                                background: esGrupo ? C.slate100 : C.slate50,
+                                borderBottom: `1px solid ${C.slate100}`,
+                                color: esGrupo ? C.marca : C.slate700,
+                                fontWeight: esGrupo ? 700 : 600,
+                                fontSize: esGrupo ? "9pt" : "8.5pt",
+                                textAlign: "center",
+                              }}
+                            >
+                              {fila.numero}
+                            </td>
+                            <td
+                              colSpan={6}
                               style={{
                                 padding: esGrupo ? "7px 8px" : "5px 8px 5px 20px",
                                 background: esGrupo ? C.slate100 : C.slate50,
@@ -475,7 +488,7 @@ function VistaCotizacion() {
                       const it = fila.item;
                       return (
                         <tr key={fila.llave} style={{ pageBreakInside: "avoid" }}>
-                          <td style={{ ...celda, padding: "6px 6px", textAlign: "center", color: C.slate500 }}>{it.codigo || String(fila.indice).padStart(2, "0")}</td>
+                          <td style={{ ...celda, padding: "6px 6px", textAlign: "center", color: C.slate500 }}>{it.codigo || fila.numero}</td>
                           <td style={{ ...celda, padding: "6px 8px", wordBreak: "break-word" }}>{it.nombre}</td>
                           <td style={{ ...celda, padding: "6px 6px", textAlign: "center", color: C.slate500, wordBreak: "break-word" }}>{it.marca?.trim() || "-"}</td>
                           <td style={{ ...celda, padding: "6px 4px", textAlign: "center", color: C.slate500 }}>{it.unidad}</td>
