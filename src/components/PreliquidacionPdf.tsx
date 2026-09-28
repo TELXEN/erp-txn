@@ -206,7 +206,7 @@ function PreliquidacionDocument({ datos }: { datos: DatosPreliquidacionPdf }) {
         <Text style={styles.sectionTitle}>Liquidación y cobro</Text>
         <View style={styles.settlement} wrap={false}>
           <View style={styles.settlementCard}><Text style={styles.label}>Régimen tributario</Text><Text style={styles.settlementValue}>{datos.aplicaTributo ? `${datos.tipoTributario === "detraccion" ? "Detracción" : "Retención"} ${numero(datos.porcentajeTributario)}%` : "No aplica"}</Text></View>
-          <View style={styles.settlementCard}><Text style={styles.label}>Importe descontado</Text><Text style={styles.settlementValue}>{descuento}</Text></View>
+          <View style={styles.settlementCard}><Text style={styles.label}>{datos.aplicaTributo ? (datos.tipoTributario === "detraccion" ? "Detracción" : "Retención") : "Importe descontado"}</Text><Text style={styles.settlementValue}>{descuento}</Text></View>
           <View style={styles.settlementCard}><Text style={styles.label}>Neto a depositar</Text><Text style={styles.settlementValue}>{dinero(datos.netoDepositar)}</Text></View>
         </View>
 
