@@ -62,6 +62,7 @@ function VistaCotizacion() {
     },
   });
   const [pdfCargando, setPdfCargando] = useState(false);
+  const [enlaceCopiado, setEnlaceCopiado] = useState(false);
   const calculo = cot
     ? totalesCotizacion(items, Number(cot.pct_gastos_generales), Number(cot.pct_utilidad))
     : { costoDirecto: 0, gastosGenerales: 0, utilidad: 0, total: 0 };
@@ -69,6 +70,19 @@ function VistaCotizacion() {
   const igv = Math.round(subtotal * 0.18 * 100) / 100;
   const total = subtotal + igv;
   const nombreArchivo = `Cotizacion_${(cot?.cliente || "Cliente").replace(/[^\w-]+/g, "_")}_${cot?.codigo ?? "sin_codigo"}`;
+
+  function copiarEnlace() {
+    const url = `${window.location.origin}/cotizacion-vista?id=${id}`;
+    navigator.clipboard
+      .writeText(url)
+      .then(() => {
+        setEnlaceCopiado(true);
+        window.setTimeout(() => setEnlaceCopiado(false), 2500);
+      })
+      .catch(() => {
+        window.prompt("Copia este enlace de vista previa:", url);
+      });
+  }
 
   async function descargarPdf() {
     const el = document.getElementById("cotizacion-impresion");
