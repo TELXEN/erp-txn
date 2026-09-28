@@ -1,0 +1,1 @@
+ALTER TABLE public.comprobantes_electronicos DROP CONSTRAINT IF EXISTS comprobantes_electronicos_creado_por_fkey;
