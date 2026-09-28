@@ -648,6 +648,301 @@ export type Database = {
         }
         Relationships: []
       }
+      comprobante_cuotas: {
+        Row: {
+          comprobante_id: string
+          created_at: string
+          fecha_vencimiento: string
+          id: string
+          monto: number
+          numero: number
+          updated_at: string
+        }
+        Insert: {
+          comprobante_id: string
+          created_at?: string
+          fecha_vencimiento: string
+          id?: string
+          monto: number
+          numero: number
+          updated_at?: string
+        }
+        Update: {
+          comprobante_id?: string
+          created_at?: string
+          fecha_vencimiento?: string
+          id?: string
+          monto?: number
+          numero?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comprobante_cuotas_comprobante_id_fkey"
+            columns: ["comprobante_id"]
+            isOneToOne: false
+            referencedRelation: "comprobantes_electronicos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comprobante_items: {
+        Row: {
+          afectacion_igv: string
+          cantidad: number
+          codigo: string
+          comprobante_id: string
+          created_at: string
+          descripcion: string
+          descuento: number
+          id: string
+          igv: number
+          orden: number
+          subtotal: number
+          total: number
+          unidad_sunat: string
+          updated_at: string
+          valor_unitario: number
+        }
+        Insert: {
+          afectacion_igv?: string
+          cantidad?: number
+          codigo?: string
+          comprobante_id: string
+          created_at?: string
+          descripcion: string
+          descuento?: number
+          id?: string
+          igv?: number
+          orden?: number
+          subtotal?: number
+          total?: number
+          unidad_sunat?: string
+          updated_at?: string
+          valor_unitario?: number
+        }
+        Update: {
+          afectacion_igv?: string
+          cantidad?: number
+          codigo?: string
+          comprobante_id?: string
+          created_at?: string
+          descripcion?: string
+          descuento?: number
+          id?: string
+          igv?: number
+          orden?: number
+          subtotal?: number
+          total?: number
+          unidad_sunat?: string
+          updated_at?: string
+          valor_unitario?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comprobante_items_comprobante_id_fkey"
+            columns: ["comprobante_id"]
+            isOneToOne: false
+            referencedRelation: "comprobantes_electronicos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comprobantes_electronicos: {
+        Row: {
+          banco_id: string | null
+          cdr_codigo: string
+          cdr_descripcion: string
+          cdr_url: string
+          cliente_id: string | null
+          codigo_spot: string
+          comprobante_referencia_id: string | null
+          condicion_pago: string
+          correlativo: number
+          creado_por: string
+          created_at: string
+          detraccion_constancia: string
+          detraccion_estado: string
+          detraccion_fecha: string | null
+          dias_credito: number
+          estado_fiscal: string
+          estado_pago: Database["public"]["Enums"]["estado_venta"]
+          fecha_emision: string
+          fecha_pago: string | null
+          fecha_vencimiento: string | null
+          hash_cpe: string
+          id: string
+          igv: number
+          moneda: Database["public"]["Enums"]["moneda"]
+          monto_detraccion: number
+          monto_retencion: number
+          motivo_nota_codigo: string
+          motivo_nota_descripcion: string
+          numero: string
+          numero_operacion: string
+          observacion: string
+          operacion_tipo: string
+          orden_compra: string
+          payload_fiscal: Json
+          pct_detraccion: number
+          preliquidacion_id: string | null
+          proveedor_envio: string
+          proyecto_id: string | null
+          qr_payload: string
+          serie: string
+          tipo_cambio: number
+          tipo_comprobante: string
+          tipo_tributario: string
+          total: number
+          total_descuentos: number
+          total_letras: string
+          total_soles: number
+          updated_at: string
+          valor_venta: number
+          xml_url: string
+        }
+        Insert: {
+          banco_id?: string | null
+          cdr_codigo?: string
+          cdr_descripcion?: string
+          cdr_url?: string
+          cliente_id?: string | null
+          codigo_spot?: string
+          comprobante_referencia_id?: string | null
+          condicion_pago?: string
+          correlativo: number
+          creado_por?: string
+          created_at?: string
+          detraccion_constancia?: string
+          detraccion_estado?: string
+          detraccion_fecha?: string | null
+          dias_credito?: number
+          estado_fiscal?: string
+          estado_pago?: Database["public"]["Enums"]["estado_venta"]
+          fecha_emision?: string
+          fecha_pago?: string | null
+          fecha_vencimiento?: string | null
+          hash_cpe?: string
+          id?: string
+          igv?: number
+          moneda?: Database["public"]["Enums"]["moneda"]
+          monto_detraccion?: number
+          monto_retencion?: number
+          motivo_nota_codigo?: string
+          motivo_nota_descripcion?: string
+          numero: string
+          numero_operacion?: string
+          observacion?: string
+          operacion_tipo?: string
+          orden_compra?: string
+          payload_fiscal?: Json
+          pct_detraccion?: number
+          preliquidacion_id?: string | null
+          proveedor_envio?: string
+          proyecto_id?: string | null
+          qr_payload?: string
+          serie: string
+          tipo_cambio?: number
+          tipo_comprobante: string
+          tipo_tributario?: string
+          total?: number
+          total_descuentos?: number
+          total_letras?: string
+          total_soles?: number
+          updated_at?: string
+          valor_venta?: number
+          xml_url?: string
+        }
+        Update: {
+          banco_id?: string | null
+          cdr_codigo?: string
+          cdr_descripcion?: string
+          cdr_url?: string
+          cliente_id?: string | null
+          codigo_spot?: string
+          comprobante_referencia_id?: string | null
+          condicion_pago?: string
+          correlativo?: number
+          creado_por?: string
+          created_at?: string
+          detraccion_constancia?: string
+          detraccion_estado?: string
+          detraccion_fecha?: string | null
+          dias_credito?: number
+          estado_fiscal?: string
+          estado_pago?: Database["public"]["Enums"]["estado_venta"]
+          fecha_emision?: string
+          fecha_pago?: string | null
+          fecha_vencimiento?: string | null
+          hash_cpe?: string
+          id?: string
+          igv?: number
+          moneda?: Database["public"]["Enums"]["moneda"]
+          monto_detraccion?: number
+          monto_retencion?: number
+          motivo_nota_codigo?: string
+          motivo_nota_descripcion?: string
+          numero?: string
+          numero_operacion?: string
+          observacion?: string
+          operacion_tipo?: string
+          orden_compra?: string
+          payload_fiscal?: Json
+          pct_detraccion?: number
+          preliquidacion_id?: string | null
+          proveedor_envio?: string
+          proyecto_id?: string | null
+          qr_payload?: string
+          serie?: string
+          tipo_cambio?: number
+          tipo_comprobante?: string
+          tipo_tributario?: string
+          total?: number
+          total_descuentos?: number
+          total_letras?: string
+          total_soles?: number
+          updated_at?: string
+          valor_venta?: number
+          xml_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comprobantes_electronicos_banco_id_fkey"
+            columns: ["banco_id"]
+            isOneToOne: false
+            referencedRelation: "bancos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comprobantes_electronicos_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "terceros"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comprobantes_electronicos_comprobante_referencia_id_fkey"
+            columns: ["comprobante_referencia_id"]
+            isOneToOne: false
+            referencedRelation: "comprobantes_electronicos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comprobantes_electronicos_preliquidacion_id_fkey"
+            columns: ["preliquidacion_id"]
+            isOneToOne: false
+            referencedRelation: "preliquidaciones"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comprobantes_electronicos_proyecto_id_fkey"
+            columns: ["proyecto_id"]
+            isOneToOne: false
+            referencedRelation: "proyectos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cotizacion_items: {
         Row: {
           categoria: string
@@ -2209,6 +2504,36 @@ export type Database = {
         }
         Relationships: []
       }
+      series_comprobante: {
+        Row: {
+          activo: boolean
+          correlativo_actual: number
+          created_at: string
+          id: string
+          serie: string
+          tipo_comprobante: string
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          correlativo_actual?: number
+          created_at?: string
+          id?: string
+          serie: string
+          tipo_comprobante: string
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          correlativo_actual?: number
+          created_at?: string
+          id?: string
+          serie?: string
+          tipo_comprobante?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       tareos: {
         Row: {
           asistencia: number
@@ -2468,6 +2793,7 @@ export type Database = {
         Row: {
           banco_id: string | null
           cliente_id: string | null
+          comprobante_electronico_id: string | null
           concepto: string
           condicion_pago: string
           created_at: string
@@ -2499,6 +2825,7 @@ export type Database = {
         Insert: {
           banco_id?: string | null
           cliente_id?: string | null
+          comprobante_electronico_id?: string | null
           concepto: string
           condicion_pago?: string
           created_at?: string
@@ -2530,6 +2857,7 @@ export type Database = {
         Update: {
           banco_id?: string | null
           cliente_id?: string | null
+          comprobante_electronico_id?: string | null
           concepto?: string
           condicion_pago?: string
           created_at?: string
@@ -2574,6 +2902,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "ventas_comprobante_electronico_id_fkey"
+            columns: ["comprobante_electronico_id"]
+            isOneToOne: false
+            referencedRelation: "comprobantes_electronicos"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "ventas_preliquidacion_id_fkey"
             columns: ["preliquidacion_id"]
             isOneToOne: false
@@ -2605,6 +2940,13 @@ export type Database = {
       siguiente_codigo_cotizacion: { Args: never; Returns: string }
       siguiente_codigo_preliquidacion: { Args: never; Returns: string }
       siguiente_codigo_proyecto: { Args: never; Returns: string }
+      siguiente_numero_comprobante: {
+        Args: { _serie: string; _tipo: string }
+        Returns: {
+          correlativo: number
+          numero: string
+        }[]
+      }
     }
     Enums: {
       app_role: "ingeniero" | "administrador" | "gerente"

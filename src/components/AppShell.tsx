@@ -44,7 +44,8 @@ const MENU: Categoria[] = [
     items: [
       { a: "/clientes", texto: "Clientes", roles: ["administrador", "gerente"], icono: Users },
       { a: "/cotizaciones", texto: "Cotizaciones", roles: ["administrador", "gerente"], icono: FileText },
-      { a: "/valorizaciones", texto: "Facturación", roles: ["administrador", "gerente"], icono: Banknote },
+      { a: "/valorizaciones", texto: "Preliquidaciones", roles: ["administrador", "gerente"], icono: Banknote },
+      { a: "/facturacion-electronica", texto: "Facturación Electrónica", roles: ["administrador", "gerente"], icono: ReceiptText },
     ],
   },
   {
