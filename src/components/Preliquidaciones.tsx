@@ -170,6 +170,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
   const [marcadas, setMarcadas] = useState<string[]>([]);
 
 
+
   const { data: partidasObra = [] } = useQuery({
     queryKey: ["partidas", "obra-pl", form.proyecto_id],
     enabled: !!form.proyecto_id,
