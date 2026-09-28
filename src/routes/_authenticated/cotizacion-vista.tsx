@@ -144,7 +144,7 @@ function VistaCotizacion() {
       const html2pdf = (await import("html2pdf.js")).default;
       await html2pdf()
         .set({
-          margin: 0,
+          margin: [7, 5, 7, 5],
           filename: `${nombreArchivo}.pdf`,
           image: { type: "jpeg", quality: 0.98 },
           html2canvas: { scale: 3, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: 700, backgroundColor: "#ffffff", logging: false },
@@ -224,13 +224,13 @@ function VistaCotizacion() {
           )}
           <div className="grid" style={{ gap: 2 }}>
             <div style={{ fontSize: 18, fontWeight: 700 }}>{empresa?.razon_social || "TELXEN S.A.C."}</div>
-            {empresa?.ruc && <div style={{ color: C.slate500 }}>RUC {empresa.ruc}</div>}
             {empresa?.direccion && <div style={{ color: C.slate500 }}>{empresa.direccion}</div>}
             {empresa?.telefono && <div style={{ color: C.slate500 }}>{empresa.telefono}</div>}
           </div>
         </div>
         <div style={{ border: `1px solid ${C.emerald600}`, background: C.emerald50, borderRadius: 10, padding: "10px 18px", textAlign: "right", minWidth: 190 }}>
           <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: 2, color: C.slate900 }}>COTIZACIÓN</div>
+          {empresa?.ruc && <div style={{ marginTop: 3, fontSize: 10, color: C.slate500 }}>RUC {empresa.ruc}</div>}
           <div style={{ marginTop: 4, fontWeight: 700, color: C.emerald600, fontSize: 14 }}>{cot?.codigo ?? "SIN CÓDIGO"}</div>
           <div style={{ marginTop: 5, fontSize: 9.5, color: C.slate500 }}>Hoja {numero} de {totalHojas}</div>
         </div>
