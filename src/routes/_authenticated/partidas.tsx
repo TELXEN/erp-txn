@@ -79,6 +79,7 @@ function Partidas() {
     nombre: "",
     especialidad: "",
     categoria: "",
+    marca: "",
     unidad: "glb",
     metrado: "1",
     precio_unitario: "",
@@ -94,6 +95,7 @@ function Partidas() {
     nombre: string;
     especialidad: string;
     categoria: string;
+    marca: string;
     unidad: string;
     metrado: string;
     precio_unitario: string;
@@ -108,6 +110,7 @@ function Partidas() {
     padre_id: string;
     codigo: string;
     nombre: string;
+    marca: string;
     unidad: string;
     metrado: string;
     precio_unitario: string;
@@ -188,13 +191,14 @@ function Partidas() {
       aplica_gg_utilidad: esContractual(form.tipo_presupuesto, tipos)
         ? true
         : form.aplica_gg || form.aplica_utilidad,
+      marca: form.marca.trim(),
       unidad: form.unidad,
       metrado: Number(form.metrado || 0),
       precio_unitario: Number(form.precio_unitario || 0),
       presupuesto_inicial: montoPartida(form.metrado, form.precio_unitario),
     });
     if (err) return setError(err.message);
-    setForm({ ...form, codigo: "", nombre: "", metrado: "1", precio_unitario: "" });
+    setForm({ ...form, codigo: "", nombre: "", marca: "", metrado: "1", precio_unitario: "" });
     qc.invalidateQueries({ queryKey: ["partidas"] });
   }
 
@@ -215,6 +219,7 @@ function Partidas() {
         aplica_gg_utilidad: esContractual(editando.tipo_presupuesto, tipos)
           ? true
           : editando.aplica_gg || editando.aplica_utilidad,
+        marca: editando.marca ?? "",
         unidad: editando.unidad,
         metrado: Number(editando.metrado || 0),
         precio_unitario: Number(editando.precio_unitario || 0),
@@ -239,6 +244,7 @@ function Partidas() {
       padre_id: padre.id,
       codigo: siguienteCodigoSubpartida(padre.codigo, partidas.filter((x) => x.padre_id === padre.id)),
       nombre: "",
+      marca: padre.marca ?? "",
       unidad: padre.unidad || "glb",
       metrado: "1",
       precio_unitario: "",
@@ -272,6 +278,7 @@ function Partidas() {
       aplica_gg: padre.aplica_gg,
       aplica_utilidad: padre.aplica_utilidad,
       aplica_gg_utilidad: padre.aplica_gg_utilidad,
+      marca: nuevaSub.marca.trim(),
       unidad: nuevaSub.unidad,
       metrado: Number(nuevaSub.metrado || 0),
       precio_unitario: Number(nuevaSub.precio_unitario || 0),
@@ -320,6 +327,7 @@ function Partidas() {
             Categoría: p.categoria ?? "",
             Código: p.codigo ?? "",
             Partida: p.nombre,
+            Marca: p.marca || "-",
             Unidad: p.unidad ?? "",
             Metrado: Number(p.metrado ?? 0),
             "Precio Unitario (S/)": Number(p.precio_unitario ?? 0),
@@ -405,6 +413,7 @@ function Partidas() {
                     nombre: m.nombre,
                     especialidad: m.especialidad,
                     categoria: m.categoria ?? "",
+                    marca: m.marca ?? "",
                     unidad: m.unidad,
                     precio_unitario: String(m.precio_unitario ?? 0),
                     codigo: sugerir(form.proyecto_id, m.especialidad, m.categoria ?? ""),
@@ -494,6 +503,9 @@ function Partidas() {
           </Campo>
           <Campo etiqueta="Descripción de partida">
             <Input value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} required maxLength={140} />
+          </Campo>
+          <Campo etiqueta="Marca">
+            <Input value={form.marca} onChange={(e) => setForm({ ...form, marca: e.target.value })} maxLength={60} placeholder="Sin marca" />
           </Campo>
           <Campo etiqueta="Unidad">
             <Select value={form.unidad} onChange={(e) => setForm({ ...form, unidad: e.target.value })} required>
@@ -694,7 +706,8 @@ function Partidas() {
                 <thead>
                   <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
                     <th style={{ width: "9%" }} className="whitespace-nowrap px-5 py-2 font-medium">Código</th>
-                    <th style={{ width: "20%" }} className="whitespace-nowrap px-3 py-2 font-medium">Partida</th>
+                    <th style={{ width: "17%" }} className="whitespace-nowrap px-3 py-2 font-medium">Partida</th>
+                    <th style={{ width: "7%" }} className="whitespace-nowrap px-2 py-2 font-medium">Marca</th>
                     <th style={{ width: "5%" }} className="whitespace-nowrap px-2 py-2 font-medium">Und.</th>
                     <th style={{ width: "7%" }} className="whitespace-nowrap px-2 py-2 text-right font-medium">Metrado</th>
                     <th style={{ width: "8%" }} className="whitespace-nowrap px-2 py-2 text-right font-medium">P.U. (S/)</th>
@@ -710,7 +723,7 @@ function Partidas() {
                     <React.Fragment key={esp}>
                       <tr className="border-b border-line/40 bg-muted/40">
                         <td className="px-5 py-1.5 font-semibold text-ink">{wbs.capitulo(esp)}</td>
-                        <td colSpan={4} className="px-3 py-1.5 label-mono">{esp}</td>
+                        <td colSpan={5} className="px-3 py-1.5 label-mono">{esp}</td>
                         <td className="px-3 py-1.5 text-right font-semibold text-ink">
                           {soles(lista.reduce((s, x) => s + Number(x.presupuesto_inicial), 0))}
                         </td>
@@ -723,7 +736,7 @@ function Partidas() {
                           <td className="px-5 py-1.5 pl-8 text-[10px] font-semibold text-ink">
                             {wbs.categoria(esp, sub.categoria)}
                           </td>
-                          <td colSpan={4} className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                          <td colSpan={5} className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                             {sub.categoria}
                           </td>
                           <td className="px-3 py-1.5 text-right font-semibold text-ink">
@@ -761,6 +774,10 @@ function Partidas() {
                                 className="py-1 text-xs"
                                 placeholder="Descripción de la subpartida"
                               />
+                            </td>
+                            <td className="px-2 py-2">
+                              <Input value={nuevaSub.marca} onChange={(e) => setNuevaSub({ ...nuevaSub, marca: e.target.value })}
+                                className="py-1 text-xs" placeholder="-" />
                             </td>
                             <td className="px-2 py-2">
                               <Select
@@ -818,6 +835,14 @@ function Partidas() {
                                   value={editando.nombre}
                                   onChange={(e) => setEditando({ ...editando, nombre: e.target.value })}
                                   className="py-1 text-xs"
+                                />
+                              </td>
+                              <td className="px-2 py-2">
+                                <Input
+                                  value={editando.marca ?? ""}
+                                  onChange={(e) => setEditando({ ...editando, marca: e.target.value })}
+                                  className="py-1 text-xs"
+                                  placeholder="-"
                                 />
                               </td>
                               <td className="px-2 py-2">
@@ -944,6 +969,7 @@ function Partidas() {
                                 </span>
                               )}
                             </td>
+                            <td className="px-2 py-2.5 text-muted-foreground">{agrupadora ? "—" : p.marca || "-"}</td>
                             <td className="px-2 py-2.5 text-muted-foreground">{agrupadora ? "—" : p.unidad || "—"}</td>
                             <td className="px-2 py-2.5 text-right">{agrupadora ? "—" : cantidad(Number(p.metrado ?? 0))}</td>
                             <td className="px-2 py-2.5 text-right">{agrupadora ? "—" : soles(Number(p.precio_unitario ?? 0))}</td>
@@ -995,6 +1021,7 @@ function Partidas() {
                                       nombre: p.nombre,
                                       especialidad: p.especialidad,
                                       categoria: p.categoria ?? "",
+                                      marca: p.marca ?? "",
                                       unidad: p.unidad || "glb",
                                       metrado: String(p.metrado ?? 1),
                                       precio_unitario: String(p.precio_unitario ?? p.presupuesto_inicial),
