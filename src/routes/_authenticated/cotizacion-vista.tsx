@@ -170,7 +170,7 @@ function VistaCotizacion() {
     if (!cot) return;
     ws.addRow([`${cot.codigo ?? "Cotización"} — ${cot.cliente}`]).font = { bold: true, size: 13 };
     ws.addRow([]);
-    const cab = ws.addRow(["Ítem", "Descripción", "Cantidad", "Unidad", "Precio Unitario", "Total"]);
+    const cab = ws.addRow(["Ítem", "Descripción", "Marca", "Unidad", "Cantidad", "C. Unitario", "Sub Total"]);
     cab.eachCell((c) => {
       c.font = { bold: true, color: { argb: "FFFFFFFF" } };
       c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
@@ -178,8 +178,8 @@ function VistaCotizacion() {
     });
     const primera = ws.rowCount + 1;
     items.forEach((it, i) => {
-      const r = ws.addRow([it.codigo || i + 1, it.nombre, Number(it.metrado), it.unidad, Number(it.precio_unitario)]);
-      r.getCell(6).value = { formula: `C${r.number}*E${r.number}` };
+      const r = ws.addRow([it.codigo || i + 1, it.nombre, it.marca?.trim() || "-", it.unidad, Number(it.metrado), Number(it.precio_unitario)]);
+      r.getCell(7).value = { formula: `E${r.number}*F${r.number}` };
     });
     const ultima = ws.rowCount;
     const sub = ws.addRow(["", "COSTO DIRECTO", "", "", "", { formula: `SUM(F${primera}:F${ultima})` }]);
@@ -329,8 +329,16 @@ function VistaCotizacion() {
                 <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 16 }}>
                   <thead>
                     <tr style={{ background: C.slate900, color: C.white }}>
-                      {["Ítem", "Descripción", "Cant.", "Und.", "P. Unitario", "Total"].map((h, i) => (
-                        <th key={h} style={{ padding: "10px 12px", fontSize: 10, textTransform: "uppercase", letterSpacing: 1, textAlign: i >= 4 || i === 2 ? "right" : i === 3 || i === 0 ? "center" : "left" }}>
+                      {[
+                        { h: "Ítem", a: "center" },
+                        { h: "Descripción", a: "left" },
+                        { h: "Marca", a: "center" },
+                        { h: "Unidad", a: "center" },
+                        { h: "Cantidad", a: "right" },
+                        { h: "C. Unitario", a: "right" },
+                        { h: "Sub Total", a: "right" },
+                      ].map(({ h, a }) => (
+                        <th key={h} style={{ padding: "10px 12px", fontSize: 10, textTransform: "uppercase", letterSpacing: 1, textAlign: a as "left" | "right" | "center" }}>
                           {h}
                         </th>
                       ))}
@@ -344,8 +352,9 @@ function VistaCotizacion() {
                           <div style={{ fontWeight: 600 }}>{it.nombre}</div>
                           {(it.especialidad || it.categoria) && <div style={{ marginTop: 3, fontSize: 10.5, color: C.slate500, lineHeight: 1.35 }}>{[it.especialidad, it.categoria].filter(Boolean).join(" · ")}</div>}
                         </td>
-                        <td style={{ ...celda, padding: "9px 12px", textAlign: "right" }}>{Number(it.metrado).toLocaleString("es-PE", { maximumFractionDigits: 2 })}</td>
+                        <td style={{ ...celda, padding: "9px 12px", textAlign: "center", color: C.slate500 }}>{it.marca?.trim() || "-"}</td>
                         <td style={{ ...celda, padding: "9px 12px", textAlign: "center", color: C.slate500 }}>{it.unidad}</td>
+                        <td style={{ ...celda, padding: "9px 12px", textAlign: "right" }}>{Number(it.metrado).toLocaleString("es-PE", { maximumFractionDigits: 2 })}</td>
                         <td style={{ ...celda, padding: "9px 12px", textAlign: "right", whiteSpace: "nowrap" }}>{S(Number(it.precio_unitario))}</td>
                         <td style={{ ...celda, padding: "9px 12px", textAlign: "right", fontWeight: 600, whiteSpace: "nowrap" }}>{S(Number(it.metrado) * Number(it.precio_unitario))}</td>
                       </tr>
