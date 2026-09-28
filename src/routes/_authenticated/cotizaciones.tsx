@@ -589,6 +589,38 @@ function Cotizaciones() {
                 <option value="si">Con IGV (18%)</option>
                 <option value="no">Sin IGV</option>
               </Select>
+              <label className="flex items-center gap-1 text-xs text-muted-foreground">
+                GG %
+                <Input
+                  type="number"
+                  min={0}
+                  step="0.5"
+                  className="w-20"
+                  defaultValue={Number(cot.pct_gastos_generales)}
+                  onBlur={async (e) => {
+                    const v = Number(e.target.value) || 0;
+                    if (v === Number(cot.pct_gastos_generales)) return;
+                    await supabase.from("cotizaciones").update({ pct_gastos_generales: v }).eq("id", cot.id);
+                    qc.invalidateQueries({ queryKey: ["cotizaciones"] });
+                  }}
+                />
+              </label>
+              <label className="flex items-center gap-1 text-xs text-muted-foreground">
+                Utilidad %
+                <Input
+                  type="number"
+                  min={0}
+                  step="0.5"
+                  className="w-20"
+                  defaultValue={Number(cot.pct_utilidad)}
+                  onBlur={async (e) => {
+                    const v = Number(e.target.value) || 0;
+                    if (v === Number(cot.pct_utilidad)) return;
+                    await supabase.from("cotizaciones").update({ pct_utilidad: v }).eq("id", cot.id);
+                    qc.invalidateQueries({ queryKey: ["cotizaciones"] });
+                  }}
+                />
+              </label>
               <Select
                 className="w-40"
                 value={cot.estado}
