@@ -159,8 +159,7 @@ function VistaPreliquidacion() {
   const simbolo = pl.moneda === "USD" ? "US$" : "S/";
   const D = (v: number) => `${simbolo} ${N(v)}`;
   const ctaDetraccion = cuentas.find((c) => c.tipo_cuenta === "Detracciones") ?? null;
-  const cuentaTexto = (c: CuentaBanco | null) =>
-    c ? `${c.nombre} · Cta. ${c.numero_cuenta || "—"}${c.cci ? ` · CCI ${c.cci}` : ""}` : "—";
+  const cuentasOrdenadas = [...cuentas].sort((a, b) => Number(a.tipo_cuenta === "Detracciones") - Number(b.tipo_cuenta === "Detracciones"));
   const descuento = mm.detraccionPen > 0 ? `S/ ${N(mm.detraccionPen, 0)}` : mm.retencionPen > 0 ? `S/ ${N(mm.retencionPen)}` : "No aplica";
 
   function copiarEnlace() {
@@ -221,7 +220,7 @@ function VistaPreliquidacion() {
         diasCredito: Number(pl.dias_credito || 0),
         fechaVencimiento: pl.fecha_vencimiento || "",
         cuentaDetracciones: ctaDetraccion ? { nombre: ctaDetraccion.nombre, numero: ctaDetraccion.numero_cuenta, cci: ctaDetraccion.cci } : null,
-        cuentasTodas: cuentas.filter((c) => c.tipo_cuenta !== "Detracciones").map((c) => ({ nombre: c.nombre, numero: c.numero_cuenta, cci: c.cci, moneda: c.monedas, tipoCuenta: c.tipo_cuenta })),
+        cuentasTodas: cuentasOrdenadas.map((c) => ({ nombre: c.nombre, numero: c.numero_cuenta, cci: c.cci, moneda: c.monedas, tipoCuenta: c.tipo_cuenta, esDetraccion: c.tipo_cuenta === "Detracciones" })),
         observacion: pl.observacion || "",
       });
     } catch (err) {
@@ -421,18 +420,14 @@ function VistaPreliquidacion() {
 
             <div style={{ padding: 12, background: C.slate50, marginBottom: 14, flex: 1, display: "flex", flexDirection: "column" }}>
               <div style={tituloSeccion}>Datos bancarios</div>
-              <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 2 }}>
-                {mm.detraccionPen > 0 && (
-                  <div>
-                    <div style={etiqueta}>Cuenta de detracciones · Banco de la Nación</div>
-                    <div style={valor}>{cuentaTexto(ctaDetraccion)}</div>
-                  </div>
-                )}
-                <div style={{ ...etiqueta, marginTop: 3 }}>Todas las cuentas registradas</div>
-                {cuentas.filter((c) => c.tipo_cuenta !== "Detracciones").length === 0 && <div style={valor}>No hay cuentas bancarias registradas.</div>}
-                {cuentas.filter((c) => c.tipo_cuenta !== "Detracciones").map((c, i) => (
-                  <div key={i} style={{ ...valor, marginTop: 1 }}>
-                    {c.nombre} · {c.tipo_cuenta} · {c.monedas} · Cta. {c.numero_cuenta || "—"} · CCI {c.cci || "—"}
+              <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 2, textTransform: "uppercase" }}>
+                {cuentasOrdenadas.length === 0 && <div style={valor}>NO HAY CUENTAS BANCARIAS REGISTRADAS.</div>}
+                {cuentasOrdenadas.map((c, i) => (
+                  <div key={i} style={{ marginTop: 1 }}>
+                    {c.tipo_cuenta === "Detracciones" && <div style={{ ...etiqueta, marginTop: 3 }}>Cuenta de detracciones · Banco de la Nación</div>}
+                    <div style={valor}>
+                      {c.nombre} · {c.tipo_cuenta} · {c.monedas} · Cta. {c.numero_cuenta || "—"} · CCI {c.cci || "—"}
+                    </div>
                   </div>
                 ))}
               </div>

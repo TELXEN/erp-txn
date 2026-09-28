@@ -47,7 +47,7 @@ export type DatosPreliquidacionPdf = {
   diasCredito: number;
   fechaVencimiento: string;
   cuentaDetracciones: CuentaPdf;
-  cuentasTodas: { nombre: string; numero: string; cci: string; moneda: string; tipoCuenta: string }[];
+  cuentasTodas: { nombre: string; numero: string; cci: string; moneda: string; tipoCuenta: string; esDetraccion?: boolean }[];
   observacion: string;
 };
 
@@ -134,8 +134,6 @@ const numero = (valor: number, decimales = 2) =>
 function PreliquidacionDocument({ datos }: { datos: DatosPreliquidacionPdf }) {
   const simbolo = datos.moneda === "USD" ? "US$" : "S/";
   const dinero = (valor: number) => `${simbolo} ${numero(valor)}`;
-  const cuentaTexto = (cuenta: CuentaPdf) =>
-    cuenta ? `${cuenta.nombre} · Cta. ${cuenta.numero || "—"}${cuenta.cci ? ` · CCI ${cuenta.cci}` : ""}` : "—";
   const descuento = datos.detraccionPen > 0 ? `S/ ${numero(datos.detraccionPen, 0)}` : datos.retencionPen > 0 ? `S/ ${numero(datos.retencionPen)}` : "No aplica";
 
   return (
@@ -225,13 +223,14 @@ function PreliquidacionDocument({ datos }: { datos: DatosPreliquidacionPdf }) {
         </View>
 
         <View style={styles.banking} wrap={false}>
-          <Text style={styles.sectionTitle}>Datos bancarios</Text>
+          <Text style={styles.sectionTitle}>DATOS BANCARIOS</Text>
           <View style={styles.bankList}>
-            {datos.detraccionPen > 0 ? <><Text style={styles.bankLabel}>Cuenta de detracciones · Banco de la Nación</Text><Text style={styles.bankValue}>{cuentaTexto(datos.cuentaDetracciones)}</Text></> : null}
-            <Text style={styles.bankLabel}>Todas las cuentas registradas</Text>
-            {datos.cuentasTodas.length === 0 ? <Text style={styles.bankValue}>No hay cuentas bancarias registradas.</Text> : null}
+            {datos.cuentasTodas.length === 0 ? <Text style={styles.bankValue}>NO HAY CUENTAS BANCARIAS REGISTRADAS.</Text> : null}
             {datos.cuentasTodas.map((c, i) => (
-              <Text key={i} style={styles.bankValue}>{c.nombre} · {c.tipoCuenta} · {c.moneda} · Cta. {c.numero || "—"} · CCI {c.cci || "—"}</Text>
+              <View key={i}>
+                {c.esDetraccion ? <Text style={styles.bankLabel}>CUENTA DE DETRACCIONES · BANCO DE LA NACIÓN</Text> : null}
+                <Text style={styles.bankValue}>{`${c.nombre} · ${c.tipoCuenta} · ${c.moneda} · CTA. ${c.numero || "—"} · CCI ${c.cci || "—"}`.toUpperCase()}</Text>
+              </View>
             ))}
           </View>
         </View>
