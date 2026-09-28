@@ -422,18 +422,14 @@ function VistaPreliquidacion() {
 
             <div style={{ padding: 12, background: C.slate50, marginBottom: 14, flex: 1, display: "flex", flexDirection: "column" }}>
               <div style={tituloSeccion}>Datos bancarios</div>
-              <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 2 }}>
-                {mm.detraccionPen > 0 && (
-                  <div>
-                    <div style={etiqueta}>Cuenta de detracciones · Banco de la Nación</div>
-                    <div style={valor}>{cuentaTexto(ctaDetraccion)}</div>
-                  </div>
-                )}
-                <div style={{ ...etiqueta, marginTop: 3 }}>Todas las cuentas registradas</div>
-                {cuentas.filter((c) => c.tipo_cuenta !== "Detracciones").length === 0 && <div style={valor}>No hay cuentas bancarias registradas.</div>}
-                {cuentas.filter((c) => c.tipo_cuenta !== "Detracciones").map((c, i) => (
-                  <div key={i} style={{ ...valor, marginTop: 1 }}>
-                    {c.nombre} · {c.tipo_cuenta} · {c.monedas} · Cta. {c.numero_cuenta || "—"} · CCI {c.cci || "—"}
+              <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 2, textTransform: "uppercase" }}>
+                {cuentasOrdenadas.length === 0 && <div style={valor}>NO HAY CUENTAS BANCARIAS REGISTRADAS.</div>}
+                {cuentasOrdenadas.map((c, i) => (
+                  <div key={i} style={{ marginTop: 1 }}>
+                    {c.tipo_cuenta === "Detracciones" && <div style={{ ...etiqueta, marginTop: 3 }}>Cuenta de detracciones · Banco de la Nación</div>}
+                    <div style={valor}>
+                      {c.nombre} · {c.tipo_cuenta} · {c.monedas} · Cta. {c.numero_cuenta || "—"} · CCI {c.cci || "—"}
+                    </div>
                   </div>
                 ))}
               </div>
