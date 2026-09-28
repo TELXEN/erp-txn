@@ -288,25 +288,26 @@ function VistaCotizacion() {
                 const linea1 = idx >= 0 ? es.slice(0, idx + 1) : es;
                 const linea2 = idx >= 0 ? es.slice(idx + 1).trim() : "";
                 return (
-                  <div style={{ marginTop: 2, fontSize: 9.5, fontWeight: 700, color: C.marca, letterSpacing: 0.4, lineHeight: 1.3, textAlign: "right" }}>
+                  <div style={{ marginTop: 2, fontFamily: CALIBRI, fontSize: 9.5, fontWeight: 300, color: C.marca, letterSpacing: 0.4, lineHeight: 1.3, textAlign: "right" }}>
                     <span style={{ display: "block" }}>{linea1}</span>
                     {linea2 && <span style={{ display: "block" }}>{linea2}</span>}
                   </div>
                 );
               })()
             : !empresa?.razon_social && (
-                <div style={{ marginTop: 2, fontSize: 9.5, fontWeight: 700, color: C.marca, letterSpacing: 0.4, lineHeight: 1.3, textAlign: "right" }}>
+                <div style={{ marginTop: 2, fontFamily: CALIBRI, fontSize: 9.5, fontWeight: 300, color: C.marca, letterSpacing: 0.4, lineHeight: 1.3, textAlign: "right" }}>
                   <span style={{ display: "block" }}>SOLUCIONES INTEGRALES EN ENERGÍA,</span>
                   <span style={{ display: "block" }}>AUTOMATIZACIÓN Y CONTROL INDUSTRIAL</span>
                 </div>
               )}
           {empresa?.direccion && (
-            <div style={{ marginTop: 4, fontSize: 9.5, color: C.slate700 }}>Dirección: {empresa.direccion}</div>
+            <div style={{ marginTop: 4, fontFamily: CALIBRI, fontWeight: 300, fontSize: 9.5, color: C.slate700 }}>Dirección: {empresa.direccion}</div>
           )}
           {empresa?.telefono && (
-            <div style={{ marginTop: 2, fontSize: 9.5, color: C.slate700 }}>Teléfono: {empresa.telefono}</div>
+            <div style={{ marginTop: 2, fontFamily: CALIBRI, fontWeight: 300, fontSize: 9.5, color: C.slate700 }}>Teléfono: {empresa.telefono}</div>
           )}
-          {empresa?.web && <div style={{ marginTop: 2, fontSize: 9.5, color: C.marca, fontWeight: 600 }}>{empresa.web}</div>}
+          {empresa?.web && <div style={{ marginTop: 2, fontFamily: CALIBRI, fontWeight: 300, fontSize: 9.5, color: C.marca }}>{empresa.web}</div>}
+
         </div>
 
         <div style={{ minWidth: 200 }}>
