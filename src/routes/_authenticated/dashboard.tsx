@@ -362,20 +362,27 @@ function Dashboard() {
     setExportandoPdf(true);
     try {
       const html2pdf = (await import("html2pdf.js")).default;
-      // Ajuste solo durante la captura: la tabla amplia se adapta al ancho A4
-      // en lugar de recortarse, sin alterar el diseño en pantalla.
+      // Ajuste solo durante la captura: el contenedor se ensancha al ancho real
+      // de la tabla para que nada se recorte ni parta, y el PDF escala todo
+      // proporcionalmente. El diseño en pantalla no cambia.
       const estiloCaptura = document.createElement("style");
       estiloCaptura.textContent =
-        "#reporte-financiero .overflow-x-auto{overflow:visible!important}" +
-        "#reporte-financiero table{width:100%!important;table-layout:fixed!important}" +
-        "#reporte-financiero td,#reporte-financiero th{word-break:break-word!important}";
+        "#reporte-financiero .overflow-x-auto{overflow:visible!important}";
       document.head.appendChild(estiloCaptura);
+      const anchoOriginal = elemento.style.width;
+      const anchoTabla = Array.from(elemento.querySelectorAll("table")).reduce(
+        (max, t) => Math.max(max, t.scrollWidth + 32),
+        0,
+      );
+      if (anchoTabla > elemento.clientWidth) {
+        elemento.style.width = `${anchoTabla}px`;
+      }
       // `pagebreak` existe en html2pdf.js pero no en los tipos antiguos del paquete.
       const opciones = {
         margin: 5,
         filename: `dashboard-financiero-${global ? "global" : nombreVista.replace(/[^\w-]+/g, "_")}.pdf`,
         image: { type: "jpeg", quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff", logging: false },
+        html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff", logging: false, windowWidth: anchoTabla || undefined },
         jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
         pagebreak: { mode: ["avoid-all", "css", "legacy"] },
       } as never;
@@ -383,6 +390,7 @@ function Dashboard() {
         .set(opciones)
         .from(elemento)
         .save();
+      elemento.style.width = anchoOriginal;
       estiloCaptura.remove();
     } finally {
       setExportandoPdf(false);
