@@ -45,3 +45,74 @@ export const crearComprobanteElectronico = createServerFn({ method: "POST" })
     if (data.preliquidacion_id && data.emitir) await supabaseAdmin.from("preliquidaciones").update({ estado: "Facturada" } as never).eq("id", data.preliquidacion_id);
     return { id: comprobanteId, numero: (comprobante as { id: string; numero: string }).numero };
   });
+
+const editarBorradorSchema = inputSchema.omit({ emitir: true }).extend({ id: z.string().uuid() });
+
+export const actualizarBorradorComprobante = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) => editarBorradorSchema.parse(data))
+  .handler(async ({ data, context }) => {
+    const { data: autorizado, error: authError } = await context.supabase.rpc("is_admin_o_gerente", { _user_id: context.userId });
+    if (authError) throw new Error(authError.message);
+    if (!autorizado) throw new Error("No autorizado para editar comprobantes.");
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: actual, error: actualError } = await supabaseAdmin
+      .from("comprobantes_electronicos")
+      .select("id, estado_fiscal, tipo_comprobante, serie, correlativo, numero")
+      .eq("id", data.id)
+      .single();
+    if (actualError || !actual) throw new Error("No se encontró el comprobante.");
+    if (actual.estado_fiscal !== "Borrador") throw new Error("Solo se pueden editar comprobantes en borrador.");
+
+    const { id, items, cuotas, tipo_comprobante: _tipo, serie: _serie, ...campos } = data;
+    const payloadFiscal = {
+      version: "1.0",
+      proveedor: null,
+      documento: { tipo: actual.tipo_comprobante, serie: actual.serie, correlativo: actual.correlativo },
+      moneda: data.moneda,
+      operacion: data.operacion_tipo,
+      totales: { valorVenta: data.valor_venta, igv: data.igv, total: data.total },
+      items,
+    };
+    const { error: updateError } = await supabaseAdmin
+      .from("comprobantes_electronicos")
+      .update({ ...campos, payload_fiscal: payloadFiscal, detraccion_estado: data.monto_detraccion > 0 ? "Pendiente" : "No aplica" } as never)
+      .eq("id", id);
+    if (updateError) throw new Error(updateError.message);
+
+    const { error: borrarItemsError } = await supabaseAdmin.from("comprobante_items").delete().eq("comprobante_id", id);
+    if (borrarItemsError) throw new Error(borrarItemsError.message);
+    const { error: itemsError } = await supabaseAdmin.from("comprobante_items").insert(items.map((item, orden) => ({ ...item, comprobante_id: id, orden })) as never);
+    if (itemsError) throw new Error(itemsError.message);
+
+    const { error: borrarCuotasError } = await supabaseAdmin.from("comprobante_cuotas").delete().eq("comprobante_id", id);
+    if (borrarCuotasError) throw new Error(borrarCuotasError.message);
+    if (cuotas.length) {
+      const { error: cuotasError } = await supabaseAdmin.from("comprobante_cuotas").insert(cuotas.map((cuota) => ({ ...cuota, comprobante_id: id })) as never);
+      if (cuotasError) throw new Error(cuotasError.message);
+    }
+    return { id, numero: actual.numero };
+  });
+
+export const eliminarBorradorComprobante = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) => z.object({ id: z.string().uuid() }).parse(data))
+  .handler(async ({ data, context }) => {
+    const { data: autorizado, error: authError } = await context.supabase.rpc("is_admin_o_gerente", { _user_id: context.userId });
+    if (authError) throw new Error(authError.message);
+    if (!autorizado) throw new Error("No autorizado para eliminar comprobantes.");
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: actual, error: actualError } = await supabaseAdmin
+      .from("comprobantes_electronicos")
+      .select("estado_fiscal")
+      .eq("id", data.id)
+      .single();
+    if (actualError || !actual) throw new Error("No se encontró el comprobante.");
+    if (actual.estado_fiscal !== "Borrador") throw new Error("Solo se pueden eliminar comprobantes en borrador.");
+
+    const { error } = await supabaseAdmin.from("comprobantes_electronicos").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
