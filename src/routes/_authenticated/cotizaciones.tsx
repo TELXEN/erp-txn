@@ -554,7 +554,7 @@ function Cotizaciones() {
                           <button
                             type="button"
                             onClick={() => borrarCotizacion(c.id)}
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-line text-muted-foreground transition-colors hover:bg-danger/10 hover:text-danger"
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-line text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
                             aria-label="Eliminar"
                           >
                             <Trash2 size={15} />
