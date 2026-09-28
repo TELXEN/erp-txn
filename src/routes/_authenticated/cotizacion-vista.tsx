@@ -213,6 +213,8 @@ function VistaCotizacion() {
   const celda = { padding: "12px 14px", borderBottom: `1px solid ${C.slate100}` } as const;
   const cargando = cargandoCotizaciones || cargandoItems || cargandoEmpresa;
 
+  const revision = `Rev. ${String(Math.max(1, (cot as unknown as { revision?: number }).revision ?? 1)).padStart(2, "0")}`;
+
   function encabezadoHoja(numero: number, totalHojas: number) {
     return (
       <div className="flex items-start justify-between gap-5" style={{ borderBottom: `2px solid ${C.marca}`, paddingBottom: 14 }}>
@@ -264,10 +266,20 @@ function VistaCotizacion() {
             <div style={{ marginTop: 3, fontSize: 12, fontWeight: 700 }}>RUC: {empresa?.ruc || "—"}</div>
             <div style={{ marginTop: 2, fontSize: 14, fontWeight: 800, letterSpacing: 0.6 }}>{cot?.codigo ?? "SIN CÓDIGO"}</div>
           </div>
-          <div style={{ marginTop: 5, fontSize: 9.5, color: C.slate500, textAlign: "center" }}>
-            Hoja {numero} de {totalHojas}
+          <div className="flex justify-between" style={{ marginTop: 5, fontSize: 9.5, color: C.slate500 }}>
+            <span>Hoja {numero} de {totalHojas}</span>
+            <span>{revision}</span>
           </div>
         </div>
+      </div>
+    );
+  }
+
+  function filaDato(etiqueta: string, valor: string) {
+    return (
+      <div className="flex" style={{ fontSize: 10.5, lineHeight: 1.5 }}>
+        <span style={{ width: 74, flexShrink: 0, fontWeight: 700, color: C.slate500, textTransform: "uppercase", fontSize: 9, letterSpacing: 0.6, paddingTop: 1 }}>{etiqueta}</span>
+        <span style={{ fontWeight: 600, color: C.slate900 }}>{valor}</span>
       </div>
     );
   }
