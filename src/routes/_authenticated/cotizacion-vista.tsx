@@ -42,6 +42,56 @@ const S = (n: number) =>
   "S/ " + n.toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const F = (d: string) => d.split("-").reverse().join("/");
 
+type ItemParaPagina = {
+  nombre: string;
+  especialidad?: string | null;
+  categoria?: string | null;
+};
+
+function altoEstimadoItem(item: ItemParaPagina) {
+  const lineasNombre = Math.max(1, Math.ceil((item.nombre || "").length / 48));
+  const detalle = [item.especialidad, item.categoria].filter(Boolean).join(" · ");
+  const lineasDetalle = detalle ? Math.max(1, Math.ceil(detalle.length / 58)) : 0;
+  return 44 + Math.max(0, lineasNombre - 1) * 14 + lineasDetalle * 14;
+}
+
+function paginarItems<T extends ItemParaPagina>(items: T[]) {
+  if (items.length === 0) return [[]] as T[][];
+  const paginas: T[][] = [];
+  let pendientes = [...items];
+  let primeraHoja = true;
+
+  while (pendientes.length > 0) {
+    const capacidad = primeraHoja ? 430 : 690;
+    const capacidadFinal = primeraHoja ? 200 : 390;
+    const altoPendiente = pendientes.reduce((suma, item) => suma + altoEstimadoItem(item), 0);
+
+    if (altoPendiente <= capacidadFinal) {
+      paginas.push(pendientes);
+      pendientes = [];
+      break;
+    }
+
+    const pagina: T[] = [];
+    let usado = 0;
+    while (pendientes.length > 0) {
+      const proximo = pendientes[0];
+      if (!proximo) break;
+      const siguiente = altoEstimadoItem(proximo);
+      if (pagina.length > 0 && usado + siguiente > capacidad) break;
+      if (pagina.length > 0 && pendientes.length === 1) break;
+      const item = pendientes.shift();
+      if (!item) break;
+      pagina.push(item);
+      usado += siguiente;
+    }
+    paginas.push(pagina);
+    primeraHoja = false;
+  }
+
+  return paginas;
+}
+
 function VistaCotizacion() {
   const { id } = Route.useSearch();
   const { data: cotizaciones = [], isLoading: cargandoCotizaciones } = useCotizaciones();
@@ -71,6 +121,7 @@ function VistaCotizacion() {
   const igv = conIgv ? Math.round(subtotal * 0.18 * 100) / 100 : 0;
   const total = subtotal + igv;
   const nombreArchivo = `Cotizacion_${(cot?.cliente || "Cliente").replace(/[^\w-]+/g, "_")}_${cot?.codigo ?? "sin_codigo"}`;
+  const paginas = paginarItems(items);
 
   function copiarEnlace() {
     const url = `${window.location.origin}/cotizacion-vista?id=${id}`;
@@ -93,12 +144,12 @@ function VistaCotizacion() {
       const html2pdf = (await import("html2pdf.js")).default;
       await html2pdf()
         .set({
-          margin: 12,
+          margin: 0,
           filename: `${nombreArchivo}.pdf`,
           image: { type: "jpeg", quality: 0.98 },
           html2canvas: { scale: 3, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: 700, backgroundColor: "#ffffff", logging: false },
           jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-          pagebreak: { mode: ["css", "legacy"] },
+          pagebreak: { mode: ["css", "legacy"], avoid: ["tr", ".bloque-final"] },
         } as never)
         .from(el)
         .save();
@@ -158,6 +209,35 @@ function VistaCotizacion() {
   const celda = { padding: "12px 14px", borderBottom: `1px solid ${C.slate100}` } as const;
   const cargando = cargandoCotizaciones || cargandoItems || cargandoEmpresa;
 
+  function encabezadoHoja(numero: number, totalHojas: number) {
+    return (
+      <div className="flex items-start justify-between gap-6" style={{ borderBottom: `2px solid ${C.slate900}`, paddingBottom: 16 }}>
+        <div className="flex gap-4">
+          {empresa?.logo_url ? (
+            <div className="flex items-center justify-center" style={{ width: 92, height: 64 }}>
+              <img src={empresa.logo_url} alt="Logotipo de la empresa" style={{ display: "block", maxWidth: 92, maxHeight: 64, objectFit: "contain" }} />
+            </div>
+          ) : (
+            <div className="flex items-center justify-center" style={{ width: 64, height: 64, borderRadius: 12, background: C.slate900, color: C.white, fontWeight: 700, fontSize: 20 }}>
+              {(empresa?.razon_social || "TELXEN").split(/\s+/).slice(0, 2).map((parte) => parte[0]).join("").toUpperCase()}
+            </div>
+          )}
+          <div className="grid" style={{ gap: 2 }}>
+            <div style={{ fontSize: 18, fontWeight: 700 }}>{empresa?.razon_social || "TELXEN S.A.C."}</div>
+            {empresa?.ruc && <div style={{ color: C.slate500 }}>RUC {empresa.ruc}</div>}
+            {empresa?.direccion && <div style={{ color: C.slate500 }}>{empresa.direccion}</div>}
+            {empresa?.telefono && <div style={{ color: C.slate500 }}>{empresa.telefono}</div>}
+          </div>
+        </div>
+        <div style={{ border: `1px solid ${C.emerald600}`, background: C.emerald50, borderRadius: 10, padding: "10px 18px", textAlign: "right", minWidth: 190 }}>
+          <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: 2, color: C.slate900 }}>COTIZACIÓN</div>
+          <div style={{ marginTop: 4, fontWeight: 700, color: C.emerald600, fontSize: 14 }}>{cot?.codigo ?? "SIN CÓDIGO"}</div>
+          <div style={{ marginTop: 5, fontSize: 9.5, color: C.slate500 }}>Hoja {numero} de {totalHojas}</div>
+        </div>
+      </div>
+    );
+  }
+
   if (cargando) {
     return <Panel titulo="Vista previa de cotización"><div className="p-6 font-mono text-xs text-muted-foreground">Cargando cotización…</div></Panel>;
   }
@@ -195,101 +275,95 @@ function VistaCotizacion() {
         <div className="mx-auto" style={{ width: 700 }}>
         <div
           id="cotizacion-impresion"
-          style={{ width: 700, background: C.white, color: C.slate900, padding: 24, fontFamily: "Helvetica, Arial, sans-serif", fontSize: 12, boxShadow: "0 10px 30px -12px rgba(15,23,42,.25)" }}
+          style={{ width: 700, background: C.white, color: C.slate900, fontFamily: "Helvetica, Arial, sans-serif", fontSize: 12, boxShadow: "0 10px 30px -12px rgba(15,23,42,.25)" }}
         >
-          {/* Encabezado */}
-          <div className="flex items-start justify-between gap-6" style={{ borderBottom: `2px solid ${C.slate900}`, paddingBottom: 20 }}>
-            <div className="flex gap-4">
-              {empresa?.logo_url ? (
-                <div className="flex items-center justify-center" style={{ width: 92, height: 72 }}>
-                  <img src={empresa.logo_url} alt="Logotipo de la empresa" style={{ display: "block", maxWidth: 92, maxHeight: 72, objectFit: "contain" }} />
+          {paginas.map((itemsPagina, paginaIndex) => {
+            const esPrimera = paginaIndex === 0;
+            const esUltima = paginaIndex === paginas.length - 1;
+            const indiceInicial = paginas.slice(0, paginaIndex).reduce((suma, pagina) => suma + pagina.length, 0);
+            return (
+              <section
+                key={`hoja-${paginaIndex + 1}`}
+                className="cotizacion-hoja"
+                style={{ position: "relative", width: 700, height: 990, padding: "34px 30px 38px", overflow: "hidden", background: C.white, pageBreakAfter: esUltima ? "auto" : "always", boxSizing: "border-box" }}
+              >
+                {encabezadoHoja(paginaIndex + 1, paginas.length)}
+
+                {esPrimera && (
+                  <div className="grid grid-cols-3" style={{ gap: "11px 24px", marginTop: 16, background: C.slate50, borderRadius: 10, padding: 14 }}>
+                    {[
+                      ["Cliente / Razón social", cliente?.razon_social || cot.cliente || "—", "col-span-2"],
+                      ["RUC / DNI", cliente?.numero_documento || "—", ""],
+                      ["Atención", cliente?.contacto || "—", ""],
+                      ["Fecha de emisión", F(cot.fecha_emision), ""],
+                      ["Válida hasta", F(vigenciaHasta(cot.fecha_emision, Number(cot.validez_dias))), ""],
+                      ["Trabajo", cot.nombre || "—", "col-span-2"],
+                      ["Ubicación", cot.ubicacion || cliente?.direccion || "—", ""],
+                    ].map(([k, v, cls]) => (
+                      <div key={k} className={cls}>
+                        <div style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: 1, color: C.slate400, fontWeight: 700 }}>{k}</div>
+                        <div style={{ marginTop: 3, fontWeight: 600 }}>{v}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 16 }}>
+                  <thead>
+                    <tr style={{ background: C.slate900, color: C.white }}>
+                      {["Ítem", "Descripción", "Cant.", "Und.", "P. Unitario", "Total"].map((h, i) => (
+                        <th key={h} style={{ padding: "10px 12px", fontSize: 10, textTransform: "uppercase", letterSpacing: 1, textAlign: i >= 4 || i === 2 ? "right" : i === 3 || i === 0 ? "center" : "left" }}>
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {itemsPagina.map((it, i) => (
+                      <tr key={it.id} style={{ pageBreakInside: "avoid" }}>
+                        <td style={{ ...celda, padding: "9px 12px", textAlign: "center", color: C.slate500 }}>{it.codigo || String(indiceInicial + i + 1).padStart(2, "0")}</td>
+                        <td style={{ ...celda, padding: "9px 12px" }}>
+                          <div style={{ fontWeight: 600 }}>{it.nombre}</div>
+                          {(it.especialidad || it.categoria) && <div style={{ marginTop: 3, fontSize: 10.5, color: C.slate500, lineHeight: 1.35 }}>{[it.especialidad, it.categoria].filter(Boolean).join(" · ")}</div>}
+                        </td>
+                        <td style={{ ...celda, padding: "9px 12px", textAlign: "right" }}>{Number(it.metrado).toLocaleString("es-PE", { maximumFractionDigits: 2 })}</td>
+                        <td style={{ ...celda, padding: "9px 12px", textAlign: "center", color: C.slate500 }}>{it.unidad}</td>
+                        <td style={{ ...celda, padding: "9px 12px", textAlign: "right", whiteSpace: "nowrap" }}>{S(Number(it.precio_unitario))}</td>
+                        <td style={{ ...celda, padding: "9px 12px", textAlign: "right", fontWeight: 600, whiteSpace: "nowrap" }}>{S(Number(it.metrado) * Number(it.precio_unitario))}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+
+                {esUltima && (
+                  <div className="bloque-final" style={{ pageBreakInside: "avoid" }}>
+                    <div className="flex justify-end" style={{ marginTop: 14 }}>
+                      <div style={{ width: 280 }}>
+                        <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700 }}><span>Costo Directo</span><span>{S(calculo.costoDirecto)}</span></div>
+                        {calculo.gastosGenerales > 0 && <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700 }}><span>Gastos Generales ({Number(cot.pct_gastos_generales)}%)</span><span>{S(calculo.gastosGenerales)}</span></div>}
+                        {calculo.utilidad > 0 && <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700 }}><span>Utilidad ({Number(cot.pct_utilidad)}%)</span><span>{S(calculo.utilidad)}</span></div>}
+                        {(calculo.gastosGenerales > 0 || calculo.utilidad > 0) && <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700, fontWeight: 600 }}><span>Subtotal</span><span>{S(subtotal)}</span></div>}
+                        <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700, borderBottom: `1px solid ${C.slate100}` }}><span>{conIgv ? "IGV (18%)" : "IGV (0%)"}</span><span>{S(igv)}</span></div>
+                        <div className="flex justify-between" style={{ marginTop: 7, padding: "10px 14px", background: C.slate900, color: C.white, borderRadius: 8, fontSize: 15, fontWeight: 700 }}>
+                          <span>TOTAL</span><span>{S(total)}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ marginTop: 16, borderTop: `1px solid ${C.slate100}`, paddingTop: 10, fontSize: 10.5, color: C.slate500, lineHeight: 1.45 }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, color: C.slate700, marginBottom: 5 }}>Términos y condiciones</div>
+                      <div><b style={{ color: C.slate700 }}>Condiciones comerciales:</b> {cot.condiciones || "Sin condiciones registradas."}</div>
+                      <div style={{ marginTop: 7, color: C.slate400 }}>
+                        {conIgv ? "Precios expresados en soles, incluyen IGV (18%)." : "Precios expresados en soles, no afectos a IGV."} Oferta válida hasta la fecha indicada.
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <div style={{ position: "absolute", left: 30, right: 30, bottom: 15, textAlign: "center", fontSize: 9, color: C.slate400 }}>
+                  Hoja {paginaIndex + 1} de {paginas.length}
                 </div>
-              ) : (
-                <div className="flex items-center justify-center" style={{ width: 64, height: 64, borderRadius: 12, background: C.slate900, color: C.white, fontWeight: 700, fontSize: 20 }}>
-                  {(empresa?.razon_social || "TELXEN").split(/\s+/).slice(0, 2).map((parte) => parte[0]).join("").toUpperCase()}
-                </div>
-              )}
-              <div className="grid" style={{ gap: 2 }}>
-                <div style={{ fontSize: 18, fontWeight: 700 }}>{empresa?.razon_social || "TELXEN S.A.C."}</div>
-                {empresa?.ruc && <div style={{ color: C.slate500 }}>RUC {empresa.ruc}</div>}
-                {empresa?.direccion && <div style={{ color: C.slate500 }}>{empresa.direccion}</div>}
-                {empresa?.telefono && <div style={{ color: C.slate500 }}>{empresa.telefono}</div>}
-              </div>
-            </div>
-            <div style={{ border: `1px solid ${C.emerald600}`, background: C.emerald50, borderRadius: 10, padding: "12px 20px", textAlign: "right", minWidth: 190 }}>
-              <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: 2, color: C.slate900 }}>COTIZACIÓN</div>
-              <div style={{ marginTop: 4, fontWeight: 700, color: C.emerald600, fontSize: 14 }}>{cot.codigo ?? "SIN CÓDIGO"}</div>
-            </div>
-          </div>
-
-          {/* Cliente */}
-          <div className="grid grid-cols-3" style={{ gap: "11px 24px", marginTop: 20, background: C.slate50, borderRadius: 10, padding: 16 }}>
-            {[
-              ["Cliente / Razón social", cliente?.razon_social || cot.cliente || "—", "col-span-2"],
-              ["RUC / DNI", cliente?.numero_documento || "—", ""],
-              ["Atención", cliente?.contacto || "—", ""],
-              ["Fecha de emisión", F(cot.fecha_emision), ""],
-              ["Válida hasta", F(vigenciaHasta(cot.fecha_emision, Number(cot.validez_dias))), ""],
-              ["Trabajo", cot.nombre || "—", "col-span-2"],
-              ["Ubicación", cot.ubicacion || cliente?.direccion || "—", ""],
-            ].map(([k, v, cls]) => (
-              <div key={k} className={cls}>
-                <div style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: 1, color: C.slate400, fontWeight: 700 }}>{k}</div>
-                <div style={{ marginTop: 3, fontWeight: 600 }}>{v}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* Tabla */}
-          <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 20 }}>
-            <thead>
-              <tr style={{ background: C.slate900, color: C.white }}>
-                {["Ítem", "Descripción", "Cant.", "Und.", "P. Unitario", "Total"].map((h, i) => (
-                  <th key={h} style={{ padding: "10px 14px", fontSize: 10, textTransform: "uppercase", letterSpacing: 1, textAlign: i >= 4 || i === 2 ? "right" : i === 3 || i === 0 ? "center" : "left" }}>
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((it, i) => (
-                <tr key={it.id} style={{ pageBreakInside: "avoid" }}>
-                  <td style={{ ...celda, textAlign: "center", color: C.slate500 }}>{it.codigo || String(i + 1).padStart(2, "0")}</td>
-                  <td style={celda}>
-                    <div style={{ fontWeight: 600 }}>{it.nombre}</div>
-                    {(it.especialidad || it.categoria) && <div style={{ marginTop: 3, fontSize: 10.5, color: C.slate500, lineHeight: 1.45 }}>{[it.especialidad, it.categoria].filter(Boolean).join(" · ")}</div>}
-                  </td>
-                  <td style={{ ...celda, textAlign: "right" }}>{Number(it.metrado).toLocaleString("es-PE", { maximumFractionDigits: 2 })}</td>
-                  <td style={{ ...celda, textAlign: "center", color: C.slate500 }}>{it.unidad}</td>
-                  <td style={{ ...celda, textAlign: "right", whiteSpace: "nowrap" }}>{S(Number(it.precio_unitario))}</td>
-                  <td style={{ ...celda, textAlign: "right", fontWeight: 600, whiteSpace: "nowrap" }}>{S(Number(it.metrado) * Number(it.precio_unitario))}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          {/* Totales */}
-          <div className="flex justify-end" style={{ marginTop: 18 }}>
-            <div style={{ width: 280 }}>
-              <div className="flex justify-between" style={{ padding: "6px 0", color: C.slate700 }}><span>Costo Directo</span><span>{S(calculo.costoDirecto)}</span></div>
-              {calculo.gastosGenerales > 0 && <div className="flex justify-between" style={{ padding: "6px 0", color: C.slate700 }}><span>Gastos Generales ({Number(cot.pct_gastos_generales)}%)</span><span>{S(calculo.gastosGenerales)}</span></div>}
-              {calculo.utilidad > 0 && <div className="flex justify-between" style={{ padding: "6px 0", color: C.slate700 }}><span>Utilidad ({Number(cot.pct_utilidad)}%)</span><span>{S(calculo.utilidad)}</span></div>}
-              {(calculo.gastosGenerales > 0 || calculo.utilidad > 0) && <div className="flex justify-between" style={{ padding: "6px 0", color: C.slate700, fontWeight: 600 }}><span>Subtotal</span><span>{S(subtotal)}</span></div>}
-              <div className="flex justify-between" style={{ padding: "6px 0", color: C.slate700, borderBottom: `1px solid ${C.slate100}` }}><span>{conIgv ? "IGV (18%)" : "IGV (0%)"}</span><span>{S(igv)}</span></div>
-              <div className="flex justify-between" style={{ marginTop: 8, padding: "12px 14px", background: C.slate900, color: C.white, borderRadius: 8, fontSize: 15, fontWeight: 700 }}>
-                <span>TOTAL</span><span>{S(total)}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Términos */}
-          <div style={{ marginTop: 22, borderTop: `1px solid ${C.slate100}`, paddingTop: 12, fontSize: 10.5, color: C.slate500, lineHeight: 1.5, pageBreakInside: "avoid" }}>
-            <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, color: C.slate700, marginBottom: 6 }}>Términos y condiciones</div>
-            <div><b style={{ color: C.slate700 }}>Condiciones comerciales:</b> {cot.condiciones || "Sin condiciones registradas."}</div>
-            <div style={{ marginTop: 10, color: C.slate400 }}>
-              {conIgv ? "Precios expresados en soles, incluyen IGV (18%)." : "Precios expresados en soles, no afectos a IGV."} Oferta válida hasta la fecha indicada.
-            </div>
-          </div>
+              </section>
+            );
+          })}
         </div>
         </div>
       </div>
