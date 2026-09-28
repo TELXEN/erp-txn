@@ -327,12 +327,13 @@ function VistaCotizacion() {
 
   function filaDato(etiqueta: string, valor: string) {
     return (
-      <div className="flex" style={{ fontFamily: '"Calibri Light", Calibri, Arial, sans-serif', fontSize: "11pt", fontWeight: 300, lineHeight: 1.25 }}>
-        <span style={{ width: 74, flexShrink: 0, fontWeight: 300, color: C.slate500, textTransform: "uppercase", letterSpacing: 0, paddingTop: 1 }}>{etiqueta}</span>
+      <div className="flex" style={{ fontFamily: CALIBRI, fontSize: "9pt", fontWeight: 300, lineHeight: 1.3 }}>
+        <span style={{ width: 66, flexShrink: 0, fontWeight: 300, color: C.slate500, textTransform: "uppercase", letterSpacing: 0, paddingTop: 1 }}>{etiqueta}</span>
         <span style={{ fontWeight: 300, color: C.slate900 }}>{valor}</span>
       </div>
     );
   }
+
 
   if (cargando) {
     return <Panel titulo="Vista previa de cotización"><div className="p-6 font-mono text-xs text-muted-foreground">Cargando cotización…</div></Panel>;
