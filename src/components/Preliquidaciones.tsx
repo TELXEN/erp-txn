@@ -800,17 +800,6 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
                             Vista previa
                           </span>
                         </div>
-                        <Boton
-                          type="button"
-                          variante="linea"
-                          className="h-8 w-8 px-0"
-                          disabled={exportandoPdf === p.id}
-                          onClick={() => void imprimir(p)}
-                          aria-label={`Descargar preliquidación ${p.codigo} en PDF`}
-                          title="Descargar PDF"
-                        >
-                          <Printer size={18} />
-                        </Boton>
                         <button onClick={() => duplicar(p)} className="text-muted-foreground hover:text-ink" aria-label="Duplicar" title="Duplicar"><Copy size={14} /></button>
                         {editable(p) && (
                           <>
