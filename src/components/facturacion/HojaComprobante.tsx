@@ -42,10 +42,11 @@ export function HojaComprobante(props: {
   proyectos: { id: string; nombre: string; codigo: string }[];
   refs: { id: string; numero: string; tipo_comprobante: string; total: number }[];
   series: { id: string; serie: string; tipo_comprobante: string }[];
-  numeroPreview: string; montos: { valorVenta: number; igv: number; total: number; montoDetraccion: number; montoRetencion: number };
+  cuotas: CuotaEditor[]; setCuotas: (c: CuotaEditor[]) => void;
+  numeroPreview: string; montos: { valorVenta: number; igv: number; anticipo: number; total: number; montoDetraccion: number; montoRetencion: number };
   totalRegimen: number; importeRegimen: number; onTipoChange: (t: TipoComprobante) => void; bloqueado: boolean;
 }) {
-  const { form, setForm, items, setItems, docs, setDocs, empresa, clientes, proyectos, refs, series, numeroPreview, montos, totalRegimen, importeRegimen, onTipoChange, bloqueado } = props;
+  const { form, setForm, items, setItems, docs, setDocs, cuotas, setCuotas, empresa, clientes, proyectos, refs, series, numeroPreview, montos, totalRegimen, importeRegimen, onTipoChange, bloqueado } = props;
   const buscarDoc = useServerFn(consultarDocumentoSunat); const buscarTc = useServerFn(consultarTipoCambio);
   const [aviso, setAviso] = useState(""); const [buscando, setBuscando] = useState(false);
   const tipo = form.tipo_comprobante as TipoComprobante;
