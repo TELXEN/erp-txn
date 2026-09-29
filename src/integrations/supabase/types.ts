@@ -784,9 +784,11 @@ export type Database = {
           fecha_vencimiento: string | null
           guia_remision_numero: string
           hash_cpe: string
+          icbper: number
           id: string
           igv: number
           igv_tasa: number
+          isc: number
           moneda: Database["public"]["Enums"]["moneda"]
           monto_detraccion: number
           monto_retencion: number
@@ -798,12 +800,15 @@ export type Database = {
           observacion: string
           operacion_tipo: string
           orden_compra: string
+          otros_cargos: number
+          otros_tributos: number
           payload_fiscal: Json
           pct_detraccion: number
           preliquidacion_id: string | null
           proveedor_envio: string
           proyecto_id: string | null
           qr_payload: string
+          redondeo: number
           serie: string
           ticket_baja: string
           tipo_cambio: number
@@ -852,9 +857,11 @@ export type Database = {
           fecha_vencimiento?: string | null
           guia_remision_numero?: string
           hash_cpe?: string
+          icbper?: number
           id?: string
           igv?: number
           igv_tasa?: number
+          isc?: number
           moneda?: Database["public"]["Enums"]["moneda"]
           monto_detraccion?: number
           monto_retencion?: number
@@ -866,12 +873,15 @@ export type Database = {
           observacion?: string
           operacion_tipo?: string
           orden_compra?: string
+          otros_cargos?: number
+          otros_tributos?: number
           payload_fiscal?: Json
           pct_detraccion?: number
           preliquidacion_id?: string | null
           proveedor_envio?: string
           proyecto_id?: string | null
           qr_payload?: string
+          redondeo?: number
           serie: string
           ticket_baja?: string
           tipo_cambio?: number
@@ -920,9 +930,11 @@ export type Database = {
           fecha_vencimiento?: string | null
           guia_remision_numero?: string
           hash_cpe?: string
+          icbper?: number
           id?: string
           igv?: number
           igv_tasa?: number
+          isc?: number
           moneda?: Database["public"]["Enums"]["moneda"]
           monto_detraccion?: number
           monto_retencion?: number
@@ -934,12 +946,15 @@ export type Database = {
           observacion?: string
           operacion_tipo?: string
           orden_compra?: string
+          otros_cargos?: number
+          otros_tributos?: number
           payload_fiscal?: Json
           pct_detraccion?: number
           preliquidacion_id?: string | null
           proveedor_envio?: string
           proyecto_id?: string | null
           qr_payload?: string
+          redondeo?: number
           serie?: string
           ticket_baja?: string
           tipo_cambio?: number

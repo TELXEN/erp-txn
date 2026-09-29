@@ -16,6 +16,7 @@ export function nuevoFormCpe(tipo: TipoComprobante, serie: string) {
     condicion_pago: "Contado", dias_credito: "0", tipo_tributario: "ninguno" as TipoTributarioCpe, pct_detraccion: "0", codigo_spot: "", orden_compra: "", observacion: "",
     cliente_numero_documento: "", cliente_razon_social: "", cliente_direccion: "", cliente_ciudad: "", cliente_estado_sunat: "", cliente_condicion_sunat: "",
     fecha_vencimiento: hoy(), guia_remision_numero: "", igv_tasa: "18", anticipo_tipo: "ninguno", anticipo_documento: "", anticipo_monto: "",
+    isc: "0", icbper: "0", otros_cargos: "0", otros_tributos: "0",
     guia_motivo: "01", guia_modalidad: "02", guia_fecha_traslado: hoy(), guia_transportista: "", guia_transportista_doc: "", guia_placa: "", guia_licencia: "",
     guia_peso: "", guia_bultos: "", guia_partida: "", guia_partida_ubigeo: "", guia_llegada: "", guia_llegada_ubigeo: "",
     regimen_tasa: tipo === "40" ? "2" : "3", motivo_baja: "01",
@@ -43,7 +44,7 @@ export function HojaComprobante(props: {
   refs: { id: string; numero: string; tipo_comprobante: string; total: number }[];
   series: { id: string; serie: string; tipo_comprobante: string }[];
   cuotas: CuotaEditor[]; setCuotas: (c: CuotaEditor[]) => void;
-  numeroPreview: string; montos: { valorVenta: number; igv: number; anticipo: number; total: number; montoDetraccion: number; montoRetencion: number };
+  numeroPreview: string; montos: { subTotalVentas: number; descuentos: number; valorVenta: number; isc: number; igv: number; icbper: number; otrosCargos: number; otrosTributos: number; redondeo: number; anticipo: number; total: number; montoDetraccion: number; montoRetencion: number };
   totalRegimen: number; importeRegimen: number; onTipoChange: (t: TipoComprobante) => void; bloqueado: boolean;
 }) {
   const { form, setForm, items, setItems, docs, setDocs, cuotas, setCuotas, empresa, clientes, proyectos, refs, series, numeroPreview, montos, totalRegimen, importeRegimen, onTipoChange, bloqueado } = props;
@@ -222,21 +223,30 @@ export function HojaComprobante(props: {
           <button type="button" onClick={() => setDocs([...docs, docRelacionadoVacio()])} style={{ marginTop: 7, fontSize: 9.5, border: `1px dashed ${C.green}`, color: C.green, background: C.white, borderRadius: 4, padding: "4px 9px", cursor: "pointer", display: "inline-flex", gap: 4, alignItems: "center" }}><Plus size={12} />Agregar comprobante</button></>}
 
         {usaImportes(tipo) && <>
-          <div style={{ width: 320, marginLeft: "auto", marginTop: 18, fontSize: 10 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: 6, borderBottom: `1px solid ${C.line}` }}>
-              <select value={form.operacion_tipo} onChange={(e) => set("operacion_tipo", e.target.value)} style={{ ...edSel, width: 160, borderBottom: "none" }}><option value="gravada">Op. gravada</option><option value="exonerada">Op. exonerada</option><option value="inafecta">Op. inafecta</option></select>
-              <span>{money(montos.valorVenta)}</span>
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: 6, borderBottom: `1px solid ${C.line}` }}>
-              <span style={{ display: "flex", alignItems: "center", gap: 4 }}>IGV
-                {form.operacion_tipo === "gravada"
+          <div style={{ width: 340, marginLeft: "auto", marginTop: 18, fontSize: 10 }}>
+            {(() => {
+              const fila = (etiqueta: ReactNode, valor: string, negrita = false) => (
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "4px 6px", borderBottom: `1px solid ${C.line}`, fontWeight: negrita ? 700 : 400 }}><span style={{ display: "flex", alignItems: "center", gap: 4 }}>{etiqueta}</span><span>{valor}</span></div>
+              );
+              const cargo = (k: "isc" | "icbper" | "otros_cargos" | "otros_tributos") => (
+                <input type="number" step="0.01" min="0" value={form[k]} onChange={(e) => set(k, e.target.value)} style={{ ...ed, width: 76, borderBottom: "none", textAlign: "right" }} />
+              );
+              return <>
+                {fila("Sub Total Ventas", money(montos.subTotalVentas))}
+                {fila("(−) Anticipos", montos.anticipo > 0 ? `− ${money(montos.anticipo)}` : money(0))}
+                {fila("(−) Descuentos", montos.descuentos > 0 ? `− ${money(montos.descuentos)}` : money(0))}
+                {fila(<select value={form.operacion_tipo} onChange={(e) => set("operacion_tipo", e.target.value)} style={{ ...edSel, width: 150, borderBottom: "none" }}><option value="gravada">Valor de venta (gravada)</option><option value="exonerada">Valor de venta (exonerada)</option><option value="inafecta">Valor de venta (inafecta)</option></select>, money(montos.valorVenta), true)}
+                {fila(<>ISC {cargo("isc")}</>, money(montos.isc))}
+                {fila(<span>IGV {form.operacion_tipo === "gravada"
                   ? <select value={form.igv_tasa} onChange={(e) => set("igv_tasa", e.target.value)} title="Tasa de IGV aplicada" style={{ ...edSel, width: 62, borderBottom: "none" }}>{TASAS_IGV.map(([v]) => <option key={v} value={v}>{v}%</option>)}</select>
-                  : <b>0%</b>}
-              </span>
-              <span>{money(montos.igv)}</span>
-            </div>
-            {montos.anticipo > 0 && <div style={{ display: "flex", justifyContent: "space-between", padding: 6, borderBottom: `1px solid ${C.line}` }}><span>(−) Anticipo deducido</span><span>− {money(montos.anticipo)}</span></div>}
-            <div style={{ display: "flex", justifyContent: "space-between", padding: 11, background: C.ink, color: C.white, fontWeight: 800, fontSize: 12 }}><span>IMPORTE TOTAL</span><span>{money(montos.total)}</span></div>
+                  : <b>0%</b>}</span>, money(montos.igv), true)}
+                {fila(<>ICBPER {cargo("icbper")}</>, money(montos.icbper))}
+                {fila(<>Otros Cargos {cargo("otros_cargos")}</>, money(montos.otrosCargos))}
+                {fila(<>Otros Tributos {cargo("otros_tributos")}</>, money(montos.otrosTributos))}
+                {fila("Monto de Redondeo", money(montos.redondeo))}
+                <div style={{ display: "flex", justifyContent: "space-between", padding: 11, background: C.ink, color: C.white, fontWeight: 800, fontSize: 12 }}><span>IMPORTE TOTAL</span><span>{money(montos.total)}</span></div>
+              </>;
+            })()}
           </div>
           <div style={{ marginTop: 12, background: C.greenSoft, borderTop: `3px solid ${C.green}`, padding: 11, fontSize: 9.5 }}>
             <label style={{ display: "flex", gap: 6, alignItems: "center", fontWeight: 700, cursor: "pointer" }}>

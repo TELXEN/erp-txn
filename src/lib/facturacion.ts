@@ -108,18 +108,33 @@ export function calcularItem(item: ItemEditor, operacion: OperacionTipo, tasaIgv
   return { cantidad, valorUnitario, descuento, subtotal, igv, total: subtotal + igv };
 }
 
-export function calcularComprobante(items: ItemEditor[], operacion: OperacionTipo, tc: number, tipoTributario: TipoTributarioCpe, pct: number, tasaIgv = 18, anticipoDeducido = 0) {
+/** Conceptos adicionales del comprobante (ISC, ICBPER, otros cargos/tributos). */
+export type CargosExtra = { isc?: number; icbper?: number; otrosCargos?: number; otrosTributos?: number };
+
+export function calcularComprobante(items: ItemEditor[], operacion: OperacionTipo, tc: number, tipoTributario: TipoTributarioCpe, pct: number, tasaIgv = 18, anticipoDeducido = 0, extra: CargosExtra = {}) {
+  const r2 = (n: number) => Number(n.toFixed(2));
   const filas = items.map((i) => calcularItem(i, operacion, tasaIgv));
-  const valorVenta = filas.reduce((s, i) => s + i.subtotal, 0);
-  const descuentos = items.reduce((s, i) => s + Math.max(0, Number(i.descuento || 0)), 0);
-  const igv = filas.reduce((s, i) => s + i.igv, 0);
-  const anticipo = Math.max(0, Math.min(anticipoDeducido, valorVenta + igv));
-  const total = Number((valorVenta + igv - anticipo).toFixed(2));
-  const totalPen = total * (tc > 0 ? tc : 1);
+  // Sub Total Ventas: suma de cantidad × valor unitario, antes de descuentos.
+  const subTotalVentas = r2(filas.reduce((s, i) => s + i.cantidad * i.valorUnitario, 0));
+  const descuentos = r2(items.reduce((s, i) => s + Math.max(0, Number(i.descuento || 0)), 0));
+  // Valor de venta: sub total ventas − descuentos.
+  const valorVenta = r2(subTotalVentas - descuentos);
+  const isc = r2(Math.max(0, extra.isc ?? 0));
+  const igv = r2(filas.reduce((s, i) => s + i.igv, 0));
+  const icbper = r2(Math.max(0, extra.icbper ?? 0));
+  const otrosCargos = r2(Math.max(0, extra.otrosCargos ?? 0));
+  const otrosTributos = r2(Math.max(0, extra.otrosTributos ?? 0));
+  // Anticipos: se descuentan del importe total (tope: base + tributos).
+  const anticipo = r2(Math.max(0, Math.min(anticipoDeducido, valorVenta + isc + igv)));
+  const totalSinRedondeo = valorVenta + isc + igv + icbper + otrosCargos + otrosTributos - anticipo;
+  // Monto de redondeo: ajuste automático al cerrar a 2 decimales (±0.05).
+  const total = r2(totalSinRedondeo);
+  const redondeo = r2(total - totalSinRedondeo);
+  const totalPen = r2(total * (tc > 0 ? tc : 1));
   const aplica = tipoTributario !== "ninguno" && pct > 0 && totalPen > 700;
   const montoDetraccion = aplica && tipoTributario === "detraccion" ? Math.floor((totalPen * pct) / 100 + 0.5) : 0;
-  const montoRetencion = aplica && tipoTributario === "retencion" ? Number(((totalPen * pct) / 100).toFixed(2)) : 0;
-  return { valorVenta, descuentos, igv, anticipo, total, totalPen, montoDetraccion, montoRetencion };
+  const montoRetencion = aplica && tipoTributario === "retencion" ? r2((totalPen * pct) / 100) : 0;
+  return { subTotalVentas, descuentos, valorVenta, isc, igv, icbper, otrosCargos, otrosTributos, redondeo, anticipo, total, totalPen, montoDetraccion, montoRetencion };
 }
 
 const UNIDADES = ["CERO", "UNO", "DOS", "TRES", "CUATRO", "CINCO", "SEIS", "SIETE", "OCHO", "NUEVE", "DIEZ", "ONCE", "DOCE", "TRECE", "CATORCE", "QUINCE", "DIECISÉIS", "DIECISIETE", "DIECIOCHO", "DIECINUEVE", "VEINTE", "VEINTIUNO", "VEINTIDÓS", "VEINTITRÉS", "VEINTICUATRO", "VEINTICINCO", "VEINTISÉIS", "VEINTISIETE", "VEINTIOCHO", "VEINTINUEVE"];
