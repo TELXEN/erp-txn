@@ -215,7 +215,7 @@ export function HojaComprobante(props: {
         {usaItems(tipo) && <button type="button" onClick={() => setItems([...items, itemComprobanteVacio()])} style={{ marginTop: 7, fontSize: 9.5, border: `1px dashed ${C.green}`, color: C.green, background: C.white, borderRadius: 4, padding: "4px 9px", cursor: "pointer", display: "inline-flex", gap: 4, alignItems: "center" }}><Plus size={12} />Agregar línea</button>}
 
         {usaRelacionados(tipo) && <><table style={{ width: "100%", borderCollapse: "collapse", marginTop: 18, fontSize: 9 }}>
-          <thead><tr style={{ background: C.ink, color: C.white, textAlign: "left" }}>{["#", "Tipo", "Serie", "Número", "Fecha", "Importe", ""].map((x, i) => <th key={i} style={{ padding: "7px 6px" }}>{x}</th>)}</tr></thead>
+          <thead><tr style={{ background: "#f1f5f9", color: C.ink, textAlign: "left", borderBottom: `1px solid ${C.line}` }}>{["#", "Tipo", "Serie", "Número", "Fecha", "Importe", ""].map((x, i) => <th key={i} style={{ padding: "7px 6px" }}>{x}</th>)}</tr></thead>
           <tbody>{docs.map((d, i) => <tr key={i} style={{ borderBottom: `1px solid ${C.line}`, background: i % 2 ? C.soft : C.white }}>
             <td style={{ padding: 4, width: 22 }}>{i + 1}</td>
             <td style={{ padding: 4, width: 110 }}><select value={d.tipo} onChange={(e) => actualizarDoc(i, "tipo", e.target.value)} style={{ ...cel, cursor: "pointer" }}>{TIPOS_DOC_RELACIONADO.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></td>
