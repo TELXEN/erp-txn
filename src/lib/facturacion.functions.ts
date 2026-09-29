@@ -4,9 +4,13 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const itemSchema = z.object({ codigo: z.string().max(40), descripcion: z.string().min(1).max(500), unidad_sunat: z.string().min(1).max(8), cantidad: z.number().positive(), valor_unitario: z.number().nonnegative(), descuento: z.number().nonnegative(), afectacion_igv: z.enum(["10", "20", "30"]), subtotal: z.number().nonnegative(), igv: z.number().nonnegative(), total: z.number().nonnegative() });
 const cuotaSchema = z.object({ numero: z.number().int().positive(), fecha_vencimiento: z.string().date(), monto: z.number().positive() });
+const docRelSchema = z.object({ tipo: z.string().max(4), serie: z.string().max(8), numero: z.string().max(20), fecha: z.string().max(10), importe: z.number().nonnegative() });
 const inputSchema = z.object({
-  tipo_comprobante: z.enum(["01", "03", "07", "08"]), serie: z.string().min(4).max(4), preliquidacion_id: z.string().uuid().nullable(), proyecto_id: z.string().uuid().nullable(), cliente_id: z.string().uuid().nullable(), comprobante_referencia_id: z.string().uuid().nullable(), motivo_nota_codigo: z.string().max(8), motivo_nota_descripcion: z.string().max(300), fecha_emision: z.string().date(), fecha_vencimiento: z.string().date().nullable(), moneda: z.enum(["PEN", "USD"]), tipo_cambio: z.number().positive(), operacion_tipo: z.enum(["gravada", "exonerada", "inafecta"]), valor_venta: z.number().nonnegative(), total_descuentos: z.number().nonnegative(), igv: z.number().nonnegative(), total: z.number().nonnegative(), total_soles: z.number().nonnegative(), total_letras: z.string().max(500), condicion_pago: z.enum(["Contado", "Crédito"]), dias_credito: z.number().int().nonnegative(), tipo_tributario: z.enum(["detraccion", "retencion", "ninguno"]), codigo_spot: z.string().max(8), pct_detraccion: z.number().min(0).max(100), monto_detraccion: z.number().nonnegative(), monto_retencion: z.number().nonnegative(), orden_compra: z.string().max(160), observacion: z.string().max(1000), emitir: z.boolean(), items: z.array(itemSchema).min(1), cuotas: z.array(cuotaSchema).max(24),
+  tipo_comprobante: z.enum(["01", "03", "07", "08", "09", "20", "40", "RA"]), serie: z.string().min(4).max(4), preliquidacion_id: z.string().uuid().nullable(), proyecto_id: z.string().uuid().nullable(), cliente_id: z.string().uuid().nullable(), comprobante_referencia_id: z.string().uuid().nullable(), motivo_nota_codigo: z.string().max(8), motivo_nota_descripcion: z.string().max(300), fecha_emision: z.string().date(), fecha_vencimiento: z.string().date().nullable(), moneda: z.enum(["PEN", "USD"]), tipo_cambio: z.number().positive(), operacion_tipo: z.enum(["gravada", "exonerada", "inafecta"]), valor_venta: z.number().nonnegative(), total_descuentos: z.number().nonnegative(), igv: z.number().nonnegative(), total: z.number().nonnegative(), total_soles: z.number().nonnegative(), total_letras: z.string().max(500), condicion_pago: z.enum(["Contado", "Crédito"]), dias_credito: z.number().int().nonnegative(), tipo_tributario: z.enum(["detraccion", "retencion", "ninguno"]), codigo_spot: z.string().max(8), pct_detraccion: z.number().min(0).max(100), monto_detraccion: z.number().nonnegative(), monto_retencion: z.number().nonnegative(), orden_compra: z.string().max(160), observacion: z.string().max(1000), emitir: z.boolean(), items: z.array(itemSchema).default([]), cuotas: z.array(cuotaSchema).max(24).default([]),
+  cliente_numero_documento: z.string().max(20).default(""), cliente_razon_social: z.string().max(200).default(""), cliente_direccion: z.string().max(300).default(""), cliente_estado_sunat: z.string().max(40).default(""), cliente_condicion_sunat: z.string().max(40).default(""),
+  datos_guia: z.record(z.string(), z.string()).default({}), datos_regimen: z.record(z.string(), z.string()).default({}), documentos_relacionados: z.array(docRelSchema).max(200).default([]), motivo_baja: z.string().max(300).default(""),
 });
+
 
 export const crearComprobanteElectronico = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -15,9 +19,13 @@ export const crearComprobanteElectronico = createServerFn({ method: "POST" })
     const { data: autorizado, error: authError } = await context.supabase.rpc("is_admin_o_gerente", { _user_id: context.userId });
     if (authError) throw new Error(authError.message);
     if (!autorizado) throw new Error("No autorizado para emitir comprobantes.");
+    const conImportes = ["01", "03", "07", "08"].includes(data.tipo_comprobante);
     if (data.tipo_comprobante === "01" && !data.cliente_id) throw new Error("La factura requiere un cliente con RUC.");
     if ((data.tipo_comprobante === "07" || data.tipo_comprobante === "08") && !data.comprobante_referencia_id) throw new Error("La nota requiere un comprobante de referencia.");
-    if (Math.abs(data.items.reduce((s, i) => s + i.total, 0) - data.total) > 0.05) throw new Error("Los totales del comprobante no coinciden con sus ítems.");
+    if (["20", "40", "RA"].includes(data.tipo_comprobante) && !data.documentos_relacionados.length) throw new Error("Agrega al menos un comprobante relacionado.");
+    if (["01", "03", "07", "08", "09"].includes(data.tipo_comprobante) && !data.items.length) throw new Error("Agrega al menos un concepto.");
+    if (conImportes && Math.abs(data.items.reduce((s, i) => s + i.total, 0) - data.total) > 0.05) throw new Error("Los totales del comprobante no coinciden con sus ítems.");
+
     if (data.condicion_pago === "Crédito" && Math.abs(data.cuotas.reduce((s, c) => s + c.monto, 0) - data.total) > 0.05) throw new Error("Las cuotas deben sumar el total del comprobante.");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -31,8 +39,11 @@ export const crearComprobanteElectronico = createServerFn({ method: "POST" })
     const { data: comprobante, error: comprobanteError } = await supabaseAdmin.from("comprobantes_electronicos").insert({ ...data, items: undefined, cuotas: undefined, emitir: undefined, correlativo: filaNumero.correlativo, numero: filaNumero.numero, estado_fiscal: estadoFiscal, detraccion_estado: data.monto_detraccion > 0 ? "Pendiente" : "No aplica", qr_payload: qrPayload, payload_fiscal: payloadFiscal, creado_por: context.userId } as never).select("id, numero").single();
     if (comprobanteError || !comprobante) throw new Error(comprobanteError?.message ?? "No se pudo guardar el comprobante.");
     const comprobanteId = (comprobante as { id: string; numero: string }).id;
-    const { error: itemsError } = await supabaseAdmin.from("comprobante_items").insert(data.items.map((item, orden) => ({ ...item, comprobante_id: comprobanteId, orden })) as never);
-    if (itemsError) { await supabaseAdmin.from("comprobantes_electronicos").delete().eq("id", comprobanteId); throw new Error(itemsError.message); }
+    if (data.items.length) {
+      const { error: itemsError } = await supabaseAdmin.from("comprobante_items").insert(data.items.map((item, orden) => ({ ...item, comprobante_id: comprobanteId, orden })) as never);
+      if (itemsError) { await supabaseAdmin.from("comprobantes_electronicos").delete().eq("id", comprobanteId); throw new Error(itemsError.message); }
+    }
+
     if (data.cuotas.length) {
       const { error: cuotasError } = await supabaseAdmin.from("comprobante_cuotas").insert(data.cuotas.map((cuota) => ({ ...cuota, comprobante_id: comprobanteId })) as never);
       if (cuotasError) { await supabaseAdmin.from("comprobantes_electronicos").delete().eq("id", comprobanteId); throw new Error(cuotasError.message); }
@@ -83,8 +94,11 @@ export const actualizarBorradorComprobante = createServerFn({ method: "POST" })
 
     const { error: borrarItemsError } = await supabaseAdmin.from("comprobante_items").delete().eq("comprobante_id", id);
     if (borrarItemsError) throw new Error(borrarItemsError.message);
-    const { error: itemsError } = await supabaseAdmin.from("comprobante_items").insert(items.map((item, orden) => ({ ...item, comprobante_id: id, orden })) as never);
-    if (itemsError) throw new Error(itemsError.message);
+    if (items.length) {
+      const { error: itemsError } = await supabaseAdmin.from("comprobante_items").insert(items.map((item, orden) => ({ ...item, comprobante_id: id, orden })) as never);
+      if (itemsError) throw new Error(itemsError.message);
+    }
+
 
     const { error: borrarCuotasError } = await supabaseAdmin.from("comprobante_cuotas").delete().eq("comprobante_id", id);
     if (borrarCuotasError) throw new Error(borrarCuotasError.message);

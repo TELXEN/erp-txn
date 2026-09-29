@@ -1,6 +1,6 @@
 import type { Database } from "@/integrations/supabase/types";
 
-export type TipoComprobante = "01" | "03" | "07" | "08";
+export type TipoComprobante = "01" | "03" | "07" | "08" | "09" | "20" | "40" | "RA";
 export type OperacionTipo = "gravada" | "exonerada" | "inafecta";
 export type EstadoFiscal = "Borrador" | "Emitido - Pendiente SUNAT" | "Aceptado con CDR" | "Observado" | "Rechazado" | "Anulado con Nota de Crédito";
 export type TipoTributarioCpe = "detraccion" | "retencion" | "ninguno";
@@ -13,7 +13,63 @@ export const TIPOS_COMPROBANTE: Record<TipoComprobante, string> = {
   "03": "Boleta de venta electrónica",
   "07": "Nota de crédito electrónica",
   "08": "Nota de débito electrónica",
+  "09": "Guía de remisión remitente",
+  "20": "Comprobante de retención",
+  "40": "Comprobante de percepción",
+  "RA": "Comunicación de baja",
 };
+
+export const SERIE_DEFECTO: Record<TipoComprobante, string> = { "01": "F001", "03": "B001", "07": "FC01", "08": "FD01", "09": "T001", "20": "R001", "40": "P001", "RA": "RA01" };
+
+/** Pestañas del módulo, en el orden en que se muestran. */
+export const PESTANAS_CPE: { tipo: TipoComprobante; etiqueta: string; corto: string }[] = [
+  { tipo: "01", etiqueta: "Facturas", corto: "FACTURA ELECTRÓNICA" },
+  { tipo: "03", etiqueta: "Boletas", corto: "BOLETA DE VENTA ELECTRÓNICA" },
+  { tipo: "07", etiqueta: "Notas de crédito", corto: "NOTA DE CRÉDITO ELECTRÓNICA" },
+  { tipo: "08", etiqueta: "Notas de débito", corto: "NOTA DE DÉBITO ELECTRÓNICA" },
+  { tipo: "09", etiqueta: "Guías de remisión", corto: "GUÍA DE REMISIÓN REMITENTE" },
+  { tipo: "20", etiqueta: "Retenciones", corto: "COMPROBANTE DE RETENCIÓN" },
+  { tipo: "40", etiqueta: "Percepciones", corto: "COMPROBANTE DE PERCEPCIÓN" },
+  { tipo: "RA", etiqueta: "Bajas / anulaciones", corto: "COMUNICACIÓN DE BAJA" },
+];
+
+/** Documentos con conceptos valorizados (tabla de ítems). */
+export const usaItems = (t: TipoComprobante) => ["01", "03", "07", "08", "09"].includes(t);
+/** Documentos que listan comprobantes relacionados. */
+export const usaRelacionados = (t: TipoComprobante) => ["20", "40", "RA"].includes(t);
+/** Documentos con importes, IGV y régimen tributario. */
+export const usaImportes = (t: TipoComprobante) => ["01", "03", "07", "08"].includes(t);
+
+export const MOTIVOS_NOTA_CREDITO = [
+  ["01", "01 · Anulación de la operación"], ["02", "02 · Anulación por error en el RUC"], ["03", "03 · Corrección por error en la descripción"],
+  ["04", "04 · Descuento global"], ["05", "05 · Descuento por ítem"], ["06", "06 · Devolución total"], ["07", "07 · Devolución por ítem"],
+  ["08", "08 · Bonificación"], ["09", "09 · Disminución en el valor"], ["10", "10 · Otros conceptos"],
+] as const;
+
+export const MOTIVOS_NOTA_DEBITO = [
+  ["01", "01 · Intereses por mora"], ["02", "02 · Aumento en el valor"], ["03", "03 · Penalidades / otros conceptos"],
+] as const;
+
+export const MOTIVOS_TRASLADO = [
+  ["01", "01 · Venta"], ["02", "02 · Compra"], ["04", "04 · Traslado entre establecimientos de la empresa"],
+  ["08", "08 · Importación"], ["09", "09 · Exportación"], ["13", "13 · Otros (obra, devolución, servicio)"],
+  ["14", "14 · Venta sujeta a confirmación del comprador"], ["18", "18 · Traslado emisor itinerante"],
+] as const;
+
+export const MODALIDADES_TRASLADO = [["02", "02 · Transporte privado"], ["01", "01 · Transporte público"]] as const;
+
+export const TASAS_RETENCION = [["3", "3% · Régimen general"], ["6", "6% · Tasa anterior"]] as const;
+export const TASAS_PERCEPCION = [["2", "2% · Venta interna"], ["1", "1% · Combustible"], ["0.5", "0.5% · Agente de percepción"]] as const;
+
+export const MOTIVOS_BAJA = [
+  ["01", "01 · Error en los datos del receptor"], ["02", "02 · Error en la descripción o importes"],
+  ["03", "03 · Operación no realizada"], ["04", "04 · Duplicidad del comprobante"], ["05", "05 · Otros"],
+] as const;
+
+export const TIPOS_DOC_RELACIONADO = [["01", "Factura"], ["03", "Boleta"], ["07", "Nota de crédito"], ["08", "Nota de débito"]] as const;
+
+export type DocRelacionado = { tipo: string; serie: string; numero: string; fecha: string; importe: string };
+export const docRelacionadoVacio = (): DocRelacionado => ({ tipo: "01", serie: "", numero: "", fecha: "", importe: "" });
 
 export const UNIDADES_SUNAT = [
   ["NIU", "Unidad"], ["ZZ", "Servicio"], ["MTR", "Metro"], ["MTK", "Metro cuadrado"],
@@ -24,6 +80,7 @@ export const CODIGOS_SPOT = [
   ["", "No aplica"], ["037", "037 · Contratos de construcción"],
   ["022", "022 · Otros servicios empresariales"], ["019", "019 · Arrendamiento de bienes"],
 ] as const;
+
 
 export type ItemEditor = { codigo: string; descripcion: string; unidad_sunat: string; cantidad: string; valor_unitario: string; descuento: string };
 export const itemComprobanteVacio = (): ItemEditor => ({ codigo: "", descripcion: "", unidad_sunat: "ZZ", cantidad: "1", valor_unitario: "", descuento: "0" });

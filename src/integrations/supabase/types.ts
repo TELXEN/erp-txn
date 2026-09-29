@@ -754,17 +754,25 @@ export type Database = {
           cdr_codigo: string
           cdr_descripcion: string
           cdr_url: string
+          cliente_condicion_sunat: string
+          cliente_direccion: string
+          cliente_estado_sunat: string
           cliente_id: string | null
+          cliente_numero_documento: string
+          cliente_razon_social: string
           codigo_spot: string
           comprobante_referencia_id: string | null
           condicion_pago: string
           correlativo: number
           creado_por: string
           created_at: string
+          datos_guia: Json
+          datos_regimen: Json
           detraccion_constancia: string
           detraccion_estado: string
           detraccion_fecha: string | null
           dias_credito: number
+          documentos_relacionados: Json
           estado_fiscal: string
           estado_pago: Database["public"]["Enums"]["estado_venta"]
           fecha_emision: string
@@ -776,6 +784,7 @@ export type Database = {
           moneda: Database["public"]["Enums"]["moneda"]
           monto_detraccion: number
           monto_retencion: number
+          motivo_baja: string
           motivo_nota_codigo: string
           motivo_nota_descripcion: string
           numero: string
@@ -790,6 +799,7 @@ export type Database = {
           proyecto_id: string | null
           qr_payload: string
           serie: string
+          ticket_baja: string
           tipo_cambio: number
           tipo_comprobante: string
           tipo_tributario: string
@@ -806,17 +816,25 @@ export type Database = {
           cdr_codigo?: string
           cdr_descripcion?: string
           cdr_url?: string
+          cliente_condicion_sunat?: string
+          cliente_direccion?: string
+          cliente_estado_sunat?: string
           cliente_id?: string | null
+          cliente_numero_documento?: string
+          cliente_razon_social?: string
           codigo_spot?: string
           comprobante_referencia_id?: string | null
           condicion_pago?: string
           correlativo: number
           creado_por?: string
           created_at?: string
+          datos_guia?: Json
+          datos_regimen?: Json
           detraccion_constancia?: string
           detraccion_estado?: string
           detraccion_fecha?: string | null
           dias_credito?: number
+          documentos_relacionados?: Json
           estado_fiscal?: string
           estado_pago?: Database["public"]["Enums"]["estado_venta"]
           fecha_emision?: string
@@ -828,6 +846,7 @@ export type Database = {
           moneda?: Database["public"]["Enums"]["moneda"]
           monto_detraccion?: number
           monto_retencion?: number
+          motivo_baja?: string
           motivo_nota_codigo?: string
           motivo_nota_descripcion?: string
           numero: string
@@ -842,6 +861,7 @@ export type Database = {
           proyecto_id?: string | null
           qr_payload?: string
           serie: string
+          ticket_baja?: string
           tipo_cambio?: number
           tipo_comprobante: string
           tipo_tributario?: string
@@ -858,17 +878,25 @@ export type Database = {
           cdr_codigo?: string
           cdr_descripcion?: string
           cdr_url?: string
+          cliente_condicion_sunat?: string
+          cliente_direccion?: string
+          cliente_estado_sunat?: string
           cliente_id?: string | null
+          cliente_numero_documento?: string
+          cliente_razon_social?: string
           codigo_spot?: string
           comprobante_referencia_id?: string | null
           condicion_pago?: string
           correlativo?: number
           creado_por?: string
           created_at?: string
+          datos_guia?: Json
+          datos_regimen?: Json
           detraccion_constancia?: string
           detraccion_estado?: string
           detraccion_fecha?: string | null
           dias_credito?: number
+          documentos_relacionados?: Json
           estado_fiscal?: string
           estado_pago?: Database["public"]["Enums"]["estado_venta"]
           fecha_emision?: string
@@ -880,6 +908,7 @@ export type Database = {
           moneda?: Database["public"]["Enums"]["moneda"]
           monto_detraccion?: number
           monto_retencion?: number
+          motivo_baja?: string
           motivo_nota_codigo?: string
           motivo_nota_descripcion?: string
           numero?: string
@@ -894,6 +923,7 @@ export type Database = {
           proyecto_id?: string | null
           qr_payload?: string
           serie?: string
+          ticket_baja?: string
           tipo_cambio?: number
           tipo_comprobante?: string
           tipo_tributario?: string
@@ -2636,6 +2666,30 @@ export type Database = {
           telefono?: string
           tipo_documento?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      tipo_cambio_diario: {
+        Row: {
+          compra: number
+          created_at: string
+          fecha: string
+          fuente: string
+          venta: number
+        }
+        Insert: {
+          compra: number
+          created_at?: string
+          fecha: string
+          fuente?: string
+          venta: number
+        }
+        Update: {
+          compra?: number
+          created_at?: string
+          fecha?: string
+          fuente?: string
+          venta?: number
         }
         Relationships: []
       }
