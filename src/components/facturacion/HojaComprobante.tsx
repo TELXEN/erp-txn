@@ -303,7 +303,12 @@ export function HojaComprobante(props: {
                   {form.moneda === "USD" && <div style={{ display: "flex", justifyContent: "space-between" }}><span>Equivalente USD (TC {form.tipo_cambio})</span><b>{money(montos.detraccionUsd ?? 0)}</b></div>}
                   <div style={{ display: "flex", justifyContent: "space-between", borderTop: `1px solid ${C.line}`, paddingTop: 4 }}><span>Neto a pagar</span><b>{money(montos.netoPagar ?? montos.total)}</b></div>
                   {cuentaDet && <div style={{ fontWeight: 700 }}>CTA. DETRACCIONES BANCO DE LA NACIÓN: {cuentaDet.numero_cuenta}</div>}
-                </> : <div style={{ display: "flex", justifyContent: "space-between" }}><span>Importe</span><b>{money(montos.montoDetraccion + montos.montoRetencion)}</b></div>}
+                 </> : form.tipo_tributario === "retencion" ? <>
+                   <div style={{ display: "flex", justifyContent: "space-between" }}><span>Retención base ({form.pct_detraccion}%)</span><b>{money(montos.retencionBase ?? 0)}</b></div>
+                   <div style={{ display: "flex", justifyContent: "space-between" }}><span>Retención (redondeada)</span><b>S/ {(montos.montoRetencion).toLocaleString("es-PE", { minimumFractionDigits: 2 })}</b></div>
+                   {form.moneda === "USD" && <div style={{ display: "flex", justifyContent: "space-between" }}><span>Equivalente USD (TC {form.tipo_cambio})</span><b>{money(montos.retencionUsd ?? 0)}</b></div>}
+                   <div style={{ display: "flex", justifyContent: "space-between", borderTop: `1px solid ${C.line}`, paddingTop: 4 }}><span>Neto a pagar</span><b>{money(montos.netoPagar ?? montos.total)}</b></div>
+                 </> : <div style={{ display: "flex", justifyContent: "space-between" }}><span>Importe</span><b>{money(montos.montoDetraccion + montos.montoRetencion)}</b></div>}
               </div>
             </div>
           </div>
