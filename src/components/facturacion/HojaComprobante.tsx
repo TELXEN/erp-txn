@@ -233,7 +233,7 @@ export function HojaComprobante(props: {
           <div style={{ width: 340, marginLeft: "auto", marginTop: 18, fontSize: 10 }}>
             {(() => {
               const fila = (etiqueta: ReactNode, valor: string, negrita = false) => (
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "4px 6px", borderBottom: `1px solid ${C.line}`, fontWeight: negrita ? 700 : 400 }}><span style={{ display: "flex", alignItems: "center", gap: 4 }}>{etiqueta}</span><span>{valor}</span></div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1px 6px", lineHeight: 1.2, borderBottom: `1px solid ${C.line}`, fontWeight: negrita ? 700 : 400 }}><span style={{ display: "flex", alignItems: "center", gap: 4 }}>{etiqueta}</span><span>{valor}</span></div>
               );
               const cargo = (k: "isc" | "icbper" | "otros_cargos" | "otros_tributos") => (
                 <input type="number" step="0.01" min="0" value={form[k]} onChange={(e) => set(k, e.target.value)} style={{ ...ed, width: 76, borderBottom: "none", textAlign: "right" }} />
