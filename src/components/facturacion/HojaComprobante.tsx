@@ -85,31 +85,31 @@ export function HojaComprobante(props: {
 
   return (
     <div style={{ overflowX: "auto", paddingBottom: 18 }}>
-      <section style={{ width: 794, minHeight: 1123, margin: "0 auto", padding: "36px 38px", background: C.white, color: C.ink, fontFamily: "Helvetica,Arial,sans-serif", boxShadow: "0 12px 35px rgba(15,23,42,.18)" }}>
-        <header style={{ display: "flex", gap: 18, borderBottom: `3px solid ${C.green}`, paddingBottom: 14 }}>
-          <div style={{ width: 108, display: "flex", alignItems: "center", justifyContent: "center" }}>{empresa?.logo_url ? <img src={empresa.logo_url} alt="" style={{ maxWidth: 100, maxHeight: 54 }} /> : <div style={{ width: 52, height: 52, borderRadius: 9, background: C.green, color: C.white, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800 }}>TX</div>}</div>
-          <div style={{ flex: 1, textAlign: "right", fontFamily: '"Calibri Light",Calibri,Arial,sans-serif' }}>
-            <b style={{ fontSize: 12, color: C.greenDark }}>{empresa?.razon_social || "TELXEN SAC"}</b>
-            <div style={{ fontSize: 9, color: C.greenDark, marginTop: 4 }}>{empresa?.eslogan || "SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL"}</div>
-            <div style={{ fontSize: 9, color: C.text, marginTop: 5 }}>{empresa?.direccion}</div>
-            <div style={{ fontSize: 9, color: C.text }}>{empresa?.telefono} · {empresa?.web}</div>
+      <section style={{ width: 794, minHeight: 1123, margin: "0 auto", padding: "36px 38px", background: C.white, color: C.ink, fontFamily: "Helvetica,Arial,sans-serif", fontSize: 9, boxShadow: "0 12px 35px rgba(15,23,42,.18)" }}>
+        <header style={{ display: "flex", gap: 22, borderBottom: `3px solid ${C.green}`, paddingBottom: 14 }}>
+          <div style={{ width: 96, display: "flex", alignItems: "center", justifyContent: "center" }}>{empresa?.logo_url ? <img src={empresa.logo_url} alt="" style={{ maxWidth: 92, maxHeight: 54 }} /> : <div style={{ width: 52, height: 52, borderRadius: 9, background: C.green, color: C.white, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800 }}>TX</div>}</div>
+          <div style={{ flex: 1, textAlign: "right", paddingRight: 10 }}>
+            <b style={{ fontSize: 11 }}>{empresa?.razon_social || "TELXEN SAC"}</b>
+            <div style={{ fontSize: 9, marginTop: 3, lineHeight: 1.25 }}>{empresa?.eslogan || "SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL"}</div>
+            <div style={{ fontSize: 9, marginTop: 4 }}>{empresa?.direccion}</div>
+            <div style={{ fontSize: 9 }}>{empresa?.telefono} · {empresa?.web}</div>
           </div>
-          <div style={{ width: 316, textAlign: "center" }}>
-            <div style={{ background: C.greenSoft, borderTop: `4px solid ${C.green}`, borderRadius: 5, padding: "11px 12px" }}>
-              <select value={tipo} disabled={bloqueado} onChange={(e) => onTipoChange(e.target.value as TipoComprobante)} style={{ ...edSel, textAlign: "center", fontSize: 10.5, fontWeight: 800, borderBottom: "none", whiteSpace: "nowrap" }}>
+          <div style={{ width: 248, textAlign: "center", flexShrink: 0 }}>
+            <div style={{ background: C.greenSoft, borderTop: `4px solid ${C.green}`, borderRadius: 5, padding: "10px 8px" }}>
+              <select value={tipo} disabled={bloqueado} onChange={(e) => onTipoChange(e.target.value as TipoComprobante)} title="Tipo de comprobante" style={{ ...edSel, textAlign: "center", fontSize: 9.5, fontWeight: 800, borderBottom: "none", whiteSpace: "nowrap" }}>
                 {PESTANAS_CPE.map((p) => <option key={p.tipo} value={p.tipo}>{p.corto}</option>)}
               </select>
-              <div style={{ fontSize: 10, fontWeight: 700, marginTop: 5 }}>RUC: {empresa?.ruc || "—"}</div>
-              <div style={{ display: "flex", gap: 5, justifyContent: "center", alignItems: "center", marginTop: 3 }}>
-                <input value={form.serie} disabled={bloqueado} onChange={(e) => set("serie", e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 4))} list="cpe-series" title="Serie editable (4 caracteres)" style={{ ...ed, width: 52, fontSize: 13, fontWeight: 800, borderBottom: "none", textAlign: "right" }} />
+              <div style={{ fontSize: 9, fontWeight: 700, marginTop: 4 }}>RUC: {empresa?.ruc || "—"}</div>
+              <div style={{ display: "flex", gap: 4, justifyContent: "center", alignItems: "center", marginTop: 3 }}>
+                <input value={form.serie} disabled={bloqueado} onChange={(e) => set("serie", e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 4))} list="cpe-series" title="Serie editable (4 caracteres)" style={{ ...ed, width: 44, fontSize: 11, fontWeight: 800, borderBottom: "none", textAlign: "right" }} />
                 <datalist id="cpe-series">{series.filter((s) => s.tipo_comprobante === tipo).map((s) => <option key={s.id} value={s.serie} />)}</datalist>
-                <span style={{ fontSize: 13, fontWeight: 800 }}>-</span>
+                <span style={{ fontSize: 11, fontWeight: 800 }}>-</span>
                 {bloqueado
-                  ? <span style={{ fontSize: 13, fontWeight: 800 }}>{numeroPreview}</span>
-                  : <input value={form.correlativo_inicial} onChange={(e) => set("correlativo_inicial", e.target.value.replace(/\D/g, "").slice(0, 8))} placeholder="AUTOMÁTICO" title="Correlativo editable: si lo defines, la numeración continúa desde aquí" style={{ ...ed, width: 118, fontSize: 13, fontWeight: 800, borderBottom: "none", textAlign: "left" }} />}
+                  ? <span style={{ fontSize: 11, fontWeight: 800 }}>{numeroPreview}</span>
+                  : <input value={form.correlativo_inicial} onChange={(e) => set("correlativo_inicial", e.target.value.replace(/\D/g, "").slice(0, 8))} placeholder="AUTOMÁTICO" title="Correlativo editable: si lo defines, la numeración continúa desde aquí" style={{ ...ed, width: 96, fontSize: 11, fontWeight: 800, borderBottom: "none", textAlign: "left" }} />}
               </div>
             </div>
-            <div style={{ fontSize: 8, color: C.muted, fontWeight: 700, marginTop: 5 }}>{etiquetaTipo}</div>
+            <div style={{ fontSize: 8.5, fontWeight: 700, marginTop: 4 }}>{etiquetaTipo}</div>
           </div>
         </header>
 
