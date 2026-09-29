@@ -106,7 +106,7 @@ export function HojaComprobante(props: {
         </header>
 
         <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr .8fr", gap: 16, background: C.soft, borderTop: `1px solid ${C.line}`, borderBottom: `1px solid ${C.line}`, padding: 13, marginTop: 17, fontSize: 10 }}>
-          <Bloque titulo={tipo === "09" ? "DESTINATARIO" : "ADQUIRENTE"}>
+          <Bloque titulo={tipo === "09" ? "DESTINATARIO" : "CLIENTE"}>
             <Linea etiqueta="RUC / DNI">
               <span style={{ display: "flex", gap: 4 }}>
                 <input value={form.cliente_numero_documento} onChange={(e) => set("cliente_numero_documento", e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void buscarCliente(); } }} placeholder="20601234567" style={ed} />
