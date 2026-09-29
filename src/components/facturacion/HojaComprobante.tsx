@@ -93,7 +93,7 @@ export function HojaComprobante(props: {
             <div style={{ fontFamily: '"Calibri Light", Calibri, Carlito, sans-serif', fontWeight: 300, fontSize: 8.5, marginTop: 2, lineHeight: 1.15, textAlign: "justify", textAlignLast: "right" }}>{empresa?.direccion || "—"}</div>
             <div style={{ fontFamily: '"Calibri Light", Calibri, Carlito, sans-serif', fontWeight: 300, fontSize: 8.5, marginTop: 2, lineHeight: 1.15, textAlign: "justify", textAlignLast: "right" }}>{empresa?.web || "—"}</div>
           </div>
-          <div style={{ width: 248, textAlign: "center", flexShrink: 0 }}>
+          <div style={{ width: 248, textAlign: "center", flexShrink: 0, display: "flex", flexDirection: "column", justifyContent: "center" }}>
             <div style={{ background: C.greenSoft, borderTop: `4px solid ${C.green}`, borderRadius: 5, padding: "10px 8px" }}>
               <select value={tipo} disabled={bloqueado} onChange={(e) => onTipoChange(e.target.value as TipoComprobante)} title="Tipo de comprobante" style={{ ...edSel, textAlign: "center", fontFamily: '"Calibri Light", Calibri, Carlito, sans-serif', fontSize: 10, fontWeight: 300, borderBottom: "none", whiteSpace: "nowrap" }}>
                 {PESTANAS_CPE.map((p) => <option key={p.tipo} value={p.tipo}>{p.corto}</option>)}
