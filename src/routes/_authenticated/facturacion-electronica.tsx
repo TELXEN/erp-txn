@@ -27,6 +27,7 @@ function FacturacionElectronica() {
   const [form, setForm] = useState<FormCpe>(() => nuevoFormCpe("01", SERIE_DEFECTO["01"]));
   const [items, setItems] = useState<ItemEditor[]>([itemComprobanteVacio()]);
   const [docs, setDocs] = useState<DocRelacionado[]>([docRelacionadoVacio()]);
+  const [cuotas, setCuotas] = useState<CuotaEditor[]>([]);
   const [busqueda, setBusqueda] = useState(""); const [error, setError] = useState(""); const [guardando, setGuardando] = useState(false); const [cargado, setCargado] = useState("");
   const [editando, setEditando] = useState<Comprobante | null>(null); const [porEliminar, setPorEliminar] = useState<Comprobante | null>(null);
 
