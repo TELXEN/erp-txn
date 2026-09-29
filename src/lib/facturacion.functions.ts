@@ -45,12 +45,12 @@ export const crearComprobanteElectronico = createServerFn({ method: "POST" })
     if (data.correlativo_inicial) {
       // El usuario definió el correlativo de inicio: se usa tal cual y la serie continúa desde ahí.
       filaNumero = { correlativo: data.correlativo_inicial, numero: `${serieFinal}-${String(data.correlativo_inicial).padStart(8, "0")}` };
-      const { data: serieRow } = await supabaseAdmin.from("series_comprobante").select("id, correlativo").eq("tipo_comprobante", data.tipo_comprobante).eq("serie", serieFinal).maybeSingle();
+      const { data: serieRow } = await supabaseAdmin.from("series_comprobante").select("id, correlativo_actual").eq("tipo_comprobante", data.tipo_comprobante).eq("serie", serieFinal).maybeSingle();
       if (serieRow) {
-        const fila = serieRow as { id: string; correlativo: number };
-        if (data.correlativo_inicial > fila.correlativo) await supabaseAdmin.from("series_comprobante").update({ correlativo: data.correlativo_inicial } as never).eq("id", fila.id);
+        const fila = serieRow as { id: string; correlativo_actual: number };
+        if (data.correlativo_inicial > fila.correlativo_actual) await supabaseAdmin.from("series_comprobante").update({ correlativo_actual: data.correlativo_inicial } as never).eq("id", fila.id);
       } else {
-        await supabaseAdmin.from("series_comprobante").insert({ tipo_comprobante: data.tipo_comprobante, serie: serieFinal, correlativo: data.correlativo_inicial, activo: true } as never);
+        await supabaseAdmin.from("series_comprobante").insert({ tipo_comprobante: data.tipo_comprobante, serie: serieFinal, correlativo_actual: data.correlativo_inicial, activo: true } as never);
       }
     } else {
       const { data: reservado, error: numeroError } = await supabaseAdmin.rpc("siguiente_numero_comprobante", { _tipo: data.tipo_comprobante, _serie: serieFinal });
