@@ -119,8 +119,8 @@ function FacturacionElectronica() {
         cliente_numero_documento: form.cliente_numero_documento, cliente_razon_social: form.cliente_razon_social, cliente_direccion: form.cliente_direccion, cliente_estado_sunat: form.cliente_estado_sunat, cliente_condicion_sunat: form.cliente_condicion_sunat,
         datos_guia: datosGuia, datos_regimen: datosRegimen, documentos_relacionados: relValidos.map((d) => ({ tipo: d.tipo, serie: d.serie, numero: d.numero, fecha: d.fecha || form.fecha_emision, importe: Number(d.importe || 0) })),
         motivo_baja: tipo === "RA" ? form.motivo_baja : "",
-        items: validos.map((x) => { const m = calcularItem(x, form.operacion_tipo); return { codigo: x.codigo, descripcion: x.descripcion.trim(), unidad_sunat: x.unidad_sunat, ...m, valor_unitario: m.valorUnitario, afectacion_igv: form.operacion_tipo === "gravada" ? ("10" as const) : form.operacion_tipo === "exonerada" ? ("20" as const) : ("30" as const) }; }),
-        cuotas,
+        items: validos.map((x) => { const m = calcularItem(x, form.operacion_tipo, Number(form.igv_tasa || 18)); return { codigo: x.codigo, descripcion: x.descripcion.trim(), unidad_sunat: x.unidad_sunat, ...m, valor_unitario: m.valorUnitario, afectacion_igv: form.operacion_tipo === "gravada" ? ("10" as const) : form.operacion_tipo === "exonerada" ? ("20" as const) : ("30" as const) }; }),
+        cuotas: cuotasPayload,
       };
       const res = editando ? await actualizar({ data: { ...payload, id: editando.id } }) : await crear({ data: { ...payload, emitir } });
       qc.invalidateQueries(); cerrar();
