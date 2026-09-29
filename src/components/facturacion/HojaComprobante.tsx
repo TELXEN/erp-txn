@@ -51,6 +51,8 @@ export function HojaComprobante(props: {
   totalRegimen: number; importeRegimen: number; onTipoChange: (t: TipoComprobante) => void; bloqueado: boolean;
 }) {
   const { form, setForm, items, setItems, docs, setDocs, cuotas, setCuotas, empresa, clientes, proyectos, refs, series, numeroPreview, montos, totalRegimen, importeRegimen, onTipoChange, bloqueado } = props;
+  const simbolo = form.moneda === "USD" ? "US$" : "S/";
+  const baseCuotas = montos.netoPagar ?? montos.total;
   const { data: cuentas = [] } = useQuery({ queryKey: ["bancos-cpe"], queryFn: async () => { const { data, error } = await supabase.from("bancos").select("nombre,numero_cuenta,cci,monedas,tipo_cuenta").eq("activo", true).order("nombre"); if (error) throw error; return (data ?? []) as CuentaCpe[]; } });
   const cuentaDet = cuentaDetraccionDe(cuentas);
   const buscarDoc = useServerFn(consultarDocumentoSunat); const buscarTc = useServerFn(consultarTipoCambio);
@@ -268,20 +270,25 @@ export function HojaComprobante(props: {
             <div style={{ background: C.greenSoft, borderTop: `3px solid ${C.green}`, padding: 11 }}>
               <b style={{ fontSize: 8, color: C.muted }}>FORMA DE PAGO</b>
               <div style={{ marginTop: 6, display: "grid", gap: 4 }}>
-                <Linea etiqueta="Condición"><select value={form.condicion_pago} onChange={(e) => { const v = e.target.value; setForm({ ...form, condicion_pago: v }); setCuotas(v === "Crédito" ? (cuotas.length ? cuotas : repartirCuotas(montos.total, [form.fecha_vencimiento])) : []); }} style={edSel}><option>Contado</option><option>Crédito</option></select></Linea>
+                <Linea etiqueta="Condición"><select value={form.condicion_pago} onChange={(e) => { const v = e.target.value; setForm({ ...form, condicion_pago: v }); setCuotas(v === "Crédito" ? (cuotas.length ? cuotas : repartirCuotas(baseCuotas, [form.fecha_vencimiento])) : []); }} style={edSel}><option>Contado</option><option>Crédito</option></select></Linea>
                 {form.condicion_pago === "Crédito" && <>
                   <Linea etiqueta="N° de cuotas">
                     <span style={{ display: "flex", gap: 5, alignItems: "center" }}>
-                      <input type="number" min="1" max="24" value={cuotas.length || 1} onChange={(e) => { const n = Math.max(1, Math.min(24, Number(e.target.value || 1))); const fechas = Array.from({ length: n }, (_, i) => cuotas[i]?.fecha || form.fecha_vencimiento); setCuotas(repartirCuotas(montos.total, fechas)); }} style={ed} />
-                      <button type="button" onClick={() => setCuotas(repartirCuotas(montos.total, cuotas.map((c) => c.fecha || form.fecha_vencimiento)))} title="Repartir el total en partes iguales" style={{ border: `1px solid ${C.green}`, color: C.green, background: C.white, borderRadius: 4, padding: "1px 6px", cursor: "pointer", fontSize: 8.5, whiteSpace: "nowrap" }}>Repartir</button>
+                      <input type="number" min="1" max="24" value={cuotas.length || 1} onChange={(e) => { const n = Math.max(1, Math.min(24, Number(e.target.value || 1))); const fechas = Array.from({ length: n }, (_, i) => cuotas[i]?.fecha || form.fecha_vencimiento); setCuotas(repartirCuotas(baseCuotas, fechas)); }} style={ed} />
+                      <button type="button" onClick={() => setCuotas(repartirCuotas(baseCuotas, cuotas.map((c) => c.fecha || form.fecha_vencimiento)))} title="Repartir el neto a pagar en partes iguales" style={{ border: `1px solid ${C.green}`, color: C.green, background: C.white, borderRadius: 4, padding: "1px 6px", cursor: "pointer", fontSize: 8.5, whiteSpace: "nowrap" }}>Repartir</button>
                     </span>
                   </Linea>
                   <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 4, fontSize: 9 }}>
-                    <thead><tr style={{ textAlign: "left", color: C.muted }}><th style={{ padding: "2px 0" }}>Cuota</th><th>Fecha de pago</th><th style={{ textAlign: "right" }}>Importe</th><th /></tr></thead>
+                    <thead><tr style={{ textAlign: "left", color: C.muted }}><th style={{ padding: "2px 0" }}>Cuota</th><th>Fecha de pago</th><th style={{ textAlign: "right" }}>Importe ({simbolo})</th><th /></tr></thead>
                     <tbody>{cuotas.map((q, i) => <tr key={i}>
                       <td style={{ padding: "2px 0", width: 42 }}>{String(i + 1).padStart(3, "0")}</td>
                       <td><input type="date" value={q.fecha} onChange={(e) => setCuotas(cuotas.map((c, n) => (n === i ? { ...c, fecha: e.target.value } : c)))} style={cel} /></td>
-                      <td style={{ width: 72 }}><input type="number" step="0.01" value={q.monto} onChange={(e) => setCuotas(cuotas.map((c, n) => (n === i ? { ...c, monto: e.target.value } : c)))} style={{ ...cel, textAlign: "right" }} /></td>
+                      <td style={{ width: 96 }}>
+                        <span style={{ display: "flex", alignItems: "center", border: `1px solid ${C.border}`, borderRadius: 3, background: C.white, overflow: "hidden" }}>
+                          <span style={{ padding: "0 4px", color: C.muted, fontSize: 8.5, borderRight: `1px solid ${C.border}`, background: C.greenSoft, whiteSpace: "nowrap" }}>{simbolo}</span>
+                          <input type="number" step="0.01" value={q.monto} onChange={(e) => setCuotas(cuotas.map((c, n) => (n === i ? { ...c, monto: e.target.value } : c)))} style={{ ...cel, border: "none", textAlign: "right", flex: 1 }} />
+                        </span>
+                      </td>
                       <td style={{ width: 18 }}><button type="button" title="Quitar cuota" onClick={() => setCuotas(cuotas.filter((_, n) => n !== i))} style={{ border: "none", background: "transparent", color: C.muted, cursor: "pointer" }}><Trash2 size={11} /></button></td>
                     </tr>)}</tbody>
                   </table>
