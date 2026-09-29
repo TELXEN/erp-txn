@@ -16,6 +16,7 @@ export function nuevoFormCpe(tipo: TipoComprobante, serie: string) {
     condicion_pago: "Contado", dias_credito: "0", tipo_tributario: "ninguno" as TipoTributarioCpe, pct_detraccion: "0", codigo_spot: "", orden_compra: "", observacion: "",
     cliente_numero_documento: "", cliente_razon_social: "", cliente_direccion: "", cliente_ciudad: "", cliente_estado_sunat: "", cliente_condicion_sunat: "",
     fecha_vencimiento: hoy(), guia_remision_numero: "", igv_tasa: "18", anticipo_tipo: "ninguno", anticipo_documento: "", anticipo_monto: "",
+    isc: "0", icbper: "0", otros_cargos: "0", otros_tributos: "0",
     guia_motivo: "01", guia_modalidad: "02", guia_fecha_traslado: hoy(), guia_transportista: "", guia_transportista_doc: "", guia_placa: "", guia_licencia: "",
     guia_peso: "", guia_bultos: "", guia_partida: "", guia_partida_ubigeo: "", guia_llegada: "", guia_llegada_ubigeo: "",
     regimen_tasa: tipo === "40" ? "2" : "3", motivo_baja: "01",
@@ -43,7 +44,7 @@ export function HojaComprobante(props: {
   refs: { id: string; numero: string; tipo_comprobante: string; total: number }[];
   series: { id: string; serie: string; tipo_comprobante: string }[];
   cuotas: CuotaEditor[]; setCuotas: (c: CuotaEditor[]) => void;
-  numeroPreview: string; montos: { valorVenta: number; igv: number; anticipo: number; total: number; montoDetraccion: number; montoRetencion: number };
+  numeroPreview: string; montos: { subTotalVentas: number; descuentos: number; valorVenta: number; isc: number; igv: number; icbper: number; otrosCargos: number; otrosTributos: number; redondeo: number; anticipo: number; total: number; montoDetraccion: number; montoRetencion: number };
   totalRegimen: number; importeRegimen: number; onTipoChange: (t: TipoComprobante) => void; bloqueado: boolean;
 }) {
   const { form, setForm, items, setItems, docs, setDocs, cuotas, setCuotas, empresa, clientes, proyectos, refs, series, numeroPreview, montos, totalRegimen, importeRegimen, onTipoChange, bloqueado } = props;
