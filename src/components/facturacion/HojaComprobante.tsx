@@ -200,7 +200,7 @@ export function HojaComprobante(props: {
             {usaImportes(tipo) && <>
               <td style={{ padding: 4, width: 74 }}><input type="number" step="0.01" value={x.valor_unitario} onChange={(e) => actualizarItem(i, "valor_unitario", e.target.value)} style={{ ...cel, textAlign: "right" }} /></td>
               <td style={{ padding: 4, width: 60 }}><input type="number" step="0.01" value={x.descuento} onChange={(e) => actualizarItem(i, "descuento", e.target.value)} style={{ ...cel, textAlign: "right" }} /></td>
-              <td style={{ padding: 6, width: 82, textAlign: "right", fontWeight: 700 }}>{money(calcularItem(x, form.operacion_tipo).subtotal)}</td>
+              <td style={{ padding: 6, width: 82, textAlign: "right", fontWeight: 700 }}>{money(calcularItem(x, form.operacion_tipo, Number(form.igv_tasa)).subtotal)}</td>
             </>}
             <td style={{ width: 22 }}><button type="button" title="Quitar" onClick={() => setItems(items.length === 1 ? [itemComprobanteVacio()] : items.filter((_, n) => n !== i))} style={{ border: "none", background: "transparent", color: C.muted, cursor: "pointer" }}><Trash2 size={13} /></button></td>
           </tr>)}</tbody>
