@@ -84,19 +84,19 @@ export function HojaComprobante(props: {
             <div style={{ fontSize: 9, color: C.text, marginTop: 5 }}>{empresa?.direccion}</div>
             <div style={{ fontSize: 9, color: C.text }}>{empresa?.telefono} · {empresa?.web}</div>
           </div>
-          <div style={{ width: 200, textAlign: "center" }}>
-            <div style={{ background: C.greenSoft, borderTop: `4px solid ${C.green}`, borderRadius: 5, padding: "11px 8px" }}>
-              <select value={tipo} disabled={bloqueado} onChange={(e) => onTipoChange(e.target.value as TipoComprobante)} style={{ ...edSel, textAlign: "center", fontSize: 11, fontWeight: 800, borderBottom: "none" }}>
+          <div style={{ width: 258, textAlign: "center" }}>
+            <div style={{ background: C.greenSoft, borderTop: `4px solid ${C.green}`, borderRadius: 5, padding: "11px 14px" }}>
+              <select value={tipo} disabled={bloqueado} onChange={(e) => onTipoChange(e.target.value as TipoComprobante)} style={{ ...edSel, textAlign: "center", fontSize: 11.5, fontWeight: 800, borderBottom: "none", whiteSpace: "nowrap" }}>
                 {PESTANAS_CPE.map((p) => <option key={p.tipo} value={p.tipo}>{p.corto}</option>)}
               </select>
               <div style={{ fontSize: 10, fontWeight: 700, marginTop: 5 }}>RUC: {empresa?.ruc || "—"}</div>
-              <div style={{ display: "flex", gap: 4, justifyContent: "center", alignItems: "center", marginTop: 3 }}>
-                <input value={form.serie} disabled={bloqueado} onChange={(e) => set("serie", e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 4))} list="cpe-series" title="Serie editable (4 caracteres)" style={{ ...ed, width: 46, fontSize: 13, fontWeight: 800, borderBottom: "none", textAlign: "right" }} />
+              <div style={{ display: "flex", gap: 5, justifyContent: "center", alignItems: "center", marginTop: 3 }}>
+                <input value={form.serie} disabled={bloqueado} onChange={(e) => set("serie", e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 4))} list="cpe-series" title="Serie editable (4 caracteres)" style={{ ...ed, width: 52, fontSize: 13, fontWeight: 800, borderBottom: "none", textAlign: "right" }} />
                 <datalist id="cpe-series">{series.filter((s) => s.tipo_comprobante === tipo).map((s) => <option key={s.id} value={s.serie} />)}</datalist>
                 <span style={{ fontSize: 13, fontWeight: 800 }}>-</span>
                 {bloqueado
                   ? <span style={{ fontSize: 13, fontWeight: 800 }}>{numeroPreview}</span>
-                  : <input value={form.correlativo_inicial} onChange={(e) => set("correlativo_inicial", e.target.value.replace(/\D/g, "").slice(0, 8))} placeholder="AUTOMÁTICO" title="Correlativo editable: si lo defines, la numeración continúa desde aquí" style={{ ...ed, width: 86, fontSize: 13, fontWeight: 800, borderBottom: "none", textAlign: "left" }} />}
+                  : <input value={form.correlativo_inicial} onChange={(e) => set("correlativo_inicial", e.target.value.replace(/\D/g, "").slice(0, 8))} placeholder="AUTOMÁTICO" title="Correlativo editable: si lo defines, la numeración continúa desde aquí" style={{ ...ed, width: 118, fontSize: 13, fontWeight: 800, borderBottom: "none", textAlign: "left" }} />}
               </div>
             </div>
             <div style={{ fontSize: 8, color: C.muted, fontWeight: 700, marginTop: 5 }}>{etiquetaTipo}</div>
