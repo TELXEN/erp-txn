@@ -1,5 +1,4 @@
 import { CuentasComprobante, cuentaDetraccionDe, ordenarCuentas, esDetraccion, type CuentaCpe } from "@/components/facturacion/CuentasComprobante";
-import { desgloseDetraccion } from "@/lib/facturacion";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
