@@ -85,6 +85,16 @@ export const CODIGOS_SPOT = [
 export type ItemEditor = { codigo: string; descripcion: string; unidad_sunat: string; cantidad: string; valor_unitario: string; descuento: string };
 export const itemComprobanteVacio = (): ItemEditor => ({ codigo: "", descripcion: "", unidad_sunat: "ZZ", cantidad: "1", valor_unitario: "", descuento: "0" });
 
+/** Cuota editable de una venta al crédito. */
+export type CuotaEditor = { fecha: string; monto: string };
+export const cuotaVacia = (fecha = ""): CuotaEditor => ({ fecha, monto: "" });
+/** Reparte el total en n cuotas iguales, ajustando la última por redondeo. */
+export function repartirCuotas(total: number, fechas: string[]): CuotaEditor[] {
+  const n = Math.max(1, fechas.length);
+  const base = Math.floor((total / n) * 100) / 100;
+  return fechas.map((fecha, i) => ({ fecha, monto: (i === n - 1 ? Number((total - base * (n - 1)).toFixed(2)) : base).toFixed(2) }));
+}
+
 /** Tasas de IGV permitidas: general 18% y especial 10% + 0.5% (Ley 31556). */
 export const TASAS_IGV = [["18", "18% · Tasa general"], ["10.5", "10.5% · Tasa especial"]] as const;
 export type AnticipoTipo = "ninguno" | "anticipo" | "deduccion";
