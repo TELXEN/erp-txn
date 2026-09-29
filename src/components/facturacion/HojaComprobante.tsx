@@ -84,9 +84,9 @@ export function HojaComprobante(props: {
             <div style={{ fontSize: 9, color: C.text, marginTop: 5 }}>{empresa?.direccion}</div>
             <div style={{ fontSize: 9, color: C.text }}>{empresa?.telefono} · {empresa?.web}</div>
           </div>
-          <div style={{ width: 258, textAlign: "center" }}>
-            <div style={{ background: C.greenSoft, borderTop: `4px solid ${C.green}`, borderRadius: 5, padding: "11px 14px" }}>
-              <select value={tipo} disabled={bloqueado} onChange={(e) => onTipoChange(e.target.value as TipoComprobante)} style={{ ...edSel, textAlign: "center", fontSize: 11.5, fontWeight: 800, borderBottom: "none", whiteSpace: "nowrap" }}>
+          <div style={{ width: 316, textAlign: "center" }}>
+            <div style={{ background: C.greenSoft, borderTop: `4px solid ${C.green}`, borderRadius: 5, padding: "11px 12px" }}>
+              <select value={tipo} disabled={bloqueado} onChange={(e) => onTipoChange(e.target.value as TipoComprobante)} style={{ ...edSel, textAlign: "center", fontSize: 10.5, fontWeight: 800, borderBottom: "none", whiteSpace: "nowrap" }}>
                 {PESTANAS_CPE.map((p) => <option key={p.tipo} value={p.tipo}>{p.corto}</option>)}
               </select>
               <div style={{ fontSize: 10, fontWeight: 700, marginTop: 5 }}>RUC: {empresa?.ruc || "—"}</div>
