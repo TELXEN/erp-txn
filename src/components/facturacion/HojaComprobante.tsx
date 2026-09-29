@@ -11,7 +11,7 @@ const N = (n: number) => Number(n || 0).toLocaleString("es-PE", { minimumFractio
 export type FormCpe = ReturnType<typeof nuevoFormCpe>;
 export function nuevoFormCpe(tipo: TipoComprobante, serie: string) {
   return {
-    tipo_comprobante: tipo, serie, cliente_id: "", proyecto_id: "", referencia_id: "", motivo_nota_codigo: tipo === "07" ? "01" : tipo === "08" ? "01" : "",
+    tipo_comprobante: tipo, serie, correlativo_inicial: "", cliente_id: "", proyecto_id: "", referencia_id: "", motivo_nota_codigo: tipo === "07" ? "01" : tipo === "08" ? "01" : "",
     motivo_nota_descripcion: "", fecha_emision: hoy(), moneda: "PEN" as "PEN" | "USD", tipo_cambio: "3.750", operacion_tipo: "gravada" as OperacionTipo,
     condicion_pago: "Contado", dias_credito: "0", tipo_tributario: "ninguno" as TipoTributarioCpe, pct_detraccion: "0", codigo_spot: "", orden_compra: "", observacion: "",
     cliente_numero_documento: "", cliente_razon_social: "", cliente_direccion: "", cliente_estado_sunat: "", cliente_condicion_sunat: "",
@@ -91,10 +91,12 @@ export function HojaComprobante(props: {
               </select>
               <div style={{ fontSize: 10, fontWeight: 700, marginTop: 5 }}>RUC: {empresa?.ruc || "—"}</div>
               <div style={{ display: "flex", gap: 4, justifyContent: "center", alignItems: "center", marginTop: 3 }}>
-                <select value={form.serie} disabled={bloqueado} onChange={(e) => set("serie", e.target.value)} style={{ ...edSel, width: 62, fontSize: 13, fontWeight: 800, borderBottom: "none", textAlign: "right" }}>
-                  {series.filter((s) => s.tipo_comprobante === tipo).map((s) => <option key={s.id}>{s.serie}</option>)}
-                </select>
-                <span style={{ fontSize: 13, fontWeight: 800 }}>- {numeroPreview}</span>
+                <input value={form.serie} disabled={bloqueado} onChange={(e) => set("serie", e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 4))} list="cpe-series" title="Serie editable (4 caracteres)" style={{ ...ed, width: 46, fontSize: 13, fontWeight: 800, borderBottom: "none", textAlign: "right" }} />
+                <datalist id="cpe-series">{series.filter((s) => s.tipo_comprobante === tipo).map((s) => <option key={s.id} value={s.serie} />)}</datalist>
+                <span style={{ fontSize: 13, fontWeight: 800 }}>-</span>
+                {bloqueado
+                  ? <span style={{ fontSize: 13, fontWeight: 800 }}>{numeroPreview}</span>
+                  : <input value={form.correlativo_inicial} onChange={(e) => set("correlativo_inicial", e.target.value.replace(/\D/g, "").slice(0, 8))} placeholder="AUTOMÁTICO" title="Correlativo editable: si lo defines, la numeración continúa desde aquí" style={{ ...ed, width: 86, fontSize: 13, fontWeight: 800, borderBottom: "none", textAlign: "left" }} />}
               </div>
             </div>
             <div style={{ fontSize: 8, color: C.muted, fontWeight: 700, marginTop: 5 }}>{etiquetaTipo}</div>

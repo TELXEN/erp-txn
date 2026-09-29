@@ -6,7 +6,7 @@ const itemSchema = z.object({ codigo: z.string().max(40), descripcion: z.string(
 const cuotaSchema = z.object({ numero: z.number().int().positive(), fecha_vencimiento: z.string().date(), monto: z.number().positive() });
 const docRelSchema = z.object({ tipo: z.string().max(4), serie: z.string().max(8), numero: z.string().max(20), fecha: z.string().max(10), importe: z.number().nonnegative() });
 const inputSchema = z.object({
-  tipo_comprobante: z.enum(["01", "03", "07", "08", "09", "20", "40", "RA"]), serie: z.string().min(4).max(4), preliquidacion_id: z.string().uuid().nullable(), proyecto_id: z.string().uuid().nullable(), cliente_id: z.string().uuid().nullable(), comprobante_referencia_id: z.string().uuid().nullable(), motivo_nota_codigo: z.string().max(8), motivo_nota_descripcion: z.string().max(300), fecha_emision: z.string().date(), fecha_vencimiento: z.string().date().nullable(), moneda: z.enum(["PEN", "USD"]), tipo_cambio: z.number().positive(), operacion_tipo: z.enum(["gravada", "exonerada", "inafecta"]), valor_venta: z.number().nonnegative(), total_descuentos: z.number().nonnegative(), igv: z.number().nonnegative(), total: z.number().nonnegative(), total_soles: z.number().nonnegative(), total_letras: z.string().max(500), condicion_pago: z.enum(["Contado", "Crédito"]), dias_credito: z.number().int().nonnegative(), tipo_tributario: z.enum(["detraccion", "retencion", "ninguno"]), codigo_spot: z.string().max(8), pct_detraccion: z.number().min(0).max(100), monto_detraccion: z.number().nonnegative(), monto_retencion: z.number().nonnegative(), orden_compra: z.string().max(160), observacion: z.string().max(1000), emitir: z.boolean(), items: z.array(itemSchema).default([]), cuotas: z.array(cuotaSchema).max(24).default([]),
+  tipo_comprobante: z.enum(["01", "03", "07", "08", "09", "20", "40", "RA"]), serie: z.string().min(4).max(4), correlativo_inicial: z.number().int().positive().nullable(), preliquidacion_id: z.string().uuid().nullable(), proyecto_id: z.string().uuid().nullable(), cliente_id: z.string().uuid().nullable(), comprobante_referencia_id: z.string().uuid().nullable(), motivo_nota_codigo: z.string().max(8), motivo_nota_descripcion: z.string().max(300), fecha_emision: z.string().date(), fecha_vencimiento: z.string().date().nullable(), moneda: z.enum(["PEN", "USD"]), tipo_cambio: z.number().positive(), operacion_tipo: z.enum(["gravada", "exonerada", "inafecta"]), valor_venta: z.number().nonnegative(), total_descuentos: z.number().nonnegative(), igv: z.number().nonnegative(), total: z.number().nonnegative(), total_soles: z.number().nonnegative(), total_letras: z.string().max(500), condicion_pago: z.enum(["Contado", "Crédito"]), dias_credito: z.number().int().nonnegative(), tipo_tributario: z.enum(["detraccion", "retencion", "ninguno"]), codigo_spot: z.string().max(8), pct_detraccion: z.number().min(0).max(100), monto_detraccion: z.number().nonnegative(), monto_retencion: z.number().nonnegative(), orden_compra: z.string().max(160), observacion: z.string().max(1000), emitir: z.boolean(), items: z.array(itemSchema).default([]), cuotas: z.array(cuotaSchema).max(24).default([]),
   cliente_numero_documento: z.string().max(20).default(""), cliente_razon_social: z.string().max(200).default(""), cliente_direccion: z.string().max(300).default(""), cliente_estado_sunat: z.string().max(40).default(""), cliente_condicion_sunat: z.string().max(40).default(""),
   datos_guia: z.record(z.string(), z.string()).default({}), datos_regimen: z.record(z.string(), z.string()).default({}), documentos_relacionados: z.array(docRelSchema).max(200).default([]), motivo_baja: z.string().max(300).default(""),
 });
@@ -40,14 +40,28 @@ export const crearComprobanteElectronico = createServerFn({ method: "POST" })
     if (data.condicion_pago === "Crédito" && Math.abs(data.cuotas.reduce((s, c) => s + c.monto, 0) - data.total) > 0.05) throw new Error("Las cuotas deben sumar el total del comprobante.");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: reservado, error: numeroError } = await supabaseAdmin.rpc("siguiente_numero_comprobante", { _tipo: data.tipo_comprobante, _serie: data.serie.toUpperCase() });
-    if (numeroError) throw new Error(numeroError.message);
-    const filaNumero = reservado?.[0];
-    if (!filaNumero) throw new Error("No se pudo reservar el número del comprobante.");
+    const serieFinal = data.serie.toUpperCase();
+    let filaNumero: { correlativo: number; numero: string };
+    if (data.correlativo_inicial) {
+      // El usuario definió el correlativo de inicio: se usa tal cual y la serie continúa desde ahí.
+      filaNumero = { correlativo: data.correlativo_inicial, numero: `${serieFinal}-${String(data.correlativo_inicial).padStart(8, "0")}` };
+      const { data: serieRow } = await supabaseAdmin.from("series_comprobante").select("id, correlativo").eq("tipo_comprobante", data.tipo_comprobante).eq("serie", serieFinal).maybeSingle();
+      if (serieRow) {
+        const fila = serieRow as { id: string; correlativo: number };
+        if (data.correlativo_inicial > fila.correlativo) await supabaseAdmin.from("series_comprobante").update({ correlativo: data.correlativo_inicial } as never).eq("id", fila.id);
+      } else {
+        await supabaseAdmin.from("series_comprobante").insert({ tipo_comprobante: data.tipo_comprobante, serie: serieFinal, correlativo: data.correlativo_inicial, activo: true } as never);
+      }
+    } else {
+      const { data: reservado, error: numeroError } = await supabaseAdmin.rpc("siguiente_numero_comprobante", { _tipo: data.tipo_comprobante, _serie: serieFinal });
+      if (numeroError) throw new Error(numeroError.message);
+      filaNumero = reservado?.[0];
+      if (!filaNumero) throw new Error("No se pudo reservar el número del comprobante.");
+    }
     const estadoFiscal = data.emitir ? "Emitido - Pendiente SUNAT" : "Borrador";
     const qrPayload = data.emitir ? JSON.stringify({ ruc: "", tipo: data.tipo_comprobante, numero: filaNumero.numero, fecha: data.fecha_emision, igv: data.igv, total: data.total }) : "";
     const payloadFiscal = { version: "1.0", proveedor: null, documento: { tipo: data.tipo_comprobante, serie: data.serie.toUpperCase(), correlativo: filaNumero.correlativo }, moneda: data.moneda, operacion: data.operacion_tipo, totales: { valorVenta: data.valor_venta, igv: data.igv, total: data.total }, items: data.items };
-    const { data: comprobante, error: comprobanteError } = await supabaseAdmin.from("comprobantes_electronicos").insert({ ...data, items: undefined, cuotas: undefined, emitir: undefined, correlativo: filaNumero.correlativo, numero: filaNumero.numero, estado_fiscal: estadoFiscal, detraccion_estado: data.monto_detraccion > 0 ? "Pendiente" : "No aplica", qr_payload: qrPayload, payload_fiscal: payloadFiscal, creado_por: context.userId } as never).select("id, numero").single();
+    const { data: comprobante, error: comprobanteError } = await supabaseAdmin.from("comprobantes_electronicos").insert({ ...data, items: undefined, cuotas: undefined, emitir: undefined, correlativo_inicial: undefined, correlativo: filaNumero.correlativo, numero: filaNumero.numero, estado_fiscal: estadoFiscal, detraccion_estado: data.monto_detraccion > 0 ? "Pendiente" : "No aplica", qr_payload: qrPayload, payload_fiscal: payloadFiscal, creado_por: context.userId } as never).select("id, numero").single();
     if (comprobanteError || !comprobante) throw new Error(comprobanteError?.message ?? "No se pudo guardar el comprobante.");
     const comprobanteId = (comprobante as { id: string; numero: string }).id;
     if (data.items.length) {
@@ -87,7 +101,7 @@ export const actualizarBorradorComprobante = createServerFn({ method: "POST" })
     if (actualError || !actual) throw new Error("No se encontró el comprobante.");
     if (actual.estado_fiscal !== "Borrador") throw new Error("Solo se pueden editar comprobantes en borrador.");
 
-    const { id, items, cuotas, tipo_comprobante: _tipo, serie: _serie, ...campos } = data;
+    const { id, items, cuotas, tipo_comprobante: _tipo, serie: _serie, correlativo_inicial: _corr, ...campos } = data;
     const payloadFiscal = {
       version: "1.0",
       proveedor: null,
