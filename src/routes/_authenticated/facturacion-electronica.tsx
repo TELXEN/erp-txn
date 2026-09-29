@@ -99,8 +99,11 @@ function FacturacionElectronica() {
       const conImportes = usaImportes(tipo);
       const esCredito = conImportes && form.condicion_pago === "Crédito";
       const fechaVenc = form.fecha_vencimiento || (esCredito ? calcularVencimiento(form.fecha_emision, Number(form.dias_credito)) : form.fecha_emision);
-      const listaCuotas = cuotas.length ? cuotas : repartirCuotas(montos.total, [fechaVenc]);
-      const cuotasPayload = esCredito ? listaCuotas.map((q, i) => ({ numero: i + 1, fecha_vencimiento: q.fecha || fechaVenc, monto: Number(q.monto || 0) })) : [];
+      const baseCuotas = Number(montos.netoPagar ?? montos.total);
+      const sumaActual = cuotas.reduce((s, q) => s + Number(q.monto || 0), 0);
+      const cuotasValidas = cuotas.length > 0 && cuotas.every((q) => Number(q.monto || 0) > 0) && Math.abs(sumaActual - baseCuotas) <= 0.05;
+      const listaCuotas = cuotasValidas ? cuotas : repartirCuotas(baseCuotas, cuotas.length ? cuotas.map((q) => q.fecha || fechaVenc) : [fechaVenc]);
+      const cuotasPayload = esCredito && baseCuotas > 0 ? listaCuotas.map((q, i) => ({ numero: i + 1, fecha_vencimiento: q.fecha || fechaVenc, monto: Number(q.monto || 0) })).filter((q) => q.monto > 0) : [];
       const totalDoc = conImportes ? montos.total : tipo === "20" || tipo === "40" ? importeRegimen : 0;
       const datosGuia = tipo === "09" ? { guia_motivo: form.guia_motivo, guia_modalidad: form.guia_modalidad, guia_fecha_traslado: form.guia_fecha_traslado, guia_transportista: form.guia_transportista, guia_transportista_doc: form.guia_transportista_doc, guia_placa: form.guia_placa, guia_licencia: form.guia_licencia, guia_peso: form.guia_peso, guia_bultos: form.guia_bultos, guia_partida: form.guia_partida, guia_partida_ubigeo: form.guia_partida_ubigeo, guia_llegada: form.guia_llegada, guia_llegada_ubigeo: form.guia_llegada_ubigeo } : {};
       const datosRegimen = tipo === "20" || tipo === "40" ? { tasa: form.regimen_tasa, total_comprobantes: String(totalRegimen), importe: String(importeRegimen) } : {};

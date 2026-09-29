@@ -39,7 +39,12 @@ export const crearComprobanteElectronico = createServerFn({ method: "POST" })
     if (["01", "03", "07", "08", "09"].includes(data.tipo_comprobante) && !data.items.length) throw new Error("Agrega al menos un concepto.");
     if (conImportes && Math.abs(data.items.reduce((s, i) => s + i.total, 0) - data.total) > 0.05) throw new Error("Los totales del comprobante no coinciden con sus ítems.");
 
-    if (data.condicion_pago === "Crédito" && Math.abs(data.cuotas.reduce((s, c) => s + c.monto, 0) - data.total) > 0.05) throw new Error("Las cuotas deben sumar el total del comprobante.");
+    if (data.condicion_pago === "Crédito" && data.cuotas.length) {
+      const suma = data.cuotas.reduce((s, c) => s + c.monto, 0);
+      const descuentoRegimen = data.tipo_tributario === "detraccion" ? data.monto_detraccion / (data.moneda === "USD" ? data.tipo_cambio || 1 : 1) : data.tipo_tributario === "retencion" ? data.monto_retencion / (data.moneda === "USD" ? data.tipo_cambio || 1 : 1) : 0;
+      const neto = data.total - descuentoRegimen;
+      if (Math.abs(suma - data.total) > 0.05 && Math.abs(suma - neto) > 0.05) throw new Error("Las cuotas deben sumar el neto a pagar del comprobante.");
+    }
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const serieFinal = data.serie.toUpperCase();
