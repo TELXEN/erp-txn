@@ -284,8 +284,8 @@ export function HojaComprobante(props: {
                       <td style={{ padding: "2px 0", width: 42 }}>{String(i + 1).padStart(3, "0")}</td>
                       <td><input type="date" value={q.fecha} onChange={(e) => setCuotas(cuotas.map((c, n) => (n === i ? { ...c, fecha: e.target.value } : c)))} style={cel} /></td>
                       <td style={{ width: 96 }}>
-                        <span style={{ display: "flex", alignItems: "center", border: `1px solid ${C.border}`, borderRadius: 3, background: C.white, overflow: "hidden" }}>
-                          <span style={{ padding: "0 4px", color: C.muted, fontSize: 8.5, borderRight: `1px solid ${C.border}`, background: C.greenSoft, whiteSpace: "nowrap" }}>{simbolo}</span>
+                        <span style={{ display: "flex", alignItems: "center", border: `1px solid ${C.line}`, borderRadius: 3, background: C.white, overflow: "hidden" }}>
+                          <span style={{ padding: "0 4px", color: C.muted, fontSize: 8.5, borderRight: `1px solid ${C.line}`, background: C.greenSoft, whiteSpace: "nowrap" }}>{simbolo}</span>
                           <input type="number" step="0.01" value={q.monto} onChange={(e) => setCuotas(cuotas.map((c, n) => (n === i ? { ...c, monto: e.target.value } : c)))} style={{ ...cel, border: "none", textAlign: "right", flex: 1 }} />
                         </span>
                       </td>
@@ -293,7 +293,7 @@ export function HojaComprobante(props: {
                     </tr>)}</tbody>
                   </table>
                   <button type="button" onClick={() => setCuotas([...cuotas, cuotaVacia(form.fecha_vencimiento)])} style={{ marginTop: 4, fontSize: 9, border: `1px dashed ${C.green}`, color: C.green, background: C.white, borderRadius: 4, padding: "2px 7px", cursor: "pointer", display: "inline-flex", gap: 3, alignItems: "center" }}><Plus size={11} />Agregar cuota</button>
-                  <div style={{ marginTop: 4, display: "flex", justifyContent: "space-between", fontWeight: 700 }}><span>Suma de cuotas</span><span>{money(cuotas.reduce((s, c) => s + Number(c.monto || 0), 0))}</span></div>
+                  <div style={{ marginTop: 4, display: "flex", justifyContent: "space-between", fontWeight: 700 }}><span>Suma de cuotas (neto a pagar: {money(baseCuotas)})</span><span>{money(cuotas.reduce((s, c) => s + Number(c.monto || 0), 0))}</span></div>
                 </>}
               </div>
             </div>
