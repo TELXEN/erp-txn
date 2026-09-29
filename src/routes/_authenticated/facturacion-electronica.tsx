@@ -67,8 +67,12 @@ function FacturacionElectronica() {
   async function editarBorrador(x: Comprobante) {
     setError(""); setGuardando(true);
     try {
-      const { data: filas, error: itemsError } = await supabase.from("comprobante_items").select("*").eq("comprobante_id", x.id).order("orden");
+      const [{ data: filas, error: itemsError }, { data: filasCuotas, error: cuotasError }] = await Promise.all([
+        supabase.from("comprobante_items").select("*").eq("comprobante_id", x.id).order("orden"),
+        supabase.from("comprobante_cuotas").select("*").eq("comprobante_id", x.id).order("numero"),
+      ]);
       if (itemsError) throw itemsError;
+      if (cuotasError) throw cuotasError;
       const guia = (x.datos_guia ?? {}) as Record<string, string>; const regimen = (x.datos_regimen ?? {}) as Record<string, string>;
       const base = nuevoFormCpe(x.tipo_comprobante as TipoComprobante, x.serie);
       setEditando(x); setPestana(x.tipo_comprobante as TipoComprobante);
