@@ -293,7 +293,7 @@ export function HojaComprobante(props: {
                     </tr>)}</tbody>
                   </table>
                   <button type="button" onClick={() => setCuotas([...cuotas, cuotaVacia(form.fecha_vencimiento)])} style={{ marginTop: 4, fontSize: 9, border: `1px dashed ${C.green}`, color: C.green, background: C.white, borderRadius: 4, padding: "2px 7px", cursor: "pointer", display: "inline-flex", gap: 3, alignItems: "center" }}><Plus size={11} />Agregar cuota</button>
-                  <div style={{ marginTop: 4, display: "flex", justifyContent: "space-between", fontWeight: 700 }}><span>Suma de cuotas</span><span>{money(cuotas.reduce((s, c) => s + Number(c.monto || 0), 0))}</span></div>
+                  <div style={{ marginTop: 4, display: "flex", justifyContent: "space-between", fontWeight: 700 }}><span>Suma de cuotas (neto a pagar: {money(baseCuotas)})</span><span>{money(cuotas.reduce((s, c) => s + Number(c.monto || 0), 0))}</span></div>
                 </>}
               </div>
             </div>
