@@ -56,13 +56,13 @@ function FacturacionElectronica() {
 
   function abrirNuevo(t: TipoComprobante) {
     const serie = series.find((s) => s.tipo_comprobante === t)?.serie ?? SERIE_DEFECTO[t];
-    setEditando(null); setError(""); setForm(nuevoFormCpe(t, serie)); setItems([itemComprobanteVacio()]); setDocs([docRelacionadoVacio()]); setAbierto(true);
+    setEditando(null); setError(""); setForm(nuevoFormCpe(t, serie)); setItems([itemComprobanteVacio()]); setDocs([docRelacionadoVacio()]); setCuotas([]); setAbierto(true);
   }
   function cambiarTipo(t: TipoComprobante) {
     const serie = series.find((s) => s.tipo_comprobante === t)?.serie ?? SERIE_DEFECTO[t];
     setPestana(t); setForm({ ...form, tipo_comprobante: t, serie, referencia_id: t === "07" || t === "08" ? form.referencia_id : "" });
   }
-  function cerrar() { setAbierto(false); setEditando(null); setForm(nuevoFormCpe(pestana, SERIE_DEFECTO[pestana])); setItems([itemComprobanteVacio()]); setDocs([docRelacionadoVacio()]); }
+  function cerrar() { setAbierto(false); setEditando(null); setForm(nuevoFormCpe(pestana, SERIE_DEFECTO[pestana])); setItems([itemComprobanteVacio()]); setDocs([docRelacionadoVacio()]); setCuotas([]); }
 
   async function editarBorrador(x: Comprobante) {
     setError(""); setGuardando(true);
