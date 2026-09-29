@@ -143,15 +143,15 @@ export function HojaComprobante(props: {
             </>}
           </Bloque>
           <Bloque titulo="EMISIÓN">
-            <Linea etiqueta="Fecha"><input type="date" value={form.fecha_emision} onChange={(e) => set("fecha_emision", e.target.value)} style={ed} /></Linea>
+            <Linea etiqueta="Emisión"><input type="date" value={form.fecha_emision} onChange={(e) => set("fecha_emision", e.target.value)} style={ed} /></Linea>
             <Linea etiqueta="Vencimiento"><input type="date" value={form.fecha_vencimiento} onChange={(e) => set("fecha_vencimiento", e.target.value)} style={ed} /></Linea>
             <Linea etiqueta="Moneda"><select value={form.moneda} onChange={(e) => set("moneda", e.target.value)} style={edSel}><option value="PEN">Soles</option><option value="USD">Dólares</option></select></Linea>
-            <Linea etiqueta="T. cambio">
+            {form.moneda === "USD" && <Linea etiqueta="T. cambio">
               <span style={{ display: "flex", gap: 4 }}>
-                <input type="number" step="0.001" value={form.tipo_cambio} disabled={form.moneda === "PEN"} onChange={(e) => set("tipo_cambio", e.target.value)} style={ed} />
+                <input type="number" step="0.001" value={form.tipo_cambio} onChange={(e) => set("tipo_cambio", e.target.value)} style={ed} />
                 <button type="button" onClick={() => void traerTipoCambio()} disabled={buscando} title="Tipo de cambio oficial del día" style={{ border: `1px solid ${C.green}`, color: C.green, background: C.white, borderRadius: 4, padding: "0 6px", cursor: "pointer" }}><Search size={12} /></button>
               </span>
-            </Linea>
+            </Linea>}
           </Bloque>
         </div>
         {aviso && <div style={{ fontSize: 9, color: C.greenDark, background: C.greenSoft, padding: "5px 9px", marginTop: 6 }}>{aviso}</div>}
