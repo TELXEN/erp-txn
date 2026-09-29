@@ -227,15 +227,52 @@ export function HojaComprobante(props: {
               <select value={form.operacion_tipo} onChange={(e) => set("operacion_tipo", e.target.value)} style={{ ...edSel, width: 160, borderBottom: "none" }}><option value="gravada">Op. gravada</option><option value="exonerada">Op. exonerada</option><option value="inafecta">Op. inafecta</option></select>
               <span>{money(montos.valorVenta)}</span>
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", padding: 6, borderBottom: `1px solid ${C.line}` }}><span>IGV {form.operacion_tipo === "gravada" ? "18%" : "0%"}</span><span>{money(montos.igv)}</span></div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: 6, borderBottom: `1px solid ${C.line}` }}>
+              <span style={{ display: "flex", alignItems: "center", gap: 4 }}>IGV
+                {form.operacion_tipo === "gravada"
+                  ? <select value={form.igv_tasa} onChange={(e) => set("igv_tasa", e.target.value)} title="Tasa de IGV aplicada" style={{ ...edSel, width: 62, borderBottom: "none" }}>{TASAS_IGV.map(([v]) => <option key={v} value={v}>{v}%</option>)}</select>
+                  : <b>0%</b>}
+              </span>
+              <span>{money(montos.igv)}</span>
+            </div>
+            {montos.anticipo > 0 && <div style={{ display: "flex", justifyContent: "space-between", padding: 6, borderBottom: `1px solid ${C.line}` }}><span>(−) Anticipo deducido</span><span>− {money(montos.anticipo)}</span></div>}
             <div style={{ display: "flex", justifyContent: "space-between", padding: 11, background: C.ink, color: C.white, fontWeight: 800, fontSize: 12 }}><span>IMPORTE TOTAL</span><span>{money(montos.total)}</span></div>
+          </div>
+          <div style={{ marginTop: 12, background: C.greenSoft, borderTop: `3px solid ${C.green}`, padding: 11, fontSize: 9.5 }}>
+            <label style={{ display: "flex", gap: 6, alignItems: "center", fontWeight: 700, cursor: "pointer" }}>
+              <input type="checkbox" checked={form.anticipo_tipo !== "ninguno"} onChange={(e) => setForm({ ...form, anticipo_tipo: e.target.checked ? "anticipo" : "ninguno", anticipo_documento: "", anticipo_monto: "" })} />
+              AÑADIR ANTICIPO
+            </label>
+            {form.anticipo_tipo !== "ninguno" && <div style={{ marginTop: 7, display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
+              <Linea etiqueta="Modalidad"><select value={form.anticipo_tipo} onChange={(e) => set("anticipo_tipo", e.target.value)} style={edSel}><option value="anticipo">Factura por pago anticipado</option><option value="deduccion">Factura que resta anticipos</option></select></Linea>
+              <Linea etiqueta="Comprobante"><input value={form.anticipo_documento} onChange={(e) => set("anticipo_documento", e.target.value.toUpperCase())} placeholder="F001-00000012" style={ed} /></Linea>
+              <Linea etiqueta="Importe"><input type="number" step="0.01" min="0" value={form.anticipo_monto} onChange={(e) => set("anticipo_monto", e.target.value)} disabled={form.anticipo_tipo === "anticipo"} style={ed} /></Linea>
+            </div>}
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 14, fontSize: 9.5 }}>
             <div style={{ background: C.greenSoft, borderTop: `3px solid ${C.green}`, padding: 11 }}>
               <b style={{ fontSize: 8, color: C.muted }}>FORMA DE PAGO</b>
               <div style={{ marginTop: 6, display: "grid", gap: 4 }}>
-                <Linea etiqueta="Condición"><select value={form.condicion_pago} onChange={(e) => set("condicion_pago", e.target.value)} style={edSel}><option>Contado</option><option>Crédito</option></select></Linea>
-                {form.condicion_pago === "Crédito" && <Linea etiqueta="Días"><input type="number" min="0" value={form.dias_credito} onChange={(e) => set("dias_credito", e.target.value)} style={ed} /></Linea>}
+                <Linea etiqueta="Condición"><select value={form.condicion_pago} onChange={(e) => { const v = e.target.value; setForm({ ...form, condicion_pago: v }); setCuotas(v === "Crédito" ? (cuotas.length ? cuotas : repartirCuotas(montos.total, [form.fecha_vencimiento])) : []); }} style={edSel}><option>Contado</option><option>Crédito</option></select></Linea>
+                {form.condicion_pago === "Crédito" && <>
+                  <Linea etiqueta="N° de cuotas">
+                    <span style={{ display: "flex", gap: 5, alignItems: "center" }}>
+                      <input type="number" min="1" max="24" value={cuotas.length || 1} onChange={(e) => { const n = Math.max(1, Math.min(24, Number(e.target.value || 1))); const fechas = Array.from({ length: n }, (_, i) => cuotas[i]?.fecha || form.fecha_vencimiento); setCuotas(repartirCuotas(montos.total, fechas)); }} style={ed} />
+                      <button type="button" onClick={() => setCuotas(repartirCuotas(montos.total, cuotas.map((c) => c.fecha || form.fecha_vencimiento)))} title="Repartir el total en partes iguales" style={{ border: `1px solid ${C.green}`, color: C.green, background: C.white, borderRadius: 4, padding: "1px 6px", cursor: "pointer", fontSize: 8.5, whiteSpace: "nowrap" }}>Repartir</button>
+                    </span>
+                  </Linea>
+                  <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 4, fontSize: 9 }}>
+                    <thead><tr style={{ textAlign: "left", color: C.muted }}><th style={{ padding: "2px 0" }}>Cuota</th><th>Fecha de pago</th><th style={{ textAlign: "right" }}>Importe</th><th /></tr></thead>
+                    <tbody>{cuotas.map((q, i) => <tr key={i}>
+                      <td style={{ padding: "2px 0", width: 42 }}>{String(i + 1).padStart(3, "0")}</td>
+                      <td><input type="date" value={q.fecha} onChange={(e) => setCuotas(cuotas.map((c, n) => (n === i ? { ...c, fecha: e.target.value } : c)))} style={cel} /></td>
+                      <td style={{ width: 72 }}><input type="number" step="0.01" value={q.monto} onChange={(e) => setCuotas(cuotas.map((c, n) => (n === i ? { ...c, monto: e.target.value } : c)))} style={{ ...cel, textAlign: "right" }} /></td>
+                      <td style={{ width: 18 }}><button type="button" title="Quitar cuota" onClick={() => setCuotas(cuotas.filter((_, n) => n !== i))} style={{ border: "none", background: "transparent", color: C.muted, cursor: "pointer" }}><Trash2 size={11} /></button></td>
+                    </tr>)}</tbody>
+                  </table>
+                  <button type="button" onClick={() => setCuotas([...cuotas, cuotaVacia(form.fecha_vencimiento)])} style={{ marginTop: 4, fontSize: 9, border: `1px dashed ${C.green}`, color: C.green, background: C.white, borderRadius: 4, padding: "2px 7px", cursor: "pointer", display: "inline-flex", gap: 3, alignItems: "center" }}><Plus size={11} />Agregar cuota</button>
+                  <div style={{ marginTop: 4, display: "flex", justifyContent: "space-between", fontWeight: 700 }}><span>Suma de cuotas</span><span>{money(cuotas.reduce((s, c) => s + Number(c.monto || 0), 0))}</span></div>
+                </>}
               </div>
             </div>
             <div style={{ background: C.greenSoft, borderTop: `3px solid ${C.green}`, padding: 11 }}>
