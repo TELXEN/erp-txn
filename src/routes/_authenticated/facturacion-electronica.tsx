@@ -12,7 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEmpresa } from "@/lib/empresa";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
-import { calcularComprobante, calcularItem, docRelacionadoVacio, itemComprobanteVacio, montoEnLetras, PESTANAS_CPE, SERIE_DEFECTO, TIPOS_COMPROBANTE, usaImportes, type Comprobante, type DocRelacionado, type ItemEditor, type OperacionTipo, type TipoComprobante, type TipoTributarioCpe } from "@/lib/facturacion";
+import { calcularComprobante, calcularItem, docRelacionadoVacio, itemComprobanteVacio, montoEnLetras, PESTANAS_CPE, repartirCuotas, SERIE_DEFECTO, TIPOS_COMPROBANTE, usaImportes, type Comprobante, type CuotaEditor, type DocRelacionado, type ItemEditor, type OperacionTipo, type TipoComprobante, type TipoTributarioCpe } from "@/lib/facturacion";
 import { actualizarBorradorComprobante, crearComprobanteElectronico, eliminarBorradorComprobante } from "@/lib/facturacion.functions";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -27,6 +27,7 @@ function FacturacionElectronica() {
   const [form, setForm] = useState<FormCpe>(() => nuevoFormCpe("01", SERIE_DEFECTO["01"]));
   const [items, setItems] = useState<ItemEditor[]>([itemComprobanteVacio()]);
   const [docs, setDocs] = useState<DocRelacionado[]>([docRelacionadoVacio()]);
+  const [cuotas, setCuotas] = useState<CuotaEditor[]>([]);
   const [busqueda, setBusqueda] = useState(""); const [error, setError] = useState(""); const [guardando, setGuardando] = useState(false); const [cargado, setCargado] = useState("");
   const [editando, setEditando] = useState<Comprobante | null>(null); const [porEliminar, setPorEliminar] = useState<Comprobante | null>(null);
 
@@ -46,7 +47,8 @@ function FacturacionElectronica() {
 
   const tipo = form.tipo_comprobante as TipoComprobante;
   const tc = form.moneda === "USD" ? Number(form.tipo_cambio || 0) : 1;
-  const montos = calcularComprobante(items, form.operacion_tipo, tc, form.tipo_tributario, Number(form.pct_detraccion));
+  const anticipoDeducido = form.anticipo_tipo === "deduccion" ? Number(form.anticipo_monto || 0) : 0;
+  const montos = calcularComprobante(items, form.operacion_tipo, tc, form.tipo_tributario, Number(form.pct_detraccion), Number(form.igv_tasa || 18), anticipoDeducido);
   const totalRegimen = docs.reduce((s, d) => s + Number(d.importe || 0), 0);
   const importeRegimen = Number(((totalRegimen * Number(form.regimen_tasa || 0)) / 100).toFixed(2));
   const filtrados = lista.filter((x) => x.tipo_comprobante === pestana && coincide(busqueda, x.numero, TIPOS_COMPROBANTE[x.tipo_comprobante as TipoComprobante], x.estado_fiscal, clientes.find((c) => c.id === x.cliente_id)?.razon_social));
@@ -54,24 +56,29 @@ function FacturacionElectronica() {
 
   function abrirNuevo(t: TipoComprobante) {
     const serie = series.find((s) => s.tipo_comprobante === t)?.serie ?? SERIE_DEFECTO[t];
-    setEditando(null); setError(""); setForm(nuevoFormCpe(t, serie)); setItems([itemComprobanteVacio()]); setDocs([docRelacionadoVacio()]); setAbierto(true);
+    setEditando(null); setError(""); setForm(nuevoFormCpe(t, serie)); setItems([itemComprobanteVacio()]); setDocs([docRelacionadoVacio()]); setCuotas([]); setAbierto(true);
   }
   function cambiarTipo(t: TipoComprobante) {
     const serie = series.find((s) => s.tipo_comprobante === t)?.serie ?? SERIE_DEFECTO[t];
     setPestana(t); setForm({ ...form, tipo_comprobante: t, serie, referencia_id: t === "07" || t === "08" ? form.referencia_id : "" });
   }
-  function cerrar() { setAbierto(false); setEditando(null); setForm(nuevoFormCpe(pestana, SERIE_DEFECTO[pestana])); setItems([itemComprobanteVacio()]); setDocs([docRelacionadoVacio()]); }
+  function cerrar() { setAbierto(false); setEditando(null); setForm(nuevoFormCpe(pestana, SERIE_DEFECTO[pestana])); setItems([itemComprobanteVacio()]); setDocs([docRelacionadoVacio()]); setCuotas([]); }
 
   async function editarBorrador(x: Comprobante) {
     setError(""); setGuardando(true);
     try {
-      const { data: filas, error: itemsError } = await supabase.from("comprobante_items").select("*").eq("comprobante_id", x.id).order("orden");
+      const [{ data: filas, error: itemsError }, { data: filasCuotas, error: cuotasError }] = await Promise.all([
+        supabase.from("comprobante_items").select("*").eq("comprobante_id", x.id).order("orden"),
+        supabase.from("comprobante_cuotas").select("*").eq("comprobante_id", x.id).order("numero"),
+      ]);
       if (itemsError) throw itemsError;
+      if (cuotasError) throw cuotasError;
       const guia = (x.datos_guia ?? {}) as Record<string, string>; const regimen = (x.datos_regimen ?? {}) as Record<string, string>;
       const base = nuevoFormCpe(x.tipo_comprobante as TipoComprobante, x.serie);
       setEditando(x); setPestana(x.tipo_comprobante as TipoComprobante);
-      setForm({ ...base, ...guia, tipo_comprobante: x.tipo_comprobante as TipoComprobante, serie: x.serie, cliente_id: x.cliente_id ?? "", proyecto_id: x.proyecto_id ?? "", referencia_id: x.comprobante_referencia_id ?? "", motivo_nota_codigo: x.motivo_nota_codigo, motivo_nota_descripcion: x.motivo_nota_descripcion, fecha_emision: x.fecha_emision, moneda: x.moneda as "PEN" | "USD", tipo_cambio: String(x.tipo_cambio), operacion_tipo: x.operacion_tipo as OperacionTipo, condicion_pago: x.condicion_pago, dias_credito: String(x.dias_credito), tipo_tributario: x.tipo_tributario as TipoTributarioCpe, pct_detraccion: String(x.pct_detraccion), codigo_spot: x.codigo_spot, orden_compra: x.orden_compra, observacion: x.observacion, cliente_numero_documento: x.cliente_numero_documento ?? "", cliente_razon_social: x.cliente_razon_social ?? "", cliente_direccion: x.cliente_direccion ?? "", cliente_estado_sunat: x.cliente_estado_sunat ?? "", cliente_condicion_sunat: x.cliente_condicion_sunat ?? "", regimen_tasa: regimen["tasa"] ?? base.regimen_tasa, motivo_baja: x.motivo_baja ?? base.motivo_baja });
+      setForm({ ...base, ...guia, tipo_comprobante: x.tipo_comprobante as TipoComprobante, serie: x.serie, cliente_id: x.cliente_id ?? "", proyecto_id: x.proyecto_id ?? "", referencia_id: x.comprobante_referencia_id ?? "", motivo_nota_codigo: x.motivo_nota_codigo, motivo_nota_descripcion: x.motivo_nota_descripcion, fecha_emision: x.fecha_emision, fecha_vencimiento: x.fecha_vencimiento ?? x.fecha_emision, moneda: x.moneda as "PEN" | "USD", tipo_cambio: String(x.tipo_cambio), operacion_tipo: x.operacion_tipo as OperacionTipo, condicion_pago: x.condicion_pago, dias_credito: String(x.dias_credito), tipo_tributario: x.tipo_tributario as TipoTributarioCpe, pct_detraccion: String(x.pct_detraccion), codigo_spot: x.codigo_spot, orden_compra: x.orden_compra, observacion: x.observacion, cliente_numero_documento: x.cliente_numero_documento ?? "", cliente_razon_social: x.cliente_razon_social ?? "", cliente_direccion: x.cliente_direccion ?? "", cliente_ciudad: x.cliente_ciudad ?? "", cliente_estado_sunat: x.cliente_estado_sunat ?? "", cliente_condicion_sunat: x.cliente_condicion_sunat ?? "", guia_remision_numero: x.guia_remision_numero ?? "", igv_tasa: String(x.igv_tasa ?? 18), anticipo_tipo: x.anticipo_tipo ?? "ninguno", anticipo_documento: x.anticipo_documento ?? "", anticipo_monto: Number(x.anticipo_monto ?? 0) ? String(x.anticipo_monto) : "", regimen_tasa: regimen["tasa"] ?? base.regimen_tasa, motivo_baja: x.motivo_baja ?? base.motivo_baja });
       setItems((filas ?? []).map((i) => ({ codigo: i.codigo, descripcion: i.descripcion, unidad_sunat: i.unidad_sunat, cantidad: String(i.cantidad), valor_unitario: String(i.valor_unitario), descuento: String(i.descuento) })));
+      setCuotas((filasCuotas ?? []).map((q) => ({ fecha: q.fecha_vencimiento, monto: String(q.monto) })));
       const rel = (x.documentos_relacionados ?? []) as unknown as DocRelacionado[];
       setDocs(rel.length ? rel : [docRelacionadoVacio()]);
       setAbierto(true); window.scrollTo({ top: 0, behavior: "smooth" });
@@ -90,8 +97,10 @@ function FacturacionElectronica() {
     setGuardando(true);
     try {
       const conImportes = usaImportes(tipo);
-      const fechaVenc = conImportes && form.condicion_pago === "Crédito" ? calcularVencimiento(form.fecha_emision, Number(form.dias_credito)) : null;
-      const cuotas = fechaVenc ? [{ numero: 1, fecha_vencimiento: fechaVenc, monto: montos.total }] : [];
+      const esCredito = conImportes && form.condicion_pago === "Crédito";
+      const fechaVenc = form.fecha_vencimiento || (esCredito ? calcularVencimiento(form.fecha_emision, Number(form.dias_credito)) : form.fecha_emision);
+      const listaCuotas = cuotas.length ? cuotas : repartirCuotas(montos.total, [fechaVenc]);
+      const cuotasPayload = esCredito ? listaCuotas.map((q, i) => ({ numero: i + 1, fecha_vencimiento: q.fecha || fechaVenc, monto: Number(q.monto || 0) })) : [];
       const totalDoc = conImportes ? montos.total : tipo === "20" || tipo === "40" ? importeRegimen : 0;
       const datosGuia = tipo === "09" ? { guia_motivo: form.guia_motivo, guia_modalidad: form.guia_modalidad, guia_fecha_traslado: form.guia_fecha_traslado, guia_transportista: form.guia_transportista, guia_transportista_doc: form.guia_transportista_doc, guia_placa: form.guia_placa, guia_licencia: form.guia_licencia, guia_peso: form.guia_peso, guia_bultos: form.guia_bultos, guia_partida: form.guia_partida, guia_partida_ubigeo: form.guia_partida_ubigeo, guia_llegada: form.guia_llegada, guia_llegada_ubigeo: form.guia_llegada_ubigeo } : {};
       const datosRegimen = tipo === "20" || tipo === "40" ? { tasa: form.regimen_tasa, total_comprobantes: String(totalRegimen), importe: String(importeRegimen) } : {};
@@ -99,6 +108,8 @@ function FacturacionElectronica() {
         tipo_comprobante: tipo, serie: form.serie, correlativo_inicial: form.correlativo_inicial ? Number(form.correlativo_inicial) : null, preliquidacion_id: preliquidacion || editando?.preliquidacion_id || null, proyecto_id: form.proyecto_id || null, cliente_id: form.cliente_id || null,
         comprobante_referencia_id: form.referencia_id || null, motivo_nota_codigo: form.motivo_nota_codigo, motivo_nota_descripcion: form.motivo_nota_descripcion,
         fecha_emision: form.fecha_emision, fecha_vencimiento: fechaVenc, moneda: form.moneda, tipo_cambio: tc, operacion_tipo: form.operacion_tipo,
+        cliente_ciudad: form.cliente_ciudad, guia_remision_numero: form.guia_remision_numero, igv_tasa: Number(form.igv_tasa || 18),
+        anticipo_tipo: form.anticipo_tipo, anticipo_documento: form.anticipo_tipo === "ninguno" ? "" : form.anticipo_documento, anticipo_monto: conImportes ? montos.anticipo : 0,
         valor_venta: conImportes ? montos.valorVenta : 0, total_descuentos: conImportes ? montos.descuentos : 0, igv: conImportes ? montos.igv : 0,
         total: totalDoc, total_soles: totalDoc * (tc > 0 ? tc : 1), total_letras: montoEnLetras(totalDoc, form.moneda),
         condicion_pago: form.condicion_pago as "Contado" | "Crédito", dias_credito: Number(form.dias_credito || 0),
@@ -108,8 +119,8 @@ function FacturacionElectronica() {
         cliente_numero_documento: form.cliente_numero_documento, cliente_razon_social: form.cliente_razon_social, cliente_direccion: form.cliente_direccion, cliente_estado_sunat: form.cliente_estado_sunat, cliente_condicion_sunat: form.cliente_condicion_sunat,
         datos_guia: datosGuia, datos_regimen: datosRegimen, documentos_relacionados: relValidos.map((d) => ({ tipo: d.tipo, serie: d.serie, numero: d.numero, fecha: d.fecha || form.fecha_emision, importe: Number(d.importe || 0) })),
         motivo_baja: tipo === "RA" ? form.motivo_baja : "",
-        items: validos.map((x) => { const m = calcularItem(x, form.operacion_tipo); return { codigo: x.codigo, descripcion: x.descripcion.trim(), unidad_sunat: x.unidad_sunat, ...m, valor_unitario: m.valorUnitario, afectacion_igv: form.operacion_tipo === "gravada" ? ("10" as const) : form.operacion_tipo === "exonerada" ? ("20" as const) : ("30" as const) }; }),
-        cuotas,
+        items: validos.map((x) => { const m = calcularItem(x, form.operacion_tipo, Number(form.igv_tasa || 18)); return { codigo: x.codigo, descripcion: x.descripcion.trim(), unidad_sunat: x.unidad_sunat, ...m, valor_unitario: m.valorUnitario, afectacion_igv: form.operacion_tipo === "gravada" ? ("10" as const) : form.operacion_tipo === "exonerada" ? ("20" as const) : ("30" as const) }; }),
+        cuotas: cuotasPayload,
       };
       const res = editando ? await actualizar({ data: { ...payload, id: editando.id } }) : await crear({ data: { ...payload, emitir } });
       qc.invalidateQueries(); cerrar();
@@ -130,7 +141,7 @@ function FacturacionElectronica() {
 
     {abierto && <Panel titulo={editando ? `Editar borrador ${editando.numero}` : preliquidacion ? "Facturar preliquidación" : "Nuevo comprobante electrónico"} className="mb-4">
       <div className="bg-slate-900/95 p-5">
-        <HojaComprobante form={form} setForm={setForm} items={items} setItems={setItems} docs={docs} setDocs={setDocs} empresa={empresa} clientes={clientes} proyectos={proyectos.map((p) => ({ id: p.id, nombre: p.nombre, codigo: p.codigo ?? "" }))} refs={refs} series={series} numeroPreview={editando ? String(editando.correlativo).padStart(8, "0") : "[AUTOGENERADO]"} montos={montos} totalRegimen={totalRegimen} importeRegimen={importeRegimen} onTipoChange={cambiarTipo} bloqueado={Boolean(editando)} />
+        <HojaComprobante form={form} setForm={setForm} items={items} setItems={setItems} docs={docs} setDocs={setDocs} cuotas={cuotas} setCuotas={setCuotas} empresa={empresa} clientes={clientes} proyectos={proyectos.map((p) => ({ id: p.id, nombre: p.nombre, codigo: p.codigo ?? "" }))} refs={refs} series={series} numeroPreview={editando ? String(editando.correlativo).padStart(8, "0") : "[AUTOGENERADO]"} montos={montos} totalRegimen={totalRegimen} importeRegimen={importeRegimen} onTipoChange={cambiarTipo} bloqueado={Boolean(editando)} />
       </div>
       <div className="flex flex-wrap items-center gap-2 border-t border-line p-4">
         <Boton disabled={guardando} onClick={() => void guardar(false)}>{editando ? "Guardar cambios" : "Guardar borrador"}</Boton>
