@@ -31,10 +31,10 @@ const edSel: CSSProperties = { ...ed, cursor: "pointer" };
 const cel: CSSProperties = { ...ed, borderBottom: "none", padding: "4px 2px" };
 
 function Bloque({ titulo, children, style }: { titulo: string; children: ReactNode; style?: CSSProperties }) {
-  return <div style={{ ...style }}><b style={{ fontSize: 8, color: C.muted, letterSpacing: ".04em" }}>{titulo}</b><div style={{ marginTop: 5, display: "grid", gap: 4 }}>{children}</div></div>;
+  return <div style={{ ...style }}><span style={{ fontSize: 9, color: C.muted, fontFamily: '"Calibri Light", Calibri, Carlito, sans-serif', fontWeight: 300, letterSpacing: ".04em" }}>{titulo}</span><div style={{ marginTop: 5, display: "grid", gap: 4 }}>{children}</div></div>;
 }
 function Linea({ etiqueta, children }: { etiqueta: string; children: ReactNode }) {
-  return <label style={{ display: "grid", gridTemplateColumns: "88px 1fr", alignItems: "center", gap: 6 }}><span style={{ fontSize: 8.5, color: C.muted, textTransform: "uppercase" }}>{etiqueta}</span>{children}</label>;
+  return <label style={{ display: "grid", gridTemplateColumns: "88px 1fr", alignItems: "center", gap: 6 }}><span style={{ fontSize: 9, color: C.muted, fontFamily: '"Calibri Light", Calibri, Carlito, sans-serif', fontWeight: 300, textTransform: "uppercase" }}>{etiqueta}</span>{children}</label>;
 }
 
 export type Empresa = { razon_social?: string; eslogan?: string; ruc?: string; direccion?: string; telefono?: string; web?: string; logo_url?: string } | null | undefined;
@@ -84,28 +84,28 @@ export function HojaComprobante(props: {
 
   return (
     <div style={{ overflowX: "auto", paddingBottom: 18 }}>
-      <section style={{ width: 794, minHeight: 1123, margin: "0 auto", padding: "36px 38px", background: C.white, color: C.ink, fontFamily: "Helvetica,Arial,sans-serif", fontSize: 9, boxShadow: "0 12px 35px rgba(15,23,42,.18)" }}>
+      <section style={{ width: 794, minHeight: 1123, margin: "0 auto", padding: "36px 38px", background: C.white, color: C.ink, fontFamily: 'Calibri, Carlito, "Segoe UI", sans-serif', fontWeight: 400, fontSize: 9, boxShadow: "0 12px 35px rgba(15,23,42,.18)" }}>
         <header style={{ display: "flex", gap: 22, borderBottom: `3px solid ${C.green}`, paddingBottom: 14 }}>
           <div style={{ width: 96, display: "flex", alignItems: "center", justifyContent: "center" }}>{empresa?.logo_url ? <img src={empresa.logo_url} alt="" style={{ maxWidth: 92, maxHeight: 54 }} /> : <div style={{ width: 52, height: 52, borderRadius: 9, background: C.green, color: C.white, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800 }}>TX</div>}</div>
           <div style={{ flex: 1, textAlign: "right", paddingRight: 10 }}>
-            <b style={{ fontSize: 11 }}>{empresa?.razon_social || "TELXEN SAC"}</b>
-            <div style={{ fontSize: 9, marginTop: 3, lineHeight: 1.25 }}>{empresa?.eslogan || "SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL"}</div>
-            <div style={{ fontSize: 9, marginTop: 4 }}>{empresa?.direccion}</div>
-            <div style={{ fontSize: 9 }}>{empresa?.telefono} · {empresa?.web}</div>
+            <b style={{ fontSize: 11, fontWeight: 700 }}>{empresa?.razon_social || "TELXEN SAC"}</b>
+            <div style={{ fontFamily: '"Calibri Light", Calibri, Carlito, sans-serif', fontWeight: 300, fontSize: 9.5, marginTop: 3, lineHeight: 1.25 }}>{empresa?.eslogan || "SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL"}</div>
+            <div style={{ fontFamily: '"Calibri Light", Calibri, Carlito, sans-serif', fontWeight: 300, fontSize: 9, marginTop: 4 }}>{empresa?.direccion}</div>
+            <div style={{ fontFamily: '"Calibri Light", Calibri, Carlito, sans-serif', fontWeight: 300, fontSize: 9 }}>{empresa?.telefono} · {empresa?.web}</div>
           </div>
           <div style={{ width: 248, textAlign: "center", flexShrink: 0 }}>
             <div style={{ background: C.greenSoft, borderTop: `4px solid ${C.green}`, borderRadius: 5, padding: "10px 8px" }}>
-              <select value={tipo} disabled={bloqueado} onChange={(e) => onTipoChange(e.target.value as TipoComprobante)} title="Tipo de comprobante" style={{ ...edSel, textAlign: "center", fontSize: 9.5, fontWeight: 800, borderBottom: "none", whiteSpace: "nowrap" }}>
+              <select value={tipo} disabled={bloqueado} onChange={(e) => onTipoChange(e.target.value as TipoComprobante)} title="Tipo de comprobante" style={{ ...edSel, textAlign: "center", fontFamily: '"Calibri Light", Calibri, Carlito, sans-serif', fontSize: 10, fontWeight: 300, borderBottom: "none", whiteSpace: "nowrap" }}>
                 {PESTANAS_CPE.map((p) => <option key={p.tipo} value={p.tipo}>{p.corto}</option>)}
               </select>
               <div style={{ fontSize: 9, fontWeight: 700, marginTop: 4 }}>RUC: {empresa?.ruc || "—"}</div>
               <div style={{ display: "flex", gap: 4, justifyContent: "center", alignItems: "center", marginTop: 3 }}>
-                <input value={form.serie} disabled={bloqueado} onChange={(e) => set("serie", e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 4))} list="cpe-series" title="Serie editable (4 caracteres)" style={{ ...ed, width: 44, fontSize: 11, fontWeight: 800, borderBottom: "none", textAlign: "right" }} />
+                <input value={form.serie} disabled={bloqueado} onChange={(e) => set("serie", e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 4))} list="cpe-series" title="Serie editable (4 caracteres)" style={{ ...ed, width: 44, fontSize: 11, fontWeight: 700, borderBottom: "none", textAlign: "right" }} />
                 <datalist id="cpe-series">{series.filter((s) => s.tipo_comprobante === tipo).map((s) => <option key={s.id} value={s.serie} />)}</datalist>
-                <span style={{ fontSize: 11, fontWeight: 800 }}>-</span>
+                <span style={{ fontSize: 11, fontWeight: 700 }}>-</span>
                 {bloqueado
-                  ? <span style={{ fontSize: 11, fontWeight: 800 }}>{numeroPreview}</span>
-                  : <input value={form.correlativo_inicial} onChange={(e) => set("correlativo_inicial", e.target.value.replace(/\D/g, "").slice(0, 8))} placeholder="AUTOMÁTICO" title="Correlativo editable: si lo defines, la numeración continúa desde aquí" style={{ ...ed, width: 96, fontSize: 11, fontWeight: 800, borderBottom: "none", textAlign: "left" }} />}
+                  ? <span style={{ fontSize: 11, fontWeight: 700 }}>{numeroPreview}</span>
+                  : <input value={form.correlativo_inicial} onChange={(e) => set("correlativo_inicial", e.target.value.replace(/\D/g, "").slice(0, 8))} placeholder="AUTOMÁTICO" title="Correlativo editable: si lo defines, la numeración continúa desde aquí" style={{ ...ed, width: 96, fontSize: 11, fontWeight: 700, borderBottom: "none", textAlign: "left" }} />}
               </div>
             </div>
             <div style={{ fontSize: 8.5, fontWeight: 700, marginTop: 4 }}>{etiquetaTipo}</div>
@@ -197,7 +197,7 @@ export function HojaComprobante(props: {
         </div>}
 
         {usaItems(tipo) && <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 18, fontSize: 9 }}>
-          <thead><tr style={{ background: C.ink, color: C.white, textAlign: "left" }}>{["#", "Código", "Descripción", "Und.", "Cantidad", ...(usaImportes(tipo) ? ["V. unitario", "Dscto.", "Subtotal"] : []), ""].map((x, i) => <th key={i} style={{ padding: "7px 6px" }}>{x}</th>)}</tr></thead>
+          <thead><tr style={{ background: C.ink, color: C.white, textAlign: "left" }}>{["#", "Código", "Descripción", "Und.", "Cantidad", ...(usaImportes(tipo) ? ["V. unitario", "Dscto.", "Subtotal"] : []), ""].map((x, i) => <th key={i} style={{ padding: "7px 6px", fontWeight: 700 }}>{x}</th>)}</tr></thead>
           <tbody>{items.map((x, i) => <tr key={i} style={{ borderBottom: `1px solid ${C.line}`, background: i % 2 ? C.soft : C.white }}>
             <td style={{ padding: 4, width: 22 }}>{i + 1}</td>
             <td style={{ padding: 4, width: 70 }}><input value={x.codigo} onChange={(e) => actualizarItem(i, "codigo", e.target.value)} style={cel} /></td>
@@ -250,7 +250,7 @@ export function HojaComprobante(props: {
                 {fila(<>Otros Cargos {cargo("otros_cargos")}</>, money(montos.otrosCargos))}
                 {fila(<>Otros Tributos {cargo("otros_tributos")}</>, money(montos.otrosTributos))}
                 {fila("Monto de Redondeo", money(montos.redondeo))}
-                <div style={{ display: "flex", justifyContent: "space-between", padding: 11, background: C.ink, color: C.white, fontWeight: 800, fontSize: 12 }}><span>IMPORTE TOTAL</span><span>{money(montos.total)}</span></div>
+                <div style={{ display: "flex", justifyContent: "space-between", padding: 11, background: C.ink, color: C.white, fontWeight: 700, fontSize: 12 }}><span>IMPORTE TOTAL</span><span>{money(montos.total)}</span></div>
               </>;
             })()}
           </div>
