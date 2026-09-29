@@ -85,7 +85,7 @@ export function HojaComprobante(props: {
   return (
     <div style={{ overflowX: "auto", paddingBottom: 18 }}>
       <section style={{ width: 794, minHeight: 1123, margin: "0 auto", padding: "36px 38px", background: C.white, color: C.ink, fontFamily: 'Calibri, Carlito, "Segoe UI", sans-serif', fontWeight: 400, fontSize: 9, boxShadow: "0 12px 35px rgba(15,23,42,.18)" }}>
-        <header style={{ display: "flex", gap: 22, alignItems: "stretch", borderBottom: `3px solid ${C.green}`, paddingBottom: 14 }}>
+        <header style={{ display: "flex", gap: 22, alignItems: "flex-start", borderBottom: `3px solid ${C.green}`, paddingBottom: 14 }}>
           <div style={{ width: 96, display: "flex", alignItems: "center", justifyContent: "center" }}>{empresa?.logo_url ? <img src={empresa.logo_url} alt="" style={{ maxWidth: 92, maxHeight: 54 }} /> : <div style={{ width: 52, height: 52, borderRadius: 9, background: C.green, color: C.white, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800 }}>TX</div>}</div>
           <div style={{ flex: 1, minHeight: 76, textAlign: "right", paddingRight: 10, display: "flex", flexDirection: "column", justifyContent: "flex-start" }}>
             <b style={{ fontSize: 11, fontWeight: 700 }}>{empresa?.razon_social || "TELXEN SAC"}</b>
@@ -250,7 +250,7 @@ export function HojaComprobante(props: {
                 {fila(<>Otros Cargos {cargo("otros_cargos")}</>, money(montos.otrosCargos))}
                 {fila(<>Otros Tributos {cargo("otros_tributos")}</>, money(montos.otrosTributos))}
                 {fila("Monto de Redondeo", money(montos.redondeo))}
-                <div style={{ display: "flex", justifyContent: "space-between", padding: 11, background: C.ink, color: C.white, fontWeight: 700, fontSize: 12 }}><span>IMPORTE TOTAL</span><span>{money(montos.total)}</span></div>
+                <div style={{ display: "flex", justifyContent: "space-between", padding: 11, border: "1.4px solid #006648", borderRadius: 6, marginTop: 4, color: "#006648", fontWeight: 700, fontSize: 12 }}><span>IMPORTE TOTAL</span><span>{money(montos.total)}</span></div>
               </>;
             })()}
           </div>
@@ -266,7 +266,7 @@ export function HojaComprobante(props: {
             </div>}
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 14, fontSize: 9.5 }}>
-            <div style={{ background: C.greenSoft, borderTop: `3px solid ${C.green}`, padding: 11 }}>
+            <div style={{ borderTop: `3px solid ${C.green}`, padding: 11 }}>
               <b style={{ fontSize: 8, color: C.muted }}>FORMA DE PAGO</b>
               <div style={{ marginTop: 6, display: "grid", gap: 4 }}>
                 <Linea etiqueta="Condición"><select value={form.condicion_pago} onChange={(e) => { const v = e.target.value; setForm({ ...form, condicion_pago: v }); setCuotas(v === "Crédito" ? (cuotas.length ? cuotas : repartirCuotas(baseCuotas, [form.fecha_vencimiento])) : []); }} style={edSel}><option>Contado</option><option>Crédito</option></select></Linea>
@@ -296,7 +296,7 @@ export function HojaComprobante(props: {
                 </>}
               </div>
             </div>
-            <div style={{ background: C.greenSoft, borderTop: `3px solid ${C.green}`, padding: 11 }}>
+            <div style={{ borderTop: `3px solid ${C.green}`, padding: 11 }}>
               <b style={{ fontSize: 8, color: C.muted }}>RÉGIMEN TRIBUTARIO</b>
               <div style={{ marginTop: 6, display: "grid", gap: 4 }}>
                 <Linea etiqueta="Régimen"><select value={`${form.tipo_tributario}|${form.pct_detraccion}`} onChange={(e) => { const [t, p] = e.target.value.split("|"); setForm({ ...form, tipo_tributario: t as TipoTributarioCpe, pct_detraccion: p ?? "0", codigo_spot: t === "detraccion" ? "037" : "" }); }} style={edSel}>
