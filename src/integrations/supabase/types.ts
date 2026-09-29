@@ -750,10 +750,14 @@ export type Database = {
       }
       comprobantes_electronicos: {
         Row: {
+          anticipo_documento: string
+          anticipo_monto: number
+          anticipo_tipo: string
           banco_id: string | null
           cdr_codigo: string
           cdr_descripcion: string
           cdr_url: string
+          cliente_ciudad: string
           cliente_condicion_sunat: string
           cliente_direccion: string
           cliente_estado_sunat: string
@@ -778,9 +782,11 @@ export type Database = {
           fecha_emision: string
           fecha_pago: string | null
           fecha_vencimiento: string | null
+          guia_remision_numero: string
           hash_cpe: string
           id: string
           igv: number
+          igv_tasa: number
           moneda: Database["public"]["Enums"]["moneda"]
           monto_detraccion: number
           monto_retencion: number
@@ -812,10 +818,14 @@ export type Database = {
           xml_url: string
         }
         Insert: {
+          anticipo_documento?: string
+          anticipo_monto?: number
+          anticipo_tipo?: string
           banco_id?: string | null
           cdr_codigo?: string
           cdr_descripcion?: string
           cdr_url?: string
+          cliente_ciudad?: string
           cliente_condicion_sunat?: string
           cliente_direccion?: string
           cliente_estado_sunat?: string
@@ -840,9 +850,11 @@ export type Database = {
           fecha_emision?: string
           fecha_pago?: string | null
           fecha_vencimiento?: string | null
+          guia_remision_numero?: string
           hash_cpe?: string
           id?: string
           igv?: number
+          igv_tasa?: number
           moneda?: Database["public"]["Enums"]["moneda"]
           monto_detraccion?: number
           monto_retencion?: number
@@ -874,10 +886,14 @@ export type Database = {
           xml_url?: string
         }
         Update: {
+          anticipo_documento?: string
+          anticipo_monto?: number
+          anticipo_tipo?: string
           banco_id?: string | null
           cdr_codigo?: string
           cdr_descripcion?: string
           cdr_url?: string
+          cliente_ciudad?: string
           cliente_condicion_sunat?: string
           cliente_direccion?: string
           cliente_estado_sunat?: string
@@ -902,9 +918,11 @@ export type Database = {
           fecha_emision?: string
           fecha_pago?: string | null
           fecha_vencimiento?: string | null
+          guia_remision_numero?: string
           hash_cpe?: string
           id?: string
           igv?: number
+          igv_tasa?: number
           moneda?: Database["public"]["Enums"]["moneda"]
           monto_detraccion?: number
           monto_retencion?: number
