@@ -20,7 +20,18 @@ export const crearComprobanteElectronico = createServerFn({ method: "POST" })
     if (authError) throw new Error(authError.message);
     if (!autorizado) throw new Error("No autorizado para emitir comprobantes.");
     const conImportes = ["01", "03", "07", "08"].includes(data.tipo_comprobante);
-    if (data.tipo_comprobante === "01" && !data.cliente_id) throw new Error("La factura requiere un cliente con RUC.");
+    const rucDigitado = data.cliente_numero_documento.trim();
+    if (!data.cliente_id && /^\d{8}$|^\d{11}$/.test(rucDigitado) && data.cliente_razon_social.trim()) {
+      const { supabaseAdmin: admin } = await import("@/integrations/supabase/client.server");
+      const { data: existente } = await admin.from("terceros").select("id").eq("numero_documento", rucDigitado).maybeSingle();
+      if (existente) data.cliente_id = (existente as { id: string }).id;
+      else {
+        const { data: nuevo, error: nuevoError } = await admin.from("terceros").insert({ razon_social: data.cliente_razon_social.trim(), numero_documento: rucDigitado, tipo_documento: rucDigitado.length === 11 ? "RUC" : "DNI", direccion: data.cliente_direccion.trim(), es_cliente: true } as never).select("id").single();
+        if (nuevoError || !nuevo) throw new Error(nuevoError?.message ?? "No se pudo registrar el cliente.");
+        data.cliente_id = (nuevo as { id: string }).id;
+      }
+    }
+    if (data.tipo_comprobante === "01" && (!data.cliente_id || !/^\d{11}$/.test(rucDigitado || "00000000000"))) throw new Error("La factura requiere un cliente con RUC de 11 dígitos y razón social.");
     if ((data.tipo_comprobante === "07" || data.tipo_comprobante === "08") && !data.comprobante_referencia_id) throw new Error("La nota requiere un comprobante de referencia.");
     if (["20", "40", "RA"].includes(data.tipo_comprobante) && !data.documentos_relacionados.length) throw new Error("Agrega al menos un comprobante relacionado.");
     if (["01", "03", "07", "08", "09"].includes(data.tipo_comprobante) && !data.items.length) throw new Error("Agrega al menos un concepto.");
