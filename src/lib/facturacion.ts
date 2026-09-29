@@ -85,26 +85,31 @@ export const CODIGOS_SPOT = [
 export type ItemEditor = { codigo: string; descripcion: string; unidad_sunat: string; cantidad: string; valor_unitario: string; descuento: string };
 export const itemComprobanteVacio = (): ItemEditor => ({ codigo: "", descripcion: "", unidad_sunat: "ZZ", cantidad: "1", valor_unitario: "", descuento: "0" });
 
-export function calcularItem(item: ItemEditor, operacion: OperacionTipo) {
+/** Tasas de IGV permitidas: general 18% y especial 10% + 0.5% (Ley 31556). */
+export const TASAS_IGV = [["18", "18% · Tasa general"], ["10.5", "10.5% · Tasa especial"]] as const;
+export type AnticipoTipo = "ninguno" | "anticipo" | "deduccion";
+
+export function calcularItem(item: ItemEditor, operacion: OperacionTipo, tasaIgv = 18) {
   const cantidad = Math.max(0, Number(item.cantidad || 0));
   const valorUnitario = Math.max(0, Number(item.valor_unitario || 0));
   const descuento = Math.max(0, Number(item.descuento || 0));
   const subtotal = Math.max(0, cantidad * valorUnitario - descuento);
-  const igv = operacion === "gravada" ? Math.round(subtotal * 0.18 * 100) / 100 : 0;
+  const igv = operacion === "gravada" ? Math.round((subtotal * tasaIgv) / 100 * 100) / 100 : 0;
   return { cantidad, valorUnitario, descuento, subtotal, igv, total: subtotal + igv };
 }
 
-export function calcularComprobante(items: ItemEditor[], operacion: OperacionTipo, tc: number, tipoTributario: TipoTributarioCpe, pct: number) {
-  const filas = items.map((i) => calcularItem(i, operacion));
+export function calcularComprobante(items: ItemEditor[], operacion: OperacionTipo, tc: number, tipoTributario: TipoTributarioCpe, pct: number, tasaIgv = 18, anticipoDeducido = 0) {
+  const filas = items.map((i) => calcularItem(i, operacion, tasaIgv));
   const valorVenta = filas.reduce((s, i) => s + i.subtotal, 0);
   const descuentos = items.reduce((s, i) => s + Math.max(0, Number(i.descuento || 0)), 0);
   const igv = filas.reduce((s, i) => s + i.igv, 0);
-  const total = valorVenta + igv;
+  const anticipo = Math.max(0, Math.min(anticipoDeducido, valorVenta + igv));
+  const total = Number((valorVenta + igv - anticipo).toFixed(2));
   const totalPen = total * (tc > 0 ? tc : 1);
   const aplica = tipoTributario !== "ninguno" && pct > 0 && totalPen > 700;
   const montoDetraccion = aplica && tipoTributario === "detraccion" ? Math.floor((totalPen * pct) / 100 + 0.5) : 0;
   const montoRetencion = aplica && tipoTributario === "retencion" ? Number(((totalPen * pct) / 100).toFixed(2)) : 0;
-  return { valorVenta, descuentos, igv, total, totalPen, montoDetraccion, montoRetencion };
+  return { valorVenta, descuentos, igv, anticipo, total, totalPen, montoDetraccion, montoRetencion };
 }
 
 const UNIDADES = ["CERO", "UNO", "DOS", "TRES", "CUATRO", "CINCO", "SEIS", "SIETE", "OCHO", "NUEVE", "DIEZ", "ONCE", "DOCE", "TRECE", "CATORCE", "QUINCE", "DIECISÉIS", "DIECISIETE", "DIECIOCHO", "DIECINUEVE", "VEINTE", "VEINTIUNO", "VEINTIDÓS", "VEINTITRÉS", "VEINTICUATRO", "VEINTICINCO", "VEINTISÉIS", "VEINTISIETE", "VEINTIOCHO", "VEINTINUEVE"];
