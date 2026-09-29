@@ -229,7 +229,7 @@ export function HojaComprobante(props: {
           <button type="button" onClick={() => setDocs([...docs, docRelacionadoVacio()])} style={{ marginTop: 7, fontSize: 9.5, border: `1px dashed ${C.green}`, color: C.green, background: C.white, borderRadius: 4, padding: "4px 9px", cursor: "pointer", display: "inline-flex", gap: 4, alignItems: "center" }}><Plus size={12} />Agregar comprobante</button></>}
 
         {usaImportes(tipo) && <>
-          <div style={{ width: "29%", marginLeft: "auto", marginTop: 18, fontSize: 10 }}>
+          <div style={{ width: 300, marginLeft: "auto", marginTop: 18, fontSize: 10 }}>
             {(() => {
               const fila = (etiqueta: ReactNode, valor: string, negrita = false) => (
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1px 6px", lineHeight: 1.2, borderBottom: `1px solid ${C.line}`, fontWeight: negrita ? 700 : 400 }}><span style={{ display: "flex", alignItems: "center", gap: 4 }}>{etiqueta}</span><span>{valor}</span></div>
