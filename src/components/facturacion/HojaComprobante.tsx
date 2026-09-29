@@ -115,6 +115,7 @@ export function HojaComprobante(props: {
             </Linea>
             <Linea etiqueta="Nombre"><input value={form.cliente_razon_social} onChange={(e) => set("cliente_razon_social", e.target.value)} placeholder="Razón social del cliente" style={{ ...ed, fontWeight: 700 }} /></Linea>
             <Linea etiqueta="Dirección"><input value={form.cliente_direccion} onChange={(e) => set("cliente_direccion", e.target.value)} placeholder="Dirección fiscal" style={ed} /></Linea>
+            <Linea etiqueta="Ciudad"><input value={form.cliente_ciudad} onChange={(e) => set("cliente_ciudad", e.target.value)} placeholder="Lima" style={ed} /></Linea>
             <Linea etiqueta="Registrado">
               <select value={form.cliente_id} onChange={(e) => { const c = clientes.find((x) => x.id === e.target.value); setForm({ ...form, cliente_id: e.target.value, cliente_numero_documento: c?.numero_documento ?? form.cliente_numero_documento, cliente_razon_social: c?.razon_social ?? form.cliente_razon_social, cliente_direccion: c?.direccion ?? form.cliente_direccion }); }} style={edSel}>
                 <option value="">Cliente nuevo / no registrado</option>
