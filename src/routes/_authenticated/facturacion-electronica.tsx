@@ -47,7 +47,8 @@ function FacturacionElectronica() {
 
   const tipo = form.tipo_comprobante as TipoComprobante;
   const tc = form.moneda === "USD" ? Number(form.tipo_cambio || 0) : 1;
-  const montos = calcularComprobante(items, form.operacion_tipo, tc, form.tipo_tributario, Number(form.pct_detraccion));
+  const anticipoDeducido = form.anticipo_tipo === "deduccion" ? Number(form.anticipo_monto || 0) : 0;
+  const montos = calcularComprobante(items, form.operacion_tipo, tc, form.tipo_tributario, Number(form.pct_detraccion), Number(form.igv_tasa || 18), anticipoDeducido);
   const totalRegimen = docs.reduce((s, d) => s + Number(d.importe || 0), 0);
   const importeRegimen = Number(((totalRegimen * Number(form.regimen_tasa || 0)) / 100).toFixed(2));
   const filtrados = lista.filter((x) => x.tipo_comprobante === pestana && coincide(busqueda, x.numero, TIPOS_COMPROBANTE[x.tipo_comprobante as TipoComprobante], x.estado_fiscal, clientes.find((c) => c.id === x.cliente_id)?.razon_social));
