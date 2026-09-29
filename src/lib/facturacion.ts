@@ -133,9 +133,11 @@ export function calcularComprobante(items: ItemEditor[], operacion: OperacionTip
   const totalPen = r2(total * (tc > 0 ? tc : 1));
   const aplica = tipoTributario !== "ninguno" && pct > 0 && totalPen > 700;
   const det = desgloseDetraccion(total, tc, aplica && tipoTributario === "detraccion" ? pct : 0);
+  const ret = desgloseDetraccion(total, tc, aplica && tipoTributario === "retencion" ? pct : 0);
   const montoDetraccion = det.detraccionPen;
-  const montoRetencion = aplica && tipoTributario === "retencion" ? r2((totalPen * pct) / 100) : 0;
-  return { subTotalVentas, descuentos, valorVenta, isc, igv, icbper, otrosCargos, otrosTributos, redondeo, anticipo, total, totalPen, montoDetraccion, montoRetencion, detraccionBase: det.base, detraccionUsd: det.detraccionUsd, netoPagar: det.neto };
+  const montoRetencion = ret.detraccionPen;
+  const activo = tipoTributario === "detraccion" ? det : ret;
+  return { subTotalVentas, descuentos, valorVenta, isc, igv, icbper, otrosCargos, otrosTributos, redondeo, anticipo, total, totalPen, montoDetraccion, montoRetencion, detraccionBase: det.base, detraccionUsd: det.detraccionUsd, retencionBase: ret.base, retencionUsd: ret.detraccionUsd, netoPagar: activo.neto };
 }
 
 /** Redondeo comercial a entero según el primer decimal (>=5 arriba, <5 abajo). */
