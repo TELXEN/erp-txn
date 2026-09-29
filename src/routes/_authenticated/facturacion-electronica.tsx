@@ -9,6 +9,7 @@ import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { calcularVencimiento } from "@/components/CondicionPago";
 import { HojaComprobante, nuevoFormCpe, type FormCpe } from "@/components/facturacion/HojaComprobante";
 import { supabase } from "@/integrations/supabase/client";
+import { useEmpresa } from "@/lib/empresa";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
 import { calcularComprobante, calcularItem, docRelacionadoVacio, itemComprobanteVacio, montoEnLetras, PESTANAS_CPE, SERIE_DEFECTO, TIPOS_COMPROBANTE, usaImportes, type Comprobante, type DocRelacionado, type ItemEditor, type OperacionTipo, type TipoComprobante, type TipoTributarioCpe } from "@/lib/facturacion";
@@ -29,7 +30,7 @@ function FacturacionElectronica() {
   const [busqueda, setBusqueda] = useState(""); const [error, setError] = useState(""); const [guardando, setGuardando] = useState(false); const [cargado, setCargado] = useState("");
   const [editando, setEditando] = useState<Comprobante | null>(null); const [porEliminar, setPorEliminar] = useState<Comprobante | null>(null);
 
-  const { data: empresa } = useQuery({ queryKey: ["datos_empresa"], queryFn: async () => { const { data } = await supabase.from("datos_empresa").select("*").limit(1).maybeSingle(); return data; } });
+  const { data: empresa } = useEmpresa();
   const { data: clientes = [] } = useQuery({ queryKey: ["terceros", "clientes-cpe"], queryFn: async () => { const { data, error } = await supabase.from("terceros").select("id,razon_social,numero_documento,direccion,tipo_documento").eq("es_cliente", true).eq("activo", true).order("razon_social"); if (error) throw error; return data ?? []; } });
   const { data: proyectos = [] } = useQuery({ queryKey: ["proyectos"], queryFn: async () => { const { data, error } = await supabase.from("proyectos").select("id,nombre,codigo").order("nombre"); if (error) throw error; return data ?? []; } });
   const { data: series = [] } = useQuery({ queryKey: ["series_comprobante"], queryFn: async () => { const { data, error } = await supabase.from("series_comprobante").select("*").eq("activo", true).order("serie"); if (error) throw error; return data ?? []; } });
@@ -129,7 +130,7 @@ function FacturacionElectronica() {
 
     {abierto && <Panel titulo={editando ? `Editar borrador ${editando.numero}` : preliquidacion ? "Facturar preliquidación" : "Nuevo comprobante electrónico"} className="mb-4">
       <div className="bg-slate-900/95 p-5">
-        <HojaComprobante form={form} setForm={setForm} items={items} setItems={setItems} docs={docs} setDocs={setDocs} empresa={empresa} clientes={clientes} proyectos={proyectos} refs={refs} series={series} numeroPreview={editando ? String(editando.correlativo).padStart(8, "0") : "[AUTOGENERADO]"} montos={montos} totalRegimen={totalRegimen} importeRegimen={importeRegimen} onTipoChange={cambiarTipo} bloqueado={Boolean(editando)} />
+        <HojaComprobante form={form} setForm={setForm} items={items} setItems={setItems} docs={docs} setDocs={setDocs} empresa={empresa} clientes={clientes} proyectos={proyectos.map((p) => ({ id: p.id, nombre: p.nombre, codigo: p.codigo ?? "" }))} refs={refs} series={series} numeroPreview={editando ? String(editando.correlativo).padStart(8, "0") : "[AUTOGENERADO]"} montos={montos} totalRegimen={totalRegimen} importeRegimen={importeRegimen} onTipoChange={cambiarTipo} bloqueado={Boolean(editando)} />
       </div>
       <div className="flex flex-wrap items-center gap-2 border-t border-line p-4">
         <Boton disabled={guardando} onClick={() => void guardar(false)}>{editando ? "Guardar cambios" : "Guardar borrador"}</Boton>
