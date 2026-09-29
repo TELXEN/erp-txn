@@ -94,8 +94,11 @@ export const actualizarBorradorComprobante = createServerFn({ method: "POST" })
 
     const { error: borrarItemsError } = await supabaseAdmin.from("comprobante_items").delete().eq("comprobante_id", id);
     if (borrarItemsError) throw new Error(borrarItemsError.message);
-    const { error: itemsError } = await supabaseAdmin.from("comprobante_items").insert(items.map((item, orden) => ({ ...item, comprobante_id: id, orden })) as never);
-    if (itemsError) throw new Error(itemsError.message);
+    if (items.length) {
+      const { error: itemsError } = await supabaseAdmin.from("comprobante_items").insert(items.map((item, orden) => ({ ...item, comprobante_id: id, orden })) as never);
+      if (itemsError) throw new Error(itemsError.message);
+    }
+
 
     const { error: borrarCuotasError } = await supabaseAdmin.from("comprobante_cuotas").delete().eq("comprobante_id", id);
     if (borrarCuotasError) throw new Error(borrarCuotasError.message);
