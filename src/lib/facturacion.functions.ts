@@ -39,8 +39,11 @@ export const crearComprobanteElectronico = createServerFn({ method: "POST" })
     const { data: comprobante, error: comprobanteError } = await supabaseAdmin.from("comprobantes_electronicos").insert({ ...data, items: undefined, cuotas: undefined, emitir: undefined, correlativo: filaNumero.correlativo, numero: filaNumero.numero, estado_fiscal: estadoFiscal, detraccion_estado: data.monto_detraccion > 0 ? "Pendiente" : "No aplica", qr_payload: qrPayload, payload_fiscal: payloadFiscal, creado_por: context.userId } as never).select("id, numero").single();
     if (comprobanteError || !comprobante) throw new Error(comprobanteError?.message ?? "No se pudo guardar el comprobante.");
     const comprobanteId = (comprobante as { id: string; numero: string }).id;
-    const { error: itemsError } = await supabaseAdmin.from("comprobante_items").insert(data.items.map((item, orden) => ({ ...item, comprobante_id: comprobanteId, orden })) as never);
-    if (itemsError) { await supabaseAdmin.from("comprobantes_electronicos").delete().eq("id", comprobanteId); throw new Error(itemsError.message); }
+    if (data.items.length) {
+      const { error: itemsError } = await supabaseAdmin.from("comprobante_items").insert(data.items.map((item, orden) => ({ ...item, comprobante_id: comprobanteId, orden })) as never);
+      if (itemsError) { await supabaseAdmin.from("comprobantes_electronicos").delete().eq("id", comprobanteId); throw new Error(itemsError.message); }
+    }
+
     if (data.cuotas.length) {
       const { error: cuotasError } = await supabaseAdmin.from("comprobante_cuotas").insert(data.cuotas.map((cuota) => ({ ...cuota, comprobante_id: comprobanteId })) as never);
       if (cuotasError) { await supabaseAdmin.from("comprobantes_electronicos").delete().eq("id", comprobanteId); throw new Error(cuotasError.message); }
