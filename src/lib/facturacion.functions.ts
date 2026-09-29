@@ -55,8 +55,9 @@ export const crearComprobanteElectronico = createServerFn({ method: "POST" })
     } else {
       const { data: reservado, error: numeroError } = await supabaseAdmin.rpc("siguiente_numero_comprobante", { _tipo: data.tipo_comprobante, _serie: serieFinal });
       if (numeroError) throw new Error(numeroError.message);
-      filaNumero = reservado?.[0];
-      if (!filaNumero) throw new Error("No se pudo reservar el número del comprobante.");
+      const reservadoFila = reservado?.[0];
+      if (!reservadoFila) throw new Error("No se pudo reservar el número del comprobante.");
+      filaNumero = reservadoFila;
     }
     const estadoFiscal = data.emitir ? "Emitido - Pendiente SUNAT" : "Borrador";
     const qrPayload = data.emitir ? JSON.stringify({ ruc: "", tipo: data.tipo_comprobante, numero: filaNumero.numero, fecha: data.fecha_emision, igv: data.igv, total: data.total }) : "";
