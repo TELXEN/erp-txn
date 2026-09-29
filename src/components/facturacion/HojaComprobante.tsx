@@ -197,7 +197,7 @@ export function HojaComprobante(props: {
         </div>}
 
         {usaItems(tipo) && <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 18, fontSize: 9 }}>
-          <thead><tr style={{ background: C.ink, color: C.white, textAlign: "left" }}>{["#", "Código", "Descripción", "Und.", "Cantidad", ...(usaImportes(tipo) ? ["V. unitario", "Dscto.", "Subtotal"] : []), ""].map((x, i) => <th key={i} style={{ padding: "7px 6px", fontWeight: 700 }}>{x}</th>)}</tr></thead>
+          <thead><tr style={{ background: "#f1f5f9", color: C.ink, textAlign: "left", borderBottom: `1px solid ${C.line}` }}>{["#", "Código", "Descripción", "Und.", "Cantidad", ...(usaImportes(tipo) ? ["V. unitario", "Dscto.", "Subtotal"] : []), ""].map((x, i) => <th key={i} style={{ padding: "7px 6px", fontWeight: 700 }}>{x}</th>)}</tr></thead>
           <tbody>{items.map((x, i) => <tr key={i} style={{ borderBottom: `1px solid ${C.line}`, background: i % 2 ? C.soft : C.white }}>
             <td style={{ padding: 4, width: 22 }}>{i + 1}</td>
             <td style={{ padding: 4, width: 70 }}><input value={x.codigo} onChange={(e) => actualizarItem(i, "codigo", e.target.value)} style={cel} /></td>
@@ -229,7 +229,7 @@ export function HojaComprobante(props: {
           <button type="button" onClick={() => setDocs([...docs, docRelacionadoVacio()])} style={{ marginTop: 7, fontSize: 9.5, border: `1px dashed ${C.green}`, color: C.green, background: C.white, borderRadius: 4, padding: "4px 9px", cursor: "pointer", display: "inline-flex", gap: 4, alignItems: "center" }}><Plus size={12} />Agregar comprobante</button></>}
 
         {usaImportes(tipo) && <>
-          <div style={{ width: 340, marginLeft: "auto", marginTop: 18, fontSize: 10 }}>
+          <div style={{ width: "39%", marginLeft: "auto", marginTop: 18, fontSize: 10 }}>
             {(() => {
               const fila = (etiqueta: ReactNode, valor: string, negrita = false) => (
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1px 6px", lineHeight: 1.2, borderBottom: `1px solid ${C.line}`, fontWeight: negrita ? 700 : 400 }}><span style={{ display: "flex", alignItems: "center", gap: 4 }}>{etiqueta}</span><span>{valor}</span></div>
