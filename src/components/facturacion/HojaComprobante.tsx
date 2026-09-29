@@ -85,13 +85,13 @@ export function HojaComprobante(props: {
   return (
     <div style={{ overflowX: "auto", paddingBottom: 18 }}>
       <section style={{ width: 794, minHeight: 1123, margin: "0 auto", padding: "36px 38px", background: C.white, color: C.ink, fontFamily: 'Calibri, Carlito, "Segoe UI", sans-serif', fontWeight: 400, fontSize: 9, boxShadow: "0 12px 35px rgba(15,23,42,.18)" }}>
-        <header style={{ display: "flex", gap: 22, borderBottom: `3px solid ${C.green}`, paddingBottom: 14 }}>
+        <header style={{ display: "flex", gap: 22, alignItems: "stretch", borderBottom: `3px solid ${C.green}`, paddingBottom: 14 }}>
           <div style={{ width: 96, display: "flex", alignItems: "center", justifyContent: "center" }}>{empresa?.logo_url ? <img src={empresa.logo_url} alt="" style={{ maxWidth: 92, maxHeight: 54 }} /> : <div style={{ width: 52, height: 52, borderRadius: 9, background: C.green, color: C.white, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800 }}>TX</div>}</div>
-          <div style={{ flex: 1, textAlign: "right", paddingRight: 10 }}>
+          <div style={{ flex: 1, minHeight: 76, textAlign: "right", paddingRight: 10, display: "flex", flexDirection: "column", justifyContent: "center" }}>
             <b style={{ fontSize: 11, fontWeight: 700 }}>{empresa?.razon_social || "TELXEN SAC"}</b>
-            <div style={{ fontFamily: '"Calibri Light", Calibri, Carlito, sans-serif', fontWeight: 300, fontSize: 9.5, marginTop: 3, lineHeight: 1.25 }}>{empresa?.eslogan || "SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL"}</div>
-            <div style={{ fontFamily: '"Calibri Light", Calibri, Carlito, sans-serif', fontWeight: 300, fontSize: 9, marginTop: 4 }}>{empresa?.direccion}</div>
-            <div style={{ fontFamily: '"Calibri Light", Calibri, Carlito, sans-serif', fontWeight: 300, fontSize: 9 }}>{empresa?.telefono} · {empresa?.web}</div>
+            <div style={{ fontFamily: '"Calibri Light", Calibri, Carlito, sans-serif', fontWeight: 300, fontSize: 8, marginTop: 2, lineHeight: 1.15, textAlign: "justify", textAlignLast: "right" }}>{empresa?.eslogan || "SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL"}</div>
+            <div style={{ fontFamily: '"Calibri Light", Calibri, Carlito, sans-serif', fontWeight: 300, fontSize: 8.5, marginTop: 2, lineHeight: 1.15, textAlign: "justify", textAlignLast: "right" }}>{empresa?.direccion || "—"}</div>
+            <div style={{ fontFamily: '"Calibri Light", Calibri, Carlito, sans-serif', fontWeight: 300, fontSize: 8.5, marginTop: 2, lineHeight: 1.15, textAlign: "justify", textAlignLast: "right" }}>{empresa?.web || "—"}</div>
           </div>
           <div style={{ width: 248, textAlign: "center", flexShrink: 0 }}>
             <div style={{ background: C.greenSoft, borderTop: `4px solid ${C.green}`, borderRadius: 5, padding: "10px 8px" }}>
@@ -134,14 +134,14 @@ export function HojaComprobante(props: {
           <Bloque titulo="PROYECTO / REFERENCIA">
             <Linea etiqueta="Proyecto"><select value={form.proyecto_id} onChange={(e) => set("proyecto_id", e.target.value)} style={edSel}><option value="">Sin proyecto</option>{proyectos.map((p) => <option key={p.id} value={p.id}>{p.codigo} · {p.nombre}</option>)}</select></Linea>
             <Linea etiqueta="O. de compra"><input value={form.orden_compra} onChange={(e) => set("orden_compra", e.target.value)} style={ed} /></Linea>
-            {tipo !== "09" && <Linea etiqueta="N° guía rem."><input value={form.guia_remision_numero} onChange={(e) => set("guia_remision_numero", e.target.value.toUpperCase())} placeholder="T001-00000045" style={ed} /></Linea>}
+            {tipo !== "09" && <Linea etiqueta="Guía de remisión"><input value={form.guia_remision_numero} onChange={(e) => set("guia_remision_numero", e.target.value.toUpperCase())} placeholder="T001-00000045" style={ed} /></Linea>}
             {(tipo === "07" || tipo === "08") && <>
               <Linea etiqueta="Modifica a"><select value={form.referencia_id} onChange={(e) => set("referencia_id", e.target.value)} style={edSel}><option value="">Selecciona...</option>{refs.map((r) => <option key={r.id} value={r.id}>{r.numero}</option>)}</select></Linea>
               <Linea etiqueta="Motivo"><select value={form.motivo_nota_codigo} onChange={(e) => set("motivo_nota_codigo", e.target.value)} style={edSel}>{(tipo === "07" ? MOTIVOS_NOTA_CREDITO : MOTIVOS_NOTA_DEBITO).map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></Linea>
               <Linea etiqueta="Sustento"><input value={form.motivo_nota_descripcion} onChange={(e) => set("motivo_nota_descripcion", e.target.value)} style={ed} /></Linea>
             </>}
           </Bloque>
-          <Bloque titulo="EMISIÓN">
+          <Bloque titulo="">
             <Linea etiqueta="Emisión"><input type="date" value={form.fecha_emision} onChange={(e) => set("fecha_emision", e.target.value)} style={ed} /></Linea>
             <Linea etiqueta="Vencimiento"><input type="date" value={form.fecha_vencimiento} onChange={(e) => set("fecha_vencimiento", e.target.value)} style={ed} /></Linea>
             <Linea etiqueta="Moneda"><select value={form.moneda} onChange={(e) => set("moneda", e.target.value)} style={edSel}><option value="PEN">Soles</option><option value="USD">Dólares</option></select></Linea>
