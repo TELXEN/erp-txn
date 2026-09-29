@@ -8,7 +8,7 @@ import { consultarDocumentoSunat, consultarTipoCambio } from "@/lib/decolecta.fu
 import { CODIGOS_SPOT, MODALIDADES_TRASLADO, MOTIVOS_BAJA, MOTIVOS_NOTA_CREDITO, MOTIVOS_NOTA_DEBITO, MOTIVOS_TRASLADO, PESTANAS_CPE, TASAS_IGV, TASAS_PERCEPCION, TASAS_RETENCION, TIPOS_DOC_RELACIONADO, UNIDADES_SUNAT, calcularItem, cuotaVacia, docRelacionadoVacio, itemComprobanteVacio, repartirCuotas, usaImportes, usaItems, usaRelacionados, type CuotaEditor, type DocRelacionado, type ItemEditor, type OperacionTipo, type TipoComprobante, type TipoTributarioCpe } from "@/lib/facturacion";
 import { hoy } from "@/lib/format";
 
-export const C = { ink: "#0f172a", text: "#334155", muted: "#64748b", line: "#cbd5e1", soft: "#f8fafc", green: "#047857", greenDark: "#065f46", greenSoft: "#ecfdf5", white: "#ffffff" };
+export const C = { ink: "#000000", text: "#000000", muted: "#000000", line: "#cbd5e1", soft: "#f8fafc", green: "#047857", greenDark: "#000000", greenSoft: "#ecfdf5", white: "#ffffff", dark: "#0f172a" };
 const N = (n: number) => Number(n || 0).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 export type FormCpe = ReturnType<typeof nuevoFormCpe>;
