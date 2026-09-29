@@ -96,7 +96,7 @@ function FacturacionElectronica() {
       const datosGuia = tipo === "09" ? { guia_motivo: form.guia_motivo, guia_modalidad: form.guia_modalidad, guia_fecha_traslado: form.guia_fecha_traslado, guia_transportista: form.guia_transportista, guia_transportista_doc: form.guia_transportista_doc, guia_placa: form.guia_placa, guia_licencia: form.guia_licencia, guia_peso: form.guia_peso, guia_bultos: form.guia_bultos, guia_partida: form.guia_partida, guia_partida_ubigeo: form.guia_partida_ubigeo, guia_llegada: form.guia_llegada, guia_llegada_ubigeo: form.guia_llegada_ubigeo } : {};
       const datosRegimen = tipo === "20" || tipo === "40" ? { tasa: form.regimen_tasa, total_comprobantes: String(totalRegimen), importe: String(importeRegimen) } : {};
       const payload = {
-        tipo_comprobante: tipo, serie: form.serie, preliquidacion_id: preliquidacion || editando?.preliquidacion_id || null, proyecto_id: form.proyecto_id || null, cliente_id: form.cliente_id || null,
+        tipo_comprobante: tipo, serie: form.serie, correlativo_inicial: form.correlativo_inicial ? Number(form.correlativo_inicial) : null, preliquidacion_id: preliquidacion || editando?.preliquidacion_id || null, proyecto_id: form.proyecto_id || null, cliente_id: form.cliente_id || null,
         comprobante_referencia_id: form.referencia_id || null, motivo_nota_codigo: form.motivo_nota_codigo, motivo_nota_descripcion: form.motivo_nota_descripcion,
         fecha_emision: form.fecha_emision, fecha_vencimiento: fechaVenc, moneda: form.moneda, tipo_cambio: tc, operacion_tipo: form.operacion_tipo,
         valor_venta: conImportes ? montos.valorVenta : 0, total_descuentos: conImportes ? montos.descuentos : 0, igv: conImportes ? montos.igv : 0,
