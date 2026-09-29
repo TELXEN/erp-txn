@@ -3,10 +3,10 @@ import { Document, Image, Page, StyleSheet, Text, View, pdf } from "@react-pdf/r
 export type DatosComprobantePdf = {
   tipoNombre: string; numero: string; estado: string; fecha: string; fechaVencimiento: string; moneda: "PEN" | "USD"; tipoCambio: number;
   empresa: { razonSocial: string; eslogan: string; ruc: string; direccion: string; telefono: string; email: string; web: string; logoUrl: string };
-  cliente: { razonSocial: string; documento: string; direccion: string };
-  proyecto: string; ordenCompra: string; operacionTipo: string;
+  cliente: { razonSocial: string; documento: string; direccion: string; ciudad?: string };
+  proyecto: string; ordenCompra: string; guiaRemision?: string; operacionTipo: string; esGuia?: boolean;
   items: { codigo: string; descripcion: string; unidad: string; cantidad: number; valorUnitario: number; descuento: number; subtotal: number }[];
-  valorVenta: number; descuentos: number; igv: number; total: number; totalLetras: string;
+  valorVenta: number; descuentos: number; igv: number; igvTasa?: number; anticipoMonto?: number; anticipoDocumento?: string; total: number; totalLetras: string;
   condicionPago: string; cuotas: { numero: number; fecha: string; monto: number }[];
   tipoTributario: string; codigoSpot: string; pctDetraccion: number; montoDetraccion: number; montoRetencion: number;
   cuentaDetraccion: string; observacion: string; qrDataUrl: string; hash: string;
