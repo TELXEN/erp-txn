@@ -54,7 +54,6 @@ export function HojaComprobante(props: {
   const simbolo = form.moneda === "USD" ? "US$" : "S/";
   const baseCuotas = montos.netoPagar ?? montos.total;
   const { data: cuentas = [] } = useQuery({ queryKey: ["bancos-cpe"], queryFn: async () => { const { data, error } = await supabase.from("bancos").select("nombre,numero_cuenta,cci,monedas,tipo_cuenta").eq("activo", true).order("nombre"); if (error) throw error; return (data ?? []) as CuentaCpe[]; } });
-  const cuentaDet = cuentaDetraccionDe(cuentas);
   const buscarDoc = useServerFn(consultarDocumentoSunat); const buscarTc = useServerFn(consultarTipoCambio);
   const [aviso, setAviso] = useState(""); const [buscando, setBuscando] = useState(false);
   const tipo = form.tipo_comprobante as TipoComprobante;
