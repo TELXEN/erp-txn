@@ -89,9 +89,9 @@ export function HojaComprobante(props: {
           <div style={{ width: 96, display: "flex", alignItems: "center", justifyContent: "center" }}>{empresa?.logo_url ? <img src={empresa.logo_url} alt="" style={{ maxWidth: 92, maxHeight: 54 }} /> : <div style={{ width: 52, height: 52, borderRadius: 9, background: C.green, color: C.white, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800 }}>TX</div>}</div>
           <div style={{ flex: 1, minHeight: 76, textAlign: "right", paddingRight: 10, display: "flex", flexDirection: "column", justifyContent: "center" }}>
             <b style={{ fontSize: 11, fontWeight: 700 }}>{empresa?.razon_social || "TELXEN SAC"}</b>
-            <div style={{ fontFamily: '"Calibri Light", Calibri, Carlito, sans-serif', fontWeight: 300, fontSize: 8, marginTop: 2, lineHeight: 1.15, textAlign: "justify", textAlignLast: "right" }}>{empresa?.eslogan || "SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL"}</div>
-            <div style={{ fontFamily: '"Calibri Light", Calibri, Carlito, sans-serif', fontWeight: 300, fontSize: 8.5, marginTop: 2, lineHeight: 1.15, textAlign: "justify", textAlignLast: "right" }}>{empresa?.direccion || "—"}</div>
-            <div style={{ fontFamily: '"Calibri Light", Calibri, Carlito, sans-serif', fontWeight: 300, fontSize: 8.5, marginTop: 2, lineHeight: 1.15, textAlign: "justify", textAlignLast: "right" }}>{empresa?.web || "—"}</div>
+            <div style={{ fontFamily: '"Calibri Light", Calibri, Carlito, sans-serif', fontWeight: 300, fontSize: 8, marginTop: 2, lineHeight: 1.15, textAlign: "right" }}>{empresa?.eslogan || "SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL"}</div>
+            <div style={{ fontFamily: '"Calibri Light", Calibri, Carlito, sans-serif', fontWeight: 300, fontSize: 8.5, marginTop: 2, lineHeight: 1.15, textAlign: "right" }}>{empresa?.direccion || "—"}</div>
+            <div style={{ fontFamily: '"Calibri Light", Calibri, Carlito, sans-serif', fontWeight: 300, fontSize: 8.5, marginTop: 2, lineHeight: 1.15, textAlign: "right" }}>{empresa?.web || "—"}</div>
           </div>
           <div style={{ width: 248, textAlign: "center", flexShrink: 0, display: "flex", flexDirection: "column", justifyContent: "center" }}>
             <div style={{ background: C.greenSoft, borderTop: `4px solid ${C.green}`, borderRadius: 5, padding: "10px 8px" }}>
