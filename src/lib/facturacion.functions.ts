@@ -19,9 +19,13 @@ export const crearComprobanteElectronico = createServerFn({ method: "POST" })
     const { data: autorizado, error: authError } = await context.supabase.rpc("is_admin_o_gerente", { _user_id: context.userId });
     if (authError) throw new Error(authError.message);
     if (!autorizado) throw new Error("No autorizado para emitir comprobantes.");
+    const conImportes = ["01", "03", "07", "08"].includes(data.tipo_comprobante);
     if (data.tipo_comprobante === "01" && !data.cliente_id) throw new Error("La factura requiere un cliente con RUC.");
     if ((data.tipo_comprobante === "07" || data.tipo_comprobante === "08") && !data.comprobante_referencia_id) throw new Error("La nota requiere un comprobante de referencia.");
-    if (Math.abs(data.items.reduce((s, i) => s + i.total, 0) - data.total) > 0.05) throw new Error("Los totales del comprobante no coinciden con sus ítems.");
+    if (["20", "40", "RA"].includes(data.tipo_comprobante) && !data.documentos_relacionados.length) throw new Error("Agrega al menos un comprobante relacionado.");
+    if (["01", "03", "07", "08", "09"].includes(data.tipo_comprobante) && !data.items.length) throw new Error("Agrega al menos un concepto.");
+    if (conImportes && Math.abs(data.items.reduce((s, i) => s + i.total, 0) - data.total) > 0.05) throw new Error("Los totales del comprobante no coinciden con sus ítems.");
+
     if (data.condicion_pago === "Crédito" && Math.abs(data.cuotas.reduce((s, c) => s + c.monto, 0) - data.total) > 0.05) throw new Error("Las cuotas deben sumar el total del comprobante.");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
