@@ -1,5 +1,8 @@
 import { useState, type CSSProperties, type ReactNode } from "react";
 import { useServerFn } from "@tanstack/react-start";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { CuentasComprobante, cuentaDetraccionDe, type CuentaCpe } from "@/components/facturacion/CuentasComprobante";
 import { Plus, Search, Trash2 } from "lucide-react";
 import { consultarDocumentoSunat, consultarTipoCambio } from "@/lib/decolecta.functions";
 import { CODIGOS_SPOT, MODALIDADES_TRASLADO, MOTIVOS_BAJA, MOTIVOS_NOTA_CREDITO, MOTIVOS_NOTA_DEBITO, MOTIVOS_TRASLADO, PESTANAS_CPE, TASAS_IGV, TASAS_PERCEPCION, TASAS_RETENCION, TIPOS_DOC_RELACIONADO, UNIDADES_SUNAT, calcularItem, cuotaVacia, docRelacionadoVacio, itemComprobanteVacio, repartirCuotas, usaImportes, usaItems, usaRelacionados, type CuotaEditor, type DocRelacionado, type ItemEditor, type OperacionTipo, type TipoComprobante, type TipoTributarioCpe } from "@/lib/facturacion";
@@ -44,10 +47,12 @@ export function HojaComprobante(props: {
   refs: { id: string; numero: string; tipo_comprobante: string; total: number }[];
   series: { id: string; serie: string; tipo_comprobante: string }[];
   cuotas: CuotaEditor[]; setCuotas: (c: CuotaEditor[]) => void;
-  numeroPreview: string; montos: { subTotalVentas: number; descuentos: number; valorVenta: number; isc: number; igv: number; icbper: number; otrosCargos: number; otrosTributos: number; redondeo: number; anticipo: number; total: number; montoDetraccion: number; montoRetencion: number };
+  numeroPreview: string; montos: { subTotalVentas: number; descuentos: number; valorVenta: number; isc: number; igv: number; icbper: number; otrosCargos: number; otrosTributos: number; redondeo: number; anticipo: number; total: number; montoDetraccion: number; montoRetencion: number; detraccionBase?: number; detraccionUsd?: number; netoPagar?: number };
   totalRegimen: number; importeRegimen: number; onTipoChange: (t: TipoComprobante) => void; bloqueado: boolean;
 }) {
   const { form, setForm, items, setItems, docs, setDocs, cuotas, setCuotas, empresa, clientes, proyectos, refs, series, numeroPreview, montos, totalRegimen, importeRegimen, onTipoChange, bloqueado } = props;
+  const { data: cuentas = [] } = useQuery({ queryKey: ["bancos-cpe"], queryFn: async () => { const { data, error } = await supabase.from("bancos").select("nombre,numero_cuenta,cci,monedas,tipo_cuenta").eq("activo", true).order("nombre"); if (error) throw error; return (data ?? []) as CuentaCpe[]; } });
+  const cuentaDet = cuentaDetraccionDe(cuentas);
   const buscarDoc = useServerFn(consultarDocumentoSunat); const buscarTc = useServerFn(consultarTipoCambio);
   const [aviso, setAviso] = useState(""); const [buscando, setBuscando] = useState(false);
   const tipo = form.tipo_comprobante as TipoComprobante;
@@ -292,13 +297,20 @@ export function HojaComprobante(props: {
                   <option value="ninguno|0">No aplica</option><option value="detraccion|4">Detracción 4% · construcción</option><option value="detraccion|12">Detracción 12% · otros servicios</option><option value="retencion|3">Retención 3%</option>
                 </select></Linea>
                 {form.tipo_tributario === "detraccion" && <Linea etiqueta="Código SPOT"><select value={form.codigo_spot} onChange={(e) => set("codigo_spot", e.target.value)} style={edSel}>{CODIGOS_SPOT.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></Linea>}
-                <div style={{ display: "flex", justifyContent: "space-between" }}><span>Importe</span><b>{money(montos.montoDetraccion + montos.montoRetencion)}</b></div>
+                {form.tipo_tributario === "detraccion" ? <>
+                  <div style={{ display: "flex", justifyContent: "space-between" }}><span>Detracción base ({form.pct_detraccion}%)</span><b>{money(montos.detraccionBase ?? 0)}</b></div>
+                  <div style={{ display: "flex", justifyContent: "space-between" }}><span>Detracción (redondeada)</span><b>S/ {(montos.montoDetraccion).toLocaleString("es-PE", { minimumFractionDigits: 2 })}</b></div>
+                  {form.moneda === "USD" && <div style={{ display: "flex", justifyContent: "space-between" }}><span>Equivalente USD (TC {form.tipo_cambio})</span><b>{money(montos.detraccionUsd ?? 0)}</b></div>}
+                  <div style={{ display: "flex", justifyContent: "space-between", borderTop: `1px solid ${C.line}`, paddingTop: 4 }}><span>Neto a pagar</span><b>{money(montos.netoPagar ?? montos.total)}</b></div>
+                  {cuentaDet && <div style={{ fontWeight: 700 }}>CTA. DETRACCIONES BANCO DE LA NACIÓN: {cuentaDet.numero_cuenta}</div>}
+                </> : <div style={{ display: "flex", justifyContent: "space-between" }}><span>Importe</span><b>{money(montos.montoDetraccion + montos.montoRetencion)}</b></div>}
               </div>
             </div>
           </div>
           <div style={{ marginTop: 12, fontSize: 9.5 }}><b style={{ fontSize: 8, color: C.muted }}>OBSERVACIONES</b><input value={form.observacion} onChange={(e) => set("observacion", e.target.value)} placeholder="Texto adicional que se imprime en el comprobante" style={{ ...ed, marginTop: 4 }} /></div>
         </>}
 
+        {usaImportes(tipo) && <CuentasComprobante cuentas={cuentas} />}
         <div style={{ marginTop: 24, borderTop: `1px solid ${C.line}`, paddingTop: 12, fontSize: 9, color: C.muted }}>
           <b>REPRESENTACIÓN IMPRESA DEL COMPROBANTE ELECTRÓNICO</b>
           <div style={{ marginTop: 5 }}>Vista de captura: lo que escribes aquí es exactamente lo que saldrá impreso.</div>

@@ -132,9 +132,30 @@ export function calcularComprobante(items: ItemEditor[], operacion: OperacionTip
   const redondeo = r2(total - totalSinRedondeo);
   const totalPen = r2(total * (tc > 0 ? tc : 1));
   const aplica = tipoTributario !== "ninguno" && pct > 0 && totalPen > 700;
-  const montoDetraccion = aplica && tipoTributario === "detraccion" ? Math.floor((totalPen * pct) / 100 + 0.5) : 0;
+  const det = desgloseDetraccion(total, tc, aplica && tipoTributario === "detraccion" ? pct : 0);
+  const montoDetraccion = det.detraccionPen;
   const montoRetencion = aplica && tipoTributario === "retencion" ? r2((totalPen * pct) / 100) : 0;
-  return { subTotalVentas, descuentos, valorVenta, isc, igv, icbper, otrosCargos, otrosTributos, redondeo, anticipo, total, totalPen, montoDetraccion, montoRetencion };
+  return { subTotalVentas, descuentos, valorVenta, isc, igv, icbper, otrosCargos, otrosTributos, redondeo, anticipo, total, totalPen, montoDetraccion, montoRetencion, detraccionBase: det.base, detraccionUsd: det.detraccionUsd, netoPagar: det.neto };
+}
+
+/** Redondeo comercial a entero según el primer decimal (>=5 arriba, <5 abajo). */
+export function redondearEntero(x: number) {
+  const entero = Math.floor(x);
+  const primerDecimal = Math.floor((x - entero) * 10 + 1e-9);
+  return primerDecimal >= 5 ? entero + 1 : entero;
+}
+
+/**
+ * Detracción: base = total (con IGV) × %. En USD se convierte a PEN con el TC antes de redondear.
+ * Neto a pagar = total − detracción (en USD, la detracción en PEN se reconvierte con el TC).
+ */
+export function desgloseDetraccion(total: number, tc: number, pct: number) {
+  const t = tc > 0 ? tc : 1;
+  const base = Number(((total * pct) / 100).toFixed(2)); // en moneda del comprobante
+  const detraccionPen = pct > 0 ? redondearEntero(Number((base * t).toFixed(4))) : 0;
+  const detraccionUsd = Number((detraccionPen / t).toFixed(2));
+  const neto = Number((total - detraccionPen / t).toFixed(2));
+  return { base, detraccionPen, detraccionUsd, neto };
 }
 
 const UNIDADES = ["CERO", "UNO", "DOS", "TRES", "CUATRO", "CINCO", "SEIS", "SIETE", "OCHO", "NUEVE", "DIEZ", "ONCE", "DOCE", "TRECE", "CATORCE", "QUINCE", "DIECISÉIS", "DIECISIETE", "DIECIOCHO", "DIECINUEVE", "VEINTE", "VEINTIUNO", "VEINTIDÓS", "VEINTITRÉS", "VEINTICUATRO", "VEINTICINCO", "VEINTISÉIS", "VEINTISIETE", "VEINTIOCHO", "VEINTINUEVE"];
