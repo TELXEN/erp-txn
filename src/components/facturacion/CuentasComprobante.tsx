@@ -5,17 +5,31 @@ export const cuentaDetraccionDe = (cuentas: CuentaCpe[]) => cuentas.find(esDetra
 /** Todas las cuentas; la de detracciones al final. */
 export const ordenarCuentas = (cuentas: CuentaCpe[]) => [...cuentas.filter((c) => !esDetraccion(c)), ...cuentas.filter(esDetraccion)];
 
-/** Pie con todas las cuentas bancarias registradas (formato hoja A4). */
+/** Agrupa las cuentas por banco, conservando el orden (detracciones al final). */
+export function agruparPorBanco(cuentas: CuentaCpe[]) {
+  const grupos: { banco: string; cuentas: CuentaCpe[] }[] = [];
+  for (const c of ordenarCuentas(cuentas)) {
+    const banco = (c.nombre || "SIN BANCO").toUpperCase();
+    const g = grupos.find((x) => x.banco === banco);
+    if (g) g.cuentas.push(c); else grupos.push({ banco, cuentas: [c] });
+  }
+  return grupos;
+}
+
+export const detalleCuenta = (c: CuentaCpe) =>
+  `${esDetraccion(c) ? "CUENTA DE DETRACCIONES" : `${c.tipo_cuenta} ${c.monedas}`} · N° ${c.numero_cuenta}${!esDetraccion(c) && c.cci ? ` · CCI ${c.cci}` : ""}`.toUpperCase();
+
+/** Pie con todas las cuentas bancarias registradas, agrupadas por banco. */
 export function CuentasComprobante({ cuentas }: { cuentas: CuentaCpe[] }) {
   if (!cuentas.length) return null;
   return (
-    <div style={{ marginTop: 16, borderTop: "1px solid #cbd5e1", paddingTop: 8, fontSize: 8.5, color: "#334155" }}>
-      <b style={{ fontSize: 8, color: "#065f46", letterSpacing: 0.6 }}>CUENTAS BANCARIAS</b>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", columnGap: 14, rowGap: 2, marginTop: 4, textTransform: "uppercase" }}>
-        {ordenarCuentas(cuentas).map((c, i) => (
-          <div key={i} style={{ lineHeight: 1.3 }}>
-            <b>{c.nombre}</b> · {esDetraccion(c) ? "CUENTA DE DETRACCIONES" : `${c.tipo_cuenta} ${c.monedas}`} · N° {c.numero_cuenta}
-            {!esDetraccion(c) && c.cci ? ` · CCI ${c.cci}` : ""}
+    <div style={{ marginTop: 14, borderTop: "1px solid #cbd5e1", paddingTop: 7, fontSize: 9, color: "#000000" }}>
+      <b style={{ fontSize: 9, letterSpacing: 0.5 }}>CUENTAS BANCARIAS</b>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", columnGap: 14, rowGap: 4, marginTop: 4 }}>
+        {agruparPorBanco(cuentas).map((g, i) => (
+          <div key={i} style={{ lineHeight: 1.25 }}>
+            <b>{g.banco}</b>
+            {g.cuentas.map((c, j) => <div key={j}>{detalleCuenta(c)}</div>)}
           </div>
         ))}
       </div>

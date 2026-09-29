@@ -2,13 +2,13 @@ import { useState, type CSSProperties, type ReactNode } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { CuentasComprobante, cuentaDetraccionDe, type CuentaCpe } from "@/components/facturacion/CuentasComprobante";
+import { CuentasComprobante, type CuentaCpe } from "@/components/facturacion/CuentasComprobante";
 import { Plus, Search, Trash2 } from "lucide-react";
 import { consultarDocumentoSunat, consultarTipoCambio } from "@/lib/decolecta.functions";
 import { CODIGOS_SPOT, MODALIDADES_TRASLADO, MOTIVOS_BAJA, MOTIVOS_NOTA_CREDITO, MOTIVOS_NOTA_DEBITO, MOTIVOS_TRASLADO, PESTANAS_CPE, TASAS_IGV, TASAS_PERCEPCION, TASAS_RETENCION, TIPOS_DOC_RELACIONADO, UNIDADES_SUNAT, calcularItem, cuotaVacia, docRelacionadoVacio, itemComprobanteVacio, repartirCuotas, usaImportes, usaItems, usaRelacionados, type CuotaEditor, type DocRelacionado, type ItemEditor, type OperacionTipo, type TipoComprobante, type TipoTributarioCpe } from "@/lib/facturacion";
 import { hoy } from "@/lib/format";
 
-export const C = { ink: "#0f172a", text: "#334155", muted: "#64748b", line: "#cbd5e1", soft: "#f8fafc", green: "#047857", greenDark: "#065f46", greenSoft: "#ecfdf5", white: "#ffffff" };
+export const C = { ink: "#000000", text: "#000000", muted: "#000000", line: "#cbd5e1", soft: "#f8fafc", green: "#047857", greenDark: "#000000", greenSoft: "#ecfdf5", white: "#ffffff", dark: "#0f172a" };
 const N = (n: number) => Number(n || 0).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 export type FormCpe = ReturnType<typeof nuevoFormCpe>;
@@ -54,7 +54,6 @@ export function HojaComprobante(props: {
   const simbolo = form.moneda === "USD" ? "US$" : "S/";
   const baseCuotas = montos.netoPagar ?? montos.total;
   const { data: cuentas = [] } = useQuery({ queryKey: ["bancos-cpe"], queryFn: async () => { const { data, error } = await supabase.from("bancos").select("nombre,numero_cuenta,cci,monedas,tipo_cuenta").eq("activo", true).order("nombre"); if (error) throw error; return (data ?? []) as CuentaCpe[]; } });
-  const cuentaDet = cuentaDetraccionDe(cuentas);
   const buscarDoc = useServerFn(consultarDocumentoSunat); const buscarTc = useServerFn(consultarTipoCambio);
   const [aviso, setAviso] = useState(""); const [buscando, setBuscando] = useState(false);
   const tipo = form.tipo_comprobante as TipoComprobante;
@@ -85,31 +84,31 @@ export function HojaComprobante(props: {
 
   return (
     <div style={{ overflowX: "auto", paddingBottom: 18 }}>
-      <section style={{ width: 794, minHeight: 1123, margin: "0 auto", padding: "36px 38px", background: C.white, color: C.ink, fontFamily: "Helvetica,Arial,sans-serif", boxShadow: "0 12px 35px rgba(15,23,42,.18)" }}>
-        <header style={{ display: "flex", gap: 18, borderBottom: `3px solid ${C.green}`, paddingBottom: 14 }}>
-          <div style={{ width: 108, display: "flex", alignItems: "center", justifyContent: "center" }}>{empresa?.logo_url ? <img src={empresa.logo_url} alt="" style={{ maxWidth: 100, maxHeight: 54 }} /> : <div style={{ width: 52, height: 52, borderRadius: 9, background: C.green, color: C.white, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800 }}>TX</div>}</div>
-          <div style={{ flex: 1, textAlign: "right", fontFamily: '"Calibri Light",Calibri,Arial,sans-serif' }}>
-            <b style={{ fontSize: 12, color: C.greenDark }}>{empresa?.razon_social || "TELXEN SAC"}</b>
-            <div style={{ fontSize: 9, color: C.greenDark, marginTop: 4 }}>{empresa?.eslogan || "SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL"}</div>
-            <div style={{ fontSize: 9, color: C.text, marginTop: 5 }}>{empresa?.direccion}</div>
-            <div style={{ fontSize: 9, color: C.text }}>{empresa?.telefono} · {empresa?.web}</div>
+      <section style={{ width: 794, minHeight: 1123, margin: "0 auto", padding: "36px 38px", background: C.white, color: C.ink, fontFamily: "Helvetica,Arial,sans-serif", fontSize: 9, boxShadow: "0 12px 35px rgba(15,23,42,.18)" }}>
+        <header style={{ display: "flex", gap: 22, borderBottom: `3px solid ${C.green}`, paddingBottom: 14 }}>
+          <div style={{ width: 96, display: "flex", alignItems: "center", justifyContent: "center" }}>{empresa?.logo_url ? <img src={empresa.logo_url} alt="" style={{ maxWidth: 92, maxHeight: 54 }} /> : <div style={{ width: 52, height: 52, borderRadius: 9, background: C.green, color: C.white, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800 }}>TX</div>}</div>
+          <div style={{ flex: 1, textAlign: "right", paddingRight: 10 }}>
+            <b style={{ fontSize: 11 }}>{empresa?.razon_social || "TELXEN SAC"}</b>
+            <div style={{ fontSize: 9, marginTop: 3, lineHeight: 1.25 }}>{empresa?.eslogan || "SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL"}</div>
+            <div style={{ fontSize: 9, marginTop: 4 }}>{empresa?.direccion}</div>
+            <div style={{ fontSize: 9 }}>{empresa?.telefono} · {empresa?.web}</div>
           </div>
-          <div style={{ width: 316, textAlign: "center" }}>
-            <div style={{ background: C.greenSoft, borderTop: `4px solid ${C.green}`, borderRadius: 5, padding: "11px 12px" }}>
-              <select value={tipo} disabled={bloqueado} onChange={(e) => onTipoChange(e.target.value as TipoComprobante)} style={{ ...edSel, textAlign: "center", fontSize: 10.5, fontWeight: 800, borderBottom: "none", whiteSpace: "nowrap" }}>
+          <div style={{ width: 248, textAlign: "center", flexShrink: 0 }}>
+            <div style={{ background: C.greenSoft, borderTop: `4px solid ${C.green}`, borderRadius: 5, padding: "10px 8px" }}>
+              <select value={tipo} disabled={bloqueado} onChange={(e) => onTipoChange(e.target.value as TipoComprobante)} title="Tipo de comprobante" style={{ ...edSel, textAlign: "center", fontSize: 9.5, fontWeight: 800, borderBottom: "none", whiteSpace: "nowrap" }}>
                 {PESTANAS_CPE.map((p) => <option key={p.tipo} value={p.tipo}>{p.corto}</option>)}
               </select>
-              <div style={{ fontSize: 10, fontWeight: 700, marginTop: 5 }}>RUC: {empresa?.ruc || "—"}</div>
-              <div style={{ display: "flex", gap: 5, justifyContent: "center", alignItems: "center", marginTop: 3 }}>
-                <input value={form.serie} disabled={bloqueado} onChange={(e) => set("serie", e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 4))} list="cpe-series" title="Serie editable (4 caracteres)" style={{ ...ed, width: 52, fontSize: 13, fontWeight: 800, borderBottom: "none", textAlign: "right" }} />
+              <div style={{ fontSize: 9, fontWeight: 700, marginTop: 4 }}>RUC: {empresa?.ruc || "—"}</div>
+              <div style={{ display: "flex", gap: 4, justifyContent: "center", alignItems: "center", marginTop: 3 }}>
+                <input value={form.serie} disabled={bloqueado} onChange={(e) => set("serie", e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 4))} list="cpe-series" title="Serie editable (4 caracteres)" style={{ ...ed, width: 44, fontSize: 11, fontWeight: 800, borderBottom: "none", textAlign: "right" }} />
                 <datalist id="cpe-series">{series.filter((s) => s.tipo_comprobante === tipo).map((s) => <option key={s.id} value={s.serie} />)}</datalist>
-                <span style={{ fontSize: 13, fontWeight: 800 }}>-</span>
+                <span style={{ fontSize: 11, fontWeight: 800 }}>-</span>
                 {bloqueado
-                  ? <span style={{ fontSize: 13, fontWeight: 800 }}>{numeroPreview}</span>
-                  : <input value={form.correlativo_inicial} onChange={(e) => set("correlativo_inicial", e.target.value.replace(/\D/g, "").slice(0, 8))} placeholder="AUTOMÁTICO" title="Correlativo editable: si lo defines, la numeración continúa desde aquí" style={{ ...ed, width: 118, fontSize: 13, fontWeight: 800, borderBottom: "none", textAlign: "left" }} />}
+                  ? <span style={{ fontSize: 11, fontWeight: 800 }}>{numeroPreview}</span>
+                  : <input value={form.correlativo_inicial} onChange={(e) => set("correlativo_inicial", e.target.value.replace(/\D/g, "").slice(0, 8))} placeholder="AUTOMÁTICO" title="Correlativo editable: si lo defines, la numeración continúa desde aquí" style={{ ...ed, width: 96, fontSize: 11, fontWeight: 800, borderBottom: "none", textAlign: "left" }} />}
               </div>
             </div>
-            <div style={{ fontSize: 8, color: C.muted, fontWeight: 700, marginTop: 5 }}>{etiquetaTipo}</div>
+            <div style={{ fontSize: 8.5, fontWeight: 700, marginTop: 4 }}>{etiquetaTipo}</div>
           </div>
         </header>
 
@@ -143,15 +142,15 @@ export function HojaComprobante(props: {
             </>}
           </Bloque>
           <Bloque titulo="EMISIÓN">
-            <Linea etiqueta="Fecha"><input type="date" value={form.fecha_emision} onChange={(e) => set("fecha_emision", e.target.value)} style={ed} /></Linea>
+            <Linea etiqueta="Emisión"><input type="date" value={form.fecha_emision} onChange={(e) => set("fecha_emision", e.target.value)} style={ed} /></Linea>
             <Linea etiqueta="Vencimiento"><input type="date" value={form.fecha_vencimiento} onChange={(e) => set("fecha_vencimiento", e.target.value)} style={ed} /></Linea>
             <Linea etiqueta="Moneda"><select value={form.moneda} onChange={(e) => set("moneda", e.target.value)} style={edSel}><option value="PEN">Soles</option><option value="USD">Dólares</option></select></Linea>
-            <Linea etiqueta="T. cambio">
+            {form.moneda === "USD" && <Linea etiqueta="T. cambio">
               <span style={{ display: "flex", gap: 4 }}>
-                <input type="number" step="0.001" value={form.tipo_cambio} disabled={form.moneda === "PEN"} onChange={(e) => set("tipo_cambio", e.target.value)} style={ed} />
+                <input type="number" step="0.001" value={form.tipo_cambio} onChange={(e) => set("tipo_cambio", e.target.value)} style={ed} />
                 <button type="button" onClick={() => void traerTipoCambio()} disabled={buscando} title="Tipo de cambio oficial del día" style={{ border: `1px solid ${C.green}`, color: C.green, background: C.white, borderRadius: 4, padding: "0 6px", cursor: "pointer" }}><Search size={12} /></button>
               </span>
-            </Linea>
+            </Linea>}
           </Bloque>
         </div>
         {aviso && <div style={{ fontSize: 9, color: C.greenDark, background: C.greenSoft, padding: "5px 9px", marginTop: 6 }}>{aviso}</div>}
@@ -233,7 +232,7 @@ export function HojaComprobante(props: {
           <div style={{ width: 340, marginLeft: "auto", marginTop: 18, fontSize: 10 }}>
             {(() => {
               const fila = (etiqueta: ReactNode, valor: string, negrita = false) => (
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "4px 6px", borderBottom: `1px solid ${C.line}`, fontWeight: negrita ? 700 : 400 }}><span style={{ display: "flex", alignItems: "center", gap: 4 }}>{etiqueta}</span><span>{valor}</span></div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1px 6px", lineHeight: 1.2, borderBottom: `1px solid ${C.line}`, fontWeight: negrita ? 700 : 400 }}><span style={{ display: "flex", alignItems: "center", gap: 4 }}>{etiqueta}</span><span>{valor}</span></div>
               );
               const cargo = (k: "isc" | "icbper" | "otros_cargos" | "otros_tributos") => (
                 <input type="number" step="0.01" min="0" value={form[k]} onChange={(e) => set(k, e.target.value)} style={{ ...ed, width: 76, borderBottom: "none", textAlign: "right" }} />
@@ -305,17 +304,12 @@ export function HojaComprobante(props: {
                 </select></Linea>
                 {form.tipo_tributario === "detraccion" && <Linea etiqueta="Código SPOT"><select value={form.codigo_spot} onChange={(e) => set("codigo_spot", e.target.value)} style={edSel}>{CODIGOS_SPOT.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></Linea>}
                 {form.tipo_tributario === "detraccion" ? <>
-                  <div style={{ display: "flex", justifyContent: "space-between" }}><span>Detracción base ({form.pct_detraccion}%)</span><b>{money(montos.detraccionBase ?? 0)}</b></div>
-                  <div style={{ display: "flex", justifyContent: "space-between" }}><span>Detracción (redondeada)</span><b>S/ {(montos.montoDetraccion).toLocaleString("es-PE", { minimumFractionDigits: 2 })}</b></div>
-                  {form.moneda === "USD" && <div style={{ display: "flex", justifyContent: "space-between" }}><span>Equivalente USD (TC {form.tipo_cambio})</span><b>{money(montos.detraccionUsd ?? 0)}</b></div>}
-                  <div style={{ display: "flex", justifyContent: "space-between", borderTop: `1px solid ${C.line}`, paddingTop: 4 }}><span>Neto a pagar</span><b>{money(montos.netoPagar ?? montos.total)}</b></div>
-                  {cuentaDet && <div style={{ fontWeight: 700 }}>CTA. DETRACCIONES BANCO DE LA NACIÓN: {cuentaDet.numero_cuenta}</div>}
+                  <div style={{ display: "flex", justifyContent: "space-between", lineHeight: 1.2 }}><span>Detracción ({form.pct_detraccion}%)</span><b>S/ {(montos.montoDetraccion).toLocaleString("es-PE", { minimumFractionDigits: 2 })}</b></div>
+                  <div style={{ display: "flex", justifyContent: "space-between", borderTop: `1px solid ${C.line}`, paddingTop: 3, lineHeight: 1.2 }}><span>Neto a pagar</span><b>{money(montos.netoPagar ?? montos.total)}</b></div>
                  </> : form.tipo_tributario === "retencion" ? <>
-                   <div style={{ display: "flex", justifyContent: "space-between" }}><span>Retención base ({form.pct_detraccion}%)</span><b>{money(montos.retencionBase ?? 0)}</b></div>
-                   <div style={{ display: "flex", justifyContent: "space-between" }}><span>Retención (redondeada)</span><b>S/ {(montos.montoRetencion).toLocaleString("es-PE", { minimumFractionDigits: 2 })}</b></div>
-                   {form.moneda === "USD" && <div style={{ display: "flex", justifyContent: "space-between" }}><span>Equivalente USD (TC {form.tipo_cambio})</span><b>{money(montos.retencionUsd ?? 0)}</b></div>}
-                   <div style={{ display: "flex", justifyContent: "space-between", borderTop: `1px solid ${C.line}`, paddingTop: 4 }}><span>Neto a pagar</span><b>{money(montos.netoPagar ?? montos.total)}</b></div>
-                 </> : <div style={{ display: "flex", justifyContent: "space-between" }}><span>Importe</span><b>{money(montos.montoDetraccion + montos.montoRetencion)}</b></div>}
+                   <div style={{ display: "flex", justifyContent: "space-between", lineHeight: 1.2 }}><span>Retención ({form.pct_detraccion}%)</span><b>S/ {(montos.montoRetencion).toLocaleString("es-PE", { minimumFractionDigits: 2 })}</b></div>
+                   <div style={{ display: "flex", justifyContent: "space-between", borderTop: `1px solid ${C.line}`, paddingTop: 3, lineHeight: 1.2 }}><span>Neto a pagar</span><b>{money(montos.netoPagar ?? montos.total)}</b></div>
+                 </> : null}
               </div>
             </div>
           </div>
