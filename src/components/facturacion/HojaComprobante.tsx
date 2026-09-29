@@ -47,7 +47,7 @@ export function HojaComprobante(props: {
   refs: { id: string; numero: string; tipo_comprobante: string; total: number }[];
   series: { id: string; serie: string; tipo_comprobante: string }[];
   cuotas: CuotaEditor[]; setCuotas: (c: CuotaEditor[]) => void;
-  numeroPreview: string; montos: { subTotalVentas: number; descuentos: number; valorVenta: number; isc: number; igv: number; icbper: number; otrosCargos: number; otrosTributos: number; redondeo: number; anticipo: number; total: number; montoDetraccion: number; montoRetencion: number; detraccionBase?: number; detraccionUsd?: number; netoPagar?: number };
+  numeroPreview: string; montos: { subTotalVentas: number; descuentos: number; valorVenta: number; isc: number; igv: number; icbper: number; otrosCargos: number; otrosTributos: number; redondeo: number; anticipo: number; total: number; montoDetraccion: number; montoRetencion: number; detraccionBase?: number; detraccionUsd?: number; retencionBase?: number; retencionUsd?: number; netoPagar?: number };
   totalRegimen: number; importeRegimen: number; onTipoChange: (t: TipoComprobante) => void; bloqueado: boolean;
 }) {
   const { form, setForm, items, setItems, docs, setDocs, cuotas, setCuotas, empresa, clientes, proyectos, refs, series, numeroPreview, montos, totalRegimen, importeRegimen, onTipoChange, bloqueado } = props;
