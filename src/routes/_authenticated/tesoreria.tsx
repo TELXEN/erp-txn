@@ -165,7 +165,7 @@ function Tesoreria() {
           ].reduce((s, m) => s + enMonedaCuenta({ moneda: "PEN", monto: m, monto_soles: m, tipo_cambio: 1 } as Mov, c), 0);
         return { c, ingresos, egresos, saldo: Number(c.saldo_inicial) + ingresos - egresos };
       }),
-    [cuentas, ventas, gd, gg, cajas, rrhh],
+    [cuentas, ventas, gd, gg, cajas, rrhh, mantVeh, trasVeh],
   );
 
   const cxc: Pendiente[] = (ventas as unknown as (Mov & Record<string, never>)[])

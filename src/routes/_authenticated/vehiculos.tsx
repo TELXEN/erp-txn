@@ -7,6 +7,7 @@ import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, Vacio } from "@/components/ui-kit";
 import { useAuth } from "@/lib/auth";
 import { soles as fmtSoles } from "@/lib/format";
+import { useCajasChicas } from "@/lib/datos";
 import { toast } from "sonner";
 import {
   ESTADOS_VEHICULO,
@@ -36,6 +37,9 @@ export const Route = createFileRoute("/_authenticated/vehiculos")({
 type Proyecto = { id: string; codigo: string; nombre: string };
 type Trabajador = { id: string; nombre: string };
 
+type PagoForm = { origen_pago: "Banco" | "Caja chica"; banco_id: string; caja_chica_id: string; numero_operacion: string };
+const PAGO_VACIO: PagoForm = { origen_pago: "Banco", banco_id: "", caja_chica_id: "", numero_operacion: "" };
+
 type Pestaña = "flota" | "tareo" | "traslados" | "mantenimiento" | "resumen";
 
 const PESTAÑAS: { id: Pestaña; texto: string }[] = [
@@ -63,6 +67,68 @@ function PaginaVehiculos() {
   const { data: traslados = [] } = useTraslados();
   const { data: mantenimientos = [] } = useMantenimientos();
   const { data: plan = [] } = usePlanMantenimiento();
+  const { data: bancos = [] } = useQuery({
+    queryKey: ["bancos"],
+    enabled: esDinero,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("bancos").select("*").order("nombre");
+      if (error) throw error;
+      return (data ?? []) as unknown as { id: string; nombre: string; numero_cuenta: string; monedas: string; activo: boolean }[];
+    },
+  });
+  const { data: cajas = [] } = useCajasChicas();
+  const cajasAbiertas = cajas.filter((c) => c.estado === "Abierta");
+  const nombreOrigen = (r: { origen_pago?: string; banco_id: string | null; caja_chica_id: string | null }) => {
+    if (r.caja_chica_id) {
+      const c = cajas.find((x) => x.id === r.caja_chica_id);
+      return `Caja chica${c ? ` · ${c.motivo}` : ""}`;
+    }
+    const b = bancos.find((x) => x.id === r.banco_id);
+    return b ? `${b.nombre} · ${b.numero_cuenta}` : "—";
+  };
+  const validarOrigen = (f: PagoForm, monto: number) => {
+    if (monto <= 0) return "";
+    if (f.origen_pago === "Banco" && !f.banco_id) return "Elige la cuenta bancaria de la que sale el dinero";
+    if (f.origen_pago === "Caja chica" && !f.caja_chica_id) return "Elige la caja chica que paga";
+    return "";
+  };
+  const filaOrigen = (f: PagoForm, monto: number) =>
+    monto > 0
+      ? {
+          origen_pago: f.origen_pago,
+          banco_id: f.origen_pago === "Banco" ? f.banco_id || null : null,
+          caja_chica_id: f.origen_pago === "Caja chica" ? f.caja_chica_id || null : null,
+          numero_operacion: f.numero_operacion.trim(),
+        }
+      : {};
+  const camposOrigen = <T extends PagoForm>(f: T, set: (f: T) => void) => (
+    <>
+      <Campo etiqueta="Pagado desde">
+        <Select value={f.origen_pago} onChange={(e) => set({ ...f, origen_pago: e.target.value as PagoForm["origen_pago"] })}>
+          <option value="Banco">Cuenta bancaria</option>
+          <option value="Caja chica">Caja chica</option>
+        </Select>
+      </Campo>
+      {f.origen_pago === "Banco" ? (
+        <Campo etiqueta="Cuenta bancaria">
+          <Select value={f.banco_id} onChange={(e) => set({ ...f, banco_id: e.target.value })}>
+            <option value="">— elegir —</option>
+            {bancos.filter((b) => b.activo).map((b) => <option key={b.id} value={b.id}>{b.nombre} · {b.monedas} · {b.numero_cuenta}</option>)}
+          </Select>
+        </Campo>
+      ) : (
+        <Campo etiqueta="Caja chica (abierta)">
+          <Select value={f.caja_chica_id} onChange={(e) => set({ ...f, caja_chica_id: e.target.value })}>
+            <option value="">— elegir —</option>
+            {cajasAbiertas.map((c) => <option key={c.id} value={c.id}>{c.motivo} · {fmtSoles(c.monto_entregado)}</option>)}
+          </Select>
+        </Campo>
+      )}
+      <Campo etiqueta={f.origen_pago === "Banco" ? "N° operación" : "N° comprobante"}>
+        <Input value={f.numero_operacion} onChange={(e) => set({ ...f, numero_operacion: e.target.value })} />
+      </Campo>
+    </>
+  );
 
   const { data: proyectos = [] } = useQuery({
     queryKey: ["proyectos", "vehiculos"],
@@ -196,7 +262,7 @@ function PaginaVehiculos() {
   const VACIO_TRASLADO = {
     fecha: new Date().toISOString().slice(0, 10), vehiculo_id: "", conductor_id: "", proyecto_id: "",
     origen: "", destino: "", km_inicial: "0", km_final: "0", carga: "",
-    combustible_galones: "0", combustible_monto: "0", observacion: "", generar_tareo: true,
+    combustible_galones: "0", combustible_monto: "0", observacion: "", generar_tareo: true, ...PAGO_VACIO,
   };
   const [formTras, setFormTras] = useState(VACIO_TRASLADO);
 
@@ -206,7 +272,14 @@ function PaginaVehiculos() {
       return;
     }
     const kmFinal = Number(formTras.km_final) || 0;
+    const montoComb = esDinero ? Number(formTras.combustible_monto) || 0 : 0;
+    const errOrigen = validarOrigen(formTras, montoComb);
+    if (errOrigen) {
+      toast.error(errOrigen);
+      return;
+    }
     const fila = {
+      ...filaOrigen(formTras, montoComb),
       fecha: formTras.fecha,
       vehiculo_id: formTras.vehiculo_id,
       conductor_id: formTras.conductor_id || null,
@@ -244,7 +317,7 @@ function PaginaVehiculos() {
       } as never);
     }
     toast.success("Traslado registrado");
-    setFormTras({ ...VACIO_TRASLADO, vehiculo_id: formTras.vehiculo_id });
+    setFormTras({ ...VACIO_TRASLADO, vehiculo_id: formTras.vehiculo_id, origen_pago: formTras.origen_pago, banco_id: formTras.banco_id, caja_chica_id: formTras.caja_chica_id });
     refrescar();
   }
 
@@ -259,7 +332,7 @@ function PaginaVehiculos() {
   }
 
   // ---------- Mantenimiento ----------
-  const VACIO_MANT = { vehiculo_id: "", fecha: new Date().toISOString().slice(0, 10), tipo: "Preventivo", costo: "0", km: "0", detalle: "" };
+  const VACIO_MANT = { vehiculo_id: "", fecha: new Date().toISOString().slice(0, 10), tipo: "Preventivo", costo: "0", km: "0", detalle: "", ...PAGO_VACIO };
   const [formMant, setFormMant] = useState(VACIO_MANT);
   const VACIO_PLAN = { vehiculo_id: "", descripcion: "", cada_km: "", cada_meses: "" };
   const [formPlan, setFormPlan] = useState(VACIO_PLAN);
@@ -269,7 +342,14 @@ function PaginaVehiculos() {
       toast.error("Elige el vehículo");
       return;
     }
+    const monto = Number(formMant.costo) || 0;
+    const errOrigen = validarOrigen(formMant, monto);
+    if (errOrigen) {
+      toast.error(errOrigen);
+      return;
+    }
     const { error } = await supabase.from("mantenimientos_vehiculo" as never).insert({
+      ...filaOrigen(formMant, monto),
       vehiculo_id: formMant.vehiculo_id,
       fecha: formMant.fecha,
       tipo: formMant.tipo,
@@ -535,7 +615,7 @@ function PaginaVehiculos() {
                   <thead><tr className="border-b border-line">
                     <th className={th}>Fecha</th><th className={th}>Vehículo</th><th className={th}>Proyecto</th>
                     <th className={th}>Conductor</th><th className={th}>Días</th><th className={th}>Km</th>
-                    {esDinero && <th className={th}>Costo</th>}
+                    {esDinero && <th className={th}>Costo</th>}{esDinero && <th className={th}>Pagado desde</th>}
                     <th className={th}>Observación</th>{esDinero && <th className={th}></th>}
                   </tr></thead>
                   <tbody>
@@ -590,6 +670,7 @@ function PaginaVehiculos() {
               <Campo etiqueta="Carga o personal"><Input value={formTras.carga} onChange={(e) => setFormTras({ ...formTras, carga: e.target.value })} /></Campo>
               <Campo etiqueta="Combustible (gal)"><Input type="number" step="0.01" value={formTras.combustible_galones} onChange={(e) => setFormTras({ ...formTras, combustible_galones: e.target.value })} /></Campo>
               {esDinero && <Campo etiqueta="Combustible (S/)"><Input type="number" step="0.01" value={formTras.combustible_monto} onChange={(e) => setFormTras({ ...formTras, combustible_monto: e.target.value })} /></Campo>}
+              {esDinero && Number(formTras.combustible_monto) > 0 && camposOrigen(formTras, setFormTras)}
               <Campo etiqueta="Observación"><Input value={formTras.observacion} onChange={(e) => setFormTras({ ...formTras, observacion: e.target.value })} /></Campo>
               <label className="col-span-2 flex items-center gap-2 text-sm md:col-span-4">
                 <input type="checkbox" checked={formTras.generar_tareo} onChange={(e) => setFormTras({ ...formTras, generar_tareo: e.target.checked })} />
@@ -618,7 +699,8 @@ function PaginaVehiculos() {
                         <td className={td}>{t.origen} → {t.destino}</td>
                         <td className={td}>{t.conductor_id ? nombreTrabajador.get(t.conductor_id) ?? "—" : "—"}</td>
                         <td className={`${td} font-mono`}>{Math.max(0, Number(t.km_final) - Number(t.km_inicial))}</td>
-                        <td className={`${td} font-mono`}>{t.combustible_galones} gal{esDinero && t.combustible_monto ? ` · ${fmtSoles(t.combustible_monto)}` : ""}</td>
+                        <td className={`${td} font-mono`}>{t.combustible_galones} gal{esDinero && t.combustible_monto ? ` · ${fmtSoles(t.combustible_monto)}` : ""}
+                          {esDinero && Number(t.combustible_monto) > 0 && <div className="text-[10px] text-muted-foreground">{nombreOrigen(t)}{t.numero_operacion ? ` · Op. ${t.numero_operacion}` : ""}</div>}</td>
                         <td className={`${td} text-muted-foreground`}>{t.carga}</td>
                         {esDinero && <td className={`${td} text-right`}><button onClick={() => borrarTraslado(t.id)} className="text-bad" aria-label="Eliminar"><Trash2 className="size-3.5" /></button></td>}
                       </tr>
@@ -651,7 +733,8 @@ function PaginaVehiculos() {
                   </Campo>
                   <Campo etiqueta="Costo (S/)"><Input type="number" step="0.01" value={formMant.costo} onChange={(e) => setFormMant({ ...formMant, costo: e.target.value })} /></Campo>
                   <Campo etiqueta="Km al momento"><Input type="number" value={formMant.km} onChange={(e) => setFormMant({ ...formMant, km: e.target.value })} /></Campo>
-                  <div className="col-span-2 md:col-span-3">
+                  {camposOrigen(formMant, setFormMant)}
+                  <div className="col-span-2 md:col-span-4">
                     <Campo etiqueta="Detalle"><Input value={formMant.detalle} onChange={(e) => setFormMant({ ...formMant, detalle: e.target.value })} placeholder="Cambio de aceite, llantas, frenos…" /></Campo>
                   </div>
                 </div>
@@ -718,6 +801,7 @@ function PaginaVehiculos() {
                         <td className={td}><Etiqueta tono={m.tipo === "Preventivo" ? "good" : "bad"}>{m.tipo}</Etiqueta></td>
                         <td className={`${td} font-mono`}>{m.km}</td>
                         {esDinero && <td className={`${td} font-mono`}>{fmtSoles(m.costo)}</td>}
+                        {esDinero && <td className={`${td} text-xs text-muted-foreground`}>{Number(m.costo) > 0 ? nombreOrigen(m) : "—"}{m.numero_operacion ? ` · Op. ${m.numero_operacion}` : ""}</td>}
                         <td className={`${td} text-muted-foreground`}>{m.detalle}</td>
                         {esDinero && <td className={`${td} text-right`}><button onClick={() => borrarMantenimiento(m.id)} className="text-bad" aria-label="Eliminar"><Trash2 className="size-3.5" /></button></td>}
                       </tr>
