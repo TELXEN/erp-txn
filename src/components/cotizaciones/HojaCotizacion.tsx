@@ -213,7 +213,7 @@ export function HojaCotizacion({
           })}
         </div>
 
-        <div style={{ marginTop: 20, borderTop: `1px solid ${C.line}`, paddingTop: 12, fontSize: 9, color: C.muted }}>
+        <div style={{ marginTop: 22, borderTop: `1px solid ${C.line}`, paddingTop: 14, fontSize: 12, color: C.muted }}>
           <b>PROPUESTA COMERCIAL</b>
           <div style={{ marginTop: 5 }}>Lo que escribes en esta hoja es exactamente lo que saldrá impreso.</div>
         </div>
