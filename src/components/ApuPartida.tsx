@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Copy, Trash2, X } from "lucide-react";
-import { Boton, Input, Select } from "@/components/ui-kit";
+import { Boton, Input } from "@/components/ui-kit";
+import { BuscadorInsumo } from "@/components/BuscadorInsumo";
 import { soles } from "@/lib/format";
 import type { PartidaMaestra } from "@/lib/cotizaciones";
 import { ORIGEN_APU, TIPOS_INSUMO, apuDb, calcularApu, useComponentesApu, useInsumos, type OrigenApu } from "@/lib/apu";
@@ -43,18 +44,19 @@ export function ApuPartida({
   const calc = calcularApu(comps, insumos, Number(rend), Number(jornada), Number(pctH));
   const refrescar = () => qc.invalidateQueries({ queryKey: ["apu_componentes", partida.id] });
 
-  async function agregar() {
-    if (!nuevo) return;
-    const ins = insumos.find((i) => i.id === nuevo);
+  async function agregar(id: string) {
+    if (!id) return;
+    setError("");
+    let ins: { tipo: string; unidad: string } | undefined = insumos.find((i) => i.id === id);
+    if (!ins) ins = (await apuDb.from("insumos").select("tipo, unidad").eq("id", id).single()).data ?? undefined;
     const conCuadrilla = ins?.tipo === "MO" || (ins?.tipo === "EQ" && ins.unidad === "hm");
     const { error: err } = await apuDb.from("apu_componentes").insert({
       [columna]: partida.id,
-      insumo_id: nuevo,
+      insumo_id: id,
       cuadrilla: conCuadrilla ? 1 : 0,
       cantidad: conCuadrilla ? 0 : 1,
     });
     if (err) return setError(err.message);
-    setNuevo("");
     refrescar();
   }
 
@@ -197,17 +199,11 @@ export function ApuPartida({
         {comps.length === 0 && <p className="px-5 py-4 font-mono text-xs text-muted-foreground">Agrega insumos para componer el precio unitario.</p>}
 
         <div className="flex flex-wrap items-center gap-2 border-t border-line px-5 py-3">
-          <Select className="min-w-0 flex-1 py-1.5 text-xs" value={nuevo} onChange={(e) => setNuevo(e.target.value)}>
-            <option value="">Seleccionar insumo…</option>
-            {TIPOS_INSUMO.map(([k, t]) => (
-              <optgroup key={k} label={t}>
-                {insumos.filter((i) => i.tipo === k && i.activo).map((i) => (
-                  <option key={i.id} value={i.id}>{i.nombre} ({i.unidad} · S/ {Number(i.precio).toFixed(2)})</option>
-                ))}
-              </optgroup>
-            ))}
-          </Select>
-          <Boton type="button" variante="linea" onClick={agregar}>Agregar</Boton>
+          <BuscadorInsumo
+            insumos={insumos}
+            onElegir={agregar}
+            onCreado={() => qc.invalidateQueries({ queryKey: ["insumos"] })}
+          />
           {maestraIgual && (
             <Boton type="button" variante="linea" onClick={() => void copiarDelBanco()}>
               <Copy size={13} className="mr-1 inline" /> Copiar del banco
