@@ -8,7 +8,7 @@ import { totalesCotizacion, vigenciaHasta, type Cotizacion, type CotizacionItem 
 /** Paleta corporativa compartida con la hoja de facturación electrónica. */
 const C = { ink: "#000000", muted: "#000000", line: "#cbd5e1", soft: "#f8fafc", green: "#047857", greenSoft: "#ecfdf5", white: "#ffffff" };
 
-const ed: CSSProperties = { border: "none", borderBottom: `1px dashed ${C.line}`, background: "transparent", font: "inherit", color: "inherit", width: "100%", padding: "2px 0", outline: "none" };
+const ed: CSSProperties = { border: "none", borderBottom: `1px dashed ${C.line}`, background: "transparent", font: "inherit", fontSize: 13, color: "inherit", width: "100%", padding: "4px 0", outline: "none" };
 const edSel: CSSProperties = { ...ed, cursor: "pointer" };
 const liviano = '"Calibri Light", Calibri, Carlito, sans-serif';
 
@@ -17,15 +17,15 @@ const money = (n: number) => `S/ ${Number(n || 0).toLocaleString("es-PE", { mini
 function Bloque({ titulo, children }: { titulo: string; children: ReactNode }) {
   return (
     <div>
-      <span style={{ fontSize: 9, color: C.muted, fontFamily: liviano, fontWeight: 300, letterSpacing: ".04em" }}>{titulo}</span>
-      <div style={{ marginTop: 5, display: "grid", gap: 4 }}>{children}</div>
+      <span style={{ fontSize: 12, color: C.muted, fontFamily: liviano, fontWeight: 600, letterSpacing: ".04em" }}>{titulo}</span>
+      <div style={{ marginTop: 7, display: "grid", gap: 7 }}>{children}</div>
     </div>
   );
 }
 function Linea({ etiqueta, children }: { etiqueta: string; children: ReactNode }) {
   return (
-    <label style={{ display: "grid", gridTemplateColumns: "88px 1fr", alignItems: "center", gap: 6 }}>
-      <span style={{ fontSize: 9, color: C.muted, fontFamily: liviano, fontWeight: 300, textTransform: "uppercase" }}>{etiqueta}</span>
+    <label style={{ display: "grid", gridTemplateColumns: "112px 1fr", alignItems: "center", gap: 8 }}>
+      <span style={{ fontSize: 11.5, color: C.muted, fontFamily: liviano, fontWeight: 400, textTransform: "uppercase" }}>{etiqueta}</span>
       {children}
     </label>
   );
@@ -73,7 +73,7 @@ export function HojaCotizacion({
           color: C.ink,
           fontFamily: 'Calibri, Carlito, "Segoe UI", sans-serif',
           fontWeight: 400,
-          fontSize: 9,
+          fontSize: 12.5,
           boxShadow: "0 12px 35px rgba(15,23,42,.18)",
         }}
       >
@@ -86,18 +86,18 @@ export function HojaCotizacion({
             )}
           </div>
           <div style={{ flex: 1, minHeight: 76, textAlign: "right", paddingRight: 10 }}>
-            <b style={{ fontSize: 11, fontWeight: 700 }}>{empresa?.razon_social || "TELXEN SAC"}</b>
-            <div style={{ fontFamily: liviano, fontWeight: 300, fontSize: 8, marginTop: 2, lineHeight: 1.15 }}>{empresa?.eslogan || "SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL"}</div>
-            <div style={{ fontFamily: liviano, fontWeight: 300, fontSize: 8.5, marginTop: 2, lineHeight: 1.15 }}>{empresa?.direccion || "—"}</div>
-            <div style={{ fontFamily: liviano, fontWeight: 300, fontSize: 8.5, marginTop: 2, lineHeight: 1.15 }}>{empresa?.web || "—"}</div>
+            <b style={{ fontSize: 16, fontWeight: 700 }}>{empresa?.razon_social || "TELXEN SAC"}</b>
+            <div style={{ fontFamily: liviano, fontWeight: 400, fontSize: 11.5, marginTop: 3, lineHeight: 1.3 }}>{empresa?.eslogan || "SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL"}</div>
+            <div style={{ fontFamily: liviano, fontWeight: 400, fontSize: 12, marginTop: 3, lineHeight: 1.3 }}>{empresa?.direccion || "—"}</div>
+            <div style={{ fontFamily: liviano, fontWeight: 400, fontSize: 12, marginTop: 3, lineHeight: 1.3 }}>{empresa?.web || "—"}</div>
           </div>
           <div style={{ width: 248, textAlign: "center", flexShrink: 0 }}>
             <div style={{ background: C.greenSoft, borderTop: `4px solid ${C.green}`, borderRadius: 5, padding: "10px 8px" }}>
-              <div style={{ fontFamily: liviano, fontSize: 10, fontWeight: 300 }}>COTIZACIÓN</div>
-              <div style={{ fontSize: 9, fontWeight: 700, marginTop: 4 }}>RUC: {empresa?.ruc || "—"}</div>
-              <div style={{ fontSize: 11, fontWeight: 700, marginTop: 3 }}>{cot.codigo || "—"}</div>
+              <div style={{ fontFamily: liviano, fontSize: 13, fontWeight: 600 }}>COTIZACIÓN</div>
+              <div style={{ fontSize: 12.5, fontWeight: 700, marginTop: 5 }}>RUC: {empresa?.ruc || "—"}</div>
+              <div style={{ fontSize: 15, fontWeight: 700, marginTop: 4 }}>{cot.codigo || "—"}</div>
             </div>
-            <div style={{ fontSize: 8.5, fontWeight: 700, marginTop: 4, display: "flex", gap: 4, justifyContent: "center", alignItems: "center" }}>
+            <div style={{ fontSize: 12, fontWeight: 700, marginTop: 6, display: "flex", gap: 6, justifyContent: "center", alignItems: "center" }}>
               REV.
               <input
                 key={`rev-${cot.id}-${cot.revision ?? "01"}`}
@@ -105,13 +105,13 @@ export function HojaCotizacion({
                 maxLength={6}
                 title="Revisión impresa de la cotización"
                 onBlur={(e) => alSalir("revision", e.target.value.trim().toUpperCase() || "01", cot.revision ?? "01")}
-                style={{ ...ed, width: 44, textAlign: "left", fontWeight: 700 }}
+                style={{ ...ed, width: 54, textAlign: "left", fontWeight: 700 }}
               />
             </div>
           </div>
         </header>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr .8fr", gap: 16, background: C.soft, borderTop: `1px solid ${C.line}`, borderBottom: `1px solid ${C.line}`, padding: 13, marginTop: 17, fontSize: 10 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr .8fr", gap: 20, background: C.soft, borderTop: `1px solid ${C.line}`, borderBottom: `1px solid ${C.line}`, padding: 16, marginTop: 18, fontSize: 13 }}>
           <Bloque titulo="CLIENTE">
             <Linea etiqueta="Registrado">
               <select
@@ -162,34 +162,34 @@ export function HojaCotizacion({
 
         <div style={{ marginTop: 16 }}>{children}</div>
 
-        <div style={{ width: 320, marginLeft: "auto", marginTop: 18, fontSize: 10 }}>
+        <div style={{ width: 380, marginLeft: "auto", marginTop: 20, fontSize: 13 }}>
           {[
             ["COSTO DIRECTO", money(totales.costoDirecto), false] as const,
           ].map(([t, v]) => (
-            <div key={t} style={{ display: "flex", justifyContent: "space-between", padding: "2px 6px", borderBottom: `1px solid ${C.line}`, fontWeight: 700 }}><span>{t}</span><span>{v}</span></div>
+            <div key={t} style={{ display: "flex", justifyContent: "space-between", padding: "5px 8px", borderBottom: `1px solid ${C.line}`, fontWeight: 700 }}><span>{t}</span><span>{v}</span></div>
           ))}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "2px 6px", borderBottom: `1px solid ${C.line}` }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "5px 8px", borderBottom: `1px solid ${C.line}` }}>
             <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
               Gastos generales
-              <input key={`gg-${cot.id}-${cot.pct_gastos_generales}`} type="number" step="0.5" min="0" defaultValue={Number(cot.pct_gastos_generales)} onBlur={(e) => alSalir("pct_gastos_generales", Number(e.target.value || 0), Number(cot.pct_gastos_generales))} style={{ ...ed, width: 48, borderBottom: "none", textAlign: "right" }} />%
+              <input key={`gg-${cot.id}-${cot.pct_gastos_generales}`} type="number" step="0.5" min="0" defaultValue={Number(cot.pct_gastos_generales)} onBlur={(e) => alSalir("pct_gastos_generales", Number(e.target.value || 0), Number(cot.pct_gastos_generales))} style={{ ...ed, width: 58, borderBottom: "none", textAlign: "right" }} />%
             </span>
             <span>{money(totales.gastosGenerales)}</span>
           </div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "2px 6px", borderBottom: `1px solid ${C.line}` }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "5px 8px", borderBottom: `1px solid ${C.line}` }}>
             <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
               Utilidad
-              <input key={`ut-${cot.id}-${cot.pct_utilidad}`} type="number" step="0.5" min="0" defaultValue={Number(cot.pct_utilidad)} onBlur={(e) => alSalir("pct_utilidad", Number(e.target.value || 0), Number(cot.pct_utilidad))} style={{ ...ed, width: 48, borderBottom: "none", textAlign: "right" }} />%
+              <input key={`ut-${cot.id}-${cot.pct_utilidad}`} type="number" step="0.5" min="0" defaultValue={Number(cot.pct_utilidad)} onBlur={(e) => alSalir("pct_utilidad", Number(e.target.value || 0), Number(cot.pct_utilidad))} style={{ ...ed, width: 58, borderBottom: "none", textAlign: "right" }} />%
             </span>
             <span>{money(totales.utilidad)}</span>
           </div>
-          <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 6px", borderBottom: `1px solid ${C.line}`, fontWeight: 700 }}><span>SUBTOTAL</span><span>{money(totales.total)}</span></div>
-          <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 6px", borderBottom: `1px solid ${C.line}` }}><span>IGV {conIgv ? "18%" : "0%"}</span><span>{money(igv)}</span></div>
-          <div style={{ display: "flex", justifyContent: "space-between", padding: 11, border: "1.4px solid #006648", borderRadius: 6, marginTop: 4, color: "#006648", fontWeight: 700, fontSize: 12 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 8px", borderBottom: `1px solid ${C.line}`, fontWeight: 700 }}><span>SUBTOTAL</span><span>{money(totales.total)}</span></div>
+          <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 8px", borderBottom: `1px solid ${C.line}` }}><span>IGV {conIgv ? "18%" : "0%"}</span><span>{money(igv)}</span></div>
+          <div style={{ display: "flex", justifyContent: "space-between", padding: 13, border: "1.4px solid #006648", borderRadius: 6, marginTop: 6, color: "#006648", fontWeight: 700, fontSize: 16 }}>
             <span>IMPORTE TOTAL</span><span>{money(totales.total + igv)}</span>
           </div>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 16, fontSize: 9.5 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginTop: 18, fontSize: 12.5 }}>
           {([
             ["recursos_humanos", "RECURSOS HUMANOS"],
             ["tiempo_ejecucion", "TIEMPO DE EJECUCIÓN"],
@@ -199,7 +199,7 @@ export function HojaCotizacion({
             const valor = String((cot as unknown as Record<string, unknown>)[campo] ?? "");
             return (
               <div key={campo} style={{ borderTop: `3px solid ${C.green}`, padding: 11 }}>
-                <b style={{ fontSize: 8, color: C.muted }}>{etiqueta}</b>
+                <b style={{ fontSize: 12, color: C.muted, letterSpacing: ".03em" }}>{etiqueta}</b>
                 <textarea
                   key={`${cot.id}-${campo}-${valor}`}
                   rows={3}
@@ -213,7 +213,7 @@ export function HojaCotizacion({
           })}
         </div>
 
-        <div style={{ marginTop: 20, borderTop: `1px solid ${C.line}`, paddingTop: 12, fontSize: 9, color: C.muted }}>
+        <div style={{ marginTop: 22, borderTop: `1px solid ${C.line}`, paddingTop: 14, fontSize: 12, color: C.muted }}>
           <b>PROPUESTA COMERCIAL</b>
           <div style={{ marginTop: 5 }}>Lo que escribes en esta hoja es exactamente lo que saldrá impreso.</div>
         </div>

@@ -445,14 +445,14 @@ export function CotizacionHoja({
     }
   }
 
-  const celdaBase = "border-b border-line/60 px-2 py-1.5 outline-none focus:ring-2 focus:ring-primary/40";
+  const celdaBase = "border-b border-line/60 px-2.5 py-2 outline-none focus:ring-2 focus:ring-primary/40";
 
   function editor(f: Fila, c: number) {
     const col = COLUMNAS[c] as Columna;
     const comun = {
       autoFocus: true,
       value: valor,
-      className: "w-full rounded border border-primary bg-card px-1 py-0.5 text-xs outline-none",
+      className: "w-full rounded border border-primary bg-card px-1.5 py-1 text-[13px] outline-none",
       onKeyDown: (e: React.KeyboardEvent) => {
         if (e.key === "Enter") {
           e.preventDefault();
@@ -609,18 +609,18 @@ export function CotizacionHoja({
   return (
     <div className="overflow-x-auto">
       {error && <p className="px-5 py-2 font-mono text-xs text-bad">{error}</p>}
-      <div className="flex flex-wrap items-center gap-3 border-b border-line bg-muted/30 px-5 py-2 font-mono text-[10px] text-muted-foreground print:hidden">
+      <div className="flex flex-wrap items-center gap-3 border-b border-line bg-muted/30 px-5 py-2 font-mono text-[11.5px] text-muted-foreground print:hidden">
         <button
           type="button"
           onClick={() => void insertarFila(activo.r)}
-          className="inline-flex items-center gap-1 rounded-md border border-line px-2 py-1 text-[11px] text-primary hover:bg-primary/10"
+          className="inline-flex items-center gap-1 rounded-md border border-line px-2.5 py-1.5 text-[12.5px] text-primary hover:bg-primary/10"
         >
           <Plus size={12} /> Fila
         </button>
         <button
           type="button"
           onClick={() => void nuevaEspecialidad()}
-          className="inline-flex items-center gap-1 rounded-md border border-line px-2 py-1 text-[11px] text-primary hover:bg-primary/10"
+          className="inline-flex items-center gap-1 rounded-md border border-line px-2.5 py-1.5 text-[12.5px] text-primary hover:bg-primary/10"
         >
           <FolderPlus size={12} /> Especialidad
         </button>
@@ -628,16 +628,16 @@ export function CotizacionHoja({
           <button
             type="button"
             onClick={alAbrirCatalogo}
-            className="inline-flex items-center gap-1 rounded-md border border-line px-2 py-1 text-[11px] text-primary hover:bg-primary/10"
+            className="inline-flex items-center gap-1 rounded-md border border-line px-2.5 py-1.5 text-[12.5px] text-primary hover:bg-primary/10"
           >
             <BookOpen size={12} /> Catálogo
           </button>
         )}
         <span>Clic derecho: menú · Doble clic edita · Enter guarda · Esc cancela · Flechas y Tab navegan · Insert añade fila</span>
       </div>
-      <table className="w-full font-mono text-xs">
+      <table className="w-full font-mono text-[13px]">
         <thead>
-          <tr className="border-b border-line bg-muted/40 text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+          <tr className="border-b border-line bg-muted/40 text-left text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
             <th className="px-2 py-2 font-medium">Código</th>
             <th className="px-2 py-2 font-medium">Descripción</th>
             <th className="px-2 py-2 font-medium">Marca</th>
@@ -779,7 +779,7 @@ export function CotizacionHoja({
                           type="button"
                           title="Desglose de insumos (APU)"
                           onClick={() => setApuAbierto(apuAbierto === it.id ? null : it.id)}
-                          className="rounded border border-line px-1.5 py-0.5 text-[10px] text-muted-foreground hover:border-primary hover:text-primary"
+                          className="rounded border border-line px-2 py-1 text-[11.5px] text-muted-foreground hover:border-primary hover:text-primary"
                         >
                           APU
                         </button>
@@ -836,7 +836,7 @@ export function CotizacionHoja({
               <button
                 type="button"
                 onClick={() => void nuevaEspecialidad()}
-                className="inline-flex items-center gap-1 rounded-md border border-dashed border-line px-2 py-1 text-[11px] text-muted-foreground hover:border-primary hover:text-primary"
+                className="inline-flex items-center gap-1 rounded-md border border-dashed border-line px-2.5 py-1.5 text-[12.5px] text-muted-foreground hover:border-primary hover:text-primary"
               >
                 <FolderPlus size={12} /> Nueva especialidad (capítulo)
               </button>
@@ -904,14 +904,14 @@ function FilaFantasma({
             onBlur={() => void confirmar()}
             placeholder="+ Escribe aquí para añadir una partida y pulsa Enter…"
             style={{ paddingLeft: sangria }}
-            className="w-full border-none bg-transparent font-mono text-[11px] italic text-muted-foreground outline-none placeholder:text-muted-foreground/60 focus:not-italic focus:text-ink"
+            className="w-full border-none bg-transparent font-mono text-[13px] italic text-muted-foreground outline-none placeholder:text-muted-foreground/60 focus:not-italic focus:text-ink"
           />
           {maestras.length > 0 && (
             <select
               value=""
               disabled={ocupado}
               onChange={(e) => void elegirMaestra(e.target.value)}
-              className="w-64 shrink-0 rounded border border-dashed border-line/70 bg-transparent px-1 py-0.5 font-mono text-[10px] italic text-muted-foreground/70 outline-none focus:border-primary focus:not-italic focus:text-ink"
+              className="w-64 shrink-0 rounded border border-dashed border-line/70 bg-transparent px-2 py-1 font-mono text-[12px] italic text-muted-foreground/70 outline-none focus:border-primary focus:not-italic focus:text-ink"
             >
               <option value="">o elige del catálogo maestro…</option>
               {maestras.map((m) => (
@@ -976,11 +976,11 @@ function DesgloseApu({ item, alCambiar }: { item: CotizacionItem; alCambiar: () 
     alCambiar();
   }
 
-  const inp = "w-20 rounded border border-line bg-card px-1 py-0.5 text-right text-[11px] outline-none focus:border-primary";
+  const inp = "w-20 rounded border border-line bg-card px-1.5 py-1 text-right text-[12.5px] outline-none focus:border-primary";
 
   return (
     <div className="px-6 py-3">
-      <div className="mb-2 flex flex-wrap items-center gap-4 font-mono text-[10px] text-muted-foreground">
+      <div className="mb-2 flex flex-wrap items-center gap-4 font-mono text-[12px] text-muted-foreground">
         <span className="font-semibold uppercase tracking-wider text-ink">Análisis de precios · {item.nombre}</span>
         <label className="flex items-center gap-1">
           Rendimiento
@@ -995,9 +995,9 @@ function DesgloseApu({ item, alCambiar }: { item: CotizacionItem; alCambiar: () 
           <input className={inp} type="number" step="0.1" defaultValue={pctH} onBlur={(e) => void cambiarPartida("pct_herramientas", e.target.value)} />
         </label>
       </div>
-      <table className="w-full font-mono text-[11px]">
+      <table className="w-full font-mono text-[12.5px]">
         <thead>
-          <tr className="border-b border-line text-left text-[9px] uppercase tracking-wider text-muted-foreground">
+          <tr className="border-b border-line text-left text-[11px] uppercase tracking-wider text-muted-foreground">
             <th className="py-1">Tipo</th>
             <th className="py-1">Insumo</th>
             <th className="py-1">Und.</th>
@@ -1039,7 +1039,7 @@ function DesgloseApu({ item, alCambiar }: { item: CotizacionItem; alCambiar: () 
         <select
           value={nuevo}
           onChange={(e) => void agregar(e.target.value)}
-          className="rounded border border-line bg-card px-2 py-1 font-mono text-[11px] outline-none focus:border-primary"
+          className="rounded border border-line bg-card px-2 py-1 font-mono text-[12.5px] outline-none focus:border-primary"
         >
           <option value="">+ Agregar insumo…</option>
           {TIPOS_INSUMO.map(([t, etiqueta]) => (
@@ -1052,14 +1052,14 @@ function DesgloseApu({ item, alCambiar }: { item: CotizacionItem; alCambiar: () 
             </optgroup>
           ))}
         </select>
-        <div className="flex items-center gap-3 font-mono text-[11px]">
+        <div className="flex items-center gap-3 font-mono text-[12.5px]">
           <span className="text-muted-foreground">
             P.U. calculado <strong className="text-ink">{soles(calc.pu)}</strong>
           </span>
           <button
             type="button"
             onClick={() => void sincronizarPu()}
-            className="rounded-md border border-primary/40 px-2 py-1 text-[11px] text-primary hover:bg-primary/10"
+            className="rounded-md border border-primary/40 px-2.5 py-1.5 text-[12.5px] text-primary hover:bg-primary/10"
           >
             Aplicar al C. unitario
           </button>
