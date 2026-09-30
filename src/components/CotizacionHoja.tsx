@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { soles } from "@/lib/format";
 import { agruparPorCategoria, codigoContextual, ordenarJerarquia, prefijosWBS } from "@/lib/categorias";
 import { apuDb, calcularApu, nombreTipo, TIPOS_INSUMO, useComponentesApu, useInsumos } from "@/lib/apu";
+import { useEspecialidadesPartida } from "@/lib/especialidades";
 import type { CotizacionItem } from "@/lib/cotizaciones";
 
 /** Columnas de la hoja, en el orden en que se navegan con el teclado. */
