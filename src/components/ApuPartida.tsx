@@ -43,18 +43,19 @@ export function ApuPartida({
   const calc = calcularApu(comps, insumos, Number(rend), Number(jornada), Number(pctH));
   const refrescar = () => qc.invalidateQueries({ queryKey: ["apu_componentes", partida.id] });
 
-  async function agregar() {
-    if (!nuevo) return;
-    const ins = insumos.find((i) => i.id === nuevo);
+  async function agregar(id: string) {
+    if (!id) return;
+    setError("");
+    let ins: { tipo: string; unidad: string } | undefined = insumos.find((i) => i.id === id);
+    if (!ins) ins = (await apuDb.from("insumos").select("tipo, unidad").eq("id", id).single()).data ?? undefined;
     const conCuadrilla = ins?.tipo === "MO" || (ins?.tipo === "EQ" && ins.unidad === "hm");
     const { error: err } = await apuDb.from("apu_componentes").insert({
       [columna]: partida.id,
-      insumo_id: nuevo,
+      insumo_id: id,
       cuadrilla: conCuadrilla ? 1 : 0,
       cantidad: conCuadrilla ? 0 : 1,
     });
     if (err) return setError(err.message);
-    setNuevo("");
     refrescar();
   }
 
