@@ -192,7 +192,9 @@ export function prefijosWBS(filas: FilaCodigo[]) {
  * Renumera toda la EDT/WBS de una obra: 01, 01.01, 01.01.01...
  * Devuelve solo las partidas cuyo código cambia.
  */
-export function renumerarWBS<T extends FilaCodigo & { id: string; padre_id?: string | null }>(filas: T[]) {
+export function renumerarWBS<T extends FilaCodigo & { id: string; padre_id?: string | null; tipo?: string }>(
+  filas: T[],
+) {
   const cambios: { id: string; codigo: string }[] = [];
   const ids = new Set(filas.map((f) => f.id));
   const esHijo = (f: T) => Boolean(f.padre_id && ids.has(f.padre_id));
@@ -203,8 +205,18 @@ export function renumerarWBS<T extends FilaCodigo & { id: string; padre_id?: str
     const cap = pad2(iCap);
     let iSub = 0;
     for (const [, items] of agrupar(lista, (f) => claveCat(f.categoria))) {
+      // Marcadora de la especialidad (sin categoría ni partidas): no ocupa correlativo de categoría.
+      if (items.every((f) => f.tipo === "grupo") && !(items[0]?.categoria ?? "").trim()) {
+        for (const m of items) if ((m.codigo ?? "").trim() !== `${cap}.00.00`) cambios.push({ id: m.id, codigo: `${cap}.00.00` });
+        continue;
+      }
       iSub += 1;
-      items.filter((f) => !esHijo(f)).forEach((f, i) => {
+      // Las filas marcadoras de grupo conservan el prefijo del grupo con correlativo 00.
+      for (const m of items.filter((f) => f.tipo === "grupo")) {
+        const c0 = `${cap}.${pad2(iSub)}.00`;
+        if ((m.codigo ?? "").trim() !== c0) cambios.push({ id: m.id, codigo: c0 });
+      }
+      items.filter((f) => !esHijo(f) && f.tipo !== "grupo").forEach((f, i) => {
         const codigo = `${cap}.${pad2(iSub)}.${pad2(i + 1)}`;
         if ((f.codigo ?? "").trim() !== codigo) cambios.push({ id: f.id, codigo });
         hijosDe(f.id).forEach((h, j) => {

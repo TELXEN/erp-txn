@@ -68,7 +68,10 @@ function construirArbol(items: CotizacionItem[]): Fila[] {
         cat: sub.categoria,
         total: totalSub,
       });
-      for (const nodo of ordenarJerarquia(reales)) {
+      const porCodigo = [...reales].sort((a, b) =>
+        (a.codigo ?? "").localeCompare(b.codigo ?? "", undefined, { numeric: true }),
+      );
+      for (const nodo of ordenarJerarquia(porCodigo)) {
         const total = nodo.agrupadora
           ? nodo.hijos.reduce((s, h) => s + Number(h.metrado) * Number(h.precio_unitario), 0)
           : Number(nodo.fila.metrado) * Number(nodo.fila.precio_unitario);
