@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, Vacio } from "@/components/ui-kit";
 import { useAuth } from "@/lib/auth";
-import { fmtSoles } from "@/lib/formato";
+import { soles as fmtSoles } from "@/lib/format";
 import { toast } from "sonner";
 import {
   ESTADOS_VEHICULO,
