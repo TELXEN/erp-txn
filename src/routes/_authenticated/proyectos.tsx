@@ -24,6 +24,7 @@ import {
   useTerceros,
   useTrabajadores,
 } from "@/lib/datos";
+import { useTareoVehiculos } from "@/lib/vehiculos";
 import { generarCodigoProyecto, previsualizarCodigo, useCodificacion } from "@/lib/codificacion";
 
 export const Route = createFileRoute("/_authenticated/proyectos")({
@@ -48,6 +49,7 @@ function Proyectos() {
   const { data: gastosD = [] } = useGastosDirectos();
   const { data: gastosG = [] } = useGastosGenerales();
   const { data: tareos = [] } = useTareos();
+  const { data: tareoVeh = [] } = useTareoVehiculos();
   const { data: trabajadores = [] } = useTrabajadores();
   const { data: terceros = [] } = useTerceros();
   const clientes = terceros.filter((t) => t.es_cliente && t.activo);
@@ -379,7 +381,7 @@ function Proyectos() {
               {proyectos.map((p) => {
                 const enEdicion = editando?.id === p.id;
                 const presupuesto = presupuestoProyecto(p.id, partidas);
-                const costoReal = costoRealProyecto(p.id, gastosD, tareos, gastosG);
+                const costoReal = costoRealProyecto(p.id, gastosD, tareos, gastosG, tareoVeh);
                 return (
                   <tr key={p.id} className="border-b border-line/60">
                     {enEdicion ? (

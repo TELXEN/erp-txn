@@ -23,6 +23,7 @@ import {
   hoyISO,
   useTiposPresupuesto,
 } from "@/lib/datos";
+import { useTareoVehiculos } from "@/lib/vehiculos";
 import { exportarExcel, exportarPdf } from "@/lib/exportar";
 
 export const Route = createFileRoute("/_authenticated/dashboard-proyectos")({
@@ -49,6 +50,7 @@ function DashboardProyectos() {
   const { data: gastosD = [] } = useGastosDirectos();
   const { data: gastosG = [] } = useGastosGenerales();
   const { data: tareos = [] } = useTareos();
+  const { data: tareoVeh = [] } = useTareoVehiculos();
   const { data: tiposPresupuesto = [] } = useTiposPresupuesto();
   const { data: cronograma = [] } = useCronograma();
   const [obraId, setObraId] = useState("");
@@ -63,7 +65,7 @@ function DashboardProyectos() {
         const partidasAvance = propias.filter((x) => !idsPadre.has(x.id));
         const presupuestoDesglosado = resumenPresupuesto(propias, tiposPresupuesto);
         const presupuesto = presupuestoDesglosado.vigente;
-        const costoReal = costoRealProyecto(p.id, gastosD, tareos, gastosG);
+        const costoReal = costoRealProyecto(p.id, gastosD, tareos, gastosG, tareoVeh);
         const partidasContractuales = propias.filter((x) => esContractual(x.tipo_presupuesto ?? "Contractual", tiposPresupuesto)).length;
         const partidasAdicionales = propias.length - partidasContractuales;
         const baseAvance = partidasAvance.reduce((s, x) => s + Number(x.presupuesto_inicial), 0);
