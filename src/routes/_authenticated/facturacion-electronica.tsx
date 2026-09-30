@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Eye, FilePlus2, Pencil, ReceiptText, Trash2 } from "lucide-react";
@@ -19,12 +19,14 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 
 export const Route = createFileRoute("/_authenticated/facturacion-electronica")({ validateSearch: (s: Record<string, unknown>) => ({ preliquidacion: typeof s["preliquidacion"] === "string" ? s["preliquidacion"] : "" }), head: () => ({ meta: [{ title: "Facturación Electrónica — ERP TELXEN" }, { name: "description", content: "Emisión y control de facturas, boletas, notas, guías y comprobantes de retención y percepción." }, { property: "og:title", content: "Facturación Electrónica — ERP TELXEN" }, { property: "og:description", content: "Comprobantes electrónicos, estados fiscales y cobranza." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }), component: FacturacionElectronica });
 
-function FacturacionElectronica() {
-  const { rol } = useAuth(); const { preliquidacion } = Route.useSearch(); const navigate = useNavigate(); const qc = useQueryClient();
+export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo" | "guias" } = {}) {
+  const esGuias = modo === "guias";
+  const { rol } = useAuth(); const { preliquidacion } = useSearch({ strict: false }) as { preliquidacion?: string }; const navigate = useNavigate(); const qc = useQueryClient();
   const crear = useServerFn(crearComprobanteElectronico); const actualizar = useServerFn(actualizarBorradorComprobante); const eliminar = useServerFn(eliminarBorradorComprobante);
-  const [pestana, setPestana] = useState<TipoComprobante>("01");
+  const pestanaInicial: TipoComprobante = esGuias ? "09" : "01";
+  const [pestana, setPestana] = useState<TipoComprobante>(pestanaInicial);
   const [abierto, setAbierto] = useState(Boolean(preliquidacion));
-  const [form, setForm] = useState<FormCpe>(() => nuevoFormCpe("01", SERIE_DEFECTO["01"]));
+  const [form, setForm] = useState<FormCpe>(() => nuevoFormCpe(pestanaInicial, SERIE_DEFECTO[pestanaInicial]));
   const [items, setItems] = useState<ItemEditor[]>([itemComprobanteVacio()]);
   const [docs, setDocs] = useState<DocRelacionado[]>([docRelacionadoVacio()]);
   const [cuotas, setCuotas] = useState<CuotaEditor[]>([]);
