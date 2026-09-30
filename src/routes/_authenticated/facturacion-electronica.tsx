@@ -141,7 +141,8 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
   }
 
   const tiposVisibles = esGuias ? PESTANAS_CPE.filter((p) => p.tipo === "09") : PESTANAS_CPE.filter((p) => p.tipo !== "09");
-  return <><Encabezado titulo={esGuias ? "Guías de Remisión" : "Comprobante de Pago Electrónico"} subtitulo={esGuias ? "Logística · guías de remisión remitente y traslados" : "Comercial · comprobantes, estados SUNAT y cobranza"} acciones={abierto ? <Boton variante="linea" onClick={cerrar}>Cerrar editor</Boton> : <Boton onClick={() => abrirNuevo(pestana)}><FilePlus2 size={14} />{esGuias ? "Nueva guía de remisión" : `Nuevo ${PESTANAS_CPE.find((p) => p.tipo === pestana)?.corto.toLowerCase()}`}</Boton>} />
+  const ETIQUETA_BOTON: Record<string, string> = { "01": "Crear Factura", "03": "Crear Boleta", "07": "Crear Notas de Crédito", "08": "Crear Notas de Débito", "20": "Crear Retenciones", "40": "Crear Percepciones", RA: "Nueva comunicación de baja" };
+  return <><Encabezado titulo={esGuias ? "Guías de Remisión" : "Comprobante de Pago Electrónico"} subtitulo={esGuias ? "Logística · guías de remisión remitente y traslados" : "Comercial · comprobantes, estados SUNAT y cobranza"} acciones={abierto ? <Boton variante="linea" onClick={cerrar}>Cerrar editor</Boton> : <Boton onClick={() => abrirNuevo(pestana)}><FilePlus2 size={14} />{esGuias ? "Nueva guía de remisión" : ETIQUETA_BOTON[pestana] ?? "Nuevo comprobante"}</Boton>} />
     {!esGuias && <div className="mb-4 flex flex-wrap gap-1 border-b border-line">
       {tiposVisibles.map((p) => <button key={p.tipo} type="button" onClick={() => { setPestana(p.tipo); if (abierto) cambiarTipo(p.tipo); }} className={`rounded-t-md px-3 py-2 text-xs font-medium transition ${pestana === p.tipo ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:text-foreground"}`}>{p.etiqueta}</button>)}
     </div>}
