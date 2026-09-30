@@ -293,7 +293,12 @@ function Cotizaciones() {
 
   async function renumerarCotizacion() {
     if (!cot) return;
-    const cambios = renumerarWBS(itemsHoja);
+    // Orden estable: primero el orden guardado y, en empates, el código actual.
+    const cambios = renumerarWBS(
+      [...itemsHoja].sort(
+        (a, b) => a.orden - b.orden || (a.codigo ?? "").localeCompare(b.codigo ?? "", undefined, { numeric: true }),
+      ),
+    );
     if (!cambios.length) return window.alert("La numeración de esta cotización ya está ordenada.");
     if (
       !window.confirm(
