@@ -199,7 +199,7 @@ export function HojaCotizacion({
             const valor = String((cot as unknown as Record<string, unknown>)[campo] ?? "");
             return (
               <div key={campo} style={{ borderTop: `3px solid ${C.green}`, padding: 11 }}>
-                <b style={{ fontSize: 8, color: C.muted }}>{etiqueta}</b>
+                <b style={{ fontSize: 12, color: C.muted, letterSpacing: ".03em" }}>{etiqueta}</b>
                 <textarea
                   key={`${cot.id}-${campo}-${valor}`}
                   rows={3}
