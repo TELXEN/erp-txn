@@ -3,10 +3,17 @@ import { useQueryClient } from "@tanstack/react-query";
 import { BookOpen, ChevronDown, ChevronRight, CornerDownRight, FolderPlus, Plus, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { soles } from "@/lib/format";
-import { agruparPorCategoria, codigoContextual, ordenarJerarquia, prefijosWBS } from "@/lib/categorias";
+import {
+  agruparPorCategoria,
+  categoriasDe,
+  codigoContextual,
+  ordenarJerarquia,
+  prefijosWBS,
+  useCategoriasPartida,
+} from "@/lib/categorias";
 import { apuDb, calcularApu, nombreTipo, TIPOS_INSUMO, useComponentesApu, useInsumos } from "@/lib/apu";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
-import type { CotizacionItem } from "@/lib/cotizaciones";
+import { usePartidasMaestras, type CotizacionItem, type PartidaMaestra } from "@/lib/cotizaciones";
 
 /** Columnas de la hoja, en el orden en que se navegan con el teclado. */
 const COLUMNAS = ["codigo", "nombre", "marca", "unidad", "metrado", "precio_unitario", "total"] as const;
@@ -100,6 +107,9 @@ export function CotizacionHoja({
     () => catalogoEsp.filter((e) => e.activo).map((e) => e.nombre),
     [catalogoEsp],
   );
+  // Categorías y partidas también salen del catálogo maestro.
+  const { data: catalogoCat = [] } = useCategoriasPartida();
+  const { data: maestras = [] } = usePartidasMaestras();
 
   const arbol = useMemo(() => construirArbol(items), [items]);
 
@@ -266,18 +276,19 @@ export function CotizacionHoja({
   }
 
   /** Crea una partida dentro de una especialidad/categoría, con código EDT automático. */
-  async function crearPartida(esp: string, cat: string, nombre: string, unidad = "glb") {
+  async function crearPartida(esp: string, cat: string, nombre: string, unidad = "glb", maestra?: PartidaMaestra) {
     setError("");
+    const categoria = maestra ? maestra.categoria || cat : cat;
     const { error: err } = await supabase.from("cotizacion_items").insert({
       cotizacion_id: cotizacionId,
-      codigo: codigoContextual(esp, cat, items),
-      nombre: nombre.trim() || "Nueva partida",
+      codigo: codigoContextual(esp, categoria, items),
+      nombre: maestra?.nombre ?? (nombre.trim() || "Nueva partida"),
       especialidad: esp,
-      categoria: cat,
-      marca: "",
-      unidad,
+      categoria,
+      marca: maestra?.marca ?? "",
+      unidad: maestra?.unidad ?? unidad,
       metrado: 1,
-      precio_unitario: 0,
+      precio_unitario: maestra ? Number(maestra.precio_unitario) : 0,
       orden: items.length + 1,
     });
     if (err) {
@@ -303,7 +314,13 @@ export function CotizacionHoja({
     await crearPartida(libre, "", "Nueva partida");
   }
 
-
+  /** Partidas maestras activas de la especialidad; primero las de la categoría del grupo. */
+  function maestrasDelGrupo(esp: string, cat: string) {
+    const activas = maestras.filter((m) => m.activo && m.especialidad === esp);
+    return [...activas].sort(
+      (a, b) => Number(b.categoria === cat) - Number(a.categoria === cat) || a.codigo.localeCompare(b.codigo),
+    );
+  }
 
   async function borrar(id: string) {
     await supabase.from("cotizacion_items").delete().eq("id", id);
@@ -388,6 +405,19 @@ export function CotizacionHoja({
     };
     if (col === "nombre" && f.clase === "cap") {
       const opciones = nombresEsp.includes(f.esp) ? nombresEsp : [f.esp, ...nombresEsp];
+      return (
+        <select {...comun} onChange={(e) => setValor(e.target.value)}>
+          {opciones.map((n) => (
+            <option key={n} value={n}>
+              {n}
+            </option>
+          ))}
+        </select>
+      );
+    }
+    if (col === "nombre" && f.clase === "sub") {
+      const delCatalogo = categoriasDe(f.esp, catalogoCat).map((c) => c.nombre);
+      const opciones = delCatalogo.includes(f.cat) ? delCatalogo : [f.cat, ...delCatalogo];
       return (
         <select {...comun} onChange={(e) => setValor(e.target.value)}>
           {opciones.map((n) => (
@@ -551,7 +581,9 @@ export function CotizacionHoja({
               <FilaFantasma
                 key={`f:${f.clave}`}
                 sangria={f.clase === "cap" ? 18 : 30}
+                maestras={maestrasDelGrupo(fantasma.esp, fantasma.cat)}
                 onCrear={(nombre) => crearPartida(fantasma.esp, fantasma.cat, nombre)}
+                onCrearMaestra={(m) => crearPartida(fantasma.esp, fantasma.cat, m.nombre, m.unidad, m)}
               />
             );
             if (f.clase !== "item") {
@@ -687,10 +719,14 @@ export function CotizacionHoja({
 /** Fila punteada al pie de cada grupo: escribir y pulsar Enter crea la partida y abre otra. */
 function FilaFantasma({
   sangria,
+  maestras,
   onCrear,
+  onCrearMaestra,
 }: {
   sangria: number;
+  maestras: PartidaMaestra[];
   onCrear: (nombre: string) => Promise<boolean>;
+  onCrearMaestra: (m: PartidaMaestra) => Promise<boolean>;
 }) {
   const [texto, setTexto] = useState("");
   const [ocupado, setOcupado] = useState(false);
@@ -708,26 +744,52 @@ function FilaFantasma({
     }
   }
 
+  async function elegirMaestra(id: string) {
+    const m = maestras.find((x) => x.id === id);
+    if (!m || ocupado) return;
+    setOcupado(true);
+    await onCrearMaestra(m);
+    setOcupado(false);
+    ref.current?.focus();
+  }
+
   return (
     <tr className="print:hidden">
       <td colSpan={8} className="border-b border-dashed border-line/70 px-2 py-1">
-        <input
-          ref={ref}
-          value={texto}
-          disabled={ocupado}
-          onChange={(e) => setTexto(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              void confirmar();
-            }
-            if (e.key === "Escape") setTexto("");
-          }}
-          onBlur={() => void confirmar()}
-          placeholder="+ Escribe aquí para añadir una partida y pulsa Enter…"
-          style={{ paddingLeft: sangria }}
-          className="w-full border-none bg-transparent font-mono text-[11px] italic text-muted-foreground outline-none placeholder:text-muted-foreground/60 focus:not-italic focus:text-ink"
-        />
+        <div className="flex items-center gap-2">
+          <input
+            ref={ref}
+            value={texto}
+            disabled={ocupado}
+            onChange={(e) => setTexto(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                void confirmar();
+              }
+              if (e.key === "Escape") setTexto("");
+            }}
+            onBlur={() => void confirmar()}
+            placeholder="+ Escribe aquí para añadir una partida y pulsa Enter…"
+            style={{ paddingLeft: sangria }}
+            className="w-full border-none bg-transparent font-mono text-[11px] italic text-muted-foreground outline-none placeholder:text-muted-foreground/60 focus:not-italic focus:text-ink"
+          />
+          {maestras.length > 0 && (
+            <select
+              value=""
+              disabled={ocupado}
+              onChange={(e) => void elegirMaestra(e.target.value)}
+              className="w-64 shrink-0 rounded border border-dashed border-line/70 bg-transparent px-1 py-0.5 font-mono text-[10px] italic text-muted-foreground/70 outline-none focus:border-primary focus:not-italic focus:text-ink"
+            >
+              <option value="">o elige del catálogo maestro…</option>
+              {maestras.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.codigo} · {m.nombre} · {m.unidad} · {soles(Number(m.precio_unitario))}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
       </td>
     </tr>
   );
