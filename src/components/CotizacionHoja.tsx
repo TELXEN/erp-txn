@@ -323,7 +323,35 @@ export function CotizacionHoja({
   }
 
   async function borrar(id: string) {
-    await supabase.from("cotizacion_items").delete().eq("id", id);
+    const it = items.find((i) => i.id === id);
+    if (!it) return;
+    setError("");
+    // Las subpartidas hijas se eliminan junto con su partida agrupadora.
+    const hijos = items.filter((i) => i.padre_id === id);
+    const { error: err } = await supabase.from("cotizacion_items").delete().in("id", [id, ...hijos.map((h) => h.id)]);
+    if (err) return setError(err.message);
+    // Si era la última partida del grupo, deja una vacía para no perder el capítulo/categoría.
+    const quedanEnGrupo = items.some(
+      (i) =>
+        i.id !== id &&
+        !hijos.some((h) => h.id === i.id) &&
+        i.especialidad === it.especialidad &&
+        (i.categoria ?? "") === (it.categoria ?? ""),
+    );
+    if (!quedanEnGrupo) {
+      await supabase.from("cotizacion_items").insert({
+        cotizacion_id: cotizacionId,
+        codigo: it.codigo ?? codigoContextual(it.especialidad, it.categoria ?? "", items),
+        nombre: "Nueva partida",
+        especialidad: it.especialidad,
+        categoria: it.categoria ?? "",
+        marca: "",
+        unidad: "glb",
+        metrado: 1,
+        precio_unitario: 0,
+        orden: it.orden,
+      });
+    }
     refrescar();
   }
 
