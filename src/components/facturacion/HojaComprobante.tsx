@@ -49,8 +49,9 @@ export function HojaComprobante(props: {
   cuotas: CuotaEditor[]; setCuotas: (c: CuotaEditor[]) => void;
   numeroPreview: string; montos: { subTotalVentas: number; descuentos: number; valorVenta: number; isc: number; igv: number; icbper: number; otrosCargos: number; otrosTributos: number; redondeo: number; anticipo: number; total: number; montoDetraccion: number; montoRetencion: number; detraccionBase?: number; detraccionUsd?: number; retencionBase?: number; retencionUsd?: number; netoPagar?: number };
   totalRegimen: number; importeRegimen: number; onTipoChange: (t: TipoComprobante) => void; bloqueado: boolean;
+  tipos?: { tipo: TipoComprobante; etiqueta: string; corto: string }[];
 }) {
-  const { form, setForm, items, setItems, docs, setDocs, cuotas, setCuotas, empresa, clientes, proyectos, refs, series, numeroPreview, montos, totalRegimen, importeRegimen, onTipoChange, bloqueado } = props;
+  const { form, setForm, items, setItems, docs, setDocs, cuotas, setCuotas, empresa, clientes, proyectos, refs, series, numeroPreview, montos, totalRegimen, importeRegimen, onTipoChange, bloqueado, tipos = PESTANAS_CPE } = props;
   const simbolo = form.moneda === "USD" ? "US$" : "S/";
   const baseCuotas = montos.netoPagar ?? montos.total;
   const { data: cuentas = [] } = useQuery({ queryKey: ["bancos-cpe"], queryFn: async () => { const { data, error } = await supabase.from("bancos").select("nombre,numero_cuenta,cci,monedas,tipo_cuenta").eq("activo", true).order("nombre"); if (error) throw error; return (data ?? []) as CuentaCpe[]; } });
@@ -96,7 +97,7 @@ export function HojaComprobante(props: {
           <div style={{ width: 248, textAlign: "center", flexShrink: 0, display: "flex", flexDirection: "column", justifyContent: "center" }}>
             <div style={{ background: C.greenSoft, borderTop: `4px solid ${C.green}`, borderRadius: 5, padding: "10px 8px" }}>
               <select value={tipo} disabled={bloqueado} onChange={(e) => onTipoChange(e.target.value as TipoComprobante)} title="Tipo de comprobante" style={{ ...edSel, textAlign: "center", fontFamily: '"Calibri Light", Calibri, Carlito, sans-serif', fontSize: 10, fontWeight: 300, borderBottom: "none", whiteSpace: "nowrap" }}>
-                {PESTANAS_CPE.map((p) => <option key={p.tipo} value={p.tipo}>{p.corto}</option>)}
+                {tipos.map((p) => <option key={p.tipo} value={p.tipo}>{p.corto}</option>)}
               </select>
               <div style={{ fontSize: 9, fontWeight: 700, marginTop: 4 }}>RUC: {empresa?.ruc || "—"}</div>
               <div style={{ display: "flex", gap: 4, justifyContent: "center", alignItems: "center", marginTop: 3 }}>
