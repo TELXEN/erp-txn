@@ -131,6 +131,35 @@
   background-color: var(--color-card);
 }
 
+@media screen {
+  .cpe-editor-sheet header b {
+    font-size: 16px !important;
+  }
+
+  .cpe-editor-sheet input,
+  .cpe-editor-sheet select,
+  .cpe-editor-sheet textarea,
+  .cpe-editor-sheet table {
+    font-size: 12.5px !important;
+    line-height: 1.35;
+  }
+
+  .cpe-editor-sheet th,
+  .cpe-editor-sheet td {
+    font-size: 12.5px !important;
+  }
+
+  .cpe-editor-sheet th {
+    padding-top: 9px !important;
+    padding-bottom: 9px !important;
+  }
+
+  .cpe-editor-sheet td {
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
+  }
+}
+
 @utility label-mono {
   font-family: var(--font-mono);
   font-size: 10px;
