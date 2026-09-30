@@ -39,7 +39,7 @@ export function Campo({ etiqueta, children }: { etiqueta: string; children: Reac
 const baseInput =
   "w-full rounded-md border border-line bg-card px-3 py-2 text-sm text-foreground outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15 disabled:opacity-50";
 
-export function Input(props: InputHTMLAttributes<HTMLInputElement>) {
+export function Input(props: InputHTMLAttributes<HTMLInputElement> & { ref?: React.Ref<HTMLInputElement> }) {
   return <input {...props} className={`${baseInput} ${props.className ?? ""}`} />;
 }
 
