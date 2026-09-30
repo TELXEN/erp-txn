@@ -40,19 +40,9 @@ type Ficha = { it: Item; comps: ComponenteApu[] };
 
 /** Altura estimada (px) de una ficha APU dentro de la hoja de 794 px de ancho. */
 function altoEstimadoApu(f: Ficha) {
-  const grupos = TIPOS_INSUMO.filter(([t]) => f.comps.some(() => true) && t).length; // grupos posibles
-  const gruposConDatos = TIPOS_INSUMO.filter(([t]) =>
-    f.comps.some(() => true) && t && true,
-  ).length;
-  void grupos; void gruposConDatos;
-  // Cabecera de partida (3 filas) + cabecera de tabla
-  let h = 78 + 28;
-  // Una fila de subtítulo por tipo de insumo presente
-  const tipos = new Set(f.comps.map((c) => c.insumo_id));
-  void tipos;
-  const tiposPresentes = new Set<string>();
-  for (const c of f.comps) tiposPresentes.add((c as ComponenteApu & { __t?: string }).__t ?? "x");
-  // Sin conocer el tipo del insumo aquí, estimamos subtítulos por tipo presente vía longitud de comps
+  // Cabecera de partida (2 filas) + cabecera de tabla
+  let h = 56 + 28;
+  // Una fila de subtítulo por tipo de insumo (estimación sin resolver insumos)
   const nComps = f.comps.length;
   const nGrupos = Math.min(4, Math.max(1, Math.ceil(nComps / 4)));
   h += nGrupos * 24 + nComps * 20;
