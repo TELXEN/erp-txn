@@ -556,6 +556,8 @@ export function CotizacionHoja({
                   <td className={`${celdaBase} text-right font-semibold text-ink`}>{soles(f.total)}</td>
                   <td className={celdaBase} />
                 </tr>
+                {filaFantasma}
+                </React.Fragment>
               );
             }
             const it = f.it;
