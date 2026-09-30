@@ -111,7 +111,7 @@ export function HojaCotizacion({
           </div>
         </header>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr .8fr", gap: 16, background: C.soft, borderTop: `1px solid ${C.line}`, borderBottom: `1px solid ${C.line}`, padding: 13, marginTop: 17, fontSize: 10 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr .8fr", gap: 20, background: C.soft, borderTop: `1px solid ${C.line}`, borderBottom: `1px solid ${C.line}`, padding: 16, marginTop: 18, fontSize: 13 }}>
           <Bloque titulo="CLIENTE">
             <Linea etiqueta="Registrado">
               <select
