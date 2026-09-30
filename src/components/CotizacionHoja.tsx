@@ -257,6 +257,39 @@ export function CotizacionHoja({
     setActivo({ r: r + 1, c: 1 });
   }
 
+  /** Crea una partida dentro de una especialidad/categoría, con código EDT automático. */
+  async function crearPartida(esp: string, cat: string, nombre: string, unidad = "glb") {
+    setError("");
+    const { error: err } = await supabase.from("cotizacion_items").insert({
+      cotizacion_id: cotizacionId,
+      codigo: codigoContextual(esp, cat, items),
+      nombre: nombre.trim() || "Nueva partida",
+      especialidad: esp,
+      categoria: cat,
+      marca: "",
+      unidad,
+      metrado: 1,
+      precio_unitario: 0,
+      orden: items.length + 1,
+    });
+    if (err) {
+      setError(err.message);
+      return false;
+    }
+    await refrescar();
+    return true;
+  }
+
+  /** Abre un capítulo nuevo (especialidad) con su primera partida lista para renombrar. */
+  async function nuevaEspecialidad() {
+    const usadas = new Set(items.map((i) => i.especialidad || "Sin especialidad"));
+    let n = usadas.size + 1;
+    while (usadas.has(`Nueva especialidad ${n}`)) n += 1;
+    await crearPartida(`Nueva especialidad ${n}`, "", "Nueva partida");
+  }
+
+
+
   async function borrar(id: string) {
     await supabase.from("cotizacion_items").delete().eq("id", id);
     refrescar();
