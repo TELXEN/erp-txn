@@ -276,18 +276,19 @@ export function CotizacionHoja({
   }
 
   /** Crea una partida dentro de una especialidad/categoría, con código EDT automático. */
-  async function crearPartida(esp: string, cat: string, nombre: string, unidad = "glb") {
+  async function crearPartida(esp: string, cat: string, nombre: string, unidad = "glb", maestra?: PartidaMaestra) {
     setError("");
+    const categoria = maestra ? maestra.categoria || cat : cat;
     const { error: err } = await supabase.from("cotizacion_items").insert({
       cotizacion_id: cotizacionId,
-      codigo: codigoContextual(esp, cat, items),
-      nombre: nombre.trim() || "Nueva partida",
+      codigo: codigoContextual(esp, categoria, items),
+      nombre: maestra?.nombre ?? (nombre.trim() || "Nueva partida"),
       especialidad: esp,
-      categoria: cat,
-      marca: "",
-      unidad,
+      categoria,
+      marca: maestra?.marca ?? "",
+      unidad: maestra?.unidad ?? unidad,
       metrado: 1,
-      precio_unitario: 0,
+      precio_unitario: maestra ? Number(maestra.precio_unitario) : 0,
       orden: items.length + 1,
     });
     if (err) {
@@ -398,6 +399,19 @@ export function CotizacionHoja({
     };
     if (col === "nombre" && f.clase === "cap") {
       const opciones = nombresEsp.includes(f.esp) ? nombresEsp : [f.esp, ...nombresEsp];
+      return (
+        <select {...comun} onChange={(e) => setValor(e.target.value)}>
+          {opciones.map((n) => (
+            <option key={n} value={n}>
+              {n}
+            </option>
+          ))}
+        </select>
+      );
+    }
+    if (col === "nombre" && f.clase === "sub") {
+      const delCatalogo = categoriasDe(f.esp, catalogoCat).map((c) => c.nombre);
+      const opciones = delCatalogo.includes(f.cat) ? delCatalogo : [f.cat, ...delCatalogo];
       return (
         <select {...comun} onChange={(e) => setValor(e.target.value)}>
           {opciones.map((n) => (
