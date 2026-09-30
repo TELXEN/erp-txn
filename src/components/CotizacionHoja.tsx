@@ -3,10 +3,17 @@ import { useQueryClient } from "@tanstack/react-query";
 import { BookOpen, ChevronDown, ChevronRight, CornerDownRight, FolderPlus, Plus, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { soles } from "@/lib/format";
-import { agruparPorCategoria, codigoContextual, ordenarJerarquia, prefijosWBS } from "@/lib/categorias";
+import {
+  agruparPorCategoria,
+  categoriasDe,
+  codigoContextual,
+  ordenarJerarquia,
+  prefijosWBS,
+  useCategoriasPartida,
+} from "@/lib/categorias";
 import { apuDb, calcularApu, nombreTipo, TIPOS_INSUMO, useComponentesApu, useInsumos } from "@/lib/apu";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
-import type { CotizacionItem } from "@/lib/cotizaciones";
+import { usePartidasMaestras, type CotizacionItem, type PartidaMaestra } from "@/lib/cotizaciones";
 
 /** Columnas de la hoja, en el orden en que se navegan con el teclado. */
 const COLUMNAS = ["codigo", "nombre", "marca", "unidad", "metrado", "precio_unitario", "total"] as const;
@@ -100,6 +107,9 @@ export function CotizacionHoja({
     () => catalogoEsp.filter((e) => e.activo).map((e) => e.nombre),
     [catalogoEsp],
   );
+  // Categorías y partidas también salen del catálogo maestro.
+  const { data: catalogoCat = [] } = useCategoriasPartida();
+  const { data: maestras = [] } = usePartidasMaestras();
 
   const arbol = useMemo(() => construirArbol(items), [items]);
 
