@@ -119,6 +119,43 @@ function GastosGenerales() {
 
   const gruposCategoria = Array.from(new Set(gastosBusqueda.map((g) => g.categoria || "Sin categoría"))).sort();
 
+  // Egresos de flota (módulo Vehículos): mantenimiento mecánico y combustible
+  const placaDe = (id: string) => vehiculos.find((v) => v.id === id)?.placa ?? "—";
+  const origenDe = (x: { origen_pago: string; banco_id: string | null; numero_operacion: string }) => {
+    const base = x.origen_pago === "Caja chica" ? "Caja chica" : nombreBanco(x.banco_id) || "Cuenta bancaria";
+    return x.numero_operacion ? `${base} · Op. ${x.numero_operacion}` : base;
+  };
+  const verFlota = ambito === "Todas" || ambito === "Oficina";
+  const flota = [
+    ...(verFlota ? mantVeh : [])
+      .filter((m) => Number(m.costo) > 0)
+      .map((m) => ({
+        id: m.id,
+        fecha: m.fecha,
+        vehiculo: placaDe(m.vehiculo_id),
+        concepto: `Mantenimiento ${m.tipo.toLowerCase()}`,
+        detalle: m.detalle || "—",
+        origen: origenDe(m),
+        monto: Number(m.costo),
+      })),
+    ...trasVeh
+      .filter(
+        (t) =>
+          Number(t.combustible_monto) > 0 &&
+          (ambito === "Todas" || (ambito === "Oficina" ? !t.proyecto_id : t.proyecto_id === ambito)),
+      )
+      .map((t) => ({
+        id: t.id,
+        fecha: t.fecha,
+        vehiculo: placaDe(t.vehiculo_id),
+        concepto: "Combustible",
+        detalle: `${t.origen} → ${t.destino} · ${t.combustible_galones} gal`,
+        origen: origenDe(t),
+        monto: Number(t.combustible_monto),
+      })),
+  ].sort((a, b) => (a.fecha < b.fecha ? 1 : -1));
+  const totalFlota = flota.reduce((s, f) => s + f.monto, 0);
+
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
   function alternarGrupo(nombre: string) {
