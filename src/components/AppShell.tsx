@@ -67,6 +67,7 @@ const MENU: Categoria[] = [
       { a: "/importaciones", texto: "Importaciones", roles: ["administrador", "gerente"], icono: Plane },
       { a: "/almacen", texto: "Almacén", roles: ["administrador", "gerente"], icono: Warehouse },
       { a: "/guias-remision", texto: "Guías de Remisión", roles: ["administrador", "gerente"], icono: FileStack },
+      { a: "/vehiculos", texto: "Vehículos", roles: ["ingeniero", "administrador", "gerente"], icono: Truck },
       { a: "/inventario", texto: "Inventario", roles: ["administrador", "gerente"], icono: Package },
       { a: "/proveedores", texto: "Proveedores", roles: ["administrador", "gerente"], icono: Truck },
     ],
