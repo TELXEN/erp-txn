@@ -446,7 +446,7 @@ function Cotizaciones() {
     if (c.estado === "Aprobada" || c.estado === "Rechazada" || c.proyecto_id) return null;
     const d = diasRestantes(c);
     if (d < 0) return <Etiqueta tono="bad">Vencida</Etiqueta>;
-    if (d <= 5) return <Etiqueta tono="warn">Vence en {d} d</Etiqueta>;
+    if (d <= 5) return <Etiqueta tono="bad">Vence en {d} d</Etiqueta>;
     return null;
   };
 
