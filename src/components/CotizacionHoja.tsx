@@ -191,7 +191,7 @@ export function CotizacionHoja({
       if (col === "nombre") {
         if (!texto || texto === (f.clase === "cap" ? f.texto : f.texto)) return;
         const campo = f.clase === "cap" ? "especialidad" : "categoria";
-        for (const i of enGrupo) await supabase.from("cotizacion_items").update({ [campo]: texto }).eq("id", i.id);
+        for (const i of enGrupo) await supabase.from("cotizacion_items").update({ [campo]: texto } as never).eq("id", i.id);
         return refrescar();
       }
       if (col === "codigo") {
@@ -218,7 +218,7 @@ export function CotizacionHoja({
     else return;
     const clave = Object.keys(campos)[0] as keyof CotizacionItem;
     if (String(campos[clave as string]) === String(it[clave] ?? "")) return;
-    const { error: err } = await supabase.from("cotizacion_items").update(campos).eq("id", it.id);
+    const { error: err } = await supabase.from("cotizacion_items").update(campos as never).eq("id", it.id);
     if (err) return setError(err.message);
     refrescar();
   }
@@ -573,7 +573,7 @@ function DesgloseApu({ item, alCambiar }: { item: CotizacionItem; alCambiar: () 
   }
 
   async function cambiarPartida(campo: "rendimiento" | "jornada" | "pct_herramientas", v: string) {
-    await supabase.from("cotizacion_items").update({ [campo]: Number(v || 0) }).eq("id", item.id);
+    await supabase.from("cotizacion_items").update({ [campo]: Number(v || 0) } as never).eq("id", item.id);
     alCambiar();
   }
 
