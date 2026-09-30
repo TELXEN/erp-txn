@@ -197,17 +197,11 @@ export function ApuPartida({
         {comps.length === 0 && <p className="px-5 py-4 font-mono text-xs text-muted-foreground">Agrega insumos para componer el precio unitario.</p>}
 
         <div className="flex flex-wrap items-center gap-2 border-t border-line px-5 py-3">
-          <Select className="min-w-0 flex-1 py-1.5 text-xs" value={nuevo} onChange={(e) => setNuevo(e.target.value)}>
-            <option value="">Seleccionar insumo…</option>
-            {TIPOS_INSUMO.map(([k, t]) => (
-              <optgroup key={k} label={t}>
-                {insumos.filter((i) => i.tipo === k && i.activo).map((i) => (
-                  <option key={i.id} value={i.id}>{i.nombre} ({i.unidad} · S/ {Number(i.precio).toFixed(2)})</option>
-                ))}
-              </optgroup>
-            ))}
-          </Select>
-          <Boton type="button" variante="linea" onClick={agregar}>Agregar</Boton>
+          <BuscadorInsumo
+            insumos={insumos}
+            onElegir={agregar}
+            onCreado={() => qc.invalidateQueries({ queryKey: ["insumos"] })}
+          />
           {maestraIgual && (
             <Boton type="button" variante="linea" onClick={() => void copiarDelBanco()}>
               <Copy size={13} className="mr-1 inline" /> Copiar del banco
