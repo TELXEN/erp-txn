@@ -189,7 +189,7 @@ export function HojaCotizacion({
           </div>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 16, fontSize: 9.5 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginTop: 18, fontSize: 12.5 }}>
           {([
             ["recursos_humanos", "RECURSOS HUMANOS"],
             ["tiempo_ejecucion", "TIEMPO DE EJECUCIÓN"],
