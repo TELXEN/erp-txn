@@ -44,6 +44,8 @@ export type CotizacionItem = {
   rendimiento?: number;
   jornada?: number;
   pct_herramientas?: number;
+  /** 'grupo' = fila marcadora que conserva una especialidad/categoría sin partidas. */
+  tipo?: string;
 };
 
 export type PartidaMaestra = {
@@ -71,7 +73,8 @@ export const useCotizaciones = () =>
     },
   });
 
-export const useCotizacionItems = (cotizacionId: string | null) =>
+/** Por defecto excluye las filas marcadoras de grupo; la hoja editable pide `conGrupos`. */
+export const useCotizacionItems = (cotizacionId: string | null, conGrupos = false) =>
   useQuery({
     queryKey: ["cotizacion_items", cotizacionId],
     enabled: Boolean(cotizacionId),
@@ -84,6 +87,7 @@ export const useCotizacionItems = (cotizacionId: string | null) =>
       if (error) throw error;
       return (data ?? []) as CotizacionItem[];
     },
+    select: (d) => (conGrupos ? d : d.filter((i) => i.tipo !== "grupo")),
   });
 
 export const usePartidasMaestras = () =>
