@@ -73,7 +73,7 @@ export function HojaCotizacion({
           color: C.ink,
           fontFamily: 'Calibri, Carlito, "Segoe UI", sans-serif',
           fontWeight: 400,
-          fontSize: 9,
+          fontSize: 12.5,
           boxShadow: "0 12px 35px rgba(15,23,42,.18)",
         }}
       >
