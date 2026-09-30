@@ -73,6 +73,8 @@ function Partidas() {
   const [filtroEsp, setFiltroEsp] = useState("");
   const [filtroTipo, setFiltroTipo] = useState("");
   const [vista, setVista] = useState<"tabla" | "kanban">("tabla");
+  const [pestana, setPestana] = useState<"listado" | "nueva">("listado");
+  const accionRef = React.useRef<"volver" | "otra">("volver");
   const [form, setForm] = useState({
     proyecto_id: "",
     codigo: "",
@@ -200,6 +202,15 @@ function Partidas() {
     if (err) return setError(err.message);
     setForm({ ...form, codigo: "", nombre: "", marca: "", metrado: "1", precio_unitario: "" });
     qc.invalidateQueries({ queryKey: ["partidas"] });
+    if (accionRef.current === "volver") setPestana("listado");
+  }
+
+  function abrirPestana(id: "listado" | "nueva") {
+    if (id === "nueva" && filtroProyecto && !form.proyecto_id) {
+      setForm((f) => ({ ...f, proyecto_id: filtroProyecto }));
+    }
+    setError("");
+    setPestana(id);
   }
 
   async function actualizar(e?: React.MouseEvent | React.FormEvent) {
@@ -399,7 +410,29 @@ function Partidas() {
         }
       />
 
-      <Panel titulo="Nueva partida" className="mb-4">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-line">
+        <div className="flex gap-1">
+          {([
+            ["listado", `Listado y estructura (${partidas.filter((p) => p.activo !== false).length})`],
+            ["nueva", "+ Nueva partida"],
+          ] as const).map(([id, txt]) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => abrirPestana(id)}
+              className={`-mb-px border-b-2 px-4 py-2 font-mono text-xs ${pestana === id ? "border-primary font-semibold text-primary" : "border-transparent text-muted-foreground hover:text-ink"}`}
+            >
+              {txt}
+            </button>
+          ))}
+        </div>
+        {pestana === "listado" && (
+          <Boton onClick={() => abrirPestana("nueva")} className="mb-1">+ Nueva partida</Boton>
+        )}
+      </div>
+
+      {pestana === "nueva" && (
+      <Panel titulo="Registrar nueva partida" className="mb-4">
         <form onSubmit={guardar} className="grid gap-3 p-5 sm:grid-cols-6">
           <div className="sm:col-span-6">
             <Campo etiqueta="Cargar desde el registro maestro">
@@ -591,15 +624,30 @@ function Partidas() {
               ))}
             </Select>
           </Campo>
-          <div className="flex items-end">
-            <Boton type="submit" className="w-full py-2.5">
-              Registrar partida
-            </Boton>
+          <div className="flex flex-col justify-end sm:col-span-6 sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-line pt-3">
+            <p className="font-mono text-sm">
+              Monto parcial:{" "}
+              <span className="font-semibold text-ink">{soles(montoPartida(form.metrado, form.precio_unitario))}</span>
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Boton type="button" variante="linea" onClick={() => setPestana("listado")}>
+                Cancelar
+              </Boton>
+              <Boton type="submit" variante="linea" onClick={() => (accionRef.current = "otra")}>
+                Registrar y agregar otra
+              </Boton>
+              <Boton type="submit" onClick={() => (accionRef.current = "volver")}>
+                Registrar y volver
+              </Boton>
+            </div>
           </div>
           {error && <p className="font-mono text-xs text-bad sm:col-span-6">{error}</p>}
         </form>
       </Panel>
+      )}
 
+      {pestana === "listado" && (
+      <>
       <div className="mb-4 grid gap-3 sm:grid-cols-3">
         {[
           { etiqueta: "Presupuesto contractual", valor: resumen.contractual },
@@ -1061,6 +1109,8 @@ function Partidas() {
           })
         )}
       </Panel>
+      </>
+      )}
       {apu && (
         <ApuPartida
           origen="obra"
