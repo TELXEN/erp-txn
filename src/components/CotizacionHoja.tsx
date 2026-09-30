@@ -809,6 +809,11 @@ export function CotizacionHoja({
                       <Calculator size={14} className="mr-2" /> Ver APU
                     </ContextMenuItem>
                   )}
+                  {!f.agrupadora && (
+                    <ContextMenuItem onSelect={() => { window.location.href = `/apu-vista?id=${cotizacionId}&item=${it.id}`; }}>
+                      <Calculator size={14} className="mr-2" /> Imprimir ficha APU
+                    </ContextMenuItem>
+                  )}
                   <ContextMenuSeparator />
                   <ContextMenuItem className="text-bad focus:text-bad" onSelect={() => void borrar(it.id)}>
                     <Trash2 size={14} className="mr-2" /> Borrar partida

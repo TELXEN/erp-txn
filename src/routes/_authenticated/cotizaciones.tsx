@@ -480,6 +480,9 @@ function Cotizaciones() {
             <Link to="/cotizacion-vista" search={{ id: cot.id }}>
               <Boton variante="linea"><Eye size={13} /> Vista previa A4</Boton>
             </Link>
+            <Link to="/apu-vista" search={{ id: cot.id, item: "" }}>
+              <Boton variante="linea"><Calculator size={13} /> Dossier APU</Boton>
+            </Link>
             <Boton variante="linea" onClick={exportarCotizacion} title="Exportar Excel">
               <Upload size={13} /> Excel
             </Boton>
