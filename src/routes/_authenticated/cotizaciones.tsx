@@ -565,7 +565,7 @@ function Cotizaciones() {
           <HojaCotizacion cot={cot} items={items} clientes={clientes}>
             <CotizacionHoja
               cotizacionId={cot.id}
-              items={items}
+              items={itemsHoja}
               unidades={unidades}
               alAbrirCatalogo={() => setVerCatalogo(true)}
             />
