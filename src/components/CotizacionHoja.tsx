@@ -17,6 +17,7 @@ import {
   codigoContextual,
   ordenarJerarquia,
   prefijosWBS,
+  siguienteCodigoSubpartida,
   useCategoriasPartida,
 } from "@/lib/categorias";
 import { apuDb, calcularApu, nombreTipo, TIPOS_INSUMO, useComponentesApu, useInsumos } from "@/lib/apu";
@@ -313,6 +314,67 @@ export function CotizacionHoja({
     }
     await refrescar();
     return true;
+  }
+
+  /** Crea una subpartida de segundo nivel debajo de una partida principal. */
+  async function crearSubpartida(padre: CotizacionItem) {
+    setError("");
+    const hijos = items.filter((i) => i.padre_id === padre.id);
+    const primera = hijos.length === 0;
+    const parcialPadre = Number(padre.metrado) * Number(padre.precio_unitario);
+    if (
+      primera &&
+      parcialPadre > 0 &&
+      !window.confirm(
+        `"${padre.nombre}" pasará a ser partida agrupadora: su subtotal será la suma de sus subpartidas y su cantidad/precio propios (${soles(parcialPadre)}) se pondrán en cero. ¿Continuar?`,
+      )
+    )
+      return;
+
+    const { data, error: err } = await supabase
+      .from("cotizacion_items")
+      .insert({
+        cotizacion_id: cotizacionId,
+        padre_id: padre.id,
+        codigo: siguienteCodigoSubpartida(padre.codigo ?? "", hijos),
+        nombre: "Nueva subpartida",
+        especialidad: padre.especialidad,
+        categoria: padre.categoria ?? "",
+        marca: padre.marca ?? "",
+        unidad: padre.unidad || "glb",
+        metrado: 1,
+        precio_unitario: 0,
+        orden: items.length + 1,
+      })
+      .select("id")
+      .single();
+    if (err) return setError(err.message);
+    if (primera) {
+      const { error: padreErr } = await supabase
+        .from("cotizacion_items")
+        .update({ metrado: 1, precio_unitario: 0 })
+        .eq("id", padre.id);
+      if (padreErr) return setError(padreErr.message);
+    }
+    await refrescar();
+    setColapsados((prev) => {
+      const siguiente = new Set(prev);
+      siguiente.delete(`i:${padre.id}`);
+      return siguiente;
+    });
+    const nuevaFila = construirArbol([
+      ...items,
+      {
+        ...padre,
+        id: data.id,
+        padre_id: padre.id,
+        codigo: siguienteCodigoSubpartida(padre.codigo ?? "", hijos),
+        nombre: "Nueva subpartida",
+        metrado: 1,
+        precio_unitario: 0,
+      },
+    ]).findIndex((f) => f.clase === "item" && f.it.id === data.id);
+    if (nuevaFila >= 0) setActivo({ r: nuevaFila, c: 1 });
   }
 
   /** Abre un capítulo nuevo tomando la siguiente especialidad libre del catálogo maestro. */
@@ -782,6 +844,17 @@ export function CotizacionHoja({
                           className="rounded border border-line px-2 py-1 text-[11.5px] text-muted-foreground hover:border-primary hover:text-primary"
                         >
                           APU
+                        </button>
+                      )}
+                      {f.nivel === 3 && (
+                        <button
+                          type="button"
+                          title="Agregar subpartida (nivel 2)"
+                          aria-label="Agregar subpartida (nivel 2)"
+                          onClick={() => void crearSubpartida(it)}
+                          className="rounded border border-line p-1 text-muted-foreground hover:border-primary hover:text-primary"
+                        >
+                          <CornerDownRight size={12} />
                         </button>
                       )}
                       <button
