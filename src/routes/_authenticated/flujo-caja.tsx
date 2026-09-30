@@ -85,6 +85,8 @@ function FlujoCaja() {
   const { data: gastosG = [] } = useGastosGenerales();
   const { data: cajas = [] } = useCajasChicas();
   const { data: rrhh } = usePagosRRHH();
+  const { data: mantVeh = [] } = useMantenimientos();
+  const { data: trasVeh = [] } = useTraslados();
 
   const { data: metas = [] } = useQuery({
     queryKey: ["metas_flujo_caja", anio],
