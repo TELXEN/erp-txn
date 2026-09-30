@@ -12,6 +12,7 @@ import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
 import { useCategoriasGastoGeneral, useGastosGenerales, useProyectos, useTerceros } from "@/lib/datos";
 import { exportarExcel } from "@/lib/exportar";
 import { CamposCondicion, InsigniaPago, condicionVacia, datosCondicion } from "@/components/CondicionPago";
+import { useMantenimientos, useTraslados, useVehiculos } from "@/lib/vehiculos";
 
 export const Route = createFileRoute("/_authenticated/gastos-generales")({
   head: () => ({
