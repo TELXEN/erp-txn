@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { ChevronDown, ChevronRight, CornerDownRight, Plus, Trash2 } from "lucide-react";
+import { BookOpen, ChevronDown, ChevronRight, CornerDownRight, FolderPlus, Plus, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { soles } from "@/lib/format";
 import { agruparPorCategoria, codigoContextual, ordenarJerarquia, prefijosWBS } from "@/lib/categorias";
