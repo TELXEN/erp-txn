@@ -386,6 +386,18 @@ export function CotizacionHoja({
         void guardar(f, c, valor).then(() => setEditando(false));
       },
     };
+    if (col === "nombre" && f.clase === "cap") {
+      const opciones = nombresEsp.includes(f.esp) ? nombresEsp : [f.esp, ...nombresEsp];
+      return (
+        <select {...comun} onChange={(e) => setValor(e.target.value)}>
+          {opciones.map((n) => (
+            <option key={n} value={n}>
+              {n}
+            </option>
+          ))}
+        </select>
+      );
+    }
     if (col === "unidad")
       return (
         <select {...comun} onChange={(e) => setValor(e.target.value)}>
