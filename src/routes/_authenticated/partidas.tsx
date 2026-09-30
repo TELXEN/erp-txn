@@ -413,7 +413,7 @@ function Partidas() {
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-line">
         <div className="flex gap-1">
           {([
-            ["listado", `Listado y estructura (${partidas.filter((p) => p.activo !== false).length})`],
+            ["listado", `Listado y estructura (${partidas.length})`],
             ["nueva", "+ Nueva partida"],
           ] as const).map(([id, txt]) => (
             <button
