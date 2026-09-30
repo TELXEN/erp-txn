@@ -420,10 +420,65 @@ export function CotizacionHoja({
     );
   }
 
+  /** Fila fantasma al pie de cada grupo visible (capítulo o categoría sin más filas debajo). */
+  function fantasmaDe(r: number): { esp: string; cat: string } | null {
+    const f = visibles[r];
+    if (!f) return null;
+    const sig = visibles[r + 1];
+    if (f.clase === "item") {
+      if (sig && sig.clase === "item") return null;
+      return { esp: f.it.especialidad, cat: (f.it.categoria ?? "").trim() };
+    }
+    if (colapsados.has(f.clave)) return null;
+    if (f.clase === "sub") {
+      if (sig && sig.clase === "item") return null;
+      return { esp: f.esp, cat: f.cat === "Sin categoría" ? "" : f.cat };
+    }
+    if (sig && sig.clase !== "cap") return null;
+    return { esp: f.esp, cat: "" };
+  }
+
+  if (!items.length)
+    return (
+      <div className="flex flex-col items-center gap-4 px-6 py-14 text-center print:hidden">
+        <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Hoja en blanco</p>
+        <h3 className="text-base font-semibold text-ink">¿Cómo quieres empezar el presupuesto?</h3>
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          <button
+            type="button"
+            onClick={() => void nuevaEspecialidad()}
+            className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-2 text-[12px] font-medium text-primary-foreground hover:opacity-90"
+          >
+            <FolderPlus size={14} /> Nueva especialidad
+          </button>
+          <button
+            type="button"
+            onClick={() => void crearPartida("General", "", "Nueva partida")}
+            className="inline-flex items-center gap-1 rounded-md border border-line px-3 py-2 text-[12px] text-ink hover:border-primary hover:text-primary"
+          >
+            <Plus size={14} /> Partida rápida
+          </button>
+          {alAbrirCatalogo && (
+            <button
+              type="button"
+              onClick={alAbrirCatalogo}
+              className="inline-flex items-center gap-1 rounded-md border border-line px-3 py-2 text-[12px] text-ink hover:border-primary hover:text-primary"
+            >
+              <BookOpen size={14} /> Importar del catálogo maestro
+            </button>
+          )}
+        </div>
+        <p className="max-w-md font-mono text-[10px] text-muted-foreground">
+          Después podrás escribir directamente en la fila punteada al pie de cada grupo para seguir añadiendo partidas.
+        </p>
+        {error && <p className="font-mono text-xs text-bad">{error}</p>}
+      </div>
+    );
+
   return (
     <div className="overflow-x-auto">
       {error && <p className="px-5 py-2 font-mono text-xs text-bad">{error}</p>}
-      <div className="flex flex-wrap items-center gap-3 border-b border-line bg-muted/30 px-5 py-2 font-mono text-[10px] text-muted-foreground">
+      <div className="flex flex-wrap items-center gap-3 border-b border-line bg-muted/30 px-5 py-2 font-mono text-[10px] text-muted-foreground print:hidden">
         <button
           type="button"
           onClick={() => void insertarFila(activo.r)}
@@ -431,6 +486,22 @@ export function CotizacionHoja({
         >
           <Plus size={12} /> Fila
         </button>
+        <button
+          type="button"
+          onClick={() => void nuevaEspecialidad()}
+          className="inline-flex items-center gap-1 rounded-md border border-line px-2 py-1 text-[11px] text-primary hover:bg-primary/10"
+        >
+          <FolderPlus size={12} /> Especialidad
+        </button>
+        {alAbrirCatalogo && (
+          <button
+            type="button"
+            onClick={alAbrirCatalogo}
+            className="inline-flex items-center gap-1 rounded-md border border-line px-2 py-1 text-[11px] text-primary hover:bg-primary/10"
+          >
+            <BookOpen size={12} /> Catálogo
+          </button>
+        )}
         <span>Doble clic edita · Enter guarda · Esc cancela · Flechas y Tab navegan · Insert añade fila</span>
       </div>
       <table className="w-full font-mono text-xs">
