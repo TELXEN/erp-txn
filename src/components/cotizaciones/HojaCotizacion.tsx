@@ -166,25 +166,25 @@ export function HojaCotizacion({
           {[
             ["COSTO DIRECTO", money(totales.costoDirecto), false] as const,
           ].map(([t, v]) => (
-            <div key={t} style={{ display: "flex", justifyContent: "space-between", padding: "2px 6px", borderBottom: `1px solid ${C.line}`, fontWeight: 700 }}><span>{t}</span><span>{v}</span></div>
+            <div key={t} style={{ display: "flex", justifyContent: "space-between", padding: "5px 8px", borderBottom: `1px solid ${C.line}`, fontWeight: 700 }}><span>{t}</span><span>{v}</span></div>
           ))}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "2px 6px", borderBottom: `1px solid ${C.line}` }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "5px 8px", borderBottom: `1px solid ${C.line}` }}>
             <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
               Gastos generales
-              <input key={`gg-${cot.id}-${cot.pct_gastos_generales}`} type="number" step="0.5" min="0" defaultValue={Number(cot.pct_gastos_generales)} onBlur={(e) => alSalir("pct_gastos_generales", Number(e.target.value || 0), Number(cot.pct_gastos_generales))} style={{ ...ed, width: 48, borderBottom: "none", textAlign: "right" }} />%
+              <input key={`gg-${cot.id}-${cot.pct_gastos_generales}`} type="number" step="0.5" min="0" defaultValue={Number(cot.pct_gastos_generales)} onBlur={(e) => alSalir("pct_gastos_generales", Number(e.target.value || 0), Number(cot.pct_gastos_generales))} style={{ ...ed, width: 58, borderBottom: "none", textAlign: "right" }} />%
             </span>
             <span>{money(totales.gastosGenerales)}</span>
           </div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "2px 6px", borderBottom: `1px solid ${C.line}` }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "5px 8px", borderBottom: `1px solid ${C.line}` }}>
             <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
               Utilidad
-              <input key={`ut-${cot.id}-${cot.pct_utilidad}`} type="number" step="0.5" min="0" defaultValue={Number(cot.pct_utilidad)} onBlur={(e) => alSalir("pct_utilidad", Number(e.target.value || 0), Number(cot.pct_utilidad))} style={{ ...ed, width: 48, borderBottom: "none", textAlign: "right" }} />%
+              <input key={`ut-${cot.id}-${cot.pct_utilidad}`} type="number" step="0.5" min="0" defaultValue={Number(cot.pct_utilidad)} onBlur={(e) => alSalir("pct_utilidad", Number(e.target.value || 0), Number(cot.pct_utilidad))} style={{ ...ed, width: 58, borderBottom: "none", textAlign: "right" }} />%
             </span>
             <span>{money(totales.utilidad)}</span>
           </div>
-          <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 6px", borderBottom: `1px solid ${C.line}`, fontWeight: 700 }}><span>SUBTOTAL</span><span>{money(totales.total)}</span></div>
-          <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 6px", borderBottom: `1px solid ${C.line}` }}><span>IGV {conIgv ? "18%" : "0%"}</span><span>{money(igv)}</span></div>
-          <div style={{ display: "flex", justifyContent: "space-between", padding: 11, border: "1.4px solid #006648", borderRadius: 6, marginTop: 4, color: "#006648", fontWeight: 700, fontSize: 12 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 8px", borderBottom: `1px solid ${C.line}`, fontWeight: 700 }}><span>SUBTOTAL</span><span>{money(totales.total)}</span></div>
+          <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 8px", borderBottom: `1px solid ${C.line}` }}><span>IGV {conIgv ? "18%" : "0%"}</span><span>{money(igv)}</span></div>
+          <div style={{ display: "flex", justifyContent: "space-between", padding: 13, border: "1.4px solid #006648", borderRadius: 6, marginTop: 6, color: "#006648", fontWeight: 700, fontSize: 16 }}>
             <span>IMPORTE TOTAL</span><span>{money(totales.total + igv)}</span>
           </div>
         </div>
