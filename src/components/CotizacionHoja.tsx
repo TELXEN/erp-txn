@@ -94,6 +94,13 @@ export function CotizacionHoja({
   const celdas = useRef(new Map<string, HTMLTableCellElement | null>());
   const [conApu, setConApu] = useState<Set<string>>(new Set());
 
+  // Las especialidades salen del catálogo maestro (Datos › Catálogo técnico).
+  const { data: catalogoEsp = [] } = useEspecialidadesPartida();
+  const nombresEsp = useMemo(
+    () => catalogoEsp.filter((e) => e.activo).map((e) => e.nombre),
+    [catalogoEsp],
+  );
+
   const arbol = useMemo(() => construirArbol(items), [items]);
 
   // Partidas que ya tienen análisis de precios: su P.U. queda en solo lectura.
