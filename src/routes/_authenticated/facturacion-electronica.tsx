@@ -21,7 +21,7 @@ export const Route = createFileRoute("/_authenticated/facturacion-electronica")(
 
 export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo" | "guias" } = {}) {
   const esGuias = modo === "guias";
-  const { rol } = useAuth(); const { preliquidacion } = useSearch({ strict: false }) as { preliquidacion?: string }; const navigate = useNavigate(); const qc = useQueryClient();
+  const { rol } = useAuth(); const preliquidacion = (useSearch({ strict: false }) as { preliquidacion?: string }).preliquidacion ?? ""; const navigate = useNavigate(); const qc = useQueryClient();
   const crear = useServerFn(crearComprobanteElectronico); const actualizar = useServerFn(actualizarBorradorComprobante); const eliminar = useServerFn(eliminarBorradorComprobante);
   const pestanaInicial: TipoComprobante = esGuias ? "09" : "01";
   const [pestana, setPestana] = useState<TipoComprobante>(pestanaInicial);
