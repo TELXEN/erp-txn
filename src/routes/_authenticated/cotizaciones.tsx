@@ -85,6 +85,7 @@ function Cotizaciones() {
 
   const [seleccion, setSeleccion] = useState<string | null>(null);
   const { data: items = [] } = useCotizacionItems(seleccion);
+  const { data: itemsHoja = [] } = useCotizacionItems(seleccion, true);
   const [error, setError] = useState("");
   const [aviso, setAviso] = useState("");
   const [busqueda, setBusqueda] = useState("");
@@ -143,7 +144,7 @@ function Cotizaciones() {
     queryKey: ["cotizacion_items", "totales", cotizaciones.map((c) => `${c.id}:${c.pct_gastos_generales}:${c.pct_utilidad}`).join(",")],
     enabled: cotizaciones.length > 0,
     queryFn: async () => {
-      const { data, error: err } = await supabase.from("cotizacion_items").select("cotizacion_id, metrado, precio_unitario");
+      const { data, error: err } = await supabase.from("cotizacion_items").select("cotizacion_id, metrado, precio_unitario").eq("tipo", "partida");
       if (err) throw err;
       const res: Record<string, number> = {};
       for (const c of cotizaciones) {
@@ -564,7 +565,7 @@ function Cotizaciones() {
           <HojaCotizacion cot={cot} items={items} clientes={clientes}>
             <CotizacionHoja
               cotizacionId={cot.id}
-              items={items}
+              items={itemsHoja}
               unidades={unidades}
               alAbrirCatalogo={() => setVerCatalogo(true)}
             />
