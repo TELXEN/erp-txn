@@ -288,12 +288,19 @@ export function CotizacionHoja({
     return true;
   }
 
-  /** Abre un capítulo nuevo (especialidad) con su primera partida lista para renombrar. */
+  /** Abre un capítulo nuevo tomando la siguiente especialidad libre del catálogo maestro. */
   async function nuevaEspecialidad() {
     const usadas = new Set(items.map((i) => i.especialidad || "Sin especialidad"));
-    let n = usadas.size + 1;
-    while (usadas.has(`Nueva especialidad ${n}`)) n += 1;
-    await crearPartida(`Nueva especialidad ${n}`, "", "Nueva partida");
+    if (!nombresEsp.length)
+      return setError(
+        "No hay especialidades registradas. Agrégalas en Datos › Catálogo técnico › Especialidad de partidas.",
+      );
+    const libre = nombresEsp.find((n) => !usadas.has(n));
+    if (!libre)
+      return setError(
+        "Ya usaste todas las especialidades del catálogo maestro. Registra una nueva en Datos › Catálogo técnico.",
+      );
+    await crearPartida(libre, "", "Nueva partida");
   }
 
 
