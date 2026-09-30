@@ -238,7 +238,7 @@ function FlujoCaja() {
         saldoProyectado: saldoProy,
       };
     });
-  }, [metas, ventas, gastosD, gastosG, cajas, rrhh, anio, bancos, global, obra]);
+  }, [metas, ventas, gastosD, gastosG, cajas, rrhh, anio, bancos, global, obra, mantVeh, trasVeh]);
 
   const total = useMemo(
     () =>
