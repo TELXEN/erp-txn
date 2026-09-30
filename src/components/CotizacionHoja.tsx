@@ -314,7 +314,13 @@ export function CotizacionHoja({
     await crearPartida(libre, "", "Nueva partida");
   }
 
-
+  /** Partidas maestras activas de la especialidad; primero las de la categoría del grupo. */
+  function maestrasDelGrupo(esp: string, cat: string) {
+    const activas = maestras.filter((m) => m.activo && m.especialidad === esp);
+    return [...activas].sort(
+      (a, b) => Number(b.categoria === cat) - Number(a.categoria === cat) || a.codigo.localeCompare(b.codigo),
+    );
+  }
 
   async function borrar(id: string) {
     await supabase.from("cotizacion_items").delete().eq("id", id);
@@ -575,7 +581,9 @@ export function CotizacionHoja({
               <FilaFantasma
                 key={`f:${f.clave}`}
                 sangria={f.clase === "cap" ? 18 : 30}
+                maestras={maestrasDelGrupo(fantasma.esp, fantasma.cat)}
                 onCrear={(nombre) => crearPartida(fantasma.esp, fantasma.cat, nombre)}
+                onCrearMaestra={(m) => crearPartida(fantasma.esp, fantasma.cat, m.nombre, m.unidad, m)}
               />
             );
             if (f.clase !== "item") {
