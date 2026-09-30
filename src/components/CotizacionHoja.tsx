@@ -636,12 +636,73 @@ export function CotizacionHoja({
                     </td>
                   </tr>
                 )}
+                {filaFantasma}
               </React.Fragment>
             );
           })}
+          <tr className="print:hidden">
+            <td colSpan={8} className="px-2 py-2">
+              <button
+                type="button"
+                onClick={() => void nuevaEspecialidad()}
+                className="inline-flex items-center gap-1 rounded-md border border-dashed border-line px-2 py-1 text-[11px] text-muted-foreground hover:border-primary hover:text-primary"
+              >
+                <FolderPlus size={12} /> Nueva especialidad (capítulo)
+              </button>
+            </td>
+          </tr>
         </tbody>
       </table>
     </div>
+  );
+}
+
+/** Fila punteada al pie de cada grupo: escribir y pulsar Enter crea la partida y abre otra. */
+function FilaFantasma({
+  sangria,
+  onCrear,
+}: {
+  sangria: number;
+  onCrear: (nombre: string) => Promise<boolean>;
+}) {
+  const [texto, setTexto] = useState("");
+  const [ocupado, setOcupado] = useState(false);
+  const ref = useRef<HTMLInputElement>(null);
+
+  async function confirmar() {
+    const nombre = texto.trim();
+    if (!nombre || ocupado) return;
+    setOcupado(true);
+    const ok = await onCrear(nombre);
+    setOcupado(false);
+    if (ok) {
+      setTexto("");
+      ref.current?.focus();
+    }
+  }
+
+  return (
+    <tr className="print:hidden">
+      <td colSpan={8} className="border-b border-dashed border-line/70 px-2 py-1">
+        <input
+          ref={ref}
+          value={texto}
+          disabled={ocupado}
+          onChange={(e) => setTexto(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              void confirmar();
+            }
+            if (e.key === "Escape") setTexto("");
+          }}
+          onBlur={() => void confirmar()}
+          placeholder="+ Escribe aquí para añadir una partida y pulsa Enter…"
+          style={{ paddingLeft: sangria }}
+          className="w-full border-none bg-transparent font-mono text-[11px] italic text-muted-foreground outline-none placeholder:text-muted-foreground/60 focus:not-italic focus:text-ink"
+        />
+      </td>
+    </tr>
   );
 }
 
