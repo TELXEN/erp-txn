@@ -20,6 +20,7 @@ import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { MESES, pct, soles } from "@/lib/format";
 import { usePagosRRHH } from "@/lib/pagos-rrhh";
 import { useCajasChicas, useGastosDirectos, useGastosGenerales, useProyectos, useVentas } from "@/lib/datos";
+import { useMantenimientos, useTraslados } from "@/lib/vehiculos";
 import { exportarExcel } from "@/lib/exportar";
 
 const fmtCorto = (n: number) =>
