@@ -293,11 +293,11 @@ function Cotizaciones() {
 
   async function renumerarCotizacion() {
     if (!cot) return;
-    const cambios = renumerarWBS(items);
+    const cambios = renumerarWBS(itemsHoja);
     if (!cambios.length) return window.alert("La numeración de esta cotización ya está ordenada.");
     if (
       !window.confirm(
-        `Se reasignarán códigos correlativos (01, 01.01, 01.01.01) a ${cambios.length} partida(s). ¿Continuar?`,
+        `Se reasignarán códigos correlativos (01, 01.01, 01.01.01) a ${cambios.length} fila(s). ¿Continuar?`,
       )
     )
       return;
