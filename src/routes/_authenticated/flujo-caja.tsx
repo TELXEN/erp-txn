@@ -20,6 +20,7 @@ import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { MESES, pct, soles } from "@/lib/format";
 import { usePagosRRHH } from "@/lib/pagos-rrhh";
 import { useCajasChicas, useGastosDirectos, useGastosGenerales, useProyectos, useVentas } from "@/lib/datos";
+import { useMantenimientos, useTraslados } from "@/lib/vehiculos";
 import { exportarExcel } from "@/lib/exportar";
 
 const fmtCorto = (n: number) =>
@@ -84,6 +85,8 @@ function FlujoCaja() {
   const { data: gastosG = [] } = useGastosGenerales();
   const { data: cajas = [] } = useCajasChicas();
   const { data: rrhh } = usePagosRRHH();
+  const { data: mantVeh = [] } = useMantenimientos();
+  const { data: trasVeh = [] } = useTraslados();
 
   const { data: metas = [] } = useQuery({
     queryKey: ["metas_flujo_caja", anio],
@@ -202,6 +205,15 @@ function FlujoCaja() {
       if (mes) base[mes - 1]!.egresoProy += Number(d.monto) || 0;
     });
 
+    // Flota: mantenimiento y combustible pagados con banco (los de caja chica ya salieron al entregar la caja)
+    if (global)
+      mantVeh
+        .filter((m) => !m.caja_chica_id && Number(m.costo) > 0)
+        .forEach((m) => sumar(m.fecha, m.costo, "egGenerales"));
+    trasVeh
+      .filter((t) => !t.caja_chica_id && Number(t.combustible_monto) > 0 && (global || t.proyecto_id === obra))
+      .forEach((t) => sumar(t.fecha, t.combustible_monto, "egGenerales"));
+
     let acumulado = 0;
     let saldo = apertura;
     let saldoProy = apertura;
@@ -226,7 +238,7 @@ function FlujoCaja() {
         saldoProyectado: saldoProy,
       };
     });
-  }, [metas, ventas, gastosD, gastosG, cajas, rrhh, anio, bancos, global, obra]);
+  }, [metas, ventas, gastosD, gastosG, cajas, rrhh, anio, bancos, global, obra, mantVeh, trasVeh]);
 
   const total = useMemo(
     () =>
@@ -262,7 +274,7 @@ function FlujoCaja() {
   ];
   const desglose = [
     { concepto: "↳ Compras y costos directos", valores: filas.map((f) => f.egCompras), total: total.egCompras },
-    { concepto: "↳ Gastos generales", valores: filas.map((f) => f.egGenerales), total: total.egGenerales },
+    { concepto: "↳ Gastos generales y flota", valores: filas.map((f) => f.egGenerales), total: total.egGenerales },
     { concepto: "↳ Entregas de Caja Chica", valores: filas.map((f) => f.egCaja), total: total.egCaja },
     ...(global ? [{ concepto: "↳ Planilla, honorarios y tributos", valores: filas.map((f) => f.egRRHH), total: total.egRRHH }] : []),
   ];

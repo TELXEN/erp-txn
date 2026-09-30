@@ -12,6 +12,7 @@ import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
 import { useCategoriasGastoGeneral, useGastosGenerales, useProyectos, useTerceros } from "@/lib/datos";
 import { exportarExcel } from "@/lib/exportar";
 import { CamposCondicion, InsigniaPago, condicionVacia, datosCondicion } from "@/components/CondicionPago";
+import { useMantenimientos, useTraslados, useVehiculos } from "@/lib/vehiculos";
 
 export const Route = createFileRoute("/_authenticated/gastos-generales")({
   head: () => ({
@@ -51,6 +52,9 @@ function GastosGenerales() {
     },
   });
   const cuentasActivas = cuentas.filter((c) => c.activo);
+  const { data: vehiculos = [] } = useVehiculos();
+  const { data: mantVeh = [] } = useMantenimientos();
+  const { data: trasVeh = [] } = useTraslados();
   const proveedores = terceros.filter((t) => t.es_proveedor && t.activo);
   const categoriasActivas = categorias.filter((c) => c.activo);
   const [form, setForm] = useState({
@@ -114,6 +118,43 @@ function GastosGenerales() {
   const porPagar = total - pagado;
 
   const gruposCategoria = Array.from(new Set(gastosBusqueda.map((g) => g.categoria || "Sin categoría"))).sort();
+
+  // Egresos de flota (módulo Vehículos): mantenimiento mecánico y combustible
+  const placaDe = (id: string) => vehiculos.find((v) => v.id === id)?.placa ?? "—";
+  const origenDe = (x: { origen_pago: string; banco_id: string | null; numero_operacion: string }) => {
+    const base = x.origen_pago === "Caja chica" ? "Caja chica" : nombreBanco(x.banco_id) || "Cuenta bancaria";
+    return x.numero_operacion ? `${base} · Op. ${x.numero_operacion}` : base;
+  };
+  const verFlota = ambito === "Todas" || ambito === "Oficina";
+  const flota = [
+    ...(verFlota ? mantVeh : [])
+      .filter((m) => Number(m.costo) > 0)
+      .map((m) => ({
+        id: m.id,
+        fecha: m.fecha,
+        vehiculo: placaDe(m.vehiculo_id),
+        concepto: `Mantenimiento ${m.tipo.toLowerCase()}`,
+        detalle: m.detalle || "—",
+        origen: origenDe(m),
+        monto: Number(m.costo),
+      })),
+    ...trasVeh
+      .filter(
+        (t) =>
+          Number(t.combustible_monto) > 0 &&
+          (ambito === "Todas" || (ambito === "Oficina" ? !t.proyecto_id : t.proyecto_id === ambito)),
+      )
+      .map((t) => ({
+        id: t.id,
+        fecha: t.fecha,
+        vehiculo: placaDe(t.vehiculo_id),
+        concepto: "Combustible",
+        detalle: `${t.origen} → ${t.destino} · ${t.combustible_galones} gal`,
+        origen: origenDe(t),
+        monto: Number(t.combustible_monto),
+      })),
+  ].sort((a, b) => (a.fecha < b.fecha ? 1 : -1));
+  const totalFlota = flota.reduce((s, f) => s + f.monto, 0);
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
@@ -264,7 +305,7 @@ function GastosGenerales() {
               </Select>
             </Campo>
           </div>
-          <div className="grid flex-[2] gap-3 sm:grid-cols-3">
+          <div className="grid flex-[2] gap-3 sm:grid-cols-4">
             <div className="rounded-md border border-line px-3 py-2">
               <p className="label-mono">Total gastos generales</p>
               <p className="font-mono text-lg font-bold text-ink">{soles(total)}</p>
@@ -277,9 +318,55 @@ function GastosGenerales() {
               <p className="label-mono">Por pagar (crédito)</p>
               <p className="font-mono text-lg font-bold text-bad">{soles(porPagar)}</p>
             </div>
+            <div className="rounded-md border border-line px-3 py-2">
+              <p className="label-mono">Flota (mantenimiento y combustible)</p>
+              <p className="font-mono text-lg font-bold text-ink">{soles(totalFlota)}</p>
+            </div>
           </div>
         </div>
       </Panel>
+
+      <Panel titulo={`Mantenimiento y combustible de flota (${flota.length})`} className="mb-4">
+        {flota.length === 0 ? (
+          <Vacio texto="Sin gastos de flota registrados para este ámbito." />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-line">
+                  <th className="label-mono px-3 py-2 text-left">Fecha</th>
+                  <th className="label-mono px-3 py-2 text-left">Vehículo</th>
+                  <th className="label-mono px-3 py-2 text-left">Concepto</th>
+                  <th className="label-mono px-3 py-2 text-left">Detalle</th>
+                  <th className="label-mono px-3 py-2 text-left">Pagado desde</th>
+                  <th className="label-mono px-3 py-2 text-right">Monto (S/)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {flota.map((f) => (
+                  <tr key={`${f.concepto}-${f.id}`} className="border-b border-line/60">
+                    <td className="px-3 py-2 font-mono text-sm">{fmtFecha(f.fecha)}</td>
+                    <td className="px-3 py-2 font-mono text-sm font-semibold">{f.vehiculo}</td>
+                    <td className="px-3 py-2 text-sm">
+                      <Etiqueta tono={f.concepto === "Combustible" ? "neutro" : "good"}>{f.concepto}</Etiqueta>
+                    </td>
+                    <td className="px-3 py-2 text-sm text-muted-foreground">{f.detalle}</td>
+                    <td className="px-3 py-2 text-xs text-muted-foreground">{f.origen}</td>
+                    <td className="px-3 py-2 text-right font-mono text-sm">{soles(f.monto)}</td>
+                  </tr>
+                ))}
+                <tr className="bg-muted/40">
+                  <td className="px-3 py-2 text-sm font-semibold" colSpan={5}>
+                    Total flota · se registra desde el módulo Vehículos
+                  </td>
+                  <td className="px-3 py-2 text-right font-mono text-sm font-bold">{soles(totalFlota)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Panel>
+
 
       <Panel
         titulo="Nuevo gasto general"
