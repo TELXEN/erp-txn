@@ -10,3 +10,4 @@
 - [x] Editor WYSIWYG de cotizaciones tipo Presto (edición en línea, teclado, árbol, APU embebido).
 - [x] Encabezado de cotización idéntico al de facturación electrónica.
 - [x] Código de cotización configurable desde Catálogos Maestros (vista previa en el formulario).
+- [x] Vista de edición de Facturación Electrónica a pantalla completa con tipografía ampliada sin alterar el A4.

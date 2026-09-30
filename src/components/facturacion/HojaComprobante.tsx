@@ -84,8 +84,8 @@ export function HojaComprobante(props: {
   const actualizarDoc = (i: number, k: keyof DocRelacionado, v: string) => setDocs(docs.map((x, n) => (n === i ? { ...x, [k]: v } : x)));
 
   return (
-    <div style={{ overflowX: "auto", paddingBottom: 18 }}>
-      <section style={{ width: 794, minHeight: 1123, margin: "0 auto", padding: "36px 38px", background: C.white, color: C.ink, fontFamily: 'Calibri, Carlito, "Segoe UI", sans-serif', fontWeight: 400, fontSize: 9, boxShadow: "0 12px 35px rgba(15,23,42,.18)" }}>
+    <div className="cpe-editor-canvas" style={{ overflowX: "auto", paddingBottom: 18 }}>
+      <section className="cpe-editor-sheet" style={{ width: "100%", maxWidth: 1500, minWidth: 980, minHeight: 1123, boxSizing: "border-box", margin: "0 auto", padding: "36px 38px", background: C.white, color: C.ink, fontFamily: 'Calibri, Carlito, "Segoe UI", sans-serif', fontWeight: 400, fontSize: 12.5, boxShadow: "0 12px 35px rgba(15,23,42,.18)" }}>
         <header style={{ display: "flex", gap: 22, alignItems: "flex-start", borderBottom: `3px solid ${C.green}`, paddingBottom: 14 }}>
           <div style={{ width: 96, display: "flex", alignItems: "center", justifyContent: "center" }}>{empresa?.logo_url ? <img src={empresa.logo_url} alt="" style={{ maxWidth: 92, maxHeight: 54 }} /> : <div style={{ width: 52, height: 52, borderRadius: 9, background: C.green, color: C.white, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800 }}>TX</div>}</div>
           <div style={{ flex: 1, minHeight: 76, textAlign: "right", paddingRight: 10, display: "flex", flexDirection: "column", justifyContent: "flex-start" }}>
