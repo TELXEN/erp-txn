@@ -205,6 +205,11 @@ export function renumerarWBS<T extends FilaCodigo & { id: string; padre_id?: str
     const cap = pad2(iCap);
     let iSub = 0;
     for (const [, items] of agrupar(lista, (f) => claveCat(f.categoria))) {
+      // Marcadora de la especialidad (sin categoría ni partidas): no ocupa correlativo de categoría.
+      if (items.every((f) => f.tipo === "grupo") && !(items[0]?.categoria ?? "").trim()) {
+        for (const m of items) if ((m.codigo ?? "").trim() !== `${cap}.00.00`) cambios.push({ id: m.id, codigo: `${cap}.00.00` });
+        continue;
+      }
       iSub += 1;
       // Las filas marcadoras de grupo conservan el prefijo del grupo con correlativo 00.
       for (const m of items.filter((f) => f.tipo === "grupo")) {
