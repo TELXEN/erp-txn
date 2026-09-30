@@ -8,7 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/valorizaciones")({
-  head:()=>({meta:[{title:"Preliquidaciones — ERP TELXEN"},{name:"description",content:"Preliquidaciones de obra, aprobación y preparación para facturación electrónica."},{property:"og:title",content:"Preliquidaciones — ERP TELXEN"},{property:"og:description",content:"Control comercial previo a la emisión de comprobantes."},{property:"og:type",content:"website"},{name:"twitter:card",content:"summary"}]}), component:PreliquidacionesPage,
+  head:()=>({meta:[{title:"Preliquidaciones — ERP TELXEN"},{name:"description",content:"Preliquidaciones de obra, aprobación y preparación para el comprobante de pago electrónico."},{property:"og:title",content:"Preliquidaciones — ERP TELXEN"},{property:"og:description",content:"Control comercial previo a la emisión de comprobantes."},{property:"og:type",content:"website"},{name:"twitter:card",content:"summary"}]}), component:PreliquidacionesPage,
 });
 function PreliquidacionesPage(){
  const {rol}=useAuth(); const navigate=useNavigate(); const {data:proyectos=[]}=useProyectos(); const {data:partidas=[]}=usePartidas(); const {data:tipos=[]}=useTiposPresupuesto(); const {data:ventas=[]}=useVentas();
