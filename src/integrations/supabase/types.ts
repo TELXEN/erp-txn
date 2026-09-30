@@ -1023,6 +1023,7 @@ export type Database = {
           pct_herramientas: number
           precio_unitario: number
           rendimiento: number
+          tipo: string
           unidad: string
           updated_at: string
         }
@@ -1042,6 +1043,7 @@ export type Database = {
           pct_herramientas?: number
           precio_unitario?: number
           rendimiento?: number
+          tipo?: string
           unidad?: string
           updated_at?: string
         }
@@ -1061,6 +1063,7 @@ export type Database = {
           pct_herramientas?: number
           precio_unitario?: number
           rendimiento?: number
+          tipo?: string
           unidad?: string
           updated_at?: string
         }

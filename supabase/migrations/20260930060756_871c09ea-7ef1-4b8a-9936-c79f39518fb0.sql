@@ -1,0 +1,2 @@
+ALTER TABLE public.cotizacion_items ADD COLUMN IF NOT EXISTS tipo text NOT NULL DEFAULT 'partida';
+ALTER TABLE public.cotizacion_items ADD CONSTRAINT cotizacion_items_tipo_chk CHECK (tipo IN ('partida','grupo'));
