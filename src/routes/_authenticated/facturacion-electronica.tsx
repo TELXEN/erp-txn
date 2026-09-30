@@ -147,17 +147,23 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
       {tiposVisibles.map((p) => <button key={p.tipo} type="button" onClick={() => { setPestana(p.tipo); if (abierto) cambiarTipo(p.tipo); }} className={`rounded-t-md px-3 py-2 text-xs font-medium transition ${pestana === p.tipo ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:text-foreground"}`}>{p.etiqueta}</button>)}
     </div>}
 
-    {abierto && <Panel titulo={editando ? `Editar borrador ${editando.numero}` : preliquidacion ? "Facturar preliquidación" : esGuias ? "Nueva guía de remisión" : "Nuevo comprobante electrónico"} className="-mx-4 mb-4 rounded-none border-x-0">
-      <div className="bg-muted/60 px-4 py-2">
+    {abierto && <div className="fixed inset-0 z-50 overflow-y-auto bg-background">
+      <Panel
+        titulo={editando ? `Editar borrador ${editando.numero}` : preliquidacion ? "Facturar preliquidación" : esGuias ? "Nueva guía de remisión" : "Nuevo comprobante electrónico"}
+        extra={<Boton variante="linea" onClick={cerrar}>Cerrar editor</Boton>}
+        className="min-h-screen rounded-none border-0"
+      >
+      <div className="bg-muted/60 px-4 py-2 sm:px-6">
         <HojaComprobante form={form} setForm={setForm} items={items} setItems={setItems} docs={docs} setDocs={setDocs} cuotas={cuotas} setCuotas={setCuotas} empresa={empresa} clientes={clientes} proyectos={proyectos.map((p) => ({ id: p.id, nombre: p.nombre, codigo: p.codigo ?? "" }))} refs={refs} series={series} numeroPreview={editando ? String(editando.correlativo).padStart(8, "0") : "[AUTOGENERADO]"} montos={montos} totalRegimen={totalRegimen} importeRegimen={importeRegimen} onTipoChange={cambiarTipo} bloqueado={Boolean(editando)} tipos={tiposVisibles} />
       </div>
-      <div className="flex flex-wrap items-center gap-2 border-t border-line p-4">
+      <div className="sticky bottom-0 z-10 flex flex-wrap items-center gap-2 border-t border-line bg-card/95 p-4 shadow-lg backdrop-blur">
         <Boton disabled={guardando} onClick={() => void guardar(false)}>{editando ? "Guardar cambios" : "Guardar borrador"}</Boton>
         {!editando && <Boton variante="accion" disabled={guardando} onClick={() => void guardar(true)}><ReceiptText size={14} />Emitir comprobante</Boton>}
         <Boton variante="linea" type="button" onClick={cerrar}>Cancelar</Boton>
         {error && <p className="text-xs text-bad">{error}</p>}
       </div>
-    </Panel>}
+      </Panel>
+    </div>}
 
     <Panel titulo={PESTANAS_CPE.find((p) => p.tipo === pestana)?.etiqueta ?? "Comprobantes"} extra={<Buscador valor={busqueda} onChange={setBusqueda} total={filtrados.length} placeholder="Buscar número, cliente o estado..." />}>
       {filtrados.length === 0 ? <Vacio texto="Aún no hay documentos de este tipo." /> : <div className="overflow-x-auto"><table className="w-full font-mono text-xs"><thead><tr className="border-b border-line text-left text-[10px] uppercase text-muted-foreground"><th className="px-5 py-2">Comprobante</th><th className="px-3 py-2">Cliente</th><th className="px-3 py-2">Emisión</th><th className="px-3 py-2">Condición</th><th className="px-3 py-2 text-right">Total</th><th className="px-3 py-2">Estado fiscal</th><th className="px-5 py-2" /></tr></thead><tbody>{filtrados.map((x) => <tr key={x.id} className="border-b border-line/60">
