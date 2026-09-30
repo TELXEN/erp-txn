@@ -94,8 +94,8 @@ function VistaApu() {
         {item && <Link to="/apu-vista" search={{ id, item: "" }}><Boton variante="linea">Ver dossier completo</Boton></Link>}
         <Boton onClick={() => void descargar()} disabled={pdf || !fichas.length}><FileDown size={13} /> {pdf ? "Generando…" : "Descargar PDF"}</Boton>
       </div>
-      {isLoading ? <Vacio>Cargando análisis…</Vacio> : !fichas.length ? (
-        <Vacio>{item ? "La partida no existe." : "Ninguna partida de esta cotización tiene análisis de precios todavía."}</Vacio>
+      {isLoading ? <Vacio texto="Cargando análisis…" /> : !fichas.length ? (
+        <Vacio texto={item ? "La partida no existe." : "Ninguna partida de esta cotización tiene análisis de precios todavía."} />
       ) : (
         <div className="overflow-x-auto">
           <div id="apu-impresion" style={{ width: 794, margin: "0 auto", fontFamily: CALIBRI, color: C.ink, background: C.white }}>
