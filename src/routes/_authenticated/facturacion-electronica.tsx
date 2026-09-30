@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Eye, FilePlus2, Pencil, ReceiptText, Trash2 } from "lucide-react";
@@ -19,12 +19,14 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 
 export const Route = createFileRoute("/_authenticated/facturacion-electronica")({ validateSearch: (s: Record<string, unknown>) => ({ preliquidacion: typeof s["preliquidacion"] === "string" ? s["preliquidacion"] : "" }), head: () => ({ meta: [{ title: "Facturación Electrónica — ERP TELXEN" }, { name: "description", content: "Emisión y control de facturas, boletas, notas, guías y comprobantes de retención y percepción." }, { property: "og:title", content: "Facturación Electrónica — ERP TELXEN" }, { property: "og:description", content: "Comprobantes electrónicos, estados fiscales y cobranza." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }), component: FacturacionElectronica });
 
-function FacturacionElectronica() {
-  const { rol } = useAuth(); const { preliquidacion } = Route.useSearch(); const navigate = useNavigate(); const qc = useQueryClient();
+export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo" | "guias" } = {}) {
+  const esGuias = modo === "guias";
+  const { rol } = useAuth(); const preliquidacion = (useSearch({ strict: false }) as { preliquidacion?: string }).preliquidacion ?? ""; const navigate = useNavigate(); const qc = useQueryClient();
   const crear = useServerFn(crearComprobanteElectronico); const actualizar = useServerFn(actualizarBorradorComprobante); const eliminar = useServerFn(eliminarBorradorComprobante);
-  const [pestana, setPestana] = useState<TipoComprobante>("01");
+  const pestanaInicial: TipoComprobante = esGuias ? "09" : "01";
+  const [pestana, setPestana] = useState<TipoComprobante>(pestanaInicial);
   const [abierto, setAbierto] = useState(Boolean(preliquidacion));
-  const [form, setForm] = useState<FormCpe>(() => nuevoFormCpe("01", SERIE_DEFECTO["01"]));
+  const [form, setForm] = useState<FormCpe>(() => nuevoFormCpe(pestanaInicial, SERIE_DEFECTO[pestanaInicial]));
   const [items, setItems] = useState<ItemEditor[]>([itemComprobanteVacio()]);
   const [docs, setDocs] = useState<DocRelacionado[]>([docRelacionadoVacio()]);
   const [cuotas, setCuotas] = useState<CuotaEditor[]>([]);
@@ -138,14 +140,15 @@ function FacturacionElectronica() {
     catch (e) { setError(e instanceof Error ? e.message : "No se pudo eliminar el borrador."); setPorEliminar(null); } finally { setGuardando(false); }
   }
 
-  return <><Encabezado titulo="Facturación Electrónica" subtitulo="Comercial · comprobantes, estados SUNAT y cobranza" acciones={abierto ? <Boton variante="linea" onClick={cerrar}>Cerrar editor</Boton> : <Boton onClick={() => abrirNuevo(pestana)}><FilePlus2 size={14} />Nuevo {PESTANAS_CPE.find((p) => p.tipo === pestana)?.corto.toLowerCase()}</Boton>} />
-    <div className="mb-4 flex flex-wrap gap-1 border-b border-line">
-      {PESTANAS_CPE.map((p) => <button key={p.tipo} type="button" onClick={() => { setPestana(p.tipo); if (abierto) cambiarTipo(p.tipo); }} className={`rounded-t-md px-3 py-2 text-xs font-medium transition ${pestana === p.tipo ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:text-foreground"}`}>{p.etiqueta}</button>)}
-    </div>
+  const tiposVisibles = esGuias ? PESTANAS_CPE.filter((p) => p.tipo === "09") : PESTANAS_CPE.filter((p) => p.tipo !== "09");
+  return <><Encabezado titulo={esGuias ? "Guías de Remisión" : "Facturación Electrónica"} subtitulo={esGuias ? "Logística · guías de remisión remitente y traslados" : "Comercial · comprobantes, estados SUNAT y cobranza"} acciones={abierto ? <Boton variante="linea" onClick={cerrar}>Cerrar editor</Boton> : <Boton onClick={() => abrirNuevo(pestana)}><FilePlus2 size={14} />{esGuias ? "Nueva guía de remisión" : `Nuevo ${PESTANAS_CPE.find((p) => p.tipo === pestana)?.corto.toLowerCase()}`}</Boton>} />
+    {!esGuias && <div className="mb-4 flex flex-wrap gap-1 border-b border-line">
+      {tiposVisibles.map((p) => <button key={p.tipo} type="button" onClick={() => { setPestana(p.tipo); if (abierto) cambiarTipo(p.tipo); }} className={`rounded-t-md px-3 py-2 text-xs font-medium transition ${pestana === p.tipo ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:text-foreground"}`}>{p.etiqueta}</button>)}
+    </div>}
 
-    {abierto && <Panel titulo={editando ? `Editar borrador ${editando.numero}` : preliquidacion ? "Facturar preliquidación" : "Nuevo comprobante electrónico"} className="mb-4">
+    {abierto && <Panel titulo={editando ? `Editar borrador ${editando.numero}` : preliquidacion ? "Facturar preliquidación" : esGuias ? "Nueva guía de remisión" : "Nuevo comprobante electrónico"} className="mb-4">
       <div className="bg-slate-900/95 p-5">
-        <HojaComprobante form={form} setForm={setForm} items={items} setItems={setItems} docs={docs} setDocs={setDocs} cuotas={cuotas} setCuotas={setCuotas} empresa={empresa} clientes={clientes} proyectos={proyectos.map((p) => ({ id: p.id, nombre: p.nombre, codigo: p.codigo ?? "" }))} refs={refs} series={series} numeroPreview={editando ? String(editando.correlativo).padStart(8, "0") : "[AUTOGENERADO]"} montos={montos} totalRegimen={totalRegimen} importeRegimen={importeRegimen} onTipoChange={cambiarTipo} bloqueado={Boolean(editando)} />
+        <HojaComprobante form={form} setForm={setForm} items={items} setItems={setItems} docs={docs} setDocs={setDocs} cuotas={cuotas} setCuotas={setCuotas} empresa={empresa} clientes={clientes} proyectos={proyectos.map((p) => ({ id: p.id, nombre: p.nombre, codigo: p.codigo ?? "" }))} refs={refs} series={series} numeroPreview={editando ? String(editando.correlativo).padStart(8, "0") : "[AUTOGENERADO]"} montos={montos} totalRegimen={totalRegimen} importeRegimen={importeRegimen} onTipoChange={cambiarTipo} bloqueado={Boolean(editando)} tipos={tiposVisibles} />
       </div>
       <div className="flex flex-wrap items-center gap-2 border-t border-line p-4">
         <Boton disabled={guardando} onClick={() => void guardar(false)}>{editando ? "Guardar cambios" : "Guardar borrador"}</Boton>

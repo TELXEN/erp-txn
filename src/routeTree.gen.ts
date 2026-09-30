@@ -27,6 +27,7 @@ import { Route as AuthenticatedFacturacionElectronicaRouteImport } from './route
 import { Route as AuthenticatedFlujoCajaRouteImport } from './routes/_authenticated/flujo-caja'
 import { Route as AuthenticatedGastosDirectosRouteImport } from './routes/_authenticated/gastos-directos'
 import { Route as AuthenticatedGastosGeneralesRouteImport } from './routes/_authenticated/gastos-generales'
+import { Route as AuthenticatedGuiasRemisionRouteImport } from './routes/_authenticated/guias-remision'
 import { Route as AuthenticatedHonorariosRouteImport } from './routes/_authenticated/honorarios'
 import { Route as AuthenticatedImportacionesRouteImport } from './routes/_authenticated/importaciones'
 import { Route as AuthenticatedInventarioRouteImport } from './routes/_authenticated/inventario'
@@ -141,6 +142,12 @@ const AuthenticatedGastosGeneralesRoute =
     path: '/gastos-generales',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedGuiasRemisionRoute =
+  AuthenticatedGuiasRemisionRouteImport.update({
+    id: '/guias-remision',
+    path: '/guias-remision',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedHonorariosRoute = AuthenticatedHonorariosRouteImport.update({
   id: '/honorarios',
   path: '/honorarios',
@@ -246,6 +253,7 @@ export interface FileRoutesByFullPath {
   '/flujo-caja': typeof AuthenticatedFlujoCajaRoute
   '/gastos-directos': typeof AuthenticatedGastosDirectosRoute
   '/gastos-generales': typeof AuthenticatedGastosGeneralesRoute
+  '/guias-remision': typeof AuthenticatedGuiasRemisionRoute
   '/honorarios': typeof AuthenticatedHonorariosRoute
   '/importaciones': typeof AuthenticatedImportacionesRoute
   '/inventario': typeof AuthenticatedInventarioRoute
@@ -281,6 +289,7 @@ export interface FileRoutesByTo {
   '/flujo-caja': typeof AuthenticatedFlujoCajaRoute
   '/gastos-directos': typeof AuthenticatedGastosDirectosRoute
   '/gastos-generales': typeof AuthenticatedGastosGeneralesRoute
+  '/guias-remision': typeof AuthenticatedGuiasRemisionRoute
   '/honorarios': typeof AuthenticatedHonorariosRoute
   '/importaciones': typeof AuthenticatedImportacionesRoute
   '/inventario': typeof AuthenticatedInventarioRoute
@@ -318,6 +327,7 @@ export interface FileRoutesById {
   '/_authenticated/flujo-caja': typeof AuthenticatedFlujoCajaRoute
   '/_authenticated/gastos-directos': typeof AuthenticatedGastosDirectosRoute
   '/_authenticated/gastos-generales': typeof AuthenticatedGastosGeneralesRoute
+  '/_authenticated/guias-remision': typeof AuthenticatedGuiasRemisionRoute
   '/_authenticated/honorarios': typeof AuthenticatedHonorariosRoute
   '/_authenticated/importaciones': typeof AuthenticatedImportacionesRoute
   '/_authenticated/inventario': typeof AuthenticatedInventarioRoute
@@ -355,6 +365,7 @@ export interface FileRouteTypes {
     | '/flujo-caja'
     | '/gastos-directos'
     | '/gastos-generales'
+    | '/guias-remision'
     | '/honorarios'
     | '/importaciones'
     | '/inventario'
@@ -390,6 +401,7 @@ export interface FileRouteTypes {
     | '/flujo-caja'
     | '/gastos-directos'
     | '/gastos-generales'
+    | '/guias-remision'
     | '/honorarios'
     | '/importaciones'
     | '/inventario'
@@ -426,6 +438,7 @@ export interface FileRouteTypes {
     | '/_authenticated/flujo-caja'
     | '/_authenticated/gastos-directos'
     | '/_authenticated/gastos-generales'
+    | '/_authenticated/guias-remision'
     | '/_authenticated/honorarios'
     | '/_authenticated/importaciones'
     | '/_authenticated/inventario'
@@ -577,6 +590,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGastosGeneralesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/guias-remision': {
+      id: '/_authenticated/guias-remision'
+      path: '/guias-remision'
+      fullPath: '/guias-remision'
+      preLoaderRoute: typeof AuthenticatedGuiasRemisionRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/honorarios': {
       id: '/_authenticated/honorarios'
       path: '/honorarios'
@@ -709,6 +729,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedFlujoCajaRoute: typeof AuthenticatedFlujoCajaRoute
   AuthenticatedGastosDirectosRoute: typeof AuthenticatedGastosDirectosRoute
   AuthenticatedGastosGeneralesRoute: typeof AuthenticatedGastosGeneralesRoute
+  AuthenticatedGuiasRemisionRoute: typeof AuthenticatedGuiasRemisionRoute
   AuthenticatedHonorariosRoute: typeof AuthenticatedHonorariosRoute
   AuthenticatedImportacionesRoute: typeof AuthenticatedImportacionesRoute
   AuthenticatedInventarioRoute: typeof AuthenticatedInventarioRoute
@@ -746,6 +767,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedFlujoCajaRoute: AuthenticatedFlujoCajaRoute,
   AuthenticatedGastosDirectosRoute: AuthenticatedGastosDirectosRoute,
   AuthenticatedGastosGeneralesRoute: AuthenticatedGastosGeneralesRoute,
+  AuthenticatedGuiasRemisionRoute: AuthenticatedGuiasRemisionRoute,
   AuthenticatedHonorariosRoute: AuthenticatedHonorariosRoute,
   AuthenticatedImportacionesRoute: AuthenticatedImportacionesRoute,
   AuthenticatedInventarioRoute: AuthenticatedInventarioRoute,
