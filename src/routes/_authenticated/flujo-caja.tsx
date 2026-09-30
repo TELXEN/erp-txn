@@ -205,6 +205,15 @@ function FlujoCaja() {
       if (mes) base[mes - 1]!.egresoProy += Number(d.monto) || 0;
     });
 
+    // Flota: mantenimiento y combustible pagados con banco (los de caja chica ya salieron al entregar la caja)
+    if (global)
+      mantVeh
+        .filter((m) => !m.caja_chica_id && Number(m.costo) > 0)
+        .forEach((m) => sumar(m.fecha, m.costo, "egGenerales"));
+    trasVeh
+      .filter((t) => !t.caja_chica_id && Number(t.combustible_monto) > 0 && (global || t.proyecto_id === obra))
+      .forEach((t) => sumar(t.fecha, t.combustible_monto, "egGenerales"));
+
     let acumulado = 0;
     let saldo = apertura;
     let saldoProy = apertura;
