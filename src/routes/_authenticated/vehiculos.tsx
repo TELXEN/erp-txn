@@ -34,7 +34,7 @@ export const Route = createFileRoute("/_authenticated/vehiculos")({
 });
 
 type Proyecto = { id: string; codigo: string; nombre: string };
-type Trabajador = { id: string; nombres: string; apellidos: string };
+type Trabajador = { id: string; nombre: string };
 
 type Pestaña = "flota" | "tareo" | "traslados" | "mantenimiento" | "resumen";
 
@@ -75,7 +75,7 @@ function PaginaVehiculos() {
   const { data: trabajadores = [] } = useQuery({
     queryKey: ["trabajadores", "vehiculos"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("trabajadores").select("id, nombres, apellidos").order("nombres");
+      const { data, error } = await supabase.from("trabajadores").select("id, nombre").order("nombre");
       if (error) throw error;
       return (data ?? []) as Trabajador[];
     },
@@ -84,7 +84,7 @@ function PaginaVehiculos() {
   const mapaVehiculo = useMemo(() => new Map(vehiculos.map((v) => [v.id, v])), [vehiculos]);
   const mapaProyecto = useMemo(() => new Map(proyectos.map((p) => [p.id, p])), [proyectos]);
   const nombreTrabajador = useMemo(
-    () => new Map(trabajadores.map((t) => [t.id, `${t.nombres} ${t.apellidos}`.trim()])),
+    () => new Map(trabajadores.map((t) => [t.id, t.nombre])),
     [trabajadores],
   );
 
@@ -99,7 +99,10 @@ function PaginaVehiculos() {
   const [editVeh, setEditVeh] = useState<string | null>(null);
 
   async function guardarVehiculo() {
-    if (!formVeh.placa.trim()) return toast.error("La placa es obligatoria");
+    if (!formVeh.placa.trim()) {
+      toast.error("La placa es obligatoria");
+      return;
+    }
     const fila = {
       placa: formVeh.placa.trim().toUpperCase(),
       marca: formVeh.marca.trim(),
@@ -118,7 +121,10 @@ function PaginaVehiculos() {
     const { error } = editVeh
       ? await supabase.from("vehiculos" as never).update(fila as never).eq("id", editVeh)
       : await supabase.from("vehiculos" as never).insert(fila as never);
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success(editVeh ? "Vehículo actualizado" : "Vehículo registrado");
     setFormVeh(VACIO_VEHICULO);
     setEditVeh(null);
@@ -138,7 +144,10 @@ function PaginaVehiculos() {
   async function borrarVehiculo(v: Vehiculo) {
     if (!window.confirm(`¿Eliminar el vehículo ${v.placa}? Se borrarán también sus tareos, traslados y mantenimientos.`)) return;
     const { error } = await supabase.from("vehiculos" as never).delete().eq("id", v.id);
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success("Vehículo eliminado");
     refrescar();
   }
@@ -148,7 +157,10 @@ function PaginaVehiculos() {
   const [formTareo, setFormTareo] = useState(VACIO_TAREO);
 
   async function guardarTareo() {
-    if (!formTareo.vehiculo_id || !formTareo.proyecto_id) return toast.error("Elige vehículo y proyecto");
+    if (!formTareo.vehiculo_id || !formTareo.proyecto_id) {
+      toast.error("Elige vehículo y proyecto");
+      return;
+    }
     const v = mapaVehiculo.get(formTareo.vehiculo_id);
     const fila = {
       fecha: formTareo.fecha,
@@ -161,7 +173,10 @@ function PaginaVehiculos() {
       observacion: formTareo.observacion.trim(),
     };
     const { error } = await supabase.from("tareo_vehiculos" as never).insert(fila as never);
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success("Tareo registrado");
     setFormTareo({ ...VACIO_TAREO, vehiculo_id: formTareo.vehiculo_id });
     refrescar();
@@ -170,7 +185,10 @@ function PaginaVehiculos() {
   async function borrarTareo(id: string) {
     if (!window.confirm("¿Eliminar este registro de tareo?")) return;
     const { error } = await supabase.from("tareo_vehiculos" as never).delete().eq("id", id);
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     refrescar();
   }
 
@@ -183,7 +201,10 @@ function PaginaVehiculos() {
   const [formTras, setFormTras] = useState(VACIO_TRASLADO);
 
   async function guardarTraslado() {
-    if (!formTras.vehiculo_id) return toast.error("Elige el vehículo");
+    if (!formTras.vehiculo_id) {
+      toast.error("Elige el vehículo");
+      return;
+    }
     const kmFinal = Number(formTras.km_final) || 0;
     const fila = {
       fecha: formTras.fecha,
@@ -200,7 +221,10 @@ function PaginaVehiculos() {
       observacion: formTras.observacion.trim(),
     };
     const { error } = await supabase.from("traslados_vehiculo" as never).insert(fila as never);
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
 
     const v = mapaVehiculo.get(formTras.vehiculo_id);
     if (v && kmFinal > v.km_actual) {
@@ -227,7 +251,10 @@ function PaginaVehiculos() {
   async function borrarTraslado(id: string) {
     if (!window.confirm("¿Eliminar este traslado?")) return;
     const { error } = await supabase.from("traslados_vehiculo" as never).delete().eq("id", id);
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     refrescar();
   }
 
@@ -238,7 +265,10 @@ function PaginaVehiculos() {
   const [formPlan, setFormPlan] = useState(VACIO_PLAN);
 
   async function guardarMantenimiento() {
-    if (!formMant.vehiculo_id) return toast.error("Elige el vehículo");
+    if (!formMant.vehiculo_id) {
+      toast.error("Elige el vehículo");
+      return;
+    }
     const { error } = await supabase.from("mantenimientos_vehiculo" as never).insert({
       vehiculo_id: formMant.vehiculo_id,
       fecha: formMant.fecha,
@@ -247,7 +277,10 @@ function PaginaVehiculos() {
       km: Number(formMant.km) || 0,
       detalle: formMant.detalle.trim(),
     } as never);
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success("Mantenimiento registrado");
     setFormMant(VACIO_MANT);
     refrescar();
@@ -256,12 +289,18 @@ function PaginaVehiculos() {
   async function borrarMantenimiento(id: string) {
     if (!window.confirm("¿Eliminar este mantenimiento?")) return;
     const { error } = await supabase.from("mantenimientos_vehiculo" as never).delete().eq("id", id);
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     refrescar();
   }
 
   async function guardarPlan() {
-    if (!formPlan.vehiculo_id || !formPlan.descripcion.trim()) return toast.error("Elige vehículo y describe la tarea");
+    if (!formPlan.vehiculo_id || !formPlan.descripcion.trim()) {
+      toast.error("Elige vehículo y describe la tarea");
+      return;
+    }
     const v = mapaVehiculo.get(formPlan.vehiculo_id);
     const cadaKm = formPlan.cada_km ? Number(formPlan.cada_km) : null;
     const cadaMeses = formPlan.cada_meses ? Number(formPlan.cada_meses) : null;
@@ -281,7 +320,10 @@ function PaginaVehiculos() {
       proximo_km: cadaKm != null ? (v?.km_actual ?? 0) + cadaKm : null,
       proxima_fecha: proximaFecha,
     } as never);
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success("Tarea de plan registrada");
     setFormPlan(VACIO_PLAN);
     refrescar();
@@ -290,7 +332,10 @@ function PaginaVehiculos() {
   async function borrarPlan(id: string) {
     if (!window.confirm("¿Eliminar esta tarea del plan?")) return;
     const { error } = await supabase.from("plan_mantenimiento" as never).delete().eq("id", id);
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     refrescar();
   }
 
@@ -466,7 +511,7 @@ function PaginaVehiculos() {
               <Campo etiqueta="Conductor">
                 <Select value={formTareo.conductor_id} onChange={(e) => setFormTareo({ ...formTareo, conductor_id: e.target.value })}>
                   <option value="">— opcional —</option>
-                  {trabajadores.map((t) => <option key={t.id} value={t.id}>{t.nombres} {t.apellidos}</option>)}
+                  {trabajadores.map((t) => <option key={t.id} value={t.id}>{t.nombre}</option>)}
                 </Select>
               </Campo>
               <Campo etiqueta="Días (1 o 0.5)"><Input type="number" step="0.5" min="0" value={formTareo.dias} onChange={(e) => setFormTareo({ ...formTareo, dias: e.target.value })} /></Campo>
@@ -529,7 +574,7 @@ function PaginaVehiculos() {
               <Campo etiqueta="Conductor">
                 <Select value={formTras.conductor_id} onChange={(e) => setFormTras({ ...formTras, conductor_id: e.target.value })}>
                   <option value="">— opcional —</option>
-                  {trabajadores.map((t) => <option key={t.id} value={t.id}>{t.nombres} {t.apellidos}</option>)}
+                  {trabajadores.map((t) => <option key={t.id} value={t.id}>{t.nombre}</option>)}
                 </Select>
               </Campo>
               <Campo etiqueta="Proyecto (obra destino)">
