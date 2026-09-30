@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Copy, Trash2, X } from "lucide-react";
-import { Boton, Input, Select } from "@/components/ui-kit";
+import { Boton, Input } from "@/components/ui-kit";
+import { BuscadorInsumo } from "@/components/BuscadorInsumo";
 import { soles } from "@/lib/format";
 import type { PartidaMaestra } from "@/lib/cotizaciones";
 import { ORIGEN_APU, TIPOS_INSUMO, apuDb, calcularApu, useComponentesApu, useInsumos, type OrigenApu } from "@/lib/apu";
