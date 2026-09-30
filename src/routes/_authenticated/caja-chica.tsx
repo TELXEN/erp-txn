@@ -19,6 +19,7 @@ import {
   useTrabajadores,
 } from "@/lib/datos";
 import { exportarExcel } from "@/lib/exportar";
+import { useMantenimientos, useTraslados } from "@/lib/vehiculos";
 
 export const Route = createFileRoute("/_authenticated/caja-chica")({
   head: () => ({
@@ -56,6 +57,8 @@ function CajaChica() {
     },
   });
   const cuentasActivas = cuentas.filter((c) => c.activo);
+  const { data: mantVeh = [] } = useMantenimientos();
+  const { data: trasVeh = [] } = useTraslados();
   const nombreBanco = (id?: string | null) => {
     const c = cuentas.find((x) => x.id === id);
     return c ? `${c.nombre}${c.numero_cuenta ? ` · ${c.numero_cuenta}` : ""}` : "—";
@@ -115,6 +118,28 @@ function CajaChica() {
         destino: "Gasto general",
         detalle: g.categoria ?? "—",
         monto: Number(g.monto_soles),
+      })),
+    ...mantVeh
+      .filter((m) => m.caja_chica_id === cajaId)
+      .map((m) => ({
+        id: m.id,
+        tabla: "mantenimientos_vehiculo" as string,
+        fecha: m.fecha,
+        descripcion: m.detalle || "Mantenimiento de vehículo",
+        destino: "Vehículos",
+        detalle: `Mantenimiento ${m.tipo}`,
+        monto: Number(m.costo),
+      })),
+    ...trasVeh
+      .filter((t) => t.caja_chica_id === cajaId && Number(t.combustible_monto) > 0)
+      .map((t) => ({
+        id: t.id,
+        tabla: "traslados_vehiculo" as string,
+        fecha: t.fecha,
+        descripcion: `Combustible · ${t.origen} → ${t.destino}`,
+        destino: "Vehículos",
+        detalle: `${t.combustible_galones} gal`,
+        monto: Number(t.combustible_monto),
       })),
   ].sort((a, b) => (a.fecha < b.fecha ? 1 : -1));
 
@@ -193,9 +218,9 @@ function CajaChica() {
     setRend({ ...rend, descripcion: "", monto: "", proveedor: "" });
   }
 
-  async function eliminarRendicion(tabla: "gastos_directos" | "gastos_generales", id: string) {
+  async function eliminarRendicion(tabla: string, id: string) {
     if (!window.confirm("¿Eliminar este comprobante rendido?")) return;
-    await supabase.from(tabla).delete().eq("id", id);
+    await supabase.from(tabla as never).delete().eq("id", id);
     qc.invalidateQueries({ queryKey: [tabla] });
   }
 
