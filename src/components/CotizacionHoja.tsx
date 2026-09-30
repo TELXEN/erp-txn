@@ -519,10 +519,19 @@ export function CotizacionHoja({
         </thead>
         <tbody>
           {visibles.map((f, r) => {
+            const fantasma = fantasmaDe(r);
+            const filaFantasma = fantasma && (
+              <FilaFantasma
+                key={`f:${f.clave}`}
+                sangria={f.clase === "cap" ? 18 : 30}
+                onCrear={(nombre) => crearPartida(fantasma.esp, fantasma.cat, nombre)}
+              />
+            );
             if (f.clase !== "item") {
               const cap = f.clase === "cap";
               return (
-                <tr key={f.clave} className={cap ? "bg-muted/50" : "bg-muted/25"}>
+                <React.Fragment key={f.clave}>
+                <tr className={cap ? "bg-muted/50" : "bg-muted/25"}>
                   {celda(
                     f,
                     r,
