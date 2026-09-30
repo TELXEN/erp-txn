@@ -11,6 +11,7 @@ import {
   CalendarDays,
   ClipboardList,
   FileText,
+  FileStack,
   Gauge,
   ShoppingBag,
   Landmark,
