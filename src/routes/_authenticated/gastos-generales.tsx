@@ -52,6 +52,9 @@ function GastosGenerales() {
     },
   });
   const cuentasActivas = cuentas.filter((c) => c.activo);
+  const { data: vehiculos = [] } = useVehiculos();
+  const { data: mantVeh = [] } = useMantenimientos();
+  const { data: trasVeh = [] } = useTraslados();
   const proveedores = terceros.filter((t) => t.es_proveedor && t.activo);
   const categoriasActivas = categorias.filter((c) => c.activo);
   const [form, setForm] = useState({
