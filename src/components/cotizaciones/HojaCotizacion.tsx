@@ -86,18 +86,18 @@ export function HojaCotizacion({
             )}
           </div>
           <div style={{ flex: 1, minHeight: 76, textAlign: "right", paddingRight: 10 }}>
-            <b style={{ fontSize: 11, fontWeight: 700 }}>{empresa?.razon_social || "TELXEN SAC"}</b>
-            <div style={{ fontFamily: liviano, fontWeight: 300, fontSize: 8, marginTop: 2, lineHeight: 1.15 }}>{empresa?.eslogan || "SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL"}</div>
-            <div style={{ fontFamily: liviano, fontWeight: 300, fontSize: 8.5, marginTop: 2, lineHeight: 1.15 }}>{empresa?.direccion || "—"}</div>
-            <div style={{ fontFamily: liviano, fontWeight: 300, fontSize: 8.5, marginTop: 2, lineHeight: 1.15 }}>{empresa?.web || "—"}</div>
+            <b style={{ fontSize: 16, fontWeight: 700 }}>{empresa?.razon_social || "TELXEN SAC"}</b>
+            <div style={{ fontFamily: liviano, fontWeight: 400, fontSize: 11.5, marginTop: 3, lineHeight: 1.3 }}>{empresa?.eslogan || "SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL"}</div>
+            <div style={{ fontFamily: liviano, fontWeight: 400, fontSize: 12, marginTop: 3, lineHeight: 1.3 }}>{empresa?.direccion || "—"}</div>
+            <div style={{ fontFamily: liviano, fontWeight: 400, fontSize: 12, marginTop: 3, lineHeight: 1.3 }}>{empresa?.web || "—"}</div>
           </div>
           <div style={{ width: 248, textAlign: "center", flexShrink: 0 }}>
             <div style={{ background: C.greenSoft, borderTop: `4px solid ${C.green}`, borderRadius: 5, padding: "10px 8px" }}>
-              <div style={{ fontFamily: liviano, fontSize: 10, fontWeight: 300 }}>COTIZACIÓN</div>
-              <div style={{ fontSize: 9, fontWeight: 700, marginTop: 4 }}>RUC: {empresa?.ruc || "—"}</div>
-              <div style={{ fontSize: 11, fontWeight: 700, marginTop: 3 }}>{cot.codigo || "—"}</div>
+              <div style={{ fontFamily: liviano, fontSize: 13, fontWeight: 600 }}>COTIZACIÓN</div>
+              <div style={{ fontSize: 12.5, fontWeight: 700, marginTop: 5 }}>RUC: {empresa?.ruc || "—"}</div>
+              <div style={{ fontSize: 15, fontWeight: 700, marginTop: 4 }}>{cot.codigo || "—"}</div>
             </div>
-            <div style={{ fontSize: 8.5, fontWeight: 700, marginTop: 4, display: "flex", gap: 4, justifyContent: "center", alignItems: "center" }}>
+            <div style={{ fontSize: 12, fontWeight: 700, marginTop: 6, display: "flex", gap: 6, justifyContent: "center", alignItems: "center" }}>
               REV.
               <input
                 key={`rev-${cot.id}-${cot.revision ?? "01"}`}
