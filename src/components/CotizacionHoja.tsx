@@ -480,7 +480,7 @@ export function CotizacionHoja({
           </button>
           <button
             type="button"
-            onClick={() => void crearPartida("General", "", "Nueva partida")}
+            onClick={() => void crearPartida(nombresEsp[0] ?? "General", "", "Nueva partida")}
             className="inline-flex items-center gap-1 rounded-md border border-line px-3 py-2 text-[12px] text-ink hover:border-primary hover:text-primary"
           >
             <Plus size={14} /> Partida rápida
