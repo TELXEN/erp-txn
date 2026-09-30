@@ -281,58 +281,35 @@ function VistaCotizacion() {
   const revision = `Rev. ${(cot as unknown as { revision?: string } | null)?.revision?.trim() || "01"}`;
 
   function encabezadoHoja(numero: number, totalHojas: number) {
+    const light = { fontFamily: CALIBRI, fontWeight: 300 } as const;
     return (
-      <div className="flex items-start justify-between gap-5" style={{ borderBottom: `2px solid ${C.emerald700}`, paddingBottom: 14 }}>
-        <div className="flex items-center" style={{ minWidth: 150 }}>
+      <div style={{ display: "flex", gap: 22, alignItems: "flex-start", borderBottom: `3px solid ${C.emerald700}`, paddingBottom: 14 }}>
+        <div style={{ width: 96, display: "flex", alignItems: "center", justifyContent: "center" }}>
           {empresa?.logo_url ? (
-            <img src={empresa.logo_url} alt="Logotipo de la empresa" style={{ display: "block", maxWidth: 150, maxHeight: 62, objectFit: "contain" }} />
+            <img src={empresa.logo_url} alt="Logotipo de la empresa" style={{ maxWidth: 92, maxHeight: 54, objectFit: "contain" }} />
           ) : (
-            <div className="flex items-center justify-center" style={{ width: 62, height: 62, borderRadius: 12, background: C.emerald700, color: C.white, fontWeight: 700, fontSize: 20 }}>
-              {(empresa?.razon_social || "TELXEN").split(/\s+/).slice(0, 2).map((parte) => parte[0]).join("").toUpperCase()}
+            <div style={{ width: 52, height: 52, borderRadius: 9, background: C.emerald700, color: C.white, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 }}>
+              TX
             </div>
           )}
         </div>
 
-        <div style={{ flex: 1, textAlign: "right", paddingTop: 2 }}>
-          <div style={{ fontSize: 11.5, fontWeight: 700, color: C.emerald800, letterSpacing: 0.4, lineHeight: 1.35, textAlign: "right" }}>
-            {empresa?.razon_social || "TELXEN"}
+        <div style={{ flex: 1, minHeight: 76, textAlign: "right", paddingRight: 10, display: "flex", flexDirection: "column", justifyContent: "flex-start" }}>
+          <b style={{ fontSize: 11, fontWeight: 700 }}>{empresa?.razon_social || "TELXEN SAC"}</b>
+          <div style={{ ...light, fontSize: 8, marginTop: 2, lineHeight: 1.15, textAlign: "right" }}>
+            {empresa?.eslogan || "SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL"}
           </div>
-          {empresa?.eslogan?.trim()
-            ? (() => {
-                const es = empresa.eslogan.trim();
-                const idx = es.indexOf(",");
-                const linea1 = idx >= 0 ? es.slice(0, idx + 1) : es;
-                const linea2 = idx >= 0 ? es.slice(idx + 1).trim() : "";
-                return (
-                  <div style={{ marginTop: 2, fontFamily: CALIBRI, fontSize: 9.5, fontWeight: 300, color: C.emerald800, letterSpacing: 0.4, lineHeight: 1.3, textAlign: "right" }}>
-                    <span style={{ display: "block" }}>{linea1}</span>
-                    {linea2 && <span style={{ display: "block" }}>{linea2}</span>}
-                  </div>
-                );
-              })()
-            : !empresa?.razon_social && (
-                <div style={{ marginTop: 2, fontFamily: CALIBRI, fontSize: 9.5, fontWeight: 300, color: C.emerald800, letterSpacing: 0.4, lineHeight: 1.3, textAlign: "right" }}>
-                  <span style={{ display: "block" }}>SOLUCIONES INTEGRALES EN ENERGÍA,</span>
-                  <span style={{ display: "block" }}>AUTOMATIZACIÓN Y CONTROL INDUSTRIAL</span>
-                </div>
-              )}
-          {empresa?.direccion && (
-            <div style={{ marginTop: 4, fontFamily: CALIBRI, fontWeight: 300, fontSize: 9.5, color: C.slate700 }}>Dirección: {empresa.direccion}</div>
-          )}
-          {empresa?.telefono && (
-            <div style={{ marginTop: 2, fontFamily: CALIBRI, fontWeight: 300, fontSize: 9.5, color: C.slate700 }}>Teléfono: {empresa.telefono}</div>
-          )}
-          {empresa?.web && <div style={{ marginTop: 2, fontFamily: CALIBRI, fontWeight: 300, fontSize: 9.5, color: C.emerald800 }}>{empresa.web}</div>}
-
+          <div style={{ ...light, fontSize: 8.5, marginTop: 2, lineHeight: 1.15, textAlign: "right" }}>{empresa?.direccion || "—"}</div>
+          <div style={{ ...light, fontSize: 8.5, marginTop: 2, lineHeight: 1.15, textAlign: "right" }}>{empresa?.web || "—"}</div>
         </div>
 
-        <div style={{ minWidth: 200 }}>
-          <div style={{ background: C.emerald50, borderTop: `3px solid ${C.emerald700}`, borderRadius: 4, padding: "10px 16px", textAlign: "center", color: C.slate900 }}>
-            <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: 2, lineHeight: 1.15 }}>COTIZACIÓN</div>
-            <div style={{ marginTop: 3, fontSize: 12, fontWeight: 700 }}>RUC: {empresa?.ruc || "—"}</div>
-            <div style={{ marginTop: 2, fontSize: 14, fontWeight: 800, letterSpacing: 0.6 }}>{cot?.codigo ?? "SIN CÓDIGO"}</div>
+        <div style={{ width: 248, textAlign: "center", flexShrink: 0 }}>
+          <div style={{ background: C.emerald50, borderTop: `4px solid ${C.emerald700}`, borderRadius: 5, padding: "10px 8px", color: C.slate900 }}>
+            <div style={{ ...light, fontSize: 10 }}>COTIZACIÓN</div>
+            <div style={{ fontSize: 9, fontWeight: 700, marginTop: 4 }}>RUC: {empresa?.ruc || "—"}</div>
+            <div style={{ fontSize: 11, fontWeight: 700, marginTop: 3 }}>{cot?.codigo ?? "SIN CÓDIGO"}</div>
           </div>
-          <div className="flex justify-between" style={{ marginTop: 5, fontSize: 9.5, color: C.slate500 }}>
+          <div className="flex justify-between" style={{ marginTop: 4, fontSize: 7.5, color: C.slate500 }}>
             <span>Hoja {numero} de {totalHojas}</span>
             <span>{revision}</span>
           </div>

@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { ApuPartida } from "@/components/ApuPartida";
+import { CotizacionHoja } from "@/components/CotizacionHoja";
 import { apuDb } from "@/lib/apu";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
@@ -448,6 +449,10 @@ function Cotizaciones() {
               placeholder={codificacionCot ? previsualizarCodigoCotizacion(codificacionCot) : "Automático"}
               title="Déjalo vacío para asignar el código automático"
             />
+            <p className="mt-1 font-mono text-[10px] text-muted-foreground">
+              Siguiente código: <strong className="text-ink">{codificacionCot ? previsualizarCodigoCotizacion(codificacionCot) : "—"}</strong>{" "}
+              <Link to="/datos" className="text-primary underline">configurar en Catálogos Maestros</Link>
+            </p>
           </Campo>
           <Campo etiqueta="Cliente">
             <Select value={form.cliente_id} onChange={(e) => setForm({ ...form, cliente_id: e.target.value })} required>
@@ -876,160 +881,7 @@ function Cotizaciones() {
           {items.length === 0 ? (
             <Vacio texto="Esta cotización todavía no tiene partidas." />
           ) : (
-            <table className="w-full font-mono text-xs">
-              <thead>
-                <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                  <th className="px-5 py-2 font-medium">Código</th>
-                  <th className="px-3 py-2 font-medium">Partida</th>
-                  <th className="px-3 py-2 font-medium">Marca</th>
-                  <th className="px-3 py-2 font-medium">Und.</th>
-                  <th className="px-3 py-2 text-right font-medium">Metrado</th>
-                  <th className="px-3 py-2 text-right font-medium">P.U. (S/)</th>
-                  <th className="px-3 py-2 text-right font-medium">Parcial (S/)</th>
-                  <th className="px-5 py-2 text-right font-medium">Acciones</th>
-                </tr>
-              </thead>
-              {agruparPorCategoria(items).map((grupo) => {
-                const wbs = prefijosWBS(items);
-                const subtotalEspecialidad = grupo.categorias.reduce(
-                  (total, sub) =>
-                    total + sub.items.reduce((s, i) => s + Number(i.metrado) * Number(i.precio_unitario), 0),
-                  0,
-                );
-                return (
-                <tbody key={grupo.especialidad}>
-                  <tr className="border-b border-line/40 bg-muted/40">
-                    <td className="px-5 py-2 font-semibold text-ink">{wbs.capitulo(grupo.especialidad)}</td>
-                    <td colSpan={5} className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-ink">
-                      {grupo.especialidad}
-                    </td>
-                    <td className="px-3 py-2 text-right font-semibold text-ink">{soles(subtotalEspecialidad)}</td>
-                    <td />
-                  </tr>
-                  {grupo.categorias.map((sub) => {
-                    const subtotal = sub.items.reduce(
-                      (s, i) => s + Number(i.metrado) * Number(i.precio_unitario),
-                      0,
-                    );
-                    return (
-                      <React.Fragment key={`${grupo.especialidad}-${sub.categoria}`}>
-                        <tr className="bg-muted/20">
-                          <td className="px-5 py-1.5 pl-8 text-[10px] font-semibold text-ink">
-                            {wbs.categoria(grupo.especialidad, sub.categoria)}
-                          </td>
-                          <td colSpan={5} className="px-3 py-1.5 text-[11px] font-semibold text-muted-foreground">
-                            {sub.categoria}
-                          </td>
-                          <td className="px-3 py-1.5 text-right font-semibold text-ink">{soles(subtotal)}</td>
-                          <td />
-                        </tr>
-                        {ordenarJerarquia(sub.items).map(({ fila: i, nivel, agrupadora, hijos }) => {
-                          const parcial = agrupadora
-                            ? hijos.reduce((s, h) => s + Number(h.metrado) * Number(h.precio_unitario), 0)
-                            : Number(i.metrado) * Number(i.precio_unitario);
-                          const ultimoHijo =
-                            nivel === 4 && sub.items.filter((x) => x.padre_id === i.padre_id).at(-1)?.id === i.id;
-                          const formAqui =
-                            nuevaSub &&
-                            ((nivel === 4 && ultimoHijo && nuevaSub.padre_id === i.padre_id) ||
-                              (nivel === 3 && !agrupadora && nuevaSub.padre_id === i.id));
-                          return (
-                            <React.Fragment key={i.id}>
-                              <tr className={`border-b border-line/60 ${agrupadora ? "bg-muted/10" : ""}`}>
-                                <td className={`px-5 py-2.5 text-primary ${nivel === 4 ? "pl-12" : "pl-8"}`}>{i.codigo || "—"}</td>
-                                <td className={`px-3 py-2.5 text-ink ${nivel === 4 ? "pl-6" : "font-semibold"}`}>
-                                  {nivel === 4 && <CornerDownRight size={11} className="mr-1 inline text-muted-foreground" />}
-                                  {i.nombre}
-                                  {agrupadora && (
-                                    <span className="ml-1.5 text-[9px] uppercase text-muted-foreground">({hijos.length} subpartidas)</span>
-                                  )}
-                                </td>
-                                <td className="px-3 py-2.5 text-muted-foreground">{agrupadora ? "—" : i.marca || "-"}</td>
-                                <td className="px-3 py-2.5 text-muted-foreground">{agrupadora ? "—" : i.unidad}</td>
-                                <td className="px-3 py-2.5 text-right">{agrupadora ? "—" : cantidad(i.metrado)}</td>
-                                <td className="px-3 py-2.5 text-right">{agrupadora ? "—" : soles(Number(i.precio_unitario))}</td>
-                                <td className="px-3 py-2.5 text-right font-semibold">{soles(parcial)}</td>
-                                <td className="px-5 py-2.5 text-right">
-                                  <div className="flex items-center justify-end gap-2">
-                                    {!agrupadora && (
-                                      <button
-                                        type="button"
-                                        onClick={() => setApu(i)}
-                                        title="Análisis de precios unitarios"
-                                        className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"
-                                      >
-                                        <Calculator size={14} />
-                                      </button>
-                                    )}
-                                    {nivel === 3 && (
-                                      <button
-                                        type="button"
-                                        onClick={() => abrirSubpartida(i)}
-                                        title="Agregar subpartida (4.° nivel)"
-                                        className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"
-                                      >
-                                        <CornerDownRight size={14} />
-                                      </button>
-                                    )}
-                                    <Boton variante="peligro" onClick={() => borrarItem(i.id)}>
-                                      Quitar
-                                    </Boton>
-                                  </div>
-                                </td>
-                              </tr>
-                              {formAqui && (
-                                <tr className="border-b border-line/60 bg-primary/5">
-                                  <td className="px-5 py-2 pl-12">
-                                    <Input value={nuevaSub.codigo} onChange={(e) => setNuevaSub({ ...nuevaSub, codigo: e.target.value })}
-                                      className="py-1 font-mono text-xs" placeholder="01.01.01.01" />
-                                  </td>
-                                  <td className="px-3 py-2">
-                                    <Input autoFocus value={nuevaSub.nombre} onChange={(e) => setNuevaSub({ ...nuevaSub, nombre: e.target.value })}
-                                      className="py-1 text-xs" placeholder="Descripción de la subpartida" />
-                                  </td>
-                                  <td className="px-3 py-2">
-                                    <Input value={nuevaSub.marca} onChange={(e) => setNuevaSub({ ...nuevaSub, marca: e.target.value })}
-                                      className="py-1 text-xs" placeholder="-" />
-                                  </td>
-                                  <td className="px-3 py-2">
-                                    <Input value={nuevaSub.unidad} onChange={(e) => setNuevaSub({ ...nuevaSub, unidad: e.target.value })}
-                                      className="py-1 text-xs" />
-                                  </td>
-                                  <td className="px-3 py-2">
-                                    <Input type="number" step="0.01" min="0" value={nuevaSub.metrado}
-                                      onChange={(e) => setNuevaSub({ ...nuevaSub, metrado: e.target.value })} className="py-1 text-right text-xs" />
-                                  </td>
-                                  <td className="px-3 py-2">
-                                    <Input type="number" step="0.01" min="0" value={nuevaSub.precio_unitario}
-                                      onChange={(e) => setNuevaSub({ ...nuevaSub, precio_unitario: e.target.value })} className="py-1 text-right text-xs" />
-                                  </td>
-                                  <td className="px-3 py-2 text-right font-semibold">
-                                    {soles(Number(nuevaSub.metrado || 0) * Number(nuevaSub.precio_unitario || 0))}
-                                  </td>
-                                  <td className="px-5 py-2">
-                                    <div className="flex items-center justify-end gap-1">
-                                      <button type="button" onClick={() => void guardarSubpartida()} title="Guardar subpartida"
-                                        className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground">
-                                        <Check size={14} />
-                                      </button>
-                                      <button type="button" onClick={() => setNuevaSub(null)} title="Cancelar"
-                                        className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line hover:bg-muted">
-                                        <X size={14} />
-                                      </button>
-                                    </div>
-                                  </td>
-                                </tr>
-                              )}
-                            </React.Fragment>
-                          );
-                        })}
-                      </React.Fragment>
-                    );
-                  })}
-                </tbody>
-                );
-              })}
-            </table>
+            <CotizacionHoja cotizacionId={cot.id} items={items} unidades={unidades} />
           )}
 
           <div className="grid gap-3 border-t border-line px-5 py-4 sm:grid-cols-2">
