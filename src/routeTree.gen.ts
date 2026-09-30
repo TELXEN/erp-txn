@@ -45,6 +45,7 @@ import { Route as AuthenticatedTareoRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedTesoreriaRouteImport } from './routes/_authenticated/tesoreria'
 import { Route as AuthenticatedUsuariosRouteImport } from './routes/_authenticated/usuarios'
 import { Route as AuthenticatedValorizacionesRouteImport } from './routes/_authenticated/valorizaciones'
+import { Route as AuthenticatedVehiculosRouteImport } from './routes/_authenticated/vehiculos'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -240,6 +241,11 @@ const AuthenticatedValorizacionesRoute =
     path: '/valorizaciones',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedVehiculosRoute = AuthenticatedVehiculosRouteImport.update({
+  id: '/vehiculos',
+  path: '/vehiculos',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -277,6 +283,7 @@ export interface FileRoutesByFullPath {
   '/tesoreria': typeof AuthenticatedTesoreriaRoute
   '/usuarios': typeof AuthenticatedUsuariosRoute
   '/valorizaciones': typeof AuthenticatedValorizacionesRoute
+  '/vehiculos': typeof AuthenticatedVehiculosRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -314,6 +321,7 @@ export interface FileRoutesByTo {
   '/tesoreria': typeof AuthenticatedTesoreriaRoute
   '/usuarios': typeof AuthenticatedUsuariosRoute
   '/valorizaciones': typeof AuthenticatedValorizacionesRoute
+  '/vehiculos': typeof AuthenticatedVehiculosRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -353,6 +361,7 @@ export interface FileRoutesById {
   '/_authenticated/tesoreria': typeof AuthenticatedTesoreriaRoute
   '/_authenticated/usuarios': typeof AuthenticatedUsuariosRoute
   '/_authenticated/valorizaciones': typeof AuthenticatedValorizacionesRoute
+  '/_authenticated/vehiculos': typeof AuthenticatedVehiculosRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -392,6 +401,7 @@ export interface FileRouteTypes {
     | '/tesoreria'
     | '/usuarios'
     | '/valorizaciones'
+    | '/vehiculos'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -429,6 +439,7 @@ export interface FileRouteTypes {
     | '/tesoreria'
     | '/usuarios'
     | '/valorizaciones'
+    | '/vehiculos'
   id:
     | '__root__'
     | '/'
@@ -467,6 +478,7 @@ export interface FileRouteTypes {
     | '/_authenticated/tesoreria'
     | '/_authenticated/usuarios'
     | '/_authenticated/valorizaciones'
+    | '/_authenticated/vehiculos'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -728,6 +740,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedValorizacionesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/vehiculos': {
+      id: '/_authenticated/vehiculos'
+      path: '/vehiculos'
+      fullPath: '/vehiculos'
+      preLoaderRoute: typeof AuthenticatedVehiculosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -766,6 +785,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedTesoreriaRoute: typeof AuthenticatedTesoreriaRoute
   AuthenticatedUsuariosRoute: typeof AuthenticatedUsuariosRoute
   AuthenticatedValorizacionesRoute: typeof AuthenticatedValorizacionesRoute
+  AuthenticatedVehiculosRoute: typeof AuthenticatedVehiculosRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -805,6 +825,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedTesoreriaRoute: AuthenticatedTesoreriaRoute,
   AuthenticatedUsuariosRoute: AuthenticatedUsuariosRoute,
   AuthenticatedValorizacionesRoute: AuthenticatedValorizacionesRoute,
+  AuthenticatedVehiculosRoute: AuthenticatedVehiculosRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

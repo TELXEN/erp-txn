@@ -1728,6 +1728,60 @@ export type Database = {
         }
         Relationships: []
       }
+      mantenimientos_vehiculo: {
+        Row: {
+          costo: number
+          created_at: string
+          detalle: string
+          fecha: string
+          id: string
+          km: number
+          taller_id: string | null
+          tipo: string
+          updated_at: string
+          vehiculo_id: string
+        }
+        Insert: {
+          costo?: number
+          created_at?: string
+          detalle?: string
+          fecha?: string
+          id?: string
+          km?: number
+          taller_id?: string | null
+          tipo?: string
+          updated_at?: string
+          vehiculo_id: string
+        }
+        Update: {
+          costo?: number
+          created_at?: string
+          detalle?: string
+          fecha?: string
+          id?: string
+          km?: number
+          taller_id?: string | null
+          tipo?: string
+          updated_at?: string
+          vehiculo_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mantenimientos_vehiculo_taller_id_fkey"
+            columns: ["taller_id"]
+            isOneToOne: false
+            referencedRelation: "terceros"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mantenimientos_vehiculo_vehiculo_id_fkey"
+            columns: ["vehiculo_id"]
+            isOneToOne: false
+            referencedRelation: "vehiculos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       metas_flujo_caja: {
         Row: {
           anio: number
@@ -2136,6 +2190,59 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      plan_mantenimiento: {
+        Row: {
+          activo: boolean
+          cada_km: number | null
+          cada_meses: number | null
+          created_at: string
+          descripcion: string
+          id: string
+          proxima_fecha: string | null
+          proximo_km: number | null
+          ultima_fecha: string | null
+          ultimo_km: number
+          updated_at: string
+          vehiculo_id: string
+        }
+        Insert: {
+          activo?: boolean
+          cada_km?: number | null
+          cada_meses?: number | null
+          created_at?: string
+          descripcion: string
+          id?: string
+          proxima_fecha?: string | null
+          proximo_km?: number | null
+          ultima_fecha?: string | null
+          ultimo_km?: number
+          updated_at?: string
+          vehiculo_id: string
+        }
+        Update: {
+          activo?: boolean
+          cada_km?: number | null
+          cada_meses?: number | null
+          created_at?: string
+          descripcion?: string
+          id?: string
+          proxima_fecha?: string | null
+          proximo_km?: number | null
+          ultima_fecha?: string | null
+          ultimo_km?: number
+          updated_at?: string
+          vehiculo_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_mantenimiento_vehiculo_id_fkey"
+            columns: ["vehiculo_id"]
+            isOneToOne: false
+            referencedRelation: "vehiculos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       planillas: {
         Row: {
@@ -2600,6 +2707,70 @@ export type Database = {
         }
         Relationships: []
       }
+      tareo_vehiculos: {
+        Row: {
+          conductor_id: string | null
+          costo_soles: number
+          created_at: string
+          dias: number
+          fecha: string
+          id: string
+          km: number
+          observacion: string
+          proyecto_id: string
+          updated_at: string
+          vehiculo_id: string
+        }
+        Insert: {
+          conductor_id?: string | null
+          costo_soles?: number
+          created_at?: string
+          dias?: number
+          fecha?: string
+          id?: string
+          km?: number
+          observacion?: string
+          proyecto_id: string
+          updated_at?: string
+          vehiculo_id: string
+        }
+        Update: {
+          conductor_id?: string | null
+          costo_soles?: number
+          created_at?: string
+          dias?: number
+          fecha?: string
+          id?: string
+          km?: number
+          observacion?: string
+          proyecto_id?: string
+          updated_at?: string
+          vehiculo_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tareo_vehiculos_conductor_id_fkey"
+            columns: ["conductor_id"]
+            isOneToOne: false
+            referencedRelation: "trabajadores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tareo_vehiculos_proyecto_id_fkey"
+            columns: ["proyecto_id"]
+            isOneToOne: false
+            referencedRelation: "proyectos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tareo_vehiculos_vehiculo_id_fkey"
+            columns: ["vehiculo_id"]
+            isOneToOne: false
+            referencedRelation: "vehiculos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tareos: {
         Row: {
           asistencia: number
@@ -2831,6 +3002,82 @@ export type Database = {
         }
         Relationships: []
       }
+      traslados_vehiculo: {
+        Row: {
+          carga: string
+          combustible_galones: number
+          combustible_monto: number
+          conductor_id: string | null
+          created_at: string
+          destino: string
+          fecha: string
+          id: string
+          km_final: number
+          km_inicial: number
+          observacion: string
+          origen: string
+          proyecto_id: string | null
+          updated_at: string
+          vehiculo_id: string
+        }
+        Insert: {
+          carga?: string
+          combustible_galones?: number
+          combustible_monto?: number
+          conductor_id?: string | null
+          created_at?: string
+          destino?: string
+          fecha?: string
+          id?: string
+          km_final?: number
+          km_inicial?: number
+          observacion?: string
+          origen?: string
+          proyecto_id?: string | null
+          updated_at?: string
+          vehiculo_id: string
+        }
+        Update: {
+          carga?: string
+          combustible_galones?: number
+          combustible_monto?: number
+          conductor_id?: string | null
+          created_at?: string
+          destino?: string
+          fecha?: string
+          id?: string
+          km_final?: number
+          km_inicial?: number
+          observacion?: string
+          origen?: string
+          proyecto_id?: string | null
+          updated_at?: string
+          vehiculo_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "traslados_vehiculo_conductor_id_fkey"
+            columns: ["conductor_id"]
+            isOneToOne: false
+            referencedRelation: "trabajadores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "traslados_vehiculo_proyecto_id_fkey"
+            columns: ["proyecto_id"]
+            isOneToOne: false
+            referencedRelation: "proyectos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "traslados_vehiculo_vehiculo_id_fkey"
+            columns: ["vehiculo_id"]
+            isOneToOne: false
+            referencedRelation: "vehiculos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       unidades_medida: {
         Row: {
           activo: boolean
@@ -2878,6 +3125,74 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      vehiculos: {
+        Row: {
+          anio: number | null
+          created_at: string
+          estado: string
+          id: string
+          km_actual: number
+          marca: string
+          modelo: string
+          observacion: string
+          placa: string
+          propiedad: string
+          proveedor_id: string | null
+          revision_tecnica_vencimiento: string | null
+          soat_vencimiento: string | null
+          tarifa_dia: number
+          tarifa_km: number
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          anio?: number | null
+          created_at?: string
+          estado?: string
+          id?: string
+          km_actual?: number
+          marca?: string
+          modelo?: string
+          observacion?: string
+          placa: string
+          propiedad?: string
+          proveedor_id?: string | null
+          revision_tecnica_vencimiento?: string | null
+          soat_vencimiento?: string | null
+          tarifa_dia?: number
+          tarifa_km?: number
+          tipo?: string
+          updated_at?: string
+        }
+        Update: {
+          anio?: number | null
+          created_at?: string
+          estado?: string
+          id?: string
+          km_actual?: number
+          marca?: string
+          modelo?: string
+          observacion?: string
+          placa?: string
+          propiedad?: string
+          proveedor_id?: string | null
+          revision_tecnica_vencimiento?: string | null
+          soat_vencimiento?: string | null
+          tarifa_dia?: number
+          tarifa_km?: number
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehiculos_proveedor_id_fkey"
+            columns: ["proveedor_id"]
+            isOneToOne: false
+            referencedRelation: "terceros"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ventas: {
         Row: {

@@ -394,6 +394,7 @@ export function costoRealProyecto(
   gastosDirectos: GastoDirecto[],
   tareos: Tareo[],
   gastosGenerales: GastoGeneral[],
+  tareoVehiculos: { proyecto_id: string; costo_soles: number }[] = [],
 ) {
   const directos = gastosDirectos
     .filter((g) => g.proyecto_id === proyectoId)
@@ -404,7 +405,10 @@ export function costoRealProyecto(
   const generales = gastosGenerales
     .filter((g) => g.proyecto_id === proyectoId)
     .reduce((s, g) => s + Number(g.monto_soles), 0);
-  return directos + manoObra + generales;
+  const movilidad = tareoVehiculos
+    .filter((t) => t.proyecto_id === proyectoId)
+    .reduce((s, t) => s + Number(t.costo_soles), 0);
+  return directos + manoObra + generales + movilidad;
 }
 
 export type Periodicidad = "dia" | "semana" | "quincena" | "mes";

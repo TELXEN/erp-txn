@@ -11,3 +11,4 @@
 - [x] Encabezado de cotización idéntico al de facturación electrónica.
 - [x] Código de cotización configurable desde Catálogos Maestros (vista previa en el formulario).
 - [x] Vista de edición de Facturación Electrónica a pantalla completa con tipografía ampliada sin alterar el A4.
+- [x] Módulo Vehículos: flota, tareo vehicular, traslados, mantenimiento, resumen
