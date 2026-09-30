@@ -328,9 +328,6 @@ export function CotizacionHoja({
     setError("");
     // Las subpartidas hijas se eliminan junto con su partida agrupadora.
     const hijos = items.filter((i) => i.padre_id === id);
-    const { error: err } = await supabase.from("cotizacion_items").delete().in("id", [id, ...hijos.map((h) => h.id)]);
-    if (err) return setError(err.message);
-    // Si era la última partida del grupo, deja una vacía para no perder el capítulo/categoría.
     const quedanEnGrupo = items.some(
       (i) =>
         i.id !== id &&
@@ -338,7 +335,21 @@ export function CotizacionHoja({
         i.especialidad === it.especialidad &&
         (i.categoria ?? "") === (it.categoria ?? ""),
     );
-    if (!quedanEnGrupo) {
+    // Una partida vacía ("Nueva partida" sin precio) que es la última del grupo se borra de verdad,
+    // eliminando también el capítulo/categoría que la contiene.
+    const esVacia =
+      !hijos.length &&
+      (it.nombre ?? "").trim() === "Nueva partida" &&
+      Number(it.precio_unitario ?? 0) === 0;
+    if (!quedanEnGrupo && esVacia) {
+      const grupo = it.categoria ? `la categoría "${it.categoria}"` : `el capítulo "${it.especialidad}"`;
+      if (!window.confirm(`Esta es la única partida de ${grupo}. Al borrarla se quitará también ${grupo}. ¿Continuar?`))
+        return;
+    }
+    const { error: err } = await supabase.from("cotizacion_items").delete().in("id", [id, ...hijos.map((h) => h.id)]);
+    if (err) return setError(err.message);
+    // Si era la última partida real del grupo, deja una vacía para no perder el capítulo/categoría.
+    if (!quedanEnGrupo && !esVacia) {
       await supabase.from("cotizacion_items").insert({
         cotizacion_id: cotizacionId,
         codigo: it.codigo ?? codigoContextual(it.especialidad, it.categoria ?? "", items),
