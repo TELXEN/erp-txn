@@ -17,15 +17,15 @@ const money = (n: number) => `S/ ${Number(n || 0).toLocaleString("es-PE", { mini
 function Bloque({ titulo, children }: { titulo: string; children: ReactNode }) {
   return (
     <div>
-      <span style={{ fontSize: 9, color: C.muted, fontFamily: liviano, fontWeight: 300, letterSpacing: ".04em" }}>{titulo}</span>
-      <div style={{ marginTop: 5, display: "grid", gap: 4 }}>{children}</div>
+      <span style={{ fontSize: 12, color: C.muted, fontFamily: liviano, fontWeight: 600, letterSpacing: ".04em" }}>{titulo}</span>
+      <div style={{ marginTop: 7, display: "grid", gap: 7 }}>{children}</div>
     </div>
   );
 }
 function Linea({ etiqueta, children }: { etiqueta: string; children: ReactNode }) {
   return (
-    <label style={{ display: "grid", gridTemplateColumns: "88px 1fr", alignItems: "center", gap: 6 }}>
-      <span style={{ fontSize: 9, color: C.muted, fontFamily: liviano, fontWeight: 300, textTransform: "uppercase" }}>{etiqueta}</span>
+    <label style={{ display: "grid", gridTemplateColumns: "112px 1fr", alignItems: "center", gap: 8 }}>
+      <span style={{ fontSize: 11.5, color: C.muted, fontFamily: liviano, fontWeight: 400, textTransform: "uppercase" }}>{etiqueta}</span>
       {children}
     </label>
   );
