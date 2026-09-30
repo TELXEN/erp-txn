@@ -7,6 +7,6 @@
 - [ ] Crear vista previa y PDF A4 con formato idéntico a preliquidación.
 - [ ] Integrar comprobantes emitidos con Tesorería y Flujo de Caja.
 - [ ] Verificar permisos, cálculos, navegación, impresión y vistas móviles.
-- [ ] Editor WYSIWYG de cotizaciones tipo Presto (edición en línea, teclado, árbol, APU embebido).
-- [ ] Encabezado de cotización idéntico al de facturación electrónica.
-- [ ] Código de cotización configurable desde Catálogos Maestros (vista previa en el formulario).
+- [x] Editor WYSIWYG de cotizaciones tipo Presto (edición en línea, teclado, árbol, APU embebido).
+- [x] Encabezado de cotización idéntico al de facturación electrónica.
+- [x] Código de cotización configurable desde Catálogos Maestros (vista previa en el formulario).
