@@ -449,6 +449,10 @@ function Cotizaciones() {
               placeholder={codificacionCot ? previsualizarCodigoCotizacion(codificacionCot) : "Automático"}
               title="Déjalo vacío para asignar el código automático"
             />
+            <p className="mt-1 font-mono text-[10px] text-muted-foreground">
+              Siguiente código: <strong className="text-ink">{codificacionCot ? previsualizarCodigoCotizacion(codificacionCot) : "—"}</strong>{" "}
+              <Link to="/datos" className="text-primary underline">configurar en Catálogos Maestros</Link>
+            </p>
           </Campo>
           <Campo etiqueta="Cliente">
             <Select value={form.cliente_id} onChange={(e) => setForm({ ...form, cliente_id: e.target.value })} required>
