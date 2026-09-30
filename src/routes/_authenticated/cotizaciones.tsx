@@ -562,11 +562,12 @@ function Cotizaciones() {
 
         <div className="-mx-4 rounded-none bg-muted/60 px-4 py-2">
           <HojaCotizacion cot={cot} items={items} clientes={clientes}>
-            {items.length === 0 ? (
-              <Vacio texto="Esta cotización todavía no tiene partidas. Usa «Catálogo maestro» o «+ Fila»." />
-            ) : (
-              <CotizacionHoja cotizacionId={cot.id} items={items} unidades={unidades} />
-            )}
+            <CotizacionHoja
+              cotizacionId={cot.id}
+              items={items}
+              unidades={unidades}
+              alAbrirCatalogo={() => setVerCatalogo(true)}
+            />
           </HojaCotizacion>
         </div>
         {apu && (
