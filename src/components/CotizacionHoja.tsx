@@ -3,7 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, ChevronRight, CornerDownRight, Plus, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { soles } from "@/lib/format";
-import { agruparPorCategoria, ordenarJerarquia, prefijosWBS } from "@/lib/categorias";
+import { agruparPorCategoria, codigoContextual, ordenarJerarquia, prefijosWBS } from "@/lib/categorias";
 import { apuDb, calcularApu, nombreTipo, TIPOS_INSUMO, useComponentesApu, useInsumos } from "@/lib/apu";
 import type { CotizacionItem } from "@/lib/cotizaciones";
 
@@ -76,10 +76,12 @@ export function CotizacionHoja({
   cotizacionId,
   items,
   unidades,
+  alAbrirCatalogo,
 }: {
   cotizacionId: string;
   items: CotizacionItem[];
   unidades: { id: string; simbolo: string; activo: boolean }[];
+  alAbrirCatalogo?: () => void;
 }) {
   const qc = useQueryClient();
   const [colapsados, setColapsados] = useState<Set<string>>(new Set());
