@@ -1,6 +1,14 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { BookOpen, ChevronDown, ChevronRight, CornerDownRight, FolderPlus, Plus, Trash2 } from "lucide-react";
+import { BookOpen, Calculator, ChevronDown, ChevronRight, CornerDownRight, FolderPlus, ListPlus, Plus, Trash2 } from "lucide-react";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuLabel,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { soles } from "@/lib/format";
 import {
@@ -27,13 +35,15 @@ type Fila =
 const num = (n: number | string) =>
   Number(n || 0).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+const esPartida = (i: CotizacionItem) => i.tipo !== "grupo";
+
 /** Construye el árbol visible: capítulo (especialidad), subcapítulo (categoría), partidas y subpartidas. */
 function construirArbol(items: CotizacionItem[]): Fila[] {
   const wbs = prefijosWBS(items);
   const filas: Fila[] = [];
   for (const grupo of agruparPorCategoria(items)) {
     const totalCap = grupo.categorias.reduce(
-      (t, s) => t + s.items.reduce((x, i) => x + Number(i.metrado) * Number(i.precio_unitario), 0),
+      (t, s) => t + s.items.filter(esPartida).reduce((x, i) => x + Number(i.metrado) * Number(i.precio_unitario), 0),
       0,
     );
     filas.push({
@@ -45,7 +55,10 @@ function construirArbol(items: CotizacionItem[]): Fila[] {
       total: totalCap,
     });
     for (const sub of grupo.categorias) {
-      const totalSub = sub.items.reduce((x, i) => x + Number(i.metrado) * Number(i.precio_unitario), 0);
+      const reales = sub.items.filter(esPartida);
+      // La marcadora de la especialidad (sin categoría) no dibuja un subcapítulo propio.
+      if (sub.categoria === "Sin categoría" && !reales.length) continue;
+      const totalSub = reales.reduce((x, i) => x + Number(i.metrado) * Number(i.precio_unitario), 0);
       filas.push({
         clase: "sub",
         clave: `s:${grupo.especialidad}|${sub.categoria}`,
@@ -55,7 +68,7 @@ function construirArbol(items: CotizacionItem[]): Fila[] {
         cat: sub.categoria,
         total: totalSub,
       });
-      for (const nodo of ordenarJerarquia(sub.items)) {
+      for (const nodo of ordenarJerarquia(reales)) {
         const total = nodo.agrupadora
           ? nodo.hijos.reduce((s, h) => s + Number(h.metrado) * Number(h.precio_unitario), 0)
           : Number(nodo.fila.metrado) * Number(nodo.fila.precio_unitario);
@@ -311,7 +324,53 @@ export function CotizacionHoja({
       return setError(
         "Ya usaste todas las especialidades del catálogo maestro. Registra una nueva en Datos › Catálogo técnico.",
       );
-    await crearPartida(libre, "", "Nueva partida");
+    await crearGrupo(libre, "");
+  }
+
+  /** Crea la fila marcadora que conserva una especialidad o categoría aunque no tenga partidas. */
+  async function crearGrupo(esp: string, cat: string) {
+    setError("");
+    const base = codigoContextual(esp, cat, items).split(".").slice(0, 2).join(".");
+    const { error: err } = await supabase.from("cotizacion_items").insert({
+      cotizacion_id: cotizacionId,
+      codigo: base ? `${base}.00` : "",
+      nombre: "",
+      especialidad: esp,
+      categoria: cat,
+      marca: "",
+      unidad: "glb",
+      metrado: 0,
+      precio_unitario: 0,
+      orden: items.length + 1,
+      tipo: "grupo",
+    } as never);
+    if (err) return setError(err.message);
+    await refrescar();
+  }
+
+  /** Añade a la especialidad la siguiente categoría libre del catálogo maestro. */
+  async function nuevaCategoria(esp: string) {
+    const usadas = new Set(items.filter((i) => i.especialidad === esp).map((i) => (i.categoria ?? "").trim()));
+    const libre = categoriasDe(catalogoCat, esp).filter((c) => c.activo).map((c) => c.nombre).find((n) => !usadas.has(n));
+    if (!libre)
+      return setError(`No quedan categorías libres para ${esp}. Regístralas en Datos › Catálogo técnico.`);
+    await crearGrupo(esp, libre);
+  }
+
+  /** Borra una especialidad o una categoría completa (partidas, subpartidas y marcadoras). */
+  async function borrarGrupo(esp: string, cat: string | null) {
+    const afectadas = items.filter(
+      (i) => i.especialidad === esp && (cat === null || ((i.categoria ?? "").trim() || "Sin categoría") === cat),
+    );
+    const n = afectadas.filter(esPartida).length;
+    const que = cat === null ? `la especialidad "${esp}"` : `la categoría "${cat}"`;
+    if (!window.confirm(`¿Borrar ${que}${n ? ` y sus ${n} partida(s)` : ""}? Esta acción no se puede deshacer.`)) return;
+    setError("");
+    const { error: err } = await supabase.from("cotizacion_items").delete().in("id", afectadas.map((i) => i.id));
+    if (err) return setError(err.message);
+    // Al borrar una categoría, la especialidad se conserva.
+    if (cat !== null && !items.some((i) => i.especialidad === esp && !afectadas.includes(i))) await crearGrupo(esp, "");
+    else refrescar();
   }
 
   /** Partidas maestras activas de la especialidad; primero las de la categoría del grupo. */
@@ -322,48 +381,21 @@ export function CotizacionHoja({
     );
   }
 
+  /** Borra solo la partida (y sus subpartidas); la especialidad y la categoría se conservan. */
   async function borrar(id: string) {
     const it = items.find((i) => i.id === id);
     if (!it) return;
     setError("");
-    // Las subpartidas hijas se eliminan junto con su partida agrupadora.
     const hijos = items.filter((i) => i.padre_id === id);
-    const quedanEnGrupo = items.some(
-      (i) =>
-        i.id !== id &&
-        !hijos.some((h) => h.id === i.id) &&
-        i.especialidad === it.especialidad &&
-        (i.categoria ?? "") === (it.categoria ?? ""),
-    );
-    // Una partida vacía ("Nueva partida" sin precio) que es la última del grupo se borra de verdad,
-    // eliminando también el capítulo/categoría que la contiene.
-    const esVacia =
-      !hijos.length &&
-      (it.nombre ?? "").trim() === "Nueva partida" &&
-      Number(it.precio_unitario ?? 0) === 0;
-    if (!quedanEnGrupo && esVacia) {
-      const grupo = it.categoria ? `la categoría "${it.categoria}"` : `el capítulo "${it.especialidad}"`;
-      if (!window.confirm(`Esta es la única partida de ${grupo}. Al borrarla se quitará también ${grupo}. ¿Continuar?`))
-        return;
-    }
-    const { error: err } = await supabase.from("cotizacion_items").delete().in("id", [id, ...hijos.map((h) => h.id)]);
+    const ids = new Set([id, ...hijos.map((h) => h.id)]);
+    const { error: err } = await supabase.from("cotizacion_items").delete().in("id", [...ids]);
     if (err) return setError(err.message);
-    // Si era la última partida real del grupo, deja una vacía para no perder el capítulo/categoría.
-    if (!quedanEnGrupo && !esVacia) {
-      await supabase.from("cotizacion_items").insert({
-        cotizacion_id: cotizacionId,
-        codigo: it.codigo ?? codigoContextual(it.especialidad, it.categoria ?? "", items),
-        nombre: "Nueva partida",
-        especialidad: it.especialidad,
-        categoria: it.categoria ?? "",
-        marca: "",
-        unidad: "glb",
-        metrado: 1,
-        precio_unitario: 0,
-        orden: it.orden,
-      });
-    }
-    refrescar();
+    const cat = (it.categoria ?? "").trim();
+    const quedaGrupo = items.some(
+      (i) => !ids.has(i.id) && i.especialidad === it.especialidad && (i.categoria ?? "").trim() === cat,
+    );
+    if (!quedaGrupo) await crearGrupo(it.especialidad, cat);
+    else refrescar();
   }
 
   function mover(dr: number, dc: number) {
