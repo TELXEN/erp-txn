@@ -6,6 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { ApuPartida } from "@/components/ApuPartida";
 import { CotizacionHoja } from "@/components/CotizacionHoja";
+import { HojaCotizacion } from "@/components/cotizaciones/HojaCotizacion";
+
 import { apuDb } from "@/lib/apu";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
@@ -611,66 +613,7 @@ function Cotizaciones() {
           extra={
             <div className="flex flex-wrap items-center gap-2">
               <Select
-                className="w-36"
-                value={cot.aplica_igv !== false ? "si" : "no"}
-                onChange={async (e) => {
-                  await supabase.from("cotizaciones").update({ aplica_igv: e.target.value === "si" }).eq("id", cot.id);
-                  qc.invalidateQueries({ queryKey: ["cotizaciones"] });
-                }}
-              >
-                <option value="si">Con IGV (18%)</option>
-                <option value="no">Sin IGV</option>
-              </Select>
-              <label className="flex items-center gap-1 text-xs text-muted-foreground">
-                GG %
-                <Input
-                  type="number"
-                  min={0}
-                  step="0.5"
-                  className="w-20"
-                  defaultValue={Number(cot.pct_gastos_generales)}
-                  onBlur={async (e) => {
-                    const v = Number(e.target.value) || 0;
-                    if (v === Number(cot.pct_gastos_generales)) return;
-                    await supabase.from("cotizaciones").update({ pct_gastos_generales: v }).eq("id", cot.id);
-                    qc.invalidateQueries({ queryKey: ["cotizaciones"] });
-                  }}
-                />
-              </label>
-              <label className="flex items-center gap-1 text-xs text-muted-foreground">
-                Utilidad %
-                <Input
-                  type="number"
-                  min={0}
-                  step="0.5"
-                  className="w-20"
-                  defaultValue={Number(cot.pct_utilidad)}
-                  onBlur={async (e) => {
-                    const v = Number(e.target.value) || 0;
-                    if (v === Number(cot.pct_utilidad)) return;
-                    await supabase.from("cotizaciones").update({ pct_utilidad: v }).eq("id", cot.id);
-                    qc.invalidateQueries({ queryKey: ["cotizaciones"] });
-                  }}
-                />
-              </label>
-              <label className="flex items-center gap-1 text-xs text-muted-foreground" title="Versión de revisión que se imprime en la cotización (acepta números y letras: 01, A, 01B...)">
-                Rev.
-                <Input
-                  key={`rev-${cot.id}-${cot.revision ?? "01"}`}
-                  type="text"
-                  maxLength={6}
-                  className="w-16"
-                  defaultValue={cot.revision ?? "01"}
-                  onBlur={async (e) => {
-                    const v = e.target.value.trim().toUpperCase() || "01";
-                    if (v === (cot.revision ?? "01")) return;
-                    await supabase.from("cotizaciones").update({ revision: v }).eq("id", cot.id);
-                    qc.invalidateQueries({ queryKey: ["cotizaciones"] });
-                    qc.invalidateQueries({ queryKey: ["cotizacion"] });
-                  }}
-                />
-              </label>
-              <Select
+
                 className="w-40"
                 value={cot.estado}
                 onChange={(e) => cambiarEstado(cot.id, e.target.value as EstadoCotizacion)}
@@ -690,26 +633,6 @@ function Cotizaciones() {
             </div>
           }
         >
-          <div className="grid gap-3 border-b border-line bg-muted/30 p-4 sm:grid-cols-4">
-            <div>
-              <p className="label-mono">Costo directo</p>
-              <p className="font-mono text-sm font-semibold">{soles(totales.costoDirecto)}</p>
-            </div>
-            <div>
-              <p className="label-mono">Gastos generales ({cantidad(cot.pct_gastos_generales)}%)</p>
-              <p className="font-mono text-sm font-semibold">{soles(totales.gastosGenerales)}</p>
-            </div>
-            <div>
-              <p className="label-mono">Utilidad ({cantidad(cot.pct_utilidad)}%)</p>
-              <p className="font-mono text-sm font-semibold">{soles(totales.utilidad)}</p>
-            </div>
-            <div>
-              <p className="label-mono">Total ofertado {cot.aplica_igv !== false ? "(inc. IGV 18%)" : "(sin IGV)"}</p>
-              <p className="font-mono text-sm font-semibold text-primary">
-                {soles(cot.aplica_igv !== false ? totales.total + Math.round(totales.total * 0.18 * 100) / 100 : totales.total)}
-              </p>
-            </div>
-          </div>
 
           <form onSubmit={agregarItem} className="grid gap-3 border-b border-line p-5 sm:grid-cols-6">
             <div className="sm:col-span-6">
@@ -878,39 +801,14 @@ function Cotizaciones() {
             </div>
           </form>
 
-          {items.length === 0 ? (
-            <Vacio texto="Esta cotización todavía no tiene partidas." />
-          ) : (
-            <CotizacionHoja cotizacionId={cot.id} items={items} unidades={unidades} />
-          )}
+          <HojaCotizacion cot={cot} items={items} clientes={clientes}>
+            {items.length === 0 ? (
+              <Vacio texto="Esta cotización todavía no tiene partidas." />
+            ) : (
+              <CotizacionHoja cotizacionId={cot.id} items={items} unidades={unidades} />
+            )}
+          </HojaCotizacion>
 
-          <div className="grid gap-3 border-t border-line px-5 py-4 sm:grid-cols-2">
-            {([
-              ["recursos_humanos", "Recursos humanos"],
-              ["tiempo_ejecucion", "Tiempo de ejecución"],
-              ["condiciones_pago", "Condiciones de pago"],
-              ["condiciones", "Condiciones comerciales"],
-            ] as const).map(([campo, etiqueta]) => {
-              const valor = String((cot as Record<string, unknown>)[campo] ?? "");
-              return (
-                <Campo key={`${cot.id}-${campo}-${valor}`} etiqueta={etiqueta}>
-                  <textarea
-                    rows={4}
-                    defaultValue={valor}
-                    placeholder="Una línea por punto"
-                    className="w-full rounded-md border border-line bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/15"
-                    onBlur={async (e) => {
-                      const v = e.target.value.trim();
-                      if (v === valor) return;
-                      await supabase.from("cotizaciones").update({ [campo]: v } as { condiciones: string }).eq("id", cot.id);
-                      qc.invalidateQueries({ queryKey: ["cotizaciones"] });
-                      qc.invalidateQueries({ queryKey: ["cotizacion"] });
-                    }}
-                  />
-                </Campo>
-              );
-            })}
-          </div>
         </Panel>
       )}
       {apu && (
