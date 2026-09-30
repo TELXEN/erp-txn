@@ -38,7 +38,7 @@ import {
   vigenciaHasta,
   type EstadoCotizacion,
 } from "@/lib/cotizaciones";
-import { Check, Calculator, CornerDownRight, ListOrdered, Upload, X, Eye, Trash2 } from "lucide-react";
+import { Check, Calculator, CornerDownRight, ListOrdered, Upload, X, Eye, Trash2, ArrowLeft, Library, Plus, Pencil } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/cotizaciones")({
   head: () => ({
@@ -137,16 +137,26 @@ function Cotizaciones() {
     precio_unitario: string;
   } | null>(null);
 
+  const [pestana, setPestana] = useState<"Todas" | EstadoCotizacion | "En Obra">("Todas");
+  const [verCatalogo, setVerCatalogo] = useState(false);
+  const { data: totalesLista = {} } = useQuery({
+    queryKey: ["cotizacion_items", "totales", cotizaciones.map((c) => `${c.id}:${c.pct_gastos_generales}:${c.pct_utilidad}`).join(",")],
+    enabled: cotizaciones.length > 0,
+    queryFn: async () => {
+      const { data, error: err } = await supabase.from("cotizacion_items").select("cotizacion_id, metrado, precio_unitario");
+      if (err) throw err;
+      const res: Record<string, number> = {};
+      for (const c of cotizaciones) {
+        const its = (data ?? []).filter((i) => i.cotizacion_id === c.id);
+        res[c.id] = totalesCotizacion(its, Number(c.pct_gastos_generales), Number(c.pct_utilidad)).total;
+      }
+      return res;
+    },
+  });
+
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
-  const totalDe = (id: string) => {
-    const c = cotizaciones.find((x) => x.id === id);
-    if (!c || c.id !== seleccion) return null;
-    return totalesCotizacion(items, Number(c.pct_gastos_generales), Number(c.pct_utilidad)).total;
-  };
-
-  async function crear(e: React.FormEvent) {
-    e.preventDefault();
+  async function crear() {
     setError("");
     setAviso("");
     try {
@@ -177,7 +187,7 @@ function Cotizaciones() {
         if (err.code === "23505") throw new Error("Ese código ya está asignado a otra cotización.");
         throw err;
       }
-      setForm({ ...form, codigo: "", nombre: "", ubicacion: "" });
+      setVerCatalogo(false);
       qc.invalidateQueries({ queryKey: ["cotizaciones"] });
       setSeleccion(data.id);
     } catch (e2) {
@@ -419,120 +429,210 @@ function Cotizaciones() {
   const tonoEstado = (e: EstadoCotizacion) =>
     e === "Aprobada" ? "good" : e === "Rechazada" ? "bad" : "neutro";
 
+  const hoyStr = hoy();
+  const mesActual = hoyStr.slice(0, 7);
+  const diasRestantes = (c: (typeof cotizaciones)[number]) =>
+    Math.round((new Date(`${vigenciaHasta(c.fecha_emision, Number(c.validez_dias))}T00:00:00`).getTime() - new Date(`${hoyStr}T00:00:00`).getTime()) / 86400000);
+  const total = (id: string) => totalesLista[id] ?? 0;
+  const filtradas = cotizaciones
+    .filter((c) => coincide(busqueda, c.codigo, c.cliente, c.nombre, c.estado))
+    .filter((c) => pestana === "Todas" || (pestana === "En Obra" ? Boolean(c.proyecto_id) : c.estado === pestana));
+  const kpiMes = cotizaciones.filter((c) => c.fecha_emision.startsWith(mesActual)).reduce((s, c) => s + total(c.id), 0);
+  const kpiAprob = cotizaciones.filter((c) => c.estado === "Aprobada");
+  const kpiPend = cotizaciones.filter((c) => c.estado === "Enviada" || c.estado === "Borrador");
+  const PESTANAS = ["Todas", ...ESTADOS_COTIZACION, "En Obra"] as const;
+
+  const Vigencia = ({ c }: { c: (typeof cotizaciones)[number] }) => {
+    if (c.estado === "Aprobada" || c.estado === "Rechazada" || c.proyecto_id) return null;
+    const d = diasRestantes(c);
+    if (d < 0) return <Etiqueta tono="bad">Vencida</Etiqueta>;
+    if (d <= 5) return <Etiqueta tono="bad">Vence en {d} d</Etiqueta>;
+    return null;
+  };
+
+  /* ---------------- MODO EDITOR ---------------- */
+  if (cot && totales) {
+    return (
+      <>
+        <div className="sticky top-0 z-20 -mx-4 mb-3 flex flex-wrap items-center gap-2 border-b border-line bg-background/95 px-4 py-2 backdrop-blur">
+          <Boton variante="linea" onClick={() => { setSeleccion(null); setError(""); setAviso(""); }}>
+            <ArrowLeft size={13} /> Volver al listado
+          </Boton>
+          <span className="font-mono text-sm font-semibold text-primary">{cot.codigo ?? "Cotización"}</span>
+          <span className="truncate text-sm text-ink">{cot.nombre || "Sin descripción"}</span>
+          <Vigencia c={cot} />
+          <div className="ml-auto flex flex-wrap items-center gap-2">
+            <Select className="w-36" value={cot.estado} onChange={(e) => cambiarEstado(cot.id, e.target.value as EstadoCotizacion)}>
+              {ESTADOS_COTIZACION.map((e) => <option key={e} value={e}>{e}</option>)}
+            </Select>
+            <Boton variante="linea" onClick={() => setVerCatalogo((v) => !v)}>
+              <Library size={13} /> Catálogo maestro
+            </Boton>
+            <Boton variante="linea" onClick={() => void renumerarCotizacion()} title="Renumerar WBS">
+              <ListOrdered size={13} />
+            </Boton>
+            <Link to="/cotizacion-vista" search={{ id: cot.id }}>
+              <Boton variante="linea"><Eye size={13} /> Vista previa A4</Boton>
+            </Link>
+            <Boton variante="linea" onClick={exportarCotizacion} title="Exportar Excel">
+              <Upload size={13} /> Excel
+            </Boton>
+            <Boton onClick={convertirEnObra} disabled={Boolean(cot.proyecto_id)}>
+              {cot.proyecto_id ? "Obra generada" : "Convertir en obra"}
+            </Boton>
+          </div>
+        </div>
+        {error && <p className="mb-2 font-mono text-xs text-bad">{error}</p>}
+        {aviso && <p className="mb-2 font-mono text-xs text-good">{aviso}</p>}
+
+        {verCatalogo && (
+          <Panel titulo="Insertar partida desde el catálogo maestro" className="mb-3">
+            <form onSubmit={agregarItem} className="grid gap-3 p-4 sm:grid-cols-6">
+              <div className="sm:col-span-3">
+                <Campo etiqueta="Partida del catálogo">
+                  <Select
+                    value={maestraSel}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setMaestraSel(v);
+                      const m = maestras.find((x) => x.id === v);
+                      if (!m) {
+                        setItem({ codigo: "", nombre: "", especialidad: "", categoria: "", marca: "", unidad: item.unidad, metrado: "1", precio_unitario: "" });
+                        return;
+                      }
+                      setItem({
+                        codigo: sugerirCodigo(m.especialidad, m.categoria ?? ""),
+                        nombre: m.nombre,
+                        especialidad: m.especialidad,
+                        categoria: m.categoria ?? "",
+                        marca: m.marca ?? "",
+                        unidad: m.unidad,
+                        metrado: "1",
+                        precio_unitario: String(m.precio_unitario ?? 0),
+                      });
+                    }}
+                  >
+                    <option value="">Elige una partida...</option>
+                    <option value="manual">Partida libre</option>
+                    {maestras.filter((m) => m.activo).map((m) => (
+                      <option key={m.id} value={m.id}>{m.nombre} · {m.unidad} · {soles(Number(m.precio_unitario))}</option>
+                    ))}
+                  </Select>
+                </Campo>
+              </div>
+              <div className="sm:col-span-3">
+                <Campo etiqueta="Descripción">
+                  <Input value={item.nombre} onChange={(e) => setItem({ ...item, nombre: e.target.value })} required maxLength={160} />
+                </Campo>
+              </div>
+              <Campo etiqueta="Especialidad">
+                <Select value={item.especialidad} onChange={(e) => setItem({ ...item, especialidad: e.target.value, categoria: "", codigo: sugerirCodigo(e.target.value) })}>
+                  <option value="">Selecciona...</option>
+                  {especialidades.filter((e) => e.activo).map((e) => <option key={e.id} value={e.nombre}>{e.nombre}</option>)}
+                </Select>
+              </Campo>
+              <Campo etiqueta="Categoría">
+                <Select value={item.categoria} onChange={(e) => setItem({ ...item, categoria: e.target.value, codigo: sugerirCodigo(item.especialidad, e.target.value) })}>
+                  <option value="">Sin categoría</option>
+                  {categoriasDe(item.especialidad, categorias).map((c) => <option key={c.id} value={c.nombre}>{c.nombre}</option>)}
+                </Select>
+              </Campo>
+              <Campo etiqueta="Código">
+                <Input value={item.codigo} onChange={(e) => setItem({ ...item, codigo: e.target.value })} maxLength={20} />
+              </Campo>
+              <Campo etiqueta="Unidad">
+                <Select value={item.unidad} onChange={(e) => setItem({ ...item, unidad: e.target.value })}>
+                  {unidades.filter((u) => u.activo).map((u) => <option key={u.id} value={u.simbolo}>{u.simbolo}</option>)}
+                </Select>
+              </Campo>
+              <Campo etiqueta="Metrado">
+                <Input type="number" step="0.01" min="0" value={item.metrado} onChange={(e) => setItem({ ...item, metrado: e.target.value })} required />
+              </Campo>
+              <Campo etiqueta="P. unitario (S/)">
+                <Input type="number" step="0.01" min="0" value={item.precio_unitario} onChange={(e) => setItem({ ...item, precio_unitario: e.target.value })} required />
+              </Campo>
+              <div className="flex items-end gap-2 sm:col-span-6">
+                <Boton type="submit">Insertar en la hoja</Boton>
+                <Boton type="button" variante="linea" onClick={guardarEnBanco}>Guardar en el banco</Boton>
+                <Boton type="button" variante="linea" onClick={() => setVerCatalogo(false)}><X size={13} /> Cerrar</Boton>
+              </div>
+            </form>
+          </Panel>
+        )}
+
+        <div className="-mx-4 rounded-none bg-muted/60 px-4 py-2">
+          <HojaCotizacion cot={cot} items={items} clientes={clientes}>
+            {items.length === 0 ? (
+              <Vacio texto="Esta cotización todavía no tiene partidas. Usa «Catálogo maestro» o «+ Fila»." />
+            ) : (
+              <CotizacionHoja cotizacionId={cot.id} items={items} unidades={unidades} />
+            )}
+          </HojaCotizacion>
+        </div>
+        {apu && (
+          <ApuPartida
+            origen="cotizacion"
+            partida={{ ...apu, rendimiento: Number(apu.rendimiento ?? 1), jornada: Number(apu.jornada ?? 8), pct_herramientas: Number(apu.pct_herramientas ?? 3), metrado: Number(apu.metrado ?? 0) }}
+            invalidar={[["cotizacion_items", seleccion]]}
+            onCerrar={() => setApu(null)}
+          />
+        )}
+      </>
+    );
+  }
+
+  /* ---------------- MODO LISTADO ---------------- */
   return (
     <>
       <Encabezado
         titulo="Cotizaciones"
         subtitulo="Propuestas comerciales a clientes"
         acciones={
-          <div className="flex gap-2">
-            {cot && (
-              <Link to="/cotizacion-vista" search={{ id: cot.id }}>
-                <Boton variante="linea">Vista previa comercial</Boton>
-              </Link>
-            )}
-            {cot && (
-              <Boton variante="linea" onClick={exportarCotizacion}>
-                <Upload size={13} /> Exportar cotización
-              </Boton>
-            )}
-          </div>
+          <Boton onClick={() => void crear()}>
+            <Plus size={14} /> Nueva cotización
+          </Boton>
         }
       />
+      {error && <p className="mb-2 font-mono text-xs text-bad">{error}</p>}
+      <p className="mb-3 font-mono text-[10px] text-muted-foreground">
+        Siguiente código: <strong className="text-ink">{codificacionCot ? previsualizarCodigoCotizacion(codificacionCot) : "—"}</strong>{" "}
+        <Link to="/datos" className="text-primary underline">configurar en Catálogos Maestros</Link>
+      </p>
 
-      <Panel titulo="Nueva cotización" className="mb-4">
-        <form onSubmit={crear} className="grid gap-3 p-5 sm:grid-cols-4">
-          <Campo etiqueta="Código de cotización">
-            <Input
-              className="uppercase"
-              value={form.codigo}
-              onChange={(e) => setForm({ ...form, codigo: e.target.value })}
-              maxLength={30}
-              placeholder={codificacionCot ? previsualizarCodigoCotizacion(codificacionCot) : "Automático"}
-              title="Déjalo vacío para asignar el código automático"
-            />
-            <p className="mt-1 font-mono text-[10px] text-muted-foreground">
-              Siguiente código: <strong className="text-ink">{codificacionCot ? previsualizarCodigoCotizacion(codificacionCot) : "—"}</strong>{" "}
-              <Link to="/datos" className="text-primary underline">configurar en Catálogos Maestros</Link>
-            </p>
-          </Campo>
-          <Campo etiqueta="Cliente">
-            <Select value={form.cliente_id} onChange={(e) => setForm({ ...form, cliente_id: e.target.value })} required>
-              <option value="">Selecciona...</option>
-              {clientes.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.razon_social}
-                </option>
-              ))}
-            </Select>
-          </Campo>
-          <Campo etiqueta="Trabajo a cotizar">
-            <Input value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} required maxLength={160} />
-          </Campo>
-          <Campo etiqueta="Ubicación">
-            <Input value={form.ubicacion} onChange={(e) => setForm({ ...form, ubicacion: e.target.value })} maxLength={120} />
-          </Campo>
-          <Campo etiqueta="Fecha de emisión">
-            <Input type="date" value={form.fecha_emision} onChange={(e) => setForm({ ...form, fecha_emision: e.target.value })} />
-          </Campo>
-          <Campo etiqueta="Validez (días)">
-            <Input type="number" min="1" value={form.validez_dias} onChange={(e) => setForm({ ...form, validez_dias: e.target.value })} />
-          </Campo>
-          <Campo etiqueta="% Gastos generales">
-            <Input
-              type="number"
-              step="0.01"
-              min="0"
-              value={form.pct_gastos_generales}
-              onChange={(e) => setForm({ ...form, pct_gastos_generales: e.target.value })}
-            />
-          </Campo>
-          <Campo etiqueta="% Utilidad">
-            <Input
-              type="number"
-              step="0.01"
-              min="0"
-              value={form.pct_utilidad}
-              onChange={(e) => setForm({ ...form, pct_utilidad: e.target.value })}
-            />
-          </Campo>
-          <Campo etiqueta="IGV">
-            <Select value={form.aplica_igv} onChange={(e) => setForm({ ...form, aplica_igv: e.target.value })}>
-              <option value="si">Con IGV (18%)</option>
-              <option value="no">Sin IGV</option>
-            </Select>
-          </Campo>
-          {([
-            ["recursos_humanos", "Recursos humanos"],
-            ["tiempo_ejecucion", "Tiempo de ejecución"],
-            ["condiciones_pago", "Condiciones de pago"],
-            ["condiciones", "Condiciones comerciales"],
-          ] as const).map(([campo, etiqueta]) => (
-            <div key={campo} className="sm:col-span-2">
-              <Campo etiqueta={etiqueta}>
-                <textarea
-                  rows={3}
-                  value={form[campo]}
-                  placeholder="Una línea por punto"
-                  onChange={(e) => setForm({ ...form, [campo]: e.target.value })}
-                  className="w-full rounded-md border border-line bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/15"
-                />
-              </Campo>
-            </div>
-          ))}
-          <div className="sm:col-span-4">
-            <Boton type="submit">Crear cotización</Boton>
+      <div className="mb-4 grid gap-3 sm:grid-cols-3">
+        {[
+          ["Cotizado este mes", soles(kpiMes)],
+          ["Aprobadas", `${kpiAprob.length} · ${soles(kpiAprob.reduce((s, c) => s + total(c.id), 0))}`],
+          ["Pendientes de respuesta", `${kpiPend.length} · ${soles(kpiPend.reduce((s, c) => s + total(c.id), 0))}`],
+        ].map(([t, v]) => (
+          <div key={t} className="rounded-lg border border-line bg-card px-4 py-3">
+            <div className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground">{t}</div>
+            <div className="mt-1 font-mono text-base font-semibold text-ink">{v}</div>
           </div>
-          {error && <p className="font-mono text-xs text-bad sm:col-span-4">{error}</p>}
-          {aviso && <p className="font-mono text-xs text-good sm:col-span-4">{aviso}</p>}
-        </form>
-      </Panel>
+        ))}
+      </div>
 
-      <Panel titulo="Cotizaciones registradas" className="mb-4" extra={<Buscador valor={busqueda} onChange={setBusqueda} placeholder="Buscar por código, cliente o trabajo..." total={cotizaciones.filter((c) => coincide(busqueda, c.codigo, c.cliente, c.nombre, c.estado)).length} />}>
+      <div className="mb-2 flex flex-wrap gap-1 border-b border-line">
+        {PESTANAS.map((p) => {
+          const n = p === "Todas" ? cotizaciones.length : p === "En Obra" ? cotizaciones.filter((c) => c.proyecto_id).length : cotizaciones.filter((c) => c.estado === p).length;
+          return (
+            <button
+              key={p}
+              type="button"
+              onClick={() => setPestana(p)}
+              className={`-mb-px border-b-2 px-3 py-2 font-mono text-xs transition-colors ${pestana === p ? "border-primary font-semibold text-primary" : "border-transparent text-muted-foreground hover:text-ink"}`}
+            >
+              {p} <span className="opacity-60">({n})</span>
+            </button>
+          );
+        })}
+      </div>
+
+      <Panel titulo="Cotizaciones registradas" className="mb-4" extra={<Buscador valor={busqueda} onChange={setBusqueda} placeholder="Buscar por código, cliente o trabajo..." total={filtradas.length} />}>
         {cotizaciones.length === 0 ? (
-          <Vacio texto="Aún no hay cotizaciones." />
-        ) : cotizaciones.filter((c) => coincide(busqueda, c.codigo, c.cliente, c.nombre, c.estado)).length === 0 ? (
-          <Vacio texto={`Sin coincidencias para «${busqueda}».`} />
+          <Vacio texto="Aún no hay cotizaciones. Pulsa «Nueva cotización»." />
+        ) : filtradas.length === 0 ? (
+          <Vacio texto="Sin coincidencias." />
         ) : (
           <table className="w-full font-mono text-xs">
             <thead>
@@ -548,277 +648,41 @@ function Cotizaciones() {
               </tr>
             </thead>
             <tbody>
-              {cotizaciones.filter((c) => coincide(busqueda, c.codigo, c.cliente, c.nombre, c.estado)).map((c) => {
-                const total = totalDe(c.id);
-                return (
-                  <tr
-                    key={c.id}
-                    className={`border-b border-line/60 last:border-0 ${c.id === seleccion ? "bg-primary/5" : ""}`}
-                  >
-                    <td className="px-5 py-2.5 font-semibold text-primary"><Resaltar texto={c.codigo ?? "—"} termino={busqueda} /></td>
-                    <td className="px-3 py-2.5 text-muted-foreground"><Resaltar texto={c.cliente || "—"} termino={busqueda} /></td>
-                    <td className="px-3 py-2.5 font-semibold text-ink"><Resaltar texto={c.nombre} termino={busqueda} /></td>
-                    <td className="px-3 py-2.5 text-muted-foreground">{fmtFecha(c.fecha_emision)}</td>
-                    <td className="px-3 py-2.5 text-muted-foreground">
-                      {fmtFecha(vigenciaHasta(c.fecha_emision, Number(c.validez_dias)))}
-                    </td>
-                    <td className="px-3 py-2.5 text-right">{total === null ? "—" : soles(total)}</td>
-                    <td className="px-3 py-2.5">
+              {filtradas.map((c) => (
+                <tr key={c.id} className="cursor-pointer border-b border-line/60 last:border-0 hover:bg-primary/5" onDoubleClick={() => setSeleccion(c.id)}>
+                  <td className="px-5 py-2.5 font-semibold text-primary"><Resaltar texto={c.codigo ?? "—"} termino={busqueda} /></td>
+                  <td className="px-3 py-2.5 text-muted-foreground"><Resaltar texto={c.cliente || "—"} termino={busqueda} /></td>
+                  <td className="px-3 py-2.5 font-semibold text-ink"><Resaltar texto={c.nombre || "—"} termino={busqueda} /></td>
+                  <td className="px-3 py-2.5 text-muted-foreground">{fmtFecha(c.fecha_emision)}</td>
+                  <td className="px-3 py-2.5 text-muted-foreground">
+                    <div className="flex items-center gap-2">{fmtFecha(vigenciaHasta(c.fecha_emision, Number(c.validez_dias)))} <Vigencia c={c} /></div>
+                  </td>
+                  <td className="px-3 py-2.5 text-right">{soles(total(c.id))}</td>
+                  <td className="px-3 py-2.5">
+                    <div className="flex gap-1">
                       <Etiqueta tono={tonoEstado(c.estado)}>{c.estado}</Etiqueta>
-                    </td>
-                    <td className="px-5 py-2.5 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Boton variante="linea" onClick={() => setSeleccion(c.id === seleccion ? null : c.id)}>
-                          {c.id === seleccion ? "Cerrar" : "Abrir"}
-                        </Boton>
-                        <div className="group/tip relative">
-                          <Link
-                            to="/cotizacion-vista"
-                            search={{ id: c.id }}
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-line text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
-                            aria-label="Vista previa"
-                          >
-                            <Eye size={15} />
-                          </Link>
-                          <span className="pointer-events-none absolute -top-8 right-0 whitespace-nowrap rounded-md bg-ink px-2 py-1 text-xs text-background opacity-0 shadow transition-opacity group-hover/tip:opacity-100">
-                            Vista previa
-                          </span>
-                        </div>
-                        <div className="group/tip relative">
-                          <button
-                            type="button"
-                            onClick={() => borrarCotizacion(c.id)}
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-line text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
-                            aria-label="Eliminar"
-                          >
-                            <Trash2 size={15} />
-                          </button>
-                          <span className="pointer-events-none absolute -top-8 right-0 whitespace-nowrap rounded-md bg-ink px-2 py-1 text-xs text-background opacity-0 shadow transition-opacity group-hover/tip:opacity-100">
-                            Eliminar
-                          </span>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
+                      {c.proyecto_id && <Etiqueta tono="good">En obra</Etiqueta>}
+                    </div>
+                  </td>
+                  <td className="px-5 py-2.5 text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <button type="button" title="Editar" aria-label="Editar" onClick={() => setSeleccion(c.id)} className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-line text-muted-foreground hover:bg-primary/10 hover:text-primary">
+                        <Pencil size={15} />
+                      </button>
+                      <Link to="/cotizacion-vista" search={{ id: c.id }} title="Vista previa" aria-label="Vista previa" className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-line text-muted-foreground hover:bg-primary/10 hover:text-primary">
+                        <Eye size={15} />
+                      </Link>
+                      <button type="button" title="Eliminar" aria-label="Eliminar" onClick={() => borrarCotizacion(c.id)} className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-line text-muted-foreground hover:bg-destructive/10 hover:text-destructive">
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         )}
       </Panel>
-
-      {cot && totales && (
-        <Panel
-          titulo={`${cot.codigo ?? "Cotización"} · ${cot.nombre}`}
-          extra={
-            <div className="flex flex-wrap items-center gap-2">
-              <Select
-
-                className="w-40"
-                value={cot.estado}
-                onChange={(e) => cambiarEstado(cot.id, e.target.value as EstadoCotizacion)}
-              >
-                {ESTADOS_COTIZACION.map((e) => (
-                  <option key={e} value={e}>
-                    {e}
-                  </option>
-                ))}
-              </Select>
-              <Boton onClick={convertirEnObra} disabled={Boolean(cot.proyecto_id)}>
-                {cot.proyecto_id ? "Obra generada" : "Convertir en obra"}
-              </Boton>
-              <Boton variante="linea" onClick={() => void renumerarCotizacion()}>
-                <ListOrdered size={13} /> Renumerar WBS
-              </Boton>
-            </div>
-          }
-        >
-
-          <form onSubmit={agregarItem} className="grid gap-3 border-b border-line p-5 sm:grid-cols-6">
-            <div className="sm:col-span-6">
-              <Campo etiqueta="Partida del catálogo maestro">
-                <Select
-                  value={maestraSel}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    setMaestraSel(v);
-                    if (v === "manual" || v === "") {
-                      setItem({
-                        codigo: "",
-                        nombre: "",
-                        especialidad: "",
-                        categoria: "",
-                        marca: "",
-                        unidad: item.unidad,
-                        metrado: "1",
-                        precio_unitario: "",
-                      });
-                      return;
-                    }
-                    const m = maestras.find((x) => x.id === v);
-                    if (!m) return;
-                    setItem({
-                      codigo: sugerirCodigo(m.especialidad, m.categoria ?? ""),
-                      nombre: m.nombre,
-                      especialidad: m.especialidad,
-                      categoria: m.categoria ?? "",
-                      marca: m.marca ?? "",
-                      unidad: m.unidad,
-                      metrado: "1",
-                      precio_unitario: String(m.precio_unitario ?? 0),
-                    });
-                  }}
-                >
-                  <option value="">Elige una partida del catálogo maestro...</option>
-                  <option value="manual">Escribir manualmente (partida libre)</option>
-                  {maestras
-                    .filter((m) => m.activo)
-                    .map((m) => (
-                      <option key={m.id} value={m.id}>
-                        {m.nombre} · {m.unidad} · {soles(Number(m.precio_unitario))}
-                      </option>
-                    ))}
-                </Select>
-              </Campo>
-              <p className="mt-1 font-mono text-[10px] text-muted-foreground">
-                {maestraSel && maestraSel !== "manual"
-                  ? "Descripción y clasificación vinculadas al catálogo maestro."
-                  : "Campos libres: escribe la descripción y selecciona su clasificación."}
-              </p>
-            </div>
-            <Campo etiqueta="Código">
-              <Input
-                value={item.codigo}
-                onChange={(e) => setItem({ ...item, codigo: e.target.value })}
-                maxLength={20}
-                placeholder="01.01.01"
-              />
-            </Campo>
-            <div className="sm:col-span-2">
-              <Campo etiqueta="Descripción de la partida">
-                <Input
-                  value={item.nombre}
-                  onChange={(e) => setItem({ ...item, nombre: e.target.value })}
-                  required
-                  maxLength={160}
-                  placeholder="Escribe la descripción de la partida"
-                />
-              </Campo>
-            </div>
-            <Campo etiqueta="Especialidad">
-              <Select
-                value={item.especialidad}
-                onChange={(e) => {
-                  const especialidad = e.target.value;
-                  setItem({
-                    ...item,
-                    especialidad,
-                    categoria: "",
-                    codigo: sugerirCodigo(especialidad),
-                  });
-                }}
-              >
-                <option value="">Selecciona...</option>
-                {especialidades
-                  .filter((e) => e.activo)
-                  .map((e) => (
-                    <option key={e.id} value={e.nombre}>
-                      {e.nombre}
-                    </option>
-                  ))}
-              </Select>
-            </Campo>
-            <Campo etiqueta="Categoría">
-              <Select
-                value={item.categoria}
-                onChange={(e) => {
-                  const categoria = e.target.value;
-                  setItem({
-                    ...item,
-                    categoria,
-                    codigo: sugerirCodigo(item.especialidad, categoria),
-                  });
-                }}
-              >
-                <option value="">Sin categoría</option>
-                {categoriasDe(item.especialidad, categorias).map((c) => (
-                  <option key={c.id} value={c.nombre}>
-                    {c.nombre}
-                  </option>
-                ))}
-              </Select>
-            </Campo>
-            <Campo etiqueta="Marca">
-              <Input
-                value={item.marca}
-                onChange={(e) => setItem({ ...item, marca: e.target.value })}
-                maxLength={60}
-                placeholder="Sin marca"
-              />
-            </Campo>
-            <Campo etiqueta="Unidad">
-              <Select value={item.unidad} onChange={(e) => setItem({ ...item, unidad: e.target.value })}>
-                {unidades
-                  .filter((u) => u.activo)
-                  .map((u) => (
-                    <option key={u.id} value={u.simbolo}>
-                      {u.simbolo}
-                    </option>
-                  ))}
-              </Select>
-            </Campo>
-            <Campo etiqueta="Metrado">
-              <Input
-                type="number"
-                step="0.01"
-                min="0"
-                value={item.metrado}
-                onChange={(e) => setItem({ ...item, metrado: e.target.value })}
-                required
-              />
-            </Campo>
-            <Campo etiqueta="Precio unitario (S/)">
-              <Input
-                type="number"
-                step="0.01"
-                min="0"
-                value={item.precio_unitario}
-                onChange={(e) => setItem({ ...item, precio_unitario: e.target.value })}
-                required
-              />
-            </Campo>
-            <div className="flex items-end gap-3 sm:col-span-5">
-              <Boton type="submit">Agregar partida</Boton>
-              <Boton type="button" variante="linea" onClick={guardarEnBanco}>
-                Guardar en el banco
-              </Boton>
-              <span className="font-mono text-xs text-muted-foreground">
-                Parcial:{" "}
-                <strong className="text-ink">
-                  {soles(Number(item.metrado || 0) * Number(item.precio_unitario || 0))}
-                </strong>
-              </span>
-            </div>
-          </form>
-
-          <HojaCotizacion cot={cot} items={items} clientes={clientes}>
-            {items.length === 0 ? (
-              <Vacio texto="Esta cotización todavía no tiene partidas." />
-            ) : (
-              <CotizacionHoja cotizacionId={cot.id} items={items} unidades={unidades} />
-            )}
-          </HojaCotizacion>
-
-        </Panel>
-      )}
-      {apu && (
-        <ApuPartida
-          origen="cotizacion"
-          partida={{ ...apu, rendimiento: Number(apu.rendimiento ?? 1), jornada: Number(apu.jornada ?? 8), pct_herramientas: Number(apu.pct_herramientas ?? 3), metrado: Number(apu.metrado ?? 0) }}
-          invalidar={[["cotizacion_items", seleccion]]}
-          onCerrar={() => setApu(null)}
-        />
-      )}
     </>
   );
 }
