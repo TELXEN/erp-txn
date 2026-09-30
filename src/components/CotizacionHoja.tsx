@@ -630,7 +630,7 @@ export function CotizacionHoja({
             <BookOpen size={12} /> Catálogo
           </button>
         )}
-        <span>Doble clic edita · Enter guarda · Esc cancela · Flechas y Tab navegan · Insert añade fila</span>
+        <span>Clic derecho: menú · Doble clic edita · Enter guarda · Esc cancela · Flechas y Tab navegan · Insert añade fila</span>
       </div>
       <table className="w-full font-mono text-xs">
         <thead>
@@ -661,7 +661,12 @@ export function CotizacionHoja({
               const cap = f.clase === "cap";
               return (
                 <React.Fragment key={f.clave}>
-                <tr className={cap ? "bg-muted/50" : "bg-muted/25"}>
+                <ContextMenu>
+                <ContextMenuTrigger asChild>
+                <tr
+                  className={`${cap ? "bg-muted/50" : "bg-muted/25"} data-[state=open]:outline data-[state=open]:outline-1 data-[state=open]:outline-primary`}
+                  onContextMenu={() => setActivo({ r, c: 1 })}
+                >
                   {celda(
                     f,
                     r,
@@ -686,6 +691,31 @@ export function CotizacionHoja({
                   <td className={`${celdaBase} text-right font-semibold text-ink`}>{soles(f.total)}</td>
                   <td className={celdaBase} />
                 </tr>
+                </ContextMenuTrigger>
+                <ContextMenuContent className="w-56 print:hidden">
+                  <ContextMenuLabel className="truncate text-xs">
+                    {cap ? "Especialidad" : "Categoría"}: {f.texto}
+                  </ContextMenuLabel>
+                  <ContextMenuSeparator />
+                  {cap && (
+                    <ContextMenuItem onSelect={() => void nuevaCategoria(f.esp)}>
+                      <FolderPlus size={14} className="mr-2" /> Agregar categoría
+                    </ContextMenuItem>
+                  )}
+                  <ContextMenuItem
+                    onSelect={() => void crearPartida(f.esp, f.clase === "sub" && f.cat !== "Sin categoría" ? f.cat : "", "Nueva partida")}
+                  >
+                    <Plus size={14} className="mr-2" /> Agregar partida
+                  </ContextMenuItem>
+                  <ContextMenuSeparator />
+                  <ContextMenuItem
+                    className="text-bad focus:text-bad"
+                    onSelect={() => void borrarGrupo(f.esp, f.clase === "sub" ? f.cat : null)}
+                  >
+                    <Trash2 size={14} className="mr-2" /> Borrar {cap ? "especialidad" : "categoría"}
+                  </ContextMenuItem>
+                </ContextMenuContent>
+                </ContextMenu>
                 {filaFantasma}
                 </React.Fragment>
               );
@@ -696,8 +726,11 @@ export function CotizacionHoja({
             const sangria = f.nivel === 4 ? 44 : 28;
             return (
               <React.Fragment key={f.clave}>
+                <ContextMenu>
+                <ContextMenuTrigger asChild>
                 <tr
-                  className={f.agrupadora ? "bg-muted/10" : ""}
+                  className={`${f.agrupadora ? "bg-muted/10" : ""} data-[state=open]:bg-primary/5`}
+                  onContextMenu={() => setActivo({ r, c: 1 })}
                   onDoubleClick={(e) => {
                     if ((e.target as HTMLElement).closest("input,select")) return;
                   }}
@@ -759,6 +792,26 @@ export function CotizacionHoja({
                     </div>
                   </td>
                 </tr>
+                </ContextMenuTrigger>
+                <ContextMenuContent className="w-56 print:hidden">
+                  <ContextMenuLabel className="truncate text-xs">
+                    Partida {it.codigo}: {it.nombre}
+                  </ContextMenuLabel>
+                  <ContextMenuSeparator />
+                  <ContextMenuItem onSelect={() => void insertarFila(r)}>
+                    <ListPlus size={14} className="mr-2" /> Insertar partida debajo
+                  </ContextMenuItem>
+                  {!f.agrupadora && (
+                    <ContextMenuItem onSelect={() => setApuAbierto(it.id)}>
+                      <Calculator size={14} className="mr-2" /> Ver APU
+                    </ContextMenuItem>
+                  )}
+                  <ContextMenuSeparator />
+                  <ContextMenuItem className="text-bad focus:text-bad" onSelect={() => void borrar(it.id)}>
+                    <Trash2 size={14} className="mr-2" /> Borrar partida
+                  </ContextMenuItem>
+                </ContextMenuContent>
+                </ContextMenu>
                 {apuAbierto === it.id && (
                   <tr>
                     <td colSpan={8} className="border-b border-line bg-muted/20 p-0">
