@@ -8,7 +8,7 @@ import { totalesCotizacion, vigenciaHasta, type Cotizacion, type CotizacionItem 
 /** Paleta corporativa compartida con la hoja de facturación electrónica. */
 const C = { ink: "#000000", muted: "#000000", line: "#cbd5e1", soft: "#f8fafc", green: "#047857", greenSoft: "#ecfdf5", white: "#ffffff" };
 
-const ed: CSSProperties = { border: "none", borderBottom: `1px dashed ${C.line}`, background: "transparent", font: "inherit", color: "inherit", width: "100%", padding: "2px 0", outline: "none" };
+const ed: CSSProperties = { border: "none", borderBottom: `1px dashed ${C.line}`, background: "transparent", font: "inherit", fontSize: 13, color: "inherit", width: "100%", padding: "4px 0", outline: "none" };
 const edSel: CSSProperties = { ...ed, cursor: "pointer" };
 const liviano = '"Calibri Light", Calibri, Carlito, sans-serif';
 
