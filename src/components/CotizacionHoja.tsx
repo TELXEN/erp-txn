@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { ChevronDown, ChevronRight, CornerDownRight, Plus, Trash2 } from "lucide-react";
+import { BookOpen, ChevronDown, ChevronRight, CornerDownRight, FolderPlus, Plus, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { soles } from "@/lib/format";
-import { agruparPorCategoria, ordenarJerarquia, prefijosWBS } from "@/lib/categorias";
+import { agruparPorCategoria, codigoContextual, ordenarJerarquia, prefijosWBS } from "@/lib/categorias";
 import { apuDb, calcularApu, nombreTipo, TIPOS_INSUMO, useComponentesApu, useInsumos } from "@/lib/apu";
 import type { CotizacionItem } from "@/lib/cotizaciones";
 
@@ -76,10 +76,12 @@ export function CotizacionHoja({
   cotizacionId,
   items,
   unidades,
+  alAbrirCatalogo,
 }: {
   cotizacionId: string;
   items: CotizacionItem[];
   unidades: { id: string; simbolo: string; activo: boolean }[];
+  alAbrirCatalogo?: () => void;
 }) {
   const qc = useQueryClient();
   const [colapsados, setColapsados] = useState<Set<string>>(new Set());
@@ -255,6 +257,39 @@ export function CotizacionHoja({
     setActivo({ r: r + 1, c: 1 });
   }
 
+  /** Crea una partida dentro de una especialidad/categoría, con código EDT automático. */
+  async function crearPartida(esp: string, cat: string, nombre: string, unidad = "glb") {
+    setError("");
+    const { error: err } = await supabase.from("cotizacion_items").insert({
+      cotizacion_id: cotizacionId,
+      codigo: codigoContextual(esp, cat, items),
+      nombre: nombre.trim() || "Nueva partida",
+      especialidad: esp,
+      categoria: cat,
+      marca: "",
+      unidad,
+      metrado: 1,
+      precio_unitario: 0,
+      orden: items.length + 1,
+    });
+    if (err) {
+      setError(err.message);
+      return false;
+    }
+    await refrescar();
+    return true;
+  }
+
+  /** Abre un capítulo nuevo (especialidad) con su primera partida lista para renombrar. */
+  async function nuevaEspecialidad() {
+    const usadas = new Set(items.map((i) => i.especialidad || "Sin especialidad"));
+    let n = usadas.size + 1;
+    while (usadas.has(`Nueva especialidad ${n}`)) n += 1;
+    await crearPartida(`Nueva especialidad ${n}`, "", "Nueva partida");
+  }
+
+
+
   async function borrar(id: string) {
     await supabase.from("cotizacion_items").delete().eq("id", id);
     refrescar();
@@ -385,10 +420,65 @@ export function CotizacionHoja({
     );
   }
 
+  /** Fila fantasma al pie de cada grupo visible (capítulo o categoría sin más filas debajo). */
+  function fantasmaDe(r: number): { esp: string; cat: string } | null {
+    const f = visibles[r];
+    if (!f) return null;
+    const sig = visibles[r + 1];
+    if (f.clase === "item") {
+      if (sig && sig.clase === "item") return null;
+      return { esp: f.it.especialidad, cat: (f.it.categoria ?? "").trim() };
+    }
+    if (colapsados.has(f.clave)) return null;
+    if (f.clase === "sub") {
+      if (sig && sig.clase === "item") return null;
+      return { esp: f.esp, cat: f.cat === "Sin categoría" ? "" : f.cat };
+    }
+    if (sig && sig.clase !== "cap") return null;
+    return { esp: f.esp, cat: "" };
+  }
+
+  if (!items.length)
+    return (
+      <div className="flex flex-col items-center gap-4 px-6 py-14 text-center print:hidden">
+        <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Hoja en blanco</p>
+        <h3 className="text-base font-semibold text-ink">¿Cómo quieres empezar el presupuesto?</h3>
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          <button
+            type="button"
+            onClick={() => void nuevaEspecialidad()}
+            className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-2 text-[12px] font-medium text-primary-foreground hover:opacity-90"
+          >
+            <FolderPlus size={14} /> Nueva especialidad
+          </button>
+          <button
+            type="button"
+            onClick={() => void crearPartida("General", "", "Nueva partida")}
+            className="inline-flex items-center gap-1 rounded-md border border-line px-3 py-2 text-[12px] text-ink hover:border-primary hover:text-primary"
+          >
+            <Plus size={14} /> Partida rápida
+          </button>
+          {alAbrirCatalogo && (
+            <button
+              type="button"
+              onClick={alAbrirCatalogo}
+              className="inline-flex items-center gap-1 rounded-md border border-line px-3 py-2 text-[12px] text-ink hover:border-primary hover:text-primary"
+            >
+              <BookOpen size={14} /> Importar del catálogo maestro
+            </button>
+          )}
+        </div>
+        <p className="max-w-md font-mono text-[10px] text-muted-foreground">
+          Después podrás escribir directamente en la fila punteada al pie de cada grupo para seguir añadiendo partidas.
+        </p>
+        {error && <p className="font-mono text-xs text-bad">{error}</p>}
+      </div>
+    );
+
   return (
     <div className="overflow-x-auto">
       {error && <p className="px-5 py-2 font-mono text-xs text-bad">{error}</p>}
-      <div className="flex flex-wrap items-center gap-3 border-b border-line bg-muted/30 px-5 py-2 font-mono text-[10px] text-muted-foreground">
+      <div className="flex flex-wrap items-center gap-3 border-b border-line bg-muted/30 px-5 py-2 font-mono text-[10px] text-muted-foreground print:hidden">
         <button
           type="button"
           onClick={() => void insertarFila(activo.r)}
@@ -396,6 +486,22 @@ export function CotizacionHoja({
         >
           <Plus size={12} /> Fila
         </button>
+        <button
+          type="button"
+          onClick={() => void nuevaEspecialidad()}
+          className="inline-flex items-center gap-1 rounded-md border border-line px-2 py-1 text-[11px] text-primary hover:bg-primary/10"
+        >
+          <FolderPlus size={12} /> Especialidad
+        </button>
+        {alAbrirCatalogo && (
+          <button
+            type="button"
+            onClick={alAbrirCatalogo}
+            className="inline-flex items-center gap-1 rounded-md border border-line px-2 py-1 text-[11px] text-primary hover:bg-primary/10"
+          >
+            <BookOpen size={12} /> Catálogo
+          </button>
+        )}
         <span>Doble clic edita · Enter guarda · Esc cancela · Flechas y Tab navegan · Insert añade fila</span>
       </div>
       <table className="w-full font-mono text-xs">
@@ -413,10 +519,19 @@ export function CotizacionHoja({
         </thead>
         <tbody>
           {visibles.map((f, r) => {
+            const fantasma = fantasmaDe(r);
+            const filaFantasma = fantasma && (
+              <FilaFantasma
+                key={`f:${f.clave}`}
+                sangria={f.clase === "cap" ? 18 : 30}
+                onCrear={(nombre) => crearPartida(fantasma.esp, fantasma.cat, nombre)}
+              />
+            );
             if (f.clase !== "item") {
               const cap = f.clase === "cap";
               return (
-                <tr key={f.clave} className={cap ? "bg-muted/50" : "bg-muted/25"}>
+                <React.Fragment key={f.clave}>
+                <tr className={cap ? "bg-muted/50" : "bg-muted/25"}>
                   {celda(
                     f,
                     r,
@@ -441,6 +556,8 @@ export function CotizacionHoja({
                   <td className={`${celdaBase} text-right font-semibold text-ink`}>{soles(f.total)}</td>
                   <td className={celdaBase} />
                 </tr>
+                {filaFantasma}
+                </React.Fragment>
               );
             }
             const it = f.it;
@@ -519,12 +636,73 @@ export function CotizacionHoja({
                     </td>
                   </tr>
                 )}
+                {filaFantasma}
               </React.Fragment>
             );
           })}
+          <tr className="print:hidden">
+            <td colSpan={8} className="px-2 py-2">
+              <button
+                type="button"
+                onClick={() => void nuevaEspecialidad()}
+                className="inline-flex items-center gap-1 rounded-md border border-dashed border-line px-2 py-1 text-[11px] text-muted-foreground hover:border-primary hover:text-primary"
+              >
+                <FolderPlus size={12} /> Nueva especialidad (capítulo)
+              </button>
+            </td>
+          </tr>
         </tbody>
       </table>
     </div>
+  );
+}
+
+/** Fila punteada al pie de cada grupo: escribir y pulsar Enter crea la partida y abre otra. */
+function FilaFantasma({
+  sangria,
+  onCrear,
+}: {
+  sangria: number;
+  onCrear: (nombre: string) => Promise<boolean>;
+}) {
+  const [texto, setTexto] = useState("");
+  const [ocupado, setOcupado] = useState(false);
+  const ref = useRef<HTMLInputElement>(null);
+
+  async function confirmar() {
+    const nombre = texto.trim();
+    if (!nombre || ocupado) return;
+    setOcupado(true);
+    const ok = await onCrear(nombre);
+    setOcupado(false);
+    if (ok) {
+      setTexto("");
+      ref.current?.focus();
+    }
+  }
+
+  return (
+    <tr className="print:hidden">
+      <td colSpan={8} className="border-b border-dashed border-line/70 px-2 py-1">
+        <input
+          ref={ref}
+          value={texto}
+          disabled={ocupado}
+          onChange={(e) => setTexto(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              void confirmar();
+            }
+            if (e.key === "Escape") setTexto("");
+          }}
+          onBlur={() => void confirmar()}
+          placeholder="+ Escribe aquí para añadir una partida y pulsa Enter…"
+          style={{ paddingLeft: sangria }}
+          className="w-full border-none bg-transparent font-mono text-[11px] italic text-muted-foreground outline-none placeholder:text-muted-foreground/60 focus:not-italic focus:text-ink"
+        />
+      </td>
+    </tr>
   );
 }
 
