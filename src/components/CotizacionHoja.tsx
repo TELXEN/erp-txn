@@ -719,10 +719,14 @@ export function CotizacionHoja({
 /** Fila punteada al pie de cada grupo: escribir y pulsar Enter crea la partida y abre otra. */
 function FilaFantasma({
   sangria,
+  maestras,
   onCrear,
+  onCrearMaestra,
 }: {
   sangria: number;
+  maestras: PartidaMaestra[];
   onCrear: (nombre: string) => Promise<boolean>;
+  onCrearMaestra: (m: PartidaMaestra) => Promise<boolean>;
 }) {
   const [texto, setTexto] = useState("");
   const [ocupado, setOcupado] = useState(false);
@@ -740,26 +744,52 @@ function FilaFantasma({
     }
   }
 
+  async function elegirMaestra(id: string) {
+    const m = maestras.find((x) => x.id === id);
+    if (!m || ocupado) return;
+    setOcupado(true);
+    await onCrearMaestra(m);
+    setOcupado(false);
+    ref.current?.focus();
+  }
+
   return (
     <tr className="print:hidden">
       <td colSpan={8} className="border-b border-dashed border-line/70 px-2 py-1">
-        <input
-          ref={ref}
-          value={texto}
-          disabled={ocupado}
-          onChange={(e) => setTexto(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              void confirmar();
-            }
-            if (e.key === "Escape") setTexto("");
-          }}
-          onBlur={() => void confirmar()}
-          placeholder="+ Escribe aquí para añadir una partida y pulsa Enter…"
-          style={{ paddingLeft: sangria }}
-          className="w-full border-none bg-transparent font-mono text-[11px] italic text-muted-foreground outline-none placeholder:text-muted-foreground/60 focus:not-italic focus:text-ink"
-        />
+        <div className="flex items-center gap-2">
+          <input
+            ref={ref}
+            value={texto}
+            disabled={ocupado}
+            onChange={(e) => setTexto(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                void confirmar();
+              }
+              if (e.key === "Escape") setTexto("");
+            }}
+            onBlur={() => void confirmar()}
+            placeholder="+ Escribe aquí para añadir una partida y pulsa Enter…"
+            style={{ paddingLeft: sangria }}
+            className="w-full border-none bg-transparent font-mono text-[11px] italic text-muted-foreground outline-none placeholder:text-muted-foreground/60 focus:not-italic focus:text-ink"
+          />
+          {maestras.length > 0 && (
+            <select
+              value=""
+              disabled={ocupado}
+              onChange={(e) => void elegirMaestra(e.target.value)}
+              className="w-64 shrink-0 rounded border border-dashed border-line/70 bg-transparent px-1 py-0.5 font-mono text-[10px] italic text-muted-foreground/70 outline-none focus:border-primary focus:not-italic focus:text-ink"
+            >
+              <option value="">o elige del catálogo maestro…</option>
+              {maestras.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.codigo} · {m.nombre} · {m.unidad} · {soles(Number(m.precio_unitario))}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
       </td>
     </tr>
   );
