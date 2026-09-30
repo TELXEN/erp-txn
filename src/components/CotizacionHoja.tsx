@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { soles } from "@/lib/format";
 import { agruparPorCategoria, codigoContextual, ordenarJerarquia, prefijosWBS } from "@/lib/categorias";
 import { apuDb, calcularApu, nombreTipo, TIPOS_INSUMO, useComponentesApu, useInsumos } from "@/lib/apu";
+import { useEspecialidadesPartida } from "@/lib/especialidades";
 import type { CotizacionItem } from "@/lib/cotizaciones";
 
 /** Columnas de la hoja, en el orden en que se navegan con el teclado. */
@@ -92,6 +93,13 @@ export function CotizacionHoja({
   const [error, setError] = useState("");
   const celdas = useRef(new Map<string, HTMLTableCellElement | null>());
   const [conApu, setConApu] = useState<Set<string>>(new Set());
+
+  // Las especialidades salen del catálogo maestro (Datos › Catálogo técnico).
+  const { data: catalogoEsp = [] } = useEspecialidadesPartida();
+  const nombresEsp = useMemo(
+    () => catalogoEsp.filter((e) => e.activo).map((e) => e.nombre),
+    [catalogoEsp],
+  );
 
   const arbol = useMemo(() => construirArbol(items), [items]);
 
@@ -280,12 +288,19 @@ export function CotizacionHoja({
     return true;
   }
 
-  /** Abre un capítulo nuevo (especialidad) con su primera partida lista para renombrar. */
+  /** Abre un capítulo nuevo tomando la siguiente especialidad libre del catálogo maestro. */
   async function nuevaEspecialidad() {
     const usadas = new Set(items.map((i) => i.especialidad || "Sin especialidad"));
-    let n = usadas.size + 1;
-    while (usadas.has(`Nueva especialidad ${n}`)) n += 1;
-    await crearPartida(`Nueva especialidad ${n}`, "", "Nueva partida");
+    if (!nombresEsp.length)
+      return setError(
+        "No hay especialidades registradas. Agrégalas en Datos › Catálogo técnico › Especialidad de partidas.",
+      );
+    const libre = nombresEsp.find((n) => !usadas.has(n));
+    if (!libre)
+      return setError(
+        "Ya usaste todas las especialidades del catálogo maestro. Registra una nueva en Datos › Catálogo técnico.",
+      );
+    await crearPartida(libre, "", "Nueva partida");
   }
 
 
@@ -371,6 +386,18 @@ export function CotizacionHoja({
         void guardar(f, c, valor).then(() => setEditando(false));
       },
     };
+    if (col === "nombre" && f.clase === "cap") {
+      const opciones = nombresEsp.includes(f.esp) ? nombresEsp : [f.esp, ...nombresEsp];
+      return (
+        <select {...comun} onChange={(e) => setValor(e.target.value)}>
+          {opciones.map((n) => (
+            <option key={n} value={n}>
+              {n}
+            </option>
+          ))}
+        </select>
+      );
+    }
     if (col === "unidad")
       return (
         <select {...comun} onChange={(e) => setValor(e.target.value)}>
@@ -453,7 +480,7 @@ export function CotizacionHoja({
           </button>
           <button
             type="button"
-            onClick={() => void crearPartida("General", "", "Nueva partida")}
+            onClick={() => void crearPartida(nombresEsp[0] ?? "General", "", "Nueva partida")}
             className="inline-flex items-center gap-1 rounded-md border border-line px-3 py-2 text-[12px] text-ink hover:border-primary hover:text-primary"
           >
             <Plus size={14} /> Partida rápida
