@@ -351,7 +351,7 @@ export function CotizacionHoja({
   /** Añade a la especialidad la siguiente categoría libre del catálogo maestro. */
   async function nuevaCategoria(esp: string) {
     const usadas = new Set(items.filter((i) => i.especialidad === esp).map((i) => (i.categoria ?? "").trim()));
-    const libre = categoriasDe(catalogoCat, esp).filter((c) => c.activo).map((c) => c.nombre).find((n) => !usadas.has(n));
+    const libre = categoriasDe(esp, catalogoCat).map((c) => c.nombre).find((n) => !usadas.has(n));
     if (!libre)
       return setError(`No quedan categorías libres para ${esp}. Regístralas en Datos › Catálogo técnico.`);
     await crearGrupo(esp, libre);
