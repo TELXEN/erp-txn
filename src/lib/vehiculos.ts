@@ -45,6 +45,10 @@ export type Traslado = {
   combustible_galones: number;
   combustible_monto: number;
   observacion: string;
+  origen_pago: "Banco" | "Caja chica";
+  banco_id: string | null;
+  caja_chica_id: string | null;
+  numero_operacion: string;
 };
 
 export type Mantenimiento = {
@@ -56,6 +60,10 @@ export type Mantenimiento = {
   costo: number;
   km: number;
   detalle: string;
+  origen_pago: "Banco" | "Caja chica";
+  banco_id: string | null;
+  caja_chica_id: string | null;
+  numero_operacion: string;
 };
 
 export type PlanMantenimiento = {

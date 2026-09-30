@@ -1,3 +1,4 @@
+import { useMantenimientos, useTraslados } from "@/lib/vehiculos";
 import { createFileRoute } from "@tanstack/react-router";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { Fragment, useMemo, useState } from "react";
@@ -125,6 +126,8 @@ function Tesoreria() {
   const { data: proyectos = [] } = useProyectos();
   const { data: terceros = [] } = useTerceros();
   const { data: rrhh } = usePagosRRHH();
+  const { data: mantVeh = [] } = useMantenimientos();
+  const { data: trasVeh = [] } = useTraslados();
 
   const nombreObra = (id: string | null) => (id ? (proyectos.find((p) => p.id === id)?.nombre ?? "—") : "Oficina");
   const nombreTercero = (id: string | null, respaldo = "") =>
@@ -155,10 +158,14 @@ function Tesoreria() {
                   c,
                 ),
               0,
-            );
+            ) +
+          [
+            ...mantVeh.filter((m) => m.banco_id === c.id).map((m) => Number(m.costo)),
+            ...trasVeh.filter((t) => t.banco_id === c.id).map((t) => Number(t.combustible_monto)),
+          ].reduce((s, m) => s + enMonedaCuenta({ moneda: "PEN", monto: m, monto_soles: m, tipo_cambio: 1 } as Mov, c), 0);
         return { c, ingresos, egresos, saldo: Number(c.saldo_inicial) + ingresos - egresos };
       }),
-    [cuentas, ventas, gd, gg, cajas, rrhh],
+    [cuentas, ventas, gd, gg, cajas, rrhh, mantVeh, trasVeh],
   );
 
   const cxc: Pendiente[] = (ventas as unknown as (Mov & Record<string, never>)[])

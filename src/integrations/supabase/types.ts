@@ -1730,42 +1730,68 @@ export type Database = {
       }
       mantenimientos_vehiculo: {
         Row: {
+          banco_id: string | null
+          caja_chica_id: string | null
           costo: number
           created_at: string
           detalle: string
           fecha: string
           id: string
           km: number
+          numero_operacion: string
+          origen_pago: string
           taller_id: string | null
           tipo: string
           updated_at: string
           vehiculo_id: string
         }
         Insert: {
+          banco_id?: string | null
+          caja_chica_id?: string | null
           costo?: number
           created_at?: string
           detalle?: string
           fecha?: string
           id?: string
           km?: number
+          numero_operacion?: string
+          origen_pago?: string
           taller_id?: string | null
           tipo?: string
           updated_at?: string
           vehiculo_id: string
         }
         Update: {
+          banco_id?: string | null
+          caja_chica_id?: string | null
           costo?: number
           created_at?: string
           detalle?: string
           fecha?: string
           id?: string
           km?: number
+          numero_operacion?: string
+          origen_pago?: string
           taller_id?: string | null
           tipo?: string
           updated_at?: string
           vehiculo_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "mantenimientos_vehiculo_banco_id_fkey"
+            columns: ["banco_id"]
+            isOneToOne: false
+            referencedRelation: "bancos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mantenimientos_vehiculo_caja_chica_id_fkey"
+            columns: ["caja_chica_id"]
+            isOneToOne: false
+            referencedRelation: "cajas_chicas"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "mantenimientos_vehiculo_taller_id_fkey"
             columns: ["taller_id"]
@@ -3004,6 +3030,8 @@ export type Database = {
       }
       traslados_vehiculo: {
         Row: {
+          banco_id: string | null
+          caja_chica_id: string | null
           carga: string
           combustible_galones: number
           combustible_monto: number
@@ -3014,13 +3042,17 @@ export type Database = {
           id: string
           km_final: number
           km_inicial: number
+          numero_operacion: string
           observacion: string
           origen: string
+          origen_pago: string
           proyecto_id: string | null
           updated_at: string
           vehiculo_id: string
         }
         Insert: {
+          banco_id?: string | null
+          caja_chica_id?: string | null
           carga?: string
           combustible_galones?: number
           combustible_monto?: number
@@ -3031,13 +3063,17 @@ export type Database = {
           id?: string
           km_final?: number
           km_inicial?: number
+          numero_operacion?: string
           observacion?: string
           origen?: string
+          origen_pago?: string
           proyecto_id?: string | null
           updated_at?: string
           vehiculo_id: string
         }
         Update: {
+          banco_id?: string | null
+          caja_chica_id?: string | null
           carga?: string
           combustible_galones?: number
           combustible_monto?: number
@@ -3048,13 +3084,29 @@ export type Database = {
           id?: string
           km_final?: number
           km_inicial?: number
+          numero_operacion?: string
           observacion?: string
           origen?: string
+          origen_pago?: string
           proyecto_id?: string | null
           updated_at?: string
           vehiculo_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "traslados_vehiculo_banco_id_fkey"
+            columns: ["banco_id"]
+            isOneToOne: false
+            referencedRelation: "bancos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "traslados_vehiculo_caja_chica_id_fkey"
+            columns: ["caja_chica_id"]
+            isOneToOne: false
+            referencedRelation: "cajas_chicas"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "traslados_vehiculo_conductor_id_fkey"
             columns: ["conductor_id"]
