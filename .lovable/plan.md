@@ -44,7 +44,7 @@ En Configuración del Sistema, panel "Parámetros laborales" (solo Gerente):
 Así, cuando salga la nueva tabla salarial de construcción civil, se actualiza en un solo lugar.
 
 ## Código automático
-En Catálogos Maestros se añade "Codificación de insumos" (prefijo, separador, dígitos), mismo esquema que proyectos y cotizaciones. El código se reserva en el servidor al guardar.
+Formato numérico puro, sin separadores, máximo 8 dígitos: primer dígito identifica el tipo de insumo (1 = Mano de obra, 2 = Materiales, 3 = Equipos y maquinaria, 4 = Herramientas menores, 5 = Subcontratos) seguido del correlativo con ceros a la izquierda hasta completar 8 dígitos. Ejemplo: `10000001`, `20000012`. En Catálogos Maestros se añade "Codificación de insumos" con el correlativo por tipo (y el dígito de tipo editable por si cambia). El código se reserva en el servidor al guardar.
 
 ## Detalles técnicos
 - Migración: en `insumos` columnas `sueldo_mensual numeric default 0`, `regimen_laboral text default 'General'` (General | MYPE Pequeña | Construcción Civil), `categoria_obrero text null`, `asignacion_familiar boolean default false`; tabla `parametros_laborales` (fila única, lectura autenticados, edición solo gerente, con GRANTs y RLS); tabla `codificacion_insumo` + función `siguiente_codigo_insumo()` solo service_role, invocada desde un server fn en `codigos.functions.ts`.
