@@ -19,6 +19,7 @@ import {
   useCategoriasGastoGeneral,
   useEstadosProyecto,
   usePrioridades,
+  useMarcas,
   useGastosGenerales,
   useTiposPresupuesto,
   useTrabajadores,
@@ -969,6 +970,47 @@ function PrioridadesPanel() {
   );
 }
 
+function MarcasPanel() {
+  const qc = useQueryClient();
+  const { rol } = useAuth();
+  const { data = [] } = useMarcas();
+  const refrescar = () => {
+    qc.invalidateQueries({ queryKey: ["marcas"] });
+    qc.invalidateQueries({ queryKey: ["insumos"] });
+  };
+  return (
+    <ListaEditable
+      titulo="Registro de marcas"
+      descripcion="Marcas de materiales disponibles en el Maestro de insumos."
+      items={data}
+      placeholder="Nombre de la nueva marca"
+      puedeGestionar={rol === "administrador" || rol === "gerente"}
+      insignia={(m) => <span className="rounded-md border border-line px-2 py-0.5 text-xs text-ink">{m.nombre}</span>}
+      onAgregar={async (nombre) => {
+        const { error } = await supabase
+          .from("marcas" as never)
+          .insert({ nombre, orden: data.length + 1, activo: true } as never);
+        if (error) return msgDuplicado(error.code, error.message);
+        refrescar();
+        return null;
+      }}
+      onRenombrar={async (m, nombre) => {
+        const { error } = await supabase.from("marcas" as never).update({ nombre } as never).eq("id", m.id);
+        if (error) return msgDuplicado(error.code, error.message);
+        refrescar();
+        return null;
+      }}
+      onEliminar={async (m) => {
+        if (!window.confirm(`¿Eliminar la marca «${m.nombre}»? Los materiales que la usan quedarán con "-".`)) return null;
+        const { error } = await supabase.from("marcas" as never).delete().eq("id", m.id);
+        if (error) return error.message;
+        refrescar();
+        return null;
+      }}
+    />
+  );
+}
+
 function TiposPresupuesto() {
   const qc = useQueryClient();
   const { rol } = useAuth();
@@ -1195,6 +1237,10 @@ function ConfiguracionProyectos() {
       <EstadosProyecto />
 
       <PrioridadesPanel />
+
+      <div className="lg:col-span-2">
+        <MarcasPanel />
+      </div>
 
       <div className="lg:col-span-2">
         <TiposPresupuesto />
