@@ -516,16 +516,12 @@ function ManoObraWysiwyg({
             </td>
             <td className="px-3 py-2">
               {nueva.regimen === "Construcción Civil" ? (
-                <select className={selCls} value={nueva.categoria} onChange={(e) => setNueva({ ...nueva, categoria: e.target.value })}>
-                  {CATEGORIAS_OBRERO.map((c) => <option key={c} value={c}>{c}</option>)}
-                </select>
-              ) : (
-                <span className="text-muted-foreground">—</span>
-              )}
-            </td>
-            <td className="px-3 py-2">
-              {nueva.regimen === "Construcción Civil" ? (
-                <span className="block text-right text-muted-foreground">por jornal</span>
+                <div className="flex items-center gap-1">
+                  <select className={selCls} value={nueva.categoria} onChange={(e) => setNueva({ ...nueva, categoria: e.target.value })}>
+                    {CATEGORIAS_OBRERO.map((c) => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                  <span className="whitespace-nowrap text-[10px] text-muted-foreground">por jornal</span>
+                </div>
               ) : (
                 <input
                   className={`${inputCls} text-right`}
