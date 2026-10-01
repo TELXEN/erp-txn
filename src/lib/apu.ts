@@ -94,6 +94,6 @@ export function calcularApu(
   });
   const herramientas = (tot.MO * Number(pctHerramientas || 0)) / 100;
   tot.EQ += herramientas;
-  const pu = Math.round((tot.MO + tot.MAT + tot.EQ + tot.SC) * 100) / 100;
+  const pu = Math.round((tot.MO + tot.MAT + tot.EQ + tot.HT + tot.SC) * 100) / 100;
   return { filas, tot, herramientas, pu };
 }
