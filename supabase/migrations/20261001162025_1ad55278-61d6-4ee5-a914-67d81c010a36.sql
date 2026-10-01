@@ -1,0 +1,6 @@
+ALTER TABLE public.configuracion_documentos
+DROP CONSTRAINT configuracion_documentos_fuente_pdf_check;
+
+ALTER TABLE public.configuracion_documentos
+ADD CONSTRAINT configuracion_documentos_fuente_pdf_check
+CHECK (fuente_pdf IN ('carlito', 'arial', 'times', 'source-sans-3', 'segoe-ui', 'roboto', 'helvetica-neue'));
