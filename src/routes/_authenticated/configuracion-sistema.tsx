@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Check, SlidersHorizontal } from "lucide-react";
 import { Panel } from "@/components/ui-kit";
+import { ParametrosLaboralesPanel } from "@/components/ParametrosLaborales";
 import { TEMAS, useTema } from "@/lib/temas";
 
 export const Route = createFileRoute("/_authenticated/configuracion-sistema")({
@@ -58,6 +59,7 @@ function ConfiguracionSistema() {
           })}
         </div>
       </Panel>
+      <ParametrosLaboralesPanel />
     </div>
   );
 }

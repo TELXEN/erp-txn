@@ -26,6 +26,7 @@ import { DatosEmpresa } from "@/components/DatosEmpresa";
 import { CodificacionProyectos } from "@/components/CodificacionProyectos";
 import { CodificacionCotizaciones } from "@/components/CodificacionCotizaciones";
 import { CodificacionPreliquidaciones } from "@/components/CodificacionPreliquidaciones";
+import { CodificacionInsumos } from "@/components/CodificacionInsumos";
 import { CuentasBancarias, type CuentaBancaria } from "@/components/CuentasBancarias";
 import { RubrosIngreso } from "@/components/RubrosIngreso";
 
@@ -64,11 +65,12 @@ type Pestana =
   | "codificacion"
   | "codificacioncot"
   | "codificacionpreliq"
+  | "codificacionins"
   | "empresa";
 
 const GRUPOS_CONFIG: { titulo: string; icono: React.ElementType; items: [Pestana, string][] }[] = [
   { titulo: "Empresa", icono: Building2, items: [["empresa", "Datos de la empresa"], ["bancos", "Cuentas bancarias"]] },
-  { titulo: "Proyectos y Cotizaciones", icono: FolderKanban, items: [["codificacion", "Codificación de proyectos"], ["codificacioncot", "Codificación de cotizaciones"], ["codificacionpreliq", "Codificación de preliquidaciones"], ["configuracion", "Parámetros de proyectos"]] },
+  { titulo: "Proyectos y Cotizaciones", icono: FolderKanban, items: [["codificacion", "Codificación de proyectos"], ["codificacioncot", "Codificación de cotizaciones"], ["codificacionpreliq", "Codificación de preliquidaciones"], ["codificacionins", "Codificación de insumos"], ["configuracion", "Parámetros de proyectos"]] },
   { titulo: "Costos y Finanzas", icono: Coins, items: [["categoriasgg", "Categorías de gastos generales"], ["centros", "Centros de costos"], ["costos", "Rubros de costos"], ["ingresos", "Rubros de ingresos"]] },
   { titulo: "Recursos Humanos", icono: HardHat, items: [["cargos", "Cargos del personal"]] },
 ];
@@ -223,6 +225,8 @@ function Datos() {
         <CodificacionCotizaciones />
       ) : pestana === "codificacionpreliq" ? (
         <CodificacionPreliquidaciones />
+      ) : pestana === "codificacionins" ? (
+        <CodificacionInsumos />
       ) : pestana === "empresa" ? (
         <DatosEmpresa />
       ) : pestana === "ingresos" ? (
