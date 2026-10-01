@@ -128,35 +128,38 @@ function GastosGenerales() {
     return x.numero_operacion ? `${base} · Op. ${x.numero_operacion}` : base;
   };
   const verFlota = ambito === "Todas" || ambito === "Oficina";
-  const flota = [
-    ...(verFlota ? mantVeh : [])
-      .filter((m) => Number(m.costo) > 0)
-      .map((m) => ({
-        id: m.id,
-        fecha: m.fecha,
-        vehiculo: placaDe(m.vehiculo_id),
-        concepto: `Mantenimiento ${m.tipo.toLowerCase()}`,
-        detalle: m.detalle || "—",
-        origen: origenDe(m),
-        monto: Number(m.costo),
-      })),
-    ...trasVeh
-      .filter(
-        (t) =>
-          Number(t.combustible_monto) > 0 &&
-          (ambito === "Todas" || (ambito === "Oficina" ? !t.proyecto_id : t.proyecto_id === ambito)),
-      )
-      .map((t) => ({
-        id: t.id,
-        fecha: t.fecha,
-        vehiculo: placaDe(t.vehiculo_id),
-        concepto: "Combustible",
-        detalle: `${t.origen} → ${t.destino} · ${t.combustible_galones} gal`,
-        origen: origenDe(t),
-        monto: Number(t.combustible_monto),
-      })),
-  ].sort((a, b) => (a.fecha < b.fecha ? 1 : -1));
-  const totalFlota = flota.reduce((s, f) => s + f.monto, 0);
+  const listaMant = (verFlota ? mantVeh : [])
+    .filter((m) => Number(m.costo) > 0)
+    .map((m) => ({
+      id: m.id,
+      fecha: m.fecha,
+      vehiculo: placaDe(m.vehiculo_id),
+      tipo: m.tipo,
+      km: Number(m.km || 0),
+      detalle: m.detalle || "—",
+      origen: origenDe(m),
+      monto: Number(m.costo),
+    }))
+    .sort((a, b) => (a.fecha < b.fecha ? 1 : -1));
+  const listaComb = trasVeh
+    .filter(
+      (t) =>
+        Number(t.combustible_monto) > 0 &&
+        (ambito === "Todas" || (ambito === "Oficina" ? !t.proyecto_id : t.proyecto_id === ambito)),
+    )
+    .map((t) => ({
+      id: t.id,
+      fecha: t.fecha,
+      vehiculo: placaDe(t.vehiculo_id),
+      ruta: `${t.origen} → ${t.destino}`,
+      galones: Number(t.combustible_galones || 0),
+      ambito: nombreProy(t.proyecto_id),
+      origen: origenDe(t),
+      monto: Number(t.combustible_monto),
+    }))
+    .sort((a, b) => (a.fecha < b.fecha ? 1 : -1));
+  const totalMant = listaMant.reduce((s, f) => s + f.monto, 0);
+  const totalComb = listaComb.reduce((s, f) => s + f.monto, 0);
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
