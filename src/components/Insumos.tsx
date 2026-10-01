@@ -156,6 +156,8 @@ export function Insumos() {
         <ManoObraWysiwyg lista={visibles} busqueda={busqueda} setBusqueda={setBusqueda} refrescar={refrescar} />
       ) : filtro === "MAT" ? (
         <MaterialesWysiwyg lista={visibles} busqueda={busqueda} setBusqueda={setBusqueda} refrescar={refrescar} />
+      ) : filtro === "SC" ? (
+        <MaterialesWysiwyg key="SC" tipo="SC" lista={visibles} busqueda={busqueda} setBusqueda={setBusqueda} refrescar={refrescar} />
       ) : filtro === "HT" ? (
         <HerramientasWysiwyg lista={visibles} busqueda={busqueda} setBusqueda={setBusqueda} refrescar={refrescar} />
       ) : filtro === "EQ" ? (
@@ -626,47 +628,52 @@ type FilaMat = { nombre: string; unidad: string; precio: string; margen: string 
 const filaMatVacia: FilaMat = { nombre: "", unidad: "und", precio: "", margen: "" };
 
 function MaterialesWysiwyg({
+  tipo = "MAT",
   lista,
   busqueda,
   setBusqueda,
   refrescar,
 }: {
+  tipo?: "MAT" | "SC";
   lista: Insumo[];
   busqueda: string;
   setBusqueda: (v: string) => void;
   refrescar: () => void;
 }) {
   const { data: mg = MARGENES_DEFECTO } = useMargenesInsumo();
-  const mgTipo = mg.MAT;
+  const mgTipo = mg[tipo];
+  const esSC = tipo === "SC";
+  const uDef = esSC ? "glb" : "und";
+  const vacia: FilaMat = { ...filaMatVacia, unidad: uDef };
   const { data: unidades = [] } = useUnidadesMedida();
   const simbolos = useMemo(() => {
     const s = unidades.filter((u) => u.activo).map((u) => u.simbolo);
-    return [...new Set(["und", ...s])];
+    return [...new Set([uDef, ...s])];
   }, [unidades]);
-  const [nueva, setNueva] = useState<FilaMat>(filaMatVacia);
+  const [nueva, setNueva] = useState<FilaMat>(vacia);
   const [editando, setEditando] = useState<(FilaMat & { id: string; codigo: string; activo: boolean }) | null>(null);
   const [error, setError] = useState("");
   const [guardando, setGuardando] = useState(false);
 
-  const cUnitario = (precio: string) => Number(precio || 0) * (1 + mg.MAT / 100);
+  const cUnitario = (precio: string) => Number(precio || 0) * (1 + mgTipo / 100);
 
   async function crearDesdeFila() {
     if (guardando) return;
-    if (!nueva.nombre.trim()) return setError("Escribe la descripción del material.");
+    if (!nueva.nombre.trim()) return setError(esSC ? "Escribe la descripción del subcontrato." : "Escribe la descripción del material.");
     setError("");
     setGuardando(true);
     try {
-      const codigo = await reservarCodigoInsumo({ data: { tipo: "MAT" } });
+      const codigo = await reservarCodigoInsumo({ data: { tipo } });
       const { error: err } = await apuDb.from("insumos").insert({
-        tipo: "MAT",
+        tipo,
         codigo,
         nombre: nueva.nombre.trim(),
-        unidad: nueva.unidad || "und",
+        unidad: nueva.unidad || uDef,
         precio: Number(nueva.precio || 0),
         margen_pct: Number(nueva.margen || 0),
       });
       if (err) throw new Error(err.message);
-      setNueva(filaMatVacia);
+      setNueva(vacia);
       refrescar();
     } catch (e) {
       setError(e instanceof Error ? e.message : "No se pudo registrar el material.");
@@ -682,7 +689,7 @@ function MaterialesWysiwyg({
       .from("insumos")
       .update({
         nombre: editando.nombre.trim(),
-        unidad: editando.unidad || "und",
+        unidad: editando.unidad || uDef,
         precio: Number(editando.precio || 0),
         margen_pct: Number(editando.margen || 0),
         activo: editando.activo,
@@ -715,7 +722,7 @@ function MaterialesWysiwyg({
 
   return (
     <Panel
-      titulo="Maestro de insumos — Materiales"
+      titulo={esSC ? "Maestro de insumos — Subcontratos / Servicios" : "Maestro de insumos — Materiales"}
       extra={<Buscador valor={busqueda} onChange={setBusqueda} total={lista.length} placeholder="Buscar por código o descripción..." />}
     >
       <table className="w-full table-fixed font-mono text-xs">
@@ -724,7 +731,7 @@ function MaterialesWysiwyg({
             <th className="w-[10%] px-5 py-2 font-medium">Código</th>
             <th className="w-[36%] px-3 py-2 font-medium">Descripción</th>
             <th className="w-[9%] px-3 py-2 font-medium">Unidad</th>
-            <th className="w-[12%] px-3 py-2 text-right font-medium">P. Compra</th>
+            <th className="w-[12%] px-3 py-2 text-right font-medium">{esSC ? "Costo" : "P. Compra"}</th>
             <th className="w-[9%] px-3 py-2 text-right font-medium">Margen %</th>
             <th className="w-[12%] px-3 py-2 text-right font-medium">C. Unitario</th>
             <th className="w-[12%] px-5 py-2 text-right font-medium">Acciones</th>
@@ -734,7 +741,7 @@ function MaterialesWysiwyg({
           {lista.map((i) => {
             const esEdicion = editando?.id === i.id;
             const compra = esEdicion ? Number(editando.precio || 0) : Number(i.precio);
-            const margen = mg.MAT;
+            const margen = mgTipo;
             const cu = compra * (1 + margen / 100);
             return (
               <tr key={i.id} className="border-b border-line/40 last:border-0">
@@ -845,8 +852,8 @@ function MaterialesWysiwyg({
       </table>
       {error && <p className="px-5 py-2 font-mono text-xs text-bad">{error}</p>}
       <p className="border-t border-line px-5 py-3 font-mono text-[10px] leading-relaxed text-muted-foreground">
-        El C. Unitario —el que usan los análisis de precios unitarios— es el P. Compra más el margen. Los precios se registran sin IGV.
-        La unidad se elige del catálogo de Unidades de medida (por defecto und).
+        El C. Unitario —el que usan los análisis de precios unitarios— es el {esSC ? "Costo" : "P. Compra"} más el margen. Los precios se registran sin IGV.
+        La unidad se elige del catálogo de Unidades de medida (por defecto {uDef}).
       </p>
     </Panel>
   );
