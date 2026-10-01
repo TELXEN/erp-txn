@@ -144,6 +144,8 @@ function FlujoCaja() {
       costoReal: 0,
       egCompras: 0,
       egGenerales: 0,
+      egMant: 0,
+      egComb: 0,
       egCaja: 0,
       egRRHH: 0,
       ingresoProy: 0,
@@ -165,7 +167,11 @@ function FlujoCaja() {
       ? bancos.filter((b) => b.activo && b.monedas === "PEN").reduce((s, b) => s + Number(b.saldo_inicial || 0), 0)
       : 0;
 
-    const sumar = (fecha: string | null | undefined, monto: unknown, campo: "egCompras" | "egGenerales" | "egCaja" | "egRRHH") => {
+    const sumar = (
+      fecha: string | null | undefined,
+      monto: unknown,
+      campo: "egCompras" | "egGenerales" | "egCaja" | "egRRHH" | "egMant" | "egComb",
+    ) => {
       const n = Number(monto) || 0;
       if (previo(fecha)) apertura -= n;
       const mes = mesDe(fecha, anio);
@@ -209,10 +215,10 @@ function FlujoCaja() {
     if (global)
       mantVeh
         .filter((m) => !m.caja_chica_id && Number(m.costo) > 0)
-        .forEach((m) => sumar(m.fecha, m.costo, "egGenerales"));
+        .forEach((m) => sumar(m.fecha, m.costo, "egMant"));
     trasVeh
       .filter((t) => !t.caja_chica_id && Number(t.combustible_monto) > 0 && (global || t.proyecto_id === obra))
-      .forEach((t) => sumar(t.fecha, t.combustible_monto, "egGenerales"));
+      .forEach((t) => sumar(t.fecha, t.combustible_monto, "egComb"));
 
     let acumulado = 0;
     let saldo = apertura;
@@ -250,12 +256,14 @@ function FlujoCaja() {
           costoReal: a.costoReal + f.costoReal,
           egCompras: a.egCompras + f.egCompras,
           egGenerales: a.egGenerales + f.egGenerales,
+          egMant: a.egMant + f.egMant,
+          egComb: a.egComb + f.egComb,
           egCaja: a.egCaja + f.egCaja,
           egRRHH: a.egRRHH + f.egRRHH,
           ingresoProy: a.ingresoProy + f.ingresoProy,
           egresoProy: a.egresoProy + f.egresoProy,
         }),
-        { metaIngreso: 0, metaCosto: 0, ingresoReal: 0, costoReal: 0, egCompras: 0, egGenerales: 0, egCaja: 0, egRRHH: 0, ingresoProy: 0, egresoProy: 0 },
+        { metaIngreso: 0, metaCosto: 0, ingresoReal: 0, costoReal: 0, egCompras: 0, egGenerales: 0, egMant: 0, egComb: 0, egCaja: 0, egRRHH: 0, ingresoProy: 0, egresoProy: 0 },
       ),
     [filas],
   );
@@ -274,7 +282,9 @@ function FlujoCaja() {
   ];
   const desglose = [
     { concepto: "↳ Compras y costos directos", valores: filas.map((f) => f.egCompras), total: total.egCompras },
-    { concepto: "↳ Gastos generales y flota", valores: filas.map((f) => f.egGenerales), total: total.egGenerales },
+    { concepto: "↳ Gastos generales", valores: filas.map((f) => f.egGenerales), total: total.egGenerales },
+    { concepto: "↳ Mantenimiento de vehículos", valores: filas.map((f) => f.egMant), total: total.egMant },
+    { concepto: "↳ Combustible de vehículos", valores: filas.map((f) => f.egComb), total: total.egComb },
     { concepto: "↳ Entregas de Caja Chica", valores: filas.map((f) => f.egCaja), total: total.egCaja },
     ...(global ? [{ concepto: "↳ Planilla, honorarios y tributos", valores: filas.map((f) => f.egRRHH), total: total.egRRHH }] : []),
   ];
