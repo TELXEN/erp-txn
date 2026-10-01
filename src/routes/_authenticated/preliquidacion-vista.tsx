@@ -6,6 +6,7 @@ import { Encabezado } from "@/components/AppShell";
 import { Boton, Panel, Vacio } from "@/components/ui-kit";
 import { supabase } from "@/integrations/supabase/client";
 import { useEmpresa } from "@/lib/empresa";
+import { useFuenteDocumento } from "@/lib/fuentes-documentos";
 import { calcularMontos, type Preliquidacion, type TipoTributario } from "@/components/Preliquidaciones";
 import { descargarPreliquidacionPdf } from "@/components/PreliquidacionPdf";
 
@@ -40,8 +41,6 @@ const C = {
   white: "#ffffff",
 };
 
-const CALIBRI = '"Calibri Light", Calibri, Arial, sans-serif';
-
 
 const F = (v: string) => {
   if (!v) return "—";
@@ -68,6 +67,7 @@ export function separarCodigo(descripcion: string) {
 function VistaPreliquidacion() {
   const { id } = Route.useSearch();
   const { data: empresa, isLoading: cargandoEmpresa } = useEmpresa();
+  const { fuente } = useFuenteDocumento();
   const [pdfCargando, setPdfCargando] = useState(false);
   const [copiado, setCopiado] = useState(false);
 
@@ -184,6 +184,7 @@ function VistaPreliquidacion() {
         codigo: pl.codigo,
         fecha: pl.fecha,
         estado: pl.estado,
+        fuentePdf: fuente.id,
         empresa: {
           razonSocial: empresa?.razon_social || "TELXEN SAC",
           eslogan: empresa?.eslogan || "",
@@ -269,7 +270,7 @@ function VistaPreliquidacion() {
               margin: "0 auto",
               background: C.white,
               color: C.slate700,
-              fontFamily: "Helvetica, Arial, sans-serif",
+              fontFamily: fuente.css,
               fontSize: 9.5,
               padding: "38px 40px 34px",
               boxSizing: "border-box",
@@ -300,25 +301,25 @@ function VistaPreliquidacion() {
                       const linea1 = idx >= 0 ? es.slice(0, idx + 1) : es;
                       const linea2 = idx >= 0 ? es.slice(idx + 1).trim() : "";
                       return (
-                        <div style={{ marginTop: 2, fontFamily: CALIBRI, fontSize: 9.5, fontWeight: 300, color: C.emerald800, letterSpacing: 0.4, lineHeight: 1.3, textAlign: "right" }}>
+                        <div style={{ marginTop: 2, fontFamily: fuente.css, fontSize: 9.5, fontWeight: 300, color: C.emerald800, letterSpacing: 0.4, lineHeight: 1.3, textAlign: "right" }}>
                           <span style={{ display: "block" }}>{linea1}</span>
                           {linea2 && <span style={{ display: "block" }}>{linea2}</span>}
                         </div>
                       );
                     })()
                   : (
-                      <div style={{ marginTop: 2, fontFamily: CALIBRI, fontSize: 9.5, fontWeight: 300, color: C.emerald800, letterSpacing: 0.4, lineHeight: 1.3, textAlign: "right" }}>
+                      <div style={{ marginTop: 2, fontFamily: fuente.css, fontSize: 9.5, fontWeight: 300, color: C.emerald800, letterSpacing: 0.4, lineHeight: 1.3, textAlign: "right" }}>
                         <span style={{ display: "block" }}>SOLUCIONES INTEGRALES EN ENERGÍA,</span>
                         <span style={{ display: "block" }}>AUTOMATIZACIÓN Y CONTROL INDUSTRIAL</span>
                       </div>
                     )}
                 {empresa?.direccion && (
-                  <div style={{ marginTop: 4, fontFamily: CALIBRI, fontWeight: 300, fontSize: 9.5, color: C.slate700 }}>Dirección: {empresa.direccion}</div>
+                  <div style={{ marginTop: 4, fontFamily: fuente.css, fontWeight: 300, fontSize: 9.5, color: C.slate700 }}>Dirección: {empresa.direccion}</div>
                 )}
                 {empresa?.telefono && (
-                  <div style={{ marginTop: 2, fontFamily: CALIBRI, fontWeight: 300, fontSize: 9.5, color: C.slate700 }}>Teléfono: {empresa.telefono}</div>
+                  <div style={{ marginTop: 2, fontFamily: fuente.css, fontWeight: 300, fontSize: 9.5, color: C.slate700 }}>Teléfono: {empresa.telefono}</div>
                 )}
-                {empresa?.web && <div style={{ marginTop: 2, fontFamily: CALIBRI, fontWeight: 300, fontSize: 9.5, color: C.emerald800 }}>{empresa.web}</div>}
+                {empresa?.web && <div style={{ marginTop: 2, fontFamily: fuente.css, fontWeight: 300, fontSize: 9.5, color: C.emerald800 }}>{empresa.web}</div>}
               </div>
 
               <div style={{ minWidth: 200 }}>
