@@ -26,6 +26,26 @@ function IconoPaletaColores({ className }: { className?: string }) {
   );
 }
 
+function IconoCascoColores({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M10 10V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5" stroke="#ef4444" />
+      <path d="M14 6a6 6 0 0 1 6 6v3" stroke="#22c55e" />
+      <path d="M20 15h2v2a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-2h2" stroke="#3b82f6" />
+      <path d="M4 15a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v2a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z" stroke="#f59e0b" />
+    </svg>
+  );
+}
+
 export const Route = createFileRoute("/_authenticated/configuracion-sistema")({
   head: () => ({
     meta: [
