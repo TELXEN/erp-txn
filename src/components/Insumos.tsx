@@ -587,6 +587,246 @@ function ManoObraWysiwyg({
   );
 }
 
+// ================= Materiales: edición WYSIWYG =================
+
+type FilaMat = { nombre: string; unidad: string; precio: string; margen: string };
+
+const filaMatVacia: FilaMat = { nombre: "", unidad: "und", precio: "", margen: "" };
+
+function MaterialesWysiwyg({
+  lista,
+  busqueda,
+  setBusqueda,
+  refrescar,
+}: {
+  lista: Insumo[];
+  busqueda: string;
+  setBusqueda: (v: string) => void;
+  refrescar: () => void;
+}) {
+  const { data: unidades = [] } = useUnidadesMedida();
+  const simbolos = useMemo(() => {
+    const s = unidades.filter((u) => u.activo).map((u) => u.simbolo);
+    return [...new Set(["und", ...s])];
+  }, [unidades]);
+  const [nueva, setNueva] = useState<FilaMat>(filaMatVacia);
+  const [editando, setEditando] = useState<(FilaMat & { id: string; codigo: string; activo: boolean }) | null>(null);
+  const [error, setError] = useState("");
+  const [guardando, setGuardando] = useState(false);
+
+  const cUnitario = (precio: string, margen: string) => Number(precio || 0) * (1 + Number(margen || 0) / 100);
+
+  async function crearDesdeFila() {
+    if (guardando) return;
+    if (!nueva.nombre.trim()) return setError("Escribe la descripción del material.");
+    setError("");
+    setGuardando(true);
+    try {
+      const codigo = await reservarCodigoInsumo({ data: { tipo: "MAT" } });
+      const { error: err } = await apuDb.from("insumos").insert({
+        tipo: "MAT",
+        codigo,
+        nombre: nueva.nombre.trim(),
+        unidad: nueva.unidad || "und",
+        precio: Number(nueva.precio || 0),
+        margen_pct: Number(nueva.margen || 0),
+      });
+      if (err) throw new Error(err.message);
+      setNueva(filaMatVacia);
+      refrescar();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "No se pudo registrar el material.");
+    } finally {
+      setGuardando(false);
+    }
+  }
+
+  async function guardarEdicion() {
+    if (!editando) return;
+    setError("");
+    const { error: err } = await apuDb
+      .from("insumos")
+      .update({
+        nombre: editando.nombre.trim(),
+        unidad: editando.unidad || "und",
+        precio: Number(editando.precio || 0),
+        margen_pct: Number(editando.margen || 0),
+        activo: editando.activo,
+      })
+      .eq("id", editando.id);
+    if (err) return setError(err.message);
+    setEditando(null);
+    refrescar();
+  }
+
+  async function eliminar(id: string) {
+    if (!window.confirm("¿Eliminar este material?")) return;
+    const { error: err } = await apuDb.from("insumos").delete().eq("id", id);
+    if (err)
+      return setError(
+        err.message.includes("foreign key") ? "El material se usa en un análisis de precios; desactívalo." : err.message,
+      );
+    refrescar();
+  }
+
+  const teclaNueva = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      void crearDesdeFila();
+    }
+  };
+
+  const inputCls = "w-full rounded-md border border-line bg-background px-2 py-1 text-xs outline-none focus:border-primary";
+  const selCls = "w-full rounded-md border border-line bg-background px-1.5 py-1 text-xs outline-none focus:border-primary";
+
+  return (
+    <Panel
+      titulo="Maestro de insumos — Materiales"
+      extra={<Buscador valor={busqueda} onChange={setBusqueda} total={lista.length} placeholder="Buscar por código o descripción..." />}
+    >
+      <table className="w-full table-fixed font-mono text-xs">
+        <thead>
+          <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+            <th className="w-[10%] px-5 py-2 font-medium">Código</th>
+            <th className="w-[36%] px-3 py-2 font-medium">Descripción</th>
+            <th className="w-[9%] px-3 py-2 font-medium">Unidad</th>
+            <th className="w-[12%] px-3 py-2 text-right font-medium">P. Compra</th>
+            <th className="w-[9%] px-3 py-2 text-right font-medium">Margen %</th>
+            <th className="w-[12%] px-3 py-2 text-right font-medium">C. Unitario</th>
+            <th className="w-[12%] px-5 py-2 text-right font-medium">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {lista.map((i) => {
+            const esEdicion = editando?.id === i.id;
+            const compra = esEdicion ? Number(editando.precio || 0) : Number(i.precio);
+            const margen = esEdicion ? Number(editando.margen || 0) : Number(i.margen_pct || 0);
+            const cu = compra * (1 + margen / 100);
+            return (
+              <tr key={i.id} className="border-b border-line/40 last:border-0">
+                {esEdicion ? (
+                  <>
+                    <td className="px-5 py-2 text-muted-foreground">{editando.codigo || "—"}</td>
+                    <td className="px-3 py-2"><Input className="py-1 text-xs" value={editando.nombre} onChange={(e) => setEditando({ ...editando, nombre: e.target.value })} /></td>
+                    <td className="px-3 py-2">
+                      <select className={selCls} value={editando.unidad} onChange={(e) => setEditando({ ...editando, unidad: e.target.value })}>
+                        {[...new Set([editando.unidad, ...simbolos])].map((s) => <option key={s} value={s}>{s}</option>)}
+                      </select>
+                    </td>
+                    <td className="px-3 py-2"><Input className="py-1 text-right text-xs" type="number" step="0.01" min={0} value={editando.precio} onChange={(e) => setEditando({ ...editando, precio: e.target.value })} /></td>
+                    <td className="px-3 py-2"><Input className="py-1 text-right text-xs" type="number" step="0.01" min={0} value={editando.margen} onChange={(e) => setEditando({ ...editando, margen: e.target.value })} /></td>
+                    <td className="px-3 py-2 text-right text-ink">{soles(cu)}</td>
+                    <td className="px-5 py-2">
+                      <div className="flex justify-end gap-1">
+                        <button type="button" onClick={guardarEdicion} title="Guardar" className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground"><Check size={14} /></button>
+                        <button type="button" onClick={() => setEditando(null)} title="Cancelar" className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line hover:bg-muted"><X size={14} /></button>
+                      </div>
+                    </td>
+                  </>
+                ) : (
+                  <>
+                    <td className="px-5 py-2.5 text-muted-foreground"><Resaltar texto={i.codigo || "—"} termino={busqueda} /></td>
+                    <td className="px-3 py-2.5 text-ink"><Resaltar texto={i.nombre} termino={busqueda} /></td>
+                    <td className="px-3 py-2.5 text-center text-muted-foreground">{i.unidad}</td>
+                    <td className="px-3 py-2.5 text-right">{soles(compra)}</td>
+                    <td className="px-3 py-2.5 text-right text-muted-foreground">{margen.toFixed(2)}%</td>
+                    <td className="px-3 py-2.5 text-right font-semibold text-primary">{soles(cu)}</td>
+                    <td className="px-5 py-2.5">
+                      <div className="flex justify-end gap-1">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setEditando({
+                              id: i.id,
+                              codigo: i.codigo,
+                              activo: i.activo,
+                              nombre: i.nombre,
+                              unidad: i.unidad,
+                              precio: String(i.precio || ""),
+                              margen: String(i.margen_pct || ""),
+                            })
+                          }
+                          title="Editar"
+                          className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"
+                        >
+                          <Pencil size={14} />
+                        </button>
+                        <button type="button" onClick={() => eliminar(i.id)} title="Eliminar" className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-bad hover:text-bad"><Trash2 size={14} /></button>
+                      </div>
+                    </td>
+                  </>
+                )}
+              </tr>
+            );
+          })}
+
+          {/* Fila fantasma de creación rápida */}
+          <tr className="border-b border-dashed border-line/60 bg-muted/20">
+            <td className="px-5 py-2 text-muted-foreground/60">auto</td>
+            <td className="px-3 py-2">
+              <input
+                className={inputCls}
+                placeholder="Escribe la descripción y pulsa Enter…"
+                value={nueva.nombre}
+                onChange={(e) => setNueva({ ...nueva, nombre: e.target.value })}
+                onKeyDown={teclaNueva}
+              />
+            </td>
+            <td className="px-3 py-2">
+              <select className={selCls} value={nueva.unidad} onChange={(e) => setNueva({ ...nueva, unidad: e.target.value })}>
+                {simbolos.map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </td>
+            <td className="px-3 py-2">
+              <input
+                className={`${inputCls} text-right`}
+                type="number"
+                step="0.01"
+                min={0}
+                placeholder="0.00"
+                value={nueva.precio}
+                onChange={(e) => setNueva({ ...nueva, precio: e.target.value })}
+                onKeyDown={teclaNueva}
+              />
+            </td>
+            <td className="px-3 py-2">
+              <input
+                className={`${inputCls} text-right`}
+                type="number"
+                step="0.01"
+                min={0}
+                placeholder="0"
+                value={nueva.margen}
+                onChange={(e) => setNueva({ ...nueva, margen: e.target.value })}
+                onKeyDown={teclaNueva}
+              />
+            </td>
+            <td className="px-3 py-2 text-right font-semibold text-primary">{soles(cUnitario(nueva.precio, nueva.margen))}</td>
+            <td className="px-5 py-2">
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => void crearDesdeFila()}
+                  disabled={guardando}
+                  title="Registrar material"
+                  className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground disabled:opacity-50"
+                >
+                  <Check size={14} />
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      {error && <p className="px-5 py-2 font-mono text-xs text-bad">{error}</p>}
+      <p className="border-t border-line px-5 py-3 font-mono text-[10px] leading-relaxed text-muted-foreground">
+        El C. Unitario —el que usan los análisis de precios unitarios— es el P. Compra más el margen. Los precios se registran sin IGV.
+        La unidad se elige del catálogo de Unidades de medida (por defecto und).
+      </p>
+    </Panel>
+  );
+}
+
 function FragmentFila({
   children,
   abierto,
