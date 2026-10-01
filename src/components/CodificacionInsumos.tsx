@@ -31,12 +31,13 @@ const vacio: Omit<Cfg, "id"> = {
   correlativo_sc: 0,
 };
 
-const CAMPOS: { tipo: string; nombre: string; digito: keyof Cfg; correlativo: keyof Cfg }[] = TIPOS_INSUMO.map(
+type CfgForm = Omit<Cfg, "id">;
+const CAMPOS: { tipo: string; nombre: string; digito: keyof CfgForm; correlativo: keyof CfgForm }[] = TIPOS_INSUMO.map(
   ([t, nombre]) => ({
     tipo: t,
     nombre,
-    digito: `digito_${t.toLowerCase()}` as keyof Cfg,
-    correlativo: `correlativo_${t.toLowerCase()}` as keyof Cfg,
+    digito: `digito_${t.toLowerCase()}` as keyof CfgForm,
+    correlativo: `correlativo_${t.toLowerCase()}` as keyof CfgForm,
   }),
 );
 
