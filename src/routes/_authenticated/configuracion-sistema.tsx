@@ -68,7 +68,7 @@ function ConfiguracionSistema() {
               : "border-b-2 border-transparent text-muted-foreground"
           }`}
         >
-          <Palette className="size-4" />
+          <IconoPaletaColores className="size-4" />
           Tema de colores
         </Boton>
         <Boton
