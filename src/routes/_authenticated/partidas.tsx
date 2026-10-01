@@ -19,6 +19,8 @@ import {
   usePartidas,
   useProyectos,
   useTiposPresupuesto,
+  usePrioridades,
+  nombresPrioridades,
 } from "@/lib/datos";
 import { exportarExcel } from "@/lib/exportar";
 import { Pencil, Trash2, Check, X, LayoutGrid, Table2, Upload, ListOrdered, Calculator, CornerDownRight } from "lucide-react";
@@ -64,6 +66,8 @@ function Partidas() {
   const { data: gastos = [] } = useGastosDirectos();
 
   const { data: tipos = [] } = useTiposPresupuesto();
+  const { data: prioridadesData } = usePrioridades();
+  const prioridadesLista = nombresPrioridades(prioridadesData);
   const { data: capitulos = [] } = useEspecialidadesPartida();
   const { data: categorias = [] } = useCategoriasPartida();
   const { data: unidades = [] } = useUnidadesMedida();
@@ -617,7 +621,7 @@ function Partidas() {
           </Campo>
           <Campo etiqueta="Prioridad">
             <Select value={form.prioridad} onChange={(e) => setForm({ ...form, prioridad: e.target.value })}>
-              {PRIORIDADES.map((p) => (
+              {prioridadesLista.map((p) => (
                 <option key={p} value={p}>
                   {p}
                 </option>
