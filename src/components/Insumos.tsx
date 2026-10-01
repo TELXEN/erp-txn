@@ -119,6 +119,8 @@ export function Insumos() {
 
       {filtro === "MO" ? (
         <ManoObraWysiwyg lista={visibles} busqueda={busqueda} setBusqueda={setBusqueda} refrescar={refrescar} />
+      ) : filtro === "MAT" ? (
+        <MaterialesWysiwyg lista={visibles} busqueda={busqueda} setBusqueda={setBusqueda} refrescar={refrescar} />
       ) : (
         <>
           <Panel titulo={`Nuevo insumo — ${nombreTipo(filtro)}`} className="mb-4">
