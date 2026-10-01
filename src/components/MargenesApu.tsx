@@ -43,7 +43,7 @@ export function MargenesApuPanel() {
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           {TIPOS_INSUMO.map(([tipo, nombre]) => (
             <label key={tipo} className="text-sm">
-              <span className="mb-1 block font-medium text-ink">{nombre}</span>
+              <span className="mb-1 block font-medium text-ink">{tipo === "HT" ? `${nombre} (% de la mano de obra)` : nombre}</span>
               <div className="flex items-center gap-2">
                 <Input
                   type="number"
