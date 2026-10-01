@@ -87,7 +87,7 @@ export function calcularApu(
   const filas = componentes.map((c) => {
     const ins = insumos.find((i) => i.id === c.insumo_id);
     const cantidad = cantidadComponente(c, rendimiento, jornada);
-    const parcial = cantidad * Number(ins?.precio ?? 0);
+    const parcial = cantidad * (ins ? precioVenta(ins) : 0);
     if (ins) tot[ins.tipo] += parcial;
     return { c, ins, cantidad, parcial };
   });
