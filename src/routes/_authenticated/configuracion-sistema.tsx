@@ -103,7 +103,7 @@ function ConfiguracionSistema() {
               : "border-b-2 border-transparent text-muted-foreground"
           }`}
         >
-          <HardHat className="size-4" />
+          <IconoCascoColores className="size-4" />
           Parámetros laborales
         </Boton>
       </div>
