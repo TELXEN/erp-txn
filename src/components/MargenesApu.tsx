@@ -7,7 +7,7 @@ import { MARGENES_DEFECTO, TIPOS_INSUMO, apuDb, useMargenesInsumo, type Margenes
 
 export function MargenesApuPanel() {
   const qc = useQueryClient();
-  const { rol } = useAuth() as unknown as { rol?: string };
+  const { rol } = useAuth();
   const puedeEditar = rol === "gerente";
   const { data = MARGENES_DEFECTO } = useMargenesInsumo();
   const [form, setForm] = useState<Record<string, string>>({});
