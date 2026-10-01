@@ -300,7 +300,8 @@ function GastosGenerales() {
           {(
             [
               ["gastos", `Gastos generales (${gastosFiltrados.length})`],
-              ["flota", `Flota (${flota.length})`],
+              ["mantenimiento", `Mantenimiento (${listaMant.length})`],
+              ["combustible", `Combustible (${listaComb.length})`],
               ["nuevo", "+ Registrar gasto"],
             ] as const
           ).map(([id, txt]) => (
