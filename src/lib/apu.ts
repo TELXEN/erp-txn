@@ -17,8 +17,13 @@ export type Insumo = {
   nombre: string;
   unidad: string;
   precio: number;
+  margen_pct: number;
   activo: boolean;
 };
+
+/** Precio de venta = precio de compra + margen % sobre compra. */
+export const precioVenta = (i: Pick<Insumo, "precio" | "margen_pct">) =>
+  Number(i.precio) * (1 + Number(i.margen_pct || 0) / 100);
 
 export type ComponenteApu = {
   id: string;
