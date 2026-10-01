@@ -3,6 +3,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Check, ChevronDown, ChevronRight, Pencil, Trash2, X } from "lucide-react";
 import { Boton, Campo, Input, Panel, Select, Vacio } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
+import { MargenesApuPanel } from "@/components/MargenesApu";
+import { ParametrosLaboralesPanel } from "@/components/ParametrosLaborales";
 import { soles } from "@/lib/format";
 import { useUnidadesMedida } from "@/lib/unidades";
 import { reservarCodigoInsumo } from "@/lib/codigos.functions";
@@ -25,6 +27,7 @@ import {
 } from "@/lib/apu";
 
 const vacio = { tipo: "MAT" as TipoInsumo, codigo: "", nombre: "", unidad: "und", precio: "", margen: "" };
+type SeccionInsumos = TipoInsumo | "margenes" | "laboral";
 
 export function Insumos() {
   const qc = useQueryClient();
@@ -34,6 +37,7 @@ export function Insumos() {
   const [form, setForm] = useState(vacio);
   const [editando, setEditando] = useState<Insumo | null>(null);
   const [filtro, setFiltro] = useState<TipoInsumo>("MO");
+  const [seccion, setSeccion] = useState<SeccionInsumos>("MO");
   const [busqueda, setBusqueda] = useState("");
   const [error, setError] = useState("");
   const refrescar = () => {
@@ -50,6 +54,7 @@ export function Insumos() {
     .filter((i) => coincide(busqueda, i.codigo, i.nombre));
 
   function cambiarPestana(t: TipoInsumo) {
+    setSeccion(t);
     setFiltro(t);
     setForm((f) => ({ ...f, tipo: t }));
   }
@@ -103,14 +108,14 @@ export function Insumos() {
   return (
     <>
       <div className="mb-4 inline-flex max-w-full flex-wrap items-center gap-1 rounded-lg border border-line bg-muted/40 p-1">
-        <span className="px-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Tipo:</span>
+        <span className="px-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Maestro:</span>
         {TIPOS_INSUMO.map(([t, texto]) => (
           <button
             key={t}
             type="button"
             onClick={() => cambiarPestana(t)}
             className={`rounded-md px-3 py-1 text-xs transition-colors ${
-              filtro === t
+              seccion === t
                 ? "bg-primary font-semibold text-primary-foreground shadow-sm"
                 : "text-muted-foreground hover:bg-background hover:text-primary"
             }`}
@@ -118,9 +123,36 @@ export function Insumos() {
             {texto}
           </button>
         ))}
+        <span className="mx-1 h-5 w-px bg-line" aria-hidden="true" />
+        <button
+          type="button"
+          onClick={() => setSeccion("margenes")}
+          className={`rounded-md px-3 py-1 text-xs transition-colors ${
+            seccion === "margenes"
+              ? "bg-primary font-semibold text-primary-foreground shadow-sm"
+              : "text-muted-foreground hover:bg-background hover:text-primary"
+          }`}
+        >
+          Márgenes APU
+        </button>
+        <button
+          type="button"
+          onClick={() => setSeccion("laboral")}
+          className={`rounded-md px-3 py-1 text-xs transition-colors ${
+            seccion === "laboral"
+              ? "bg-primary font-semibold text-primary-foreground shadow-sm"
+              : "text-muted-foreground hover:bg-background hover:text-primary"
+          }`}
+        >
+          Parámetros laborales
+        </button>
       </div>
 
-      {filtro === "MO" ? (
+      {seccion === "margenes" ? (
+        <MargenesApuPanel />
+      ) : seccion === "laboral" ? (
+        <ParametrosLaboralesPanel />
+      ) : filtro === "MO" ? (
         <ManoObraWysiwyg lista={visibles} busqueda={busqueda} setBusqueda={setBusqueda} refrescar={refrescar} />
       ) : filtro === "MAT" ? (
         <MaterialesWysiwyg lista={visibles} busqueda={busqueda} setBusqueda={setBusqueda} refrescar={refrescar} />
@@ -152,7 +184,7 @@ export function Insumos() {
                 <Input className="py-1.5" type="number" step="0.01" min={0} value={form.precio} onChange={(e) => setForm({ ...form, precio: e.target.value })} />
               </Campo>
               <Campo etiqueta="Margen (%)">
-                <p className="py-1.5 text-sm text-muted-foreground" title="Se configura en Configuración del Sistema › Márgenes APU">{(mg[form.tipo] ?? 0).toFixed(2)}% (del tipo)</p>
+                <p className="py-1.5 text-sm text-muted-foreground" title="Se configura en Maestro de insumos › Márgenes APU">{(mg[form.tipo] ?? 0).toFixed(2)}% (del tipo)</p>
               </Campo>
               <div className="sm:col-span-7 flex justify-end">
                 <Boton type="submit">Agregar insumo</Boton>
@@ -201,7 +233,7 @@ export function Insumos() {
                           </Select>
                         </td>
                         <td className="px-3 py-2"><Input className="py-1 text-right text-xs" type="number" step="0.01" value={editando.precio} onChange={(e) => setEditando({ ...editando, precio: Number(e.target.value) })} /></td>
-                        <td className="px-3 py-2 text-right text-muted-foreground" title="Margen único del tipo (Configuración del Sistema)">{(mg[editando.tipo] ?? 0).toFixed(2)}%</td>
+                         <td className="px-3 py-2 text-right text-muted-foreground" title="Margen único del tipo (Maestro de insumos)">{(mg[editando.tipo] ?? 0).toFixed(2)}%</td>
                         <td className="px-3 py-2 text-right text-ink">{soles(precioVenta(editando))}</td>
                         <td className="px-3 py-2">
                           <Select className="py-1 text-xs" value={editando.activo ? "si" : "no"} onChange={(e) => setEditando({ ...editando, activo: e.target.value === "si" })}>
@@ -577,7 +609,7 @@ function ManoObraWysiwyg({
       {error && <p className="px-5 py-2 font-mono text-xs text-bad">{error}</p>}
       <p className="border-t border-line px-5 py-3 font-mono text-[10px] leading-relaxed text-muted-foreground">
         El Costo Base se calcula con el régimen laboral (sueldo o jornal, gratificaciones, vacaciones, CTS, EsSalud, SCTR, Vida Ley, BUC) dividido entre las horas
-        efectivas anuales. El Costo HH —el que usan los análisis de precios unitarios— es el Costo Base más el margen. Los parámetros se ajustan en Configuración del Sistema › Parámetros laborales. La unidad es siempre hh.
+         efectivas anuales. El Costo HH —el que usan los análisis de precios unitarios— es el Costo Base más el margen. Los parámetros se ajustan en Maestro de insumos › Parámetros laborales. La unidad es siempre hh.
       </p>
     </Panel>
   );
