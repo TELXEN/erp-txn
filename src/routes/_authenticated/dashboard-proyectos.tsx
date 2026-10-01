@@ -6,6 +6,7 @@ import { Boton, Panel, Select, Vacio } from "@/components/ui-kit";
 import { CurvaS } from "@/components/CurvaS";
 import { InsigniaPrioridad, InsigniaSituacion } from "@/components/estado-ui";
 import { tonoSituacion } from "@/lib/configuracion";
+import { useFuenteDocumento } from "@/lib/fuentes-documentos";
 import { nombresEstados, useEstadosProyecto } from "@/lib/datos";
 
 import { puedeVerDinero, useAuth } from "@/lib/auth";
@@ -46,6 +47,7 @@ export const Route = createFileRoute("/_authenticated/dashboard-proyectos")({
 
 function DashboardProyectos() {
   const { rol } = useAuth();
+  const { fuente } = useFuenteDocumento();
   const { data: proyectos = [] } = useProyectos();
   const estadosQ = useEstadosProyecto();
   const { data: partidas = [] } = usePartidas();
@@ -224,6 +226,7 @@ function DashboardProyectos() {
         ]),
       },
       archivo: "dashboard-proyectos",
+      fuentePdf: fuente.id,
     });
   }
 

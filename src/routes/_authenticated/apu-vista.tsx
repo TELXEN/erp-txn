@@ -5,6 +5,7 @@ import { ArrowLeft, FileDown } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Vacio } from "@/components/ui-kit";
 import { useEmpresa } from "@/lib/empresa";
+import { useFuenteDocumento } from "@/lib/fuentes-documentos";
 import { useCotizaciones } from "@/lib/cotizaciones";
 import { apuDb, calcularApu, TIPOS_INSUMO, useInsumos, type ComponenteApu } from "@/lib/apu";
 
@@ -27,7 +28,6 @@ export const Route = createFileRoute("/_authenticated/apu-vista")({
 });
 
 const C = { ink: "#0f172a", mid: "#334155", mute: "#64748b", line: "#cbd5e1", soft: "#f1f5f9", em: "#047857", emBg: "#ecfdf5", white: "#ffffff" };
-const CALIBRI = '"Calibri Light", Calibri, Carlito, Arial, sans-serif';
 const n2 = (n: number) => n.toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const n4 = (n: number) => n.toLocaleString("es-PE", { minimumFractionDigits: 4, maximumFractionDigits: 4 });
 
@@ -79,6 +79,7 @@ const CAPACIDAD = ALTO_HOJA - 56 - ALTO_ENCABEZADO; // padding vertical 28+28
 function VistaApu() {
   const { id, item } = Route.useSearch();
   const { data: empresa } = useEmpresa();
+  const { fuente } = useFuenteDocumento();
   const { data: cotizaciones = [] } = useCotizaciones();
   const { data: insumos = [] } = useInsumos();
   const cot = cotizaciones.find((c) => c.id === id);
@@ -139,7 +140,7 @@ function VistaApu() {
         <Vacio texto={item ? "La partida no existe." : "Ninguna partida de esta cotización tiene análisis de precios todavía."} />
       ) : (
         <div className="overflow-x-auto">
-          <div id="apu-impresion" style={{ width: 794, margin: "0 auto", fontFamily: CALIBRI, color: C.ink, background: C.white }}>
+          <div id="apu-impresion" style={{ width: 794, margin: "0 auto", fontFamily: fuente.css, color: C.ink, background: C.white }}>
             {paginas.map((pagina, pIdx) => (
               <section key={pIdx} style={{ padding: "28px 34px", minHeight: ALTO_HOJA, pageBreakAfter: pIdx < paginas.length - 1 ? "always" : "auto", fontSize: 9 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 12, borderBottom: `2px solid ${C.em}`, paddingBottom: 10 }}>

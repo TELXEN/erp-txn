@@ -9,6 +9,7 @@ import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha, hoy, MESES, soles } from "@/lib/format";
 import { type Trabajador, useTrabajadores } from "@/lib/datos";
 import { useEmpresa } from "@/lib/empresa";
+import { useFuenteDocumento } from "@/lib/fuentes-documentos";
 import { exportarExcel } from "@/lib/exportar";
 
 export const Route = createFileRoute("/_authenticated/nomina")({
@@ -100,6 +101,7 @@ function Nomina() {
   const qc = useQueryClient();
   const { data: trabajadores = [] } = useTrabajadores();
   const { data: empresa } = useEmpresa();
+  const { fuente } = useFuenteDocumento();
   const ahora = new Date();
   const [anio, setAnio] = useState(ahora.getFullYear());
   const [mes, setMes] = useState(ahora.getMonth() + 1);
@@ -244,7 +246,7 @@ function Nomina() {
       })
       .join("");
     w.document.write(`<html><head><title>Boletas ${periodo}</title><style>
-      body{font-family:Arial,sans-serif;font-size:11px;color:#111;margin:20px}
+      body{font-family:${fuente.css};font-size:11px;color:#111;margin:20px}
       .boleta{border:1px solid #333;padding:14px;margin-bottom:24px;page-break-after:always}
       header{display:flex;justify-content:space-between;border-bottom:2px solid #003352;padding-bottom:8px;margin-bottom:8px}.r{text-align:right}
       table{width:100%;border-collapse:collapse}td,th{padding:3px 5px;border-bottom:1px solid #ddd;text-align:left}
