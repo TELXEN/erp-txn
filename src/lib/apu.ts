@@ -24,6 +24,8 @@ export type Insumo = {
   regimen_laboral?: RegimenLaboral;
   categoria_obrero?: string | null;
   asignacion_familiar?: boolean;
+  propiedad?: "Propio" | "Alquilado";
+  clase_equipo?: "Máquina" | "Equipo";
 };
 
 export type RegimenLaboral = "General" | "MYPE Pequeña" | "Construcción Civil";
@@ -163,6 +165,10 @@ async function cargarMargenes(): Promise<MargenesInsumo> {
 /** Margen único por tipo de insumo (Configuración del Sistema › Márgenes APU). */
 export const useMargenesInsumo = () => useQuery({ queryKey: ["margenes_insumo"], queryFn: cargarMargenes });
 
+/** Equipos/herramientas propios: el precio ya es el C. Unitario (sin margen). */
+export const esPropioSinMargen = (i: Pick<Insumo, "tipo" | "propiedad">) =>
+  (i.tipo === "EQ" || i.tipo === "HT") && (i.propiedad ?? "Propio") === "Propio";
+
 /** Insumos con margen_pct reemplazado por el margen único de su tipo. */
 export const useInsumos = () =>
   useQuery({
@@ -173,7 +179,7 @@ export const useInsumos = () =>
         cargarMargenes(),
       ]);
       if (error) throw error;
-      return ((data ?? []) as Insumo[]).map((i) => ({ ...i, margen_pct: mg[i.tipo] ?? 0 }));
+      return ((data ?? []) as Insumo[]).map((i) => ({ ...i, margen_pct: esPropioSinMargen(i) ? 0 : mg[i.tipo] ?? 0 }));
     },
   });
 
