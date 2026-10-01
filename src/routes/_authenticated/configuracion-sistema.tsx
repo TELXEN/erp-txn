@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Check, HardHat, SlidersHorizontal } from "lucide-react";
+import { Check, SlidersHorizontal } from "lucide-react";
 import { Boton, Panel } from "@/components/ui-kit";
 import { ParametrosLaboralesPanel } from "@/components/ParametrosLaborales";
 import { TEMAS, useTema } from "@/lib/temas";
@@ -22,6 +22,26 @@ function IconoPaletaColores({ className }: { className?: string }) {
       <circle cx="17.5" cy="10.5" r="1.4" fill="#f59e0b" stroke="none" />
       <circle cx="8.5" cy="7.5" r="1.4" fill="#22c55e" stroke="none" />
       <circle cx="6.5" cy="12.5" r="1.4" fill="#3b82f6" stroke="none" />
+    </svg>
+  );
+}
+
+function IconoCascoColores({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M10 10V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5" stroke="#ef4444" />
+      <path d="M14 6a6 6 0 0 1 6 6v3" stroke="#22c55e" />
+      <path d="M20 15h2v2a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-2h2" stroke="#3b82f6" />
+      <path d="M4 15a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v2a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z" stroke="#f59e0b" />
     </svg>
   );
 }
@@ -83,7 +103,7 @@ function ConfiguracionSistema() {
               : "border-b-2 border-transparent text-muted-foreground"
           }`}
         >
-          <HardHat className="size-4" />
+          <IconoCascoColores className="size-4" />
           Parámetros laborales
         </Boton>
       </div>
