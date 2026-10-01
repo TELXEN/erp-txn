@@ -606,26 +606,13 @@ function FragmentFila({
 }) {
   return (
     <>
-      <tr className="border-b border-line/40 last:border-0">
-        <td className="!p-0" style={{ display: "none" }} />
-      </tr>
+      <tr className="border-b border-line/20">{children}</tr>
       <tr className="border-b border-line/40">
-        <td colSpan={10} className="p-0">
-          <table className="w-full table-fixed">
-            <tbody>
-              <tr className="cursor-pointer" onClick={onToggle}>
-                {children}
-              </tr>
-              <tr>
-                <td colSpan={10} className="px-5 pb-1 pt-0">
-                  <button type="button" onClick={onToggle} className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wide text-muted-foreground hover:text-primary">
-                    {abierto ? <ChevronDown size={11} /> : <ChevronRight size={11} />} Cómo se calcula el Costo HH
-                  </button>
-                  {abierto && <div className="pb-2 pt-1">{detalle}</div>}
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <td colSpan={10} className="px-5 pb-1 pt-0">
+          <button type="button" onClick={onToggle} className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wide text-muted-foreground hover:text-primary">
+            {abierto ? <ChevronDown size={11} /> : <ChevronRight size={11} />} Cómo se calcula el Costo HH
+          </button>
+          {abierto && <div className="pb-2 pt-1">{detalle}</div>}
         </td>
       </tr>
     </>
