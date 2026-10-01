@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
-import { Fragment, useState } from "react";
+import { Fragment, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
@@ -76,6 +76,8 @@ function GastosGenerales() {
   const [filtroCategoria, setFiltroCategoria] = useState("Todas");
   const [cerrados, setCerrados] = useState<Set<string>>(new Set());
   const [guiaVisible, setGuiaVisible] = useState(false);
+  const [pestana, setPestana] = useState<"gastos" | "flota" | "nuevo">("gastos");
+  const accionRef = useRef<"volver" | "otra">("volver");
   const ayudaCategoria = categorias.find((c) => c.nombre === form.categoria)?.descripcion ?? "";
   const [editando, setEditando] = useState<{
     id: string;
@@ -197,6 +199,7 @@ function GastosGenerales() {
     if (err) return setError(err.message);
     setForm({ ...form, descripcion: "", comprobante: "", proveedor_id: "", monto: "" });
     qc.invalidateQueries({ queryKey: ["gastos_generales"] });
+    if (accionRef.current === "volver") setPestana("gastos");
   }
 
   async function alternarPago(g: Pago & { id: string }) {
@@ -289,6 +292,33 @@ function GastosGenerales() {
         }
       />
 
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-line">
+        <div className="flex gap-1">
+          {(
+            [
+              ["gastos", `Gastos generales (${gastosFiltrados.length})`],
+              ["flota", `Flota (${flota.length})`],
+              ["nuevo", "+ Registrar gasto"],
+            ] as const
+          ).map(([id, txt]) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setPestana(id)}
+              className={`-mb-px border-b-2 px-4 py-2 font-mono text-xs ${pestana === id ? "border-primary font-semibold text-primary" : "border-transparent text-muted-foreground hover:text-ink"}`}
+            >
+              {txt}
+            </button>
+          ))}
+        </div>
+        {pestana !== "nuevo" && (
+          <Boton onClick={() => setPestana("nuevo")} className="mb-1">
+            + Registrar gasto
+          </Boton>
+        )}
+      </div>
+
+
       <Panel className="mb-4">
         <div className="flex flex-wrap items-end gap-4 p-5">
           <div className="min-w-[240px] flex-1">
@@ -326,6 +356,7 @@ function GastosGenerales() {
         </div>
       </Panel>
 
+      {pestana === "flota" && (
       <Panel titulo={`Mantenimiento y combustible de flota (${flota.length})`} className="mb-4">
         {flota.length === 0 ? (
           <Vacio texto="Sin gastos de flota registrados para este ámbito." />
@@ -366,6 +397,10 @@ function GastosGenerales() {
           </div>
         )}
       </Panel>
+      )}
+
+      {pestana === "nuevo" && (
+
 
 
       <Panel
@@ -480,8 +515,14 @@ function GastosGenerales() {
             </Campo>
           )}
           <div className="sm:col-span-4 flex flex-wrap items-end gap-3">
-            <Boton type="submit" variante="accion">
-              Registrar gasto
+            <Boton type="submit" variante="accion" onClick={() => (accionRef.current = "volver")}>
+              Registrar y volver
+            </Boton>
+            <Boton type="submit" variante="linea" onClick={() => (accionRef.current = "otra")}>
+              Registrar y agregar otro
+            </Boton>
+            <Boton type="button" variante="linea" onClick={() => setPestana("gastos")}>
+              Cancelar
             </Boton>
             <span className="pb-2 font-mono text-xs text-muted-foreground">
               Equivalente: <strong className="text-ink">{soles(equivalente)}</strong>
@@ -490,8 +531,10 @@ function GastosGenerales() {
           {error && <p className="font-mono text-xs text-bad sm:col-span-4">{error}</p>}
         </form>
       </Panel>
+      )}
 
-      {totalesCategoria.length > 0 && (
+
+      {pestana === "gastos" && totalesCategoria.length > 0 && (
         <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {totalesCategoria.map((t) => (
             <button
@@ -510,6 +553,7 @@ function GastosGenerales() {
         </div>
       )}
 
+      {pestana === "gastos" && (
       <Panel
         titulo={`Gastos registrados · ${ambito === "Todas" ? "Todas las imputaciones" : ambito === "Oficina" ? "Oficina Central" : nombreProy(ambito)}`}
         extra={
@@ -716,6 +760,7 @@ function GastosGenerales() {
           </table>
         )}
       </Panel>
+      )}
     </>
   );
 }
