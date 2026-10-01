@@ -26,10 +26,7 @@ import { DatosEmpresa } from "@/components/DatosEmpresa";
 import { CodificacionProyectos } from "@/components/CodificacionProyectos";
 import { CodificacionCotizaciones } from "@/components/CodificacionCotizaciones";
 import { CodificacionPreliquidaciones } from "@/components/CodificacionPreliquidaciones";
-import { EspecialidadesPartida } from "@/components/EspecialidadesPartida";
-import { PartidasMaestras } from "@/components/PartidasMaestras";
 import { CuentasBancarias, type CuentaBancaria } from "@/components/CuentasBancarias";
-import { CategoriasPartida } from "@/components/CategoriasPartida";
 import { RubrosIngreso } from "@/components/RubrosIngreso";
 
 export const Route = createFileRoute("/_authenticated/datos")({
@@ -67,14 +64,10 @@ type Pestana =
   | "codificacion"
   | "codificacioncot"
   | "codificacionpreliq"
-  | "especialidades"
-  | "categorias"
-  | "maestras"
   | "empresa";
 
 const GRUPOS_CONFIG: { titulo: string; icono: React.ElementType; items: [Pestana, string][] }[] = [
   { titulo: "Empresa", icono: Building2, items: [["empresa", "Datos de la empresa"], ["bancos", "Cuentas bancarias"]] },
-  { titulo: "Catálogo técnico (WBS)", icono: Ruler, items: [["especialidades", "Especialidad de partidas"], ["categorias", "Categorías de partidas"], ["maestras", "Registro de partidas"]] },
   { titulo: "Proyectos y Cotizaciones", icono: FolderKanban, items: [["codificacion", "Codificación de proyectos"], ["codificacioncot", "Codificación de cotizaciones"], ["codificacionpreliq", "Codificación de preliquidaciones"], ["configuracion", "Parámetros de proyectos"]] },
   { titulo: "Costos y Finanzas", icono: Coins, items: [["categoriasgg", "Categorías de gastos generales"], ["centros", "Centros de costos"], ["costos", "Rubros de costos"], ["ingresos", "Rubros de ingresos"]] },
   { titulo: "Recursos Humanos", icono: HardHat, items: [["cargos", "Cargos del personal"]] },
@@ -230,12 +223,6 @@ function Datos() {
         <CodificacionCotizaciones />
       ) : pestana === "codificacionpreliq" ? (
         <CodificacionPreliquidaciones />
-      ) : pestana === "especialidades" ? (
-        <EspecialidadesPartida />
-      ) : pestana === "categorias" ? (
-        <CategoriasPartida />
-      ) : pestana === "maestras" ? (
-        <PartidasMaestras />
       ) : pestana === "empresa" ? (
         <DatosEmpresa />
       ) : pestana === "ingresos" ? (
