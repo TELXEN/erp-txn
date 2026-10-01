@@ -149,13 +149,31 @@ export type ComponenteApu = {
 
 const db = supabase as unknown as { from: (t: string) => any };
 
+export type MargenesInsumo = Record<TipoInsumo, number>;
+export const MARGENES_DEFECTO: MargenesInsumo = { MO: 0, MAT: 0, EQ: 0, HT: 0, SC: 0 };
+
+async function cargarMargenes(): Promise<MargenesInsumo> {
+  const { data, error } = await db.from("margenes_insumo").select("tipo, margen_pct");
+  if (error) throw error;
+  const m = { ...MARGENES_DEFECTO };
+  for (const r of (data ?? []) as { tipo: TipoInsumo; margen_pct: number }[]) m[r.tipo] = Number(r.margen_pct || 0);
+  return m;
+}
+
+/** Margen único por tipo de insumo (Configuración del Sistema › Márgenes APU). */
+export const useMargenesInsumo = () => useQuery({ queryKey: ["margenes_insumo"], queryFn: cargarMargenes });
+
+/** Insumos con margen_pct reemplazado por el margen único de su tipo. */
 export const useInsumos = () =>
   useQuery({
     queryKey: ["insumos"],
     queryFn: async () => {
-      const { data, error } = await db.from("insumos").select("*").order("tipo").order("nombre");
+      const [{ data, error }, mg] = await Promise.all([
+        db.from("insumos").select("*").order("tipo").order("nombre"),
+        cargarMargenes(),
+      ]);
       if (error) throw error;
-      return (data ?? []) as Insumo[];
+      return ((data ?? []) as Insumo[]).map((i) => ({ ...i, margen_pct: mg[i.tipo] ?? 0 }));
     },
   });
 

@@ -600,6 +600,8 @@ function MaterialesWysiwyg({
   setBusqueda: (v: string) => void;
   refrescar: () => void;
 }) {
+  const { data: mg = MARGENES_DEFECTO } = useMargenesInsumo();
+  const mgTipo = mg.MAT;
   const { data: unidades = [] } = useUnidadesMedida();
   const simbolos = useMemo(() => {
     const s = unidades.filter((u) => u.activo).map((u) => u.simbolo);
