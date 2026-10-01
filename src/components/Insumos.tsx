@@ -266,7 +266,8 @@ function ManoObraWysiwyg({
   setBusqueda: (v: string) => void;
   refrescar: () => void;
 }) {
-  const { data: params } = useParametrosLaborales();
+  const { data: paramsData } = useParametrosLaborales();
+  const params = paramsData ?? PARAMETROS_LABORALES_DEFECTO;
   const [nueva, setNueva] = useState<FilaMO>(filaVacia);
   const [editando, setEditando] = useState<(FilaMO & { id: string; codigo: string; activo: boolean }) | null>(null);
   const [detalleAbierto, setDetalleAbierto] = useState<string | null>(null);
