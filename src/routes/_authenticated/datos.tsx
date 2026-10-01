@@ -1243,10 +1243,6 @@ function ConfiguracionProyectos() {
       <PrioridadesPanel />
 
       <div className="lg:col-span-2">
-        <MarcasPanel />
-      </div>
-
-      <div className="lg:col-span-2">
         <TiposPresupuesto />
       </div>
     </div>
