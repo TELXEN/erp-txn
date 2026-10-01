@@ -47,7 +47,7 @@ export function ParametrosLaboralesPanel() {
 
   return (
     <form onSubmit={guardar}>
-      <Panel titulo="Parámetros laborales (Costo hora-hombre)">
+      <Panel titulo="Parámetros laborales (Costo hora-hombre, solo construcción civil)">
         <div className="grid gap-4 p-4 lg:grid-cols-2">
           <div>
             <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
