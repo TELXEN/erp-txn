@@ -1,4 +1,4 @@
-# Mano de obra: costo hora-hombre desde sueldo mensual
+# Mano de obra: costo hora-hombre según régimen laboral
 
 ## Qué verá el usuario
 En Maestro de insumos > Mano de obra, el formulario "Nuevo insumo" tendrá:
@@ -7,53 +7,47 @@ En Maestro de insumos > Mano de obra, el formulario "Nuevo insumo" tendrá:
 |---|---|
 | Código | Automático (ej. `MO-001`), solo lectura, según la codificación configurada en Catálogos Maestros |
 | Descripción | Texto libre (ej. "Operario electricista") |
+| Régimen laboral | Construcción Civil / Régimen General Común / MYPE Pequeña Empresa |
+| Categoría (solo Construcción Civil) | Operario / Oficial / Peón |
 | Unidad | Fija en `hh` |
-| Sueldo mensual (S/) | Se escribe |
+| Sueldo mensual (S/) | Se escribe. En Construcción Civil se precarga el jornal oficial de la categoría x 30 (editable) |
 | Margen (%) | Se escribe en porcentaje |
 | Costo HH (S/) | Calculado en vivo, solo lectura |
 
-Debajo del formulario, un desglose plegable "Cómo se calcula" muestra cada concepto del costo. La tabla del maestro añade la columna Sueldo mensual y muestra Costo HH y P. Venta (Costo HH + margen). Las otras cuatro pestañas quedan como están.
+Debajo, un desglose plegable "Cómo se calcula" muestra cada concepto según el régimen elegido. La tabla añade las columnas Régimen y Sueldo mensual, con Costo HH y P. Venta (Costo HH + margen). Las otras cuatro pestañas no cambian.
 
-## Fórmula propuesta (régimen general, planilla)
-Costo anual del empleador por trabajador:
+## Conceptos por régimen (costo anual del empleador)
 
-```text
-Sueldo anual            = Sueldo x 12
-Gratificaciones         = Sueldo x 2            (julio y diciembre)
-Bonif. extraord. 9%     = Gratificaciones x 9%  (Ley 30334, va al trabajador)
-Vacaciones              = Sueldo x 1            (ya incluidas en las 12, se cuentan como días no trabajados)
-CTS                     = (Sueldo + 1/6 grati) x 1
-EsSalud                 = 9% x (Sueldo x 12)
-SCTR salud + pensión    = % configurable (por defecto 1.5%) x Sueldo x 12   (obligatorio en construcción)
-Seguro Vida Ley         = % configurable (por defecto 0.5%)
-Asignación familiar     = 10% RMV x 12   (opcional, casilla)
--------------------------------------------------------------
-Costo anual total
-```
+| Concepto | Régimen General | MYPE Pequeña Empresa | Construcción Civil |
+|---|---|---|---|
+| Remuneración | Sueldo x 12 | Sueldo x 12 | Jornal básico x días laborables |
+| Gratificaciones | 2 sueldos + 9% bonif. | 1 sueldo (½ en jul. y dic.) + 9% | 40 jornales (Fiestas Patrias) + 40 (Navidad) |
+| Vacaciones | 30 días | 15 días | 10% del jornal básico (pagadas, sin descanso) |
+| CTS | 1 sueldo + 1/6 grati | ½ sueldo (15 días por año) | 15% del jornal básico |
+| Asignación familiar | 10% RMV (opcional) | 10% RMV (opcional) | No aplica (escolaridad aparte) |
+| Bonificación unificada (BUC) | No | No | 32% Operario / 30% Oficial y Peón |
+| Movilidad / herramienta | No | No | Pasaje diario + 5% herramienta (operario) |
+| EsSalud | 9% | 9% | 9% |
+| SCTR salud + pensión | % configurable | % configurable | Obligatorio, % configurable |
+| Seguro Vida Ley | % configurable | % configurable | % configurable |
+| CONAFOVICER | No | No | 2% del jornal (lo paga el trabajador; informativo) |
 
-Horas efectivas al año:
-```text
-48 h semanales x 52 semanas = 2,496 h
-- vacaciones (30 días ≈ 208 h)
-- feriados (12 días ≈ 96 h)
-= ≈ 2,192 horas efectivas
-```
+Horas efectivas por año (configurable): 48 h semanales x 52 semanas menos vacaciones (si se descansan) y feriados.
 
 **Costo HH = Costo anual total / horas efectivas**
 **P. Venta = Costo HH x (1 + margen %)**
 
-Ejemplo: sueldo S/ 2,000 → costo anual ≈ S/ 33,900 → Costo HH ≈ S/ 15.47.
-
-Nota: no se usa el régimen de construcción civil (jornal diario y BUC); si lo necesitas se agrega como segunda opción.
-
 ## Parámetros configurables
-En Configuración del Sistema, panel nuevo "Parámetros de mano de obra" (solo Gerente): RMV, % EsSalud, % SCTR, % Vida Ley, horas semanales, días de vacaciones, feriados al año. Cambiarlos recalcula los costos HH al momento de editar.
+En Configuración del Sistema, panel "Parámetros laborales" (solo Gerente):
+- Generales: RMV, % EsSalud, % SCTR, % Vida Ley, horas semanales, feriados al año.
+- Construcción Civil: jornal vigente por categoría (Operario, Oficial, Peón), % BUC por categoría, pasaje diario, % herramienta.
+Así, cuando salga la nueva tabla salarial de construcción civil, se actualiza en un solo lugar.
 
 ## Código automático
-En Catálogos Maestros se añade "Codificación de insumos" (prefijo por tipo, separador, dígitos), siguiendo el mismo esquema que proyectos y cotizaciones. El código se reserva en el servidor al guardar.
+En Catálogos Maestros se añade "Codificación de insumos" (prefijo, separador, dígitos), mismo esquema que proyectos y cotizaciones. El código se reserva en el servidor al guardar.
 
 ## Detalles técnicos
-- Migración: columnas `sueldo_mensual numeric default 0` y `asignacion_familiar boolean default false` en `insumos`; tabla `parametros_laborales` (fila única, lectura autenticados, edición solo gerente, con GRANTs y RLS); tabla `codificacion_insumo` + función `siguiente_codigo_insumo(tipo)` solo service_role, invocada desde un server fn en `codigos.functions.ts`.
-- `src/lib/apu.ts`: función pura `calcularCostoHH(sueldo, params, asigFam)` que devuelve desglose y total; para MO, `precio` se guarda con el Costo HH calculado, así el APU y el buscador siguen usando `precioVenta` sin cambios.
-- `Insumos.tsx`: formulario específico cuando la pestaña es MO, desglose plegable, columna Sueldo mensual; edición en fila recalcula.
-- Verificar en navegador: crear un insumo MO, revisar código, cálculo y que aparezca en el APU con su P. Venta.
+- Migración: en `insumos` columnas `sueldo_mensual numeric default 0`, `regimen_laboral text default 'General'` (General | MYPE Pequeña | Construcción Civil), `categoria_obrero text null`, `asignacion_familiar boolean default false`; tabla `parametros_laborales` (fila única, lectura autenticados, edición solo gerente, con GRANTs y RLS); tabla `codificacion_insumo` + función `siguiente_codigo_insumo()` solo service_role, invocada desde un server fn en `codigos.functions.ts`.
+- `src/lib/apu.ts`: función pura `calcularCostoHH(insumo, params)` con una rama por régimen que devuelve desglose y total; para MO se guarda `precio` = Costo HH, así el APU y el buscador siguen usando `precioVenta` sin cambios.
+- `Insumos.tsx`: formulario específico para MO con selector de régimen/categoría, desglose plegable, nuevas columnas; la edición en fila recalcula.
+- Verificar en navegador: crear un insumo de cada régimen, revisar código, cálculo y que aparezca en el APU con su P. Venta.
