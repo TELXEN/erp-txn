@@ -80,7 +80,7 @@ export function Insumos() {
   return (
     <>
       <Panel titulo="Nuevo insumo" className="mb-4">
-        <form onSubmit={crear} className="grid gap-3 p-4 sm:grid-cols-6">
+        <form onSubmit={crear} className="grid gap-3 p-4 sm:grid-cols-7">
           <Campo etiqueta="Tipo">
             <Select className="py-1.5" value={form.tipo} onChange={(e) => setForm({ ...form, tipo: e.target.value as TipoInsumo })}>
               {TIPOS_INSUMO.map(([k, t]) => (
@@ -101,13 +101,16 @@ export function Insumos() {
               {simbolos.map((s) => <option key={s} value={s}>{s}</option>)}
             </Select>
           </Campo>
-          <Campo etiqueta="Precio sin IGV (S/)">
+          <Campo etiqueta="P. compra sin IGV (S/)">
             <Input className="py-1.5" type="number" step="0.01" min={0} value={form.precio} onChange={(e) => setForm({ ...form, precio: e.target.value })} />
           </Campo>
-          <div className="sm:col-span-6 flex justify-end">
+          <Campo etiqueta="Margen (%)">
+            <Input className="py-1.5" type="number" step="0.01" min={0} value={form.margen} onChange={(e) => setForm({ ...form, margen: e.target.value })} />
+          </Campo>
+          <div className="sm:col-span-7 flex justify-end">
             <Boton type="submit">Agregar insumo</Boton>
           </div>
-          {error && <p className="font-mono text-xs text-bad sm:col-span-6">{error}</p>}
+          {error && <p className="font-mono text-xs text-bad sm:col-span-7">{error}</p>}
         </form>
       </Panel>
 
@@ -129,13 +132,15 @@ export function Insumos() {
           <table className="w-full table-fixed font-mono text-xs">
             <thead>
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                <th className="w-[18%] px-5 py-2 font-medium">Tipo</th>
-                <th className="w-[11%] px-3 py-2 font-medium">Código</th>
-                <th className="w-[33%] px-3 py-2 font-medium">Descripción</th>
-                <th className="w-[8%] px-3 py-2 font-medium">Und.</th>
-                <th className="w-[12%] px-3 py-2 text-right font-medium">Precio</th>
-                <th className="w-[8%] px-3 py-2 font-medium">Estado</th>
-                <th className="w-[10%] px-5 py-2 text-right font-medium">Acciones</th>
+                <th className="w-[14%] px-5 py-2 font-medium">Tipo</th>
+                <th className="w-[9%] px-3 py-2 font-medium">Código</th>
+                <th className="w-[27%] px-3 py-2 font-medium">Descripción</th>
+                <th className="w-[7%] px-3 py-2 font-medium">Und.</th>
+                <th className="w-[11%] px-3 py-2 text-right font-medium">P. Compra</th>
+                <th className="w-[8%] px-3 py-2 text-right font-medium">Margen %</th>
+                <th className="w-[11%] px-3 py-2 text-right font-medium">P. Venta</th>
+                <th className="w-[6%] px-3 py-2 font-medium">Estado</th>
+                <th className="w-[7%] px-5 py-2 text-right font-medium">Acciones</th>
               </tr>
             </thead>
             <tbody>
