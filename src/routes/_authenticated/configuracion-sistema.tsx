@@ -1,9 +1,30 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Check, HardHat, Palette, SlidersHorizontal } from "lucide-react";
+import { Check, HardHat, SlidersHorizontal } from "lucide-react";
 import { Boton, Panel } from "@/components/ui-kit";
 import { ParametrosLaboralesPanel } from "@/components/ParametrosLaborales";
 import { TEMAS, useTema } from "@/lib/temas";
+
+function IconoPaletaColores({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z" />
+      <circle cx="13.5" cy="6.5" r="1.4" fill="#ef4444" stroke="none" />
+      <circle cx="17.5" cy="10.5" r="1.4" fill="#f59e0b" stroke="none" />
+      <circle cx="8.5" cy="7.5" r="1.4" fill="#22c55e" stroke="none" />
+      <circle cx="6.5" cy="12.5" r="1.4" fill="#3b82f6" stroke="none" />
+    </svg>
+  );
+}
 
 export const Route = createFileRoute("/_authenticated/configuracion-sistema")({
   head: () => ({
