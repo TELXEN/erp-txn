@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Check, SlidersHorizontal } from "lucide-react";
+import { useState } from "react";
+import { Check, FileText, SlidersHorizontal } from "lucide-react";
 import { Boton, Panel } from "@/components/ui-kit";
+import { TipografiaDocumentosPanel } from "@/components/TipografiaDocumentos";
 import { TEMAS, useTema } from "@/lib/temas";
 
 function IconoPaletaColores({ className }: { className?: string }) {
@@ -38,6 +40,7 @@ export const Route = createFileRoute("/_authenticated/configuracion-sistema")({
 
 function ConfiguracionSistema() {
   const { tema, cambiarTema } = useTema();
+  const [pestana, setPestana] = useState<"tema" | "tipografia">("tema");
 
   return (
     <div className="space-y-4">
@@ -48,11 +51,19 @@ function ConfiguracionSistema() {
         <div className="min-w-0">
           <h1 className="truncate text-xl font-bold">Configuración del Sistema</h1>
           <p className="text-sm text-muted-foreground">
-            Personaliza la apariencia del sistema.
+            Personaliza la apariencia del sistema y sus documentos.
           </p>
         </div>
       </div>
-      <Panel titulo="Tema de colores" extra={<IconoPaletaColores className="size-5" />}>
+      <div className="flex flex-wrap gap-2 border-b border-line pb-2" role="tablist" aria-label="Configuración del sistema">
+        <Boton type="button" variante="linea" role="tab" aria-selected={pestana === "tema"} onClick={() => setPestana("tema")} className={pestana === "tema" ? "border-primary bg-primary/5 text-primary" : ""}>
+          <IconoPaletaColores className="size-5" /> Tema de colores
+        </Boton>
+        <Boton type="button" variante="linea" role="tab" aria-selected={pestana === "tipografia"} onClick={() => setPestana("tipografia")} className={pestana === "tipografia" ? "border-primary bg-primary/5 text-primary" : ""}>
+          <FileText className="size-4 text-primary" /> Tipografía de documentos
+        </Boton>
+      </div>
+      {pestana === "tema" ? <Panel titulo="Tema de colores" extra={<IconoPaletaColores className="size-5" />}>
           <div className="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-3">
             {TEMAS.map((t) => {
               const activo = tema === t.id;
@@ -80,7 +91,7 @@ function ConfiguracionSistema() {
               );
             })}
           </div>
-      </Panel>
+      </Panel> : <TipografiaDocumentosPanel />}
     </div>
   );
 }
