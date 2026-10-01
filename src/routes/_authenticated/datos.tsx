@@ -63,14 +63,12 @@ type Pestana =
   | "centros"
   | "configuracion"
   | "codificacion"
-  | "codificacioncot"
-  | "codificacionpreliq"
   | "codificacionins"
   | "empresa";
 
 const GRUPOS_CONFIG: { titulo: string; icono: React.ElementType; items: [Pestana, string][] }[] = [
   { titulo: "Empresa", icono: Building2, items: [["empresa", "Datos de la empresa"], ["bancos", "Cuentas bancarias"]] },
-  { titulo: "Codificación", icono: FolderKanban, items: [["codificacion", "Codificación de proyectos"], ["codificacioncot", "Codificación de cotizaciones"], ["codificacionpreliq", "Codificación de preliquidaciones"], ["codificacionins", "Codificación de insumos"], ["configuracion", "Parámetros de proyectos"]] },
+  { titulo: "Codificación", icono: FolderKanban, items: [["codificacion", "Codificación de Documentos"], ["codificacionins", "Codificación de insumos"], ["configuracion", "Parámetros de proyectos"]] },
   { titulo: "Costos y Finanzas", icono: Coins, items: [["categoriasgg", "Categorías de gastos generales"], ["centros", "Centros de costos"], ["costos", "Rubros de costos"], ["ingresos", "Rubros de ingresos"]] },
   { titulo: "Recursos Humanos", icono: HardHat, items: [["cargos", "Cargos del personal"]] },
 ];
@@ -220,11 +218,20 @@ function Datos() {
       ) : pestana === "configuracion" ? (
         <ConfiguracionProyectos />
       ) : pestana === "codificacion" ? (
-        <CodificacionProyectos />
-      ) : pestana === "codificacioncot" ? (
-        <CodificacionCotizaciones />
-      ) : pestana === "codificacionpreliq" ? (
-        <CodificacionPreliquidaciones />
+        <div className="space-y-6">
+          <div>
+            <h3 className="mb-2 text-sm font-semibold uppercase tracking-[0.1em] text-muted-foreground">Proyectos</h3>
+            <CodificacionProyectos />
+          </div>
+          <div>
+            <h3 className="mb-2 text-sm font-semibold uppercase tracking-[0.1em] text-muted-foreground">Cotizaciones</h3>
+            <CodificacionCotizaciones />
+          </div>
+          <div>
+            <h3 className="mb-2 text-sm font-semibold uppercase tracking-[0.1em] text-muted-foreground">Preliquidaciones</h3>
+            <CodificacionPreliquidaciones />
+          </div>
+        </div>
       ) : pestana === "codificacionins" ? (
         <CodificacionInsumos />
       ) : pestana === "empresa" ? (
