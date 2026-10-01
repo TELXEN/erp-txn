@@ -144,6 +144,8 @@ function FlujoCaja() {
       costoReal: 0,
       egCompras: 0,
       egGenerales: 0,
+      egMant: 0,
+      egComb: 0,
       egCaja: 0,
       egRRHH: 0,
       ingresoProy: 0,
