@@ -5,7 +5,7 @@ En Maestro de insumos > Mano de obra, el formulario "Nuevo insumo" tendrá:
 
 | Campo | Comportamiento |
 |---|---|
-| Código | Automático (ej. `MO-001`), solo lectura, según la codificación configurada en Catálogos Maestros |
+| Código | Automático, solo lectura: un dígito del tipo seguido del correlativo, sin separadores, máximo 8 dígitos (ej. `10000001` = Mano de obra N° 1) |
 | Descripción | Texto libre (ej. "Operario electricista") |
 | Régimen laboral | Construcción Civil / Régimen General Común / MYPE Pequeña Empresa |
 | Categoría (solo Construcción Civil) | Operario / Oficial / Peón |
