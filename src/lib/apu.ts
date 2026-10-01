@@ -165,11 +165,11 @@ async function cargarMargenes(): Promise<MargenesInsumo> {
 /** Margen único por tipo de insumo (Configuración del Sistema › Márgenes APU). */
 export const useMargenesInsumo = () => useQuery({ queryKey: ["margenes_insumo"], queryFn: cargarMargenes });
 
-/** Equipos/herramientas propios: el precio ya es el C. Unitario (sin margen). */
+/** Equipos propios: el precio ya es el C. Unitario (sin margen). */
 export const esPropioSinMargen = (i: Pick<Insumo, "tipo" | "propiedad">) =>
-  (i.tipo === "EQ" || i.tipo === "HT") && (i.propiedad ?? "Propio") === "Propio";
+  i.tipo === "EQ" && (i.propiedad ?? "Propio") === "Propio";
 
-/** Insumos con margen_pct reemplazado por el margen único de su tipo. */
+/** Insumos con margen_pct reemplazado por el margen único de su tipo (HT: % de mano de obra). */
 export const useInsumos = () =>
   useQuery({
     queryKey: ["insumos"],
@@ -222,14 +222,26 @@ export function calcularApu(
   pctHerramientas: number,
 ) {
   const tot: Record<TipoInsumo, number> = { MO: 0, MAT: 0, EQ: 0, HT: 0, SC: 0 };
-  const filas = componentes.map((c) => {
-    const ins = insumos.find((i) => i.id === c.insumo_id);
+  const base = componentes.map((c) => ({ c, ins: insumos.find((i) => i.id === c.insumo_id) }));
+  // Primero todo menos herramientas menores (que dependen del total de mano de obra)
+  const parciales = new Map<string, { cantidad: number; parcial: number }>();
+  for (const { c, ins } of base) {
+    if (ins?.tipo === "HT") continue;
     const cantidad = cantidadComponente(c, rendimiento, jornada);
     const parcial = cantidad * (ins ? precioVenta(ins) : 0);
     if (ins) tot[ins.tipo] += parcial;
-    return { c, ins, cantidad, parcial };
-  });
-  const herramientas = (tot.MO * Number(pctHerramientas || 0)) / 100;
+    parciales.set(c.id, { cantidad, parcial });
+  }
+  const totMO = tot.MO;
+  for (const { c, ins } of base) {
+    if (ins?.tipo !== "HT") continue;
+    const pct = Number(ins.margen_pct || 0);
+    const parcial = (totMO * pct) / 100;
+    tot.HT += parcial;
+    parciales.set(c.id, { cantidad: pct, parcial });
+  }
+  const filas = base.map(({ c, ins }) => ({ c, ins, ...(parciales.get(c.id) ?? { cantidad: 0, parcial: 0 }) }));
+  const herramientas = (totMO * Number(pctHerramientas || 0)) / 100;
   tot.EQ += herramientas;
   const pu = Math.round((tot.MO + tot.MAT + tot.EQ + tot.HT + tot.SC) * 100) / 100;
   return { filas, tot, herramientas, pu };

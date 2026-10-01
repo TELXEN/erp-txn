@@ -156,7 +156,9 @@ export function Insumos() {
         <ManoObraWysiwyg lista={visibles} busqueda={busqueda} setBusqueda={setBusqueda} refrescar={refrescar} />
       ) : filtro === "MAT" ? (
         <MaterialesWysiwyg lista={visibles} busqueda={busqueda} setBusqueda={setBusqueda} refrescar={refrescar} />
-      ) : filtro === "EQ" || filtro === "HT" ? (
+      ) : filtro === "HT" ? (
+        <HerramientasWysiwyg lista={visibles} busqueda={busqueda} setBusqueda={setBusqueda} refrescar={refrescar} />
+      ) : filtro === "EQ" ? (
         <EquiposWysiwyg key={filtro} tipo={filtro} lista={visibles} busqueda={busqueda} setBusqueda={setBusqueda} refrescar={refrescar} />
       ) : (
         <>
@@ -1080,6 +1082,131 @@ function EquiposWysiwyg({
       <p className="border-t border-line px-5 py-3 font-mono text-[10px] leading-relaxed text-muted-foreground">
         Propio: se ingresa el C. Unitario directamente (sin margen). Alquilado: se ingresa el P. Alquiler y el C. Unitario = P. Alquiler + margen del tipo.
         Máquina usa la unidad hm (Horas máquina) y Equipo la unidad he (Horas equipo). Precios sin IGV.
+      </p>
+    </Panel>
+  );
+}
+
+function HerramientasWysiwyg({
+  lista,
+  busqueda,
+  setBusqueda,
+  refrescar,
+}: {
+  lista: Insumo[];
+  busqueda: string;
+  setBusqueda: (v: string) => void;
+  refrescar: () => void;
+}) {
+  const { data: mg = MARGENES_DEFECTO } = useMargenesInsumo();
+  const pct = mg.HT;
+  const [nombre, setNombre] = useState("");
+  const [editando, setEditando] = useState<{ id: string; codigo: string; nombre: string } | null>(null);
+  const [error, setError] = useState("");
+  const [guardando, setGuardando] = useState(false);
+
+  async function crear() {
+    if (guardando) return;
+    if (!nombre.trim()) return setError("Escribe la descripción de la herramienta.");
+    setError("");
+    setGuardando(true);
+    try {
+      const codigo = await reservarCodigoInsumo({ data: { tipo: "HT" } });
+      const { error: err } = await apuDb.from("insumos").insert({ tipo: "HT", codigo, nombre: nombre.trim(), unidad: "%MO", precio: 0 } as never);
+      if (err) throw new Error(err.message);
+      setNombre("");
+      refrescar();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "No se pudo registrar.");
+    } finally {
+      setGuardando(false);
+    }
+  }
+
+  async function guardarEdicion() {
+    if (!editando) return;
+    const { error: err } = await apuDb.from("insumos").update({ nombre: editando.nombre.trim(), unidad: "%MO", precio: 0 } as never).eq("id", editando.id);
+    if (err) return setError(err.message);
+    setEditando(null);
+    refrescar();
+  }
+
+  async function eliminar(id: string) {
+    if (!window.confirm("¿Eliminar esta herramienta?")) return;
+    const { error: err } = await apuDb.from("insumos").delete().eq("id", id);
+    if (err) return setError(err.message.includes("foreign key") ? "Se usa en un análisis de precios; desactívala." : err.message);
+    refrescar();
+  }
+
+  const inputCls = "w-full rounded-md border border-line bg-background px-2 py-1 text-xs outline-none focus:border-primary";
+  const btn = "inline-flex h-7 w-7 items-center justify-center rounded-md border";
+  const celdaPct = <td className="px-3 py-2.5 text-right font-semibold text-primary">{pct.toFixed(2)}%</td>;
+
+  return (
+    <Panel
+      titulo="Maestro de insumos — Herramientas menores"
+      extra={<Buscador valor={busqueda} onChange={setBusqueda} total={lista.length} placeholder="Buscar por código o descripción..." />}
+    >
+      <table className="w-full table-fixed font-mono text-xs">
+        <thead>
+          <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+            <th className="w-[14%] px-5 py-2 font-medium">Código</th>
+            <th className="w-[48%] px-3 py-2 font-medium">Descripción</th>
+            <th className="w-[12%] px-3 py-2 text-center font-medium">Unidad</th>
+            <th className="w-[14%] px-3 py-2 text-right font-medium">C. Unitario</th>
+            <th className="w-[12%] px-5 py-2 text-right font-medium">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {lista.map((i) =>
+            editando?.id === i.id ? (
+              <tr key={i.id} className="border-b border-line/40">
+                <td className="px-5 py-2 text-muted-foreground">{editando.codigo || "—"}</td>
+                <td className="px-3 py-2">
+                  <input className={inputCls} value={editando.nombre} onChange={(e) => setEditando({ ...editando, nombre: e.target.value })} onKeyDown={(e) => { if (e.key === "Enter") void guardarEdicion(); if (e.key === "Escape") setEditando(null); }} />
+                </td>
+                <td className="px-3 py-2 text-center text-muted-foreground">%MO</td>
+                {celdaPct}
+                <td className="px-5 py-2">
+                  <div className="flex justify-end gap-1">
+                    <button type="button" onClick={guardarEdicion} title="Guardar" className={`${btn} border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground`}><Check size={14} /></button>
+                    <button type="button" onClick={() => setEditando(null)} title="Cancelar" className={`${btn} border-line hover:bg-muted`}><X size={14} /></button>
+                  </div>
+                </td>
+              </tr>
+            ) : (
+              <tr key={i.id} className="border-b border-line/40 last:border-0">
+                <td className="px-5 py-2.5 text-muted-foreground"><Resaltar texto={i.codigo || "—"} termino={busqueda} /></td>
+                <td className="px-3 py-2.5 text-ink"><Resaltar texto={i.nombre} termino={busqueda} /></td>
+                <td className="px-3 py-2.5 text-center text-muted-foreground">%MO</td>
+                {celdaPct}
+                <td className="px-5 py-2.5">
+                  <div className="flex justify-end gap-1">
+                    <button type="button" onClick={() => setEditando({ id: i.id, codigo: i.codigo, nombre: i.nombre })} title="Editar" className={`${btn} border-line text-muted-foreground hover:border-primary hover:text-primary`}><Pencil size={14} /></button>
+                    <button type="button" onClick={() => eliminar(i.id)} title="Eliminar" className={`${btn} border-line text-muted-foreground hover:border-bad hover:text-bad`}><Trash2 size={14} /></button>
+                  </div>
+                </td>
+              </tr>
+            ),
+          )}
+          <tr className="border-b border-dashed border-line/60 bg-muted/20">
+            <td className="px-5 py-2 text-muted-foreground/60">auto</td>
+            <td className="px-3 py-2">
+              <input className={inputCls} placeholder="Escribe la descripción y pulsa Enter…" value={nombre} onChange={(e) => setNombre(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void crear(); } }} />
+            </td>
+            <td className="px-3 py-2 text-center text-muted-foreground">%MO</td>
+            {celdaPct}
+            <td className="px-5 py-2">
+              <div className="flex justify-end">
+                <button type="button" onClick={() => void crear()} disabled={guardando} title="Registrar" className={`${btn} border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground disabled:opacity-50`}><Check size={14} /></button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      {error && <p className="px-5 py-2 font-mono text-xs text-bad">{error}</p>}
+      <p className="border-t border-line px-5 py-3 font-mono text-[10px] leading-relaxed text-muted-foreground">
+        El C. Unitario es un % de la mano de obra total de cada precio unitario y se toma de Maestro de insumos › Márgenes APU (Herramientas menores).
       </p>
     </Panel>
   );

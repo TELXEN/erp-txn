@@ -167,13 +167,15 @@ export function ApuPartida({
                         )}
                       </td>
                       <td className="px-2 py-1">
-                        {Number(c.cuadrilla) > 0 ? (
+                        {tipo === "HT" ? (
+                          <p className="text-right">{cantidad.toFixed(2)}%</p>
+                        ) : Number(c.cuadrilla) > 0 ? (
                           <p className="text-right">{cantidad.toFixed(4)}</p>
                         ) : (
                           <Input className="py-0.5 text-right text-xs" type="number" step="0.0001" defaultValue={c.cantidad} onBlur={(e) => cambiar(c.id, "cantidad", e.target.value)} />
                         )}
                       </td>
-                      <td className="px-2 py-1.5 text-right">{Number(ins?.precio ?? 0).toFixed(2)}</td>
+                      <td className="px-2 py-1.5 text-right">{tipo === "HT" ? "" : Number(ins?.precio ?? 0).toFixed(2)}</td>
                       <td className="px-2 py-1.5 text-right">{parcial.toFixed(2)}</td>
                       <td className="px-5 py-1 text-right">
                         <button type="button" onClick={() => quitar(c.id)} title="Quitar" className="text-muted-foreground hover:text-bad"><Trash2 size={13} /></button>
