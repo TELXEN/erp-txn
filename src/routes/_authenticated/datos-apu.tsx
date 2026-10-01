@@ -3,6 +3,9 @@ import { useState } from "react";
 import { Encabezado } from "@/components/AppShell";
 import { Insumos } from "@/components/Insumos";
 import { UnidadesMedida } from "@/components/UnidadesMedida";
+import { EspecialidadesPartida } from "@/components/EspecialidadesPartida";
+import { CategoriasPartida } from "@/components/CategoriasPartida";
+import { PartidasMaestras } from "@/components/PartidasMaestras";
 
 export const Route = createFileRoute("/_authenticated/datos-apu")({
   head: () => ({
@@ -10,23 +13,28 @@ export const Route = createFileRoute("/_authenticated/datos-apu")({
       { title: "Análisis de Precios Unitarios (APU) — ERP TELXEN" },
       {
         name: "description",
-        content: "Maestro de insumos y unidades de medida para el análisis de precios unitarios.",
+        content:
+          "Maestro de insumos, unidades de medida y catálogo técnico WBS (especialidades, categorías y partidas) para el análisis de precios unitarios.",
       },
       { property: "og:title", content: "Análisis de Precios Unitarios (APU) — ERP TELXEN" },
       {
         property: "og:description",
-        content: "Maestro de insumos y unidades de medida para el análisis de precios unitarios.",
+        content:
+          "Maestro de insumos, unidades de medida y catálogo técnico WBS (especialidades, categorías y partidas) para el análisis de precios unitarios.",
       },
     ],
   }),
   component: DatosApu,
 });
 
-type Pestana = "insumos" | "unidades";
+type Pestana = "insumos" | "unidades" | "especialidades" | "categorias" | "maestras";
 
 const PESTANAS: [Pestana, string][] = [
   ["insumos", "Maestro de insumos"],
   ["unidades", "Unidades de medida"],
+  ["especialidades", "Especialidad de partidas"],
+  ["categorias", "Categorías de partidas"],
+  ["maestras", "Registro de partidas"],
 ];
 
 function DatosApu() {
@@ -36,7 +44,7 @@ function DatosApu() {
     <>
       <Encabezado
         titulo="Análisis de Precios Unitarios (APU)"
-        subtitulo="Insumos y unidades de medida"
+        subtitulo="Insumos, unidades y catálogo técnico (WBS)"
       />
 
       <div className="mb-4 flex flex-wrap gap-1 border-b border-line pb-3">
@@ -56,7 +64,17 @@ function DatosApu() {
         ))}
       </div>
 
-      {pestana === "insumos" ? <Insumos /> : <UnidadesMedida />}
+      {pestana === "insumos" ? (
+        <Insumos />
+      ) : pestana === "unidades" ? (
+        <UnidadesMedida />
+      ) : pestana === "especialidades" ? (
+        <EspecialidadesPartida />
+      ) : pestana === "categorias" ? (
+        <CategoriasPartida />
+      ) : (
+        <PartidasMaestras />
+      )}
     </>
   );
 }
