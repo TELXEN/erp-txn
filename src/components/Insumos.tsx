@@ -643,7 +643,7 @@ function MaterialesWysiwyg({
   const { data: mg = MARGENES_DEFECTO } = useMargenesInsumo();
   const mgTipo = mg[tipo];
   const esSC = tipo === "SC";
-  const uDef = esSC ? "glb" : "und";
+  const uDef = esSC ? "GLB" : "und";
   const vacia: FilaMat = { ...filaMatVacia, unidad: uDef };
   const { data: unidades = [] } = useUnidadesMedida();
   const simbolos = useMemo(() => {
