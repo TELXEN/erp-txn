@@ -282,7 +282,9 @@ function FlujoCaja() {
   ];
   const desglose = [
     { concepto: "↳ Compras y costos directos", valores: filas.map((f) => f.egCompras), total: total.egCompras },
-    { concepto: "↳ Gastos generales y flota", valores: filas.map((f) => f.egGenerales), total: total.egGenerales },
+    { concepto: "↳ Gastos generales", valores: filas.map((f) => f.egGenerales), total: total.egGenerales },
+    { concepto: "↳ Mantenimiento de vehículos", valores: filas.map((f) => f.egMant), total: total.egMant },
+    { concepto: "↳ Combustible de vehículos", valores: filas.map((f) => f.egComb), total: total.egComb },
     { concepto: "↳ Entregas de Caja Chica", valores: filas.map((f) => f.egCaja), total: total.egCaja },
     ...(global ? [{ concepto: "↳ Planilla, honorarios y tributos", valores: filas.map((f) => f.egRRHH), total: total.egRRHH }] : []),
   ];
