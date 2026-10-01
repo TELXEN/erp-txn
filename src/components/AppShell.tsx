@@ -21,7 +21,6 @@ import {
   Plane,
   Warehouse,
   Settings,
-  ShieldCheck,
   SlidersHorizontal,
   TrendingUp,
   Handshake,
@@ -98,7 +97,6 @@ const MENU: Categoria[] = [
       { a: "/datos-apu", texto: "Análisis de Precios Unitarios (APU)", roles: ["administrador", "gerente"], icono: Calculator },
       { a: "/datos", texto: "Catalogos Maestros", roles: ["administrador", "gerente"], icono: Settings },
       { a: "/configuracion-sistema", texto: "Configuración del Sistema", roles: ["gerente"], icono: SlidersHorizontal },
-      { a: "/usuarios", texto: "Usuarios y Roles", roles: ["gerente"], icono: ShieldCheck },
     ],
   },
 ];
