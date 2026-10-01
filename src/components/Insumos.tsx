@@ -7,6 +7,7 @@ import { MargenesApuPanel } from "@/components/MargenesApu";
 import { ParametrosLaboralesPanel } from "@/components/ParametrosLaborales";
 import { soles } from "@/lib/format";
 import { useUnidadesMedida } from "@/lib/unidades";
+import { useMarcas } from "@/lib/datos";
 import { reservarCodigoInsumo } from "@/lib/codigos.functions";
 import {
   CATEGORIAS_OBRERO,
@@ -623,9 +624,9 @@ function ManoObraWysiwyg({
 
 // ================= Materiales: edición WYSIWYG =================
 
-type FilaMat = { nombre: string; unidad: string; precio: string; margen: string };
+type FilaMat = { nombre: string; unidad: string; precio: string; margen: string; marca_id: string };
 
-const filaMatVacia: FilaMat = { nombre: "", unidad: "und", precio: "", margen: "" };
+const filaMatVacia: FilaMat = { nombre: "", unidad: "und", precio: "", margen: "", marca_id: "" };
 
 function MaterialesWysiwyg({
   tipo = "MAT",
@@ -650,6 +651,14 @@ function MaterialesWysiwyg({
     const s = unidades.filter((u) => u.activo).map((u) => u.simbolo);
     return [...new Set([uDef, ...s])];
   }, [unidades]);
+  const { data: marcas = [] } = useMarcas();
+  const nombreMarca = (id?: string | null) => marcas.find((m) => m.id === id)?.nombre ?? "-";
+  const opcionesMarca = (
+    <>
+      <option value="">-</option>
+      {marcas.filter((m) => m.activo).map((m) => <option key={m.id} value={m.id}>{m.nombre}</option>)}
+    </>
+  );
   const [nueva, setNueva] = useState<FilaMat>(vacia);
   const [editando, setEditando] = useState<(FilaMat & { id: string; codigo: string; activo: boolean }) | null>(null);
   const [error, setError] = useState("");
@@ -671,6 +680,7 @@ function MaterialesWysiwyg({
         unidad: nueva.unidad || uDef,
         precio: Number(nueva.precio || 0),
         margen_pct: Number(nueva.margen || 0),
+        ...(esSC ? {} : { marca_id: nueva.marca_id || null }),
       });
       if (err) throw new Error(err.message);
       setNueva(vacia);
@@ -692,6 +702,7 @@ function MaterialesWysiwyg({
         unidad: editando.unidad || uDef,
         precio: Number(editando.precio || 0),
         margen_pct: Number(editando.margen || 0),
+        ...(esSC ? {} : { marca_id: editando.marca_id || null }),
         activo: editando.activo,
       })
       .eq("id", editando.id);
@@ -729,7 +740,8 @@ function MaterialesWysiwyg({
         <thead>
           <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
             <th className="w-[10%] px-5 py-2 font-medium">Código</th>
-            <th className="w-[36%] px-3 py-2 font-medium">Descripción</th>
+            <th className={`${esSC ? "w-[36%]" : "w-[24%]"} px-3 py-2 font-medium`}>Descripción</th>
+            {!esSC && <th className="w-[12%] px-3 py-2 font-medium">Marca</th>}
             <th className="w-[9%] px-3 py-2 font-medium">Unidad</th>
             <th className="w-[12%] px-3 py-2 text-right font-medium">{esSC ? "Costo" : "P. Compra"}</th>
             <th className="w-[9%] px-3 py-2 text-right font-medium">Margen %</th>
@@ -749,6 +761,13 @@ function MaterialesWysiwyg({
                   <>
                     <td className="px-5 py-2 text-muted-foreground">{editando.codigo || "—"}</td>
                     <td className="px-3 py-2"><Input className="py-1 text-xs" value={editando.nombre} onChange={(e) => setEditando({ ...editando, nombre: e.target.value })} /></td>
+                    {!esSC && (
+                      <td className="px-3 py-2">
+                        <select className={selCls} value={editando.marca_id} onChange={(e) => setEditando({ ...editando, marca_id: e.target.value })}>
+                          {opcionesMarca}
+                        </select>
+                      </td>
+                    )}
                     <td className="px-3 py-2">
                       <select className={selCls} value={editando.unidad} onChange={(e) => setEditando({ ...editando, unidad: e.target.value })}>
                         {[...new Set([editando.unidad, ...simbolos])].map((s) => <option key={s} value={s}>{s}</option>)}
@@ -768,6 +787,7 @@ function MaterialesWysiwyg({
                   <>
                     <td className="px-5 py-2.5 text-muted-foreground"><Resaltar texto={i.codigo || "—"} termino={busqueda} /></td>
                     <td className="px-3 py-2.5 text-ink"><Resaltar texto={i.nombre} termino={busqueda} /></td>
+                    {!esSC && <td className="px-3 py-2.5 text-muted-foreground">{nombreMarca(i.marca_id)}</td>}
                     <td className="px-3 py-2.5 text-center text-muted-foreground">{i.unidad}</td>
                     <td className="px-3 py-2.5 text-right">{soles(compra)}</td>
                     <td className="px-3 py-2.5 text-right text-muted-foreground">{margen.toFixed(2)}%</td>
@@ -785,6 +805,7 @@ function MaterialesWysiwyg({
                               unidad: i.unidad,
                               precio: String(i.precio || ""),
                               margen: String(i.margen_pct || ""),
+                              marca_id: i.marca_id ?? "",
                             })
                           }
                           title="Editar"
@@ -813,6 +834,13 @@ function MaterialesWysiwyg({
                 onKeyDown={teclaNueva}
               />
             </td>
+            {!esSC && (
+              <td className="px-3 py-2">
+                <select className={selCls} value={nueva.marca_id} onChange={(e) => setNueva({ ...nueva, marca_id: e.target.value })}>
+                  {opcionesMarca}
+                </select>
+              </td>
+            )}
             <td className="px-3 py-2">
               <select className={selCls} value={nueva.unidad} onChange={(e) => setNueva({ ...nueva, unidad: e.target.value })}>
                 {simbolos.map((s) => <option key={s} value={s}>{s}</option>)}
