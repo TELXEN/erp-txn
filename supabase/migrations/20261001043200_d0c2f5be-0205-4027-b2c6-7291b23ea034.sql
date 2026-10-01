@@ -1,0 +1,2 @@
+ALTER TABLE public.insumos DROP CONSTRAINT insumos_tipo_check;
+ALTER TABLE public.insumos ADD CONSTRAINT insumos_tipo_check CHECK (tipo = ANY (ARRAY['MO'::text, 'MAT'::text, 'EQ'::text, 'HT'::text, 'SC'::text]));

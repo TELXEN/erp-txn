@@ -1,11 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-export type TipoInsumo = "MO" | "MAT" | "EQ" | "SC";
+export type TipoInsumo = "MO" | "MAT" | "EQ" | "HT" | "SC";
 export const TIPOS_INSUMO: [TipoInsumo, string][] = [
   ["MO", "Mano de obra"],
   ["MAT", "Materiales"],
-  ["EQ", "Equipos y herramientas"],
+  ["EQ", "Equipos y maquinaria"],
+  ["HT", "Herramientas menores"],
   ["SC", "Subcontratos / Servicios"],
 ];
 export const nombreTipo = (t: string) => TIPOS_INSUMO.find(([k]) => k === t)?.[1] ?? t;
@@ -83,7 +84,7 @@ export function calcularApu(
   jornada: number,
   pctHerramientas: number,
 ) {
-  const tot: Record<TipoInsumo, number> = { MO: 0, MAT: 0, EQ: 0, SC: 0 };
+  const tot: Record<TipoInsumo, number> = { MO: 0, MAT: 0, EQ: 0, HT: 0, SC: 0 };
   const filas = componentes.map((c) => {
     const ins = insumos.find((i) => i.id === c.insumo_id);
     const cantidad = cantidadComponente(c, rendimiento, jornada);
@@ -93,6 +94,6 @@ export function calcularApu(
   });
   const herramientas = (tot.MO * Number(pctHerramientas || 0)) / 100;
   tot.EQ += herramientas;
-  const pu = Math.round((tot.MO + tot.MAT + tot.EQ + tot.SC) * 100) / 100;
+  const pu = Math.round((tot.MO + tot.MAT + tot.EQ + tot.HT + tot.SC) * 100) / 100;
   return { filas, tot, herramientas, pu };
 }
