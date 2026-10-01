@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { SlidersHorizontal } from "lucide-react";
-import { Panel, Vacio } from "@/components/ui-kit";
+import { Check, SlidersHorizontal } from "lucide-react";
+import { Panel } from "@/components/ui-kit";
+import { TEMAS, useTema } from "@/lib/temas";
 
 export const Route = createFileRoute("/_authenticated/configuracion-sistema")({
   head: () => ({
@@ -15,6 +16,7 @@ export const Route = createFileRoute("/_authenticated/configuracion-sistema")({
 });
 
 function ConfiguracionSistema() {
+  const { tema, cambiarTema } = useTema();
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3">
@@ -28,8 +30,33 @@ function ConfiguracionSistema() {
           </p>
         </div>
       </div>
-      <Panel>
-        <Vacio texto="No hay parámetros configurables por el momento." />
+      <Panel titulo="Tema de colores">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {TEMAS.map((t) => {
+            const activo = tema === t.id;
+            return (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => cambiarTema(t.id)}
+                aria-pressed={activo}
+                className={`flex items-center gap-3 rounded-lg border p-3 text-left transition-colors ${
+                  activo ? "border-primary bg-primary/5 ring-2 ring-primary/40" : "border-border hover:bg-muted"
+                }`}
+              >
+                <span className="flex size-8 shrink-0 overflow-hidden rounded-full border border-border">
+                  <span className="h-full w-1/2" style={{ background: t.muestraBase }} />
+                  <span className="h-full w-1/2" style={{ background: t.muestraAcento }} />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-semibold">{t.nombre}</span>
+                  <span className="block text-xs text-muted-foreground">{t.descripcion}</span>
+                </span>
+                {activo && <Check className="size-4 text-primary" />}
+              </button>
+            );
+          })}
+        </div>
       </Panel>
     </div>
   );
