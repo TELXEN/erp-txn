@@ -76,7 +76,7 @@ function GastosGenerales() {
   const [filtroCategoria, setFiltroCategoria] = useState("Todas");
   const [cerrados, setCerrados] = useState<Set<string>>(new Set());
   const [guiaVisible, setGuiaVisible] = useState(false);
-  const [pestana, setPestana] = useState<"gastos" | "flota" | "nuevo">("gastos");
+  const [pestana, setPestana] = useState<"gastos" | "mantenimiento" | "combustible" | "nuevo">("gastos");
   const accionRef = useRef<"volver" | "otra">("volver");
   const ayudaCategoria = categorias.find((c) => c.nombre === form.categoria)?.descripcion ?? "";
   const [editando, setEditando] = useState<{
