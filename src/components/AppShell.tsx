@@ -25,6 +25,7 @@ import {
   SlidersHorizontal,
   TrendingUp,
   Handshake,
+  Truck,
   Users,
   ReceiptText,
   FileSpreadsheet,
