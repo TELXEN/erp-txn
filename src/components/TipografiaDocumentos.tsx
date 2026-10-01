@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth";
 import {
   FUENTES_DOCUMENTOS,
   FUENTE_DOCUMENTO_DEFECTO,
+  fuenteDocumento,
   useConfiguracionDocumentos,
   type FuenteDocumentoId,
 } from "@/lib/fuentes-documentos";
@@ -24,7 +25,7 @@ export function TipografiaDocumentosPanel() {
     if (data?.fuente_pdf) setSeleccion(data.fuente_pdf);
   }, [data?.fuente_pdf]);
 
-  const fuente = FUENTES_DOCUMENTOS.find((item) => item.id === seleccion) ?? FUENTES_DOCUMENTOS[0];
+  const fuente = fuenteDocumento(seleccion);
 
   async function guardar() {
     if (!data?.id || !puedeEditar) return;

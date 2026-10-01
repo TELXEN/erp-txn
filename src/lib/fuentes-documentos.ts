@@ -14,15 +14,17 @@ export type FuenteDocumento = {
 
 export const FUENTE_DOCUMENTO_DEFECTO: FuenteDocumentoId = "carlito";
 
+const FUENTE_CARLITO: FuenteDocumento = {
+  id: "carlito",
+  nombre: "Calibri (Carlito)",
+  descripcion: "Corporativa, compacta y familiar para documentos comerciales.",
+  css: 'Carlito, Calibri, "Segoe UI", sans-serif',
+  pdfFamily: "PdfCarlito",
+  jsPdfFamily: "helvetica",
+};
+
 export const FUENTES_DOCUMENTOS: FuenteDocumento[] = [
-  {
-    id: "carlito",
-    nombre: "Calibri (Carlito)",
-    descripcion: "Corporativa, compacta y familiar para documentos comerciales.",
-    css: 'Carlito, Calibri, "Segoe UI", sans-serif',
-    pdfFamily: "PdfCarlito",
-    jsPdfFamily: "helvetica",
-  },
+  FUENTE_CARLITO,
   {
     id: "arial",
     nombre: "Arial",
@@ -54,7 +56,7 @@ export function esFuenteDocumento(valor: string | null | undefined): valor is Fu
 }
 
 export function fuenteDocumento(valor: string | null | undefined) {
-  return FUENTES_DOCUMENTOS.find((fuente) => fuente.id === valor) ?? FUENTES_DOCUMENTOS[0];
+  return FUENTES_DOCUMENTOS.find((fuente) => fuente.id === valor) ?? FUENTE_CARLITO;
 }
 
 export function useConfiguracionDocumentos() {
