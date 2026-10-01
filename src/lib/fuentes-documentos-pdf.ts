@@ -7,6 +7,8 @@ import timesRegular from "@/assets/fonts/liberation-serif-regular.ttf";
 import timesBold from "@/assets/fonts/liberation-serif-bold.ttf";
 import sourceSansRegular from "@/assets/fonts/source-sans-3-regular.woff";
 import sourceSansBold from "@/assets/fonts/source-sans-3-bold.woff";
+import robotoRegular from "@/assets/fonts/roboto-regular.woff";
+import robotoBold from "@/assets/fonts/roboto-bold.woff";
 import { fuenteDocumento, type FuenteDocumentoId } from "@/lib/fuentes-documentos";
 
 const archivos = [
@@ -14,6 +16,9 @@ const archivos = [
   ["PdfArial", arialRegular, arialBold],
   ["PdfTimes", timesRegular, timesBold],
   ["PdfSourceSans3", sourceSansRegular, sourceSansBold],
+  ["PdfSegoeUI", sourceSansRegular, sourceSansBold],
+  ["PdfRoboto", robotoRegular, robotoBold],
+  ["PdfHelveticaNeue", arialRegular, arialBold],
 ] as const;
 
 let registradas = false;

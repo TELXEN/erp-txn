@@ -46,7 +46,7 @@ export function TipografiaDocumentosPanel() {
   return (
     <Panel titulo="Tipografía de documentos" extra={<FileText className="size-5 text-primary" />}>
       <div className="space-y-5 p-4">
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {FUENTES_DOCUMENTOS.map((item) => {
             const activa = item.id === seleccion;
             return (
