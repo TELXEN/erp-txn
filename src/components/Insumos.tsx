@@ -14,6 +14,7 @@ import {
   calcularCostoHH,
   nombreTipo,
   precioVenta,
+  PARAMETROS_LABORALES_DEFECTO,
   useInsumos,
   useParametrosLaborales,
   type Insumo,
@@ -620,7 +621,7 @@ function FragmentFila({
   );
 }
 
-function DetalleCostoHH({ lineas, horas }: { lineas: { concepto: string; monto: number }[]; horas?: number }) {
+function DetalleCostoHH({ lineas, horas }: { lineas: { concepto: string; monto: number }[]; horas?: number | undefined }) {
   const total = lineas.reduce((a, l) => a + l.monto, 0);
   return (
     <div className="rounded-md border border-line/60 bg-muted/30 px-3 py-2">
