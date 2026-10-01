@@ -24,7 +24,7 @@ import {
   ShieldCheck,
   SlidersHorizontal,
   TrendingUp,
-  Truck,
+  Handshake,
   Users,
   ReceiptText,
   FileSpreadsheet,
@@ -69,7 +69,7 @@ const MENU: Categoria[] = [
       { a: "/guias-remision", texto: "Guías de Remisión", roles: ["administrador", "gerente"], icono: FileStack },
       { a: "/vehiculos", texto: "Vehículos", roles: ["ingeniero", "administrador", "gerente"], icono: Truck },
       { a: "/inventario", texto: "Inventario", roles: ["administrador", "gerente"], icono: Package },
-      { a: "/proveedores", texto: "Proveedores", roles: ["administrador", "gerente"], icono: Truck },
+      { a: "/proveedores", texto: "Proveedores", roles: ["administrador", "gerente"], icono: Handshake },
     ],
   },
   {
