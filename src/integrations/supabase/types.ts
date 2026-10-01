@@ -1054,6 +1054,27 @@ export type Database = {
           },
         ]
       }
+      configuracion_documentos: {
+        Row: {
+          created_at: string
+          fuente_pdf: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          fuente_pdf?: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          fuente_pdf?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       cotizacion_items: {
         Row: {
           categoria: string
