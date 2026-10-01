@@ -1797,6 +1797,7 @@ export type Database = {
           codigo: string
           created_at: string
           id: string
+          marca_id: string | null
           margen_pct: number
           nombre: string
           precio: number
@@ -1815,6 +1816,7 @@ export type Database = {
           codigo?: string
           created_at?: string
           id?: string
+          marca_id?: string | null
           margen_pct?: number
           nombre: string
           precio?: number
@@ -1833,6 +1835,7 @@ export type Database = {
           codigo?: string
           created_at?: string
           id?: string
+          marca_id?: string | null
           margen_pct?: number
           nombre?: string
           precio?: number
@@ -1843,7 +1846,15 @@ export type Database = {
           unidad?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "insumos_marca_id_fkey"
+            columns: ["marca_id"]
+            isOneToOne: false
+            referencedRelation: "marcas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       mantenimientos_vehiculo: {
         Row: {
@@ -1924,6 +1935,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      marcas: {
+        Row: {
+          activo: boolean
+          created_at: string
+          id: string
+          nombre: string
+          orden: number
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          created_at?: string
+          id?: string
+          nombre: string
+          orden?: number
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          created_at?: string
+          id?: string
+          nombre?: string
+          orden?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       margenes_insumo: {
         Row: {

@@ -26,6 +26,7 @@ export type Insumo = {
   asignacion_familiar?: boolean;
   propiedad?: "Propio" | "Alquilado";
   clase_equipo?: "Máquina" | "Equipo";
+  marca_id?: string | null;
 };
 
 export type RegimenLaboral = "General" | "MYPE Pequeña" | "Construcción Civil";

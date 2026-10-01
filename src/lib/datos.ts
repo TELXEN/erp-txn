@@ -287,6 +287,14 @@ export function nombresEstados(estados: EstadoProyecto[] | undefined) {
 
 export type PrioridadItem = { id: string; nombre: string; orden: number; activo: boolean };
 
+export type MarcaItem = { id: string; nombre: string; orden: number; activo: boolean };
+
+export const useMarcas = () =>
+  useQuery({
+    queryKey: ["marcas"],
+    queryFn: () => pedir<MarcaItem>("marcas", "*", { col: "nombre" }),
+  });
+
 export const usePrioridades = () =>
   useQuery({
     queryKey: ["prioridades"],
