@@ -5,9 +5,9 @@ import { Boton, Campo, Input, Panel, Select, Vacio } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { soles } from "@/lib/format";
 import { useUnidadesMedida } from "@/lib/unidades";
-import { TIPOS_INSUMO, apuDb, nombreTipo, useInsumos, type Insumo, type TipoInsumo } from "@/lib/apu";
+import { TIPOS_INSUMO, apuDb, nombreTipo, precioVenta, useInsumos, type Insumo, type TipoInsumo } from "@/lib/apu";
 
-const vacio = { tipo: "MAT" as TipoInsumo, codigo: "", nombre: "", unidad: "und", precio: "" };
+const vacio = { tipo: "MAT" as TipoInsumo, codigo: "", nombre: "", unidad: "und", precio: "", margen: "" };
 
 export function Insumos() {
   const qc = useQueryClient();
@@ -41,6 +41,7 @@ export function Insumos() {
       nombre: form.nombre.trim(),
       unidad: form.unidad,
       precio: Number(form.precio || 0),
+      margen_pct: Number(form.margen || 0),
     });
     if (err) return setError(err.message);
     setForm({ ...vacio, tipo: form.tipo, unidad: form.unidad });
@@ -57,6 +58,7 @@ export function Insumos() {
         nombre: editando.nombre.trim(),
         unidad: editando.unidad,
         precio: Number(editando.precio || 0),
+        margen_pct: Number(editando.margen_pct || 0),
         activo: editando.activo,
       })
       .eq("id", editando.id);
@@ -78,7 +80,7 @@ export function Insumos() {
   return (
     <>
       <Panel titulo="Nuevo insumo" className="mb-4">
-        <form onSubmit={crear} className="grid gap-3 p-4 sm:grid-cols-6">
+        <form onSubmit={crear} className="grid gap-3 p-4 sm:grid-cols-7">
           <Campo etiqueta="Tipo">
             <Select className="py-1.5" value={form.tipo} onChange={(e) => setForm({ ...form, tipo: e.target.value as TipoInsumo })}>
               {TIPOS_INSUMO.map(([k, t]) => (
@@ -99,13 +101,16 @@ export function Insumos() {
               {simbolos.map((s) => <option key={s} value={s}>{s}</option>)}
             </Select>
           </Campo>
-          <Campo etiqueta="Precio sin IGV (S/)">
+          <Campo etiqueta="P. compra sin IGV (S/)">
             <Input className="py-1.5" type="number" step="0.01" min={0} value={form.precio} onChange={(e) => setForm({ ...form, precio: e.target.value })} />
           </Campo>
-          <div className="sm:col-span-6 flex justify-end">
+          <Campo etiqueta="Margen (%)">
+            <Input className="py-1.5" type="number" step="0.01" min={0} value={form.margen} onChange={(e) => setForm({ ...form, margen: e.target.value })} />
+          </Campo>
+          <div className="sm:col-span-7 flex justify-end">
             <Boton type="submit">Agregar insumo</Boton>
           </div>
-          {error && <p className="font-mono text-xs text-bad sm:col-span-6">{error}</p>}
+          {error && <p className="font-mono text-xs text-bad sm:col-span-7">{error}</p>}
         </form>
       </Panel>
 
@@ -127,13 +132,15 @@ export function Insumos() {
           <table className="w-full table-fixed font-mono text-xs">
             <thead>
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                <th className="w-[18%] px-5 py-2 font-medium">Tipo</th>
-                <th className="w-[11%] px-3 py-2 font-medium">Código</th>
-                <th className="w-[33%] px-3 py-2 font-medium">Descripción</th>
-                <th className="w-[8%] px-3 py-2 font-medium">Und.</th>
-                <th className="w-[12%] px-3 py-2 text-right font-medium">Precio</th>
-                <th className="w-[8%] px-3 py-2 font-medium">Estado</th>
-                <th className="w-[10%] px-5 py-2 text-right font-medium">Acciones</th>
+                <th className="w-[14%] px-5 py-2 font-medium">Tipo</th>
+                <th className="w-[9%] px-3 py-2 font-medium">Código</th>
+                <th className="w-[27%] px-3 py-2 font-medium">Descripción</th>
+                <th className="w-[7%] px-3 py-2 font-medium">Und.</th>
+                <th className="w-[11%] px-3 py-2 text-right font-medium">P. Compra</th>
+                <th className="w-[8%] px-3 py-2 text-right font-medium">Margen %</th>
+                <th className="w-[11%] px-3 py-2 text-right font-medium">P. Venta</th>
+                <th className="w-[6%] px-3 py-2 font-medium">Estado</th>
+                <th className="w-[7%] px-5 py-2 text-right font-medium">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -153,6 +160,8 @@ export function Insumos() {
                       </Select>
                     </td>
                     <td className="px-3 py-2"><Input className="py-1 text-right text-xs" type="number" step="0.01" value={editando.precio} onChange={(e) => setEditando({ ...editando, precio: Number(e.target.value) })} /></td>
+                    <td className="px-3 py-2"><Input className="py-1 text-right text-xs" type="number" step="0.01" value={editando.margen_pct} onChange={(e) => setEditando({ ...editando, margen_pct: Number(e.target.value) })} /></td>
+                    <td className="px-3 py-2 text-right text-ink">{soles(precioVenta(editando))}</td>
                     <td className="px-3 py-2">
                       <Select className="py-1 text-xs" value={editando.activo ? "si" : "no"} onChange={(e) => setEditando({ ...editando, activo: e.target.value === "si" })}>
                         <option value="si">Activo</option>
@@ -173,6 +182,8 @@ export function Insumos() {
                     <td className="px-3 py-2.5 text-ink"><Resaltar texto={i.nombre} termino={busqueda} /></td>
                     <td className="px-3 py-2.5 text-muted-foreground">{i.unidad}</td>
                     <td className="px-3 py-2.5 text-right">{soles(Number(i.precio))}</td>
+                    <td className="px-3 py-2.5 text-right text-muted-foreground">{Number(i.margen_pct || 0).toFixed(2)}%</td>
+                    <td className="px-3 py-2.5 text-right text-ink">{soles(precioVenta(i))}</td>
                     <td className="px-3 py-2.5"><span className={i.activo ? "text-good" : "text-muted-foreground"}>{i.activo ? "Activo" : "Inactivo"}</span></td>
                     <td className="px-5 py-2.5">
                       <div className="flex justify-end gap-1">
