@@ -215,10 +215,10 @@ function FlujoCaja() {
     if (global)
       mantVeh
         .filter((m) => !m.caja_chica_id && Number(m.costo) > 0)
-        .forEach((m) => sumar(m.fecha, m.costo, "egGenerales"));
+        .forEach((m) => sumar(m.fecha, m.costo, "egMant"));
     trasVeh
       .filter((t) => !t.caja_chica_id && Number(t.combustible_monto) > 0 && (global || t.proyecto_id === obra))
-      .forEach((t) => sumar(t.fecha, t.combustible_monto, "egGenerales"));
+      .forEach((t) => sumar(t.fecha, t.combustible_monto, "egComb"));
 
     let acumulado = 0;
     let saldo = apertura;
