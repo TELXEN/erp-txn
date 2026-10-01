@@ -1,0 +1,1 @@
+ALTER TABLE public.insumos ADD COLUMN IF NOT EXISTS margen_pct numeric NOT NULL DEFAULT 0;

@@ -1698,6 +1698,7 @@ export type Database = {
           codigo: string
           created_at: string
           id: string
+          margen_pct: number
           nombre: string
           precio: number
           tipo: string
@@ -1709,6 +1710,7 @@ export type Database = {
           codigo?: string
           created_at?: string
           id?: string
+          margen_pct?: number
           nombre: string
           precio?: number
           tipo?: string
@@ -1720,6 +1722,7 @@ export type Database = {
           codigo?: string
           created_at?: string
           id?: string
+          margen_pct?: number
           nombre?: string
           precio?: number
           tipo?: string
