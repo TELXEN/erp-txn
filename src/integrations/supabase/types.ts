@@ -1772,12 +1772,14 @@ export type Database = {
           activo: boolean
           asignacion_familiar: boolean
           categoria_obrero: string | null
+          clase_equipo: string
           codigo: string
           created_at: string
           id: string
           margen_pct: number
           nombre: string
           precio: number
+          propiedad: string
           regimen_laboral: string
           sueldo_mensual: number
           tipo: string
@@ -1788,12 +1790,14 @@ export type Database = {
           activo?: boolean
           asignacion_familiar?: boolean
           categoria_obrero?: string | null
+          clase_equipo?: string
           codigo?: string
           created_at?: string
           id?: string
           margen_pct?: number
           nombre: string
           precio?: number
+          propiedad?: string
           regimen_laboral?: string
           sueldo_mensual?: number
           tipo?: string
@@ -1804,12 +1808,14 @@ export type Database = {
           activo?: boolean
           asignacion_familiar?: boolean
           categoria_obrero?: string | null
+          clase_equipo?: string
           codigo?: string
           created_at?: string
           id?: string
           margen_pct?: number
           nombre?: string
           precio?: number
+          propiedad?: string
           regimen_laboral?: string
           sueldo_mensual?: number
           tipo?: string
