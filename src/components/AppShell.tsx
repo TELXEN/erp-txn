@@ -21,7 +21,6 @@ import {
   Plane,
   Warehouse,
   Settings,
-  ShieldCheck,
   SlidersHorizontal,
   TrendingUp,
   Handshake,
