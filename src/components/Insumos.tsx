@@ -569,7 +569,7 @@ function ManoObraWysiwyg({
           {/* Vista previa del cálculo de la fila fantasma */}
           {(Number(nueva.sueldo || 0) > 0 || nueva.regimen === "Construcción Civil") && (
             <tr className="border-b border-dashed border-line/60 bg-muted/20">
-              <td colSpan={10} className="px-5 py-2">
+              <td colSpan={9} className="px-5 py-2">
                 <DetalleCostoHH lineas={calculoNueva.lineas} horas={calculoNueva.horasEfectivas} />
               </td>
             </tr>
@@ -578,8 +578,8 @@ function ManoObraWysiwyg({
       </table>
       {error && <p className="px-5 py-2 font-mono text-xs text-bad">{error}</p>}
       <p className="border-t border-line px-5 py-3 font-mono text-[10px] leading-relaxed text-muted-foreground">
-        El Costo HH se calcula con el régimen laboral (sueldo o jornal, gratificaciones, vacaciones, CTS, EsSalud, SCTR, Vida Ley, BUC) dividido entre las horas
-        efectivas anuales. Los parámetros se ajustan en Configuración del Sistema › Parámetros laborales. La unidad es siempre hh.
+        El Costo Base se calcula con el régimen laboral (sueldo o jornal, gratificaciones, vacaciones, CTS, EsSalud, SCTR, Vida Ley, BUC) dividido entre las horas
+        efectivas anuales. El Costo HH —el que usan los análisis de precios unitarios— es el Costo Base más el margen. Los parámetros se ajustan en Configuración del Sistema › Parámetros laborales. La unidad es siempre hh.
       </p>
     </Panel>
   );
@@ -600,9 +600,9 @@ function FragmentFila({
     <>
       <tr className="border-b border-line/20">{children}</tr>
       <tr className="border-b border-line/40">
-        <td colSpan={10} className="px-5 pb-1 pt-0">
+        <td colSpan={9} className="px-5 pb-1 pt-0">
           <button type="button" onClick={onToggle} className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wide text-muted-foreground hover:text-primary">
-            {abierto ? <ChevronDown size={11} /> : <ChevronRight size={11} />} Cómo se calcula el Costo HH
+            {abierto ? <ChevronDown size={11} /> : <ChevronRight size={11} />} Cómo se calcula el Costo Base
           </button>
           {abierto && <div className="pb-2 pt-1">{detalle}</div>}
         </td>
