@@ -70,7 +70,7 @@ type Pestana =
 
 const GRUPOS_CONFIG: { titulo: string; icono: React.ElementType; items: [Pestana, string][] }[] = [
   { titulo: "Empresa", icono: Building2, items: [["empresa", "Datos de la empresa"], ["bancos", "Cuentas bancarias"]] },
-  { titulo: "Proyectos y Cotizaciones", icono: FolderKanban, items: [["codificacion", "Codificación de proyectos"], ["codificacioncot", "Codificación de cotizaciones"], ["codificacionpreliq", "Codificación de preliquidaciones"], ["codificacionins", "Codificación de insumos"], ["configuracion", "Parámetros de proyectos"]] },
+  { titulo: "Codificación", icono: FolderKanban, items: [["codificacion", "Codificación de proyectos"], ["codificacioncot", "Codificación de cotizaciones"], ["codificacionpreliq", "Codificación de preliquidaciones"], ["codificacionins", "Codificación de insumos"], ["configuracion", "Parámetros de proyectos"]] },
   { titulo: "Costos y Finanzas", icono: Coins, items: [["categoriasgg", "Categorías de gastos generales"], ["centros", "Centros de costos"], ["costos", "Rubros de costos"], ["ingresos", "Rubros de ingresos"]] },
   { titulo: "Recursos Humanos", icono: HardHat, items: [["cargos", "Cargos del personal"]] },
 ];
