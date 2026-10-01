@@ -20,6 +20,8 @@ import {
   type Insumo,
   type RegimenLaboral,
   type TipoInsumo,
+  useMargenesInsumo,
+  MARGENES_DEFECTO,
 } from "@/lib/apu";
 
 const vacio = { tipo: "MAT" as TipoInsumo, codigo: "", nombre: "", unidad: "und", precio: "", margen: "" };
@@ -27,6 +29,7 @@ const vacio = { tipo: "MAT" as TipoInsumo, codigo: "", nombre: "", unidad: "und"
 export function Insumos() {
   const qc = useQueryClient();
   const { data: lista = [] } = useInsumos();
+  const { data: mg = MARGENES_DEFECTO } = useMargenesInsumo();
   const { data: unidades = [] } = useUnidadesMedida();
   const [form, setForm] = useState(vacio);
   const [editando, setEditando] = useState<Insumo | null>(null);
@@ -149,7 +152,7 @@ export function Insumos() {
                 <Input className="py-1.5" type="number" step="0.01" min={0} value={form.precio} onChange={(e) => setForm({ ...form, precio: e.target.value })} />
               </Campo>
               <Campo etiqueta="Margen (%)">
-                <Input className="py-1.5" type="number" step="0.01" min={0} value={form.margen} onChange={(e) => setForm({ ...form, margen: e.target.value })} />
+                <p className="py-1.5 text-sm text-muted-foreground" title="Se configura en Configuración del Sistema › Márgenes APU">{(mg[form.tipo] ?? 0).toFixed(2)}% (del tipo)</p>
               </Campo>
               <div className="sm:col-span-7 flex justify-end">
                 <Boton type="submit">Agregar insumo</Boton>
@@ -198,7 +201,7 @@ export function Insumos() {
                           </Select>
                         </td>
                         <td className="px-3 py-2"><Input className="py-1 text-right text-xs" type="number" step="0.01" value={editando.precio} onChange={(e) => setEditando({ ...editando, precio: Number(e.target.value) })} /></td>
-                        <td className="px-3 py-2"><Input className="py-1 text-right text-xs" type="number" step="0.01" value={editando.margen_pct} onChange={(e) => setEditando({ ...editando, margen_pct: Number(e.target.value) })} /></td>
+                        <td className="px-3 py-2 text-right text-muted-foreground" title="Margen único del tipo (Configuración del Sistema)">{(mg[editando.tipo] ?? 0).toFixed(2)}%</td>
                         <td className="px-3 py-2 text-right text-ink">{soles(precioVenta(editando))}</td>
                         <td className="px-3 py-2">
                           <Select className="py-1 text-xs" value={editando.activo ? "si" : "no"} onChange={(e) => setEditando({ ...editando, activo: e.target.value === "si" })}>
@@ -270,6 +273,8 @@ function ManoObraWysiwyg({
   refrescar: () => void;
 }) {
   const { data: paramsData } = useParametrosLaborales();
+  const { data: mg = MARGENES_DEFECTO } = useMargenesInsumo();
+  const mgTipo = mg.MO;
   const params = paramsData ?? PARAMETROS_LABORALES_DEFECTO;
   const [nueva, setNueva] = useState<FilaMO>(filaVacia);
   const [editando, setEditando] = useState<(FilaMO & { id: string; codigo: string; activo: boolean }) | null>(null);
@@ -401,7 +406,7 @@ function ManoObraWysiwyg({
           {lista.map((i) => {
             const esEdicion = editando?.id === i.id;
             const costoHH = esEdicion && calculoEdicion ? calculoEdicion.costoHH : Number(i.precio);
-            const pv = costoHH * (1 + Number(esEdicion ? editando.margen || 0 : i.margen_pct || 0) / 100);
+            const pv = costoHH * (1 + mg.MO / 100);
             return (
               <FragmentFila
                 key={i.id}
@@ -449,7 +454,7 @@ function ManoObraWysiwyg({
                     </td>
                     <td className="px-3 py-2 text-center text-muted-foreground">hh</td>
                     <td className="px-3 py-2 text-right font-semibold text-primary">{soles(costoHH)}</td>
-                    <td className="px-3 py-2"><Input className="py-1 text-right text-xs" type="number" step="0.01" min={0} value={editando.margen} onChange={(e) => setEditando({ ...editando, margen: e.target.value })} /></td>
+                    <td className="px-3 py-2 text-right text-muted-foreground" title="Margen único del tipo (Configuración del Sistema)">{mgTipo.toFixed(2)}%</td>
                     <td className="px-3 py-2 text-right text-ink">{soles(pv)}</td>
                     <td className="px-5 py-2">
                       <div className="flex justify-end gap-1">
@@ -540,19 +545,10 @@ function ManoObraWysiwyg({
             <td className="px-3 py-2 text-center text-muted-foreground">hh</td>
             <td className="px-3 py-2 text-right font-semibold text-primary">{soles(calculoNueva.costoHH)}</td>
             <td className="px-3 py-2">
-              <input
-                className={`${inputCls} text-right`}
-                type="number"
-                step="0.01"
-                min={0}
-                placeholder="0"
-                value={nueva.margen}
-                onChange={(e) => setNueva({ ...nueva, margen: e.target.value })}
-                onKeyDown={teclaNueva}
-              />
+              <p className="text-right text-muted-foreground">{mgTipo.toFixed(2)}%</p>
             </td>
             <td className="px-3 py-2 text-right text-ink">
-              {soles(calculoNueva.costoHH * (1 + Number(nueva.margen || 0) / 100))}
+              {soles(calculoNueva.costoHH * (1 + mg.MO / 100))}
             </td>
             <td className="px-5 py-2">
               <div className="flex justify-end">
@@ -614,7 +610,7 @@ function MaterialesWysiwyg({
   const [error, setError] = useState("");
   const [guardando, setGuardando] = useState(false);
 
-  const cUnitario = (precio: string, margen: string) => Number(precio || 0) * (1 + Number(margen || 0) / 100);
+  const cUnitario = (precio: string) => Number(precio || 0) * (1 + mg.MAT / 100);
 
   async function crearDesdeFila() {
     if (guardando) return;
@@ -700,7 +696,7 @@ function MaterialesWysiwyg({
           {lista.map((i) => {
             const esEdicion = editando?.id === i.id;
             const compra = esEdicion ? Number(editando.precio || 0) : Number(i.precio);
-            const margen = esEdicion ? Number(editando.margen || 0) : Number(i.margen_pct || 0);
+            const margen = mg.MAT;
             const cu = compra * (1 + margen / 100);
             return (
               <tr key={i.id} className="border-b border-line/40 last:border-0">
@@ -714,7 +710,7 @@ function MaterialesWysiwyg({
                       </select>
                     </td>
                     <td className="px-3 py-2"><Input className="py-1 text-right text-xs" type="number" step="0.01" min={0} value={editando.precio} onChange={(e) => setEditando({ ...editando, precio: e.target.value })} /></td>
-                    <td className="px-3 py-2"><Input className="py-1 text-right text-xs" type="number" step="0.01" min={0} value={editando.margen} onChange={(e) => setEditando({ ...editando, margen: e.target.value })} /></td>
+                    <td className="px-3 py-2 text-right text-muted-foreground" title="Margen único del tipo (Configuración del Sistema)">{mgTipo.toFixed(2)}%</td>
                     <td className="px-3 py-2 text-right text-ink">{soles(cu)}</td>
                     <td className="px-5 py-2">
                       <div className="flex justify-end gap-1">
@@ -790,18 +786,9 @@ function MaterialesWysiwyg({
               />
             </td>
             <td className="px-3 py-2">
-              <input
-                className={`${inputCls} text-right`}
-                type="number"
-                step="0.01"
-                min={0}
-                placeholder="0"
-                value={nueva.margen}
-                onChange={(e) => setNueva({ ...nueva, margen: e.target.value })}
-                onKeyDown={teclaNueva}
-              />
+              <p className="text-right text-muted-foreground">{mgTipo.toFixed(2)}%</p>
             </td>
-            <td className="px-3 py-2 text-right font-semibold text-primary">{soles(cUnitario(nueva.precio, nueva.margen))}</td>
+            <td className="px-3 py-2 text-right font-semibold text-primary">{soles(cUnitario(nueva.precio))}</td>
             <td className="px-5 py-2">
               <div className="flex justify-end">
                 <button
