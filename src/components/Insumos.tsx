@@ -84,7 +84,24 @@ export function Insumos() {
 
   return (
     <>
-      <Panel titulo="Nuevo insumo" className="mb-4">
+      <div className="mb-4 flex flex-wrap gap-1 border-b border-line pb-3">
+        {TIPOS_INSUMO.map(([t, texto]) => (
+          <button
+            key={t}
+            type="button"
+            onClick={() => cambiarPestana(t)}
+            className={`rounded-md border-b-2 px-3 py-1.5 text-xs transition-colors ${
+              filtro === t
+                ? "border-cta bg-primary/10 font-semibold text-primary"
+                : "border-transparent text-muted-foreground hover:bg-muted hover:text-primary"
+            }`}
+          >
+            {texto}
+          </button>
+        ))}
+      </div>
+
+      <Panel titulo={`Nuevo insumo — ${nombreTipo(filtro)}`} className="mb-4">
         <form onSubmit={crear} className="grid gap-3 p-4 sm:grid-cols-7">
           <Campo etiqueta="Tipo">
             <Select className="py-1.5" value={form.tipo} onChange={(e) => setForm({ ...form, tipo: e.target.value as TipoInsumo })}>
@@ -120,19 +137,13 @@ export function Insumos() {
       </Panel>
 
       <Panel
-        titulo="Maestro de insumos"
+        titulo={`Maestro de insumos — ${nombreTipo(filtro)}`}
         extra={
-          <div className="flex items-center gap-2">
-            <Buscador valor={busqueda} onChange={setBusqueda} total={visibles.length} placeholder="Buscar insumo por código o descripción..." />
-            <Select className="py-1 text-xs" value={filtro} onChange={(e) => setFiltro(e.target.value as "" | TipoInsumo)}>
-              <option value="">Todos los tipos</option>
-              {TIPOS_INSUMO.map(([k, t]) => <option key={k} value={k}>{t}</option>)}
-            </Select>
-          </div>
+          <Buscador valor={busqueda} onChange={setBusqueda} total={visibles.length} placeholder="Buscar insumo por código o descripción..." />
         }
       >
         {visibles.length === 0 ? (
-          <Vacio texto={busqueda ? `Sin coincidencias para «${busqueda}»` : "Aún no hay insumos registrados."} />
+          <Vacio texto={busqueda ? `Sin coincidencias para «${busqueda}»` : `Aún no hay insumos de ${nombreTipo(filtro)} registrados.`} />
         ) : (
           <table className="w-full table-fixed font-mono text-xs">
             <thead>
