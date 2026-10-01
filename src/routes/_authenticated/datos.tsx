@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
-import { Building2, Calculator, Check, Coins, FolderKanban, HardHat, Pencil, Ruler, Trash2, Upload, X } from "lucide-react";
+import { Building2, Check, Coins, FolderKanban, HardHat, Pencil, Ruler, Trash2, Upload, X } from "lucide-react";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { exportarExcel } from "@/lib/exportar";
 import {
@@ -27,9 +27,7 @@ import { CodificacionProyectos } from "@/components/CodificacionProyectos";
 import { CodificacionCotizaciones } from "@/components/CodificacionCotizaciones";
 import { CodificacionPreliquidaciones } from "@/components/CodificacionPreliquidaciones";
 import { EspecialidadesPartida } from "@/components/EspecialidadesPartida";
-import { UnidadesMedida } from "@/components/UnidadesMedida";
 import { PartidasMaestras } from "@/components/PartidasMaestras";
-import { Insumos } from "@/components/Insumos";
 import { CuentasBancarias, type CuentaBancaria } from "@/components/CuentasBancarias";
 import { CategoriasPartida } from "@/components/CategoriasPartida";
 import { RubrosIngreso } from "@/components/RubrosIngreso";
@@ -71,15 +69,12 @@ type Pestana =
   | "codificacionpreliq"
   | "especialidades"
   | "categorias"
-  | "unidades"
   | "maestras"
-  | "insumos"
   | "empresa";
 
 const GRUPOS_CONFIG: { titulo: string; icono: React.ElementType; items: [Pestana, string][] }[] = [
   { titulo: "Empresa", icono: Building2, items: [["empresa", "Datos de la empresa"], ["bancos", "Cuentas bancarias"]] },
   { titulo: "Catálogo técnico (WBS)", icono: Ruler, items: [["especialidades", "Especialidad de partidas"], ["categorias", "Categorías de partidas"], ["maestras", "Registro de partidas"]] },
-  { titulo: "Análisis de Precios Unitarios (APU)", icono: Calculator, items: [["insumos", "Maestro de insumos"], ["unidades", "Unidades de medida"]] },
   { titulo: "Proyectos y Cotizaciones", icono: FolderKanban, items: [["codificacion", "Codificación de proyectos"], ["codificacioncot", "Codificación de cotizaciones"], ["codificacionpreliq", "Codificación de preliquidaciones"], ["configuracion", "Parámetros de proyectos"]] },
   { titulo: "Costos y Finanzas", icono: Coins, items: [["categoriasgg", "Categorías de gastos generales"], ["centros", "Centros de costos"], ["costos", "Rubros de costos"], ["ingresos", "Rubros de ingresos"]] },
   { titulo: "Recursos Humanos", icono: HardHat, items: [["cargos", "Cargos del personal"]] },
@@ -239,10 +234,6 @@ function Datos() {
         <EspecialidadesPartida />
       ) : pestana === "categorias" ? (
         <CategoriasPartida />
-      ) : pestana === "unidades" ? (
-        <UnidadesMedida />
-      ) : pestana === "insumos" ? (
-        <Insumos />
       ) : pestana === "maestras" ? (
         <PartidasMaestras />
       ) : pestana === "empresa" ? (
