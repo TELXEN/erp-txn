@@ -167,7 +167,11 @@ function FlujoCaja() {
       ? bancos.filter((b) => b.activo && b.monedas === "PEN").reduce((s, b) => s + Number(b.saldo_inicial || 0), 0)
       : 0;
 
-    const sumar = (fecha: string | null | undefined, monto: unknown, campo: "egCompras" | "egGenerales" | "egCaja" | "egRRHH") => {
+    const sumar = (
+      fecha: string | null | undefined,
+      monto: unknown,
+      campo: "egCompras" | "egGenerales" | "egCaja" | "egRRHH" | "egMant" | "egComb",
+    ) => {
       const n = Number(monto) || 0;
       if (previo(fecha)) apertura -= n;
       const mes = mesDe(fecha, anio);
