@@ -5,9 +5,9 @@ import { Boton, Campo, Input, Panel, Select, Vacio } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { soles } from "@/lib/format";
 import { useUnidadesMedida } from "@/lib/unidades";
-import { TIPOS_INSUMO, apuDb, nombreTipo, useInsumos, type Insumo, type TipoInsumo } from "@/lib/apu";
+import { TIPOS_INSUMO, apuDb, nombreTipo, precioVenta, useInsumos, type Insumo, type TipoInsumo } from "@/lib/apu";
 
-const vacio = { tipo: "MAT" as TipoInsumo, codigo: "", nombre: "", unidad: "und", precio: "" };
+const vacio = { tipo: "MAT" as TipoInsumo, codigo: "", nombre: "", unidad: "und", precio: "", margen: "" };
 
 export function Insumos() {
   const qc = useQueryClient();
@@ -41,6 +41,7 @@ export function Insumos() {
       nombre: form.nombre.trim(),
       unidad: form.unidad,
       precio: Number(form.precio || 0),
+      margen_pct: Number(form.margen || 0),
     });
     if (err) return setError(err.message);
     setForm({ ...vacio, tipo: form.tipo, unidad: form.unidad });
@@ -57,6 +58,7 @@ export function Insumos() {
         nombre: editando.nombre.trim(),
         unidad: editando.unidad,
         precio: Number(editando.precio || 0),
+        margen_pct: Number(editando.margen_pct || 0),
         activo: editando.activo,
       })
       .eq("id", editando.id);
