@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { SITUACIONES } from "@/lib/configuracion";
+import { PRIORIDADES, SITUACIONES } from "@/lib/configuracion";
 
 async function pedir<T>(tabla: string, columnas = "*", orden?: { col: string; asc?: boolean }) {
   let q = supabase.from(tabla as never).select(columnas);
@@ -283,6 +283,19 @@ export const useEstadosProyecto = () =>
 /** Nombres de estados de proyecto con respaldo en la lista base si la tabla está vacía. */
 export function nombresEstados(estados: EstadoProyecto[] | undefined) {
   return estados && estados.length > 0 ? estados.map((e) => e.nombre) : SITUACIONES;
+}
+
+export type PrioridadItem = { id: string; nombre: string; orden: number; activo: boolean };
+
+export const usePrioridades = () =>
+  useQuery({
+    queryKey: ["prioridades"],
+    queryFn: () => pedir<PrioridadItem>("prioridades", "*", { col: "orden" }),
+  });
+
+/** Nombres de prioridades con respaldo en la lista base si la tabla está vacía. */
+export function nombresPrioridades(lista: PrioridadItem[] | undefined): string[] {
+  return lista && lista.length > 0 ? lista.map((e) => e.nombre) : PRIORIDADES;
 }
 
 export const useTiposPresupuesto = () =>
