@@ -20,7 +20,7 @@ const crearEstilos=(fontFamily:string)=>StyleSheet.create({
 const n=(v:number)=>Number(v||0).toLocaleString("es-PE",{minimumFractionDigits:2,maximumFractionDigits:2});
 const f=(v:string)=>{const [a,m,d]=v.slice(0,10).split("-");return a&&m&&d?`${d}/${m}/${a}`:v||"—"};
 function ComprobanteDocument({d}:{d:DatosComprobantePdf}){
- const s=crearEstilos(familiaReactPdf(d.fuentePdf??"carlito"));
+ const fontFamily=familiaReactPdf(d.fuentePdf??"carlito"); const s=crearEstilos(fontFamily);
  const sym=d.moneda==="USD"?"US$":"S/"; const money=(v:number)=>`${sym} ${n(v)}`; const slogan=(d.empresa.eslogan||"SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL").split(/,(.+)/).filter(Boolean).map(x=>x.trim());
  return <Document title={`${d.tipoNombre} ${d.numero}`} author={d.empresa.razonSocial}><Page size="A4" style={s.page}>
   <View style={s.header} fixed><View style={s.brand}>{d.empresa.logoUrl?<Image src={d.empresa.logoUrl} style={s.logo}/>:<Text style={s.fallback}>{d.empresa.razonSocial.split(/\s+/).slice(0,2).map(x=>x[0]).join("").toUpperCase()}</Text>}</View><View style={s.company}><Text style={s.companyName}>{d.empresa.razonSocial}</Text>{slogan.map((x,i)=><Text key={i} style={s.slogan}>{x}</Text>)}<Text style={s.companyLine}>{d.empresa.direccion?`Dirección: ${d.empresa.direccion}`:"—"}</Text><Text style={s.companyLine}>{d.empresa.web||"—"}</Text></View><View style={s.titleCol}><View style={s.titleBox}><Text style={s.title}>{d.tipoNombre.toUpperCase()}</Text><Text style={s.ruc}>RUC: {d.empresa.ruc||"—"}</Text><Text style={s.code}>{d.numero}</Text></View><Text style={s.status}>{d.estado.toUpperCase()}</Text></View></View>

@@ -2,6 +2,7 @@ import * as XLSX from "xlsx";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { soles } from "./format";
+import { fuenteDocumento, type FuenteDocumentoId } from "./fuentes-documentos";
 
 export type Hoja = { nombre: string; filas: Record<string, string | number>[] };
 
@@ -28,17 +29,19 @@ export function exportarPdf(opciones: {
   barras?: BarraPdf[];
   tabla?: { columnas: string[]; filas: (string | number)[][] };
   archivo: string;
+  fuentePdf?: FuenteDocumentoId;
 }) {
   const doc = new jsPDF({ unit: "pt", format: "a4" });
+  const familia = fuenteDocumento(opciones.fuentePdf).jsPdfFamily;
   const ancho = doc.internal.pageSize.getWidth();
   const margen = 40;
   let y = 48;
 
-  doc.setFont("helvetica", "bold");
+  doc.setFont(familia, "bold");
   doc.setFontSize(16);
   doc.text(opciones.titulo, margen, y);
   y += 16;
-  doc.setFont("helvetica", "normal");
+  doc.setFont(familia, "normal");
   doc.setFontSize(9);
   doc.setTextColor(110);
   doc.text(opciones.subtitulo, margen, y);
@@ -58,10 +61,10 @@ export function exportarPdf(opciones: {
       doc.setTextColor(110);
       doc.text(k.etiqueta.toUpperCase(), x + 10, y + 18);
       doc.setFontSize(13);
-      doc.setFont("helvetica", "bold");
+      doc.setFont(familia, "bold");
       doc.setTextColor(k.valor < 0 ? 210 : 20, k.valor < 0 ? 63 : 20, k.valor < 0 ? 47 : 26);
       doc.text(soles(k.valor), x + 10, y + 40);
-      doc.setFont("helvetica", "normal");
+      doc.setFont(familia, "normal");
       doc.setTextColor(20);
     });
     y += 76;
@@ -69,9 +72,9 @@ export function exportarPdf(opciones: {
 
   if (opciones.barras?.length) {
     doc.setFontSize(11);
-    doc.setFont("helvetica", "bold");
+    doc.setFont(familia, "bold");
     doc.text("Rendimiento por Partida", margen, y);
-    doc.setFont("helvetica", "normal");
+    doc.setFont(familia, "normal");
     y += 16;
     const anchoBarra = ancho - margen * 2 - 150;
     opciones.barras.forEach((b) => {
@@ -114,7 +117,7 @@ export function exportarPdf(opciones: {
       startY: y,
       head: [opciones.tabla.columnas],
       body: opciones.tabla.filas,
-      styles: { fontSize: 8, cellPadding: 4 },
+      styles: { font: familia, fontSize: 8, cellPadding: 4 },
       headStyles: { fillColor: [31, 111, 84], textColor: 255 },
       margin: { left: margen, right: margen },
     });

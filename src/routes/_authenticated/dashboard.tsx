@@ -25,6 +25,7 @@ import {
   useVentas,
 } from "@/lib/datos";
 import { exportarExcel, exportarPdf } from "@/lib/exportar";
+import { useFuenteDocumento } from "@/lib/fuentes-documentos";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -59,6 +60,7 @@ type ClaveComposicion = (typeof COMPOSICION)[number]["clave"];
 
 function Dashboard() {
   const { rol } = useAuth();
+  const { fuente } = useFuenteDocumento();
   const { data: proyectos = [] } = useProyectos();
   const { data: partidas = [] } = usePartidas();
   const { data: tareos = [] } = useTareos();
@@ -367,6 +369,7 @@ function Dashboard() {
       // en pantalla no cambia.
       const estiloCaptura = document.createElement("style");
       estiloCaptura.textContent =
+        `#reporte-financiero{font-family:${fuente.css}!important}` +
         "#reporte-financiero .overflow-x-auto{overflow:visible!important}" +
         "#reporte-financiero table{width:100%!important;table-layout:fixed!important}" +
         "#reporte-financiero th,#reporte-financiero td{font-size:8px!important;padding:3px 4px!important;letter-spacing:normal!important}" +
