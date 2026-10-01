@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
-import { Building2, Check, Coins, FolderKanban, HardHat, Pencil, Plus, SlidersHorizontal, Trash2, Upload, X } from "lucide-react";
+import { Building2, Check, Coins, FolderKanban, HardHat, Pencil, Plus, SlidersHorizontal, Tag, Trash2, Upload, X } from "lucide-react";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { exportarExcel } from "@/lib/exportar";
 import {
@@ -67,12 +67,14 @@ type Pestana =
   | "configuracion"
   | "codificacion"
   | "codificacionins"
-  | "empresa";
+  | "empresa"
+  | "marcas";
 
 const GRUPOS_CONFIG: { titulo: string; icono: React.ElementType; items: [Pestana, string][] }[] = [
   { titulo: "Empresa", icono: Building2, items: [["empresa", "Datos de la empresa"], ["bancos", "Cuentas bancarias"]] },
   { titulo: "Codificación", icono: FolderKanban, items: [["codificacion", "Codificación de Documentos"], ["codificacionins", "Codificación de insumos"]] },
   { titulo: "Parámetros de proyectos", icono: SlidersHorizontal, items: [["configuracion", "Parámetros de proyectos"]] },
+  { titulo: "Marcas", icono: Tag, items: [["marcas", "Registro de marcas"]] },
   { titulo: "Costos y Finanzas", icono: Coins, items: [["categoriasgg", "Categorías de gastos generales"], ["centros", "Centros de costos"], ["costos", "Rubros de costos"], ["ingresos", "Rubros de ingresos"]] },
   { titulo: "Recursos Humanos", icono: HardHat, items: [["cargos", "Cargos del personal"]] },
 ];
@@ -219,6 +221,8 @@ function Datos() {
         <CargosPersonal />
       ) : pestana === "categoriasgg" ? (
         <CategoriasGastoGeneral />
+      ) : pestana === "marcas" ? (
+        <MarcasPanel />
       ) : pestana === "configuracion" ? (
         <ConfiguracionProyectos />
       ) : pestana === "codificacion" ? (
@@ -1237,10 +1241,6 @@ function ConfiguracionProyectos() {
       <EstadosProyecto />
 
       <PrioridadesPanel />
-
-      <div className="lg:col-span-2">
-        <MarcasPanel />
-      </div>
 
       <div className="lg:col-span-2">
         <TiposPresupuesto />
