@@ -160,6 +160,8 @@ export function Insumos() {
                       </Select>
                     </td>
                     <td className="px-3 py-2"><Input className="py-1 text-right text-xs" type="number" step="0.01" value={editando.precio} onChange={(e) => setEditando({ ...editando, precio: Number(e.target.value) })} /></td>
+                    <td className="px-3 py-2"><Input className="py-1 text-right text-xs" type="number" step="0.01" value={editando.margen_pct} onChange={(e) => setEditando({ ...editando, margen_pct: Number(e.target.value) })} /></td>
+                    <td className="px-3 py-2 text-right text-ink">{soles(precioVenta(editando))}</td>
                     <td className="px-3 py-2">
                       <Select className="py-1 text-xs" value={editando.activo ? "si" : "no"} onChange={(e) => setEditando({ ...editando, activo: e.target.value === "si" })}>
                         <option value="si">Activo</option>
@@ -180,6 +182,8 @@ export function Insumos() {
                     <td className="px-3 py-2.5 text-ink"><Resaltar texto={i.nombre} termino={busqueda} /></td>
                     <td className="px-3 py-2.5 text-muted-foreground">{i.unidad}</td>
                     <td className="px-3 py-2.5 text-right">{soles(Number(i.precio))}</td>
+                    <td className="px-3 py-2.5 text-right text-muted-foreground">{Number(i.margen_pct || 0).toFixed(2)}%</td>
+                    <td className="px-3 py-2.5 text-right text-ink">{soles(precioVenta(i))}</td>
                     <td className="px-3 py-2.5"><span className={i.activo ? "text-good" : "text-muted-foreground"}>{i.activo ? "Activo" : "Inactivo"}</span></td>
                     <td className="px-5 py-2.5">
                       <div className="flex justify-end gap-1">
