@@ -1,4 +1,6 @@
 import { Document, Image, Page, StyleSheet, Text, View, pdf } from "@react-pdf/renderer";
+import { familiaReactPdf } from "@/lib/fuentes-documentos-pdf";
+import type { FuenteDocumentoId } from "@/lib/fuentes-documentos";
 
 type LineaPdf = {
   descripcion: string;
@@ -50,6 +52,7 @@ export type DatosPreliquidacionPdf = {
   cuentaDetracciones: CuentaPdf;
   cuentasTodas: { nombre: string; numero: string; cci: string; moneda: string; tipoCuenta: string; esDetraccion?: boolean }[];
   observacion: string;
+  fuentePdf?: FuenteDocumentoId;
 };
 
 /** Separa el ítem jerárquico (01.02.01) de la descripción y lo vuelve código compacto (010201). */
@@ -73,31 +76,32 @@ const colors = {
   white: "#ffffff",
 };
 
-const styles = StyleSheet.create({
-  page: { padding: "32 34 30", fontFamily: "Helvetica", fontSize: 8.5, color: colors.slate700 },
+function crearEstilos(fontFamily: string) {
+return StyleSheet.create({
+  page: { padding: "32 34 30", fontFamily, fontSize: 8.5, color: colors.slate700 },
   header: { flexDirection: "row", justifyContent: "space-between", borderBottomWidth: 2, borderBottomColor: colors.emerald700, paddingBottom: 12, marginBottom: 16 },
   brand: { width: 96, alignItems: "center", justifyContent: "center" },
   logo: { maxWidth: 96, maxHeight: 46, objectFit: "contain" },
-  logoFallback: { width: 46, height: 46, borderRadius: 9, backgroundColor: colors.emerald700, color: colors.white, fontFamily: "Helvetica-Bold", fontSize: 14, textAlign: "center", lineHeight: 46 },
+  logoFallback: { width: 46, height: 46, borderRadius: 9, backgroundColor: colors.emerald700, color: colors.white, fontFamily, fontWeight: 700, fontSize: 14, textAlign: "center", lineHeight: 46 },
   company: { flex: 1, alignItems: "flex-end", paddingTop: 2 },
-  companyName: { fontFamily: "Helvetica-Bold", fontSize: 8.5, color: colors.emerald800, letterSpacing: 0.3, textAlign: "right" },
-  slogan: { fontFamily: "Helvetica", fontSize: 7, color: colors.emerald800, letterSpacing: 0.3, textAlign: "right", lineHeight: 1.3, marginTop: 2 },
-  companyLine: { fontFamily: "Helvetica", fontSize: 7, color: colors.slate700, textAlign: "right", lineHeight: 1.35, marginTop: 3 },
-  companyLineMt: { fontFamily: "Helvetica", fontSize: 7, color: colors.slate700, textAlign: "right", lineHeight: 1.35, marginTop: 1.5 },
-  companyWeb: { fontFamily: "Helvetica", fontSize: 7, color: colors.emerald800, textAlign: "right", lineHeight: 1.35, marginTop: 1.5 },
+  companyName: { fontFamily, fontWeight: 700, fontSize: 8.5, color: colors.emerald800, letterSpacing: 0.3, textAlign: "right" },
+  slogan: { fontFamily, fontSize: 7, color: colors.emerald800, letterSpacing: 0.3, textAlign: "right", lineHeight: 1.3, marginTop: 2 },
+  companyLine: { fontFamily, fontSize: 7, color: colors.slate700, textAlign: "right", lineHeight: 1.35, marginTop: 3 },
+  companyLineMt: { fontFamily, fontSize: 7, color: colors.slate700, textAlign: "right", lineHeight: 1.35, marginTop: 1.5 },
+  companyWeb: { fontFamily, fontSize: 7, color: colors.emerald800, textAlign: "right", lineHeight: 1.35, marginTop: 1.5 },
   titleCol: { width: 145 },
   titleBox: { alignItems: "center", backgroundColor: colors.emerald50, borderTopWidth: 3, borderTopColor: colors.emerald700, borderRadius: 4, paddingVertical: 8, paddingHorizontal: 12 },
-  boxTitle: { fontFamily: "Helvetica-Bold", fontSize: 14, color: colors.slate950, letterSpacing: 1.4, lineHeight: 1.15 },
-  boxRuc: { fontFamily: "Helvetica-Bold", fontSize: 8.5, color: colors.slate950, marginTop: 2 },
-  boxCode: { fontFamily: "Helvetica-Bold", fontSize: 10, color: colors.slate950, marginTop: 1.5, letterSpacing: 0.5 },
+  boxTitle: { fontFamily, fontWeight: 700, fontSize: 14, color: colors.slate950, letterSpacing: 1.4, lineHeight: 1.15 },
+  boxRuc: { fontFamily, fontWeight: 700, fontSize: 8.5, color: colors.slate950, marginTop: 2 },
+  boxCode: { fontFamily, fontWeight: 700, fontSize: 10, color: colors.slate950, marginTop: 1.5, letterSpacing: 0.5 },
   statusLine: { flexDirection: "row", justifyContent: "space-between", marginTop: 4 },
-  statusText: { fontFamily: "Helvetica-Bold", fontSize: 7, color: colors.slate500, letterSpacing: 0.8 },
+  statusText: { fontFamily, fontWeight: 700, fontSize: 7, color: colors.slate500, letterSpacing: 0.8 },
   infoBand: { flexDirection: "row", gap: 16, padding: 12, backgroundColor: colors.slate50, borderTopWidth: 1, borderBottomWidth: 1, borderColor: colors.slate300, marginBottom: 17 },
   infoColumn: { flex: 1 },
-  label: { fontFamily: "Helvetica-Bold", fontSize: 6.7, color: colors.slate500, letterSpacing: 0.7, textTransform: "uppercase", marginBottom: 3 },
-  value: { fontFamily: "Helvetica-Bold", fontSize: 9, color: colors.slate950, lineHeight: 1.3 },
+  label: { fontFamily, fontWeight: 700, fontSize: 6.7, color: colors.slate500, letterSpacing: 0.7, textTransform: "uppercase", marginBottom: 3 },
+  value: { fontFamily, fontWeight: 700, fontSize: 9, color: colors.slate950, lineHeight: 1.3 },
   subvalue: { fontSize: 7.8, color: colors.slate500, lineHeight: 1.35, marginTop: 2 },
-  sectionTitle: { fontFamily: "Helvetica-Bold", fontSize: 8, color: colors.emerald800, letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 7 },
+  sectionTitle: { fontFamily, fontWeight: 700, fontSize: 8, color: colors.emerald800, letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 7 },
   table: { marginBottom: 15 },
   tableHeader: { flexDirection: "row", backgroundColor: colors.slate950, color: colors.white, minHeight: 24, alignItems: "center" },
   tableRow: { flexDirection: "row", minHeight: 27, alignItems: "center", borderBottomWidth: 0.7, borderBottomColor: colors.slate300 },
@@ -115,18 +119,19 @@ const styles = StyleSheet.create({
   paymentRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 5 },
   totals: { width: "42%" },
   totalRow: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 4, borderBottomWidth: 0.5, borderBottomColor: colors.slate300 },
-  totalStrong: { flexDirection: "row", justifyContent: "space-between", padding: "8 7", backgroundColor: colors.slate950, color: colors.white, fontFamily: "Helvetica-Bold", fontSize: 10 },
+  totalStrong: { flexDirection: "row", justifyContent: "space-between", padding: "8 7", backgroundColor: colors.slate950, color: colors.white, fontFamily, fontWeight: 700, fontSize: 10 },
   settlement: { flexDirection: "row", gap: 8, marginBottom: 15 },
   settlementCard: { flex: 1, padding: 10, backgroundColor: colors.emerald50, borderTopWidth: 2, borderTopColor: colors.emerald700 },
-  settlementValue: { fontFamily: "Helvetica-Bold", fontSize: 11, color: colors.emerald800, marginTop: 4 },
+  settlementValue: { fontFamily, fontWeight: 700, fontSize: 11, color: colors.emerald800, marginTop: 4 },
   banking: { padding: 11, backgroundColor: colors.slate50, marginBottom: 13, flexGrow: 1 },
   bankList: { flexGrow: 1 },
-  bankLabel: { fontFamily: "Helvetica-Bold", fontSize: 6.7, color: colors.slate500, letterSpacing: 0.7, textTransform: "uppercase", marginBottom: 1, marginTop: 2 },
-  bankValue: { fontFamily: "Helvetica-Bold", fontSize: 9, color: colors.slate950, lineHeight: 1.2, marginTop: 1 },
+  bankLabel: { fontFamily, fontWeight: 700, fontSize: 6.7, color: colors.slate500, letterSpacing: 0.7, textTransform: "uppercase", marginBottom: 1, marginTop: 2 },
+  bankValue: { fontFamily, fontWeight: 700, fontSize: 9, color: colors.slate950, lineHeight: 1.2, marginTop: 1 },
   notes: { padding: 10, borderLeftWidth: 3, borderLeftColor: colors.emerald700, backgroundColor: colors.emerald50, marginBottom: 14 },
   legal: { fontSize: 7, lineHeight: 1.4, color: colors.slate500, marginTop: "auto", paddingTop: 12, borderTopWidth: 0.7, borderTopColor: colors.slate300 },
   footer: { position: "absolute", left: 34, right: 34, bottom: 14, flexDirection: "row", justifyContent: "space-between", color: colors.slate500, fontSize: 6.5 },
 });
+}
 
 const formatoFecha = (valor: string) => {
   if (!valor) return "—";
@@ -138,6 +143,7 @@ const numero = (valor: number, decimales = 2) =>
   Number(valor || 0).toLocaleString("es-PE", { minimumFractionDigits: decimales, maximumFractionDigits: decimales });
 
 function PreliquidacionDocument({ datos }: { datos: DatosPreliquidacionPdf }) {
+  const styles = crearEstilos(familiaReactPdf(datos.fuentePdf ?? "carlito"));
   const simbolo = datos.moneda === "USD" ? "US$" : "S/";
   const dinero = (valor: number) => `${simbolo} ${numero(valor)}`;
   const descuento = datos.detraccionPen > 0 ? `S/ ${numero(datos.detraccionPen, 0)}` : datos.retencionPen > 0 ? `S/ ${numero(datos.retencionPen)}` : "No aplica";
