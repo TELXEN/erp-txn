@@ -15,7 +15,7 @@ export function Insumos() {
   const { data: unidades = [] } = useUnidadesMedida();
   const [form, setForm] = useState(vacio);
   const [editando, setEditando] = useState<Insumo | null>(null);
-  const [filtro, setFiltro] = useState<"" | TipoInsumo>("");
+  const [filtro, setFiltro] = useState<TipoInsumo>("MO");
   const [busqueda, setBusqueda] = useState("");
   const [error, setError] = useState("");
   const refrescar = () => {
@@ -27,9 +27,14 @@ export function Insumos() {
     return [...new Set([...s, "hh", "hm", "und", "%mo"])];
   }, [unidades]);
   
-  const visibles = (filtro ? lista.filter((i) => i.tipo === filtro) : lista).filter((i) =>
-    coincide(busqueda, i.codigo, i.nombre),
-  );
+  const visibles = lista
+    .filter((i) => i.tipo === filtro)
+    .filter((i) => coincide(busqueda, i.codigo, i.nombre));
+
+  function cambiarPestana(t: TipoInsumo) {
+    setFiltro(t);
+    setForm((f) => ({ ...f, tipo: t }));
+  }
 
   async function crear(e: React.FormEvent) {
     e.preventDefault();
