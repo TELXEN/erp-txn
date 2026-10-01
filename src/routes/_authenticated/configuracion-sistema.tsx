@@ -59,6 +59,7 @@ function ConfiguracionSistema() {
           })}
         </div>
       </Panel>
+      <ParametrosLaboralesPanel />
     </div>
   );
 }
