@@ -8,12 +8,13 @@ import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio } from "@/componen
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { InsigniaSituacion } from "@/components/estado-ui";
 import { Kanban } from "@/components/Kanban";
-import { SITUACIONES, type Situacion } from "@/lib/configuracion";
 import { useAuth, puedeVerDinero } from "@/lib/auth";
 import { fecha, soles } from "@/lib/format";
 import {
   costoRealProyecto,
   ofertaProyecto,
+  useEstadosProyecto,
+  nombresEstados,
   useTiposPresupuesto,
   presupuestoProyecto,
   useGastosDirectos,
@@ -54,6 +55,7 @@ function Proyectos() {
   const { data: terceros = [] } = useTerceros();
   const clientes = terceros.filter((t) => t.es_cliente && t.activo);
   const { data: tiposPresupuesto = [] } = useTiposPresupuesto();
+  const estadosQ = useEstadosProyecto();
   const { data: codificacion } = useCodificacion();
   const [vista, setVista] = useState<"tabla" | "kanban">("tabla");
   const [busqueda, setBusqueda] = useState("");
@@ -178,7 +180,7 @@ function Proyectos() {
     qc.invalidateQueries({ queryKey: ["proyectos"] });
   }
 
-  async function mover(id: string, situacion: Situacion) {
+  async function mover(id: string, situacion: string) {
     setError("");
     const { error: err } = await supabase.from("proyectos").update({ situacion }).eq("id", id);
     if (err) return setError(err.message);
@@ -256,7 +258,7 @@ function Proyectos() {
           </Campo>
           <Campo etiqueta="Status">
             <Select value={form.situacion} onChange={(e) => setForm({ ...form, situacion: e.target.value })}>
-              {SITUACIONES.map((s) => (
+              {nombresEstados(estadosQ.data).map((s) => (
                 <option key={s} value={s}>
                   {s}
                 </option>
@@ -489,7 +491,7 @@ function Proyectos() {
                             onChange={(e) => setEditando({ ...editando, situacion: e.target.value })}
                             className="py-1 text-xs"
                           >
-                            {SITUACIONES.map((s) => (
+                            {nombresEstados(estadosQ.data).map((s) => (
                               <option key={s} value={s}>
                                 {s}
                               </option>

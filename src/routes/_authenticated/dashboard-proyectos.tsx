@@ -5,7 +5,8 @@ import { Encabezado } from "@/components/AppShell";
 import { Boton, Panel, Select, Vacio } from "@/components/ui-kit";
 import { CurvaS } from "@/components/CurvaS";
 import { InsigniaPrioridad, InsigniaSituacion } from "@/components/estado-ui";
-import { SITUACIONES, tonoSituacion } from "@/lib/configuracion";
+import { tonoSituacion } from "@/lib/configuracion";
+import { nombresEstados, useEstadosProyecto } from "@/lib/datos";
 
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha, pct, soles } from "@/lib/format";
@@ -46,6 +47,7 @@ export const Route = createFileRoute("/_authenticated/dashboard-proyectos")({
 function DashboardProyectos() {
   const { rol } = useAuth();
   const { data: proyectos = [] } = useProyectos();
+  const estadosQ = useEstadosProyecto();
   const { data: partidas = [] } = usePartidas();
   const { data: gastosD = [] } = useGastosDirectos();
   const { data: gastosG = [] } = useGastosGenerales();
@@ -388,7 +390,7 @@ function DashboardProyectos() {
               activa={filtroEstado === "Todos"}
               onClick={() => setFiltroEstado("Todos")}
             />
-            {SITUACIONES.map((situacion) => (
+            {nombresEstados(estadosQ.data).map((situacion) => (
               <PildoraEstado
                 key={situacion}
                 etiqueta={situacion}

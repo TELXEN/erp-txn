@@ -1341,6 +1341,33 @@ export type Database = {
         }
         Relationships: []
       }
+      estados_proyecto: {
+        Row: {
+          activo: boolean
+          created_at: string
+          id: string
+          nombre: string
+          orden: number
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          created_at?: string
+          id?: string
+          nombre: string
+          orden?: number
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          created_at?: string
+          id?: string
+          nombre?: string
+          orden?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       gastos_directos: {
         Row: {
           banco_id: string | null

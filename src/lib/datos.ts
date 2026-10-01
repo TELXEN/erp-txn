@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { SITUACIONES } from "@/lib/configuracion";
 
 async function pedir<T>(tabla: string, columnas = "*", orden?: { col: string; asc?: boolean }) {
   let q = supabase.from(tabla as never).select(columnas);
@@ -270,6 +271,19 @@ export const useVentas = () =>
     queryKey: ["ventas"],
     queryFn: () => pedir<Venta>("ventas", "*", { col: "created_at", asc: false }),
   });
+
+export type EstadoProyecto = { id: string; nombre: string; orden: number; activo: boolean };
+
+export const useEstadosProyecto = () =>
+  useQuery({
+    queryKey: ["estados_proyecto"],
+    queryFn: () => pedir<EstadoProyecto>("estados_proyecto", "*", { col: "orden" }),
+  });
+
+/** Nombres de estados de proyecto con respaldo en la lista base si la tabla está vacía. */
+export function nombresEstados(estados: EstadoProyecto[] | undefined) {
+  return estados && estados.length > 0 ? estados.map((e) => e.nombre) : SITUACIONES;
+}
 
 export const useTiposPresupuesto = () =>
   useQuery({
