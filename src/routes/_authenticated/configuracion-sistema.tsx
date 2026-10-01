@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Check, HardHat, SlidersHorizontal } from "lucide-react";
+import { Check, SlidersHorizontal } from "lucide-react";
 import { Boton, Panel } from "@/components/ui-kit";
 import { ParametrosLaboralesPanel } from "@/components/ParametrosLaborales";
 import { TEMAS, useTema } from "@/lib/temas";
