@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Check, SlidersHorizontal } from "lucide-react";
 import { Boton, Panel } from "@/components/ui-kit";
 import { ParametrosLaboralesPanel } from "@/components/ParametrosLaborales";
+import { MargenesApuPanel } from "@/components/MargenesApu";
 import { TEMAS, useTema } from "@/lib/temas";
 
 function IconoPaletaColores({ className }: { className?: string }) {
@@ -60,7 +61,7 @@ export const Route = createFileRoute("/_authenticated/configuracion-sistema")({
 
 function ConfiguracionSistema() {
   const { tema, cambiarTema } = useTema();
-  const [pestana, setPestana] = useState<"tema" | "laboral">("tema");
+  const [pestana, setPestana] = useState<"tema" | "laboral" | "margenes">("tema");
 
   return (
     <div className="space-y-4">
@@ -106,6 +107,25 @@ function ConfiguracionSistema() {
           <IconoCascoColores className="size-4" />
           Parámetros laborales
         </Boton>
+        <Boton
+          type="button"
+          variante="linea"
+          role="tab"
+          aria-selected={pestana === "margenes"}
+          onClick={() => setPestana("margenes")}
+          className={`-mb-px shrink-0 rounded-b-none border-x-0 border-t-0 px-4 py-2.5 ${
+            pestana === "margenes"
+              ? "border-b-2 border-primary bg-primary/5 font-semibold text-primary"
+              : "border-b-2 border-transparent text-muted-foreground"
+          }`}
+        >
+          <svg viewBox="0 0 24 24" className="size-4" aria-hidden="true">
+            <circle cx="7" cy="7" r="3" fill="#22c55e" />
+            <circle cx="17" cy="17" r="3" fill="#3b82f6" />
+            <path d="M19 5 5 19" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" />
+          </svg>
+          Márgenes APU
+        </Boton>
       </div>
 
       {pestana === "tema" ? (
@@ -139,7 +159,7 @@ function ConfiguracionSistema() {
           </div>
         </Panel>
       ) : (
-        <ParametrosLaboralesPanel />
+        pestana === "laboral" ? <ParametrosLaboralesPanel /> : <MargenesApuPanel />
       )}
     </div>
   );

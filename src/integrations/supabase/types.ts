@@ -1871,6 +1871,24 @@ export type Database = {
           },
         ]
       }
+      margenes_insumo: {
+        Row: {
+          margen_pct: number
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          margen_pct?: number
+          tipo: string
+          updated_at?: string
+        }
+        Update: {
+          margen_pct?: number
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       metas_flujo_caja: {
         Row: {
           anio: number
