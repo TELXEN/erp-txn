@@ -1,7 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-export type FuenteDocumentoId = "carlito" | "arial" | "times" | "source-sans-3";
+export type FuenteDocumentoId =
+  | "carlito"
+  | "arial"
+  | "times"
+  | "source-sans-3"
+  | "segoe-ui"
+  | "roboto"
+  | "helvetica-neue";
 
 export type FuenteDocumento = {
   id: FuenteDocumentoId;
@@ -47,6 +54,30 @@ export const FUENTES_DOCUMENTOS: FuenteDocumento[] = [
     descripcion: "Moderna y muy legible en tamaños pequeños.",
     css: '"Source Sans 3", Arial, sans-serif',
     pdfFamily: "PdfSourceSans3",
+    jsPdfFamily: "helvetica",
+  },
+  {
+    id: "segoe-ui",
+    nombre: "Segoe UI",
+    descripcion: "Contemporánea y limpia para documentos técnicos y ejecutivos.",
+    css: '"Segoe UI", "Source Sans 3", sans-serif',
+    pdfFamily: "PdfSegoeUI",
+    jsPdfFamily: "helvetica",
+  },
+  {
+    id: "roboto",
+    nombre: "Roboto",
+    descripcion: "Equilibrada y legible en reportes, cuadros y cifras.",
+    css: 'Roboto, Arial, sans-serif',
+    pdfFamily: "PdfRoboto",
+    jsPdfFamily: "helvetica",
+  },
+  {
+    id: "helvetica-neue",
+    nombre: "Helvetica Neue",
+    descripcion: "Sobria y precisa para presentaciones comerciales.",
+    css: '"Helvetica Neue", "Liberation Sans", Arial, sans-serif',
+    pdfFamily: "PdfHelveticaNeue",
     jsPdfFamily: "helvetica",
   },
 ];
