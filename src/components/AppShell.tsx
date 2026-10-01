@@ -34,7 +34,6 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ETIQUETA_ROL, useAuth, type Rol } from "@/lib/auth";
-import { TEMAS, useTema } from "@/lib/temas";
 
 
 type Item = { a: string; texto: string; roles: Rol[]; icono: React.ElementType };
@@ -120,7 +119,6 @@ export function AppShell({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const { tema, cambiarTema } = useTema();
 
 
   const categorias = MENU.map((c) => ({
@@ -243,32 +241,6 @@ export function AppShell({ children }: { children: ReactNode }) {
             })}
           </nav>
 
-          <div className="mt-4 flex items-center gap-2 px-3">
-            <span className="font-mono text-[9px] uppercase tracking-wider text-brand-foreground/45">Tema</span>
-            <div className="flex items-center gap-1.5">
-              {TEMAS.map((t) => {
-                const activo = tema === t.id;
-                return (
-                  <button
-                    key={t.id}
-                    type="button"
-                    onClick={() => cambiarTema(t.id)}
-                    title={t.nombre}
-                    aria-label={t.nombre}
-                    aria-pressed={activo}
-                    className={`grid size-4 place-items-center rounded-full transition-all ${
-                      activo ? "ring-2 ring-brand-foreground/70 ring-offset-1 ring-offset-brand" : "opacity-60 hover:opacity-100"
-                    }`}
-                  >
-                    <span className="flex size-3 overflow-hidden rounded-full border border-brand-foreground/20">
-                      <span className="h-full w-1/2" style={{ background: t.muestraBase }} />
-                      <span className="h-full w-1/2" style={{ background: t.muestraAcento }} />
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
 
 
           <div className="mt-6 rounded-md border border-line bg-card p-3">
