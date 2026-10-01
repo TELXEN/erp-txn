@@ -106,7 +106,7 @@ export function CodificacionInsumos() {
                       type="number"
                       min={0}
                       max={9}
-                      value={form[c.correlativo] !== undefined ? (form[c.digito] as number) : 0}
+                      value={form[c.digito]}
                       onChange={(e) => setForm({ ...form, [c.digito]: Number(e.target.value) })}
                     />
                   </td>
