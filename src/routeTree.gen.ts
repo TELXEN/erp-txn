@@ -24,6 +24,7 @@ import { Route as AuthenticatedCotizacionesRouteImport } from './routes/_authent
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedDashboardProyectosRouteImport } from './routes/_authenticated/dashboard-proyectos'
 import { Route as AuthenticatedDatosRouteImport } from './routes/_authenticated/datos'
+import { Route as AuthenticatedDatosApuRouteImport } from './routes/_authenticated/datos-apu'
 import { Route as AuthenticatedFacturacionElectronicaRouteImport } from './routes/_authenticated/facturacion-electronica'
 import { Route as AuthenticatedFlujoCajaRouteImport } from './routes/_authenticated/flujo-caja'
 import { Route as AuthenticatedGastosDirectosRouteImport } from './routes/_authenticated/gastos-directos'
@@ -124,6 +125,11 @@ const AuthenticatedDashboardProyectosRoute =
 const AuthenticatedDatosRoute = AuthenticatedDatosRouteImport.update({
   id: '/datos',
   path: '/datos',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedDatosApuRoute = AuthenticatedDatosApuRouteImport.update({
+  id: '/datos-apu',
+  path: '/datos-apu',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedFacturacionElectronicaRoute =
@@ -262,6 +268,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/dashboard-proyectos': typeof AuthenticatedDashboardProyectosRoute
   '/datos': typeof AuthenticatedDatosRoute
+  '/datos-apu': typeof AuthenticatedDatosApuRoute
   '/facturacion-electronica': typeof AuthenticatedFacturacionElectronicaRoute
   '/flujo-caja': typeof AuthenticatedFlujoCajaRoute
   '/gastos-directos': typeof AuthenticatedGastosDirectosRoute
@@ -300,6 +307,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/dashboard-proyectos': typeof AuthenticatedDashboardProyectosRoute
   '/datos': typeof AuthenticatedDatosRoute
+  '/datos-apu': typeof AuthenticatedDatosApuRoute
   '/facturacion-electronica': typeof AuthenticatedFacturacionElectronicaRoute
   '/flujo-caja': typeof AuthenticatedFlujoCajaRoute
   '/gastos-directos': typeof AuthenticatedGastosDirectosRoute
@@ -340,6 +348,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/dashboard-proyectos': typeof AuthenticatedDashboardProyectosRoute
   '/_authenticated/datos': typeof AuthenticatedDatosRoute
+  '/_authenticated/datos-apu': typeof AuthenticatedDatosApuRoute
   '/_authenticated/facturacion-electronica': typeof AuthenticatedFacturacionElectronicaRoute
   '/_authenticated/flujo-caja': typeof AuthenticatedFlujoCajaRoute
   '/_authenticated/gastos-directos': typeof AuthenticatedGastosDirectosRoute
@@ -380,6 +389,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/dashboard-proyectos'
     | '/datos'
+    | '/datos-apu'
     | '/facturacion-electronica'
     | '/flujo-caja'
     | '/gastos-directos'
@@ -418,6 +428,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/dashboard-proyectos'
     | '/datos'
+    | '/datos-apu'
     | '/facturacion-electronica'
     | '/flujo-caja'
     | '/gastos-directos'
@@ -457,6 +468,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/dashboard-proyectos'
     | '/_authenticated/datos'
+    | '/_authenticated/datos-apu'
     | '/_authenticated/facturacion-electronica'
     | '/_authenticated/flujo-caja'
     | '/_authenticated/gastos-directos'
@@ -591,6 +603,13 @@ declare module '@tanstack/react-router' {
       path: '/datos'
       fullPath: '/datos'
       preLoaderRoute: typeof AuthenticatedDatosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/datos-apu': {
+      id: '/_authenticated/datos-apu'
+      path: '/datos-apu'
+      fullPath: '/datos-apu'
+      preLoaderRoute: typeof AuthenticatedDatosApuRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/facturacion-electronica': {
@@ -764,6 +783,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDashboardProyectosRoute: typeof AuthenticatedDashboardProyectosRoute
   AuthenticatedDatosRoute: typeof AuthenticatedDatosRoute
+  AuthenticatedDatosApuRoute: typeof AuthenticatedDatosApuRoute
   AuthenticatedFacturacionElectronicaRoute: typeof AuthenticatedFacturacionElectronicaRoute
   AuthenticatedFlujoCajaRoute: typeof AuthenticatedFlujoCajaRoute
   AuthenticatedGastosDirectosRoute: typeof AuthenticatedGastosDirectosRoute
@@ -803,6 +823,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDashboardProyectosRoute: AuthenticatedDashboardProyectosRoute,
   AuthenticatedDatosRoute: AuthenticatedDatosRoute,
+  AuthenticatedDatosApuRoute: AuthenticatedDatosApuRoute,
   AuthenticatedFacturacionElectronicaRoute:
     AuthenticatedFacturacionElectronicaRoute,
   AuthenticatedFlujoCajaRoute: AuthenticatedFlujoCajaRoute,
