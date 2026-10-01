@@ -156,6 +156,8 @@ export function Insumos() {
         <ManoObraWysiwyg lista={visibles} busqueda={busqueda} setBusqueda={setBusqueda} refrescar={refrescar} />
       ) : filtro === "MAT" ? (
         <MaterialesWysiwyg lista={visibles} busqueda={busqueda} setBusqueda={setBusqueda} refrescar={refrescar} />
+      ) : filtro === "EQ" || filtro === "HT" ? (
+        <EquiposWysiwyg key={filtro} tipo={filtro} lista={visibles} busqueda={busqueda} setBusqueda={setBusqueda} refrescar={refrescar} />
       ) : (
         <>
           <Panel titulo={`Nuevo insumo — ${nombreTipo(filtro)}`} className="mb-4">
@@ -843,6 +845,241 @@ function MaterialesWysiwyg({
       <p className="border-t border-line px-5 py-3 font-mono text-[10px] leading-relaxed text-muted-foreground">
         El C. Unitario —el que usan los análisis de precios unitarios— es el P. Compra más el margen. Los precios se registran sin IGV.
         La unidad se elige del catálogo de Unidades de medida (por defecto und).
+      </p>
+    </Panel>
+  );
+}
+
+// ================= Equipos / Herramientas: edición WYSIWYG =================
+
+type Propiedad = "Propio" | "Alquilado";
+type Clase = "Máquina" | "Equipo";
+type FilaEq = { nombre: string; clase: Clase; propiedad: Propiedad; unidad: string; precio: string };
+
+function EquiposWysiwyg({
+  tipo,
+  lista,
+  busqueda,
+  setBusqueda,
+  refrescar,
+}: {
+  tipo: "EQ" | "HT";
+  lista: Insumo[];
+  busqueda: string;
+  setBusqueda: (v: string) => void;
+  refrescar: () => void;
+}) {
+  const { data: mg = MARGENES_DEFECTO } = useMargenesInsumo();
+  const mgTipo = mg[tipo];
+  const { data: unidades = [] } = useUnidadesMedida();
+  const simbolos = useMemo(() => {
+    const s = unidades.filter((u) => u.activo).map((u) => u.simbolo);
+    return [...new Set(["und", ...s])];
+  }, [unidades]);
+  const unidadDe = (c: Clase) => {
+    const sim = c === "Máquina" ? "hm" : "he";
+    return unidades.some((u) => u.simbolo === sim) ? sim : "und";
+  };
+  const vacia = (): FilaEq => ({ nombre: "", clase: "Equipo", propiedad: "Propio", unidad: unidadDe("Equipo"), precio: "" });
+  const [nueva, setNueva] = useState<FilaEq | null>(null);
+  const fila = nueva ?? vacia();
+  const setFila = (f: FilaEq) => setNueva(f);
+  const [editando, setEditando] = useState<(FilaEq & { id: string; codigo: string }) | null>(null);
+  const [error, setError] = useState("");
+  const [guardando, setGuardando] = useState(false);
+
+  const cu = (p: Propiedad, precio: string | number) => {
+    const n = Number(precio || 0);
+    return p === "Propio" ? n : n * (1 + mgTipo / 100);
+  };
+  const etiqueta = tipo === "EQ" ? "equipo" : "herramienta";
+
+  async function crearDesdeFila() {
+    if (guardando) return;
+    if (!fila.nombre.trim()) return setError(`Escribe la descripción del ${etiqueta}.`);
+    setError("");
+    setGuardando(true);
+    try {
+      const codigo = await reservarCodigoInsumo({ data: { tipo } });
+      const { error: err } = await apuDb.from("insumos").insert({
+        tipo,
+        codigo,
+        nombre: fila.nombre.trim(),
+        unidad: fila.unidad || "und",
+        precio: Number(fila.precio || 0),
+        propiedad: fila.propiedad,
+        clase_equipo: fila.clase,
+      } as never);
+      if (err) throw new Error(err.message);
+      setNueva(null);
+      refrescar();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "No se pudo registrar.");
+    } finally {
+      setGuardando(false);
+    }
+  }
+
+  async function guardarEdicion() {
+    if (!editando) return;
+    setError("");
+    const { error: err } = await apuDb
+      .from("insumos")
+      .update({
+        nombre: editando.nombre.trim(),
+        unidad: editando.unidad || "und",
+        precio: Number(editando.precio || 0),
+        propiedad: editando.propiedad,
+        clase_equipo: editando.clase,
+      } as never)
+      .eq("id", editando.id);
+    if (err) return setError(err.message);
+    setEditando(null);
+    refrescar();
+  }
+
+  async function eliminar(id: string) {
+    if (!window.confirm(`¿Eliminar este ${etiqueta}?`)) return;
+    const { error: err } = await apuDb.from("insumos").delete().eq("id", id);
+    if (err)
+      return setError(err.message.includes("foreign key") ? "Se usa en un análisis de precios; desactívalo." : err.message);
+    refrescar();
+  }
+
+  const teclaNueva = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      void crearDesdeFila();
+    }
+  };
+
+  const inputCls = "w-full rounded-md border border-line bg-background px-2 py-1 text-xs outline-none focus:border-primary";
+  const selCls = "w-full rounded-md border border-line bg-background px-1.5 py-1 text-xs outline-none focus:border-primary";
+
+  // Celdas editables comunes para la fila nueva y la de edición
+  function celdas(f: FilaEq, set: (f: FilaEq) => void, onKey?: (e: React.KeyboardEvent) => void) {
+    const alquilado = f.propiedad === "Alquilado";
+    return (
+      <>
+        <td className="px-3 py-2">
+          <input className={inputCls} placeholder="Escribe la descripción y pulsa Enter…" value={f.nombre} onChange={(e) => set({ ...f, nombre: e.target.value })} onKeyDown={onKey} />
+        </td>
+        <td className="px-3 py-2">
+          <select className={selCls} value={f.clase} onChange={(e) => { const c = e.target.value as Clase; set({ ...f, clase: c, unidad: unidadDe(c) }); }}>
+            <option value="Máquina">Máquina</option>
+            <option value="Equipo">Equipo</option>
+          </select>
+        </td>
+        <td className="px-3 py-2">
+          <select className={selCls} value={f.propiedad} onChange={(e) => set({ ...f, propiedad: e.target.value as Propiedad })}>
+            <option value="Propio">Propio</option>
+            <option value="Alquilado">Alquilado</option>
+          </select>
+        </td>
+        <td className="px-3 py-2">
+          <select className={selCls} value={f.unidad} onChange={(e) => set({ ...f, unidad: e.target.value })}>
+            {[...new Set([f.unidad, ...simbolos])].map((s) => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </td>
+        <td className="px-3 py-2">
+          {alquilado ? (
+            <input className={`${inputCls} text-right`} type="number" step="0.01" min={0} placeholder="0.00" value={f.precio} onChange={(e) => set({ ...f, precio: e.target.value })} onKeyDown={onKey} />
+          ) : (
+            <p className="text-right text-muted-foreground">—</p>
+          )}
+        </td>
+        <td className="px-3 py-2 text-right text-muted-foreground">{alquilado ? `${mgTipo.toFixed(2)}%` : "—"}</td>
+        <td className="px-3 py-2">
+          {alquilado ? (
+            <p className="text-right font-semibold text-primary">{soles(cu(f.propiedad, f.precio))}</p>
+          ) : (
+            <input className={`${inputCls} text-right`} type="number" step="0.01" min={0} placeholder="0.00" value={f.precio} onChange={(e) => set({ ...f, precio: e.target.value })} onKeyDown={onKey} />
+          )}
+        </td>
+      </>
+    );
+  }
+
+  const btn = "inline-flex h-7 w-7 items-center justify-center rounded-md border";
+
+  return (
+    <Panel
+      titulo={`Maestro de insumos — ${nombreTipo(tipo)}`}
+      extra={<Buscador valor={busqueda} onChange={setBusqueda} total={lista.length} placeholder="Buscar por código o descripción..." />}
+    >
+      <table className="w-full table-fixed font-mono text-xs">
+        <thead>
+          <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+            <th className="w-[9%] px-5 py-2 font-medium">Código</th>
+            <th className="w-[27%] px-3 py-2 font-medium">Descripción</th>
+            <th className="w-[10%] px-3 py-2 font-medium">Clase</th>
+            <th className="w-[10%] px-3 py-2 font-medium">Tipo</th>
+            <th className="w-[8%] px-3 py-2 font-medium">Unidad</th>
+            <th className="w-[10%] px-3 py-2 text-right font-medium">P. Alquiler</th>
+            <th className="w-[7%] px-3 py-2 text-right font-medium">Margen</th>
+            <th className="w-[10%] px-3 py-2 text-right font-medium">C. Unitario</th>
+            <th className="w-[9%] px-5 py-2 text-right font-medium">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {lista.map((i) => {
+            if (editando?.id === i.id) {
+              return (
+                <tr key={i.id} className="border-b border-line/40">
+                  <td className="px-5 py-2 text-muted-foreground">{editando.codigo || "—"}</td>
+                  {celdas(editando, (f) => setEditando({ ...editando, ...f }))}
+                  <td className="px-5 py-2">
+                    <div className="flex justify-end gap-1">
+                      <button type="button" onClick={guardarEdicion} title="Guardar" className={`${btn} border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground`}><Check size={14} /></button>
+                      <button type="button" onClick={() => setEditando(null)} title="Cancelar" className={`${btn} border-line hover:bg-muted`}><X size={14} /></button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            }
+            const prop = (i.propiedad ?? "Propio") as Propiedad;
+            const alq = prop === "Alquilado";
+            return (
+              <tr key={i.id} className="border-b border-line/40 last:border-0">
+                <td className="px-5 py-2.5 text-muted-foreground"><Resaltar texto={i.codigo || "—"} termino={busqueda} /></td>
+                <td className="px-3 py-2.5 text-ink"><Resaltar texto={i.nombre} termino={busqueda} /></td>
+                <td className="px-3 py-2.5">{i.clase_equipo ?? "Equipo"}</td>
+                <td className="px-3 py-2.5">{prop}</td>
+                <td className="px-3 py-2.5 text-center text-muted-foreground">{i.unidad}</td>
+                <td className="px-3 py-2.5 text-right">{alq ? soles(Number(i.precio)) : "—"}</td>
+                <td className="px-3 py-2.5 text-right text-muted-foreground">{alq ? `${mgTipo.toFixed(2)}%` : "—"}</td>
+                <td className="px-3 py-2.5 text-right font-semibold text-primary">{soles(cu(prop, i.precio))}</td>
+                <td className="px-5 py-2.5">
+                  <div className="flex justify-end gap-1">
+                    <button
+                      type="button"
+                      onClick={() => setEditando({ id: i.id, codigo: i.codigo, nombre: i.nombre, clase: (i.clase_equipo ?? "Equipo") as Clase, propiedad: prop, unidad: i.unidad, precio: String(i.precio || "") })}
+                      title="Editar"
+                      className={`${btn} border-line text-muted-foreground hover:border-primary hover:text-primary`}
+                    >
+                      <Pencil size={14} />
+                    </button>
+                    <button type="button" onClick={() => eliminar(i.id)} title="Eliminar" className={`${btn} border-line text-muted-foreground hover:border-bad hover:text-bad`}><Trash2 size={14} /></button>
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
+          <tr className="border-b border-dashed border-line/60 bg-muted/20">
+            <td className="px-5 py-2 text-muted-foreground/60">auto</td>
+            {celdas(fila, setFila, teclaNueva)}
+            <td className="px-5 py-2">
+              <div className="flex justify-end">
+                <button type="button" onClick={() => void crearDesdeFila()} disabled={guardando} title="Registrar" className={`${btn} border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground disabled:opacity-50`}><Check size={14} /></button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      {error && <p className="px-5 py-2 font-mono text-xs text-bad">{error}</p>}
+      <p className="border-t border-line px-5 py-3 font-mono text-[10px] leading-relaxed text-muted-foreground">
+        Propio: se ingresa el C. Unitario directamente (sin margen). Alquilado: se ingresa el P. Alquiler y el C. Unitario = P. Alquiler + margen del tipo.
+        Máquina usa la unidad hm (Horas máquina) y Equipo la unidad he (Horas equipo). Precios sin IGV.
       </p>
     </Panel>
   );
