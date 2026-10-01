@@ -609,6 +609,54 @@ export type Database = {
         }
         Relationships: []
       }
+      codificacion_insumo: {
+        Row: {
+          correlativo_eq: number
+          correlativo_ht: number
+          correlativo_mat: number
+          correlativo_mo: number
+          correlativo_sc: number
+          created_at: string
+          digito_eq: number
+          digito_ht: number
+          digito_mat: number
+          digito_mo: number
+          digito_sc: number
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          correlativo_eq?: number
+          correlativo_ht?: number
+          correlativo_mat?: number
+          correlativo_mo?: number
+          correlativo_sc?: number
+          created_at?: string
+          digito_eq?: number
+          digito_ht?: number
+          digito_mat?: number
+          digito_mo?: number
+          digito_sc?: number
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          correlativo_eq?: number
+          correlativo_ht?: number
+          correlativo_mat?: number
+          correlativo_mo?: number
+          correlativo_sc?: number
+          created_at?: string
+          digito_eq?: number
+          digito_ht?: number
+          digito_mat?: number
+          digito_mo?: number
+          digito_sc?: number
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       codificacion_preliquidacion: {
         Row: {
           anio_dos_digitos: boolean
@@ -1695,36 +1743,48 @@ export type Database = {
       insumos: {
         Row: {
           activo: boolean
+          asignacion_familiar: boolean
+          categoria_obrero: string | null
           codigo: string
           created_at: string
           id: string
           margen_pct: number
           nombre: string
           precio: number
+          regimen_laboral: string
+          sueldo_mensual: number
           tipo: string
           unidad: string
           updated_at: string
         }
         Insert: {
           activo?: boolean
+          asignacion_familiar?: boolean
+          categoria_obrero?: string | null
           codigo?: string
           created_at?: string
           id?: string
           margen_pct?: number
           nombre: string
           precio?: number
+          regimen_laboral?: string
+          sueldo_mensual?: number
           tipo?: string
           unidad?: string
           updated_at?: string
         }
         Update: {
           activo?: boolean
+          asignacion_familiar?: boolean
+          categoria_obrero?: string | null
           codigo?: string
           created_at?: string
           id?: string
           margen_pct?: number
           nombre?: string
           precio?: number
+          regimen_laboral?: string
+          sueldo_mensual?: number
           tipo?: string
           unidad?: string
           updated_at?: string
@@ -2075,6 +2135,66 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      parametros_laborales: {
+        Row: {
+          buc_oficial_pct: number
+          buc_operario_pct: number
+          buc_peon_pct: number
+          created_at: string
+          essalud_pct: number
+          feriados_anuales: number
+          herramienta_pct: number
+          horas_semanales: number
+          id: string
+          jornal_oficial: number
+          jornal_operario: number
+          jornal_peon: number
+          pasaje_diario: number
+          rmv: number
+          sctr_pct: number
+          updated_at: string
+          vida_ley_pct: number
+        }
+        Insert: {
+          buc_oficial_pct?: number
+          buc_operario_pct?: number
+          buc_peon_pct?: number
+          created_at?: string
+          essalud_pct?: number
+          feriados_anuales?: number
+          herramienta_pct?: number
+          horas_semanales?: number
+          id?: string
+          jornal_oficial?: number
+          jornal_operario?: number
+          jornal_peon?: number
+          pasaje_diario?: number
+          rmv?: number
+          sctr_pct?: number
+          updated_at?: string
+          vida_ley_pct?: number
+        }
+        Update: {
+          buc_oficial_pct?: number
+          buc_operario_pct?: number
+          buc_peon_pct?: number
+          created_at?: string
+          essalud_pct?: number
+          feriados_anuales?: number
+          herramienta_pct?: number
+          horas_semanales?: number
+          id?: string
+          jornal_oficial?: number
+          jornal_operario?: number
+          jornal_peon?: number
+          pasaje_diario?: number
+          rmv?: number
+          sctr_pct?: number
+          updated_at?: string
+          vida_ley_pct?: number
+        }
+        Relationships: []
       }
       partidas: {
         Row: {
@@ -3398,6 +3518,7 @@ export type Database = {
       }
       is_admin_o_gerente: { Args: { _user_id: string }; Returns: boolean }
       siguiente_codigo_cotizacion: { Args: never; Returns: string }
+      siguiente_codigo_insumo: { Args: { _tipo: string }; Returns: string }
       siguiente_codigo_preliquidacion: { Args: never; Returns: string }
       siguiente_codigo_proyecto: { Args: never; Returns: string }
       siguiente_numero_comprobante: {
