@@ -385,14 +385,13 @@ function ManoObraWysiwyg({
         <thead>
           <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
             <th className="w-[8%] px-5 py-2 font-medium">Código</th>
-            <th className="w-[20%] px-3 py-2 font-medium">Descripción</th>
-            <th className="w-[13%] px-3 py-2 font-medium">Régimen</th>
-            <th className="w-[9%] px-3 py-2 font-medium">Categoría</th>
-            <th className="w-[10%] px-3 py-2 text-right font-medium">Sueldo mensual</th>
+            <th className="w-[26%] px-3 py-2 font-medium">Descripción</th>
+            <th className="w-[14%] px-3 py-2 font-medium">Régimen</th>
+            <th className="w-[12%] px-3 py-2 text-right font-medium">Sueldo mensual</th>
             <th className="w-[5%] px-3 py-2 font-medium">Und.</th>
-            <th className="w-[10%] px-3 py-2 text-right font-medium">Costo HH</th>
+            <th className="w-[10%] px-3 py-2 text-right font-medium">Costo Base</th>
             <th className="w-[7%] px-3 py-2 text-right font-medium">Margen %</th>
-            <th className="w-[10%] px-3 py-2 text-right font-medium">P. Venta</th>
+            <th className="w-[10%] px-3 py-2 text-right font-medium">Costo HH</th>
             <th className="w-[8%] px-5 py-2 text-right font-medium">Acciones</th>
           </tr>
         </thead>
@@ -436,16 +435,12 @@ function ManoObraWysiwyg({
                     </td>
                     <td className="px-3 py-2">
                       {editando.regimen === "Construcción Civil" ? (
-                        <select className={selCls} value={editando.categoria} onChange={(e) => setEditando({ ...editando, categoria: e.target.value })}>
-                          {CATEGORIAS_OBRERO.map((c) => <option key={c} value={c}>{c}</option>)}
-                        </select>
-                      ) : (
-                        <span className="text-muted-foreground">—</span>
-                      )}
-                    </td>
-                    <td className="px-3 py-2">
-                      {editando.regimen === "Construcción Civil" ? (
-                        <span className="block text-right text-muted-foreground">por jornal</span>
+                        <div className="flex items-center gap-1">
+                          <select className={selCls} value={editando.categoria} onChange={(e) => setEditando({ ...editando, categoria: e.target.value })}>
+                            {CATEGORIAS_OBRERO.map((c) => <option key={c} value={c}>{c}</option>)}
+                          </select>
+                          <span className="whitespace-nowrap text-[10px] text-muted-foreground">por jornal</span>
+                        </div>
                       ) : (
                         <Input className="py-1 text-right text-xs" type="number" step="0.01" min={0} value={editando.sueldo} onChange={(e) => setEditando({ ...editando, sueldo: e.target.value })} />
                       )}
@@ -466,8 +461,7 @@ function ManoObraWysiwyg({
                     <td className="px-5 py-2.5 text-muted-foreground"><Resaltar texto={i.codigo || "—"} termino={busqueda} /></td>
                     <td className="px-3 py-2.5 text-ink"><Resaltar texto={i.nombre} termino={busqueda} /></td>
                     <td className="px-3 py-2.5 text-muted-foreground">{i.regimen_laboral ?? "General"}</td>
-                    <td className="px-3 py-2.5 text-muted-foreground">{i.categoria_obrero ?? "—"}</td>
-                    <td className="px-3 py-2.5 text-right">{i.regimen_laboral === "Construcción Civil" ? "por jornal" : soles(Number(i.sueldo_mensual || 0))}</td>
+                    <td className="px-3 py-2.5 text-right">{i.regimen_laboral === "Construcción Civil" ? `${i.categoria_obrero ?? "Operario"} (jornal)` : soles(Number(i.sueldo_mensual || 0))}</td>
                     <td className="px-3 py-2.5 text-center text-muted-foreground">hh</td>
                     <td className="px-3 py-2.5 text-right font-semibold text-primary">{soles(Number(i.precio))}</td>
                     <td className="px-3 py-2.5 text-right text-muted-foreground">{Number(i.margen_pct || 0).toFixed(2)}%</td>
@@ -522,16 +516,12 @@ function ManoObraWysiwyg({
             </td>
             <td className="px-3 py-2">
               {nueva.regimen === "Construcción Civil" ? (
-                <select className={selCls} value={nueva.categoria} onChange={(e) => setNueva({ ...nueva, categoria: e.target.value })}>
-                  {CATEGORIAS_OBRERO.map((c) => <option key={c} value={c}>{c}</option>)}
-                </select>
-              ) : (
-                <span className="text-muted-foreground">—</span>
-              )}
-            </td>
-            <td className="px-3 py-2">
-              {nueva.regimen === "Construcción Civil" ? (
-                <span className="block text-right text-muted-foreground">por jornal</span>
+                <div className="flex items-center gap-1">
+                  <select className={selCls} value={nueva.categoria} onChange={(e) => setNueva({ ...nueva, categoria: e.target.value })}>
+                    {CATEGORIAS_OBRERO.map((c) => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                  <span className="whitespace-nowrap text-[10px] text-muted-foreground">por jornal</span>
+                </div>
               ) : (
                 <input
                   className={`${inputCls} text-right`}
@@ -579,7 +569,7 @@ function ManoObraWysiwyg({
           {/* Vista previa del cálculo de la fila fantasma */}
           {(Number(nueva.sueldo || 0) > 0 || nueva.regimen === "Construcción Civil") && (
             <tr className="border-b border-dashed border-line/60 bg-muted/20">
-              <td colSpan={10} className="px-5 py-2">
+              <td colSpan={9} className="px-5 py-2">
                 <DetalleCostoHH lineas={calculoNueva.lineas} horas={calculoNueva.horasEfectivas} />
               </td>
             </tr>
@@ -588,8 +578,8 @@ function ManoObraWysiwyg({
       </table>
       {error && <p className="px-5 py-2 font-mono text-xs text-bad">{error}</p>}
       <p className="border-t border-line px-5 py-3 font-mono text-[10px] leading-relaxed text-muted-foreground">
-        El Costo HH se calcula con el régimen laboral (sueldo o jornal, gratificaciones, vacaciones, CTS, EsSalud, SCTR, Vida Ley, BUC) dividido entre las horas
-        efectivas anuales. Los parámetros se ajustan en Configuración del Sistema › Parámetros laborales. La unidad es siempre hh.
+        El Costo Base se calcula con el régimen laboral (sueldo o jornal, gratificaciones, vacaciones, CTS, EsSalud, SCTR, Vida Ley, BUC) dividido entre las horas
+        efectivas anuales. El Costo HH —el que usan los análisis de precios unitarios— es el Costo Base más el margen. Los parámetros se ajustan en Configuración del Sistema › Parámetros laborales. La unidad es siempre hh.
       </p>
     </Panel>
   );
@@ -610,9 +600,9 @@ function FragmentFila({
     <>
       <tr className="border-b border-line/20">{children}</tr>
       <tr className="border-b border-line/40">
-        <td colSpan={10} className="px-5 pb-1 pt-0">
+        <td colSpan={9} className="px-5 pb-1 pt-0">
           <button type="button" onClick={onToggle} className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wide text-muted-foreground hover:text-primary">
-            {abierto ? <ChevronDown size={11} /> : <ChevronRight size={11} />} Cómo se calcula el Costo HH
+            {abierto ? <ChevronDown size={11} /> : <ChevronRight size={11} />} Cómo se calcula el Costo Base
           </button>
           {abierto && <div className="pb-2 pt-1">{detalle}</div>}
         </td>
