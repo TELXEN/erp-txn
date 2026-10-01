@@ -24,7 +24,7 @@ import { exportarExcel } from "@/lib/exportar";
 import { Pencil, Trash2, Check, X, LayoutGrid, Table2, Upload, ListOrdered, Calculator, CornerDownRight } from "lucide-react";
 import { Kanban } from "@/components/Kanban";
 import { InsigniaPrioridad, InsigniaTipoPresupuesto } from "@/components/estado-ui";
-import { PRIORIDADES, type Situacion } from "@/lib/configuracion";
+import { PRIORIDADES } from "@/lib/configuracion";
 import { siguienteCodigoPartida, useEspecialidadesPartida } from "@/lib/especialidades";
 import {
   agruparSoloPorCategoria,
@@ -366,7 +366,7 @@ function Partidas() {
     setForm((f) => ({ ...f, tipo_presupuesto: nombre }));
   }
 
-  async function mover(id: string, situacion: Situacion) {
+  async function mover(id: string, situacion: string) {
     setError("");
     const { error: err } = await supabase.from("partidas").update({ situacion }).eq("id", id);
     if (err) return setError(err.message);

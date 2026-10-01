@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from "react";
-import { SITUACIONES, tonoSituacion, type Situacion } from "@/lib/configuracion";
+import { SITUACIONES, tonoSituacion } from "@/lib/configuracion";
+import { nombresEstados, useEstadosProyecto } from "@/lib/datos";
 
 export type TarjetaKanban = {
   id: string;
@@ -13,17 +14,20 @@ export function Kanban({
   editable = true,
 }: {
   tarjetas: TarjetaKanban[];
-  onMover: (id: string, situacion: Situacion) => void;
+  onMover: (id: string, situacion: string) => void;
   editable?: boolean;
 }) {
   const [arrastrando, setArrastrando] = useState<string | null>(null);
   const [sobre, setSobre] = useState<string | null>(null);
+  const { data: estados } = useEstadosProyecto();
+  const columnas = nombresEstados(estados).length ? nombresEstados(estados) : SITUACIONES;
+  const visibles = estados?.length ? estados.filter((e) => e.activo).map((e) => e.nombre) : columnas;
 
   return (
     <div className="grid grid-cols-1 gap-3 p-4 sm:grid-cols-2 xl:grid-cols-5">
-      {SITUACIONES.map((col) => {
+      {visibles.map((col) => {
         const tono = tonoSituacion(col);
-        const items = tarjetas.filter((t) => (t.situacion || "No iniciado") === col);
+        const items = tarjetas.filter((t) => (t.situacion || visibles[0]) === col);
         return (
           <div
             key={col}
@@ -65,7 +69,7 @@ export function Kanban({
                     {t.contenido}
                     {editable && (
                       <div className="mt-2 flex flex-wrap gap-1 sm:hidden">
-                        {SITUACIONES.filter((s) => s !== col).map((s) => (
+                        {visibles.filter((s) => s !== col).map((s) => (
                           <button
                             key={s}
                             type="button"

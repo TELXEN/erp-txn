@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
-import { Building2, Check, Coins, FolderKanban, HardHat, Pencil, SlidersHorizontal, Trash2, Upload, X } from "lucide-react";
+import { Building2, Check, Coins, FolderKanban, HardHat, Pencil, Plus, SlidersHorizontal, Trash2, Upload, X } from "lucide-react";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { exportarExcel } from "@/lib/exportar";
 import {
@@ -17,6 +17,7 @@ import {
   type ClasificacionCargo,
   useCargos,
   useCategoriasGastoGeneral,
+  useEstadosProyecto,
   useGastosGenerales,
   useTiposPresupuesto,
   useTrabajadores,
@@ -798,22 +799,178 @@ function TiposPresupuesto() {
   );
 }
 
+function EstadosProyecto() {
+  const qc = useQueryClient();
+  const [agregando, setAgregando] = useState(false);
+  const [nuevo, setNuevo] = useState("");
+  const [editando, setEditando] = useState<{ id: string; nombre: string } | null>(null);
+  const [error, setError] = useState("");
+  const { data: estados = [] } = useEstadosProyecto();
+  const lista = estados.length
+    ? estados
+    : SITUACIONES.map((s, i) => ({ id: s, nombre: s, orden: i + 1, activo: true }));
+
+  async function agregar(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    const limpio = nuevo.trim();
+    if (!limpio) return;
+    const { error: err } = await supabase
+      .from("estados_proyecto" as never)
+      .insert({ nombre: limpio, orden: lista.length + 1, activo: true } as never);
+    if (err) return setError(err.code === "23505" ? "Ya existe un estado con ese nombre." : err.message);
+    setNuevo("");
+    setAgregando(false);
+    qc.invalidateQueries({ queryKey: ["estados_proyecto"] });
+  }
+
+  async function renombrar() {
+    if (!editando) return;
+    setError("");
+    const limpio = editando.nombre.trim();
+    if (!limpio) return;
+    const { error: err } = await supabase
+      .from("estados_proyecto" as never)
+      .update({ nombre: limpio } as never)
+      .eq("id", editando.id);
+    if (err) return setError(err.code === "23505" ? "Ya existe un estado con ese nombre." : err.message);
+    setEditando(null);
+    qc.invalidateQueries({ queryKey: ["estados_proyecto"] });
+  }
+
+  async function eliminar(id: string, nombre: string) {
+    if (
+      !window.confirm(
+        `¿Eliminar el estado «${nombre}»? Los proyectos y partidas que lo usen se mostrarán sin color asignado.`,
+      )
+    )
+      return;
+    setError("");
+    const { error: err } = await supabase.from("estados_proyecto" as never).delete().eq("id", id);
+    if (err) return setError(err.message);
+    qc.invalidateQueries({ queryKey: ["estados_proyecto"] });
+  }
+
+  return (
+    <Panel
+      titulo="Estado del proyecto"
+      extra={
+        agregando ? null : (
+          <button
+            type="button"
+            onClick={() => {
+              setAgregando(true);
+              setNuevo("");
+              setError("");
+            }}
+            title="Añadir estado"
+            className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"
+          >
+            <Plus size={14} />
+          </button>
+        )
+      }
+    >
+      <div className="space-y-2 p-5">
+        <p className="mb-3 text-xs text-muted-foreground">
+          Escala de estados usada en los tableros Kanban de proyectos y partidas.
+        </p>
+        {agregando && (
+          <form onSubmit={agregar} className="flex items-center gap-2 rounded-md border border-dashed border-line px-3 py-2">
+            <Input
+              autoFocus
+              value={nuevo}
+              onChange={(e) => setNuevo(e.target.value)}
+              placeholder="Nombre del nuevo estado"
+              maxLength={40}
+            />
+            <button
+              type="submit"
+              title="Guardar"
+              className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"
+            >
+              <Check size={14} />
+            </button>
+            <button
+              type="button"
+              onClick={() => setAgregando(false)}
+              title="Cancelar"
+              className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-bad hover:text-bad"
+            >
+              <X size={14} />
+            </button>
+          </form>
+        )}
+        {lista.map((s) => (
+          <div key={s.id} className="flex items-center justify-between gap-3 rounded-md border border-line px-3 py-2">
+            {editando?.id === s.id ? (
+              <>
+                <Input
+                  autoFocus
+                  value={editando.nombre}
+                  onChange={(e) => setEditando({ ...editando, nombre: e.target.value })}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") renombrar();
+                    if (e.key === "Escape") setEditando(null);
+                  }}
+                  maxLength={40}
+                />
+                <button
+                  type="button"
+                  onClick={renombrar}
+                  title="Guardar"
+                  className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"
+                >
+                  <Check size={14} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditando(null)}
+                  title="Cancelar"
+                  className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-bad hover:text-bad"
+                >
+                  <X size={14} />
+                </button>
+              </>
+            ) : (
+              <>
+                <InsigniaSituacion valor={s.nombre} />
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-[10px] text-muted-foreground">{tonoSituacion(s.nombre).fondo}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditando({ id: s.id, nombre: s.nombre });
+                      setError("");
+                    }}
+                    title="Editar"
+                    className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"
+                  >
+                    <Pencil size={14} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => eliminar(s.id, s.nombre)}
+                    title="Eliminar"
+                    className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-bad hover:text-bad"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        ))}
+        {error && <p className="font-mono text-xs text-bad">{error}</p>}
+      </div>
+    </Panel>
+  );
+}
+
 function ConfiguracionProyectos() {
   return (
     <div className="grid gap-4 lg:grid-cols-2">
-      <Panel titulo="Estado del proyecto">
-        <div className="space-y-2 p-5">
-          <p className="mb-3 text-xs text-muted-foreground">
-            Escala de estados usada en los tableros Kanban de proyectos y partidas.
-          </p>
-          {SITUACIONES.map((s) => (
-            <div key={s} className="flex items-center justify-between gap-3 rounded-md border border-line px-3 py-2">
-              <InsigniaSituacion valor={s} />
-              <span className="font-mono text-[10px] text-muted-foreground">{tonoSituacion(s).fondo}</span>
-            </div>
-          ))}
-        </div>
-      </Panel>
+      <EstadosProyecto />
 
       <Panel titulo="Prioridad">
         <div className="space-y-2 p-5">
