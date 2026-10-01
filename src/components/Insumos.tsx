@@ -84,16 +84,17 @@ export function Insumos() {
 
   return (
     <>
-      <div className="mb-4 flex flex-wrap gap-1 border-b border-line pb-3">
+      <div className="mb-4 inline-flex max-w-full flex-wrap items-center gap-1 rounded-lg border border-line bg-muted/40 p-1">
+        <span className="px-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Tipo:</span>
         {TIPOS_INSUMO.map(([t, texto]) => (
           <button
             key={t}
             type="button"
             onClick={() => cambiarPestana(t)}
-            className={`rounded-md border-b-2 px-3 py-1.5 text-xs transition-colors ${
+            className={`rounded-md px-3 py-1 text-xs transition-colors ${
               filtro === t
-                ? "border-cta bg-primary/10 font-semibold text-primary"
-                : "border-transparent text-muted-foreground hover:bg-muted hover:text-primary"
+                ? "bg-primary font-semibold text-primary-foreground shadow-sm"
+                : "text-muted-foreground hover:bg-background hover:text-primary"
             }`}
           >
             {texto}
