@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Check, FileText, SlidersHorizontal } from "lucide-react";
+import { Check, FileText, ShieldCheck, SlidersHorizontal } from "lucide-react";
 import { Boton, Panel } from "@/components/ui-kit";
 import { TipografiaDocumentosPanel } from "@/components/TipografiaDocumentos";
+import { UsuariosPanel } from "@/components/UsuariosPanel";
 import { TEMAS, useTema } from "@/lib/temas";
 
 function IconoPaletaColores({ className }: { className?: string }) {
@@ -40,7 +41,7 @@ export const Route = createFileRoute("/_authenticated/configuracion-sistema")({
 
 function ConfiguracionSistema() {
   const { tema, cambiarTema } = useTema();
-  const [pestana, setPestana] = useState<"tema" | "tipografia">("tema");
+  const [pestana, setPestana] = useState<"tema" | "tipografia" | "usuarios">("tema");
 
   return (
     <div className="space-y-4">
@@ -61,6 +62,9 @@ function ConfiguracionSistema() {
         </Boton>
         <Boton type="button" variante="linea" role="tab" aria-selected={pestana === "tipografia"} onClick={() => setPestana("tipografia")} className={pestana === "tipografia" ? "border-primary bg-primary/5 text-primary" : ""}>
           <FileText className="size-4 text-primary" /> Tipografía de documentos
+        </Boton>
+        <Boton type="button" variante="linea" role="tab" aria-selected={pestana === "usuarios"} onClick={() => setPestana("usuarios")} className={pestana === "usuarios" ? "border-primary bg-primary/5 text-primary" : ""}>
+          <ShieldCheck className="size-4 text-primary" /> Usuarios y Roles
         </Boton>
       </div>
       {pestana === "tema" ? <Panel titulo="Tema de colores" extra={<IconoPaletaColores className="size-5" />}>
@@ -91,7 +95,7 @@ function ConfiguracionSistema() {
               );
             })}
           </div>
-      </Panel> : <TipografiaDocumentosPanel />}
+      </Panel> : pestana === "tipografia" ? <TipografiaDocumentosPanel /> : <UsuariosPanel />}
     </div>
   );
 }
