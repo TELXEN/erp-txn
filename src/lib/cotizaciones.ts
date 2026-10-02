@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { previsualizarCodigoDocumento, useCodificacionDocumento } from "@/lib/codificacion-documentos";
 
 export type EstadoCotizacion = "Borrador" | "Enviada" | "Aprobada" | "Rechazada";
 
@@ -103,47 +104,10 @@ export const usePartidasMaestras = () =>
     },
   });
 
-export type CodificacionCotizacionConfig = {
-  id: string;
-  prefijo: string;
-  incluir_anio: boolean;
-  anio_dos_digitos: boolean;
-  separador: string;
-  tipo_letra: string;
-  digitos: number;
-  correlativo_actual: number;
-};
+export const useCodificacionCotizacion = () => useCodificacionDocumento("COTIZACIONES");
 
-export const useCodificacionCotizacion = () =>
-  useQuery({
-    queryKey: ["codificacion_cotizacion"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("codificacion_cotizacion")
-        .select("*")
-        .order("created_at")
-        .limit(1)
-        .maybeSingle();
-      if (error) throw error;
-      return (data ?? null) as CodificacionCotizacionConfig | null;
-    },
-  });
-
-/** Vista previa del siguiente código de cotización sin consumir el correlativo. Ej.: TXN26-C001 */
-export function previsualizarCodigoCotizacion(
-  cfg: Partial<CodificacionCotizacionConfig>,
-  correlativo?: number,
-) {
-  const prefijo = (cfg.prefijo ?? "TXN").trim().toUpperCase();
-  const separador = cfg.separador ?? "-";
-  const digitos = Math.max(Number(cfg.digitos ?? 3) || 1, 1);
-  const numero = correlativo ?? Number(cfg.correlativo_actual ?? 0) + 1;
-  const anioCompleto = String(new Date().getFullYear());
-  const anio =
-    cfg.incluir_anio === false ? "" : cfg.anio_dos_digitos === false ? anioCompleto : anioCompleto.slice(-2);
-  const letra = (cfg.tipo_letra ?? "C").trim().toUpperCase();
-  return `${prefijo}${anio}${separador}${letra}${String(numero).padStart(digitos, "0")}`;
-}
+/** Vista previa del siguiente código de cotización (CÓDIGO + correlativo). */
+export const previsualizarCodigoCotizacion = previsualizarCodigoDocumento;
 
 
 /** Reserva y devuelve el siguiente código correlativo de cotización. */
