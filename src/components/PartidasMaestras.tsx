@@ -12,16 +12,11 @@ import { useMarcas } from "@/lib/datos";
 import { usePartidasMaestras, type PartidaMaestra } from "@/lib/cotizaciones";
 import { categoriasDe, useCategoriasPartida } from "@/lib/categorias";
 import { FlechasOrden } from "@/components/FlechasOrden";
+import { TIPOS_INSUMO, useTiposInsumo } from "@/lib/apu";
 import { codigoPartidaLegible, moverWbs, recodificarWbs, ORDEN_FINAL } from "@/lib/wbs";
 
-const TIPOS_PARTIDA: [string, string][] = [
-  ["MO", "Mano de obra"],
-  ["MAT", "Materiales"],
-  ["EQ", "Equipos y maquinaria"],
-  ["HT", "Herramientas manuales"],
-  ["SC", "Subcontratos"],
-];
-const nombreTipo = (t?: string) => TIPOS_PARTIDA.find(([k]) => k === t)?.[1] ?? "Materiales";
+const TIPOS_PARTIDA = TIPOS_INSUMO;
+const nombreTipo = (t?: string) => TIPOS_PARTIDA.find(([k]) => k === t)?.[1] ?? "MATERIALES";
 
 const TAM_PAGINA = 100;
 
@@ -38,6 +33,7 @@ const vacio = {
 type FilaNueva = typeof vacio;
 
 export function PartidasMaestras() {
+  useTiposInsumo();
   const qc = useQueryClient();
   const { data: lista = [] } = usePartidasMaestras();
   const { data: especialidades = [] } = useEspecialidadesPartida();
