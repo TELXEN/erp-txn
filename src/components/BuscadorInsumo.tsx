@@ -24,7 +24,7 @@ export function BuscadorInsumo({
   const ref = useRef<HTMLInputElement>(null);
 
   const lista = useMemo(
-    () => insumos.filter((i) => i.activo && coincide(q, i.nombre, i.codigo, nombreTipo(i.tipo))).slice(0, 12),
+    () => insumos.filter((i) => i.activo && i.tipo !== "HT" && coincide(q, i.nombre, i.codigo, nombreTipo(i.tipo))).slice(0, 12),
     [insumos, q],
   );
   const opciones = lista.length + (q.trim() ? 1 : 0);
