@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Check, ChevronDown, ChevronRight, Pencil, Trash2, X } from "lucide-react";
 import { Input, Panel, Select } from "@/components/ui-kit";
@@ -36,6 +36,7 @@ export function Insumos() {
   const [filtro, setFiltro] = useState<TipoInsumo>("MO");
   const [seccion, setSeccion] = useState<SeccionInsumos>("MO");
   const [busqueda, setBusqueda] = useState("");
+  const [crearEn, setCrearEn] = useState<TipoInsumo | null>(null);
   const refrescar = () => {
     qc.invalidateQueries({ queryKey: ["insumos"] });
     qc.invalidateQueries({ queryKey: ["apu_componentes"] });
@@ -49,6 +50,18 @@ export function Insumos() {
     setSeccion(t);
     setFiltro(t);
   }
+
+  function agregarInsumo(t: TipoInsumo) {
+    setCrearEn(t);
+    cambiarPestana(t);
+  }
+
+  // El foco de la fila de captura se aplica al montar; se libera después.
+  useEffect(() => {
+    if (!crearEn) return;
+    const id = setTimeout(() => setCrearEn(null), 500);
+    return () => clearTimeout(id);
+  }, [crearEn]);
 
   return (
     <>
@@ -109,17 +122,17 @@ export function Insumos() {
       ) : seccion === "laboral" ? (
         <ParametrosLaboralesPanel />
       ) : seccion === "codificacion" ? (
-        <CodificacionInsumos />
+        <CodificacionInsumos onAgregarTipo={agregarInsumo} />
       ) : filtro === "MO" ? (
-        <ManoObraWysiwyg lista={visibles} busqueda={busqueda} setBusqueda={setBusqueda} refrescar={refrescar} />
+        <ManoObraWysiwyg enfoqueNueva={crearEn === "MO"} lista={visibles} busqueda={busqueda} setBusqueda={setBusqueda} refrescar={refrescar} />
       ) : filtro === "MAT" ? (
-        <MaterialesWysiwyg lista={visibles} busqueda={busqueda} setBusqueda={setBusqueda} refrescar={refrescar} />
+        <MaterialesWysiwyg enfoqueNueva={crearEn === "MAT"} lista={visibles} busqueda={busqueda} setBusqueda={setBusqueda} refrescar={refrescar} />
       ) : filtro === "SC" ? (
-        <MaterialesWysiwyg key="SC" tipo="SC" lista={visibles} busqueda={busqueda} setBusqueda={setBusqueda} refrescar={refrescar} />
+        <MaterialesWysiwyg key="SC" tipo="SC" enfoqueNueva={crearEn === "SC"} lista={visibles} busqueda={busqueda} setBusqueda={setBusqueda} refrescar={refrescar} />
       ) : filtro === "HT" ? (
-        <HerramientasWysiwyg lista={visibles} busqueda={busqueda} setBusqueda={setBusqueda} refrescar={refrescar} />
+        <HerramientasWysiwyg enfoqueNueva={crearEn === "HT"} lista={visibles} busqueda={busqueda} setBusqueda={setBusqueda} refrescar={refrescar} />
       ) : (
-        <EquiposWysiwyg key={filtro} tipo={filtro} lista={visibles} busqueda={busqueda} setBusqueda={setBusqueda} refrescar={refrescar} />
+        <EquiposWysiwyg key={filtro} tipo={filtro} enfoqueNueva={crearEn === filtro} lista={visibles} busqueda={busqueda} setBusqueda={setBusqueda} refrescar={refrescar} />
       )}
     </>
   );
@@ -139,11 +152,13 @@ type FilaMO = {
 const filaVacia: FilaMO = { nombre: "", regimen: "General", categoria: "Operario", sueldo: "", margen: "", asignacion: false };
 
 function ManoObraWysiwyg({
+  enfoqueNueva,
   lista,
   busqueda,
   setBusqueda,
   refrescar,
 }: {
+  enfoqueNueva?: boolean;
   lista: Insumo[];
   busqueda: string;
   setBusqueda: (v: string) => void;
@@ -286,6 +301,7 @@ function ManoObraWysiwyg({
             <td className="px-3 py-2">
               <input
                 className={inputCls}
+                autoFocus={enfoqueNueva}
                 placeholder="Escribe la descripción y pulsa Enter…"
                 value={nueva.nombre}
                 onChange={(e) => setNueva({ ...nueva, nombre: e.target.value })}
@@ -467,12 +483,14 @@ const filaMatVacia: FilaMat = { nombre: "", unidad: "und", precio: "", margen: "
 
 function MaterialesWysiwyg({
   tipo = "MAT",
+  enfoqueNueva,
   lista,
   busqueda,
   setBusqueda,
   refrescar,
 }: {
   tipo?: "MAT" | "SC";
+  enfoqueNueva?: boolean;
   lista: Insumo[];
   busqueda: string;
   setBusqueda: (v: string) => void;
@@ -593,6 +611,7 @@ function MaterialesWysiwyg({
             <td className="px-3 py-2">
               <input
                 className={inputCls}
+                autoFocus={enfoqueNueva}
                 placeholder="Escribe la descripción y pulsa Enter…"
                 value={nueva.nombre}
                 onChange={(e) => setNueva({ ...nueva, nombre: e.target.value })}
@@ -731,12 +750,14 @@ type FilaEq = { nombre: string; clase: Clase; propiedad: Propiedad; unidad: stri
 
 function EquiposWysiwyg({
   tipo,
+  enfoqueNueva,
   lista,
   busqueda,
   setBusqueda,
   refrescar,
 }: {
   tipo: "EQ" | "HT";
+  enfoqueNueva?: boolean;
   lista: Insumo[];
   busqueda: string;
   setBusqueda: (v: string) => void;
@@ -835,7 +856,7 @@ function EquiposWysiwyg({
     return (
       <>
         <td className="px-3 py-2">
-          <input className={inputCls} placeholder="Escribe la descripción y pulsa Enter…" value={f.nombre} onChange={(e) => set({ ...f, nombre: e.target.value })} onKeyDown={onKey} />
+          <input className={inputCls} autoFocus={enfoqueNueva} placeholder="Escribe la descripción y pulsa Enter…" value={f.nombre} onChange={(e) => set({ ...f, nombre: e.target.value })} onKeyDown={onKey} />
         </td>
         <td className="px-3 py-2">
           <select className={selCls} value={f.clase} onChange={(e) => { const c = e.target.value as Clase; set({ ...f, clase: c, unidad: unidadDe(c) }); }}>
@@ -959,11 +980,13 @@ function EquiposWysiwyg({
 }
 
 function HerramientasWysiwyg({
+  enfoqueNueva,
   lista,
   busqueda,
   setBusqueda,
   refrescar,
 }: {
+  enfoqueNueva?: boolean;
   lista: Insumo[];
   busqueda: string;
   setBusqueda: (v: string) => void;
@@ -1040,7 +1063,7 @@ function HerramientasWysiwyg({
           <tr className="border-b border-dashed border-line/60 bg-muted/20">
             <td className="px-5 py-2 text-muted-foreground/60">auto</td>
             <td className="px-3 py-2">
-              <input className={inputCls} placeholder="Escribe la descripción y pulsa Enter…" value={nombre} onChange={(e) => setNombre(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void crear(); } }} />
+              <input className={inputCls} autoFocus={enfoqueNueva} placeholder="Escribe la descripción y pulsa Enter…" value={nombre} onChange={(e) => setNombre(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void crear(); } }} />
             </td>
             <td className="px-3 py-2 text-center text-muted-foreground">%MO</td>
             <td className="px-3 py-2">
