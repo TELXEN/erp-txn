@@ -5,7 +5,7 @@ import { Boton, Input } from "@/components/ui-kit";
 import { BuscadorInsumo } from "@/components/BuscadorInsumo";
 import { soles } from "@/lib/format";
 import type { PartidaMaestra } from "@/lib/cotizaciones";
-import { ORIGEN_APU, TIPOS_INSUMO, apuDb, calcularApu, useComponentesApu, useInsumos, useMargenesInsumo, type OrigenApu } from "@/lib/apu";
+import { ORIGEN_APU, TIPOS_INSUMO, apuDb, calcularApu, precioVenta, useComponentesApu, useInsumos, useMargenesInsumo, type OrigenApu } from "@/lib/apu";
 import { usePartidasMaestras } from "@/lib/cotizaciones";
 
 type P = Pick<PartidaMaestra, "id" | "nombre" | "unidad"> & {
@@ -176,7 +176,7 @@ export function ApuPartida({
                           <Input className="py-0.5 text-right text-xs" type="number" step="0.0001" defaultValue={c.cantidad} onBlur={(e) => cambiar(c.id, "cantidad", e.target.value)} />
                         )}
                       </td>
-                      <td className="px-2 py-1.5 text-right">{tipo === "HT" ? "" : Number(ins?.precio ?? 0).toFixed(2)}</td>
+                      <td className="px-2 py-1.5 text-right">{tipo === "HT" ? "" : (ins ? precioVenta(ins) : 0).toFixed(2)}</td>
                       <td className="px-2 py-1.5 text-right">{parcial.toFixed(2)}</td>
                       <td className="px-5 py-1 text-right">
                         <button type="button" onClick={() => quitar(c.id)} title="Quitar" className="text-muted-foreground hover:text-bad"><Trash2 size={13} /></button>
