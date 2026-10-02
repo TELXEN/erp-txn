@@ -3,7 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Calculator, Check, Pencil, Trash2, X } from "lucide-react";
 import { ApuPartida } from "@/components/ApuPartida";
 import { supabase } from "@/integrations/supabase/client";
-import { Boton, Campo, Input, Panel, Select, Vacio } from "@/components/ui-kit";
+import { Campo, Input, Panel, Select, Vacio } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { soles } from "@/lib/format";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
@@ -20,7 +20,7 @@ const TIPOS_PARTIDA: [string, string][] = [
   ["HT", "Herramientas menores"],
   ["SC", "Subcontratos"],
 ];
-const nombreTipo = (t?: string) => TIPOS_PARTIDA.find(([k]) => k === t)?.[0] ?? "Materiales";
+const nombreTipo = (t?: string) => TIPOS_PARTIDA.find(([k]) => k === t)?.[1] ?? "Materiales";
 
 const vacio = {
   nombre: "",
@@ -32,18 +32,21 @@ const vacio = {
   tipo_partida: "MAT",
 };
 
+type FilaNueva = typeof vacio;
+
 export function PartidasMaestras() {
   const qc = useQueryClient();
   const { data: lista = [] } = usePartidasMaestras();
   const { data: especialidades = [] } = useEspecialidadesPartida();
   const { data: unidades = [] } = useUnidadesMedida();
   const { data: categorias = [] } = useCategoriasPartida();
-  const [form, setForm] = useState(vacio);
+  const [nueva, setNueva] = useState<FilaNueva>(vacio);
   const [editando, setEditando] = useState<PartidaMaestra | null>(null);
   const [busqueda, setBusqueda] = useState("");
   const [error, setError] = useState("");
   const [apu, setApu] = useState<PartidaMaestra | null>(null);
   const [moviendo, setMoviendo] = useState(false);
+  const [guardando, setGuardando] = useState(false);
 
   const refrescar = () => qc.invalidateQueries({ queryKey: ["partidas_maestras"] });
 
@@ -65,30 +68,26 @@ export function PartidasMaestras() {
     setMoviendo(false);
   }
 
-  async function crear(e: React.FormEvent) {
-    e.preventDefault();
+  async function crearDesdeFila() {
+    if (guardando) return;
+    if (!nueva.nombre.trim()) return setError("Escribe la descripción de la partida.");
     setError("");
-    if (!form.nombre.trim()) return setError("Escribe la descripción de la partida.");
+    setGuardando(true);
     const { error: err } = await supabase.from("partidas_maestras").insert({
       codigo: "",
-      nombre: form.nombre.trim(),
-      especialidad: form.especialidad,
-      categoria: form.categoria,
-      marca: form.marca.trim(),
-      unidad: form.unidad,
-      precio_unitario: Number(form.precio_unitario || 0),
-      tipo_partida: form.tipo_partida,
+      nombre: nueva.nombre.trim(),
+      especialidad: nueva.especialidad,
+      categoria: nueva.categoria,
+      marca: nueva.marca.trim(),
+      unidad: nueva.unidad,
+      precio_unitario: Number(nueva.precio_unitario || 0),
+      tipo_partida: nueva.tipo_partida,
       orden: ORDEN_FINAL,
     });
+    setGuardando(false);
     if (err) return setError(err.message);
     await recodificarWbs().catch(() => undefined);
-    setForm({
-      ...vacio,
-      especialidad: form.especialidad,
-      categoria: form.categoria,
-      unidad: form.unidad,
-      tipo_partida: form.tipo_partida,
-    });
+    setNueva({ ...vacio, especialidad: nueva.especialidad, categoria: nueva.categoria, unidad: nueva.unidad, tipo_partida: nueva.tipo_partida });
     refrescar();
   }
 
@@ -128,131 +127,38 @@ export function PartidasMaestras() {
   const opcionesEspecialidad = especialidades.filter((e) => e.activo);
   const opcionesUnidad = unidades.filter((u) => u.activo);
 
+  const teclaNueva = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      void crearDesdeFila();
+    }
+    if (e.key === "Escape") setNueva({ ...vacio, especialidad: nueva.especialidad });
+  };
+
   return (
     <>
-      <Panel titulo="Nueva partida maestra" className="mb-4">
-        <form onSubmit={crear} className="grid gap-3 p-4 sm:grid-cols-6">
-          <div className="sm:col-span-2">
-            <Campo etiqueta="Descripción de la partida">
-              <Input
-                className="py-1.5"
-                value={form.nombre}
-                onChange={(e) => setForm({ ...form, nombre: e.target.value })}
-                maxLength={160}
-                placeholder="Suministro y montaje de tablero de distribución"
-              />
-            </Campo>
-          </div>
-          <Campo etiqueta="Especialidad">
-            <Select
-              className="py-1.5"
-              value={form.especialidad}
-              onChange={(e) => {
-                const especialidad = e.target.value;
-                setForm({
-                  ...form,
-                  especialidad,
-                  categoria: "",
-                });
-              }}
-            >
-              <option value="">Selecciona...</option>
-              {opcionesEspecialidad.map((e) => (
-                <option key={e.id} value={e.nombre}>
-                  {e.nombre}
-                </option>
-              ))}
-            </Select>
-          </Campo>
-          <Campo etiqueta="Categoría">
-            <Select
-              className="py-1.5"
-              value={form.categoria}
-              onChange={(e) => {
-                const categoria = e.target.value;
-                setForm({
-                  ...form,
-                  categoria,
-                });
-              }}
-            >
-              <option value="">Sin categoría</option>
-              {categoriasDe(form.especialidad, categorias).map((c) => (
-                <option key={c.id} value={c.nombre}>
-                  {c.nombre}
-                </option>
-              ))}
-            </Select>
-          </Campo>
-          <Campo etiqueta="Marca">
-            <Input
-              className="py-1.5"
-              value={form.marca}
-              onChange={(e) => setForm({ ...form, marca: e.target.value })}
-              maxLength={60}
-              placeholder="Sin marca"
-            />
-          </Campo>
-          <Campo etiqueta="Unidad">
-            <Select className="py-1.5" value={form.unidad} onChange={(e) => setForm({ ...form, unidad: e.target.value })}>
-              {opcionesUnidad.map((u) => (
-                <option key={u.id} value={u.simbolo}>
-                  {u.simbolo}
-                </option>
-              ))}
-            </Select>
-          </Campo>
-          <Campo etiqueta="Tipo (dígito del código)">
-            <Select
-              className="py-1.5"
-              value={form.tipo_partida}
-              onChange={(e) => setForm({ ...form, tipo_partida: e.target.value })}
-            >
-              {TIPOS_PARTIDA.map(([k, nombre]) => (
-                <option key={k} value={k}>
-                  {nombre}
-                </option>
-              ))}
-            </Select>
-          </Campo>
-          <Campo etiqueta="Precio unitario (S/)">
-            <Input
-              className="py-1.5 text-right"
-              type="number"
-              step="0.01"
-              min="0"
-              value={form.precio_unitario}
-              onChange={(e) => setForm({ ...form, precio_unitario: e.target.value })}
-              placeholder="0.00"
-            />
-          </Campo>
-          <div className="sm:col-span-6">
-            <Boton type="submit">Agregar al registro</Boton>
-          </div>
-          {error && <p className="font-mono text-xs text-bad sm:col-span-6">{error}</p>}
-        </form>
-      </Panel>
-
       <Panel
         titulo="Banco de partidas maestras"
         extra={<Buscador valor={busqueda} onChange={setBusqueda} total={filtradas.length} placeholder="Buscar por partida, categoría o especialidad..." />}
       >
-        {filtradas.length === 0 ? (
-          <Vacio texto={busqueda ? `Sin coincidencias para «${busqueda}»` : "Aún no hay partidas en el banco maestro."} />
+        {filtradas.length === 0 && !busqueda ? (
+          <Vacio texto="Aún no hay partidas en el banco maestro. Captura la primera en la fila de abajo." />
+        ) : filtradas.length === 0 ? (
+          <Vacio texto={`Sin coincidencias para «${busqueda}»`} />
         ) : (
           <table className="w-full table-fixed font-mono text-xs">
             <thead>
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                <th className="w-[12%] px-5 py-2 font-medium">Código</th>
-                <th className="w-[21%] px-3 py-2 font-medium">Partida</th>
-                <th className="w-[11%] px-3 py-2 font-medium">Especialidad</th>
+                <th className="w-[11%] px-5 py-2 font-medium">Código</th>
+                <th className="w-[20%] px-3 py-2 font-medium">Partida</th>
+                <th className="w-[12%] px-3 py-2 font-medium">Tipo</th>
+                <th className="w-[12%] px-3 py-2 font-medium">Especialidad</th>
                 <th className="w-[11%] px-3 py-2 font-medium">Categoría</th>
-                <th className="w-[8%] px-3 py-2 font-medium">Tipo</th>
                 <th className="w-[7%] px-3 py-2 font-medium">Marca</th>
                 <th className="w-[5%] px-3 py-2 font-medium">Und.</th>
                 <th className="w-[8%] px-3 py-2 text-right font-medium">P.U. (S/)</th>
-                <th className="w-[7%] px-3 py-2 font-medium">Estado</th>
-                <th className="w-[10%] px-5 py-2 text-right font-medium">Acciones</th>
+                <th className="w-[6%] px-3 py-2 font-medium">Estado</th>
+                <th className="w-[7%] px-5 py-2 text-right font-medium">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -265,7 +171,24 @@ export function PartidasMaestras() {
                         className="py-1 text-xs"
                         value={editando.nombre}
                         onChange={(ev) => setEditando({ ...editando, nombre: ev.target.value })}
+                        onKeyDown={(ev) => {
+                          if (ev.key === "Enter") { ev.preventDefault(); void guardar(); }
+                          if (ev.key === "Escape") setEditando(null);
+                        }}
                       />
+                    </td>
+                    <td className="px-3 py-2">
+                      <Select
+                        className="py-1 text-xs"
+                        value={editando.tipo_partida ?? "MAT"}
+                        onChange={(ev) => setEditando({ ...editando, tipo_partida: ev.target.value })}
+                      >
+                        {TIPOS_PARTIDA.map(([k, nombre]) => (
+                          <option key={k} value={k}>
+                            {nombre}
+                          </option>
+                        ))}
+                      </Select>
                     </td>
                     <td className="px-3 py-2">
                       <Select
@@ -293,19 +216,6 @@ export function PartidasMaestras() {
                         {categoriasDe(editando.especialidad, categorias).map((c) => (
                           <option key={c.id} value={c.nombre}>
                             {c.nombre}
-                          </option>
-                        ))}
-                      </Select>
-                    </td>
-                    <td className="px-3 py-2">
-                      <Select
-                        className="py-1 text-xs"
-                        value={editando.tipo_partida ?? "MAT"}
-                        onChange={(ev) => setEditando({ ...editando, tipo_partida: ev.target.value })}
-                      >
-                        {TIPOS_PARTIDA.map(([k, nombre]) => (
-                          <option key={k} value={k}>
-                            {nombre}
                           </option>
                         ))}
                       </Select>
@@ -387,9 +297,9 @@ export function PartidasMaestras() {
                       </div>
                     </td>
                     <td className="px-3 py-2.5 text-ink"><Resaltar texto={p.nombre} termino={busqueda} /></td>
+                    <td className="px-3 py-2.5 text-muted-foreground">{nombreTipo(p.tipo_partida)}</td>
                     <td className="px-3 py-2.5 text-muted-foreground"><Resaltar texto={p.especialidad || "—"} termino={busqueda} /></td>
                     <td className="px-3 py-2.5 text-muted-foreground"><Resaltar texto={p.categoria || "—"} termino={busqueda} /></td>
-                    <td className="px-3 py-2.5 text-muted-foreground" title={nombreTipo(p.tipo_partida)}>{p.tipo_partida ?? "MAT"}</td>
                     <td className="px-3 py-2.5 text-muted-foreground"><Resaltar texto={p.marca || "-"} termino={busqueda} /></td>
                     <td className="px-3 py-2.5 text-muted-foreground">{p.unidad}</td>
                     <td className="px-3 py-2.5 text-right">{soles(Number(p.precio_unitario))}</td>
@@ -429,15 +339,133 @@ export function PartidasMaestras() {
                   </tr>
                 ),
               )}
+              {/* Fila de captura inmediata (WYSIWYG) */}
+              <tr className="border-t border-dashed border-line">
+                <td className="px-5 py-2 text-center text-muted-foreground" title="El código se genera automáticamente al guardar">—</td>
+                <td className="px-3 py-2">
+                  <Campo>
+                    <Input
+                      className="py-1 text-xs"
+                      value={nueva.nombre}
+                      onChange={(e) => setNueva({ ...nueva, nombre: e.target.value })}
+                      onKeyDown={teclaNueva}
+                      maxLength={160}
+                      placeholder="Descripción de la partida…"
+                    />
+                  </Campo>
+                </td>
+                <td className="px-3 py-2">
+                  <Campo>
+                    <Select
+                      className="py-1 text-xs"
+                      value={nueva.tipo_partida}
+                      onChange={(e) => setNueva({ ...nueva, tipo_partida: e.target.value })}
+                    >
+                      {TIPOS_PARTIDA.map(([k, nombre]) => (
+                        <option key={k} value={k}>
+                          {nombre}
+                        </option>
+                      ))}
+                    </Select>
+                  </Campo>
+                </td>
+                <td className="px-3 py-2">
+                  <Campo>
+                    <Select
+                      className="py-1 text-xs"
+                      value={nueva.especialidad}
+                      onChange={(e) => setNueva({ ...nueva, especialidad: e.target.value, categoria: "" })}
+                    >
+                      <option value="">Selecciona…</option>
+                      {opcionesEspecialidad.map((e) => (
+                        <option key={e.id} value={e.nombre}>
+                          {e.nombre}
+                        </option>
+                      ))}
+                    </Select>
+                  </Campo>
+                </td>
+                <td className="px-3 py-2">
+                  <Campo>
+                    <Select
+                      className="py-1 text-xs"
+                      value={nueva.categoria}
+                      onChange={(e) => setNueva({ ...nueva, categoria: e.target.value })}
+                    >
+                      <option value="">Sin categoría</option>
+                      {categoriasDe(nueva.especialidad, categorias).map((c) => (
+                        <option key={c.id} value={c.nombre}>
+                          {c.nombre}
+                        </option>
+                      ))}
+                    </Select>
+                  </Campo>
+                </td>
+                <td className="px-3 py-2">
+                  <Campo>
+                    <Input
+                      className="py-1 text-xs"
+                      value={nueva.marca}
+                      onChange={(e) => setNueva({ ...nueva, marca: e.target.value })}
+                      onKeyDown={teclaNueva}
+                      maxLength={60}
+                      placeholder="-"
+                    />
+                  </Campo>
+                </td>
+                <td className="px-3 py-2">
+                  <Campo>
+                    <Select
+                      className="py-1 text-xs"
+                      value={nueva.unidad}
+                      onChange={(e) => setNueva({ ...nueva, unidad: e.target.value })}
+                    >
+                      {opcionesUnidad.map((u) => (
+                        <option key={u.id} value={u.simbolo}>
+                          {u.simbolo}
+                        </option>
+                      ))}
+                    </Select>
+                  </Campo>
+                </td>
+                <td className="px-3 py-2">
+                  <Campo>
+                    <Input
+                      className="py-1 text-right text-xs"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={nueva.precio_unitario}
+                      onChange={(e) => setNueva({ ...nueva, precio_unitario: e.target.value })}
+                      onKeyDown={teclaNueva}
+                      placeholder="0.00"
+                    />
+                  </Campo>
+                </td>
+                <td className="px-3 py-2 text-muted-foreground" title="Activa al guardar">—</td>
+                <td className="px-5 py-2 text-right">
+                  <button
+                    type="button"
+                    onClick={() => void crearDesdeFila()}
+                    disabled={guardando}
+                    title="Guardar (Enter)"
+                    className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground disabled:opacity-50"
+                  >
+                    <Check size={14} />
+                  </button>
+                </td>
+              </tr>
             </tbody>
           </table>
         )}
+        {error && <p className="border-t border-line px-5 py-2 font-mono text-xs text-bad">{error}</p>}
         <p className="border-t border-line px-5 py-3 font-mono text-[10px] leading-relaxed text-muted-foreground">
-          Estas partidas se reutilizan al armar una cotización: al elegir una del banco se copian su descripción,
-          unidad y precio unitario; el código (dígito del tipo + especialidad + categoría + correlativo) se recalcula al reordenar con las flechas, y puedes ajustarlos en la propuesta sin alterar el catálogo.
+          Captura directa en la tabla: escribe la partida y pulsa Enter para guardar (el código se genera solo según el tipo,
+          la especialidad y la categoría). Clic en una fila para editarla. Estas partidas se reutilizan al armar una cotización:
+          se copian su descripción, unidad y precio unitario, y puedes ajustarlos en la propuesta sin alterar el catálogo.
         </p>
       </Panel>
-    {apu && <ApuPartida partida={apu} onCerrar={() => setApu(null)} />}
+      {apu && <ApuPartida partida={apu} onCerrar={() => setApu(null)} />}
     </>
   );
 }
