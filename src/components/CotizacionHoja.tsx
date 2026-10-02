@@ -1098,7 +1098,7 @@ function DesgloseApu({ item, alCambiar }: { item: CotizacionItem; alCambiar: () 
                   <input className={inp} type="number" step="0.01" defaultValue={Number(c.cantidad)} onBlur={(e) => void cambiar(c.id, "cantidad", e.target.value)} />
                 )}
               </td>
-              <td className="py-1 text-right">{soles(ins ? precioVenta(ins) : 0)}</td>
+              <td className="py-1 text-right">{ins?.tipo === "HT" ? `${cantidad.toFixed(2)}%` : soles(ins ? precioVenta(ins) : 0)}</td>
               <td className="py-1 text-right font-semibold text-ink">{soles(parcial)}</td>
               <td className="py-1 text-right">
                 <button type="button" onClick={() => void quitar(c.id)} className="text-muted-foreground hover:text-bad">
@@ -1120,7 +1120,7 @@ function DesgloseApu({ item, alCambiar }: { item: CotizacionItem; alCambiar: () 
             <optgroup key={t} label={etiqueta}>
               {insumos.filter((i) => i.activo && i.tipo === t).map((i) => (
                 <option key={i.id} value={i.id}>
-                  {i.nombre} · {i.unidad} · {soles(Number(i.precio))}
+                  {i.nombre} · {i.unidad} · {i.tipo === "HT" ? `${(Number(i.precio) > 0 ? Number(i.precio) : (margenes?.HT ?? 0)).toFixed(2)}% MO` : soles(Number(i.precio))}
                 </option>
               ))}
             </optgroup>
