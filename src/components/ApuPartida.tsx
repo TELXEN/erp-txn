@@ -5,7 +5,7 @@ import { Boton, Input } from "@/components/ui-kit";
 import { BuscadorInsumo } from "@/components/BuscadorInsumo";
 import { soles } from "@/lib/format";
 import type { PartidaMaestra } from "@/lib/cotizaciones";
-import { ORIGEN_APU, TIPOS_INSUMO, apuDb, calcularApu, useComponentesApu, useInsumos, type OrigenApu } from "@/lib/apu";
+import { ORIGEN_APU, TIPOS_INSUMO, apuDb, calcularApu, useComponentesApu, useInsumos, useMargenesInsumo, type OrigenApu } from "@/lib/apu";
 import { usePartidasMaestras } from "@/lib/cotizaciones";
 
 type P = Pick<PartidaMaestra, "id" | "nombre" | "unidad"> & {
@@ -38,7 +38,8 @@ export function ApuPartida({
       : undefined;
   const [rend, setRend] = useState(String(partida.rendimiento ?? 1));
   const [jornada, setJornada] = useState(String(partida.jornada ?? 8));
-  const [pctH, setPctH] = useState(String(partida.pct_herramientas ?? 3));
+  const { data: margenes } = useMargenesInsumo();
+  const pctH = Number(margenes?.HT ?? 0); // % de Herramientas menores del Maestro de insumos (Márgenes APU)
   const [nuevo, setNuevo] = useState("");
   const [error, setError] = useState("");
   const calc = calcularApu(comps, insumos, Number(rend), Number(jornada), Number(pctH));
@@ -88,7 +89,6 @@ export function ApuPartida({
     const m = maestraIgual as P;
     setRend(String(m.rendimiento ?? 1));
     setJornada(String(m.jornada ?? 8));
-    setPctH(String(m.pct_herramientas ?? 3));
     refrescar();
   }
 
@@ -98,7 +98,6 @@ export function ApuPartida({
     const cambios: Record<string, number> = {
       rendimiento: Number(rend),
       jornada: Number(jornada) || 8,
-      pct_herramientas: Number(pctH) || 0,
       precio_unitario: calc.pu,
     };
     if (origen === "obra")
@@ -124,7 +123,9 @@ export function ApuPartida({
         <div className="grid gap-3 border-b border-line px-5 py-3 font-mono text-xs sm:grid-cols-4">
           <label>Rendimiento ({partida.unidad}/día)<Input className="mt-1 py-1 text-xs" type="number" step="0.01" value={rend} onChange={(e) => setRend(e.target.value)} /></label>
           <label>Jornada (horas)<Input className="mt-1 py-1 text-xs" type="number" step="0.5" value={jornada} onChange={(e) => setJornada(e.target.value)} /></label>
-          <label>Herramientas (% MO)<Input className="mt-1 py-1 text-xs" type="number" step="0.5" value={pctH} onChange={(e) => setPctH(e.target.value)} /></label>
+          <label>Herramientas (% MO)<p className="mt-1 py-1 text-right font-mono text-xs text-ink">{pctH.toFixed(2)}%</p>
+            <p className="text-[9px] text-muted-foreground">se edita en Márgenes APU</p>
+          </label>
           <div className="text-right">
             <p className="text-muted-foreground">Precio unitario</p>
             <p className="text-lg font-semibold text-primary">{soles(calc.pu)}</p>
@@ -147,7 +148,7 @@ export function ApuPartida({
           <tbody>
             {TIPOS_INSUMO.map(([tipo, titulo]) => {
               const filas = calc.filas.filter((f) => f.ins?.tipo === tipo);
-              const conH = tipo === "EQ" && calc.herramientas > 0;
+              const conH = tipo === "HT" && calc.herramientas > 0;
               if (!filas.length && !conH) return null;
               return [
                 <tr key={tipo} className="bg-muted/40">
@@ -185,10 +186,10 @@ export function ApuPartida({
                 }),
                 conH ? (
                   <tr key="herr" className="border-b border-line/40">
-                    <td className="px-5 py-1.5 text-ink">Herramientas manuales</td>
+                    <td className="px-5 py-1.5 text-ink">Herramientas (% MO)</td>
                     <td className="px-2 py-1.5 text-muted-foreground">%MO</td>
                     <td />
-                    <td className="px-2 py-1.5 text-right">{Number(pctH).toFixed(2)}%</td>
+                    <td className="px-2 py-1.5 text-right">{pctH.toFixed(2)}%</td>
                     <td />
                     <td className="px-2 py-1.5 text-right">{calc.herramientas.toFixed(2)}</td>
                     <td />

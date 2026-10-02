@@ -394,7 +394,6 @@ function Cotizaciones() {
           tipo_presupuesto: "Contractual",
           rendimiento: Number(i.rendimiento ?? 1),
           jornada: Number(i.jornada ?? 8),
-          pct_herramientas: Number(i.pct_herramientas ?? 3),
         });
       const { error: errP } = await supabase.from("partidas").insert(items.filter((i) => !i.padre_id).map(aFila));
       if (errP) throw errP;
