@@ -1109,15 +1109,6 @@ function EquiposWysiwyg({
               </tr>
             );
           })}
-          <tr className="border-b border-dashed border-line/60 bg-muted/20">
-            <td className="px-5 py-2 text-muted-foreground/60">auto</td>
-            {celdas(fila, setFila, teclaNueva)}
-            <td className="px-5 py-2">
-              <div className="flex justify-end">
-                <button type="button" onClick={() => void crearDesdeFila()} disabled={guardando} title="Registrar" className={`${btn} border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground disabled:opacity-50`}><Check size={14} /></button>
-              </div>
-            </td>
-          </tr>
         </tbody>
       </table>
       {error && <p className="px-5 py-2 font-mono text-xs text-bad">{error}</p>}
@@ -1244,19 +1235,6 @@ function HerramientasWysiwyg({
               </tr>
             ),
           )}
-          <tr className="border-b border-dashed border-line/60 bg-muted/20">
-            <td className="px-5 py-2 text-muted-foreground/60">auto</td>
-            <td className="px-3 py-2">
-              <input className={inputCls} placeholder="Escribe la descripción y pulsa Enter…" value={nombre} onChange={(e) => setNombre(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void crear(); } }} />
-            </td>
-            <td className="px-3 py-2 text-center text-muted-foreground">%MO</td>
-            {celdaPct}
-            <td className="px-5 py-2">
-              <div className="flex justify-end">
-                <button type="button" onClick={() => void crear()} disabled={guardando} title="Registrar" className={`${btn} border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground disabled:opacity-50`}><Check size={14} /></button>
-              </div>
-            </td>
-          </tr>
         </tbody>
       </table>
       {error && <p className="px-5 py-2 font-mono text-xs text-bad">{error}</p>}
