@@ -176,16 +176,6 @@ export function CodificacionInsumos({ onAgregarTipo }: { onAgregarTipo?: (tipo: 
                       )}
                     </td>
                     <td className="py-2 pr-3 text-muted-foreground">{t.clave}</td>
-                    <td className="py-2 pr-1">
-                      <button
-                        type="button"
-                        title={`Editar dígito y correlativo de ${t.nombre}`}
-                        onClick={() => editarTipo(t)}
-                        className="grid h-6 w-6 place-items-center rounded-md border border-line text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
-                      >
-                        <Pencil size={12} />
-                      </button>
-                    </td>
                     <td className="px-3 py-2">
                       <Input
                         className="py-1 text-center"
