@@ -20,7 +20,7 @@ import {
   siguienteCodigoSubpartida,
   useCategoriasPartida,
 } from "@/lib/categorias";
-import { apuDb, calcularApu, nombreTipo, TIPOS_INSUMO, useComponentesApu, useInsumos } from "@/lib/apu";
+import { apuDb, calcularApu, nombreTipo, TIPOS_INSUMO, useComponentesApu, useInsumos, useMargenesInsumo } from "@/lib/apu";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
 import { usePartidasMaestras, type CotizacionItem, type PartidaMaestra } from "@/lib/cotizaciones";
 
@@ -1005,10 +1005,11 @@ function DesgloseApu({ item, alCambiar }: { item: CotizacionItem; alCambiar: () 
   const qc = useQueryClient();
   const { data: insumos = [] } = useInsumos();
   const { data: comps = [] } = useComponentesApu(item.id, "cotizacion");
+  const { data: margenes } = useMargenesInsumo();
   const [nuevo, setNuevo] = useState("");
   const rend = Number(item.rendimiento ?? 1) || 1;
   const jornada = Number(item.jornada ?? 8) || 8;
-  const pctH = Number(item.pct_herramientas ?? 3);
+  const pctH = Number(margenes?.HT ?? 0); // % de Herramientas menores del Maestro de insumos (Márgenes APU)
   const calc = calcularApu(comps, insumos, rend, jornada, pctH);
 
   async function sincronizarPu() {
@@ -1044,7 +1045,7 @@ function DesgloseApu({ item, alCambiar }: { item: CotizacionItem; alCambiar: () 
     await refrescar();
   }
 
-  async function cambiarPartida(campo: "rendimiento" | "jornada" | "pct_herramientas", v: string) {
+  async function cambiarPartida(campo: "rendimiento" | "jornada", v: string) {
     await supabase.from("cotizacion_items").update({ [campo]: Number(v || 0) } as never).eq("id", item.id);
     alCambiar();
   }
@@ -1063,10 +1064,10 @@ function DesgloseApu({ item, alCambiar }: { item: CotizacionItem; alCambiar: () 
           Jornada
           <input className={inp} type="number" step="0.5" defaultValue={jornada} onBlur={(e) => void cambiarPartida("jornada", e.target.value)} />
         </label>
-        <label className="flex items-center gap-1">
+        <span className="flex items-center gap-1">
           % Herram.
-          <input className={inp} type="number" step="0.1" defaultValue={pctH} onBlur={(e) => void cambiarPartida("pct_herramientas", e.target.value)} />
-        </label>
+          <span className="inline-block w-20 text-right">{pctH.toFixed(2)}%</span>
+        </span>
       </div>
       <table className="w-full font-mono text-[12.5px]">
         <thead>

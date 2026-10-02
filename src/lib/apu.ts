@@ -243,7 +243,7 @@ export function calcularApu(
   }
   const filas = base.map(({ c, ins }) => ({ c, ins, ...(parciales.get(c.id) ?? { cantidad: 0, parcial: 0 }) }));
   const herramientas = (totMO * Number(pctHerramientas || 0)) / 100;
-  tot.EQ += herramientas;
+  tot.HT += herramientas;
   const pu = Math.round((tot.MO + tot.MAT + tot.EQ + tot.HT + tot.SC) * 100) / 100;
   return { filas, tot, herramientas, pu };
 }
