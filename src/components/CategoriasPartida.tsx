@@ -78,7 +78,6 @@ export function CategoriasPartida() {
       })
       .eq("id", editando.id);
     if (err) return setError(err.message);
-    await recodificarWbs().catch(() => undefined);
     if (anterior && anterior.nombre !== nombre) {
       await supabase.from("partidas").update({ categoria: nombre }).eq("categoria", anterior.nombre);
       await supabase
@@ -90,6 +89,7 @@ export function CategoriasPartida() {
         .update({ categoria: nombre })
         .eq("categoria", anterior.nombre);
     }
+    await recodificarWbs().catch(() => undefined);
     setEditando(null);
     refrescar();
   }

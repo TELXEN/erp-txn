@@ -10,6 +10,8 @@ import { useEspecialidadesPartida } from "@/lib/especialidades";
 import { useUnidadesMedida } from "@/lib/unidades";
 import { usePartidasMaestras, type PartidaMaestra } from "@/lib/cotizaciones";
 import { categoriasDe, useCategoriasPartida } from "@/lib/categorias";
+import { FlechasOrden } from "@/components/FlechasOrden";
+import { codigoPartidaLegible, moverWbs, recodificarWbs, ORDEN_FINAL } from "@/lib/wbs";
 
 const vacio = {
   nombre: "",
@@ -31,14 +33,27 @@ export function PartidasMaestras() {
   const [busqueda, setBusqueda] = useState("");
   const [error, setError] = useState("");
   const [apu, setApu] = useState<PartidaMaestra | null>(null);
+  const [moviendo, setMoviendo] = useState(false);
 
   const refrescar = () => qc.invalidateQueries({ queryKey: ["partidas_maestras"] });
 
   const filtradas = useMemo(() => {
-    return lista.filter((p) =>
-      coincide(busqueda, p.nombre, p.especialidad, p.categoria, p.marca ?? ""),
-    );
+    return lista
+      .filter((p) =>
+        coincide(busqueda, p.codigo ?? "", codigoPartidaLegible(p.codigo), p.nombre, p.especialidad, p.categoria, p.marca ?? ""),
+      )
+      .sort((a, b) => (a.codigo ?? "").localeCompare(b.codigo ?? ""));
   }, [lista, busqueda]);
+
+  const grupo = (p: PartidaMaestra) => `${p.especialidad}|${p.categoria ?? ""}`;
+  const enGrupo = (p: PartidaMaestra) => lista.filter((x) => grupo(x) === grupo(p)).map((x) => x.codigo ?? "").sort();
+
+  async function mover(id: string, dir: -1 | 1) {
+    setMoviendo(true);
+    try { await moverWbs("partidas", id, dir); refrescar(); }
+    catch (e) { setError((e as Error).message); }
+    setMoviendo(false);
+  }
 
   async function crear(e: React.FormEvent) {
     e.preventDefault();
@@ -52,8 +67,10 @@ export function PartidasMaestras() {
       marca: form.marca.trim(),
       unidad: form.unidad,
       precio_unitario: Number(form.precio_unitario || 0),
+      orden: ORDEN_FINAL,
     });
     if (err) return setError(err.message);
+    await recodificarWbs().catch(() => undefined);
     setForm({
       ...vacio,
       especialidad: form.especialidad,
@@ -66,6 +83,8 @@ export function PartidasMaestras() {
   async function guardar() {
     if (!editando) return;
     setError("");
+    const anterior = lista.find((x) => x.id === editando.id);
+    const cambioGrupo = anterior ? grupo(anterior) !== `${editando.especialidad}|${editando.categoria ?? ""}` : false;
     const { error: err } = await supabase
       .from("partidas_maestras")
       .update({
@@ -76,9 +95,11 @@ export function PartidasMaestras() {
         unidad: editando.unidad,
         precio_unitario: Number(editando.precio_unitario || 0),
         activo: editando.activo,
+        ...(cambioGrupo ? { orden: ORDEN_FINAL } : {}),
       })
       .eq("id", editando.id);
     if (err) return setError(err.message);
+    await recodificarWbs().catch(() => undefined);
     setEditando(null);
     refrescar();
   }
@@ -87,6 +108,7 @@ export function PartidasMaestras() {
     if (!window.confirm("¿Eliminar esta partida del banco maestro?")) return;
     const { error: err } = await supabase.from("partidas_maestras").delete().eq("id", id);
     if (err) return setError(err.message);
+    await recodificarWbs().catch(() => undefined);
     refrescar();
   }
 
@@ -195,21 +217,23 @@ export function PartidasMaestras() {
           <table className="w-full table-fixed font-mono text-xs">
             <thead>
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                <th className="w-[28%] px-5 py-2 font-medium">Partida</th>
-                <th className="w-[14%] px-3 py-2 font-medium">Especialidad</th>
-                <th className="w-[15%] px-3 py-2 font-medium">Categoría</th>
-                <th className="w-[10%] px-3 py-2 font-medium">Marca</th>
+                <th className="w-[13%] px-5 py-2 font-medium">Código</th>
+                <th className="w-[23%] px-3 py-2 font-medium">Partida</th>
+                <th className="w-[12%] px-3 py-2 font-medium">Especialidad</th>
+                <th className="w-[12%] px-3 py-2 font-medium">Categoría</th>
+                <th className="w-[8%] px-3 py-2 font-medium">Marca</th>
                 <th className="w-[6%] px-3 py-2 font-medium">Und.</th>
-                <th className="w-[11%] px-3 py-2 text-right font-medium">P.U. (S/)</th>
-                <th className="w-[8%] px-3 py-2 font-medium">Estado</th>
-                <th className="w-[8%] px-5 py-2 text-right font-medium">Acciones</th>
+                <th className="w-[9%] px-3 py-2 text-right font-medium">P.U. (S/)</th>
+                <th className="w-[7%] px-3 py-2 font-medium">Estado</th>
+                <th className="w-[10%] px-5 py-2 text-right font-medium">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {filtradas.map((p) =>
                 editando?.id === p.id ? (
                   <tr key={p.id} className="border-b border-line/40 last:border-0">
-                    <td className="px-5 py-2">
+                    <td className="px-5 py-2 text-muted-foreground">{codigoPartidaLegible(p.codigo)}</td>
+                    <td className="px-3 py-2">
                       <Input
                         className="py-1 text-xs"
                         value={editando.nombre}
@@ -311,7 +335,18 @@ export function PartidasMaestras() {
                   </tr>
                 ) : (
                   <tr key={p.id} className="border-b border-line/40 last:border-0">
-                    <td className="px-5 py-2.5 text-ink"><Resaltar texto={p.nombre} termino={busqueda} /></td>
+                    <td className="px-5 py-2.5">
+                      <div className="flex items-center gap-1.5">
+                        <FlechasOrden
+                          primero={enGrupo(p)[0] === (p.codigo ?? "")}
+                          ultimo={enGrupo(p).at(-1) === (p.codigo ?? "")}
+                          ocupado={moviendo}
+                          onMover={(d) => mover(p.id, d)}
+                        />
+                        <span className="text-primary"><Resaltar texto={codigoPartidaLegible(p.codigo)} termino={busqueda} /></span>
+                      </div>
+                    </td>
+                    <td className="px-3 py-2.5 text-ink"><Resaltar texto={p.nombre} termino={busqueda} /></td>
                     <td className="px-3 py-2.5 text-muted-foreground"><Resaltar texto={p.especialidad || "—"} termino={busqueda} /></td>
                     <td className="px-3 py-2.5 text-muted-foreground"><Resaltar texto={p.categoria || "—"} termino={busqueda} /></td>
                     <td className="px-3 py-2.5 text-muted-foreground"><Resaltar texto={p.marca || "-"} termino={busqueda} /></td>
@@ -358,7 +393,7 @@ export function PartidasMaestras() {
         )}
         <p className="border-t border-line px-5 py-3 font-mono text-[10px] leading-relaxed text-muted-foreground">
           Estas partidas se reutilizan al armar una cotización: al elegir una del banco se copian su descripción,
-          unidad y precio unitario; el código se asigna recién al cargarla en un proyecto, y puedes ajustarlos en la propuesta sin alterar el catálogo.
+          unidad y precio unitario; el código (dígito de partidas + especialidad + categoría + correlativo) se recalcula al reordenar con las flechas, y puedes ajustarlos en la propuesta sin alterar el catálogo.
         </p>
       </Panel>
     {apu && <ApuPartida partida={apu} onCerrar={() => setApu(null)} />}
