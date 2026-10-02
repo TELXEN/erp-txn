@@ -285,7 +285,7 @@ export function PartidasMaestras() {
                   </tr>
                 ) : (
                   <tr key={p.id} className="border-b border-line/40 last:border-0">
-                    <td className="px-5 py-2.5">
+                    <td className="px-3 py-2.5">
                       <div className="flex items-center gap-1.5">
                         <FlechasOrden
                           primero={enGrupo(p)[0] === (p.codigo ?? "")}
@@ -308,7 +308,7 @@ export function PartidasMaestras() {
                         {p.activo ? "Activa" : "Inactiva"}
                       </span>
                     </td>
-                    <td className="px-5 py-2.5">
+                    <td className="px-3 py-2.5">
                       <div className="flex items-center justify-end gap-1">
                         <button
                           type="button"
