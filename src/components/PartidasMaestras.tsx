@@ -149,8 +149,8 @@ export function PartidasMaestras() {
           <table className="w-full table-fixed font-mono text-xs">
             <thead>
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                <th className="w-[11%] px-5 py-2 font-medium">Código</th>
-                <th className="w-[20%] px-3 py-2 font-medium">Partida</th>
+                <th className="w-[13%] px-3 py-2 font-medium">Código</th>
+                <th className="w-[19%] px-3 py-2 font-medium">Partida</th>
                 <th className="w-[12%] px-3 py-2 font-medium">Tipo</th>
                 <th className="w-[12%] px-3 py-2 font-medium">Especialidad</th>
                 <th className="w-[11%] px-3 py-2 font-medium">Categoría</th>
