@@ -22,9 +22,9 @@ export const TONO_SITUACION: Record<Situacion, Tono> = {
 };
 
 export const TONO_PRIORIDAD: Record<Prioridad, Tono> = {
-  Alta: { fondo: "#F8D2CD", borde: "#E79E97" },
-  Media: { fondo: "#FBE1C4", borde: "#EFB673" },
-  Baja: { fondo: "#D5DFF8", borde: "#A3B6EA" },
+  Alta: { fondo: "#DCC6F0", borde: "#B48BD6" },
+  Media: { fondo: "#EAD9F7", borde: "#C8A6E2" },
+  Baja: { fondo: "#F3EBFA", borde: "#DAC4EE" },
 };
 
 export function tonoSituacion(valor: string): Tono {

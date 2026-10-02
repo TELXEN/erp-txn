@@ -22,10 +22,10 @@ export function InsigniaPrioridad({ valor }: { valor: string }) {
 
 export function tonoTipoPresupuesto(valor: string): Tono {
   const v = (valor || "").toLowerCase();
-  if (v.includes("deductivo")) return { fondo: "#F8D2CD", borde: "#E79E97" };
-  if (v.includes("contractual")) return { fondo: "#E9E9E6", borde: "#C6C6C0" };
-  if (v.includes("metrado")) return { fondo: "#D5DFF8", borde: "#A3B6EA" };
-  return { fondo: "#FBE1C4", borde: "#EFB673" };
+  if (v.includes("deductivo")) return { fondo: "#F8D2E2", borde: "#E79EBB" };
+  if (v.includes("contractual")) return { fondo: "#FDF3C9", borde: "#E8CE6B" };
+  if (v.includes("metrado")) return { fondo: "#CFE9EE", borde: "#8FC4CF" };
+  return { fondo: "#D2F2E8", borde: "#8FD6BC" };
 }
 
 export function InsigniaTipoPresupuesto({ valor }: { valor: string }) {
