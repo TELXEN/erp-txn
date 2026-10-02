@@ -1,0 +1,1 @@
+ALTER TABLE public.tipos_insumo ADD COLUMN IF NOT EXISTS oculto boolean NOT NULL DEFAULT false;
