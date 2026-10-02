@@ -42,7 +42,9 @@ export function ApuPartida({
   const [und, setUnd] = useState(partida.unidad || "und");
   const { data: unidades = [] } = useUnidadesMedida();
   const { data: margenes } = useMargenesInsumo();
-  const pctH = Number(margenes?.HT ?? 0); // % de Herramientas manuales del Maestro de insumos (Márgenes APU)
+  // Insumo «Herramientas manuales» del maestro (código 40000001): su C. Unitario es el % de MO de respaldo.
+  const insumoHT = insumos.find((i) => i.tipo === "HT" && i.codigo === "40000001");
+  const pctH = insumoHT && Number(insumoHT.precio) > 0 ? Number(insumoHT.precio) : Number(margenes?.HT ?? 0);
   const [nuevo, setNuevo] = useState("");
   const [error, setError] = useState("");
   const calc = calcularApu(comps, insumos, Number(rend), Number(jornada), Number(pctH));
@@ -204,9 +206,9 @@ export function ApuPartida({
                 }),
                 conH ? (
                   <tr key="herr" className="border-b border-line/40">
-                    <td className="px-5 py-1.5 text-muted-foreground">–</td>
-                    <td className="px-2 py-1.5 text-ink">Herramientas manuales (% MO)</td>
-                    <td className="px-2 py-1.5 text-muted-foreground">%MO</td>
+                    <td className="px-5 py-1.5 text-muted-foreground">{insumoHT?.codigo || "40000001"}</td>
+                    <td className="px-2 py-1.5 text-ink">{insumoHT?.nombre || "Herramientas manuales"} (% MO)</td>
+                    <td className="px-2 py-1.5 text-muted-foreground">{insumoHT?.unidad || "%MO"}</td>
                     <td />
                     <td className="px-2 py-1.5 text-right">{pctH.toFixed(2)}%</td>
                     <td />
