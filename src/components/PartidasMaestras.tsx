@@ -253,7 +253,7 @@ export function PartidasMaestras() {
                       value={nueva.tipo_partida}
                       onChange={(e) => setNueva({ ...nueva, tipo_partida: e.target.value })}
                     >
-                      {TIPOS_PARTIDA.map(([k, nombre]) => (
+                      {TIPOS_PARTIDA.filter(([k]) => k !== "HT").map(([k, nombre]) => (
                         <option key={k} value={k}>
                           {nombre}
                         </option>
@@ -368,7 +368,7 @@ export function PartidasMaestras() {
                         value={editando.tipo_partida ?? "MAT"}
                         onChange={(ev) => setEditando({ ...editando, tipo_partida: ev.target.value })}
                       >
-                        {TIPOS_PARTIDA.map(([k, nombre]) => (
+                        {TIPOS_PARTIDA.filter(([k]) => k !== "HT").map(([k, nombre]) => (
                           <option key={k} value={k}>
                             {nombre}
                           </option>
