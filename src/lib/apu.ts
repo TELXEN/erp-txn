@@ -28,6 +28,23 @@ export type TipoInsumoFila = {
   oculto?: boolean;
 };
 
+const ORDEN_TIPOS_SISTEMA = new Map<string, number>([
+  ["MO", 0],
+  ["MAT", 1],
+  ["EQ", 2],
+  ["HT", 3],
+  ["SC", 4],
+]);
+
+/** Orden funcional del APU; los tipos personalizados se muestran después de los tipos del sistema. */
+const ordenarTiposInsumo = (filas: TipoInsumoFila[]) =>
+  [...filas].sort((a, b) => {
+    const ordenA = ORDEN_TIPOS_SISTEMA.get(a.clave);
+    const ordenB = ORDEN_TIPOS_SISTEMA.get(b.clave);
+    if (ordenA !== undefined || ordenB !== undefined) return (ordenA ?? 100) - (ordenB ?? 100);
+    return a.orden - b.orden || a.nombre.localeCompare(b.nombre, "es");
+  });
+
 /** Tipos de insumo configurables; actualiza el registro TIPOS_INSUMO para etiquetas y totales. */
 export const useTiposInsumo = () =>
   useQuery({
@@ -39,7 +56,7 @@ export const useTiposInsumo = () =>
         .order("orden")
         .order("created_at");
       if (error) throw error;
-      const filas = (data ?? []) as TipoInsumoFila[];
+      const filas = ordenarTiposInsumo((data ?? []) as TipoInsumoFila[]);
       if (filas.length) {
         TIPOS_OCULTOS.clear();
         for (const f of filas) if (f.oculto) TIPOS_OCULTOS.add(f.clave);
