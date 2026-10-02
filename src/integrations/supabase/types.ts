@@ -1890,6 +1890,13 @@ export type Database = {
             referencedRelation: "marcas"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "insumos_tipo_fkey"
+            columns: ["tipo"]
+            isOneToOne: false
+            referencedRelation: "tipos_insumo"
+            referencedColumns: ["clave"]
+          },
         ]
       }
       mantenimientos_vehiculo: {
@@ -2015,7 +2022,15 @@ export type Database = {
           tipo?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "margenes_insumo_tipo_fkey"
+            columns: ["tipo"]
+            isOneToOne: true
+            referencedRelation: "tipos_insumo"
+            referencedColumns: ["clave"]
+          },
+        ]
       }
       metas_flujo_caja: {
         Row: {
@@ -3225,6 +3240,42 @@ export type Database = {
           fecha?: string
           fuente?: string
           venta?: number
+        }
+        Relationships: []
+      }
+      tipos_insumo: {
+        Row: {
+          clave: string
+          correlativo: number
+          created_at: string
+          digito: number
+          es_sistema: boolean
+          id: string
+          nombre: string
+          orden: number
+          updated_at: string
+        }
+        Insert: {
+          clave: string
+          correlativo?: number
+          created_at?: string
+          digito: number
+          es_sistema?: boolean
+          id?: string
+          nombre: string
+          orden?: number
+          updated_at?: string
+        }
+        Update: {
+          clave?: string
+          correlativo?: number
+          created_at?: string
+          digito?: number
+          es_sistema?: boolean
+          id?: string
+          nombre?: string
+          orden?: number
+          updated_at?: string
         }
         Relationships: []
       }
