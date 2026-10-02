@@ -3,7 +3,7 @@ import { Plus } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Boton, Campo, Input, Panel } from "@/components/ui-kit";
-import { TIPOS_INSUMO } from "@/lib/apu";
+import { TIPOS_INSUMO, type TipoInsumo } from "@/lib/apu";
 import { recodificarWbs } from "@/lib/wbs";
 
 type Cfg = {
@@ -34,7 +34,7 @@ const vacio: Omit<Cfg, "id"> = {
 };
 
 type CfgForm = Omit<Cfg, "id">;
-const CAMPOS: { tipo: string; nombre: string; digito: keyof CfgForm; correlativo: keyof CfgForm }[] = TIPOS_INSUMO.map(
+const CAMPOS: { tipo: TipoInsumo; nombre: string; digito: keyof CfgForm; correlativo: keyof CfgForm }[] = TIPOS_INSUMO.map(
   ([t, nombre]) => ({
     tipo: t,
     nombre,
@@ -43,7 +43,7 @@ const CAMPOS: { tipo: string; nombre: string; digito: keyof CfgForm; correlativo
   }),
 );
 
-export function CodificacionInsumos() {
+export function CodificacionInsumos({ onAgregarTipo }: { onAgregarTipo: (tipo: TipoInsumo) => void }) {
   const qc = useQueryClient();
   const { data: cfg } = useQuery({
     queryKey: ["codificacion_insumo"],
@@ -95,6 +95,7 @@ export function CodificacionInsumos() {
             <thead>
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
                 <th className="py-2 pr-3 font-medium">Tipo de insumo</th>
+                <th className="py-2 pr-3 font-medium"></th>
                 <th className="w-24 px-3 py-2 font-medium">Dígito</th>
                 <th className="w-32 px-3 py-2 font-medium">Último correlativo</th>
                 <th className="py-2 pl-3 font-medium">Próximo código</th>
@@ -115,23 +116,13 @@ export function CodificacionInsumos() {
                     />
                   </td>
                   <td className="px-3 py-2">
-                    <div className="flex items-center gap-1">
-                      <Input
-                        className="py-1 text-center"
-                        type="number"
-                        min={0}
-                        value={form[c.correlativo] as number}
-                        onChange={(e) => setForm({ ...form, [c.correlativo]: Number(e.target.value) })}
-                      />
-                      <button
-                        type="button"
-                        title="Incrementar correlativo"
-                        onClick={() => setForm({ ...form, [c.correlativo]: (form[c.correlativo] as number) + 1 })}
-                        className="grid h-7 w-7 shrink-0 place-items-center rounded-md border border-line text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
-                      >
-                        <Plus size={13} />
-                      </button>
-                    </div>
+                    <Input
+                      className="py-1 text-center"
+                      type="number"
+                      min={0}
+                      value={form[c.correlativo] as number}
+                      onChange={(e) => setForm({ ...form, [c.correlativo]: Number(e.target.value) })}
+                    />
                   </td>
                   <td className="py-2 pl-3 font-semibold text-primary">
                     {String(form[c.digito] as number)}
