@@ -26,9 +26,7 @@ import {
 } from "@/lib/datos";
 import { PRIORIDADES, SITUACIONES, tonoPrioridad, tonoSituacion } from "@/lib/configuracion";
 import { DatosEmpresa } from "@/components/DatosEmpresa";
-import { CodificacionProyectos } from "@/components/CodificacionProyectos";
-import { CodificacionCotizaciones } from "@/components/CodificacionCotizaciones";
-import { CodificacionPreliquidaciones } from "@/components/CodificacionPreliquidaciones";
+import { CodificacionDocumentos } from "@/components/CodificacionDocumentos";
 import { CuentasBancarias, type CuentaBancaria } from "@/components/CuentasBancarias";
 import { RubrosIngreso } from "@/components/RubrosIngreso";
 
@@ -224,20 +222,7 @@ function Datos() {
       ) : pestana === "configuracion" ? (
         <ConfiguracionProyectos />
       ) : pestana === "codificacion" ? (
-        <div className="space-y-6">
-          <div>
-            <h3 className="mb-2 text-sm font-semibold uppercase tracking-[0.1em] text-muted-foreground">Proyectos</h3>
-            <CodificacionProyectos />
-          </div>
-          <div>
-            <h3 className="mb-2 text-sm font-semibold uppercase tracking-[0.1em] text-muted-foreground">Cotizaciones</h3>
-            <CodificacionCotizaciones />
-          </div>
-          <div>
-            <h3 className="mb-2 text-sm font-semibold uppercase tracking-[0.1em] text-muted-foreground">Preliquidaciones</h3>
-            <CodificacionPreliquidaciones />
-          </div>
-        </div>
+        <CodificacionDocumentos />
       ) : pestana === "empresa" ? (
         <DatosEmpresa />
       ) : pestana === "ingresos" ? (

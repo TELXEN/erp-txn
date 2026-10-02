@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { previsualizarCodigoDocumento, useCodificacionDocumento } from "@/lib/codificacion-documentos";
 
 export type EstadoCotizacion = "Borrador" | "Enviada" | "Aprobada" | "Rechazada";
 
