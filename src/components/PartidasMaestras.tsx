@@ -15,7 +15,7 @@ import { FlechasOrden } from "@/components/FlechasOrden";
 import { TIPOS_INSUMO, useTiposInsumo } from "@/lib/apu";
 import { codigoPartidaLegible, moverWbs, recodificarWbs, ORDEN_FINAL } from "@/lib/wbs";
 
-const TIPOS_PARTIDA = TIPOS_INSUMO;
+const TIPOS_PARTIDA = TIPOS_INSUMO; // HT oculto se filtra al renderizar
 const nombreTipo = (t?: string) => TIPOS_PARTIDA.find(([k]) => k === t)?.[1] ?? "MATERIALES";
 
 const TAM_PAGINA = 100;

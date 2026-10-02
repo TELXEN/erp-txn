@@ -113,7 +113,7 @@ export function BuscadorInsumo({
         <div className="mt-2 flex flex-wrap items-end gap-2 rounded-md border border-dashed border-primary/40 bg-muted/40 p-2 font-mono text-xs">
           <span className="w-full text-[10px] uppercase tracking-wider text-muted-foreground">Nuevo insumo: <b className="text-ink normal-case">{q.trim()}</b></span>
           <label>Tipo<Select className="mt-1 py-1 text-xs" value={nuevo.tipo} onChange={(e) => setNuevo({ ...nuevo, tipo: e.target.value as TipoInsumo, unidad: e.target.value === "MO" ? "hh" : e.target.value === "HT" ? "%MO" : nuevo.unidad })}>
-            {TIPOS_INSUMO.map(([k, t]) => <option key={k} value={k}>{t}</option>)}
+            {TIPOS_INSUMO.filter(([k]) => k !== "HT").map(([k, t]) => <option key={k} value={k}>{t}</option>)}
           </Select></label>
           <label className="w-20">Unidad<Input className="mt-1 py-1 text-xs" value={nuevo.unidad} onChange={(e) => setNuevo({ ...nuevo, unidad: e.target.value })} /></label>
           <label className="w-28">{nuevo.tipo === "HT" ? "%" : "Precio (S/)"}<Input autoFocus className="mt-1 py-1 text-right text-xs" type="number" step="0.01" value={nuevo.precio} onChange={(e) => setNuevo({ ...nuevo, precio: e.target.value })} onKeyDown={(e) => e.key === "Enter" && void crear()} /></label>

@@ -20,7 +20,7 @@ import {
   siguienteCodigoSubpartida,
   useCategoriasPartida,
 } from "@/lib/categorias";
-import { apuDb, calcularApu, nombreTipo, precioVenta, TIPOS_INSUMO, useComponentesApu, useInsumos, useMargenesInsumo } from "@/lib/apu";
+import { apuDb, calcularApu, nombreTipo, precioVenta, TIPOS_INSUMO, tiposVisibles, useComponentesApu, useInsumos, useMargenesInsumo } from "@/lib/apu";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
 import { usePartidasMaestras, type CotizacionItem, type PartidaMaestra } from "@/lib/cotizaciones";
 
