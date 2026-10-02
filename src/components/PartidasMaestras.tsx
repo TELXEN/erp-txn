@@ -3,7 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Calculator, Check, Pencil, Trash2, X } from "lucide-react";
 import { ApuPartida } from "@/components/ApuPartida";
 import { supabase } from "@/integrations/supabase/client";
-import { Campo, Input, Panel, Select, Vacio } from "@/components/ui-kit";
+import { Input, Panel, Select, Vacio } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { soles } from "@/lib/format";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
@@ -343,7 +343,6 @@ export function PartidasMaestras() {
               <tr className="border-t border-dashed border-line">
                 <td className="px-5 py-2 text-center text-muted-foreground" title="El código se genera automáticamente al guardar">—</td>
                 <td className="px-3 py-2">
-                  <Campo>
                     <Input
                       className="py-1 text-xs"
                       value={nueva.nombre}
@@ -352,10 +351,8 @@ export function PartidasMaestras() {
                       maxLength={160}
                       placeholder="Descripción de la partida…"
                     />
-                  </Campo>
                 </td>
                 <td className="px-3 py-2">
-                  <Campo>
                     <Select
                       className="py-1 text-xs"
                       value={nueva.tipo_partida}
@@ -367,10 +364,8 @@ export function PartidasMaestras() {
                         </option>
                       ))}
                     </Select>
-                  </Campo>
                 </td>
                 <td className="px-3 py-2">
-                  <Campo>
                     <Select
                       className="py-1 text-xs"
                       value={nueva.especialidad}
@@ -383,10 +378,8 @@ export function PartidasMaestras() {
                         </option>
                       ))}
                     </Select>
-                  </Campo>
                 </td>
                 <td className="px-3 py-2">
-                  <Campo>
                     <Select
                       className="py-1 text-xs"
                       value={nueva.categoria}
@@ -399,10 +392,8 @@ export function PartidasMaestras() {
                         </option>
                       ))}
                     </Select>
-                  </Campo>
                 </td>
                 <td className="px-3 py-2">
-                  <Campo>
                     <Input
                       className="py-1 text-xs"
                       value={nueva.marca}
@@ -411,10 +402,8 @@ export function PartidasMaestras() {
                       maxLength={60}
                       placeholder="-"
                     />
-                  </Campo>
                 </td>
                 <td className="px-3 py-2">
-                  <Campo>
                     <Select
                       className="py-1 text-xs"
                       value={nueva.unidad}
@@ -426,10 +415,8 @@ export function PartidasMaestras() {
                         </option>
                       ))}
                     </Select>
-                  </Campo>
                 </td>
                 <td className="px-3 py-2">
-                  <Campo>
                     <Input
                       className="py-1 text-right text-xs"
                       type="number"
@@ -440,7 +427,6 @@ export function PartidasMaestras() {
                       onKeyDown={teclaNueva}
                       placeholder="0.00"
                     />
-                  </Campo>
                 </td>
                 <td className="px-3 py-2 text-muted-foreground" title="Activa al guardar">—</td>
                 <td className="px-5 py-2 text-right">
