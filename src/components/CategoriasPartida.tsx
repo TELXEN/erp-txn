@@ -19,6 +19,7 @@ export function CategoriasPartida() {
   const { data: especialidades = [] } = useEspecialidadesPartida();
   const [form, setForm] = useState(vacio);
   const [editando, setEditando] = useState<CategoriaPartida | null>(null);
+  const [seleccionadaId, setSeleccionadaId] = useState<string | null>(null);
   const [filtro, setFiltro] = useState("");
   const [error, setError] = useState("");
   const [moviendo, setMoviendo] = useState(false);
@@ -42,6 +43,19 @@ export function CategoriasPartida() {
     () => (filtro ? lista.filter((c) => c.especialidad === filtro) : lista),
     [lista, filtro],
   );
+
+  const indiceSeleccionado = visibles.findIndex((c) => c.id === seleccionadaId);
+  const categoriaSeleccionada = indiceSeleccionado >= 0 ? visibles[indiceSeleccionado] : undefined;
+  const primeraDelGrupo = categoriaSeleccionada
+    ? !visibles.some(
+        (c) => c.especialidad === categoriaSeleccionada.especialidad && c.orden < categoriaSeleccionada.orden,
+      )
+    : true;
+  const ultimaDelGrupo = categoriaSeleccionada
+    ? !visibles.some(
+        (c) => c.especialidad === categoriaSeleccionada.especialidad && c.orden > categoriaSeleccionada.orden,
+      )
+    : true;
 
   async function crear(e: React.FormEvent) {
     e.preventDefault();
@@ -144,8 +158,16 @@ export function CategoriasPartida() {
       <Panel
         titulo="Listado de categorías "
         extra={
-          <div className="w-64">
-            <Select className="py-1 text-xs" value={filtro} onChange={(e) => setFiltro(e.target.value)}>
+          <div className="flex items-center gap-2">
+            <div className="w-64">
+            <Select
+              className="py-1 text-xs"
+              value={filtro}
+              onChange={(e) => {
+                setFiltro(e.target.value);
+                setSeleccionadaId(null);
+              }}
+            >
               <option value="">Todas las especialidades</option>
               {opcionesEspecialidad.map((e) => (
                 <option key={e.id} value={e.nombre}>
@@ -153,6 +175,15 @@ export function CategoriasPartida() {
                 </option>
               ))}
             </Select>
+            </div>
+            <FlechasOrden
+              primero={primeraDelGrupo}
+              ultimo={ultimaDelGrupo}
+              ocupado={moviendo || !categoriaSeleccionada}
+              onMover={(d) => {
+                if (categoriaSeleccionada) void mover(categoriaSeleccionada.id, d);
+              }}
+            />
           </div>
         }
       >
@@ -229,18 +260,25 @@ export function CategoriasPartida() {
                     </td>
                   </tr>
                 ) : (
-                    <tr key={c.id} className="border-b border-line/40 last:border-0">
+                    <tr
+                      key={c.id}
+                      tabIndex={0}
+                      aria-selected={seleccionadaId === c.id}
+                      onClick={() => setSeleccionadaId(c.id)}
+                      onKeyDown={(ev) => {
+                        if (ev.key === "Enter" || ev.key === " ") {
+                          ev.preventDefault();
+                          setSeleccionadaId(c.id);
+                        }
+                      }}
+                      className={`cursor-pointer border-b border-line/40 outline-none transition-colors last:border-0 hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary ${
+                        seleccionadaId === c.id ? "bg-primary/10" : ""
+                      }`}
+                    >
                     <td className="px-3 py-2.5 text-primary">{c.codigo}</td>
                     <td className="px-3 py-2.5 font-semibold text-ink">{c.nombre}</td>
                     <td className="px-3 py-2.5 text-muted-foreground">{c.especialidad || "—"}</td>
-                    <td className="px-3 py-2.5 text-center">
-                      <FlechasOrden
-                        primero={!visibles.some((x) => x.especialidad === c.especialidad && x.orden < c.orden)}
-                        ultimo={!visibles.some((x) => x.especialidad === c.especialidad && x.orden > c.orden)}
-                        ocupado={moviendo}
-                        onMover={(d) => mover(c.id, d)}
-                      />
-                    </td>
+                    <td className="px-3 py-2.5 text-center text-muted-foreground">{c.orden}</td>
                     <td className="px-3 py-2.5">
                       <span className={c.activo ? "text-good" : "text-muted-foreground"}>
                         {c.activo ? "Activa" : "Inactiva"}
@@ -273,8 +311,7 @@ export function CategoriasPartida() {
           </table>
         )}
         <p className="border-t border-line px-5 py-3 font-mono text-[10px] leading-relaxed text-muted-foreground">
-          Las categorías agrupan las partidas dentro de cada especialidad. No llevan código fijo: el código
-          (01.01, 01.02...) se asigna al cargarlas en cada obra o cotización.
+          Selecciona una fila y usa las flechas de la cabecera para ordenarla dentro de su especialidad. Sus códigos dependientes se actualizan automáticamente.
         </p>
       </Panel>
     </>
