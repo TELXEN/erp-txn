@@ -621,7 +621,6 @@ export type Database = {
           digito_ht: number
           digito_mat: number
           digito_mo: number
-          digito_partida: number
           digito_sc: number
           id: string
           updated_at: string
@@ -637,7 +636,6 @@ export type Database = {
           digito_ht?: number
           digito_mat?: number
           digito_mo?: number
-          digito_partida?: number
           digito_sc?: number
           id?: string
           updated_at?: string
@@ -653,7 +651,6 @@ export type Database = {
           digito_ht?: number
           digito_mat?: number
           digito_mo?: number
-          digito_partida?: number
           digito_sc?: number
           id?: string
           updated_at?: string
@@ -2417,6 +2414,7 @@ export type Database = {
           pct_herramientas: number
           precio_unitario: number
           rendimiento: number
+          tipo_partida: string
           unidad: string
           updated_at: string
         }
@@ -2434,6 +2432,7 @@ export type Database = {
           pct_herramientas?: number
           precio_unitario?: number
           rendimiento?: number
+          tipo_partida?: string
           unidad?: string
           updated_at?: string
         }
@@ -2451,6 +2450,7 @@ export type Database = {
           pct_herramientas?: number
           precio_unitario?: number
           rendimiento?: number
+          tipo_partida?: string
           unidad?: string
           updated_at?: string
         }
