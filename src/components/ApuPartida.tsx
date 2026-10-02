@@ -42,7 +42,7 @@ export function ApuPartida({
   const [und, setUnd] = useState(partida.unidad || "und");
   const { data: unidades = [] } = useUnidadesMedida();
   const { data: margenes } = useMargenesInsumo();
-  const pctH = Number(margenes?.HT ?? 0); // % de Herramientas menores del Maestro de insumos (Márgenes APU)
+  const pctH = Number(margenes?.HT ?? 0); // % de Herramientas manuales del Maestro de insumos (Márgenes APU)
   const [nuevo, setNuevo] = useState("");
   const [error, setError] = useState("");
   const calc = calcularApu(comps, insumos, Number(rend), Number(jornada), Number(pctH));
