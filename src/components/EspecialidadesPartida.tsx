@@ -14,8 +14,11 @@ export function EspecialidadesPartida() {
   const { data: lista = [] } = useEspecialidadesPartida();
   const [form, setForm] = useState(vacio);
   const [editando, setEditando] = useState<EspecialidadPartida | null>(null);
+  const [seleccionadaId, setSeleccionadaId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [moviendo, setMoviendo] = useState(false);
+
+  const indiceSeleccionado = lista.findIndex((e) => e.id === seleccionadaId);
 
   const refrescar = () => {
     qc.invalidateQueries({ queryKey: ["especialidades_partida"] });
@@ -103,7 +106,25 @@ export function EspecialidadesPartida() {
         </form>
       </Panel>
 
-      <Panel titulo="Listado de especialidades">
+      <Panel
+        titulo="Listado de especialidades"
+        extra={
+          <div className="flex items-center gap-2">
+            <span className="hidden font-mono text-[10px] text-muted-foreground sm:inline">
+              {indiceSeleccionado >= 0 ? "Especialidad seleccionada" : "Selecciona una fila"}
+            </span>
+            <FlechasOrden
+              primero={indiceSeleccionado <= 0}
+              ultimo={indiceSeleccionado < 0 || indiceSeleccionado === lista.length - 1}
+              ocupado={moviendo || indiceSeleccionado < 0}
+              onMover={(d) => {
+                const seleccionada = lista[indiceSeleccionado];
+                if (seleccionada) void mover(seleccionada.id, d);
+              }}
+            />
+          </div>
+        }
+      >
         {lista.length === 0 ? (
           <Vacio texto="Aún no hay capítulos registrados." />
         ) : (
@@ -162,12 +183,24 @@ export function EspecialidadesPartida() {
                     </td>
                   </tr>
                 ) : (
-                  <tr key={e.id} className="border-b border-line/40 last:border-0">
+                  <tr
+                    key={e.id}
+                    tabIndex={0}
+                    aria-selected={seleccionadaId === e.id}
+                    onClick={() => setSeleccionadaId(e.id)}
+                    onKeyDown={(ev) => {
+                      if (ev.key === "Enter" || ev.key === " ") {
+                        ev.preventDefault();
+                        setSeleccionadaId(e.id);
+                      }
+                    }}
+                    className={`cursor-pointer border-b border-line/40 outline-none transition-colors last:border-0 hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary ${
+                      seleccionadaId === e.id ? "bg-primary/10" : ""
+                    }`}
+                  >
                     <td className="px-3 py-2.5 text-primary">{e.codigo}</td>
                     <td className="px-3 py-2.5 font-semibold text-ink">{e.nombre}</td>
-                    <td className="px-3 py-2.5 text-center">
-                      <FlechasOrden primero={i === 0} ultimo={i === lista.length - 1} ocupado={moviendo} onMover={(d) => mover(e.id, d)} />
-                    </td>
+                    <td className="px-3 py-2.5 text-center text-muted-foreground">{i + 1}</td>
                     <td className="px-3 py-2.5">
                       <span className={e.activo ? "text-good" : "text-muted-foreground"}>
                         {e.activo ? "Activo" : "Inactivo"}
@@ -200,7 +233,7 @@ export function EspecialidadesPartida() {
           </table>
         )}
         <p className="border-t border-line px-5 py-3 font-mono text-[10px] leading-relaxed text-muted-foreground">
-          El código de la especialidad es su orden (01, 02...). Usa las flechas para reordenar: los códigos de sus categorías y partidas se actualizan solos.
+          Selecciona una fila y usa las flechas de la cabecera para reordenar. Los códigos de sus categorías y partidas se actualizan solos.
         </p>
       </Panel>
     </>
