@@ -3,7 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Boton, Input, Panel } from "@/components/ui-kit";
 import { useAuth } from "@/lib/auth";
-import { MARGENES_DEFECTO, TIPOS_INSUMO, apuDb, useMargenesInsumo, type MargenesInsumo } from "@/lib/apu";
+import { MARGENES_DEFECTO, TIPOS_INSUMO, apuDb, useMargenesInsumo } from "@/lib/apu";
 
 export function MargenesApuPanel() {
   const qc = useQueryClient();
@@ -19,7 +19,7 @@ export function MargenesApuPanel() {
 
   async function guardar() {
     setGuardando(true);
-    const filas = (Object.keys(MARGENES_DEFECTO) as (keyof MargenesInsumo)[]).map((tipo) => ({
+    const filas = TIPOS_INSUMO.map(([tipo]) => ({
       tipo,
       margen_pct: Number(form[tipo] || 0),
     }));
