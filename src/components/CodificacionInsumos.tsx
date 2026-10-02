@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Plus, Trash2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Boton, Input, Panel } from "@/components/ui-kit";
@@ -37,8 +37,6 @@ export function CodificacionInsumos({ onAgregarTipo }: { onAgregarTipo?: (tipo: 
   const [error, setError] = useState("");
   const [aviso, setAviso] = useState("");
   const [guardando, setGuardando] = useState(false);
-  const correlativoRefs = useRef<Record<string, HTMLInputElement | null>>({});
-
   useEffect(() => {
     setForm(Object.fromEntries(tipos.map((t) => [t.id, { nombre: t.nombre, digito: t.digito, correlativo: Number(t.correlativo) }])));
   }, [tipos]);
@@ -50,11 +48,6 @@ export function CodificacionInsumos({ onAgregarTipo }: { onAgregarTipo?: (tipo: 
     qc.invalidateQueries({ queryKey: ["insumos"] });
     qc.invalidateQueries({ queryKey: ["partidas_maestras"] });
   };
-
-  function editarTipo(t: TipoInsumoFila) {
-    correlativoRefs.current[t.id]?.focus();
-    correlativoRefs.current[t.id]?.select();
-  }
 
   async function crearTipo() {
     const nombre = nuevoNombre.trim().toUpperCase();
@@ -137,7 +130,6 @@ export function CodificacionInsumos({ onAgregarTipo }: { onAgregarTipo?: (tipo: 
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
                 <th className="py-2 pr-3 font-medium">Tipo de insumo</th>
                 <th className="w-16 py-2 pr-3 font-medium">Clave</th>
-                <th className="py-2 pr-1 font-medium"></th>
                 <th className="w-24 px-3 py-2 font-medium">Dígito</th>
                 <th className="w-32 px-3 py-2 font-medium">Último correlativo</th>
                 <th className="py-2 pl-3 font-medium">Próximo código</th>
@@ -184,16 +176,6 @@ export function CodificacionInsumos({ onAgregarTipo }: { onAgregarTipo?: (tipo: 
                       )}
                     </td>
                     <td className="py-2 pr-3 text-muted-foreground">{t.clave}</td>
-                    <td className="py-2 pr-1">
-                      <button
-                        type="button"
-                        title={`Editar dígito y correlativo de ${t.nombre}`}
-                        onClick={() => editarTipo(t)}
-                        className="grid h-6 w-6 place-items-center rounded-md border border-line text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
-                      >
-                        <Pencil size={12} />
-                      </button>
-                    </td>
                     <td className="px-3 py-2">
                       <Input
                         className="py-1 text-center"
@@ -206,7 +188,6 @@ export function CodificacionInsumos({ onAgregarTipo }: { onAgregarTipo?: (tipo: 
                     </td>
                     <td className="px-3 py-2">
                       <Input
-                        ref={(el) => { correlativoRefs.current[t.id] = el; }}
                         className="py-1 text-center"
                         type="number"
                         min={0}
@@ -259,7 +240,8 @@ export function CodificacionInsumos({ onAgregarTipo }: { onAgregarTipo?: (tipo: 
           <p className="font-mono text-[10px] leading-relaxed text-muted-foreground">
             El botón + junto al título crea un tipo de insumo nuevo (al mismo nivel que mano de obra o materiales): recibe
             el siguiente dígito libre, su propia pestaña en el Maestro de insumos, su margen en Márgenes APU y su propio
-            grupo en los análisis de precios unitarios. El lápiz solo edita el dígito y el último correlativo del tipo.
+            grupo en los análisis de precios unitarios. El dígito y el último correlativo de cada tipo se editan
+            directamente en la tabla.
             Los cinco tipos del sistema no se pueden eliminar; un tipo nuevo solo se elimina si no tiene insumos.
           </p>
           <p className="font-mono text-[10px] leading-relaxed text-muted-foreground">
