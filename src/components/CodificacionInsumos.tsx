@@ -130,7 +130,6 @@ export function CodificacionInsumos({ onAgregarTipo }: { onAgregarTipo?: (tipo: 
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
                 <th className="py-2 pr-3 font-medium">Tipo de insumo</th>
                 <th className="w-16 py-2 pr-3 font-medium">Clave</th>
-                <th className="py-2 pr-1 font-medium"></th>
                 <th className="w-24 px-3 py-2 font-medium">Dígito</th>
                 <th className="w-32 px-3 py-2 font-medium">Último correlativo</th>
                 <th className="py-2 pl-3 font-medium">Próximo código</th>
