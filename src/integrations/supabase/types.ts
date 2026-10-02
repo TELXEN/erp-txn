@@ -621,6 +621,7 @@ export type Database = {
           digito_ht: number
           digito_mat: number
           digito_mo: number
+          digito_partida: number
           digito_sc: number
           id: string
           updated_at: string
@@ -636,6 +637,7 @@ export type Database = {
           digito_ht?: number
           digito_mat?: number
           digito_mo?: number
+          digito_partida?: number
           digito_sc?: number
           id?: string
           updated_at?: string
@@ -651,6 +653,7 @@ export type Database = {
           digito_ht?: number
           digito_mat?: number
           digito_mo?: number
+          digito_partida?: number
           digito_sc?: number
           id?: string
           updated_at?: string
@@ -2410,6 +2413,7 @@ export type Database = {
           jornada: number
           marca: string
           nombre: string
+          orden: number
           pct_herramientas: number
           precio_unitario: number
           rendimiento: number
@@ -2426,6 +2430,7 @@ export type Database = {
           jornada?: number
           marca?: string
           nombre: string
+          orden?: number
           pct_herramientas?: number
           precio_unitario?: number
           rendimiento?: number
@@ -2442,6 +2447,7 @@ export type Database = {
           jornada?: number
           marca?: string
           nombre?: string
+          orden?: number
           pct_herramientas?: number
           precio_unitario?: number
           rendimiento?: number
@@ -3654,6 +3660,11 @@ export type Database = {
         Returns: boolean
       }
       is_admin_o_gerente: { Args: { _user_id: string }; Returns: boolean }
+      mover_item_wbs: {
+        Args: { _direccion: number; _id: string; _tabla: string }
+        Returns: undefined
+      }
+      recodificar_wbs: { Args: never; Returns: undefined }
       siguiente_codigo_cotizacion: { Args: never; Returns: string }
       siguiente_codigo_insumo: { Args: { _tipo: string }; Returns: string }
       siguiente_codigo_preliquidacion: { Args: never; Returns: string }
