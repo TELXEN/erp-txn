@@ -1013,6 +1013,15 @@ function DesgloseApu({ item, alCambiar }: { item: CotizacionItem; alCambiar: () 
   const insumoHT = insumos.find((i) => i.tipo === "HT" && i.codigo === "40000001");
   const pctH = Number(margenes?.HT ?? 0);
   const calc = calcularApu(comps, insumos, rend, jornada, pctH);
+  const herrFila = (
+    <tr key="herr" className="border-b border-line/50">
+      <td className="py-1 text-muted-foreground">{nombreTipo("EQ")}</td>
+      <td className="py-1 text-ink">{insumoHT?.nombre || "Herramientas manuales"}</td>
+      <td className="py-1 text-muted-foreground">%MO</td>
+      <td /><td className="py-1 text-right">{pctH.toFixed(2)}%</td><td />
+      <td className="py-1 text-right font-semibold text-ink">{soles(calc.herramientas)}</td><td />
+    </tr>
+  );
 
   async function sincronizarPu() {
     await supabase.from("cotizacion_items").update({ precio_unitario: calc.pu }).eq("id", item.id);
@@ -1085,7 +1094,7 @@ function DesgloseApu({ item, alCambiar }: { item: CotizacionItem; alCambiar: () 
           </tr>
         </thead>
         <tbody>
-          {calc.filas.map(({ c, ins, cantidad, parcial }) => (
+          {[...calc.filas].sort((a, b) => TIPOS_INSUMO.findIndex(([k]) => k === a.ins?.tipo) - TIPOS_INSUMO.findIndex(([k]) => k === b.ins?.tipo)).flatMap(({ c, ins, cantidad, parcial }, idx, arr) => [
             <tr key={c.id} className="border-b border-line/50">
               <td className="py-1 text-muted-foreground">{nombreTipo(ins?.tipo ?? "")}</td>
               <td className="py-1 text-ink">{ins?.nombre ?? "—"}</td>
@@ -1107,8 +1116,10 @@ function DesgloseApu({ item, alCambiar }: { item: CotizacionItem; alCambiar: () 
                   <Trash2 size={12} />
                 </button>
               </td>
-            </tr>
-          ))}
+            </tr>,
+            ...(calc.herramientas > 0 && ins?.tipo === "EQ" && arr[idx + 1]?.ins?.tipo !== "EQ" ? [herrFila] : []),
+          ])}
+          {calc.herramientas > 0 && !calc.filas.some((f) => f.ins?.tipo === "EQ") && herrFila}
         </tbody>
       </table>
       <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
@@ -1118,7 +1129,7 @@ function DesgloseApu({ item, alCambiar }: { item: CotizacionItem; alCambiar: () 
           className="rounded border border-line bg-card px-2 py-1 font-mono text-[12.5px] outline-none focus:border-primary"
         >
           <option value="">+ Agregar insumo…</option>
-          {TIPOS_INSUMO.map(([t, etiqueta]) => (
+          {tiposVisibles().map(([t, etiqueta]) => (
             <optgroup key={t} label={etiqueta}>
               {insumos.filter((i) => i.activo && i.tipo === t).map((i) => (
                 <option key={i.id} value={i.id}>
