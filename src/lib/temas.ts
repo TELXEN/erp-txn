@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export type TemaId = "telxen" | "esmeralda" | "cobalto" | "zafiro" | "redwood" | "monocromo";
+export type TemaId = "telxen" | "esmeralda" | "cobalto" | "zafiro" | "redwood" | "monocromo" | "obsidiana";
 
 export type Tema = {
   id: TemaId;
@@ -28,6 +28,12 @@ export const TEMAS: Tema[] = [
       "--accent": "#FFC709",
       "--accent-foreground": "#003352",
       "--ring": "#003352",
+      "--sidebar": "oklch(0.975 0.006 240)",
+      "--sidebar-foreground": "#003352",
+      "--sidebar-muted": "rgb(0 51 82 / 0.6)",
+      "--sidebar-border": "rgb(0 51 82 / 0.14)",
+      "--sidebar-hover": "rgb(0 51 82 / 0.08)",
+      "--sidebar-panel": "#FFFFFF",
     },
   },
   {
@@ -46,6 +52,12 @@ export const TEMAS: Tema[] = [
       "--accent": "#059669",
       "--accent-foreground": "#FFFFFF",
       "--ring": "#059669",
+      "--sidebar": "oklch(0.975 0.004 250)",
+      "--sidebar-foreground": "#1E293B",
+      "--sidebar-muted": "rgb(30 41 59 / 0.6)",
+      "--sidebar-border": "rgb(30 41 59 / 0.14)",
+      "--sidebar-hover": "rgb(30 41 59 / 0.08)",
+      "--sidebar-panel": "#FFFFFF",
     },
   },
   {
@@ -64,6 +76,12 @@ export const TEMAS: Tema[] = [
       "--accent": "#EA580C",
       "--accent-foreground": "#FFFFFF",
       "--ring": "#1E40AF",
+      "--sidebar": "oklch(0.975 0.008 250)",
+      "--sidebar-foreground": "#0A2540",
+      "--sidebar-muted": "rgb(10 37 64 / 0.6)",
+      "--sidebar-border": "rgb(10 37 64 / 0.14)",
+      "--sidebar-hover": "rgb(10 37 64 / 0.08)",
+      "--sidebar-panel": "#FFFFFF",
     },
   },
   {
@@ -82,6 +100,12 @@ export const TEMAS: Tema[] = [
       "--accent": "#0FAAFF",
       "--accent-foreground": "#0A2647",
       "--ring": "#0FAAFF",
+      "--sidebar": "oklch(0.975 0.006 235)",
+      "--sidebar-foreground": "#0A2647",
+      "--sidebar-muted": "rgb(10 38 71 / 0.6)",
+      "--sidebar-border": "rgb(10 38 71 / 0.14)",
+      "--sidebar-hover": "rgb(10 38 71 / 0.08)",
+      "--sidebar-panel": "#FFFFFF",
     },
   },
   {
@@ -100,6 +124,12 @@ export const TEMAS: Tema[] = [
       "--accent": "#C74634",
       "--accent-foreground": "#FFFFFF",
       "--ring": "#C74634",
+      "--sidebar": "oklch(0.975 0.004 90)",
+      "--sidebar-foreground": "#161513",
+      "--sidebar-muted": "rgb(22 21 19 / 0.6)",
+      "--sidebar-border": "rgb(22 21 19 / 0.14)",
+      "--sidebar-hover": "rgb(22 21 19 / 0.08)",
+      "--sidebar-panel": "#FFFFFF",
     },
   },
   {
@@ -118,6 +148,36 @@ export const TEMAS: Tema[] = [
       "--accent": "#71717A",
       "--accent-foreground": "#F4F4F5",
       "--ring": "#52525B",
+      "--sidebar": "oklch(0.972 0.002 260)",
+      "--sidebar-foreground": "#27272A",
+      "--sidebar-muted": "rgb(39 39 42 / 0.6)",
+      "--sidebar-border": "rgb(39 39 42 / 0.14)",
+      "--sidebar-hover": "rgb(39 39 42 / 0.08)",
+      "--sidebar-panel": "#FFFFFF",
+    },
+  },
+  {
+    id: "obsidiana",
+    nombre: "TELXEN Obsidiana",
+    descripcion: "Menú negro, texto blanco y acento amarillo",
+    muestraBase: "#09090B",
+    muestraAcento: "#FFC709",
+    vars: {
+      "--brand": "oklch(0.975 0.006 240)",
+      "--brand-foreground": "#003352",
+      "--cta": "#FFC709",
+      "--cta-foreground": "#171717",
+      "--primary": "#003352",
+      "--primary-foreground": "oklch(0.985 0.005 95)",
+      "--accent": "#FFC709",
+      "--accent-foreground": "#171717",
+      "--ring": "#003352",
+      "--sidebar": "#09090B",
+      "--sidebar-foreground": "#FAFAFA",
+      "--sidebar-muted": "#A1A1AA",
+      "--sidebar-border": "#27272A",
+      "--sidebar-hover": "#18181B",
+      "--sidebar-panel": "#18181B",
     },
   },
 ];
