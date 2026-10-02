@@ -56,10 +56,6 @@ export function Insumos() {
     cambiarPestana(t);
   }
 
-  function editarInsumo(t: TipoInsumo) {
-    cambiarPestana(t);
-  }
-
   // Orden de pestañas del maestro: Materiales antes de Mano de obra.
   const ORDEN_PESTANAS: TipoInsumo[] = ["MAT", "MO", "EQ", "HT", "SC"];
   const etiquetaTipo = (t: TipoInsumo) => TIPOS_INSUMO.find(([k]) => k === t)?.[1] ?? t;
@@ -130,7 +126,7 @@ export function Insumos() {
       ) : seccion === "laboral" ? (
         <ParametrosLaboralesPanel />
       ) : seccion === "codificacion" ? (
-        <CodificacionInsumos onAgregarTipo={agregarInsumo} onEditarTipo={editarInsumo} />
+        <CodificacionInsumos onAgregarTipo={agregarInsumo} />
       ) : filtro === "MO" ? (
         <ManoObraWysiwyg enfoqueNueva={crearEn === "MO"} lista={visibles} busqueda={busqueda} setBusqueda={setBusqueda} refrescar={refrescar} />
       ) : filtro === "MAT" ? (

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Plus, Pencil } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -43,13 +43,7 @@ const CAMPOS: { tipo: TipoInsumo; nombre: string; digito: keyof CfgForm; correla
   }),
 );
 
-export function CodificacionInsumos({
-  onAgregarTipo,
-  onEditarTipo,
-}: {
-  onAgregarTipo: (tipo: TipoInsumo) => void;
-  onEditarTipo: (tipo: TipoInsumo) => void;
-}) {
+export function CodificacionInsumos({ onAgregarTipo }: { onAgregarTipo: (tipo: TipoInsumo) => void }) {
   const qc = useQueryClient();
   const { data: cfg } = useQuery({
     queryKey: ["codificacion_insumo"],
@@ -66,6 +60,13 @@ export function CodificacionInsumos({
   const [error, setError] = useState("");
   const [aviso, setAviso] = useState("");
   const [guardando, setGuardando] = useState(false);
+  const correlativoRefs = useRef<Record<string, HTMLInputElement | null>>({});
+
+  // El lápiz edita solo el tipo (dígito y correlativo): enfoca su campo de correlativo.
+  function editarTipo(t: TipoInsumo) {
+    correlativoRefs.current[t]?.focus();
+    correlativoRefs.current[t]?.select();
+  }
 
   useEffect(() => {
     if (cfg) {
@@ -125,8 +126,8 @@ export function CodificacionInsumos({
                   <td className="py-2 pr-3">
                     <button
                       type="button"
-                      title={`Editar insumos de ${c.nombre}`}
-                      onClick={() => onEditarTipo(c.tipo)}
+                      title={`Editar dígito y correlativo de ${c.nombre}`}
+                      onClick={() => editarTipo(c.tipo)}
                       className="grid h-6 w-6 place-items-center rounded-md border border-line text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
                     >
                       <Pencil size={12} />
@@ -144,6 +145,9 @@ export function CodificacionInsumos({
                   </td>
                   <td className="px-3 py-2">
                     <Input
+                      ref={(el) => {
+                        correlativoRefs.current[c.tipo] = el;
+                      }}
                       className="py-1 text-center"
                       type="number"
                       min={0}
@@ -179,9 +183,9 @@ export function CodificacionInsumos({
             <p className="mt-1 font-mono text-[10px] text-muted-foreground">Ejemplo: próximo código de mano de obra</p>
           </div>
           <p className="font-mono text-[10px] leading-relaxed text-muted-foreground">
-            El botón + junto a cada tipo abre su maestro con la fila de captura lista para registrar un insumo nuevo, y
-            el lápiz abre el mismo maestro para revisar o editar los insumos existentes; el código se reserva en el
-            servidor al guardar.
+            El botón + junto a cada tipo abre su maestro con la fila de captura lista para registrar un insumo nuevo; el
+            lápiz solo permite editar el tipo de insumo (su dígito y último correlativo) y no abre la lista de insumos.
+            El código se reserva en el servidor al guardar.
           </p>
           <p className="font-mono text-[10px] leading-relaxed text-muted-foreground">
             Cada insumo nuevo recibe un código de 8 dígitos: el primero identifica el tipo (mano de obra, materiales,
