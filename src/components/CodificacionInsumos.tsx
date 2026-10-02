@@ -60,6 +60,13 @@ export function CodificacionInsumos({ onAgregarTipo }: { onAgregarTipo: (tipo: T
   const [error, setError] = useState("");
   const [aviso, setAviso] = useState("");
   const [guardando, setGuardando] = useState(false);
+  const correlativoRefs = useRef<Record<string, HTMLInputElement | null>>({});
+
+  // El lápiz edita solo el tipo (dígito y correlativo): enfoca su campo de correlativo.
+  function editarTipo(t: TipoInsumo) {
+    correlativoRefs.current[t]?.focus();
+    correlativoRefs.current[t]?.select();
+  }
 
   useEffect(() => {
     if (cfg) {
