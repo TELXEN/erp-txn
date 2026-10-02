@@ -83,7 +83,9 @@ function VistaApu() {
   const { data: cotizaciones = [] } = useCotizaciones();
   const { data: insumos = [] } = useInsumos();
   const { data: margenes } = useMargenesInsumo();
-  const pctH = Number(margenes?.HT ?? 0); // % de Herramientas manuales del Maestro de insumos (Márgenes APU)
+  // Insumo «Herramientas manuales» del maestro (código 40000001): su C. Unitario es el % de MO de respaldo.
+  const insumoHT = insumos.find((i) => i.tipo === "HT" && i.codigo === "40000001");
+  const pctH = insumoHT && Number(insumoHT.precio) > 0 ? Number(insumoHT.precio) : Number(margenes?.HT ?? 0);
   const cot = cotizaciones.find((c) => c.id === id);
   const [pdf, setPdf] = useState(false);
 
@@ -204,7 +206,7 @@ function VistaApu() {
                               )),
                               conH ? (
                                 <tr key="h" style={{ borderBottom: `0.5px solid ${C.line}` }}>
-                                  <td /><td style={{ padding: "3px 6px" }}>Herramientas manuales (% MO)</td><td style={{ padding: "3px 6px" }}>%MO</td><td />
+                                  <td style={{ padding: "3px 6px", color: C.mute }}>{insumoHT?.codigo || "40000001"}</td><td style={{ padding: "3px 6px" }}>{insumoHT?.nombre || "Herramientas manuales"} (% MO)</td><td style={{ padding: "3px 6px" }}>{insumoHT?.unidad || "%MO"}</td><td />
                                   <td style={{ padding: "3px 6px", textAlign: "right" }}>{n2(pctH)}%</td><td />
                                   <td style={{ padding: "3px 6px", textAlign: "right" }}>{n2(calc.herramientas)}</td>
                                 </tr>

@@ -1009,7 +1009,9 @@ function DesgloseApu({ item, alCambiar }: { item: CotizacionItem; alCambiar: () 
   const [nuevo, setNuevo] = useState("");
   const rend = Number(item.rendimiento ?? 1) || 1;
   const jornada = Number(item.jornada ?? 8) || 8;
-  const pctH = Number(margenes?.HT ?? 0); // % de Herramientas manuales del Maestro de insumos (Márgenes APU)
+  // Insumo «Herramientas manuales» del maestro (código 40000001): su C. Unitario es el % de MO de respaldo.
+  const insumoHT = insumos.find((i) => i.tipo === "HT" && i.codigo === "40000001");
+  const pctH = insumoHT && Number(insumoHT.precio) > 0 ? Number(insumoHT.precio) : Number(margenes?.HT ?? 0);
   const calc = calcularApu(comps, insumos, rend, jornada, pctH);
 
   async function sincronizarPu() {
