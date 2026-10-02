@@ -4,6 +4,8 @@ import { Check, Pencil, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Boton, Campo, Input, Panel, Select, Vacio } from "@/components/ui-kit";
 import { useEspecialidadesPartida, type EspecialidadPartida } from "@/lib/especialidades";
+import { FlechasOrden } from "@/components/FlechasOrden";
+import { moverWbs, recodificarWbs, ORDEN_FINAL } from "@/lib/wbs";
 
 const vacio = { codigo: "", nombre: "", orden: "" };
 
@@ -13,26 +15,37 @@ export function EspecialidadesPartida() {
   const [form, setForm] = useState(vacio);
   const [editando, setEditando] = useState<EspecialidadPartida | null>(null);
   const [error, setError] = useState("");
+  const [moviendo, setMoviendo] = useState(false);
 
   const refrescar = () => {
     qc.invalidateQueries({ queryKey: ["especialidades_partida"] });
     qc.invalidateQueries({ queryKey: ["partidas"] });
+    qc.invalidateQueries({ queryKey: ["categorias_partida"] });
+    qc.invalidateQueries({ queryKey: ["partidas_maestras"] });
   };
+
+  async function mover(id: string, dir: -1 | 1) {
+    setMoviendo(true);
+    try { await moverWbs("especialidades", id, dir); refrescar(); }
+    catch (e) { setError((e as Error).message); }
+    setMoviendo(false);
+  }
 
   async function crear(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     const nombre = form.nombre.trim();
     if (!nombre) return setError("Escribe el nombre de la especialidad.");
-    const orden = Number(form.orden) || lista.length + 1;
+    const orden = Math.max(0, ...lista.map((x) => x.orden)) + 1;
     const { error: err } = await supabase
       .from("especialidades_partida")
-      .insert({ codigo: "", nombre, orden });
+      .insert({ codigo: lista.length ? "" : "01", nombre, orden });
     if (err)
       return setError(
         err.message.includes("duplicate") ? "Ya existe una especialidad con ese nombre." : err.message,
       );
     setForm(vacio);
+    await recodificarWbs().catch(() => undefined);
     refrescar();
   }
 
@@ -44,7 +57,6 @@ export function EspecialidadesPartida() {
       .from("especialidades_partida")
       .update({
         nombre: editando.nombre.trim(),
-        orden: Number(editando.orden) || 0,
         activo: editando.activo,
       })
       .eq("id", editando.id);
@@ -65,13 +77,14 @@ export function EspecialidadesPartida() {
     setError("");
     const { error: err } = await supabase.from("especialidades_partida").delete().eq("id", id);
     if (err) return setError(err.message);
+    await recodificarWbs().catch(() => undefined);
     refrescar();
   }
 
   return (
     <>
       <Panel titulo="Nuevo registro de especialidades" className="mb-4">
-        <form onSubmit={crear} className="grid gap-3 p-4 sm:grid-cols-3">
+        <form onSubmit={crear} className="grid gap-3 p-4 sm:grid-cols-2">
           <Campo etiqueta="Nombre del capítulo">
             <Input
               className="py-1.5"
@@ -81,22 +94,12 @@ export function EspecialidadesPartida() {
               placeholder="Instalaciones Mecánicas"
             />
           </Campo>
-          <Campo etiqueta="Orden">
-            <Input
-              className="py-1.5"
-              type="number"
-              min={0}
-              value={form.orden}
-              onChange={(e) => setForm({ ...form, orden: e.target.value })}
-              placeholder={String(lista.length + 1)}
-            />
-          </Campo>
           <div className="flex items-end">
             <Boton type="submit" className="w-full py-2.5">
               Agregar especialidad
             </Boton>
           </div>
-          {error && <p className="font-mono text-xs text-bad sm:col-span-3">{error}</p>}
+          {error && <p className="font-mono text-xs text-bad sm:col-span-2">{error}</p>}
         </form>
       </Panel>
 
@@ -107,16 +110,18 @@ export function EspecialidadesPartida() {
           <table className="w-full table-fixed font-mono text-xs">
             <thead>
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                <th className="w-[58%] px-5 py-2 font-medium">Especialidad</th>
-                <th className="w-[12%] px-3 py-2 text-right font-medium">Orden</th>
+                <th className="w-[10%] px-3 py-2 font-medium">Código</th>
+                <th className="w-[48%] px-3 py-2 font-medium">Especialidad</th>
+                <th className="w-[12%] px-3 py-2 text-center font-medium">Orden</th>
                 <th className="w-[15%] px-3 py-2 font-medium">Estado</th>
                 <th className="w-[15%] px-5 py-2 text-right font-medium">Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {lista.map((e) =>
+              {lista.map((e, i) =>
                 editando?.id === e.id ? (
                   <tr key={e.id} className="border-b border-line/40 last:border-0">
+                    <td className="px-3 py-2 text-muted-foreground">{e.codigo}</td>
                     <td className="px-3 py-2">
                       <Input
                         className="py-1 text-xs"
@@ -124,14 +129,7 @@ export function EspecialidadesPartida() {
                         onChange={(ev) => setEditando({ ...editando, nombre: ev.target.value })}
                       />
                     </td>
-                    <td className="px-3 py-2">
-                      <Input
-                        className="py-1 text-right text-xs"
-                        type="number"
-                        value={editando.orden}
-                        onChange={(ev) => setEditando({ ...editando, orden: Number(ev.target.value) })}
-                      />
-                    </td>
+                    <td className="px-3 py-2 text-center text-muted-foreground">{e.orden}</td>
                     <td className="px-3 py-2">
                       <Select
                         className="py-1 text-xs"
@@ -165,8 +163,11 @@ export function EspecialidadesPartida() {
                   </tr>
                 ) : (
                   <tr key={e.id} className="border-b border-line/40 last:border-0">
+                    <td className="px-3 py-2.5 text-primary">{e.codigo}</td>
                     <td className="px-3 py-2.5 font-semibold text-ink">{e.nombre}</td>
-                    <td className="px-3 py-2.5 text-right text-muted-foreground">{e.orden}</td>
+                    <td className="px-3 py-2.5 text-center">
+                      <FlechasOrden primero={i === 0} ultimo={i === lista.length - 1} ocupado={moviendo} onMover={(d) => mover(e.id, d)} />
+                    </td>
                     <td className="px-3 py-2.5">
                       <span className={e.activo ? "text-good" : "text-muted-foreground"}>
                         {e.activo ? "Activo" : "Inactivo"}
@@ -199,7 +200,7 @@ export function EspecialidadesPartida() {
           </table>
         )}
         <p className="border-t border-line px-5 py-3 font-mono text-[10px] leading-relaxed text-muted-foreground">
-          Las especialidades no llevan código fijo: el capítulo (01, 02...) se asigna según el orden en que se cargan en cada obra o cotización.
+          El código de la especialidad es su orden (01, 02...). Usa las flechas para reordenar: los códigos de sus categorías y partidas se actualizan solos.
         </p>
       </Panel>
     </>
