@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Check, Pencil, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { Boton, Campo, Input, Panel, Select, Vacio } from "@/components/ui-kit";
+import { Input, Panel, Select } from "@/components/ui-kit";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
 import {
   useCategoriasPartida,
@@ -11,18 +11,19 @@ import {
 import { FlechasOrden } from "@/components/FlechasOrden";
 import { moverWbs, recodificarWbs, ORDEN_FINAL } from "@/lib/wbs";
 
-const vacio = { codigo: "", nombre: "", especialidad: "", orden: "" };
+const vacio = { nombre: "", especialidad: "" };
 
 export function CategoriasPartida() {
   const qc = useQueryClient();
   const { data: lista = [] } = useCategoriasPartida();
   const { data: especialidades = [] } = useEspecialidadesPartida();
-  const [form, setForm] = useState(vacio);
+  const [nueva, setNueva] = useState(vacio);
   const [editando, setEditando] = useState<CategoriaPartida | null>(null);
   const [seleccionadaId, setSeleccionadaId] = useState<string | null>(null);
   const [filtro, setFiltro] = useState("");
   const [error, setError] = useState("");
   const [moviendo, setMoviendo] = useState(false);
+  const [guardando, setGuardando] = useState(false);
 
   const refrescar = () => {
     qc.invalidateQueries({ queryKey: ["categorias_partida"] });
@@ -57,23 +58,30 @@ export function CategoriasPartida() {
       )
     : true;
 
-  async function crear(e: React.FormEvent) {
-    e.preventDefault();
+  async function crear() {
+    if (guardando) return;
     setError("");
-    const nombre = form.nombre.trim();
+    const nombre = nueva.nombre.trim();
     if (!nombre) return setError("Escribe el nombre de la categoría.");
-    if (!form.especialidad) return setError("Elige la especialidad a la que pertenece.");
-    const orden = Math.max(0, ...lista.filter((c) => c.especialidad === form.especialidad).map((c) => c.orden)) + 1;
-    const { error: err } = await supabase
-      .from("categorias_partida")
-      .insert({ codigo: "", nombre, especialidad: form.especialidad, orden });
-    if (err)
-      return setError(
-        err.code === "23505" ? "Ya existe esa categoría en la especialidad elegida." : err.message,
-      );
-    setForm({ ...vacio, especialidad: form.especialidad });
-    await recodificarWbs().catch(() => undefined);
-    refrescar();
+    if (!nueva.especialidad) return setError("Elige la especialidad a la que pertenece.");
+    setGuardando(true);
+    try {
+      const orden = Math.max(0, ...lista.filter((c) => c.especialidad === nueva.especialidad).map((c) => c.orden)) + 1;
+      const { error: err } = await supabase
+        .from("categorias_partida")
+        .insert({ codigo: "", nombre, especialidad: nueva.especialidad, orden });
+      if (err)
+        throw new Error(
+          err.code === "23505" ? "Ya existe esa categoría en la especialidad elegida." : err.message,
+        );
+      setNueva({ ...vacio, especialidad: nueva.especialidad });
+      await recodificarWbs().catch(() => undefined);
+      refrescar();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "No se pudo registrar.");
+    } finally {
+      setGuardando(false);
+    }
   }
 
   async function guardar() {
@@ -116,50 +124,22 @@ export function CategoriasPartida() {
     refrescar();
   }
 
-  return (
-    <>
-      <Panel titulo="Nuevo registro de categorías" className="mb-4">
-        <form onSubmit={crear} className="grid gap-3 p-4 sm:grid-cols-4">
-          <Campo etiqueta="Especialidad">
-            <Select
-              className="py-1.5"
-              value={form.especialidad}
-              onChange={(e) => {
-                const especialidad = e.target.value;
-                setForm({ ...form, especialidad });
-              }}
-            >
-              <option value="">Selecciona...</option>
-              {opcionesEspecialidad.map((e) => (
-                <option key={e.id} value={e.nombre}>
-                  {e.nombre}
-                </option>
-              ))}
-            </Select>
-          </Campo>
-          <div className="sm:col-span-2">
-            <Campo etiqueta="Nombre de la categoría">
-              <Input
-                className="py-1.5"
-                value={form.nombre}
-                onChange={(e) => setForm({ ...form, nombre: e.target.value })}
-                maxLength={120}
-                placeholder="SUMINISTRO DE TABLEROS ELÉCTRICOS"
-              />
-            </Campo>
-          </div>
-          <div className="sm:col-span-4">
-            <Boton type="submit">Agregar categoría</Boton>
-          </div>
-          {error && <p className="font-mono text-xs text-bad sm:col-span-4">{error}</p>}
-        </form>
-      </Panel>
+  const teclaNueva = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      void crear();
+    }
+  };
 
-      <Panel
-        titulo="Listado de categorías "
-        extra={
-          <div className="flex items-center gap-2">
-            <div className="w-64">
+  const inputCls = "w-full rounded-md border border-line bg-background px-2 py-1 text-xs outline-none focus:border-primary";
+  const selCls = "w-full rounded-md border border-line bg-background px-1.5 py-1 text-xs outline-none focus:border-primary";
+
+  return (
+    <Panel
+      titulo="Listado de categorías"
+      extra={
+        <div className="flex items-center gap-2">
+          <div className="w-64">
             <Select
               className="py-1 text-xs"
               value={filtro}
@@ -175,145 +155,184 @@ export function CategoriasPartida() {
                 </option>
               ))}
             </Select>
-            </div>
-            <FlechasOrden
-              primero={primeraDelGrupo}
-              ultimo={ultimaDelGrupo}
-              ocupado={moviendo || !categoriaSeleccionada}
-              onMover={(d) => {
-                if (categoriaSeleccionada) void mover(categoriaSeleccionada.id, d);
-              }}
-            />
           </div>
-        }
-      >
-        {visibles.length === 0 ? (
-          <Vacio texto="Aún no hay categorías registradas." />
-        ) : (
-          <table className="w-full table-fixed font-mono text-xs">
-            <thead>
-              <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                <th className="w-[9%] px-3 py-2 font-medium">Código</th>
-                <th className="w-[39%] px-3 py-2 font-medium">Categoría</th>
-                <th className="w-[24%] px-3 py-2 font-medium">Especialidad</th>
-                <th className="w-[9%] px-3 py-2 text-center font-medium">Orden</th>
-                <th className="w-[11%] px-3 py-2 font-medium">Estado</th>
-                <th className="w-[8%] px-5 py-2 text-right font-medium">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {visibles.map((c) =>
-                editando?.id === c.id ? (
-                  <tr key={c.id} className="border-b border-line/40 last:border-0">
-                    <td className="px-3 py-2 text-muted-foreground">{c.codigo}</td>
-                    <td className="px-3 py-2">
-                      <Input
-                        className="py-1 text-xs"
-                        value={editando.nombre}
-                        onChange={(ev) => setEditando({ ...editando, nombre: ev.target.value })}
-                      />
-                    </td>
-                    <td className="px-3 py-2">
-                      <Select
-                        className="py-1 text-xs"
-                        value={editando.especialidad}
-                        onChange={(ev) => setEditando({ ...editando, especialidad: ev.target.value })}
-                      >
-                        <option value="">Sin especialidad</option>
-                        {opcionesEspecialidad.map((e) => (
-                          <option key={e.id} value={e.nombre}>
-                            {e.nombre}
-                          </option>
-                        ))}
-                      </Select>
-                    </td>
-                    <td className="px-3 py-2 text-center text-muted-foreground">{c.orden}</td>
-                    <td className="px-3 py-2">
-                      <Select
-                        className="py-1 text-xs"
-                        value={editando.activo ? "si" : "no"}
-                        onChange={(ev) => setEditando({ ...editando, activo: ev.target.value === "si" })}
-                      >
-                        <option value="si">Activa</option>
-                        <option value="no">Inactiva</option>
-                      </Select>
-                    </td>
-                    <td className="px-5 py-2">
-                      <div className="flex items-center justify-end gap-1">
-                        <button
-                          type="button"
-                          onClick={guardar}
-                          title="Guardar"
-                          className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground"
-                        >
-                          <Check size={14} />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setEditando(null)}
-                          title="Cancelar"
-                          className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line hover:bg-muted"
-                        >
-                          <X size={14} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ) : (
-                    <tr
-                      key={c.id}
-                      tabIndex={0}
-                      aria-selected={seleccionadaId === c.id}
-                      onClick={() => setSeleccionadaId(c.id)}
-                      onKeyDown={(ev) => {
-                        if (ev.key === "Enter" || ev.key === " ") {
-                          ev.preventDefault();
-                          setSeleccionadaId(c.id);
-                        }
-                      }}
-                      className={`cursor-pointer border-b border-line/40 outline-none transition-colors last:border-0 hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary ${
-                        seleccionadaId === c.id ? "bg-primary/10" : ""
-                      }`}
+          <FlechasOrden
+            primero={primeraDelGrupo}
+            ultimo={ultimaDelGrupo}
+            ocupado={moviendo || !categoriaSeleccionada}
+            onMover={(d) => {
+              if (categoriaSeleccionada) void mover(categoriaSeleccionada.id, d);
+            }}
+          />
+        </div>
+      }
+    >
+      <table className="w-full table-fixed font-mono text-xs">
+        <thead>
+          <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+            <th className="w-[9%] px-3 py-2 font-medium">Código</th>
+            <th className="w-[39%] px-3 py-2 font-medium">Categoría</th>
+            <th className="w-[24%] px-3 py-2 font-medium">Especialidad</th>
+            <th className="w-[9%] px-3 py-2 text-center font-medium">Orden</th>
+            <th className="w-[11%] px-3 py-2 font-medium">Estado</th>
+            <th className="w-[8%] px-5 py-2 text-right font-medium">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {/* Fila de captura rápida (siempre visible arriba) */}
+          <tr className="border-b border-dashed border-line/60 bg-muted/20">
+            <td className="px-3 py-2 text-muted-foreground/60">auto</td>
+            <td className="px-3 py-2">
+              <input
+                className={inputCls}
+                placeholder="Escribe la categoría y pulsa Enter…"
+                maxLength={120}
+                value={nueva.nombre}
+                onChange={(e) => setNueva({ ...nueva, nombre: e.target.value })}
+                onKeyDown={teclaNueva}
+              />
+            </td>
+            <td className="px-3 py-2">
+              <select
+                className={selCls}
+                value={nueva.especialidad}
+                onChange={(e) => setNueva({ ...nueva, especialidad: e.target.value })}
+              >
+                <option value="">Selecciona…</option>
+                {opcionesEspecialidad.map((e) => (
+                  <option key={e.id} value={e.nombre}>
+                    {e.nombre}
+                  </option>
+                ))}
+              </select>
+            </td>
+            <td className="px-3 py-2 text-center text-muted-foreground/60">auto</td>
+            <td className="px-3 py-2 text-muted-foreground/60">Activa</td>
+            <td className="px-5 py-2">
+              <div className="flex items-center justify-end">
+                <button
+                  type="button"
+                  onClick={() => void crear()}
+                  disabled={guardando}
+                  title="Registrar categoría"
+                  className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground disabled:opacity-50"
+                >
+                  <Check size={14} />
+                </button>
+              </div>
+            </td>
+          </tr>
+          {visibles.map((c) =>
+            editando?.id === c.id ? (
+              <tr key={c.id} className="border-b border-line/40 last:border-0">
+                <td className="px-3 py-2 text-muted-foreground">{c.codigo}</td>
+                <td className="px-3 py-2">
+                  <Input
+                    className="py-1 text-xs"
+                    value={editando.nombre}
+                    onChange={(ev) => setEditando({ ...editando, nombre: ev.target.value })}
+                  />
+                </td>
+                <td className="px-3 py-2">
+                  <Select
+                    className="py-1 text-xs"
+                    value={editando.especialidad}
+                    onChange={(ev) => setEditando({ ...editando, especialidad: ev.target.value })}
+                  >
+                    <option value="">Sin especialidad</option>
+                    {opcionesEspecialidad.map((e) => (
+                      <option key={e.id} value={e.nombre}>
+                        {e.nombre}
+                      </option>
+                    ))}
+                  </Select>
+                </td>
+                <td className="px-3 py-2 text-center text-muted-foreground">{c.orden}</td>
+                <td className="px-3 py-2">
+                  <Select
+                    className="py-1 text-xs"
+                    value={editando.activo ? "si" : "no"}
+                    onChange={(ev) => setEditando({ ...editando, activo: ev.target.value === "si" })}
+                  >
+                    <option value="si">Activa</option>
+                    <option value="no">Inactiva</option>
+                  </Select>
+                </td>
+                <td className="px-5 py-2">
+                  <div className="flex items-center justify-end gap-1">
+                    <button
+                      type="button"
+                      onClick={guardar}
+                      title="Guardar"
+                      className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground"
                     >
-                    <td className="px-3 py-2.5 text-primary">{c.codigo}</td>
-                    <td className="px-3 py-2.5 font-semibold text-ink">{c.nombre}</td>
-                    <td className="px-3 py-2.5 uppercase text-muted-foreground">{c.especialidad || "—"}</td>
-                    <td className="px-3 py-2.5 text-center text-muted-foreground">{c.orden}</td>
-                    <td className="px-3 py-2.5">
-                      <span className={c.activo ? "text-good" : "text-muted-foreground"}>
-                        {c.activo ? "Activa" : "Inactiva"}
-                      </span>
-                    </td>
-                    <td className="px-5 py-2.5">
-                      <div className="flex items-center justify-end gap-1">
-                        <button
-                          type="button"
-                          onClick={() => setEditando(c)}
-                          title="Editar"
-                          className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"
-                        >
-                          <Pencil size={14} />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => eliminar(c.id)}
-                          title="Eliminar"
-                          className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-bad hover:text-bad"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ),
-              )}
-            </tbody>
-          </table>
-        )}
-        <p className="border-t border-line px-5 py-3 font-mono text-[10px] leading-relaxed text-muted-foreground">
-          Selecciona una fila y usa las flechas de la cabecera para ordenarla dentro de su especialidad. Sus códigos dependientes se actualizan automáticamente.
-        </p>
-      </Panel>
-    </>
+                      <Check size={14} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditando(null)}
+                      title="Cancelar"
+                      className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line hover:bg-muted"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ) : (
+              <tr
+                key={c.id}
+                tabIndex={0}
+                aria-selected={seleccionadaId === c.id}
+                onClick={() => setSeleccionadaId(c.id)}
+                onKeyDown={(ev) => {
+                  if (ev.key === "Enter" || ev.key === " ") {
+                    ev.preventDefault();
+                    setSeleccionadaId(c.id);
+                  }
+                }}
+                className={`cursor-pointer border-b border-line/40 outline-none transition-colors last:border-0 hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary ${
+                  seleccionadaId === c.id ? "bg-primary/10" : ""
+                }`}
+              >
+                <td className="px-3 py-2.5 text-primary">{c.codigo}</td>
+                <td className="px-3 py-2.5 font-semibold text-ink">{c.nombre}</td>
+                <td className="px-3 py-2.5 uppercase text-muted-foreground">{c.especialidad || "—"}</td>
+                <td className="px-3 py-2.5 text-center text-muted-foreground">{c.orden}</td>
+                <td className="px-3 py-2.5">
+                  <span className={c.activo ? "text-good" : "text-muted-foreground"}>
+                    {c.activo ? "Activa" : "Inactiva"}
+                  </span>
+                </td>
+                <td className="px-5 py-2.5">
+                  <div className="flex items-center justify-end gap-1">
+                    <button
+                      type="button"
+                      onClick={() => setEditando(c)}
+                      title="Editar"
+                      className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"
+                    >
+                      <Pencil size={14} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => eliminar(c.id)}
+                      title="Eliminar"
+                      className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-bad hover:text-bad"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ),
+          )}
+        </tbody>
+      </table>
+      {error && <p className="px-5 py-2 font-mono text-xs text-bad">{error}</p>}
+      <p className="border-t border-line px-5 py-3 font-mono text-[10px] leading-relaxed text-muted-foreground">
+        Escribe en la primera fila y pulsa Enter para registrar. Selecciona una fila y usa las flechas de la cabecera para ordenarla dentro de su especialidad. Sus códigos dependientes se actualizan automáticamente.
+      </p>
+    </Panel>
   );
 }
