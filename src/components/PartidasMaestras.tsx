@@ -434,7 +434,7 @@ export function PartidasMaestras() {
         )}
         <p className="border-t border-line px-5 py-3 font-mono text-[10px] leading-relaxed text-muted-foreground">
           Estas partidas se reutilizan al armar una cotización: al elegir una del banco se copian su descripción,
-          unidad y precio unitario; el código (dígito de partidas + especialidad + categoría + correlativo) se recalcula al reordenar con las flechas, y puedes ajustarlos en la propuesta sin alterar el catálogo.
+          unidad y precio unitario; el código (dígito del tipo + especialidad + categoría + correlativo) se recalcula al reordenar con las flechas, y puedes ajustarlos en la propuesta sin alterar el catálogo.
         </p>
       </Panel>
     {apu && <ApuPartida partida={apu} onCerrar={() => setApu(null)} />}
