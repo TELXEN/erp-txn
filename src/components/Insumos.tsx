@@ -1023,7 +1023,7 @@ function HerramientasWysiwyg({
 
   return (
     <Panel
-      titulo="Maestro de insumos — Herramientas menores"
+      titulo="Maestro de insumos — Herramientas manuales"
       extra={<Buscador valor={busqueda} onChange={setBusqueda} total={lista.length} placeholder="Buscar por código o descripción..." />}
     >
       <table className="w-full table-fixed font-mono text-xs">
@@ -1089,7 +1089,7 @@ function HerramientasWysiwyg({
       </table>
       {error && <p className="px-5 py-2 font-mono text-xs text-bad">{error}</p>}
       <p className="border-t border-line px-5 py-3 font-mono text-[10px] leading-relaxed text-muted-foreground">
-        Cada herramienta menor tiene su propio C. Unitario expresado en % de la mano de obra total de cada precio unitario; se vincula al APU desde el buscador de insumos (Herramientas menores). Si se deja vacío se usa el % global de Márgenes APU.
+        Cada herramienta tiene su propio C. Unitario expresado en % de la mano de obra total de cada precio unitario; se vincula al APU desde el buscador de insumos (Herramientas manuales). Si se deja vacío se usa el % global de Márgenes APU.
       </p>
     </Panel>
   );

@@ -18,7 +18,7 @@ const TIPOS_PARTIDA: [string, string][] = [
   ["MO", "Mano de obra"],
   ["MAT", "Materiales"],
   ["EQ", "Equipos y maquinaria"],
-  ["HT", "Herramientas menores"],
+  ["HT", "Herramientas manuales"],
   ["SC", "Subcontratos"],
 ];
 const nombreTipo = (t?: string) => TIPOS_PARTIDA.find(([k]) => k === t)?.[1] ?? "Materiales";

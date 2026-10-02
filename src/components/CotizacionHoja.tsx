@@ -1009,7 +1009,7 @@ function DesgloseApu({ item, alCambiar }: { item: CotizacionItem; alCambiar: () 
   const [nuevo, setNuevo] = useState("");
   const rend = Number(item.rendimiento ?? 1) || 1;
   const jornada = Number(item.jornada ?? 8) || 8;
-  const pctH = Number(margenes?.HT ?? 0); // % de Herramientas menores del Maestro de insumos (Márgenes APU)
+  const pctH = Number(margenes?.HT ?? 0); // % de Herramientas manuales del Maestro de insumos (Márgenes APU)
   const calc = calcularApu(comps, insumos, rend, jornada, pctH);
 
   async function sincronizarPu() {

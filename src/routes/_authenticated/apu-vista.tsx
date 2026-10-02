@@ -46,7 +46,7 @@ function altoEstimadoApu(f: Ficha, margenHt: number) {
   const nComps = f.comps.length;
   const nGrupos = Math.min(4, Math.max(1, Math.ceil(nComps / 4)));
   h += nGrupos * 24 + nComps * 20;
-  // Herramientas menores (% MO)
+  // Herramientas manuales (% MO)
   if (margenHt > 0 && f.comps.length) h += 20;
   // Total + nota al pie + separador
   h += 34 + 22 + 16;
@@ -83,7 +83,7 @@ function VistaApu() {
   const { data: cotizaciones = [] } = useCotizaciones();
   const { data: insumos = [] } = useInsumos();
   const { data: margenes } = useMargenesInsumo();
-  const pctH = Number(margenes?.HT ?? 0); // % de Herramientas menores del Maestro de insumos (Márgenes APU)
+  const pctH = Number(margenes?.HT ?? 0); // % de Herramientas manuales del Maestro de insumos (Márgenes APU)
   const cot = cotizaciones.find((c) => c.id === id);
   const [pdf, setPdf] = useState(false);
 
@@ -204,7 +204,7 @@ function VistaApu() {
                               )),
                               conH ? (
                                 <tr key="h" style={{ borderBottom: `0.5px solid ${C.line}` }}>
-                                  <td /><td style={{ padding: "3px 6px" }}>Herramientas (% MO)</td><td style={{ padding: "3px 6px" }}>%MO</td><td />
+                                  <td /><td style={{ padding: "3px 6px" }}>Herramientas manuales (% MO)</td><td style={{ padding: "3px 6px" }}>%MO</td><td />
                                   <td style={{ padding: "3px 6px", textAlign: "right" }}>{n2(pctH)}%</td><td />
                                   <td style={{ padding: "3px 6px", textAlign: "right" }}>{n2(calc.herramientas)}</td>
                                 </tr>

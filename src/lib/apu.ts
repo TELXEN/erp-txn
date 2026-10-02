@@ -6,7 +6,7 @@ export const TIPOS_INSUMO: [TipoInsumo, string][] = [
   ["MO", "Mano de obra"],
   ["MAT", "Materiales"],
   ["EQ", "Equipos y maquinaria"],
-  ["HT", "Herramientas menores"],
+  ["HT", "Herramientas manuales"],
   ["SC", "Subcontratos / Servicios"],
 ];
 export const nombreTipo = (t: string) => TIPOS_INSUMO.find(([k]) => k === t)?.[1] ?? t;
