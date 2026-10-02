@@ -7,7 +7,7 @@ import { Boton, Vacio } from "@/components/ui-kit";
 import { useEmpresa } from "@/lib/empresa";
 import { useFuenteDocumento } from "@/lib/fuentes-documentos";
 import { useCotizaciones } from "@/lib/cotizaciones";
-import { apuDb, calcularApu, TIPOS_INSUMO, useInsumos, type ComponenteApu } from "@/lib/apu";
+import { apuDb, calcularApu, TIPOS_INSUMO, useInsumos, useMargenesInsumo, type ComponenteApu } from "@/lib/apu";
 
 export const Route = createFileRoute("/_authenticated/apu-vista")({
   validateSearch: (s: Record<string, unknown>) => ({
@@ -39,27 +39,27 @@ type Item = {
 type Ficha = { it: Item; comps: ComponenteApu[] };
 
 /** Altura estimada (px) de una ficha APU dentro de la hoja de 794 px de ancho. */
-function altoEstimadoApu(f: Ficha) {
+function altoEstimadoApu(f: Ficha, margenHt: number) {
   // Cabecera de partida (2 filas) + cabecera de tabla
   let h = 56 + 28;
   // Una fila de subtítulo por tipo de insumo (estimación sin resolver insumos)
   const nComps = f.comps.length;
   const nGrupos = Math.min(4, Math.max(1, Math.ceil(nComps / 4)));
   h += nGrupos * 24 + nComps * 20;
-  // Herramientas manuales
-  if (Number(f.it.pct_herramientas) > 0) h += 20;
+  // Herramientas menores (% MO)
+  if (margenHt > 0 && f.comps.length) h += 20;
   // Total + nota al pie + separador
   h += 34 + 22 + 16;
   return h;
 }
 
 /** Empaqueta fichas en hojas A4 sin cortar ninguna ficha. */
-function paginarApus(fichas: Ficha[], capacidad: number) {
+function paginarApus(fichas: Ficha[], capacidad: number, margenHt: number) {
   const paginas: Ficha[][] = [];
   let actual: Ficha[] = [];
   let restante = capacidad;
   for (const f of fichas) {
-    const h = altoEstimadoApu(f);
+    const h = altoEstimadoApu(f, margenHt);
     if (actual.length && h > restante) {
       paginas.push(actual);
       actual = [];
@@ -82,6 +82,8 @@ function VistaApu() {
   const { fuente } = useFuenteDocumento();
   const { data: cotizaciones = [] } = useCotizaciones();
   const { data: insumos = [] } = useInsumos();
+  const { data: margenes } = useMargenesInsumo();
+  const pctH = Number(margenes?.HT ?? 0); // % de Herramientas menores del Maestro de insumos (Márgenes APU)
   const cot = cotizaciones.find((c) => c.id === id);
   const [pdf, setPdf] = useState(false);
 
@@ -110,7 +112,7 @@ function VistaApu() {
   });
 
   const fichas = data ?? [];
-  const paginas = paginarApus(fichas, CAPACIDAD);
+  const paginas = paginarApus(fichas, CAPACIDAD, pctH);
   const nombreArchivo = `APU_${cot?.codigo ?? "cotizacion"}${item && fichas[0] ? "_" + (fichas[0].it.codigo ?? "") : ""}`;
 
   async function descargar() {
@@ -158,7 +160,7 @@ function VistaApu() {
                   </div>
                 </div>
                 {pagina.map(({ it, comps }, fIdx) => {
-                  const calc = calcularApu(comps, insumos, Number(it.rendimiento ?? 1), Number(it.jornada ?? 8), Number(it.pct_herramientas ?? 0));
+                  const calc = calcularApu(comps, insumos, Number(it.rendimiento ?? 1), Number(it.jornada ?? 8), pctH);
                   return (
                     <div key={it.id} className="apu-ficha" style={{ pageBreakInside: "avoid", marginTop: fIdx === 0 ? 10 : 14, paddingTop: fIdx === 0 ? 0 : 12, borderTop: fIdx === 0 ? "none" : `1.5px dashed ${C.line}` }}>
                       <table style={{ width: "100%", borderCollapse: "collapse" }}>
@@ -182,7 +184,7 @@ function VistaApu() {
                         <tbody>
                           {TIPOS_INSUMO.map(([tipo, titulo]) => {
                             const filas = calc.filas.filter((f) => f.ins?.tipo === tipo);
-                            const conH = tipo === "EQ" && calc.herramientas > 0;
+                            const conH = tipo === "HT" && calc.herramientas > 0;
                             if (!filas.length && !conH) return null;
                             return [
                               <tr key={tipo} style={{ background: C.emBg }}>
@@ -202,8 +204,8 @@ function VistaApu() {
                               )),
                               conH ? (
                                 <tr key="h" style={{ borderBottom: `0.5px solid ${C.line}` }}>
-                                  <td /><td style={{ padding: "3px 6px" }}>Herramientas manuales</td><td style={{ padding: "3px 6px" }}>%MO</td><td />
-                                  <td style={{ padding: "3px 6px", textAlign: "right" }}>{n2(Number(it.pct_herramientas))}%</td><td />
+                                  <td /><td style={{ padding: "3px 6px" }}>Herramientas (% MO)</td><td style={{ padding: "3px 6px" }}>%MO</td><td />
+                                  <td style={{ padding: "3px 6px", textAlign: "right" }}>{n2(pctH)}%</td><td />
                                   <td style={{ padding: "3px 6px", textAlign: "right" }}>{n2(calc.herramientas)}</td>
                                 </tr>
                               ) : null,
