@@ -7,6 +7,7 @@ import { soles } from "@/lib/format";
 import type { PartidaMaestra } from "@/lib/cotizaciones";
 import { ORIGEN_APU, TIPOS_INSUMO, apuDb, calcularApu, precioVenta, useComponentesApu, useInsumos, useMargenesInsumo, type OrigenApu } from "@/lib/apu";
 import { usePartidasMaestras } from "@/lib/cotizaciones";
+import { useUnidadesMedida } from "@/lib/unidades";
 
 type P = Pick<PartidaMaestra, "id" | "nombre" | "unidad"> & {
   rendimiento?: number;
@@ -38,6 +39,8 @@ export function ApuPartida({
       : undefined;
   const [rend, setRend] = useState(String(partida.rendimiento ?? 1));
   const [jornada, setJornada] = useState(String(partida.jornada ?? 8));
+  const [und, setUnd] = useState(partida.unidad || "und");
+  const { data: unidades = [] } = useUnidadesMedida();
   const { data: margenes } = useMargenesInsumo();
   const pctH = Number(margenes?.HT ?? 0); // % de Herramientas menores del Maestro de insumos (Márgenes APU)
   const [nuevo, setNuevo] = useState("");
@@ -89,16 +92,18 @@ export function ApuPartida({
     const m = maestraIgual as P;
     setRend(String(m.rendimiento ?? 1));
     setJornada(String(m.jornada ?? 8));
+    setUnd(m.unidad || "und");
     refrescar();
   }
 
   async function guardar() {
     setError("");
     if (!(Number(rend) > 0)) return setError("El rendimiento debe ser mayor que cero.");
-    const cambios: Record<string, number> = {
+    const cambios: Record<string, number | string> = {
       rendimiento: Number(rend),
       jornada: Number(jornada) || 8,
       precio_unitario: calc.pu,
+      unidad: und,
     };
     if (origen === "obra")
       cambios['presupuesto_inicial'] = Math.round(Number(partida.metrado ?? 0) * calc.pu * 100) / 100;
@@ -121,7 +126,18 @@ export function ApuPartida({
         </div>
 
         <div className="grid gap-3 border-b border-line px-5 py-3 font-mono text-xs sm:grid-cols-4">
-          <label>Rendimiento ({partida.unidad}/día)<Input className="mt-1 py-1 text-xs" type="number" step="0.01" value={rend} onChange={(e) => setRend(e.target.value)} /></label>
+          <label>
+            Rendimiento ({und}/día)
+            <div className="mt-1 flex gap-1">
+              <Input className="py-1 text-xs" type="number" step="0.01" value={rend} onChange={(e) => setRend(e.target.value)} />
+              <select className="w-20 rounded-md border border-line bg-card px-1 py-1 text-xs" value={und} onChange={(e) => setUnd(e.target.value)}>
+                {!unidades.some((u) => u.simbolo === und) && <option value={und}>{und}</option>}
+                {unidades.filter((u) => u.activo).map((u) => (
+                  <option key={u.id} value={u.simbolo}>{u.simbolo}</option>
+                ))}
+              </select>
+            </div>
+          </label>
           <label>Jornada (horas)<Input className="mt-1 py-1 text-xs" type="number" step="0.5" value={jornada} onChange={(e) => setJornada(e.target.value)} /></label>
           <label>Herramientas (% MO)<p className="mt-1 py-1 text-right font-mono text-xs text-ink">{pctH.toFixed(2)}%</p>
             <p className="text-[9px] text-muted-foreground">se edita en Márgenes APU</p>
@@ -129,7 +145,7 @@ export function ApuPartida({
           <div className="text-right">
             <p className="text-muted-foreground">Precio unitario</p>
             <p className="text-lg font-semibold text-primary">{soles(calc.pu)}</p>
-            <p className="text-[10px] text-muted-foreground">por {partida.unidad}</p>
+            <p className="text-[10px] text-muted-foreground">por {und}</p>
           </div>
         </div>
 
