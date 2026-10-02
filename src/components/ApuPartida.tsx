@@ -5,7 +5,7 @@ import { Boton, Input } from "@/components/ui-kit";
 import { BuscadorInsumo } from "@/components/BuscadorInsumo";
 import { soles } from "@/lib/format";
 import type { PartidaMaestra } from "@/lib/cotizaciones";
-import { ORIGEN_APU, TIPOS_INSUMO, apuDb, calcularApu, useComponentesApu, useInsumos, useMargenesInsumo, type OrigenApu } from "@/lib/apu";
+import { ORIGEN_APU, TIPOS_INSUMO, apuDb, calcularApu, precioVenta, useComponentesApu, useInsumos, useMargenesInsumo, type OrigenApu } from "@/lib/apu";
 import { usePartidasMaestras } from "@/lib/cotizaciones";
 
 type P = Pick<PartidaMaestra, "id" | "nombre" | "unidad"> & {
