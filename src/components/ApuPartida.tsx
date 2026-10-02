@@ -152,10 +152,11 @@ export function ApuPartida({
         <table className="w-full table-fixed font-mono text-xs">
           <thead>
             <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-              <th className="w-[36%] px-5 py-2 font-medium">Insumo</th>
+              <th className="w-[9%] px-2 py-2 font-medium">Código</th>
+              <th className="w-[28%] px-2 py-2 font-medium">Insumo</th>
               <th className="w-[7%] px-2 py-2 font-medium">Und.</th>
               <th className="w-[12%] px-2 py-2 text-right font-medium">Cuadrilla</th>
-              <th className="w-[13%] px-2 py-2 text-right font-medium">Cantidad</th>
+              <th className="w-[12%] px-2 py-2 text-right font-medium">Cantidad</th>
               <th className="w-[12%] px-2 py-2 text-right font-medium">Precio</th>
               <th className="w-[13%] px-2 py-2 text-right font-medium">Parcial</th>
               <th className="w-[7%] px-5 py-2" />
@@ -168,7 +169,7 @@ export function ApuPartida({
               if (!filas.length && !conH) return null;
               return [
                 <tr key={tipo} className="bg-muted/40">
-                  <td colSpan={5} className="px-5 py-1.5 font-semibold text-primary">{titulo}</td>
+                  <td colSpan={6} className="px-5 py-1.5 font-semibold text-primary">{titulo}</td>
                   <td className="px-2 py-1.5 text-right font-semibold">{soles(calc.tot[tipo])}</td>
                   <td />
                 </tr>,
@@ -176,7 +177,8 @@ export function ApuPartida({
                   const usaCuadrilla = tipo === "MO" || tipo === "EQ";
                   return (
                     <tr key={c.id} className="border-b border-line/40">
-                      <td className="truncate px-5 py-1.5 text-ink">{ins?.nombre}</td>
+                      <td className="px-5 py-1.5 text-muted-foreground">{ins?.codigo || "–"}</td>
+                      <td className="truncate px-2 py-1.5 text-ink">{ins?.nombre}</td>
                       <td className="px-2 py-1.5 text-muted-foreground">{ins?.unidad}</td>
                       <td className="px-2 py-1">
                         {usaCuadrilla && (
@@ -202,7 +204,8 @@ export function ApuPartida({
                 }),
                 conH ? (
                   <tr key="herr" className="border-b border-line/40">
-                    <td className="px-5 py-1.5 text-ink">Herramientas (% MO)</td>
+                    <td className="px-5 py-1.5 text-muted-foreground">–</td>
+                    <td className="px-2 py-1.5 text-ink">Herramientas (% MO)</td>
                     <td className="px-2 py-1.5 text-muted-foreground">%MO</td>
                     <td />
                     <td className="px-2 py-1.5 text-right">{pctH.toFixed(2)}%</td>
