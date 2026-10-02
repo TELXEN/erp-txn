@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Pencil } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Boton, Campo, Input, Panel } from "@/components/ui-kit";
@@ -43,7 +43,13 @@ const CAMPOS: { tipo: TipoInsumo; nombre: string; digito: keyof CfgForm; correla
   }),
 );
 
-export function CodificacionInsumos({ onAgregarTipo }: { onAgregarTipo: (tipo: TipoInsumo) => void }) {
+export function CodificacionInsumos({
+  onAgregarTipo,
+  onEditarTipo,
+}: {
+  onAgregarTipo: (tipo: TipoInsumo) => void;
+  onEditarTipo: (tipo: TipoInsumo) => void;
+}) {
   const qc = useQueryClient();
   const { data: cfg } = useQuery({
     queryKey: ["codificacion_insumo"],
