@@ -30,10 +30,10 @@ export const Route = createFileRoute("/_authenticated/datos-apu")({
 type Pestana = "insumos" | "unidades" | "especialidades" | "categorias" | "maestras";
 
 const PESTANAS: [Pestana, string][] = [
+  ["maestras", "Registro de partidas"],
   ["insumos", "Maestro de insumos"],
   ["especialidades", "Especialidad de partidas"],
   ["categorias", "Categorías de partidas"],
-  ["maestras", "Registro de partidas"],
   ["unidades", "Unidades de medida"],
 ];
 
