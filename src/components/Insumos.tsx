@@ -56,6 +56,14 @@ export function Insumos() {
     cambiarPestana(t);
   }
 
+  function editarInsumo(t: TipoInsumo) {
+    cambiarPestana(t);
+  }
+
+  // Orden de pestañas del maestro: Materiales antes de Mano de obra.
+  const ORDEN_PESTANAS: TipoInsumo[] = ["MAT", "MO", "EQ", "HT", "SC"];
+  const etiquetaTipo = (t: TipoInsumo) => TIPOS_INSUMO.find(([k]) => k === t)?.[1] ?? t;
+
   // El foco de la fila de captura se aplica al montar; se libera después.
   useEffect(() => {
     if (!crearEn) return;
@@ -67,7 +75,7 @@ export function Insumos() {
     <>
       <div className="mb-4 inline-flex max-w-full flex-wrap items-center gap-1 rounded-lg border border-line bg-muted/40 p-1">
         <span className="px-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Maestro:</span>
-        {TIPOS_INSUMO.map(([t, texto]) => (
+        {ORDEN_PESTANAS.map((t) => (
           <button
             key={t}
             type="button"
@@ -78,7 +86,7 @@ export function Insumos() {
                 : "text-muted-foreground hover:bg-background hover:text-primary"
             }`}
           >
-            {texto}
+            {etiquetaTipo(t)}
           </button>
         ))}
         <span className="mx-1 h-5 w-px bg-line" aria-hidden="true" />
@@ -122,7 +130,7 @@ export function Insumos() {
       ) : seccion === "laboral" ? (
         <ParametrosLaboralesPanel />
       ) : seccion === "codificacion" ? (
-        <CodificacionInsumos onAgregarTipo={agregarInsumo} />
+        <CodificacionInsumos onAgregarTipo={agregarInsumo} onEditarTipo={editarInsumo} />
       ) : filtro === "MO" ? (
         <ManoObraWysiwyg enfoqueNueva={crearEn === "MO"} lista={visibles} busqueda={busqueda} setBusqueda={setBusqueda} refrescar={refrescar} />
       ) : filtro === "MAT" ? (

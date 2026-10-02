@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Pencil } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Boton, Campo, Input, Panel } from "@/components/ui-kit";
@@ -43,7 +43,13 @@ const CAMPOS: { tipo: TipoInsumo; nombre: string; digito: keyof CfgForm; correla
   }),
 );
 
-export function CodificacionInsumos({ onAgregarTipo }: { onAgregarTipo: (tipo: TipoInsumo) => void }) {
+export function CodificacionInsumos({
+  onAgregarTipo,
+  onEditarTipo,
+}: {
+  onAgregarTipo: (tipo: TipoInsumo) => void;
+  onEditarTipo: (tipo: TipoInsumo) => void;
+}) {
   const qc = useQueryClient();
   const { data: cfg } = useQuery({
     queryKey: ["codificacion_insumo"],
@@ -95,6 +101,7 @@ export function CodificacionInsumos({ onAgregarTipo }: { onAgregarTipo: (tipo: T
             <thead>
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
                 <th className="py-2 pr-3 font-medium">Tipo de insumo</th>
+                <th className="py-2 pr-1 font-medium"></th>
                 <th className="py-2 pr-3 font-medium"></th>
                 <th className="w-24 px-3 py-2 font-medium">Dígito</th>
                 <th className="w-32 px-3 py-2 font-medium">Último correlativo</th>
@@ -113,6 +120,16 @@ export function CodificacionInsumos({ onAgregarTipo }: { onAgregarTipo: (tipo: T
                       className="grid h-6 w-6 place-items-center rounded-md border border-line text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
                     >
                       <Plus size={12} />
+                    </button>
+                  </td>
+                  <td className="py-2 pr-3">
+                    <button
+                      type="button"
+                      title={`Editar insumos de ${c.nombre}`}
+                      onClick={() => onEditarTipo(c.tipo)}
+                      className="grid h-6 w-6 place-items-center rounded-md border border-line text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+                    >
+                      <Pencil size={12} />
                     </button>
                   </td>
                   <td className="px-3 py-2">
@@ -162,8 +179,9 @@ export function CodificacionInsumos({ onAgregarTipo }: { onAgregarTipo: (tipo: T
             <p className="mt-1 font-mono text-[10px] text-muted-foreground">Ejemplo: próximo código de mano de obra</p>
           </div>
           <p className="font-mono text-[10px] leading-relaxed text-muted-foreground">
-            El botón + junto a cada tipo abre su maestro con la fila de captura lista para registrar un insumo nuevo; el
-            código se reserva en el servidor al guardar.
+            El botón + junto a cada tipo abre su maestro con la fila de captura lista para registrar un insumo nuevo, y
+            el lápiz abre el mismo maestro para revisar o editar los insumos existentes; el código se reserva en el
+            servidor al guardar.
           </p>
           <p className="font-mono text-[10px] leading-relaxed text-muted-foreground">
             Cada insumo nuevo recibe un código de 8 dígitos: el primero identifica el tipo (mano de obra, materiales,
