@@ -204,7 +204,8 @@ export function ApuPartida({
                 }),
                 conH ? (
                   <tr key="herr" className="border-b border-line/40">
-                    <td className="px-5 py-1.5 text-ink">Herramientas (% MO)</td>
+                    <td className="px-5 py-1.5 text-muted-foreground">–</td>
+                    <td className="px-2 py-1.5 text-ink">Herramientas (% MO)</td>
                     <td className="px-2 py-1.5 text-muted-foreground">%MO</td>
                     <td />
                     <td className="px-2 py-1.5 text-right">{pctH.toFixed(2)}%</td>
