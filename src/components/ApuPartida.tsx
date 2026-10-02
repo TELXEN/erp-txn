@@ -152,10 +152,11 @@ export function ApuPartida({
         <table className="w-full table-fixed font-mono text-xs">
           <thead>
             <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-              <th className="w-[36%] px-5 py-2 font-medium">Insumo</th>
+              <th className="w-[9%] px-2 py-2 font-medium">Código</th>
+              <th className="w-[28%] px-2 py-2 font-medium">Insumo</th>
               <th className="w-[7%] px-2 py-2 font-medium">Und.</th>
               <th className="w-[12%] px-2 py-2 text-right font-medium">Cuadrilla</th>
-              <th className="w-[13%] px-2 py-2 text-right font-medium">Cantidad</th>
+              <th className="w-[12%] px-2 py-2 text-right font-medium">Cantidad</th>
               <th className="w-[12%] px-2 py-2 text-right font-medium">Precio</th>
               <th className="w-[13%] px-2 py-2 text-right font-medium">Parcial</th>
               <th className="w-[7%] px-5 py-2" />
