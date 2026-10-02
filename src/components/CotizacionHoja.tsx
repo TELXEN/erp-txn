@@ -1098,7 +1098,7 @@ function DesgloseApu({ item, alCambiar }: { item: CotizacionItem; alCambiar: () 
                   <input className={inp} type="number" step="0.01" defaultValue={Number(c.cantidad)} onBlur={(e) => void cambiar(c.id, "cantidad", e.target.value)} />
                 )}
               </td>
-              <td className="py-1 text-right">{soles(Number(ins?.precio ?? 0))}</td>
+              <td className="py-1 text-right">{soles(ins ? precioVenta(ins) : 0)}</td>
               <td className="py-1 text-right font-semibold text-ink">{soles(parcial)}</td>
               <td className="py-1 text-right">
                 <button type="button" onClick={() => void quitar(c.id)} className="text-muted-foreground hover:text-bad">

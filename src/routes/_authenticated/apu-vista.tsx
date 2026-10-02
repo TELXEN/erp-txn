@@ -198,7 +198,7 @@ function VistaApu() {
                                   <td style={{ padding: "3px 6px" }}>{ins?.unidad}</td>
                                   <td style={{ padding: "3px 6px", textAlign: "right" }}>{Number(c.cuadrilla) > 0 ? n2(Number(c.cuadrilla)) : ""}</td>
                                   <td style={{ padding: "3px 6px", textAlign: "right" }}>{n4(cantidad)}</td>
-                                  <td style={{ padding: "3px 6px", textAlign: "right" }}>{n2(Number(ins?.precio ?? 0))}</td>
+                                  <td style={{ padding: "3px 6px", textAlign: "right" }}>{n2(ins ? precioVenta(ins) : 0)}</td>
                                   <td style={{ padding: "3px 6px", textAlign: "right" }}>{n2(parcial)}</td>
                                 </tr>
                               )),
