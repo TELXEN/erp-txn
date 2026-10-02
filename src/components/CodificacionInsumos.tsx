@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Plus } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Boton, Campo, Input, Panel } from "@/components/ui-kit";
@@ -114,13 +115,23 @@ export function CodificacionInsumos() {
                     />
                   </td>
                   <td className="px-3 py-2">
-                    <Input
-                      className="py-1 text-center"
-                      type="number"
-                      min={0}
-                      value={form[c.correlativo] as number}
-                      onChange={(e) => setForm({ ...form, [c.correlativo]: Number(e.target.value) })}
-                    />
+                    <div className="flex items-center gap-1">
+                      <Input
+                        className="py-1 text-center"
+                        type="number"
+                        min={0}
+                        value={form[c.correlativo] as number}
+                        onChange={(e) => setForm({ ...form, [c.correlativo]: Number(e.target.value) })}
+                      />
+                      <button
+                        type="button"
+                        title="Incrementar correlativo"
+                        onClick={() => setForm({ ...form, [c.correlativo]: (form[c.correlativo] as number) + 1 })}
+                        className="grid h-7 w-7 shrink-0 place-items-center rounded-md border border-line text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+                      >
+                        <Plus size={13} />
+                      </button>
+                    </div>
                   </td>
                   <td className="py-2 pl-3 font-semibold text-primary">
                     {String(form[c.digito] as number)}
@@ -128,12 +139,6 @@ export function CodificacionInsumos() {
                   </td>
                 </tr>
               ))}
-              <tr className="border-t border-line">
-                <td className="py-2 pr-3 font-semibold text-ink">Partidas (catálogo WBS)</td>
-                <td className="px-3 py-2 text-center text-muted-foreground">según tipo</td>
-                <td className="px-3 py-2 text-center text-muted-foreground">por orden</td>
-                <td className="py-2 pl-3 text-primary">T.EE.CC.NNN</td>
-              </tr>
             </tbody>
           </table>
         </div>
