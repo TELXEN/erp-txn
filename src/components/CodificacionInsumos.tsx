@@ -179,8 +179,9 @@ export function CodificacionInsumos({
             <p className="mt-1 font-mono text-[10px] text-muted-foreground">Ejemplo: próximo código de mano de obra</p>
           </div>
           <p className="font-mono text-[10px] leading-relaxed text-muted-foreground">
-            El botón + junto a cada tipo abre su maestro con la fila de captura lista para registrar un insumo nuevo; el
-            código se reserva en el servidor al guardar.
+            El botón + junto a cada tipo abre su maestro con la fila de captura lista para registrar un insumo nuevo, y
+            el lápiz abre el mismo maestro para revisar o editar los insumos existentes; el código se reserva en el
+            servidor al guardar.
           </p>
           <p className="font-mono text-[10px] leading-relaxed text-muted-foreground">
             Cada insumo nuevo recibe un código de 8 dígitos: el primero identifica el tipo (mano de obra, materiales,

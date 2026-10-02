@@ -56,6 +56,14 @@ export function Insumos() {
     cambiarPestana(t);
   }
 
+  function editarInsumo(t: TipoInsumo) {
+    cambiarPestana(t);
+  }
+
+  // Orden de pestañas del maestro: Materiales antes de Mano de obra.
+  const ORDEN_PESTANAS: TipoInsumo[] = ["MAT", "MO", "EQ", "HT", "SC"];
+  const etiquetaTipo = (t: TipoInsumo) => TIPOS_INSUMO.find(([k]) => k === t)?.[1] ?? t;
+
   // El foco de la fila de captura se aplica al montar; se libera después.
   useEffect(() => {
     if (!crearEn) return;
