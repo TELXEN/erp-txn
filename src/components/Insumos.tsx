@@ -970,9 +970,12 @@ function HerramientasWysiwyg({
   refrescar: () => void;
 }) {
   const { data: mg = MARGENES_DEFECTO } = useMargenesInsumo();
-  const pct = mg.HT;
+  const pctGlobal = mg.HT;
+  // % efectivo de la herramienta: su propio C. Unitario (% de MO); si no tiene, el % global de Márgenes APU.
+  const pctDe = (i: Insumo) => (Number(i.precio) > 0 ? Number(i.precio) : pctGlobal);
   const [nombre, setNombre] = useState("");
-  const [editando, setEditando] = useState<{ id: string; codigo: string; nombre: string } | null>(null);
+  const [pct, setPct] = useState("");
+  const [editando, setEditando] = useState<{ id: string; codigo: string; nombre: string; pct: string } | null>(null);
   const [error, setError] = useState("");
   const [guardando, setGuardando] = useState(false);
 
@@ -983,9 +986,12 @@ function HerramientasWysiwyg({
     setGuardando(true);
     try {
       const codigo = await reservarCodigoInsumo({ data: { tipo: "HT" } });
-      const { error: err } = await apuDb.from("insumos").insert({ tipo: "HT", codigo, nombre: nombre.trim(), unidad: "%MO", precio: 0 } as never);
+      const { error: err } = await apuDb
+        .from("insumos")
+        .insert({ tipo: "HT", codigo, nombre: nombre.trim(), unidad: "%MO", precio: Number(pct) > 0 ? Number(pct) : pctGlobal } as never);
       if (err) throw new Error(err.message);
       setNombre("");
+      setPct("");
       refrescar();
     } catch (e) {
       setError(e instanceof Error ? e.message : "No se pudo registrar.");
@@ -996,7 +1002,10 @@ function HerramientasWysiwyg({
 
   async function guardarEdicion() {
     if (!editando) return;
-    const { error: err } = await apuDb.from("insumos").update({ nombre: editando.nombre.trim(), unidad: "%MO", precio: 0 } as never).eq("id", editando.id);
+    const { error: err } = await apuDb
+      .from("insumos")
+      .update({ nombre: editando.nombre.trim(), unidad: "%MO", precio: Number(editando.pct) || 0 } as never)
+      .eq("id", editando.id);
     if (err) return setError(err.message);
     setEditando(null);
     refrescar();
@@ -1011,7 +1020,6 @@ function HerramientasWysiwyg({
 
   const inputCls = "w-full rounded-md border border-line bg-background px-2 py-1 text-xs outline-none focus:border-primary";
   const btn = "inline-flex h-7 w-7 items-center justify-center rounded-md border";
-  const celdaPct = <td className="px-3 py-2.5 text-right font-semibold text-primary">{pct.toFixed(2)}%</td>;
 
   return (
     <Panel
@@ -1022,10 +1030,10 @@ function HerramientasWysiwyg({
         <thead>
           <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
             <th className="w-[14%] px-5 py-2 font-medium">Código</th>
-            <th className="w-[48%] px-3 py-2 font-medium">Descripción</th>
-            <th className="w-[12%] px-3 py-2 text-center font-medium">Unidad</th>
-            <th className="w-[14%] px-3 py-2 text-right font-medium">C. Unitario</th>
-            <th className="w-[12%] px-5 py-2 text-right font-medium">Acciones</th>
+            <th className="w-[42%] px-3 py-2 font-medium">Descripción</th>
+            <th className="w-[10%] px-3 py-2 text-center font-medium">Unidad</th>
+            <th className="w-[16%] px-3 py-2 text-right font-medium">C. Unitario (% MO)</th>
+            <th className="w-[18%] px-5 py-2 text-right font-medium">Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -1035,7 +1043,9 @@ function HerramientasWysiwyg({
               <input className={inputCls} placeholder="Escribe la descripción y pulsa Enter…" value={nombre} onChange={(e) => setNombre(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void crear(); } }} />
             </td>
             <td className="px-3 py-2 text-center text-muted-foreground">%MO</td>
-            {celdaPct}
+            <td className="px-3 py-2">
+              <input className={`${inputCls} text-right`} type="number" step="0.01" min="0" placeholder={pctGlobal ? pctGlobal.toFixed(2) : "%"} value={pct} onChange={(e) => setPct(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void crear(); } }} />
+            </td>
             <td className="px-5 py-2">
               <div className="flex justify-end">
                 <button type="button" onClick={() => void crear()} disabled={guardando} title="Registrar" className={`${btn} border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground disabled:opacity-50`}><Check size={14} /></button>
@@ -1050,7 +1060,9 @@ function HerramientasWysiwyg({
                   <input className={inputCls} value={editando.nombre} onChange={(e) => setEditando({ ...editando, nombre: e.target.value })} onKeyDown={(e) => { if (e.key === "Enter") void guardarEdicion(); if (e.key === "Escape") setEditando(null); }} />
                 </td>
                 <td className="px-3 py-2 text-center text-muted-foreground">%MO</td>
-                {celdaPct}
+                <td className="px-3 py-2">
+                  <input className={`${inputCls} text-right`} type="number" step="0.01" min="0" value={editando.pct} onChange={(e) => setEditando({ ...editando, pct: e.target.value })} onKeyDown={(e) => { if (e.key === "Enter") void guardarEdicion(); if (e.key === "Escape") setEditando(null); }} />
+                </td>
                 <td className="px-5 py-2">
                   <div className="flex justify-end gap-1">
                     <button type="button" onClick={guardarEdicion} title="Guardar" className={`${btn} border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground`}><Check size={14} /></button>
@@ -1063,10 +1075,10 @@ function HerramientasWysiwyg({
                 <td className="px-5 py-2.5 text-muted-foreground"><Resaltar texto={i.codigo || "—"} termino={busqueda} /></td>
                 <td className="px-3 py-2.5 text-ink"><Resaltar texto={i.nombre} termino={busqueda} /></td>
                 <td className="px-3 py-2.5 text-center text-muted-foreground">%MO</td>
-                {celdaPct}
+                <td className="px-3 py-2.5 text-right font-semibold text-primary">{pctDe(i).toFixed(2)}%</td>
                 <td className="px-5 py-2.5">
                   <div className="flex justify-end gap-1">
-                    <button type="button" onClick={() => setEditando({ id: i.id, codigo: i.codigo, nombre: i.nombre })} title="Editar" className={`${btn} border-line text-muted-foreground hover:border-primary hover:text-primary`}><Pencil size={14} /></button>
+                    <button type="button" onClick={() => setEditando({ id: i.id, codigo: i.codigo, nombre: i.nombre, pct: String(pctDe(i)) })} title="Editar" className={`${btn} border-line text-muted-foreground hover:border-primary hover:text-primary`}><Pencil size={14} /></button>
                     <button type="button" onClick={() => eliminar(i.id)} title="Eliminar" className={`${btn} border-line text-muted-foreground hover:border-bad hover:text-bad`}><Trash2 size={14} /></button>
                   </div>
                 </td>
@@ -1077,7 +1089,7 @@ function HerramientasWysiwyg({
       </table>
       {error && <p className="px-5 py-2 font-mono text-xs text-bad">{error}</p>}
       <p className="border-t border-line px-5 py-3 font-mono text-[10px] leading-relaxed text-muted-foreground">
-        El C. Unitario es un % de la mano de obra total de cada precio unitario y se toma de Maestro de insumos › Márgenes APU (Herramientas menores).
+        Cada herramienta menor tiene su propio C. Unitario expresado en % de la mano de obra total de cada precio unitario; se vincula al APU desde el buscador de insumos (Herramientas menores). Si se deja vacío se usa el % global de Márgenes APU.
       </p>
     </Panel>
   );

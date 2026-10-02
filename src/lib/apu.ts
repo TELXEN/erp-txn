@@ -234,15 +234,18 @@ export function calcularApu(
     parciales.set(c.id, { cantidad, parcial });
   }
   const totMO = tot.MO;
+  const tieneHt = base.some(({ ins }) => ins?.tipo === "HT");
   for (const { c, ins } of base) {
     if (ins?.tipo !== "HT") continue;
-    const pct = Number(ins.margen_pct || 0);
+    // % propio de la herramienta (C. Unitario del maestro, guardado en precio); si está vacío usa el % global de Márgenes APU.
+    const pct = Number(ins.precio) > 0 ? Number(ins.precio) : Number(ins.margen_pct || 0);
     const parcial = (totMO * pct) / 100;
     tot.HT += parcial;
     parciales.set(c.id, { cantidad: pct, parcial });
   }
   const filas = base.map(({ c, ins }) => ({ c, ins, ...(parciales.get(c.id) ?? { cantidad: 0, parcial: 0 }) }));
-  const herramientas = (totMO * Number(pctHerramientas || 0)) / 100;
+  // Respaldo: un APU sin herramientas vinculadas del maestro aplica el % global.
+  const herramientas = tieneHt ? 0 : (totMO * Number(pctHerramientas || 0)) / 100;
   tot.HT += herramientas;
   const pu = Math.round((tot.MO + tot.MAT + tot.EQ + tot.HT + tot.SC) * 100) / 100;
   return { filas, tot, herramientas, pu };
