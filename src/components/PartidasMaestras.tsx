@@ -298,6 +298,19 @@ export function PartidasMaestras() {
                       </Select>
                     </td>
                     <td className="px-3 py-2">
+                      <Select
+                        className="py-1 text-xs"
+                        value={editando.tipo_partida ?? "MAT"}
+                        onChange={(ev) => setEditando({ ...editando, tipo_partida: ev.target.value })}
+                      >
+                        {TIPOS_PARTIDA.map(([k, nombre]) => (
+                          <option key={k} value={k}>
+                            {nombre}
+                          </option>
+                        ))}
+                      </Select>
+                    </td>
+                    <td className="px-3 py-2">
                       <Input
                         className="py-1 text-xs"
                         value={editando.marca ?? ""}
@@ -376,6 +389,7 @@ export function PartidasMaestras() {
                     <td className="px-3 py-2.5 text-ink"><Resaltar texto={p.nombre} termino={busqueda} /></td>
                     <td className="px-3 py-2.5 text-muted-foreground"><Resaltar texto={p.especialidad || "—"} termino={busqueda} /></td>
                     <td className="px-3 py-2.5 text-muted-foreground"><Resaltar texto={p.categoria || "—"} termino={busqueda} /></td>
+                    <td className="px-3 py-2.5 text-muted-foreground" title={nombreTipo(p.tipo_partida)}>{p.tipo_partida ?? "MAT"}</td>
                     <td className="px-3 py-2.5 text-muted-foreground"><Resaltar texto={p.marca || "-"} termino={busqueda} /></td>
                     <td className="px-3 py-2.5 text-muted-foreground">{p.unidad}</td>
                     <td className="px-3 py-2.5 text-right">{soles(Number(p.precio_unitario))}</td>
