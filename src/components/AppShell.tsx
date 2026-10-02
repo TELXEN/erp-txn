@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ETIQUETA_ROL, useAuth, type Rol } from "@/lib/auth";
+import { aplicarTema, leerTema } from "@/lib/temas";
 
 
 type Item = { a: string; texto: string; roles: Rol[]; icono: React.ElementType };
@@ -128,6 +129,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [abierta, setAbierta] = useState<string | null>(null);
 
   useEffect(() => {
+    aplicarTema(leerTema());
     setAbierta(leerAbierta());
   }, []);
 
