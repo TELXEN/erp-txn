@@ -14,3 +14,4 @@
 - [x] Módulo Vehículos: flota, tareo vehicular, traslados, mantenimiento, resumen
 - [x] Tema TELXEN Obsidiana: menú lateral negro, texto blanco y acento amarillo sin alterar el área de trabajo.
 - [x] Extender la franja de navegación Obsidiana desde ERP TELXEN SAC hasta el final de la página.
+- [x] Unificar el menú negro en los temas activos y retirar Redwood y Monocromo.

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export type TemaId = "telxen" | "esmeralda" | "cobalto" | "zafiro" | "redwood" | "monocromo" | "obsidiana";
+export type TemaId = "telxen" | "esmeralda" | "cobalto" | "zafiro" | "obsidiana";
 
 export type Tema = {
   id: TemaId;
@@ -15,7 +15,7 @@ export const TEMAS: Tema[] = [
   {
     id: "telxen",
     nombre: "TELXEN Industrial",
-    descripcion: "Azul petróleo y amarillo eléctrico",
+    descripcion: "Menú negro, azul petróleo y amarillo eléctrico",
     muestraBase: "#003352",
     muestraAcento: "#FFC709",
     vars: {
@@ -28,18 +28,18 @@ export const TEMAS: Tema[] = [
       "--accent": "#FFC709",
       "--accent-foreground": "#003352",
       "--ring": "#003352",
-      "--sidebar": "oklch(0.975 0.006 240)",
-      "--sidebar-foreground": "#003352",
-      "--sidebar-muted": "rgb(0 51 82 / 0.6)",
-      "--sidebar-border": "rgb(0 51 82 / 0.14)",
-      "--sidebar-hover": "rgb(0 51 82 / 0.08)",
-      "--sidebar-panel": "#FFFFFF",
+      "--sidebar": "#09090B",
+      "--sidebar-foreground": "#FAFAFA",
+      "--sidebar-muted": "#A1A1AA",
+      "--sidebar-border": "#27272A",
+      "--sidebar-hover": "#18181B",
+      "--sidebar-panel": "#18181B",
     },
   },
   {
     id: "esmeralda",
     nombre: "Esmeralda y Pizarra",
-    descripcion: "Gris pizarra y verde esmeralda",
+    descripcion: "Menú negro, pizarra y verde esmeralda",
     muestraBase: "#1E293B",
     muestraAcento: "#059669",
     vars: {
@@ -52,18 +52,18 @@ export const TEMAS: Tema[] = [
       "--accent": "#059669",
       "--accent-foreground": "#FFFFFF",
       "--ring": "#059669",
-      "--sidebar": "oklch(0.975 0.004 250)",
-      "--sidebar-foreground": "#1E293B",
-      "--sidebar-muted": "rgb(30 41 59 / 0.6)",
-      "--sidebar-border": "rgb(30 41 59 / 0.14)",
-      "--sidebar-hover": "rgb(30 41 59 / 0.08)",
-      "--sidebar-panel": "#FFFFFF",
+      "--sidebar": "#09090B",
+      "--sidebar-foreground": "#FAFAFA",
+      "--sidebar-muted": "#A1A1AA",
+      "--sidebar-border": "#27272A",
+      "--sidebar-hover": "#18181B",
+      "--sidebar-panel": "#18181B",
     },
   },
   {
     id: "cobalto",
     nombre: "Cobalto y Naranja",
-    descripcion: "Azul cobalto y naranja de obra",
+    descripcion: "Menú negro, azul cobalto y naranja de obra",
     muestraBase: "#0A2540",
     muestraAcento: "#EA580C",
     vars: {
@@ -76,18 +76,18 @@ export const TEMAS: Tema[] = [
       "--accent": "#EA580C",
       "--accent-foreground": "#FFFFFF",
       "--ring": "#1E40AF",
-      "--sidebar": "oklch(0.975 0.008 250)",
-      "--sidebar-foreground": "#0A2540",
-      "--sidebar-muted": "rgb(10 37 64 / 0.6)",
-      "--sidebar-border": "rgb(10 37 64 / 0.14)",
-      "--sidebar-hover": "rgb(10 37 64 / 0.08)",
-      "--sidebar-panel": "#FFFFFF",
+      "--sidebar": "#09090B",
+      "--sidebar-foreground": "#FAFAFA",
+      "--sidebar-muted": "#A1A1AA",
+      "--sidebar-border": "#27272A",
+      "--sidebar-hover": "#18181B",
+      "--sidebar-panel": "#18181B",
     },
   },
   {
     id: "zafiro",
     nombre: "Zafiro y Cian",
-    descripcion: "Línea SAP Fiori Horizon",
+    descripcion: "Menú negro con acentos zafiro y cian",
     muestraBase: "#0A2647",
     muestraAcento: "#0FAAFF",
     vars: {
@@ -100,60 +100,12 @@ export const TEMAS: Tema[] = [
       "--accent": "#0FAAFF",
       "--accent-foreground": "#0A2647",
       "--ring": "#0FAAFF",
-      "--sidebar": "oklch(0.975 0.006 235)",
-      "--sidebar-foreground": "#0A2647",
-      "--sidebar-muted": "rgb(10 38 71 / 0.6)",
-      "--sidebar-border": "rgb(10 38 71 / 0.14)",
-      "--sidebar-hover": "rgb(10 38 71 / 0.08)",
-      "--sidebar-panel": "#FFFFFF",
-    },
-  },
-  {
-    id: "redwood",
-    nombre: "Naranja Redwood",
-    descripcion: "Línea Oracle Redwood",
-    muestraBase: "#161513",
-    muestraAcento: "#C74634",
-    vars: {
-      "--brand": "oklch(0.975 0.004 90)",
-      "--brand-foreground": "#161513",
-      "--cta": "#C74634",
-      "--cta-foreground": "#FFFFFF",
-      "--primary": "#161513",
-      "--primary-foreground": "#FFFFFF",
-      "--accent": "#C74634",
-      "--accent-foreground": "#FFFFFF",
-      "--ring": "#C74634",
-      "--sidebar": "oklch(0.975 0.004 90)",
-      "--sidebar-foreground": "#161513",
-      "--sidebar-muted": "rgb(22 21 19 / 0.6)",
-      "--sidebar-border": "rgb(22 21 19 / 0.14)",
-      "--sidebar-hover": "rgb(22 21 19 / 0.08)",
-      "--sidebar-panel": "#FFFFFF",
-    },
-  },
-  {
-    id: "monocromo",
-    nombre: "Monocromo Grafito",
-    descripcion: "Blanco y negro de bajo contraste",
-    muestraBase: "#27272A",
-    muestraAcento: "#71717A",
-    vars: {
-      "--brand": "oklch(0.972 0.002 260)",
-      "--brand-foreground": "#27272A",
-      "--cta": "#3F3F46",
-      "--cta-foreground": "#F4F4F5",
-      "--primary": "#27272A",
-      "--primary-foreground": "#F4F4F5",
-      "--accent": "#71717A",
-      "--accent-foreground": "#F4F4F5",
-      "--ring": "#52525B",
-      "--sidebar": "oklch(0.972 0.002 260)",
-      "--sidebar-foreground": "#27272A",
-      "--sidebar-muted": "rgb(39 39 42 / 0.6)",
-      "--sidebar-border": "rgb(39 39 42 / 0.14)",
-      "--sidebar-hover": "rgb(39 39 42 / 0.08)",
-      "--sidebar-panel": "#FFFFFF",
+      "--sidebar": "#09090B",
+      "--sidebar-foreground": "#FAFAFA",
+      "--sidebar-muted": "#A1A1AA",
+      "--sidebar-border": "#27272A",
+      "--sidebar-hover": "#18181B",
+      "--sidebar-panel": "#18181B",
     },
   },
   {
@@ -201,6 +153,7 @@ export function leerTema(): TemaId {
   try {
     const guardado = window.localStorage.getItem(LS_TEMA);
     if (TEMAS.some((t) => t.id === guardado)) return guardado as TemaId;
+    if (guardado === "redwood" || guardado === "monocromo") return "telxen";
   } catch {
     // almacenamiento no disponible
   }
