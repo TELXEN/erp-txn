@@ -442,6 +442,74 @@ function ManoObraWysiwyg({
           </tr>
         </thead>
         <tbody>
+          {/* Fila fantasma de creación rápida (siempre visible arriba) */}
+          <tr className="border-b border-dashed border-line/60 bg-muted/20">
+            <td className="px-5 py-2 text-muted-foreground/60">auto</td>
+            <td className="px-3 py-2">
+              <input
+                className={inputCls}
+                placeholder="Escribe la descripción y pulsa Enter…"
+                value={nueva.nombre}
+                onChange={(e) => setNueva({ ...nueva, nombre: e.target.value })}
+                onKeyDown={teclaNueva}
+              />
+            </td>
+            <td className="px-3 py-2">
+              <select className={selCls} value={nueva.regimen} onChange={(e) => setNueva({ ...nueva, regimen: e.target.value as RegimenLaboral })}>
+                {REGIMENES_LABORALES.map((r) => <option key={r} value={r}>{r}</option>)}
+              </select>
+            </td>
+            <td className="px-3 py-2">
+              {nueva.regimen === "Construcción Civil" ? (
+                <div className="flex items-center gap-1">
+                  <select className={selCls} value={nueva.categoria} onChange={(e) => setNueva({ ...nueva, categoria: e.target.value })}>
+                    {CATEGORIAS_OBRERO.map((c) => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                  <span className="whitespace-nowrap text-[10px] text-muted-foreground">por jornal</span>
+                </div>
+              ) : (
+                <input
+                  className={`${inputCls} text-right`}
+                  type="number"
+                  step="0.01"
+                  min={0}
+                  placeholder="0.00"
+                  value={nueva.sueldo}
+                  onChange={(e) => setNueva({ ...nueva, sueldo: e.target.value })}
+                  onKeyDown={teclaNueva}
+                />
+              )}
+            </td>
+            <td className="px-3 py-2 text-center text-muted-foreground">hh</td>
+            <td className="px-3 py-2 text-right font-semibold text-primary">{soles(calculoNueva.costoHH)}</td>
+            <td className="px-3 py-2">
+              <p className="text-right text-muted-foreground">{mgTipo.toFixed(2)}%</p>
+            </td>
+            <td className="px-3 py-2 text-right text-ink">
+              {soles(calculoNueva.costoHH * (1 + mg.MO / 100))}
+            </td>
+            <td className="px-5 py-2">
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => void crearDesdeFila()}
+                  disabled={guardando}
+                  title="Registrar insumo"
+                  className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground disabled:opacity-50"
+                >
+                  <Check size={14} />
+                </button>
+              </div>
+            </td>
+          </tr>
+          {/* Vista previa del cálculo de la fila fantasma */}
+          {(Number(nueva.sueldo || 0) > 0 || nueva.regimen === "Construcción Civil") && (
+            <tr className="border-b border-dashed border-line/60 bg-muted/20">
+              <td colSpan={9} className="px-5 py-2">
+                <DetalleCostoHH lineas={calculoNueva.lineas} horas={calculoNueva.horasEfectivas} />
+              </td>
+            </tr>
+          )}
           {lista.map((i) => {
             const esEdicion = editando?.id === i.id;
             const costoHH = esEdicion && calculoEdicion ? calculoEdicion.costoHH : Number(i.precio);
