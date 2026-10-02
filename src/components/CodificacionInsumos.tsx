@@ -11,6 +11,7 @@ type Cfg = {
   digito_eq: number;
   digito_ht: number;
   digito_sc: number;
+  digito_partida: number;
   correlativo_mo: number;
   correlativo_mat: number;
   correlativo_eq: number;
@@ -24,6 +25,7 @@ const vacio: Omit<Cfg, "id"> = {
   digito_eq: 3,
   digito_ht: 4,
   digito_sc: 5,
+  digito_partida: 6,
   correlativo_mo: 0,
   correlativo_mat: 0,
   correlativo_eq: 0,
@@ -70,9 +72,9 @@ export function CodificacionInsumos() {
     e.preventDefault();
     setError("");
     setAviso("");
-    const digitos = [form.digito_mo, form.digito_mat, form.digito_eq, form.digito_ht, form.digito_sc];
+    const digitos = [form.digito_mo, form.digito_mat, form.digito_eq, form.digito_ht, form.digito_sc, form.digito_partida];
     if (digitos.some((d) => d < 0 || d > 9)) return setError("Los dígitos de tipo deben estar entre 0 y 9.");
-    if (new Set(digitos).size !== digitos.length) return setError("Cada tipo de insumo debe tener un dígito distinto.");
+    if (new Set(digitos).size !== digitos.length) return setError("Cada tipo de insumo y las partidas deben tener un dígito distinto.");
     setGuardando(true);
     const resultado = cfg
       ? await (supabase as unknown as { from: (t: string) => any }).from("codificacion_insumo").update(form).eq("id", cfg.id)
@@ -125,6 +127,15 @@ export function CodificacionInsumos() {
                   </td>
                 </tr>
               ))}
+              <tr className="border-t border-line">
+                <td className="py-2 pr-3 font-semibold text-ink">Partidas (catálogo WBS)</td>
+                <td className="px-3 py-2">
+                  <Input className="py-1 text-center" type="number" min={0} max={9} value={form.digito_partida}
+                    onChange={(e) => setForm({ ...form, digito_partida: Number(e.target.value) })} />
+                </td>
+                <td className="px-3 py-2 text-center text-muted-foreground">por orden</td>
+                <td className="py-2 pl-3 text-primary">{form.digito_partida}.EE.CC.NNN</td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -149,7 +160,7 @@ export function CodificacionInsumos() {
           <p className="font-mono text-[10px] leading-relaxed text-muted-foreground">
             Cada insumo nuevo recibe un código de 8 dígitos: el primero identifica el tipo (mano de obra, materiales,
             equipos, herramientas o subcontratos) y los siete restantes son el correlativo. El código se reserva en el
-            servidor al guardar, por lo que nunca se repite.
+            servidor al guardar, por lo que nunca se repite. Las partidas usan su propio dígito seguido del orden de especialidad, categoría y correlativo (ej. 60302005).
           </p>
         </div>
       </Panel>
