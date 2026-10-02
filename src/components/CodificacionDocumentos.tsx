@@ -219,6 +219,12 @@ export function CodificacionDocumentos() {
             </li>
           </ol>
         </div>
+        {(error || aviso) && (
+          <div className="border-t border-line px-4 py-2 font-mono text-xs">
+            {error && <span className="text-bad">{error}</span>}
+            {aviso && <span className="text-good">{aviso}</span>}
+          </div>
+        )}
       </Panel>
 
       <Panel titulo="Vista previa">
