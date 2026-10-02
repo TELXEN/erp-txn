@@ -12,7 +12,7 @@ El botón **+** de «Codificación automática de insumos» permitirá crear un 
 ## Cambios en la base de datos (una migración)
 
 1. **Nueva tabla `tipos_insumo`**: clave (texto corto único, ej. `MO`, `MAT`, `T6`), nombre visible, dígito (0–9 único), correlativo, orden, marca de sistema. Con GRANTs, RLS (lectura a usuarios conectados; crear/editar/borrar solo Administrador y Gerente) y trigger de `updated_at`.
-2. **Semilla**: los 5 tipos actuales se insertan como filas de sistema (no borrables ni renombrables en clave), copiando dígitos y correlativos actuales de `codificacion_insumo`.
+2. **Semilla**: los 5 tipos actuales se insertan como filas de sistema (no borrables ni renombrables en clave), copiando dígitos y correlativos actuales de `codificacion_insumo`, con nombres en MAYÚSCULAS: MANO DE OBRA, MATERIALES, EQUIPOS Y MAQUINARIA, HERRAMIENTAS MANUALES, SUBCONTRATOS. Los tipos nuevos también se guardan en mayúsculas.
 3. **`siguiente_codigo_insumo(_tipo)`** se reescribe: valida el tipo contra `tipos_insumo`, incrementa su correlativo con bloqueo de fila y devuelve dígito + correlativo de 7 cifras (mismo formato actual).
 4. **`recodificar_wbs()`** se reescribe: el dígito de cada partida se obtiene del tipo vía `tipos_insumo` (join por clave) en lugar del CASE fijo MO/MAT/EQ/HT/SC.
 5. **Trigger de protección** en `tipos_insumo`: los tipos de sistema no se pueden borrar ni cambiar de clave; un tipo personalizado solo se borra si no tiene insumos asociados.
@@ -24,7 +24,7 @@ El botón **+** de «Codificación automática de insumos» permitirá crear un 
 2. **`CodificacionInsumos.tsx`**: la tabla se alimenta de `tipos_insumo`; el botón **+** del encabezado (junto al título) abre la fila de captura para un tipo nuevo (nombre + clave sugerida automática); dígito se asigna solo (siguiente libre) y queda editable con el lápiz; botón eliminar por fila solo en tipos personalizados sin insumos.
 3. **`Insumos.tsx` (Maestro de insumos)**: pestañas dinámicas según `tipos_insumo` (los 5 de sistema primero, luego los personalizados); cada tipo nuevo usa la tabla WYSIWYG genérica (código, descripción, unidad, C. unitario, margen, P. venta).
 4. **`MargenesApu.tsx`**: una fila de margen por cada tipo de la tabla, incluidos los nuevos.
-5. **`ApuPartida.tsx` / `calcularApu`**: los totales por tipo se calculan de forma dinámica (agrupación por tipo en vez de las 5 sumas fijas); la ventana APU muestra un subtotal por cada tipo presente en la partida.
+5. **`ApuPartida.tsx` / `calcularApu`**: los totales por tipo se calculan de forma dinámica (agrupación por tipo en vez de las 5 sumas fijas); la ventana APU muestra un subtotal por cada tipo presente en la partida. Los títulos de grupo y subtotales del APU (ventana, cotización y dossier PDF) se muestran en MAYÚSCULAS, tomados del nombre del tipo.
 6. **`CotizacionHoja.tsx`, `apu-vista.tsx` (dossier), `BuscadorInsumo.tsx`, `requerimientos.tsx`**: reemplazan las referencias a la lista fija por la consulta dinámica (etiquetas, filtros por tipo, agrupaciones).
 7. **Partidas maestras**: el selector de tipo de partida incluye los tipos nuevos; la recodificación usa su dígito.
 
