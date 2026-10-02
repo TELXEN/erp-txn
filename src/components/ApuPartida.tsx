@@ -177,7 +177,8 @@ export function ApuPartida({
                   const usaCuadrilla = tipo === "MO" || tipo === "EQ";
                   return (
                     <tr key={c.id} className="border-b border-line/40">
-                      <td className="truncate px-5 py-1.5 text-ink">{ins?.nombre}</td>
+                      <td className="px-5 py-1.5 text-muted-foreground">{ins?.codigo || "–"}</td>
+                      <td className="truncate px-2 py-1.5 text-ink">{ins?.nombre}</td>
                       <td className="px-2 py-1.5 text-muted-foreground">{ins?.unidad}</td>
                       <td className="px-2 py-1">
                         {usaCuadrilla && (
