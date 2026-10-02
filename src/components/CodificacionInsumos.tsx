@@ -160,7 +160,7 @@ export function CodificacionInsumos({ onAgregarTipo }: { onAgregarTipo?: (tipo: 
                   </td>
                 </tr>
               )}
-              {tipos.map((t) => {
+              {tipos.filter((t) => !t.oculto).map((t) => {
                 const f = form[t.id] ?? { nombre: t.nombre, digito: t.digito, correlativo: Number(t.correlativo) };
                 return (
                   <tr key={t.id} className="border-b border-line/40 last:border-0">

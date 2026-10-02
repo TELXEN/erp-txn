@@ -61,8 +61,8 @@ export function Insumos() {
   // Orden de pestañas del maestro: Materiales antes de Mano de obra.
   const { data: tiposDb = [] } = useTiposInsumo();
   const ORDEN_PESTANAS: TipoInsumo[] = [
-    "MAT", "MO", "EQ", "HT", "SC",
-    ...tiposDb.filter((t) => !(TIPOS_SISTEMA as readonly string[]).includes(t.clave)).map((t) => t.clave),
+    "MAT", "MO", "EQ", "SC",
+    ...tiposDb.filter((t) => !t.oculto && !(TIPOS_SISTEMA as readonly string[]).includes(t.clave)).map((t) => t.clave),
   ];
   const etiquetaTipo = (t: TipoInsumo) => TIPOS_INSUMO.find(([k]) => k === t)?.[1] ?? t;
 

@@ -3252,6 +3252,7 @@ export type Database = {
           es_sistema: boolean
           id: string
           nombre: string
+          oculto: boolean
           orden: number
           updated_at: string
         }
@@ -3263,6 +3264,7 @@ export type Database = {
           es_sistema?: boolean
           id?: string
           nombre: string
+          oculto?: boolean
           orden?: number
           updated_at?: string
         }
@@ -3274,6 +3276,7 @@ export type Database = {
           es_sistema?: boolean
           id?: string
           nombre?: string
+          oculto?: boolean
           orden?: number
           updated_at?: string
         }

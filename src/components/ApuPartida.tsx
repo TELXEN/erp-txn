@@ -44,7 +44,7 @@ export function ApuPartida({
   const { data: margenes } = useMargenesInsumo();
   // Insumo «Herramientas manuales» del maestro (código 40000001): su C. Unitario es el % de MO de respaldo.
   const insumoHT = insumos.find((i) => i.tipo === "HT" && i.codigo === "40000001");
-  const pctH = insumoHT && Number(insumoHT.precio) > 0 ? Number(insumoHT.precio) : Number(margenes?.HT ?? 0);
+  const pctH = Number(margenes?.HT ?? 0);
   const [nuevo, setNuevo] = useState("");
   const [error, setError] = useState("");
   const calc = calcularApu(comps, insumos, Number(rend), Number(jornada), Number(pctH));
@@ -142,7 +142,7 @@ export function ApuPartida({
           </label>
           <label>Jornada (horas)<Input className="mt-1 py-1 text-xs" type="number" step="0.5" value={jornada} onChange={(e) => setJornada(e.target.value)} /></label>
           <label>Herramientas manuales<p className="mt-1 py-1 text-right font-mono text-xs text-ink">{pctH.toFixed(2)}%</p>
-            <p className="text-[9px] text-muted-foreground">se edita en Márgenes APU</p>
+            <p className="text-[9px] text-muted-foreground">automático en Equipos y herramientas · se edita en Márgenes APU</p>
           </label>
           <div className="text-right">
             <p className="text-muted-foreground">Precio unitario</p>
@@ -167,7 +167,8 @@ export function ApuPartida({
           <tbody>
             {TIPOS_INSUMO.map(([tipo, titulo]) => {
               const filas = calc.filas.filter((f) => f.ins?.tipo === tipo);
-              const conH = tipo === "HT" && calc.herramientas > 0;
+              const conH = tipo === "EQ" && calc.herramientas > 0;
+              if (tipo === "HT") return null;
               if (!filas.length && !conH) return null;
               return [
                 <tr key={tipo} className="bg-muted/40">

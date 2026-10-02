@@ -8,10 +8,13 @@ export const TIPOS_SISTEMA = ["MO", "MAT", "EQ", "HT", "SC"] as const;
 export const TIPOS_INSUMO: [TipoInsumo, string][] = [
   ["MO", "MANO DE OBRA"],
   ["MAT", "MATERIALES"],
-  ["EQ", "EQUIPOS Y MAQUINARIA"],
+  ["EQ", "EQUIPOS Y HERRAMIENTAS"],
   ["HT", "HERRAMIENTAS MANUALES"],
   ["SC", "SUBCONTRATOS"],
 ];
+/** Claves de tipos internos (no se muestran en pestañas, buscadores ni codificación). */
+export const TIPOS_OCULTOS = new Set<string>(["HT"]);
+export const tiposVisibles = () => TIPOS_INSUMO.filter(([k]) => !TIPOS_OCULTOS.has(k));
 export const nombreTipo = (t: string) => TIPOS_INSUMO.find(([k]) => k === t)?.[1] ?? t;
 
 export type TipoInsumoFila = {
@@ -22,6 +25,7 @@ export type TipoInsumoFila = {
   correlativo: number;
   orden: number;
   es_sistema: boolean;
+  oculto?: boolean;
 };
 
 /** Tipos de insumo configurables; actualiza el registro TIPOS_INSUMO para etiquetas y totales. */
@@ -36,6 +40,10 @@ export const useTiposInsumo = () =>
         .order("created_at");
       if (error) throw error;
       const filas = (data ?? []) as TipoInsumoFila[];
+      if (filas.length) {
+        TIPOS_OCULTOS.clear();
+        for (const f of filas) if (f.oculto) TIPOS_OCULTOS.add(f.clave);
+      }
       if (filas.length) TIPOS_INSUMO.splice(0, TIPOS_INSUMO.length, ...filas.map((f) => [f.clave, f.nombre] as [string, string]));
       return filas;
     },
@@ -271,19 +279,13 @@ export function calcularApu(
     parciales.set(c.id, { cantidad, parcial });
   }
   const totMO = tot["MO"] ?? 0;
-  const tieneHt = base.some(({ ins }) => ins?.tipo === "HT");
-  for (const { c, ins } of base) {
-    if (ins?.tipo !== "HT") continue;
-    // % propio de la herramienta (C. Unitario del maestro, guardado en precio); si está vacío usa el % global de Márgenes APU.
-    const pct = Number(ins.precio) > 0 ? Number(ins.precio) : Number(ins.margen_pct || 0);
-    const parcial = (totMO * pct) / 100;
-    tot["HT"] = (tot["HT"] ?? 0) + parcial;
-    parciales.set(c.id, { cantidad: pct, parcial });
-  }
-  const filas = base.map(({ c, ins }) => ({ c, ins, ...(parciales.get(c.id) ?? { cantidad: 0, parcial: 0 }) }));
-  // Respaldo: un APU sin herramientas vinculadas del maestro aplica el % global.
-  const herramientas = tieneHt ? 0 : (totMO * Number(pctHerramientas || 0)) / 100;
-  tot["HT"] = (tot["HT"] ?? 0) + herramientas;
+  const filas = base
+    .filter(({ ins }) => ins?.tipo !== "HT")
+    .map(({ c, ins }) => ({ c, ins, ...(parciales.get(c.id) ?? { cantidad: 0, parcial: 0 }) }));
+  // Herramientas manuales: fila automática al final de EQUIPOS Y HERRAMIENTAS (% de MO desde Márgenes APU).
+  const herramientas = (totMO * Number(pctHerramientas || 0)) / 100;
+  tot["EQ"] = (tot["EQ"] ?? 0) + herramientas;
+  tot["HT"] = 0;
   const pu = Math.round(Object.values(tot).reduce((a, v) => a + v, 0) * 100) / 100;
   return { filas, tot, herramientas, pu };
 }

@@ -85,7 +85,7 @@ function VistaApu() {
   const { data: margenes } = useMargenesInsumo();
   // Insumo «Herramientas manuales» del maestro (código 40000001): su C. Unitario es el % de MO de respaldo.
   const insumoHT = insumos.find((i) => i.tipo === "HT" && i.codigo === "40000001");
-  const pctH = insumoHT && Number(insumoHT.precio) > 0 ? Number(insumoHT.precio) : Number(margenes?.HT ?? 0);
+  const pctH = Number(margenes?.HT ?? 0);
   const cot = cotizaciones.find((c) => c.id === id);
   const [pdf, setPdf] = useState(false);
 
@@ -186,7 +186,8 @@ function VistaApu() {
                         <tbody>
                           {TIPOS_INSUMO.map(([tipo, titulo]) => {
                             const filas = calc.filas.filter((f) => f.ins?.tipo === tipo);
-                            const conH = tipo === "HT" && calc.herramientas > 0;
+                            const conH = tipo === "EQ" && calc.herramientas > 0;
+                            if (tipo === "HT") return null;
                             if (!filas.length && !conH) return null;
                             return [
                               <tr key={tipo} style={{ background: C.emBg }}>
