@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Check, ChevronDown, ChevronRight, Pencil, Trash2, X } from "lucide-react";
-import { Boton, Campo, Input, Panel, Select, Vacio } from "@/components/ui-kit";
+import { Input, Panel, Select } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { MargenesApuPanel } from "@/components/MargenesApu";
 import { ParametrosLaboralesPanel } from "@/components/ParametrosLaborales";
@@ -27,28 +27,18 @@ import {
   MARGENES_DEFECTO,
 } from "@/lib/apu";
 
-const vacio = { tipo: "MAT" as TipoInsumo, codigo: "", nombre: "", unidad: "und", precio: "", margen: "" };
 type SeccionInsumos = TipoInsumo | "margenes" | "laboral";
 
 export function Insumos() {
   const qc = useQueryClient();
   const { data: lista = [] } = useInsumos();
-  const { data: mg = MARGENES_DEFECTO } = useMargenesInsumo();
-  const { data: unidades = [] } = useUnidadesMedida();
-  const [form, setForm] = useState(vacio);
-  const [editando, setEditando] = useState<Insumo | null>(null);
   const [filtro, setFiltro] = useState<TipoInsumo>("MO");
   const [seccion, setSeccion] = useState<SeccionInsumos>("MO");
   const [busqueda, setBusqueda] = useState("");
-  const [error, setError] = useState("");
   const refrescar = () => {
     qc.invalidateQueries({ queryKey: ["insumos"] });
     qc.invalidateQueries({ queryKey: ["apu_componentes"] });
   };
-  const simbolos = useMemo(() => {
-    const s = unidades.filter((u) => u.activo).map((u) => u.simbolo);
-    return [...new Set([...s, "hh", "hm", "und", "%mo"])];
-  }, [unidades]);
 
   const visibles = lista
     .filter((i) => i.tipo === filtro)
@@ -57,53 +47,6 @@ export function Insumos() {
   function cambiarPestana(t: TipoInsumo) {
     setSeccion(t);
     setFiltro(t);
-    setForm((f) => ({ ...f, tipo: t }));
-  }
-
-  async function crear(e: React.FormEvent) {
-    e.preventDefault();
-    setError("");
-    if (!form.nombre.trim()) return setError("Escribe la descripción del insumo.");
-    const { error: err } = await apuDb.from("insumos").insert({
-      tipo: form.tipo,
-      codigo: form.codigo.trim(),
-      nombre: form.nombre.trim(),
-      unidad: form.unidad,
-      precio: Number(form.precio || 0),
-      margen_pct: Number(form.margen || 0),
-    });
-    if (err) return setError(err.message);
-    setForm({ ...vacio, tipo: form.tipo, unidad: form.unidad });
-    refrescar();
-  }
-
-  async function guardar() {
-    if (!editando) return;
-    const { error: err } = await apuDb
-      .from("insumos")
-      .update({
-        tipo: editando.tipo,
-        codigo: editando.codigo.trim(),
-        nombre: editando.nombre.trim(),
-        unidad: editando.unidad,
-        precio: Number(editando.precio || 0),
-        margen_pct: Number(editando.margen_pct || 0),
-        activo: editando.activo,
-      })
-      .eq("id", editando.id);
-    if (err) return setError(err.message);
-    setEditando(null);
-    refrescar();
-  }
-
-  async function eliminar(id: string) {
-    if (!window.confirm("¿Eliminar este insumo?")) return;
-    const { error: err } = await apuDb.from("insumos").delete().eq("id", id);
-    if (err)
-      return setError(
-        err.message.includes("foreign key") ? "El insumo se usa en un análisis de precios; desactívalo." : err.message,
-      );
-    refrescar();
   }
 
   return (
