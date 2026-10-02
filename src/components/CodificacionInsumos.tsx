@@ -120,7 +120,7 @@ export function CodificacionInsumos({ onAgregarTipo }: { onAgregarTipo?: (tipo: 
     <form onSubmit={guardar} className="grid gap-4 lg:grid-cols-[1fr_320px]">
       <Panel
         titulo="Codificación automática de insumos"
-        accion={
+        extra={
           <button
             type="button"
             title="Añadir nuevo tipo de insumo"

@@ -182,7 +182,7 @@ export type ComponenteApu = {
 
 const db = supabase as unknown as { from: (t: string) => any };
 
-export type MargenesInsumo = Record<TipoInsumo, number>;
+export type MargenesInsumo = { MO: number; MAT: number; EQ: number; HT: number; SC: number } & Record<string, number>;
 // Claves fijas por defecto; los tipos personalizados se agregan al leer márgenes.
 export const MARGENES_DEFECTO: MargenesInsumo = { MO: 0, MAT: 0, EQ: 0, HT: 0, SC: 0 };
 

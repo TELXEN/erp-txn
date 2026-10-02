@@ -142,7 +142,7 @@ export function Insumos() {
       ) : filtro === "HT" ? (
         <HerramientasWysiwyg enfoqueNueva={crearEn === "HT"} lista={visibles} busqueda={busqueda} setBusqueda={setBusqueda} refrescar={refrescar} />
       ) : (
-        <EquiposWysiwyg key={filtro} tipo={filtro} enfoqueNueva={crearEn === filtro} lista={visibles} busqueda={busqueda} setBusqueda={setBusqueda} refrescar={refrescar} />
+        <EquiposWysiwyg key={filtro} tipo={filtro as "EQ"} enfoqueNueva={crearEn === filtro} lista={visibles} busqueda={busqueda} setBusqueda={setBusqueda} refrescar={refrescar} />
       )}
     </>
   );
@@ -774,7 +774,7 @@ function EquiposWysiwyg({
   refrescar: () => void;
 }) {
   const { data: mg = MARGENES_DEFECTO } = useMargenesInsumo();
-  const mgTipo = mg[tipo];
+  const mgTipo = mg[tipo] ?? 0;
   const { data: unidades = [] } = useUnidadesMedida();
   const simbolos = useMemo(() => {
     const s = unidades.filter((u) => u.activo).map((u) => u.simbolo);
