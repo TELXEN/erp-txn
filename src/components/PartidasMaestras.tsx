@@ -13,6 +13,15 @@ import { categoriasDe, useCategoriasPartida } from "@/lib/categorias";
 import { FlechasOrden } from "@/components/FlechasOrden";
 import { codigoPartidaLegible, moverWbs, recodificarWbs, ORDEN_FINAL } from "@/lib/wbs";
 
+const TIPOS_PARTIDA: [string, string][] = [
+  ["MO", "Mano de obra"],
+  ["MAT", "Materiales"],
+  ["EQ", "Equipos y maquinaria"],
+  ["HT", "Herramientas menores"],
+  ["SC", "Subcontratos"],
+];
+const nombreTipo = (t?: string) => TIPOS_PARTIDA.find(([k]) => k === t)?.[0] ?? "Materiales";
+
 const vacio = {
   nombre: "",
   especialidad: "",
@@ -20,6 +29,7 @@ const vacio = {
   marca: "",
   unidad: "glb",
   precio_unitario: "",
+  tipo_partida: "MAT",
 };
 
 export function PartidasMaestras() {
@@ -67,6 +77,7 @@ export function PartidasMaestras() {
       marca: form.marca.trim(),
       unidad: form.unidad,
       precio_unitario: Number(form.precio_unitario || 0),
+      tipo_partida: form.tipo_partida,
       orden: ORDEN_FINAL,
     });
     if (err) return setError(err.message);
@@ -76,6 +87,7 @@ export function PartidasMaestras() {
       especialidad: form.especialidad,
       categoria: form.categoria,
       unidad: form.unidad,
+      tipo_partida: form.tipo_partida,
     });
     refrescar();
   }
@@ -94,6 +106,7 @@ export function PartidasMaestras() {
         marca: editando.marca ?? "",
         unidad: editando.unidad,
         precio_unitario: Number(editando.precio_unitario || 0),
+        tipo_partida: editando.tipo_partida ?? "MAT",
         activo: editando.activo,
         ...(cambioGrupo ? { orden: ORDEN_FINAL } : {}),
       })
