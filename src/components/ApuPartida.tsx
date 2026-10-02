@@ -139,7 +139,7 @@ export function ApuPartida({
             </div>
           </label>
           <label>Jornada (horas)<Input className="mt-1 py-1 text-xs" type="number" step="0.5" value={jornada} onChange={(e) => setJornada(e.target.value)} /></label>
-          <label>Herramientas (% MO)<p className="mt-1 py-1 text-right font-mono text-xs text-ink">{pctH.toFixed(2)}%</p>
+          <label>Herramientas manuales (% MO)<p className="mt-1 py-1 text-right font-mono text-xs text-ink">{pctH.toFixed(2)}%</p>
             <p className="text-[9px] text-muted-foreground">se edita en Márgenes APU</p>
           </label>
           <div className="text-right">
@@ -205,7 +205,7 @@ export function ApuPartida({
                 conH ? (
                   <tr key="herr" className="border-b border-line/40">
                     <td className="px-5 py-1.5 text-muted-foreground">–</td>
-                    <td className="px-2 py-1.5 text-ink">Herramientas (% MO)</td>
+                    <td className="px-2 py-1.5 text-ink">Herramientas manuales (% MO)</td>
                     <td className="px-2 py-1.5 text-muted-foreground">%MO</td>
                     <td />
                     <td className="px-2 py-1.5 text-right">{pctH.toFixed(2)}%</td>

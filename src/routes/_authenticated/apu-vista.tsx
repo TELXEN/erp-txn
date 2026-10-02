@@ -204,7 +204,7 @@ function VistaApu() {
                               )),
                               conH ? (
                                 <tr key="h" style={{ borderBottom: `0.5px solid ${C.line}` }}>
-                                  <td /><td style={{ padding: "3px 6px" }}>Herramientas (% MO)</td><td style={{ padding: "3px 6px" }}>%MO</td><td />
+                                  <td /><td style={{ padding: "3px 6px" }}>Herramientas manuales (% MO)</td><td style={{ padding: "3px 6px" }}>%MO</td><td />
                                   <td style={{ padding: "3px 6px", textAlign: "right" }}>{n2(pctH)}%</td><td />
                                   <td style={{ padding: "3px 6px", textAlign: "right" }}>{n2(calc.herramientas)}</td>
                                 </tr>
