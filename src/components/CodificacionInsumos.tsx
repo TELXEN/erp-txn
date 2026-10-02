@@ -105,6 +105,16 @@ export function CodificacionInsumos({ onAgregarTipo }: { onAgregarTipo: (tipo: T
               {CAMPOS.map((c) => (
                 <tr key={c.tipo} className="border-b border-line/40 last:border-0">
                   <td className="py-2 pr-3 text-ink">{c.nombre}</td>
+                  <td className="py-2 pr-1">
+                    <button
+                      type="button"
+                      title={`Añadir nuevo insumo de ${c.nombre}`}
+                      onClick={() => onAgregarTipo(c.tipo)}
+                      className="grid h-6 w-6 place-items-center rounded-md border border-line text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+                    >
+                      <Plus size={12} />
+                    </button>
+                  </td>
                   <td className="px-3 py-2">
                     <Input
                       className="py-1 text-center"
@@ -151,6 +161,10 @@ export function CodificacionInsumos({ onAgregarTipo }: { onAgregarTipo: (tipo: T
             </p>
             <p className="mt-1 font-mono text-[10px] text-muted-foreground">Ejemplo: próximo código de mano de obra</p>
           </div>
+          <p className="font-mono text-[10px] leading-relaxed text-muted-foreground">
+            El botón + junto a cada tipo abre su maestro con la fila de captura lista para registrar un insumo nuevo; el
+            código se reserva en el servidor al guardar.
+          </p>
           <p className="font-mono text-[10px] leading-relaxed text-muted-foreground">
             Cada insumo nuevo recibe un código de 8 dígitos: el primero identifica el tipo (mano de obra, materiales,
             equipos, herramientas o subcontratos) y los siete restantes son el correlativo. El código se reserva en el
