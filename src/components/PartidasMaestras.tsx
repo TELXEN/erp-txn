@@ -158,14 +158,14 @@ export function PartidasMaestras() {
                 <th className="w-[5%] px-3 py-2 font-medium">Und.</th>
                 <th className="w-[8%] px-3 py-2 text-right font-medium">P.U. (S/)</th>
                 <th className="w-[6%] px-3 py-2 font-medium">Estado</th>
-                <th className="w-[7%] px-5 py-2 text-right font-medium">Acciones</th>
+                <th className="w-[7%] px-3 py-2 text-right font-medium">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {filtradas.map((p) =>
                 editando?.id === p.id ? (
                   <tr key={p.id} className="border-b border-line/40 last:border-0">
-                    <td className="px-5 py-2 text-muted-foreground">{codigoPartidaLegible(p.codigo)}</td>
+                    <td className="px-3 py-2 text-muted-foreground">{codigoPartidaLegible(p.codigo)}</td>
                     <td className="px-3 py-2">
                       <Input
                         className="py-1 text-xs"
@@ -341,7 +341,7 @@ export function PartidasMaestras() {
               )}
               {/* Fila de captura inmediata (WYSIWYG) */}
               <tr className="border-t border-dashed border-line">
-                <td className="px-5 py-2 text-center text-muted-foreground" title="El código se genera automáticamente al guardar">—</td>
+                <td className="px-3 py-2 text-center text-muted-foreground" title="El código se genera automáticamente al guardar">—</td>
                 <td className="px-3 py-2">
                     <Input
                       className="py-1 text-xs"
@@ -429,7 +429,7 @@ export function PartidasMaestras() {
                     />
                 </td>
                 <td className="px-3 py-2 text-muted-foreground" title="Activa al guardar">—</td>
-                <td className="px-5 py-2 text-right">
+                <td className="px-3 py-2 text-right">
                   <button
                     type="button"
                     onClick={() => void crearDesdeFila()}
