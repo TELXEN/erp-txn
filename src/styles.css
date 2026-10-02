@@ -76,6 +76,12 @@
   --color-brand-foreground: var(--brand-foreground);
   --color-cta: var(--cta);
   --color-cta-foreground: var(--cta-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-muted: var(--sidebar-muted);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-hover: var(--sidebar-hover);
+  --color-sidebar-panel: var(--sidebar-panel);
 
   --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
@@ -114,6 +120,12 @@
   --border: var(--line);
   --input: var(--line);
   --ring: #003352;
+  --sidebar: rgb(243 247 250);
+  --sidebar-foreground: #003352;
+  --sidebar-muted: rgb(0 51 82 / 0.6);
+  --sidebar-border: rgb(0 51 82 / 0.14);
+  --sidebar-hover: rgb(0 51 82 / 0.08);
+  --sidebar-panel: #fff;
 }
 
 @layer base {
