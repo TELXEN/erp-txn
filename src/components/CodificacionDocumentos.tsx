@@ -193,6 +193,32 @@ export function CodificacionDocumentos() {
             </tbody>
           </table>
         </div>
+        <div className="border-t border-line bg-muted/30 px-4 py-3">
+          <p className="font-mono text-[10px] font-semibold uppercase tracking-wider text-foreground">
+            Cómo actualizar el código al año siguiente
+          </p>
+          <ol className="mt-1.5 list-decimal space-y-1 pl-4 font-mono text-[10px] leading-relaxed text-muted-foreground">
+            <li>
+              Al iniciar el nuevo año (p. ej. 2027), haz clic en el lápiz (editar) de cada documento y cambia
+              solo el año dentro del CÓDIGO: <span className="font-semibold text-foreground">TXN26-P → TXN27-P</span>.
+            </li>
+            <li>
+              Pon <span className="font-semibold text-foreground">Último correlativo usado</span> en{' '}
+              <span className="font-semibold text-foreground">0</span> para que el primer documento del año
+              reciba el correlativo 001.
+            </li>
+            <li>
+              A partir de ahí, cada documento nuevo toma el código automáticamente:{' '}
+              <span className="font-semibold text-foreground">TXN27-P + 001 = TXN27-P001</span>, y el contador
+              avanza solo (002, 003…).
+            </li>
+            <li>
+              No hay reinicio automático: mientras no edites el código, la numeración continúa con el año
+              anterior (TXN26-P004, TXN26-P005…). Repite los pasos 1 y 2 en cada fila que uses (PROYECTOS,
+              COTIZACIONES, PRELIQUIDACIONES y las que hayas añadido).
+            </li>
+          </ol>
+        </div>
         {(error || aviso) && (
           <div className="border-t border-line px-4 py-2 font-mono text-xs">
             {error && <span className="text-bad">{error}</span>}
