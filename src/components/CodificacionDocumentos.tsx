@@ -182,9 +182,7 @@ export function CodificacionDocumentos() {
                             >
                               <Pencil className="h-3.5 w-3.5" />
                             </button>
-                            {!f.es_sistema && (
-                              <button type="button" title="Eliminar" onClick={() => eliminar(f)} className="rounded p-1 text-bad hover:bg-muted"><Trash2 className="h-3.5 w-3.5" /></button>
-                            )}
+                            <button type="button" title="Eliminar" onClick={() => eliminar(f)} className="rounded p-1 text-bad hover:bg-muted"><Trash2 className="h-3.5 w-3.5" /></button>
                           </>
                         )}
                       </div>
