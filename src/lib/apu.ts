@@ -1,15 +1,45 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-export type TipoInsumo = "MO" | "MAT" | "EQ" | "HT" | "SC";
+/** Clave del tipo de insumo (MO, MAT, EQ, HT, SC o una clave personalizada). */
+export type TipoInsumo = string;
+export const TIPOS_SISTEMA = ["MO", "MAT", "EQ", "HT", "SC"] as const;
+/** Registro vivo de tipos [clave, nombre]; se sincroniza con la tabla tipos_insumo en useTiposInsumo. */
 export const TIPOS_INSUMO: [TipoInsumo, string][] = [
-  ["MO", "Mano de obra"],
-  ["MAT", "Materiales"],
-  ["EQ", "Equipos y maquinaria"],
-  ["HT", "Herramientas manuales"],
-  ["SC", "Subcontratos / Servicios"],
+  ["MO", "MANO DE OBRA"],
+  ["MAT", "MATERIALES"],
+  ["EQ", "EQUIPOS Y MAQUINARIA"],
+  ["HT", "HERRAMIENTAS MANUALES"],
+  ["SC", "SUBCONTRATOS"],
 ];
 export const nombreTipo = (t: string) => TIPOS_INSUMO.find(([k]) => k === t)?.[1] ?? t;
+
+export type TipoInsumoFila = {
+  id: string;
+  clave: string;
+  nombre: string;
+  digito: number;
+  correlativo: number;
+  orden: number;
+  es_sistema: boolean;
+};
+
+/** Tipos de insumo configurables; actualiza el registro TIPOS_INSUMO para etiquetas y totales. */
+export const useTiposInsumo = () =>
+  useQuery({
+    queryKey: ["tipos_insumo"],
+    queryFn: async () => {
+      const { data, error } = await (supabase as unknown as { from: (t: string) => any })
+        .from("tipos_insumo")
+        .select("*")
+        .order("orden")
+        .order("created_at");
+      if (error) throw error;
+      const filas = (data ?? []) as TipoInsumoFila[];
+      if (filas.length) TIPOS_INSUMO.splice(0, TIPOS_INSUMO.length, ...filas.map((f) => [f.clave, f.nombre] as [string, string]));
+      return filas;
+    },
+  });
 
 export type Insumo = {
   id: string;
@@ -153,6 +183,7 @@ export type ComponenteApu = {
 const db = supabase as unknown as { from: (t: string) => any };
 
 export type MargenesInsumo = Record<TipoInsumo, number>;
+// Claves fijas por defecto; los tipos personalizados se agregan al leer márgenes.
 export const MARGENES_DEFECTO: MargenesInsumo = { MO: 0, MAT: 0, EQ: 0, HT: 0, SC: 0 };
 
 async function cargarMargenes(): Promise<MargenesInsumo> {
@@ -164,15 +195,19 @@ async function cargarMargenes(): Promise<MargenesInsumo> {
 }
 
 /** Margen único por tipo de insumo (Configuración del Sistema › Márgenes APU). */
-export const useMargenesInsumo = () => useQuery({ queryKey: ["margenes_insumo"], queryFn: cargarMargenes });
+export const useMargenesInsumo = () => {
+  useTiposInsumo();
+  return useQuery({ queryKey: ["margenes_insumo"], queryFn: cargarMargenes });
+};
 
 /** Equipos propios: el precio ya es el C. Unitario (sin margen). */
 export const esPropioSinMargen = (i: Pick<Insumo, "tipo" | "propiedad">) =>
   i.tipo === "EQ" && (i.propiedad ?? "Propio") === "Propio";
 
 /** Insumos con margen_pct reemplazado por el margen único de su tipo (HT: % de mano de obra). */
-export const useInsumos = () =>
-  useQuery({
+export const useInsumos = () => {
+  useTiposInsumo();
+  return useQuery({
     queryKey: ["insumos"],
     queryFn: async () => {
       const [{ data, error }, mg] = await Promise.all([
@@ -183,6 +218,7 @@ export const useInsumos = () =>
       return ((data ?? []) as Insumo[]).map((i) => ({ ...i, margen_pct: esPropioSinMargen(i) ? 0 : mg[i.tipo] ?? 0 }));
     },
   });
+};
 
 export type OrigenApu = "maestra" | "obra" | "cotizacion";
 export const ORIGEN_APU: Record<OrigenApu, { columna: string; tabla: string }> = {
@@ -223,6 +259,7 @@ export function calcularApu(
   pctHerramientas: number,
 ) {
   const tot: Record<TipoInsumo, number> = { MO: 0, MAT: 0, EQ: 0, HT: 0, SC: 0 };
+  for (const [k] of TIPOS_INSUMO) tot[k] ??= 0;
   const base = componentes.map((c) => ({ c, ins: insumos.find((i) => i.id === c.insumo_id) }));
   // Primero todo menos herramientas menores (que dependen del total de mano de obra)
   const parciales = new Map<string, { cantidad: number; parcial: number }>();
@@ -230,7 +267,7 @@ export function calcularApu(
     if (ins?.tipo === "HT") continue;
     const cantidad = cantidadComponente(c, rendimiento, jornada);
     const parcial = cantidad * (ins ? precioVenta(ins) : 0);
-    if (ins) tot[ins.tipo] += parcial;
+    if (ins) tot[ins.tipo] = (tot[ins.tipo] ?? 0) + parcial;
     parciales.set(c.id, { cantidad, parcial });
   }
   const totMO = tot.MO;
@@ -247,6 +284,6 @@ export function calcularApu(
   // Respaldo: un APU sin herramientas vinculadas del maestro aplica el % global.
   const herramientas = tieneHt ? 0 : (totMO * Number(pctHerramientas || 0)) / 100;
   tot.HT += herramientas;
-  const pu = Math.round((tot.MO + tot.MAT + tot.EQ + tot.HT + tot.SC) * 100) / 100;
+  const pu = Math.round(Object.values(tot).reduce((a, v) => a + v, 0) * 100) / 100;
   return { filas, tot, herramientas, pu };
 }

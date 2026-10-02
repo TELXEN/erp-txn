@@ -27,7 +27,7 @@ export const reservarCodigo = createServerFn({ method: "POST" })
 /** Genera el siguiente código de insumo (dígito de tipo + correlativo); solo Administrador o Gerente. */
 export const reservarCodigoInsumo = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({ tipo: z.enum(["MO", "MAT", "EQ", "HT", "SC"]) }).parse(d))
+  .inputValidator((d) => z.object({ tipo: z.string().trim().min(1).max(10).regex(/^[A-Z0-9_]+$/) }).parse(d))
   .handler(async ({ data, context }) => {
     const { data: autorizado, error: e1 } = await context.supabase.rpc("is_admin_o_gerente", {
       _user_id: context.userId,
