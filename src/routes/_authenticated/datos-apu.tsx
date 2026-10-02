@@ -38,7 +38,7 @@ const PESTANAS: [Pestana, string][] = [
 ];
 
 function DatosApu() {
-  const [pestana, setPestana] = useState<Pestana>("insumos");
+  const [pestana, setPestana] = useState<Pestana>("maestras");
 
   return (
     <>
