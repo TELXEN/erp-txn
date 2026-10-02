@@ -7,7 +7,7 @@ import { Boton, Vacio } from "@/components/ui-kit";
 import { useEmpresa } from "@/lib/empresa";
 import { useFuenteDocumento } from "@/lib/fuentes-documentos";
 import { useCotizaciones } from "@/lib/cotizaciones";
-import { apuDb, calcularApu, TIPOS_INSUMO, useInsumos, useMargenesInsumo, type ComponenteApu } from "@/lib/apu";
+import { apuDb, calcularApu, precioVenta, TIPOS_INSUMO, useInsumos, useMargenesInsumo, type ComponenteApu } from "@/lib/apu";
 
 export const Route = createFileRoute("/_authenticated/apu-vista")({
   validateSearch: (s: Record<string, unknown>) => ({
