@@ -21,10 +21,11 @@ export const TONO_SITUACION: Record<Situacion, Tono> = {
   Cancelado: { fondo: "#F8D2CD", borde: "#E79E97" },
 };
 
+// Semáforo: Alta = rojo, Media = amarillo, Baja = verde
 export const TONO_PRIORIDAD: Record<Prioridad, Tono> = {
-  Alta: { fondo: "#DCC6F0", borde: "#B48BD6" },
-  Media: { fondo: "#EAD9F7", borde: "#C8A6E2" },
-  Baja: { fondo: "#F3EBFA", borde: "#DAC4EE" },
+  Alta: { fondo: "#F5A9A0", borde: "#D96C60" },
+  Media: { fondo: "#FBE38F", borde: "#D9B840" },
+  Baja: { fondo: "#A8DDB0", borde: "#5FAF6C" },
 };
 
 export function tonoSituacion(valor: string): Tono {
