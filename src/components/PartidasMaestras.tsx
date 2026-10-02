@@ -1,9 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Calculator, Check, Pencil, Trash2, X } from "lucide-react";
+import { Calculator, Check, ChevronLeft, ChevronRight, Pencil, Trash2, X } from "lucide-react";
 import { ApuPartida } from "@/components/ApuPartida";
 import { supabase } from "@/integrations/supabase/client";
-import { Input, Panel, Select, Vacio } from "@/components/ui-kit";
+import { Input, Panel, Select } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { soles } from "@/lib/format";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
@@ -21,6 +21,8 @@ const TIPOS_PARTIDA: [string, string][] = [
   ["SC", "Subcontratos"],
 ];
 const nombreTipo = (t?: string) => TIPOS_PARTIDA.find(([k]) => k === t)?.[1] ?? "Materiales";
+
+const TAM_PAGINA = 100;
 
 const vacio = {
   nombre: "",
@@ -43,12 +45,37 @@ export function PartidasMaestras() {
   const [nueva, setNueva] = useState<FilaNueva>(vacio);
   const [editando, setEditando] = useState<PartidaMaestra | null>(null);
   const [busqueda, setBusqueda] = useState("");
+  const [pagina, setPagina] = useState(0);
+  const [resaltadoId, setResaltadoId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [apu, setApu] = useState<PartidaMaestra | null>(null);
   const [moviendo, setMoviendo] = useState(false);
   const [guardando, setGuardando] = useState(false);
 
   const refrescar = () => qc.invalidateQueries({ queryKey: ["partidas_maestras"] });
+
+  // Al buscar, volver a la primera página.
+  useEffect(() => {
+    setPagina(0);
+  }, [busqueda]);
+
+  // Tras crear, desplazarse hasta la fila nueva y resaltarla unos segundos.
+  useEffect(() => {
+    if (!resaltadoId) return;
+    let intentos = 0;
+    const iv = setInterval(() => {
+      const fila = document.querySelector(`tr[data-partida="${resaltadoId}"]`);
+      if (fila) {
+        fila.scrollIntoView({ block: "center", behavior: "smooth" });
+        clearInterval(iv);
+      } else if (++intentos > 8) clearInterval(iv);
+    }, 250);
+    const t = setTimeout(() => setResaltadoId(null), 3500);
+    return () => {
+      clearInterval(iv);
+      clearTimeout(t);
+    };
+  }, [resaltadoId]);
 
   const filtradas = useMemo(() => {
     return lista
@@ -57,6 +84,20 @@ export function PartidasMaestras() {
       )
       .sort((a, b) => (a.codigo ?? "").localeCompare(b.codigo ?? ""));
   }, [lista, busqueda]);
+
+  const totalPaginas = Math.max(1, Math.ceil(filtradas.length / TAM_PAGINA));
+  const paginaSegura = Math.min(pagina, totalPaginas - 1);
+  const inicio = paginaSegura * TAM_PAGINA;
+
+  // Página visible; si se está editando una fila fuera de la página, se mantiene visible.
+  const visibles = useMemo(() => {
+    const pag = filtradas.slice(inicio, inicio + TAM_PAGINA);
+    if (editando && !pag.some((p) => p.id === editando.id)) {
+      const fuera = filtradas.find((p) => p.id === editando.id);
+      if (fuera) return [...pag, fuera];
+    }
+    return pag;
+  }, [filtradas, inicio, editando]);
 
   const grupo = (p: PartidaMaestra) => `${p.especialidad}|${p.categoria ?? ""}`;
   const enGrupo = (p: PartidaMaestra) => lista.filter((x) => grupo(x) === grupo(p)).map((x) => x.codigo ?? "").sort();
@@ -73,21 +114,26 @@ export function PartidasMaestras() {
     if (!nueva.nombre.trim()) return setError("Escribe la descripción de la partida.");
     setError("");
     setGuardando(true);
-    const { error: err } = await supabase.from("partidas_maestras").insert({
-      codigo: "",
-      nombre: nueva.nombre.trim(),
-      especialidad: nueva.especialidad,
-      categoria: nueva.categoria,
-      marca: nueva.marca.trim(),
-      unidad: nueva.unidad,
-      precio_unitario: Number(nueva.precio_unitario || 0),
-      tipo_partida: nueva.tipo_partida,
-      orden: ORDEN_FINAL,
-    });
+    const { data: creada, error: err } = await supabase
+      .from("partidas_maestras")
+      .insert({
+        codigo: "",
+        nombre: nueva.nombre.trim(),
+        especialidad: nueva.especialidad,
+        categoria: nueva.categoria,
+        marca: nueva.marca.trim(),
+        unidad: nueva.unidad,
+        precio_unitario: Number(nueva.precio_unitario || 0),
+        tipo_partida: nueva.tipo_partida,
+        orden: ORDEN_FINAL,
+      })
+      .select("id")
+      .single();
     setGuardando(false);
     if (err) return setError(err.message);
     await recodificarWbs().catch(() => undefined);
     setNueva({ ...vacio, especialidad: nueva.especialidad, categoria: nueva.categoria, unidad: nueva.unidad, tipo_partida: nueva.tipo_partida });
+    if (creada?.id) setResaltadoId(creada.id);
     refrescar();
   }
 
@@ -139,30 +185,167 @@ export function PartidasMaestras() {
     <>
       <Panel
         titulo="Banco de partidas maestras"
-        extra={<Buscador valor={busqueda} onChange={setBusqueda} total={filtradas.length} placeholder="Buscar por partida, categoría o especialidad..." />}
+        extra={
+          <div className="flex flex-wrap items-center gap-3">
+            <Buscador valor={busqueda} onChange={setBusqueda} total={filtradas.length} placeholder="Buscar por partida, categoría o especialidad..." />
+            {filtradas.length > TAM_PAGINA && (
+              <div className="flex items-center gap-2 font-mono text-[10px] text-muted-foreground">
+                <span>
+                  Mostrando {inicio + 1}–{Math.min(inicio + TAM_PAGINA, filtradas.length)} de {filtradas.length}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setPagina(Math.max(0, paginaSegura - 1))}
+                  disabled={paginaSegura === 0}
+                  title="Página anterior"
+                  className="inline-flex h-6 w-6 items-center justify-center rounded-md border border-line hover:bg-muted disabled:opacity-40"
+                >
+                  <ChevronLeft size={12} />
+                </button>
+                <span>
+                  {paginaSegura + 1}/{totalPaginas}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setPagina(Math.min(totalPaginas - 1, paginaSegura + 1))}
+                  disabled={paginaSegura >= totalPaginas - 1}
+                  title="Página siguiente"
+                  className="inline-flex h-6 w-6 items-center justify-center rounded-md border border-line hover:bg-muted disabled:opacity-40"
+                >
+                  <ChevronRight size={12} />
+                </button>
+              </div>
+            )}
+          </div>
+        }
       >
-        {filtradas.length === 0 && !busqueda ? (
-          <Vacio texto="Aún no hay partidas en el banco maestro. Captura la primera en la fila de abajo." />
-        ) : filtradas.length === 0 ? (
-          <Vacio texto={`Sin coincidencias para «${busqueda}»`} />
-        ) : (
+        <div className="max-h-[65vh] overflow-y-auto">
           <table className="w-full table-fixed font-mono text-xs">
             <thead>
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                <th className="w-[13%] px-3 py-2 font-medium">Código</th>
-                <th className="w-[19%] px-3 py-2 font-medium">Partida</th>
-                <th className="w-[12%] px-3 py-2 font-medium">Tipo</th>
-                <th className="w-[12%] px-3 py-2 font-medium">Especialidad</th>
-                <th className="w-[11%] px-3 py-2 font-medium">Categoría</th>
-                <th className="w-[7%] px-3 py-2 font-medium">Marca</th>
-                <th className="w-[5%] px-3 py-2 font-medium">Und.</th>
-                <th className="w-[8%] px-3 py-2 text-right font-medium">P.U. (S/)</th>
-                <th className="w-[6%] px-3 py-2 font-medium">Estado</th>
-                <th className="w-[7%] px-3 py-2 text-right font-medium">Acciones</th>
+                <th className="sticky top-0 z-20 h-8 w-[13%] bg-card px-3 py-2 font-medium">Código</th>
+                <th className="sticky top-0 z-20 h-8 w-[19%] bg-card px-3 py-2 font-medium">Partida</th>
+                <th className="sticky top-0 z-20 h-8 w-[12%] bg-card px-3 py-2 font-medium">Tipo</th>
+                <th className="sticky top-0 z-20 h-8 w-[12%] bg-card px-3 py-2 font-medium">Especialidad</th>
+                <th className="sticky top-0 z-20 h-8 w-[11%] bg-card px-3 py-2 font-medium">Categoría</th>
+                <th className="sticky top-0 z-20 h-8 w-[7%] bg-card px-3 py-2 font-medium">Marca</th>
+                <th className="sticky top-0 z-20 h-8 w-[5%] bg-card px-3 py-2 font-medium">Und.</th>
+                <th className="sticky top-0 z-20 h-8 w-[8%] bg-card px-3 py-2 text-right font-medium">P.U. (S/)</th>
+                <th className="sticky top-0 z-20 h-8 w-[6%] bg-card px-3 py-2 font-medium">Estado</th>
+                <th className="sticky top-0 z-20 h-8 w-[7%] bg-card px-3 py-2 text-right font-medium">Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {filtradas.map((p) =>
+              {/* Fila de captura inmediata (WYSIWYG), fija bajo el encabezado */}
+              <tr className="sticky top-8 z-10 border-b border-dashed border-line bg-card">
+                <td className="bg-card px-3 py-2 text-center text-muted-foreground" title="El código se genera automáticamente al guardar">—</td>
+                <td className="bg-card px-3 py-2">
+                    <Input
+                      className="py-1 text-xs"
+                      value={nueva.nombre}
+                      onChange={(e) => setNueva({ ...nueva, nombre: e.target.value })}
+                      onKeyDown={teclaNueva}
+                      maxLength={160}
+                      placeholder="Descripción de la partida…"
+                    />
+                </td>
+                <td className="bg-card px-3 py-2">
+                    <Select
+                      className="py-1 text-xs"
+                      value={nueva.tipo_partida}
+                      onChange={(e) => setNueva({ ...nueva, tipo_partida: e.target.value })}
+                    >
+                      {TIPOS_PARTIDA.map(([k, nombre]) => (
+                        <option key={k} value={k}>
+                          {nombre}
+                        </option>
+                      ))}
+                    </Select>
+                </td>
+                <td className="bg-card px-3 py-2">
+                    <Select
+                      className="py-1 text-xs"
+                      value={nueva.especialidad}
+                      onChange={(e) => setNueva({ ...nueva, especialidad: e.target.value, categoria: "" })}
+                    >
+                      <option value="">Selecciona…</option>
+                      {opcionesEspecialidad.map((e) => (
+                        <option key={e.id} value={e.nombre}>
+                          {e.nombre}
+                        </option>
+                      ))}
+                    </Select>
+                </td>
+                <td className="bg-card px-3 py-2">
+                    <Select
+                      className="py-1 text-xs"
+                      value={nueva.categoria}
+                      onChange={(e) => setNueva({ ...nueva, categoria: e.target.value })}
+                    >
+                      <option value="">Sin categoría</option>
+                      {categoriasDe(nueva.especialidad, categorias).map((c) => (
+                        <option key={c.id} value={c.nombre}>
+                          {c.nombre}
+                        </option>
+                      ))}
+                    </Select>
+                </td>
+                <td className="bg-card px-3 py-2">
+                    <Input
+                      className="py-1 text-xs"
+                      value={nueva.marca}
+                      onChange={(e) => setNueva({ ...nueva, marca: e.target.value })}
+                      onKeyDown={teclaNueva}
+                      maxLength={60}
+                      placeholder="-"
+                    />
+                </td>
+                <td className="bg-card px-3 py-2">
+                    <Select
+                      className="py-1 text-xs"
+                      value={nueva.unidad}
+                      onChange={(e) => setNueva({ ...nueva, unidad: e.target.value })}
+                    >
+                      {opcionesUnidad.map((u) => (
+                        <option key={u.id} value={u.simbolo}>
+                          {u.simbolo}
+                        </option>
+                      ))}
+                    </Select>
+                </td>
+                <td className="bg-card px-3 py-2">
+                    <Input
+                      className="py-1 text-right text-xs"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={nueva.precio_unitario}
+                      onChange={(e) => setNueva({ ...nueva, precio_unitario: e.target.value })}
+                      onKeyDown={teclaNueva}
+                      placeholder="0.00"
+                    />
+                </td>
+                <td className="bg-card px-3 py-2 text-muted-foreground" title="Activa al guardar">—</td>
+                <td className="bg-card px-3 py-2 text-right">
+                  <button
+                    type="button"
+                    onClick={() => void crearDesdeFila()}
+                    disabled={guardando}
+                    title="Guardar (Enter)"
+                    className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground disabled:opacity-50"
+                  >
+                    <Check size={14} />
+                  </button>
+                </td>
+              </tr>
+              {filtradas.length === 0 && (
+                <tr>
+                  <td colSpan={10} className="px-5 py-8 text-center font-mono text-xs text-muted-foreground">
+                    {busqueda ? `Sin coincidencias para «${busqueda}»` : "Aún no hay partidas en el banco maestro. Captura la primera en la fila superior."}
+                  </td>
+                </tr>
+              )}
+              {visibles.map((p) =>
                 editando?.id === p.id ? (
                   <tr key={p.id} className="border-b border-line/40 last:border-0">
                     <td className="px-3 py-2 text-muted-foreground">{codigoPartidaLegible(p.codigo)}</td>
@@ -284,7 +467,11 @@ export function PartidasMaestras() {
                     </td>
                   </tr>
                 ) : (
-                  <tr key={p.id} className="border-b border-line/40 last:border-0">
+                  <tr
+                    key={p.id}
+                    data-partida={p.id}
+                    className={`border-b border-line/40 last:border-0 transition-colors ${p.id === resaltadoId ? "bg-primary/15" : ""}`}
+                  >
                     <td className="px-3 py-2.5">
                       <div className="flex items-center gap-1.5">
                         <FlechasOrden
@@ -339,114 +526,12 @@ export function PartidasMaestras() {
                   </tr>
                 ),
               )}
-              {/* Fila de captura inmediata (WYSIWYG) */}
-              <tr className="border-t border-dashed border-line">
-                <td className="px-3 py-2 text-center text-muted-foreground" title="El código se genera automáticamente al guardar">—</td>
-                <td className="px-3 py-2">
-                    <Input
-                      className="py-1 text-xs"
-                      value={nueva.nombre}
-                      onChange={(e) => setNueva({ ...nueva, nombre: e.target.value })}
-                      onKeyDown={teclaNueva}
-                      maxLength={160}
-                      placeholder="Descripción de la partida…"
-                    />
-                </td>
-                <td className="px-3 py-2">
-                    <Select
-                      className="py-1 text-xs"
-                      value={nueva.tipo_partida}
-                      onChange={(e) => setNueva({ ...nueva, tipo_partida: e.target.value })}
-                    >
-                      {TIPOS_PARTIDA.map(([k, nombre]) => (
-                        <option key={k} value={k}>
-                          {nombre}
-                        </option>
-                      ))}
-                    </Select>
-                </td>
-                <td className="px-3 py-2">
-                    <Select
-                      className="py-1 text-xs"
-                      value={nueva.especialidad}
-                      onChange={(e) => setNueva({ ...nueva, especialidad: e.target.value, categoria: "" })}
-                    >
-                      <option value="">Selecciona…</option>
-                      {opcionesEspecialidad.map((e) => (
-                        <option key={e.id} value={e.nombre}>
-                          {e.nombre}
-                        </option>
-                      ))}
-                    </Select>
-                </td>
-                <td className="px-3 py-2">
-                    <Select
-                      className="py-1 text-xs"
-                      value={nueva.categoria}
-                      onChange={(e) => setNueva({ ...nueva, categoria: e.target.value })}
-                    >
-                      <option value="">Sin categoría</option>
-                      {categoriasDe(nueva.especialidad, categorias).map((c) => (
-                        <option key={c.id} value={c.nombre}>
-                          {c.nombre}
-                        </option>
-                      ))}
-                    </Select>
-                </td>
-                <td className="px-3 py-2">
-                    <Input
-                      className="py-1 text-xs"
-                      value={nueva.marca}
-                      onChange={(e) => setNueva({ ...nueva, marca: e.target.value })}
-                      onKeyDown={teclaNueva}
-                      maxLength={60}
-                      placeholder="-"
-                    />
-                </td>
-                <td className="px-3 py-2">
-                    <Select
-                      className="py-1 text-xs"
-                      value={nueva.unidad}
-                      onChange={(e) => setNueva({ ...nueva, unidad: e.target.value })}
-                    >
-                      {opcionesUnidad.map((u) => (
-                        <option key={u.id} value={u.simbolo}>
-                          {u.simbolo}
-                        </option>
-                      ))}
-                    </Select>
-                </td>
-                <td className="px-3 py-2">
-                    <Input
-                      className="py-1 text-right text-xs"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={nueva.precio_unitario}
-                      onChange={(e) => setNueva({ ...nueva, precio_unitario: e.target.value })}
-                      onKeyDown={teclaNueva}
-                      placeholder="0.00"
-                    />
-                </td>
-                <td className="px-3 py-2 text-muted-foreground" title="Activa al guardar">—</td>
-                <td className="px-3 py-2 text-right">
-                  <button
-                    type="button"
-                    onClick={() => void crearDesdeFila()}
-                    disabled={guardando}
-                    title="Guardar (Enter)"
-                    className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground disabled:opacity-50"
-                  >
-                    <Check size={14} />
-                  </button>
-                </td>
-              </tr>
             </tbody>
           </table>
-        )}
+        </div>
         {error && <p className="border-t border-line px-5 py-2 font-mono text-xs text-bad">{error}</p>}
         <p className="border-t border-line px-5 py-3 font-mono text-[10px] leading-relaxed text-muted-foreground">
-          Captura directa en la tabla: escribe la partida y pulsa Enter para guardar (el código se genera solo según el tipo,
+          Captura directa en la fila superior, siempre visible (Enter para guardar; el código se genera solo según el tipo,
           la especialidad y la categoría). Clic en una fila para editarla. Estas partidas se reutilizan al armar una cotización:
           se copian su descripción, unidad y precio unitario, y puedes ajustarlos en la propuesta sin alterar el catálogo.
         </p>
