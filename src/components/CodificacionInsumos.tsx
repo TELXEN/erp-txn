@@ -229,7 +229,6 @@ export function CodificacionInsumos({ onAgregarTipo }: { onAgregarTipo?: (tipo: 
                           <Trash2 size={12} />
                         </button>
                       )}
-                      {onAgregarTipo && t.es_sistema ? null : null}
                     </td>
                   </tr>
                 );
