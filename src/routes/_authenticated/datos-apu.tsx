@@ -31,10 +31,10 @@ type Pestana = "insumos" | "unidades" | "especialidades" | "categorias" | "maest
 
 const PESTANAS: [Pestana, string][] = [
   ["insumos", "Maestro de insumos"],
-  ["unidades", "Unidades de medida"],
   ["especialidades", "Especialidad de partidas"],
   ["categorias", "Categorías de partidas"],
   ["maestras", "Registro de partidas"],
+  ["unidades", "Unidades de medida"],
 ];
 
 function DatosApu() {
