@@ -188,7 +188,6 @@ export function CodificacionInsumos({ onAgregarTipo }: { onAgregarTipo?: (tipo: 
                     </td>
                     <td className="px-3 py-2">
                       <Input
-                        ref={(el) => { correlativoRefs.current[t.id] = el; }}
                         className="py-1 text-center"
                         type="number"
                         min={0}
@@ -241,7 +240,8 @@ export function CodificacionInsumos({ onAgregarTipo }: { onAgregarTipo?: (tipo: 
           <p className="font-mono text-[10px] leading-relaxed text-muted-foreground">
             El botón + junto al título crea un tipo de insumo nuevo (al mismo nivel que mano de obra o materiales): recibe
             el siguiente dígito libre, su propia pestaña en el Maestro de insumos, su margen en Márgenes APU y su propio
-            grupo en los análisis de precios unitarios. El lápiz solo edita el dígito y el último correlativo del tipo.
+            grupo en los análisis de precios unitarios. El dígito y el último correlativo de cada tipo se editan
+            directamente en la tabla.
             Los cinco tipos del sistema no se pueden eliminar; un tipo nuevo solo se elimina si no tiene insumos.
           </p>
           <p className="font-mono text-[10px] leading-relaxed text-muted-foreground">
