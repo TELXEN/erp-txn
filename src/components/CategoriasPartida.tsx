@@ -8,6 +8,8 @@ import {
   useCategoriasPartida,
   type CategoriaPartida,
 } from "@/lib/categorias";
+import { FlechasOrden } from "@/components/FlechasOrden";
+import { moverWbs, recodificarWbs, ORDEN_FINAL } from "@/lib/wbs";
 
 const vacio = { codigo: "", nombre: "", especialidad: "", orden: "" };
 
@@ -19,12 +21,20 @@ export function CategoriasPartida() {
   const [editando, setEditando] = useState<CategoriaPartida | null>(null);
   const [filtro, setFiltro] = useState("");
   const [error, setError] = useState("");
+  const [moviendo, setMoviendo] = useState(false);
 
   const refrescar = () => {
     qc.invalidateQueries({ queryKey: ["categorias_partida"] });
     qc.invalidateQueries({ queryKey: ["partidas"] });
     qc.invalidateQueries({ queryKey: ["partidas_maestras"] });
   };
+
+  async function mover(id: string, dir: -1 | 1) {
+    setMoviendo(true);
+    try { await moverWbs("categorias", id, dir); refrescar(); }
+    catch (e) { setError((e as Error).message); }
+    setMoviendo(false);
+  }
 
   const opcionesEspecialidad = especialidades.filter((e) => e.activo);
 
@@ -39,8 +49,7 @@ export function CategoriasPartida() {
     const nombre = form.nombre.trim();
     if (!nombre) return setError("Escribe el nombre de la categoría.");
     if (!form.especialidad) return setError("Elige la especialidad a la que pertenece.");
-    const orden =
-      Number(form.orden) || lista.filter((c) => c.especialidad === form.especialidad).length + 1;
+    const orden = Math.max(0, ...lista.filter((c) => c.especialidad === form.especialidad).map((c) => c.orden)) + 1;
     const { error: err } = await supabase
       .from("categorias_partida")
       .insert({ codigo: "", nombre, especialidad: form.especialidad, orden });
@@ -49,6 +58,7 @@ export function CategoriasPartida() {
         err.code === "23505" ? "Ya existe esa categoría en la especialidad elegida." : err.message,
       );
     setForm({ ...vacio, especialidad: form.especialidad });
+    await recodificarWbs().catch(() => undefined);
     refrescar();
   }
 
@@ -56,17 +66,19 @@ export function CategoriasPartida() {
     if (!editando) return;
     setError("");
     const anterior = lista.find((c) => c.id === editando.id);
+    const anteriorEsp = (c: CategoriaPartida) => anterior !== undefined && anterior.especialidad !== c.especialidad;
     const nombre = editando.nombre.trim();
     const { error: err } = await supabase
       .from("categorias_partida")
       .update({
         nombre,
         especialidad: editando.especialidad,
-        orden: Number(editando.orden) || 0,
+        ...(anteriorEsp(editando) ? { orden: ORDEN_FINAL } : {}),
         activo: editando.activo,
       })
       .eq("id", editando.id);
     if (err) return setError(err.message);
+    await recodificarWbs().catch(() => undefined);
     if (anterior && anterior.nombre !== nombre) {
       await supabase.from("partidas").update({ categoria: nombre }).eq("categoria", anterior.nombre);
       await supabase
@@ -86,6 +98,7 @@ export function CategoriasPartida() {
     if (!window.confirm("¿Eliminar esta categoría del catálogo?")) return;
     const { error: err } = await supabase.from("categorias_partida").delete().eq("id", id);
     if (err) return setError(err.message);
+    await recodificarWbs().catch(() => undefined);
     refrescar();
   }
 
@@ -121,16 +134,6 @@ export function CategoriasPartida() {
               />
             </Campo>
           </div>
-          <Campo etiqueta="Orden">
-            <Input
-              className="py-1.5"
-              type="number"
-              min={0}
-              value={form.orden}
-              onChange={(e) => setForm({ ...form, orden: e.target.value })}
-              placeholder="1"
-            />
-          </Campo>
           <div className="sm:col-span-4">
             <Boton type="submit">Agregar categoría</Boton>
           </div>
@@ -159,9 +162,10 @@ export function CategoriasPartida() {
           <table className="w-full table-fixed font-mono text-xs">
             <thead>
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                <th className="w-[48%] px-3 py-2 font-medium">Categoría</th>
+                <th className="w-[9%] px-3 py-2 font-medium">Código</th>
+                <th className="w-[39%] px-3 py-2 font-medium">Categoría</th>
                 <th className="w-[24%] px-3 py-2 font-medium">Especialidad</th>
-                <th className="w-[9%] px-3 py-2 text-right font-medium">Orden</th>
+                <th className="w-[9%] px-3 py-2 text-center font-medium">Orden</th>
                 <th className="w-[11%] px-3 py-2 font-medium">Estado</th>
                 <th className="w-[8%] px-5 py-2 text-right font-medium">Acciones</th>
               </tr>
@@ -170,6 +174,7 @@ export function CategoriasPartida() {
               {visibles.map((c) =>
                 editando?.id === c.id ? (
                   <tr key={c.id} className="border-b border-line/40 last:border-0">
+                    <td className="px-3 py-2 text-muted-foreground">{c.codigo}</td>
                     <td className="px-3 py-2">
                       <Input
                         className="py-1 text-xs"
@@ -191,14 +196,7 @@ export function CategoriasPartida() {
                         ))}
                       </Select>
                     </td>
-                    <td className="px-3 py-2">
-                      <Input
-                        className="py-1 text-right text-xs"
-                        type="number"
-                        value={editando.orden}
-                        onChange={(ev) => setEditando({ ...editando, orden: Number(ev.target.value) })}
-                      />
-                    </td>
+                    <td className="px-3 py-2 text-center text-muted-foreground">{c.orden}</td>
                     <td className="px-3 py-2">
                       <Select
                         className="py-1 text-xs"
@@ -232,9 +230,17 @@ export function CategoriasPartida() {
                   </tr>
                 ) : (
                     <tr key={c.id} className="border-b border-line/40 last:border-0">
+                    <td className="px-3 py-2.5 text-primary">{c.codigo}</td>
                     <td className="px-3 py-2.5 font-semibold text-ink">{c.nombre}</td>
                     <td className="px-3 py-2.5 text-muted-foreground">{c.especialidad || "—"}</td>
-                    <td className="px-3 py-2.5 text-right text-muted-foreground">{c.orden}</td>
+                    <td className="px-3 py-2.5 text-center">
+                      <FlechasOrden
+                        primero={!visibles.some((x) => x.especialidad === c.especialidad && x.orden < c.orden)}
+                        ultimo={!visibles.some((x) => x.especialidad === c.especialidad && x.orden > c.orden)}
+                        ocupado={moviendo}
+                        onMover={(d) => mover(c.id, d)}
+                      />
+                    </td>
                     <td className="px-3 py-2.5">
                       <span className={c.activo ? "text-good" : "text-muted-foreground"}>
                         {c.activo ? "Activa" : "Inactiva"}

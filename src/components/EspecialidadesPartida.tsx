@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Boton, Campo, Input, Panel, Select, Vacio } from "@/components/ui-kit";
 import { useEspecialidadesPartida, type EspecialidadPartida } from "@/lib/especialidades";
 import { FlechasOrden } from "@/components/FlechasOrden";
-import { moverWbs, recodificarWbs, ORDEN_FINAL } from "@/lib/wbs";
+import { moverWbs, recodificarWbs } from "@/lib/wbs";
 
 const vacio = { codigo: "", nombre: "", orden: "" };
 
@@ -39,7 +39,7 @@ export function EspecialidadesPartida() {
     const orden = Math.max(0, ...lista.map((x) => x.orden)) + 1;
     const { error: err } = await supabase
       .from("especialidades_partida")
-      .insert({ codigo: lista.length ? "" : "01", nombre, orden });
+      .insert({ codigo: "", nombre, orden });
     if (err)
       return setError(
         err.message.includes("duplicate") ? "Ya existe una especialidad con ese nombre." : err.message,
