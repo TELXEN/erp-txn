@@ -1122,7 +1122,7 @@ function DesgloseApu({ item, alCambiar }: { item: CotizacionItem; alCambiar: () 
             <optgroup key={t} label={etiqueta}>
               {insumos.filter((i) => i.activo && i.tipo === t).map((i) => (
                 <option key={i.id} value={i.id}>
-                  {i.nombre} · {i.unidad} · {i.tipo === "HT" ? `${(Number(i.precio) > 0 ? Number(i.precio) : (margenes?.HT ?? 0)).toFixed(2)}% MO` : soles(Number(i.precio))}
+                  {i.nombre} · {i.unidad} · {i.tipo === "HT" ? `${(Number(i.precio) > 0 ? Number(i.precio) : (margenes?.HT ?? 0)).toFixed(2)}%` : soles(Number(i.precio))}
                 </option>
               ))}
             </optgroup>
