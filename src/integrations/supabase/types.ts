@@ -609,6 +609,42 @@ export type Database = {
         }
         Relationships: []
       }
+      codificacion_documentos: {
+        Row: {
+          codigo: string
+          correlativo_actual: number
+          created_at: string
+          digitos: number
+          es_sistema: boolean
+          id: string
+          nombre: string
+          orden: number
+          updated_at: string
+        }
+        Insert: {
+          codigo?: string
+          correlativo_actual?: number
+          created_at?: string
+          digitos?: number
+          es_sistema?: boolean
+          id?: string
+          nombre: string
+          orden?: number
+          updated_at?: string
+        }
+        Update: {
+          codigo?: string
+          correlativo_actual?: number
+          created_at?: string
+          digitos?: number
+          es_sistema?: boolean
+          id?: string
+          nombre?: string
+          orden?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       codificacion_insumo: {
         Row: {
           correlativo_eq: number
@@ -3666,6 +3702,7 @@ export type Database = {
       }
       recodificar_wbs: { Args: never; Returns: undefined }
       siguiente_codigo_cotizacion: { Args: never; Returns: string }
+      siguiente_codigo_documento: { Args: { _nombre: string }; Returns: string }
       siguiente_codigo_insumo: { Args: { _tipo: string }; Returns: string }
       siguiente_codigo_preliquidacion: { Args: never; Returns: string }
       siguiente_codigo_proyecto: { Args: never; Returns: string }
