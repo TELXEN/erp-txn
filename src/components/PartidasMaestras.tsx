@@ -8,6 +8,7 @@ import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { soles } from "@/lib/format";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
 import { useUnidadesMedida } from "@/lib/unidades";
+import { useMarcas } from "@/lib/datos";
 import { usePartidasMaestras, type PartidaMaestra } from "@/lib/cotizaciones";
 import { categoriasDe, useCategoriasPartida } from "@/lib/categorias";
 import { FlechasOrden } from "@/components/FlechasOrden";
@@ -42,6 +43,7 @@ export function PartidasMaestras() {
   const { data: especialidades = [] } = useEspecialidadesPartida();
   const { data: unidades = [] } = useUnidadesMedida();
   const { data: categorias = [] } = useCategoriasPartida();
+  const { data: marcas = [] } = useMarcas();
   const [nueva, setNueva] = useState<FilaNueva>(vacio);
   const [editando, setEditando] = useState<PartidaMaestra | null>(null);
   const [busqueda, setBusqueda] = useState("");
@@ -291,14 +293,18 @@ export function PartidasMaestras() {
                     </Select>
                 </td>
                 <td className="bg-card px-3 py-2">
-                    <Input
+                    <Select
                       className="py-1 text-xs"
                       value={nueva.marca}
                       onChange={(e) => setNueva({ ...nueva, marca: e.target.value })}
-                      onKeyDown={teclaNueva}
-                      maxLength={60}
-                      placeholder="-"
-                    />
+                    >
+                      <option value="">–</option>
+                      {marcas.map((m) => (
+                        <option key={m.id} value={m.nombre}>
+                          {m.nombre}
+                        </option>
+                      ))}
+                    </Select>
                 </td>
                 <td className="bg-card px-3 py-2">
                     <Select
@@ -404,12 +410,18 @@ export function PartidasMaestras() {
                       </Select>
                     </td>
                     <td className="px-3 py-2">
-                      <Input
+                      <Select
                         className="py-1 text-xs"
                         value={editando.marca ?? ""}
-                        placeholder="-"
                         onChange={(ev) => setEditando({ ...editando, marca: ev.target.value })}
-                      />
+                      >
+                        <option value="">–</option>
+                        {marcas.map((m) => (
+                          <option key={m.id} value={m.nombre}>
+                            {m.nombre}
+                          </option>
+                        ))}
+                      </Select>
                     </td>
                     <td className="px-3 py-2">
                       <Select
