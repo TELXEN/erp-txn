@@ -1218,14 +1218,12 @@ function EstadosProyecto() {
 
 function ConfiguracionProyectos() {
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
+    <div className="grid gap-4 lg:grid-cols-3">
       <EstadosProyecto />
 
       <PrioridadesPanel />
 
-      <div className="lg:col-span-2">
-        <TiposPresupuesto />
-      </div>
+      <TiposPresupuesto />
     </div>
   );
 }
