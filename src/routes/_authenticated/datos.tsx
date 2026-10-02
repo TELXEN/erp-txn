@@ -29,7 +29,6 @@ import { DatosEmpresa } from "@/components/DatosEmpresa";
 import { CodificacionProyectos } from "@/components/CodificacionProyectos";
 import { CodificacionCotizaciones } from "@/components/CodificacionCotizaciones";
 import { CodificacionPreliquidaciones } from "@/components/CodificacionPreliquidaciones";
-import { CodificacionInsumos } from "@/components/CodificacionInsumos";
 import { CuentasBancarias, type CuentaBancaria } from "@/components/CuentasBancarias";
 import { RubrosIngreso } from "@/components/RubrosIngreso";
 
@@ -66,13 +65,12 @@ type Pestana =
   | "centros"
   | "configuracion"
   | "codificacion"
-  | "codificacionins"
   | "empresa"
   | "marcas";
 
 const GRUPOS_CONFIG: { titulo: string; icono: React.ElementType; items: [Pestana, string][] }[] = [
   { titulo: "Empresa", icono: Building2, items: [["empresa", "Datos de la empresa"], ["bancos", "Cuentas bancarias"]] },
-  { titulo: "Codificación", icono: FolderKanban, items: [["codificacion", "Codificación de Documentos"], ["codificacionins", "Codificación de insumos"]] },
+  { titulo: "Codificación", icono: FolderKanban, items: [["codificacion", "Codificación de Documentos"]] },
   { titulo: "Parámetros de proyectos", icono: SlidersHorizontal, items: [["configuracion", "Parámetros de proyectos"]] },
   { titulo: "Marcas", icono: Tag, items: [["marcas", "Registro de marcas"]] },
   { titulo: "Costos y Finanzas", icono: Coins, items: [["categoriasgg", "Categorías de gastos generales"], ["centros", "Centros de costos"], ["costos", "Rubros de costos"], ["ingresos", "Rubros de ingresos"]] },
@@ -240,8 +238,6 @@ function Datos() {
             <CodificacionPreliquidaciones />
           </div>
         </div>
-      ) : pestana === "codificacionins" ? (
-        <CodificacionInsumos />
       ) : pestana === "empresa" ? (
         <DatosEmpresa />
       ) : pestana === "ingresos" ? (
