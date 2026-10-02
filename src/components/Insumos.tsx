@@ -5,6 +5,7 @@ import { Input, Panel, Select } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { MargenesApuPanel } from "@/components/MargenesApu";
 import { ParametrosLaboralesPanel } from "@/components/ParametrosLaborales";
+import { CodificacionInsumos } from "@/components/CodificacionInsumos";
 import { soles } from "@/lib/format";
 import { useUnidadesMedida } from "@/lib/unidades";
 import { useMarcas } from "@/lib/datos";
@@ -27,7 +28,7 @@ import {
   MARGENES_DEFECTO,
 } from "@/lib/apu";
 
-type SeccionInsumos = TipoInsumo | "margenes" | "laboral";
+type SeccionInsumos = TipoInsumo | "margenes" | "laboral" | "codificacion";
 
 export function Insumos() {
   const qc = useQueryClient();
@@ -90,12 +91,25 @@ export function Insumos() {
         >
           Parámetros laborales
         </button>
+        <button
+          type="button"
+          onClick={() => setSeccion("codificacion")}
+          className={`rounded-md px-3 py-1 text-xs transition-colors ${
+            seccion === "codificacion"
+              ? "bg-primary font-semibold text-primary-foreground shadow-sm"
+              : "text-muted-foreground hover:bg-background hover:text-primary"
+          }`}
+        >
+          Codificación de insumos
+        </button>
       </div>
 
       {seccion === "margenes" ? (
         <MargenesApuPanel />
       ) : seccion === "laboral" ? (
         <ParametrosLaboralesPanel />
+      ) : seccion === "codificacion" ? (
+        <CodificacionInsumos />
       ) : filtro === "MO" ? (
         <ManoObraWysiwyg lista={visibles} busqueda={busqueda} setBusqueda={setBusqueda} refrescar={refrescar} />
       ) : filtro === "MAT" ? (
