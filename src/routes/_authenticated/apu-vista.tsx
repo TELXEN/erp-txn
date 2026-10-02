@@ -206,7 +206,7 @@ function VistaApu() {
                               )),
                               conH ? (
                                 <tr key="h" style={{ borderBottom: `0.5px solid ${C.line}` }}>
-                                  <td style={{ padding: "3px 6px", color: C.mute }}>{insumoHT?.codigo || "40000001"}</td><td style={{ padding: "3px 6px" }}>{insumoHT?.nombre || "Herramientas manuales"} (% MO)</td><td style={{ padding: "3px 6px" }}>{insumoHT?.unidad || "%MO"}</td><td />
+                                  <td style={{ padding: "3px 6px", color: C.mute }}>{insumoHT?.codigo || "40000001"}</td><td style={{ padding: "3px 6px" }}>{insumoHT?.nombre || "Herramientas manuales"}</td><td style={{ padding: "3px 6px" }}>{insumoHT?.unidad || "%MO"}</td><td />
                                   <td style={{ padding: "3px 6px", textAlign: "right" }}>{n2(pctH)}%</td><td />
                                   <td style={{ padding: "3px 6px", textAlign: "right" }}>{n2(calc.herramientas)}</td>
                                 </tr>

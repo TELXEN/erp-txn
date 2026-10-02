@@ -1032,7 +1032,7 @@ function HerramientasWysiwyg({
             <th className="w-[14%] px-5 py-2 font-medium">Código</th>
             <th className="w-[42%] px-3 py-2 font-medium">Descripción</th>
             <th className="w-[10%] px-3 py-2 text-center font-medium">Unidad</th>
-            <th className="w-[16%] px-3 py-2 text-right font-medium">C. Unitario (% MO)</th>
+            <th className="w-[16%] px-3 py-2 text-right font-medium">C. Unitario</th>
             <th className="w-[18%] px-5 py-2 text-right font-medium">Acciones</th>
           </tr>
         </thead>
