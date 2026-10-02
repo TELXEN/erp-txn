@@ -66,10 +66,29 @@ export function CodificacionDocumentos() {
   }
 
   async function eliminar(f: CodificacionDocumento) {
+    setError("");
+    setAviso("");
+    // Tablas de documentos asociadas a cada nombre de codificación
+    const tablas: Record<string, string> = {
+      PROYECTOS: "proyectos",
+      COTIZACIONES: "cotizaciones",
+      PRELIQUIDACIONES: "preliquidaciones",
+    };
+    const tablaDoc = tablas[f.nombre];
+    if (tablaDoc) {
+      const { count, error: eC } = await tabla(tablaDoc).select("id", { count: "exact", head: true });
+      if (eC) return setError(eC.message);
+      if ((count ?? 0) > 0) {
+        return setError(`No se puede eliminar «${f.nombre}»: tiene ${count} documento(s) asociado(s).`);
+      }
+    } else if (f.correlativo_actual > 0) {
+      return setError(`No se puede eliminar «${f.nombre}»: ya se generaron ${f.correlativo_actual} documento(s) con este código.`);
+    }
     if (!confirm(`¿Eliminar la codificación «${f.nombre}»?`)) return;
     const { error: e } = await tabla("codificacion_documentos").delete().eq("id", f.id);
     if (e) return setError(e.message);
     if (seleccion === f.id) setSeleccion(null);
+    setAviso("Codificación eliminada.");
     refrescar();
   }
 
@@ -163,9 +182,7 @@ export function CodificacionDocumentos() {
                             >
                               <Pencil className="h-3.5 w-3.5" />
                             </button>
-                            {!f.es_sistema && (
-                              <button type="button" title="Eliminar" onClick={() => eliminar(f)} className="rounded p-1 text-bad hover:bg-muted"><Trash2 className="h-3.5 w-3.5" /></button>
-                            )}
+                            <button type="button" title="Eliminar" onClick={() => eliminar(f)} className="rounded p-1 text-bad hover:bg-muted"><Trash2 className="h-3.5 w-3.5" /></button>
                           </>
                         )}
                       </div>
