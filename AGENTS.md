@@ -21,3 +21,4 @@
 - Insumo types live in the tipos_insumo table (key, name, digit, correlative); code reads them via useTiposInsumo and never hardcodes the type list except the five protected system keys — lets users add independent types with their own tab, margin and APU group.
 - The HT (herramientas manuales) type is hidden (tipos_insumo.oculto); calcularApu adds it automatically as the last row of the EQ group using the HT percentage from Márgenes APU — users never attach it manually.
 - Sidebar colors use dedicated semantic theme tokens, separate from header and workspace colors — dark navigation themes must not alter business screens.
+- Primary and action buttons use the active theme's sidebar base color — this keeps central workflows visually connected to navigation.
