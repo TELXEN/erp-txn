@@ -58,6 +58,9 @@ export type PartidaMaestra = {
   unidad: string;
   precio_unitario: number;
   activo: boolean;
+  orden?: number;
+  /** Tipo de insumo dominante: MO | MAT | EQ | HT | SC — define el primer dígito del código. */
+  tipo_partida?: string;
 };
 
 export const useCotizaciones = () =>

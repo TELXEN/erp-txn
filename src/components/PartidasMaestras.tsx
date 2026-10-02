@@ -13,6 +13,15 @@ import { categoriasDe, useCategoriasPartida } from "@/lib/categorias";
 import { FlechasOrden } from "@/components/FlechasOrden";
 import { codigoPartidaLegible, moverWbs, recodificarWbs, ORDEN_FINAL } from "@/lib/wbs";
 
+const TIPOS_PARTIDA: [string, string][] = [
+  ["MO", "Mano de obra"],
+  ["MAT", "Materiales"],
+  ["EQ", "Equipos y maquinaria"],
+  ["HT", "Herramientas menores"],
+  ["SC", "Subcontratos"],
+];
+const nombreTipo = (t?: string) => TIPOS_PARTIDA.find(([k]) => k === t)?.[0] ?? "Materiales";
+
 const vacio = {
   nombre: "",
   especialidad: "",
@@ -20,6 +29,7 @@ const vacio = {
   marca: "",
   unidad: "glb",
   precio_unitario: "",
+  tipo_partida: "MAT",
 };
 
 export function PartidasMaestras() {
@@ -67,6 +77,7 @@ export function PartidasMaestras() {
       marca: form.marca.trim(),
       unidad: form.unidad,
       precio_unitario: Number(form.precio_unitario || 0),
+      tipo_partida: form.tipo_partida,
       orden: ORDEN_FINAL,
     });
     if (err) return setError(err.message);
@@ -76,6 +87,7 @@ export function PartidasMaestras() {
       especialidad: form.especialidad,
       categoria: form.categoria,
       unidad: form.unidad,
+      tipo_partida: form.tipo_partida,
     });
     refrescar();
   }
@@ -94,6 +106,7 @@ export function PartidasMaestras() {
         marca: editando.marca ?? "",
         unidad: editando.unidad,
         precio_unitario: Number(editando.precio_unitario || 0),
+        tipo_partida: editando.tipo_partida ?? "MAT",
         activo: editando.activo,
         ...(cambioGrupo ? { orden: ORDEN_FINAL } : {}),
       })
@@ -189,6 +202,19 @@ export function PartidasMaestras() {
               ))}
             </Select>
           </Campo>
+          <Campo etiqueta="Tipo (dígito del código)">
+            <Select
+              className="py-1.5"
+              value={form.tipo_partida}
+              onChange={(e) => setForm({ ...form, tipo_partida: e.target.value })}
+            >
+              {TIPOS_PARTIDA.map(([k, nombre]) => (
+                <option key={k} value={k}>
+                  {nombre}
+                </option>
+              ))}
+            </Select>
+          </Campo>
           <Campo etiqueta="Precio unitario (S/)">
             <Input
               className="py-1.5 text-right"
@@ -217,13 +243,14 @@ export function PartidasMaestras() {
           <table className="w-full table-fixed font-mono text-xs">
             <thead>
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                <th className="w-[13%] px-5 py-2 font-medium">Código</th>
-                <th className="w-[23%] px-3 py-2 font-medium">Partida</th>
-                <th className="w-[12%] px-3 py-2 font-medium">Especialidad</th>
-                <th className="w-[12%] px-3 py-2 font-medium">Categoría</th>
-                <th className="w-[8%] px-3 py-2 font-medium">Marca</th>
-                <th className="w-[6%] px-3 py-2 font-medium">Und.</th>
-                <th className="w-[9%] px-3 py-2 text-right font-medium">P.U. (S/)</th>
+                <th className="w-[12%] px-5 py-2 font-medium">Código</th>
+                <th className="w-[21%] px-3 py-2 font-medium">Partida</th>
+                <th className="w-[11%] px-3 py-2 font-medium">Especialidad</th>
+                <th className="w-[11%] px-3 py-2 font-medium">Categoría</th>
+                <th className="w-[8%] px-3 py-2 font-medium">Tipo</th>
+                <th className="w-[7%] px-3 py-2 font-medium">Marca</th>
+                <th className="w-[5%] px-3 py-2 font-medium">Und.</th>
+                <th className="w-[8%] px-3 py-2 text-right font-medium">P.U. (S/)</th>
                 <th className="w-[7%] px-3 py-2 font-medium">Estado</th>
                 <th className="w-[10%] px-5 py-2 text-right font-medium">Acciones</th>
               </tr>
@@ -266,6 +293,19 @@ export function PartidasMaestras() {
                         {categoriasDe(editando.especialidad, categorias).map((c) => (
                           <option key={c.id} value={c.nombre}>
                             {c.nombre}
+                          </option>
+                        ))}
+                      </Select>
+                    </td>
+                    <td className="px-3 py-2">
+                      <Select
+                        className="py-1 text-xs"
+                        value={editando.tipo_partida ?? "MAT"}
+                        onChange={(ev) => setEditando({ ...editando, tipo_partida: ev.target.value })}
+                      >
+                        {TIPOS_PARTIDA.map(([k, nombre]) => (
+                          <option key={k} value={k}>
+                            {nombre}
                           </option>
                         ))}
                       </Select>
@@ -349,6 +389,7 @@ export function PartidasMaestras() {
                     <td className="px-3 py-2.5 text-ink"><Resaltar texto={p.nombre} termino={busqueda} /></td>
                     <td className="px-3 py-2.5 text-muted-foreground"><Resaltar texto={p.especialidad || "—"} termino={busqueda} /></td>
                     <td className="px-3 py-2.5 text-muted-foreground"><Resaltar texto={p.categoria || "—"} termino={busqueda} /></td>
+                    <td className="px-3 py-2.5 text-muted-foreground" title={nombreTipo(p.tipo_partida)}>{p.tipo_partida ?? "MAT"}</td>
                     <td className="px-3 py-2.5 text-muted-foreground"><Resaltar texto={p.marca || "-"} termino={busqueda} /></td>
                     <td className="px-3 py-2.5 text-muted-foreground">{p.unidad}</td>
                     <td className="px-3 py-2.5 text-right">{soles(Number(p.precio_unitario))}</td>
@@ -393,7 +434,7 @@ export function PartidasMaestras() {
         )}
         <p className="border-t border-line px-5 py-3 font-mono text-[10px] leading-relaxed text-muted-foreground">
           Estas partidas se reutilizan al armar una cotización: al elegir una del banco se copian su descripción,
-          unidad y precio unitario; el código (dígito de partidas + especialidad + categoría + correlativo) se recalcula al reordenar con las flechas, y puedes ajustarlos en la propuesta sin alterar el catálogo.
+          unidad y precio unitario; el código (dígito del tipo + especialidad + categoría + correlativo) se recalcula al reordenar con las flechas, y puedes ajustarlos en la propuesta sin alterar el catálogo.
         </p>
       </Panel>
     {apu && <ApuPartida partida={apu} onCerrar={() => setApu(null)} />}

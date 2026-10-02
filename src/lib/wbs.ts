@@ -15,7 +15,7 @@ export async function moverWbs(tabla: "especialidades" | "categorias" | "partida
   if (error) throw new Error(error.message);
 }
 
-/** Muestra un código de partida de 8 dígitos agrupado: 60302005 → 6.03.02.005 */
+/** Muestra un código de partida de 8 dígitos agrupado: 20302005 → 2.03.02.005 (T.EE.CC.NNN) */
 export const codigoPartidaLegible = (c?: string | null) =>
   c && /^\d{8}$/.test(c) ? `${c[0]}.${c.slice(1, 3)}.${c.slice(3, 5)}.${c.slice(5)}` : c || "—";
 
