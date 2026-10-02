@@ -172,7 +172,7 @@ export function ApuPartida({
               return [
                 <tr key={tipo} className="bg-muted/40">
                   <td colSpan={6} className="px-5 py-1.5 font-semibold text-primary">{titulo}</td>
-                  <td className="px-2 py-1.5 text-right font-semibold">{soles(calc.tot[tipo])}</td>
+                  <td className="px-2 py-1.5 text-right font-semibold">{soles(calc.tot[tipo] ?? 0)}</td>
                   <td />
                 </tr>,
                 ...filas.map(({ c, ins, cantidad, parcial }) => {

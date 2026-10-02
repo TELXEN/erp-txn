@@ -191,7 +191,7 @@ function VistaApu() {
                             return [
                               <tr key={tipo} style={{ background: C.emBg }}>
                                 <td colSpan={6} style={{ padding: "4px 6px", fontWeight: 700, color: C.em }}>{titulo}</td>
-                                <td style={{ padding: "4px 6px", textAlign: "right", fontWeight: 700 }}>{n2(calc.tot[tipo])}</td>
+                                <td style={{ padding: "4px 6px", textAlign: "right", fontWeight: 700 }}>{n2(calc.tot[tipo] ?? 0)}</td>
                               </tr>,
                               ...filas.map(({ c, ins, cantidad, parcial }) => (
                                 <tr key={c.id} style={{ borderBottom: `0.5px solid ${C.line}` }}>

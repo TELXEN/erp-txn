@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from "react";
 import { Plus, Search } from "lucide-react";
 import { coincide, Resaltar } from "@/components/Buscador";
 import { Boton, Input, Select } from "@/components/ui-kit";
-import { TIPOS_INSUMO, apuDb, nombreTipo, precioVenta, type Insumo, type TipoInsumo } from "@/lib/apu";
+import { TIPOS_INSUMO, useTiposInsumo, apuDb, nombreTipo, precioVenta, type Insumo, type TipoInsumo } from "@/lib/apu";
 
 /** Buscador con autocompletado de insumos y creación rápida al vuelo. */
 export function BuscadorInsumo({
@@ -14,6 +14,7 @@ export function BuscadorInsumo({
   onElegir: (id: string) => void | Promise<void>;
   onCreado: () => Promise<unknown> | void;
 }) {
+  useTiposInsumo();
   const [q, setQ] = useState("");
   const [abierto, setAbierto] = useState(false);
   const [activo, setActivo] = useState(0);
