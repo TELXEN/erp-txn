@@ -162,40 +162,19 @@ export function AppShell({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen w-full text-ink">
-      <header className="no-print sticky top-0 z-20 flex items-center gap-4 border-b border-brand bg-brand px-5 py-3 text-brand-foreground">
-        <div className="flex w-[212px] shrink-0 items-center gap-2.5">
-          <span className="grid size-8 place-items-center rounded-md bg-cta font-mono text-sm font-bold text-cta-foreground">
+    <div className="grid min-h-screen w-full grid-cols-1 text-ink md:grid-cols-[236px_minmax(0,1fr)]">
+      <aside className="no-print flex min-h-full flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground md:min-h-screen">
+        <div className="flex min-h-[69px] items-center gap-2.5 border-b border-sidebar-border px-5 py-3">
+          <span className="grid size-8 shrink-0 place-items-center rounded-md bg-cta font-mono text-sm font-bold text-cta-foreground">
             TXN
           </span>
-          <div className="leading-none">
+          <div className="min-w-0 leading-none">
             <p className="text-sm font-bold tracking-tight">ERP TELXEN SAC</p>
-            <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.14em] text-brand-foreground/70">Gestión de Proyectos</p>
+            <p className="mt-1 whitespace-nowrap font-mono text-[10px] uppercase tracking-[0.14em] text-sidebar-muted">Gestión de Proyectos</p>
           </div>
         </div>
-        <div className="flex flex-1 items-center justify-end gap-3">
-          <div className="flex items-center gap-2">
-            <span className="grid size-8 place-items-center rounded-full bg-cta text-xs font-semibold text-cta-foreground">
-              {iniciales}
-            </span>
-            <div className="hidden leading-tight sm:block">
-              <p className="text-xs font-semibold">{nombre || email}</p>
-              <p className="font-mono text-[10px] uppercase tracking-wide text-brand-foreground/70">
-                {rol ? ETIQUETA_ROL[rol] : "Sin rol"}
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={cerrarSesion}
-            className="rounded-md border border-brand-foreground/25 px-3 py-1.5 font-mono text-xs text-brand-foreground transition-colors hover:border-primary hover:bg-primary hover:text-primary-foreground"
-          >
-            Cerrar Sesión
-          </button>
-        </div>
-      </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-[236px_1fr]">
-        <aside className="no-print border-r border-sidebar-border bg-sidebar px-3 py-5 text-sidebar-foreground md:min-h-[calc(100vh-57px)]">
+        <div className="flex flex-1 flex-col px-3 py-5">
           <p className="px-2 pb-2 font-mono text-[10px] uppercase tracking-[0.14em] text-sidebar-muted">Módulos</p>
           <nav className="space-y-2 text-sm">
             {categorias.map((c) => {
@@ -240,8 +219,6 @@ export function AppShell({ children }: { children: ReactNode }) {
             })}
           </nav>
 
-
-
           <div className="mt-6 rounded-md border border-sidebar-border bg-sidebar-panel p-3">
             <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-sidebar-muted">Rol activo</p>
             <p className="mt-1 text-sm font-semibold">{rol ? ETIQUETA_ROL[rol] : "Sin rol asignado"}</p>
@@ -249,10 +226,31 @@ export function AppShell({ children }: { children: ReactNode }) {
               {rol === "ingeniero" ? "Solo avance físico" : "Moneda base: PEN"}
             </p>
           </div>
+        </div>
+      </aside>
 
-        </aside>
+      <div className="flex min-h-screen min-w-0 flex-col">
+        <header className="no-print sticky top-0 z-20 flex min-h-[69px] items-center justify-end gap-3 border-b border-brand bg-brand px-5 py-3 text-brand-foreground">
+          <div className="flex items-center gap-2">
+            <span className="grid size-8 place-items-center rounded-full bg-cta text-xs font-semibold text-cta-foreground">
+              {iniciales}
+            </span>
+            <div className="hidden leading-tight sm:block">
+              <p className="text-xs font-semibold">{nombre || email}</p>
+              <p className="font-mono text-[10px] uppercase tracking-wide text-brand-foreground/70">
+                {rol ? ETIQUETA_ROL[rol] : "Sin rol"}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={cerrarSesion}
+            className="rounded-md border border-brand-foreground/25 px-3 py-1.5 font-mono text-xs text-brand-foreground transition-colors hover:border-primary hover:bg-primary hover:text-primary-foreground"
+          >
+            Cerrar Sesión
+          </button>
+        </header>
 
-        <main className="min-w-0 px-4 py-6 sm:px-6">{children}</main>
+        <main className="min-w-0 flex-1 px-4 py-6 sm:px-6">{children}</main>
       </div>
     </div>
   );
