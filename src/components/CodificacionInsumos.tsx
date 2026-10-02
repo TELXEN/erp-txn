@@ -101,6 +101,7 @@ export function CodificacionInsumos({
             <thead>
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
                 <th className="py-2 pr-3 font-medium">Tipo de insumo</th>
+                <th className="py-2 pr-1 font-medium"></th>
                 <th className="py-2 pr-3 font-medium"></th>
                 <th className="w-24 px-3 py-2 font-medium">Dígito</th>
                 <th className="w-32 px-3 py-2 font-medium">Último correlativo</th>
@@ -119,6 +120,16 @@ export function CodificacionInsumos({
                       className="grid h-6 w-6 place-items-center rounded-md border border-line text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
                     >
                       <Plus size={12} />
+                    </button>
+                  </td>
+                  <td className="py-2 pr-3">
+                    <button
+                      type="button"
+                      title={`Editar insumos de ${c.nombre}`}
+                      onClick={() => onEditarTipo(c.tipo)}
+                      className="grid h-6 w-6 place-items-center rounded-md border border-line text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+                    >
+                      <Pencil size={12} />
                     </button>
                   </td>
                   <td className="px-3 py-2">
