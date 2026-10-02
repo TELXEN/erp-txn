@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Boton, Campo, Input, Panel } from "@/components/ui-kit";
 import { TIPOS_INSUMO } from "@/lib/apu";
+import { recodificarWbs } from "@/lib/wbs";
 
 type Cfg = {
   id: string;
@@ -81,6 +82,8 @@ export function CodificacionInsumos() {
       : await (supabase as unknown as { from: (t: string) => any }).from("codificacion_insumo").insert(form);
     setGuardando(false);
     if (resultado.error) return setError(resultado.error.message);
+    await recodificarWbs().catch(() => undefined);
+    qc.invalidateQueries({ queryKey: ["partidas_maestras"] });
     setAviso("Regla de codificación guardada correctamente.");
     qc.invalidateQueries({ queryKey: ["codificacion_insumo"] });
   }
