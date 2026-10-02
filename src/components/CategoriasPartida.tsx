@@ -277,7 +277,7 @@ export function CategoriasPartida() {
                     >
                     <td className="px-3 py-2.5 text-primary">{c.codigo}</td>
                     <td className="px-3 py-2.5 font-semibold text-ink">{c.nombre}</td>
-                    <td className="px-3 py-2.5 text-muted-foreground">{c.especialidad || "—"}</td>
+                    <td className="px-3 py-2.5 uppercase text-muted-foreground">{c.especialidad || "—"}</td>
                     <td className="px-3 py-2.5 text-center text-muted-foreground">{c.orden}</td>
                     <td className="px-3 py-2.5">
                       <span className={c.activo ? "text-good" : "text-muted-foreground"}>
