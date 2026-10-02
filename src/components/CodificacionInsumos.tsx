@@ -37,8 +37,6 @@ export function CodificacionInsumos({ onAgregarTipo }: { onAgregarTipo?: (tipo: 
   const [error, setError] = useState("");
   const [aviso, setAviso] = useState("");
   const [guardando, setGuardando] = useState(false);
-  const correlativoRefs = useRef<Record<string, HTMLInputElement | null>>({});
-
   useEffect(() => {
     setForm(Object.fromEntries(tipos.map((t) => [t.id, { nombre: t.nombre, digito: t.digito, correlativo: Number(t.correlativo) }])));
   }, [tipos]);
@@ -50,11 +48,6 @@ export function CodificacionInsumos({ onAgregarTipo }: { onAgregarTipo?: (tipo: 
     qc.invalidateQueries({ queryKey: ["insumos"] });
     qc.invalidateQueries({ queryKey: ["partidas_maestras"] });
   };
-
-  function editarTipo(t: TipoInsumoFila) {
-    correlativoRefs.current[t.id]?.focus();
-    correlativoRefs.current[t.id]?.select();
-  }
 
   async function crearTipo() {
     const nombre = nuevoNombre.trim().toUpperCase();
