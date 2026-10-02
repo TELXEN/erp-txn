@@ -14,6 +14,8 @@ import {
   CATEGORIAS_OBRERO,
   REGIMENES_LABORALES,
   TIPOS_INSUMO,
+  TIPOS_SISTEMA,
+  useTiposInsumo,
   apuDb,
   calcularCostoHH,
   nombreTipo,
@@ -57,7 +59,11 @@ export function Insumos() {
   }
 
   // Orden de pestañas del maestro: Materiales antes de Mano de obra.
-  const ORDEN_PESTANAS: TipoInsumo[] = ["MAT", "MO", "EQ", "HT", "SC"];
+  const { data: tiposDb = [] } = useTiposInsumo();
+  const ORDEN_PESTANAS: TipoInsumo[] = [
+    "MAT", "MO", "EQ", "HT", "SC",
+    ...tiposDb.filter((t) => !(TIPOS_SISTEMA as readonly string[]).includes(t.clave)).map((t) => t.clave),
+  ];
   const etiquetaTipo = (t: TipoInsumo) => TIPOS_INSUMO.find(([k]) => k === t)?.[1] ?? t;
 
   // El foco de la fila de captura se aplica al montar; se libera después.
@@ -131,8 +137,8 @@ export function Insumos() {
         <ManoObraWysiwyg enfoqueNueva={crearEn === "MO"} lista={visibles} busqueda={busqueda} setBusqueda={setBusqueda} refrescar={refrescar} />
       ) : filtro === "MAT" ? (
         <MaterialesWysiwyg enfoqueNueva={crearEn === "MAT"} lista={visibles} busqueda={busqueda} setBusqueda={setBusqueda} refrescar={refrescar} />
-      ) : filtro === "SC" ? (
-        <MaterialesWysiwyg key="SC" tipo="SC" enfoqueNueva={crearEn === "SC"} lista={visibles} busqueda={busqueda} setBusqueda={setBusqueda} refrescar={refrescar} />
+      ) : filtro === "SC" || !(TIPOS_SISTEMA as readonly string[]).includes(filtro) ? (
+        <MaterialesWysiwyg key={filtro} tipo={filtro} enfoqueNueva={crearEn === filtro} lista={visibles} busqueda={busqueda} setBusqueda={setBusqueda} refrescar={refrescar} />
       ) : filtro === "HT" ? (
         <HerramientasWysiwyg enfoqueNueva={crearEn === "HT"} lista={visibles} busqueda={busqueda} setBusqueda={setBusqueda} refrescar={refrescar} />
       ) : (
@@ -493,7 +499,7 @@ function MaterialesWysiwyg({
   setBusqueda,
   refrescar,
 }: {
-  tipo?: "MAT" | "SC";
+  tipo?: string;
   enfoqueNueva?: boolean;
   lista: Insumo[];
   busqueda: string;
@@ -501,7 +507,7 @@ function MaterialesWysiwyg({
   refrescar: () => void;
 }) {
   const { data: mg = MARGENES_DEFECTO } = useMargenesInsumo();
-  const mgTipo = mg[tipo];
+  const mgTipo = mg[tipo] ?? 0;
   const esSC = tipo === "SC";
   const uDef = esSC ? "GLB" : "und";
   const vacia: FilaMat = { ...filaMatVacia, unidad: uDef };
