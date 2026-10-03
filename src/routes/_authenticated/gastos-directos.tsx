@@ -492,7 +492,7 @@ function BarraConsumo({ uso }: { uso: number }) {
 
 type PartidaResumen = { codigo: string | null; nombre: string; unidad: string | null; presupuesto: number; costo: number };
 
-function FechaPeru({ valor, onChange }: { valor: string; onChange: (v: string) => void }) {
+export function FechaPeru({ valor, onChange }: { valor: string; onChange: (v: string) => void }) {
   const [abierto, setAbierto] = useState(false);
   const d = valor ? new Date(`${valor}T00:00:00`) : undefined;
   return (
