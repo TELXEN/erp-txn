@@ -37,6 +37,21 @@ type Pago = {
 
 type Cuenta = { id: string; nombre: string; monedas: string; tipo_cuenta: string; numero_cuenta: string; activo: boolean };
 
+const formGastoVacio = () => ({
+  descripcion: "",
+  comprobante: "",
+  proveedor_id: "",
+  proyecto_id: "",
+  categoria: "",
+  monto: "",
+  moneda: "PEN",
+  tipo_cambio: "3.75",
+  fecha: hoy(),
+  banco_id: "",
+  ...condicionVacia(),
+});
+type FormGasto = ReturnType<typeof formGastoVacio>;
+
 function GastosGenerales() {
   const { rol } = useAuth();
   const qc = useQueryClient();
@@ -58,19 +73,8 @@ function GastosGenerales() {
   const { data: trasVeh = [] } = useTraslados();
   const proveedores = terceros.filter((t) => t.es_proveedor && t.activo);
   const categoriasActivas = categorias.filter((c) => c.activo);
-  const [form, setForm] = useState({
-    descripcion: "",
-    comprobante: "",
-    proveedor_id: "",
-    proyecto_id: "",
-    categoria: "",
-    monto: "",
-    moneda: "PEN",
-    tipo_cambio: "3.75",
-    fecha: hoy(),
-    banco_id: "",
-    ...condicionVacia(),
-  });
+  const [form, setForm] = useState<FormGasto>(formGastoVacio);
+  const [modalGasto, setModalGasto] = useState(false);
   const [error, setError] = useState("");
   const [ambito, setAmbito] = useState("Todas");
   const [busqueda, setBusqueda] = useState("");
@@ -78,9 +82,7 @@ function GastosGenerales() {
   const [hasta, setHasta] = useState("");
   const [filtroCategoria, setFiltroCategoria] = useState("Todas");
   const [cerrados, setCerrados] = useState<Set<string>>(new Set());
-  const [guiaVisible, setGuiaVisible] = useState(false);
-  const [pestana, setPestana] = useState<"gastos" | "mantenimiento" | "combustible" | "nuevo">("gastos");
-  const accionRef = useRef<"volver" | "otra">("volver");
+  const [pestana, setPestana] = useState<"gastos" | "mantenimiento" | "combustible">("gastos");
   const ayudaCategoria = categorias.find((c) => c.nombre === form.categoria)?.descripcion ?? "";
   const [editando, setEditando] = useState<{
     id: string;
