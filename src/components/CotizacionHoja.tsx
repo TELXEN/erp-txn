@@ -457,13 +457,6 @@ export function CotizacionHoja({
     else refrescar();
   }
 
-  /** Partidas maestras activas de la especialidad; primero las de la categoría del grupo. */
-  function maestrasDelGrupo(esp: string, cat: string) {
-    const activas = maestras.filter((m) => m.activo && m.especialidad === esp);
-    return [...activas].sort(
-      (a, b) => Number(b.categoria === cat) - Number(a.categoria === cat) || a.codigo.localeCompare(b.codigo),
-    );
-  }
 
   /** Borra solo la partida (y sus subpartidas); la especialidad y la categoría se conservan. */
   async function borrar(id: string) {
@@ -773,7 +766,7 @@ export function CotizacionHoja({
               <FilaFantasma
                 key={`f:${f.clave}`}
                 sangria={f.clase === "cap" ? 18 : 30}
-                maestras={maestrasDelGrupo(fantasma.esp, fantasma.cat)}
+                maestras={maestras}
                 onCrear={(nombre) => crearPartida(fantasma.esp, fantasma.cat, nombre)}
                 onCrearMaestra={(m) => crearPartida(fantasma.esp, fantasma.cat, m.nombre, m.unidad, m)}
               />
