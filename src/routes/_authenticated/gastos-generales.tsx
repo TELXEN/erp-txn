@@ -48,6 +48,7 @@ const formGastoVacio = () => ({
   tipo_cambio: "3.75",
   fecha: hoy(),
   banco_id: "",
+  numero_operacion: "",
   ...condicionVacia(),
 });
 type FormGasto = ReturnType<typeof formGastoVacio>;
@@ -883,7 +884,7 @@ function ModalGasto({
               )}</label>
             {contado && form.banco_id && form.banco_id !== "caja" && (
               <label><span className={etq}>N° de operación</span>
-                <Input value={(form as Pago & { numero_operacion?: string }).numero_operacion ?? ""} onChange={(e) => setForm({ ...form, numero_operacion: e.target.value })} maxLength={40} className={inp} /></label>
+                <Input value={form.numero_operacion} onChange={(e) => setForm({ ...form, numero_operacion: e.target.value })} maxLength={40} className={inp} /></label>
             )}
           </div>
 
