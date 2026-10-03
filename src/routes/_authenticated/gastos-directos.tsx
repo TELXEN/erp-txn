@@ -260,10 +260,10 @@ function GastosDirectos() {
                 ))}
               </Select>
             </Campo>
-            <Campo etiqueta={`Cantidad${partidaForm?.unidad ? ` (${partidaForm.unidad})` : ""}`}>
+            <Campo etiqueta="CANT. REAL (M)">
               <Input type="number" step="0.01" min="0" value={form.cantidad} onChange={(e) => setForm({ ...form, cantidad: e.target.value })} required />
             </Campo>
-            <Campo etiqueta="P.U. de compra">
+            <Campo etiqueta="COSTO REAL">
               <Input type="number" step="0.01" min="0" value={form.precio_unitario} onChange={(e) => setForm({ ...form, precio_unitario: e.target.value })} required />
             </Campo>
             <Campo etiqueta="N° comprobante">
