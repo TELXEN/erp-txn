@@ -212,10 +212,10 @@ function GastosGenerales() {
       banco_id: contado && form.banco_id !== "caja" ? form.banco_id : null,
       fecha_pago: contado ? form.fecha : null,
     } as never);
-    if (err) return setError(err.message);
+    if (err) return err.message;
     setForm({ ...form, descripcion: "", comprobante: "", proveedor_id: "", monto: "" });
     qc.invalidateQueries({ queryKey: ["gastos_generales"] });
-    if (accionRef.current === "volver") setPestana("gastos");
+    return null;
   }
 
   async function alternarPago(g: Pago & { id: string }) {
