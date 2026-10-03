@@ -2,7 +2,9 @@
 
 ## Qué verás
 
-En **Costos Directos**, al expandir una partida aparece una **segunda fila de captura en línea** (estilo WYSIWYG), debajo del encabezado de compras y encima de las compras ya registradas. Se escribe directo en los campos y se registra con **Enter** o con el icono de **check (✓)** al final de la fila.
+En **Costos Directos**, al expandir una partida aparece una **fila de captura en línea** (estilo WYSIWYG), debajo del encabezado de compras y encima de las compras ya registradas. Se escribe directo en los campos y se registra con **Enter** o con el icono de **check (✓)** al final de la fila.
+
+**Varias compras a la vez:** un icono **+** junto a la fila de captura añade otra fila vacía debajo (tercera, cuarta fila, etc.). Cada fila es independiente: se puede registrar una con ✓/Enter mientras las demás siguen abiertas, y cada una tiene su propio ✕ para descartarla. Así se registran varias compras de la misma partida sin cerrar ni reabrir nada.
 
 Campos de la fila, en este orden:
 
