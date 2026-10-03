@@ -852,9 +852,29 @@ function GastosGenerales() {
               })}
             </tbody>
           </table>
+          </div>
         )}
       </Panel>
+      </>
       )}
     </>
+  );
+}
+
+function Pastilla({ g }: { g: Pago }) {
+  const credito = g.condicion_pago === "Crédito";
+  const pagado = g.estado_pago === "Pagada";
+  const vencida = credito && !pagado && !!g.fecha_vencimiento && g.fecha_vencimiento < hoy();
+  const [txt, cls] = !credito || pagado
+    ? ["Pagado", "bg-good/10 text-good ring-good/20"]
+    : vencida
+      ? ["Vencido", "bg-bad/10 text-bad ring-bad/20"]
+      : ["Crédito", "bg-warn/10 text-warn ring-warn/25"];
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 font-sans text-[11px] font-semibold ring-1 ${cls}`}>
+      <span className="h-1.5 w-1.5 rounded-full bg-current" />
+      {txt}
+      {credito && !pagado && g.fecha_vencimiento && <span className="font-normal">· {fmtFecha(g.fecha_vencimiento)}</span>}
+    </span>
   );
 }
