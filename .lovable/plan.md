@@ -11,7 +11,7 @@ Campos de la fila, en este orden:
 1. **FECHA** — date, hoy por defecto.
 2. **COMPROBANTE** — texto libre (F001-1240).
 3. **PROVEEDOR** — lista de proveedores activos (obligatorio).
-4. **INSUMO** — buscador con sugerencias del Maestro de insumos (autocompletado como en cotizaciones); al elegirlo queda vinculado y **su tipo define el rubro** de la compra (Materiales, Mano de obra, Equipos, Subcontratos…). Si no se elige insumo, el rubro queda en Materiales como hoy.
+4. **INSUMO** — buscador que sugiere primero **los insumos del análisis (APU) de esa partida**; también permite escribir **texto libre** sin vincular. Al elegir un insumo sugerido queda vinculado y **su tipo define el rubro** de la compra (Materiales, Mano de obra, Equipos, Subcontratos…). Con texto libre, el rubro queda en Materiales como hoy.
 5. **PAGO** — Contado / Crédito. Si es Crédito aparece en línea el selector de días (15/30/45/60/90 u otro) con la fecha de vencimiento.
 6. **BANCO** — visible solo si el pago es Contado: lista de cuentas bancarias activas + Caja Chica; si elige una cuenta (no caja) aparece el campo N° de operación.
 7. **CANTIDAD** — número, obligatorio.
@@ -29,7 +29,7 @@ Al final de la fila: icono **✓** (registrar) e **✕** (limpiar la fila). Ente
 ## Detalles técnicos
 
 - Migración: `ALTER TABLE gastos_directos ADD COLUMN insumo_id uuid REFERENCES insumos(id)` (nullable; compras existentes quedan sin insumo).
-- `src/routes/_authenticated/gastos-directos.tsx`: se quita el modal y el estado `mostrarForm`; nuevo componente `FilaCompra` (fila de captura por partida) con su propio estado local, reutilizando `condicionVacia`/`datosCondicion`/`PLAZOS` de CondicionPago y un autocompletado de insumos (patrón `AutoMaestra` de CotizacionHoja, sobre la tabla `insumos` activos). Cada partida mantiene una lista de filas de captura (mínimo una); el icono + agrega una fila vacía y el ✕ de cada fila la descarta (si es la única, solo la limpia).
+- `src/routes/_authenticated/gastos-directos.tsx`: se quita el modal y el estado `mostrarForm`; nuevo componente `FilaCompra` (fila de captura por partida) con su propio estado local, reutilizando `condicionVacia`/`datosCondicion`/`PLAZOS` de CondicionPago y un autocompletado de insumos (patrón `AutoMaestra` de CotizacionHoja) alimentado por los `apu_componentes` de la partida (join a `insumos`), con opción de texto libre. Cada partida mantiene una lista de filas de captura (mínimo una); el icono + agrega una fila vacía y el ✕ de cada fila la descarta (si es la única, solo la limpia).
 - El rubro se deriva del tipo del insumo elegido (mapeo clave de tipo → rubro: MO→Mano de obra, MAT→Materiales, EQ→Equipos, SC→Subcontratos, otros→Materiales).
 - Validaciones iguales a las actuales: cantidad > 0, P.U. ≥ 0, cuenta bancaria y N° de operación si es contado sin caja.
 - Al registrar: insert en `gastos_directos` (mismo cálculo de montos), la fila se limpia y la compra aparece en la lista sin recargar.
