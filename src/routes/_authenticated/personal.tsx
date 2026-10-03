@@ -156,45 +156,99 @@ function Personal() {
     });
   }
 
-  const camposContrato = (
-    f: FormPersonal,
-    set: (campo: keyof FormPersonal, valor: string | boolean) => void,
-  ) => {
+  type Setter = (campo: keyof FormPersonal, valor: string | boolean) => void;
+
+  const seccionLaboral = (f: FormPersonal, set: Setter, conCargo: boolean) => {
     const planilla = f.tipo_contratacion === "Planilla";
     return (
       <>
-        <Campo etiqueta="Tipo de contratación">
+        {conCargo && (
+          <CampoF etiqueta="Cargo" req>
+            <Select value={f.cargo} onChange={(e) => set("cargo", e.target.value)} required className="py-1.5">
+              <option value="">Selecciona un cargo…</option>
+              {cargosActivos.map((c) => <option key={c.id} value={c.nombre}>{c.nombre}{c.clasificacion === "Indirecto" ? " · Staff" : ""}</option>)}
+            </Select>
+          </CampoF>
+        )}
+        <CampoF etiqueta="Tipo de contratación">
           <Select value={f.tipo_contratacion} onChange={(e) => set("tipo_contratacion", e.target.value)} className="py-1.5">
             <option value="Planilla">Planilla (5ta categoría)</option>
             <option value="Honorarios">Recibo por Honorarios (4ta)</option>
           </Select>
-        </Campo>
-        <Campo etiqueta="Régimen laboral">
+        </CampoF>
+        <CampoF etiqueta="Régimen laboral">
           <Select value={f.regimen_laboral} onChange={(e) => set("regimen_laboral", e.target.value)} disabled={!planilla} className="py-1.5">
             {REGIMENES.map((r) => <option key={r} value={r}>{r}</option>)}
           </Select>
-        </Campo>
-        <Campo etiqueta="Sistema de pensiones">
-          <Select value={planilla ? f.sistema_pensiones : "Ninguno"} onChange={(e) => set("sistema_pensiones", e.target.value)} disabled={!planilla} className="py-1.5">
-            {PENSIONES.map((p) => <option key={p} value={p}>{p}</option>)}
-          </Select>
-        </Campo>
-        <Campo etiqueta="CUSPP">
-          <Input value={f.cuspp} onChange={(e) => set("cuspp", e.target.value.toUpperCase())} disabled={!planilla || !f.sistema_pensiones.startsWith("AFP")} maxLength={12} className="py-1.5" />
-        </Campo>
-        <Campo etiqueta="Fecha de ingreso">
-          <Input type="date" value={f.fecha_ingreso} onChange={(e) => set("fecha_ingreso", e.target.value)} className="py-1.5" />
-        </Campo>
-        <Campo etiqueta={planilla ? "Sueldo mensual (S/)" : "Honorario mensual (S/)"}>
-          <Input type="number" step="0.01" min="0" value={f.sueldo_mensual} onChange={(e) => set("sueldo_mensual", e.target.value)} className="py-1.5" />
-        </Campo>
-        <label className="flex items-center gap-2 self-end pb-2 font-mono text-xs">
+        </CampoF>
+        <CampoF etiqueta="Fecha de ingreso">
+          <FechaPeru valor={f.fecha_ingreso} onChange={(v) => set("fecha_ingreso", v)} />
+        </CampoF>
+      </>
+    );
+  };
+
+  const seccionSalario = (f: FormPersonal, set: Setter, conCuenta: boolean) => {
+    const planilla = f.tipo_contratacion === "Planilla";
+    return (
+      <>
+        <CampoF etiqueta="Jornal diario (S/)" req>
+          <Input type="number" step="0.01" min="0" value={f.jornal_diario} onChange={(e) => set("jornal_diario", e.target.value)} required className="py-1.5 text-right" />
+        </CampoF>
+        <CampoF etiqueta={planilla ? "Sueldo mensual (S/)" : "Honorario mensual (S/)"}>
+          <Input type="number" step="0.01" min="0" value={f.sueldo_mensual} onChange={(e) => set("sueldo_mensual", e.target.value)} className="py-1.5 text-right" />
+        </CampoF>
+        <p className="col-span-full -mt-1 text-[11px] text-muted-foreground">Se calculan entre sí: sueldo = jornal × 30.</p>
+        {conCuenta && (
+          <>
+            <CampoF etiqueta="Banco" req>
+              <Select value={f.banco} onChange={(e) => set("banco", e.target.value)} required className="py-1.5">
+                <option value="">Selecciona un banco…</option>
+                {f.banco && !BANCOS.includes(f.banco) && <option value={f.banco}>{f.banco}</option>}
+                {BANCOS.map((b) => <option key={b} value={b}>{b}</option>)}
+              </Select>
+            </CampoF>
+            <CampoF etiqueta="N° Cuenta" req>
+              <Input value={f.numero_cuenta} onChange={(e) => set("numero_cuenta", e.target.value)} required maxLength={30} className="py-1.5" />
+            </CampoF>
+            <div className="col-span-full">
+              <CampoF etiqueta="CCI (20 dígitos)" req>
+                <Input inputMode="numeric" pattern="[0-9]{20}" maxLength={20} value={f.cci} onChange={(e) => set("cci", e.target.value.replace(/\D/g, ""))} required className="py-1.5" />
+              </CampoF>
+            </div>
+          </>
+        )}
+        <label className="col-span-full flex items-center gap-2 text-sm text-ink">
           {planilla ? (
             <><input type="checkbox" checked={f.asignacion_familiar} onChange={(e) => set("asignacion_familiar", e.target.checked)} /> Asignación familiar</>
           ) : (
             <><input type="checkbox" checked={f.suspension_cuarta} onChange={(e) => set("suspension_cuarta", e.target.checked)} /> Suspensión de retención 4ta</>
           )}
         </label>
+      </>
+    );
+  };
+
+  const seccionPrevision = (f: FormPersonal, set: Setter) => {
+    const planilla = f.tipo_contratacion === "Planilla";
+    const esAfp = planilla && f.sistema_pensiones.startsWith("AFP");
+    return (
+      <>
+        <CampoF etiqueta="Sistema de pensiones">
+          <Select value={planilla ? f.sistema_pensiones : "Ninguno"} onChange={(e) => set("sistema_pensiones", e.target.value)} disabled={!planilla} className="py-1.5">
+            {PENSIONES.map((p) => <option key={p} value={p}>{p}</option>)}
+          </Select>
+        </CampoF>
+        <CampoF etiqueta="CUSPP">
+          <Input
+            value={esAfp ? f.cuspp : ""}
+            onChange={(e) => set("cuspp", e.target.value.toUpperCase())}
+            disabled={!esAfp}
+            placeholder={!planilla ? "No aplica para honorarios" : f.sistema_pensiones === "ONP" ? "No aplica para ONP" : esAfp ? "Código AFP" : "No aplica"}
+            maxLength={12}
+            className="py-1.5"
+          />
+        </CampoF>
       </>
     );
   };
@@ -274,39 +328,29 @@ function Personal() {
       />
 
       <Panel titulo="Nuevo trabajador" className="mb-4">
-        <form onSubmit={guardar} className="grid gap-1.5 p-3 grid-cols-1 sm:grid-cols-[3fr_5fr_4fr_4fr]">
-          <Campo etiqueta="DNI">
-            <Input inputMode="numeric" pattern="[0-9]{8}" maxLength={8} value={form.dni} onChange={(e) => setForm({ ...form, dni: e.target.value.replace(/\D/g, "") })} required className="py-1.5" />
-          </Campo>
-          <Campo etiqueta="Apellidos y Nombre(s)">
-            <Input value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} required maxLength={100} className="py-1.5" />
-          </Campo>
-          <Campo etiqueta="Cargo">
-            <Select value={form.cargo} onChange={(e) => setForm({ ...form, cargo: e.target.value as FormPersonal["cargo"] })} required className="py-1.5">
-              <option value="">Selecciona un cargo…</option>
-              {cargosActivos.map((c) => <option key={c.id} value={c.nombre}>{c.nombre}{c.clasificacion === "Indirecto" ? " · Staff" : ""}</option>)}
-            </Select>
-          </Campo>
-          <Campo etiqueta="Jornal diario (S/)">
-            <Input type="number" step="0.01" min="0" value={form.jornal_diario} onChange={(e) => setForm({ ...form, jornal_diario: e.target.value })} required className="py-1.5" />
-          </Campo>
-          <Campo etiqueta="N° Cuenta">
-            <Input value={form.numero_cuenta} onChange={(e) => setForm({ ...form, numero_cuenta: e.target.value })} required maxLength={30} className="py-1.5" />
-          </Campo>
-          <Campo etiqueta="CCI">
-            <Input inputMode="numeric" pattern="[0-9]{20}" maxLength={20} value={form.cci} onChange={(e) => setForm({ ...form, cci: e.target.value.replace(/\D/g, "") })} required className="py-1.5" />
-          </Campo>
-          <Campo etiqueta="Banco">
-            <Input value={form.banco} onChange={(e) => setForm({ ...form, banco: e.target.value })} required maxLength={80} className="py-1.5" />
-          </Campo>
-          <Campo etiqueta="N° Celular">
-            <Input inputMode="tel" pattern="[0-9]{9}" maxLength={9} value={form.numero_celular} onChange={(e) => setForm({ ...form, numero_celular: e.target.value.replace(/\D/g, "") })} required className="py-1.5" />
-          </Campo>
-          {camposContrato(form, (c, v) => setForm((f) => ({ ...f, [c]: v })))}
-          <div className="flex justify-end col-span-full">
-            <Boton type="submit" className="min-w-36">Registrar</Boton>
+        <form onSubmit={guardar} className="p-4">
+          <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
+            <Seccion titulo="Información Personal y Contacto">
+              <CampoF etiqueta="DNI" req>
+                <Input inputMode="numeric" pattern="[0-9]{8}" maxLength={8} value={form.dni} onChange={(e) => setFormC("dni", e.target.value.replace(/\D/g, ""))} required className="py-1.5" />
+              </CampoF>
+              <CampoF etiqueta="N° Celular" req>
+                <Input inputMode="tel" pattern="[0-9]{9}" maxLength={9} value={form.numero_celular} onChange={(e) => setFormC("numero_celular", e.target.value.replace(/\D/g, ""))} required className="py-1.5" />
+              </CampoF>
+              <div className="col-span-full">
+                <CampoF etiqueta="Apellidos y Nombre(s)" req>
+                  <Input value={form.nombre} onChange={(e) => setFormC("nombre", e.target.value)} required maxLength={100} className="py-1.5" />
+                </CampoF>
+              </div>
+            </Seccion>
+            <Seccion titulo="Detalles Laborales">{seccionLaboral(form, setFormC, true)}</Seccion>
+            <Seccion titulo="Estructura Salarial y Pago">{seccionSalario(form, setFormC, true)}</Seccion>
+            <Seccion titulo="Régimen Previsional">{seccionPrevision(form, setFormC)}</Seccion>
           </div>
-          {error && <p className="font-mono text-xs text-bad col-span-full">{error}</p>}
+          <div className="mt-4 flex items-center justify-end gap-3">
+            {error && <p className="mr-auto text-xs text-bad">{error}</p>}
+            <Boton type="submit" variante="accion" className="min-w-36">Registrar</Boton>
+          </div>
         </form>
       </Panel>
 
