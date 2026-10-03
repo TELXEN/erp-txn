@@ -1,28 +1,29 @@
-# Encabezados con el color del fondo del menú
+# Encabezado de proyecto del WBS con el azul del menú
 
 ## Objetivo
-Que los encabezados del listado de Proyectos y de Registro de Partidas usen el mismo color de fondo que el menú lateral del tema activo, en lugar de grises claros o negro fijo.
+En el módulo de Partidas, la barra oscura que agrupa los proyectos (donde aparece «TXN26-P006 · COTIZACION01» y el botón «Renumerar WBS») deja de ser negro puro y adopta el color de fondo del menú lateral del tema activo, para integrarse visualmente con la navegación.
 
 ## Cambios
 
-### Proyectos (listado)
-- La fila de encabezados de columnas (Código, Cliente, Nombre de la obra, Responsable, Plazo, Presupuesto, Costo ejecutado, Estado, Acciones) pasa a tener el fondo del menú (token `--sidebar`) con texto claro (`--sidebar-foreground`).
-- Las filas de datos, el hover y los colores semánticos no cambian.
+### 1. Fondo de la barra de proyecto
+- Se reemplaza el fondo negro fijo actual por el color del menú lateral (token `--sidebar`) de cada tema: azul petróleo en TELXEN Industrial, pizarra en Esmeralda y Pizarra, azul cobalto en Cobalto y Naranja, negro en Zafiro y Cian y en TELXEN Obsidiana.
+- Al cambiar de tema, la barra sigue automáticamente el color del menú.
 
-### Registro de Partidas
-- La barra del proyecto (donde aparece «TXN26-P004 · INSTALACIONES ELECTRICAS RELAVERA» con el botón «Renumerar WBS») usa el fondo del menú en lugar del negro fijo actual; texto claro y bordes del botón adaptados a ese fondo.
-- La fila de especialidad (ej. «01 · INSTALACIONES ELÉCTRICAS») usa el fondo del menú con texto claro, conservando la jerarquía visual (la barra del proyecto se distingue por su borde/peso).
-- La fila de categoría mantiene su gris sutil para conservar la jerarquía de niveles.
-- El encabezado de columnas de la tabla de partidas no cambia.
+### 2. Tipografía y textos
+- El nombre del proyecto usa un blanco roto tipo Slate-50 (`#F8FAFC`), en semibold, con el espaciado actual para que la separación entre proyectos siga siendo clara.
 
-### En todos los temas
-- Se usan los tokens del menú lateral, así cada tema muestra su propio color: azul petróleo en TELXEN Industrial, pizarra en Esmeralda y Pizarra, azul cobalto en Cobalto y Naranja, negro en Zafiro y Cian y en TELXEN Obsidiana.
-- Texto blanco legible y contraste verificado en cada tema.
+### 3. Botón «Renumerar WBS»
+- Estilo sutil dentro de la barra: texto en gris claro (Slate-300) con borde fino discreto, que pasa a blanco puro al pasar el cursor. Sin bordes invasivos.
+
+### 4. Estilo general
+- Sin ningún rastro de negro puro (`#000000`) en esta barra de separación.
+- Las esquinas quedan rectas porque la tabla cruza de extremo a extremo.
+- La fila de especialidad, la de categoría y el resto del listado no cambian.
 
 ## Verificación
-- Revisar Proyectos y Registro de Partidas en dos temas con fondos distintos (p. ej. TELXEN Industrial y Zafiro y Cian) en la vista previa.
-- Confirmar contraste, jerarquía de niveles y que la franja lateral no cambie.
+- Revisar la barra en dos temas con fondos distintos (p. ej. TELXEN Industrial y Zafiro y Cian) en la vista previa.
+- Confirmar contraste del texto y del botón, y que la franja lateral no cambie.
 - Comprobar que la aplicación compile sin errores.
 
 ## Detalle técnico
-Archivos: `src/routes/_authenticated/proyectos.tsx` y `src/routes/_authenticated/partidas.tsx`. Se reemplazan los fondos fijos (`bg-ink`, `bg-muted/60`) por los tokens semánticos del menú (`bg-sidebar`, `text-sidebar-foreground`, `border-sidebar-border`), sin cambios de base de datos.
+Archivo: `src/routes/_authenticated/partidas.tsx`. Se sustituye el fondo fijo (`bg-ink`) por los tokens semánticos del menú (`bg-sidebar`), el texto por `text-sidebar-foreground` con tono Slate-50 y el botón por clases sutiles claras; sin cambios de base de datos.
