@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
-import { ChevronDown, ChevronRight, Plus, Trash2, Upload } from "lucide-react";
+import { ChevronDown, ChevronRight, Plus, Trash2, Upload, X } from "lucide-react";
 import { Buscador, Resaltar, coincide } from "@/components/Buscador";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
@@ -20,7 +20,7 @@ import {
 import { InsigniaRubro } from "@/components/estado-ui";
 import { exportarExcel } from "@/lib/exportar";
 import { agruparSoloPorCategoria } from "@/lib/categorias";
-import { CamposCondicion, InsigniaPago, condicionVacia, datosCondicion } from "@/components/CondicionPago";
+import { CamposCondicion, InsigniaPago, PLAZOS, condicionVacia, datosCondicion } from "@/components/CondicionPago";
 
 type Compra = GastoDirecto & { cantidad?: number; precio_unitario?: number; comprobante?: string; condicion_pago?: string; fecha_vencimiento?: string | null; estado_pago?: string; banco_id?: string | null; numero_operacion?: string };
 
@@ -115,7 +115,6 @@ function GastosDirectos() {
     setForm(formVacio(pid));
     setMostrarForm(true);
     setError("");
-    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   async function guardar(e: React.FormEvent) {
@@ -151,7 +150,8 @@ function GastosDirectos() {
     } as never);
     if (err) return setError(err.message);
     setAbiertas((a) => ({ ...a, [form.partida_id]: true }));
-    setForm(formVacio(form.partida_id));
+    setMostrarForm(false);
+    setForm(formVacio());
     qc.invalidateQueries({ queryKey: ["gastos_directos"] });
   }
 
