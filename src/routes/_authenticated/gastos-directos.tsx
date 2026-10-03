@@ -23,7 +23,7 @@ import { InsigniaPago, PLAZOS, condicionVacia, datosCondicion } from "@/componen
 
 type Compra = GastoDirecto & { cantidad?: number; precio_unitario?: number; comprobante?: string; condicion_pago?: string; fecha_vencimiento?: string | null; estado_pago?: string; banco_id?: string | null; numero_operacion?: string; insumo_id?: string | null };
 
-type InsumoApu = { id: string; descripcion: string; tipo: string };
+type InsumoApu = { id: string; descripcion: string; tipo: string; codigo: string | null };
 
 type Cuenta = { id: string; nombre: string; tipo_cuenta?: string; monedas?: string; numero_cuenta?: string | null; activo?: boolean };
 type Tercero = { id: string; razon_social: string };
@@ -108,30 +108,22 @@ function GastosDirectos() {
     },
   });
   const cuentasActivas = cuentas.filter((c) => c.activo);
-  const { data: componentes = [] } = useQuery({
-    queryKey: ["apu_insumos_compras"],
+  const { data: maestroInsumos = [] } = useQuery({
+    queryKey: ["insumos_compras"],
     queryFn: async () => {
       const { data, error: err } = await supabase
-        .from("apu_componentes")
-        .select("partida_id, insumo_id, insumos(id, descripcion, tipo)");
+        .from("insumos")
+        .select("id, descripcion, tipo, codigo")
+        .order("descripcion");
       if (err) throw err;
-      return (data ?? []) as unknown as { partida_id: string; insumo_id: string | null; insumos: InsumoApu | null }[];
+      return (data ?? []) as InsumoApu[];
     },
   });
-  const insumosDePartida = useMemo(() => {
-    const mapa: Record<string, InsumoApu[]> = {};
-    for (const c of componentes) {
-      if (!c.insumos) continue;
-      const lista = (mapa[c.partida_id] ??= []);
-      if (!lista.some((i) => i.id === c.insumos!.id)) lista.push(c.insumos);
-    }
-    return mapa;
-  }, [componentes]);
   const nombreInsumo = useMemo(() => {
     const mapa = new Map<string, string>();
-    for (const c of componentes) if (c.insumos) mapa.set(c.insumos.id, c.insumos.descripcion);
+    for (const i of maestroInsumos) mapa.set(i.id, i.descripcion);
     return (id?: string | null) => (id ? mapa.get(id) ?? "—" : "—");
-  }, [componentes]);
+  }, [maestroInsumos]);
 
   const nombreBanco = (id?: string | null) => {
     const c = cuentas.find((x) => x.id === id);
