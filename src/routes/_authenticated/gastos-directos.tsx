@@ -113,10 +113,10 @@ function GastosDirectos() {
     queryFn: async () => {
       const { data, error: err } = await supabase
         .from("insumos")
-        .select("id, descripcion, tipo, codigo")
-        .order("descripcion");
+        .select("id, nombre, tipo, codigo")
+        .order("nombre");
       if (err) throw err;
-      return (data ?? []) as InsumoApu[];
+      return (data ?? []).map((i) => ({ id: i.id, descripcion: i.nombre, tipo: i.tipo, codigo: i.codigo }));
     },
   });
   const nombreInsumo = useMemo(() => {
