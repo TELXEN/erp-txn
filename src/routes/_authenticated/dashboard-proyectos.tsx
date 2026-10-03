@@ -507,11 +507,11 @@ function PildoraEstado({
       aria-pressed={activa}
       className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-wide transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
         activa ? "border-primary bg-primary/10 text-primary" : "border-line bg-card text-muted-foreground hover:text-ink"
-      }`}
+      } ${cantidad === 0 && !activa ? "opacity-50" : ""}`}
     >
       {color && <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: color }} />}
       <span>{etiqueta}</span>
-      <span className={`rounded-full px-1.5 ${activa ? "bg-primary/15 text-primary" : "bg-muted text-ink"}`}>{cantidad}</span>
+      <span className={`rounded-full px-1.5 ${activa ? "bg-primary/15 text-primary" : cantidad === 0 ? "bg-muted text-muted-foreground" : "bg-muted text-ink"}`}>{cantidad}</span>
     </button>
   );
 }
