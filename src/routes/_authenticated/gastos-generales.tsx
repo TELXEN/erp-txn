@@ -187,14 +187,12 @@ function GastosGenerales() {
     });
   }
 
-  async function guardar(e: React.FormEvent) {
-    e.preventDefault();
-    setError("");
-    if (!form.categoria) return setError("Selecciona la categoría del gasto general.");
+  async function guardar(): Promise<string | null> {
+    if (!form.categoria) return "Selecciona la categoría del gasto general.";
     if (form.moneda === "USD" && Number(form.tipo_cambio) <= 0)
-      return setError("Ingresa un tipo de cambio válido para dólares.");
+      return "Ingresa un tipo de cambio válido para dólares.";
     const contado = form.condicion_pago !== "Crédito";
-    if (contado && !form.banco_id) return setError("Elige la cuenta bancaria o Caja Chica del egreso.");
+    if (contado && !form.banco_id) return "Elige la cuenta bancaria o Caja Chica del egreso.";
     const tc = form.moneda === "USD" ? Number(form.tipo_cambio) : 1;
     const prov = terceros.find((t) => t.id === form.proveedor_id);
     const { error: err } = await supabase.from("gastos_generales").insert({
