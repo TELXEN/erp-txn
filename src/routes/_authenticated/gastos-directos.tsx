@@ -20,7 +20,7 @@ import {
 import { InsigniaRubro } from "@/components/estado-ui";
 import { exportarExcel } from "@/lib/exportar";
 import { agruparSoloPorCategoria } from "@/lib/categorias";
-import { CamposCondicion, InsigniaPago, PLAZOS, condicionVacia, datosCondicion } from "@/components/CondicionPago";
+import { InsigniaPago, PLAZOS, condicionVacia, datosCondicion } from "@/components/CondicionPago";
 
 type Compra = GastoDirecto & { cantidad?: number; precio_unitario?: number; comprobante?: string; condicion_pago?: string; fecha_vencimiento?: string | null; estado_pago?: string; banco_id?: string | null; numero_operacion?: string };
 
