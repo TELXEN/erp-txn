@@ -6,11 +6,11 @@ export type TipoInsumo = string;
 export const TIPOS_SISTEMA = ["MO", "MAT", "EQ", "HT", "SC"] as const;
 /** Registro vivo de tipos [clave, nombre]; se sincroniza con la tabla tipos_insumo en useTiposInsumo. */
 export const TIPOS_INSUMO: [TipoInsumo, string][] = [
-  ["MO", "MANO DE OBRA"],
-  ["MAT", "MATERIALES"],
-  ["EQ", "EQUIPOS Y HERRAMIENTAS"],
+  ["MO", "Mano de Obra"],
+  ["MAT", "Materiales"],
+  ["EQ", "Equipos y Herramientas"],
   ["HT", "HERRAMIENTAS MANUALES"],
-  ["SC", "SUBCONTRATOS"],
+  ["SC", "Subcontratos"],
 ];
 /** Claves de tipos internos (no se muestran en pestañas, buscadores ni codificación). */
 export const TIPOS_OCULTOS = new Set<string>(["HT"]);
