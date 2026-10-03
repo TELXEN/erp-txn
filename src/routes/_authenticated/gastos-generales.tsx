@@ -4,7 +4,7 @@ import { Fragment, useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
+import { Boton, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { InsigniaCategoriaGasto } from "@/components/estado-ui";
 import { CalendarDays, Check, ChevronDown, ChevronRight, Info, Pencil, Plus, Search, Trash2, Upload, X } from "lucide-react";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
@@ -209,6 +209,7 @@ function GastosGenerales() {
       ...datosCondicion(form, form.fecha),
       estado_pago: contado ? "Pagada" : "Pendiente",
       banco_id: contado && form.banco_id !== "caja" ? form.banco_id : null,
+      numero_operacion: contado ? form.numero_operacion.trim() : "",
       fecha_pago: contado ? form.fecha : null,
     } as never);
     if (err) return err.message;
