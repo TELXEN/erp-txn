@@ -1,29 +1,51 @@
-# Registrar compra en ventana con datos de la partida
+# Rediseño de Control por Partida y Registro de Compras
 
-## Qué se pide
-En Costos Directos, al pulsar «+ Compra» de una partida se abre una **ventana flotante** que muestra primero **los datos de la partida** (resumen) y debajo los campos de compra **listos para ingresar**. La fila de captura en línea actual se elimina: toda compra se registra desde la ventana.
+## Qué cambia para el usuario
+Costos Directos se ve más ordenado: el resumen de cada partida queda separado de sus compras, el consumo se muestra con una barra de color y las compras se registran en una ventana con más espacio, sin la fila de captura apretada dentro de la tabla.
 
-## Ventana «Registrar compra»
+## 1. Tablas más claras
+- La tabla de compras de cada partida (al expandirla) tiene su propio encabezado con fondo gris suave: FECHA · COMPROBANTE · PROVEEDOR · INSUMO · PAGO · BANCO · CANTIDAD · P.U. COMPRA · COSTO REAL · acciones. Así no se confunde con el encabezado de las partidas.
+- El badge de «% consumo» pasa a ser una **barra de progreso pequeña con el porcentaje**:
+  - verde por debajo del 80 %
+  - amarillo entre 80 % y 100 %
+  - rojo por encima del 100 %
+- Fechas en formato peruano DD/MM/AAAA en todo el historial.
+- INSUMO siempre se muestra en MAYÚSCULAS.
 
-**1. Resumen de la partida** (contexto, arriba): CÓDIGO · PARTIDA · UND. · PRESUPUESTO · COSTO REAL · SALDO · % CONSUMO, con el saldo en rojo si la compra proyectada lo vuelve negativo.
+## 2. Ventana «Registrar compra» (en lugar de la fila en línea)
+- «+ Compra» en la fila de la partida o «+ Añadir otra compra» dentro de la partida abren una ventana.
+- **Arriba:** resumen de la partida (CÓDIGO, PARTIDA, UND., PRESUPUESTO, COSTO REAL, SALDO y barra de consumo).
+- **Campos**, ordenados en una cuadrícula fija: FECHA (DD/MM/AAAA, hoy por defecto) · COMPROBANTE · PROVEEDOR · INSUMO (buscador del Maestro de insumos; también acepta texto libre, que se guarda en MAYÚSCULAS) · PAGO (Contado/Crédito) · BANCO (cuenta y N° de operación si es Contado; días y vencimiento si es Crédito) · CANTIDAD · P.U. COMPRA · **COSTO REAL** (bloqueado y calculado al momento como Cantidad × P.U.).
+- **Vista previa en vivo:** muestra cómo quedarían el costo real, el saldo y el % de consumo si se registra la compra. Si el saldo se volvería negativo, aparece en rojo suave con el aviso «Sobregiro de S/ X».
+- Botones **Guardar** (o Enter) y **Cancelar**, con estilo claro. Tras guardar, la ventana sigue abierta con los campos limpios para registrar otra compra y muestra el aviso «Compra registrada». Se cierra con Cancelar, X, clic fuera o Escape.
+- Se mantienen las validaciones actuales.
 
-**2. Campos de compra** (los mismos de la fila actual, listos para escribir):
-FECHA (hoy por defecto) · COMPROBANTE · PROVEEDOR · INSUMO (buscador del maestro completo con texto libre) · PAGO (Contado/Crédito) · BANCO (cuentas + Caja Chica si es Contado, con N° de operación; días y fecha de vencimiento si es Crédito) · CANT. REAL (M) · COSTO REAL (P.U.) — textos a la izquierda, números a la derecha. Total calculado visible.
+## 3. Cálculos automáticos
+- Al guardar o eliminar una compra se recalculan enseguida, sin recargar la página: el costo real de la partida (suma de sus compras), el costo real del grupo (por ejemplo, SUMINISTRO DE TABLEROS), el saldo (Presupuesto − Costo real) y el % de consumo (Costo real ÷ Presupuesto × 100).
+- El saldo negativo se resalta en rojo suave con la etiqueta «Sobregiro».
+- Los montos se calculan en céntimos enteros para evitar errores de redondeo y se muestran siempre como «S/ 0.00».
 
-**3. Registro:** Enter o el icono ✓ registra. La ventana **permanece abierta con los campos limpios** para registrar otra compra seguida (reemplaza el «Añadir otra compra» actual); muestra una confirmación breve «Compra registrada» y el total recién registrado. Se cierra con X, clic fuera o Escape. Las validaciones actuales se mantienen (proveedor, cantidad > 0, cuenta y N° de operación si es contado sin caja).
-
-## Cambios (un solo archivo: `src/routes/_authenticated/gastos-directos.tsx`)
-
-1. **Ventana modal** con el patrón ya usado en el módulo (overlay fijo `fixed inset-0 z-50` con fondo oscurecido, tarjeta centrada con scroll, cierre con X / clic fuera / Escape).
-2. **Partida:** el «+ Compra» de cada fila abre la ventana con esa partida (y la deja expandida). No hay botón general en el encabezado: siempre hay partida definida.
-3. **Historial en la partida:** al expandir una partida se sigue viendo la tabla de sus compras registradas (columnas actuales, incluida Insumo, con cambio de estado de pago y eliminación). Se quita la fila de captura en línea, el botón «Añadir otra compra» y el estado multi-fila (`filas`).
-4. Al registrar desde la ventana, la compra aparece en el historial de la partida expandida sin recargar (igual que hoy).
-5. Se conserva `FilaCompra` convertida en contenido de la ventana (mismos campos y lógica de `AutoInsumo`, `CondicionPago`, cálculo de total y rubro por tipo de insumo); se añade el bloque de resumen y el comportamiento de ventana persistente con campos limpios tras cada registro.
+## 4. Pago y banco
+- Pago (Contado/Crédito), cuenta bancaria y N° de operación siguen guardándose en campos separados, como hoy. Así Tesorería puede seguir leyéndolos sin cambios.
 
 ## Fuera de alcance
-- Sin cambios de base de datos ni de lógica de guardado: mismas validaciones, misma tabla `gastos_directos`.
-- Sin cambios en exportar a Excel.
+- No hay cambios en la base de datos ni en Exportar a Excel.
+- El término «Emisión de comprobantes electrónicos» corresponde a otro módulo. Aquí solo se revisa que no aparezca otro nombre en este módulo.
+
+## Detalles técnicos
+- Archivo: `src/routes/_authenticated/gastos-directos.tsx`.
+  - Se quitan el estado multi-fila `filas`, `FilaCompra` en línea y los botones ✓/✕.
+  - Se crea un modal propio (`fixed inset-0 z-50`, el mismo patrón que ApuPartida) que reutiliza `AutoInsumo`, PLAZOS/`datosCondicion` y el cálculo del rubro por tipo.
+- Componentes nuevos dentro del mismo archivo: `BarraConsumo` y `ResumenPartida`.
+  - Los colores salen de los tokens `good`, `bad` y `accent`; si hace falta, se añade un token de advertencia en styles.css.
+- Fecha: se cambia el input nativo por el datepicker de shadcn (Popover + Calendar) con formato `dd/MM/yyyy` de date-fns, para que se vea igual en cualquier navegador.
+- Redondeo: helper `cent = (n) => Math.round(n * 100)`. Las sumas se hacen en enteros y se dividen entre 100 para mostrarlas. No hace falta Big.js.
+- Los totales ya se derivan de la consulta de compras. Después de guardar o eliminar se invalida esa consulta, así que la partida y el grupo se actualizan solos.
 
 ## Verificación
-- Playwright en /gastos-directos: abrir la ventana desde «+ Compra», verificar resumen de la partida, registrar una compra con Enter, registrar una segunda seguida, verificar que aparece en el historial expandido, probar Contado (banco) y Crédito (días), limpiar los datos de prueba.
-- `bunx tsgo --noEmit` y build OK.
+- Con Playwright en /gastos-directos:
+  - abrir la ventana y registrar dos compras seguidas, una al Contado y otra a Crédito
+  - comprobar el costo real bloqueado, la barra y el aviso de sobregiro
+  - comprobar que la partida y el grupo se actualizan y que las fechas salen en DD/MM/AAAA
+  - eliminar las compras de prueba
+- Revisión de tipos y compilación sin errores.
