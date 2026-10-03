@@ -98,8 +98,6 @@ function GastosGenerales() {
     const c = cuentas.find((x) => x.id === id);
     return c ? `${c.nombre} · ${c.monedas}` : "";
   };
-  const equivalente = Number(form.monto || 0) * (form.moneda === "USD" ? Number(form.tipo_cambio || 0) : 1);
-
   const enRango = (f: string) => (!desde || f >= desde) && (!hasta || f <= hasta);
   const gastosRango = gastos.filter((g) => enRango(g.fecha));
   const porAmbito =
@@ -268,8 +266,6 @@ function GastosGenerales() {
     setEditando(null);
     qc.invalidateQueries({ queryKey: ["gastos_generales"] });
   }
-
-  const contado = form.condicion_pago !== "Crédito";
 
   return (
     <>
@@ -534,7 +530,7 @@ function GastosGenerales() {
             {filtroCategoria} <X size={12} />
           </button>
         )}
-        <Boton variante="accion" onClick={() => setPestana("nuevo")} className="px-4 py-2.5">
+        <Boton variante="accion" onClick={() => setModalGasto(true)} className="px-4 py-2.5">
           <Plus size={14} /> Registrar Gasto
         </Boton>
       </div>
