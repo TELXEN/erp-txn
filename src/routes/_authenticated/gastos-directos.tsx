@@ -23,7 +23,7 @@ import { InsigniaPago, PLAZOS, condicionVacia, datosCondicion } from "@/componen
 
 type Compra = GastoDirecto & { cantidad?: number; precio_unitario?: number; comprobante?: string; condicion_pago?: string; fecha_vencimiento?: string | null; estado_pago?: string; banco_id?: string | null; numero_operacion?: string; insumo_id?: string | null };
 
-type InsumoApu = { id: string; descripcion: string; tipo: string };
+type InsumoApu = { id: string; descripcion: string; tipo: string; codigo: string | null };
 
 type Cuenta = { id: string; nombre: string; tipo_cuenta?: string; monedas?: string; numero_cuenta?: string | null; activo?: boolean };
 type Tercero = { id: string; razon_social: string };
@@ -108,30 +108,22 @@ function GastosDirectos() {
     },
   });
   const cuentasActivas = cuentas.filter((c) => c.activo);
-  const { data: componentes = [] } = useQuery({
-    queryKey: ["apu_insumos_compras"],
+  const { data: maestroInsumos = [] } = useQuery({
+    queryKey: ["insumos_compras"],
     queryFn: async () => {
       const { data, error: err } = await supabase
-        .from("apu_componentes")
-        .select("partida_id, insumo_id, insumos(id, descripcion, tipo)");
+        .from("insumos")
+        .select("id, nombre, tipo, codigo")
+        .order("nombre");
       if (err) throw err;
-      return (data ?? []) as unknown as { partida_id: string; insumo_id: string | null; insumos: InsumoApu | null }[];
+      return (data ?? []).map((i) => ({ id: i.id, descripcion: i.nombre, tipo: i.tipo, codigo: i.codigo }));
     },
   });
-  const insumosDePartida = useMemo(() => {
-    const mapa: Record<string, InsumoApu[]> = {};
-    for (const c of componentes) {
-      if (!c.insumos) continue;
-      const lista = (mapa[c.partida_id] ??= []);
-      if (!lista.some((i) => i.id === c.insumos!.id)) lista.push(c.insumos);
-    }
-    return mapa;
-  }, [componentes]);
   const nombreInsumo = useMemo(() => {
     const mapa = new Map<string, string>();
-    for (const c of componentes) if (c.insumos) mapa.set(c.insumos.id, c.insumos.descripcion);
+    for (const i of maestroInsumos) mapa.set(i.id, i.descripcion);
     return (id?: string | null) => (id ? mapa.get(id) ?? "—" : "—");
-  }, [componentes]);
+  }, [maestroInsumos]);
 
   const nombreBanco = (id?: string | null) => {
     const c = cuentas.find((x) => x.id === id);
@@ -447,7 +439,7 @@ function GastosDirectos() {
                                     <FilaCompra
                                       key={b.key}
                                       borrador={b}
-                                      insumos={insumosDePartida[p.id] ?? []}
+                                      insumos={maestroInsumos}
                                       proveedores={proveedores}
                                       cuentas={cuentasActivas}
                                       onCambiar={(nb) => setFilasDe(p.id, filasDe(p.id).map((x) => (x.key === b.key ? nb : x)))}
@@ -456,7 +448,7 @@ function GastosDirectos() {
                                         setFilasDe(p.id, resto.length ? resto : [borradorVacio()]);
                                       }}
                                       onRegistrar={async () => {
-                                        const error = await registrar(p.id, b, insumosDePartida[p.id] ?? []);
+                                        const error = await registrar(p.id, b, maestroInsumos);
                                         if (error) return error;
                                         const resto = filasDe(p.id).filter((x) => x.key !== b.key);
                                         setFilasDe(p.id, resto.length ? resto : [borradorVacio()]);
@@ -654,7 +646,7 @@ function AutoInsumo({
     const t = norm(value.trim());
     if (!t) return insumos.slice(0, 8);
     return insumos
-      .filter((i) => norm(i.descripcion).includes(t))
+      .filter((i) => norm(i.descripcion).includes(t) || (i.codigo ? norm(i.codigo).includes(t) : false))
       .sort((a, b) => Number(norm(b.descripcion).startsWith(t)) - Number(norm(a.descripcion).startsWith(t)))
       .slice(0, 8);
   }, [insumos, value]);
@@ -663,7 +655,7 @@ function AutoInsumo({
     <div className="relative">
       <input
         value={value}
-        placeholder="Insumo del APU o libre…"
+        placeholder="Busca en el maestro o escribe libre…"
         className="h-7 w-full rounded-md border border-line bg-card px-1.5 text-[11px] outline-none focus:border-primary"
         onFocus={() => setAbierto(true)}
         onChange={(e) => {
@@ -707,6 +699,7 @@ function AutoInsumo({
                   onElegir(i);
                 }}
               >
+                <span className="mr-1.5 font-mono text-[10px] text-muted-foreground">{i.codigo ?? "—"}</span>
                 {i.descripcion}
               </button>
             </li>
