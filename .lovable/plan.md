@@ -2,7 +2,9 @@
 
 ## Qué verás
 
-En **Costos Directos**, al expandir una partida aparece una **segunda fila de captura en línea** (estilo WYSIWYG), debajo del encabezado de compras y encima de las compras ya registradas. Se escribe directo en los campos y se registra con **Enter** o con el icono de **check (✓)** al final de la fila.
+En **Costos Directos**, al expandir una partida aparece una **fila de captura en línea** (estilo WYSIWYG), debajo del encabezado de compras y encima de las compras ya registradas. Se escribe directo en los campos y se registra con **Enter** o con el icono de **check (✓)** al final de la fila.
+
+**Varias compras a la vez:** un icono **+** junto a la fila de captura añade otra fila vacía debajo (tercera, cuarta fila, etc.). Cada fila es independiente: se puede registrar una con ✓/Enter mientras las demás siguen abiertas, y cada una tiene su propio ✕ para descartarla. Así se registran varias compras de la misma partida sin cerrar ni reabrir nada.
 
 Campos de la fila, en este orden:
 
@@ -27,7 +29,7 @@ Al final de la fila: icono **✓** (registrar) e **✕** (limpiar la fila). Ente
 ## Detalles técnicos
 
 - Migración: `ALTER TABLE gastos_directos ADD COLUMN insumo_id uuid REFERENCES insumos(id)` (nullable; compras existentes quedan sin insumo).
-- `src/routes/_authenticated/gastos-directos.tsx`: se quita el modal y el estado `mostrarForm`; nuevo componente `FilaCompra` (fila de captura por partida) con su propio estado local, reutilizando `condicionVacia`/`datosCondicion`/`PLAZOS` de CondicionPago y un autocompletado de insumos (patrón `AutoMaestra` de CotizacionHoja, sobre la tabla `insumos` activos).
+- `src/routes/_authenticated/gastos-directos.tsx`: se quita el modal y el estado `mostrarForm`; nuevo componente `FilaCompra` (fila de captura por partida) con su propio estado local, reutilizando `condicionVacia`/`datosCondicion`/`PLAZOS` de CondicionPago y un autocompletado de insumos (patrón `AutoMaestra` de CotizacionHoja, sobre la tabla `insumos` activos). Cada partida mantiene una lista de filas de captura (mínimo una); el icono + agrega una fila vacía y el ✕ de cada fila la descarta (si es la única, solo la limpia).
 - El rubro se deriva del tipo del insumo elegido (mapeo clave de tipo → rubro: MO→Mano de obra, MAT→Materiales, EQ→Equipos, SC→Subcontratos, otros→Materiales).
 - Validaciones iguales a las actuales: cantidad > 0, P.U. ≥ 0, cuenta bancaria y N° de operación si es contado sin caja.
 - Al registrar: insert en `gastos_directos` (mismo cálculo de montos), la fila se limpia y la compra aparece en la lista sin recargar.
