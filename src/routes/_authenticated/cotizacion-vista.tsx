@@ -226,11 +226,12 @@ function VistaCotizacion() {
     const wb = new ExcelJS.Workbook();
     const ws = wb.addWorksheet("Matriz de costos");
     if (!cot) return;
-    ws.addRow([`${cot.codigo ?? "Cotización"} — ${cot.cliente}`]).font = { bold: true, size: 13 };
+    const fuenteExcel = fuente.excelFamily;
+    ws.addRow([`${cot.codigo ?? "Cotización"} — ${cot.cliente}`]).font = { name: fuenteExcel, bold: true, size: 13 };
     ws.addRow([]);
     const cab = ws.addRow(["Ítem", "Descripción", "Marca", "Unidad", "Cantidad", "C. Unitario", "Sub Total"]);
     cab.eachCell((c) => {
-      c.font = { bold: true, color: { argb: "FFFFFFFF" } };
+       c.font = { name: fuenteExcel, bold: true, color: { argb: "FFFFFFFF" } };
       c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
       c.alignment = { vertical: "middle", horizontal: "center" };
     });
@@ -238,7 +239,7 @@ function VistaCotizacion() {
     construirFilas(items).forEach((fila) => {
       if (fila.clase !== "item") {
         const g = ws.addRow([fila.numero, fila.texto, "", "", "", "", ""]);
-        g.font = { bold: true, size: fila.clase === "grupo" ? 11 : 10 };
+        g.font = { name: fuenteExcel, bold: true, size: fila.clase === "grupo" ? 11 : 10 };
         g.fill = { type: "pattern", pattern: "solid", fgColor: { argb: fila.clase === "grupo" ? "FFE2E8F0" : "FFF1F5F9" } };
         return;
       }
@@ -262,7 +263,10 @@ function VistaCotizacion() {
     const filaSub = ws.addRow(["", "SUBTOTAL", "", "", "", "", { formula: base }]);
     const filaIgv = ws.addRow(["", conIgv ? "IGV (18%)" : "IGV (0%)", "", "", "", "", { formula: conIgv ? `ROUND(G${filaSub.number}*0.18,2)` : "0" }]);
     const tot = ws.addRow(["", "TOTAL", "", "", "", "", { formula: `G${filaSub.number}+G${filaIgv.number}` }]);
-    tot.font = { bold: true };
+    tot.font = { name: fuenteExcel, bold: true };
+    ws.eachRow((fila) => fila.eachCell({ includeEmpty: true }, (celda) => {
+      celda.font = { ...celda.font, name: fuenteExcel };
+    }));
     ["F", "G"].forEach((col) => (ws.getColumn(col).numFmt = '"S/" #,##0.00'));
     ws.columns.forEach((col) => {
       let max = 10;
