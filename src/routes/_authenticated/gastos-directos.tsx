@@ -482,147 +482,201 @@ function GastosDirectos() {
   );
 }
 
-/** Fila de captura WYSIWYG de una compra: Enter o ✓ registra, ✕ descarta. */
-function FilaCompra({
-  borrador: b,
+/** Barra de consumo: verde < 80 %, amarillo 80–100 %, rojo > 100 %. */
+function BarraConsumo({ uso }: { uso: number }) {
+  const color = uso > 100 ? "bg-bad" : uso >= 80 ? "bg-accent" : "bg-good";
+  const texto = uso > 100 ? "text-bad" : "text-ink";
+  return (
+    <div className="flex items-center justify-end gap-2">
+      <div className="h-1.5 w-16 overflow-hidden rounded-full bg-muted">
+        <div className={`h-full rounded-full ${color} transition-all`} style={{ width: `${Math.min(100, Math.max(0, uso))}%` }} />
+      </div>
+      <span className={`w-10 text-right font-semibold ${texto}`}>{uso.toFixed(0)}%</span>
+    </div>
+  );
+}
+
+type PartidaResumen = { codigo: string | null; nombre: string; unidad: string | null; presupuesto: number; costo: number };
+
+function FechaPeru({ valor, onChange }: { valor: string; onChange: (v: string) => void }) {
+  const [abierto, setAbierto] = useState(false);
+  const d = valor ? new Date(`${valor}T00:00:00`) : undefined;
+  return (
+    <Popover open={abierto} onOpenChange={setAbierto}>
+      <PopoverTrigger asChild>
+        <button type="button" className="flex h-9 w-full items-center justify-between rounded-md border border-line bg-card px-2.5 text-left text-xs outline-none focus:border-primary">
+          {d ? format(d, "dd/MM/yyyy") : <span className="text-muted-foreground">DD/MM/AAAA</span>}
+          <CalendarIcon size={13} className="text-muted-foreground" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="z-[60] w-auto p-0" align="start">
+        <Calendar
+          mode="single"
+          selected={d}
+          locale={es}
+          onSelect={(x) => { if (x) { onChange(format(x, "yyyy-MM-dd")); setAbierto(false); } }}
+          initialFocus
+          className="pointer-events-auto p-3"
+        />
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+/** Ventana «Registrar compra»: resumen de la partida + campos; queda abierta tras guardar. */
+function ModalCompra({
+  partida,
   insumos,
   proveedores,
   cuentas,
-  onCambiar,
-  onDescartar,
+  onCerrar,
   onRegistrar,
 }: {
-  borrador: Borrador;
+  partida: PartidaResumen;
   insumos: InsumoApu[];
   proveedores: Tercero[];
   cuentas: Cuenta[];
-  onCambiar: (b: Borrador) => void;
-  onDescartar: () => void;
-  onRegistrar: () => Promise<string | null>;
+  onCerrar: () => void;
+  onRegistrar: (b: Borrador) => Promise<string | null>;
 }) {
+  const [b, setB] = useState<Borrador>(borradorVacio);
   const [error, setError] = useState("");
+  const [ok, setOk] = useState("");
   const [guardando, setGuardando] = useState(false);
   const contado = b.condicion_pago !== "Crédito";
-  const total = Number(b.cantidad || 0) * Number(b.precio_unitario || 0);
+  const totalC = cent(Number(b.cantidad || 0) * Number(b.precio_unitario || 0));
+  const costoC = cent(partida.costo);
+  const presuC = cent(partida.presupuesto);
+  const nuevoCosto = costoC + totalC;
+  const saldoActual = presuC - costoC;
+  const saldoNuevo = presuC - nuevoCosto;
+  const usoActual = presuC > 0 ? (costoC / presuC) * 100 : costoC > 0 ? 100 : 0;
+  const usoNuevo = presuC > 0 ? (nuevoCosto / presuC) * 100 : nuevoCosto > 0 ? 100 : 0;
+
+  useEffect(() => {
+    const k = (e: KeyboardEvent) => e.key === "Escape" && onCerrar();
+    window.addEventListener("keydown", k);
+    return () => window.removeEventListener("keydown", k);
+  }, [onCerrar]);
 
   async function enviar(e?: React.FormEvent) {
     e?.preventDefault();
     if (guardando) return;
     setGuardando(true);
     setError("");
-    const err = await onRegistrar();
+    setOk("");
+    const err = await onRegistrar(b);
     setGuardando(false);
-    if (err) setError(err);
+    if (err) return setError(err);
+    setOk(`Compra registrada · ${soles(totalC / 100)}`);
+    setB(borradorVacio());
   }
 
+  const etq = "mb-1 block text-[10px] font-medium uppercase tracking-wider text-muted-foreground";
+  const inp = "h-9 px-2.5 text-xs";
+
   return (
-    <form onSubmit={enviar} className="rounded-lg border border-dashed border-line bg-card p-2">
-      <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4 lg:grid-cols-[repeat(8,minmax(0,1fr))_auto]">
-        <label className="block">
-          <span className="text-[9px] uppercase tracking-wide text-muted-foreground">Fecha</span>
-          <Input type="date" value={b.fecha} onChange={(e) => onCambiar({ ...b, fecha: e.target.value })} className="h-7 px-1.5 text-[11px]" />
-        </label>
-        <label className="block">
-          <span className="text-[9px] uppercase tracking-wide text-muted-foreground">Comprobante</span>
-          <Input value={b.comprobante} onChange={(e) => onCambiar({ ...b, comprobante: e.target.value })} placeholder="F001-1240" maxLength={40} className="h-7 px-1.5 text-[11px]" />
-        </label>
-        <label className="block">
-          <span className="text-[9px] uppercase tracking-wide text-muted-foreground">Proveedor</span>
-          <Select value={b.proveedor_id} onChange={(e) => onCambiar({ ...b, proveedor_id: e.target.value })} className="h-7 px-1.5 text-[11px]">
-            <option value="">Selecciona...</option>
-            {proveedores.map((t) => (
-              <option key={t.id} value={t.id}>{t.razon_social}</option>
-            ))}
-          </Select>
-        </label>
-        <label className="block">
-          <span className="text-[9px] uppercase tracking-wide text-muted-foreground">Insumo</span>
-          <AutoInsumo
-            value={b.insumoTexto}
-            insumos={insumos}
-            onChange={(v) => onCambiar({ ...b, insumoTexto: v, insumo_id: null })}
-            onElegir={(i) => onCambiar({ ...b, insumoTexto: i.descripcion, insumo_id: i.id })}
-            onEnter={() => void enviar()}
-          />
-        </label>
-        <label className="block">
-          <span className="text-[9px] uppercase tracking-wide text-muted-foreground">Pago</span>
-          <Select value={b.condicion_pago} onChange={(e) => onCambiar({ ...b, ...condicionVacia(e.target.value) })} className="h-7 px-1.5 text-[11px]">
-            <option value="Contado">Contado</option>
-            <option value="Crédito">Crédito</option>
-          </Select>
-        </label>
-        <label className="block">
-          <span className="text-[9px] uppercase tracking-wide text-muted-foreground">Banco</span>
-          {contado ? (
-            <Select value={b.banco_id} onChange={(e) => onCambiar({ ...b, banco_id: e.target.value })} className="h-7 px-1.5 text-[11px]">
-              <option value="">Selecciona...</option>
-              {cuentas.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.nombre}{c.numero_cuenta ? ` · ${c.numero_cuenta}` : ""}
-                </option>
-              ))}
-              <option value="caja">Caja Chica (efectivo)</option>
-            </Select>
-          ) : (
-            <Select
-              value={PLAZOS.includes(Number(b.dias_credito)) ? b.dias_credito : "otro"}
-              onChange={(e) => e.target.value !== "otro" && onCambiar({ ...b, dias_credito: e.target.value })}
-              className="h-7 px-1.5 text-[11px]"
-              title={`Vence ${fmtFecha(datosCondicion(b, b.fecha).fecha_vencimiento)}`}
-            >
-              {PLAZOS.map((p) => (
-                <option key={p} value={String(p)}>{p} días</option>
-              ))}
-              <option value="otro">Otro</option>
-            </Select>
-          )}
-        </label>
-        <label className="block">
-          <span className="text-[9px] uppercase tracking-wide text-muted-foreground">Cantidad</span>
-          <Input type="number" step="0.01" min="0" value={b.cantidad} onChange={(e) => onCambiar({ ...b, cantidad: e.target.value })} className="h-7 px-1.5 text-right text-[11px]" />
-        </label>
-        <label className="block">
-          <span className="text-[9px] uppercase tracking-wide text-muted-foreground">P.U. compra</span>
-          <Input type="number" step="0.01" min="0" value={b.precio_unitario} onChange={(e) => onCambiar({ ...b, precio_unitario: e.target.value })} className="h-7 px-1.5 text-right text-[11px]" />
-        </label>
-        <div className="flex items-end gap-1 pb-0.5">
-          <button
-            type="submit"
-            disabled={guardando}
-            className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-primary text-primary-foreground hover:brightness-95 disabled:opacity-50"
-            title="Registrar compra (Enter)"
-          >
-            <Check size={13} />
-          </button>
-          <button
-            type="button"
-            onClick={onDescartar}
-            className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-bad hover:text-bad"
-            title="Descartar fila"
-          >
-            <X size={13} />
-          </button>
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-foreground/40 p-4" onMouseDown={onCerrar}>
+      <div className="panel my-8 w-full max-w-4xl overflow-hidden font-mono" onMouseDown={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between border-b border-line px-5 py-3">
+          <h2 className="text-base font-semibold tracking-tight">Registrar compra</h2>
+          <button type="button" onClick={onCerrar} className="text-muted-foreground hover:text-ink" title="Cerrar (Esc)"><X size={16} /></button>
         </div>
+
+        <div className="grid grid-cols-2 gap-x-5 gap-y-3 border-b border-line bg-muted/40 px-5 py-4 text-xs sm:grid-cols-4 lg:grid-cols-7">
+          <ResumenDato t="Código" v={partida.codigo || "—"} />
+          <div className="col-span-2 lg:col-span-2"><p className={etq}>Partida</p><p className="font-semibold text-ink">{partida.nombre}</p></div>
+          <ResumenDato t="Und." v={partida.unidad || "—"} />
+          <ResumenDato t="Presupuesto" v={soles(presuC / 100)} />
+          <ResumenDato t="Costo real" v={soles(costoC / 100)} />
+          <div>
+            <p className={etq}>Saldo</p>
+            <p className={`font-semibold ${saldoActual < 0 ? "text-bad" : "text-good"}`}>{soles(saldoActual / 100)}</p>
+            <div className="mt-1"><BarraConsumo uso={usoActual} /></div>
+          </div>
+        </div>
+
+        <form onSubmit={enviar} className="px-5 py-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div><span className={etq}>Fecha</span><FechaPeru valor={b.fecha} onChange={(v) => setB({ ...b, fecha: v })} /></div>
+            <label><span className={etq}>Comprobante</span>
+              <Input autoFocus value={b.comprobante} onChange={(e) => setB({ ...b, comprobante: e.target.value })} placeholder="F001-1240" maxLength={40} className={inp} /></label>
+            <label className="lg:col-span-2"><span className={etq}>Proveedor</span>
+              <Select value={b.proveedor_id} onChange={(e) => setB({ ...b, proveedor_id: e.target.value })} className={inp}>
+                <option value="">Selecciona...</option>
+                {proveedores.map((t) => <option key={t.id} value={t.id}>{t.razon_social}</option>)}
+              </Select></label>
+            <label className="sm:col-span-2"><span className={etq}>Insumo</span>
+              <AutoInsumo
+                value={b.insumoTexto}
+                insumos={insumos}
+                onChange={(v) => setB({ ...b, insumoTexto: v.toUpperCase(), insumo_id: null })}
+                onElegir={(i) => setB({ ...b, insumoTexto: i.descripcion.toUpperCase(), insumo_id: i.id })}
+                onEnter={() => void enviar()}
+              /></label>
+            <label><span className={etq}>Pago</span>
+              <Select value={b.condicion_pago} onChange={(e) => setB({ ...b, ...condicionVacia(e.target.value) })} className={inp}>
+                <option value="Contado">Contado</option>
+                <option value="Crédito">Crédito</option>
+              </Select></label>
+            <label><span className={etq}>{contado ? "Banco" : `Días · vence ${fmtFecha(datosCondicion(b, b.fecha).fecha_vencimiento)}`}</span>
+              {contado ? (
+                <Select value={b.banco_id} onChange={(e) => setB({ ...b, banco_id: e.target.value })} className={inp}>
+                  <option value="">Selecciona...</option>
+                  {cuentas.map((c) => <option key={c.id} value={c.id}>{c.nombre}{c.numero_cuenta ? ` · ${c.numero_cuenta}` : ""}</option>)}
+                  <option value="caja">Caja Chica (efectivo)</option>
+                </Select>
+              ) : (
+                <div className="flex gap-1.5">
+                  <Select value={PLAZOS.includes(Number(b.dias_credito)) ? b.dias_credito : "otro"} onChange={(e) => e.target.value !== "otro" && setB({ ...b, dias_credito: e.target.value })} className={inp}>
+                    {PLAZOS.map((p) => <option key={p} value={String(p)}>{p} días</option>)}
+                    <option value="otro">Otro</option>
+                  </Select>
+                  {!PLAZOS.includes(Number(b.dias_credito)) && (
+                    <Input type="number" min="0" step="1" value={b.dias_credito} onChange={(e) => setB({ ...b, dias_credito: e.target.value })} className={`${inp} w-20 text-right`} />
+                  )}
+                </div>
+              )}</label>
+            {contado && b.banco_id && b.banco_id !== "caja" && (
+              <label><span className={etq}>N° de operación</span>
+                <Input value={b.numero_operacion} onChange={(e) => setB({ ...b, numero_operacion: e.target.value })} maxLength={40} className={inp} /></label>
+            )}
+            <label><span className={etq}>Cantidad</span>
+              <Input type="number" step="0.01" min="0" value={b.cantidad} onChange={(e) => setB({ ...b, cantidad: e.target.value })} className={`${inp} text-right`} /></label>
+            <label><span className={etq}>P.U. compra (S/)</span>
+              <Input type="number" step="0.01" min="0" value={b.precio_unitario} onChange={(e) => setB({ ...b, precio_unitario: e.target.value })} className={`${inp} text-right`} /></label>
+            <label><span className={etq}>Costo real</span>
+              <Input readOnly disabled value={soles(totalC / 100)} className={`${inp} bg-muted text-right font-semibold`} /></label>
+          </div>
+
+          <div className={`mt-4 grid grid-cols-3 gap-3 rounded-md border px-4 py-3 text-xs ${saldoNuevo < 0 ? "border-bad/40 bg-bad/10" : "border-line bg-muted/30"}`}>
+            <div><p className={etq}>Costo real proyectado</p><p className="font-semibold text-ink">{soles(nuevoCosto / 100)}</p></div>
+            <div>
+              <p className={etq}>Saldo proyectado</p>
+              <p className={`font-semibold ${saldoNuevo < 0 ? "text-bad" : "text-good"}`}>{soles(saldoNuevo / 100)}</p>
+              {saldoNuevo < 0 && <p className="text-[10px] text-bad">Sobregiro de {soles(-saldoNuevo / 100)}</p>}
+            </div>
+            <div><p className={etq}>Consumo proyectado</p><BarraConsumo uso={usoNuevo} /></div>
+          </div>
+
+          <div className="mt-4 flex flex-wrap items-center justify-end gap-3">
+            {error && <span className="mr-auto text-[11px] text-bad">{error}</span>}
+            {ok && !error && <span className="mr-auto inline-flex items-center gap-1 text-[11px] text-good"><Check size={13} /> {ok}</span>}
+            <Boton type="button" variante="linea" onClick={onCerrar}>Cancelar</Boton>
+            <Boton type="submit" disabled={guardando}><Check size={13} /> {guardando ? "Guardando…" : "Guardar"}</Boton>
+          </div>
+        </form>
       </div>
-      {contado && b.banco_id && b.banco_id !== "caja" && (
-        <div className="mt-1.5 max-w-xs">
-          <Input value={b.numero_operacion} onChange={(e) => onCambiar({ ...b, numero_operacion: e.target.value })} placeholder="N° de operación" maxLength={40} className="h-7 px-1.5 text-[11px]" />
-        </div>
-      )}
-      {!contado && !PLAZOS.includes(Number(b.dias_credito)) && (
-        <div className="mt-1.5 flex max-w-xs items-center gap-2">
-          <Input type="number" min="0" step="1" value={b.dias_credito} onChange={(e) => onCambiar({ ...b, dias_credito: e.target.value })} className="h-7 w-20 px-1.5 text-[11px]" />
-          <span className="text-[10px] text-muted-foreground">días · vence {fmtFecha(datosCondicion(b, b.fecha).fecha_vencimiento)}</span>
-        </div>
-      )}
-      <div className="mt-1 flex items-center gap-3">
-        <span className="font-mono text-[10px] text-muted-foreground">
-          Total: <strong className="text-ink">{soles(total)}</strong>
-        </span>
-        {error && <span className="font-mono text-[10px] text-bad">{error}</span>}
-      </div>
-    </form>
+    </div>
+  );
+}
+
+function ResumenDato({ t, v }: { t: string; v: string }) {
+  return (
+    <div>
+      <p className="mb-1 block text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{t}</p>
+      <p className="font-semibold text-ink">{v}</p>
+    </div>
   );
 }
 
