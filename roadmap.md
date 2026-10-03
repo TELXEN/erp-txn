@@ -18,3 +18,4 @@
 - [x] Recuperar fondos distintivos en el menú: azul petróleo, pizarra y azul cobalto según el tema.
 - [x] Unificar los botones operativos del área central con el color de fondo del menú de cada tema.
 - [x] Fila inline de compra en Costos Directos (múltiples filas con +, insumo del APU o libre, suma al costo real)
+- [x] INSUMO de compra vinculado al Maestro de insumos completo + alineación de la fila
