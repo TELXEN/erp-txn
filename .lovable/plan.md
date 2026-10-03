@@ -33,6 +33,7 @@ Al final de la fila: icono **✓** (registrar) e **✕** (limpiar la fila). Ente
 - El rubro se deriva del tipo del insumo elegido (mapeo clave de tipo → rubro: MO→Mano de obra, MAT→Materiales, EQ→Equipos, SC→Subcontratos, otros→Materiales).
 - Validaciones iguales a las actuales: cantidad > 0, P.U. ≥ 0, cuenta bancaria y N° de operación si es contado sin caja.
 - Al registrar: insert en `gastos_directos` (mismo cálculo de montos), la fila se limpia y la compra aparece en la lista sin recargar.
+- **Todas las compras de la partida suman al costo real** (columna «Costo real», saldo y % de consumo se recalculan con cada compra registrada, como hoy).
 - Sin cambios en exportar a Excel (se añade columna Insumo en la hoja «Compras»).
 
 ## Verificación
