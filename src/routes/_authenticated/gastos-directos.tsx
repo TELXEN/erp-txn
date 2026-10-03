@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
-import { ChevronDown, ChevronRight, Plus, Trash2, Upload } from "lucide-react";
+import { ChevronDown, ChevronRight, Plus, Trash2, Upload, X } from "lucide-react";
 import { Buscador, Resaltar, coincide } from "@/components/Buscador";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
@@ -20,7 +20,7 @@ import {
 import { InsigniaRubro } from "@/components/estado-ui";
 import { exportarExcel } from "@/lib/exportar";
 import { agruparSoloPorCategoria } from "@/lib/categorias";
-import { CamposCondicion, InsigniaPago, condicionVacia, datosCondicion } from "@/components/CondicionPago";
+import { InsigniaPago, PLAZOS, condicionVacia, datosCondicion } from "@/components/CondicionPago";
 
 type Compra = GastoDirecto & { cantidad?: number; precio_unitario?: number; comprobante?: string; condicion_pago?: string; fecha_vencimiento?: string | null; estado_pago?: string; banco_id?: string | null; numero_operacion?: string };
 
@@ -115,7 +115,6 @@ function GastosDirectos() {
     setForm(formVacio(pid));
     setMostrarForm(true);
     setError("");
-    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   async function guardar(e: React.FormEvent) {
@@ -151,7 +150,8 @@ function GastosDirectos() {
     } as never);
     if (err) return setError(err.message);
     setAbiertas((a) => ({ ...a, [form.partida_id]: true }));
-    setForm(formVacio(form.partida_id));
+    setMostrarForm(false);
+    setForm(formVacio());
     qc.invalidateQueries({ queryKey: ["gastos_directos"] });
   }
 
@@ -247,87 +247,137 @@ function GastosDirectos() {
       </Panel>
 
       {mostrarForm && (
-        <Panel titulo="Registrar compra" className="mb-4">
-          <form onSubmit={guardar} className="grid gap-3 p-5 sm:grid-cols-4">
-            <Campo etiqueta="Partida" >
-              <Select value={form.partida_id} onChange={(e) => setForm({ ...form, partida_id: e.target.value })} required>
-                <option value="">Selecciona...</option>
-                {partidasProy.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.codigo ? `[${p.codigo}] ` : ""}
-                    {p.nombre}
-                  </option>
-                ))}
-              </Select>
-            </Campo>
-            <Campo etiqueta="CANT. REAL (M)">
-              <Input type="number" step="0.01" min="0" value={form.cantidad} onChange={(e) => setForm({ ...form, cantidad: e.target.value })} required />
-            </Campo>
-            <Campo etiqueta="COSTO REAL">
-              <Input type="number" step="0.01" min="0" value={form.precio_unitario} onChange={(e) => setForm({ ...form, precio_unitario: e.target.value })} required />
-            </Campo>
-            <Campo etiqueta="N° comprobante">
-              <Input value={form.comprobante} onChange={(e) => setForm({ ...form, comprobante: e.target.value })} placeholder="F001-1240" maxLength={40} />
-            </Campo>
-            <Campo etiqueta="Proveedor">
-              <Select value={form.proveedor_id} onChange={(e) => setForm({ ...form, proveedor_id: e.target.value })} required>
-                <option value="">Selecciona...</option>
-                {proveedores.map((t) => (
-                  <option key={t.id} value={t.id}>{t.razon_social}</option>
-                ))}
-              </Select>
-            </Campo>
-            <Campo etiqueta="Rubro">
-              <Select value={form.rubro} onChange={(e) => setForm({ ...form, rubro: e.target.value as RubroCosto })}>
-                {RUBROS_COSTO.map((r) => (
-                  <option key={r} value={r}>{r}</option>
-                ))}
-              </Select>
-            </Campo>
-            <Campo etiqueta="Moneda / T.C.">
-              <div className="flex gap-2">
-                <Select value={form.moneda} onChange={(e) => setForm({ ...form, moneda: e.target.value })}>
-                  <option value="PEN">S/</option>
-                  <option value="USD">US$</option>
-                </Select>
-                <Input type="number" step="0.001" min="0" value={form.tipo_cambio} disabled={form.moneda === "PEN"} onChange={(e) => setForm({ ...form, tipo_cambio: e.target.value })} />
-              </div>
-            </Campo>
-            <Campo etiqueta="Fecha">
-              <Input type="date" value={form.fecha} onChange={(e) => setForm({ ...form, fecha: e.target.value })} />
-            </Campo>
-            <CamposCondicion valor={form} fechaBase={form.fecha} onChange={(c) => setForm({ ...form, ...c })} />
-            {contado && (
-              <Campo etiqueta="Cuenta bancaria de egreso">
-                <Select value={form.banco_id} onChange={(e) => setForm({ ...form, banco_id: e.target.value })}>
+        <div
+          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-foreground/40 p-4"
+          onClick={() => setMostrarForm(false)}
+        >
+          <div
+            className="mt-8 w-full max-w-3xl rounded-xl border border-line bg-card shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-line px-5 py-3">
+              <h3 className="label-mono">Registrar compra</h3>
+              <button
+                type="button"
+                onClick={() => setMostrarForm(false)}
+                className="text-muted-foreground hover:text-ink"
+                title="Cerrar"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <form onSubmit={guardar} className="p-5">
+              <Campo etiqueta="Partida">
+                <Select value={form.partida_id} onChange={(e) => setForm({ ...form, partida_id: e.target.value })} required>
                   <option value="">Selecciona...</option>
-                  {cuentasActivas.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.nombre} · {c.tipo_cuenta} · {c.monedas}
-                      {c.numero_cuenta ? ` · ${c.numero_cuenta}` : ""}
+                  {partidasProy.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.codigo ? `[${p.codigo}] ` : ""}
+                      {p.nombre}
                     </option>
                   ))}
-                  <option value="caja">Caja Chica (efectivo)</option>
                 </Select>
               </Campo>
-            )}
-            {contado && form.banco_id && form.banco_id !== "caja" && (
-              <Campo etiqueta="N° de operación">
-                <Input value={form.numero_operacion} onChange={(e) => setForm({ ...form, numero_operacion: e.target.value })} placeholder="00123456" maxLength={40} />
-              </Campo>
-            )}
-            <div className="flex flex-wrap items-center gap-3 sm:col-span-4">
-              <Boton type="submit">Registrar compra</Boton>
-              <Boton type="button" variante="linea" onClick={() => setMostrarForm(false)}>Cerrar</Boton>
-              <span className="font-mono text-xs text-muted-foreground">
-                Costo real: {num(Number(form.cantidad || 0))} × {num(Number(form.precio_unitario || 0))}
-                {form.moneda === "USD" ? ` × TC ${form.tipo_cambio}` : ""} ={" "}
-                <strong className="text-ink">{soles(montoForm * tc)}</strong>
-              </span>
-            </div>
-            {error && <p className="font-mono text-xs text-bad sm:col-span-4">{error}</p>}
-          </form>
-        </Panel>
+              <p className="label-mono mb-2 mt-4">Escribe los datos y pulsa Enter para registrar…</p>
+              <div className="grid gap-3 sm:grid-cols-4">
+                <Campo etiqueta="Fecha">
+                  <Input type="date" value={form.fecha} onChange={(e) => setForm({ ...form, fecha: e.target.value })} />
+                </Campo>
+                <Campo etiqueta="Comprobante">
+                  <Input value={form.comprobante} onChange={(e) => setForm({ ...form, comprobante: e.target.value })} placeholder="F001-1240" maxLength={40} />
+                </Campo>
+                <Campo etiqueta="Proveedor">
+                  <Select value={form.proveedor_id} onChange={(e) => setForm({ ...form, proveedor_id: e.target.value })} required>
+                    <option value="">Selecciona...</option>
+                    {proveedores.map((t) => (
+                      <option key={t.id} value={t.id}>{t.razon_social}</option>
+                    ))}
+                  </Select>
+                </Campo>
+                <Campo etiqueta="Rubro">
+                  <Select value={form.rubro} onChange={(e) => setForm({ ...form, rubro: e.target.value as RubroCosto })}>
+                    {RUBROS_COSTO.map((r) => (
+                      <option key={r} value={r}>{r}</option>
+                    ))}
+                  </Select>
+                </Campo>
+                <Campo etiqueta="Pago">
+                  <Select value={form.condicion_pago} onChange={(e) => setForm({ ...form, ...condicionVacia(e.target.value) })}>
+                    <option value="Contado">Contado</option>
+                    <option value="Crédito">Crédito</option>
+                  </Select>
+                </Campo>
+                <Campo etiqueta="CANT. REAL (M)">
+                  <Input type="number" step="0.01" min="0" value={form.cantidad} onChange={(e) => setForm({ ...form, cantidad: e.target.value })} required />
+                </Campo>
+                <Campo etiqueta="COSTO REAL">
+                  <Input type="number" step="0.01" min="0" value={form.precio_unitario} onChange={(e) => setForm({ ...form, precio_unitario: e.target.value })} required />
+                </Campo>
+                <Campo etiqueta="Moneda / T.C.">
+                  <div className="flex gap-2">
+                    <Select value={form.moneda} onChange={(e) => setForm({ ...form, moneda: e.target.value })}>
+                      <option value="PEN">S/</option>
+                      <option value="USD">US$</option>
+                    </Select>
+                    <Input type="number" step="0.001" min="0" value={form.tipo_cambio} disabled={form.moneda === "PEN"} onChange={(e) => setForm({ ...form, tipo_cambio: e.target.value })} />
+                  </div>
+                </Campo>
+                {contado && (
+                  <Campo etiqueta="Cuenta bancaria de egreso">
+                    <Select value={form.banco_id} onChange={(e) => setForm({ ...form, banco_id: e.target.value })}>
+                      <option value="">Selecciona...</option>
+                      {cuentasActivas.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.nombre} · {c.tipo_cuenta} · {c.monedas}
+                          {c.numero_cuenta ? ` · ${c.numero_cuenta}` : ""}
+                        </option>
+                      ))}
+                      <option value="caja">Caja Chica (efectivo)</option>
+                    </Select>
+                  </Campo>
+                )}
+                {contado && form.banco_id && form.banco_id !== "caja" && (
+                  <Campo etiqueta="N° de operación">
+                    <Input value={form.numero_operacion} onChange={(e) => setForm({ ...form, numero_operacion: e.target.value })} placeholder="00123456" maxLength={40} />
+                  </Campo>
+                )}
+                {form.condicion_pago === "Crédito" && (
+                  <Campo etiqueta={`Días de crédito · vence ${fmtFecha(datosCondicion(form, form.fecha).fecha_vencimiento)}`}>
+                    <div className="flex gap-2">
+                      <Select
+                        value={PLAZOS.includes(Number(form.dias_credito)) ? form.dias_credito : "otro"}
+                        onChange={(e) => e.target.value !== "otro" && setForm({ ...form, dias_credito: e.target.value })}
+                      >
+                        {PLAZOS.map((p) => (
+                          <option key={p} value={String(p)}>{p} días</option>
+                        ))}
+                        <option value="otro">Otro</option>
+                      </Select>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="1"
+                        className="w-20"
+                        value={form.dias_credito}
+                        onChange={(e) => setForm({ ...form, dias_credito: e.target.value })}
+                      />
+                    </div>
+                  </Campo>
+                )}
+              </div>
+              <div className="mt-4 flex flex-wrap items-center gap-3">
+                <Boton type="submit">Registrar compra</Boton>
+                <Boton type="button" variante="linea" onClick={() => setMostrarForm(false)}>Cerrar</Boton>
+                <span className="font-mono text-xs text-muted-foreground">
+                  Costo real: {num(Number(form.cantidad || 0))} × {num(Number(form.precio_unitario || 0))}
+                  {form.moneda === "USD" ? ` × TC ${form.tipo_cambio}` : ""} ={" "}
+                  <strong className="text-ink">{soles(montoForm * tc)}</strong>
+                </span>
+              </div>
+              {error && <p className="mt-3 font-mono text-xs text-bad">{error}</p>}
+            </form>
+          </div>
+        </div>
       )}
 
       <Panel
