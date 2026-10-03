@@ -34,6 +34,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { ETIQUETA_ROL, useAuth, type Rol } from "@/lib/auth";
 import { aplicarTema, leerTema } from "@/lib/temas";
+import { aplicarFuenteGlobal, useFuenteDocumento } from "@/lib/fuentes-documentos";
 
 
 type Item = { a: string; texto: string; roles: Rol[]; icono: React.ElementType };
@@ -119,6 +120,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { data: configuracionDocumentos } = useFuenteDocumento();
 
 
   const categorias = MENU.map((c) => ({
@@ -132,6 +134,10 @@ export function AppShell({ children }: { children: ReactNode }) {
     aplicarTema(leerTema());
     setAbierta(leerAbierta());
   }, []);
+
+  useEffect(() => {
+    aplicarFuenteGlobal(configuracionDocumentos?.fuente_pdf);
+  }, [configuracionDocumentos?.fuente_pdf]);
 
   function alternarCategoria(titulo: string) {
     setAbierta((prev) => {

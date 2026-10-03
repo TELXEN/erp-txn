@@ -1,4 +1,3 @@
-import * as XLSX from "xlsx";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { soles } from "./format";
@@ -6,13 +5,31 @@ import { fuenteDocumento, type FuenteDocumentoId } from "./fuentes-documentos";
 
 export type Hoja = { nombre: string; filas: Record<string, string | number>[] };
 
-export function exportarExcel(archivo: string, hojas: Hoja[]) {
-  const libro = XLSX.utils.book_new();
+export async function exportarExcel(archivo: string, hojas: Hoja[]) {
+  const [{ default: ExcelJS }, { saveAs }] = await Promise.all([import("exceljs"), import("file-saver")]);
+  const libro = new ExcelJS.Workbook();
+  const fuente = fuenteDocumento(typeof document === "undefined" ? undefined : document.documentElement.dataset["fuenteDocumento"]);
   hojas.forEach((h) => {
-    const hoja = XLSX.utils.json_to_sheet(h.filas.length ? h.filas : [{ Aviso: "Sin datos" }]);
-    XLSX.utils.book_append_sheet(libro, hoja, h.nombre.slice(0, 30));
+    const datos = h.filas.length ? h.filas : [{ Aviso: "Sin datos" }];
+    const columnas = Array.from(new Set(datos.flatMap((fila) => Object.keys(fila))));
+    const hoja = libro.addWorksheet(h.nombre.slice(0, 30));
+    hoja.addRow(columnas);
+    datos.forEach((fila) => hoja.addRow(columnas.map((columna) => fila[columna] ?? "")));
+    hoja.eachRow((fila, indice) => {
+      fila.eachCell({ includeEmpty: true }, (celda) => {
+        celda.font = { ...celda.font, name: fuente.excelFamily, bold: indice === 1 };
+      });
+    });
+    hoja.columns.forEach((columna) => {
+      let ancho = 10;
+      columna.eachCell?.({ includeEmpty: false }, (celda) => {
+        ancho = Math.max(ancho, String(celda.value ?? "").length + 2);
+      });
+      columna.width = Math.min(ancho, 60);
+    });
   });
-  XLSX.writeFile(libro, `${archivo}.xlsx`);
+  const buffer = await libro.xlsx.writeBuffer();
+  saveAs(new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), `${archivo}.xlsx`);
 }
 
 export type BarraPdf = {

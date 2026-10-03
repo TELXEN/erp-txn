@@ -87,7 +87,7 @@ export function TipografiaDocumentosPanel() {
 
         <div className="flex items-center justify-between gap-3">
           <p className="text-xs text-muted-foreground">
-            {puedeEditar ? "La elección se aplicará a las próximas vistas previas e impresiones." : "Solo el Gerente puede modificar esta opción."}
+            {puedeEditar ? "La elección se aplicará a todo el ERP y a sus próximas exportaciones." : "Solo el Gerente puede modificar esta opción."}
           </p>
           {puedeEditar && (
             <Boton type="button" onClick={() => void guardar()} disabled={guardando || seleccion === data?.fuente_pdf}>
