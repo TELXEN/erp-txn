@@ -339,7 +339,6 @@ function GastosGenerales() {
             ["gastos", `Gastos generales (${gastosFiltrados.length})`],
             ["mantenimiento", `Mantenimiento (${listaMant.length})`],
             ["combustible", `Combustible (${listaComb.length})`],
-            ...(pestana === "nuevo" ? ([["nuevo", "Nuevo gasto"]] as const) : []),
           ] as const
         ).map(([id, txt]) => (
           <button
@@ -353,7 +352,7 @@ function GastosGenerales() {
         ))}
       </div>
 
-      {pestana !== "nuevo" && (
+      {(
         <div className="mb-4 grid gap-4 lg:grid-cols-2">
           <section className="panel rise flex flex-col justify-between p-5">
             <div>
