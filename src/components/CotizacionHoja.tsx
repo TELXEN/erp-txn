@@ -593,6 +593,43 @@ export function CotizacionHoja({
           ))}
         </select>
       );
+    if (col === "nombre" && f.clase === "item")
+      return (
+        <AutoMaestra
+          value={valor}
+          autoFocus
+          maestras={maestras}
+          onChange={setValor}
+          onElegir={(m) => {
+            void (async () => {
+              const { error: err } = await supabase
+                .from("cotizacion_items")
+                .update({
+                  nombre: m.nombre,
+                  marca: m.marca ?? "",
+                  unidad: m.unidad,
+                  precio_unitario: Number(m.precio_unitario),
+                } as never)
+                .eq("id", f.it.id);
+              if (err) setError(err.message);
+              setEditando(false);
+              refrescar();
+            })();
+          }}
+          onEnter={() => {
+            void guardar(f, c, valor).then(() => {
+              setEditando(false);
+              mover(1, 0);
+            });
+          }}
+          onEscape={() => setEditando(false)}
+          onBlur={() => {
+            void guardar(f, c, valor).then(() => setEditando(false));
+          }}
+          onFocus={(e) => e.currentTarget.select()}
+          className="w-full rounded border border-primary bg-card px-1.5 py-1 text-[13px] outline-none"
+        />
+      );
     const numerico = col === "metrado" || col === "precio_unitario";
     return (
       <input
