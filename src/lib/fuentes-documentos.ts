@@ -102,7 +102,7 @@ export function aplicarFuenteGlobal(valor: string | null | undefined) {
   if (typeof document === "undefined") return;
   const fuente = fuenteDocumento(valor);
   document.documentElement.style.setProperty("--font-global", fuente.css);
-  document.documentElement.dataset.fuenteDocumento = fuente.id;
+  document.documentElement.dataset["fuenteDocumento"] = fuente.id;
 }
 
 export function useConfiguracionDocumentos() {

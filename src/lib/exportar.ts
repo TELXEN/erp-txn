@@ -8,7 +8,7 @@ export type Hoja = { nombre: string; filas: Record<string, string | number>[] };
 export async function exportarExcel(archivo: string, hojas: Hoja[]) {
   const [{ default: ExcelJS }, { saveAs }] = await Promise.all([import("exceljs"), import("file-saver")]);
   const libro = new ExcelJS.Workbook();
-  const fuente = fuenteDocumento(typeof document === "undefined" ? undefined : document.documentElement.dataset.fuenteDocumento);
+  const fuente = fuenteDocumento(typeof document === "undefined" ? undefined : document.documentElement.dataset["fuenteDocumento"]);
   hojas.forEach((h) => {
     const datos = h.filas.length ? h.filas : [{ Aviso: "Sin datos" }];
     const columnas = Array.from(new Set(datos.flatMap((fila) => Object.keys(fila))));
