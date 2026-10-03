@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
-import { Fragment, useRef, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
@@ -11,7 +11,8 @@ import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
 import { useCategoriasGastoGeneral, useGastosGenerales, useProyectos, useTerceros } from "@/lib/datos";
 import { exportarExcel } from "@/lib/exportar";
-import { CamposCondicion, InsigniaPago, condicionVacia, datosCondicion } from "@/components/CondicionPago";
+import { InsigniaPago, PLAZOS, condicionVacia, datosCondicion } from "@/components/CondicionPago";
+import { FechaPeru } from "./gastos-directos";
 import { useMantenimientos, useTraslados, useVehiculos } from "@/lib/vehiculos";
 
 export const Route = createFileRoute("/_authenticated/gastos-generales")({
