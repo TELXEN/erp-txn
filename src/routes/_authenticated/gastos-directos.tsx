@@ -413,7 +413,7 @@ function GastosDirectos() {
                                         <td className="py-1.5">{fmtFecha(g.fecha)}</td>
                                         <td>{g.comprobante || "—"}</td>
                                         <td>{nombreProv(g)}</td>
-                                        <td>{nombreInsumo(g.insumo_id)}</td>
+                                        <td>{g.insumo_id ? nombreInsumo(g.insumo_id) : (g.descripcion && g.descripcion !== p.nombre ? g.descripcion : "—")}</td>
                                         <td>
                                           <button type="button" title="Cambiar estado de pago" disabled={g.condicion_pago !== "Crédito"} onClick={() => alternarPago(g)}>
                                             <InsigniaPago condicion={g.condicion_pago} vencimiento={g.fecha_vencimiento} pagado={g.estado_pago === "Pagada"} />
