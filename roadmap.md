@@ -17,3 +17,4 @@
 - [x] Unificar el menú negro en los temas activos y retirar Redwood y Monocromo.
 - [x] Recuperar fondos distintivos en el menú: azul petróleo, pizarra y azul cobalto según el tema.
 - [x] Unificar los botones operativos del área central con el color de fondo del menú de cada tema.
+- [x] Fila inline de compra en Costos Directos (múltiples filas con +, insumo del APU o libre, suma al costo real)
