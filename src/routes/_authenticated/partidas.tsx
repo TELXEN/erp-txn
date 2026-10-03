@@ -773,10 +773,10 @@ function Partidas() {
                 <tbody>
                   {espGrupos.map(([esp, lista]) => (
                     <React.Fragment key={esp}>
-                      <tr className="border-b border-line/40 bg-muted/40">
-                        <td className="px-5 py-1.5 font-semibold text-ink">{wbs.capitulo(esp)}</td>
-                        <td colSpan={5} className="px-3 py-1.5 label-mono">{esp}</td>
-                        <td className="px-3 py-1.5 text-right font-semibold text-ink">
+                      <tr className="border-b border-line/40 bg-muted/60">
+                        <td className="px-5 py-1.5 font-bold text-ink">{wbs.capitulo(esp)}</td>
+                        <td colSpan={5} className="px-3 py-1.5 label-mono font-semibold text-ink">{esp}</td>
+                        <td className="whitespace-nowrap px-3 py-1.5 text-right font-bold text-ink">
                           {soles(lista.reduce((s, x) => s + Number(x.presupuesto_inicial), 0))}
                         </td>
                         <td colSpan={4} />
@@ -784,14 +784,14 @@ function Partidas() {
                       {agruparSoloPorCategoria(lista).map((sub) => (
                       <React.Fragment key={`${esp}-${sub.categoria}`}>
                       {sub.categoria !== "Sin categoría" && (
-                        <tr className="border-b border-line/30 bg-muted/20">
-                          <td className="px-5 py-1.5 pl-8 text-[10px] font-semibold text-ink">
+                        <tr className="border-b border-line/30 bg-muted/30">
+                          <td className="px-5 py-1.5 pl-8 text-[10px] font-bold text-ink">
                             {wbs.categoria(esp, sub.categoria)}
                           </td>
-                          <td colSpan={5} className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                          <td colSpan={5} className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-ink/70">
                             {sub.categoria}
                           </td>
-                          <td className="px-3 py-1.5 text-right font-semibold text-ink">
+                          <td className="whitespace-nowrap px-3 py-1.5 text-right font-semibold text-ink">
                             {soles(sub.items.reduce((s, x) => s + Number(x.presupuesto_inicial), 0))}
                           </td>
                           <td colSpan={4} />
