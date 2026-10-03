@@ -773,10 +773,10 @@ function Partidas() {
                 <tbody>
                   {espGrupos.map(([esp, lista]) => (
                     <React.Fragment key={esp}>
-                      <tr className="border-b border-line/40 bg-muted/40">
-                        <td className="px-5 py-1.5 font-semibold text-ink">{wbs.capitulo(esp)}</td>
-                        <td colSpan={5} className="px-3 py-1.5 label-mono">{esp}</td>
-                        <td className="px-3 py-1.5 text-right font-semibold text-ink">
+                      <tr className="border-b border-line/40 bg-muted/60">
+                        <td className="px-5 py-1.5 font-bold text-ink">{wbs.capitulo(esp)}</td>
+                        <td colSpan={5} className="px-3 py-1.5 label-mono font-semibold text-ink">{esp}</td>
+                        <td className="whitespace-nowrap px-3 py-1.5 text-right font-bold text-ink">
                           {soles(lista.reduce((s, x) => s + Number(x.presupuesto_inicial), 0))}
                         </td>
                         <td colSpan={4} />
@@ -784,14 +784,14 @@ function Partidas() {
                       {agruparSoloPorCategoria(lista).map((sub) => (
                       <React.Fragment key={`${esp}-${sub.categoria}`}>
                       {sub.categoria !== "Sin categoría" && (
-                        <tr className="border-b border-line/30 bg-muted/20">
-                          <td className="px-5 py-1.5 pl-8 text-[10px] font-semibold text-ink">
+                        <tr className="border-b border-line/30 bg-muted/30">
+                          <td className="px-5 py-1.5 pl-8 text-[10px] font-bold text-ink">
                             {wbs.categoria(esp, sub.categoria)}
                           </td>
-                          <td colSpan={5} className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                          <td colSpan={5} className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-ink/70">
                             {sub.categoria}
                           </td>
-                          <td className="px-3 py-1.5 text-right font-semibold text-ink">
+                          <td className="whitespace-nowrap px-3 py-1.5 text-right font-semibold text-ink">
                             {soles(sub.items.reduce((s, x) => s + Number(x.presupuesto_inicial), 0))}
                           </td>
                           <td colSpan={4} />
@@ -1002,7 +1002,7 @@ function Partidas() {
                         }
                         return (
                           <React.Fragment key={p.id}>
-                          <tr className={`border-b border-line/40 last:border-0 ${agrupadora ? "bg-muted/10" : ""}`}>
+                          <tr className={`group border-b border-line/40 last:border-0 ${agrupadora ? "bg-muted/10" : ""}`}>
                             <td className={`py-2.5 pr-2 ${nivel === 4 ? "pl-9" : "pl-5"}`}>
                               {p.codigo ? (
                                 <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] text-primary">
@@ -1023,10 +1023,20 @@ function Partidas() {
                             </td>
                             <td className="px-2 py-2.5 text-muted-foreground">{agrupadora ? "—" : p.marca || "-"}</td>
                             <td className="px-2 py-2.5 text-muted-foreground">{agrupadora ? "—" : p.unidad || "—"}</td>
-                            <td className="px-2 py-2.5 text-right">{agrupadora ? "—" : cantidad(Number(p.metrado ?? 0))}</td>
-                            <td className="px-2 py-2.5 text-right">{agrupadora ? "—" : soles(Number(p.precio_unitario ?? 0))}</td>
-                            <td className={`px-3 py-2.5 text-right ${agrupadora ? "font-semibold text-ink" : ""}`}>{soles(presuFila)}</td>
-                            <td className="px-3 py-2.5 text-right">{pct(Number(p.avance_pct))}</td>
+                            <td className="whitespace-nowrap px-2 py-2.5 text-right">{agrupadora ? "—" : cantidad(Number(p.metrado ?? 0))}</td>
+                            <td className="whitespace-nowrap px-2 py-2.5 text-right">{agrupadora ? "—" : soles(Number(p.precio_unitario ?? 0))}</td>
+                            <td className={`whitespace-nowrap px-3 py-2.5 text-right ${agrupadora ? "font-semibold text-ink" : ""}`}>{soles(presuFila)}</td>
+                            <td className="whitespace-nowrap px-3 py-2.5 text-right">
+                              <span className="inline-flex items-center justify-end gap-1.5">
+                                <span className="h-1 w-10 overflow-hidden rounded-full bg-muted">
+                                  <span
+                                    className="block h-full rounded-full bg-primary"
+                                    style={{ width: `${Math.min(100, Math.max(0, Number(p.avance_pct)))}%` }}
+                                  />
+                                </span>
+                                {pct(Number(p.avance_pct))}
+                              </span>
+                            </td>
                             <td className="px-3 py-2.5">
                               <InsigniaTipoPresupuesto valor={p.tipo_presupuesto ?? "Contractual"} />
                               {(() => {
@@ -1043,7 +1053,7 @@ function Partidas() {
                               <InsigniaPrioridad valor={p.prioridad} />
                             </td>
                             <td className="px-5 py-2.5">
-                              <div className="flex items-center justify-end gap-1">
+                              <div className="flex items-center justify-end gap-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
                                 {!agrupadora && (
                                   <button
                                     type="button"
