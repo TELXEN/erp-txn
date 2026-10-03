@@ -1,4 +1,5 @@
 import { useMemo, type ReactNode } from "react";
+import { Link } from "@tanstack/react-router";
 import { InfoTooltip } from "@/components/ui-kit";
 import { fecha, soles } from "@/lib/format";
 import {
@@ -99,9 +100,21 @@ export function CurvaS({
 
   if (!datos) {
     return (
-      <p className="px-5 py-8 text-center font-mono text-xs text-muted-foreground">
-        Registra la fecha de inicio y la fecha de fin de la obra en Proyectos para generar la curva S.
-      </p>
+      <div className="relative h-64 overflow-hidden">
+        <svg viewBox="0 0 720 260" preserveAspectRatio="none" className="absolute inset-0 h-full w-full text-muted-foreground opacity-25" aria-hidden="true">
+          {[50, 100, 150, 200].map((y) => <line key={y} x1="40" x2="704" y1={y} y2={y} stroke="currentColor" strokeDasharray="4 6" />)}
+          <line x1="40" x2="40" y1="14" y2="226" stroke="currentColor" />
+          <line x1="40" x2="704" y1="226" y2="226" stroke="currentColor" />
+          <path d="M40 222 C 220 220, 300 200, 380 130 S 560 30, 704 24" fill="none" stroke="currentColor" strokeWidth="3" />
+          <path d="M40 224 C 240 222, 330 210, 400 160 S 560 70, 650 60" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="6 5" />
+        </svg>
+        <div className="relative flex h-full flex-col items-center justify-center gap-3 px-5 text-center">
+          <p className="max-w-md text-sm text-muted-foreground">La curva S se activa cuando la obra tiene fecha de inicio y fecha de fin.</p>
+          <Link to="/proyectos" className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm hover:brightness-95">
+            Configurar cronograma para activar gráfico
+          </Link>
+        </div>
+      </div>
     );
   }
 
