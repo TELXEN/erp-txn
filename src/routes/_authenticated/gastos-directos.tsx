@@ -3,8 +3,12 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
-import { Check, ChevronDown, ChevronRight, Plus, Trash2, Upload, X } from "lucide-react";
+import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
+import { CalendarIcon, Check, ChevronDown, ChevronRight, Plus, Trash2, Upload, X } from "lucide-react";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Buscador, Resaltar, coincide } from "@/components/Buscador";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
@@ -70,6 +74,10 @@ const rubroDeTipo = (tipo?: string) => RUBRO_POR_TIPO[tipo ?? ""] ?? "Materiales
 
 const num = (n: number) =>
   Number(n || 0).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+/** Céntimos enteros: evita errores de redondeo binario. */
+const cent = (n: number) => Math.round(Number(n || 0) * 100);
+const sumar = (xs: number[]) => xs.reduce((s, x) => s + cent(x), 0) / 100;
 
 const norm = (s: string) =>
   s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
@@ -143,10 +151,10 @@ function GastosDirectos() {
     [partidas, proyectoId, busqueda],
   );
   const comprasProy = gastos.filter((g) => g.proyecto_id === proyectoId);
-  const costoDe = (pid: string) => comprasProy.filter((g) => g.partida_id === pid).reduce((s, g) => s + Number(g.monto_soles), 0);
+  const costoDe = (pid: string) => sumar(comprasProy.filter((g) => g.partida_id === pid).map((g) => Number(g.monto_soles)));
   const cantDe = (pid: string) => comprasProy.filter((g) => g.partida_id === pid).reduce((s, g) => s + Number(g.cantidad ?? 0), 0);
-  const presuTotal = partidasProy.reduce((s, p) => s + Number(p.presupuesto_inicial), 0);
-  const costoTotal = comprasProy.reduce((s, g) => s + Number(g.monto_soles), 0);
+  const presuTotal = sumar(partidasProy.map((p) => Number(p.presupuesto_inicial)));
+  const costoTotal = sumar(comprasProy.map((g) => Number(g.monto_soles)));
   const consumo = presuTotal > 0 ? (costoTotal / presuTotal) * 100 : 0;
   const nombreProv = (g: Compra) =>
     (g.proveedor_id ? terceros.find((t) => t.id === g.proveedor_id)?.razon_social : null) ?? g.proveedor ?? "—";
@@ -173,11 +181,11 @@ function GastosDirectos() {
     if (contado && b.banco_id !== "caja" && !b.numero_operacion.trim()) return "Ingresa el N° de operación.";
     const prov = terceros.find((t) => t.id === b.proveedor_id);
     const insumo = insumos.find((i) => i.id === b.insumo_id);
-    const monto = Number(b.cantidad) * Number(b.precio_unitario);
+    const monto = cent(Number(b.cantidad) * Number(b.precio_unitario)) / 100;
     const { error: err } = await supabase.from("gastos_directos").insert({
       proyecto_id: proyectoId,
       partida_id: pid,
-      descripcion: b.insumoTexto.trim() || partida.nombre,
+      descripcion: b.insumoTexto.trim().toUpperCase() || partida.nombre,
       proveedor: prov?.razon_social ?? "",
       proveedor_id: b.proveedor_id,
       insumo_id: b.insumo_id,
@@ -327,7 +335,7 @@ function GastosDirectos() {
                       </td>
                       <td />
                       <td className="px-3 py-1.5 text-right font-semibold">
-                        {soles(grupo.items.reduce((s, p) => s + costoDe(p.id), 0))}
+                        {soles(sumar(grupo.items.map((p) => costoDe(p.id))))}
                       </td>
                       <td colSpan={3} />
                     </tr>
@@ -449,6 +457,21 @@ function GastosDirectos() {
           </div>
         )}
       </Panel>
+      {modalPid && (() => {
+        const mp = partidas.find((x) => x.id === modalPid);
+        if (!mp) return null;
+        return (
+          <ModalCompra
+            key={modalPid}
+            partida={{ codigo: mp.codigo, nombre: mp.nombre, unidad: mp.unidad, presupuesto: Number(mp.presupuesto_inicial), costo: costoDe(mp.id) }}
+            insumos={maestroInsumos}
+            proveedores={proveedores}
+            cuentas={cuentasActivas}
+            onCerrar={() => setModalPid(null)}
+            onRegistrar={(b) => registrar(mp.id, b, maestroInsumos)}
+          />
+        );
+      })()}
     </>
   );
 }
