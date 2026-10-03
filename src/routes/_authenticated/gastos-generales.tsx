@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { InsigniaCategoriaGasto } from "@/components/estado-ui";
-import { Check, ChevronDown, ChevronRight, Info, Pencil, Trash2, Upload, X } from "lucide-react";
+import { CalendarDays, Check, ChevronDown, ChevronRight, Info, Pencil, Plus, Search, Trash2, Upload, X } from "lucide-react";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
 import { useCategoriasGastoGeneral, useGastosGenerales, useProyectos, useTerceros } from "@/lib/datos";
@@ -73,6 +73,8 @@ function GastosGenerales() {
   const [error, setError] = useState("");
   const [ambito, setAmbito] = useState("Todas");
   const [busqueda, setBusqueda] = useState("");
+  const [desde, setDesde] = useState("");
+  const [hasta, setHasta] = useState("");
   const [filtroCategoria, setFiltroCategoria] = useState("Todas");
   const [cerrados, setCerrados] = useState<Set<string>>(new Set());
   const [guiaVisible, setGuiaVisible] = useState(false);
@@ -95,12 +97,14 @@ function GastosGenerales() {
   };
   const equivalente = Number(form.monto || 0) * (form.moneda === "USD" ? Number(form.tipo_cambio || 0) : 1);
 
+  const enRango = (f: string) => (!desde || f >= desde) && (!hasta || f <= hasta);
+  const gastosRango = gastos.filter((g) => enRango(g.fecha));
   const porAmbito =
     ambito === "Todas"
-      ? gastos
+      ? gastosRango
       : ambito === "Oficina"
-        ? gastos.filter((g) => !g.proyecto_id)
-        : gastos.filter((g) => g.proyecto_id === ambito);
+        ? gastosRango.filter((g) => !g.proyecto_id)
+        : gastosRango.filter((g) => g.proyecto_id === ambito);
   const gastosFiltrados =
     filtroCategoria === "Todas" ? porAmbito : porAmbito.filter((g) => (g.categoria ?? "") === filtroCategoria);
   const gastosBusqueda = gastosFiltrados.filter((g) =>
@@ -129,7 +133,7 @@ function GastosGenerales() {
   };
   const verFlota = ambito === "Todas" || ambito === "Oficina";
   const listaMant = (verFlota ? mantVeh : [])
-    .filter((m) => Number(m.costo) > 0)
+    .filter((m) => Number(m.costo) > 0 && enRango(m.fecha))
     .map((m) => ({
       id: m.id,
       fecha: m.fecha,
@@ -145,6 +149,7 @@ function GastosGenerales() {
     .filter(
       (t) =>
         Number(t.combustible_monto) > 0 &&
+        enRango(t.fecha) &&
         (ambito === "Todas" || (ambito === "Oficina" ? !t.proyecto_id : t.proyecto_id === ambito)),
     )
     .map((t) => ({
@@ -160,6 +165,13 @@ function GastosGenerales() {
     .sort((a, b) => (a.fecha < b.fecha ? 1 : -1));
   const totalMant = listaMant.reduce((s, f) => s + f.monto, 0);
   const totalComb = listaComb.reduce((s, f) => s + f.monto, 0);
+  const granTotal = total + totalMant + totalComb;
+  const desglose = [
+    ...totalesCategoria.map((t) => ({ ...t, filtrable: true })),
+    ...(totalMant > 0 ? [{ nombre: "Mantenimiento vehicular", total: totalMant, filtrable: false }] : []),
+    ...(totalComb > 0 ? [{ nombre: "Combustible vehicular", total: totalComb, filtrable: false }] : []),
+  ].sort((a, b) => b.total - a.total);
+  const maxDesglose = Math.max(0, ...desglose.map((d) => d.total));
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
@@ -264,13 +276,37 @@ function GastosGenerales() {
         titulo="Gastos Generales"
         subtitulo="Compras indirectas y oficina"
         acciones={
+          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-1.5 rounded-md border border-line bg-card px-2.5 py-1">
+            <CalendarDays size={14} className="text-muted-foreground" />
+            <input
+              type="date"
+              value={desde}
+              onChange={(e) => setDesde(e.target.value)}
+              aria-label="Desde"
+              className="bg-transparent font-mono text-xs text-ink outline-none"
+            />
+            <span className="text-xs text-muted-foreground">–</span>
+            <input
+              type="date"
+              value={hasta}
+              onChange={(e) => setHasta(e.target.value)}
+              aria-label="Hasta"
+              className="bg-transparent font-mono text-xs text-ink outline-none"
+            />
+            {(desde || hasta) && (
+              <button type="button" onClick={() => { setDesde(""); setHasta(""); }} aria-label="Limpiar fechas" className="text-muted-foreground hover:text-ink">
+                <X size={13} />
+              </button>
+            )}
+          </div>
           <Boton
             variante="linea"
             onClick={() =>
               exportarExcel("gastos-generales", [
                 {
                   nombre: "Gastos Generales",
-                  filas: gastosFiltrados.map((g) => ({
+                  filas: gastosBusqueda.map((g) => ({
                     Fecha: g.fecha,
                     Comprobante: (g as Pago).comprobante ?? "",
                     Descripcion: g.descripcion,
@@ -292,77 +328,89 @@ function GastosGenerales() {
           >
             <Upload size={13} /> Exportar a Excel
           </Boton>
+          </div>
         }
       />
 
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-line">
-        <div className="flex gap-1">
-          {(
-            [
-              ["gastos", `Gastos generales (${gastosFiltrados.length})`],
-              ["mantenimiento", `Mantenimiento (${listaMant.length})`],
-              ["combustible", `Combustible (${listaComb.length})`],
-              ["nuevo", "+ Registrar gasto"],
-            ] as const
-          ).map(([id, txt]) => (
-            <button
-              key={id}
-              type="button"
-              onClick={() => setPestana(id)}
-              className={`-mb-px border-b-2 px-4 py-2 font-mono text-xs ${pestana === id ? "border-primary font-semibold text-primary" : "border-transparent text-muted-foreground hover:text-ink"}`}
-            >
-              {txt}
-            </button>
-          ))}
-        </div>
-        {pestana !== "nuevo" && (
-          <Boton onClick={() => setPestana("nuevo")} className="mb-1">
-            + Registrar gasto
-          </Boton>
-        )}
+      <div className="mb-4 flex flex-wrap items-center gap-1 overflow-x-auto border-b border-line">
+        {(
+          [
+            ["gastos", `Gastos generales (${gastosFiltrados.length})`],
+            ["mantenimiento", `Mantenimiento (${listaMant.length})`],
+            ["combustible", `Combustible (${listaComb.length})`],
+            ...(pestana === "nuevo" ? ([["nuevo", "Nuevo gasto"]] as const) : []),
+          ] as const
+        ).map(([id, txt]) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => setPestana(id)}
+            className={`-mb-px whitespace-nowrap border-b-2 px-4 py-2 font-mono text-xs ${pestana === id ? "border-primary font-semibold text-primary" : "border-transparent text-muted-foreground hover:text-ink"}`}
+          >
+            {txt}
+          </button>
+        ))}
       </div>
 
-
-      <Panel className="mb-4">
-        <div className="flex flex-wrap items-end gap-4 p-5">
-          <div className="min-w-[240px] flex-1">
-            <Campo etiqueta="Ámbito">
-              <Select value={ambito} onChange={(e) => setAmbito(e.target.value)}>
-                <option value="Todas">Todas las imputaciones</option>
-                <option value="Oficina">Oficina Central (gastos de sede)</option>
-                {proyectos.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.codigo ? `${p.codigo} · ` : ""}
-                    {p.nombre}
-                  </option>
-                ))}
-              </Select>
-            </Campo>
-          </div>
-          <div className="grid flex-[2] gap-3 sm:grid-cols-5">
-            <div className="rounded-md border border-line px-3 py-2">
-              <p className="label-mono">Total gastos generales</p>
-              <p className="font-mono text-lg font-bold text-ink">{soles(total)}</p>
+      {pestana !== "nuevo" && (
+        <div className="mb-4 grid gap-4 lg:grid-cols-2">
+          <section className="panel rise flex flex-col justify-between p-5">
+            <div>
+              <p className="label-mono">Total gastos</p>
+              <p className="mt-1 font-mono text-3xl font-bold tracking-tight text-ink">{soles(granTotal)}</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Gastos generales {soles(total)} · Flota {soles(totalMant + totalComb)}
+              </p>
             </div>
-            <div className="rounded-md border border-line px-3 py-2">
-              <p className="label-mono">Pagado</p>
-              <p className="font-mono text-lg font-bold text-good">{soles(pagado)}</p>
+            <div className="mt-5 grid grid-cols-2 gap-3">
+              <div className="rounded-md bg-good/10 px-3 py-2.5">
+                <p className="label-mono text-good">Pagado</p>
+                <p className="font-mono text-lg font-bold text-good">{soles(pagado + totalMant + totalComb)}</p>
+              </div>
+              <div className={`rounded-md px-3 py-2.5 ${porPagar > 0.004 ? "bg-bad/10" : "bg-muted"}`}>
+                <p className={`label-mono ${porPagar > 0.004 ? "text-bad" : ""}`}>Por pagar (crédito)</p>
+                <p className={`font-mono text-lg font-bold ${porPagar > 0.004 ? "text-bad" : "text-ink"}`}>{soles(porPagar)}</p>
+              </div>
             </div>
-            <div className="rounded-md border border-line px-3 py-2">
-              <p className="label-mono">Por pagar (crédito)</p>
-              <p className="font-mono text-lg font-bold text-bad">{soles(porPagar)}</p>
-            </div>
-            <div className="rounded-md border border-line px-3 py-2">
-              <p className="label-mono">Mantenimiento vehicular</p>
-              <p className="font-mono text-lg font-bold text-ink">{soles(totalMant)}</p>
-            </div>
-            <div className="rounded-md border border-line px-3 py-2">
-              <p className="label-mono">Combustible vehicular</p>
-              <p className="font-mono text-lg font-bold text-ink">{soles(totalComb)}</p>
-            </div>
-          </div>
+          </section>
+          <section className="panel rise p-5">
+            <p className="label-mono mb-3">Desglose por categoría</p>
+            {desglose.length === 0 ? (
+              <p className="py-4 text-center font-mono text-xs text-muted-foreground">Sin gastos en este periodo.</p>
+            ) : (
+              <ul className="space-y-2.5">
+                {desglose.map((d) => {
+                  const activo = filtroCategoria === d.nombre;
+                  return (
+                    <li key={d.nombre}>
+                      <button
+                        type="button"
+                        disabled={!d.filtrable}
+                        onClick={() => {
+                          setPestana("gastos");
+                          setFiltroCategoria(activo ? "Todas" : d.nombre);
+                        }}
+                        className={`w-full rounded-md px-2 py-1 text-left transition-colors ${d.filtrable ? "hover:bg-muted/60" : "cursor-default"} ${activo ? "bg-muted" : ""}`}
+                      >
+                        <div className="flex items-center justify-between gap-3 text-sm">
+                          <span className={`truncate ${activo ? "font-semibold text-primary" : "text-ink"}`}>{d.nombre}</span>
+                          <span className="font-mono text-xs font-semibold text-ink">{soles(d.total)}</span>
+                        </div>
+                        <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
+                          <div
+                            className="h-full rounded-full bg-primary"
+                            style={{ width: `${maxDesglose > 0 ? (d.total / maxDesglose) * 100 : 0}%` }}
+                          />
+                        </div>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </section>
         </div>
-      </Panel>
+      )}
 
       {pestana === "mantenimiento" && (
         <Panel titulo={`Mantenimiento de flota (${listaMant.length})`} className="mb-4">
@@ -587,98 +635,89 @@ function GastosGenerales() {
       )}
 
 
-      {pestana === "gastos" && totalesCategoria.length > 0 && (
-        <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          {totalesCategoria.map((t) => (
-            <button
-              key={t.nombre}
-              type="button"
-              onClick={() => setFiltroCategoria(filtroCategoria === t.nombre ? "Todas" : t.nombre)}
-              aria-pressed={filtroCategoria === t.nombre}
-              className={`panel rise p-4 text-left transition ${
-                filtroCategoria === t.nombre ? "border-primary ring-1 ring-primary/40" : ""
-              }`}
-            >
-              <InsigniaCategoriaGasto valor={t.nombre} />
-              <p className="mt-2 font-mono text-lg font-bold tracking-tight text-ink">{soles(t.total)}</p>
-            </button>
-          ))}
-        </div>
-      )}
 
       {pestana === "gastos" && (
-      <Panel
-        titulo={`Gastos registrados · ${ambito === "Todas" ? "Todas las imputaciones" : ambito === "Oficina" ? "Oficina Central" : nombreProy(ambito)}`}
-        extra={
-          <div className="flex items-center gap-3">
-            <Buscador
-              valor={busqueda}
-              onChange={setBusqueda}
-              total={gastosBusqueda.length}
-              placeholder="Buscar por descripción, proveedor o comprobante..."
-            />
-            {filtroCategoria !== "Todas" && (
-              <button
-                type="button"
-                onClick={() => setFiltroCategoria("Todas")}
-                className="font-mono text-[11px] text-primary underline-offset-2 hover:underline"
-              >
-                Ver todas
-              </button>
-            )}
-            <span className="font-mono text-[11px] text-muted-foreground">Total: {soles(total)}</span>
-          </div>
-        }
-      >
+      <>
+      <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-center">
+        <Select value={ambito} onChange={(e) => setAmbito(e.target.value)} className="md:w-64">
+          <option value="Todas">Todas las imputaciones</option>
+          <option value="Oficina">Oficina Central (gastos de sede)</option>
+          {proyectos.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.codigo ? `${p.codigo} · ` : ""}
+              {p.nombre}
+            </option>
+          ))}
+        </Select>
+        <div className="relative flex-1">
+          <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+            placeholder="Buscar por descripción o proveedor..."
+            className="pl-9"
+          />
+        </div>
+        {filtroCategoria !== "Todas" && (
+          <button
+            type="button"
+            onClick={() => setFiltroCategoria("Todas")}
+            className="inline-flex items-center gap-1 rounded-md border border-line px-2.5 py-2 font-mono text-[11px] text-primary hover:bg-muted"
+          >
+            {filtroCategoria} <X size={12} />
+          </button>
+        )}
+        <Boton variante="accion" onClick={() => setPestana("nuevo")} className="px-4 py-2.5">
+          <Plus size={14} /> Registrar Gasto
+        </Boton>
+      </div>
+      <Panel>
         {gastosBusqueda.length === 0 ? (
-              <Vacio
-                texto={
-                  busqueda
-                    ? `Sin coincidencias para «${busqueda}»`
-                    : "No hay gastos registrados en este ámbito y categoría."
-                }
-              />
-            ) : gastosFiltrados.length === 0 ? (
           <Vacio
             texto={
-              filtroCategoria === "Todas"
-                ? "Aún no hay gastos generales en este ámbito."
-                : `No hay gastos de la categoría ${filtroCategoria}.`
+              busqueda
+                ? `Sin coincidencias para «${busqueda}»`
+                : filtroCategoria !== "Todas"
+                  ? `No hay gastos de la categoría ${filtroCategoria}.`
+                  : "Aún no hay gastos generales en este ámbito y periodo."
             }
           />
         ) : (
-          <table className="w-full table-fixed font-mono text-xs">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[760px] table-fixed font-mono text-xs">
             <thead>
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                <th className="w-1/12 px-5 py-2 font-medium">Fecha</th>
-                <th className="w-2/12 px-3 py-2 font-medium">Comprobante</th>
-                <th className="w-3/12 px-3 py-2 font-medium">Descripción</th>
-                <th className="w-2/12 px-3 py-2 font-medium">Proveedor</th>
-                <th className="w-2/12 px-3 py-2 font-medium">Pago</th>
-                <th className="w-2/12 px-3 py-2 text-right font-medium">Monto</th>
-                <th className="w-1/12 px-5 py-2"></th>
+                <th className="w-[11%] px-5 py-2.5 font-medium">Fecha</th>
+                <th className="w-[14%] px-3 py-2.5 font-medium">Comprobante</th>
+                <th className="w-[35%] px-3 py-2.5 font-medium">Detalle</th>
+                <th className="w-[14%] px-3 py-2.5 font-medium">Estado</th>
+                <th className="w-[14%] px-3 py-2.5 text-right font-medium">Monto</th>
+                <th className="w-[12%] px-5 py-2.5 text-right font-medium">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {gruposCategoria.map((cat) => {
-                const filas = gastosFiltrados.filter((g) => (g.categoria || "Sin categoría") === cat);
+                const filas = gastosBusqueda.filter((g) => (g.categoria || "Sin categoría") === cat);
                 const subtotal = filas.reduce((s, g) => s + Number(g.monto_soles), 0);
                 const abierto = !cerrados.has(cat);
                 return (
                   <Fragment key={cat}>
                     <tr className="border-b border-line bg-muted/40">
-                      <td colSpan={7} className="px-5 py-2">
+                      <td colSpan={6} className="px-5 py-2.5">
                         <button
                           type="button"
                           onClick={() => alternarGrupo(cat)}
+                          aria-expanded={abierto}
                           className="flex w-full items-center justify-between gap-3 text-left"
                         >
                           <span className="flex items-center gap-2">
-                            {abierto ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
+                            {abierto ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                             <InsigniaCategoriaGasto valor={cat} />
-                            <span className="text-[10px] text-muted-foreground">{filas.length} comprobante(s)</span>
+                            <span className="text-[11px] text-muted-foreground">
+                              {filas.length} {filas.length === 1 ? "comprobante" : "comprobantes"}
+                            </span>
                           </span>
-                          <span className="font-semibold text-ink">{soles(subtotal)}</span>
+                          <span className="text-sm font-semibold text-ink">{soles(subtotal)}</span>
                         </button>
                       </td>
                     </tr>
@@ -703,7 +742,6 @@ function GastosGenerales() {
                                 maxLength={160}
                               />
                             </td>
-                            <td className="px-3 py-2.5 text-muted-foreground"><Resaltar texto={nombreProv(g)} termino={busqueda}/></td>
                             <td className="px-3 py-2">
                               <Select
                                 value={editando.categoria}
@@ -750,56 +788,59 @@ function GastosGenerales() {
                             </td>
                           </tr>
                         ) : (
-                          <tr key={g.id} className="border-b border-line/60">
-                            <td className="px-5 py-2.5">{fmtFecha(g.fecha)}</td>
-                            <td className="px-3 py-2.5 text-muted-foreground"><Resaltar texto={(g as Pago).comprobante || "—"} termino={busqueda}/></td>
-                            <td className="px-3 py-2.5 font-semibold text-ink">
-                              <Resaltar texto={g.descripcion} termino={busqueda}/>
-                              {ambito === "Todas" && (
-                                <div className="text-[10px] font-normal text-muted-foreground">{nombreProy(g.proyecto_id)}</div>
-                              )}
+                          <tr key={g.id} className="border-b border-line/60 transition-colors hover:bg-muted/30">
+                            <td className="px-5 py-3 text-ink">{fmtFecha(g.fecha)}</td>
+                            <td className="px-3 py-3 text-ink"><Resaltar texto={(g as Pago).comprobante || "—"} termino={busqueda}/></td>
+                            <td className="px-3 py-3">
+                              <div className="truncate font-sans text-sm font-semibold text-ink">
+                                <Resaltar texto={g.descripcion} termino={busqueda}/>
+                              </div>
+                              <div className="truncate text-[11px] text-muted-foreground">
+                                {nombreProy(g.proyecto_id)} | <Resaltar texto={nombreProv(g)} termino={busqueda}/>
+                              </div>
                             </td>
-                            <td className="px-3 py-2.5 text-muted-foreground"><Resaltar texto={nombreProv(g)} termino={busqueda}/></td>
-                            <td className="px-3 py-2.5">
+                            <td className="px-3 py-3">
                               <button
                                 type="button"
-                                title="Cambiar estado de pago"
+                                title={(g as Pago).condicion_pago === "Crédito" ? "Cambiar estado de pago" : undefined}
                                 disabled={(g as Pago).condicion_pago !== "Crédito"}
                                 onClick={() => alternarPago(g as Pago & { id: string })}
                               >
-                                <InsigniaPago
-                                  condicion={(g as Pago).condicion_pago}
-                                  vencimiento={(g as Pago).fecha_vencimiento}
-                                  pagado={(g as Pago).estado_pago === "Pagada"}
-                                />
+                                <Pastilla g={g as Pago} />
                               </button>
                               {nombreBanco((g as Pago).banco_id) && (
-                                <div className="mt-1 text-[10px] text-muted-foreground">{nombreBanco((g as Pago).banco_id)}</div>
+                                <div className="mt-1 truncate text-[10px] text-muted-foreground">{nombreBanco((g as Pago).banco_id)}</div>
                               )}
                             </td>
-                            <td className="px-3 py-2.5 text-right">
-                              <div className="flex items-center justify-end gap-2">
-                                {g.moneda === "USD" ? `US$ ${Number(g.monto).toFixed(2)}` : soles(Number(g.monto))}
-                                <Etiqueta tono="neutro">{g.moneda === "USD" ? `TC ${Number(g.tipo_cambio)}` : "PEN"}</Etiqueta>
-                              </div>
+                            <td className="px-3 py-3 text-right text-sm font-semibold text-ink">
+                              {g.moneda === "USD" ? (
+                                <>
+                                  US$ {Number(g.monto).toFixed(2)}
+                                  <div className="text-[10px] font-normal text-muted-foreground">TC {Number(g.tipo_cambio)} · {soles(Number(g.monto_soles))}</div>
+                                </>
+                              ) : (
+                                soles(Number(g.monto))
+                              )}
                             </td>
-                            <td className="px-5 py-2">
-                              <div className="flex items-center justify-end gap-1">
+                            <td className="px-5 py-3">
+                              <div className="flex items-center justify-end gap-2">
                                 <button
                                   type="button"
                                   onClick={() => iniciarEdicion(g)}
-                                  className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"
+                                  className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
                                   title="Editar"
+                                  aria-label="Editar"
                                 >
-                                  <Pencil size={14} />
+                                  <Pencil size={15} />
                                 </button>
                                 <button
                                   type="button"
                                   onClick={() => eliminar(g.id)}
-                                  className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-bad hover:text-bad"
+                                  className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-bad/10 hover:text-bad"
                                   title="Eliminar"
+                                  aria-label="Eliminar"
                                 >
-                                  <Trash2 size={14} />
+                                  <Trash2 size={15} />
                                 </button>
                               </div>
                             </td>
@@ -811,9 +852,29 @@ function GastosGenerales() {
               })}
             </tbody>
           </table>
+          </div>
         )}
       </Panel>
+      </>
       )}
     </>
+  );
+}
+
+function Pastilla({ g }: { g: Pago }) {
+  const credito = g.condicion_pago === "Crédito";
+  const pagado = g.estado_pago === "Pagada";
+  const vencida = credito && !pagado && !!g.fecha_vencimiento && g.fecha_vencimiento < hoy();
+  const [txt, cls] = !credito || pagado
+    ? ["Pagado", "bg-good/10 text-good ring-good/20"]
+    : vencida
+      ? ["Vencido", "bg-bad/10 text-bad ring-bad/20"]
+      : ["Crédito", "bg-warn/10 text-warn ring-warn/25"];
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 font-sans text-[11px] font-semibold ring-1 ${cls}`}>
+      <span className="h-1.5 w-1.5 rounded-full bg-current" />
+      {txt}
+      {credito && !pagado && g.fecha_vencimiento && <span className="font-normal">· {fmtFecha(g.fecha_vencimiento)}</span>}
+    </span>
   );
 }

@@ -72,6 +72,7 @@
   --color-line: var(--line);
   --color-good: var(--good);
   --color-bad: var(--bad);
+  --color-warn: var(--warn);
   --color-brand: var(--brand);
   --color-brand-foreground: var(--brand-foreground);
   --color-cta: var(--cta);
@@ -96,6 +97,7 @@
   --line-60: rgb(230 226 216 / 0.6);
   --good: rgb(38 127 71);
   --bad: rgb(204 53 41);
+  --warn: rgb(161 98 7);
 
   --background: var(--paper);
   --foreground: var(--ink);
