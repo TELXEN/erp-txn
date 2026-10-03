@@ -38,6 +38,25 @@ const num = (n: number | string) =>
 
 const esPartida = (i: CotizacionItem) => i.tipo !== "grupo";
 
+/** Normaliza texto para buscar sin importar mayúsculas ni tildes. */
+const normalizar = (s: string) =>
+  s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+
+/** Partidas maestras activas que coinciden con el texto (nombre o código); primero las que empiezan igual. */
+function buscarMaestras(maestras: PartidaMaestra[], texto: string, limite = 8): PartidaMaestra[] {
+  const q = normalizar(texto.trim());
+  if (!q) return [];
+  const activas = maestras.filter((m) => m.activo);
+  const coinciden = activas.filter((m) => normalizar(m.nombre).includes(q) || normalizar(m.codigo).includes(q));
+  return coinciden
+    .sort(
+      (a, b) =>
+        Number(normalizar(b.nombre).startsWith(q)) - Number(normalizar(a.nombre).startsWith(q)) ||
+        a.nombre.localeCompare(b.nombre),
+    )
+    .slice(0, limite);
+}
+
 /** Construye el árbol visible: capítulo (especialidad), subcapítulo (categoría), partidas y subpartidas. */
 function construirArbol(items: CotizacionItem[]): Fila[] {
   const wbs = prefijosWBS(items);
