@@ -97,7 +97,7 @@ function GastosDirectos() {
   const proveedores = terceros.filter((t) => t.es_proveedor && t.activo);
   const [proyectoId, setProyectoId] = useState("");
   const [abiertas, setAbiertas] = useState<Record<string, boolean>>({});
-  const [filas, setFilas] = useState<Record<string, Borrador[]>>({});
+  const [modalPid, setModalPid] = useState<string | null>(null);
   const [busqueda, setBusqueda] = useState("");
   const { data: cuentas = [] } = useQuery({
     queryKey: ["bancos"],
@@ -153,21 +153,13 @@ function GastosDirectos() {
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
-  const filasDe = (pid: string) => filas[pid] ?? [];
-
-  function setFilasDe(pid: string, lista: Borrador[]) {
-    setFilas((f) => ({ ...f, [pid]: lista }));
-  }
-
   function abrirCompra(pid: string) {
     setAbiertas((a) => ({ ...a, [pid]: true }));
-    setFilas((f) => (f[pid]?.length ? f : { ...f, [pid]: [borradorVacio()] }));
+    setModalPid(pid);
   }
 
   function alternar(pid: string) {
-    const abierta = !abiertas[pid];
-    setAbiertas((a) => ({ ...a, [pid]: abierta }));
-    if (abierta) setFilas((f) => (f[pid]?.length ? f : { ...f, [pid]: [borradorVacio()] }));
+    setAbiertas((a) => ({ ...a, [pid]: !a[pid] }));
   }
 
   async function registrar(pid: string, b: Borrador, insumos: InsumoApu[]): Promise<string | null> {
@@ -366,11 +358,12 @@ function GastosDirectos() {
                             <td className="px-3 py-2.5 text-right">{soles(presu)}</td>
                             <td className="px-2 py-2.5 text-right">{num(cantDe(p.id))}</td>
                             <td className="px-3 py-2.5 text-right font-semibold text-ink">{soles(costo)}</td>
-                            <td className={`px-3 py-2.5 text-right font-semibold ${presu - costo < 0 ? "text-bad" : "text-good"}`}>
+                            <td className={`px-3 py-2.5 text-right font-semibold ${presu - costo < 0 ? "bg-bad/10 text-bad" : "text-good"}`}>
                               {soles(presu - costo)}
+                              {presu - costo < 0 && <div className="text-[9px] font-normal uppercase tracking-wide">Sobregiro</div>}
                             </td>
                             <td className="px-3 py-2.5 text-right">
-                              <Etiqueta tono={uso > 100 ? "bad" : uso > 85 ? "neutro" : "good"}>{uso.toFixed(0)}%</Etiqueta>
+                              <BarraConsumo uso={uso} />
                             </td>
                             <td className="px-5 py-2 text-right">
                               <button
@@ -383,88 +376,66 @@ function GastosDirectos() {
                             </td>
                           </tr>
                           {abierta && (
-                            <tr className="border-b border-line/40 bg-muted/20">
-                              <td colSpan={11} className="px-8 py-2">
+                            <tr className="border-b border-line/40">
+                              <td colSpan={11} className="px-8 py-3">
+                                <div className="overflow-hidden rounded-md border border-line">
                                 <table className="w-full text-[11px]">
                                   <thead>
-                                    <tr className="text-left text-[10px] uppercase text-muted-foreground">
-                                      <th className="py-1">Fecha</th>
-                                      <th>Comprobante</th>
-                                      <th>Proveedor</th>
-                                      <th>Insumo</th>
-                                      <th>Pago</th>
-                                      <th className="text-right">Cantidad</th>
-                                      <th className="text-right">P.U. compra</th>
-                                      <th className="text-right">Costo real</th>
-                                      <th></th>
+                                    <tr className="bg-muted text-left text-[10px] uppercase tracking-wider text-muted-foreground">
+                                      <th className="px-3 py-1.5 font-medium">Fecha</th>
+                                      <th className="px-2 font-medium">Comprobante</th>
+                                      <th className="px-2 font-medium">Proveedor</th>
+                                      <th className="px-2 font-medium">Insumo</th>
+                                      <th className="px-2 font-medium">Pago</th>
+                                      <th className="px-2 font-medium">Banco</th>
+                                      <th className="px-2 text-right font-medium">Cantidad</th>
+                                      <th className="px-2 text-right font-medium">P.U. compra</th>
+                                      <th className="px-2 text-right font-medium">Costo real</th>
+                                      <th className="px-3"></th>
                                     </tr>
                                   </thead>
                                   <tbody>
                                     {compras.map((g) => (
-                                      <tr key={g.id} className="border-t border-line/30">
-                                        <td className="py-1.5">{fmtFecha(g.fecha)}</td>
-                                        <td>{g.comprobante || "—"}</td>
-                                        <td>{nombreProv(g)}</td>
-                                        <td>{g.insumo_id ? nombreInsumo(g.insumo_id) : (g.descripcion && g.descripcion !== p.nombre ? g.descripcion : "—")}</td>
-                                        <td>
+                                      <tr key={g.id} className="border-t border-line/40">
+                                        <td className="px-3 py-1.5">{fmtFecha(g.fecha)}</td>
+                                        <td className="px-2">{g.comprobante || "—"}</td>
+                                        <td className="px-2">{nombreProv(g)}</td>
+                                        <td className="px-2 uppercase">{g.insumo_id ? nombreInsumo(g.insumo_id) : (g.descripcion && g.descripcion !== p.nombre ? g.descripcion : "—")}</td>
+                                        <td className="px-2">
                                           <button type="button" title="Cambiar estado de pago" disabled={g.condicion_pago !== "Crédito"} onClick={() => alternarPago(g)}>
                                             <InsigniaPago condicion={g.condicion_pago} vencimiento={g.fecha_vencimiento} pagado={g.estado_pago === "Pagada"} />
                                           </button>
-                                          {g.banco_id && (
-                                            <div className="text-[10px] text-muted-foreground">
-                                              {nombreBanco(g.banco_id)}{g.numero_operacion ? ` · Op. ${g.numero_operacion}` : ""}
-                                            </div>
-                                          )}
                                         </td>
-                                        <td className="text-right">{num(Number(g.cantidad ?? 0))}</td>
-                                        <td className="text-right">
+                                        <td className="px-2 text-[10px] text-muted-foreground">
+                                          {g.banco_id ? nombreBanco(g.banco_id) : g.condicion_pago === "Crédito" ? "—" : "Caja Chica"}
+                                          {g.numero_operacion ? ` · Op. ${g.numero_operacion}` : ""}
+                                        </td>
+                                        <td className="px-2 text-right">{num(Number(g.cantidad ?? 0))}</td>
+                                        <td className="px-2 text-right">
                                           {g.moneda === "USD" ? "US$ " : "S/ "}
                                           {num(Number(g.precio_unitario ?? 0))}
                                         </td>
-                                        <td className="text-right font-semibold">{soles(Number(g.monto_soles))}</td>
-                                        <td className="text-right">
+                                        <td className="px-2 text-right font-semibold">{soles(Number(g.monto_soles))}</td>
+                                        <td className="px-3 text-right">
                                           <button type="button" onClick={() => eliminar(g.id)} className="text-muted-foreground hover:text-bad" title="Eliminar">
                                             <Trash2 size={13} />
                                           </button>
                                         </td>
                                       </tr>
                                     ))}
-                                    {compras.length === 0 && filasDe(p.id).length === 0 && (
-                                      <tr><td colSpan={9} className="py-1 text-muted-foreground">Sin compras registradas.</td></tr>
+                                    {compras.length === 0 && (
+                                      <tr><td colSpan={10} className="px-3 py-2 text-muted-foreground">Sin compras registradas.</td></tr>
                                     )}
                                   </tbody>
                                 </table>
-                                <div className="mt-1 space-y-1.5">
-                                  {filasDe(p.id).map((b) => (
-                                    <FilaCompra
-                                      key={b.key}
-                                      borrador={b}
-                                      insumos={maestroInsumos}
-                                      proveedores={proveedores}
-                                      cuentas={cuentasActivas}
-                                      onCambiar={(nb) => setFilasDe(p.id, filasDe(p.id).map((x) => (x.key === b.key ? nb : x)))}
-                                      onDescartar={() => {
-                                        const resto = filasDe(p.id).filter((x) => x.key !== b.key);
-                                        setFilasDe(p.id, resto.length ? resto : [borradorVacio()]);
-                                      }}
-                                      onRegistrar={async () => {
-                                        const error = await registrar(p.id, b, maestroInsumos);
-                                        if (error) return error;
-                                        const resto = filasDe(p.id).filter((x) => x.key !== b.key);
-                                        setFilasDe(p.id, resto.length ? resto : [borradorVacio()]);
-                                        return null;
-                                      }}
-                                    />
-                                  ))}
-                                  <button
-                                    type="button"
-                                    onClick={() => setFilasDe(p.id, [...filasDe(p.id), borradorVacio()])}
-                                    className="inline-flex items-center gap-1 rounded-md border border-dashed border-line px-2.5 py-1.5 text-[11px] text-muted-foreground hover:border-primary hover:text-primary"
-                                    title="Añadir otra fila de compra"
-                                  >
-                                    <Plus size={12} /> Añadir otra compra
-                                  </button>
                                 </div>
+                                <button
+                                  type="button"
+                                  onClick={() => abrirCompra(p.id)}
+                                  className="mt-2 inline-flex items-center gap-1 rounded-md border border-dashed border-line px-2.5 py-1.5 text-[11px] text-muted-foreground hover:border-primary hover:text-primary"
+                                >
+                                  <Plus size={12} /> Añadir otra compra
+                                </button>
                               </td>
                             </tr>
                           )}
