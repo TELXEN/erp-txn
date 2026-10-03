@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, Vacio } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
-import { Check, Pencil, Trash2, Upload, X } from "lucide-react";
+import { Check, Pencil, Plus, Trash2, Upload, X } from "lucide-react";
 import { exportarExcel } from "@/lib/exportar";
 
 export type Tercero = {
@@ -21,6 +21,19 @@ export type Tercero = {
   activo: boolean;
 };
 
+type FormTercero = {
+  tipo_documento: string;
+  numero_documento: string;
+  razon_social: string;
+  es_cliente: boolean;
+  es_proveedor: boolean;
+  direccion: string;
+  telefono: string;
+  email: string;
+  contacto: string;
+  celular_contacto: string;
+};
+
 const TIPOS_DOC = ["RUC", "DNI", "CE", "OTRO"];
 
 function validarDoc(tipo: string, numero: string) {
@@ -36,7 +49,7 @@ export function TercerosPanel({ modo }: { modo: "cliente" | "proveedor" }) {
   const nombreSingular = esCliente ? "cliente" : "proveedor";
   const nombrePlural = esCliente ? "Clientes" : "Proveedores";
 
-  const formVacio = {
+  const formVacio: FormTercero = {
     tipo_documento: "RUC",
     numero_documento: "",
     razon_social: "",
@@ -50,9 +63,11 @@ export function TercerosPanel({ modo }: { modo: "cliente" | "proveedor" }) {
   };
 
   const [error, setError] = useState("");
-  const [form, setForm] = useState(formVacio);
+  const [form, setForm] = useState<FormTercero>(formVacio);
   const [editando, setEditando] = useState<Tercero | null>(null);
   const [busqueda, setBusqueda] = useState("");
+  const [modalNuevo, setModalNuevo] = useState(false);
+  const [ok, setOk] = useState("");
 
   const { data: terceros = [] } = useQuery({
     queryKey: ["terceros"],
@@ -67,11 +82,9 @@ export function TercerosPanel({ modo }: { modo: "cliente" | "proveedor" }) {
     coincide(busqueda, t.numero_documento, t.razon_social, t.contacto, t.email),
   );
 
-  async function guardarTercero(e: React.FormEvent) {
-    e.preventDefault();
-    setError("");
+  async function guardarTercero(): Promise<string | null> {
     const msg = validarDoc(form.tipo_documento, form.numero_documento);
-    if (msg) return setError(msg);
+    if (msg) return msg;
     const { error: err } = await supabase.from("terceros").insert({
       ...form,
       numero_documento: form.numero_documento.trim(),
@@ -79,11 +92,12 @@ export function TercerosPanel({ modo }: { modo: "cliente" | "proveedor" }) {
       condicion_pago: "Contado",
     });
     if (err)
-      return setError(
-        err.code === "23505" ? "Ya existe un registro con ese número de documento." : err.message,
-      );
+      return err.code === "23505"
+        ? "Ya existe un registro con ese número de documento."
+        : err.message;
     setForm(formVacio);
     qc.invalidateQueries({ queryKey: ["terceros"] });
+    return null;
   }
 
   async function actualizarTercero() {
@@ -115,115 +129,44 @@ export function TercerosPanel({ modo }: { modo: "cliente" | "proveedor" }) {
       {error && <p className="mb-3 font-mono text-xs text-bad">{error}</p>}
 
       <Panel
-        titulo={`Nuevo ${nombreSingular}`}
-        className="mb-4"
-        extra={
-          <Boton
-            variante="linea"
-            onClick={() =>
-              exportarExcel(esCliente ? "clientes" : "proveedores", [
-                {
-                  nombre: nombrePlural,
-                  filas: lista.map((t) => ({
-                    "Tipo Documento": t.tipo_documento,
-                    "N° Documento": t.numero_documento,
-                    "Razón Social": t.razon_social,
-                    Dirección: t.direccion,
-                    Teléfono: t.telefono,
-                    Contacto: t.contacto,
-                    "Celular Contacto": t.celular_contacto,
-                    Correo: t.email,
-                  })),
-                },
-              ])
-            }
-          >
-            <Upload size={13} /> Exportar a Excel
-          </Boton>
-        }
-      >
-        <form onSubmit={guardarTercero} className="grid gap-2 p-3 sm:grid-cols-4">
-          <Campo etiqueta="Tipo documento">
-            <Select
-              className="py-1.5"
-              value={form.tipo_documento}
-              onChange={(e) => setForm({ ...form, tipo_documento: e.target.value })}
-            >
-              {TIPOS_DOC.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </Select>
-          </Campo>
-          <Campo etiqueta="N° documento">
-            <Input
-              className="py-1.5"
-              value={form.numero_documento}
-              onChange={(e) => setForm({ ...form, numero_documento: e.target.value })}
-              required
-              maxLength={20}
-            />
-          </Campo>
-          <Campo etiqueta="Razón social / Nombre">
-            <Input
-              className="py-1.5"
-              value={form.razon_social}
-              onChange={(e) => setForm({ ...form, razon_social: e.target.value })}
-              required
-              maxLength={160}
-            />
-          </Campo>
-          <Campo etiqueta="Dirección">
-            <Input
-              className="py-1.5"
-              value={form.direccion}
-              onChange={(e) => setForm({ ...form, direccion: e.target.value })}
-              maxLength={160}
-            />
-          </Campo>
-          <Campo etiqueta="Teléfono">
-            <Input
-              className="py-1.5"
-              value={form.telefono}
-              onChange={(e) => setForm({ ...form, telefono: e.target.value })}
-              maxLength={30}
-            />
-          </Campo>
-          <Campo etiqueta="Correo electrónico">
-            <Input
-              className="py-1.5"
-              type="email"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              maxLength={120}
-            />
-          </Campo>
-          <Campo etiqueta="Persona de contacto">
-            <Input
-              className="py-1.5"
-              value={form.contacto}
-              onChange={(e) => setForm({ ...form, contacto: e.target.value })}
-              maxLength={120}
-            />
-          </Campo>
-          <Campo etiqueta="Celular / Teléfono del contacto">
-            <Input
-              className="py-1.5"
-              value={form.celular_contacto}
-              onChange={(e) => setForm({ ...form, celular_contacto: e.target.value })}
-              maxLength={30}
-            />
-          </Campo>
-          <div className="sm:col-span-4">
-            <Boton type="submit">Registrar {nombreSingular}</Boton>
-          </div>
-        </form>
-      </Panel>
-
-      <Panel
         titulo={nombrePlural}
-        extra={<Buscador valor={busqueda} onChange={setBusqueda} total={lista.length} placeholder={`Buscar ${nombreSingular}...`} />}
+        extra={
+          <div className="flex flex-wrap items-center gap-2">
+            <Buscador valor={busqueda} onChange={setBusqueda} total={lista.length} placeholder={`Buscar ${nombreSingular}...`} />
+            <Boton
+              variante="linea"
+              onClick={() =>
+                exportarExcel(esCliente ? "clientes" : "proveedores", [
+                  {
+                    nombre: nombrePlural,
+                    filas: lista.map((t) => ({
+                      "Tipo Documento": t.tipo_documento,
+                      "N° Documento": t.numero_documento,
+                      "Razón Social": t.razon_social,
+                      Dirección: t.direccion,
+                      Teléfono: t.telefono,
+                      Contacto: t.contacto,
+                      "Celular Contacto": t.celular_contacto,
+                      Correo: t.email,
+                    })),
+                  },
+                ])
+              }
+            >
+              <Upload size={13} /> Exportar a Excel
+            </Boton>
+            <Boton
+              variante="accion"
+              onClick={() => {
+                setForm(formVacio);
+                setOk("");
+                setModalNuevo(true);
+              }}
+            >
+              <Plus size={14} /> Registrar {nombreSingular}
+            </Boton>
+          </div>
+        }
       >
         {lista.length === 0 ? (
           <Vacio texto={busqueda ? `Sin coincidencias para «${busqueda}»` : `Aún no hay ${nombrePlural.toLowerCase()} registrados.`} />
@@ -397,6 +340,170 @@ export function TercerosPanel({ modo }: { modo: "cliente" | "proveedor" }) {
           </table>
         )}
       </Panel>
+
+      {modalNuevo && (
+        <ModalTercero
+          nombreSingular={nombreSingular}
+          form={form}
+          setForm={setForm}
+          ok={ok}
+          onGuardar={async () => {
+            const msg = await guardarTercero();
+            if (msg) return msg;
+            setOk(`${esCliente ? "Cliente" : "Proveedor"} registrado · ${new Date().toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit" })}`);
+            return null;
+          }}
+          onCerrar={() => setModalNuevo(false)}
+        />
+      )}
     </>
+  );
+}
+
+function ModalTercero({
+  nombreSingular,
+  form,
+  setForm,
+  ok,
+  onGuardar,
+  onCerrar,
+}: {
+  nombreSingular: string;
+  form: FormTercero;
+  setForm: (f: FormTercero) => void;
+  ok: string;
+  onGuardar: () => Promise<string | null>;
+  onCerrar: () => void;
+}) {
+  const [error, setError] = useState("");
+  const [guardando, setGuardando] = useState(false);
+
+  useEffect(() => {
+    const fn = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onCerrar();
+    };
+    window.addEventListener("keydown", fn);
+    return () => window.removeEventListener("keydown", fn);
+  }, [onCerrar]);
+
+  async function guardar(e: React.FormEvent) {
+    e.preventDefault();
+    setGuardando(true);
+    const msg = await onGuardar();
+    setGuardando(false);
+    setError(msg ?? "");
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/40 p-4"
+      onClick={onCerrar}
+    >
+      <div
+        className="panel my-8 w-full max-w-3xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-start justify-between gap-3 border-b border-line px-5 py-3">
+          <div>
+            <h2 className="text-sm font-bold text-ink">Registrar {nombreSingular}</h2>
+            <p className="text-xs text-muted-foreground">
+              Se guardará en el catálogo y quedará disponible para cotizaciones, proyectos y compras.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onCerrar}
+            className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:bg-muted"
+            title="Cerrar"
+          >
+            <X size={14} />
+          </button>
+        </div>
+
+        <form onSubmit={guardar} className="grid gap-3 p-5 sm:grid-cols-2">
+          <Campo etiqueta="Tipo documento">
+            <Select
+              value={form.tipo_documento}
+              onChange={(e) => setForm({ ...form, tipo_documento: e.target.value })}
+            >
+              {TIPOS_DOC.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </Select>
+          </Campo>
+          <Campo etiqueta="N° documento">
+            <Input
+              value={form.numero_documento}
+              onChange={(e) => setForm({ ...form, numero_documento: e.target.value })}
+              required
+              maxLength={20}
+              autoFocus
+            />
+          </Campo>
+          <div className="sm:col-span-2">
+            <Campo etiqueta="Razón social / Nombre">
+              <Input
+                value={form.razon_social}
+                onChange={(e) => setForm({ ...form, razon_social: e.target.value })}
+                required
+                maxLength={160}
+              />
+            </Campo>
+          </div>
+          <div className="sm:col-span-2">
+            <Campo etiqueta="Dirección">
+              <Input
+                value={form.direccion}
+                onChange={(e) => setForm({ ...form, direccion: e.target.value })}
+                maxLength={160}
+              />
+            </Campo>
+          </div>
+          <Campo etiqueta="Teléfono">
+            <Input
+              value={form.telefono}
+              onChange={(e) => setForm({ ...form, telefono: e.target.value })}
+              maxLength={30}
+            />
+          </Campo>
+          <Campo etiqueta="Correo electrónico">
+            <Input
+              type="email"
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              maxLength={120}
+            />
+          </Campo>
+          <Campo etiqueta="Persona de contacto">
+            <Input
+              value={form.contacto}
+              onChange={(e) => setForm({ ...form, contacto: e.target.value })}
+              maxLength={120}
+            />
+          </Campo>
+          <Campo etiqueta="Celular / Teléfono del contacto">
+            <Input
+              value={form.celular_contacto}
+              onChange={(e) => setForm({ ...form, celular_contacto: e.target.value })}
+              maxLength={30}
+            />
+          </Campo>
+
+          {error && <p className="font-mono text-xs text-bad sm:col-span-2">{error}</p>}
+          {ok && !error && <p className="font-mono text-xs text-ok sm:col-span-2">{ok}</p>}
+
+          <div className="flex items-center justify-end gap-2 border-t border-line pt-3 sm:col-span-2">
+            <Boton type="button" variante="linea" onClick={onCerrar}>
+              Cancelar
+            </Boton>
+            <Boton type="submit" variante="accion" disabled={guardando}>
+              <Check size={14} /> {guardando ? "Guardando…" : "Guardar"}
+            </Boton>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 }
