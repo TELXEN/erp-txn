@@ -655,7 +655,7 @@ function AutoInsumo({
     if (!t) return insumos.slice(0, 8);
     return insumos
       .filter((i) => norm(i.descripcion).includes(t))
-      .sort((a, b) => Number(norm(a.descripcion).startsWith(t)) - Number(norm(b.descripcion).startsWith(t)) ? -1 : 0)
+      .sort((a, b) => Number(norm(b.descripcion).startsWith(t)) - Number(norm(a.descripcion).startsWith(t)))
       .slice(0, 8);
   }, [insumos, value]);
 
