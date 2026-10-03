@@ -552,7 +552,7 @@ function FlujoCaja() {
             <tbody>
               {global && (<>
               <tr>
-                <th colSpan={14} className="border-b border-line bg-primary/10 px-2 py-1.5 text-left font-mono text-[11px] font-semibold uppercase text-primary"><span className="sticky left-2">Metas</span></th>
+                <th className="border-b border-line bg-primary/10 px-2 py-1.5 text-left font-mono text-[11px] font-semibold uppercase text-primary sticky left-0 z-10 whitespace-nowrap">Metas</th><td colSpan={13} className="border-b border-line bg-primary/10" />
               </tr>
               <tr>
                 <th className="sticky left-0 z-10 border-b border-r border-line bg-paper px-2 py-1.5 text-left font-medium">Meta de ingreso</th>
@@ -582,7 +582,7 @@ function FlujoCaja() {
               </>)}
 
               <tr>
-                <th colSpan={14} className="border-b border-line bg-cta/15 px-2 py-1.5 text-left font-mono text-[11px] font-semibold uppercase text-foreground"><span className="sticky left-2">Realizado</span></th>
+                <th className="border-b border-line bg-cta/15 px-2 py-1.5 text-left font-mono text-[11px] font-semibold uppercase text-foreground sticky left-0 z-10 whitespace-nowrap">Realizado</th><td colSpan={13} className="border-b border-line bg-cta/15" />
               </tr>
               <tr>
                 <th className="sticky left-0 z-10 border-b border-r border-line bg-paper px-2 py-1.5 text-left font-medium">Ingreso realizado</th>
@@ -621,7 +621,7 @@ function FlujoCaja() {
               </tr>
 
               <tr>
-                <th colSpan={14} className="border-b border-line bg-muted px-2 py-1.5 text-left font-mono text-[11px] font-semibold uppercase text-muted-foreground"><span className="sticky left-2">Control</span></th>
+                <th className="border-b border-line bg-muted px-2 py-1.5 text-left font-mono text-[11px] font-semibold uppercase text-muted-foreground sticky left-0 z-10 whitespace-nowrap">Control</th><td colSpan={13} className="border-b border-line bg-muted" />
               </tr>
               <tr>
                 <th className="sticky left-0 z-10 border-b border-r border-line bg-paper px-2 py-1.5 text-left font-medium">Variación</th>
@@ -648,7 +648,7 @@ function FlujoCaja() {
                 <td className={`sticky right-0 z-10 border-l border-line bg-muted px-2 py-1.5 text-right font-mono text-[11px] font-semibold ${resultadoRealAnual < 0 ? "text-bad" : ""}`}>{corto(resultadoRealAnual)}</td>
               </tr>
               <tr>
-                <th colSpan={14} className="border-b border-t border-line bg-primary/10 px-2 py-1.5 text-left font-mono text-[11px] font-semibold uppercase text-primary"><span className="sticky left-2">{global ? "Tesorería y proyección (CxC / CxP)" : "Proyección de la obra (CxC / CxP)"}</span></th>
+                <th className="border-b border-t border-line bg-primary/10 px-2 py-1.5 text-left font-mono text-[11px] font-semibold uppercase text-primary sticky left-0 z-10 whitespace-nowrap">{global ? "Tesorería y proyección (CxC / CxP)" : "Proyección de la obra (CxC / CxP)"}</th><td colSpan={13} className="border-b border-line bg-primary/10" />
               </tr>
               {lineasTesoreria.filter((l) => global || !l.concepto.startsWith("Saldo inicial") && !l.concepto.startsWith("Saldo al cierre")).map((l) => (
                 <tr key={l.concepto}>
