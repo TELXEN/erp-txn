@@ -4,12 +4,11 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
-import { ChevronDown, ChevronRight, Plus, Trash2, Upload, X } from "lucide-react";
+import { Check, ChevronDown, ChevronRight, Plus, Trash2, Upload, X } from "lucide-react";
 import { Buscador, Resaltar, coincide } from "@/components/Buscador";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
 import {
-  RUBROS_COSTO,
   type RubroCosto,
   type GastoDirecto,
   useGastosDirectos,
@@ -22,10 +21,58 @@ import { exportarExcel } from "@/lib/exportar";
 import { agruparSoloPorCategoria } from "@/lib/categorias";
 import { InsigniaPago, PLAZOS, condicionVacia, datosCondicion } from "@/components/CondicionPago";
 
-type Compra = GastoDirecto & { cantidad?: number; precio_unitario?: number; comprobante?: string; condicion_pago?: string; fecha_vencimiento?: string | null; estado_pago?: string; banco_id?: string | null; numero_operacion?: string };
+type Compra = GastoDirecto & { cantidad?: number; precio_unitario?: number; comprobante?: string; condicion_pago?: string; fecha_vencimiento?: string | null; estado_pago?: string; banco_id?: string | null; numero_operacion?: string; insumo_id?: string | null };
+
+type InsumoApu = { id: string; descripcion: string; tipo: string };
+
+type Cuenta = { id: string; nombre: string; tipo_cuenta?: string; monedas?: string; numero_cuenta?: string | null; activo?: boolean };
+type Tercero = { id: string; razon_social: string };
+
+type Borrador = {
+  key: number;
+  fecha: string;
+  comprobante: string;
+  proveedor_id: string;
+  insumoTexto: string;
+  insumo_id: string | null;
+  condicion_pago: string;
+  dias_credito: string;
+  banco_id: string;
+  numero_operacion: string;
+  cantidad: string;
+  precio_unitario: string;
+};
+
+let seqBorrador = 1;
+const borradorVacio = (): Borrador => ({
+  key: seqBorrador++,
+  fecha: hoy(),
+  comprobante: "",
+  proveedor_id: "",
+  insumoTexto: "",
+  insumo_id: null,
+  ...condicionVacia(),
+  banco_id: "",
+  numero_operacion: "",
+  cantidad: "",
+  precio_unitario: "",
+});
+
+/** Tipo de insumo → rubro de la compra. */
+const RUBRO_POR_TIPO: Record<string, RubroCosto> = {
+  MO: "Servicios",
+  MAT: "Materiales",
+  EQ: "Equipos",
+  HT: "Materiales",
+  SC: "Subcontratos",
+};
+const rubroDeTipo = (tipo?: string) => RUBRO_POR_TIPO[tipo ?? ""] ?? "Materiales";
 
 const num = (n: number) =>
   Number(n || 0).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+const norm = (s: string) =>
+  s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
 export const Route = createFileRoute("/_authenticated/gastos-directos")({
   head: () => ({
@@ -39,21 +86,6 @@ export const Route = createFileRoute("/_authenticated/gastos-directos")({
   component: GastosDirectos,
 });
 
-const formVacio = (partida_id = "") => ({
-  partida_id,
-  proveedor_id: "",
-  rubro: "Materiales" as RubroCosto,
-  cantidad: "",
-  precio_unitario: "",
-  comprobante: "",
-  moneda: "PEN",
-  tipo_cambio: "3.75",
-  fecha: hoy(),
-  banco_id: "",
-  numero_operacion: "",
-  ...condicionVacia(),
-});
-
 function GastosDirectos() {
   const { rol } = useAuth();
   const qc = useQueryClient();
@@ -65,20 +97,42 @@ function GastosDirectos() {
   const proveedores = terceros.filter((t) => t.es_proveedor && t.activo);
   const [proyectoId, setProyectoId] = useState("");
   const [abiertas, setAbiertas] = useState<Record<string, boolean>>({});
-  const [form, setForm] = useState(formVacio());
-  const [mostrarForm, setMostrarForm] = useState(false);
-  const [error, setError] = useState("");
+  const [filas, setFilas] = useState<Record<string, Borrador[]>>({});
   const [busqueda, setBusqueda] = useState("");
   const { data: cuentas = [] } = useQuery({
     queryKey: ["bancos"],
     queryFn: async () => {
       const { data, error: err } = await supabase.from("bancos").select("*").order("nombre");
       if (err) throw err;
-      return data ?? [];
+      return (data ?? []) as Cuenta[];
     },
   });
   const cuentasActivas = cuentas.filter((c) => c.activo);
-  const contado = form.condicion_pago !== "Crédito";
+  const { data: componentes = [] } = useQuery({
+    queryKey: ["apu_insumos_compras"],
+    queryFn: async () => {
+      const { data, error: err } = await supabase
+        .from("apu_componentes")
+        .select("partida_id, insumo_id, insumos(id, descripcion, tipo)");
+      if (err) throw err;
+      return (data ?? []) as unknown as { partida_id: string; insumo_id: string | null; insumos: InsumoApu | null }[];
+    },
+  });
+  const insumosDePartida = useMemo(() => {
+    const mapa: Record<string, InsumoApu[]> = {};
+    for (const c of componentes) {
+      if (!c.insumos) continue;
+      const lista = (mapa[c.partida_id] ??= []);
+      if (!lista.some((i) => i.id === c.insumos!.id)) lista.push(c.insumos);
+    }
+    return mapa;
+  }, [componentes]);
+  const nombreInsumo = useMemo(() => {
+    const mapa = new Map<string, string>();
+    for (const c of componentes) if (c.insumos) mapa.set(c.insumos.id, c.insumos.descripcion);
+    return (id?: string | null) => (id ? mapa.get(id) ?? "—" : "—");
+  }, [componentes]);
+
   const nombreBanco = (id?: string | null) => {
     const c = cuentas.find((x) => x.id === id);
     return c ? `${c.nombre}${c.numero_cuenta ? ` · ${c.numero_cuenta}` : ""}` : "";
@@ -105,54 +159,62 @@ function GastosDirectos() {
   const nombreProv = (g: Compra) =>
     (g.proveedor_id ? terceros.find((t) => t.id === g.proveedor_id)?.razon_social : null) ?? g.proveedor ?? "—";
 
-  const tc = form.moneda === "USD" ? Number(form.tipo_cambio || 0) : 1;
-  const montoForm = Number(form.cantidad || 0) * Number(form.precio_unitario || 0);
-  const partidaForm = partidas.find((p) => p.id === form.partida_id);
-
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
-  function abrirCompra(pid: string) {
-    setForm(formVacio(pid));
-    setMostrarForm(true);
-    setError("");
+  const filasDe = (pid: string) => filas[pid] ?? [];
+
+  function setFilasDe(pid: string, lista: Borrador[]) {
+    setFilas((f) => ({ ...f, [pid]: lista }));
   }
 
-  async function guardar(e: React.FormEvent) {
-    e.preventDefault();
-    setError("");
-    if (!partidaForm) return setError("Selecciona una partida.");
-    if (Number(form.cantidad) <= 0) return setError("La cantidad debe ser mayor a cero.");
-    if (Number(form.precio_unitario) < 0) return setError("El precio unitario no puede ser negativo.");
-    if (form.moneda === "USD" && tc <= 0) return setError("Ingresa un tipo de cambio válido.");
-    if (contado && !form.banco_id) return setError("Elige la cuenta bancaria o Caja Chica del egreso.");
-    if (contado && form.banco_id !== "caja" && !form.numero_operacion.trim()) return setError("Ingresa el N° de operación.");
-    const prov = terceros.find((t) => t.id === form.proveedor_id);
+  function abrirCompra(pid: string) {
+    setAbiertas((a) => ({ ...a, [pid]: true }));
+    setFilas((f) => (f[pid]?.length ? f : { ...f, [pid]: [borradorVacio()] }));
+  }
+
+  function alternar(pid: string) {
+    const abierta = !abiertas[pid];
+    setAbiertas((a) => ({ ...a, [pid]: abierta }));
+    if (abierta) setFilas((f) => (f[pid]?.length ? f : { ...f, [pid]: [borradorVacio()] }));
+  }
+
+  async function registrar(pid: string, b: Borrador, insumos: InsumoApu[]): Promise<string | null> {
+    const partida = partidas.find((p) => p.id === pid);
+    if (!partida) return "Partida no encontrada.";
+    if (!b.proveedor_id) return "Elige el proveedor.";
+    if (Number(b.cantidad) <= 0) return "La cantidad debe ser mayor a cero.";
+    if (Number(b.precio_unitario) < 0) return "El P.U. de compra no puede ser negativo.";
+    const contado = b.condicion_pago !== "Crédito";
+    if (contado && !b.banco_id) return "Elige la cuenta bancaria o Caja Chica del egreso.";
+    if (contado && b.banco_id !== "caja" && !b.numero_operacion.trim()) return "Ingresa el N° de operación.";
+    const prov = terceros.find((t) => t.id === b.proveedor_id);
+    const insumo = insumos.find((i) => i.id === b.insumo_id);
+    const monto = Number(b.cantidad) * Number(b.precio_unitario);
     const { error: err } = await supabase.from("gastos_directos").insert({
       proyecto_id: proyectoId,
-      partida_id: form.partida_id,
-      descripcion: partidaForm.nombre,
+      partida_id: pid,
+      descripcion: b.insumoTexto.trim() || partida.nombre,
       proveedor: prov?.razon_social ?? "",
-      proveedor_id: form.proveedor_id || null,
-      cantidad: Number(form.cantidad),
-      precio_unitario: Number(form.precio_unitario),
-      comprobante: form.comprobante.trim(),
-      monto: montoForm,
-      moneda: form.moneda as "PEN" | "USD",
-      tipo_cambio: tc,
-      monto_soles: montoForm * tc,
-      rubro: form.rubro,
-      fecha: form.fecha,
-      ...datosCondicion(form, form.fecha),
+      proveedor_id: b.proveedor_id,
+      insumo_id: b.insumo_id,
+      cantidad: Number(b.cantidad),
+      precio_unitario: Number(b.precio_unitario),
+      comprobante: b.comprobante.trim(),
+      monto,
+      moneda: "PEN",
+      tipo_cambio: 1,
+      monto_soles: monto,
+      rubro: insumo ? rubroDeTipo(insumo.tipo) : "Materiales",
+      fecha: b.fecha,
+      ...datosCondicion(b, b.fecha),
       estado_pago: contado ? "Pagada" : "Pendiente",
-      banco_id: contado && form.banco_id !== "caja" ? form.banco_id : null,
-      fecha_pago: contado ? form.fecha : null,
-      numero_operacion: contado && form.banco_id !== "caja" ? form.numero_operacion.trim() : "",
+      banco_id: contado && b.banco_id !== "caja" ? b.banco_id : null,
+      fecha_pago: contado ? b.fecha : null,
+      numero_operacion: contado && b.banco_id !== "caja" ? b.numero_operacion.trim() : "",
     } as never);
-    if (err) return setError(err.message);
-    setAbiertas((a) => ({ ...a, [form.partida_id]: true }));
-    setMostrarForm(false);
-    setForm(formVacio());
+    if (err) return err.message;
     qc.invalidateQueries({ queryKey: ["gastos_directos"] });
+    return null;
   }
 
   async function alternarPago(g: Compra) {
@@ -194,6 +256,7 @@ function GastosDirectos() {
           Código: nomPart(g.partida_id)?.codigo ?? "",
           Partida: nomPart(g.partida_id)?.nombre ?? "",
           Comprobante: g.comprobante ?? "",
+          Insumo: nombreInsumo(g.insumo_id),
           Condición: g.condicion_pago ?? "Contado",
           Vencimiento: g.fecha_vencimiento ?? "",
           "Estado de pago": g.estado_pago ?? "Pagada",
@@ -246,143 +309,9 @@ function GastosDirectos() {
         </div>
       </Panel>
 
-      {mostrarForm && (
-        <div
-          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-foreground/40 p-4"
-          onClick={() => setMostrarForm(false)}
-        >
-          <div
-            className="mt-8 w-full max-w-3xl rounded-xl border border-line bg-card shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between border-b border-line px-5 py-3">
-              <h3 className="label-mono">Registrar compra</h3>
-              <button
-                type="button"
-                onClick={() => setMostrarForm(false)}
-                className="text-muted-foreground hover:text-ink"
-                title="Cerrar"
-              >
-                <X size={16} />
-              </button>
-            </div>
-            <form onSubmit={guardar} className="p-5">
-              <Campo etiqueta="Partida">
-                <Select value={form.partida_id} onChange={(e) => setForm({ ...form, partida_id: e.target.value })} required>
-                  <option value="">Selecciona...</option>
-                  {partidasProy.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.codigo ? `[${p.codigo}] ` : ""}
-                      {p.nombre}
-                    </option>
-                  ))}
-                </Select>
-              </Campo>
-              <p className="label-mono mb-2 mt-4">Escribe los datos y pulsa Enter para registrar…</p>
-              <div className="grid gap-3 sm:grid-cols-4">
-                <Campo etiqueta="Fecha">
-                  <Input type="date" value={form.fecha} onChange={(e) => setForm({ ...form, fecha: e.target.value })} />
-                </Campo>
-                <Campo etiqueta="Comprobante">
-                  <Input value={form.comprobante} onChange={(e) => setForm({ ...form, comprobante: e.target.value })} placeholder="F001-1240" maxLength={40} />
-                </Campo>
-                <Campo etiqueta="Proveedor">
-                  <Select value={form.proveedor_id} onChange={(e) => setForm({ ...form, proveedor_id: e.target.value })} required>
-                    <option value="">Selecciona...</option>
-                    {proveedores.map((t) => (
-                      <option key={t.id} value={t.id}>{t.razon_social}</option>
-                    ))}
-                  </Select>
-                </Campo>
-                <Campo etiqueta="Rubro">
-                  <Select value={form.rubro} onChange={(e) => setForm({ ...form, rubro: e.target.value as RubroCosto })}>
-                    {RUBROS_COSTO.map((r) => (
-                      <option key={r} value={r}>{r}</option>
-                    ))}
-                  </Select>
-                </Campo>
-                <Campo etiqueta="Pago">
-                  <Select value={form.condicion_pago} onChange={(e) => setForm({ ...form, ...condicionVacia(e.target.value) })}>
-                    <option value="Contado">Contado</option>
-                    <option value="Crédito">Crédito</option>
-                  </Select>
-                </Campo>
-                <Campo etiqueta="CANT. REAL (M)">
-                  <Input type="number" step="0.01" min="0" value={form.cantidad} onChange={(e) => setForm({ ...form, cantidad: e.target.value })} required />
-                </Campo>
-                <Campo etiqueta="COSTO REAL">
-                  <Input type="number" step="0.01" min="0" value={form.precio_unitario} onChange={(e) => setForm({ ...form, precio_unitario: e.target.value })} required />
-                </Campo>
-                <Campo etiqueta="Moneda / T.C.">
-                  <div className="flex gap-2">
-                    <Select value={form.moneda} onChange={(e) => setForm({ ...form, moneda: e.target.value })}>
-                      <option value="PEN">S/</option>
-                      <option value="USD">US$</option>
-                    </Select>
-                    <Input type="number" step="0.001" min="0" value={form.tipo_cambio} disabled={form.moneda === "PEN"} onChange={(e) => setForm({ ...form, tipo_cambio: e.target.value })} />
-                  </div>
-                </Campo>
-                {contado && (
-                  <Campo etiqueta="Cuenta bancaria de egreso">
-                    <Select value={form.banco_id} onChange={(e) => setForm({ ...form, banco_id: e.target.value })}>
-                      <option value="">Selecciona...</option>
-                      {cuentasActivas.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.nombre} · {c.tipo_cuenta} · {c.monedas}
-                          {c.numero_cuenta ? ` · ${c.numero_cuenta}` : ""}
-                        </option>
-                      ))}
-                      <option value="caja">Caja Chica (efectivo)</option>
-                    </Select>
-                  </Campo>
-                )}
-                {contado && form.banco_id && form.banco_id !== "caja" && (
-                  <Campo etiqueta="N° de operación">
-                    <Input value={form.numero_operacion} onChange={(e) => setForm({ ...form, numero_operacion: e.target.value })} placeholder="00123456" maxLength={40} />
-                  </Campo>
-                )}
-                {form.condicion_pago === "Crédito" && (
-                  <Campo etiqueta={`Días de crédito · vence ${fmtFecha(datosCondicion(form, form.fecha).fecha_vencimiento)}`}>
-                    <div className="flex gap-2">
-                      <Select
-                        value={PLAZOS.includes(Number(form.dias_credito)) ? form.dias_credito : "otro"}
-                        onChange={(e) => e.target.value !== "otro" && setForm({ ...form, dias_credito: e.target.value })}
-                      >
-                        {PLAZOS.map((p) => (
-                          <option key={p} value={String(p)}>{p} días</option>
-                        ))}
-                        <option value="otro">Otro</option>
-                      </Select>
-                      <Input
-                        type="number"
-                        min="0"
-                        step="1"
-                        className="w-20"
-                        value={form.dias_credito}
-                        onChange={(e) => setForm({ ...form, dias_credito: e.target.value })}
-                      />
-                    </div>
-                  </Campo>
-                )}
-              </div>
-              <div className="mt-4 flex flex-wrap items-center gap-3">
-                <Boton type="submit">Registrar compra</Boton>
-                <Boton type="button" variante="linea" onClick={() => setMostrarForm(false)}>Cerrar</Boton>
-                <span className="font-mono text-xs text-muted-foreground">
-                  Costo real: {num(Number(form.cantidad || 0))} × {num(Number(form.precio_unitario || 0))}
-                  {form.moneda === "USD" ? ` × TC ${form.tipo_cambio}` : ""} ={" "}
-                  <strong className="text-ink">{soles(montoForm * tc)}</strong>
-                </span>
-              </div>
-              {error && <p className="mt-3 font-mono text-xs text-bad">{error}</p>}
-            </form>
-          </div>
-        </div>
-      )}
-
       <Panel
         titulo="Control por partida"
-        extra={<div className="flex gap-2"><Buscador valor={busqueda} onChange={setBusqueda} placeholder="Buscar por código o partida..." total={partidasProy.length} /><Boton variante="accion" onClick={() => abrirCompra("")} disabled={!proyecto}><Plus size={14} /> Registrar compra</Boton></div>}
+        extra={<Buscador valor={busqueda} onChange={setBusqueda} placeholder="Buscar por código o partida..." total={partidasProy.length} />}
       >
         {partidasProy.length === 0 ? (
           busqueda ? <Vacio texto={`Sin coincidencias para «${busqueda}»`} /> : <Vacio texto="Esta obra aún no tiene partidas registradas." />
@@ -430,7 +359,7 @@ function GastosDirectos() {
                             <td className="px-5 py-2.5">
                               <button
                                 type="button"
-                                onClick={() => setAbiertas({ ...abiertas, [p.id]: !abierta })}
+                                onClick={() => alternar(p.id)}
                                 className="inline-flex items-center gap-1 text-primary"
                                 title="Ver compras"
                               >
@@ -464,56 +393,86 @@ function GastosDirectos() {
                           {abierta && (
                             <tr className="border-b border-line/40 bg-muted/20">
                               <td colSpan={11} className="px-8 py-2">
-                                {compras.length === 0 ? (
-                                  <p className="py-1 text-muted-foreground">Sin compras registradas.</p>
-                                ) : (
-                                  <table className="w-full text-[11px]">
-                                    <thead>
-                                      <tr className="text-left text-[10px] uppercase text-muted-foreground">
-                                        <th className="py-1">Fecha</th>
-                                        <th>Comprobante</th>
-                                        <th>Proveedor</th>
-                                        <th>Rubro</th>
-                                        <th>Pago</th>
-                                        <th className="text-right">Cantidad</th>
-                                        <th className="text-right">P.U. compra</th>
-                                        <th className="text-right">Costo real</th>
-                                        <th></th>
+                                <table className="w-full text-[11px]">
+                                  <thead>
+                                    <tr className="text-left text-[10px] uppercase text-muted-foreground">
+                                      <th className="py-1">Fecha</th>
+                                      <th>Comprobante</th>
+                                      <th>Proveedor</th>
+                                      <th>Insumo</th>
+                                      <th>Pago</th>
+                                      <th className="text-right">Cantidad</th>
+                                      <th className="text-right">P.U. compra</th>
+                                      <th className="text-right">Costo real</th>
+                                      <th></th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {compras.map((g) => (
+                                      <tr key={g.id} className="border-t border-line/30">
+                                        <td className="py-1.5">{fmtFecha(g.fecha)}</td>
+                                        <td>{g.comprobante || "—"}</td>
+                                        <td>{nombreProv(g)}</td>
+                                        <td>{nombreInsumo(g.insumo_id)}</td>
+                                        <td>
+                                          <button type="button" title="Cambiar estado de pago" disabled={g.condicion_pago !== "Crédito"} onClick={() => alternarPago(g)}>
+                                            <InsigniaPago condicion={g.condicion_pago} vencimiento={g.fecha_vencimiento} pagado={g.estado_pago === "Pagada"} />
+                                          </button>
+                                          {g.banco_id && (
+                                            <div className="text-[10px] text-muted-foreground">
+                                              {nombreBanco(g.banco_id)}{g.numero_operacion ? ` · Op. ${g.numero_operacion}` : ""}
+                                            </div>
+                                          )}
+                                        </td>
+                                        <td className="text-right">{num(Number(g.cantidad ?? 0))}</td>
+                                        <td className="text-right">
+                                          {g.moneda === "USD" ? "US$ " : "S/ "}
+                                          {num(Number(g.precio_unitario ?? 0))}
+                                        </td>
+                                        <td className="text-right font-semibold">{soles(Number(g.monto_soles))}</td>
+                                        <td className="text-right">
+                                          <button type="button" onClick={() => eliminar(g.id)} className="text-muted-foreground hover:text-bad" title="Eliminar">
+                                            <Trash2 size={13} />
+                                          </button>
+                                        </td>
                                       </tr>
-                                    </thead>
-                                    <tbody>
-                                      {compras.map((g) => (
-                                        <tr key={g.id} className="border-t border-line/30">
-                                          <td className="py-1.5">{fmtFecha(g.fecha)}</td>
-                                          <td>{g.comprobante || "—"}</td>
-                                          <td>{nombreProv(g)}</td>
-                                          <td><InsigniaRubro valor={g.rubro ?? "Materiales"} /></td>
-                                          <td>
-                                            <button type="button" title="Cambiar estado de pago" disabled={g.condicion_pago !== "Crédito"} onClick={() => alternarPago(g)}>
-                                              <InsigniaPago condicion={g.condicion_pago} vencimiento={g.fecha_vencimiento} pagado={g.estado_pago === "Pagada"} />
-                                            </button>
-                                            {g.banco_id && (
-                                              <div className="text-[10px] text-muted-foreground">
-                                                {nombreBanco(g.banco_id)}{g.numero_operacion ? ` · Op. ${g.numero_operacion}` : ""}
-                                              </div>
-                                            )}
-                                          </td>
-                                          <td className="text-right">{num(Number(g.cantidad ?? 0))}</td>
-                                          <td className="text-right">
-                                            {g.moneda === "USD" ? "US$ " : "S/ "}
-                                            {num(Number(g.precio_unitario ?? 0))}
-                                          </td>
-                                          <td className="text-right font-semibold">{soles(Number(g.monto_soles))}</td>
-                                          <td className="text-right">
-                                            <button type="button" onClick={() => eliminar(g.id)} className="text-muted-foreground hover:text-bad" title="Eliminar">
-                                              <Trash2 size={13} />
-                                            </button>
-                                          </td>
-                                        </tr>
-                                      ))}
-                                    </tbody>
-                                  </table>
-                                )}
+                                    ))}
+                                    {compras.length === 0 && filasDe(p.id).length === 0 && (
+                                      <tr><td colSpan={9} className="py-1 text-muted-foreground">Sin compras registradas.</td></tr>
+                                    )}
+                                  </tbody>
+                                </table>
+                                <div className="mt-1 space-y-1.5">
+                                  {filasDe(p.id).map((b) => (
+                                    <FilaCompra
+                                      key={b.key}
+                                      borrador={b}
+                                      insumos={insumosDePartida[p.id] ?? []}
+                                      proveedores={proveedores}
+                                      cuentas={cuentasActivas}
+                                      onCambiar={(nb) => setFilasDe(p.id, filasDe(p.id).map((x) => (x.key === b.key ? nb : x)))}
+                                      onDescartar={() => {
+                                        const resto = filasDe(p.id).filter((x) => x.key !== b.key);
+                                        setFilasDe(p.id, resto.length ? resto : [borradorVacio()]);
+                                      }}
+                                      onRegistrar={async () => {
+                                        const error = await registrar(p.id, b, insumosDePartida[p.id] ?? []);
+                                        if (error) return error;
+                                        const resto = filasDe(p.id).filter((x) => x.key !== b.key);
+                                        setFilasDe(p.id, resto.length ? resto : [borradorVacio()]);
+                                        return null;
+                                      }}
+                                    />
+                                  ))}
+                                  <button
+                                    type="button"
+                                    onClick={() => setFilasDe(p.id, [...filasDe(p.id), borradorVacio()])}
+                                    className="inline-flex items-center gap-1 rounded-md border border-dashed border-line px-2.5 py-1.5 text-[11px] text-muted-foreground hover:border-primary hover:text-primary"
+                                    title="Añadir otra fila de compra"
+                                  >
+                                    <Plus size={12} /> Añadir otra compra
+                                  </button>
+                                </div>
                               </td>
                             </tr>
                           )}
@@ -528,6 +487,233 @@ function GastosDirectos() {
         )}
       </Panel>
     </>
+  );
+}
+
+/** Fila de captura WYSIWYG de una compra: Enter o ✓ registra, ✕ descarta. */
+function FilaCompra({
+  borrador: b,
+  insumos,
+  proveedores,
+  cuentas,
+  onCambiar,
+  onDescartar,
+  onRegistrar,
+}: {
+  borrador: Borrador;
+  insumos: InsumoApu[];
+  proveedores: Tercero[];
+  cuentas: Cuenta[];
+  onCambiar: (b: Borrador) => void;
+  onDescartar: () => void;
+  onRegistrar: () => Promise<string | null>;
+}) {
+  const [error, setError] = useState("");
+  const [guardando, setGuardando] = useState(false);
+  const contado = b.condicion_pago !== "Crédito";
+  const total = Number(b.cantidad || 0) * Number(b.precio_unitario || 0);
+
+  async function enviar(e?: React.FormEvent) {
+    e?.preventDefault();
+    if (guardando) return;
+    setGuardando(true);
+    setError("");
+    const err = await onRegistrar();
+    setGuardando(false);
+    if (err) setError(err);
+  }
+
+  return (
+    <form onSubmit={enviar} className="rounded-lg border border-dashed border-line bg-card p-2">
+      <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4 lg:grid-cols-[repeat(8,minmax(0,1fr))_auto]">
+        <label className="block">
+          <span className="text-[9px] uppercase tracking-wide text-muted-foreground">Fecha</span>
+          <Input type="date" value={b.fecha} onChange={(e) => onCambiar({ ...b, fecha: e.target.value })} className="h-7 px-1.5 text-[11px]" />
+        </label>
+        <label className="block">
+          <span className="text-[9px] uppercase tracking-wide text-muted-foreground">Comprobante</span>
+          <Input value={b.comprobante} onChange={(e) => onCambiar({ ...b, comprobante: e.target.value })} placeholder="F001-1240" maxLength={40} className="h-7 px-1.5 text-[11px]" />
+        </label>
+        <label className="block">
+          <span className="text-[9px] uppercase tracking-wide text-muted-foreground">Proveedor</span>
+          <Select value={b.proveedor_id} onChange={(e) => onCambiar({ ...b, proveedor_id: e.target.value })} className="h-7 px-1.5 text-[11px]">
+            <option value="">Selecciona...</option>
+            {proveedores.map((t) => (
+              <option key={t.id} value={t.id}>{t.razon_social}</option>
+            ))}
+          </Select>
+        </label>
+        <label className="block">
+          <span className="text-[9px] uppercase tracking-wide text-muted-foreground">Insumo</span>
+          <AutoInsumo
+            value={b.insumoTexto}
+            insumos={insumos}
+            onChange={(v) => onCambiar({ ...b, insumoTexto: v, insumo_id: null })}
+            onElegir={(i) => onCambiar({ ...b, insumoTexto: i.descripcion, insumo_id: i.id })}
+            onEnter={() => void enviar()}
+          />
+        </label>
+        <label className="block">
+          <span className="text-[9px] uppercase tracking-wide text-muted-foreground">Pago</span>
+          <Select value={b.condicion_pago} onChange={(e) => onCambiar({ ...b, ...condicionVacia(e.target.value) })} className="h-7 px-1.5 text-[11px]">
+            <option value="Contado">Contado</option>
+            <option value="Crédito">Crédito</option>
+          </Select>
+        </label>
+        <label className="block">
+          <span className="text-[9px] uppercase tracking-wide text-muted-foreground">Banco</span>
+          {contado ? (
+            <Select value={b.banco_id} onChange={(e) => onCambiar({ ...b, banco_id: e.target.value })} className="h-7 px-1.5 text-[11px]">
+              <option value="">Selecciona...</option>
+              {cuentas.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.nombre}{c.numero_cuenta ? ` · ${c.numero_cuenta}` : ""}
+                </option>
+              ))}
+              <option value="caja">Caja Chica (efectivo)</option>
+            </Select>
+          ) : (
+            <Select
+              value={PLAZOS.includes(Number(b.dias_credito)) ? b.dias_credito : "otro"}
+              onChange={(e) => e.target.value !== "otro" && onCambiar({ ...b, dias_credito: e.target.value })}
+              className="h-7 px-1.5 text-[11px]"
+              title={`Vence ${fmtFecha(datosCondicion(b, b.fecha).fecha_vencimiento)}`}
+            >
+              {PLAZOS.map((p) => (
+                <option key={p} value={String(p)}>{p} días</option>
+              ))}
+              <option value="otro">Otro</option>
+            </Select>
+          )}
+        </label>
+        <label className="block">
+          <span className="text-[9px] uppercase tracking-wide text-muted-foreground">Cantidad</span>
+          <Input type="number" step="0.01" min="0" value={b.cantidad} onChange={(e) => onCambiar({ ...b, cantidad: e.target.value })} className="h-7 px-1.5 text-right text-[11px]" />
+        </label>
+        <label className="block">
+          <span className="text-[9px] uppercase tracking-wide text-muted-foreground">P.U. compra</span>
+          <Input type="number" step="0.01" min="0" value={b.precio_unitario} onChange={(e) => onCambiar({ ...b, precio_unitario: e.target.value })} className="h-7 px-1.5 text-right text-[11px]" />
+        </label>
+        <div className="flex items-end gap-1 pb-0.5">
+          <button
+            type="submit"
+            disabled={guardando}
+            className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-primary text-primary-foreground hover:brightness-95 disabled:opacity-50"
+            title="Registrar compra (Enter)"
+          >
+            <Check size={13} />
+          </button>
+          <button
+            type="button"
+            onClick={onDescartar}
+            className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-bad hover:text-bad"
+            title="Descartar fila"
+          >
+            <X size={13} />
+          </button>
+        </div>
+      </div>
+      {contado && b.banco_id && b.banco_id !== "caja" && (
+        <div className="mt-1.5 max-w-xs">
+          <Input value={b.numero_operacion} onChange={(e) => onCambiar({ ...b, numero_operacion: e.target.value })} placeholder="N° de operación" maxLength={40} className="h-7 px-1.5 text-[11px]" />
+        </div>
+      )}
+      {!contado && !PLAZOS.includes(Number(b.dias_credito)) && (
+        <div className="mt-1.5 flex max-w-xs items-center gap-2">
+          <Input type="number" min="0" step="1" value={b.dias_credito} onChange={(e) => onCambiar({ ...b, dias_credito: e.target.value })} className="h-7 w-20 px-1.5 text-[11px]" />
+          <span className="text-[10px] text-muted-foreground">días · vence {fmtFecha(datosCondicion(b, b.fecha).fecha_vencimiento)}</span>
+        </div>
+      )}
+      <div className="mt-1 flex items-center gap-3">
+        <span className="font-mono text-[10px] text-muted-foreground">
+          Total: <strong className="text-ink">{soles(total)}</strong>
+        </span>
+        {error && <span className="font-mono text-[10px] text-bad">{error}</span>}
+      </div>
+    </form>
+  );
+}
+
+/** Buscador de insumo con sugerencias del APU de la partida; admite texto libre. */
+function AutoInsumo({
+  value,
+  insumos,
+  onChange,
+  onElegir,
+  onEnter,
+}: {
+  value: string;
+  insumos: InsumoApu[];
+  onChange: (v: string) => void;
+  onElegir: (i: InsumoApu) => void;
+  onEnter: () => void;
+}) {
+  const [abierto, setAbierto] = useState(false);
+  const [indice, setIndice] = useState(0);
+  const sugerencias = useMemo(() => {
+    const t = norm(value.trim());
+    if (!t) return insumos.slice(0, 8);
+    return insumos
+      .filter((i) => norm(i.descripcion).includes(t))
+      .sort((a, b) => Number(norm(a.descripcion).startsWith(t)) - Number(norm(b.descripcion).startsWith(t)) ? -1 : 0)
+      .slice(0, 8);
+  }, [insumos, value]);
+
+  return (
+    <div className="relative">
+      <input
+        value={value}
+        placeholder="Insumo del APU o libre…"
+        className="h-7 w-full rounded-md border border-line bg-card px-1.5 text-[11px] outline-none focus:border-primary"
+        onFocus={() => setAbierto(true)}
+        onChange={(e) => {
+          onChange(e.target.value);
+          setAbierto(true);
+          setIndice(0);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "ArrowDown" && abierto && sugerencias.length) {
+            e.preventDefault();
+            setIndice((i) => (i + 1) % sugerencias.length);
+            return;
+          }
+          if (e.key === "ArrowUp" && abierto && sugerencias.length) {
+            e.preventDefault();
+            setIndice((i) => (i - 1 + sugerencias.length) % sugerencias.length);
+            return;
+          }
+          if (e.key === "Enter") {
+            e.preventDefault();
+            if (abierto && sugerencias[indice]) {
+              setAbierto(false);
+              onElegir(sugerencias[indice]!);
+            } else onEnter();
+            return;
+          }
+          if (e.key === "Escape") setAbierto(false);
+        }}
+        onBlur={() => setTimeout(() => setAbierto(false), 150)}
+      />
+      {abierto && sugerencias.length > 0 && (
+        <ul className="absolute left-0 top-full z-30 mt-1 max-h-48 w-64 overflow-auto rounded-md border border-line bg-card shadow-lg">
+          {sugerencias.map((i, idx) => (
+            <li key={i.id}>
+              <button
+                type="button"
+                className={`block w-full px-2 py-1 text-left text-[11px] ${idx === indice ? "bg-muted" : ""}`}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  setAbierto(false);
+                  onElegir(i);
+                }}
+              >
+                {i.descripcion}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }
 
