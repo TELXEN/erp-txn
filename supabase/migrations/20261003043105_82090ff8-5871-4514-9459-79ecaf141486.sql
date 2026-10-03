@@ -1,0 +1,1 @@
+ALTER TABLE public.gastos_directos ADD COLUMN insumo_id uuid REFERENCES public.insumos(id);

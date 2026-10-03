@@ -1440,6 +1440,7 @@ export type Database = {
           fecha_pago: string | null
           fecha_vencimiento: string | null
           id: string
+          insumo_id: string | null
           moneda: Database["public"]["Enums"]["moneda"]
           monto: number
           monto_soles: number
@@ -1466,6 +1467,7 @@ export type Database = {
           fecha_pago?: string | null
           fecha_vencimiento?: string | null
           id?: string
+          insumo_id?: string | null
           moneda?: Database["public"]["Enums"]["moneda"]
           monto?: number
           monto_soles?: number
@@ -1492,6 +1494,7 @@ export type Database = {
           fecha_pago?: string | null
           fecha_vencimiento?: string | null
           id?: string
+          insumo_id?: string | null
           moneda?: Database["public"]["Enums"]["moneda"]
           monto?: number
           monto_soles?: number
@@ -1517,6 +1520,13 @@ export type Database = {
             columns: ["caja_chica_id"]
             isOneToOne: false
             referencedRelation: "cajas_chicas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gastos_directos_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "insumos"
             referencedColumns: ["id"]
           },
           {
