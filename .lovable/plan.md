@@ -11,7 +11,7 @@ Campos de la fila, en este orden:
 1. **FECHA** — date, hoy por defecto.
 2. **COMPROBANTE** — texto libre (F001-1240).
 3. **PROVEEDOR** — lista de proveedores activos (obligatorio).
-4. **INSUMO** — buscador con sugerencias del Maestro de insumos (autocompletado como en cotizaciones); al elegirlo queda vinculado y **su tipo define el rubro** de la compra (Materiales, Mano de obra, Equipos, Subcontratos…). Si no se elige insumo, el rubro queda en Materiales como hoy.
+4. **INSUMO** — buscador que sugiere primero **los insumos del análisis (APU) de esa partida**; también permite escribir **texto libre** sin vincular. Al elegir un insumo sugerido queda vinculado y **su tipo define el rubro** de la compra (Materiales, Mano de obra, Equipos, Subcontratos…). Con texto libre, el rubro queda en Materiales como hoy.
 5. **PAGO** — Contado / Crédito. Si es Crédito aparece en línea el selector de días (15/30/45/60/90 u otro) con la fecha de vencimiento.
 6. **BANCO** — visible solo si el pago es Contado: lista de cuentas bancarias activas + Caja Chica; si elige una cuenta (no caja) aparece el campo N° de operación.
 7. **CANTIDAD** — número, obligatorio.
