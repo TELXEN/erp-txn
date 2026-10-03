@@ -1,9 +1,9 @@
 import { useMantenimientos, useTraslados } from "@/lib/vehiculos";
 import { createFileRoute } from "@tanstack/react-router";
-import { Buscador, coincide, Resaltar } from "@/components/Buscador";
+import { coincide, Resaltar } from "@/components/Buscador";
 import { Fragment, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Upload } from "lucide-react";
+import { AlertTriangle, Search, Upload, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
@@ -110,6 +110,14 @@ function Tesoreria() {
   const [cerrados, setCerrados] = useState<Set<string>>(new Set());
   const [accion, setAccion] = useState<{ p: Pendiente; banco_id: string; fecha: string; operacion: string } | null>(null);
   const [error, setError] = useState("");
+  const [filtroVence, setFiltroVence] = useState<"vencido" | "semana" | "mes" | null>(null);
+  const [desde, setDesde] = useState("");
+  const [hasta, setHasta] = useState("");
+  const [tercero, setTercero] = useState("");
+  const [seleccion, setSeleccion] = useState<Set<string>>(new Set());
+  const [lote, setLote] = useState<{ banco_id: string; fecha: string; operacion: string } | null>(null);
+  const [errorLote, setErrorLote] = useState("");
+  const [procesando, setProcesando] = useState(false);
 
   const { data: cuentas = [] } = useQuery({
     queryKey: ["bancos"],
@@ -218,9 +226,32 @@ function Tesoreria() {
   ];
 
   const listaBase = (pestana === "cxc" ? cxc : cxp);
-  const listaFiltrada = listaBase.filter((p) =>
-    coincide(busqueda, p.tercero, p.documento, p.descripcion, p.detalle),
+  const enVence = (p: Pendiente) => {
+    const d = diasA(p.vencimiento);
+    if (filtroVence === "vencido") return d < 0;
+    if (filtroVence === "semana") return d >= 0 && d <= 7;
+    if (filtroVence === "mes") return d >= 0 && d <= 30;
+    return true;
+  };
+  const tercerosLista = Array.from(new Set(listaBase.map((p) => p.tercero))).sort();
+  const listaFiltrada = listaBase.filter(
+    (p) =>
+      coincide(busqueda, p.tercero, p.documento, p.descripcion, p.detalle) &&
+      enVence(p) &&
+      (!tercero || p.tercero === tercero) &&
+      (!desde || (p.vencimiento ?? "") >= desde) &&
+      (!hasta || (p.vencimiento ?? "9999") <= hasta),
   );
+  const clave = (p: Pendiente) => p.tabla + p.id;
+  const seleccionados = listaFiltrada.filter((p) => seleccion.has(clave(p)));
+  const totalSel = seleccionados.reduce((s2, p) => s2 + p.soles, 0);
+  const alternar = (ps: Pendiente[], marcar: boolean) =>
+    setSeleccion((prev) => {
+      const n = new Set(prev);
+      ps.forEach((p) => (marcar ? n.add(clave(p)) : n.delete(clave(p))));
+      return n;
+    });
+  const limpiarFiltros = () => { setSeleccion(new Set()); };
   const lista = listaFiltrada.sort((a, b) => (a.vencimiento ?? "").localeCompare(b.vencimiento ?? ""));
   const kpi = (l: Pendiente[]) => ({
     total: l.reduce((s, p) => s + p.soles, 0),
@@ -236,36 +267,67 @@ function Tesoreria() {
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
-  async function confirmar() {
-    if (!accion) return;
-    if (!accion.banco_id) return setError("Elige la cuenta bancaria.");
-    if (!accion.operacion.trim()) return setError("Ingresa el N° de operación.");
-    setError("");
-    const { p, banco_id, fecha } = accion;
-    const numero_operacion = accion.operacion.trim();
+  async function registrarUno(p: Pendiente, banco_id: string, fecha: string, numero_operacion: string): Promise<string | null> {
     if (p.tabla === "rrhh" && p.doc) {
       const { error: e2 } = await pagarRRHH(p.doc, banco_id, fecha, numero_operacion);
-      if (e2) return setError(e2.message);
-      setAccion(null);
-      qc.invalidateQueries();
-      return;
+      return e2 ? e2.message : null;
     }
     const cambios =
       p.tabla === "ventas"
         ? { estado: "Pagado", fecha_pago: fecha, banco_id, numero_operacion }
         : { estado_pago: "Pagada", fecha_pago: fecha, banco_id, numero_operacion };
     const { error: err } = await supabase.from(p.tabla as "ventas").update(cambios as never).eq("id", p.id);
-    if (err) return setError(err.message);
-    setAccion(null);
-    qc.invalidateQueries({ queryKey: [p.tabla] });
+    return err ? err.message : null;
   }
 
-  const tarjeta = (titulo: string, valor: string, tono = "text-ink") => (
-    <div className="panel p-4">
-      <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">{titulo}</p>
-      <p className={`mt-1 font-mono text-lg font-semibold ${tono}`}>{valor}</p>
-    </div>
-  );
+  async function confirmar() {
+    if (!accion) return;
+    if (!accion.banco_id) return setError("Elige la cuenta bancaria.");
+    if (!accion.operacion.trim()) return setError("Ingresa el N° de operación.");
+    setError("");
+    const msg = await registrarUno(accion.p, accion.banco_id, accion.fecha, accion.operacion.trim());
+    if (msg) return setError(msg);
+    setAccion(null);
+    qc.invalidateQueries();
+  }
+
+  async function confirmarLote() {
+    if (!lote) return;
+    if (!lote.banco_id) return setErrorLote("Elige la cuenta bancaria.");
+    if (!lote.operacion.trim()) return setErrorLote("Ingresa el N° de operación.");
+    setErrorLote("");
+    setProcesando(true);
+    const fallos: string[] = [];
+    for (const p of seleccionados) {
+      const msg = await registrarUno(p, lote.banco_id, lote.fecha, lote.operacion.trim());
+      if (msg) fallos.push(`${p.documento} (${p.tercero}): ${msg}`);
+    }
+    setProcesando(false);
+    qc.invalidateQueries();
+    if (fallos.length) {
+      setSeleccion(new Set(seleccionados.filter((p) => fallos.some((f) => f.startsWith(p.documento))).map(clave)));
+      return setErrorLote(`No se registraron: ${fallos.join(" · ")}`);
+    }
+    setSeleccion(new Set());
+    setLote(null);
+  }
+
+  const tarjeta = (titulo: string, monto: number, filtro: "vencido" | "semana" | "mes" | null, tono = "text-ink") => {
+    const cero = Math.abs(monto) < 0.005;
+    const activa = filtro !== null && filtroVence === filtro;
+    const clicable = filtro === null || !cero;
+    return (
+      <button
+        type="button"
+        disabled={!clicable}
+        onClick={() => { setFiltroVence(filtro === null || activa ? null : filtro); limpiarFiltros(); }}
+        className={`panel p-4 text-left transition ${activa ? "ring-2 ring-primary" : ""} ${filtro !== null && cero ? "cursor-default opacity-60" : "hover:bg-ink/5"}`}
+      >
+        <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">{titulo}</p>
+        <p className={`mt-1 font-mono text-lg font-semibold ${filtro !== null && cero ? "text-muted-foreground" : tono}`}>{soles(monto)}</p>
+      </button>
+    );
+  };
 
   return (
     <>
@@ -274,7 +336,7 @@ function Tesoreria() {
         subtitulo="Bancos, cuentas por cobrar y cuentas por pagar"
         acciones={
           <Boton
-            variante="linea"
+            variante="accion"
             onClick={() =>
               exportarExcel("tesoreria", [
                 {
@@ -303,9 +365,14 @@ function Tesoreria() {
         titulo="Saldos bancarios"
         className="mb-4"
         extra={
-          <span className="font-mono text-[11px] text-muted-foreground">
-            Total: <b className="text-ink">{dinero(saldoPEN, "PEN")}</b> · <b className="text-ink">{dinero(saldoUSD, "USD")}</b>
-          </span>
+          <div className="flex flex-wrap gap-2 font-mono text-[11px]">
+            <span className="rounded-md border border-line bg-muted px-2.5 py-1 text-muted-foreground">
+              Total PEN: <b className={saldoPEN < 0 ? "text-bad" : "text-ink"}>{dinero(saldoPEN, "PEN")}</b>
+            </span>
+            <span className="rounded-md border border-line bg-muted px-2.5 py-1 text-muted-foreground">
+              Total USD: <b className={saldoUSD < 0 ? "text-bad" : "text-ink"}>{dinero(saldoUSD, "USD")}</b>
+            </span>
+          </div>
         }
       >
         {saldos.length === 0 ? (
@@ -313,13 +380,16 @@ function Tesoreria() {
         ) : (
           <div className="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-3">
             {saldos.filter((s) => s.c.activo).map((s) => (
-              <div key={s.c.id} className="rounded-lg border border-line p-3 font-mono text-xs">
+              <div key={s.c.id} className={`rounded-lg border p-3 font-mono text-xs ${s.saldo < 0 ? "border-bad/40 bg-bad/10" : "border-line"}`}>
                 <div className="flex justify-between">
                   <b className="text-ink">{s.c.nombre}</b>
                   <span className="text-muted-foreground">{s.c.monedas} · {s.c.tipo_cuenta}</span>
                 </div>
-                <p className="text-[10px] text-muted-foreground">N° {s.c.numero_cuenta || "—"}</p>
-                <p className={`mt-2 text-lg font-semibold ${s.saldo < 0 ? "text-bad" : "text-ink"}`}>{dinero(s.saldo, s.c.monedas)}</p>
+                <p className="text-[10px] text-muted-foreground">N° {String(s.c.numero_cuenta ?? "").replace(/^\s*(n[°º.]?|nro\.?|cta\.?)\s*/i, "") || "—"}</p>
+                <p className={`mt-2 flex items-center gap-1.5 text-lg font-semibold ${s.saldo < 0 ? "text-bad" : "text-ink"}`}>
+                  {s.saldo < 0 && <AlertTriangle size={16} />}
+                  {dinero(s.saldo, s.c.monedas)}
+                </p>
                 <p className="text-[10px] text-muted-foreground">
                   Inicial {dinero(s.c.saldo_inicial, s.c.monedas)} · <span className="text-good">+{dinero(s.ingresos, s.c.monedas)}</span> ·{" "}
                   <span className="text-bad">−{dinero(s.egresos, s.c.monedas)}</span>
@@ -335,7 +405,7 @@ function Tesoreria() {
           <button
             key={t}
             type="button"
-            onClick={() => { setPestana(t); setAccion(null); }}
+            onClick={() => { setPestana(t); setAccion(null); setFiltroVence(null); setTercero(""); setSeleccion(new Set()); }}
             className={`rounded-md border px-3 py-1.5 font-mono text-xs ${pestana === t ? "border-primary bg-primary text-primary-foreground" : "border-line"}`}
           >
             {t === "cxc" ? `Cuentas por cobrar (${cxc.length})` : `Cuentas por pagar (${cxp.length})`}
@@ -344,21 +414,47 @@ function Tesoreria() {
       </div>
 
       <div className="mb-4 grid gap-3 sm:grid-cols-4">
-        {tarjeta(pestana === "cxc" ? "Total por cobrar" : "Total por pagar", soles(k.total))}
-        {tarjeta("Vencido", soles(k.vencido), k.vencido > 0 ? "text-bad" : "text-ink")}
-        {tarjeta("Vence en 7 días", soles(k.semana))}
-        {tarjeta("Vence en 30 días", soles(k.mes))}
+        {tarjeta(pestana === "cxc" ? "Total por cobrar" : "Total por pagar", k.total, null)}
+        {tarjeta("Vencido", k.vencido, "vencido", k.vencido > 0 ? "text-bad" : "text-ink")}
+        {tarjeta("Vence en 7 días", k.semana, "semana")}
+        {tarjeta("Vence en 30 días", k.mes, "mes")}
       </div>
 
 <Panel titulo={pestana === "cxc" ? "Facturas emitidas pendientes de cobro" : "Compras al crédito, planillas, honorarios, beneficios y obligaciones con el Estado"}
-        extra={
-          <Buscador
-            valor={busqueda}
-            onChange={setBusqueda}
-            total={lista.length}
-            placeholder={`Buscar en ${pestana === "cxc" ? "cobranzas" : "pagos"}...`}
-          />
-        }>
+>
+        <div className="flex flex-wrap items-end gap-2 border-b border-line bg-muted/40 px-4 py-3">
+          <div className="relative min-w-[220px] flex-1">
+            <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <input
+              value={busqueda}
+              onChange={(e) => { setBusqueda(e.target.value); limpiarFiltros(); }}
+              placeholder={`Buscar en ${pestana === "cxc" ? "cobranzas" : "pagos"}...`}
+              className="h-9 w-full rounded-md border border-line bg-card pl-9 pr-3 text-sm text-ink outline-none focus:border-primary"
+            />
+          </div>
+          <label className="font-mono text-[10px] uppercase text-muted-foreground">Vence desde
+            <Input type="date" value={desde} onChange={(e) => { setDesde(e.target.value); limpiarFiltros(); }} />
+          </label>
+          <label className="font-mono text-[10px] uppercase text-muted-foreground">Hasta
+            <Input type="date" value={hasta} onChange={(e) => { setHasta(e.target.value); limpiarFiltros(); }} />
+          </label>
+          <label className="font-mono text-[10px] uppercase text-muted-foreground">{pestana === "cxc" ? "Cliente" : "Proveedor"}
+            <Select value={tercero} onChange={(e) => { setTercero(e.target.value); limpiarFiltros(); }}>
+              <option value="">Todos</option>
+              {tercerosLista.map((t) => <option key={t} value={t}>{t}</option>)}
+            </Select>
+          </label>
+          {(desde || hasta || tercero || filtroVence) && (
+            <Boton variante="linea" onClick={() => { setDesde(""); setHasta(""); setTercero(""); setFiltroVence(null); limpiarFiltros(); }}>
+              Limpiar filtros
+            </Boton>
+          )}
+          {seleccionados.length > 0 && (
+            <Boton variante="accion" onClick={() => { setErrorLote(""); setLote({ banco_id: "", fecha: hoy(), operacion: "" }); }}>
+              {pestana === "cxc" ? "Registrar cobros en lote" : "Registrar pagos en lote"} ({seleccionados.length} · {soles(totalSel)})
+            </Boton>
+          )}
+        </div>
         {lista.length === 0 ? (
           <Vacio
             texto={
@@ -372,6 +468,14 @@ function Tesoreria() {
             <table className="w-full font-mono text-xs">
               <thead>
                 <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+                  <th className="w-8 pl-4 py-2">
+                    <input
+                      type="checkbox"
+                      aria-label="Marcar todo"
+                      checked={lista.length > 0 && seleccionados.length === lista.length}
+                      onChange={(e) => alternar(lista, e.target.checked)}
+                    />
+                  </th>
                   <th className="px-4 py-2 font-medium">{pestana === "cxc" ? "Cliente" : "Proveedor"}</th>
                   <th className="px-3 py-2 font-medium">Documento</th>
                   <th className="px-3 py-2 font-medium">Descripción</th>
@@ -400,6 +504,14 @@ function Tesoreria() {
                           })
                         }
                       >
+                        <td className="pl-4 py-2" onClick={(e) => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            aria-label={`Marcar ${obra}`}
+                            checked={filas.every((p) => seleccion.has(clave(p)))}
+                            onChange={(e) => alternar(filas, e.target.checked)}
+                          />
+                        </td>
                         <td colSpan={6} className="px-4 py-2 font-semibold text-ink">
                           {cerrado ? "▸" : "▾"} {obra}{" "}
                           <span className="font-normal text-muted-foreground">({filas.length})</span>
@@ -412,8 +524,11 @@ function Tesoreria() {
                         const abierta = accion?.p.id === p.id;
                         return (
                           <tr key={p.tabla + p.id} className="border-b border-line/60 align-top last:border-0">
+                            <td className="pl-4 py-2.5">
+                              <input type="checkbox" aria-label={`Marcar ${p.documento}`} checked={seleccion.has(clave(p))} onChange={(e) => alternar([p], e.target.checked)} />
+                            </td>
                             <td className="px-4 py-2.5"><b className="text-ink"><Resaltar texto={p.tercero} termino={busqueda}/></b></td>
-                            <td className="px-3 py-2.5"><Resaltar texto={p.documento} termino={busqueda}/></td>
+                            <td className="px-3 py-2.5 font-bold text-ink"><Resaltar texto={p.documento} termino={busqueda}/></td>
                             <td className="max-w-64 px-3 py-2.5">
                               <div className="text-ink"><Resaltar texto={p.descripcion || "—"} termino={busqueda}/></div>
                               <div className="text-[10px] text-muted-foreground"><Resaltar texto={p.detalle} termino={busqueda}/></div>
@@ -426,7 +541,7 @@ function Tesoreria() {
                               </div>
                             </td>
                             <td className="px-3 py-2.5 text-right">{dinero(p.monto, p.moneda)}</td>
-                            <td className="px-3 py-2.5 text-right font-semibold">{soles(p.soles)}</td>
+                            <td className="px-3 py-2.5 text-right font-semibold">{p.moneda === "PEN" ? <span className="text-muted-foreground">—</span> : soles(p.soles)}</td>
                             <td className="px-4 py-2 text-right">
                               {abierta && accion ? (
                                 <div className="flex min-w-64 flex-col gap-1.5">
@@ -466,6 +581,38 @@ function Tesoreria() {
           </div>
         )}
       </Panel>
+
+      {lote && (
+        <div
+          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-foreground/40 p-4"
+          onMouseDown={(e) => { if (e.target === e.currentTarget && !procesando) setLote(null); }}
+        >
+          <div className="mt-16 w-full max-w-md rounded-lg border border-line bg-card shadow-xl">
+            <div className="flex items-center justify-between border-b border-line px-5 py-3">
+              <h2 className="text-sm font-semibold text-ink">{pestana === "cxc" ? "Registrar cobros en lote" : "Registrar pagos en lote"}</h2>
+              <button type="button" onClick={() => !procesando && setLote(null)} className="rounded-md p-1 text-muted-foreground hover:bg-muted" title="Cerrar"><X size={16} /></button>
+            </div>
+            <div className="space-y-3 px-5 py-4 text-xs">
+              <p className="font-mono text-muted-foreground">
+                {seleccionados.length} documento(s) · Total <b className="text-ink">{soles(totalSel)}</b>
+              </p>
+              <Select value={lote.banco_id} onChange={(e) => setLote({ ...lote, banco_id: e.target.value })}>
+                <option value="">{pestana === "cxc" ? "Cuenta de ingreso…" : "Cuenta de egreso…"}</option>
+                {cuentas.filter((c) => c.activo).map((c) => (
+                  <option key={c.id} value={c.id}>{c.nombre} · {c.monedas} · {c.numero_cuenta}</option>
+                ))}
+              </Select>
+              <Input type="date" value={lote.fecha} onChange={(e) => setLote({ ...lote, fecha: e.target.value })} />
+              <Input placeholder="N° de operación" value={lote.operacion} onChange={(e) => setLote({ ...lote, operacion: e.target.value })} />
+              {errorLote && <p className="text-bad">{errorLote}</p>}
+            </div>
+            <div className="flex justify-end gap-2 border-t border-line px-5 py-3">
+              <Boton type="button" variante="linea" onClick={() => setLote(null)} disabled={procesando}>Cancelar</Boton>
+              <Boton type="button" variante="accion" onClick={confirmarLote} disabled={procesando}>{procesando ? "Registrando…" : "Confirmar"}</Boton>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
