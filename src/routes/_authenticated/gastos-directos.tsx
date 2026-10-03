@@ -646,7 +646,7 @@ function AutoInsumo({
     const t = norm(value.trim());
     if (!t) return insumos.slice(0, 8);
     return insumos
-      .filter((i) => norm(i.descripcion).includes(t))
+      .filter((i) => norm(i.descripcion).includes(t) || (i.codigo ? norm(i.codigo).includes(t) : false))
       .sort((a, b) => Number(norm(b.descripcion).startsWith(t)) - Number(norm(a.descripcion).startsWith(t)))
       .slice(0, 8);
   }, [insumos, value]);
@@ -655,7 +655,7 @@ function AutoInsumo({
     <div className="relative">
       <input
         value={value}
-        placeholder="Insumo del APU o libre…"
+        placeholder="Busca en el maestro o escribe libre…"
         className="h-7 w-full rounded-md border border-line bg-card px-1.5 text-[11px] outline-none focus:border-primary"
         onFocus={() => setAbierto(true)}
         onChange={(e) => {
@@ -699,6 +699,7 @@ function AutoInsumo({
                   onElegir(i);
                 }}
               >
+                <span className="mr-1.5 font-mono text-[10px] text-muted-foreground">{i.codigo ?? "—"}</span>
                 {i.descripcion}
               </button>
             </li>
