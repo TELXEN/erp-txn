@@ -442,21 +442,25 @@ function ModalTercero({
               autoFocus
             />
           </Campo>
-          <Campo etiqueta="Razón social / Nombre" className="sm:col-span-2">
-            <Input
-              value={form.razon_social}
-              onChange={(e) => setForm({ ...form, razon_social: e.target.value })}
-              required
-              maxLength={160}
-            />
-          </Campo>
-          <Campo etiqueta="Dirección" className="sm:col-span-2">
-            <Input
-              value={form.direccion}
-              onChange={(e) => setForm({ ...form, direccion: e.target.value })}
-              maxLength={160}
-            />
-          </Campo>
+          <div className="sm:col-span-2">
+            <Campo etiqueta="Razón social / Nombre">
+              <Input
+                value={form.razon_social}
+                onChange={(e) => setForm({ ...form, razon_social: e.target.value })}
+                required
+                maxLength={160}
+              />
+            </Campo>
+          </div>
+          <div className="sm:col-span-2">
+            <Campo etiqueta="Dirección">
+              <Input
+                value={form.direccion}
+                onChange={(e) => setForm({ ...form, direccion: e.target.value })}
+                maxLength={160}
+              />
+            </Campo>
+          </div>
           <Campo etiqueta="Teléfono">
             <Input
               value={form.telefono}
