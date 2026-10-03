@@ -940,6 +940,123 @@ export function CotizacionHoja({
   );
 }
 
+/** Campo de descripción con autocompletado desde el banco de partidas maestras. */
+export function AutoMaestra({
+  value,
+  onChange,
+  maestras,
+  onElegir,
+  onEnter,
+  onEscape,
+  onBlur,
+  autoFocus,
+  disabled,
+  placeholder,
+  className,
+  style,
+  onFocus,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  maestras: PartidaMaestra[];
+  onElegir: (m: PartidaMaestra) => void;
+  onEnter?: () => void;
+  onEscape?: () => void;
+  onBlur?: () => void;
+  autoFocus?: boolean;
+  disabled?: boolean;
+  placeholder?: string;
+  className?: string;
+  style?: React.CSSProperties;
+  onFocus?: (e: React.FocusEvent<HTMLInputElement>) => void;
+}) {
+  const [abierto, setAbierto] = useState(false);
+  const [indice, setIndice] = useState(0);
+  const sugerencias = useMemo(() => buscarMaestras(maestras, value), [maestras, value]);
+
+  function elegir(m: PartidaMaestra) {
+    setAbierto(false);
+    onElegir(m);
+  }
+
+  return (
+    <div className="relative w-full">
+      <input
+        value={value}
+        disabled={disabled}
+        autoFocus={autoFocus}
+        placeholder={placeholder}
+        className={className}
+        style={style}
+        onFocus={(e) => {
+          setAbierto(true);
+          onFocus?.(e);
+        }}
+        onChange={(e) => {
+          onChange(e.target.value);
+          setAbierto(true);
+          setIndice(0);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "ArrowDown" && abierto && sugerencias.length) {
+            e.preventDefault();
+            setIndice((i) => (i + 1) % sugerencias.length);
+            return;
+          }
+          if (e.key === "ArrowUp" && abierto && sugerencias.length) {
+            e.preventDefault();
+            setIndice((i) => (i - 1 + sugerencias.length) % sugerencias.length);
+            return;
+          }
+          if (e.key === "Enter") {
+            e.preventDefault();
+            if (abierto && sugerencias[indice]) elegir(sugerencias[indice] as PartidaMaestra);
+            else onEnter?.();
+            return;
+          }
+          if (e.key === "Escape") {
+            e.preventDefault();
+            if (abierto) setAbierto(false);
+            else onEscape?.();
+          }
+        }}
+        onBlur={() => {
+          // Espera al clic en una sugerencia antes de cerrar.
+          setTimeout(() => {
+            setAbierto(false);
+            onBlur?.();
+          }, 150);
+        }}
+      />
+      {abierto && sugerencias.length > 0 && (
+        <ul className="absolute left-0 right-0 top-full z-30 mt-1 max-h-64 overflow-auto rounded-md border border-line bg-card py-1 shadow-lg">
+          {sugerencias.map((m, i) => (
+            <li key={m.id}>
+              <button
+                type="button"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  elegir(m);
+                }}
+                onMouseEnter={() => setIndice(i)}
+                className={`flex w-full items-baseline gap-2 px-2.5 py-1.5 text-left text-[12.5px] ${
+                  i === indice ? "bg-primary/10 text-ink" : "text-ink"
+                }`}
+              >
+                <span className="shrink-0 font-mono text-[11px] text-muted-foreground">{m.codigo}</span>
+                <span className="min-w-0 flex-1 truncate">{m.nombre}</span>
+                <span className="shrink-0 font-mono text-[11px] text-muted-foreground">
+                  {m.unidad} · {soles(Number(m.precio_unitario))}
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 /** Fila punteada al pie de cada grupo: escribir y pulsar Enter crea la partida y abre otra. */
 function FilaFantasma({
   sangria,
@@ -954,7 +1071,7 @@ function FilaFantasma({
 }) {
   const [texto, setTexto] = useState("");
   const [ocupado, setOcupado] = useState(false);
-  const ref = useRef<HTMLInputElement>(null);
+  const ref = useRef<HTMLDivElement>(null);
 
   async function confirmar() {
     const nombre = texto.trim();
@@ -962,57 +1079,35 @@ function FilaFantasma({
     setOcupado(true);
     const ok = await onCrear(nombre);
     setOcupado(false);
-    if (ok) {
-      setTexto("");
-      ref.current?.focus();
-    }
+    if (ok) setTexto("");
   }
 
-  async function elegirMaestra(id: string) {
-    const m = maestras.find((x) => x.id === id);
-    if (!m || ocupado) return;
+  async function elegirMaestra(m: PartidaMaestra) {
+    if (ocupado) return;
     setOcupado(true);
-    await onCrearMaestra(m);
+    const ok = await onCrearMaestra(m);
     setOcupado(false);
-    ref.current?.focus();
+    if (ok) setTexto("");
+    ref.current?.querySelector("input")?.focus();
   }
 
   return (
     <tr className="print:hidden">
       <td colSpan={8} className="border-b border-dashed border-line/70 px-2 py-1">
-        <div className="flex items-center gap-2">
-          <input
-            ref={ref}
+        <div ref={ref} className="flex items-center gap-2">
+          <AutoMaestra
             value={texto}
             disabled={ocupado}
-            onChange={(e) => setTexto(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                void confirmar();
-              }
-              if (e.key === "Escape") setTexto("");
-            }}
+            maestras={maestras}
+            onChange={setTexto}
+            onElegir={(m) => void elegirMaestra(m)}
+            onEnter={() => void confirmar()}
+            onEscape={() => setTexto("")}
             onBlur={() => void confirmar()}
-            placeholder="+ Escribe aquí para añadir una partida y pulsa Enter…"
+            placeholder="+ Escribe la descripción: se sugiere del banco de partidas, Enter crea…"
             style={{ paddingLeft: sangria }}
             className="w-full border-none bg-transparent font-mono text-[13px] italic text-muted-foreground outline-none placeholder:text-muted-foreground/60 focus:not-italic focus:text-ink"
           />
-          {maestras.length > 0 && (
-            <select
-              value=""
-              disabled={ocupado}
-              onChange={(e) => void elegirMaestra(e.target.value)}
-              className="w-64 shrink-0 rounded border border-dashed border-line/70 bg-transparent px-2 py-1 font-mono text-[12px] italic text-muted-foreground/70 outline-none focus:border-primary focus:not-italic focus:text-ink"
-            >
-              <option value="">o elige del catálogo maestro…</option>
-              {maestras.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.codigo} · {m.nombre} · {m.unidad} · {soles(Number(m.precio_unitario))}
-                </option>
-              ))}
-            </select>
-          )}
         </div>
       </td>
     </tr>
