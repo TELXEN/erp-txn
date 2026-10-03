@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
-import { Fragment, useRef, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
@@ -11,7 +11,8 @@ import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
 import { useCategoriasGastoGeneral, useGastosGenerales, useProyectos, useTerceros } from "@/lib/datos";
 import { exportarExcel } from "@/lib/exportar";
-import { CamposCondicion, InsigniaPago, condicionVacia, datosCondicion } from "@/components/CondicionPago";
+import { InsigniaPago, PLAZOS, condicionVacia, datosCondicion } from "@/components/CondicionPago";
+import { FechaPeru } from "./gastos-directos";
 import { useMantenimientos, useTraslados, useVehiculos } from "@/lib/vehiculos";
 
 export const Route = createFileRoute("/_authenticated/gastos-generales")({
@@ -36,6 +37,21 @@ type Pago = {
 
 type Cuenta = { id: string; nombre: string; monedas: string; tipo_cuenta: string; numero_cuenta: string; activo: boolean };
 
+const formGastoVacio = () => ({
+  descripcion: "",
+  comprobante: "",
+  proveedor_id: "",
+  proyecto_id: "",
+  categoria: "",
+  monto: "",
+  moneda: "PEN",
+  tipo_cambio: "3.75",
+  fecha: hoy(),
+  banco_id: "",
+  ...condicionVacia(),
+});
+type FormGasto = ReturnType<typeof formGastoVacio>;
+
 function GastosGenerales() {
   const { rol } = useAuth();
   const qc = useQueryClient();
@@ -57,19 +73,8 @@ function GastosGenerales() {
   const { data: trasVeh = [] } = useTraslados();
   const proveedores = terceros.filter((t) => t.es_proveedor && t.activo);
   const categoriasActivas = categorias.filter((c) => c.activo);
-  const [form, setForm] = useState({
-    descripcion: "",
-    comprobante: "",
-    proveedor_id: "",
-    proyecto_id: "",
-    categoria: "",
-    monto: "",
-    moneda: "PEN",
-    tipo_cambio: "3.75",
-    fecha: hoy(),
-    banco_id: "",
-    ...condicionVacia(),
-  });
+  const [form, setForm] = useState<FormGasto>(formGastoVacio);
+  const [modalGasto, setModalGasto] = useState(false);
   const [error, setError] = useState("");
   const [ambito, setAmbito] = useState("Todas");
   const [busqueda, setBusqueda] = useState("");
@@ -77,9 +82,7 @@ function GastosGenerales() {
   const [hasta, setHasta] = useState("");
   const [filtroCategoria, setFiltroCategoria] = useState("Todas");
   const [cerrados, setCerrados] = useState<Set<string>>(new Set());
-  const [guiaVisible, setGuiaVisible] = useState(false);
-  const [pestana, setPestana] = useState<"gastos" | "mantenimiento" | "combustible" | "nuevo">("gastos");
-  const accionRef = useRef<"volver" | "otra">("volver");
+  const [pestana, setPestana] = useState<"gastos" | "mantenimiento" | "combustible">("gastos");
   const ayudaCategoria = categorias.find((c) => c.nombre === form.categoria)?.descripcion ?? "";
   const [editando, setEditando] = useState<{
     id: string;
@@ -95,8 +98,6 @@ function GastosGenerales() {
     const c = cuentas.find((x) => x.id === id);
     return c ? `${c.nombre} · ${c.monedas}` : "";
   };
-  const equivalente = Number(form.monto || 0) * (form.moneda === "USD" ? Number(form.tipo_cambio || 0) : 1);
-
   const enRango = (f: string) => (!desde || f >= desde) && (!hasta || f <= hasta);
   const gastosRango = gastos.filter((g) => enRango(g.fecha));
   const porAmbito =
@@ -184,14 +185,12 @@ function GastosGenerales() {
     });
   }
 
-  async function guardar(e: React.FormEvent) {
-    e.preventDefault();
-    setError("");
-    if (!form.categoria) return setError("Selecciona la categoría del gasto general.");
+  async function guardar(): Promise<string | null> {
+    if (!form.categoria) return "Selecciona la categoría del gasto general.";
     if (form.moneda === "USD" && Number(form.tipo_cambio) <= 0)
-      return setError("Ingresa un tipo de cambio válido para dólares.");
+      return "Ingresa un tipo de cambio válido para dólares.";
     const contado = form.condicion_pago !== "Crédito";
-    if (contado && !form.banco_id) return setError("Elige la cuenta bancaria o Caja Chica del egreso.");
+    if (contado && !form.banco_id) return "Elige la cuenta bancaria o Caja Chica del egreso.";
     const tc = form.moneda === "USD" ? Number(form.tipo_cambio) : 1;
     const prov = terceros.find((t) => t.id === form.proveedor_id);
     const { error: err } = await supabase.from("gastos_generales").insert({
@@ -211,10 +210,10 @@ function GastosGenerales() {
       banco_id: contado && form.banco_id !== "caja" ? form.banco_id : null,
       fecha_pago: contado ? form.fecha : null,
     } as never);
-    if (err) return setError(err.message);
+    if (err) return err.message;
     setForm({ ...form, descripcion: "", comprobante: "", proveedor_id: "", monto: "" });
     qc.invalidateQueries({ queryKey: ["gastos_generales"] });
-    if (accionRef.current === "volver") setPestana("gastos");
+    return null;
   }
 
   async function alternarPago(g: Pago & { id: string }) {
@@ -267,8 +266,6 @@ function GastosGenerales() {
     setEditando(null);
     qc.invalidateQueries({ queryKey: ["gastos_generales"] });
   }
-
-  const contado = form.condicion_pago !== "Crédito";
 
   return (
     <>
@@ -338,7 +335,6 @@ function GastosGenerales() {
             ["gastos", `Gastos generales (${gastosFiltrados.length})`],
             ["mantenimiento", `Mantenimiento (${listaMant.length})`],
             ["combustible", `Combustible (${listaComb.length})`],
-            ...(pestana === "nuevo" ? ([["nuevo", "Nuevo gasto"]] as const) : []),
           ] as const
         ).map(([id, txt]) => (
           <button
@@ -352,7 +348,7 @@ function GastosGenerales() {
         ))}
       </div>
 
-      {pestana !== "nuevo" && (
+      {(
         <div className="mb-4 grid gap-4 lg:grid-cols-2">
           <section className="panel rise flex flex-col justify-between p-5">
             <div>
@@ -500,139 +496,6 @@ function GastosGenerales() {
         </Panel>
       )}
 
-      {pestana === "nuevo" && (
-
-
-
-      <Panel
-        titulo="Nuevo gasto general"
-        className="mb-4"
-        extra={
-          <button
-            type="button"
-            onClick={() => setGuiaVisible((v) => !v)}
-            aria-pressed={guiaVisible}
-            className="inline-flex items-center gap-1.5 rounded-md border border-line px-2.5 py-1 font-mono text-[11px] text-muted-foreground transition-colors hover:border-primary hover:text-primary"
-          >
-            <Info size={13} /> Guía de categorías
-          </button>
-        }
-      >
-        {guiaVisible && (
-          <div className="border-b border-line bg-muted/40 px-5 py-4">
-            <p className="label-mono mb-2">Qué incluye cada categoría</p>
-            <ul className="grid gap-2 sm:grid-cols-2">
-              {categoriasActivas.map((c) => (
-                <li key={c.id} className="flex flex-col gap-1 rounded-md border border-line bg-card px-3 py-2">
-                  <InsigniaCategoriaGasto valor={c.nombre} />
-                  <span className="text-[11px] leading-snug text-muted-foreground">
-                    {c.descripcion || "Sin descripción registrada. Agrégala en Datos > Catálogos Maestros."}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-        <form onSubmit={guardar} className="grid gap-3 p-5 sm:grid-cols-4">
-          <Campo etiqueta="Descripción">
-            <Input value={form.descripcion} onChange={(e) => setForm({ ...form, descripcion: e.target.value })} required maxLength={160} />
-          </Campo>
-          <Campo etiqueta="N° comprobante">
-            <Input
-              value={form.comprobante}
-              onChange={(e) => setForm({ ...form, comprobante: e.target.value })}
-              placeholder="F001-4520"
-              maxLength={40}
-            />
-          </Campo>
-          <Campo etiqueta="Categoría del gasto">
-            <Select value={form.categoria} onChange={(e) => setForm({ ...form, categoria: e.target.value })} required>
-              <option value="">Selecciona...</option>
-              {categoriasActivas.map((c) => (
-                <option key={c.id} value={c.nombre}>
-                  {c.nombre}
-                </option>
-              ))}
-            </Select>
-            {ayudaCategoria && <p className="mt-1 text-[11px] leading-snug text-muted-foreground">{ayudaCategoria}</p>}
-          </Campo>
-          <Campo etiqueta="Proveedor">
-            <Select value={form.proveedor_id} onChange={(e) => setForm({ ...form, proveedor_id: e.target.value })} required>
-              <option value="">Selecciona...</option>
-              {proveedores.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.razon_social}
-                </option>
-              ))}
-            </Select>
-          </Campo>
-          <Campo etiqueta="Imputación (obra u oficina)">
-            <Select value={form.proyecto_id} onChange={(e) => setForm({ ...form, proyecto_id: e.target.value })}>
-              <option value="">Oficina Central</option>
-              {proyectos.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.codigo ? `${p.codigo} · ` : ""}
-                  {p.nombre}
-                </option>
-              ))}
-            </Select>
-          </Campo>
-          <Campo etiqueta="Monto gastado">
-            <Input type="number" step="0.01" min="0" value={form.monto} onChange={(e) => setForm({ ...form, monto: e.target.value })} required />
-          </Campo>
-          <Campo etiqueta="Moneda">
-            <Select value={form.moneda} onChange={(e) => setForm({ ...form, moneda: e.target.value })}>
-              <option value="PEN">Soles (S/)</option>
-              <option value="USD">Dólares (US$)</option>
-            </Select>
-          </Campo>
-          <Campo etiqueta="Tipo de cambio">
-            <Input
-              type="number"
-              step="0.001"
-              min="0"
-              value={form.tipo_cambio}
-              onChange={(e) => setForm({ ...form, tipo_cambio: e.target.value })}
-              disabled={form.moneda === "PEN"}
-              required={form.moneda === "USD"}
-            />
-          </Campo>
-          <Campo etiqueta="Fecha">
-            <Input type="date" value={form.fecha} onChange={(e) => setForm({ ...form, fecha: e.target.value })} />
-          </Campo>
-          <CamposCondicion valor={form} fechaBase={form.fecha} onChange={(c) => setForm({ ...form, ...c })} />
-          {contado && (
-            <Campo etiqueta="Medio de egreso">
-              <Select value={form.banco_id} onChange={(e) => setForm({ ...form, banco_id: e.target.value })}>
-                <option value="">Selecciona...</option>
-                {cuentasActivas.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.nombre} · {c.tipo_cuenta} · {c.monedas}
-                    {c.numero_cuenta ? ` · ${c.numero_cuenta}` : ""}
-                  </option>
-                ))}
-                <option value="caja">Caja Chica (efectivo)</option>
-              </Select>
-            </Campo>
-          )}
-          <div className="sm:col-span-4 flex flex-wrap items-end gap-3">
-            <Boton type="submit" variante="accion" onClick={() => (accionRef.current = "volver")}>
-              Registrar y volver
-            </Boton>
-            <Boton type="submit" variante="linea" onClick={() => (accionRef.current = "otra")}>
-              Registrar y agregar otro
-            </Boton>
-            <Boton type="button" variante="linea" onClick={() => setPestana("gastos")}>
-              Cancelar
-            </Boton>
-            <span className="pb-2 font-mono text-xs text-muted-foreground">
-              Equivalente: <strong className="text-ink">{soles(equivalente)}</strong>
-            </span>
-          </div>
-          {error && <p className="font-mono text-xs text-bad sm:col-span-4">{error}</p>}
-        </form>
-      </Panel>
-      )}
 
 
 
@@ -667,7 +530,7 @@ function GastosGenerales() {
             {filtroCategoria} <X size={12} />
           </button>
         )}
-        <Boton variante="accion" onClick={() => setPestana("nuevo")} className="px-4 py-2.5">
+        <Boton variante="accion" onClick={() => setModalGasto(true)} className="px-4 py-2.5">
           <Plus size={14} /> Registrar Gasto
         </Boton>
       </div>
@@ -854,10 +717,190 @@ function GastosGenerales() {
           </table>
           </div>
         )}
-      </Panel>
+       </Panel>
       </>
       )}
+
+      {modalGasto && (
+        <ModalGasto
+          form={form}
+          setForm={setForm}
+          proveedores={proveedores}
+          categorias={categoriasActivas}
+          ayudaCategoria={ayudaCategoria}
+          proyectos={proyectos}
+          cuentas={cuentasActivas}
+          onGuardar={guardar}
+          onCerrar={() => setModalGasto(false)}
+        />
+      )}
     </>
+  );
+}
+
+/** Ventana «Registrar gasto general»: mismo patrón que la ventana de compra de Costos Directos. */
+function ModalGasto({
+  form,
+  setForm,
+  proveedores,
+  categorias,
+  ayudaCategoria,
+  proyectos,
+  cuentas,
+  onGuardar,
+  onCerrar,
+}: {
+  form: FormGasto;
+  setForm: (f: FormGasto) => void;
+  proveedores: { id: string; razon_social: string }[];
+  categorias: { id: string; nombre: string; descripcion: string | null }[];
+  ayudaCategoria: string;
+  proyectos: { id: string; nombre: string; codigo?: string | null }[];
+  cuentas: Cuenta[];
+  onGuardar: () => Promise<string | null>;
+  onCerrar: () => void;
+}) {
+  const [error, setError] = useState("");
+  const [ok, setOk] = useState("");
+  const [guardando, setGuardando] = useState(false);
+  const [guiaVisible, setGuiaVisible] = useState(false);
+  const contado = form.condicion_pago !== "Crédito";
+  const equivalente = Number(form.monto || 0) * (form.moneda === "USD" ? Number(form.tipo_cambio || 0) : 1);
+
+  useEffect(() => {
+    const k = (e: KeyboardEvent) => e.key === "Escape" && onCerrar();
+    window.addEventListener("keydown", k);
+    return () => window.removeEventListener("keydown", k);
+  }, [onCerrar]);
+
+  async function enviar(e?: React.FormEvent) {
+    e?.preventDefault();
+    if (guardando) return;
+    setGuardando(true);
+    setError("");
+    setOk("");
+    const err = await onGuardar();
+    setGuardando(false);
+    if (err) return setError(err);
+    setOk(`Gasto registrado · ${soles(equivalente)}`);
+  }
+
+  const etq = "mb-1 block text-[10px] font-medium uppercase tracking-wider text-muted-foreground";
+  const inp = "h-9 px-2.5 text-xs";
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-foreground/40 p-4" onMouseDown={onCerrar}>
+      <div className="panel my-8 w-full max-w-4xl overflow-hidden font-mono" onMouseDown={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between border-b border-line px-5 py-3">
+          <div>
+            <h2 className="text-base font-semibold tracking-tight">Registrar gasto general</h2>
+            <p className="text-[11px] text-muted-foreground">Compra indirecta o costo de oficina no vinculado a una partida.</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setGuiaVisible((v) => !v)}
+              aria-pressed={guiaVisible}
+              className="inline-flex items-center gap-1.5 rounded-md border border-line px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+            >
+              <Info size={13} /> Guía de categorías
+            </button>
+            <button type="button" onClick={onCerrar} className="text-muted-foreground hover:text-ink" title="Cerrar (Esc)"><X size={16} /></button>
+          </div>
+        </div>
+
+        {guiaVisible && (
+          <div className="border-b border-line bg-muted/40 px-5 py-4">
+            <p className="label-mono mb-2">Qué incluye cada categoría</p>
+            <ul className="grid gap-2 sm:grid-cols-2">
+              {categorias.map((c) => (
+                <li key={c.id} className="flex flex-col gap-1 rounded-md border border-line bg-card px-3 py-2">
+                  <InsigniaCategoriaGasto valor={c.nombre} />
+                  <span className="text-[11px] leading-snug text-muted-foreground">
+                    {c.descripcion || "Sin descripción registrada. Agrégala en Datos > Catálogos Maestros."}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <form onSubmit={enviar} className="px-5 py-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div><span className={etq}>Fecha</span><FechaPeru valor={form.fecha} onChange={(v) => setForm({ ...form, fecha: v })} /></div>
+            <label><span className={etq}>N° comprobante</span>
+              <Input value={form.comprobante} onChange={(e) => setForm({ ...form, comprobante: e.target.value })} placeholder="F001-4520" maxLength={40} className={inp} /></label>
+            <label className="sm:col-span-2"><span className={etq}>Descripción</span>
+              <Input autoFocus required value={form.descripcion} onChange={(e) => setForm({ ...form, descripcion: e.target.value })} maxLength={160} className={inp} /></label>
+            <label className="sm:col-span-2"><span className={etq}>Categoría del gasto</span>
+              <Select required value={form.categoria} onChange={(e) => setForm({ ...form, categoria: e.target.value })} className={inp}>
+                <option value="">Selecciona...</option>
+                {categorias.map((c) => <option key={c.id} value={c.nombre}>{c.nombre}</option>)}
+              </Select>
+              {ayudaCategoria && <p className="mt-1 text-[11px] leading-snug text-muted-foreground">{ayudaCategoria}</p>}
+            </label>
+            <label className="sm:col-span-2"><span className={etq}>Proveedor</span>
+              <Select required value={form.proveedor_id} onChange={(e) => setForm({ ...form, proveedor_id: e.target.value })} className={inp}>
+                <option value="">Selecciona...</option>
+                {proveedores.map((t) => <option key={t.id} value={t.id}>{t.razon_social}</option>)}
+              </Select></label>
+            <label className="sm:col-span-2"><span className={etq}>Imputación (obra u oficina)</span>
+              <Select value={form.proyecto_id} onChange={(e) => setForm({ ...form, proyecto_id: e.target.value })} className={inp}>
+                <option value="">Oficina Central</option>
+                {proyectos.map((p) => <option key={p.id} value={p.id}>{p.codigo ? `${p.codigo} · ` : ""}{p.nombre}</option>)}
+              </Select></label>
+            <label><span className={etq}>Monto gastado</span>
+              <Input required type="number" step="0.01" min="0" value={form.monto} onChange={(e) => setForm({ ...form, monto: e.target.value })} className={`${inp} text-right`} /></label>
+            <label><span className={etq}>Moneda</span>
+              <Select value={form.moneda} onChange={(e) => setForm({ ...form, moneda: e.target.value })} className={inp}>
+                <option value="PEN">Soles (S/)</option>
+                <option value="USD">Dólares (US$)</option>
+              </Select></label>
+            <label><span className={etq}>Tipo de cambio</span>
+              <Input type="number" step="0.001" min="0" value={form.tipo_cambio} onChange={(e) => setForm({ ...form, tipo_cambio: e.target.value })} disabled={form.moneda === "PEN"} required={form.moneda === "USD"} className={`${inp} text-right`} /></label>
+            <label><span className={etq}>Pago</span>
+              <Select value={form.condicion_pago} onChange={(e) => setForm({ ...form, ...condicionVacia(e.target.value) })} className={inp}>
+                <option value="Contado">Contado</option>
+                <option value="Crédito">Crédito</option>
+              </Select></label>
+            <label><span className={etq}>{contado ? "Medio de egreso" : `Días · vence ${fmtFecha(datosCondicion(form, form.fecha).fecha_vencimiento)}`}</span>
+              {contado ? (
+                <Select value={form.banco_id} onChange={(e) => setForm({ ...form, banco_id: e.target.value })} className={inp}>
+                  <option value="">Selecciona...</option>
+                  {cuentas.map((c) => <option key={c.id} value={c.id}>{c.nombre} · {c.tipo_cuenta} · {c.monedas}{c.numero_cuenta ? ` · ${c.numero_cuenta}` : ""}</option>)}
+                  <option value="caja">Caja Chica (efectivo)</option>
+                </Select>
+              ) : (
+                <div className="flex gap-1.5">
+                  <Select value={PLAZOS.includes(Number(form.dias_credito)) ? form.dias_credito : "otro"} onChange={(e) => e.target.value !== "otro" && setForm({ ...form, dias_credito: e.target.value })} className={inp}>
+                    {PLAZOS.map((p) => <option key={p} value={String(p)}>{p} días</option>)}
+                    <option value="otro">Otro</option>
+                  </Select>
+                  {!PLAZOS.includes(Number(form.dias_credito)) && (
+                    <Input type="number" min="0" step="1" value={form.dias_credito} onChange={(e) => setForm({ ...form, dias_credito: e.target.value })} className={`${inp} w-20 text-right`} />
+                  )}
+                </div>
+              )}</label>
+            {contado && form.banco_id && form.banco_id !== "caja" && (
+              <label><span className={etq}>N° de operación</span>
+                <Input value={(form as Pago & { numero_operacion?: string }).numero_operacion ?? ""} onChange={(e) => setForm({ ...form, numero_operacion: e.target.value })} maxLength={40} className={inp} /></label>
+            )}
+          </div>
+
+          <div className="mt-4 flex items-center justify-between gap-3 rounded-md border border-line bg-muted/30 px-4 py-3 text-xs">
+            <p className={etq}>Equivalente en soles</p>
+            <p className="text-sm font-semibold text-ink">{soles(equivalente)}</p>
+          </div>
+
+          <div className="mt-4 flex flex-wrap items-center justify-end gap-3">
+            {error && <span className="mr-auto text-[11px] text-bad">{error}</span>}
+            {ok && !error && <span className="mr-auto inline-flex items-center gap-1 text-[11px] text-good"><Check size={13} /> {ok}</span>}
+            <Boton type="button" variante="linea" onClick={onCerrar}>Cancelar</Boton>
+            <Boton type="submit" variante="accion" disabled={guardando}><Check size={13} /> {guardando ? "Guardando…" : "Guardar"}</Boton>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 }
 
