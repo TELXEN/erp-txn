@@ -3,8 +3,12 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
-import { Check, ChevronDown, ChevronRight, Plus, Trash2, Upload, X } from "lucide-react";
+import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
+import { CalendarIcon, Check, ChevronDown, ChevronRight, Plus, Trash2, Upload, X } from "lucide-react";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Buscador, Resaltar, coincide } from "@/components/Buscador";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
@@ -71,6 +75,10 @@ const rubroDeTipo = (tipo?: string) => RUBRO_POR_TIPO[tipo ?? ""] ?? "Materiales
 const num = (n: number) =>
   Number(n || 0).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+/** Céntimos enteros: evita errores de redondeo binario. */
+const cent = (n: number) => Math.round(Number(n || 0) * 100);
+const sumar = (xs: number[]) => xs.reduce((s, x) => s + cent(x), 0) / 100;
+
 const norm = (s: string) =>
   s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
@@ -97,7 +105,7 @@ function GastosDirectos() {
   const proveedores = terceros.filter((t) => t.es_proveedor && t.activo);
   const [proyectoId, setProyectoId] = useState("");
   const [abiertas, setAbiertas] = useState<Record<string, boolean>>({});
-  const [filas, setFilas] = useState<Record<string, Borrador[]>>({});
+  const [modalPid, setModalPid] = useState<string | null>(null);
   const [busqueda, setBusqueda] = useState("");
   const { data: cuentas = [] } = useQuery({
     queryKey: ["bancos"],
@@ -143,31 +151,23 @@ function GastosDirectos() {
     [partidas, proyectoId, busqueda],
   );
   const comprasProy = gastos.filter((g) => g.proyecto_id === proyectoId);
-  const costoDe = (pid: string) => comprasProy.filter((g) => g.partida_id === pid).reduce((s, g) => s + Number(g.monto_soles), 0);
+  const costoDe = (pid: string) => sumar(comprasProy.filter((g) => g.partida_id === pid).map((g) => Number(g.monto_soles)));
   const cantDe = (pid: string) => comprasProy.filter((g) => g.partida_id === pid).reduce((s, g) => s + Number(g.cantidad ?? 0), 0);
-  const presuTotal = partidasProy.reduce((s, p) => s + Number(p.presupuesto_inicial), 0);
-  const costoTotal = comprasProy.reduce((s, g) => s + Number(g.monto_soles), 0);
+  const presuTotal = sumar(partidasProy.map((p) => Number(p.presupuesto_inicial)));
+  const costoTotal = sumar(comprasProy.map((g) => Number(g.monto_soles)));
   const consumo = presuTotal > 0 ? (costoTotal / presuTotal) * 100 : 0;
   const nombreProv = (g: Compra) =>
     (g.proveedor_id ? terceros.find((t) => t.id === g.proveedor_id)?.razon_social : null) ?? g.proveedor ?? "—";
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
-  const filasDe = (pid: string) => filas[pid] ?? [];
-
-  function setFilasDe(pid: string, lista: Borrador[]) {
-    setFilas((f) => ({ ...f, [pid]: lista }));
-  }
-
   function abrirCompra(pid: string) {
     setAbiertas((a) => ({ ...a, [pid]: true }));
-    setFilas((f) => (f[pid]?.length ? f : { ...f, [pid]: [borradorVacio()] }));
+    setModalPid(pid);
   }
 
   function alternar(pid: string) {
-    const abierta = !abiertas[pid];
-    setAbiertas((a) => ({ ...a, [pid]: abierta }));
-    if (abierta) setFilas((f) => (f[pid]?.length ? f : { ...f, [pid]: [borradorVacio()] }));
+    setAbiertas((a) => ({ ...a, [pid]: !a[pid] }));
   }
 
   async function registrar(pid: string, b: Borrador, insumos: InsumoApu[]): Promise<string | null> {
@@ -181,11 +181,11 @@ function GastosDirectos() {
     if (contado && b.banco_id !== "caja" && !b.numero_operacion.trim()) return "Ingresa el N° de operación.";
     const prov = terceros.find((t) => t.id === b.proveedor_id);
     const insumo = insumos.find((i) => i.id === b.insumo_id);
-    const monto = Number(b.cantidad) * Number(b.precio_unitario);
+    const monto = cent(Number(b.cantidad) * Number(b.precio_unitario)) / 100;
     const { error: err } = await supabase.from("gastos_directos").insert({
       proyecto_id: proyectoId,
       partida_id: pid,
-      descripcion: b.insumoTexto.trim() || partida.nombre,
+      descripcion: b.insumoTexto.trim().toUpperCase() || partida.nombre,
       proveedor: prov?.razon_social ?? "",
       proveedor_id: b.proveedor_id,
       insumo_id: b.insumo_id,
@@ -335,7 +335,7 @@ function GastosDirectos() {
                       </td>
                       <td />
                       <td className="px-3 py-1.5 text-right font-semibold">
-                        {soles(grupo.items.reduce((s, p) => s + costoDe(p.id), 0))}
+                        {soles(sumar(grupo.items.map((p) => costoDe(p.id))))}
                       </td>
                       <td colSpan={3} />
                     </tr>
@@ -366,11 +366,12 @@ function GastosDirectos() {
                             <td className="px-3 py-2.5 text-right">{soles(presu)}</td>
                             <td className="px-2 py-2.5 text-right">{num(cantDe(p.id))}</td>
                             <td className="px-3 py-2.5 text-right font-semibold text-ink">{soles(costo)}</td>
-                            <td className={`px-3 py-2.5 text-right font-semibold ${presu - costo < 0 ? "text-bad" : "text-good"}`}>
+                            <td className={`px-3 py-2.5 text-right font-semibold ${presu - costo < 0 ? "bg-bad/10 text-bad" : "text-good"}`}>
                               {soles(presu - costo)}
+                              {presu - costo < 0 && <div className="text-[9px] font-normal uppercase tracking-wide">Sobregiro</div>}
                             </td>
                             <td className="px-3 py-2.5 text-right">
-                              <Etiqueta tono={uso > 100 ? "bad" : uso > 85 ? "neutro" : "good"}>{uso.toFixed(0)}%</Etiqueta>
+                              <BarraConsumo uso={uso} />
                             </td>
                             <td className="px-5 py-2 text-right">
                               <button
@@ -383,88 +384,66 @@ function GastosDirectos() {
                             </td>
                           </tr>
                           {abierta && (
-                            <tr className="border-b border-line/40 bg-muted/20">
-                              <td colSpan={11} className="px-8 py-2">
+                            <tr className="border-b border-line/40">
+                              <td colSpan={11} className="px-8 py-3">
+                                <div className="overflow-hidden rounded-md border border-line">
                                 <table className="w-full text-[11px]">
                                   <thead>
-                                    <tr className="text-left text-[10px] uppercase text-muted-foreground">
-                                      <th className="py-1">Fecha</th>
-                                      <th>Comprobante</th>
-                                      <th>Proveedor</th>
-                                      <th>Insumo</th>
-                                      <th>Pago</th>
-                                      <th className="text-right">Cantidad</th>
-                                      <th className="text-right">P.U. compra</th>
-                                      <th className="text-right">Costo real</th>
-                                      <th></th>
+                                    <tr className="bg-muted text-left text-[10px] uppercase tracking-wider text-muted-foreground">
+                                      <th className="px-3 py-1.5 font-medium">Fecha</th>
+                                      <th className="px-2 font-medium">Comprobante</th>
+                                      <th className="px-2 font-medium">Proveedor</th>
+                                      <th className="px-2 font-medium">Insumo</th>
+                                      <th className="px-2 font-medium">Pago</th>
+                                      <th className="px-2 font-medium">Banco</th>
+                                      <th className="px-2 text-right font-medium">Cantidad</th>
+                                      <th className="px-2 text-right font-medium">P.U. compra</th>
+                                      <th className="px-2 text-right font-medium">Costo real</th>
+                                      <th className="px-3"></th>
                                     </tr>
                                   </thead>
                                   <tbody>
                                     {compras.map((g) => (
-                                      <tr key={g.id} className="border-t border-line/30">
-                                        <td className="py-1.5">{fmtFecha(g.fecha)}</td>
-                                        <td>{g.comprobante || "—"}</td>
-                                        <td>{nombreProv(g)}</td>
-                                        <td>{g.insumo_id ? nombreInsumo(g.insumo_id) : (g.descripcion && g.descripcion !== p.nombre ? g.descripcion : "—")}</td>
-                                        <td>
+                                      <tr key={g.id} className="border-t border-line/40">
+                                        <td className="px-3 py-1.5">{fmtFecha(g.fecha)}</td>
+                                        <td className="px-2">{g.comprobante || "—"}</td>
+                                        <td className="px-2">{nombreProv(g)}</td>
+                                        <td className="px-2 uppercase">{g.insumo_id ? nombreInsumo(g.insumo_id) : (g.descripcion && g.descripcion !== p.nombre ? g.descripcion : "—")}</td>
+                                        <td className="px-2">
                                           <button type="button" title="Cambiar estado de pago" disabled={g.condicion_pago !== "Crédito"} onClick={() => alternarPago(g)}>
                                             <InsigniaPago condicion={g.condicion_pago} vencimiento={g.fecha_vencimiento} pagado={g.estado_pago === "Pagada"} />
                                           </button>
-                                          {g.banco_id && (
-                                            <div className="text-[10px] text-muted-foreground">
-                                              {nombreBanco(g.banco_id)}{g.numero_operacion ? ` · Op. ${g.numero_operacion}` : ""}
-                                            </div>
-                                          )}
                                         </td>
-                                        <td className="text-right">{num(Number(g.cantidad ?? 0))}</td>
-                                        <td className="text-right">
+                                        <td className="px-2 text-[10px] text-muted-foreground">
+                                          {g.banco_id ? nombreBanco(g.banco_id) : g.condicion_pago === "Crédito" ? "—" : "Caja Chica"}
+                                          {g.numero_operacion ? ` · Op. ${g.numero_operacion}` : ""}
+                                        </td>
+                                        <td className="px-2 text-right">{num(Number(g.cantidad ?? 0))}</td>
+                                        <td className="px-2 text-right">
                                           {g.moneda === "USD" ? "US$ " : "S/ "}
                                           {num(Number(g.precio_unitario ?? 0))}
                                         </td>
-                                        <td className="text-right font-semibold">{soles(Number(g.monto_soles))}</td>
-                                        <td className="text-right">
+                                        <td className="px-2 text-right font-semibold">{soles(Number(g.monto_soles))}</td>
+                                        <td className="px-3 text-right">
                                           <button type="button" onClick={() => eliminar(g.id)} className="text-muted-foreground hover:text-bad" title="Eliminar">
                                             <Trash2 size={13} />
                                           </button>
                                         </td>
                                       </tr>
                                     ))}
-                                    {compras.length === 0 && filasDe(p.id).length === 0 && (
-                                      <tr><td colSpan={9} className="py-1 text-muted-foreground">Sin compras registradas.</td></tr>
+                                    {compras.length === 0 && (
+                                      <tr><td colSpan={10} className="px-3 py-2 text-muted-foreground">Sin compras registradas.</td></tr>
                                     )}
                                   </tbody>
                                 </table>
-                                <div className="mt-1 space-y-1.5">
-                                  {filasDe(p.id).map((b) => (
-                                    <FilaCompra
-                                      key={b.key}
-                                      borrador={b}
-                                      insumos={maestroInsumos}
-                                      proveedores={proveedores}
-                                      cuentas={cuentasActivas}
-                                      onCambiar={(nb) => setFilasDe(p.id, filasDe(p.id).map((x) => (x.key === b.key ? nb : x)))}
-                                      onDescartar={() => {
-                                        const resto = filasDe(p.id).filter((x) => x.key !== b.key);
-                                        setFilasDe(p.id, resto.length ? resto : [borradorVacio()]);
-                                      }}
-                                      onRegistrar={async () => {
-                                        const error = await registrar(p.id, b, maestroInsumos);
-                                        if (error) return error;
-                                        const resto = filasDe(p.id).filter((x) => x.key !== b.key);
-                                        setFilasDe(p.id, resto.length ? resto : [borradorVacio()]);
-                                        return null;
-                                      }}
-                                    />
-                                  ))}
-                                  <button
-                                    type="button"
-                                    onClick={() => setFilasDe(p.id, [...filasDe(p.id), borradorVacio()])}
-                                    className="inline-flex items-center gap-1 rounded-md border border-dashed border-line px-2.5 py-1.5 text-[11px] text-muted-foreground hover:border-primary hover:text-primary"
-                                    title="Añadir otra fila de compra"
-                                  >
-                                    <Plus size={12} /> Añadir otra compra
-                                  </button>
                                 </div>
+                                <button
+                                  type="button"
+                                  onClick={() => abrirCompra(p.id)}
+                                  className="mt-2 inline-flex items-center gap-1 rounded-md border border-dashed border-line px-2.5 py-1.5 text-[11px] text-muted-foreground hover:border-primary hover:text-primary"
+                                >
+                                  <Plus size={12} /> Añadir otra compra
+                                </button>
                               </td>
                             </tr>
                           )}
@@ -478,151 +457,220 @@ function GastosDirectos() {
           </div>
         )}
       </Panel>
+      {modalPid && (() => {
+        const mp = partidas.find((x) => x.id === modalPid);
+        if (!mp) return null;
+        return (
+          <ModalCompra
+            key={modalPid}
+            partida={{ codigo: mp.codigo, nombre: mp.nombre, unidad: mp.unidad, presupuesto: Number(mp.presupuesto_inicial), costo: costoDe(mp.id) }}
+            insumos={maestroInsumos}
+            proveedores={proveedores}
+            cuentas={cuentasActivas}
+            onCerrar={() => setModalPid(null)}
+            onRegistrar={(b) => registrar(mp.id, b, maestroInsumos)}
+          />
+        );
+      })()}
     </>
   );
 }
 
-/** Fila de captura WYSIWYG de una compra: Enter o ✓ registra, ✕ descarta. */
-function FilaCompra({
-  borrador: b,
+/** Barra de consumo: verde < 80 %, amarillo 80–100 %, rojo > 100 %. */
+function BarraConsumo({ uso }: { uso: number }) {
+  const color = uso > 100 ? "bg-bad" : uso >= 80 ? "bg-accent" : "bg-good";
+  const texto = uso > 100 ? "text-bad" : "text-ink";
+  return (
+    <div className="flex items-center justify-end gap-2">
+      <div className="h-1.5 w-16 overflow-hidden rounded-full bg-muted">
+        <div className={`h-full rounded-full ${color} transition-all`} style={{ width: `${Math.min(100, Math.max(0, uso))}%` }} />
+      </div>
+      <span className={`w-10 text-right font-semibold ${texto}`}>{uso.toFixed(0)}%</span>
+    </div>
+  );
+}
+
+type PartidaResumen = { codigo: string | null; nombre: string; unidad: string | null; presupuesto: number; costo: number };
+
+function FechaPeru({ valor, onChange }: { valor: string; onChange: (v: string) => void }) {
+  const [abierto, setAbierto] = useState(false);
+  const d = valor ? new Date(`${valor}T00:00:00`) : undefined;
+  return (
+    <Popover open={abierto} onOpenChange={setAbierto}>
+      <PopoverTrigger asChild>
+        <button type="button" className="flex h-9 w-full items-center justify-between rounded-md border border-line bg-card px-2.5 text-left text-xs outline-none focus:border-primary">
+          {d ? format(d, "dd/MM/yyyy") : <span className="text-muted-foreground">DD/MM/AAAA</span>}
+          <CalendarIcon size={13} className="text-muted-foreground" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="z-[60] w-auto p-0" align="start">
+        <Calendar
+          mode="single"
+          selected={d}
+          locale={es}
+          onSelect={(x) => { if (x) { onChange(format(x, "yyyy-MM-dd")); setAbierto(false); } }}
+          initialFocus
+          className="pointer-events-auto p-3"
+        />
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+/** Ventana «Registrar compra»: resumen de la partida + campos; queda abierta tras guardar. */
+function ModalCompra({
+  partida,
   insumos,
   proveedores,
   cuentas,
-  onCambiar,
-  onDescartar,
+  onCerrar,
   onRegistrar,
 }: {
-  borrador: Borrador;
+  partida: PartidaResumen;
   insumos: InsumoApu[];
   proveedores: Tercero[];
   cuentas: Cuenta[];
-  onCambiar: (b: Borrador) => void;
-  onDescartar: () => void;
-  onRegistrar: () => Promise<string | null>;
+  onCerrar: () => void;
+  onRegistrar: (b: Borrador) => Promise<string | null>;
 }) {
+  const [b, setB] = useState<Borrador>(borradorVacio);
   const [error, setError] = useState("");
+  const [ok, setOk] = useState("");
   const [guardando, setGuardando] = useState(false);
   const contado = b.condicion_pago !== "Crédito";
-  const total = Number(b.cantidad || 0) * Number(b.precio_unitario || 0);
+  const totalC = cent(Number(b.cantidad || 0) * Number(b.precio_unitario || 0));
+  const costoC = cent(partida.costo);
+  const presuC = cent(partida.presupuesto);
+  const nuevoCosto = costoC + totalC;
+  const saldoActual = presuC - costoC;
+  const saldoNuevo = presuC - nuevoCosto;
+  const usoActual = presuC > 0 ? (costoC / presuC) * 100 : costoC > 0 ? 100 : 0;
+  const usoNuevo = presuC > 0 ? (nuevoCosto / presuC) * 100 : nuevoCosto > 0 ? 100 : 0;
+
+  useEffect(() => {
+    const k = (e: KeyboardEvent) => e.key === "Escape" && onCerrar();
+    window.addEventListener("keydown", k);
+    return () => window.removeEventListener("keydown", k);
+  }, [onCerrar]);
 
   async function enviar(e?: React.FormEvent) {
     e?.preventDefault();
     if (guardando) return;
     setGuardando(true);
     setError("");
-    const err = await onRegistrar();
+    setOk("");
+    const err = await onRegistrar(b);
     setGuardando(false);
-    if (err) setError(err);
+    if (err) return setError(err);
+    setOk(`Compra registrada · ${soles(totalC / 100)}`);
+    setB(borradorVacio());
   }
 
+  const etq = "mb-1 block text-[10px] font-medium uppercase tracking-wider text-muted-foreground";
+  const inp = "h-9 px-2.5 text-xs";
+
   return (
-    <form onSubmit={enviar} className="rounded-lg border border-dashed border-line bg-card p-2">
-      <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4 lg:grid-cols-[repeat(8,minmax(0,1fr))_auto]">
-        <label className="block">
-          <span className="text-[9px] uppercase tracking-wide text-muted-foreground">Fecha</span>
-          <Input type="date" value={b.fecha} onChange={(e) => onCambiar({ ...b, fecha: e.target.value })} className="h-7 px-1.5 text-[11px]" />
-        </label>
-        <label className="block">
-          <span className="text-[9px] uppercase tracking-wide text-muted-foreground">Comprobante</span>
-          <Input value={b.comprobante} onChange={(e) => onCambiar({ ...b, comprobante: e.target.value })} placeholder="F001-1240" maxLength={40} className="h-7 px-1.5 text-[11px]" />
-        </label>
-        <label className="block">
-          <span className="text-[9px] uppercase tracking-wide text-muted-foreground">Proveedor</span>
-          <Select value={b.proveedor_id} onChange={(e) => onCambiar({ ...b, proveedor_id: e.target.value })} className="h-7 px-1.5 text-[11px]">
-            <option value="">Selecciona...</option>
-            {proveedores.map((t) => (
-              <option key={t.id} value={t.id}>{t.razon_social}</option>
-            ))}
-          </Select>
-        </label>
-        <label className="block">
-          <span className="text-[9px] uppercase tracking-wide text-muted-foreground">Insumo</span>
-          <AutoInsumo
-            value={b.insumoTexto}
-            insumos={insumos}
-            onChange={(v) => onCambiar({ ...b, insumoTexto: v, insumo_id: null })}
-            onElegir={(i) => onCambiar({ ...b, insumoTexto: i.descripcion, insumo_id: i.id })}
-            onEnter={() => void enviar()}
-          />
-        </label>
-        <label className="block">
-          <span className="text-[9px] uppercase tracking-wide text-muted-foreground">Pago</span>
-          <Select value={b.condicion_pago} onChange={(e) => onCambiar({ ...b, ...condicionVacia(e.target.value) })} className="h-7 px-1.5 text-[11px]">
-            <option value="Contado">Contado</option>
-            <option value="Crédito">Crédito</option>
-          </Select>
-        </label>
-        <label className="block">
-          <span className="text-[9px] uppercase tracking-wide text-muted-foreground">Banco</span>
-          {contado ? (
-            <Select value={b.banco_id} onChange={(e) => onCambiar({ ...b, banco_id: e.target.value })} className="h-7 px-1.5 text-[11px]">
-              <option value="">Selecciona...</option>
-              {cuentas.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.nombre}{c.numero_cuenta ? ` · ${c.numero_cuenta}` : ""}
-                </option>
-              ))}
-              <option value="caja">Caja Chica (efectivo)</option>
-            </Select>
-          ) : (
-            <Select
-              value={PLAZOS.includes(Number(b.dias_credito)) ? b.dias_credito : "otro"}
-              onChange={(e) => e.target.value !== "otro" && onCambiar({ ...b, dias_credito: e.target.value })}
-              className="h-7 px-1.5 text-[11px]"
-              title={`Vence ${fmtFecha(datosCondicion(b, b.fecha).fecha_vencimiento)}`}
-            >
-              {PLAZOS.map((p) => (
-                <option key={p} value={String(p)}>{p} días</option>
-              ))}
-              <option value="otro">Otro</option>
-            </Select>
-          )}
-        </label>
-        <label className="block">
-          <span className="text-[9px] uppercase tracking-wide text-muted-foreground">Cantidad</span>
-          <Input type="number" step="0.01" min="0" value={b.cantidad} onChange={(e) => onCambiar({ ...b, cantidad: e.target.value })} className="h-7 px-1.5 text-right text-[11px]" />
-        </label>
-        <label className="block">
-          <span className="text-[9px] uppercase tracking-wide text-muted-foreground">P.U. compra</span>
-          <Input type="number" step="0.01" min="0" value={b.precio_unitario} onChange={(e) => onCambiar({ ...b, precio_unitario: e.target.value })} className="h-7 px-1.5 text-right text-[11px]" />
-        </label>
-        <div className="flex items-end gap-1 pb-0.5">
-          <button
-            type="submit"
-            disabled={guardando}
-            className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-primary text-primary-foreground hover:brightness-95 disabled:opacity-50"
-            title="Registrar compra (Enter)"
-          >
-            <Check size={13} />
-          </button>
-          <button
-            type="button"
-            onClick={onDescartar}
-            className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-bad hover:text-bad"
-            title="Descartar fila"
-          >
-            <X size={13} />
-          </button>
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-foreground/40 p-4" onMouseDown={onCerrar}>
+      <div className="panel my-8 w-full max-w-4xl overflow-hidden font-mono" onMouseDown={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between border-b border-line px-5 py-3">
+          <h2 className="text-base font-semibold tracking-tight">Registrar compra</h2>
+          <button type="button" onClick={onCerrar} className="text-muted-foreground hover:text-ink" title="Cerrar (Esc)"><X size={16} /></button>
         </div>
+
+        <div className="grid grid-cols-2 gap-x-5 gap-y-3 border-b border-line bg-muted/40 px-5 py-4 text-xs sm:grid-cols-4 lg:grid-cols-7">
+          <ResumenDato t="Código" v={partida.codigo || "—"} />
+          <div className="col-span-2 lg:col-span-2"><p className={etq}>Partida</p><p className="font-semibold text-ink">{partida.nombre}</p></div>
+          <ResumenDato t="Und." v={partida.unidad || "—"} />
+          <ResumenDato t="Presupuesto" v={soles(presuC / 100)} />
+          <ResumenDato t="Costo real" v={soles(costoC / 100)} />
+          <div>
+            <p className={etq}>Saldo</p>
+            <p className={`font-semibold ${saldoActual < 0 ? "text-bad" : "text-good"}`}>{soles(saldoActual / 100)}</p>
+            <div className="mt-1"><BarraConsumo uso={usoActual} /></div>
+          </div>
+        </div>
+
+        <form onSubmit={enviar} className="px-5 py-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div><span className={etq}>Fecha</span><FechaPeru valor={b.fecha} onChange={(v) => setB({ ...b, fecha: v })} /></div>
+            <label><span className={etq}>Comprobante</span>
+              <Input autoFocus value={b.comprobante} onChange={(e) => setB({ ...b, comprobante: e.target.value })} placeholder="F001-1240" maxLength={40} className={inp} /></label>
+            <label className="lg:col-span-2"><span className={etq}>Proveedor</span>
+              <Select value={b.proveedor_id} onChange={(e) => setB({ ...b, proveedor_id: e.target.value })} className={inp}>
+                <option value="">Selecciona...</option>
+                {proveedores.map((t) => <option key={t.id} value={t.id}>{t.razon_social}</option>)}
+              </Select></label>
+            <label className="sm:col-span-2"><span className={etq}>Insumo</span>
+              <AutoInsumo
+                value={b.insumoTexto}
+                insumos={insumos}
+                onChange={(v) => setB({ ...b, insumoTexto: v.toUpperCase(), insumo_id: null })}
+                onElegir={(i) => setB({ ...b, insumoTexto: i.descripcion.toUpperCase(), insumo_id: i.id })}
+                onEnter={() => void enviar()}
+              /></label>
+            <label><span className={etq}>Pago</span>
+              <Select value={b.condicion_pago} onChange={(e) => setB({ ...b, ...condicionVacia(e.target.value) })} className={inp}>
+                <option value="Contado">Contado</option>
+                <option value="Crédito">Crédito</option>
+              </Select></label>
+            <label><span className={etq}>{contado ? "Banco" : `Días · vence ${fmtFecha(datosCondicion(b, b.fecha).fecha_vencimiento)}`}</span>
+              {contado ? (
+                <Select value={b.banco_id} onChange={(e) => setB({ ...b, banco_id: e.target.value })} className={inp}>
+                  <option value="">Selecciona...</option>
+                  {cuentas.map((c) => <option key={c.id} value={c.id}>{c.nombre}{c.numero_cuenta ? ` · ${c.numero_cuenta}` : ""}</option>)}
+                  <option value="caja">Caja Chica (efectivo)</option>
+                </Select>
+              ) : (
+                <div className="flex gap-1.5">
+                  <Select value={PLAZOS.includes(Number(b.dias_credito)) ? b.dias_credito : "otro"} onChange={(e) => e.target.value !== "otro" && setB({ ...b, dias_credito: e.target.value })} className={inp}>
+                    {PLAZOS.map((p) => <option key={p} value={String(p)}>{p} días</option>)}
+                    <option value="otro">Otro</option>
+                  </Select>
+                  {!PLAZOS.includes(Number(b.dias_credito)) && (
+                    <Input type="number" min="0" step="1" value={b.dias_credito} onChange={(e) => setB({ ...b, dias_credito: e.target.value })} className={`${inp} w-20 text-right`} />
+                  )}
+                </div>
+              )}</label>
+            {contado && b.banco_id && b.banco_id !== "caja" && (
+              <label><span className={etq}>N° de operación</span>
+                <Input value={b.numero_operacion} onChange={(e) => setB({ ...b, numero_operacion: e.target.value })} maxLength={40} className={inp} /></label>
+            )}
+            <label><span className={etq}>Cantidad</span>
+              <Input type="number" step="0.01" min="0" value={b.cantidad} onChange={(e) => setB({ ...b, cantidad: e.target.value })} className={`${inp} text-right`} /></label>
+            <label><span className={etq}>P.U. compra (S/)</span>
+              <Input type="number" step="0.01" min="0" value={b.precio_unitario} onChange={(e) => setB({ ...b, precio_unitario: e.target.value })} className={`${inp} text-right`} /></label>
+            <label><span className={etq}>Costo real</span>
+              <Input readOnly disabled value={soles(totalC / 100)} className={`${inp} bg-muted text-right font-semibold`} /></label>
+          </div>
+
+          <div className={`mt-4 grid grid-cols-3 gap-3 rounded-md border px-4 py-3 text-xs ${saldoNuevo < 0 ? "border-bad/40 bg-bad/10" : "border-line bg-muted/30"}`}>
+            <div><p className={etq}>Costo real proyectado</p><p className="font-semibold text-ink">{soles(nuevoCosto / 100)}</p></div>
+            <div>
+              <p className={etq}>Saldo proyectado</p>
+              <p className={`font-semibold ${saldoNuevo < 0 ? "text-bad" : "text-good"}`}>{soles(saldoNuevo / 100)}</p>
+              {saldoNuevo < 0 && <p className="text-[10px] text-bad">Sobregiro de {soles(-saldoNuevo / 100)}</p>}
+            </div>
+            <div><p className={etq}>Consumo proyectado</p><BarraConsumo uso={usoNuevo} /></div>
+          </div>
+
+          <div className="mt-4 flex flex-wrap items-center justify-end gap-3">
+            {error && <span className="mr-auto text-[11px] text-bad">{error}</span>}
+            {ok && !error && <span className="mr-auto inline-flex items-center gap-1 text-[11px] text-good"><Check size={13} /> {ok}</span>}
+            <Boton type="button" variante="linea" onClick={onCerrar}>Cancelar</Boton>
+            <Boton type="submit" disabled={guardando}><Check size={13} /> {guardando ? "Guardando…" : "Guardar"}</Boton>
+          </div>
+        </form>
       </div>
-      {contado && b.banco_id && b.banco_id !== "caja" && (
-        <div className="mt-1.5 max-w-xs">
-          <Input value={b.numero_operacion} onChange={(e) => onCambiar({ ...b, numero_operacion: e.target.value })} placeholder="N° de operación" maxLength={40} className="h-7 px-1.5 text-[11px]" />
-        </div>
-      )}
-      {!contado && !PLAZOS.includes(Number(b.dias_credito)) && (
-        <div className="mt-1.5 flex max-w-xs items-center gap-2">
-          <Input type="number" min="0" step="1" value={b.dias_credito} onChange={(e) => onCambiar({ ...b, dias_credito: e.target.value })} className="h-7 w-20 px-1.5 text-[11px]" />
-          <span className="text-[10px] text-muted-foreground">días · vence {fmtFecha(datosCondicion(b, b.fecha).fecha_vencimiento)}</span>
-        </div>
-      )}
-      <div className="mt-1 flex items-center gap-3">
-        <span className="font-mono text-[10px] text-muted-foreground">
-          Total: <strong className="text-ink">{soles(total)}</strong>
-        </span>
-        {error && <span className="font-mono text-[10px] text-bad">{error}</span>}
-      </div>
-    </form>
+    </div>
+  );
+}
+
+function ResumenDato({ t, v }: { t: string; v: string }) {
+  return (
+    <div>
+      <p className="mb-1 block text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{t}</p>
+      <p className="font-semibold text-ink">{v}</p>
+    </div>
   );
 }
 
