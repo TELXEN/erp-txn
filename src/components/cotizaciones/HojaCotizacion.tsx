@@ -10,7 +10,7 @@ const C = { ink: "#000000", muted: "#000000", line: "#cbd5e1", soft: "#f8fafc", 
 
 const ed: CSSProperties = { border: "none", borderBottom: `1px dashed ${C.line}`, background: "transparent", font: "inherit", fontSize: 13, color: "inherit", width: "100%", padding: "4px 0", outline: "none" };
 const edSel: CSSProperties = { ...ed, cursor: "pointer" };
-const liviano = '"Calibri Light", Calibri, Carlito, sans-serif';
+const liviano = "var(--font-global)";
 
 const money = (n: number) => `S/ ${Number(n || 0).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
@@ -71,7 +71,7 @@ export function HojaCotizacion({
           padding: "36px 38px",
           background: C.white,
           color: C.ink,
-          fontFamily: 'Calibri, Carlito, "Segoe UI", sans-serif',
+          fontFamily: "var(--font-global)",
           fontWeight: 400,
           fontSize: 12.5,
           boxShadow: "0 12px 35px rgba(15,23,42,.18)",

@@ -17,6 +17,7 @@ export type FuenteDocumento = {
   css: string;
   pdfFamily: string;
   jsPdfFamily: "helvetica" | "times";
+  excelFamily: string;
 };
 
 export const FUENTE_DOCUMENTO_DEFECTO: FuenteDocumentoId = "carlito";
@@ -28,6 +29,7 @@ const FUENTE_CARLITO: FuenteDocumento = {
   css: 'Carlito, Calibri, "Segoe UI", sans-serif',
   pdfFamily: "PdfCarlito",
   jsPdfFamily: "helvetica",
+  excelFamily: "Carlito",
 };
 
 export const FUENTES_DOCUMENTOS: FuenteDocumento[] = [
@@ -39,6 +41,7 @@ export const FUENTES_DOCUMENTOS: FuenteDocumento[] = [
     css: '"Liberation Sans", Arial, Helvetica, sans-serif',
     pdfFamily: "PdfArial",
     jsPdfFamily: "helvetica",
+    excelFamily: "Arial",
   },
   {
     id: "times",
@@ -47,6 +50,7 @@ export const FUENTES_DOCUMENTOS: FuenteDocumento[] = [
     css: '"Liberation Serif", "Times New Roman", Times, serif',
     pdfFamily: "PdfTimes",
     jsPdfFamily: "times",
+    excelFamily: "Times New Roman",
   },
   {
     id: "source-sans-3",
@@ -55,14 +59,16 @@ export const FUENTES_DOCUMENTOS: FuenteDocumento[] = [
     css: '"Source Sans 3", Arial, sans-serif',
     pdfFamily: "PdfSourceSans3",
     jsPdfFamily: "helvetica",
+    excelFamily: "Source Sans 3",
   },
   {
     id: "segoe-ui",
     nombre: "Segoe UI",
     descripcion: "Contemporánea y limpia para documentos técnicos y ejecutivos.",
-    css: '"Segoe UI", "Source Sans 3", sans-serif',
+    css: '"Source Sans 3", "Segoe UI", sans-serif',
     pdfFamily: "PdfSegoeUI",
     jsPdfFamily: "helvetica",
+    excelFamily: "Segoe UI",
   },
   {
     id: "roboto",
@@ -71,14 +77,16 @@ export const FUENTES_DOCUMENTOS: FuenteDocumento[] = [
     css: 'Roboto, Arial, sans-serif',
     pdfFamily: "PdfRoboto",
     jsPdfFamily: "helvetica",
+    excelFamily: "Roboto",
   },
   {
     id: "helvetica-neue",
     nombre: "Helvetica Neue",
     descripcion: "Sobria y precisa para presentaciones comerciales.",
-    css: '"Helvetica Neue", "Liberation Sans", Arial, sans-serif',
+    css: '"Liberation Sans", "Helvetica Neue", Arial, sans-serif',
     pdfFamily: "PdfHelveticaNeue",
     jsPdfFamily: "helvetica",
+    excelFamily: "Helvetica Neue",
   },
 ];
 
@@ -88,6 +96,13 @@ export function esFuenteDocumento(valor: string | null | undefined): valor is Fu
 
 export function fuenteDocumento(valor: string | null | undefined) {
   return FUENTES_DOCUMENTOS.find((fuente) => fuente.id === valor) ?? FUENTE_CARLITO;
+}
+
+export function aplicarFuenteGlobal(valor: string | null | undefined) {
+  if (typeof document === "undefined") return;
+  const fuente = fuenteDocumento(valor);
+  document.documentElement.style.setProperty("--font-global", fuente.css);
+  document.documentElement.dataset.fuenteDocumento = fuente.id;
 }
 
 export function useConfiguracionDocumentos() {

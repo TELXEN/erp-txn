@@ -84,12 +84,14 @@
   --color-sidebar-hover: var(--sidebar-hover);
   --color-sidebar-panel: var(--sidebar-panel);
 
-  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-global);
+  --font-sans: var(--font-global);
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
 }
 
 :root {
   --radius: 0.5rem;
+  --font-global: Carlito, Calibri, "Segoe UI", sans-serif;
 
   --paper: rgb(251 250 246);
   --ink: rgb(19 19 22);
@@ -142,7 +144,7 @@
       radial-gradient(900px 560px at 8% 112%, oklch(0.94 0.03 90 / 0.7) 0%, transparent 52%);
     background-attachment: fixed;
     color: var(--color-foreground);
-    font-family: var(--font-display);
+    font-family: var(--font-global);
   }
 }
 

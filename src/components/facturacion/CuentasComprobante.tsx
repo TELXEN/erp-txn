@@ -23,8 +23,8 @@ export const detalleCuenta = (c: CuentaCpe) =>
 export function CuentasComprobante({ cuentas }: { cuentas: CuentaCpe[] }) {
   if (!cuentas.length) return null;
   return (
-    <div style={{ marginTop: 14, borderTop: "1px solid #cbd5e1", paddingTop: 7, fontFamily: 'Calibri, Carlito, "Segoe UI", sans-serif', fontWeight: 400, fontSize: 9, color: "#000000" }}>
-      <span style={{ fontFamily: '"Calibri Light", Calibri, Carlito, sans-serif', fontWeight: 300, fontSize: 9, letterSpacing: 0.5 }}>CUENTAS BANCARIAS</span>
+    <div style={{ marginTop: 14, borderTop: "1px solid #cbd5e1", paddingTop: 7, fontFamily: "var(--font-global)", fontWeight: 400, fontSize: 9, color: "#000000" }}>
+      <span style={{ fontFamily: "var(--font-global)", fontWeight: 300, fontSize: 9, letterSpacing: 0.5 }}>CUENTAS BANCARIAS</span>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", columnGap: 14, rowGap: 4, marginTop: 4 }}>
         {agruparPorBanco(cuentas).map((g, i) => (
           <div key={i} style={{ lineHeight: 1.25 }}>
