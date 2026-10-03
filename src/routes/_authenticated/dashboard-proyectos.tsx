@@ -274,21 +274,28 @@ function DashboardProyectos() {
               <div className="my-2 grid grid-cols-3 gap-1 rounded-lg border border-line bg-muted/30 p-2 text-center">
                 <div>
                   <p className="label-mono text-[9px]">Inicio</p>
-                  <p className="mt-0.5 font-mono text-[11px] font-semibold">{fecha(obraSel.proyecto.fecha_inicio)}</p>
+                  <p className={`mt-0.5 font-mono text-[11px] ${obraSel.proyecto.fecha_inicio ? "font-semibold" : "text-muted-foreground/60"}`}>{fecha(obraSel.proyecto.fecha_inicio)}</p>
                 </div>
                 <div className="border-x border-line px-1">
                   <p className="label-mono text-[9px]">Fin previsto</p>
-                  <p className="mt-0.5 font-mono text-[11px] font-semibold">{fecha(obraSel.proyecto.fecha_fin)}</p>
+                  <p className={`mt-0.5 font-mono text-[11px] ${obraSel.proyecto.fecha_fin ? "font-semibold" : "text-muted-foreground/60"}`}>{fecha(obraSel.proyecto.fecha_fin)}</p>
                 </div>
                 <div>
                   <p className="label-mono text-[9px]">{plazo?.vencido ? "Plazo vencido" : "Días restantes"}</p>
-                  <p className={`mt-0.5 font-mono text-[11px] font-semibold ${plazo?.vencido ? "text-bad" : ""}`}>
+                  <p className={`mt-0.5 font-mono text-[11px] ${!plazo ? "text-muted-foreground/60" : plazo.vencido ? "font-semibold text-bad" : "font-semibold"}`}>
                     {plazo ? `${Math.abs(plazo.dias)} días` : "Sin fecha"}
                   </p>
                 </div>
               </div>
 
               <MedidorCompacto valor={obraSel.avance} />
+              {verDinero && (
+                <div className="mb-2 rounded-md border border-line bg-muted/30 px-3 py-2 text-center">
+                  <p className="label-mono text-[9px]">Costo ejecutado</p>
+                  <p className={`font-mono text-sm font-semibold ${obraSel.desviado ? "text-bad" : "text-ink"}`}>{soles(obraSel.costoReal)}</p>
+                  <p className="font-mono text-[10px] text-muted-foreground">{pct(obraSel.gastado ?? 0)} del presupuesto</p>
+                </div>
+              )}
 
               <div className="flex items-center justify-between border-t border-line pt-2">
                 <InsigniaSituacion valor={obraSel.proyecto.situacion} />
@@ -341,16 +348,19 @@ function DashboardProyectos() {
             <Barra etiqueta="Avance físico real" valor={obraSel?.avance ?? null} clase="bg-primary" />
             <Barra etiqueta="Avance programado" valor={programadoSel} clase="bg-muted-foreground" />
           </div>
-          <div className="border-t border-line pt-4 lg:border-l lg:border-t-0 lg:pl-5 lg:pt-0">
+          <div className="space-y-1.5 rounded-lg border border-line bg-muted/30 p-4">
             <p className="label-mono">Desviación a la fecha de corte</p>
             {programadoSel === null ? (
-              <p className="mt-2 font-mono text-xs text-muted-foreground">Sin avance programado oficial registrado.</p>
+              <>
+                <p className="font-mono text-sm font-semibold text-muted-foreground">Sin avance programado oficial</p>
+                <p className="text-xs leading-relaxed text-muted-foreground">Regístralo en el cronograma de la obra (Proyectos) para comparar con el avance real.</p>
+              </>
             ) : (obraSel?.avance ?? 0) + 0.05 < programadoSel ? (
-              <p className="mt-2 font-mono text-sm font-semibold text-bad">-{pct(programadoSel - (obraSel?.avance ?? 0))} · Retraso</p>
+              <p className="rounded-md bg-bad/10 px-2 py-1 font-mono text-sm font-semibold text-bad">-{pct(programadoSel - (obraSel?.avance ?? 0))} · Retraso</p>
             ) : (
-              <p className="mt-2 font-mono text-sm font-semibold text-good">+{pct((obraSel?.avance ?? 0) - programadoSel)} · En plazo o adelantada</p>
+              <p className="font-mono text-sm font-semibold text-good">+{pct((obraSel?.avance ?? 0) - programadoSel)} · En plazo o adelantada</p>
             )}
-            <p className="mt-1 font-mono text-[10px] text-muted-foreground">
+            <p className="font-mono text-xs text-muted-foreground">
               Corte: {obraSel?.usaCalendario ? fecha(hoyISO()) : obraSel?.proyecto.fecha_corte_programado ? fecha(obraSel.proyecto.fecha_corte_programado) : "Sin registrar"}
             </p>
           </div>
@@ -427,7 +437,7 @@ function DashboardProyectos() {
                     <p className="font-mono text-xs text-muted-foreground">{soles(f.presupuestoContractual)} + <span className="text-primary">{soles(f.adicionales)}</span></p>
                     <p className="font-mono text-sm font-semibold">Vigente {soles(f.presupuesto)}</p>
                     <p className={`font-mono text-[11px] ${f.desviado ? "text-bad" : "text-good"}`}>Costo ejecutado {soles(f.costoReal)}</p>
-                    <p className={`font-mono text-[11px] ${f.diferencia < 0 ? "text-bad" : "text-muted-foreground"}`}>
+                    <p className={`font-mono ${f.diferencia < 0 ? "mt-1 inline-block rounded-md bg-bad/10 px-2 py-0.5 text-[13px] font-semibold text-bad" : "text-[11px] text-muted-foreground"}`}>
                       Diferencia {soles(f.diferencia)}
                     </p>
                   </div>}
@@ -447,7 +457,7 @@ function DashboardProyectos() {
                     />
                   )}
                   {f.desviacion !== null && (
-                    <p className={`text-right font-mono text-[10px] font-semibold ${f.desviacion < -0.05 ? "text-bad" : "text-good"}`}>
+                    <p className={`text-right font-mono font-semibold ${f.desviacion < -0.05 ? "ml-auto w-fit rounded-md bg-bad/10 px-2 py-0.5 text-[13px] text-bad" : "text-[10px] text-good"}`}>
                       {f.desviacion < -0.05 ? `${pct(Math.abs(f.desviacion))} de retraso` : `${pct(f.desviacion)} en plazo o adelantada`}
                     </p>
                   )}
@@ -528,10 +538,18 @@ function Barra({ etiqueta, valor, clase }: { etiqueta: string; valor: number | n
       <span className="w-40 shrink-0 font-mono text-[10px] uppercase tracking-wide text-muted-foreground">
         {etiqueta}
       </span>
-      <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-muted">
-        <div className={`h-full growx rounded-full ${clase}`} style={{ width: `${Math.min(valor ?? 0, 100)}%` }} />
-      </div>
-      <span className="w-14 text-right font-mono text-[11px]">{valor === null ? "Sin dato" : pct(valor)}</span>
+      {valor === null ? (
+        <div
+          className="h-2.5 flex-1 rounded-full opacity-60"
+          style={{ backgroundImage: "repeating-linear-gradient(45deg, color-mix(in oklab, var(--muted-foreground) 35%, transparent) 0 4px, transparent 4px 8px)" }}
+          title="Sin dato"
+        />
+      ) : (
+        <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-muted">
+          <div className={`h-full growx rounded-full ${clase}`} style={{ width: `${Math.min(valor, 100)}%` }} />
+        </div>
+      )}
+      <span className={`w-14 text-right font-mono text-[11px] ${valor === null ? "text-muted-foreground/70" : ""}`}>{valor === null ? "Sin dato" : pct(valor)}</span>
     </div>
   );
 }
