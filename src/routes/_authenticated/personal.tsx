@@ -10,6 +10,42 @@ import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { soles } from "@/lib/format";
 import { clasificacionDeCargo, type Trabajador, useCargos, useTrabajadores } from "@/lib/datos";
 import { exportarExcel } from "@/lib/exportar";
+import { FechaPeru } from "./gastos-directos";
+import type { ReactNode } from "react";
+
+const BANCOS = ["BCP", "BBVA", "Interbank", "Scotiabank", "Banco de la Nación", "BanBif", "Banco Pichincha", "Caja Arequipa", "Caja Huancayo", "Caja Piura", "Otro"];
+
+function CampoF({ etiqueta, req, children }: { etiqueta: string; req?: boolean; children: ReactNode }) {
+  return (
+    <label className="block">
+      <span className="text-xs font-semibold text-ink">{etiqueta}{req && <span className="ml-0.5 text-bad">*</span>}</span>
+      <div className="mt-1">{children}</div>
+    </label>
+  );
+}
+
+function Seccion({ titulo, children }: { titulo: string; children: ReactNode }) {
+  return (
+    <div className="rounded-lg border border-line bg-card p-3">
+      <h3 className="mb-3 border-b border-line pb-2 text-[11px] font-bold uppercase tracking-wide text-ink">{titulo}</h3>
+      <div className="grid grid-cols-2 gap-3">{children}</div>
+    </div>
+  );
+}
+
+function aplicarCambio(f: FormPersonal, campo: keyof FormPersonal, valor: string | boolean): FormPersonal {
+  const n = { ...f, [campo]: valor } as FormPersonal;
+  if (campo === "jornal_diario") {
+    const v = Number(valor);
+    n.sueldo_mensual = valor === "" || !isFinite(v) ? "" : (v * 30).toFixed(2);
+  } else if (campo === "sueldo_mensual") {
+    const v = Number(valor);
+    n.jornal_diario = valor === "" || !isFinite(v) ? "" : (v / 30).toFixed(2);
+  } else if (campo === "sistema_pensiones" && !String(valor).startsWith("AFP")) {
+    n.cuspp = "";
+  }
+  return n;
+}
 
 export const Route = createFileRoute("/_authenticated/personal")({
   head: () => ({
@@ -95,6 +131,7 @@ function Personal() {
   );
   const [editando, setEditando] = useState<{ id: string; datos: FormPersonal } | null>(null);
   const [error, setError] = useState("");
+  const setFormC = (campo: keyof FormPersonal, valor: string | boolean) => setForm((f) => aplicarCambio(f, campo, valor));
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
@@ -284,7 +321,7 @@ function Personal() {
 
   const actualizarCampo = (campo: keyof FormPersonal, valor: string | boolean) => {
     if (!editando) return;
-    setEditando({ ...editando, datos: { ...editando.datos, [campo]: valor } });
+    setEditando({ ...editando, datos: aplicarCambio(editando.datos, campo, valor) });
   };
 
   return (
@@ -381,7 +418,7 @@ function Personal() {
           <div className="overflow-x-auto">
             <table className="min-w-[1440px] w-full table-fixed font-mono text-xs">
               <thead>
-                <tr className="border-b border-line text-left text-[10px] uppercase text-muted-foreground">
+                <tr className="border-b border-line text-left text-[10px] uppercase text-ink bg-muted/50">
                   <th className="w-[9%] px-4 py-2 font-medium">DNI</th>
                   <th className="w-[15%] px-3 py-2 font-medium">Apellidos y Nombre(s)</th>
                   <th className="w-[16%] px-3 py-2 font-medium">Cargo</th>
@@ -400,20 +437,20 @@ function Personal() {
                   const d = editando?.datos;
                   return (
                     <Fragment key={t.id}>
-                    <tr className="border-b border-line/60 align-top last:border-0">
-                      <td className="px-4 py-2">{esEdicion && d ? <Input inputMode="numeric" maxLength={8} value={d.dni} onChange={(e) => actualizarCampo("dni", e.target.value.replace(/\D/g, ""))} className="py-1 text-xs" required /> : <Resaltar texto={t.dni} termino={busqueda}/>}</td>
-                      <td className="px-3 py-2 font-semibold text-ink">{esEdicion && d ? <Input value={d.nombre} onChange={(e) => actualizarCampo("nombre", e.target.value)} className="py-1 text-xs" maxLength={100} required /> : <Resaltar texto={t.nombre} termino={busqueda}/>}</td>
-                      <td className="px-3 py-2 text-muted-foreground">{esEdicion && d ? <Select value={d.cargo} onChange={(e) => actualizarCampo("cargo", e.target.value)} className="py-1 text-xs"><option value="">Selecciona…</option>{cargosActivos.map((c) => <option key={c.id} value={c.nombre}>{c.nombre}</option>)}</Select> : <span className="block"><Resaltar texto={t.cargo} termino={busqueda}/><span className={`mt-0.5 block text-[10px] ${clasifDe(t.cargo) === "Indirecto" ? "text-primary" : "text-muted-foreground"}`}>{clasifDe(t.cargo) === "Indirecto" ? "Staff · Gasto general" : "Mano de obra directa"}</span></span>}</td>
-                      <td className="px-3 py-2 text-right">{esEdicion && d ? <Input type="number" step="0.01" min="0" value={d.jornal_diario} onChange={(e) => actualizarCampo("jornal_diario", e.target.value)} className="py-1 text-right text-xs" required /> : soles(Number(t.jornal_diario))}</td>
-                      <td className="px-3 py-2 break-all">{esEdicion && d ? <Input value={d.numero_cuenta} onChange={(e) => actualizarCampo("numero_cuenta", e.target.value)} className="py-1 text-xs" maxLength={30} required /> : t.numero_cuenta}</td>
-                      <td className="px-3 py-2 break-all">{esEdicion && d ? <Input inputMode="numeric" maxLength={20} value={d.cci} onChange={(e) => actualizarCampo("cci", e.target.value.replace(/\D/g, ""))} className="py-1 text-xs" required /> : t.cci}</td>
-                      <td className="px-3 py-2">{esEdicion && d ? <Input value={d.banco} onChange={(e) => actualizarCampo("banco", e.target.value)} className="py-1 text-xs" maxLength={80} required /> : t.banco}</td>
-                      <td className="px-3 py-2">{esEdicion && d ? <Input inputMode="tel" maxLength={9} value={d.numero_celular} onChange={(e) => actualizarCampo("numero_celular", e.target.value.replace(/\D/g, ""))} className="py-1 text-xs" required /> : t.numero_celular}</td>
-                      <td className="px-3 py-2">
+                    <tr className="border-b border-line/60 align-top last:border-0 hover:bg-muted/30">
+                      <td className="px-4 py-3.5">{esEdicion && d ? <Input inputMode="numeric" maxLength={8} value={d.dni} onChange={(e) => actualizarCampo("dni", e.target.value.replace(/\D/g, ""))} className="py-1 text-xs" required /> : <Resaltar texto={t.dni} termino={busqueda}/>}</td>
+                      <td className="px-3 py-3.5 font-semibold text-ink">{esEdicion && d ? <Input value={d.nombre} onChange={(e) => actualizarCampo("nombre", e.target.value)} className="py-1 text-xs" maxLength={100} required /> : <Resaltar texto={t.nombre} termino={busqueda}/>}</td>
+                      <td className="px-3 py-3.5 text-ink">{esEdicion && d ? <Select value={d.cargo} onChange={(e) => actualizarCampo("cargo", e.target.value)} className="py-1 text-xs"><option value="">Selecciona…</option>{cargosActivos.map((c) => <option key={c.id} value={c.nombre}>{c.nombre}</option>)}</Select> : <span className="block"><Resaltar texto={t.cargo} termino={busqueda}/><span className="mt-1 inline-block rounded-full border border-line bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">{clasifDe(t.cargo) === "Indirecto" ? "Staff · Gasto general" : "Mano de obra directa"}</span></span>}</td>
+                      <td className="px-3 py-3.5 text-right">{esEdicion && d ? <Input type="number" step="0.01" min="0" value={d.jornal_diario} onChange={(e) => actualizarCampo("jornal_diario", e.target.value)} className="py-1 text-right text-xs" required /> : <span className="whitespace-nowrap tabular-nums">{soles(Number(t.jornal_diario))}</span>}</td>
+                      <td className="px-3 py-3.5 break-all">{esEdicion && d ? <Input value={d.numero_cuenta} onChange={(e) => actualizarCampo("numero_cuenta", e.target.value)} className="py-1 text-xs" maxLength={30} required /> : t.numero_cuenta}</td>
+                      <td className="px-3 py-3.5 break-all">{esEdicion && d ? <Input inputMode="numeric" maxLength={20} value={d.cci} onChange={(e) => actualizarCampo("cci", e.target.value.replace(/\D/g, ""))} className="py-1 text-xs" required /> : t.cci}</td>
+                      <td className="px-3 py-3.5">{esEdicion && d ? <Input value={d.banco} onChange={(e) => actualizarCampo("banco", e.target.value)} className="py-1 text-xs" maxLength={80} required /> : t.banco}</td>
+                      <td className="px-3 py-3.5">{esEdicion && d ? <Input inputMode="tel" maxLength={9} value={d.numero_celular} onChange={(e) => actualizarCampo("numero_celular", e.target.value.replace(/\D/g, ""))} className="py-1 text-xs" required /> : t.numero_celular}</td>
+                      <td className="px-3 py-3.5">
                         <span className="block font-semibold text-ink">{t.tipo_contratacion === "Honorarios" ? "RxH" : "Planilla"}</span>
                         <span className="block text-[10px] text-muted-foreground">{t.tipo_contratacion === "Honorarios" ? (t.suspension_cuarta ? "Suspensión 4ta" : "Retención 8%") : `${t.regimen_laboral} · ${t.sistema_pensiones}`}</span>
                       </td>
-                      <td className="px-4 py-2">
+                      <td className="px-4 py-3.5">
                         <div className="flex items-center justify-end gap-1">
                           {esEdicion ? (
                             <>
@@ -432,7 +469,7 @@ function Personal() {
                     {esEdicion && d && (
                       <tr className="border-b border-line/60 bg-muted/30">
                         <td colSpan={10} className="px-4 py-2">
-                          <div className="grid gap-1.5 grid-cols-2 sm:grid-cols-4 lg:grid-cols-7">{camposContrato(d, actualizarCampo)}</div>
+                          <div className="grid gap-3 sm:grid-cols-3"><div className="grid grid-cols-2 gap-3 content-start">{seccionLaboral(d, actualizarCampo, false)}</div><div className="grid grid-cols-2 gap-3 content-start">{seccionSalario(d, actualizarCampo, false)}</div><div className="grid grid-cols-2 gap-3 content-start">{seccionPrevision(d, actualizarCampo)}</div></div>
                         </td>
                       </tr>
                     )}
