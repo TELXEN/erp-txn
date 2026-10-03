@@ -717,10 +717,190 @@ function GastosGenerales() {
           </table>
           </div>
         )}
-      </Panel>
+       </Panel>
       </>
       )}
+
+      {modalGasto && (
+        <ModalGasto
+          form={form}
+          setForm={setForm}
+          proveedores={proveedores}
+          categorias={categoriasActivas}
+          ayudaCategoria={ayudaCategoria}
+          proyectos={proyectos}
+          cuentas={cuentasActivas}
+          onGuardar={guardar}
+          onCerrar={() => setModalGasto(false)}
+        />
+      )}
     </>
+  );
+}
+
+/** Ventana «Registrar gasto general»: mismo patrón que la ventana de compra de Costos Directos. */
+function ModalGasto({
+  form,
+  setForm,
+  proveedores,
+  categorias,
+  ayudaCategoria,
+  proyectos,
+  cuentas,
+  onGuardar,
+  onCerrar,
+}: {
+  form: FormGasto;
+  setForm: (f: FormGasto) => void;
+  proveedores: { id: string; razon_social: string }[];
+  categorias: { id: string; nombre: string; descripcion: string | null }[];
+  ayudaCategoria: string;
+  proyectos: { id: string; nombre: string; codigo?: string | null }[];
+  cuentas: Cuenta[];
+  onGuardar: () => Promise<string | null>;
+  onCerrar: () => void;
+}) {
+  const [error, setError] = useState("");
+  const [ok, setOk] = useState("");
+  const [guardando, setGuardando] = useState(false);
+  const [guiaVisible, setGuiaVisible] = useState(false);
+  const contado = form.condicion_pago !== "Crédito";
+  const equivalente = Number(form.monto || 0) * (form.moneda === "USD" ? Number(form.tipo_cambio || 0) : 1);
+
+  useEffect(() => {
+    const k = (e: KeyboardEvent) => e.key === "Escape" && onCerrar();
+    window.addEventListener("keydown", k);
+    return () => window.removeEventListener("keydown", k);
+  }, [onCerrar]);
+
+  async function enviar(e?: React.FormEvent) {
+    e?.preventDefault();
+    if (guardando) return;
+    setGuardando(true);
+    setError("");
+    setOk("");
+    const err = await onGuardar();
+    setGuardando(false);
+    if (err) return setError(err);
+    setOk(`Gasto registrado · ${soles(equivalente)}`);
+  }
+
+  const etq = "mb-1 block text-[10px] font-medium uppercase tracking-wider text-muted-foreground";
+  const inp = "h-9 px-2.5 text-xs";
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-foreground/40 p-4" onMouseDown={onCerrar}>
+      <div className="panel my-8 w-full max-w-4xl overflow-hidden font-mono" onMouseDown={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between border-b border-line px-5 py-3">
+          <div>
+            <h2 className="text-base font-semibold tracking-tight">Registrar gasto general</h2>
+            <p className="text-[11px] text-muted-foreground">Compra indirecta o costo de oficina no vinculado a una partida.</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setGuiaVisible((v) => !v)}
+              aria-pressed={guiaVisible}
+              className="inline-flex items-center gap-1.5 rounded-md border border-line px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+            >
+              <Info size={13} /> Guía de categorías
+            </button>
+            <button type="button" onClick={onCerrar} className="text-muted-foreground hover:text-ink" title="Cerrar (Esc)"><X size={16} /></button>
+          </div>
+        </div>
+
+        {guiaVisible && (
+          <div className="border-b border-line bg-muted/40 px-5 py-4">
+            <p className="label-mono mb-2">Qué incluye cada categoría</p>
+            <ul className="grid gap-2 sm:grid-cols-2">
+              {categorias.map((c) => (
+                <li key={c.id} className="flex flex-col gap-1 rounded-md border border-line bg-card px-3 py-2">
+                  <InsigniaCategoriaGasto valor={c.nombre} />
+                  <span className="text-[11px] leading-snug text-muted-foreground">
+                    {c.descripcion || "Sin descripción registrada. Agrégala en Datos > Catálogos Maestros."}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <form onSubmit={enviar} className="px-5 py-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div><span className={etq}>Fecha</span><FechaPeru valor={form.fecha} onChange={(v) => setForm({ ...form, fecha: v })} /></div>
+            <label><span className={etq}>N° comprobante</span>
+              <Input value={form.comprobante} onChange={(e) => setForm({ ...form, comprobante: e.target.value })} placeholder="F001-4520" maxLength={40} className={inp} /></label>
+            <label className="sm:col-span-2"><span className={etq}>Descripción</span>
+              <Input autoFocus required value={form.descripcion} onChange={(e) => setForm({ ...form, descripcion: e.target.value })} maxLength={160} className={inp} /></label>
+            <label className="sm:col-span-2"><span className={etq}>Categoría del gasto</span>
+              <Select required value={form.categoria} onChange={(e) => setForm({ ...form, categoria: e.target.value })} className={inp}>
+                <option value="">Selecciona...</option>
+                {categorias.map((c) => <option key={c.id} value={c.nombre}>{c.nombre}</option>)}
+              </Select>
+              {ayudaCategoria && <p className="mt-1 text-[11px] leading-snug text-muted-foreground">{ayudaCategoria}</p>}
+            </label>
+            <label className="sm:col-span-2"><span className={etq}>Proveedor</span>
+              <Select required value={form.proveedor_id} onChange={(e) => setForm({ ...form, proveedor_id: e.target.value })} className={inp}>
+                <option value="">Selecciona...</option>
+                {proveedores.map((t) => <option key={t.id} value={t.id}>{t.razon_social}</option>)}
+              </Select></label>
+            <label className="sm:col-span-2"><span className={etq}>Imputación (obra u oficina)</span>
+              <Select value={form.proyecto_id} onChange={(e) => setForm({ ...form, proyecto_id: e.target.value })} className={inp}>
+                <option value="">Oficina Central</option>
+                {proyectos.map((p) => <option key={p.id} value={p.id}>{p.codigo ? `${p.codigo} · ` : ""}{p.nombre}</option>)}
+              </Select></label>
+            <label><span className={etq}>Monto gastado</span>
+              <Input required type="number" step="0.01" min="0" value={form.monto} onChange={(e) => setForm({ ...form, monto: e.target.value })} className={`${inp} text-right`} /></label>
+            <label><span className={etq}>Moneda</span>
+              <Select value={form.moneda} onChange={(e) => setForm({ ...form, moneda: e.target.value })} className={inp}>
+                <option value="PEN">Soles (S/)</option>
+                <option value="USD">Dólares (US$)</option>
+              </Select></label>
+            <label><span className={etq}>Tipo de cambio</span>
+              <Input type="number" step="0.001" min="0" value={form.tipo_cambio} onChange={(e) => setForm({ ...form, tipo_cambio: e.target.value })} disabled={form.moneda === "PEN"} required={form.moneda === "USD"} className={`${inp} text-right`} /></label>
+            <label><span className={etq}>Pago</span>
+              <Select value={form.condicion_pago} onChange={(e) => setForm({ ...form, ...condicionVacia(e.target.value) })} className={inp}>
+                <option value="Contado">Contado</option>
+                <option value="Crédito">Crédito</option>
+              </Select></label>
+            <label><span className={etq}>{contado ? "Medio de egreso" : `Días · vence ${fmtFecha(datosCondicion(form, form.fecha).fecha_vencimiento)}`}</span>
+              {contado ? (
+                <Select value={form.banco_id} onChange={(e) => setForm({ ...form, banco_id: e.target.value })} className={inp}>
+                  <option value="">Selecciona...</option>
+                  {cuentas.map((c) => <option key={c.id} value={c.id}>{c.nombre} · {c.tipo_cuenta} · {c.monedas}{c.numero_cuenta ? ` · ${c.numero_cuenta}` : ""}</option>)}
+                  <option value="caja">Caja Chica (efectivo)</option>
+                </Select>
+              ) : (
+                <div className="flex gap-1.5">
+                  <Select value={PLAZOS.includes(Number(form.dias_credito)) ? form.dias_credito : "otro"} onChange={(e) => e.target.value !== "otro" && setForm({ ...form, dias_credito: e.target.value })} className={inp}>
+                    {PLAZOS.map((p) => <option key={p} value={String(p)}>{p} días</option>)}
+                    <option value="otro">Otro</option>
+                  </Select>
+                  {!PLAZOS.includes(Number(form.dias_credito)) && (
+                    <Input type="number" min="0" step="1" value={form.dias_credito} onChange={(e) => setForm({ ...form, dias_credito: e.target.value })} className={`${inp} w-20 text-right`} />
+                  )}
+                </div>
+              )}</label>
+            {contado && form.banco_id && form.banco_id !== "caja" && (
+              <label><span className={etq}>N° de operación</span>
+                <Input value={(form as Pago & { numero_operacion?: string }).numero_operacion ?? ""} onChange={(e) => setForm({ ...form, numero_operacion: e.target.value })} maxLength={40} className={inp} /></label>
+            )}
+          </div>
+
+          <div className="mt-4 flex items-center justify-between gap-3 rounded-md border border-line bg-muted/30 px-4 py-3 text-xs">
+            <p className={etq}>Equivalente en soles</p>
+            <p className="text-sm font-semibold text-ink">{soles(equivalente)}</p>
+          </div>
+
+          <div className="mt-4 flex flex-wrap items-center justify-end gap-3">
+            {error && <span className="mr-auto text-[11px] text-bad">{error}</span>}
+            {ok && !error && <span className="mr-auto inline-flex items-center gap-1 text-[11px] text-good"><Check size={13} /> {ok}</span>}
+            <Boton type="button" variante="linea" onClick={onCerrar}>Cancelar</Boton>
+            <Boton type="submit" variante="accion" disabled={guardando}><Check size={13} /> {guardando ? "Guardando…" : "Guardar"}</Boton>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 }
 
