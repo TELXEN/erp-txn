@@ -744,12 +744,12 @@ function Partidas() {
             const wbs = prefijosWBS(partidas.filter((x) => x.proyecto_id === proyectoId));
             return (
             <div key={proyecto} className="border-b border-line last:border-0">
-              <div className="flex items-center justify-between gap-3 bg-ink px-5 py-2">
-                <p className="text-xs font-semibold uppercase tracking-wider text-paper">{proyecto}</p>
+              <div className="flex items-center justify-between gap-3 bg-sidebar px-5 py-2">
+                <p className="text-xs font-semibold uppercase tracking-wider text-[#F8FAFC]">{proyecto}</p>
                 <button
                   type="button"
                   onClick={() => void renumerar(proyectoId, proyecto)}
-                  className="inline-flex items-center gap-1.5 rounded border border-paper/30 px-2 py-1 font-mono text-[10px] text-paper hover:bg-paper/10"
+                  className="inline-flex items-center gap-1.5 rounded border border-white/20 px-2 py-1 font-mono text-[10px] text-slate-300 transition-colors hover:border-white/40 hover:text-white"
                 >
                   <ListOrdered size={12} /> Renumerar WBS
                 </button>
