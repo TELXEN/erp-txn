@@ -5,7 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { ApuPartida } from "@/components/ApuPartida";
-import { CotizacionHoja } from "@/components/CotizacionHoja";
+import { AutoMaestra, CotizacionHoja } from "@/components/CotizacionHoja";
 import { HojaCotizacion } from "@/components/cotizaciones/HojaCotizacion";
 
 import { apuDb } from "@/lib/apu";
@@ -530,7 +530,26 @@ function Cotizaciones() {
               </div>
               <div className="sm:col-span-3">
                 <Campo etiqueta="Descripción">
-                  <Input value={item.nombre} onChange={(e) => setItem({ ...item, nombre: e.target.value })} required maxLength={160} />
+                  <AutoMaestra
+                    value={item.nombre}
+                    maestras={maestras}
+                    onChange={(v) => setItem({ ...item, nombre: v })}
+                    onElegir={(m) => {
+                      setMaestraSel(m.id);
+                      setItem({
+                        codigo: sugerirCodigo(m.especialidad, m.categoria ?? ""),
+                        nombre: m.nombre,
+                        especialidad: m.especialidad,
+                        categoria: m.categoria ?? "",
+                        marca: m.marca ?? "",
+                        unidad: m.unidad,
+                        metrado: item.metrado,
+                        precio_unitario: String(m.precio_unitario ?? 0),
+                      });
+                    }}
+                    placeholder="Escribe o elige una partida del banco…"
+                    className="w-full rounded-md border border-line bg-card px-2.5 py-1.5 text-[13px] outline-none focus:border-primary"
+                  />
                 </Campo>
               </div>
               <Campo etiqueta="Especialidad">

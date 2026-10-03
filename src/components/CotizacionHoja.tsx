@@ -38,6 +38,25 @@ const num = (n: number | string) =>
 
 const esPartida = (i: CotizacionItem) => i.tipo !== "grupo";
 
+/** Normaliza texto para buscar sin importar mayúsculas ni tildes. */
+const normalizar = (s: string) =>
+  s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+
+/** Partidas maestras activas que coinciden con el texto (nombre o código); primero las que empiezan igual. */
+function buscarMaestras(maestras: PartidaMaestra[], texto: string, limite = 8): PartidaMaestra[] {
+  const q = normalizar(texto.trim());
+  if (!q) return [];
+  const activas = maestras.filter((m) => m.activo);
+  const coinciden = activas.filter((m) => normalizar(m.nombre).includes(q) || normalizar(m.codigo).includes(q));
+  return coinciden
+    .sort(
+      (a, b) =>
+        Number(normalizar(b.nombre).startsWith(q)) - Number(normalizar(a.nombre).startsWith(q)) ||
+        a.nombre.localeCompare(b.nombre),
+    )
+    .slice(0, limite);
+}
+
 /** Construye el árbol visible: capítulo (especialidad), subcapítulo (categoría), partidas y subpartidas. */
 function construirArbol(items: CotizacionItem[]): Fila[] {
   const wbs = prefijosWBS(items);
@@ -438,13 +457,6 @@ export function CotizacionHoja({
     else refrescar();
   }
 
-  /** Partidas maestras activas de la especialidad; primero las de la categoría del grupo. */
-  function maestrasDelGrupo(esp: string, cat: string) {
-    const activas = maestras.filter((m) => m.activo && m.especialidad === esp);
-    return [...activas].sort(
-      (a, b) => Number(b.categoria === cat) - Number(a.categoria === cat) || a.codigo.localeCompare(b.codigo),
-    );
-  }
 
   /** Borra solo la partida (y sus subpartidas); la especialidad y la categoría se conservan. */
   async function borrar(id: string) {
@@ -573,6 +585,43 @@ export function CotizacionHoja({
             </option>
           ))}
         </select>
+      );
+    if (col === "nombre" && f.clase === "item")
+      return (
+        <AutoMaestra
+          value={valor}
+          autoFocus
+          maestras={maestras}
+          onChange={setValor}
+          onElegir={(m) => {
+            void (async () => {
+              const { error: err } = await supabase
+                .from("cotizacion_items")
+                .update({
+                  nombre: m.nombre,
+                  marca: m.marca ?? "",
+                  unidad: m.unidad,
+                  precio_unitario: Number(m.precio_unitario),
+                } as never)
+                .eq("id", f.it.id);
+              if (err) setError(err.message);
+              setEditando(false);
+              refrescar();
+            })();
+          }}
+          onEnter={() => {
+            void guardar(f, c, valor).then(() => {
+              setEditando(false);
+              mover(1, 0);
+            });
+          }}
+          onEscape={() => setEditando(false)}
+          onBlur={() => {
+            void guardar(f, c, valor).then(() => setEditando(false));
+          }}
+          onFocus={(e) => e.currentTarget.select()}
+          className="w-full rounded border border-primary bg-card px-1.5 py-1 text-[13px] outline-none"
+        />
       );
     const numerico = col === "metrado" || col === "precio_unitario";
     return (
@@ -717,7 +766,7 @@ export function CotizacionHoja({
               <FilaFantasma
                 key={`f:${f.clave}`}
                 sangria={f.clase === "cap" ? 18 : 30}
-                maestras={maestrasDelGrupo(fantasma.esp, fantasma.cat)}
+                maestras={maestras}
                 onCrear={(nombre) => crearPartida(fantasma.esp, fantasma.cat, nombre)}
                 onCrearMaestra={(m) => crearPartida(fantasma.esp, fantasma.cat, m.nombre, m.unidad, m)}
               />
@@ -921,6 +970,123 @@ export function CotizacionHoja({
   );
 }
 
+/** Campo de descripción con autocompletado desde el banco de partidas maestras. */
+export function AutoMaestra({
+  value,
+  onChange,
+  maestras,
+  onElegir,
+  onEnter,
+  onEscape,
+  onBlur,
+  autoFocus,
+  disabled,
+  placeholder,
+  className,
+  style,
+  onFocus,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  maestras: PartidaMaestra[];
+  onElegir: (m: PartidaMaestra) => void;
+  onEnter?: () => void;
+  onEscape?: () => void;
+  onBlur?: () => void;
+  autoFocus?: boolean;
+  disabled?: boolean;
+  placeholder?: string;
+  className?: string;
+  style?: React.CSSProperties;
+  onFocus?: (e: React.FocusEvent<HTMLInputElement>) => void;
+}) {
+  const [abierto, setAbierto] = useState(false);
+  const [indice, setIndice] = useState(0);
+  const sugerencias = useMemo(() => buscarMaestras(maestras, value), [maestras, value]);
+
+  function elegir(m: PartidaMaestra) {
+    setAbierto(false);
+    onElegir(m);
+  }
+
+  return (
+    <div className="relative w-full">
+      <input
+        value={value}
+        disabled={disabled}
+        autoFocus={autoFocus}
+        placeholder={placeholder}
+        className={className}
+        style={style}
+        onFocus={(e) => {
+          setAbierto(true);
+          onFocus?.(e);
+        }}
+        onChange={(e) => {
+          onChange(e.target.value);
+          setAbierto(true);
+          setIndice(0);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "ArrowDown" && abierto && sugerencias.length) {
+            e.preventDefault();
+            setIndice((i) => (i + 1) % sugerencias.length);
+            return;
+          }
+          if (e.key === "ArrowUp" && abierto && sugerencias.length) {
+            e.preventDefault();
+            setIndice((i) => (i - 1 + sugerencias.length) % sugerencias.length);
+            return;
+          }
+          if (e.key === "Enter") {
+            e.preventDefault();
+            if (abierto && sugerencias[indice]) elegir(sugerencias[indice] as PartidaMaestra);
+            else onEnter?.();
+            return;
+          }
+          if (e.key === "Escape") {
+            e.preventDefault();
+            if (abierto) setAbierto(false);
+            else onEscape?.();
+          }
+        }}
+        onBlur={() => {
+          // Espera al clic en una sugerencia antes de cerrar.
+          setTimeout(() => {
+            setAbierto(false);
+            onBlur?.();
+          }, 150);
+        }}
+      />
+      {abierto && sugerencias.length > 0 && (
+        <ul className="absolute left-0 right-0 top-full z-30 mt-1 max-h-64 overflow-auto rounded-md border border-line bg-card py-1 shadow-lg">
+          {sugerencias.map((m, i) => (
+            <li key={m.id}>
+              <button
+                type="button"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  elegir(m);
+                }}
+                onMouseEnter={() => setIndice(i)}
+                className={`flex w-full items-baseline gap-2 px-2.5 py-1.5 text-left text-[12.5px] ${
+                  i === indice ? "bg-primary/10 text-ink" : "text-ink"
+                }`}
+              >
+                <span className="shrink-0 font-mono text-[11px] text-muted-foreground">{m.codigo}</span>
+                <span className="min-w-0 flex-1 truncate">{m.nombre}</span>
+                <span className="shrink-0 font-mono text-[11px] text-muted-foreground">
+                  {m.unidad} · {soles(Number(m.precio_unitario))}
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 /** Fila punteada al pie de cada grupo: escribir y pulsar Enter crea la partida y abre otra. */
 function FilaFantasma({
   sangria,
@@ -935,7 +1101,7 @@ function FilaFantasma({
 }) {
   const [texto, setTexto] = useState("");
   const [ocupado, setOcupado] = useState(false);
-  const ref = useRef<HTMLInputElement>(null);
+  const ref = useRef<HTMLDivElement>(null);
 
   async function confirmar() {
     const nombre = texto.trim();
@@ -943,57 +1109,35 @@ function FilaFantasma({
     setOcupado(true);
     const ok = await onCrear(nombre);
     setOcupado(false);
-    if (ok) {
-      setTexto("");
-      ref.current?.focus();
-    }
+    if (ok) setTexto("");
   }
 
-  async function elegirMaestra(id: string) {
-    const m = maestras.find((x) => x.id === id);
-    if (!m || ocupado) return;
+  async function elegirMaestra(m: PartidaMaestra) {
+    if (ocupado) return;
     setOcupado(true);
-    await onCrearMaestra(m);
+    const ok = await onCrearMaestra(m);
     setOcupado(false);
-    ref.current?.focus();
+    if (ok) setTexto("");
+    ref.current?.querySelector("input")?.focus();
   }
 
   return (
     <tr className="print:hidden">
       <td colSpan={8} className="border-b border-dashed border-line/70 px-2 py-1">
-        <div className="flex items-center gap-2">
-          <input
-            ref={ref}
+        <div ref={ref} className="flex items-center gap-2">
+          <AutoMaestra
             value={texto}
             disabled={ocupado}
-            onChange={(e) => setTexto(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                void confirmar();
-              }
-              if (e.key === "Escape") setTexto("");
-            }}
+            maestras={maestras}
+            onChange={setTexto}
+            onElegir={(m) => void elegirMaestra(m)}
+            onEnter={() => void confirmar()}
+            onEscape={() => setTexto("")}
             onBlur={() => void confirmar()}
-            placeholder="+ Escribe aquí para añadir una partida y pulsa Enter…"
+            placeholder="+ Escribe la descripción: se sugiere del banco de partidas, Enter crea…"
             style={{ paddingLeft: sangria }}
             className="w-full border-none bg-transparent font-mono text-[13px] italic text-muted-foreground outline-none placeholder:text-muted-foreground/60 focus:not-italic focus:text-ink"
           />
-          {maestras.length > 0 && (
-            <select
-              value=""
-              disabled={ocupado}
-              onChange={(e) => void elegirMaestra(e.target.value)}
-              className="w-64 shrink-0 rounded border border-dashed border-line/70 bg-transparent px-2 py-1 font-mono text-[12px] italic text-muted-foreground/70 outline-none focus:border-primary focus:not-italic focus:text-ink"
-            >
-              <option value="">o elige del catálogo maestro…</option>
-              {maestras.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.codigo} · {m.nombre} · {m.unidad} · {soles(Number(m.precio_unitario))}
-                </option>
-              ))}
-            </select>
-          )}
         </div>
       </td>
     </tr>
