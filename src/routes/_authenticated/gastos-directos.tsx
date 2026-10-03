@@ -439,7 +439,7 @@ function GastosDirectos() {
                                     <FilaCompra
                                       key={b.key}
                                       borrador={b}
-                                      insumos={insumosDePartida[p.id] ?? []}
+                                      insumos={maestroInsumos}
                                       proveedores={proveedores}
                                       cuentas={cuentasActivas}
                                       onCambiar={(nb) => setFilasDe(p.id, filasDe(p.id).map((x) => (x.key === b.key ? nb : x)))}
@@ -448,7 +448,7 @@ function GastosDirectos() {
                                         setFilasDe(p.id, resto.length ? resto : [borradorVacio()]);
                                       }}
                                       onRegistrar={async () => {
-                                        const error = await registrar(p.id, b, insumosDePartida[p.id] ?? []);
+                                        const error = await registrar(p.id, b, maestroInsumos);
                                         if (error) return error;
                                         const resto = filasDe(p.id).filter((x) => x.key !== b.key);
                                         setFilasDe(p.id, resto.length ? resto : [borradorVacio()]);
