@@ -8,7 +8,7 @@ import { consultarDocumentoSunat, consultarTipoCambio } from "@/lib/decolecta.fu
 import { CODIGOS_SPOT, MODALIDADES_TRASLADO, MOTIVOS_BAJA, MOTIVOS_NOTA_CREDITO, MOTIVOS_NOTA_DEBITO, MOTIVOS_TRASLADO, PESTANAS_CPE, TASAS_IGV, TASAS_PERCEPCION, TASAS_RETENCION, TIPOS_DOC_RELACIONADO, UNIDADES_SUNAT, calcularItem, cuotaVacia, docRelacionadoVacio, itemComprobanteVacio, repartirCuotas, usaImportes, usaItems, usaRelacionados, type CuotaEditor, type DocRelacionado, type ItemEditor, type OperacionTipo, type TipoComprobante, type TipoTributarioCpe } from "@/lib/facturacion";
 import { hoy } from "@/lib/format";
 
-export const C = { ink: "#000000", text: "#000000", muted: "#000000", line: "#cbd5e1", soft: "#f8fafc", green: "#047857", greenDark: "#000000", greenSoft: "#ecfdf5", white: "#ffffff", dark: "#0f172a" };
+export const C = { ink: "#0f172a", text: "#0f172a", muted: "#334155", line: "#cbd5e1", soft: "#f8fafc", green: "#1e293b", greenDark: "#0f172a", greenSoft: "#ffffff", white: "#ffffff", dark: "#0f172a" };
 const N = (n: number) => Number(n || 0).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 export type FormCpe = ReturnType<typeof nuevoFormCpe>;
@@ -31,10 +31,10 @@ const edSel: CSSProperties = { ...ed, cursor: "pointer" };
 const cel: CSSProperties = { ...ed, borderBottom: "none", padding: "4px 2px" };
 
 function Bloque({ titulo, children, style }: { titulo: string; children: ReactNode; style?: CSSProperties }) {
-  return <div style={{ ...style }}><span style={{ fontSize: 9, color: C.muted, fontFamily: "var(--font-global)", fontWeight: 300, letterSpacing: ".04em" }}>{titulo}</span><div style={{ marginTop: 5, display: "grid", gap: 4 }}>{children}</div></div>;
+  return <div style={{ ...style }}><span style={{ fontSize: 9, color: C.muted, fontFamily: "var(--font-global)", fontWeight: 700, letterSpacing: ".04em" }}>{titulo}</span><div style={{ marginTop: 5, display: "grid", gap: 4 }}>{children}</div></div>;
 }
 function Linea({ etiqueta, children }: { etiqueta: string; children: ReactNode }) {
-  return <label style={{ display: "grid", gridTemplateColumns: "88px 1fr", alignItems: "center", gap: 6 }}><span style={{ fontSize: 9, color: C.muted, fontFamily: "var(--font-global)", fontWeight: 300, textTransform: "uppercase" }}>{etiqueta}</span>{children}</label>;
+  return <label style={{ display: "grid", gridTemplateColumns: "88px 1fr", alignItems: "center", gap: 6 }}><span style={{ fontSize: 9, color: C.muted, fontFamily: "var(--font-global)", fontWeight: 700, textTransform: "uppercase" }}>{etiqueta}</span>{children}</label>;
 }
 
 export type Empresa = { razon_social?: string; eslogan?: string; ruc?: string; direccion?: string; telefono?: string; web?: string; logo_url?: string } | null | undefined;
@@ -89,24 +89,24 @@ export function HojaComprobante(props: {
         <header style={{ display: "flex", gap: 22, alignItems: "flex-start", borderBottom: `3px solid ${C.green}`, paddingBottom: 14 }}>
           <div style={{ width: 96, display: "flex", alignItems: "center", justifyContent: "center" }}>{empresa?.logo_url ? <img src={empresa.logo_url} alt="" style={{ maxWidth: 92, maxHeight: 54 }} /> : <div style={{ width: 52, height: 52, borderRadius: 9, background: C.green, color: C.white, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800 }}>TX</div>}</div>
           <div style={{ flex: 1, minHeight: 76, textAlign: "right", paddingRight: 10, display: "flex", flexDirection: "column", justifyContent: "flex-start" }}>
-            <b style={{ fontSize: 11, fontWeight: 700 }}>{empresa?.razon_social || "TELXEN SAC"}</b>
+            <b style={{ fontSize: 15, fontWeight: 700 }}>{empresa?.razon_social || "TELXEN SAC"}</b>
             <div style={{ fontFamily: "var(--font-global)", fontWeight: 300, fontSize: 8, marginTop: 2, lineHeight: 1.15, textAlign: "right" }}>{empresa?.eslogan || "SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL"}</div>
             <div style={{ fontFamily: "var(--font-global)", fontWeight: 300, fontSize: 8.5, marginTop: 2, lineHeight: 1.15, textAlign: "right" }}>{empresa?.direccion || "—"}</div>
             <div style={{ fontFamily: "var(--font-global)", fontWeight: 300, fontSize: 8.5, marginTop: 2, lineHeight: 1.15, textAlign: "right" }}>{empresa?.web || "—"}</div>
           </div>
           <div style={{ width: 248, textAlign: "center", flexShrink: 0, display: "flex", flexDirection: "column", justifyContent: "center" }}>
-            <div style={{ background: C.greenSoft, borderTop: `4px solid ${C.green}`, borderRadius: 5, padding: "10px 8px" }}>
-              <select value={tipo} disabled={bloqueado} onChange={(e) => onTipoChange(e.target.value as TipoComprobante)} title="Tipo de comprobante" style={{ ...edSel, textAlign: "center", fontFamily: "var(--font-global)", fontSize: 10, fontWeight: 300, borderBottom: "none", whiteSpace: "nowrap" }}>
+            <div style={{ background: C.white, border: `1.5px solid ${C.green}`, borderRadius: 6, padding: "12px 10px" }}>
+              <select value={tipo} disabled={bloqueado} onChange={(e) => onTipoChange(e.target.value as TipoComprobante)} title="Tipo de comprobante" style={{ ...edSel, textAlign: "center", fontFamily: "var(--font-global)", fontSize: 12, fontWeight: 700, borderBottom: "none", whiteSpace: "nowrap" }}>
                 {tipos.map((p) => <option key={p.tipo} value={p.tipo}>{p.corto}</option>)}
               </select>
               <div style={{ fontSize: 9, fontWeight: 700, marginTop: 4 }}>RUC: {empresa?.ruc || "—"}</div>
               <div style={{ display: "flex", gap: 4, justifyContent: "center", alignItems: "center", marginTop: 3 }}>
-                <input value={form.serie} disabled={bloqueado} onChange={(e) => set("serie", e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 4))} list="cpe-series" title="Serie editable (4 caracteres)" style={{ ...ed, width: 44, fontSize: 11, fontWeight: 700, borderBottom: "none", textAlign: "right" }} />
+                <input value={form.serie} disabled={bloqueado} onChange={(e) => set("serie", e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 4))} list="cpe-series" title="Serie editable (4 caracteres)" style={{ ...ed, width: 52, fontSize: 15, fontWeight: 700, borderBottom: "none", textAlign: "right" }} />
                 <datalist id="cpe-series">{series.filter((s) => s.tipo_comprobante === tipo).map((s) => <option key={s.id} value={s.serie} />)}</datalist>
-                <span style={{ fontSize: 11, fontWeight: 700 }}>-</span>
+                <span style={{ fontSize: 15, fontWeight: 700 }}>-</span>
                 {bloqueado
-                  ? <span style={{ fontSize: 11, fontWeight: 700 }}>{numeroPreview}</span>
-                  : <input value={form.correlativo_inicial} onChange={(e) => set("correlativo_inicial", e.target.value.replace(/\D/g, "").slice(0, 8))} placeholder="AUTOMÁTICO" title="Correlativo editable: si lo defines, la numeración continúa desde aquí" style={{ ...ed, width: 96, fontSize: 11, fontWeight: 700, borderBottom: "none", textAlign: "left" }} />}
+                  ? <span style={{ fontSize: 15, fontWeight: 700 }}>{numeroPreview}</span>
+                  : <input value={form.correlativo_inicial} onChange={(e) => set("correlativo_inicial", e.target.value.replace(/\D/g, "").slice(0, 8))} placeholder="AUTOMÁTICO" title="Correlativo editable: si lo defines, la numeración continúa desde aquí" style={{ ...ed, width: 110, fontSize: 15, fontWeight: 700, borderBottom: "none", textAlign: "left" }} />}
               </div>
             </div>
             <div style={{ fontSize: 8.5, fontWeight: 700, marginTop: 4 }}>{etiquetaTipo}</div>
@@ -198,7 +198,7 @@ export function HojaComprobante(props: {
         </div>}
 
         {usaItems(tipo) && <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 18, fontSize: 9 }}>
-          <thead><tr style={{ background: "#f1f5f9", color: C.ink, textAlign: "left", borderBottom: `1px solid ${C.line}` }}>{["#", "Código", "Descripción", "Und.", "Cantidad", ...(usaImportes(tipo) ? ["V. unitario", "Dscto.", "Subtotal"] : []), ""].map((x, i) => <th key={i} style={{ padding: "7px 6px", fontWeight: 700 }}>{x}</th>)}</tr></thead>
+          <thead><tr style={{ background: "#f8fafc", color: C.ink, textAlign: "left", borderBottom: `1px solid ${C.line}` }}>{["#", "Código", "Descripción", "Unidad", "Cantidad", ...(usaImportes(tipo) ? ["Valor unitario", "Descuento", "Importe total"] : []), ""].map((x, i) => <th key={i} style={{ padding: "7px 6px", fontWeight: 700 }}>{x}</th>)}</tr></thead>
           <tbody>{items.map((x, i) => <tr key={i} style={{ borderBottom: `1px solid ${C.line}`, background: C.white }}>
             <td style={{ padding: 4, width: 22 }}>{i + 1}</td>
             <td style={{ padding: 4, width: 70 }}><input value={x.codigo} onChange={(e) => actualizarItem(i, "codigo", e.target.value)} style={cel} /></td>
@@ -216,7 +216,7 @@ export function HojaComprobante(props: {
         {usaItems(tipo) && <button type="button" onClick={() => setItems([...items, itemComprobanteVacio()])} style={{ marginTop: 7, fontSize: 9.5, border: `1px dashed ${C.green}`, color: C.green, background: C.white, borderRadius: 4, padding: "4px 9px", cursor: "pointer", display: "inline-flex", gap: 4, alignItems: "center" }}><Plus size={12} />Agregar línea</button>}
 
         {usaRelacionados(tipo) && <><table style={{ width: "100%", borderCollapse: "collapse", marginTop: 18, fontSize: 9 }}>
-          <thead><tr style={{ background: "#f1f5f9", color: C.ink, textAlign: "left", borderBottom: `1px solid ${C.line}` }}>{["#", "Tipo", "Serie", "Número", "Fecha", "Importe", ""].map((x, i) => <th key={i} style={{ padding: "7px 6px" }}>{x}</th>)}</tr></thead>
+          <thead><tr style={{ background: "#f8fafc", color: C.ink, textAlign: "left", borderBottom: `1px solid ${C.line}` }}>{["#", "Tipo", "Serie", "Número", "Fecha", "Importe", ""].map((x, i) => <th key={i} style={{ padding: "7px 6px" }}>{x}</th>)}</tr></thead>
           <tbody>{docs.map((d, i) => <tr key={i} style={{ borderBottom: `1px solid ${C.line}`, background: C.white }}>
             <td style={{ padding: 4, width: 22 }}>{i + 1}</td>
             <td style={{ padding: 4, width: 110 }}><select value={d.tipo} onChange={(e) => actualizarDoc(i, "tipo", e.target.value)} style={{ ...cel, cursor: "pointer" }}>{TIPOS_DOC_RELACIONADO.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></td>
