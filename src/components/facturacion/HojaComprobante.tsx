@@ -251,7 +251,7 @@ export function HojaComprobante(props: {
                 {fila(<>Otros Cargos {cargo("otros_cargos")}</>, money(montos.otrosCargos))}
                 {fila(<>Otros Tributos {cargo("otros_tributos")}</>, money(montos.otrosTributos))}
                 {fila("Monto de Redondeo", money(montos.redondeo))}
-                <div style={{ display: "flex", justifyContent: "space-between", padding: 11, border: "1.4px solid #006648", borderRadius: 6, marginTop: 4, color: "#006648", fontWeight: 700, fontSize: 12 }}><span>IMPORTE TOTAL</span><span>{money(montos.total)}</span></div>
+                <div style={{ display: "flex", justifyContent: "space-between", padding: 11, border: `1.4px solid ${C.green}`, borderRadius: 6, marginTop: 4, color: C.green, fontWeight: 700, fontSize: 12 }}><span>IMPORTE TOTAL</span><span>{money(montos.total)}</span></div>
               </>;
             })()}
           </div>
