@@ -38,7 +38,7 @@ import {
   vigenciaHasta,
   type EstadoCotizacion,
 } from "@/lib/cotizaciones";
-import { Check, Calculator, CornerDownRight, ListOrdered, Upload, X, Eye, Trash2, ArrowLeft, Library, Plus, Pencil } from "lucide-react";
+import { Check, Calculator, CornerDownRight, ListOrdered, Upload, X, Eye, Trash2, ArrowLeft, Library, Plus, Pencil, Copy } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/cotizaciones")({
   head: () => ({
@@ -344,6 +344,82 @@ function Cotizaciones() {
   async function cambiarEstado(id: string, estado: EstadoCotizacion) {
     await supabase.from("cotizaciones").update({ estado }).eq("id", id);
     qc.invalidateQueries({ queryKey: ["cotizaciones"] });
+  }
+
+  async function duplicar(c: Cotizacion) {
+    setError("");
+    setAviso("");
+    try {
+      const codigo = await generarCodigoCotizacion();
+      const cliente = clientes.find((cl) => cl.id === c.cliente_id);
+      const { data: nueva, error: errC } = await supabase
+        .from("cotizaciones")
+        .insert({
+          codigo,
+          cliente_id: c.cliente_id ?? null,
+          cliente: cliente?.razon_social ?? c.cliente,
+          nombre: c.nombre,
+          ubicacion: c.ubicacion,
+          fecha_emision: hoy(),
+          validez_dias: c.validez_dias,
+          pct_gastos_generales: c.pct_gastos_generales,
+          pct_utilidad: c.pct_utilidad,
+          condiciones: c.condiciones,
+          recursos_humanos: c.recursos_humanos ?? "",
+          tiempo_ejecucion: c.tiempo_ejecucion ?? "",
+          condiciones_pago: c.condiciones_pago ?? "",
+          aplica_igv: c.aplica_igv ?? true,
+          moneda: c.moneda,
+          tipo_cambio: c.tipo_cambio,
+          estado: "Borrador",
+        })
+        .select("id")
+        .single();
+      if (errC) throw errC;
+      const { data: orig, error: errI } = await supabase
+        .from("cotizacion_items")
+        .select("*")
+        .eq("cotizacion_id", c.id)
+        .order("orden");
+      if (errI) throw errI;
+      const mapa = new Map<string, string>();
+      let pendientes = [...(orig ?? [])];
+      while (pendientes.length) {
+        const listos = pendientes.filter((i) => !i.padre_id || mapa.has(i.padre_id));
+        if (!listos.length) break;
+        const { data: nuevas, error: errN } = await supabase
+          .from("cotizacion_items")
+          .insert(
+            listos.map((i) => ({
+              cotizacion_id: nueva.id,
+              padre_id: i.padre_id ? (mapa.get(i.padre_id) ?? null) : null,
+              tipo: i.tipo,
+              codigo: i.codigo,
+              nombre: i.nombre,
+              especialidad: i.especialidad,
+              categoria: i.categoria,
+              marca: i.marca,
+              unidad: i.unidad,
+              metrado: i.metrado,
+              precio_unitario: i.precio_unitario,
+              rendimiento: i.rendimiento,
+              jornada: i.jornada,
+              pct_herramientas: i.pct_herramientas,
+              orden: i.orden,
+            })),
+          )
+          .select("id");
+        if (errN) throw errN;
+        (listos as CotizacionItem[]).forEach((i, idx) => mapa.set(i.id, nuevas![idx].id));
+        pendientes = pendientes.filter((i) => !mapa.has(i.id));
+      }
+      qc.invalidateQueries({ queryKey: ["cotizaciones"] });
+      qc.invalidateQueries({ queryKey: ["cotizacion_items", nueva.id] });
+      setAviso(`Copia creada: ${codigo}.`);
+      setSeleccion(nueva.id);
+    } catch (e2) {
+      setError(e2 instanceof Error ? e2.message : "No se pudo duplicar la cotización.");
+    }
   }
 
   async function borrarCotizacion(id: string) {
