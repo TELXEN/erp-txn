@@ -36,6 +36,8 @@ import {
   useCotizaciones,
   usePartidasMaestras,
   vigenciaHasta,
+  type Cotizacion,
+  type CotizacionItem,
   type EstadoCotizacion,
 } from "@/lib/cotizaciones";
 import { Check, Calculator, CornerDownRight, ListOrdered, Upload, X, Eye, Trash2, ArrowLeft, Library, Plus, Pencil, Copy } from "lucide-react";
@@ -410,7 +412,11 @@ function Cotizaciones() {
           )
           .select("id");
         if (errN) throw errN;
-        (listos as CotizacionItem[]).forEach((i, idx) => mapa.set(i.id, nuevas![idx].id));
+        if (!nuevas) throw new Error("No se pudieron copiar las partidas.");
+        (listos as CotizacionItem[]).forEach((i, idx) => {
+          const nuevoId = nuevas[idx]?.id;
+          if (nuevoId) mapa.set(i.id, nuevoId);
+        });
         pendientes = pendientes.filter((i) => !mapa.has(i.id));
       }
       qc.invalidateQueries({ queryKey: ["cotizaciones"] });
