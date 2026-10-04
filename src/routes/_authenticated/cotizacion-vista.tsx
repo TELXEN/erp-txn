@@ -99,23 +99,24 @@ function construirFilas(items: ItemCot[]): Fila[] {
   return filas;
 }
 
-function altoEstimadoFila(fila: Fila) {
+function altoEstimadoFila(fila: Fila, charsPorLinea = 62) {
   if (fila.clase !== "item") return 22;
-  // La descripción ocupa la mitad del nuevo ancho útil: ~55 caracteres por línea a 9 pt.
-  const lineas = Math.max(1, Math.ceil((fila.item.nombre || "").length / 62));
+  // La descripción ocupa la mitad del nuevo ancho útil: ~62 caracteres por línea en vertical.
+  const lineas = Math.max(1, Math.ceil((fila.item.nombre || "").length / charsPorLinea));
   return 14 + lineas * 15;
 }
 
-function paginarFilas(filas: Fila[]) {
+function paginarFilas(filas: Fila[], horizontal = false) {
   if (filas.length === 0) return [[]] as Fila[][];
+  const charsPorLinea = horizontal ? 95 : 62;
   const paginas: Fila[][] = [];
   let pendientes = [...filas];
   let primeraHoja = true;
 
   while (pendientes.length > 0) {
-    const capacidad = primeraHoja ? 470 : 650;
-    const capacidadFinal = primeraHoja ? 250 : 350;
-    const altoPendiente = pendientes.reduce((suma, fila) => suma + altoEstimadoFila(fila), 0);
+    const capacidad = horizontal ? (primeraHoja ? 330 : 455) : primeraHoja ? 470 : 650;
+    const capacidadFinal = horizontal ? (primeraHoja ? 175 : 245) : primeraHoja ? 250 : 350;
+    const altoPendiente = pendientes.reduce((suma, fila) => suma + altoEstimadoFila(fila, charsPorLinea), 0);
 
     if (altoPendiente <= capacidadFinal) {
       paginas.push(pendientes);
