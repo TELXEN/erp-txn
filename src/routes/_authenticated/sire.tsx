@@ -12,7 +12,7 @@ import { useAuth } from "@/lib/auth";
 import { Encabezado } from "@/components/AppShell";
 import { Panel, Campo, Input, Select, Boton, SinAcceso, Vacio } from "@/components/ui-kit";
 import { MESES, fecha as fmtFecha, soles } from "@/lib/format";
-import { guardarConfigSire, validarConexionSire } from "@/lib/sire.functions";
+import { guardarConfigSire, validarConexionSire, sincronizarSire, aceptarSire } from "@/lib/sire.functions";
 
 export const Route = createFileRoute("/_authenticated/sire")({
   head: () => ({
@@ -33,7 +33,9 @@ type Estado = "match" | "discrepancia" | "faltante" | "solo_erp";
 type Item = {
   clave: string; fecha: string; tipo: string; serie_numero: string; ruc: string; razon: string;
   base: number; igv: number; total_sunat: number | null; total_erp: number | null; igv_erp: number | null; estado: Estado;
+  vencimiento?: string; no_gravado?: number; isc?: number; otros?: number; moneda?: string; tipo_cambio?: number; raw?: Record<string, string>;
 };
+type ItemSunat = { clave: string; fecha: string; vencimiento: string; tipo: string; serie_numero: string; ruc: string; razon: string; base: number; igv: number; no_gravado: number; isc: number; otros: number; total: number; moneda: string; tipo_cambio: number; raw: Record<string, string> };
 
 const r2 = (n: number) => Math.round(n * 100) / 100;
 
@@ -158,30 +160,19 @@ async function cargarErp(libro: Libro, periodo: string): Promise<DocErp[]> {
   return [...mapa.values()];
 }
 
-/** Propuesta SUNAT simulada a partir del ERP, con discrepancias y faltantes de prueba. */
-function simularPropuesta(erp: DocErp[], libro: Libro, periodo: string): Item[] {
-  const items: Item[] = erp.map((d, i) => {
-    const desv = i % 5 === 3;
-    const total = desv ? r2(d.total * 1.02) : d.total;
-    const igv = r2(total - total / 1.18);
+/** Concilia la propuesta real de SUNAT contra los documentos del ERP. */
+function conciliar(sunat: ItemSunat[], erp: DocErp[]): Item[] {
+  const porSn = new Map(erp.map((d) => [d.serie_numero.toUpperCase(), d]));
+  return sunat.map((x) => {
+    const d = porSn.get(x.serie_numero.toUpperCase());
+    const totalPen = r2(x.moneda === "PEN" ? x.total : x.total * (x.tipo_cambio || 1));
+    const estado: Estado = !d ? "faltante" : Math.abs(totalPen - d.total) > 0.01 ? "discrepancia" : "match";
     return {
-      clave: d.clave, fecha: d.fecha, tipo: d.tipo, serie_numero: d.serie_numero, ruc: d.ruc, razon: d.razon,
-      base: r2(total - igv), igv, total_sunat: total, total_erp: d.total, igv_erp: d.igv,
-      estado: Math.abs(total - d.total) > 0.01 ? "discrepancia" : "match",
+      clave: x.clave, fecha: x.fecha, tipo: x.tipo, serie_numero: x.serie_numero, ruc: x.ruc, razon: x.razon,
+      base: x.base, igv: x.igv, total_sunat: x.total, total_erp: d?.total ?? null, igv_erp: d?.igv ?? null, estado,
+      vencimiento: x.vencimiento, no_gravado: x.no_gravado, isc: x.isc, otros: x.otros, moneda: x.moneda, tipo_cambio: x.tipo_cambio, raw: x.raw,
     };
-  });
-  if (libro === "RCE") {
-    const ejemplos = [
-      { ruc: "20100070970", razon: "SUPERMERCADOS PERUANOS S.A.", total: 354.0 },
-      { ruc: "20331061655", razon: "PROMART HOMECENTER S.A.C.", total: 1180.0 },
-    ];
-    ejemplos.forEach((e, k) => {
-      const igv = r2(e.total - e.total / 1.18);
-      const sn = `F${900 + k}-${String(1520 + k).padStart(8, "0")}`;
-      items.push({ clave: `01|${sn}`, fecha: `${periodo}-${String(10 + k * 7).padStart(2, "0")}`, tipo: "01", serie_numero: sn, ruc: e.ruc, razon: e.razon, base: r2(e.total - igv), igv, total_sunat: e.total, total_erp: null, igv_erp: null, estado: "faltante" });
-    });
-  }
-  return items.sort((a, b) => (a.fecha < b.fecha ? -1 : 1));
+  }).sort((a, b) => (a.fecha < b.fecha ? -1 : 1));
 }
 
 const ESTADO_UI: Record<Estado, { t: string; c: string; I: React.ElementType }> = {
@@ -198,6 +189,11 @@ function PanelLibro({ libro }: { libro: Libro }) {
   const [periodo, setPeriodo] = useState(periodoDefecto());
   const [paso, setPaso] = useState(1);
   const [progreso, setProgreso] = useState<number | null>(null);
+  const [fase, setFase] = useState("");
+  const [detalle, setDetalle] = useState<Item | null>(null);
+  const sincronizar$ = useServerFn(sincronizarSire);
+  const aceptar$ = useServerFn(aceptarSire);
+  const { data: rucEmpresa } = useQuery({ queryKey: ["sire-ruc"], queryFn: async () => (await supabase.from("empresa_config").select("ruc").limit(1).maybeSingle()).data?.ruc ?? "" });
   const [filtro, setFiltro] = useState<"todos" | "ok" | "disc" | "sunat">("todos");
 
   const { data: reg } = useQuery({
@@ -205,17 +201,25 @@ function PanelLibro({ libro }: { libro: Libro }) {
     queryFn: async () => (await supabase.from("sire_periodos").select("*").eq("libro", libro).eq("periodo", periodo).maybeSingle()).data,
   });
   const items = (reg?.items as Item[] | undefined) ?? [];
-  useEffect(() => { setPaso(reg ? (reg.estado === "Aceptado" ? 3 : 2) : 1); }, [reg?.id, reg?.estado]);
+  useEffect(() => { setPaso(reg && reg.estado !== "Pendiente" ? (reg.estado === "Aceptado" ? 3 : 2) : 1); }, [reg?.id, reg?.estado]);
 
   async function sincronizar() {
-    setProgreso(0);
-    const t = setInterval(() => setProgreso((p) => (p === null ? p : Math.min(p + 9, 92))), 160);
+    setProgreso(5); setFase("Solicitando propuesta a SUNAT…");
+    const t = setInterval(() => setProgreso((p) => (p === null ? p : Math.min(p + 2, 90))), 1000);
     try {
+      setTimeout(() => setFase("SUNAT procesando…"), 2500);
+      const r = await sincronizar$({ data: { libro, periodo, ticket: reg?.estado === "Pendiente" ? reg.ticket : null } });
+      if (r.estado === "error") { toast.error(r.mensaje); return; }
+      if (r.estado === "pendiente") {
+        await supabase.from("sire_periodos").upsert({ libro, periodo, estado: "Pendiente", ticket: r.ticket, origen: "sunat" }, { onConflict: "libro,periodo" });
+        await qc.invalidateQueries({ queryKey: ["sire", libro, periodo] });
+        toast.warning(r.mensaje); return;
+      }
+      setFase("Descargando y conciliando…");
       const erp = await cargarErp(libro, periodo);
-      await new Promise((r) => setTimeout(r, 1800));
-      const its = simularPropuesta(erp, libro, periodo);
+      const its = conciliar(r.items as ItemSunat[], erp);
       const fila = {
-        libro, periodo, estado: "Sincronizado", items: its as any,
+        libro, periodo, estado: "Sincronizado", items: its as any, ticket: r.ticket, origen: "sunat",
         total_base: r2(its.reduce((s, i) => s + i.base, 0)), total_igv: r2(its.reduce((s, i) => s + i.igv, 0)), total_docs: its.length,
         sincronizado_en: new Date().toISOString(), aceptado_por: null, aceptado_en: null,
       };
@@ -223,11 +227,11 @@ function PanelLibro({ libro }: { libro: Libro }) {
       if (error) throw error;
       setProgreso(100);
       await qc.invalidateQueries({ queryKey: ["sire", libro, periodo] });
-      toast.success(`Propuesta ${libro} sincronizada (simulación): ${its.length} documentos`);
+      toast.success(`Propuesta ${libro} descargada de SUNAT: ${its.length} comprobantes`);
       setPaso(2);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Error al sincronizar");
-    } finally { clearInterval(t); setTimeout(() => setProgreso(null), 300); }
+    } finally { clearInterval(t); setFase(""); setTimeout(() => setProgreso(null), 300); }
   }
 
   const cuenta = useMemo(() => ({
@@ -239,7 +243,7 @@ function PanelLibro({ libro }: { libro: Libro }) {
   const visibles = items.filter((i) => filtro === "todos" || (filtro === "ok" && i.estado === "match") || (filtro === "disc" && i.estado === "discrepancia") || (filtro === "sunat" && i.estado === "faltante"));
 
   function generarTxt() {
-    const ruc = "";
+    const ruc = rucEmpresa ?? "";
     const lineas = items.map((i, n) => [periodo.replace("-", ""), String(n + 1).padStart(6, "0"), fmtFecha(i.fecha), i.tipo, ...i.serie_numero.split("-"), "6", i.ruc, i.razon, i.base.toFixed(2), i.igv.toFixed(2), (i.total_sunat ?? 0).toFixed(2), "PEN"].join("|"));
     const blob = new Blob([lineas.join("\r\n") + "\r\n"], { type: "text/plain;charset=utf-8" });
     const a = document.createElement("a");
@@ -250,10 +254,12 @@ function PanelLibro({ libro }: { libro: Libro }) {
   }
   async function enviar() {
     if (!reg) return;
+    const r = await aceptar$({ data: { libro, periodo } });
+    if (!r.ok) { toast.error(r.mensaje); return; }
     const { error } = await supabase.from("sire_periodos").update({ estado: "Aceptado", aceptado_por: session?.user.id ?? null, aceptado_en: new Date().toISOString() }).eq("id", reg.id);
     if (error) { toast.error(error.message); return; }
     await qc.invalidateQueries({ queryKey: ["sire", libro, periodo] });
-    toast.success(`Aceptación de la propuesta ${libro} enviada a SUNAT (simulación)`);
+    toast.success(r.mensaje);
   }
 
   const [y = 2026, m = 1] = periodo.split("-").map(Number);
@@ -279,6 +285,7 @@ function PanelLibro({ libro }: { libro: Libro }) {
         {reg && <span className="ml-auto font-mono text-[11px] text-muted-foreground">Estado: <b className={reg.estado === "Aceptado" ? "text-good" : "text-ink"}>{reg.estado}</b></span>}
       </div>
 
+      {detalle && <DetalleDoc item={detalle} onCerrar={() => setDetalle(null)} />}
       <div key={paso} className="rise">
         {paso === 1 && (
           <Panel titulo={`PASO 1 · SINCRONIZAR PROPUESTA ${libro}`}>
@@ -290,6 +297,7 @@ function PanelLibro({ libro }: { libro: Libro }) {
             </div>
             {progreso !== null && (
               <div className="space-y-2 px-5 pb-5">
+                <p className="font-mono text-[11px] text-muted-foreground">{fase}</p>
                 <div className="h-1.5 overflow-hidden rounded-full bg-muted"><div className="h-full bg-primary transition-all duration-150" style={{ width: `${progreso}%` }} /></div>
                 {Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-7 animate-pulse rounded bg-muted" />)}
               </div>
@@ -314,7 +322,7 @@ function PanelLibro({ libro }: { libro: Libro }) {
                     {visibles.map((i) => {
                       const e = ESTADO_UI[i.estado];
                       return (
-                        <tr key={i.clave} className="border-t border-line hover:bg-muted/30">
+                        <tr key={i.clave} onClick={() => setDetalle(i)} className="cursor-pointer border-t border-line hover:bg-muted/30">
                           <td className="px-3 py-2 font-mono text-xs">{fmtFecha(i.fecha)}</td>
                           <td className="px-3 py-2 font-mono text-xs">{i.tipo}</td>
                           <td className="px-3 py-2 font-mono text-xs">{i.serie_numero}</td>
@@ -329,7 +337,7 @@ function PanelLibro({ libro }: { libro: Libro }) {
                           <td className="px-3 py-2"><span className={`inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 font-mono text-[10px] ring-1 ${e.c}`}><e.I className="size-3" />{e.t}</span></td>
                           <td className="px-3 py-2 text-right">
                             {i.estado === "faltante" && (
-                              <Boton variante="linea" className="whitespace-nowrap !py-1" onClick={() => {
+                              <Boton variante="linea" className="whitespace-nowrap !py-1" onClick={(ev) => { ev.stopPropagation();
                                 toast.info(`Registra ${i.serie_numero} · ${i.razon} · ${soles(i.total_sunat ?? 0)}`);
                                 navigate({ to: libro === "RCE" ? "/gastos-generales" : "/facturacion-electronica" });
                               }}><Plus className="size-3" />{libro === "RCE" ? "Registrar en Gasto" : "Emitir"}</Boton>
@@ -379,6 +387,33 @@ function PanelLibro({ libro }: { libro: Libro }) {
           </Panel>
         )}
       </div>
+    </div>
+  );
+}
+
+function DetalleDoc({ item, onCerrar }: { item: Item; onCerrar: () => void }) {
+  useEffect(() => {
+    const k = (e: KeyboardEvent) => e.key === "Escape" && onCerrar();
+    window.addEventListener("keydown", k); return () => window.removeEventListener("keydown", k);
+  }, [onCerrar]);
+  const campos: [string, string][] = item.raw && Object.keys(item.raw).length
+    ? Object.entries(item.raw).filter(([, v]) => v !== "")
+    : [["Fecha", fmtFecha(item.fecha)], ["Serie-Número", item.serie_numero], ["RUC", item.ruc], ["Razón social", item.razon], ["Base", soles(item.base)], ["IGV", soles(item.igv)]];
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end bg-foreground/30" onClick={onCerrar}>
+      <aside className="h-full w-full max-w-md overflow-y-auto border-l border-line bg-card shadow-xl" onClick={(e) => e.stopPropagation()}>
+        <div className="sticky top-0 flex items-center justify-between border-b border-line bg-card px-5 py-3">
+          <div><p className="label-mono">DETALLE SUNAT</p><p className="font-semibold">{item.serie_numero}</p></div>
+          <button onClick={onCerrar} aria-label="Cerrar" className="text-muted-foreground hover:text-ink"><XCircle className="size-5" /></button>
+        </div>
+        <dl className="divide-y divide-line text-sm">
+          {campos.map(([k, v]) => (
+            <div key={k} className="grid grid-cols-[45%_55%] gap-2 px-5 py-1.5">
+              <dt className="font-mono text-[11px] text-muted-foreground">{k}</dt><dd className="break-words text-right font-mono text-xs">{v}</dd>
+            </div>
+          ))}
+        </dl>
+      </aside>
     </div>
   );
 }

@@ -1,0 +1,1 @@
+ALTER TABLE public.sire_periodos ADD COLUMN ticket text, ADD COLUMN origen text NOT NULL DEFAULT 'sunat';
