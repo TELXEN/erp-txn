@@ -271,7 +271,11 @@ function VistaCotizacion() {
     ws.eachRow((fila) => fila.eachCell({ includeEmpty: true }, (celda) => {
       celda.font = { ...celda.font, name: fuenteExcel };
     }));
-    ["F", "G"].forEach((col) => (ws.getColumn(col).numFmt = '"S/" #,##0.00'));
+    ["F", "G"].forEach((col) => (ws.getColumn(col).numFmt = `"${sim}" #,##0.00`));
+    if (esUsd && tc > 0) {
+      const filaTc = ws.addRow(["", `TIPO DE CAMBIO: ${tc.toFixed(3)} — TOTAL EN SOLES`, "", "", "", "", { formula: `ROUND(G${tot.number}*${tc},2)` }]);
+      filaTc.font = { name: fuenteExcel, italic: true };
+    }
     ws.columns.forEach((col) => {
       let max = 10;
       col.eachCell?.({ includeEmpty: false }, (c, n) => {
@@ -400,6 +404,8 @@ function VistaCotizacion() {
                         <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: 1.2, color: C.emerald800, textTransform: "uppercase", borderBottom: `1px solid ${C.slate100}`, paddingBottom: 3, marginBottom: 5 }}>Emisión y contacto</div>
                         {filaDato("Emisión", F(cot.fecha_emision))}
                         {filaDato("Vence", F(vigenciaHasta(cot.fecha_emision, Number(cot.validez_dias))))}
+                        {filaDato("Moneda", esUsd ? "Dólares (USD)" : "Soles (PEN)")}
+                        {esUsd && tc > 0 && filaDato("T. cambio", tc.toFixed(3))}
                         {filaDato("Por", nombre || email || "—")}
                         {filaDato("Celular", empresa?.telefono || "—")}
                         {filaDato("E-mail", empresa?.email || "—")}
