@@ -33,6 +33,7 @@ Definir una escala de 5 niveles, aplicada igual en edición, vista previa y PDF:
    - Empresa: eslogan/dirección/web 11.5–12 → 11px; «COTIZACIÓN» 13 → 12px; código 15 → 16px.
 3. **Tabla de partidas editable** (`src/components/CotizacionHoja.tsx`): cuerpo 10.33 → 10.5px; cabecera 10 → 9.5px.
 4. Verificar que al subir partidas de 6.5pt a 8pt la paginación siga correcta (recalibrar el alto estimado por fila si hace falta) y que ninguna columna se corte.
+5. **Alineación vertical en los recuadros**: centrar verticalmente el texto dentro de todos los recuadros de la hoja — recuadro del título/código, bloque Proyecto, cabecera y celdas de la tabla de partidas, desglose de costos y barra TOTAL — usando `verticalAlign: "middle"` en celdas y `display: flex; alignItems: "center"` en bloques, para que ningún texto quede pegado arriba o abajo de su recuadro.
 
 ## Lo que no cambia
 
