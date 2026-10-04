@@ -1,0 +1,1 @@
+ALTER TABLE public.cotizaciones ADD COLUMN IF NOT EXISTS orientacion text NOT NULL DEFAULT 'vertical';
