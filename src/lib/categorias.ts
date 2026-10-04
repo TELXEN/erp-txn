@@ -246,7 +246,7 @@ function compararCodigosWBS(a: string, b: string) {
   return 0;
 }
 
-export function ordenarJerarquia<T extends FilaJerarquia>(filas: T[]) {
+export function ordenarJerarquia<T extends FilaJerarquia & { codigo?: string | null }>(filas: T[]) {
   const ids = new Set(filas.map((f) => f.id));
   const hijos = new Map<string, T[]>();
   for (const f of filas) {
