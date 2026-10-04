@@ -18,7 +18,7 @@ export type HojaPLEmpresa = {
   telefono?: string | null;
   web?: string | null;
 };
-export type HojaPLCliente = { razon_social: string; numero_documento?: string | null; direccion?: string | null } | null;
+export type HojaPLCliente = { razon_social: string; numero_documento?: string | null | undefined; direccion?: string | null | undefined } | null;
 export type HojaPLCuenta = { nombre: string; numero_cuenta: string; cci: string; monedas: string; tipo_cuenta: string };
 
 const F = (v: string) => {
