@@ -269,7 +269,7 @@ export function HojaComprobante(props: {
             </div>}
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 14, fontSize: 9.5, textAlign: "left" }}>
-            <div style={{ borderTop: `3px solid ${C.green}`, padding: 11, textAlign: "left" }}>
+            <div style={{ ...CARD, padding: 11 }}>
               <b style={{ fontSize: 8, color: C.muted }}>FORMA DE PAGO</b>
               <div style={{ marginTop: 6, display: "grid", gap: 4 }}>
                 <Linea etiqueta="Condición"><select value={form.condicion_pago} onChange={(e) => { const v = e.target.value; setForm({ ...form, condicion_pago: v }); setCuotas(v === "Crédito" ? (cuotas.length ? cuotas : repartirCuotas(baseCuotas, [form.fecha_vencimiento])) : []); }} style={edSel}><option>Contado</option><option>Crédito</option></select></Linea>
