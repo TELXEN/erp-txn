@@ -374,6 +374,7 @@ function Cotizaciones() {
           aplica_igv: c.aplica_igv ?? true,
           moneda: c.moneda,
           tipo_cambio: c.tipo_cambio,
+          orientacion: c.orientacion ?? "vertical",
           estado: "Borrador",
         })
         .select("id")
