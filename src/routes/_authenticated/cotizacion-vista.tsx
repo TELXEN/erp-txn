@@ -218,8 +218,8 @@ function VistaCotizacion() {
           margin: [7, 3, 7, 3],
           filename: `${nombreArchivo}.pdf`,
           image: { type: "jpeg", quality: 0.98 },
-          html2canvas: { scale: 3, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: 794, backgroundColor: "#ffffff", logging: false },
-          jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+          html2canvas: { scale: 3, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: paginaW, backgroundColor: "#ffffff", logging: false },
+          jsPDF: { unit: "mm", format: "a4", orientation: horizontal ? "landscape" : "portrait" },
           pagebreak: { mode: ["css", "legacy"], avoid: ["tr", ".bloque-final"] },
         } as never)
         .from(el)
@@ -379,7 +379,7 @@ function VistaCotizacion() {
       />
 
       <div className="overflow-x-auto pb-8">
-        <div className="mx-auto" style={{ width: 754 }}>
+        <div className="mx-auto" style={{ width: interiorW }}>
         <div
           id="cotizacion-impresion"
           style={{ width: 794, background: C.white, color: C.slate900, fontFamily: DOC_FUENTE_CSS, fontSize: 12, boxShadow: "0 10px 30px -12px rgba(15,23,42,.25)" }}
