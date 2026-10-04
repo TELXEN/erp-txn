@@ -796,17 +796,34 @@ function Partidas() {
                   </tr>
                 </thead>
                 <tbody>
-                  {espGrupos.map(([esp, lista]) => (
+                  {espGrupos.map(([esp, lista]) => {
+                    const claveEsp = `esp:${proyectoId}:${esp}`;
+                    const espAbierta = !colapsados.has(claveEsp);
+                    return (
                     <React.Fragment key={esp}>
                       <tr className="border-b border-line/40 bg-muted/60">
-                        <td className="px-5 py-1.5 font-bold text-ink">{wbs.capitulo(esp)}</td>
+                        <td className="px-5 py-1.5 font-bold text-ink">
+                          <button
+                            type="button"
+                            onClick={() => alternar(claveEsp)}
+                            title={espAbierta ? "Colapsar especialidad" : "Expandir especialidad"}
+                            className="inline-flex items-center gap-1"
+                          >
+                            {espAbierta ? (
+                              <ChevronUp size={12} className="text-muted-foreground" />
+                            ) : (
+                              <ChevronDown size={12} className="text-muted-foreground" />
+                            )}
+                            {wbs.capitulo(esp)}
+                          </button>
+                        </td>
                         <td colSpan={5} className="px-3 py-1.5 label-mono font-semibold text-ink">{esp}</td>
                         <td className="whitespace-nowrap px-3 py-1.5 text-right font-bold text-ink">
                           {soles(lista.reduce((s, x) => s + Number(x.presupuesto_inicial), 0))}
                         </td>
                         <td colSpan={4} />
                       </tr>
-                      {agruparSoloPorCategoria(lista).map((sub) => (
+                      {espAbierta && agruparSoloPorCategoria(lista).map((sub) => (
                       <React.Fragment key={`${esp}-${sub.categoria}`}>
                       {sub.categoria !== "Sin categoría" && (
                         <tr className="border-b border-line/30 bg-muted/30">
