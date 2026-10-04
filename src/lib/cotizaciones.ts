@@ -131,6 +131,26 @@ export function totalesCotizacion(
   return { costoDirecto, gastosGenerales, utilidad, total: costoDirecto + gastosGenerales + utilidad };
 }
 
+/** Símbolo de la moneda de una cotización. */
+export const simboloMoneda = (moneda?: string | null) => (moneda === "USD" ? "US$" : "S/");
+
+/** Último tipo de cambio venta registrado (para precargar cotizaciones en USD). */
+export const useTipoCambioActual = () =>
+  useQuery({
+    queryKey: ["tipo_cambio_actual"],
+    staleTime: 1000 * 60 * 30,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tipo_cambio_diario")
+        .select("venta")
+        .order("fecha", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return Number(data?.venta) || 0;
+    },
+  });
+
 /** Fecha hasta la que la propuesta sigue vigente. */
 export function vigenciaHasta(fechaEmision: string, dias: number) {
   const d = new Date(`${fechaEmision}T00:00:00`);

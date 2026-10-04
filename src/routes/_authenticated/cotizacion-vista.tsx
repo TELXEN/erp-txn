@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEmpresa } from "@/lib/empresa";
 import { useFuenteDocumento } from "@/lib/fuentes-documentos";
 import { useAuth } from "@/lib/auth";
-import { totalesCotizacion, useCotizacionItems, useCotizaciones, vigenciaHasta } from "@/lib/cotizaciones";
+import { simboloMoneda, totalesCotizacion, useCotizacionItems, useCotizaciones, vigenciaHasta } from "@/lib/cotizaciones";
 import { DOC, DOC_FUENTE_CSS } from "@/lib/documento-tema";
 import { ArrowLeft, FileDown, FileSpreadsheet } from "lucide-react";
 
@@ -42,8 +42,8 @@ const C = {
   white: DOC.white,
 };
 
-const S = (n: number) =>
-  "S/ " + n.toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const S = (sim: string, n: number) =>
+  `${sim} ` + n.toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const F = (d: string) => d.split("-").reverse().join("/");
 
 type ItemCot = {
@@ -183,6 +183,9 @@ function VistaCotizacion() {
   const conIgv = cot?.aplica_igv !== false;
   const igv = conIgv ? Math.round(subtotal * 0.18 * 100) / 100 : 0;
   const total = subtotal + igv;
+  const esUsd = cot?.moneda === "USD";
+  const sim = simboloMoneda(cot?.moneda);
+  const tc = Number(cot?.tipo_cambio) || 0;
   const nombreArchivo = `Cotizacion_${(cot?.cliente || "Cliente").replace(/[^\w-]+/g, "_")}_${cot?.codigo ?? "sin_codigo"}`;
   const paginas = paginarFilas(construirFilas(items as unknown as ItemCot[]));
 
@@ -268,7 +271,11 @@ function VistaCotizacion() {
     ws.eachRow((fila) => fila.eachCell({ includeEmpty: true }, (celda) => {
       celda.font = { ...celda.font, name: fuenteExcel };
     }));
-    ["F", "G"].forEach((col) => (ws.getColumn(col).numFmt = '"S/" #,##0.00'));
+    ["F", "G"].forEach((col) => (ws.getColumn(col).numFmt = `"${sim}" #,##0.00`));
+    if (esUsd && tc > 0) {
+      const filaTc = ws.addRow(["", `TIPO DE CAMBIO: ${tc.toFixed(3)} — TOTAL EN SOLES`, "", "", "", "", { formula: `ROUND(G${tot.number}*${tc},2)` }]);
+      filaTc.font = { name: fuenteExcel, italic: true };
+    }
     ws.columns.forEach((col) => {
       let max = 10;
       col.eachCell?.({ includeEmpty: false }, (c, n) => {
@@ -397,6 +404,8 @@ function VistaCotizacion() {
                         <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: 1.2, color: C.emerald800, textTransform: "uppercase", borderBottom: `1px solid ${C.slate100}`, paddingBottom: 3, marginBottom: 5 }}>Emisión y contacto</div>
                         {filaDato("Emisión", F(cot.fecha_emision))}
                         {filaDato("Vence", F(vigenciaHasta(cot.fecha_emision, Number(cot.validez_dias))))}
+                        {filaDato("Moneda", esUsd ? "Dólares (USD)" : "Soles (PEN)")}
+                        {esUsd && tc > 0 && filaDato("T. cambio", tc.toFixed(3))}
                         {filaDato("Por", nombre || email || "—")}
                         {filaDato("Celular", empresa?.telefono || "—")}
                         {filaDato("E-mail", empresa?.email || "—")}
@@ -481,8 +490,8 @@ function VistaCotizacion() {
                           <td style={{ ...celda, padding: "6px 6px", textAlign: "center", color: C.slate500, wordBreak: "break-word" }}>{it.marca?.trim() || "-"}</td>
                           <td style={{ ...celda, padding: "6px 4px", textAlign: "center", color: C.slate500 }}>{it.unidad}</td>
                           <td style={{ ...celda, padding: "6px 6px", textAlign: "right" }}>{Number(it.metrado).toLocaleString("es-PE", { maximumFractionDigits: 2 })}</td>
-                          <td style={{ ...celda, padding: "6px 6px", textAlign: "right", whiteSpace: "nowrap" }}>{S(Number(it.precio_unitario))}</td>
-                          <td style={{ ...celda, padding: "6px 6px", textAlign: "right", whiteSpace: "nowrap" }}>{S(Number(it.metrado) * Number(it.precio_unitario))}</td>
+                          <td style={{ ...celda, padding: "6px 6px", textAlign: "right", whiteSpace: "nowrap" }}>{S(sim, Number(it.precio_unitario))}</td>
+                          <td style={{ ...celda, padding: "6px 6px", textAlign: "right", whiteSpace: "nowrap" }}>{S(sim, Number(it.metrado) * Number(it.precio_unitario))}</td>
                         </tr>
                       );
                     })}
@@ -494,14 +503,19 @@ function VistaCotizacion() {
                   <div className="bloque-final" style={{ pageBreakInside: "avoid" }}>
                     <div className="flex justify-end" style={{ marginTop: 14 }}>
                       <div style={{ width: 280 }}>
-                        <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700 }}><span>Costo Directo</span><span>{S(calculo.costoDirecto)}</span></div>
-                        {calculo.gastosGenerales > 0 && <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700 }}><span>Gastos Generales ({Number(cot.pct_gastos_generales)}%)</span><span>{S(calculo.gastosGenerales)}</span></div>}
-                        {calculo.utilidad > 0 && <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700 }}><span>Utilidad ({Number(cot.pct_utilidad)}%)</span><span>{S(calculo.utilidad)}</span></div>}
-                        {(calculo.gastosGenerales > 0 || calculo.utilidad > 0) && <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700, fontWeight: 600 }}><span>Subtotal</span><span>{S(subtotal)}</span></div>}
-                        <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700, borderBottom: `1px solid ${C.slate100}` }}><span>{conIgv ? "IGV (18%)" : "IGV (0%)"}</span><span>{S(igv)}</span></div>
+                        <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700 }}><span>Costo Directo</span><span>{S(sim, calculo.costoDirecto)}</span></div>
+                        {calculo.gastosGenerales > 0 && <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700 }}><span>Gastos Generales ({Number(cot.pct_gastos_generales)}%)</span><span>{S(sim, calculo.gastosGenerales)}</span></div>}
+                        {calculo.utilidad > 0 && <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700 }}><span>Utilidad ({Number(cot.pct_utilidad)}%)</span><span>{S(sim, calculo.utilidad)}</span></div>}
+                        {(calculo.gastosGenerales > 0 || calculo.utilidad > 0) && <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700, fontWeight: 600 }}><span>Subtotal</span><span>{S(sim, subtotal)}</span></div>}
+                        <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700, borderBottom: `1px solid ${C.slate100}` }}><span>{conIgv ? "IGV (18%)" : "IGV (0%)"}</span><span>{S(sim, igv)}</span></div>
                         <div className="flex justify-between" style={{ marginTop: 7, padding: "10px 14px", background: C.slate900, color: C.white, borderRadius: 8, fontFamily: DOC_FUENTE_CSS, fontSize: "11pt", fontWeight: 300 }}>
-                          <span>TOTAL</span><span>{S(total)}</span>
+                          <span>TOTAL</span><span>{S(sim, total)}</span>
                         </div>
+                        {esUsd && tc > 0 && (
+                          <div className="flex justify-between" style={{ marginTop: 5, padding: "5px 0", color: C.slate500, fontSize: "8.5pt" }}>
+                            <span>Equivalente en soles (T.C. {tc.toFixed(3)})</span><span>{S("S/", total * tc)}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                     <div style={{ marginTop: 16, borderTop: `1px solid ${C.slate100}`, paddingTop: 10, fontSize: 10.5, color: C.slate500, lineHeight: 1.45 }}>
@@ -520,7 +534,10 @@ function VistaCotizacion() {
                         </div>
                       ))}
                       <div style={{ marginTop: 7, color: C.slate400 }}>
-                        {conIgv ? "Precios expresados en soles, incluyen IGV (18%)." : "Precios expresados en soles, no afectos a IGV."} Oferta válida hasta la fecha indicada.
+                        {conIgv
+                          ? `Precios expresados en ${esUsd ? "dólares americanos" : "soles"}, incluyen IGV (18%).`
+                          : `Precios expresados en ${esUsd ? "dólares americanos" : "soles"}, no afectos a IGV.`}{" "}
+                        Oferta válida hasta la fecha indicada.
                       </div>
                     </div>
                   </div>

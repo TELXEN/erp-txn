@@ -122,12 +122,16 @@ export function CotizacionHoja({
   items,
   unidades,
   alAbrirCatalogo,
+  simbolo = "S/",
 }: {
   cotizacionId: string;
   items: CotizacionItem[];
   unidades: { id: string; simbolo: string; activo: boolean }[];
   alAbrirCatalogo?: () => void;
+  /** Símbolo de la moneda de la cotización (S/ o US$) para los importes de la hoja. */
+  simbolo?: string;
 }) {
+  const mon = (n: number) => `${simbolo} ${Number(n || 0).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   const qc = useQueryClient();
   const [colapsados, setColapsados] = useState<Set<string>>(new Set());
   const [apuAbierto, setApuAbierto] = useState<string | null>(null);
@@ -803,7 +807,7 @@ export function CotizacionHoja({
                   <td className={celdaBase}>—</td>
                   <td className={`${celdaBase} text-right`}>—</td>
                   <td className={`${celdaBase} text-right`}>—</td>
-                  <td className={`${celdaBase} text-right font-semibold text-ink`}>{soles(f.total)}</td>
+                  <td className={`${celdaBase} text-right font-semibold text-ink`}>{mon(f.total)}</td>
                   <td className={celdaBase} />
                 </tr>
                 </ContextMenuTrigger>
@@ -878,12 +882,12 @@ export function CotizacionHoja({
                   )}
                   {bloqueada || puFijo ? (
                     <td className={`${celdaBase} text-right ${puFijo ? "italic" : ""}`}>
-                      {bloqueada ? "—" : soles(Number(it.precio_unitario))}
+                      {bloqueada ? "—" : mon(Number(it.precio_unitario))}
                     </td>
                   ) : (
-                    celda(f, r, 5, <span>{soles(Number(it.precio_unitario))}</span>, "text-right")
+                    celda(f, r, 5, <span>{mon(Number(it.precio_unitario))}</span>, "text-right")
                   )}
-                  <td className={`${celdaBase} text-right font-semibold text-ink`}>{soles(f.total)}</td>
+                  <td className={`${celdaBase} text-right font-semibold text-ink`}>{mon(f.total)}</td>
                   <td className={`${celdaBase} text-right`}>
                     <div className="flex items-center justify-end gap-1">
                       {!f.agrupadora && (

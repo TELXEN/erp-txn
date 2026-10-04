@@ -4,7 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEmpresa } from "@/lib/empresa";
 import { fecha as fmtFecha } from "@/lib/format";
-import { totalesCotizacion, vigenciaHasta, type Cotizacion, type CotizacionItem } from "@/lib/cotizaciones";
+import { simboloMoneda, totalesCotizacion, useTipoCambioActual, vigenciaHasta, type Cotizacion, type CotizacionItem } from "@/lib/cotizaciones";
 
 /** Paleta corporativa compartida con la hoja de facturación electrónica. */
 const C = { ink: DOC.ink, muted: DOC.ink, line: DOC.line, soft: DOC.soft, green: DOC.green, greenSoft: DOC.white, white: DOC.white };
@@ -13,7 +13,7 @@ const ed: CSSProperties = { border: "none", borderBottom: `1px dashed ${C.line}`
 const edSel: CSSProperties = { ...ed, cursor: "pointer" };
 const liviano = "var(--font-global)";
 
-const money = (n: number) => `S/ ${Number(n || 0).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const money = (sim: string, n: number) => `${sim} ${Number(n || 0).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 function Bloque({ titulo, children }: { titulo: string; children: ReactNode }) {
   return (
@@ -49,9 +49,14 @@ export function HojaCotizacion({
 }) {
   const qc = useQueryClient();
   const { data: empresa } = useEmpresa();
+  const { data: tcActual = 0 } = useTipoCambioActual();
   const totales = totalesCotizacion(items, Number(cot.pct_gastos_generales), Number(cot.pct_utilidad));
   const conIgv = cot.aplica_igv !== false;
   const igv = conIgv ? Math.round(totales.total * 0.18 * 100) / 100 : 0;
+  const esUsd = cot.moneda === "USD";
+  const sim = simboloMoneda(cot.moneda);
+  const tc = Number(cot.tipo_cambio) || tcActual;
+  const totalConIgv = totales.total + igv;
 
   async function guardar(campos: Record<string, unknown>) {
     await supabase.from("cotizaciones").update(campos as never).eq("id", cot.id);
@@ -151,7 +156,32 @@ export function HojaCotizacion({
             <Linea etiqueta="Emisión">
               <input key={`fec-${cot.id}-${cot.fecha_emision}`} type="date" defaultValue={cot.fecha_emision} onBlur={(e) => alSalir("fecha_emision", e.target.value, cot.fecha_emision)} style={ed} />
             </Linea>
-            <Linea etiqueta="Moneda"><span style={{ fontWeight: 700 }}>Soles (PEN)</span></Linea>
+            <Linea etiqueta="Moneda">
+              <select
+                value={esUsd ? "USD" : "PEN"}
+                onChange={(e) => {
+                  const moneda = e.target.value as "PEN" | "USD";
+                  void guardar(moneda === "USD" && !Number(cot.tipo_cambio) ? { moneda, tipo_cambio: tcActual || 3.75 } : { moneda });
+                }}
+                style={edSel}
+              >
+                <option value="PEN">Soles (PEN)</option>
+                <option value="USD">Dólares (USD)</option>
+              </select>
+            </Linea>
+            {esUsd && (
+              <Linea etiqueta="T. cambio">
+                <input
+                  key={`tc-${cot.id}-${cot.tipo_cambio}`}
+                  type="number"
+                  step="0.001"
+                  min="0"
+                  defaultValue={Number(cot.tipo_cambio) || tcActual || ""}
+                  onBlur={(e) => alSalir("tipo_cambio", Number(e.target.value || 0), Number(cot.tipo_cambio))}
+                  style={ed}
+                />
+              </Linea>
+            )}
             <Linea etiqueta="IGV">
               <select value={conIgv ? "si" : "no"} onChange={(e) => void guardar({ aplica_igv: e.target.value === "si" })} style={edSel}>
                 <option value="si">Con IGV (18%)</option>
@@ -165,7 +195,7 @@ export function HojaCotizacion({
 
         <div style={{ width: 380, marginLeft: "auto", marginTop: 20, fontSize: 13, background: DOC.total, borderRadius: 6, padding: 6 }}>
           {[
-            ["COSTO DIRECTO", money(totales.costoDirecto), false] as const,
+            ["COSTO DIRECTO", money(sim, totales.costoDirecto), false] as const,
           ].map(([t, v]) => (
             <div key={t} style={{ display: "flex", justifyContent: "space-between", padding: "5px 8px", borderBottom: `1px solid ${C.line}`, fontWeight: 700 }}><span>{t}</span><span>{v}</span></div>
           ))}
@@ -174,20 +204,25 @@ export function HojaCotizacion({
               Gastos generales
               <input key={`gg-${cot.id}-${cot.pct_gastos_generales}`} type="number" step="0.5" min="0" defaultValue={Number(cot.pct_gastos_generales)} onBlur={(e) => alSalir("pct_gastos_generales", Number(e.target.value || 0), Number(cot.pct_gastos_generales))} style={{ ...ed, width: 58, borderBottom: "none", textAlign: "right" }} />%
             </span>
-            <span>{money(totales.gastosGenerales)}</span>
+            <span>{money(sim, totales.gastosGenerales)}</span>
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "5px 8px", borderBottom: `1px solid ${C.line}` }}>
             <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
               Utilidad
               <input key={`ut-${cot.id}-${cot.pct_utilidad}`} type="number" step="0.5" min="0" defaultValue={Number(cot.pct_utilidad)} onBlur={(e) => alSalir("pct_utilidad", Number(e.target.value || 0), Number(cot.pct_utilidad))} style={{ ...ed, width: 58, borderBottom: "none", textAlign: "right" }} />%
             </span>
-            <span>{money(totales.utilidad)}</span>
+            <span>{money(sim, totales.utilidad)}</span>
           </div>
-          <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 8px", borderBottom: `1px solid ${C.line}`, fontWeight: 700 }}><span>SUBTOTAL</span><span>{money(totales.total)}</span></div>
-          <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 8px", borderBottom: `1px solid ${C.line}` }}><span>IGV {conIgv ? "18%" : "0%"}</span><span>{money(igv)}</span></div>
+          <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 8px", borderBottom: `1px solid ${C.line}`, fontWeight: 700 }}><span>SUBTOTAL</span><span>{money(sim, totales.total)}</span></div>
+          <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 8px", borderBottom: `1px solid ${C.line}` }}><span>IGV {conIgv ? "18%" : "0%"}</span><span>{money(sim, igv)}</span></div>
           <div style={{ display: "flex", justifyContent: "space-between", padding: "7px 8px", borderTop: `1px solid ${DOC.green}`, marginTop: 4, color: DOC.green, fontWeight: 700, fontSize: 14 }}>
-            <span>IMPORTE TOTAL</span><span>{money(totales.total + igv)}</span>
+            <span>IMPORTE TOTAL</span><span>{money(sim, totalConIgv)}</span>
           </div>
+          {esUsd && tc > 0 && (
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 8px", color: C.muted, fontSize: 12 }}>
+              <span>Equivalente en soles (T.C. {tc.toFixed(3)})</span><span>{money("S/", totalConIgv * tc)}</span>
+            </div>
+          )}
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginTop: 18, fontSize: 12.5 }}>
