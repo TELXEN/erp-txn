@@ -321,9 +321,9 @@ function VistaCotizacion() {
             <div style={{ fontSize: 9, fontWeight: 700, marginTop: 4 }}>RUC: {empresa?.ruc || "—"}</div>
             <div style={{ fontSize: 11, fontWeight: 700, marginTop: 3 }}>{cot?.codigo ?? "SIN CÓDIGO"}</div>
           </div>
-          <div className="flex justify-between" style={{ marginTop: 4, fontSize: 7.5, color: C.slate500 }}>
+          <div style={{ position: "relative", marginTop: 4, fontSize: 7.5, color: C.slate500, textAlign: "center" }}>
             <span>Hoja {numero} de {totalHojas}</span>
-            <span>{revision}</span>
+            <span style={{ position: "absolute", right: 0, top: 0 }}>{revision}</span>
           </div>
         </div>
       </div>
