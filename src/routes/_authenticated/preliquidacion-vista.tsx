@@ -442,9 +442,16 @@ function VistaPreliquidacion() {
               ))}
             </div>
 
-            <div style={{ padding: 12, background: C.slate50, marginBottom: 14, flex: 1, display: "flex", flexDirection: "column" }}>
+            {pl.observacion && (
+              <div style={{ padding: 11, borderLeft: `3px solid ${DOC.accent}`, background: DOC.soft, borderRadius: 6, marginBottom: 14 }}>
+                <div style={etiqueta}>Observaciones</div>
+                <div>{pl.observacion}</div>
+              </div>
+            )}
+
+            <div style={{ padding: 10, background: C.slate50, marginTop: "auto", marginBottom: 12, border: `1px solid ${DOC.line}`, borderRadius: 6 }}>
               <div style={tituloSeccion}>Datos bancarios</div>
-              <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 2, textTransform: "uppercase" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 2, textTransform: "uppercase" }}>
                 {cuentasOrdenadas.length === 0 && <div style={valor}>NO HAY CUENTAS BANCARIAS REGISTRADAS.</div>}
                 {cuentasOrdenadas.map((c, i) => (
                   <div key={i} style={{ marginTop: 1 }}>
@@ -458,13 +465,6 @@ function VistaPreliquidacion() {
                 ))}
               </div>
             </div>
-
-            {pl.observacion && (
-              <div style={{ padding: 11, borderLeft: `3px solid ${DOC.accent}`, background: DOC.soft, borderRadius: 6, marginBottom: 14 }}>
-                <div style={etiqueta}>Observaciones</div>
-                <div>{pl.observacion}</div>
-              </div>
-            )}
 
             <div style={{ fontSize: 8, lineHeight: 1.45, color: C.slate500, paddingTop: 12, borderTop: `1px solid ${C.slate300}` }}>
               Documento referencial previo a la emisión del comprobante electrónico. No constituye comprobante de pago ni tiene valor tributario.

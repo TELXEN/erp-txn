@@ -67,7 +67,7 @@ const colors = DOC_ALIAS;
 
 function crearEstilos(fontFamily: string) {
 return StyleSheet.create({
-  page: { padding: "32 34 30", fontFamily, fontSize: 8.5, color: colors.slate700 },
+  page: { padding: "32 34 150", fontFamily, fontSize: 8.5, color: colors.slate700 },
   header: { flexDirection: "row", justifyContent: "space-between", borderBottomWidth: 2, borderBottomColor: colors.emerald700, paddingBottom: 12, marginBottom: 16 },
   brand: { width: 96, alignItems: "center", justifyContent: "center" },
   logo: { maxWidth: 96, maxHeight: 46, objectFit: "contain" },
@@ -112,8 +112,8 @@ return StyleSheet.create({
   settlement: { flexDirection: "row", gap: 8, marginBottom: 15 },
   settlementCard: { flex: 1, padding: 10, borderWidth: 1, borderColor: DOC.line, borderRadius: 6 },
   settlementValue: { fontFamily, fontWeight: 700, fontSize: 11, color: colors.emerald800, marginTop: 4 },
-  banking: { padding: 11, borderWidth: 1, borderColor: DOC.line, borderRadius: 6, marginBottom: 13, flexGrow: 1 },
-  bankList: { flexGrow: 1 },
+  banking: { position: "absolute", left: 34, right: 34, bottom: 26, padding: 8, borderWidth: 1, borderColor: DOC.line, borderRadius: 6, backgroundColor: colors.white },
+  bankList: {},
   bankLabel: { fontFamily, fontWeight: 700, fontSize: 6.7, color: colors.slate500, letterSpacing: 0.7, textTransform: "uppercase", marginBottom: 1, marginTop: 2 },
   bankValue: { fontFamily, fontWeight: 700, fontSize: 9, color: colors.slate950, lineHeight: 1.2, marginTop: 1 },
   notes: { padding: 10, borderLeftWidth: 3, borderLeftColor: DOC.accent, backgroundColor: DOC.soft, borderRadius: 6, marginBottom: 14 },
@@ -240,7 +240,7 @@ function PreliquidacionDocument({ datos }: { datos: DatosPreliquidacionPdf }) {
           <View style={styles.settlementCard}><Text style={styles.label}>Neto a depositar</Text><Text style={styles.settlementValue}>{dinero(datos.netoDepositar)}</Text></View>
         </View>
 
-        <View style={styles.banking} wrap={false}>
+        <View style={styles.banking} fixed>
           <Text style={styles.sectionTitle}>DATOS BANCARIOS</Text>
           <View style={styles.bankList}>
             {datos.cuentasTodas.length === 0 ? <Text style={styles.bankValue}>NO HAY CUENTAS BANCARIAS REGISTRADAS.</Text> : null}
