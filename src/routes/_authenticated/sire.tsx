@@ -124,7 +124,7 @@ function periodoDefecto() {
 }
 function rangoPeriodo(p: string) {
   const [y = 2026, m = 1] = p.split("-").map(Number);
-      const { data: emp } = await supabase.from("empresa_config").select("ruc").limit(1).maybeSingle();
+  const fin = new Date(Date.UTC(y, m, 0)).toISOString().slice(0, 10);
   return { ini: `${p}-01`, fin };
 }
 
