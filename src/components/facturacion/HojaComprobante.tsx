@@ -295,6 +295,7 @@ export function HojaComprobante(props: {
                   <button type="button" onClick={() => setCuotas([...cuotas, cuotaVacia(form.fecha_vencimiento)])} style={{ marginTop: 4, fontSize: 9, border: `1px dashed ${C.green}`, color: C.green, background: C.white, borderRadius: 4, padding: "2px 7px", cursor: "pointer", display: "inline-flex", gap: 3, alignItems: "center" }}><Plus size={11} />Agregar cuota</button>
                   <div style={{ marginTop: 4, display: "flex", justifyContent: "space-between", fontWeight: 700 }}><span>Suma de cuotas (neto a pagar: {money(baseCuotas)})</span><span>{money(cuotas.reduce((s, c) => s + Number(c.monto || 0), 0))}</span></div>
                 </>}
+                <CuentasComprobante cuentas={cuentas} tipo="normales" compacto />
               </div>
             </div>
             <div style={{ borderTop: `3px solid ${C.green}`, padding: 11 }}>
@@ -307,6 +308,7 @@ export function HojaComprobante(props: {
                 {form.tipo_tributario === "detraccion" ? <>
                   <div style={{ display: "flex", justifyContent: "space-between", lineHeight: 1.2 }}><span>Detracción ({form.pct_detraccion}%)</span><b>S/ {(montos.montoDetraccion).toLocaleString("es-PE", { minimumFractionDigits: 2 })}</b></div>
                   <div style={{ display: "flex", justifyContent: "space-between", borderTop: `1px solid ${C.line}`, paddingTop: 3, lineHeight: 1.2 }}><span>Neto a pagar</span><b>{money(montos.netoPagar ?? montos.total)}</b></div>
+                  <CuentasComprobante cuentas={cuentas} tipo="detraccion" compacto />
                  </> : form.tipo_tributario === "retencion" ? <>
                    <div style={{ display: "flex", justifyContent: "space-between", lineHeight: 1.2 }}><span>Retención ({form.pct_detraccion}%)</span><b>S/ {(montos.montoRetencion).toLocaleString("es-PE", { minimumFractionDigits: 2 })}</b></div>
                    <div style={{ display: "flex", justifyContent: "space-between", borderTop: `1px solid ${C.line}`, paddingTop: 3, lineHeight: 1.2 }}><span>Neto a pagar</span><b>{money(montos.netoPagar ?? montos.total)}</b></div>
@@ -319,7 +321,6 @@ export function HojaComprobante(props: {
 
         <div style={{ marginTop: "auto", paddingTop: 18 }}>
           {usaImportes(tipo) && <div style={{ padding: "5px 0", fontSize: 9.5, fontWeight: 700 }}>{montoEnLetras(montos.total, form.moneda)}</div>}
-          {usaImportes(tipo) && <CuentasComprobante cuentas={cuentas} />}
           <div style={{ marginTop: 18, borderTop: `1px solid ${C.line}`, paddingTop: 10, fontSize: 9, color: C.muted }}>
             <b>REPRESENTACIÓN IMPRESA DEL COMPROBANTE ELECTRÓNICO</b>
             <div style={{ marginTop: 5 }}>Vista de captura: lo que escribes aquí es exactamente lo que saldrá impreso.</div>

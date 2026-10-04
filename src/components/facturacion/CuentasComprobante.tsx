@@ -19,17 +19,19 @@ export function agruparPorBanco(cuentas: CuentaCpe[]) {
 export const detalleCuenta = (c: CuentaCpe) =>
   `${esDetraccion(c) ? "CUENTA DE DETRACCIONES" : `${c.tipo_cuenta} ${c.monedas}`} · N° ${c.numero_cuenta}${!esDetraccion(c) && c.cci ? ` · CCI ${c.cci}` : ""}`.toUpperCase();
 
-/** Pie con todas las cuentas bancarias registradas, agrupadas por banco. */
-export function CuentasComprobante({ cuentas }: { cuentas: CuentaCpe[] }) {
-  if (!cuentas.length) return null;
+/** Bloque bancario reutilizable para pago general o detracciones. */
+export function CuentasComprobante({ cuentas, tipo = "todas", compacto = false }: { cuentas: CuentaCpe[]; tipo?: "todas" | "normales" | "detraccion"; compacto?: boolean }) {
+  const visibles = cuentas.filter((cuenta) => tipo === "todas" || (tipo === "detraccion" ? esDetraccion(cuenta) : !esDetraccion(cuenta)));
+  if (!visibles.length) return null;
+  const titulo = tipo === "detraccion" ? "CUENTA DE DETRACCIONES" : "CUENTAS BANCARIAS";
   return (
-    <div style={{ marginTop: 14, borderTop: "1px solid #cbd5e1", paddingTop: 7, fontFamily: "var(--font-global)", fontWeight: 400, fontSize: 9, color: "#0f172a" }}>
-      <span style={{ fontFamily: "var(--font-global)", fontWeight: 300, fontSize: 9, letterSpacing: 0.5 }}>CUENTAS BANCARIAS</span>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", columnGap: 14, rowGap: 4, marginTop: 4 }}>
-        {agruparPorBanco(cuentas).map((g, i) => (
-          <div key={i} style={{ lineHeight: 1.25 }}>
+    <div style={{ marginTop: compacto ? 6 : 14, borderTop: "1px solid #cbd5e1", paddingTop: compacto ? 4 : 7, fontFamily: "var(--font-global)", fontWeight: 400, fontSize: compacto ? 7 : 9, color: "#0f172a", minWidth: 0 }}>
+      <span style={{ fontFamily: "var(--font-global)", fontWeight: 700, fontSize: compacto ? 7 : 9, letterSpacing: 0 }}>{titulo}</span>
+      <div style={{ display: "grid", gridTemplateColumns: compacto ? "1fr" : "1fr 1fr", columnGap: 14, rowGap: compacto ? 2 : 4, marginTop: compacto ? 2 : 4 }}>
+        {agruparPorBanco(visibles).map((g, i) => (
+          <div key={i} style={{ lineHeight: compacto ? 1.12 : 1.25, minWidth: 0, overflowWrap: "anywhere" }}>
             <b style={{ fontWeight: 700 }}>{g.banco}</b>
-            {g.cuentas.map((c, j) => <div key={j}>{detalleCuenta(c)}</div>)}
+            {g.cuentas.map((c, j) => <div key={j}>{tipo === "detraccion" ? `N° ${c.numero_cuenta}` : detalleCuenta(c)}</div>)}
           </div>
         ))}
       </div>
