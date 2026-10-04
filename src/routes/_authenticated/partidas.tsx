@@ -23,7 +23,7 @@ import {
   nombresPrioridades,
 } from "@/lib/datos";
 import { exportarExcel } from "@/lib/exportar";
-import { Pencil, Trash2, Check, X, LayoutGrid, Table2, Upload, ListOrdered, Calculator, CornerDownRight } from "lucide-react";
+import { Pencil, Trash2, Check, X, LayoutGrid, Table2, Upload, ListOrdered, Calculator, CornerDownRight, ChevronDown, ChevronUp } from "lucide-react";
 import { Kanban } from "@/components/Kanban";
 import { InsigniaPrioridad, InsigniaTipoPresupuesto } from "@/components/estado-ui";
 import { PRIORIDADES } from "@/lib/configuracion";
@@ -78,6 +78,14 @@ function Partidas() {
   const [filtroTipo, setFiltroTipo] = useState("");
   const [vista, setVista] = useState<"tabla" | "kanban">("tabla");
   const [pestana, setPestana] = useState<"listado" | "nueva">("listado");
+  const [colapsados, setColapsados] = useState<Set<string>>(new Set());
+  const alternar = (clave: string) =>
+    setColapsados((prev) => {
+      const nx = new Set(prev);
+      if (nx.has(clave)) nx.delete(clave);
+      else nx.add(clave);
+      return nx;
+    });
   const accionRef = React.useRef<"volver" | "otra">("volver");
   const [form, setForm] = useState({
     proyecto_id: "",
@@ -739,13 +747,29 @@ function Partidas() {
             })}
           />
         ) : (
-          grupos.map(({ proyecto, grupos: espGrupos }) => {
+           grupos.map(({ proyecto, grupos: espGrupos }) => {
             const proyectoId = espGrupos[0]?.[1]?.[0]?.proyecto_id ?? "";
             const wbs = prefijosWBS(partidas.filter((x) => x.proyecto_id === proyectoId));
+            const claveProy = `proy:${proyectoId}`;
+            const proyAbierto = !colapsados.has(claveProy);
+            const nPartidas = espGrupos.reduce((s, [, l]) => s + l.length, 0);
             return (
             <div key={proyecto} className="border-b border-line last:border-0">
               <div className="flex items-center justify-between gap-3 bg-sidebar px-5 py-2">
-                <p className="text-xs font-semibold uppercase tracking-wider text-[#F8FAFC]">{proyecto}</p>
+                <button
+                  type="button"
+                  onClick={() => alternar(claveProy)}
+                  title={proyAbierto ? "Colapsar proyecto" : "Expandir proyecto"}
+                  className="flex min-w-0 flex-1 items-center gap-2 text-left"
+                >
+                  {proyAbierto ? (
+                    <ChevronUp size={14} className="shrink-0 text-slate-300" />
+                  ) : (
+                    <ChevronDown size={14} className="shrink-0 text-slate-300" />
+                  )}
+                  <p className="truncate text-xs font-semibold uppercase tracking-wider text-[#F8FAFC]">{proyecto}</p>
+                  <span className="shrink-0 font-mono text-[10px] text-slate-300">({nPartidas} partidas)</span>
+                </button>
                 <button
                   type="button"
                   onClick={() => void renumerar(proyectoId, proyecto)}
@@ -754,34 +778,52 @@ function Partidas() {
                   <ListOrdered size={12} /> Renumerar WBS
                 </button>
               </div>
+              {proyAbierto && (
               <table className="w-full table-fixed font-mono text-xs">
                 <thead>
-                  <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                    <th style={{ width: "9%" }} className="whitespace-nowrap px-5 py-2 font-medium">Código</th>
-                    <th style={{ width: "17%" }} className="whitespace-nowrap px-3 py-2 font-medium">Partida</th>
-                    <th style={{ width: "7%" }} className="whitespace-nowrap px-2 py-2 font-medium">Marca</th>
-                    <th style={{ width: "5%" }} className="whitespace-nowrap px-2 py-2 font-medium">Und.</th>
-                    <th style={{ width: "7%" }} className="whitespace-nowrap px-2 py-2 text-right font-medium">Metrado</th>
-                    <th style={{ width: "8%" }} className="whitespace-nowrap px-2 py-2 text-right font-medium">P.U. (S/)</th>
-                    <th style={{ width: "9%" }} className="whitespace-nowrap px-3 py-2 text-right font-medium">Presupuesto</th>
-                    <th style={{ width: "7%" }} className="whitespace-nowrap px-3 py-2 text-right font-medium">Avance</th>
-                    <th style={{ width: "9%" }} className="whitespace-nowrap px-3 py-2 font-medium">Tipo</th>
-                    <th style={{ width: "8%" }} className="whitespace-nowrap px-3 py-2 font-medium">Prioridad</th>
-                    <th style={{ width: "9%" }} className="whitespace-nowrap px-5 py-2 text-right font-medium">Acciones</th>
+                  <tr className="sticky top-0 z-10 border-b border-line bg-card text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+                    <th style={{ width: "8%" }} className="whitespace-nowrap bg-card px-5 py-2 font-medium">Código</th>
+                    <th style={{ width: "22%" }} className="whitespace-nowrap bg-card px-3 py-2 font-medium">Partida</th>
+                    <th style={{ width: "6%" }} className="whitespace-nowrap bg-card px-2 py-2 font-medium">Marca</th>
+                    <th style={{ width: "4%" }} className="whitespace-nowrap bg-card px-2 py-2 font-medium">Und.</th>
+                    <th style={{ width: "6%" }} className="whitespace-nowrap bg-card px-2 py-2 text-right font-medium">Metrado</th>
+                    <th style={{ width: "9%" }} className="whitespace-nowrap bg-card px-2 py-2 text-right font-medium">P.U. (S/)</th>
+                    <th style={{ width: "10%" }} className="whitespace-nowrap bg-card px-3 py-2 text-right font-medium">Presupuesto</th>
+                    <th style={{ width: "9%" }} className="whitespace-nowrap bg-card px-3 py-2 font-medium">Avance</th>
+                    <th style={{ width: "9%" }} className="whitespace-nowrap bg-card px-3 py-2 font-medium">Tipo</th>
+                    <th style={{ width: "8%" }} className="whitespace-nowrap bg-card px-3 py-2 font-medium">Prioridad</th>
+                    <th style={{ width: "9%" }} className="whitespace-nowrap bg-card px-5 py-2 text-right font-medium">Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {espGrupos.map(([esp, lista]) => (
+                  {espGrupos.map(([esp, lista]) => {
+                    const claveEsp = `esp:${proyectoId}:${esp}`;
+                    const espAbierta = !colapsados.has(claveEsp);
+                    return (
                     <React.Fragment key={esp}>
                       <tr className="border-b border-line/40 bg-muted/60">
-                        <td className="px-5 py-1.5 font-bold text-ink">{wbs.capitulo(esp)}</td>
+                        <td className="px-5 py-1.5 font-bold text-ink">
+                          <button
+                            type="button"
+                            onClick={() => alternar(claveEsp)}
+                            title={espAbierta ? "Colapsar especialidad" : "Expandir especialidad"}
+                            className="inline-flex items-center gap-1"
+                          >
+                            {espAbierta ? (
+                              <ChevronUp size={12} className="text-muted-foreground" />
+                            ) : (
+                              <ChevronDown size={12} className="text-muted-foreground" />
+                            )}
+                            {wbs.capitulo(esp)}
+                          </button>
+                        </td>
                         <td colSpan={5} className="px-3 py-1.5 label-mono font-semibold text-ink">{esp}</td>
                         <td className="whitespace-nowrap px-3 py-1.5 text-right font-bold text-ink">
                           {soles(lista.reduce((s, x) => s + Number(x.presupuesto_inicial), 0))}
                         </td>
                         <td colSpan={4} />
                       </tr>
-                      {agruparSoloPorCategoria(lista).map((sub) => (
+                      {espAbierta && agruparSoloPorCategoria(lista).map((sub) => (
                       <React.Fragment key={`${esp}-${sub.categoria}`}>
                       {sub.categoria !== "Sin categoría" && (
                         <tr className="border-b border-line/30 bg-muted/30">
@@ -1021,7 +1063,7 @@ function Partidas() {
                                 </span>
                               )}
                             </td>
-                            <td className="px-2 py-2.5 text-muted-foreground">{agrupadora ? "—" : p.marca || "-"}</td>
+                            <td className="max-w-0 overflow-hidden text-ellipsis whitespace-nowrap px-2 py-2.5 text-muted-foreground" title={p.marca || undefined}>{agrupadora ? "—" : p.marca || "-"}</td>
                             <td className="px-2 py-2.5 text-muted-foreground">{agrupadora ? "—" : p.unidad || "—"}</td>
                             <td className="whitespace-nowrap px-2 py-2.5 text-right">{agrupadora ? "—" : cantidad(Number(p.metrado ?? 0))}</td>
                             <td className="whitespace-nowrap px-2 py-2.5 text-right">{agrupadora ? "—" : soles(Number(p.precio_unitario ?? 0))}</td>
@@ -1115,9 +1157,11 @@ function Partidas() {
                       </React.Fragment>
                       ))}
                     </React.Fragment>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
+              )}
             </div>
             );
           })
