@@ -4,7 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEmpresa } from "@/lib/empresa";
 import { fecha as fmtFecha } from "@/lib/format";
-import { totalesCotizacion, vigenciaHasta, type Cotizacion, type CotizacionItem } from "@/lib/cotizaciones";
+import { simboloMoneda, totalesCotizacion, useTipoCambioActual, vigenciaHasta, type Cotizacion, type CotizacionItem } from "@/lib/cotizaciones";
 
 /** Paleta corporativa compartida con la hoja de facturación electrónica. */
 const C = { ink: DOC.ink, muted: DOC.ink, line: DOC.line, soft: DOC.soft, green: DOC.green, greenSoft: DOC.white, white: DOC.white };
@@ -13,7 +13,7 @@ const ed: CSSProperties = { border: "none", borderBottom: `1px dashed ${C.line}`
 const edSel: CSSProperties = { ...ed, cursor: "pointer" };
 const liviano = "var(--font-global)";
 
-const money = (n: number) => `S/ ${Number(n || 0).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const money = (sim: string, n: number) => `${sim} ${Number(n || 0).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 function Bloque({ titulo, children }: { titulo: string; children: ReactNode }) {
   return (
