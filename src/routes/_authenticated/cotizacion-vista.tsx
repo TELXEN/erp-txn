@@ -503,14 +503,19 @@ function VistaCotizacion() {
                   <div className="bloque-final" style={{ pageBreakInside: "avoid" }}>
                     <div className="flex justify-end" style={{ marginTop: 14 }}>
                       <div style={{ width: 280 }}>
-                        <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700 }}><span>Costo Directo</span><span>{S(calculo.costoDirecto)}</span></div>
-                        {calculo.gastosGenerales > 0 && <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700 }}><span>Gastos Generales ({Number(cot.pct_gastos_generales)}%)</span><span>{S(calculo.gastosGenerales)}</span></div>}
-                        {calculo.utilidad > 0 && <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700 }}><span>Utilidad ({Number(cot.pct_utilidad)}%)</span><span>{S(calculo.utilidad)}</span></div>}
-                        {(calculo.gastosGenerales > 0 || calculo.utilidad > 0) && <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700, fontWeight: 600 }}><span>Subtotal</span><span>{S(subtotal)}</span></div>}
-                        <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700, borderBottom: `1px solid ${C.slate100}` }}><span>{conIgv ? "IGV (18%)" : "IGV (0%)"}</span><span>{S(igv)}</span></div>
+                        <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700 }}><span>Costo Directo</span><span>{S(sim, calculo.costoDirecto)}</span></div>
+                        {calculo.gastosGenerales > 0 && <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700 }}><span>Gastos Generales ({Number(cot.pct_gastos_generales)}%)</span><span>{S(sim, calculo.gastosGenerales)}</span></div>}
+                        {calculo.utilidad > 0 && <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700 }}><span>Utilidad ({Number(cot.pct_utilidad)}%)</span><span>{S(sim, calculo.utilidad)}</span></div>}
+                        {(calculo.gastosGenerales > 0 || calculo.utilidad > 0) && <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700, fontWeight: 600 }}><span>Subtotal</span><span>{S(sim, subtotal)}</span></div>}
+                        <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700, borderBottom: `1px solid ${C.slate100}` }}><span>{conIgv ? "IGV (18%)" : "IGV (0%)"}</span><span>{S(sim, igv)}</span></div>
                         <div className="flex justify-between" style={{ marginTop: 7, padding: "10px 14px", background: C.slate900, color: C.white, borderRadius: 8, fontFamily: DOC_FUENTE_CSS, fontSize: "11pt", fontWeight: 300 }}>
-                          <span>TOTAL</span><span>{S(total)}</span>
+                          <span>TOTAL</span><span>{S(sim, total)}</span>
                         </div>
+                        {esUsd && tc > 0 && (
+                          <div className="flex justify-between" style={{ marginTop: 5, padding: "5px 0", color: C.slate500, fontSize: "8.5pt" }}>
+                            <span>Equivalente en soles (T.C. {tc.toFixed(3)})</span><span>{S("S/", total * tc)}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                     <div style={{ marginTop: 16, borderTop: `1px solid ${C.slate100}`, paddingTop: 10, fontSize: 10.5, color: C.slate500, lineHeight: 1.45 }}>
@@ -529,7 +534,10 @@ function VistaCotizacion() {
                         </div>
                       ))}
                       <div style={{ marginTop: 7, color: C.slate400 }}>
-                        {conIgv ? "Precios expresados en soles, incluyen IGV (18%)." : "Precios expresados en soles, no afectos a IGV."} Oferta válida hasta la fecha indicada.
+                        {conIgv
+                          ? `Precios expresados en ${esUsd ? "dólares americanos" : "soles"}, incluyen IGV (18%).`
+                          : `Precios expresados en ${esUsd ? "dólares americanos" : "soles"}, no afectos a IGV.`}{" "}
+                        Oferta válida hasta la fecha indicada.
                       </div>
                     </div>
                   </div>
