@@ -676,6 +676,7 @@ function Cotizaciones() {
               cotizacionId={cot.id}
               items={itemsHoja}
               unidades={unidades}
+              simbolo={simboloMoneda(cot.moneda)}
               alAbrirCatalogo={() => setVerCatalogo(true)}
             />
           </HojaCotizacion>
