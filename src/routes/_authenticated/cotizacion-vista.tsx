@@ -286,7 +286,7 @@ function VistaCotizacion() {
   const revision = `Rev. ${(cot as unknown as { revision?: string } | null)?.revision?.trim() || "01"}`;
 
   function encabezadoHoja(numero: number, totalHojas: number) {
-    const light = { fontFamily: fuente.css, fontWeight: 300 } as const;
+    const light = { fontFamily: DOC_FUENTE_CSS, fontWeight: 300 } as const;
     return (
       <div style={{ display: "flex", gap: 22, alignItems: "flex-start", borderBottom: `3px solid ${C.emerald700}`, paddingBottom: 14 }}>
         <div style={{ width: 96, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -325,7 +325,7 @@ function VistaCotizacion() {
 
   function filaDato(etiqueta: string, valor: string) {
     return (
-      <div className="flex" style={{ fontFamily: fuente.css, fontSize: "9pt", fontWeight: 300, lineHeight: 1.3 }}>
+      <div className="flex" style={{ fontFamily: DOC_FUENTE_CSS, fontSize: "9pt", fontWeight: 300, lineHeight: 1.3 }}>
         <span style={{ width: 76, flexShrink: 0, fontWeight: 300, color: C.slate500, textTransform: "uppercase", letterSpacing: 0, paddingTop: 1 }}>{etiqueta}</span>
         <span style={{ fontWeight: 300, color: C.slate900 }}>{valor}</span>
       </div>
@@ -370,7 +370,7 @@ function VistaCotizacion() {
         <div className="mx-auto" style={{ width: 700 }}>
         <div
           id="cotizacion-impresion"
-          style={{ width: 794, background: C.white, color: C.slate900, fontFamily: fuente.css, fontSize: 12, boxShadow: "0 10px 30px -12px rgba(15,23,42,.25)" }}
+          style={{ width: 794, background: C.white, color: C.slate900, fontFamily: DOC_FUENTE_CSS, fontSize: 12, boxShadow: "0 10px 30px -12px rgba(15,23,42,.25)" }}
         >
           {paginas.map((itemsPagina, paginaIndex) => {
             const esPrimera = paginaIndex === 0;
@@ -385,7 +385,7 @@ function VistaCotizacion() {
 
                 {esPrimera && (
                   <div style={{ marginTop: 14 }}>
-                    <div className="grid grid-cols-2" style={{ gap: "4px 28px", background: C.slate50, borderRadius: 10, padding: "10px 14px", fontFamily: fuente.css }}>
+                    <div className="grid grid-cols-2" style={{ gap: "4px 28px", background: C.slate50, borderRadius: 10, padding: "10px 14px", fontFamily: DOC_FUENTE_CSS }}>
                       <div>
                         <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: 1.2, color: C.emerald800, textTransform: "uppercase", borderBottom: `1px solid ${C.slate100}`, paddingBottom: 3, marginBottom: 5 }}>Datos del cliente</div>
                         {filaDato("Cliente", cliente?.razon_social || cot.cliente || "—")}
@@ -402,7 +402,7 @@ function VistaCotizacion() {
                         {filaDato("E-mail", empresa?.email || "—")}
                       </div>
                     </div>
-                    <div className="flex" style={{ marginTop: 8, background: C.emerald700, color: C.white, borderRadius: 4, padding: "7px 14px", fontFamily: fuente.css, fontSize: "9pt", lineHeight: 1.3 }}>
+                    <div className="flex" style={{ marginTop: 8, background: C.emerald700, color: C.white, borderRadius: 4, padding: "7px 14px", fontFamily: DOC_FUENTE_CSS, fontSize: "9pt", lineHeight: 1.3 }}>
                       <span style={{ fontWeight: 800, letterSpacing: 1, fontSize: 9, textTransform: "uppercase", paddingTop: 1, marginRight: 10 }}>Proyecto</span>
                       <span style={{ fontWeight: 300 }}>{cot.nombre || "—"}</span>
                     </div>
@@ -437,7 +437,7 @@ function VistaCotizacion() {
                       ))}
                     </tr>
                   </thead>
-                  <tbody style={{ fontFamily: fuente.css, fontSize: "9pt", fontWeight: 300, lineHeight: 1.3 }}>
+                  <tbody style={{ fontFamily: DOC_FUENTE_CSS, fontSize: "9pt", fontWeight: 300, lineHeight: 1.3 }}>
                     {itemsPagina.map((fila) => {
                       if (fila.clase !== "item") {
                         const esGrupo = fila.clase === "grupo";
@@ -499,7 +499,7 @@ function VistaCotizacion() {
                         {calculo.utilidad > 0 && <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700 }}><span>Utilidad ({Number(cot.pct_utilidad)}%)</span><span>{S(calculo.utilidad)}</span></div>}
                         {(calculo.gastosGenerales > 0 || calculo.utilidad > 0) && <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700, fontWeight: 600 }}><span>Subtotal</span><span>{S(subtotal)}</span></div>}
                         <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700, borderBottom: `1px solid ${C.slate100}` }}><span>{conIgv ? "IGV (18%)" : "IGV (0%)"}</span><span>{S(igv)}</span></div>
-                        <div className="flex justify-between" style={{ marginTop: 7, padding: "10px 14px", background: C.slate900, color: C.white, borderRadius: 8, fontFamily: fuente.css, fontSize: "11pt", fontWeight: 300 }}>
+                        <div className="flex justify-between" style={{ marginTop: 7, padding: "10px 14px", background: C.slate900, color: C.white, borderRadius: 8, fontFamily: DOC_FUENTE_CSS, fontSize: "11pt", fontWeight: 300 }}>
                           <span>TOTAL</span><span>{S(total)}</span>
                         </div>
                       </div>
