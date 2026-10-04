@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { CuentasComprobante, type CuentaCpe } from "@/components/facturacion/CuentasComprobante";
 import { Plus, Search, Trash2 } from "lucide-react";
 import { consultarDocumentoSunat, consultarTipoCambio } from "@/lib/decolecta.functions";
-import { CODIGOS_SPOT, MODALIDADES_TRASLADO, MOTIVOS_BAJA, MOTIVOS_NOTA_CREDITO, MOTIVOS_NOTA_DEBITO, MOTIVOS_TRASLADO, PESTANAS_CPE, TASAS_IGV, TASAS_PERCEPCION, TASAS_RETENCION, TIPOS_DOC_RELACIONADO, UNIDADES_SUNAT, calcularItem, cuotaVacia, docRelacionadoVacio, itemComprobanteVacio, repartirCuotas, usaImportes, usaItems, usaRelacionados, type CuotaEditor, type DocRelacionado, type ItemEditor, type OperacionTipo, type TipoComprobante, type TipoTributarioCpe } from "@/lib/facturacion";
+import { CODIGOS_SPOT, MODALIDADES_TRASLADO, MOTIVOS_BAJA, MOTIVOS_NOTA_CREDITO, MOTIVOS_NOTA_DEBITO, MOTIVOS_TRASLADO, PESTANAS_CPE, TASAS_IGV, TASAS_PERCEPCION, TASAS_RETENCION, TIPOS_DOC_RELACIONADO, UNIDADES_SUNAT, calcularItem, cuotaVacia, docRelacionadoVacio, itemComprobanteVacio, montoEnLetras, repartirCuotas, usaImportes, usaItems, usaRelacionados, type CuotaEditor, type DocRelacionado, type ItemEditor, type OperacionTipo, type TipoComprobante, type TipoTributarioCpe } from "@/lib/facturacion";
 import { hoy } from "@/lib/format";
 
 export const C = { ink: "#0f172a", text: "#0f172a", muted: "#334155", line: "#cbd5e1", soft: "#f8fafc", green: "#1e293b", greenDark: "#0f172a", greenSoft: "#ffffff", white: "#ffffff", dark: "#0f172a" };
@@ -85,7 +85,7 @@ export function HojaComprobante(props: {
 
   return (
     <div className="cpe-editor-canvas" style={{ overflowX: "auto", paddingBottom: 18 }}>
-      <section className="cpe-editor-sheet" style={{ width: "100%", maxWidth: 1500, minWidth: 980, minHeight: 1123, boxSizing: "border-box", margin: "0 auto", padding: "36px 38px", background: C.white, color: C.ink, fontFamily: "var(--font-global)", fontWeight: 400, fontSize: 12.5, boxShadow: "0 12px 35px rgba(15,23,42,.18)" }}>
+      <section className="cpe-editor-sheet" style={{ width: "100%", maxWidth: 1500, minWidth: 980, minHeight: 1123, boxSizing: "border-box", margin: "0 auto", padding: "36px 38px", background: C.white, color: C.ink, fontFamily: "var(--font-global)", fontWeight: 400, fontSize: 12.5, boxShadow: "0 12px 35px rgba(15,23,42,.18)", display: "flex", flexDirection: "column" }}>
         <header style={{ display: "flex", gap: 22, alignItems: "flex-start", borderBottom: `3px solid ${C.green}`, paddingBottom: 14 }}>
           <div style={{ width: 96, display: "flex", alignItems: "center", justifyContent: "center" }}>{empresa?.logo_url ? <img src={empresa.logo_url} alt="" style={{ maxWidth: 92, maxHeight: 54 }} /> : <div style={{ width: 52, height: 52, borderRadius: 9, background: C.green, color: C.white, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800 }}>TX</div>}</div>
           <div style={{ flex: 1, minHeight: 76, textAlign: "right", paddingRight: 10, display: "flex", flexDirection: "column", justifyContent: "flex-start" }}>
@@ -317,10 +317,13 @@ export function HojaComprobante(props: {
           <div style={{ marginTop: 12, fontSize: 9.5 }}><b style={{ fontSize: 8, color: C.muted }}>OBSERVACIONES</b><input value={form.observacion} onChange={(e) => set("observacion", e.target.value)} placeholder="Texto adicional que se imprime en el comprobante" style={{ ...ed, marginTop: 4 }} /></div>
         </>}
 
-        {usaImportes(tipo) && <CuentasComprobante cuentas={cuentas} />}
-        <div style={{ marginTop: 24, borderTop: `1px solid ${C.line}`, paddingTop: 12, fontSize: 9, color: C.muted }}>
-          <b>REPRESENTACIÓN IMPRESA DEL COMPROBANTE ELECTRÓNICO</b>
-          <div style={{ marginTop: 5 }}>Vista de captura: lo que escribes aquí es exactamente lo que saldrá impreso.</div>
+        <div style={{ marginTop: "auto", paddingTop: 18 }}>
+          {usaImportes(tipo) && <div style={{ padding: "5px 0", fontSize: 9.5, fontWeight: 700 }}>{montoEnLetras(montos.total, form.moneda)}</div>}
+          {usaImportes(tipo) && <CuentasComprobante cuentas={cuentas} />}
+          <div style={{ marginTop: 18, borderTop: `1px solid ${C.line}`, paddingTop: 10, fontSize: 9, color: C.muted }}>
+            <b>REPRESENTACIÓN IMPRESA DEL COMPROBANTE ELECTRÓNICO</b>
+            <div style={{ marginTop: 5 }}>Vista de captura: lo que escribes aquí es exactamente lo que saldrá impreso.</div>
+          </div>
         </div>
       </section>
     </div>
