@@ -751,7 +751,7 @@ export function CotizacionHoja({
         )}
         <span>Clic derecho: menú · Doble clic edita · Enter guarda · Esc cancela · Flechas y Tab navegan · Insert añade fila</span>
       </div>
-      <table className="w-full min-w-[1180px] table-fixed font-mono text-[10.33px]">
+      <table className="w-full min-w-[1180px] table-fixed font-mono text-[10.5px]">
         <colgroup>
           <col style={{ width: "10%" }} />
           <col style={{ width: "39%" }} />
@@ -763,7 +763,7 @@ export function CotizacionHoja({
           <col style={{ width: "8%" }} />
         </colgroup>
         <thead>
-          <tr className="h-7 text-left text-[10px] uppercase tracking-normal" style={{ background: DOC.green, color: DOC.white }}>
+          <tr className="h-7 text-left text-[9.5px] uppercase tracking-normal" style={{ background: DOC.green, color: DOC.white }}>
             <th className="px-2 py-1 align-middle font-medium">Código</th>
             <th className="px-2 py-1 align-middle font-medium">Descripción</th>
             <th className="px-1 py-1 text-center align-middle font-medium">Marca</th>
