@@ -770,14 +770,17 @@ function Cotizaciones() {
                   </td>
                   <td className="px-5 py-2.5 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <button type="button" title="Editar" aria-label="Editar" onClick={() => setSeleccion(c.id)} className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-line text-muted-foreground hover:bg-primary/10 hover:text-primary">
-                        <Pencil size={15} />
-                      </button>
                       <Link to="/cotizacion-vista" search={{ id: c.id }} title="Vista previa" aria-label="Vista previa" className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-line text-muted-foreground hover:bg-primary/10 hover:text-primary">
                         <Eye size={15} />
                       </Link>
+                      <button type="button" title="Copiar" aria-label="Copiar" onClick={() => void duplicar(c)} className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-line text-muted-foreground hover:bg-primary/10 hover:text-primary">
+                        <Copy size={14} />
+                      </button>
+                      <button type="button" title="Editar" aria-label="Editar" onClick={() => setSeleccion(c.id)} className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-line text-muted-foreground hover:bg-primary/10 hover:text-primary">
+                        <Pencil size={14} />
+                      </button>
                       <button type="button" title="Eliminar" aria-label="Eliminar" onClick={() => borrarCotizacion(c.id)} className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-line text-muted-foreground hover:bg-destructive/10 hover:text-destructive">
-                        <Trash2 size={15} />
+                        <Trash2 size={14} />
                       </button>
                     </div>
                   </td>
