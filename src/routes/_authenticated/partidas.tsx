@@ -1063,7 +1063,7 @@ function Partidas() {
                                 </span>
                               )}
                             </td>
-                            <td className="px-2 py-2.5 text-muted-foreground">{agrupadora ? "—" : p.marca || "-"}</td>
+                            <td className="max-w-0 overflow-hidden text-ellipsis whitespace-nowrap px-2 py-2.5 text-muted-foreground" title={p.marca || undefined}>{agrupadora ? "—" : p.marca || "-"}</td>
                             <td className="px-2 py-2.5 text-muted-foreground">{agrupadora ? "—" : p.unidad || "—"}</td>
                             <td className="whitespace-nowrap px-2 py-2.5 text-right">{agrupadora ? "—" : cantidad(Number(p.metrado ?? 0))}</td>
                             <td className="whitespace-nowrap px-2 py-2.5 text-right">{agrupadora ? "—" : soles(Number(p.precio_unitario ?? 0))}</td>
