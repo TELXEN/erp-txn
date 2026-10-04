@@ -400,7 +400,7 @@ function VistaCotizacion() {
                         {filaDato("Atención", cliente?.contacto || "—")}
                         {filaDato("Ubicación", cot.ubicacion || cliente?.direccion || "—")}
                       </div>
-                      <div style={{ justifySelf: "end", width: "88%" }}>
+                      <div style={{ justifySelf: "end", width: 234 }}>
                         <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: 1.2, color: C.emerald800, textTransform: "uppercase", borderBottom: `1px solid ${C.slate100}`, paddingBottom: 3, marginBottom: 5 }}>Emisión y contacto</div>
                         {filaDato("Emisión", F(cot.fecha_emision))}
                         {filaDato("Vence", F(vigenciaHasta(cot.fecha_emision, Number(cot.validez_dias))))}

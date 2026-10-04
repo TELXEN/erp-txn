@@ -152,7 +152,7 @@ export function HojaCotizacion({
               <span style={{ fontWeight: 700 }}>{fmtFecha(vigenciaHasta(cot.fecha_emision, Number(cot.validez_dias)))}</span>
             </Linea>
           </Bloque>
-          <div style={{ justifySelf: "end", width: "92%" }}><Bloque titulo="">
+          <div style={{ justifySelf: "end", width: 232 }}><Bloque titulo="">
             <Linea etiqueta="Emisión">
               <input key={`fec-${cot.id}-${cot.fecha_emision}`} type="date" defaultValue={cot.fecha_emision} onBlur={(e) => alSalir("fecha_emision", e.target.value, cot.fecha_emision)} style={ed} />
             </Linea>
