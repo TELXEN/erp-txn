@@ -129,7 +129,7 @@ function paginarFilas(filas: Fila[], horizontal = false) {
     while (pendientes.length > 0) {
       const proximo = pendientes[0];
       if (!proximo) break;
-      const siguiente = altoEstimadoFila(proximo);
+      const siguiente = altoEstimadoFila(proximo, charsPorLinea);
       if (pagina.length > 0 && usado + siguiente > capacidad) break;
       if (pagina.length > 0 && pendientes.length === 1) break;
       const fila = pendientes.shift();
@@ -187,8 +187,12 @@ function VistaCotizacion() {
   const esUsd = cot?.moneda === "USD";
   const sim = simboloMoneda(cot?.moneda);
   const tc = Number(cot?.tipo_cambio) || 0;
+  const horizontal = cot?.orientacion === "horizontal";
+  const paginaW = horizontal ? 1123 : 794;
+  const interiorW = horizontal ? 1087 : 754;
+  const paginaH = horizontal ? 700 : 990;
   const nombreArchivo = `Cotizacion_${(cot?.cliente || "Cliente").replace(/[^\w-]+/g, "_")}_${cot?.codigo ?? "sin_codigo"}`;
-  const paginas = paginarFilas(construirFilas(items as unknown as ItemCot[]));
+  const paginas = paginarFilas(construirFilas(items as unknown as ItemCot[]), horizontal);
 
   function copiarEnlace() {
     const url = `${window.location.origin}/cotizacion-vista?id=${id}`;
