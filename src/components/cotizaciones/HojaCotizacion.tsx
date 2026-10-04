@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
+import { DOC, DOC_FUENTE_CSS } from "@/lib/documento-tema";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEmpresa } from "@/lib/empresa";
@@ -6,7 +7,7 @@ import { fecha as fmtFecha } from "@/lib/format";
 import { totalesCotizacion, vigenciaHasta, type Cotizacion, type CotizacionItem } from "@/lib/cotizaciones";
 
 /** Paleta corporativa compartida con la hoja de facturación electrónica. */
-const C = { ink: "#000000", muted: "#000000", line: "#cbd5e1", soft: "#f8fafc", green: "#047857", greenSoft: "#ecfdf5", white: "#ffffff" };
+const C = { ink: DOC.ink, muted: DOC.ink, line: DOC.line, soft: DOC.soft, green: DOC.green, greenSoft: DOC.white, white: DOC.white };
 
 const ed: CSSProperties = { border: "none", borderBottom: `1px dashed ${C.line}`, background: "transparent", font: "inherit", fontSize: 13, color: "inherit", width: "100%", padding: "4px 0", outline: "none" };
 const edSel: CSSProperties = { ...ed, cursor: "pointer" };
@@ -71,13 +72,13 @@ export function HojaCotizacion({
           padding: "36px 38px",
           background: C.white,
           color: C.ink,
-          fontFamily: "var(--font-global)",
+          fontFamily: DOC_FUENTE_CSS,
           fontWeight: 400,
           fontSize: 12.5,
           boxShadow: "0 12px 35px rgba(15,23,42,.18)",
         }}
       >
-        <header style={{ display: "flex", gap: 22, alignItems: "flex-start", borderBottom: `3px solid ${C.green}`, paddingBottom: 14 }}>
+        <header style={{ display: "flex", gap: 22, alignItems: "flex-start", borderBottom: `2px solid ${C.green}`, paddingBottom: 14 }}>
           <div style={{ width: 96, display: "flex", alignItems: "center", justifyContent: "center" }}>
             {empresa?.logo_url ? (
               <img src={empresa.logo_url} alt="" style={{ maxWidth: 92, maxHeight: 54 }} />
@@ -92,7 +93,7 @@ export function HojaCotizacion({
             <div style={{ fontFamily: liviano, fontWeight: 400, fontSize: 12, marginTop: 3, lineHeight: 1.3 }}>{empresa?.web || "—"}</div>
           </div>
           <div style={{ width: 248, textAlign: "center", flexShrink: 0 }}>
-            <div style={{ background: C.greenSoft, borderTop: `4px solid ${C.green}`, borderRadius: 5, padding: "10px 8px" }}>
+            <div style={{ background: C.white, border: `1px solid ${C.line}`, borderTop: `4px solid ${C.green}`, borderRadius: 6, padding: "10px 8px" }}>
               <div style={{ fontFamily: liviano, fontSize: 13, fontWeight: 600 }}>COTIZACIÓN</div>
               <div style={{ fontSize: 12.5, fontWeight: 700, marginTop: 5 }}>RUC: {empresa?.ruc || "—"}</div>
               <div style={{ fontSize: 15, fontWeight: 700, marginTop: 4 }}>{cot.codigo || "—"}</div>
@@ -111,7 +112,7 @@ export function HojaCotizacion({
           </div>
         </header>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr .8fr", gap: 20, background: C.soft, borderTop: `1px solid ${C.line}`, borderBottom: `1px solid ${C.line}`, padding: 16, marginTop: 18, fontSize: 13 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr .8fr", gap: 20, background: C.soft, border: `1px solid ${C.line}`, borderLeft: `3px solid ${DOC.accent}`, borderRadius: 6, padding: 16, marginTop: 18, fontSize: 13 }}>
           <Bloque titulo="CLIENTE">
             <Linea etiqueta="Registrado">
               <select
@@ -162,7 +163,7 @@ export function HojaCotizacion({
 
         <div style={{ marginTop: 16 }}>{children}</div>
 
-        <div style={{ width: 380, marginLeft: "auto", marginTop: 20, fontSize: 13 }}>
+        <div style={{ width: 380, marginLeft: "auto", marginTop: 20, fontSize: 13, background: DOC.total, borderRadius: 6, padding: 6 }}>
           {[
             ["COSTO DIRECTO", money(totales.costoDirecto), false] as const,
           ].map(([t, v]) => (
@@ -184,7 +185,7 @@ export function HojaCotizacion({
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 8px", borderBottom: `1px solid ${C.line}`, fontWeight: 700 }}><span>SUBTOTAL</span><span>{money(totales.total)}</span></div>
           <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 8px", borderBottom: `1px solid ${C.line}` }}><span>IGV {conIgv ? "18%" : "0%"}</span><span>{money(igv)}</span></div>
-          <div style={{ display: "flex", justifyContent: "space-between", padding: 13, border: "1.4px solid #006648", borderRadius: 6, marginTop: 6, color: "#006648", fontWeight: 700, fontSize: 16 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", padding: "7px 8px", borderTop: `1px solid ${DOC.green}`, marginTop: 4, color: DOC.green, fontWeight: 700, fontSize: 14 }}>
             <span>IMPORTE TOTAL</span><span>{money(totales.total + igv)}</span>
           </div>
         </div>

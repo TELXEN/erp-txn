@@ -1,6 +1,7 @@
 import { Document, Image, Page, StyleSheet, Text, View, pdf } from "@react-pdf/renderer";
 import { familiaReactPdf } from "@/lib/fuentes-documentos-pdf";
 import type { FuenteDocumentoId } from "@/lib/fuentes-documentos";
+import { DOC, DOC_ALIAS, DOC_FUENTE_PDF } from "@/lib/documento-tema";
 
 type LineaPdf = {
   descripcion: string;
@@ -62,19 +63,7 @@ function separarCodigoPartida(descripcion: string) {
   return { codigo: m[1].split(".").map((p) => p.padStart(2, "0")).join(""), texto: m[2].trim() };
 }
 
-const colors = {
-  slate950: "#0f172a",
-  slate700: "#334155",
-  slate500: "#64748b",
-  slate300: "#cbd5e1",
-  slate100: "#f1f5f9",
-  slate50: "#f8fafc",
-  emerald800: "#065f46",
-  emerald700: "#047857",
-  emerald100: "#d1fae5",
-  emerald50: "#ecfdf5",
-  white: "#ffffff",
-};
+const colors = DOC_ALIAS;
 
 function crearEstilos(fontFamily: string) {
 return StyleSheet.create({
@@ -84,50 +73,50 @@ return StyleSheet.create({
   logo: { maxWidth: 96, maxHeight: 46, objectFit: "contain" },
   logoFallback: { width: 46, height: 46, borderRadius: 9, backgroundColor: colors.emerald700, color: colors.white, fontFamily, fontWeight: 700, fontSize: 14, textAlign: "center", lineHeight: 46 },
   company: { flex: 1, alignItems: "flex-end", paddingTop: 2 },
-  companyName: { fontFamily, fontWeight: 700, fontSize: 8.5, color: colors.emerald800, letterSpacing: 0.3, textAlign: "right" },
+  companyName: { fontFamily, fontWeight: 700, fontSize: 13, color: colors.emerald800, letterSpacing: 0.3, textAlign: "right" },
   slogan: { fontFamily, fontSize: 7, color: colors.emerald800, letterSpacing: 0.3, textAlign: "right", lineHeight: 1.3, marginTop: 2 },
   companyLine: { fontFamily, fontSize: 7, color: colors.slate700, textAlign: "right", lineHeight: 1.35, marginTop: 3 },
   companyLineMt: { fontFamily, fontSize: 7, color: colors.slate700, textAlign: "right", lineHeight: 1.35, marginTop: 1.5 },
   companyWeb: { fontFamily, fontSize: 7, color: colors.emerald800, textAlign: "right", lineHeight: 1.35, marginTop: 1.5 },
   titleCol: { width: 145 },
-  titleBox: { alignItems: "center", backgroundColor: colors.emerald50, borderTopWidth: 3, borderTopColor: colors.emerald700, borderRadius: 4, paddingVertical: 8, paddingHorizontal: 12 },
+  titleBox: { alignItems: "center", backgroundColor: DOC.white, borderWidth: 1, borderColor: DOC.line, borderTopWidth: 4, borderTopColor: colors.emerald700, borderRadius: 6, paddingVertical: 9, paddingHorizontal: 12 },
   boxTitle: { fontFamily, fontWeight: 700, fontSize: 14, color: colors.slate950, letterSpacing: 1.4, lineHeight: 1.15 },
   boxRuc: { fontFamily, fontWeight: 700, fontSize: 8.5, color: colors.slate950, marginTop: 2 },
   boxCode: { fontFamily, fontWeight: 700, fontSize: 10, color: colors.slate950, marginTop: 1.5, letterSpacing: 0.5 },
-  statusLine: { flexDirection: "row", justifyContent: "space-between", marginTop: 4 },
-  statusText: { fontFamily, fontWeight: 700, fontSize: 7, color: colors.slate500, letterSpacing: 0.8 },
-  infoBand: { flexDirection: "row", gap: 16, padding: 12, backgroundColor: colors.slate50, borderTopWidth: 1, borderBottomWidth: 1, borderColor: colors.slate300, marginBottom: 17 },
+  statusLine: { flexDirection: "row", justifyContent: "center", marginTop: 5 },
+  statusText: { fontFamily, fontWeight: 700, fontSize: 7, color: DOC.accentText, paddingVertical: 2, paddingHorizontal: 9, borderRadius: 8, backgroundColor: DOC.accentSoft, borderWidth: 0.8, borderColor: DOC.accent },
+  infoBand: { flexDirection: "row", gap: 16, padding: 12, backgroundColor: DOC.soft, borderWidth: 1, borderColor: DOC.line, borderLeftWidth: 3, borderLeftColor: DOC.accent, borderRadius: 6, marginBottom: 14 },
   infoColumn: { flex: 1 },
   label: { fontFamily, fontWeight: 700, fontSize: 6.7, color: colors.slate500, letterSpacing: 0.7, textTransform: "uppercase", marginBottom: 3 },
   value: { fontFamily, fontWeight: 700, fontSize: 9, color: colors.slate950, lineHeight: 1.3 },
   subvalue: { fontSize: 7.8, color: colors.slate500, lineHeight: 1.35, marginTop: 2 },
   sectionTitle: { fontFamily, fontWeight: 700, fontSize: 8, color: colors.emerald800, letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 7 },
   table: { marginBottom: 15 },
-  tableHeader: { flexDirection: "row", backgroundColor: colors.slate950, color: colors.white, minHeight: 24, alignItems: "center" },
-  tableRow: { flexDirection: "row", minHeight: 27, alignItems: "center", borderBottomWidth: 0.7, borderBottomColor: colors.slate300 },
+  tableHeader: { flexDirection: "row", backgroundColor: DOC.green, color: DOC.white, fontWeight: 700, fontSize: 6.5, paddingVertical: 4, alignItems: "center" },
+  tableRow: { flexDirection: "row", minHeight: 20, alignItems: "flex-start", paddingVertical: 4, borderBottomWidth: 0.7, borderBottomColor: colors.slate300 },
   tableRowAlt: { backgroundColor: colors.slate50 },
   cell: { paddingHorizontal: 6 },
   number: { width: "5%", textAlign: "center" },
   codeCell: { width: "10%", textAlign: "left" },
-  description: { width: "35%" },
+  description: { width: "35%", fontSize: 7, lineHeight: 1.25 },
   unit: { width: "9%", textAlign: "center" },
   quantity: { width: "11%", textAlign: "right" },
   price: { width: "14%", textAlign: "right" },
   subtotal: { width: "16%", textAlign: "right" },
   summaryWrap: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 },
-  paymentCard: { width: "52%", padding: 11, borderWidth: 1, borderColor: colors.slate300, borderRadius: 4 },
+  paymentCard: { width: "52%", padding: 11, borderWidth: 1, borderColor: DOC.line, borderRadius: 6 },
   paymentRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 5 },
-  totals: { width: "42%" },
+  totals: { width: "42%", backgroundColor: DOC.total, borderRadius: 6, padding: 6 },
   totalRow: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 4, borderBottomWidth: 0.5, borderBottomColor: colors.slate300 },
-  totalStrong: { flexDirection: "row", justifyContent: "space-between", padding: "8 7", backgroundColor: colors.slate950, color: colors.white, fontFamily, fontWeight: 700, fontSize: 10 },
+  totalStrong: { flexDirection: "row", justifyContent: "space-between", padding: "6 4", color: DOC.green, borderTopWidth: 1, borderTopColor: DOC.green, fontFamily, fontWeight: 700, fontSize: 10 },
   settlement: { flexDirection: "row", gap: 8, marginBottom: 15 },
-  settlementCard: { flex: 1, padding: 10, backgroundColor: colors.emerald50, borderTopWidth: 2, borderTopColor: colors.emerald700 },
+  settlementCard: { flex: 1, padding: 10, borderWidth: 1, borderColor: DOC.line, borderRadius: 6 },
   settlementValue: { fontFamily, fontWeight: 700, fontSize: 11, color: colors.emerald800, marginTop: 4 },
-  banking: { padding: 11, backgroundColor: colors.slate50, marginBottom: 13, flexGrow: 1 },
+  banking: { padding: 11, borderWidth: 1, borderColor: DOC.line, borderRadius: 6, marginBottom: 13, flexGrow: 1 },
   bankList: { flexGrow: 1 },
   bankLabel: { fontFamily, fontWeight: 700, fontSize: 6.7, color: colors.slate500, letterSpacing: 0.7, textTransform: "uppercase", marginBottom: 1, marginTop: 2 },
   bankValue: { fontFamily, fontWeight: 700, fontSize: 9, color: colors.slate950, lineHeight: 1.2, marginTop: 1 },
-  notes: { padding: 10, borderLeftWidth: 3, borderLeftColor: colors.emerald700, backgroundColor: colors.emerald50, marginBottom: 14 },
+  notes: { padding: 10, borderLeftWidth: 3, borderLeftColor: DOC.accent, backgroundColor: DOC.soft, borderRadius: 6, marginBottom: 14 },
   legal: { fontSize: 7, lineHeight: 1.4, color: colors.slate500, marginTop: "auto", paddingTop: 12, borderTopWidth: 0.7, borderTopColor: colors.slate300 },
   footer: { position: "absolute", left: 34, right: 34, bottom: 14, flexDirection: "row", justifyContent: "space-between", color: colors.slate500, fontSize: 6.5 },
 });
@@ -143,7 +132,7 @@ const numero = (valor: number, decimales = 2) =>
   Number(valor || 0).toLocaleString("es-PE", { minimumFractionDigits: decimales, maximumFractionDigits: decimales });
 
 function PreliquidacionDocument({ datos }: { datos: DatosPreliquidacionPdf }) {
-  const styles = crearEstilos(familiaReactPdf(datos.fuentePdf ?? "carlito"));
+  const styles = crearEstilos(familiaReactPdf(DOC_FUENTE_PDF));
   const simbolo = datos.moneda === "USD" ? "US$" : "S/";
   const dinero = (valor: number) => `${simbolo} ${numero(valor)}`;
   const descuento = datos.detraccionPen > 0 ? `S/ ${numero(datos.detraccionPen, 0)}` : datos.retencionPen > 0 ? `S/ ${numero(datos.retencionPen)}` : "No aplica";

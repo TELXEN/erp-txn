@@ -1,4 +1,5 @@
 import { CuentasComprobante, cuentaDetraccionDe, ordenarCuentas, esDetraccion, type CuentaCpe } from "@/components/facturacion/CuentasComprobante";
+import { DOC, DOC_FUENTE_CSS } from "@/lib/documento-tema";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -12,9 +13,9 @@ import { TIPOS_COMPROBANTE, type Comprobante, type ComprobanteCuota, type Compro
 import { descargarComprobantePdf, type DatosComprobantePdf } from "@/components/ComprobantePdf";
 
 export const Route=createFileRoute("/_authenticated/comprobante-vista")({validateSearch:(s:Record<string,unknown>)=>({id:typeof s["id"]==="string"?s["id"]:""}),head:()=>({meta:[{title:"Vista previa de comprobante — ERP TELXEN"},{name:"description",content:"Representación impresa de factura, boleta o nota electrónica."},{property:"og:title",content:"Vista previa de comprobante — ERP TELXEN"},{property:"og:description",content:"Documento electrónico con formato corporativo TELXEN."},{property:"og:type",content:"website"},{name:"twitter:card",content:"summary"}]}),component:Vista});
-const C={ink:"#374151",text:"#374151",muted:"#374151",line:"#E5E7EB",soft:"#F9FAFB",green:"#1A2B4C",greenDark:"#1A2B4C",greenSoft:"#ffffff",white:"#ffffff",accent:"#F1C40F",total:"#F3F4F6"};
+const C=DOC;
 const CARD:React.CSSProperties={background:"#ffffff",border:"1px solid #E5E7EB",borderRadius:8,boxShadow:"0 1px 2px rgba(16,24,40,.06)",padding:10,textAlign:"left"};
-const ROB="Roboto, Arial, sans-serif";
+const ROB=DOC_FUENTE_CSS;
 const F=(v:string)=>v?v.slice(0,10).split("-").reverse().join("/"):"—"; const N=(n:number)=>Number(n||0).toLocaleString("es-PE",{minimumFractionDigits:2,maximumFractionDigits:2});
 function Vista(){const {id}=Route.useSearch();const {data:empresa}=useEmpresa();const [cargando,setCargando]=useState(false);const {data}=useQuery({queryKey:["comprobante-vista",id],enabled:Boolean(id),queryFn:async()=>{const [{data:c,error},{data:i,error:e2},{data:q,error:e3}]=await Promise.all([supabase.from("comprobantes_electronicos").select("*").eq("id",id).maybeSingle(),supabase.from("comprobante_items").select("*").eq("comprobante_id",id).order("orden"),supabase.from("comprobante_cuotas").select("*").eq("comprobante_id",id).order("numero")]);if(error)throw error;if(e2)throw e2;if(e3)throw e3;if(!c)return null;const [cliente,proyecto,cuentas]=await Promise.all([c.cliente_id?supabase.from("terceros").select("razon_social,numero_documento,direccion").eq("id",c.cliente_id).maybeSingle():Promise.resolve({data:null}),c.proyecto_id?supabase.from("proyectos").select("nombre,codigo").eq("id",c.proyecto_id).maybeSingle():Promise.resolve({data:null}),supabase.from("bancos").select("nombre,numero_cuenta,cci,monedas,tipo_cuenta").eq("activo",true).order("nombre")]);return {c:c as Comprobante,items:(i??[]) as ComprobanteItem[],cuotas:(q??[]) as ComprobanteCuota[],cliente:cliente.data,proyecto:proyecto.data,cuentas:(cuentas.data??[]) as CuentaCpe[],cuenta:cuentaDetraccionDe((cuentas.data??[]) as CuentaCpe[])?.numero_cuenta??""}}});
  if(!id||!data)return <Panel titulo="Vista previa del comprobante"><Vacio texto="Selecciona un comprobante registrado para visualizarlo."/></Panel>;const {c,items,cuotas,cliente,proyecto,cuenta}=data;const sym=c.moneda==="USD"?"US$":"S/";const money=(n:number)=>`${sym} ${N(n)}`;const nombre=TIPOS_COMPROBANTE[c.tipo_comprobante as TipoComprobante];

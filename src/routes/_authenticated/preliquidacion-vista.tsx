@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { DOC, DOC_ALIAS, DOC_FUENTE_CSS } from "@/lib/documento-tema";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, FileDown, Link2 } from "lucide-react";
@@ -28,18 +29,7 @@ export const Route = createFileRoute("/_authenticated/preliquidacion-vista")({
 });
 
 /** Paleta del documento (misma del PDF: esmeralda + pizarra). */
-const C = {
-  slate950: "#0f172a",
-  slate700: "#334155",
-  slate500: "#64748b",
-  slate300: "#cbd5e1",
-  slate100: "#f1f5f9",
-  slate50: "#f8fafc",
-  emerald800: "#065f46",
-  emerald700: "#047857",
-  emerald50: "#ecfdf5",
-  white: "#ffffff",
-};
+const C = DOC_ALIAS;
 
 
 const F = (v: string) => {
@@ -270,7 +260,7 @@ function VistaPreliquidacion() {
               margin: "0 auto",
               background: C.white,
               color: C.slate700,
-              fontFamily: fuente.css,
+              fontFamily: DOC_FUENTE_CSS,
               fontSize: 9.5,
               padding: "38px 40px 34px",
               boxSizing: "border-box",
@@ -301,29 +291,29 @@ function VistaPreliquidacion() {
                       const linea1 = idx >= 0 ? es.slice(0, idx + 1) : es;
                       const linea2 = idx >= 0 ? es.slice(idx + 1).trim() : "";
                       return (
-                        <div style={{ marginTop: 2, fontFamily: fuente.css, fontSize: 9.5, fontWeight: 300, color: C.emerald800, letterSpacing: 0.4, lineHeight: 1.3, textAlign: "right" }}>
+                        <div style={{ marginTop: 2, fontFamily: DOC_FUENTE_CSS, fontSize: 9.5, fontWeight: 300, color: C.emerald800, letterSpacing: 0.4, lineHeight: 1.3, textAlign: "right" }}>
                           <span style={{ display: "block" }}>{linea1}</span>
                           {linea2 && <span style={{ display: "block" }}>{linea2}</span>}
                         </div>
                       );
                     })()
                   : (
-                      <div style={{ marginTop: 2, fontFamily: fuente.css, fontSize: 9.5, fontWeight: 300, color: C.emerald800, letterSpacing: 0.4, lineHeight: 1.3, textAlign: "right" }}>
+                      <div style={{ marginTop: 2, fontFamily: DOC_FUENTE_CSS, fontSize: 9.5, fontWeight: 300, color: C.emerald800, letterSpacing: 0.4, lineHeight: 1.3, textAlign: "right" }}>
                         <span style={{ display: "block" }}>SOLUCIONES INTEGRALES EN ENERGÍA,</span>
                         <span style={{ display: "block" }}>AUTOMATIZACIÓN Y CONTROL INDUSTRIAL</span>
                       </div>
                     )}
                 {empresa?.direccion && (
-                  <div style={{ marginTop: 4, fontFamily: fuente.css, fontWeight: 300, fontSize: 9.5, color: C.slate700 }}>Dirección: {empresa.direccion}</div>
+                  <div style={{ marginTop: 4, fontFamily: DOC_FUENTE_CSS, fontWeight: 300, fontSize: 9.5, color: C.slate700 }}>Dirección: {empresa.direccion}</div>
                 )}
                 {empresa?.telefono && (
-                  <div style={{ marginTop: 2, fontFamily: fuente.css, fontWeight: 300, fontSize: 9.5, color: C.slate700 }}>Teléfono: {empresa.telefono}</div>
+                  <div style={{ marginTop: 2, fontFamily: DOC_FUENTE_CSS, fontWeight: 300, fontSize: 9.5, color: C.slate700 }}>Teléfono: {empresa.telefono}</div>
                 )}
-                {empresa?.web && <div style={{ marginTop: 2, fontFamily: fuente.css, fontWeight: 300, fontSize: 9.5, color: C.emerald800 }}>{empresa.web}</div>}
+                {empresa?.web && <div style={{ marginTop: 2, fontFamily: DOC_FUENTE_CSS, fontWeight: 300, fontSize: 9.5, color: C.emerald800 }}>{empresa.web}</div>}
               </div>
 
               <div style={{ minWidth: 200 }}>
-                <div style={{ background: C.emerald50, borderTop: `3px solid ${C.emerald700}`, borderRadius: 4, padding: "10px 16px", textAlign: "center", color: C.slate950 }}>
+                <div style={{ background: DOC.white, border: `1px solid ${DOC.line}`, borderTop: `4px solid ${DOC.green}`, borderRadius: 6, padding: "10px 16px", textAlign: "center", color: C.slate950 }}>
                   <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: 2, lineHeight: 1.15 }}>PRELIQUIDACIÓN</div>
                   <div style={{ marginTop: 3, fontSize: 12, fontWeight: 700 }}>RUC: {empresa?.ruc || "—"}</div>
                   <div style={{ marginTop: 2, fontSize: 14, fontWeight: 800, letterSpacing: 0.6 }}>{pl.codigo}</div>
@@ -336,7 +326,7 @@ function VistaPreliquidacion() {
 
             <div
               className="flex"
-              style={{ gap: 18, padding: 13, background: C.slate50, borderTop: `1px solid ${C.slate300}`, borderBottom: `1px solid ${C.slate300}`, marginBottom: 18 }}
+              style={{ gap: 18, padding: 13, background: DOC.soft, border: `1px solid ${DOC.line}`, borderLeft: `3px solid ${DOC.accent}`, borderRadius: 6, marginBottom: 14 }}
             >
               <div style={{ flex: 1 }}>
                 <div style={etiqueta}>Cliente</div>
@@ -432,7 +422,7 @@ function VistaPreliquidacion() {
                 )}
                 <div className="flex justify-between" style={{ padding: "5px 0", borderBottom: `1px solid ${C.slate300}` }}><span>Valor neto</span><span>{D(mm.neto)}</span></div>
                 <div className="flex justify-between" style={{ padding: "5px 0", borderBottom: `1px solid ${C.slate300}` }}><span>IGV 18%</span><span>{D(mm.igv)}</span></div>
-                <div className="flex justify-between" style={{ marginTop: 6, padding: "9px 8px", background: C.slate950, color: C.white, fontWeight: 700, fontSize: 11 }}>
+                <div className="flex justify-between" style={{ marginTop: 6, padding: "6px 4px", color: DOC.green, borderTop: `1px solid ${DOC.green}`, fontWeight: 700, fontSize: 11 }}>
                   <span>TOTAL</span><span>{D(mm.total)}</span>
                 </div>
               </div>
@@ -445,7 +435,7 @@ function VistaPreliquidacion() {
                 { t: mm.aplica ? (tipo === "detraccion" ? "Detracción" : "Retención") : "Importe descontado", v: descuento },
                 { t: "Neto a depositar", v: D(mm.cobrar) },
               ].map((c) => (
-                <div key={c.t} style={{ flex: 1, padding: 11, background: C.emerald50, borderTop: `2px solid ${C.emerald700}` }}>
+                <div key={c.t} style={{ flex: 1, padding: 11, border: `1px solid ${DOC.line}`, borderRadius: 6 }}>
                   <div style={etiqueta}>{c.t}</div>
                   <div style={{ fontWeight: 700, fontSize: 12, color: C.emerald800, marginTop: 4 }}>{c.v}</div>
                 </div>
@@ -470,7 +460,7 @@ function VistaPreliquidacion() {
             </div>
 
             {pl.observacion && (
-              <div style={{ padding: 11, borderLeft: `3px solid ${C.emerald700}`, background: C.emerald50, marginBottom: 14 }}>
+              <div style={{ padding: 11, borderLeft: `3px solid ${DOC.accent}`, background: DOC.soft, borderRadius: 6, marginBottom: 14 }}>
                 <div style={etiqueta}>Observaciones</div>
                 <div>{pl.observacion}</div>
               </div>
