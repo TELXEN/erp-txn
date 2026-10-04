@@ -5,7 +5,7 @@ import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, Vacio } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
-import { CamposCondicion, datosCondicion } from "@/components/CondicionPago";
+import { condicionVacia, datosCondicion, PLAZOS } from "@/components/CondicionPago";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
 import { exportarExcel } from "@/lib/exportar";
 import { useEmpresa } from "@/lib/empresa";
@@ -128,6 +128,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
   const [busqueda, setBusqueda] = useState("");
   const [selectorPartidas, setSelectorPartidas] = useState(false);
   const [marcadas, setMarcadas] = useState<string[]>([]);
+  const [cintaColapsada, setCintaColapsada] = useState(false);
 
 
 
@@ -355,45 +356,133 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
       {abierto && (
         <Panel titulo={editando ? `Editar preliquidación ${lista.find((p) => p.id === editando)?.codigo ?? ""}` : "Nueva preliquidación"} className="mb-4">
           <form onSubmit={guardar} className="p-5">
-            <div className="mb-4 grid gap-3 rounded-lg border border-line bg-muted/30 p-3 sm:grid-cols-4">
-              <Campo etiqueta="Proyecto">
-                <Select value={form.proyecto_id} onChange={(e) => elegirProyecto(e.target.value)} required>
-                  <option value="">Selecciona...</option>
-                  {proyectos.map((p) => (
-                    <option key={p.id} value={p.id}>{p.codigo ? `${p.codigo} · ` : ""}{p.nombre}</option>
-                  ))}
-                </Select>
-              </Campo>
-              <Campo etiqueta="Cliente">
-                <Select value={form.cliente_id} onChange={(e) => setForm({ ...form, cliente_id: e.target.value })} required>
-                  <option value="">Selecciona...</option>
-                  {clientes.map((c) => (
-                    <option key={c.id} value={c.id}>{c.razon_social}</option>
-                  ))}
-                </Select>
-              </Campo>
-              <Campo etiqueta="Régimen tributario">
-                <Select
-                  value={`${form.tipo_tributario}|${form.pct_detraccion}`}
-                  onChange={(e) => {
-                    const [t, p] = e.target.value.split("|");
-                    setForm({ ...form, tipo_tributario: t as TipoTributario, pct_detraccion: p ?? "0" });
-                  }}
+            <div className="mb-3 overflow-hidden rounded-lg bg-[#1A2B4C] text-white shadow-sm">
+              <div className="flex items-center justify-between border-b border-white/10 px-4 py-1">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-[#F1C40F]">
+                  Configuración de preliquidación
+                  {cintaColapsada && form.proyecto_id && (
+                    <span className="ml-2 font-medium normal-case tracking-normal text-slate-300">
+                      {nombreProy(form.proyecto_id)} · {nombreCliente(form.cliente_id || null)}
+                    </span>
+                  )}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setCintaColapsada((v) => !v)}
+                  className="rounded bg-white/10 px-2 py-0.5 text-[10px] text-slate-300 transition-colors hover:bg-white/20"
                 >
-                  {REGIMENES.map((r) => <option key={r.etiqueta} value={`${r.valor}|${r.pct}`}>{r.etiqueta}</option>)}
-                  <option value={`${form.tipo_tributario}|${form.pct_detraccion}`} hidden>
-                    {form.tipo_tributario} {form.pct_detraccion}%
-                  </option>
-                </Select>
-              </Campo>
-              <Campo etiqueta="% aplicado">
-                <Input type="number" step="0.01" min="0" max="100" value={form.pct_detraccion} disabled={form.tipo_tributario === "ninguno"} onChange={(e) => setForm({ ...form, pct_detraccion: e.target.value })} />
-              </Campo>
-              <CamposCondicion valor={form} fechaBase={form.fecha} onChange={(c) => setForm({ ...form, ...c })} />
-              {form.proyecto_id && (
-                <div>
-                  <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">Saldo disponible de la obra</p>
-                  <p className={`font-mono text-sm font-semibold ${saldoSel - netoForm * tc >= 0 ? "text-good" : "text-bad"}`}>{soles(saldoSel)}</p>
+                  {cintaColapsada ? "Expandir panel" : "Contraer panel"}
+                </button>
+              </div>
+              {!cintaColapsada && (
+                <div className="grid grid-cols-2 gap-px bg-white/10 p-px sm:grid-cols-4 lg:grid-cols-7">
+                  <div className="flex min-w-0 flex-col bg-[#1A2B4C] p-2">
+                    <label className="mb-0.5 text-[9px] font-bold uppercase text-slate-400">Proyecto</label>
+                    <select
+                      className="-ml-1 w-full rounded bg-transparent px-1 text-xs font-medium text-white focus:outline-none focus:ring-1 focus:ring-[#F1C40F] [&>option]:text-black"
+                      value={form.proyecto_id}
+                      onChange={(e) => elegirProyecto(e.target.value)}
+                      required
+                    >
+                      <option value="">Selecciona...</option>
+                      {proyectos.map((p) => (
+                        <option key={p.id} value={p.id}>{p.codigo ? `${p.codigo} · ` : ""}{p.nombre}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex min-w-0 flex-col bg-[#1A2B4C] p-2">
+                    <label className="mb-0.5 text-[9px] font-bold uppercase text-slate-400">Cliente</label>
+                    <select
+                      className="-ml-1 w-full rounded bg-transparent px-1 text-xs font-medium text-white focus:outline-none focus:ring-1 focus:ring-[#F1C40F] [&>option]:text-black"
+                      value={form.cliente_id}
+                      onChange={(e) => setForm({ ...form, cliente_id: e.target.value })}
+                      required
+                    >
+                      <option value="">Selecciona...</option>
+                      {clientes.map((c) => (
+                        <option key={c.id} value={c.id}>{c.razon_social}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex min-w-0 flex-col bg-[#1A2B4C] p-2">
+                    <label className="mb-0.5 text-[9px] font-bold uppercase text-slate-400">Régimen</label>
+                    <select
+                      className="-ml-1 w-full rounded bg-transparent px-1 text-xs font-medium text-white focus:outline-none focus:ring-1 focus:ring-[#F1C40F] [&>option]:text-black"
+                      value={`${form.tipo_tributario}|${form.pct_detraccion}`}
+                      onChange={(e) => {
+                        const [t, p] = e.target.value.split("|");
+                        setForm({ ...form, tipo_tributario: t as TipoTributario, pct_detraccion: p ?? "0" });
+                      }}
+                    >
+                      {REGIMENES.map((r) => <option key={r.etiqueta} value={`${r.valor}|${r.pct}`}>{r.etiqueta}</option>)}
+                      <option value={`${form.tipo_tributario}|${form.pct_detraccion}`} hidden>
+                        {form.tipo_tributario} {form.pct_detraccion}%
+                      </option>
+                    </select>
+                  </div>
+                  <div className="flex min-w-0 flex-col bg-[#1A2B4C] p-2">
+                    <label className="mb-0.5 text-[9px] font-bold uppercase text-slate-400">% aplicado</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      max="100"
+                      className="-ml-1 w-full rounded bg-transparent px-1 text-xs font-medium text-white focus:outline-none focus:ring-1 focus:ring-[#F1C40F] disabled:text-slate-500"
+                      value={form.pct_detraccion}
+                      disabled={form.tipo_tributario === "ninguno"}
+                      onChange={(e) => setForm({ ...form, pct_detraccion: e.target.value })}
+                    />
+                  </div>
+                  <div className="flex min-w-0 flex-col bg-[#1A2B4C] p-2">
+                    <label className="mb-0.5 text-[9px] font-bold uppercase text-slate-400">Condición</label>
+                    <select
+                      className="-ml-1 w-full rounded bg-transparent px-1 text-xs font-medium text-white focus:outline-none focus:ring-1 focus:ring-[#F1C40F] [&>option]:text-black"
+                      value={form.condicion_pago}
+                      onChange={(e) => setForm({ ...form, ...condicionVacia(e.target.value) })}
+                    >
+                      <option value="Contado">Contado</option>
+                      <option value="Crédito">Crédito</option>
+                    </select>
+                  </div>
+                  <div className="flex min-w-0 flex-col bg-[#1A2B4C] p-2">
+                    <label className="mb-0.5 truncate text-[9px] font-bold uppercase text-slate-400" title={form.condicion_pago === "Crédito" ? `Vence ${fmtFecha(venc)}` : "Días de crédito"}>
+                      {form.condicion_pago === "Crédito" ? `Días · vence ${fmtFecha(venc)}` : "Días crédito"}
+                    </label>
+                    {form.condicion_pago === "Crédito" ? (
+                      <div className="flex gap-1">
+                        <select
+                          className="-ml-1 w-full min-w-0 rounded bg-transparent px-1 text-xs font-medium text-white focus:outline-none focus:ring-1 focus:ring-[#F1C40F] [&>option]:text-black"
+                          value={PLAZOS.includes(Number(form.dias_credito)) ? form.dias_credito : "otro"}
+                          onChange={(e) => e.target.value !== "otro" && setForm({ ...form, dias_credito: e.target.value })}
+                        >
+                          {PLAZOS.map((p) => (
+                            <option key={p} value={String(p)}>{p} días</option>
+                          ))}
+                          <option value="otro">Otro</option>
+                        </select>
+                        <input
+                          type="number"
+                          min="0"
+                          step="1"
+                          className="w-14 rounded bg-transparent px-1 text-xs font-medium text-white focus:outline-none focus:ring-1 focus:ring-[#F1C40F]"
+                          value={form.dias_credito}
+                          onChange={(e) => setForm({ ...form, dias_credito: e.target.value })}
+                        />
+                      </div>
+                    ) : (
+                      <span className="px-1 text-xs text-slate-500">—</span>
+                    )}
+                  </div>
+                  <div className="flex min-w-0 flex-col bg-[#1A2B4C] p-2 ring-1 ring-inset ring-[#F1C40F]/30">
+                    <label className="mb-0.5 text-[9px] font-bold uppercase text-[#F1C40F]">Saldo obra</label>
+                    {form.proyecto_id ? (
+                      <span className={`px-1 text-xs font-bold ${saldoSel - netoForm * tc >= 0 ? "text-emerald-300" : "text-red-300"}`}>
+                        {soles(saldoSel)}
+                      </span>
+                    ) : (
+                      <span className="px-1 text-xs text-slate-500">—</span>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
