@@ -754,8 +754,8 @@ export function CotizacionHoja({
       <table className="w-full min-w-[1180px] table-fixed font-mono text-[10.5px]">
         <colgroup>
           <col style={{ width: "10%" }} />
-          <col style={{ width: "39%" }} />
-          <col style={{ width: "8%" }} />
+          <col style={{ width: "36%" }} />
+          <col style={{ width: "11%" }} />
           <col style={{ width: "7%" }} />
           <col style={{ width: "6%" }} />
           <col style={{ width: "11%" }} />
@@ -882,7 +882,7 @@ export function CotizacionHoja({
                   {bloqueada ? (
                     <td className={celdaBase}>—</td>
                   ) : (
-                    celda(f, r, 2, <span>{it.marca || "-"}</span>)
+                    celda(f, r, 2, <span className="text-[9px]">{it.marca || "-"}</span>)
                   )}
                   {bloqueada ? <td className={celdaBase}>—</td> : celda(f, r, 3, <span>{it.unidad}</span>)}
                   {bloqueada ? (
