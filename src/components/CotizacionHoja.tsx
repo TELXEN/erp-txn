@@ -753,13 +753,13 @@ export function CotizacionHoja({
       </div>
       <table className="w-full table-fixed font-mono text-[13px]">
         <colgroup>
-          <col style={{ width: "9%" }} />
-          <col style={{ width: "42%" }} />
+          <col style={{ width: "10%" }} />
+          <col style={{ width: "41%" }} />
           <col style={{ width: "7%" }} />
           <col style={{ width: "6%" }} />
-          <col style={{ width: "8%" }} />
-          <col style={{ width: "10%" }} />
-          <col style={{ width: "10%" }} />
+          <col style={{ width: "7%" }} />
+          <col style={{ width: "10.5%" }} />
+          <col style={{ width: "10.5%" }} />
           <col style={{ width: "8%" }} />
         </colgroup>
         <thead>
@@ -852,7 +852,7 @@ export function CotizacionHoja({
             const it = f.it;
             const bloqueada = f.agrupadora;
             const puFijo = conApu.has(it.id);
-            const sangria = f.nivel === 4 ? 44 : 28;
+            const sangria = f.nivel === 4 ? 20 : 10;
             return (
               <React.Fragment key={f.clave}>
                 <ContextMenu>
@@ -868,7 +868,7 @@ export function CotizacionHoja({
                     f,
                     r,
                     0,
-                    <span className="flex items-center gap-1 text-primary" style={{ paddingLeft: sangria }}>
+                    <span className="flex items-center gap-1 whitespace-nowrap text-[12px] text-primary" style={{ paddingLeft: sangria }}>
                       {f.agrupadora && (
                         <button type="button" onClick={() => alternar(f.clave)} className="text-muted-foreground">
                           {colapsados.has(f.clave) ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
@@ -891,13 +891,13 @@ export function CotizacionHoja({
                     celda(f, r, 4, <span>{num(it.metrado)}</span>, "text-right")
                   )}
                   {bloqueada || puFijo ? (
-                    <td className={`${celdaBase} text-right ${puFijo ? "italic" : ""}`}>
+                    <td className={`${celdaBase} whitespace-nowrap text-right ${puFijo ? "italic" : ""}`}>
                       {bloqueada ? "—" : mon(Number(it.precio_unitario))}
                     </td>
                   ) : (
-                    celda(f, r, 5, <span>{mon(Number(it.precio_unitario))}</span>, "text-right")
+                    celda(f, r, 5, <span className="whitespace-nowrap">{mon(Number(it.precio_unitario))}</span>, "text-right")
                   )}
-                  <td className={`${celdaBase} text-right font-semibold text-ink`}>{mon(f.total)}</td>
+                  <td className={`${celdaBase} whitespace-nowrap text-right font-semibold text-ink`}>{mon(f.total)}</td>
                   <td className={`${celdaBase} text-right`}>
                     <div className="flex items-center justify-end gap-1">
                       {!f.agrupadora && (
