@@ -195,7 +195,7 @@ export function HojaCotizacion({
 
         <div style={{ width: 380, marginLeft: "auto", marginTop: 20, fontSize: 13, background: DOC.total, borderRadius: 6, padding: 6 }}>
           {[
-            ["COSTO DIRECTO", money(totales.costoDirecto), false] as const,
+            ["COSTO DIRECTO", money(sim, totales.costoDirecto), false] as const,
           ].map(([t, v]) => (
             <div key={t} style={{ display: "flex", justifyContent: "space-between", padding: "5px 8px", borderBottom: `1px solid ${C.line}`, fontWeight: 700 }}><span>{t}</span><span>{v}</span></div>
           ))}
@@ -204,20 +204,25 @@ export function HojaCotizacion({
               Gastos generales
               <input key={`gg-${cot.id}-${cot.pct_gastos_generales}`} type="number" step="0.5" min="0" defaultValue={Number(cot.pct_gastos_generales)} onBlur={(e) => alSalir("pct_gastos_generales", Number(e.target.value || 0), Number(cot.pct_gastos_generales))} style={{ ...ed, width: 58, borderBottom: "none", textAlign: "right" }} />%
             </span>
-            <span>{money(totales.gastosGenerales)}</span>
+            <span>{money(sim, totales.gastosGenerales)}</span>
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "5px 8px", borderBottom: `1px solid ${C.line}` }}>
             <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
               Utilidad
               <input key={`ut-${cot.id}-${cot.pct_utilidad}`} type="number" step="0.5" min="0" defaultValue={Number(cot.pct_utilidad)} onBlur={(e) => alSalir("pct_utilidad", Number(e.target.value || 0), Number(cot.pct_utilidad))} style={{ ...ed, width: 58, borderBottom: "none", textAlign: "right" }} />%
             </span>
-            <span>{money(totales.utilidad)}</span>
+            <span>{money(sim, totales.utilidad)}</span>
           </div>
-          <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 8px", borderBottom: `1px solid ${C.line}`, fontWeight: 700 }}><span>SUBTOTAL</span><span>{money(totales.total)}</span></div>
-          <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 8px", borderBottom: `1px solid ${C.line}` }}><span>IGV {conIgv ? "18%" : "0%"}</span><span>{money(igv)}</span></div>
+          <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 8px", borderBottom: `1px solid ${C.line}`, fontWeight: 700 }}><span>SUBTOTAL</span><span>{money(sim, totales.total)}</span></div>
+          <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 8px", borderBottom: `1px solid ${C.line}` }}><span>IGV {conIgv ? "18%" : "0%"}</span><span>{money(sim, igv)}</span></div>
           <div style={{ display: "flex", justifyContent: "space-between", padding: "7px 8px", borderTop: `1px solid ${DOC.green}`, marginTop: 4, color: DOC.green, fontWeight: 700, fontSize: 14 }}>
-            <span>IMPORTE TOTAL</span><span>{money(totales.total + igv)}</span>
+            <span>IMPORTE TOTAL</span><span>{money(sim, totalConIgv)}</span>
           </div>
+          {esUsd && tc > 0 && (
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 8px", color: C.muted, fontSize: 12 }}>
+              <span>Equivalente en soles (T.C. {tc.toFixed(3)})</span><span>{money("S/", totalConIgv * tc)}</span>
+            </div>
+          )}
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginTop: 18, fontSize: 12.5 }}>
