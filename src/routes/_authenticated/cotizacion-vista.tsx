@@ -8,6 +8,7 @@ import { useEmpresa } from "@/lib/empresa";
 import { useFuenteDocumento } from "@/lib/fuentes-documentos";
 import { useAuth } from "@/lib/auth";
 import { totalesCotizacion, useCotizacionItems, useCotizaciones, vigenciaHasta } from "@/lib/cotizaciones";
+import { DOC, DOC_FUENTE_CSS } from "@/lib/documento-tema";
 import { ArrowLeft, FileDown, FileSpreadsheet } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/cotizacion-vista")({
@@ -27,18 +28,18 @@ export const Route = createFileRoute("/_authenticated/cotizacion-vista")({
   component: VistaCotizacion,
 });
 
-// Colores en hex (html2canvas no soporta oklch de Tailwind v4)
+// Tema documental compartido (mismo que la edición, la factura y la preliquidación).
 const C = {
-  slate900: "#0f172a",
-  slate700: "#334155",
-  slate500: "#64748b",
-  slate400: "#94a3b8",
-  slate100: "#f1f5f9",
-  slate50: "#f8fafc",
-  emerald800: "#065f46",
-  emerald700: "#047857",
-  emerald50: "#ecfdf5",
-  white: "#ffffff",
+  slate900: DOC.green,
+  slate700: DOC.ink,
+  slate500: DOC.mute,
+  slate400: DOC.mute,
+  slate100: DOC.total,
+  slate50: DOC.soft,
+  emerald800: DOC.green,
+  emerald700: DOC.green,
+  emerald50: DOC.accentSoft,
+  white: DOC.white,
 };
 
 const S = (n: number) =>
