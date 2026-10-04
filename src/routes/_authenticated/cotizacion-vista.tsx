@@ -99,23 +99,24 @@ function construirFilas(items: ItemCot[]): Fila[] {
   return filas;
 }
 
-function altoEstimadoFila(fila: Fila) {
+function altoEstimadoFila(fila: Fila, charsPorLinea = 62) {
   if (fila.clase !== "item") return 22;
-  // La descripción ocupa la mitad del nuevo ancho útil: ~55 caracteres por línea a 9 pt.
-  const lineas = Math.max(1, Math.ceil((fila.item.nombre || "").length / 62));
+  // La descripción ocupa la mitad del nuevo ancho útil: ~62 caracteres por línea en vertical.
+  const lineas = Math.max(1, Math.ceil((fila.item.nombre || "").length / charsPorLinea));
   return 14 + lineas * 15;
 }
 
-function paginarFilas(filas: Fila[]) {
+function paginarFilas(filas: Fila[], horizontal = false) {
   if (filas.length === 0) return [[]] as Fila[][];
+  const charsPorLinea = horizontal ? 95 : 62;
   const paginas: Fila[][] = [];
   let pendientes = [...filas];
   let primeraHoja = true;
 
   while (pendientes.length > 0) {
-    const capacidad = primeraHoja ? 470 : 650;
-    const capacidadFinal = primeraHoja ? 250 : 350;
-    const altoPendiente = pendientes.reduce((suma, fila) => suma + altoEstimadoFila(fila), 0);
+    const capacidad = horizontal ? (primeraHoja ? 330 : 455) : primeraHoja ? 470 : 650;
+    const capacidadFinal = horizontal ? (primeraHoja ? 175 : 245) : primeraHoja ? 250 : 350;
+    const altoPendiente = pendientes.reduce((suma, fila) => suma + altoEstimadoFila(fila, charsPorLinea), 0);
 
     if (altoPendiente <= capacidadFinal) {
       paginas.push(pendientes);
@@ -128,7 +129,7 @@ function paginarFilas(filas: Fila[]) {
     while (pendientes.length > 0) {
       const proximo = pendientes[0];
       if (!proximo) break;
-      const siguiente = altoEstimadoFila(proximo);
+      const siguiente = altoEstimadoFila(proximo, charsPorLinea);
       if (pagina.length > 0 && usado + siguiente > capacidad) break;
       if (pagina.length > 0 && pendientes.length === 1) break;
       const fila = pendientes.shift();
@@ -186,8 +187,12 @@ function VistaCotizacion() {
   const esUsd = cot?.moneda === "USD";
   const sim = simboloMoneda(cot?.moneda);
   const tc = Number(cot?.tipo_cambio) || 0;
+  const horizontal = cot?.orientacion === "horizontal";
+  const paginaW = horizontal ? 1123 : 794;
+  const interiorW = horizontal ? 1087 : 754;
+  const paginaH = horizontal ? 700 : 990;
   const nombreArchivo = `Cotizacion_${(cot?.cliente || "Cliente").replace(/[^\w-]+/g, "_")}_${cot?.codigo ?? "sin_codigo"}`;
-  const paginas = paginarFilas(construirFilas(items as unknown as ItemCot[]));
+  const paginas = paginarFilas(construirFilas(items as unknown as ItemCot[]), horizontal);
 
   function copiarEnlace() {
     const url = `${window.location.origin}/cotizacion-vista?id=${id}`;
@@ -213,8 +218,8 @@ function VistaCotizacion() {
           margin: [7, 3, 7, 3],
           filename: `${nombreArchivo}.pdf`,
           image: { type: "jpeg", quality: 0.98 },
-          html2canvas: { scale: 3, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: 794, backgroundColor: "#ffffff", logging: false },
-          jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+          html2canvas: { scale: 3, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: paginaW, backgroundColor: "#ffffff", logging: false },
+          jsPDF: { unit: "mm", format: "a4", orientation: horizontal ? "landscape" : "portrait" },
           pagebreak: { mode: ["css", "legacy"], avoid: ["tr", ".bloque-final"] },
         } as never)
         .from(el)
@@ -374,10 +379,10 @@ function VistaCotizacion() {
       />
 
       <div className="overflow-x-auto pb-8">
-        <div className="mx-auto" style={{ width: 754 }}>
+        <div className="mx-auto" style={{ width: interiorW }}>
         <div
           id="cotizacion-impresion"
-          style={{ width: 794, background: C.white, color: C.slate900, fontFamily: DOC_FUENTE_CSS, fontSize: 12, boxShadow: "0 10px 30px -12px rgba(15,23,42,.25)" }}
+          style={{ width: paginaW, background: C.white, color: C.slate900, fontFamily: DOC_FUENTE_CSS, fontSize: 12, boxShadow: "0 10px 30px -12px rgba(15,23,42,.25)" }}
         >
           {paginas.map((itemsPagina, paginaIndex) => {
             const esPrimera = paginaIndex === 0;
@@ -386,7 +391,7 @@ function VistaCotizacion() {
               <section
                 key={`hoja-${paginaIndex + 1}`}
                 className="cotizacion-hoja"
-                style={{ position: "relative", width: 754, height: 990, margin: "0 auto", padding: "34px 24px 38px", overflow: "hidden", background: C.white, pageBreakAfter: esUltima ? "auto" : "always", boxSizing: "border-box" }}
+                style={{ position: "relative", width: interiorW, height: paginaH, margin: "0 auto", padding: "34px 24px 38px", overflow: "hidden", background: C.white, pageBreakAfter: esUltima ? "auto" : "always", boxSizing: "border-box" }}
               >
                 {encabezadoHoja(paginaIndex + 1, paginas.length)}
 

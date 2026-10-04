@@ -19,6 +19,7 @@ export type Cotizacion = {
   pct_utilidad: number;
   moneda: "PEN" | "USD";
   tipo_cambio: number;
+  orientacion?: "vertical" | "horizontal";
   condiciones: string;
   estado: EstadoCotizacion;
   proyecto_id: string | null;

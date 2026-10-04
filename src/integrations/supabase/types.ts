@@ -1203,6 +1203,7 @@ export type Database = {
           id: string
           moneda: Database["public"]["Enums"]["moneda"]
           nombre: string
+          orientacion: string
           pct_gastos_generales: number
           pct_utilidad: number
           proyecto_id: string | null
@@ -1227,6 +1228,7 @@ export type Database = {
           id?: string
           moneda?: Database["public"]["Enums"]["moneda"]
           nombre: string
+          orientacion?: string
           pct_gastos_generales?: number
           pct_utilidad?: number
           proyecto_id?: string | null
@@ -1251,6 +1253,7 @@ export type Database = {
           id?: string
           moneda?: Database["public"]["Enums"]["moneda"]
           nombre?: string
+          orientacion?: string
           pct_gastos_generales?: number
           pct_utilidad?: number
           proyecto_id?: string | null
