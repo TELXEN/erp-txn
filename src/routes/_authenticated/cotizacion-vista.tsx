@@ -502,17 +502,17 @@ function VistaCotizacion() {
                 {esUltima && (
                   <div className="bloque-final" style={{ pageBreakInside: "avoid" }}>
                     <div className="flex justify-end" style={{ marginTop: 14 }}>
-                      <div style={{ width: 280 }}>
+                      <div style={{ width: 280, fontSize: "11pt" }}>
                         <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700 }}><span>Costo Directo</span><span>{S(sim, calculo.costoDirecto)}</span></div>
                         {calculo.gastosGenerales > 0 && <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700 }}><span>Gastos Generales ({Number(cot.pct_gastos_generales)}%)</span><span>{S(sim, calculo.gastosGenerales)}</span></div>}
                         {calculo.utilidad > 0 && <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700 }}><span>Utilidad ({Number(cot.pct_utilidad)}%)</span><span>{S(sim, calculo.utilidad)}</span></div>}
                         {(calculo.gastosGenerales > 0 || calculo.utilidad > 0) && <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700, fontWeight: 600 }}><span>Subtotal</span><span>{S(sim, subtotal)}</span></div>}
                         <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700, borderBottom: `1px solid ${C.slate100}` }}><span>{conIgv ? "IGV (18%)" : "IGV (0%)"}</span><span>{S(sim, igv)}</span></div>
-                        <div className="flex justify-between" style={{ marginTop: 5, padding: "6px 12px", alignItems: "center", background: C.slate900, color: C.white, borderRadius: 6, fontFamily: DOC_FUENTE_CSS, fontSize: "10pt", lineHeight: 1.15, fontWeight: 400 }}>
+                        <div className="flex justify-between" style={{ marginTop: 5, padding: "6px 12px", alignItems: "center", background: C.slate900, color: C.white, borderRadius: 6, fontFamily: DOC_FUENTE_CSS, fontSize: "9pt", lineHeight: 1.15, fontWeight: 400 }}>
                           <span>TOTAL</span><span>{S(sim, total)}</span>
                         </div>
                         {esUsd && tc > 0 && (
-                          <div className="flex justify-between" style={{ marginTop: 5, padding: "5px 0", color: C.slate500, fontSize: "8.5pt" }}>
+                          <div className="flex justify-between" style={{ marginTop: 5, padding: "5px 0", color: C.slate500, fontSize: "7.5pt" }}>
                             <span>Equivalente en soles (T.C. {tc.toFixed(3)})</span><span>{S("S/", total * tc)}</span>
                           </div>
                         )}
