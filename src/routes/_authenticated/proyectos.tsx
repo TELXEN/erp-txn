@@ -321,7 +321,7 @@ function Proyectos() {
                 </Select>
               </CampoF>
               <CampoF etiqueta="Nombre de la obra" requerido>
-                <Input value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} required maxLength={120} />
+                <Input autoFocus={formAbierto} value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} required maxLength={120} />
               </CampoF>
               <CampoF etiqueta="Ubicación">
                 <Input value={form.ubicacion} onChange={(e) => setForm({ ...form, ubicacion: e.target.value })} maxLength={120} />
