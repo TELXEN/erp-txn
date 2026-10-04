@@ -5,7 +5,7 @@ import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, Vacio } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
-import { CamposCondicion, datosCondicion } from "@/components/CondicionPago";
+import { condicionVacia, datosCondicion, PLAZOS } from "@/components/CondicionPago";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
 import { exportarExcel } from "@/lib/exportar";
 import { useEmpresa } from "@/lib/empresa";
@@ -128,6 +128,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
   const [busqueda, setBusqueda] = useState("");
   const [selectorPartidas, setSelectorPartidas] = useState(false);
   const [marcadas, setMarcadas] = useState<string[]>([]);
+  const [cintaColapsada, setCintaColapsada] = useState(false);
 
 
 
