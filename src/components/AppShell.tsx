@@ -11,6 +11,7 @@ import {
   CalendarDays,
   ClipboardList,
   FileText,
+  FileCheck,
   Gauge,
   ShoppingBag,
   Landmark,
@@ -80,6 +81,7 @@ const MENU: Categoria[] = [
       { a: "/caja-chica", texto: "Caja Chica", roles: ["administrador", "gerente"], icono: Wallet },
       { a: "/tesoreria", texto: "Tesorería", roles: ["administrador", "gerente"], icono: Landmark },
       { a: "/flujo-caja", texto: "Flujo de Caja", roles: ["administrador", "gerente"], icono: TrendingUp },
+      { a: "/sire", texto: "SIRE SUNAT", roles: ["administrador", "gerente"], icono: FileCheck },
     ],
   },
   {

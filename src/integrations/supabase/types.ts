@@ -3063,6 +3063,108 @@ export type Database = {
         }
         Relationships: []
       }
+      sire_config: {
+        Row: {
+          client_id: string
+          created_at: string
+          id: string
+          ruc: string
+          tiene_clave: boolean
+          tiene_secret: boolean
+          updated_at: string
+          usuario_sol: string
+        }
+        Insert: {
+          client_id?: string
+          created_at?: string
+          id?: string
+          ruc?: string
+          tiene_clave?: boolean
+          tiene_secret?: boolean
+          updated_at?: string
+          usuario_sol?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          id?: string
+          ruc?: string
+          tiene_clave?: boolean
+          tiene_secret?: boolean
+          updated_at?: string
+          usuario_sol?: string
+        }
+        Relationships: []
+      }
+      sire_credenciales: {
+        Row: {
+          clave_sol: string | null
+          client_secret: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          clave_sol?: string | null
+          client_secret?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          clave_sol?: string | null
+          client_secret?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      sire_periodos: {
+        Row: {
+          aceptado_en: string | null
+          aceptado_por: string | null
+          created_at: string
+          estado: string
+          id: string
+          items: Json
+          libro: string
+          periodo: string
+          sincronizado_en: string | null
+          total_base: number
+          total_docs: number
+          total_igv: number
+          updated_at: string
+        }
+        Insert: {
+          aceptado_en?: string | null
+          aceptado_por?: string | null
+          created_at?: string
+          estado?: string
+          id?: string
+          items?: Json
+          libro: string
+          periodo: string
+          sincronizado_en?: string | null
+          total_base?: number
+          total_docs?: number
+          total_igv?: number
+          updated_at?: string
+        }
+        Update: {
+          aceptado_en?: string | null
+          aceptado_por?: string | null
+          created_at?: string
+          estado?: string
+          id?: string
+          items?: Json
+          libro?: string
+          periodo?: string
+          sincronizado_en?: string | null
+          total_base?: number
+          total_docs?: number
+          total_igv?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       tareo_vehiculos: {
         Row: {
           conductor_id: string | null
