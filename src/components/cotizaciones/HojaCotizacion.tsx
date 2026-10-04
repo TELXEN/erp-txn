@@ -182,6 +182,16 @@ export function HojaCotizacion({
                 />
               </Linea>
             )}
+            <Linea etiqueta="Orientación">
+              <select
+                value={cot.orientacion === "horizontal" ? "horizontal" : "vertical"}
+                onChange={(e) => void guardar({ orientacion: e.target.value as "vertical" | "horizontal" })}
+                style={edSel}
+              >
+                <option value="vertical">Vertical</option>
+                <option value="horizontal">Horizontal</option>
+              </select>
+            </Linea>
             <Linea etiqueta="IGV">
               <select value={conIgv ? "si" : "no"} onChange={(e) => void guardar({ aplica_igv: e.target.value === "si" })} style={edSel}>
                 <option value="si">Con IGV (18%)</option>
