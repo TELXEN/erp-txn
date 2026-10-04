@@ -490,8 +490,8 @@ function VistaCotizacion() {
                           <td style={{ ...celda, padding: "6px 6px", textAlign: "center", color: C.slate500, wordBreak: "break-word" }}>{it.marca?.trim() || "-"}</td>
                           <td style={{ ...celda, padding: "6px 4px", textAlign: "center", color: C.slate500 }}>{it.unidad}</td>
                           <td style={{ ...celda, padding: "6px 6px", textAlign: "right" }}>{Number(it.metrado).toLocaleString("es-PE", { maximumFractionDigits: 2 })}</td>
-                          <td style={{ ...celda, padding: "6px 6px", textAlign: "right", whiteSpace: "nowrap" }}>{S(Number(it.precio_unitario))}</td>
-                          <td style={{ ...celda, padding: "6px 6px", textAlign: "right", whiteSpace: "nowrap" }}>{S(Number(it.metrado) * Number(it.precio_unitario))}</td>
+                          <td style={{ ...celda, padding: "6px 6px", textAlign: "right", whiteSpace: "nowrap" }}>{S(sim, Number(it.precio_unitario))}</td>
+                          <td style={{ ...celda, padding: "6px 6px", textAlign: "right", whiteSpace: "nowrap" }}>{S(sim, Number(it.metrado) * Number(it.precio_unitario))}</td>
                         </tr>
                       );
                     })}
