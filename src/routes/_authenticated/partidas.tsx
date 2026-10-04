@@ -23,7 +23,7 @@ import {
   nombresPrioridades,
 } from "@/lib/datos";
 import { exportarExcel } from "@/lib/exportar";
-import { Pencil, Trash2, Check, X, LayoutGrid, Table2, Upload, ListOrdered, Calculator, CornerDownRight } from "lucide-react";
+import { Pencil, Trash2, Check, X, LayoutGrid, Table2, Upload, ListOrdered, Calculator, CornerDownRight, ChevronDown, ChevronUp } from "lucide-react";
 import { Kanban } from "@/components/Kanban";
 import { InsigniaPrioridad, InsigniaTipoPresupuesto } from "@/components/estado-ui";
 import { PRIORIDADES } from "@/lib/configuracion";
@@ -78,6 +78,14 @@ function Partidas() {
   const [filtroTipo, setFiltroTipo] = useState("");
   const [vista, setVista] = useState<"tabla" | "kanban">("tabla");
   const [pestana, setPestana] = useState<"listado" | "nueva">("listado");
+  const [colapsados, setColapsados] = useState<Set<string>>(new Set());
+  const alternar = (clave: string) =>
+    setColapsados((prev) => {
+      const nx = new Set(prev);
+      if (nx.has(clave)) nx.delete(clave);
+      else nx.add(clave);
+      return nx;
+    });
   const accionRef = React.useRef<"volver" | "otra">("volver");
   const [form, setForm] = useState({
     proyecto_id: "",

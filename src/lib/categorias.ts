@@ -235,6 +235,17 @@ type FilaJerarquia = { id: string; padre_id?: string | null };
  * Ordena filas de un grupo en árbol: cada partida seguida de sus subpartidas (4.° nivel).
  * Devuelve la fila, su nivel (3 = partida, 4 = subpartida) y si es agrupadora.
  */
+/** Comparación natural de códigos WBS: "01.01.02" < "01.01.03". */
+function compararCodigosWBS(a: string, b: string) {
+  const na = a.split(".").map((x) => Number(x) || 0);
+  const nb = b.split(".").map((x) => Number(x) || 0);
+  for (let i = 0; i < Math.max(na.length, nb.length); i++) {
+    const d = (na[i] ?? 0) - (nb[i] ?? 0);
+    if (d) return d;
+  }
+  return 0;
+}
+
 export function ordenarJerarquia<T extends FilaJerarquia>(filas: T[]) {
   const ids = new Set(filas.map((f) => f.id));
   const hijos = new Map<string, T[]>();
@@ -244,10 +255,15 @@ export function ordenarJerarquia<T extends FilaJerarquia>(filas: T[]) {
       hijos.get(f.padre_id)!.push(f);
     }
   }
+  // Orden natural ascendente por código dentro de cada nivel (raíces y hermanos).
+  const porCodigo = (arr: T[]) =>
+    arr
+      .map((f, i) => ({ f, i }))
+      .sort((x, y) => compararCodigosWBS((x.f.codigo ?? "").trim(), (y.f.codigo ?? "").trim()) || x.i - y.i)
+      .map((e) => e.f);
   const out: { fila: T; nivel: 3 | 4; agrupadora: boolean; hijos: T[] }[] = [];
-  for (const f of filas) {
-    if (f.padre_id && ids.has(f.padre_id)) continue;
-    const h = hijos.get(f.id) ?? [];
+  for (const f of porCodigo(filas.filter((f) => !f.padre_id || !ids.has(f.padre_id)))) {
+    const h = porCodigo(hijos.get(f.id) ?? []);
     out.push({ fila: f, nivel: 3, agrupadora: h.length > 0, hijos: h });
     for (const c of h) out.push({ fila: c, nivel: 4, agrupadora: false, hijos: [] });
   }
