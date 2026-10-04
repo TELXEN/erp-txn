@@ -29,9 +29,6 @@ export const Route = createFileRoute("/_authenticated/preliquidacion-vista")({
   component: VistaPreliquidacion,
 });
 
-const N = (v: number, dec = 2) =>
-  Number(v || 0).toLocaleString("es-PE", { minimumFractionDigits: dec, maximumFractionDigits: dec });
-
 type ItemFila = { id: string; descripcion: string; unidad: string; cantidad: number; precio_unitario: number };
 
 function VistaPreliquidacion() {
