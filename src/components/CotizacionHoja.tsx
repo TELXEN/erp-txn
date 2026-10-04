@@ -23,6 +23,7 @@ import {
 import { apuDb, calcularApu, nombreTipo, precioVenta, TIPOS_INSUMO, tiposVisibles, useComponentesApu, useInsumos, useMargenesInsumo } from "@/lib/apu";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
 import { usePartidasMaestras, type CotizacionItem, type PartidaMaestra } from "@/lib/cotizaciones";
+import { DOC } from "@/lib/documento-tema";
 
 /** Columnas de la hoja, en el orden en que se navegan con el teclado. */
 const COLUMNAS = ["codigo", "nombre", "marca", "unidad", "metrado", "precio_unitario", "total"] as const;
@@ -748,7 +749,7 @@ export function CotizacionHoja({
       </div>
       <table className="w-full font-mono text-[13px]">
         <thead>
-          <tr className="border-b border-line bg-muted/40 text-left text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
+          <tr className="text-left text-[11px] uppercase tracking-[0.06em]" style={{ background: DOC.green, color: DOC.white }}>
             <th className="px-2 py-2 font-medium">Código</th>
             <th className="px-2 py-2 font-medium">Descripción</th>
             <th className="px-2 py-2 font-medium">Marca</th>
