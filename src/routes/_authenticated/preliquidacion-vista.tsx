@@ -451,19 +451,41 @@ function VistaPreliquidacion() {
 
             <div style={{ padding: 10, background: C.slate50, marginTop: "auto", marginBottom: 12, border: `1px solid ${DOC.line}`, borderRadius: 6 }}>
               <div style={tituloSeccion}>Datos bancarios</div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 2, textTransform: "uppercase" }}>
-                {cuentasOrdenadas.length === 0 && <div style={valor}>NO HAY CUENTAS BANCARIAS REGISTRADAS.</div>}
-                {cuentasOrdenadas.map((c, i) => (
-                  <div key={i} style={{ marginTop: 1 }}>
-                    {c.tipo_cuenta === "Detracciones" && <div style={{ ...etiqueta, marginTop: 3 }}>Cuenta de detracciones · Banco de la Nación</div>}
-                    <div style={valor}>
-                      {c.tipo_cuenta === "Detracciones"
-                        ? `${c.nombre} · ${c.tipo_cuenta} · Cta. ${c.numero_cuenta || "—"}`
-                        : `${c.nombre} · ${c.tipo_cuenta} · ${c.monedas} · Cta. ${c.numero_cuenta || "—"} · CCI ${c.cci || "—"}`}
-                    </div>
+              {cuentasOrdenadas.length === 0 && <div style={valor}>NO HAY CUENTAS BANCARIAS REGISTRADAS.</div>}
+              {(() => {
+                const esDet = (c: (typeof cuentasOrdenadas)[number]) => c.tipo_cuenta === "Detracciones";
+                const grupoMoneda = (m: string) => (/USD|D[ÓO]LAR/i.test(m) ? "DÓLARES" : "SOLES");
+                const normales = cuentasOrdenadas.filter((c) => !esDet(c));
+                const detracciones = cuentasOrdenadas.filter(esDet);
+                const grupos = (["SOLES", "DÓLARES"] as const)
+                  .map((moneda) => ({ moneda, cuentas: normales.filter((c) => grupoMoneda(c.monedas) === moneda) }))
+                  .filter((g) => g.cuentas.length > 0);
+                const columnas = grupos.length + (detracciones.length > 0 ? 1 : 0);
+                return (
+                  <div style={{ display: "grid", gridTemplateColumns: columnas > 1 ? `repeat(${columnas}, 1fr)` : "1fr", columnGap: 14, rowGap: 4, textTransform: "uppercase" }}>
+                    {grupos.map((g) => (
+                      <div key={g.moneda}>
+                        <div style={{ ...etiqueta, marginBottom: 2 }}>{g.moneda}</div>
+                        {g.cuentas.map((c, i) => (
+                          <div key={i} style={{ ...valor, marginTop: 1 }}>
+                            {`${c.nombre} · ${c.tipo_cuenta} · Cta. ${c.numero_cuenta || "—"} · CCI ${c.cci || "—"}`}
+                          </div>
+                        ))}
+                      </div>
+                    ))}
+                    {detracciones.length > 0 && (
+                      <div>
+                        <div style={{ ...etiqueta, marginBottom: 2 }}>Detracciones</div>
+                        {detracciones.map((c, i) => (
+                          <div key={i} style={{ ...valor, marginTop: 1 }}>
+                            {`${c.nombre} · ${c.tipo_cuenta} · Cta. ${c.numero_cuenta || "—"}`}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                ))}
-              </div>
+                );
+              })()}
             </div>
 
             <div style={{ fontSize: 8, lineHeight: 1.45, color: C.slate500, paddingTop: 12, borderTop: `1px solid ${C.slate300}` }}>
