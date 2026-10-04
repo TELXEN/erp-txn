@@ -9,7 +9,7 @@ import { simboloMoneda, totalesCotizacion, useTipoCambioActual, vigenciaHasta, t
 /** Paleta corporativa compartida con la hoja de facturación electrónica. */
 const C = { ink: DOC.ink, muted: DOC.ink, line: DOC.line, soft: DOC.soft, green: DOC.green, greenSoft: DOC.white, white: DOC.white };
 
-const ed: CSSProperties = { border: "none", borderBottom: `1px dashed ${C.line}`, background: "transparent", font: "inherit", fontSize: 13, color: "inherit", width: "100%", padding: "4px 0", outline: "none" };
+const ed: CSSProperties = { border: "none", borderBottom: `1px dashed ${C.line}`, background: "transparent", font: "inherit", fontSize: 10.33, color: "inherit", width: "100%", padding: "4px 0", outline: "none" };
 const edSel: CSSProperties = { ...ed, cursor: "pointer" };
 const liviano = "var(--font-global)";
 
@@ -18,7 +18,7 @@ const money = (sim: string, n: number) => `${sim} ${Number(n || 0).toLocaleStrin
 function Bloque({ titulo, children }: { titulo: string; children: ReactNode }) {
   return (
     <div>
-      <span style={{ fontSize: 12, color: C.muted, fontFamily: liviano, fontWeight: 600, letterSpacing: ".04em" }}>{titulo}</span>
+      <span style={{ fontSize: 9.33, color: C.muted, fontFamily: liviano, fontWeight: 600, letterSpacing: ".04em" }}>{titulo}</span>
       <div style={{ marginTop: 7, display: "grid", gap: 7 }}>{children}</div>
     </div>
   );
@@ -26,7 +26,7 @@ function Bloque({ titulo, children }: { titulo: string; children: ReactNode }) {
 function Linea({ etiqueta, children }: { etiqueta: string; children: ReactNode }) {
   return (
     <label style={{ display: "grid", gridTemplateColumns: "112px 1fr", alignItems: "center", gap: 8 }}>
-      <span style={{ fontSize: 11.5, color: C.muted, fontFamily: liviano, fontWeight: 400, textTransform: "uppercase" }}>{etiqueta}</span>
+      <span style={{ fontSize: 8.83, color: C.muted, fontFamily: liviano, fontWeight: 400, textTransform: "uppercase" }}>{etiqueta}</span>
       {children}
     </label>
   );
@@ -117,7 +117,7 @@ export function HojaCotizacion({
           </div>
         </header>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr .8fr", gap: 20, background: C.soft, border: `1px solid ${C.line}`, borderLeft: `3px solid ${DOC.accent}`, borderRadius: 6, padding: 16, marginTop: 18, fontSize: 13 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr .8fr", gap: 20, background: C.soft, border: `1px solid ${C.line}`, borderLeft: `3px solid ${DOC.accent}`, borderRadius: 6, padding: 16, marginTop: 18, fontSize: 10.33 }}>
           <Bloque titulo="CLIENTE">
             <Linea etiqueta="Registrado">
               <select

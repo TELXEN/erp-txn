@@ -332,7 +332,7 @@ function VistaCotizacion() {
 
   function filaDato(etiqueta: string, valor: string) {
     return (
-      <div className="flex" style={{ fontFamily: DOC_FUENTE_CSS, fontSize: "9pt", fontWeight: 300, lineHeight: 1.3 }}>
+      <div className="flex" style={{ fontFamily: DOC_FUENTE_CSS, fontSize: "7pt", fontWeight: 300, lineHeight: 1.3 }}>
         <span style={{ width: 76, flexShrink: 0, fontWeight: 300, color: C.slate500, textTransform: "uppercase", letterSpacing: 0, paddingTop: 1 }}>{etiqueta}</span>
         <span style={{ fontWeight: 300, color: C.slate900 }}>{valor}</span>
       </div>
@@ -411,7 +411,7 @@ function VistaCotizacion() {
                         {filaDato("E-mail", empresa?.email || "—")}
                       </div>
                     </div>
-                    <div className="flex" style={{ marginTop: 8, alignItems: "center", background: C.white, color: C.slate900, border: `1px solid ${C.slate100}`, borderLeft: `3px solid ${DOC.accent}`, borderRadius: 4, padding: "4px 10px", fontFamily: DOC_FUENTE_CSS, fontSize: "8.5pt", lineHeight: 1.2 }}>
+                    <div className="flex" style={{ marginTop: 8, alignItems: "center", background: C.white, color: C.slate900, border: `1px solid ${C.slate100}`, borderLeft: `3px solid ${DOC.accent}`, borderRadius: 4, padding: "4px 10px", fontFamily: DOC_FUENTE_CSS, fontSize: "6.5pt", lineHeight: 1.2 }}>
                       <span style={{ fontWeight: 800, letterSpacing: 0.5, fontSize: 8, textTransform: "uppercase", marginRight: 10, flexShrink: 0 }}>Proyecto</span>
                       <span style={{ fontWeight: 400, textAlign: "justify" }}>{cot.nombre || "—"}</span>
                     </div>
@@ -446,7 +446,7 @@ function VistaCotizacion() {
                       ))}
                     </tr>
                   </thead>
-                  <tbody style={{ fontFamily: DOC_FUENTE_CSS, fontSize: "9pt", fontWeight: 300, lineHeight: 1.3 }}>
+                  <tbody style={{ fontFamily: DOC_FUENTE_CSS, fontSize: "7pt", fontWeight: 300, lineHeight: 1.3 }}>
                     {itemsPagina.map((fila) => {
                       if (fila.clase !== "item") {
                         const esGrupo = fila.clase === "grupo";
@@ -459,7 +459,7 @@ function VistaCotizacion() {
                                 borderBottom: `1px solid ${C.slate100}`,
                                  color: esGrupo ? C.emerald800 : C.slate700,
                                 fontWeight: esGrupo ? 700 : 600,
-                                fontSize: esGrupo ? "9pt" : "8.5pt",
+                                fontSize: esGrupo ? "7pt" : "6.5pt",
                                 textAlign: "left",
                               }}
                             >
@@ -473,7 +473,7 @@ function VistaCotizacion() {
                                 borderBottom: `1px solid ${C.slate100}`,
                                  color: esGrupo ? C.emerald800 : C.slate700,
                                 fontWeight: esGrupo ? 700 : 600,
-                                fontSize: esGrupo ? "9pt" : "8.5pt",
+                                fontSize: esGrupo ? "7pt" : "6.5pt",
                                 letterSpacing: esGrupo ? 0.6 : 0.2,
                               }}
                             >
