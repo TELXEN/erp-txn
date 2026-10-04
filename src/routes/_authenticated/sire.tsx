@@ -123,7 +123,7 @@ function periodoDefecto() {
   return d.toISOString().slice(0, 7);
 }
 function rangoPeriodo(p: string) {
-  const [y, m] = p.split("-").map(Number);
+  const [y = 2026, m = 1] = p.split("-").map(Number);
   const fin = new Date(Date.UTC(y, m, 0)).toISOString().slice(0, 10);
   return { ini: `${p}-01`, fin };
 }
@@ -251,12 +251,12 @@ function PanelLibro({ libro }: { libro: Libro }) {
   async function enviar() {
     if (!reg) return;
     const { error } = await supabase.from("sire_periodos").update({ estado: "Aceptado", aceptado_por: session?.user.id ?? null, aceptado_en: new Date().toISOString() }).eq("id", reg.id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     await qc.invalidateQueries({ queryKey: ["sire", libro, periodo] });
     toast.success(`Aceptación de la propuesta ${libro} enviada a SUNAT (simulación)`);
   }
 
-  const [y, m] = periodo.split("-").map(Number);
+  const [y = 2026, m = 1] = periodo.split("-").map(Number);
   const anios = [y - 1, y, y + 1].filter((a, i, arr) => arr.indexOf(a) === i);
   const pasos = ["SINCRONIZACIÓN", "CONCILIACIÓN", "CIERRE Y ENVÍO"];
 
@@ -298,7 +298,7 @@ function PanelLibro({ libro }: { libro: Libro }) {
         )}
 
         {paso === 2 && (
-          <Panel titulo={`PASO 2 · CONCILIACIÓN SUNAT vs ERP · ${MESES[m - 1].toUpperCase()} ${y}`}
+          <Panel titulo={`PASO 2 · CONCILIACIÓN SUNAT vs ERP · ${(MESES[m - 1] ?? "").toUpperCase()} ${y}`}
             extra={<div className="flex gap-1">
               {([["todos", "Todos"], ["ok", "Conciliados"], ["disc", "Con Discrepancias"], ["sunat", "Solo en SUNAT"]] as const).map(([k, t]) => (
                 <button key={k} onClick={() => setFiltro(k)} className={`rounded-md px-2.5 py-1 font-mono text-[11px] ${filtro === k ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}>{t} <span className="opacity-70">({cuenta[k]})</span></button>
@@ -350,7 +350,7 @@ function PanelLibro({ libro }: { libro: Libro }) {
         )}
 
         {paso === 3 && reg && (
-          <Panel titulo={`PASO 3 · CIERRE Y ENVÍO · ${MESES[m - 1].toUpperCase()} ${y}`}>
+          <Panel titulo={`PASO 3 · CIERRE Y ENVÍO · ${(MESES[m - 1] ?? "").toUpperCase()} ${y}`}>
             <div className="grid gap-3 p-5 sm:grid-cols-3">
               {[
                 { t: "MONTO NETO TOTAL", v: soles(Number(reg.total_base)) },
