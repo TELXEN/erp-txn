@@ -421,8 +421,8 @@ function VistaCotizacion() {
                 <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 16, tableLayout: "fixed" }}>
                   <colgroup>
                     <col style={{ width: "8%" }} />
-                    <col style={{ width: "49%" }} />
-                    <col style={{ width: "7%" }} />
+                    <col style={{ width: "46%" }} />
+                    <col style={{ width: "10%" }} />
                     <col style={{ width: "6%" }} />
                     <col style={{ width: "7%" }} />
                     <col style={{ width: "11.5%" }} />
@@ -487,7 +487,7 @@ function VistaCotizacion() {
                         <tr key={fila.llave} style={{ pageBreakInside: "avoid" }}>
                           <td style={{ ...celda, padding: "6px 6px", textAlign: "left", color: C.slate500 }}>{it.codigo || fila.numero}</td>
                           <td style={{ ...celda, padding: "6px 8px", wordBreak: "break-word" }}>{it.nombre}</td>
-                          <td style={{ ...celda, padding: "6px 6px", textAlign: "center", color: C.slate500, wordBreak: "break-word" }}>{it.marca?.trim() || "-"}</td>
+                          <td style={{ ...celda, padding: "6px 6px", textAlign: "center", color: C.slate500, fontSize: "7pt", wordBreak: "break-word" }}>{it.marca?.trim() || "-"}</td>
                           <td style={{ ...celda, padding: "6px 4px", textAlign: "center", color: C.slate500 }}>{it.unidad}</td>
                           <td style={{ ...celda, padding: "6px 6px", textAlign: "right" }}>{Number(it.metrado).toLocaleString("es-PE", { maximumFractionDigits: 2 })}</td>
                           <td style={{ ...celda, padding: "6px 6px", textAlign: "right", whiteSpace: "nowrap" }}>{S(sim, Number(it.precio_unitario))}</td>
