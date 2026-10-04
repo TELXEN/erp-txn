@@ -6,8 +6,9 @@ Mantener el pie de página pegado al borde inferior de cada hoja A4, independien
 ## Cambios
 - Reservar una franja inferior fija para que las filas, totales y demás contenido nunca invadan el pie.
 - Convertir la vista previa en páginas A4 reales cuando la tabla exceda una hoja, distribuyendo las filas según el espacio disponible.
-- Repetir en cada página el pie con la identificación del comprobante y la numeración `Página X de Y`.
-- Mantener los totales, importe en letras, forma de pago, régimen tributario, cuentas y observaciones juntos al final del documento; si no caben, pasarán completos a la página siguiente.
+- Considerar como parte del pie la línea del importe en letras, por ejemplo `SON: MIL CIENTO OCHENTA CON 00/100 DÓLARES AMERICANOS`, seguida de forma de pago, régimen tributario, cuentas y datos legales.
+- Repetir en cada página el pie completo, junto con la identificación del comprobante y la numeración `Página X de Y`.
+- Mantener el bloque completo del pie unido; si no cabe debajo de las filas, pasará completo a la página siguiente y permanecerá alineado al borde inferior.
 - Ajustar el PDF para usar la misma reserva inferior y el mismo pie fijo repetido en todas las páginas.
 - Mantener sin cambios los cálculos, datos, numeración fiscal, tipografía seleccionada y estilo visual actual.
 
