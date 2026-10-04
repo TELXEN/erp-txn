@@ -193,7 +193,7 @@ export function HojaCotizacion({
 
         <div style={{ marginTop: 16 }}>{children}</div>
 
-        <div style={{ width: 380, marginLeft: "auto", marginTop: 20, fontSize: 12, background: DOC.total, borderRadius: 6, padding: 6 }}>
+        <div style={{ width: 232, marginRight: 17, marginLeft: "auto", marginTop: 20, fontSize: 11, background: DOC.total, borderRadius: 6, padding: 6 }}>
           {[
             ["COSTO DIRECTO", money(sim, totales.costoDirecto), false] as const,
           ].map(([t, v]) => (

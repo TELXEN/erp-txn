@@ -503,7 +503,8 @@ function VistaCotizacion() {
                 {esUltima && (
                   <div className="bloque-final" style={{ pageBreakInside: "avoid" }}>
                     <div className="flex justify-end" style={{ marginTop: 14 }}>
-                      <div style={{ width: 280, fontSize: "8.5pt" }}>
+                      <div style={{ width: 234, marginRight: 14, fontSize: "8.5pt" }}>
+
                         <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700 }}><span>Costo Directo</span><span>{S(sim, calculo.costoDirecto)}</span></div>
                         {calculo.gastosGenerales > 0 && <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700 }}><span>Gastos Generales ({Number(cot.pct_gastos_generales)}%)</span><span>{S(sim, calculo.gastosGenerales)}</span></div>}
                         {calculo.utilidad > 0 && <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700 }}><span>Utilidad ({Number(cot.pct_utilidad)}%)</span><span>{S(sim, calculo.utilidad)}</span></div>}
