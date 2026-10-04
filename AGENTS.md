@@ -24,3 +24,5 @@
 - Sidebar colors use dedicated semantic theme tokens, separate from header and workspace colors — dark navigation themes must not alter business screens.
 - Primary and action buttons use the active theme's sidebar base color — this keeps central workflows visually connected to navigation.
 - Invoice, quotation and preliquidation documents take colors and font from src/lib/documento-tema.ts — one change updates all three outputs.
+
+- La preliquidación usa una única hoja compartida (src/components/HojaPreliquidacion.tsx) para edición (fluida, campos en línea) y vista previa/impresión (A4 fijo, solo lectura); los cálculos de montos viven en src/lib/preliquidacion-montos.ts — así edición, vista previa y PDF nunca divergen.
