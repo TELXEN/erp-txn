@@ -3126,8 +3126,10 @@ export type Database = {
           id: string
           items: Json
           libro: string
+          origen: string
           periodo: string
           sincronizado_en: string | null
+          ticket: string | null
           total_base: number
           total_docs: number
           total_igv: number
@@ -3141,8 +3143,10 @@ export type Database = {
           id?: string
           items?: Json
           libro: string
+          origen?: string
           periodo: string
           sincronizado_en?: string | null
+          ticket?: string | null
           total_base?: number
           total_docs?: number
           total_igv?: number
@@ -3156,8 +3160,10 @@ export type Database = {
           id?: string
           items?: Json
           libro?: string
+          origen?: string
           periodo?: string
           sincronizado_en?: string | null
+          ticket?: string | null
           total_base?: number
           total_docs?: number
           total_igv?: number
