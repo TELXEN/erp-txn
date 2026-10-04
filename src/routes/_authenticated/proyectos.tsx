@@ -283,7 +283,24 @@ function Proyectos() {
         }
       />
 
-      <Panel titulo="Nuevo proyecto" className="mb-4">
+      <Panel
+        titulo="Nuevo proyecto"
+        className="mb-4"
+        extra={
+          <button
+            type="button"
+            onClick={() => setFormAbierto((a) => !a)}
+            className="inline-flex items-center gap-1.5 rounded-md border border-line bg-card px-3 py-1.5 font-mono text-[11px] text-ink transition-colors hover:border-primary hover:text-primary"
+          >
+            {formAbierto ? (
+              <>Cerrar <ChevronUp size={13} /></>
+            ) : (
+              <>+ Nuevo proyecto <ChevronDown size={13} /></>
+            )}
+          </button>
+        }
+      >
+        {formAbierto && (
         <form id="form-proyecto" onSubmit={guardar} className="space-y-4 p-5">
           <div className="grid gap-4 lg:grid-cols-3">
             <Seccion titulo="Información General">
