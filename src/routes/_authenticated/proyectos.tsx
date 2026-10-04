@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Check, Eye, Info, LayoutGrid, Pencil, Table2, Trash2, X } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, Eye, Info, LayoutGrid, Pencil, Table2, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
@@ -122,6 +122,7 @@ function Proyectos() {
   const { data: codificacion } = useCodificacion();
   const [vista, setVista] = useState<"tabla" | "kanban">("tabla");
   const [busqueda, setBusqueda] = useState("");
+  const [formAbierto, setFormAbierto] = useState(false);
   const [form, setForm] = useState({
     codigo: "",
     nombre: "",
@@ -209,6 +210,7 @@ function Proyectos() {
       pct_gastos_generales: "10",
       pct_utilidad: "10",
     });
+    setFormAbierto(false);
     qc.invalidateQueries({ queryKey: ["proyectos"] });
   }
 
@@ -281,7 +283,24 @@ function Proyectos() {
         }
       />
 
-      <Panel titulo="Nuevo proyecto" className="mb-4">
+      <Panel
+        titulo="Nuevo proyecto"
+        className="mb-4"
+        extra={
+          <button
+            type="button"
+            onClick={() => setFormAbierto((a) => !a)}
+            className="inline-flex items-center gap-1.5 rounded-md border border-line bg-card px-3 py-1.5 font-mono text-[11px] text-ink transition-colors hover:border-primary hover:text-primary"
+          >
+            {formAbierto ? (
+              <>Cerrar <ChevronUp size={13} /></>
+            ) : (
+              <>+ Nuevo proyecto <ChevronDown size={13} /></>
+            )}
+          </button>
+        }
+      >
+        {formAbierto && (
         <form id="form-proyecto" onSubmit={guardar} className="space-y-4 p-5">
           <div className="grid gap-4 lg:grid-cols-3">
             <Seccion titulo="Información General">
@@ -302,7 +321,7 @@ function Proyectos() {
                 </Select>
               </CampoF>
               <CampoF etiqueta="Nombre de la obra" requerido>
-                <Input value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} required maxLength={120} />
+                <Input autoFocus={formAbierto} value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} required maxLength={120} />
               </CampoF>
               <CampoF etiqueta="Ubicación">
                 <Input value={form.ubicacion} onChange={(e) => setForm({ ...form, ubicacion: e.target.value })} maxLength={120} />
@@ -367,10 +386,13 @@ function Proyectos() {
             </Seccion>
           </div>
           <div className="flex flex-wrap items-center justify-end gap-3">
-            {error && <p className="mr-auto font-mono text-xs text-bad">{error}</p>}
             <Boton type="submit" variante="accion" className="px-6 py-2.5 text-sm">Registrar</Boton>
           </div>
         </form>
+        )}
+        {error && (
+          <p className="border-t border-line px-5 py-3 font-mono text-xs text-bad">{error}</p>
+        )}
       </Panel>
 
       <Panel
