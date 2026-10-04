@@ -78,9 +78,9 @@ return StyleSheet.create({
   companyLine: { fontFamily, fontSize: 7, color: colors.slate700, textAlign: "right", lineHeight: 1.35, marginTop: 3 },
   companyLineMt: { fontFamily, fontSize: 7, color: colors.slate700, textAlign: "right", lineHeight: 1.35, marginTop: 1.5 },
   companyWeb: { fontFamily, fontSize: 7, color: colors.emerald800, textAlign: "right", lineHeight: 1.35, marginTop: 1.5 },
-  titleCol: { width: 145 },
+  titleCol: { width: 150 },
   titleBox: { alignItems: "center", backgroundColor: DOC.white, borderWidth: 1, borderColor: DOC.line, borderTopWidth: 4, borderTopColor: colors.emerald700, borderRadius: 6, paddingVertical: 9, paddingHorizontal: 12 },
-  boxTitle: { fontFamily, fontWeight: 700, fontSize: 14, color: colors.slate950, letterSpacing: 1.4, lineHeight: 1.15 },
+  boxTitle: { fontFamily, fontWeight: 700, fontSize: 12.5, color: colors.slate950, letterSpacing: 0.7, lineHeight: 1.15 },
   boxRuc: { fontFamily, fontWeight: 700, fontSize: 8.5, color: colors.slate950, marginTop: 2 },
   boxCode: { fontFamily, fontWeight: 700, fontSize: 10, color: colors.slate950, marginTop: 1.5, letterSpacing: 0.5 },
   statusLine: { flexDirection: "row", justifyContent: "center", marginTop: 5 },
@@ -112,10 +112,11 @@ return StyleSheet.create({
   settlement: { flexDirection: "row", gap: 8, marginBottom: 15 },
   settlementCard: { flex: 1, padding: 10, borderWidth: 1, borderColor: DOC.line, borderRadius: 6 },
   settlementValue: { fontFamily, fontWeight: 700, fontSize: 11, color: colors.emerald800, marginTop: 4 },
-  banking: { position: "absolute", left: 34, right: 34, bottom: 26, padding: 8, borderWidth: 1, borderColor: DOC.line, borderRadius: 6, backgroundColor: colors.white },
+  banking: { position: "absolute", left: 34, right: 34, bottom: 26, padding: 7, borderWidth: 1, borderColor: DOC.line, borderRadius: 6, backgroundColor: colors.white },
   bankList: {},
-  bankLabel: { fontFamily, fontWeight: 700, fontSize: 6.7, color: colors.slate500, letterSpacing: 0.7, textTransform: "uppercase", marginBottom: 1, marginTop: 2 },
-  bankValue: { fontFamily, fontWeight: 700, fontSize: 9, color: colors.slate950, lineHeight: 1.2, marginTop: 1 },
+  bankTitle: { fontFamily, fontWeight: 700, fontSize: 7, color: colors.emerald800, letterSpacing: 0.7, textTransform: "uppercase", marginBottom: 4 },
+  bankLabel: { fontFamily, fontWeight: 700, fontSize: 6, color: colors.slate500, letterSpacing: 0.6, textTransform: "uppercase", marginBottom: 1, marginTop: 1 },
+  bankValue: { fontFamily, fontWeight: 700, fontSize: 7.2, color: colors.slate950, lineHeight: 1.2, marginTop: 1 },
   notes: { padding: 10, borderLeftWidth: 3, borderLeftColor: DOC.accent, backgroundColor: DOC.soft, borderRadius: 6, marginBottom: 14 },
   legal: { fontSize: 7, lineHeight: 1.4, color: colors.slate500, marginTop: "auto", paddingTop: 12, borderTopWidth: 0.7, borderTopColor: colors.slate300 },
   footer: { position: "absolute", left: 34, right: 34, bottom: 14, flexDirection: "row", justifyContent: "space-between", color: colors.slate500, fontSize: 6.5 },
@@ -241,7 +242,7 @@ function PreliquidacionDocument({ datos }: { datos: DatosPreliquidacionPdf }) {
         </View>
 
         <View style={styles.banking} fixed>
-          <Text style={styles.sectionTitle}>DATOS BANCARIOS</Text>
+          <Text style={styles.bankTitle}>DATOS BANCARIOS</Text>
           {datos.cuentasTodas.length === 0 ? <Text style={styles.bankValue}>NO HAY CUENTAS BANCARIAS REGISTRADAS.</Text> : null}
           {(() => {
             const grupoMoneda = (m: string) => (/USD|D[ÓO]LAR/i.test(m) ? "DÓLARES" : "SOLES");

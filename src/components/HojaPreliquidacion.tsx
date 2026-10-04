@@ -159,9 +159,9 @@ export function HojaPreliquidacion(props: Props) {
           {empresa?.web && <div style={{ marginTop: 2, fontFamily: DOC_FUENTE_CSS, fontWeight: 300, fontSize: 9.5, color: DOC.green }}>{empresa.web}</div>}
         </div>
 
-        <div style={{ minWidth: 200 }}>
+        <div style={{ width: 210, flexShrink: 0 }}>
           <div style={{ background: DOC.white, border: `1px solid ${DOC.line}`, borderTop: `4px solid ${DOC.green}`, borderRadius: 6, padding: "10px 16px", textAlign: "center", color: DOC.green }}>
-            <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: 2, lineHeight: 1.15 }}>PRELIQUIDACIÓN</div>
+            <div style={{ fontSize: editable ? 20 : 18, fontWeight: 800, letterSpacing: 0.8, lineHeight: 1.15, whiteSpace: "nowrap" }}>PRELIQUIDACIÓN</div>
             <div style={{ marginTop: 3, fontSize: 12, fontWeight: 700 }}>RUC: {empresa?.ruc || "—"}</div>
             <div style={{ marginTop: 2, fontSize: 14, fontWeight: 800, letterSpacing: 0.6 }}>{codigo || "AUTOMÁTICO"}</div>
           </div>
@@ -394,9 +394,9 @@ export function HojaPreliquidacion(props: Props) {
       )}
 
       {/* Datos bancarios (pie) */}
-      <div style={{ padding: 10, background: DOC.soft, marginTop: "auto", marginBottom: 12, border: `1px solid ${DOC.line}`, borderRadius: 6 }}>
-        <div style={tituloSeccion}>Datos bancarios</div>
-        {cuentasOrdenadas.length === 0 && <div style={valor}>NO HAY CUENTAS BANCARIAS REGISTRADAS.</div>}
+      <div style={{ padding: "8px 10px", background: DOC.soft, marginTop: "auto", marginBottom: 12, border: `1px solid ${DOC.line}`, borderRadius: 6 }}>
+        <div style={{ ...tituloSeccion, fontSize: 7.5, marginBottom: 4 }}>Datos bancarios</div>
+        {cuentasOrdenadas.length === 0 && <div style={{ ...valor, fontSize: 8 }}>NO HAY CUENTAS BANCARIAS REGISTRADAS.</div>}
         {(() => {
           const esDet = (c: (typeof cuentasOrdenadas)[number]) => c.tipo_cuenta === "Detracciones";
           const grupoMoneda = (m: string) => (/USD|D[ÓO]LAR/i.test(m) ? "DÓLARES" : "SOLES");
@@ -410,9 +410,9 @@ export function HojaPreliquidacion(props: Props) {
             <div style={{ display: "grid", gridTemplateColumns: columnas > 1 ? `repeat(${columnas}, 1fr)` : "1fr", columnGap: 14, rowGap: 4, textTransform: "uppercase" }}>
               {grupos.map((g) => (
                 <div key={g.moneda}>
-                  <div style={{ ...etiqueta, marginBottom: 2 }}>{g.moneda}</div>
+                  <div style={{ ...etiqueta, fontSize: 6.5, marginBottom: 2 }}>{g.moneda}</div>
                   {g.cuentas.map((c, i) => (
-                    <div key={i} style={{ ...valor, marginTop: 1 }}>
+                    <div key={i} style={{ ...valor, fontSize: 8, lineHeight: 1.25, marginTop: 1 }}>
                       {`${c.nombre} · ${c.tipo_cuenta} · Cta. ${c.numero_cuenta || "—"} · CCI ${c.cci || "—"}`}
                     </div>
                   ))}
@@ -420,9 +420,9 @@ export function HojaPreliquidacion(props: Props) {
               ))}
               {detracciones.length > 0 && (
                 <div>
-                  <div style={{ ...etiqueta, marginBottom: 2 }}>Detracciones</div>
+                  <div style={{ ...etiqueta, fontSize: 6.5, marginBottom: 2 }}>Detracciones</div>
                   {detracciones.map((c, i) => (
-                    <div key={i} style={{ ...valor, marginTop: 1 }}>
+                    <div key={i} style={{ ...valor, fontSize: 8, lineHeight: 1.25, marginTop: 1 }}>
                       {`${c.nombre} · ${c.tipo_cuenta} · Cta. ${c.numero_cuenta || "—"}`}
                     </div>
                   ))}
