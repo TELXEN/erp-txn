@@ -751,17 +751,27 @@ export function CotizacionHoja({
         )}
         <span>Clic derecho: menú · Doble clic edita · Enter guarda · Esc cancela · Flechas y Tab navegan · Insert añade fila</span>
       </div>
-      <table className="w-full font-mono text-[13px]">
+      <table className="w-full min-w-[1180px] table-fixed font-mono text-[13px]">
+        <colgroup>
+          <col style={{ width: "10%" }} />
+          <col style={{ width: "39%" }} />
+          <col style={{ width: "8%" }} />
+          <col style={{ width: "7%" }} />
+          <col style={{ width: "6%" }} />
+          <col style={{ width: "11%" }} />
+          <col style={{ width: "11%" }} />
+          <col style={{ width: "8%" }} />
+        </colgroup>
         <thead>
-          <tr className="text-left text-[11px] uppercase tracking-[0.06em]" style={{ background: DOC.green, color: DOC.white }}>
-            <th className="px-2 py-2 font-medium">Código</th>
-            <th className="px-2 py-2 font-medium">Descripción</th>
-            <th className="px-2 py-2 font-medium">Marca</th>
-            <th className="px-2 py-2 font-medium">Unidad</th>
-            <th className="px-2 py-2 text-right font-medium">Cantidad</th>
-            <th className="px-2 py-2 text-right font-medium">C. unitario</th>
-            <th className="px-2 py-2 text-right font-medium">Sub total</th>
-            <th className="px-2 py-2" />
+          <tr className="h-7 text-left text-[10px] uppercase tracking-normal" style={{ background: DOC.green, color: DOC.white }}>
+            <th className="px-2 py-1 align-middle font-medium">Código</th>
+            <th className="px-2 py-1 align-middle font-medium">Descripción</th>
+            <th className="px-1 py-1 text-center align-middle font-medium">Marca</th>
+            <th className="px-1 py-1 text-center align-middle font-medium">Unidad</th>
+            <th className="px-1 py-1 text-right align-middle font-medium">Cantidad</th>
+            <th className="px-1 py-1 text-right align-middle font-medium">C. unitario</th>
+            <th className="px-1 py-1 text-right align-middle font-medium">Sub total</th>
+            <th className="px-1 py-1" />
           </tr>
         </thead>
         <tbody>
@@ -842,7 +852,7 @@ export function CotizacionHoja({
             const it = f.it;
             const bloqueada = f.agrupadora;
             const puFijo = conApu.has(it.id);
-            const sangria = f.nivel === 4 ? 44 : 28;
+            const sangria = f.nivel === 4 ? 20 : 10;
             return (
               <React.Fragment key={f.clave}>
                 <ContextMenu>
@@ -858,7 +868,7 @@ export function CotizacionHoja({
                     f,
                     r,
                     0,
-                    <span className="flex items-center gap-1 text-primary" style={{ paddingLeft: sangria }}>
+                    <span className="flex items-center gap-1 whitespace-nowrap text-[12px] text-primary" style={{ paddingLeft: sangria }}>
                       {f.agrupadora && (
                         <button type="button" onClick={() => alternar(f.clave)} className="text-muted-foreground">
                           {colapsados.has(f.clave) ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
@@ -881,13 +891,13 @@ export function CotizacionHoja({
                     celda(f, r, 4, <span>{num(it.metrado)}</span>, "text-right")
                   )}
                   {bloqueada || puFijo ? (
-                    <td className={`${celdaBase} text-right ${puFijo ? "italic" : ""}`}>
+                    <td className={`${celdaBase} whitespace-nowrap text-right ${puFijo ? "italic" : ""}`}>
                       {bloqueada ? "—" : mon(Number(it.precio_unitario))}
                     </td>
                   ) : (
-                    celda(f, r, 5, <span>{mon(Number(it.precio_unitario))}</span>, "text-right")
+                    celda(f, r, 5, <span className="whitespace-nowrap">{mon(Number(it.precio_unitario))}</span>, "text-right")
                   )}
-                  <td className={`${celdaBase} text-right font-semibold text-ink`}>{mon(f.total)}</td>
+                  <td className={`${celdaBase} whitespace-nowrap text-right font-semibold text-ink`}>{mon(f.total)}</td>
                   <td className={`${celdaBase} text-right`}>
                     <div className="flex items-center justify-end gap-1">
                       {!f.agrupadora && (

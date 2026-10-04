@@ -101,8 +101,8 @@ function construirFilas(items: ItemCot[]): Fila[] {
 
 function altoEstimadoFila(fila: Fila) {
   if (fila.clase !== "item") return 22;
-  // Descripción ocupa ~49% del ancho útil: ~46 caracteres por línea a 9 pt.
-  const lineas = Math.max(1, Math.ceil((fila.item.nombre || "").length / 46));
+  // La descripción ocupa la mitad del nuevo ancho útil: ~55 caracteres por línea a 9 pt.
+  const lineas = Math.max(1, Math.ceil((fila.item.nombre || "").length / 55));
   return 14 + lineas * 15;
 }
 
@@ -210,7 +210,7 @@ function VistaCotizacion() {
       const html2pdf = (await import("html2pdf.js")).default;
       await html2pdf()
         .set({
-          margin: [7, 5, 7, 5],
+          margin: [7, 3, 7, 3],
           filename: `${nombreArchivo}.pdf`,
           image: { type: "jpeg", quality: 0.98 },
           html2canvas: { scale: 3, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: 794, backgroundColor: "#ffffff", logging: false },
@@ -374,7 +374,7 @@ function VistaCotizacion() {
       />
 
       <div className="overflow-x-auto pb-8">
-        <div className="mx-auto" style={{ width: 700 }}>
+        <div className="mx-auto" style={{ width: 754 }}>
         <div
           id="cotizacion-impresion"
           style={{ width: 794, background: C.white, color: C.slate900, fontFamily: DOC_FUENTE_CSS, fontSize: 12, boxShadow: "0 10px 30px -12px rgba(15,23,42,.25)" }}
@@ -386,7 +386,7 @@ function VistaCotizacion() {
               <section
                 key={`hoja-${paginaIndex + 1}`}
                 className="cotizacion-hoja"
-                style={{ position: "relative", width: 700, height: 990, margin: "0 auto", padding: "34px 30px 38px", overflow: "hidden", background: C.white, pageBreakAfter: esUltima ? "auto" : "always", boxSizing: "border-box" }}
+                style={{ position: "relative", width: 754, height: 990, margin: "0 auto", padding: "34px 24px 38px", overflow: "hidden", background: C.white, pageBreakAfter: esUltima ? "auto" : "always", boxSizing: "border-box" }}
               >
                 {encabezadoHoja(paginaIndex + 1, paginas.length)}
 
@@ -411,22 +411,22 @@ function VistaCotizacion() {
                         {filaDato("E-mail", empresa?.email || "—")}
                       </div>
                     </div>
-                    <div className="flex" style={{ marginTop: 8, background: C.emerald700, color: C.white, borderRadius: 4, padding: "7px 14px", fontFamily: DOC_FUENTE_CSS, fontSize: "9pt", lineHeight: 1.3 }}>
-                      <span style={{ fontWeight: 800, letterSpacing: 1, fontSize: 9, textTransform: "uppercase", paddingTop: 1, marginRight: 10 }}>Proyecto</span>
-                      <span style={{ fontWeight: 300 }}>{cot.nombre || "—"}</span>
+                    <div className="flex" style={{ marginTop: 8, alignItems: "center", background: C.white, color: C.slate900, border: `1px solid ${C.slate100}`, borderLeft: `3px solid ${DOC.accent}`, borderRadius: 4, padding: "4px 10px", fontFamily: DOC_FUENTE_CSS, fontSize: "8.5pt", lineHeight: 1.2 }}>
+                      <span style={{ fontWeight: 800, letterSpacing: 0.5, fontSize: 8, textTransform: "uppercase", marginRight: 10, flexShrink: 0 }}>Proyecto</span>
+                      <span style={{ fontWeight: 400, textAlign: "justify" }}>{cot.nombre || "—"}</span>
                     </div>
                   </div>
                 )}
 
                 <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 16, tableLayout: "fixed" }}>
                   <colgroup>
-                    <col style={{ width: "9%" }} />
-                    <col style={{ width: "44%" }} />
                     <col style={{ width: "8%" }} />
+                    <col style={{ width: "49%" }} />
                     <col style={{ width: "7%" }} />
-                    <col style={{ width: "8%" }} />
-                    <col style={{ width: "12%" }} />
-                    <col style={{ width: "12%" }} />
+                    <col style={{ width: "6%" }} />
+                    <col style={{ width: "7%" }} />
+                    <col style={{ width: "11.5%" }} />
+                    <col style={{ width: "11.5%" }} />
                   </colgroup>
 
                   <thead>
@@ -440,7 +440,7 @@ function VistaCotizacion() {
                         { h: "C. Unitario", a: "right" },
                         { h: "Sub Total", a: "right" },
                       ].map(({ h, a }) => (
-                        <th key={h} style={{ padding: "8px 5px", fontSize: 8, textTransform: "uppercase", letterSpacing: 0.2, textAlign: a as "left" | "right" | "center" }}>
+                        <th key={h} style={{ height: 24, padding: "4px 4px", fontSize: 7.5, lineHeight: 1.05, verticalAlign: "middle", textTransform: "uppercase", letterSpacing: 0, textAlign: a as "left" | "right" | "center" }}>
                           {h}
                         </th>
                       ))}
@@ -508,7 +508,7 @@ function VistaCotizacion() {
                         {calculo.utilidad > 0 && <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700 }}><span>Utilidad ({Number(cot.pct_utilidad)}%)</span><span>{S(sim, calculo.utilidad)}</span></div>}
                         {(calculo.gastosGenerales > 0 || calculo.utilidad > 0) && <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700, fontWeight: 600 }}><span>Subtotal</span><span>{S(sim, subtotal)}</span></div>}
                         <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700, borderBottom: `1px solid ${C.slate100}` }}><span>{conIgv ? "IGV (18%)" : "IGV (0%)"}</span><span>{S(sim, igv)}</span></div>
-                        <div className="flex justify-between" style={{ marginTop: 7, padding: "10px 14px", background: C.slate900, color: C.white, borderRadius: 8, fontFamily: DOC_FUENTE_CSS, fontSize: "11pt", fontWeight: 300 }}>
+                        <div className="flex justify-between" style={{ marginTop: 5, padding: "6px 12px", alignItems: "center", background: C.slate900, color: C.white, borderRadius: 6, fontFamily: DOC_FUENTE_CSS, fontSize: "10pt", lineHeight: 1.15, fontWeight: 400 }}>
                           <span>TOTAL</span><span>{S(sim, total)}</span>
                         </div>
                         {esUsd && tc > 0 && (
@@ -542,7 +542,7 @@ function VistaCotizacion() {
                     </div>
                   </div>
                 )}
-                <div style={{ position: "absolute", left: 30, right: 30, bottom: 15, textAlign: "center", fontSize: 9, color: C.slate400 }}>
+                <div style={{ position: "absolute", left: 24, right: 24, bottom: 15, textAlign: "center", fontSize: 9, color: C.slate400 }}>
                   Hoja {paginaIndex + 1} de {paginas.length}
                 </div>
               </section>

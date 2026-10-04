@@ -215,7 +215,7 @@ export function HojaCotizacion({
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 8px", borderBottom: `1px solid ${C.line}`, fontWeight: 700 }}><span>SUBTOTAL</span><span>{money(sim, totales.total)}</span></div>
           <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 8px", borderBottom: `1px solid ${C.line}` }}><span>IGV {conIgv ? "18%" : "0%"}</span><span>{money(sim, igv)}</span></div>
-          <div style={{ display: "flex", justifyContent: "space-between", padding: "7px 8px", borderTop: `1px solid ${DOC.green}`, marginTop: 4, color: DOC.green, fontWeight: 700, fontSize: 14 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "5px 8px", borderTop: `1px solid ${DOC.green}`, marginTop: 3, color: DOC.green, fontWeight: 700, fontSize: 13, lineHeight: 1.15 }}>
             <span>IMPORTE TOTAL</span><span>{money(sim, totalConIgv)}</span>
           </div>
           {esUsd && tc > 0 && (
