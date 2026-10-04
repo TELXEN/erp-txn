@@ -751,17 +751,27 @@ export function CotizacionHoja({
         )}
         <span>Clic derecho: menú · Doble clic edita · Enter guarda · Esc cancela · Flechas y Tab navegan · Insert añade fila</span>
       </div>
-      <table className="w-full font-mono text-[13px]">
+      <table className="w-full table-fixed font-mono text-[13px]">
+        <colgroup>
+          <col style={{ width: "9%" }} />
+          <col style={{ width: "42%" }} />
+          <col style={{ width: "7%" }} />
+          <col style={{ width: "6%" }} />
+          <col style={{ width: "8%" }} />
+          <col style={{ width: "10%" }} />
+          <col style={{ width: "10%" }} />
+          <col style={{ width: "8%" }} />
+        </colgroup>
         <thead>
-          <tr className="text-left text-[11px] uppercase tracking-[0.06em]" style={{ background: DOC.green, color: DOC.white }}>
-            <th className="px-2 py-2 font-medium">Código</th>
-            <th className="px-2 py-2 font-medium">Descripción</th>
-            <th className="px-2 py-2 font-medium">Marca</th>
-            <th className="px-2 py-2 font-medium">Unidad</th>
-            <th className="px-2 py-2 text-right font-medium">Cantidad</th>
-            <th className="px-2 py-2 text-right font-medium">C. unitario</th>
-            <th className="px-2 py-2 text-right font-medium">Sub total</th>
-            <th className="px-2 py-2" />
+          <tr className="h-7 text-left text-[10px] uppercase tracking-normal" style={{ background: DOC.green, color: DOC.white }}>
+            <th className="px-2 py-1 align-middle font-medium">Código</th>
+            <th className="px-2 py-1 align-middle font-medium">Descripción</th>
+            <th className="px-1 py-1 text-center align-middle font-medium">Marca</th>
+            <th className="px-1 py-1 text-center align-middle font-medium">Unidad</th>
+            <th className="px-1 py-1 text-right align-middle font-medium">Cantidad</th>
+            <th className="px-1 py-1 text-right align-middle font-medium">C. unitario</th>
+            <th className="px-1 py-1 text-right align-middle font-medium">Sub total</th>
+            <th className="px-1 py-1" />
           </tr>
         </thead>
         <tbody>
