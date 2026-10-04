@@ -30,6 +30,7 @@ import {
   ESTADOS_COTIZACION,
   generarCodigoCotizacion,
   previsualizarCodigoCotizacion,
+  simboloMoneda,
   totalesCotizacion,
   useCodificacionCotizacion,
   useCotizacionItems,
@@ -336,8 +337,8 @@ function Cotizaciones() {
           Marca: i.marca || "-",
           Unidad: i.unidad,
           Metrado: Number(i.metrado),
-          "Precio Unitario (S/)": Number(i.precio_unitario),
-          "Parcial (S/)": Number(i.metrado) * Number(i.precio_unitario),
+          [`Precio Unitario (${simboloMoneda(cot.moneda)})`]: Number(i.precio_unitario),
+          [`Parcial (${simboloMoneda(cot.moneda)})`]: Number(i.metrado) * Number(i.precio_unitario),
         })),
       },
     ]);
@@ -657,7 +658,7 @@ function Cotizaciones() {
               <Campo etiqueta="Metrado">
                 <Input type="number" step="0.01" min="0" value={item.metrado} onChange={(e) => setItem({ ...item, metrado: e.target.value })} required />
               </Campo>
-              <Campo etiqueta="P. unitario (S/)">
+              <Campo etiqueta={`P. unitario (${simboloMoneda(cot?.moneda)})`}>
                 <Input type="number" step="0.01" min="0" value={item.precio_unitario} onChange={(e) => setItem({ ...item, precio_unitario: e.target.value })} required />
               </Campo>
               <div className="flex items-end gap-2 sm:col-span-6">
@@ -767,7 +768,7 @@ function Cotizaciones() {
                   <td className="px-3 py-2.5 text-muted-foreground">
                     <div className="flex items-center gap-2">{fmtFecha(vigenciaHasta(c.fecha_emision, Number(c.validez_dias)))} <Vigencia c={c} /></div>
                   </td>
-                  <td className="px-3 py-2.5 text-right">{soles(total(c.id))}</td>
+                  <td className="px-3 py-2.5 text-right">{simboloMoneda(c.moneda)} {total(c.id).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                   <td className="px-3 py-2.5">
                     <div className="flex gap-1">
                       <Etiqueta tono={tonoEstado(c.estado)}>{c.estado}</Etiqueta>
