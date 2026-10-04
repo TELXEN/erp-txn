@@ -36,9 +36,11 @@ import {
   useCotizaciones,
   usePartidasMaestras,
   vigenciaHasta,
+  type Cotizacion,
+  type CotizacionItem,
   type EstadoCotizacion,
 } from "@/lib/cotizaciones";
-import { Check, Calculator, CornerDownRight, ListOrdered, Upload, X, Eye, Trash2, ArrowLeft, Library, Plus, Pencil } from "lucide-react";
+import { Check, Calculator, CornerDownRight, ListOrdered, Upload, X, Eye, Trash2, ArrowLeft, Library, Plus, Pencil, Copy } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/cotizaciones")({
   head: () => ({
@@ -344,6 +346,86 @@ function Cotizaciones() {
   async function cambiarEstado(id: string, estado: EstadoCotizacion) {
     await supabase.from("cotizaciones").update({ estado }).eq("id", id);
     qc.invalidateQueries({ queryKey: ["cotizaciones"] });
+  }
+
+  async function duplicar(c: Cotizacion) {
+    setError("");
+    setAviso("");
+    try {
+      const codigo = await generarCodigoCotizacion();
+      const cliente = clientes.find((cl) => cl.id === c.cliente_id);
+      const { data: nueva, error: errC } = await supabase
+        .from("cotizaciones")
+        .insert({
+          codigo,
+          cliente_id: c.cliente_id ?? null,
+          cliente: cliente?.razon_social ?? c.cliente,
+          nombre: c.nombre,
+          ubicacion: c.ubicacion,
+          fecha_emision: hoy(),
+          validez_dias: c.validez_dias,
+          pct_gastos_generales: c.pct_gastos_generales,
+          pct_utilidad: c.pct_utilidad,
+          condiciones: c.condiciones,
+          recursos_humanos: c.recursos_humanos ?? "",
+          tiempo_ejecucion: c.tiempo_ejecucion ?? "",
+          condiciones_pago: c.condiciones_pago ?? "",
+          aplica_igv: c.aplica_igv ?? true,
+          moneda: c.moneda,
+          tipo_cambio: c.tipo_cambio,
+          estado: "Borrador",
+        })
+        .select("id")
+        .single();
+      if (errC) throw errC;
+      const { data: orig, error: errI } = await supabase
+        .from("cotizacion_items")
+        .select("*")
+        .eq("cotizacion_id", c.id)
+        .order("orden");
+      if (errI) throw errI;
+      const mapa = new Map<string, string>();
+      let pendientes = [...(orig ?? [])];
+      while (pendientes.length) {
+        const listos = pendientes.filter((i) => !i.padre_id || mapa.has(i.padre_id));
+        if (!listos.length) break;
+        const { data: nuevas, error: errN } = await supabase
+          .from("cotizacion_items")
+          .insert(
+            listos.map((i) => ({
+              cotizacion_id: nueva.id,
+              padre_id: i.padre_id ? (mapa.get(i.padre_id) ?? null) : null,
+              tipo: i.tipo,
+              codigo: i.codigo,
+              nombre: i.nombre,
+              especialidad: i.especialidad,
+              categoria: i.categoria,
+              marca: i.marca,
+              unidad: i.unidad,
+              metrado: i.metrado,
+              precio_unitario: i.precio_unitario,
+              rendimiento: i.rendimiento,
+              jornada: i.jornada,
+              pct_herramientas: i.pct_herramientas,
+              orden: i.orden,
+            })),
+          )
+          .select("id");
+        if (errN) throw errN;
+        if (!nuevas) throw new Error("No se pudieron copiar las partidas.");
+        (listos as CotizacionItem[]).forEach((i, idx) => {
+          const nuevoId = nuevas[idx]?.id;
+          if (nuevoId) mapa.set(i.id, nuevoId);
+        });
+        pendientes = pendientes.filter((i) => !mapa.has(i.id));
+      }
+      qc.invalidateQueries({ queryKey: ["cotizaciones"] });
+      qc.invalidateQueries({ queryKey: ["cotizacion_items", nueva.id] });
+      setAviso(`Copia creada: ${codigo}.`);
+      setSeleccion(nueva.id);
+    } catch (e2) {
+      setError(e2 instanceof Error ? e2.message : "No se pudo duplicar la cotización.");
+    }
   }
 
   async function borrarCotizacion(id: string) {
@@ -694,14 +776,17 @@ function Cotizaciones() {
                   </td>
                   <td className="px-5 py-2.5 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <button type="button" title="Editar" aria-label="Editar" onClick={() => setSeleccion(c.id)} className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-line text-muted-foreground hover:bg-primary/10 hover:text-primary">
-                        <Pencil size={15} />
-                      </button>
                       <Link to="/cotizacion-vista" search={{ id: c.id }} title="Vista previa" aria-label="Vista previa" className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-line text-muted-foreground hover:bg-primary/10 hover:text-primary">
                         <Eye size={15} />
                       </Link>
+                      <button type="button" title="Copiar" aria-label="Copiar" onClick={() => void duplicar(c)} className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-line text-muted-foreground hover:bg-primary/10 hover:text-primary">
+                        <Copy size={14} />
+                      </button>
+                      <button type="button" title="Editar" aria-label="Editar" onClick={() => setSeleccion(c.id)} className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-line text-muted-foreground hover:bg-primary/10 hover:text-primary">
+                        <Pencil size={14} />
+                      </button>
                       <button type="button" title="Eliminar" aria-label="Eliminar" onClick={() => borrarCotizacion(c.id)} className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-line text-muted-foreground hover:bg-destructive/10 hover:text-destructive">
-                        <Trash2 size={15} />
+                        <Trash2 size={14} />
                       </button>
                     </div>
                   </td>
