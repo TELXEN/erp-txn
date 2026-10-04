@@ -9,7 +9,7 @@ import { simboloMoneda, totalesCotizacion, useTipoCambioActual, vigenciaHasta, t
 /** Paleta corporativa compartida con la hoja de facturación electrónica. */
 const C = { ink: DOC.ink, muted: DOC.ink, line: DOC.line, soft: DOC.soft, green: DOC.green, greenSoft: DOC.white, white: DOC.white };
 
-const ed: CSSProperties = { border: "none", borderBottom: `1px dashed ${C.line}`, background: "transparent", font: "inherit", fontSize: 10.33, color: "inherit", width: "100%", padding: "4px 0", outline: "none" };
+const ed: CSSProperties = { border: "none", borderBottom: `1px dashed ${C.line}`, background: "transparent", font: "inherit", fontSize: 10.5, color: "inherit", width: "100%", padding: "4px 0", outline: "none" };
 const edSel: CSSProperties = { ...ed, cursor: "pointer" };
 const liviano = "var(--font-global)";
 
@@ -18,7 +18,7 @@ const money = (sim: string, n: number) => `${sim} ${Number(n || 0).toLocaleStrin
 function Bloque({ titulo, children }: { titulo: string; children: ReactNode }) {
   return (
     <div>
-      <span style={{ fontSize: 9.33, color: C.muted, fontFamily: liviano, fontWeight: 600, letterSpacing: ".04em" }}>{titulo}</span>
+      <span style={{ fontSize: 11, color: C.muted, fontFamily: liviano, fontWeight: 600, letterSpacing: ".04em" }}>{titulo}</span>
       <div style={{ marginTop: 7, display: "grid", gap: 7 }}>{children}</div>
     </div>
   );
@@ -26,7 +26,7 @@ function Bloque({ titulo, children }: { titulo: string; children: ReactNode }) {
 function Linea({ etiqueta, children }: { etiqueta: string; children: ReactNode }) {
   return (
     <label style={{ display: "grid", gridTemplateColumns: "112px 1fr", alignItems: "center", gap: 8 }}>
-      <span style={{ fontSize: 8.83, color: C.muted, fontFamily: liviano, fontWeight: 400, textTransform: "uppercase" }}>{etiqueta}</span>
+      <span style={{ fontSize: 9.5, color: C.muted, fontFamily: liviano, fontWeight: 400, textTransform: "uppercase" }}>{etiqueta}</span>
       {children}
     </label>
   );
@@ -93,15 +93,15 @@ export function HojaCotizacion({
           </div>
           <div style={{ flex: 1, minHeight: 76, textAlign: "right", paddingRight: 10 }}>
             <b style={{ fontSize: 16, fontWeight: 700 }}>{empresa?.razon_social || "TELXEN SAC"}</b>
-            <div style={{ fontFamily: liviano, fontWeight: 400, fontSize: 11.5, marginTop: 3, lineHeight: 1.3 }}>{empresa?.eslogan || "SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL"}</div>
-            <div style={{ fontFamily: liviano, fontWeight: 400, fontSize: 12, marginTop: 3, lineHeight: 1.3 }}>{empresa?.direccion || "—"}</div>
-            <div style={{ fontFamily: liviano, fontWeight: 400, fontSize: 12, marginTop: 3, lineHeight: 1.3 }}>{empresa?.web || "—"}</div>
+            <div style={{ fontFamily: liviano, fontWeight: 400, fontSize: 11, marginTop: 3, lineHeight: 1.3 }}>{empresa?.eslogan || "SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL"}</div>
+            <div style={{ fontFamily: liviano, fontWeight: 400, fontSize: 11, marginTop: 3, lineHeight: 1.3 }}>{empresa?.direccion || "—"}</div>
+            <div style={{ fontFamily: liviano, fontWeight: 400, fontSize: 11, marginTop: 3, lineHeight: 1.3 }}>{empresa?.web || "—"}</div>
           </div>
           <div style={{ width: 248, textAlign: "center", flexShrink: 0 }}>
             <div style={{ background: C.white, border: `1px solid ${C.line}`, borderTop: `4px solid ${C.green}`, borderRadius: 6, padding: "10px 8px" }}>
-              <div style={{ fontFamily: liviano, fontSize: 13, fontWeight: 600 }}>COTIZACIÓN</div>
+              <div style={{ fontFamily: liviano, fontSize: 12, fontWeight: 600 }}>COTIZACIÓN</div>
               <div style={{ fontSize: 12.5, fontWeight: 700, marginTop: 5 }}>RUC: {empresa?.ruc || "—"}</div>
-              <div style={{ fontSize: 15, fontWeight: 700, marginTop: 4 }}>{cot.codigo || "—"}</div>
+              <div style={{ fontSize: 16, fontWeight: 700, marginTop: 4 }}>{cot.codigo || "—"}</div>
             </div>
             <div style={{ fontSize: 12, fontWeight: 700, marginTop: 6, display: "flex", gap: 6, justifyContent: "center", alignItems: "center" }}>
               REV.
@@ -117,7 +117,7 @@ export function HojaCotizacion({
           </div>
         </header>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr .8fr", gap: 20, background: C.soft, border: `1px solid ${C.line}`, borderLeft: `3px solid ${DOC.accent}`, borderRadius: 6, padding: 16, marginTop: 18, fontSize: 10.33 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1.25fr 1fr .75fr", gap: 20, background: C.soft, border: `1px solid ${C.line}`, borderLeft: `3px solid ${DOC.accent}`, borderRadius: 6, padding: 16, marginTop: 18, fontSize: 10.5 }}>
           <Bloque titulo="CLIENTE">
             <Linea etiqueta="Registrado">
               <select
@@ -152,7 +152,7 @@ export function HojaCotizacion({
               <span style={{ fontWeight: 700 }}>{fmtFecha(vigenciaHasta(cot.fecha_emision, Number(cot.validez_dias)))}</span>
             </Linea>
           </Bloque>
-          <Bloque titulo="">
+          <div style={{ justifySelf: "end", width: "92%" }}><Bloque titulo="">
             <Linea etiqueta="Emisión">
               <input key={`fec-${cot.id}-${cot.fecha_emision}`} type="date" defaultValue={cot.fecha_emision} onBlur={(e) => alSalir("fecha_emision", e.target.value, cot.fecha_emision)} style={ed} />
             </Linea>
@@ -188,12 +188,12 @@ export function HojaCotizacion({
                 <option value="no">Sin IGV</option>
               </select>
             </Linea>
-          </Bloque>
+          </Bloque></div>
         </div>
 
         <div style={{ marginTop: 16 }}>{children}</div>
 
-        <div style={{ width: 380, marginLeft: "auto", marginTop: 20, fontSize: 13, background: DOC.total, borderRadius: 6, padding: 6 }}>
+        <div style={{ width: 380, marginLeft: "auto", marginTop: 20, fontSize: 12, background: DOC.total, borderRadius: 6, padding: 6 }}>
           {[
             ["COSTO DIRECTO", money(sim, totales.costoDirecto), false] as const,
           ].map(([t, v]) => (
@@ -219,13 +219,13 @@ export function HojaCotizacion({
             <span>IMPORTE TOTAL</span><span>{money(sim, totalConIgv)}</span>
           </div>
           {esUsd && tc > 0 && (
-            <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 8px", color: C.muted, fontSize: 12 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 8px", color: C.muted, fontSize: 11 }}>
               <span>Equivalente en soles (T.C. {tc.toFixed(3)})</span><span>{money("S/", totalConIgv * tc)}</span>
             </div>
           )}
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginTop: 18, fontSize: 12.5 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginTop: 18, fontSize: 10.5 }}>
           {([
             ["recursos_humanos", "RECURSOS HUMANOS"],
             ["tiempo_ejecucion", "TIEMPO DE EJECUCIÓN"],
@@ -235,7 +235,7 @@ export function HojaCotizacion({
             const valor = String((cot as unknown as Record<string, unknown>)[campo] ?? "");
             return (
               <div key={campo} style={{ borderTop: `3px solid ${C.green}`, padding: 11 }}>
-                <b style={{ fontSize: 12, color: C.muted, letterSpacing: ".03em" }}>{etiqueta}</b>
+                <b style={{ fontSize: 11, color: C.muted, letterSpacing: ".03em" }}>{etiqueta}</b>
                 <textarea
                   key={`${cot.id}-${campo}-${valor}`}
                   rows={3}
@@ -249,7 +249,7 @@ export function HojaCotizacion({
           })}
         </div>
 
-        <div style={{ marginTop: 22, borderTop: `1px solid ${C.line}`, paddingTop: 14, fontSize: 12, color: C.muted }}>
+        <div style={{ marginTop: 22, borderTop: `1px solid ${C.line}`, paddingTop: 14, fontSize: 10.5, color: C.muted }}>
           <b>PROPUESTA COMERCIAL</b>
           <div style={{ marginTop: 5 }}>Lo que escribes en esta hoja es exactamente lo que saldrá impreso.</div>
         </div>
