@@ -8,7 +8,8 @@ import { consultarDocumentoSunat, consultarTipoCambio } from "@/lib/decolecta.fu
 import { CODIGOS_SPOT, MODALIDADES_TRASLADO, MOTIVOS_BAJA, MOTIVOS_NOTA_CREDITO, MOTIVOS_NOTA_DEBITO, MOTIVOS_TRASLADO, PESTANAS_CPE, TASAS_IGV, TASAS_PERCEPCION, TASAS_RETENCION, TIPOS_DOC_RELACIONADO, UNIDADES_SUNAT, calcularItem, cuotaVacia, docRelacionadoVacio, itemComprobanteVacio, montoEnLetras, repartirCuotas, usaImportes, usaItems, usaRelacionados, type CuotaEditor, type DocRelacionado, type ItemEditor, type OperacionTipo, type TipoComprobante, type TipoTributarioCpe } from "@/lib/facturacion";
 import { hoy } from "@/lib/format";
 
-export const C = { ink: "#0f172a", text: "#0f172a", muted: "#334155", line: "#cbd5e1", soft: "#f8fafc", green: "#1e293b", greenDark: "#0f172a", greenSoft: "#ffffff", white: "#ffffff", dark: "#0f172a" };
+export const C = { ink: "#374151", text: "#374151", muted: "#374151", line: "#E5E7EB", soft: "#F9FAFB", green: "#1A2B4C", greenDark: "#1A2B4C", greenSoft: "#ffffff", white: "#ffffff", dark: "#1A2B4C", accent: "#F1C40F", total: "#F3F4F6" };
+const CARD: CSSProperties = { background: "#ffffff", border: "1px solid #E5E7EB", borderRadius: 8, boxShadow: "0 1px 2px rgba(16,24,40,.06)", padding: 14, textAlign: "left" };
 const N = (n: number) => Number(n || 0).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 export type FormCpe = ReturnType<typeof nuevoFormCpe>;
@@ -31,10 +32,10 @@ const edSel: CSSProperties = { ...ed, cursor: "pointer" };
 const cel: CSSProperties = { ...ed, borderBottom: "none", padding: "4px 2px" };
 
 function Bloque({ titulo, children, style }: { titulo: string; children: ReactNode; style?: CSSProperties }) {
-  return <div style={{ ...style }}><span style={{ fontSize: 9, color: C.muted, fontFamily: "var(--font-global)", fontWeight: 700, letterSpacing: ".04em" }}>{titulo}</span><div style={{ marginTop: 5, display: "grid", gap: 4 }}>{children}</div></div>;
+  return <div style={{ ...style }}><span style={{ fontSize: 9, color: C.green, fontFamily: "Roboto, Arial, sans-serif", fontWeight: 700, letterSpacing: ".06em", textTransform: "uppercase" }}>{titulo}</span><div style={{ marginTop: 5, display: "grid", gap: 4 }}>{children}</div></div>;
 }
 function Linea({ etiqueta, children }: { etiqueta: string; children: ReactNode }) {
-  return <label style={{ display: "grid", gridTemplateColumns: "88px 1fr", alignItems: "center", gap: 6 }}><span style={{ fontSize: 9, color: C.muted, fontFamily: "var(--font-global)", fontWeight: 700, textTransform: "uppercase" }}>{etiqueta}</span>{children}</label>;
+  return <label style={{ display: "grid", gridTemplateColumns: "88px 1fr", alignItems: "center", gap: 6 }}><span style={{ fontSize: 9, color: C.muted, fontFamily: "Roboto, Arial, sans-serif", fontWeight: 700, textTransform: "uppercase" }}>{etiqueta}</span>{children}</label>;
 }
 
 export type Empresa = { razon_social?: string; eslogan?: string; ruc?: string; direccion?: string; telefono?: string; web?: string; logo_url?: string } | null | undefined;
@@ -85,18 +86,18 @@ export function HojaComprobante(props: {
 
   return (
     <div className="cpe-editor-canvas" style={{ overflowX: "auto", paddingBottom: 18 }}>
-      <section className="cpe-editor-sheet" style={{ width: "100%", maxWidth: 1500, minWidth: 980, minHeight: 1123, boxSizing: "border-box", margin: "0 auto", padding: "36px 38px", background: C.white, color: C.ink, fontFamily: "var(--font-global)", fontWeight: 400, fontSize: 12.5, boxShadow: "0 12px 35px rgba(15,23,42,.18)", display: "flex", flexDirection: "column" }}>
-        <header style={{ display: "flex", gap: 22, alignItems: "flex-start", borderBottom: `3px solid ${C.green}`, paddingBottom: 14 }}>
+      <section className="cpe-editor-sheet" style={{ width: "100%", maxWidth: 1500, minWidth: 980, minHeight: 1123, boxSizing: "border-box", margin: "0 auto", padding: "36px 38px", background: C.white, color: C.ink, fontFamily: "Roboto, Arial, sans-serif", fontWeight: 400, fontSize: 12.5, boxShadow: "0 12px 35px rgba(26,43,76,.14)", display: "flex", flexDirection: "column" }}>
+        <header style={{ display: "flex", gap: 22, alignItems: "flex-start", borderBottom: `3px solid ${C.green}`, paddingBottom: 14, color: C.green }}>
           <div style={{ width: 96, display: "flex", alignItems: "center", justifyContent: "center" }}>{empresa?.logo_url ? <img src={empresa.logo_url} alt="" style={{ maxWidth: 92, maxHeight: 54 }} /> : <div style={{ width: 52, height: 52, borderRadius: 9, background: C.green, color: C.white, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800 }}>TX</div>}</div>
           <div style={{ flex: 1, minHeight: 76, textAlign: "right", paddingRight: 10, display: "flex", flexDirection: "column", justifyContent: "flex-start" }}>
             <b style={{ fontSize: 15, fontWeight: 700 }}>{empresa?.razon_social || "TELXEN SAC"}</b>
-            <div style={{ fontFamily: "var(--font-global)", fontWeight: 300, fontSize: 8, marginTop: 2, lineHeight: 1.15, textAlign: "right" }}>{empresa?.eslogan || "SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL"}</div>
-            <div style={{ fontFamily: "var(--font-global)", fontWeight: 300, fontSize: 8.5, marginTop: 2, lineHeight: 1.15, textAlign: "right" }}>{empresa?.direccion || "—"}</div>
-            <div style={{ fontFamily: "var(--font-global)", fontWeight: 300, fontSize: 8.5, marginTop: 2, lineHeight: 1.15, textAlign: "right" }}>{empresa?.web || "—"}</div>
+            <div style={{ fontFamily: "Roboto, Arial, sans-serif", fontWeight: 300, fontSize: 8, marginTop: 2, lineHeight: 1.15, textAlign: "right" }}>{empresa?.eslogan || "SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL"}</div>
+            <div style={{ fontFamily: "Roboto, Arial, sans-serif", fontWeight: 300, fontSize: 8.5, marginTop: 2, lineHeight: 1.15, textAlign: "right" }}>{empresa?.direccion || "—"}</div>
+            <div style={{ fontFamily: "Roboto, Arial, sans-serif", fontWeight: 300, fontSize: 8.5, marginTop: 2, lineHeight: 1.15, textAlign: "right" }}>{empresa?.web || "—"}</div>
           </div>
           <div style={{ width: 248, textAlign: "center", flexShrink: 0, display: "flex", flexDirection: "column", justifyContent: "center" }}>
-            <div style={{ background: C.white, border: `1.5px solid ${C.green}`, borderRadius: 6, padding: "12px 10px" }}>
-              <select value={tipo} disabled={bloqueado} onChange={(e) => onTipoChange(e.target.value as TipoComprobante)} title="Tipo de comprobante" style={{ ...edSel, textAlign: "center", fontFamily: "var(--font-global)", fontSize: 12, fontWeight: 700, borderBottom: "none", whiteSpace: "nowrap" }}>
+            <div style={{ background: C.white, border: `1px solid ${C.line}`, borderTop: `4px solid ${C.green}`, borderRadius: 8, boxShadow: "0 1px 2px rgba(16,24,40,.06)", padding: "12px 10px", color: C.green }}>
+              <select value={tipo} disabled={bloqueado} onChange={(e) => onTipoChange(e.target.value as TipoComprobante)} title="Tipo de comprobante" style={{ ...edSel, textAlign: "center", fontFamily: "Roboto, Arial, sans-serif", fontSize: 12, fontWeight: 700, borderBottom: "none", whiteSpace: "nowrap" }}>
                 {tipos.map((p) => <option key={p.tipo} value={p.tipo}>{p.corto}</option>)}
               </select>
               <div style={{ fontSize: 9, fontWeight: 700, marginTop: 4 }}>RUC: {empresa?.ruc || "—"}</div>
@@ -109,11 +110,11 @@ export function HojaComprobante(props: {
                   : <input value={form.correlativo_inicial} onChange={(e) => set("correlativo_inicial", e.target.value.replace(/\D/g, "").slice(0, 8))} placeholder="AUTOMÁTICO" title="Correlativo editable: si lo defines, la numeración continúa desde aquí" style={{ ...ed, width: 110, fontSize: 15, fontWeight: 700, borderBottom: "none", textAlign: "left" }} />}
               </div>
             </div>
-            <div style={{ fontSize: 8.5, fontWeight: 700, marginTop: 4 }}>{etiquetaTipo}</div>
+            <div style={{ alignSelf: "center", marginTop: 6, fontSize: 8, fontWeight: 700, letterSpacing: ".05em", padding: "2px 10px", borderRadius: 999, background: "#FEF9E7", color: "#7D6608", border: `1px solid ${C.accent}` }}>{etiquetaTipo}</div>
           </div>
         </header>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr .8fr", gap: 16, background: C.soft, borderTop: `1px solid ${C.line}`, borderBottom: `1px solid ${C.line}`, padding: 13, marginTop: 17, fontSize: 10, textAlign: "left" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr .8fr", gap: 16, ...CARD, background: C.soft, borderLeft: `3px solid ${C.accent}`, marginTop: 17, fontSize: 10, textAlign: "left" }}>
           <Bloque titulo={tipo === "09" ? "DESTINATARIO" : "CLIENTE"}>
             <Linea etiqueta="RUC / DNI">
               <span style={{ display: "flex", gap: 4 }}>
@@ -199,8 +200,8 @@ export function HojaComprobante(props: {
 
         {usaItems(tipo) && <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 18, fontSize: 9, tableLayout: "fixed" }}>
           {usaImportes(tipo) && <colgroup><col style={{ width: "3%" }} /><col style={{ width: "8%" }} /><col style={{ width: "37%" }} /><col style={{ width: "7%" }} /><col style={{ width: "8%" }} /><col style={{ width: "13%" }} /><col style={{ width: "8%" }} /><col style={{ width: "14%" }} /><col style={{ width: "2%" }} /></colgroup>}
-          <thead><tr style={{ background: "#f8fafc", color: C.ink, borderBottom: `1px solid ${C.line}` }}><th style={{ padding: "7px 3px", fontWeight: 700, fontSize: 8, textAlign: "left" }}>#</th><th style={{ padding: "7px 3px", fontWeight: 700, fontSize: 8, textAlign: "left" }}>CÓDIGO</th><th style={{ padding: "7px 6px", fontWeight: 700, fontSize: 8, textAlign: "left" }}>DESCRIPCIÓN</th><th style={{ padding: "7px 3px", fontWeight: 700, fontSize: 8, textAlign: "center" }}>UNIDAD</th><th style={{ padding: "7px 3px", fontWeight: 700, fontSize: 8, textAlign: "center" }}>CANTIDAD</th>{usaImportes(tipo) && <><th style={{ padding: "5px 3px", fontWeight: 700, fontSize: 8, textAlign: "center", lineHeight: 1.1 }}>VALOR<br />UNITARIO</th><th style={{ padding: "7px 3px", fontWeight: 700, fontSize: 8, textAlign: "center" }}>DESCUENTO</th><th style={{ padding: "5px 3px", fontWeight: 700, fontSize: 8, textAlign: "center", lineHeight: 1.1 }}>IMPORTE<br />TOTAL</th></>}<th /></tr></thead>
-          <tbody>{items.map((x, i) => <tr key={i} style={{ borderBottom: `1px solid ${C.line}`, background: C.white, verticalAlign: "top" }}>
+          <thead><tr style={{ background: C.green, color: C.white }}><th style={{ padding: "7px 3px", fontWeight: 700, fontSize: 8, textAlign: "left" }}>#</th><th style={{ padding: "7px 3px", fontWeight: 700, fontSize: 8, textAlign: "left" }}>CÓDIGO</th><th style={{ padding: "7px 6px", fontWeight: 700, fontSize: 8, textAlign: "left" }}>DESCRIPCIÓN</th><th style={{ padding: "7px 3px", fontWeight: 700, fontSize: 8, textAlign: "center" }}>UNIDAD</th><th style={{ padding: "7px 3px", fontWeight: 700, fontSize: 8, textAlign: "center" }}>CANTIDAD</th>{usaImportes(tipo) && <><th style={{ padding: "5px 3px", fontWeight: 700, fontSize: 8, textAlign: "center", lineHeight: 1.1 }}>VALOR<br />UNITARIO</th><th style={{ padding: "7px 3px", fontWeight: 700, fontSize: 8, textAlign: "center" }}>DESCUENTO</th><th style={{ padding: "5px 3px", fontWeight: 700, fontSize: 8, textAlign: "center", lineHeight: 1.1 }}>IMPORTE<br />TOTAL</th></>}<th /></tr></thead>
+          <tbody>{items.map((x, i) => <tr key={i} style={{ borderBottom: `1px solid ${C.line}`, background: i % 2 ? C.soft : C.white, verticalAlign: "top" }}>
             <td style={{ padding: 4, verticalAlign: "top" }}>{i + 1}</td>
             <td style={{ padding: 4, verticalAlign: "top" }}><input value={x.codigo} onChange={(e) => actualizarItem(i, "codigo", e.target.value)} style={cel} /></td>
             <td style={{ padding: 4, paddingLeft: 12, verticalAlign: "top" }}><textarea value={x.descripcion} rows={Math.max(1, Math.ceil((x.descripcion.length || 1) / 55))} onChange={(e) => actualizarItem(i, "descripcion", e.target.value)} onInput={(e) => { e.currentTarget.style.height = "auto"; e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`; }} placeholder="Descripción del bien o servicio" style={{ ...cel, display: "block", fontSize: 7, fontWeight: 400, lineHeight: 1.25, resize: "none", overflow: "hidden", minHeight: 24 }} /></td>
@@ -231,7 +232,7 @@ export function HojaComprobante(props: {
           <button type="button" onClick={() => setDocs([...docs, docRelacionadoVacio()])} style={{ marginTop: 7, fontSize: 9.5, border: `1px dashed ${C.green}`, color: C.green, background: C.white, borderRadius: 4, padding: "4px 9px", cursor: "pointer", display: "inline-flex", gap: 4, alignItems: "center" }}><Plus size={12} />Agregar comprobante</button></>}
 
         {usaImportes(tipo) && <>
-          <div style={{ width: 300, marginLeft: "auto", marginTop: 18, fontSize: 10 }}>
+          <div style={{ width: 300, marginLeft: "auto", marginTop: 18, fontSize: 10, background: C.total, borderRadius: 8, padding: "8px 6px" }}>
             {(() => {
               const fila = (etiqueta: ReactNode, valor: string, negrita = false) => (
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1px 6px", lineHeight: 1.2, borderBottom: `1px solid ${C.line}`, fontWeight: negrita ? 700 : 400 }}><span style={{ display: "flex", alignItems: "center", gap: 4 }}>{etiqueta}</span><span>{valor}</span></div>
@@ -252,11 +253,11 @@ export function HojaComprobante(props: {
                 {fila(<>Otros Cargos {cargo("otros_cargos")}</>, money(montos.otrosCargos))}
                 {fila(<>Otros Tributos {cargo("otros_tributos")}</>, money(montos.otrosTributos))}
                 {fila("Monto de Redondeo", money(montos.redondeo))}
-                {fila("IMPORTE TOTAL", money(montos.total), true)}
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 6px 2px", color: C.green, fontWeight: 900, fontSize: 12 }}><span>IMPORTE TOTAL</span><span>{money(montos.total)}</span></div>
               </>;
             })()}
           </div>
-          <div style={{ marginTop: 12, background: C.greenSoft, borderTop: `3px solid ${C.green}`, padding: 11, fontSize: 9.5 }}>
+          <div style={{ marginTop: 12, ...CARD, padding: 11, fontSize: 9.5 }}>
             <label style={{ display: "flex", gap: 6, alignItems: "center", fontWeight: 700, cursor: "pointer" }}>
               <input type="checkbox" checked={form.anticipo_tipo !== "ninguno"} onChange={(e) => setForm({ ...form, anticipo_tipo: e.target.checked ? "anticipo" : "ninguno", anticipo_documento: "", anticipo_monto: "" })} />
               AÑADIR ANTICIPO
@@ -268,7 +269,7 @@ export function HojaComprobante(props: {
             </div>}
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 14, fontSize: 9.5, textAlign: "left" }}>
-            <div style={{ borderTop: `3px solid ${C.green}`, padding: 11, textAlign: "left" }}>
+            <div style={{ ...CARD, padding: 11 }}>
               <b style={{ fontSize: 8, color: C.muted }}>FORMA DE PAGO</b>
               <div style={{ marginTop: 6, display: "grid", gap: 4 }}>
                 <Linea etiqueta="Condición"><select value={form.condicion_pago} onChange={(e) => { const v = e.target.value; setForm({ ...form, condicion_pago: v }); setCuotas(v === "Crédito" ? (cuotas.length ? cuotas : repartirCuotas(baseCuotas, [form.fecha_vencimiento])) : []); }} style={edSel}><option>Contado</option><option>Crédito</option></select></Linea>
@@ -299,8 +300,8 @@ export function HojaComprobante(props: {
                 <CuentasComprobante cuentas={cuentas} tipo="normales" compacto />
               </div>
             </div>
-            <div style={{ borderTop: `3px solid ${C.green}`, padding: 11, fontSize: 8.5, textAlign: "left" }}>
-              <b style={{ fontSize: 8, color: C.muted }}>RÉGIMEN TRIBUTARIO</b>
+            <div style={{ ...CARD, padding: 11, fontSize: 8.5 }}>
+              <b style={{ fontSize: 8, color: C.green }}>RÉGIMEN TRIBUTARIO</b>
               <div style={{ marginTop: 6, display: "grid", gap: 3 }}>
                 <Linea etiqueta="Régimen"><select value={`${form.tipo_tributario}|${form.pct_detraccion}`} onChange={(e) => { const [t, p] = e.target.value.split("|"); setForm({ ...form, tipo_tributario: t as TipoTributarioCpe, pct_detraccion: p ?? "0", codigo_spot: t === "detraccion" ? "037" : "" }); }} style={edSel}>
                   <option value="ninguno|0">No aplica</option><option value="detraccion|4">Detracción 4% · construcción</option><option value="detraccion|12">Detracción 12% · otros servicios</option><option value="retencion|3">Retención 3%</option>
