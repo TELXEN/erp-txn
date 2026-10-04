@@ -1157,9 +1157,11 @@ function Partidas() {
                       </React.Fragment>
                       ))}
                     </React.Fragment>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
+              )}
             </div>
             );
           })
