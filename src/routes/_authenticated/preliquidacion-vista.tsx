@@ -249,6 +249,3 @@ function VistaPreliquidacion() {
     </>
   );
 }
-
-// N se conserva para usos futuros de formato en esta vista.
-void N;

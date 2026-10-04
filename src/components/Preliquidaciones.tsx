@@ -353,224 +353,122 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
   return (
     <>
       {abierto && (
-        <Panel titulo={editando ? "Editar preliquidación" : "Nueva preliquidación"} className="mb-4">
-          <form onSubmit={guardar} className="grid gap-3 p-5 sm:grid-cols-4">
-            <Campo etiqueta="Proyecto">
-              <Select value={form.proyecto_id} onChange={(e) => elegirProyecto(e.target.value)} required>
-                <option value="">Selecciona...</option>
-                {proyectos.map((p) => (
-                  <option key={p.id} value={p.id}>{p.codigo ? `${p.codigo} · ` : ""}{p.nombre}</option>
-                ))}
-              </Select>
-            </Campo>
-            <Campo etiqueta="Cliente">
-              <Select value={form.cliente_id} onChange={(e) => setForm({ ...form, cliente_id: e.target.value })} required>
-                <option value="">Selecciona...</option>
-                {clientes.map((c) => (
-                  <option key={c.id} value={c.id}>{c.razon_social}</option>
-                ))}
-              </Select>
-            </Campo>
-            <Campo etiqueta="Orden de compra">
-              <Input value={form.concepto} onChange={(e) => setForm({ ...form, concepto: e.target.value })} required maxLength={160} placeholder="Ej. OC-2026-0154" />
-            </Campo>
-
-            <Campo etiqueta="Fecha">
-              <Input type="date" value={form.fecha} onChange={(e) => setForm({ ...form, fecha: e.target.value })} required />
-            </Campo>
-            {clienteSel && (
-              <div className="sm:col-span-4 rounded-lg border border-line bg-muted/30 p-3 font-mono text-xs text-muted-foreground">
-                <span className="font-semibold text-ink">{clienteSel.razon_social}</span>
-                {" · "}{clienteSel.direccion || "Sin dirección registrada"}
-              </div>
-            )}
-            <Campo etiqueta="Moneda">
-              <Select value={form.moneda} onChange={(e) => setForm({ ...form, moneda: e.target.value })}>
-                <option value="PEN">Soles (S/)</option>
-                <option value="USD">Dólares (US$)</option>
-              </Select>
-            </Campo>
-            <Campo etiqueta="Tipo de cambio">
-              <Input type="number" step="0.001" min="0" value={form.tipo_cambio} disabled={form.moneda === "PEN"} onChange={(e) => setForm({ ...form, tipo_cambio: e.target.value })} />
-            </Campo>
-            <Campo etiqueta="Régimen tributario">
-              <Select
-                value={`${form.tipo_tributario}|${form.pct_detraccion}`}
-                onChange={(e) => {
-                  const [t, p] = e.target.value.split("|");
-                  setForm({ ...form, tipo_tributario: t as TipoTributario, pct_detraccion: p ?? "0" });
-                }}
-              >
-                {REGIMENES.map((r) => <option key={r.etiqueta} value={`${r.valor}|${r.pct}`}>{r.etiqueta}</option>)}
-                <option value={`${form.tipo_tributario}|${form.pct_detraccion}`} hidden>
-                  {form.tipo_tributario} {form.pct_detraccion}%
-                </option>
-              </Select>
-            </Campo>
-            <Campo etiqueta="% aplicado">
-              <Input type="number" step="0.01" min="0" max="100" value={form.pct_detraccion} disabled={form.tipo_tributario === "ninguno"} onChange={(e) => setForm({ ...form, pct_detraccion: e.target.value })} />
-            </Campo>
-
-            <CamposCondicion valor={form} fechaBase={form.fecha} onChange={(c) => setForm({ ...form, ...c })} />
-
-            <div className="sm:col-span-4 rounded-lg border border-line">
-              <table className="w-full font-mono text-xs">
-                <thead>
-                  <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                    <th className="px-3 py-2 font-medium">Descripción</th>
-                    <th className="w-20 px-2 py-2 font-medium">Und</th>
-                    <th className="w-24 px-2 py-2 font-medium">Cantidad</th>
-                    <th className="w-32 px-2 py-2 font-medium">P.U. (neto)</th>
-                    <th className="w-32 px-2 py-2 text-right font-medium">Subtotal</th>
-                    <th className="w-10" />
-                  </tr>
-                </thead>
-                <tbody>
-                  {lineas.map((l, i) => {
-                    const upd = (c: Partial<ItemPL>) => setLineas(lineas.map((x, k) => (k === i ? { ...x, ...c } : x)));
-                    return (
-                      <tr key={i} className="border-b border-line/60 last:border-0">
-                        <td className="px-3 py-1.5"><Input value={l.descripcion} onChange={(e) => upd({ descripcion: e.target.value })} maxLength={200} /></td>
-                        <td className="px-2 py-1.5">
-                          <Select value={l.unidad} onChange={(e) => upd({ unidad: e.target.value })}>
-                            {!unidades.some((u) => u.simbolo === l.unidad) && <option value={l.unidad}>{l.unidad}</option>}
-                            {unidades.filter((u) => u.activo).map((u) => (
-                              <option key={u.id} value={u.simbolo}>{u.simbolo}</option>
-                            ))}
-                          </Select>
-                        </td>
-
-                        <td className="px-2 py-1.5"><Input type="number" step="0.01" min="0" value={l.cantidad} onChange={(e) => upd({ cantidad: e.target.value })} /></td>
-                        <td className="px-2 py-1.5"><Input type="number" step="0.01" min="0" value={l.precio_unitario} onChange={(e) => upd({ precio_unitario: e.target.value })} /></td>
-                        <td className="px-2 py-1.5 text-right">{(Number(l.cantidad || 0) * Number(l.precio_unitario || 0)).toLocaleString("es-PE", { minimumFractionDigits: 2 })}</td>
-                        <td className="px-2">
-                          {lineas.length > 1 && (
-                            <button type="button" onClick={() => setLineas(lineas.filter((_, k) => k !== i))} className="text-muted-foreground hover:text-bad" aria-label="Quitar línea">
-                              <Trash2 size={13} />
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-              <div className="flex flex-wrap gap-2 border-t border-line p-2">
-                <Boton type="button" variante="linea" onClick={() => setLineas([...lineas, itemVacio()])}><Plus size={13} /> Agregar línea</Boton>
-                <Boton type="button" variante="linea" disabled={!form.proyecto_id} onClick={() => setSelectorPartidas(!selectorPartidas)}>
-                  <ListPlus size={13} /> Cargar partidas de la obra
-                </Boton>
-              </div>
-              {selectorPartidas && (
-                <div className="border-t border-line bg-muted/20 p-3">
-                  {partidasObra.length === 0 ? (
-                    <p className="font-mono text-xs text-muted-foreground">Esta obra no tiene partidas registradas.</p>
-                  ) : (
-                    <>
-                      <p className="mb-2 font-mono text-[10px] text-muted-foreground">
-                        P.U. incluye gastos generales y utilidad de la obra. Marca las partidas a cobrar:
-                      </p>
-                      <div className="max-h-56 space-y-1 overflow-y-auto">
-                        {partidasObra.map((p) => (
-                          <label key={p.id} className="flex cursor-pointer items-center gap-2 font-mono text-xs">
-                            <input
-                              type="checkbox"
-                              checked={marcadas.includes(p.id)}
-                              onChange={(e) => setMarcadas(e.target.checked ? [...marcadas, p.id] : marcadas.filter((x) => x !== p.id))}
-                            />
-                            <span className="text-muted-foreground">{p.codigo}</span> {p.nombre}
-                            <span className="ml-auto text-muted-foreground">{Number(p.metrado)} {p.unidad}</span>
-                          </label>
-                        ))}
-                      </div>
-                      <div className="mt-2 flex gap-2">
-                        <Boton type="button" disabled={!marcadas.length} onClick={cargarPartidas}>Agregar {marcadas.length || ""} partida(s)</Boton>
-                        <Boton type="button" variante="linea" onClick={() => setMarcadas(marcadas.length === partidasObra.length ? [] : partidasObra.map((p) => p.id))}>
-                          {marcadas.length === partidasObra.length ? "Quitar todas" : "Marcar todas"}
-                        </Boton>
-                      </div>
-                    </>
-                  )}
+        <Panel titulo={editando ? `Editar preliquidación ${lista.find((p) => p.id === editando)?.codigo ?? ""}` : "Nueva preliquidación"} className="mb-4">
+          <form onSubmit={guardar} className="p-5">
+            <div className="mb-4 grid gap-3 rounded-lg border border-line bg-muted/30 p-3 sm:grid-cols-4">
+              <Campo etiqueta="Proyecto">
+                <Select value={form.proyecto_id} onChange={(e) => elegirProyecto(e.target.value)} required>
+                  <option value="">Selecciona...</option>
+                  {proyectos.map((p) => (
+                    <option key={p.id} value={p.id}>{p.codigo ? `${p.codigo} · ` : ""}{p.nombre}</option>
+                  ))}
+                </Select>
+              </Campo>
+              <Campo etiqueta="Cliente">
+                <Select value={form.cliente_id} onChange={(e) => setForm({ ...form, cliente_id: e.target.value })} required>
+                  <option value="">Selecciona...</option>
+                  {clientes.map((c) => (
+                    <option key={c.id} value={c.id}>{c.razon_social}</option>
+                  ))}
+                </Select>
+              </Campo>
+              <Campo etiqueta="Régimen tributario">
+                <Select
+                  value={`${form.tipo_tributario}|${form.pct_detraccion}`}
+                  onChange={(e) => {
+                    const [t, p] = e.target.value.split("|");
+                    setForm({ ...form, tipo_tributario: t as TipoTributario, pct_detraccion: p ?? "0" });
+                  }}
+                >
+                  {REGIMENES.map((r) => <option key={r.etiqueta} value={`${r.valor}|${r.pct}`}>{r.etiqueta}</option>)}
+                  <option value={`${form.tipo_tributario}|${form.pct_detraccion}`} hidden>
+                    {form.tipo_tributario} {form.pct_detraccion}%
+                  </option>
+                </Select>
+              </Campo>
+              <Campo etiqueta="% aplicado">
+                <Input type="number" step="0.01" min="0" max="100" value={form.pct_detraccion} disabled={form.tipo_tributario === "ninguno"} onChange={(e) => setForm({ ...form, pct_detraccion: e.target.value })} />
+              </Campo>
+              <CamposCondicion valor={form} fechaBase={form.fecha} onChange={(c) => setForm({ ...form, ...c })} />
+              {form.proyecto_id && (
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">Saldo disponible de la obra</p>
+                  <p className={`font-mono text-sm font-semibold ${saldoSel - netoForm * tc >= 0 ? "text-good" : "text-bad"}`}>{soles(saldoSel)}</p>
                 </div>
               )}
             </div>
 
-            <div className="sm:col-span-4 grid gap-3 rounded-lg border border-line bg-muted/30 p-3 sm:grid-cols-4">
-              <div>
-                <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">Valor ejecutado</p>
-                <p className="font-mono text-sm font-semibold text-ink">{form.moneda === "USD" ? `US$ ${brutoForm.toFixed(2)}` : soles(brutoForm)}</p>
-              </div>
-              <Campo etiqueta="Amortización de adelanto (−)">
-                <Input type="number" step="0.01" min="0" value={form.amortizacion} onChange={(e) => setForm({ ...form, amortizacion: e.target.value })} />
-              </Campo>
-              <div className="hidden sm:block" />
-              <div className="hidden sm:block" />
-              {[
-                ["Valor neto (base imponible)", m.neto],
-                ["IGV 18%", m.igv],
-                ["Total", m.total],
-              ].map(([t, v]) => (
-                <div key={t as string}>
-                  <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">{t}</p>
-                  <p className="font-mono text-sm font-semibold text-ink">{form.moneda === "USD" ? `US$ ${(v as number).toFixed(2)}` : soles(v as number)}</p>
-                </div>
-              ))}
-              <div>
-                <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">Saldo obra / vence</p>
-                <p className={`font-mono text-sm font-semibold ${saldoSel - netoForm * tc >= 0 ? "text-good" : "text-bad"}`}>{soles(saldoSel)}</p>
-                <p className="font-mono text-[10px] text-muted-foreground">{form.condicion_pago === "Crédito" ? fmtFecha(venc) : "Contado"}</p>
-              </div>
-            </div>
+            <HojaPreliquidacion
+              editable
+              anchoCompleto
+              empresa={empresa}
+              codigo={editando ? lista.find((p) => p.id === editando)?.codigo ?? "" : ""}
+              estado={editando ? lista.find((p) => p.id === editando)?.estado ?? "Borrador" : "Borrador"}
+              fecha={form.fecha}
+              moneda={form.moneda}
+              tipoCambio={Number(form.tipo_cambio || 0)}
+              cliente={clienteSel ? { razon_social: clienteSel.razon_social, numero_documento: clienteSel.numero_documento, direccion: clienteSel.direccion } : null}
+              proyectoNombre={form.proyecto_id ? nombreProy(form.proyecto_id) : ""}
+              concepto={form.concepto}
+              lineas={lineas}
+              amortizacion={amortForm}
+              tipoTributario={form.tipo_tributario}
+              pctDetraccion={Number(form.pct_detraccion || 0)}
+              condicionPago={form.condicion_pago}
+              diasCredito={Number(form.dias_credito || 0)}
+              fechaVencimiento={venc ?? ""}
+              observacion={form.observacion}
+              cuentas={cuentas}
+              unidades={unidades}
+              onCampo={(campo, valor) => setForm((f) => ({ ...f, [campo]: valor }))}
+              onLinea={(i, cambios) => setLineas(lineas.map((x, k) => (k === i ? { ...x, ...cambios } : x)))}
+              onQuitarLinea={(i) => setLineas(lineas.filter((_, k) => k !== i))}
+              onAgregarLinea={() => setLineas([...lineas, itemVacio()])}
+              accionesLineas={
+                <Boton type="button" variante="linea" disabled={!form.proyecto_id} onClick={() => setSelectorPartidas(!selectorPartidas)}>
+                  <ListPlus size={13} /> Cargar partidas de la obra
+                </Boton>
+              }
+            />
 
-            <div className="sm:col-span-4">
-              <Campo etiqueta="Observaciones">
-                <Input value={form.observacion} onChange={(e) => setForm({ ...form, observacion: e.target.value })} maxLength={300} />
-              </Campo>
-            </div>
-
-            <div className="sm:col-span-4 rounded-lg border-2 border-line bg-card p-4">
-              <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Liquidación y cobro</p>
-              <div className="grid gap-3 sm:grid-cols-3">
-                <div>
-                  <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                    Detracción {m.tipo === "detraccion" && m.aplica ? `${form.pct_detraccion}% (S/ entero)` : ""}
-                  </p>
-                  <p className="font-mono text-base font-semibold text-ink">
-                    {m.tipo === "detraccion" && m.aplica ? `S/ ${m.detraccionPen.toLocaleString("es-PE")}` : "No aplica"}
-                  </p>
-                  {m.tipo === "detraccion" && m.aplica && (
-                    <p className="font-mono text-[10px] text-muted-foreground">
-                      {ctaDetraccion
-                        ? `Cta. detracciones BN ${ctaDetraccion.numero_cuenta || "—"}`
-                        : "Sin cuenta de detracciones registrada"}
+            {selectorPartidas && (
+              <div className="mt-3 rounded-lg border border-line bg-muted/20 p-3">
+                {partidasObra.length === 0 ? (
+                  <p className="font-mono text-xs text-muted-foreground">Esta obra no tiene partidas registradas.</p>
+                ) : (
+                  <>
+                    <p className="mb-2 font-mono text-[10px] text-muted-foreground">
+                      P.U. incluye gastos generales y utilidad de la obra. Marca las partidas a cobrar:
                     </p>
-                  )}
-                </div>
-                <div>
-                  <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                    Retención IGV {m.tipo === "retencion" && m.aplica ? `${form.pct_detraccion}%` : ""}
-                  </p>
-                  <p className="font-mono text-base font-semibold text-ink">
-                    {m.tipo === "retencion" && m.aplica ? soles(m.retencionPen) : "No aplica"}
-                  </p>
-                  {m.tipo === "retencion" && m.aplica && (
-                    <p className="font-mono text-[10px] text-muted-foreground">Importe con dos decimales</p>
-                  )}
-                </div>
-                <div>
-                  <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">Neto a pagar</p>
-                  <p className="font-mono text-base font-semibold text-good">
-                    {form.moneda === "USD" ? `US$ ${m.cobrar.toFixed(2)}` : soles(m.cobrar)}
-                  </p>
-                </div>
+                    <div className="max-h-56 space-y-1 overflow-y-auto">
+                      {partidasObra.map((p) => (
+                        <label key={p.id} className="flex cursor-pointer items-center gap-2 font-mono text-xs">
+                          <input
+                            type="checkbox"
+                            checked={marcadas.includes(p.id)}
+                            onChange={(e) => setMarcadas(e.target.checked ? [...marcadas, p.id] : marcadas.filter((x) => x !== p.id))}
+                          />
+                          <span className="text-muted-foreground">{p.codigo}</span> {p.nombre}
+                          <span className="ml-auto text-muted-foreground">{Number(p.metrado)} {p.unidad}</span>
+                        </label>
+                      ))}
+                    </div>
+                    <div className="mt-2 flex gap-2">
+                      <Boton type="button" disabled={!marcadas.length} onClick={cargarPartidas}>Agregar {marcadas.length || ""} partida(s)</Boton>
+                      <Boton type="button" variante="linea" onClick={() => setMarcadas(marcadas.length === partidasObra.length ? [] : partidasObra.map((p) => p.id))}>
+                        {marcadas.length === partidasObra.length ? "Quitar todas" : "Marcar todas"}
+                      </Boton>
+                    </div>
+                  </>
+                )}
               </div>
-            </div>
+            )}
 
-            <div className="sm:col-span-4 flex gap-2">
+            <div className="mt-4 flex gap-2">
               <Boton type="submit">{editando ? "Guardar cambios" : "Guardar borrador"}</Boton>
               <Boton type="button" variante="linea" onClick={() => setAbierto(false)}>Cancelar</Boton>
             </div>
-            {error && <p className="font-mono text-xs text-bad sm:col-span-4">{error}</p>}
+            {error && <p className="mt-2 font-mono text-xs text-bad">{error}</p>}
           </form>
         </Panel>
       )}
