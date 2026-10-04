@@ -751,7 +751,7 @@ export function CotizacionHoja({
         )}
         <span>Clic derecho: menú · Doble clic edita · Enter guarda · Esc cancela · Flechas y Tab navegan · Insert añade fila</span>
       </div>
-      <table className="w-full table-fixed font-mono text-[13px]">
+      <table className="w-full min-w-[1040px] table-fixed font-mono text-[13px]">
         <colgroup>
           <col style={{ width: "10%" }} />
           <col style={{ width: "41%" }} />
