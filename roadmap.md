@@ -20,3 +20,4 @@
 - [x] Fila inline de compra en Costos Directos (múltiples filas con +, insumo del APU o libre, suma al costo real)
 - [x] INSUMO de compra vinculado al Maestro de insumos completo + alineación de la fila
 - [x] Aplicar la tipografía configurada a toda la interfaz, documentos y exportaciones Excel.
+- [x] Fijar y repetir en cada hoja del comprobante el pie completo, incluida la línea «SON».
