@@ -19,7 +19,7 @@ const crearEstilos=(fontFamily:string)=>StyleSheet.create({
 });
 const n=(v:number)=>Number(v||0).toLocaleString("es-PE",{minimumFractionDigits:2,maximumFractionDigits:2});
 const f=(v:string)=>{const [a,m,d]=v.slice(0,10).split("-");return a&&m&&d?`${d}/${m}/${a}`:v||"—"};
-function ComprobanteDocument({d}:{d:DatosComprobantePdf}){
+export function ComprobanteDocument({d}:{d:DatosComprobantePdf}){
  const fontFamily=familiaReactPdf(d.fuentePdf??"carlito"); const s=crearEstilos(fontFamily);
  const sym=d.moneda==="USD"?"US$":"S/"; const money=(v:number)=>`${sym} ${n(v)}`; const slogan=(d.empresa.eslogan||"SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL").split(/,(.+)/).filter(Boolean).map(x=>x.trim());
  const importeEnLetras=/^SON:/i.test(d.totalLetras.trim())?d.totalLetras:`SON: ${d.totalLetras}`;
