@@ -242,15 +242,35 @@ function PreliquidacionDocument({ datos }: { datos: DatosPreliquidacionPdf }) {
 
         <View style={styles.banking} fixed>
           <Text style={styles.sectionTitle}>DATOS BANCARIOS</Text>
-          <View style={styles.bankList}>
-            {datos.cuentasTodas.length === 0 ? <Text style={styles.bankValue}>NO HAY CUENTAS BANCARIAS REGISTRADAS.</Text> : null}
-            {datos.cuentasTodas.map((c, i) => (
-              <View key={i}>
-                {c.esDetraccion ? <Text style={styles.bankLabel}>CUENTA DE DETRACCIONES · BANCO DE LA NACIÓN</Text> : null}
-                <Text style={styles.bankValue}>{(c.esDetraccion ? `${c.nombre} · ${c.tipoCuenta} · CTA. ${c.numero || "—"}` : `${c.nombre} · ${c.tipoCuenta} · ${c.moneda} · CTA. ${c.numero || "—"} · CCI ${c.cci || "—"}`).toUpperCase()}</Text>
+          {datos.cuentasTodas.length === 0 ? <Text style={styles.bankValue}>NO HAY CUENTAS BANCARIAS REGISTRADAS.</Text> : null}
+          {(() => {
+            const grupoMoneda = (m: string) => (/USD|D[ÓO]LAR/i.test(m) ? "DÓLARES" : "SOLES");
+            const normales = datos.cuentasTodas.filter((c) => !c.esDetraccion);
+            const detracciones = datos.cuentasTodas.filter((c) => c.esDetraccion);
+            const grupos = (["SOLES", "DÓLARES"] as const)
+              .map((moneda) => ({ moneda, cuentas: normales.filter((c) => grupoMoneda(c.moneda) === moneda) }))
+              .filter((g) => g.cuentas.length > 0);
+            return (
+              <View style={{ flexDirection: "row", gap: 12 }}>
+                {grupos.map((g) => (
+                  <View key={g.moneda} style={{ flex: 1 }}>
+                    <Text style={styles.bankLabel}>{g.moneda}</Text>
+                    {g.cuentas.map((c, i) => (
+                      <Text key={i} style={styles.bankValue}>{`${c.nombre} · ${c.tipoCuenta} · CTA. ${c.numero || "—"} · CCI ${c.cci || "—"}`.toUpperCase()}</Text>
+                    ))}
+                  </View>
+                ))}
+                {detracciones.length > 0 ? (
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.bankLabel}>DETRACCIONES</Text>
+                    {detracciones.map((c, i) => (
+                      <Text key={i} style={styles.bankValue}>{`${c.nombre} · ${c.tipoCuenta} · CTA. ${c.numero || "—"}`.toUpperCase()}</Text>
+                    ))}
+                  </View>
+                ) : null}
               </View>
-            ))}
-          </View>
+            );
+          })()}
         </View>
 
         {datos.observacion ? <View style={styles.notes} wrap={false}><Text style={styles.label}>Observaciones</Text><Text>{datos.observacion}</Text></View> : null}
