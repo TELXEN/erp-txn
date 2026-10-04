@@ -306,12 +306,12 @@ export function HojaComprobante(props: {
                 </select></Linea>
                 {form.tipo_tributario === "detraccion" && <Linea etiqueta="Código SPOT"><select value={form.codigo_spot} onChange={(e) => set("codigo_spot", e.target.value)} style={edSel}>{CODIGOS_SPOT.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></Linea>}
                 {form.tipo_tributario === "detraccion" ? <>
-                  <div style={{ display: "flex", justifyContent: "space-between", lineHeight: 1.2 }}><span>Detracción ({form.pct_detraccion}%)</span><b>S/ {(montos.montoDetraccion).toLocaleString("es-PE", { minimumFractionDigits: 2 })}</b></div>
-                  <div style={{ display: "flex", justifyContent: "space-between", borderTop: `1px solid ${C.line}`, paddingTop: 3, lineHeight: 1.2 }}><span>Neto a pagar</span><b>{money(montos.netoPagar ?? montos.total)}</b></div>
+                  <div style={{ display: "flex", justifyContent: "space-between", lineHeight: 1.1 }}><span>Detracción ({form.pct_detraccion}%)</span><b>S/ {(montos.montoDetraccion).toLocaleString("es-PE", { minimumFractionDigits: 2 })}</b></div>
+                   <div style={{ display: "flex", justifyContent: "space-between", borderTop: `1px solid ${C.line}`, paddingTop: 3, lineHeight: 1.1 }}><span>Neto a pagar</span><b>{money(montos.netoPagar ?? montos.total)}</b></div>
                   <CuentasComprobante cuentas={cuentas} tipo="detraccion" compacto />
                  </> : form.tipo_tributario === "retencion" ? <>
-                   <div style={{ display: "flex", justifyContent: "space-between", lineHeight: 1.2 }}><span>Retención ({form.pct_detraccion}%)</span><b>S/ {(montos.montoRetencion).toLocaleString("es-PE", { minimumFractionDigits: 2 })}</b></div>
-                   <div style={{ display: "flex", justifyContent: "space-between", borderTop: `1px solid ${C.line}`, paddingTop: 3, lineHeight: 1.2 }}><span>Neto a pagar</span><b>{money(montos.netoPagar ?? montos.total)}</b></div>
+                   <div style={{ display: "flex", justifyContent: "space-between", lineHeight: 1.1 }}><span>Retención ({form.pct_detraccion}%)</span><b>S/ {(montos.montoRetencion).toLocaleString("es-PE", { minimumFractionDigits: 2 })}</b></div>
+                   <div style={{ display: "flex", justifyContent: "space-between", borderTop: `1px solid ${C.line}`, paddingTop: 3, lineHeight: 1.1 }}><span>Neto a pagar</span><b>{money(montos.netoPagar ?? montos.total)}</b></div>
                  </> : null}
               </div>
             </div>
