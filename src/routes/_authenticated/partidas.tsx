@@ -747,13 +747,29 @@ function Partidas() {
             })}
           />
         ) : (
-          grupos.map(({ proyecto, grupos: espGrupos }) => {
+           grupos.map(({ proyecto, grupos: espGrupos }) => {
             const proyectoId = espGrupos[0]?.[1]?.[0]?.proyecto_id ?? "";
             const wbs = prefijosWBS(partidas.filter((x) => x.proyecto_id === proyectoId));
+            const claveProy = `proy:${proyectoId}`;
+            const proyAbierto = !colapsados.has(claveProy);
+            const nPartidas = espGrupos.reduce((s, [, l]) => s + l.length, 0);
             return (
             <div key={proyecto} className="border-b border-line last:border-0">
               <div className="flex items-center justify-between gap-3 bg-sidebar px-5 py-2">
-                <p className="text-xs font-semibold uppercase tracking-wider text-[#F8FAFC]">{proyecto}</p>
+                <button
+                  type="button"
+                  onClick={() => alternar(claveProy)}
+                  title={proyAbierto ? "Colapsar proyecto" : "Expandir proyecto"}
+                  className="flex min-w-0 flex-1 items-center gap-2 text-left"
+                >
+                  {proyAbierto ? (
+                    <ChevronUp size={14} className="shrink-0 text-slate-300" />
+                  ) : (
+                    <ChevronDown size={14} className="shrink-0 text-slate-300" />
+                  )}
+                  <p className="truncate text-xs font-semibold uppercase tracking-wider text-[#F8FAFC]">{proyecto}</p>
+                  <span className="shrink-0 font-mono text-[10px] text-slate-300">({nPartidas} partidas)</span>
+                </button>
                 <button
                   type="button"
                   onClick={() => void renumerar(proyectoId, proyecto)}
@@ -762,6 +778,7 @@ function Partidas() {
                   <ListOrdered size={12} /> Renumerar WBS
                 </button>
               </div>
+              {proyAbierto && (
               <table className="w-full table-fixed font-mono text-xs">
                 <thead>
                   <tr className="sticky top-0 z-10 border-b border-line bg-card text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
