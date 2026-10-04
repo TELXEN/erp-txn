@@ -1,4 +1,5 @@
 import { useState, type CSSProperties, type ReactNode } from "react";
+import { DOC } from "@/lib/documento-tema";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,7 +9,7 @@ import { consultarDocumentoSunat, consultarTipoCambio } from "@/lib/decolecta.fu
 import { CODIGOS_SPOT, MODALIDADES_TRASLADO, MOTIVOS_BAJA, MOTIVOS_NOTA_CREDITO, MOTIVOS_NOTA_DEBITO, MOTIVOS_TRASLADO, PESTANAS_CPE, TASAS_IGV, TASAS_PERCEPCION, TASAS_RETENCION, TIPOS_DOC_RELACIONADO, UNIDADES_SUNAT, calcularItem, cuotaVacia, docRelacionadoVacio, itemComprobanteVacio, montoEnLetras, repartirCuotas, usaImportes, usaItems, usaRelacionados, type CuotaEditor, type DocRelacionado, type ItemEditor, type OperacionTipo, type TipoComprobante, type TipoTributarioCpe } from "@/lib/facturacion";
 import { hoy } from "@/lib/format";
 
-export const C = { ink: "#374151", text: "#374151", muted: "#374151", line: "#E5E7EB", soft: "#F9FAFB", green: "#1A2B4C", greenDark: "#1A2B4C", greenSoft: "#ffffff", white: "#ffffff", dark: "#1A2B4C", accent: "#F1C40F", total: "#F3F4F6" };
+export const C = DOC;
 const CARD: CSSProperties = { background: "#ffffff", border: "1px solid #E5E7EB", borderRadius: 8, boxShadow: "0 1px 2px rgba(16,24,40,.06)", padding: 14, textAlign: "left" };
 const N = (n: number) => Number(n || 0).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 

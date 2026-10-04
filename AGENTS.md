@@ -23,3 +23,4 @@
 - The HT (herramientas manuales) type is hidden (tipos_insumo.oculto); calcularApu adds it automatically as the last row of the EQ group using the HT percentage from Márgenes APU — users never attach it manually.
 - Sidebar colors use dedicated semantic theme tokens, separate from header and workspace colors — dark navigation themes must not alter business screens.
 - Primary and action buttons use the active theme's sidebar base color — this keeps central workflows visually connected to navigation.
+- Invoice, quotation and preliquidation documents take colors and font from src/lib/documento-tema.ts — one change updates all three outputs.
