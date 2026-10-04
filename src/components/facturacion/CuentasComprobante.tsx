@@ -25,8 +25,8 @@ export function CuentasComprobante({ cuentas, tipo = "todas", compacto = false }
   if (!visibles.length) return null;
   const titulo = tipo === "detraccion" ? "CUENTA DE DETRACCIONES" : "CUENTAS BANCARIAS";
   return (
-    <div style={{ marginTop: compacto ? 6 : 14, borderTop: "1px solid #cbd5e1", paddingTop: compacto ? 4 : 7, fontFamily: "var(--font-global)", fontWeight: 400, fontSize: compacto ? 7 : 9, color: "#0f172a", minWidth: 0 }}>
-      <span style={{ fontFamily: "var(--font-global)", fontWeight: 700, fontSize: compacto ? 7 : 9, letterSpacing: 0 }}>{titulo}</span>
+    <div style={{ marginTop: compacto ? 6 : 14, borderTop: "1px solid #cbd5e1", paddingTop: compacto ? 4 : 7, fontFamily: "var(--font-global)", fontWeight: 400, fontSize: compacto ? 8 : 10, color: "#0f172a", minWidth: 0 }}>
+      <span style={{ fontFamily: "var(--font-global)", fontWeight: 700, fontSize: compacto ? 8 : 10, letterSpacing: 0 }}>{titulo}</span>
       <div style={{ display: "grid", gridTemplateColumns: compacto ? "1fr" : "1fr 1fr", columnGap: 14, rowGap: compacto ? 2 : 4, marginTop: compacto ? 2 : 4 }}>
         {agruparPorBanco(visibles).map((g, i) => (
           <div key={i} style={{ lineHeight: compacto ? 1.12 : 1.25, minWidth: 0, overflowWrap: "anywhere" }}>
