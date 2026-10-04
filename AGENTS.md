@@ -15,6 +15,7 @@
 - Commercial quotation PDFs render as fixed A4 HTML sheets with repeated company/table headers and page numbering — this keeps html2pdf exports predictable across multi-page item lists.
 - Electronic invoices use dedicated comprobantes_electronicos/items/cuotas tables, while emitted invoices/receipts mirror into ventas for treasury compatibility; numbering is reserved only by an authenticated server function.
 - Electronic invoice previews use the globally configured local document font, and PDFs embed its compatible family — this keeps screen and exported output consistent.
+- Electronic invoice pages reserve a fixed bottom area and repeat the complete fiscal footer, including the amount in words, on every A4 page — this prevents any item count from moving or overlapping the footer.
 - Electronic invoice editing uses a full-viewport overlay and fluid sheet with screen-only typography enhancements; preview/PDF remains fixed A4 — this separates comfortable data entry from fiscal output.
 - ERP and document typography comes from the controlled local-font catalogue in configuracion_documentos; the UI uses --font-global while technical mono text remains separate, and PDF/Excel exporters receive the same selection — this keeps every output consistent.
 - Document codes (projects, quotations, preliquidations, custom) are configured as rows in codificacion_documentos: free code + zero-padded correlative, generated via siguiente_codigo_documento — single source for all document numbering.
