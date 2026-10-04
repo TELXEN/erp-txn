@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Check, Eye, Info, LayoutGrid, Pencil, Table2, Trash2, X } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, Eye, Info, LayoutGrid, Pencil, Table2, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
@@ -122,6 +122,7 @@ function Proyectos() {
   const { data: codificacion } = useCodificacion();
   const [vista, setVista] = useState<"tabla" | "kanban">("tabla");
   const [busqueda, setBusqueda] = useState("");
+  const [formAbierto, setFormAbierto] = useState(false);
   const [form, setForm] = useState({
     codigo: "",
     nombre: "",
