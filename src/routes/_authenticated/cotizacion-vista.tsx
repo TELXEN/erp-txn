@@ -400,7 +400,7 @@ function VistaCotizacion() {
                         {filaDato("Atención", cliente?.contacto || "—")}
                         {filaDato("Ubicación", cot.ubicacion || cliente?.direccion || "—")}
                       </div>
-                      <div style={{ justifySelf: "end", width: 234, marginRight: -7 }}>
+                      <div style={{ justifySelf: "end", width: 234 }}>
                         <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: 1.2, color: C.emerald800, textTransform: "uppercase", borderBottom: `1px solid ${C.slate100}`, paddingBottom: 3, marginBottom: 5 }}>Emisión y contacto</div>
                         {filaDato("Emisión", F(cot.fecha_emision))}
                         {filaDato("Vence", F(vigenciaHasta(cot.fecha_emision, Number(cot.validez_dias))))}
@@ -544,7 +544,7 @@ function VistaCotizacion() {
                     </div>
                   </div>
                 )}
-                <div style={{ position: "absolute", left: 24, right: 24, bottom: 15, textAlign: "center", fontSize: 9, color: C.slate400 }}>
+                <div style={{ position: "absolute", right: 24, width: 248, bottom: 15, textAlign: "center", fontSize: 9, color: C.slate400 }}>
                   Hoja {paginaIndex + 1} de {paginas.length}
                 </div>
               </section>
