@@ -382,7 +382,7 @@ function VistaCotizacion() {
         <div className="mx-auto" style={{ width: interiorW }}>
         <div
           id="cotizacion-impresion"
-          style={{ width: 794, background: C.white, color: C.slate900, fontFamily: DOC_FUENTE_CSS, fontSize: 12, boxShadow: "0 10px 30px -12px rgba(15,23,42,.25)" }}
+          style={{ width: paginaW, background: C.white, color: C.slate900, fontFamily: DOC_FUENTE_CSS, fontSize: 12, boxShadow: "0 10px 30px -12px rgba(15,23,42,.25)" }}
         >
           {paginas.map((itemsPagina, paginaIndex) => {
             const esPrimera = paginaIndex === 0;
@@ -391,7 +391,7 @@ function VistaCotizacion() {
               <section
                 key={`hoja-${paginaIndex + 1}`}
                 className="cotizacion-hoja"
-                style={{ position: "relative", width: 754, height: 990, margin: "0 auto", padding: "34px 24px 38px", overflow: "hidden", background: C.white, pageBreakAfter: esUltima ? "auto" : "always", boxSizing: "border-box" }}
+                style={{ position: "relative", width: interiorW, height: paginaH, margin: "0 auto", padding: "34px 24px 38px", overflow: "hidden", background: C.white, pageBreakAfter: esUltima ? "auto" : "always", boxSizing: "border-box" }}
               >
                 {encabezadoHoja(paginaIndex + 1, paginas.length)}
 
