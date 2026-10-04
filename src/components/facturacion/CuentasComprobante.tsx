@@ -17,7 +17,7 @@ export function agruparPorBanco(cuentas: CuentaCpe[]) {
 }
 
 export const detalleCuenta = (c: CuentaCpe) =>
-  `${esDetraccion(c) ? "CUENTA DE DETRACCIONES" : `${c.tipo_cuenta} ${c.monedas}`} · N° ${c.numero_cuenta}${!esDetraccion(c) && c.cci ? ` · CCI ${c.cci}` : ""}`.toUpperCase();
+  `${esDetraccion(c) ? "CUENTA DE DETRACCIONES" : `${c.tipo_cuenta} ${c.monedas}`} · N° ${c.numero_cuenta}`.toUpperCase();
 
 const grupoMoneda = (moneda: string) => /USD|D[ÓO]LAR/i.test(moneda) ? "DÓLARES" : "SOLES";
 
@@ -34,7 +34,7 @@ export function CuentasComprobante({ cuentas, tipo = "todas", compacto = false }
       <span style={{ fontFamily: "var(--font-global)", fontWeight: 700, fontSize: compacto ? 8 : 10, letterSpacing: 0 }}>{titulo}</span>
       {tipo === "detraccion" ? <div style={{ marginTop: compacto ? 2 : 4 }}>{agruparPorBanco(visibles).map((g, i) => <div key={i} style={{ lineHeight: compacto ? 1.12 : 1.25, minWidth: 0, overflowWrap: "anywhere" }}><b style={{ fontWeight: 700 }}>{g.banco}</b>{g.cuentas.map((c, j) => <div key={j}>N° {c.numero_cuenta}</div>)}</div>)}</div> :
         <div style={{ display: "grid", gridTemplateColumns: gruposMoneda.length > 1 ? "1fr 1fr" : "1fr", columnGap: 14, rowGap: compacto ? 3 : 6, marginTop: compacto ? 2 : 4 }}>
-          {gruposMoneda.map((grupo) => <div key={grupo.moneda} style={{ minWidth: 0 }}><div style={{ fontWeight: 700, marginBottom: 2 }}>{grupo.moneda}</div>{agruparPorBanco(grupo.cuentas).map((g, i) => <div key={i} style={{ lineHeight: compacto ? 1.12 : 1.25, minWidth: 0, overflowWrap: "anywhere", marginBottom: compacto ? 2 : 4 }}><b style={{ fontWeight: 700 }}>{g.banco}</b>{g.cuentas.map((c, j) => <div key={j}>{detalleCuenta(c)}</div>)}</div>)}</div>)}
+          {gruposMoneda.map((grupo) => <div key={grupo.moneda} style={{ minWidth: 0 }}><div style={{ fontWeight: 700, marginBottom: 2 }}>{grupo.moneda}</div>{agruparPorBanco(grupo.cuentas).map((g, i) => <div key={i} style={{ lineHeight: compacto ? 1.12 : 1.25, minWidth: 0, overflowWrap: "anywhere", marginBottom: compacto ? 2 : 4 }}><b style={{ fontWeight: 700 }}>{g.banco}</b>{g.cuentas.map((c, j) => <div key={j}><div>{detalleCuenta(c)}</div>{c.cci ? <div>CCI {c.cci}</div> : null}</div>)}</div>)}</div>)}
         </div>}
     </div>
   );
