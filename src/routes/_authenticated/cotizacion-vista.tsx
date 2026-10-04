@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEmpresa } from "@/lib/empresa";
 import { useFuenteDocumento } from "@/lib/fuentes-documentos";
 import { useAuth } from "@/lib/auth";
-import { totalesCotizacion, useCotizacionItems, useCotizaciones, vigenciaHasta } from "@/lib/cotizaciones";
+import { simboloMoneda, totalesCotizacion, useCotizacionItems, useCotizaciones, vigenciaHasta } from "@/lib/cotizaciones";
 import { DOC, DOC_FUENTE_CSS } from "@/lib/documento-tema";
 import { ArrowLeft, FileDown, FileSpreadsheet } from "lucide-react";
 
@@ -42,8 +42,8 @@ const C = {
   white: DOC.white,
 };
 
-const S = (n: number) =>
-  "S/ " + n.toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const S = (sim: string, n: number) =>
+  `${sim} ` + n.toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const F = (d: string) => d.split("-").reverse().join("/");
 
 type ItemCot = {
@@ -183,6 +183,9 @@ function VistaCotizacion() {
   const conIgv = cot?.aplica_igv !== false;
   const igv = conIgv ? Math.round(subtotal * 0.18 * 100) / 100 : 0;
   const total = subtotal + igv;
+  const esUsd = cot?.moneda === "USD";
+  const sim = simboloMoneda(cot?.moneda);
+  const tc = Number(cot?.tipo_cambio) || 0;
   const nombreArchivo = `Cotizacion_${(cot?.cliente || "Cliente").replace(/[^\w-]+/g, "_")}_${cot?.codigo ?? "sin_codigo"}`;
   const paginas = paginarFilas(construirFilas(items as unknown as ItemCot[]));
 
