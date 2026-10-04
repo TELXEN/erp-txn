@@ -34,6 +34,7 @@ Definir una escala de 5 niveles, aplicada igual en edición, vista previa y PDF:
 3. **Tabla de partidas editable** (`src/components/CotizacionHoja.tsx`): cuerpo 10.33 → 10.5px; cabecera 10 → 9.5px.
 4. Verificar que al subir partidas de 6.5pt a 8pt la paginación siga correcta (recalibrar el alto estimado por fila si hace falta) y que ninguna columna se corte.
 5. **Alineación vertical en los recuadros**: centrar verticalmente el texto dentro de todos los recuadros de la hoja — recuadro del título/código, bloque Proyecto, cabecera y celdas de la tabla de partidas, desglose de costos y barra TOTAL — usando `verticalAlign: "middle"` en celdas y `display: flex; alignItems: "center"` en bloques, para que ningún texto quede pegado arriba o abajo de su recuadro.
+6. **Bloque «Emisión y contacto» más a la derecha**: ajustar las proporciones de la grilla de datos del cliente (hoy 1.3fr / 1fr / .8fr) para que la tercera columna quede desplazada hacia la derecha sin pegarse al borde del recuadro, manteniendo sus textos alineados a la izquierda con los dos puntos en columna. Aplicar igual en edición y vista previa/PDF.
 
 ## Lo que no cambia
 
