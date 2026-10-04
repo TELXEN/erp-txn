@@ -140,7 +140,7 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
     catch (e) { setError(e instanceof Error ? e.message : "No se pudo eliminar el borrador."); setPorEliminar(null); } finally { setGuardando(false); }
   }
 
-  const tiposVisibles = esGuias ? PESTANAS_CPE.filter((p) => p.tipo === "09") : PESTANAS_CPE.filter((p) => p.tipo !== "09");
+  const tiposVisibles = esGuias ? PESTANAS_CPE.filter((p) => p.tipo === "09") : PESTANAS_CPE;
   const ETIQUETA_BOTON: Record<string, string> = { "01": "Crear Factura", "03": "Crear Boleta", "07": "Crear Notas de Crédito", "08": "Crear Notas de Débito", "20": "Crear Retenciones", "40": "Crear Percepciones", RA: "Nueva comunicación de baja" };
   return <><Encabezado titulo={esGuias ? "Guías de Remisión" : "Facturación Electrónica"} subtitulo={esGuias ? "Logística · guías de remisión remitente y traslados" : "Comercial · comprobantes, estados SUNAT y cobranza"} acciones={abierto ? <Boton variante="linea" onClick={cerrar}>Cerrar editor</Boton> : <Boton onClick={() => abrirNuevo(pestana)}><FilePlus2 size={14} />{esGuias ? "Nueva guía de remisión" : ETIQUETA_BOTON[pestana] ?? "Nuevo comprobante"}</Boton>} />
     {!esGuias && <div className="mb-4 flex flex-wrap gap-1 border-b border-line">
