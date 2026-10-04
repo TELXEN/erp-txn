@@ -386,10 +386,13 @@ function Proyectos() {
             </Seccion>
           </div>
           <div className="flex flex-wrap items-center justify-end gap-3">
-            {error && <p className="mr-auto font-mono text-xs text-bad">{error}</p>}
             <Boton type="submit" variante="accion" className="px-6 py-2.5 text-sm">Registrar</Boton>
           </div>
         </form>
+        )}
+        {error && (
+          <p className="border-t border-line px-5 py-3 font-mono text-xs text-bad">{error}</p>
+        )}
       </Panel>
 
       <Panel
