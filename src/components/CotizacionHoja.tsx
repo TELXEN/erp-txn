@@ -800,7 +800,7 @@ export function CotizacionHoja({
                     f,
                     r,
                     0,
-                    <span className="flex items-center gap-1 font-semibold text-ink" style={{ paddingLeft: cap ? 0 : 14 }}>
+                    <span className="flex items-center gap-1 font-semibold text-ink" style={{ paddingLeft: 0 }}>
                       <button type="button" onClick={() => alternar(f.clave)} className="text-muted-foreground">
                         {colapsados.has(f.clave) ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
                       </button>
@@ -852,7 +852,7 @@ export function CotizacionHoja({
             const it = f.it;
             const bloqueada = f.agrupadora;
             const puFijo = conApu.has(it.id);
-            const sangria = f.nivel === 4 ? 20 : 10;
+            const sangria = 0;
             return (
               <React.Fragment key={f.clave}>
                 <ContextMenu>

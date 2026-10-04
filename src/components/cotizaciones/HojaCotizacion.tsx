@@ -91,7 +91,7 @@ export function HojaCotizacion({
               <div style={{ width: 52, height: 52, borderRadius: 9, background: C.green, color: C.white, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800 }}>TX</div>
             )}
           </div>
-          <div style={{ flex: 1, minHeight: 76, textAlign: "right", paddingRight: 10 }}>
+          <div style={{ flex: 1, minHeight: 76, textAlign: "left" }}>
             <b style={{ fontSize: 16, fontWeight: 700 }}>{empresa?.razon_social || "TELXEN SAC"}</b>
             <div style={{ fontFamily: liviano, fontWeight: 400, fontSize: 11, marginTop: 3, lineHeight: 1.3 }}>{empresa?.eslogan || "SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL"}</div>
             <div style={{ fontFamily: liviano, fontWeight: 400, fontSize: 11, marginTop: 3, lineHeight: 1.3 }}>{empresa?.direccion || "—"}</div>
