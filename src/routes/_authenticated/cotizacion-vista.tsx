@@ -306,13 +306,13 @@ function VistaCotizacion() {
           )}
         </div>
 
-        <div style={{ flex: 1, minHeight: 76, textAlign: "right", paddingRight: 10, display: "flex", flexDirection: "column", justifyContent: "flex-start" }}>
+        <div style={{ flex: 1, minHeight: 76, textAlign: "left", display: "flex", flexDirection: "column", justifyContent: "flex-start" }}>
           <b style={{ fontSize: 11, fontWeight: 700 }}>{empresa?.razon_social || "TELXEN SAC"}</b>
-          <div style={{ ...light, fontSize: 8, marginTop: 2, lineHeight: 1.15, textAlign: "right" }}>
+          <div style={{ ...light, fontSize: 8, marginTop: 2, lineHeight: 1.15, textAlign: "left" }}>
             {empresa?.eslogan || "SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL"}
           </div>
-          <div style={{ ...light, fontSize: 8, marginTop: 2, lineHeight: 1.15, textAlign: "right" }}>{empresa?.direccion || "—"}</div>
-          <div style={{ ...light, fontSize: 8, marginTop: 2, lineHeight: 1.15, textAlign: "right" }}>{empresa?.web || "—"}</div>
+          <div style={{ ...light, fontSize: 8, marginTop: 2, lineHeight: 1.15, textAlign: "left" }}>{empresa?.direccion || "—"}</div>
+          <div style={{ ...light, fontSize: 8, marginTop: 2, lineHeight: 1.15, textAlign: "left" }}>{empresa?.web || "—"}</div>
         </div>
 
         <div style={{ width: 248, textAlign: "center", flexShrink: 0 }}>
@@ -468,13 +468,14 @@ function VistaCotizacion() {
                             <td
                               colSpan={6}
                               style={{
-                                padding: esGrupo ? "7px 8px" : "5px 8px 5px 20px",
+                                padding: esGrupo ? "7px 8px" : "5px 8px",
                                 background: esGrupo ? C.slate100 : C.slate50,
                                 borderBottom: `1px solid ${C.slate100}`,
-                                 color: esGrupo ? C.emerald800 : C.slate700,
+                                color: esGrupo ? C.emerald800 : C.slate700,
                                 fontWeight: esGrupo ? 700 : 600,
                                 fontSize: "8pt",
                                 letterSpacing: esGrupo ? 0.6 : 0.2,
+                                textAlign: "left",
                               }}
                             >
                               {fila.texto}
