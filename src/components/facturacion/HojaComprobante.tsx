@@ -199,16 +199,16 @@ export function HojaComprobante(props: {
 
         {usaItems(tipo) && <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 18, fontSize: 9 }}>
           <thead><tr style={{ background: "#f8fafc", color: C.ink, textAlign: "left", borderBottom: `1px solid ${C.line}` }}>{["#", "Código", "Descripción", "Unidad", "Cantidad", ...(usaImportes(tipo) ? ["Valor unitario", "Descuento", "Importe total"] : []), ""].map((x, i) => <th key={i} style={{ padding: "7px 6px", fontWeight: 700, fontSize: 8 }}>{x}</th>)}</tr></thead>
-          <tbody>{items.map((x, i) => <tr key={i} style={{ borderBottom: `1px solid ${C.line}`, background: C.white }}>
-            <td style={{ padding: 4, width: 22 }}>{i + 1}</td>
-            <td style={{ padding: 4, width: 70 }}><input value={x.codigo} onChange={(e) => actualizarItem(i, "codigo", e.target.value)} style={cel} /></td>
-            <td style={{ padding: 4, paddingLeft: 12 }}><input value={x.descripcion} onChange={(e) => actualizarItem(i, "descripcion", e.target.value)} placeholder="Descripción del bien o servicio" style={{ ...cel, fontSize: 8 }} /></td>
-            <td style={{ padding: 4, width: 74 }}><select value={x.unidad_sunat} onChange={(e) => actualizarItem(i, "unidad_sunat", e.target.value)} style={{ ...cel, cursor: "pointer" }}>{UNIDADES_SUNAT.map(([v, l]) => <option key={v} value={v}>{v} · {l}</option>)}</select></td>
-            <td style={{ padding: 4, width: 62 }}><input type="number" step="0.001" value={x.cantidad} onChange={(e) => actualizarItem(i, "cantidad", e.target.value)} style={{ ...cel, textAlign: "right" }} /></td>
+          <tbody>{items.map((x, i) => <tr key={i} style={{ borderBottom: `1px solid ${C.line}`, background: C.white, verticalAlign: "top" }}>
+            <td style={{ padding: 4, width: 22, verticalAlign: "top" }}>{i + 1}</td>
+            <td style={{ padding: 4, width: 70, verticalAlign: "top" }}><input value={x.codigo} onChange={(e) => actualizarItem(i, "codigo", e.target.value)} style={cel} /></td>
+            <td style={{ padding: 4, paddingLeft: 12, verticalAlign: "top" }}><textarea value={x.descripcion} rows={Math.max(1, Math.ceil((x.descripcion.length || 1) / 55))} onChange={(e) => actualizarItem(i, "descripcion", e.target.value)} onInput={(e) => { e.currentTarget.style.height = "auto"; e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`; }} placeholder="Descripción del bien o servicio" style={{ ...cel, display: "block", fontSize: 7, lineHeight: 1.25, resize: "none", overflow: "hidden", minHeight: 24 }} /></td>
+            <td style={{ padding: 4, width: 74, verticalAlign: "top" }}><select value={x.unidad_sunat} onChange={(e) => actualizarItem(i, "unidad_sunat", e.target.value)} style={{ ...cel, cursor: "pointer" }}>{UNIDADES_SUNAT.map(([v, l]) => <option key={v} value={v}>{v} · {l}</option>)}</select></td>
+            <td style={{ padding: 4, width: 62, verticalAlign: "top" }}><input type="number" step="0.001" value={x.cantidad} onChange={(e) => actualizarItem(i, "cantidad", e.target.value)} style={{ ...cel, textAlign: "right" }} /></td>
             {usaImportes(tipo) && <>
-              <td style={{ padding: 4, width: 74 }}><input type="number" step="0.01" value={x.valor_unitario} onChange={(e) => actualizarItem(i, "valor_unitario", e.target.value)} style={{ ...cel, textAlign: "right" }} /></td>
-              <td style={{ padding: 4, width: 60 }}><input type="number" step="0.01" value={x.descuento} onChange={(e) => actualizarItem(i, "descuento", e.target.value)} style={{ ...cel, textAlign: "right" }} /></td>
-              <td style={{ padding: 6, width: 82, textAlign: "right", fontWeight: 700 }}>{money(calcularItem(x, form.operacion_tipo, Number(form.igv_tasa)).subtotal)}</td>
+              <td style={{ padding: 4, width: 74, verticalAlign: "top" }}><input type="number" step="0.01" value={x.valor_unitario} onChange={(e) => actualizarItem(i, "valor_unitario", e.target.value)} style={{ ...cel, textAlign: "right" }} /></td>
+              <td style={{ padding: 4, width: 60, verticalAlign: "top" }}><input type="number" step="0.01" value={x.descuento} onChange={(e) => actualizarItem(i, "descuento", e.target.value)} style={{ ...cel, textAlign: "right" }} /></td>
+              <td style={{ padding: 6, width: 82, textAlign: "right", fontWeight: 700, verticalAlign: "top" }}>{money(calcularItem(x, form.operacion_tipo, Number(form.igv_tasa)).subtotal)}</td>
             </>}
             <td style={{ width: 22 }}><button type="button" title="Quitar" onClick={() => setItems(items.length === 1 ? [itemComprobanteVacio()] : items.filter((_, n) => n !== i))} style={{ border: "none", background: "transparent", color: C.muted, cursor: "pointer" }}><Trash2 size={13} /></button></td>
           </tr>)}</tbody>
