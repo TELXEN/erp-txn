@@ -210,6 +210,7 @@ function Proyectos() {
       pct_gastos_generales: "10",
       pct_utilidad: "10",
     });
+    setFormAbierto(false);
     qc.invalidateQueries({ queryKey: ["proyectos"] });
   }
 
