@@ -208,7 +208,7 @@ export function ComprobantesRecibidos({ periodo, items }: { periodo: string; ite
                 </td>
                 <td className="px-3 py-1.5 text-center whitespace-nowrap">
                   <Ic p={r?.xml_path ?? null} I={FileCode2} t="XML" /><Ic p={r?.pdf_path ?? null} I={FileText} t="PDF" /><Ic p={r?.cdr_path ?? null} I={ShieldCheck} t="CDR" />
-                  <button title="Ficha SUNAT (imprimir / PDF)" onClick={() => ficha(i)} className="rounded p-1 text-primary hover:bg-muted"><Printer className="size-4" /></button>
+                  <button title="Factura A4 (imprimir / PDF)" onClick={() => ficha(i, r)} className="rounded p-1 text-primary hover:bg-muted"><Printer className="size-4" /></button>
                   <label title="Adjuntar PDF o XML original" className="cursor-pointer rounded p-1 text-primary hover:bg-muted inline-flex">
                     <Paperclip className="size-4" />
                     <input type="file" accept=".pdf,.xml" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) adjuntar(k, i, f); e.target.value = ""; }} />
