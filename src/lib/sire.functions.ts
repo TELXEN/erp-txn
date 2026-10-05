@@ -97,6 +97,69 @@ export const aceptarSire = createServerFn({ method: "POST" })
     }
   });
 
+const docSchema = z.object({
+  ruc: z.string().regex(/^\d{8,11}$/), razon: z.string().max(300), tipo: z.string().max(4),
+  serie: z.string().max(10), numero: z.string().max(12), fecha: z.string().max(10),
+  moneda: z.string().max(3), tipo_cambio: z.number(), base: z.number(), igv: z.number(), total: z.number(),
+});
+
+/** Descarga XML/PDF/CDR de hasta 10 comprobantes recibidos, los archiva y extrae sus ítems. */
+export const descargarComprobantesSire = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ periodo: z.string().regex(/^\d{4}-\d{2}$/), docs: z.array(docSchema).max(10) }).parse(d))
+  .handler(async ({ data, context }) => {
+    await exigirAdmin(context);
+    const s = await import("./sire-sunat.server");
+    const c = await import("./sire-cpe.server");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    let token: string;
+    try { token = await s.obtenerToken(await s.cargarCredenciales(), c.SCOPE_CPE); }
+    catch (e) { return { error: e instanceof Error ? e.message : "Error de credenciales", resultados: [] }; }
+
+    const resultados: { clave: string; ok: boolean; error?: string }[] = [];
+    for (const d of data.docs) {
+      const clave = `${d.ruc}-${d.tipo}-${d.serie}-${d.numero}`;
+      const base = `${data.periodo}/${clave}`;
+      const fila: Record<string, unknown> = {
+        periodo: data.periodo, ruc_emisor: d.ruc, razon_emisor: d.razon, tipo: d.tipo, serie: d.serie, numero: d.numero,
+        fecha: /^\d{4}-\d{2}-\d{2}$/.test(d.fecha) ? d.fecha : null, moneda: d.moneda || "PEN", tipo_cambio: d.tipo_cambio || 1,
+        base: d.base, igv: d.igv, total: d.total,
+      };
+      try {
+        const subir = async (a: Awaited<ReturnType<typeof c.descargarCpe>>, suf: string) => {
+          if (!a) return null;
+          const path = `${base}${suf}.${a.ext}`;
+          const { error } = await supabaseAdmin.storage.from("comprobantes-compra").upload(path, a.bytes, { contentType: a.mime, upsert: true });
+          if (error) throw new Error(error.message);
+          return path;
+        };
+        const xml = await c.descargarCpe(token, d.ruc, d.tipo, d.serie, d.numero, "02");
+        const pdf = await c.descargarCpe(token, d.ruc, d.tipo, d.serie, d.numero, "01");
+        const cdr = await c.descargarCpe(token, d.ruc, d.tipo, d.serie, d.numero, "03").catch(() => null);
+        fila.xml_path = await subir(xml, "");
+        fila.pdf_path = await subir(pdf, "");
+        fila.cdr_path = await subir(cdr, "-cdr");
+        fila.estado_descarga = xml ? "Descargado" : "Sin XML";
+        fila.error = xml ? (cdr ? null : "CDR no disponible") : "SUNAT no devolvió el XML";
+        const { data: row, error } = await supabaseAdmin.from("comprobantes_recibidos")
+          .upsert(fila as any, { onConflict: "ruc_emisor,tipo,serie,numero" }).select("id").single();
+        if (error) throw new Error(error.message);
+        const txt = xml ? c.xmlDe(xml) : null;
+        if (txt) {
+          const u = c.parsearUbl(txt);
+          await supabaseAdmin.from("comprobantes_recibidos_items").delete().eq("comprobante_id", row.id);
+          if (u.items.length) await supabaseAdmin.from("comprobantes_recibidos_items").insert(u.items.map((it, i) => ({ ...it, orden: i + 1, comprobante_id: row.id })));
+        }
+        resultados.push({ clave, ok: !!xml, error: (fila.error as string) ?? undefined });
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "Error al descargar";
+        await supabaseAdmin.from("comprobantes_recibidos").upsert({ ...fila, estado_descarga: "Error", error: msg } as any, { onConflict: "ruc_emisor,tipo,serie,numero" });
+        resultados.push({ clave, ok: false, error: msg });
+      }
+    }
+    return { error: null, resultados };
+  });
+
 export const rucEmpresaSire = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
