@@ -23,7 +23,15 @@ function detectar(u: Uint8Array): Archivo | null {
 
 /** Descarga un archivo de un comprobante recibido. tipoArchivo: 01 PDF, 02 XML, 03 CDR. Devuelve null si no existe. */
 export async function descargarCpe(token: string, ruc: string, tipo: string, serie: string, numero: string, tipoArchivo: "01" | "02" | "03"): Promise<Archivo | null> {
-  const r = await fetch(`${CPE}/${ruc}-${tipo}-${serie}-${numero}-2/${tipoArchivo}`, { headers: { Authorization: `Bearer ${token}` } });
+  const id = [ruc, tipo, serie, numero].map((x) => String(x ?? "").trim());
+  if (id.some((x) => !x || !/^[A-Za-z0-9]+$/.test(x))) throw new Error("Datos del comprobante incompletos para consultar SUNAT");
+  let r: Response;
+  try {
+    r = await fetch(`${CPE}/${id.map(encodeURIComponent).join("-")}-2/${tipoArchivo}`, { headers: { Authorization: `Bearer ${token}` } });
+  } catch (e) {
+    console.error("SUNAT CPE fetch", e);
+    throw new Error("No disponible en SUNAT (servicio de consulta no respondió)");
+  }
   if (r.status === 404 || r.status === 204) return null;
   if (r.status === 401 || r.status === 403) throw new Error("SUNAT no autorizó la descarga (revisa que las credenciales API tengan acceso a consulta de comprobantes).");
   if (!r.ok) throw new Error(`SUNAT respondió ${r.status}`);

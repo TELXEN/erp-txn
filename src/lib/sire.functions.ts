@@ -133,14 +133,17 @@ export const descargarComprobantesSire = createServerFn({ method: "POST" })
           if (error) throw new Error(error.message);
           return path;
         };
-        const xml = await c.descargarCpe(token, d.ruc, d.tipo, d.serie, d.numero, "02");
-        const pdf = await c.descargarCpe(token, d.ruc, d.tipo, d.serie, d.numero, "01");
-        const cdr = await c.descargarCpe(token, d.ruc, d.tipo, d.serie, d.numero, "03").catch(() => null);
+        let motivo: string | null = null;
+        const bajar = (t: "01" | "02" | "03") => c.descargarCpe(token, d.ruc, d.tipo, d.serie, d.numero, t)
+          .catch((e) => { if (t !== "03") motivo ??= e instanceof Error ? e.message : "No disponible en SUNAT"; return null; });
+        const xml = await bajar("02");
+        const pdf = await bajar("01");
+        const cdr = await bajar("03");
         fila.xml_path = await subir(xml, "");
         fila.pdf_path = await subir(pdf, "");
         fila.cdr_path = await subir(cdr, "-cdr");
-        fila.estado_descarga = xml ? "Descargado" : "Sin XML";
-        fila.error = xml ? (cdr ? null : "CDR no disponible") : "SUNAT no devolvió el XML";
+        fila.estado_descarga = xml ? "Descargado" : "No disponible";
+        fila.error = xml ? (cdr ? null : "CDR no disponible") : (motivo ?? "No disponible en SUNAT; puedes registrarla con los datos de la propuesta");
         const { data: row, error } = await supabaseAdmin.from("comprobantes_recibidos")
           .upsert(fila as any, { onConflict: "ruc_emisor,tipo,serie,numero" }).select("id").single();
         if (error) throw new Error(error.message);

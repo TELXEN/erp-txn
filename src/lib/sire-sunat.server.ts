@@ -145,17 +145,25 @@ export function parsearTxt(txt: string): ItemSunat[] {
     moneda: col("moneda", "codmoneda"),
     tc: col("tipodecambio", "tipocambio"),
   };
+  const todos = (pred: (h: string) => boolean) => nc.map((h, i) => (pred(h) ? i : -1)).filter((i) => i >= 0);
+  const basesIdx = todos((h) => /^bi(gravad|adq)/.test(h) || h.startsWith("baseimponible"));
+  const igvIdx = todos((h) => h.startsWith("igv"));
   return lineas.slice(1).map((l) => {
     const v = l.split("|").map((x) => x.trim());
     const g = (i: number) => (i >= 0 ? v[i] ?? "" : "");
+    const suma = (ids: number[]) => ids.reduce((s, i) => s + num(g(i)), 0);
     const raw: Record<string, string> = {};
     cab.forEach((h, i) => { if (h) raw[h] = v[i] ?? ""; });
     const serie = g(idx.serie), numero = g(idx.numero), tipo = g(idx.tipo);
     const sn = `${serie}-${numero}`.toUpperCase();
+    const total = num(g(idx.total)), nog = num(g(idx.nog)), isc = num(g(idx.isc)), otros = num(g(idx.otros));
+    const igv = igvIdx.length ? suma(igvIdx) : num(g(idx.igv));
+    let base = basesIdx.length ? suma(basesIdx) : num(g(idx.base));
+    if (!base && total) base = Math.round((total - igv - nog - isc - otros) * 100) / 100;
     return {
       clave: `${tipo}|${sn}`, fecha: aIso(g(idx.fecha)), vencimiento: aIso(g(idx.venc)), tipo, serie, numero, serie_numero: sn,
-      ruc: g(idx.ruc), razon: g(idx.razon), base: num(g(idx.base)), igv: num(g(idx.igv)), no_gravado: num(g(idx.nog)),
-      isc: num(g(idx.isc)), otros: num(g(idx.otros)), total: num(g(idx.total)), moneda: g(idx.moneda) || "PEN", tipo_cambio: num(g(idx.tc)) || 1, raw,
+      ruc: g(idx.ruc), razon: g(idx.razon), base, igv, no_gravado: nog,
+      isc, otros, total, moneda: g(idx.moneda) || "PEN", tipo_cambio: num(g(idx.tc)) || 1, raw,
     };
   }).filter((i) => i.serie || i.numero);
 }
