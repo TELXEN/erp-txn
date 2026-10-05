@@ -312,6 +312,12 @@ function PanelLibro({ libro }: { libro: Libro }) {
                 </table>
               </div>
             )}
+            {libro === "RCE" && (
+              <p className="border-t border-line px-5 py-2 font-mono text-[10px] text-muted-foreground">
+                <span className="mr-1 inline-block size-2 rounded-sm bg-amber-500/40 align-middle" />
+                Resaltado en ámbar: comprobantes con IGV menor al 18% (exonerados, tasas reducidas o sin IGV). Sin IGV: {sinIgv.length} comp. por {soles(sumaSinIgv)}.
+              </p>
+            )}
             <div className="flex justify-between border-t border-line px-5 py-3">
               <Boton variante="linea" onClick={() => setPaso(1)}><ChevronLeft className="size-3.5" />Volver</Boton>
               <Boton onClick={() => setPaso(3)}>Continuar al cierre<ChevronRight className="size-3.5" /></Boton>
