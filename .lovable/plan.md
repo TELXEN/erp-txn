@@ -52,7 +52,8 @@ Columna visible en la tabla con selector, fecha y nota editable por fila.
 ## Detalles técnicos
 
 - Migración: agregar a `comprobantes_recibidos` las columnas `estado_recuperacion` (texto, default 'perdida'), `fecha_solicitud` (date, nula) y `nota_recuperacion` (texto, nula). RLS ya existente no cambia.
-- UI: cambios en `src/components/sire/ComprobantesRecibidos.tsx` (columna de estado con `Select`, fecha y nota; modal de edición de ítems que escribe en `comprobantes_recibidos_items`; retiro de los botones de descarga masiva y del uso de `descargarComprobantesSire` en esta vista).
+- Descarga Portal SOL: nueva función de servidor autenticada con middleware `requireSupabaseAuth` que usa los secretos `SUNAT_SOL_USUARIO` y `SUNAT_SOL_CLAVE` (se pedirán al usuario con formulario seguro en la construcción; nunca se exponen al navegador). Login en el portal, búsqueda del comprobante, descarga del XML/PDF, guardado en el bucket privado `comprobantes-compra` y parseo del XML a `comprobantes_recibidos_items`.
+- UI: cambios en `src/components/sire/ComprobantesRecibidos.tsx` (columna de estado con `Select`, fecha y nota; modal de edición de ítems que escribe en `comprobantes_recibidos_items`; botón «Buscar en SUNAT»; retiro de los botones de descarga masiva y del uso de `descargarComprobantesSire` en esta vista).
 - El texto explicativo y el título se ajustan en `src/components/facturacion/ComprobantesCompras.tsx`.
 - La función de servidor `descargarComprobantesSire` queda sin uso en esta pantalla (se conserva en el código por si se reutiliza).
 
