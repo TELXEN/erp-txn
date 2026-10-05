@@ -83,7 +83,7 @@ type Fila =
  * multidisciplinaria → especialidad > grupo > categoría; una disciplina → grupo > categoría.
  * Si solo hay un grupo y el alcance es parcial, el nivel de grupo no se imprime.
  */
-function construirFilas(items: ItemCot[], opts: { multi?: boolean; alcance?: string } = {}): Fila[] {
+function construirFilas(items: ItemCot[], opts: { multi?: boolean; alcance?: string | undefined } = {}): Fila[] {
   const filas: Fila[] = [];
   const claveNiveles = (it: ItemCot): string[] => {
     const cat = (it.categoria ?? "").trim() || "Sin categoría";

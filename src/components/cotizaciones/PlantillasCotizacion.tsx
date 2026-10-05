@@ -36,8 +36,8 @@ export function PlantillasCotizacion() {
   }
   async function duplicar(p: PlantillaCotizacion) {
     const { id: _id, ...resto } = p as PlantillaCotizacion & { created_at?: string; updated_at?: string };
-    delete (resto as Record<string, unknown>).created_at;
-    delete (resto as Record<string, unknown>).updated_at;
+    delete (resto as Record<string, unknown>)["created_at"];
+    delete (resto as Record<string, unknown>)["updated_at"];
     const { data } = await sb.from("plantillas_cotizacion").insert({ ...resto, nombre: `${p.nombre} (copia)` }).select("id").single();
     const { data: items } = await sb.from("plantilla_cotizacion_items").select("*").eq("plantilla_id", p.id).order("orden");
     const mapa = new Map<string, string>();
