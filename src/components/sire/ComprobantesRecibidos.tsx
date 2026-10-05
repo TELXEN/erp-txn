@@ -135,7 +135,7 @@ export function ComprobantesRecibidos({ periodo, items }: { periodo: string; ite
       r ? supabase.from("comprobantes_recibidos_items").select("*").eq("comprobante_id", r.id).order("orden").then((x) => x.data ?? []) : Promise.resolve([] as any[]),
     ]);
     const { montoEnLetras } = await import("@/lib/facturacion");
-    const items = (its as any[]).length ? (its as any[]) : [{ descripcion: "Bienes / servicios según comprobante del proveedor (detalle no disponible en SUNAT)", unidad: "ZZ", cantidad: 1, precio_unitario: i.base, valor: i.base }];
+    const items = (its as any[]).length ? (its as any[]) : [{ descripcion: "Detalle no disponible: adjunte el XML del proveedor (icono de clip) para mostrar la descripción emitida", unidad: "ZZ", cantidad: 1, precio_unitario: i.base, valor: i.base }];
     const tipoNom: Record<string, string> = { "01": "FACTURA ELECTRÓNICA", "03": "BOLETA DE VENTA ELECTRÓNICA", "07": "NOTA DE CRÉDITO ELECTRÓNICA", "08": "NOTA DE DÉBITO ELECTRÓNICA" };
     const e = (emp ?? {}) as any;
     const filaD = (l: string, v: string) => `<div class="kv"><b>${l}</b><span>:</span><span>${esc(v)}</span></div>`;
