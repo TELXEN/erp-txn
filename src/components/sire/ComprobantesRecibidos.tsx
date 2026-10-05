@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { zipSync } from "fflate";
-import { Download, FileCode2, FileText, ShieldCheck, FolderDown, ClipboardCheck, XCircle } from "lucide-react";
+import { Download, FileCode2, FileText, ShieldCheck, FolderDown, ClipboardCheck, XCircle, Printer, Paperclip } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Panel, Boton, Select } from "@/components/ui-kit";
 import { soles } from "@/lib/format";
@@ -176,7 +176,7 @@ export function ComprobantesRecibidos({ periodo, items }: { periodo: string; ite
           </tbody>
         </table>
       </div>
-      {registrar && <RegistrarModal recibidos={recibidos.filter((r) => r.estado_descarga === "Descargado" && !r.registrado_en && (sel.size === 0 || sel.has(claveDe(r.ruc_emisor, r.tipo, r.serie, r.numero))))}
+      {registrar && <RegistrarModal recibidos={recibidos.filter((r) => !r.registrado_en && (sel.size === 0 || sel.has(claveDe(r.ruc_emisor, r.tipo, r.serie, r.numero))))}
         onCerrar={() => setRegistrar(false)} onListo={() => qc.invalidateQueries({ queryKey: qk })} />}
     </Panel>
   );
