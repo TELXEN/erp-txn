@@ -5,10 +5,18 @@
 La pestaña «Recibidos (compras)» de Facturación Electrónica se convierte en una herramienta de **contingencia**: cuando una factura se pierde o el proveedor no la entrega ni responde, TELXEN recurre a SUNAT para verificarla y recuperarla, y deja trazabilidad del caso.
 
 Matiz importante sobre SUNAT:
-- **Portal SOL (manual):** sí permite descargar el XML/PDF de comprobantes recibidos, pero **uno por uno** y con Clave SOL (Empresas → Comprobantes de pago → Consultar recibidos).
-- **API SIRE (la que usa el ERP):** entrega los datos fiscales (RUC, serie, número, fecha, montos, estado) pero **no entrega los archivos** de forma automática ni masiva.
+- **Portal SOL (web):** permite descargar el XML/PDF de comprobantes recibidos. A mano es uno por uno; algunos sistemas de terceros (como el que TELXEN ya usó) automatizan ese portal con la Clave SOL para bajar los archivos faltantes en lote.
+- **API SIRE (la que usa el ERP hoy):** entrega los datos fiscales (RUC, serie, número, fecha, montos, estado) pero **no entrega los archivos**.
 
-Por eso el flujo de recuperación es: verificar en SUNAT (ya sincronizado en el ERP) → descargar el XML manualmente desde el Portal SOL → adjuntarlo en el ERP (que lee los ítems reales automáticamente) → registrar la compra.
+Por eso el flujo de recuperación es: verificar en SUNAT (ya sincronizado en el ERP) → descargar el XML/PDF (automático con Clave SOL, o manual desde el Portal SOL) → adjuntarlo en el ERP (que lee los ítems reales automáticamente) → registrar la compra.
+
+## Descarga automática desde el Portal SOL (opción Clave SOL)
+
+Como el sistema del proveedor de software, el ERP puede iniciar sesión en el Portal SOL de SUNAT con las credenciales de TELXEN y descargar automáticamente el XML/PDF de las facturas recibidas que falten:
+- Credenciales de Clave SOL guardadas como secreto del servidor (nunca en el navegador ni en el código).
+- Botón «Buscar en SUNAT» por factura o en lote para el mes; lo descargado se adjunta al bucket privado y se lee el XML para el detalle de ítems.
+- Riesgos a documentar: el portal puede cambiar o pedir validaciones extra (captcha), lo que puede romper la descarga; por eso la ruta manual (adjuntar el archivo) queda siempre disponible como respaldo.
+
 
 ## Cambios
 
@@ -28,7 +36,7 @@ Columna visible en la tabla con selector, fecha y nota editable por fila.
 ### 3. Verificación y respaldo
 - Mantener la ficha A4 imprimible (datos fiscales SUNAT + cliente TELXEN + montos) como respaldo interno.
 - Mantener el adjunto de PDF/XML (el XML sigue leyendo los ítems reales automáticamente).
-- Ayuda en pantalla: enlace/paso a paso corto para descargar el XML desde el Portal SOL cuando el proveedor no responde.
+- Si se aprueba la descarga automática: botón «Buscar en SUNAT» que descarga y adjunta el XML/PDF faltante sin salida del ERP; si falla, guía corta para hacerlo a mano en el Portal SOL.
 
 ### 4. Edición manual del detalle (sin IA, sin costo)
 - Botón de lápiz por fila para escribir/corregir los ítems (descripción, unidad, cantidad, precio) cuando solo hay el importe consolidado. Sin lectura automática con IA para evitar costo por uso.
@@ -51,5 +59,4 @@ Columna visible en la tabla con selector, fecha y nota editable por fila.
 ## Fuera de alcance
 
 - Lectura automática de PDF con IA (tiene costo por uso; se puede evaluar después si el volumen de casos lo justifica).
-- Descarga automática del XML desde SUNAT (la API no lo permite; solo manual en Portal SOL).
 - Creación de cuentas por pagar en Tesorería (se mantiene el flujo actual de registro).
