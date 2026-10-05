@@ -13,6 +13,7 @@ import { Encabezado } from "@/components/AppShell";
 import { Panel, Campo, Input, Select, Boton, SinAcceso, Vacio } from "@/components/ui-kit";
 import { MESES, fecha as fmtFecha, soles } from "@/lib/format";
 import { guardarConfigSire, validarConexionSire, sincronizarSire, aceptarSire } from "@/lib/sire.functions";
+import { ComprobantesRecibidos } from "@/components/sire/ComprobantesRecibidos";
 
 export const Route = createFileRoute("/_authenticated/sire")({
   head: () => ({
@@ -356,6 +357,7 @@ function PanelLibro({ libro }: { libro: Libro }) {
             </div>
           </Panel>
         )}
+        {paso === 2 && libro === "RCE" && <div className="mt-4"><ComprobantesRecibidos periodo={periodo} items={items as any} /></div>}
 
         {paso === 3 && reg && (
           <Panel titulo={`PASO 3 · CIERRE Y ENVÍO · ${(MESES[m - 1] ?? "").toUpperCase()} ${y}`}>
