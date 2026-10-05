@@ -413,8 +413,10 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
             )}
             {libro === "RCE" && (
               <p className="border-t border-line px-5 py-2 font-mono text-[10px] text-muted-foreground">
-                <span className="mr-1 inline-block size-2 rounded-sm bg-amber-500/40 align-middle" />
-                Resaltado en ámbar: comprobantes con IGV menor al 18% (exonerados, tasas reducidas o sin IGV). Sin IGV: {sinIgv.length} comp. por {soles(sumaSinIgv)}.
+                <span className="mr-1 inline-block size-2 rounded-sm bg-sky-500/40 align-middle" />
+                Azul: IGV entre 10% y 18% (tasas parciales) — {igvParcial.length} comp. por {soles(sumaIgvParcial)}.{" "}
+                <span className="ml-1 inline-block size-2 rounded-sm bg-amber-500/40 align-middle" />
+                Ámbar: comprobantes sin IGV (exonerados) — {sinIgv.length} comp. por {soles(sumaSinIgv)}.
               </p>
             )}
             <div className="flex justify-between border-t border-line px-5 py-3">
