@@ -3,8 +3,9 @@ import { DOC, DOC_FUENTE_CSS } from "@/lib/documento-tema";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEmpresa } from "@/lib/empresa";
+import { useEspecialidadesPartida } from "@/lib/especialidades";
 import { fecha as fmtFecha } from "@/lib/format";
-import { simboloMoneda, totalesCotizacion, useTipoCambioActual, vigenciaHasta, type Cotizacion, type CotizacionItem } from "@/lib/cotizaciones";
+import { ALCANCES, cambiarModoCotizacion, simboloMoneda, totalesCotizacion, useTipoCambioActual, vigenciaHasta, type Cotizacion, type CotizacionItem } from "@/lib/cotizaciones";
 
 /** Paleta corporativa compartida con la hoja de facturación electrónica. */
 const C = { ink: DOC.ink, muted: DOC.ink, line: DOC.line, soft: DOC.soft, green: DOC.green, greenSoft: DOC.white, white: DOC.white };
@@ -63,6 +64,21 @@ export function HojaCotizacion({
   const qc = useQueryClient();
   const { data: empresa } = useEmpresa();
   const { data: tcActual = 0 } = useTipoCambioActual();
+  const { data: especialidades = [] } = useEspecialidadesPartida();
+  const multi = Boolean(cot.multidisciplinaria);
+
+  async function cambiarModo(nuevo: boolean) {
+    if (nuevo === multi) return;
+    let esp = "";
+    if (nuevo) {
+      const opciones = especialidades.filter((e) => e.activo).map((e) => e.nombre);
+      esp = (window.prompt(`Especialidad para las partidas actuales:\n${opciones.join(", ")}`, opciones[0] ?? "") ?? "").trim();
+      if (!esp) return;
+    } else if (!window.confirm("La hoja se reagrupará por Suministro / Montaje y se dejará de mostrar la especialidad. ¿Continuar?")) return;
+    await cambiarModoCotizacion(cot.id, nuevo, esp);
+    await qc.invalidateQueries({ queryKey: ["cotizaciones"] });
+    await qc.invalidateQueries({ queryKey: ["cotizacion_items"] });
+  }
   const totales = totalesCotizacion(items, Number(cot.pct_gastos_generales), Number(cot.pct_utilidad));
   const conIgv = cot.aplica_igv !== false;
   const igv = conIgv ? Math.round(totales.total * 0.18 * 100) / 100 : 0;
@@ -168,6 +184,19 @@ export function HojaCotizacion({
           <div style={{ justifySelf: "end", width: 232 }}><Bloque titulo="">
             <Linea etiqueta="Emisión">
               <input key={`fec-${cot.id}-${cot.fecha_emision}`} type="date" defaultValue={cot.fecha_emision} onBlur={(e) => alSalir("fecha_emision", e.target.value, cot.fecha_emision)} style={ed} />
+            </Linea>
+            <Linea etiqueta="Tipo">
+              <select value={multi ? "multi" : "una"} onChange={(e) => void cambiarModo(e.target.value === "multi")} style={edSel}>
+                <option value="una">Una disciplina</option>
+                <option value="multi">Multidisciplinaria</option>
+              </select>
+            </Linea>
+            <Linea etiqueta="Alcance">
+              <select value={cot.alcance ?? "ambos"} onChange={(e) => void guardar({ alcance: e.target.value })} style={edSel}>
+                {ALCANCES.map(([v, t]) => (
+                  <option key={v} value={v}>{t}</option>
+                ))}
+              </select>
             </Linea>
             <Linea etiqueta="Moneda">
               <select

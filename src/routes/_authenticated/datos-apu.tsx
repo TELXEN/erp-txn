@@ -6,6 +6,7 @@ import { UnidadesMedida } from "@/components/UnidadesMedida";
 import { EspecialidadesPartida } from "@/components/EspecialidadesPartida";
 import { CategoriasPartida } from "@/components/CategoriasPartida";
 import { PartidasMaestras } from "@/components/PartidasMaestras";
+import { GruposCotizacion } from "@/components/GruposCotizacion";
 
 export const Route = createFileRoute("/_authenticated/datos-apu")({
   head: () => ({
@@ -27,13 +28,14 @@ export const Route = createFileRoute("/_authenticated/datos-apu")({
   component: DatosApu,
 });
 
-type Pestana = "insumos" | "unidades" | "especialidades" | "categorias" | "maestras";
+type Pestana = "insumos" | "unidades" | "especialidades" | "categorias" | "maestras" | "grupos";
 
 const PESTANAS: [Pestana, string][] = [
   ["maestras", "Registro de partidas"],
   ["insumos", "Maestro de insumos"],
   ["especialidades", "Especialidad de partidas"],
   ["categorias", "Categorías de partidas"],
+  ["grupos", "Grupos de cotización"],
   ["unidades", "Unidades de medida"],
 ];
 
@@ -70,6 +72,8 @@ function DatosApu() {
         <UnidadesMedida />
       ) : pestana === "especialidades" ? (
         <EspecialidadesPartida />
+      ) : pestana === "grupos" ? (
+        <GruposCotizacion />
       ) : pestana === "categorias" ? (
         <CategoriasPartida />
       ) : (

@@ -66,6 +66,7 @@ type ItemCot = {
   nombre: string;
   especialidad: string;
   categoria?: string | null;
+  grupo?: string | null;
   marca?: string | null;
   unidad: string;
   metrado: number | string;
@@ -77,40 +78,67 @@ type Fila =
   | { clase: "sub"; llave: string; texto: string; numero: string }
   | { clase: "item"; llave: string; item: ItemCot; indice: number; numero: string };
 
-/** Construye las filas de la hoja: especialidad y categoría como agrupadores. */
-function construirFilas(items: ItemCot[]): Fila[] {
+/**
+ * Construye las filas de la hoja con niveles dinámicos:
+ * multidisciplinaria → especialidad > grupo > categoría; una disciplina → grupo > categoría.
+ * Si solo hay un grupo y el alcance es parcial, el nivel de grupo no se imprime.
+ */
+function construirFilas(items: ItemCot[], opts: { multi?: boolean; alcance?: string | undefined } = {}): Fila[] {
   const filas: Fila[] = [];
-  const porEsp = new Map<string, Map<string, ItemCot[]>>();
-  for (const it of items) {
-    const esp = (it.especialidad || "").trim() || "Sin especialidad";
+  const claveNiveles = (it: ItemCot): string[] => {
     const cat = (it.categoria ?? "").trim() || "Sin categoría";
-    if (!porEsp.has(esp)) porEsp.set(esp, new Map());
-    const sub = porEsp.get(esp)!;
-    if (!sub.has(cat)) sub.set(cat, []);
-    sub.get(cat)!.push(it);
+    if (opts.multi) return [(it.especialidad || "").trim() || "Sin especialidad", (it.grupo || "").trim(), cat];
+    return [(it.especialidad || "").trim() || "Sin grupo", cat];
+  };
+  const tops = new Set(items.map((i) => claveNiveles(i)[0]));
+  const omitirTop = !opts.multi && tops.size <= 1 && opts.alcance && opts.alcance !== "ambos";
+  type Nodo = { hijos: Map<string, Nodo>; items: ItemCot[] };
+  const raiz: Nodo = { hijos: new Map(), items: [] };
+  for (const it of items) {
+    let n = raiz;
+    const niveles = claveNiveles(it).slice(omitirTop ? 1 : 0);
+    for (const k of niveles) {
+      if (!n.hijos.has(k)) n.hijos.set(k, { hijos: new Map(), items: [] });
+      n = n.hijos.get(k)!;
+    }
+    n.items.push(it);
   }
   let n = 0;
-  let i = 0;
-  for (const [esp, sub] of porEsp) {
-    i += 1;
-    filas.push({ clase: "grupo", llave: `g-${esp}`, texto: esp.toUpperCase(), numero: String(i).padStart(2, "0") });
+  const pad = (x: number, prof: number) => (prof === 0 ? String(x).padStart(2, "0") : String(x));
+  const recorrer = (nodo: Nodo, prefijo: string, prof: number) => {
     let j = 0;
-    for (const [cat, lista] of sub) {
-      const conSub = sub.size > 1 || cat !== "Sin categoría";
-      if (conSub) {
-        j += 1;
-        filas.push({ clase: "sub", llave: `s-${esp}-${cat}`, texto: cat, numero: `${String(i).padStart(2, "0")}.${j}` });
+    for (const [k, hijo] of nodo.hijos) {
+      const vacio = k === "" || k === "Sin categoría";
+      const omitir = vacio && nodo.hijos.size === 1;
+      if (omitir) {
+        recorrer(hijo, prefijo, prof + 1);
+        continue;
       }
-      let k = 0;
-      for (const it of lista) {
-        n += 1;
-        k += 1;
-        const numero = conSub ? `${String(i).padStart(2, "0")}.${j}.${k}` : `${String(i).padStart(2, "0")}.${k}`;
-        filas.push({ clase: "item", llave: it.id, item: it, indice: n, numero });
-      }
+      j += 1;
+      const numero = prefijo ? `${prefijo}.${pad(j, prof)}` : pad(j, prof);
+      filas.push({ clase: prof === 0 ? "grupo" : "sub", llave: `n-${numero}-${k}`, texto: prof === 0 ? k.toUpperCase() : k, numero });
+      recorrer(hijo, numero, prof + 1);
     }
-  }
+    let kk = 0;
+    for (const it of nodo.items) {
+      n += 1;
+      kk += 1;
+      filas.push({ clase: "item", llave: it.id, item: it, indice: n, numero: prefijo ? `${prefijo}.${kk}` : String(kk) });
+    }
+  };
+  recorrer(raiz, "", 0);
   return filas;
+}
+
+/** Costo directo por grupo (Suministro / Montaje) para el desglose. */
+function subtotalesPorGrupo(items: ItemCot[]) {
+  const m = new Map<string, number>();
+  for (const it of items) {
+    const g = (it.grupo || "").trim();
+    if (!g) continue;
+    m.set(g, (m.get(g) ?? 0) + Number(it.metrado) * Number(it.precio_unitario));
+  }
+  return [...m.entries()];
 }
 
 function altoEstimadoFila(fila: Fila, charsPorLinea = 62) {
@@ -206,7 +234,8 @@ function VistaCotizacion() {
   const interiorW = horizontal ? 1087 : 754;
   const paginaH = horizontal ? 700 : 990;
   const nombreArchivo = `Cotizacion_${(cot?.cliente || "Cliente").replace(/[^\w-]+/g, "_")}_${cot?.codigo ?? "sin_codigo"}`;
-  const paginas = paginarFilas(construirFilas(items as unknown as ItemCot[]), horizontal);
+  const paginas = paginarFilas(construirFilas(items as unknown as ItemCot[], { multi: Boolean(cot?.multidisciplinaria), alcance: cot?.alcance }), horizontal)
+  const porGrupo = subtotalesPorGrupo(items as unknown as ItemCot[]);;
 
   function copiarEnlace() {
     const url = `${window.location.origin}/cotizacion-vista?id=${id}`;
@@ -259,7 +288,7 @@ function VistaCotizacion() {
       c.alignment = { vertical: "middle", horizontal: "center" };
     });
     const primera = ws.rowCount + 1;
-    construirFilas(items).forEach((fila) => {
+    construirFilas(items as unknown as ItemCot[], { multi: Boolean(cot.multidisciplinaria), alcance: cot.alcance }).forEach((fila) => {
       if (fila.clase !== "item") {
         const g = ws.addRow([fila.numero, fila.texto, "", "", "", "", ""]);
         g.font = { name: fuenteExcel, bold: true, size: fila.clase === "grupo" ? 11 : 10 };
@@ -524,6 +553,9 @@ function VistaCotizacion() {
                     <div className="flex justify-end" style={{ marginTop: 14 }}>
                       <div style={{ width: 248, fontSize: "8.5pt" }}>
 
+                        {porGrupo.length > 1 && porGrupo.map(([g, v]) => (
+                          <div key={g} className="flex justify-between" style={{ padding: "3px 0", color: C.slate500, fontSize: "8pt" }}><span>{g.charAt(0) + g.slice(1).toLowerCase()}</span><span>{S(sim, v)}</span></div>
+                        ))}
                         <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700 }}><span>Costo Directo</span><span>{S(sim, calculo.costoDirecto)}</span></div>
                         {calculo.gastosGenerales > 0 && <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700 }}><span>Gastos Generales ({Number(cot.pct_gastos_generales)}%)</span><span>{S(sim, calculo.gastosGenerales)}</span></div>}
                         {calculo.utilidad > 0 && <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700 }}><span>Utilidad ({Number(cot.pct_utilidad)}%)</span><span>{S(sim, calculo.utilidad)}</span></div>}

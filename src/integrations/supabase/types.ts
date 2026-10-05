@@ -474,6 +474,7 @@ export type Database = {
           codigo: string
           created_at: string
           especialidad: string
+          grupo: string
           id: string
           nombre: string
           orden: number
@@ -484,6 +485,7 @@ export type Database = {
           codigo?: string
           created_at?: string
           especialidad?: string
+          grupo?: string
           id?: string
           nombre: string
           orden?: number
@@ -494,6 +496,7 @@ export type Database = {
           codigo?: string
           created_at?: string
           especialidad?: string
+          grupo?: string
           id?: string
           nombre?: string
           orden?: number
@@ -1237,6 +1240,7 @@ export type Database = {
           cotizacion_id: string
           created_at: string
           especialidad: string
+          grupo: string
           id: string
           jornada: number
           marca: string
@@ -1257,6 +1261,7 @@ export type Database = {
           cotizacion_id: string
           created_at?: string
           especialidad?: string
+          grupo?: string
           id?: string
           jornada?: number
           marca?: string
@@ -1277,6 +1282,7 @@ export type Database = {
           cotizacion_id?: string
           created_at?: string
           especialidad?: string
+          grupo?: string
           id?: string
           jornada?: number
           marca?: string
@@ -1310,6 +1316,7 @@ export type Database = {
       }
       cotizaciones: {
         Row: {
+          alcance: string
           aplica_igv: boolean
           cliente: string
           cliente_id: string | null
@@ -1321,6 +1328,7 @@ export type Database = {
           fecha_emision: string
           id: string
           moneda: Database["public"]["Enums"]["moneda"]
+          multidisciplinaria: boolean
           nombre: string
           orientacion: string
           pct_gastos_generales: number
@@ -1335,6 +1343,7 @@ export type Database = {
           validez_dias: number
         }
         Insert: {
+          alcance?: string
           aplica_igv?: boolean
           cliente?: string
           cliente_id?: string | null
@@ -1346,6 +1355,7 @@ export type Database = {
           fecha_emision?: string
           id?: string
           moneda?: Database["public"]["Enums"]["moneda"]
+          multidisciplinaria?: boolean
           nombre: string
           orientacion?: string
           pct_gastos_generales?: number
@@ -1360,6 +1370,7 @@ export type Database = {
           validez_dias?: number
         }
         Update: {
+          alcance?: string
           aplica_igv?: boolean
           cliente?: string
           cliente_id?: string | null
@@ -1371,6 +1382,7 @@ export type Database = {
           fecha_emision?: string
           id?: string
           moneda?: Database["public"]["Enums"]["moneda"]
+          multidisciplinaria?: boolean
           nombre?: string
           orientacion?: string
           pct_gastos_generales?: number
@@ -1774,6 +1786,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      grupos_cotizacion: {
+        Row: {
+          activo: boolean
+          created_at: string
+          id: string
+          nombre: string
+          orden: number
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          created_at?: string
+          id?: string
+          nombre: string
+          orden?: number
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          created_at?: string
+          id?: string
+          nombre?: string
+          orden?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       importacion_items: {
         Row: {
@@ -2715,6 +2754,123 @@ export type Database = {
           estado?: string
           id?: string
           mes?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      plantilla_cotizacion_items: {
+        Row: {
+          categoria: string
+          codigo: string
+          created_at: string
+          especialidad: string
+          grupo: string
+          id: string
+          marca: string
+          metrado: number
+          nombre: string
+          orden: number
+          padre_id: string | null
+          plantilla_id: string
+          precio_unitario: number
+          tipo: string
+          unidad: string
+        }
+        Insert: {
+          categoria?: string
+          codigo?: string
+          created_at?: string
+          especialidad?: string
+          grupo?: string
+          id?: string
+          marca?: string
+          metrado?: number
+          nombre?: string
+          orden?: number
+          padre_id?: string | null
+          plantilla_id: string
+          precio_unitario?: number
+          tipo?: string
+          unidad?: string
+        }
+        Update: {
+          categoria?: string
+          codigo?: string
+          created_at?: string
+          especialidad?: string
+          grupo?: string
+          id?: string
+          marca?: string
+          metrado?: number
+          nombre?: string
+          orden?: number
+          padre_id?: string | null
+          plantilla_id?: string
+          precio_unitario?: number
+          tipo?: string
+          unidad?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plantilla_cotizacion_items_padre_id_fkey"
+            columns: ["padre_id"]
+            isOneToOne: false
+            referencedRelation: "plantilla_cotizacion_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plantilla_cotizacion_items_plantilla_id_fkey"
+            columns: ["plantilla_id"]
+            isOneToOne: false
+            referencedRelation: "plantillas_cotizacion"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plantillas_cotizacion: {
+        Row: {
+          alcance: string
+          condiciones: string
+          condiciones_pago: string
+          created_at: string
+          descripcion: string
+          id: string
+          multidisciplinaria: boolean
+          nombre: string
+          pct_gastos_generales: number
+          pct_utilidad: number
+          recursos_humanos: string
+          tiempo_ejecucion: string
+          updated_at: string
+        }
+        Insert: {
+          alcance?: string
+          condiciones?: string
+          condiciones_pago?: string
+          created_at?: string
+          descripcion?: string
+          id?: string
+          multidisciplinaria?: boolean
+          nombre: string
+          pct_gastos_generales?: number
+          pct_utilidad?: number
+          recursos_humanos?: string
+          tiempo_ejecucion?: string
+          updated_at?: string
+        }
+        Update: {
+          alcance?: string
+          condiciones?: string
+          condiciones_pago?: string
+          created_at?: string
+          descripcion?: string
+          id?: string
+          multidisciplinaria?: boolean
+          nombre?: string
+          pct_gastos_generales?: number
+          pct_utilidad?: number
+          recursos_humanos?: string
+          tiempo_ejecucion?: string
           updated_at?: string
         }
         Relationships: []

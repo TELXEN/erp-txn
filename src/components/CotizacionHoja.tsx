@@ -22,7 +22,7 @@ import {
 } from "@/lib/categorias";
 import { apuDb, calcularApu, nombreTipo, precioVenta, TIPOS_INSUMO, tiposVisibles, useComponentesApu, useInsumos, useMargenesInsumo } from "@/lib/apu";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
-import { usePartidasMaestras, type CotizacionItem, type PartidaMaestra } from "@/lib/cotizaciones";
+import { gruposPermitidos, useGruposCotizacion, usePartidasMaestras, type CotizacionItem, type PartidaMaestra } from "@/lib/cotizaciones";
 import { DOC } from "@/lib/documento-tema";
 
 /** Columnas de la hoja, en el orden en que se navegan con el teclado. */
@@ -123,7 +123,12 @@ export function CotizacionHoja({
   unidades,
   alAbrirCatalogo,
   simbolo = "S/",
+  multi = true,
+  alcance = "ambos",
 }: {
+  /** Multidisciplinaria: el capítulo es la especialidad; si no, el capítulo es el grupo (Suministro / Montaje). */
+  multi?: boolean;
+  alcance?: string;
   cotizacionId: string;
   items: CotizacionItem[];
   unidades: { id: string; simbolo: string; activo: boolean }[];
@@ -144,9 +149,10 @@ export function CotizacionHoja({
 
   // Las especialidades salen del catálogo maestro (Datos › Catálogo técnico).
   const { data: catalogoEsp = [] } = useEspecialidadesPartida();
+  const { data: catalogoGrupos = [] } = useGruposCotizacion();
   const nombresEsp = useMemo(
-    () => catalogoEsp.filter((e) => e.activo).map((e) => e.nombre),
-    [catalogoEsp],
+    () => (multi ? catalogoEsp.filter((e) => e.activo).map((e) => e.nombre) : gruposPermitidos(catalogoGrupos, alcance)),
+    [catalogoEsp, catalogoGrupos, multi, alcance],
   );
   // Categorías y partidas también salen del catálogo maestro.
   const { data: catalogoCat = [] } = useCategoriasPartida();
@@ -406,12 +412,16 @@ export function CotizacionHoja({
     const usadas = new Set(items.map((i) => i.especialidad || "Sin especialidad"));
     if (!nombresEsp.length)
       return setError(
-        "No hay especialidades registradas. Agrégalas en Datos › Catálogo técnico › Especialidad de partidas.",
+        multi
+          ? "No hay especialidades registradas. Agrégalas en Datos › Catálogo técnico › Especialidad de partidas."
+          : "No hay grupos disponibles para el alcance de esta cotización.",
       );
     const libre = nombresEsp.find((n) => !usadas.has(n));
     if (!libre)
       return setError(
-        "Ya usaste todas las especialidades del catálogo maestro. Registra una nueva en Datos › Catálogo técnico.",
+        multi
+          ? "Ya usaste todas las especialidades del catálogo maestro. Registra una nueva en Datos › Catálogo técnico."
+          : "Ya usaste todos los grupos permitidos por el alcance de esta cotización.",
       );
     await crearGrupo(libre, "");
   }
@@ -440,7 +450,13 @@ export function CotizacionHoja({
   /** Añade a la especialidad la siguiente categoría libre del catálogo maestro. */
   async function nuevaCategoria(esp: string) {
     const usadas = new Set(items.filter((i) => i.especialidad === esp).map((i) => (i.categoria ?? "").trim()));
-    const libre = categoriasDe(esp, catalogoCat).map((c) => c.nombre).find((n) => !usadas.has(n));
+    const candidatas = multi
+      ? categoriasDe(esp, catalogoCat).map((c) => c.nombre)
+      : (() => {
+          const conGrupo = catalogoCat.filter((c) => c.activo && (c as { grupo?: string }).grupo === esp);
+          return [...new Set((conGrupo.length ? conGrupo : catalogoCat.filter((c) => c.activo)).map((c) => c.nombre))];
+        })();
+    const libre = candidatas.find((n) => !usadas.has(n));
     if (!libre)
       return setError(`No quedan categorías libres para ${esp}. Regístralas en Datos › Catálogo técnico.`);
     await crearGrupo(esp, libre);
@@ -452,7 +468,7 @@ export function CotizacionHoja({
       (i) => i.especialidad === esp && (cat === null || ((i.categoria ?? "").trim() || "Sin categoría") === cat),
     );
     const n = afectadas.filter(esPartida).length;
-    const que = cat === null ? `la especialidad "${esp}"` : `la categoría "${cat}"`;
+    const que = cat === null ? `${multi ? "la especialidad" : "el grupo"} "${esp}"` : `la categoría "${cat}"`;
     if (!window.confirm(`¿Borrar ${que}${n ? ` y sus ${n} partida(s)` : ""}? Esta acción no se puede deshacer.`)) return;
     setError("");
     const { error: err } = await supabase.from("cotizacion_items").delete().in("id", afectadas.map((i) => i.id));
@@ -696,7 +712,7 @@ export function CotizacionHoja({
             onClick={() => void nuevaEspecialidad()}
             className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-2 text-[12px] font-medium text-primary-foreground hover:opacity-90"
           >
-            <FolderPlus size={14} /> Nueva especialidad
+            <FolderPlus size={14} /> {multi ? "Nueva especialidad" : "Nuevo grupo"}
           </button>
           <button
             type="button"
@@ -738,7 +754,7 @@ export function CotizacionHoja({
           onClick={() => void nuevaEspecialidad()}
           className="inline-flex items-center gap-1 rounded-md border border-line px-2.5 py-1.5 text-[12.5px] text-primary hover:bg-primary/10"
         >
-          <FolderPlus size={12} /> Especialidad
+          <FolderPlus size={12} /> {multi ? "Especialidad" : "Grupo"}
         </button>
         {alAbrirCatalogo && (
           <button
@@ -823,7 +839,7 @@ export function CotizacionHoja({
                 </ContextMenuTrigger>
                 <ContextMenuContent className="w-56 print:hidden">
                   <ContextMenuLabel className="truncate text-xs">
-                    {cap ? "Especialidad" : "Categoría"}: {f.texto}
+                    {cap ? (multi ? "Especialidad" : "Grupo") : "Categoría"}: {f.texto}
                   </ContextMenuLabel>
                   <ContextMenuSeparator />
                   {cap && (
@@ -841,7 +857,7 @@ export function CotizacionHoja({
                     className="text-bad focus:text-bad"
                     onSelect={() => void borrarGrupo(f.esp, f.clase === "sub" ? f.cat : null)}
                   >
-                    <Trash2 size={14} className="mr-2" /> Borrar {cap ? "especialidad" : "categoría"}
+                    <Trash2 size={14} className="mr-2" /> Borrar {cap ? (multi ? "especialidad" : "grupo") : "categoría"}
                   </ContextMenuItem>
                 </ContextMenuContent>
                 </ContextMenu>
@@ -975,7 +991,7 @@ export function CotizacionHoja({
                 onClick={() => void nuevaEspecialidad()}
                 className="inline-flex items-center gap-1 rounded-md border border-dashed border-line px-2.5 py-1.5 text-[12.5px] text-muted-foreground hover:border-primary hover:text-primary"
               >
-                <FolderPlus size={12} /> Nueva especialidad (capítulo)
+                <FolderPlus size={12} /> {multi ? "Nueva especialidad (capítulo)" : "Nuevo grupo (capítulo)"}
               </button>
             </td>
           </tr>

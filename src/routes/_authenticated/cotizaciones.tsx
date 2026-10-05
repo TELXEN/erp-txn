@@ -26,7 +26,11 @@ import {
 import { useUnidadesMedida } from "@/lib/unidades";
 import { generarCodigoProyecto } from "@/lib/codificacion";
 import { exportarExcel } from "@/lib/exportar";
+import { PlantillasCotizacion } from "@/components/cotizaciones/PlantillasCotizacion";
 import {
+  aplicarPlantilla,
+  guardarComoPlantilla,
+  usePlantillasCotizacion,
   ESTADOS_COTIZACION,
   generarCodigoCotizacion,
   previsualizarCodigoCotizacion,
@@ -85,6 +89,8 @@ function Cotizaciones() {
     },
   });
   const { data: codificacionCot } = useCodificacionCotizacion();
+  const { data: plantillas = [] } = usePlantillasCotizacion();
+  const [plantillaSel, setPlantillaSel] = useState("");
 
   const [seleccion, setSeleccion] = useState<string | null>(null);
   const { data: items = [] } = useCotizacionItems(seleccion);
@@ -166,6 +172,7 @@ function Cotizaciones() {
     try {
       const codigo = form.codigo.trim().toUpperCase() || (await generarCodigoCotizacion());
       const cliente = clientes.find((c) => c.id === form.cliente_id);
+      const pl = plantillas.find((p) => p.id === plantillaSel);
       const { data, error: err } = await supabase
         .from("cotizaciones")
         .insert({
@@ -184,9 +191,23 @@ function Cotizaciones() {
           condiciones_pago: form.condiciones_pago.trim(),
           aplica_igv: form.aplica_igv === "si",
           estado: "Borrador",
-        })
+          ...(pl
+            ? {
+                nombre: form.nombre.trim() || pl.nombre,
+                pct_gastos_generales: pl.pct_gastos_generales,
+                pct_utilidad: pl.pct_utilidad,
+                condiciones: pl.condiciones || form.condiciones.trim(),
+                condiciones_pago: pl.condiciones_pago || form.condiciones_pago.trim(),
+                recursos_humanos: pl.recursos_humanos,
+                tiempo_ejecucion: pl.tiempo_ejecucion,
+                multidisciplinaria: pl.multidisciplinaria,
+                alcance: pl.alcance,
+              }
+            : {}),
+        } as never)
         .select("id")
         .single();
+      if (!err && pl) await aplicarPlantilla(pl.id, data.id);
       if (err) {
         if (err.code === "23505") throw new Error("Ese código ya está asignado a otra cotización.");
         throw err;
@@ -375,8 +396,10 @@ function Cotizaciones() {
           moneda: c.moneda,
           tipo_cambio: c.tipo_cambio,
           orientacion: c.orientacion ?? "vertical",
+          multidisciplinaria: c.multidisciplinaria ?? false,
+          alcance: c.alcance ?? "ambos",
           estado: "Borrador",
-        })
+        } as never)
         .select("id")
         .single();
       if (errC) throw errC;
@@ -401,6 +424,7 @@ function Cotizaciones() {
               codigo: i.codigo,
               nombre: i.nombre,
               especialidad: i.especialidad,
+              grupo: (i as { grupo?: string }).grupo ?? "",
               categoria: i.categoria,
               marca: i.marca,
               unidad: i.unidad,
@@ -427,6 +451,23 @@ function Cotizaciones() {
       setSeleccion(nueva.id);
     } catch (e2) {
       setError(e2 instanceof Error ? e2.message : "No se pudo duplicar la cotización.");
+    }
+  }
+
+  async function guardarPlantilla() {
+    if (!cot) return;
+    const lista = plantillas.map((p, i) => `${i + 1}. ${p.nombre}`).join("\n");
+    const r = window.prompt(`Escribe el número de la plantilla a reemplazar o un nombre nuevo:\n${lista}`, "");
+    if (!r?.trim()) return;
+    const n = Number(r.trim());
+    const existente = Number.isInteger(n) && n >= 1 && n <= plantillas.length ? plantillas[n - 1] : null;
+    if (existente && !window.confirm(`Se reemplazarán las partidas de la plantilla «${existente.nombre}». ¿Continuar?`)) return;
+    try {
+      await guardarComoPlantilla(cot, existente?.id ?? null, r.trim());
+      qc.invalidateQueries({ queryKey: ["plantillas_cotizacion"] });
+      setAviso(`Plantilla «${existente?.nombre ?? r.trim()}» guardada.`);
+    } catch (e2) {
+      setError(e2 instanceof Error ? e2.message : "No se pudo guardar la plantilla.");
     }
   }
 
@@ -566,6 +607,9 @@ function Cotizaciones() {
             <Link to="/apu-vista" search={{ id: cot.id, item: "" }}>
               <Boton variante="linea"><Calculator size={13} /> Dossier APU</Boton>
             </Link>
+            <Boton variante="linea" onClick={() => void guardarPlantilla()} title="Guardar la estructura como plantilla">
+              <Library size={13} /> Guardar como plantilla
+            </Boton>
             <Boton variante="linea" onClick={exportarCotizacion} title="Exportar Excel">
               <Upload size={13} /> Excel
             </Boton>
@@ -678,6 +722,8 @@ function Cotizaciones() {
               items={itemsHoja}
               unidades={unidades}
               simbolo={simboloMoneda(cot.moneda)}
+              multi={Boolean(cot.multidisciplinaria)}
+              alcance={cot.alcance ?? "ambos"}
               alAbrirCatalogo={() => setVerCatalogo(true)}
             />
           </HojaCotizacion>
@@ -701,9 +747,22 @@ function Cotizaciones() {
         titulo="Cotizaciones"
         subtitulo="Propuestas comerciales a clientes"
         acciones={
-          <Boton onClick={() => void crear()}>
-            <Plus size={14} /> Nueva cotización
-          </Boton>
+          <div className="flex items-center gap-2">
+            <select
+              value={plantillaSel}
+              onChange={(e) => setPlantillaSel(e.target.value)}
+              title="Plantilla por tipo de obra"
+              className="h-9 rounded-md border border-line bg-card px-2 text-xs"
+            >
+              <option value="">En blanco</option>
+              {plantillas.map((p) => (
+                <option key={p.id} value={p.id}>Plantilla: {p.nombre}</option>
+              ))}
+            </select>
+            <Boton onClick={() => void crear()}>
+              <Plus size={14} /> Nueva cotización
+            </Boton>
+          </div>
         }
       />
       {error && <p className="mb-2 font-mono text-xs text-bad">{error}</p>}
@@ -740,6 +799,8 @@ function Cotizaciones() {
           );
         })}
       </div>
+
+      <PlantillasCotizacion />
 
       <Panel titulo="Cotizaciones registradas" className="mb-4" extra={<Buscador valor={busqueda} onChange={setBusqueda} placeholder="Buscar por código, cliente o trabajo..." total={filtradas.length} />}>
         {cotizaciones.length === 0 ? (
