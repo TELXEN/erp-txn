@@ -311,13 +311,13 @@ function VistaCotizacion() {
           )}
         </div>
 
-        <div style={{ flex: 1, minHeight: 76, textAlign: "left", display: "flex", flexDirection: "column", justifyContent: "flex-start" }}>
+        <div style={{ flex: 1, minHeight: 76, textAlign: "right", display: "flex", flexDirection: "column", justifyContent: "flex-start" }}>
           <b style={{ fontSize: 11, fontWeight: 700 }}>{empresa?.razon_social || "TELXEN SAC"}</b>
-          <div style={{ ...light, fontSize: 8, marginTop: 2, lineHeight: 1.15, textAlign: "left" }}>
-            {empresa?.eslogan || "SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL"}
+          <div style={{ ...light, fontSize: 8, marginTop: 2, lineHeight: 1.15, textAlign: "right" }}>
+            {esloganDosLineas(empresa?.eslogan || "SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL")}
           </div>
-          <div style={{ ...light, fontSize: 8, marginTop: 2, lineHeight: 1.15, textAlign: "left" }}>{empresa?.direccion || "—"}</div>
-          <div style={{ ...light, fontSize: 8, marginTop: 2, lineHeight: 1.15, textAlign: "left" }}>{empresa?.web || "—"}</div>
+          <div style={{ ...light, fontSize: 8, marginTop: 2, lineHeight: 1.15, textAlign: "right" }}>{empresa?.direccion || "—"}</div>
+          <div style={{ ...light, fontSize: 8, marginTop: 2, lineHeight: 1.15, textAlign: "right" }}>{empresa?.web || "—"}</div>
         </div>
 
         <div style={{ width: 248, textAlign: "center", flexShrink: 0 }}>
