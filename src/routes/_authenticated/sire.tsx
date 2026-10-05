@@ -278,11 +278,12 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
   }), [items]);
   const visibles = items.filter((i) => filtro === "todos" || (filtro === "ok" && i.estado === "match") || (filtro === "disc" && i.estado === "discrepancia") || (filtro === "sunat" && i.estado === "faltante"));
 
-  // IGV de compras: detectar tasas menores al 18% (exonerados, tasas reducidas) y comprobantes sin IGV.
+  // IGV de compras: separar comprobantes sin IGV (ámbar) y con tasa parcial entre 10% y 18% (azul).
   const tasaIgv = (i: Item) => (i.base > 0 ? i.igv / i.base : 0);
-  const esIgvMenor18 = (i: Item) => libro === "RCE" && tasaIgv(i) < 0.1795;
   const sinIgv = useMemo(() => items.filter((i) => (i.igv ?? 0) < 0.005), [items]);
   const sumaSinIgv = useMemo(() => r2(sinIgv.reduce((s, i) => s + (i.total_sunat ?? i.base + i.igv), 0)), [sinIgv]);
+  const igvParcial = useMemo(() => items.filter((i) => { const t = tasaIgv(i); return t >= 0.10 && t < 0.1795; }), [items]);
+  const sumaIgvParcial = useMemo(() => r2(igvParcial.reduce((s, i) => s + (i.total_sunat ?? i.base + i.igv), 0)), [igvParcial]);
 
   function generarTxt() {
     const ruc = rucEmpresa ?? "";
