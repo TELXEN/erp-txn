@@ -21,4 +21,4 @@
 - [x] INSUMO de compra vinculado al Maestro de insumos completo + alineación de la fila
 - [x] Aplicar la tipografía configurada a toda la interfaz, documentos y exportaciones Excel.
 - [x] Fijar y repetir en cada hoja del comprobante el pie completo, incluida la línea «SON».
-- [ ] Cotizaciones: grupos Suministro/Montaje, alcance (ambos/solo uno), modo una disciplina/multidisciplinaria y plantillas por tipo de obra.
+- [x] Cotizaciones: grupos Suministro/Montaje, alcance (ambos/solo uno), modo una disciplina/multidisciplinaria y plantillas por tipo de obra.
