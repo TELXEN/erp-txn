@@ -10,12 +10,12 @@ Matiz importante sobre SUNAT:
 
 Por eso el flujo de recuperación es: verificar en SUNAT (ya sincronizado en el ERP) → descargar el XML/PDF (automático con Clave SOL, o manual desde el Portal SOL) → adjuntarlo en el ERP (que lee los ítems reales automáticamente) → registrar la compra.
 
-## Descarga automática desde el Portal SOL (opción Clave SOL)
+## Descarga automática desde el Portal SOL (aprobada)
 
-Como el sistema del proveedor de software, el ERP puede iniciar sesión en el Portal SOL de SUNAT con las credenciales de TELXEN y descargar automáticamente el XML/PDF de las facturas recibidas que falten:
-- Credenciales de Clave SOL guardadas como secreto del servidor (nunca en el navegador ni en el código).
-- Botón «Buscar en SUNAT» por factura o en lote para el mes; lo descargado se adjunta al bucket privado y se lee el XML para el detalle de ítems.
-- Riesgos a documentar: el portal puede cambiar o pedir validaciones extra (captcha), lo que puede romper la descarga; por eso la ruta manual (adjuntar el archivo) queda siempre disponible como respaldo.
+Como el sistema del proveedor de software, el ERP iniciará sesión en el Portal SOL de SUNAT con la Clave SOL de TELXEN y descargará automáticamente el XML/PDF de las facturas recibidas que falten:
+- Credenciales de Clave SOL guardadas como secreto del servidor (nunca en el navegador ni en el código). Se pedirán al usuario en un formulario seguro durante la construcción.
+- Botón «Buscar en SUNAT» por factura y en lote para el mes; lo descargado se adjunta al bucket privado y el XML alimenta automáticamente el detalle de ítems.
+- La automatización corre en funciones de servidor autenticadas; si el portal pide una validación extra o cambia, la descarga se marca como fallida con un mensaje claro y queda la ruta manual: adjuntar el archivo descargado a mano.
 
 
 ## Cambios
