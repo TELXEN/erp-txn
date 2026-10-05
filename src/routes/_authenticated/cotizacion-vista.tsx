@@ -10,6 +10,20 @@ import { useAuth } from "@/lib/auth";
 import { simboloMoneda, totalesCotizacion, useCotizacionItems, useCotizaciones, vigenciaHasta } from "@/lib/cotizaciones";
 import { DOC, DOC_FUENTE_CSS } from "@/lib/documento-tema";
 import { ArrowLeft, FileDown, FileSpreadsheet } from "lucide-react";
+import type { ReactNode } from "react";
+
+/** Eslogan en dos líneas: se corta en la primera coma. */
+function esloganDosLineas(texto: string): ReactNode {
+  const i = texto.indexOf(",");
+  if (i < 0 || i >= texto.length - 1) return texto;
+  return (
+    <>
+      {texto.slice(0, i + 1)}
+      <br />
+      {texto.slice(i + 1).trim()}
+    </>
+  );
+}
 
 export const Route = createFileRoute("/_authenticated/cotizacion-vista")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -311,13 +325,13 @@ function VistaCotizacion() {
           )}
         </div>
 
-        <div style={{ flex: 1, minHeight: 76, textAlign: "left", display: "flex", flexDirection: "column", justifyContent: "flex-start" }}>
+        <div style={{ flex: 1, minHeight: 76, textAlign: "right", display: "flex", flexDirection: "column", justifyContent: "flex-start" }}>
           <b style={{ fontSize: 11, fontWeight: 700 }}>{empresa?.razon_social || "TELXEN SAC"}</b>
-          <div style={{ ...light, fontSize: 8, marginTop: 2, lineHeight: 1.15, textAlign: "left" }}>
-            {empresa?.eslogan || "SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL"}
+          <div style={{ ...light, fontSize: 8, marginTop: 2, lineHeight: 1.15, textAlign: "right" }}>
+            {esloganDosLineas(empresa?.eslogan || "SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL")}
           </div>
-          <div style={{ ...light, fontSize: 8, marginTop: 2, lineHeight: 1.15, textAlign: "left" }}>{empresa?.direccion || "—"}</div>
-          <div style={{ ...light, fontSize: 8, marginTop: 2, lineHeight: 1.15, textAlign: "left" }}>{empresa?.web || "—"}</div>
+          <div style={{ ...light, fontSize: 8, marginTop: 2, lineHeight: 1.15, textAlign: "right" }}>{empresa?.direccion || "—"}</div>
+          <div style={{ ...light, fontSize: 8, marginTop: 2, lineHeight: 1.15, textAlign: "right" }}>{empresa?.web || "—"}</div>
         </div>
 
         <div style={{ width: 248, textAlign: "center", flexShrink: 0 }}>

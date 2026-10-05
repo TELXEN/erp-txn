@@ -15,6 +15,19 @@ const liviano = "var(--font-global)";
 
 const money = (sim: string, n: number) => `${sim} ${Number(n || 0).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
+/** Eslogan en dos líneas: se corta en la primera coma. */
+function esloganDosLineas(texto: string): ReactNode {
+  const i = texto.indexOf(",");
+  if (i < 0 || i >= texto.length - 1) return texto;
+  return (
+    <>
+      {texto.slice(0, i + 1)}
+      <br />
+      {texto.slice(i + 1).trim()}
+    </>
+  );
+}
+
 function Bloque({ titulo, children }: { titulo: string; children: ReactNode }) {
   return (
     <div>
@@ -91,9 +104,9 @@ export function HojaCotizacion({
               <div style={{ width: 52, height: 52, borderRadius: 9, background: C.green, color: C.white, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800 }}>TX</div>
             )}
           </div>
-          <div style={{ flex: 1, minHeight: 76, textAlign: "left" }}>
+          <div style={{ flex: 1, minHeight: 76, textAlign: "right" }}>
             <b style={{ fontSize: 16, fontWeight: 700 }}>{empresa?.razon_social || "TELXEN SAC"}</b>
-            <div style={{ fontFamily: liviano, fontWeight: 400, fontSize: 11, marginTop: 3, lineHeight: 1.3 }}>{empresa?.eslogan || "SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL"}</div>
+            <div style={{ fontFamily: liviano, fontWeight: 400, fontSize: 11, marginTop: 3, lineHeight: 1.3 }}>{esloganDosLineas(empresa?.eslogan || "SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL")}</div>
             <div style={{ fontFamily: liviano, fontWeight: 400, fontSize: 11, marginTop: 3, lineHeight: 1.3 }}>{empresa?.direccion || "—"}</div>
             <div style={{ fontFamily: liviano, fontWeight: 400, fontSize: 11, marginTop: 3, lineHeight: 1.3 }}>{empresa?.web || "—"}</div>
           </div>
