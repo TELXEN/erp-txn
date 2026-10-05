@@ -367,9 +367,11 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
                   <tbody>
                     {visibles.map((i) => {
                       const e = ESTADO_UI[i.estado];
-                      const menor18 = esIgvMenor18(i);
+                      const t = tasaIgv(i);
+                      const parcial = t >= 0.10 && t < 0.1795;
+                      const sin = (i.igv ?? 0) < 0.005;
                       return (
-                        <tr key={i.clave} onClick={() => setDetalle(i)} className={`cursor-pointer border-t border-line ${menor18 ? "bg-amber-500/[0.07] hover:bg-amber-500/[0.13]" : "hover:bg-muted/30"}`}>
+                        <tr key={i.clave} onClick={() => setDetalle(i)} className={`cursor-pointer border-t border-line ${parcial ? "bg-sky-500/[0.07] hover:bg-sky-500/[0.13]" : sin ? "bg-amber-500/[0.07] hover:bg-amber-500/[0.13]" : "hover:bg-muted/30"}`}>
                           <td className="px-3 py-2 font-mono text-xs">{fmtFecha(i.fecha)}</td>
                           <td className="px-3 py-2 font-mono text-xs">{i.tipo}</td>
                           <td className="px-3 py-2 font-mono text-xs">{i.serie_numero}</td>
@@ -377,9 +379,14 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
                           <td className="px-3 py-2 text-right font-mono text-xs">{soles(i.base)}</td>
                           <td className="px-3 py-2 text-right font-mono text-xs">
                             {soles(i.igv)}
-                            {menor18 && (
+                            {parcial && (
+                              <span className="ml-1 rounded bg-sky-500/15 px-1 font-mono text-[10px] font-semibold text-sky-700 dark:text-sky-400">
+                                {(t * 100).toFixed(1)}%
+                              </span>
+                            )}
+                            {sin && (
                               <span className="ml-1 rounded bg-amber-500/15 px-1 font-mono text-[10px] font-semibold text-amber-700 dark:text-amber-400">
-                                {(i.igv ?? 0) < 0.005 ? "SIN IGV" : `${(tasaIgv(i) * 100).toFixed(1)}%`}
+                                SIN IGV
                               </span>
                             )}
                           </td>
