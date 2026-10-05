@@ -256,7 +256,12 @@ function PanelLibro({ libro }: { libro: Libro }) {
 
         {paso === 2 && (
           <Panel titulo={`PASO 2 · CONCILIACIÓN SUNAT vs ERP · ${(MESES[m - 1] ?? "").toUpperCase()} ${y}`}
-            extra={<div className="flex gap-1">
+            extra={<div className="flex flex-wrap gap-1">
+              {libro === "RCE" && (
+                <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 px-2.5 py-1 font-mono text-[11px] text-amber-700 ring-1 ring-amber-500/25 dark:text-amber-400">
+                  <AlertTriangle className="size-3" />Sin IGV: {sinIgv.length} comp. · {soles(sumaSinIgv)}
+                </span>
+              )}
               {([["todos", "Todos"], ["ok", "Conciliados"], ["disc", "Con Discrepancias"], ["sunat", "Solo en SUNAT"]] as const).map(([k, t]) => (
                 <button key={k} onClick={() => setFiltro(k)} className={`rounded-md px-2.5 py-1 font-mono text-[11px] ${filtro === k ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}>{t} <span className="opacity-70">({cuenta[k]})</span></button>
               ))}
