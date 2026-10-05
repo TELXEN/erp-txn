@@ -184,6 +184,12 @@ function PanelLibro({ libro }: { libro: Libro }) {
   }), [items]);
   const visibles = items.filter((i) => filtro === "todos" || (filtro === "ok" && i.estado === "match") || (filtro === "disc" && i.estado === "discrepancia") || (filtro === "sunat" && i.estado === "faltante"));
 
+  // IGV de compras: detectar tasas menores al 18% (exonerados, tasas reducidas) y comprobantes sin IGV.
+  const tasaIgv = (i: Item) => (i.base > 0 ? i.igv / i.base : 0);
+  const esIgvMenor18 = (i: Item) => libro === "RCE" && tasaIgv(i) < 0.1795;
+  const sinIgv = useMemo(() => items.filter((i) => (i.igv ?? 0) < 0.005), [items]);
+  const sumaSinIgv = useMemo(() => r2(sinIgv.reduce((s, i) => s + (i.total_sunat ?? i.base + i.igv), 0)), [sinIgv]);
+
   function generarTxt() {
     const ruc = rucEmpresa ?? "";
     const lineas = items.map((i, n) => [periodo.replace("-", ""), String(n + 1).padStart(6, "0"), fmtFecha(i.fecha), i.tipo, ...i.serie_numero.split("-"), "6", i.ruc, i.razon, i.base.toFixed(2), i.igv.toFixed(2), (i.total_sunat ?? 0).toFixed(2), "PEN"].join("|"));
@@ -250,7 +256,12 @@ function PanelLibro({ libro }: { libro: Libro }) {
 
         {paso === 2 && (
           <Panel titulo={`PASO 2 · CONCILIACIÓN SUNAT vs ERP · ${(MESES[m - 1] ?? "").toUpperCase()} ${y}`}
-            extra={<div className="flex gap-1">
+            extra={<div className="flex flex-wrap gap-1">
+              {libro === "RCE" && (
+                <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 px-2.5 py-1 font-mono text-[11px] text-amber-700 ring-1 ring-amber-500/25 dark:text-amber-400">
+                  <AlertTriangle className="size-3" />Sin IGV: {sinIgv.length} comp. · {soles(sumaSinIgv)}
+                </span>
+              )}
               {([["todos", "Todos"], ["ok", "Conciliados"], ["disc", "Con Discrepancias"], ["sunat", "Solo en SUNAT"]] as const).map(([k, t]) => (
                 <button key={k} onClick={() => setFiltro(k)} className={`rounded-md px-2.5 py-1 font-mono text-[11px] ${filtro === k ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}>{t} <span className="opacity-70">({cuenta[k]})</span></button>
               ))}
@@ -264,14 +275,22 @@ function PanelLibro({ libro }: { libro: Libro }) {
                   <tbody>
                     {visibles.map((i) => {
                       const e = ESTADO_UI[i.estado];
+                      const menor18 = esIgvMenor18(i);
                       return (
-                        <tr key={i.clave} onClick={() => setDetalle(i)} className="cursor-pointer border-t border-line hover:bg-muted/30">
+                        <tr key={i.clave} onClick={() => setDetalle(i)} className={`cursor-pointer border-t border-line ${menor18 ? "bg-amber-500/[0.07] hover:bg-amber-500/[0.13]" : "hover:bg-muted/30"}`}>
                           <td className="px-3 py-2 font-mono text-xs">{fmtFecha(i.fecha)}</td>
                           <td className="px-3 py-2 font-mono text-xs">{i.tipo}</td>
                           <td className="px-3 py-2 font-mono text-xs">{i.serie_numero}</td>
                           <td className="px-3 py-2"><p className="font-mono text-[11px] text-muted-foreground">{i.ruc || "—"}</p><p className="truncate text-xs">{i.razon}</p></td>
                           <td className="px-3 py-2 text-right font-mono text-xs">{soles(i.base)}</td>
-                          <td className="px-3 py-2 text-right font-mono text-xs">{soles(i.igv)}</td>
+                          <td className="px-3 py-2 text-right font-mono text-xs">
+                            {soles(i.igv)}
+                            {menor18 && (
+                              <span className="ml-1 rounded bg-amber-500/15 px-1 font-mono text-[10px] font-semibold text-amber-700 dark:text-amber-400">
+                                {(i.igv ?? 0) < 0.005 ? "SIN IGV" : `${(tasaIgv(i) * 100).toFixed(1)}%`}
+                              </span>
+                            )}
+                          </td>
                           <td className="px-3 py-2 text-right font-mono text-xs">{i.total_sunat == null ? "—" : soles(i.total_sunat)}</td>
                           <td className="px-3 py-2 text-right font-mono text-xs">
                             {i.total_erp == null ? "—" : soles(i.total_erp)}
@@ -292,6 +311,12 @@ function PanelLibro({ libro }: { libro: Libro }) {
                   </tbody>
                 </table>
               </div>
+            )}
+            {libro === "RCE" && (
+              <p className="border-t border-line px-5 py-2 font-mono text-[10px] text-muted-foreground">
+                <span className="mr-1 inline-block size-2 rounded-sm bg-amber-500/40 align-middle" />
+                Resaltado en ámbar: comprobantes con IGV menor al 18% (exonerados, tasas reducidas o sin IGV). Sin IGV: {sinIgv.length} comp. por {soles(sumaSinIgv)}.
+              </p>
             )}
             <div className="flex justify-between border-t border-line px-5 py-3">
               <Boton variante="linea" onClick={() => setPaso(1)}><ChevronLeft className="size-3.5" />Volver</Boton>
