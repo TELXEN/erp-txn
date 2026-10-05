@@ -120,7 +120,7 @@ export const descargarComprobantesSire = createServerFn({ method: "POST" })
     for (const d of data.docs) {
       const clave = `${d.ruc}-${d.tipo}-${d.serie}-${d.numero}`;
       const base = `${data.periodo}/${clave}`;
-      const fila: Record<string, unknown> = {
+      const fila: Record<string, any> & { xml_path?: string | null; pdf_path?: string | null; cdr_path?: string | null; estado_descarga?: string; error?: string | null } = {
         periodo: data.periodo, ruc_emisor: d.ruc, razon_emisor: d.razon, tipo: d.tipo, serie: d.serie, numero: d.numero,
         fecha: /^\d{4}-\d{2}-\d{2}$/.test(d.fecha) ? d.fecha : null, moneda: d.moneda || "PEN", tipo_cambio: d.tipo_cambio || 1,
         base: d.base, igv: d.igv, total: d.total,
