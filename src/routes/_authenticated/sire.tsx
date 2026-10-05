@@ -336,11 +336,12 @@ function PanelLibro({ libro }: { libro: Libro }) {
 }
 
 function ResumenOperaciones({ periodo, libro }: { periodo: string; libro: Libro }) {
-  const { data: regs } = useQuery({
+  const { data: regsData } = useQuery({
     queryKey: ["sire-resumen", periodo],
     queryFn: async () =>
       (await supabase.from("sire_periodos").select("libro,estado,total_base,total_igv,total_docs,items").eq("periodo", periodo)).data ?? [],
   });
+  const regs = regsData ?? [];
   const porLibro = (l: Libro) => regs.find((r) => r.libro === l);
   const tarjeta = (l: Libro, titulo: string, I: React.ElementType) => {
     const r = porLibro(l);
