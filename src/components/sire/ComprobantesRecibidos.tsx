@@ -40,7 +40,7 @@ export function ComprobantesRecibidos({ periodo, items }: { periodo: string; ite
 
   async function descargar(soloFallidas = false) {
     const objetivo = filas.filter((f) => (soloFallidas ? f.r && f.r.estado_descarga !== "Descargado" : sel.has(f.k)));
-    if (!objetivo.length) return toast.info("Selecciona comprobantes");
+    if (!objetivo.length) { toast.info("Selecciona comprobantes");
     setProg({ h: 0, t: objetivo.length });
     let ok = 0, err = 0;
     for (let x = 0; x < objetivo.length; x += 10) {
@@ -62,13 +62,13 @@ export function ComprobantesRecibidos({ periodo, items }: { periodo: string; ite
 
   async function abrir(path: string) {
     const { data, error } = await supabase.storage.from(BUCKET).createSignedUrl(path, 300);
-    if (error || !data) return toast.error("No se pudo abrir el archivo");
+    if (error || !data) { toast.error("No se pudo abrir el archivo");
     window.open(data.signedUrl, "_blank");
   }
 
   async function zip() {
     const paths = recibidos.flatMap((r) => [r.xml_path, r.pdf_path, r.cdr_path].filter(Boolean) as string[]);
-    if (!paths.length) return toast.info("Aún no hay archivos descargados");
+    if (!paths.length) { toast.info("Aún no hay archivos descargados");
     const files: Record<string, Uint8Array> = {};
     for (const p of paths) {
       const { data } = await supabase.storage.from(BUCKET).download(p);
@@ -154,7 +154,7 @@ function RegistrarModal({ recibidos, onCerrar, onListo }: { recibidos: Recibido[
   }
 
   async function confirmar() {
-    for (const r of recibidos) { const x = d(r.id); if (x.tipo === "gd" && (!x.proyecto || !x.partida)) return toast.error(`Elige proyecto y partida para ${r.serie}-${r.numero}`); }
+    for (const r of recibidos) { const x = d(r.id); if (x.tipo === "gd" && (!x.proyecto || !x.partida)) { toast.error(`Elige proyecto y partida para ${r.serie}-${r.numero}`); }
     setOcupado(true);
     let n = 0;
     try {
@@ -165,7 +165,7 @@ function RegistrarModal({ recibidos, onCerrar, onListo }: { recibidos: Recibido[
         const tc = moneda === "USD" ? Number(r.tipo_cambio) || 1 : 1;
         const comp = `${r.serie}-${r.numero}`;
         const { data: its = [] } = await supabase.from("comprobantes_recibidos_items").select("*").eq("comprobante_id", r.id).order("orden");
-        const comunes = { proveedor: r.razon_emisor, proveedor_id: prov, moneda, tipo_cambio: tc, fecha: r.fecha ?? undefined, comprobante: comp, condicion_pago: "Crédito", estado_pago: "Pendiente" };
+        const comunes = { proveedor: r.razon_emisor, proveedor_id: prov, moneda, tipo_cambio: tc, ...(r.fecha ? { fecha: r.fecha } : {}), comprobante: comp, condicion_pago: "Crédito", estado_pago: "Pendiente" };
         let regId: string | undefined;
         if (x.tipo === "gg") {
           const { data, error } = await supabase.from("gastos_generales").insert({

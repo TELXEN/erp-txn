@@ -32,7 +32,7 @@ export async function descargarCpe(token: string, ruc: string, tipo: string, ser
   if (directo) return directo;
   try {
     const j = JSON.parse(strFromU8(u)) as Record<string, unknown>;
-    const val = (j.valArchivo ?? j.archivo ?? j.contenido ?? (j as any).data?.valArchivo) as string | undefined;
+    const val = (j["valArchivo"] ?? j["archivo"] ?? j["contenido"] ?? (j as any).data?.valArchivo) as string | undefined;
     if (val) return detectar(b64(val));
   } catch { /* no json */ }
   return null;
