@@ -7,6 +7,7 @@ import { Encabezado } from "@/components/AppShell";
 import { Boton, Etiqueta, Panel, SinAcceso, Vacio } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { calcularVencimiento } from "@/components/CondicionPago";
+import { ComprobantesCompras } from "@/components/facturacion/ComprobantesCompras";
 import { HojaComprobante, nuevoFormCpe, type FormCpe } from "@/components/facturacion/HojaComprobante";
 import { supabase } from "@/integrations/supabase/client";
 import { useEmpresa } from "@/lib/empresa";
@@ -25,6 +26,7 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
   const crear = useServerFn(crearComprobanteElectronico); const actualizar = useServerFn(actualizarBorradorComprobante); const eliminar = useServerFn(eliminarBorradorComprobante);
   const pestanaInicial: TipoComprobante = esGuias ? "09" : "01";
   const [pestana, setPestana] = useState<TipoComprobante>(pestanaInicial);
+  const [vista, setVista] = useState<"emitidos" | "recibidos">("emitidos");
   const [abierto, setAbierto] = useState(Boolean(preliquidacion));
   const [form, setForm] = useState<FormCpe>(() => nuevoFormCpe(pestanaInicial, SERIE_DEFECTO[pestanaInicial]));
   const [items, setItems] = useState<ItemEditor[]>([itemComprobanteVacio()]);
@@ -142,10 +144,13 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
 
   const tiposVisibles = esGuias ? PESTANAS_CPE.filter((p) => p.tipo === "09") : PESTANAS_CPE;
   const ETIQUETA_BOTON: Record<string, string> = { "01": "Crear Factura", "03": "Crear Boleta", "07": "Crear Notas de Crédito", "08": "Crear Notas de Débito", "20": "Crear Retenciones", "40": "Crear Percepciones", RA: "Nueva comunicación de baja" };
-  return <><Encabezado titulo={esGuias ? "Guías de Remisión" : "Facturación Electrónica"} subtitulo={esGuias ? "Logística · guías de remisión remitente y traslados" : "Comercial · comprobantes, estados SUNAT y cobranza"} acciones={abierto ? <Boton variante="linea" onClick={cerrar}>Cerrar editor</Boton> : <Boton onClick={() => abrirNuevo(pestana)}><FilePlus2 size={14} />{esGuias ? "Nueva guía de remisión" : ETIQUETA_BOTON[pestana] ?? "Nuevo comprobante"}</Boton>} />
+  return <><Encabezado titulo={esGuias ? "Guías de Remisión" : "Facturación Electrónica"} subtitulo={esGuias ? "Logística · guías de remisión remitente y traslados" : "Comercial · comprobantes, estados SUNAT y cobranza"} acciones={vista === "recibidos" ? undefined : abierto ? <Boton variante="linea" onClick={cerrar}>Cerrar editor</Boton> : <Boton onClick={() => abrirNuevo(pestana)}><FilePlus2 size={14} />{esGuias ? "Nueva guía de remisión" : ETIQUETA_BOTON[pestana] ?? "Nuevo comprobante"}</Boton>} />
     {!esGuias && <div className="mb-4 flex flex-wrap gap-1 border-b border-line">
-      {tiposVisibles.map((p) => <button key={p.tipo} type="button" onClick={() => { setPestana(p.tipo); if (abierto) cambiarTipo(p.tipo); }} className={`rounded-t-md px-3 py-2 text-xs font-medium transition ${pestana === p.tipo ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:text-foreground"}`}>{p.etiqueta}</button>)}
+      {tiposVisibles.map((p) => <button key={p.tipo} type="button" onClick={() => { setVista("emitidos"); setPestana(p.tipo); if (abierto) cambiarTipo(p.tipo); }} className={`rounded-t-md px-3 py-2 text-xs font-medium transition ${vista === "emitidos" && pestana === p.tipo ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:text-foreground"}`}>{p.etiqueta}</button>)}
+      <button type="button" onClick={() => setVista("recibidos")} className={`ml-auto rounded-t-md px-3 py-2 text-xs font-medium transition ${vista === "recibidos" ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:text-foreground"}`}>Recibidos (compras)</button>
     </div>}
+
+    {vista === "recibidos" && !esGuias ? <ComprobantesCompras /> : <>
 
     {abierto && <div className="fixed inset-0 z-50 overflow-y-auto bg-background">
       <Panel
@@ -179,5 +184,6 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
         </div></TooltipProvider></td>
       </tr>)}</tbody></table></div>}
     </Panel>
+    </>}
     <AlertDialog open={Boolean(porEliminar)} onOpenChange={(open) => { if (!open) setPorEliminar(null); }}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Eliminar borrador</AlertDialogTitle><AlertDialogDescription>Se eliminará permanentemente el comprobante {porEliminar?.numero}. Esta acción no se puede deshacer.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel disabled={guardando}>Cancelar</AlertDialogCancel><AlertDialogAction disabled={guardando} onClick={() => void confirmarEliminar()} className="bg-bad text-paper hover:bg-bad/90">Eliminar</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog></>;
 }
