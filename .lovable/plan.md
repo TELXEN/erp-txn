@@ -36,7 +36,7 @@ Columna visible en la tabla con selector, fecha y nota editable por fila.
 ### 3. Verificación y respaldo
 - Mantener la ficha A4 imprimible (datos fiscales SUNAT + cliente TELXEN + montos) como respaldo interno.
 - Mantener el adjunto de PDF/XML (el XML sigue leyendo los ítems reales automáticamente).
-- Si se aprueba la descarga automática: botón «Buscar en SUNAT» que descarga y adjunta el XML/PDF faltante sin salida del ERP; si falla, guía corta para hacerlo a mano en el Portal SOL.
+- Botón «Buscar en SUNAT»: descarga y adjunta el XML/PDF faltante sin salir del ERP; si falla, guía corta para hacerlo a mano en el Portal SOL.
 
 ### 4. Edición manual del detalle (sin IA, sin costo)
 - Botón de lápiz por fila para escribir/corregir los ítems (descripción, unidad, cantidad, precio) cuando solo hay el importe consolidado. Sin lectura automática con IA para evitar costo por uso.
