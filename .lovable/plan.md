@@ -26,6 +26,7 @@ Cotización de una sola disciplina          Cotización multidisciplinaria
 ## Grupos
 - Catálogo nuevo **Grupos de cotización** en Datos APU (junto a Especialidades y Categorías), precargado con Suministro de materiales y Montaje electromecánico; se pueden añadir otros (ej. Obras civiles, Pruebas y puesta en servicio).
 - Cada categoría del catálogo puede asociarse a un grupo, para sugerir las categorías correctas al añadir en cada grupo.
+- **Alcance de la cotización** en la cabecera: Suministro + Montaje / Solo suministro / Solo montaje. Con un solo grupo, la hoja no imprime el nivel de grupo (la numeración arranca en la categoría) y el desglose muestra un único subtotal. Las plantillas también guardan su alcance.
 
 ## Plantillas por tipo de obra
 - Nueva pestaña **Plantillas de cotización** en Cotizaciones (o en Datos APU).
