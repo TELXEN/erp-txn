@@ -10,12 +10,12 @@ Matiz importante sobre SUNAT:
 
 Por eso el flujo de recuperación es: verificar en SUNAT (ya sincronizado en el ERP) → descargar el XML/PDF (automático con Clave SOL, o manual desde el Portal SOL) → adjuntarlo en el ERP (que lee los ítems reales automáticamente) → registrar la compra.
 
-## Descarga automática desde el Portal SOL (opción Clave SOL)
+## Descarga automática desde el Portal SOL (aprobada)
 
-Como el sistema del proveedor de software, el ERP puede iniciar sesión en el Portal SOL de SUNAT con las credenciales de TELXEN y descargar automáticamente el XML/PDF de las facturas recibidas que falten:
-- Credenciales de Clave SOL guardadas como secreto del servidor (nunca en el navegador ni en el código).
-- Botón «Buscar en SUNAT» por factura o en lote para el mes; lo descargado se adjunta al bucket privado y se lee el XML para el detalle de ítems.
-- Riesgos a documentar: el portal puede cambiar o pedir validaciones extra (captcha), lo que puede romper la descarga; por eso la ruta manual (adjuntar el archivo) queda siempre disponible como respaldo.
+Como el sistema del proveedor de software, el ERP iniciará sesión en el Portal SOL de SUNAT con la Clave SOL de TELXEN y descargará automáticamente el XML/PDF de las facturas recibidas que falten:
+- Credenciales de Clave SOL guardadas como secreto del servidor (nunca en el navegador ni en el código). Se pedirán al usuario en un formulario seguro durante la construcción.
+- Botón «Buscar en SUNAT» por factura y en lote para el mes; lo descargado se adjunta al bucket privado y el XML alimenta automáticamente el detalle de ítems.
+- La automatización corre en funciones de servidor autenticadas; si el portal pide una validación extra o cambia, la descarga se marca como fallida con un mensaje claro y queda la ruta manual: adjuntar el archivo descargado a mano.
 
 
 ## Cambios
@@ -36,7 +36,7 @@ Columna visible en la tabla con selector, fecha y nota editable por fila.
 ### 3. Verificación y respaldo
 - Mantener la ficha A4 imprimible (datos fiscales SUNAT + cliente TELXEN + montos) como respaldo interno.
 - Mantener el adjunto de PDF/XML (el XML sigue leyendo los ítems reales automáticamente).
-- Si se aprueba la descarga automática: botón «Buscar en SUNAT» que descarga y adjunta el XML/PDF faltante sin salida del ERP; si falla, guía corta para hacerlo a mano en el Portal SOL.
+- Botón «Buscar en SUNAT»: descarga y adjunta el XML/PDF faltante sin salir del ERP; si falla, guía corta para hacerlo a mano en el Portal SOL.
 
 ### 4. Edición manual del detalle (sin IA, sin costo)
 - Botón de lápiz por fila para escribir/corregir los ítems (descripción, unidad, cantidad, precio) cuando solo hay el importe consolidado. Sin lectura automática con IA para evitar costo por uso.
@@ -52,7 +52,8 @@ Columna visible en la tabla con selector, fecha y nota editable por fila.
 ## Detalles técnicos
 
 - Migración: agregar a `comprobantes_recibidos` las columnas `estado_recuperacion` (texto, default 'perdida'), `fecha_solicitud` (date, nula) y `nota_recuperacion` (texto, nula). RLS ya existente no cambia.
-- UI: cambios en `src/components/sire/ComprobantesRecibidos.tsx` (columna de estado con `Select`, fecha y nota; modal de edición de ítems que escribe en `comprobantes_recibidos_items`; retiro de los botones de descarga masiva y del uso de `descargarComprobantesSire` en esta vista).
+- Descarga Portal SOL: nueva función de servidor autenticada con middleware `requireSupabaseAuth` que usa los secretos `SUNAT_SOL_USUARIO` y `SUNAT_SOL_CLAVE` (se pedirán al usuario con formulario seguro en la construcción; nunca se exponen al navegador). Login en el portal, búsqueda del comprobante, descarga del XML/PDF, guardado en el bucket privado `comprobantes-compra` y parseo del XML a `comprobantes_recibidos_items`.
+- UI: cambios en `src/components/sire/ComprobantesRecibidos.tsx` (columna de estado con `Select`, fecha y nota; modal de edición de ítems que escribe en `comprobantes_recibidos_items`; botón «Buscar en SUNAT»; retiro de los botones de descarga masiva y del uso de `descargarComprobantesSire` en esta vista).
 - El texto explicativo y el título se ajustan en `src/components/facturacion/ComprobantesCompras.tsx`.
 - La función de servidor `descargarComprobantesSire` queda sin uso en esta pantalla (se conserva en el código por si se reutiliza).
 
