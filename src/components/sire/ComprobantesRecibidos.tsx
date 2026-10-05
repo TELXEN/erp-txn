@@ -78,6 +78,47 @@ export function ComprobantesRecibidos({ periodo, items }: { periodo: string; ite
     const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `compras-${periodo}.zip`; a.click();
   }
 
+  async function adjuntar(k: string, i: ItemRce, f: File) {
+    const ext = f.name.toLowerCase().endsWith(".xml") ? "xml" : "pdf";
+    const path = `${periodo}/${k}.${ext}`;
+    const up = await supabase.storage.from(BUCKET).upload(path, f, { upsert: true, contentType: ext === "xml" ? "application/xml" : "application/pdf" });
+    if (up.error) { toast.error("No se pudo adjuntar: " + up.error.message); return; }
+    const p = partes(i.serie_numero);
+    const { error } = await supabase.from("comprobantes_recibidos").upsert({
+      periodo, ruc_emisor: i.ruc, razon_emisor: i.razon ?? "", tipo: i.tipo, serie: p.serie, numero: p.numero,
+      fecha: i.fecha || null, moneda: i.moneda || "PEN", tipo_cambio: i.tipo_cambio || 1, base: i.base, igv: i.igv, total: i.total_sunat ?? 0,
+      [ext === "xml" ? "xml_path" : "pdf_path"]: path, error: null,
+    }, { onConflict: "ruc_emisor,tipo,serie,numero" });
+    if (error) { toast.error(error.message); return; }
+    toast.success("Comprobante original adjuntado");
+    qc.invalidateQueries({ queryKey: qk });
+  }
+
+  function ficha(i: ItemRce) {
+    const w = window.open("", "_blank");
+    if (!w) return;
+    const m = (n: number) => (n ?? 0).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const esc = (s: string) => String(s ?? "").replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]!);
+    const sim = i.moneda === "USD" ? "US$" : "S/";
+    w.document.write(`<html><head><title>${esc(i.serie_numero)}</title><style>
+      body{font-family:var(--font-global,Arial),Arial,sans-serif;margin:32px;color:#1e293b;font-size:12px}
+      .box{border:1px solid #334155;border-radius:6px;padding:12px 16px;display:inline-block;text-align:center;float:right}
+      table{width:100%;border-collapse:collapse;margin-top:16px}td{padding:6px 8px;border-bottom:1px solid #e2e8f0}
+      td.r{text-align:right}.t td{font-weight:bold;border-top:2px solid #334155}.nota{margin-top:24px;font-size:10px;color:#64748b}
+    </style></head><body>
+      <div class="box"><b>RUC ${esc(i.ruc)}</b><br/>${i.tipo === "01" ? "FACTURA ELECTRÓNICA" : "COMPROBANTE " + esc(i.tipo)}<br/><b>${esc(i.serie_numero)}</b></div>
+      <h2 style="margin:0">${esc(i.razon)}</h2><p>Representación de datos fiscales registrados en SUNAT (SIRE · RCE)</p>
+      <div style="clear:both"></div>
+      <table><tr><td>Fecha de emisión</td><td class="r">${esc(i.fecha)}</td></tr>
+      <tr><td>Moneda</td><td class="r">${esc(i.moneda || "PEN")}${i.moneda === "USD" ? " · T.C. " + (i.tipo_cambio ?? "") : ""}</td></tr>
+      <tr><td>Base imponible</td><td class="r">${sim} ${m(i.base)}</td></tr>
+      <tr><td>IGV</td><td class="r">${sim} ${m(i.igv)}</td></tr>
+      <tr class="t"><td>Importe total</td><td class="r">${sim} ${m(i.total_sunat ?? 0)}</td></tr></table>
+      <p class="nota">Documento generado por el ERP con información de la propuesta RCE de SUNAT, periodo ${esc(periodo)}. No reemplaza al comprobante emitido por el proveedor.</p>
+      <script>window.onload=()=>window.print()</script></body></html>`);
+    w.document.close();
+  }
+
   const Ic = ({ p, I, t }: { p: string | null; I: React.ElementType; t: string }) => (
     <button disabled={!p} title={p ? `Ver ${t}` : `${t} no disponible`} onClick={() => p && abrir(p)}
       className={`rounded p-1 ${p ? "text-primary hover:bg-muted" : "text-muted-foreground/40"}`}><I className="size-4" /></button>
@@ -116,11 +157,18 @@ export function ComprobantesRecibidos({ periodo, items }: { periodo: string; ite
                 <td className="px-3 py-1.5 text-right font-mono text-xs">{soles(i.total_sunat ?? 0)}</td>
                 <td className="px-3 py-1.5 font-mono text-[11px]">
                   {!r ? <span className="text-muted-foreground">Pendiente</span>
-                    : <span className={r.estado_descarga === "Descargado" ? "text-good" : "text-bad"}>{r.estado_descarga}</span>}
-                  {r?.error && <p className="text-[10px] text-muted-foreground">{r.error}</p>}
+                    : r.estado_descarga === "Descargado" ? <span className="text-good">Descargado</span>
+                    : r.pdf_path || r.xml_path ? <span className="text-good">Original adjuntado</span>
+                    : <span className="text-primary">Datos verificados en SUNAT</span>}
+                  {r && r.estado_descarga !== "Descargado" && !r.pdf_path && !r.xml_path && <p className="text-[10px] text-muted-foreground">SUNAT no entrega el archivo del proveedor; usa la ficha o adjunta el original.</p>}
                 </td>
                 <td className="px-3 py-1.5 text-center whitespace-nowrap">
                   <Ic p={r?.xml_path ?? null} I={FileCode2} t="XML" /><Ic p={r?.pdf_path ?? null} I={FileText} t="PDF" /><Ic p={r?.cdr_path ?? null} I={ShieldCheck} t="CDR" />
+                  <button title="Ficha SUNAT (imprimir / PDF)" onClick={() => ficha(i)} className="rounded p-1 text-primary hover:bg-muted"><Printer className="size-4" /></button>
+                  <label title="Adjuntar PDF o XML original" className="cursor-pointer rounded p-1 text-primary hover:bg-muted inline-flex">
+                    <Paperclip className="size-4" />
+                    <input type="file" accept=".pdf,.xml" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) adjuntar(k, i, f); e.target.value = ""; }} />
+                  </label>
                 </td>
                 <td className="px-3 py-1.5 font-mono text-[11px]">{r?.registrado_en ? <span className="text-good">Registrada</span> : "—"}</td>
               </tr>
