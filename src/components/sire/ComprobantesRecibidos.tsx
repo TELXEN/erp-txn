@@ -94,28 +94,72 @@ export function ComprobantesRecibidos({ periodo, items }: { periodo: string; ite
     qc.invalidateQueries({ queryKey: qk });
   }
 
-  function ficha(i: ItemRce) {
+  async function ficha(i: ItemRce, r?: Recibido) {
     const w = window.open("", "_blank");
     if (!w) return;
-    const m = (n: number) => (n ?? 0).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    const esc = (s: string) => String(s ?? "").replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]!);
-    const sim = i.moneda === "USD" ? "US$" : "S/";
-    w.document.write(`<html><head><title>${esc(i.serie_numero)}</title><style>
-      body{font-family:var(--font-global,Arial),Arial,sans-serif;margin:32px;color:#1e293b;font-size:12px}
-      .box{border:1px solid #334155;border-radius:6px;padding:12px 16px;display:inline-block;text-align:center;float:right}
-      table{width:100%;border-collapse:collapse;margin-top:16px}td{padding:6px 8px;border-bottom:1px solid #e2e8f0}
-      td.r{text-align:right}.t td{font-weight:bold;border-top:2px solid #334155}.nota{margin-top:24px;font-size:10px;color:#64748b}
-    </style></head><body>
-      <div class="box"><b>RUC ${esc(i.ruc)}</b><br/>${i.tipo === "01" ? "FACTURA ELECTRÓNICA" : "COMPROBANTE " + esc(i.tipo)}<br/><b>${esc(i.serie_numero)}</b></div>
-      <h2 style="margin:0">${esc(i.razon)}</h2><p>Representación de datos fiscales registrados en SUNAT (SIRE · RCE)</p>
-      <div style="clear:both"></div>
-      <table><tr><td>Fecha de emisión</td><td class="r">${esc(i.fecha)}</td></tr>
-      <tr><td>Moneda</td><td class="r">${esc(i.moneda || "PEN")}${i.moneda === "USD" ? " · T.C. " + (i.tipo_cambio ?? "") : ""}</td></tr>
-      <tr><td>Base imponible</td><td class="r">${sim} ${m(i.base)}</td></tr>
-      <tr><td>IGV</td><td class="r">${sim} ${m(i.igv)}</td></tr>
-      <tr class="t"><td>Importe total</td><td class="r">${sim} ${m(i.total_sunat ?? 0)}</td></tr></table>
-      <p class="nota">Documento generado por el ERP con información de la propuesta RCE de SUNAT, periodo ${esc(periodo)}. No reemplaza al comprobante emitido por el proveedor.</p>
-      <script>window.onload=()=>window.print()</script></body></html>`);
+    w.document.write("<p style='font-family:Arial;padding:24px'>Preparando factura…</p>");
+    const esc = (s: unknown) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
+    const m = (n: number) => Number(n || 0).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const fmt = (v?: string | null) => { if (!v) return "—"; const s = String(v).slice(0, 10); const [a, b, c] = s.split("-"); return a && b && c && a.length === 4 ? `${c}/${b}/${a}` : s; };
+    const raw = ((i as any).raw ?? {}) as Record<string, unknown>;
+    const vencRaw = String((i as any).vencimiento || raw.fecvencpag || raw.fechavencimiento || "").trim();
+    const moneda = (i.moneda === "USD" ? "USD" : "PEN") as "PEN" | "USD";
+    const sim = moneda === "USD" ? "US$" : "S/";
+    const nog = Number((i as any).no_gravado || 0), isc = Number((i as any).isc || 0), otros = Number((i as any).otros || 0);
+    const total = Number(i.total_sunat ?? i.base + i.igv);
+    const toDate = (s: string) => { const p = s.includes("/") ? s.split("/").reverse().join("-") : s.slice(0, 10); const d = new Date(p + "T00:00:00"); return isNaN(+d) ? null : d; };
+    const fe = toDate(String(i.fecha || "")), fv = vencRaw ? toDate(vencRaw) : null;
+    const plazo = fe && fv ? Math.round((+fv - +fe) / 86400000) : 0;
+    const condicion = fv && plazo > 0 ? `Crédito a ${plazo} días` : "Contado";
+    const [{ data: emp }, { data: prov }, its] = await Promise.all([
+      supabase.from("empresa_config").select("*").order("created_at").limit(1).maybeSingle(),
+      supabase.from("terceros").select("razon_social, direccion").eq("numero_documento", i.ruc).maybeSingle(),
+      r ? supabase.from("comprobantes_recibidos_items").select("*").eq("comprobante_id", r.id).order("orden").then((x) => x.data ?? []) : Promise.resolve([] as any[]),
+    ]);
+    const { montoEnLetras } = await import("@/lib/facturacion");
+    const items = (its as any[]).length ? (its as any[]) : [{ descripcion: "Bienes / servicios según comprobante del proveedor (detalle no disponible en SUNAT)", unidad: "ZZ", cantidad: 1, precio_unitario: i.base, valor: i.base }];
+    const tipoNom: Record<string, string> = { "01": "FACTURA ELECTRÓNICA", "03": "BOLETA DE VENTA ELECTRÓNICA", "07": "NOTA DE CRÉDITO ELECTRÓNICA", "08": "NOTA DE DÉBITO ELECTRÓNICA" };
+    const e = (emp ?? {}) as any;
+    const filaD = (l: string, v: string) => `<div class="kv"><b>${l}</b><span>:</span><span>${esc(v)}</span></div>`;
+    const filaT = (l: string, v: number, b = false) => `<tr${b ? ' class="tt"' : ""}><td>${l}</td><td class="r">${sim} ${m(v)}</td></tr>`;
+    w.document.open();
+    w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(i.serie_numero)} · ${esc(i.razon)}</title><style>
+      @page{size:A4;margin:14mm}*{box-sizing:border-box}
+      body{font-family:var(--font-global,Arial),Arial,sans-serif;color:#1f2937;font-size:9.5pt;margin:0}
+      .hoja{max-width:182mm;margin:0 auto}
+      .cab{display:flex;justify-content:space-between;gap:16px;border-bottom:2px solid #1e3a5f;padding-bottom:10px}
+      .emi h1{font-size:13pt;margin:0 0 4px;color:#1e3a5f}.emi p{margin:1px 0;font-size:8.5pt}
+      .box{border:1px solid #94a3b8;border-top:4px solid #1e3a5f;border-radius:6px;padding:10px 14px;text-align:center;min-width:58mm}
+      .box div{margin:2px 0}.box .n{font-size:13pt;font-weight:700;color:#1e3a5f}
+      .datos{display:grid;grid-template-columns:1.4fr 1fr;gap:14px;margin:12px 0;padding:10px;border:1px solid #e2e8f0;border-left:3px solid #1e3a5f;border-radius:6px;background:#f8fafc}
+      .kv{display:grid;grid-template-columns:92px 8px 1fr;font-size:8.5pt;line-height:1.45}.kv b{font-weight:700}
+      h3{font-size:8.5pt;margin:0 0 4px;color:#1e3a5f}
+      table.it{width:100%;border-collapse:collapse}table.it th{background:#1e3a5f;color:#fff;font-size:7pt;padding:4px;text-align:center}
+      table.it td{padding:4px;border-bottom:1px solid #e2e8f0;vertical-align:top;font-size:8.5pt}table.it tr:nth-child(even) td{background:#f8fafc}
+      .r{text-align:right}.c{text-align:center}
+      .pie{display:flex;gap:14px;margin-top:10px;align-items:flex-start}.pie .izq{flex:1}
+      table.tot{width:74mm;border-collapse:collapse;margin-left:auto}table.tot td{padding:2px 4px;border-bottom:1px solid #e2e8f0;font-size:8.5pt}.tt td{font-weight:700}
+      .son{margin:10px 0;font-weight:700;text-align:justify;font-size:8.5pt}
+      .card{border:1px solid #e2e8f0;border-radius:6px;padding:8px;font-size:8.5pt}
+      .nota{margin-top:14px;border-top:1px solid #cbd5e1;padding-top:6px;font-size:7pt;color:#475569}
+      @media print{.hoja{max-width:none}}
+    </style></head><body><div class="hoja">
+      <div class="cab"><div class="emi"><h1>${esc(prov?.razon_social || i.razon)}</h1>
+        <p>RUC: ${esc(i.ruc)}</p><p>Dirección: ${esc(prov?.direccion || "—")}</p></div>
+        <div class="box"><div><b>RUC ${esc(i.ruc)}</b></div><div><b>${tipoNom[i.tipo] ?? "COMPROBANTE " + esc(i.tipo)}</b></div><div class="n">${esc(i.serie_numero)}</div></div></div>
+      <div class="datos"><div><h3>ADQUIRIENTE / CLIENTE</h3>
+        ${filaD("Razón social", e.razon_social || "—")}${filaD("RUC", e.ruc || "—")}${filaD("Dirección", e.direccion || "—")}</div>
+        <div><h3>DATOS DEL COMPROBANTE</h3>
+        ${filaD("F. emisión", fmt(i.fecha))}${filaD("F. vencimiento", fv ? fmt(vencRaw) : "—")}${filaD("Forma de pago", condicion)}${filaD("Plazo", plazo > 0 ? `${plazo} días` : "—")}${filaD("Moneda", moneda === "USD" ? "Dólares americanos (USD)" : "Soles (PEN)")}${moneda === "USD" ? filaD("T. cambio", Number(i.tipo_cambio || 0).toFixed(3)) : ""}</div></div>
+      <table class="it"><thead><tr><th style="width:5%">#</th><th>DESCRIPCIÓN</th><th style="width:8%">UNIDAD</th><th style="width:10%">CANTIDAD</th><th style="width:14%">VALOR<br/>UNITARIO</th><th style="width:14%">IMPORTE<br/>TOTAL</th></tr></thead><tbody>
+        ${items.map((x, k) => `<tr><td class="c">${k + 1}</td><td>${esc(x.descripcion)}</td><td class="c">${esc(x.unidad || "—")}</td><td class="r">${m(x.cantidad)}</td><td class="r">${m(x.precio_unitario)}</td><td class="r">${m(x.valor)}</td></tr>`).join("")}
+      </tbody></table>
+      <div class="pie"><div class="izq">
+        <div class="card"><h3>FORMA DE PAGO</h3>${esc(condicion)}${fv ? ` · Vence ${fmt(vencRaw)} · ${sim} ${m(total)}` : ""}</div></div>
+        <table class="tot">${filaT("Op. gravadas", i.base)}${nog ? filaT("Op. no gravadas", nog) : ""}${isc ? filaT("ISC", isc) : ""}${filaT("IGV (18%)", i.igv)}${otros ? filaT("Otros tributos", otros) : ""}${filaT("Importe total", total, true)}</table></div>
+      <div class="son">${esc(montoEnLetras(total, moneda))}</div>
+      <div class="nota">Representación generada por el ERP con los datos fiscales declarados en SUNAT (SIRE · RCE), periodo ${esc(periodo)}. ${(its as any[]).length ? "Detalle de ítems obtenido del XML del proveedor." : "SUNAT no entregó el detalle de ítems; se muestra el importe consolidado."} No reemplaza al comprobante original emitido por el proveedor.</div>
+    </div><script>window.onload=()=>setTimeout(()=>window.print(),300)</script></body></html>`);
     w.document.close();
   }
 
