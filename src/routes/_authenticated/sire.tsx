@@ -374,7 +374,7 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
                         <tr key={i.clave} onClick={() => setDetalle(i)} className={`cursor-pointer border-t border-line ${parcial ? "bg-sky-500/[0.07] hover:bg-sky-500/[0.13]" : sin ? "bg-amber-500/[0.07] hover:bg-amber-500/[0.13]" : "hover:bg-muted/30"}`}>
                           <td className="px-3 py-2 font-mono text-xs">{fmtFecha(i.fecha)}</td>
                           <td className="px-3 py-2 font-mono text-xs">{i.tipo}</td>
-                          <td className="px-3 py-2 font-mono text-xs">{i.serie_numero}</td>
+                          <td className="px-3 py-2 font-mono text-xs whitespace-nowrap">{i.serie_numero}</td>
                           <td className="px-3 py-2"><p className="font-mono text-[11px] text-muted-foreground">{i.ruc || "—"}</p><p className="truncate text-xs">{i.razon}</p></td>
                           <td className="px-3 py-2 text-right font-mono text-xs">{soles(i.base)}</td>
                           <td className="px-3 py-2 text-right font-mono text-xs">
