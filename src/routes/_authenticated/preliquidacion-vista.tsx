@@ -10,7 +10,6 @@ import { useFuenteDocumento } from "@/lib/fuentes-documentos";
 import { calcularMontos, type TipoTributario } from "@/lib/preliquidacion-montos";
 import { HojaPreliquidacion, type HojaPLCuenta } from "@/components/HojaPreliquidacion";
 import type { Preliquidacion } from "@/components/Preliquidaciones";
-import { descargarPreliquidacionPdf } from "@/components/PreliquidacionPdf";
 
 export const Route = createFileRoute("/_authenticated/preliquidacion-vista")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -144,6 +143,7 @@ function VistaPreliquidacion() {
     if (!pl) return;
     setPdfCargando(true);
     try {
+      const { descargarPreliquidacionPdf } = await import("@/components/PreliquidacionPdf");
       await descargarPreliquidacionPdf({
         codigo: pl.codigo,
         fecha: pl.fecha,
