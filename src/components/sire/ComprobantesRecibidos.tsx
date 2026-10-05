@@ -214,7 +214,7 @@ export function ComprobantesRecibidos({ periodo, items }: { periodo: string; ite
             {filas.map(({ k, i, r }) => (
               <tr key={k} className="border-t border-line">
                 <td className="px-3 py-1.5 text-center"><input type="checkbox" checked={sel.has(k)} onChange={() => { const s = new Set(sel); s.has(k) ? s.delete(k) : s.add(k); setSel(s); }} /></td>
-                <td className="px-3 py-1.5 font-mono text-xs">{i.tipo} · {i.serie_numero}</td>
+                <td className="whitespace-nowrap px-3 py-1.5 font-mono text-xs">{i.serie_numero}</td>
                 <td className="px-3 py-1.5"><p className="font-mono text-[11px] text-muted-foreground">{i.ruc}</p><p className="truncate text-xs">{i.razon}</p></td>
                 <td className="px-3 py-1.5 text-right font-mono text-xs">{soles(i.total_sunat ?? 0)}</td>
                 <td className="px-3 py-1.5 font-mono text-[11px]">
