@@ -210,6 +210,7 @@ function PanelLibro({ libro }: { libro: Libro }) {
 
   return (
     <div className="space-y-4">
+      <ResumenOperaciones periodo={periodo} libro={libro} />
       <div className="flex flex-wrap items-center gap-2">
         {pasos.map((p, i) => {
           const n = i + 1; const act = paso === n; const hecho = paso > n;
