@@ -275,14 +275,22 @@ function PanelLibro({ libro }: { libro: Libro }) {
                   <tbody>
                     {visibles.map((i) => {
                       const e = ESTADO_UI[i.estado];
+                      const menor18 = esIgvMenor18(i);
                       return (
-                        <tr key={i.clave} onClick={() => setDetalle(i)} className="cursor-pointer border-t border-line hover:bg-muted/30">
+                        <tr key={i.clave} onClick={() => setDetalle(i)} className={`cursor-pointer border-t border-line ${menor18 ? "bg-amber-500/[0.07] hover:bg-amber-500/[0.13]" : "hover:bg-muted/30"}`}>
                           <td className="px-3 py-2 font-mono text-xs">{fmtFecha(i.fecha)}</td>
                           <td className="px-3 py-2 font-mono text-xs">{i.tipo}</td>
                           <td className="px-3 py-2 font-mono text-xs">{i.serie_numero}</td>
                           <td className="px-3 py-2"><p className="font-mono text-[11px] text-muted-foreground">{i.ruc || "—"}</p><p className="truncate text-xs">{i.razon}</p></td>
                           <td className="px-3 py-2 text-right font-mono text-xs">{soles(i.base)}</td>
-                          <td className="px-3 py-2 text-right font-mono text-xs">{soles(i.igv)}</td>
+                          <td className="px-3 py-2 text-right font-mono text-xs">
+                            {soles(i.igv)}
+                            {menor18 && (
+                              <span className="ml-1 rounded bg-amber-500/15 px-1 font-mono text-[10px] font-semibold text-amber-700 dark:text-amber-400">
+                                {(i.igv ?? 0) < 0.005 ? "SIN IGV" : `${(tasaIgv(i) * 100).toFixed(1)}%`}
+                              </span>
+                            )}
+                          </td>
                           <td className="px-3 py-2 text-right font-mono text-xs">{i.total_sunat == null ? "—" : soles(i.total_sunat)}</td>
                           <td className="px-3 py-2 text-right font-mono text-xs">
                             {i.total_erp == null ? "—" : soles(i.total_erp)}
