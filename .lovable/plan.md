@@ -59,5 +59,4 @@ Columna visible en la tabla con selector, fecha y nota editable por fila.
 ## Fuera de alcance
 
 - Lectura automática de PDF con IA (tiene costo por uso; se puede evaluar después si el volumen de casos lo justifica).
-- Descarga automática del XML desde SUNAT (la API no lo permite; solo manual en Portal SOL).
 - Creación de cuentas por pagar en Tesorería (se mantiene el flujo actual de registro).
