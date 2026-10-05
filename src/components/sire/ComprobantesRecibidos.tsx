@@ -87,7 +87,7 @@ export function ComprobantesRecibidos({ periodo, items }: { periodo: string; ite
     const { error } = await supabase.from("comprobantes_recibidos").upsert({
       periodo, ruc_emisor: i.ruc, razon_emisor: i.razon ?? "", tipo: i.tipo, serie: p.serie, numero: p.numero,
       fecha: i.fecha || null, moneda: i.moneda || "PEN", tipo_cambio: i.tipo_cambio || 1, base: i.base, igv: i.igv, total: i.total_sunat ?? 0,
-      [ext === "xml" ? "xml_path" : "pdf_path"]: path, error: null,
+      ...(ext === "xml" ? { xml_path: path } : { pdf_path: path }), error: null,
     }, { onConflict: "ruc_emisor,tipo,serie,numero" });
     if (error) { toast.error(error.message); return; }
     toast.success("Comprobante original adjuntado");
