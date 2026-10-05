@@ -278,11 +278,12 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
   }), [items]);
   const visibles = items.filter((i) => filtro === "todos" || (filtro === "ok" && i.estado === "match") || (filtro === "disc" && i.estado === "discrepancia") || (filtro === "sunat" && i.estado === "faltante"));
 
-  // IGV de compras: detectar tasas menores al 18% (exonerados, tasas reducidas) y comprobantes sin IGV.
+  // IGV de compras: separar comprobantes sin IGV (ámbar) y con tasa parcial entre 10% y 18% (azul).
   const tasaIgv = (i: Item) => (i.base > 0 ? i.igv / i.base : 0);
-  const esIgvMenor18 = (i: Item) => libro === "RCE" && tasaIgv(i) < 0.1795;
   const sinIgv = useMemo(() => items.filter((i) => (i.igv ?? 0) < 0.005), [items]);
   const sumaSinIgv = useMemo(() => r2(sinIgv.reduce((s, i) => s + (i.total_sunat ?? i.base + i.igv), 0)), [sinIgv]);
+  const igvParcial = useMemo(() => items.filter((i) => { const t = tasaIgv(i); return t >= 0.10 && t < 0.1795; }), [items]);
+  const sumaIgvParcial = useMemo(() => r2(igvParcial.reduce((s, i) => s + (i.total_sunat ?? i.base + i.igv), 0)), [igvParcial]);
 
   function generarTxt() {
     const ruc = rucEmpresa ?? "";
@@ -344,9 +345,14 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
           <Panel titulo={`PASO 2 · CONCILIACIÓN SUNAT vs ERP · ${(MESES[m - 1] ?? "").toUpperCase()} ${y}`}
             extra={<div className="flex flex-wrap gap-1">
               {libro === "RCE" && (
-                <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 px-2.5 py-1 font-mono text-[11px] text-amber-700 ring-1 ring-amber-500/25 dark:text-amber-400">
-                  <AlertTriangle className="size-3" />Sin IGV: {sinIgv.length} comp. · {soles(sumaSinIgv)}
-                </span>
+                <>
+                  <span className="inline-flex items-center gap-1 rounded-md bg-sky-500/10 px-2.5 py-1 font-mono text-[11px] text-sky-700 ring-1 ring-sky-500/25 dark:text-sky-400">
+                    <AlertTriangle className="size-3" />IGV 10–18%: {igvParcial.length} comp. · {soles(sumaIgvParcial)}
+                  </span>
+                  <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 px-2.5 py-1 font-mono text-[11px] text-amber-700 ring-1 ring-amber-500/25 dark:text-amber-400">
+                    <AlertTriangle className="size-3" />Sin IGV: {sinIgv.length} comp. · {soles(sumaSinIgv)}
+                  </span>
+                </>
               )}
               {([["todos", "Todos"], ["ok", "Conciliados"], ["disc", "Con Discrepancias"], ["sunat", "Solo en SUNAT"]] as const).map(([k, t]) => (
                 <button key={k} onClick={() => setFiltro(k)} className={`rounded-md px-2.5 py-1 font-mono text-[11px] ${filtro === k ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}>{t} <span className="opacity-70">({cuenta[k]})</span></button>
@@ -361,9 +367,11 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
                   <tbody>
                     {visibles.map((i) => {
                       const e = ESTADO_UI[i.estado];
-                      const menor18 = esIgvMenor18(i);
+                      const t = tasaIgv(i);
+                      const parcial = t >= 0.10 && t < 0.1795;
+                      const sin = (i.igv ?? 0) < 0.005;
                       return (
-                        <tr key={i.clave} onClick={() => setDetalle(i)} className={`cursor-pointer border-t border-line ${menor18 ? "bg-amber-500/[0.07] hover:bg-amber-500/[0.13]" : "hover:bg-muted/30"}`}>
+                        <tr key={i.clave} onClick={() => setDetalle(i)} className={`cursor-pointer border-t border-line ${parcial ? "bg-sky-500/[0.07] hover:bg-sky-500/[0.13]" : sin ? "bg-amber-500/[0.07] hover:bg-amber-500/[0.13]" : "hover:bg-muted/30"}`}>
                           <td className="px-3 py-2 font-mono text-xs">{fmtFecha(i.fecha)}</td>
                           <td className="px-3 py-2 font-mono text-xs">{i.tipo}</td>
                           <td className="px-3 py-2 font-mono text-xs">{i.serie_numero}</td>
@@ -371,9 +379,14 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
                           <td className="px-3 py-2 text-right font-mono text-xs">{soles(i.base)}</td>
                           <td className="px-3 py-2 text-right font-mono text-xs">
                             {soles(i.igv)}
-                            {menor18 && (
+                            {parcial && (
+                              <span className="ml-1 rounded bg-sky-500/15 px-1 font-mono text-[10px] font-semibold text-sky-700 dark:text-sky-400">
+                                {(t * 100).toFixed(1)}%
+                              </span>
+                            )}
+                            {sin && (
                               <span className="ml-1 rounded bg-amber-500/15 px-1 font-mono text-[10px] font-semibold text-amber-700 dark:text-amber-400">
-                                {(i.igv ?? 0) < 0.005 ? "SIN IGV" : `${(tasaIgv(i) * 100).toFixed(1)}%`}
+                                SIN IGV
                               </span>
                             )}
                           </td>
@@ -400,8 +413,10 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
             )}
             {libro === "RCE" && (
               <p className="border-t border-line px-5 py-2 font-mono text-[10px] text-muted-foreground">
-                <span className="mr-1 inline-block size-2 rounded-sm bg-amber-500/40 align-middle" />
-                Resaltado en ámbar: comprobantes con IGV menor al 18% (exonerados, tasas reducidas o sin IGV). Sin IGV: {sinIgv.length} comp. por {soles(sumaSinIgv)}.
+                <span className="mr-1 inline-block size-2 rounded-sm bg-sky-500/40 align-middle" />
+                Azul: IGV entre 10% y 18% (tasas parciales) — {igvParcial.length} comp. por {soles(sumaIgvParcial)}.{" "}
+                <span className="ml-1 inline-block size-2 rounded-sm bg-amber-500/40 align-middle" />
+                Ámbar: comprobantes sin IGV (exonerados) — {sinIgv.length} comp. por {soles(sumaSinIgv)}.
               </p>
             )}
             <div className="flex justify-between border-t border-line px-5 py-3">
