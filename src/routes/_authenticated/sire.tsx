@@ -184,6 +184,12 @@ function PanelLibro({ libro }: { libro: Libro }) {
   }), [items]);
   const visibles = items.filter((i) => filtro === "todos" || (filtro === "ok" && i.estado === "match") || (filtro === "disc" && i.estado === "discrepancia") || (filtro === "sunat" && i.estado === "faltante"));
 
+  // IGV de compras: detectar tasas menores al 18% (exonerados, tasas reducidas) y comprobantes sin IGV.
+  const tasaIgv = (i: Item) => (i.base > 0 ? i.igv / i.base : 0);
+  const esIgvMenor18 = (i: Item) => libro === "RCE" && tasaIgv(i) < 0.1795;
+  const sinIgv = useMemo(() => items.filter((i) => (i.igv ?? 0) < 0.005), [items]);
+  const sumaSinIgv = useMemo(() => r2(sinIgv.reduce((s, i) => s + (i.total_sunat ?? i.base + i.igv), 0)), [sinIgv]);
+
   function generarTxt() {
     const ruc = rucEmpresa ?? "";
     const lineas = items.map((i, n) => [periodo.replace("-", ""), String(n + 1).padStart(6, "0"), fmtFecha(i.fecha), i.tipo, ...i.serie_numero.split("-"), "6", i.ruc, i.razon, i.base.toFixed(2), i.igv.toFixed(2), (i.total_sunat ?? 0).toFixed(2), "PEN"].join("|"));
