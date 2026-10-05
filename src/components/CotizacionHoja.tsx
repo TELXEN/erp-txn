@@ -468,7 +468,7 @@ export function CotizacionHoja({
       (i) => i.especialidad === esp && (cat === null || ((i.categoria ?? "").trim() || "Sin categoría") === cat),
     );
     const n = afectadas.filter(esPartida).length;
-    const que = cat === null ? `la especialidad "${esp}"` : `la categoría "${cat}"`;
+    const que = cat === null ? `${multi ? "la especialidad" : "el grupo"} "${esp}"` : `la categoría "${cat}"`;
     if (!window.confirm(`¿Borrar ${que}${n ? ` y sus ${n} partida(s)` : ""}? Esta acción no se puede deshacer.`)) return;
     setError("");
     const { error: err } = await supabase.from("cotizacion_items").delete().in("id", afectadas.map((i) => i.id));
@@ -712,7 +712,7 @@ export function CotizacionHoja({
             onClick={() => void nuevaEspecialidad()}
             className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-2 text-[12px] font-medium text-primary-foreground hover:opacity-90"
           >
-            <FolderPlus size={14} /> Nueva especialidad
+            <FolderPlus size={14} /> {multi ? "Nueva especialidad" : "Nuevo grupo"}
           </button>
           <button
             type="button"
@@ -754,7 +754,7 @@ export function CotizacionHoja({
           onClick={() => void nuevaEspecialidad()}
           className="inline-flex items-center gap-1 rounded-md border border-line px-2.5 py-1.5 text-[12.5px] text-primary hover:bg-primary/10"
         >
-          <FolderPlus size={12} /> Especialidad
+          <FolderPlus size={12} /> {multi ? "Especialidad" : "Grupo"}
         </button>
         {alAbrirCatalogo && (
           <button
@@ -839,7 +839,7 @@ export function CotizacionHoja({
                 </ContextMenuTrigger>
                 <ContextMenuContent className="w-56 print:hidden">
                   <ContextMenuLabel className="truncate text-xs">
-                    {cap ? "Especialidad" : "Categoría"}: {f.texto}
+                    {cap ? (multi ? "Especialidad" : "Grupo") : "Categoría"}: {f.texto}
                   </ContextMenuLabel>
                   <ContextMenuSeparator />
                   {cap && (
@@ -857,7 +857,7 @@ export function CotizacionHoja({
                     className="text-bad focus:text-bad"
                     onSelect={() => void borrarGrupo(f.esp, f.clase === "sub" ? f.cat : null)}
                   >
-                    <Trash2 size={14} className="mr-2" /> Borrar {cap ? "especialidad" : "categoría"}
+                    <Trash2 size={14} className="mr-2" /> Borrar {cap ? (multi ? "especialidad" : "grupo") : "categoría"}
                   </ContextMenuItem>
                 </ContextMenuContent>
                 </ContextMenu>
@@ -991,7 +991,7 @@ export function CotizacionHoja({
                 onClick={() => void nuevaEspecialidad()}
                 className="inline-flex items-center gap-1 rounded-md border border-dashed border-line px-2.5 py-1.5 text-[12.5px] text-muted-foreground hover:border-primary hover:text-primary"
               >
-                <FolderPlus size={12} /> Nueva especialidad (capítulo)
+                <FolderPlus size={12} /> {multi ? "Nueva especialidad (capítulo)" : "Nuevo grupo (capítulo)"}
               </button>
             </td>
           </tr>
