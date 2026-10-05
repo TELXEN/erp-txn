@@ -1090,6 +1090,125 @@ export type Database = {
           },
         ]
       }
+      comprobantes_recibidos: {
+        Row: {
+          base: number
+          cdr_path: string | null
+          created_at: string
+          error: string | null
+          estado_descarga: string
+          fecha: string | null
+          id: string
+          igv: number
+          moneda: string
+          numero: string
+          pdf_path: string | null
+          periodo: string
+          razon_emisor: string
+          registrado_en: string | null
+          registro_id: string | null
+          ruc_emisor: string
+          serie: string
+          tipo: string
+          tipo_cambio: number
+          total: number
+          updated_at: string
+          xml_path: string | null
+        }
+        Insert: {
+          base?: number
+          cdr_path?: string | null
+          created_at?: string
+          error?: string | null
+          estado_descarga?: string
+          fecha?: string | null
+          id?: string
+          igv?: number
+          moneda?: string
+          numero: string
+          pdf_path?: string | null
+          periodo: string
+          razon_emisor?: string
+          registrado_en?: string | null
+          registro_id?: string | null
+          ruc_emisor: string
+          serie: string
+          tipo: string
+          tipo_cambio?: number
+          total?: number
+          updated_at?: string
+          xml_path?: string | null
+        }
+        Update: {
+          base?: number
+          cdr_path?: string | null
+          created_at?: string
+          error?: string | null
+          estado_descarga?: string
+          fecha?: string | null
+          id?: string
+          igv?: number
+          moneda?: string
+          numero?: string
+          pdf_path?: string | null
+          periodo?: string
+          razon_emisor?: string
+          registrado_en?: string | null
+          registro_id?: string | null
+          ruc_emisor?: string
+          serie?: string
+          tipo?: string
+          tipo_cambio?: number
+          total?: number
+          updated_at?: string
+          xml_path?: string | null
+        }
+        Relationships: []
+      }
+      comprobantes_recibidos_items: {
+        Row: {
+          cantidad: number
+          comprobante_id: string
+          created_at: string
+          descripcion: string
+          id: string
+          orden: number
+          precio_unitario: number
+          unidad: string
+          valor: number
+        }
+        Insert: {
+          cantidad?: number
+          comprobante_id: string
+          created_at?: string
+          descripcion?: string
+          id?: string
+          orden?: number
+          precio_unitario?: number
+          unidad?: string
+          valor?: number
+        }
+        Update: {
+          cantidad?: number
+          comprobante_id?: string
+          created_at?: string
+          descripcion?: string
+          id?: string
+          orden?: number
+          precio_unitario?: number
+          unidad?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comprobantes_recibidos_items_comprobante_id_fkey"
+            columns: ["comprobante_id"]
+            isOneToOne: false
+            referencedRelation: "comprobantes_recibidos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       configuracion_documentos: {
         Row: {
           created_at: string
