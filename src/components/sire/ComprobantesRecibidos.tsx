@@ -84,13 +84,31 @@ export function ComprobantesRecibidos({ periodo, items }: { periodo: string; ite
     const up = await supabase.storage.from(BUCKET).upload(path, f, { upsert: true, contentType: ext === "xml" ? "application/xml" : "application/pdf" });
     if (up.error) { toast.error("No se pudo adjuntar: " + up.error.message); return; }
     const p = partes(i.serie_numero);
-    const { error } = await supabase.from("comprobantes_recibidos").upsert({
+    const { data: cab, error } = await supabase.from("comprobantes_recibidos").upsert({
       periodo, ruc_emisor: i.ruc, razon_emisor: i.razon ?? "", tipo: i.tipo, serie: p.serie, numero: p.numero,
       fecha: i.fecha || null, moneda: i.moneda || "PEN", tipo_cambio: i.tipo_cambio || 1, base: i.base, igv: i.igv, total: i.total_sunat ?? 0,
       ...(ext === "xml" ? { xml_path: path } : { pdf_path: path }), error: null,
-    }, { onConflict: "ruc_emisor,tipo,serie,numero" });
+    }, { onConflict: "ruc_emisor,tipo,serie,numero" }).select("id").single();
     if (error) { toast.error(error.message); return; }
-    toast.success("Comprobante original adjuntado");
+    if (ext === "xml" && cab) {
+      // Leer las líneas reales emitidas por el proveedor desde el XML UBL
+      const doc = new DOMParser().parseFromString(await f.text(), "application/xml");
+      const hijos = (el: Element, nombre: string) => Array.from(el.getElementsByTagName("*")).filter((x) => x.localName === nombre);
+      const txt = (el: Element, nombre: string) => hijos(el, nombre)[0]?.textContent?.trim() ?? "";
+      const lineas = hijos(doc.documentElement, "InvoiceLine").concat(hijos(doc.documentElement, "CreditNoteLine"), hijos(doc.documentElement, "DebitNoteLine"));
+      const filas = lineas.map((l, n) => {
+        const cantEl = hijos(l, "InvoicedQuantity")[0] ?? hijos(l, "CreditedQuantity")[0] ?? hijos(l, "DebitedQuantity")[0];
+        const desc = hijos(l, "Description").map((d) => d.textContent?.trim()).filter(Boolean).join(" ");
+        const precio = hijos(l, "Price")[0];
+        return { comprobante_id: cab.id, orden: n, descripcion: desc || "—", unidad: cantEl?.getAttribute("unitCode") ?? "", cantidad: Number(cantEl?.textContent || 0), precio_unitario: Number(precio ? txt(precio, "PriceAmount") : 0), valor: Number(txt(l, "LineExtensionAmount") || 0) };
+      });
+      if (filas.length) {
+        await supabase.from("comprobantes_recibidos_items").delete().eq("comprobante_id", cab.id);
+        const r = await supabase.from("comprobantes_recibidos_items").insert(filas);
+        if (r.error) toast.error("No se pudieron leer los ítems: " + r.error.message);
+      }
+    }
+    toast.success(ext === "xml" ? "XML adjuntado: la factura usará la descripción emitida" : "Comprobante original adjuntado");
     qc.invalidateQueries({ queryKey: qk });
   }
 
@@ -117,7 +135,7 @@ export function ComprobantesRecibidos({ periodo, items }: { periodo: string; ite
       r ? supabase.from("comprobantes_recibidos_items").select("*").eq("comprobante_id", r.id).order("orden").then((x) => x.data ?? []) : Promise.resolve([] as any[]),
     ]);
     const { montoEnLetras } = await import("@/lib/facturacion");
-    const items = (its as any[]).length ? (its as any[]) : [{ descripcion: "Bienes / servicios según comprobante del proveedor (detalle no disponible en SUNAT)", unidad: "ZZ", cantidad: 1, precio_unitario: i.base, valor: i.base }];
+    const items = (its as any[]).length ? (its as any[]) : [{ descripcion: "Detalle no disponible: adjunte el XML del proveedor (icono de clip) para mostrar la descripción emitida", unidad: "ZZ", cantidad: 1, precio_unitario: i.base, valor: i.base }];
     const tipoNom: Record<string, string> = { "01": "FACTURA ELECTRÓNICA", "03": "BOLETA DE VENTA ELECTRÓNICA", "07": "NOTA DE CRÉDITO ELECTRÓNICA", "08": "NOTA DE DÉBITO ELECTRÓNICA" };
     const e = (emp ?? {}) as any;
     const filaD = (l: string, v: string) => `<div class="kv"><b>${l}</b><span>:</span><span>${esc(v)}</span></div>`;
