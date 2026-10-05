@@ -19,10 +19,10 @@ export async function cargarCredenciales(): Promise<Cred> {
   return { ...cfg, client_secret: cred.client_secret, clave_sol: cred.clave_sol };
 }
 
-export async function obtenerToken(c: Cred): Promise<string> {
+export async function obtenerToken(c: Cred, scope = "https://api-sire.sunat.gob.pe"): Promise<string> {
   const body = new URLSearchParams({
     grant_type: "password",
-    scope: "https://api-sire.sunat.gob.pe",
+    scope,
     client_id: c.client_id,
     client_secret: c.client_secret,
     username: `${c.ruc}${c.usuario_sol}`,

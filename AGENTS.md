@@ -26,3 +26,4 @@
 - Invoice, quotation and preliquidation documents take colors and font from src/lib/documento-tema.ts — one change updates all three outputs.
 
 - La preliquidación usa una única hoja compartida (src/components/HojaPreliquidacion.tsx) para edición (fluida, campos en línea) y vista previa/impresión (A4 fijo, solo lectura); los cálculos de montos viven en src/lib/preliquidacion-montos.ts — así edición, vista previa y PDF nunca divergen.
+- Purchase invoices downloaded from SUNAT are archived in comprobantes_recibidos(+_items) and the private comprobantes-compra bucket; downloads run only via the authenticated descargarComprobantesSire server fn in batches of 10 — keeps SOL credentials server-side and avoids worker timeouts.
