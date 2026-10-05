@@ -280,7 +280,7 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
 
   // IGV de compras: separar comprobantes sin IGV (ámbar) y con tasa parcial entre 10% y 18% (azul).
   const tasaIgv = (i: Item) => (i.base > 0 ? i.igv / i.base : 0);
-  const sinIgv = useMemo(() => items.filter((i) => (i.igv ?? 0) < 0.005), [items]);
+  const sinIgv = useMemo(() => items.filter((i) => (i.igv ?? 0) === 0), [items]);
   const sumaSinIgv = useMemo(() => r2(sinIgv.reduce((s, i) => s + (i.total_sunat ?? i.base + i.igv), 0)), [sinIgv]);
   const igvParcial = useMemo(() => items.filter((i) => { const t = tasaIgv(i); return t >= 0.10 && t < 0.1795; }), [items]);
   const sumaIgvParcial = useMemo(() => r2(igvParcial.reduce((s, i) => s + (i.total_sunat ?? i.base + i.igv), 0)), [igvParcial]);
@@ -369,7 +369,7 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
                       const e = ESTADO_UI[i.estado];
                       const t = tasaIgv(i);
                       const parcial = t >= 0.10 && t < 0.1795;
-                      const sin = (i.igv ?? 0) < 0.005;
+                      const sin = (i.igv ?? 0) === 0;
                       return (
                         <tr key={i.clave} onClick={() => setDetalle(i)} className={`cursor-pointer border-t border-line ${parcial ? "bg-sky-500/[0.07] hover:bg-sky-500/[0.13]" : sin ? "bg-amber-500/[0.07] hover:bg-amber-500/[0.13]" : "hover:bg-muted/30"}`}>
                           <td className="px-3 py-2 font-mono text-xs">{fmtFecha(i.fecha)}</td>
