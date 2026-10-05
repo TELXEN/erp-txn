@@ -102,7 +102,7 @@ export function ComprobantesRecibidos({ periodo, items }: { periodo: string; ite
     const m = (n: number) => Number(n || 0).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const fmt = (v?: string | null) => { if (!v) return "—"; const s = String(v).slice(0, 10); const [a, b, c] = s.split("-"); return a && b && c && a.length === 4 ? `${c}/${b}/${a}` : s; };
     const raw = ((i as any).raw ?? {}) as Record<string, unknown>;
-    const vencRaw = String((i as any).vencimiento || raw.fecvencpag || raw.fechavencimiento || "").trim();
+    const vencRaw = String((i as any).vencimiento || raw["fecvencpag"] || raw["fechavencimiento"] || "").trim();
     const moneda = (i.moneda === "USD" ? "USD" : "PEN") as "PEN" | "USD";
     const sim = moneda === "USD" ? "US$" : "S/";
     const nog = Number((i as any).no_gravado || 0), isc = Number((i as any).isc || 0), otros = Number((i as any).otros || 0);
