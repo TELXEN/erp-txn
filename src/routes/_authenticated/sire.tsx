@@ -210,6 +210,7 @@ function PanelLibro({ libro }: { libro: Libro }) {
 
   return (
     <div className="space-y-4">
+      <ResumenOperaciones periodo={periodo} libro={libro} />
       <div className="flex flex-wrap items-center gap-2">
         {pasos.map((p, i) => {
           const n = i + 1; const act = paso === n; const hecho = paso > n;
@@ -331,6 +332,61 @@ function PanelLibro({ libro }: { libro: Libro }) {
         )}
       </div>
     </div>
+  );
+}
+
+function ResumenOperaciones({ periodo, libro }: { periodo: string; libro: Libro }) {
+  const { data: regsData } = useQuery({
+    queryKey: ["sire-resumen", periodo],
+    queryFn: async () =>
+      (await supabase.from("sire_periodos").select("libro,estado,total_base,total_igv,total_docs,items").eq("periodo", periodo)).data ?? [],
+  });
+  const regs = regsData ?? [];
+  const porLibro = (l: Libro) => regs.find((r) => r.libro === l);
+  const tarjeta = (l: Libro, titulo: string, I: React.ElementType) => {
+    const r = porLibro(l);
+    const itemsL = (r?.items as Item[] | undefined) ?? [];
+    const total = r2(itemsL.reduce((s, i) => s + (i.total_sunat ?? i.base + i.igv), 0));
+    const activo = libro === l;
+    return (
+      <div className={`rounded-lg border p-4 ${activo ? "border-primary bg-primary/5 ring-1 ring-primary/30" : "border-line bg-card"}`}>
+        <p className="label-mono flex items-center gap-1.5"><I className="size-3.5" />{titulo}</p>
+        {!r || r.estado === "Pendiente" ? (
+          <p className="mt-2 font-mono text-[11px] text-muted-foreground">{r ? "Propuesta pendiente en SUNAT" : "Sin sincronizar este período"}</p>
+        ) : (
+          <>
+            <p className="mt-1 text-2xl font-bold tracking-tight">{soles(total)}</p>
+            <div className="mt-1.5 space-y-0.5 font-mono text-[11px] text-muted-foreground">
+              <p>Base imponible: <b className="text-ink">{soles(Number(r.total_base))}</b></p>
+              <p>IGV: <b className="text-ink">{soles(Number(r.total_igv))}</b></p>
+              <p>Comprobantes: <b className="text-ink">{r.total_docs}</b> · Estado: <b className={r.estado === "Aceptado" ? "text-good" : "text-ink"}>{r.estado}</b></p>
+            </div>
+          </>
+        )}
+      </div>
+    );
+  };
+  const rv = porLibro("RVIE"); const rc = porLibro("RCE");
+  const listo = (r: typeof rv) => r && r.estado !== "Pendiente";
+  const neta = listo(rv) && listo(rc) ? r2(Number(rv!.total_igv) - Number(rc!.total_igv)) : null;
+  return (
+    <Panel titulo="RESUMEN DE OPERACIONES DEL PERÍODO">
+      <div className="grid gap-3 p-4 sm:grid-cols-3">
+        {tarjeta("RVIE", "VENTAS (RVIE)", ReceiptText)}
+        {tarjeta("RCE", "COMPRAS (RCE)", ShoppingBag)}
+        <div className="rounded-lg border border-line bg-card p-4">
+          <p className="label-mono">IGV POR PAGAR / SALDO</p>
+          {neta === null ? (
+            <p className="mt-2 font-mono text-[11px] text-muted-foreground">Sincroniza ambos libros para calcular</p>
+          ) : (
+            <>
+              <p className={`mt-1 text-2xl font-bold tracking-tight ${neta >= 0 ? "text-bad" : "text-good"}`}>{soles(Math.abs(neta))}</p>
+              <p className="mt-1.5 font-mono text-[11px] text-muted-foreground">{neta >= 0 ? "IGV ventas − compras: por pagar a SUNAT" : "Crédito fiscal a favor"}</p>
+            </>
+          )}
+        </div>
+      </div>
+    </Panel>
   );
 }
 
