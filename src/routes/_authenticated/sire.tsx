@@ -35,6 +35,7 @@ const r2 = (n: number) => Math.round(n * 100) / 100;
 function SirePage() {
   const { rol } = useAuth();
   const [tab, setTab] = useState<"config" | Libro>("RVIE");
+  const [periodo, setPeriodo] = useState(periodoDefecto());
   if (rol !== "gerente" && rol !== "administrador") return <SinAcceso />;
   const tabs: { k: "config" | Libro; t: string; i: React.ElementType }[] = [
     { k: "RVIE", t: "Ventas (RVIE)", i: ReceiptText },
@@ -44,6 +45,7 @@ function SirePage() {
   return (
     <div>
       <Encabezado titulo="SIRE SUNAT" subtitulo="FINANZAS Y CONTABILIDAD · REGISTROS ELECTRÓNICOS" />
+      <SincronizacionGlobal periodo={periodo} onPeriodoChange={setPeriodo} />
       <div className="mb-4 flex flex-wrap gap-1 rounded-lg border border-line bg-card p-1">
         {tabs.map(({ k, t, i: I }) => (
           <button key={k} onClick={() => setTab(k)}
@@ -52,7 +54,134 @@ function SirePage() {
           </button>
         ))}
       </div>
-      {tab === "config" ? <ConfigSol /> : <PanelLibro key={tab} libro={tab} />}
+      {tab !== "config" && <ResumenOperaciones periodo={periodo} libro={tab} />}
+      {tab === "config" ? <ConfigSol /> : <PanelLibro key={tab} libro={tab} periodo={periodo} />}
+    </div>
+  );
+}
+
+type EstadoSincronizacion = "esperando" | "procesando" | "sincronizado" | "pendiente" | "error";
+
+function SincronizacionGlobal({ periodo, onPeriodoChange }: { periodo: string; onPeriodoChange: (periodo: string) => void }) {
+  const qc = useQueryClient();
+  const sincronizar$ = useServerFn(sincronizarSire);
+  const [progreso, setProgreso] = useState<number | null>(null);
+  const [estados, setEstados] = useState<Record<Libro, EstadoSincronizacion>>({ RVIE: "esperando", RCE: "esperando" });
+  const { data: registros = [] } = useQuery({
+    queryKey: ["sire-global", periodo],
+    queryFn: async () => (await supabase.from("sire_periodos").select("*").eq("periodo", periodo)).data ?? [],
+  });
+  const [y = 2026, m = 1] = periodo.split("-").map(Number);
+  const anios = [y - 1, y, y + 1].filter((a, i, arr) => arr.indexOf(a) === i);
+  const registro = (libro: Libro) => registros.find((r) => r.libro === libro);
+
+  async function sincronizarLibro(libro: Libro) {
+    const reg = registro(libro);
+    setEstados((actual) => ({ ...actual, [libro]: "procesando" }));
+    try {
+      const r = await sincronizar$({ data: { libro, periodo, ticket: reg?.estado === "Pendiente" ? reg.ticket : null } });
+      if (r.estado === "error") {
+        setEstados((actual) => ({ ...actual, [libro]: "error" }));
+        return { libro, estado: "error" as const, mensaje: r.mensaje };
+      }
+      if (r.estado === "pendiente") {
+        const { error } = await supabase.from("sire_periodos").upsert(
+          { libro, periodo, estado: "Pendiente", ticket: r.ticket, origen: "sunat" },
+          { onConflict: "libro,periodo" },
+        );
+        if (error) throw error;
+        setEstados((actual) => ({ ...actual, [libro]: "pendiente" }));
+        return { libro, estado: "pendiente" as const, mensaje: r.mensaje };
+      }
+      const its = conciliar(r.items as ItemSunat[], await cargarErp(libro, periodo));
+      const { error } = await supabase.from("sire_periodos").upsert({
+        libro,
+        periodo,
+        estado: "Sincronizado",
+        items: its as any,
+        ticket: r.ticket,
+        origen: "sunat",
+        total_base: r2(its.reduce((s, i) => s + i.base, 0)),
+        total_igv: r2(its.reduce((s, i) => s + i.igv, 0)),
+        total_docs: its.length,
+        sincronizado_en: new Date().toISOString(),
+        aceptado_por: null,
+        aceptado_en: null,
+      }, { onConflict: "libro,periodo" });
+      if (error) throw error;
+      setEstados((actual) => ({ ...actual, [libro]: "sincronizado" }));
+      return { libro, estado: "sincronizado" as const, cantidad: its.length };
+    } catch (e) {
+      setEstados((actual) => ({ ...actual, [libro]: "error" }));
+      return { libro, estado: "error" as const, mensaje: e instanceof Error ? e.message : "Error al sincronizar" };
+    }
+  }
+
+  async function sincronizarTodo() {
+    setEstados({ RVIE: "esperando", RCE: "esperando" });
+    setProgreso(10);
+    let completados = 0;
+    const ejecutar = async (libro: Libro) => {
+      const resultado = await sincronizarLibro(libro);
+      completados += 1;
+      setProgreso(10 + completados * 45);
+      return resultado;
+    };
+    const resultados = await Promise.all([ejecutar("RVIE"), ejecutar("RCE")]);
+    await Promise.all([
+      qc.invalidateQueries({ queryKey: ["sire-global", periodo] }),
+      qc.invalidateQueries({ queryKey: ["sire-resumen", periodo] }),
+      qc.invalidateQueries({ queryKey: ["sire", "RVIE", periodo] }),
+      qc.invalidateQueries({ queryKey: ["sire", "RCE", periodo] }),
+    ]);
+    const exitosos = resultados.filter((r) => r.estado === "sincronizado");
+    const pendientes = resultados.filter((r) => r.estado === "pendiente");
+    const errores = resultados.filter((r) => r.estado === "error");
+    if (errores.length === 0 && pendientes.length === 0) toast.success("Compras y ventas sincronizadas con SUNAT");
+    else if (exitosos.length > 0 || pendientes.length > 0) toast.warning("Sincronización parcial: revisa el estado de cada libro");
+    else toast.error("No se pudo sincronizar Compras ni Ventas");
+    setTimeout(() => setProgreso(null), 500);
+  }
+
+  const estadoLibro = (libro: Libro) => {
+    const estadoLocal = estados[libro];
+    if (progreso !== null && estadoLocal !== "esperando") return estadoLocal;
+    const reg = registro(libro);
+    if (!reg) return "esperando";
+    return reg.estado === "Pendiente" ? "pendiente" : "sincronizado";
+  };
+  const etiquetaEstado = (libro: Libro) => {
+    const estado = estadoLibro(libro);
+    const textos: Record<EstadoSincronizacion, string> = {
+      esperando: "Sin sincronizar",
+      procesando: "Procesando…",
+      sincronizado: "Sincronizado",
+      pendiente: "Pendiente SUNAT",
+      error: "Error",
+    };
+    const reg = registro(libro);
+    const fecha = reg?.sincronizado_en ?? reg?.updated_at;
+    return `${libro}: ${textos[estado]}${fecha && estado === "sincronizado" ? ` · ${new Date(fecha).toLocaleString("es-PE")}` : ""}`;
+  };
+
+  return (
+    <div className="sticky top-0 z-30 mb-4 border border-line bg-card shadow-sm">
+      <div className="flex flex-wrap items-end gap-3 px-4 py-3">
+        <div className="mr-auto">
+          <p className="label-mono flex items-center gap-1.5"><RefreshCw className={`size-3.5 ${progreso !== null ? "animate-spin" : ""}`} />SINCRONIZACIÓN GLOBAL SIRE</p>
+          <p className="mt-1 text-xs text-muted-foreground">Actualiza Compras (RCE) y Ventas (RVIE) en una sola operación.</p>
+        </div>
+        <Campo etiqueta="Mes"><Select value={m} onChange={(e) => onPeriodoChange(`${y}-${String(e.target.value).padStart(2, "0")}`)}>{MESES.map((n, i) => <option key={n} value={i + 1}>{n}</option>)}</Select></Campo>
+        <Campo etiqueta="Año"><Select value={y} onChange={(e) => onPeriodoChange(`${e.target.value}-${String(m).padStart(2, "0")}`)}>{anios.map((a) => <option key={a}>{a}</option>)}</Select></Campo>
+        <Boton onClick={sincronizarTodo} disabled={progreso !== null}><RefreshCw className={`size-3.5 ${progreso !== null ? "animate-spin" : ""}`} />Sincronizar Compras y Ventas</Boton>
+      </div>
+      <div className="flex flex-wrap gap-x-5 gap-y-1 border-t border-line px-4 py-2 font-mono text-[11px] text-muted-foreground">
+        {(["RVIE", "RCE"] as Libro[]).map((libro) => {
+          const estado = estadoLibro(libro);
+          return <span key={libro} className={estado === "error" ? "text-bad" : estado === "sincronizado" ? "text-good" : estado === "pendiente" ? "text-amber-700 dark:text-amber-400" : ""}>{etiquetaEstado(libro)}</span>;
+        })}
+      </div>
+      {progreso !== null && <div className="h-1 bg-muted"><div className="h-full bg-primary transition-all duration-300" style={{ width: `${progreso}%` }} /></div>}
     </div>
   );
 }
@@ -124,16 +253,12 @@ const ESTADO_UI: Record<Estado, { t: string; c: string; I: React.ElementType }> 
   solo_erp: { t: "Solo en ERP", c: "text-muted-foreground bg-muted ring-line", I: XCircle },
 };
 
-function PanelLibro({ libro }: { libro: Libro }) {
+function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const { session } = useAuth();
-  const [periodo, setPeriodo] = useState(periodoDefecto());
   const [paso, setPaso] = useState(1);
-  const [progreso, setProgreso] = useState<number | null>(null);
-  const [fase, setFase] = useState("");
   const [detalle, setDetalle] = useState<Item | null>(null);
-  const sincronizar$ = useServerFn(sincronizarSire);
   const aceptar$ = useServerFn(aceptarSire);
   const { data: rucEmpresa } = useQuery({ queryKey: ["sire-ruc"], queryFn: async () => (await supabase.from("empresa_config").select("ruc").limit(1).maybeSingle()).data?.ruc ?? "" });
   const [filtro, setFiltro] = useState<"todos" | "ok" | "disc" | "sunat">("todos");
@@ -144,37 +269,6 @@ function PanelLibro({ libro }: { libro: Libro }) {
   });
   const items = (reg?.items as Item[] | undefined) ?? [];
   useEffect(() => { setPaso(reg && reg.estado !== "Pendiente" ? (reg.estado === "Aceptado" ? 3 : 2) : 1); }, [reg?.id, reg?.estado]);
-
-  async function sincronizar() {
-    setProgreso(5); setFase("Solicitando propuesta a SUNAT…");
-    const t = setInterval(() => setProgreso((p) => (p === null ? p : Math.min(p + 2, 90))), 1000);
-    try {
-      setTimeout(() => setFase("SUNAT procesando…"), 2500);
-      const r = await sincronizar$({ data: { libro, periodo, ticket: reg?.estado === "Pendiente" ? reg.ticket : null } });
-      if (r.estado === "error") { toast.error(r.mensaje); return; }
-      if (r.estado === "pendiente") {
-        await supabase.from("sire_periodos").upsert({ libro, periodo, estado: "Pendiente", ticket: r.ticket, origen: "sunat" }, { onConflict: "libro,periodo" });
-        await qc.invalidateQueries({ queryKey: ["sire", libro, periodo] });
-        toast.warning(r.mensaje); return;
-      }
-      setFase("Descargando y conciliando…");
-      const erp = await cargarErp(libro, periodo);
-      const its = conciliar(r.items as ItemSunat[], erp);
-      const fila = {
-        libro, periodo, estado: "Sincronizado", items: its as any, ticket: r.ticket, origen: "sunat",
-        total_base: r2(its.reduce((s, i) => s + i.base, 0)), total_igv: r2(its.reduce((s, i) => s + i.igv, 0)), total_docs: its.length,
-        sincronizado_en: new Date().toISOString(), aceptado_por: null, aceptado_en: null,
-      };
-      const { error } = await supabase.from("sire_periodos").upsert(fila, { onConflict: "libro,periodo" });
-      if (error) throw error;
-      setProgreso(100);
-      await qc.invalidateQueries({ queryKey: ["sire", libro, periodo] });
-      toast.success(`Propuesta ${libro} descargada de SUNAT: ${its.length} comprobantes`);
-      setPaso(2);
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Error al sincronizar");
-    } finally { clearInterval(t); setFase(""); setTimeout(() => setProgreso(null), 300); }
-  }
 
   const cuenta = useMemo(() => ({
     todos: items.length,
@@ -211,12 +305,10 @@ function PanelLibro({ libro }: { libro: Libro }) {
   }
 
   const [y = 2026, m = 1] = periodo.split("-").map(Number);
-  const anios = [y - 1, y, y + 1].filter((a, i, arr) => arr.indexOf(a) === i);
   const pasos = ["SINCRONIZACIÓN", "CONCILIACIÓN", "CIERRE Y ENVÍO"];
 
   return (
     <div className="space-y-4">
-      <ResumenOperaciones periodo={periodo} libro={libro} />
       <div className="flex flex-wrap items-center gap-2">
         {pasos.map((p, i) => {
           const n = i + 1; const act = paso === n; const hecho = paso > n;
@@ -238,19 +330,13 @@ function PanelLibro({ libro }: { libro: Libro }) {
       <div key={paso} className="rise">
         {paso === 1 && (
           <Panel titulo={`PASO 1 · SINCRONIZAR PROPUESTA ${libro}`}>
-            <div className="flex flex-wrap items-end gap-3 p-5">
-              <Campo etiqueta="Mes"><Select value={m} onChange={(e) => setPeriodo(`${y}-${String(e.target.value).padStart(2, "0")}`)}>{MESES.map((n, i) => <option key={n} value={i + 1}>{n}</option>)}</Select></Campo>
-              <Campo etiqueta="Año"><Select value={y} onChange={(e) => setPeriodo(`${e.target.value}-${String(m).padStart(2, "0")}`)}>{anios.map((a) => <option key={a}>{a}</option>)}</Select></Campo>
-              <Boton onClick={sincronizar} disabled={progreso !== null}><RefreshCw className={`size-3.5 ${progreso !== null ? "animate-spin" : ""}`} />Sincronizar Propuesta con SUNAT</Boton>
-              {reg && <span className="font-mono text-[11px] text-muted-foreground">Última sincronización: {new Date(reg.sincronizado_en ?? reg.updated_at).toLocaleString("es-PE")}</span>}
-            </div>
-            {progreso !== null && (
-              <div className="space-y-2 px-5 pb-5">
-                <p className="font-mono text-[11px] text-muted-foreground">{fase}</p>
-                <div className="h-1.5 overflow-hidden rounded-full bg-muted"><div className="h-full bg-primary transition-all duration-150" style={{ width: `${progreso}%` }} /></div>
-                {Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-7 animate-pulse rounded bg-muted" />)}
+            <div className="flex flex-wrap items-center justify-between gap-3 p-5">
+              <div>
+                <p className="text-sm font-semibold">{reg ? `Propuesta ${libro} disponible para ${MESES[m - 1]} ${y}` : `Aún no hay una propuesta ${libro} para ${MESES[m - 1]} ${y}`}</p>
+                <p className="mt-1 text-xs text-muted-foreground">La sincronización de Compras y Ventas se controla desde la línea principal superior.</p>
               </div>
-            )}
+              {reg && reg.estado !== "Pendiente" && <Boton onClick={() => setPaso(2)}>Revisar conciliación<ChevronRight className="size-3.5" /></Boton>}
+            </div>
           </Panel>
         )}
 
@@ -393,7 +479,7 @@ function ResumenOperaciones({ periodo, libro }: { periodo: string; libro: Libro 
   };
   const rv = porLibro("RVIE"); const rc = porLibro("RCE");
   const listo = (r: typeof rv) => r && r.estado !== "Pendiente";
-  const neta = listo(rv) && listo(rc) ? r2(Number(rv!.total_igv) - Number(rc!.total_igv)) : null;
+  const neta = listo(rv) && listo(rc) ? r2(Number(rv?.total_igv ?? 0) - Number(rc?.total_igv ?? 0)) : null;
   return (
     <Panel titulo="RESUMEN DE OPERACIONES DEL PERÍODO">
       <div className="grid gap-3 p-4 sm:grid-cols-3">
