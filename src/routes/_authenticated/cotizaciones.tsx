@@ -678,6 +678,8 @@ function Cotizaciones() {
               items={itemsHoja}
               unidades={unidades}
               simbolo={simboloMoneda(cot.moneda)}
+              multi={Boolean(cot.multidisciplinaria)}
+              alcance={cot.alcance ?? "ambos"}
               alAbrirCatalogo={() => setVerCatalogo(true)}
             />
           </HojaCotizacion>
