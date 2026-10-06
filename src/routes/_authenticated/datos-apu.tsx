@@ -49,16 +49,16 @@ function DatosApu() {
         subtitulo="Insumos, unidades y catálogo técnico (WBS)"
       />
 
-      <div className="mb-4 flex flex-wrap gap-1 border-b border-line pb-3">
+      <div className="inline-flex flex-wrap gap-1 rounded-lg border border-line bg-card p-1">
         {PESTANAS.map(([p, texto]) => (
           <button
             key={p}
             type="button"
             onClick={() => setPestana(p)}
-            className={`rounded-md border-b-2 px-3 py-1.5 text-xs transition-colors ${
+            className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
               pestana === p
-                ? "border-cta bg-primary/10 font-semibold text-primary"
-                : "border-transparent text-muted-foreground hover:bg-muted hover:text-primary"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:bg-primary/10 hover:text-primary"
             }`}
           >
             {texto}
