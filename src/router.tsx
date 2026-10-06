@@ -34,6 +34,9 @@ export const getRouter = () => {
     context: { queryClient },
     scrollRestoration: true,
     defaultPreloadStaleTime: 0,
+    defaultOnCatch: (err) => {
+      if (typeof window !== "undefined") recargarSiModuloFalla(err);
+    },
   });
 
   return router;
