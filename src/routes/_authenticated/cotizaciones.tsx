@@ -583,7 +583,7 @@ function Cotizaciones() {
   /* ---------------- MODO EDITOR ---------------- */
   if (cot && totales) {
     return (
-      <div className="fixed inset-0 z-50 overflow-y-auto bg-background">
+      <div className="-mx-4 -my-6 min-h-full bg-background sm:-mx-6">
         <div className="sticky top-0 z-20 flex flex-wrap items-center gap-2 border-b border-line bg-background/95 px-4 py-2 backdrop-blur sm:px-6">
           <Boton variante="linea" onClick={() => { setSeleccion(null); setError(""); setAviso(""); }}>
             <ArrowLeft size={13} /> Volver al listado
