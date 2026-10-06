@@ -2,7 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { Fragment, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Check, Pencil, Trash2, Upload, X } from "lucide-react";
+import { Check, Pencil, Plus, Stethoscope, Trash2, Upload, Users, X, UserRound, Briefcase, Wallet, Landmark } from "lucide-react";
+import { EmoPanel } from "@/components/personal/EmoPanel";
+import { estadoEmo, ESTADO_EMO_INFO, ultimoEmoPorTrabajador, useEmos } from "@/lib/emo";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
@@ -24,10 +26,14 @@ function CampoF({ etiqueta, req, children }: { etiqueta: string; req?: boolean; 
   );
 }
 
-function Seccion({ titulo, children }: { titulo: string; children: ReactNode }) {
+function Seccion({ titulo, paso, icono: Icono, children }: { titulo: string; paso?: number; icono?: typeof Users; children: ReactNode }) {
   return (
-    <div className="rounded-lg border border-line bg-card p-3">
-      <h3 className="mb-3 border-b border-line pb-2 text-[11px] font-bold uppercase tracking-wide text-ink">{titulo}</h3>
+    <div className="rounded-lg border border-line bg-card p-3 shadow-sm">
+      <h3 className="mb-3 flex items-center gap-2 border-b border-line pb-2 text-[11px] font-bold uppercase tracking-wide text-ink">
+        {paso && <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">{paso}</span>}
+        {Icono && <Icono size={13} className="text-primary" />}
+        {titulo}
+      </h3>
       <div className="grid grid-cols-2 gap-3">{children}</div>
     </div>
   );
@@ -131,6 +137,14 @@ function Personal() {
   );
   const [editando, setEditando] = useState<{ id: string; datos: FormPersonal } | null>(null);
   const [error, setError] = useState("");
+  const [pestana, setPestana] = useState<"personal" | "emo">("personal");
+  const [formAbierto, setFormAbierto] = useState(false);
+  const { data: emos = [] } = useEmos(puedeVerDinero(rol));
+  const ultimos = ultimoEmoPorTrabajador(emos);
+  const alertasEmo = trabajadores.filter((t) => { const s = estadoEmo(ultimos.get(t.id)?.fecha_vencimiento); return s === "vencido" || s === "por_vencer"; }).length;
+  const hayVencidos = trabajadores.some((t) => estadoEmo(ultimos.get(t.id)?.fecha_vencimiento) === "vencido");
+  const dniDuplicado = /^\d{8}$/.test(form.dni) && trabajadores.some((t) => t.dni === form.dni);
+  const faltante = dniDuplicado ? "Ya existe un trabajador con ese DNI." : validar(form);
   const setFormC = (campo: keyof FormPersonal, valor: string | boolean) => setForm((f) => aplicarCambio(f, campo, valor));
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
@@ -165,6 +179,7 @@ function Personal() {
     const { error: err } = await supabase.from("trabajadores").insert(datosGuardar(form));
     if (err) return setError(err.message);
     setForm(FORM_INICIAL);
+    setFormAbierto(false);
     await qc.invalidateQueries({ queryKey: ["trabajadores"] });
   }
 
@@ -312,7 +327,7 @@ function Personal() {
     if (err) {
       return setError(
         err.code === "23503"
-          ? "No se puede eliminar porque esta persona tiene tareos registrados."
+          ? "No se puede eliminar porque esta persona tiene tareos o exámenes médicos (EMO) registrados."
           : err.message,
       );
     }
@@ -364,32 +379,51 @@ function Personal() {
         }
       />
 
-      <Panel titulo="Nuevo trabajador" className="mb-4">
+      <div className="mb-4 flex flex-wrap gap-1">
+        <Boton variante={pestana === "personal" ? "primario" : "linea"} onClick={() => setPestana("personal")}><Users size={13} /> Personal</Boton>
+        <Boton variante={pestana === "emo" ? "primario" : "linea"} onClick={() => setPestana("emo")}>
+          <Stethoscope size={13} /> EMO (Exámenes médicos)
+          {alertasEmo > 0 && <span className={`ml-1 rounded-full px-1.5 text-[10px] font-bold text-primary-foreground ${hayVencidos ? "bg-bad" : "bg-warn"}`}>{alertasEmo}</span>}
+        </Boton>
+      </div>
+
+      {pestana === "emo" ? <EmoPanel trabajadores={trabajadores} /> : <>
+      {!formAbierto ? (
+        <div className="mb-4 flex justify-end">
+          <Boton variante="accion" onClick={() => setFormAbierto(true)}><Plus size={13} /> Nuevo trabajador</Boton>
+        </div>
+      ) : (
+      <Panel titulo="Nuevo trabajador" className="mb-4"
+        extra={<button type="button" onClick={() => setFormAbierto(false)} className="rounded-md p-1 text-muted-foreground hover:bg-muted" aria-label="Cerrar"><X size={15} /></button>}>
         <form onSubmit={guardar} className="p-4">
           <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
-            <Seccion titulo="Información Personal y Contacto">
+            <Seccion titulo="Datos personales" paso={1} icono={UserRound}>
               <CampoF etiqueta="DNI" req>
-                <Input inputMode="numeric" pattern="[0-9]{8}" maxLength={8} value={form.dni} onChange={(e) => setFormC("dni", e.target.value.replace(/\D/g, ""))} required className="py-1.5" />
+                <Input inputMode="numeric" pattern="[0-9]{8}" maxLength={8} value={form.dni} onChange={(e) => setFormC("dni", e.target.value.replace(/\D/g, ""))} required className={`py-1.5 ${dniDuplicado ? "border-bad" : ""}`} placeholder="8 dígitos" />
+                <span className={`mt-0.5 block text-[10px] ${dniDuplicado ? "text-bad" : "text-muted-foreground"}`}>{dniDuplicado ? "DNI ya registrado" : `${form.dni.length}/8`}</span>
               </CampoF>
               <CampoF etiqueta="N° Celular" req>
-                <Input inputMode="tel" pattern="[0-9]{9}" maxLength={9} value={form.numero_celular} onChange={(e) => setFormC("numero_celular", e.target.value.replace(/\D/g, ""))} required className="py-1.5" />
+                <Input inputMode="tel" pattern="[0-9]{9}" maxLength={9} value={form.numero_celular} onChange={(e) => setFormC("numero_celular", e.target.value.replace(/\D/g, ""))} required className="py-1.5" placeholder="9 dígitos" />
+                <span className="mt-0.5 block text-[10px] text-muted-foreground">{form.numero_celular.length}/9</span>
               </CampoF>
               <div className="col-span-full">
                 <CampoF etiqueta="Apellidos y Nombre(s)" req>
-                  <Input value={form.nombre} onChange={(e) => setFormC("nombre", e.target.value)} required maxLength={100} className="py-1.5" />
+                  <Input value={form.nombre} onChange={(e) => setFormC("nombre", e.target.value)} required maxLength={100} className="py-1.5" placeholder="Ej. QUISPE MAMANI, Juan" />
                 </CampoF>
               </div>
             </Seccion>
-            <Seccion titulo="Detalles Laborales">{seccionLaboral(form, setFormC, true)}</Seccion>
-            <Seccion titulo="Estructura Salarial y Pago">{seccionSalario(form, setFormC, true)}</Seccion>
-            <Seccion titulo="Régimen Previsional">{seccionPrevision(form, setFormC)}</Seccion>
+            <Seccion titulo="Datos laborales" paso={2} icono={Briefcase}>{seccionLaboral(form, setFormC, true)}</Seccion>
+            <Seccion titulo="Sueldo y pago" paso={3} icono={Wallet}>{seccionSalario(form, setFormC, true)}</Seccion>
+            <Seccion titulo="Régimen de pensiones" paso={4} icono={Landmark}>{seccionPrevision(form, setFormC)}</Seccion>
           </div>
-          <div className="mt-4 flex items-center justify-end gap-3">
-            {error && <p className="mr-auto text-xs text-bad">{error}</p>}
-            <Boton type="submit" variante="accion" className="min-w-36">Registrar</Boton>
+          <div className="mt-4 flex items-center justify-end gap-3 border-t border-line pt-3">
+            <p className={`mr-auto text-xs ${error ? "text-bad" : "text-muted-foreground"}`}>{error || (faltante ? `Falta: ${faltante}` : "Todo listo para registrar.")}</p>
+            <Boton type="button" variante="linea" onClick={() => { setForm(FORM_INICIAL); setError(""); setFormAbierto(false); }}>Cancelar</Boton>
+            <Boton type="submit" variante="accion" disabled={!!faltante} className="min-w-36">Registrar</Boton>
           </div>
         </form>
       </Panel>
+      )}
 
       <Panel titulo="Planilla"
         extra={
@@ -416,7 +450,7 @@ function Personal() {
           <Vacio texto="Aún no hay personal registrado." />
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-[1440px] w-full table-fixed font-mono text-xs">
+            <table className="min-w-[1540px] w-full table-fixed font-mono text-xs">
               <thead>
                 <tr className="border-b border-line text-left text-[10px] uppercase text-ink bg-muted/50">
                   <th className="w-[9%] px-4 py-2 font-medium">DNI</th>
@@ -428,6 +462,7 @@ function Personal() {
                   <th className="w-[10%] px-3 py-2 font-medium">Banco</th>
                   <th className="w-[8%] px-3 py-2 font-medium">N° Celular</th>
                   <th className="w-[12%] px-3 py-2 font-medium">Contrato</th>
+                  <th className="w-[8%] px-3 py-2 font-medium">EMO</th>
                   <th className="w-[7%] px-4 py-2 text-right font-medium">Acciones</th>
                 </tr>
               </thead>
@@ -450,6 +485,7 @@ function Personal() {
                         <span className="block font-semibold text-ink">{t.tipo_contratacion === "Honorarios" ? "RxH" : "Planilla"}</span>
                         <span className="block text-[10px] text-muted-foreground">{t.tipo_contratacion === "Honorarios" ? (t.suspension_cuarta ? "Suspensión 4ta" : "Retención 8%") : `${t.regimen_laboral} · ${t.sistema_pensiones}`}</span>
                       </td>
+                      <td className="px-3 py-3.5">{(() => { const s = estadoEmo(ultimos.get(t.id)?.fecha_vencimiento); return <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-[11px]"><span className={`h-2 w-2 rounded-full ${ESTADO_EMO_INFO[s].punto}`} />{ESTADO_EMO_INFO[s].texto}</span>; })()}</td>
                       <td className="px-4 py-3.5">
                         <div className="flex items-center justify-end gap-1">
                           {esEdicion ? (
@@ -468,7 +504,7 @@ function Personal() {
                     </tr>
                     {esEdicion && d && (
                       <tr className="border-b border-line/60 bg-muted/30">
-                        <td colSpan={10} className="px-4 py-2">
+                        <td colSpan={11} className="px-4 py-2">
                           <div className="grid gap-3 sm:grid-cols-3"><div className="grid grid-cols-2 gap-3 content-start">{seccionLaboral(d, actualizarCampo, false)}</div><div className="grid grid-cols-2 gap-3 content-start">{seccionSalario(d, actualizarCampo, false)}</div><div className="grid grid-cols-2 gap-3 content-start">{seccionPrevision(d, actualizarCampo)}</div></div>
                         </td>
                       </tr>
@@ -481,6 +517,7 @@ function Personal() {
           </div>
         )}
       </Panel>
+      </>}
     </>
   );
 }
