@@ -81,7 +81,7 @@ function Cotizaciones() {
     queryFn: async () => {
       const { data, error: err } = await supabase
         .from("terceros")
-        .select("id, razon_social")
+        .select("id, razon_social, numero_documento")
         .eq("es_cliente", true)
         .eq("activo", true)
         .order("razon_social");

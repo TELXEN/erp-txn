@@ -46,6 +46,19 @@ function Linea({ etiqueta, children }: { etiqueta: string; children: ReactNode }
   );
 }
 
+function TituloBloque({ titulo, color }: { titulo: string; color: string }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18 }}>
+      <span aria-hidden="true" style={{ width: 4, height: 22, borderRadius: 3, background: color }} />
+      <span style={{ fontSize: 10.5, color: C.ink, fontFamily: liviano, fontWeight: 700, textTransform: "uppercase" }}>{titulo}</span>
+    </div>
+  );
+}
+
+function EtiquetaCampo({ children }: { children: ReactNode }) {
+  return <span style={{ display: "block", marginBottom: 5, fontSize: 9, color: DOC.mute, fontFamily: liviano, fontWeight: 700, textTransform: "uppercase" }}>{children}</span>;
+}
+
 /**
  * Hoja A4 editable de la cotización: mismo formato corporativo del comprobante
  * electrónico. Cada campo guarda directamente en la cotización al salir del foco.
@@ -58,7 +71,7 @@ export function HojaCotizacion({
 }: {
   cot: Cotizacion;
   items: CotizacionItem[];
-  clientes: { id: string; razon_social: string }[];
+  clientes: { id: string; razon_social: string; numero_documento: string }[];
   children: ReactNode;
 }) {
   const qc = useQueryClient();
@@ -146,104 +159,125 @@ export function HojaCotizacion({
           </div>
         </header>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1.25fr 1fr .75fr", gap: 20, background: C.soft, border: `1px solid ${C.line}`, borderLeft: `3px solid ${DOC.accent}`, borderRadius: 6, padding: 16, marginTop: 18, fontSize: 10.5 }}>
-          <Bloque titulo="CLIENTE">
-            <Linea etiqueta="Registrado">
-              <select
-                value={cot.cliente_id ?? ""}
-                onChange={(e) => {
-                  const c = clientes.find((x) => x.id === e.target.value);
-                  void guardar({ cliente_id: e.target.value || null, cliente: c?.razon_social ?? cot.cliente });
-                }}
-                style={edSel}
-              >
-                <option value="">Cliente no registrado</option>
-                {clientes.map((c) => (
-                  <option key={c.id} value={c.id}>{c.razon_social}</option>
-                ))}
-              </select>
-            </Linea>
-            <Linea etiqueta="Razón social">
-              <input key={`cli-${cot.id}-${cot.cliente}`} defaultValue={cot.cliente} onBlur={(e) => alSalir("cliente", e.target.value.trim(), cot.cliente)} style={{ ...ed, fontWeight: 700 }} />
-            </Linea>
-            <Linea etiqueta="Ubicación">
-              <input key={`ubi-${cot.id}-${cot.ubicacion}`} defaultValue={cot.ubicacion} onBlur={(e) => alSalir("ubicacion", e.target.value.trim(), cot.ubicacion)} style={ed} />
-            </Linea>
-          </Bloque>
-          <Bloque titulo="TRABAJO A COTIZAR">
-            <Linea etiqueta="Descripción">
-              <input key={`nom-${cot.id}-${cot.nombre}`} defaultValue={cot.nombre} onBlur={(e) => alSalir("nombre", e.target.value.trim(), cot.nombre)} style={{ ...ed, fontWeight: 700 }} />
-            </Linea>
-            <Linea etiqueta="Validez (días)">
-              <input key={`val-${cot.id}-${cot.validez_dias}`} type="number" min="1" defaultValue={Number(cot.validez_dias)} onBlur={(e) => alSalir("validez_dias", Number(e.target.value || 0), Number(cot.validez_dias))} style={ed} />
-            </Linea>
-            <Linea etiqueta="Vigente hasta">
-              <span style={{ fontWeight: 700 }}>{fmtFecha(vigenciaHasta(cot.fecha_emision, Number(cot.validez_dias)))}</span>
-            </Linea>
-          </Bloque>
-          <div style={{ justifySelf: "end", width: 232 }}><Bloque titulo="">
-            <Linea etiqueta="Emisión">
-              <input key={`fec-${cot.id}-${cot.fecha_emision}`} type="date" defaultValue={cot.fecha_emision} onBlur={(e) => alSalir("fecha_emision", e.target.value, cot.fecha_emision)} style={ed} />
-            </Linea>
-            <Linea etiqueta="Tipo">
-              <select value={multi ? "multi" : "una"} onChange={(e) => void cambiarModo(e.target.value === "multi")} style={edSel}>
-                <option value="una">Una disciplina</option>
-                <option value="multi">Multidisciplinaria</option>
-              </select>
-            </Linea>
-            <Linea etiqueta="Moneda">
-              <select
-                value={esUsd ? "USD" : "PEN"}
-                onChange={async (e) => {
-                  const moneda = e.target.value as "PEN" | "USD";
-                  if (moneda === cot.moneda) return;
-                  const tcConv = Number(cot.tipo_cambio) || tcActual || 3.75;
-                  const destino = moneda === "USD" ? "dólares (se dividirán entre el tipo de cambio)" : "soles (se multiplicarán por el tipo de cambio)";
-                  if (!window.confirm(`Se recalcularán los precios unitarios de todas las partidas a ${destino}, usando T.C. ${tcConv}. ¿Continuar?`)) {
-                    e.target.value = cot.moneda;
-                    return;
-                  }
-                  await convertirMonedaCotizacion(cot.id, moneda, tcConv);
-                  await qc.invalidateQueries({ queryKey: ["cotizaciones"] });
-                  await qc.invalidateQueries({ queryKey: ["cotizacion"] });
-                  await qc.invalidateQueries({ queryKey: ["cotizacion_items", cot.id] });
-                }}
-                style={edSel}
-              >
-                <option value="PEN">Soles (PEN)</option>
-                <option value="USD">Dólares (USD)</option>
-              </select>
-            </Linea>
-            {esUsd && (
-              <Linea etiqueta="T. cambio">
-                <input
-                  key={`tc-${cot.id}-${cot.tipo_cambio}`}
-                  type="number"
-                  step="0.001"
-                  min="0"
-                  defaultValue={Number(cot.tipo_cambio) || tcActual || ""}
-                  onBlur={(e) => alSalir("tipo_cambio", Number(e.target.value || 0), Number(cot.tipo_cambio))}
-                  style={ed}
-                />
+        <div className="cotizacion-datos-grid" style={{ display: "grid", border: `1px solid ${C.line}`, borderTop: `4px solid ${C.green}`, borderRadius: 6, overflow: "hidden", marginTop: 18, fontSize: 10.5 }}>
+          <div style={{ padding: 20, background: C.white, borderRight: `1px solid ${C.line}` }}>
+            <TituloBloque titulo="Cliente" color={DOC.green} />
+            <div style={{ display: "grid", gap: 15 }}>
+              <label>
+                <EtiquetaCampo>RUC</EtiquetaCampo>
+                <select
+                  value={cot.cliente_id ?? ""}
+                  onChange={(e) => {
+                    const c = clientes.find((x) => x.id === e.target.value);
+                    void guardar({ cliente_id: e.target.value || null, cliente: c?.razon_social ?? cot.cliente });
+                  }}
+                  style={{ ...edSel, minHeight: 34, padding: "7px 10px", border: `1px solid ${C.line}`, borderRadius: 5, background: C.soft, fontWeight: 700 }}
+                >
+                  <option value="">Seleccionar cliente</option>
+                  {clientes.map((c) => (
+                    <option key={c.id} value={c.id}>{c.numero_documento || "Sin RUC"} — {c.razon_social}</option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                <EtiquetaCampo>Razón social</EtiquetaCampo>
+                <input key={`cli-${cot.id}-${cot.cliente}`} defaultValue={cot.cliente} onBlur={(e) => alSalir("cliente", e.target.value.trim(), cot.cliente)} style={{ ...ed, minHeight: 31, padding: "5px 9px", borderLeft: `2px solid ${DOC.accent}`, borderBottom: `1px solid ${C.line}`, fontWeight: 700 }} />
+              </label>
+              <label>
+                <EtiquetaCampo>Ubicación</EtiquetaCampo>
+                <input key={`ubi-${cot.id}-${cot.ubicacion}`} defaultValue={cot.ubicacion} placeholder="Sin dirección especificada" onBlur={(e) => alSalir("ubicacion", e.target.value.trim(), cot.ubicacion)} style={{ ...ed, minHeight: 31, padding: "5px 9px" }} />
+              </label>
+            </div>
+          </div>
+
+          <div style={{ padding: 20, background: C.soft, borderRight: `1px solid ${C.line}` }}>
+            <TituloBloque titulo="Trabajo a cotizar" color={DOC.accent} />
+            <div style={{ display: "grid", gap: 17 }}>
+              <label>
+                <EtiquetaCampo>Descripción</EtiquetaCampo>
+                <input key={`nom-${cot.id}-${cot.nombre}`} defaultValue={cot.nombre} onBlur={(e) => alSalir("nombre", e.target.value.trim(), cot.nombre)} style={{ ...ed, minHeight: 36, padding: "7px 10px", border: `1px solid ${C.line}`, borderRadius: 5, background: C.white, fontWeight: 700 }} />
+              </label>
+              <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: 10 }}>
+                <label>
+                  <EtiquetaCampo>Validez (días)</EtiquetaCampo>
+                  <input key={`val-${cot.id}-${cot.validez_dias}`} type="number" min="1" defaultValue={Number(cot.validez_dias)} onBlur={(e) => alSalir("validez_dias", Number(e.target.value || 0), Number(cot.validez_dias))} style={{ ...ed, minHeight: 34, padding: "7px 10px", border: `1px solid ${C.line}`, borderRadius: 5, background: C.white, fontWeight: 700 }} />
+                </label>
+                <div>
+                  <EtiquetaCampo>Vigente hasta</EtiquetaCampo>
+                  <div style={{ minHeight: 34, boxSizing: "border-box", display: "flex", alignItems: "center", justifyContent: "center", padding: "7px 9px", border: `1px solid ${DOC.accent}`, borderRadius: 5, background: DOC.accentSoft, color: DOC.accentText, fontWeight: 700 }}>
+                    {fmtFecha(vigenciaHasta(cot.fecha_emision, Number(cot.validez_dias)))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ padding: 20, background: C.white }}>
+            <TituloBloque titulo="Configuración" color={DOC.mute} />
+            <div style={{ display: "grid", gap: 9 }}>
+              <Linea etiqueta="Emisión">
+                <input key={`fec-${cot.id}-${cot.fecha_emision}`} type="date" defaultValue={cot.fecha_emision} onBlur={(e) => alSalir("fecha_emision", e.target.value, cot.fecha_emision)} style={{ ...ed, textAlign: "right", fontWeight: 600 }} />
               </Linea>
-            )}
-            <Linea etiqueta="Orientación">
-              <select
-                value={cot.orientacion === "horizontal" ? "horizontal" : "vertical"}
-                onChange={(e) => void guardar({ orientacion: e.target.value as "vertical" | "horizontal" })}
-                style={edSel}
-              >
-                <option value="vertical">Vertical</option>
-                <option value="horizontal">Horizontal</option>
-              </select>
-            </Linea>
-            <Linea etiqueta="IGV">
-              <select value={conIgv ? "si" : "no"} onChange={(e) => void guardar({ aplica_igv: e.target.value === "si" })} style={edSel}>
-                <option value="si">Con IGV (18%)</option>
-                <option value="no">Sin IGV</option>
-              </select>
-            </Linea>
-          </Bloque></div>
+              <Linea etiqueta="Tipo">
+                <select value={multi ? "multi" : "una"} onChange={(e) => void cambiarModo(e.target.value === "multi")} style={{ ...edSel, textAlign: "right", fontWeight: 600 }}>
+                  <option value="una">Una disciplina</option>
+                  <option value="multi">Multidisciplinaria</option>
+                </select>
+              </Linea>
+              <Linea etiqueta="Moneda">
+                <select
+                  value={esUsd ? "USD" : "PEN"}
+                  onChange={async (e) => {
+                    const moneda = e.target.value as "PEN" | "USD";
+                    if (moneda === cot.moneda) return;
+                    const tcConv = Number(cot.tipo_cambio) || tcActual || 3.75;
+                    const destino = moneda === "USD" ? "dólares (se dividirán entre el tipo de cambio)" : "soles (se multiplicarán por el tipo de cambio)";
+                    if (!window.confirm(`Se recalcularán los precios unitarios de todas las partidas a ${destino}, usando T.C. ${tcConv}. ¿Continuar?`)) {
+                      e.target.value = cot.moneda;
+                      return;
+                    }
+                    await convertirMonedaCotizacion(cot.id, moneda, tcConv);
+                    await qc.invalidateQueries({ queryKey: ["cotizaciones"] });
+                    await qc.invalidateQueries({ queryKey: ["cotizacion"] });
+                    await qc.invalidateQueries({ queryKey: ["cotizacion_items", cot.id] });
+                  }}
+                  style={{ ...edSel, textAlign: "right", fontWeight: 600 }}
+                >
+                  <option value="PEN">Soles (PEN)</option>
+                  <option value="USD">Dólares (USD)</option>
+                </select>
+              </Linea>
+              {esUsd && (
+                <Linea etiqueta="T. cambio">
+                  <input
+                    key={`tc-${cot.id}-${cot.tipo_cambio}`}
+                    type="number"
+                    step="0.001"
+                    min="0"
+                    defaultValue={Number(cot.tipo_cambio) || tcActual || ""}
+                    onBlur={(e) => alSalir("tipo_cambio", Number(e.target.value || 0), Number(cot.tipo_cambio))}
+                    style={{ ...ed, textAlign: "right", fontWeight: 700 }}
+                  />
+                </Linea>
+              )}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 5 }}>
+                <label style={{ padding: "8px 9px", border: `1px solid ${C.line}`, borderRadius: 5, background: C.soft }}>
+                  <EtiquetaCampo>Orientación</EtiquetaCampo>
+                  <select value={cot.orientacion === "horizontal" ? "horizontal" : "vertical"} onChange={(e) => void guardar({ orientacion: e.target.value as "vertical" | "horizontal" })} style={{ ...edSel, padding: 0, borderBottom: "none", fontWeight: 700 }}>
+                    <option value="vertical">Vertical</option>
+                    <option value="horizontal">Horizontal</option>
+                  </select>
+                </label>
+                <label style={{ padding: "8px 9px", border: `1px solid ${C.line}`, borderRadius: 5, background: C.soft }}>
+                  <EtiquetaCampo>IGV</EtiquetaCampo>
+                  <select value={conIgv ? "si" : "no"} onChange={(e) => void guardar({ aplica_igv: e.target.value === "si" })} style={{ ...edSel, padding: 0, borderBottom: "none", fontWeight: 700 }}>
+                    <option value="si">Con IGV (18%)</option>
+                    <option value="no">Sin IGV</option>
+                  </select>
+                </label>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div style={{ marginTop: 16 }}>{children}</div>
