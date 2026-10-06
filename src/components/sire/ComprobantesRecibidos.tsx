@@ -1,9 +1,9 @@
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { zipSync } from "fflate";
-import { Download, FileCode2, FileText, ShieldCheck, FolderDown, ClipboardCheck, XCircle, Printer, Paperclip } from "lucide-react";
+import { Download, FileCode2, FileText, ShieldCheck, FolderDown, ClipboardCheck, XCircle, Printer, Paperclip, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Panel, Boton, Select } from "@/components/ui-kit";
 import { soles } from "@/lib/format";
@@ -25,6 +25,7 @@ export function ComprobantesRecibidos({ periodo, items }: { periodo: string; ite
   const [sel, setSel] = useState<Set<string>>(new Set());
   const [prog, setProg] = useState<{ h: number; t: number } | null>(null);
   const [registrar, setRegistrar] = useState(false);
+  const [abierto, setAbierto] = useState<string | null>(null);
   const qk = ["sire-recibidos", periodo];
   const { data: recibidos = [] } = useQuery({
     queryKey: qk,
