@@ -153,7 +153,7 @@ export function HojaCotizacion({
                 maxLength={6}
                 title="Revisión impresa de la cotización"
                 onBlur={(e) => alSalir("revision", e.target.value.trim().toUpperCase() || "01", cot.revision ?? "01")}
-                style={{ ...ed, width: 54, textAlign: "right", fontWeight: 700 }}
+                style={{ ...ed, width: 40, textAlign: "left", fontWeight: 700 }}
               />
             </div>
           </div>
