@@ -66,23 +66,25 @@ export function Insumos() {
   ];
   const etiquetaTipo = (t: TipoInsumo) => TIPOS_INSUMO.find(([k]) => k === t)?.[1] ?? t;
 
-  // Color distintivo fijo por tipo de insumo y por sección de configuración.
-  const CHIP_TIPO: Partial<Record<TipoInsumo, string>> = {
-    MAT: "bg-chip-mat",
-    MO: "bg-chip-mo",
-    EQ: "bg-chip-eq",
-    SC: "bg-chip-sc",
-  };
-  const CHIPS_EXTRA = ["bg-chip-1", "bg-chip-2", "bg-chip-3", "bg-chip-4"];
-  const CHIP_SECCION: Record<Exclude<SeccionInsumos, TipoInsumo>, string> = {
-    margenes: "bg-chip-margenes",
-    laboral: "bg-chip-laboral",
-    codificacion: "bg-chip-codificacion",
-  };
-  const chips = new Map<TipoInsumo, string>();
-  ORDEN_PESTANAS.forEach((t, i) =>
-    chips.set(t, CHIP_TIPO[t] ?? CHIPS_EXTRA[Math.max(0, i - 4) % CHIPS_EXTRA.length] ?? "bg-chip-1"),
-  );
+  // Grupos con el mismo estilo de navegación de la pantalla Datos (Catálogos maestros).
+  const GRUPOS_INSUMOS: { titulo: string; icono: React.ElementType; items: [SeccionInsumos, string][] }[] = [
+    {
+      titulo: "Maestro",
+      icono: Boxes,
+      items: ORDEN_PESTANAS.map((t) => [t, etiquetaTipo(t)] as [SeccionInsumos, string]),
+    },
+    {
+      titulo: "Configuración",
+      icono: SlidersHorizontal,
+      items: [
+        ["margenes", "Márgenes APU"],
+        ["laboral", "Parámetros laborales"],
+        ["codificacion", "Codificación de insumos"],
+      ] as [SeccionInsumos, string][],
+    },
+  ];
+  const grupoActivo =
+    GRUPOS_INSUMOS.find((g) => g.items.some(([p]) => p === seccion)) ?? GRUPOS_INSUMOS[0]!;
 
   // El foco de la fila de captura se aplica al montar; se libera después.
   useEffect(() => {
