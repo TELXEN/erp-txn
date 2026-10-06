@@ -355,3 +355,36 @@ function RegistrarModal({ recibidos, onCerrar, onListo }: { recibidos: Recibido[
     </div>
   );
 }
+
+const ORIGEN: Record<string, string> = { sunat: "XML SUNAT", adjunto: "XML adjunto", xml: "XML", manual: "Manual" };
+
+function DetalleItems({ id, moneda }: { id: string; moneda: string }) {
+  const { data: its = [], isLoading } = useQuery({
+    queryKey: ["recibido-items", id],
+    queryFn: async () => ((await supabase.from("comprobantes_recibidos_items").select("*").eq("comprobante_id", id).order("orden")).data ?? []),
+  });
+  if (isLoading) return <p className="text-xs text-muted-foreground">Cargando detalle…</p>;
+  if (!its.length) return <p className="text-xs text-muted-foreground">Sin ítems: descarga el XML de SUNAT o adjunta el XML del proveedor.</p>;
+  const f = (v: number) => Number(v || 0).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+  return (
+    <table className="w-full text-xs">
+      <thead className="font-mono text-[10px] uppercase text-muted-foreground">
+        <tr><th className="px-2 py-1 text-left">#</th><th className="px-2 py-1 text-left">Código</th><th className="px-2 py-1 text-left">Descripción</th><th className="px-2 py-1 text-center">Und.</th><th className="px-2 py-1 text-right">Cant.</th><th className="px-2 py-1 text-right">P.U. ({moneda})</th><th className="px-2 py-1 text-right">Valor</th><th className="px-2 py-1 text-left">Origen</th></tr>
+      </thead>
+      <tbody>
+        {its.map((x, n) => (
+          <tr key={x.id} className="border-t border-line">
+            <td className="px-2 py-1 font-mono">{n + 1}</td>
+            <td className="px-2 py-1 font-mono">{x.codigo || "—"}</td>
+            <td className="px-2 py-1">{x.descripcion}</td>
+            <td className="px-2 py-1 text-center">{x.unidad || "—"}</td>
+            <td className="px-2 py-1 text-right font-mono">{f(x.cantidad)}</td>
+            <td className="px-2 py-1 text-right font-mono">{f(x.precio_unitario)}</td>
+            <td className="px-2 py-1 text-right font-mono">{f(x.valor)}</td>
+            <td className="px-2 py-1 text-muted-foreground">{ORIGEN[x.origen] ?? x.origen}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
