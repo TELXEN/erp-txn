@@ -219,25 +219,40 @@ export function renumerarWBS<T extends FilaCodigo & { id: string; padre_id?: str
   const ids = new Set(filas.map((f) => f.id));
   const esHijo = (f: T) => Boolean(f.padre_id && ids.has(f.padre_id));
   const hijosDe = (id: string) => filas.filter((f) => f.padre_id === id);
+  // Obras heredadas de cotizaciones: 4 niveles; se conserva el segmento de grupo de cada categoría.
+  const cuatro = filas.some((f) => !esHijo(f) && (f.codigo ?? "").trim().split(".").length >= 4);
+  const grpDe = (items: T[]) => {
+    const r = items
+      .filter((f) => !esHijo(f) && f.tipo !== "grupo")
+      .map((f) => (f.codigo ?? "").trim().split("."))
+      .filter((s) => s.length >= 4)[0];
+    return r ? r[1]! : "00";
+  };
   let iCap = 0;
   for (const [, lista] of agrupar(filas, (f) => f.especialidad || "Sin especialidad")) {
     iCap += 1;
     const cap = pad2(iCap);
-    let iSub = 0;
-    for (const [, items] of agrupar(lista, (f) => claveCat(f.categoria))) {
+    const contadores = new Map<string, number>();
+    const cats = [...agrupar(lista, (f) => claveCat(f.categoria)).values()];
+    if (cuatro) cats.sort((a, b) => grpDe(a).localeCompare(grpDe(b)));
+    for (const items of cats) {
+      const g = cuatro ? `${grpDe(items)}.` : "";
+      const vacio = cuatro ? `${cap}.00.00.00` : `${cap}.00.00`;
       // Marcadora de la especialidad (sin categoría ni partidas): no ocupa correlativo de categoría.
       if (items.every((f) => f.tipo === "grupo") && !(items[0]?.categoria ?? "").trim()) {
-        for (const m of items) if ((m.codigo ?? "").trim() !== `${cap}.00.00`) cambios.push({ id: m.id, codigo: `${cap}.00.00` });
+        for (const m of items) if ((m.codigo ?? "").trim() !== vacio) cambios.push({ id: m.id, codigo: vacio });
         continue;
       }
-      iSub += 1;
+      const iSub = (contadores.get(g) ?? 0) + 1;
+      contadores.set(g, iSub);
+      const pref = `${cap}.${g}${pad2(iSub)}`;
       // Las filas marcadoras de grupo conservan el prefijo del grupo con correlativo 00.
       for (const m of items.filter((f) => f.tipo === "grupo")) {
-        const c0 = `${cap}.${pad2(iSub)}.00`;
+        const c0 = `${pref}.00`;
         if ((m.codigo ?? "").trim() !== c0) cambios.push({ id: m.id, codigo: c0 });
       }
       items.filter((f) => !esHijo(f) && f.tipo !== "grupo").forEach((f, i) => {
-        const codigo = `${cap}.${pad2(iSub)}.${pad2(i + 1)}`;
+        const codigo = `${pref}.${pad2(i + 1)}`;
         if ((f.codigo ?? "").trim() !== codigo) cambios.push({ id: f.id, codigo });
         hijosDe(f.id).forEach((h, j) => {
           const c4 = `${codigo}.${pad2(j + 1)}`;
