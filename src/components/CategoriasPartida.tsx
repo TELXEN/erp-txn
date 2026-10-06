@@ -3,20 +3,17 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Check, Pencil, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input, Panel, Select } from "@/components/ui-kit";
-import { useEspecialidadesPartida } from "@/lib/especialidades";
-import {
-  useCategoriasPartida,
-  type CategoriaPartida,
-} from "@/lib/categorias";
+import { useCategoriasPartida, type CategoriaPartida } from "@/lib/categorias";
+import { useGruposCotizacion } from "@/lib/cotizaciones";
 import { FlechasOrden } from "@/components/FlechasOrden";
 import { moverWbs, recodificarWbs, ORDEN_FINAL } from "@/lib/wbs";
 
-const vacio = { nombre: "", especialidad: "" };
+const vacio = { nombre: "", grupo: "" };
 
 export function CategoriasPartida() {
   const qc = useQueryClient();
   const { data: lista = [] } = useCategoriasPartida();
-  const { data: especialidades = [] } = useEspecialidadesPartida();
+  const { data: grupos = [] } = useGruposCotizacion();
   const [nueva, setNueva] = useState(vacio);
   const [editando, setEditando] = useState<CategoriaPartida | null>(null);
   const [seleccionadaId, setSeleccionadaId] = useState<string | null>(null);
@@ -38,10 +35,10 @@ export function CategoriasPartida() {
     setMoviendo(false);
   }
 
-  const opcionesEspecialidad = especialidades.filter((e) => e.activo);
+  const opcionesGrupo = grupos.filter((g) => g.activo);
 
   const visibles = useMemo(
-    () => (filtro ? lista.filter((c) => c.especialidad === filtro) : lista),
+    () => (filtro ? lista.filter((c) => c.grupo === filtro) : lista),
     [lista, filtro],
   );
 
@@ -49,12 +46,12 @@ export function CategoriasPartida() {
   const categoriaSeleccionada = indiceSeleccionado >= 0 ? visibles[indiceSeleccionado] : undefined;
   const primeraDelGrupo = categoriaSeleccionada
     ? !visibles.some(
-        (c) => c.especialidad === categoriaSeleccionada.especialidad && c.orden < categoriaSeleccionada.orden,
+        (c) => c.grupo === categoriaSeleccionada.grupo && c.orden < categoriaSeleccionada.orden,
       )
     : true;
   const ultimaDelGrupo = categoriaSeleccionada
     ? !visibles.some(
-        (c) => c.especialidad === categoriaSeleccionada.especialidad && c.orden > categoriaSeleccionada.orden,
+        (c) => c.grupo === categoriaSeleccionada.grupo && c.orden > categoriaSeleccionada.orden,
       )
     : true;
 
@@ -63,18 +60,18 @@ export function CategoriasPartida() {
     setError("");
     const nombre = nueva.nombre.trim();
     if (!nombre) return setError("Escribe el nombre de la categoría.");
-    if (!nueva.especialidad) return setError("Elige la especialidad a la que pertenece.");
+    if (!nueva.grupo) return setError("Elige el grupo al que pertenece.");
     setGuardando(true);
     try {
-      const orden = Math.max(0, ...lista.filter((c) => c.especialidad === nueva.especialidad).map((c) => c.orden)) + 1;
+      const orden = Math.max(0, ...lista.filter((c) => c.grupo === nueva.grupo).map((c) => c.orden)) + 1;
       const { error: err } = await supabase
         .from("categorias_partida")
-        .insert({ codigo: "", nombre, especialidad: nueva.especialidad, orden });
+        .insert({ codigo: "", nombre, grupo: nueva.grupo, orden });
       if (err)
         throw new Error(
-          err.code === "23505" ? "Ya existe esa categoría en la especialidad elegida." : err.message,
+          err.code === "23505" ? "Ya existe esa categoría en el grupo elegido." : err.message,
         );
-      setNueva({ ...vacio, especialidad: nueva.especialidad });
+      setNueva({ ...vacio, grupo: nueva.grupo });
       await recodificarWbs().catch(() => undefined);
       refrescar();
     } catch (e) {
@@ -88,14 +85,14 @@ export function CategoriasPartida() {
     if (!editando) return;
     setError("");
     const anterior = lista.find((c) => c.id === editando.id);
-    const anteriorEsp = (c: CategoriaPartida) => anterior !== undefined && anterior.especialidad !== c.especialidad;
+    const cambioGrupo = anterior !== undefined && anterior.grupo !== editando.grupo;
     const nombre = editando.nombre.trim();
     const { error: err } = await supabase
       .from("categorias_partida")
       .update({
         nombre,
-        especialidad: editando.especialidad,
-        ...(anteriorEsp(editando) ? { orden: ORDEN_FINAL } : {}),
+        grupo: editando.grupo ?? "",
+        ...(cambioGrupo ? { orden: ORDEN_FINAL } : {}),
         activo: editando.activo,
       })
       .eq("id", editando.id);
@@ -148,10 +145,10 @@ export function CategoriasPartida() {
                 setSeleccionadaId(null);
               }}
             >
-              <option value="">Todas las especialidades</option>
-              {opcionesEspecialidad.map((e) => (
-                <option key={e.id} value={e.nombre}>
-                  {e.nombre}
+              <option value="">Todos los grupos</option>
+              {opcionesGrupo.map((g) => (
+                <option key={g.id} value={g.nombre}>
+                  {g.nombre}
                 </option>
               ))}
             </Select>
@@ -172,7 +169,7 @@ export function CategoriasPartida() {
           <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
             <th className="w-[9%] px-3 py-2 font-medium">Código</th>
             <th className="w-[39%] px-3 py-2 font-medium">Categoría</th>
-            <th className="w-[24%] px-3 py-2 font-medium">Especialidad</th>
+            <th className="w-[24%] px-3 py-2 font-medium">Grupo</th>
             <th className="w-[9%] px-3 py-2 text-center font-medium">Orden</th>
             <th className="w-[11%] px-3 py-2 font-medium">Estado</th>
             <th className="w-[8%] px-5 py-2 text-right font-medium">Acciones</th>
@@ -195,13 +192,13 @@ export function CategoriasPartida() {
             <td className="px-3 py-2">
               <select
                 className={selCls}
-                value={nueva.especialidad}
-                onChange={(e) => setNueva({ ...nueva, especialidad: e.target.value })}
+                value={nueva.grupo}
+                onChange={(e) => setNueva({ ...nueva, grupo: e.target.value })}
               >
                 <option value="">Selecciona…</option>
-                {opcionesEspecialidad.map((e) => (
-                  <option key={e.id} value={e.nombre}>
-                    {e.nombre}
+                {opcionesGrupo.map((g) => (
+                  <option key={g.id} value={g.nombre}>
+                    {g.nombre}
                   </option>
                 ))}
               </select>
@@ -236,13 +233,13 @@ export function CategoriasPartida() {
                 <td className="px-3 py-2">
                   <Select
                     className="py-1 text-xs"
-                    value={editando.especialidad}
-                    onChange={(ev) => setEditando({ ...editando, especialidad: ev.target.value })}
+                    value={editando.grupo ?? ""}
+                    onChange={(ev) => setEditando({ ...editando, grupo: ev.target.value })}
                   >
-                    <option value="">Sin especialidad</option>
-                    {opcionesEspecialidad.map((e) => (
-                      <option key={e.id} value={e.nombre}>
-                        {e.nombre}
+                    <option value="">Sin grupo</option>
+                    {opcionesGrupo.map((g) => (
+                      <option key={g.id} value={g.nombre}>
+                        {g.nombre}
                       </option>
                     ))}
                   </Select>
@@ -297,7 +294,7 @@ export function CategoriasPartida() {
               >
                 <td className="px-3 py-2.5 text-primary">{c.codigo}</td>
                 <td className="px-3 py-2.5 font-semibold text-ink">{c.nombre}</td>
-                <td className="px-3 py-2.5 uppercase text-muted-foreground">{c.especialidad || "—"}</td>
+                <td className="px-3 py-2.5 uppercase text-muted-foreground">{c.grupo || "—"}</td>
                 <td className="px-3 py-2.5 text-center text-muted-foreground">{c.orden}</td>
                 <td className="px-3 py-2.5">
                   <span className={c.activo ? "text-good" : "text-muted-foreground"}>
@@ -331,7 +328,7 @@ export function CategoriasPartida() {
       </table>
       {error && <p className="px-5 py-2 font-mono text-xs text-bad">{error}</p>}
       <p className="border-t border-line px-5 py-3 font-mono text-[10px] leading-relaxed text-muted-foreground">
-        Escribe en la primera fila y pulsa Enter para registrar. Selecciona una fila y usa las flechas de la cabecera para ordenarla dentro de su especialidad. Sus códigos dependientes se actualizan automáticamente.
+        Escribe en la primera fila y pulsa Enter para registrar. Selecciona una fila y usa las flechas de la cabecera para ordenarla dentro de su grupo. Sus códigos dependientes se actualizan automáticamente.
       </p>
     </Panel>
   );
