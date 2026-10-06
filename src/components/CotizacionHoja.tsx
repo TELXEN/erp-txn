@@ -1047,6 +1047,22 @@ export function CotizacionHoja({
           </tr>
         </tbody>
       </table>
+      <div className="sticky bottom-0 z-10 flex flex-wrap items-center justify-end gap-x-6 gap-y-1 border-t border-line bg-card/95 px-5 py-2 font-mono text-[11.5px] backdrop-blur print:hidden">
+        {arbol
+          .filter((f) => f.clase === "cap")
+          .map((f) => (
+            <span key={f.clave} className="text-muted-foreground">
+              <span className="uppercase">{f.clase === "cap" ? f.texto : ""}</span>:{" "}
+              <span className="font-semibold text-ink">{mon(f.total)}</span>
+            </span>
+          ))}
+        <span className="rounded bg-primary/10 px-2 py-1 text-primary">
+          Costo directo:{" "}
+          <span className="font-semibold">
+            {mon(arbol.filter((f) => f.clase === "cap").reduce((t, f) => t + Number(f.total || 0), 0))}
+          </span>
+        </span>
+      </div>
     </div>
   );
 }
