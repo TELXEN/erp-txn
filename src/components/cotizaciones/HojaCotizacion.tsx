@@ -175,7 +175,7 @@ export function HojaCotizacion({
                 >
                   <option value="">Seleccionar cliente</option>
                   {clientes.map((c) => (
-                    <option key={c.id} value={c.id}>{c.numero_documento || "Sin RUC"} — {c.razon_social}</option>
+                    <option key={c.id} value={c.id}>{c.numero_documento || "Sin RUC"}</option>
                   ))}
                 </select>
               </label>
