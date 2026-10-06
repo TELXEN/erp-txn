@@ -26,6 +26,7 @@ import {
 import { apuDb, calcularApu, nombreTipo, precioVenta, TIPOS_INSUMO, tiposVisibles, useComponentesApu, useInsumos, useMargenesInsumo } from "@/lib/apu";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
 import { gruposPermitidos, useGruposCotizacion, usePartidasMaestras, type CotizacionItem, type PartidaMaestra } from "@/lib/cotizaciones";
+import { recodificarWbs } from "@/lib/wbs";
 import { DOC } from "@/lib/documento-tema";
 
 /** Columnas de la hoja, en el orden en que se navegan con el teclado. */
@@ -418,7 +419,11 @@ export function CotizacionHoja({
     setGrupoDialogo(true);
   }
 
-  /** Crea el grupo con el nombre elegido; el WBS toma el siguiente correlativo de capítulo. */
+  /**
+   * Crea el grupo con el nombre elegido; el WBS toma el siguiente correlativo de capítulo.
+   * El nombre queda vinculado al catálogo maestro (Datos › Especialidad / Grupos de partidas):
+   * si no existía, se registra allí para reutilizarse en otras cotizaciones.
+   */
   async function confirmarGrupo() {
     const nombre = nombreGrupo.trim();
     if (!nombre) return setError(multi ? "Escribe el nombre de la especialidad." : "Escribe el nombre del grupo.");
@@ -427,6 +432,27 @@ export function CotizacionHoja({
       return setError(multi ? "Esa especialidad ya existe en la cotización." : "Ese grupo ya existe en la cotización.");
     setGrupoDialogo(false);
     await crearGrupo(nombre, "");
+    // Vincular con Datos: registra la especialidad o el grupo en su catálogo maestro.
+    if (multi) {
+      const existe = catalogoEsp.some((e) => normalizar(e.nombre) === normalizar(nombre));
+      if (existe) return;
+      const orden = Math.max(0, ...catalogoEsp.map((e) => e.orden)) + 1;
+      const { error: err } = await supabase
+        .from("especialidades_partida")
+        .insert({ codigo: "", nombre, orden });
+      if (err) return setError(err.message);
+      await recodificarWbs().catch(() => undefined);
+      qc.invalidateQueries({ queryKey: ["especialidades_partida"] });
+      qc.invalidateQueries({ queryKey: ["categorias_partida"] });
+      qc.invalidateQueries({ queryKey: ["partidas_maestras"] });
+    } else {
+      const existe = catalogoGrupos.some((g) => normalizar(g.nombre) === normalizar(nombre));
+      if (existe) return;
+      const orden = Math.max(0, ...catalogoGrupos.map((g) => g.orden)) + 1;
+      const { error: err } = await supabase.from("grupos_cotizacion").insert({ nombre, orden });
+      if (err) return setError(err.message);
+      qc.invalidateQueries({ queryKey: ["grupos_cotizacion"] });
+    }
   }
 
   /** Crea la fila marcadora que conserva una especialidad o categoría aunque no tenga partidas. */
@@ -1109,6 +1135,11 @@ export function CotizacionHoja({
                   ))}
               </div>
             )}
+            <p className="font-mono text-[10.5px] leading-relaxed text-muted-foreground">
+              {multi
+                ? "Las sugerencias salen de Datos › Especialidad de partidas. Un nombre nuevo se registra ahí mismo para reutilizarlo."
+                : "Las sugerencias salen de Datos › Grupos de partidas. Un nombre nuevo se registra ahí mismo para reutilizarlo."}
+            </p>
             {error && <p className="font-mono text-xs text-bad">{error}</p>}
           </div>
           <DialogFooter>
