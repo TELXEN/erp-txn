@@ -269,7 +269,7 @@ export function HojaCotizacion({
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "5px 8px", borderBottom: `1px solid ${C.line}` }}>
             <span style={{ display: "inline-flex", alignItems: "center" }}>
               <span style={{ display: "inline-block", width: 96 }}>IGV</span>
-              <span style={{ display: "inline-block", width: 44, textAlign: "right" }}>{conIgv ? "18" : "0"}</span>%
+              <span style={{ display: "inline-block", width: 44, textAlign: "right", paddingRight: 16 }}>{conIgv ? "18" : "0"}</span>%
             </span>
             <span>{money(sim, igv)}</span>
           </div>
