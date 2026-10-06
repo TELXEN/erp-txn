@@ -854,6 +854,7 @@ export function CotizacionHoja({
         </p>
         {error && <p className="font-mono text-xs text-bad">{error}</p>}
       </div>
+      </>
     );
 
   return (
