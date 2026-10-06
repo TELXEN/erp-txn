@@ -184,6 +184,10 @@
 }
 
 @media screen {
+  .cotizacion-datos-grid {
+    grid-template-columns: 1.1fr 1.1fr 0.9fr;
+  }
+
   .cpe-editor-sheet header b {
     font-size: 16px !important;
   }
@@ -209,6 +213,12 @@
   .cpe-editor-sheet td {
     padding-top: 6px !important;
     padding-bottom: 6px !important;
+  }
+}
+
+@media screen and (max-width: 980px) {
+  .cotizacion-datos-grid {
+    grid-template-columns: 1fr;
   }
 }
 
