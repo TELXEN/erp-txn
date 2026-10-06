@@ -56,7 +56,7 @@ export const ESTADO_EMO_INFO: Record<EstadoEmo, { texto: string; clase: string; 
 export function sumarAnios(fecha: string, anios: number) {
   if (!fecha) return "";
   const [y, m, d] = fecha.split("-").map(Number);
-  return `${y + anios}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+  return `${(y ?? 0) + anios}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 }
 
 export function useEmos(habilitado = true) {
