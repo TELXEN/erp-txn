@@ -791,11 +791,12 @@ export function CotizacionHoja({
     return { esp: f.esp, cat: "" };
   }
 
+  const creandoGrupo = multi && modoGrupo === "grp";
   const dialogoGrupo = (
       <Dialog open={grupoDialogo} onOpenChange={setGrupoDialogo}>
         <DialogContent className="max-w-sm print:hidden">
           <DialogHeader>
-            <DialogTitle>{multi ? "Agregar nueva especialidad" : "Agregar nuevo grupo"}</DialogTitle>
+            <DialogTitle>{creandoGrupo ? "Agregar nuevo grupo" : multi ? "Agregar nueva especialidad" : "Agregar nuevo grupo"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <Input
@@ -808,7 +809,7 @@ export function CotizacionHoja({
                   void confirmarGrupo();
                 }
               }}
-              placeholder={multi ? "Ej.: Instalaciones eléctricas" : "Ej.: Suministro de materiales"}
+              placeholder={creandoGrupo ? "Ej.: Suministro de materiales" : multi ? "Ej.: Instalaciones eléctricas" : "Ej.: Suministro de materiales"}
             />
             {nombresEsp.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
