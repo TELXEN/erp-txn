@@ -131,10 +131,6 @@ export function codigoContextual(especialidad: string, categoria: string, filas:
     .filter((f) => (f.codigo as string).startsWith(`${base}.`))
     .map((f) => seg(f.codigo as string)[largoBase]);
   return `${base}.${pad(maxDe(items) + 1)}`;
-  const items = conCodigo
-    .filter((f) => (f.codigo as string).startsWith(`${base}.`))
-    .map((f) => seg(f.codigo as string)[2]);
-  return `${base}.${pad(maxDe(items) + 1)}`;
 }
 
 const pad2 = (n: number) => String(n).padStart(2, "0");
