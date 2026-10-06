@@ -24,4 +24,4 @@
 - [x] Cotizaciones: grupos Suministro/Montaje, alcance (ambos/solo uno), modo una disciplina/multidisciplinaria y plantillas por tipo de obra.
 - [x] APU: pestaña «Grupos de partidas» (Suministro de materiales y Montaje electromecánico iniciales, se pueden agregar más).
 - [ ] Grupo como nivel de código WBS (Especialidad → Grupo → Categoría → Partida): pendiente de confirmación del usuario.
-- [ ] Mejorar el bloque Cliente, Trabajo a cotizar y Configuración; selector identificado únicamente por RUC.
+- [x] Mejorar el bloque Cliente, Trabajo a cotizar y Configuración; selector identificado únicamente por RUC.
