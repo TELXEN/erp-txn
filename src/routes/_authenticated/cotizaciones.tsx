@@ -45,7 +45,7 @@ import {
   type CotizacionItem,
   type EstadoCotizacion,
 } from "@/lib/cotizaciones";
-import { Check, Calculator, CornerDownRight, ListOrdered, Upload, X, Eye, Trash2, ArrowLeft, Library, Plus, Pencil, Copy } from "lucide-react";
+import { Check, Calculator, CornerDownRight, Upload, X, Eye, Trash2, ArrowLeft, Library, Plus, Pencil, Copy } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/cotizaciones")({
   head: () => ({
@@ -591,12 +591,6 @@ function Cotizaciones() {
             <Select className="w-36" value={cot.estado} onChange={(e) => cambiarEstado(cot.id, e.target.value as EstadoCotizacion)}>
               {ESTADOS_COTIZACION.map((e) => <option key={e} value={e}>{e}</option>)}
             </Select>
-            <Boton variante="linea" onClick={() => setVerCatalogo((v) => !v)}>
-              <Library size={13} /> Catálogo maestro
-            </Boton>
-            <Boton variante="linea" onClick={() => void renumerarCotizacion()} title="Renumerar WBS">
-              <ListOrdered size={13} />
-            </Boton>
             <Link to="/cotizacion-vista" search={{ id: cot.id }}>
               <Boton variante="linea"><Eye size={13} /> Vista previa A4</Boton>
             </Link>
@@ -720,7 +714,6 @@ function Cotizaciones() {
               simbolo={simboloMoneda(cot.moneda)}
               multi={Boolean(cot.multidisciplinaria)}
               alcance={cot.alcance ?? "ambos"}
-              alAbrirCatalogo={() => setVerCatalogo(true)}
             />
           </HojaCotizacion>
         </div>
