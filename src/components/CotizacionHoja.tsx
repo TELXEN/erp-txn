@@ -35,8 +35,15 @@ type Columna = (typeof COLUMNAS)[number];
 
 type Fila =
   | { clase: "cap"; clave: string; codigo: string; texto: string; esp: string; total: number }
-  | { clase: "sub"; clave: string; codigo: string; texto: string; esp: string; cat: string; total: number }
+  | { clase: "grp"; clave: string; codigo: string; texto: string; esp: string; grp: string; total: number }
+  | { clase: "sub"; clave: string; codigo: string; texto: string; esp: string; cat: string; grp: string; total: number }
   | { clase: "item"; clave: string; it: CotizacionItem; nivel: 3 | 4; agrupadora: boolean; total: number };
+
+/** Grupo de una categoría dentro de la especialidad: el primero no vacío de sus filas. */
+const grupoDeCat = (items: CotizacionItem[], esp: string, cat: string) =>
+  items.find(
+    (i) => (i.especialidad || "Sin especialidad") === esp && ((i.categoria ?? "").trim() || "Sin categoría") === cat && (i.grupo ?? "").trim(),
+  )?.grupo?.trim() ?? "";
 
 const num = (n: number | string) =>
   Number(n || 0).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -62,52 +69,70 @@ function buscarMaestras(maestras: PartidaMaestra[], texto: string, limite = 8): 
     .slice(0, limite);
 }
 
-/** Construye el árbol visible: capítulo (especialidad), subcapítulo (categoría), partidas y subpartidas. */
-function construirArbol(items: CotizacionItem[]): Fila[] {
+/** Construye el árbol visible: capítulo (especialidad), grupo (solo multi), subcapítulo (categoría), partidas y subpartidas. */
+function construirArbol(items: CotizacionItem[], multi = false): Fila[] {
   const wbs = prefijosWBS(items);
   const filas: Fila[] = [];
+  const total = (l: CotizacionItem[]) => l.filter(esPartida).reduce((x, i) => x + Number(i.metrado) * Number(i.precio_unitario), 0);
   for (const grupo of agruparPorCategoria(items)) {
-    const totalCap = grupo.categorias.reduce(
-      (t, s) => t + s.items.filter(esPartida).reduce((x, i) => x + Number(i.metrado) * Number(i.precio_unitario), 0),
-      0,
-    );
+    const esp = grupo.especialidad;
     filas.push({
       clase: "cap",
-      clave: `c:${grupo.especialidad}`,
-      codigo: wbs.capitulo(grupo.especialidad),
-      texto: grupo.especialidad,
-      esp: grupo.especialidad,
-      total: totalCap,
+      clave: `c:${esp}`,
+      codigo: wbs.capitulo(esp),
+      texto: esp,
+      esp,
+      total: grupo.categorias.reduce((t, s) => t + total(s.items), 0),
     });
-    for (const sub of grupo.categorias) {
-      const reales = sub.items.filter(esPartida);
-      // La marcadora de la especialidad (sin categoría) no dibuja un subcapítulo propio.
-      if (sub.categoria === "Sin categoría" && !reales.length) continue;
-      const totalSub = reales.reduce((x, i) => x + Number(i.metrado) * Number(i.precio_unitario), 0);
-      filas.push({
-        clase: "sub",
-        clave: `s:${grupo.especialidad}|${sub.categoria}`,
-        codigo: wbs.categoria(grupo.especialidad, sub.categoria),
-        texto: sub.categoria,
-        esp: grupo.especialidad,
-        cat: sub.categoria,
-        total: totalSub,
-      });
-      const porCodigo = [...reales].sort((a, b) =>
-        (a.codigo ?? "").localeCompare(b.codigo ?? "", undefined, { numeric: true }),
-      );
-      for (const nodo of ordenarJerarquia(porCodigo)) {
-        const total = nodo.agrupadora
-          ? nodo.hijos.reduce((s, h) => s + Number(h.metrado) * Number(h.precio_unitario), 0)
-          : Number(nodo.fila.metrado) * Number(nodo.fila.precio_unitario);
+    // Orden: categorías sin grupo primero; luego cada grupo (incluidos los vacíos) con sus categorías.
+    const cats = grupo.categorias.map((s) => ({ ...s, grp: multi ? grupoDeCat(items, esp, s.categoria) : "" }));
+    const nombresGrp: string[] = [];
+    if (multi) {
+      for (const s of cats) if (s.grp && !nombresGrp.includes(s.grp)) nombresGrp.push(s.grp);
+      for (const i of items)
+        if ((i.especialidad || "Sin especialidad") === esp && i.tipo === "grupo" && !(i.categoria ?? "").trim() && (i.grupo ?? "").trim()) {
+          const g = (i.grupo as string).trim();
+          if (!nombresGrp.includes(g)) nombresGrp.push(g);
+        }
+    }
+    const bloques: { grp: string; subs: typeof cats }[] = [
+      { grp: "", subs: cats.filter((s) => !s.grp) },
+      ...nombresGrp.map((g) => ({ grp: g, subs: cats.filter((s) => s.grp === g) })),
+    ];
+    for (const b of bloques) {
+      if (b.grp)
         filas.push({
-          clase: "item",
-          clave: `i:${nodo.fila.id}`,
-          it: nodo.fila,
-          nivel: nodo.nivel,
-          agrupadora: nodo.agrupadora,
-          total,
+          clase: "grp",
+          clave: `g:${esp}|${b.grp}`,
+          codigo: "",
+          texto: b.grp,
+          esp,
+          grp: b.grp,
+          total: b.subs.reduce((t, s) => t + total(s.items), 0),
         });
+      for (const sub of b.subs) {
+        const reales = sub.items.filter(esPartida);
+        // La marcadora de la especialidad/grupo (sin categoría) no dibuja un subcapítulo propio.
+        if (sub.categoria === "Sin categoría" && !reales.length) continue;
+        filas.push({
+          clase: "sub",
+          clave: `s:${esp}|${sub.categoria}`,
+          codigo: wbs.categoria(esp, sub.categoria),
+          texto: sub.categoria,
+          esp,
+          cat: sub.categoria,
+          grp: sub.grp,
+          total: total(reales),
+        });
+        const porCodigo = [...reales].sort((a, b) =>
+          (a.codigo ?? "").localeCompare(b.codigo ?? "", undefined, { numeric: true }),
+        );
+        for (const nodo of ordenarJerarquia(porCodigo)) {
+          const t = nodo.agrupadora
+            ? nodo.hijos.reduce((s, h) => s + Number(h.metrado) * Number(h.precio_unitario), 0)
+            : Number(nodo.fila.metrado) * Number(nodo.fila.precio_unitario);
+          filas.push({ clase: "item", clave: `i:${nodo.fila.id}`, it: nodo.fila, nivel: nodo.nivel, agrupadora: nodo.agrupadora, total: t });
+        }
       }
     }
   }
