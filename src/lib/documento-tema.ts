@@ -22,6 +22,19 @@ export const DOC = {
   accentText: "#7D6608",
 } as const;
 
+/** Paleta monocromática para impresión/PDF: negro puro, grises neutros, sin acentos de color. */
+export const DOC_MONO = {
+  ink: "#111111",
+  mute: "#444444",
+  line: "#D4D4D4",
+  soft: "#F5F5F5",
+  total: "#EDEDED",
+  dark: "#000000",
+  accent: "#000000",
+  accentSoft: "#F5F5F5",
+  white: "#ffffff",
+} as const;
+
 /** Fuente fija de los documentos comerciales/fiscales. */
 export const DOC_FUENTE_CSS = "Roboto, Arial, sans-serif";
 export const DOC_FUENTE_PDF: FuenteDocumentoId = "roboto";

@@ -8,7 +8,7 @@ import { useEmpresa } from "@/lib/empresa";
 import { useFuenteDocumento } from "@/lib/fuentes-documentos";
 import { useAuth } from "@/lib/auth";
 import { simboloMoneda, totalesCotizacion, useCotizacionItems, useCotizaciones, vigenciaHasta } from "@/lib/cotizaciones";
-import { DOC, DOC_FUENTE_CSS } from "@/lib/documento-tema";
+import { DOC_FUENTE_CSS, DOC_MONO } from "@/lib/documento-tema";
 import { ArrowLeft, FileDown, FileSpreadsheet } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -42,18 +42,18 @@ export const Route = createFileRoute("/_authenticated/cotizacion-vista")({
   component: VistaCotizacion,
 });
 
-// Tema documental compartido (mismo que la edición, la factura y la preliquidación).
+// Vista previa e impresión en blanco y negro; la edición conserva el color del tema.
 const C = {
-  slate900: DOC.green,
-  slate700: DOC.ink,
-  slate500: DOC.mute,
-  slate400: DOC.mute,
-  slate100: DOC.total,
-  slate50: DOC.soft,
-  emerald800: DOC.green,
-  emerald700: DOC.green,
-  emerald50: DOC.accentSoft,
-  white: DOC.white,
+  slate900: DOC_MONO.dark,
+  slate700: DOC_MONO.ink,
+  slate500: DOC_MONO.mute,
+  slate400: DOC_MONO.mute,
+  slate100: DOC_MONO.total,
+  slate50: DOC_MONO.soft,
+  emerald800: DOC_MONO.dark,
+  emerald700: DOC_MONO.dark,
+  emerald50: DOC_MONO.accentSoft,
+  white: DOC_MONO.white,
 };
 
 const S = (sim: string, n: number) =>
@@ -459,7 +459,7 @@ function VistaCotizacion() {
                         {filaDato("E-mail", empresa?.email || "—")}
                       </div>
                     </div>
-                    <div className="flex" style={{ marginTop: 8, alignItems: "center", background: C.white, color: C.slate900, border: `1px solid ${C.slate100}`, borderLeft: `3px solid ${DOC.accent}`, borderRadius: 4, padding: "4px 10px", fontFamily: DOC_FUENTE_CSS, fontSize: "8pt", lineHeight: 1.2 }}>
+                    <div className="flex" style={{ marginTop: 8, alignItems: "center", background: C.white, color: C.slate900, border: `1px solid ${C.slate100}`, borderLeft: `3px solid ${DOC_MONO.accent}`, borderRadius: 4, padding: "4px 10px", fontFamily: DOC_FUENTE_CSS, fontSize: "8pt", lineHeight: 1.2 }}>
                       <span style={{ fontWeight: 800, letterSpacing: 0.5, fontSize: 8, textTransform: "uppercase", marginRight: 10, flexShrink: 0 }}>Proyecto</span>
                       <span style={{ fontWeight: 400, textAlign: "justify" }}>{cot.nombre || "—"}</span>
                     </div>
