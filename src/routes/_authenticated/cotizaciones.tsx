@@ -759,24 +759,26 @@ function Cotizaciones() {
           </div> : undefined
         }
       />
-      <div className="mb-5 flex gap-1 border-b border-line">
-        {([
-          ["cotizaciones", "Cotizaciones"],
-          ["plantillas", `Plantillas (${plantillas.length})`],
-        ] as const).map(([valor, texto]) => (
-          <button
-            key={valor}
-            type="button"
-            onClick={() => setSeccion(valor)}
-            className={`-mb-px border-b-2 px-4 py-2 text-sm transition-colors ${
-              seccion === valor
-                ? "border-primary font-semibold text-primary"
-                : "border-transparent text-muted-foreground hover:text-ink"
-            }`}
-          >
-            {texto}
-          </button>
-        ))}
+      <div className="mb-5">
+        <div className="inline-flex gap-1 rounded-lg border border-line bg-card p-1">
+          {([
+            ["cotizaciones", "Cotizaciones"],
+            ["plantillas", "Plantillas"],
+          ] as const).map(([valor, texto]) => (
+            <button
+              key={valor}
+              type="button"
+              onClick={() => setSeccion(valor)}
+              className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
+                seccion === valor
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:bg-primary/10 hover:text-primary"
+              }`}
+            >
+              {texto}
+            </button>
+          ))}
+        </div>
       </div>
 
       {seccion === "plantillas" ? (
@@ -802,7 +804,7 @@ function Cotizaciones() {
         ))}
       </div>
 
-      <div className="mb-2 flex flex-wrap gap-1 border-b border-line">
+      <div className="mb-2 flex flex-wrap items-center gap-2">
         {PESTANAS.map((p) => {
           const n = p === "Todas" ? cotizaciones.length : p === "En Obra" ? cotizaciones.filter((c) => c.proyecto_id).length : cotizaciones.filter((c) => c.estado === p).length;
           return (
@@ -810,7 +812,11 @@ function Cotizaciones() {
               key={p}
               type="button"
               onClick={() => setPestana(p)}
-              className={`-mb-px border-b-2 px-3 py-2 font-mono text-xs transition-colors ${pestana === p ? "border-primary font-semibold text-primary" : "border-transparent text-muted-foreground hover:text-ink"}`}
+              className={`rounded-full border px-3 py-1 font-mono text-xs transition-colors ${
+                pestana === p
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-line bg-card text-muted-foreground hover:border-primary/40 hover:text-primary"
+              }`}
             >
               {p} <span className="opacity-60">({n})</span>
             </button>
