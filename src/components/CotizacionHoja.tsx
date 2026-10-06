@@ -1177,7 +1177,8 @@ export function CotizacionHoja({
                       </button>
                       {f.codigo || "—"}
                     </span>,
-                  , "text-left")}
+                    "text-left",
+                  )}
                   {celda(
                     f,
                     r,
@@ -1278,7 +1279,8 @@ export function CotizacionHoja({
                       {f.nivel === 4 && <CornerDownRight size={11} className="text-muted-foreground" />}
                       {it.codigo || "—"}
                     </span>,
-                  , "text-left")}
+                    "text-left",
+                  )}
                   {celda(f, r, 1, <span className="block border-l border-line/70 pl-6" style={{ color: DOC.ink }}>{it.nombre}</span>)}
                   {bloqueada ? (
                     <td className={`${celdaBase} text-center`}>—</td>
