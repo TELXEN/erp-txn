@@ -449,8 +449,9 @@ export function CotizacionHoja({
       const orden = Math.max(0, ...catalogoGrupos.map((g) => g.orden)) + 1;
       const { error: err } = await supabase.from("grupos_cotizacion").insert({ nombre, orden });
       if (err) return setError(err.message);
-      qc.invalidateQueries({ queryKey: ["grupos_cotizacion"] });
-      setGrupoDialogo(false);
+      await qc.invalidateQueries({ queryKey: ["grupos_cotizacion"] });
+      setNombreGrupo("");
+      setError("");
       return;
     }
     const usadas = new Set(items.map((i) => (i.especialidad || "Sin especialidad").toLowerCase()));
@@ -812,10 +813,31 @@ export function CotizacionHoja({
               placeholder={creandoGrupo ? "Ej.: Suministro de materiales" : multi ? "Ej.: Instalaciones eléctricas" : "Ej.: Suministro de materiales"}
             />
             {creandoGrupo ? (
-              <p className="font-mono text-[10.5px] leading-relaxed text-muted-foreground">
-                Se registra en Datos › Grupos de partidas. Asígnalo después a las categorías en Datos › Categorías de
-                partidas para que las partidas lo usen al imprimir.
-              </p>
+              <>
+                <div>
+                  <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    Grupos registrados ({catalogoGrupos.length})
+                  </p>
+                  {catalogoGrupos.length === 0 ? (
+                    <p className="text-xs text-muted-foreground">Aún no hay grupos.</p>
+                  ) : (
+                    <ul className="max-h-40 space-y-1 overflow-y-auto rounded-md border border-line p-1.5">
+                      {[...catalogoGrupos]
+                        .sort((a, b) => a.orden - b.orden)
+                        .map((g) => (
+                          <li key={g.id} className="flex items-center justify-between rounded px-2 py-1 text-[12.5px] hover:bg-muted">
+                            <span>{g.nombre}</span>
+                            {!g.activo && <span className="text-[10.5px] text-muted-foreground">inactivo</span>}
+                          </li>
+                        ))}
+                    </ul>
+                  )}
+                </div>
+                <p className="font-mono text-[10.5px] leading-relaxed text-muted-foreground">
+                  Se registra en Datos › Grupos de partidas. Asígnalo después a las categorías en Datos › Categorías de
+                  partidas para que las partidas lo usen al imprimir.
+                </p>
+              </>
             ) : (
               <>
                 {nombresEsp.length > 0 && (
