@@ -1,32 +1,35 @@
-# Plan: Grupos de partidas en el APU
+# Conversión automática de partidas al cargarlas en cotizaciones
 
 ## Objetivo
-Añadir un nivel **Grupo** a la jerarquía de partidas: **Especialidad → Grupo → Categoría → Partida**. El grupo forma parte del código WBS y se propaga a cotizaciones y partidas de obra.
+Tratar el precio del banco maestro de partidas siempre como **soles (PEN)** y guardarlo en la moneda activa de la cotización:
 
-## 1. Base de datos (migración)
-- Nueva tabla `grupos_partida` (id, codigo, nombre, especialidad, orden, activo) con GRANTs a `authenticated`/`service_role`, RLS con las mismas reglas que `categorias_partida` (lectura autenticados, gestión admin/gerente).
-- Columna `grupo` (texto) en `partidas_maestras`, `partidas` y `cotizacion_items`.
-- Actualizar la función `recodificar_wbs()` para numerar con 4 niveles: `EE.GG.CC.PP` (especialidad.grupo.categoría.partida). Las partidas sin grupo conservan su numeración actual de 3 niveles para no romper códigos existentes.
+- Cotización en PEN: copiar el precio sin cambios.
+- Cotización en USD: dividir el precio en soles entre el tipo de cambio de la cotización.
+- Mostrar inmediatamente el símbolo y los totales en la moneda elegida.
 
-## 2. Catálogo en Datos APU
-- Nueva pestaña **«Grupos de partidas»** entre «Especialidad de partidas» y «Categorías de partidas», con CRUD igual al de categorías (código automático por especialidad, orden con flechas, activar/desactivar).
-- Las categorías pasan a colgar del grupo: en «Categorías de partidas» se elige especialidad → grupo → categoría.
+## Cambios
+1. Crear una función única para convertir un precio maestro en soles a la moneda de la cotización, validando que el tipo de cambio sea mayor que cero y redondeando de forma consistente.
+2. Aplicar esa función en todos los puntos donde una partida maestra entra a la cotización:
+   - fila rápida y buscador dentro de la hoja;
+   - reemplazo/autocompletado de una fila existente;
+   - formulario de inserción desde el catálogo;
+   - carga de una plantilla usando los precios actuales del banco maestro.
+3. Pasar a la hoja editable la moneda y el tipo de cambio de la cotización, no solo el símbolo, para que cada inserción use la conversión correcta.
+4. Mantener las partidas libres ingresadas manualmente en la moneda activa mostrada por la cotización; no convertirlas nuevamente.
+5. Si una cotización USD no tiene un tipo de cambio válido, bloquear la carga desde el banco y mostrar un mensaje claro para registrar el tipo de cambio antes de continuar.
 
-## 3. Banco de partidas maestras
-- Selector de grupo entre especialidad y categoría (alta y edición en línea).
-- Columna Grupo en la tabla y en el buscador.
-- Las flechas de orden y la recodificación respetan el nuevo nivel.
+## Reglas de cálculo
+```text
+Precio maestro: PEN 1,000.00
+Cotización PEN:  PEN 1,000.00
+Cotización USD con T.C. 3.75: USD 266.6667
+```
 
-## 4. Cotizaciones y obras
-- `codigoContextual` (src/lib/categorias.ts) genera códigos de 4 niveles cuando la partida tiene grupo.
-- Editor de cotizaciones (CotizacionHoja): al traer una partida maestra hereda su grupo; la jerarquía visual muestra Especialidad → Grupo → Categoría → Partida con sus colores por nivel.
-- Partidas de obra (partidas.tsx): mismo selector y agrupación.
-- Vista previa/PDF de cotización: encabezado de grupo entre especialidad y categoría (negro en impresión, como los demás niveles).
-
-## 5. Compatibilidad
-- Partidas, cotizaciones y plantillas existentes sin grupo siguen funcionando con códigos de 3 niveles; el grupo es opcional.
-- Plantillas de cotización guardan el grupo (`plantilla_cotizacion_items.grupo`).
+El cambio posterior de moneda de toda la cotización conservará el comportamiento actual: PEN→USD divide y USD→PEN multiplica.
 
 ## Verificación
-- `bunx tsgo --noEmit` y build limpio.
-- Playwright: crear grupo en Datos APU, crear partida maestra con grupo (código de 4 niveles), llevarla a una cotización y comprobar jerarquía y código.
+- Insertar la misma partida maestra en una cotización PEN y confirmar que conserva su precio.
+- Insertarla en una cotización USD y confirmar precio, símbolo, subtotales por nivel y total general.
+- Repetir desde buscador, fila rápida, catálogo y plantilla.
+- Confirmar que una partida manual no recibe conversión automática.
+- Confirmar que un tipo de cambio vacío o cero impide una conversión incorrecta.
