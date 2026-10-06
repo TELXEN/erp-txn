@@ -190,6 +190,11 @@ function PaginaVehiculos() {
       toast.error("La placa es obligatoria");
       return;
     }
+    const placaNueva = formVeh.placa.trim().toUpperCase();
+    if (vehiculos.some((v) => v.placa.toUpperCase() === placaNueva && v.id !== editVeh)) {
+      toast.error(`La placa ${placaNueva} ya está registrada`);
+      return;
+    }
     const fila = {
       placa: formVeh.placa.trim().toUpperCase(),
       marca: formVeh.marca.trim(),
@@ -512,6 +517,23 @@ function PaginaVehiculos() {
   const th = "px-3 py-2 text-left font-mono text-[10px] uppercase tracking-wider text-muted-foreground";
   const td = "px-3 py-2 text-sm";
 
+  const placaNorm = formVeh.placa.trim().toUpperCase();
+  const placaDuplicada = placaNorm !== "" && vehiculos.some((v) => v.placa.toUpperCase() === placaNorm && v.id !== editVeh);
+
+  function venceTexto(fecha: string) {
+    const d = diasPara(fecha || null);
+    if (d == null) return <span className="mt-1 block font-mono text-[10px] text-muted-foreground">Sin fecha registrada</span>;
+    if (d < 0) return <span className="mt-1 block font-mono text-[10px] font-semibold text-bad">Vencido hace {Math.abs(d)} día(s)</span>;
+    if (d <= 30) return <span className="mt-1 block font-mono text-[10px] font-semibold text-bad">Vence en {d} día(s)</span>;
+    return <span className="mt-1 block font-mono text-[10px] text-good">Vigente · {d} días</span>;
+  }
+
+  function sumarAnio(fecha: string) {
+    const d = fecha ? new Date(`${fecha}T12:00:00`) : new Date();
+    d.setFullYear(d.getFullYear() + 1);
+    return d.toISOString().slice(0, 10);
+  }
+
   return (
     <div>
       <Encabezado
@@ -546,41 +568,89 @@ function PaginaVehiculos() {
       {pestaña === "flota" && (
         <div className="space-y-4">
           {esDinero && (
-            <Panel titulo={editVeh ? "Editar vehículo" : "Registrar vehículo"}>
-              <div className="grid grid-cols-2 gap-3 p-5 md:grid-cols-4">
-                <Campo etiqueta="Placa"><Input value={formVeh.placa} onChange={(e) => setFormVeh({ ...formVeh, placa: e.target.value })} placeholder="ABC-123" /></Campo>
-                <Campo etiqueta="Marca"><Input value={formVeh.marca} onChange={(e) => setFormVeh({ ...formVeh, marca: e.target.value })} /></Campo>
-                <Campo etiqueta="Modelo"><Input value={formVeh.modelo} onChange={(e) => setFormVeh({ ...formVeh, modelo: e.target.value })} /></Campo>
-                <Campo etiqueta="Año"><Input type="number" value={formVeh.anio} onChange={(e) => setFormVeh({ ...formVeh, anio: e.target.value })} /></Campo>
-                <Campo etiqueta="Tipo">
-                  <Select value={formVeh.tipo} onChange={(e) => setFormVeh({ ...formVeh, tipo: e.target.value })}>
-                    {TIPOS_VEHICULO.map((t) => <option key={t}>{t}</option>)}
-                  </Select>
-                </Campo>
-                <Campo etiqueta="Propiedad">
-                  <Select value={formVeh.propiedad} onChange={(e) => setFormVeh({ ...formVeh, propiedad: e.target.value })}>
-                    <option>Propio</option>
-                    <option>Alquilado</option>
-                  </Select>
-                </Campo>
-                <Campo etiqueta="Km actual"><Input type="number" value={formVeh.km_actual} onChange={(e) => setFormVeh({ ...formVeh, km_actual: e.target.value })} /></Campo>
-                <Campo etiqueta="Estado">
-                  <Select value={formVeh.estado} onChange={(e) => setFormVeh({ ...formVeh, estado: e.target.value })}>
-                    {ESTADOS_VEHICULO.map((t) => <option key={t}>{t}</option>)}
-                  </Select>
-                </Campo>
-                <Campo etiqueta="Vence SOAT"><Input type="date" value={formVeh.soat_vencimiento} onChange={(e) => setFormVeh({ ...formVeh, soat_vencimiento: e.target.value })} /></Campo>
-                <Campo etiqueta="Vence rev. técnica"><Input type="date" value={formVeh.revision_tecnica_vencimiento} onChange={(e) => setFormVeh({ ...formVeh, revision_tecnica_vencimiento: e.target.value })} /></Campo>
-                <Campo etiqueta="Tarifa interna por día (S/)"><Input type="number" step="0.01" value={formVeh.tarifa_dia} onChange={(e) => setFormVeh({ ...formVeh, tarifa_dia: e.target.value })} /></Campo>
-                <Campo etiqueta="Tarifa por km (S/)"><Input type="number" step="0.01" value={formVeh.tarifa_km} onChange={(e) => setFormVeh({ ...formVeh, tarifa_km: e.target.value })} /></Campo>
-                <div className="col-span-2 md:col-span-4">
-                  <Campo etiqueta="Observación"><Input value={formVeh.observacion} onChange={(e) => setFormVeh({ ...formVeh, observacion: e.target.value })} /></Campo>
+            <Panel
+              titulo={editVeh ? "Editar vehículo" : "Registrar vehículo"}
+              extra={
+                placaNorm ? (
+                  <span className="inline-flex items-center gap-2 text-xs text-muted-foreground">
+                    <Etiqueta tono="neutro">{placaNorm}</Etiqueta>
+                    {[formVeh.marca, formVeh.modelo].filter(Boolean).join(" ") || "—"}
+                  </span>
+                ) : (
+                  <span className="font-mono text-[11px] text-muted-foreground">Completa la placa primero</span>
+                )
+              }
+            >
+              <form className="space-y-5 p-5" onSubmit={(e) => { e.preventDefault(); guardarVehiculo(); }}>
+                <div>
+                  <p className="label-mono mb-2 text-primary">Identificación</p>
+                  <div className="grid grid-cols-2 gap-3 md:grid-cols-6">
+                    <Campo etiqueta="Placa"><Input value={formVeh.placa} onChange={(e) => setFormVeh({ ...formVeh, placa: e.target.value.toUpperCase() })} placeholder="ABC-123" autoComplete="off" /></Campo>
+                    <Campo etiqueta="Marca"><Input value={formVeh.marca} onChange={(e) => setFormVeh({ ...formVeh, marca: e.target.value })} placeholder="Toyota" /></Campo>
+                    <Campo etiqueta="Modelo"><Input value={formVeh.modelo} onChange={(e) => setFormVeh({ ...formVeh, modelo: e.target.value })} placeholder="Hilux 4x4" /></Campo>
+                    <Campo etiqueta="Año"><Input type="number" min="1980" max="2030" value={formVeh.anio} onChange={(e) => setFormVeh({ ...formVeh, anio: e.target.value })} placeholder="2022" /></Campo>
+                    <Campo etiqueta="Tipo">
+                      <Select value={formVeh.tipo} onChange={(e) => setFormVeh({ ...formVeh, tipo: e.target.value })}>
+                        {TIPOS_VEHICULO.map((t) => <option key={t}>{t}</option>)}
+                      </Select>
+                    </Campo>
+                    <Campo etiqueta="Propiedad">
+                      <Select value={formVeh.propiedad} onChange={(e) => setFormVeh({ ...formVeh, propiedad: e.target.value })}>
+                        <option>Propio</option>
+                        <option>Alquilado</option>
+                      </Select>
+                    </Campo>
+                  </div>
+                  {placaDuplicada && (
+                    <p className="mt-2 font-mono text-[11px] font-semibold text-bad">La placa {placaNorm} ya está registrada en la flota.</p>
+                  )}
                 </div>
-              </div>
-              <div className="flex gap-2 border-t border-line px-5 py-3">
-                <Boton onClick={guardarVehiculo}><Plus className="size-3.5" />{editVeh ? "Guardar cambios" : "Registrar"}</Boton>
-                {editVeh && <Boton variante="linea" onClick={() => { setEditVeh(null); setFormVeh(VACIO_VEHICULO); }}>Cancelar</Boton>}
-              </div>
+
+                <div>
+                  <p className="label-mono mb-2 text-primary">Situación y documentos</p>
+                  <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                    <Campo etiqueta="Km actual"><Input type="number" min="0" value={formVeh.km_actual} onChange={(e) => setFormVeh({ ...formVeh, km_actual: e.target.value })} placeholder="0" /></Campo>
+                    <Campo etiqueta="Estado">
+                      <Select value={formVeh.estado} onChange={(e) => setFormVeh({ ...formVeh, estado: e.target.value })}>
+                        {ESTADOS_VEHICULO.map((t) => <option key={t}>{t}</option>)}
+                      </Select>
+                    </Campo>
+                    <Campo etiqueta="Vence SOAT">
+                      <Input type="date" value={formVeh.soat_vencimiento} onChange={(e) => setFormVeh({ ...formVeh, soat_vencimiento: e.target.value })} />
+                      {venceTexto(formVeh.soat_vencimiento)}
+                      <button type="button" className="mt-1 font-mono text-[10px] text-primary hover:underline" onClick={() => setFormVeh({ ...formVeh, soat_vencimiento: sumarAnio(formVeh.soat_vencimiento) })}>+1 año</button>
+                    </Campo>
+                    <Campo etiqueta="Vence rev. técnica">
+                      <Input type="date" value={formVeh.revision_tecnica_vencimiento} onChange={(e) => setFormVeh({ ...formVeh, revision_tecnica_vencimiento: e.target.value })} />
+                      {venceTexto(formVeh.revision_tecnica_vencimiento)}
+                      <button type="button" className="mt-1 font-mono text-[10px] text-primary hover:underline" onClick={() => setFormVeh({ ...formVeh, revision_tecnica_vencimiento: sumarAnio(formVeh.revision_tecnica_vencimiento) })}>+1 año</button>
+                    </Campo>
+                  </div>
+                </div>
+
+                <div>
+                  <p className="label-mono mb-2 text-primary">Tarifas internas</p>
+                  <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                    <Campo etiqueta="Tarifa por día (S/)">
+                      <Input type="number" step="0.01" min="0" value={formVeh.tarifa_dia} onChange={(e) => setFormVeh({ ...formVeh, tarifa_dia: e.target.value })} placeholder="150.00" />
+                      <span className="mt-1 block font-mono text-[10px] text-muted-foreground">Tareo = días de uso × tarifa diaria</span>
+                    </Campo>
+                    <Campo etiqueta="Tarifa por km (S/)">
+                      <Input type="number" step="0.01" min="0" value={formVeh.tarifa_km} onChange={(e) => setFormVeh({ ...formVeh, tarifa_km: e.target.value })} placeholder="2.50" />
+                      <span className="mt-1 block font-mono text-[10px] text-muted-foreground">Referencial para traslados</span>
+                    </Campo>
+                  </div>
+                </div>
+
+                <Campo etiqueta="Observación"><Input value={formVeh.observacion} onChange={(e) => setFormVeh({ ...formVeh, observacion: e.target.value })} placeholder="Accesorios, asignación habitual…" /></Campo>
+
+                <div className="flex flex-wrap items-center gap-2 border-t border-line pt-3">
+                  <Boton type="submit" disabled={!placaNorm || placaDuplicada}><Plus className="size-3.5" />{editVeh ? "Guardar cambios" : "Registrar"}</Boton>
+                  {editVeh && <Boton type="button" variante="linea" onClick={() => { setEditVeh(null); setFormVeh(VACIO_VEHICULO); }}>Cancelar</Boton>}
+                  {!placaNorm && <span className="font-mono text-[11px] text-muted-foreground">La placa es obligatoria</span>}
+                  {placaDuplicada && <span className="font-mono text-[11px] font-semibold text-bad">Corrige la placa duplicada</span>}
+                </div>
+              </form>
             </Panel>
           )}
 
