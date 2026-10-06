@@ -926,8 +926,8 @@ export function CotizacionHoja({
                   )}
                 </div>
                 <p className="font-mono text-[10.5px] leading-relaxed text-muted-foreground">
-                  Se registra en Datos › Grupos de partidas. Asígnalo después a las categorías en Datos › Categorías de
-                  partidas para que las partidas lo usen al imprimir.
+                  Elige un grupo de la lista o escribe uno nuevo: se inserta en {espDestino || "la especialidad"} y debajo agregas categorías y partidas. Los nuevos se registran en Datos › Grupos de
+                  partidas.
                 </p>
               </>
             ) : (
