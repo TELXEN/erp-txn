@@ -876,14 +876,14 @@ export function CotizacionHoja({
                     {cap ? (multi ? "Especialidad" : "Grupo") : "Categoría"}: {f.texto}
                   </ContextMenuLabel>
                   <ContextMenuSeparator />
+                  <ContextMenuItem onSelect={() => nuevaEspecialidad()}>
+                    <Layers size={14} className="mr-2" /> {multi ? "Agregar nueva especialidad" : "Agregar nuevo grupo"}
+                  </ContextMenuItem>
                   {cap && (
                     <ContextMenuItem onSelect={() => void nuevaCategoria(f.esp)}>
                       <FolderPlus size={14} className="mr-2" /> Agregar categoría
                     </ContextMenuItem>
                   )}
-                  <ContextMenuItem onSelect={() => void nuevaEspecialidad()}>
-                    <FolderPlus size={14} className="mr-2" /> {multi ? "Nueva especialidad (capítulo)" : "Nuevo grupo (capítulo)"}
-                  </ContextMenuItem>
                   <ContextMenuItem
                     onSelect={() => void crearPartida(f.esp, f.clase === "sub" && f.cat !== "Sin categoría" ? f.cat : "", "Nueva partida")}
                   >
@@ -1006,11 +1006,11 @@ export function CotizacionHoja({
                     Partida {it.codigo}: {it.nombre}
                   </ContextMenuLabel>
                   <ContextMenuSeparator />
+                  <ContextMenuItem onSelect={() => nuevaEspecialidad()}>
+                    <Layers size={14} className="mr-2" /> {multi ? "Agregar nueva especialidad" : "Agregar nuevo grupo"}
+                  </ContextMenuItem>
                   <ContextMenuItem onSelect={() => void insertarFila(r)}>
                     <ListPlus size={14} className="mr-2" /> Insertar partida debajo
-                  </ContextMenuItem>
-                  <ContextMenuItem onSelect={() => void nuevaEspecialidad()}>
-                    <FolderPlus size={14} className="mr-2" /> {multi ? "Nueva especialidad (capítulo)" : "Nuevo grupo (capítulo)"}
                   </ContextMenuItem>
                   {!f.agrupadora && (
                     <ContextMenuItem onSelect={() => setApuAbierto(it.id)}>
