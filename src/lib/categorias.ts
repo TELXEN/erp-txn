@@ -6,6 +6,7 @@ export type CategoriaPartida = {
   codigo: string;
   nombre: string;
   especialidad: string;
+  grupo?: string | null;
   orden: number;
   activo: boolean;
 };
