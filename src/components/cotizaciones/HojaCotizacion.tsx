@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEmpresa } from "@/lib/empresa";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
 import { fecha as fmtFecha } from "@/lib/format";
-import { ALCANCES, aplicarAlcanceCotizacion, cambiarModoCotizacion, convertirMonedaCotizacion, simboloMoneda, totalesCotizacion, useTipoCambioActual, vigenciaHasta, type Cotizacion, type CotizacionItem } from "@/lib/cotizaciones";
+import { cambiarModoCotizacion, convertirMonedaCotizacion, simboloMoneda, totalesCotizacion, useTipoCambioActual, vigenciaHasta, type Cotizacion, type CotizacionItem } from "@/lib/cotizaciones";
 
 /** Paleta corporativa compartida con la hoja de facturación electrónica. */
 const C = { ink: DOC.ink, muted: DOC.ink, line: DOC.line, soft: DOC.soft, green: DOC.green, greenSoft: DOC.white, white: DOC.white };
@@ -189,13 +189,6 @@ export function HojaCotizacion({
               <select value={multi ? "multi" : "una"} onChange={(e) => void cambiarModo(e.target.value === "multi")} style={edSel}>
                 <option value="una">Una disciplina</option>
                 <option value="multi">Multidisciplinaria</option>
-              </select>
-            </Linea>
-            <Linea etiqueta="Alcance">
-              <select value={cot.alcance ?? "ambos"} onChange={async (e) => { await aplicarAlcanceCotizacion(cot.id, e.target.value as never, Boolean(cot.multidisciplinaria)); await qc.invalidateQueries({ queryKey: ["cotizaciones"] }); await qc.invalidateQueries({ queryKey: ["cotizacion"] }); await qc.invalidateQueries({ queryKey: ["cotizacion_items", cot.id] }); }} style={edSel}>
-                {ALCANCES.map(([v, t]) => (
-                  <option key={v} value={v}>{t}</option>
-                ))}
               </select>
             </Linea>
             <Linea etiqueta="Moneda">

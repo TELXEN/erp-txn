@@ -1096,29 +1096,6 @@ export function CotizacionHoja({
     <div className="overflow-x-auto">
       {error && <p className="px-5 py-2 font-mono text-xs text-bad">{error}</p>}
       <div className="flex flex-wrap items-center gap-3 border-b border-line bg-muted/30 px-5 py-2 font-mono text-[11.5px] text-muted-foreground print:hidden">
-        <button
-          type="button"
-          onClick={() => void insertarFila(activo.r)}
-          className="inline-flex items-center gap-1 rounded-md border border-line px-2.5 py-1.5 text-[12.5px] text-primary hover:bg-primary/10"
-        >
-          <Plus size={12} /> Fila
-        </button>
-        <button
-          type="button"
-          onClick={() => nuevaEspecialidad()}
-          className="inline-flex items-center gap-1 rounded-md border border-line px-2.5 py-1.5 text-[12.5px] text-primary hover:bg-primary/10"
-        >
-          <Layers size={12} /> {multi ? "Especialidad" : "Grupo"}
-        </button>
-        {alAbrirCatalogo && (
-          <button
-            type="button"
-            onClick={alAbrirCatalogo}
-            className="inline-flex items-center gap-1 rounded-md border border-line px-2.5 py-1.5 text-[12.5px] text-primary hover:bg-primary/10"
-          >
-            <BookOpen size={12} /> Catálogo
-          </button>
-        )}
         <span>Clic derecho: menú · Doble clic edita · Enter guarda · Esc cancela · Flechas y Tab navegan · Insert añade fila</span>
       </div>
       <table className="w-full min-w-[1180px] table-fixed font-mono text-[10.5px]">
