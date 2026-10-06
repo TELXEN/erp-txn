@@ -310,10 +310,11 @@ function VistaCotizacion() {
       c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
       c.alignment = { vertical: "middle", horizontal: "center" };
     });
-    const primera = ws.rowCount + 1;
+    const filasPartida: number[] = [];
     construirFilas(items as unknown as ItemCot[], { multi: Boolean(cot.multidisciplinaria), alcance: cot.alcance }).forEach((fila) => {
       if (fila.clase !== "item") {
-        const g = ws.addRow([fila.numero, fila.texto, "", "", "", "", ""]);
+        // Encabezados (especialidad/grupo/categoría) llevan su total; no entra al COSTO DIRECTO para no duplicar.
+        const g = ws.addRow([fila.numero, fila.texto, "", "", "", "", Math.round(fila.total * 100) / 100]);
         g.font = { name: fuenteExcel, bold: true, size: fila.clase === "grupo" ? 11 : 10 };
         g.fill = { type: "pattern", pattern: "solid", fgColor: { argb: fila.clase === "grupo" ? "FFE2E8F0" : "FFF1F5F9" } };
         return;
@@ -321,9 +322,10 @@ function VistaCotizacion() {
       const it = fila.item;
       const r = ws.addRow([it.codigo || fila.numero, it.nombre, it.marca?.trim() || "-", it.unidad, Number(it.metrado), Number(it.precio_unitario)]);
       r.getCell(7).value = { formula: `E${r.number}*F${r.number}` };
+      filasPartida.push(r.number);
     });
-    const ultima = ws.rowCount;
-    const sub = ws.addRow(["", "COSTO DIRECTO", "", "", "", "", { formula: `SUM(G${primera}:G${ultima})` }]);
+    // Suma solo las filas de partida (los totales de encabezado son informativos).
+    const sub = ws.addRow(["", "COSTO DIRECTO", "", "", "", "", { formula: filasPartida.length ? filasPartida.map((n) => `G${n}`).join("+") : "0" }]);
     const pctGg = Number(cot.pct_gastos_generales) || 0;
     const pctUt = Number(cot.pct_utilidad) || 0;
     let base = `G${sub.number}`;
