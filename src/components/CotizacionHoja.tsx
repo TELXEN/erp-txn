@@ -416,7 +416,9 @@ export function CotizacionHoja({
   /** Abre el diálogo para crear un grupo/especialidad nuevo con nombre libre (sin límite de grupos). */
   function nuevaEspecialidad() {
     setNombreGrupo("");
-    setGrupoDialogo(true);
+    setError("");
+    // Diferido: deja que el menú contextual cierre y libere el foco antes de abrir el diálogo.
+    window.setTimeout(() => setGrupoDialogo(true), 50);
   }
 
   /**
@@ -430,8 +432,9 @@ export function CotizacionHoja({
     const usadas = new Set(items.map((i) => (i.especialidad || "Sin especialidad").toLowerCase()));
     if (usadas.has(nombre.toLowerCase()))
       return setError(multi ? "Esa especialidad ya existe en la cotización." : "Ese grupo ya existe en la cotización.");
+    const ok = await crearGrupo(nombre, "");
+    if (!ok) return;
     setGrupoDialogo(false);
-    await crearGrupo(nombre, "");
     // Vincular con Datos: registra la especialidad o el grupo en su catálogo maestro.
     if (multi) {
       const existe = catalogoEsp.some((e) => normalizar(e.nombre) === normalizar(nombre));
@@ -472,8 +475,12 @@ export function CotizacionHoja({
       orden: items.length + 1,
       tipo: "grupo",
     } as never);
-    if (err) return setError(err.message);
+    if (err) {
+      setError(err.message);
+      return false;
+    }
     await refrescar();
+    return true;
   }
 
   /** Añade a la especialidad la siguiente categoría libre del catálogo maestro. */
@@ -760,8 +767,60 @@ export function CotizacionHoja({
     return { esp: f.esp, cat: "" };
   }
 
+  const dialogoGrupo = (
+      <Dialog open={grupoDialogo} onOpenChange={setGrupoDialogo}>
+        <DialogContent className="max-w-sm print:hidden">
+          <DialogHeader>
+            <DialogTitle>{multi ? "Agregar nueva especialidad" : "Agregar nuevo grupo"}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input
+              autoFocus
+              value={nombreGrupo}
+              onChange={(e) => setNombreGrupo(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  void confirmarGrupo();
+                }
+              }}
+              placeholder={multi ? "Ej.: Instalaciones eléctricas" : "Ej.: Suministro de materiales"}
+            />
+            {nombresEsp.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {nombresEsp
+                  .filter((n) => !items.some((i) => (i.especialidad || "").toLowerCase() === n.toLowerCase()))
+                  .map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => setNombreGrupo(n)}
+                      className="rounded-full border border-line px-2.5 py-1 text-[11.5px] text-muted-foreground hover:border-primary hover:text-primary"
+                    >
+                      {n}
+                    </button>
+                  ))}
+              </div>
+            )}
+            <p className="font-mono text-[10.5px] leading-relaxed text-muted-foreground">
+              {multi
+                ? "Las sugerencias salen de Datos › Especialidad de partidas. Un nombre nuevo se registra ahí mismo para reutilizarlo."
+                : "Las sugerencias salen de Datos › Grupos de partidas. Un nombre nuevo se registra ahí mismo para reutilizarlo."}
+            </p>
+            {error && <p className="font-mono text-xs text-bad">{error}</p>}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setGrupoDialogo(false)}>Cancelar</Button>
+            <Button onClick={() => void confirmarGrupo()}>Agregar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+  );
+
   if (!items.length)
     return (
+      <>
+      {dialogoGrupo}
       <div className="flex flex-col items-center gap-4 px-6 py-14 text-center print:hidden">
         <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Hoja en blanco</p>
         <h3 className="text-base font-semibold text-ink">¿Cómo quieres empezar el presupuesto?</h3>
@@ -1101,53 +1160,7 @@ export function CotizacionHoja({
           </span>
         </span>
       </div>
-      <Dialog open={grupoDialogo} onOpenChange={setGrupoDialogo}>
-        <DialogContent className="max-w-sm print:hidden">
-          <DialogHeader>
-            <DialogTitle>{multi ? "Agregar nueva especialidad" : "Agregar nuevo grupo"}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3">
-            <Input
-              autoFocus
-              value={nombreGrupo}
-              onChange={(e) => setNombreGrupo(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  void confirmarGrupo();
-                }
-              }}
-              placeholder={multi ? "Ej.: Instalaciones eléctricas" : "Ej.: Suministro de materiales"}
-            />
-            {nombresEsp.length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
-                {nombresEsp
-                  .filter((n) => !items.some((i) => (i.especialidad || "").toLowerCase() === n.toLowerCase()))
-                  .map((n) => (
-                    <button
-                      key={n}
-                      type="button"
-                      onClick={() => setNombreGrupo(n)}
-                      className="rounded-full border border-line px-2.5 py-1 text-[11.5px] text-muted-foreground hover:border-primary hover:text-primary"
-                    >
-                      {n}
-                    </button>
-                  ))}
-              </div>
-            )}
-            <p className="font-mono text-[10.5px] leading-relaxed text-muted-foreground">
-              {multi
-                ? "Las sugerencias salen de Datos › Especialidad de partidas. Un nombre nuevo se registra ahí mismo para reutilizarlo."
-                : "Las sugerencias salen de Datos › Grupos de partidas. Un nombre nuevo se registra ahí mismo para reutilizarlo."}
-            </p>
-            {error && <p className="font-mono text-xs text-bad">{error}</p>}
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setGrupoDialogo(false)}>Cancelar</Button>
-            <Button onClick={() => void confirmarGrupo()}>Agregar</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {dialogoGrupo}
     </>
   );
 }
