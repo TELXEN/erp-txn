@@ -56,11 +56,11 @@ const C = {
   white: DOC.white,
 };
 
-/** Colores de letra por nivel del contenido: especialidad/grupo, categoría y partida. */
+/** Impresión: el contenido (especialidad, categoría y partidas) sale en negro. */
 const NIVEL = {
-  grupo: DOC.green,       // especialidad o grupo (Suministro / Montaje)
-  categoria: DOC.accentText, // categoría de partidas
-  partida: DOC.ink,       // fila de partida
+  grupo: C.slate900,     // especialidad o grupo (Suministro / Montaje)
+  categoria: C.slate900, // categoría de partidas
+  partida: C.slate900,   // fila de partida
 } as const;
 
 const S = (sim: string, n: number) =>
