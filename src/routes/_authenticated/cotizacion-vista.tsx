@@ -484,7 +484,7 @@ function VistaCotizacion() {
                         { h: "Descripción", a: "left" },
                         { h: "Marca", a: "center" },
                         { h: "Unidad", a: "center" },
-                        { h: "Cantidad", a: "right" },
+                        { h: "Cantidad", a: "center" },
                         { h: "C. Unitario", a: "right" },
                         { h: "Sub Total", a: "right" },
                       ].map(({ h, a }) => (
