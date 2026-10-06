@@ -1135,6 +1135,11 @@ export function CotizacionHoja({
                   ))}
               </div>
             )}
+            <p className="font-mono text-[10.5px] leading-relaxed text-muted-foreground">
+              {multi
+                ? "Las sugerencias salen de Datos › Especialidad de partidas. Un nombre nuevo se registra ahí mismo para reutilizarlo."
+                : "Las sugerencias salen de Datos › Grupos de partidas. Un nombre nuevo se registra ahí mismo para reutilizarlo."}
+            </p>
             {error && <p className="font-mono text-xs text-bad">{error}</p>}
           </div>
           <DialogFooter>
