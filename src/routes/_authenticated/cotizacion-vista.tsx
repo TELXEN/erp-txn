@@ -121,7 +121,8 @@ function construirFilas(items: ItemCot[], opts: { multi?: boolean; alcance?: str
     }
     return "";
   };
-  const desfase = (opts.multi ? 1 : 2) + (omitirTop ? 1 : 0);
+  // Multi: 4 niveles (esp.grupo.cat.partida); una disciplina: 3 niveles (grupo.cat.partida). En ambos el primer nivel visible es 1 segmento.
+  const desfase = 1 + (omitirTop ? 1 : 0);
   const recorrer = (nodo: Nodo, prefijo: string, prof: number) => {
     let j = 0;
     for (const [k, hijo] of nodo.hijos) {

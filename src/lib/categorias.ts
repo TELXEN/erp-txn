@@ -317,9 +317,9 @@ export function siguienteCodigoSubpartida(
 }
 
 // ============================================================================
-// Numeración WBS de cotizaciones en 4 niveles: Especialidad.Grupo.Categoría.Partida
-// (01.01.01.01; subpartidas agregan un 5.° nivel). El grupo "00" = sin grupo.
-// En cotizaciones de una disciplina la especialidad es siempre 01 y el grupo es el capítulo.
+// Numeración WBS de cotizaciones. Multidisciplinaria: 4 niveles Especialidad.Grupo.Categoría.Partida
+// (01.01.01.01; subpartidas agregan un 5.° nivel). Una disciplina: 3 niveles Grupo.Categoría.Partida
+// (01.01.01; el grupo es el capítulo). El grupo "00" = sin grupo.
 // ============================================================================
 
 export type FilaWBS4 = {
@@ -363,6 +363,8 @@ export function numeracionCotizacion(filas: FilaWBS4[], multi: boolean) {
         : grupoEfectivo(todas, espDe(f), claveCat(f.categoria))
       : espDe(f);
 
+  // En una disciplina el código tiene 3 niveles: Grupo.Categoría.Partida (01.01.01).
+  // En multidisciplinarias, 4 niveles: Especialidad.Grupo.Categoría.Partida (01.01.01.01).
   let iEsp = 0;
   for (const [kEsp, listaEsp] of agrupar(filas, nivelEsp)) {
     iEsp += 1;
@@ -375,16 +377,17 @@ export function numeracionCotizacion(filas: FilaWBS4[], multi: boolean) {
     for (const kGrp of orden) {
       const lista = bloques.get(kGrp)!;
       const G = kGrp ? pad2(++iGrp) : "00";
-      if (kGrp || !multi) grp.set(`${multi ? kEsp : ""}||${kGrp}`, `${E}.${G}`);
+      const base = multi ? `${E}.${G}` : G;
+      if (kGrp || !multi) grp.set(`${multi ? kEsp : ""}||${kGrp}`, base);
       let iCat = 0;
       for (const [kCat, items] of agrupar(lista, (f) => claveCat(f.categoria))) {
         const reales = items.filter((f) => f.tipo !== "grupo");
         if (kCat === SIN_CAT && !reales.length) {
-          for (const m of items) codigos.set(m.id, `${E}.${G}.00.00`);
+          for (const m of items) codigos.set(m.id, `${base}.00.00`);
           continue;
         }
         const C = pad2(++iCat);
-        const pref = `${E}.${G}.${C}`;
+        const pref = `${base}.${C}`;
         cat.set(`${multi ? espDe(items[0]!) : espDe(items[0]!)}||${kCat}`, pref);
         for (const m of items.filter((f) => f.tipo === "grupo")) codigos.set(m.id, `${pref}.00`);
         reales
@@ -410,7 +413,7 @@ export function numeracionCotizacion(filas: FilaWBS4[], multi: boolean) {
   };
 }
 
-/** Cambios de código necesarios para dejar la cotización numerada en 4 niveles. */
+/** Cambios de código necesarios para dejar la cotización numerada (4 niveles multi, 3 en una disciplina). */
 export function cambiosNumeracion(filas: FilaWBS4[], multi: boolean) {
   const { codigos } = numeracionCotizacion(filas, multi);
   return filas
