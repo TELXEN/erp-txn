@@ -33,6 +33,7 @@ import {
   usePlantillasCotizacion,
   ESTADOS_COTIZACION,
   generarCodigoCotizacion,
+  precioMaestroEnMoneda,
   previsualizarCodigoCotizacion,
   simboloMoneda,
   totalesCotizacion,
@@ -240,6 +241,26 @@ function Cotizaciones() {
     setMaestraSel("");
     setItem({ ...item, codigo: "", nombre: "", marca: "", metrado: "1", precio_unitario: "" });
     qc.invalidateQueries({ queryKey: ["cotizacion_items", cot.id] });
+  }
+
+  function cargarMaestraEnFormulario(m: (typeof maestras)[number], metrado: string) {
+    if (!cot) return;
+    setError("");
+    try {
+      setMaestraSel(m.id);
+      setItem({
+        codigo: sugerirCodigo(m.especialidad, m.categoria ?? ""),
+        nombre: m.nombre,
+        especialidad: m.especialidad,
+        categoria: m.categoria ?? "",
+        marca: m.marca ?? "",
+        unidad: m.unidad,
+        metrado,
+        precio_unitario: String(precioMaestroEnMoneda(m.precio_unitario, cot.moneda, cot.tipo_cambio)),
+      });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "No se pudo convertir el precio de la partida.");
+    }
   }
 
   async function guardarEnBanco() {
@@ -626,16 +647,7 @@ function Cotizaciones() {
                         setItem({ codigo: "", nombre: "", especialidad: "", categoria: "", marca: "", unidad: item.unidad, metrado: "1", precio_unitario: "" });
                         return;
                       }
-                      setItem({
-                        codigo: sugerirCodigo(m.especialidad, m.categoria ?? ""),
-                        nombre: m.nombre,
-                        especialidad: m.especialidad,
-                        categoria: m.categoria ?? "",
-                        marca: m.marca ?? "",
-                        unidad: m.unidad,
-                        metrado: "1",
-                        precio_unitario: String(m.precio_unitario ?? 0),
-                      });
+                      cargarMaestraEnFormulario(m, "1");
                     }}
                   >
                     <option value="">Elige una partida...</option>
@@ -653,17 +665,7 @@ function Cotizaciones() {
                     maestras={maestras}
                     onChange={(v) => setItem({ ...item, nombre: v })}
                     onElegir={(m) => {
-                      setMaestraSel(m.id);
-                      setItem({
-                        codigo: sugerirCodigo(m.especialidad, m.categoria ?? ""),
-                        nombre: m.nombre,
-                        especialidad: m.especialidad,
-                        categoria: m.categoria ?? "",
-                        marca: m.marca ?? "",
-                        unidad: m.unidad,
-                        metrado: item.metrado,
-                        precio_unitario: String(m.precio_unitario ?? 0),
-                      });
+                      cargarMaestraEnFormulario(m, item.metrado);
                     }}
                     placeholder="Escribe o elige una partida del banco…"
                     className="w-full rounded-md border border-line bg-card px-2.5 py-1.5 text-[13px] outline-none focus:border-primary"
@@ -712,6 +714,8 @@ function Cotizaciones() {
               items={itemsHoja}
               unidades={unidades}
               simbolo={simboloMoneda(cot.moneda)}
+              moneda={cot.moneda}
+              tipoCambio={Number(cot.tipo_cambio)}
               multi={Boolean(cot.multidisciplinaria)}
               alcance={cot.alcance ?? "ambos"}
             />
