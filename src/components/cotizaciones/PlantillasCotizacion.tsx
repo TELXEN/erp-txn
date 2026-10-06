@@ -58,7 +58,7 @@ export function PlantillasCotizacion() {
   }
 
   return (
-    <Panel titulo={`Plantillas por tipo de obra (${plantillas.length})`} className="mb-4">
+    <Panel titulo="Plantillas por tipo de obra" className="mb-4">
       <div className="p-3">
           <p className="mb-2 text-[11px] text-muted-foreground">
             Para llenar una plantilla: arma una cotización con sus grupos, categorías y partidas y usa «Guardar como plantilla». Al crear una cotización elige la plantilla junto al botón «Nueva cotización».

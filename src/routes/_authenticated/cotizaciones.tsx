@@ -759,24 +759,26 @@ function Cotizaciones() {
           </div> : undefined
         }
       />
-      <div className="mb-5 flex gap-1 border-b border-line">
-        {([
-          ["cotizaciones", "Cotizaciones"],
-          ["plantillas", `Plantillas (${plantillas.length})`],
-        ] as const).map(([valor, texto]) => (
-          <button
-            key={valor}
-            type="button"
-            onClick={() => setSeccion(valor)}
-            className={`-mb-px border-b-2 px-4 py-2 text-sm transition-colors ${
-              seccion === valor
-                ? "border-primary font-semibold text-primary"
-                : "border-transparent text-muted-foreground hover:text-ink"
-            }`}
-          >
-            {texto}
-          </button>
-        ))}
+      <div className="mb-5">
+        <div className="inline-flex gap-1 rounded-lg border border-line bg-card p-1">
+          {([
+            ["cotizaciones", "Cotizaciones"],
+            ["plantillas", "Plantillas"],
+          ] as const).map(([valor, texto]) => (
+            <button
+              key={valor}
+              type="button"
+              onClick={() => setSeccion(valor)}
+              className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
+                seccion === valor
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:bg-primary/10 hover:text-primary"
+              }`}
+            >
+              {texto}
+            </button>
+          ))}
+        </div>
       </div>
 
       {seccion === "plantillas" ? (
