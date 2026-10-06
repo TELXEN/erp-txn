@@ -517,6 +517,23 @@ function PaginaVehiculos() {
   const th = "px-3 py-2 text-left font-mono text-[10px] uppercase tracking-wider text-muted-foreground";
   const td = "px-3 py-2 text-sm";
 
+  const placaNorm = formVeh.placa.trim().toUpperCase();
+  const placaDuplicada = placaNorm !== "" && vehiculos.some((v) => v.placa.toUpperCase() === placaNorm && v.id !== editVeh);
+
+  function venceTexto(fecha: string) {
+    const d = diasPara(fecha || null);
+    if (d == null) return <span className="mt-1 block font-mono text-[10px] text-muted-foreground">Sin fecha registrada</span>;
+    if (d < 0) return <span className="mt-1 block font-mono text-[10px] font-semibold text-bad">Vencido hace {Math.abs(d)} día(s)</span>;
+    if (d <= 30) return <span className="mt-1 block font-mono text-[10px] font-semibold text-bad">Vence en {d} día(s)</span>;
+    return <span className="mt-1 block font-mono text-[10px] text-good">Vigente · {d} días</span>;
+  }
+
+  function sumarAnio(fecha: string) {
+    const d = fecha ? new Date(`${fecha}T12:00:00`) : new Date();
+    d.setFullYear(d.getFullYear() + 1);
+    return d.toISOString().slice(0, 10);
+  }
+
   return (
     <div>
       <Encabezado
