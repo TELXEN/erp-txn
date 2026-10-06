@@ -478,7 +478,8 @@ export function CotizacionHoja({
   }
 
   /** En multidisciplinarias: registra un grupo nuevo (Datos › Grupos de partidas) sin crear capítulo en la hoja. */
-  function nuevoGrupo() {
+  function nuevoGrupo(esp = "") {
+    setEspDestino(esp);
     setModoGrupo("grp");
     setNombreGrupo("");
     setError("");
@@ -909,7 +910,14 @@ export function CotizacionHoja({
                       {[...catalogoGrupos]
                         .sort((a, b) => a.orden - b.orden)
                         .map((g) => (
-                          <li key={g.id} className="flex items-center justify-between rounded px-2 py-1 text-[12.5px] hover:bg-muted">
+                          <li
+                            key={g.id}
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => void insertarGrupoEnHoja(g.nombre)}
+                            onKeyDown={(e) => e.key === "Enter" && void insertarGrupoEnHoja(g.nombre)}
+                            className="flex cursor-pointer items-center justify-between rounded px-2 py-1 text-[12.5px] hover:bg-muted hover:text-primary"
+                          >
                             <span>{g.nombre}</span>
                             {!g.activo && <span className="text-[10.5px] text-muted-foreground">inactivo</span>}
                           </li>
@@ -1064,6 +1072,7 @@ export function CotizacionHoja({
             );
             if (f.clase !== "item") {
               const cap = f.clase === "cap";
+              const esGrp = f.clase === "grp";
               return (
                 <React.Fragment key={f.clave}>
                 <ContextMenu>
@@ -1087,7 +1096,12 @@ export function CotizacionHoja({
                     f,
                     r,
                     1,
-                    <span className={`font-semibold ${cap ? "uppercase tracking-wide" : "pl-4"}`} style={{ color: cap ? DOC.green : DOC.accentText }}>{f.texto}</span>,
+                    <span
+                      className={`font-semibold ${cap ? "uppercase tracking-wide" : esGrp ? "pl-2 uppercase" : f.clase === "sub" && f.grp ? "pl-6" : "pl-4"}`}
+                      style={{ color: cap || esGrp ? DOC.green : DOC.accentText }}
+                    >
+                      {f.texto}
+                    </span>,
                   )}
                   <td className={`${celdaBase} text-center`}>—</td>
                   <td className={`${celdaBase} text-center`}>—</td>
@@ -1099,38 +1113,42 @@ export function CotizacionHoja({
                 </ContextMenuTrigger>
                 <ContextMenuContent className="w-56 print:hidden">
                   <ContextMenuLabel className="truncate text-xs">
-                    {cap ? (multi ? "Especialidad" : "Grupo") : "Categoría"}: {f.texto}
+                    {cap ? (multi ? "Especialidad" : "Grupo") : esGrp ? "Grupo" : "Categoría"}: {f.texto}
                   </ContextMenuLabel>
                   <ContextMenuSeparator />
                   <ContextMenuItem onSelect={() => nuevaEspecialidad()}>
                     <Layers size={14} className="mr-2" /> {multi ? "Agregar nueva especialidad" : "Agregar nuevo grupo"}
                   </ContextMenuItem>
                   {multi && (
-                    <ContextMenuItem onSelect={() => nuevoGrupo()}>
+                    <ContextMenuItem onSelect={() => nuevoGrupo(f.esp)}>
                       <Boxes size={14} className="mr-2" /> Agregar nuevo grupo
                     </ContextMenuItem>
                   )}
-                  {cap && (
-                    <ContextMenuItem onSelect={() => void nuevaCategoria(f.esp)}>
+                  {(cap || esGrp) && (
+                    <ContextMenuItem onSelect={() => void nuevaCategoria(f.esp, f.clase === "grp" ? f.grp : "")}>
                       <FolderPlus size={14} className="mr-2" /> Agregar categoría
                     </ContextMenuItem>
                   )}
-                  <ContextMenuItem
-                    onSelect={() => void crearPartida(f.esp, f.clase === "sub" && f.cat !== "Sin categoría" ? f.cat : "", "Nueva partida")}
-                  >
-                    <Plus size={14} className="mr-2" /> Agregar partida
-                  </ContextMenuItem>
+                  {!esGrp && (
+                    <ContextMenuItem
+                      onSelect={() => void crearPartida(f.esp, f.clase === "sub" && f.cat !== "Sin categoría" ? f.cat : "", "Nueva partida")}
+                    >
+                      <Plus size={14} className="mr-2" /> Agregar partida
+                    </ContextMenuItem>
+                  )}
                   <ContextMenuSeparator />
                   {grupoConPartidas(f) ? (
                     <ContextMenuItem disabled title="Tiene partidas asociadas">
-                      <Lock size={14} className="mr-2" /> Tiene partidas: vacíalo para borrar
+                      <Lock size={14} className="mr-2" /> {esGrp ? "Tiene categorías: vacíalo para quitar" : "Tiene partidas: vacíalo para borrar"}
                     </ContextMenuItem>
                   ) : (
                     <ContextMenuItem
                       className="text-bad focus:text-bad"
-                      onSelect={() => void borrarGrupo(f.esp, f.clase === "sub" ? f.cat : null)}
+                      onSelect={() =>
+                        void (f.clase === "grp" ? borrarFilaGrupo(f.esp, f.grp) : borrarGrupo(f.esp, f.clase === "sub" ? f.cat : null))
+                      }
                     >
-                      <Trash2 size={14} className="mr-2" /> Borrar {cap ? (multi ? "especialidad" : "grupo") : "categoría"}
+                      <Trash2 size={14} className="mr-2" /> {esGrp ? "Quitar grupo" : `Borrar ${cap ? (multi ? "especialidad" : "grupo") : "categoría"}`}
                     </ContextMenuItem>
                   )}
                 </ContextMenuContent>
@@ -1241,7 +1259,7 @@ export function CotizacionHoja({
                     <Layers size={14} className="mr-2" /> {multi ? "Agregar nueva especialidad" : "Agregar nuevo grupo"}
                   </ContextMenuItem>
                   {multi && (
-                    <ContextMenuItem onSelect={() => nuevoGrupo()}>
+                    <ContextMenuItem onSelect={() => nuevoGrupo(it.especialidad)}>
                       <Boxes size={14} className="mr-2" /> Agregar nuevo grupo
                     </ContextMenuItem>
                   )}
