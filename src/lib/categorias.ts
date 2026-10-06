@@ -116,12 +116,21 @@ export function codigoContextual(especialidad: string, categoria: string, filas:
   const delCapitulo = conCodigo.filter((f) => (f.codigo as string).split(".")[0] === capitulo);
 
   const cat = categoria.trim();
-  const mismaCat = delCapitulo.find(
-    (f) => (f.categoria ?? "").trim() === cat && (f.codigo as string).split(".").length >= 3,
-  );
+  const mismaCat = delCapitulo
+    .filter((f) => (f.categoria ?? "").trim() === cat && (f.codigo as string).split(".").length >= 3)
+    .sort((a, b) => (a.codigo as string).split(".").length - (b.codigo as string).split(".").length)[0];
+  // Obras heredadas de cotizaciones usan 4 niveles (esp.grupo.cat.partida).
+  const cuatro = delCapitulo.some((f) => !f.padre_id && (f.codigo as string).split(".").length >= 4);
+  const largoBase = cuatro ? 3 : 2;
   const base = mismaCat
-    ? (mismaCat.codigo as string).split(".").slice(0, 2).join(".")
-    : `${capitulo}.${pad(maxDe(delCapitulo.map((f) => seg(f.codigo as string)[1])) + 1)}`;
+    ? (mismaCat.codigo as string).split(".").slice(0, largoBase).join(".")
+    : cuatro
+      ? `${capitulo}.00.${pad(maxDe(delCapitulo.filter((f) => seg(f.codigo as string)[1] === 0).map((f) => seg(f.codigo as string)[2])) + 1)}`
+      : `${capitulo}.${pad(maxDe(delCapitulo.map((f) => seg(f.codigo as string)[1])) + 1)}`;
+  const items = conCodigo
+    .filter((f) => (f.codigo as string).startsWith(`${base}.`))
+    .map((f) => seg(f.codigo as string)[largoBase]);
+  return `${base}.${pad(maxDe(items) + 1)}`;
   const items = conCodigo
     .filter((f) => (f.codigo as string).startsWith(`${base}.`))
     .map((f) => seg(f.codigo as string)[2]);
