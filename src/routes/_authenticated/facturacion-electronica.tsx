@@ -152,11 +152,11 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
 
     {vista === "recibidos" && !esGuias ? <ComprobantesCompras /> : <>
 
-    {abierto && <div className="fixed inset-0 z-50 overflow-y-auto bg-background">
+    {abierto && <div className="-mx-4 -my-6 min-h-full bg-background sm:-mx-6">
       <Panel
         titulo={editando ? `Editar borrador ${editando.numero}` : preliquidacion ? "Facturar preliquidación" : esGuias ? "Nueva guía de remisión" : "Nuevo comprobante electrónico"}
         extra={<Boton variante="linea" onClick={cerrar}>Cerrar editor</Boton>}
-        className="min-h-screen rounded-none border-0"
+        className="min-h-full"
       >
       <div className="bg-muted/60 px-4 py-2 sm:px-6">
         <HojaComprobante form={form} setForm={setForm} items={items} setItems={setItems} docs={docs} setDocs={setDocs} cuotas={cuotas} setCuotas={setCuotas} empresa={empresa} clientes={clientes} proyectos={proyectos.map((p) => ({ id: p.id, nombre: p.nombre, codigo: p.codigo ?? "" }))} refs={refs} series={series} numeroPreview={editando ? String(editando.correlativo).padStart(8, "0") : "[AUTOGENERADO]"} montos={montos} totalRegimen={totalRegimen} importeRegimen={importeRegimen} onTipoChange={cambiarTipo} bloqueado={Boolean(editando)} tipos={tiposVisibles} />
