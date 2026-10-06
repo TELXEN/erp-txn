@@ -354,10 +354,10 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
   return (
     <>
       {abierto && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-background">
+        <div className="-mx-4 -my-6 min-h-full bg-background sm:-mx-6">
         <Panel
           titulo={editando ? `Editar preliquidación ${lista.find((p) => p.id === editando)?.codigo ?? ""}` : "Nueva preliquidación"}
-          className="min-h-screen rounded-none border-0"
+          className="min-h-full"
           extra={<Boton type="button" variante="linea" onClick={() => setAbierto(false)}>Cerrar editor</Boton>}
         >
           <form onSubmit={guardar} className="p-5">
