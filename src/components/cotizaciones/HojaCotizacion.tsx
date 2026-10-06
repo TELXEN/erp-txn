@@ -201,9 +201,19 @@ export function HojaCotizacion({
             <Linea etiqueta="Moneda">
               <select
                 value={esUsd ? "USD" : "PEN"}
-                onChange={(e) => {
+                onChange={async (e) => {
                   const moneda = e.target.value as "PEN" | "USD";
-                  void guardar(moneda === "USD" && !Number(cot.tipo_cambio) ? { moneda, tipo_cambio: tcActual || 3.75 } : { moneda });
+                  if (moneda === cot.moneda) return;
+                  const tcConv = Number(cot.tipo_cambio) || tcActual || 3.75;
+                  const destino = moneda === "USD" ? "dólares (se dividirán entre el tipo de cambio)" : "soles (se multiplicarán por el tipo de cambio)";
+                  if (!window.confirm(`Se recalcularán los precios unitarios de todas las partidas a ${destino}, usando T.C. ${tcConv}. ¿Continuar?`)) {
+                    e.target.value = cot.moneda;
+                    return;
+                  }
+                  await convertirMonedaCotizacion(cot.id, moneda, tcConv);
+                  await qc.invalidateQueries({ queryKey: ["cotizaciones"] });
+                  await qc.invalidateQueries({ queryKey: ["cotizacion"] });
+                  await qc.invalidateQueries({ queryKey: ["cotizacion_items", cot.id] });
                 }}
                 style={edSel}
               >
