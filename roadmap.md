@@ -22,3 +22,5 @@
 - [x] Aplicar la tipografía configurada a toda la interfaz, documentos y exportaciones Excel.
 - [x] Fijar y repetir en cada hoja del comprobante el pie completo, incluida la línea «SON».
 - [x] Cotizaciones: grupos Suministro/Montaje, alcance (ambos/solo uno), modo una disciplina/multidisciplinaria y plantillas por tipo de obra.
+- [x] APU: pestaña «Grupos de partidas» (Suministro de materiales y Montaje electromecánico iniciales, se pueden agregar más).
+- [ ] Grupo como nivel de código WBS (Especialidad → Grupo → Categoría → Partida): pendiente de confirmación del usuario.

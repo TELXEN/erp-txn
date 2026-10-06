@@ -34,8 +34,8 @@ const PESTANAS: [Pestana, string][] = [
   ["maestras", "Registro de partidas"],
   ["insumos", "Maestro de insumos"],
   ["especialidades", "Especialidad de partidas"],
+  ["grupos", "Grupos de partidas"],
   ["categorias", "Categorías de partidas"],
-  ["grupos", "Grupos de cotización"],
   ["unidades", "Unidades de medida"],
 ];
 

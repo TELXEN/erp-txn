@@ -27,7 +27,7 @@ export function GruposCotizacion() {
 
   return (
     <div className="grid gap-4 lg:grid-cols-2">
-      <Panel titulo="Grupos de cotización">
+      <Panel titulo="Grupos de partidas">
         <div className="p-3">
           <p className="mb-2 text-[11px] text-muted-foreground">
             En cotizaciones de una sola disciplina el grupo es el capítulo; la especialidad solo se usa en cotizaciones multidisciplinarias.
@@ -57,7 +57,7 @@ export function GruposCotizacion() {
               ))}
             </tbody>
           </table>
-          <button type="button" onClick={() => void nuevo()} className="mt-2 text-xs text-primary underline">+ Nuevo grupo</button>
+          <button type="button" onClick={() => void nuevo()} className="mt-3 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:opacity-90">+ Agregar grupo</button>
         </div>
       </Panel>
       <Panel titulo="Categorías por grupo">
