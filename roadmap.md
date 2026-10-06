@@ -25,3 +25,4 @@
 - [x] APU: pestaña «Grupos de partidas» (Suministro de materiales y Montaje electromecánico iniciales, se pueden agregar más).
 - [ ] Grupo como nivel de código WBS (Especialidad → Grupo → Categoría → Partida): pendiente de confirmación del usuario.
 - [x] Mejorar el bloque Cliente, Trabajo a cotizar y Configuración; selector identificado únicamente por RUC.
+- [x] Reubicar la gestión de plantillas como pestaña propia dentro de Cotizaciones.
