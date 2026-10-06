@@ -815,7 +815,7 @@ export function CotizacionHoja({
             <th className="px-2 py-1 align-middle font-medium">Descripción</th>
             <th className="px-1 py-1 text-center align-middle font-medium">Marca</th>
             <th className="px-1 py-1 text-center align-middle font-medium">Unidad</th>
-            <th className="px-1 py-1 text-right align-middle font-medium">Cantidad</th>
+            <th className="px-1 py-1 text-center align-middle font-medium">Cantidad</th>
             <th className="px-1 py-1 text-right align-middle font-medium">C. unitario</th>
             <th className="px-1 py-1 text-right align-middle font-medium">Sub total</th>
             <th className="px-1 py-1" />
