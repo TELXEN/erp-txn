@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { FolderKanban, Layers, Package } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
+import { Boton } from "@/components/ui-kit";
 import { Insumos } from "@/components/Insumos";
 import { UnidadesMedida } from "@/components/UnidadesMedida";
 import { EspecialidadesPartida } from "@/components/EspecialidadesPartida";
@@ -30,17 +32,24 @@ export const Route = createFileRoute("/_authenticated/datos-apu")({
 
 type Pestana = "insumos" | "unidades" | "especialidades" | "categorias" | "maestras" | "grupos";
 
-const PESTANAS: [Pestana, string][] = [
-  ["maestras", "Registro de partidas"],
-  ["insumos", "Maestro de insumos"],
-  ["especialidades", "Especialidad de partidas"],
-  ["grupos", "Grupos de partidas"],
-  ["categorias", "Categorías de partidas"],
-  ["unidades", "Unidades de medida"],
+const GRUPOS_APU: { titulo: string; icono: React.ElementType; items: [Pestana, string][] }[] = [
+  { titulo: "Banco de partidas", icono: FolderKanban, items: [["maestras", "Registro de partidas"]] },
+  { titulo: "Maestro de insumos", icono: Package, items: [["insumos", "Maestro de insumos"]] },
+  {
+    titulo: "Catálogo técnico",
+    icono: Layers,
+    items: [
+      ["especialidades", "Especialidad de partidas"],
+      ["grupos", "Grupos de partidas"],
+      ["categorias", "Categorías de partidas"],
+      ["unidades", "Unidades de medida"],
+    ],
+  },
 ];
 
 function DatosApu() {
   const [pestana, setPestana] = useState<Pestana>("maestras");
+  const grupoActivo = GRUPOS_APU.find((g) => g.items.some(([p]) => p === pestana)) ?? GRUPOS_APU[0]!;
 
   return (
     <>
@@ -49,16 +58,35 @@ function DatosApu() {
         subtitulo="Insumos, unidades y catálogo técnico (WBS)"
       />
 
-      <div className="inline-flex flex-wrap gap-1 rounded-lg border border-line bg-card p-1">
-        {PESTANAS.map(([p, texto]) => (
+      <div className="mb-3 flex flex-wrap gap-1">
+        {GRUPOS_APU.map((g) => {
+          const Icono = g.icono;
+          const activo = g.items.some(([p]) => p === pestana);
+          return (
+            <Boton
+              key={g.titulo}
+              variante={activo ? "primario" : "linea"}
+              onClick={() => {
+                const primero = g.items[0];
+                if (primero) setPestana(primero[0]);
+              }}
+            >
+              <Icono size={13} /> {g.titulo}
+            </Boton>
+          );
+        })}
+      </div>
+
+      <div className="mb-4 flex flex-wrap gap-1 border-b border-line pb-3">
+        {grupoActivo.items.map(([p, texto]) => (
           <button
             key={p}
             type="button"
             onClick={() => setPestana(p)}
-            className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
+            className={`rounded-md border-b-2 px-3 py-1.5 text-xs transition-colors ${
               pestana === p
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                ? "border-cta bg-primary/10 font-semibold text-primary"
+                : "border-transparent text-muted-foreground hover:bg-muted hover:text-primary"
             }`}
           >
             {texto}

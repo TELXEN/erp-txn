@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Check, ChevronDown, ChevronRight, Pencil, Trash2, X } from "lucide-react";
-import { Input, Panel, Select } from "@/components/ui-kit";
+import { Boxes, Check, ChevronDown, ChevronRight, Pencil, SlidersHorizontal, Trash2, X } from "lucide-react";
+import { Boton, Input, Panel, Select } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { MargenesApuPanel } from "@/components/MargenesApu";
 import { ParametrosLaboralesPanel } from "@/components/ParametrosLaborales";
@@ -66,23 +66,25 @@ export function Insumos() {
   ];
   const etiquetaTipo = (t: TipoInsumo) => TIPOS_INSUMO.find(([k]) => k === t)?.[1] ?? t;
 
-  // Color distintivo fijo por tipo de insumo y por sección de configuración.
-  const CHIP_TIPO: Partial<Record<TipoInsumo, string>> = {
-    MAT: "bg-chip-mat",
-    MO: "bg-chip-mo",
-    EQ: "bg-chip-eq",
-    SC: "bg-chip-sc",
-  };
-  const CHIPS_EXTRA = ["bg-chip-1", "bg-chip-2", "bg-chip-3", "bg-chip-4"];
-  const CHIP_SECCION: Record<Exclude<SeccionInsumos, TipoInsumo>, string> = {
-    margenes: "bg-chip-margenes",
-    laboral: "bg-chip-laboral",
-    codificacion: "bg-chip-codificacion",
-  };
-  const chips = new Map<TipoInsumo, string>();
-  ORDEN_PESTANAS.forEach((t, i) =>
-    chips.set(t, CHIP_TIPO[t] ?? CHIPS_EXTRA[Math.max(0, i - 4) % CHIPS_EXTRA.length] ?? "bg-chip-1"),
-  );
+  // Grupos con el mismo estilo de navegación de la pantalla Datos (Catálogos maestros).
+  const GRUPOS_INSUMOS: { titulo: string; icono: React.ElementType; items: [SeccionInsumos, string][] }[] = [
+    {
+      titulo: "Maestro",
+      icono: Boxes,
+      items: ORDEN_PESTANAS.map((t) => [t, etiquetaTipo(t)] as [SeccionInsumos, string]),
+    },
+    {
+      titulo: "Configuración",
+      icono: SlidersHorizontal,
+      items: [
+        ["margenes", "Márgenes APU"],
+        ["laboral", "Parámetros laborales"],
+        ["codificacion", "Codificación de insumos"],
+      ] as [SeccionInsumos, string][],
+    },
+  ];
+  const grupoActivo =
+    GRUPOS_INSUMOS.find((g) => g.items.some(([p]) => p === seccion)) ?? GRUPOS_INSUMOS[0]!;
 
   // El foco de la fila de captura se aplica al montar; se libera después.
   useEffect(() => {
@@ -93,53 +95,48 @@ export function Insumos() {
 
   return (
     <>
-      <div className="mb-4 inline-flex max-w-full flex-wrap items-center gap-1 rounded-lg border border-line bg-muted/40 p-1">
-        <span className="px-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Maestro:</span>
-        {ORDEN_PESTANAS.map((t) => {
-          const chip = chips.get(t) ?? CHIPS_EXTRA[0];
-          const activo = seccion === t;
+      <div className="mb-3 flex flex-wrap gap-1">
+        {GRUPOS_INSUMOS.map((g) => {
+          const Icono = g.icono;
+          const activo = g.items.some(([p]) => p === seccion);
           return (
-            <button
-              key={t}
-              type="button"
-              onClick={() => cambiarPestana(t)}
-              className={`flex items-center gap-1.5 rounded-md px-3 py-1 text-xs transition-colors ${
-                activo
-                  ? `${chip} font-semibold text-chip-foreground shadow-sm`
-                  : "text-muted-foreground hover:bg-background hover:text-foreground"
-              }`}
+            <Boton
+              key={g.titulo}
+              variante={activo ? "primario" : "linea"}
+              onClick={() => {
+                const primero = g.items[0];
+                if (!primero) return;
+                if (primero[0] === "margenes" || primero[0] === "laboral" || primero[0] === "codificacion") {
+                  setSeccion(primero[0]);
+                } else {
+                  cambiarPestana(primero[0] as TipoInsumo);
+                }
+              }}
             >
-              <span aria-hidden="true" className={`h-1.5 w-1.5 shrink-0 rounded-full ${activo ? "bg-chip-foreground" : chip}`} />
-              {etiquetaTipo(t)}
-            </button>
+              <Icono size={13} /> {g.titulo}
+            </Boton>
           );
         })}
-        <span className="mx-1 h-5 w-px bg-line" aria-hidden="true" />
-        {(
-          [
-            ["margenes", "Márgenes APU"],
-            ["laboral", "Parámetros laborales"],
-            ["codificacion", "Codificación de insumos"],
-          ] as [Exclude<SeccionInsumos, TipoInsumo>, string][]
-        ).map(([s, texto]) => {
-          const chip = CHIP_SECCION[s];
-          const activo = seccion === s;
-          return (
-            <button
-              key={s}
-              type="button"
-              onClick={() => setSeccion(s)}
-              className={`flex items-center gap-1.5 rounded-md px-3 py-1 text-xs transition-colors ${
-                activo
-                  ? `${chip} font-semibold text-chip-foreground shadow-sm`
-                  : "text-muted-foreground hover:bg-background hover:text-foreground"
-              }`}
-            >
-              <span aria-hidden="true" className={`h-1.5 w-1.5 shrink-0 rounded-full ${activo ? "bg-chip-foreground" : chip}`} />
-              {texto}
-            </button>
-          );
-        })}
+      </div>
+
+      <div className="mb-4 flex flex-wrap gap-1 border-b border-line pb-3">
+        {grupoActivo.items.map(([p, texto]) => (
+          <button
+            key={p}
+            type="button"
+            onClick={() => {
+              if (p === "margenes" || p === "laboral" || p === "codificacion") setSeccion(p);
+              else cambiarPestana(p as TipoInsumo);
+            }}
+            className={`rounded-md border-b-2 px-3 py-1.5 text-xs transition-colors ${
+              seccion === p
+                ? "border-cta bg-primary/10 font-semibold text-primary"
+                : "border-transparent text-muted-foreground hover:bg-muted hover:text-primary"
+            }`}
+          >
+            {texto}
+          </button>
+        ))}
       </div>
 
       {seccion === "margenes" ? (
