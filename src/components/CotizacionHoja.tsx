@@ -768,6 +768,7 @@ export function CotizacionHoja({
     );
 
   return (
+    <>
     <div className="overflow-x-auto">
       {error && <p className="px-5 py-2 font-mono text-xs text-bad">{error}</p>}
       <div className="flex flex-wrap items-center gap-3 border-b border-line bg-muted/30 px-5 py-2 font-mono text-[11.5px] text-muted-foreground print:hidden">
@@ -1047,6 +1048,7 @@ export function CotizacionHoja({
           </tr>
         </tbody>
       </table>
+    </div>
       <div className="sticky bottom-0 z-10 flex flex-wrap items-center justify-end gap-x-6 gap-y-1 border-t border-line bg-card/95 px-5 py-2 font-mono text-[11.5px] backdrop-blur print:hidden">
         {arbol
           .filter((f) => f.clase === "cap")
@@ -1063,7 +1065,7 @@ export function CotizacionHoja({
           </span>
         </span>
       </div>
-    </div>
+    </>
   );
 }
 
