@@ -191,7 +191,9 @@ export function CotizacionHoja({
   const { data: catalogoCat = [] } = useCategoriasPartida();
   const { data: maestras = [] } = usePartidasMaestras();
 
-  const arbol = useMemo(() => construirArbol(items), [items]);
+  const arbol = useMemo(() => construirArbol(items, multi), [items, multi]);
+  /** Especialidad donde se insertará el grupo elegido en el diálogo. */
+  const [espDestino, setEspDestino] = useState("");
 
   // Partidas que ya tienen análisis de precios: su P.U. queda en solo lectura.
   useEffect(() => {
@@ -214,17 +216,28 @@ export function CotizacionHoja({
   const visibles = useMemo(() => {
     const out: Fila[] = [];
     let capOculto: string | null = null;
+    let grpOculto: string | null = null;
     let subOculto: string | null = null;
     let padreOculto: string | null = null;
     for (const f of arbol) {
       if (f.clase === "cap") {
         capOculto = colapsados.has(f.clave) ? f.clave : null;
+        grpOculto = null;
         subOculto = null;
         padreOculto = null;
         out.push(f);
         continue;
       }
       if (capOculto) continue;
+      if (f.clase === "grp") {
+        grpOculto = colapsados.has(f.clave) ? f.clave : null;
+        subOculto = null;
+        padreOculto = null;
+        out.push(f);
+        continue;
+      }
+      if (f.clase === "sub" && !f.grp) grpOculto = null;
+      if (grpOculto) continue;
       if (f.clase === "sub") {
         subOculto = colapsados.has(f.clave) ? f.clave : null;
         padreOculto = null;
