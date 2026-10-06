@@ -1049,10 +1049,10 @@ export function CotizacionHoja({
             <td colSpan={8} className="px-2 py-2">
               <button
                 type="button"
-                onClick={() => void nuevaEspecialidad()}
+                onClick={() => nuevaEspecialidad()}
                 className="inline-flex items-center gap-1 rounded-md border border-dashed border-line px-2.5 py-1.5 text-[12.5px] text-muted-foreground hover:border-primary hover:text-primary"
               >
-                <FolderPlus size={12} /> {multi ? "Nueva especialidad (capítulo)" : "Nuevo grupo (capítulo)"}
+                <Layers size={12} /> {multi ? "Agregar nueva especialidad" : "Agregar nuevo grupo"}
               </button>
             </td>
           </tr>
