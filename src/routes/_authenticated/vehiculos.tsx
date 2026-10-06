@@ -277,10 +277,16 @@ function PaginaVehiculos() {
     const v = mapaVehiculo.get(formTareo.vehiculo_id);
     const fechas = [...diasTareo].sort();
     const ocupadas = tareo.filter((t) => t.vehiculo_id === formTareo.vehiculo_id && fechas.includes(t.fecha));
-    if (!editandoTareo && ocupadas.length > 0) return toast.error(`El vehículo ya tiene uso registrado el ${ocupadas[0]?.fecha ?? "día seleccionado"}`);
+    if (!editandoTareo && ocupadas.length > 0) {
+      toast.error(`El vehículo ya tiene uso registrado el ${ocupadas[0]?.fecha ?? "día seleccionado"}`);
+      return;
+    }
     if (editandoTareo) {
       const { error: errorBorrado } = await supabase.from("tareo_vehiculos" as never).delete().eq("vehiculo_id", editandoTareo.vehiculoId).eq("proyecto_id", editandoTareo.proyectoId).gte("fecha", `${mesTareo}-01`).lte("fecha", `${mesTareo}-31`);
-      if (errorBorrado) return toast.error(errorBorrado.message);
+      if (errorBorrado) {
+        toast.error(errorBorrado.message);
+        return;
+      }
     }
     const filas = fechas.map((fecha) => ({ fecha, vehiculo_id: formTareo.vehiculo_id, proyecto_id: formTareo.proyecto_id, conductor_id: null, dias: 1, km: 0, costo_soles: costoTareo(1, v), observacion: "" }));
     const { error } = await supabase.from("tareo_vehiculos" as never).insert(filas as never);
