@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { BookOpen, Boxes, Calculator, Lock, ChevronDown, ChevronRight, CornerDownRight, FolderPlus, Layers, ListPlus, Plus, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, BookOpen, Boxes, Calculator, Lock, ChevronDown, ChevronRight, CornerDownRight, FolderPlus, Layers, ListPlus, Plus, Trash2 } from "lucide-react";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -125,8 +125,10 @@ function construirArbol(items: CotizacionItem[], multi = false): Fila[] {
           grp: sub.grp,
           total: total(reales),
         });
-        const porCodigo = [...reales].sort((a, b) =>
-          (a.codigo ?? "").localeCompare(b.codigo ?? "", undefined, { numeric: true }),
+        const porCodigo = [...reales].sort(
+          (a, b) =>
+            (a.orden ?? Number.MAX_SAFE_INTEGER) - (b.orden ?? Number.MAX_SAFE_INTEGER) ||
+            (a.codigo ?? "").localeCompare(b.codigo ?? "", undefined, { numeric: true }),
         );
         for (const nodo of ordenarJerarquia(porCodigo)) {
           const t = nodo.agrupadora
@@ -669,6 +671,75 @@ export function CotizacionHoja({
     else refrescar();
   }
 
+  /** Devuelve las filas persistidas que pertenecen al encabezado o partida seleccionada. */
+  function itemsDeFila(f: Fila) {
+    if (f.clase === "cap") return items.filter((i) => (i.especialidad || "Sin especialidad") === f.esp);
+    if (f.clase === "grp")
+      return items.filter(
+        (i) =>
+          (i.especialidad || "Sin especialidad") === f.esp &&
+          ((i.grupo ?? "").trim() === f.grp || grupoDeCat(items, f.esp, (i.categoria ?? "").trim() || "Sin categoría") === f.grp),
+      );
+    if (f.clase === "sub")
+      return items.filter(
+        (i) =>
+          (i.especialidad || "Sin especialidad") === f.esp &&
+          ((i.categoria ?? "").trim() || "Sin categoría") === f.cat,
+      );
+    return items.filter((i) => i.id === f.it.id || i.padre_id === f.it.id);
+  }
+
+  /** Hermanos del mismo nivel entre los que puede desplazarse una fila. */
+  function hermanosDe(f: Fila) {
+    if (f.clase === "cap") return arbol.filter((x) => x.clase === "cap");
+    if (f.clase === "grp") return arbol.filter((x) => x.clase === "grp" && x.esp === f.esp);
+    if (f.clase === "sub") return arbol.filter((x) => x.clase === "sub" && x.esp === f.esp && x.grp === f.grp);
+    return arbol.filter(
+      (x) =>
+        x.clase === "item" &&
+        x.it.especialidad === f.it.especialidad &&
+        (x.it.categoria ?? "") === (f.it.categoria ?? "") &&
+        (x.it.padre_id ?? null) === (f.it.padre_id ?? null),
+    );
+  }
+
+  function puedeDesplazar(f: Fila, direccion: -1 | 1) {
+    const hermanos = hermanosDe(f);
+    const indice = hermanos.findIndex((x) => x.clave === f.clave);
+    return indice >= 0 && indice + direccion >= 0 && indice + direccion < hermanos.length;
+  }
+
+  /** Intercambia dos bloques hermanos y vuelve a numerar la WBS automáticamente. */
+  async function desplazarFila(f: Fila, direccion: -1 | 1) {
+    const hermanos = hermanosDe(f);
+    const indice = hermanos.findIndex((x) => x.clave === f.clave);
+    const destino = hermanos[indice + direccion];
+    if (indice < 0 || !destino) return;
+    const bloqueActual = itemsDeFila(f);
+    const bloqueDestino = itemsDeFila(destino);
+    const idsActual = new Set(bloqueActual.map((i) => i.id));
+    const idsDestino = new Set(bloqueDestino.map((i) => i.id));
+    const ordenados = [...items].sort((a, b) => a.orden - b.orden);
+    const posiciones = ordenados
+      .map((i, pos) => ({ i, pos }))
+      .filter(({ i }) => idsActual.has(i.id) || idsDestino.has(i.id))
+      .map(({ pos }) => pos);
+    const primero = direccion < 0 ? bloqueActual : bloqueDestino;
+    const segundo = direccion < 0 ? bloqueDestino : bloqueActual;
+    const reemplazo = [...primero, ...segundo].sort((a, b) => {
+      const bloqueA = primero.some((i) => i.id === a.id) ? 0 : 1;
+      const bloqueB = primero.some((i) => i.id === b.id) ? 0 : 1;
+      return bloqueA - bloqueB || a.orden - b.orden;
+    });
+    setError("");
+    const resultados = await Promise.all(
+      posiciones.map((pos, i) => supabase.from("cotizacion_items").update({ orden: pos + 1 }).eq("id", reemplazo[i]?.id ?? "")),
+    );
+    const fallo = resultados.find((r) => r.error)?.error;
+    if (fallo) return setError(fallo.message);
+    await refrescar();
+  }
+
   function mover(dr: number, dc: number) {
     let { r, c } = activo;
     if (dr) {
@@ -1100,13 +1171,13 @@ export function CotizacionHoja({
                     f,
                     r,
                     0,
-                    <span className="flex items-center gap-1 font-semibold" style={{ paddingLeft: 0, color: DOC.green }}>
+                    <span className="flex w-full items-center justify-start gap-1 text-left font-semibold" style={{ paddingLeft: 0, color: DOC.green }}>
                       <button type="button" onClick={() => alternar(f.clave)} className="text-muted-foreground">
                         {colapsados.has(f.clave) ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
                       </button>
                       {f.codigo || "—"}
                     </span>,
-                  )}
+                  , "text-left")}
                   {celda(
                     f,
                     r,
@@ -1152,6 +1223,13 @@ export function CotizacionHoja({
                     </ContextMenuItem>
                   )}
                   <ContextMenuSeparator />
+                  <ContextMenuItem disabled={!puedeDesplazar(f, -1)} onSelect={() => void desplazarFila(f, -1)}>
+                    <ArrowUp size={14} className="mr-2" /> Mover arriba
+                  </ContextMenuItem>
+                  <ContextMenuItem disabled={!puedeDesplazar(f, 1)} onSelect={() => void desplazarFila(f, 1)}>
+                    <ArrowDown size={14} className="mr-2" /> Mover abajo
+                  </ContextMenuItem>
+                  <ContextMenuSeparator />
                   {grupoConPartidas(f) ? (
                     <ContextMenuItem disabled title="Tiene partidas asociadas">
                       <Lock size={14} className="mr-2" /> {esGrp ? "Tiene categorías: vacíalo para quitar" : "Tiene partidas: vacíalo para borrar"}
@@ -1191,7 +1269,7 @@ export function CotizacionHoja({
                     f,
                     r,
                     0,
-                    <span className="flex items-center gap-1 whitespace-nowrap text-[12px] text-primary" style={{ paddingLeft: sangria }}>
+                    <span className="flex w-full items-center justify-start gap-1 whitespace-nowrap text-left text-[12px] text-primary" style={{ paddingLeft: sangria }}>
                       {f.agrupadora && (
                         <button type="button" onClick={() => alternar(f.clave)} className="text-muted-foreground">
                           {colapsados.has(f.clave) ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
@@ -1200,7 +1278,7 @@ export function CotizacionHoja({
                       {f.nivel === 4 && <CornerDownRight size={11} className="text-muted-foreground" />}
                       {it.codigo || "—"}
                     </span>,
-                  )}
+                  , "text-left")}
                   {celda(f, r, 1, <span className="block border-l border-line/70 pl-6" style={{ color: DOC.ink }}>{it.nombre}</span>)}
                   {bloqueada ? (
                     <td className={`${celdaBase} text-center`}>—</td>
@@ -1291,6 +1369,13 @@ export function CotizacionHoja({
                       <Calculator size={14} className="mr-2" /> Imprimir ficha APU
                     </ContextMenuItem>
                   )}
+                  <ContextMenuSeparator />
+                  <ContextMenuItem disabled={!puedeDesplazar(f, -1)} onSelect={() => void desplazarFila(f, -1)}>
+                    <ArrowUp size={14} className="mr-2" /> Mover arriba
+                  </ContextMenuItem>
+                  <ContextMenuItem disabled={!puedeDesplazar(f, 1)} onSelect={() => void desplazarFila(f, 1)}>
+                    <ArrowDown size={14} className="mr-2" /> Mover abajo
+                  </ContextMenuItem>
                   <ContextMenuSeparator />
                   {f.agrupadora || puFijo ? (
                     <ContextMenuItem disabled>

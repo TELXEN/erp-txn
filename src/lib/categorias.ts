@@ -260,7 +260,7 @@ export function renumerarWBS<T extends FilaCodigo & { id: string; padre_id?: str
   return cambios;
 }
 
-type FilaJerarquia = { id: string; padre_id?: string | null };
+type FilaJerarquia = { id: string; padre_id?: string | null; orden?: number | null };
 
 /**
  * Ordena filas de un grupo en árbol: cada partida seguida de sus subpartidas (4.° nivel).
@@ -286,11 +286,16 @@ export function ordenarJerarquia<T extends FilaJerarquia & { codigo?: string | n
       hijos.get(f.padre_id)!.push(f);
     }
   }
-  // Orden natural ascendente por código dentro de cada nivel (raíces y hermanos).
+  // El orden editable manda; el código queda como desempate para datos antiguos sin orden.
   const porCodigo = (arr: T[]) =>
     arr
       .map((f, i) => ({ f, i }))
-      .sort((x, y) => compararCodigosWBS((x.f.codigo ?? "").trim(), (y.f.codigo ?? "").trim()) || x.i - y.i)
+      .sort(
+        (x, y) =>
+          (x.f.orden ?? Number.MAX_SAFE_INTEGER) - (y.f.orden ?? Number.MAX_SAFE_INTEGER) ||
+          compararCodigosWBS((x.f.codigo ?? "").trim(), (y.f.codigo ?? "").trim()) ||
+          x.i - y.i,
+      )
       .map((e) => e.f);
   const out: { fila: T; nivel: 3 | 4; agrupadora: boolean; hijos: T[] }[] = [];
   for (const f of porCodigo(filas.filter((f) => !f.padre_id || !ids.has(f.padre_id)))) {
@@ -352,7 +357,8 @@ export function numeracionCotizacion(filas: FilaWBS4[], multi: boolean) {
   const ids = new Set(filas.map((f) => f.id));
   const esHijo = (f: FilaWBS4) => Boolean(f.padre_id && ids.has(f.padre_id));
   const porCod = (a: FilaWBS4, b: FilaWBS4) =>
-    compararCodigosWBS((a.codigo ?? "").trim(), (b.codigo ?? "").trim()) || (a.orden ?? 0) - (b.orden ?? 0);
+    (a.orden ?? Number.MAX_SAFE_INTEGER) - (b.orden ?? Number.MAX_SAFE_INTEGER) ||
+    compararCodigosWBS((a.codigo ?? "").trim(), (b.codigo ?? "").trim());
 
   // En una disciplina, el "grupo" es la columna especialidad y la especialidad es única (01).
   const nivelEsp = (f: FilaWBS4) => (multi ? espDe(f) : "");
