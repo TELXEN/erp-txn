@@ -453,8 +453,11 @@ export function CotizacionHoja({
     const candidatas = multi
       ? categoriasDe(esp, catalogoCat).map((c) => c.nombre)
       : (() => {
-          const conGrupo = catalogoCat.filter((c) => c.activo && (c as { grupo?: string }).grupo === esp);
-          return [...new Set((conGrupo.length ? conGrupo : catalogoCat.filter((c) => c.activo)).map((c) => c.nombre))];
+          // Primero las asociadas a este grupo, luego las sin grupo y al final el resto.
+          const activas = catalogoCat.filter((c) => c.activo);
+          const g = (c: (typeof activas)[number]) => (c as { grupo?: string }).grupo ?? "";
+          const orden = [...activas.filter((c) => g(c) === esp), ...activas.filter((c) => !g(c)), ...activas.filter((c) => g(c) && g(c) !== esp)];
+          return [...new Set(orden.map((c) => c.nombre))];
         })();
     const libre = candidatas.find((n) => !usadas.has(n));
     if (!libre)
