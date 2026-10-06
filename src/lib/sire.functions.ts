@@ -150,8 +150,12 @@ export const descargarComprobantesSire = createServerFn({ method: "POST" })
         const txt = xml ? c.xmlDe(xml) : null;
         if (txt) {
           const u = c.parsearUbl(txt);
-          await supabaseAdmin.from("comprobantes_recibidos_items").delete().eq("comprobante_id", row.id);
-          if (u.items.length) await supabaseAdmin.from("comprobantes_recibidos_items").insert(u.items.map((it, i) => ({ ...it, orden: i + 1, comprobante_id: row.id })));
+          if (!c.coincide(u, d.ruc, d.serie, d.numero)) {
+            fila.error = `El XML de SUNAT no coincide (${u.emisorRuc} ${u.serie}-${u.numero})`;
+          } else {
+            await supabaseAdmin.from("comprobantes_recibidos_items").delete().eq("comprobante_id", row.id);
+            if (u.items.length) await supabaseAdmin.from("comprobantes_recibidos_items").insert(u.items.map((it, i) => ({ ...it, origen: "sunat", orden: i + 1, comprobante_id: row.id })));
+          }
         }
         resultados.push({ clave, ok: !!xml, error: (fila.error as string) ?? undefined });
       } catch (e) {
