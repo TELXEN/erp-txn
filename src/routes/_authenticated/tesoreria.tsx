@@ -401,16 +401,26 @@ function Tesoreria() {
       </Panel>
 
       <div className="mb-3 flex gap-2">
-        {(["cxc", "cxp"] as const).map((t) => (
-          <button
-            key={t}
-            type="button"
-            onClick={() => { setPestana(t); setAccion(null); setFiltroVence(null); setTercero(""); setSeleccion(new Set()); }}
-            className={`rounded-md border px-3 py-1.5 font-mono text-xs ${pestana === t ? "border-primary bg-primary text-primary-foreground" : "border-line"}`}
-          >
-            {t === "cxc" ? `Cuentas por cobrar (${cxc.length})` : `Cuentas por pagar (${cxp.length})`}
-          </button>
-        ))}
+        {(["cxc", "cxp"] as const).map((t) => {
+          const activa = pestana === t;
+          const tono = t === "cxc"
+            ? activa
+              ? "border-good bg-good text-white"
+              : "border-good/50 text-good hover:bg-good/10"
+            : activa
+              ? "border-warn bg-warn text-white"
+              : "border-warn/50 text-warn hover:bg-warn/10";
+          return (
+            <button
+              key={t}
+              type="button"
+              onClick={() => { setPestana(t); setAccion(null); setFiltroVence(null); setTercero(""); setSeleccion(new Set()); }}
+              className={`rounded-md border px-3 py-1.5 font-mono text-xs transition ${tono}`}
+            >
+              {t === "cxc" ? `Cuentas por cobrar (${cxc.length})` : `Cuentas por pagar (${cxp.length})`}
+            </button>
+          );
+        })}
       </div>
 
       <div className="mb-4 grid gap-3 sm:grid-cols-4">
