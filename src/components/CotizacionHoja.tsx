@@ -742,10 +742,10 @@ export function CotizacionHoja({
         <div className="flex flex-wrap items-center justify-center gap-2">
           <button
             type="button"
-            onClick={() => void nuevaEspecialidad()}
+            onClick={() => nuevaEspecialidad()}
             className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-2 text-[12px] font-medium text-primary-foreground hover:opacity-90"
           >
-            <FolderPlus size={14} /> {multi ? "Nueva especialidad" : "Nuevo grupo"}
+            <Layers size={14} /> {multi ? "Agregar nueva especialidad" : "Agregar nuevo grupo"}
           </button>
           <button
             type="button"
@@ -785,10 +785,10 @@ export function CotizacionHoja({
         </button>
         <button
           type="button"
-          onClick={() => void nuevaEspecialidad()}
+          onClick={() => nuevaEspecialidad()}
           className="inline-flex items-center gap-1 rounded-md border border-line px-2.5 py-1.5 text-[12.5px] text-primary hover:bg-primary/10"
         >
-          <FolderPlus size={12} /> {multi ? "Especialidad" : "Grupo"}
+          <Layers size={12} /> {multi ? "Especialidad" : "Grupo"}
         </button>
         {alAbrirCatalogo && (
           <button
