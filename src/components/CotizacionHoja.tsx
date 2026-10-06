@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { BookOpen, Calculator, ChevronDown, ChevronRight, CornerDownRight, FolderPlus, ListPlus, Plus, Trash2 } from "lucide-react";
+import { BookOpen, Calculator, Lock, ChevronDown, ChevronRight, CornerDownRight, FolderPlus, ListPlus, Plus, Trash2 } from "lucide-react";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -499,6 +499,16 @@ export function CotizacionHoja({
     else refrescar();
   }
 
+  function grupoConPartidas(f: Fila) {
+    if (f.clase === "item") return false;
+    return items.some(
+      (i) =>
+        esPartida(i) &&
+        (i.especialidad || "Sin especialidad") === f.esp &&
+        (f.clase === "cap" || ((i.categoria ?? "").trim() || "Sin categoría") === f.cat),
+    );
+  }
+
   function mover(dr: number, dc: number) {
     let { r, c } = activo;
     if (dr) {
@@ -523,13 +533,26 @@ export function CotizacionHoja({
     setActivo({ r: nr, c: (dc > 0 ? cs[0] : cs[cs.length - 1]) as number });
   }
 
+  /** Última celda editable de la última partida de su categoría: Tab agrega una partida debajo. */
+  function finDeCategoria(f: Fila, r: number, c: number) {
+    if (f.clase !== "item") return false;
+    const cols = columnasEditables(f, conApu.has(f.it.id));
+    if (cols[cols.length - 1] !== c) return false;
+    const sig = visibles[r + 1];
+    return !sig || sig.clase !== "item";
+  }
+
   function alPresionar(e: React.KeyboardEvent, f: Fila, r: number, c: number) {
     if (editando) return;
     if (e.key === "ArrowUp") return e.preventDefault(), mover(-1, 0);
     if (e.key === "ArrowDown") return e.preventDefault(), mover(1, 0);
     if (e.key === "ArrowLeft") return e.preventDefault(), mover(0, -1);
     if (e.key === "ArrowRight") return e.preventDefault(), mover(0, 1);
-    if (e.key === "Tab") return e.preventDefault(), mover(0, e.shiftKey ? -1 : 1);
+    if (e.key === "Tab") {
+      e.preventDefault();
+      if (!e.shiftKey && finDeCategoria(f, r, c)) return void insertarFila(r);
+      return mover(0, e.shiftKey ? -1 : 1);
+    }
     if (e.key === "Insert") return e.preventDefault(), void insertarFila(r);
     if (e.key === "Enter" || e.key === "F2") {
       e.preventDefault();
@@ -565,9 +588,11 @@ export function CotizacionHoja({
         }
         if (e.key === "Tab") {
           e.preventDefault();
+          const fin = !e.shiftKey && finDeCategoria(f, activo.r, c);
           void guardar(f, c, valor).then(() => {
             setEditando(false);
-            mover(0, e.shiftKey ? -1 : 1);
+            if (fin) void insertarFila(activo.r);
+            else mover(0, e.shiftKey ? -1 : 1);
           });
         }
       },
@@ -630,7 +655,8 @@ export function CotizacionHoja({
                 .eq("id", f.it.id);
               if (err) setError(err.message);
               setEditando(false);
-              refrescar();
+              await refrescar();
+              setActivo({ r: activo.r, c: 4 });
             })();
           }}
           onEnter={() => {
@@ -830,7 +856,7 @@ export function CotizacionHoja({
                     f,
                     r,
                     1,
-                    <span className={`font-semibold ${cap ? "uppercase text-ink" : "text-muted-foreground"}`}>{f.texto}</span>,
+                    <span className={`font-semibold ${cap ? "uppercase tracking-wide text-ink" : "pl-4 text-ink/80"}`}>{f.texto}</span>,
                   )}
                   <td className={celdaBase}>—</td>
                   <td className={celdaBase}>—</td>
@@ -856,12 +882,18 @@ export function CotizacionHoja({
                     <Plus size={14} className="mr-2" /> Agregar partida
                   </ContextMenuItem>
                   <ContextMenuSeparator />
-                  <ContextMenuItem
-                    className="text-bad focus:text-bad"
-                    onSelect={() => void borrarGrupo(f.esp, f.clase === "sub" ? f.cat : null)}
-                  >
-                    <Trash2 size={14} className="mr-2" /> Borrar {cap ? (multi ? "especialidad" : "grupo") : "categoría"}
-                  </ContextMenuItem>
+                  {grupoConPartidas(f) ? (
+                    <ContextMenuItem disabled title="Tiene partidas asociadas">
+                      <Lock size={14} className="mr-2" /> Tiene partidas: vacíalo para borrar
+                    </ContextMenuItem>
+                  ) : (
+                    <ContextMenuItem
+                      className="text-bad focus:text-bad"
+                      onSelect={() => void borrarGrupo(f.esp, f.clase === "sub" ? f.cat : null)}
+                    >
+                      <Trash2 size={14} className="mr-2" /> Borrar {cap ? (multi ? "especialidad" : "grupo") : "categoría"}
+                    </ContextMenuItem>
+                  )}
                 </ContextMenuContent>
                 </ContextMenu>
                 {filaFantasma}
@@ -897,7 +929,7 @@ export function CotizacionHoja({
                       {it.codigo || "—"}
                     </span>,
                   )}
-                  {celda(f, r, 1, <span className="text-ink">{it.nombre}</span>)}
+                  {celda(f, r, 1, <span className="block border-l border-line/70 pl-6 text-ink">{it.nombre}</span>)}
                   {bloqueada ? (
                     <td className={celdaBase}>—</td>
                   ) : (
@@ -940,14 +972,23 @@ export function CotizacionHoja({
                           <CornerDownRight size={12} />
                         </button>
                       )}
-                      <button
-                        type="button"
-                        title="Eliminar fila"
-                        onClick={() => void borrar(it.id)}
-                        className="rounded border border-line p-1 text-muted-foreground hover:border-bad hover:text-bad"
-                      >
-                        <Trash2 size={12} />
-                      </button>
+                      {f.agrupadora || puFijo ? (
+                        <span
+                          title={f.agrupadora ? "Tiene subpartidas asociadas" : "Tiene APU asociado"}
+                          className="rounded border border-line p-1 text-muted-foreground/60"
+                        >
+                          <Lock size={12} />
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          title="Eliminar fila"
+                          onClick={() => void borrar(it.id)}
+                          className="rounded border border-line p-1 text-muted-foreground hover:border-bad hover:text-bad"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -971,9 +1012,15 @@ export function CotizacionHoja({
                     </ContextMenuItem>
                   )}
                   <ContextMenuSeparator />
-                  <ContextMenuItem className="text-bad focus:text-bad" onSelect={() => void borrar(it.id)}>
-                    <Trash2 size={14} className="mr-2" /> Borrar partida
-                  </ContextMenuItem>
+                  {f.agrupadora || puFijo ? (
+                    <ContextMenuItem disabled>
+                      <Lock size={14} className="mr-2" /> {f.agrupadora ? "Tiene subpartidas" : "Tiene APU asociado"}
+                    </ContextMenuItem>
+                  ) : (
+                    <ContextMenuItem className="text-bad focus:text-bad" onSelect={() => void borrar(it.id)}>
+                      <Trash2 size={14} className="mr-2" /> Borrar partida
+                    </ContextMenuItem>
+                  )}
                 </ContextMenuContent>
                 </ContextMenu>
                 {apuAbierto === it.id && (
