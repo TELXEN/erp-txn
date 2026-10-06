@@ -1334,7 +1334,7 @@ export function CotizacionHoja({
                 <ContextMenu>
                 <ContextMenuTrigger asChild>
                 <tr
-                  className={`${f.agrupadora ? "bg-muted/10" : ""} data-[state=open]:bg-primary/5`}
+                  className={`${f.agrupadora ? "bg-muted/10" : ""} aria-selected:bg-primary/15 data-[state=open]:bg-primary/5`}
                   aria-selected={seleccionadas.has(f.clave)}
                   onClick={(e) => seleccionarPartida(e, r, f)}
                   onContextMenu={() => {
