@@ -8,7 +8,7 @@ import type { Trabajador } from "@/lib/datos";
 import { exportarExcel } from "@/lib/exportar";
 import {
   diasParaVencer, type Emo, estadoEmo, ESTADO_EMO_INFO, EXAMENES_EMO, RESULTADOS_EMO,
-  sumarAnios, TIPOS_EMO, ultimoEmoPorTrabajador,
+  sumarAnios, TIPOS_EMO, ultimoEmoPorTrabajador, useEmos,
 } from "@/lib/emo";
 
 type FormEmo = {
@@ -37,8 +37,7 @@ function Etq({ t, req, children }: { t: string; req?: boolean; children: React.R
 
 export function EmoPanel({ trabajadores }: { trabajadores: Trabajador[] }) {
   const qc = useQueryClient();
-  const [emos, setEmos] = useState<Emo[] | null>(null);
-  const [cargando, setCargando] = useState(false);
+  const { data: emos, isLoading: cargando } = useEmos();
   const [abierto, setAbierto] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState<FormEmo>(VACIO());
@@ -48,14 +47,8 @@ export function EmoPanel({ trabajadores }: { trabajadores: Trabajador[] }) {
   const [fTexto, setFTexto] = useState("");
 
   async function cargar() {
-    setCargando(true);
-    const { data, error: e } = await supabase.from("emos_trabajador").select("*").order("fecha_vencimiento");
-    setCargando(false);
-    if (e) return setError(e.message);
-    setEmos((data ?? []) as Emo[]);
-    qc.invalidateQueries({ queryKey: ["emos_trabajador"] });
+    await qc.invalidateQueries({ queryKey: ["emos_trabajador"] });
   }
-  if (emos === null && !cargando && !error) void cargar();
 
   const lista = emos ?? [];
   const nombre = useMemo(() => new Map(trabajadores.map((t) => [t.id, t])), [trabajadores]);
