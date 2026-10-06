@@ -94,7 +94,7 @@ export function agruparPorCategoria<T extends { especialidad: string; categoria?
   }));
 }
 
-type FilaCodigo = { codigo?: string | null; especialidad: string; categoria?: string | null };
+type FilaCodigo = { codigo?: string | null; especialidad: string; categoria?: string | null; padre_id?: string | null };
 
 /**
  * Código contextual dentro de una obra o cotización (sin códigos fijos de catálogo):
@@ -168,6 +168,16 @@ export function prefijosWBS(filas: FilaCodigo[]) {
     const usadosSub = new Set<string>();
     let nextSub = 0;
     for (const [cat, items] of agrupar(lista, (f) => claveCat(f.categoria))) {
+      // Código de 4 niveles (esp.grupo.cat.partida, heredado de cotizaciones): el prefijo es todo menos la partida.
+      const largos = items
+        .map((f) => (f.codigo ?? "").trim().split("."))
+        .filter((s) => s.length >= 3 && s[0] === cap)
+        .sort((a, b) => a.length - b.length);
+      const corto = largos[0];
+      if (corto && corto.length >= 4 && !items.every((f) => f.padre_id)) {
+        categorias.set(`${esp}||${cat}`, corto.slice(0, 3).join("."));
+        continue;
+      }
       const conCod3 = items.find((f) => (f.codigo ?? "").trim().split(".").length >= 3);
       let sub = conCod3 ? (conCod3.codigo as string).trim().split(".")[1] : "";
       if (!sub || usadosSub.has(sub)) {
