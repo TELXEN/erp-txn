@@ -317,9 +317,9 @@ export function siguienteCodigoSubpartida(
 }
 
 // ============================================================================
-// Numeración WBS de cotizaciones en 4 niveles: Especialidad.Grupo.Categoría.Partida
-// (01.01.01.01; subpartidas agregan un 5.° nivel). El grupo "00" = sin grupo.
-// En cotizaciones de una disciplina la especialidad es siempre 01 y el grupo es el capítulo.
+// Numeración WBS de cotizaciones. Multidisciplinaria: 4 niveles Especialidad.Grupo.Categoría.Partida
+// (01.01.01.01; subpartidas agregan un 5.° nivel). Una disciplina: 3 niveles Grupo.Categoría.Partida
+// (01.01.01; el grupo es el capítulo). El grupo "00" = sin grupo.
 // ============================================================================
 
 export type FilaWBS4 = {
@@ -413,7 +413,7 @@ export function numeracionCotizacion(filas: FilaWBS4[], multi: boolean) {
   };
 }
 
-/** Cambios de código necesarios para dejar la cotización numerada en 4 niveles. */
+/** Cambios de código necesarios para dejar la cotización numerada (4 niveles multi, 3 en una disciplina). */
 export function cambiosNumeracion(filas: FilaWBS4[], multi: boolean) {
   const { codigos } = numeracionCotizacion(filas, multi);
   return filas
