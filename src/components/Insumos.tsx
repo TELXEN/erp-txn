@@ -81,7 +81,7 @@ export function Insumos() {
   };
   const chips = new Map<TipoInsumo, string>();
   ORDEN_PESTANAS.forEach((t, i) =>
-    chips.set(t, CHIP_TIPO[t] ?? CHIPS_EXTRA[Math.max(0, i - 4) % CHIPS_EXTRA.length] ?? CHIPS_EXTRA[0]),
+    chips.set(t, CHIP_TIPO[t] ?? CHIPS_EXTRA[Math.max(0, i - 4) % CHIPS_EXTRA.length] ?? "bg-chip-1"),
   );
 
   // El foco de la fila de captura se aplica al montar; se libera después.
