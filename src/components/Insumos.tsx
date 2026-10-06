@@ -95,53 +95,48 @@ export function Insumos() {
 
   return (
     <>
-      <div className="mb-4 inline-flex max-w-full flex-wrap items-center gap-1 rounded-lg border border-line bg-muted/40 p-1">
-        <span className="px-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Maestro:</span>
-        {ORDEN_PESTANAS.map((t) => {
-          const chip = chips.get(t) ?? CHIPS_EXTRA[0];
-          const activo = seccion === t;
+      <div className="mb-3 flex flex-wrap gap-1">
+        {GRUPOS_INSUMOS.map((g) => {
+          const Icono = g.icono;
+          const activo = g.items.some(([p]) => p === seccion);
           return (
-            <button
-              key={t}
-              type="button"
-              onClick={() => cambiarPestana(t)}
-              className={`flex items-center gap-1.5 rounded-md px-3 py-1 text-xs transition-colors ${
-                activo
-                  ? `${chip} font-semibold text-chip-foreground shadow-sm`
-                  : "text-muted-foreground hover:bg-background hover:text-foreground"
-              }`}
+            <Boton
+              key={g.titulo}
+              variante={activo ? "primario" : "linea"}
+              onClick={() => {
+                const primero = g.items[0];
+                if (!primero) return;
+                if (primero[0] === "margenes" || primero[0] === "laboral" || primero[0] === "codificacion") {
+                  setSeccion(primero[0]);
+                } else {
+                  cambiarPestana(primero[0] as TipoInsumo);
+                }
+              }}
             >
-              <span aria-hidden="true" className={`h-1.5 w-1.5 shrink-0 rounded-full ${activo ? "bg-chip-foreground" : chip}`} />
-              {etiquetaTipo(t)}
-            </button>
+              <Icono size={13} /> {g.titulo}
+            </Boton>
           );
         })}
-        <span className="mx-1 h-5 w-px bg-line" aria-hidden="true" />
-        {(
-          [
-            ["margenes", "Márgenes APU"],
-            ["laboral", "Parámetros laborales"],
-            ["codificacion", "Codificación de insumos"],
-          ] as [Exclude<SeccionInsumos, TipoInsumo>, string][]
-        ).map(([s, texto]) => {
-          const chip = CHIP_SECCION[s];
-          const activo = seccion === s;
-          return (
-            <button
-              key={s}
-              type="button"
-              onClick={() => setSeccion(s)}
-              className={`flex items-center gap-1.5 rounded-md px-3 py-1 text-xs transition-colors ${
-                activo
-                  ? `${chip} font-semibold text-chip-foreground shadow-sm`
-                  : "text-muted-foreground hover:bg-background hover:text-foreground"
-              }`}
-            >
-              <span aria-hidden="true" className={`h-1.5 w-1.5 shrink-0 rounded-full ${activo ? "bg-chip-foreground" : chip}`} />
-              {texto}
-            </button>
-          );
-        })}
+      </div>
+
+      <div className="mb-4 flex flex-wrap gap-1 border-b border-line pb-3">
+        {grupoActivo.items.map(([p, texto]) => (
+          <button
+            key={p}
+            type="button"
+            onClick={() => {
+              if (p === "margenes" || p === "laboral" || p === "codificacion") setSeccion(p);
+              else cambiarPestana(p as TipoInsumo);
+            }}
+            className={`rounded-md border-b-2 px-3 py-1.5 text-xs transition-colors ${
+              seccion === p
+                ? "border-cta bg-primary/10 font-semibold text-primary"
+                : "border-transparent text-muted-foreground hover:bg-muted hover:text-primary"
+            }`}
+          >
+            {texto}
+          </button>
+        ))}
       </div>
 
       {seccion === "margenes" ? (
