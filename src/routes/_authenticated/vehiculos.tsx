@@ -619,63 +619,65 @@ function PaginaVehiculos() {
 
       {pestaña === "tareo" && (
         <div className="space-y-4">
-          <Panel titulo="Registrar tareo vehicular">
-            <div className="grid grid-cols-2 gap-3 p-5 md:grid-cols-4">
-              <Campo etiqueta="Fecha"><Input type="date" value={formTareo.fecha} onChange={(e) => setFormTareo({ ...formTareo, fecha: e.target.value })} /></Campo>
+          <Panel titulo={editandoTareo ? "Corregir días de uso" : "Registrar días de uso vehicular"}>
+            <div className="space-y-4 p-5">
+              <div className="grid gap-3 sm:grid-cols-2">
               <Campo etiqueta="Vehículo">
-                <Select value={formTareo.vehiculo_id} onChange={(e) => setFormTareo({ ...formTareo, vehiculo_id: e.target.value })}>
+                <Select value={formTareo.vehiculo_id} disabled={Boolean(editandoTareo)} onChange={(e) => setFormTareo({ ...formTareo, vehiculo_id: e.target.value })}>
                   <option value="">— elegir —</option>
                   {vehiculos.filter((v) => v.estado === "Operativo").map((v) => <option key={v.id} value={v.id}>{v.placa} · {v.marca} {v.modelo}</option>)}
                 </Select>
               </Campo>
               <Campo etiqueta="Proyecto">
-                <Select value={formTareo.proyecto_id} onChange={(e) => setFormTareo({ ...formTareo, proyecto_id: e.target.value })}>
+                <Select value={formTareo.proyecto_id} disabled={Boolean(editandoTareo)} onChange={(e) => setFormTareo({ ...formTareo, proyecto_id: e.target.value })}>
                   <option value="">— elegir —</option>
                   {proyectos.map((p) => <option key={p.id} value={p.id}>{p.codigo} · {p.nombre}</option>)}
                 </Select>
               </Campo>
-              <Campo etiqueta="Conductor">
-                <Select value={formTareo.conductor_id} onChange={(e) => setFormTareo({ ...formTareo, conductor_id: e.target.value })}>
-                  <option value="">— opcional —</option>
-                  {trabajadores.map((t) => <option key={t.id} value={t.id}>{t.nombre}</option>)}
-                </Select>
-              </Campo>
-              <Campo etiqueta="Días (1 o 0.5)"><Input type="number" step="0.5" min="0" value={formTareo.dias} onChange={(e) => setFormTareo({ ...formTareo, dias: e.target.value })} /></Campo>
-              <Campo etiqueta="Km recorridos"><Input type="number" min="0" value={formTareo.km} onChange={(e) => setFormTareo({ ...formTareo, km: e.target.value })} /></Campo>
-              {esDinero && (
-                <Campo etiqueta="Costo calculado">
-                  <Input readOnly value={fmtSoles(costoTareo(Number(formTareo.dias) || 0, Number(formTareo.km) || 0, mapaVehiculo.get(formTareo.vehiculo_id)))} className="font-mono" />
-                </Campo>
-              )}
-              <Campo etiqueta="Observación"><Input value={formTareo.observacion} onChange={(e) => setFormTareo({ ...formTareo, observacion: e.target.value })} /></Campo>
+              </div>
+              <div className="rounded-md border border-line bg-muted/40 p-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="label-mono">Calendario de uso</p>
+                  <div className="flex items-center gap-2">
+                    <Boton type="button" variante="linea" className="px-2" onClick={() => setMesTareo(cambiarMes(mesTareo, -1))}>‹</Boton>
+                    <Input type="month" className="w-40" value={mesTareo} onChange={(e) => e.target.value && setMesTareo(e.target.value)} />
+                    <Boton type="button" variante="linea" className="px-2" onClick={() => setMesTareo(cambiarMes(mesTareo, 1))}>›</Boton>
+                  </div>
+                </div>
+                <div className="mt-3 grid grid-cols-7 gap-1">
+                  {DIAS_SEMANA.map((dia, i) => <div key={i} className="label-mono py-1 text-center">{dia}</div>)}
+                  {celdasTareo.map((fecha, i) => fecha ? (
+                    <button key={fecha} type="button" aria-pressed={diasTareo.has(fecha)} onClick={() => marcarDiaTareo(fecha)} className={`flex h-9 items-center justify-center rounded-md border font-mono text-xs transition-colors ${diasTareo.has(fecha) ? "border-primary bg-primary text-primary-foreground" : "border-line bg-card hover:border-primary"}`}>
+                      {Number(fecha.slice(8))}
+                    </button>
+                  ) : <div key={`vacio-${i}`} />)}
+                </div>
+                <p className="mt-2 font-mono text-[11px] text-muted-foreground">Haz clic en cada día que el vehículo fue utilizado.</p>
+              </div>
+              {esDinero && <div className="flex justify-end font-mono text-xs text-muted-foreground">{diasTareo.size} día(s) · {fmtSoles(costoTareo(diasTareo.size, mapaVehiculo.get(formTareo.vehiculo_id)))}</div>}
             </div>
-            <div className="border-t border-line px-5 py-3">
-              <Boton onClick={guardarTareo}><Plus className="size-3.5" />Registrar tareo</Boton>
+            <div className="flex gap-2 border-t border-line px-5 py-3">
+              <Boton onClick={guardarTareo}>{editandoTareo ? <Check className="size-3.5" /> : <Plus className="size-3.5" />}{editandoTareo ? "Guardar corrección" : `Registrar tareo (${diasTareo.size} día(s))`}</Boton>
+              {(editandoTareo || diasTareo.size > 0) && <Boton variante="linea" onClick={() => { setEditandoTareo(null); setDiasTareo(new Set()); setFormTareo(VACIO_TAREO); }}><X className="size-3.5" />Limpiar</Boton>}
             </div>
           </Panel>
 
-          <Panel titulo={`Tareo registrado (${tareo.length})`}>
-            {tareo.length === 0 ? <Vacio texto="Sin tareo vehicular registrado." /> : (
+          <Panel titulo="Consolidado mensual" extra={<Input type="month" className="w-40" value={mesResumenTareo} onChange={(e) => e.target.value && setMesResumenTareo(e.target.value)} />}>
+            {consolidadoTareo.length === 0 ? <Vacio texto="Sin días de uso registrados en este mes." /> : (
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead><tr className="border-b border-line">
-                    <th className={th}>Fecha</th><th className={th}>Vehículo</th><th className={th}>Proyecto</th>
-                    <th className={th}>Conductor</th><th className={th}>Días</th><th className={th}>Km</th>
-                    {esDinero && <th className={th}>Costo</th>}{esDinero && <th className={th}>Pagado desde</th>}
-                    <th className={th}>Observación</th>{esDinero && <th className={th}></th>}
+                    <th className={th}>Vehículo</th><th className={th}>Proyecto</th><th className={`${th} text-right`}>Días de uso</th>
+                    {esDinero && <th className={`${th} text-right`}>Costo</th>}<th className={th}></th>
                   </tr></thead>
                   <tbody>
-                    {tareo.map((t) => (
-                      <tr key={t.id} className="border-b border-line/60">
-                        <td className={`${td} font-mono`}>{t.fecha}</td>
-                        <td className={td}>{mapaVehiculo.get(t.vehiculo_id)?.placa ?? "—"}</td>
-                        <td className={td}>{mapaProyecto.get(t.proyecto_id)?.codigo ?? "—"}</td>
-                        <td className={td}>{t.conductor_id ? nombreTrabajador.get(t.conductor_id) ?? "—" : "—"}</td>
-                        <td className={`${td} font-mono`}>{t.dias}</td>
-                        <td className={`${td} font-mono`}>{t.km}</td>
-                        {esDinero && <td className={`${td} font-mono`}>{fmtSoles(t.costo_soles)}</td>}
-                        <td className={`${td} text-muted-foreground`}>{t.observacion}</td>
-                        {esDinero && <td className={`${td} text-right`}><button onClick={() => borrarTareo(t.id)} className="text-bad" aria-label="Eliminar"><Trash2 className="size-3.5" /></button></td>}
+                    {consolidadoTareo.map((registro) => (
+                      <tr key={`${registro.vehiculoId}:${registro.proyectoId}`} className="border-b border-line/60">
+                        <td className={`${td} font-mono font-semibold`}>{mapaVehiculo.get(registro.vehiculoId)?.placa ?? "—"}</td>
+                        <td className={td}>{mapaProyecto.get(registro.proyectoId)?.codigo ?? "—"} · {mapaProyecto.get(registro.proyectoId)?.nombre ?? ""}</td>
+                        <td className={`${td} text-right font-mono font-semibold`}>{registro.dias}</td>
+                        {esDinero && <td className={`${td} text-right font-mono`}>{fmtSoles(registro.costo)}</td>}
+                        <td className={`${td} text-right`}><button type="button" onClick={() => editarDiasTareo(registro.vehiculoId, registro.proyectoId)} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary" title="Ver y corregir días" aria-label="Ver y corregir días"><Eye className="size-3.5" /></button></td>
                       </tr>
                     ))}
                   </tbody>
