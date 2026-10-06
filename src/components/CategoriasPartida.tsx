@@ -91,7 +91,7 @@ export function CategoriasPartida() {
       .from("categorias_partida")
       .update({
         nombre,
-        grupo: editando.grupo,
+        grupo: editando.grupo ?? "",
         ...(cambioGrupo ? { orden: ORDEN_FINAL } : {}),
         activo: editando.activo,
       })
