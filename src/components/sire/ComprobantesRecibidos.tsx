@@ -98,9 +98,11 @@ export function ComprobantesRecibidos({ periodo, items }: { periodo: string; ite
       const lineas = hijos(doc.documentElement, "InvoiceLine").concat(hijos(doc.documentElement, "CreditNoteLine"), hijos(doc.documentElement, "DebitNoteLine"));
       const filas = lineas.map((l, n) => {
         const cantEl = hijos(l, "InvoicedQuantity")[0] ?? hijos(l, "CreditedQuantity")[0] ?? hijos(l, "DebitedQuantity")[0];
-        const desc = hijos(l, "Description").map((d) => d.textContent?.trim()).filter(Boolean).join(" ");
-        const precio = hijos(l, "Price")[0];
-        return { comprobante_id: cab.id, orden: n, descripcion: desc || "—", unidad: cantEl?.getAttribute("unitCode") ?? "", cantidad: Number(cantEl?.textContent || 0), precio_unitario: Number(precio ? txt(precio, "PriceAmount") : 0), valor: Number(txt(l, "LineExtensionAmount") || 0) };
+        const item = Array.from(l.children).find((x) => x.localName === "Item") ?? l;
+        const desc = Array.from(item.children).filter((x) => x.localName === "Description").map((d) => d.textContent?.replace(/\s+/g, " ").trim()).filter(Boolean).join(" ");
+        const sellers = Array.from(item.children).find((x) => x.localName === "SellersItemIdentification");
+        const precio = Array.from(l.children).find((x) => x.localName === "Price");
+        return { comprobante_id: cab.id, orden: n + 1, origen: "adjunto", codigo: sellers ? txt(sellers, "ID") || null : null, descripcion: desc || "—", unidad: cantEl?.getAttribute("unitCode") ?? "", cantidad: Number(cantEl?.textContent || 0), precio_unitario: Number(precio ? txt(precio, "PriceAmount") : 0), valor: Number(Array.from(l.children).find((x) => x.localName === "LineExtensionAmount")?.textContent || 0) };
       });
       if (filas.length) {
         await supabase.from("comprobantes_recibidos_items").delete().eq("comprobante_id", cab.id);
@@ -189,7 +191,7 @@ export function ComprobantesRecibidos({ periodo, items }: { periodo: string; ite
   return (
     <Panel titulo="COMPROBANTES DE COMPRA · XML / PDF / CDR"
       extra={<div className="flex flex-wrap gap-2">
-        <Boton variante="linea" onClick={() => descargar()} disabled={!!prog}><Download className="size-3.5" />Descargar comprobantes{sel.size ? ` (${sel.size})` : ""}</Boton>
+        <Boton variante="linea" onClick={() => descargar()} disabled={!!prog}><Download className="size-3.5" />Descargar XML de SUNAT{sel.size ? ` (${sel.size})` : ""}</Boton>
         <Boton variante="linea" onClick={() => descargar(true)} disabled={!!prog}>Reintentar fallidas</Boton>
         <Boton variante="linea" onClick={zip}><FolderDown className="size-3.5" />ZIP del período</Boton>
         <Boton onClick={() => setRegistrar(true)}><ClipboardCheck className="size-3.5" />Registrar en el ERP</Boton>
@@ -212,17 +214,23 @@ export function ComprobantesRecibidos({ periodo, items }: { periodo: string; ite
           </thead>
           <tbody>
             {filas.map(({ k, i, r }) => (
-              <tr key={k} className="border-t border-line">
+              <Fragment key={k}>
+              <tr className="border-t border-line">
                 <td className="px-3 py-1.5 text-center"><input type="checkbox" checked={sel.has(k)} onChange={() => { const s = new Set(sel); s.has(k) ? s.delete(k) : s.add(k); setSel(s); }} /></td>
-                <td className="whitespace-nowrap px-3 py-1.5 font-mono text-xs">{i.serie_numero}</td>
+                <td className="whitespace-nowrap px-3 py-1.5 font-mono text-xs">
+                  <button disabled={!r} title={r ? "Ver detalle de ítems" : "Sin registro aún"} onClick={() => setAbierto(abierto === k ? null : k)} className="inline-flex items-center gap-1 hover:text-primary disabled:opacity-50">
+                    <ChevronRight className={`size-3.5 transition-transform ${abierto === k ? "rotate-90" : ""}`} />{i.serie_numero}
+                  </button>
+                </td>
                 <td className="px-3 py-1.5"><p className="font-mono text-[11px] text-muted-foreground">{i.ruc}</p><p className="truncate text-xs">{i.razon}</p></td>
                 <td className="px-3 py-1.5 text-right font-mono text-xs">{soles(i.total_sunat ?? 0)}</td>
                 <td className="px-3 py-1.5 font-mono text-[11px]">
                   {!r ? <span className="text-muted-foreground">Pendiente</span>
-                    : r.estado_descarga === "Descargado" ? <span className="text-good">Descargado</span>
+                    : r.estado_descarga === "Descargado" ? <span className="text-good">XML de SUNAT</span>
                     : r.pdf_path || r.xml_path ? <span className="text-good">Original adjuntado</span>
-                    : <span className="text-primary">Datos verificados en SUNAT</span>}
-                  {r && r.estado_descarga !== "Descargado" && !r.pdf_path && !r.xml_path && <p className="text-[10px] text-muted-foreground">SUNAT no entrega el archivo del proveedor; usa la ficha o adjunta el original.</p>}
+                    : <span className="text-primary">XML no disponible en SUNAT</span>}
+                  {r?.error && <p className="text-[10px] text-muted-foreground">{r.error}</p>}
+                  {r && r.estado_descarga !== "Descargado" && !r.pdf_path && !r.xml_path && <p className="text-[10px] text-muted-foreground">Adjunta el XML del proveedor (clip) para leer los ítems.</p>}
                 </td>
                 <td className="px-3 py-1.5 text-center whitespace-nowrap">
                   <Ic p={r?.xml_path ?? null} I={FileCode2} t="XML" /><Ic p={r?.pdf_path ?? null} I={FileText} t="PDF" /><Ic p={r?.cdr_path ?? null} I={ShieldCheck} t="CDR" />
@@ -234,6 +242,8 @@ export function ComprobantesRecibidos({ periodo, items }: { periodo: string; ite
                 </td>
                 <td className="px-3 py-1.5 font-mono text-[11px]">{r?.registrado_en ? <span className="text-good">Registrada</span> : "—"}</td>
               </tr>
+              {abierto === k && r && <tr className="bg-muted/30"><td /><td colSpan={6} className="px-3 py-2"><DetalleItems id={r.id} moneda={r.moneda} /></td></tr>}
+              </Fragment>
             ))}
           </tbody>
         </table>
