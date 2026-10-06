@@ -860,9 +860,9 @@ export function CotizacionHoja({
                     1,
                     <span className={`font-semibold ${cap ? "uppercase tracking-wide text-ink" : "pl-4 text-ink/80"}`}>{f.texto}</span>,
                   )}
-                  <td className={celdaBase}>—</td>
-                  <td className={celdaBase}>—</td>
-                  <td className={`${celdaBase} text-right`}>—</td>
+                  <td className={`${celdaBase} text-center`}>—</td>
+                  <td className={`${celdaBase} text-center`}>—</td>
+                  <td className={`${celdaBase} text-center`}>—</td>
                   <td className={`${celdaBase} text-right`}>—</td>
                   <td className={`${celdaBase} text-right font-semibold text-ink`}>{mon(f.total)}</td>
                   <td className={celdaBase} />
