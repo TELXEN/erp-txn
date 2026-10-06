@@ -29,6 +29,8 @@ export const Route = createFileRoute("/_authenticated/vehiculos")({
       { name: "description", content: "Gestión de flota: tareo vehicular, traslados a obra y mantenimiento." },
       { property: "og:title", content: "Vehículos — ERP TELXEN SAC" },
       { property: "og:description", content: "Gestión de flota: tareo vehicular, traslados a obra y mantenimiento." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: PaginaVehiculos,
@@ -639,9 +641,9 @@ function PaginaVehiculos() {
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="label-mono">Calendario de uso</p>
                   <div className="flex items-center gap-2">
-                    <Boton type="button" variante="linea" className="px-2" onClick={() => setMesTareo(cambiarMes(mesTareo, -1))}>‹</Boton>
-                    <Input type="month" className="w-40" value={mesTareo} onChange={(e) => e.target.value && setMesTareo(e.target.value)} />
-                    <Boton type="button" variante="linea" className="px-2" onClick={() => setMesTareo(cambiarMes(mesTareo, 1))}>›</Boton>
+                    <Boton type="button" variante="linea" className="px-2" disabled={Boolean(editandoTareo)} onClick={() => setMesTareo(cambiarMes(mesTareo, -1))}>‹</Boton>
+                    <Input type="month" className="w-40" disabled={Boolean(editandoTareo)} value={mesTareo} onChange={(e) => e.target.value && setMesTareo(e.target.value)} />
+                    <Boton type="button" variante="linea" className="px-2" disabled={Boolean(editandoTareo)} onClick={() => setMesTareo(cambiarMes(mesTareo, 1))}>›</Boton>
                   </div>
                 </div>
                 <div className="mt-3 grid grid-cols-7 gap-1">
