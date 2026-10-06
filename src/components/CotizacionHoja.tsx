@@ -570,10 +570,11 @@ export function CotizacionHoja({
 
   function editor(f: Fila, c: number) {
     const col = COLUMNAS[c] as Columna;
+    const alinear = col === "marca" || col === "unidad" || col === "metrado" ? "text-center" : col === "precio_unitario" ? "text-right" : "";
     const comun = {
       autoFocus: true,
       value: valor,
-      className: "w-full rounded border border-primary bg-card px-1.5 py-1 text-[13px] outline-none",
+      className: `w-full rounded border border-primary bg-card px-1.5 py-1 text-[13px] outline-none ${alinear}`,
       onKeyDown: (e: React.KeyboardEvent) => {
         if (e.key === "Enter") {
           e.preventDefault();
