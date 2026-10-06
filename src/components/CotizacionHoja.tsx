@@ -35,8 +35,15 @@ type Columna = (typeof COLUMNAS)[number];
 
 type Fila =
   | { clase: "cap"; clave: string; codigo: string; texto: string; esp: string; total: number }
-  | { clase: "sub"; clave: string; codigo: string; texto: string; esp: string; cat: string; total: number }
+  | { clase: "grp"; clave: string; codigo: string; texto: string; esp: string; grp: string; total: number }
+  | { clase: "sub"; clave: string; codigo: string; texto: string; esp: string; cat: string; grp: string; total: number }
   | { clase: "item"; clave: string; it: CotizacionItem; nivel: 3 | 4; agrupadora: boolean; total: number };
+
+/** Grupo de una categoría dentro de la especialidad: el primero no vacío de sus filas. */
+const grupoDeCat = (items: CotizacionItem[], esp: string, cat: string) =>
+  items.find(
+    (i) => (i.especialidad || "Sin especialidad") === esp && ((i.categoria ?? "").trim() || "Sin categoría") === cat && (i.grupo ?? "").trim(),
+  )?.grupo?.trim() ?? "";
 
 const num = (n: number | string) =>
   Number(n || 0).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -62,52 +69,70 @@ function buscarMaestras(maestras: PartidaMaestra[], texto: string, limite = 8): 
     .slice(0, limite);
 }
 
-/** Construye el árbol visible: capítulo (especialidad), subcapítulo (categoría), partidas y subpartidas. */
-function construirArbol(items: CotizacionItem[]): Fila[] {
+/** Construye el árbol visible: capítulo (especialidad), grupo (solo multi), subcapítulo (categoría), partidas y subpartidas. */
+function construirArbol(items: CotizacionItem[], multi = false): Fila[] {
   const wbs = prefijosWBS(items);
   const filas: Fila[] = [];
+  const total = (l: CotizacionItem[]) => l.filter(esPartida).reduce((x, i) => x + Number(i.metrado) * Number(i.precio_unitario), 0);
   for (const grupo of agruparPorCategoria(items)) {
-    const totalCap = grupo.categorias.reduce(
-      (t, s) => t + s.items.filter(esPartida).reduce((x, i) => x + Number(i.metrado) * Number(i.precio_unitario), 0),
-      0,
-    );
+    const esp = grupo.especialidad;
     filas.push({
       clase: "cap",
-      clave: `c:${grupo.especialidad}`,
-      codigo: wbs.capitulo(grupo.especialidad),
-      texto: grupo.especialidad,
-      esp: grupo.especialidad,
-      total: totalCap,
+      clave: `c:${esp}`,
+      codigo: wbs.capitulo(esp),
+      texto: esp,
+      esp,
+      total: grupo.categorias.reduce((t, s) => t + total(s.items), 0),
     });
-    for (const sub of grupo.categorias) {
-      const reales = sub.items.filter(esPartida);
-      // La marcadora de la especialidad (sin categoría) no dibuja un subcapítulo propio.
-      if (sub.categoria === "Sin categoría" && !reales.length) continue;
-      const totalSub = reales.reduce((x, i) => x + Number(i.metrado) * Number(i.precio_unitario), 0);
-      filas.push({
-        clase: "sub",
-        clave: `s:${grupo.especialidad}|${sub.categoria}`,
-        codigo: wbs.categoria(grupo.especialidad, sub.categoria),
-        texto: sub.categoria,
-        esp: grupo.especialidad,
-        cat: sub.categoria,
-        total: totalSub,
-      });
-      const porCodigo = [...reales].sort((a, b) =>
-        (a.codigo ?? "").localeCompare(b.codigo ?? "", undefined, { numeric: true }),
-      );
-      for (const nodo of ordenarJerarquia(porCodigo)) {
-        const total = nodo.agrupadora
-          ? nodo.hijos.reduce((s, h) => s + Number(h.metrado) * Number(h.precio_unitario), 0)
-          : Number(nodo.fila.metrado) * Number(nodo.fila.precio_unitario);
+    // Orden: categorías sin grupo primero; luego cada grupo (incluidos los vacíos) con sus categorías.
+    const cats = grupo.categorias.map((s) => ({ ...s, grp: multi ? grupoDeCat(items, esp, s.categoria) : "" }));
+    const nombresGrp: string[] = [];
+    if (multi) {
+      for (const s of cats) if (s.grp && !nombresGrp.includes(s.grp)) nombresGrp.push(s.grp);
+      for (const i of items)
+        if ((i.especialidad || "Sin especialidad") === esp && i.tipo === "grupo" && !(i.categoria ?? "").trim() && (i.grupo ?? "").trim()) {
+          const g = (i.grupo as string).trim();
+          if (!nombresGrp.includes(g)) nombresGrp.push(g);
+        }
+    }
+    const bloques: { grp: string; subs: typeof cats }[] = [
+      { grp: "", subs: cats.filter((s) => !s.grp) },
+      ...nombresGrp.map((g) => ({ grp: g, subs: cats.filter((s) => s.grp === g) })),
+    ];
+    for (const b of bloques) {
+      if (b.grp)
         filas.push({
-          clase: "item",
-          clave: `i:${nodo.fila.id}`,
-          it: nodo.fila,
-          nivel: nodo.nivel,
-          agrupadora: nodo.agrupadora,
-          total,
+          clase: "grp",
+          clave: `g:${esp}|${b.grp}`,
+          codigo: "",
+          texto: b.grp,
+          esp,
+          grp: b.grp,
+          total: b.subs.reduce((t, s) => t + total(s.items), 0),
         });
+      for (const sub of b.subs) {
+        const reales = sub.items.filter(esPartida);
+        // La marcadora de la especialidad/grupo (sin categoría) no dibuja un subcapítulo propio.
+        if (sub.categoria === "Sin categoría" && !reales.length) continue;
+        filas.push({
+          clase: "sub",
+          clave: `s:${esp}|${sub.categoria}`,
+          codigo: wbs.categoria(esp, sub.categoria),
+          texto: sub.categoria,
+          esp,
+          cat: sub.categoria,
+          grp: sub.grp,
+          total: total(reales),
+        });
+        const porCodigo = [...reales].sort((a, b) =>
+          (a.codigo ?? "").localeCompare(b.codigo ?? "", undefined, { numeric: true }),
+        );
+        for (const nodo of ordenarJerarquia(porCodigo)) {
+          const t = nodo.agrupadora
+            ? nodo.hijos.reduce((s, h) => s + Number(h.metrado) * Number(h.precio_unitario), 0)
+            : Number(nodo.fila.metrado) * Number(nodo.fila.precio_unitario);
+          filas.push({ clase: "item", clave: `i:${nodo.fila.id}`, it: nodo.fila, nivel: nodo.nivel, agrupadora: nodo.agrupadora, total: t });
+        }
       }
     }
   }
@@ -166,7 +191,9 @@ export function CotizacionHoja({
   const { data: catalogoCat = [] } = useCategoriasPartida();
   const { data: maestras = [] } = usePartidasMaestras();
 
-  const arbol = useMemo(() => construirArbol(items), [items]);
+  const arbol = useMemo(() => construirArbol(items, multi), [items, multi]);
+  /** Especialidad donde se insertará el grupo elegido en el diálogo. */
+  const [espDestino, setEspDestino] = useState("");
 
   // Partidas que ya tienen análisis de precios: su P.U. queda en solo lectura.
   useEffect(() => {
@@ -189,17 +216,28 @@ export function CotizacionHoja({
   const visibles = useMemo(() => {
     const out: Fila[] = [];
     let capOculto: string | null = null;
+    let grpOculto: string | null = null;
     let subOculto: string | null = null;
     let padreOculto: string | null = null;
     for (const f of arbol) {
       if (f.clase === "cap") {
         capOculto = colapsados.has(f.clave) ? f.clave : null;
+        grpOculto = null;
         subOculto = null;
         padreOculto = null;
         out.push(f);
         continue;
       }
       if (capOculto) continue;
+      if (f.clase === "grp") {
+        grpOculto = colapsados.has(f.clave) ? f.clave : null;
+        subOculto = null;
+        padreOculto = null;
+        out.push(f);
+        continue;
+      }
+      if (f.clase === "sub" && !f.grp) grpOculto = null;
+      if (grpOculto) continue;
       if (f.clase === "sub") {
         subOculto = colapsados.has(f.clave) ? f.clave : null;
         padreOculto = null;
@@ -257,6 +295,19 @@ export function CotizacionHoja({
     const col = COLUMNAS[c] as Columna;
     const texto = v.trim();
 
+    if (f.clase === "grp") {
+      // Renombrar el grupo: actualiza todas las filas de esa especialidad que lo usan.
+      if (col !== "nombre" || !texto || texto === f.texto) return;
+      const ids = items
+        .filter(
+          (i) =>
+            (i.especialidad || "Sin especialidad") === f.esp &&
+            ((i.grupo ?? "").trim() === f.grp || grupoDeCat(items, f.esp, (i.categoria ?? "").trim() || "Sin categoría") === f.grp),
+        )
+        .map((i) => i.id);
+      if (ids.length) await supabase.from("cotizacion_items").update({ grupo: texto } as never).in("id", ids);
+      return refrescar();
+    }
     if (f.clase === "cap" || f.clase === "sub") {
       const enGrupo = items.filter((i) =>
         f.clase === "cap"
@@ -319,6 +370,7 @@ export function CotizacionHoja({
       nombre: "Nueva partida",
       especialidad: esp,
       categoria: cat,
+      grupo: cat ? grupoDeCat(items, esp, cat) : "",
       marca: "",
       unidad: f.clase === "item" ? f.it.unidad : "glb",
       metrado: 1,
@@ -340,6 +392,7 @@ export function CotizacionHoja({
       nombre: maestra?.nombre ?? (nombre.trim() || "Nueva partida"),
       especialidad: esp,
       categoria,
+      grupo: categoria ? grupoDeCat(items, esp, categoria) : "",
       marca: maestra?.marca ?? "",
       unidad: maestra?.unidad ?? unidad,
       metrado: 1,
@@ -425,7 +478,8 @@ export function CotizacionHoja({
   }
 
   /** En multidisciplinarias: registra un grupo nuevo (Datos › Grupos de partidas) sin crear capítulo en la hoja. */
-  function nuevoGrupo() {
+  function nuevoGrupo(esp = "") {
+    setEspDestino(esp);
     setModoGrupo("grp");
     setNombreGrupo("");
     setError("");
@@ -442,17 +496,16 @@ export function CotizacionHoja({
     if (!nombre)
       return setError(modoGrupo === "grp" ? "Escribe el nombre del grupo." : multi ? "Escribe el nombre de la especialidad." : "Escribe el nombre del grupo.");
     if (multi && modoGrupo === "grp") {
-      // Multidisciplinaria: el grupo no es capítulo de la hoja; solo se registra en el catálogo
-      // maestro y lo toman las categorías asignadas en Datos.
-      const existe = catalogoGrupos.some((g) => normalizar(g.nombre) === normalizar(nombre));
-      if (existe) return setError("Ese grupo ya existe en Datos › Grupos de partidas.");
-      const orden = Math.max(0, ...catalogoGrupos.map((g) => g.orden)) + 1;
-      const { error: err } = await supabase.from("grupos_cotizacion").insert({ nombre, orden });
-      if (err) return setError(err.message);
-      await qc.invalidateQueries({ queryKey: ["grupos_cotizacion"] });
-      setNombreGrupo("");
-      setError("");
-      return;
+      // Multidisciplinaria: el grupo se inserta como fila dentro de la especialidad; si es nuevo,
+      // también se registra en Datos › Grupos de partidas.
+      const existente = catalogoGrupos.find((g) => normalizar(g.nombre) === normalizar(nombre));
+      if (!existente) {
+        const orden = Math.max(0, ...catalogoGrupos.map((g) => g.orden)) + 1;
+        const { error: err } = await supabase.from("grupos_cotizacion").insert({ nombre, orden });
+        if (err) return setError(err.message);
+        qc.invalidateQueries({ queryKey: ["grupos_cotizacion"] });
+      }
+      return insertarGrupoEnHoja(existente?.nombre ?? nombre);
     }
     const usadas = new Set(items.map((i) => (i.especialidad || "Sin especialidad").toLowerCase()));
     if (usadas.has(nombre.toLowerCase()))
@@ -483,16 +536,17 @@ export function CotizacionHoja({
     }
   }
 
-  /** Crea la fila marcadora que conserva una especialidad o categoría aunque no tenga partidas. */
-  async function crearGrupo(esp: string, cat: string) {
+  /** Crea la fila marcadora que conserva una especialidad, grupo o categoría aunque no tenga partidas. */
+  async function crearGrupo(esp: string, cat: string, grp = "") {
     setError("");
-    const base = codigoContextual(esp, cat, items).split(".").slice(0, 2).join(".");
+    const base = cat || !grp ? codigoContextual(esp, cat, items).split(".").slice(0, 2).join(".") : "";
     const { error: err } = await supabase.from("cotizacion_items").insert({
       cotizacion_id: cotizacionId,
       codigo: base ? `${base}.00` : "",
       nombre: "",
       especialidad: esp,
       categoria: cat,
+      grupo: grp,
       marca: "",
       unidad: "glb",
       metrado: 0,
@@ -508,22 +562,36 @@ export function CotizacionHoja({
     return true;
   }
 
-  /** Añade a la especialidad la siguiente categoría libre del catálogo maestro. */
-  async function nuevaCategoria(esp: string) {
+  /** Inserta en la especialidad la fila del grupo elegido (multidisciplinarias). */
+  async function insertarGrupoEnHoja(nombre: string) {
+    const esp = espDestino;
+    if (!esp) return setError("Haz clic derecho sobre una especialidad para insertar el grupo.");
+    const ya = arbol.some((f) => f.clase === "grp" && f.esp === esp && normalizar(f.grp) === normalizar(nombre));
+    if (ya) return setError(`El grupo "${nombre}" ya está en ${esp}.`);
+    const ok = await crearGrupo(esp, "", nombre);
+    if (ok) setGrupoDialogo(false);
+  }
+
+  /** Añade la siguiente categoría libre del catálogo maestro (dentro del grupo, si se indica). */
+  async function nuevaCategoria(esp: string, grp = "") {
     const usadas = new Set(items.filter((i) => i.especialidad === esp).map((i) => (i.categoria ?? "").trim()));
+    const g = (c: (typeof catalogoCat)[number]) => (c as { grupo?: string }).grupo ?? "";
     const candidatas = multi
-      ? categoriasDe(esp, catalogoCat).map((c) => c.nombre)
+      ? (() => {
+          const base = categoriasDe(esp, catalogoCat);
+          const orden = grp ? [...base.filter((c) => g(c) === grp), ...base.filter((c) => g(c) !== grp)] : base;
+          return orden.map((c) => c.nombre);
+        })()
       : (() => {
           // Primero las asociadas a este grupo, luego las sin grupo y al final el resto.
           const activas = catalogoCat.filter((c) => c.activo);
-          const g = (c: (typeof activas)[number]) => (c as { grupo?: string }).grupo ?? "";
           const orden = [...activas.filter((c) => g(c) === esp), ...activas.filter((c) => !g(c)), ...activas.filter((c) => g(c) && g(c) !== esp)];
           return [...new Set(orden.map((c) => c.nombre))];
         })();
     const libre = candidatas.find((n) => !usadas.has(n));
     if (!libre)
       return setError(`No quedan categorías libres para ${esp}. Regístralas en Datos › Catálogo técnico.`);
-    await crearGrupo(esp, libre);
+    await crearGrupo(esp, libre, grp);
   }
 
   /** Borra una especialidad o una categoría completa (partidas, subpartidas y marcadoras). */
@@ -556,18 +624,34 @@ export function CotizacionHoja({
     const quedaGrupo = items.some(
       (i) => !ids.has(i.id) && i.especialidad === it.especialidad && (i.categoria ?? "").trim() === cat,
     );
-    if (!quedaGrupo) await crearGrupo(it.especialidad, cat);
+    if (!quedaGrupo) await crearGrupo(it.especialidad, cat, it.grupo ?? "");
     else refrescar();
   }
 
   function grupoConPartidas(f: Fila) {
     if (f.clase === "item") return false;
+    if (f.clase === "grp")
+      return items.some(
+        (i) => (i.especialidad || "Sin especialidad") === f.esp && (i.categoria ?? "").trim() && grupoDeCat(items, f.esp, (i.categoria ?? "").trim()) === f.grp,
+      );
     return items.some(
       (i) =>
         esPartida(i) &&
         (i.especialidad || "Sin especialidad") === f.esp &&
         (f.clase === "cap" || ((i.categoria ?? "").trim() || "Sin categoría") === f.cat),
     );
+  }
+
+  /** Borra la fila de grupo (solo cuando ya no tiene categorías debajo). */
+  async function borrarFilaGrupo(esp: string, grp: string) {
+    const marcas = items.filter(
+      (i) => i.especialidad === esp && i.tipo === "grupo" && !(i.categoria ?? "").trim() && (i.grupo ?? "").trim() === grp,
+    );
+    if (!window.confirm(`¿Quitar el grupo "${grp}" de esta especialidad?`)) return;
+    const { error: err } = await supabase.from("cotizacion_items").delete().in("id", marcas.map((i) => i.id));
+    if (err) return setError(err.message);
+    if (!items.some((i) => i.especialidad === esp && !marcas.includes(i))) await crearGrupo(esp, "");
+    else refrescar();
   }
 
   function mover(dr: number, dc: number) {
@@ -784,6 +868,7 @@ export function CotizacionHoja({
       return { esp: f.it.especialidad, cat: (f.it.categoria ?? "").trim() };
     }
     if (colapsados.has(f.clave)) return null;
+    if (f.clase === "grp") return null;
     if (f.clase === "sub") {
       if (sig && sig.clase === "item") return null;
       return { esp: f.esp, cat: f.cat === "Sin categoría" ? "" : f.cat };
@@ -825,7 +910,14 @@ export function CotizacionHoja({
                       {[...catalogoGrupos]
                         .sort((a, b) => a.orden - b.orden)
                         .map((g) => (
-                          <li key={g.id} className="flex items-center justify-between rounded px-2 py-1 text-[12.5px] hover:bg-muted">
+                          <li
+                            key={g.id}
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => void insertarGrupoEnHoja(g.nombre)}
+                            onKeyDown={(e) => e.key === "Enter" && void insertarGrupoEnHoja(g.nombre)}
+                            className="flex cursor-pointer items-center justify-between rounded px-2 py-1 text-[12.5px] hover:bg-muted hover:text-primary"
+                          >
                             <span>{g.nombre}</span>
                             {!g.activo && <span className="text-[10.5px] text-muted-foreground">inactivo</span>}
                           </li>
@@ -834,8 +926,8 @@ export function CotizacionHoja({
                   )}
                 </div>
                 <p className="font-mono text-[10.5px] leading-relaxed text-muted-foreground">
-                  Se registra en Datos › Grupos de partidas. Asígnalo después a las categorías en Datos › Categorías de
-                  partidas para que las partidas lo usen al imprimir.
+                  Elige un grupo de la lista o escribe uno nuevo: se inserta en {espDestino || "la especialidad"} y debajo agregas categorías y partidas. Los nuevos se registran en Datos › Grupos de
+                  partidas.
                 </p>
               </>
             ) : (
@@ -980,6 +1072,7 @@ export function CotizacionHoja({
             );
             if (f.clase !== "item") {
               const cap = f.clase === "cap";
+              const esGrp = f.clase === "grp";
               return (
                 <React.Fragment key={f.clave}>
                 <ContextMenu>
@@ -1003,7 +1096,12 @@ export function CotizacionHoja({
                     f,
                     r,
                     1,
-                    <span className={`font-semibold ${cap ? "uppercase tracking-wide" : "pl-4"}`} style={{ color: cap ? DOC.green : DOC.accentText }}>{f.texto}</span>,
+                    <span
+                      className={`font-semibold ${cap ? "uppercase tracking-wide" : esGrp ? "pl-2 uppercase" : f.clase === "sub" && f.grp ? "pl-6" : "pl-4"}`}
+                      style={{ color: cap || esGrp ? DOC.green : DOC.accentText }}
+                    >
+                      {f.texto}
+                    </span>,
                   )}
                   <td className={`${celdaBase} text-center`}>—</td>
                   <td className={`${celdaBase} text-center`}>—</td>
@@ -1015,38 +1113,42 @@ export function CotizacionHoja({
                 </ContextMenuTrigger>
                 <ContextMenuContent className="w-56 print:hidden">
                   <ContextMenuLabel className="truncate text-xs">
-                    {cap ? (multi ? "Especialidad" : "Grupo") : "Categoría"}: {f.texto}
+                    {cap ? (multi ? "Especialidad" : "Grupo") : esGrp ? "Grupo" : "Categoría"}: {f.texto}
                   </ContextMenuLabel>
                   <ContextMenuSeparator />
                   <ContextMenuItem onSelect={() => nuevaEspecialidad()}>
                     <Layers size={14} className="mr-2" /> {multi ? "Agregar nueva especialidad" : "Agregar nuevo grupo"}
                   </ContextMenuItem>
                   {multi && (
-                    <ContextMenuItem onSelect={() => nuevoGrupo()}>
+                    <ContextMenuItem onSelect={() => nuevoGrupo(f.esp)}>
                       <Boxes size={14} className="mr-2" /> Agregar nuevo grupo
                     </ContextMenuItem>
                   )}
-                  {cap && (
-                    <ContextMenuItem onSelect={() => void nuevaCategoria(f.esp)}>
+                  {(cap || esGrp) && (
+                    <ContextMenuItem onSelect={() => void nuevaCategoria(f.esp, f.clase === "grp" ? f.grp : "")}>
                       <FolderPlus size={14} className="mr-2" /> Agregar categoría
                     </ContextMenuItem>
                   )}
-                  <ContextMenuItem
-                    onSelect={() => void crearPartida(f.esp, f.clase === "sub" && f.cat !== "Sin categoría" ? f.cat : "", "Nueva partida")}
-                  >
-                    <Plus size={14} className="mr-2" /> Agregar partida
-                  </ContextMenuItem>
+                  {!esGrp && (
+                    <ContextMenuItem
+                      onSelect={() => void crearPartida(f.esp, f.clase === "sub" && f.cat !== "Sin categoría" ? f.cat : "", "Nueva partida")}
+                    >
+                      <Plus size={14} className="mr-2" /> Agregar partida
+                    </ContextMenuItem>
+                  )}
                   <ContextMenuSeparator />
                   {grupoConPartidas(f) ? (
                     <ContextMenuItem disabled title="Tiene partidas asociadas">
-                      <Lock size={14} className="mr-2" /> Tiene partidas: vacíalo para borrar
+                      <Lock size={14} className="mr-2" /> {esGrp ? "Tiene categorías: vacíalo para quitar" : "Tiene partidas: vacíalo para borrar"}
                     </ContextMenuItem>
                   ) : (
                     <ContextMenuItem
                       className="text-bad focus:text-bad"
-                      onSelect={() => void borrarGrupo(f.esp, f.clase === "sub" ? f.cat : null)}
+                      onSelect={() =>
+                        void (f.clase === "grp" ? borrarFilaGrupo(f.esp, f.grp) : borrarGrupo(f.esp, f.clase === "sub" ? f.cat : null))
+                      }
                     >
-                      <Trash2 size={14} className="mr-2" /> Borrar {cap ? (multi ? "especialidad" : "grupo") : "categoría"}
+                      <Trash2 size={14} className="mr-2" /> {esGrp ? "Quitar grupo" : `Borrar ${cap ? (multi ? "especialidad" : "grupo") : "categoría"}`}
                     </ContextMenuItem>
                   )}
                 </ContextMenuContent>
@@ -1157,7 +1259,7 @@ export function CotizacionHoja({
                     <Layers size={14} className="mr-2" /> {multi ? "Agregar nueva especialidad" : "Agregar nuevo grupo"}
                   </ContextMenuItem>
                   {multi && (
-                    <ContextMenuItem onSelect={() => nuevoGrupo()}>
+                    <ContextMenuItem onSelect={() => nuevoGrupo(it.especialidad)}>
                       <Boxes size={14} className="mr-2" /> Agregar nuevo grupo
                     </ContextMenuItem>
                   )}
