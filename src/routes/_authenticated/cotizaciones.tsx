@@ -99,6 +99,7 @@ function Cotizaciones() {
   const [error, setError] = useState("");
   const [aviso, setAviso] = useState("");
   const [busqueda, setBusqueda] = useState("");
+  const [seccion, setSeccion] = useState<"cotizaciones" | "plantillas">("cotizaciones");
 
   const [form, setForm] = useState({
     codigo: "",
@@ -740,7 +741,7 @@ function Cotizaciones() {
         titulo="Cotizaciones"
         subtitulo="Propuestas comerciales a clientes"
         acciones={
-          <div className="flex items-center gap-2">
+          seccion === "cotizaciones" ? <div className="flex items-center gap-2">
             <select
               value={plantillaSel}
               onChange={(e) => setPlantillaSel(e.target.value)}
@@ -755,9 +756,33 @@ function Cotizaciones() {
             <Boton onClick={() => void crear()}>
               <Plus size={14} /> Nueva cotización
             </Boton>
-          </div>
+          </div> : undefined
         }
       />
+      <div className="mb-5 flex gap-1 border-b border-line">
+        {([
+          ["cotizaciones", "Cotizaciones"],
+          ["plantillas", `Plantillas (${plantillas.length})`],
+        ] as const).map(([valor, texto]) => (
+          <button
+            key={valor}
+            type="button"
+            onClick={() => setSeccion(valor)}
+            className={`-mb-px border-b-2 px-4 py-2 text-sm transition-colors ${
+              seccion === valor
+                ? "border-primary font-semibold text-primary"
+                : "border-transparent text-muted-foreground hover:text-ink"
+            }`}
+          >
+            {texto}
+          </button>
+        ))}
+      </div>
+
+      {seccion === "plantillas" ? (
+        <PlantillasCotizacion />
+      ) : (
+        <>
       {error && <p className="mb-2 font-mono text-xs text-bad">{error}</p>}
       <p className="mb-3 font-mono text-[10px] text-muted-foreground">
         Siguiente código: <strong className="text-ink">{codificacionCot ? previsualizarCodigoCotizacion(codificacionCot) : "—"}</strong>{" "}
@@ -792,8 +817,6 @@ function Cotizaciones() {
           );
         })}
       </div>
-
-      <PlantillasCotizacion />
 
       <Panel titulo="Cotizaciones registradas" className="mb-4" extra={<Buscador valor={busqueda} onChange={setBusqueda} placeholder="Buscar por código, cliente o trabajo..." total={filtradas.length} />}>
         {cotizaciones.length === 0 ? (
@@ -853,6 +876,8 @@ function Cotizaciones() {
           </table>
         )}
       </Panel>
+        </>
+      )}
     </>
   );
 }

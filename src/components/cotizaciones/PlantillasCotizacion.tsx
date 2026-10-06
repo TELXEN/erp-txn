@@ -1,6 +1,5 @@
-import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronDown, ChevronRight, Copy, Trash2 } from "lucide-react";
+import { Copy, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Panel, Vacio } from "@/components/ui-kit";
 import { ALCANCES, usePlantillasCotizacion, type PlantillaCotizacion } from "@/lib/cotizaciones";
@@ -11,11 +10,9 @@ const campo = "w-full rounded border border-line bg-card px-2 py-1 text-xs";
 /** Plantillas de cotización por tipo de obra: datos generales editables en línea. */
 export function PlantillasCotizacion() {
   const qc = useQueryClient();
-  const [abierto, setAbierto] = useState(false);
   const { data: plantillas = [] } = usePlantillasCotizacion();
   const { data: conteo = {} } = useQuery({
     queryKey: ["plantillas_cotizacion", "conteo"],
-    enabled: abierto,
     queryFn: async () => {
       const { data } = await sb.from("plantilla_cotizacion_items").select("plantilla_id, tipo");
       const r: Record<string, number> = {};
@@ -61,17 +58,8 @@ export function PlantillasCotizacion() {
   }
 
   return (
-    <Panel
-      titulo="Plantillas por tipo de obra"
-      className="mb-4"
-      extra={
-        <button type="button" onClick={() => setAbierto(!abierto)} className="inline-flex items-center gap-1 text-xs text-primary">
-          {abierto ? <ChevronDown size={14} /> : <ChevronRight size={14} />} {abierto ? "Ocultar" : `Ver (${plantillas.length})`}
-        </button>
-      }
-    >
-      {abierto && (
-        <div className="p-3">
+    <Panel titulo={`Plantillas por tipo de obra (${plantillas.length})`} className="mb-4">
+      <div className="p-3">
           <p className="mb-2 text-[11px] text-muted-foreground">
             Para llenar una plantilla: arma una cotización con sus grupos, categorías y partidas y usa «Guardar como plantilla». Al crear una cotización elige la plantilla junto al botón «Nueva cotización».
           </p>
@@ -118,8 +106,7 @@ export function PlantillasCotizacion() {
             </table>
           )}
           <button type="button" onClick={() => void nueva()} className="mt-2 text-xs text-primary underline">+ Nueva plantilla</button>
-        </div>
-      )}
+      </div>
     </Panel>
   );
 }
