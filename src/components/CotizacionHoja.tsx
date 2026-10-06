@@ -1075,6 +1075,48 @@ export function CotizacionHoja({
           </span>
         </span>
       </div>
+      <Dialog open={grupoDialogo} onOpenChange={setGrupoDialogo}>
+        <DialogContent className="max-w-sm print:hidden">
+          <DialogHeader>
+            <DialogTitle>{multi ? "Agregar nueva especialidad" : "Agregar nuevo grupo"}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input
+              autoFocus
+              value={nombreGrupo}
+              onChange={(e) => setNombreGrupo(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  void confirmarGrupo();
+                }
+              }}
+              placeholder={multi ? "Ej.: Instalaciones eléctricas" : "Ej.: Suministro de materiales"}
+            />
+            {nombresEsp.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {nombresEsp
+                  .filter((n) => !items.some((i) => (i.especialidad || "").toLowerCase() === n.toLowerCase()))
+                  .map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => setNombreGrupo(n)}
+                      className="rounded-full border border-line px-2.5 py-1 text-[11.5px] text-muted-foreground hover:border-primary hover:text-primary"
+                    >
+                      {n}
+                    </button>
+                  ))}
+              </div>
+            )}
+            {error && <p className="font-mono text-xs text-bad">{error}</p>}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setGrupoDialogo(false)}>Cancelar</Button>
+            <Button onClick={() => void confirmarGrupo()}>Agregar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
