@@ -466,7 +466,7 @@ function VistaCotizacion() {
                         {filaDato("E-mail", empresa?.email || "—")}
                       </div>
                     </div>
-                    <div className="flex" style={{ marginTop: 8, alignItems: "center", background: C.white, color: C.slate900, border: `1px solid ${C.slate100}`, borderLeft: `3px solid ${DOC_MONO.accent}`, borderRadius: 4, padding: "4px 10px", fontFamily: DOC_FUENTE_CSS, fontSize: "8pt", lineHeight: 1.2 }}>
+                    <div className="flex" style={{ marginTop: 8, alignItems: "center", background: C.white, color: C.slate900, border: `1px solid ${C.slate100}`, borderLeft: `3px solid ${DOC.accent}`, borderRadius: 4, padding: "4px 10px", fontFamily: DOC_FUENTE_CSS, fontSize: "8pt", lineHeight: 1.2 }}>
                       <span style={{ fontWeight: 800, letterSpacing: 0.5, fontSize: 8, textTransform: "uppercase", marginRight: 10, flexShrink: 0 }}>Proyecto</span>
                       <span style={{ fontWeight: 400, textAlign: "justify" }}>{cot.nombre || "—"}</span>
                     </div>
@@ -542,7 +542,7 @@ function VistaCotizacion() {
                       return (
                         <tr key={fila.llave} style={{ pageBreakInside: "avoid" }}>
                           <td style={{ ...celda, padding: "6px 6px", textAlign: "left", color: C.slate500 }}>{it.codigo || fila.numero}</td>
-                          <td style={{ ...celda, padding: "6px 8px", wordBreak: "break-word" }}>{it.nombre}</td>
+                          <td style={{ ...celda, padding: "6px 8px", wordBreak: "break-word", color: NIVEL.partida }}>{it.nombre}</td>
                           <td style={{ ...celda, padding: "6px 6px", textAlign: "center", color: C.slate500, fontSize: "7pt", wordBreak: "break-word" }}>{it.marca?.trim() || "-"}</td>
                           <td style={{ ...celda, padding: "6px 4px", textAlign: "center", color: C.slate500 }}>{it.unidad}</td>
                           <td style={{ ...celda, padding: "6px 6px", textAlign: "center" }}>{Number(it.metrado).toLocaleString("es-PE", { maximumFractionDigits: 2 })}</td>
