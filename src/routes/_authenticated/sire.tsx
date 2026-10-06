@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
-  CheckCircle2, AlertTriangle, XCircle, RefreshCw, KeyRound, ShieldCheck, Download, Send,
+  CheckCircle2, AlertTriangle, XCircle, RefreshCw, KeyRound, ShieldCheck, Download, Send, LibraryBig, Settings,
   FileSpreadsheet, ShoppingBag, ReceiptText, Plus, ChevronRight, ChevronLeft,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -37,21 +37,21 @@ function SirePage() {
   const [tab, setTab] = useState<"config" | Libro>("RVIE");
   const [periodo, setPeriodo] = useState(periodoDefecto());
   if (rol !== "gerente" && rol !== "administrador") return <SinAcceso />;
-  const tabs: { k: "config" | Libro; t: string; i: React.ElementType }[] = [
-    { k: "RVIE", t: "Ventas (RVIE)", i: ReceiptText },
-    { k: "RCE", t: "Compras (RCE)", i: ShoppingBag },
-    ...(rol === "gerente" ? [{ k: "config" as const, t: "Configuración API SOL", i: KeyRound }] : []),
+  const grupos: { titulo: string; icono: React.ElementType; items: { k: "config" | Libro; t: string; i: React.ElementType }[] }[] = [
+    { titulo: "Registros", icono: LibraryBig, items: [{ k: "RVIE", t: "Ventas (RVIE)", i: ReceiptText }, { k: "RCE", t: "Compras (RCE)", i: ShoppingBag }] },
+    ...(rol === "gerente" ? [{ titulo: "Configuración", icono: Settings, items: [{ k: "config" as const, t: "API SOL", i: KeyRound }] }] : []),
   ];
+  const grupoActivo = grupos.find((g) => g.items.some((x) => x.k === tab)) ?? grupos[0];
   return (
     <div>
       <Encabezado titulo="SIRE SUNAT" subtitulo="FINANZAS Y CONTABILIDAD · REGISTROS ELECTRÓNICOS" />
       <SincronizacionGlobal periodo={periodo} onPeriodoChange={setPeriodo} />
-      <div className="mb-4 flex flex-wrap gap-1 rounded-lg border border-line bg-card p-1">
-        {tabs.map(({ k, t, i: I }) => (
-          <button key={k} onClick={() => setTab(k)}
-            className={`flex items-center gap-2 rounded-md px-3 py-1.5 font-mono text-xs transition-colors ${tab === k ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}>
-            <I className="size-3.5" />{t}
-          </button>
+      <div className="mb-3 flex flex-wrap gap-1">
+        {grupos.map((g) => { const Icono = g.icono; return <Boton key={g.titulo} variante={g === grupoActivo ? "primario" : "linea"} onClick={() => { const primero = g.items[0]; if (primero) setTab(primero.k); }}><Icono size={13} />{g.titulo}</Boton>; })}
+      </div>
+      <div className="mb-4 flex flex-wrap gap-1 border-b border-line pb-3">
+        {grupoActivo?.items.map(({ k, t, i: I }) => (
+          <button key={k} onClick={() => setTab(k)} className={`flex items-center gap-2 rounded-md border-b-2 px-3 py-1.5 text-xs transition-colors ${tab === k ? "border-cta bg-primary/10 font-semibold text-primary" : "border-transparent text-muted-foreground hover:bg-muted hover:text-primary"}`}><I className="size-3.5" />{t}</button>
         ))}
       </div>
       {tab !== "config" && <ResumenOperaciones periodo={periodo} libro={tab} />}

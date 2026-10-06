@@ -46,7 +46,7 @@ import {
   type CotizacionItem,
   type EstadoCotizacion,
 } from "@/lib/cotizaciones";
-import { Check, Calculator, CornerDownRight, Upload, X, Eye, Trash2, ArrowLeft, Library, Plus, Pencil, Copy } from "lucide-react";
+import { Check, Calculator, CornerDownRight, Upload, X, Eye, Trash2, ArrowLeft, Library, Plus, Pencil, Copy, FileText, LayoutTemplate } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/cotizaciones")({
   head: () => ({
@@ -759,26 +759,9 @@ function Cotizaciones() {
           </div> : undefined
         }
       />
-      <div className="mb-5">
-        <div className="inline-flex gap-1 rounded-lg border border-line bg-card p-1">
-          {([
-            ["cotizaciones", "Cotizaciones"],
-            ["plantillas", "Plantillas"],
-          ] as const).map(([valor, texto]) => (
-            <button
-              key={valor}
-              type="button"
-              onClick={() => setSeccion(valor)}
-              className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
-                seccion === valor
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-primary/10 hover:text-primary"
-              }`}
-            >
-              {texto}
-            </button>
-          ))}
-        </div>
+      <div className="mb-3 flex flex-wrap gap-1">
+        <Boton variante={seccion === "cotizaciones" ? "primario" : "linea"} onClick={() => setSeccion("cotizaciones")}><FileText size={13} />Cotizaciones</Boton>
+        <Boton variante={seccion === "plantillas" ? "primario" : "linea"} onClick={() => setSeccion("plantillas")}><LayoutTemplate size={13} />Plantillas</Boton>
       </div>
 
       {seccion === "plantillas" ? (
@@ -804,7 +787,7 @@ function Cotizaciones() {
         ))}
       </div>
 
-      <div className="mb-2 flex flex-wrap items-center gap-2">
+      <div className="mb-4 flex flex-wrap gap-1 border-b border-line pb-3">
         {PESTANAS.map((p) => {
           const n = p === "Todas" ? cotizaciones.length : p === "En Obra" ? cotizaciones.filter((c) => c.proyecto_id).length : cotizaciones.filter((c) => c.estado === p).length;
           return (
@@ -812,10 +795,10 @@ function Cotizaciones() {
               key={p}
               type="button"
               onClick={() => setPestana(p)}
-              className={`rounded-full border px-3 py-1 font-mono text-xs transition-colors ${
+              className={`rounded-md border-b-2 px-3 py-1.5 text-xs transition-colors ${
                 pestana === p
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-line bg-card text-muted-foreground hover:border-primary/40 hover:text-primary"
+                  ? "border-cta bg-primary/10 font-semibold text-primary"
+                  : "border-transparent text-muted-foreground hover:bg-muted hover:text-primary"
               }`}
             >
               {p} <span className="opacity-60">({n})</span>

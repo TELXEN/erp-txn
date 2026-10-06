@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Check, Minus, Plus } from "lucide-react";
+import { Check, Gauge, Minus, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
@@ -27,8 +27,8 @@ function Pestana({ activa, onClick, children }: { activa: boolean; onClick: () =
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-full px-4 py-1.5 text-sm font-semibold transition-colors ${
-        activa ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+      className={`rounded-md border-b-2 px-3 py-1.5 text-xs transition-colors ${
+        activa ? "border-cta bg-primary/10 font-semibold text-primary" : "border-transparent text-muted-foreground hover:bg-muted hover:text-primary"
       }`}
     >
       {children}
@@ -129,7 +129,10 @@ function Avance() {
   return (
     <>
       <Encabezado titulo="Avance Físico por Partida" subtitulo="Registro de campo" />
-      <div className="mb-4 inline-flex gap-1 rounded-full bg-muted p-1">
+      <div className="mb-3 flex flex-wrap gap-1">
+        <Boton variante="primario"><Gauge size={13} />Control de avance</Boton>
+      </div>
+      <div className="mb-4 flex flex-wrap gap-1 border-b border-line pb-3">
         <Pestana activa={vista === "real"} onClick={() => setVista("real")}>
           Avance real
         </Pestana>
