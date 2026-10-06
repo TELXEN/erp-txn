@@ -149,6 +149,8 @@ export function CotizacionHoja({
   const [error, setError] = useState("");
   const celdas = useRef(new Map<string, HTMLTableCellElement | null>());
   const [conApu, setConApu] = useState<Set<string>>(new Set());
+  const [grupoDialogo, setGrupoDialogo] = useState(false);
+  const [nombreGrupo, setNombreGrupo] = useState("");
 
   // Las especialidades salen del catálogo maestro (Datos › Catálogo técnico).
   const { data: catalogoEsp = [] } = useEspecialidadesPartida();
@@ -410,23 +412,21 @@ export function CotizacionHoja({
     if (nuevaFila >= 0) setActivo({ r: nuevaFila, c: 1 });
   }
 
-  /** Abre un capítulo nuevo tomando la siguiente especialidad libre del catálogo maestro. */
-  async function nuevaEspecialidad() {
-    const usadas = new Set(items.map((i) => i.especialidad || "Sin especialidad"));
-    if (!nombresEsp.length)
-      return setError(
-        multi
-          ? "No hay especialidades registradas. Agrégalas en Datos › Catálogo técnico › Especialidad de partidas."
-          : "No hay grupos disponibles para el alcance de esta cotización.",
-      );
-    const libre = nombresEsp.find((n) => !usadas.has(n));
-    if (!libre)
-      return setError(
-        multi
-          ? "Ya usaste todas las especialidades del catálogo maestro. Registra una nueva en Datos › Catálogo técnico."
-          : "Ya usaste todos los grupos permitidos por el alcance de esta cotización.",
-      );
-    await crearGrupo(libre, "");
+  /** Abre el diálogo para crear un grupo/especialidad nuevo con nombre libre (sin límite de grupos). */
+  function nuevaEspecialidad() {
+    setNombreGrupo("");
+    setGrupoDialogo(true);
+  }
+
+  /** Crea el grupo con el nombre elegido; el WBS toma el siguiente correlativo de capítulo. */
+  async function confirmarGrupo() {
+    const nombre = nombreGrupo.trim();
+    if (!nombre) return setError(multi ? "Escribe el nombre de la especialidad." : "Escribe el nombre del grupo.");
+    const usadas = new Set(items.map((i) => (i.especialidad || "Sin especialidad").toLowerCase()));
+    if (usadas.has(nombre.toLowerCase()))
+      return setError(multi ? "Esa especialidad ya existe en la cotización." : "Ese grupo ya existe en la cotización.");
+    setGrupoDialogo(false);
+    await crearGrupo(nombre, "");
   }
 
   /** Crea la fila marcadora que conserva una especialidad o categoría aunque no tenga partidas. */
