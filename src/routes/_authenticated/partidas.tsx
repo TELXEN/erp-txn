@@ -23,7 +23,7 @@ import {
   nombresPrioridades,
 } from "@/lib/datos";
 import { exportarExcel } from "@/lib/exportar";
-import { Pencil, Trash2, Check, X, LayoutGrid, Table2, Upload, ListOrdered, Calculator, CornerDownRight, ChevronDown, ChevronUp } from "lucide-react";
+import { Pencil, Trash2, Check, X, LayoutGrid, Table2, Upload, ListOrdered, Calculator, CornerDownRight, ChevronDown, ChevronUp, FolderKanban } from "lucide-react";
 import { Kanban } from "@/components/Kanban";
 import { InsigniaPrioridad, InsigniaTipoPresupuesto } from "@/components/estado-ui";
 import { PRIORIDADES } from "@/lib/configuracion";
@@ -422,17 +422,20 @@ function Partidas() {
         }
       />
 
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-line">
-        <div className="flex gap-1">
+      <div className="mb-3 flex flex-wrap gap-1">
+        <Boton variante="primario"><FolderKanban size={13} />Gestión de partidas</Boton>
+      </div>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-line pb-3">
+        <div className="flex flex-wrap gap-1">
           {([
-            ["listado", `Listado y estructura (${partidas.length})`],
-            ["nueva", "+ Nueva partida"],
+            ["listado", "Listado y estructura"],
+            ["nueva", "Nueva partida"],
           ] as const).map(([id, txt]) => (
             <button
               key={id}
               type="button"
               onClick={() => abrirPestana(id)}
-              className={`-mb-px border-b-2 px-4 py-2 font-mono text-xs ${pestana === id ? "border-primary font-semibold text-primary" : "border-transparent text-muted-foreground hover:text-ink"}`}
+              className={`rounded-md border-b-2 px-3 py-1.5 text-xs transition-colors ${pestana === id ? "border-cta bg-primary/10 font-semibold text-primary" : "border-transparent text-muted-foreground hover:bg-muted hover:text-primary"}`}
             >
               {txt}
             </button>

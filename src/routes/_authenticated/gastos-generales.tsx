@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { InsigniaCategoriaGasto } from "@/components/estado-ui";
-import { CalendarDays, Check, ChevronDown, ChevronRight, Info, Pencil, Plus, Search, Trash2, Upload, X } from "lucide-react";
+import { Building2, CalendarDays, Check, ChevronDown, ChevronRight, Info, Pencil, Plus, Search, Truck, Trash2, Upload, X } from "lucide-react";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
 import { useCategoriasGastoGeneral, useGastosGenerales, useProyectos, useTerceros } from "@/lib/datos";
@@ -84,6 +84,11 @@ function GastosGenerales() {
   const [filtroCategoria, setFiltroCategoria] = useState("Todas");
   const [cerrados, setCerrados] = useState<Set<string>>(new Set());
   const [pestana, setPestana] = useState<"gastos" | "mantenimiento" | "combustible">("gastos");
+  const gruposGastos = [
+    { titulo: "Gastos indirectos", icono: Building2, items: ["gastos"] as const },
+    { titulo: "Flota", icono: Truck, items: ["mantenimiento", "combustible"] as const },
+  ];
+  const grupoActivo = gruposGastos.find((g) => (g.items as readonly string[]).includes(pestana)) ?? gruposGastos[0];
   const ayudaCategoria = categorias.find((c) => c.nombre === form.categoria)?.descripcion ?? "";
   const [editando, setEditando] = useState<{
     id: string;
@@ -331,19 +336,22 @@ function GastosGenerales() {
         }
       />
 
-      <div className="mb-4 flex flex-wrap items-center gap-1 overflow-x-auto border-b border-line">
+      <div className="mb-3 flex flex-wrap gap-1">
+        {gruposGastos.map((g) => { const Icono = g.icono; return <Boton key={g.titulo} variante={g === grupoActivo ? "primario" : "linea"} onClick={() => { const primero = g.items[0]; if (primero) setPestana(primero); }}><Icono size={13} />{g.titulo}</Boton>; })}
+      </div>
+      <div className="mb-4 flex flex-wrap items-center gap-1 overflow-x-auto border-b border-line pb-3">
         {(
           [
-            ["gastos", `Gastos generales (${gastosFiltrados.length})`],
-            ["mantenimiento", `Mantenimiento (${listaMant.length})`],
-            ["combustible", `Combustible (${listaComb.length})`],
+            ["gastos", "Gastos generales"],
+            ["mantenimiento", "Mantenimiento"],
+            ["combustible", "Combustible"],
           ] as const
-        ).map(([id, txt]) => (
+        ).filter(([id]) => (grupoActivo?.items as readonly string[] | undefined)?.includes(id)).map(([id, txt]) => (
           <button
             key={id}
             type="button"
             onClick={() => setPestana(id)}
-            className={`-mb-px whitespace-nowrap border-b-2 px-4 py-2 font-mono text-xs ${pestana === id ? "border-primary font-semibold text-primary" : "border-transparent text-muted-foreground hover:text-ink"}`}
+            className={`whitespace-nowrap rounded-md border-b-2 px-3 py-1.5 text-xs transition-colors ${pestana === id ? "border-cta bg-primary/10 font-semibold text-primary" : "border-transparent text-muted-foreground hover:bg-muted hover:text-primary"}`}
           >
             {txt}
           </button>

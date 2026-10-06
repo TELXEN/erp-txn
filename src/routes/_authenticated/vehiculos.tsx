@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Pencil, Plus, Trash2, Truck } from "lucide-react";
+import { ClipboardList, Pencil, Plus, Settings, Trash2, Truck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, Vacio } from "@/components/ui-kit";
@@ -49,6 +49,11 @@ const PESTAÑAS: { id: Pestaña; texto: string }[] = [
   { id: "mantenimiento", texto: "Mantenimiento" },
   { id: "resumen", texto: "Resumen" },
 ];
+const GRUPOS_VEHICULOS: { titulo: string; icono: React.ElementType; items: Pestaña[] }[] = [
+  { titulo: "Flota", icono: Truck, items: ["flota", "resumen"] },
+  { titulo: "Operaciones", icono: ClipboardList, items: ["tareo", "traslados"] },
+  { titulo: "Mantenimiento", icono: Settings, items: ["mantenimiento"] },
+];
 
 const VACIO_VEHICULO = {
   placa: "", marca: "", modelo: "", anio: "", tipo: "Camioneta", propiedad: "Propio",
@@ -61,6 +66,7 @@ function PaginaVehiculos() {
   const qc = useQueryClient();
   const esDinero = rol === "administrador" || rol === "gerente";
   const [pestaña, setPestaña] = useState<Pestaña>("flota");
+  const grupoActivo = GRUPOS_VEHICULOS.find((g) => g.items.includes(pestaña)) ?? GRUPOS_VEHICULOS[0];
 
   const { data: vehiculos = [] } = useVehiculos();
   const { data: tareo = [] } = useTareoVehiculos();
@@ -475,13 +481,18 @@ function PaginaVehiculos() {
         }
       />
 
-      <div className="mb-4 flex flex-wrap gap-1 border-b border-line">
-        {PESTAÑAS.map((p) => (
+      <div className="mb-3 flex flex-wrap gap-1">
+        {GRUPOS_VEHICULOS.map((g) => { const Icono = g.icono; return (
+          <Boton key={g.titulo} variante={g === grupoActivo ? "primario" : "linea"} onClick={() => { const primero = g.items[0]; if (primero) setPestaña(primero); }}><Icono size={13} />{g.titulo}</Boton>
+        ); })}
+      </div>
+      <div className="mb-4 flex flex-wrap gap-1 border-b border-line pb-3">
+        {PESTAÑAS.filter((p) => grupoActivo?.items.includes(p.id)).map((p) => (
           <button
             key={p.id}
             onClick={() => setPestaña(p.id)}
-            className={`rounded-t-md px-4 py-2 font-mono text-xs transition-colors ${
-              pestaña === p.id ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
+            className={`rounded-md border-b-2 px-3 py-1.5 text-xs transition-colors ${
+              pestaña === p.id ? "border-cta bg-primary/10 font-semibold text-primary" : "border-transparent text-muted-foreground hover:bg-muted hover:text-primary"
             }`}
           >
             {p.texto}

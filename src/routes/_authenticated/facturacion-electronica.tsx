@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Eye, FilePlus2, Pencil, ReceiptText, Trash2 } from "lucide-react";
+import { Eye, FilePlus2, Landmark, Pencil, ReceiptText, ShoppingBag, Trash2 } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Etiqueta, Panel, SinAcceso, Vacio } from "@/components/ui-kit";
@@ -143,16 +143,37 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
   }
 
   const tiposVisibles = esGuias ? PESTANAS_CPE.filter((p) => p.tipo === "09") : PESTANAS_CPE;
+  const gruposFacturacion = [
+    { titulo: "Comprobantes emitidos", icono: ReceiptText, tipos: tiposVisibles.filter((p) => ["01", "03", "07", "08", "09"].includes(p.tipo)) },
+    { titulo: "Operaciones especiales", icono: Landmark, tipos: tiposVisibles.filter((p) => ["20", "40", "RA"].includes(p.tipo)) },
+    { titulo: "Compras recibidas", icono: ShoppingBag, tipos: [{ tipo: "recibidos", etiqueta: "Recibidos (compras)" }] },
+  ].filter((g) => g.tipos.length > 0);
+  const grupoActivo = gruposFacturacion.find((g) => vista === "recibidos" ? g.tipos.some((p) => p.tipo === "recibidos") : g.tipos.some((p) => p.tipo === pestana)) ?? gruposFacturacion[0];
   const ETIQUETA_BOTON: Record<string, string> = { "01": "Crear Factura", "03": "Crear Boleta", "07": "Crear Notas de Crédito", "08": "Crear Notas de Débito", "20": "Crear Retenciones", "40": "Crear Percepciones", RA: "Nueva comunicación de baja" };
   return <><Encabezado titulo={esGuias ? "Guías de Remisión" : "Facturación Electrónica"} subtitulo={esGuias ? "Logística · guías de remisión remitente y traslados" : "Comercial · comprobantes, estados SUNAT y cobranza"} acciones={vista === "recibidos" ? undefined : abierto ? <Boton variante="linea" onClick={cerrar}>Cerrar editor</Boton> : <Boton onClick={() => abrirNuevo(pestana)}><FilePlus2 size={14} />{esGuias ? "Nueva guía de remisión" : ETIQUETA_BOTON[pestana] ?? "Nuevo comprobante"}</Boton>} />
-    {!esGuias && <div className="mb-4 flex flex-wrap items-center gap-2">
-      <div className="inline-flex gap-1 rounded-lg border border-line bg-card p-1">
-        {tiposVisibles.map((p) => <button key={p.tipo} type="button" onClick={() => { setVista("emitidos"); setPestana(p.tipo); if (abierto) cambiarTipo(p.tipo); }} className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${vista === "emitidos" && pestana === p.tipo ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-primary/10 hover:text-primary"}`}>{p.etiqueta}</button>)}
+    {!esGuias && <>
+      <div className="mb-3 flex flex-wrap gap-1">
+        {gruposFacturacion.map((g) => {
+          const Icono = g.icono;
+          const activo = g === grupoActivo;
+          return <Boton key={g.titulo} variante={activo ? "primario" : "linea"} onClick={() => {
+            const primero = g.tipos[0];
+            if (!primero) return;
+            if (primero.tipo === "recibidos") setVista("recibidos");
+            else { setVista("emitidos"); setPestana(primero.tipo as TipoComprobante); if (abierto) cambiarTipo(primero.tipo as TipoComprobante); }
+          }}><Icono size={13} />{g.titulo}</Boton>;
+        })}
       </div>
-      <div className="ml-auto inline-flex gap-1 rounded-lg border border-line bg-card p-1">
-        <button type="button" onClick={() => setVista("recibidos")} className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${vista === "recibidos" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-primary/10 hover:text-primary"}`}>Recibidos (compras)</button>
+      <div className="mb-4 flex flex-wrap gap-1 border-b border-line pb-3">
+        {grupoActivo?.tipos.map((p) => {
+          const activo = p.tipo === "recibidos" ? vista === "recibidos" : vista === "emitidos" && pestana === p.tipo;
+          return <button key={p.tipo} type="button" onClick={() => {
+            if (p.tipo === "recibidos") setVista("recibidos");
+            else { setVista("emitidos"); setPestana(p.tipo as TipoComprobante); if (abierto) cambiarTipo(p.tipo as TipoComprobante); }
+          }} className={`rounded-md border-b-2 px-3 py-1.5 text-xs transition-colors ${activo ? "border-cta bg-primary/10 font-semibold text-primary" : "border-transparent text-muted-foreground hover:bg-muted hover:text-primary"}`}>{p.etiqueta}</button>;
+        })}
       </div>
-    </div>}
+    </>}
 
     {vista === "recibidos" && !esGuias ? <ComprobantesCompras /> : <>
 
