@@ -15,7 +15,7 @@ export async function moverWbs(tabla: "especialidades" | "categorias" | "partida
   if (error) throw new Error(error.message);
 }
 
-/** Código de partida de 8 dígitos sin separadores: T + EE + CC + NNN (ej. 20302005) */
+/** Código de partida de 8 dígitos sin separadores: T + EE + G + CC + NNN (ej. 203102005); G = orden del grupo, 0 sin grupo */
 export const codigoPartidaLegible = (c?: string | null) => c || "—";
 
 /** Orden mayor a cualquiera existente, para enviar un elemento al final de su grupo. */

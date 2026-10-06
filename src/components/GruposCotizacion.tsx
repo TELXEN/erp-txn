@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Panel } from "@/components/ui-kit";
 import { useCategoriasPartida } from "@/lib/categorias";
 import { useGruposCotizacion } from "@/lib/cotizaciones";
+import { recodificarWbs } from "@/lib/wbs";
 
 const sb = supabase as unknown as { from: (t: string) => any };
 const campo = "w-full rounded border border-line bg-card px-2 py-1 text-xs";
@@ -13,7 +14,9 @@ export function GruposCotizacion() {
   const qc = useQueryClient();
   const { data: grupos = [] } = useGruposCotizacion();
   const { data: categorias = [] } = useCategoriasPartida();
-  const refrescar = () => {
+  const refrescar = async () => {
+    await recodificarWbs().catch(() => undefined);
+    qc.invalidateQueries({ queryKey: ["partidas_maestras"] });
     qc.invalidateQueries({ queryKey: ["grupos_cotizacion"] });
     qc.invalidateQueries({ queryKey: ["categorias_partida"] });
   };
