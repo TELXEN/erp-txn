@@ -14,8 +14,7 @@
 - Preliquidation PDFs are generated client-side with @react-pdf/renderer from a dedicated document template — this keeps branded multi-page exports consistent and independent from browser print styling.
 - Commercial quotation PDFs render as fixed A4 HTML sheets with repeated company/table headers and page numbering — this keeps html2pdf exports predictable across multi-page item lists.
 - Electronic invoices use dedicated comprobantes_electronicos/items/cuotas tables, while emitted invoices/receipts mirror into ventas for treasury compatibility; numbering is reserved only by an authenticated server function.
-- Electronic invoice previews use the globally configured local document font, and PDFs embed its compatible family — this keeps screen and exported output consistent.
-- Electronic invoice pages reserve a fixed bottom area and repeat the complete fiscal footer, including the amount in words, on every A4 page — this prevents any item count from moving or overlapping the footer.
+- Electronic invoice A4 pages reserve a fixed bottom area repeating the full fiscal footer (amount in words) on every page — no item count can overlap it.
 - Quotation, preliquidation, and electronic invoice editing render in normal flow with the sidebar visible (no full-screen overlay); preview/PDF remains fixed A4 — this keeps navigation available during document editing without changing exports.
 - ERP and document typography comes from the controlled local-font catalogue in configuracion_documentos; the UI uses --font-global while technical mono text remains separate, and PDF/Excel exporters receive the same selection — this keeps every output consistent.
 - Document codes (projects, quotations, preliquidations, custom) are configured as rows in codificacion_documentos: free code + zero-padded correlative, generated via siguiente_codigo_documento — single source for all document numbering.
@@ -24,12 +23,11 @@
 - Sidebar colors use dedicated semantic theme tokens, separate from header and workspace colors — dark navigation themes must not alter business screens.
 - Primary and action buttons use the active theme's sidebar base color — this keeps central workflows visually connected to navigation.
 - Invoice, quotation and preliquidation documents take colors and font from src/lib/documento-tema.ts — one change updates all three outputs.
-
-- La preliquidación usa una única hoja compartida (src/components/HojaPreliquidacion.tsx) para edición (fluida, campos en línea) y vista previa/impresión (A4 fijo, solo lectura); los cálculos de montos viven en src/lib/preliquidacion-montos.ts — así edición, vista previa y PDF nunca divergen.
+- Preliquidation uses one shared sheet (HojaPreliquidacion.tsx) for editing and A4 preview, with amounts in src/lib/preliquidacion-montos.ts — edit, preview and PDF never diverge.
 - Purchase invoices downloaded from SUNAT are archived in comprobantes_recibidos(+_items) and the private comprobantes-compra bucket; downloads run only via the authenticated descargarComprobantesSire server fn in batches of 10 — keeps SOL credentials server-side and avoids worker timeouts.
 - SIRE uses one persistent period selector and global synchronization control for RVIE and RCE across all SIRE tabs — keeps both books aligned to the same accounting period.
 - Quotation hierarchy uses `especialidad` as the chapter for single-discipline quotes, while multidisciplinary quotes use it for discipline and `grupo` for group; templates preserve this structure. Master work-item prices are PEN and convert on entry to the quotation currency — prevents mixed hierarchies and currencies.
 - On desktop, AppShell owns the viewport height and gives the sidebar navigation and central workspace independent vertical scrolling — keeps navigation fixed while long business screens remain usable.
 - Quotation WBS codes: multidisciplinary = 4 levels Especialidad.Grupo.Categoría.Partida (01.01.01.01); single-discipline = 3 levels Grupo.Categoría.Partida (01.01.01, the chapter is the group). Group 00 = none. Computed by numeracionCotizacion in src/lib/categorias.ts and persisted by the editor; projects copy those codes on conversion — one numbering source for editor, print and projects.
 - Vehicle timekeeping uses one row per usage day and only the daily rate; mileage remains in transfers.
-- Worker occupational medical exams (EMO) live in emos_trabajador, admin/gerente-only like trabajadores; validity status is computed client-side in src/lib/emo.ts from the latest exam per worker (≤30 days = por vencer) — one rule feeds the Personal tab badge, the payroll column and the dashboard alert.
+- EMO validity is computed in src/lib/emo.ts from each worker's latest exam (emos_trabajador, admin/gerente-only) — one rule feeds every EMO alert.
