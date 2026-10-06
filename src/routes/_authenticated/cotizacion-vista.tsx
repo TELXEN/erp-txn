@@ -111,7 +111,17 @@ function construirFilas(items: ItemCot[], opts: { multi?: boolean; alcance?: str
     n.items.push(it);
   }
   let n = 0;
-  const pad = (x: number, prof: number) => (prof === 0 ? String(x).padStart(2, "0") : String(x));
+  // Los números salen del código WBS guardado (01.01.01.01 = especialidad.grupo.categoría.partida).
+  const primerCodigo = (nodo: Nodo): string => {
+    const it = nodo.items.find((i) => (i.codigo ?? "").trim());
+    if (it) return (it.codigo as string).trim();
+    for (const h of nodo.hijos.values()) {
+      const c = primerCodigo(h);
+      if (c) return c;
+    }
+    return "";
+  };
+  const desfase = (opts.multi ? 1 : 2) + (omitirTop ? 1 : 0);
   const recorrer = (nodo: Nodo, prefijo: string, prof: number) => {
     let j = 0;
     for (const [k, hijo] of nodo.hijos) {
@@ -122,7 +132,8 @@ function construirFilas(items: ItemCot[], opts: { multi?: boolean; alcance?: str
         continue;
       }
       j += 1;
-      const numero = prefijo ? `${prefijo}.${pad(j, prof)}` : pad(j, prof);
+      const cod = primerCodigo(hijo).split(".");
+      const numero = cod.length >= prof + desfase ? cod.slice(0, prof + desfase).join(".") : prefijo ? `${prefijo}.${String(j).padStart(2, "0")}` : String(j).padStart(2, "0");
       filas.push({ clase: prof === 0 ? "grupo" : "sub", llave: `n-${numero}-${k}`, texto: prof === 0 ? k.toUpperCase() : k, numero });
       recorrer(hijo, numero, prof + 1);
     }
@@ -130,7 +141,7 @@ function construirFilas(items: ItemCot[], opts: { multi?: boolean; alcance?: str
     for (const it of nodo.items) {
       n += 1;
       kk += 1;
-      filas.push({ clase: "item", llave: it.id, item: it, indice: n, numero: prefijo ? `${prefijo}.${kk}` : String(kk) });
+      filas.push({ clase: "item", llave: it.id, item: it, indice: n, numero: (it.codigo ?? "").trim() || (prefijo ? `${prefijo}.${kk}` : String(kk)) });
     }
   };
   recorrer(raiz, "", 0);
