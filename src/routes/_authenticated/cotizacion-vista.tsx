@@ -81,8 +81,8 @@ type ItemCot = {
 };
 
 type Fila =
-  | { clase: "grupo"; llave: string; texto: string; numero: string }
-  | { clase: "sub"; llave: string; texto: string; numero: string }
+  | { clase: "grupo"; llave: string; texto: string; numero: string; total: number }
+  | { clase: "sub"; llave: string; texto: string; numero: string; total: number }
   | { clase: "item"; llave: string; item: ItemCot; indice: number; numero: string };
 
 /**
@@ -121,6 +121,10 @@ function construirFilas(items: ItemCot[], opts: { multi?: boolean; alcance?: str
     }
     return "";
   };
+  // Suma de las partidas del nodo y sus descendientes (total del encabezado).
+  const totalNodo = (nodo: Nodo): number =>
+    nodo.items.reduce((t, i) => t + Number(i.metrado) * Number(i.precio_unitario), 0) +
+    [...nodo.hijos.values()].reduce((t, h) => t + totalNodo(h), 0);
   // Multi: 4 niveles (esp.grupo.cat.partida); una disciplina: 3 niveles (grupo.cat.partida). En ambos el primer nivel visible es 1 segmento.
   const desfase = 1 + (omitirTop ? 1 : 0);
   const recorrer = (nodo: Nodo, prefijo: string, prof: number) => {
