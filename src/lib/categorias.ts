@@ -285,3 +285,105 @@ export function siguienteCodigoSubpartida(
   const n = (usados.length ? Math.max(...usados) : 0) + 1;
   return base ? `${base}.${pad2(n)}` : "";
 }
+
+// ============================================================================
+// Numeración WBS de cotizaciones en 4 niveles: Especialidad.Grupo.Categoría.Partida
+// (01.01.01.01; subpartidas agregan un 5.° nivel). El grupo "00" = sin grupo.
+// En cotizaciones de una disciplina la especialidad es siempre 01 y el grupo es el capítulo.
+// ============================================================================
+
+export type FilaWBS4 = {
+  id: string;
+  codigo?: string | null;
+  especialidad: string;
+  categoria?: string | null;
+  grupo?: string | null;
+  padre_id?: string | null;
+  tipo?: string | null;
+  orden?: number | null;
+};
+
+const espDe = (f: FilaWBS4) => f.especialidad || "Sin especialidad";
+
+/** Grupo efectivo de una categoría (el primero no vacío de sus filas). */
+export function grupoEfectivo(filas: FilaWBS4[], esp: string, cat: string) {
+  return (
+    filas
+      .find((i) => espDe(i) === esp && claveCat(i.categoria) === cat && (i.grupo ?? "").trim())
+      ?.grupo?.trim() ?? ""
+  );
+}
+
+export function numeracionCotizacion(filas: FilaWBS4[], multi: boolean) {
+  const codigos = new Map<string, string>();
+  const esp = new Map<string, string>();
+  const grp = new Map<string, string>();
+  const cat = new Map<string, string>();
+  const ids = new Set(filas.map((f) => f.id));
+  const esHijo = (f: FilaWBS4) => Boolean(f.padre_id && ids.has(f.padre_id));
+  const porCod = (a: FilaWBS4, b: FilaWBS4) =>
+    compararCodigosWBS((a.codigo ?? "").trim(), (b.codigo ?? "").trim()) || (a.orden ?? 0) - (b.orden ?? 0);
+
+  // En una disciplina, el "grupo" es la columna especialidad y la especialidad es única (01).
+  const nivelEsp = (f: FilaWBS4) => (multi ? espDe(f) : "");
+  const nivelGrp = (f: FilaWBS4, todas: FilaWBS4[]) =>
+    multi
+      ? claveCat(f.categoria) === SIN_CAT && f.tipo === "grupo"
+        ? (f.grupo ?? "").trim()
+        : grupoEfectivo(todas, espDe(f), claveCat(f.categoria))
+      : espDe(f);
+
+  let iEsp = 0;
+  for (const [kEsp, listaEsp] of agrupar(filas, nivelEsp)) {
+    iEsp += 1;
+    const E = pad2(iEsp);
+    if (multi) esp.set(kEsp, E);
+    // Bloques de grupo: sin grupo primero (00), luego por orden de aparición.
+    const bloques = agrupar(listaEsp, (f) => nivelGrp(f, filas));
+    const orden = [...bloques.keys()].sort((a, b) => Number(Boolean(a)) - Number(Boolean(b)));
+    let iGrp = 0;
+    for (const kGrp of orden) {
+      const lista = bloques.get(kGrp)!;
+      const G = kGrp ? pad2(++iGrp) : "00";
+      if (kGrp || !multi) grp.set(`${multi ? kEsp : ""}||${kGrp}`, `${E}.${G}`);
+      let iCat = 0;
+      for (const [kCat, items] of agrupar(lista, (f) => claveCat(f.categoria))) {
+        const reales = items.filter((f) => f.tipo !== "grupo");
+        if (kCat === SIN_CAT && !reales.length) {
+          for (const m of items) codigos.set(m.id, `${E}.${G}.00.00`);
+          continue;
+        }
+        const C = pad2(++iCat);
+        const pref = `${E}.${G}.${C}`;
+        cat.set(`${multi ? espDe(items[0]!) : espDe(items[0]!)}||${kCat}`, pref);
+        for (const m of items.filter((f) => f.tipo === "grupo")) codigos.set(m.id, `${pref}.00`);
+        reales
+          .filter((f) => !esHijo(f))
+          .sort(porCod)
+          .forEach((f, i) => {
+            const c = `${pref}.${pad2(i + 1)}`;
+            codigos.set(f.id, c);
+            reales
+              .filter((h) => h.padre_id === f.id)
+              .sort(porCod)
+              .forEach((h, j) => codigos.set(h.id, `${c}.${pad2(j + 1)}`));
+          });
+      }
+    }
+  }
+  return {
+    codigos,
+    /** Código de la especialidad (multi) o, en una disciplina, del grupo/capítulo. */
+    capitulo: (e: string) => (multi ? esp.get(e || "Sin especialidad") : grp.get(`||${e || "Sin especialidad"}`)) ?? "",
+    grupo: (e: string, g: string) => grp.get(`${multi ? e || "Sin especialidad" : ""}||${g}`) ?? "",
+    categoria: (e: string, c?: string | null) => cat.get(`${e || "Sin especialidad"}||${claveCat(c)}`) ?? "",
+  };
+}
+
+/** Cambios de código necesarios para dejar la cotización numerada en 4 niveles. */
+export function cambiosNumeracion(filas: FilaWBS4[], multi: boolean) {
+  const { codigos } = numeracionCotizacion(filas, multi);
+  return filas
+    .filter((f) => codigos.has(f.id) && (f.codigo ?? "").trim() !== codigos.get(f.id))
+    .map((f) => ({ id: f.id, codigo: codigos.get(f.id)! }));
+}
