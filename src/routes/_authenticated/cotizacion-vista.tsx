@@ -139,7 +139,7 @@ function construirFilas(items: ItemCot[], opts: { multi?: boolean; alcance?: str
       j += 1;
       const cod = primerCodigo(hijo).split(".");
       const numero = cod.length >= prof + desfase ? cod.slice(0, prof + desfase).join(".") : prefijo ? `${prefijo}.${String(j).padStart(2, "0")}` : String(j).padStart(2, "0");
-      filas.push({ clase: prof === 0 ? "grupo" : "sub", llave: `n-${numero}-${k}`, texto: prof === 0 ? k.toUpperCase() : k, numero });
+      filas.push({ clase: prof === 0 ? "grupo" : "sub", llave: `n-${numero}-${k}`, texto: prof === 0 ? k.toUpperCase() : k, numero, total: totalNodo(hijo) });
       recorrer(hijo, numero, prof + 1);
     }
     let kk = 0;
@@ -537,7 +537,7 @@ function VistaCotizacion() {
                               {fila.numero}
                             </td>
                             <td
-                              colSpan={6}
+                              colSpan={5}
                               style={{
                                 padding: esGrupo ? "7px 8px" : "5px 8px",
                                 background: esGrupo ? C.slate100 : C.slate50,
@@ -550,6 +550,20 @@ function VistaCotizacion() {
                               }}
                             >
                               {fila.texto}
+                            </td>
+                            <td
+                              style={{
+                                padding: esGrupo ? "7px 8px" : "5px 8px",
+                                background: esGrupo ? C.slate100 : C.slate50,
+                                borderBottom: `1px solid ${C.slate100}`,
+                                color: esGrupo ? NIVEL.grupo : NIVEL.categoria,
+                                fontWeight: esGrupo ? 700 : 600,
+                                fontSize: "8pt",
+                                textAlign: "right",
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              {S(sim, fila.total)}
                             </td>
                           </tr>
                         );
