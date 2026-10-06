@@ -295,6 +295,19 @@ export function CotizacionHoja({
     const col = COLUMNAS[c] as Columna;
     const texto = v.trim();
 
+    if (f.clase === "grp") {
+      // Renombrar el grupo: actualiza todas las filas de esa especialidad que lo usan.
+      if (col !== "nombre" || !texto || texto === f.texto) return;
+      const ids = items
+        .filter(
+          (i) =>
+            (i.especialidad || "Sin especialidad") === f.esp &&
+            ((i.grupo ?? "").trim() === f.grp || grupoDeCat(items, f.esp, (i.categoria ?? "").trim() || "Sin categoría") === f.grp),
+        )
+        .map((i) => i.id);
+      if (ids.length) await supabase.from("cotizacion_items").update({ grupo: texto } as never).in("id", ids);
+      return refrescar();
+    }
     if (f.clase === "cap" || f.clase === "sub") {
       const enGrupo = items.filter((i) =>
         f.clase === "cap"
@@ -357,6 +370,7 @@ export function CotizacionHoja({
       nombre: "Nueva partida",
       especialidad: esp,
       categoria: cat,
+      grupo: cat ? grupoDeCat(items, esp, cat) : "",
       marca: "",
       unidad: f.clase === "item" ? f.it.unidad : "glb",
       metrado: 1,
@@ -378,6 +392,7 @@ export function CotizacionHoja({
       nombre: maestra?.nombre ?? (nombre.trim() || "Nueva partida"),
       especialidad: esp,
       categoria,
+      grupo: categoria ? grupoDeCat(items, esp, categoria) : "",
       marca: maestra?.marca ?? "",
       unidad: maestra?.unidad ?? unidad,
       metrado: 1,
@@ -480,17 +495,16 @@ export function CotizacionHoja({
     if (!nombre)
       return setError(modoGrupo === "grp" ? "Escribe el nombre del grupo." : multi ? "Escribe el nombre de la especialidad." : "Escribe el nombre del grupo.");
     if (multi && modoGrupo === "grp") {
-      // Multidisciplinaria: el grupo no es capítulo de la hoja; solo se registra en el catálogo
-      // maestro y lo toman las categorías asignadas en Datos.
-      const existe = catalogoGrupos.some((g) => normalizar(g.nombre) === normalizar(nombre));
-      if (existe) return setError("Ese grupo ya existe en Datos › Grupos de partidas.");
-      const orden = Math.max(0, ...catalogoGrupos.map((g) => g.orden)) + 1;
-      const { error: err } = await supabase.from("grupos_cotizacion").insert({ nombre, orden });
-      if (err) return setError(err.message);
-      await qc.invalidateQueries({ queryKey: ["grupos_cotizacion"] });
-      setNombreGrupo("");
-      setError("");
-      return;
+      // Multidisciplinaria: el grupo se inserta como fila dentro de la especialidad; si es nuevo,
+      // también se registra en Datos › Grupos de partidas.
+      const existente = catalogoGrupos.find((g) => normalizar(g.nombre) === normalizar(nombre));
+      if (!existente) {
+        const orden = Math.max(0, ...catalogoGrupos.map((g) => g.orden)) + 1;
+        const { error: err } = await supabase.from("grupos_cotizacion").insert({ nombre, orden });
+        if (err) return setError(err.message);
+        qc.invalidateQueries({ queryKey: ["grupos_cotizacion"] });
+      }
+      return insertarGrupoEnHoja(existente?.nombre ?? nombre);
     }
     const usadas = new Set(items.map((i) => (i.especialidad || "Sin especialidad").toLowerCase()));
     if (usadas.has(nombre.toLowerCase()))
@@ -521,16 +535,17 @@ export function CotizacionHoja({
     }
   }
 
-  /** Crea la fila marcadora que conserva una especialidad o categoría aunque no tenga partidas. */
-  async function crearGrupo(esp: string, cat: string) {
+  /** Crea la fila marcadora que conserva una especialidad, grupo o categoría aunque no tenga partidas. */
+  async function crearGrupo(esp: string, cat: string, grp = "") {
     setError("");
-    const base = codigoContextual(esp, cat, items).split(".").slice(0, 2).join(".");
+    const base = cat || !grp ? codigoContextual(esp, cat, items).split(".").slice(0, 2).join(".") : "";
     const { error: err } = await supabase.from("cotizacion_items").insert({
       cotizacion_id: cotizacionId,
       codigo: base ? `${base}.00` : "",
       nombre: "",
       especialidad: esp,
       categoria: cat,
+      grupo: grp,
       marca: "",
       unidad: "glb",
       metrado: 0,
@@ -546,22 +561,36 @@ export function CotizacionHoja({
     return true;
   }
 
-  /** Añade a la especialidad la siguiente categoría libre del catálogo maestro. */
-  async function nuevaCategoria(esp: string) {
+  /** Inserta en la especialidad la fila del grupo elegido (multidisciplinarias). */
+  async function insertarGrupoEnHoja(nombre: string) {
+    const esp = espDestino;
+    if (!esp) return setError("Haz clic derecho sobre una especialidad para insertar el grupo.");
+    const ya = arbol.some((f) => f.clase === "grp" && f.esp === esp && normalizar(f.grp) === normalizar(nombre));
+    if (ya) return setError(`El grupo "${nombre}" ya está en ${esp}.`);
+    const ok = await crearGrupo(esp, "", nombre);
+    if (ok) setGrupoDialogo(false);
+  }
+
+  /** Añade la siguiente categoría libre del catálogo maestro (dentro del grupo, si se indica). */
+  async function nuevaCategoria(esp: string, grp = "") {
     const usadas = new Set(items.filter((i) => i.especialidad === esp).map((i) => (i.categoria ?? "").trim()));
+    const g = (c: (typeof catalogoCat)[number]) => (c as { grupo?: string }).grupo ?? "";
     const candidatas = multi
-      ? categoriasDe(esp, catalogoCat).map((c) => c.nombre)
+      ? (() => {
+          const base = categoriasDe(esp, catalogoCat);
+          const orden = grp ? [...base.filter((c) => g(c) === grp), ...base.filter((c) => g(c) !== grp)] : base;
+          return orden.map((c) => c.nombre);
+        })()
       : (() => {
           // Primero las asociadas a este grupo, luego las sin grupo y al final el resto.
           const activas = catalogoCat.filter((c) => c.activo);
-          const g = (c: (typeof activas)[number]) => (c as { grupo?: string }).grupo ?? "";
           const orden = [...activas.filter((c) => g(c) === esp), ...activas.filter((c) => !g(c)), ...activas.filter((c) => g(c) && g(c) !== esp)];
           return [...new Set(orden.map((c) => c.nombre))];
         })();
     const libre = candidatas.find((n) => !usadas.has(n));
     if (!libre)
       return setError(`No quedan categorías libres para ${esp}. Regístralas en Datos › Catálogo técnico.`);
-    await crearGrupo(esp, libre);
+    await crearGrupo(esp, libre, grp);
   }
 
   /** Borra una especialidad o una categoría completa (partidas, subpartidas y marcadoras). */
@@ -594,18 +623,34 @@ export function CotizacionHoja({
     const quedaGrupo = items.some(
       (i) => !ids.has(i.id) && i.especialidad === it.especialidad && (i.categoria ?? "").trim() === cat,
     );
-    if (!quedaGrupo) await crearGrupo(it.especialidad, cat);
+    if (!quedaGrupo) await crearGrupo(it.especialidad, cat, it.grupo ?? "");
     else refrescar();
   }
 
   function grupoConPartidas(f: Fila) {
     if (f.clase === "item") return false;
+    if (f.clase === "grp")
+      return items.some(
+        (i) => (i.especialidad || "Sin especialidad") === f.esp && (i.categoria ?? "").trim() && grupoDeCat(items, f.esp, (i.categoria ?? "").trim()) === f.grp,
+      );
     return items.some(
       (i) =>
         esPartida(i) &&
         (i.especialidad || "Sin especialidad") === f.esp &&
         (f.clase === "cap" || ((i.categoria ?? "").trim() || "Sin categoría") === f.cat),
     );
+  }
+
+  /** Borra la fila de grupo (solo cuando ya no tiene categorías debajo). */
+  async function borrarFilaGrupo(esp: string, grp: string) {
+    const marcas = items.filter(
+      (i) => i.especialidad === esp && i.tipo === "grupo" && !(i.categoria ?? "").trim() && (i.grupo ?? "").trim() === grp,
+    );
+    if (!window.confirm(`¿Quitar el grupo "${grp}" de esta especialidad?`)) return;
+    const { error: err } = await supabase.from("cotizacion_items").delete().in("id", marcas.map((i) => i.id));
+    if (err) return setError(err.message);
+    if (!items.some((i) => i.especialidad === esp && !marcas.includes(i))) await crearGrupo(esp, "");
+    else refrescar();
   }
 
   function mover(dr: number, dc: number) {
@@ -822,6 +867,7 @@ export function CotizacionHoja({
       return { esp: f.it.especialidad, cat: (f.it.categoria ?? "").trim() };
     }
     if (colapsados.has(f.clave)) return null;
+    if (f.clase === "grp") return null;
     if (f.clase === "sub") {
       if (sig && sig.clase === "item") return null;
       return { esp: f.esp, cat: f.cat === "Sin categoría" ? "" : f.cat };
