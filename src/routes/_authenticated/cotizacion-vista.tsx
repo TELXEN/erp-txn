@@ -8,7 +8,7 @@ import { useEmpresa } from "@/lib/empresa";
 import { useFuenteDocumento } from "@/lib/fuentes-documentos";
 import { useAuth } from "@/lib/auth";
 import { simboloMoneda, totalesCotizacion, useCotizacionItems, useCotizaciones, vigenciaHasta } from "@/lib/cotizaciones";
-import { DOC_FUENTE_CSS, DOC_MONO } from "@/lib/documento-tema";
+import { DOC, DOC_FUENTE_CSS } from "@/lib/documento-tema";
 import { ArrowLeft, FileDown, FileSpreadsheet } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -42,19 +42,26 @@ export const Route = createFileRoute("/_authenticated/cotizacion-vista")({
   component: VistaCotizacion,
 });
 
-// Vista previa e impresión en blanco y negro; la edición conserva el color del tema.
+// Vista previa e impresión con la paleta documental TELXEN.
 const C = {
-  slate900: DOC_MONO.dark,
-  slate700: DOC_MONO.ink,
-  slate500: DOC_MONO.mute,
-  slate400: DOC_MONO.mute,
-  slate100: DOC_MONO.total,
-  slate50: DOC_MONO.soft,
-  emerald800: DOC_MONO.dark,
-  emerald700: DOC_MONO.dark,
-  emerald50: DOC_MONO.accentSoft,
-  white: DOC_MONO.white,
+  slate900: DOC.dark,
+  slate700: DOC.ink,
+  slate500: DOC.mute,
+  slate400: DOC.mute,
+  slate100: DOC.total,
+  slate50: DOC.soft,
+  emerald800: DOC.green,
+  emerald700: DOC.green,
+  emerald50: DOC.accentSoft,
+  white: DOC.white,
 };
+
+/** Colores de letra por nivel del contenido: especialidad/grupo, categoría y partida. */
+const NIVEL = {
+  grupo: DOC.green,       // especialidad o grupo (Suministro / Montaje)
+  categoria: DOC.accentText, // categoría de partidas
+  partida: DOC.ink,       // fila de partida
+} as const;
 
 const S = (sim: string, n: number) =>
   `${sim} ` + n.toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -459,7 +466,7 @@ function VistaCotizacion() {
                         {filaDato("E-mail", empresa?.email || "—")}
                       </div>
                     </div>
-                    <div className="flex" style={{ marginTop: 8, alignItems: "center", background: C.white, color: C.slate900, border: `1px solid ${C.slate100}`, borderLeft: `3px solid ${DOC_MONO.accent}`, borderRadius: 4, padding: "4px 10px", fontFamily: DOC_FUENTE_CSS, fontSize: "8pt", lineHeight: 1.2 }}>
+                    <div className="flex" style={{ marginTop: 8, alignItems: "center", background: C.white, color: C.slate900, border: `1px solid ${C.slate100}`, borderLeft: `3px solid ${DOC.accent}`, borderRadius: 4, padding: "4px 10px", fontFamily: DOC_FUENTE_CSS, fontSize: "8pt", lineHeight: 1.2 }}>
                       <span style={{ fontWeight: 800, letterSpacing: 0.5, fontSize: 8, textTransform: "uppercase", marginRight: 10, flexShrink: 0 }}>Proyecto</span>
                       <span style={{ fontWeight: 400, textAlign: "justify" }}>{cot.nombre || "—"}</span>
                     </div>
@@ -505,7 +512,7 @@ function VistaCotizacion() {
                                 padding: esGrupo ? "7px 6px" : "5px 6px",
                                 background: esGrupo ? C.slate100 : C.slate50,
                                 borderBottom: `1px solid ${C.slate100}`,
-                                 color: esGrupo ? C.emerald800 : C.slate700,
+                                 color: esGrupo ? NIVEL.grupo : NIVEL.categoria,
                                 fontWeight: esGrupo ? 700 : 600,
                                 fontSize: "8pt",
                                 textAlign: "left",
@@ -519,7 +526,7 @@ function VistaCotizacion() {
                                 padding: esGrupo ? "7px 8px" : "5px 8px",
                                 background: esGrupo ? C.slate100 : C.slate50,
                                 borderBottom: `1px solid ${C.slate100}`,
-                                color: esGrupo ? C.emerald800 : C.slate700,
+                                color: esGrupo ? NIVEL.grupo : NIVEL.categoria,
                                 fontWeight: esGrupo ? 700 : 600,
                                 fontSize: "8pt",
                                 letterSpacing: esGrupo ? 0.6 : 0.2,
@@ -535,7 +542,7 @@ function VistaCotizacion() {
                       return (
                         <tr key={fila.llave} style={{ pageBreakInside: "avoid" }}>
                           <td style={{ ...celda, padding: "6px 6px", textAlign: "left", color: C.slate500 }}>{it.codigo || fila.numero}</td>
-                          <td style={{ ...celda, padding: "6px 8px", wordBreak: "break-word" }}>{it.nombre}</td>
+                          <td style={{ ...celda, padding: "6px 8px", wordBreak: "break-word", color: NIVEL.partida }}>{it.nombre}</td>
                           <td style={{ ...celda, padding: "6px 6px", textAlign: "center", color: C.slate500, fontSize: "7pt", wordBreak: "break-word" }}>{it.marca?.trim() || "-"}</td>
                           <td style={{ ...celda, padding: "6px 4px", textAlign: "center", color: C.slate500 }}>{it.unidad}</td>
                           <td style={{ ...celda, padding: "6px 6px", textAlign: "center" }}>{Number(it.metrado).toLocaleString("es-PE", { maximumFractionDigits: 2 })}</td>
