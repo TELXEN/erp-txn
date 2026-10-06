@@ -95,54 +95,51 @@ export function Insumos() {
     <>
       <div className="mb-4 inline-flex max-w-full flex-wrap items-center gap-1 rounded-lg border border-line bg-muted/40 p-1">
         <span className="px-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Maestro:</span>
-        {ORDEN_PESTANAS.map((t) => (
-          <button
-            key={t}
-            type="button"
-            onClick={() => cambiarPestana(t)}
-            className={`rounded-md px-3 py-1 text-xs transition-colors ${
-              seccion === t
-                ? "bg-primary font-semibold text-primary-foreground shadow-sm"
-                : "text-muted-foreground hover:bg-background hover:text-primary"
-            }`}
-          >
-            {etiquetaTipo(t)}
-          </button>
-        ))}
+        {ORDEN_PESTANAS.map((t) => {
+          const chip = chips.get(t) ?? CHIPS_EXTRA[0];
+          const activo = seccion === t;
+          return (
+            <button
+              key={t}
+              type="button"
+              onClick={() => cambiarPestana(t)}
+              className={`flex items-center gap-1.5 rounded-md px-3 py-1 text-xs transition-colors ${
+                activo
+                  ? `${chip} font-semibold text-chip-foreground shadow-sm`
+                  : "text-muted-foreground hover:bg-background hover:text-foreground"
+              }`}
+            >
+              <span aria-hidden="true" className={`h-1.5 w-1.5 shrink-0 rounded-full ${activo ? "bg-chip-foreground" : chip}`} />
+              {etiquetaTipo(t)}
+            </button>
+          );
+        })}
         <span className="mx-1 h-5 w-px bg-line" aria-hidden="true" />
-        <button
-          type="button"
-          onClick={() => setSeccion("margenes")}
-          className={`rounded-md px-3 py-1 text-xs transition-colors ${
-            seccion === "margenes"
-              ? "bg-primary font-semibold text-primary-foreground shadow-sm"
-              : "text-muted-foreground hover:bg-background hover:text-primary"
-          }`}
-        >
-          Márgenes APU
-        </button>
-        <button
-          type="button"
-          onClick={() => setSeccion("laboral")}
-          className={`rounded-md px-3 py-1 text-xs transition-colors ${
-            seccion === "laboral"
-              ? "bg-primary font-semibold text-primary-foreground shadow-sm"
-              : "text-muted-foreground hover:bg-background hover:text-primary"
-          }`}
-        >
-          Parámetros laborales
-        </button>
-        <button
-          type="button"
-          onClick={() => setSeccion("codificacion")}
-          className={`rounded-md px-3 py-1 text-xs transition-colors ${
-            seccion === "codificacion"
-              ? "bg-primary font-semibold text-primary-foreground shadow-sm"
-              : "text-muted-foreground hover:bg-background hover:text-primary"
-          }`}
-        >
-          Codificación de insumos
-        </button>
+        {(
+          [
+            ["margenes", "Márgenes APU"],
+            ["laboral", "Parámetros laborales"],
+            ["codificacion", "Codificación de insumos"],
+          ] as [Exclude<SeccionInsumos, TipoInsumo>, string][]
+        ).map(([s, texto]) => {
+          const chip = CHIP_SECCION[s];
+          const activo = seccion === s;
+          return (
+            <button
+              key={s}
+              type="button"
+              onClick={() => setSeccion(s)}
+              className={`flex items-center gap-1.5 rounded-md px-3 py-1 text-xs transition-colors ${
+                activo
+                  ? `${chip} font-semibold text-chip-foreground shadow-sm`
+                  : "text-muted-foreground hover:bg-background hover:text-foreground"
+              }`}
+            >
+              <span aria-hidden="true" className={`h-1.5 w-1.5 shrink-0 rounded-full ${activo ? "bg-chip-foreground" : chip}`} />
+              {texto}
+            </button>
+          );
+        })}
       </div>
 
       {seccion === "margenes" ? (
