@@ -847,7 +847,7 @@ export function CotizacionHoja({
                     f,
                     r,
                     0,
-                    <span className="flex items-center gap-1 font-semibold text-ink" style={{ paddingLeft: 0 }}>
+                    <span className="flex items-center gap-1 font-semibold" style={{ paddingLeft: 0, color: DOC.green }}>
                       <button type="button" onClick={() => alternar(f.clave)} className="text-muted-foreground">
                         {colapsados.has(f.clave) ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
                       </button>
@@ -858,7 +858,7 @@ export function CotizacionHoja({
                     f,
                     r,
                     1,
-                    <span className={`font-semibold ${cap ? "uppercase tracking-wide text-ink" : "pl-4 text-ink/80"}`}>{f.texto}</span>,
+                    <span className={`font-semibold ${cap ? "uppercase tracking-wide" : "pl-4"}`} style={{ color: cap ? DOC.green : DOC.accentText }}>{f.texto}</span>,
                   )}
                   <td className={`${celdaBase} text-center`}>—</td>
                   <td className={`${celdaBase} text-center`}>—</td>
@@ -931,7 +931,7 @@ export function CotizacionHoja({
                       {it.codigo || "—"}
                     </span>,
                   )}
-                  {celda(f, r, 1, <span className="block border-l border-line/70 pl-6 text-ink">{it.nombre}</span>)}
+                  {celda(f, r, 1, <span className="block border-l border-line/70 pl-6" style={{ color: DOC.ink }}>{it.nombre}</span>)}
                   {bloqueada ? (
                     <td className={`${celdaBase} text-center`}>—</td>
                   ) : (
