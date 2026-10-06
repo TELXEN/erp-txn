@@ -138,6 +138,32 @@ export function totalesCotizacion(
 /** Símbolo de la moneda de una cotización. */
 export const simboloMoneda = (moneda?: string | null) => (moneda === "USD" ? "US$" : "S/");
 
+/**
+ * Cambia la moneda de una cotización recalculando los precios unitarios de
+ * todas sus partidas con el tipo de cambio indicado (PEN→USD divide, USD→PEN multiplica).
+ */
+export async function convertirMonedaCotizacion(cotizacionId: string, moneda: "PEN" | "USD", tipoCambio: number) {
+  const tc = Number(tipoCambio);
+  if (!(tc > 0)) throw new Error("Tipo de cambio inválido");
+  const { data: items, error } = await supabase
+    .from("cotizacion_items")
+    .select("id, precio_unitario, tipo")
+    .eq("cotizacion_id", cotizacionId);
+  if (error) throw error;
+  const factor = moneda === "USD" ? 1 / tc : tc;
+  for (const it of items ?? []) {
+    if (it.tipo === "grupo") continue;
+    const nuevo = Math.round(Number(it.precio_unitario || 0) * factor * 10000) / 10000;
+    const { error: e2 } = await supabase.from("cotizacion_items").update({ precio_unitario: nuevo } as never).eq("id", it.id);
+    if (e2) throw e2;
+  }
+  const { error: e3 } = await supabase
+    .from("cotizaciones")
+    .update({ moneda, tipo_cambio: tc } as never)
+    .eq("id", cotizacionId);
+  if (e3) throw e3;
+}
+
 /** Último tipo de cambio venta registrado (para precargar cotizaciones en USD). */
 export const useTipoCambioActual = () =>
   useQuery({
