@@ -252,15 +252,15 @@ export function HojaCotizacion({
             <div key={t} style={{ display: "flex", justifyContent: "space-between", padding: "5px 8px", borderBottom: `1px solid ${C.line}`, fontWeight: 700 }}><span>{t}</span><span>{v}</span></div>
           ))}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "5px 8px", borderBottom: `1px solid ${C.line}` }}>
-            <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
-              Gastos generales
+            <span style={{ display: "inline-flex", alignItems: "center" }}>
+              <span style={{ display: "inline-block", width: 96 }}>Gastos generales</span>
               <input key={`gg-${cot.id}-${cot.pct_gastos_generales}`} type="number" step="0.5" min="0" defaultValue={Number(cot.pct_gastos_generales)} onBlur={(e) => alSalir("pct_gastos_generales", Number(e.target.value || 0), Number(cot.pct_gastos_generales))} style={{ ...ed, width: 44, borderBottom: "none", textAlign: "right" }} />%
             </span>
             <span>{money(sim, totales.gastosGenerales)}</span>
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "5px 8px", borderBottom: `1px solid ${C.line}` }}>
-            <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
-              Utilidad
+            <span style={{ display: "inline-flex", alignItems: "center" }}>
+              <span style={{ display: "inline-block", width: 96 }}>Utilidad</span>
               <input key={`ut-${cot.id}-${cot.pct_utilidad}`} type="number" step="0.5" min="0" defaultValue={Number(cot.pct_utilidad)} onBlur={(e) => alSalir("pct_utilidad", Number(e.target.value || 0), Number(cot.pct_utilidad))} style={{ ...ed, width: 44, borderBottom: "none", textAlign: "right" }} />%
             </span>
             <span>{money(sim, totales.utilidad)}</span>
