@@ -878,6 +878,9 @@ export function CotizacionHoja({
                       <FolderPlus size={14} className="mr-2" /> Agregar categoría
                     </ContextMenuItem>
                   )}
+                  <ContextMenuItem onSelect={() => void nuevaEspecialidad()}>
+                    <FolderPlus size={14} className="mr-2" /> {multi ? "Nueva especialidad (capítulo)" : "Nuevo grupo (capítulo)"}
+                  </ContextMenuItem>
                   <ContextMenuItem
                     onSelect={() => void crearPartida(f.esp, f.clase === "sub" && f.cat !== "Sin categoría" ? f.cat : "", "Nueva partida")}
                   >
@@ -1002,6 +1005,9 @@ export function CotizacionHoja({
                   <ContextMenuSeparator />
                   <ContextMenuItem onSelect={() => void insertarFila(r)}>
                     <ListPlus size={14} className="mr-2" /> Insertar partida debajo
+                  </ContextMenuItem>
+                  <ContextMenuItem onSelect={() => void nuevaEspecialidad()}>
+                    <FolderPlus size={14} className="mr-2" /> {multi ? "Nueva especialidad (capítulo)" : "Nuevo grupo (capítulo)"}
                   </ContextMenuItem>
                   {!f.agrupadora && (
                     <ContextMenuItem onSelect={() => setApuAbierto(it.id)}>
