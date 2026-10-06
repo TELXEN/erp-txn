@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { BookOpen, Calculator, Lock, ChevronDown, ChevronRight, CornerDownRight, FolderPlus, Layers, ListPlus, Plus, Trash2 } from "lucide-react";
+import { BookOpen, Boxes, Calculator, Lock, ChevronDown, ChevronRight, CornerDownRight, FolderPlus, Layers, ListPlus, Plus, Trash2 } from "lucide-react";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -151,6 +151,8 @@ export function CotizacionHoja({
   const celdas = useRef(new Map<string, HTMLTableCellElement | null>());
   const [conApu, setConApu] = useState<Set<string>>(new Set());
   const [grupoDialogo, setGrupoDialogo] = useState(false);
+  /** Qué crea el diálogo: "esp" = especialidad/capítulo; "grp" = grupo del catálogo (solo multidisciplinarias). */
+  const [modoGrupo, setModoGrupo] = useState<"esp" | "grp">("esp");
   const [nombreGrupo, setNombreGrupo] = useState("");
 
   // Las especialidades salen del catálogo maestro (Datos › Catálogo técnico).
@@ -415,9 +417,18 @@ export function CotizacionHoja({
 
   /** Abre el diálogo para crear un grupo/especialidad nuevo con nombre libre (sin límite de grupos). */
   function nuevaEspecialidad() {
+    setModoGrupo("esp");
     setNombreGrupo("");
     setError("");
     // Diferido: deja que el menú contextual cierre y libere el foco antes de abrir el diálogo.
+    window.setTimeout(() => setGrupoDialogo(true), 50);
+  }
+
+  /** En multidisciplinarias: registra un grupo nuevo (Datos › Grupos de partidas) sin crear capítulo en la hoja. */
+  function nuevoGrupo() {
+    setModoGrupo("grp");
+    setNombreGrupo("");
+    setError("");
     window.setTimeout(() => setGrupoDialogo(true), 50);
   }
 
@@ -428,7 +439,20 @@ export function CotizacionHoja({
    */
   async function confirmarGrupo() {
     const nombre = nombreGrupo.trim();
-    if (!nombre) return setError(multi ? "Escribe el nombre de la especialidad." : "Escribe el nombre del grupo.");
+    if (!nombre)
+      return setError(modoGrupo === "grp" ? "Escribe el nombre del grupo." : multi ? "Escribe el nombre de la especialidad." : "Escribe el nombre del grupo.");
+    if (multi && modoGrupo === "grp") {
+      // Multidisciplinaria: el grupo no es capítulo de la hoja; solo se registra en el catálogo
+      // maestro y lo toman las categorías asignadas en Datos.
+      const existe = catalogoGrupos.some((g) => normalizar(g.nombre) === normalizar(nombre));
+      if (existe) return setError("Ese grupo ya existe en Datos › Grupos de partidas.");
+      const orden = Math.max(0, ...catalogoGrupos.map((g) => g.orden)) + 1;
+      const { error: err } = await supabase.from("grupos_cotizacion").insert({ nombre, orden });
+      if (err) return setError(err.message);
+      qc.invalidateQueries({ queryKey: ["grupos_cotizacion"] });
+      setGrupoDialogo(false);
+      return;
+    }
     const usadas = new Set(items.map((i) => (i.especialidad || "Sin especialidad").toLowerCase()));
     if (usadas.has(nombre.toLowerCase()))
       return setError(multi ? "Esa especialidad ya existe en la cotización." : "Ese grupo ya existe en la cotización.");
@@ -767,11 +791,12 @@ export function CotizacionHoja({
     return { esp: f.esp, cat: "" };
   }
 
+  const creandoGrupo = multi && modoGrupo === "grp";
   const dialogoGrupo = (
       <Dialog open={grupoDialogo} onOpenChange={setGrupoDialogo}>
         <DialogContent className="max-w-sm print:hidden">
           <DialogHeader>
-            <DialogTitle>{multi ? "Agregar nueva especialidad" : "Agregar nuevo grupo"}</DialogTitle>
+            <DialogTitle>{creandoGrupo ? "Agregar nuevo grupo" : multi ? "Agregar nueva especialidad" : "Agregar nuevo grupo"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <Input
@@ -784,29 +809,38 @@ export function CotizacionHoja({
                   void confirmarGrupo();
                 }
               }}
-              placeholder={multi ? "Ej.: Instalaciones eléctricas" : "Ej.: Suministro de materiales"}
+              placeholder={creandoGrupo ? "Ej.: Suministro de materiales" : multi ? "Ej.: Instalaciones eléctricas" : "Ej.: Suministro de materiales"}
             />
-            {nombresEsp.length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
-                {nombresEsp
-                  .filter((n) => !items.some((i) => (i.especialidad || "").toLowerCase() === n.toLowerCase()))
-                  .map((n) => (
-                    <button
-                      key={n}
-                      type="button"
-                      onClick={() => setNombreGrupo(n)}
-                      className="rounded-full border border-line px-2.5 py-1 text-[11.5px] text-muted-foreground hover:border-primary hover:text-primary"
-                    >
-                      {n}
-                    </button>
-                  ))}
-              </div>
+            {creandoGrupo ? (
+              <p className="font-mono text-[10.5px] leading-relaxed text-muted-foreground">
+                Se registra en Datos › Grupos de partidas. Asígnalo después a las categorías en Datos › Categorías de
+                partidas para que las partidas lo usen al imprimir.
+              </p>
+            ) : (
+              <>
+                {nombresEsp.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {nombresEsp
+                      .filter((n) => !items.some((i) => (i.especialidad || "").toLowerCase() === n.toLowerCase()))
+                      .map((n) => (
+                        <button
+                          key={n}
+                          type="button"
+                          onClick={() => setNombreGrupo(n)}
+                          className="rounded-full border border-line px-2.5 py-1 text-[11.5px] text-muted-foreground hover:border-primary hover:text-primary"
+                        >
+                          {n}
+                        </button>
+                      ))}
+                  </div>
+                )}
+                <p className="font-mono text-[10.5px] leading-relaxed text-muted-foreground">
+                  {multi
+                    ? "Las sugerencias salen de Datos › Especialidad de partidas. Un nombre nuevo se registra ahí mismo para reutilizarlo."
+                    : "Las sugerencias salen de Datos › Grupos de partidas. Un nombre nuevo se registra ahí mismo para reutilizarlo."}
+                </p>
+              </>
             )}
-            <p className="font-mono text-[10.5px] leading-relaxed text-muted-foreground">
-              {multi
-                ? "Las sugerencias salen de Datos › Especialidad de partidas. Un nombre nuevo se registra ahí mismo para reutilizarlo."
-                : "Las sugerencias salen de Datos › Grupos de partidas. Un nombre nuevo se registra ahí mismo para reutilizarlo."}
-            </p>
             {error && <p className="font-mono text-xs text-bad">{error}</p>}
           </div>
           <DialogFooter>
@@ -965,6 +999,11 @@ export function CotizacionHoja({
                   <ContextMenuItem onSelect={() => nuevaEspecialidad()}>
                     <Layers size={14} className="mr-2" /> {multi ? "Agregar nueva especialidad" : "Agregar nuevo grupo"}
                   </ContextMenuItem>
+                  {multi && (
+                    <ContextMenuItem onSelect={() => nuevoGrupo()}>
+                      <Boxes size={14} className="mr-2" /> Agregar nuevo grupo
+                    </ContextMenuItem>
+                  )}
                   {cap && (
                     <ContextMenuItem onSelect={() => void nuevaCategoria(f.esp)}>
                       <FolderPlus size={14} className="mr-2" /> Agregar categoría
@@ -1095,6 +1134,11 @@ export function CotizacionHoja({
                   <ContextMenuItem onSelect={() => nuevaEspecialidad()}>
                     <Layers size={14} className="mr-2" /> {multi ? "Agregar nueva especialidad" : "Agregar nuevo grupo"}
                   </ContextMenuItem>
+                  {multi && (
+                    <ContextMenuItem onSelect={() => nuevoGrupo()}>
+                      <Boxes size={14} className="mr-2" /> Agregar nuevo grupo
+                    </ContextMenuItem>
+                  )}
                   <ContextMenuItem onSelect={() => void insertarFila(r)}>
                     <ListPlus size={14} className="mr-2" /> Insertar partida debajo
                   </ContextMenuItem>
