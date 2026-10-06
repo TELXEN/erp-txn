@@ -8,7 +8,7 @@ import { useEmpresa } from "@/lib/empresa";
 import { useFuenteDocumento } from "@/lib/fuentes-documentos";
 import { useAuth } from "@/lib/auth";
 import { simboloMoneda, totalesCotizacion, useCotizacionItems, useCotizaciones, vigenciaHasta } from "@/lib/cotizaciones";
-import { DOC, DOC_FUENTE_CSS } from "@/lib/documento-tema";
+import { DOC_FUENTE_CSS, DOC_MONO } from "@/lib/documento-tema";
 import { ArrowLeft, FileDown, FileSpreadsheet } from "lucide-react";
 import type { ReactNode } from "react";
 
