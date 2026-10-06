@@ -459,7 +459,7 @@ function VistaCotizacion() {
                         {filaDato("E-mail", empresa?.email || "—")}
                       </div>
                     </div>
-                    <div className="flex" style={{ marginTop: 8, alignItems: "center", background: C.white, color: C.slate900, border: `1px solid ${C.slate100}`, borderLeft: `3px solid ${DOC.accent}`, borderRadius: 4, padding: "4px 10px", fontFamily: DOC_FUENTE_CSS, fontSize: "8pt", lineHeight: 1.2 }}>
+                    <div className="flex" style={{ marginTop: 8, alignItems: "center", background: C.white, color: C.slate900, border: `1px solid ${C.slate100}`, borderLeft: `3px solid ${DOC_MONO.accent}`, borderRadius: 4, padding: "4px 10px", fontFamily: DOC_FUENTE_CSS, fontSize: "8pt", lineHeight: 1.2 }}>
                       <span style={{ fontWeight: 800, letterSpacing: 0.5, fontSize: 8, textTransform: "uppercase", marginRight: 10, flexShrink: 0 }}>Proyecto</span>
                       <span style={{ fontWeight: 400, textAlign: "justify" }}>{cot.nombre || "—"}</span>
                     </div>
