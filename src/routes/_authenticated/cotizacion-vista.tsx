@@ -484,7 +484,7 @@ function VistaCotizacion() {
                         { h: "Descripción", a: "left" },
                         { h: "Marca", a: "center" },
                         { h: "Unidad", a: "center" },
-                        { h: "Cantidad", a: "right" },
+                        { h: "Cantidad", a: "center" },
                         { h: "C. Unitario", a: "right" },
                         { h: "Sub Total", a: "right" },
                       ].map(({ h, a }) => (
@@ -538,7 +538,7 @@ function VistaCotizacion() {
                           <td style={{ ...celda, padding: "6px 8px", wordBreak: "break-word" }}>{it.nombre}</td>
                           <td style={{ ...celda, padding: "6px 6px", textAlign: "center", color: C.slate500, fontSize: "7pt", wordBreak: "break-word" }}>{it.marca?.trim() || "-"}</td>
                           <td style={{ ...celda, padding: "6px 4px", textAlign: "center", color: C.slate500 }}>{it.unidad}</td>
-                          <td style={{ ...celda, padding: "6px 6px", textAlign: "right" }}>{Number(it.metrado).toLocaleString("es-PE", { maximumFractionDigits: 2 })}</td>
+                          <td style={{ ...celda, padding: "6px 6px", textAlign: "center" }}>{Number(it.metrado).toLocaleString("es-PE", { maximumFractionDigits: 2 })}</td>
                           <td style={{ ...celda, padding: "6px 6px", textAlign: "right", whiteSpace: "nowrap" }}>{S(sim, Number(it.precio_unitario))}</td>
                           <td style={{ ...celda, padding: "6px 6px", textAlign: "right", whiteSpace: "nowrap" }}>{S(sim, Number(it.metrado) * Number(it.precio_unitario))}</td>
                         </tr>

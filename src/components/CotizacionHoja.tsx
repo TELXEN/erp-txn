@@ -570,10 +570,11 @@ export function CotizacionHoja({
 
   function editor(f: Fila, c: number) {
     const col = COLUMNAS[c] as Columna;
+    const alinear = col === "marca" || col === "unidad" || col === "metrado" ? "text-center" : col === "precio_unitario" ? "text-right" : "";
     const comun = {
       autoFocus: true,
       value: valor,
-      className: "w-full rounded border border-primary bg-card px-1.5 py-1 text-[13px] outline-none",
+      className: `w-full rounded border border-primary bg-card px-1.5 py-1 text-[13px] outline-none ${alinear}`,
       onKeyDown: (e: React.KeyboardEvent) => {
         if (e.key === "Enter") {
           e.preventDefault();
@@ -814,7 +815,7 @@ export function CotizacionHoja({
             <th className="px-2 py-1 align-middle font-medium">Descripción</th>
             <th className="px-1 py-1 text-center align-middle font-medium">Marca</th>
             <th className="px-1 py-1 text-center align-middle font-medium">Unidad</th>
-            <th className="px-1 py-1 text-right align-middle font-medium">Cantidad</th>
+            <th className="px-1 py-1 text-center align-middle font-medium">Cantidad</th>
             <th className="px-1 py-1 text-right align-middle font-medium">C. unitario</th>
             <th className="px-1 py-1 text-right align-middle font-medium">Sub total</th>
             <th className="px-1 py-1" />
@@ -859,9 +860,9 @@ export function CotizacionHoja({
                     1,
                     <span className={`font-semibold ${cap ? "uppercase tracking-wide text-ink" : "pl-4 text-ink/80"}`}>{f.texto}</span>,
                   )}
-                  <td className={celdaBase}>—</td>
-                  <td className={celdaBase}>—</td>
-                  <td className={`${celdaBase} text-right`}>—</td>
+                  <td className={`${celdaBase} text-center`}>—</td>
+                  <td className={`${celdaBase} text-center`}>—</td>
+                  <td className={`${celdaBase} text-center`}>—</td>
                   <td className={`${celdaBase} text-right`}>—</td>
                   <td className={`${celdaBase} text-right font-semibold text-ink`}>{mon(f.total)}</td>
                   <td className={celdaBase} />
@@ -932,15 +933,15 @@ export function CotizacionHoja({
                   )}
                   {celda(f, r, 1, <span className="block border-l border-line/70 pl-6 text-ink">{it.nombre}</span>)}
                   {bloqueada ? (
-                    <td className={celdaBase}>—</td>
+                    <td className={`${celdaBase} text-center`}>—</td>
                   ) : (
-                    celda(f, r, 2, <span className="text-[9px]">{it.marca || "-"}</span>)
+                    celda(f, r, 2, <span className="block text-center text-[9px]">{it.marca || "-"}</span>, "text-center")
                   )}
-                  {bloqueada ? <td className={celdaBase}>—</td> : celda(f, r, 3, <span>{it.unidad}</span>)}
+                  {bloqueada ? <td className={`${celdaBase} text-center`}>—</td> : celda(f, r, 3, <span className="block text-center">{it.unidad}</span>, "text-center")}
                   {bloqueada ? (
-                    <td className={`${celdaBase} text-right`}>—</td>
+                    <td className={`${celdaBase} text-center`}>—</td>
                   ) : (
-                    celda(f, r, 4, <span>{num(it.metrado)}</span>, "text-right")
+                    celda(f, r, 4, <span className="block text-center">{num(it.metrado)}</span>, "text-center")
                   )}
                   {bloqueada || puFijo ? (
                     <td className={`${celdaBase} whitespace-nowrap text-right ${puFijo ? "italic" : ""}`}>
