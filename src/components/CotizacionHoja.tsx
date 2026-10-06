@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { BookOpen, Calculator, Lock, ChevronDown, ChevronRight, CornerDownRight, FolderPlus, ListPlus, Plus, Trash2 } from "lucide-react";
+import { BookOpen, Calculator, Lock, ChevronDown, ChevronRight, CornerDownRight, FolderPlus, Layers, ListPlus, Plus, Trash2 } from "lucide-react";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -9,6 +9,9 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { soles } from "@/lib/format";
 import {
@@ -146,6 +149,8 @@ export function CotizacionHoja({
   const [error, setError] = useState("");
   const celdas = useRef(new Map<string, HTMLTableCellElement | null>());
   const [conApu, setConApu] = useState<Set<string>>(new Set());
+  const [grupoDialogo, setGrupoDialogo] = useState(false);
+  const [nombreGrupo, setNombreGrupo] = useState("");
 
   // Las especialidades salen del catálogo maestro (Datos › Catálogo técnico).
   const { data: catalogoEsp = [] } = useEspecialidadesPartida();
@@ -407,23 +412,21 @@ export function CotizacionHoja({
     if (nuevaFila >= 0) setActivo({ r: nuevaFila, c: 1 });
   }
 
-  /** Abre un capítulo nuevo tomando la siguiente especialidad libre del catálogo maestro. */
-  async function nuevaEspecialidad() {
-    const usadas = new Set(items.map((i) => i.especialidad || "Sin especialidad"));
-    if (!nombresEsp.length)
-      return setError(
-        multi
-          ? "No hay especialidades registradas. Agrégalas en Datos › Catálogo técnico › Especialidad de partidas."
-          : "No hay grupos disponibles para el alcance de esta cotización.",
-      );
-    const libre = nombresEsp.find((n) => !usadas.has(n));
-    if (!libre)
-      return setError(
-        multi
-          ? "Ya usaste todas las especialidades del catálogo maestro. Registra una nueva en Datos › Catálogo técnico."
-          : "Ya usaste todos los grupos permitidos por el alcance de esta cotización.",
-      );
-    await crearGrupo(libre, "");
+  /** Abre el diálogo para crear un grupo/especialidad nuevo con nombre libre (sin límite de grupos). */
+  function nuevaEspecialidad() {
+    setNombreGrupo("");
+    setGrupoDialogo(true);
+  }
+
+  /** Crea el grupo con el nombre elegido; el WBS toma el siguiente correlativo de capítulo. */
+  async function confirmarGrupo() {
+    const nombre = nombreGrupo.trim();
+    if (!nombre) return setError(multi ? "Escribe el nombre de la especialidad." : "Escribe el nombre del grupo.");
+    const usadas = new Set(items.map((i) => (i.especialidad || "Sin especialidad").toLowerCase()));
+    if (usadas.has(nombre.toLowerCase()))
+      return setError(multi ? "Esa especialidad ya existe en la cotización." : "Ese grupo ya existe en la cotización.");
+    setGrupoDialogo(false);
+    await crearGrupo(nombre, "");
   }
 
   /** Crea la fila marcadora que conserva una especialidad o categoría aunque no tenga partidas. */
@@ -739,10 +742,10 @@ export function CotizacionHoja({
         <div className="flex flex-wrap items-center justify-center gap-2">
           <button
             type="button"
-            onClick={() => void nuevaEspecialidad()}
+            onClick={() => nuevaEspecialidad()}
             className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-2 text-[12px] font-medium text-primary-foreground hover:opacity-90"
           >
-            <FolderPlus size={14} /> {multi ? "Nueva especialidad" : "Nuevo grupo"}
+            <Layers size={14} /> {multi ? "Agregar nueva especialidad" : "Agregar nuevo grupo"}
           </button>
           <button
             type="button"
@@ -782,10 +785,10 @@ export function CotizacionHoja({
         </button>
         <button
           type="button"
-          onClick={() => void nuevaEspecialidad()}
+          onClick={() => nuevaEspecialidad()}
           className="inline-flex items-center gap-1 rounded-md border border-line px-2.5 py-1.5 text-[12.5px] text-primary hover:bg-primary/10"
         >
-          <FolderPlus size={12} /> {multi ? "Especialidad" : "Grupo"}
+          <Layers size={12} /> {multi ? "Especialidad" : "Grupo"}
         </button>
         {alAbrirCatalogo && (
           <button
@@ -873,14 +876,14 @@ export function CotizacionHoja({
                     {cap ? (multi ? "Especialidad" : "Grupo") : "Categoría"}: {f.texto}
                   </ContextMenuLabel>
                   <ContextMenuSeparator />
+                  <ContextMenuItem onSelect={() => nuevaEspecialidad()}>
+                    <Layers size={14} className="mr-2" /> {multi ? "Agregar nueva especialidad" : "Agregar nuevo grupo"}
+                  </ContextMenuItem>
                   {cap && (
                     <ContextMenuItem onSelect={() => void nuevaCategoria(f.esp)}>
                       <FolderPlus size={14} className="mr-2" /> Agregar categoría
                     </ContextMenuItem>
                   )}
-                  <ContextMenuItem onSelect={() => void nuevaEspecialidad()}>
-                    <FolderPlus size={14} className="mr-2" /> {multi ? "Nueva especialidad (capítulo)" : "Nuevo grupo (capítulo)"}
-                  </ContextMenuItem>
                   <ContextMenuItem
                     onSelect={() => void crearPartida(f.esp, f.clase === "sub" && f.cat !== "Sin categoría" ? f.cat : "", "Nueva partida")}
                   >
@@ -1003,11 +1006,11 @@ export function CotizacionHoja({
                     Partida {it.codigo}: {it.nombre}
                   </ContextMenuLabel>
                   <ContextMenuSeparator />
+                  <ContextMenuItem onSelect={() => nuevaEspecialidad()}>
+                    <Layers size={14} className="mr-2" /> {multi ? "Agregar nueva especialidad" : "Agregar nuevo grupo"}
+                  </ContextMenuItem>
                   <ContextMenuItem onSelect={() => void insertarFila(r)}>
                     <ListPlus size={14} className="mr-2" /> Insertar partida debajo
-                  </ContextMenuItem>
-                  <ContextMenuItem onSelect={() => void nuevaEspecialidad()}>
-                    <FolderPlus size={14} className="mr-2" /> {multi ? "Nueva especialidad (capítulo)" : "Nuevo grupo (capítulo)"}
                   </ContextMenuItem>
                   {!f.agrupadora && (
                     <ContextMenuItem onSelect={() => setApuAbierto(it.id)}>
@@ -1046,10 +1049,10 @@ export function CotizacionHoja({
             <td colSpan={8} className="px-2 py-2">
               <button
                 type="button"
-                onClick={() => void nuevaEspecialidad()}
+                onClick={() => nuevaEspecialidad()}
                 className="inline-flex items-center gap-1 rounded-md border border-dashed border-line px-2.5 py-1.5 text-[12.5px] text-muted-foreground hover:border-primary hover:text-primary"
               >
-                <FolderPlus size={12} /> {multi ? "Nueva especialidad (capítulo)" : "Nuevo grupo (capítulo)"}
+                <Layers size={12} /> {multi ? "Agregar nueva especialidad" : "Agregar nuevo grupo"}
               </button>
             </td>
           </tr>
@@ -1072,6 +1075,48 @@ export function CotizacionHoja({
           </span>
         </span>
       </div>
+      <Dialog open={grupoDialogo} onOpenChange={setGrupoDialogo}>
+        <DialogContent className="max-w-sm print:hidden">
+          <DialogHeader>
+            <DialogTitle>{multi ? "Agregar nueva especialidad" : "Agregar nuevo grupo"}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input
+              autoFocus
+              value={nombreGrupo}
+              onChange={(e) => setNombreGrupo(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  void confirmarGrupo();
+                }
+              }}
+              placeholder={multi ? "Ej.: Instalaciones eléctricas" : "Ej.: Suministro de materiales"}
+            />
+            {nombresEsp.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {nombresEsp
+                  .filter((n) => !items.some((i) => (i.especialidad || "").toLowerCase() === n.toLowerCase()))
+                  .map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => setNombreGrupo(n)}
+                      className="rounded-full border border-line px-2.5 py-1 text-[11.5px] text-muted-foreground hover:border-primary hover:text-primary"
+                    >
+                      {n}
+                    </button>
+                  ))}
+              </div>
+            )}
+            {error && <p className="font-mono text-xs text-bad">{error}</p>}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setGrupoDialogo(false)}>Cancelar</Button>
+            <Button onClick={() => void confirmarGrupo()}>Agregar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
