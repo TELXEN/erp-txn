@@ -8,7 +8,7 @@ import { useEmpresa } from "@/lib/empresa";
 import { useFuenteDocumento } from "@/lib/fuentes-documentos";
 import { useAuth } from "@/lib/auth";
 import { simboloMoneda, totalesCotizacion, useCotizacionItems, useCotizaciones, vigenciaHasta } from "@/lib/cotizaciones";
-import { DOC, DOC_FUENTE_CSS } from "@/lib/documento-tema";
+import { DOC, DOC_FUENTE_CSS, DOC_MONO } from "@/lib/documento-tema";
 import { ArrowLeft, FileDown, FileSpreadsheet } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -58,9 +58,9 @@ const C = {
 
 /** Impresión: el contenido (especialidad, categoría y partidas) sale en negro. */
 const NIVEL = {
-  grupo: C.slate900,     // especialidad o grupo (Suministro / Montaje)
-  categoria: C.slate900, // categoría de partidas
-  partida: C.slate900,   // fila de partida
+  grupo: DOC_MONO.ink,     // especialidad o grupo (Suministro / Montaje)
+  categoria: DOC_MONO.ink, // categoría de partidas
+  partida: DOC_MONO.ink,   // fila de partida
 } as const;
 
 const S = (sim: string, n: number) =>
