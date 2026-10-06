@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ClipboardList, Pencil, Plus, Settings, Trash2, Truck } from "lucide-react";
+import { Check, ClipboardList, Eye, Pencil, Plus, Settings, Trash2, Truck, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, Vacio } from "@/components/ui-kit";
@@ -54,6 +54,19 @@ const GRUPOS_VEHICULOS: { titulo: string; icono: React.ElementType; items: Pesta
   { titulo: "Operaciones", icono: ClipboardList, items: ["tareo", "traslados"] },
   { titulo: "Mantenimiento", icono: Settings, items: ["mantenimiento"] },
 ];
+const DIAS_SEMANA = ["L", "M", "M", "J", "V", "S", "D"];
+
+function cambiarMes(mes: string, delta: number) {
+  const [anio = 2026, numero = 1] = mes.split("-").map(Number);
+  const fecha = new Date(anio, numero - 1 + delta, 1);
+  return `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function diasDelMes(mes: string) {
+  const [anio = 2026, numero = 1] = mes.split("-").map(Number);
+  const primerDia = (new Date(anio, numero - 1, 1).getDay() + 6) % 7;
+  return [...Array<string | null>(primerDia).fill(null), ...Array.from({ length: new Date(anio, numero, 0).getDate() }, (_, i) => `${mes}-${String(i + 1).padStart(2, "0")}`)];
+}
 
 const VACIO_VEHICULO = {
   placa: "", marca: "", modelo: "", anio: "", tipo: "Camioneta", propiedad: "Propio",
@@ -225,43 +238,66 @@ function PaginaVehiculos() {
   }
 
   // ---------- Tareo ----------
-  const VACIO_TAREO = { fecha: new Date().toISOString().slice(0, 10), vehiculo_id: "", proyecto_id: "", conductor_id: "", dias: "1", km: "0", observacion: "" };
+  const mesActual = new Date().toISOString().slice(0, 7);
+  const VACIO_TAREO = { vehiculo_id: "", proyecto_id: "" };
   const [formTareo, setFormTareo] = useState(VACIO_TAREO);
+  const [mesTareo, setMesTareo] = useState(mesActual);
+  const [diasTareo, setDiasTareo] = useState<Set<string>>(new Set());
+  const [mesResumenTareo, setMesResumenTareo] = useState(mesActual);
+  const [editandoTareo, setEditandoTareo] = useState<{ vehiculoId: string; proyectoId: string } | null>(null);
+  const celdasTareo = diasDelMes(mesTareo);
+  const tareoMensual = useMemo(() => tareo.filter((t) => t.fecha.slice(0, 7) === mesResumenTareo), [tareo, mesResumenTareo]);
+  const consolidadoTareo = useMemo(() => {
+    const grupos = new Map<string, { vehiculoId: string; proyectoId: string; dias: number; costo: number }>();
+    for (const registro of tareoMensual) {
+      const clave = `${registro.vehiculo_id}:${registro.proyecto_id}`;
+      const actual = grupos.get(clave) ?? { vehiculoId: registro.vehiculo_id, proyectoId: registro.proyecto_id, dias: 0, costo: 0 };
+      actual.dias += Number(registro.dias || 0);
+      actual.costo += Number(registro.costo_soles || 0);
+      grupos.set(clave, actual);
+    }
+    return [...grupos.values()];
+  }, [tareoMensual]);
+
+  function marcarDiaTareo(fecha: string) {
+    setDiasTareo((actuales) => {
+      const siguientes = new Set(actuales);
+      if (siguientes.has(fecha)) siguientes.delete(fecha); else siguientes.add(fecha);
+      return siguientes;
+    });
+  }
 
   async function guardarTareo() {
-    if (!formTareo.vehiculo_id || !formTareo.proyecto_id) {
-      toast.error("Elige vehículo y proyecto");
+    if (!formTareo.vehiculo_id || !formTareo.proyecto_id || diasTareo.size === 0) {
+      toast.error("Elige vehículo, proyecto y al menos un día");
       return;
     }
     const v = mapaVehiculo.get(formTareo.vehiculo_id);
-    const fila = {
-      fecha: formTareo.fecha,
-      vehiculo_id: formTareo.vehiculo_id,
-      proyecto_id: formTareo.proyecto_id,
-      conductor_id: formTareo.conductor_id || null,
-      dias: Number(formTareo.dias) || 0,
-      km: Number(formTareo.km) || 0,
-      costo_soles: costoTareo(Number(formTareo.dias) || 0, Number(formTareo.km) || 0, v),
-      observacion: formTareo.observacion.trim(),
-    };
-    const { error } = await supabase.from("tareo_vehiculos" as never).insert(fila as never);
+    const fechas = [...diasTareo].sort();
+    const ocupadas = tareo.filter((t) => t.vehiculo_id === formTareo.vehiculo_id && fechas.includes(t.fecha));
+    if (!editandoTareo && ocupadas.length > 0) return toast.error(`El vehículo ya tiene uso registrado el ${ocupadas[0]?.fecha ?? "día seleccionado"}`);
+    if (editandoTareo) {
+      const { error: errorBorrado } = await supabase.from("tareo_vehiculos" as never).delete().eq("vehiculo_id", editandoTareo.vehiculoId).eq("proyecto_id", editandoTareo.proyectoId).gte("fecha", `${mesTareo}-01`).lte("fecha", `${mesTareo}-31`);
+      if (errorBorrado) return toast.error(errorBorrado.message);
+    }
+    const filas = fechas.map((fecha) => ({ fecha, vehiculo_id: formTareo.vehiculo_id, proyecto_id: formTareo.proyecto_id, conductor_id: null, dias: 1, km: 0, costo_soles: costoTareo(1, v), observacion: "" }));
+    const { error } = await supabase.from("tareo_vehiculos" as never).insert(filas as never);
     if (error) {
       toast.error(error.message);
       return;
     }
-    toast.success("Tareo registrado");
-    setFormTareo({ ...VACIO_TAREO, vehiculo_id: formTareo.vehiculo_id });
+    toast.success(editandoTareo ? "Días de uso actualizados" : "Días de uso registrados");
+    setDiasTareo(new Set());
+    setEditandoTareo(null);
     refrescar();
   }
 
-  async function borrarTareo(id: string) {
-    if (!window.confirm("¿Eliminar este registro de tareo?")) return;
-    const { error } = await supabase.from("tareo_vehiculos" as never).delete().eq("id", id);
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    refrescar();
+  function editarDiasTareo(vehiculoId: string, proyectoId: string) {
+    const fechas = tareo.filter((t) => t.vehiculo_id === vehiculoId && t.proyecto_id === proyectoId && t.fecha.slice(0, 7) === mesResumenTareo).map((t) => t.fecha);
+    setFormTareo({ vehiculo_id: vehiculoId, proyecto_id: proyectoId });
+    setMesTareo(mesResumenTareo);
+    setDiasTareo(new Set(fechas));
+    setEditandoTareo({ vehiculoId, proyectoId });
   }
 
   // ---------- Traslados ----------
@@ -310,16 +346,15 @@ function PaginaVehiculos() {
       await supabase.from("vehiculos" as never).update({ km_actual: kmFinal } as never).eq("id", v.id);
     }
     if (formTras.generar_tareo && formTras.proyecto_id) {
-      const kmRecorridos = Math.max(0, kmFinal - (Number(formTras.km_inicial) || 0));
       await supabase.from("tareo_vehiculos" as never).insert({
         fecha: formTras.fecha,
         vehiculo_id: formTras.vehiculo_id,
         proyecto_id: formTras.proyecto_id,
-        conductor_id: formTras.conductor_id || null,
+        conductor_id: null,
         dias: 1,
-        km: kmRecorridos,
-        costo_soles: costoTareo(1, kmRecorridos, v),
-        observacion: `Traslado: ${formTras.origen} → ${formTras.destino}`.trim(),
+        km: 0,
+        costo_soles: costoTareo(1, v),
+        observacion: "",
       } as never);
     }
     toast.success("Traslado registrado");
