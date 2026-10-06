@@ -145,7 +145,7 @@ export function HojaCotizacion({
               <div style={{ fontSize: 12.5, fontWeight: 700, marginTop: 5 }}>RUC: {empresa?.ruc || "—"}</div>
               <div style={{ fontSize: 16, fontWeight: 700, marginTop: 4 }}>{cot.codigo || "—"}</div>
             </div>
-            <div style={{ fontSize: 12, fontWeight: 700, marginTop: 6, display: "flex", gap: 6, justifyContent: "center", alignItems: "center" }}>
+            <div style={{ fontSize: 12, fontWeight: 700, marginTop: 6, display: "flex", gap: 6, justifyContent: "flex-end", alignItems: "center" }}>
               REV.
               <input
                 key={`rev-${cot.id}-${cot.revision ?? "01"}`}
@@ -153,7 +153,7 @@ export function HojaCotizacion({
                 maxLength={6}
                 title="Revisión impresa de la cotización"
                 onBlur={(e) => alSalir("revision", e.target.value.trim().toUpperCase() || "01", cot.revision ?? "01")}
-                style={{ ...ed, width: 54, textAlign: "left", fontWeight: 700 }}
+                style={{ ...ed, width: 54, textAlign: "right", fontWeight: 700 }}
               />
             </div>
           </div>
