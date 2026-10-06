@@ -170,8 +170,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="grid min-h-screen w-full grid-cols-1 text-ink md:h-screen md:grid-cols-[236px_minmax(0,1fr)] md:overflow-hidden">
-      <aside className="no-print flex min-h-full flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground md:h-screen md:min-h-0 md:overflow-hidden">
+    <div className="min-h-screen w-full text-ink md:h-screen md:overflow-hidden md:[--app-sidebar-width:236px]">
+      <aside className="no-print flex min-h-full flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground md:fixed md:inset-y-0 md:left-0 md:z-30 md:h-screen md:min-h-0 md:w-[var(--app-sidebar-width)] md:overflow-hidden">
         <div className="flex min-h-[69px] shrink-0 items-center gap-2.5 border-b border-sidebar-border px-5 py-3">
           <span className="grid size-8 shrink-0 place-items-center rounded-md bg-cta font-mono text-sm font-bold text-cta-foreground">
             TXN
@@ -237,7 +237,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </aside>
 
-      <div className="flex min-h-screen min-w-0 flex-col md:h-screen md:min-h-0 md:overflow-hidden">
+      <div className="flex min-h-screen min-w-0 flex-col md:ml-[var(--app-sidebar-width)] md:h-screen md:min-h-0 md:w-[calc(100%-var(--app-sidebar-width))] md:overflow-hidden">
         <header className="no-print sticky top-0 z-20 flex min-h-[69px] shrink-0 items-center justify-end gap-3 border-b border-brand bg-brand px-5 py-3 text-brand-foreground">
           <div className="flex items-center gap-2">
             <span className="grid size-8 place-items-center rounded-full bg-cta text-xs font-semibold text-cta-foreground">
