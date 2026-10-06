@@ -145,9 +145,13 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
   const tiposVisibles = esGuias ? PESTANAS_CPE.filter((p) => p.tipo === "09") : PESTANAS_CPE;
   const ETIQUETA_BOTON: Record<string, string> = { "01": "Crear Factura", "03": "Crear Boleta", "07": "Crear Notas de Crédito", "08": "Crear Notas de Débito", "20": "Crear Retenciones", "40": "Crear Percepciones", RA: "Nueva comunicación de baja" };
   return <><Encabezado titulo={esGuias ? "Guías de Remisión" : "Facturación Electrónica"} subtitulo={esGuias ? "Logística · guías de remisión remitente y traslados" : "Comercial · comprobantes, estados SUNAT y cobranza"} acciones={vista === "recibidos" ? undefined : abierto ? <Boton variante="linea" onClick={cerrar}>Cerrar editor</Boton> : <Boton onClick={() => abrirNuevo(pestana)}><FilePlus2 size={14} />{esGuias ? "Nueva guía de remisión" : ETIQUETA_BOTON[pestana] ?? "Nuevo comprobante"}</Boton>} />
-    {!esGuias && <div className="mb-4 flex flex-wrap gap-1 border-b border-line">
-      {tiposVisibles.map((p) => <button key={p.tipo} type="button" onClick={() => { setVista("emitidos"); setPestana(p.tipo); if (abierto) cambiarTipo(p.tipo); }} className={`rounded-t-md px-3 py-2 text-xs font-medium transition ${vista === "emitidos" && pestana === p.tipo ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:text-foreground"}`}>{p.etiqueta}</button>)}
-      <button type="button" onClick={() => setVista("recibidos")} className={`ml-auto rounded-t-md px-3 py-2 text-xs font-medium transition ${vista === "recibidos" ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:text-foreground"}`}>Recibidos (compras)</button>
+    {!esGuias && <div className="mb-4 flex flex-wrap items-center gap-2">
+      <div className="inline-flex gap-1 rounded-lg border border-line bg-card p-1">
+        {tiposVisibles.map((p) => <button key={p.tipo} type="button" onClick={() => { setVista("emitidos"); setPestana(p.tipo); if (abierto) cambiarTipo(p.tipo); }} className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${vista === "emitidos" && pestana === p.tipo ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-primary/10 hover:text-primary"}`}>{p.etiqueta}</button>)}
+      </div>
+      <div className="ml-auto inline-flex gap-1 rounded-lg border border-line bg-card p-1">
+        <button type="button" onClick={() => setVista("recibidos")} className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${vista === "recibidos" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-primary/10 hover:text-primary"}`}>Recibidos (compras)</button>
+      </div>
     </div>}
 
     {vista === "recibidos" && !esGuias ? <ComprobantesCompras /> : <>
