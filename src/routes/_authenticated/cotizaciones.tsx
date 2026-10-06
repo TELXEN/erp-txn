@@ -18,7 +18,7 @@ import {
   categoriasDe,
   codigoContextual,
   prefijosWBS,
-  renumerarWBS,
+  cambiosNumeracion,
   ordenarJerarquia,
   siguienteCodigoSubpartida,
   useCategoriasPartida,
@@ -318,15 +318,11 @@ function Cotizaciones() {
   async function renumerarCotizacion() {
     if (!cot) return;
     // Orden estable: primero el orden guardado y, en empates, el código actual.
-    const cambios = renumerarWBS(
-      [...itemsHoja].sort(
-        (a, b) => a.orden - b.orden || (a.codigo ?? "").localeCompare(b.codigo ?? "", undefined, { numeric: true }),
-      ),
-    );
+    const cambios = cambiosNumeracion(itemsHoja, Boolean(cot.multidisciplinaria));
     if (!cambios.length) return window.alert("La numeración de esta cotización ya está ordenada.");
     if (
       !window.confirm(
-        `Se reasignarán códigos correlativos (01, 01.01, 01.01.01) a ${cambios.length} fila(s). ¿Continuar?`,
+        `Se reasignarán códigos correlativos (01 especialidad, 01.01 grupo, 01.01.01 categoría, 01.01.01.01 partida) a ${cambios.length} fila(s). ¿Continuar?`,
       )
     )
       return;

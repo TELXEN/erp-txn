@@ -19,7 +19,8 @@ import {
   categoriasDe,
   codigoContextual,
   ordenarJerarquia,
-  prefijosWBS,
+  numeracionCotizacion,
+  cambiosNumeracion,
   siguienteCodigoSubpartida,
   useCategoriasPartida,
 } from "@/lib/categorias";
@@ -71,7 +72,7 @@ function buscarMaestras(maestras: PartidaMaestra[], texto: string, limite = 8): 
 
 /** Construye el árbol visible: capítulo (especialidad), grupo (solo multi), subcapítulo (categoría), partidas y subpartidas. */
 function construirArbol(items: CotizacionItem[], multi = false): Fila[] {
-  const wbs = prefijosWBS(items);
+  const wbs = numeracionCotizacion(items, multi);
   const filas: Fila[] = [];
   const total = (l: CotizacionItem[]) => l.filter(esPartida).reduce((x, i) => x + Number(i.metrado) * Number(i.precio_unitario), 0);
   for (const grupo of agruparPorCategoria(items)) {
@@ -104,7 +105,7 @@ function construirArbol(items: CotizacionItem[], multi = false): Fila[] {
         filas.push({
           clase: "grp",
           clave: `g:${esp}|${b.grp}`,
-          codigo: "",
+          codigo: wbs.grupo(esp, b.grp),
           texto: b.grp,
           esp,
           grp: b.grp,
@@ -192,6 +193,20 @@ export function CotizacionHoja({
   const { data: maestras = [] } = usePartidasMaestras();
 
   const arbol = useMemo(() => construirArbol(items, multi), [items, multi]);
+
+  // Mantiene la numeración 01.01.01.01 (especialidad.grupo.categoría.partida) guardada tras cada cambio.
+  const renumerando = useRef(false);
+  useEffect(() => {
+    if (renumerando.current || !items.length) return;
+    const cambios = cambiosNumeracion(items, multi);
+    if (!cambios.length) return;
+    renumerando.current = true;
+    void Promise.all(cambios.map((c) => supabase.from("cotizacion_items").update({ codigo: c.codigo }).eq("id", c.id)))
+      .then(() => qc.invalidateQueries({ queryKey: ["cotizacion_items", cotizacionId] }))
+      .finally(() => {
+        renumerando.current = false;
+      });
+  }, [items, multi, cotizacionId, qc]);
   /** Especialidad donde se insertará el grupo elegido en el diálogo. */
   const [espDestino, setEspDestino] = useState("");
 
