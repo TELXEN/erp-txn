@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Check, ChevronDown, ChevronRight, Pencil, Trash2, X } from "lucide-react";
-import { Input, Panel, Select } from "@/components/ui-kit";
+import { Boxes, Check, ChevronDown, ChevronRight, Pencil, SlidersHorizontal, Trash2, X } from "lucide-react";
+import { Boton, Input, Panel, Select } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { MargenesApuPanel } from "@/components/MargenesApu";
 import { ParametrosLaboralesPanel } from "@/components/ParametrosLaborales";
