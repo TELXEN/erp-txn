@@ -8,7 +8,7 @@ import { useEmpresa } from "@/lib/empresa";
 import { useFuenteDocumento } from "@/lib/fuentes-documentos";
 import { useAuth } from "@/lib/auth";
 import { simboloMoneda, totalesCotizacion, useCotizacionItems, useCotizaciones, vigenciaHasta } from "@/lib/cotizaciones";
-import { DOC_FUENTE_CSS, DOC_MONO } from "@/lib/documento-tema";
+import { DOC, DOC_FUENTE_CSS } from "@/lib/documento-tema";
 import { ArrowLeft, FileDown, FileSpreadsheet } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -42,19 +42,26 @@ export const Route = createFileRoute("/_authenticated/cotizacion-vista")({
   component: VistaCotizacion,
 });
 
-// Vista previa e impresión en blanco y negro; la edición conserva el color del tema.
+// Vista previa e impresión con la paleta documental TELXEN.
 const C = {
-  slate900: DOC_MONO.dark,
-  slate700: DOC_MONO.ink,
-  slate500: DOC_MONO.mute,
-  slate400: DOC_MONO.mute,
-  slate100: DOC_MONO.total,
-  slate50: DOC_MONO.soft,
-  emerald800: DOC_MONO.dark,
-  emerald700: DOC_MONO.dark,
-  emerald50: DOC_MONO.accentSoft,
-  white: DOC_MONO.white,
+  slate900: DOC.dark,
+  slate700: DOC.ink,
+  slate500: DOC.mute,
+  slate400: DOC.mute,
+  slate100: DOC.total,
+  slate50: DOC.soft,
+  emerald800: DOC.green,
+  emerald700: DOC.green,
+  emerald50: DOC.accentSoft,
+  white: DOC.white,
 };
+
+/** Colores de letra por nivel del contenido: especialidad/grupo, categoría y partida. */
+const NIVEL = {
+  grupo: DOC.green,       // especialidad o grupo (Suministro / Montaje)
+  categoria: DOC.accentText, // categoría de partidas
+  partida: DOC.ink,       // fila de partida
+} as const;
 
 const S = (sim: string, n: number) =>
   `${sim} ` + n.toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
