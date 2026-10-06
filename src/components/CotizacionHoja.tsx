@@ -999,6 +999,11 @@ export function CotizacionHoja({
                   <ContextMenuItem onSelect={() => nuevaEspecialidad()}>
                     <Layers size={14} className="mr-2" /> {multi ? "Agregar nueva especialidad" : "Agregar nuevo grupo"}
                   </ContextMenuItem>
+                  {multi && (
+                    <ContextMenuItem onSelect={() => nuevoGrupo()}>
+                      <Boxes size={14} className="mr-2" /> Agregar nuevo grupo
+                    </ContextMenuItem>
+                  )}
                   {cap && (
                     <ContextMenuItem onSelect={() => void nuevaCategoria(f.esp)}>
                       <FolderPlus size={14} className="mr-2" /> Agregar categoría
@@ -1129,6 +1134,11 @@ export function CotizacionHoja({
                   <ContextMenuItem onSelect={() => nuevaEspecialidad()}>
                     <Layers size={14} className="mr-2" /> {multi ? "Agregar nueva especialidad" : "Agregar nuevo grupo"}
                   </ContextMenuItem>
+                  {multi && (
+                    <ContextMenuItem onSelect={() => nuevoGrupo()}>
+                      <Boxes size={14} className="mr-2" /> Agregar nuevo grupo
+                    </ContextMenuItem>
+                  )}
                   <ContextMenuItem onSelect={() => void insertarFila(r)}>
                     <ListPlus size={14} className="mr-2" /> Insertar partida debajo
                   </ContextMenuItem>
