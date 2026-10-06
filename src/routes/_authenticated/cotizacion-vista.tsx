@@ -42,18 +42,18 @@ export const Route = createFileRoute("/_authenticated/cotizacion-vista")({
   component: VistaCotizacion,
 });
 
-// Tema documental compartido (mismo que la edición, la factura y la preliquidación).
+// Vista previa e impresión en blanco y negro; la edición conserva el color del tema.
 const C = {
-  slate900: DOC.green,
-  slate700: DOC.ink,
-  slate500: DOC.mute,
-  slate400: DOC.mute,
-  slate100: DOC.total,
-  slate50: DOC.soft,
-  emerald800: DOC.green,
-  emerald700: DOC.green,
-  emerald50: DOC.accentSoft,
-  white: DOC.white,
+  slate900: DOC_MONO.dark,
+  slate700: DOC_MONO.ink,
+  slate500: DOC_MONO.mute,
+  slate400: DOC_MONO.mute,
+  slate100: DOC_MONO.total,
+  slate50: DOC_MONO.soft,
+  emerald800: DOC_MONO.dark,
+  emerald700: DOC_MONO.dark,
+  emerald50: DOC_MONO.accentSoft,
+  white: DOC_MONO.white,
 };
 
 const S = (sim: string, n: number) =>
