@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ClipboardList, Pencil, Plus, Settings, Trash2, Truck } from "lucide-react";
+import { Check, ClipboardList, Eye, Pencil, Plus, Settings, Trash2, Truck, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, Vacio } from "@/components/ui-kit";
@@ -29,6 +29,8 @@ export const Route = createFileRoute("/_authenticated/vehiculos")({
       { name: "description", content: "Gestión de flota: tareo vehicular, traslados a obra y mantenimiento." },
       { property: "og:title", content: "Vehículos — ERP TELXEN SAC" },
       { property: "og:description", content: "Gestión de flota: tareo vehicular, traslados a obra y mantenimiento." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: PaginaVehiculos,
@@ -54,6 +56,19 @@ const GRUPOS_VEHICULOS: { titulo: string; icono: React.ElementType; items: Pesta
   { titulo: "Operaciones", icono: ClipboardList, items: ["tareo", "traslados"] },
   { titulo: "Mantenimiento", icono: Settings, items: ["mantenimiento"] },
 ];
+const DIAS_SEMANA = ["L", "M", "M", "J", "V", "S", "D"];
+
+function cambiarMes(mes: string, delta: number) {
+  const [anio = 2026, numero = 1] = mes.split("-").map(Number);
+  const fecha = new Date(anio, numero - 1 + delta, 1);
+  return `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function diasDelMes(mes: string) {
+  const [anio = 2026, numero = 1] = mes.split("-").map(Number);
+  const primerDia = (new Date(anio, numero - 1, 1).getDay() + 6) % 7;
+  return [...Array<string | null>(primerDia).fill(null), ...Array.from({ length: new Date(anio, numero, 0).getDate() }, (_, i) => `${mes}-${String(i + 1).padStart(2, "0")}`)];
+}
 
 const VACIO_VEHICULO = {
   placa: "", marca: "", modelo: "", anio: "", tipo: "Camioneta", propiedad: "Propio",
@@ -225,43 +240,72 @@ function PaginaVehiculos() {
   }
 
   // ---------- Tareo ----------
-  const VACIO_TAREO = { fecha: new Date().toISOString().slice(0, 10), vehiculo_id: "", proyecto_id: "", conductor_id: "", dias: "1", km: "0", observacion: "" };
+  const mesActual = new Date().toISOString().slice(0, 7);
+  const VACIO_TAREO = { vehiculo_id: "", proyecto_id: "" };
   const [formTareo, setFormTareo] = useState(VACIO_TAREO);
+  const [mesTareo, setMesTareo] = useState(mesActual);
+  const [diasTareo, setDiasTareo] = useState<Set<string>>(new Set());
+  const [mesResumenTareo, setMesResumenTareo] = useState(mesActual);
+  const [editandoTareo, setEditandoTareo] = useState<{ vehiculoId: string; proyectoId: string } | null>(null);
+  const celdasTareo = diasDelMes(mesTareo);
+  const tareoMensual = useMemo(() => tareo.filter((t) => t.fecha.slice(0, 7) === mesResumenTareo), [tareo, mesResumenTareo]);
+  const consolidadoTareo = useMemo(() => {
+    const grupos = new Map<string, { vehiculoId: string; proyectoId: string; dias: number; costo: number }>();
+    for (const registro of tareoMensual) {
+      const clave = `${registro.vehiculo_id}:${registro.proyecto_id}`;
+      const actual = grupos.get(clave) ?? { vehiculoId: registro.vehiculo_id, proyectoId: registro.proyecto_id, dias: 0, costo: 0 };
+      actual.dias += Number(registro.dias || 0);
+      actual.costo += Number(registro.costo_soles || 0);
+      grupos.set(clave, actual);
+    }
+    return [...grupos.values()];
+  }, [tareoMensual]);
+
+  function marcarDiaTareo(fecha: string) {
+    setDiasTareo((actuales) => {
+      const siguientes = new Set(actuales);
+      if (siguientes.has(fecha)) siguientes.delete(fecha); else siguientes.add(fecha);
+      return siguientes;
+    });
+  }
 
   async function guardarTareo() {
-    if (!formTareo.vehiculo_id || !formTareo.proyecto_id) {
-      toast.error("Elige vehículo y proyecto");
+    if (!formTareo.vehiculo_id || !formTareo.proyecto_id || diasTareo.size === 0) {
+      toast.error("Elige vehículo, proyecto y al menos un día");
       return;
     }
     const v = mapaVehiculo.get(formTareo.vehiculo_id);
-    const fila = {
-      fecha: formTareo.fecha,
-      vehiculo_id: formTareo.vehiculo_id,
-      proyecto_id: formTareo.proyecto_id,
-      conductor_id: formTareo.conductor_id || null,
-      dias: Number(formTareo.dias) || 0,
-      km: Number(formTareo.km) || 0,
-      costo_soles: costoTareo(Number(formTareo.dias) || 0, Number(formTareo.km) || 0, v),
-      observacion: formTareo.observacion.trim(),
-    };
-    const { error } = await supabase.from("tareo_vehiculos" as never).insert(fila as never);
+    const fechas = [...diasTareo].sort();
+    const ocupadas = tareo.filter((t) => t.vehiculo_id === formTareo.vehiculo_id && fechas.includes(t.fecha));
+    if (!editandoTareo && ocupadas.length > 0) {
+      toast.error(`El vehículo ya tiene uso registrado el ${ocupadas[0]?.fecha ?? "día seleccionado"}`);
+      return;
+    }
+    if (editandoTareo) {
+      const { error: errorBorrado } = await supabase.from("tareo_vehiculos" as never).delete().eq("vehiculo_id", editandoTareo.vehiculoId).eq("proyecto_id", editandoTareo.proyectoId).gte("fecha", `${mesTareo}-01`).lte("fecha", `${mesTareo}-31`);
+      if (errorBorrado) {
+        toast.error(errorBorrado.message);
+        return;
+      }
+    }
+    const filas = fechas.map((fecha) => ({ fecha, vehiculo_id: formTareo.vehiculo_id, proyecto_id: formTareo.proyecto_id, conductor_id: null, dias: 1, km: 0, costo_soles: costoTareo(1, v), observacion: "" }));
+    const { error } = await supabase.from("tareo_vehiculos" as never).insert(filas as never);
     if (error) {
       toast.error(error.message);
       return;
     }
-    toast.success("Tareo registrado");
-    setFormTareo({ ...VACIO_TAREO, vehiculo_id: formTareo.vehiculo_id });
+    toast.success(editandoTareo ? "Días de uso actualizados" : "Días de uso registrados");
+    setDiasTareo(new Set());
+    setEditandoTareo(null);
     refrescar();
   }
 
-  async function borrarTareo(id: string) {
-    if (!window.confirm("¿Eliminar este registro de tareo?")) return;
-    const { error } = await supabase.from("tareo_vehiculos" as never).delete().eq("id", id);
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    refrescar();
+  function editarDiasTareo(vehiculoId: string, proyectoId: string) {
+    const fechas = tareo.filter((t) => t.vehiculo_id === vehiculoId && t.proyecto_id === proyectoId && t.fecha.slice(0, 7) === mesResumenTareo).map((t) => t.fecha);
+    setFormTareo({ vehiculo_id: vehiculoId, proyecto_id: proyectoId });
+    setMesTareo(mesResumenTareo);
+    setDiasTareo(new Set(fechas));
+    setEditandoTareo({ vehiculoId, proyectoId });
   }
 
   // ---------- Traslados ----------
@@ -310,16 +354,15 @@ function PaginaVehiculos() {
       await supabase.from("vehiculos" as never).update({ km_actual: kmFinal } as never).eq("id", v.id);
     }
     if (formTras.generar_tareo && formTras.proyecto_id) {
-      const kmRecorridos = Math.max(0, kmFinal - (Number(formTras.km_inicial) || 0));
       await supabase.from("tareo_vehiculos" as never).insert({
         fecha: formTras.fecha,
         vehiculo_id: formTras.vehiculo_id,
         proyecto_id: formTras.proyecto_id,
-        conductor_id: formTras.conductor_id || null,
+        conductor_id: null,
         dias: 1,
-        km: kmRecorridos,
-        costo_soles: costoTareo(1, kmRecorridos, v),
-        observacion: `Traslado: ${formTras.origen} → ${formTras.destino}`.trim(),
+        km: 0,
+        costo_soles: costoTareo(1, v),
+        observacion: "",
       } as never);
     }
     toast.success("Traslado registrado");
@@ -584,63 +627,65 @@ function PaginaVehiculos() {
 
       {pestaña === "tareo" && (
         <div className="space-y-4">
-          <Panel titulo="Registrar tareo vehicular">
-            <div className="grid grid-cols-2 gap-3 p-5 md:grid-cols-4">
-              <Campo etiqueta="Fecha"><Input type="date" value={formTareo.fecha} onChange={(e) => setFormTareo({ ...formTareo, fecha: e.target.value })} /></Campo>
+          <Panel titulo={editandoTareo ? "Corregir días de uso" : "Registrar días de uso vehicular"}>
+            <div className="space-y-4 p-5">
+              <div className="grid gap-3 sm:grid-cols-2">
               <Campo etiqueta="Vehículo">
-                <Select value={formTareo.vehiculo_id} onChange={(e) => setFormTareo({ ...formTareo, vehiculo_id: e.target.value })}>
+                <Select value={formTareo.vehiculo_id} disabled={Boolean(editandoTareo)} onChange={(e) => setFormTareo({ ...formTareo, vehiculo_id: e.target.value })}>
                   <option value="">— elegir —</option>
                   {vehiculos.filter((v) => v.estado === "Operativo").map((v) => <option key={v.id} value={v.id}>{v.placa} · {v.marca} {v.modelo}</option>)}
                 </Select>
               </Campo>
               <Campo etiqueta="Proyecto">
-                <Select value={formTareo.proyecto_id} onChange={(e) => setFormTareo({ ...formTareo, proyecto_id: e.target.value })}>
+                <Select value={formTareo.proyecto_id} disabled={Boolean(editandoTareo)} onChange={(e) => setFormTareo({ ...formTareo, proyecto_id: e.target.value })}>
                   <option value="">— elegir —</option>
                   {proyectos.map((p) => <option key={p.id} value={p.id}>{p.codigo} · {p.nombre}</option>)}
                 </Select>
               </Campo>
-              <Campo etiqueta="Conductor">
-                <Select value={formTareo.conductor_id} onChange={(e) => setFormTareo({ ...formTareo, conductor_id: e.target.value })}>
-                  <option value="">— opcional —</option>
-                  {trabajadores.map((t) => <option key={t.id} value={t.id}>{t.nombre}</option>)}
-                </Select>
-              </Campo>
-              <Campo etiqueta="Días (1 o 0.5)"><Input type="number" step="0.5" min="0" value={formTareo.dias} onChange={(e) => setFormTareo({ ...formTareo, dias: e.target.value })} /></Campo>
-              <Campo etiqueta="Km recorridos"><Input type="number" min="0" value={formTareo.km} onChange={(e) => setFormTareo({ ...formTareo, km: e.target.value })} /></Campo>
-              {esDinero && (
-                <Campo etiqueta="Costo calculado">
-                  <Input readOnly value={fmtSoles(costoTareo(Number(formTareo.dias) || 0, Number(formTareo.km) || 0, mapaVehiculo.get(formTareo.vehiculo_id)))} className="font-mono" />
-                </Campo>
-              )}
-              <Campo etiqueta="Observación"><Input value={formTareo.observacion} onChange={(e) => setFormTareo({ ...formTareo, observacion: e.target.value })} /></Campo>
+              </div>
+              <div className="rounded-md border border-line bg-muted/40 p-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="label-mono">Calendario de uso</p>
+                  <div className="flex items-center gap-2">
+                    <Boton type="button" variante="linea" className="px-2" disabled={Boolean(editandoTareo)} onClick={() => setMesTareo(cambiarMes(mesTareo, -1))}>‹</Boton>
+                    <Input type="month" className="w-40" disabled={Boolean(editandoTareo)} value={mesTareo} onChange={(e) => e.target.value && setMesTareo(e.target.value)} />
+                    <Boton type="button" variante="linea" className="px-2" disabled={Boolean(editandoTareo)} onClick={() => setMesTareo(cambiarMes(mesTareo, 1))}>›</Boton>
+                  </div>
+                </div>
+                <div className="mt-3 grid grid-cols-7 gap-1">
+                  {DIAS_SEMANA.map((dia, i) => <div key={i} className="label-mono py-1 text-center">{dia}</div>)}
+                  {celdasTareo.map((fecha, i) => fecha ? (
+                    <button key={fecha} type="button" aria-pressed={diasTareo.has(fecha)} onClick={() => marcarDiaTareo(fecha)} className={`flex h-9 items-center justify-center rounded-md border font-mono text-xs transition-colors ${diasTareo.has(fecha) ? "border-primary bg-primary text-primary-foreground" : "border-line bg-card hover:border-primary"}`}>
+                      {Number(fecha.slice(8))}
+                    </button>
+                  ) : <div key={`vacio-${i}`} />)}
+                </div>
+                <p className="mt-2 font-mono text-[11px] text-muted-foreground">Haz clic en cada día que el vehículo fue utilizado.</p>
+              </div>
+              {esDinero && <div className="flex justify-end font-mono text-xs text-muted-foreground">{diasTareo.size} día(s) · {fmtSoles(costoTareo(diasTareo.size, mapaVehiculo.get(formTareo.vehiculo_id)))}</div>}
             </div>
-            <div className="border-t border-line px-5 py-3">
-              <Boton onClick={guardarTareo}><Plus className="size-3.5" />Registrar tareo</Boton>
+            <div className="flex gap-2 border-t border-line px-5 py-3">
+              <Boton onClick={guardarTareo}>{editandoTareo ? <Check className="size-3.5" /> : <Plus className="size-3.5" />}{editandoTareo ? "Guardar corrección" : `Registrar tareo (${diasTareo.size} día(s))`}</Boton>
+              {(editandoTareo || diasTareo.size > 0) && <Boton variante="linea" onClick={() => { setEditandoTareo(null); setDiasTareo(new Set()); setFormTareo(VACIO_TAREO); }}><X className="size-3.5" />Limpiar</Boton>}
             </div>
           </Panel>
 
-          <Panel titulo={`Tareo registrado (${tareo.length})`}>
-            {tareo.length === 0 ? <Vacio texto="Sin tareo vehicular registrado." /> : (
+          <Panel titulo="Consolidado mensual" extra={<Input type="month" className="w-40" value={mesResumenTareo} onChange={(e) => e.target.value && setMesResumenTareo(e.target.value)} />}>
+            {consolidadoTareo.length === 0 ? <Vacio texto="Sin días de uso registrados en este mes." /> : (
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead><tr className="border-b border-line">
-                    <th className={th}>Fecha</th><th className={th}>Vehículo</th><th className={th}>Proyecto</th>
-                    <th className={th}>Conductor</th><th className={th}>Días</th><th className={th}>Km</th>
-                    {esDinero && <th className={th}>Costo</th>}{esDinero && <th className={th}>Pagado desde</th>}
-                    <th className={th}>Observación</th>{esDinero && <th className={th}></th>}
+                    <th className={th}>Vehículo</th><th className={th}>Proyecto</th><th className={`${th} text-right`}>Días de uso</th>
+                    {esDinero && <th className={`${th} text-right`}>Costo</th>}<th className={th}></th>
                   </tr></thead>
                   <tbody>
-                    {tareo.map((t) => (
-                      <tr key={t.id} className="border-b border-line/60">
-                        <td className={`${td} font-mono`}>{t.fecha}</td>
-                        <td className={td}>{mapaVehiculo.get(t.vehiculo_id)?.placa ?? "—"}</td>
-                        <td className={td}>{mapaProyecto.get(t.proyecto_id)?.codigo ?? "—"}</td>
-                        <td className={td}>{t.conductor_id ? nombreTrabajador.get(t.conductor_id) ?? "—" : "—"}</td>
-                        <td className={`${td} font-mono`}>{t.dias}</td>
-                        <td className={`${td} font-mono`}>{t.km}</td>
-                        {esDinero && <td className={`${td} font-mono`}>{fmtSoles(t.costo_soles)}</td>}
-                        <td className={`${td} text-muted-foreground`}>{t.observacion}</td>
-                        {esDinero && <td className={`${td} text-right`}><button onClick={() => borrarTareo(t.id)} className="text-bad" aria-label="Eliminar"><Trash2 className="size-3.5" /></button></td>}
+                    {consolidadoTareo.map((registro) => (
+                      <tr key={`${registro.vehiculoId}:${registro.proyectoId}`} className="border-b border-line/60">
+                        <td className={`${td} font-mono font-semibold`}>{mapaVehiculo.get(registro.vehiculoId)?.placa ?? "—"}</td>
+                        <td className={td}>{mapaProyecto.get(registro.proyectoId)?.codigo ?? "—"} · {mapaProyecto.get(registro.proyectoId)?.nombre ?? ""}</td>
+                        <td className={`${td} text-right font-mono font-semibold`}>{registro.dias}</td>
+                        {esDinero && <td className={`${td} text-right font-mono`}>{fmtSoles(registro.costo)}</td>}
+                        <td className={`${td} text-right`}><button type="button" onClick={() => editarDiasTareo(registro.vehiculoId, registro.proyectoId)} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary" title="Ver y corregir días" aria-label="Ver y corregir días"><Eye className="size-3.5" /></button></td>
                       </tr>
                     ))}
                   </tbody>

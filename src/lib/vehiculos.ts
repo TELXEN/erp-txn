@@ -106,10 +106,10 @@ export const usePlanMantenimiento = () =>
 export const TIPOS_VEHICULO = ["Camioneta", "Camión", "Auto", "Van", "Otro"];
 export const ESTADOS_VEHICULO = ["Operativo", "En taller", "Baja"];
 
-/** Costo del tareo: días x tarifa diaria + km x tarifa por km. */
-export function costoTareo(dias: number, km: number, v: Vehiculo | undefined) {
+/** Costo del tareo: días de uso por tarifa diaria. */
+export function costoTareo(dias: number, v: Vehiculo | undefined) {
   if (!v) return 0;
-  return Number(dias || 0) * Number(v.tarifa_dia || 0) + Number(km || 0) * Number(v.tarifa_km || 0);
+  return Number(dias || 0) * Number(v.tarifa_dia || 0);
 }
 
 /** Días que faltan para un vencimiento; null si no hay fecha. */
