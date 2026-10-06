@@ -83,6 +83,18 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-hover: var(--sidebar-hover);
   --color-sidebar-panel: var(--sidebar-panel);
+  --color-chip-mat: var(--chip-mat);
+  --color-chip-mo: var(--chip-mo);
+  --color-chip-eq: var(--chip-eq);
+  --color-chip-sc: var(--chip-sc);
+  --color-chip-1: var(--chip-1);
+  --color-chip-2: var(--chip-2);
+  --color-chip-3: var(--chip-3);
+  --color-chip-4: var(--chip-4);
+  --color-chip-margenes: var(--chip-margenes);
+  --color-chip-laboral: var(--chip-laboral);
+  --color-chip-codificacion: var(--chip-codificacion);
+  --color-chip-foreground: var(--chip-foreground);
 
   --font-display: var(--font-global);
   --font-sans: var(--font-global);
@@ -130,6 +142,19 @@
   --sidebar-border: rgb(0 51 82 / 0.14);
   --sidebar-hover: rgb(0 51 82 / 0.08);
   --sidebar-panel: #fff;
+  /* Colores distintivos fijos del Maestro de insumos (idénticos en todos los temas). */
+  --chip-mat: #059669;
+  --chip-mo: #1d4ed8;
+  --chip-eq: #7c3aed;
+  --chip-sc: #ea580c;
+  --chip-1: #0284c7;
+  --chip-2: #c026d3;
+  --chip-3: #4d7c0f;
+  --chip-4: #e11d48;
+  --chip-margenes: #b45309;
+  --chip-laboral: #0369a1;
+  --chip-codificacion: #475569;
+  --chip-foreground: #ffffff;
 }
 
 @layer base {
