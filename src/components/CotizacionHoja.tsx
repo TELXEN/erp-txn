@@ -933,13 +933,13 @@ export function CotizacionHoja({
                   )}
                   {celda(f, r, 1, <span className="block border-l border-line/70 pl-6 text-ink">{it.nombre}</span>)}
                   {bloqueada ? (
-                    <td className={celdaBase}>—</td>
+                    <td className={`${celdaBase} text-center`}>—</td>
                   ) : (
                     celda(f, r, 2, <span className="block text-center text-[9px]">{it.marca || "-"}</span>, "text-center")
                   )}
-                  {bloqueada ? <td className={celdaBase}>—</td> : celda(f, r, 3, <span className="block text-center">{it.unidad}</span>, "text-center")}
+                  {bloqueada ? <td className={`${celdaBase} text-center`}>—</td> : celda(f, r, 3, <span className="block text-center">{it.unidad}</span>, "text-center")}
                   {bloqueada ? (
-                    <td className={celdaBase}>—</td>
+                    <td className={`${celdaBase} text-center`}>—</td>
                   ) : (
                     celda(f, r, 4, <span className="block text-center">{num(it.metrado)}</span>, "text-center")
                   )}
