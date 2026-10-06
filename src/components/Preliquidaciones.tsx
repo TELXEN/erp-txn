@@ -354,7 +354,12 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
   return (
     <>
       {abierto && (
-        <Panel titulo={editando ? `Editar preliquidación ${lista.find((p) => p.id === editando)?.codigo ?? ""}` : "Nueva preliquidación"} className="mb-4">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-background">
+        <Panel
+          titulo={editando ? `Editar preliquidación ${lista.find((p) => p.id === editando)?.codigo ?? ""}` : "Nueva preliquidación"}
+          className="min-h-screen rounded-none border-0"
+          extra={<Boton type="button" variante="linea" onClick={() => setAbierto(false)}>Cerrar editor</Boton>}
+        >
           <form onSubmit={guardar} className="p-5">
             <div className="mb-3 overflow-hidden rounded-lg bg-[#1A2B4C] text-white shadow-sm">
               <div className="flex items-center justify-between border-b border-white/10 px-4 py-1">
@@ -560,6 +565,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
             {error && <p className="mt-2 font-mono text-xs text-bad">{error}</p>}
           </form>
         </Panel>
+        </div>
       )}
 
       <div className="mb-4 grid gap-3 sm:grid-cols-3">
