@@ -177,6 +177,8 @@ export function CotizacionHoja({
   const [colapsados, setColapsados] = useState<Set<string>>(new Set());
   const [apuAbierto, setApuAbierto] = useState<string | null>(null);
   const [activo, setActivo] = useState<{ r: number; c: number }>({ r: 0, c: 1 });
+  const [seleccionadas, setSeleccionadas] = useState<Set<string>>(new Set());
+  const anclaSeleccion = useRef<number | null>(null);
   const [editando, setEditando] = useState(false);
   const [valor, setValor] = useState("");
   const [error, setError] = useState("");
@@ -276,6 +278,14 @@ export function CotizacionHoja({
     }
     return out;
   }, [arbol, colapsados]);
+
+  useEffect(() => {
+    const disponibles = new Set(visibles.filter((f) => f.clase === "item").map((f) => f.clave));
+    setSeleccionadas((prev) => {
+      const vigentes = new Set([...prev].filter((clave) => disponibles.has(clave)));
+      return vigentes.size === prev.size ? prev : vigentes;
+    });
+  }, [visibles]);
 
   useEffect(() => {
     if (activo.r >= visibles.length && visibles.length) setActivo({ r: visibles.length - 1, c: activo.c });
@@ -654,6 +664,70 @@ export function CotizacionHoja({
     );
     if (!quedaGrupo) await crearGrupo(it.especialidad, cat, it.grupo ?? "");
     else refrescar();
+  }
+
+  /** Selecciona partidas consecutivas con Shift + clic; un clic normal inicia un rango nuevo. */
+  function seleccionarPartida(e: React.MouseEvent, r: number, f: Extract<Fila, { clase: "item" }>) {
+    if ((e.target as HTMLElement).closest("button,input,select,[role=menuitem]")) return;
+    setActivo({ r, c: 1 });
+    if (e.shiftKey && anclaSeleccion.current !== null) {
+      const inicio = Math.min(anclaSeleccion.current, r);
+      const fin = Math.max(anclaSeleccion.current, r);
+      setSeleccionadas(new Set(visibles.slice(inicio, fin + 1).filter((fila) => fila.clase === "item").map((fila) => fila.clave)));
+      return;
+    }
+    anclaSeleccion.current = r;
+    setSeleccionadas(new Set([f.clave]));
+  }
+
+  /** Elimina en una sola operación las partidas seleccionadas, respetando los candados existentes. */
+  async function borrarSeleccionadas() {
+    const filas = visibles.filter((f): f is Extract<Fila, { clase: "item" }> => f.clase === "item" && seleccionadas.has(f.clave));
+    if (filas.length < 2) return;
+    const protegidas = filas.filter((f) => f.agrupadora || conApu.has(f.it.id));
+    if (protegidas.length) {
+      setError(`No se puede borrar la selección: ${protegidas.length} partida(s) tienen subpartidas o APU asociado.`);
+      return;
+    }
+    if (!window.confirm(`¿Borrar las ${filas.length} partidas seleccionadas? Esta acción no se puede deshacer.`)) return;
+    setError("");
+    const ids = new Set(filas.map((f) => f.it.id));
+    const { error: err } = await supabase.from("cotizacion_items").delete().in("id", [...ids]);
+    if (err) return setError(err.message);
+
+    const categorias = new Map<string, { especialidad: string; categoria: string; grupo: string }>();
+    for (const f of filas) {
+      const categoria = (f.it.categoria ?? "").trim();
+      categorias.set(`${f.it.especialidad}|${categoria}`, {
+        especialidad: f.it.especialidad,
+        categoria,
+        grupo: f.it.grupo ?? "",
+      });
+    }
+    const restantes = items.filter((i) => !ids.has(i.id));
+    const marcadoras = [...categorias.values()]
+      .filter(({ especialidad, categoria }) => !restantes.some((i) => i.especialidad === especialidad && (i.categoria ?? "").trim() === categoria))
+      .map(({ especialidad, categoria, grupo }, indice) => ({
+        cotizacion_id: cotizacionId,
+        codigo: "",
+        nombre: "",
+        especialidad,
+        categoria,
+        grupo,
+        marca: "",
+        unidad: "glb",
+        metrado: 0,
+        precio_unitario: 0,
+        orden: items.length + indice + 1,
+        tipo: "grupo",
+      }));
+    if (marcadoras.length) {
+      const { error: marcadorError } = await supabase.from("cotizacion_items").insert(marcadoras as never);
+      if (marcadorError) return setError(marcadorError.message);
+    }
+    setSeleccionadas(new Set());
+    anclaSeleccion.current = null;
+    await refrescar();
   }
 
   function grupoConPartidas(f: Fila) {
@@ -1114,7 +1188,12 @@ export function CotizacionHoja({
     <div className="overflow-x-auto">
       {error && <p className="px-5 py-2 font-mono text-xs text-bad">{error}</p>}
       <div className="flex flex-wrap items-center gap-3 border-b border-line bg-muted/30 px-5 py-2 font-mono text-[11.5px] text-muted-foreground print:hidden">
-        <span>Clic derecho: menú · Doble clic edita · Enter guarda · Esc cancela · Flechas y Tab navegan · Insert añade fila</span>
+        <span>Clic derecho: menú · Shift + clic selecciona varias partidas · Doble clic edita · Enter guarda · Esc cancela · Flechas y Tab navegan · Insert añade fila</span>
+        {seleccionadas.size > 1 && (
+          <Button variant="destructive" size="sm" className="ml-auto h-7" onClick={() => void borrarSeleccionadas()}>
+            <Trash2 size={13} /> Borrar {seleccionadas.size} seleccionadas
+          </Button>
+        )}
       </div>
       <table className="w-full min-w-[1180px] table-fixed font-mono text-[10.5px]">
         <colgroup>
@@ -1256,7 +1335,15 @@ export function CotizacionHoja({
                 <ContextMenuTrigger asChild>
                 <tr
                   className={`${f.agrupadora ? "bg-muted/10" : ""} data-[state=open]:bg-primary/5`}
-                  onContextMenu={() => setActivo({ r, c: 1 })}
+                  aria-selected={seleccionadas.has(f.clave)}
+                  onClick={(e) => seleccionarPartida(e, r, f)}
+                  onContextMenu={() => {
+                    setActivo({ r, c: 1 });
+                    if (!seleccionadas.has(f.clave)) {
+                      anclaSeleccion.current = r;
+                      setSeleccionadas(new Set([f.clave]));
+                    }
+                  }}
                   onDoubleClick={(e) => {
                     if ((e.target as HTMLElement).closest("input,select")) return;
                   }}
@@ -1374,7 +1461,11 @@ export function CotizacionHoja({
                     <ArrowDown size={14} className="mr-2" /> Mover abajo
                   </ContextMenuItem>
                   <ContextMenuSeparator />
-                  {f.agrupadora || puFijo ? (
+                  {seleccionadas.size > 1 && seleccionadas.has(f.clave) ? (
+                    <ContextMenuItem className="text-bad focus:text-bad" onSelect={() => void borrarSeleccionadas()}>
+                      <Trash2 size={14} className="mr-2" /> Borrar {seleccionadas.size} partidas seleccionadas
+                    </ContextMenuItem>
+                  ) : f.agrupadora || puFijo ? (
                     <ContextMenuItem disabled>
                       <Lock size={14} className="mr-2" /> {f.agrupadora ? "Tiene subpartidas" : "Tiene APU asociado"}
                     </ContextMenuItem>
