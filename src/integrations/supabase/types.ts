@@ -1457,6 +1457,74 @@ export type Database = {
           },
         ]
       }
+      emos_trabajador: {
+        Row: {
+          clinica: string
+          costo: number
+          created_at: string
+          created_by: string | null
+          estado_pago: string
+          examenes: string[]
+          fecha_emo: string
+          fecha_pago: string | null
+          fecha_vencimiento: string
+          id: string
+          observaciones: string | null
+          restricciones: string | null
+          resultado: string
+          sede_clinica: string | null
+          tipo_emo: string
+          trabajador_id: string
+          updated_at: string
+        }
+        Insert: {
+          clinica: string
+          costo?: number
+          created_at?: string
+          created_by?: string | null
+          estado_pago?: string
+          examenes?: string[]
+          fecha_emo: string
+          fecha_pago?: string | null
+          fecha_vencimiento: string
+          id?: string
+          observaciones?: string | null
+          restricciones?: string | null
+          resultado?: string
+          sede_clinica?: string | null
+          tipo_emo?: string
+          trabajador_id: string
+          updated_at?: string
+        }
+        Update: {
+          clinica?: string
+          costo?: number
+          created_at?: string
+          created_by?: string | null
+          estado_pago?: string
+          examenes?: string[]
+          fecha_emo?: string
+          fecha_pago?: string | null
+          fecha_vencimiento?: string
+          id?: string
+          observaciones?: string | null
+          restricciones?: string | null
+          resultado?: string
+          sede_clinica?: string | null
+          tipo_emo?: string
+          trabajador_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emos_trabajador_trabajador_id_fkey"
+            columns: ["trabajador_id"]
+            isOneToOne: false
+            referencedRelation: "trabajadores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       empresa_config: {
         Row: {
           color_marca: string
