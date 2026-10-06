@@ -11,6 +11,7 @@ Reorganizar visualmente todo el grupo de **Cliente**, **Trabajo a cotizar** y **
 
 2. **Campos más fáciles de identificar y editar**
    - Mostrar etiquetas encima de los valores en Cliente y Trabajo a cotizar.
+   - Sustituir «Registrado» por «RUC»: el selector mostrará el RUC junto con la razón social y, al elegirlo, seguirá completando el cliente como actualmente.
    - Dar a campos editables, listas y fecha una apariencia consistente y un estado de enfoque claro.
    - Destacar la descripción del trabajo y la razón social sin aumentar innecesariamente la altura del bloque.
    - Presentar Validez y Vigente hasta juntos para relacionar ambos datos visualmente.
@@ -32,5 +33,5 @@ Reorganizar visualmente todo el grupo de **Cliente**, **Trabajo a cotizar** y **
 
 ## Verificación
 - Comprobar visualmente el bloque completo en escritorio y en ancho reducido.
-- Verificar selección de cliente, edición de texto, fecha, moneda, tipo de cambio, orientación e IGV.
+- Verificar selección del cliente mediante RUC, autocompletado de razón social, edición de texto, fecha, moneda, tipo de cambio, orientación e IGV.
 - Confirmar que el cambio de moneda sigue recalculando los precios y que no aparecen errores de compilación o ejecución.
