@@ -1,4 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { estadoEmo, ultimoEmoPorTrabajador, useEmos } from "@/lib/emo";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,7 +7,7 @@ import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { Upload } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
-import { useAuth } from "@/lib/auth";
+import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { pct, soles } from "@/lib/format";
 import {
   clasificacionDeCargo,
@@ -60,6 +61,8 @@ type ClaveComposicion = (typeof COMPOSICION)[number]["clave"];
 
 function Dashboard() {
   const { rol } = useAuth();
+  const { data: emosDash = [] } = useEmos(puedeVerDinero(rol));
+  const emoAlerta = (() => { let v = 0, p = 0; ultimoEmoPorTrabajador(emosDash).forEach((e) => { const s = estadoEmo(e.fecha_vencimiento); if (s === "vencido") v++; else if (s === "por_vencer") p++; }); return { v, p }; })();
   const { fuente } = useFuenteDocumento();
   const { data: proyectos = [] } = useProyectos();
   const { data: partidas = [] } = usePartidas();
@@ -421,6 +424,11 @@ function Dashboard() {
         }
       />
 
+      {(emoAlerta.v > 0 || emoAlerta.p > 0) && (
+        <Link to="/personal" className={`mb-4 flex items-center gap-2 rounded-lg border px-4 py-2.5 text-xs font-semibold ${emoAlerta.v > 0 ? "border-bad/40 bg-bad/10 text-bad" : "border-warn/40 bg-warn/10 text-warn"}`}>
+          EMO: {emoAlerta.v > 0 && `${emoAlerta.v} vencido(s)`}{emoAlerta.v > 0 && emoAlerta.p > 0 && " · "}{emoAlerta.p > 0 && `${emoAlerta.p} por vencer en 30 días`} — ver en Gestión de Personal
+        </Link>
+      )}
       <div id="reporte-financiero">
         {/* Nivel 1: KPIs ejecutivos */}
         <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
