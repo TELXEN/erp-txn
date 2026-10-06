@@ -811,27 +811,36 @@ export function CotizacionHoja({
               }}
               placeholder={creandoGrupo ? "Ej.: Suministro de materiales" : multi ? "Ej.: Instalaciones eléctricas" : "Ej.: Suministro de materiales"}
             />
-            {nombresEsp.length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
-                {nombresEsp
-                  .filter((n) => !items.some((i) => (i.especialidad || "").toLowerCase() === n.toLowerCase()))
-                  .map((n) => (
-                    <button
-                      key={n}
-                      type="button"
-                      onClick={() => setNombreGrupo(n)}
-                      className="rounded-full border border-line px-2.5 py-1 text-[11.5px] text-muted-foreground hover:border-primary hover:text-primary"
-                    >
-                      {n}
-                    </button>
-                  ))}
-              </div>
+            {creandoGrupo ? (
+              <p className="font-mono text-[10.5px] leading-relaxed text-muted-foreground">
+                Se registra en Datos › Grupos de partidas. Asígnalo después a las categorías en Datos › Categorías de
+                partidas para que las partidas lo usen al imprimir.
+              </p>
+            ) : (
+              <>
+                {nombresEsp.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {nombresEsp
+                      .filter((n) => !items.some((i) => (i.especialidad || "").toLowerCase() === n.toLowerCase()))
+                      .map((n) => (
+                        <button
+                          key={n}
+                          type="button"
+                          onClick={() => setNombreGrupo(n)}
+                          className="rounded-full border border-line px-2.5 py-1 text-[11.5px] text-muted-foreground hover:border-primary hover:text-primary"
+                        >
+                          {n}
+                        </button>
+                      ))}
+                  </div>
+                )}
+                <p className="font-mono text-[10.5px] leading-relaxed text-muted-foreground">
+                  {multi
+                    ? "Las sugerencias salen de Datos › Especialidad de partidas. Un nombre nuevo se registra ahí mismo para reutilizarlo."
+                    : "Las sugerencias salen de Datos › Grupos de partidas. Un nombre nuevo se registra ahí mismo para reutilizarlo."}
+                </p>
+              </>
             )}
-            <p className="font-mono text-[10.5px] leading-relaxed text-muted-foreground">
-              {multi
-                ? "Las sugerencias salen de Datos › Especialidad de partidas. Un nombre nuevo se registra ahí mismo para reutilizarlo."
-                : "Las sugerencias salen de Datos › Grupos de partidas. Un nombre nuevo se registra ahí mismo para reutilizarlo."}
-            </p>
             {error && <p className="font-mono text-xs text-bad">{error}</p>}
           </div>
           <DialogFooter>
