@@ -1,0 +1,1 @@
+ALTER TABLE public.comprobantes_recibidos_items ADD COLUMN IF NOT EXISTS codigo text, ADD COLUMN IF NOT EXISTS origen text NOT NULL DEFAULT 'xml';

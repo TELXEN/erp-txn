@@ -68,21 +68,41 @@ const attr = (xml: string, name: string, a: string) => {
 const bloques = (xml: string, name: string) => xml.match(new RegExp(`<(?:\\w+:)?${name}\\b[\\s\\S]*?</(?:\\w+:)?${name}>`, "g")) ?? [];
 const n = (s: string) => Number(s) || 0;
 
-export type ItemXml = { descripcion: string; unidad: string; cantidad: number; precio_unitario: number; valor: number };
+export type ItemXml = { codigo: string | null; descripcion: string; unidad: string; cantidad: number; precio_unitario: number; valor: number };
 
+const limpio = (s: string) => s.replace(/<!\[CDATA\[|\]\]>/g, "").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/\s+/g, " ").trim();
+const todos = (xml: string, name: string) => [...xml.matchAll(new RegExp(`<(?:\\w+:)?${name}\\b[^>]*>([\\s\\S]*?)</(?:\\w+:)?${name}>`, "g"))].map((m) => limpio(m[1]!));
+
+/** Parser UBL 2.1 (Perú): extrae ítems de cac:InvoiceLine / CreditNoteLine / DebitNoteLine. */
 export function parsearUbl(xml: string) {
   const lineas = [...bloques(xml, "InvoiceLine"), ...bloques(xml, "CreditNoteLine"), ...bloques(xml, "DebitNoteLine")];
   const items: ItemXml[] = lineas.map((l) => {
     const cant = n(tag(l, "InvoicedQuantity") || tag(l, "CreditedQuantity") || tag(l, "DebitedQuantity"));
     const valor = n(tag(l, "LineExtensionAmount"));
-    const precio = bloques(l, "Price")[0];
+    const item = bloques(l, "Item")[0] ?? "";
+    const sellers = bloques(item, "SellersItemIdentification")[0];
+    // cac:Price directo (no PricingReference, que trae el precio con IGV)
+    const sinRef = l.replace(/<(?:\w+:)?PricingReference\b[\s\S]*?<\/(?:\w+:)?PricingReference>/g, "");
+    const precio = bloques(sinRef, "Price")[0];
     return {
-      descripcion: tag(l, "Description").replace(/\s+/g, " "),
-      unidad: attr(l, "InvoicedQuantity", "unitCode") || attr(l, "CreditedQuantity", "unitCode") || "NIU",
+      codigo: sellers ? limpio(tag(sellers, "ID")) || null : null,
+      descripcion: todos(item, "Description").join(" ") || limpio(tag(l, "Description")),
+      unidad: attr(l, "InvoicedQuantity", "unitCode") || attr(l, "CreditedQuantity", "unitCode") || attr(l, "DebitedQuantity", "unitCode") || "NIU",
       cantidad: cant,
       precio_unitario: precio ? n(tag(precio, "PriceAmount")) : cant ? valor / cant : 0,
       valor,
     };
   });
-  return { moneda: tag(xml, "DocumentCurrencyCode") || "PEN", fecha: tag(xml, "IssueDate"), items };
+  const sinLineas = xml.replace(/<(?:\w+:)?(?:Invoice|CreditNote|DebitNote)Line\b[\s\S]*$/, "");
+  const id = limpio(tag(sinLineas, "ID"));
+  const [serie = "", numero = ""] = id.split("-");
+  const sup = bloques(xml, "AccountingSupplierParty")[0] ?? "";
+  const emisorRuc = limpio(tag(sup, "ID"));
+  return { moneda: tag(xml, "DocumentCurrencyCode") || "PEN", fecha: tag(xml, "IssueDate"), serie, numero, emisorRuc, items };
+}
+
+/** Comprueba que el XML corresponde al comprobante del SIRE. */
+export function coincide(u: ReturnType<typeof parsearUbl>, ruc: string, serie: string, numero: string) {
+  const num = (s: string) => String(Number(s) || s);
+  return (!u.emisorRuc || u.emisorRuc === ruc) && (!u.serie || u.serie.toUpperCase() === serie.toUpperCase()) && (!u.numero || num(u.numero) === num(numero));
 }

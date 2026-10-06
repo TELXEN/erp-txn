@@ -1171,33 +1171,39 @@ export type Database = {
       comprobantes_recibidos_items: {
         Row: {
           cantidad: number
+          codigo: string | null
           comprobante_id: string
           created_at: string
           descripcion: string
           id: string
           orden: number
+          origen: string
           precio_unitario: number
           unidad: string
           valor: number
         }
         Insert: {
           cantidad?: number
+          codigo?: string | null
           comprobante_id: string
           created_at?: string
           descripcion?: string
           id?: string
           orden?: number
+          origen?: string
           precio_unitario?: number
           unidad?: string
           valor?: number
         }
         Update: {
           cantidad?: number
+          codigo?: string | null
           comprobante_id?: string
           created_at?: string
           descripcion?: string
           id?: string
           orden?: number
+          origen?: string
           precio_unitario?: number
           unidad?: string
           valor?: number
