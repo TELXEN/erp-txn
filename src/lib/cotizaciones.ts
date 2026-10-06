@@ -138,6 +138,15 @@ export function totalesCotizacion(
 /** Símbolo de la moneda de una cotización. */
 export const simboloMoneda = (moneda?: string | null) => (moneda === "USD" ? "US$" : "S/");
 
+/** Convierte el precio PEN del banco maestro a la moneda activa de la cotización. */
+export function precioMaestroEnMoneda(precioPEN: number, moneda: "PEN" | "USD", tipoCambio: number) {
+  const precio = Number(precioPEN) || 0;
+  if (moneda === "PEN") return precio;
+  const tc = Number(tipoCambio);
+  if (!(tc > 0)) throw new Error("Registra un tipo de cambio mayor que cero antes de cargar partidas en dólares.");
+  return Math.round((precio / tc) * 10000) / 10000;
+}
+
 /**
  * Cambia la moneda de una cotización recalculando los precios unitarios de
  * todas sus partidas con el tipo de cambio indicado (PEN→USD divide, USD→PEN multiplica).
@@ -329,16 +338,25 @@ export async function guardarComoPlantilla(cot: Cotizacion & { multidisciplinari
 
 /** Copia la estructura de una plantilla a una cotización; toma precios actuales del Registro de partidas. */
 export async function aplicarPlantilla(plantillaId: string, cotizacionId: string) {
-  const [{ data: items, error }, { data: maestras }] = await Promise.all([
+  const [{ data: items, error }, { data: maestras }, { data: cotizacion, error: errorCotizacion }] = await Promise.all([
     sb.from("plantilla_cotizacion_items").select("*").eq("plantilla_id", plantillaId).order("orden"),
     supabase.from("partidas_maestras").select("nombre, precio_unitario"),
+    supabase.from("cotizaciones").select("moneda, tipo_cambio").eq("id", cotizacionId).single(),
   ]);
   if (error) throw error;
+  if (errorCotizacion) throw errorCotizacion;
+  const moneda = cotizacion.moneda === "USD" ? "USD" : "PEN";
+  const tipoCambio = Number(cotizacion.tipo_cambio);
   const precio = new Map((maestras ?? []).map((m) => [m.nombre.trim().toLowerCase(), Number(m.precio_unitario)]));
   await copiarFilas("cotizacion_items", (items ?? []) as FilaCopiable[], { cotizacion_id: cotizacionId }, (i) => ({
     ...base(i),
     metrado: i.tipo === "grupo" ? 0 : Number(i.metrado) || 1,
-    precio_unitario: precio.get(i.nombre.trim().toLowerCase()) ?? Number(i.precio_unitario) ?? 0,
+    precio_unitario:
+      i.tipo === "grupo"
+        ? 0
+        : precio.has(i.nombre.trim().toLowerCase())
+          ? precioMaestroEnMoneda(precio.get(i.nombre.trim().toLowerCase()) ?? 0, moneda, tipoCambio)
+          : Number(i.precio_unitario) || 0,
   }));
 }
 

@@ -26,7 +26,7 @@ import {
 } from "@/lib/categorias";
 import { apuDb, calcularApu, nombreTipo, precioVenta, TIPOS_INSUMO, tiposVisibles, useComponentesApu, useInsumos, useMargenesInsumo } from "@/lib/apu";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
-import { gruposPermitidos, useGruposCotizacion, usePartidasMaestras, type CotizacionItem, type PartidaMaestra } from "@/lib/cotizaciones";
+import { gruposPermitidos, precioMaestroEnMoneda, useGruposCotizacion, usePartidasMaestras, type CotizacionItem, type PartidaMaestra } from "@/lib/cotizaciones";
 import { recodificarWbs } from "@/lib/wbs";
 import { DOC } from "@/lib/documento-tema";
 
@@ -155,6 +155,8 @@ export function CotizacionHoja({
   unidades,
   alAbrirCatalogo,
   simbolo = "S/",
+  moneda = "PEN",
+  tipoCambio = 0,
   multi = true,
   alcance = "ambos",
 }: {
@@ -167,6 +169,8 @@ export function CotizacionHoja({
   alAbrirCatalogo?: () => void;
   /** Símbolo de la moneda de la cotización (S/ o US$) para los importes de la hoja. */
   simbolo?: string;
+  moneda?: "PEN" | "USD";
+  tipoCambio?: number;
 }) {
   const mon = (n: number) => `${simbolo} ${Number(n || 0).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   const qc = useQueryClient();
@@ -403,6 +407,13 @@ export function CotizacionHoja({
   async function crearPartida(esp: string, cat: string, nombre: string, unidad = "glb", maestra?: PartidaMaestra) {
     setError("");
     const categoria = maestra ? maestra.categoria || cat : cat;
+    let precioUnitario = 0;
+    try {
+      precioUnitario = maestra ? precioMaestroEnMoneda(maestra.precio_unitario, moneda, tipoCambio) : 0;
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "No se pudo convertir el precio de la partida.");
+      return false;
+    }
     const { error: err } = await supabase.from("cotizacion_items").insert({
       cotizacion_id: cotizacionId,
       codigo: codigoContextual(esp, categoria, items),
@@ -413,7 +424,7 @@ export function CotizacionHoja({
       marca: maestra?.marca ?? "",
       unidad: maestra?.unidad ?? unidad,
       metrado: 1,
-      precio_unitario: maestra ? Number(maestra.precio_unitario) : 0,
+      precio_unitario: precioUnitario,
       orden: items.length + 1,
     });
     if (err) {
@@ -876,13 +887,20 @@ export function CotizacionHoja({
           onChange={setValor}
           onElegir={(m) => {
             void (async () => {
+              let precioUnitario = 0;
+              try {
+                precioUnitario = precioMaestroEnMoneda(m.precio_unitario, moneda, tipoCambio);
+              } catch (e) {
+                setError(e instanceof Error ? e.message : "No se pudo convertir el precio de la partida.");
+                return;
+              }
               const { error: err } = await supabase
                 .from("cotizacion_items")
                 .update({
                   nombre: m.nombre,
                   marca: m.marca ?? "",
                   unidad: m.unidad,
-                  precio_unitario: Number(m.precio_unitario),
+                  precio_unitario: precioUnitario,
                 } as never)
                 .eq("id", f.it.id);
               if (err) setError(err.message);
