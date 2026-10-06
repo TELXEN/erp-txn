@@ -81,8 +81,8 @@ type ItemCot = {
 };
 
 type Fila =
-  | { clase: "grupo"; llave: string; texto: string; numero: string }
-  | { clase: "sub"; llave: string; texto: string; numero: string }
+  | { clase: "grupo"; llave: string; texto: string; numero: string; total: number }
+  | { clase: "sub"; llave: string; texto: string; numero: string; total: number }
   | { clase: "item"; llave: string; item: ItemCot; indice: number; numero: string };
 
 /**
@@ -121,6 +121,10 @@ function construirFilas(items: ItemCot[], opts: { multi?: boolean; alcance?: str
     }
     return "";
   };
+  // Suma de las partidas del nodo y sus descendientes (total del encabezado).
+  const totalNodo = (nodo: Nodo): number =>
+    nodo.items.reduce((t, i) => t + Number(i.metrado) * Number(i.precio_unitario), 0) +
+    [...nodo.hijos.values()].reduce((t, h) => t + totalNodo(h), 0);
   // Multi: 4 niveles (esp.grupo.cat.partida); una disciplina: 3 niveles (grupo.cat.partida). En ambos el primer nivel visible es 1 segmento.
   const desfase = 1 + (omitirTop ? 1 : 0);
   const recorrer = (nodo: Nodo, prefijo: string, prof: number) => {
@@ -135,7 +139,7 @@ function construirFilas(items: ItemCot[], opts: { multi?: boolean; alcance?: str
       j += 1;
       const cod = primerCodigo(hijo).split(".");
       const numero = cod.length >= prof + desfase ? cod.slice(0, prof + desfase).join(".") : prefijo ? `${prefijo}.${String(j).padStart(2, "0")}` : String(j).padStart(2, "0");
-      filas.push({ clase: prof === 0 ? "grupo" : "sub", llave: `n-${numero}-${k}`, texto: prof === 0 ? k.toUpperCase() : k, numero });
+      filas.push({ clase: prof === 0 ? "grupo" : "sub", llave: `n-${numero}-${k}`, texto: prof === 0 ? k.toUpperCase() : k, numero, total: totalNodo(hijo) });
       recorrer(hijo, numero, prof + 1);
     }
     let kk = 0;
@@ -306,10 +310,11 @@ function VistaCotizacion() {
       c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
       c.alignment = { vertical: "middle", horizontal: "center" };
     });
-    const primera = ws.rowCount + 1;
+    const filasPartida: number[] = [];
     construirFilas(items as unknown as ItemCot[], { multi: Boolean(cot.multidisciplinaria), alcance: cot.alcance }).forEach((fila) => {
       if (fila.clase !== "item") {
-        const g = ws.addRow([fila.numero, fila.texto, "", "", "", "", ""]);
+        // Encabezados (especialidad/grupo/categoría) llevan su total; no entra al COSTO DIRECTO para no duplicar.
+        const g = ws.addRow([fila.numero, fila.texto, "", "", "", "", Math.round(fila.total * 100) / 100]);
         g.font = { name: fuenteExcel, bold: true, size: fila.clase === "grupo" ? 11 : 10 };
         g.fill = { type: "pattern", pattern: "solid", fgColor: { argb: fila.clase === "grupo" ? "FFE2E8F0" : "FFF1F5F9" } };
         return;
@@ -317,9 +322,10 @@ function VistaCotizacion() {
       const it = fila.item;
       const r = ws.addRow([it.codigo || fila.numero, it.nombre, it.marca?.trim() || "-", it.unidad, Number(it.metrado), Number(it.precio_unitario)]);
       r.getCell(7).value = { formula: `E${r.number}*F${r.number}` };
+      filasPartida.push(r.number);
     });
-    const ultima = ws.rowCount;
-    const sub = ws.addRow(["", "COSTO DIRECTO", "", "", "", "", { formula: `SUM(G${primera}:G${ultima})` }]);
+    // Suma solo las filas de partida (los totales de encabezado son informativos).
+    const sub = ws.addRow(["", "COSTO DIRECTO", "", "", "", "", { formula: filasPartida.length ? filasPartida.map((n) => `G${n}`).join("+") : "0" }]);
     const pctGg = Number(cot.pct_gastos_generales) || 0;
     const pctUt = Number(cot.pct_utilidad) || 0;
     let base = `G${sub.number}`;
@@ -533,7 +539,7 @@ function VistaCotizacion() {
                               {fila.numero}
                             </td>
                             <td
-                              colSpan={6}
+                              colSpan={5}
                               style={{
                                 padding: esGrupo ? "7px 8px" : "5px 8px",
                                 background: esGrupo ? C.slate100 : C.slate50,
@@ -546,6 +552,20 @@ function VistaCotizacion() {
                               }}
                             >
                               {fila.texto}
+                            </td>
+                            <td
+                              style={{
+                                padding: esGrupo ? "7px 8px" : "5px 8px",
+                                background: esGrupo ? C.slate100 : C.slate50,
+                                borderBottom: `1px solid ${C.slate100}`,
+                                color: esGrupo ? NIVEL.grupo : NIVEL.categoria,
+                                fontWeight: esGrupo ? 700 : 600,
+                                fontSize: "8pt",
+                                textAlign: "right",
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              {S(sim, fila.total)}
                             </td>
                           </tr>
                         );
