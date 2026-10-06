@@ -190,6 +190,11 @@ function PaginaVehiculos() {
       toast.error("La placa es obligatoria");
       return;
     }
+    const placaNueva = formVeh.placa.trim().toUpperCase();
+    if (vehiculos.some((v) => v.placa.toUpperCase() === placaNueva && v.id !== editVeh)) {
+      toast.error(`La placa ${placaNueva} ya está registrada`);
+      return;
+    }
     const fila = {
       placa: formVeh.placa.trim().toUpperCase(),
       marca: formVeh.marca.trim(),
