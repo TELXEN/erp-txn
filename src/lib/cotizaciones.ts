@@ -336,3 +336,34 @@ export async function cambiarModoCotizacion(cotizacionId: string, multi: boolean
       .eq("grupo" as never, g as never);
   }
 }
+
+/** Ajusta la hoja (una disciplina) al alcance: crea los grupos permitidos que falten y mueve los ítems de grupos excluidos. */
+export async function aplicarAlcanceCotizacion(cotizacionId: string, alcance: AlcanceCotizacion, multi: boolean) {
+  const { error } = await sb.from("cotizaciones").update({ alcance }).eq("id", cotizacionId);
+  if (error) throw error;
+  if (multi) return;
+  const permitidos = alcance === "suministro" ? [GRUPO_SUMINISTRO] : alcance === "montaje" ? [GRUPO_MONTAJE] : [GRUPO_SUMINISTRO, GRUPO_MONTAJE];
+  const fijos = [GRUPO_SUMINISTRO, GRUPO_MONTAJE];
+  const { data, error: e1 } = await supabase.from("cotizacion_items").select("id, especialidad, orden").eq("cotizacion_id", cotizacionId);
+  if (e1) throw e1;
+  const items = (data ?? []) as { id: string; especialidad: string; orden: number }[];
+  if (permitidos.length === 1) {
+    const mover = items.filter((i) => fijos.includes(i.especialidad) && i.especialidad !== permitidos[0]).map((i) => i.id);
+    if (mover.length) {
+      const { error: e2 } = await supabase.from("cotizacion_items").update({ especialidad: permitidos[0] } as never).in("id", mover);
+      if (e2) throw e2;
+    }
+  }
+  const presentes = new Set(items.map((i) => (permitidos.length === 1 && fijos.includes(i.especialidad) ? permitidos[0] : i.especialidad)));
+  let orden = items.reduce((m, i) => Math.max(m, Number(i.orden) || 0), 0);
+  const faltan = permitidos.filter((g) => !presentes.has(g));
+  if (faltan.length) {
+    const { error: e3 } = await supabase.from("cotizacion_items").insert(
+      faltan.map((g) => ({
+        cotizacion_id: cotizacionId, codigo: "", nombre: "", especialidad: g, categoria: "", marca: "",
+        unidad: "glb", metrado: 0, precio_unitario: 0, orden: ++orden, tipo: "grupo",
+      })) as never,
+    );
+    if (e3) throw e3;
+  }
+}
