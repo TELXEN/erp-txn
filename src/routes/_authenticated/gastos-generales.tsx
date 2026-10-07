@@ -826,7 +826,7 @@ function ModalGasto({
               {categorias.map((c) => (
                 <li key={c.id} className="flex flex-col gap-1 rounded-md border border-line bg-card px-3 py-2">
                   <InsigniaCategoriaGasto valor={c.nombre} />
-                  <span className="text-[11px] leading-snug text-muted-foreground">
+                  <span className="text-[11px] leading-snug text-primary">
                     {c.descripcion || "Sin descripción registrada. Agrégala en Datos > Catálogos Maestros."}
                   </span>
                 </li>
@@ -847,7 +847,12 @@ function ModalGasto({
                 <option value="">Selecciona...</option>
                 {categorias.map((c) => <option key={c.id} value={c.nombre}>{c.nombre}</option>)}
               </Select>
-              {ayudaCategoria && <p className="mt-1 text-[11px] leading-snug text-muted-foreground">{ayudaCategoria}</p>}
+              {ayudaCategoria && (
+                <p className="mt-1 inline-flex items-start gap-1.5 rounded-md bg-primary/10 px-2 py-1 text-[11px] leading-snug text-primary">
+                  <Info size={12} className="mt-0.5 shrink-0" />
+                  {ayudaCategoria}
+                </p>
+              )}
             </label>
             <label className="sm:col-span-2"><span className={etq}>Proveedor</span>
               <Select required value={form.proveedor_id} onChange={(e) => setForm({ ...form, proveedor_id: e.target.value })} className={inp}>
