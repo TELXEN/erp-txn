@@ -182,7 +182,7 @@ function SincronizacionGlobal({ periodo, onPeriodoChange, botonConfig, subtabs }
         </div>
         <div className="flex flex-col items-end gap-1.5">
           <Boton onClick={sincronizarTodo} disabled={progreso !== null}><RefreshCw className={`size-3.5 ${progreso !== null ? "animate-spin" : ""}`} />Sincronizar Compras y Ventas</Boton>
-          <div className="flex items-center justify-center gap-2 self-stretch">
+          <div className="flex items-center justify-center gap-2 self-stretch mt-1">
             <Select value={m} onChange={(e) => onPeriodoChange(`${y}-${String(e.target.value).padStart(2, "0")}`)} className="w-28">{MESES.map((n, i) => <option key={n} value={i + 1}>{n}</option>)}</Select>
             <Select value={y} onChange={(e) => onPeriodoChange(`${e.target.value}-${String(m).padStart(2, "0")}`)} className="w-24">{anios.map((a) => <option key={a}>{a}</option>)}</Select>
           </div>
