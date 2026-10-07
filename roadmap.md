@@ -33,3 +33,4 @@
 - [x] Gastos Generales: resaltar en color distinto el comentario de la categoría del gasto (sin campo de notas nuevo)
 - [x] Dashboard de proyectos: presupuesto total vs gastado, contadores de estado y opción «Todos los proyectos»
 - [x] Listado de proyectos: filtros, avance, acciones administrativas y validación central de costos.
+- [x] Gastos Generales: glosa validada, estado con medio/moneda, adjuntos contextuales y subtotales alineados.

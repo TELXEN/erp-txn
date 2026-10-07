@@ -6,7 +6,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { InsigniaCategoriaGasto } from "@/components/estado-ui";
-import { Building2, CalendarDays, Check, ChevronDown, ChevronRight, Info, Pencil, Plus, Search, Truck, Trash2, Upload, X } from "lucide-react";
+import { Building2, CalendarDays, Check, ChevronDown, ChevronRight, Info, Paperclip, Pencil, Plus, Search, Truck, Trash2, Upload, X } from "lucide-react";
+import { toast } from "sonner";
+import { z } from "zod";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
 import { useCategoriasGastoGeneral, useGastosGenerales, useProyectos, useTerceros } from "@/lib/datos";
@@ -33,9 +35,25 @@ type Pago = {
   estado_pago?: string;
   comprobante?: string;
   banco_id?: string | null;
+  caja_chica_id?: string | null;
 };
 
 type Cuenta = { id: string; nombre: string; monedas: string; tipo_cuenta: string; numero_cuenta: string; activo: boolean };
+type AdjuntoGasto = { registro_id: string | null; pdf_path: string | null; xml_path: string | null };
+
+const glosaSchema = z
+  .string()
+  .trim()
+  .min(2, "Detalle / Glosa debe tener al menos 2 caracteres útiles.")
+  .max(160, "Detalle / Glosa no puede superar los 160 caracteres.")
+  .refine((valor) => !/^(.)\1*$/u.test(valor.replace(/\s/g, "")), {
+    message: "Detalle / Glosa no puede repetir un solo carácter.",
+  });
+
+function validarGlosa(valor: string) {
+  const resultado = glosaSchema.safeParse(valor);
+  return resultado.success ? null : resultado.error.issues[0]?.message ?? "Ingresa un detalle válido.";
+}
 
 const formGastoVacio = () => ({
   descripcion: "",
@@ -66,6 +84,18 @@ function GastosGenerales() {
       const { data, error: err } = await supabase.from("bancos").select("*").order("nombre");
       if (err) throw err;
       return (data ?? []) as unknown as Cuenta[];
+    },
+  });
+  const { data: adjuntos = [] } = useQuery({
+    queryKey: ["adjuntos_gastos_generales"],
+    queryFn: async () => {
+      const { data, error: err } = await supabase
+        .from("comprobantes_recibidos")
+        .select("registro_id,pdf_path,xml_path")
+        .eq("registrado_en", "gasto_general")
+        .not("registro_id", "is", null);
+      if (err) throw err;
+      return (data ?? []) as AdjuntoGasto[];
     },
   });
   const cuentasActivas = cuentas.filter((c) => c.activo);
@@ -102,8 +132,14 @@ function GastosGenerales() {
   const nombreProy = (id: string | null) => (id ? (proyectos.find((p) => p.id === id)?.nombre ?? "—") : "Oficina Central");
   const nombreBanco = (id: string | null | undefined) => {
     const c = cuentas.find((x) => x.id === id);
-    return c ? `${c.nombre} · ${c.monedas}` : "";
+    return c?.nombre ?? "";
   };
+  const detallePago = (g: (typeof gastos)[number]) => {
+    const cuenta = nombreBanco((g as Pago).banco_id);
+    const medio = cuenta || ((g as Pago).caja_chica_id ? "Caja Chica" : "");
+    return medio ? `${medio} | ${g.moneda}` : "";
+  };
+  const adjuntoDe = (id: string) => adjuntos.find((a) => a.registro_id === id);
   const enRango = (f: string) => (!desde || f >= desde) && (!hasta || f <= hasta);
   const gastosRango = gastos.filter((g) => enRango(g.fecha));
   const porAmbito =
@@ -192,6 +228,8 @@ function GastosGenerales() {
   }
 
   async function guardar(): Promise<string | null> {
+    const errorGlosa = validarGlosa(form.descripcion);
+    if (errorGlosa) return errorGlosa;
     if (!form.categoria) return "Selecciona la categoría del gasto general.";
     if (form.moneda === "USD" && Number(form.tipo_cambio) <= 0)
       return "Ingresa un tipo de cambio válido para dólares.";
@@ -254,6 +292,8 @@ function GastosGenerales() {
   async function actualizarEdicion(e?: React.MouseEvent | React.FormEvent) {
     e?.preventDefault();
     if (!editando) return;
+    const errorGlosa = validarGlosa(editando.descripcion);
+    if (errorGlosa) return setError(errorGlosa);
     const monto = Number(editando.monto);
     if (monto < 0) return setError("El monto no puede ser negativo.");
     const original = gastos.find((g) => g.id === editando.id);
@@ -274,8 +314,17 @@ function GastosGenerales() {
     qc.invalidateQueries({ queryKey: ["gastos_generales"] });
   }
 
+  async function abrirAdjunto(adjunto: AdjuntoGasto | undefined) {
+    const path = adjunto?.pdf_path || adjunto?.xml_path;
+    if (!path) return undefined;
+    const { data, error: err } = await supabase.storage.from("comprobantes-compra").createSignedUrl(path, 300);
+    if (err || !data) return toast.error("No se pudo abrir el archivo adjunto.");
+    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+    return undefined;
+  }
+
   return (
-    <>
+    <div className="[font-family:Roboto,sans-serif]">
       <Encabezado
         titulo="Gastos Generales"
         subtitulo="Compras indirectas y oficina"
@@ -557,7 +606,7 @@ function GastosGenerales() {
           />
         ) : (
           <div className="overflow-x-auto">
-          <table className="w-full min-w-[760px] table-fixed font-mono text-xs">
+          <table className="w-full min-w-[860px] table-fixed text-xs">
             <thead>
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
                 <th className="w-[11%] px-5 py-2.5 font-medium">Fecha</th>
@@ -590,7 +639,7 @@ function GastosGenerales() {
                               {filas.length} {filas.length === 1 ? "comprobante" : "comprobantes"}
                             </span>
                           </span>
-                          <span className="text-sm font-semibold text-ink">{soles(subtotal)}</span>
+                          <span className="min-w-36 text-right text-sm font-semibold tabular-nums text-ink">{soles(subtotal)}</span>
                         </button>
                       </td>
                     </tr>
@@ -610,10 +659,12 @@ function GastosGenerales() {
                             <td className="px-3 py-2">
                               <Input
                                 value={editando.descripcion}
-                                onChange={(e) => setEditando({ ...editando, descripcion: e.target.value })}
+                                onChange={(e) => { setEditando({ ...editando, descripcion: e.target.value }); setError(""); }}
                                 className="py-1 text-xs"
                                 maxLength={160}
+                                aria-label="Detalle / Glosa"
                               />
+                              {error && <p className="mt-1 text-[10px] text-bad">{error}</p>}
                             </td>
                             <td className="px-3 py-2">
                               <Select
@@ -663,13 +714,19 @@ function GastosGenerales() {
                         ) : (
                           <tr key={g.id} className="border-b border-line/60 transition-colors hover:bg-muted/30">
                             <td className="px-5 py-3 text-ink">{fmtFecha(g.fecha)}</td>
-                            <td className="px-3 py-3 text-ink"><Resaltar texto={(g as Pago).comprobante || "—"} termino={busqueda}/></td>
+                            <td className="px-3 py-3 text-ink">
+                              {(g as Pago).comprobante?.trim() ? (
+                                <Resaltar texto={(g as Pago).comprobante ?? ""} termino={busqueda}/>
+                              ) : (
+                                <span className="inline-flex whitespace-nowrap rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">Sustento Simple</span>
+                              )}
+                            </td>
                             <td className="px-3 py-3">
                               <div className="truncate font-sans text-sm font-semibold text-ink">
                                 <Resaltar texto={g.descripcion} termino={busqueda}/>
                               </div>
-                              <div className="truncate text-[11px] text-muted-foreground">
-                                {nombreProy(g.proyecto_id)} | <Resaltar texto={nombreProv(g)} termino={busqueda}/>
+                              <div className="mt-0.5 truncate text-[11px] font-medium text-muted-foreground">
+                                Centro: {nombreProy(g.proyecto_id)} | Prov: <Resaltar texto={nombreProv(g)} termino={busqueda}/>
                               </div>
                             </td>
                             <td className="px-3 py-3">
@@ -681,11 +738,11 @@ function GastosGenerales() {
                               >
                                 <Pastilla g={g as Pago} />
                               </button>
-                              {nombreBanco((g as Pago).banco_id) && (
-                                <div className="mt-1 truncate text-[10px] text-muted-foreground">{nombreBanco((g as Pago).banco_id)}</div>
+                              {detallePago(g) && (
+                                <div className="mt-1 truncate text-[10px] font-medium text-muted-foreground">{detallePago(g)}</div>
                               )}
                             </td>
-                            <td className="px-3 py-3 text-right text-sm font-semibold text-ink">
+                            <td className="px-3 py-3 text-right text-sm font-semibold tabular-nums text-ink">
                               {g.moneda === "USD" ? (
                                 <>
                                   US$ {Number(g.monto).toFixed(2)}
@@ -697,6 +754,16 @@ function GastosGenerales() {
                             </td>
                             <td className="px-5 py-3">
                               <div className="flex items-center justify-end gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => abrirAdjunto(adjuntoDe(g.id))}
+                                  disabled={!adjuntoDe(g.id)?.pdf_path && !adjuntoDe(g.id)?.xml_path}
+                                  className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-muted-foreground"
+                                  title={adjuntoDe(g.id)?.pdf_path || adjuntoDe(g.id)?.xml_path ? "Abrir sustento adjunto" : "Sin PDF o XML adjunto"}
+                                  aria-label={adjuntoDe(g.id)?.pdf_path || adjuntoDe(g.id)?.xml_path ? "Abrir sustento adjunto" : "Sin PDF o XML adjunto"}
+                                >
+                                  <Paperclip size={15} />
+                                </button>
                                 <button
                                   type="button"
                                   onClick={() => iniciarEdicion(g)}
@@ -744,7 +811,7 @@ function GastosGenerales() {
           onCerrar={() => setModalGasto(false)}
         />
       )}
-    </>
+    </div>
   );
 }
 
@@ -800,7 +867,7 @@ function ModalGasto({
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-foreground/40 p-4" onMouseDown={onCerrar}>
-      <div className="panel my-8 w-full max-w-4xl overflow-hidden font-mono" onMouseDown={(e) => e.stopPropagation()}>
+      <div className="panel my-8 w-full max-w-4xl overflow-hidden [font-family:Roboto,sans-serif]" onMouseDown={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between border-b border-line px-5 py-3">
           <div>
             <h2 className="text-base font-semibold tracking-tight">Registrar gasto general</h2>
@@ -840,8 +907,10 @@ function ModalGasto({
             <div><span className={etq}>Fecha</span><FechaPeru valor={form.fecha} onChange={(v) => setForm({ ...form, fecha: v })} /></div>
             <label><span className={etq}>N° comprobante</span>
               <Input value={form.comprobante} onChange={(e) => setForm({ ...form, comprobante: e.target.value })} placeholder="F001-4520" maxLength={40} className={inp} /></label>
-            <label className="sm:col-span-2"><span className={etq}>Descripción</span>
-              <Input autoFocus required value={form.descripcion} onChange={(e) => setForm({ ...form, descripcion: e.target.value })} maxLength={160} className={inp} /></label>
+            <label className="sm:col-span-2"><span className={etq}>Detalle / Glosa</span>
+              <Input autoFocus required minLength={2} value={form.descripcion} onChange={(e) => { setForm({ ...form, descripcion: e.target.value }); setError(""); }} onBlur={() => setError(validarGlosa(form.descripcion) ?? "")} maxLength={160} className={inp} aria-invalid={Boolean(error && validarGlosa(form.descripcion))} />
+              {error && validarGlosa(form.descripcion) && <span className="mt-1 block text-[10px] text-bad">{error}</span>}
+            </label>
             <label className="sm:col-span-2"><span className={etq}>Categoría del gasto</span>
               <Select required value={form.categoria} onChange={(e) => setForm({ ...form, categoria: e.target.value })} className={inp}>
                 <option value="">Selecciona...</option>
