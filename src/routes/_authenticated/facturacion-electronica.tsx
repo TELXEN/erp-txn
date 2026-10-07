@@ -8,6 +8,7 @@ import { Encabezado } from "@/components/AppShell";
 import { Boton, Etiqueta, Panel, SinAcceso, Vacio } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { calcularVencimiento } from "@/components/CondicionPago";
+import { ConfigDecolecta } from "@/components/facturacion/ConfigDecolecta";
 import { ComprobantesCompras } from "@/components/facturacion/ComprobantesCompras";
 import { HojaComprobante, nuevoFormCpe, type FormCpe } from "@/components/facturacion/HojaComprobante";
 import { supabase } from "@/integrations/supabase/client";
@@ -169,7 +170,7 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
   ].filter((g) => g.tipos.length > 0);
   const grupoActivo = gruposFacturacion.find((g) => vista === "recibidos" ? g.tipos.some((p) => p.tipo === "recibidos") : g.tipos.some((p) => p.tipo === pestana)) ?? gruposFacturacion[0];
   const ETIQUETA_BOTON: Record<string, string> = { "01": "Crear Factura", "03": "Crear Boleta", "07": "Crear Notas de Crédito", "08": "Crear Notas de Débito", "20": "Crear Retenciones", "40": "Crear Percepciones", RA: "Nueva comunicación de baja" };
-  return <><Encabezado titulo={esGuias ? "Guías de Remisión" : "Facturación Electrónica"} subtitulo={esGuias ? "Logística · guías de remisión remitente y traslados" : "Comercial · comprobantes, estados SUNAT y cobranza"} acciones={vista === "recibidos" ? undefined : abierto ? <Boton variante="linea" onClick={cerrar}>Cerrar editor</Boton> : <Boton onClick={() => abrirNuevo(pestana)}><FilePlus2 size={14} />{esGuias ? "Nueva guía de remisión" : ETIQUETA_BOTON[pestana] ?? "Nuevo comprobante"}</Boton>} />
+  return <><Encabezado titulo={esGuias ? "Guías de Remisión" : "Facturación Electrónica"} subtitulo={esGuias ? "Logística · guías de remisión remitente y traslados" : "Comercial · comprobantes, estados SUNAT y cobranza"} acciones={<div className="flex items-center gap-2">{!esGuias && (rol === "gerente" || rol === "administrador") && <ConfigDecolecta />}{vista === "recibidos" ? null : abierto ? <Boton variante="linea" onClick={cerrar}>Cerrar editor</Boton> : <Boton onClick={() => abrirNuevo(pestana)}><FilePlus2 size={14} />{esGuias ? "Nueva guía de remisión" : ETIQUETA_BOTON[pestana] ?? "Nuevo comprobante"}</Boton>}</div>} />
     {!esGuias && <>
       <div className="mb-3 flex flex-wrap gap-1">
         {gruposFacturacion.map((g) => {

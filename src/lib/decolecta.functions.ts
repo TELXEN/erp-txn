@@ -4,6 +4,60 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const BASE = "https://api.decolecta.com/v1";
 
+async function obtenerToken(): Promise<string> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data } = await (supabaseAdmin as never as { from: (t: string) => any }).from("integraciones_credenciales").select("api_key").eq("proveedor", "decolecta").maybeSingle();
+  return (data?.api_key as string | undefined) || process.env["DECOLECTA_API_KEY"] || "";
+}
+
+async function exigirGestor(context: { supabase: any; userId: string }) {
+  const { data } = await context.supabase.rpc("is_admin_o_gerente", { _user_id: context.userId });
+  if (!data) throw new Error("Solo Gerencia o Administración pueden configurar Decolecta.");
+}
+
+async function probarToken(token: string) {
+  try {
+    const res = await fetch(`${BASE}/sunat/ruc?numero=20100070970`, { headers: { Authorization: `Bearer ${token}` } });
+    if (res.status === 401 || res.status === 403) return { ok: false, mensaje: "La clave no es válida o no tiene permisos." };
+    if (!res.ok) return { ok: false, mensaje: `Decolecta respondió con un error (${res.status}).` };
+    return { ok: true, mensaje: "Conexión exitosa con Decolecta." };
+  } catch {
+    return { ok: false, mensaje: "No se pudo conectar con Decolecta." };
+  }
+}
+
+export const estadoDecolecta = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await exigirGestor(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data } = await (supabaseAdmin as never as { from: (t: string) => any }).from("integraciones_credenciales").select("api_key,updated_at").eq("proveedor", "decolecta").maybeSingle();
+    const k = (data?.api_key as string | undefined) ?? "";
+    return { configurado: Boolean(k || process.env["DECOLECTA_API_KEY"]), terminacion: k ? k.slice(-4) : "", actualizado: (data?.updated_at as string | undefined) ?? "" };
+  });
+
+export const guardarDecolecta = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ apiKey: z.string().trim().min(10, "La clave parece incompleta.").max(500) }).parse(d))
+  .handler(async ({ data, context }) => {
+    await exigirGestor(context);
+    const prueba = await probarToken(data.apiKey);
+    if (!prueba.ok) return prueba;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await (supabaseAdmin as never as { from: (t: string) => any }).from("integraciones_credenciales").upsert({ proveedor: "decolecta", api_key: data.apiKey, updated_at: new Date().toISOString(), updated_by: context.userId });
+    if (error) return { ok: false, mensaje: "No se pudo guardar la clave." };
+    return { ok: true, mensaje: "Clave verificada y guardada." };
+  });
+
+export const probarDecolecta = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await exigirGestor(context);
+    const t = await obtenerToken();
+    if (!t) return { ok: false, mensaje: "Aún no hay clave configurada." };
+    return probarToken(t);
+  });
+
 export type ResultadoDocumento = {
   configurado: boolean;
   encontrado: boolean;
@@ -23,7 +77,7 @@ export const consultarDocumentoSunat = createServerFn({ method: "POST" })
   .handler(async ({ data }): Promise<ResultadoDocumento> => {
     const esRuc = data.numero.length === 11;
     const vacio: ResultadoDocumento = { configurado: true, encontrado: false, tipoDocumento: esRuc ? "RUC" : "DNI", numero: data.numero, razonSocial: "", direccion: "", estado: "", condicion: "", mensaje: "" };
-    const token = process.env["DECOLECTA_API_KEY"];
+    const token = await obtenerToken();
     if (!token) return { ...vacio, configurado: false, mensaje: "La consulta automática aún no está activada. Escribe los datos del cliente manualmente." };
     try {
       const url = esRuc ? `${BASE}/sunat/ruc/full?numero=${data.numero}` : `${BASE}/reniec/dni?numero=${data.numero}`;
@@ -52,7 +106,7 @@ export const consultarTipoCambio = createServerFn({ method: "POST" })
     const base: ResultadoTipoCambio = { configurado: true, encontrado: false, fecha: data.fecha, compra: 0, venta: 0, fuente: "", mensaje: "" };
     const { data: cache } = await context.supabase.from("tipo_cambio_diario").select("compra,venta,fuente").eq("fecha", data.fecha).maybeSingle();
     if (cache) return { ...base, encontrado: true, compra: Number(cache.compra), venta: Number(cache.venta), fuente: cache.fuente };
-    const token = process.env["DECOLECTA_API_KEY"];
+    const token = await obtenerToken();
     if (!token) return { ...base, configurado: false, mensaje: "El tipo de cambio automático aún no está activado. Escríbelo manualmente." };
     try {
       const res = await fetch(`${BASE}/tipo-cambio/sunat?date=${data.fecha}`, { headers: { Authorization: `Bearer ${token}`, Referer: "https://telxen.app" } });
