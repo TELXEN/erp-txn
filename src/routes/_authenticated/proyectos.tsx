@@ -668,8 +668,8 @@ function Proyectos() {
                               pctGG={Number(p.pct_gastos_generales ?? 0)}
                               pctUt={Number(p.pct_utilidad ?? 0)}
                             />
-                            <Boton variante="linea" className="h-7 w-7 px-0" aria-label="Ver proyecto" title="Ver" onClick={() => setViendoId(p.id)}><Eye className="size-4" /></Boton>
-                            <Boton variante="linea" className="h-7 w-7 px-0"
+                            <Boton variante="linea" className="h-8 w-8 px-0" aria-label="Ver proyecto" title="Ver" onClick={() => setViendoId(p.id)}><Eye className="size-[18px]" /></Boton>
+                            <Boton variante="linea" className="h-8 w-8 px-0"
                               onClick={() =>
                                 setEditando({
                                   id: p.id,
@@ -688,10 +688,10 @@ function Proyectos() {
                               }
                               title="Editar"
                             >
-                              <Pencil className="size-4" />
+                              <Pencil className="size-[18px]" />
                             </Boton>
                             <DropdownMenu>
-                              <DropdownMenuTrigger asChild><Boton variante="linea" className="h-7 w-7 px-0" aria-label="Más acciones" title="Más acciones"><MoreHorizontal className="size-4" /></Boton></DropdownMenuTrigger>
+                              <DropdownMenuTrigger asChild><Boton variante="linea" className="h-8 w-8 px-0" aria-label="Más acciones" title="Más acciones"><MoreHorizontal className="size-[18px]" /></Boton></DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
                                 <DropdownMenuItem onClick={() => duplicar(p.id)}><Copy /> Duplicar como borrador</DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => cambiarArchivo(p.id, !p.archivado_en)}>{p.archivado_en ? <ArchiveRestore /> : <Archive />}{p.archivado_en ? "Restaurar" : "Archivar"}</DropdownMenuItem>
