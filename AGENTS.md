@@ -32,3 +32,4 @@
 - Vehicle timekeeping uses one row per usage day and only the daily rate; mileage remains in transfers.
 - EMO validity is computed in src/lib/emo.ts from each worker's latest exam (emos_trabajador, admin/gerente-only) — one rule feeds every EMO alert.
 - Primary creation uses VentanaFlotante with consecutive saves and explicit close; project cost eligibility is enforced by database triggers across every cost source — keeps entry efficient and prevents bypasses.
+- Sales collections with detraction store the Banco de la Nación account in ventas.banco_detraccion_id; treasury credits the commercial bank with total minus detraction and the detraction account with the rest — keeps both balances truthful without duplicate sale rows.
