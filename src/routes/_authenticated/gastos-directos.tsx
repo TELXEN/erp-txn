@@ -706,12 +706,14 @@ function AutoInsumo({
   onChange,
   onElegir,
   onEnter,
+  conIcono = false,
 }: {
   value: string;
   insumos: InsumoApu[];
   onChange: (v: string) => void;
   onElegir: (i: InsumoApu) => void;
   onEnter: () => void;
+  conIcono?: boolean;
 }) {
   const [abierto, setAbierto] = useState(false);
   const [indice, setIndice] = useState(0);
@@ -726,10 +728,11 @@ function AutoInsumo({
 
   return (
     <div className="relative">
+      {conIcono && <Search className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />}
       <input
         value={value}
         placeholder="Busca en el maestro o escribe libre…"
-        className="h-7 w-full rounded-md border border-line bg-card px-1.5 text-[11px] outline-none focus:border-primary"
+        className={`h-9 w-full rounded-md border border-line bg-card text-xs outline-none focus:border-primary ${conIcono ? "pl-8 pr-3" : "px-2"}`}
         onFocus={() => setAbierto(true)}
         onChange={(e) => {
           onChange(e.target.value);
