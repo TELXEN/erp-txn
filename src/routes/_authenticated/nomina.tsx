@@ -483,6 +483,8 @@ function Nomina() {
           </div>
         )}
       </Panel>
+        </>
+      )}
     </>
   );
 }
