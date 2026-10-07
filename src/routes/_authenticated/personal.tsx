@@ -442,22 +442,22 @@ function Personal() {
             cerrarTrasGuardar.current = false;
             e.currentTarget.requestSubmit();
           }}
-          className="[&_input:not([type=checkbox])]:h-10 [&_input:not([type=checkbox])]:text-base [&_select]:h-10 [&_select]:text-base [&_label>span]:text-sm [&_label_button]:h-10 [&_label_button]:text-sm">
-          <fieldset disabled={guardando} className="min-w-0 border-0 p-4 sm:px-6">
-          <div className="grid gap-x-8 gap-y-4 md:grid-cols-2">
-            <Seccion titulo="Datos personales" paso={1} icono={UserRound}>
+          className="[&_input:not([type=checkbox])]:h-9 [&_input:not([type=checkbox])]:text-sm [&_select]:h-9 [&_select]:text-sm [&_label>span]:text-[11px] [&_label_button]:h-9 [&_label_button]:text-xs">
+          <fieldset disabled={guardando} className="min-w-0 border-0 p-3 sm:px-4">
+          <div className="grid gap-x-4 gap-y-3 md:grid-cols-2">
+            <Seccion titulo="Datos personales" paso={1} icono={UserRound} tono="personal">
               <CampoF etiqueta="DNI" req className="col-span-full">
                 <div className="flex items-center gap-2">
                   <Input ref={dniRef} autoFocus aria-label="DNI" inputMode="numeric" pattern="[0-9]{8}" maxLength={8} value={form.dni} onChange={(e) => setFormC("dni", e.target.value.replace(/\D/g, ""))} required className={`min-w-0 flex-1 tabular-nums ${dniDuplicado ? "border-bad" : ""}`} placeholder="8 dígitos" />
-                  <Boton type="button" variante="linea" className="h-11 shrink-0 px-3" title="Consultar RENIEC" onClick={consultarReniec} disabled={consultando !== "" || !/^\d{8}$/.test(form.dni) || dniDuplicado}>
+                  <Boton type="button" variante="linea" className="h-9 shrink-0 px-2.5 text-xs" title="Consultar RENIEC" onClick={consultarReniec} disabled={consultando !== "" || !/^\d{8}$/.test(form.dni) || dniDuplicado}>
                     <Search size={16} />{consultando === "reniec" ? "…" : "RENIEC"}
                   </Boton>
                 </div>
-                <span className={`mt-1 block text-xs ${dniDuplicado ? "text-bad" : "text-muted-foreground"}`}>{dniDuplicado ? "DNI ya registrado" : msgReniec || `${form.dni.length}/8`}</span>
+                <span className={`mt-0.5 block text-[11px] ${dniDuplicado ? "text-bad" : "text-muted-foreground"}`}>{dniDuplicado ? "DNI ya registrado" : msgReniec || `${form.dni.length}/8`}</span>
               </CampoF>
               <CampoF etiqueta="N° Celular" req>
                 <Input inputMode="tel" pattern="[0-9]{9}" maxLength={9} value={form.numero_celular} onChange={(e) => setFormC("numero_celular", e.target.value.replace(/\D/g, ""))} required className="py-1.5" placeholder="9 dígitos" />
-                <span className="mt-1 block text-xs text-muted-foreground">{form.numero_celular.length}/9</span>
+                <span className="mt-0.5 block text-[11px] text-muted-foreground">{form.numero_celular.length}/9</span>
               </CampoF>
               <div className="col-span-full">
                 <CampoF etiqueta="Apellidos y Nombre(s)" req>
@@ -465,18 +465,18 @@ function Personal() {
                 </CampoF>
               </div>
             </Seccion>
-            <Seccion titulo="Datos laborales" paso={2} icono={Briefcase}>{seccionLaboral(form, setFormC, true)}</Seccion>
-            <Seccion titulo="Sueldo y pago" paso={3} icono={Wallet}>{seccionSalario(form, setFormC, true)}</Seccion>
-            <Seccion titulo="Régimen de pensiones" paso={4} icono={Landmark}>
+            <Seccion titulo="Datos laborales" paso={2} icono={Briefcase} tono="laboral">{seccionLaboral(form, setFormC, true)}</Seccion>
+            <Seccion titulo="Sueldo y pago" paso={3} icono={Wallet} tono="sueldo">{seccionSalario(form, setFormC, true)}</Seccion>
+            <Seccion titulo="Régimen de pensiones" paso={4} icono={Landmark} tono="pensiones">
               {seccionPrevision(form, setFormC)}
             </Seccion>
           </div>
           </fieldset>
-           <div className="sticky bottom-0 flex flex-wrap items-center justify-end gap-2 border-t border-line bg-card px-5 py-3 sm:px-6">
-            <p role="status" aria-live="polite" className={`w-full text-sm md:mr-auto md:w-auto md:flex-1 ${error ? "text-bad" : registrado ? "text-good" : "text-muted-foreground"}`}>{error || registrado || (faltante ? `Falta: ${faltante}` : "Todo listo para registrar.")}</p>
-            <Boton type="button" variante="linea" onClick={() => { setForm(FORM_INICIAL); setError(""); setFormAbierto(false); }}>Cancelar</Boton>
-            <Boton type="submit" variante="linea" disabled={!!faltante || guardando || consultando !== ""} className="min-h-11 min-w-36" onClick={() => { cerrarTrasGuardar.current = false; }}>{guardando ? "Guardando…" : "Registrar otro"}</Boton>
-            <Boton type="submit" variante="accion" disabled={!!faltante || guardando || consultando !== ""} className="min-h-11 min-w-36" onClick={() => { cerrarTrasGuardar.current = true; }}>Registrar y cerrar</Boton>
+           <div className="sticky bottom-0 flex flex-wrap items-center justify-end gap-2 border-t border-line bg-card px-4 py-2.5">
+            <p role="status" aria-live="polite" className={`w-full text-xs md:mr-auto md:w-auto md:flex-1 ${error ? "text-bad" : registrado ? "text-good" : "text-muted-foreground"}`}>{error || registrado || (faltante ? `Falta: ${faltante}` : "Todo listo para registrar.")}</p>
+            <Boton type="button" variante="linea" className="min-h-9 px-3 text-xs" onClick={() => { setForm(FORM_INICIAL); setError(""); setFormAbierto(false); }}>Cancelar</Boton>
+            <Boton type="submit" variante="linea" disabled={!!faltante || guardando || consultando !== ""} className="min-h-9 min-w-32 px-3 text-xs" onClick={() => { cerrarTrasGuardar.current = false; }}>{guardando ? "Guardando…" : "Registrar otro"}</Boton>
+            <Boton type="submit" variante="accion" disabled={!!faltante || guardando || consultando !== ""} className="min-h-9 min-w-32 px-3 text-xs" onClick={() => { cerrarTrasGuardar.current = true; }}>Registrar y cerrar</Boton>
           </div>
         </form>
       </VentanaFlotante>
