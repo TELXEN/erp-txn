@@ -249,6 +249,7 @@ export function HojaCotizacion({
               </Linea>
               {esUsd && (
                 <Linea etiqueta="T. cambio">
+                  <div style={{ display: "flex", alignItems: "center" }}>
                   <input
                     key={`tc-${cot.id}-${cot.tipo_cambio}`}
                     type="number"
@@ -269,6 +270,7 @@ export function HojaCotizacion({
                       SUNAT {tcActual}
                     </button>
                   )}
+                  </div>
                 </Linea>
               )}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 5 }}>
