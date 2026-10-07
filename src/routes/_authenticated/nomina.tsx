@@ -29,7 +29,8 @@ export const Route = createFileRoute("/_authenticated/nomina")({
 });
 
 // Parámetros legales vigentes (Perú). Las tasas AFP vienen de Decolecta (useComisionesAfp).
-const RMV = 1130;
+/** RMV vigente por período (S/ 1,230 desde octubre 2026). */
+const rmvDe = (periodo: string) => (periodo >= "2026-10" ? 1230 : 1130);
 const TASA_ONP = 0.13;
 const SIS_MICRO = 15;
 
@@ -64,6 +65,7 @@ function calcularBoleta(
   t: Pick<Trabajador, "sueldo_mensual" | "regimen_laboral" | "sistema_pensiones" | "asignacion_familiar">,
   v: { dias_laborados: number; horas_extra: number; otros_ingresos: number; renta_quinta: number; otros_descuentos: number },
   comisiones: ComisionAfp[],
+  RMV: number,
 ) {
   const sueldo_basico = r2((Number(t.sueldo_mensual) * v.dias_laborados) / 30);
   const aplicaAsig = t.asignacion_familiar && !t.regimen_laboral.startsWith("MYPE");
@@ -172,7 +174,7 @@ function Nomina() {
       .map((t) => ({
         planilla_id: p!.id,
         trabajador_id: t.id,
-        ...calcularBoleta(t, { dias_laborados: 30, horas_extra: 0, otros_ingresos: 0, renta_quinta: 0, otros_descuentos: 0 }, comisiones),
+        ...calcularBoleta(t, { dias_laborados: 30, horas_extra: 0, otros_ingresos: 0, renta_quinta: 0, otros_descuentos: 0 }, comisiones, rmvDe(periodoAfp)),
       }));
     if (nuevas.length) {
       const { error: err } = await supabase.from("boletas").insert(nuevas);
@@ -199,7 +201,7 @@ function Nomina() {
       otros_ingresos: num("otros_ingresos"),
       renta_quinta: num("renta_quinta"),
       otros_descuentos: num("otros_descuentos"),
-    }, comisiones);
+    }, comisiones, rmvDe(periodoAfp));
     const { error: err } = await supabase.from("boletas").update(calc).eq("id", b.id);
     if (err) return setError(err.message);
     setEditando(({ [b.id]: _, ...resto }) => resto);
@@ -366,7 +368,7 @@ function Nomina() {
         <table className="w-full text-sm">
           <tbody>
             {[
-              ["Remuneración Mínima Vital (RMV)", "S/ 1,130.00"],
+              ["Remuneración Mínima Vital (RMV)", `S/ ${rmvDe(periodoAfp).toLocaleString("es-PE", { minimumFractionDigits: 2 })} · vigente desde ${rmvDe(periodoAfp) === 1230 ? "01/10/2026" : "01/05/2022"}`],
               ["ONP", "13% de la remuneración"],
               ["EsSalud", "9% de la remuneración · Agrario 6%"],
               ["SIS Microempresa", "S/ 15.00 mensual"],
