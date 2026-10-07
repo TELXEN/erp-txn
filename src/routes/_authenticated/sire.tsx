@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   CheckCircle2, AlertTriangle, XCircle, RefreshCw, KeyRound, ShieldCheck, Download, Send, Settings,
-  FileSpreadsheet, ShoppingBag, ReceiptText, Plus, ChevronRight, ChevronLeft, Link2,
+  FileSpreadsheet, ShoppingBag, ReceiptText, Plus, ChevronRight, ChevronLeft, Link2, Landmark,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -512,19 +512,42 @@ function ResumenOperaciones({ periodo, libro }: { periodo: string; libro: Libro 
     const itemsL = (r?.items as Item[] | undefined) ?? [];
     const total = r2(itemsL.reduce((s, i) => s + (i.total_sunat ?? i.base + i.igv), 0));
     const activo = libro === l;
+    const pendiente = !r || r.estado === "Pendiente";
     return (
-      <div className={`flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5 ${activo ? "text-primary" : ""}`}>
-        <span className="label-mono flex shrink-0 items-center gap-1"><I className="size-3.5" />{titulo}</span>
-        {!r || r.estado === "Pendiente" ? (
-          <span className="font-mono text-[11px] text-muted-foreground">{r ? "Propuesta pendiente en SUNAT" : "Sin sincronizar este período"}</span>
-        ) : (
-          <>
-            <span className="text-base font-bold tracking-tight">{soles(total)}</span>
-            <span className="font-mono text-[10.5px] text-muted-foreground">
-              Base <b className="text-ink">{soles(Number(r.total_base))}</b> · IGV <b className="text-ink">{soles(Number(r.total_igv))}</b> · <b className="text-ink">{r.total_docs}</b> comp. · <b className={r.estado === "Aceptado" ? "text-good" : "text-ink"}>{r.estado}</b>
-            </span>
-          </>
-        )}
+      <div
+        className={`flex min-w-0 flex-1 items-center gap-3 rounded-lg border bg-card px-4 py-2.5 transition-colors ${
+          activo ? "border-primary/50 ring-1 ring-primary/25" : "border-line"
+        }`}
+      >
+        <span
+          className={`grid size-9 shrink-0 place-items-center rounded-md ${
+            activo ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+          }`}
+        >
+          <I className="size-4.5" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-baseline justify-between gap-2">
+            <span className="label-mono shrink-0">{titulo}</span>
+            {r && (
+              <span className={`shrink-0 font-mono text-[10px] uppercase tracking-wide ${r.estado === "Aceptado" ? "text-good" : "text-warn"}`}>
+                {r.estado === "Aceptado" ? "✓ Aceptado" : "Pendiente"}
+              </span>
+            )}
+          </div>
+          {pendiente ? (
+            <p className="truncate font-mono text-[11px] text-muted-foreground">
+              {r ? "Propuesta pendiente en SUNAT" : "Sin sincronizar este período"}
+            </p>
+          ) : (
+            <>
+              <p className="text-base font-bold tabular-nums leading-tight tracking-tight text-ink">{soles(total)}</p>
+              <p className="font-mono text-[10.5px] leading-tight text-muted-foreground">
+                Base <b className="font-semibold text-ink">{soles(Number(r!.total_base))}</b> · IGV <b className="font-semibold text-ink">{soles(Number(r!.total_igv))}</b> · <b className="font-semibold text-ink">{r!.total_docs}</b> comp.
+              </p>
+            </>
+          )}
+        </div>
       </div>
     );
   };
@@ -532,19 +555,33 @@ function ResumenOperaciones({ periodo, libro }: { periodo: string; libro: Libro 
   const listo = (r: typeof rv) => r && r.estado !== "Pendiente";
   const neta = listo(rv) && listo(rc) ? r2(Number(rv?.total_igv ?? 0) - Number(rc?.total_igv ?? 0)) : null;
   return (
-    <div className="panel rise overflow-hidden">
-      <div className="flex flex-wrap items-baseline gap-x-5 gap-y-0.5 px-4 py-2" style={{ fontFamily: "Roboto, Arial, sans-serif" }}>
-        <span className="label-mono shrink-0">RESUMEN DEL PERÍODO</span>
-        {tarjeta("RVIE", "VENTAS (RVIE)", ReceiptText)}
-        {tarjeta("RCE", "COMPRAS (RCE)", ShoppingBag)}
-        <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
+    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3" style={{ fontFamily: "Roboto, Arial, sans-serif" }}>
+      {tarjeta("RVIE", "VENTAS (RVIE)", ReceiptText)}
+      {tarjeta("RCE", "COMPRAS (RCE)", ShoppingBag)}
+      <div
+        className={`flex min-w-0 items-center gap-3 rounded-lg border bg-card px-4 py-2.5 ${
+          neta === null ? "border-line" : neta >= 0 ? "border-bad/30 bg-bad/[0.04]" : "border-good/30 bg-good/[0.04]"
+        }`}
+      >
+        <span
+          className={`grid size-9 shrink-0 place-items-center rounded-md ${
+            neta === null ? "bg-muted text-muted-foreground" : neta >= 0 ? "bg-bad/10 text-bad" : "bg-good/10 text-good"
+          }`}
+        >
+          <Landmark className="size-4.5" />
+        </span>
+        <div className="min-w-0 flex-1">
           <span className="label-mono">IGV POR PAGAR / SALDO</span>
           {neta === null ? (
-            <span className="font-mono text-[11px] text-muted-foreground">Sincroniza ambos libros para calcular</span>
+            <p className="truncate font-mono text-[11px] text-muted-foreground">Sincroniza ambos libros para calcular</p>
           ) : (
             <>
-              <span className={`text-base font-bold tracking-tight ${neta >= 0 ? "text-bad" : "text-good"}`}>{soles(Math.abs(neta))}</span>
-              <span className="font-mono text-[10.5px] text-muted-foreground">{neta >= 0 ? "IGV ventas − compras: por pagar a SUNAT" : "Crédito fiscal a favor"}</span>
+              <p className={`text-base font-bold tabular-nums leading-tight tracking-tight ${neta >= 0 ? "text-bad" : "text-good"}`}>
+                {soles(Math.abs(neta))}
+              </p>
+              <p className="font-mono text-[10.5px] leading-tight text-muted-foreground">
+                {neta >= 0 ? "IGV ventas − compras: por pagar a SUNAT" : "Crédito fiscal a favor"}
+              </p>
             </>
           )}
         </div>
