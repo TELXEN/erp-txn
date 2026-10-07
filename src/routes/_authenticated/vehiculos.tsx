@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, ClipboardList, Eye, Pencil, Plus, Settings, Trash2, Truck, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, Campo, Etiqueta, Input, Panel, Select, Vacio } from "@/components/ui-kit";
+import { Boton, Campo, Etiqueta, Input, Panel, Select, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { useAuth } from "@/lib/auth";
 import { soles as fmtSoles } from "@/lib/format";
 import { useCajasChicas } from "@/lib/datos";
@@ -184,6 +184,8 @@ function PaginaVehiculos() {
   // ---------- Flota ----------
   const [formVeh, setFormVeh] = useState(VACIO_VEHICULO);
   const [editVeh, setEditVeh] = useState<string | null>(null);
+  const [modalVehiculo, setModalVehiculo] = useState(false);
+  const [cerrarVehiculoAlGuardar, setCerrarVehiculoAlGuardar] = useState(false);
 
   async function guardarVehiculo() {
     if (!formVeh.placa.trim()) {
@@ -220,6 +222,7 @@ function PaginaVehiculos() {
     toast.success(editVeh ? "Vehículo actualizado" : "Vehículo registrado");
     setFormVeh(VACIO_VEHICULO);
     setEditVeh(null);
+    if (cerrarVehiculoAlGuardar) setModalVehiculo(false);
     refrescar();
   }
 
@@ -231,6 +234,7 @@ function PaginaVehiculos() {
       soat_vencimiento: v.soat_vencimiento ?? "", revision_tecnica_vencimiento: v.revision_tecnica_vencimiento ?? "",
       tarifa_dia: String(v.tarifa_dia), tarifa_km: String(v.tarifa_km), estado: v.estado, observacion: v.observacion,
     });
+    setModalVehiculo(true);
   }
 
   async function borrarVehiculo(v: Vehiculo) {
@@ -567,10 +571,9 @@ function PaginaVehiculos() {
 
       {pestaña === "flota" && (
         <div className="space-y-4">
-          {esDinero && (
-            <Panel
-              titulo={editVeh ? "Editar vehículo" : "Registrar vehículo"}
-              extra={
+          {esDinero && <VentanaFlotante abierta={modalVehiculo} onCerrar={() => { setModalVehiculo(false); setEditVeh(null); setFormVeh(VACIO_VEHICULO); }} titulo={editVeh ? "Editar vehículo" : "Registrar vehículo"} subtitulo={editVeh ? "Actualiza los datos de la unidad." : "Registra varias unidades sin cerrar la ventana."} ancho="max-w-6xl">
+              <div className="border-b border-line px-5 py-2">
+                {
                 placaNorm ? (
                   <span className="inline-flex items-center gap-2 text-xs text-muted-foreground">
                     <Etiqueta tono="neutro">{placaNorm}</Etiqueta>
@@ -578,9 +581,8 @@ function PaginaVehiculos() {
                   </span>
                 ) : (
                   <span className="font-mono text-[11px] text-muted-foreground">Completa la placa primero</span>
-                )
-              }
-            >
+                )}
+              </div>
               <form className="space-y-5 p-5" onSubmit={(e) => { e.preventDefault(); guardarVehiculo(); }}>
                 <div>
                   <p className="label-mono mb-2 text-primary">Identificación</p>
@@ -644,17 +646,17 @@ function PaginaVehiculos() {
 
                 <Campo etiqueta="Observación"><Input value={formVeh.observacion} onChange={(e) => setFormVeh({ ...formVeh, observacion: e.target.value })} placeholder="Accesorios, asignación habitual…" /></Campo>
 
-                <div className="flex flex-wrap items-center gap-2 border-t border-line pt-3">
-                  <Boton type="submit" disabled={!placaNorm || placaDuplicada}><Plus className="size-3.5" />{editVeh ? "Guardar cambios" : "Registrar"}</Boton>
-                  {editVeh && <Boton type="button" variante="linea" onClick={() => { setEditVeh(null); setFormVeh(VACIO_VEHICULO); }}>Cancelar</Boton>}
+                <div className="flex flex-wrap items-center justify-end gap-2 border-t border-line pt-3">
+                  <Boton type="button" variante="linea" onClick={() => { setModalVehiculo(false); setEditVeh(null); setFormVeh(VACIO_VEHICULO); }}>Cancelar</Boton>
+                  {!editVeh && <Boton type="submit" variante="linea" disabled={!placaNorm || placaDuplicada} onClick={() => setCerrarVehiculoAlGuardar(false)}><Plus className="size-3.5" />Registrar otro</Boton>}
+                  <Boton type="submit" disabled={!placaNorm || placaDuplicada} onClick={() => setCerrarVehiculoAlGuardar(true)}><Check className="size-3.5" />{editVeh ? "Guardar cambios" : "Registrar y cerrar"}</Boton>
                   {!placaNorm && <span className="font-mono text-[11px] text-muted-foreground">La placa es obligatoria</span>}
                   {placaDuplicada && <span className="font-mono text-[11px] font-semibold text-bad">Corrige la placa duplicada</span>}
                 </div>
               </form>
-            </Panel>
-          )}
+            </VentanaFlotante>}
 
-          <Panel titulo={`Flota (${vehiculos.length})`}>
+          <Panel titulo={`Flota (${vehiculos.length})`} extra={esDinero ? <Boton variante="accion" onClick={() => { setEditVeh(null); setFormVeh(VACIO_VEHICULO); setModalVehiculo(true); }}><Plus size={13} /> Registrar vehículo</Boton> : undefined}>
             {vehiculos.length === 0 ? <Vacio texto="Aún no hay vehículos registrados." /> : (
               <div className="overflow-x-auto">
                 <table className="w-full">

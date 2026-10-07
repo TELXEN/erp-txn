@@ -7,13 +7,13 @@ import { EmoPanel } from "@/components/personal/EmoPanel";
 import { estadoEmo, ESTADO_EMO_INFO, ultimoEmoPorTrabajador, useEmos } from "@/lib/emo";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
+import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { soles } from "@/lib/format";
 import { clasificacionDeCargo, type Trabajador, useCargos, useTrabajadores } from "@/lib/datos";
 import { exportarExcel } from "@/lib/exportar";
 import { FechaPeru } from "./gastos-directos";
-import type { ReactNode } from "react";
+import { useRef, type ReactNode } from "react";
 
 const BANCOS = ["BCP", "BBVA", "Interbank", "Scotiabank", "Banco de la Nación", "BanBif", "Banco Pichincha", "Caja Arequipa", "Caja Huancayo", "Caja Piura", "Otro"];
 
@@ -139,6 +139,7 @@ function Personal() {
   const [error, setError] = useState("");
   const [pestana, setPestana] = useState<"personal" | "emo">("personal");
   const [formAbierto, setFormAbierto] = useState(false);
+  const cerrarTrasGuardar = useRef(false);
   const { data: emos = [] } = useEmos(puedeVerDinero(rol));
   const ultimos = ultimoEmoPorTrabajador(emos);
   const alertasEmo = trabajadores.filter((t) => { const s = estadoEmo(ultimos.get(t.id)?.fecha_vencimiento); return s === "vencido" || s === "por_vencer"; }).length;
@@ -179,7 +180,7 @@ function Personal() {
     const { error: err } = await supabase.from("trabajadores").insert(datosGuardar(form));
     if (err) return setError(err.message);
     setForm(FORM_INICIAL);
-    setFormAbierto(false);
+    if (cerrarTrasGuardar.current) setFormAbierto(false);
     await qc.invalidateQueries({ queryKey: ["trabajadores"] });
   }
 
@@ -388,13 +389,7 @@ function Personal() {
       </div>
 
       {pestana === "emo" ? <EmoPanel trabajadores={trabajadores} /> : <>
-      {!formAbierto ? (
-        <div className="mb-4 flex justify-end">
-          <Boton variante="accion" onClick={() => setFormAbierto(true)}><Plus size={13} /> Nuevo trabajador</Boton>
-        </div>
-      ) : (
-      <Panel titulo="Nuevo trabajador" className="mb-4"
-        extra={<button type="button" onClick={() => setFormAbierto(false)} className="rounded-md p-1 text-muted-foreground hover:bg-muted" aria-label="Cerrar"><X size={15} /></button>}>
+      <VentanaFlotante abierta={formAbierto} onCerrar={() => { setFormAbierto(false); setForm(FORM_INICIAL); setError(""); }} titulo="Nuevo trabajador" subtitulo="Registra personal consecutivamente y cierra cuando termines." ancho="max-w-7xl">
         <form onSubmit={guardar} className="p-4">
           <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
             <Seccion titulo="Datos personales" paso={1} icono={UserRound}>
@@ -419,11 +414,11 @@ function Personal() {
           <div className="mt-4 flex items-center justify-end gap-3 border-t border-line pt-3">
             <p className={`mr-auto text-xs ${error ? "text-bad" : "text-muted-foreground"}`}>{error || (faltante ? `Falta: ${faltante}` : "Todo listo para registrar.")}</p>
             <Boton type="button" variante="linea" onClick={() => { setForm(FORM_INICIAL); setError(""); setFormAbierto(false); }}>Cancelar</Boton>
-            <Boton type="submit" variante="accion" disabled={!!faltante} className="min-w-36">Registrar</Boton>
+            <Boton type="submit" variante="linea" disabled={!!faltante} className="min-w-36" onClick={() => { cerrarTrasGuardar.current = false; }}>Registrar otro</Boton>
+            <Boton type="submit" variante="accion" disabled={!!faltante} className="min-w-36" onClick={() => { cerrarTrasGuardar.current = true; }}>Registrar y cerrar</Boton>
           </div>
         </form>
-      </Panel>
-      )}
+      </VentanaFlotante>
 
       <Panel titulo="Planilla"
         extra={
@@ -435,6 +430,7 @@ function Personal() {
               placeholder="Buscar por nombre, DNI o cargo..."
             />
             <span className="font-mono text-[11px] text-muted-foreground">{trabajadores.length} trabajadores</span>
+            <Boton variante="accion" onClick={() => setFormAbierto(true)}><Plus size={13} /> Nuevo trabajador</Boton>
           </div>
         }>
         {error && <p className="border-b border-line px-5 py-2 font-mono text-xs text-bad">{error}</p>}
