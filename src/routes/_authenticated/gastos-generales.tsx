@@ -446,35 +446,75 @@ function GastosGenerales() {
             {desglose.length === 0 ? (
               <p className="py-4 text-center font-mono text-xs text-muted-foreground">Sin gastos en este periodo.</p>
             ) : (
-              <ul className="space-y-2.5">
-                {desglose.map((d) => {
-                  const activo = filtroCategoria === d.nombre;
-                  return (
-                    <li key={d.nombre}>
-                      <button
-                        type="button"
-                        disabled={!d.filtrable}
-                        onClick={() => {
-                          setPestana("gastos");
-                          setFiltroCategoria(activo ? "Todas" : d.nombre);
-                        }}
-                        className={`w-full rounded-md px-2 py-1 text-left transition-colors ${d.filtrable ? "hover:bg-muted/60" : "cursor-default"} ${activo ? "bg-muted" : ""}`}
+              <div className="flex flex-col items-center gap-4 sm:flex-row">
+                <div className="relative h-40 w-40 shrink-0">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={desglose}
+                        dataKey="total"
+                        nameKey="nombre"
+                        innerRadius={50}
+                        outerRadius={72}
+                        paddingAngle={2}
+                        stroke="none"
                       >
-                        <div className="flex items-center justify-between gap-3 text-sm">
-                          <span className={`truncate ${activo ? "font-semibold text-primary" : "text-ink"}`}>{d.nombre}</span>
-                          <span className="font-mono text-xs font-semibold text-ink">{soles(d.total)}</span>
-                        </div>
-                        <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
-                          <div
-                            className="h-full rounded-full bg-primary"
-                            style={{ width: `${maxDesglose > 0 ? (d.total / maxDesglose) * 100 : 0}%` }}
-                          />
-                        </div>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
+                        {desglose.map((d) => {
+                          const activo = filtroCategoria === d.nombre;
+                          return (
+                            <Cell
+                              key={d.nombre}
+                              fill={coloresDesglose.get(d.nombre)}
+                              fillOpacity={filtroCategoria === "Todas" || activo ? 1 : 0.4}
+                              className={d.filtrable ? "cursor-pointer" : "cursor-default"}
+                              onClick={
+                                d.filtrable
+                                  ? () => {
+                                      setPestana("gastos");
+                                      setFiltroCategoria(activo ? "Todas" : d.nombre);
+                                    }
+                                  : undefined
+                              }
+                            />
+                          );
+                        })}
+                      </Pie>
+                      <Tooltip
+                        formatter={(v: number) => soles(Number(v))}
+                        contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid var(--line)" }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="label-mono text-[10px]">Total periodo</span>
+                    <span className="font-mono text-sm font-bold text-ink">{soles(granTotalDesglose)}</span>
+                  </div>
+                </div>
+                <ul className="my-auto min-w-0 flex-1 space-y-1.5">
+                  {desglose.map((d) => {
+                    const activo = filtroCategoria === d.nombre;
+                    const pctTotal = granTotalDesglose > 0 ? (d.total / granTotalDesglose) * 100 : 0;
+                    return (
+                      <li key={d.nombre}>
+                        <button
+                          type="button"
+                          disabled={!d.filtrable}
+                          onClick={() => {
+                            setPestana("gastos");
+                            setFiltroCategoria(activo ? "Todas" : d.nombre);
+                          }}
+                          className={`flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-[12px] leading-tight transition-colors ${d.filtrable ? "hover:bg-muted/60" : "cursor-default"} ${activo ? "bg-muted" : ""}`}
+                        >
+                          <span className="h-2.5 w-2.5 shrink-0 rounded-sm" style={{ background: coloresDesglose.get(d.nombre) }} />
+                          <span className={`min-w-0 flex-1 truncate ${activo ? "font-semibold text-primary" : "text-ink"}`}>{d.nombre}</span>
+                          <span className="font-mono text-[11px] font-semibold text-ink">{soles(d.total)}</span>
+                          <span className="w-11 shrink-0 text-right font-mono text-[10px] text-muted-foreground">{pctTotal.toFixed(1)}%</span>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
             )}
           </section>
         </div>
