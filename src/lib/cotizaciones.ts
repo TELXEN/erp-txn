@@ -1,4 +1,4 @@
-import { consultarTipoCambio } from "@/lib/decolecta.functions";
+import { useTipoCambioHoy } from "@/lib/tipo-cambio";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { previsualizarCodigoDocumento, useCodificacionDocumento } from "@/lib/codificacion-documentos";
@@ -174,28 +174,11 @@ export async function convertirMonedaCotizacion(cotizacionId: string, moneda: "P
   if (e3) throw e3;
 }
 
-/** Último tipo de cambio venta registrado (para precargar cotizaciones en USD). */
-/** Tipo de cambio venta SUNAT del día (vía Decolecta, con caché); si no hay, usa el último registrado. */
-export const useTipoCambioActual = () =>
-  useQuery({
-    queryKey: ["tipo_cambio_actual"],
-    staleTime: 1000 * 60 * 30,
-    queryFn: async () => {
-      const hoyLima = new Date(Date.now() - 5 * 3600 * 1000).toISOString().slice(0, 10);
-      try {
-        const r = await consultarTipoCambio({ data: { fecha: hoyLima } });
-        if (r.encontrado && r.venta > 0) return r.venta;
-      } catch { /* usa respaldo */ }
-      const { data, error } = await supabase
-        .from("tipo_cambio_diario")
-        .select("venta")
-        .order("fecha", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (error) throw error;
-      return Number(data?.venta) || 0;
-    },
-  });
+/** Tipo de cambio venta del día desde la fuente única del ERP (una consulta diaria). */
+export const useTipoCambioActual = () => {
+  const q = useTipoCambioHoy();
+  return { ...q, data: q.data?.venta ?? 0 };
+};
 
 export function vigenciaHasta(fechaEmision: string, dias: number) {
   const d = new Date(`${fechaEmision}T00:00:00`);
