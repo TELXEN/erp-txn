@@ -74,7 +74,6 @@ function Partidas() {
   const { data: maestras = [] } = usePartidasMaestras();
 
   const [filtroProyecto, setFiltroProyecto] = useState("");
-  const [filtroEsp, setFiltroEsp] = useState("");
   const [filtroTipo, setFiltroTipo] = useState("");
   const [vista, setVista] = useState<"tabla" | "kanban">("tabla");
   const [modalNueva, setModalNueva] = useState(false);
@@ -162,10 +161,9 @@ function Partidas() {
       partidas.filter(
         (p) =>
           (!filtroProyecto || p.proyecto_id === filtroProyecto) &&
-          (!filtroEsp || p.especialidad === filtroEsp) &&
           (!filtroTipo || (p.tipo_presupuesto ?? "Contractual") === filtroTipo) && (!busqueda || coincidentes.has(p.id)),
       ),
-    [partidas, filtroProyecto, filtroEsp, filtroTipo],
+    [partidas, filtroProyecto, filtroTipo],
   );
   const resumen = useMemo(() => resumenPresupuesto(visibles, tipos), [visibles, tipos]);
   const nombresTipos = useMemo(() => {
@@ -669,14 +667,6 @@ function Partidas() {
               {proyectos.map((p) => (
                 <option key={p.id} value={p.id}>
                   <Resaltar texto={p.nombre} termino={busqueda}/>
-                </option>
-              ))}
-            </Select>
-            <Select className="w-60" value={filtroEsp} onChange={(e) => setFiltroEsp(e.target.value)}>
-              <option value="">Todas las especialidades</option>
-              {nombresEspecialidades.map((e) => (
-                <option key={e} value={e}>
-                  {e}
                 </option>
               ))}
             </Select>
