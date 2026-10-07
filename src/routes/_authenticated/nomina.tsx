@@ -306,59 +306,18 @@ function Nomina() {
         }
       />
 
-      <Panel className="mb-4">
-        <div className="flex flex-wrap items-end gap-3 p-3">
-          <Campo etiqueta="Mes">
-            <Select value={mes} onChange={(e) => { setMes(Number(e.target.value)); setEditando({}); }} className="py-1.5">
-              {MESES.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
-            </Select>
-          </Campo>
-          <Campo etiqueta="Año">
-            <Input type="number" value={anio} onChange={(e) => { setAnio(Number(e.target.value)); setEditando({}); }} className="w-24 py-1.5" />
-          </Campo>
-          {!cerrada && (
-            <Boton onClick={generar}>{planilla ? "Agregar personal faltante" : `Generar planilla ${periodo}`}</Boton>
-          )}
-          {planilla && (
-            <>
-              <Etiqueta tono={cerrada ? "good" : "neutro"}>{planilla.estado}</Etiqueta>
-              <Boton variante="linea" onClick={cambiarEstado}>
-                {cerrada ? <><Unlock size={13} /> Reabrir</> : <><Lock size={13} /> Cerrar planilla</>}
-              </Boton>
-              {cerrada && pendientes > 0 && !pago && (
-                <Boton variante="accion" onClick={() => setPago({ banco_id: "", fecha_pago: hoy(), numero_operacion: "" })}>
-                  <Check size={13} /> Registrar pago ({pendientes})
-                </Boton>
-              )}
-            </>
-          )}
-        </div>
-        {pago && (
-          <div className="flex flex-wrap items-end gap-2 border-t border-line p-3">
-            <Campo etiqueta="Banco">
-              <Select value={pago.banco_id} onChange={(e) => setPago({ ...pago, banco_id: e.target.value })} className="py-1.5">
-                <option value="">Selecciona…</option>
-                {bancos.map((b) => <option key={b.id} value={b.id}>{b.nombre} · {b.numero_cuenta}</option>)}
-              </Select>
-            </Campo>
-            <Campo etiqueta="Fecha de pago"><Input type="date" value={pago.fecha_pago} onChange={(e) => setPago({ ...pago, fecha_pago: e.target.value })} className="py-1.5" /></Campo>
-            <Campo etiqueta="N° operación"><Input value={pago.numero_operacion} onChange={(e) => setPago({ ...pago, numero_operacion: e.target.value })} className="py-1.5" /></Campo>
-            <Boton onClick={pagarTodo}>Confirmar pago</Boton>
-            <Boton variante="linea" onClick={() => setPago(null)}>Cancelar</Boton>
-          </div>
-        )}
-        {error && <p className="px-3 pb-3 font-mono text-xs text-bad">{error}</p>}
-      </Panel>
+      <div className="mb-4 flex flex-wrap gap-2">
+        <Boton variante={pestana === "planilla" ? "primario" : "linea"} onClick={() => setPestana("planilla")}>
+          <ClipboardList size={13} /> Planilla
+        </Boton>
+        <Boton variante={pestana === "datos" ? "primario" : "linea"} onClick={() => setPestana("datos")}>
+          <Database size={13} /> Datos
+        </Boton>
+      </div>
 
-      {planilla && (
-        <div className="mb-4 grid gap-3 sm:grid-cols-4">
-          {[["Total ingresos", suma("total_ingresos")], ["Descuentos al trabajador", suma("total_descuentos")], ["Neto a pagar", suma("neto_pagar")], ["EsSalud / SIS (empleador)", suma("essalud")]].map(([t, v]) => (
-            <div key={t as string} className="panel p-4"><p className="label-mono">{t}</p><p className="mt-1 text-lg font-semibold">{soles(v as number)}</p></div>
-          ))}
-        </div>
-      )}
-
-      <Panel className="mb-4" titulo="Comisiones AFP del mes" extra={
+      {pestana === "datos" ? (
+        <>
+          <Panel className="mb-4" titulo="Comisiones AFP del mes" extra={
         <div className="flex items-center gap-2">
           <span className="text-[11px] text-muted-foreground">
             {cargandoAfp ? "Consultando…" : origenAfp === "decolecta" ? `Decolecta · ${afpData?.periodoDatos}` : origenAfp === "guardado" ? `Último registro guardado · ${afpData?.periodoDatos}` : "Tasas de respaldo"}
