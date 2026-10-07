@@ -55,8 +55,8 @@ function SirePage() {
             <button key={k} onClick={() => setTab(k)} className={`flex items-center gap-2 rounded-md border-b-2 px-3 py-1.5 text-xs transition-colors ${tab === k ? "border-cta bg-primary/10 font-semibold text-primary" : "border-transparent text-muted-foreground hover:bg-muted hover:text-primary"}`}><I className="size-3.5" />{t}</button>
           ))}
         </div>
+        {tab !== "config" && <div className="mb-4"><ResumenOperaciones periodo={periodo} libro={tab} /></div>}
       </div>
-      {tab !== "config" && <ResumenOperaciones periodo={periodo} libro={tab} />}
       {tab === "config" ? <ConfigSol /> : <PanelLibro key={tab} libro={tab} periodo={periodo} />}
     </div>
   );
@@ -175,13 +175,15 @@ function SincronizacionGlobal({ periodo, onPeriodoChange }: { periodo: string; o
         </div>
         <Campo etiqueta="Mes"><Select value={m} onChange={(e) => onPeriodoChange(`${y}-${String(e.target.value).padStart(2, "0")}`)}>{MESES.map((n, i) => <option key={n} value={i + 1}>{n}</option>)}</Select></Campo>
         <Campo etiqueta="Año"><Select value={y} onChange={(e) => onPeriodoChange(`${e.target.value}-${String(m).padStart(2, "0")}`)}>{anios.map((a) => <option key={a}>{a}</option>)}</Select></Campo>
-        <Boton onClick={sincronizarTodo} disabled={progreso !== null}><RefreshCw className={`size-3.5 ${progreso !== null ? "animate-spin" : ""}`} />Sincronizar Compras y Ventas</Boton>
       </div>
-      <div className="flex flex-wrap gap-x-5 gap-y-1 border-t border-line px-4 py-2 font-mono text-[11px] text-muted-foreground">
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-1 border-t border-line px-4 py-2 font-mono text-[11px] text-muted-foreground">
         {(["RVIE", "RCE"] as Libro[]).map((libro) => {
           const estado = estadoLibro(libro);
           return <span key={libro} className={estado === "error" ? "text-bad" : estado === "sincronizado" ? "text-good" : estado === "pendiente" ? "text-amber-700 dark:text-amber-400" : ""}>{etiquetaEstado(libro)}</span>;
         })}
+        <div className="ml-auto">
+          <Boton onClick={sincronizarTodo} disabled={progreso !== null}><RefreshCw className={`size-3.5 ${progreso !== null ? "animate-spin" : ""}`} />Sincronizar Compras y Ventas</Boton>
+        </div>
       </div>
       {progreso !== null && <div className="h-1 bg-muted"><div className="h-full bg-primary transition-all duration-300" style={{ width: `${progreso}%` }} /></div>}
     </div>
@@ -353,27 +355,27 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
         )}
 
         {paso === 2 && (
-          <Panel titulo={`PASO 2 · CONCILIACIÓN SUNAT vs ERP · ${(MESES[m - 1] ?? "").toUpperCase()} ${y}`}
-            extra={<div className="flex flex-wrap gap-1">
-              {libro === "RCE" && (
-                <>
-                  <span className="inline-flex items-center gap-1 rounded-md bg-sky-500/10 px-2.5 py-1 font-mono text-[11px] text-sky-700 ring-1 ring-sky-500/25 dark:text-sky-400">
-                    <AlertTriangle className="size-3" />IGV 10–18%: {igvParcial.length} comp. · {soles(sumaIgvParcial)}
-                  </span>
-                  <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 px-2.5 py-1 font-mono text-[11px] text-amber-700 ring-1 ring-amber-500/25 dark:text-amber-400">
-                    <AlertTriangle className="size-3" />Sin IGV: {sinIgv.length} comp. · {soles(sumaSinIgv)}
-                  </span>
-                </>
-              )}
-              {([["todos", "Todos"], ["ok", "Conciliados"], ["disc", "Con Discrepancias"], ["sunat", "Solo en SUNAT"]] as const).map(([k, t]) => (
-                <button key={k} onClick={() => setFiltro(k)} className={`inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[11px] ${k === "disc" && cuenta.disc > 0 ? (filtro === k ? "bg-amber-500 font-semibold text-white ring-1 ring-amber-600" : "bg-amber-500/15 font-semibold text-amber-700 ring-1 ring-amber-500/40 hover:bg-amber-500/25 dark:text-amber-400") : filtro === k ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}>{k === "disc" && cuenta.disc > 0 && <AlertTriangle className="size-3" />}{t} <span className={k === "disc" && cuenta.disc > 0 ? "" : "opacity-70"}>({cuenta[k]})</span></button>
-              ))}
-            </div>}>
+          <Panel titulo={`PASO 2 · CONCILIACIÓN SUNAT vs ERP · ${(MESES[m - 1] ?? "").toUpperCase()} ${y}`}>
             {visibles.length === 0 ? <Vacio texto="Sin documentos en este filtro" /> : (
-              <div className="overflow-x-auto" style={{ fontFamily: "Roboto, Arial, sans-serif" }}>
+              <div className="max-h-[calc(100vh-560px)] min-h-[260px] overflow-auto" style={{ fontFamily: "Roboto, Arial, sans-serif" }}>
+                <div className="sticky top-0 z-20 flex h-[42px] flex-nowrap items-center gap-1 overflow-x-auto whitespace-nowrap border-b border-line bg-card px-3 py-1">
+                  {libro === "RCE" && (
+                    <>
+                      <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-sky-500/10 px-2.5 py-1 font-mono text-[11px] text-sky-700 ring-1 ring-sky-500/25 dark:text-sky-400">
+                        <AlertTriangle className="size-3" />IGV 10–18%: {igvParcial.length} comp. · {soles(sumaIgvParcial)}
+                      </span>
+                      <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-amber-500/10 px-2.5 py-1 font-mono text-[11px] text-amber-700 ring-1 ring-amber-500/25 dark:text-amber-400">
+                        <AlertTriangle className="size-3" />Sin IGV: {sinIgv.length} comp. · {soles(sumaSinIgv)}
+                      </span>
+                    </>
+                  )}
+                  {([["todos", "Todos"], ["ok", "Conciliados"], ["disc", "Con Discrepancias"], ["sunat", "Solo en SUNAT"]] as const).map(([k, t]) => (
+                    <button key={k} onClick={() => setFiltro(k)} className={`inline-flex shrink-0 items-center gap-1 rounded-md px-2.5 py-1 text-[11px] ${k === "disc" && cuenta.disc > 0 ? (filtro === k ? "bg-amber-500 font-semibold text-white ring-1 ring-amber-600" : "bg-amber-500/15 font-semibold text-amber-700 ring-1 ring-amber-500/40 hover:bg-amber-500/25 dark:text-amber-400") : filtro === k ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}>{k === "disc" && cuenta.disc > 0 && <AlertTriangle className="size-3" />}{t} <span className={k === "disc" && cuenta.disc > 0 ? "" : "opacity-70"}>({cuenta[k]})</span></button>
+                  ))}
+                </div>
                 <table className="w-full min-w-[1100px] text-sm">
-                  <thead className="bg-muted/50 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                    <tr>{["Fecha", "Tipo", "Serie-Número", "RUC / Razón social", "Base", "IGV", "Total SUNAT", "Total ERP", "Estado", ""].map((h, i) => <th key={i} className={`whitespace-nowrap px-3 py-2 ${i >= 4 && i <= 7 ? "text-right" : "text-left"} ${i === 3 ? "w-[30%] min-w-[260px]" : ""}`}>{h}</th>)}</tr>
+                  <thead className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                    <tr>{["Fecha", "Tipo", "Serie-Número", "RUC / Razón social", "Base", "IGV", "Total SUNAT", "Total ERP", "Estado", ""].map((h, i) => <th key={i} className={`sticky top-[42px] z-10 whitespace-nowrap bg-muted px-3 py-2 ${i >= 4 && i <= 7 ? "text-right" : "text-left"} ${i === 3 ? "w-[30%] min-w-[260px]" : ""}`}>{h}</th>)}</tr>
                   </thead>
                   <tbody>
                     {visibles.map((i) => {
