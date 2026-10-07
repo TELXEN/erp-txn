@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { InsigniaCategoriaGasto } from "@/components/estado-ui";
+import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { Building2, CalendarDays, Check, ChevronDown, ChevronRight, Info, Paperclip, Pencil, Plus, Search, Truck, Trash2, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -154,12 +155,21 @@ function GastosGenerales() {
     coincide(busqueda, g.descripcion, nombreProv(g), (g as Pago).comprobante),
   );
 
-  const totalesCategoria = categoriasActivas
-    .map((c) => ({
-      nombre: c.nombre,
-      total: porAmbito.filter((g) => (g.categoria ?? "") === c.nombre).reduce((s, g) => s + Number(g.monto_soles), 0),
-    }))
-    .filter((t) => t.total > 0 || filtroCategoria === t.nombre);
+  const totalesCategoria = (() => {
+    const mapa = new Map<string, number>();
+    for (const g of porAmbito) {
+      const clave = g.categoria ?? "";
+      mapa.set(clave, (mapa.get(clave) ?? 0) + Number(g.monto_soles));
+    }
+    const filas = Array.from(mapa.entries()).map(([clave, total]) => ({
+      nombre: clave || "Sin categoría",
+      clave,
+      total,
+    }));
+    if (filtroCategoria !== "Todas" && !filas.some((f) => f.clave === filtroCategoria))
+      filas.push({ nombre: filtroCategoria || "Sin categoría", clave: filtroCategoria, total: 0 });
+    return filas;
+  })();
   const total = gastosBusqueda.reduce((s, g) => s + Number(g.monto_soles), 0);
   const pagado = gastosBusqueda
     .filter((g) => (g as Pago).estado_pago === "Pagada")
@@ -211,10 +221,21 @@ function GastosGenerales() {
   const granTotal = total + totalMant + totalComb;
   const desglose = [
     ...totalesCategoria.map((t) => ({ ...t, filtrable: true })),
-    ...(totalMant > 0 ? [{ nombre: "Mantenimiento vehicular", total: totalMant, filtrable: false }] : []),
-    ...(totalComb > 0 ? [{ nombre: "Combustible vehicular", total: totalComb, filtrable: false }] : []),
+    ...(totalMant > 0 ? [{ nombre: "Mantenimiento vehicular", clave: "", total: totalMant, filtrable: false }] : []),
+    ...(totalComb > 0 ? [{ nombre: "Combustible vehicular", clave: "", total: totalComb, filtrable: false }] : []),
   ].sort((a, b) => b.total - a.total);
-  const maxDesglose = Math.max(0, ...desglose.map((d) => d.total));
+  const granTotalDesglose = desglose.reduce((s, d) => s + d.total, 0);
+  const COLORES_FIJOS: Record<string, string> = {
+    "Mantenimiento vehicular": "#64748B",
+    "Combustible vehicular": "#B45309",
+  };
+  const PALETA_DESGLOSE = ["#2563EB", "#F59E0B", "#10B981", "#7C3AED", "#EA580C", "#DB2777", "#0EA5E9", "#059669", "#64748B"];
+  const coloresDesglose = new Map<string, string>();
+  let paletaIdx = 0;
+  for (const d of desglose) {
+    const fijo = COLORES_FIJOS[d.nombre];
+    coloresDesglose.set(d.nombre, fijo ?? PALETA_DESGLOSE[paletaIdx++ % PALETA_DESGLOSE.length] ?? PALETA_DESGLOSE[0]!);
+  }
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
@@ -433,35 +454,77 @@ function GastosGenerales() {
             {desglose.length === 0 ? (
               <p className="py-4 text-center font-mono text-xs text-muted-foreground">Sin gastos en este periodo.</p>
             ) : (
-              <ul className="space-y-2.5">
-                {desglose.map((d) => {
-                  const activo = filtroCategoria === d.nombre;
-                  return (
-                    <li key={d.nombre}>
-                      <button
-                        type="button"
-                        disabled={!d.filtrable}
-                        onClick={() => {
-                          setPestana("gastos");
-                          setFiltroCategoria(activo ? "Todas" : d.nombre);
-                        }}
-                        className={`w-full rounded-md px-2 py-1 text-left transition-colors ${d.filtrable ? "hover:bg-muted/60" : "cursor-default"} ${activo ? "bg-muted" : ""}`}
+              <div className="flex flex-col items-center gap-4 sm:flex-row">
+                <div className="relative h-40 w-40 shrink-0">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={desglose}
+                        dataKey="total"
+                        nameKey="nombre"
+                        innerRadius={50}
+                        outerRadius={72}
+                        paddingAngle={2}
+                        stroke="none"
                       >
-                        <div className="flex items-center justify-between gap-3 text-sm">
-                          <span className={`truncate ${activo ? "font-semibold text-primary" : "text-ink"}`}>{d.nombre}</span>
-                          <span className="font-mono text-xs font-semibold text-ink">{soles(d.total)}</span>
-                        </div>
-                        <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
-                          <div
-                            className="h-full rounded-full bg-primary"
-                            style={{ width: `${maxDesglose > 0 ? (d.total / maxDesglose) * 100 : 0}%` }}
-                          />
-                        </div>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
+                        {desglose.map((d) => {
+                          const claveD = d.clave ?? d.nombre;
+                          const activo = filtroCategoria === claveD;
+                          return (
+                            <Cell
+                              key={d.nombre}
+                              fill={coloresDesglose.get(d.nombre)}
+                              fillOpacity={filtroCategoria === "Todas" || activo ? 1 : 0.4}
+                              className={d.filtrable ? "cursor-pointer" : "cursor-default"}
+                              onClick={
+                                d.filtrable
+                                  ? () => {
+                                      setPestana("gastos");
+                                      setFiltroCategoria(activo ? "Todas" : claveD);
+                                    }
+                                  : undefined
+                              }
+                            />
+                          );
+                        })}
+                      </Pie>
+                      <Tooltip
+                        formatter={(v: number) => soles(Number(v))}
+                        contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid var(--line)" }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="label-mono text-[10px]">Total periodo</span>
+                    <span className="font-mono text-sm font-bold text-ink">{soles(granTotalDesglose)}</span>
+                  </div>
+                </div>
+                <ul className="my-auto min-w-0 flex-1 space-y-1.5">
+                  {desglose.map((d) => {
+                    const claveD = d.clave ?? d.nombre;
+                    const activo = filtroCategoria === claveD;
+                    const pctTotal = granTotalDesglose > 0 ? (d.total / granTotalDesglose) * 100 : 0;
+                    return (
+                      <li key={d.nombre}>
+                        <button
+                          type="button"
+                          disabled={!d.filtrable}
+                          onClick={() => {
+                            setPestana("gastos");
+                            setFiltroCategoria(activo ? "Todas" : claveD);
+                          }}
+                          className={`flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-[12px] leading-tight transition-colors ${d.filtrable ? "hover:bg-muted/60" : "cursor-default"} ${activo ? "bg-muted" : ""}`}
+                        >
+                          <span className="h-2.5 w-2.5 shrink-0 rounded-sm" style={{ background: coloresDesglose.get(d.nombre) }} />
+                          <span className={`min-w-0 flex-1 truncate ${activo ? "font-semibold text-primary" : "text-ink"}`}>{d.nombre}</span>
+                          <span className="font-mono text-[11px] font-semibold text-ink">{soles(d.total)}</span>
+                          <span className="w-11 shrink-0 text-right font-mono text-[10px] text-muted-foreground">{pctTotal.toFixed(1)}%</span>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
             )}
           </section>
         </div>
