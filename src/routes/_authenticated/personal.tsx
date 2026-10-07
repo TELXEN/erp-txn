@@ -2,7 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { Fragment, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Check, Pencil, Plus, Stethoscope, Trash2, Upload, Users, X, UserRound, Briefcase, Wallet, Landmark } from "lucide-react";
+import { Check, Pencil, Plus, Stethoscope, Trash2, Upload, Users, X, UserRound, Briefcase, Wallet, Landmark, Search } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { consultarAfpSbs, consultarDocumentoSunat } from "@/lib/decolecta.functions";
 import { EmoPanel } from "@/components/personal/EmoPanel";
 import { estadoEmo, ESTADO_EMO_INFO, ultimoEmoPorTrabajador, useEmos } from "@/lib/emo";
 import { supabase } from "@/integrations/supabase/client";
@@ -147,6 +149,32 @@ function Personal() {
   const dniDuplicado = /^\d{8}$/.test(form.dni) && trabajadores.some((t) => t.dni === form.dni);
   const faltante = dniDuplicado ? "Ya existe un trabajador con ese DNI." : validar(form);
   const setFormC = (campo: keyof FormPersonal, valor: string | boolean) => setForm((f) => aplicarCambio(f, campo, valor));
+  const fnReniec = useServerFn(consultarDocumentoSunat);
+  const fnAfp = useServerFn(consultarAfpSbs);
+  const [consultando, setConsultando] = useState<"" | "reniec" | "afp">("");
+  const [msgReniec, setMsgReniec] = useState("");
+  const [msgAfp, setMsgAfp] = useState("");
+  async function consultarReniec() {
+    setConsultando("reniec"); setMsgReniec("");
+    try {
+      const r = await fnReniec({ data: { numero: form.dni } });
+      if (r.encontrado) { setFormC("nombre", r.razonSocial); setMsgReniec("Nombre obtenido de RENIEC"); }
+      else setMsgReniec(r.mensaje || "No se encontró el DNI.");
+    } catch { setMsgReniec("No se pudo consultar RENIEC."); }
+    setConsultando("");
+  }
+  async function consultarAfp() {
+    setConsultando("afp"); setMsgAfp("");
+    try {
+      const r = await fnAfp({ data: { dni: form.dni } });
+      if (r.encontrado) {
+        if (r.afp) setFormC("sistema_pensiones", r.afp);
+        if (r.cuspp) setForm((f) => ({ ...f, cuspp: r.cuspp }));
+        setMsgAfp(`Afiliación SBS: ${r.afp || "AFP"}${r.cuspp ? ` · CUSPP ${r.cuspp}` : ""}`);
+      } else setMsgAfp(r.mensaje);
+    } catch { setMsgAfp("No se pudo consultar la SBS."); }
+    setConsultando("");
+  }
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
@@ -394,8 +422,13 @@ function Personal() {
           <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
             <Seccion titulo="Datos personales" paso={1} icono={UserRound}>
               <CampoF etiqueta="DNI" req>
-                <Input autoFocus inputMode="numeric" pattern="[0-9]{8}" maxLength={8} value={form.dni} onChange={(e) => setFormC("dni", e.target.value.replace(/\D/g, ""))} required className={`py-1.5 ${dniDuplicado ? "border-bad" : ""}`} placeholder="8 dígitos" />
-                <span className={`mt-0.5 block text-[10px] ${dniDuplicado ? "text-bad" : "text-muted-foreground"}`}>{dniDuplicado ? "DNI ya registrado" : `${form.dni.length}/8`}</span>
+                <div className="flex gap-1">
+                  <Input autoFocus inputMode="numeric" pattern="[0-9]{8}" maxLength={8} value={form.dni} onChange={(e) => setFormC("dni", e.target.value.replace(/\D/g, ""))} required className={`py-1.5 ${dniDuplicado ? "border-bad" : ""}`} placeholder="8 dígitos" />
+                  <Boton type="button" variante="linea" title="Consultar RENIEC" onClick={consultarReniec} disabled={consultando !== "" || !/^\d{8}$/.test(form.dni) || dniDuplicado}>
+                    <Search size={13} />{consultando === "reniec" ? "…" : "RENIEC"}
+                  </Boton>
+                </div>
+                <span className={`mt-0.5 block text-[10px] ${dniDuplicado ? "text-bad" : "text-muted-foreground"}`}>{dniDuplicado ? "DNI ya registrado" : msgReniec || `${form.dni.length}/8`}</span>
               </CampoF>
               <CampoF etiqueta="N° Celular" req>
                 <Input inputMode="tel" pattern="[0-9]{9}" maxLength={9} value={form.numero_celular} onChange={(e) => setFormC("numero_celular", e.target.value.replace(/\D/g, ""))} required className="py-1.5" placeholder="9 dígitos" />
@@ -409,7 +442,15 @@ function Personal() {
             </Seccion>
             <Seccion titulo="Datos laborales" paso={2} icono={Briefcase}>{seccionLaboral(form, setFormC, true)}</Seccion>
             <Seccion titulo="Sueldo y pago" paso={3} icono={Wallet}>{seccionSalario(form, setFormC, true)}</Seccion>
-            <Seccion titulo="Régimen de pensiones" paso={4} icono={Landmark}>{seccionPrevision(form, setFormC)}</Seccion>
+            <Seccion titulo="Régimen de pensiones" paso={4} icono={Landmark}>
+              {seccionPrevision(form, setFormC)}
+              <div className="col-span-full">
+                <Boton type="button" variante="linea" onClick={consultarAfp} disabled={consultando !== "" || !/^\d{8}$/.test(form.dni) || form.tipo_contratacion !== "Planilla"}>
+                  <Search size={13} />{consultando === "afp" ? "Consultando SBS…" : "Consultar AFP en SBS"}
+                </Boton>
+                {msgAfp && <span className="mt-1 block text-[10px] text-muted-foreground">{msgAfp}</span>}
+              </div>
+            </Seccion>
           </div>
           <div className="mt-4 flex items-center justify-end gap-3 border-t border-line pt-3">
             <p className={`mr-auto text-xs ${error ? "text-bad" : "text-muted-foreground"}`}>{error || (faltante ? `Falta: ${faltante}` : "Todo listo para registrar.")}</p>
