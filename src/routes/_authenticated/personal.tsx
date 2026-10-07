@@ -30,13 +30,13 @@ function CampoF({ etiqueta, req, children }: { etiqueta: string; req?: boolean; 
 
 function Seccion({ titulo, paso, icono: Icono, children }: { titulo: string; paso?: number; icono?: typeof Users; children: ReactNode }) {
   return (
-    <div className="rounded-lg border border-line bg-card p-3 shadow-sm">
-      <h3 className="mb-3 flex items-center gap-2 border-b border-line pb-2 text-[11px] font-bold uppercase tracking-wide text-ink">
+    <div className="min-w-0">
+      <h3 className="mb-4 flex items-center gap-2 border-b border-line pb-3 text-sm font-bold text-ink">
         {paso && <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">{paso}</span>}
-        {Icono && <Icono size={13} className="text-primary" />}
+        {Icono && <Icono size={18} className="text-primary" />}
         {titulo}
       </h3>
-      <div className="grid grid-cols-2 gap-3">{children}</div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">{children}</div>
     </div>
   );
 }
@@ -142,6 +142,10 @@ function Personal() {
   const [pestana, setPestana] = useState<"personal" | "emo">("personal");
   const [formAbierto, setFormAbierto] = useState(false);
   const cerrarTrasGuardar = useRef(false);
+  const guardandoRef = useRef(false);
+  const [guardando, setGuardando] = useState(false);
+  const [registrado, setRegistrado] = useState("");
+  const dniRef = useRef<HTMLInputElement>(null);
   const { data: emos = [] } = useEmos(puedeVerDinero(rol));
   const ultimos = ultimoEmoPorTrabajador(emos);
   const alertasEmo = trabajadores.filter((t) => { const s = estadoEmo(ultimos.get(t.id)?.fecha_vencimiento); return s === "vencido" || s === "por_vencer"; }).length;
@@ -202,14 +206,31 @@ function Personal() {
 
   async function guardar(e: React.FormEvent) {
     e.preventDefault();
+    if (guardandoRef.current || consultando) return;
     setError("");
-    const mensaje = validar(form);
-    if (mensaje) return setError(mensaje);
-    const { error: err } = await supabase.from("trabajadores").insert(datosGuardar(form));
-    if (err) return setError(err.message);
-    setForm(FORM_INICIAL);
-    if (cerrarTrasGuardar.current) setFormAbierto(false);
-    await qc.invalidateQueries({ queryKey: ["trabajadores"] });
+    setRegistrado("");
+    const mensaje = dniDuplicado ? "Ya existe un trabajador con ese DNI." : validar(form);
+    if (mensaje) { cerrarTrasGuardar.current = false; setError(mensaje); return; }
+    const cerrar = cerrarTrasGuardar.current;
+    cerrarTrasGuardar.current = false;
+    guardandoRef.current = true;
+    setGuardando(true);
+    try {
+      const { error: err } = await supabase.from("trabajadores").insert(datosGuardar(form));
+      if (err) { setError(err.message); return; }
+      setRegistrado(`${form.nombre.trim()} registrado correctamente.`);
+      setForm(FORM_INICIAL);
+      setMsgReniec("");
+      setMsgAfp("");
+      if (cerrar) setFormAbierto(false);
+      else requestAnimationFrame(() => dniRef.current?.focus());
+      await qc.invalidateQueries({ queryKey: ["trabajadores"] });
+    } catch {
+      setError("No se pudo guardar el trabajador. Revisa la conexión e inténtalo nuevamente.");
+    } finally {
+      guardandoRef.current = false;
+      setGuardando(false);
+    }
   }
 
   function iniciarEdicion(trabajador: Trabajador) {
@@ -417,22 +438,30 @@ function Personal() {
       </div>
 
       {pestana === "emo" ? <EmoPanel trabajadores={trabajadores} /> : <>
-      <VentanaFlotante abierta={formAbierto} onCerrar={() => { setFormAbierto(false); setForm(FORM_INICIAL); setError(""); }} titulo="Nuevo trabajador" subtitulo="Registra personal consecutivamente y cierra cuando termines." ancho="max-w-7xl">
-        <form onSubmit={guardar} className="p-4">
-          <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
+      <VentanaFlotante abierta={formAbierto} onCerrar={() => { setFormAbierto(false); setForm(FORM_INICIAL); setError(""); }} titulo="Nuevo trabajador" ancho="max-w-5xl">
+        <form onSubmit={guardar}
+          onKeyDown={(e) => {
+            if (e.key !== "Enter" || e.nativeEvent.isComposing || !(e.target instanceof HTMLInputElement) || e.target.type === "checkbox") return;
+            e.preventDefault();
+            cerrarTrasGuardar.current = false;
+            e.currentTarget.requestSubmit();
+          }}
+          className="[&_input:not([type=checkbox])]:h-11 [&_input:not([type=checkbox])]:text-base [&_select]:h-11 [&_select]:text-base [&_label>span]:text-sm [&_label_button]:h-11 [&_label_button]:text-sm">
+          <fieldset disabled={guardando} className="min-w-0 border-0 p-5 sm:p-6">
+          <div className="grid gap-x-8 gap-y-7 md:grid-cols-2">
             <Seccion titulo="Datos personales" paso={1} icono={UserRound}>
               <CampoF etiqueta="DNI" req>
-                <div className="flex gap-1">
-                  <Input autoFocus inputMode="numeric" pattern="[0-9]{8}" maxLength={8} value={form.dni} onChange={(e) => setFormC("dni", e.target.value.replace(/\D/g, ""))} required className={`py-1.5 ${dniDuplicado ? "border-bad" : ""}`} placeholder="8 dígitos" />
-                  <Boton type="button" variante="linea" title="Consultar RENIEC" onClick={consultarReniec} disabled={consultando !== "" || !/^\d{8}$/.test(form.dni) || dniDuplicado}>
-                    <Search size={13} />{consultando === "reniec" ? "…" : "RENIEC"}
+                <div className="flex items-center gap-2">
+                  <Input ref={dniRef} autoFocus aria-label="DNI" inputMode="numeric" pattern="[0-9]{8}" maxLength={8} value={form.dni} onChange={(e) => setFormC("dni", e.target.value.replace(/\D/g, ""))} required className={`min-w-0 flex-1 tabular-nums ${dniDuplicado ? "border-bad" : ""}`} placeholder="8 dígitos" />
+                  <Boton type="button" variante="linea" className="h-11 shrink-0 px-3" title="Consultar RENIEC" onClick={consultarReniec} disabled={consultando !== "" || !/^\d{8}$/.test(form.dni) || dniDuplicado}>
+                    <Search size={16} />{consultando === "reniec" ? "…" : "RENIEC"}
                   </Boton>
                 </div>
-                <span className={`mt-0.5 block text-[10px] ${dniDuplicado ? "text-bad" : "text-muted-foreground"}`}>{dniDuplicado ? "DNI ya registrado" : msgReniec || `${form.dni.length}/8`}</span>
+                <span className={`mt-1 block text-xs ${dniDuplicado ? "text-bad" : "text-muted-foreground"}`}>{dniDuplicado ? "DNI ya registrado" : msgReniec || `${form.dni.length}/8`}</span>
               </CampoF>
               <CampoF etiqueta="N° Celular" req>
                 <Input inputMode="tel" pattern="[0-9]{9}" maxLength={9} value={form.numero_celular} onChange={(e) => setFormC("numero_celular", e.target.value.replace(/\D/g, ""))} required className="py-1.5" placeholder="9 dígitos" />
-                <span className="mt-0.5 block text-[10px] text-muted-foreground">{form.numero_celular.length}/9</span>
+                <span className="mt-1 block text-xs text-muted-foreground">{form.numero_celular.length}/9</span>
               </CampoF>
               <div className="col-span-full">
                 <CampoF etiqueta="Apellidos y Nombre(s)" req>
@@ -446,17 +475,18 @@ function Personal() {
               {seccionPrevision(form, setFormC)}
               <div className="col-span-full">
                 <Boton type="button" variante="linea" onClick={consultarAfp} disabled={consultando !== "" || !/^\d{8}$/.test(form.dni) || form.tipo_contratacion !== "Planilla"}>
-                  <Search size={13} />{consultando === "afp" ? "Consultando SBS…" : "Consultar AFP en SBS"}
+                  <Search size={16} />{consultando === "afp" ? "Consultando SBS…" : "Consultar AFP en SBS"}
                 </Boton>
-                {msgAfp && <span className="mt-1 block text-[10px] text-muted-foreground">{msgAfp}</span>}
+                {msgAfp && <span className="mt-2 block text-xs text-muted-foreground">{msgAfp}</span>}
               </div>
             </Seccion>
           </div>
-          <div className="mt-4 flex items-center justify-end gap-3 border-t border-line pt-3">
-            <p className={`mr-auto text-xs ${error ? "text-bad" : "text-muted-foreground"}`}>{error || (faltante ? `Falta: ${faltante}` : "Todo listo para registrar.")}</p>
+          </fieldset>
+          <div className="sticky bottom-0 flex flex-wrap items-center justify-end gap-3 border-t border-line bg-card px-5 py-4 sm:px-6">
+            <p role="status" aria-live="polite" className={`w-full text-sm ${error ? "text-bad" : registrado ? "text-good" : "text-muted-foreground"}`}>{error || registrado || (faltante ? `Falta: ${faltante}` : "Todo listo para registrar.")}</p>
             <Boton type="button" variante="linea" onClick={() => { setForm(FORM_INICIAL); setError(""); setFormAbierto(false); }}>Cancelar</Boton>
-            <Boton type="submit" variante="linea" disabled={!!faltante} className="min-w-36" onClick={() => { cerrarTrasGuardar.current = false; }}>Registrar otro</Boton>
-            <Boton type="submit" variante="accion" disabled={!!faltante} className="min-w-36" onClick={() => { cerrarTrasGuardar.current = true; }}>Registrar y cerrar</Boton>
+            <Boton type="submit" variante="linea" disabled={!!faltante || guardando || consultando !== ""} className="min-h-11 min-w-36" onClick={() => { cerrarTrasGuardar.current = false; }}>{guardando ? "Guardando…" : "Registrar otro"}</Boton>
+            <Boton type="submit" variante="accion" disabled={!!faltante || guardando || consultando !== ""} className="min-h-11 min-w-36" onClick={() => { cerrarTrasGuardar.current = true; }}>Registrar y cerrar</Boton>
           </div>
         </form>
       </VentanaFlotante>
@@ -471,7 +501,7 @@ function Personal() {
               placeholder="Buscar por nombre, DNI o cargo..."
             />
             <span className="font-mono text-[11px] text-muted-foreground">{trabajadores.length} trabajadores</span>
-            <Boton variante="accion" onClick={() => setFormAbierto(true)}><Plus size={13} /> Nuevo trabajador</Boton>
+            <Boton variante="accion" onClick={() => { setRegistrado(""); setMsgReniec(""); setMsgAfp(""); setError(""); cerrarTrasGuardar.current = false; setFormAbierto(true); }}><Plus size={13} /> Nuevo trabajador</Boton>
           </div>
         }>
         {error && <p className="border-b border-line px-5 py-2 font-mono text-xs text-bad">{error}</p>}
