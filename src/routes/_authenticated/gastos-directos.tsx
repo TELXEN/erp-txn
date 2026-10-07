@@ -683,7 +683,7 @@ function ModalCompra({
           </div>
         </form>
       </div>
-    </div>
+    </VentanaFlotante>
   );
 }
 
