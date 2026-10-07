@@ -46,12 +46,11 @@ function SirePage() {
     <div>
       <Encabezado titulo="SIRE SUNAT" subtitulo="FINANZAS Y CONTABILIDAD · REGISTROS ELECTRÓNICOS" />
       <div className="sticky top-0 z-30 -mx-1 bg-background px-1 pb-1">
-        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <SincronizacionGlobal periodo={periodo} onPeriodoChange={setPeriodo} botonesGrupos={
           <div className="flex flex-wrap gap-1">
             {grupos.map((g) => { const Icono = g.icono; return <Boton key={g.titulo} variante={g === grupoActivo ? "primario" : "linea"} onClick={() => { const primero = g.items[0]; if (primero) setTab(primero.k); }}><Icono size={13} />{g.titulo}</Boton>; })}
           </div>
-          <SincronizacionGlobal periodo={periodo} onPeriodoChange={setPeriodo} />
-        </div>
+        } />
         <div className="mb-4 flex flex-wrap gap-1 border-b border-line pb-3">
           {grupoActivo?.items.map(({ k, t, i: I }) => (
             <button key={k} onClick={() => setTab(k)} className={`flex items-center gap-2 rounded-md border-b-2 px-3 py-1.5 text-xs transition-colors ${tab === k ? "border-cta bg-primary/10 font-semibold text-primary" : "border-transparent text-muted-foreground hover:bg-muted hover:text-primary"}`}><I className="size-3.5" />{t}</button>
