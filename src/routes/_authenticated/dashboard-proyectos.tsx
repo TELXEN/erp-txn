@@ -351,9 +351,12 @@ function DashboardProyectos() {
             {filas.length === 0 ? (
               <option value="todos">Sin obras registradas</option>
             ) : (
-            {filas.map((f) => (
-              <option key={f.proyecto.id} value={f.proyecto.id}>{f.proyecto.nombre}</option>
-            ))}
+              <>
+                <option value="todos">Todos los proyectos</option>
+                {filas.map((f) => (
+                  <option key={f.proyecto.id} value={f.proyecto.id}>{f.proyecto.nombre}</option>
+                ))}
+              </>
             )}
           </Select>
         </div>
