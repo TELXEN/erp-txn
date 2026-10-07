@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
-  CheckCircle2, AlertTriangle, XCircle, RefreshCw, KeyRound, ShieldCheck, Download, Send, LibraryBig, Settings,
+  CheckCircle2, AlertTriangle, XCircle, RefreshCw, KeyRound, ShieldCheck, Download, Send, Settings,
   FileSpreadsheet, ShoppingBag, ReceiptText, Plus, ChevronRight, ChevronLeft, Link2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -192,7 +192,6 @@ function SincronizacionGlobal({ periodo, onPeriodoChange, botonConfig, subtabs }
         </div>
       </div>
       <div className="mt-4 flex flex-wrap items-center justify-start gap-4">
-        {botonRegistros}
         {subtabs}
       </div>
       {progreso !== null && (
