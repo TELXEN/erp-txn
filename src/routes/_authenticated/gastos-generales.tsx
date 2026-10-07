@@ -155,12 +155,21 @@ function GastosGenerales() {
     coincide(busqueda, g.descripcion, nombreProv(g), (g as Pago).comprobante),
   );
 
-  const totalesCategoria = categoriasActivas
-    .map((c) => ({
-      nombre: c.nombre,
-      total: porAmbito.filter((g) => (g.categoria ?? "") === c.nombre).reduce((s, g) => s + Number(g.monto_soles), 0),
-    }))
-    .filter((t) => t.total > 0 || filtroCategoria === t.nombre);
+  const totalesCategoria = (() => {
+    const mapa = new Map<string, number>();
+    for (const g of porAmbito) {
+      const clave = g.categoria ?? "";
+      mapa.set(clave, (mapa.get(clave) ?? 0) + Number(g.monto_soles));
+    }
+    const filas = Array.from(mapa.entries()).map(([clave, total]) => ({
+      nombre: clave || "Sin categoría",
+      clave,
+      total,
+    }));
+    if (filtroCategoria !== "Todas" && !filas.some((f) => f.clave === filtroCategoria))
+      filas.push({ nombre: filtroCategoria || "Sin categoría", clave: filtroCategoria, total: 0 });
+    return filas;
+  })();
   const total = gastosBusqueda.reduce((s, g) => s + Number(g.monto_soles), 0);
   const pagado = gastosBusqueda
     .filter((g) => (g as Pago).estado_pago === "Pagada")
