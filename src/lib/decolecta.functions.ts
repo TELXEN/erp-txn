@@ -159,7 +159,7 @@ export const obtenerComisionesAfp = createServerFn({ method: "POST" })
     try {
       // La SBS publica las comisiones del mes con retraso: si el mes aún no está, probamos los dos meses anteriores.
       let filas: (ComisionAfp & { periodo: string; consultado_en: string; origen: string })[] = [];
-      let [y, m] = data.periodo.split("-").map(Number);
+      let y = Number(data.periodo.slice(0, 4)), m = Number(data.periodo.slice(5, 7));
       for (let intento = 0; intento < 3 && !filas.length; intento++) {
         const per = `${y}-${String(m).padStart(2, "0")}`;
         const res = await fetch(`${BASE}/afp/comisiones?year=${y}&month=${m}`, { headers: { Authorization: `Bearer ${token}`, Referer: "https://telxen.app" } });
@@ -177,7 +177,7 @@ export const obtenerComisionesAfp = createServerFn({ method: "POST" })
       if (!filas.length) return respaldo("Decolecta no devolvió comisiones para ese mes.");
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       await (supabaseAdmin as any).from("afp_comisiones_mensuales").upsert(filas, { onConflict: "periodo,afp" });
-      const perDatos = filas[0].periodo;
+      const perDatos = filas[0]?.periodo ?? data.periodo;
       return { periodo: data.periodo, periodoDatos: perDatos, origen: "decolecta", mensaje: perDatos !== data.periodo ? `La SBS aún no publica ${data.periodo}; se usan las comisiones de ${perDatos}.` : "", comisiones: filas.map(({ periodo: _p, ...r }) => ({ afp: r.afp, aporte_fondo: r.aporte_fondo, prima_seguro: r.prima_seguro, comision_flujo: r.comision_flujo, tope_remuneracion: r.tope_remuneracion })), actualizadoEn: filas[0]?.consultado_en ?? "" };
     } catch {
       return respaldo("No se pudo conectar con Decolecta.");
