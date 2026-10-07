@@ -39,7 +39,7 @@ const TONO_SECCION = {
 function Seccion({ titulo, paso, icono: Icono, tono, children }: { titulo: string; paso?: number; icono?: typeof Users; tono: keyof typeof TONO_SECCION; children: ReactNode }) {
   const t = TONO_SECCION[tono];
   return (
-    <div className={`min-w-0 rounded-md border border-line border-l-[3px] p-2.5 ${t.barra} ${t.fondo}`}>
+    <div className={`min-w-0 self-start rounded-md border border-line border-l-[3px] p-2.5 ${t.barra} ${t.fondo}`}>
       <h3 className="mb-2 flex items-center gap-1.5 border-b border-line pb-1.5 text-[11px] font-bold uppercase tracking-wide text-ink">
         {paso && <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[9px] font-bold text-chip-foreground ${t.chip}`}>{paso}</span>}
         {Icono && <Icono size={13} className={t.acento} />}
@@ -455,15 +455,13 @@ function Personal() {
                 </div>
                 <span className={`mt-0.5 block text-[11px] ${dniDuplicado ? "text-bad" : "text-muted-foreground"}`}>{dniDuplicado ? "DNI ya registrado" : msgReniec || `${form.dni.length}/8`}</span>
               </CampoF>
+              <CampoF etiqueta="Apellidos y Nombre(s)" req>
+                <Input value={form.nombre} onChange={(e) => setFormC("nombre", e.target.value)} required maxLength={100} className="py-1.5" placeholder="Ej. QUISPE MAMANI, Juan" />
+              </CampoF>
               <CampoF etiqueta="N° Celular" req>
                 <Input inputMode="tel" pattern="[0-9]{9}" maxLength={9} value={form.numero_celular} onChange={(e) => setFormC("numero_celular", e.target.value.replace(/\D/g, ""))} required className="py-1.5" placeholder="9 dígitos" />
                 <span className="mt-0.5 block text-[11px] text-muted-foreground">{form.numero_celular.length}/9</span>
               </CampoF>
-              <div className="col-span-full">
-                <CampoF etiqueta="Apellidos y Nombre(s)" req>
-                  <Input value={form.nombre} onChange={(e) => setFormC("nombre", e.target.value)} required maxLength={100} className="py-1.5" placeholder="Ej. QUISPE MAMANI, Juan" />
-                </CampoF>
-              </div>
             </Seccion>
             <Seccion titulo="Datos laborales" paso={2} icono={Briefcase} tono="laboral">{seccionLaboral(form, setFormC, true)}</Seccion>
             <Seccion titulo="Sueldo y pago" paso={3} icono={Wallet} tono="sueldo">{seccionSalario(form, setFormC, true)}</Seccion>
