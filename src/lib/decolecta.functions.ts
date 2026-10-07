@@ -124,7 +124,7 @@ export const consultarTipoCambio = createServerFn({ method: "POST" })
   });
 
 export type ComisionAfp = { afp: string; aporte_fondo: number; prima_seguro: number; comision_flujo: number; tope_remuneracion: number };
-export type ResultadoComisionesAfp = { periodo: string; periodoDatos: string; origen: "decolecta" | "guardado" | "respaldo"; comisiones: ComisionAfp[]; mensaje: string };
+export type ResultadoComisionesAfp = { periodo: string; periodoDatos: string; origen: "decolecta" | "guardado" | "respaldo"; comisiones: ComisionAfp[]; mensaje: string; actualizadoEn: string };
 
 const NOMBRES_AFP: [string, string][] = [["INTEGRA", "AFP Integra"], ["PRIMA", "AFP Prima"], ["PROFUTURO", "AFP Profuturo"], ["HABITAT", "AFP Habitat"]];
 
@@ -135,22 +135,24 @@ export const obtenerComisionesAfp = createServerFn({ method: "POST" })
   .handler(async ({ data, context }): Promise<ResultadoComisionesAfp> => {
     const sb = context.supabase as any;
     const leer = async (filtroPeriodo?: string) => {
-      let q = sb.from("afp_comisiones_mensuales").select("periodo,afp,aporte_fondo,prima_seguro,comision_flujo,tope_remuneracion");
+      let q = sb.from("afp_comisiones_mensuales").select("periodo,afp,aporte_fondo,prima_seguro,comision_flujo,tope_remuneracion,consultado_en");
       q = filtroPeriodo ? q.eq("periodo", filtroPeriodo) : q.lte("periodo", data.periodo).order("periodo", { ascending: false }).limit(8);
       const { data: filas } = await q;
-      const lista = (filas ?? []) as (ComisionAfp & { periodo: string })[];
+      const lista = (filas ?? []) as (ComisionAfp & { periodo: string; consultado_en: string | null })[];
       const per = lista[0]?.periodo ?? "";
-      return { per, comisiones: lista.filter((f) => f.periodo === per).map((f) => ({ afp: f.afp, aporte_fondo: Number(f.aporte_fondo), prima_seguro: Number(f.prima_seguro), comision_flujo: Number(f.comision_flujo), tope_remuneracion: Number(f.tope_remuneracion) })) };
+      const delPeriodo = lista.filter((f) => f.periodo === per);
+      const actualizadoEn = delPeriodo.map((f) => f.consultado_en).filter(Boolean).sort().reverse()[0] ?? "";
+      return { per, actualizadoEn, comisiones: delPeriodo.map((f) => ({ afp: f.afp, aporte_fondo: Number(f.aporte_fondo), prima_seguro: Number(f.prima_seguro), comision_flujo: Number(f.comision_flujo), tope_remuneracion: Number(f.tope_remuneracion) })) };
     };
     if (data.forzar) await exigirGestor(context);
     if (!data.forzar) {
       const c = await leer(data.periodo);
-      if (c.comisiones.length) return { periodo: data.periodo, periodoDatos: c.per, origen: "decolecta", comisiones: c.comisiones, mensaje: "" };
+      if (c.comisiones.length) return { periodo: data.periodo, periodoDatos: c.per, origen: "decolecta", comisiones: c.comisiones, mensaje: "", actualizadoEn: c.actualizadoEn };
     }
     const respaldo = async (mensaje: string): Promise<ResultadoComisionesAfp> => {
       const c = await leer();
-      if (c.comisiones.length) return { periodo: data.periodo, periodoDatos: c.per, origen: "guardado", comisiones: c.comisiones, mensaje };
-      return { periodo: data.periodo, periodoDatos: "", origen: "respaldo", comisiones: [], mensaje };
+      if (c.comisiones.length) return { periodo: data.periodo, periodoDatos: c.per, origen: "guardado", comisiones: c.comisiones, mensaje, actualizadoEn: c.actualizadoEn };
+      return { periodo: data.periodo, periodoDatos: "", origen: "respaldo", comisiones: [], mensaje, actualizadoEn: "" };
     };
     const token = await obtenerToken();
     if (!token) return respaldo("La API Decolecta no está configurada.");
@@ -163,11 +165,11 @@ export const obtenerComisionesAfp = createServerFn({ method: "POST" })
         const raw = String(j["afp"] ?? "").toUpperCase();
         const afp = NOMBRES_AFP.find(([k]) => raw.includes(k))?.[1];
         return afp ? { periodo: data.periodo, afp, aporte_fondo: Number(j["aporte_obligatorio"] ?? 10) / 100, prima_seguro: Number(j["prima_de_seguro"] ?? 0) / 100, comision_flujo: Number(j["comision_sobre_flujo"] ?? 0) / 100, tope_remuneracion: Number(j["remuneracion_maxima_asegurable"] ?? 0), origen: "decolecta", consultado_en: new Date().toISOString() } : null;
-      }).filter(Boolean) as (ComisionAfp & { periodo: string })[];
+      }).filter(Boolean) as (ComisionAfp & { periodo: string; consultado_en: string })[];
       if (!filas.length) return respaldo("Decolecta no devolvió comisiones para ese mes.");
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       await (supabaseAdmin as any).from("afp_comisiones_mensuales").upsert(filas, { onConflict: "periodo,afp" });
-      return { periodo: data.periodo, periodoDatos: data.periodo, origen: "decolecta", comisiones: filas.map(({ periodo: _p, ...r }) => ({ afp: r.afp, aporte_fondo: r.aporte_fondo, prima_seguro: r.prima_seguro, comision_flujo: r.comision_flujo, tope_remuneracion: r.tope_remuneracion })), mensaje: "" };
+      return { periodo: data.periodo, periodoDatos: data.periodo, origen: "decolecta", comisiones: filas.map(({ periodo: _p, ...r }) => ({ afp: r.afp, aporte_fondo: r.aporte_fondo, prima_seguro: r.prima_seguro, comision_flujo: r.comision_flujo, tope_remuneracion: r.tope_remuneracion })), mensaje: "", actualizadoEn: filas[0]?.consultado_en ?? "" };
     } catch {
       return respaldo("No se pudo conectar con Decolecta.");
     }
