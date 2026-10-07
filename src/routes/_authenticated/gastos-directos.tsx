@@ -3,8 +3,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
-import { CalendarIcon, Check, ChevronDown, ChevronRight, Plus, Search, Trash2, Upload, X } from "lucide-react";
+import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
+import { CalendarIcon, Check, ChevronDown, ChevronRight, Plus, Search, Trash2, Upload } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Calendar } from "@/components/ui/calendar";
@@ -553,12 +553,6 @@ function ModalCompra({
   const usoActual = presuC > 0 ? (costoC / presuC) * 100 : costoC > 0 ? 100 : 0;
   const usoNuevo = presuC > 0 ? (nuevoCosto / presuC) * 100 : nuevoCosto > 0 ? 100 : 0;
 
-  useEffect(() => {
-    const k = (e: KeyboardEvent) => e.key === "Escape" && onCerrar();
-    window.addEventListener("keydown", k);
-    return () => window.removeEventListener("keydown", k);
-  }, [onCerrar]);
-
   async function enviar(e?: React.FormEvent) {
     e?.preventDefault();
     if (guardando) return;
@@ -578,13 +572,8 @@ function ModalCompra({
   const muestraOperacion = contado && b.banco_id && b.banco_id !== "caja";
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-foreground/40" onMouseDown={onCerrar}>
-      <div className="flex h-full w-full max-w-2xl animate-in slide-in-from-right flex-col overflow-y-auto border-l border-line bg-card font-['Roboto'] shadow-2xl duration-300" onMouseDown={(e) => e.stopPropagation()}>
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-line bg-card px-5 py-3.5">
-          <h2 className="text-lg font-bold tracking-tight text-ink">Registrar compra</h2>
-          <button type="button" onClick={onCerrar} className="text-muted-foreground transition-colors hover:text-ink" title="Cerrar (Esc)"><X size={18} /></button>
-        </div>
-
+    <VentanaFlotante titulo="Registrar compra" abierta onCerrar={onCerrar} ancho="max-w-2xl" ocultarBarra>
+      <div className="font-['Roboto']">
         {/* Contexto de la partida (precargado y bloqueado) */}
         <div className="grid grid-cols-12 gap-x-5 gap-y-3 border-b border-line bg-muted/40 px-5 py-4">
           <div className="col-span-3"><p className={etq}>Código de partida</p><p className="text-sm font-medium text-ink">{partida.codigo || "—"}</p></div>
@@ -602,7 +591,7 @@ function ModalCompra({
           </div>
         </div>
 
-        <form onSubmit={enviar} className="flex-1 space-y-5 px-5 py-5">
+        <form onSubmit={enviar} className="space-y-5 px-5 py-5">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div><span className={etqF}>Fecha</span><FechaPeru valor={b.fecha} onChange={(v) => setB({ ...b, fecha: v })} /></div>
             <label><span className={etqF}>Comprobante</span>
@@ -694,7 +683,7 @@ function ModalCompra({
           </div>
         </form>
       </div>
-    </div>
+    </VentanaFlotante>
   );
 }
 
