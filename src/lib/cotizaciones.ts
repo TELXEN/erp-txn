@@ -1,3 +1,4 @@
+import { consultarTipoCambio } from "@/lib/decolecta.functions";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { previsualizarCodigoDocumento, useCodificacionDocumento } from "@/lib/codificacion-documentos";
@@ -174,11 +175,17 @@ export async function convertirMonedaCotizacion(cotizacionId: string, moneda: "P
 }
 
 /** Último tipo de cambio venta registrado (para precargar cotizaciones en USD). */
+/** Tipo de cambio venta SUNAT del día (vía Decolecta, con caché); si no hay, usa el último registrado. */
 export const useTipoCambioActual = () =>
   useQuery({
     queryKey: ["tipo_cambio_actual"],
     staleTime: 1000 * 60 * 30,
     queryFn: async () => {
+      const hoyLima = new Date(Date.now() - 5 * 3600 * 1000).toISOString().slice(0, 10);
+      try {
+        const r = await consultarTipoCambio({ data: { fecha: hoyLima } });
+        if (r.encontrado && r.venta > 0) return r.venta;
+      } catch { /* usa respaldo */ }
       const { data, error } = await supabase
         .from("tipo_cambio_diario")
         .select("venta")
@@ -190,7 +197,6 @@ export const useTipoCambioActual = () =>
     },
   });
 
-/** Fecha hasta la que la propuesta sigue vigente. */
 export function vigenciaHasta(fechaEmision: string, dias: number) {
   const d = new Date(`${fechaEmision}T00:00:00`);
   d.setDate(d.getDate() + Number(dias || 0));
