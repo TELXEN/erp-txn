@@ -34,4 +34,4 @@
 - [x] Dashboard de proyectos: presupuesto total vs gastado, contadores de estado y opción «Todos los proyectos»
 - [x] Listado de proyectos: filtros, avance, acciones administrativas y validación central de costos.
 - [x] Gastos Generales: glosa validada, estado con medio/moneda, adjuntos contextuales y subtotales alineados.
-- [ ] SIRE: mover botón «Sincronizar Compras y Ventas» a la altura de la fila de registros
+- [x] SIRE: mover botón «Sincronizar Compras y Ventas» a la altura de la fila de registros
