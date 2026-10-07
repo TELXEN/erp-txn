@@ -1,6 +1,6 @@
 import type { ReactNode, InputHTMLAttributes, SelectHTMLAttributes, ButtonHTMLAttributes } from "react";
-import { useState } from "react";
-import { Info } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Info, X } from "lucide-react";
 
 
 export function Panel({
@@ -24,6 +24,53 @@ export function Panel({
       )}
       {children}
     </section>
+  );
+}
+
+export function VentanaFlotante({
+  titulo,
+  subtitulo,
+  abierta,
+  onCerrar,
+  children,
+  ancho = "max-w-5xl",
+}: {
+  titulo: string;
+  subtitulo?: string;
+  abierta: boolean;
+  onCerrar: () => void;
+  children: ReactNode;
+  ancho?: string;
+}) {
+  useEffect(() => {
+    if (!abierta) return;
+    const cerrar = (e: KeyboardEvent) => e.key === "Escape" && onCerrar();
+    window.addEventListener("keydown", cerrar);
+    return () => window.removeEventListener("keydown", cerrar);
+  }, [abierta, onCerrar]);
+
+  if (!abierta) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/40 p-4" onMouseDown={onCerrar}>
+      <section
+        role="dialog"
+        aria-modal="true"
+        aria-label={titulo}
+        className={`panel my-4 flex max-h-[calc(100vh-2rem)] w-full flex-col overflow-hidden shadow-xl ${ancho}`}
+        onMouseDown={(e) => e.stopPropagation()}
+      >
+        <div className="flex shrink-0 items-start justify-between gap-3 border-b border-line px-5 py-3">
+          <div>
+            <h2 className="text-sm font-bold text-ink">{titulo}</h2>
+            {subtitulo && <p className="mt-0.5 text-xs text-muted-foreground">{subtitulo}</p>}
+          </div>
+          <Boton type="button" variante="linea" onClick={onCerrar} className="h-8 w-8 px-0" aria-label="Cerrar" title="Cerrar">
+            <X size={14} />
+          </Boton>
+        </div>
+        <div className="min-h-0 overflow-y-auto">{children}</div>
+      </section>
+    </div>
   );
 }
 

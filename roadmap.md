@@ -1,5 +1,6 @@
 # Roadmap
 
+- [ ] Convertir altas de vehículos, órdenes de compra, proyectos, partidas, importaciones y personal en ventanas flotantes con registro consecutivo.
 - [ ] Crear estructura de datos segura para comprobantes, ítems y cuotas.
 - [ ] Separar Preliquidaciones y Facturación Electrónica en el menú Comercial.
 - [ ] Implementar emisión desde preliquidación y emisión libre.
