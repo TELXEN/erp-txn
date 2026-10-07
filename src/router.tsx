@@ -2,11 +2,13 @@ import { QueryClient } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
 
-// Recarga única cuando un módulo de página no se puede descargar (versión desactualizada tras una actualización).
+// Recarga única cuando el navegador conserva módulos incompatibles tras una actualización en caliente.
 const RELOAD_KEY = "chunk-reload-at";
 function recargarSiModuloFalla(err: unknown) {
   const msg = String((err as { message?: string })?.message ?? err ?? "");
-  if (!/Failed to fetch dynamically imported module|Importing a module script failed|error loading dynamically imported module/i.test(msg)) return false;
+  const moduloDesactualizado = /Failed to fetch dynamically imported module|Importing a module script failed|error loading dynamically imported module/i.test(msg);
+  const reactDesactualizado = /Cannot read properties of null \(reading ['"](?:useContext|useState|useEffect)['"]\)|Invalid hook call/i.test(msg);
+  if (!moduloDesactualizado && !reactDesactualizado) return false;
   const last = Number(sessionStorage.getItem(RELOAD_KEY) ?? 0);
   if (Date.now() - last < 10000) return false;
   sessionStorage.setItem(RELOAD_KEY, String(Date.now()));
