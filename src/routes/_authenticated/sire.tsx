@@ -180,9 +180,9 @@ function SincronizacionGlobal({ periodo, onPeriodoChange, botonConfig, subtabs }
           {botonConfig}
           {subtabs}
         </div>
-        <div className="flex flex-col items-end gap-1.5">
+        <div className="flex flex-col items-end gap-0.5">
           <Boton onClick={sincronizarTodo} disabled={progreso !== null}><RefreshCw className={`size-3.5 ${progreso !== null ? "animate-spin" : ""}`} />Sincronizar Compras y Ventas</Boton>
-          <div className="flex items-center justify-center gap-2 self-stretch mt-1">
+          <div className="flex items-center justify-center gap-2 self-stretch mt-0.5">
             <Select value={m} onChange={(e) => onPeriodoChange(`${y}-${String(e.target.value).padStart(2, "0")}`)} className="w-28">{MESES.map((n, i) => <option key={n} value={i + 1}>{n}</option>)}</Select>
             <Select value={y} onChange={(e) => onPeriodoChange(`${e.target.value}-${String(m).padStart(2, "0")}`)} className="w-24">{anios.map((a) => <option key={a}>{a}</option>)}</Select>
           </div>
@@ -325,7 +325,7 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
   const pasos = ["SINCRONIZACIÓN", "CONCILIACIÓN", "CIERRE Y ENVÍO"];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       <div className="flex flex-wrap items-center gap-2">
         {pasos.map((p, i) => {
           const n = i + 1; const act = paso === n; const hecho = paso > n;
@@ -368,8 +368,8 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
         {paso === 2 && (
           <Panel titulo={`PASO 2 · CONCILIACIÓN SUNAT vs ERP · ${(MESES[m - 1] ?? "").toUpperCase()} ${y}`}>
             {visibles.length === 0 ? <Vacio texto="Sin documentos en este filtro" /> : (
-              <div className="max-h-[calc(100vh-560px)] min-h-[260px] overflow-auto" style={{ fontFamily: "Roboto, Arial, sans-serif" }}>
-                <div className="sticky top-0 z-20 flex h-[42px] flex-nowrap items-center gap-1 overflow-x-auto whitespace-nowrap border-b border-line bg-card px-3 py-1">
+              <div className="max-h-[calc(100vh-470px)] min-h-[260px] overflow-auto" style={{ fontFamily: "Roboto, Arial, sans-serif" }}>
+                <div className="sticky top-0 z-20 flex h-[36px] flex-nowrap items-center gap-1 overflow-x-auto whitespace-nowrap border-b border-line bg-card px-3 py-1">
                   {libro === "RCE" && (
                     <>
                       <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-sky-500/10 px-2.5 py-1 font-mono text-[11px] text-sky-700 ring-1 ring-sky-500/25 dark:text-sky-400">
