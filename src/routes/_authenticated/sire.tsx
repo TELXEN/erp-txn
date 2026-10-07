@@ -169,25 +169,19 @@ function SincronizacionGlobal({ periodo, onPeriodoChange }: { periodo: string; o
   };
 
   return (
-    <div className="mb-4 border border-line bg-card shadow-sm">
-      <div className="flex flex-wrap items-end gap-3 px-4 py-3">
-        <div className="mr-auto">
-          <p className="label-mono flex items-center gap-1.5"><RefreshCw className={`size-3.5 ${progreso !== null ? "animate-spin" : ""}`} />SINCRONIZACIÓN GLOBAL SIRE</p>
-          <p className="mt-1 text-xs text-muted-foreground">Actualiza Compras (RCE) y Ventas (RVIE) en una sola operación.</p>
-        </div>
-        <Campo etiqueta="Mes"><Select value={m} onChange={(e) => onPeriodoChange(`${y}-${String(e.target.value).padStart(2, "0")}`)}>{MESES.map((n, i) => <option key={n} value={i + 1}>{n}</option>)}</Select></Campo>
-        <Campo etiqueta="Año"><Select value={y} onChange={(e) => onPeriodoChange(`${e.target.value}-${String(m).padStart(2, "0")}`)}>{anios.map((a) => <option key={a}>{a}</option>)}</Select></Campo>
-      </div>
-      <div className="flex flex-wrap items-center gap-x-5 gap-y-1 border-t border-line px-4 py-2 font-mono text-[11px] text-muted-foreground">
+    <div className="relative flex flex-wrap items-center justify-end gap-x-3 gap-y-1">
+      <div className="hidden items-center gap-x-4 font-mono text-[11px] text-muted-foreground min-[1500px]:flex">
         {(["RVIE", "RCE"] as Libro[]).map((libro) => {
           const estado = estadoLibro(libro);
           return <span key={libro} className={estado === "error" ? "text-bad" : estado === "sincronizado" ? "text-good" : estado === "pendiente" ? "text-amber-700 dark:text-amber-400" : ""}>{etiquetaEstado(libro)}</span>;
         })}
-        <div className="ml-auto">
-          <Boton onClick={sincronizarTodo} disabled={progreso !== null}><RefreshCw className={`size-3.5 ${progreso !== null ? "animate-spin" : ""}`} />Sincronizar Compras y Ventas</Boton>
-        </div>
       </div>
-      {progreso !== null && <div className="h-1 bg-muted"><div className="h-full bg-primary transition-all duration-300" style={{ width: `${progreso}%` }} /></div>}
+      <Campo etiqueta="Mes"><Select value={m} onChange={(e) => onPeriodoChange(`${y}-${String(e.target.value).padStart(2, "0")}`)}>{MESES.map((n, i) => <option key={n} value={i + 1}>{n}</option>)}</Select></Campo>
+      <Campo etiqueta="Año"><Select value={y} onChange={(e) => onPeriodoChange(`${e.target.value}-${String(m).padStart(2, "0")}`)}>{anios.map((a) => <option key={a}>{a}</option>)}</Select></Campo>
+      <Boton onClick={sincronizarTodo} disabled={progreso !== null}><RefreshCw className={`size-3.5 ${progreso !== null ? "animate-spin" : ""}`} />Sincronizar Compras y Ventas</Boton>
+      {progreso !== null && (
+        <div className="absolute -bottom-1 left-0 right-0 h-0.5 bg-muted"><div className="h-full bg-primary transition-all duration-300" style={{ width: `${progreso}%` }} /></div>
+      )}
     </div>
   );
 }
