@@ -105,6 +105,7 @@ function GastosDirectos() {
   const proveedores = terceros.filter((t) => t.es_proveedor && t.activo);
   const [proyectoId, setProyectoId] = useState("");
   const [abiertas, setAbiertas] = useState<Record<string, boolean>>({});
+  const [gruposCerrados, setGruposCerrados] = useState<Record<string, boolean>>({});
   const [modalPid, setModalPid] = useState<string | null>(null);
   const [busqueda, setBusqueda] = useState("");
   const { data: cuentas = [] } = useQuery({
@@ -267,7 +268,7 @@ function GastosDirectos() {
   }
 
   return (
-    <>
+    <div className="font-['Roboto']">
       <Encabezado
         titulo="Costos Directos"
         subtitulo="Presupuesto vs costo real por partida"
@@ -293,11 +294,7 @@ function GastosDirectos() {
           <Dato titulo="Cliente" valor={proyecto?.cliente || "—"} />
           <Dato titulo="Presupuesto CD" valor={soles(presuTotal)} />
           <Dato titulo="Costo real" valor={soles(costoTotal)} />
-          <Dato
-            titulo={`Saldo · ${consumo.toFixed(1)}% consumido`}
-            valor={soles(presuTotal - costoTotal)}
-            tono={presuTotal - costoTotal < 0 ? "text-bad" : "text-good"}
-          />
+          <TarjetaSaldo saldo={presuTotal - costoTotal} consumo={consumo} />
         </div>
       </Panel>
 
@@ -309,7 +306,7 @@ function GastosDirectos() {
           busqueda ? <Vacio texto={`Sin coincidencias para «${busqueda}»`} /> : <Vacio texto="Esta obra aún no tiene partidas registradas." />
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[980px] font-mono text-xs">
+            <table className="w-full min-w-[980px] tabular-nums text-xs">
               <thead>
                 <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
                   <th className="px-5 py-2 font-medium">Código</th>
@@ -326,20 +323,28 @@ function GastosDirectos() {
                 </tr>
               </thead>
               <tbody>
-                {agruparSoloPorCategoria(partidasProy).map((grupo) => (
+                {agruparSoloPorCategoria(partidasProy).map((grupo) => {
+                  const gPresu = grupo.items.reduce((s, p) => s + Number(p.presupuesto_inicial), 0);
+                  const gCosto = sumar(grupo.items.map((p) => costoDe(p.id)));
+                  const cerrado = gruposCerrados[grupo.categoria];
+                  return (
                   <React.Fragment key={grupo.categoria}>
                     <tr className="border-b border-line/40 bg-muted/40">
-                      <td colSpan={5} className="px-5 py-1.5 label-mono"><Resaltar texto={grupo.categoria} termino={busqueda} /></td>
-                      <td className="px-3 py-1.5 text-right font-semibold">
-                        {soles(grupo.items.reduce((s, p) => s + Number(p.presupuesto_inicial), 0))}
+                      <td colSpan={11} className="px-5 py-1.5">
+                        <div className="flex items-center justify-between gap-4">
+                          <button type="button" onClick={() => setGruposCerrados((g) => ({ ...g, [grupo.categoria]: !g[grupo.categoria] }))} className="inline-flex items-center gap-1 label-mono text-left">
+                            {cerrado ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
+                            <Resaltar texto={grupo.categoria} termino={busqueda} />
+                          </button>
+                          <span className="whitespace-nowrap text-right text-[11px] tabular-nums text-muted-foreground">
+                            Presupuesto Grupo: <b className="text-ink">{soles(gPresu)}</b>
+                            <span className="mx-2 text-line">|</span>
+                            Consumido: <b className={gCosto > gPresu ? "text-bad" : "text-ink"}>{soles(gCosto)}</b>
+                          </span>
+                        </div>
                       </td>
-                      <td />
-                      <td className="px-3 py-1.5 text-right font-semibold">
-                        {soles(sumar(grupo.items.map((p) => costoDe(p.id))))}
-                      </td>
-                      <td colSpan={3} />
                     </tr>
-                    {grupo.items.map((p) => {
+                    {!cerrado && grupo.items.map((p) => {
                       const presu = Number(p.presupuesto_inicial);
                       const costo = costoDe(p.id);
                       const uso = presu > 0 ? (costo / presu) * 100 : costo > 0 ? 100 : 0;
@@ -367,7 +372,7 @@ function GastosDirectos() {
                             <td className="px-2 py-2.5 text-right">{num(cantDe(p.id))}</td>
                             <td className="px-3 py-2.5 text-right font-semibold text-ink">{soles(costo)}</td>
                             <td className={`px-3 py-2.5 text-right font-semibold ${presu - costo < 0 ? "bg-bad/10 text-bad" : "text-good"}`}>
-                              {soles(presu - costo)}
+                              {solesSaldo(presu - costo)}
                               {presu - costo < 0 && <div className="text-[9px] font-normal uppercase tracking-wide">Sobregiro</div>}
                             </td>
                             <td className="px-3 py-2.5 text-right">
@@ -451,7 +456,8 @@ function GastosDirectos() {
                       );
                     })}
                   </React.Fragment>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -472,7 +478,7 @@ function GastosDirectos() {
           />
         );
       })()}
-    </>
+    </div>
   );
 }
 
@@ -570,22 +576,24 @@ function ModalCompra({
   const inp = "h-9 px-2.5 text-xs";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-foreground/40 p-4" onMouseDown={onCerrar}>
-      <div className="panel my-8 w-full max-w-4xl overflow-hidden font-mono" onMouseDown={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex justify-end bg-foreground/40" onMouseDown={onCerrar}>
+      <div className="flex h-full w-full max-w-2xl animate-in slide-in-from-right flex-col overflow-y-auto border-l border-line bg-card font-['Roboto'] shadow-2xl duration-300" onMouseDown={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between border-b border-line px-5 py-3">
           <h2 className="text-base font-semibold tracking-tight">Registrar compra</h2>
           <button type="button" onClick={onCerrar} className="text-muted-foreground hover:text-ink" title="Cerrar (Esc)"><X size={16} /></button>
         </div>
 
-        <div className="grid grid-cols-2 gap-x-5 gap-y-3 border-b border-line bg-muted/40 px-5 py-4 text-xs sm:grid-cols-4 lg:grid-cols-7">
-          <ResumenDato t="Código" v={partida.codigo || "—"} />
-          <div className="col-span-2 lg:col-span-2"><p className={etq}>Partida</p><p className="font-semibold text-ink">{partida.nombre}</p></div>
+        <div className="grid grid-cols-2 gap-x-5 gap-y-3 border-b border-line bg-muted/40 px-5 py-4 text-xs sm:grid-cols-4">
+          <label><span className={etq}>Código de la partida</span>
+            <Input readOnly value={partida.codigo || "—"} className={`${inp} bg-muted font-semibold`} /></label>
+          <label className="col-span-2 sm:col-span-3"><span className={etq}>Descripción</span>
+            <Input readOnly value={partida.nombre} className={`${inp} bg-muted font-semibold`} /></label>
           <ResumenDato t="Und." v={partida.unidad || "—"} />
           <ResumenDato t="Presupuesto" v={soles(presuC / 100)} />
           <ResumenDato t="Costo real" v={soles(costoC / 100)} />
           <div>
             <p className={etq}>Saldo</p>
-            <p className={`font-semibold ${saldoActual < 0 ? "text-bad" : "text-good"}`}>{soles(saldoActual / 100)}</p>
+            <p className={`tabular-nums text-right font-semibold ${saldoActual < 0 ? "text-bad" : "text-good"}`}>{solesSaldo(saldoActual / 100)}</p>
             <div className="mt-1"><BarraConsumo uso={usoActual} /></div>
           </div>
         </div>
@@ -762,7 +770,28 @@ function Dato({ titulo, valor, tono = "text-ink" }: { titulo: string; valor: str
   return (
     <div>
       <p className="label-mono">{titulo}</p>
-      <p className={`mt-1 font-mono text-lg font-bold tracking-tight ${tono}`}>{valor}</p>
+      <p className={`mt-1 tabular-nums text-lg font-bold tracking-tight ${tono}`}>{valor}</p>
+    </div>
+  );
+}
+
+function solesSaldo(v: number) {
+  return v < 0 ? `(${soles(Math.abs(v))})` : soles(v);
+}
+
+function TarjetaSaldo({ saldo, consumo }: { saldo: number; consumo: number }) {
+  const color = consumo > 100 ? "bg-bad" : consumo >= 80 ? "bg-accent" : "bg-good";
+  return (
+    <div className="rounded-md border border-line bg-muted/30 px-3 py-2">
+      <p className="label-mono">Saldo</p>
+      <p className={`mt-0.5 tabular-nums text-xl font-bold tracking-tight ${saldo < 0 ? "text-bad" : "text-good"}`}>{solesSaldo(saldo)}</p>
+      <div className="mt-2 flex items-center justify-between text-[10px] uppercase tracking-wider text-muted-foreground">
+        <span>% Consumido Global</span>
+        <span className={`tabular-nums font-semibold ${consumo > 100 ? "text-bad" : "text-ink"}`}>{consumo.toFixed(1)}%</span>
+      </div>
+      <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
+        <div className={`h-full rounded-full ${color}`} style={{ width: `${Math.min(100, Math.max(0, consumo))}%` }} />
+      </div>
     </div>
   );
 }
