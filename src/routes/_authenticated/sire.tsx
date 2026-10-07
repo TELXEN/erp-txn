@@ -182,11 +182,11 @@ function SincronizacionGlobal({ periodo, onPeriodoChange, botonConfig, subtabs }
         </div>
         <div className="flex flex-col items-end gap-1.5">
           <Boton onClick={sincronizarTodo} disabled={progreso !== null}><RefreshCw className={`size-3.5 ${progreso !== null ? "animate-spin" : ""}`} />Sincronizar Compras y Ventas</Boton>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-center gap-2 self-stretch">
             <Campo etiqueta="Mes"><Select value={m} onChange={(e) => onPeriodoChange(`${y}-${String(e.target.value).padStart(2, "0")}`)}>{MESES.map((n, i) => <option key={n} value={i + 1}>{n}</option>)}</Select></Campo>
             <Campo etiqueta="Año"><Select value={y} onChange={(e) => onPeriodoChange(`${e.target.value}-${String(m).padStart(2, "0")}`)}>{anios.map((a) => <option key={a}>{a}</option>)}</Select></Campo>
           </div>
-          <div className="flex flex-col items-end text-right font-mono text-[10.5px] leading-tight text-muted-foreground">
+          <div className="flex flex-col items-center self-stretch text-center font-mono text-[10.5px] leading-tight text-muted-foreground">
             {(["RVIE", "RCE"] as Libro[]).map((libro) => {
               const estado = estadoLibro(libro);
               return <span key={libro} className={estado === "error" ? "text-bad" : estado === "sincronizado" ? "text-good" : estado === "pendiente" ? "text-amber-700 dark:text-amber-400" : ""}>{etiquetaEstado(libro)}</span>;
