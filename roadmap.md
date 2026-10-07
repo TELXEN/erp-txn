@@ -31,3 +31,4 @@
 - [x] Igualar el tareo vehicular al calendario del tareo de personal, considerando solo días de uso.
 - [x] Gestión de Personal: registro elegante + pestaña EMO con alertas
 - [x] Gastos Generales: resaltar en color distinto el comentario de la categoría del gasto (sin campo de notas nuevo)
+- [x] Dashboard de proyectos: presupuesto total vs gastado, contadores de estado y opción «Todos los proyectos»

@@ -7,7 +7,7 @@ import { CurvaS } from "@/components/CurvaS";
 import { InsigniaPrioridad, InsigniaSituacion } from "@/components/estado-ui";
 import { tonoSituacion } from "@/lib/configuracion";
 import { useFuenteDocumento } from "@/lib/fuentes-documentos";
-import { nombresEstados, useEstadosProyecto } from "@/lib/datos";
+import { nombresEstados, useEstadosProyecto, type Proyecto } from "@/lib/datos";
 
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha, pct, soles } from "@/lib/format";
@@ -45,6 +45,13 @@ export const Route = createFileRoute("/_authenticated/dashboard-proyectos")({
   component: DashboardProyectos,
 });
 
+const TARJETAS_ESTADO = [
+  { etiqueta: "Activos", situacion: "En proceso" },
+  { etiqueta: "En espera", situacion: "No iniciado" },
+  { etiqueta: "Finalizados", situacion: "Completado" },
+  { etiqueta: "Retrasados", situacion: "Retrasado" },
+] as const;
+
 function DashboardProyectos() {
   const { rol } = useAuth();
   const { fuente } = useFuenteDocumento();
@@ -57,7 +64,7 @@ function DashboardProyectos() {
   const { data: tareoVeh = [] } = useTareoVehiculos();
   const { data: tiposPresupuesto = [] } = useTiposPresupuesto();
   const { data: cronograma = [] } = useCronograma();
-  const [obraId, setObraId] = useState("");
+  const [obraId, setObraId] = useState("todos");
   const [filtroEstado, setFiltroEstado] = useState<string>("Todos");
 
 
@@ -122,11 +129,72 @@ function DashboardProyectos() {
       adicionales,
       costoReal,
       diferencia: presupuesto - costoReal,
+      gastadoPct: presupuesto > 0 ? (costoReal / presupuesto) * 100 : 0,
       desviadas: filas.filter((f) => f.desviado).length,
     };
   }, [filas, proyectos]);
 
-  const obraSel = filas.find((f) => f.proyecto.id === obraId) ?? filas[0];
+  const esTodos = obraId === "todos" || obraId === "";
+  const obraIndividual = filas.find((f) => f.proyecto.id === obraId) ?? filas[0];
+
+  /** Vista agregada de toda la cartera para la opción «Todos los proyectos». */
+  const vistaTodos = useMemo(() => {
+    if (filas.length === 0) return null;
+    const presupuesto = filas.reduce((s, f) => s + f.presupuesto, 0);
+    const costoReal = filas.reduce((s, f) => s + f.costoReal, 0);
+    const avance =
+      presupuesto > 0
+        ? filas.reduce((s, f) => s + f.avance * f.presupuesto, 0) / presupuesto
+        : filas.reduce((s, f) => s + f.avance, 0) / filas.length;
+    const conProgramado = filas.filter((f) => f.programado !== null);
+    const baseProg = conProgramado.reduce((s, f) => s + f.presupuesto, 0);
+    const programado =
+      conProgramado.length === 0
+        ? null
+        : baseProg > 0
+          ? conProgramado.reduce((s, f) => s + (f.programado ?? 0) * f.presupuesto, 0) / baseProg
+          : conProgramado.reduce((s, f) => s + (f.programado ?? 0), 0) / conProgramado.length;
+    const inicios = filas.map((f) => f.proyecto.fecha_inicio).filter((x): x is string => !!x).sort();
+    const fines = filas.map((f) => f.proyecto.fecha_fin).filter((x): x is string => !!x).sort();
+    const gastado = presupuesto > 0 ? (costoReal / presupuesto) * 100 : 0;
+    const desviacion = programado === null ? null : avance - programado;
+    const proyectoCartera: Proyecto = {
+      id: "todos",
+      codigo: null,
+      responsable_id: null,
+      nombre: "Todos los proyectos",
+      cliente: `${filas.length} ${filas.length === 1 ? "obra" : "obras"}`,
+      ubicacion: "",
+      estado: "En Ejecucion",
+      situacion: "",
+      fecha_inicio: inicios[0] ?? null,
+      fecha_fin: fines[fines.length - 1] ?? null,
+      avance_programado_pct: null,
+      fecha_corte_programado: null,
+      pct_gastos_generales: 0,
+      pct_utilidad: 0,
+    };
+    return {
+      proyecto: proyectoCartera,
+      partidas: filas.reduce((s, f) => s + f.partidas, 0),
+      partidasContractuales: filas.reduce((s, f) => s + f.partidasContractuales, 0),
+      partidasAdicionales: filas.reduce((s, f) => s + f.partidasAdicionales, 0),
+      partidasPendientes: filas.reduce((s, f) => s + f.partidasPendientes, 0),
+      presupuestoContractual: filas.reduce((s, f) => s + f.presupuestoContractual, 0),
+      adicionales: filas.reduce((s, f) => s + f.adicionales, 0),
+      presupuesto,
+      costoReal,
+      avance,
+      gastado,
+      programado,
+      usaCalendario: filas.some((f) => f.usaCalendario),
+      desviacion,
+      diferencia: presupuesto - costoReal,
+      desviado: gastado > avance,
+    };
+  }, [filas]);
+
+  const obraSel = esTodos ? vistaTodos : obraIndividual;
 
   const cartera = useMemo(
     () => (filtroEstado === "Todos" ? filas : filas.filter((f) => f.proyecto.situacion === filtroEstado)),
@@ -142,15 +210,38 @@ function DashboardProyectos() {
   }, [obraSel]);
 
   const movimientos = useMemo(() => {
+    if (esTodos) {
+      return [
+        ...gastosD.map((g) => ({ fecha: g.fecha, monto: Number(g.monto_soles) })),
+        ...gastosG.map((g) => ({ fecha: g.fecha, monto: Number(g.monto_soles) })),
+        ...tareos.map((t) => ({ fecha: t.fecha, monto: Number(t.costo_soles) })),
+      ];
+    }
     const id = obraSel?.proyecto.id;
-    if (!id) return [];
+    if (!id || id === "todos") return [];
     return [
       ...gastosD.filter((g) => g.proyecto_id === id).map((g) => ({ fecha: g.fecha, monto: Number(g.monto_soles) })),
       ...gastosG.filter((g) => g.proyecto_id === id).map((g) => ({ fecha: g.fecha, monto: Number(g.monto_soles) })),
       ...tareos.filter((t) => t.proyecto_id === id).map((t) => ({ fecha: t.fecha, monto: Number(t.costo_soles) })),
     ];
-  }, [obraSel, gastosD, gastosG, tareos]);
+  }, [esTodos, obraSel, gastosD, gastosG, tareos]);
 
+  const partidasHoja = useMemo(() => {
+    if (!obraSel) return [];
+    if (esTodos) {
+      const padres = new Set(partidas.map((x) => x.padre_id).filter(Boolean));
+      return partidas.filter((p) => !padres.has(p.id));
+    }
+    const propias = partidas.filter((p) => p.proyecto_id === obraSel.proyecto.id);
+    const padres = new Set(propias.map((x) => x.padre_id).filter(Boolean));
+    return propias.filter((p) => !padres.has(p.id));
+  }, [esTodos, obraSel, partidas]);
+
+  const prioridadAlta = useMemo(() => {
+    if (!obraSel) return 0;
+    if (esTodos) return partidas.filter((p) => p.prioridad === "Alta").length;
+    return partidas.filter((p) => p.proyecto_id === obraSel.proyecto.id && p.prioridad === "Alta").length;
+  }, [esTodos, obraSel, partidas]);
 
   const verDinero = puedeVerDinero(rol);
   const programadoSel = obraSel?.programado ?? null;
@@ -208,6 +299,11 @@ function DashboardProyectos() {
         { etiqueta: "Presupuesto Vigente", valor: resumen.presupuesto },
         { etiqueta: "Costo Real Total", valor: resumen.costoReal },
         { etiqueta: "Diferencia", valor: resumen.diferencia },
+        { etiqueta: "% Presupuesto Gastado", valor: Number(resumen.gastadoPct.toFixed(1)) },
+        { etiqueta: "Obras Activas", valor: resumen.enProceso },
+        { etiqueta: "Obras en Espera", valor: resumen.noIniciados },
+        { etiqueta: "Obras Finalizadas", valor: resumen.completados },
+        { etiqueta: "Obras Retrasadas", valor: resumen.retrasados },
       ],
       barras: filas.map((f) => ({
         partida: f.proyecto.nombre,
@@ -247,18 +343,82 @@ function DashboardProyectos() {
 
       <div className="mb-4 flex flex-col gap-3 border-y border-line bg-card px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="label-mono">Obra analizada</p>
+          <p className="label-mono">{esTodos ? "Vista general" : "Obra analizada"}</p>
           <p className="mt-1 text-sm font-semibold">{obraSel?.proyecto.nombre ?? "Sin obras registradas"}</p>
         </div>
         <div className="w-full sm:w-80">
-          <Select value={obraSel?.proyecto.id ?? ""} onChange={(e) => setObraId(e.target.value)}>
-            {filas.length === 0 && <option value="">Sin obras registradas</option>}
-            {filas.map((f) => (
-              <option key={f.proyecto.id} value={f.proyecto.id}>{f.proyecto.nombre}</option>
-            ))}
+          <Select value={esTodos ? "todos" : (obraSel?.proyecto.id ?? "")} onChange={(e) => setObraId(e.target.value)}>
+            {filas.length === 0 ? (
+              <option value="todos">Sin obras registradas</option>
+            ) : (
+              <>
+                <option value="todos">Todos los proyectos</option>
+                {filas.map((f) => (
+                  <option key={f.proyecto.id} value={f.proyecto.id}>{f.proyecto.nombre}</option>
+                ))}
+              </>
+            )}
           </Select>
         </div>
       </div>
+
+      <section className={`mb-4 grid gap-3 ${verDinero ? "lg:grid-cols-2" : "lg:grid-cols-1"}`} aria-label="Resumen de la cartera">
+        <div className="panel rise p-4">
+          <p className="label-mono">Estado de los proyectos</p>
+          <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {TARJETAS_ESTADO.map(({ etiqueta, situacion }) => {
+              const cantidad = proyectos.filter((p) => p.situacion === situacion).length;
+              const activa = filtroEstado === situacion;
+              return (
+                <button
+                  key={situacion}
+                  type="button"
+                  aria-pressed={activa}
+                  onClick={() => setFiltroEstado(activa ? "Todos" : situacion)}
+                  className={`rounded-lg border p-3 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                    activa ? "border-primary bg-primary/5" : "border-line bg-muted/20 hover:border-muted-foreground/40"
+                  }`}
+                >
+                  <span className="flex items-center gap-1.5">
+                    <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: tonoSituacion(situacion).borde }} />
+                    <span className="font-mono text-[9px] uppercase tracking-wide text-muted-foreground">{etiqueta}</span>
+                  </span>
+                  <p className="mt-1 font-mono text-2xl font-bold">{cantidad}</p>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        {verDinero && (
+          <div className="panel rise p-4">
+            <p className="label-mono">Presupuesto total vs gastado</p>
+            <div className="mt-3 flex items-end justify-between gap-3">
+              <div>
+                <p className="font-mono text-[10px] uppercase tracking-wide text-muted-foreground">Presupuesto total</p>
+                <p className="font-mono text-xl font-bold">{soles(resumen.presupuesto)}</p>
+                <p className="font-mono text-[10px] text-muted-foreground">
+                  Contractual {soles(resumen.presupuestoContractual)} · Adicionales {soles(resumen.adicionales)}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="font-mono text-[10px] uppercase tracking-wide text-muted-foreground">Gastado</p>
+                <p className={`font-mono text-xl font-bold ${resumen.gastadoPct > 100 ? "text-bad" : "text-ink"}`}>{soles(resumen.costoReal)}</p>
+                <p className="font-mono text-[10px] text-muted-foreground">{pct(resumen.gastadoPct)} del presupuesto</p>
+              </div>
+            </div>
+            <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-muted">
+              <div
+                className={`h-full rounded-full ${resumen.gastadoPct > 100 ? "bg-bad" : "bg-primary"}`}
+                style={{ width: `${Math.min(resumen.gastadoPct, 100)}%` }}
+              />
+            </div>
+            <p className="mt-2 font-mono text-xs font-semibold">
+              Saldo disponible:{" "}
+              <span className={resumen.diferencia < 0 ? "text-bad" : "text-good"}>{soles(resumen.diferencia)}</span>
+            </p>
+          </div>
+        )}
+      </section>
 
       <section className={`mb-4 grid gap-3 ${verDinero ? "lg:grid-cols-3" : "lg:grid-cols-2"}`} aria-label="Resumen del proyecto seleccionado">
         <div className="panel rise flex flex-col justify-between p-4">
@@ -268,7 +428,11 @@ function DashboardProyectos() {
             <>
               <div className="flex items-start justify-between gap-2">
                 <p className="label-mono">Avance general</p>
-                <InsigniaSituacion valor={obraSel.proyecto.situacion} />
+                {esTodos ? (
+                  <span className="rounded-full border border-line px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Cartera completa</span>
+                ) : (
+                  <InsigniaSituacion valor={obraSel.proyecto.situacion} />
+                )}
               </div>
 
               <div className="my-2 grid grid-cols-3 gap-1 rounded-lg border border-line bg-muted/30 p-2 text-center">
@@ -298,7 +462,11 @@ function DashboardProyectos() {
               )}
 
               <div className="flex items-center justify-between border-t border-line pt-2">
-                <InsigniaSituacion valor={obraSel.proyecto.situacion} />
+                {esTodos ? (
+                  <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">{filas.length} obras en cartera</span>
+                ) : (
+                  <InsigniaSituacion valor={obraSel.proyecto.situacion} />
+                )}
                 <span className="font-mono text-[10px] text-muted-foreground">{obraSel.partidas} partidas</span>
               </div>
             </>
@@ -324,15 +492,15 @@ function DashboardProyectos() {
             <IndicadorCompacto
               icono={<AlertTriangle />}
               etiqueta="Partidas de prioridad alta"
-              valor={String(obraSel?.proyecto ? partidas.filter((p) => p.proyecto_id === obraSel.proyecto.id && p.prioridad === "Alta").length : 0)}
-              {...((obraSel?.proyecto ? partidas.filter((p) => p.proyecto_id === obraSel.proyecto.id && p.prioridad === "Alta").length : 0) > 0 ? { tono: "bad" as const } : {})}
+              valor={String(prioridadAlta)}
+              {...(prioridadAlta > 0 ? { tono: "bad" as const } : {})}
             />
           </div>
         </div>
 
         {verDinero && (
         <div className="panel rise overflow-hidden">
-          <div className="border-b border-line px-4 py-3"><p className="label-mono">Resumen financiero del proyecto</p></div>
+          <div className="border-b border-line px-4 py-3"><p className="label-mono">{esTodos ? "Resumen financiero de la cartera" : "Resumen financiero del proyecto"}</p></div>
           <div className="divide-y divide-line">
             <DatoFinanciero etiqueta="Presupuesto contractual" valor={soles(obraSel?.presupuestoContractual ?? 0)} />
             <DatoFinanciero etiqueta="Adicionales de obra" valor={soles(obraSel?.adicionales ?? 0)} {...((obraSel?.adicionales ?? 0) > 0 ? { tono: "primary" as const } : {})} />
@@ -385,9 +553,9 @@ function DashboardProyectos() {
             avanceProgramadoOficial={obraSel.programado}
             fechaCorteProgramado={obraSel.proyecto.fecha_corte_programado}
             movimientos={movimientos}
-            partidas={partidas.filter((p) => p.proyecto_id === obraSel.proyecto.id && !new Set(partidas.filter((x) => x.proyecto_id === obraSel.proyecto.id).map((x) => x.padre_id).filter(Boolean)).has(p.id))}
+            partidas={partidasHoja}
             cronograma={cronograma}
-            periodicidad={obraSel.proyecto.periodicidad_cronograma ?? "mes"}
+            periodicidad={esTodos ? "mes" : (obraSel.proyecto.periodicidad_cronograma ?? "mes")}
             mostrarDinero={verDinero}
           />
         )}
