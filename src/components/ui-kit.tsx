@@ -58,7 +58,7 @@ export function VentanaFlotante({
         role="dialog"
         aria-modal="true"
         aria-label={titulo}
-        className={`panel my-4 flex max-h-[calc(100dvh-4rem)] w-full flex-col overflow-hidden shadow-xl ${ancho}`}
+        className={`panel my-4 flex ${ocultarBarra ? "max-h-[calc(100dvh-4rem)]" : "max-h-[calc(100vh-2rem)]"} w-full flex-col overflow-hidden shadow-xl ${ancho}`}
         onMouseDown={(e) => e.stopPropagation()}
       >
         <div className="flex shrink-0 items-start justify-between gap-3 border-b border-line px-5 py-3">

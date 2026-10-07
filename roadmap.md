@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Retirar búsqueda fallida de AFP y compactar Nuevo trabajador sin barra lateral visible.
+- [x] Retirar búsqueda fallida de AFP y compactar Nuevo trabajador sin barra lateral visible.
 
 - [x] Ampliar y reorganizar los campos de Nuevo trabajador y permitir guardar con Enter.
 

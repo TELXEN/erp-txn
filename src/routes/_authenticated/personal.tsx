@@ -209,7 +209,6 @@ function Personal() {
       guardado = true;
       setForm(FORM_INICIAL);
       setMsgReniec("");
-      setMsgAfp("");
       if (cerrar) setFormAbierto(false);
       await qc.invalidateQueries({ queryKey: ["trabajadores"] });
     } catch {
@@ -465,7 +464,7 @@ function Personal() {
           </div>
           </fieldset>
            <div className="sticky bottom-0 flex flex-wrap items-center justify-end gap-2 border-t border-line bg-card px-5 py-3 sm:px-6">
-            <p role="status" aria-live="polite" className={`w-full text-sm ${error ? "text-bad" : registrado ? "text-good" : "text-muted-foreground"}`}>{error || registrado || (faltante ? `Falta: ${faltante}` : "Todo listo para registrar.")}</p>
+            <p role="status" aria-live="polite" className={`w-full text-sm md:mr-auto md:w-auto md:flex-1 ${error ? "text-bad" : registrado ? "text-good" : "text-muted-foreground"}`}>{error || registrado || (faltante ? `Falta: ${faltante}` : "Todo listo para registrar.")}</p>
             <Boton type="button" variante="linea" onClick={() => { setForm(FORM_INICIAL); setError(""); setFormAbierto(false); }}>Cancelar</Boton>
             <Boton type="submit" variante="linea" disabled={!!faltante || guardando || consultando !== ""} className="min-h-11 min-w-36" onClick={() => { cerrarTrasGuardar.current = false; }}>{guardando ? "Guardando…" : "Registrar otro"}</Boton>
             <Boton type="submit" variante="accion" disabled={!!faltante || guardando || consultando !== ""} className="min-h-11 min-w-36" onClick={() => { cerrarTrasGuardar.current = true; }}>Registrar y cerrar</Boton>
