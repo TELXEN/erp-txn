@@ -579,7 +579,7 @@ function ResumenOperaciones({ periodo, libro }: { periodo: string; libro: Libro 
               <p className={`text-base font-bold tabular-nums leading-tight tracking-tight ${neta >= 0 ? "text-bad" : "text-good"}`}>
                 {soles(Math.abs(neta))}
               </p>
-              <p className="truncate font-mono text-[10.5px] text-muted-foreground">
+              <p className="font-mono text-[10.5px] leading-tight text-muted-foreground">
                 {neta >= 0 ? "IGV ventas − compras: por pagar a SUNAT" : "Crédito fiscal a favor"}
               </p>
             </>
