@@ -29,3 +29,4 @@
 - [x] Unificar los botones de Facturación Electrónica, Cotizaciones, Partidas, Avance físico, Vehículos, Gastos Generales y SIRE con el patrón de APU.
 - [x] Igualar el tareo vehicular al calendario del tareo de personal, considerando solo días de uso.
 - [x] Gestión de Personal: registro elegante + pestaña EMO con alertas
+- [x] Gastos Generales: resaltar en color distinto el comentario de la categoría del gasto (sin campo de notas nuevo)
