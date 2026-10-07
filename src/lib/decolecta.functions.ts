@@ -123,29 +123,52 @@ export const consultarTipoCambio = createServerFn({ method: "POST" })
     }
   });
 
-export type ResultadoAfp = { configurado: boolean; encontrado: boolean; afp: string; cuspp: string; mensaje: string };
+export type ComisionAfp = { afp: string; aporte_fondo: number; prima_seguro: number; comision_flujo: number; tope_remuneracion: number };
+export type ResultadoComisionesAfp = { periodo: string; periodoDatos: string; origen: "decolecta" | "guardado" | "respaldo"; comisiones: ComisionAfp[]; mensaje: string };
 
-/** Consulta la afiliación previsional (SBS) de un DNI vía Decolecta. */
-export const consultarAfpSbs = createServerFn({ method: "POST" })
+const NOMBRES_AFP: [string, string][] = [["INTEGRA", "AFP Integra"], ["PRIMA", "AFP Prima"], ["PROFUTURO", "AFP Profuturo"], ["HABITAT", "AFP Habitat"]];
+
+/** Comisiones AFP del mes. Una sola consulta a Decolecta por período; luego se reutiliza lo guardado. */
+export const obtenerComisionesAfp = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data) => z.object({ dni: z.string().regex(/^\d{8}$/, "El DNI debe tener 8 dígitos.") }).parse(data))
-  .handler(async ({ data }): Promise<ResultadoAfp> => {
-    const base: ResultadoAfp = { configurado: true, encontrado: false, afp: "", cuspp: "", mensaje: "" };
+  .inputValidator((d) => z.object({ periodo: z.string().regex(/^\d{4}-\d{2}$/), forzar: z.boolean().optional() }).parse(d))
+  .handler(async ({ data, context }): Promise<ResultadoComisionesAfp> => {
+    const sb = context.supabase as any;
+    const leer = async (filtroPeriodo?: string) => {
+      let q = sb.from("afp_comisiones_mensuales").select("periodo,afp,aporte_fondo,prima_seguro,comision_flujo,tope_remuneracion");
+      q = filtroPeriodo ? q.eq("periodo", filtroPeriodo) : q.lte("periodo", data.periodo).order("periodo", { ascending: false }).limit(8);
+      const { data: filas } = await q;
+      const lista = (filas ?? []) as (ComisionAfp & { periodo: string })[];
+      const per = lista[0]?.periodo ?? "";
+      return { per, comisiones: lista.filter((f) => f.periodo === per).map((f) => ({ afp: f.afp, aporte_fondo: Number(f.aporte_fondo), prima_seguro: Number(f.prima_seguro), comision_flujo: Number(f.comision_flujo), tope_remuneracion: Number(f.tope_remuneracion) })) };
+    };
+    if (data.forzar) await exigirGestor(context);
+    if (!data.forzar) {
+      const c = await leer(data.periodo);
+      if (c.comisiones.length) return { periodo: data.periodo, periodoDatos: c.per, origen: "decolecta", comisiones: c.comisiones, mensaje: "" };
+    }
+    const respaldo = async (mensaje: string): Promise<ResultadoComisionesAfp> => {
+      const c = await leer();
+      if (c.comisiones.length) return { periodo: data.periodo, periodoDatos: c.per, origen: "guardado", comisiones: c.comisiones, mensaje };
+      return { periodo: data.periodo, periodoDatos: "", origen: "respaldo", comisiones: [], mensaje };
+    };
     const token = await obtenerToken();
-    if (!token) return { ...base, configurado: false, mensaje: "La consulta automática aún no está activada (API Decolecta)." };
+    if (!token) return respaldo("La API Decolecta no está configurada.");
     try {
-      const res = await fetch(`${BASE}/sbs/afiliado?numero=${data.dni}`, { headers: { Authorization: `Bearer ${token}`, Referer: "https://telxen.app" } });
-      if (res.status === 404) return { ...base, mensaje: "El DNI no figura como afiliado a una AFP. Puede estar en ONP." };
-      if (!res.ok) return { ...base, mensaje: `El servicio de consulta SBS respondió con un error (${res.status}).` };
-      const j = (await res.json()) as Record<string, unknown>;
-      const txt = (...ks: string[]) => { for (const k of ks) if (typeof j[k] === "string" && j[k]) return (j[k] as string).trim(); return ""; };
-      const afpRaw = txt("afp", "nombre_afp", "afp_name", "entidad").toUpperCase();
-      const cuspp = txt("cuspp", "codigo_cuspp", "codigo").toUpperCase();
-      const mapa: [string, string][] = [["INTEGRA", "AFP Integra"], ["PRIMA", "AFP Prima"], ["PROFUTURO", "AFP Profuturo"], ["HABITAT", "AFP Habitat"]];
-      const afp = mapa.find(([k]) => afpRaw.includes(k))?.[1] ?? "";
-      if (!afp && !cuspp) return { ...base, mensaje: "El servicio no devolvió afiliación AFP para ese DNI." };
-      return { ...base, encontrado: true, afp, cuspp, mensaje: "" };
+      const [y, m] = data.periodo.split("-");
+      const res = await fetch(`${BASE}/afp/comisiones?year=${Number(y)}&month=${Number(m)}`, { headers: { Authorization: `Bearer ${token}`, Referer: "https://telxen.app" } });
+      if (!res.ok) return respaldo(`Decolecta aún no publica comisiones de ese mes (${res.status}).`);
+      const arr = (await res.json()) as Record<string, unknown>[];
+      const filas = (Array.isArray(arr) ? arr : []).map((j) => {
+        const raw = String(j.afp ?? "").toUpperCase();
+        const afp = NOMBRES_AFP.find(([k]) => raw.includes(k))?.[1];
+        return afp ? { periodo: data.periodo, afp, aporte_fondo: Number(j.aporte_obligatorio ?? 10) / 100, prima_seguro: Number(j.prima_de_seguro ?? 0) / 100, comision_flujo: Number(j.comision_sobre_flujo ?? 0) / 100, tope_remuneracion: Number(j.remuneracion_maxima_asegurable ?? 0), origen: "decolecta", consultado_en: new Date().toISOString() } : null;
+      }).filter(Boolean) as (ComisionAfp & { periodo: string })[];
+      if (!filas.length) return respaldo("Decolecta no devolvió comisiones para ese mes.");
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      await (supabaseAdmin as any).from("afp_comisiones_mensuales").upsert(filas, { onConflict: "periodo,afp" });
+      return { periodo: data.periodo, periodoDatos: data.periodo, origen: "decolecta", comisiones: filas.map(({ periodo: _p, ...r }) => ({ afp: r.afp, aporte_fondo: r.aporte_fondo, prima_seguro: r.prima_seguro, comision_flujo: r.comision_flujo, tope_remuneracion: r.tope_remuneracion })), mensaje: "" };
     } catch {
-      return { ...base, mensaje: "No se pudo conectar con el servicio de consulta SBS." };
+      return respaldo("No se pudo conectar con Decolecta.");
     }
   });
