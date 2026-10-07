@@ -178,8 +178,8 @@ function SincronizacionGlobal({ periodo, onPeriodoChange, botonesGrupos }: { per
         {botonesGrupos}
         <Boton onClick={sincronizarTodo} disabled={progreso !== null}><RefreshCw className={`size-3.5 ${progreso !== null ? "animate-spin" : ""}`} />Sincronizar Compras y Ventas</Boton>
       </div>
-      <div className="flex items-center justify-between gap-3 rounded-md border border-line bg-card px-3 py-1.5">
-        <div className="hidden items-center gap-x-4 font-mono text-[11px] text-muted-foreground min-[1100px]:flex">
+      <div className="flex items-center justify-between gap-4 rounded-md border border-line bg-card px-3 py-1.5">
+        <div className="hidden flex-col gap-0.5 font-mono text-[10.5px] leading-tight text-muted-foreground min-[1100px]:flex">
           {(["RVIE", "RCE"] as Libro[]).map((libro) => {
             const estado = estadoLibro(libro);
             return <span key={libro} className={estado === "error" ? "text-bad" : estado === "sincronizado" ? "text-good" : estado === "pendiente" ? "text-amber-700 dark:text-amber-400" : ""}>{etiquetaEstado(libro)}</span>;
