@@ -2144,6 +2144,27 @@ export type Database = {
           },
         ]
       }
+      integraciones_credenciales: {
+        Row: {
+          api_key: string
+          proveedor: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          api_key: string
+          proveedor: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          api_key?: string
+          proveedor?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       mantenimientos_vehiculo: {
         Row: {
           banco_id: string | null
