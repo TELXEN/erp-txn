@@ -201,7 +201,7 @@ function Nomina() {
       otros_ingresos: num("otros_ingresos"),
       renta_quinta: num("renta_quinta"),
       otros_descuentos: num("otros_descuentos"),
-    }, comisiones);
+    }, comisiones, rmvDe(periodoAfp));
     const { error: err } = await supabase.from("boletas").update(calc).eq("id", b.id);
     if (err) return setError(err.message);
     setEditando(({ [b.id]: _, ...resto }) => resto);
