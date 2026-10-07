@@ -35,6 +35,7 @@ type Pago = {
   estado_pago?: string;
   comprobante?: string;
   banco_id?: string | null;
+  caja_chica_id?: string | null;
 };
 
 type Cuenta = { id: string; nombre: string; monedas: string; tipo_cuenta: string; numero_cuenta: string; activo: boolean };
@@ -135,7 +136,7 @@ function GastosGenerales() {
   };
   const detallePago = (g: (typeof gastos)[number]) => {
     const cuenta = nombreBanco((g as Pago).banco_id);
-    const medio = cuenta || ((g as Pago).estado_pago === "Pagada" ? "Caja Chica" : "");
+    const medio = cuenta || ((g as Pago).caja_chica_id ? "Caja Chica" : "");
     return medio ? `${medio} | ${g.moneda}` : "";
   };
   const adjuntoDe = (id: string) => adjuntos.find((a) => a.registro_id === id);
