@@ -37,7 +37,7 @@ const dinero = (n: number, m: string) =>
 function validar(f: { nombre: string; numero_cuenta: string; cci: string; saldo_inicial: string }) {
   if (!f.nombre.trim()) return "Indica el nombre del banco.";
   if (!f.numero_cuenta.trim()) return "Indica el número de cuenta.";
-  const cci = f.cci.replace(/\D/g, "");
+  const cci = f.cci.replace(/[\s-]/g, "").replace(/\D/g, "");
   if (f.cci.trim() && cci.length !== 20) return "La cuenta interbancaria (CCI) debe tener 20 dígitos.";
   if (!Number.isFinite(Number(f.saldo_inicial))) return "El saldo inicial no es válido.";
   return "";
@@ -66,7 +66,7 @@ export function CuentasBancarias() {
     monedas: f.monedas,
     tipo_cuenta: f.tipo_cuenta,
     numero_cuenta: f.numero_cuenta.trim(),
-    cci: f.cci.replace(/\D/g, ""),
+    cci: f.cci.replace(/[\s-]/g, "").replace(/\D/g, ""),
     saldo_inicial: Number(f.saldo_inicial || 0),
     fecha_saldo_inicial: f.fecha_saldo_inicial || hoy(),
   });
@@ -137,7 +137,7 @@ export function CuentasBancarias() {
           onChange={(e) => set({ ...f, numero_cuenta: e.target.value })} />
       </Campo>
       <Campo etiqueta="Cuenta interbancaria (CCI)">
-        <Input className="py-1.5" value={f.cci} maxLength={24} disabled={!esGerente && !nueva} inputMode="numeric" placeholder="20 dígitos"
+        <Input className="py-1.5" value={f.cci} maxLength={28} disabled={!esGerente && !nueva} placeholder="20 dígitos (puedes usar guiones)"
           onChange={(e) => set({ ...f, cci: e.target.value })} />
       </Campo>
       <Campo etiqueta="Saldo inicial">
