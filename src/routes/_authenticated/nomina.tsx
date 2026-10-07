@@ -93,6 +93,14 @@ function calcularBoleta(
 
 const pct = (n: number) => `${(n * 100).toFixed(2)}%`;
 
+/** "2026-10-07T17:33:00.000Z" → "07/10/2026 12:33" en hora local. */
+const fechaHora = (iso: string) => {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;
+};
+
 function Nomina() {
   const { rol } = useAuth();
   const qc = useQueryClient();
@@ -346,6 +354,11 @@ function Nomina() {
             ))}
           </tbody>
         </table>
+        <p className="border-t border-line px-3 py-1.5 text-[10px] text-muted-foreground">
+          {afpData?.actualizadoEn
+            ? `Última actualización desde Decolecta: ${fechaHora(afpData.actualizadoEn)}`
+            : "Aún no hay una fecha de actualización de Decolecta para este período."}
+        </p>
         {(msgAfp || afpData?.mensaje) && <p className="border-t border-line px-3 py-2 text-xs text-muted-foreground">{msgAfp || afpData?.mensaje}</p>}
       </Panel>
 
