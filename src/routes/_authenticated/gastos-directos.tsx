@@ -698,14 +698,6 @@ function ModalCompra({
   );
 }
 
-function ResumenDato({ t, v }: { t: string; v: string }) {
-  return (
-    <div>
-      <p className="mb-1 block text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{t}</p>
-      <p className="font-semibold text-ink">{v}</p>
-    </div>
-  );
-}
 
 /** Buscador de insumo con sugerencias del APU de la partida; admite texto libre. */
 function AutoInsumo({
