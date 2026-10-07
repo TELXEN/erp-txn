@@ -542,7 +542,7 @@ function ResumenOperaciones({ periodo, libro }: { periodo: string; libro: Libro 
           ) : (
             <>
               <p className="text-base font-bold tabular-nums leading-tight tracking-tight text-ink">{soles(total)}</p>
-              <p className="truncate font-mono text-[10.5px] text-muted-foreground">
+              <p className="font-mono text-[10.5px] leading-tight text-muted-foreground">
                 Base <b className="font-semibold text-ink">{soles(Number(r!.total_base))}</b> · IGV <b className="font-semibold text-ink">{soles(Number(r!.total_igv))}</b> · <b className="font-semibold text-ink">{r!.total_docs}</b> comp.
               </p>
             </>
