@@ -553,12 +553,6 @@ function ModalCompra({
   const usoActual = presuC > 0 ? (costoC / presuC) * 100 : costoC > 0 ? 100 : 0;
   const usoNuevo = presuC > 0 ? (nuevoCosto / presuC) * 100 : nuevoCosto > 0 ? 100 : 0;
 
-  useEffect(() => {
-    const k = (e: KeyboardEvent) => e.key === "Escape" && onCerrar();
-    window.addEventListener("keydown", k);
-    return () => window.removeEventListener("keydown", k);
-  }, [onCerrar]);
-
   async function enviar(e?: React.FormEvent) {
     e?.preventDefault();
     if (guardando) return;
