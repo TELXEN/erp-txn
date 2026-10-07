@@ -171,21 +171,23 @@ function SincronizacionGlobal({ periodo, onPeriodoChange, botonesGrupos }: { per
   };
 
   return (
-    <div className="relative mb-2 flex flex-wrap items-center justify-between gap-2">
+    <div className="relative mb-2 flex flex-wrap items-start justify-between gap-2">
       <div className="flex flex-wrap items-center gap-2">
         {botonesGrupos}
-        <Boton onClick={sincronizarTodo} disabled={progreso !== null}><RefreshCw className={`size-3.5 ${progreso !== null ? "animate-spin" : ""}`} />Sincronizar Compras y Ventas</Boton>
       </div>
-      <div className="flex items-center justify-between gap-4 rounded-md border border-line bg-card px-3 py-1.5">
-        <div className="hidden flex-col gap-0.5 font-mono text-[10.5px] leading-tight text-muted-foreground min-[1100px]:flex">
-          {(["RVIE", "RCE"] as Libro[]).map((libro) => {
-            const estado = estadoLibro(libro);
-            return <span key={libro} className={estado === "error" ? "text-bad" : estado === "sincronizado" ? "text-good" : estado === "pendiente" ? "text-amber-700 dark:text-amber-400" : ""}>{etiquetaEstado(libro)}</span>;
-          })}
-        </div>
-        <div className="flex items-center gap-2">
-          <Campo etiqueta="Mes"><Select value={m} onChange={(e) => onPeriodoChange(`${y}-${String(e.target.value).padStart(2, "0")}`)}>{MESES.map((n, i) => <option key={n} value={i + 1}>{n}</option>)}</Select></Campo>
-          <Campo etiqueta="Año"><Select value={y} onChange={(e) => onPeriodoChange(`${e.target.value}-${String(m).padStart(2, "0")}`)}>{anios.map((a) => <option key={a}>{a}</option>)}</Select></Campo>
+      <div className="flex flex-col items-end gap-1.5">
+        <Boton onClick={sincronizarTodo} disabled={progreso !== null}><RefreshCw className={`size-3.5 ${progreso !== null ? "animate-spin" : ""}`} />Sincronizar Compras y Ventas</Boton>
+        <div className="flex items-center justify-between gap-4 rounded-md border border-line bg-card px-3 py-1.5">
+          <div className="hidden flex-col gap-0.5 font-mono text-[10.5px] leading-tight text-muted-foreground min-[1100px]:flex">
+            {(["RVIE", "RCE"] as Libro[]).map((libro) => {
+              const estado = estadoLibro(libro);
+              return <span key={libro} className={estado === "error" ? "text-bad" : estado === "sincronizado" ? "text-good" : estado === "pendiente" ? "text-amber-700 dark:text-amber-400" : ""}>{etiquetaEstado(libro)}</span>;
+            })}
+          </div>
+          <div className="flex items-center gap-2">
+            <Campo etiqueta="Mes"><Select value={m} onChange={(e) => onPeriodoChange(`${y}-${String(e.target.value).padStart(2, "0")}`)}>{MESES.map((n, i) => <option key={n} value={i + 1}>{n}</option>)}</Select></Campo>
+            <Campo etiqueta="Año"><Select value={y} onChange={(e) => onPeriodoChange(`${e.target.value}-${String(m).padStart(2, "0")}`)}>{anios.map((a) => <option key={a}>{a}</option>)}</Select></Campo>
+          </div>
         </div>
       </div>
       {progreso !== null && (
