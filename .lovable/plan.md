@@ -22,9 +22,9 @@ Reorganizar la cabecera del módulo SIRE SUNAT (`src/routes/_authenticated/sire.
 1. **Fila superior (flex, justify-between, items-start):**
    - Izquierda: `Configuración` seguido de las pestañas `Ventas (RVIE)` y `Compras (RCE)` (los botones `subtabs` actuales se integran en la misma fila, en línea con la estética de botón existente). «API SOL» solo aparece en Configuración, como hoy.
    - Derecha: botón negro «Sincronizar Compras y Ventas» con su spinner actual.
-2. **Columna derecha apilada (debajo del botón, `items-end` para quedar alineada con el borde derecho del botón):**
-   - Selectores `Mes` y `Año` en fila.
-   - Debajo, el texto verde de estado de sincronización (`RVIE: Sincronizado …` / `RCE: …`) conservando los colores por estado (verde/rojo/ámbar).
+2. **Columna derecha apilada, todo justificado a la derecha (`flex flex-col items-end`):**
+   - Justo debajo del botón, los selectores `Mes` y `Año` en fila, alineados a la derecha (borde derecho coincide con el botón).
+   - Debajo de Mes/Año, el texto verde de estado de sincronización (`RVIE: Sincronizado …` / `RCE: …`), también justificado a la derecha, conservando los colores por estado (verde/rojo/ámbar).
 3. Se eliminan la fila inferior actual de pestañas y el recuadro de estados al lado del botón; el bloque completo permanece sticky como ya está.
 4. `ResumenOperaciones` y el resto de la pantalla no cambian.
 
