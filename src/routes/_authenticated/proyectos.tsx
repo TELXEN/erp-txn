@@ -668,7 +668,7 @@ function Proyectos() {
                               pctGG={Number(p.pct_gastos_generales ?? 0)}
                               pctUt={Number(p.pct_utilidad ?? 0)}
                             />
-                            <Boton variante="linea" className="h-7 w-7 px-0" aria-label="Ver proyecto" title="Ver" onClick={() => setViendoId(p.id)}><Eye className="size-4" /></Boton>
+                            <Boton variante="linea" className="h-8 w-8 px-0" aria-label="Ver proyecto" title="Ver" onClick={() => setViendoId(p.id)}><Eye className="size-[18px]" /></Boton>
                             <Boton variante="linea" className="h-7 w-7 px-0"
                               onClick={() =>
                                 setEditando({

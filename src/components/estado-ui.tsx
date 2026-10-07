@@ -4,7 +4,7 @@ import { tonoPrioridad, tonoSituacion, type Tono } from "@/lib/configuracion";
 function Insignia({ tono, children }: { tono: Tono; children: ReactNode }) {
   return (
     <span
-      className="inline-flex items-center rounded-full border px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider"
+      className="inline-flex items-center whitespace-nowrap rounded-full border px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider"
       style={{
         backgroundColor: tono.fondo,
         borderColor: tono.borde,
