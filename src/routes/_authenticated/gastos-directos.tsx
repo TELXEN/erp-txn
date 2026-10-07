@@ -591,7 +591,7 @@ function ModalCompra({
           </div>
         </div>
 
-        <form onSubmit={enviar} className="flex-1 space-y-5 px-5 py-5">
+        <form onSubmit={enviar} className="space-y-5 px-5 py-5">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div><span className={etqF}>Fecha</span><FechaPeru valor={b.fecha} onChange={(v) => setB({ ...b, fecha: v })} /></div>
             <label><span className={etqF}>Comprobante</span>
