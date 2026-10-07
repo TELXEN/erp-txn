@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Eye, FilePlus2, Landmark, Pencil, ReceiptText, ShoppingBag, Trash2 } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
@@ -56,8 +57,6 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
   const totalRegimen = docs.reduce((s, d) => s + Number(d.importe || 0), 0);
   const importeRegimen = Number(((totalRegimen * Number(form.regimen_tasa || 0)) / 100).toFixed(2));
   const filtrados = lista.filter((x) => x.tipo_comprobante === pestana && coincide(busqueda, x.numero, TIPOS_COMPROBANTE[x.tipo_comprobante as TipoComprobante], x.estado_fiscal, clientes.find((c) => c.id === x.cliente_id)?.razon_social));
-  if (!puedeVerDinero(rol)) return <SinAcceso />;
-
   // Precarga desde SIRE (+ Emitir en filas "Faltante en ERP")
   useEffect(() => {
     const raw = sessionStorage.getItem("sire-prefill-cpe"); if (!raw) return;
@@ -69,12 +68,14 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
       const cli = clientes.find((c) => c.numero_documento === x.ruc);
       const usd = x.moneda === "USD";
       setPestana(t); setEditando(null); setError("");
-      setForm({ ...nuevoFormCpe(t, serie || SERIE_DEFECTO[t]), correlativo_inicial: String(Number(corr) || ""), fecha_emision: x.fecha, fecha_vencimiento: x.vencimiento || x.fecha, cliente_id: cli?.id ?? "", cliente_numero_documento: x.ruc, cliente_razon_social: cli?.razon_social ?? x.razon, cliente_direccion: cli?.direccion ?? "", moneda: usd ? "USD" : "PEN", tipo_cambio: usd ? String(x.tipo_cambio || 3.75) : "3.750", operacion_tipo: x.igv > 0 ? "gravada" : "exonerada" as never, observacion: `Importado desde SIRE SUNAT: ${x.serie_numero}` });
+      setForm({ ...nuevoFormCpe(t, serie || SERIE_DEFECTO[t]), correlativo_inicial: String(Number(corr) || ""), fecha_emision: x.fecha, fecha_vencimiento: x.vencimiento || x.fecha, cliente_id: cli?.id ?? "", cliente_numero_documento: x.ruc, cliente_razon_social: cli?.razon_social ?? x.razon, cliente_direccion: cli?.direccion ?? "", moneda: usd ? "USD" : "PEN", tipo_cambio: usd ? String(x.tipo_cambio || 3.75) : "3.750", operacion_tipo: x.igv > 0 ? "gravada" : "exonerada", observacion: `Importado desde SIRE SUNAT: ${x.serie_numero}` });
       setItems([{ ...itemComprobanteVacio(), descripcion: `Comprobante ${x.serie_numero} (registro SIRE)`, cantidad: "1", valor_unitario: String(x.base) }]);
       setDocs([docRelacionadoVacio()]); setCuotas([]); setAbierto(true);
       toast.success(`Datos de ${x.serie_numero} precargados desde SUNAT`);
     } catch { /* ignorar */ }
   }, [clientes.length]);
+
+  if (!puedeVerDinero(rol)) return <SinAcceso />;
 
   function abrirNuevo(t: TipoComprobante) {
     const serie = series.find((s) => s.tipo_comprobante === t)?.serie ?? SERIE_DEFECTO[t];
