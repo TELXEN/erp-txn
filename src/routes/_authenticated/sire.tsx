@@ -165,7 +165,12 @@ function SincronizacionGlobal({ periodo, onPeriodoChange }: { periodo: string; o
     };
     const reg = registro(libro);
     const fecha = reg?.sincronizado_en ?? reg?.updated_at;
-    return `${libro}: ${textos[estado]}${fecha && estado === "sincronizado" ? ` · ${new Date(fecha).toLocaleString("es-PE")}` : ""}`;
+    let cuando = "";
+    if (fecha && estado === "sincronizado") {
+      const d = new Date(fecha);
+      cuando = ` · ${d.getDate()}/${d.getMonth() + 1} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+    }
+    return `${libro}: ${textos[estado]}${cuando}`;
   };
 
   return (
