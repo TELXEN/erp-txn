@@ -360,7 +360,7 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
       {detalle && <DetalleDoc item={detalle} onCerrar={() => setDetalle(null)} />}
       <div key={paso} className="rise">
         {paso === 1 && (
-          <Panel titulo={`PASO 1 · SINCRONIZAR PROPUESTA ${libro}`}>
+          <Panel titulo={`PASO 1 · SINCRONIZAR PROPUESTA ${libro}`} extra={pasosExtra}>
             <div className="flex flex-wrap items-center justify-between gap-3 p-5">
               <div>
                 <p className="text-sm font-semibold">{reg ? `Propuesta ${libro} disponible para ${MESES[m - 1]} ${y}` : `Aún no hay una propuesta ${libro} para ${MESES[m - 1]} ${y}`}</p>
@@ -372,7 +372,7 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
         )}
 
         {paso === 2 && (
-          <Panel titulo={`PASO 2 · CONCILIACIÓN SUNAT vs ERP · ${(MESES[m - 1] ?? "").toUpperCase()} ${y}`}>
+          <Panel titulo={`PASO 2 · CONCILIACIÓN SUNAT vs ERP · ${(MESES[m - 1] ?? "").toUpperCase()} ${y}`} extra={pasosExtra}>
             {visibles.length === 0 ? <Vacio texto="Sin documentos en este filtro" /> : (
               <div className="max-h-[calc(100vh-470px)] min-h-[260px] overflow-auto" style={{ fontFamily: "Roboto, Arial, sans-serif" }}>
                 <div className="sticky top-0 z-20 flex h-[36px] flex-nowrap items-center gap-1 overflow-x-auto whitespace-nowrap border-b border-line bg-card px-3 py-1">
@@ -467,7 +467,7 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
         {paso === 2 && libro === "RCE" && <p className="mt-3 text-xs text-muted-foreground">La descarga y adjuntos de comprobantes de proveedores se gestionan en Facturación Electrónica → Recibidos (compras).</p>}
 
         {paso === 3 && reg && (
-          <Panel titulo={`PASO 3 · CIERRE Y ENVÍO · ${(MESES[m - 1] ?? "").toUpperCase()} ${y}`}>
+          <Panel titulo={`PASO 3 · CIERRE Y ENVÍO · ${(MESES[m - 1] ?? "").toUpperCase()} ${y}`} extra={pasosExtra}>
             <div className="grid gap-3 p-5 sm:grid-cols-3">
               {[
                 { t: "MONTO NETO TOTAL", v: soles(Number(reg.total_base)) },
