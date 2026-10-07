@@ -670,14 +670,6 @@ function Partidas() {
                 </option>
               ))}
             </Select>
-            <Select className="w-60" value={filtroEsp} onChange={(e) => setFiltroEsp(e.target.value)}>
-              <option value="">Todas las especialidades</option>
-              {nombresEspecialidades.map((e) => (
-                <option key={e} value={e}>
-                  {e}
-                </option>
-              ))}
-            </Select>
             <Select className="w-52" value={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value)}>
               <option value="">Todos los tipos</option>
               {nombresTipos.map((t) => (
