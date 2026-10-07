@@ -1,5 +1,6 @@
 # Roadmap
 
+- [x] Organizar Nuevo trabajador en cuatro tarjetas diferenciadas (personales, laborales, sueldo y pago, pensiones) con tipografía más compacta.
 - [x] Retirar búsqueda fallida de AFP y compactar Nuevo trabajador sin barra lateral visible.
 
 - [x] Ampliar y reorganizar los campos de Nuevo trabajador y permitir guardar con Enter.

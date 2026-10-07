@@ -22,21 +22,30 @@ const BANCOS = ["BCP", "BBVA", "Interbank", "Scotiabank", "Banco de la Nación",
 function CampoF({ etiqueta, req, children, className = "" }: { etiqueta: string; req?: boolean; children: ReactNode; className?: string }) {
   return (
     <label className={`block min-w-0 ${className}`}>
-      <span className="text-xs font-semibold text-ink">{etiqueta}{req && <span className="ml-0.5 text-bad">*</span>}</span>
-      <div className="mt-1">{children}</div>
+      <span className="text-[11px] font-semibold text-ink">{etiqueta}{req && <span className="ml-0.5 text-bad">*</span>}</span>
+      <div className="mt-0.5">{children}</div>
     </label>
   );
 }
 
-function Seccion({ titulo, paso, icono: Icono, children }: { titulo: string; paso?: number; icono?: typeof Users; children: ReactNode }) {
+/** Acento de cada grupo del formulario: un color distinto por bloque para diferenciarlos de un vistazo. */
+const TONO_SECCION = {
+  personal: { barra: "border-l-chip-1", fondo: "bg-chip-1/5", acento: "text-chip-1", chip: "bg-chip-1" },
+  laboral: { barra: "border-l-chip-codificacion", fondo: "bg-chip-codificacion/5", acento: "text-chip-codificacion", chip: "bg-chip-codificacion" },
+  sueldo: { barra: "border-l-chip-mat", fondo: "bg-chip-mat/5", acento: "text-chip-mat", chip: "bg-chip-mat" },
+  pensiones: { barra: "border-l-chip-margenes", fondo: "bg-chip-margenes/5", acento: "text-chip-margenes", chip: "bg-chip-margenes" },
+} as const;
+
+function Seccion({ titulo, paso, icono: Icono, tono, children }: { titulo: string; paso?: number; icono?: typeof Users; tono: keyof typeof TONO_SECCION; children: ReactNode }) {
+  const t = TONO_SECCION[tono];
   return (
-    <div className="min-w-0">
-      <h3 className="mb-3 flex items-center gap-2 border-b border-line pb-2 text-sm font-bold text-ink">
-        {paso && <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">{paso}</span>}
-        {Icono && <Icono size={18} className="text-primary" />}
+    <div className={`min-w-0 self-start rounded-md border border-line border-l-[3px] p-2.5 ${t.barra} ${t.fondo}`}>
+      <h3 className="mb-2 flex items-center gap-1.5 border-b border-line pb-1.5 text-[11px] font-bold uppercase tracking-wide text-ink">
+        {paso && <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[9px] font-bold text-chip-foreground ${t.chip}`}>{paso}</span>}
+        {Icono && <Icono size={13} className={t.acento} />}
         {titulo}
       </h3>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">{children}</div>
+      <div className="grid grid-cols-1 gap-x-3 gap-y-2 sm:grid-cols-2">{children}</div>
     </div>
   );
 }
@@ -307,7 +316,7 @@ function Personal() {
             </div>
           </>
         )}
-        <label className="col-span-full flex items-center gap-2 text-sm text-ink">
+        <label className="col-span-full flex items-center gap-2 text-xs text-ink">
           {planilla ? (
             <><input type="checkbox" checked={f.asignacion_familiar} onChange={(e) => set("asignacion_familiar", e.target.checked)} /> Asignación familiar</>
           ) : (
@@ -425,7 +434,7 @@ function Personal() {
       </div>
 
       {pestana === "emo" ? <EmoPanel trabajadores={trabajadores} /> : <>
-      <VentanaFlotante abierta={formAbierto} onCerrar={() => { setFormAbierto(false); setForm(FORM_INICIAL); setError(""); }} titulo="Nuevo trabajador" ancho="max-w-5xl" ocultarBarra>
+      <VentanaFlotante abierta={formAbierto} onCerrar={() => { setFormAbierto(false); setForm(FORM_INICIAL); setError(""); }} titulo="Nuevo trabajador" subtitulo="Los datos se agrupan en cuatro bloques: personales, laborales, sueldo y pago, y régimen de pensiones." ancho="max-w-4xl" ocultarBarra>
         <form onSubmit={guardar}
           onKeyDown={(e) => {
             if (e.key !== "Enter" || e.nativeEvent.isComposing || !(e.target instanceof HTMLInputElement) || e.target.type === "checkbox") return;
@@ -433,41 +442,39 @@ function Personal() {
             cerrarTrasGuardar.current = false;
             e.currentTarget.requestSubmit();
           }}
-          className="[&_input:not([type=checkbox])]:h-10 [&_input:not([type=checkbox])]:text-base [&_select]:h-10 [&_select]:text-base [&_label>span]:text-sm [&_label_button]:h-10 [&_label_button]:text-sm">
-          <fieldset disabled={guardando} className="min-w-0 border-0 p-4 sm:px-6">
-          <div className="grid gap-x-8 gap-y-4 md:grid-cols-2">
-            <Seccion titulo="Datos personales" paso={1} icono={UserRound}>
+          className="[&_input:not([type=checkbox])]:h-9 [&_input:not([type=checkbox])]:text-sm [&_select]:h-9 [&_select]:text-sm [&_label>span]:text-[11px] [&_label_button]:h-9 [&_label_button]:text-xs">
+          <fieldset disabled={guardando} className="min-w-0 border-0 p-3 sm:px-4">
+          <div className="grid gap-x-4 gap-y-3 md:grid-cols-2">
+            <Seccion titulo="Datos personales" paso={1} icono={UserRound} tono="personal">
               <CampoF etiqueta="DNI" req className="col-span-full">
                 <div className="flex items-center gap-2">
                   <Input ref={dniRef} autoFocus aria-label="DNI" inputMode="numeric" pattern="[0-9]{8}" maxLength={8} value={form.dni} onChange={(e) => setFormC("dni", e.target.value.replace(/\D/g, ""))} required className={`min-w-0 flex-1 tabular-nums ${dniDuplicado ? "border-bad" : ""}`} placeholder="8 dígitos" />
-                  <Boton type="button" variante="linea" className="h-11 shrink-0 px-3" title="Consultar RENIEC" onClick={consultarReniec} disabled={consultando !== "" || !/^\d{8}$/.test(form.dni) || dniDuplicado}>
+                  <Boton type="button" variante="linea" className="h-9 shrink-0 px-2.5 text-xs" title="Consultar RENIEC" onClick={consultarReniec} disabled={consultando !== "" || !/^\d{8}$/.test(form.dni) || dniDuplicado}>
                     <Search size={16} />{consultando === "reniec" ? "…" : "RENIEC"}
                   </Boton>
                 </div>
-                <span className={`mt-1 block text-xs ${dniDuplicado ? "text-bad" : "text-muted-foreground"}`}>{dniDuplicado ? "DNI ya registrado" : msgReniec || `${form.dni.length}/8`}</span>
+                <span className={`mt-0.5 block text-[11px] ${dniDuplicado ? "text-bad" : "text-muted-foreground"}`}>{dniDuplicado ? "DNI ya registrado" : msgReniec || `${form.dni.length}/8`}</span>
+              </CampoF>
+              <CampoF etiqueta="Apellidos y Nombre(s)" req>
+                <Input value={form.nombre} onChange={(e) => setFormC("nombre", e.target.value)} required maxLength={100} className="py-1.5" placeholder="Ej. QUISPE MAMANI, Juan" />
               </CampoF>
               <CampoF etiqueta="N° Celular" req>
                 <Input inputMode="tel" pattern="[0-9]{9}" maxLength={9} value={form.numero_celular} onChange={(e) => setFormC("numero_celular", e.target.value.replace(/\D/g, ""))} required className="py-1.5" placeholder="9 dígitos" />
-                <span className="mt-1 block text-xs text-muted-foreground">{form.numero_celular.length}/9</span>
+                <span className="mt-0.5 block text-[11px] text-muted-foreground">{form.numero_celular.length}/9</span>
               </CampoF>
-              <div className="col-span-full">
-                <CampoF etiqueta="Apellidos y Nombre(s)" req>
-                  <Input value={form.nombre} onChange={(e) => setFormC("nombre", e.target.value)} required maxLength={100} className="py-1.5" placeholder="Ej. QUISPE MAMANI, Juan" />
-                </CampoF>
-              </div>
             </Seccion>
-            <Seccion titulo="Datos laborales" paso={2} icono={Briefcase}>{seccionLaboral(form, setFormC, true)}</Seccion>
-            <Seccion titulo="Sueldo y pago" paso={3} icono={Wallet}>{seccionSalario(form, setFormC, true)}</Seccion>
-            <Seccion titulo="Régimen de pensiones" paso={4} icono={Landmark}>
+            <Seccion titulo="Datos laborales" paso={2} icono={Briefcase} tono="laboral">{seccionLaboral(form, setFormC, true)}</Seccion>
+            <Seccion titulo="Sueldo y pago" paso={3} icono={Wallet} tono="sueldo">{seccionSalario(form, setFormC, true)}</Seccion>
+            <Seccion titulo="Régimen de pensiones" paso={4} icono={Landmark} tono="pensiones">
               {seccionPrevision(form, setFormC)}
             </Seccion>
           </div>
           </fieldset>
-           <div className="sticky bottom-0 flex flex-wrap items-center justify-end gap-2 border-t border-line bg-card px-5 py-3 sm:px-6">
-            <p role="status" aria-live="polite" className={`w-full text-sm md:mr-auto md:w-auto md:flex-1 ${error ? "text-bad" : registrado ? "text-good" : "text-muted-foreground"}`}>{error || registrado || (faltante ? `Falta: ${faltante}` : "Todo listo para registrar.")}</p>
-            <Boton type="button" variante="linea" onClick={() => { setForm(FORM_INICIAL); setError(""); setFormAbierto(false); }}>Cancelar</Boton>
-            <Boton type="submit" variante="linea" disabled={!!faltante || guardando || consultando !== ""} className="min-h-11 min-w-36" onClick={() => { cerrarTrasGuardar.current = false; }}>{guardando ? "Guardando…" : "Registrar otro"}</Boton>
-            <Boton type="submit" variante="accion" disabled={!!faltante || guardando || consultando !== ""} className="min-h-11 min-w-36" onClick={() => { cerrarTrasGuardar.current = true; }}>Registrar y cerrar</Boton>
+           <div className="sticky bottom-0 flex flex-wrap items-center justify-end gap-2 border-t border-line bg-card px-4 py-2.5">
+            <p role="status" aria-live="polite" className={`w-full text-xs md:mr-auto md:w-auto md:flex-1 ${error ? "text-bad" : registrado ? "text-good" : "text-muted-foreground"}`}>{error || registrado || (faltante ? `Falta: ${faltante}` : "Todo listo para registrar.")}</p>
+            <Boton type="button" variante="linea" className="min-h-9 px-3 text-xs" onClick={() => { setForm(FORM_INICIAL); setError(""); setFormAbierto(false); }}>Cancelar</Boton>
+            <Boton type="submit" variante="linea" disabled={!!faltante || guardando || consultando !== ""} className="min-h-9 min-w-32 px-3 text-xs" onClick={() => { cerrarTrasGuardar.current = false; }}>{guardando ? "Guardando…" : "Registrar otro"}</Boton>
+            <Boton type="submit" variante="accion" disabled={!!faltante || guardando || consultando !== ""} className="min-h-9 min-w-32 px-3 text-xs" onClick={() => { cerrarTrasGuardar.current = true; }}>Registrar y cerrar</Boton>
           </div>
         </form>
       </VentanaFlotante>
