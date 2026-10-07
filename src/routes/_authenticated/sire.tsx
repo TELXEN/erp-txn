@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   CheckCircle2, AlertTriangle, XCircle, RefreshCw, KeyRound, ShieldCheck, Download, Send, Settings,
-  FileSpreadsheet, ShoppingBag, ReceiptText, Plus, ChevronRight, ChevronLeft, Link2,
+  FileSpreadsheet, ShoppingBag, ReceiptText, Plus, ChevronRight, ChevronLeft, Link2, Landmark,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
