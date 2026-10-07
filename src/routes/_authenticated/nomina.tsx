@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, Lock, Printer, Unlock, Upload } from "lucide-react";
+import { Check, Lock, Printer, RefreshCw, Unlock, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
@@ -11,6 +11,8 @@ import { type Trabajador, useTrabajadores } from "@/lib/datos";
 import { useEmpresa } from "@/lib/empresa";
 import { useFuenteDocumento } from "@/lib/fuentes-documentos";
 import { exportarExcel } from "@/lib/exportar";
+import { aporteAfp, useComisionesAfp } from "@/lib/afp";
+import type { ComisionAfp } from "@/lib/decolecta.functions";
 
 export const Route = createFileRoute("/_authenticated/nomina")({
   head: () => ({
@@ -103,6 +105,10 @@ function Nomina() {
   const [editando, setEditando] = useState<Record<string, Record<string, string>>>({});
   const [pago, setPago] = useState<{ banco_id: string; fecha_pago: string; numero_operacion: string } | null>(null);
   const [error, setError] = useState("");
+  const periodoAfp = `${anio}-${String(mes).padStart(2, "0")}`;
+  const { comisiones, origen: origenAfp, data: afpData, actualizar: actualizarAfp, isFetching: cargandoAfp } = useComisionesAfp(periodoAfp);
+  const [msgAfp, setMsgAfp] = useState("");
+  const esGestor = rol === "gerente" || rol === "administrador";
 
   const { data: planilla = null } = useQuery({
     queryKey: ["planilla", anio, mes],
@@ -157,7 +163,7 @@ function Nomina() {
       .map((t) => ({
         planilla_id: p!.id,
         trabajador_id: t.id,
-        ...calcularBoleta(t, { dias_laborados: 30, horas_extra: 0, otros_ingresos: 0, renta_quinta: 0, otros_descuentos: 0 }),
+        ...calcularBoleta(t, { dias_laborados: 30, horas_extra: 0, otros_ingresos: 0, renta_quinta: 0, otros_descuentos: 0 }, comisiones),
       }));
     if (nuevas.length) {
       const { error: err } = await supabase.from("boletas").insert(nuevas);
@@ -184,7 +190,7 @@ function Nomina() {
       otros_ingresos: num("otros_ingresos"),
       renta_quinta: num("renta_quinta"),
       otros_descuentos: num("otros_descuentos"),
-    });
+    }, comisiones);
     const { error: err } = await supabase.from("boletas").update(calc).eq("id", b.id);
     if (err) return setError(err.message);
     setEditando(({ [b.id]: _, ...resto }) => resto);
@@ -350,6 +356,38 @@ function Nomina() {
           ))}
         </div>
       )}
+
+      <Panel className="mb-4" titulo="Comisiones AFP del mes" extra={
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] text-muted-foreground">
+            {cargandoAfp ? "Consultando…" : origenAfp === "decolecta" ? `Decolecta · ${afpData?.periodoDatos}` : origenAfp === "guardado" ? `Último registro guardado · ${afpData?.periodoDatos}` : "Tasas de respaldo"}
+          </span>
+          {esGestor && (
+            <Boton variante="linea" onClick={async () => { setMsgAfp(""); const r = await actualizarAfp(); setMsgAfp(r.mensaje); }}>
+              <RefreshCw size={13} /> Actualizar desde Decolecta
+            </Boton>
+          )}
+        </div>
+      }>
+        <table className="w-full text-sm">
+          <thead className="text-[11px] uppercase text-muted-foreground">
+            <tr><th className="px-3 py-2 text-left">AFP</th><th className="px-3 py-2 text-right">Aporte al fondo</th><th className="px-3 py-2 text-right">Prima de seguro</th><th className="px-3 py-2 text-right">Comisión sobre flujo</th><th className="px-3 py-2 text-right">Total descuento</th><th className="px-3 py-2 text-right">Tope asegurable</th></tr>
+          </thead>
+          <tbody>
+            {comisiones.map((c) => (
+              <tr key={c.afp} className="border-t border-line">
+                <td className="px-3 py-1.5">{c.afp}</td>
+                <td className="px-3 py-1.5 text-right tabular-nums">{pct(c.aporte_fondo)}</td>
+                <td className="px-3 py-1.5 text-right tabular-nums">{pct(c.prima_seguro)}</td>
+                <td className="px-3 py-1.5 text-right tabular-nums">{pct(c.comision_flujo)}</td>
+                <td className="px-3 py-1.5 text-right font-semibold tabular-nums">{pct(c.aporte_fondo + c.prima_seguro + c.comision_flujo)}</td>
+                <td className="px-3 py-1.5 text-right tabular-nums">{c.tope_remuneracion > 0 ? soles(c.tope_remuneracion) : "—"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {(msgAfp || afpData?.mensaje) && <p className="border-t border-line px-3 py-2 text-xs text-muted-foreground">{msgAfp || afpData?.mensaje}</p>}
+      </Panel>
 
       <Panel titulo={`Planilla ${periodo}`} extra={<span className="font-mono text-[11px] text-muted-foreground">{boletas.length} boletas</span>}>
         {!planilla || boletas.length === 0 ? (
