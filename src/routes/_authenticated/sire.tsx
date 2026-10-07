@@ -69,7 +69,7 @@ function SirePage() {
 
 type EstadoSincronizacion = "esperando" | "procesando" | "sincronizado" | "pendiente" | "error";
 
-function SincronizacionGlobal({ periodo, onPeriodoChange, botonesGrupos }: { periodo: string; onPeriodoChange: (periodo: string) => void; botonesGrupos?: React.ReactNode }) {
+function SincronizacionGlobal({ periodo, onPeriodoChange, botonConfig, botonRegistros, subtabs }: { periodo: string; onPeriodoChange: (periodo: string) => void; botonConfig?: React.ReactNode; botonRegistros?: React.ReactNode; subtabs?: React.ReactNode }) {
   const qc = useQueryClient();
   const sincronizar$ = useServerFn(sincronizarSire);
   const [progreso, setProgreso] = useState<number | null>(null);
