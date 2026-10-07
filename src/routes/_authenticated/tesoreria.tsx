@@ -3,7 +3,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { coincide, Resaltar } from "@/components/Buscador";
 import { Fragment, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, Search, Upload, X } from "lucide-react";
+import { AlertTriangle, Landmark, Search, Upload, X } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { consultarTipoCambio } from "@/lib/decolecta.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
@@ -62,6 +64,9 @@ type R = {
   moneda?: string | number | null;
   monto?: string | number | null;
   monto_soles?: string | number | null;
+  total?: string | number | null;
+  pct_detraccion?: string | number | null;
+  tipo_cambio?: string | number | null;
   estado_pago?: string | number | null;
   proveedor_id?: string | number | null;
   proveedor?: string | number | null;
@@ -88,6 +93,9 @@ type Pendiente = {
   moneda: string;
   monto: number;
   soles: number;
+  base?: number;
+  pctDet?: number;
+  tcDoc?: number;
 };
 
 const dinero = (n: number, m: string) =>
@@ -324,7 +332,7 @@ function Tesoreria() {
         className={`panel p-4 text-left transition ${activa ? "ring-2 ring-primary" : ""} ${filtro !== null && cero ? "cursor-default opacity-60" : "hover:bg-ink/5"}`}
       >
         <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">{titulo}</p>
-        <p className={`mt-1 font-mono text-lg font-semibold ${filtro !== null && cero ? "text-muted-foreground" : tono}`}>{soles(monto)}</p>
+        <p className={`mt-1 text-lg font-semibold ${filtro !== null && cero ? "text-muted-foreground" : tono}`}>{soles(monto)}</p>
       </button>
     );
   };
@@ -365,7 +373,7 @@ function Tesoreria() {
         titulo="Saldos bancarios"
         className="mb-4"
         extra={
-          <div className="flex flex-wrap gap-2 font-mono text-[11px]">
+          <div className="flex flex-wrap gap-2 text-[11px]">
             <span className="rounded-md border border-line bg-muted px-2.5 py-1 text-muted-foreground">
               Total PEN: <b className={saldoPEN < 0 ? "text-bad" : "text-ink"}>{dinero(saldoPEN, "PEN")}</b>
             </span>
@@ -380,7 +388,7 @@ function Tesoreria() {
         ) : (
           <div className="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-3">
             {saldos.filter((s) => s.c.activo).map((s) => (
-              <div key={s.c.id} className={`rounded-lg border p-3 font-mono text-xs ${s.saldo < 0 ? "border-bad/40 bg-bad/10" : "border-line"}`}>
+              <div key={s.c.id} className={`rounded-lg border p-3 text-xs ${s.saldo < 0 ? "border-bad/40 bg-bad/10" : "border-line"}`}>
                 <div className="flex justify-between">
                   <b className="text-ink">{s.c.nombre}</b>
                   <span className="text-muted-foreground">{s.c.monedas} · {s.c.tipo_cuenta}</span>
@@ -415,7 +423,7 @@ function Tesoreria() {
               key={t}
               type="button"
               onClick={() => { setPestana(t); setAccion(null); setFiltroVence(null); setTercero(""); setSeleccion(new Set()); }}
-              className={`rounded-md border px-3 py-1.5 font-mono text-xs transition ${tono}`}
+              className={`rounded-md border px-3 py-1.5 text-xs transition ${tono}`}
             >
               {t === "cxc" ? `Cuentas por cobrar (${cxc.length})` : `Cuentas por pagar (${cxp.length})`}
             </button>
@@ -442,13 +450,13 @@ function Tesoreria() {
               className="h-9 w-full rounded-md border border-line bg-card pl-9 pr-3 text-sm text-ink outline-none focus:border-primary"
             />
           </div>
-          <label className="font-mono text-[10px] uppercase text-muted-foreground">Vence desde
+          <label className="text-[10px] uppercase text-muted-foreground">Vence desde
             <Input type="date" value={desde} onChange={(e) => { setDesde(e.target.value); limpiarFiltros(); }} />
           </label>
-          <label className="font-mono text-[10px] uppercase text-muted-foreground">Hasta
+          <label className="text-[10px] uppercase text-muted-foreground">Hasta
             <Input type="date" value={hasta} onChange={(e) => { setHasta(e.target.value); limpiarFiltros(); }} />
           </label>
-          <label className="font-mono text-[10px] uppercase text-muted-foreground">{pestana === "cxc" ? "Cliente" : "Proveedor"}
+          <label className="text-[10px] uppercase text-muted-foreground">{pestana === "cxc" ? "Cliente" : "Proveedor"}
             <Select value={tercero} onChange={(e) => { setTercero(e.target.value); limpiarFiltros(); }}>
               <option value="">Todos</option>
               {tercerosLista.map((t) => <option key={t} value={t}>{t}</option>)}
@@ -475,7 +483,7 @@ function Tesoreria() {
           />
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full font-mono text-xs">
+            <table className="w-full text-xs">
               <thead>
                 <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
                   <th className="w-8 pl-4 py-2">
@@ -603,7 +611,7 @@ function Tesoreria() {
               <button type="button" onClick={() => !procesando && setLote(null)} className="rounded-md p-1 text-muted-foreground hover:bg-muted" title="Cerrar"><X size={16} /></button>
             </div>
             <div className="space-y-3 px-5 py-4 text-xs">
-              <p className="font-mono text-muted-foreground">
+              <p className="text-muted-foreground">
                 {seleccionados.length} documento(s) · Total <b className="text-ink">{soles(totalSel)}</b>
               </p>
               <Select value={lote.banco_id} onChange={(e) => setLote({ ...lote, banco_id: e.target.value })}>
