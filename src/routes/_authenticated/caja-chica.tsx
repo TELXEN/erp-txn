@@ -4,8 +4,8 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
-import { Info, Lock, Plus, Search, Trash2, Upload, X } from "lucide-react";
+import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
+import { ChevronDown, ChevronRight, Clock, Hourglass, Info, Lock, Plus, Receipt, Search, Trash2, Upload, Wallet, X } from "lucide-react";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
 import {
@@ -91,6 +91,11 @@ function CajaChica() {
     proveedor: "",
   });
   const [errorRend, setErrorRend] = useState("");
+  const [agrupar, setAgrupar] = useState(false);
+  const [gruposCerrados, setGruposCerrados] = useState<Set<string>>(new Set());
+  const [rendirId, setRendirId] = useState<string | null>(null);
+  const [detalleId, setDetalleId] = useState<string | null>(null);
+  const [soloAtrasadas, setSoloAtrasadas] = useState(false);
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
@@ -145,6 +150,11 @@ function CajaChica() {
   ].sort((a, b) => (a.fecha < b.fecha ? 1 : -1));
 
   const rendidoDe = (cajaId: string) => rendicionesDe(cajaId).reduce((s, r) => s + r.monto, 0);
+  const diasDesde = (f: string) => Math.floor((Date.parse(hoy()) - Date.parse(f)) / 86400000);
+  const estaAtrasada = (c: (typeof cajas)[number]) =>
+    c.estado === "Abierta" && diasDesde(c.fecha_entrega) > 7 && rendicionesDe(c.id).length === 0;
+  const bancoCorto = (id?: string | null) => cuentas.find((x) => x.id === id)?.nombre ?? "—";
+  const opCorta = (op: string) => (op.length > 10 ? `…${op.slice(-6)}` : op);
 
   const cajasFiltradas = cajas.filter((c) =>
     coincide(busqueda, nombreResp(c.responsable_id), nombreProy(c.proyecto_id), c.motivo, c.numero_operacion ?? ""),
@@ -249,26 +259,209 @@ function CajaChica() {
     qc.invalidateQueries({ queryKey: ["cajas_chicas"] });
   }
 
-  const COLS = "grid grid-cols-[1.2fr_1.6fr_0.8fr_1fr_0.9fr_0.9fr_1fr_0.7fr] items-center gap-3";
+  const COLS = "grid grid-cols-[1.1fr_1.5fr_0.95fr_1fr_0.85fr_0.85fr_0.95fr_0.7fr_0.75fr] items-center gap-3";
+  const totalComprobantes = cajas.reduce((s, c) => s + rendicionesDe(c.id).length, 0);
+  const pctRendido = totalEntregado > 0 ? (totalRendido / totalEntregado) * 100 : 0;
+  const pendiente = totalEntregado - totalRendido;
+  const atrasadas = cajas.filter(estaAtrasada);
+  const tonoPct = pctRendido >= 80 ? "bg-good" : pctRendido >= 50 ? "bg-warn" : "bg-bad";
+  const visibles = soloAtrasadas ? cajasFiltradas.filter(estaAtrasada) : cajasFiltradas;
+
+  const grupos = (() => {
+    const m = new Map<string, typeof visibles>();
+    for (const c of visibles) m.set(c.responsable_id, [...(m.get(c.responsable_id) ?? []), c]);
+    return [...m.entries()].map(([resp, lista]) => ({ resp, lista }));
+  })();
+
+  const cajaRendir = cajas.find((c) => c.id === rendirId);
+  const cajaDetalle = cajas.find((c) => c.id === detalleId);
+
+  const fila = (c: (typeof cajas)[number], enGrupo: boolean) => {
+    const rendido = rendidoDe(c.id);
+    const entregado = Number(c.monto_entregado);
+    const saldo = entregado - rendido;
+    const lista = rendicionesDe(c.id);
+    const expandida = abierta === c.id;
+    const alerta = estaAtrasada(c);
+    return (
+      <div key={c.id}>
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={() => setAbierta(expandida ? null : c.id)}
+          onKeyDown={(e) => { if (e.key === "Enter") setAbierta(expandida ? null : c.id); }}
+          className={`${COLS} w-full cursor-pointer px-5 py-3 text-left text-sm transition-colors hover:bg-ink/5 ${expandida ? "bg-ink/5" : ""} ${enGrupo ? "pl-10" : ""}`}
+        >
+          <span className="truncate font-semibold text-ink">
+            {enGrupo ? <span className="text-xs font-normal text-muted-foreground">Entrega</span> : <Resaltar texto={nombreResp(c.responsable_id)} termino={busqueda} />}
+          </span>
+          <span className="min-w-0">
+            {!enGrupo && <span className="block truncate font-medium uppercase text-ink"><Resaltar texto={nombreProy(c.proyecto_id)} termino={busqueda} /></span>}
+            {enGrupo && <span className="block truncate text-xs uppercase text-ink">{nombreProy(c.proyecto_id)}</span>}
+            {c.motivo && <span className="block truncate text-xs text-muted-foreground"><Resaltar texto={c.motivo} termino={busqueda} /></span>}
+          </span>
+          <span className="flex items-center gap-1.5 text-xs tabular-nums text-ink">
+            {fmtFecha(c.fecha_entrega)}
+            {alerta && (
+              <span title={`Abierta hace ${diasDesde(c.fecha_entrega)} días sin rendiciones`} className="inline-flex items-center gap-0.5 rounded-full bg-warn/15 px-1.5 py-0.5 text-[10px] font-semibold text-warn">
+                <Clock size={11} /> +7 días
+              </span>
+            )}
+          </span>
+          <span className="truncate text-xs text-muted-foreground" title={c.numero_operacion ?? ""}>
+            {bancoCorto(c.banco_id)}{c.numero_operacion ? <> • Op. <Resaltar texto={opCorta(c.numero_operacion)} termino={busqueda} /></> : ""}
+          </span>
+          <span className="text-right text-xs tabular-nums text-ink">{soles(entregado)}</span>
+          <span className="text-right text-xs tabular-nums">
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); setDetalleId(c.id); }}
+              className="font-medium text-primary underline-offset-2 hover:underline"
+              title="Ver comprobantes"
+            >
+              {soles(rendido)}
+            </button>
+          </span>
+          <span className={`text-right text-sm font-bold tabular-nums ${saldo < -0.009 ? "text-bad" : "text-ink"}`}>
+            {saldo < -0.009 ? `(${soles(Math.abs(saldo))})` : soles(saldo)}
+          </span>
+          <span className="text-center">
+            <span className={`inline-block whitespace-nowrap rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${c.estado === "Liquidada" ? "bg-good/15 text-good" : "bg-primary/10 text-primary"}`}>
+              {c.estado}
+            </span>
+          </span>
+          <span className="text-right">
+            {c.estado === "Abierta" && (
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); setErrorRend(""); setRendirId(c.id); }}
+                className="inline-flex h-8 items-center gap-1 rounded-md bg-primary px-2.5 text-xs font-semibold text-primary-foreground hover:brightness-95"
+              >
+                <Plus size={13} /> Rendir
+              </button>
+            )}
+          </span>
+        </div>
+
+        {expandida && (
+          <div className="border-t border-line bg-muted/30 px-5 py-4">
+            {tablaComprobantes(lista, c.estado === "Abierta")}
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              {c.estado === "Abierta" ? (
+                <Boton variante="linea" onClick={() => liquidar(c.id)}><Lock size={13} /> Liquidar y cerrar caja</Boton>
+              ) : (
+                <Boton variante="linea" onClick={() => reabrir(c.id)}>Reabrir caja</Boton>
+              )}
+              <Boton variante="peligro" onClick={() => eliminarCaja(c.id)}>Eliminar caja</Boton>
+              <span className="text-xs text-muted-foreground">
+                {saldo > 0.009
+                  ? `Debe devolver a la empresa ${soles(saldo)}`
+                  : saldo < -0.009
+                    ? `La empresa debe reembolsar ${soles(Math.abs(saldo))}`
+                    : "El efectivo está totalmente rendido"}
+                {c.estado === "Liquidada" && c.fecha_liquidacion ? ` · Liquidada el ${fmtFecha(c.fecha_liquidacion)}` : ""}
+              </span>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  function tablaComprobantes(lista: ReturnType<typeof rendicionesDe>, editable: boolean) {
+    return (
+      <div className="overflow-hidden rounded-md border border-line bg-card">
+        {lista.length === 0 ? (
+          <Vacio texto="Sin comprobantes rendidos todavía." />
+        ) : (
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+                <th className="px-4 py-2 text-right font-medium">Fecha</th>
+                <th className="px-3 py-2 font-medium">Detalle</th>
+                <th className="px-3 py-2 font-medium">Imputación</th>
+                <th className="px-3 py-2 text-right font-medium">Monto</th>
+                {editable && <th className="px-4 py-2"></th>}
+              </tr>
+            </thead>
+            <tbody>
+              {lista.map((r) => (
+                <tr key={r.id} className="border-b border-line/60 last:border-0">
+                  <td className="px-4 py-2.5 text-right tabular-nums">{fmtFecha(r.fecha)}</td>
+                  <td className="px-3 py-2.5 font-semibold text-ink">{r.descripcion}</td>
+                  <td className="px-3 py-2.5 text-muted-foreground">{r.destino} · {r.detalle}</td>
+                  <td className="px-3 py-2.5 text-right tabular-nums">{soles(r.monto)}</td>
+                  {editable && (
+                    <td className="px-4 py-2 text-right">
+                      <button type="button" onClick={() => eliminarRendicion(r.tabla, r.id)} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-bad hover:text-bad" title="Eliminar">
+                        <Trash2 size={14} />
+                      </button>
+                    </td>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr className="border-t border-line bg-muted/40 font-semibold">
+                <td colSpan={3} className="px-4 py-2 text-right uppercase tracking-wider text-muted-foreground">Total rendido</td>
+                <td className="px-3 py-2 text-right tabular-nums text-ink">{soles(lista.reduce((s, r) => s + r.monto, 0))}</td>
+                {editable && <td />}
+              </tr>
+            </tfoot>
+          </table>
+        )}
+      </div>
+    );
+  }
+
   return (
-    <>
+    <div className="font-['Roboto']">
       <Encabezado titulo="Caja Chica" subtitulo="Efectivo entregado y rendición de cuentas" />
 
       <div className="mb-4 grid gap-3 sm:grid-cols-3">
-        <div className="panel rise p-5">
-          <p className="label-mono">Entregado en efectivo</p>
-          <p className="mt-2 font-mono text-2xl font-bold tracking-tight text-ink">{soles(totalEntregado)}</p>
+        <div className="panel rise flex flex-col p-5">
+          <div className="flex items-center justify-between">
+            <p className="label-mono">Entregado en efectivo</p>
+            <Wallet size={16} className="text-muted-foreground" />
+          </div>
+          <p className="mt-2 text-right text-2xl font-bold tabular-nums tracking-tight text-ink">{soles(totalEntregado)}</p>
+          <p className="mt-auto pt-3 text-right text-xs text-muted-foreground">{cajas.length} entrega(s) · {totalAbiertas} caja(s) abierta(s)</p>
         </div>
-        <div className="panel rise p-5">
-          <p className="label-mono">Rendido con comprobantes</p>
-          <p className="mt-2 font-mono text-2xl font-bold tracking-tight text-ink">{soles(totalRendido)}</p>
+        <div className="panel rise flex flex-col p-5">
+          <div className="flex items-center justify-between">
+            <p className="label-mono">Rendido con comprobantes</p>
+            <Receipt size={16} className="text-muted-foreground" />
+          </div>
+          <p className="mt-2 text-right text-2xl font-bold tabular-nums tracking-tight text-ink">{soles(totalRendido)}</p>
+          <div className="mt-auto pt-3">
+            <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+              <div className={`h-full ${tonoPct}`} style={{ width: `${Math.min(100, pctRendido)}%` }} />
+            </div>
+            <div className="mt-1.5 flex justify-between text-xs text-muted-foreground">
+              <span>{totalComprobantes} comprobante(s)</span>
+              <span className="tabular-nums">{pctRendido.toFixed(1)}% rendido</span>
+            </div>
+          </div>
         </div>
-        <div className="panel rise p-5">
-          <p className="label-mono">Pendiente por rendir</p>
-          <p className="mt-2 font-mono text-2xl font-bold tracking-tight text-ink">
-            {soles(totalEntregado - totalRendido)}
-          </p>
-          <p className="mt-1 font-mono text-[11px] text-muted-foreground">{totalAbiertas} caja(s) abierta(s)</p>
+        <div className={`panel rise flex flex-col p-5 ${pendiente > 0.009 ? "border-warn/40" : ""}`}>
+          <div className="flex items-center justify-between">
+            <p className="label-mono">Pendiente por rendir</p>
+            <Hourglass size={16} className="text-muted-foreground" />
+          </div>
+          <p className={`mt-2 text-right text-2xl font-bold tabular-nums tracking-tight ${pendiente > 0.009 ? "text-warn" : "text-ink"}`}>{soles(pendiente)}</p>
+          <div className="mt-auto pt-3 text-right">
+            {atrasadas.length > 0 ? (
+              <button
+                type="button"
+                onClick={() => setSoloAtrasadas(!soloAtrasadas)}
+                className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${soloAtrasadas ? "bg-warn text-paper" : "bg-warn/15 text-warn hover:bg-warn/25"}`}
+              >
+                <Clock size={12} /> {atrasadas.length} caja(s) con +7 días sin rendir
+              </button>
+            ) : (
+              <span className="text-xs text-muted-foreground">Sin cajas atrasadas</span>
+            )}
+          </div>
         </div>
       </div>
 
@@ -282,6 +475,10 @@ function CajaChica() {
             className="h-10 w-full rounded-md border border-line bg-card pl-9 pr-3 text-sm text-ink outline-none focus:border-primary"
           />
         </div>
+        <label className="flex cursor-pointer items-center gap-2 text-sm text-ink">
+          <input type="checkbox" checked={agrupar} onChange={(e) => setAgrupar(e.target.checked)} className="h-4 w-4 accent-primary" />
+          Agrupar por responsable
+        </label>
         <Boton
           variante="linea"
           onClick={() =>
@@ -317,7 +514,7 @@ function CajaChica() {
           className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-foreground/40 p-4"
           onMouseDown={(e) => { if (e.target === e.currentTarget) setModalNueva(false); }}
         >
-          <form onSubmit={crearCaja} className="relative mt-10 w-full max-w-2xl rounded-lg border border-line bg-card shadow-xl">
+          <form onSubmit={crearCaja} className="relative mt-10 w-full max-w-2xl rounded-lg border border-line bg-card font-['Roboto'] shadow-xl">
             <div className="flex items-center justify-between border-b border-line px-6 py-4">
               <h2 className="text-base font-semibold text-ink">Nueva entrega de efectivo</h2>
               <button type="button" onClick={() => setModalNueva(false)} className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-ink" title="Cerrar">
@@ -365,7 +562,7 @@ function CajaChica() {
                   </Campo>
                 </div>
               </div>
-              {error && <p className="font-mono text-xs text-bad">{error}</p>}
+              {error && <p className="text-xs text-bad">{error}</p>}
             </div>
             <div className="flex justify-end gap-2 border-t border-line px-6 py-4">
               <Boton type="button" variante="linea" onClick={() => setModalNueva(false)}>Cancelar</Boton>
@@ -376,219 +573,132 @@ function CajaChica() {
       )}
 
       <Panel titulo="Cajas chicas registradas">
-        {cajasFiltradas.length === 0 ? (
-          <Vacio texto={busqueda ? `Sin coincidencias para «${busqueda}»` : "Aún no hay entregas de efectivo registradas."} />
+        {visibles.length === 0 ? (
+          <Vacio texto={busqueda ? `Sin coincidencias para «${busqueda}»` : soloAtrasadas ? "No hay cajas atrasadas." : "Aún no hay entregas de efectivo registradas."} />
         ) : (
           <div className="overflow-x-auto">
-          <div className="min-w-[980px] divide-y divide-line">
-            <div className={`${COLS} bg-muted px-5 py-2.5 font-mono text-[10px] font-medium uppercase tracking-[0.1em] text-muted-foreground`}>
-              <span>Líder responsable</span><span>Obra / Detalle</span><span>Fecha de entrega</span><span>Origen / Operación</span>
-              <span className="text-right">Monto entregado</span><span className="text-right">Rendido</span><span className="text-right">Saldo</span><span className="text-center">Estado</span>
-            </div>
-            {cajasFiltradas.map((c) => {
-              const rendido = rendidoDe(c.id);
-              const entregado = Number(c.monto_entregado);
-              const saldo = entregado - rendido;
-              const lista = rendicionesDe(c.id);
-              const expandida = abierta === c.id;
-              const partidasObra = partidas.filter((p) => p.proyecto_id === c.proyecto_id);
-              return (
-                <div key={c.id}>
-                  <button
-                    type="button"
-                    onClick={() => setAbierta(expandida ? null : c.id)}
-                    className={`${COLS} w-full px-5 py-3 text-left text-sm transition-colors hover:bg-ink/5 ${expandida ? "bg-ink/5" : ""}`}
-                  >
-                    <span className="font-semibold text-ink"><Resaltar texto={nombreResp(c.responsable_id)} termino={busqueda} /></span>
-                    <span className="min-w-0">
-                      <span className="block truncate font-medium uppercase text-ink"><Resaltar texto={nombreProy(c.proyecto_id)} termino={busqueda} /></span>
-                      {c.motivo && <span className="block truncate text-xs text-muted-foreground"><Resaltar texto={c.motivo} termino={busqueda} /></span>}
-                    </span>
-                    <span className="font-mono text-xs text-ink">{fmtFecha(c.fecha_entrega)}</span>
-                    <span className="font-mono text-xs text-muted-foreground">
-                      {nombreBanco(c.banco_id)}{c.numero_operacion ? <> • Op. <Resaltar texto={c.numero_operacion} termino={busqueda} /></> : ""}
-                    </span>
-                    <span className="text-right font-mono text-xs text-ink">{soles(entregado)}</span>
-                    <span className="text-right font-mono text-xs text-ink">{soles(rendido)}</span>
-                    <span className={`text-right font-mono text-sm font-bold ${saldo < -0.009 ? "text-bad" : "text-ink"}`}>
-                      {saldo < -0.009 ? `Reembolsar ${soles(Math.abs(saldo))}` : soles(saldo)}
-                    </span>
-                    <span className="text-center">
-                      <span className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${c.estado === "Liquidada" ? "bg-good/15 text-good" : "bg-primary/10 text-primary"}`}>
-                        {c.estado}
-                      </span>
-                    </span>
-                  </button>
-
-                  {expandida && (
-                    <div className="border-t border-line bg-muted/30 px-5 py-4">
-                      {c.estado === "Abierta" ? (
-                        <form
-                          onSubmit={(e) => registrarRendicion(e, c.id, c.proyecto_id)}
-                          className="grid gap-3 sm:grid-cols-4"
+            <div className="min-w-[1080px] divide-y divide-line">
+              <div className={`${COLS} bg-muted px-5 py-2.5 text-[10px] font-medium uppercase tracking-[0.1em] text-muted-foreground`}>
+                <span>Líder responsable</span><span>Obra / Detalle</span><span>Fecha de entrega</span><span>Origen / Operación</span>
+                <span className="text-right">Monto entregado</span><span className="text-right">Rendido</span><span className="text-right">Saldo</span><span className="text-center">Estado</span><span className="text-right">Acciones</span>
+              </div>
+              {agrupar
+                ? grupos.map(({ resp, lista }) => {
+                    const abiertoG = !gruposCerrados.has(resp);
+                    const ent = lista.reduce((s, c) => s + Number(c.monto_entregado), 0);
+                    const ren = lista.reduce((s, c) => s + rendidoDe(c.id), 0);
+                    const obras = new Set(lista.map((c) => c.proyecto_id));
+                    return (
+                      <div key={resp}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const n = new Set(gruposCerrados);
+                            if (n.has(resp)) n.delete(resp); else n.add(resp);
+                            setGruposCerrados(n);
+                          }}
+                          className={`${COLS} w-full bg-muted/50 px-5 py-2.5 text-left text-sm hover:bg-muted`}
                         >
-                          <Campo etiqueta="¿Qué se compró o pagó?">
-                            <Input
-                              value={rend.descripcion}
-                              onChange={(e) => setRend({ ...rend, descripcion: e.target.value })}
-                              maxLength={160}
-                            />
-                          </Campo>
-                          <Campo etiqueta="Naturaleza del gasto">
-                            <Select value={rend.tipo} onChange={(e) => setRend({ ...rend, tipo: e.target.value })}>
-                              <option value="Directo">Material o servicio de obra (costo directo)</option>
-                              <option value="General">Viático o administrativo (gasto general)</option>
-                            </Select>
-                          </Campo>
-                          {rend.tipo === "Directo" ? (
-                            <>
-                              <Campo etiqueta="Partida de obra">
-                                <Select
-                                  value={rend.partida_id}
-                                  onChange={(e) => setRend({ ...rend, partida_id: e.target.value })}
-                                >
-                                  <option value="">Selecciona...</option>
-                                  {partidasObra.map((p) => (
-                                    <option key={p.id} value={p.id}>
-                                      {p.especialidad} — {p.nombre}
-                                    </option>
-                                  ))}
-                                </Select>
-                              </Campo>
-                              <Campo etiqueta="Rubro del recurso">
-                                <Select
-                                  value={rend.rubro}
-                                  onChange={(e) => setRend({ ...rend, rubro: e.target.value })}
-                                >
-                                  {RUBROS_COSTO.map((r) => (
-                                    <option key={r} value={r}>
-                                      {r}
-                                    </option>
-                                  ))}
-                                </Select>
-                              </Campo>
-                            </>
-                          ) : (
-                            <Campo etiqueta="Categoría del gasto general">
-                              <Select
-                                value={rend.categoria}
-                                onChange={(e) => setRend({ ...rend, categoria: e.target.value })}
-                              >
-                                <option value="">Selecciona...</option>
-                                {categoriasActivas.map((cat) => (
-                                  <option key={cat.id} value={cat.nombre}>
-                                    {cat.nombre}
-                                  </option>
-                                ))}
-                              </Select>
-                            </Campo>
-                          )}
-                          <Campo etiqueta="Proveedor o establecimiento">
-                            <Input
-                              value={rend.proveedor}
-                              onChange={(e) => setRend({ ...rend, proveedor: e.target.value })}
-                              maxLength={120}
-                            />
-                          </Campo>
-                          <Campo etiqueta="Monto del comprobante (S/)">
-                            <Input
-                              type="number"
-                              step="0.01"
-                              min="0"
-                              value={rend.monto}
-                              onChange={(e) => setRend({ ...rend, monto: e.target.value })}
-                            />
-                          </Campo>
-                          <Campo etiqueta="Fecha">
-                            <Input
-                              type="date"
-                              value={rend.fecha}
-                              onChange={(e) => setRend({ ...rend, fecha: e.target.value })}
-                            />
-                          </Campo>
-                          <div className="flex items-end gap-2">
-                            <Boton type="submit">Rendir comprobante</Boton>
-                          </div>
-                          {errorRend && <p className="font-mono text-xs text-bad sm:col-span-4">{errorRend}</p>}
-                        </form>
-                      ) : (
-                        <p className="font-mono text-xs text-muted-foreground">
-                          Caja liquidada el {c.fecha_liquidacion ? fmtFecha(c.fecha_liquidacion) : "—"}.
-                        </p>
-                      )}
-
-                      <div className="mt-4 overflow-hidden rounded-md border border-line bg-card">
-                        {lista.length === 0 ? (
-                          <Vacio texto="Sin comprobantes rendidos todavía." />
-                        ) : (
-                          <table className="w-full font-mono text-xs">
-                            <thead>
-                              <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                                <th className="px-4 py-2 font-medium">Fecha</th>
-                                <th className="px-3 py-2 font-medium">Detalle</th>
-                                <th className="px-3 py-2 font-medium">Imputación</th>
-                                <th className="px-3 py-2 text-right font-medium">Monto</th>
-                                <th className="px-4 py-2"></th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {lista.map((r) => (
-                                <tr key={r.id} className="border-b border-line/60 last:border-0">
-                                  <td className="px-4 py-2.5">{fmtFecha(r.fecha)}</td>
-                                  <td className="px-3 py-2.5 font-semibold text-ink">{r.descripcion}</td>
-                                  <td className="px-3 py-2.5 text-muted-foreground">
-                                    {r.destino} · {r.detalle}
-                                  </td>
-                                  <td className="px-3 py-2.5 text-right">{soles(r.monto)}</td>
-                                  <td className="px-4 py-2 text-right">
-                                    {c.estado === "Abierta" && (
-                                      <button
-                                        type="button"
-                                        onClick={() => eliminarRendicion(r.tabla, r.id)}
-                                        className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-bad hover:text-bad"
-                                        title="Eliminar"
-                                      >
-                                        <Trash2 size={14} />
-                                      </button>
-                                    )}
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        )}
+                          <span className="flex items-center gap-1.5 font-semibold text-ink">
+                            {abiertoG ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                            <span className="truncate">{nombreResp(resp)}</span>
+                          </span>
+                          <span className="truncate text-xs uppercase text-ink">
+                            {obras.size === 1 ? nombreProy(lista[0]!.proyecto_id) : "Varias obras"}
+                            <span className="ml-2 normal-case text-muted-foreground">· {lista.length} entrega(s)</span>
+                          </span>
+                          <span /><span />
+                          <span className="text-right text-xs font-semibold tabular-nums">{soles(ent)}</span>
+                          <span className="text-right text-xs font-semibold tabular-nums">{soles(ren)}</span>
+                          <span className={`text-right text-sm font-bold tabular-nums ${ent - ren < -0.009 ? "text-bad" : "text-ink"}`}>
+                            {ent - ren < -0.009 ? `(${soles(Math.abs(ent - ren))})` : soles(ent - ren)}
+                          </span>
+                          <span /><span />
+                        </button>
+                        {abiertoG && <div className="divide-y divide-line">{lista.map((c) => fila(c, true))}</div>}
                       </div>
-
-                      <div className="mt-4 flex flex-wrap items-center gap-3">
-                        {c.estado === "Abierta" ? (
-                          <Boton variante="linea" onClick={() => liquidar(c.id)}>
-                            <Lock size={13} /> Liquidar y cerrar caja
-                          </Boton>
-                        ) : (
-                          <Boton variante="linea" onClick={() => reabrir(c.id)}>
-                            Reabrir caja
-                          </Boton>
-                        )}
-                        <Boton variante="peligro" onClick={() => eliminarCaja(c.id)}>
-                          Eliminar caja
-                        </Boton>
-                        <span className="font-mono text-xs text-muted-foreground">
-                          {saldo > 0.009
-                            ? `Debe devolver a la empresa ${soles(saldo)}`
-                            : saldo < -0.009
-                              ? `La empresa debe reembolsar ${soles(Math.abs(saldo))}`
-                              : "El efectivo está totalmente rendido"}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+                    );
+                  })
+                : visibles.map((c) => fila(c, false))}
+            </div>
           </div>
         )}
       </Panel>
-    </>
+
+      <VentanaFlotante
+        abierta={!!cajaRendir}
+        onCerrar={() => setRendirId(null)}
+        titulo="Rendir comprobante"
+        subtitulo={cajaRendir ? `${nombreResp(cajaRendir.responsable_id)} · ${nombreProy(cajaRendir.proyecto_id)} · Saldo ${soles(Number(cajaRendir.monto_entregado) - rendidoDe(cajaRendir.id))}` : ""}
+        ancho="max-w-3xl"
+      >
+        {cajaRendir && (
+          <form onSubmit={(e) => registrarRendicion(e, cajaRendir.id, cajaRendir.proyecto_id)} className="grid gap-3 font-['Roboto'] sm:grid-cols-2">
+            <Campo etiqueta="¿Qué se compró o pagó?">
+              <Input value={rend.descripcion} onChange={(e) => setRend({ ...rend, descripcion: e.target.value })} maxLength={160} />
+            </Campo>
+            <Campo etiqueta="Naturaleza del gasto">
+              <Select value={rend.tipo} onChange={(e) => setRend({ ...rend, tipo: e.target.value })}>
+                <option value="Directo">Material o servicio de obra (costo directo)</option>
+                <option value="General">Viático o administrativo (gasto general)</option>
+              </Select>
+            </Campo>
+            {rend.tipo === "Directo" ? (
+              <>
+                <Campo etiqueta="Partida de obra">
+                  <Select value={rend.partida_id} onChange={(e) => setRend({ ...rend, partida_id: e.target.value })}>
+                    <option value="">Selecciona...</option>
+                    {partidas.filter((p) => p.proyecto_id === cajaRendir.proyecto_id).map((p) => (
+                      <option key={p.id} value={p.id}>{p.especialidad} — {p.nombre}</option>
+                    ))}
+                  </Select>
+                </Campo>
+                <Campo etiqueta="Rubro del recurso">
+                  <Select value={rend.rubro} onChange={(e) => setRend({ ...rend, rubro: e.target.value })}>
+                    {RUBROS_COSTO.map((r) => (<option key={r} value={r}>{r}</option>))}
+                  </Select>
+                </Campo>
+              </>
+            ) : (
+              <Campo etiqueta="Categoría del gasto general">
+                <Select value={rend.categoria} onChange={(e) => setRend({ ...rend, categoria: e.target.value })}>
+                  <option value="">Selecciona...</option>
+                  {categoriasActivas.map((cat) => (<option key={cat.id} value={cat.nombre}>{cat.nombre}</option>))}
+                </Select>
+              </Campo>
+            )}
+            <Campo etiqueta="Proveedor o establecimiento">
+              <Input value={rend.proveedor} onChange={(e) => setRend({ ...rend, proveedor: e.target.value })} maxLength={120} />
+            </Campo>
+            <Campo etiqueta="Monto del comprobante (S/)">
+              <Input type="number" step="0.01" min="0" className="text-right" value={rend.monto} onChange={(e) => setRend({ ...rend, monto: e.target.value })} />
+            </Campo>
+            <Campo etiqueta="Fecha">
+              <Input type="date" value={rend.fecha} onChange={(e) => setRend({ ...rend, fecha: e.target.value })} />
+            </Campo>
+            {errorRend && <p className="text-xs text-bad sm:col-span-2">{errorRend}</p>}
+            <div className="flex justify-end gap-2 border-t border-line pt-3 sm:col-span-2">
+              <Boton type="button" variante="linea" onClick={() => setRendirId(null)}>Cerrar</Boton>
+              <Boton type="submit" variante="accion">Rendir y registrar otro</Boton>
+            </div>
+          </form>
+        )}
+      </VentanaFlotante>
+
+      {cajaDetalle && (
+        <div className="fixed inset-0 z-50 flex justify-end bg-foreground/40" onMouseDown={() => setDetalleId(null)}>
+          <div className="flex h-full w-full max-w-2xl animate-in slide-in-from-right flex-col overflow-y-auto border-l border-line bg-card font-['Roboto'] shadow-2xl duration-300" onMouseDown={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-line px-5 py-3">
+              <div>
+                <h2 className="text-base font-semibold tracking-tight text-ink">Comprobantes rendidos</h2>
+                <p className="text-xs text-muted-foreground">{nombreResp(cajaDetalle.responsable_id)} · {nombreProy(cajaDetalle.proyecto_id)} · Entregado {soles(Number(cajaDetalle.monto_entregado))}</p>
+              </div>
+              <button type="button" onClick={() => setDetalleId(null)} className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-ink" title="Cerrar"><X size={18} /></button>
+            </div>
+            <div className="p-5">{tablaComprobantes(rendicionesDe(cajaDetalle.id), false)}</div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
