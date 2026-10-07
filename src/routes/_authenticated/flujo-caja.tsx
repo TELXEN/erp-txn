@@ -15,7 +15,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { ChevronDown, ChevronRight, Upload } from "lucide-react";
+import { ChevronDown, ChevronRight, Info, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Panel, Select, SinAcceso } from "@/components/ui-kit";
@@ -27,7 +27,7 @@ import { useMantenimientos, useTraslados } from "@/lib/vehiculos";
 import { exportarExcel } from "@/lib/exportar";
 
 const f2 = new Intl.NumberFormat("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const s2 = (n: number) => (n < 0 ? `-S/ ${f2.format(Math.abs(n))}` : `S/ ${f2.format(n || 0)}`);
+const s2 = (n: number) => (n < 0 ? `S/ -${f2.format(Math.abs(n))}` : `S/ ${f2.format(n || 0)}`);
 const esCero = (n: number) => Math.abs(n || 0) < 0.005;
 const Guion = () => <span className="text-muted-foreground/60">-</span>;
 const corto = (n: number) => (esCero(n) ? <Guion /> : s2(n));
@@ -431,8 +431,13 @@ function FlujoCaja() {
     },
   ];
 
+  const filasGraf = filas.map((f) => {
+    const activo = !esCero(f.ingresoReal) || !esCero(f.costoReal) || !esCero(f.ingresoProy) || !esCero(f.egresoProy);
+    return { ...f, metaIngresoVis: activo ? f.metaIngreso : null, metaCostoVis: activo ? f.metaCosto : null };
+  });
+
   return (
-    <>
+    <div style={{ fontFamily: "Roboto, system-ui, sans-serif" }}>
       <Encabezado
         titulo="Flujo de Caja"
         subtitulo={global ? "Finanzas y Contabilidad · Consolidado global en Soles" : `Flujo de la obra ${proyectos.find((p) => p.id === obra)?.nombre ?? ""} en Soles`}
@@ -460,7 +465,7 @@ function FlujoCaja() {
         }
       />
 
-      <div className="mb-5 grid gap-4 xl:grid-cols-3">
+      <div className={`mb-5 grid gap-4 ${global ? "xl:grid-cols-4" : "xl:grid-cols-3"}`}>
         {[
           { titulo: global ? "Saldos" : "Proyección de la obra", items: kpisA, alertar: true },
           ...(global ? [{ titulo: "Metas", items: kpisMeta, alertar: false }] : []),
@@ -472,13 +477,29 @@ function FlujoCaja() {
               {b.items.map((k) => (
                 <div key={k.etiqueta} className={`rounded-md border px-3 py-2 ${b.alertar && k.valor < -0.005 ? "border-bad/30 bg-bad/10" : "border-line bg-card"}`}>
                   <p className="label-mono">{k.etiqueta}</p>
-                  <p className={`mt-0.5 text-lg font-semibold ${k.valor < -0.005 ? "text-bad" : "text-ink"}`}>{s2(k.valor)}</p>
-                  {k.extra && global && <p className="text-[11px] text-muted-foreground">{k.extra} del objetivo</p>}
+                  <p className={`mt-0.5 text-right text-lg font-semibold tabular-nums ${k.valor < -0.005 ? "text-bad" : "text-ink"}`}>{s2(k.valor)}</p>
+                  {k.extra && global && <p className="text-right text-[11px] tabular-nums text-muted-foreground">{k.extra} del objetivo</p>}
                 </div>
               ))}
             </div>
           </section>
         ))}
+        {verTendencia && (
+          <section className="panel rise flex flex-col p-3">
+            <h3 className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Flujo acumulado</h3>
+            <div className="min-h-56 flex-1">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={filas} margin={{ top: 6, right: 6, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="currentColor" opacity={0.12} />
+                  <XAxis dataKey="etiqueta" tick={{ fontSize: 10 }} interval={1} />
+                  <YAxis tick={{ fontSize: 10 }} width={62} tickFormatter={(v: number) => soles(v)} />
+                  <Tooltip formatter={(v) => s2(Number(v))} />
+                  <Area type="monotone" dataKey="acumulado" name="Flujo acumulado" stroke="var(--color-good)" fill="var(--color-good)" fillOpacity={0.15} strokeWidth={2} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </section>
+        )}
       </div>
 
       <Panel
@@ -487,17 +508,17 @@ function FlujoCaja() {
         extra={
           <label className="flex cursor-pointer items-center gap-2 text-[11px] text-muted-foreground">
             <input type="checkbox" checked={verTendencia} onChange={(e) => setVerTendencia(e.target.checked)} />
-            Mostrar tendencia
+            Mostrar flujo acumulado
           </label>
         }
       >
         <div className="h-80 px-3 py-4">
           <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={filas}>
+            <ComposedChart data={filasGraf}>
               <CartesianGrid strokeDasharray="3 3" stroke="currentColor" opacity={0.12} />
               <XAxis dataKey="etiqueta" tick={{ fontSize: 11 }} />
               <YAxis tick={{ fontSize: 11 }} width={80} tickFormatter={(v: number) => soles(v)} />
-              <Tooltip formatter={(v) => s2(Number(v))} />
+              <Tooltip content={<TooltipComparativo global={global} />} cursor={{ fillOpacity: 0.06 }} />
               <Legend wrapperStyle={{ fontSize: 11 }} />
               <Bar dataKey="ingresoReal" name="Ingreso realizado" fill="var(--color-primary)" radius={[3, 3, 0, 0]}>
                 {filas.map((f) => (
@@ -509,31 +530,16 @@ function FlujoCaja() {
                   <Cell key={f.mes} fillOpacity={esCero(f.ingresoReal) && esCero(f.costoReal) ? 0.25 : 1} />
                 ))}
               </Bar>
-              {global && <Line type="step" dataKey="metaIngreso" name="Meta de ingreso" stroke="var(--color-primary)" strokeOpacity={0.55} strokeDasharray="5 4" strokeWidth={1.5} dot={false} />}
-              {global && <Line type="step" dataKey="metaCosto" name="Meta de costo" stroke="var(--color-cta)" strokeOpacity={0.7} strokeDasharray="5 4" strokeWidth={1.5} dot={false} />}
+              {global && <Line type="step" dataKey="metaIngresoVis" name="Meta de ingreso" connectNulls={false} stroke="var(--color-primary)" strokeOpacity={0.55} strokeDasharray="5 4" strokeWidth={1.5} dot={false} />}
+              {global && <Line type="step" dataKey="metaCostoVis" name="Meta de costo" connectNulls={false} stroke="var(--color-cta)" strokeOpacity={0.7} strokeDasharray="5 4" strokeWidth={1.5} dot={false} />}
             </ComposedChart>
           </ResponsiveContainer>
         </div>
-        {verTendencia && (
-          <div className="border-t border-line px-3 pb-3 pt-2">
-            <p className="label-mono mb-1">Flujo acumulado</p>
-            <div className="h-24">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={filas}>
-                  <XAxis dataKey="etiqueta" tick={{ fontSize: 10 }} />
-                  <YAxis hide />
-                  <Tooltip formatter={(v) => s2(Number(v))} />
-                  <Area type="monotone" dataKey="acumulado" name="Flujo acumulado" stroke="var(--color-good)" fill="var(--color-good)" fillOpacity={0.15} strokeWidth={2} />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        )}
-      </Panel>
+        </Panel>
 
       <Panel titulo="Matriz anual" extra={<span className="label-mono">Doble clic en una meta para editarla</span>}>
         <div className="w-full overflow-x-auto">
-          <table className="w-full min-w-[1500px] table-fixed border-separate border-spacing-0 text-xs">
+          <table className="w-full min-w-[1900px] table-fixed border-separate border-spacing-0 text-xs tabular-nums [&_td]:whitespace-nowrap">
             <thead>
               <tr>
                 <th className="sticky left-0 z-20 w-[14%] border-b border-r border-line bg-paper px-2 py-2 text-left text-[10px] uppercase">
@@ -664,12 +670,39 @@ function FlujoCaja() {
         </div>
       </Panel>
 
-      <p className="mt-3 text-[11px] text-muted-foreground">
+      <details className="group mt-3 rounded-md border border-line bg-card">
+        <summary className="flex cursor-pointer list-none items-center gap-2 px-3 py-2 text-[11px] font-semibold text-muted-foreground">
+          <Info className="size-3.5 text-primary" /> ¿Cómo se calculan estos montos?
+          <ChevronDown className="ml-auto size-3.5 transition-transform group-open:rotate-180" />
+        </summary>
+      <p className="border-t border-line px-3 py-2 text-[11px] text-muted-foreground">
         El ingreso realizado suma las facturas cobradas en el mes. El costo realizado suma las compras y gastos pagados
         más las entregas de Caja Chica; los gastos rendidos con Caja Chica no se vuelven a contar. El saldo inicial toma
         las cuentas en soles de Catálogos Maestros. La proyección usa la fecha de vencimiento de las facturas por cobrar,
         compras al crédito y pagos pendientes de RR. HH. En la vista por obra no se incluyen planillas ni tributos.
       </p>
-    </>
+      </details>
+    </div>
+  );
+}
+
+type FilaGraf = { etiqueta: string; ingresoReal: number; costoReal: number; egCompras: number; egGenerales: number; egMant: number; egComb: number; egCaja: number; egRRHH: number; metaIngreso: number; metaCosto: number; ingresoProy: number; egresoProy: number };
+function TooltipComparativo({ active, payload, global }: { active?: boolean; payload?: { payload: FilaGraf }[]; global: boolean }) {
+  const f = payload?.[0]?.payload;
+  if (!active || !f) return null;
+  const fila = (t: string, v: number, cls = "") => (
+    <div className={`flex justify-between gap-6 ${cls}`}><span className="text-left">{t}</span><span className="text-right tabular-nums">{s2(v)}</span></div>
+  );
+  const eg = ([["Compras y costos directos", f.egCompras], ["Gastos generales", f.egGenerales], ["Mantenimiento vehículos", f.egMant], ["Combustible vehículos", f.egComb], ["Entregas Caja Chica", f.egCaja], ["RR. HH. y tributos", f.egRRHH]] as [string, number][]).filter(([, v]) => !esCero(v));
+  return (
+    <div className="min-w-60 rounded-md border border-line bg-card p-2.5 text-[11px] shadow-lg">
+      <p className="mb-1 font-semibold">{f.etiqueta}</p>
+      {fila("Ingreso realizado (cobros)", f.ingresoReal, "font-semibold text-primary")}
+      {fila("Costo realizado", f.costoReal, "mt-1 font-semibold")}
+      {eg.map(([t, v]) => <div key={t} className="pl-2 text-muted-foreground">{fila(`↳ ${t}`, v)}</div>)}
+      {fila("Resultado", f.ingresoReal - f.costoReal, `mt-1 border-t border-line pt-1 font-semibold ${f.ingresoReal - f.costoReal < 0 ? "text-bad" : "text-good"}`)}
+      {(!esCero(f.ingresoProy) || !esCero(f.egresoProy)) && <div className="mt-1 text-muted-foreground">{fila("Proyectado CxC", f.ingresoProy)}{fila("Proyectado CxP", f.egresoProy)}</div>}
+      {global && <div className="mt-1 text-muted-foreground">{fila("Meta ingreso", f.metaIngreso)}{fila("Meta costo", f.metaCosto)}</div>}
+    </div>
   );
 }
