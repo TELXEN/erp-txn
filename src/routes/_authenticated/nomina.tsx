@@ -26,17 +26,9 @@ export const Route = createFileRoute("/_authenticated/nomina")({
   component: Nomina,
 });
 
-// Parámetros legales vigentes (Perú)
+// Parámetros legales vigentes (Perú). Las tasas AFP vienen de Decolecta (useComisionesAfp).
 const RMV = 1130;
 const TASA_ONP = 0.13;
-const AFP_FONDO = 0.1;
-const AFP_SEGURO = 0.0137;
-const AFP_COMISION: Record<string, number> = {
-  "AFP Integra": 0.0155,
-  "AFP Prima": 0.016,
-  "AFP Profuturo": 0.0169,
-  "AFP Habitat": 0.0147,
-};
 const SIS_MICRO = 15;
 
 type Planilla = { id: string; anio: number; mes: number; estado: string };
@@ -69,15 +61,16 @@ const r2 = (n: number) => Math.round(n * 100) / 100;
 function calcularBoleta(
   t: Pick<Trabajador, "sueldo_mensual" | "regimen_laboral" | "sistema_pensiones" | "asignacion_familiar">,
   v: { dias_laborados: number; horas_extra: number; otros_ingresos: number; renta_quinta: number; otros_descuentos: number },
+  comisiones: ComisionAfp[],
 ) {
   const sueldo_basico = r2((Number(t.sueldo_mensual) * v.dias_laborados) / 30);
   const aplicaAsig = t.asignacion_familiar && !t.regimen_laboral.startsWith("MYPE");
   const asignacion_familiar = aplicaAsig ? r2(RMV * 0.1) : 0;
   const total_ingresos = r2(sueldo_basico + asignacion_familiar + v.horas_extra + v.otros_ingresos);
-  let tasa = 0;
-  if (t.sistema_pensiones === "ONP") tasa = TASA_ONP;
-  else if (t.sistema_pensiones.startsWith("AFP")) tasa = AFP_FONDO + AFP_SEGURO + (AFP_COMISION[t.sistema_pensiones] ?? 0);
-  const aporte_pension = r2(total_ingresos * tasa);
+  let aporte = 0;
+  if (t.sistema_pensiones === "ONP") aporte = total_ingresos * TASA_ONP;
+  else if (t.sistema_pensiones.startsWith("AFP")) aporte = aporteAfp(comisiones.find((c) => c.afp === t.sistema_pensiones), total_ingresos);
+  const aporte_pension = r2(aporte);
   const total_descuentos = r2(aporte_pension + v.renta_quinta + v.otros_descuentos);
   const base = Math.max(total_ingresos, total_ingresos > 0 ? RMV : 0);
   const essalud =
@@ -95,6 +88,8 @@ function calcularBoleta(
     sistema_pensiones: t.sistema_pensiones,
   };
 }
+
+const pct = (n: number) => `${(n * 100).toFixed(2)}%`;
 
 function Nomina() {
   const { rol } = useAuth();
