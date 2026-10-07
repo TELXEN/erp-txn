@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Ampliar y reorganizar los campos de Nuevo trabajador y permitir guardar con Enter.
+
 - [x] Convertir altas de vehículos, órdenes de compra, proyectos, partidas, importaciones y personal en ventanas flotantes con registro consecutivo.
 - [ ] Crear estructura de datos segura para comprobantes, ítems y cuotas.
 - [ ] Separar Preliquidaciones y Facturación Electrónica en el menú Comercial.
