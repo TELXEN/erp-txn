@@ -134,7 +134,11 @@ function Tesoreria() {
       return { venta: 0, fecha: "", fuente: "", aviso: "Sin tipo de cambio disponible: los USD se muestran con el TC de cada documento." };
     },
   });
-  const tcHoy = tcInfo?.venta ?? 0;
+  const { data: ventasTC = [] } = useVentas();
+  const tcRespaldo = (ventasTC as unknown as { moneda: string; tipo_cambio: number; fecha_emision?: string }[])
+    .filter((v) => v.moneda === "USD" && Number(v.tipo_cambio) > 1)
+    .sort((a, b) => String(b.fecha_emision ?? "").localeCompare(String(a.fecha_emision ?? "")))[0];
+  const tcHoy = tcInfo?.venta || Number(tcRespaldo?.tipo_cambio ?? 0);
   const [error, setError] = useState("");
   const [filtroVence, setFiltroVence] = useState<"vencido" | "semana" | "mes" | null>(null);
   const [desde, setDesde] = useState("");
@@ -427,9 +431,10 @@ function Tesoreria() {
         <div>
           <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">Balance consolidado en PEN</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            {tcHoy > 0 ? `TC venta ${tcHoy.toFixed(3)} · ${tcInfo?.fecha ? fmtFecha(tcInfo.fecha) : ""} · ${tcInfo?.fuente ?? ""}` : "Sin tipo de cambio"}
+            {tcHoy > 0 ? `TC venta ${tcHoy.toFixed(3)}${tcInfo?.venta ? ` · ${fmtFecha(tcInfo.fecha)} · ${tcInfo.fuente}` : " · referencial"}` : "Sin tipo de cambio"}
           </p>
-          {tcInfo?.aviso && <p className="mt-1 flex items-center gap-1 text-[11px] text-warn"><AlertTriangle size={12} /> {tcInfo.aviso}</p>}
+          {tcInfo?.aviso && !(tcInfo.venta > 0) && tcHoy > 0 && <p className="mt-1 text-[11px] text-warn">Se usa el TC de la última factura en USD como referencia.</p>}
+          {tcInfo?.aviso && !(tcHoy > 0) && <p className="mt-1 flex items-center gap-1 text-[11px] text-warn"><AlertTriangle size={12} /> {tcInfo.aviso}</p>}
         </div>
         <div className="text-right">
           <p className={`text-3xl font-bold tabular-nums tracking-tight ${consolidado < 0 ? "text-bad" : "text-ink"}`}>{soles(consolidado)}</p>
@@ -603,7 +608,7 @@ function Tesoreria() {
                           {cerrado ? "▸" : "▾"} {obra}{" "}
                           <span className="font-normal text-muted-foreground">({filas.length})</span>
                         </td>
-                        <td className="px-3 py-2 text-right font-semibold text-ink">{soles(sub)}</td>
+                        <td className="whitespace-nowrap px-3 py-2 text-right font-semibold tabular-nums text-ink">{soles(sub)}</td>
                         <td />
                       </tr>
                       {!cerrado && filas.map((p) => {
@@ -629,8 +634,8 @@ function Tesoreria() {
                                 {d < 0 ? `${-d} días de atraso` : d === 0 ? "Vence hoy" : `Faltan ${d} días`}
                               </div>
                             </td>
-                            <td className="px-3 py-2.5 text-right">{dinero(p.monto, p.moneda)}</td>
-                            <td className="px-3 py-2.5 text-right font-semibold">{p.moneda === "PEN" ? soles(p.soles) : <span title={tcHoy > 0 ? `TC ref. ${tcHoy.toFixed(3)}` : "TC del documento"}>{soles(p.soles)}<span className="block text-[9px] font-normal text-muted-foreground">TC ref. {(tcHoy || p.tcDoc || 0).toFixed(3)}</span></span>}</td>
+                            <td className="whitespace-nowrap px-3 py-2.5 text-right tabular-nums">{dinero(p.monto, p.moneda)}</td>
+                            <td className="whitespace-nowrap px-3 py-2.5 text-right font-semibold tabular-nums">{p.moneda === "PEN" ? soles(p.soles) : <span title={tcHoy > 0 ? `TC ref. ${tcHoy.toFixed(3)}` : "TC del documento"}>{soles(p.soles)}<span className="block text-[9px] font-normal text-muted-foreground">TC ref. {(tcHoy || p.tcDoc || 0).toFixed(3)}</span></span>}</td>
                             <td className="px-4 py-2 text-right">
                               <Boton type="button" variante="linea" onClick={() => { setError(""); setAccion({ p, banco_id: "", fecha: hoy(), operacion: "", detr: false, pct: String(p.pctDet || 12), banco_det: cuentasDet[0]?.id ?? "", constancia: "" }); }}>
                                 {pestana === "cxc" ? "Registrar cobro" : "Registrar pago"}
