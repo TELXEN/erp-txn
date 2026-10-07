@@ -268,13 +268,15 @@ export function Encabezado({
   titulo,
   subtitulo,
   acciones,
+  className = "mb-5",
 }: {
   titulo: string;
   subtitulo: string;
   acciones?: ReactNode;
+  className?: string;
 }) {
   return (
-    <div className="mb-5">
+    <div className={className}>
       <p className="label-mono mb-1">{subtitulo}</p>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold tracking-tight">{titulo}</h1>

@@ -44,7 +44,10 @@ function SirePage() {
   ];
   return (
     <div>
-      <Encabezado titulo="SIRE SUNAT" subtitulo="FINANZAS Y CONTABILIDAD · REGISTROS ELECTRÓNICOS" />
+      <div className="mb-2 flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
+        <h1 className="text-xl font-bold tracking-tight">SIRE SUNAT</h1>
+        <p className="label-mono">FINANZAS Y CONTABILIDAD · REGISTROS ELECTRÓNICOS</p>
+      </div>
       <div className="sticky top-0 z-30 -mx-1 bg-background px-1 pb-1">
         <SincronizacionGlobal periodo={periodo} onPeriodoChange={setPeriodo}
           botonConfig={rol === "gerente" ? (
@@ -57,7 +60,7 @@ function SirePage() {
               ))}
             </div>
           } />
-        {tab !== "config" && <div className="mb-4"><ResumenOperaciones periodo={periodo} libro={tab} /></div>}
+        {tab !== "config" && <div className="mb-2"><ResumenOperaciones periodo={periodo} libro={tab} /></div>}
       </div>
       {tab === "config" ? <ConfigSol /> : <PanelLibro key={tab} libro={tab} periodo={periodo} />}
     </div>
@@ -180,13 +183,13 @@ function SincronizacionGlobal({ periodo, onPeriodoChange, botonConfig, subtabs }
           {botonConfig}
           {subtabs}
         </div>
-        <div className="flex flex-col items-end gap-1.5">
+        <div className="flex flex-col items-end gap-0.5">
           <Boton onClick={sincronizarTodo} disabled={progreso !== null}><RefreshCw className={`size-3.5 ${progreso !== null ? "animate-spin" : ""}`} />Sincronizar Compras y Ventas</Boton>
-          <div className="flex items-center justify-center gap-2 self-stretch mt-1">
+          <div className="flex items-center justify-center gap-2 self-stretch mt-0.5">
             <Select value={m} onChange={(e) => onPeriodoChange(`${y}-${String(e.target.value).padStart(2, "0")}`)} className="w-28">{MESES.map((n, i) => <option key={n} value={i + 1}>{n}</option>)}</Select>
             <Select value={y} onChange={(e) => onPeriodoChange(`${e.target.value}-${String(m).padStart(2, "0")}`)} className="w-24">{anios.map((a) => <option key={a}>{a}</option>)}</Select>
           </div>
-          <div className="flex flex-col items-center self-stretch text-center font-mono text-[10.5px] leading-tight text-muted-foreground">
+          <div className="flex flex-wrap items-center justify-end gap-x-4 self-stretch text-center font-mono text-[10.5px] leading-tight text-muted-foreground">
             {(["RVIE", "RCE"] as Libro[]).map((libro) => {
               const estado = estadoLibro(libro);
               return <span key={libro} className={estado === "error" ? "text-bad" : estado === "sincronizado" ? "text-good" : estado === "pendiente" ? "text-amber-700 dark:text-amber-400" : ""}>{etiquetaEstado(libro)}</span>;
@@ -324,24 +327,26 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
   const [y = 2026, m = 1] = periodo.split("-").map(Number);
   const pasos = ["SINCRONIZACIÓN", "CONCILIACIÓN", "CIERRE Y ENVÍO"];
 
+  const pasosExtra = (
+    <div className="flex flex-wrap items-center gap-2">
+      {pasos.map((p, i) => {
+        const n = i + 1; const act = paso === n; const hecho = paso > n;
+        const habil = n === 1 || !!reg;
+        return (
+          <div key={p} className="flex items-center gap-2">
+            <button disabled={!habil} onClick={() => setPaso(n)}
+              className={`flex items-center gap-2 rounded-full px-2.5 py-1 font-mono text-[11px] tracking-wider transition-colors disabled:opacity-40 ${act ? "bg-primary text-primary-foreground" : hecho ? "bg-good/10 text-good" : "bg-card text-muted-foreground ring-1 ring-line"}`}>
+              <span className="grid size-4 place-items-center rounded-full bg-current/10 text-[10px]">{hecho ? "✓" : n}</span>{p}
+            </button>
+            {i < 2 && <ChevronRight className="size-3.5 text-muted-foreground" />}
+          </div>
+        );
+      })}
+    </div>
+  );
+
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-2">
-        {pasos.map((p, i) => {
-          const n = i + 1; const act = paso === n; const hecho = paso > n;
-          const habil = n === 1 || !!reg;
-          return (
-            <div key={p} className="flex items-center gap-2">
-              <button disabled={!habil} onClick={() => setPaso(n)}
-                className={`flex items-center gap-2 rounded-full px-3 py-1.5 font-mono text-[11px] tracking-wider transition-colors disabled:opacity-40 ${act ? "bg-primary text-primary-foreground" : hecho ? "bg-good/10 text-good" : "bg-card text-muted-foreground ring-1 ring-line"}`}>
-                <span className="grid size-4 place-items-center rounded-full bg-current/10 text-[10px]">{hecho ? "✓" : n}</span>{p}
-              </button>
-              {i < 2 && <ChevronRight className="size-3.5 text-muted-foreground" />}
-            </div>
-          );
-        })}
-        {reg && <span className="ml-auto font-mono text-[11px] text-muted-foreground">Estado: <b className={reg.estado === "Aceptado" ? "text-good" : "text-ink"}>{reg.estado}</b></span>}
-      </div>
+    <div className="space-y-2">
 
       {vinculando && reg && <VincularManual item={vinculando} libro={libro} periodo={periodo} items={items} onCerrar={() => setVinculando(null)}
         onVincular={async (d) => {
@@ -354,7 +359,7 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
       {detalle && <DetalleDoc item={detalle} onCerrar={() => setDetalle(null)} />}
       <div key={paso} className="rise">
         {paso === 1 && (
-          <Panel titulo={`PASO 1 · SINCRONIZAR PROPUESTA ${libro}`}>
+          <Panel titulo={`PASO 1 · SINCRONIZAR PROPUESTA ${libro}`} extra={pasosExtra}>
             <div className="flex flex-wrap items-center justify-between gap-3 p-5">
               <div>
                 <p className="text-sm font-semibold">{reg ? `Propuesta ${libro} disponible para ${MESES[m - 1]} ${y}` : `Aún no hay una propuesta ${libro} para ${MESES[m - 1]} ${y}`}</p>
@@ -366,10 +371,10 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
         )}
 
         {paso === 2 && (
-          <Panel titulo={`PASO 2 · CONCILIACIÓN SUNAT vs ERP · ${(MESES[m - 1] ?? "").toUpperCase()} ${y}`}>
+          <Panel titulo={`PASO 2 · CONCILIACIÓN SUNAT vs ERP · ${(MESES[m - 1] ?? "").toUpperCase()} ${y}`} extra={pasosExtra}>
             {visibles.length === 0 ? <Vacio texto="Sin documentos en este filtro" /> : (
-              <div className="max-h-[calc(100vh-560px)] min-h-[260px] overflow-auto" style={{ fontFamily: "Roboto, Arial, sans-serif" }}>
-                <div className="sticky top-0 z-20 flex h-[42px] flex-nowrap items-center gap-1 overflow-x-auto whitespace-nowrap border-b border-line bg-card px-3 py-1">
+              <div className="max-h-[calc(100vh-470px)] min-h-[260px] overflow-auto" style={{ fontFamily: "Roboto, Arial, sans-serif" }}>
+                <div className="sticky top-0 z-20 flex h-[36px] flex-nowrap items-center gap-1 overflow-x-auto whitespace-nowrap border-b border-line bg-card px-3 py-1">
                   {libro === "RCE" && (
                     <>
                       <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-sky-500/10 px-2.5 py-1 font-mono text-[11px] text-sky-700 ring-1 ring-sky-500/25 dark:text-sky-400">
@@ -386,7 +391,7 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
                 </div>
                 <table className="w-full min-w-[1100px] text-sm">
                   <thead className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                    <tr>{["Fecha", "Tipo", "Serie-Número", "RUC / Razón social", "Base", "IGV", "Total SUNAT", "Total ERP", "Estado", ""].map((h, i) => <th key={i} className={`sticky top-[42px] z-10 whitespace-nowrap bg-muted px-3 py-2 ${i >= 4 && i <= 7 ? "text-right" : "text-left"} ${i === 3 ? "w-[30%] min-w-[260px]" : ""}`}>{h}</th>)}</tr>
+                    <tr>{["Fecha", "Tipo", "Serie-Número", "RUC / Razón social", "Base", "IGV", "Total SUNAT", "Total ERP", "Estado", ""].map((h, i) => <th key={i} className={`sticky top-[36px] z-10 whitespace-nowrap bg-muted px-3 py-1.5 ${i >= 4 && i <= 7 ? "text-right" : "text-left"} ${i === 3 ? "w-[30%] min-w-[260px]" : ""}`}>{h}</th>)}</tr>
                   </thead>
                   <tbody>
                     {visibles.map((i) => {
@@ -461,7 +466,7 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
         {paso === 2 && libro === "RCE" && <p className="mt-3 text-xs text-muted-foreground">La descarga y adjuntos de comprobantes de proveedores se gestionan en Facturación Electrónica → Recibidos (compras).</p>}
 
         {paso === 3 && reg && (
-          <Panel titulo={`PASO 3 · CIERRE Y ENVÍO · ${(MESES[m - 1] ?? "").toUpperCase()} ${y}`}>
+          <Panel titulo={`PASO 3 · CIERRE Y ENVÍO · ${(MESES[m - 1] ?? "").toUpperCase()} ${y}`} extra={pasosExtra}>
             <div className="grid gap-3 p-5 sm:grid-cols-3">
               {[
                 { t: "MONTO NETO TOTAL", v: soles(Number(reg.total_base)) },
@@ -508,18 +513,16 @@ function ResumenOperaciones({ periodo, libro }: { periodo: string; libro: Libro 
     const total = r2(itemsL.reduce((s, i) => s + (i.total_sunat ?? i.base + i.igv), 0));
     const activo = libro === l;
     return (
-      <div className={`rounded-lg border p-4 ${activo ? "border-primary bg-primary/5 ring-1 ring-primary/30" : "border-line bg-card"}`}>
-        <p className="label-mono flex items-center gap-1.5"><I className="size-3.5" />{titulo}</p>
+      <div className={`flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5 ${activo ? "text-primary" : ""}`}>
+        <span className="label-mono flex shrink-0 items-center gap-1"><I className="size-3.5" />{titulo}</span>
         {!r || r.estado === "Pendiente" ? (
-          <p className="mt-2 font-mono text-[11px] text-muted-foreground">{r ? "Propuesta pendiente en SUNAT" : "Sin sincronizar este período"}</p>
+          <span className="font-mono text-[11px] text-muted-foreground">{r ? "Propuesta pendiente en SUNAT" : "Sin sincronizar este período"}</span>
         ) : (
           <>
-            <p className="mt-1 text-2xl font-bold tracking-tight">{soles(total)}</p>
-            <div className="mt-1.5 space-y-0.5 font-mono text-[11px] text-muted-foreground">
-              <p>Base imponible: <b className="text-ink">{soles(Number(r.total_base))}</b></p>
-              <p>IGV: <b className="text-ink">{soles(Number(r.total_igv))}</b></p>
-              <p>Comprobantes: <b className="text-ink">{r.total_docs}</b> · Estado: <b className={r.estado === "Aceptado" ? "text-good" : "text-ink"}>{r.estado}</b></p>
-            </div>
+            <span className="text-base font-bold tracking-tight">{soles(total)}</span>
+            <span className="font-mono text-[10.5px] text-muted-foreground">
+              Base <b className="text-ink">{soles(Number(r.total_base))}</b> · IGV <b className="text-ink">{soles(Number(r.total_igv))}</b> · <b className="text-ink">{r.total_docs}</b> comp. · <b className={r.estado === "Aceptado" ? "text-good" : "text-ink"}>{r.estado}</b>
+            </span>
           </>
         )}
       </div>
@@ -529,23 +532,24 @@ function ResumenOperaciones({ periodo, libro }: { periodo: string; libro: Libro 
   const listo = (r: typeof rv) => r && r.estado !== "Pendiente";
   const neta = listo(rv) && listo(rc) ? r2(Number(rv?.total_igv ?? 0) - Number(rc?.total_igv ?? 0)) : null;
   return (
-    <Panel titulo="RESUMEN DE OPERACIONES DEL PERÍODO">
-      <div className="grid gap-3 p-4 sm:grid-cols-3">
+    <div className="panel rise overflow-hidden">
+      <div className="flex flex-wrap items-baseline gap-x-5 gap-y-0.5 px-4 py-2" style={{ fontFamily: "Roboto, Arial, sans-serif" }}>
+        <span className="label-mono shrink-0">RESUMEN DEL PERÍODO</span>
         {tarjeta("RVIE", "VENTAS (RVIE)", ReceiptText)}
         {tarjeta("RCE", "COMPRAS (RCE)", ShoppingBag)}
-        <div className="rounded-lg border border-line bg-card p-4">
-          <p className="label-mono">IGV POR PAGAR / SALDO</p>
+        <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
+          <span className="label-mono">IGV POR PAGAR / SALDO</span>
           {neta === null ? (
-            <p className="mt-2 font-mono text-[11px] text-muted-foreground">Sincroniza ambos libros para calcular</p>
+            <span className="font-mono text-[11px] text-muted-foreground">Sincroniza ambos libros para calcular</span>
           ) : (
             <>
-              <p className={`mt-1 text-2xl font-bold tracking-tight ${neta >= 0 ? "text-bad" : "text-good"}`}>{soles(Math.abs(neta))}</p>
-              <p className="mt-1.5 font-mono text-[11px] text-muted-foreground">{neta >= 0 ? "IGV ventas − compras: por pagar a SUNAT" : "Crédito fiscal a favor"}</p>
+              <span className={`text-base font-bold tracking-tight ${neta >= 0 ? "text-bad" : "text-good"}`}>{soles(Math.abs(neta))}</span>
+              <span className="font-mono text-[10.5px] text-muted-foreground">{neta >= 0 ? "IGV ventas − compras: por pagar a SUNAT" : "Crédito fiscal a favor"}</span>
             </>
           )}
         </div>
       </div>
-    </Panel>
+    </div>
   );
 }
 
