@@ -74,7 +74,6 @@ function Partidas() {
   const { data: maestras = [] } = usePartidasMaestras();
 
   const [filtroProyecto, setFiltroProyecto] = useState("");
-  const [filtroEsp, setFiltroEsp] = useState("");
   const [filtroTipo, setFiltroTipo] = useState("");
   const [vista, setVista] = useState<"tabla" | "kanban">("tabla");
   const [modalNueva, setModalNueva] = useState(false);
