@@ -103,6 +103,7 @@ function Nomina() {
   const [anio, setAnio] = useState(ahora.getFullYear());
   const [mes, setMes] = useState(ahora.getMonth() + 1);
   const [editando, setEditando] = useState<Record<string, Record<string, string>>>({});
+  const [pestana, setPestana] = useState<"planilla" | "datos">("planilla");
   const [pago, setPago] = useState<{ banco_id: string; fecha_pago: string; numero_operacion: string } | null>(null);
   const [error, setError] = useState("");
   const periodoAfp = `${anio}-${String(mes).padStart(2, "0")}`;
