@@ -327,24 +327,27 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
   const [y = 2026, m = 1] = periodo.split("-").map(Number);
   const pasos = ["SINCRONIZACIÓN", "CONCILIACIÓN", "CIERRE Y ENVÍO"];
 
+  const pasosExtra = (
+    <div className="flex flex-wrap items-center gap-2">
+      {pasos.map((p, i) => {
+        const n = i + 1; const act = paso === n; const hecho = paso > n;
+        const habil = n === 1 || !!reg;
+        return (
+          <div key={p} className="flex items-center gap-2">
+            <button disabled={!habil} onClick={() => setPaso(n)}
+              className={`flex items-center gap-2 rounded-full px-3 py-1.5 font-mono text-[11px] tracking-wider transition-colors disabled:opacity-40 ${act ? "bg-primary text-primary-foreground" : hecho ? "bg-good/10 text-good" : "bg-card text-muted-foreground ring-1 ring-line"}`}>
+              <span className="grid size-4 place-items-center rounded-full bg-current/10 text-[10px]">{hecho ? "✓" : n}</span>{p}
+            </button>
+            {i < 2 && <ChevronRight className="size-3.5 text-muted-foreground" />}
+          </div>
+        );
+      })}
+      {reg && <span className="ml-2 font-mono text-[11px] text-muted-foreground">Estado: <b className={reg.estado === "Aceptado" ? "text-good" : "text-ink"}>{reg.estado}</b></span>}
+    </div>
+  );
+
   return (
     <div className="space-y-2">
-      <div className="flex flex-wrap items-center gap-2">
-        {pasos.map((p, i) => {
-          const n = i + 1; const act = paso === n; const hecho = paso > n;
-          const habil = n === 1 || !!reg;
-          return (
-            <div key={p} className="flex items-center gap-2">
-              <button disabled={!habil} onClick={() => setPaso(n)}
-                className={`flex items-center gap-2 rounded-full px-3 py-1.5 font-mono text-[11px] tracking-wider transition-colors disabled:opacity-40 ${act ? "bg-primary text-primary-foreground" : hecho ? "bg-good/10 text-good" : "bg-card text-muted-foreground ring-1 ring-line"}`}>
-                <span className="grid size-4 place-items-center rounded-full bg-current/10 text-[10px]">{hecho ? "✓" : n}</span>{p}
-              </button>
-              {i < 2 && <ChevronRight className="size-3.5 text-muted-foreground" />}
-            </div>
-          );
-        })}
-        {reg && <span className="ml-auto font-mono text-[11px] text-muted-foreground">Estado: <b className={reg.estado === "Aceptado" ? "text-good" : "text-ink"}>{reg.estado}</b></span>}
-      </div>
 
       {vinculando && reg && <VincularManual item={vinculando} libro={libro} periodo={periodo} items={items} onCerrar={() => setVinculando(null)}
         onVincular={async (d) => {
