@@ -122,3 +122,30 @@ export const consultarTipoCambio = createServerFn({ method: "POST" })
       return { ...base, mensaje: "No se pudo conectar con el servicio de tipo de cambio." };
     }
   });
+
+export type ResultadoAfp = { configurado: boolean; encontrado: boolean; afp: string; cuspp: string; mensaje: string };
+
+/** Consulta la afiliación previsional (SBS) de un DNI vía Decolecta. */
+export const consultarAfpSbs = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) => z.object({ dni: z.string().regex(/^\d{8}$/, "El DNI debe tener 8 dígitos.") }).parse(data))
+  .handler(async ({ data }): Promise<ResultadoAfp> => {
+    const base: ResultadoAfp = { configurado: true, encontrado: false, afp: "", cuspp: "", mensaje: "" };
+    const token = await obtenerToken();
+    if (!token) return { ...base, configurado: false, mensaje: "La consulta automática aún no está activada (API Decolecta)." };
+    try {
+      const res = await fetch(`${BASE}/sbs/afiliado?numero=${data.dni}`, { headers: { Authorization: `Bearer ${token}`, Referer: "https://telxen.app" } });
+      if (res.status === 404) return { ...base, mensaje: "El DNI no figura como afiliado a una AFP. Puede estar en ONP." };
+      if (!res.ok) return { ...base, mensaje: `El servicio de consulta SBS respondió con un error (${res.status}).` };
+      const j = (await res.json()) as Record<string, unknown>;
+      const txt = (...ks: string[]) => { for (const k of ks) if (typeof j[k] === "string" && j[k]) return (j[k] as string).trim(); return ""; };
+      const afpRaw = txt("afp", "nombre_afp", "afp_name", "entidad").toUpperCase();
+      const cuspp = txt("cuspp", "codigo_cuspp", "codigo").toUpperCase();
+      const mapa: [string, string][] = [["INTEGRA", "AFP Integra"], ["PRIMA", "AFP Prima"], ["PROFUTURO", "AFP Profuturo"], ["HABITAT", "AFP Habitat"]];
+      const afp = mapa.find(([k]) => afpRaw.includes(k))?.[1] ?? "";
+      if (!afp && !cuspp) return { ...base, mensaje: "El servicio no devolvió afiliación AFP para ese DNI." };
+      return { ...base, encontrado: true, afp, cuspp, mensaje: "" };
+    } catch {
+      return { ...base, mensaje: "No se pudo conectar con el servicio de consulta SBS." };
+    }
+  });
