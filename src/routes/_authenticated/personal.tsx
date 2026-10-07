@@ -22,21 +22,30 @@ const BANCOS = ["BCP", "BBVA", "Interbank", "Scotiabank", "Banco de la Nación",
 function CampoF({ etiqueta, req, children, className = "" }: { etiqueta: string; req?: boolean; children: ReactNode; className?: string }) {
   return (
     <label className={`block min-w-0 ${className}`}>
-      <span className="text-xs font-semibold text-ink">{etiqueta}{req && <span className="ml-0.5 text-bad">*</span>}</span>
-      <div className="mt-1">{children}</div>
+      <span className="text-[11px] font-semibold text-ink">{etiqueta}{req && <span className="ml-0.5 text-bad">*</span>}</span>
+      <div className="mt-0.5">{children}</div>
     </label>
   );
 }
 
-function Seccion({ titulo, paso, icono: Icono, children }: { titulo: string; paso?: number; icono?: typeof Users; children: ReactNode }) {
+/** Acento de cada grupo del formulario: un color distinto por bloque para diferenciarlos de un vistazo. */
+const TONO_SECCION = {
+  personal: { barra: "border-l-chip-1", fondo: "bg-chip-1/5", acento: "text-chip-1", chip: "bg-chip-1" },
+  laboral: { barra: "border-l-chip-codificacion", fondo: "bg-chip-codificacion/5", acento: "text-chip-codificacion", chip: "bg-chip-codificacion" },
+  sueldo: { barra: "border-l-chip-mat", fondo: "bg-chip-mat/5", acento: "text-chip-mat", chip: "bg-chip-mat" },
+  pensiones: { barra: "border-l-chip-margenes", fondo: "bg-chip-margenes/5", acento: "text-chip-margenes", chip: "bg-chip-margenes" },
+} as const;
+
+function Seccion({ titulo, paso, icono: Icono, tono, children }: { titulo: string; paso?: number; icono?: typeof Users; tono: keyof typeof TONO_SECCION; children: ReactNode }) {
+  const t = TONO_SECCION[tono];
   return (
-    <div className="min-w-0">
-      <h3 className="mb-3 flex items-center gap-2 border-b border-line pb-2 text-sm font-bold text-ink">
-        {paso && <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">{paso}</span>}
-        {Icono && <Icono size={18} className="text-primary" />}
+    <div className={`min-w-0 rounded-md border border-line border-l-[3px] p-2.5 ${t.barra} ${t.fondo}`}>
+      <h3 className="mb-2 flex items-center gap-1.5 border-b border-line pb-1.5 text-[11px] font-bold uppercase tracking-wide text-ink">
+        {paso && <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[9px] font-bold text-chip-foreground ${t.chip}`}>{paso}</span>}
+        {Icono && <Icono size={13} className={t.acento} />}
         {titulo}
       </h3>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">{children}</div>
+      <div className="grid grid-cols-1 gap-x-3 gap-y-2 sm:grid-cols-2">{children}</div>
     </div>
   );
 }
@@ -425,7 +434,7 @@ function Personal() {
       </div>
 
       {pestana === "emo" ? <EmoPanel trabajadores={trabajadores} /> : <>
-      <VentanaFlotante abierta={formAbierto} onCerrar={() => { setFormAbierto(false); setForm(FORM_INICIAL); setError(""); }} titulo="Nuevo trabajador" ancho="max-w-5xl" ocultarBarra>
+      <VentanaFlotante abierta={formAbierto} onCerrar={() => { setFormAbierto(false); setForm(FORM_INICIAL); setError(""); }} titulo="Nuevo trabajador" subtitulo="Los datos se agrupan en cuatro bloques: personales, laborales, sueldo y pago, y régimen de pensiones." ancho="max-w-4xl" ocultarBarra>
         <form onSubmit={guardar}
           onKeyDown={(e) => {
             if (e.key !== "Enter" || e.nativeEvent.isComposing || !(e.target instanceof HTMLInputElement) || e.target.type === "checkbox") return;
