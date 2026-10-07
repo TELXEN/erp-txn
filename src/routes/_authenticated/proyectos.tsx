@@ -541,7 +541,6 @@ function Proyectos() {
                             />
                           </div>
                         </td>
-                        <td className="px-3 py-2 align-top text-muted-foreground">Se actualiza al guardar</td>
                         <td className="px-3 py-2 align-top">
                           <Select
                             value={editando.responsable_id}
@@ -592,6 +591,7 @@ function Proyectos() {
                             </div>
                           </div>
                         </td>
+                        <td className="px-3 py-2 align-top text-muted-foreground">Se actualiza al guardar</td>
                         <td className="px-3 py-2.5 text-right whitespace-nowrap">{soles(presupuesto)}</td>
                         <td
                           className={`px-3 py-2.5 text-right whitespace-nowrap ${costoReal > presupuesto && presupuesto > 0 ? "text-bad" : "text-ink"}`}
@@ -709,7 +709,7 @@ function Proyectos() {
           </div>
         )}
       </Panel>
-      <VentanaFlotante abierta={Boolean(proyectoVisto)} onCerrar={() => setViendoId(null)} titulo="Resumen del proyecto" subtitulo={proyectoVisto?.codigo ?? undefined} ancho="max-w-2xl">
+      <VentanaFlotante abierta={Boolean(proyectoVisto)} onCerrar={() => setViendoId(null)} titulo="Resumen del proyecto" subtitulo={proyectoVisto?.codigo ?? ""} ancho="max-w-2xl">
         {proyectoVisto && (
           <div className="grid gap-4 p-5 font-['Roboto'] sm:grid-cols-2">
             <Seccion titulo="Proyecto"><p className="font-semibold text-ink">{proyectoVisto.nombre}</p><p className="text-sm text-muted-foreground">{proyectoVisto.cliente || "Sin cliente"}</p><p className="text-sm text-muted-foreground">{proyectoVisto.ubicacion || "Sin ubicación"}</p></Seccion>
