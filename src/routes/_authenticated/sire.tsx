@@ -55,8 +55,8 @@ function SirePage() {
             <button key={k} onClick={() => setTab(k)} className={`flex items-center gap-2 rounded-md border-b-2 px-3 py-1.5 text-xs transition-colors ${tab === k ? "border-cta bg-primary/10 font-semibold text-primary" : "border-transparent text-muted-foreground hover:bg-muted hover:text-primary"}`}><I className="size-3.5" />{t}</button>
           ))}
         </div>
+        {tab !== "config" && <div className="mb-4"><ResumenOperaciones periodo={periodo} libro={tab} /></div>}
       </div>
-      {tab !== "config" && <ResumenOperaciones periodo={periodo} libro={tab} />}
       {tab === "config" ? <ConfigSol /> : <PanelLibro key={tab} libro={tab} periodo={periodo} />}
     </div>
   );
