@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
+import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { CalendarIcon, Check, ChevronDown, ChevronRight, Plus, Search, Trash2, Upload, X } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
