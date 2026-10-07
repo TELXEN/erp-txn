@@ -249,6 +249,7 @@ export function HojaCotizacion({
               </Linea>
               {esUsd && (
                 <Linea etiqueta="T. cambio">
+                  <div style={{ display: "flex", alignItems: "center" }}>
                   <input
                     key={`tc-${cot.id}-${cot.tipo_cambio}`}
                     type="number"
@@ -258,6 +259,18 @@ export function HojaCotizacion({
                     onBlur={(e) => alSalir("tipo_cambio", Number(e.target.value || 0), Number(cot.tipo_cambio))}
                     style={{ ...ed, textAlign: "right", fontWeight: 700 }}
                   />
+                  {tcActual > 0 && Number(cot.tipo_cambio) !== tcActual && (
+                    <button
+                      type="button"
+                      title="Aplicar tipo de cambio SUNAT del día (Decolecta)"
+                      onClick={() => { if (window.confirm(`¿Usar el tipo de cambio SUNAT de hoy (${tcActual})? Los precios ya cargados no se recalculan.`)) void guardar({ tipo_cambio: tcActual }); }}
+                      style={{ marginLeft: 6, whiteSpace: "nowrap", fontSize: 9.5, fontWeight: 700, color: C.green, background: "transparent", border: `1px solid ${C.line}`, borderRadius: 4, padding: "2px 6px", cursor: "pointer" }}
+                      data-no-print
+                    >
+                      SUNAT {tcActual}
+                    </button>
+                  )}
+                  </div>
                 </Linea>
               )}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 5 }}>
