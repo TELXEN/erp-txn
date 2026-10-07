@@ -316,10 +316,11 @@ function GastosGenerales() {
 
   async function abrirAdjunto(adjunto: AdjuntoGasto | undefined) {
     const path = adjunto?.pdf_path || adjunto?.xml_path;
-    if (!path) return;
+    if (!path) return undefined;
     const { data, error: err } = await supabase.storage.from("comprobantes-compra").createSignedUrl(path, 300);
     if (err || !data) return toast.error("No se pudo abrir el archivo adjunto.");
     window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+    return undefined;
   }
 
   return (
