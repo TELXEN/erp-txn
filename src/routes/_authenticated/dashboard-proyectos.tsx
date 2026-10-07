@@ -343,18 +343,79 @@ function DashboardProyectos() {
 
       <div className="mb-4 flex flex-col gap-3 border-y border-line bg-card px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="label-mono">Obra analizada</p>
+          <p className="label-mono">{esTodos ? "Vista general" : "Obra analizada"}</p>
           <p className="mt-1 text-sm font-semibold">{obraSel?.proyecto.nombre ?? "Sin obras registradas"}</p>
         </div>
         <div className="w-full sm:w-80">
-          <Select value={obraSel?.proyecto.id ?? ""} onChange={(e) => setObraId(e.target.value)}>
-            {filas.length === 0 && <option value="">Sin obras registradas</option>}
+          <Select value={esTodos ? "todos" : (obraSel?.proyecto.id ?? "")} onChange={(e) => setObraId(e.target.value)}>
+            {filas.length === 0 ? (
+              <option value="todos">Sin obras registradas</option>
+            ) : (
             {filas.map((f) => (
               <option key={f.proyecto.id} value={f.proyecto.id}>{f.proyecto.nombre}</option>
             ))}
+            )}
           </Select>
         </div>
       </div>
+
+      <section className={`mb-4 grid gap-3 ${verDinero ? "lg:grid-cols-2" : "lg:grid-cols-1"}`} aria-label="Resumen de la cartera">
+        <div className="panel rise p-4">
+          <p className="label-mono">Estado de los proyectos</p>
+          <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {TARJETAS_ESTADO.map(({ etiqueta, situacion }) => {
+              const cantidad = proyectos.filter((p) => p.situacion === situacion).length;
+              const activa = filtroEstado === situacion;
+              return (
+                <button
+                  key={situacion}
+                  type="button"
+                  aria-pressed={activa}
+                  onClick={() => setFiltroEstado(activa ? "Todos" : situacion)}
+                  className={`rounded-lg border p-3 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                    activa ? "border-primary bg-primary/5" : "border-line bg-muted/20 hover:border-muted-foreground/40"
+                  }`}
+                >
+                  <span className="flex items-center gap-1.5">
+                    <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: tonoSituacion(situacion).borde }} />
+                    <span className="font-mono text-[9px] uppercase tracking-wide text-muted-foreground">{etiqueta}</span>
+                  </span>
+                  <p className="mt-1 font-mono text-2xl font-bold">{cantidad}</p>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        {verDinero && (
+          <div className="panel rise p-4">
+            <p className="label-mono">Presupuesto total vs gastado</p>
+            <div className="mt-3 flex items-end justify-between gap-3">
+              <div>
+                <p className="font-mono text-[10px] uppercase tracking-wide text-muted-foreground">Presupuesto total</p>
+                <p className="font-mono text-xl font-bold">{soles(resumen.presupuesto)}</p>
+                <p className="font-mono text-[10px] text-muted-foreground">
+                  Contractual {soles(resumen.presupuestoContractual)} · Adicionales {soles(resumen.adicionales)}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="font-mono text-[10px] uppercase tracking-wide text-muted-foreground">Gastado</p>
+                <p className={`font-mono text-xl font-bold ${resumen.gastadoPct > 100 ? "text-bad" : "text-ink"}`}>{soles(resumen.costoReal)}</p>
+                <p className="font-mono text-[10px] text-muted-foreground">{pct(resumen.gastadoPct)} del presupuesto</p>
+              </div>
+            </div>
+            <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-muted">
+              <div
+                className={`h-full rounded-full ${resumen.gastadoPct > 100 ? "bg-bad" : "bg-primary"}`}
+                style={{ width: `${Math.min(resumen.gastadoPct, 100)}%` }}
+              />
+            </div>
+            <p className="mt-2 font-mono text-xs font-semibold">
+              Saldo disponible:{" "}
+              <span className={resumen.diferencia < 0 ? "text-bad" : "text-good"}>{soles(resumen.diferencia)}</span>
+            </p>
+          </div>
+        )}
+      </section>
 
       <section className={`mb-4 grid gap-3 ${verDinero ? "lg:grid-cols-3" : "lg:grid-cols-2"}`} aria-label="Resumen del proyecto seleccionado">
         <div className="panel rise flex flex-col justify-between p-4">
@@ -364,7 +425,11 @@ function DashboardProyectos() {
             <>
               <div className="flex items-start justify-between gap-2">
                 <p className="label-mono">Avance general</p>
-                <InsigniaSituacion valor={obraSel.proyecto.situacion} />
+                {esTodos ? (
+                  <span className="rounded-full border border-line px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Cartera completa</span>
+                ) : (
+                  <InsigniaSituacion valor={obraSel.proyecto.situacion} />
+                )}
               </div>
 
               <div className="my-2 grid grid-cols-3 gap-1 rounded-lg border border-line bg-muted/30 p-2 text-center">
@@ -394,7 +459,11 @@ function DashboardProyectos() {
               )}
 
               <div className="flex items-center justify-between border-t border-line pt-2">
-                <InsigniaSituacion valor={obraSel.proyecto.situacion} />
+                {esTodos ? (
+                  <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">{filas.length} obras en cartera</span>
+                ) : (
+                  <InsigniaSituacion valor={obraSel.proyecto.situacion} />
+                )}
                 <span className="font-mono text-[10px] text-muted-foreground">{obraSel.partidas} partidas</span>
               </div>
             </>
@@ -420,15 +489,15 @@ function DashboardProyectos() {
             <IndicadorCompacto
               icono={<AlertTriangle />}
               etiqueta="Partidas de prioridad alta"
-              valor={String(obraSel?.proyecto ? partidas.filter((p) => p.proyecto_id === obraSel.proyecto.id && p.prioridad === "Alta").length : 0)}
-              {...((obraSel?.proyecto ? partidas.filter((p) => p.proyecto_id === obraSel.proyecto.id && p.prioridad === "Alta").length : 0) > 0 ? { tono: "bad" as const } : {})}
+              valor={String(prioridadAlta)}
+              {...(prioridadAlta > 0 ? { tono: "bad" as const } : {})}
             />
           </div>
         </div>
 
         {verDinero && (
         <div className="panel rise overflow-hidden">
-          <div className="border-b border-line px-4 py-3"><p className="label-mono">Resumen financiero del proyecto</p></div>
+          <div className="border-b border-line px-4 py-3"><p className="label-mono">{esTodos ? "Resumen financiero de la cartera" : "Resumen financiero del proyecto"}</p></div>
           <div className="divide-y divide-line">
             <DatoFinanciero etiqueta="Presupuesto contractual" valor={soles(obraSel?.presupuestoContractual ?? 0)} />
             <DatoFinanciero etiqueta="Adicionales de obra" valor={soles(obraSel?.adicionales ?? 0)} {...((obraSel?.adicionales ?? 0) > 0 ? { tono: "primary" as const } : {})} />
@@ -481,9 +550,9 @@ function DashboardProyectos() {
             avanceProgramadoOficial={obraSel.programado}
             fechaCorteProgramado={obraSel.proyecto.fecha_corte_programado}
             movimientos={movimientos}
-            partidas={partidas.filter((p) => p.proyecto_id === obraSel.proyecto.id && !new Set(partidas.filter((x) => x.proyecto_id === obraSel.proyecto.id).map((x) => x.padre_id).filter(Boolean)).has(p.id))}
+            partidas={partidasHoja}
             cronograma={cronograma}
-            periodicidad={obraSel.proyecto.periodicidad_cronograma ?? "mes"}
+            periodicidad={esTodos ? "mes" : (obraSel.proyecto.periodicidad_cronograma ?? "mes")}
             mostrarDinero={verDinero}
           />
         )}
