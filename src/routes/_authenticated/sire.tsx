@@ -44,7 +44,7 @@ function SirePage() {
   ];
   return (
     <div>
-      <Encabezado titulo="SIRE SUNAT" subtitulo="FINANZAS Y CONTABILIDAD · REGISTROS ELECTRÓNICOS" />
+      <Encabezado titulo="SIRE SUNAT" subtitulo="FINANZAS Y CONTABILIDAD · REGISTROS ELECTRÓNICOS" className="mb-2" />
       <div className="sticky top-0 z-30 -mx-1 bg-background px-1 pb-1">
         <SincronizacionGlobal periodo={periodo} onPeriodoChange={setPeriodo}
           botonConfig={rol === "gerente" ? (
@@ -57,7 +57,7 @@ function SirePage() {
               ))}
             </div>
           } />
-        {tab !== "config" && <div className="mb-4"><ResumenOperaciones periodo={periodo} libro={tab} /></div>}
+        {tab !== "config" && <div className="mb-2"><ResumenOperaciones periodo={periodo} libro={tab} /></div>}
       </div>
       {tab === "config" ? <ConfigSol /> : <PanelLibro key={tab} libro={tab} periodo={periodo} />}
     </div>
