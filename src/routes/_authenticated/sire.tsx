@@ -517,7 +517,7 @@ function ResumenOperaciones({ periodo, libro }: { periodo: string; libro: Libro 
           <span className="font-mono text-[11px] text-muted-foreground">{r ? "Propuesta pendiente en SUNAT" : "Sin sincronizar este período"}</span>
         ) : (
           <>
-            <span className="text-lg font-bold tracking-tight">{soles(total)}</span>
+            <span className="text-base font-bold tracking-tight">{soles(total)}</span>
             <span className="font-mono text-[10.5px] text-muted-foreground">
               Base <b className="text-ink">{soles(Number(r.total_base))}</b> · IGV <b className="text-ink">{soles(Number(r.total_igv))}</b> · <b className="text-ink">{r.total_docs}</b> comp. · <b className={r.estado === "Aceptado" ? "text-good" : "text-ink"}>{r.estado}</b>
             </span>
