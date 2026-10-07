@@ -7,7 +7,7 @@ import { CurvaS } from "@/components/CurvaS";
 import { InsigniaPrioridad, InsigniaSituacion } from "@/components/estado-ui";
 import { tonoSituacion } from "@/lib/configuracion";
 import { useFuenteDocumento } from "@/lib/fuentes-documentos";
-import { nombresEstados, useEstadosProyecto } from "@/lib/datos";
+import { nombresEstados, useEstadosProyecto, type Proyecto } from "@/lib/datos";
 
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha, pct, soles } from "@/lib/format";
@@ -45,6 +45,13 @@ export const Route = createFileRoute("/_authenticated/dashboard-proyectos")({
   component: DashboardProyectos,
 });
 
+const TARJETAS_ESTADO = [
+  { etiqueta: "Activos", situacion: "En proceso" },
+  { etiqueta: "En espera", situacion: "No iniciado" },
+  { etiqueta: "Finalizados", situacion: "Completado" },
+  { etiqueta: "Retrasados", situacion: "Retrasado" },
+] as const;
+
 function DashboardProyectos() {
   const { rol } = useAuth();
   const { fuente } = useFuenteDocumento();
@@ -57,7 +64,7 @@ function DashboardProyectos() {
   const { data: tareoVeh = [] } = useTareoVehiculos();
   const { data: tiposPresupuesto = [] } = useTiposPresupuesto();
   const { data: cronograma = [] } = useCronograma();
-  const [obraId, setObraId] = useState("");
+  const [obraId, setObraId] = useState("todos");
   const [filtroEstado, setFiltroEstado] = useState<string>("Todos");
 
 
@@ -122,11 +129,72 @@ function DashboardProyectos() {
       adicionales,
       costoReal,
       diferencia: presupuesto - costoReal,
+      gastadoPct: presupuesto > 0 ? (costoReal / presupuesto) * 100 : 0,
       desviadas: filas.filter((f) => f.desviado).length,
     };
   }, [filas, proyectos]);
 
-  const obraSel = filas.find((f) => f.proyecto.id === obraId) ?? filas[0];
+  const esTodos = obraId === "todos" || obraId === "";
+  const obraIndividual = filas.find((f) => f.proyecto.id === obraId) ?? filas[0];
+
+  /** Vista agregada de toda la cartera para la opción «Todos los proyectos». */
+  const vistaTodos = useMemo(() => {
+    if (filas.length === 0) return null;
+    const presupuesto = filas.reduce((s, f) => s + f.presupuesto, 0);
+    const costoReal = filas.reduce((s, f) => s + f.costoReal, 0);
+    const avance =
+      presupuesto > 0
+        ? filas.reduce((s, f) => s + f.avance * f.presupuesto, 0) / presupuesto
+        : filas.reduce((s, f) => s + f.avance, 0) / filas.length;
+    const conProgramado = filas.filter((f) => f.programado !== null);
+    const baseProg = conProgramado.reduce((s, f) => s + f.presupuesto, 0);
+    const programado =
+      conProgramado.length === 0
+        ? null
+        : baseProg > 0
+          ? conProgramado.reduce((s, f) => s + (f.programado ?? 0) * f.presupuesto, 0) / baseProg
+          : conProgramado.reduce((s, f) => s + (f.programado ?? 0), 0) / conProgramado.length;
+    const inicios = filas.map((f) => f.proyecto.fecha_inicio).filter((x): x is string => !!x).sort();
+    const fines = filas.map((f) => f.proyecto.fecha_fin).filter((x): x is string => !!x).sort();
+    const gastado = presupuesto > 0 ? (costoReal / presupuesto) * 100 : 0;
+    const desviacion = programado === null ? null : avance - programado;
+    const proyectoCartera: Proyecto = {
+      id: "todos",
+      codigo: null,
+      responsable_id: null,
+      nombre: "Todos los proyectos",
+      cliente: `${filas.length} ${filas.length === 1 ? "obra" : "obras"}`,
+      ubicacion: "",
+      estado: "En Ejecucion",
+      situacion: "",
+      fecha_inicio: inicios[0] ?? null,
+      fecha_fin: fines[fines.length - 1] ?? null,
+      avance_programado_pct: null,
+      fecha_corte_programado: null,
+      pct_gastos_generales: 0,
+      pct_utilidad: 0,
+    };
+    return {
+      proyecto: proyectoCartera,
+      partidas: filas.reduce((s, f) => s + f.partidas, 0),
+      partidasContractuales: filas.reduce((s, f) => s + f.partidasContractuales, 0),
+      partidasAdicionales: filas.reduce((s, f) => s + f.partidasAdicionales, 0),
+      partidasPendientes: filas.reduce((s, f) => s + f.partidasPendientes, 0),
+      presupuestoContractual: filas.reduce((s, f) => s + f.presupuestoContractual, 0),
+      adicionales: filas.reduce((s, f) => s + f.adicionales, 0),
+      presupuesto,
+      costoReal,
+      avance,
+      gastado,
+      programado,
+      usaCalendario: filas.some((f) => f.usaCalendario),
+      desviacion,
+      diferencia: presupuesto - costoReal,
+      desviado: gastado > avance,
+    };
+  }, [filas]);
+
+  const obraSel = esTodos ? vistaTodos : obraIndividual;
 
   const cartera = useMemo(
     () => (filtroEstado === "Todos" ? filas : filas.filter((f) => f.proyecto.situacion === filtroEstado)),
@@ -142,15 +210,38 @@ function DashboardProyectos() {
   }, [obraSel]);
 
   const movimientos = useMemo(() => {
+    if (esTodos) {
+      return [
+        ...gastosD.map((g) => ({ fecha: g.fecha, monto: Number(g.monto_soles) })),
+        ...gastosG.map((g) => ({ fecha: g.fecha, monto: Number(g.monto_soles) })),
+        ...tareos.map((t) => ({ fecha: t.fecha, monto: Number(t.costo_soles) })),
+      ];
+    }
     const id = obraSel?.proyecto.id;
-    if (!id) return [];
+    if (!id || id === "todos") return [];
     return [
       ...gastosD.filter((g) => g.proyecto_id === id).map((g) => ({ fecha: g.fecha, monto: Number(g.monto_soles) })),
       ...gastosG.filter((g) => g.proyecto_id === id).map((g) => ({ fecha: g.fecha, monto: Number(g.monto_soles) })),
       ...tareos.filter((t) => t.proyecto_id === id).map((t) => ({ fecha: t.fecha, monto: Number(t.costo_soles) })),
     ];
-  }, [obraSel, gastosD, gastosG, tareos]);
+  }, [esTodos, obraSel, gastosD, gastosG, tareos]);
 
+  const partidasHoja = useMemo(() => {
+    if (!obraSel) return [];
+    if (esTodos) {
+      const padres = new Set(partidas.map((x) => x.padre_id).filter(Boolean));
+      return partidas.filter((p) => !padres.has(p.id));
+    }
+    const propias = partidas.filter((p) => p.proyecto_id === obraSel.proyecto.id);
+    const padres = new Set(propias.map((x) => x.padre_id).filter(Boolean));
+    return propias.filter((p) => !padres.has(p.id));
+  }, [esTodos, obraSel, partidas]);
+
+  const prioridadAlta = useMemo(() => {
+    if (!obraSel) return 0;
+    if (esTodos) return partidas.filter((p) => p.prioridad === "Alta").length;
+    return partidas.filter((p) => p.proyecto_id === obraSel.proyecto.id && p.prioridad === "Alta").length;
+  }, [esTodos, obraSel, partidas]);
 
   const verDinero = puedeVerDinero(rol);
   const programadoSel = obraSel?.programado ?? null;
@@ -208,6 +299,11 @@ function DashboardProyectos() {
         { etiqueta: "Presupuesto Vigente", valor: resumen.presupuesto },
         { etiqueta: "Costo Real Total", valor: resumen.costoReal },
         { etiqueta: "Diferencia", valor: resumen.diferencia },
+        { etiqueta: "% Presupuesto Gastado", valor: Number(resumen.gastadoPct.toFixed(1)) },
+        { etiqueta: "Obras Activas", valor: resumen.enProceso },
+        { etiqueta: "Obras en Espera", valor: resumen.noIniciados },
+        { etiqueta: "Obras Finalizadas", valor: resumen.completados },
+        { etiqueta: "Obras Retrasadas", valor: resumen.retrasados },
       ],
       barras: filas.map((f) => ({
         partida: f.proyecto.nombre,
