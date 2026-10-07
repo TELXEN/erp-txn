@@ -10,19 +10,18 @@
 <!-- LOVABLE:END -->
 - Project/quotation codes are generated only via server fn reservarCodigo (src/lib/codigos.functions.ts); the SQL functions are service_role-only — prevents direct calls from the browser.
 - The programmed-progress matrix stores one percentage per leaf work item and project-defined period; dashboard calculations must exclude grouping rows to avoid double counting.
-- The project S-curve uses the configured work-item schedule for its planned line, the current physical progress as the real cut-off marker, and only exposes cost progress to money-authorized roles — this preserves truthful history and role visibility.
+- The project S-curve plans from the work-item schedule, marks current physical progress as cut-off, and shows cost progress only to money roles — truthful history and role visibility.
 - Preliquidation PDFs are generated client-side with @react-pdf/renderer from a dedicated document template — this keeps branded multi-page exports consistent and independent from browser print styling.
 - Commercial quotation PDFs render as fixed A4 HTML sheets with repeated company/table headers and page numbering — this keeps html2pdf exports predictable across multi-page item lists.
 - Electronic invoices use dedicated comprobantes_electronicos/items/cuotas tables, while emitted invoices/receipts mirror into ventas for treasury compatibility; numbering is reserved only by an authenticated server function.
 - Invoice A4 pages reserve a fixed bottom area repeating the fiscal footer on every page — items never overlap it.
-- Quotation, preliquidation, and electronic invoice editing render in normal flow with the sidebar visible (no full-screen overlay); preview/PDF remains fixed A4 — this keeps navigation available during document editing without changing exports.
-- ERP and document typography comes from the controlled local-font catalogue in configuracion_documentos; the UI uses --font-global while technical mono text remains separate, and PDF/Excel exporters receive the same selection — this keeps every output consistent.
+- Quotation, preliquidation and invoice editing render in normal flow with the sidebar visible; preview/PDF stays fixed A4 — navigation stays available.
+- Typography comes from the local-font catalogue in configuracion_documentos (UI via --font-global, mono separate; PDF/Excel get the same font) — consistent outputs.
 - Document codes (projects, quotations, preliquidations, custom) are configured as rows in codificacion_documentos: free code + zero-padded correlative, generated via siguiente_codigo_documento — single source for all document numbering.
 - Insumo types live in the tipos_insumo table (key, name, digit, correlative); code reads them via useTiposInsumo and never hardcodes the type list except the five protected system keys — lets users add independent types with their own tab, margin and APU group.
 - The HT (herramientas manuales) type is hidden (tipos_insumo.oculto); calcularApu adds it automatically as the last row of the EQ group using the HT percentage from Márgenes APU — users never attach it manually.
 - Sidebar colors use dedicated theme tokens (never altering business screens); primary/action buttons use the sidebar base color — keeps workflows tied to navigation.
-- Invoice, quotation and preliquidation documents take colors and font from src/lib/documento-tema.ts — one change updates all three outputs.
-- Preliquidation uses one shared sheet (HojaPreliquidacion.tsx) for editing and A4 preview, with amounts in src/lib/preliquidacion-montos.ts — edit, preview and PDF never diverge.
+- Invoice/quotation/preliquidation colors and font come from src/lib/documento-tema.ts; preliquidation uses one sheet (HojaPreliquidacion.tsx) with amounts in src/lib/preliquidacion-montos.ts — outputs never diverge.
 - Purchase invoices downloaded from SUNAT are archived in comprobantes_recibidos(+_items) and the private comprobantes-compra bucket; downloads run only via the authenticated descargarComprobantesSire server fn in batches of 10 — keeps SOL credentials server-side and avoids worker timeouts.
 - SIRE uses one persistent period selector and global synchronization control for RVIE and RCE across all SIRE tabs — keeps both books aligned to the same accounting period.
 - Quotation hierarchy uses `especialidad` as the chapter for single-discipline quotes, while multidisciplinary quotes use it for discipline and `grupo` for group; templates preserve this structure. Master work-item prices are PEN and convert on entry to the quotation currency — prevents mixed hierarchies and currencies.
