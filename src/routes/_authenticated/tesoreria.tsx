@@ -5,7 +5,7 @@ import { Fragment, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, Landmark, Search, Upload, X } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
-import { consultarTipoCambio } from "@/lib/decolecta.functions";
+import { useTipoCambioHoy } from "@/lib/tipo-cambio";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
@@ -120,20 +120,7 @@ function Tesoreria() {
     p: Pendiente; banco_id: string; fecha: string; operacion: string;
     detr: boolean; pct: string; banco_det: string; constancia: string;
   } | null>(null);
-  const consultarTC = useServerFn(consultarTipoCambio);
-  const { data: tcInfo } = useQuery({
-    queryKey: ["tc_tesoreria", hoy()],
-    staleTime: 1000 * 60 * 30,
-    queryFn: async () => {
-      try {
-        const r = await consultarTC({ data: { fecha: hoy() } });
-        if (r.encontrado && r.venta > 0) return { venta: r.venta, fecha: r.fecha, fuente: r.fuente || "SUNAT", aviso: "" };
-      } catch { /* usar último registrado */ }
-      const { data } = await supabase.from("tipo_cambio_diario").select("venta,fecha,fuente").order("fecha", { ascending: false }).limit(1).maybeSingle();
-      if (data) return { venta: Number(data.venta), fecha: data.fecha, fuente: data.fuente, aviso: "No se obtuvo el TC de hoy; se usa el último disponible." };
-      return { venta: 0, fecha: "", fuente: "", aviso: "Sin tipo de cambio disponible: los USD se muestran con el TC de cada documento." };
-    },
-  });
+  const { data: tcInfo } = useTipoCambioHoy();
   const { data: ventasTC = [] } = useVentas();
   const tcRespaldo = (ventasTC as unknown as { moneda: string; tipo_cambio: number; fecha_emision?: string }[])
     .filter((v) => v.moneda === "USD" && Number(v.tipo_cambio) > 1)

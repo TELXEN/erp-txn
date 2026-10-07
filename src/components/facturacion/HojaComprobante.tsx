@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { CuentasComprobante, type CuentaCpe } from "@/components/facturacion/CuentasComprobante";
 import { Plus, Search, Trash2 } from "lucide-react";
 import { consultarDocumentoSunat, consultarTipoCambio } from "@/lib/decolecta.functions";
+import { fechaLima, useTipoCambioHoy } from "@/lib/tipo-cambio";
 import { CODIGOS_SPOT, MODALIDADES_TRASLADO, MOTIVOS_BAJA, MOTIVOS_NOTA_CREDITO, MOTIVOS_NOTA_DEBITO, MOTIVOS_TRASLADO, PESTANAS_CPE, TASAS_IGV, TASAS_PERCEPCION, TASAS_RETENCION, TIPOS_DOC_RELACIONADO, UNIDADES_SUNAT, calcularItem, cuotaVacia, docRelacionadoVacio, itemComprobanteVacio, montoEnLetras, repartirCuotas, usaImportes, usaItems, usaRelacionados, type CuotaEditor, type DocRelacionado, type ItemEditor, type OperacionTipo, type TipoComprobante, type TipoTributarioCpe } from "@/lib/facturacion";
 import { hoy } from "@/lib/format";
 
@@ -57,7 +58,7 @@ export function HojaComprobante(props: {
   const simbolo = form.moneda === "USD" ? "US$" : "S/";
   const baseCuotas = montos.netoPagar ?? montos.total;
   const { data: cuentas = [] } = useQuery({ queryKey: ["bancos-cpe"], queryFn: async () => { const { data, error } = await supabase.from("bancos").select("nombre,numero_cuenta,cci,monedas,tipo_cuenta").eq("activo", true).order("nombre"); if (error) throw error; return (data ?? []) as CuentaCpe[]; } });
-  const buscarDoc = useServerFn(consultarDocumentoSunat); const buscarTc = useServerFn(consultarTipoCambio);
+  const buscarDoc = useServerFn(consultarDocumentoSunat); const buscarTc = useServerFn(consultarTipoCambio); const { data: tcHoy } = useTipoCambioHoy();
   const [aviso, setAviso] = useState(""); const [buscando, setBuscando] = useState(false);
   const tipo = form.tipo_comprobante as TipoComprobante;
   const etiquetaTipo = PESTANAS_CPE.find((p) => p.tipo === tipo)?.corto ?? "";
@@ -78,6 +79,7 @@ export function HojaComprobante(props: {
     } catch { setAviso("No se pudo completar la consulta."); } finally { setBuscando(false); }
   }
   async function traerTipoCambio() {
+    if (form.fecha_emision === fechaLima() && tcHoy?.esHoy && tcHoy.venta > 0) { setForm({ ...form, tipo_cambio: String(tcHoy.venta) }); setAviso(`Tipo de cambio oficial de hoy: ${tcHoy.venta}`); return; }
     setBuscando(true); setAviso("");
     try { const r = await buscarTc({ data: { fecha: form.fecha_emision } }); if (r.encontrado) setForm({ ...form, tipo_cambio: String(r.venta) }); setAviso(r.mensaje || (r.encontrado ? `Tipo de cambio oficial del ${form.fecha_emision}: ${r.venta}` : "")); }
     catch { setAviso("No se pudo consultar el tipo de cambio."); } finally { setBuscando(false); }

@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useTipoCambioHoy } from "@/lib/tipo-cambio";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Copy, Eye, ListPlus, Pencil, Plus, Receipt, Trash2, Upload } from "lucide-react";
 import { Link } from "@tanstack/react-router";
@@ -105,13 +106,15 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
     },
   });
 
+  const { data: tcHoyInfo } = useTipoCambioHoy();
+  const tcHoy = tcHoyInfo?.venta ?? 0;
   const formVacio = () => ({
     proyecto_id: "",
     cliente_id: "",
     concepto: "",
     fecha: hoy(),
     moneda: "PEN",
-    tipo_cambio: "3.75",
+    tipo_cambio: tcHoy > 0 ? String(tcHoy) : "",
     pct_detraccion: "12",
     tipo_tributario: "detraccion" as TipoTributario,
     condicion_pago: "Crédito",
@@ -121,6 +124,9 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
   });
 
   const [form, setForm] = useState(formVacio());
+  useEffect(() => {
+    if (tcHoy > 0 && !(Number(form.tipo_cambio) > 0)) setForm((f) => ({ ...f, tipo_cambio: String(tcHoy) }));
+  }, [tcHoy, form.tipo_cambio]);
   const [lineas, setLineas] = useState<ItemPL[]>([itemVacio()]);
   const [editando, setEditando] = useState<string | null>(null);
   const [abierto, setAbierto] = useState(false);
@@ -492,6 +498,13 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
               )}
             </div>
 
+            {form.moneda === "USD" && tcHoy > 0 && Number(form.tipo_cambio) !== tcHoy && (
+              <div className="mb-2 flex justify-end">
+                <button type="button" className="rounded-md border border-primary/40 bg-card px-2 py-1 font-mono text-[11px] text-primary hover:bg-primary hover:text-primary-foreground" title="Aplicar el tipo de cambio SUNAT de hoy" onClick={() => setForm((f) => ({ ...f, tipo_cambio: String(tcHoy) }))}>
+                  SUNAT {tcHoy.toFixed(3)}
+                </button>
+              </div>
+            )}
             <HojaPreliquidacion
               editable
               anchoCompleto
