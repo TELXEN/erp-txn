@@ -1,0 +1,1 @@
+ALTER TABLE public.ventas ADD COLUMN IF NOT EXISTS banco_detraccion_id uuid REFERENCES public.bancos(id) ON DELETE SET NULL;

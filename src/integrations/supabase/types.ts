@@ -4077,6 +4077,7 @@ export type Database = {
       }
       ventas: {
         Row: {
+          banco_detraccion_id: string | null
           banco_id: string | null
           cliente_id: string | null
           comprobante_electronico_id: string | null
@@ -4109,6 +4110,7 @@ export type Database = {
           total: number
         }
         Insert: {
+          banco_detraccion_id?: string | null
           banco_id?: string | null
           cliente_id?: string | null
           comprobante_electronico_id?: string | null
@@ -4141,6 +4143,7 @@ export type Database = {
           total?: number
         }
         Update: {
+          banco_detraccion_id?: string | null
           banco_id?: string | null
           cliente_id?: string | null
           comprobante_electronico_id?: string | null
@@ -4173,6 +4176,13 @@ export type Database = {
           total?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "ventas_banco_detraccion_id_fkey"
+            columns: ["banco_detraccion_id"]
+            isOneToOne: false
+            referencedRelation: "bancos"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "ventas_banco_id_fkey"
             columns: ["banco_id"]
