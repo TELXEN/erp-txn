@@ -688,10 +688,10 @@ function Proyectos() {
                               }
                               title="Editar"
                             >
-                              <Pencil className="size-4" />
+                              <Pencil className="size-[18px]" />
                             </Boton>
                             <DropdownMenu>
-                              <DropdownMenuTrigger asChild><Boton variante="linea" className="h-7 w-7 px-0" aria-label="Más acciones" title="Más acciones"><MoreHorizontal className="size-4" /></Boton></DropdownMenuTrigger>
+                              <DropdownMenuTrigger asChild><Boton variante="linea" className="h-8 w-8 px-0" aria-label="Más acciones" title="Más acciones"><MoreHorizontal className="size-[18px]" /></Boton></DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
                                 <DropdownMenuItem onClick={() => duplicar(p.id)}><Copy /> Duplicar como borrador</DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => cambiarArchivo(p.id, !p.archivado_en)}>{p.archivado_en ? <ArchiveRestore /> : <Archive />}{p.archivado_en ? "Restaurar" : "Archivar"}</DropdownMenuItem>
