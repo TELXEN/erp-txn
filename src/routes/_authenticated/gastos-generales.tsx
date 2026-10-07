@@ -468,7 +468,8 @@ function GastosGenerales() {
                         stroke="none"
                       >
                         {desglose.map((d) => {
-                          const activo = filtroCategoria === d.nombre;
+                          const claveD = d.clave ?? d.nombre;
+                          const activo = filtroCategoria === claveD;
                           return (
                             <Cell
                               key={d.nombre}
@@ -479,7 +480,7 @@ function GastosGenerales() {
                                 d.filtrable
                                   ? () => {
                                       setPestana("gastos");
-                                      setFiltroCategoria(activo ? "Todas" : d.nombre);
+                                      setFiltroCategoria(activo ? "Todas" : claveD);
                                     }
                                   : undefined
                               }
@@ -500,7 +501,8 @@ function GastosGenerales() {
                 </div>
                 <ul className="my-auto min-w-0 flex-1 space-y-1.5">
                   {desglose.map((d) => {
-                    const activo = filtroCategoria === d.nombre;
+                    const claveD = d.clave ?? d.nombre;
+                    const activo = filtroCategoria === claveD;
                     const pctTotal = granTotalDesglose > 0 ? (d.total / granTotalDesglose) * 100 : 0;
                     return (
                       <li key={d.nombre}>
@@ -509,7 +511,7 @@ function GastosGenerales() {
                           disabled={!d.filtrable}
                           onClick={() => {
                             setPestana("gastos");
-                            setFiltroCategoria(activo ? "Todas" : d.nombre);
+                            setFiltroCategoria(activo ? "Todas" : claveD);
                           }}
                           className={`flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-[12px] leading-tight transition-colors ${d.filtrable ? "hover:bg-muted/60" : "cursor-default"} ${activo ? "bg-muted" : ""}`}
                         >
