@@ -572,13 +572,8 @@ function ModalCompra({
   const muestraOperacion = contado && b.banco_id && b.banco_id !== "caja";
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-foreground/40" onMouseDown={onCerrar}>
-      <div className="flex h-full w-full max-w-2xl animate-in slide-in-from-right flex-col overflow-y-auto border-l border-line bg-card font-['Roboto'] shadow-2xl duration-300" onMouseDown={(e) => e.stopPropagation()}>
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-line bg-card px-5 py-3.5">
-          <h2 className="text-lg font-bold tracking-tight text-ink">Registrar compra</h2>
-          <button type="button" onClick={onCerrar} className="text-muted-foreground transition-colors hover:text-ink" title="Cerrar (Esc)"><X size={18} /></button>
-        </div>
-
+    <VentanaFlotante titulo="Registrar compra" abierta onCerrar={onCerrar} ancho="max-w-2xl" ocultarBarra>
+      <div className="font-['Roboto']">
         {/* Contexto de la partida (precargado y bloqueado) */}
         <div className="grid grid-cols-12 gap-x-5 gap-y-3 border-b border-line bg-muted/40 px-5 py-4">
           <div className="col-span-3"><p className={etq}>Código de partida</p><p className="text-sm font-medium text-ink">{partida.codigo || "—"}</p></div>
