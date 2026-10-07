@@ -107,7 +107,7 @@ export type ParametrosLaborales = {
 };
 
 export const PARAMETROS_LABORALES_DEFECTO: Omit<ParametrosLaborales, "id"> = {
-  rmv: 1130,
+  rmv: 1230,
   essalud_pct: 9,
   sctr_pct: 1.5,
   vida_ley_pct: 0.53,

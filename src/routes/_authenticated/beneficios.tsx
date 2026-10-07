@@ -24,7 +24,7 @@ export const Route = createFileRoute("/_authenticated/beneficios")({
   component: Beneficios,
 });
 
-const RMV = 1130;
+const RMV = 1230; // vigente desde 01/10/2026
 type Tipo = "CTS" | "Gratificación" | "Liquidación";
 
 // Factores por régimen: gratificación, CTS, vacaciones (proporción del beneficio completo)
