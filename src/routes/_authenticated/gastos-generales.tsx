@@ -43,6 +43,7 @@ const formGastoVacio = () => ({
   proveedor_id: "",
   proyecto_id: "",
   categoria: "",
+  notas: "",
   monto: "",
   moneda: "PEN",
   tipo_cambio: "3.75",
@@ -96,6 +97,7 @@ function GastosGenerales() {
     comprobante: string;
     monto: string;
     categoria: string;
+    notas: string;
   } | null>(null);
   const nombreProv = (g: (typeof gastos)[number]) =>
     (g.proveedor_id ? terceros.find((t) => t.id === g.proveedor_id)?.razon_social : null) ?? g.proveedor ?? "—";
@@ -115,7 +117,7 @@ function GastosGenerales() {
   const gastosFiltrados =
     filtroCategoria === "Todas" ? porAmbito : porAmbito.filter((g) => (g.categoria ?? "") === filtroCategoria);
   const gastosBusqueda = gastosFiltrados.filter((g) =>
-    coincide(busqueda, g.descripcion, nombreProv(g), (g as Pago).comprobante),
+    coincide(busqueda, g.descripcion, nombreProv(g), (g as Pago).comprobante, g.notas ?? undefined),
   );
 
   const totalesCategoria = categoriasActivas
