@@ -33,3 +33,4 @@
 - Primary creation uses VentanaFlotante with consecutive saves and explicit close; project cost eligibility is enforced by database triggers across every cost source — keeps entry efficient and prevents bypasses.
 - Detraction collections store the BN account in ventas.banco_detraccion_id; treasury splits the sale between both banks — no duplicate sale rows.
 - The daily exchange rate is read only through useTipoCambioHoy (src/lib/tipo-cambio.ts), cached per Lima date in tipo_cambio_diario and in memory — one paid Decolecta call per day for the whole ERP.
+- Comisiones AFP mensuales de Decolecta se guardan en afp_comisiones_mensuales vía obtenerComisionesAfp (una consulta por período) — Nómina nunca usa tasas fijas salvo respaldo.

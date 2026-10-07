@@ -160,9 +160,9 @@ export const obtenerComisionesAfp = createServerFn({ method: "POST" })
       if (!res.ok) return respaldo(`Decolecta aún no publica comisiones de ese mes (${res.status}).`);
       const arr = (await res.json()) as Record<string, unknown>[];
       const filas = (Array.isArray(arr) ? arr : []).map((j) => {
-        const raw = String(j.afp ?? "").toUpperCase();
+        const raw = String(j["afp"] ?? "").toUpperCase();
         const afp = NOMBRES_AFP.find(([k]) => raw.includes(k))?.[1];
-        return afp ? { periodo: data.periodo, afp, aporte_fondo: Number(j.aporte_obligatorio ?? 10) / 100, prima_seguro: Number(j.prima_de_seguro ?? 0) / 100, comision_flujo: Number(j.comision_sobre_flujo ?? 0) / 100, tope_remuneracion: Number(j.remuneracion_maxima_asegurable ?? 0), origen: "decolecta", consultado_en: new Date().toISOString() } : null;
+        return afp ? { periodo: data.periodo, afp, aporte_fondo: Number(j["aporte_obligatorio"] ?? 10) / 100, prima_seguro: Number(j["prima_de_seguro"] ?? 0) / 100, comision_flujo: Number(j["comision_sobre_flujo"] ?? 0) / 100, tope_remuneracion: Number(j["remuneracion_maxima_asegurable"] ?? 0), origen: "decolecta", consultado_en: new Date().toISOString() } : null;
       }).filter(Boolean) as (ComisionAfp & { periodo: string })[];
       if (!filas.length) return respaldo("Decolecta no devolvió comisiones para ese mes.");
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
