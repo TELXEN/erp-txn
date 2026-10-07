@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
-import { CalendarIcon, Check, ChevronDown, ChevronRight, Plus, Trash2, Upload, X } from "lucide-react";
+import { CalendarIcon, Check, ChevronDown, ChevronRight, Plus, Search, Trash2, Upload, X } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Calendar } from "@/components/ui/calendar";
@@ -572,56 +572,65 @@ function ModalCompra({
     setB(borradorVacio());
   }
 
-  const etq = "mb-1 block text-[10px] font-medium uppercase tracking-wider text-muted-foreground";
-  const inp = "h-9 px-2.5 text-xs";
+  const etq = "mb-1 block text-[10px] font-bold uppercase tracking-wider text-muted-foreground";
+  const etqF = "mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-ink/70";
+  const inp = "h-9 px-3 text-sm";
+  const muestraOperacion = contado && b.banco_id && b.banco_id !== "caja";
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-foreground/40" onMouseDown={onCerrar}>
       <div className="flex h-full w-full max-w-2xl animate-in slide-in-from-right flex-col overflow-y-auto border-l border-line bg-card font-['Roboto'] shadow-2xl duration-300" onMouseDown={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between border-b border-line px-5 py-3">
-          <h2 className="text-base font-semibold tracking-tight">Registrar compra</h2>
-          <button type="button" onClick={onCerrar} className="text-muted-foreground hover:text-ink" title="Cerrar (Esc)"><X size={16} /></button>
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-line bg-card px-5 py-3.5">
+          <h2 className="text-lg font-bold tracking-tight text-ink">Registrar compra</h2>
+          <button type="button" onClick={onCerrar} className="text-muted-foreground transition-colors hover:text-ink" title="Cerrar (Esc)"><X size={18} /></button>
         </div>
 
-        <div className="grid grid-cols-2 gap-x-5 gap-y-3 border-b border-line bg-muted/40 px-5 py-4 text-xs sm:grid-cols-4">
-          <label><span className={etq}>Código de la partida</span>
-            <Input readOnly value={partida.codigo || "—"} className={`${inp} bg-muted font-semibold`} /></label>
-          <label className="col-span-2 sm:col-span-3"><span className={etq}>Descripción</span>
-            <Input readOnly value={partida.nombre} className={`${inp} bg-muted font-semibold`} /></label>
-          <ResumenDato t="Und." v={partida.unidad || "—"} />
-          <ResumenDato t="Presupuesto" v={soles(presuC / 100)} />
-          <ResumenDato t="Costo real" v={soles(costoC / 100)} />
-          <div>
-            <p className={etq}>Saldo</p>
-            <p className={`tabular-nums text-right font-semibold ${saldoActual < 0 ? "text-bad" : "text-good"}`}>{solesSaldo(saldoActual / 100)}</p>
-            <div className="mt-1"><BarraConsumo uso={usoActual} /></div>
+        {/* Contexto de la partida (precargado y bloqueado) */}
+        <div className="grid grid-cols-12 gap-x-5 gap-y-3 border-b border-line bg-muted/40 px-5 py-4">
+          <div className="col-span-3"><p className={etq}>Código de partida</p><p className="text-sm font-medium text-ink">{partida.codigo || "—"}</p></div>
+          <div className="col-span-7"><p className={etq}>Descripción</p><p className="truncate text-sm font-medium text-ink" title={partida.nombre}>{partida.nombre}</p></div>
+          <div className="col-span-2"><p className={etq}>Und.</p><p className="text-sm font-medium text-ink">{partida.unidad || "—"}</p></div>
+          <div className="col-span-3"><p className={etq}>Presupuesto</p><p className="text-sm tabular-nums text-ink">{soles(presuC / 100)}</p></div>
+          <div className="col-span-3"><p className={etq}>Costo real</p><p className="text-sm tabular-nums text-ink">{soles(costoC / 100)}</p></div>
+          <div className="col-span-6 flex flex-col justify-end">
+            <div className="flex items-end justify-between">
+              <p className={etq}>Saldo disponible</p>
+              <p className={`text-sm font-bold tabular-nums ${saldoActual < 0 ? "text-bad" : "text-good"}`}>{solesSaldo(saldoActual / 100)}</p>
+            </div>
+            <BarraConsumo uso={usoActual} />
+            <p className="mt-1 text-right text-[10px] text-muted-foreground">{usoActual.toFixed(0)}% consumido</p>
           </div>
         </div>
 
-        <form onSubmit={enviar} className="px-5 py-4">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <div><span className={etq}>Fecha</span><FechaPeru valor={b.fecha} onChange={(v) => setB({ ...b, fecha: v })} /></div>
-            <label><span className={etq}>Comprobante</span>
+        <form onSubmit={enviar} className="flex-1 space-y-5 px-5 py-5">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div><span className={etqF}>Fecha</span><FechaPeru valor={b.fecha} onChange={(v) => setB({ ...b, fecha: v })} /></div>
+            <label><span className={etqF}>Comprobante</span>
               <Input autoFocus value={b.comprobante} onChange={(e) => setB({ ...b, comprobante: e.target.value })} placeholder="F001-1240" maxLength={40} className={inp} /></label>
-            <label className="lg:col-span-2"><span className={etq}>Proveedor</span>
+            <label><span className={etqF}>Proveedor</span>
               <Select value={b.proveedor_id} onChange={(e) => setB({ ...b, proveedor_id: e.target.value })} className={inp}>
                 <option value="">Selecciona...</option>
                 {proveedores.map((t) => <option key={t.id} value={t.id}>{t.razon_social}</option>)}
               </Select></label>
-            <label className="sm:col-span-2"><span className={etq}>Insumo</span>
-              <AutoInsumo
-                value={b.insumoTexto}
-                insumos={insumos}
-                onChange={(v) => setB({ ...b, insumoTexto: v.toUpperCase(), insumo_id: null })}
-                onElegir={(i) => setB({ ...b, insumoTexto: i.descripcion.toUpperCase(), insumo_id: i.id })}
-                onEnter={() => void enviar()}
-              /></label>
-            <label><span className={etq}>Pago</span>
+          </div>
+
+          <label className="block"><span className={etqF}>Insumo</span>
+            <AutoInsumo
+              conIcono
+              value={b.insumoTexto}
+              insumos={insumos}
+              onChange={(v) => setB({ ...b, insumoTexto: v.toUpperCase(), insumo_id: null })}
+              onElegir={(i) => setB({ ...b, insumoTexto: i.descripcion.toUpperCase(), insumo_id: i.id })}
+              onEnter={() => void enviar()}
+            /></label>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <label><span className={etqF}>Pago</span>
               <Select value={b.condicion_pago} onChange={(e) => setB({ ...b, ...condicionVacia(e.target.value) })} className={inp}>
                 <option value="Contado">Contado</option>
                 <option value="Crédito">Crédito</option>
               </Select></label>
-            <label><span className={etq}>{contado ? "Banco" : `Días · vence ${fmtFecha(datosCondicion(b, b.fecha).fecha_vencimiento)}`}</span>
+            <label><span className={etqF}>{contado ? "Banco" : `Días · vence ${fmtFecha(datosCondicion(b, b.fecha).fecha_vencimiento)}`}</span>
               {contado ? (
                 <Select value={b.banco_id} onChange={(e) => setB({ ...b, banco_id: e.target.value })} className={inp}>
                   <option value="">Selecciona...</option>
@@ -639,29 +648,45 @@ function ModalCompra({
                   )}
                 </div>
               )}</label>
-            {contado && b.banco_id && b.banco_id !== "caja" && (
-              <label><span className={etq}>N° de operación</span>
+            {muestraOperacion && (
+              <label><span className={etqF}>N° de operación</span>
                 <Input value={b.numero_operacion} onChange={(e) => setB({ ...b, numero_operacion: e.target.value })} maxLength={40} className={inp} /></label>
             )}
-            <label><span className={etq}>Cantidad</span>
+          </div>
+
+          <div className="grid grid-cols-1 items-end gap-4 sm:grid-cols-3">
+            <label><span className={etqF}>Cantidad</span>
               <Input type="number" step="0.01" min="0" value={b.cantidad} onChange={(e) => setB({ ...b, cantidad: e.target.value })} className={`${inp} text-right`} /></label>
-            <label><span className={etq}>P.U. compra (S/)</span>
+            <label><span className={etqF}>P.U. compra (S/)</span>
               <Input type="number" step="0.01" min="0" value={b.precio_unitario} onChange={(e) => setB({ ...b, precio_unitario: e.target.value })} className={`${inp} text-right`} /></label>
-            <label><span className={etq}>Costo real</span>
-              <Input readOnly disabled value={soles(totalC / 100)} className={`${inp} bg-muted text-right font-semibold`} /></label>
-          </div>
-
-          <div className={`mt-4 grid grid-cols-3 gap-3 rounded-md border px-4 py-3 text-xs ${saldoNuevo < 0 ? "border-bad/40 bg-bad/10" : "border-line bg-muted/30"}`}>
-            <div><p className={etq}>Costo real proyectado</p><p className="font-semibold text-ink">{soles(nuevoCosto / 100)}</p></div>
-            <div>
-              <p className={etq}>Saldo proyectado</p>
-              <p className={`font-semibold ${saldoNuevo < 0 ? "text-bad" : "text-good"}`}>{soles(saldoNuevo / 100)}</p>
-              {saldoNuevo < 0 && <p className="text-[10px] text-bad">Sobregiro de {soles(-saldoNuevo / 100)}</p>}
+            <div className="rounded-md border border-line bg-muted/50 px-3 py-2">
+              <p className="mb-0.5 block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Costo real</p>
+              <p className="text-right text-sm font-bold tabular-nums text-ink">{soles(totalC / 100)}</p>
             </div>
-            <div><p className={etq}>Consumo proyectado</p><BarraConsumo uso={usoNuevo} /></div>
           </div>
 
-          <div className="mt-4 flex flex-wrap items-center justify-end gap-3">
+          <div className={`overflow-hidden rounded-lg border ${saldoNuevo < 0 ? "border-bad/40 bg-bad/10" : "border-line"}`}>
+            <div className="border-b border-line bg-muted/50 px-4 py-2">
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Impacto proyectado</h3>
+            </div>
+            <div className="grid grid-cols-3 divide-x divide-line text-center">
+              <div className="px-3 py-3">
+                <p className="mb-1 text-[10px] uppercase tracking-wide text-muted-foreground">Costo real</p>
+                <p className="text-sm font-semibold tabular-nums text-ink">{soles(nuevoCosto / 100)}</p>
+              </div>
+              <div className="px-3 py-3">
+                <p className="mb-1 text-[10px] uppercase tracking-wide text-muted-foreground">Saldo final</p>
+                <p className={`text-sm font-semibold tabular-nums ${saldoNuevo < 0 ? "text-bad" : "text-good"}`}>{soles(saldoNuevo / 100)}</p>
+                {saldoNuevo < 0 && <p className="text-[10px] text-bad">Sobregiro de {soles(-saldoNuevo / 100)}</p>}
+              </div>
+              <div className="flex flex-col items-center justify-center gap-1 px-3 py-3">
+                <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Consumo</p>
+                <BarraConsumo uso={usoNuevo} />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-end gap-3 pt-1">
             {error && <span className="mr-auto text-[11px] text-bad">{error}</span>}
             {ok && !error && <span className="mr-auto inline-flex items-center gap-1 text-[11px] text-good"><Check size={13} /> {ok}</span>}
             <Boton type="button" variante="linea" onClick={onCerrar}>Cancelar</Boton>
