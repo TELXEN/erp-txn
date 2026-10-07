@@ -1,9 +1,10 @@
-export type Situacion = "No iniciado" | "En proceso" | "Retrasado" | "Completado" | "Cancelado";
+export type Situacion = "Borrador" | "No iniciado" | "En proceso" | "Retrasado" | "Completado" | "Cancelado";
 export type Prioridad = "Alta" | "Media" | "Baja";
 
 export type Tono = { fondo: string; borde: string };
 
 export const SITUACIONES: Situacion[] = [
+  "Borrador",
   "No iniciado",
   "En proceso",
   "Retrasado",
@@ -14,6 +15,7 @@ export const SITUACIONES: Situacion[] = [
 export const PRIORIDADES: Prioridad[] = ["Alta", "Media", "Baja"];
 
 export const TONO_SITUACION: Record<Situacion, Tono> = {
+  Borrador: { fondo: "#E9E9E6", borde: "#A8A8A2" },
   "No iniciado": { fondo: "#E9E9E6", borde: "#C6C6C0" },
   "En proceso": { fondo: "#D2E9F8", borde: "#94C7E8" },
   Retrasado: { fondo: "#FBE1C4", borde: "#EFB673" },

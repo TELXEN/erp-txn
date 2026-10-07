@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useRef, useState, type ReactNode } from "react";
+import { useMemo, useRef, useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Check, Eye, Info, LayoutGrid, Pencil, Plus, Table2, Trash2, X } from "lucide-react";
+import { Archive, ArchiveRestore, Check, Copy, Eye, Info, LayoutGrid, MoreHorizontal, Pencil, Plus, Table2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Input, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 function estadoDe(situacion: string): "En Ejecucion" | "Finalizado" {
   return situacion.trim().toLowerCase().startsWith("finaliz") ? "Finalizado" : "En Ejecucion";
@@ -122,6 +123,9 @@ function Proyectos() {
   const { data: codificacion } = useCodificacion();
   const [vista, setVista] = useState<"tabla" | "kanban">("tabla");
   const [busqueda, setBusqueda] = useState("");
+  const [segmento, setSegmento] = useState<"Todos" | "Borradores" | "En Ejecución" | "Finalizados" | "Archivados">("Todos");
+  const [clienteFiltro, setClienteFiltro] = useState("");
+  const [viendoId, setViendoId] = useState<string | null>(null);
   const [formAbierto, setFormAbierto] = useState(false);
   const cerrarTrasGuardar = useRef(false);
   const [form, setForm] = useState({
@@ -157,9 +161,20 @@ function Proyectos() {
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
-  const proyectos = todosProyectos.filter((p) =>
-    coincide(busqueda, p.codigo, p.nombre, p.cliente, p.ubicacion),
-  );
+  const pertenece = (situacion: string, nombre: typeof segmento) => {
+    if (nombre === "Borradores") return situacion === "Borrador";
+    if (nombre === "En Ejecución") return situacion === "En proceso" || situacion === "Retrasado";
+    if (nombre === "Finalizados") return situacion === "Completado";
+    return true;
+  };
+  const segmentos = ["Todos", "Borradores", "En Ejecución", "Finalizados", "Archivados"] as const;
+  const proyectos = todosProyectos.filter((p) => {
+    const archivado = Boolean(p.archivado_en);
+    const visibleSegmento = segmento === "Archivados" ? archivado : !archivado && pertenece(p.situacion, segmento);
+    return visibleSegmento && (!clienteFiltro || p.cliente === clienteFiltro) && coincide(busqueda, p.codigo, p.nombre, p.cliente, p.ubicacion);
+  });
+  const clientesFiltro = useMemo(() => [...new Set(todosProyectos.map((p) => p.cliente).filter(Boolean))].sort(), [todosProyectos]);
+  const proyectoVisto = todosProyectos.find((p) => p.id === viendoId) ?? null;
 
   async function guardar(e: React.FormEvent) {
     e.preventDefault();
@@ -253,10 +268,40 @@ function Proyectos() {
     qc.invalidateQueries({ queryKey: ["proyectos"] });
   }
 
-  async function eliminar(id: string) {
-    if (!window.confirm("¿Eliminar este proyecto? Se perderán las partidas, tareos y gastos vinculados.")) return;
-    await supabase.from("proyectos").delete().eq("id", id);
+  async function cambiarArchivo(id: string, archivar: boolean) {
+    setError("");
+    const { error: err } = await supabase.from("proyectos").update({ archivado_en: archivar ? new Date().toISOString() : null } as never).eq("id", id);
+    if (err) return setError(err.message);
     qc.invalidateQueries({ queryKey: ["proyectos"] });
+  }
+
+  async function duplicar(id: string) {
+    const original = todosProyectos.find((p) => p.id === id);
+    if (!original) return;
+    setError("");
+    try {
+      const codigo = await generarCodigoProyecto();
+      const { error: err } = await supabase.from("proyectos").insert({
+        codigo,
+        nombre: `${original.nombre} (copia)`,
+        cliente: original.cliente,
+        ubicacion: original.ubicacion,
+        estado: "En Ejecucion",
+        situacion: "Borrador",
+        responsable_id: original.responsable_id,
+        fecha_inicio: original.fecha_inicio,
+        fecha_fin: original.fecha_fin,
+        avance_programado_pct: null,
+        fecha_corte_programado: null,
+        pct_gastos_generales: original.pct_gastos_generales,
+        pct_utilidad: original.pct_utilidad,
+      });
+      if (err) return setError(err.message);
+      setSegmento("Borradores");
+      qc.invalidateQueries({ queryKey: ["proyectos"] });
+    } catch (e2) {
+      setError(e2 instanceof Error ? e2.message : "No se pudo duplicar el proyecto.");
+    }
   }
 
   return (
@@ -383,8 +428,26 @@ function Proyectos() {
 
       <Panel
         titulo={vista === "tabla" ? "Listado de proyectos" : "Tablero Kanban de proyectos"}
-        extra={<Buscador valor={busqueda} onChange={setBusqueda} total={proyectos.length} placeholder="Buscar proyecto..." />}
+        extra={
+          <div className="flex flex-wrap items-center gap-2">
+            <Buscador valor={busqueda} onChange={setBusqueda} total={proyectos.length} placeholder="Buscar proyecto..." />
+            <Select aria-label="Filtrar por cliente" value={clienteFiltro} onChange={(e) => setClienteFiltro(e.target.value)} className="w-52 py-1.5 text-xs">
+              <option value="">Todos los clientes</option>
+              {clientesFiltro.map((cliente) => <option key={cliente} value={cliente}>{cliente}</option>)}
+            </Select>
+          </div>
+        }
       >
+        <div className="flex overflow-x-auto border-b border-line px-4 pt-2" aria-label="Estados de proyectos">
+          {segmentos.map((item) => {
+            const cantidad = todosProyectos.filter((p) => item === "Archivados" ? Boolean(p.archivado_en) : !p.archivado_en && pertenece(p.situacion, item)).length;
+            return (
+              <Boton key={item} type="button" variante="linea" onClick={() => setSegmento(item)} className={`shrink-0 rounded-b-none border-b-0 ${segmento === item ? "bg-primary text-primary-foreground" : "border-transparent text-muted-foreground"}`}>
+                {item}<span className="tabular-nums opacity-70">{cantidad}</span>
+              </Boton>
+            );
+          })}
+        </div>
         {proyectos.length === 0 ? (
           <Vacio texto={busqueda ? `Sin coincidencias para «${busqueda}»` : "Aún no hay proyectos registrados."} />
         ) : vista === "kanban" ? (
@@ -413,7 +476,7 @@ function Proyectos() {
           />
         ) : (
           <div className="overflow-x-auto">
-          <table className="w-full min-w-[1180px] table-fixed font-mono text-xs">
+          <table className="w-full min-w-[1280px] table-fixed font-['Roboto'] text-xs">
             <thead>
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
                 <th className="w-[11%] px-5 py-2 font-medium">Código</th>
@@ -421,10 +484,11 @@ function Proyectos() {
                 <th className="w-[20%] px-3 py-2 font-medium">Nombre de la obra</th>
                 <th className="w-[14%] px-3 py-2 font-medium">Responsable</th>
                 <th className="w-[13%] px-3 py-2 font-medium">Plazo</th>
+                <th className="w-[9%] px-3 py-2 font-medium">Avance</th>
                 <th className="w-[10%] px-3 py-2 text-right font-medium">Presupuesto</th>
                 <th className="w-[10%] px-3 py-2 text-right font-medium">Costo ejecutado</th>
                 <th className="w-[7%] px-3 py-2 font-medium">ESTADO</th>
-                <th className="w-[7%] px-5 py-2 text-right font-medium">Acciones</th>
+                <th className="w-[9%] px-5 py-2 text-right font-medium">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -527,6 +591,7 @@ function Proyectos() {
                             </div>
                           </div>
                         </td>
+                        <td className="px-3 py-2 align-top text-muted-foreground">Se actualiza al guardar</td>
                         <td className="px-3 py-2.5 text-right whitespace-nowrap">{soles(presupuesto)}</td>
                         <td
                           className={`px-3 py-2.5 text-right whitespace-nowrap ${costoReal > presupuesto && presupuesto > 0 ? "text-bad" : "text-ink"}`}
@@ -577,12 +642,10 @@ function Proyectos() {
                         </td>
                         <td className="px-3 py-3 align-top text-ink">
                           <span className="block">{fecha(p.fecha_inicio)} — {fecha(p.fecha_fin)}</span>
-                          <span className="mt-1 inline-flex rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary ring-1 ring-primary/20">
-                            Programado {p.avance_programado_pct === null ? "—" : `${Number(p.avance_programado_pct).toFixed(2)}%`}
-                          </span>
-                          {p.fecha_corte_programado && (
-                            <span className="block text-[10px] text-muted-foreground">Corte {fecha(p.fecha_corte_programado)}</span>
-                          )}
+                        </td>
+                        <td className="px-3 py-3 align-top">
+                          <div className="mb-1 flex justify-between text-[10px] text-muted-foreground"><span>Programado</span><span className="tabular-nums">{p.avance_programado_pct === null ? "—" : `${Number(p.avance_programado_pct).toFixed(1)}%`}</span></div>
+                          <div className="h-1.5 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-primary" style={{ width: `${Math.min(100, Math.max(0, Number(p.avance_programado_pct ?? 0)))}%` }} /></div>
                         </td>
                         <td className="px-3 py-3 align-top text-right whitespace-nowrap tabular-nums">{soles(presupuesto)}</td>
                         <td
@@ -605,7 +668,8 @@ function Proyectos() {
                               pctGG={Number(p.pct_gastos_generales ?? 0)}
                               pctUt={Number(p.pct_utilidad ?? 0)}
                             />
-                            <button
+                            <Boton variante="linea" className="h-7 w-7 px-0" aria-label="Ver proyecto" title="Ver" onClick={() => setViendoId(p.id)}><Eye className="size-4" /></Boton>
+                            <Boton variante="linea" className="h-7 w-7 px-0"
                               onClick={() =>
                                 setEditando({
                                   id: p.id,
@@ -622,18 +686,17 @@ function Proyectos() {
                                   pct_utilidad: String(p.pct_utilidad ?? 0),
                                 })
                               }
-                              className="grid h-7 w-7 place-items-center rounded-md border border-line hover:border-primary hover:text-primary"
                               title="Editar"
                             >
                               <Pencil className="size-4" />
-                            </button>
-                            <button
-                              onClick={() => eliminar(p.id)}
-                              className="grid h-7 w-7 place-items-center rounded-md border border-line hover:border-bad hover:text-bad"
-                              title="Eliminar"
-                            >
-                              <Trash2 className="size-4" />
-                            </button>
+                            </Boton>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild><Boton variante="linea" className="h-7 w-7 px-0" aria-label="Más acciones" title="Más acciones"><MoreHorizontal className="size-4" /></Boton></DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => duplicar(p.id)}><Copy /> Duplicar como borrador</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => cambiarArchivo(p.id, !p.archivado_en)}>{p.archivado_en ? <ArchiveRestore /> : <Archive />}{p.archivado_en ? "Restaurar" : "Archivar"}</DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </div>
                         </td>
                       </>
@@ -646,6 +709,16 @@ function Proyectos() {
           </div>
         )}
       </Panel>
+      <VentanaFlotante abierta={Boolean(proyectoVisto)} onCerrar={() => setViendoId(null)} titulo="Resumen del proyecto" subtitulo={proyectoVisto?.codigo ?? ""} ancho="max-w-2xl">
+        {proyectoVisto && (
+          <div className="grid gap-4 p-5 font-['Roboto'] sm:grid-cols-2">
+            <Seccion titulo="Proyecto"><p className="font-semibold text-ink">{proyectoVisto.nombre}</p><p className="text-sm text-muted-foreground">{proyectoVisto.cliente || "Sin cliente"}</p><p className="text-sm text-muted-foreground">{proyectoVisto.ubicacion || "Sin ubicación"}</p></Seccion>
+            <Seccion titulo="Estado y plazo"><InsigniaSituacion valor={proyectoVisto.situacion} /><p className="text-sm text-ink">{fecha(proyectoVisto.fecha_inicio)} — {fecha(proyectoVisto.fecha_fin)}</p><p className="text-sm text-muted-foreground">Responsable: {trabajadores.find((t) => t.id === proyectoVisto.responsable_id)?.nombre ?? "Sin asignar"}</p></Seccion>
+            <Seccion titulo="Presupuesto"><p className="text-right text-lg font-bold tabular-nums text-ink">{soles(presupuestoProyecto(proyectoVisto.id, partidas))}</p></Seccion>
+            <Seccion titulo="Costo ejecutado"><p className="text-right text-lg font-bold tabular-nums text-ink">{soles(costoRealProyecto(proyectoVisto.id, gastosD, tareos, gastosG, tareoVeh))}</p></Seccion>
+          </div>
+        )}
+      </VentanaFlotante>
     </>
   );
 }

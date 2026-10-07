@@ -3118,6 +3118,7 @@ export type Database = {
       }
       proyectos: {
         Row: {
+          archivado_en: string | null
           avance_programado_pct: number | null
           cliente: string
           codigo: string | null
@@ -3136,6 +3137,7 @@ export type Database = {
           ubicacion: string
         }
         Insert: {
+          archivado_en?: string | null
           avance_programado_pct?: number | null
           cliente?: string
           codigo?: string | null
@@ -3154,6 +3156,7 @@ export type Database = {
           ubicacion?: string
         }
         Update: {
+          archivado_en?: string | null
           avance_programado_pct?: number | null
           cliente?: string
           codigo?: string | null

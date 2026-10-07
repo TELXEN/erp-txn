@@ -41,6 +41,14 @@ function ErrorComponent({ error, reset }: import("@tanstack/react-router").Error
   const router = useRouter();
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
+    const mensaje = String(error instanceof Error ? error.message : error);
+    const moduloIncompatible = /Cannot read properties of null \(reading ['"](?:useContext|useState|useEffect)['"]\)|Invalid hook call|Failed to fetch dynamically imported module|Importing a module script failed/i.test(mensaje);
+    if (!moduloIncompatible) return;
+    const clave = "root-module-reload-at";
+    const ultimaRecarga = Number(sessionStorage.getItem(clave) ?? 0);
+    if (Date.now() - ultimaRecarga < 10000) return;
+    sessionStorage.setItem(clave, String(Date.now()));
+    window.location.reload();
   }, [error]);
 
   return (
