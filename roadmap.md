@@ -40,3 +40,4 @@
 - [x] Listado de proyectos: filtros, avance, acciones administrativas y validación central de costos.
 - [x] Gastos Generales: glosa validada, estado con medio/moneda, adjuntos contextuales y subtotales alineados.
 - [x] SIRE: mover botón «Sincronizar Compras y Ventas» a la altura de la fila de registros
+- [x] Nómina y Boletas: pestañas Planilla/Datos (comisiones AFP y parámetros legales en Datos) y tarjetas de totales con tonos suaves
