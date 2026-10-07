@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, Lock, Printer, RefreshCw, Unlock, Upload } from "lucide-react";
+import { Check, ClipboardList, Database, Lock, Printer, RefreshCw, Unlock, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
@@ -103,6 +103,7 @@ function Nomina() {
   const [anio, setAnio] = useState(ahora.getFullYear());
   const [mes, setMes] = useState(ahora.getMonth() + 1);
   const [editando, setEditando] = useState<Record<string, Record<string, string>>>({});
+  const [pestana, setPestana] = useState<"planilla" | "datos">("planilla");
   const [pago, setPago] = useState<{ banco_id: string; fecha_pago: string; numero_operacion: string } | null>(null);
   const [error, setError] = useState("");
   const periodoAfp = `${anio}-${String(mes).padStart(2, "0")}`;
@@ -273,7 +274,7 @@ function Nomina() {
         titulo="Nómina y Boletas"
         subtitulo="Planilla mensual del personal en 5ta categoría"
         acciones={
-          boletas.length > 0 && (
+          pestana === "planilla" && boletas.length > 0 && (
             <div className="flex gap-2">
               <Boton variante="linea" onClick={() => imprimir(ordenadas)}><Printer size={13} /> Imprimir boletas</Boton>
               <Boton
@@ -305,7 +306,71 @@ function Nomina() {
         }
       />
 
-      <Panel className="mb-4">
+      <div className="mb-4 flex flex-wrap gap-2">
+        <Boton variante={pestana === "planilla" ? "primario" : "linea"} onClick={() => setPestana("planilla")}>
+          <ClipboardList size={13} /> Planilla
+        </Boton>
+        <Boton variante={pestana === "datos" ? "primario" : "linea"} onClick={() => setPestana("datos")}>
+          <Database size={13} /> Datos
+        </Boton>
+      </div>
+
+      {pestana === "datos" ? (
+        <>
+          <Panel className="mb-4" titulo="Comisiones AFP del mes" extra={
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] text-muted-foreground">
+            {cargandoAfp ? "Consultando…" : origenAfp === "decolecta" ? `Decolecta · ${afpData?.periodoDatos}` : origenAfp === "guardado" ? `Último registro guardado · ${afpData?.periodoDatos}` : "Tasas de respaldo"}
+          </span>
+          {esGestor && (
+            <Boton variante="linea" onClick={async () => { setMsgAfp(""); const r = await actualizarAfp(); setMsgAfp(r.mensaje); }}>
+              <RefreshCw size={13} /> Actualizar desde Decolecta
+            </Boton>
+          )}
+        </div>
+      }>
+        <table className="w-full text-sm">
+          <thead className="text-[11px] uppercase text-muted-foreground">
+            <tr><th className="px-3 py-2 text-left">AFP</th><th className="px-3 py-2 text-right">Aporte al fondo</th><th className="px-3 py-2 text-right">Prima de seguro</th><th className="px-3 py-2 text-right">Comisión sobre flujo</th><th className="px-3 py-2 text-right">Total descuento</th><th className="px-3 py-2 text-right">Tope asegurable</th></tr>
+          </thead>
+          <tbody>
+            {comisiones.map((c) => (
+              <tr key={c.afp} className="border-t border-line">
+                <td className="px-3 py-1.5">{c.afp}</td>
+                <td className="px-3 py-1.5 text-right tabular-nums">{pct(c.aporte_fondo)}</td>
+                <td className="px-3 py-1.5 text-right tabular-nums">{pct(c.prima_seguro)}</td>
+                <td className="px-3 py-1.5 text-right tabular-nums">{pct(c.comision_flujo)}</td>
+                <td className="px-3 py-1.5 text-right font-semibold tabular-nums">{pct(c.aporte_fondo + c.prima_seguro + c.comision_flujo)}</td>
+                <td className="px-3 py-1.5 text-right tabular-nums">{c.tope_remuneracion > 0 ? soles(c.tope_remuneracion) : "—"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {(msgAfp || afpData?.mensaje) && <p className="border-t border-line px-3 py-2 text-xs text-muted-foreground">{msgAfp || afpData?.mensaje}</p>}
+      </Panel>
+
+      <Panel titulo="Parámetros legales de referencia">
+        <table className="w-full text-sm">
+          <tbody>
+            {[
+              ["Remuneración Mínima Vital (RMV)", "S/ 1,130.00"],
+              ["ONP", "13% de la remuneración"],
+              ["EsSalud", "9% de la remuneración · Agrario 6%"],
+              ["SIS Microempresa", "S/ 15.00 mensual"],
+              ["Asignación familiar", "10% de la RMV"],
+            ].map(([k, v]) => (
+              <tr key={k} className="border-t border-line first:border-0">
+                <td className="px-3 py-2">{k}</td>
+                <td className="px-3 py-2 text-right font-semibold tabular-nums">{v}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </Panel>
+        </>
+      ) : (
+        <>
+          <Panel className="mb-4">
         <div className="flex flex-wrap items-end gap-3 p-3">
           <Campo etiqueta="Mes">
             <Select value={mes} onChange={(e) => { setMes(Number(e.target.value)); setEditando({}); }} className="py-1.5">
@@ -347,47 +412,23 @@ function Nomina() {
           </div>
         )}
         {error && <p className="px-3 pb-3 font-mono text-xs text-bad">{error}</p>}
-      </Panel>
+          </Panel>
 
-      {planilla && (
-        <div className="mb-4 grid gap-3 sm:grid-cols-4">
-          {[["Total ingresos", suma("total_ingresos")], ["Descuentos al trabajador", suma("total_descuentos")], ["Neto a pagar", suma("neto_pagar")], ["EsSalud / SIS (empleador)", suma("essalud")]].map(([t, v]) => (
-            <div key={t as string} className="panel p-4"><p className="label-mono">{t}</p><p className="mt-1 text-lg font-semibold">{soles(v as number)}</p></div>
-          ))}
-        </div>
-      )}
-
-      <Panel className="mb-4" titulo="Comisiones AFP del mes" extra={
-        <div className="flex items-center gap-2">
-          <span className="text-[11px] text-muted-foreground">
-            {cargandoAfp ? "Consultando…" : origenAfp === "decolecta" ? `Decolecta · ${afpData?.periodoDatos}` : origenAfp === "guardado" ? `Último registro guardado · ${afpData?.periodoDatos}` : "Tasas de respaldo"}
-          </span>
-          {esGestor && (
-            <Boton variante="linea" onClick={async () => { setMsgAfp(""); const r = await actualizarAfp(); setMsgAfp(r.mensaje); }}>
-              <RefreshCw size={13} /> Actualizar desde Decolecta
-            </Boton>
+          {planilla && (
+            <div className="mb-4 grid gap-3 sm:grid-cols-4">
+              {[
+                { t: "Total ingresos", v: suma("total_ingresos"), barra: "border-l-chip-1", fondo: "bg-chip-1/5", acento: "text-chip-1" },
+                { t: "Descuentos al trabajador", v: suma("total_descuentos"), barra: "border-l-chip-margenes", fondo: "bg-chip-margenes/5", acento: "text-chip-margenes" },
+                { t: "Neto a pagar", v: suma("neto_pagar"), barra: "border-l-chip-mat", fondo: "bg-chip-mat/5", acento: "text-chip-mat" },
+                { t: "EsSalud / SIS (empleador)", v: suma("essalud"), barra: "border-l-chip-codificacion", fondo: "bg-chip-codificacion/5", acento: "text-chip-codificacion" },
+              ].map((c) => (
+                <div key={c.t} className={`panel border-l-[3px] p-4 ${c.barra} ${c.fondo}`}>
+                  <p className="label-mono">{c.t}</p>
+                  <p className={`mt-1 text-right text-lg font-semibold ${c.acento}`}>{soles(c.v)}</p>
+                </div>
+              ))}
+            </div>
           )}
-        </div>
-      }>
-        <table className="w-full text-sm">
-          <thead className="text-[11px] uppercase text-muted-foreground">
-            <tr><th className="px-3 py-2 text-left">AFP</th><th className="px-3 py-2 text-right">Aporte al fondo</th><th className="px-3 py-2 text-right">Prima de seguro</th><th className="px-3 py-2 text-right">Comisión sobre flujo</th><th className="px-3 py-2 text-right">Total descuento</th><th className="px-3 py-2 text-right">Tope asegurable</th></tr>
-          </thead>
-          <tbody>
-            {comisiones.map((c) => (
-              <tr key={c.afp} className="border-t border-line">
-                <td className="px-3 py-1.5">{c.afp}</td>
-                <td className="px-3 py-1.5 text-right tabular-nums">{pct(c.aporte_fondo)}</td>
-                <td className="px-3 py-1.5 text-right tabular-nums">{pct(c.prima_seguro)}</td>
-                <td className="px-3 py-1.5 text-right tabular-nums">{pct(c.comision_flujo)}</td>
-                <td className="px-3 py-1.5 text-right font-semibold tabular-nums">{pct(c.aporte_fondo + c.prima_seguro + c.comision_flujo)}</td>
-                <td className="px-3 py-1.5 text-right tabular-nums">{c.tope_remuneracion > 0 ? soles(c.tope_remuneracion) : "—"}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {(msgAfp || afpData?.mensaje) && <p className="border-t border-line px-3 py-2 text-xs text-muted-foreground">{msgAfp || afpData?.mensaje}</p>}
-      </Panel>
 
       <Panel titulo={`Planilla ${periodo}`} extra={<span className="font-mono text-[11px] text-muted-foreground">{boletas.length} boletas</span>}>
         {!planilla || boletas.length === 0 ? (
@@ -442,6 +483,8 @@ function Nomina() {
           </div>
         )}
       </Panel>
+        </>
+      )}
     </>
   );
 }
