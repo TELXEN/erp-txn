@@ -1,0 +1,1 @@
+ALTER TABLE public.gastos_generales DROP COLUMN notas;

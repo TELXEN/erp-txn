@@ -1778,7 +1778,6 @@ export type Database = {
           moneda: Database["public"]["Enums"]["moneda"]
           monto: number
           monto_soles: number
-          notas: string | null
           numero_operacion: string
           proveedor: string
           proveedor_id: string | null
@@ -1802,7 +1801,6 @@ export type Database = {
           moneda?: Database["public"]["Enums"]["moneda"]
           monto?: number
           monto_soles?: number
-          notas?: string | null
           numero_operacion?: string
           proveedor?: string
           proveedor_id?: string | null
@@ -1826,7 +1824,6 @@ export type Database = {
           moneda?: Database["public"]["Enums"]["moneda"]
           monto?: number
           monto_soles?: number
-          notas?: string | null
           numero_operacion?: string
           proveedor?: string
           proveedor_id?: string | null
