@@ -659,7 +659,7 @@ function Partidas() {
       </div>
 
       <Panel
-        titulo={vista === "kanban" ? "Tablero Kanban de partidas" : "Listado por proyecto y especialidad"}
+        titulo={vista === "kanban" ? "Tablero Kanban de partidas" : "Listado por proyecto y tipos"}
         extra={
           <div className="flex gap-2">
             <Select className="w-52" value={filtroProyecto} onChange={(e) => setFiltroProyecto(e.target.value)}>
