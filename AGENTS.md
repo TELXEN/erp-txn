@@ -28,6 +28,7 @@
 - On desktop, AppShell owns the viewport height and gives the sidebar navigation and central workspace independent vertical scrolling — keeps navigation fixed while long business screens remain usable.
 - Quotation WBS codes: multidisciplinary = 4 levels Especialidad.Grupo.Categoría.Partida (01.01.01.01); single-discipline = 3 levels Grupo.Categoría.Partida (01.01.01, the chapter is the group). Group 00 = none. Computed by numeracionCotizacion in src/lib/categorias.ts and persisted by the editor; projects copy those codes on conversion — one numbering source for editor, print and projects.
 - Vehicle timekeeping uses one row per usage day and only the daily rate; mileage remains in transfers.
+- VentanaFlotante can hide scrollbars per dialog while retaining scrolling — keeps short-screen fields accessible.
 - EMO validity is computed in src/lib/emo.ts from each worker's latest exam (emos_trabajador, admin/gerente-only) — one rule feeds every EMO alert.
 - Primary creation uses VentanaFlotante with consecutive saves and explicit close; project cost eligibility is enforced by database triggers across every cost source — keeps entry efficient and prevents bypasses.
 - Detraction collections store the BN account in ventas.banco_detraccion_id; treasury splits the sale between both banks — no duplicate sale rows.

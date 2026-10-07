@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Retirar búsqueda fallida de AFP y compactar Nuevo trabajador sin barra lateral visible.
+
 - [x] Ampliar y reorganizar los campos de Nuevo trabajador y permitir guardar con Enter.
 
 - [x] Convertir altas de vehículos, órdenes de compra, proyectos, partidas, importaciones y personal en ventanas flotantes con registro consecutivo.

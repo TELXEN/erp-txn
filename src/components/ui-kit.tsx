@@ -34,6 +34,7 @@ export function VentanaFlotante({
   onCerrar,
   children,
   ancho = "max-w-5xl",
+  ocultarBarra = false,
 }: {
   titulo: string;
   subtitulo?: string;
@@ -41,6 +42,7 @@ export function VentanaFlotante({
   onCerrar: () => void;
   children: ReactNode;
   ancho?: string;
+  ocultarBarra?: boolean;
 }) {
   useEffect(() => {
     if (!abierta) return;
@@ -51,12 +53,12 @@ export function VentanaFlotante({
 
   if (!abierta) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/40 p-4" onMouseDown={onCerrar}>
+    <div className={`fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/40 p-4 ${ocultarBarra ? "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden" : ""}`} onMouseDown={onCerrar}>
       <section
         role="dialog"
         aria-modal="true"
         aria-label={titulo}
-        className={`panel my-4 flex max-h-[calc(100vh-2rem)] w-full flex-col overflow-hidden shadow-xl ${ancho}`}
+        className={`panel my-4 flex ${ocultarBarra ? "max-h-[calc(100dvh-4rem)]" : "max-h-[calc(100vh-2rem)]"} w-full flex-col overflow-hidden shadow-xl ${ancho}`}
         onMouseDown={(e) => e.stopPropagation()}
       >
         <div className="flex shrink-0 items-start justify-between gap-3 border-b border-line px-5 py-3">
@@ -68,7 +70,7 @@ export function VentanaFlotante({
             <X size={14} />
           </Boton>
         </div>
-        <div className="min-h-0 overflow-y-auto">{children}</div>
+        <div className={`min-h-0 overflow-y-auto ${ocultarBarra ? "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden" : ""}`}>{children}</div>
       </section>
     </div>
   );

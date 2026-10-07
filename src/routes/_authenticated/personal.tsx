@@ -4,7 +4,7 @@ import { Fragment, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Check, Pencil, Plus, Stethoscope, Trash2, Upload, Users, X, UserRound, Briefcase, Wallet, Landmark, Search } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
-import { consultarAfpSbs, consultarDocumentoSunat } from "@/lib/decolecta.functions";
+import { consultarDocumentoSunat } from "@/lib/decolecta.functions";
 import { EmoPanel } from "@/components/personal/EmoPanel";
 import { estadoEmo, ESTADO_EMO_INFO, ultimoEmoPorTrabajador, useEmos } from "@/lib/emo";
 import { supabase } from "@/integrations/supabase/client";
@@ -31,12 +31,12 @@ function CampoF({ etiqueta, req, children, className = "" }: { etiqueta: string;
 function Seccion({ titulo, paso, icono: Icono, children }: { titulo: string; paso?: number; icono?: typeof Users; children: ReactNode }) {
   return (
     <div className="min-w-0">
-      <h3 className="mb-4 flex items-center gap-2 border-b border-line pb-3 text-sm font-bold text-ink">
+      <h3 className="mb-3 flex items-center gap-2 border-b border-line pb-2 text-sm font-bold text-ink">
         {paso && <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">{paso}</span>}
         {Icono && <Icono size={18} className="text-primary" />}
         {titulo}
       </h3>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">{children}</div>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">{children}</div>
     </div>
   );
 }
@@ -154,10 +154,8 @@ function Personal() {
   const faltante = dniDuplicado ? "Ya existe un trabajador con ese DNI." : validar(form);
   const setFormC = (campo: keyof FormPersonal, valor: string | boolean) => setForm((f) => aplicarCambio(f, campo, valor));
   const fnReniec = useServerFn(consultarDocumentoSunat);
-  const fnAfp = useServerFn(consultarAfpSbs);
-  const [consultando, setConsultando] = useState<"" | "reniec" | "afp">("");
+  const [consultando, setConsultando] = useState<"" | "reniec">("");
   const [msgReniec, setMsgReniec] = useState("");
-  const [msgAfp, setMsgAfp] = useState("");
   async function consultarReniec() {
     setConsultando("reniec"); setMsgReniec("");
     try {
@@ -165,18 +163,6 @@ function Personal() {
       if (r.encontrado) { setFormC("nombre", r.razonSocial); setMsgReniec("Nombre obtenido de RENIEC"); }
       else setMsgReniec(r.mensaje || "No se encontró el DNI.");
     } catch { setMsgReniec("No se pudo consultar RENIEC."); }
-    setConsultando("");
-  }
-  async function consultarAfp() {
-    setConsultando("afp"); setMsgAfp("");
-    try {
-      const r = await fnAfp({ data: { dni: form.dni } });
-      if (r.encontrado) {
-        if (r.afp) setFormC("sistema_pensiones", r.afp);
-        if (r.cuspp) setForm((f) => ({ ...f, cuspp: r.cuspp }));
-        setMsgAfp(`Afiliación SBS: ${r.afp || "AFP"}${r.cuspp ? ` · CUSPP ${r.cuspp}` : ""}`);
-      } else setMsgAfp(r.mensaje);
-    } catch { setMsgAfp("No se pudo consultar la SBS."); }
     setConsultando("");
   }
 
@@ -223,7 +209,6 @@ function Personal() {
       guardado = true;
       setForm(FORM_INICIAL);
       setMsgReniec("");
-      setMsgAfp("");
       if (cerrar) setFormAbierto(false);
       await qc.invalidateQueries({ queryKey: ["trabajadores"] });
     } catch {
@@ -338,12 +323,12 @@ function Personal() {
     const esAfp = planilla && f.sistema_pensiones.startsWith("AFP");
     return (
       <>
-        <CampoF etiqueta="Sistema de pensiones">
+        <CampoF etiqueta="Sistema de pensiones / AFP">
           <Select value={planilla ? f.sistema_pensiones : "Ninguno"} onChange={(e) => set("sistema_pensiones", e.target.value)} disabled={!planilla} className="py-1.5">
             {PENSIONES.map((p) => <option key={p} value={p}>{p}</option>)}
           </Select>
         </CampoF>
-        <CampoF etiqueta="CUSPP">
+        <CampoF etiqueta="CUSPP" req={esAfp}>
           <Input
             value={esAfp ? f.cuspp : ""}
             onChange={(e) => set("cuspp", e.target.value.toUpperCase())}
@@ -440,7 +425,7 @@ function Personal() {
       </div>
 
       {pestana === "emo" ? <EmoPanel trabajadores={trabajadores} /> : <>
-      <VentanaFlotante abierta={formAbierto} onCerrar={() => { setFormAbierto(false); setForm(FORM_INICIAL); setError(""); }} titulo="Nuevo trabajador" ancho="max-w-5xl">
+      <VentanaFlotante abierta={formAbierto} onCerrar={() => { setFormAbierto(false); setForm(FORM_INICIAL); setError(""); }} titulo="Nuevo trabajador" ancho="max-w-5xl" ocultarBarra>
         <form onSubmit={guardar}
           onKeyDown={(e) => {
             if (e.key !== "Enter" || e.nativeEvent.isComposing || !(e.target instanceof HTMLInputElement) || e.target.type === "checkbox") return;
@@ -448,9 +433,9 @@ function Personal() {
             cerrarTrasGuardar.current = false;
             e.currentTarget.requestSubmit();
           }}
-          className="[&_input:not([type=checkbox])]:h-11 [&_input:not([type=checkbox])]:text-base [&_select]:h-11 [&_select]:text-base [&_label>span]:text-sm [&_label_button]:h-11 [&_label_button]:text-sm">
-          <fieldset disabled={guardando} className="min-w-0 border-0 p-5 sm:p-6">
-          <div className="grid gap-x-8 gap-y-7 md:grid-cols-2">
+          className="[&_input:not([type=checkbox])]:h-10 [&_input:not([type=checkbox])]:text-base [&_select]:h-10 [&_select]:text-base [&_label>span]:text-sm [&_label_button]:h-10 [&_label_button]:text-sm">
+          <fieldset disabled={guardando} className="min-w-0 border-0 p-4 sm:px-6">
+          <div className="grid gap-x-8 gap-y-4 md:grid-cols-2">
             <Seccion titulo="Datos personales" paso={1} icono={UserRound}>
               <CampoF etiqueta="DNI" req className="col-span-full">
                 <div className="flex items-center gap-2">
@@ -475,17 +460,11 @@ function Personal() {
             <Seccion titulo="Sueldo y pago" paso={3} icono={Wallet}>{seccionSalario(form, setFormC, true)}</Seccion>
             <Seccion titulo="Régimen de pensiones" paso={4} icono={Landmark}>
               {seccionPrevision(form, setFormC)}
-              <div className="col-span-full">
-                <Boton type="button" variante="linea" onClick={consultarAfp} disabled={consultando !== "" || !/^\d{8}$/.test(form.dni) || form.tipo_contratacion !== "Planilla"}>
-                  <Search size={16} />{consultando === "afp" ? "Consultando SBS…" : "Consultar AFP en SBS"}
-                </Boton>
-                {msgAfp && <span className="mt-2 block text-xs text-muted-foreground">{msgAfp}</span>}
-              </div>
             </Seccion>
           </div>
           </fieldset>
-          <div className="sticky bottom-0 flex flex-wrap items-center justify-end gap-3 border-t border-line bg-card px-5 py-4 sm:px-6">
-            <p role="status" aria-live="polite" className={`w-full text-sm ${error ? "text-bad" : registrado ? "text-good" : "text-muted-foreground"}`}>{error || registrado || (faltante ? `Falta: ${faltante}` : "Todo listo para registrar.")}</p>
+           <div className="sticky bottom-0 flex flex-wrap items-center justify-end gap-2 border-t border-line bg-card px-5 py-3 sm:px-6">
+            <p role="status" aria-live="polite" className={`w-full text-sm md:mr-auto md:w-auto md:flex-1 ${error ? "text-bad" : registrado ? "text-good" : "text-muted-foreground"}`}>{error || registrado || (faltante ? `Falta: ${faltante}` : "Todo listo para registrar.")}</p>
             <Boton type="button" variante="linea" onClick={() => { setForm(FORM_INICIAL); setError(""); setFormAbierto(false); }}>Cancelar</Boton>
             <Boton type="submit" variante="linea" disabled={!!faltante || guardando || consultando !== ""} className="min-h-11 min-w-36" onClick={() => { cerrarTrasGuardar.current = false; }}>{guardando ? "Guardando…" : "Registrar otro"}</Boton>
             <Boton type="submit" variante="accion" disabled={!!faltante || guardando || consultando !== ""} className="min-h-11 min-w-36" onClick={() => { cerrarTrasGuardar.current = true; }}>Registrar y cerrar</Boton>
@@ -503,7 +482,7 @@ function Personal() {
               placeholder="Buscar por nombre, DNI o cargo..."
             />
             <span className="font-mono text-[11px] text-muted-foreground">{trabajadores.length} trabajadores</span>
-            <Boton variante="accion" onClick={() => { setRegistrado(""); setMsgReniec(""); setMsgAfp(""); setError(""); cerrarTrasGuardar.current = false; setFormAbierto(true); }}><Plus size={13} /> Nuevo trabajador</Boton>
+             <Boton variante="accion" onClick={() => { setRegistrado(""); setMsgReniec(""); setError(""); cerrarTrasGuardar.current = false; setFormAbierto(true); }}><Plus size={13} /> Nuevo trabajador</Boton>
           </div>
         }>
         {error && <p className="border-b border-line px-5 py-2 font-mono text-xs text-bad">{error}</p>}
