@@ -26,7 +26,7 @@ export type Proyecto = {
   periodicidad_cronograma?: "dia" | "semana" | "quincena" | "mes";
   pct_gastos_generales: number;
   pct_utilidad: number;
-  archivado_en: string | null;
+  archivado_en?: string | null;
 };
 
 /** Estructura de oferta: CD neto + GG (% del CD) + Utilidad (% del CD). */
