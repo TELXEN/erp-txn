@@ -342,7 +342,6 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
           </div>
         );
       })}
-      {reg && <span className="ml-2 font-mono text-[11px] text-muted-foreground">Estado: <b className={reg.estado === "Aceptado" ? "text-good" : "text-ink"}>{reg.estado}</b></span>}
     </div>
   );
 
