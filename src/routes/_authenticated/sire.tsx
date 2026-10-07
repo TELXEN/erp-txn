@@ -335,7 +335,7 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
         return (
           <div key={p} className="flex items-center gap-2">
             <button disabled={!habil} onClick={() => setPaso(n)}
-              className={`flex items-center gap-2 rounded-full px-3 py-1.5 font-mono text-[11px] tracking-wider transition-colors disabled:opacity-40 ${act ? "bg-primary text-primary-foreground" : hecho ? "bg-good/10 text-good" : "bg-card text-muted-foreground ring-1 ring-line"}`}>
+              className={`flex items-center gap-2 rounded-full px-2.5 py-1 font-mono text-[11px] tracking-wider transition-colors disabled:opacity-40 ${act ? "bg-primary text-primary-foreground" : hecho ? "bg-good/10 text-good" : "bg-card text-muted-foreground ring-1 ring-line"}`}>
               <span className="grid size-4 place-items-center rounded-full bg-current/10 text-[10px]">{hecho ? "✓" : n}</span>{p}
             </button>
             {i < 2 && <ChevronRight className="size-3.5 text-muted-foreground" />}
@@ -534,8 +534,8 @@ function ResumenOperaciones({ periodo, libro }: { periodo: string; libro: Libro 
   const neta = listo(rv) && listo(rc) ? r2(Number(rv?.total_igv ?? 0) - Number(rc?.total_igv ?? 0)) : null;
   return (
     <div className="panel rise overflow-hidden">
-      <div className="flex flex-wrap items-baseline gap-x-5 gap-y-0.5 px-4 py-2.5" style={{ fontFamily: "Roboto, Arial, sans-serif" }}>
-        <span className="label-mono shrink-0">RESUMEN DE OPERACIONES DEL PERÍODO</span>
+      <div className="flex flex-wrap items-baseline gap-x-5 gap-y-0.5 px-4 py-2" style={{ fontFamily: "Roboto, Arial, sans-serif" }}>
+        <span className="label-mono shrink-0">RESUMEN DEL PERÍODO</span>
         {tarjeta("RVIE", "VENTAS (RVIE)", ReceiptText)}
         {tarjeta("RCE", "COMPRAS (RCE)", ShoppingBag)}
         <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
