@@ -51,9 +51,9 @@ function SirePage() {
             <Boton variante={tab === "config" ? "primario" : "linea"} onClick={() => setTab("config")}><Settings size={13} />Configuración</Boton>
           ) : null}
           subtabs={
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-2">
               {pestanas.map(({ k, t, i: I }) => (
-                <button key={k} onClick={() => setTab(k)} className={`flex items-center gap-2 rounded-md border-b-2 px-3 py-1.5 text-xs transition-colors ${tab === k ? "border-cta bg-primary/10 font-semibold text-primary" : "border-transparent text-muted-foreground hover:bg-muted hover:text-primary"}`}><I className="size-3.5" />{t}</button>
+                <button key={k} onClick={() => setTab(k)} className={`inline-flex items-center gap-2 rounded-md px-3 py-2 font-mono text-xs font-medium transition-colors ${tab === k ? "bg-primary text-primary-foreground hover:ring-2 hover:ring-cta/70" : "border border-primary/40 bg-card text-primary hover:bg-primary hover:text-primary-foreground"}`}><I className="size-3.5" />{t}</button>
               ))}
             </div>
           } />
