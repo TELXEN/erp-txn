@@ -508,18 +508,16 @@ function ResumenOperaciones({ periodo, libro }: { periodo: string; libro: Libro 
     const total = r2(itemsL.reduce((s, i) => s + (i.total_sunat ?? i.base + i.igv), 0));
     const activo = libro === l;
     return (
-      <div className={`rounded-lg border p-4 ${activo ? "border-primary bg-primary/5 ring-1 ring-primary/30" : "border-line bg-card"}`}>
-        <p className="label-mono flex items-center gap-1.5"><I className="size-3.5" />{titulo}</p>
+      <div className={`flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5 ${activo ? "text-primary" : ""}`}>
+        <span className="label-mono flex shrink-0 items-center gap-1"><I className="size-3.5" />{titulo}</span>
         {!r || r.estado === "Pendiente" ? (
-          <p className="mt-2 font-mono text-[11px] text-muted-foreground">{r ? "Propuesta pendiente en SUNAT" : "Sin sincronizar este período"}</p>
+          <span className="font-mono text-[11px] text-muted-foreground">{r ? "Propuesta pendiente en SUNAT" : "Sin sincronizar este período"}</span>
         ) : (
           <>
-            <p className="mt-1 text-2xl font-bold tracking-tight">{soles(total)}</p>
-            <div className="mt-1.5 space-y-0.5 font-mono text-[11px] text-muted-foreground">
-              <p>Base imponible: <b className="text-ink">{soles(Number(r.total_base))}</b></p>
-              <p>IGV: <b className="text-ink">{soles(Number(r.total_igv))}</b></p>
-              <p>Comprobantes: <b className="text-ink">{r.total_docs}</b> · Estado: <b className={r.estado === "Aceptado" ? "text-good" : "text-ink"}>{r.estado}</b></p>
-            </div>
+            <span className="text-lg font-bold tracking-tight">{soles(total)}</span>
+            <span className="font-mono text-[10.5px] text-muted-foreground">
+              Base <b className="text-ink">{soles(Number(r.total_base))}</b> · IGV <b className="text-ink">{soles(Number(r.total_igv))}</b> · <b className="text-ink">{r.total_docs}</b> comp. · <b className={r.estado === "Aceptado" ? "text-good" : "text-ink"}>{r.estado}</b>
+            </span>
           </>
         )}
       </div>
@@ -530,17 +528,17 @@ function ResumenOperaciones({ periodo, libro }: { periodo: string; libro: Libro 
   const neta = listo(rv) && listo(rc) ? r2(Number(rv?.total_igv ?? 0) - Number(rc?.total_igv ?? 0)) : null;
   return (
     <Panel titulo="RESUMEN DE OPERACIONES DEL PERÍODO">
-      <div className="grid gap-3 p-4 sm:grid-cols-3">
+      <div className="flex flex-wrap items-baseline gap-x-8 gap-y-1 px-4 py-2.5" style={{ fontFamily: "Roboto, Arial, sans-serif" }}>
         {tarjeta("RVIE", "VENTAS (RVIE)", ReceiptText)}
         {tarjeta("RCE", "COMPRAS (RCE)", ShoppingBag)}
-        <div className="rounded-lg border border-line bg-card p-4">
-          <p className="label-mono">IGV POR PAGAR / SALDO</p>
+        <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
+          <span className="label-mono">IGV POR PAGAR / SALDO</span>
           {neta === null ? (
-            <p className="mt-2 font-mono text-[11px] text-muted-foreground">Sincroniza ambos libros para calcular</p>
+            <span className="font-mono text-[11px] text-muted-foreground">Sincroniza ambos libros para calcular</span>
           ) : (
             <>
-              <p className={`mt-1 text-2xl font-bold tracking-tight ${neta >= 0 ? "text-bad" : "text-good"}`}>{soles(Math.abs(neta))}</p>
-              <p className="mt-1.5 font-mono text-[11px] text-muted-foreground">{neta >= 0 ? "IGV ventas − compras: por pagar a SUNAT" : "Crédito fiscal a favor"}</p>
+              <span className={`text-lg font-bold tracking-tight ${neta >= 0 ? "text-bad" : "text-good"}`}>{soles(Math.abs(neta))}</span>
+              <span className="font-mono text-[10.5px] text-muted-foreground">{neta >= 0 ? "IGV ventas − compras: por pagar a SUNAT" : "Crédito fiscal a favor"}</span>
             </>
           )}
         </div>
