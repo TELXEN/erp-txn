@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      afp_comisiones_mensuales: {
+        Row: {
+          afp: string
+          aporte_fondo: number
+          comision_flujo: number
+          consultado_en: string
+          id: string
+          origen: string
+          periodo: string
+          prima_seguro: number
+          tope_remuneracion: number
+        }
+        Insert: {
+          afp: string
+          aporte_fondo: number
+          comision_flujo: number
+          consultado_en?: string
+          id?: string
+          origen?: string
+          periodo: string
+          prima_seguro: number
+          tope_remuneracion?: number
+        }
+        Update: {
+          afp?: string
+          aporte_fondo?: number
+          comision_flujo?: number
+          consultado_en?: string
+          id?: string
+          origen?: string
+          periodo?: string
+          prima_seguro?: number
+          tope_remuneracion?: number
+        }
+        Relationships: []
+      }
       apu_componentes: {
         Row: {
           cantidad: number
