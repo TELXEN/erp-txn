@@ -212,6 +212,7 @@ function Personal() {
     const mensaje = dniDuplicado ? "Ya existe un trabajador con ese DNI." : validar(form);
     if (mensaje) { cerrarTrasGuardar.current = false; setError(mensaje); return; }
     const cerrar = cerrarTrasGuardar.current;
+    let guardado = false;
     cerrarTrasGuardar.current = false;
     guardandoRef.current = true;
     setGuardando(true);
@@ -219,17 +220,18 @@ function Personal() {
       const { error: err } = await supabase.from("trabajadores").insert(datosGuardar(form));
       if (err) { setError(err.message); return; }
       setRegistrado(`${form.nombre.trim()} registrado correctamente.`);
+      guardado = true;
       setForm(FORM_INICIAL);
       setMsgReniec("");
       setMsgAfp("");
       if (cerrar) setFormAbierto(false);
-      else requestAnimationFrame(() => dniRef.current?.focus());
       await qc.invalidateQueries({ queryKey: ["trabajadores"] });
     } catch {
       setError("No se pudo guardar el trabajador. Revisa la conexión e inténtalo nuevamente.");
     } finally {
       guardandoRef.current = false;
       setGuardando(false);
+      if (guardado && !cerrar) requestAnimationFrame(() => dniRef.current?.focus());
     }
   }
 
