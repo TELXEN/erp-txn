@@ -4,8 +4,8 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
-import { Info, Lock, Plus, Search, Trash2, Upload, X } from "lucide-react";
+import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
+import { ChevronDown, ChevronRight, Clock, Hourglass, Info, Lock, Plus, Receipt, Search, Trash2, Upload, Wallet, X } from "lucide-react";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
 import {
@@ -91,6 +91,11 @@ function CajaChica() {
     proveedor: "",
   });
   const [errorRend, setErrorRend] = useState("");
+  const [agrupar, setAgrupar] = useState(false);
+  const [gruposCerrados, setGruposCerrados] = useState<Set<string>>(new Set());
+  const [rendirId, setRendirId] = useState<string | null>(null);
+  const [detalleId, setDetalleId] = useState<string | null>(null);
+  const [soloAtrasadas, setSoloAtrasadas] = useState(false);
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
@@ -145,6 +150,11 @@ function CajaChica() {
   ].sort((a, b) => (a.fecha < b.fecha ? 1 : -1));
 
   const rendidoDe = (cajaId: string) => rendicionesDe(cajaId).reduce((s, r) => s + r.monto, 0);
+  const diasDesde = (f: string) => Math.floor((Date.parse(hoy()) - Date.parse(f)) / 86400000);
+  const estaAtrasada = (c: (typeof cajas)[number]) =>
+    c.estado === "Abierta" && diasDesde(c.fecha_entrega) > 7 && rendicionesDe(c.id).length === 0;
+  const bancoCorto = (id?: string | null) => cuentas.find((x) => x.id === id)?.nombre ?? "—";
+  const opCorta = (op: string) => (op.length > 10 ? `…${op.slice(-6)}` : op);
 
   const cajasFiltradas = cajas.filter((c) =>
     coincide(busqueda, nombreResp(c.responsable_id), nombreProy(c.proyecto_id), c.motivo, c.numero_operacion ?? ""),
