@@ -14,14 +14,13 @@
 - Preliquidation PDFs are generated client-side with @react-pdf/renderer from a dedicated document template — this keeps branded multi-page exports consistent and independent from browser print styling.
 - Commercial quotation PDFs render as fixed A4 HTML sheets with repeated company/table headers and page numbering — this keeps html2pdf exports predictable across multi-page item lists.
 - Electronic invoices use dedicated comprobantes_electronicos/items/cuotas tables, while emitted invoices/receipts mirror into ventas for treasury compatibility; numbering is reserved only by an authenticated server function.
-- Electronic invoice A4 pages reserve a fixed bottom area repeating the full fiscal footer (amount in words) on every page — no item count can overlap it.
+- Invoice A4 pages reserve a fixed bottom area repeating the fiscal footer on every page — items never overlap it.
 - Quotation, preliquidation, and electronic invoice editing render in normal flow with the sidebar visible (no full-screen overlay); preview/PDF remains fixed A4 — this keeps navigation available during document editing without changing exports.
 - ERP and document typography comes from the controlled local-font catalogue in configuracion_documentos; the UI uses --font-global while technical mono text remains separate, and PDF/Excel exporters receive the same selection — this keeps every output consistent.
 - Document codes (projects, quotations, preliquidations, custom) are configured as rows in codificacion_documentos: free code + zero-padded correlative, generated via siguiente_codigo_documento — single source for all document numbering.
 - Insumo types live in the tipos_insumo table (key, name, digit, correlative); code reads them via useTiposInsumo and never hardcodes the type list except the five protected system keys — lets users add independent types with their own tab, margin and APU group.
 - The HT (herramientas manuales) type is hidden (tipos_insumo.oculto); calcularApu adds it automatically as the last row of the EQ group using the HT percentage from Márgenes APU — users never attach it manually.
-- Sidebar colors use dedicated semantic theme tokens, separate from header and workspace colors — dark navigation themes must not alter business screens.
-- Primary and action buttons use the active theme's sidebar base color — this keeps central workflows visually connected to navigation.
+- Sidebar colors use dedicated theme tokens (never altering business screens); primary/action buttons use the sidebar base color — keeps workflows tied to navigation.
 - Invoice, quotation and preliquidation documents take colors and font from src/lib/documento-tema.ts — one change updates all three outputs.
 - Preliquidation uses one shared sheet (HojaPreliquidacion.tsx) for editing and A4 preview, with amounts in src/lib/preliquidacion-montos.ts — edit, preview and PDF never diverge.
 - Purchase invoices downloaded from SUNAT are archived in comprobantes_recibidos(+_items) and the private comprobantes-compra bucket; downloads run only via the authenticated descargarComprobantesSire server fn in batches of 10 — keeps SOL credentials server-side and avoids worker timeouts.
@@ -32,4 +31,4 @@
 - Vehicle timekeeping uses one row per usage day and only the daily rate; mileage remains in transfers.
 - EMO validity is computed in src/lib/emo.ts from each worker's latest exam (emos_trabajador, admin/gerente-only) — one rule feeds every EMO alert.
 - Primary creation uses VentanaFlotante with consecutive saves and explicit close; project cost eligibility is enforced by database triggers across every cost source — keeps entry efficient and prevents bypasses.
-- Sales collections with detraction store the Banco de la Nación account in ventas.banco_detraccion_id; treasury credits the commercial bank with total minus detraction and the detraction account with the rest — keeps both balances truthful without duplicate sale rows.
+- Detraction collections store the BN account in ventas.banco_detraccion_id; treasury splits the sale between both banks — no duplicate sale rows.
