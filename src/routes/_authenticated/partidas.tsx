@@ -162,10 +162,9 @@ function Partidas() {
       partidas.filter(
         (p) =>
           (!filtroProyecto || p.proyecto_id === filtroProyecto) &&
-          (!filtroEsp || p.especialidad === filtroEsp) &&
           (!filtroTipo || (p.tipo_presupuesto ?? "Contractual") === filtroTipo) && (!busqueda || coincidentes.has(p.id)),
       ),
-    [partidas, filtroProyecto, filtroEsp, filtroTipo],
+    [partidas, filtroProyecto, filtroTipo],
   );
   const resumen = useMemo(() => resumenPresupuesto(visibles, tipos), [visibles, tipos]);
   const nombresTipos = useMemo(() => {
