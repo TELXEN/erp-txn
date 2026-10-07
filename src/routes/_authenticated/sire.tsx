@@ -170,7 +170,7 @@ function SincronizacionGlobal({ periodo, onPeriodoChange }: { periodo: string; o
 
   return (
     <div className="relative flex flex-wrap items-center justify-end gap-x-3 gap-y-1">
-      <div className="hidden items-center gap-x-4 font-mono text-[11px] text-muted-foreground min-[1500px]:flex">
+      <div className="hidden items-center gap-x-4 font-mono text-[11px] text-muted-foreground min-[1100px]:flex">
         {(["RVIE", "RCE"] as Libro[]).map((libro) => {
           const estado = estadoLibro(libro);
           return <span key={libro} className={estado === "error" ? "text-bad" : estado === "sincronizado" ? "text-good" : estado === "pendiente" ? "text-amber-700 dark:text-amber-400" : ""}>{etiquetaEstado(libro)}</span>;
