@@ -386,7 +386,7 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
                 </div>
                 <table className="w-full min-w-[1100px] text-sm">
                   <thead className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                    <tr>{["Fecha", "Tipo", "Serie-Número", "RUC / Razón social", "Base", "IGV", "Total SUNAT", "Total ERP", "Estado", ""].map((h, i) => <th key={i} className={`sticky top-[42px] z-10 whitespace-nowrap bg-muted px-3 py-2 ${i >= 4 && i <= 7 ? "text-right" : "text-left"} ${i === 3 ? "w-[30%] min-w-[260px]" : ""}`}>{h}</th>)}</tr>
+                    <tr>{["Fecha", "Tipo", "Serie-Número", "RUC / Razón social", "Base", "IGV", "Total SUNAT", "Total ERP", "Estado", ""].map((h, i) => <th key={i} className={`sticky top-[36px] z-10 whitespace-nowrap bg-muted px-3 py-1.5 ${i >= 4 && i <= 7 ? "text-right" : "text-left"} ${i === 3 ? "w-[30%] min-w-[260px]" : ""}`}>{h}</th>)}</tr>
                   </thead>
                   <tbody>
                     {visibles.map((i) => {
