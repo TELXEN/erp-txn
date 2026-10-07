@@ -215,7 +215,6 @@ function GastosGenerales() {
     ...(totalMant > 0 ? [{ nombre: "Mantenimiento vehicular", total: totalMant, filtrable: false }] : []),
     ...(totalComb > 0 ? [{ nombre: "Combustible vehicular", total: totalComb, filtrable: false }] : []),
   ].sort((a, b) => b.total - a.total);
-  const maxDesglose = Math.max(0, ...desglose.map((d) => d.total));
   const granTotalDesglose = desglose.reduce((s, d) => s + d.total, 0);
   const COLORES_FIJOS: Record<string, string> = {
     "Mantenimiento vehicular": "#64748B",
