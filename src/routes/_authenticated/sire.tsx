@@ -46,18 +46,20 @@ function SirePage() {
     <div>
       <Encabezado titulo="SIRE SUNAT" subtitulo="FINANZAS Y CONTABILIDAD · REGISTROS ELECTRÓNICOS" />
       <div className="sticky top-0 z-30 -mx-1 bg-background px-1 pb-1">
-        <SincronizacionGlobal periodo={periodo} onPeriodoChange={setPeriodo} botonesGrupos={
-          <div className="flex flex-wrap items-center gap-1">
-            {grupos.map((g) => { const Icono = g.icono; return <Boton key={g.titulo} variante={g === grupoActivo ? "primario" : "linea"} onClick={() => { const primero = g.items[0]; if (primero) setTab(primero.k); }}><Icono size={13} />{g.titulo}</Boton>; })}
-          </div>
-        } />
-        {grupoActivo && (
-          <div className="mb-2 flex flex-wrap items-center gap-1">
-            {grupoActivo.items.map(({ k, t, i: I }) => (
-              <button key={k} onClick={() => setTab(k)} className={`flex items-center gap-2 rounded-md border-b-2 px-3 py-1.5 text-xs transition-colors ${tab === k ? "border-cta bg-primary/10 font-semibold text-primary" : "border-transparent text-muted-foreground hover:bg-muted hover:text-primary"}`}><I className="size-3.5" />{t}</button>
-            ))}
-          </div>
-        )}
+        <SincronizacionGlobal periodo={periodo} onPeriodoChange={setPeriodo}
+          botonConfig={rol === "gerente" ? (
+            <Boton variante={tab === "config" ? "primario" : "linea"} onClick={() => setTab("config")}><Settings size={13} />Configuración</Boton>
+          ) : null}
+          botonRegistros={
+            <Boton variante={tab !== "config" ? "primario" : "linea"} onClick={() => setTab("RVIE")}><LibraryBig size={13} />Registros</Boton>
+          }
+          subtabs={
+            <div className="flex items-center gap-1">
+              {(grupoActivo?.items ?? []).map(({ k, t, i: I }) => (
+                <button key={k} onClick={() => setTab(k)} className={`flex items-center gap-2 rounded-md border-b-2 px-3 py-1.5 text-xs transition-colors ${tab === k ? "border-cta bg-primary/10 font-semibold text-primary" : "border-transparent text-muted-foreground hover:bg-muted hover:text-primary"}`}><I className="size-3.5" />{t}</button>
+              ))}
+            </div>
+          } />
         {tab !== "config" && <div className="mb-4"><ResumenOperaciones periodo={periodo} libro={tab} /></div>}
       </div>
       {tab === "config" ? <ConfigSol /> : <PanelLibro key={tab} libro={tab} periodo={periodo} />}
@@ -67,7 +69,7 @@ function SirePage() {
 
 type EstadoSincronizacion = "esperando" | "procesando" | "sincronizado" | "pendiente" | "error";
 
-function SincronizacionGlobal({ periodo, onPeriodoChange, botonesGrupos }: { periodo: string; onPeriodoChange: (periodo: string) => void; botonesGrupos?: React.ReactNode }) {
+function SincronizacionGlobal({ periodo, onPeriodoChange, botonConfig, botonRegistros, subtabs }: { periodo: string; onPeriodoChange: (periodo: string) => void; botonConfig?: React.ReactNode; botonRegistros?: React.ReactNode; subtabs?: React.ReactNode }) {
   const qc = useQueryClient();
   const sincronizar$ = useServerFn(sincronizarSire);
   const [progreso, setProgreso] = useState<number | null>(null);
@@ -175,22 +177,26 @@ function SincronizacionGlobal({ periodo, onPeriodoChange, botonesGrupos }: { per
   };
 
   return (
-    <div className="relative mb-2 flex flex-wrap items-start justify-between gap-2">
-      <div className="flex flex-wrap items-center gap-2">
-        {botonesGrupos}
-      </div>
-      <div className="flex items-center gap-2">
-        <div className="hidden items-center gap-3 rounded-md border border-line bg-card px-3 py-1.5 font-mono text-[10.5px] leading-tight text-muted-foreground min-[1100px]:flex">
-          {(["RVIE", "RCE"] as Libro[]).map((libro) => {
-            const estado = estadoLibro(libro);
-            return <span key={libro} className={estado === "error" ? "text-bad" : estado === "sincronizado" ? "text-good" : estado === "pendiente" ? "text-amber-700 dark:text-amber-400" : ""}>{etiquetaEstado(libro)}</span>;
-          })}
-        </div>
-        <div className="flex items-center gap-2">
+    <div className="relative mb-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {botonConfig}
           <Campo etiqueta="Mes"><Select value={m} onChange={(e) => onPeriodoChange(`${y}-${String(e.target.value).padStart(2, "0")}`)}>{MESES.map((n, i) => <option key={n} value={i + 1}>{n}</option>)}</Select></Campo>
           <Campo etiqueta="Año"><Select value={y} onChange={(e) => onPeriodoChange(`${e.target.value}-${String(m).padStart(2, "0")}`)}>{anios.map((a) => <option key={a}>{a}</option>)}</Select></Campo>
         </div>
-        <Boton onClick={sincronizarTodo} disabled={progreso !== null}><RefreshCw className={`size-3.5 ${progreso !== null ? "animate-spin" : ""}`} />Sincronizar Compras y Ventas</Boton>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 font-mono text-[10.5px] leading-tight text-muted-foreground">
+            {(["RVIE", "RCE"] as Libro[]).map((libro) => {
+              const estado = estadoLibro(libro);
+              return <span key={libro} className={estado === "error" ? "text-bad" : estado === "sincronizado" ? "text-good" : estado === "pendiente" ? "text-amber-700 dark:text-amber-400" : ""}>{etiquetaEstado(libro)}</span>;
+            })}
+          </div>
+          <Boton onClick={sincronizarTodo} disabled={progreso !== null}><RefreshCw className={`size-3.5 ${progreso !== null ? "animate-spin" : ""}`} />Sincronizar Compras y Ventas</Boton>
+        </div>
+      </div>
+      <div className="mt-4 flex flex-wrap items-center justify-start gap-4">
+        {botonRegistros}
+        {subtabs}
       </div>
       {progreso !== null && (
         <div className="absolute -bottom-1 left-0 right-0 h-0.5 bg-muted"><div className="h-full bg-primary transition-all duration-300" style={{ width: `${progreso}%` }} /></div>
