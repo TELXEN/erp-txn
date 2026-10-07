@@ -316,7 +316,7 @@ function Personal() {
             </div>
           </>
         )}
-        <label className="col-span-full flex items-center gap-2 text-sm text-ink">
+        <label className="col-span-full flex items-center gap-2 text-xs text-ink">
           {planilla ? (
             <><input type="checkbox" checked={f.asignacion_familiar} onChange={(e) => set("asignacion_familiar", e.target.checked)} /> Asignación familiar</>
           ) : (
