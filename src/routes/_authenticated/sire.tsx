@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   CheckCircle2, AlertTriangle, XCircle, RefreshCw, KeyRound, ShieldCheck, Download, Send, LibraryBig, Settings,
-  FileSpreadsheet, ShoppingBag, ReceiptText, Plus, ChevronRight, ChevronLeft,
+  FileSpreadsheet, ShoppingBag, ReceiptText, Plus, ChevronRight, ChevronLeft, Link2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -264,6 +264,7 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
   const aceptar$ = useServerFn(aceptarSire);
   const { data: rucEmpresa } = useQuery({ queryKey: ["sire-ruc"], queryFn: async () => (await supabase.from("empresa_config").select("ruc").limit(1).maybeSingle()).data?.ruc ?? "" });
   const [filtro, setFiltro] = useState<"todos" | "ok" | "disc" | "sunat">("todos");
+  const [vinculando, setVinculando] = useState<Item | null>(null);
 
   const { data: reg } = useQuery({
     queryKey: ["sire", libro, periodo],
@@ -329,6 +330,14 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
         {reg && <span className="ml-auto font-mono text-[11px] text-muted-foreground">Estado: <b className={reg.estado === "Aceptado" ? "text-good" : "text-ink"}>{reg.estado}</b></span>}
       </div>
 
+      {vinculando && reg && <VincularManual item={vinculando} libro={libro} periodo={periodo} items={items} onCerrar={() => setVinculando(null)}
+        onVincular={async (d) => {
+          const nuevos = items.map((x) => x.clave !== vinculando.clave ? x : { ...x, total_erp: d.total, igv_erp: d.igv, vinculado: d.serie_numero, estado: (Math.abs((x.moneda && x.moneda !== "PEN" ? (x.total_sunat ?? 0) * (x.tipo_cambio || 1) : (x.total_sunat ?? 0)) - d.total) > 0.01 ? "discrepancia" : "match") as Estado });
+          const { error } = await supabase.from("sire_periodos").update({ items: nuevos as never }).eq("id", reg.id);
+          if (error) { toast.error(error.message); return; }
+          await qc.invalidateQueries({ queryKey: ["sire", libro, periodo] });
+          toast.success(`${vinculando.serie_numero} vinculado con ${d.serie_numero} del ERP`); setVinculando(null);
+        }} />}
       {detalle && <DetalleDoc item={detalle} onCerrar={() => setDetalle(null)} />}
       <div key={paso} className="rise">
         {paso === 1 && (
@@ -357,14 +366,14 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
                 </>
               )}
               {([["todos", "Todos"], ["ok", "Conciliados"], ["disc", "Con Discrepancias"], ["sunat", "Solo en SUNAT"]] as const).map(([k, t]) => (
-                <button key={k} onClick={() => setFiltro(k)} className={`rounded-md px-2.5 py-1 font-mono text-[11px] ${filtro === k ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}>{t} <span className="opacity-70">({cuenta[k]})</span></button>
+                <button key={k} onClick={() => setFiltro(k)} className={`inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[11px] ${k === "disc" && cuenta.disc > 0 ? (filtro === k ? "bg-amber-500 font-semibold text-white ring-1 ring-amber-600" : "bg-amber-500/15 font-semibold text-amber-700 ring-1 ring-amber-500/40 hover:bg-amber-500/25 dark:text-amber-400") : filtro === k ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}>{k === "disc" && cuenta.disc > 0 && <AlertTriangle className="size-3" />}{t} <span className={k === "disc" && cuenta.disc > 0 ? "" : "opacity-70"}>({cuenta[k]})</span></button>
               ))}
             </div>}>
             {visibles.length === 0 ? <Vacio texto="Sin documentos en este filtro" /> : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+              <div className="overflow-x-auto" style={{ fontFamily: "Roboto, Arial, sans-serif" }}>
+                <table className="w-full min-w-[1100px] text-sm">
                   <thead className="bg-muted/50 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                    <tr>{["Fecha", "Tipo", "Serie-Número", "RUC / Razón social", "Base", "IGV", "Total SUNAT", "Total ERP", "Estado", ""].map((h, i) => <th key={i} className={`px-3 py-2 ${i >= 4 && i <= 7 ? "text-right" : "text-left"}`}>{h}</th>)}</tr>
+                    <tr>{["Fecha", "Tipo", "Serie-Número", "RUC / Razón social", "Base", "IGV", "Total SUNAT", "Total ERP", "Estado", ""].map((h, i) => <th key={i} className={`whitespace-nowrap px-3 py-2 ${i >= 4 && i <= 7 ? "text-right" : "text-left"} ${i === 3 ? "w-[30%] min-w-[260px]" : ""}`}>{h}</th>)}</tr>
                   </thead>
                   <tbody>
                     {visibles.map((i) => {
@@ -377,9 +386,9 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
                           <td className="px-3 py-2 font-mono text-xs">{fmtFecha(i.fecha)}</td>
                           <td className="px-3 py-2 font-mono text-xs">{i.tipo}</td>
                           <td className="px-3 py-2 font-mono text-xs whitespace-nowrap">{i.serie_numero}</td>
-                          <td className="px-3 py-2"><p className="font-mono text-[11px] text-muted-foreground">{i.ruc || "—"}</p><p className="truncate text-xs">{i.razon}</p></td>
-                          <td className="px-3 py-2 text-right font-mono text-xs">{soles(i.base)}</td>
-                          <td className="px-3 py-2 text-right font-mono text-xs">
+                          <td className="px-3 py-2"><p className="font-mono text-[11px] text-muted-foreground">{i.ruc || "—"}</p><p className="line-clamp-2 break-words text-xs leading-snug" title={i.razon}>{i.razon}</p>{i.vinculado && <p className="mt-0.5 inline-flex items-center gap-1 text-[10px] text-primary"><Link2 className="size-3" />Vinculado a {i.vinculado}</p>}</td>
+                          <td className="px-3 py-2 text-right text-xs tabular-nums whitespace-nowrap">{soles(i.base)}</td>
+                          <td className="px-3 py-2 text-right text-xs tabular-nums whitespace-nowrap">
                             {soles(i.igv)}
                             {parcial && (
                               <span className="ml-1 rounded bg-sky-500/15 px-1 font-mono text-[10px] font-semibold text-sky-700 dark:text-sky-400">
@@ -392,18 +401,27 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
                               </span>
                             )}
                           </td>
-                          <td className="px-3 py-2 text-right font-mono text-xs">{i.total_sunat == null ? "—" : soles(i.total_sunat)}</td>
-                          <td className="px-3 py-2 text-right font-mono text-xs">
+                          <td className="px-3 py-2 text-right text-xs tabular-nums whitespace-nowrap">{i.total_sunat == null ? "—" : soles(i.total_sunat)}</td>
+                          <td className="px-3 py-2 text-right text-xs tabular-nums whitespace-nowrap">
                             {i.total_erp == null ? "—" : soles(i.total_erp)}
                             {i.estado === "discrepancia" && <p className="text-[10px] text-amber-700 dark:text-amber-400">Δ {soles((i.total_sunat ?? 0) - (i.total_erp ?? 0))}</p>}
                           </td>
                           <td className="px-3 py-2"><span className={`inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 font-mono text-[10px] ring-1 ${e.c}`}><e.I className="size-3" />{e.t}</span></td>
                           <td className="px-3 py-2 text-right">
                             {i.estado === "faltante" && (
+                              <div className="flex items-center justify-end gap-1">
                               <Boton variante="linea" className="whitespace-nowrap !py-1" onClick={(ev) => { ev.stopPropagation();
-                                toast.info(`Registra ${i.serie_numero} · ${i.razon} · ${soles(i.total_sunat ?? 0)}`);
-                                navigate({ to: libro === "RCE" ? "/gastos-generales" : "/facturacion-electronica" });
+                                if (libro === "RVIE") {
+                                  sessionStorage.setItem("sire-prefill-cpe", JSON.stringify({ fecha: i.fecha, tipo: i.tipo, serie_numero: i.serie_numero, ruc: i.ruc, razon: i.razon, base: i.base, igv: i.igv, total: i.total_sunat, moneda: i.moneda ?? "PEN", tipo_cambio: i.tipo_cambio ?? 0, vencimiento: i.vencimiento ?? "" }));
+                                  navigate({ to: "/facturacion-electronica", search: { preliquidacion: "" } });
+                                } else {
+                                  toast.info(`Registra ${i.serie_numero} · ${i.razon} · ${soles(i.total_sunat ?? 0)}`);
+                                  navigate({ to: "/gastos-generales" });
+                                }
                               }}><Plus className="size-3" />{libro === "RCE" ? "Registrar en Gasto" : "Emitir"}</Boton>
+                              <button title="Vincular manualmente con un documento del ERP" aria-label="Vincular manualmente" onClick={(ev) => { ev.stopPropagation(); setVinculando(i); }}
+                                className="inline-flex items-center gap-1 whitespace-nowrap rounded-md px-2 py-1 text-[11px] text-muted-foreground ring-1 ring-line hover:bg-muted hover:text-primary"><Link2 className="size-3" />Vincular</button>
+                              </div>
                             )}
                           </td>
                         </tr>
@@ -541,6 +559,44 @@ function DetalleDoc({ item, onCerrar }: { item: Item; onCerrar: () => void }) {
           ))}
         </dl>
       </aside>
+    </div>
+  );
+}
+
+function VincularManual({ item, libro, periodo, items, onCerrar, onVincular }: { item: Item; libro: Libro; periodo: string; items: Item[]; onCerrar: () => void; onVincular: (d: { serie_numero: string; total: number; igv: number }) => Promise<void> }) {
+  const [q, setQ] = useState(""); const [ocupado, setOcupado] = useState(false);
+  const { data: erp = [], isLoading } = useQuery({ queryKey: ["sire-erp-vincular", libro, periodo], queryFn: () => cargarErp(libro, periodo) });
+  const usados = new Set(items.map((x) => (x.vinculado ?? (x.total_erp != null ? x.serie_numero : "")).toUpperCase()));
+  const serieItem = item.serie_numero.split("-")[0]?.toUpperCase() ?? "";
+  const libres = erp.filter((d) => !usados.has(d.serie_numero.toUpperCase()))
+    .filter((d) => !q || `${d.serie_numero} ${d.razon} ${d.ruc}`.toLowerCase().includes(q.toLowerCase()))
+    .sort((a, b) => Number(b.serie_numero.toUpperCase().startsWith(serieItem) || b.ruc === item.ruc) - Number(a.serie_numero.toUpperCase().startsWith(serieItem) || a.ruc === item.ruc) || Math.abs(a.total - (item.total_sunat ?? 0)) - Math.abs(b.total - (item.total_sunat ?? 0)));
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4" onClick={onCerrar}>
+      <div className="w-full max-w-2xl rounded-lg bg-card shadow-xl ring-1 ring-line" style={{ fontFamily: "Roboto, Arial, sans-serif" }} onClick={(e) => e.stopPropagation()}>
+        <div className="border-b border-line px-5 py-3">
+          <p className="text-sm font-semibold">Vincular manualmente</p>
+          <p className="text-xs text-muted-foreground">SUNAT: <b>{item.serie_numero}</b> · {item.ruc} {item.razon} · <span className="tabular-nums">{soles(item.total_sunat ?? 0)}</span></p>
+        </div>
+        <div className="p-4">
+          <Input placeholder="Buscar por serie-número, RUC o razón social…" value={q} onChange={(e) => setQ(e.target.value)} autoFocus />
+          <div className="mt-3 max-h-80 overflow-y-auto rounded-md ring-1 ring-line">
+            {isLoading ? <p className="p-4 text-xs text-muted-foreground">Cargando documentos del ERP…</p> : libres.length === 0 ? <p className="p-4 text-xs text-muted-foreground">No hay documentos del ERP sin conciliar en este período.</p> : (
+              <table className="w-full text-xs">
+                <thead className="bg-muted/50 text-[10px] uppercase text-muted-foreground"><tr><th className="px-3 py-2 text-left">Serie-Número</th><th className="px-3 py-2 text-left">RUC / Razón social</th><th className="px-3 py-2 text-right">Total ERP</th><th /></tr></thead>
+                <tbody>{libres.map((d) => (
+                  <tr key={d.clave} className="border-t border-line hover:bg-muted/30">
+                    <td className="whitespace-nowrap px-3 py-2">{d.serie_numero}<p className="text-[10px] text-muted-foreground">{fmtFecha(d.fecha)}</p></td>
+                    <td className="px-3 py-2"><p className="text-[10px] text-muted-foreground">{d.ruc || "—"}</p><p className="line-clamp-2">{d.razon}</p></td>
+                    <td className={`whitespace-nowrap px-3 py-2 text-right tabular-nums ${Math.abs(d.total - (item.total_sunat ?? 0)) > 0.01 ? "text-amber-700 dark:text-amber-400" : "text-good"}`}>{soles(d.total)}</td>
+                    <td className="px-3 py-2 text-right"><Boton className="!py-1" disabled={ocupado} onClick={async () => { setOcupado(true); await onVincular(d); setOcupado(false); }}>Vincular</Boton></td>
+                  </tr>))}</tbody>
+              </table>
+            )}
+          </div>
+        </div>
+        <div className="flex justify-end border-t border-line px-5 py-3"><Boton variante="linea" onClick={onCerrar}>Cancelar</Boton></div>
+      </div>
     </div>
   );
 }
