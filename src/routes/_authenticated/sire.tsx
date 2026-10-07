@@ -530,8 +530,9 @@ function ResumenOperaciones({ periodo, libro }: { periodo: string; libro: Libro 
   const listo = (r: typeof rv) => r && r.estado !== "Pendiente";
   const neta = listo(rv) && listo(rc) ? r2(Number(rv?.total_igv ?? 0) - Number(rc?.total_igv ?? 0)) : null;
   return (
-    <Panel titulo="RESUMEN DE OPERACIONES DEL PERÍODO">
-      <div className="flex flex-wrap items-baseline gap-x-8 gap-y-1 px-4 py-2.5" style={{ fontFamily: "Roboto, Arial, sans-serif" }}>
+    <div className="panel rise overflow-hidden">
+      <div className="flex flex-wrap items-baseline gap-x-5 gap-y-0.5 px-4 py-2.5" style={{ fontFamily: "Roboto, Arial, sans-serif" }}>
+        <span className="label-mono shrink-0">RESUMEN DE OPERACIONES DEL PERÍODO</span>
         {tarjeta("RVIE", "VENTAS (RVIE)", ReceiptText)}
         {tarjeta("RCE", "COMPRAS (RCE)", ShoppingBag)}
         <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
@@ -540,13 +541,13 @@ function ResumenOperaciones({ periodo, libro }: { periodo: string; libro: Libro 
             <span className="font-mono text-[11px] text-muted-foreground">Sincroniza ambos libros para calcular</span>
           ) : (
             <>
-              <span className={`text-lg font-bold tracking-tight ${neta >= 0 ? "text-bad" : "text-good"}`}>{soles(Math.abs(neta))}</span>
+              <span className={`text-base font-bold tracking-tight ${neta >= 0 ? "text-bad" : "text-good"}`}>{soles(Math.abs(neta))}</span>
               <span className="font-mono text-[10.5px] text-muted-foreground">{neta >= 0 ? "IGV ventas − compras: por pagar a SUNAT" : "Crédito fiscal a favor"}</span>
             </>
           )}
         </div>
       </div>
-    </Panel>
+    </div>
   );
 }
 
