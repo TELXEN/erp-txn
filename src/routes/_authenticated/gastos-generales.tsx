@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { InsigniaCategoriaGasto } from "@/components/estado-ui";
+import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { Building2, CalendarDays, Check, ChevronDown, ChevronRight, Info, Paperclip, Pencil, Plus, Search, Truck, Trash2, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -215,6 +216,18 @@ function GastosGenerales() {
     ...(totalComb > 0 ? [{ nombre: "Combustible vehicular", total: totalComb, filtrable: false }] : []),
   ].sort((a, b) => b.total - a.total);
   const maxDesglose = Math.max(0, ...desglose.map((d) => d.total));
+  const granTotalDesglose = desglose.reduce((s, d) => s + d.total, 0);
+  const COLORES_FIJOS: Record<string, string> = {
+    "Mantenimiento vehicular": "#64748B",
+    "Combustible vehicular": "#B45309",
+  };
+  const PALETA_DESGLOSE = ["#2563EB", "#F59E0B", "#10B981", "#7C3AED", "#EA580C", "#DB2777", "#0EA5E9", "#059669", "#64748B"];
+  const coloresDesglose = new Map<string, string>();
+  let paletaIdx = 0;
+  for (const d of desglose) {
+    const fijo = COLORES_FIJOS[d.nombre];
+    coloresDesglose.set(d.nombre, fijo ?? PALETA_DESGLOSE[paletaIdx++ % PALETA_DESGLOSE.length]);
+  }
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
