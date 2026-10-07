@@ -225,7 +225,7 @@ function GastosGenerales() {
   let paletaIdx = 0;
   for (const d of desglose) {
     const fijo = COLORES_FIJOS[d.nombre];
-    coloresDesglose.set(d.nombre, fijo ?? PALETA_DESGLOSE[paletaIdx++ % PALETA_DESGLOSE.length]);
+    coloresDesglose.set(d.nombre, fijo ?? PALETA_DESGLOSE[paletaIdx++ % PALETA_DESGLOSE.length] ?? PALETA_DESGLOSE[0]!);
   }
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
