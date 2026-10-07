@@ -394,7 +394,7 @@ function Personal() {
           <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
             <Seccion titulo="Datos personales" paso={1} icono={UserRound}>
               <CampoF etiqueta="DNI" req>
-                <Input inputMode="numeric" pattern="[0-9]{8}" maxLength={8} value={form.dni} onChange={(e) => setFormC("dni", e.target.value.replace(/\D/g, ""))} required className={`py-1.5 ${dniDuplicado ? "border-bad" : ""}`} placeholder="8 dígitos" />
+                <Input autoFocus inputMode="numeric" pattern="[0-9]{8}" maxLength={8} value={form.dni} onChange={(e) => setFormC("dni", e.target.value.replace(/\D/g, ""))} required className={`py-1.5 ${dniDuplicado ? "border-bad" : ""}`} placeholder="8 dígitos" />
                 <span className={`mt-0.5 block text-[10px] ${dniDuplicado ? "text-bad" : "text-muted-foreground"}`}>{dniDuplicado ? "DNI ya registrado" : `${form.dni.length}/8`}</span>
               </CampoF>
               <CampoF etiqueta="N° Celular" req>

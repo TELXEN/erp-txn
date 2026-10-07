@@ -240,7 +240,7 @@ function ImportacionesPage() {
         <form onSubmit={guardar} className="space-y-4 p-5">
           <div className="grid gap-3 sm:grid-cols-4">
             <Campo etiqueta="Proveedor (registrado)">
-              <Select value={form.proveedor_id} onChange={(e) => set("proveedor_id", e.target.value)}>
+              <Select autoFocus value={form.proveedor_id} onChange={(e) => set("proveedor_id", e.target.value)}>
                 <option value="">— Escribir nombre —</option>
                 {proveedores.map((p) => <option key={p.id} value={p.id}>{p.razon_social}</option>)}
               </Select>

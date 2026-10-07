@@ -437,6 +437,7 @@ function Partidas() {
           <div className="sm:col-span-6">
             <Campo etiqueta="Cargar desde el registro maestro">
               <Select
+                autoFocus
                 value=""
                 onChange={(e) => {
                   const m = maestras.find((x) => x.id === e.target.value);

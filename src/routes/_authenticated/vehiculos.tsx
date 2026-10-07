@@ -587,7 +587,7 @@ function PaginaVehiculos() {
                 <div>
                   <p className="label-mono mb-2 text-primary">Identificación</p>
                   <div className="grid grid-cols-2 gap-3 md:grid-cols-6">
-                    <Campo etiqueta="Placa"><Input value={formVeh.placa} onChange={(e) => setFormVeh({ ...formVeh, placa: e.target.value.toUpperCase() })} placeholder="ABC-123" autoComplete="off" /></Campo>
+                    <Campo etiqueta="Placa"><Input autoFocus value={formVeh.placa} onChange={(e) => setFormVeh({ ...formVeh, placa: e.target.value.toUpperCase() })} placeholder="ABC-123" autoComplete="off" /></Campo>
                     <Campo etiqueta="Marca"><Input value={formVeh.marca} onChange={(e) => setFormVeh({ ...formVeh, marca: e.target.value })} placeholder="Toyota" /></Campo>
                     <Campo etiqueta="Modelo"><Input value={formVeh.modelo} onChange={(e) => setFormVeh({ ...formVeh, modelo: e.target.value })} placeholder="Hilux 4x4" /></Campo>
                     <Campo etiqueta="Año"><Input type="number" min="1980" max="2030" value={formVeh.anio} onChange={(e) => setFormVeh({ ...formVeh, anio: e.target.value })} placeholder="2022" /></Campo>

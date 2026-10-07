@@ -332,7 +332,7 @@ function OrdenesCompraPage() {
         <form onSubmit={guardar} className="space-y-3 px-5 py-4">
           <div className="grid gap-3 sm:grid-cols-3">
             <Campo etiqueta="Obra">
-              <Select value={form.proyecto_id} onChange={(e) => { setForm({ ...form, proyecto_id: e.target.value, requerimiento_id: "" }); setLineas([]); }}>
+              <Select autoFocus value={form.proyecto_id} onChange={(e) => { setForm({ ...form, proyecto_id: e.target.value, requerimiento_id: "" }); setLineas([]); }}>
                 <option value="">Seleccionar…</option>
                 {proyectos.map((p) => <option key={p.id} value={p.id}>{nombreProy(p.id)}</option>)}
               </Select>
