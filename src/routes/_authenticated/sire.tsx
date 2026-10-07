@@ -37,11 +37,11 @@ function SirePage() {
   const [tab, setTab] = useState<"config" | Libro>("RVIE");
   const [periodo, setPeriodo] = useState(periodoDefecto());
   if (rol !== "gerente" && rol !== "administrador") return <SinAcceso />;
-  const grupos: { titulo: string; icono: React.ElementType; items: { k: "config" | Libro; t: string; i: React.ElementType }[] }[] = [
-    { titulo: "Registros", icono: LibraryBig, items: [{ k: "RVIE", t: "Ventas (RVIE)", i: ReceiptText }, { k: "RCE", t: "Compras (RCE)", i: ShoppingBag }] },
-    ...(rol === "gerente" ? [{ titulo: "Configuración", icono: Settings, items: [{ k: "config" as const, t: "API SOL", i: KeyRound }] }] : []),
+  const pestanas: { k: "config" | Libro; t: string; i: React.ElementType }[] = [
+    { k: "RVIE", t: "Ventas (RVIE)", i: ReceiptText },
+    { k: "RCE", t: "Compras (RCE)", i: ShoppingBag },
+    ...(tab === "config" && rol === "gerente" ? [{ k: "config" as const, t: "API SOL", i: KeyRound }] : []),
   ];
-  const grupoActivo = grupos.find((g) => g.items.some((x) => x.k === tab)) ?? grupos[0];
   return (
     <div>
       <Encabezado titulo="SIRE SUNAT" subtitulo="FINANZAS Y CONTABILIDAD · REGISTROS ELECTRÓNICOS" />
@@ -50,12 +50,9 @@ function SirePage() {
           botonConfig={rol === "gerente" ? (
             <Boton variante={tab === "config" ? "primario" : "linea"} onClick={() => setTab("config")}><Settings size={13} />Configuración</Boton>
           ) : null}
-          botonRegistros={
-            <Boton variante={tab !== "config" ? "primario" : "linea"} onClick={() => setTab("RVIE")}><LibraryBig size={13} />Registros</Boton>
-          }
           subtabs={
             <div className="flex items-center gap-1">
-              {(grupoActivo?.items ?? []).map(({ k, t, i: I }) => (
+              {pestanas.map(({ k, t, i: I }) => (
                 <button key={k} onClick={() => setTab(k)} className={`flex items-center gap-2 rounded-md border-b-2 px-3 py-1.5 text-xs transition-colors ${tab === k ? "border-cta bg-primary/10 font-semibold text-primary" : "border-transparent text-muted-foreground hover:bg-muted hover:text-primary"}`}><I className="size-3.5" />{t}</button>
               ))}
             </div>
@@ -69,7 +66,7 @@ function SirePage() {
 
 type EstadoSincronizacion = "esperando" | "procesando" | "sincronizado" | "pendiente" | "error";
 
-function SincronizacionGlobal({ periodo, onPeriodoChange, botonConfig, botonRegistros, subtabs }: { periodo: string; onPeriodoChange: (periodo: string) => void; botonConfig?: React.ReactNode; botonRegistros?: React.ReactNode; subtabs?: React.ReactNode }) {
+function SincronizacionGlobal({ periodo, onPeriodoChange, botonConfig, subtabs }: { periodo: string; onPeriodoChange: (periodo: string) => void; botonConfig?: React.ReactNode; subtabs?: React.ReactNode }) {
   const qc = useQueryClient();
   const sincronizar$ = useServerFn(sincronizarSire);
   const [progreso, setProgreso] = useState<number | null>(null);
