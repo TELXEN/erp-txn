@@ -456,7 +456,8 @@ function GastosDirectos() {
                       );
                     })}
                   </React.Fragment>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -477,7 +478,7 @@ function GastosDirectos() {
           />
         );
       })()}
-    </>
+    </div>
   );
 }
 
