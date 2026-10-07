@@ -908,7 +908,7 @@ function ModalGasto({
             <label><span className={etq}>N° comprobante</span>
               <Input value={form.comprobante} onChange={(e) => setForm({ ...form, comprobante: e.target.value })} placeholder="F001-4520" maxLength={40} className={inp} /></label>
             <label className="sm:col-span-2"><span className={etq}>Detalle / Glosa</span>
-              <Input autoFocus required minLength={2} value={form.descripcion} onChange={(e) => { setForm({ ...form, descripcion: e.target.value }); setError(""); }} maxLength={160} className={inp} aria-invalid={Boolean(error && validarGlosa(form.descripcion))} />
+              <Input autoFocus required minLength={2} value={form.descripcion} onChange={(e) => { setForm({ ...form, descripcion: e.target.value }); setError(""); }} onBlur={() => setError(validarGlosa(form.descripcion) ?? "")} maxLength={160} className={inp} aria-invalid={Boolean(error && validarGlosa(form.descripcion))} />
               {error && validarGlosa(form.descripcion) && <span className="mt-1 block text-[10px] text-bad">{error}</span>}
             </label>
             <label className="sm:col-span-2"><span className={etq}>Categoría del gasto</span>
