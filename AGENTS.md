@@ -31,3 +31,4 @@
 - Quotation WBS codes: multidisciplinary = 4 levels Especialidad.Grupo.Categoría.Partida (01.01.01.01); single-discipline = 3 levels Grupo.Categoría.Partida (01.01.01, the chapter is the group). Group 00 = none. Computed by numeracionCotizacion in src/lib/categorias.ts and persisted by the editor; projects copy those codes on conversion — one numbering source for editor, print and projects.
 - Vehicle timekeeping uses one row per usage day and only the daily rate; mileage remains in transfers.
 - EMO validity is computed in src/lib/emo.ts from each worker's latest exam (emos_trabajador, admin/gerente-only) — one rule feeds every EMO alert.
+- Primary record creation uses the shared VentanaFlotante and supports consecutive saves plus explicit save-and-close — keeps lists visible and entry workflows consistent.

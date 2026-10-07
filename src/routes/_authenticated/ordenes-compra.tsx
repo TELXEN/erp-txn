@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, ChevronRight, PackageCheck, Plus, Trash2, Upload } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
+import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { soles } from "@/lib/format";
@@ -62,6 +62,8 @@ function OrdenesCompraPage() {
   const [error, setError] = useState("");
   const [aviso, setAviso] = useState("");
   const [busqueda, setBusqueda] = useState("");
+  const [modalNueva, setModalNueva] = useState(false);
+  const cerrarTrasGuardar = useRef(false);
 
   const proveedores = terceros.filter((t) => t.es_proveedor && t.activo);
   const nombreProy = (id: string) => {
@@ -170,6 +172,7 @@ function OrdenesCompraPage() {
     setLineas([]);
     setForm({ ...form, requerimiento_id: "", observacion: "", fecha_entrega: "" });
     setAbierto(oc.id);
+    if (cerrarTrasGuardar.current) setModalNueva(false);
     for (const k of ["ordenes_compra", "orden_compra_items", "requerimientos"]) qc.invalidateQueries({ queryKey: [k] });
   }
 
@@ -325,11 +328,11 @@ function OrdenesCompraPage() {
         }
       />
 
-      <Panel titulo="Nueva orden de compra" className="mb-5">
+      <VentanaFlotante abierta={modalNueva} onCerrar={() => setModalNueva(false)} titulo="Nueva orden de compra" subtitulo="Emite varias órdenes consecutivamente y cierra cuando termines." ancho="max-w-7xl">
         <form onSubmit={guardar} className="space-y-3 px-5 py-4">
           <div className="grid gap-3 sm:grid-cols-3">
             <Campo etiqueta="Obra">
-              <Select value={form.proyecto_id} onChange={(e) => { setForm({ ...form, proyecto_id: e.target.value, requerimiento_id: "" }); setLineas([]); }}>
+              <Select autoFocus value={form.proyecto_id} onChange={(e) => { setForm({ ...form, proyecto_id: e.target.value, requerimiento_id: "" }); setLineas([]); }}>
                 <option value="">Seleccionar…</option>
                 {proyectos.map((p) => <option key={p.id} value={p.id}>{nombreProy(p.id)}</option>)}
               </Select>
@@ -404,12 +407,14 @@ function OrdenesCompraPage() {
               ))}
             </Select>
             <Boton type="button" variante="linea" onClick={agregarInsumo}><Plus size={14} className="mr-1 inline" /> Agregar</Boton>
-            <Boton type="submit">Emitir orden</Boton>
+            <Boton type="button" variante="linea" onClick={() => setModalNueva(false)}>Cancelar</Boton>
+            <Boton type="submit" variante="linea" onClick={() => { cerrarTrasGuardar.current = false; }}>Emitir otra</Boton>
+            <Boton type="submit" onClick={() => { cerrarTrasGuardar.current = true; }}>Emitir y cerrar</Boton>
           </div>
           {error && <p className="font-mono text-xs text-bad">{error}</p>}
           {aviso && <p className="font-mono text-xs text-primary">{aviso}</p>}
         </form>
-      </Panel>
+      </VentanaFlotante>
 
       <Panel
         titulo="Órdenes emitidas"
@@ -420,6 +425,7 @@ function OrdenesCompraPage() {
             <option value="">Todas las obras</option>
             {proyectos.map((p) => <option key={p.id} value={p.id}>{nombreProy(p.id)}</option>)}
           </Select>
+          <Boton variante="accion" onClick={() => { setError(""); setAviso(""); setModalNueva(true); }}><Plus size={13} /> Nueva orden de compra</Boton>
           </div>
         }
       >

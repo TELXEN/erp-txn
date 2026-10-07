@@ -5,7 +5,7 @@ import React, { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
+import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { pct, soles } from "@/lib/format";
 import {
@@ -77,7 +77,7 @@ function Partidas() {
   const [filtroEsp, setFiltroEsp] = useState("");
   const [filtroTipo, setFiltroTipo] = useState("");
   const [vista, setVista] = useState<"tabla" | "kanban">("tabla");
-  const [pestana, setPestana] = useState<"listado" | "nueva">("listado");
+  const [modalNueva, setModalNueva] = useState(false);
   const [colapsados, setColapsados] = useState<Set<string>>(new Set());
   const alternar = (clave: string) =>
     setColapsados((prev) => {
@@ -214,15 +214,15 @@ function Partidas() {
     if (err) return setError(err.message);
     setForm({ ...form, codigo: "", nombre: "", marca: "", metrado: "1", precio_unitario: "" });
     qc.invalidateQueries({ queryKey: ["partidas"] });
-    if (accionRef.current === "volver") setPestana("listado");
+    if (accionRef.current === "volver") setModalNueva(false);
   }
 
-  function abrirPestana(id: "listado" | "nueva") {
-    if (id === "nueva" && filtroProyecto && !form.proyecto_id) {
+  function abrirNueva() {
+    if (filtroProyecto && !form.proyecto_id) {
       setForm((f) => ({ ...f, proyecto_id: filtroProyecto }));
     }
     setError("");
-    setPestana(id);
+    setModalNueva(true);
   }
 
   async function actualizar(e?: React.MouseEvent | React.FormEvent) {
@@ -427,31 +427,17 @@ function Partidas() {
       </div>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-line pb-3">
         <div className="flex flex-wrap gap-1">
-          {([
-            ["listado", "Listado y estructura"],
-            ["nueva", "Nueva partida"],
-          ] as const).map(([id, txt]) => (
-            <button
-              key={id}
-              type="button"
-              onClick={() => abrirPestana(id)}
-              className={`rounded-md border-b-2 px-3 py-1.5 text-xs transition-colors ${pestana === id ? "border-cta bg-primary/10 font-semibold text-primary" : "border-transparent text-muted-foreground hover:bg-muted hover:text-primary"}`}
-            >
-              {txt}
-            </button>
-          ))}
+          <button type="button" className="rounded-md border-b-2 border-cta bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary">Listado y estructura</button>
         </div>
-        {pestana === "listado" && (
-          <Boton onClick={() => abrirPestana("nueva")} className="mb-1">+ Nueva partida</Boton>
-        )}
+        <Boton onClick={abrirNueva} className="mb-1">+ Nueva partida</Boton>
       </div>
 
-      {pestana === "nueva" && (
-      <Panel titulo="Registrar nueva partida" className="mb-4">
+      <VentanaFlotante abierta={modalNueva} onCerrar={() => setModalNueva(false)} titulo="Registrar nueva partida" subtitulo="Registra varias partidas consecutivamente y cierra cuando termines." ancho="max-w-6xl">
         <form onSubmit={guardar} className="grid gap-3 p-5 sm:grid-cols-6">
           <div className="sm:col-span-6">
             <Campo etiqueta="Cargar desde el registro maestro">
               <Select
+                autoFocus
                 value=""
                 onChange={(e) => {
                   const m = maestras.find((x) => x.id === e.target.value);
@@ -645,23 +631,21 @@ function Partidas() {
               <span className="font-semibold text-ink">{soles(montoPartida(form.metrado, form.precio_unitario))}</span>
             </p>
             <div className="flex flex-wrap gap-2">
-              <Boton type="button" variante="linea" onClick={() => setPestana("listado")}>
+              <Boton type="button" variante="linea" onClick={() => setModalNueva(false)}>
                 Cancelar
               </Boton>
               <Boton type="submit" variante="linea" onClick={() => (accionRef.current = "otra")}>
-                Registrar y agregar otra
+                Registrar otra
               </Boton>
               <Boton type="submit" onClick={() => (accionRef.current = "volver")}>
-                Registrar y volver
+                Registrar y cerrar
               </Boton>
             </div>
           </div>
           {error && <p className="font-mono text-xs text-bad sm:col-span-6">{error}</p>}
         </form>
-      </Panel>
-      )}
+      </VentanaFlotante>
 
-      {pestana === "listado" && (
       <>
       <div className="mb-4 grid gap-3 sm:grid-cols-3">
         {[
@@ -1171,7 +1155,6 @@ function Partidas() {
         )}
       </Panel>
       </>
-      )}
       {apu && (
         <ApuPartida
           origen="obra"

@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Check, ChevronDown, ChevronUp, Eye, Info, LayoutGrid, Pencil, Table2, Trash2, X } from "lucide-react";
+import { Check, Eye, Info, LayoutGrid, Pencil, Plus, Table2, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
+import { Boton, Input, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 function estadoDe(situacion: string): "En Ejecucion" | "Finalizado" {
@@ -123,6 +123,7 @@ function Proyectos() {
   const [vista, setVista] = useState<"tabla" | "kanban">("tabla");
   const [busqueda, setBusqueda] = useState("");
   const [formAbierto, setFormAbierto] = useState(false);
+  const cerrarTrasGuardar = useRef(false);
   const [form, setForm] = useState({
     codigo: "",
     nombre: "",
@@ -210,7 +211,7 @@ function Proyectos() {
       pct_gastos_generales: "10",
       pct_utilidad: "10",
     });
-    setFormAbierto(false);
+    if (cerrarTrasGuardar.current) setFormAbierto(false);
     qc.invalidateQueries({ queryKey: ["proyectos"] });
   }
 
@@ -264,6 +265,7 @@ function Proyectos() {
         titulo="Proyectos"
         subtitulo="Obras de la empresa"
         acciones={
+          <div className="flex items-center gap-2">
           <div className="flex items-center gap-1 rounded-md border border-line bg-card p-1">
             <button
               type="button"
@@ -280,27 +282,12 @@ function Proyectos() {
               <LayoutGrid size={13} /> Kanban
             </button>
           </div>
+          <Boton variante="accion" onClick={() => { setError(""); setFormAbierto(true); }}><Plus size={13} /> Nuevo proyecto</Boton>
+          </div>
         }
       />
 
-      <Panel
-        titulo="Nuevo proyecto"
-        className="mb-4"
-        extra={
-          <button
-            type="button"
-            onClick={() => setFormAbierto((a) => !a)}
-            className="inline-flex items-center gap-1.5 rounded-md border border-line bg-card px-3 py-1.5 font-mono text-[11px] text-ink transition-colors hover:border-primary hover:text-primary"
-          >
-            {formAbierto ? (
-              <>Cerrar <ChevronUp size={13} /></>
-            ) : (
-              <>+ Nuevo proyecto <ChevronDown size={13} /></>
-            )}
-          </button>
-        }
-      >
-        {formAbierto && (
+      <VentanaFlotante abierta={formAbierto} onCerrar={() => setFormAbierto(false)} titulo="Nuevo proyecto" subtitulo="Registra una obra y continúa con otra sin cerrar la ventana." ancho="max-w-6xl">
         <form id="form-proyecto" onSubmit={guardar} className="space-y-4 p-5">
           <div className="grid gap-4 lg:grid-cols-3">
             <Seccion titulo="Información General">
@@ -385,15 +372,14 @@ function Proyectos() {
               </div>
             </Seccion>
           </div>
-          <div className="flex flex-wrap items-center justify-end gap-3">
-            <Boton type="submit" variante="accion" className="px-6 py-2.5 text-sm">Registrar</Boton>
+          <div className="flex flex-wrap items-center justify-end gap-3 border-t border-line pt-3">
+            <Boton type="button" variante="linea" onClick={() => setFormAbierto(false)}>Cancelar</Boton>
+            <Boton type="submit" variante="linea" onClick={() => { cerrarTrasGuardar.current = false; }}>Registrar otro</Boton>
+            <Boton type="submit" variante="accion" className="px-6 py-2.5 text-sm" onClick={() => { cerrarTrasGuardar.current = true; }}>Registrar y cerrar</Boton>
           </div>
+          {error && <p className="font-mono text-xs text-bad">{error}</p>}
         </form>
-        )}
-        {error && (
-          <p className="border-t border-line px-5 py-3 font-mono text-xs text-bad">{error}</p>
-        )}
-      </Panel>
+      </VentanaFlotante>
 
       <Panel
         titulo={vista === "tabla" ? "Listado de proyectos" : "Tablero Kanban de proyectos"}

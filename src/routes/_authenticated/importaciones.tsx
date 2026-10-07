@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, ChevronRight, Plus, Trash2, Upload } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
+import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { useProyectos, useTerceros } from "@/lib/datos";
@@ -82,6 +82,8 @@ function ImportacionesPage() {
   const [aviso, setAviso] = useState("");
   const [busqueda, setBusqueda] = useState("");
   const [guardando, setGuardando] = useState(false);
+  const [modalNueva, setModalNueva] = useState(false);
+  const cerrarTrasGuardar = useRef(false);
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
@@ -160,6 +162,7 @@ function ImportacionesPage() {
     setForm({ ...formVacio, fecha_pedido: hoy() });
     setLineas([]);
     setAviso(`Importación ${codigo} registrada.`);
+    if (cerrarTrasGuardar.current) setModalNueva(false);
     qc.invalidateQueries({ queryKey: ["importaciones"] });
     qc.invalidateQueries({ queryKey: ["importacion_items"] });
   }
@@ -233,11 +236,11 @@ function ImportacionesPage() {
         <div className="panel px-5 py-3"><p className="label-mono">Total registradas</p><p className="font-mono text-lg font-semibold">{imps.length}</p></div>
       </div>
 
-      <Panel titulo="Nueva importación">
+      <VentanaFlotante abierta={modalNueva} onCerrar={() => setModalNueva(false)} titulo="Nueva importación" subtitulo="Registra varias carpetas consecutivamente y cierra cuando termines." ancho="max-w-7xl">
         <form onSubmit={guardar} className="space-y-4 p-5">
           <div className="grid gap-3 sm:grid-cols-4">
             <Campo etiqueta="Proveedor (registrado)">
-              <Select value={form.proveedor_id} onChange={(e) => set("proveedor_id", e.target.value)}>
+              <Select autoFocus value={form.proveedor_id} onChange={(e) => set("proveedor_id", e.target.value)}>
                 <option value="">— Escribir nombre —</option>
                 {proveedores.map((p) => <option key={p.id} value={p.id}>{p.razon_social}</option>)}
               </Select>
@@ -322,9 +325,13 @@ function ImportacionesPage() {
           )}
           {error && <p className="font-mono text-xs text-bad">{error}</p>}
           {aviso && <p className="font-mono text-xs text-primary">{aviso}</p>}
-          <Boton type="submit" disabled={guardando}>{guardando ? "Guardando…" : "Registrar importación"}</Boton>
+          <div className="flex justify-end gap-2 border-t border-line pt-3">
+            <Boton type="button" variante="linea" onClick={() => setModalNueva(false)}>Cancelar</Boton>
+            <Boton type="submit" variante="linea" disabled={guardando} onClick={() => { cerrarTrasGuardar.current = false; }}>{guardando ? "Guardando…" : "Registrar otra"}</Boton>
+            <Boton type="submit" disabled={guardando} onClick={() => { cerrarTrasGuardar.current = true; }}>{guardando ? "Guardando…" : "Registrar y cerrar"}</Boton>
+          </div>
         </form>
-      </Panel>
+      </VentanaFlotante>
 
       <div className="mt-5" />
       <Panel
@@ -336,6 +343,7 @@ function ImportacionesPage() {
               <option value="">Todos los estados</option>
               {ESTADOS.map((s) => <option key={s}>{s}</option>)}
             </Select>
+            <Boton variante="accion" onClick={() => { setError(""); setAviso(""); setModalNueva(true); }}><Plus size={13} /> Nueva importación</Boton>
           </div>
         }
       >
