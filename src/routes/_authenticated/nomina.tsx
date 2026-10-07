@@ -274,7 +274,7 @@ function Nomina() {
         titulo="Nómina y Boletas"
         subtitulo="Planilla mensual del personal en 5ta categoría"
         acciones={
-          boletas.length > 0 && (
+          pestana === "planilla" && boletas.length > 0 && (
             <div className="flex gap-2">
               <Boton variante="linea" onClick={() => imprimir(ordenadas)}><Printer size={13} /> Imprimir boletas</Boton>
               <Boton
