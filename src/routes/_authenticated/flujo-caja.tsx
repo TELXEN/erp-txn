@@ -539,10 +539,10 @@ function FlujoCaja() {
 
       <Panel titulo="Matriz anual" extra={<span className="label-mono">Doble clic en una meta para editarla</span>}>
         <div className="w-full overflow-x-auto">
-          <table className="w-full min-w-[1900px] table-fixed border-separate border-spacing-0 text-xs tabular-nums [&_td]:whitespace-nowrap">
+          <table className="w-full table-fixed border-separate border-spacing-0 text-xs tabular-nums [&_td]:whitespace-nowrap">
             <thead>
               <tr>
-                <th className="sticky left-0 z-20 w-[14%] border-b border-r border-line bg-paper px-2 py-2 text-left text-[10px] uppercase">
+                <th className="sticky left-0 z-20 w-[16%] border-b border-r border-line bg-paper px-2 py-2 text-left text-[10px] uppercase">
                   Concepto
                 </th>
                 {filas.map((f) => (
@@ -550,7 +550,7 @@ function FlujoCaja() {
                     {f.etiqueta}
                   </th>
                 ))}
-                <th className="sticky right-0 z-20 w-[11%] border-b border-l border-line bg-muted px-2 py-2 text-right text-[10px] uppercase">
+                <th className="sticky right-0 z-20 w-[12%] border-b border-l border-line bg-muted px-2 py-2 text-right text-[10px] uppercase">
                   Total anual
                 </th>
               </tr>
