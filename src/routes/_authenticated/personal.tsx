@@ -19,9 +19,9 @@ import { useRef, type ReactNode } from "react";
 
 const BANCOS = ["BCP", "BBVA", "Interbank", "Scotiabank", "Banco de la Nación", "BanBif", "Banco Pichincha", "Caja Arequipa", "Caja Huancayo", "Caja Piura", "Otro"];
 
-function CampoF({ etiqueta, req, children }: { etiqueta: string; req?: boolean; children: ReactNode }) {
+function CampoF({ etiqueta, req, children, className = "" }: { etiqueta: string; req?: boolean; children: ReactNode; className?: string }) {
   return (
-    <label className="block">
+    <label className={`block min-w-0 ${className}`}>
       <span className="text-xs font-semibold text-ink">{etiqueta}{req && <span className="ml-0.5 text-bad">*</span>}</span>
       <div className="mt-1">{children}</div>
     </label>
@@ -450,7 +450,7 @@ function Personal() {
           <fieldset disabled={guardando} className="min-w-0 border-0 p-5 sm:p-6">
           <div className="grid gap-x-8 gap-y-7 md:grid-cols-2">
             <Seccion titulo="Datos personales" paso={1} icono={UserRound}>
-              <CampoF etiqueta="DNI" req>
+              <CampoF etiqueta="DNI" req className="col-span-full">
                 <div className="flex items-center gap-2">
                   <Input ref={dniRef} autoFocus aria-label="DNI" inputMode="numeric" pattern="[0-9]{8}" maxLength={8} value={form.dni} onChange={(e) => setFormC("dni", e.target.value.replace(/\D/g, ""))} required className={`min-w-0 flex-1 tabular-nums ${dniDuplicado ? "border-bad" : ""}`} placeholder="8 dígitos" />
                   <Boton type="button" variante="linea" className="h-11 shrink-0 px-3" title="Consultar RENIEC" onClick={consultarReniec} disabled={consultando !== "" || !/^\d{8}$/.test(form.dni) || dniDuplicado}>
