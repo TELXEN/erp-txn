@@ -221,8 +221,8 @@ function GastosGenerales() {
   const granTotal = total + totalMant + totalComb;
   const desglose = [
     ...totalesCategoria.map((t) => ({ ...t, filtrable: true })),
-    ...(totalMant > 0 ? [{ nombre: "Mantenimiento vehicular", total: totalMant, filtrable: false }] : []),
-    ...(totalComb > 0 ? [{ nombre: "Combustible vehicular", total: totalComb, filtrable: false }] : []),
+    ...(totalMant > 0 ? [{ nombre: "Mantenimiento vehicular", clave: "", total: totalMant, filtrable: false }] : []),
+    ...(totalComb > 0 ? [{ nombre: "Combustible vehicular", clave: "", total: totalComb, filtrable: false }] : []),
   ].sort((a, b) => b.total - a.total);
   const granTotalDesglose = desglose.reduce((s, d) => s + d.total, 0);
   const COLORES_FIJOS: Record<string, string> = {
