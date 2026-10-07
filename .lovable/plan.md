@@ -2,6 +2,12 @@
 
 Solo cambios visuales y de flujo en la pantalla Caja Chica; no se toca la base de datos.
 
+## 0. Tarjetas de resumen
+- Entregado en efectivo: monto grande, debajo «N entregas · M cajas abiertas».
+- Rendido con comprobantes: monto grande y barra «% rendido» del total entregado (verde ≥80%, ámbar 50–80%, rojo <50%), con número de comprobantes.
+- Pendiente por rendir: monto grande destacado en ámbar si hay saldo, y un aviso «X cajas con más de 7 días sin rendir» con reloj (clic filtra la tabla a esas cajas).
+- Las tres con el mismo alto, icono discreto, montos alineados a la derecha con cifras tabulares.
+
 ## 1. Tabla y limpieza
 - Roboto en toda la pantalla.
 - Interruptor «Agrupar por responsable»: cuando está activo, las cajas se agrupan bajo una fila plegable con el nombre del líder, la obra (o «Varias obras»), número de entregas y totales Entregado / Rendido / Saldo a la derecha. Las filas hijas ya no repiten responsable ni obra. Desactivado, el listado se ve como hoy.
