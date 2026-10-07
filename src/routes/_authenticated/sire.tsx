@@ -44,7 +44,10 @@ function SirePage() {
   ];
   return (
     <div>
-      <Encabezado titulo="SIRE SUNAT" subtitulo="FINANZAS Y CONTABILIDAD · REGISTROS ELECTRÓNICOS" className="mb-2" />
+      <div className="mb-2 flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
+        <h1 className="text-xl font-bold tracking-tight">SIRE SUNAT</h1>
+        <p className="label-mono">FINANZAS Y CONTABILIDAD · REGISTROS ELECTRÓNICOS</p>
+      </div>
       <div className="sticky top-0 z-30 -mx-1 bg-background px-1 pb-1">
         <SincronizacionGlobal periodo={periodo} onPeriodoChange={setPeriodo}
           botonConfig={rol === "gerente" ? (
@@ -186,7 +189,7 @@ function SincronizacionGlobal({ periodo, onPeriodoChange, botonConfig, subtabs }
             <Select value={m} onChange={(e) => onPeriodoChange(`${y}-${String(e.target.value).padStart(2, "0")}`)} className="w-28">{MESES.map((n, i) => <option key={n} value={i + 1}>{n}</option>)}</Select>
             <Select value={y} onChange={(e) => onPeriodoChange(`${e.target.value}-${String(m).padStart(2, "0")}`)} className="w-24">{anios.map((a) => <option key={a}>{a}</option>)}</Select>
           </div>
-          <div className="flex flex-col items-center self-stretch text-center font-mono text-[10.5px] leading-tight text-muted-foreground">
+          <div className="flex flex-wrap items-center justify-end gap-x-4 self-stretch text-center font-mono text-[10.5px] leading-tight text-muted-foreground">
             {(["RVIE", "RCE"] as Libro[]).map((libro) => {
               const estado = estadoLibro(libro);
               return <span key={libro} className={estado === "error" ? "text-bad" : estado === "sincronizado" ? "text-good" : estado === "pendiente" ? "text-amber-700 dark:text-amber-400" : ""}>{etiquetaEstado(libro)}</span>;
