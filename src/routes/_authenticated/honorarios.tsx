@@ -94,6 +94,7 @@ function Honorarios() {
 
   const prestadores = trabajadores.filter((t) => t.tipo_contratacion === "Honorarios");
   const [editor, setEditor] = useState<{ clave: string; form: FormularioHonorario } | null>(null);
+  const nombreDe = (id: string) => trabajadores.find((t) => t.id === id)?.nombre ?? "—";
   const [guardando, setGuardando] = useState(false);
   const [busqueda, setBusqueda] = useState("");
   const recibosFiltrados = recibos.filter((r) =>
@@ -104,7 +105,6 @@ function Honorarios() {
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
-  const nombreDe = (id: string) => trabajadores.find((t) => t.id === id)?.nombre ?? "—";
   const obraDe = (id: string | null) => {
     const p = proyectos.find((x) => x.id === id);
     return p ? `${p.codigo ?? ""} ${p.nombre}`.trim() : "Oficina Central";
