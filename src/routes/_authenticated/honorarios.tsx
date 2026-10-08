@@ -105,6 +105,46 @@ function Honorarios() {
   const [error, setError] = useState("");
   const [generador, setGenerador] = useState(false);
   const [aviso, setAviso] = useState("");
+  const sincronizando = useRef(false);
+
+  // Actualiza las boletas pendientes (sin N° de recibo ni pago) cuando cambia el tareo.
+  useEffect(() => {
+    if (sincronizando.current) return;
+    const pendientes = recibos.filter((r) => !r.numero_recibo && r.estado_pago !== "Pagado");
+    if (pendientes.length === 0) return;
+    const cambios: { id: string; campos: Record<string, number> }[] = [];
+    for (const r of pendientes) {
+      const trabajador = trabajadores.find((t) => t.id === r.trabajador_id);
+      const jornal = Number(trabajador?.jornal_diario) || Number(r.costo_unitario) || 0;
+      const resumen = resumenTareoHonorario(tareos, r.trabajador_id, r.proyecto_id ?? "", Number(r.mes), Number(r.anio), jornal);
+      if (resumen.filas === 0) continue;
+      const campos: Record<string, number> = {};
+      if (resumen.dias !== Number(r.dias_laborados)) campos.dias_laborados = resumen.dias;
+      if (resumen.viaje !== Number(r.dias_viaje)) campos.dias_viaje = resumen.viaje;
+      if (resumen.extras !== Number(r.horas_extras)) campos.horas_extras = resumen.extras;
+      if (jornal > 0 && jornal !== Number(r.costo_unitario)) campos.costo_unitario = jornal;
+      if (Object.keys(campos) === 0) continue;
+      const dias = campos.dias_laborados ?? Number(r.dias_laborados);
+      const viaje = campos.dias_viaje ?? Number(r.dias_viaje);
+      const extras = campos.horas_extras ?? Number(r.horas_extras);
+      const unitario = campos.costo_unitario ?? Number(r.costo_unitario);
+      const bruto = Math.round((dias * unitario + viaje + extras + Number(r.otros_remuneraciones) + Number(r.saldo_mes_anterior)) * 100) / 100;
+      const descuentos = Number(r.adelantos) + Number(r.devolucion_gastos) + Number(r.pagos_a_cuenta_planilla) + Number(r.fondo_pensiones) + Number(r.descuento_herramientas);
+      const retencion = !trabajador?.suspension_cuarta && bruto > 1500 ? Math.round(bruto * 0.08 * 100) / 100 : 0;
+      campos.monto_bruto = bruto;
+      campos.retencion = retencion;
+      campos.monto_neto = Math.round((bruto - retencion - descuentos) * 100) / 100;
+      cambios.push({ id: r.id, campos });
+    }
+    if (cambios.length === 0) return;
+    sincronizando.current = true;
+    void (async () => {
+      for (const c of cambios) await supabase.from("recibos_honorarios").update(c.campos).eq("id", c.id);
+      sincronizando.current = false;
+      setAviso(`${cambios.length} boleta(s) actualizada(s) con el tareo más reciente.`);
+      await qc.invalidateQueries({ queryKey: ["recibos_honorarios"] });
+    })();
+  }, [recibos, tareos, trabajadores, qc]);
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
