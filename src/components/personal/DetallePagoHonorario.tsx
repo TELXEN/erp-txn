@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Eye, Printer, Save, Wand2 } from "lucide-react";
 import { Boton, Campo, Input, Select, VentanaFlotante } from "@/components/ui-kit";
 import { HojaDetalleHonorario, type DetalleHonorario } from "@/components/personal/HojaDetalleHonorario";
@@ -66,12 +67,13 @@ export function DetallePagoHonorario({
   const [vista, setVista] = useState(false);
   const [avisoTareo, setAvisoTareo] = useState("");
   const hojaRef = useRef<HTMLDivElement>(null);
+  const [montado, setMontado] = useState(false);
+  useEffect(() => setMontado(true), []);
 
   // Imprime en el mismo documento: los estilos de Tailwind no viajan completos
   // a un marco copiado, por eso la hoja se imprime en el sitio y el CSS de
   // impresión (styles.css) oculta todo lo demás y anula la escala de vista previa.
   const imprimir = () => {
-    setVista(true);
     requestAnimationFrame(() => setTimeout(() => window.print(), 50));
   };
   const trabajador = trabajadores.find((item) => item.id === form.trabajador_id) ?? null;
@@ -99,6 +101,8 @@ export function DetallePagoHonorario({
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clavePeriodo, tareos]);
+
+  const hoja = <HojaDetalleHonorario empresa={empresa} trabajador={trabajador} proyecto={proyecto ? `${proyecto.codigo ?? ""} ${proyecto.nombre}`.trim() : "Oficina Central"} detalle={{ ...form, retencion: totales.retencion }} totalRemuneraciones={totales.bruto} totalDescuentos={totales.descuentos} neto={totales.neto} />;
 
   return (
     <VentanaFlotante titulo="Detalle de pago por honorarios" subtitulo="Completa los importes y revisa la hoja A4 antes de guardar." abierta={abierta} onCerrar={onCerrar} ancho="max-w-[1500px]" ocultarBarra>
@@ -159,10 +163,12 @@ export function DetallePagoHonorario({
             <Boton type="button" variante="linea" onClick={imprimir}><Printer size={14} /> Imprimir / Guardar PDF</Boton>
           </div>
           <div ref={hojaRef} className="origin-top scale-[0.82] lg:scale-[0.78] xl:scale-[0.9] print:scale-100">
-            <HojaDetalleHonorario empresa={empresa} trabajador={trabajador} proyecto={proyecto ? `${proyecto.codigo ?? ""} ${proyecto.nombre}`.trim() : "Oficina Central"} detalle={{ ...form, retencion: totales.retencion }} totalRemuneraciones={totales.bruto} totalDescuentos={totales.descuentos} neto={totales.neto} />
+            {hoja}
           </div>
         </div>
       </div>
+      {/* Copia exclusiva para impresión, fuera de la ventana: nada la recorta ni escala. */}
+      {montado && abierta && createPortal(<div className="honorario-print-root hidden print:block">{hoja}</div>, document.body)}
     </VentanaFlotante>
   );
 }

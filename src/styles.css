@@ -264,25 +264,25 @@
     background: #fff;
   }
 
-  /* Recibo por honorarios: solo la hoja A4 es visible al imprimir */
-  body:has(.honorario-print-sheet) * {
-    visibility: hidden;
+  /* Recibo por honorarios: solo la copia de impresión (fuera de la ventana) es visible */
+  html:has(.honorario-print-root),
+  body:has(> .honorario-print-root) {
+    height: auto !important;
+    overflow: visible !important;
   }
 
-  body:has(.honorario-print-sheet) .honorario-print-sheet,
-  body:has(.honorario-print-sheet) .honorario-print-sheet * {
-    visibility: visible;
+  body:has(> .honorario-print-root) > *:not(.honorario-print-root) {
+    display: none !important;
   }
 
-  body:has(.honorario-print-sheet) .honorario-print-sheet {
-    position: fixed;
-    inset: 0;
-    margin: 0;
+  .honorario-print-root .honorario-print-sheet {
+    margin: 0 auto;
     box-shadow: none;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 
-  body:has(.honorario-print-sheet) .honorario-print-sheet,
-  body:has(.honorario-print-sheet) .honorario-print-sheet * {
+  .honorario-print-root .honorario-print-sheet * {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
