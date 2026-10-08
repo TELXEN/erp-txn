@@ -81,7 +81,7 @@ export function GenerarBoletasHonorarios({ prestadores, proyectos, tareos, exist
               <th className="px-3 py-2 text-right">H. extras</th><th className="px-3 py-2 text-right">Feriados</th><th className="px-3 py-2 text-right">Inducción</th><th className="px-3 py-2 text-right">Costo unit.</th><th className="px-3 py-2 text-right">Neto</th><th className="px-3 py-2">Situación</th>
             </tr></thead>
             <tbody>
-              {filas.length === 0 && <tr><td colSpan={7} className="px-3 py-4 text-center text-muted-foreground">No hay personal por honorarios.</td></tr>}
+              {filas.length === 0 && <tr><td colSpan={9} className="px-3 py-4 text-center text-muted-foreground">No hay personal por honorarios.</td></tr>}
               {filas.map(({ p, r, form, tot, existe, conTareo }) => (
                 <tr key={p.id} className="border-b border-line/60 last:border-0">
                   <td className="px-3 py-2 font-semibold">{p.nombre}</td>
