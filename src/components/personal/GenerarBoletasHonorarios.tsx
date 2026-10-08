@@ -36,7 +36,7 @@ export function GenerarBoletasHonorarios({ prestadores, proyectos, tareos, exist
         trabajador_id: p.id, proyecto_id: ids.length === 1 ? (ids[0] ?? "") : "", numero_recibo: "",
         fecha_emision: `${prefijo}-${String(ultimoDia).padStart(2, "0")}`,
         concepto: `Servicios prestados en ${MESES[mes - 1]} ${anio}${nombres.length ? ` – ${nombres.join(", ")}` : ""}`,
-        mes, anio, dias_laborados: r.dias, dias_viaje: r.viaje, horas_extras: r.extras, otros_remuneraciones: 0,
+        mes, anio, dias_laborados: r.dias, dias_viaje: r.viaje, horas_extras: r.extras, otros_remuneraciones: r.feriados, induccion: r.induccion,
         costo_unitario: jornal, saldo_mes_anterior: 0, adelantos: 0, devolucion_gastos: 0, pagos_a_cuenta_planilla: 0,
         fondo_pensiones: 0, descuento_herramientas: 0, lugar_emision: "Huancayo", retencion: 0,
       };
@@ -56,7 +56,7 @@ export function GenerarBoletasHonorarios({ prestadores, proyectos, tareos, exist
       trabajador_id: form.trabajador_id, proyecto_id: form.proyecto_id || null, numero_recibo: null,
       fecha_emision: form.fecha_emision, concepto: form.concepto, mes: form.mes, anio: form.anio,
       dias_laborados: form.dias_laborados, dias_viaje: form.dias_viaje, horas_extras: form.horas_extras,
-      otros_remuneraciones: 0, costo_unitario: form.costo_unitario, saldo_mes_anterior: 0, adelantos: 0,
+      otros_remuneraciones: form.otros_remuneraciones, induccion: form.induccion, costo_unitario: form.costo_unitario, saldo_mes_anterior: 0, adelantos: 0,
       devolucion_gastos: 0, pagos_a_cuenta_planilla: 0, fondo_pensiones: 0, descuento_herramientas: 0,
       lugar_emision: form.lugar_emision, monto_bruto: tot.bruto, retencion: tot.retencion, monto_neto: tot.neto,
     })));
@@ -78,7 +78,7 @@ export function GenerarBoletasHonorarios({ prestadores, proyectos, tareos, exist
           <table className="w-full text-xs">
             <thead><tr className="border-b border-line bg-muted/40 text-left text-[10px] uppercase text-muted-foreground">
               <th className="px-3 py-2">Prestador</th><th className="px-3 py-2 text-right">Días</th><th className="px-3 py-2 text-right">Viaje</th>
-              <th className="px-3 py-2 text-right">H. extras</th><th className="px-3 py-2 text-right">Costo unit.</th><th className="px-3 py-2 text-right">Neto</th><th className="px-3 py-2">Situación</th>
+              <th className="px-3 py-2 text-right">H. extras</th><th className="px-3 py-2 text-right">Feriados</th><th className="px-3 py-2 text-right">Inducción</th><th className="px-3 py-2 text-right">Costo unit.</th><th className="px-3 py-2 text-right">Neto</th><th className="px-3 py-2">Situación</th>
             </tr></thead>
             <tbody>
               {filas.length === 0 && <tr><td colSpan={7} className="px-3 py-4 text-center text-muted-foreground">No hay personal por honorarios.</td></tr>}
@@ -88,6 +88,8 @@ export function GenerarBoletasHonorarios({ prestadores, proyectos, tareos, exist
                   <td className="px-3 py-2 text-right tabular-nums">{r.dias}</td>
                   <td className="px-3 py-2 text-right tabular-nums">{r.viaje}</td>
                   <td className="px-3 py-2 text-right tabular-nums">{r.extras}</td>
+                  <td className="px-3 py-2 text-right tabular-nums">{r.feriados}</td>
+                  <td className="px-3 py-2 text-right tabular-nums">{r.induccion}</td>
                   <td className="px-3 py-2 text-right tabular-nums">{soles(form.costo_unitario)}</td>
                   <td className="px-3 py-2 text-right font-semibold tabular-nums">{conTareo ? soles(tot.neto) : "—"}</td>
                   <td className="px-3 py-2 text-[11px]">{existe ? <span className="text-muted-foreground">Ya existe</span> : !conTareo ? <span className="text-muted-foreground">Sin tareo</span> : tot.bruto <= 0 ? <span className="text-bad">Sin jornal</span> : <span className="font-semibold text-primary">Se generará</span>}</td>

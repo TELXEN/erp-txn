@@ -182,7 +182,7 @@ function Honorarios() {
       concepto: form.concepto.trim(),
       mes: form.mes, anio: form.anio, dias_laborados: form.dias_laborados, dias_viaje: form.dias_viaje,
       horas_extras: form.horas_extras, otros_remuneraciones: form.otros_remuneraciones,
-      costo_unitario: form.costo_unitario, saldo_mes_anterior: form.saldo_mes_anterior,
+      induccion: form.induccion, costo_unitario: form.costo_unitario, saldo_mes_anterior: form.saldo_mes_anterior,
       adelantos: form.adelantos, devolucion_gastos: form.devolucion_gastos,
       pagos_a_cuenta_planilla: form.pagos_a_cuenta_planilla, fondo_pensiones: form.fondo_pensiones,
       descuento_herramientas: form.descuento_herramientas, lugar_emision: form.lugar_emision.trim() || "Huancayo",
@@ -348,7 +348,7 @@ function Honorarios() {
                                 trabajador_id: r.trabajador_id, proyecto_id: r.proyecto_id ?? "", numero_recibo: r.numero_recibo ?? "",
                                 fecha_emision: r.fecha_emision, concepto: r.concepto, mes: Number(r.mes), anio: Number(r.anio),
                                 dias_laborados: Number(r.dias_laborados), dias_viaje: Number(r.dias_viaje), horas_extras: Number(r.horas_extras),
-                                otros_remuneraciones: Number(r.otros_remuneraciones), costo_unitario: Number(r.costo_unitario), saldo_mes_anterior: Number(r.saldo_mes_anterior),
+                                otros_remuneraciones: Number(r.otros_remuneraciones), induccion: Number(r.induccion ?? 0), costo_unitario: Number(r.costo_unitario), saldo_mes_anterior: Number(r.saldo_mes_anterior),
                                 adelantos: Number(r.adelantos), devolucion_gastos: Number(r.devolucion_gastos), pagos_a_cuenta_planilla: Number(r.pagos_a_cuenta_planilla),
                                 fondo_pensiones: Number(r.fondo_pensiones), descuento_herramientas: Number(r.descuento_herramientas), lugar_emision: r.lugar_emision, retencion: Number(r.retencion),
                               } });
