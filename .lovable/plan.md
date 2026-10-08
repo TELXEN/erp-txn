@@ -1,7 +1,7 @@
 # Generar recibos por honorarios desde el tareo mensual
 
 ## Qué verá el usuario
-- En **Recibos por Honorarios**, un nuevo botón **«Generar desde tareo»**.
+- En **Recibos por Honorarios**, un nuevo botón **«Generar boletas de pago»** (toma los datos del consolidado mensual del tareo).
 - Al pulsarlo se abre una ventana pequeña para elegir **Mes y Año**, con una vista previa de los prestadores (personal con contratación «Honorarios») que tienen tareo ese mes: días laborados, días de viaje, horas extras, costo unitario y monto estimado.
 - Al confirmar, se crea **un recibo por prestador y por mes** (sumando todos los proyectos), con estado **«Pendiente de N°»**.
 - En el listado, los borradores se marcan con una etiqueta ámbar «Pendiente de N°». Al abrirlos, se completa el número real del recibo SUNAT y se guarda normalmente. No se pueden marcar como pagados hasta tener número.
