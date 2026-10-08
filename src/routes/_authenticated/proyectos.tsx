@@ -448,6 +448,10 @@ function Proyectos() {
             );
           })}
         </div>
+        <p className="flex items-center gap-1.5 bg-primary/10 px-4 py-2 font-mono text-[11px] text-primary">
+          <Info size={13} className="shrink-0" />
+          El presupuesto del proyecto se completa automáticamente a partir de las partidas registradas.
+        </p>
         {proyectos.length === 0 ? (
           <Vacio texto={busqueda ? `Sin coincidencias para «${busqueda}»` : "Aún no hay proyectos registrados."} />
         ) : vista === "kanban" ? (
