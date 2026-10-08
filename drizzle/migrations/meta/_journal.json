@@ -15,6 +15,13 @@
       "when": 1791396467374,
       "tag": "0001_fix_validar_costo_proyecto_campos",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791418297731,
+      "tag": "0002_detalle_pago_honorarios",
+      "breakpoints": true
     }
   ]
 }

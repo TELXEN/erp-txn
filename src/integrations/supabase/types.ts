@@ -1577,6 +1577,7 @@ export type Database = {
           id: string
           logo_url: string
           razon_social: string
+          rubro: string
           ruc: string
           telefono: string
           updated_at: string
@@ -1591,6 +1592,7 @@ export type Database = {
           id?: string
           logo_url?: string
           razon_social?: string
+          rubro?: string
           ruc?: string
           telefono?: string
           updated_at?: string
@@ -1605,6 +1607,7 @@ export type Database = {
           id?: string
           logo_url?: string
           razon_social?: string
+          rubro?: string
           ruc?: string
           telefono?: string
           updated_at?: string
@@ -3243,53 +3246,95 @@ export type Database = {
       }
       recibos_honorarios: {
         Row: {
+          adelantos: number
+          anio: number
           banco_id: string | null
           concepto: string
+          costo_unitario: number
           created_at: string
+          descuento_herramientas: number
+          devolucion_gastos: number
+          dias_laborados: number
+          dias_viaje: number
           estado_pago: string
           fecha_emision: string
           fecha_pago: string | null
+          fondo_pensiones: number
+          horas_extras: number
           id: string
+          lugar_emision: string
+          mes: number
           monto_bruto: number
           monto_neto: number
           numero_operacion: string
           numero_recibo: string
+          otros_remuneraciones: number
+          pagos_a_cuenta_planilla: number
           proyecto_id: string | null
           retencion: number
+          saldo_mes_anterior: number
           trabajador_id: string
           updated_at: string
         }
         Insert: {
+          adelantos?: number
+          anio?: number
           banco_id?: string | null
           concepto?: string
+          costo_unitario?: number
           created_at?: string
+          descuento_herramientas?: number
+          devolucion_gastos?: number
+          dias_laborados?: number
+          dias_viaje?: number
           estado_pago?: string
           fecha_emision?: string
           fecha_pago?: string | null
+          fondo_pensiones?: number
+          horas_extras?: number
           id?: string
+          lugar_emision?: string
+          mes?: number
           monto_bruto: number
           monto_neto: number
           numero_operacion?: string
           numero_recibo: string
+          otros_remuneraciones?: number
+          pagos_a_cuenta_planilla?: number
           proyecto_id?: string | null
           retencion?: number
+          saldo_mes_anterior?: number
           trabajador_id: string
           updated_at?: string
         }
         Update: {
+          adelantos?: number
+          anio?: number
           banco_id?: string | null
           concepto?: string
+          costo_unitario?: number
           created_at?: string
+          descuento_herramientas?: number
+          devolucion_gastos?: number
+          dias_laborados?: number
+          dias_viaje?: number
           estado_pago?: string
           fecha_emision?: string
           fecha_pago?: string | null
+          fondo_pensiones?: number
+          horas_extras?: number
           id?: string
+          lugar_emision?: string
+          mes?: number
           monto_bruto?: number
           monto_neto?: number
           numero_operacion?: string
           numero_recibo?: string
+          otros_remuneraciones?: number
+          pagos_a_cuenta_planilla?: number
           proyecto_id?: string | null
           retencion?: number
+          saldo_mes_anterior?: number
           trabajador_id?: string
           updated_at?: string
         }
