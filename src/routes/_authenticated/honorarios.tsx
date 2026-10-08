@@ -112,13 +112,17 @@ function Honorarios() {
     if (sincronizando.current) return;
     const pendientes = recibos.filter((r) => !r.numero_recibo && r.estado_pago !== "Pagado");
     if (pendientes.length === 0) return;
-    const cambios: { id: string; campos: Record<string, number> }[] = [];
+    type CamposBoleta = {
+      dias_laborados?: number; dias_viaje?: number; horas_extras?: number; costo_unitario?: number;
+      monto_bruto?: number; retencion?: number; monto_neto?: number;
+    };
+    const cambios: { id: string; campos: CamposBoleta }[] = [];
     for (const r of pendientes) {
       const trabajador = trabajadores.find((t) => t.id === r.trabajador_id);
       const jornal = Number(trabajador?.jornal_diario) || Number(r.costo_unitario) || 0;
       const resumen = resumenTareoHonorario(tareos, r.trabajador_id, r.proyecto_id ?? "", Number(r.mes), Number(r.anio), jornal);
       if (resumen.filas === 0) continue;
-      const campos: Record<string, number> = {};
+      const campos: CamposBoleta = {};
       if (resumen.dias !== Number(r.dias_laborados)) campos.dias_laborados = resumen.dias;
       if (resumen.viaje !== Number(r.dias_viaje)) campos.dias_viaje = resumen.viaje;
       if (resumen.extras !== Number(r.horas_extras)) campos.horas_extras = resumen.extras;
