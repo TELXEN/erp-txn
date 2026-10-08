@@ -132,7 +132,8 @@ function Honorarios() {
       const viaje = campos.dias_viaje ?? Number(r.dias_viaje);
       const extras = campos.horas_extras ?? Number(r.horas_extras);
       const unitario = campos.costo_unitario ?? Number(r.costo_unitario);
-      const bruto = Math.round((dias * unitario + viaje + extras + Number(r.otros_remuneraciones) + Number(r.saldo_mes_anterior)) * 100) / 100;
+      // Total = costo unitario × (laborados + viaje/2 + extras/10.5 + feriados×2).
+      const bruto = Math.round(unitario * (dias + viaje / 2 + extras / 10.5 + Number(r.otros_remuneraciones) * 2) * 100) / 100;
       const descuentos = Number(r.adelantos) + Number(r.devolucion_gastos) + Number(r.pagos_a_cuenta_planilla) + Number(r.fondo_pensiones) + Number(r.descuento_herramientas);
       const retencion = !trabajador?.suspension_cuarta && bruto > 1500 ? Math.round(bruto * 0.08 * 100) / 100 : 0;
       campos.monto_bruto = bruto;
