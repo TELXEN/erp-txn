@@ -68,14 +68,14 @@ function Monto({ etiqueta, valor }: { etiqueta: string; valor: number }) {
 }
 
 export function HojaDetalleHonorario({ empresa, trabajador, proyecto, detalle, totalRemuneraciones, totalDescuentos, neto }: Props) {
-  const remuneraciones = [
-    ["Días laborados", detalle.dias_laborados * detalle.costo_unitario],
-    ["Días de viaje", detalle.dias_viaje],
-    ["Horas extras", detalle.horas_extras],
-    ["Otros", detalle.otros_remuneraciones],
-    ["Costo unitario", detalle.costo_unitario],
-    ["Saldo del mes anterior", detalle.saldo_mes_anterior],
-  ] as const;
+  const remuneraciones: { etiqueta: string; cantidad?: string; valor: number }[] = [
+    { etiqueta: "Días laborados", cantidad: String(detalle.dias_laborados || 0), valor: detalle.dias_laborados * detalle.costo_unitario },
+    { etiqueta: "Días de viaje", cantidad: String(detalle.dias_viaje || 0), valor: detalle.dias_viaje },
+    { etiqueta: "Horas extras", cantidad: String(detalle.horas_extras || 0), valor: detalle.horas_extras },
+    { etiqueta: "Otros", valor: detalle.otros_remuneraciones },
+    { etiqueta: "Costo unitario", valor: detalle.costo_unitario },
+    { etiqueta: "Saldo del mes anterior", valor: detalle.saldo_mes_anterior },
+  ];
   const descuentos = [
     ["Adelantos", detalle.adelantos],
     ["Devolución de gastos", detalle.devolucion_gastos],
