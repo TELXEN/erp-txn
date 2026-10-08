@@ -48,9 +48,11 @@ function Fila({ etiqueta, valor, valorIzquierda }: { etiqueta: string; valor: st
   );
 }
 
+const COL_MONTO = "grid-cols-[1fr_42px_82px]";
+
 function MontoCant({ etiqueta, cantidad, valor }: { etiqueta: string; cantidad?: string | undefined; valor: number }) {
   return (
-    <div className="grid grid-cols-[1fr_42px_auto] items-center gap-2 border-b px-2 py-2 last:border-b-0" style={{ borderColor: DOC.line }}>
+    <div className={`grid ${COL_MONTO} items-center gap-2 border-b px-2 py-2 last:border-b-0`} style={{ borderColor: DOC.line }}>
       <span className="text-[9px] leading-tight">{etiqueta}</span>
       <span className="text-center text-[9px] tabular-nums">{cantidad ?? "—"}</span>
       <span className="whitespace-nowrap text-right text-[9px] font-semibold tabular-nums">{soles(valor)}</span>
@@ -119,7 +121,7 @@ export function HojaDetalleHonorario({ empresa, trabajador, proyecto, detalle, t
       <section className="mt-3 grid flex-1 grid-cols-3 border" style={{ borderColor: DOC.line }}>
         <div className="border-r" style={{ borderColor: DOC.line }}>
           <h3 className="px-2 py-2 text-center text-[10px] font-bold uppercase" style={{ background: DOC.total }}>Remuneraciones</h3>
-          <div className="grid grid-cols-[1fr_42px_auto] gap-2 border-b px-2 py-1 text-[8px] font-bold uppercase" style={{ borderColor: DOC.line, background: DOC.soft }}>
+          <div className={`grid ${COL_MONTO} items-center gap-2 border-b px-2 py-1 text-[8px] font-bold uppercase`} style={{ borderColor: DOC.line, background: DOC.soft }}>
             <span>Concepto</span><span className="text-center">Cant.</span><span className="text-right">Monto</span>
           </div>
           {remuneraciones.map((r) => <MontoCant key={r.etiqueta} etiqueta={r.etiqueta} cantidad={r.cantidad} valor={r.valor} />)}
