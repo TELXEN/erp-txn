@@ -12,7 +12,7 @@
 - The programmed-progress matrix stores one percentage per leaf work item and project-defined period; dashboard calculations must exclude grouping rows to avoid double counting.
 - The project S-curve plans from the work-item schedule, marks current physical progress as cut-off, and shows cost progress only to money roles — truthful history and role visibility.
 - Preliquidation PDFs are generated client-side with @react-pdf/renderer from a dedicated document template — this keeps branded multi-page exports consistent and independent from browser print styling.
-- Commercial quotation PDFs render as fixed A4 HTML sheets with repeated company/table headers and page numbering — this keeps html2pdf exports predictable across multi-page item lists.
+- Quotation PDFs use fixed A4 HTML sheets with repeated headers and page numbers — keeps multi-page exports predictable.
 - Electronic invoices use dedicated comprobantes_electronicos/items/cuotas tables, while emitted invoices/receipts mirror into ventas for treasury compatibility; numbering is reserved only by an authenticated server function.
 - Invoice A4 pages reserve a fixed bottom area repeating the fiscal footer on every page — items never overlap it.
 - Quotation, preliquidation and invoice editing render in normal flow with the sidebar visible; preview/PDF stays fixed A4 — navigation stays available.
@@ -32,3 +32,4 @@
 - Primary creation uses VentanaFlotante (optional hidden scrollbars) with consecutive saves and explicit close; project cost eligibility is enforced by database triggers across every cost source — keeps entry efficient and prevents bypasses.
 - Detraction collections store the BN account in ventas.banco_detraccion_id; treasury splits the sale between both banks — no duplicate sale rows.
 - Paid Decolecta data is cached and shared ERP-wide: exchange rate via useTipoCambioHoy (tipo_cambio_diario, per Lima date), AFP commissions via useComisionesAfp (afp_comisiones_mensuales, per month) — one paid call per period.
+- Honorarium payment details persist on recibos_honorarios and use one shared A4 sheet for preview and printing — history and output calculations stay aligned.
