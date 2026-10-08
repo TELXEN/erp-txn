@@ -10,7 +10,7 @@ import { DetallePagoHonorario, calcularDetalleHonorario, type FormularioHonorari
 import { useEmpresa } from "@/lib/empresa";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha, hoy, soles } from "@/lib/format";
-import { useProyectos, useTrabajadores } from "@/lib/datos";
+import { useProyectos, useTareos, useTrabajadores } from "@/lib/datos";
 import { exportarExcel } from "@/lib/exportar";
 
 export const Route = createFileRoute("/_authenticated/honorarios")({
@@ -73,6 +73,7 @@ function Honorarios() {
   const qc = useQueryClient();
   const { data: trabajadores = [] } = useTrabajadores();
   const { data: proyectos = [] } = useProyectos();
+  const { data: tareos = [] } = useTareos();
   const { data: empresa = null } = useEmpresa();
   const { data: recibos = [] } = useQuery({
     queryKey: ["recibos_honorarios"],
@@ -317,6 +318,7 @@ function Honorarios() {
           empresa={empresa}
           trabajadores={prestadores}
           proyectos={proyectos}
+          tareos={tareos}
           guardando={guardando}
           error={error}
           onCerrar={() => { setEditor(null); setError(""); }}
