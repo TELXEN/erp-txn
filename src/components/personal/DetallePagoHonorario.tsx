@@ -1,11 +1,33 @@
-import { useMemo, useState } from "react";
-import { Eye, Printer, Save } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Eye, Printer, Save, Wand2 } from "lucide-react";
 import { Boton, Campo, Input, Select, VentanaFlotante } from "@/components/ui-kit";
 import { HojaDetalleHonorario, type DetalleHonorario } from "@/components/personal/HojaDetalleHonorario";
 import { MESES, soles } from "@/lib/format";
+import type { Tareo } from "@/lib/datos";
 
 type Opcion = { id: string; nombre: string; codigo?: string | null };
-type Trabajador = Opcion & { dni?: string; numero_cuenta?: string; banco?: string; suspension_cuarta?: boolean };
+type Trabajador = Opcion & { dni?: string; numero_cuenta?: string; banco?: string; suspension_cuarta?: boolean; jornal_diario?: number };
+
+const HORAS_JORNADA = 8;
+
+/** Resume el tareo del trabajador en el proyecto y período elegidos. */
+export function resumenTareoHonorario(tareos: Tareo[], trabajadorId: string, proyectoId: string, mes: number, anio: number, jornal: number) {
+  const prefijo = `${anio}-${String(mes).padStart(2, "0")}`;
+  const filas = tareos.filter((t) =>
+    t.trabajador_id === trabajadorId &&
+    (proyectoId ? t.proyecto_id === proyectoId : true) &&
+    typeof t.fecha === "string" && t.fecha.startsWith(prefijo),
+  );
+  let dias = 0, viaje = 0, extras = 0;
+  for (const t of filas) {
+    const asistencia = Number(t.asistencia) || 0;
+    if (t.tipo === "extras") extras += (Number(t.horas) || 0) * (jornal / HORAS_JORNADA);
+    else if (t.tipo === "viaje") viaje += Number(t.costo_soles) || 0;
+    else dias += asistencia;
+  }
+  const r2 = (v: number) => Math.round(v * 100) / 100;
+  return { filas: filas.length, dias: r2(dias), viaje: r2(viaje), extras: r2(extras) };
+}
 
 export type FormularioHonorario = DetalleHonorario & { trabajador_id: string; proyecto_id: string };
 
@@ -23,6 +45,7 @@ export function DetallePagoHonorario({
   empresa,
   trabajadores,
   proyectos,
+  tareos = [],
   guardando,
   error,
   onCerrar,
@@ -33,6 +56,7 @@ export function DetallePagoHonorario({
   empresa: { razon_social?: string; ruc?: string; rubro?: string; direccion?: string; logo_url?: string } | null;
   trabajadores: Trabajador[];
   proyectos: Opcion[];
+  tareos?: Tareo[];
   guardando: boolean;
   error: string;
   onCerrar: () => void;
@@ -40,10 +64,32 @@ export function DetallePagoHonorario({
 }) {
   const [form, setForm] = useState(inicial);
   const [vista, setVista] = useState(false);
+  const [avisoTareo, setAvisoTareo] = useState("");
   const trabajador = trabajadores.find((item) => item.id === form.trabajador_id) ?? null;
   const proyecto = proyectos.find((item) => item.id === form.proyecto_id);
   const totales = useMemo(() => calcularDetalleHonorario(form, !!trabajador?.suspension_cuarta), [form, trabajador]);
   const actualizarNumero = (campo: keyof FormularioHonorario, valor: string) => setForm((actual) => ({ ...actual, [campo]: Math.max(0, Number(valor) || 0) }));
+
+  // Autocompletar desde la ficha del trabajador y su tareo del período.
+  const clavePeriodo = `${form.trabajador_id}|${form.proyecto_id}|${form.mes}|${form.anio}`;
+  useEffect(() => {
+    if (!form.trabajador_id) { setAvisoTareo(""); return; }
+    const jornal = Number(trabajador?.jornal_diario) || 0;
+    const resumen = resumenTareoHonorario(tareos, form.trabajador_id, form.proyecto_id, form.mes, form.anio, jornal);
+    setForm((actual) => ({
+      ...actual,
+      dias_laborados: resumen.dias,
+      dias_viaje: resumen.viaje,
+      horas_extras: resumen.extras,
+      costo_unitario: jornal > 0 ? jornal : actual.costo_unitario,
+    }));
+    setAvisoTareo(
+      resumen.filas > 0
+        ? `Completado automáticamente desde el tareo: ${resumen.dias} días, ${soles(resumen.viaje)} de viaje y ${soles(resumen.extras)} en horas extras. Puedes ajustar los valores si lo necesitas.`
+        : "Sin tareo registrado en este período: completa los importes manualmente.",
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clavePeriodo, tareos]);
 
   return (
     <VentanaFlotante titulo="Detalle de pago por honorarios" subtitulo="Completa los importes y revisa la hoja A4 antes de guardar." abierta={abierta} onCerrar={onCerrar} ancho="max-w-[1500px]" ocultarBarra>
@@ -60,6 +106,11 @@ export function DetallePagoHonorario({
 
           <fieldset className="mt-4 rounded-md border border-line bg-card p-3">
             <legend className="px-1 text-xs font-bold text-primary">Remuneraciones</legend>
+            {avisoTareo && (
+              <p className="mb-2 flex items-start gap-1.5 rounded-md bg-primary/8 px-2 py-1.5 text-[11px] text-muted-foreground sm:col-span-2">
+                <Wand2 size={12} className="mt-0.5 shrink-0 text-primary" /> {avisoTareo}
+              </p>
+            )}
             <div className="grid gap-2 sm:grid-cols-2">
               {([[
                 "dias_laborados", "Días laborados"], ["costo_unitario", "Costo unitario (S/)"], ["dias_viaje", "Días de viaje (S/)"], ["horas_extras", "Horas extras (S/)"], ["otros_remuneraciones", "Otros (S/)"], ["saldo_mes_anterior", "Saldo mes anterior (S/)"]

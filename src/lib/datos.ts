@@ -114,6 +114,8 @@ export type Tareo = {
   proyecto_id: string;
   asistencia: number;
   costo_soles: number;
+  tipo?: string;
+  horas?: number;
 };
 
 export type Tercero = {
