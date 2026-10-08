@@ -1,11 +1,33 @@
-import { useMemo, useState } from "react";
-import { Eye, Printer, Save } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Eye, Printer, Save, Wand2 } from "lucide-react";
 import { Boton, Campo, Input, Select, VentanaFlotante } from "@/components/ui-kit";
 import { HojaDetalleHonorario, type DetalleHonorario } from "@/components/personal/HojaDetalleHonorario";
 import { MESES, soles } from "@/lib/format";
+import type { Tareo } from "@/lib/datos";
 
 type Opcion = { id: string; nombre: string; codigo?: string | null };
-type Trabajador = Opcion & { dni?: string; numero_cuenta?: string; banco?: string; suspension_cuarta?: boolean };
+type Trabajador = Opcion & { dni?: string; numero_cuenta?: string; banco?: string; suspension_cuarta?: boolean; jornal_diario?: number };
+
+const HORAS_JORNADA = 8;
+
+/** Resume el tareo del trabajador en el proyecto y período elegidos. */
+export function resumenTareoHonorario(tareos: Tareo[], trabajadorId: string, proyectoId: string, mes: number, anio: number, jornal: number) {
+  const prefijo = `${anio}-${String(mes).padStart(2, "0")}`;
+  const filas = tareos.filter((t) =>
+    t.trabajador_id === trabajadorId &&
+    (proyectoId ? t.proyecto_id === proyectoId : true) &&
+    typeof t.fecha === "string" && t.fecha.startsWith(prefijo),
+  );
+  let dias = 0, viaje = 0, extras = 0;
+  for (const t of filas) {
+    const asistencia = Number(t.asistencia) || 0;
+    if (t.tipo === "extras") extras += (Number(t.horas) || 0) * (jornal / HORAS_JORNADA);
+    else if (t.tipo === "viaje") viaje += Number(t.costo_soles) || 0;
+    else dias += asistencia;
+  }
+  const r2 = (v: number) => Math.round(v * 100) / 100;
+  return { filas: filas.length, dias: r2(dias), viaje: r2(viaje), extras: r2(extras) };
+}
 
 export type FormularioHonorario = DetalleHonorario & { trabajador_id: string; proyecto_id: string };
 
