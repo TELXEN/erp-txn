@@ -33,7 +33,7 @@ export function GenerarBoletasHonorarios({ prestadores, proyectos, tareos, exist
       const ids = [...new Set(tareos.filter((t) => t.trabajador_id === p.id && t.fecha.startsWith(prefijo)).map((t) => t.proyecto_id).filter(Boolean))] as string[];
       const nombres = ids.map((id) => { const pr = proyectos.find((x) => x.id === id); return pr ? `${pr.codigo ?? ""} ${pr.nombre}`.trim() : ""; }).filter(Boolean);
       const form: FormularioHonorario = {
-        trabajador_id: p.id, proyecto_id: ids.length === 1 ? ids[0] : "", numero_recibo: "",
+        trabajador_id: p.id, proyecto_id: ids.length === 1 ? (ids[0] ?? "") : "", numero_recibo: "",
         fecha_emision: `${prefijo}-${String(ultimoDia).padStart(2, "0")}`,
         concepto: `Servicios prestados en ${MESES[mes - 1]} ${anio}${nombres.length ? ` – ${nombres.join(", ")}` : ""}`,
         mes, anio, dias_laborados: r.dias, dias_viaje: r.viaje, horas_extras: r.extras, otros_remuneraciones: 0,
