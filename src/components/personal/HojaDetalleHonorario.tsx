@@ -119,7 +119,10 @@ export function HojaDetalleHonorario({ empresa, trabajador, proyecto, detalle, t
       <section className="mt-3 grid flex-1 grid-cols-3 border" style={{ borderColor: DOC.line }}>
         <div className="border-r" style={{ borderColor: DOC.line }}>
           <h3 className="px-2 py-2 text-center text-[10px] font-bold uppercase" style={{ background: DOC.total }}>Remuneraciones</h3>
-          {remuneraciones.map(([etiqueta, valor]) => <Monto key={etiqueta} etiqueta={etiqueta} valor={valor} />)}
+          <div className="grid grid-cols-[1fr_42px_auto] gap-2 border-b px-2 py-1 text-[8px] font-bold uppercase" style={{ borderColor: DOC.line, background: DOC.soft }}>
+            <span>Concepto</span><span className="text-center">Cant.</span><span className="text-right">Monto</span>
+          </div>
+          {remuneraciones.map((r) => <MontoCant key={r.etiqueta} etiqueta={r.etiqueta} cantidad={r.cantidad} valor={r.valor} />)}
         </div>
         <div className="border-r" style={{ borderColor: DOC.line }}>
           <h3 className="px-2 py-2 text-center text-[10px] font-bold uppercase" style={{ background: DOC.total }}>Descuentos</h3>
