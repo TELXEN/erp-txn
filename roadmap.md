@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Recibos por Honorarios: detalle de pago editable, persistente y hoja A4 imprimible.
+
 - [x] Organizar Nuevo trabajador en cuatro tarjetas diferenciadas (personales, laborales, sueldo y pago, pensiones) con tipografía más compacta.
 - [x] Retirar búsqueda fallida de AFP y compactar Nuevo trabajador sin barra lateral visible.
 

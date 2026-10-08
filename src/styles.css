@@ -259,7 +259,19 @@
   .no-print {
     display: none !important;
   }
+
+  body * { visibility: hidden !important; }
+  .honorario-print-sheet, .honorario-print-sheet * { visibility: visible !important; }
+  .honorario-print-sheet {
+    position: absolute !important;
+    inset: 0 auto auto 0 !important;
+    margin: 0 !important;
+    min-height: 297mm !important;
+    width: 210mm !important;
+  }
   body {
+
+@page { size: A4; margin: 0; }
     background: #fff;
   }
 }

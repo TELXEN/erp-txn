@@ -10,6 +10,7 @@ export type Empresa = {
   email: string;
   web: string;
   eslogan: string;
+  rubro: string;
   color_marca: string;
   logo_url: string;
 };

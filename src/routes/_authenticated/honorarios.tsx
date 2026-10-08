@@ -27,9 +27,6 @@ export const Route = createFileRoute("/_authenticated/honorarios")({
   component: Honorarios,
 });
 
-const TOPE_RETENCION = 1500;
-const TASA_RETENCION = 0.08;
-
 type Recibo = {
   id: string;
   trabajador_id: string;
@@ -59,9 +56,6 @@ type Recibo = {
   descuento_herramientas: number;
   lugar_emision: string;
 };
-
-void TOPE_RETENCION;
-void TASA_RETENCION;
 
 const nuevoDetalle = (): FormularioHonorario => {
   const ahora = new Date();
