@@ -19,11 +19,13 @@ export function resumenTareoHonorario(tareos: Tareo[], trabajadorId: string, pro
     (proyectoId ? t.proyecto_id === proyectoId : true) &&
     typeof t.fecha === "string" && t.fecha.startsWith(prefijo),
   );
+  // Cantidades (no soles): viaje en días, extras en horas. La fórmula del
+  // detalle convierte todo a jornales: viaje/2, extras/10.5, feriados×2.
   let dias = 0, viaje = 0, extras = 0;
   for (const t of filas) {
     const asistencia = Number(t.asistencia) || 0;
-    if (t.tipo === "extras") extras += (Number(t.horas) || 0) * (jornal / HORAS_JORNADA);
-    else if (t.tipo === "viaje") viaje += Number(t.costo_soles) || 0;
+    if (t.tipo === "extras") extras += Number(t.horas) || 0;
+    else if (t.tipo === "viaje") viaje += asistencia || 1;
     else dias += asistencia;
   }
   const r2 = (v: number) => Math.round(v * 100) / 100;
@@ -32,8 +34,15 @@ export function resumenTareoHonorario(tareos: Tareo[], trabajadorId: string, pro
 
 export type FormularioHonorario = DetalleHonorario & { trabajador_id: string; proyecto_id: string };
 
+export const HORAS_DIA_EXTRA = 10.5;
+
+/** Jornales equivalentes: laborados + viaje/2 + extras/10.5 + feriados×2. */
+export function jornalesHonorario(form: Pick<FormularioHonorario, "dias_laborados" | "dias_viaje" | "horas_extras" | "otros_remuneraciones">) {
+  return form.dias_laborados + form.dias_viaje / 2 + form.horas_extras / HORAS_DIA_EXTRA + form.otros_remuneraciones * 2;
+}
+
 export function calcularDetalleHonorario(form: FormularioHonorario, suspension = false) {
-  const bruto = form.dias_laborados * form.costo_unitario + form.dias_viaje + form.horas_extras + form.otros_remuneraciones;
+  const bruto = Math.round(form.costo_unitario * jornalesHonorario(form) * 100) / 100;
   const retencion = !suspension && bruto > 1500 ? Math.round(bruto * 8) / 100 : 0;
   const otrosDescuentos = form.adelantos + form.devolucion_gastos + form.pagos_a_cuenta_planilla + form.fondo_pensiones + form.descuento_herramientas;
   const descuentos = otrosDescuentos + retencion;
