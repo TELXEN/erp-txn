@@ -123,7 +123,7 @@ function Honorarios() {
       if (resumen.viaje !== Number(r.dias_viaje)) campos.dias_viaje = resumen.viaje;
       if (resumen.extras !== Number(r.horas_extras)) campos.horas_extras = resumen.extras;
       if (jornal > 0 && jornal !== Number(r.costo_unitario)) campos.costo_unitario = jornal;
-      if (Object.keys(campos) === 0) continue;
+      if (Object.keys(campos).length === 0) continue;
       const dias = campos.dias_laborados ?? Number(r.dias_laborados);
       const viaje = campos.dias_viaje ?? Number(r.dias_viaje);
       const extras = campos.horas_extras ?? Number(r.horas_extras);
