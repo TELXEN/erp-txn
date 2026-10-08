@@ -22,6 +22,13 @@
       "when": 1791418297731,
       "tag": "0002_detalle_pago_honorarios",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1791425606536,
+      "tag": "0003_honorarios_borradores",
+      "breakpoints": true
     }
   ]
 }

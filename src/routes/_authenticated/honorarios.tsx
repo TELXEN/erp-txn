@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, FileText, Plus, Trash2, Upload } from "lucide-react";
+import { Check, FileText, Plus, Trash2, Upload, Wand2 } from "lucide-react";
+import { GenerarBoletasHonorarios } from "@/components/personal/GenerarBoletasHonorarios";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
@@ -31,7 +32,7 @@ type Recibo = {
   id: string;
   trabajador_id: string;
   proyecto_id: string | null;
-  numero_recibo: string;
+  numero_recibo: string | null;
   fecha_emision: string;
   concepto: string;
   monto_bruto: number;
@@ -98,10 +99,12 @@ function Honorarios() {
   const [guardando, setGuardando] = useState(false);
   const [busqueda, setBusqueda] = useState("");
   const recibosFiltrados = recibos.filter((r) =>
-    coincide(busqueda, nombreDe(r.trabajador_id), r.numero_recibo, r.concepto),
+    coincide(busqueda, nombreDe(r.trabajador_id), r.numero_recibo ?? "", r.concepto),
   );
   const [pago, setPago] = useState<{ id: string; banco_id: string; fecha_pago: string; numero_operacion: string } | null>(null);
   const [error, setError] = useState("");
+  const [generador, setGenerador] = useState(false);
+  const [aviso, setAviso] = useState("");
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
@@ -180,13 +183,16 @@ function Honorarios() {
             <Boton onClick={() => { setError(""); setEditor({ clave: `nuevo-${Date.now()}`, form: nuevoDetalle() }); }}>
               <Plus size={14} /> Nuevo detalle
             </Boton>
+            <Boton variante="linea" onClick={() => { setAviso(""); setGenerador(true); }}>
+              <Wand2 size={14} /> Generar boletas de pago
+            </Boton>
             <Boton variante="linea" onClick={() => exportarExcel("recibos-honorarios", [
                 {
                   nombre: "Recibos",
                   filas: recibos.map((r) => ({
                     Fecha: fecha(r.fecha_emision),
                     Prestador: nombreDe(r.trabajador_id),
-                    "N° Recibo": r.numero_recibo,
+                    "N° Recibo": r.numero_recibo ?? "Pendiente de N°",
                     Obra: obraDe(r.proyecto_id),
                     Concepto: r.concepto,
                     "Bruto (S/)": Number(r.monto_bruto),
@@ -214,6 +220,7 @@ function Honorarios() {
       </div>
 
       {prestadores.length === 0 && <div className="mb-4 panel"><Vacio texto="No hay personal con tipo de contratación 'Recibo por Honorarios'. Configúralo en Personal." /></div>}
+      {aviso && <p className="mb-3 rounded-md bg-primary/8 px-3 py-2 text-xs text-primary">{aviso}</p>}
       {error && !editor && <p className="mb-3 font-mono text-xs text-bad">{error}</p>}
 
       <Panel titulo="Recibos registrados"
@@ -253,7 +260,7 @@ function Honorarios() {
                   <tr key={r.id} className="border-b border-line/60 align-top last:border-0">
                     <td className="px-4 py-2">{fecha(r.fecha_emision)}</td>
                     <td className="px-3 py-2 font-semibold text-ink"><Resaltar texto={nombreDe(r.trabajador_id)} termino={busqueda}/><span className="block text-[10px] font-normal text-muted-foreground"><Resaltar texto={r.concepto} termino={busqueda}/></span></td>
-                    <td className="px-3 py-2"><Resaltar texto={r.numero_recibo} termino={busqueda}/></td>
+                    <td className="px-3 py-2">{r.numero_recibo ? <Resaltar texto={r.numero_recibo} termino={busqueda}/> : <span >Pendiente de N°</span>}</td>
                     <td className="px-3 py-2 text-muted-foreground">{obraDe(r.proyecto_id)}</td>
                     <td className="px-3 py-2 text-right">{soles(Number(r.monto_bruto))}</td>
                     <td className="px-3 py-2 text-right">{soles(Number(r.retencion))}</td>
@@ -287,7 +294,7 @@ function Honorarios() {
                             <button type="button" title="Editar o imprimir detalle" onClick={() => {
                               setError("");
                               setEditor({ clave: r.id, form: {
-                                trabajador_id: r.trabajador_id, proyecto_id: r.proyecto_id ?? "", numero_recibo: r.numero_recibo,
+                                trabajador_id: r.trabajador_id, proyecto_id: r.proyecto_id ?? "", numero_recibo: r.numero_recibo ?? "",
                                 fecha_emision: r.fecha_emision, concepto: r.concepto, mes: Number(r.mes), anio: Number(r.anio),
                                 dias_laborados: Number(r.dias_laborados), dias_viaje: Number(r.dias_viaje), horas_extras: Number(r.horas_extras),
                                 otros_remuneraciones: Number(r.otros_remuneraciones), costo_unitario: Number(r.costo_unitario), saldo_mes_anterior: Number(r.saldo_mes_anterior),
@@ -295,7 +302,7 @@ function Honorarios() {
                                 fondo_pensiones: Number(r.fondo_pensiones), descuento_herramientas: Number(r.descuento_herramientas), lugar_emision: r.lugar_emision, retencion: Number(r.retencion),
                               } });
                             }} className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"><FileText size={15} /></button>
-                            {r.estado_pago === "Pendiente" && (
+                            {r.estado_pago === "Pendiente" && r.numero_recibo && (
                               <button type="button" title="Registrar pago" onClick={() => setPago({ id: r.id, banco_id: "", fecha_pago: hoy(), numero_operacion: "" })} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"><Check size={14} /></button>
                             )}
                             <button type="button" title="Eliminar" onClick={() => eliminar(r)} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-bad hover:text-bad"><Trash2 size={14} /></button>
@@ -310,6 +317,16 @@ function Honorarios() {
           </div>
         )}
       </Panel>
+      {generador && (
+        <GenerarBoletasHonorarios
+          prestadores={prestadores}
+          proyectos={proyectos}
+          tareos={tareos}
+          existentes={recibos}
+          onCerrar={() => setGenerador(false)}
+          onListo={async (m) => { setGenerador(false); setAviso(`Boletas de pago: ${m} Completa el N° de recibo de cada una.`); await refrescar(); }}
+        />
+      )}
       {editor && (
         <DetallePagoHonorario
           key={editor.clave}
