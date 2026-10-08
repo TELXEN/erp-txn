@@ -2,10 +2,12 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, Trash2, Upload } from "lucide-react";
+import { Check, FileText, Plus, Trash2, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
+import { Boton, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
+import { DetallePagoHonorario, calcularDetalleHonorario, type FormularioHonorario } from "@/components/personal/DetallePagoHonorario";
+import { useEmpresa } from "@/lib/empresa";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha, hoy, soles } from "@/lib/format";
 import { useProyectos, useTrabajadores } from "@/lib/datos";
@@ -42,16 +44,42 @@ type Recibo = {
   banco_id: string | null;
   fecha_pago: string | null;
   numero_operacion: string;
+  mes: number;
+  anio: number;
+  dias_laborados: number;
+  dias_viaje: number;
+  horas_extras: number;
+  otros_remuneraciones: number;
+  costo_unitario: number;
+  saldo_mes_anterior: number;
+  adelantos: number;
+  devolucion_gastos: number;
+  pagos_a_cuenta_planilla: number;
+  fondo_pensiones: number;
+  descuento_herramientas: number;
+  lugar_emision: string;
 };
 
-const calcularRetencion = (bruto: number, suspension: boolean) =>
-  !suspension && bruto > TOPE_RETENCION ? Math.round(bruto * TASA_RETENCION * 100) / 100 : 0;
+void TOPE_RETENCION;
+void TASA_RETENCION;
+
+const nuevoDetalle = (): FormularioHonorario => {
+  const ahora = new Date();
+  return {
+    trabajador_id: "", proyecto_id: "", numero_recibo: "", fecha_emision: hoy(), concepto: "",
+    mes: ahora.getMonth() + 1, anio: ahora.getFullYear(), dias_laborados: 0, dias_viaje: 0,
+    horas_extras: 0, otros_remuneraciones: 0, costo_unitario: 0, saldo_mes_anterior: 0,
+    adelantos: 0, devolucion_gastos: 0, pagos_a_cuenta_planilla: 0, fondo_pensiones: 0,
+    descuento_herramientas: 0, lugar_emision: "Huancayo", retencion: 0,
+  };
+};
 
 function Honorarios() {
   const { rol } = useAuth();
   const qc = useQueryClient();
   const { data: trabajadores = [] } = useTrabajadores();
   const { data: proyectos = [] } = useProyectos();
+  const { data: empresa = null } = useEmpresa();
   const { data: recibos = [] } = useQuery({
     queryKey: ["recibos_honorarios"],
     queryFn: async () => {
@@ -70,7 +98,8 @@ function Honorarios() {
   });
 
   const prestadores = trabajadores.filter((t) => t.tipo_contratacion === "Honorarios");
-  const [form, setForm] = useState({ trabajador_id: "", proyecto_id: "", numero_recibo: "", fecha_emision: hoy(), concepto: "", monto_bruto: "" });
+  const [editor, setEditor] = useState<{ clave: string; form: FormularioHonorario } | null>(null);
+  const [guardando, setGuardando] = useState(false);
   const [busqueda, setBusqueda] = useState("");
   const recibosFiltrados = recibos.filter((r) =>
     coincide(busqueda, nombreDe(r.trabajador_id), r.numero_recibo, r.concepto),
@@ -80,9 +109,6 @@ function Honorarios() {
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
-  const sel = trabajadores.find((t) => t.id === form.trabajador_id);
-  const bruto = Number(form.monto_bruto || 0);
-  const ret = calcularRetencion(bruto, !!sel?.suspension_cuarta);
   const nombreDe = (id: string) => trabajadores.find((t) => t.id === id)?.nombre ?? "—";
   const obraDe = (id: string | null) => {
     const p = proyectos.find((x) => x.id === id);
@@ -90,25 +116,37 @@ function Honorarios() {
   };
   const refrescar = () => qc.invalidateQueries({ queryKey: ["recibos_honorarios"] });
 
-  async function registrar(e: React.FormEvent) {
-    e.preventDefault();
+  async function guardarDetalle(form: FormularioHonorario) {
     setError("");
     if (!form.trabajador_id) return setError("Selecciona al prestador.");
     if (!form.numero_recibo.trim()) return setError("Ingresa el número de recibo (ej. E001-25).");
-    if (bruto <= 0) return setError("Ingresa un monto bruto válido.");
-    const { error: err } = await supabase.from("recibos_honorarios").insert({
+    const trabajador = trabajadores.find((item) => item.id === form.trabajador_id);
+    const totales = calcularDetalleHonorario(form, !!trabajador?.suspension_cuarta);
+    if (totales.bruto <= 0) return setError("Ingresa remuneraciones válidas.");
+    if (totales.neto < 0) return setError("Los descuentos no pueden superar las remuneraciones.");
+    setGuardando(true);
+    const campos = {
       trabajador_id: form.trabajador_id,
       proyecto_id: form.proyecto_id || null,
       numero_recibo: form.numero_recibo.trim().toUpperCase(),
       fecha_emision: form.fecha_emision,
       concepto: form.concepto.trim(),
-      monto_bruto: bruto,
-      retencion: ret,
-      monto_neto: bruto - ret,
-    });
+      mes: form.mes, anio: form.anio, dias_laborados: form.dias_laborados, dias_viaje: form.dias_viaje,
+      horas_extras: form.horas_extras, otros_remuneraciones: form.otros_remuneraciones,
+      costo_unitario: form.costo_unitario, saldo_mes_anterior: form.saldo_mes_anterior,
+      adelantos: form.adelantos, devolucion_gastos: form.devolucion_gastos,
+      pagos_a_cuenta_planilla: form.pagos_a_cuenta_planilla, fondo_pensiones: form.fondo_pensiones,
+      descuento_herramientas: form.descuento_herramientas, lugar_emision: form.lugar_emision.trim() || "Huancayo",
+      monto_bruto: totales.bruto, retencion: totales.retencion, monto_neto: totales.neto,
+    };
+    const consulta = editor?.clave.startsWith("nuevo-")
+      ? supabase.from("recibos_honorarios").insert(campos)
+      : supabase.from("recibos_honorarios").update(campos).eq("id", editor?.clave ?? "");
+    const { error: err } = await consulta;
+    setGuardando(false);
     if (err) return setError(err.code === "23505" ? "Ese número de recibo ya está registrado para este prestador." : err.message);
-    setForm({ ...form, numero_recibo: "", concepto: "", monto_bruto: "" });
     await refrescar();
+    setEditor(null);
   }
 
   async function confirmarPago() {
@@ -143,10 +181,11 @@ function Honorarios() {
         titulo="Recibos por Honorarios"
         subtitulo="Prestadores de 4ta categoría · retención 8% sobre recibos mayores a S/ 1,500"
         acciones={
-          <Boton
-            variante="linea"
-            onClick={() =>
-              exportarExcel("recibos-honorarios", [
+          <div className="flex gap-2">
+            <Boton onClick={() => { setError(""); setEditor({ clave: `nuevo-${Date.now()}`, form: nuevoDetalle() }); }}>
+              <Plus size={14} /> Nuevo detalle
+            </Boton>
+            <Boton variante="linea" onClick={() => exportarExcel("recibos-honorarios", [
                 {
                   nombre: "Recibos",
                   filas: recibos.map((r) => ({
@@ -163,11 +202,10 @@ function Honorarios() {
                     "N° Operación": r.numero_operacion,
                   })),
                 },
-              ])
-            }
-          >
-            <Upload size={13} /> Exportar a Excel
-          </Boton>
+              ])}>
+              <Upload size={13} /> Exportar a Excel
+            </Boton>
+          </div>
         }
       />
 
@@ -180,46 +218,8 @@ function Honorarios() {
         ))}
       </div>
 
-      <Panel titulo="Nuevo recibo" className="mb-4">
-        {prestadores.length === 0 ? (
-          <Vacio texto="No hay personal con tipo de contratación 'Recibo por Honorarios'. Configúralo en Personal." />
-        ) : (
-          <form onSubmit={registrar} className="grid gap-1.5 p-3 grid-cols-1 sm:grid-cols-3 lg:grid-cols-6">
-            <Campo etiqueta="Prestador">
-              <Select value={form.trabajador_id} onChange={(e) => setForm({ ...form, trabajador_id: e.target.value })} className="py-1.5">
-                <option value="">Selecciona…</option>
-                {prestadores.map((t) => <option key={t.id} value={t.id}>{t.nombre}</option>)}
-              </Select>
-            </Campo>
-            <Campo etiqueta="Obra / Centro de costo">
-              <Select value={form.proyecto_id} onChange={(e) => setForm({ ...form, proyecto_id: e.target.value })} className="py-1.5">
-                <option value="">Oficina Central</option>
-                {proyectos.map((p) => <option key={p.id} value={p.id}>{p.codigo} {p.nombre}</option>)}
-              </Select>
-            </Campo>
-            <Campo etiqueta="N° Recibo">
-              <Input value={form.numero_recibo} onChange={(e) => setForm({ ...form, numero_recibo: e.target.value })} placeholder="E001-25" maxLength={20} className="py-1.5" />
-            </Campo>
-            <Campo etiqueta="Fecha emisión">
-              <Input type="date" value={form.fecha_emision} onChange={(e) => setForm({ ...form, fecha_emision: e.target.value })} className="py-1.5" />
-            </Campo>
-            <Campo etiqueta="Concepto">
-              <Input value={form.concepto} onChange={(e) => setForm({ ...form, concepto: e.target.value })} maxLength={200} className="py-1.5" />
-            </Campo>
-            <Campo etiqueta="Monto bruto (S/)">
-              <Input type="number" step="0.01" min="0" value={form.monto_bruto} onChange={(e) => setForm({ ...form, monto_bruto: e.target.value })} className="py-1.5" />
-            </Campo>
-            <div className="col-span-full flex flex-wrap items-center justify-between gap-2">
-              <p className="font-mono text-xs text-muted-foreground">
-                Retención: <b className="text-ink">{soles(ret)}</b> · Neto a pagar: <b className="text-ink">{soles(bruto - ret)}</b>
-                {sel?.suspension_cuarta && " · Con suspensión de 4ta"}
-              </p>
-              <Boton type="submit" className="min-w-36">Registrar</Boton>
-            </div>
-          </form>
-        )}
-        {error && <p className="px-3 pb-3 font-mono text-xs text-bad">{error}</p>}
-      </Panel>
+      {prestadores.length === 0 && <div className="mb-4 panel"><Vacio texto="No hay personal con tipo de contratación 'Recibo por Honorarios'. Configúralo en Personal." /></div>}
+      {error && !editor && <p className="mb-3 font-mono text-xs text-bad">{error}</p>}
 
       <Panel titulo="Recibos registrados"
         extra={
@@ -289,6 +289,17 @@ function Honorarios() {
                           </>
                         ) : (
                           <>
+                            <button type="button" title="Editar o imprimir detalle" onClick={() => {
+                              setError("");
+                              setEditor({ clave: r.id, form: {
+                                trabajador_id: r.trabajador_id, proyecto_id: r.proyecto_id ?? "", numero_recibo: r.numero_recibo,
+                                fecha_emision: r.fecha_emision, concepto: r.concepto, mes: Number(r.mes), anio: Number(r.anio),
+                                dias_laborados: Number(r.dias_laborados), dias_viaje: Number(r.dias_viaje), horas_extras: Number(r.horas_extras),
+                                otros_remuneraciones: Number(r.otros_remuneraciones), costo_unitario: Number(r.costo_unitario), saldo_mes_anterior: Number(r.saldo_mes_anterior),
+                                adelantos: Number(r.adelantos), devolucion_gastos: Number(r.devolucion_gastos), pagos_a_cuenta_planilla: Number(r.pagos_a_cuenta_planilla),
+                                fondo_pensiones: Number(r.fondo_pensiones), descuento_herramientas: Number(r.descuento_herramientas), lugar_emision: r.lugar_emision, retencion: Number(r.retencion),
+                              } });
+                            }} className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"><FileText size={15} /></button>
                             {r.estado_pago === "Pendiente" && (
                               <button type="button" title="Registrar pago" onClick={() => setPago({ id: r.id, banco_id: "", fecha_pago: hoy(), numero_operacion: "" })} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"><Check size={14} /></button>
                             )}
@@ -304,6 +315,20 @@ function Honorarios() {
           </div>
         )}
       </Panel>
+      {editor && (
+        <DetallePagoHonorario
+          key={editor.clave}
+          abierta
+          inicial={editor.form}
+          empresa={empresa}
+          trabajadores={prestadores}
+          proyectos={proyectos}
+          guardando={guardando}
+          error={error}
+          onCerrar={() => { setEditor(null); setError(""); }}
+          onGuardar={guardarDetalle}
+        />
+      )}
     </>
   );
 }
