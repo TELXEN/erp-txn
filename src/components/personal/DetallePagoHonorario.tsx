@@ -9,8 +9,6 @@ import type { Tareo } from "@/lib/datos";
 type Opcion = { id: string; nombre: string; codigo?: string | null };
 type Trabajador = Opcion & { dni?: string; numero_cuenta?: string; banco?: string; suspension_cuarta?: boolean; jornal_diario?: number };
 
-const HORAS_JORNADA = 8;
-
 /** Resume el tareo del trabajador en el proyecto y período elegidos. */
 export function resumenTareoHonorario(tareos: Tareo[], trabajadorId: string, proyectoId: string, mes: number, anio: number, jornal: number) {
   const prefijo = `${anio}-${String(mes).padStart(2, "0")}`;
