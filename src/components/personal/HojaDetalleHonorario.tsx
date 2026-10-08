@@ -39,11 +39,11 @@ const fechaLarga = (valor: string, lugar: string) => {
   return `${lugar}, ${dia} de ${MESES[mes - 1]?.toLowerCase() ?? ""} del ${anio}`;
 };
 
-function Fila({ etiqueta, valor }: { etiqueta: string; valor: string }) {
+function Fila({ etiqueta, valor, valorIzquierda }: { etiqueta: string; valor: string; valorIzquierda?: boolean }) {
   return (
     <div className="flex items-center justify-between gap-3 border-b last:border-b-0" style={{ borderColor: DOC.line }}>
       <span className="px-2 py-1.5 text-[9px] font-bold uppercase" style={{ background: DOC.soft }}>{etiqueta}</span>
-      <span className="px-2 py-1.5 text-right text-[10px]">{valor || "—"}</span>
+      <span className={`px-2 py-1.5 text-[10px] ${valorIzquierda ? "flex-1 text-left" : "text-right"}`}>{valor || "—"}</span>
     </div>
   );
 }
@@ -109,7 +109,7 @@ export function HojaDetalleHonorario({ empresa, trabajador, proyecto, detalle, t
       <section className="mt-3 border" style={{ borderColor: DOC.line }}>
         <h2 className="px-2 py-1.5 text-[10px] font-bold uppercase text-paper" style={{ background: DOC.dark }}>Datos del trabajador</h2>
         <div className="grid grid-cols-2">
-          <div className="border-r" style={{ borderColor: DOC.line }}><Fila etiqueta="DNI" valor={trabajador?.dni ?? ""} /><Fila etiqueta="Apellidos y nombres" valor={trabajador?.nombre ?? ""} /><Fila etiqueta="Periodo" valor={`${MESES[detalle.mes - 1] ?? "—"} ${detalle.anio}`} /></div>
+          <div className="border-r" style={{ borderColor: DOC.line }}><Fila etiqueta="DNI" valor={trabajador?.dni ?? ""} valorIzquierda /><Fila etiqueta="Apellidos y nombres" valor={trabajador?.nombre ?? ""} valorIzquierda /><Fila etiqueta="Periodo" valor={`${MESES[detalle.mes - 1] ?? "—"} ${detalle.anio}`} valorIzquierda /></div>
           <div><Fila etiqueta="Cta. de depósito" valor={trabajador?.numero_cuenta ?? ""} /><Fila etiqueta="Banco" valor={trabajador?.banco ?? ""} /><Fila etiqueta="Fecha de emisión" valor={detalle.fecha_emision.split("-").reverse().join("/")} /></div>
         </div>
       </section>
