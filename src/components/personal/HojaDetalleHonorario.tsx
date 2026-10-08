@@ -48,9 +48,11 @@ function Fila({ etiqueta, valor, valorIzquierda }: { etiqueta: string; valor: st
   );
 }
 
+const COL_MONTO = "grid-cols-[1fr_42px_82px]";
+
 function MontoCant({ etiqueta, cantidad, valor }: { etiqueta: string; cantidad?: string | undefined; valor: number }) {
   return (
-    <div className="grid grid-cols-[1fr_42px_auto] items-center gap-2 border-b px-2 py-2 last:border-b-0" style={{ borderColor: DOC.line }}>
+    <div className={`grid ${COL_MONTO} items-center gap-2 border-b px-2 py-2 last:border-b-0`} style={{ borderColor: DOC.line }}>
       <span className="text-[9px] leading-tight">{etiqueta}</span>
       <span className="text-center text-[9px] tabular-nums">{cantidad ?? "—"}</span>
       <span className="whitespace-nowrap text-right text-[9px] font-semibold tabular-nums">{soles(valor)}</span>
