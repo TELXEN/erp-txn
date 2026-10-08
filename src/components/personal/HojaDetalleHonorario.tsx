@@ -76,7 +76,7 @@ export function HojaDetalleHonorario({ empresa, trabajador, proyecto, detalle, t
   ] as const;
 
   return (
-    <article className="honorario-print-sheet mx-auto flex min-h-[297mm] w-[210mm] flex-col bg-paper p-[12mm] text-ink shadow-lg print:shadow-none" style={{ fontFamily: DOC_FUENTE_CSS }}>
+    <article className="honorario-print-sheet mx-auto flex min-h-[297mm] w-[210mm] flex-col bg-paper p-[12mm] text-ink shadow-lg print:min-h-0 print:w-[186mm] print:p-[6mm] print:shadow-none" style={{ fontFamily: DOC_FUENTE_CSS }}>
       <header className="grid grid-cols-[150px_1fr_150px] items-center border-b-2 pb-4" style={{ borderColor: DOC.dark }}>
         <div className="flex h-16 items-center justify-start">
           {empresa?.logo_url ? <img src={empresa.logo_url} alt="Logotipo" className="max-h-16 max-w-36 object-contain" /> : <Building2 size={42} style={{ color: DOC.dark }} />}
@@ -127,9 +127,9 @@ export function HojaDetalleHonorario({ empresa, trabajador, proyecto, detalle, t
         <div className="px-3 py-3" style={{ background: DOC.total }}><p className="text-[9px] font-bold uppercase">Neto a pagar</p><p className="mt-1 text-right text-base font-bold">{soles(neto)}</p></div>
       </section>
 
-      <footer className="mt-10">
+      <footer className="mt-8 print:mt-4">
         <p className="text-right text-[10px]">{fechaLarga(detalle.fecha_emision, detalle.lugar_emision || "Huancayo")}</p>
-        <div className="mt-16 grid grid-cols-2 gap-24 px-10 text-center text-[9px] font-bold">
+        <div className="mt-12 grid grid-cols-2 gap-24 px-10 text-center text-[9px] font-bold print:mt-8">
           <div className="border-t pt-2" style={{ borderColor: DOC.ink }}>EMPLEADOR</div>
           <div className="border-t pt-2" style={{ borderColor: DOC.ink }}>TRABAJADOR</div>
         </div>
