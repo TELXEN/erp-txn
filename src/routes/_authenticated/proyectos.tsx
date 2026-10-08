@@ -448,6 +448,10 @@ function Proyectos() {
             );
           })}
         </div>
+        <p className="flex items-center gap-1.5 bg-primary/10 px-4 py-2 font-mono text-[11px] text-primary">
+          <Info size={13} className="shrink-0" />
+          El presupuesto del proyecto se completa automáticamente a partir de las partidas registradas.
+        </p>
         {proyectos.length === 0 ? (
           <Vacio texto={busqueda ? `Sin coincidencias para «${busqueda}»` : "Aún no hay proyectos registrados."} />
         ) : vista === "kanban" ? (
@@ -714,7 +718,7 @@ function Proyectos() {
           <div className="grid gap-4 p-5 font-['Roboto'] sm:grid-cols-2">
             <Seccion titulo="Proyecto"><p className="font-semibold text-ink">{proyectoVisto.nombre}</p><p className="text-sm text-muted-foreground">{proyectoVisto.cliente || "Sin cliente"}</p><p className="text-sm text-muted-foreground">{proyectoVisto.ubicacion || "Sin ubicación"}</p></Seccion>
             <Seccion titulo="Estado y plazo"><InsigniaSituacion valor={proyectoVisto.situacion} /><p className="text-sm text-ink">{fecha(proyectoVisto.fecha_inicio)} — {fecha(proyectoVisto.fecha_fin)}</p><p className="text-sm text-muted-foreground">Responsable: {trabajadores.find((t) => t.id === proyectoVisto.responsable_id)?.nombre ?? "Sin asignar"}</p></Seccion>
-            <Seccion titulo="Presupuesto"><p className="text-right text-lg font-bold tabular-nums text-ink">{soles(presupuestoProyecto(proyectoVisto.id, partidas))}</p></Seccion>
+            <Seccion titulo="Presupuesto"><p className="text-right text-lg font-bold tabular-nums text-ink">{soles(presupuestoProyecto(proyectoVisto.id, partidas))}</p><p className="flex items-center justify-end gap-1 text-[11px] text-primary"><Info size={12} className="shrink-0" />Se completa a partir de las partidas</p></Seccion>
             <Seccion titulo="Costo ejecutado"><p className="text-right text-lg font-bold tabular-nums text-ink">{soles(costoRealProyecto(proyectoVisto.id, gastosD, tareos, gastosG, tareoVeh))}</p></Seccion>
           </div>
         )}
