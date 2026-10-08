@@ -106,6 +106,11 @@ export function DetallePagoHonorario({
 
           <fieldset className="mt-4 rounded-md border border-line bg-card p-3">
             <legend className="px-1 text-xs font-bold text-primary">Remuneraciones</legend>
+            {avisoTareo && (
+              <p className="mb-2 flex items-start gap-1.5 rounded-md bg-primary/8 px-2 py-1.5 text-[11px] text-muted-foreground sm:col-span-2">
+                <Wand2 size={12} className="mt-0.5 shrink-0 text-primary" /> {avisoTareo}
+              </p>
+            )}
             <div className="grid gap-2 sm:grid-cols-2">
               {([[
                 "dias_laborados", "Días laborados"], ["costo_unitario", "Costo unitario (S/)"], ["dias_viaje", "Días de viaje (S/)"], ["horas_extras", "Horas extras (S/)"], ["otros_remuneraciones", "Otros (S/)"], ["saldo_mes_anterior", "Saldo mes anterior (S/)"]
