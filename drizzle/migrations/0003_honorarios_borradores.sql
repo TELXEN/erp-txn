@@ -1,0 +1,2 @@
+ALTER TABLE public.recibos_honorarios ALTER COLUMN numero_recibo DROP NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS recibos_honorarios_trabajador_periodo_uk ON public.recibos_honorarios (trabajador_id, mes, anio);

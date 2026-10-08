@@ -3267,7 +3267,7 @@ export type Database = {
           monto_bruto: number
           monto_neto: number
           numero_operacion: string
-          numero_recibo: string
+          numero_recibo: string | null
           otros_remuneraciones: number
           pagos_a_cuenta_planilla: number
           proyecto_id: string | null
@@ -3298,7 +3298,7 @@ export type Database = {
           monto_bruto: number
           monto_neto: number
           numero_operacion?: string
-          numero_recibo: string
+          numero_recibo?: string | null
           otros_remuneraciones?: number
           pagos_a_cuenta_planilla?: number
           proyecto_id?: string | null
@@ -3329,7 +3329,7 @@ export type Database = {
           monto_bruto?: number
           monto_neto?: number
           numero_operacion?: string
-          numero_recibo?: string
+          numero_recibo?: string | null
           otros_remuneraciones?: number
           pagos_a_cuenta_planilla?: number
           proyecto_id?: string | null
