@@ -41,9 +41,19 @@ const fechaLarga = (valor: string, lugar: string) => {
 
 function Fila({ etiqueta, valor }: { etiqueta: string; valor: string }) {
   return (
-    <div className="grid grid-cols-[108px_1fr] border-b last:border-b-0" style={{ borderColor: DOC.line }}>
+    <div className="flex items-center justify-between gap-3 border-b last:border-b-0" style={{ borderColor: DOC.line }}>
       <span className="px-2 py-1.5 text-[9px] font-bold uppercase" style={{ background: DOC.soft }}>{etiqueta}</span>
-      <span className="px-2 py-1.5 text-[10px]">{valor || "—"}</span>
+      <span className="px-2 py-1.5 text-right text-[10px]">{valor || "—"}</span>
+    </div>
+  );
+}
+
+function MontoCant({ etiqueta, cantidad, valor }: { etiqueta: string; cantidad?: string | undefined; valor: number }) {
+  return (
+    <div className="grid grid-cols-[1fr_42px_auto] items-center gap-2 border-b px-2 py-2 last:border-b-0" style={{ borderColor: DOC.line }}>
+      <span className="text-[9px] leading-tight">{etiqueta}</span>
+      <span className="text-center text-[9px] tabular-nums">{cantidad ?? "—"}</span>
+      <span className="whitespace-nowrap text-right text-[9px] font-semibold tabular-nums">{soles(valor)}</span>
     </div>
   );
 }
@@ -58,14 +68,14 @@ function Monto({ etiqueta, valor }: { etiqueta: string; valor: number }) {
 }
 
 export function HojaDetalleHonorario({ empresa, trabajador, proyecto, detalle, totalRemuneraciones, totalDescuentos, neto }: Props) {
-  const remuneraciones = [
-    ["Días laborados", detalle.dias_laborados * detalle.costo_unitario],
-    ["Días de viaje", detalle.dias_viaje],
-    ["Horas extras", detalle.horas_extras],
-    ["Otros", detalle.otros_remuneraciones],
-    ["Costo unitario", detalle.costo_unitario],
-    ["Saldo del mes anterior", detalle.saldo_mes_anterior],
-  ] as const;
+  const remuneraciones: { etiqueta: string; cantidad?: string; valor: number }[] = [
+    { etiqueta: "Días laborados", cantidad: String(detalle.dias_laborados || 0), valor: detalle.dias_laborados * detalle.costo_unitario },
+    { etiqueta: "Días de viaje", cantidad: String(detalle.dias_viaje || 0), valor: detalle.dias_viaje },
+    { etiqueta: "Horas extras", cantidad: String(detalle.horas_extras || 0), valor: detalle.horas_extras },
+    { etiqueta: "Otros", valor: detalle.otros_remuneraciones },
+    { etiqueta: "Costo unitario", valor: detalle.costo_unitario },
+    { etiqueta: "Saldo del mes anterior", valor: detalle.saldo_mes_anterior },
+  ];
   const descuentos = [
     ["Adelantos", detalle.adelantos],
     ["Devolución de gastos", detalle.devolucion_gastos],
@@ -109,7 +119,10 @@ export function HojaDetalleHonorario({ empresa, trabajador, proyecto, detalle, t
       <section className="mt-3 grid flex-1 grid-cols-3 border" style={{ borderColor: DOC.line }}>
         <div className="border-r" style={{ borderColor: DOC.line }}>
           <h3 className="px-2 py-2 text-center text-[10px] font-bold uppercase" style={{ background: DOC.total }}>Remuneraciones</h3>
-          {remuneraciones.map(([etiqueta, valor]) => <Monto key={etiqueta} etiqueta={etiqueta} valor={valor} />)}
+          <div className="grid grid-cols-[1fr_42px_auto] gap-2 border-b px-2 py-1 text-[8px] font-bold uppercase" style={{ borderColor: DOC.line, background: DOC.soft }}>
+            <span>Concepto</span><span className="text-center">Cant.</span><span className="text-right">Monto</span>
+          </div>
+          {remuneraciones.map((r) => <MontoCant key={r.etiqueta} etiqueta={r.etiqueta} cantidad={r.cantidad} valor={r.valor} />)}
         </div>
         <div className="border-r" style={{ borderColor: DOC.line }}>
           <h3 className="px-2 py-2 text-center text-[10px] font-bold uppercase" style={{ background: DOC.total }}>Descuentos</h3>
