@@ -41,9 +41,19 @@ const fechaLarga = (valor: string, lugar: string) => {
 
 function Fila({ etiqueta, valor }: { etiqueta: string; valor: string }) {
   return (
-    <div className="grid grid-cols-[108px_1fr] border-b last:border-b-0" style={{ borderColor: DOC.line }}>
+    <div className="flex items-center justify-between gap-3 border-b last:border-b-0" style={{ borderColor: DOC.line }}>
       <span className="px-2 py-1.5 text-[9px] font-bold uppercase" style={{ background: DOC.soft }}>{etiqueta}</span>
-      <span className="px-2 py-1.5 text-[10px]">{valor || "—"}</span>
+      <span className="px-2 py-1.5 text-right text-[10px]">{valor || "—"}</span>
+    </div>
+  );
+}
+
+function MontoCant({ etiqueta, cantidad, valor }: { etiqueta: string; cantidad?: string; valor: number }) {
+  return (
+    <div className="grid grid-cols-[1fr_42px_auto] items-center gap-2 border-b px-2 py-2 last:border-b-0" style={{ borderColor: DOC.line }}>
+      <span className="text-[9px] leading-tight">{etiqueta}</span>
+      <span className="text-center text-[9px] tabular-nums">{cantidad ?? "—"}</span>
+      <span className="whitespace-nowrap text-right text-[9px] font-semibold tabular-nums">{soles(valor)}</span>
     </div>
   );
 }
