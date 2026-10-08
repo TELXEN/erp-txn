@@ -1,0 +1,1 @@
+ALTER TABLE public.recibos_honorarios ADD COLUMN IF NOT EXISTS induccion numeric NOT NULL DEFAULT 0;
