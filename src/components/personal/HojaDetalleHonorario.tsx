@@ -12,6 +12,7 @@ export type DetalleHonorario = {
   dias_viaje: number;
   horas_extras: number;
   otros_remuneraciones: number;
+  induccion: number;
   costo_unitario: number;
   saldo_mes_anterior: number;
   adelantos: number;
@@ -76,6 +77,7 @@ export function HojaDetalleHonorario({ empresa, trabajador, proyecto, detalle, t
     { etiqueta: "Días de viaje (½ jornal)", cantidad: String(detalle.dias_viaje || 0), valor: (detalle.dias_viaje / 2) * detalle.costo_unitario },
     { etiqueta: "Horas extras (÷10.5)", cantidad: String(detalle.horas_extras || 0), valor: (detalle.horas_extras / 10.5) * detalle.costo_unitario },
     { etiqueta: "Feriados (×2 jornales)", cantidad: String(detalle.otros_remuneraciones || 0), valor: detalle.otros_remuneraciones * 2 * detalle.costo_unitario },
+    { etiqueta: "Inducción", cantidad: String(detalle.induccion || 0), valor: detalle.induccion * detalle.costo_unitario },
     { etiqueta: "Costo unitario", valor: detalle.costo_unitario },
     { etiqueta: "Saldo del mes anterior", valor: detalle.saldo_mes_anterior },
   ];

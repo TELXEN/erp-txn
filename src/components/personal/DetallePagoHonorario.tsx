@@ -18,25 +18,27 @@ export function resumenTareoHonorario(tareos: Tareo[], trabajadorId: string, pro
     typeof t.fecha === "string" && t.fecha.startsWith(prefijo),
   );
   // Cantidades (no soles): viaje en días, extras en horas. La fórmula del
-  // detalle convierte todo a jornales: viaje/2, extras/10.5, feriados×2.
-  let dias = 0, viaje = 0, extras = 0;
+  // detalle convierte todo a jornales: viaje/2, extras/10.5, feriados×2, inducción×1.
+  let dias = 0, viaje = 0, extras = 0, feriados = 0, induccion = 0;
   for (const t of filas) {
     const asistencia = Number(t.asistencia) || 0;
     if (t.tipo === "extras") extras += Number(t.horas) || 0;
     else if (t.tipo === "viaje") viaje += asistencia || 1;
+    else if (t.tipo === "feriado") feriados += asistencia || 1;
+    else if (t.tipo === "induccion") induccion += asistencia || 1;
     else dias += asistencia;
   }
   const r2 = (v: number) => Math.round(v * 100) / 100;
-  return { filas: filas.length, dias: r2(dias), viaje: r2(viaje), extras: r2(extras) };
+  return { filas: filas.length, dias: r2(dias), viaje: r2(viaje), extras: r2(extras), feriados: r2(feriados), induccion: r2(induccion) };
 }
 
 export type FormularioHonorario = DetalleHonorario & { trabajador_id: string; proyecto_id: string };
 
 export const HORAS_DIA_EXTRA = 10.5;
 
-/** Jornales equivalentes: laborados + viaje/2 + extras/10.5 + feriados×2. */
-export function jornalesHonorario(form: Pick<FormularioHonorario, "dias_laborados" | "dias_viaje" | "horas_extras" | "otros_remuneraciones">) {
-  return form.dias_laborados + form.dias_viaje / 2 + form.horas_extras / HORAS_DIA_EXTRA + form.otros_remuneraciones * 2;
+/** Jornales equivalentes: laborados + viaje/2 + extras/10.5 + feriados×2 + inducción. */
+export function jornalesHonorario(form: Pick<FormularioHonorario, "dias_laborados" | "dias_viaje" | "horas_extras" | "otros_remuneraciones" | "induccion">) {
+  return form.dias_laborados + form.dias_viaje / 2 + form.horas_extras / HORAS_DIA_EXTRA + form.otros_remuneraciones * 2 + form.induccion;
 }
 
 export function calcularDetalleHonorario(form: FormularioHonorario, suspension = false) {
@@ -99,11 +101,13 @@ export function DetallePagoHonorario({
       dias_laborados: resumen.dias,
       dias_viaje: resumen.viaje,
       horas_extras: resumen.extras,
+      otros_remuneraciones: resumen.feriados,
+      induccion: resumen.induccion,
       costo_unitario: jornal > 0 ? jornal : actual.costo_unitario,
     }));
     setAvisoTareo(
       resumen.filas > 0
-        ? `Completado automáticamente desde el tareo: ${resumen.dias} días laborados, ${resumen.viaje} días de viaje y ${resumen.extras} horas extras. Puedes ajustar los valores si lo necesitas.`
+        ? `Completado automáticamente desde el tareo: ${resumen.dias} días laborados, ${resumen.viaje} de viaje, ${resumen.extras} h. extras, ${resumen.feriados} feriados y ${resumen.induccion} de inducción. Puedes ajustar los valores si lo necesitas.`
         : "Sin tareo registrado en este período: completa los importes manualmente.",
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -133,7 +137,7 @@ export function DetallePagoHonorario({
             )}
             <div className="grid gap-2 sm:grid-cols-2">
               {([[
-                "dias_laborados", "Días laborados"], ["costo_unitario", "Costo unitario (S/)"], ["dias_viaje", "Días de viaje"], ["horas_extras", "Horas extras"], ["otros_remuneraciones", "Feriados"], ["saldo_mes_anterior", "Saldo mes anterior (S/)"]
+                "dias_laborados", "Días laborados"], ["costo_unitario", "Costo unitario (S/)"], ["dias_viaje", "Días de viaje"], ["horas_extras", "Horas extras"], ["otros_remuneraciones", "Feriados"], ["induccion", "Inducción (días)"], ["saldo_mes_anterior", "Saldo mes anterior (S/)"]
               ] as [keyof FormularioHonorario, string][]).map(([campo, etiqueta]) => <Campo key={campo} etiqueta={etiqueta}><Input type="number" min="0" step="0.01" value={form[campo] as number} onChange={(e) => actualizarNumero(campo, e.target.value)} /></Campo>)}
             </div>
           </fieldset>
