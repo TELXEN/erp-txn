@@ -1,13 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, FileText, Plus, Trash2, Upload, Wand2 } from "lucide-react";
 import { GenerarBoletasHonorarios } from "@/components/personal/GenerarBoletasHonorarios";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
-import { DetallePagoHonorario, calcularDetalleHonorario, type FormularioHonorario } from "@/components/personal/DetallePagoHonorario";
+import { DetallePagoHonorario, calcularDetalleHonorario, resumenTareoHonorario, type FormularioHonorario } from "@/components/personal/DetallePagoHonorario";
 import { useEmpresa } from "@/lib/empresa";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha, hoy, soles } from "@/lib/format";
