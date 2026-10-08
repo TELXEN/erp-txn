@@ -67,35 +67,12 @@ export function DetallePagoHonorario({
   const [avisoTareo, setAvisoTareo] = useState("");
   const hojaRef = useRef<HTMLDivElement>(null);
 
-  // Imprime solo la hoja A4 en un marco aislado: evita que la ventana flotante
-  // (posición fija, scroll y escala) recorte o deje en blanco la impresión.
+  // Imprime en el mismo documento: los estilos de Tailwind no viajan completos
+  // a un marco copiado, por eso la hoja se imprime en el sitio y el CSS de
+  // impresión (styles.css) oculta todo lo demás y anula la escala de vista previa.
   const imprimir = () => {
-    const hoja = hojaRef.current?.querySelector(".honorario-print-sheet");
-    if (!hoja) return;
-    const estilos = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]')).map((n) => n.outerHTML).join("");
-    const marco = document.createElement("iframe");
-    marco.setAttribute("aria-hidden", "true");
-    Object.assign(marco.style, { position: "fixed", right: "0", bottom: "0", width: "0", height: "0", border: "0" });
-    document.body.appendChild(marco);
-    const doc = marco.contentDocument;
-    const win = marco.contentWindow;
-    if (!doc || !win) { marco.remove(); return; }
-    doc.open();
-    doc.write(`<!doctype html><html><head><meta charset="utf-8"><title>Detalle de pago</title>${estilos}<style>
-      @page { size: A4; margin: 0; }
-      html, body { margin: 0; padding: 0; background: #fff; }
-      body * { visibility: visible !important; }
-      .honorario-print-sheet { position: static !important; box-shadow: none !important; margin: 0 !important; transform: none !important; }
-      * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    </style></head><body>${hoja.outerHTML}</body></html>`);
-    doc.close();
-    const lanzar = () => {
-      win.focus();
-      win.print();
-      setTimeout(() => marco.remove(), 1000);
-    };
-    if (doc.fonts?.ready) void doc.fonts.ready.then(() => setTimeout(lanzar, 300));
-    else setTimeout(lanzar, 500);
+    setVista(true);
+    requestAnimationFrame(() => setTimeout(() => window.print(), 50));
   };
   const trabajador = trabajadores.find((item) => item.id === form.trabajador_id) ?? null;
   const proyecto = proyectos.find((item) => item.id === form.proyecto_id);

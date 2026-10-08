@@ -261,7 +261,29 @@
   }
 
   body {
-
     background: #fff;
+  }
+
+  /* Recibo por honorarios: solo la hoja A4 es visible al imprimir */
+  body:has(.honorario-print-sheet) * {
+    visibility: hidden;
+  }
+
+  body:has(.honorario-print-sheet) .honorario-print-sheet,
+  body:has(.honorario-print-sheet) .honorario-print-sheet * {
+    visibility: visible;
+  }
+
+  body:has(.honorario-print-sheet) .honorario-print-sheet {
+    position: fixed;
+    inset: 0;
+    margin: 0;
+    box-shadow: none;
+  }
+
+  body:has(.honorario-print-sheet) .honorario-print-sheet,
+  body:has(.honorario-print-sheet) .honorario-print-sheet * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 }
