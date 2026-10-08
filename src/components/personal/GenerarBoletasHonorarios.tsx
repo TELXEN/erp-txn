@@ -86,8 +86,8 @@ export function GenerarBoletasHonorarios({ prestadores, proyectos, tareos, exist
                 <tr key={p.id} className="border-b border-line/60 last:border-0">
                   <td className="px-3 py-2 font-semibold">{p.nombre}</td>
                   <td className="px-3 py-2 text-right tabular-nums">{r.dias}</td>
-                  <td className="px-3 py-2 text-right tabular-nums">{soles(r.viaje)}</td>
-                  <td className="px-3 py-2 text-right tabular-nums">{soles(r.extras)}</td>
+                  <td className="px-3 py-2 text-right tabular-nums">{r.viaje}</td>
+                  <td className="px-3 py-2 text-right tabular-nums">{r.extras}</td>
                   <td className="px-3 py-2 text-right tabular-nums">{soles(form.costo_unitario)}</td>
                   <td className="px-3 py-2 text-right font-semibold tabular-nums">{conTareo ? soles(tot.neto) : "—"}</td>
                   <td className="px-3 py-2 text-[11px]">{existe ? <span className="text-muted-foreground">Ya existe</span> : !conTareo ? <span className="text-muted-foreground">Sin tareo</span> : tot.bruto <= 0 ? <span className="text-bad">Sin jornal</span> : <span className="font-semibold text-primary">Se generará</span>}</td>
