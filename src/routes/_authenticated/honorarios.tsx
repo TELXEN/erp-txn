@@ -48,6 +48,7 @@ type Recibo = {
   dias_viaje: number;
   horas_extras: number;
   otros_remuneraciones: number;
+  induccion: number;
   costo_unitario: number;
   saldo_mes_anterior: number;
   adelantos: number;
