@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Eye, Printer, Save, Wand2 } from "lucide-react";
 import { Boton, Campo, Input, Select, VentanaFlotante } from "@/components/ui-kit";
 import { HojaDetalleHonorario, type DetalleHonorario } from "@/components/personal/HojaDetalleHonorario";
@@ -65,6 +65,38 @@ export function DetallePagoHonorario({
   const [form, setForm] = useState(inicial);
   const [vista, setVista] = useState(false);
   const [avisoTareo, setAvisoTareo] = useState("");
+  const hojaRef = useRef<HTMLDivElement>(null);
+
+  // Imprime solo la hoja A4 en un marco aislado: evita que la ventana flotante
+  // (posición fija, scroll y escala) recorte o deje en blanco la impresión.
+  const imprimir = () => {
+    const hoja = hojaRef.current?.querySelector(".honorario-print-sheet");
+    if (!hoja) return;
+    const estilos = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]')).map((n) => n.outerHTML).join("");
+    const marco = document.createElement("iframe");
+    marco.setAttribute("aria-hidden", "true");
+    Object.assign(marco.style, { position: "fixed", right: "0", bottom: "0", width: "0", height: "0", border: "0" });
+    document.body.appendChild(marco);
+    const doc = marco.contentDocument;
+    const win = marco.contentWindow;
+    if (!doc || !win) { marco.remove(); return; }
+    doc.open();
+    doc.write(`<!doctype html><html><head><meta charset="utf-8"><title>Detalle de pago</title>${estilos}<style>
+      @page { size: A4; margin: 0; }
+      html, body { margin: 0; padding: 0; background: #fff; }
+      body * { visibility: visible !important; }
+      .honorario-print-sheet { position: static !important; box-shadow: none !important; margin: 0 !important; transform: none !important; }
+      * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    </style></head><body>${hoja.outerHTML}</body></html>`);
+    doc.close();
+    const lanzar = () => {
+      win.focus();
+      win.print();
+      setTimeout(() => marco.remove(), 1000);
+    };
+    if (doc.fonts?.ready) void doc.fonts.ready.then(() => setTimeout(lanzar, 300));
+    else setTimeout(lanzar, 500);
+  };
   const trabajador = trabajadores.find((item) => item.id === form.trabajador_id) ?? null;
   const proyecto = proyectos.find((item) => item.id === form.proyecto_id);
   const totales = useMemo(() => calcularDetalleHonorario(form, !!trabajador?.suspension_cuarta), [form, trabajador]);
@@ -147,9 +179,9 @@ export function DetallePagoHonorario({
         <div className={`${vista ? "block" : "hidden lg:block"} overflow-auto bg-muted/40 p-4 print:block print:overflow-visible print:bg-paper print:p-0`}>
           <div className="mb-3 flex justify-between print:hidden">
             <Boton type="button" variante="linea" className="lg:hidden" onClick={() => setVista(false)}>Volver a editar</Boton>
-            <Boton type="button" variante="linea" onClick={() => window.print()}><Printer size={14} /> Imprimir / Guardar PDF</Boton>
+            <Boton type="button" variante="linea" onClick={imprimir}><Printer size={14} /> Imprimir / Guardar PDF</Boton>
           </div>
-          <div className="origin-top scale-[0.82] lg:scale-[0.78] xl:scale-[0.9] print:scale-100">
+          <div ref={hojaRef} className="origin-top scale-[0.82] lg:scale-[0.78] xl:scale-[0.9] print:scale-100">
             <HojaDetalleHonorario empresa={empresa} trabajador={trabajador} proyecto={proyecto ? `${proyecto.codigo ?? ""} ${proyecto.nombre}`.trim() : "Oficina Central"} detalle={{ ...form, retencion: totales.retencion }} totalRemuneraciones={totales.bruto} totalDescuentos={totales.descuentos} neto={totales.neto} />
           </div>
         </div>
