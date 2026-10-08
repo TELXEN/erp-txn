@@ -64,7 +64,7 @@ const nuevoDetalle = (): FormularioHonorario => {
   return {
     trabajador_id: "", proyecto_id: "", numero_recibo: "", fecha_emision: hoy(), concepto: "",
     mes: ahora.getMonth() + 1, anio: ahora.getFullYear(), dias_laborados: 0, dias_viaje: 0,
-    horas_extras: 0, otros_remuneraciones: 0, costo_unitario: 0, saldo_mes_anterior: 0,
+    horas_extras: 0, otros_remuneraciones: 0, induccion: 0, costo_unitario: 0, saldo_mes_anterior: 0,
     adelantos: 0, devolucion_gastos: 0, pagos_a_cuenta_planilla: 0, fondo_pensiones: 0,
     descuento_herramientas: 0, lugar_emision: "Huancayo", retencion: 0,
   };
@@ -115,6 +115,7 @@ function Honorarios() {
     if (pendientes.length === 0) return;
     type CamposBoleta = {
       dias_laborados?: number; dias_viaje?: number; horas_extras?: number; costo_unitario?: number;
+      otros_remuneraciones?: number; induccion?: number;
       monto_bruto?: number; retencion?: number; monto_neto?: number;
     };
     const cambios: { id: string; campos: CamposBoleta }[] = [];
@@ -127,14 +128,18 @@ function Honorarios() {
       if (resumen.dias !== Number(r.dias_laborados)) campos.dias_laborados = resumen.dias;
       if (resumen.viaje !== Number(r.dias_viaje)) campos.dias_viaje = resumen.viaje;
       if (resumen.extras !== Number(r.horas_extras)) campos.horas_extras = resumen.extras;
+      if (resumen.feriados !== Number(r.otros_remuneraciones)) campos.otros_remuneraciones = resumen.feriados;
+      if (resumen.induccion !== Number(r.induccion)) campos.induccion = resumen.induccion;
       if (jornal > 0 && jornal !== Number(r.costo_unitario)) campos.costo_unitario = jornal;
       if (Object.keys(campos).length === 0) continue;
       const dias = campos.dias_laborados ?? Number(r.dias_laborados);
       const viaje = campos.dias_viaje ?? Number(r.dias_viaje);
       const extras = campos.horas_extras ?? Number(r.horas_extras);
+      const feriados = campos.otros_remuneraciones ?? Number(r.otros_remuneraciones);
+      const induccion = campos.induccion ?? Number(r.induccion);
       const unitario = campos.costo_unitario ?? Number(r.costo_unitario);
-      // Total = costo unitario × (laborados + viaje/2 + extras/10.5 + feriados×2).
-      const bruto = Math.round(unitario * (dias + viaje / 2 + extras / 10.5 + Number(r.otros_remuneraciones) * 2) * 100) / 100;
+      // Total = costo unitario × (laborados + viaje/2 + extras/10.5 + feriados×2 + inducción).
+      const bruto = Math.round(unitario * (dias + viaje / 2 + extras / 10.5 + feriados * 2 + induccion) * 100) / 100;
       const descuentos = Number(r.adelantos) + Number(r.devolucion_gastos) + Number(r.pagos_a_cuenta_planilla) + Number(r.fondo_pensiones) + Number(r.descuento_herramientas);
       const retencion = !trabajador?.suspension_cuarta && bruto > 1500 ? Math.round(bruto * 0.08 * 100) / 100 : 0;
       campos.monto_bruto = bruto;
