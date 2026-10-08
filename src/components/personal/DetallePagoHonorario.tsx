@@ -105,7 +105,7 @@ export function DetallePagoHonorario({
     }));
     setAvisoTareo(
       resumen.filas > 0
-        ? `Completado automáticamente desde el tareo: ${resumen.dias} días, ${soles(resumen.viaje)} de viaje y ${soles(resumen.extras)} en horas extras. Puedes ajustar los valores si lo necesitas.`
+        ? `Completado automáticamente desde el tareo: ${resumen.dias} días laborados, ${resumen.viaje} días de viaje y ${resumen.extras} horas extras. Puedes ajustar los valores si lo necesitas.`
         : "Sin tareo registrado en este período: completa los importes manualmente.",
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -135,7 +135,7 @@ export function DetallePagoHonorario({
             )}
             <div className="grid gap-2 sm:grid-cols-2">
               {([[
-                "dias_laborados", "Días laborados"], ["costo_unitario", "Costo unitario (S/)"], ["dias_viaje", "Días de viaje (S/)"], ["horas_extras", "Horas extras (S/)"], ["otros_remuneraciones", "Otros (S/)"], ["saldo_mes_anterior", "Saldo mes anterior (S/)"]
+                "dias_laborados", "Días laborados"], ["costo_unitario", "Costo unitario (S/)"], ["dias_viaje", "Días de viaje"], ["horas_extras", "Horas extras"], ["otros_remuneraciones", "Feriados"], ["saldo_mes_anterior", "Saldo mes anterior (S/)"]
               ] as [keyof FormularioHonorario, string][]).map(([campo, etiqueta]) => <Campo key={campo} etiqueta={etiqueta}><Input type="number" min="0" step="0.01" value={form[campo] as number} onChange={(e) => actualizarNumero(campo, e.target.value)} /></Campo>)}
             </div>
           </fieldset>

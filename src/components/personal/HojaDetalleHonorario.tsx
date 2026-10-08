@@ -70,11 +70,12 @@ function Monto({ etiqueta, valor }: { etiqueta: string; valor: number }) {
 }
 
 export function HojaDetalleHonorario({ empresa, trabajador, proyecto, detalle, totalRemuneraciones, totalDescuentos, neto }: Props) {
+  // Cada concepto se valora en jornales: viaje/2, extras/10.5, feriados×2.
   const remuneraciones: { etiqueta: string; cantidad?: string; valor: number }[] = [
     { etiqueta: "Días laborados", cantidad: String(detalle.dias_laborados || 0), valor: detalle.dias_laborados * detalle.costo_unitario },
-    { etiqueta: "Días de viaje", cantidad: String(detalle.dias_viaje || 0), valor: detalle.dias_viaje },
-    { etiqueta: "Horas extras", cantidad: String(detalle.horas_extras || 0), valor: detalle.horas_extras },
-    { etiqueta: "Otros", valor: detalle.otros_remuneraciones },
+    { etiqueta: "Días de viaje (½ jornal)", cantidad: String(detalle.dias_viaje || 0), valor: (detalle.dias_viaje / 2) * detalle.costo_unitario },
+    { etiqueta: "Horas extras (÷10.5)", cantidad: String(detalle.horas_extras || 0), valor: (detalle.horas_extras / 10.5) * detalle.costo_unitario },
+    { etiqueta: "Feriados (×2 jornales)", cantidad: String(detalle.otros_remuneraciones || 0), valor: detalle.otros_remuneraciones * 2 * detalle.costo_unitario },
     { etiqueta: "Costo unitario", valor: detalle.costo_unitario },
     { etiqueta: "Saldo del mes anterior", valor: detalle.saldo_mes_anterior },
   ];
