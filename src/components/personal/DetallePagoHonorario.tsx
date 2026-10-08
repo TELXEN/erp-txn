@@ -45,6 +45,7 @@ export function DetallePagoHonorario({
   empresa,
   trabajadores,
   proyectos,
+  tareos = [],
   guardando,
   error,
   onCerrar,
@@ -55,6 +56,7 @@ export function DetallePagoHonorario({
   empresa: { razon_social?: string; ruc?: string; rubro?: string; direccion?: string; logo_url?: string } | null;
   trabajadores: Trabajador[];
   proyectos: Opcion[];
+  tareos?: Tareo[];
   guardando: boolean;
   error: string;
   onCerrar: () => void;
@@ -62,10 +64,32 @@ export function DetallePagoHonorario({
 }) {
   const [form, setForm] = useState(inicial);
   const [vista, setVista] = useState(false);
+  const [avisoTareo, setAvisoTareo] = useState("");
   const trabajador = trabajadores.find((item) => item.id === form.trabajador_id) ?? null;
   const proyecto = proyectos.find((item) => item.id === form.proyecto_id);
   const totales = useMemo(() => calcularDetalleHonorario(form, !!trabajador?.suspension_cuarta), [form, trabajador]);
   const actualizarNumero = (campo: keyof FormularioHonorario, valor: string) => setForm((actual) => ({ ...actual, [campo]: Math.max(0, Number(valor) || 0) }));
+
+  // Autocompletar desde la ficha del trabajador y su tareo del período.
+  const clavePeriodo = `${form.trabajador_id}|${form.proyecto_id}|${form.mes}|${form.anio}`;
+  useEffect(() => {
+    if (!form.trabajador_id) { setAvisoTareo(""); return; }
+    const jornal = Number(trabajador?.jornal_diario) || 0;
+    const resumen = resumenTareoHonorario(tareos, form.trabajador_id, form.proyecto_id, form.mes, form.anio, jornal);
+    setForm((actual) => ({
+      ...actual,
+      dias_laborados: resumen.dias,
+      dias_viaje: resumen.viaje,
+      horas_extras: resumen.extras,
+      costo_unitario: jornal > 0 ? jornal : actual.costo_unitario,
+    }));
+    setAvisoTareo(
+      resumen.filas > 0
+        ? `Completado automáticamente desde el tareo: ${resumen.dias} días, ${soles(resumen.viaje)} de viaje y ${soles(resumen.extras)} en horas extras. Puedes ajustar los valores si lo necesitas.`
+        : "Sin tareo registrado en este período: completa los importes manualmente.",
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clavePeriodo, tareos]);
 
   return (
     <VentanaFlotante titulo="Detalle de pago por honorarios" subtitulo="Completa los importes y revisa la hoja A4 antes de guardar." abierta={abierta} onCerrar={onCerrar} ancho="max-w-[1500px]" ocultarBarra>
