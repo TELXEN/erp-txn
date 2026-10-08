@@ -3262,6 +3262,7 @@ export type Database = {
           fondo_pensiones: number
           horas_extras: number
           id: string
+          induccion: number
           lugar_emision: string
           mes: number
           monto_bruto: number
@@ -3293,6 +3294,7 @@ export type Database = {
           fondo_pensiones?: number
           horas_extras?: number
           id?: string
+          induccion?: number
           lugar_emision?: string
           mes?: number
           monto_bruto: number
@@ -3324,6 +3326,7 @@ export type Database = {
           fondo_pensiones?: number
           horas_extras?: number
           id?: string
+          induccion?: number
           lugar_emision?: string
           mes?: number
           monto_bruto?: number

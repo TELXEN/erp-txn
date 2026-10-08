@@ -29,6 +29,13 @@
       "when": 1791425606536,
       "tag": "0003_honorarios_borradores",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791427424144,
+      "tag": "0004_honorarios_induccion",
+      "breakpoints": true
     }
   ]
 }
