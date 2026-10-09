@@ -519,7 +519,16 @@ function RequerimientosPage() {
                           {gestiona && <td className="px-3 py-1.5 text-right">{soles(Number(i.cantidad) * Number(i.precio_referencial))}</td>}
                           <td colSpan={2} />
                         </tr>
-                      ))}
+                      ), ...origenesReq
+                        .filter((o) => o.requerimiento_item_id === i.id)
+                        .map((o) => (
+                          <tr key={o.id} className="border-b border-line/20 text-[11px] text-muted-foreground">
+                            <td />
+                            <td className="truncate px-3 py-1 pl-6" colSpan={2}><span className="text-primary">{o.partida_codigo || "—"}</span> {o.partida_nombre}</td>
+                            <td className="px-3 py-1 text-right">{num(Number(o.metrado))} × {num(Number(o.cantidad_unitaria), 4)} = {num(Number(o.cantidad))}</td>
+                            <td colSpan={gestiona ? 3 : 2} />
+                          </tr>
+                        ))])}
                   </React.Fragment>
                 );
               })}
