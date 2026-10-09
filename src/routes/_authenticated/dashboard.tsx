@@ -8,7 +8,8 @@ import { Upload } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
-import { pct, soles } from "@/lib/format";
+import { MESES, pct, soles } from "@/lib/format";
+import { costoPersonalPorProyecto, SIN_ASIGNAR, type DocPersonal } from "@/lib/pagos-rrhh";
 import {
   clasificacionDeCargo,
   costoRealPartida,
@@ -76,9 +77,26 @@ function Dashboard() {
   const { data: recibos = [] } = useQuery({
     queryKey: ["recibos_honorarios"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("recibos_honorarios").select("proyecto_id,monto_bruto");
+      const { data, error } = await supabase
+        .from("recibos_honorarios")
+        .select("trabajador_id,proyecto_id,mes,anio,monto_bruto");
       if (error) throw error;
-      return (data ?? []) as { proyecto_id: string | null; monto_bruto: number }[];
+      return (data ?? []) as { trabajador_id: string; proyecto_id: string | null; mes: number; anio: number; monto_bruto: number }[];
+    },
+  });
+  const { data: boletasNom = [] } = useQuery({
+    queryKey: ["boletas_dashboard"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("boletas")
+        .select("trabajador_id,total_ingresos,essalud,planillas(anio,mes)");
+      if (error) throw error;
+      return (data ?? []) as unknown as {
+        trabajador_id: string;
+        total_ingresos: number;
+        essalud: number;
+        planillas: { anio: number; mes: number } | null;
+      }[];
     },
   });
   const [seleccion, setSeleccion] = useState("global");
@@ -93,6 +111,32 @@ function Dashboard() {
     trabajadores.forEach((t) => mapa.set(t.id, clasificacionDeCargo(t.cargo ?? "", cargos)));
     return mapa;
   }, [trabajadores, cargos]);
+
+  /** Personal valorizado desde boletas y recibos, repartido por tareo. */
+  const personal = useMemo(() => {
+    const docs: DocPersonal[] = [
+      ...boletasNom
+        .filter((b) => b.planillas)
+        .map((b) => ({
+          trabajador_id: b.trabajador_id,
+          anio: b.planillas!.anio,
+          mes: b.planillas!.mes,
+          monto: Number(b.total_ingresos) + Number(b.essalud),
+          tipo: "boleta" as const,
+        })),
+      ...recibos
+        .filter((r) => r.mes && r.anio)
+        .map((r) => ({
+          trabajador_id: r.trabajador_id,
+          anio: r.anio,
+          mes: r.mes,
+          monto: Number(r.monto_bruto),
+          tipo: "honorario" as const,
+          proyecto_id: r.proyecto_id,
+        })),
+    ];
+    return costoPersonalPorProyecto(docs, tareos, (id) => clasifTrabajador.get(id) === "Indirecto");
+  }, [boletasNom, recibos, tareos, clasifTrabajador]);
 
   /** Una fila financiera completa por obra. */
   const porProyecto = useMemo(
@@ -117,22 +161,12 @@ function Dashboard() {
         const equipos = porRubro("Equipos");
         const servicios = porRubro("Servicios");
 
-        const td = tareos.filter((t) => t.proyecto_id === p.id);
-        let mod = 0;
-        let staff = 0;
-        td.forEach((t) => {
-          const monto = Number(t.costo_soles);
-          if (clasifTrabajador.get(t.trabajador_id) === "Indirecto") staff += monto;
-          else mod += monto;
-        });
-
+        const cp = personal.porProyecto.get(p.id) ?? { mod: 0, honorarios: 0, staff: 0 };
+        const { mod, staff, honorarios } = cp;
         const generales = gastosG
           .filter((g) => g.proyecto_id === p.id)
           .reduce((s, g) => s + Number(g.monto_soles), 0);
 
-        const honorarios = recibos
-          .filter((r) => r.proyecto_id === p.id)
-          .reduce((s, r) => s + Number(r.monto_bruto), 0);
         const resumen = resumenPresupuesto(
           partidas.filter((x) => x.proyecto_id === p.id),
           tiposPresupuesto,
@@ -177,12 +211,23 @@ function Dashboard() {
           avanceFacturado: presupuesto > 0 ? (cobrado / presupuesto) * 100 : 0,
         };
       }),
-    [proyectos, partidas, ventas, gastosD, tareos, gastosG, tiposPresupuesto, clasifTrabajador, recibos],
+    [proyectos, partidas, ventas, gastosD, gastosG, tiposPresupuesto, personal],
   );
 
   const filasTabla = useMemo(
     () => (global ? porProyecto : porProyecto.filter((f) => f.id === seleccion)),
     [global, seleccion, porProyecto],
+  );
+
+  const avisoPendientes = useMemo(
+    () =>
+      [...personal.pendientes.entries()]
+        .sort()
+        .map(([per, set]) => {
+          const [a, m] = per.split("-");
+          return `⚠ ${set.size} trabajador(es) con tareo sin boleta en ${MESES[Number(m) - 1]} ${a}`;
+        }),
+    [personal],
   );
 
   const datos = useMemo(() => {
@@ -197,10 +242,11 @@ function Dashboard() {
     const subcontratos = sum((f) => f.subcontratos);
     const equipos = sum((f) => f.equipos);
     const servicios = sum((f) => f.servicios);
-    const mod = sum((f) => f.mod);
-    const staff = sum((f) => f.staff);
+    const sa = global ? (personal.porProyecto.get(SIN_ASIGNAR) ?? { mod: 0, honorarios: 0, staff: 0 }) : { mod: 0, honorarios: 0, staff: 0 };
+    const mod = sum((f) => f.mod) + sa.mod;
+    const staff = sum((f) => f.staff) + sa.staff;
     const generales = sum((f) => f.generales);
-    const honorarios = sum((f) => f.honorarios);
+    const honorarios = sum((f) => f.honorarios) + sa.honorarios;
     const contractual = sum((f) => f.contractual);
     const adicionales = sum((f) => f.adicionales);
     const costoDirectoReal = materiales + subcontratos + equipos + servicios + mod + honorarios;
@@ -238,7 +284,7 @@ function Dashboard() {
       consumoPresupuesto: presupuesto > 0 ? (costoDirectoReal / presupuesto) * 100 : 0,
       consumoGG: ggPresupuestado > 0 ? (ggReal / ggPresupuestado) * 100 : 0,
     };
-  }, [filasTabla]);
+  }, [filasTabla, global, personal]);
 
   const composicion = useMemo(() => {
     const valores: Record<ClaveComposicion, number> = {
@@ -457,6 +503,8 @@ function Dashboard() {
             )}`,
             `Honorarios ${soles(datos.honorarios)}`,
             `GG + Staff ${soles(datos.ggReal)}`,
+            "Personal valorizado desde boletas y recibos, repartido por tareo",
+            ...avisoPendientes,
           ]}
         />
         <Kpi

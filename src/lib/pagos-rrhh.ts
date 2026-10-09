@@ -147,3 +147,63 @@ export async function pagarRRHH(d: DocRRHH, banco_id: string, fecha_pago: string
   }
   return supabase.from(d.tabla).update(cambios as never).eq("id", d.id);
 }
+
+/* ---------- Costo de personal por proyecto (desde boletas y recibos, repartido por tareo) ---------- */
+
+export type DocPersonal = {
+  trabajador_id: string;
+  anio: number;
+  mes: number;
+  monto: number;
+  tipo: "boleta" | "honorario";
+  proyecto_id?: string | null;
+};
+export type TareoPeso = { trabajador_id: string; proyecto_id: string; fecha: string; costo_soles: number; asistencia?: number };
+export type CostoPersonal = { mod: number; honorarios: number; staff: number };
+
+export const SIN_ASIGNAR = "__sin_asignar__";
+
+/**
+ * El tareo solo reparte: cada boleta/recibo se prorratea entre los proyectos del
+ * trabajador en ese mes según el peso de su tareo. Indirectos → staff (GG).
+ */
+export function costoPersonalPorProyecto(
+  docs: DocPersonal[],
+  tareos: TareoPeso[],
+  esIndirecto: (trabajadorId: string) => boolean,
+) {
+  const pesos = new Map<string, Map<string, number>>();
+  tareos.forEach((t) => {
+    const k = `${t.trabajador_id}|${t.fecha.slice(0, 7)}`;
+    const m = pesos.get(k) ?? new Map<string, number>();
+    const w = Number(t.costo_soles) || Number(t.asistencia) || 1;
+    m.set(t.proyecto_id, (m.get(t.proyecto_id) ?? 0) + w);
+    pesos.set(k, m);
+  });
+  const res = new Map<string, CostoPersonal>();
+  const sumar = (p: string, d: DocPersonal, monto: number) => {
+    const c = res.get(p) ?? { mod: 0, honorarios: 0, staff: 0 };
+    if (esIndirecto(d.trabajador_id)) c.staff += monto;
+    else if (d.tipo === "honorario") c.honorarios += monto;
+    else c.mod += monto;
+    res.set(p, c);
+  };
+  const conDoc = new Set<string>();
+  docs.forEach((d) => {
+    const k = `${d.trabajador_id}|${d.anio}-${String(d.mes).padStart(2, "0")}`;
+    conDoc.add(k);
+    const m = pesos.get(k);
+    const total = m ? [...m.values()].reduce((s, v) => s + v, 0) : 0;
+    if (m && total > 0) m.forEach((w, p) => sumar(p, d, (Number(d.monto) * w) / total));
+    else sumar(d.proyecto_id || SIN_ASIGNAR, d, Number(d.monto));
+  });
+  const pendientes = new Map<string, Set<string>>();
+  pesos.forEach((_, k) => {
+    if (conDoc.has(k)) return;
+    const [t = "", periodo = ""] = k.split("|");
+    const s = pendientes.get(periodo) ?? new Set<string>();
+    s.add(t);
+    pendientes.set(periodo, s);
+  });
+  return { porProyecto: res, pendientes };
+}
