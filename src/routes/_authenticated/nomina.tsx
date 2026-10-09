@@ -263,11 +263,14 @@ function Nomina() {
     if (!pago || !planilla) return;
     if (!pago.banco_id || !pago.fecha_pago || !pago.numero_operacion.trim())
       return setError("Para pagar indica banco, fecha y número de operación.");
-    const { error: err } = await supabase
+    const { boleta_id, ...datosPago } = pago;
+    let q = supabase
       .from("boletas")
-      .update({ estado_pago: "Pagado", ...pago, numero_operacion: pago.numero_operacion.trim() })
+      .update({ estado_pago: "Pagado", ...datosPago, numero_operacion: pago.numero_operacion.trim() })
       .eq("planilla_id", planilla.id)
       .eq("estado_pago", "Pendiente");
+    if (boleta_id) q = q.eq("id", boleta_id);
+    const { error: err } = await q;
     if (err) return setError(err.message);
     setPago(null);
     await refrescar();
