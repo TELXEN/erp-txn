@@ -96,7 +96,9 @@ function Nomina() {
   const [pago, setPago] = useState<{ boleta_id?: string; banco_id: string; fecha_pago: string; numero_operacion: string } | null>(null);
   const [error, setError] = useState("");
   useEffect(() => {
-    if (pago?.boleta_id) document.getElementById("nomina-pago-individual")?.scrollIntoView({ block: "nearest", inline: "end" });
+    if (!pago?.boleta_id) return;
+    const contenedor = document.getElementById("nomina-pago-individual")?.closest("table")?.parentElement;
+    if (contenedor) contenedor.scrollLeft = contenedor.scrollWidth;
   }, [pago?.boleta_id]);
   const periodoAfp = `${anio}-${String(mes).padStart(2, "0")}`;
   const { comisiones, origen: origenAfp, data: afpData, actualizar: actualizarAfp, isFetching: cargandoAfp } = useComisionesAfp(periodoAfp);
