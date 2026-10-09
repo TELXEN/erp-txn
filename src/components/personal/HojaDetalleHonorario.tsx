@@ -55,6 +55,7 @@ const fechaLarga = (valor: string, lugar: string) => {
 };
 
 const INPUT_NUM = "w-full min-w-0 bg-transparent text-right text-[10px] font-semibold tabular-nums outline-none border-b border-dashed border-primary/40 focus:border-primary print:border-0";
+const INPUT_DATO = "min-w-0 flex-1 border-0 border-b border-dashed border-primary/40 bg-transparent px-1 py-1 text-[10px] font-semibold outline-none focus:border-primary print:border-0 print:appearance-none";
 
 function Fila({ etiqueta, valor, valorIzquierda, children }: { etiqueta: string; valor?: string; valorIzquierda?: boolean; children?: React.ReactNode }) {
   return (
@@ -88,7 +89,7 @@ function Monto({ etiqueta, valor, editable, onCambiar }: { etiqueta: string; val
   );
 }
 
-export function HojaDetalleHonorario({ empresa, trabajador, proyecto, detalle, totalRemuneraciones, totalDescuentos, neto, editable = false, onCambiar }: Props) {
+export function HojaDetalleHonorario({ empresa, trabajador, proyecto, detalle, totalRemuneraciones, totalDescuentos, neto, editable = false, onCambiar, selectores }: Props) {
   const cambia = (campo: keyof DetalleHonorario) => (valor: string) => {
     onCambiar?.(campo, valor);
   };
@@ -126,24 +127,46 @@ export function HojaDetalleHonorario({ empresa, trabajador, proyecto, detalle, t
 
       <section className="mt-4 border" style={{ borderColor: DOC.line }}>
         <h2 className="px-2 py-1.5 text-[10px] font-bold uppercase text-paper" style={{ background: DOC.dark }}>Datos de la empresa</h2>
-        <div className="grid grid-cols-2">
+        <div className="grid grid-cols-[0.72fr_1.28fr]">
           <div className="border-r" style={{ borderColor: DOC.line }}><Fila etiqueta="RUC" valor={empresa?.ruc ?? ""} /></div>
           <div><Fila etiqueta="Razón social" valor={empresa?.razon_social ?? ""} /></div>
-          <div className="col-span-2 border-t" style={{ borderColor: DOC.line }}><Fila etiqueta="Dirección" valor={empresa?.direccion ?? ""} valorIzquierda /></div>
+          <div className="col-span-2 border-t" style={{ borderColor: DOC.line }}><Fila etiqueta="Dirección fiscal" valor={empresa?.direccion ?? ""} valorIzquierda /></div>
         </div>
       </section>
 
       <section className="mt-3 border" style={{ borderColor: DOC.line }}>
         <h2 className="px-2 py-1.5 text-[10px] font-bold uppercase text-paper" style={{ background: DOC.dark }}>Datos del trabajador</h2>
-        <div className="grid grid-cols-2">
+        <div className="grid grid-cols-[1.2fr_0.8fr]">
           <div className="border-r" style={{ borderColor: DOC.line }}>
             <Fila etiqueta="DNI" valor={trabajador?.dni ?? ""} valorIzquierda />
-            <Fila etiqueta="Apellidos y nombres" valor={trabajador?.nombre ?? ""} valorIzquierda />
-            <Fila etiqueta="Periodo" valor={`${MESES[detalle.mes - 1] ?? "—"} ${detalle.anio}`} valorIzquierda />
+            <Fila etiqueta="Apellidos y nombres">
+              {editable && selectores ? (
+                <select aria-label="Apellidos y nombres" className={INPUT_DATO} value={selectores.trabajadorId} onChange={(e) => selectores.onTrabajador(e.target.value)}>
+                  <option value="">Seleccionar prestador</option>
+                  {selectores.trabajadores.map((item) => <option key={item.id} value={item.id}>{item.nombre}</option>)}
+                </select>
+              ) : <span className="flex-1 px-2 py-1.5 text-left text-[10px]">{trabajador?.nombre || "—"}</span>}
+            </Fila>
           </div>
           <div>
             <Fila etiqueta="Cta. de depósito" valor={trabajador?.numero_cuenta ?? ""} />
             <Fila etiqueta="Banco" valor={trabajador?.banco ?? ""} />
+          </div>
+          <div className="col-span-2 grid grid-cols-[1fr_0.55fr] border-t" style={{ borderColor: DOC.line }}>
+            <div className="flex items-center gap-3 border-r" style={{ borderColor: DOC.line }}>
+              <span className="shrink-0 px-2 py-1.5 text-[9px] font-bold uppercase" style={{ background: DOC.soft }}>Mes</span>
+              {editable ? (
+                <select aria-label="Mes" className={INPUT_DATO} value={detalle.mes} onChange={(e) => cambia("mes")(e.target.value)}>
+                  {MESES.map((mes, indice) => <option key={mes} value={indice + 1}>{mes}</option>)}
+                </select>
+              ) : <span className="flex-1 px-2 py-1.5 text-left text-[10px]">{MESES[detalle.mes - 1] ?? "—"}</span>}
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="shrink-0 px-2 py-1.5 text-[9px] font-bold uppercase" style={{ background: DOC.soft }}>Año</span>
+              {editable ? (
+                <input aria-label="Año" type="number" min="2020" max="2100" className={`${INPUT_DATO} text-center tabular-nums`} value={detalle.anio} onChange={(e) => cambia("anio")(e.target.value)} />
+              ) : <span className="flex-1 px-2 py-1.5 text-left text-[10px] tabular-nums">{detalle.anio}</span>}
+            </div>
           </div>
         </div>
       </section>
