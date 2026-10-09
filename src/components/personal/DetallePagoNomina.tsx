@@ -35,16 +35,19 @@ function Hoja({ boleta: b, trabajador: t, empresa, periodo, editable, cambiar }:
     </div>
   );
   const cabecera = (titulo: string) => <><h2 className="bg-primary px-2.5 py-2 text-center text-[10px] font-bold uppercase text-primary-foreground">{titulo}</h2><div className="flex justify-between border-b border-line bg-muted/35 px-2.5 py-1 text-[8px] font-bold uppercase"><span>Concepto</span><span>Monto</span></div></>;
+  const grupo = (titulo: string) => <h2 className="border-b border-line bg-primary px-2.5 py-1.5 text-center text-[9px] font-bold uppercase text-primary-foreground">{titulo}</h2>;
   return <article className="honorario-print-sheet mx-auto w-[184mm] max-w-full border border-line bg-paper p-5 text-ink shadow-sm" style={{ fontFamily: fuente.css }}>
     <header className="mb-3 flex items-center justify-between gap-4 border-b-2 border-primary pb-3">
       <div className="flex min-w-0 items-center gap-3">{empresa?.logo_url ? <img src={empresa.logo_url} alt={empresa.razon_social ?? "Empresa"} className="h-12 w-24 object-contain" /> : <Building2 size={30} className="text-primary" />}<span className="text-sm font-bold">{empresa?.razon_social ?? "TELXEN SAC"}</span></div>
       <div className="shrink-0 text-center"><h1 className="text-lg font-bold uppercase">Boleta de pago</h1><p className="text-[8px] font-semibold uppercase text-muted-foreground">Quinta categoría</p><p className="mt-1 text-[10px]">{periodo}</p></div>
     </header>
     <section className="mb-3 border border-line">
+      {grupo("Datos de la empresa")}
       <div className="grid grid-cols-2 divide-x divide-line"><Dato nombre="RUC" valor={empresa?.ruc} /><Dato nombre="Razón social" valor={empresa?.razon_social} /></div>
       <Dato nombre="Dirección fiscal" valor={empresa?.direccion} />
     </section>
     <section className="mb-3 border border-line">
+      {grupo("Datos del trabajador")}
       <Dato nombre="Apellidos y nombres" valor={t?.nombre} />
       <div className="grid grid-cols-2 divide-x divide-line"><div><Dato nombre="DNI" valor={t?.dni} /><Dato nombre="Cargo" valor={t?.cargo} /><Dato nombre="Régimen" valor={b.regimen_laboral} /><Dato nombre="Días laborados" valor={String(b.dias_laborados)} /></div><div><Dato nombre="Cuenta de depósito" valor={t?.numero_cuenta} /><Dato nombre="Banco" valor={t?.banco} /><Dato nombre="CUSPP" valor={t?.cuspp} /><Dato nombre="Fecha de ingreso" valor={fecha(t?.fecha_ingreso ?? null)} /></div></div>
     </section>
