@@ -262,13 +262,15 @@ function RequerimientosPage() {
   }
 
   function exportar() {
-    exportarExcel(`explosion-insumos-${proyecto?.codigo || "obra"}`, [
+    const ref = origen === "cotizacion" ? cotizacion?.codigo : proyecto?.codigo;
+    exportarExcel(`desdoblamiento-insumos-${ref || "obra"}`, [
       {
-        nombre: "Explosión de insumos",
+        nombre: "Consolidado",
         filas: explosion.map((e) => ({
           Tipo: nombreTipo(e.ins!.tipo),
           Insumo: e.ins!.nombre,
           Unidad: e.ins!.unidad,
+          Partidas: e.partidas,
           "Cantidad total": Number(e.total.toFixed(4)),
           "Ya requerido": Number(e.requerido.toFixed(4)),
           "Saldo por requerir": Number(e.saldo.toFixed(4)),
@@ -277,8 +279,60 @@ function RequerimientosPage() {
             : {}),
         })),
       },
+      {
+        nombre: "Origen por partida",
+        filas: explosion.flatMap((e) =>
+          e.origenes.map((o) => ({
+            Tipo: nombreTipo(e.ins!.tipo),
+            Insumo: e.ins!.nombre,
+            Unidad: e.ins!.unidad,
+            "Código partida": o.codigo,
+            Partida: o.nombre,
+            Metrado: Number(o.metrado.toFixed(4)),
+            "Cantidad APU": Number(o.unitaria.toFixed(6)),
+            Subtotal: Number(o.cantidad.toFixed(4)),
+          })),
+        ),
+      },
     ]);
   }
+
+  const cols = gestiona ? 8 : 6;
+  const filaInsumo = (e: (typeof explosion)[number], incluido: boolean, conTipo: boolean) => {
+    const ver = expandidos.has(e.insumoId);
+    return (
+      <React.Fragment key={e.insumoId}>
+        <tr className={`border-b border-line/40 ${incluido ? "" : "opacity-60"}`}>
+          <td className="truncate px-5 py-1.5 text-ink">
+            <button type="button" onClick={() => alternar(e.insumoId)} className="inline-flex max-w-full items-center gap-1 text-left" title="Ver origen por partida">
+              {ver ? <ChevronDown size={13} className="shrink-0 text-primary" /> : <ChevronRight size={13} className="shrink-0 text-primary" />}
+              <span className="truncate">{e.ins!.nombre}</span>
+              {conTipo && <span className="ml-1 shrink-0 text-[10px] text-muted-foreground">· {nombreTipo(e.ins!.tipo)}</span>}
+            </button>
+          </td>
+          <td className="px-2 py-1.5 text-muted-foreground">{e.ins!.unidad}</td>
+          <td className="px-2 py-1.5 text-center text-muted-foreground">{e.partidas}</td>
+          <td className="px-2 py-1.5 text-right">{num(e.total)}</td>
+          <td className="px-2 py-1.5 text-right text-muted-foreground">{num(e.requerido)}</td>
+          <td className={`px-2 py-1.5 text-right font-semibold ${e.saldo > 0 ? "text-ink" : "text-muted-foreground"}`}>{num(e.saldo)}</td>
+          {gestiona && <td className="px-2 py-1.5 text-right">{num(Number(e.ins!.precio))}</td>}
+          {gestiona && <td className="px-5 py-1.5 text-right">{soles(e.total * Number(e.ins!.precio))}</td>}
+        </tr>
+        {ver &&
+          e.origenes.map((o, i) => (
+            <tr key={`${e.insumoId}-${i}`} className="border-b border-line/20 bg-muted/20 text-[11px] text-muted-foreground">
+              <td className="truncate px-5 py-1 pl-11" colSpan={2}>
+                <span className="text-primary">{o.codigo || "—"}</span> {o.nombre}
+              </td>
+              <td className="px-2 py-1 text-right" colSpan={2}>
+                {num(o.metrado)} × {num(o.unitaria, 4)} = <span className="text-ink">{num(o.cantidad)}</span>
+              </td>
+              <td colSpan={cols - 4} />
+            </tr>
+          ))}
+      </React.Fragment>
+    );
+  };
 
   return (
     <>
@@ -286,7 +340,7 @@ function RequerimientosPage() {
         titulo="Requerimientos"
         subtitulo="Logística"
         acciones={
-          proyectoId && explosion.length > 0 ? (
+          listo && explosion.length > 0 ? (
             <Boton variante="linea" onClick={exportar}>
               <Upload size={14} className="mr-1 inline" /> Exportar a Excel
             </Boton>
@@ -294,17 +348,40 @@ function RequerimientosPage() {
         }
       />
 
-      <Panel titulo="Explosión de insumos por obra" className="mb-5">
+      <Panel titulo="Desdoblamiento de APU en insumos" className="mb-5">
         <div className="flex flex-wrap items-end gap-3 border-b border-line px-5 py-3 font-mono text-xs">
-          <label className="min-w-64 flex-1">
-            <span className="label-mono">Obra</span>
-            <Select className="mt-1" value={proyectoId} onChange={(e) => setProyectoId(e.target.value)}>
-              <option value="">Seleccionar obra…</option>
-              {proyectos.map((p) => (
-                <option key={p.id} value={p.id}>{p.codigo ? `${p.codigo} · ${p.nombre}` : p.nombre}</option>
-              ))}
+          <label>
+            <span className="label-mono">Origen</span>
+            <Select className="mt-1" value={origen} onChange={(e) => { setOrigen(e.target.value as "obra" | "cotizacion"); setExpandidos(new Set()); }}>
+              <option value="cotizacion">Desde cotización aprobada</option>
+              <option value="obra">Desde obra</option>
             </Select>
           </label>
+          <label className="min-w-64 flex-1">
+            <span className="label-mono">{origen === "obra" ? "Obra" : "Cotización aprobada"}</span>
+            {origen === "obra" ? (
+              <Select className="mt-1" value={proyectoSel} onChange={(e) => setProyectoSel(e.target.value)}>
+                <option value="">Seleccionar obra…</option>
+                {proyectos.map((p) => (
+                  <option key={p.id} value={p.id}>{p.codigo ? `${p.codigo} · ${p.nombre}` : p.nombre}</option>
+                ))}
+              </Select>
+            ) : (
+              <Select className="mt-1" value={cotizacionId} onChange={(e) => setCotizacionId(e.target.value)}>
+                <option value="">{cotizaciones.length ? "Seleccionar cotización…" : "No hay cotizaciones aprobadas"}</option>
+                {cotizaciones.map((c) => (
+                  <option key={c.id} value={c.id}>{c.codigo} · {c.nombre}{c.cliente ? ` — ${c.cliente}` : ""}</option>
+                ))}
+              </Select>
+            )}
+          </label>
+          <div className="flex overflow-hidden rounded border border-line">
+            {(["tipo", "consolidada"] as const).map((v) => (
+              <button key={v} type="button" onClick={() => setVista(v)} className={`px-3 py-1.5 ${vista === v ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}>
+                {v === "tipo" ? "Por tipo" : "Consolidada"}
+              </button>
+            ))}
+          </div>
           <div className="flex flex-wrap items-center gap-3">
             {TIPOS_INSUMO.map(([k, t]) => (
               <label key={k} className="flex items-center gap-1.5">
@@ -318,7 +395,7 @@ function RequerimientosPage() {
               </label>
             ))}
           </div>
-          {proyectoId && (
+          {listo && (
             <Boton onClick={() => void generar()}>
               <Zap size={14} className="mr-1 inline" /> Generar requerimiento
             </Boton>
@@ -327,60 +404,52 @@ function RequerimientosPage() {
         {error && <p className="px-5 pt-3 font-mono text-xs text-bad">{error}</p>}
         {aviso && <p className="px-5 pt-3 font-mono text-xs text-primary">{aviso}</p>}
 
-        {!proyectoId ? (
-          <Vacio texto="Selecciona una obra para calcular sus insumos a partir del análisis de precios de cada partida." />
+        {!listo ? (
+          <Vacio texto={origen === "obra" ? "Selecciona una obra para calcular sus insumos a partir del análisis de precios de cada partida." : "Selecciona una cotización aprobada: cada partida se desdobla en sus insumos (metrado × cantidad del APU)."} />
         ) : explosion.length === 0 ? (
-          <Vacio texto="Las partidas de esta obra todavía no tienen análisis de precios unitarios." />
+          <Vacio texto="Las partidas todavía no tienen análisis de precios unitarios." />
         ) : (
           <>
-            {sinApu > 0 && (
-              <p className="px-5 pt-3 font-mono text-[11px] text-muted-foreground">
-                {sinApu} de {hojas.length} partidas no tienen análisis de precios y no se incluyen en el cálculo.
-              </p>
-            )}
+            <p className="px-5 pt-3 font-mono text-[11px] text-muted-foreground">
+              Cantidad total = metrado de la partida × cantidad del insumo en su APU. Pulsa un insumo para ver de qué partidas proviene.
+              {sinApu > 0 && ` ${sinApu} de ${hojas.length} partidas no tienen APU y no se incluyen.`}
+            </p>
             <table className="mt-2 w-full table-fixed font-mono text-xs">
               <thead>
                 <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                  <th className="w-[34%] px-5 py-2 font-medium">Insumo</th>
-                  <th className="w-[7%] px-2 py-2 font-medium">Und.</th>
-                  <th className="w-[12%] px-2 py-2 text-right font-medium">Cantidad total</th>
-                  <th className="w-[12%] px-2 py-2 text-right font-medium">Ya requerido</th>
-                  <th className="w-[12%] px-2 py-2 text-right font-medium">Saldo</th>
-                  {gestiona && <th className="w-[10%] px-2 py-2 text-right font-medium">Precio</th>}
+                  <th className="w-[32%] px-5 py-2 font-medium">Insumo</th>
+                  <th className="w-[6%] px-2 py-2 font-medium">Und.</th>
+                  <th className="w-[7%] px-2 py-2 text-center font-medium">Partidas</th>
+                  <th className="w-[11%] px-2 py-2 text-right font-medium">Cantidad total</th>
+                  <th className="w-[11%] px-2 py-2 text-right font-medium">Ya requerido</th>
+                  <th className="w-[11%] px-2 py-2 text-right font-medium">Saldo</th>
+                  {gestiona && <th className="w-[9%] px-2 py-2 text-right font-medium">Precio</th>}
                   {gestiona && <th className="w-[13%] px-5 py-2 text-right font-medium">Parcial</th>}
                 </tr>
               </thead>
               <tbody>
-                {TIPOS_INSUMO.map(([k, t]) => {
-                  const filas = explosion.filter((e) => e.ins!.tipo === k);
-                  if (!filas.length) return null;
-                  const incluido = tipos.includes(k);
-                  return (
-                    <React.Fragment key={k}>
-                      <tr className="bg-muted/40">
-                        <td colSpan={gestiona ? 6 : 5} className="px-5 py-1.5 font-semibold text-primary">
-                          {t} {!incluido && <span className="ml-1 text-[10px] font-normal text-muted-foreground">(no se incluye en el requerimiento)</span>}
-                        </td>
-                        {gestiona && (
-                          <td className="px-5 py-1.5 text-right font-semibold">
-                            {soles(filas.reduce((s, e) => s + e.total * Number(e.ins!.precio), 0))}
-                          </td>
-                        )}
-                      </tr>
-                      {filas.map((e) => (
-                        <tr key={e.insumoId} className={`border-b border-line/40 ${incluido ? "" : "opacity-60"}`}>
-                          <td className="truncate px-5 py-1.5 text-ink">{e.ins!.nombre}</td>
-                          <td className="px-2 py-1.5 text-muted-foreground">{e.ins!.unidad}</td>
-                          <td className="px-2 py-1.5 text-right">{num(e.total)}</td>
-                          <td className="px-2 py-1.5 text-right text-muted-foreground">{num(e.requerido)}</td>
-                          <td className={`px-2 py-1.5 text-right font-semibold ${e.saldo > 0 ? "text-ink" : "text-muted-foreground"}`}>{num(e.saldo)}</td>
-                          {gestiona && <td className="px-2 py-1.5 text-right">{num(Number(e.ins!.precio))}</td>}
-                          {gestiona && <td className="px-5 py-1.5 text-right">{soles(e.total * Number(e.ins!.precio))}</td>}
-                        </tr>
-                      ))}
-                    </React.Fragment>
-                  );
-                })}
+                {vista === "consolidada"
+                  ? explosion.map((e) => filaInsumo(e, tipos.includes(e.ins!.tipo), true))
+                  : TIPOS_INSUMO.map(([k, t]) => {
+                      const filas = explosion.filter((e) => e.ins!.tipo === k);
+                      if (!filas.length) return null;
+                      const incluido = tipos.includes(k);
+                      return (
+                        <React.Fragment key={k}>
+                          <tr className="bg-muted/40">
+                            <td colSpan={gestiona ? cols - 1 : cols} className="px-5 py-1.5 font-semibold text-primary">
+                              {t} {!incluido && <span className="ml-1 text-[10px] font-normal text-muted-foreground">(no se incluye en el requerimiento)</span>}
+                            </td>
+                            {gestiona && (
+                              <td className="px-5 py-1.5 text-right font-semibold">
+                                {soles(filas.reduce((s, e) => s + e.total * Number(e.ins!.precio), 0))}
+                              </td>
+                            )}
+                          </tr>
+                          {filas.map((e) => filaInsumo(e, incluido, false))}
+                        </React.Fragment>
+                      );
+                    })}
               </tbody>
             </table>
           </>
@@ -441,7 +510,7 @@ function RequerimientosPage() {
                       </td>
                     </tr>
                     {ver &&
-                      its.map((i) => (
+                      its.flatMap((i) => [(
                         <tr key={i.id} className="border-b border-line/30 bg-muted/10">
                           <td className="px-5 py-1.5 pl-10 text-[10px] text-muted-foreground">{nombreTipo(i.tipo)}</td>
                           <td className="px-3 py-1.5">{i.descripcion}</td>
