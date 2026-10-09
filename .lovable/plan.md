@@ -18,7 +18,7 @@ La ventana del detalle de pago por honorarios deja de tener el formulario a la i
 - Totales, retención y neto a pagar se recalculan en tiempo real con la fórmula actual (costo unitario × jornales equivalentes).
 
 ### 2. Ventana a una sola columna (src/components/personal/DetallePagoHonorario.tsx)
-- Se elimina el formulario lateral y la alternancia vista previa/edición: la ventana muestra solo la hoja A4 a todo el ancho.
+- Se elimina el formulario lateral y la alternancia vista previa/edición: la hoja ocupa toda la ventana en modo edición (sin escala reducida, tamaño de letra cómodo para llenar datos).
 - Barra superior de la ventana con: aviso del tareo (la nota azul de carga automática), botón Guardar y botón Imprimir / Guardar PDF.
 - La fuente de datos no cambia: días laborados, viaje, horas extras, feriados e inducción se cargan automáticamente desde el tareo, y DNI, cuenta, banco y jornal desde el registro de personal; la edición directa sobre la hoja solo permite ajustes puntuales.
 - Se conserva la validación antes de guardar (bruto > 0, neto ≥ 0, N° de recibo obligatorio).
