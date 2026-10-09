@@ -524,7 +524,7 @@ function Nomina() {
                   return (
                     <tr key={b.id} className="border-b border-line/60 last:border-0">
                       <td className="px-4 py-2 font-semibold text-ink">{t?.nombre}<span className="block text-[10px] font-normal text-muted-foreground">{b.regimen_laboral} · {b.sistema_pensiones}</span></td>
-                      <td className="px-2 py-2">{cerrada ? b.dias_laborados : <Input type="number" min="0" max="30" value={valor(b, "dias_laborados")} onChange={(e) => cambiar(b.id, "dias_laborados", e.target.value)} className="py-1 text-xs" />}</td>
+                      <td className="px-2 py-2">{cerrada || !sucio ? b.dias_laborados : <Input type="number" min="0" max="30" value={valor(b, "dias_laborados")} onChange={(e) => cambiar(b.id, "dias_laborados", e.target.value)} className="py-1 text-xs" />}</td>
                       <td className="px-2 py-2 text-right">{soles(Number(b.sueldo_basico))}</td>
                       <td className="px-2 py-2 text-right">{soles(Number(b.asignacion_familiar))}</td>
                       <td className="px-2 py-2 text-right">{celda(b, "horas_extra")}</td>
@@ -541,8 +541,18 @@ function Nomina() {
                       </td>
                       <td className="px-4 py-2">
                         <div className="flex justify-end gap-1">
-                          {sucio && <button type="button" title="Recalcular y guardar" onClick={() => guardarFila(b)} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground"><Check size={14} /></button>}
+                          {sucio ? (
+                            <button type="button" title="Recalcular y guardar" onClick={() => guardarFila(b)} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground"><Check size={14} /></button>
+                          ) : !cerrada && b.estado_pago !== "Pagado" && (
+                            <button type="button" title="Editar boleta" onClick={() => empezarEdicion(b)} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"><Pencil size={14} /></button>
+                          )}
                           <button type="button" title="Imprimir boleta" onClick={() => imprimir([b])} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"><Printer size={14} /></button>
+                          {b.estado_pago !== "Pagado" && (
+                            <button type="button" title="Registrar pago" onClick={() => setPago({ boleta_id: b.id, banco_id: "", fecha_pago: hoy(), numero_operacion: "" })} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"><Check size={14} /></button>
+                          )}
+                          {!cerrada && b.estado_pago !== "Pagado" && (
+                            <button type="button" title="Eliminar" onClick={() => eliminar(b)} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-bad hover:text-bad"><Trash2 size={14} /></button>
+                          )}
                         </div>
                       </td>
                     </tr>
