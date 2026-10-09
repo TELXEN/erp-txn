@@ -386,6 +386,7 @@ function Nomina() {
               >
                 <Upload size={13} /> Exportar a Excel
               </Boton>
+              )}
             </div>
           )
         }
