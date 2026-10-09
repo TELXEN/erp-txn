@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, ClipboardList, Database, Lock, Pencil, Printer, RefreshCw, Trash2, Unlock, Upload, Wand2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -218,6 +218,23 @@ function Nomina() {
     await refrescar();
   }
 
+  // Actualización automática: si cambian el tareo, el personal o las comisiones,
+  // las boletas pendientes se recalculan solas (las pagadas no se tocan).
+  const autoRef = useRef("");
+  useEffect(() => {
+    if (!planilla || cerrada || boletas.length === 0) return;
+    const clave = JSON.stringify([
+      tareos.map((t) => [t.trabajador_id, t.fecha, t.tipo, t.horas, t.asistencia]),
+      trabajadores.map((t) => [t.id, t.sueldo_mensual, t.tipo_contratacion, t.activo]),
+      comisiones,
+    ]);
+    if (!autoRef.current) { autoRef.current = clave; return; }
+    if (autoRef.current === clave) return;
+    autoRef.current = clave;
+    void generar();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tareos, trabajadores, comisiones, planilla, cerrada, boletas.length]);
+
   async function eliminar(b: Boleta) {
     if (b.estado_pago === "Pagado") return setError("No se puede eliminar una boleta pagada.");
     if (!window.confirm(`¿Eliminar la boleta de ${tDe(b.trabajador_id)?.nombre ?? "este trabajador"}?`)) return;
@@ -341,7 +358,9 @@ function Nomina() {
         acciones={
           pestana === "planilla" && boletas.length > 0 && (
             <div className="flex gap-2">
-              <Boton variante="linea" onClick={() => imprimir(ordenadas)}><Printer size={13} /> Imprimir boletas</Boton>
+              {!cerrada && (
+                <Boton variante="linea" onClick={generar}><Wand2 size={13} /> Generar boletas de pago</Boton>
+              )}
               <Boton
                 variante="linea"
                 onClick={() =>
@@ -450,9 +469,6 @@ function Nomina() {
           <Campo etiqueta="Año">
             <Input type="number" value={anio} onChange={(e) => { setAnio(Number(e.target.value)); setEditando({}); }} className="w-24 py-1.5" />
           </Campo>
-          {!cerrada && (
-            <Boton onClick={generar}><Wand2 size={13} /> {planilla ? "Actualizar boletas desde el tareo" : `Generar boletas de pago ${periodo}`}</Boton>
-          )}
           {planilla && (
             <>
               <Etiqueta tono={cerrada ? "good" : "neutro"}>{planilla.estado}</Etiqueta>
