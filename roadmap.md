@@ -17,4 +17,4 @@
 - [x] Etapa 4: regla única de redondeo (triggers en compras, gastos generales y ventas).
 - [x] Etapa 5: pruebas automáticas de cálculos (src/lib/calculos.test.ts, 9 casos).
 - [x] Etapa 6: costo real de obra único en todos los paneles.
-- [ ] Etapa 7: integración de importaciones transaccional.
+- [x] Etapa 7: integración de importaciones transaccional.
