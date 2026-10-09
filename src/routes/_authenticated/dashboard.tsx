@@ -656,7 +656,7 @@ function Dashboard() {
                         </td>
                         <td
                           className={`px-4 py-2 text-right font-mono ${
-                            f.costoDirectoReal > f.presupuesto && f.presupuesto > 0 ? "text-bad" : ""
+                            f.costoReal > f.ofertado && f.ofertado > 0 ? "text-bad" : ""
                           }`}
                         >
                           {soles(f.costoReal)}
