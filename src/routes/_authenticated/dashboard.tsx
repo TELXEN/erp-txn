@@ -608,7 +608,7 @@ function Dashboard() {
             <Vacio texto="No hay obras registradas." />
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full text-[13px]">
                 <thead>
                   <tr className="border-b border-(--line-60) text-left">
                     <th className="label-mono px-4 py-2">Obra</th>
@@ -633,21 +633,21 @@ function Dashboard() {
                         <td className="px-4 py-2 text-right font-mono">
                           {soles(f.presupuesto)}
                           {f.adicionales !== 0 && (
-                            <span className="block text-[11px] text-muted-foreground">
+                            <span className="block text-[10px] text-muted-foreground">
                               contr. {soles(f.contractual)} · adic. {soles(f.adicionales)}
                             </span>
                           )}
                         </td>
                         <td className="px-4 py-2 text-right font-mono">
                           {soles(f.ggPresupuestado)}
-                          <span className="ml-1 text-[11px] text-muted-foreground">({f.pctGG}%)</span>
-                          <span className="block text-[11px] text-muted-foreground">
+                          <span className="ml-1 text-[10px] text-muted-foreground">({f.pctGG}%)</span>
+                          <span className="block text-[10px] text-muted-foreground">
                             real {soles(f.ggReal)}
                           </span>
                         </td>
                         <td className="px-4 py-2 text-right font-mono">
                           {soles(f.utilidadPrevista)}
-                          <span className="ml-1 text-[11px] text-muted-foreground">({f.pctUtilidad}%)</span>
+                          <span className="ml-1 text-[10px] text-muted-foreground">({f.pctUtilidad}%)</span>
                         </td>
                         <td className="px-4 py-2 text-right font-mono font-semibold">{soles(f.ofertado)}</td>
                         <td className="px-4 py-2 text-right font-mono">{soles(f.cobrado)}</td>
@@ -670,10 +670,10 @@ function Dashboard() {
                         </td>
                         <td className="px-4 py-2 text-right font-mono">
                           {pct(f.margenPct)}
-                          <span className="block text-[11px] text-muted-foreground">{pct(f.roiPct)} s/ costo</span>
+                          <span className="block text-[10px] text-muted-foreground">{pct(f.roiPct)} s/ costo</span>
                         </td>
                         <td className="px-4 py-2">
-                          <span className="inline-flex items-center gap-2 text-[12px]">
+                          <span className="inline-flex items-center gap-2 text-[11px]">
                             <span className="h-2.5 w-2.5 rounded-full" style={{ background: s.color }} />
                             {s.texto}
                           </span>
@@ -726,10 +726,19 @@ function Dashboard() {
 }
 
 /** Semáforo de salud financiera de una obra. */
-function salud(f: { margen: number; margenPct: number; cobranzaPct: number; costoReal: number; ofertado: number }) {
+function salud(f: {
+  margen: number;
+  margenPct: number;
+  cobranzaPct: number;
+  facturado: number;
+  costoReal: number;
+  ofertado: number;
+}) {
   if (f.margen < 0 || (f.ofertado > 0 && f.costoReal > f.ofertado))
     return { color: "#DC2626", texto: "Déficit / Sobrecosto" };
-  if (f.cobranzaPct < 70 || f.margenPct < 15) return { color: "#F59E0B", texto: "Alerta" };
+  // La cobranza solo alarma cuando ya hay facturado sin cobrar; una obra que aún no factura no está en riesgo.
+  const cobranzaEnRiesgo = f.facturado > 0 && f.cobranzaPct < 70;
+  if (cobranzaEnRiesgo || f.margenPct < 15) return { color: "#F59E0B", texto: "Alerta" };
   return { color: "#10B981", texto: "Saludable" };
 }
 
