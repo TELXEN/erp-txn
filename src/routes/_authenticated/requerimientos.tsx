@@ -31,6 +31,8 @@ type Requerimiento = {
   estado: string;
   observacion: string;
   creado_por: string | null;
+  cotizacion_id: string | null;
+  origen: string;
 };
 type ItemReq = {
   id: string;
