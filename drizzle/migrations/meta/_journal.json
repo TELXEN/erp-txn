@@ -36,6 +36,13 @@
       "when": 1791427424144,
       "tag": "0004_honorarios_induccion",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791515586311,
+      "tag": "0005_recibos_honorarios_numero_recibo_opcional",
+      "breakpoints": true
     }
   ]
 }
