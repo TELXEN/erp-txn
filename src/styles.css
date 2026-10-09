@@ -293,3 +293,40 @@
     print-color-adjust: exact;
   }
 }
+
+/* Dashboard de proyectos: fondo claro, tarjetas KPI y cartera */
+.tablero-proyectos {
+  --tablero-fondo: oklch(0.984 0.003 247.858);
+  font-family: Roboto, var(--font-global);
+  background-color: var(--tablero-fondo);
+  margin: -1.5rem -1.5rem 0;
+  padding: 1.5rem;
+  min-height: 100%;
+}
+.tablero-proyectos .panel,
+.kpi-tarjeta,
+.proyecto-tarjeta {
+  box-shadow: 0 1px 2px color-mix(in oklab, var(--color-ink) 6%, transparent), 0 4px 14px -8px color-mix(in oklab, var(--color-ink) 12%, transparent);
+}
+.kpi-tarjeta {
+  border-radius: var(--radius);
+  border: 1px solid var(--color-line);
+  background-color: var(--color-card);
+  padding: 1rem 1.1rem;
+  transition: border-color 0.15s, transform 0.15s;
+}
+button.kpi-tarjeta:hover { border-color: color-mix(in oklab, var(--color-primary) 40%, var(--color-line)); }
+.proyecto-tarjeta {
+  border-radius: var(--radius);
+  border: 1px solid var(--color-line);
+  border-left-width: 4px;
+  background-color: var(--color-card);
+  padding: 1rem 1.25rem;
+}
+
+/* Menú lateral: barra de desplazamiento delgada visible solo al pasar el mouse */
+aside .md\:overflow-y-auto { scrollbar-width: thin; scrollbar-color: transparent transparent; }
+aside .md\:overflow-y-auto:hover { scrollbar-color: color-mix(in oklab, var(--color-sidebar-foreground) 35%, transparent) transparent; }
+aside .md\:overflow-y-auto::-webkit-scrollbar { width: 6px; }
+aside .md\:overflow-y-auto::-webkit-scrollbar-thumb { background: transparent; border-radius: 3px; }
+aside .md\:overflow-y-auto:hover::-webkit-scrollbar-thumb { background: color-mix(in oklab, var(--color-sidebar-foreground) 35%, transparent); }

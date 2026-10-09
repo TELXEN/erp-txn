@@ -643,7 +643,7 @@ function DashboardProyectos() {
           </ul>
         )}
       </Panel>
-    </>
+    </div>
   );
 }
 
