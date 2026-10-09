@@ -281,7 +281,7 @@ function Dashboard() {
       margenSobreOferta: ofertado > 0 ? (margen / ofertado) * 100 : 0,
       variacionUtilidad: margen - utilidadPrevista,
       cobranzaPct: facturado > 0 ? (cobrado / facturado) * 100 : 0,
-      consumoPresupuesto: presupuesto > 0 ? (costoDirectoReal / presupuesto) * 100 : 0,
+      consumoPresupuesto: ofertado > 0 ? (costoReal / ofertado) * 100 : 0,
       consumoGG: ggPresupuestado > 0 ? (ggReal / ggPresupuestado) * 100 : 0,
     };
   }, [filasTabla, global, personal]);
@@ -584,9 +584,9 @@ function Dashboard() {
           <Panel titulo="Indicadores de control" className="h-full">
             <div className="space-y-4 px-5 py-4">
               <Termometro
-                etiqueta="Consumo de presupuesto (costo directo)"
-                actual={datos.costoDirectoReal}
-                meta={datos.presupuesto}
+                etiqueta="Consumo del presupuesto ofertado"
+                actual={datos.costoReal}
+                meta={datos.ofertado}
                 invertido
               />
               <Termometro
@@ -726,8 +726,8 @@ function Dashboard() {
 }
 
 /** Semáforo de salud financiera de una obra. */
-function salud(f: { margen: number; margenPct: number; cobranzaPct: number; costoDirectoReal: number; presupuesto: number }) {
-  if (f.margen < 0 || (f.presupuesto > 0 && f.costoDirectoReal > f.presupuesto))
+function salud(f: { margen: number; margenPct: number; cobranzaPct: number; costoReal: number; ofertado: number }) {
+  if (f.margen < 0 || (f.ofertado > 0 && f.costoReal > f.ofertado))
     return { color: "#DC2626", texto: "Déficit / Sobrecosto" };
   if (f.cobranzaPct < 70 || f.margenPct < 15) return { color: "#F59E0B", texto: "Alerta" };
   return { color: "#10B981", texto: "Saludable" };
