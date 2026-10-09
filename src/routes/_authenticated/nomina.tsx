@@ -318,9 +318,20 @@ function Nomina() {
   const ordenadas = [...boletas].sort((a, b) => (tDe(a.trabajador_id)?.nombre ?? "").localeCompare(tDe(b.trabajador_id)?.nombre ?? ""));
   const pendientes = boletas.filter((b) => b.estado_pago === "Pendiente").length;
   const celda = (b: Boleta, campo: keyof Boleta) =>
-    cerrada ? soles(Number(b[campo])) : (
+    cerrada || !editando[b.id] ? soles(Number(b[campo])) : (
       <Input type="number" step="0.01" min="0" value={valor(b, campo)} onChange={(e) => cambiar(b.id, campo, e.target.value)} className="py-1 text-right text-xs" />
     );
+  const empezarEdicion = (b: Boleta) =>
+    setEditando((e) => ({
+      ...e,
+      [b.id]: {
+        dias_laborados: String(b.dias_laborados),
+        horas_extra: String(b.horas_extra),
+        otros_ingresos: String(b.otros_ingresos),
+        renta_quinta: String(b.renta_quinta),
+        otros_descuentos: String(b.otros_descuentos),
+      },
+    }));
 
   return (
     <>
