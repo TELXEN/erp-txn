@@ -218,6 +218,23 @@ function Nomina() {
     await refrescar();
   }
 
+  // Actualización automática: si cambian el tareo, el personal o las comisiones,
+  // las boletas pendientes se recalculan solas (las pagadas no se tocan).
+  const autoRef = useRef("");
+  useEffect(() => {
+    if (!planilla || cerrada || boletas.length === 0) return;
+    const clave = JSON.stringify([
+      tareos.map((t) => [t.trabajador_id, t.fecha, t.tipo, t.horas_extra]),
+      trabajadores.map((t) => [t.id, t.sueldo_mensual, t.tipo_contratacion, t.activo]),
+      comisiones,
+    ]);
+    if (!autoRef.current) { autoRef.current = clave; return; }
+    if (autoRef.current === clave) return;
+    autoRef.current = clave;
+    void generar();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tareos, trabajadores, comisiones, planilla, cerrada, boletas.length]);
+
   async function eliminar(b: Boleta) {
     if (b.estado_pago === "Pagado") return setError("No se puede eliminar una boleta pagada.");
     if (!window.confirm(`¿Eliminar la boleta de ${tDe(b.trabajador_id)?.nombre ?? "este trabajador"}?`)) return;
