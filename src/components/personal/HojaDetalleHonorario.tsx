@@ -173,7 +173,7 @@ export function HojaDetalleHonorario({ empresa, trabajador, proyecto, detalle, t
             <Fila etiqueta="Año">
               {editable ? (
                 <input aria-label="Año" type="number" min="2020" max="2100" className={`${INPUT_DATO} text-center tabular-nums`} value={detalle.anio} onChange={(e) => cambia("anio")(e.target.value)} />
-              ) : <span className="flex-1 px-2 py-1.5 text-left text-[10px] tabular-nums">{detalle.anio}</span>}
+              ) : <span className="flex-1 px-2 py-1.5 text-center text-[10px] tabular-nums">{detalle.anio}</span>}
             </Fila>
           </div>
         </div>
