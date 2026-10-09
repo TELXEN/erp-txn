@@ -230,9 +230,6 @@ function Honorarios() {
         subtitulo="Prestadores de 4ta categoría · retención 8% sobre recibos mayores a S/ 1,500"
         acciones={
           <div className="flex gap-2">
-            <Boton onClick={() => { setError(""); setEditor({ clave: `nuevo-${Date.now()}`, form: nuevoDetalle() }); }}>
-              <Plus size={14} /> Nuevo detalle
-            </Boton>
             <Boton variante="linea" onClick={() => { setAviso(""); setGenerador(true); }}>
               <Wand2 size={14} /> Generar boletas de pago
             </Boton>
