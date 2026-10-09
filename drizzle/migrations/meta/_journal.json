@@ -43,6 +43,13 @@
       "when": 1791515586311,
       "tag": "0005_recibos_honorarios_numero_recibo_opcional",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791550895192,
+      "tag": "0006_requerimientos_desde_cotizacion",
+      "breakpoints": true
     }
   ]
 }

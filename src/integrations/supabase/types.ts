@@ -3365,6 +3365,50 @@ export type Database = {
           },
         ]
       }
+      requerimiento_item_origenes: {
+        Row: {
+          cantidad: number
+          cantidad_unitaria: number
+          cotizacion_item_id: string | null
+          created_at: string
+          id: string
+          metrado: number
+          partida_codigo: string
+          partida_nombre: string
+          requerimiento_item_id: string
+        }
+        Insert: {
+          cantidad?: number
+          cantidad_unitaria?: number
+          cotizacion_item_id?: string | null
+          created_at?: string
+          id?: string
+          metrado?: number
+          partida_codigo?: string
+          partida_nombre?: string
+          requerimiento_item_id: string
+        }
+        Update: {
+          cantidad?: number
+          cantidad_unitaria?: number
+          cotizacion_item_id?: string | null
+          created_at?: string
+          id?: string
+          metrado?: number
+          partida_codigo?: string
+          partida_nombre?: string
+          requerimiento_item_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "requerimiento_item_origenes_requerimiento_item_id_fkey"
+            columns: ["requerimiento_item_id"]
+            isOneToOne: false
+            referencedRelation: "requerimiento_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       requerimiento_items: {
         Row: {
           cantidad: number
@@ -3419,38 +3463,51 @@ export type Database = {
       requerimientos: {
         Row: {
           codigo: string
+          cotizacion_id: string | null
           creado_por: string | null
           created_at: string
           estado: string
           fecha: string
           id: string
           observacion: string
+          origen: string
           proyecto_id: string
           updated_at: string
         }
         Insert: {
           codigo?: string
+          cotizacion_id?: string | null
           creado_por?: string | null
           created_at?: string
           estado?: string
           fecha?: string
           id?: string
           observacion?: string
+          origen?: string
           proyecto_id: string
           updated_at?: string
         }
         Update: {
           codigo?: string
+          cotizacion_id?: string | null
           creado_por?: string | null
           created_at?: string
           estado?: string
           fecha?: string
           id?: string
           observacion?: string
+          origen?: string
           proyecto_id?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "requerimientos_cotizacion_id_fkey"
+            columns: ["cotizacion_id"]
+            isOneToOne: false
+            referencedRelation: "cotizaciones"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "requerimientos_proyecto_id_fkey"
             columns: ["proyecto_id"]
