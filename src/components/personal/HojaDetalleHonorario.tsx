@@ -92,7 +92,7 @@ function MontoCant({ etiqueta, cantidad, valor }: { etiqueta: string; cantidad?:
 
 function Monto({ etiqueta, valor, editable, onCambiar }: { etiqueta: string; valor: number; editable?: boolean; onCambiar?: (valor: string) => void }) {
   return (
-    <div className="flex items-center justify-between gap-3 border-b px-2 py-1 last:border-b-0" style={{ borderColor: DOC.line }}>
+    <div className="flex items-center justify-between gap-3 border-b px-2.5 py-1 last:border-b-0" style={{ borderColor: DOC.line }}>
       <span className="text-[10px] leading-tight">{etiqueta}</span>
       {editable && onCambiar
         ? <span className="flex min-w-[98px] items-center justify-end gap-1"><span className="text-[10px] leading-tight font-semibold">S/</span><input type="number" min="0" step="0.01" className={`${INPUT_NUM} max-w-[76px]`} value={valor} onChange={(e) => onCambiar(e.target.value)} /></span>
@@ -103,7 +103,7 @@ function Monto({ etiqueta, valor, editable, onCambiar }: { etiqueta: string; val
 
 function CabeceraMonto() {
   return (
-    <div className="flex items-center justify-between gap-3 border-b px-2 py-1 text-[8px] leading-tight font-bold uppercase" style={{ borderColor: DOC.line, background: DOC.soft }}>
+    <div className="flex items-center justify-between gap-3 border-b px-2.5 py-1 text-[8px] leading-tight font-bold uppercase" style={{ borderColor: DOC.line, background: DOC.soft }}>
       <span>Concepto</span>
       <span>Monto</span>
     </div>
