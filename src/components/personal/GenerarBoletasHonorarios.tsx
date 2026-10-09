@@ -31,11 +31,10 @@ export function GenerarBoletasHonorarios({ prestadores, proyectos, tareos, exist
       const jornal = Number(p.jornal_diario) || 0;
       const r = resumenTareoHonorario(tareos, p.id, "", mes, anio, jornal);
       const ids = [...new Set(tareos.filter((t) => t.trabajador_id === p.id && t.fecha.startsWith(prefijo)).map((t) => t.proyecto_id).filter(Boolean))] as string[];
-      const nombres = ids.map((id) => { const pr = proyectos.find((x) => x.id === id); return pr ? `${pr.codigo ?? ""} ${pr.nombre}`.trim() : ""; }).filter(Boolean);
       const form: FormularioHonorario = {
         trabajador_id: p.id, proyecto_id: ids.length === 1 ? (ids[0] ?? "") : "", numero_recibo: "",
         fecha_emision: `${prefijo}-${String(ultimoDia).padStart(2, "0")}`,
-        concepto: `Servicios prestados en ${MESES[mes - 1]} ${anio}${nombres.length ? ` – ${nombres.join(", ")}` : ""}`,
+        concepto: "",
         mes, anio, dias_laborados: r.dias, dias_viaje: r.viaje, horas_extras: r.extras, otros_remuneraciones: r.feriados, induccion: r.induccion,
         costo_unitario: jornal, saldo_mes_anterior: 0, adelantos: 0, devolucion_gastos: 0, pagos_a_cuenta_planilla: 0,
         fondo_pensiones: 0, descuento_herramientas: 0, lugar_emision: "Huancayo", retencion: 0,
