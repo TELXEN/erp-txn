@@ -520,7 +520,12 @@ function Nomina() {
 
       <Panel titulo={`Planilla ${periodo}`} extra={<span className="font-mono text-[11px] text-muted-foreground">{boletas.length} boletas</span>}>
         {!planilla || boletas.length === 0 ? (
-          <Vacio texto="Aún no se ha generado la planilla de este mes." />
+          <div className="flex flex-col items-center gap-3 py-2">
+            <Vacio texto="Aún no se ha generado la planilla de este mes." />
+            {!cerrada && (
+              <Boton variante="linea" onClick={generar}><Wand2 size={13} /> Generar boletas de pago</Boton>
+            )}
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[1400px] font-mono text-xs">
