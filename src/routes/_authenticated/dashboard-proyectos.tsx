@@ -464,6 +464,10 @@ function DashboardProyectos() {
                   <p className="label-mono text-[9px]">Costo ejecutado</p>
                   <p className={`font-mono text-sm font-semibold ${obraSel.desviado ? "text-bad" : "text-ink"}`}>{soles(obraSel.costoReal)}</p>
                   <p className="font-mono text-[10px] text-muted-foreground">{pct(obraSel.gastado ?? 0)} avance financiero · independiente del físico</p>
+                  <div className="mt-1.5 space-y-1 border-t border-line pt-1.5 text-left">
+                    <FilaSemaforo etiqueta="Costo directo" real={obraSel.cdReal} base={obraSel.cdPres} />
+                    <FilaSemaforo etiqueta="Gastos generales" real={obraSel.ggReal} base={obraSel.ggPres} />
+                  </div>
                 </div>
               )}
 
@@ -791,21 +795,51 @@ function DatoIcono({ icono, etiqueta, valor, tono }: { icono: ReactNode; etiquet
 }
 
 
-function BolsaEjecutada({ etiqueta, real, base }: { etiqueta: string; real: number; base: number }) {
+/** Semáforo suave de consumo contra la base: verde normal, ámbar al acercarse (≥85%), rojo al superar. */
+function nivelConsumo(real: number, base: number): "ok" | "cerca" | "excedido" {
+  if (real > base + 0.005) return "excedido";
   const p = base > 0 ? (real / base) * 100 : real > 0 ? 100 : 0;
-  const excedido = real > base + 0.005;
+  return p >= 85 ? "cerca" : "ok";
+}
+
+function FilaSemaforo({ etiqueta, real, base }: { etiqueta: string; real: number; base: number }) {
+  const nivel = nivelConsumo(real, base);
+  const p = base > 0 ? (real / base) * 100 : real > 0 ? 100 : 0;
+  const punto = nivel === "excedido" ? "bg-bad" : nivel === "cerca" ? "bg-warn" : "bg-good";
+  const pildora = nivel === "excedido" ? "bg-bad/10 text-bad" : nivel === "cerca" ? "bg-warn/10 text-warn" : "bg-good/10 text-good";
   return (
-    <div className={`kpi-tarjeta ${excedido ? "ring-1 ring-bad/40" : ""}`}>
+    <div className="flex items-center justify-between gap-2">
+      <span className="flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground">
+        <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${punto}`} />
+        {etiqueta}
+      </span>
+      <span className="flex items-center gap-1.5">
+        <span className="font-mono text-[10px] text-ink">
+          {soles(real)} <span className="text-muted-foreground">/ {soles(base)}</span>
+        </span>
+        <span className={`rounded-full px-1.5 py-px font-mono text-[9px] font-semibold tabular-nums ${pildora}`}>{pct(p)}</span>
+      </span>
+    </div>
+  );
+}
+
+function BolsaEjecutada({ etiqueta, real, base }: { etiqueta: string; real: number; base: number }) {
+  const nivel = nivelConsumo(real, base);
+  const p = base > 0 ? (real / base) * 100 : real > 0 ? 100 : 0;
+  const excedido = nivel === "excedido";
+  const cerca = nivel === "cerca";
+  return (
+    <div className={`kpi-tarjeta ${excedido ? "ring-1 ring-bad/40" : cerca ? "ring-1 ring-warn/30" : ""}`}>
       <div className="flex items-center justify-between gap-2">
         <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{etiqueta}</p>
-        <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold tabular-nums ${excedido ? "bg-bad/10 text-bad" : p > 90 ? "bg-warn/10 text-warn" : "bg-primary/10 text-primary"}`}>{pct(p)}</span>
+        <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold tabular-nums ${excedido ? "bg-bad/10 text-bad" : cerca ? "bg-warn/10 text-warn" : "bg-good/10 text-good"}`}>{pct(p)}</span>
       </div>
       <p className={`mt-2 text-2xl font-bold tabular-nums ${excedido ? "text-bad" : "text-ink"}`}>{soles(real)}</p>
       <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
-        <div className={`h-full rounded-full ${excedido ? "bg-bad" : p > 90 ? "bg-warn" : "bg-primary"}`} style={{ width: `${Math.min(p, 100)}%` }} />
+        <div className={`h-full rounded-full ${excedido ? "bg-bad" : cerca ? "bg-warn" : "bg-good"}`} style={{ width: `${Math.min(p, 100)}%` }} />
       </div>
       <p className={`mt-1 text-[11px] tabular-nums ${excedido ? "font-semibold text-bad" : "text-muted-foreground"}`}>
-        {excedido ? `▲ Presupuesto excedido en ${soles(real - base)}` : `Base ${soles(base)} · saldo ${soles(base - real)}`}
+        {excedido ? `▲ Presupuesto excedido en ${soles(real - base)}` : cerca ? `Base ${soles(base)} · te quedan ${soles(base - real)}` : `Base ${soles(base)} · saldo ${soles(base - real)}`}
       </p>
     </div>
   );
