@@ -45,12 +45,12 @@ function Hoja({ boleta: b, trabajador: t, empresa, periodo, editable, cambiar }:
     <section className="mb-3 border border-line">
       {grupo("Datos de la empresa")}
       <div className="grid grid-cols-2 divide-x divide-line"><Dato nombre="RUC" valor={empresa?.ruc} /><Dato nombre="Razón social" valor={empresa?.razon_social} /></div>
-      <Dato nombre="Dirección fiscal" valor={empresa?.direccion} />
+      <Dato nombre="Dirección fiscal" valor={empresa?.direccion} sinLinea />
     </section>
     <section className="mb-3 border border-line">
       {grupo("Datos del trabajador")}
       <Dato nombre="Apellidos y nombres" valor={t?.nombre} />
-      <div className="grid grid-cols-2 divide-x divide-line"><div><Dato nombre="DNI" valor={t?.dni} /><Dato nombre="Cargo" valor={t?.cargo} /><Dato nombre="Régimen" valor={b.regimen_laboral} /><Dato nombre="Días laborados" valor={String(b.dias_laborados)} /></div><div><Dato nombre="Cuenta de depósito" valor={t?.numero_cuenta} /><Dato nombre="Banco" valor={t?.banco} /><Dato nombre="CUSPP" valor={t?.cuspp} /><Dato nombre="Fecha de ingreso" valor={fecha(t?.fecha_ingreso ?? null)} /></div></div>
+      <div className="grid grid-cols-2 divide-x divide-line"><div><Dato nombre="DNI" valor={t?.dni} /><Dato nombre="Cargo" valor={t?.cargo} /><Dato nombre="Régimen" valor={b.regimen_laboral} /><Dato nombre="Días laborados" valor={String(b.dias_laborados)} sinLinea /></div><div><Dato nombre="Cuenta de depósito" valor={t?.numero_cuenta} /><Dato nombre="Banco" valor={t?.banco} /><Dato nombre="CUSPP" valor={t?.cuspp} /><Dato nombre="Fecha de ingreso" valor={fecha(t?.fecha_ingreso ?? null)} sinLinea /></div></div>
     </section>
     <div className="grid grid-cols-[1.04fr_1.40fr_0.90fr] border border-line">
       <section className="border-r border-line">{cabecera("Remuneraciones")}{fila("Sueldo básico", b.sueldo_basico)}{fila("Asignación familiar", b.asignacion_familiar)}{fila("Horas extras", b.horas_extra)}{fila("Otros ingresos", b.otros_ingresos, "otros_ingresos")}</section>
