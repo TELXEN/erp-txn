@@ -461,7 +461,7 @@ function Nomina() {
               </Boton>
               {cerrada && pendientes > 0 && !pago && (
                 <Boton variante="accion" onClick={() => setPago({ banco_id: "", fecha_pago: hoy(), numero_operacion: "" })}>
-                  <Check size={13} /> Registrar pago ({pendientes})
+                  <Check size={13} /> Pagar todas las pendientes ({pendientes})
                 </Boton>
               )}
             </>
