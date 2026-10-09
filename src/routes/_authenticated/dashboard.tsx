@@ -175,7 +175,7 @@ function Dashboard() {
         const costoDirectoReal = materiales + subcontratos + equipos + servicios + mod + honorarios;
         const ggReal = generales + staff;
         const costoReal = costoDirectoReal + ggReal;
-        const margen = cobrado - costoReal;
+        const margen = presupuesto - costoReal;
         const facturado = cobrado + pendiente;
 
         return {
@@ -253,7 +253,7 @@ function Dashboard() {
     const ggReal = generales + staff;
     const costoReal = costoDirectoReal + ggReal;
     const facturado = cobrado + pendiente;
-    const margen = cobrado - costoReal;
+    const margen = presupuesto - costoReal;
     return {
       presupuesto,
       contractual,
