@@ -327,7 +327,7 @@ function DashboardProyectos() {
   }
 
   return (
-    <>
+    <div className="tablero-proyectos">
       <Encabezado
         titulo="Dashboard de Proyectos"
         subtitulo="Centro de control operativo"
@@ -362,63 +362,67 @@ function DashboardProyectos() {
         </div>
       </div>
 
-      <section className={`mb-4 grid gap-3 ${verDinero ? "lg:grid-cols-2" : "lg:grid-cols-1"}`} aria-label="Resumen de la cartera">
-        <div className="panel rise p-4">
-          <p className="label-mono">Estado de los proyectos</p>
-          <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-            {TARJETAS_ESTADO.map(({ etiqueta, situacion }) => {
-              const cantidad = proyectos.filter((p) => p.situacion === situacion).length;
-              const activa = filtroEstado === situacion;
-              return (
-                <button
-                  key={situacion}
-                  type="button"
-                  aria-pressed={activa}
-                  onClick={() => setFiltroEstado(activa ? "Todos" : situacion)}
-                  className={`rounded-lg border p-3 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-                    activa ? "border-primary bg-primary/5" : "border-line bg-muted/20 hover:border-muted-foreground/40"
-                  }`}
-                >
-                  <span className="flex items-center gap-1.5">
-                    <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: tonoSituacion(situacion).borde }} />
-                    <span className="font-mono text-[9px] uppercase tracking-wide text-muted-foreground">{etiqueta}</span>
-                  </span>
-                  <p className="mt-1 font-mono text-2xl font-bold">{cantidad}</p>
-                </button>
-              );
-            })}
+      <section className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4" aria-label="Estado de los proyectos">
+        {TARJETAS_ESTADO.map(({ etiqueta, situacion }) => {
+          const cantidad = proyectos.filter((p) => p.situacion === situacion).length;
+          const activa = filtroEstado === situacion;
+          const alerta = situacion === "Retrasado" && cantidad > 0;
+          return (
+            <button
+              key={situacion}
+              type="button"
+              aria-pressed={activa}
+              onClick={() => setFiltroEstado(activa ? "Todos" : situacion)}
+              className={`kpi-tarjeta text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${activa ? "ring-2 ring-primary" : ""}`}
+            >
+              <span className="flex items-center justify-between gap-2">
+                <span className="flex items-center gap-1.5">
+                  <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: tonoSituacion(situacion).borde }} />
+                  <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{etiqueta}</span>
+                </span>
+                {alerta && <span className="rounded-full bg-bad/10 px-1.5 py-0.5 text-[10px] font-semibold text-bad">Atención</span>}
+              </span>
+              <p className="mt-2 text-3xl font-bold tabular-nums text-ink">{cantidad}</p>
+            </button>
+          );
+        })}
+      </section>
+
+      {verDinero && (
+        <section className="mb-4 grid gap-3 md:grid-cols-3" aria-label="Resumen financiero de la cartera">
+          <div className="kpi-tarjeta">
+            <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Presupuesto vigente</p>
+            <p className="mt-2 text-2xl font-bold tabular-nums text-ink">{soles(resumen.presupuesto)}</p>
+            <p className="mt-1 text-[11px] text-muted-foreground tabular-nums">
+              Contractual {soles(resumen.presupuestoContractual)} · Adicionales {soles(resumen.adicionales)}
+            </p>
           </div>
-        </div>
-        {verDinero && (
-          <div className="panel rise p-4">
-            <p className="label-mono">Presupuesto total vs gastado</p>
-            <div className="mt-3 flex items-end justify-between gap-3">
-              <div>
-                <p className="font-mono text-[10px] uppercase tracking-wide text-muted-foreground">Presupuesto total</p>
-                <p className="font-mono text-xl font-bold">{soles(resumen.presupuesto)}</p>
-                <p className="font-mono text-[10px] text-muted-foreground">
-                  Contractual {soles(resumen.presupuestoContractual)} · Adicionales {soles(resumen.adicionales)}
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="font-mono text-[10px] uppercase tracking-wide text-muted-foreground">Gastado</p>
-                <p className={`font-mono text-xl font-bold ${resumen.gastadoPct > 100 ? "text-bad" : "text-ink"}`}>{soles(resumen.costoReal)}</p>
-                <p className="font-mono text-[10px] text-muted-foreground">{pct(resumen.gastadoPct)} del presupuesto</p>
-              </div>
+          <div className="kpi-tarjeta">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Costo ejecutado</p>
+              <span
+                className={`rounded-full px-2 py-0.5 text-[11px] font-semibold tabular-nums ${
+                  resumen.gastadoPct > 100 ? "bg-bad/10 text-bad" : resumen.gastadoPct > 90 ? "bg-warn/10 text-warn" : "bg-primary/10 text-primary"
+                }`}
+              >
+                {resumen.gastadoPct > 90 ? "▲ " : ""}{pct(resumen.gastadoPct)} consumido
+              </span>
             </div>
-            <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-muted">
+            <p className="mt-2 text-2xl font-bold tabular-nums text-ink">{soles(resumen.costoReal)}</p>
+            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
               <div
-                className={`h-full rounded-full ${resumen.gastadoPct > 100 ? "bg-bad" : "bg-primary"}`}
+                className={`h-full rounded-full ${resumen.gastadoPct > 100 ? "bg-bad" : resumen.gastadoPct > 90 ? "bg-warn" : "bg-primary"}`}
                 style={{ width: `${Math.min(resumen.gastadoPct, 100)}%` }}
               />
             </div>
-            <p className="mt-2 font-mono text-xs font-semibold">
-              Saldo disponible:{" "}
-              <span className={resumen.diferencia < 0 ? "text-bad" : "text-good"}>{soles(resumen.diferencia)}</span>
-            </p>
           </div>
-        )}
-      </section>
+          <div className="kpi-tarjeta">
+            <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Saldo disponible</p>
+            <p className={`mt-2 text-2xl font-bold tabular-nums ${resumen.diferencia < 0 ? "text-bad" : "text-good"}`}>{soles(resumen.diferencia)}</p>
+            <p className="mt-1 text-[11px] text-muted-foreground">{resumen.diferencia < 0 ? "Sobrecosto sobre el presupuesto vigente" : "Presupuesto aún por ejecutar"}</p>
+          </div>
+        </section>
+      )}
 
       <section className={`mb-4 grid gap-3 ${verDinero ? "lg:grid-cols-3" : "lg:grid-cols-2"}`} aria-label="Resumen del proyecto seleccionado">
         <div className="panel rise flex flex-col justify-between p-4">
@@ -587,9 +591,13 @@ function DashboardProyectos() {
         {cartera.length === 0 ? (
           <Vacio texto={filtroEstado === "Todos" ? "Aún no hay proyectos registrados." : `No hay obras con status "${filtroEstado}".`} />
         ) : (
-          <ul className="grid gap-px bg-line sm:grid-cols-2">
+          <ul className="grid gap-3 p-4 lg:grid-cols-2">
             {cartera.map((f) => (
-              <li key={f.proyecto.id} className={`bg-card px-5 py-4 transition-colors ${f.proyecto.id === obraSel?.proyecto.id ? "ring-2 ring-inset ring-primary" : ""}`}>
+              <li
+                key={f.proyecto.id}
+                className={`proyecto-tarjeta ${f.proyecto.id === obraSel?.proyecto.id ? "ring-2 ring-primary" : ""}`}
+                style={{ borderLeftColor: tonoSituacion(f.proyecto.situacion).borde, backgroundImage: `linear-gradient(90deg, ${tonoSituacion(f.proyecto.situacion).fondo}55, transparent 40%)` }}
+              >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-64 flex-1">
                     <button type="button" onClick={() => setObraId(f.proyecto.id)} className="text-left text-sm font-semibold hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">{f.proyecto.nombre}</button>
@@ -605,7 +613,7 @@ function DashboardProyectos() {
                     <p className="font-mono text-xs text-muted-foreground">{soles(f.presupuestoContractual)} + <span className="text-primary">{soles(f.adicionales)}</span></p>
                     <p className="font-mono text-sm font-semibold">Vigente {soles(f.presupuesto)}</p>
                     <p className={`font-mono text-[11px] ${f.desviado ? "text-bad" : "text-good"}`}>Costo ejecutado {soles(f.costoReal)}</p>
-                    <p className={`font-mono ${f.diferencia < 0 ? "mt-1 inline-block rounded-md bg-bad/10 px-2 py-0.5 text-[13px] font-semibold text-bad" : "text-[11px] text-muted-foreground"}`}>
+                    <p className={`font-mono ${f.diferencia < 0 ? "mt-1 text-[12px] font-semibold text-bad" : "text-[11px] text-muted-foreground"}`}>
                       Diferencia {soles(f.diferencia)}
                     </p>
                   </div>}
