@@ -9,7 +9,8 @@ import { Encabezado } from "@/components/AppShell";
 import { Boton, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { MESES, pct, soles } from "@/lib/format";
-import { costoPersonalPorProyecto, SIN_ASIGNAR, type DocPersonal } from "@/lib/pagos-rrhh";
+import { SIN_ASIGNAR } from "@/lib/pagos-rrhh";
+import { useCostoObras } from "@/lib/costo-obra";
 import {
   clasificacionDeCargo,
   costoRealPartida,
@@ -75,63 +76,14 @@ function Dashboard() {
   const { data: tiposPresupuesto = [] } = useTiposPresupuesto();
   const { data: trabajadores = [] } = useTrabajadores();
   const { data: cargos = [] } = useCargos();
-  const { data: recibos = [] } = useQuery({
-    queryKey: ["recibos_honorarios"],
-    queryFn: async () => {
-      return leerTodo<{ trabajador_id: string; proyecto_id: string | null; mes: number; anio: number; monto_bruto: number }>(() =>
-        supabase.from("recibos_honorarios").select("trabajador_id,proyecto_id,mes,anio,monto_bruto").order("id"),
-      );
-    },
-  });
-  const { data: boletasNom = [] } = useQuery({
-    queryKey: ["boletas_dashboard"],
-    queryFn: async () => {
-      return leerTodo<{
-        trabajador_id: string;
-        total_ingresos: number;
-        essalud: number;
-        planillas: { anio: number; mes: number } | null;
-      }>(() => supabase.from("boletas").select("trabajador_id,total_ingresos,essalud,planillas(anio,mes)").order("id"));
-    },
-  });
   const [seleccion, setSeleccion] = useState("global");
   const [exportandoPdf, setExportandoPdf] = useState(false);
 
   const global = seleccion === "global";
   const nombreVista = global ? "Consolidado Global" : (proyectos.find((p) => p.id === seleccion)?.nombre ?? "");
 
-  /** Clasificación (Directo / Indirecto) de cada trabajador. */
-  const clasifTrabajador = useMemo(() => {
-    const mapa = new Map<string, "Directo" | "Indirecto">();
-    trabajadores.forEach((t) => mapa.set(t.id, clasificacionDeCargo(t.cargo ?? "", cargos)));
-    return mapa;
-  }, [trabajadores, cargos]);
-
-  /** Personal valorizado desde boletas y recibos, repartido por tareo. */
-  const personal = useMemo(() => {
-    const docs: DocPersonal[] = [
-      ...boletasNom
-        .filter((b) => b.planillas)
-        .map((b) => ({
-          trabajador_id: b.trabajador_id,
-          anio: b.planillas!.anio,
-          mes: b.planillas!.mes,
-          monto: Number(b.total_ingresos) + Number(b.essalud),
-          tipo: "boleta" as const,
-        })),
-      ...recibos
-        .filter((r) => r.mes && r.anio)
-        .map((r) => ({
-          trabajador_id: r.trabajador_id,
-          anio: r.anio,
-          mes: r.mes,
-          monto: Number(r.monto_bruto),
-          tipo: "honorario" as const,
-          proyecto_id: r.proyecto_id,
-        })),
-    ];
-    return costoPersonalPorProyecto(docs, tareos, (id) => clasifTrabajador.get(id) === "Indirecto");
-  }, [boletasNom, recibos, tareos, clasifTrabajador]);
+  /** Costo real único por obra (mismo origen que los demás paneles). */
+  const { costoDe, personal } = useCostoObras();
 
   /** Una fila financiera completa por obra. */
   const porProyecto = useMemo(
@@ -148,28 +100,14 @@ function Dashboard() {
           p.pct_utilidad,
         );
 
-        const gd = gastosD.filter((g) => g.proyecto_id === p.id);
-        const porRubro = (rubro: string) =>
-          gd.filter((g) => (g.rubro ?? "Materiales") === rubro).reduce((s, g) => s + Number(g.monto_soles), 0);
-        const materiales = porRubro("Materiales");
-        const subcontratos = porRubro("Subcontratos");
-        const equipos = porRubro("Equipos");
-        const servicios = porRubro("Servicios");
-
-        const cp = personal.porProyecto.get(p.id) ?? { mod: 0, honorarios: 0, staff: 0 };
-        const { mod, staff, honorarios } = cp;
-        const generales = gastosG
-          .filter((g) => g.proyecto_id === p.id)
-          .reduce((s, g) => s + Number(g.monto_soles), 0);
+        const { materiales, subcontratos, equipos, servicios, mod, staff, honorarios, generales } = costoDe(p.id);
 
         const resumen = resumenPresupuesto(
           partidas.filter((x) => x.proyecto_id === p.id),
           tiposPresupuesto,
         );
 
-        const costoDirectoReal = materiales + subcontratos + equipos + servicios + mod + honorarios;
-        const ggReal = generales + staff;
-        const costoReal = costoDirectoReal + ggReal;
+        const { costoDirectoReal, ggReal, costoReal } = costoDe(p.id);
         const margen = oferta.ofertado - costoReal;
         const facturado = cobrado + pendiente;
 

@@ -75,7 +75,6 @@ import { Kanban } from "@/components/Kanban";
 import { useAuth, puedeVerDinero } from "@/lib/auth";
 import { fecha, soles } from "@/lib/format";
 import {
-  costoRealProyecto,
   ofertaProyecto,
   useEstadosProyecto,
   nombresEstados,
@@ -90,6 +89,7 @@ import {
   useTrabajadores,
 } from "@/lib/datos";
 import { useTareoVehiculos } from "@/lib/vehiculos";
+import { useCostoObras } from "@/lib/costo-obra";
 import { generarCodigoProyecto, previsualizarCodigo, useCodificacion } from "@/lib/codificacion";
 
 export const Route = createFileRoute("/_authenticated/proyectos")({
@@ -114,6 +114,7 @@ function Proyectos() {
   const { data: gastosD = [] } = useGastosDirectos();
   const { data: gastosG = [] } = useGastosGenerales();
   const { data: tareos = [] } = useTareos();
+  const { costoDe } = useCostoObras();
   const { data: tareoVeh = [] } = useTareoVehiculos();
   const { data: trabajadores = [] } = useTrabajadores();
   const { data: terceros = [] } = useTerceros();
@@ -499,7 +500,7 @@ function Proyectos() {
               {proyectos.map((p) => {
                 const enEdicion = editando?.id === p.id;
                 const presupuesto = presupuestoProyecto(p.id, partidas);
-                const costoReal = costoRealProyecto(p.id, gastosD, tareos, gastosG, tareoVeh);
+                const costoReal = costoDe(p.id).costoReal;
                 return (
                   <tr key={p.id} className="border-b border-line/60 transition-colors hover:bg-muted/50">
                     {enEdicion ? (
@@ -719,7 +720,7 @@ function Proyectos() {
             <Seccion titulo="Proyecto"><p className="font-semibold text-ink">{proyectoVisto.nombre}</p><p className="text-sm text-muted-foreground">{proyectoVisto.cliente || "Sin cliente"}</p><p className="text-sm text-muted-foreground">{proyectoVisto.ubicacion || "Sin ubicación"}</p></Seccion>
             <Seccion titulo="Estado y plazo"><InsigniaSituacion valor={proyectoVisto.situacion} /><p className="text-sm text-ink">{fecha(proyectoVisto.fecha_inicio)} — {fecha(proyectoVisto.fecha_fin)}</p><p className="text-sm text-muted-foreground">Responsable: {trabajadores.find((t) => t.id === proyectoVisto.responsable_id)?.nombre ?? "Sin asignar"}</p></Seccion>
             <Seccion titulo="Presupuesto"><p className="text-right text-lg font-bold tabular-nums text-ink">{soles(presupuestoProyecto(proyectoVisto.id, partidas))}</p><p className="flex items-center justify-end gap-1 text-[11px] text-primary"><Info size={12} className="shrink-0" />Se completa a partir de las partidas</p></Seccion>
-            <Seccion titulo="Costo ejecutado"><p className="text-right text-lg font-bold tabular-nums text-ink">{soles(costoRealProyecto(proyectoVisto.id, gastosD, tareos, gastosG, tareoVeh))}</p></Seccion>
+            <Seccion titulo="Costo ejecutado"><p className="text-right text-lg font-bold tabular-nums text-ink">{soles(costoDe(proyectoVisto.id).costoReal)}</p></Seccion>
           </div>
         )}
       </VentanaFlotante>
