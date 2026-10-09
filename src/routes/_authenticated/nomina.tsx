@@ -224,7 +224,7 @@ function Nomina() {
   useEffect(() => {
     if (!planilla || cerrada || boletas.length === 0) return;
     const clave = JSON.stringify([
-      tareos.map((t) => [t.trabajador_id, t.fecha, t.tipo, t.horas_extra]),
+      tareos.map((t) => [t.trabajador_id, t.fecha, t.tipo, t.horas, t.asistencia]),
       trabajadores.map((t) => [t.id, t.sueldo_mensual, t.tipo_contratacion, t.activo]),
       comisiones,
     ]);
