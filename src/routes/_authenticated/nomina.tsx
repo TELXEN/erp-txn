@@ -95,6 +95,9 @@ function Nomina() {
   const [pestana, setPestana] = useState<"planilla" | "datos">("planilla");
   const [pago, setPago] = useState<{ boleta_id?: string; banco_id: string; fecha_pago: string; numero_operacion: string } | null>(null);
   const [error, setError] = useState("");
+  useEffect(() => {
+    if (pago?.boleta_id) document.getElementById("nomina-pago-individual")?.scrollIntoView({ block: "nearest", inline: "end" });
+  }, [pago?.boleta_id]);
   const periodoAfp = `${anio}-${String(mes).padStart(2, "0")}`;
   const { comisiones, origen: origenAfp, data: afpData, actualizar: actualizarAfp, isFetching: cargandoAfp } = useComisionesAfp(periodoAfp);
   const [msgAfp, setMsgAfp] = useState("");
@@ -487,7 +490,7 @@ function Nomina() {
                       <td className="px-2 py-2 text-right">{soles(Number(b.essalud))}</td>
                       <td className="px-2 py-2">
                         {pago?.boleta_id === b.id ? (
-                          <div className="grid min-w-48 gap-1">
+                          <div id="nomina-pago-individual" className="grid min-w-48 gap-1">
                             <Select aria-label="Banco de pago" value={pago.banco_id} onChange={(e) => { const v = e.target.value; setPago((p) => p ? { ...p, banco_id: v } : p); }} className="py-1 text-xs">
                               <option value="">Banco…</option>
                               {bancos.map((banco) => <option key={banco.id} value={banco.id}>{banco.nombre} · {banco.numero_cuenta}</option>)}
