@@ -139,7 +139,10 @@ export function HojaDetalleHonorario({ empresa, trabajador, proyecto, detalle, t
         <div className="flex h-16 items-center justify-start">
           {empresa?.logo_url ? <img src={empresa.logo_url} alt="Logotipo" className="max-h-16 max-w-36 object-contain" /> : <Building2 size={42} style={{ color: DOC.dark }} />}
         </div>
-        <h1 className="text-center text-xl font-bold uppercase" style={{ color: DOC.dark }}>Detalle de pago</h1>
+        <div className="text-center">
+          <h1 className="text-xl font-bold uppercase" style={{ color: DOC.dark }}>Detalle de pago</h1>
+          <p className="mt-0.5 text-[8px] leading-none font-semibold uppercase tracking-[0.22em]" style={{ color: DOC.mute }}>Cuarta categoría</p>
+        </div>
         <div className="text-right text-[9px]">
           <b>RECIBO</b>
           {editable ? (
