@@ -451,7 +451,7 @@ function Nomina() {
             <Input type="number" value={anio} onChange={(e) => { setAnio(Number(e.target.value)); setEditando({}); }} className="w-24 py-1.5" />
           </Campo>
           {!cerrada && (
-            <Boton onClick={generar}>{planilla ? "Agregar personal faltante" : `Generar planilla ${periodo}`}</Boton>
+            <Boton onClick={generar}><Wand2 size={13} /> {planilla ? "Actualizar boletas desde el tareo" : `Generar boletas de pago ${periodo}`}</Boton>
           )}
           {planilla && (
             <>
