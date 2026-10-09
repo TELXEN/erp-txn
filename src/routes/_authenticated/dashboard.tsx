@@ -108,7 +108,12 @@ function Dashboard() {
         );
 
         const { costoDirectoReal, ggReal, costoReal } = costoDe(p.id);
-        const margen = oferta.ofertado - costoReal;
+        // Utilidad real = prevista − exceso de costo directo − exceso de GG (los ahorros no la inflan).
+        const cdPrevisto = oferta.costoDirecto;
+        const desvCD = Math.max(0, costoDirectoReal - cdPrevisto);
+        const desvGG = Math.max(0, ggReal - oferta.gastosGenerales);
+        const margen = oferta.utilidad - desvCD - desvGG;
+        const saldoOperativo = cdPrevisto - costoDirectoReal + (oferta.gastosGenerales - ggReal);
         const facturado = cobrado + pendiente;
 
         return {
@@ -123,6 +128,10 @@ function Dashboard() {
           ggPresupuestado: oferta.gastosGenerales,
           utilidadPrevista: oferta.utilidad,
           ofertado: oferta.ofertado,
+          cdPrevisto,
+          desvCD,
+          desvGG,
+          saldoOperativo,
           cobrado,
           pendiente,
           facturado,
@@ -186,8 +195,17 @@ function Dashboard() {
     const ggReal = generales + staff;
     const costoReal = costoDirectoReal + ggReal;
     const facturado = cobrado + pendiente;
-    const margen = ofertado - costoReal;
+    const cdPrevisto = sum((f) => f.cdPrevisto);
+    // Por obra: el exceso de una obra no se compensa con el ahorro de otra.
+    const desvCD = sum((f) => f.desvCD) + sa.mod + sa.honorarios;
+    const desvGG = sum((f) => f.desvGG) + sa.staff;
+    const margen = utilidadPrevista - desvCD - desvGG;
+    const saldoOperativo = cdPrevisto - costoDirectoReal + (ggPresupuestado - ggReal);
     return {
+      cdPrevisto,
+      desvCD,
+      desvGG,
+      saldoOperativo,
       presupuesto,
       contractual,
       adicionales,
@@ -410,7 +428,7 @@ function Dashboard() {
       )}
       <div id="reporte-financiero">
         {/* Nivel 1: KPIs ejecutivos */}
-        <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
         <Kpi
           etiqueta="Presupuesto Ofertado"
           valor={datos.ofertado}
@@ -443,10 +461,19 @@ function Dashboard() {
         <Kpi
           etiqueta="Utilidad Real"
           valor={datos.margen}
-          tono={datos.margen < 0 ? "bad" : "good"}
+          tono={datos.margen < datos.utilidadPrevista - 0.005 ? "bad" : "good"}
           lineas={[
-            `Presupuesto ${soles(datos.ofertado)} − Costo real ${soles(datos.costoReal)}`,
-            `Prevista ${soles(datos.utilidadPrevista)} · Margen ${pct(datos.margenPct)} s/ presupuesto`,
+            `Prevista ${soles(datos.utilidadPrevista)} − Desv. C. directo ${soles(datos.desvCD)} − Desv. GG ${soles(datos.desvGG)}`,
+            datos.margen <= 0 ? "⚠ Alerta crítica: utilidad agotada" : `Margen ${pct(datos.margenPct)} s/ ofertado`,
+          ]}
+        />
+        <Kpi
+          etiqueta="Saldo Disponible por Ejecutar"
+          valor={datos.saldoOperativo}
+          tono={datos.saldoOperativo < 0 ? "bad" : "good"}
+          lineas={[
+            `C. directo ${soles(datos.cdPrevisto - datos.costoDirectoReal)} · GG ${soles(datos.ggPresupuestado - datos.ggReal)}`,
+            "Excluye la utilidad prevista",
           ]}
         />
       </div>
@@ -482,12 +509,8 @@ function Dashboard() {
                     </PieChart>
                   </ResponsiveContainer>
                   <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="label-mono text-[10px]">Margen</span>
-                    <span
-                      className={`font-mono text-lg font-bold ${datos.margen < 0 ? "text-bad" : "text-good"}`}
-                    >
-                      {pct(datos.margenPct)}
-                    </span>
+                    <span className="label-mono text-[10px]">Costo total</span>
+                    <span className="font-mono text-[13px] font-bold text-ink">{soles(datos.costoReal)}</span>
                   </div>
                 </div>
                 <ul className="my-auto flex min-w-0 flex-1 flex-col justify-center space-y-2 self-stretch">
@@ -548,15 +571,13 @@ function Dashboard() {
                 <thead>
                   <tr className="border-b border-(--line-60) text-left">
                     <th className="label-mono px-2 py-2">Obra</th>
-                    <th className="label-mono px-2 py-2 text-right">Costo directo</th>
+                    <th className="label-mono px-2 py-2 text-right">Ofertado total</th>
+                    <th className="label-mono px-2 py-2 text-right">C. directo previsto</th>
                     <th className="label-mono px-2 py-2 text-right">GG previsto</th>
                     <th className="label-mono px-2 py-2 text-right">Utilidad prevista</th>
-                    <th className="label-mono px-2 py-2 text-right">Ofertado</th>
-                    <th className="label-mono px-2 py-2 text-right">Cobrado</th>
-                    <th className="label-mono px-2 py-2 text-right">Por cobrar</th>
-                    <th className="label-mono px-2 py-2 text-right">Costo real</th>
+                    <th className="label-mono px-2 py-2 text-right">C. directo real</th>
+                    <th className="label-mono px-2 py-2 text-right">GG real</th>
                     <th className="label-mono px-2 py-2 text-right">Utilidad real</th>
-                    <th className="label-mono px-2 py-2 text-right">Margen</th>
                     <th className="label-mono px-2 py-2">Condición</th>
                   </tr>
                 </thead>
@@ -566,49 +587,21 @@ function Dashboard() {
                     return (
                       <tr key={f.id}>
                         <td className="px-2 py-2 font-medium whitespace-nowrap">{f.nombre}</td>
-                        <td className="px-2 py-2 text-right font-mono whitespace-nowrap">
-                          {monto(f.presupuesto)}
-                          {f.adicionales !== 0 && (
-                            <span className="block text-[10px] text-muted-foreground">
-                              contr. {monto(f.contractual)} · adic. {monto(f.adicionales)}
-                            </span>
-                          )}
-                        </td>
-                        <td className="px-2 py-2 text-right font-mono whitespace-nowrap">
-                          {monto(f.ggPresupuestado)}
-                          <span className="ml-1 text-[10px] text-muted-foreground">({f.pctGG}%)</span>
-                          <span className="block text-[10px] text-muted-foreground">
-                            real {monto(f.ggReal)}
-                          </span>
-                        </td>
-                        <td className="px-2 py-2 text-right font-mono whitespace-nowrap">
-                          {monto(f.utilidadPrevista)}
-                          <span className="ml-1 text-[10px] text-muted-foreground">({f.pctUtilidad}%)</span>
-                        </td>
                         <td className="px-2 py-2 text-right font-mono font-semibold whitespace-nowrap">
                           {monto(f.ofertado)}
+                          {f.adicionales !== 0 && <span className="block text-[10px] font-normal text-muted-foreground">incl. adic. {monto(f.adicionales)}</span>}
                         </td>
-                        <td className="px-2 py-2 text-right font-mono whitespace-nowrap">{monto(f.cobrado)}</td>
-                        <td className="px-2 py-2 text-right font-mono text-muted-foreground whitespace-nowrap">
-                          {monto(f.pendiente)}
-                        </td>
-                        <td
-                          className={`px-2 py-2 text-right font-mono whitespace-nowrap ${
-                            f.costoReal > f.ofertado && f.ofertado > 0 ? "text-bad" : ""
-                          }`}
-                        >
-                          {monto(f.costoReal)}
-                        </td>
-                        <td
-                          className={`px-2 py-2 text-right font-mono font-semibold whitespace-nowrap ${
-                            f.margen < 0 ? "text-bad" : "text-good"
-                          }`}
-                        >
-                          {monto(f.margen)}
+                        <td className="px-2 py-2 text-right font-mono whitespace-nowrap">{monto(f.cdPrevisto)}</td>
+                        <td className="px-2 py-2 text-right font-mono whitespace-nowrap">
+                          {monto(f.ggPresupuestado)}<span className="ml-1 text-[10px] text-muted-foreground">({f.pctGG}%)</span>
                         </td>
                         <td className="px-2 py-2 text-right font-mono whitespace-nowrap">
-                          {pct(f.margenPct)}
-                          <span className="block text-[10px] text-muted-foreground">{pct(f.roiPct)} s/ costo</span>
+                          {monto(f.utilidadPrevista)}<span className="ml-1 text-[10px] text-muted-foreground">({f.pctUtilidad}%)</span>
+                        </td>
+                        <td className={`px-2 py-2 text-right font-mono whitespace-nowrap ${f.desvCD > 0 ? "text-bad" : ""}`}>{monto(f.costoDirectoReal)}</td>
+                        <td className={`px-2 py-2 text-right font-mono whitespace-nowrap ${f.desvGG > 0 ? "text-bad" : ""}`}>{monto(f.ggReal)}</td>
+                        <td className={`px-2 py-2 text-right font-mono font-semibold whitespace-nowrap ${f.margen < f.utilidadPrevista - 0.005 ? "text-bad" : "text-good"}`}>
+                          {monto(f.margen)}
                         </td>
                         <td className="px-2 py-2">
                           <span className="inline-flex items-center gap-2 whitespace-nowrap text-[11px]">
@@ -670,17 +663,18 @@ const monto = (n: number) =>
 /** Semáforo de salud financiera de una obra. */
 function salud(f: {
   margen: number;
+  utilidadPrevista: number;
   margenPct: number;
   cobranzaPct: number;
   facturado: number;
   costoReal: number;
   ofertado: number;
 }) {
-  if (f.margen < 0 || (f.ofertado > 0 && f.costoReal > f.ofertado))
-    return { color: "#DC2626", texto: "Déficit / Sobrecosto" };
+  if (f.margen <= 0 && f.utilidadPrevista > 0) return { color: "#DC2626", texto: "Crítico · utilidad agotada" };
+  if (f.margen < f.utilidadPrevista - 0.005) return { color: "#DC2626", texto: "Alerta crítica · pérdida de margen" };
   // La cobranza solo alarma cuando ya hay facturado sin cobrar; una obra que aún no factura no está en riesgo.
   const cobranzaEnRiesgo = f.facturado > 0 && f.cobranzaPct < 70;
-  if (cobranzaEnRiesgo || f.margenPct < 15) return { color: "#F59E0B", texto: "Alerta" };
+  if (cobranzaEnRiesgo) return { color: "#F59E0B", texto: "Alerta" };
   return { color: "#10B981", texto: "Saludable" };
 }
 
