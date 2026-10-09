@@ -17,14 +17,14 @@ export type BoletaNomina = {
   fecha_pago: string | null; numero_operacion: string;
 };
 export type ValoresNomina = Pick<BoletaNomina, "dias_laborados" | "horas_extra" | "otros_ingresos" | "renta_quinta" | "otros_descuentos">;
-type Empresa = { razon_social?: string; ruc?: string; direccion?: string; logo_url?: string } | null;
+type Empresa = { razon_social?: string; ruc?: string; direccion?: string; logo_url?: string } | null | undefined;
 
-function Dato({ nombre, valor }: { nombre: string; valor?: string }) {
+function Dato({ nombre, valor }: { nombre: string; valor?: string | undefined }) {
   return <div className="grid grid-cols-[138px_minmax(0,1fr)] items-center border-b border-line last:border-0"><span className="flex justify-between bg-muted/35 px-2 py-1.5 text-[9px] font-semibold uppercase"><span>{nombre}</span><span>:</span></span><span className="min-w-0 px-2 py-1.5 text-[10px]">{valor || "—"}</span></div>;
 }
 
 function Hoja({ boleta: b, trabajador: t, empresa, periodo, editable, cambiar }: {
-  boleta: BoletaNomina; trabajador?: Trabajador; empresa: Empresa; periodo: string;
+  boleta: BoletaNomina; trabajador?: Trabajador | undefined; empresa: Empresa; periodo: string;
   editable?: boolean; cambiar?: (campo: keyof ValoresNomina, valor: string) => void;
 }) {
   const { fuente } = useFuenteDocumento();
@@ -62,7 +62,7 @@ function Hoja({ boleta: b, trabajador: t, empresa, periodo, editable, cambiar }:
 }
 
 export function DetallePagoNomina({ boleta, trabajador, empresa, periodo, bloqueada, recalcular, onGuardar, onCerrar }: {
-  boleta: BoletaNomina; trabajador?: Trabajador; empresa: Empresa; periodo: string; bloqueada: boolean;
+  boleta: BoletaNomina; trabajador?: Trabajador | undefined; empresa: Empresa; periodo: string; bloqueada: boolean;
   recalcular: (valores: ValoresNomina) => Partial<BoletaNomina>;
   onGuardar: (valores: ValoresNomina) => Promise<boolean>; onCerrar: () => void;
 }) {
