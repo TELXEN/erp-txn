@@ -614,17 +614,17 @@ function Dashboard() {
               <table className="w-full text-[13px]">
                 <thead>
                   <tr className="border-b border-(--line-60) text-left">
-                    <th className="label-mono px-3 py-2">Obra</th>
-                    <th className="label-mono px-3 py-2 text-right">Costo directo</th>
-                    <th className="label-mono px-3 py-2 text-right">GG previsto</th>
-                    <th className="label-mono px-3 py-2 text-right">Utilidad prevista</th>
-                    <th className="label-mono px-3 py-2 text-right">Ofertado</th>
-                    <th className="label-mono px-3 py-2 text-right">Cobrado</th>
-                    <th className="label-mono px-3 py-2 text-right">Por cobrar</th>
-                    <th className="label-mono px-3 py-2 text-right">Costo real</th>
-                    <th className="label-mono px-3 py-2 text-right">Utilidad real</th>
-                    <th className="label-mono px-3 py-2 text-right">Margen</th>
-                    <th className="label-mono px-3 py-2">Condición</th>
+                    <th className="label-mono px-2 py-2">Obra</th>
+                    <th className="label-mono px-2 py-2 text-right">Costo directo</th>
+                    <th className="label-mono px-2 py-2 text-right">GG previsto</th>
+                    <th className="label-mono px-2 py-2 text-right">Utilidad prevista</th>
+                    <th className="label-mono px-2 py-2 text-right">Ofertado</th>
+                    <th className="label-mono px-2 py-2 text-right">Cobrado</th>
+                    <th className="label-mono px-2 py-2 text-right">Por cobrar</th>
+                    <th className="label-mono px-2 py-2 text-right">Costo real</th>
+                    <th className="label-mono px-2 py-2 text-right">Utilidad real</th>
+                    <th className="label-mono px-2 py-2 text-right">Margen</th>
+                    <th className="label-mono px-2 py-2">Condición</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-(--line-60)">
@@ -632,8 +632,8 @@ function Dashboard() {
                     const s = salud(f);
                     return (
                       <tr key={f.id}>
-                        <td className="px-3 py-2 font-medium whitespace-nowrap">{f.nombre}</td>
-                        <td className="px-3 py-2 text-right font-mono whitespace-nowrap">
+                        <td className="px-2 py-2 font-medium whitespace-nowrap">{f.nombre}</td>
+                        <td className="px-2 py-2 text-right font-mono whitespace-nowrap">
                           {monto(f.presupuesto)}
                           {f.adicionales !== 0 && (
                             <span className="block text-[10px] text-muted-foreground">
@@ -641,43 +641,43 @@ function Dashboard() {
                             </span>
                           )}
                         </td>
-                        <td className="px-3 py-2 text-right font-mono whitespace-nowrap">
+                        <td className="px-2 py-2 text-right font-mono whitespace-nowrap">
                           {monto(f.ggPresupuestado)}
                           <span className="ml-1 text-[10px] text-muted-foreground">({f.pctGG}%)</span>
                           <span className="block text-[10px] text-muted-foreground">
                             real {monto(f.ggReal)}
                           </span>
                         </td>
-                        <td className="px-3 py-2 text-right font-mono whitespace-nowrap">
+                        <td className="px-2 py-2 text-right font-mono whitespace-nowrap">
                           {monto(f.utilidadPrevista)}
                           <span className="ml-1 text-[10px] text-muted-foreground">({f.pctUtilidad}%)</span>
                         </td>
-                        <td className="px-3 py-2 text-right font-mono font-semibold whitespace-nowrap">
+                        <td className="px-2 py-2 text-right font-mono font-semibold whitespace-nowrap">
                           {monto(f.ofertado)}
                         </td>
-                        <td className="px-3 py-2 text-right font-mono whitespace-nowrap">{monto(f.cobrado)}</td>
-                        <td className="px-3 py-2 text-right font-mono text-muted-foreground whitespace-nowrap">
+                        <td className="px-2 py-2 text-right font-mono whitespace-nowrap">{monto(f.cobrado)}</td>
+                        <td className="px-2 py-2 text-right font-mono text-muted-foreground whitespace-nowrap">
                           {monto(f.pendiente)}
                         </td>
                         <td
-                          className={`px-3 py-2 text-right font-mono whitespace-nowrap ${
+                          className={`px-2 py-2 text-right font-mono whitespace-nowrap ${
                             f.costoReal > f.ofertado && f.ofertado > 0 ? "text-bad" : ""
                           }`}
                         >
                           {monto(f.costoReal)}
                         </td>
                         <td
-                          className={`px-3 py-2 text-right font-mono font-semibold whitespace-nowrap ${
+                          className={`px-2 py-2 text-right font-mono font-semibold whitespace-nowrap ${
                             f.margen < 0 ? "text-bad" : "text-good"
                           }`}
                         >
                           {monto(f.margen)}
                         </td>
-                        <td className="px-3 py-2 text-right font-mono whitespace-nowrap">
+                        <td className="px-2 py-2 text-right font-mono whitespace-nowrap">
                           {pct(f.margenPct)}
                           <span className="block text-[10px] text-muted-foreground">{pct(f.roiPct)} s/ costo</span>
                         </td>
-                        <td className="px-3 py-2">
+                        <td className="px-2 py-2">
                           <span className="inline-flex items-center gap-2 whitespace-nowrap text-[11px]">
                             <span className="h-2.5 w-2.5 rounded-full" style={{ background: s.color }} />
                             {s.texto}
