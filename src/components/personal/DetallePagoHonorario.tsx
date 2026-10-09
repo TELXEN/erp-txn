@@ -69,7 +69,7 @@ export function DetallePagoHonorario({
 }: {
   abierta: boolean;
   inicial: FormularioHonorario;
-  empresa: { razon_social?: string; ruc?: string; rubro?: string; direccion?: string; logo_url?: string } | null;
+  empresa: { razon_social?: string; ruc?: string; rubro?: string; direccion?: string; logo_url?: string; eslogan?: string } | null;
   trabajadores: Trabajador[];
   proyectos: Opcion[];
   tareos?: Tareo[];

@@ -1,4 +1,4 @@
-import { Building2 } from "lucide-react";
+import { LogoEmpresa } from "@/components/personal/LogoEmpresa";
 import { DOC, DOC_FUENTE_CSS } from "@/lib/documento-tema";
 import { montoEnLetras } from "@/lib/facturacion";
 import { MESES, soles } from "@/lib/format";
@@ -35,7 +35,7 @@ export type SelectoresHonorario = {
 };
 
 type Props = {
-  empresa: { razon_social?: string; ruc?: string; rubro?: string; direccion?: string; logo_url?: string } | null;
+  empresa: { razon_social?: string; ruc?: string; rubro?: string; direccion?: string; logo_url?: string; eslogan?: string } | null;
   trabajador: { dni?: string; nombre?: string; numero_cuenta?: string; banco?: string } | null;
   proyecto: string;
   detalle: DetalleHonorario;
@@ -136,9 +136,7 @@ export function HojaDetalleHonorario({ empresa, trabajador, proyecto, detalle, t
   return (
     <article className="honorario-print-sheet mx-auto flex min-h-[297mm] w-[248mm] max-w-none flex-col bg-paper p-[12mm] text-ink shadow-lg print:min-h-0 print:p-[6mm] print:shadow-none" style={{ fontFamily: DOC_FUENTE_CSS }}>
       <header className="grid grid-cols-[150px_1fr_150px] items-center border-b-2 pb-2" style={{ borderColor: DOC.dark }}>
-        <div className="flex h-16 items-center justify-start">
-          {empresa?.logo_url ? <img src={empresa.logo_url} alt="Logotipo" className="max-h-16 max-w-36 object-contain" /> : <Building2 size={42} style={{ color: DOC.dark }} />}
-        </div>
+        <LogoEmpresa empresa={empresa} className="w-[150px]" imgClassName="max-h-12 max-w-[140px] object-contain" iconSize={42} iconStyle={{ color: DOC.dark }} tono={DOC.mute} />
         <div className="text-center">
           <h1 className="text-xl font-bold uppercase" style={{ color: DOC.dark }}>Detalle de pago</h1>
           <p className="mt-0.5 text-[8px] leading-none font-semibold uppercase tracking-[0.22em]" style={{ color: DOC.mute }}>Cuarta categoría</p>
