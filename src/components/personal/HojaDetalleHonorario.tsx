@@ -153,7 +153,7 @@ export function HojaDetalleHonorario({ empresa, trabajador, proyecto, detalle, t
               onChange={(e) => cambia("numero_recibo")(e.target.value)}
             />
           ) : (
-            <p className={detalle.numero_recibo ? "" : "font-bold text-warn"}>{detalle.numero_recibo || "Pendiente de N°"}</p>
+            <p className={detalle.numero_recibo ? "" : "mt-0.5 inline-block rounded-full bg-warn/10 px-2 py-0.5 font-bold text-warn ring-1 ring-warn/25"}>{detalle.numero_recibo || "Pendiente de N°"}</p>
           )}
         </div>
       </header>

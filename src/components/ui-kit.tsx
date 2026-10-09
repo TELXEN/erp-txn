@@ -124,7 +124,7 @@ export function Etiqueta({ tono, children }: { tono: "good" | "bad" | "warn" | "
           ? "text-warn bg-warn/10 ring-warn/25"
           : "text-muted-foreground bg-muted ring-line";
   return (
-    <span className={`inline-flex items-center rounded-full px-2 py-0.5 font-mono text-[11px] ring-1 ${c}`}>
+    <span className={`inline-flex items-center whitespace-nowrap rounded-full px-2 py-0.5 font-mono text-[11px] ring-1 ${c}`}>
       {children}
     </span>
   );
