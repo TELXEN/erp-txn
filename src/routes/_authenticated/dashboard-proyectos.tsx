@@ -828,6 +828,7 @@ function BolsaEjecutada({ etiqueta, real, base }: { etiqueta: string; real: numb
   const p = base > 0 ? (real / base) * 100 : real > 0 ? 100 : 0;
   const excedido = nivel === "excedido";
   const cerca = nivel === "cerca";
+  const saldo = base - real;
   return (
     <div className={`kpi-tarjeta ${excedido ? "ring-1 ring-bad/40" : cerca ? "ring-1 ring-warn/30" : ""}`}>
       <div className="flex items-center justify-between gap-2">
@@ -839,7 +840,8 @@ function BolsaEjecutada({ etiqueta, real, base }: { etiqueta: string; real: numb
         <div className={`h-full rounded-full ${excedido ? "bg-bad" : cerca ? "bg-warn" : "bg-good"}`} style={{ width: `${Math.min(p, 100)}%` }} />
       </div>
       <p className={`mt-1 text-[11px] tabular-nums ${excedido ? "font-semibold text-bad" : "text-muted-foreground"}`}>
-        {excedido ? `▲ Presupuesto excedido en ${soles(real - base)}` : cerca ? `Base ${soles(base)} · te quedan ${soles(base - real)}` : `Base ${soles(base)} · saldo ${soles(base - real)}`}
+        Base {soles(base)} · te quedan {soles(Math.abs(saldo))}
+        {saldo < -0.005 ? " menos" : ""}
       </p>
     </div>
   );
