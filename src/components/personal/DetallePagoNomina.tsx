@@ -50,7 +50,7 @@ function Hoja({ boleta: b, trabajador: t, empresa, periodo, editable, cambiar }:
     </section>
     <div className="grid grid-cols-[1.12fr_1.12fr_0.9fr] border border-line">
       <section className="border-r border-line">{cabecera("Remuneraciones")}{fila("Sueldo básico", b.sueldo_basico)}{fila("Asignación familiar", b.asignacion_familiar)}{fila("Horas extra", b.horas_extra)}{fila("Otros ingresos", b.otros_ingresos, "otros_ingresos")}</section>
-      <section className="border-r border-line">{cabecera("Descuentos")}{fila("Aporte previsional", b.aporte_pension)}{fila("Renta 5ta categoría", b.renta_quinta, "renta_quinta")}{fila("Otros descuentos", b.otros_descuentos, "otros_descuentos")}</section>
+      <section className="border-r border-line">{cabecera("Descuentos")}{fila(b.sistema_pensiones && b.sistema_pensiones !== "Ninguno" ? `Aporte previsional (${b.sistema_pensiones})` : "Aporte previsional", b.aporte_pension)}{fila("Renta 5ta categoría", b.renta_quinta, "renta_quinta")}{fila("Otros descuentos", b.otros_descuentos, "otros_descuentos")}</section>
       <section>{cabecera("Aportes empleador")}{fila(b.regimen_laboral === "MYPE Micro" ? "SIS" : "EsSalud", b.essalud)}</section>
       <div className="border-r border-t border-line bg-muted/35 font-bold">{fila("Total ingresos", b.total_ingresos)}</div><div className="border-r border-t border-line bg-muted/35 font-bold">{fila("Total descuentos", b.total_descuentos)}</div><div className="border-t border-line bg-muted/35 font-bold">{fila("Total aportes", b.essalud)}</div>
     </div>
