@@ -200,7 +200,7 @@ export function costoPersonalPorProyecto(
   const pendientes = new Map<string, Set<string>>();
   pesos.forEach((_, k) => {
     if (conDoc.has(k)) return;
-    const [t, periodo] = k.split("|");
+    const [t = "", periodo = ""] = k.split("|");
     const s = pendientes.get(periodo) ?? new Set<string>();
     s.add(t);
     pendientes.set(periodo, s);
