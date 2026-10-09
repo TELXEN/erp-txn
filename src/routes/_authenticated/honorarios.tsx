@@ -168,7 +168,6 @@ function Honorarios() {
   async function guardarDetalle(form: FormularioHonorario) {
     setError("");
     if (!form.trabajador_id) return setError("Selecciona al prestador.");
-    if (!form.numero_recibo.trim()) return setError("Ingresa el número de recibo (ej. E001-25).");
     const trabajador = trabajadores.find((item) => item.id === form.trabajador_id);
     const totales = calcularDetalleHonorario(form, !!trabajador?.suspension_cuarta);
     if (totales.bruto <= 0) return setError("Ingresa remuneraciones válidas.");
@@ -177,7 +176,7 @@ function Honorarios() {
     const campos = {
       trabajador_id: form.trabajador_id,
       proyecto_id: form.proyecto_id || null,
-      numero_recibo: form.numero_recibo.trim().toUpperCase(),
+      numero_recibo: form.numero_recibo.trim().toUpperCase() || null,
       fecha_emision: form.fecha_emision,
       concepto: form.concepto.trim(),
       mes: form.mes, anio: form.anio, dias_laborados: form.dias_laborados, dias_viaje: form.dias_viaje,
