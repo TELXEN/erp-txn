@@ -145,32 +145,48 @@ function RequerimientosPage() {
     },
   });
 
-  /** Explosión: Σ metrado × cantidad unitaria del APU, por insumo. */
+  type Origen = { partidaId: string; codigo: string; nombre: string; metrado: number; unitaria: number; cantidad: number };
+  /** Desdoblamiento: Σ metrado de la partida × cantidad del insumo en su APU, consolidado por insumo. */
   const explosion = useMemo(() => {
-    const mapa = new Map<string, { insumoId: string; total: number; partidas: number }>();
+    const mapa = new Map<string, { insumoId: string; total: number; partidas: number; origenes: Origen[] }>();
     for (const c of comps) {
-      const p = hojas.find((h) => h.id === c.partida_id);
+      const pid = origen === "obra" ? c.partida_id : c.cotizacion_item_id;
+      const p = hojas.find((h) => h.id === pid);
       if (!p) continue;
-      const q = Number(p.metrado ?? 0) * cantidadComponente(c, Number(p.rendimiento ?? 1), Number(p.jornada ?? 8));
-      const act = mapa.get(c.insumo_id) ?? { insumoId: c.insumo_id, total: 0, partidas: 0 };
+      const unitaria = cantidadComponente(c, p.rendimiento || 1, p.jornada || 8);
+      const q = p.metrado * unitaria;
+      const act = mapa.get(c.insumo_id) ?? { insumoId: c.insumo_id, total: 0, partidas: 0, origenes: [] };
       act.total += q;
       act.partidas += 1;
+      act.origenes.push({ partidaId: p.id, codigo: p.codigo, nombre: p.nombre, metrado: p.metrado, unitaria, cantidad: q });
       mapa.set(c.insumo_id, act);
     }
-    const reqsObra = new Set(reqs.filter((r) => r.proyecto_id === proyectoId && r.estado !== "Rechazado").map((r) => r.id));
+    const reqsBase = new Set(
+      reqs
+        .filter((r) => r.estado !== "Rechazado" && (origen === "cotizacion" ? r.cotizacion_id === cotizacionId : r.proyecto_id === proyectoId && r.origen !== "cotizacion"))
+        .map((r) => r.id),
+    );
     return [...mapa.values()]
       .map((e) => {
         const ins = insumos.find((i) => i.id === e.insumoId);
         const requerido = reqItems
-          .filter((it) => reqsObra.has(it.requerimiento_id) && it.insumo_id === e.insumoId)
+          .filter((it) => reqsBase.has(it.requerimiento_id) && it.insumo_id === e.insumoId)
           .reduce((s, it) => s + Number(it.cantidad), 0);
         return { ...e, ins, requerido, saldo: Math.max(0, e.total - requerido) };
       })
       .filter((e) => e.ins)
       .sort((a, b) => a.ins!.nombre.localeCompare(b.ins!.nombre));
-  }, [comps, hojas, insumos, reqs, reqItems, proyectoId]);
+  }, [comps, hojas, insumos, reqs, reqItems, proyectoId, origen, cotizacionId]);
 
-  const sinApu = hojas.filter((h) => !comps.some((c) => c.partida_id === h.id)).length;
+  const listo = origen === "obra" ? !!proyectoSel : !!cotizacionId;
+  const sinApu = hojas.filter((h) => !comps.some((c) => (origen === "obra" ? c.partida_id : c.cotizacion_item_id) === h.id)).length;
+  const alternar = (id: string) =>
+    setExpandidos((s) => {
+      const n = new Set(s);
+      if (n.has(id)) n.delete(id);
+      else n.add(id);
+      return n;
+    });
   const nombreProy = (id: string) => {
     const p = proyectos.find((x) => x.id === id);
     return p ? (p.codigo ? `${p.codigo} · ${p.nombre}` : p.nombre) : "—";
@@ -180,17 +196,24 @@ function RequerimientosPage() {
   async function generar() {
     setError("");
     setAviso("");
+    if (!proyectoId) return setError("La cotización aprobada no está vinculada a una obra; conviértela en proyecto primero.");
     const filas = explosion.filter((e) => tipos.includes(e.ins!.tipo) && e.saldo > 0.0001);
     if (!filas.length) return setError("No hay saldo por requerir para los tipos seleccionados.");
     const n = reqs.filter((r) => r.proyecto_id === proyectoId).length + 1;
     const codigo = `REQ-${proyecto?.codigo || "OBRA"}-${String(n).padStart(3, "0")}`;
     const { data: req, error: e1 } = await apuDb
       .from("requerimientos")
-      .insert({ proyecto_id: proyectoId, codigo, observacion: "Generado por explosión de insumos" })
+      .insert({
+        proyecto_id: proyectoId,
+        codigo,
+        origen,
+        cotizacion_id: origen === "cotizacion" ? cotizacionId : null,
+        observacion: origen === "cotizacion" ? `Desdoblamiento de APU de ${cotizacion?.codigo ?? "cotización"}` : "Generado por explosión de insumos",
+      })
       .select("id")
       .single();
     if (e1) return setError(e1.message);
-    const { error: e2 } = await apuDb.from("requerimiento_items").insert(
+    const { data: creados, error: e2 } = await apuDb.from("requerimiento_items").insert(
       filas.map((e) => ({
         requerimiento_id: req.id,
         insumo_id: e.insumoId,
@@ -200,8 +223,24 @@ function RequerimientosPage() {
         cantidad: Math.round(e.saldo * 10000) / 10000,
         precio_referencial: Number(e.ins!.precio),
       })),
-    );
+    ).select("id, insumo_id");
     if (e2) return setError(e2.message);
+    const origenesFilas = (creados ?? []).flatMap((it: { id: string; insumo_id: string }) =>
+      (filas.find((f) => f.insumoId === it.insumo_id)?.origenes ?? []).map((o) => ({
+        requerimiento_item_id: it.id,
+        cotizacion_item_id: origen === "cotizacion" ? o.partidaId : null,
+        partida_codigo: o.codigo,
+        partida_nombre: o.nombre,
+        metrado: o.metrado,
+        cantidad_unitaria: Math.round(o.unitaria * 1e6) / 1e6,
+        cantidad: Math.round(o.cantidad * 1e4) / 1e4,
+      })),
+    );
+    if (origenesFilas.length) {
+      const { error: e3 } = await apuDb.from("requerimiento_item_origenes").insert(origenesFilas);
+      if (e3) return setError(e3.message);
+    }
+    qc.invalidateQueries({ queryKey: ["requerimiento_item_origenes"] });
     setAviso(`Requerimiento ${codigo} generado con ${filas.length} insumos.`);
     setAbierto(req.id);
     qc.invalidateQueries({ queryKey: ["requerimientos"] });
