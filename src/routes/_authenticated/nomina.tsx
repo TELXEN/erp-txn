@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, ClipboardList, Database, Lock, Pencil, Printer, RefreshCw, Trash2, Unlock, Upload, Wand2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -341,7 +341,9 @@ function Nomina() {
         acciones={
           pestana === "planilla" && boletas.length > 0 && (
             <div className="flex gap-2">
-              <Boton variante="linea" onClick={() => imprimir(ordenadas)}><Printer size={13} /> Imprimir boletas</Boton>
+              {!cerrada && (
+                <Boton variante="linea" onClick={generar}><Wand2 size={13} /> Generar boletas de pago</Boton>
+              )}
               <Boton
                 variante="linea"
                 onClick={() =>
@@ -450,9 +452,6 @@ function Nomina() {
           <Campo etiqueta="Año">
             <Input type="number" value={anio} onChange={(e) => { setAnio(Number(e.target.value)); setEditando({}); }} className="w-24 py-1.5" />
           </Campo>
-          {!cerrada && (
-            <Boton onClick={generar}><Wand2 size={13} /> {planilla ? "Actualizar boletas desde el tareo" : `Generar boletas de pago ${periodo}`}</Boton>
-          )}
           {planilla && (
             <>
               <Etiqueta tono={cerrada ? "good" : "neutro"}>{planilla.estado}</Etiqueta>
