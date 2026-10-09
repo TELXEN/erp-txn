@@ -49,14 +49,11 @@ export async function integrarImportacion(imp: Imp, items: Item[], proveedorNomb
   };
 
   // 1) Almacén
-  const { error: e1 } = await apuDb.from("movimientos_almacen").insert(
-    items.map((i, k) => ({
-      fecha, tipo: "Ingreso", proyecto_id: imp.proyecto_id, insumo_id: i.insumo_id, descripcion: i.descripcion,
-      unidad: i.unidad, cantidad: Number(i.cantidad), costo_unitario: Math.round((liq.filas[k]?.unitario ?? 0) * 10000) / 10000,
-      documento: imp.codigo, observacion: "Ingreso por importación (costo nacionalizado)",
-    })),
-  );
-  if (e1) throw new Error(`Almacén: ${e1.message}`);
+  const movimientos = items.map((i, k) => ({
+    fecha, tipo: "Ingreso", proyecto_id: imp.proyecto_id, insumo_id: i.insumo_id, descripcion: i.descripcion,
+    unidad: i.unidad, cantidad: Number(i.cantidad), costo_unitario: Math.round((liq.filas[k]?.unitario ?? 0) * 10000) / 10000,
+    documento: imp.codigo, observacion: "Ingreso por importación (costo nacionalizado)",
+  }));
 
   // 2) Costos Directos
   const tc = liq.tc;
@@ -81,24 +78,20 @@ export async function integrarImportacion(imp: Imp, items: Item[], proveedorNomb
       proveedor: imp.transportista || "Courier / agente", proveedor_id: null, cantidad: 1, precio_unitario: r2(locales),
       monto: r2(locales), moneda: "PEN", tipo_cambio: 1, monto_soles: r2(locales),
     });
-  const { error: e2 } = await apuDb.from("gastos_directos").insert(filas);
-  if (e2) throw new Error(`Costos Directos: ${e2.message}`);
 
   // 3) Tributos que son crédito fiscal
   const credito = r2(liq.igv + liq.ipm + liq.percepcion);
-  if (credito > 0) {
-    const { error: e3 } = await apuDb.from("gastos_generales").insert({
-      proyecto_id: null, categoria: "Crédito fiscal importación", descripcion: `IGV + IPM + Percepción ${imp.codigo}`,
-      proveedor: "SUNAT", proveedor_id: null, monto: credito, moneda: "PEN", tipo_cambio: 1, monto_soles: credito,
-      fecha, comprobante: imp.codigo, condicion_pago: "Crédito", dias_credito: 0, fecha_vencimiento: fecha,
-      estado_pago: "Pendiente", numero_operacion: "",
-    });
-    if (e3) throw new Error(`Tributos: ${e3.message}`);
-  }
+  const gg = credito > 0 ? {
+    proyecto_id: null, categoria: "Crédito fiscal importación", descripcion: `IGV + IPM + Percepción ${imp.codigo}`,
+    proveedor: "SUNAT", proveedor_id: null, monto: credito, moneda: "PEN", tipo_cambio: 1, monto_soles: credito,
+    fecha, comprobante: imp.codigo, condicion_pago: "Crédito", dias_credito: 0, fecha_vencimiento: fecha,
+    estado_pago: "Pendiente", numero_operacion: "",
+  } : null;
 
-  const { error: e4 } = await apuDb.from("importaciones")
-    .update({ integrado: true, fecha_integracion: new Date().toISOString().slice(0, 10), estado: "Liquidado" })
-    .eq("id", imp.id);
-  if (e4) throw new Error(e4.message);
+  // Todo en una sola transacción: se guarda completo o no se guarda nada.
+  const { error } = await (apuDb as any).rpc("integrar_importacion", {
+    _id: imp.id, _movimientos: movimientos, _gastos_directos: filas, _gasto_general: gg,
+  });
+  if (error) throw new Error(`No se integró la importación (no se guardó nada): ${error.message}`);
   return { costo: liq.costo, credito };
 }
