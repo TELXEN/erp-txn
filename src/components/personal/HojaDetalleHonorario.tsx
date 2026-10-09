@@ -68,11 +68,12 @@ function EtiquetaDosp({ texto }: { texto: string }) {
   );
 }
 
-function Fila({ etiqueta, valor, valorIzquierda, children }: { etiqueta: string; valor?: string; valorIzquierda?: boolean; children?: React.ReactNode }) {
+function Fila({ etiqueta, valor, alinear = "der", children }: { etiqueta: string; valor?: string; alinear?: "izq" | "centro" | "der"; children?: React.ReactNode }) {
+  const texto = alinear === "izq" ? "text-left" : alinear === "centro" ? "text-center" : "text-right";
   return (
     <div className="flex items-stretch border-b last:border-b-0" style={{ borderColor: DOC.line }}>
       <EtiquetaDosp texto={etiqueta} />
-      {children ?? <span className={`flex-1 px-2 py-1.5 text-[10px] ${valorIzquierda ? "text-left" : "text-right"}`}>{valor || "—"}</span>}
+      {children ?? <span className={`flex-1 px-2 py-1.5 text-[10px] ${texto}`}>{valor || "—"}</span>}
     </div>
   );
 }
@@ -139,9 +140,9 @@ export function HojaDetalleHonorario({ empresa, trabajador, proyecto, detalle, t
       <section className="mt-4 border" style={{ borderColor: DOC.line }}>
         <h2 className="px-2 py-1.5 text-[10px] font-bold uppercase text-paper" style={{ background: DOC.dark }}>Datos de la empresa</h2>
         <div className="grid grid-cols-[1fr_1fr]">
-          <div className="border-r" style={{ borderColor: DOC.line }}><Fila etiqueta="RUC" valor={empresa?.ruc ?? ""} /></div>
-          <div><Fila etiqueta="Razón social" valor={empresa?.razon_social ?? ""} /></div>
-          <div className="col-span-2 border-t" style={{ borderColor: DOC.line }}><Fila etiqueta="Dirección fiscal" valor={empresa?.direccion ?? ""} valorIzquierda /></div>
+          <div className="border-r" style={{ borderColor: DOC.line }}><Fila etiqueta="RUC" valor={empresa?.ruc ?? ""} alinear="izq" /></div>
+          <div><Fila etiqueta="Razón social" valor={empresa?.razon_social ?? ""} alinear="izq" /></div>
+          <div className="col-span-2 border-t" style={{ borderColor: DOC.line }}><Fila etiqueta="Dirección fiscal" valor={empresa?.direccion ?? ""} alinear="izq" /></div>
         </div>
       </section>
 
@@ -149,7 +150,7 @@ export function HojaDetalleHonorario({ empresa, trabajador, proyecto, detalle, t
         <h2 className="px-2 py-1.5 text-[10px] font-bold uppercase text-paper" style={{ background: DOC.dark }}>Datos del trabajador</h2>
         <div className="grid grid-cols-[1.2fr_0.8fr]">
           <div className="border-r" style={{ borderColor: DOC.line }}>
-            <Fila etiqueta="DNI" valor={trabajador?.dni ?? ""} valorIzquierda />
+            <Fila etiqueta="DNI" valor={trabajador?.dni ?? ""} alinear="izq" />
             <Fila etiqueta="Apellidos y nombres">
               {editable && selectores ? (
                 <select aria-label="Apellidos y nombres" className={INPUT_DATO} value={selectores.trabajadorId} onChange={(e) => selectores.onTrabajador(e.target.value)}>
@@ -167,8 +168,8 @@ export function HojaDetalleHonorario({ empresa, trabajador, proyecto, detalle, t
             </Fila>
           </div>
           <div>
-            <Fila etiqueta="Cuenta de depósito" valor={trabajador?.numero_cuenta ?? ""} />
-            <Fila etiqueta="Banco" valor={trabajador?.banco ?? ""} />
+            <Fila etiqueta="Cuenta de depósito" valor={trabajador?.numero_cuenta ?? ""} alinear="centro" />
+            <Fila etiqueta="Banco" valor={trabajador?.banco ?? ""} alinear="centro" />
             <Fila etiqueta="Año">
               {editable ? (
                 <input aria-label="Año" type="number" min="2020" max="2100" className={`${INPUT_DATO} text-center tabular-nums`} value={detalle.anio} onChange={(e) => cambia("anio")(e.target.value)} />
