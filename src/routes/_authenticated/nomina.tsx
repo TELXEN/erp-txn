@@ -465,7 +465,7 @@ function Nomina() {
                   <th className="px-2 py-2 text-right">Ingresos</th><th className="px-2 py-2 text-right">ONP/AFP</th>
                   <th className="w-24 px-2 py-2 text-right">Renta 5ta</th><th className="w-24 px-2 py-2 text-right">Otros desc.</th>
                   <th className="px-2 py-2 text-right">Neto</th><th className="px-2 py-2 text-right">EsSalud</th>
-                  <th className="px-2 py-2">Estado</th><th className="px-4 py-2 text-right">Acciones</th>
+                  <th className="px-2 py-2">Estado</th><th className="sticky right-0 z-10 w-32 border-l border-line bg-card px-3 py-2 text-right">Acciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -489,11 +489,11 @@ function Nomina() {
                         <Etiqueta tono={b.estado_pago === "Pagado" ? "good" : "bad"}>{b.estado_pago}</Etiqueta>
                         {b.fecha_pago && <span className="block text-[10px] text-muted-foreground">{fecha(b.fecha_pago)}</span>}
                       </td>
-                      <td className="px-4 py-2">
-                        <div className="flex justify-end gap-1">
-                          <Boton variante="linea" title="Editar o imprimir detalle" aria-label="Editar o imprimir detalle" onClick={() => { setError(""); setDetalle(b); }} className="h-8 w-8 p-0 border-line text-muted-foreground"><FileText size={15} /></Boton>
-                          <Boton variante="linea" title={cerrada ? "Registrar pago" : "Valida las boletas para registrar pago"} aria-label="Registrar pago" disabled={!cerrada || b.estado_pago === "Pagado"} onClick={() => { if (cerrada) setPago({ boleta_id: b.id, banco_id: "", fecha_pago: hoy(), numero_operacion: "" }); }} className="h-7 w-7 p-0 border-line text-muted-foreground"><Check size={14} /></Boton>
-                          <Boton variante="linea" title="Eliminar" aria-label="Eliminar" disabled={cerrada || b.estado_pago === "Pagado"} onClick={() => void eliminar(b)} className="h-7 w-7 p-0 border-line text-muted-foreground hover:border-bad hover:bg-transparent hover:text-bad"><Trash2 size={14} /></Boton>
+                      <td className="sticky right-0 z-10 border-l border-line bg-card px-3 py-2">
+                        <div className="flex items-center justify-end gap-1">
+                          <Boton variante="linea" title="Editar o imprimir detalle" aria-label="Editar o imprimir detalle" onClick={() => { setError(""); setDetalle(b); }} className="h-8 w-8 shrink-0 !p-0 border-line text-muted-foreground hover:bg-transparent hover:border-primary hover:text-primary"><FileText size={15} className="shrink-0" /></Boton>
+                          <Boton variante="linea" title={cerrada ? "Registrar pago" : "Valida las boletas para registrar pago"} aria-label="Registrar pago" disabled={!cerrada || b.estado_pago === "Pagado"} onClick={() => { if (cerrada) setPago({ boleta_id: b.id, banco_id: "", fecha_pago: hoy(), numero_operacion: "" }); }} className="h-8 w-8 shrink-0 !p-0 border-line text-muted-foreground hover:bg-transparent hover:border-primary hover:text-primary"><Check size={15} className="shrink-0" /></Boton>
+                          <Boton variante="linea" title="Eliminar" aria-label="Eliminar" disabled={cerrada || b.estado_pago === "Pagado"} onClick={() => void eliminar(b)} className="h-8 w-8 shrink-0 !p-0 border-line text-muted-foreground hover:border-bad hover:bg-transparent hover:text-bad"><Trash2 size={15} className="shrink-0" /></Boton>
                         </div>
                       </td>
                     </tr>
