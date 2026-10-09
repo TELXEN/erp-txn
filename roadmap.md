@@ -16,5 +16,5 @@
 - [x] Etapa 3: trazabilidad Requerimiento → OC → Gasto directo → Pago (vínculos por ítem y estado en la OC).
 - [x] Etapa 4: regla única de redondeo (triggers en compras, gastos generales y ventas).
 - [x] Etapa 5: pruebas automáticas de cálculos (src/lib/calculos.test.ts, 9 casos).
-- [ ] Etapa 6: costo real de obra único en todos los paneles.
+- [x] Etapa 6: costo real de obra único en todos los paneles.
 - [ ] Etapa 7: integración de importaciones transaccional.
