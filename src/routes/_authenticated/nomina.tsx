@@ -1,13 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, ClipboardList, Database, Lock, Printer, RefreshCw, Unlock, Upload } from "lucide-react";
+import { Check, ClipboardList, Database, Lock, Pencil, Printer, RefreshCw, Trash2, Unlock, Upload, Wand2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha, hoy, MESES, soles } from "@/lib/format";
-import { type Trabajador, useTrabajadores } from "@/lib/datos";
+import { type Trabajador, useTareos, useTrabajadores } from "@/lib/datos";
+import { resumenTareoHonorario } from "@/components/personal/DetallePagoHonorario";
 import { useEmpresa } from "@/lib/empresa";
 import { useFuenteDocumento } from "@/lib/fuentes-documentos";
 import { exportarExcel } from "@/lib/exportar";
