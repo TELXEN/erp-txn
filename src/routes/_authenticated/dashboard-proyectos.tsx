@@ -13,7 +13,7 @@ import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha, pct, soles } from "@/lib/format";
 import {
   esContractual,
-  resumenPresupuesto,
+  ofertaProyecto,
   useGastosDirectos,
   useGastosGenerales,
   usePartidas,
@@ -75,7 +75,12 @@ function DashboardProyectos() {
         const propias = partidas.filter((x) => x.proyecto_id === p.id);
         const idsPadre = new Set(propias.map((x) => x.padre_id).filter(Boolean));
         const partidasAvance = propias.filter((x) => !idsPadre.has(x.id));
-        const presupuestoDesglosado = resumenPresupuesto(propias, tiposPresupuesto);
+        // Presupuesto vigente = oferta (costo directo + GG + utilidad), igual que Proyectos y Dashboard financiero.
+        const oferta = (lista: typeof propias) =>
+          ofertaProyecto(lista, tiposPresupuesto, Number(p.pct_gastos_generales), Number(p.pct_utilidad)).ofertado;
+        const contractualOf = oferta(propias.filter((x) => esContractual(x.tipo_presupuesto ?? "Contractual", tiposPresupuesto)));
+        const adicionalesOf = oferta(propias.filter((x) => !esContractual(x.tipo_presupuesto ?? "Contractual", tiposPresupuesto)));
+        const presupuestoDesglosado = { contractual: contractualOf, adicionales: adicionalesOf, vigente: contractualOf + adicionalesOf };
         const presupuesto = presupuestoDesglosado.vigente;
         const costoReal = costoDe(p.id).costoReal;
         const partidasContractuales = propias.filter((x) => esContractual(x.tipo_presupuesto ?? "Contractual", tiposPresupuesto)).length;
