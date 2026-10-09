@@ -57,6 +57,13 @@
       "when": 1791558617910,
       "tag": "0007_indices_relaciones_auditoria",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1791558984833,
+      "tag": "0008_trazabilidad_compras",
+      "breakpoints": true
     }
   ]
 }

@@ -1,3 +1,4 @@
+import { leerTodo } from "@/lib/datos";
 import { useQuery } from "@tanstack/react-query";
 import { apuDb } from "@/lib/apu";
 
@@ -60,9 +61,7 @@ const lista = <T,>(tabla: string, orden = "created_at") =>
   useQuery({
     queryKey: [tabla],
     queryFn: async () => {
-      const { data, error } = await apuDb.from(tabla).select("*").order(orden, { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as T[];
+      return leerTodo<T>(() => apuDb.from(tabla).select("*").order(orden, { ascending: false }).order("id"));
     },
   });
 

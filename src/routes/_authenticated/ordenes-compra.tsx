@@ -7,7 +7,7 @@ import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio, VentanaFlotante }
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { soles } from "@/lib/format";
-import { useProyectos, useTerceros } from "@/lib/datos";
+import { useGastosDirectos, useProyectos, useTerceros } from "@/lib/datos";
 import { apuDb, useInsumos } from "@/lib/apu";
 import { exportarExcel } from "@/lib/exportar";
 import {
@@ -32,7 +32,7 @@ export const Route = createFileRoute("/_authenticated/ordenes-compra")({
   component: OrdenesCompraPage,
 });
 
-type Linea = { insumo_id: string | null; descripcion: string; unidad: string; cantidad: string; precio_unitario: string };
+type Linea = { requerimiento_item_id?: string | null; insumo_id: string | null; descripcion: string; unidad: string; cantidad: string; precio_unitario: string };
 const hoy = () => new Date().toISOString().slice(0, 10);
 
 function OrdenesCompraPage() {
@@ -46,6 +46,15 @@ function OrdenesCompraPage() {
   const { data: reqs = [] } = useRequerimientos();
   const { data: itemsReq = [] } = useItemsReq();
   const { data: movs = [] } = useMovimientos();
+  const { data: gastos = [] } = useGastosDirectos();
+  /** Trazabilidad OC → compra registrada → pago. */
+  const estadoCompra = (itemId: string) => {
+    const g = (gastos as unknown as { orden_compra_item_id?: string | null; estado_pago?: string; monto_soles?: number }[]).filter((x) => x.orden_compra_item_id === itemId);
+    if (!g.length) return "Sin compra registrada";
+    const pagado = g.filter((x) => x.estado_pago === "Pagada").reduce((a, x) => a + Number(x.monto_soles || 0), 0);
+    const total = g.reduce((a, x) => a + Number(x.monto_soles || 0), 0);
+    return pagado >= total - 0.005 ? "Pagado" : pagado > 0 ? `Pagado ${soles(pagado)} de ${soles(total)}` : "Por pagar";
+  };
 
   const [form, setForm] = useState({
     proyecto_id: "",
@@ -96,6 +105,7 @@ function OrdenesCompraPage() {
       .map((i) => {
         const saldo = Number(i.cantidad) - ordenado(reqId, i.insumo_id ?? i.descripcion);
         return {
+          requerimiento_item_id: i.id,
           insumo_id: i.insumo_id,
           descripcion: i.descripcion,
           unidad: i.unidad,
@@ -150,6 +160,7 @@ function OrdenesCompraPage() {
     const { error: e2 } = await apuDb.from("orden_compra_items").insert(
       validas.map((l) => ({
         orden_id: oc.id,
+        requerimiento_item_id: l.requerimiento_item_id ?? null,
         insumo_id: l.insumo_id,
         descripcion: l.descripcion.trim(),
         unidad: l.unidad,
@@ -238,6 +249,7 @@ function OrdenesCompraPage() {
           const monto = cant * Number(i.precio_unitario);
           return {
             proyecto_id: oc.proyecto_id,
+            orden_compra_item_id: i.id,
             partida_id: partidaDe(i.insumo_id),
             descripcion: i.descripcion,
             proveedor: prov?.razon_social ?? "",
@@ -488,7 +500,7 @@ function OrdenesCompraPage() {
                           <td className="px-3 py-1.5 text-right">{num(Number(i.cantidad))}</td>
                           <td className="px-3 py-1.5 text-right text-muted-foreground">Recibido {num(recibido(i.id))}</td>
                           <td className="px-3 py-1.5 text-right">{soles(Number(i.cantidad) * Number(i.precio_unitario))}</td>
-                          <td colSpan={2} className="px-3 py-1.5 text-muted-foreground">P.U. {num(Number(i.precio_unitario))}</td>
+                          <td colSpan={2} className="px-3 py-1.5 text-muted-foreground">P.U. {num(Number(i.precio_unitario))} · {estadoCompra(i.id)}</td>
                         </tr>
                       ))}
                   </React.Fragment>
