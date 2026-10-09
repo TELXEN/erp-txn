@@ -506,11 +506,11 @@ function Dashboard() {
             <div>
               <div className="flex items-center justify-between gap-2">
                 <span className="font-mono text-[10px] uppercase tracking-wide text-muted-foreground">Disp. Gastos Generales</span>
-                {saldoGG < 0 ? (
-                  <span className="rounded bg-bad/10 px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase text-bad">⚠ Sobregirado</span>
-                ) : null}
-                <span className={`font-mono text-[12px] font-bold ${saldoGG < 0 ? "text-bad" : "text-good"}`}>{soles(saldoGG)}</span>
+                {saldoGG < 0 && (
+                  <span className="shrink-0 rounded bg-bad/10 px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase text-bad">⚠ Sobregirado</span>
+                )}
               </div>
+              <p className={`text-right font-mono text-[12px] font-bold ${saldoGG < 0 ? "text-bad" : "text-good"}`}>{soles(saldoGG)}</p>
               <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-muted">
                 <div
                   className={`growx h-full rounded-full ${consumoGG > 100 ? "bg-bad" : "bg-good"}`}
