@@ -51,7 +51,7 @@ function OrdenesCompraPage() {
   const estadoCompra = (itemId: string) => {
     const g = (gastos as unknown as { orden_compra_item_id?: string | null; estado_pago?: string; monto_soles?: number }[]).filter((x) => x.orden_compra_item_id === itemId);
     if (!g.length) return "Sin compra registrada";
-    const pagado = g.filter((x) => x.estado_pago === "Pagado").reduce((a, x) => a + Number(x.monto_soles || 0), 0);
+    const pagado = g.filter((x) => x.estado_pago === "Pagada").reduce((a, x) => a + Number(x.monto_soles || 0), 0);
     const total = g.reduce((a, x) => a + Number(x.monto_soles || 0), 0);
     return pagado >= total - 0.005 ? "Pagado" : pagado > 0 ? `Pagado ${soles(pagado)} de ${soles(total)}` : "Por pagar";
   };
