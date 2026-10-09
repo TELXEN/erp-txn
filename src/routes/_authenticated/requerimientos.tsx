@@ -31,6 +31,8 @@ type Requerimiento = {
   estado: string;
   observacion: string;
   creado_por: string | null;
+  cotizacion_id: string | null;
+  origen: string;
 };
 type ItemReq = {
   id: string;
@@ -54,30 +56,77 @@ function RequerimientosPage() {
   const { data: proyectos = [] } = useProyectos();
   const { data: partidas = [] } = usePartidas();
   const { data: insumos = [] } = useInsumos();
-  const [proyectoId, setProyectoId] = useState("");
+  const [origen, setOrigen] = useState<"obra" | "cotizacion">("cotizacion");
+  const [cotizacionId, setCotizacionId] = useState("");
+  const [vista, setVista] = useState<"tipo" | "consolidada">("tipo");
+  const [expandidos, setExpandidos] = useState<Set<string>>(new Set());
+  const [proyectoSel, setProyectoSel] = useState("");
   const [tipos, setTipos] = useState<TipoInsumo[]>(["MAT", "EQ", "SC"]);
   const [abierto, setAbierto] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [aviso, setAviso] = useState("");
   const [busqueda, setBusqueda] = useState("");
 
+  const { data: cotizaciones = [] } = useQuery({
+    queryKey: ["cotizaciones_aprobadas"],
+    queryFn: async () => {
+      const { data, error } = await apuDb
+        .from("cotizaciones")
+        .select("id, codigo, nombre, cliente, proyecto_id")
+        .eq("estado", "Aprobada")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as { id: string; codigo: string; nombre: string; cliente: string; proyecto_id: string | null }[];
+    },
+  });
+  const cotizacion = cotizaciones.find((c) => c.id === cotizacionId);
+  const proyectoId = origen === "obra" ? proyectoSel : (cotizacion?.proyecto_id ?? "");
+
+  const { data: itemsCot = [] } = useQuery({
+    queryKey: ["cotizacion_items_req", cotizacionId],
+    enabled: origen === "cotizacion" && !!cotizacionId,
+    queryFn: async () => {
+      const { data, error } = await apuDb
+        .from("cotizacion_items")
+        .select("id, codigo, nombre, metrado, rendimiento, jornada, padre_id, orden")
+        .eq("cotizacion_id", cotizacionId)
+        .order("orden");
+      if (error) throw error;
+      return (data ?? []) as Array<{ id: string; codigo: string; nombre: string; metrado: number; rendimiento: number; jornada: number; padre_id: string | null }>;
+    },
+  });
+
   const proyecto = proyectos.find((p) => p.id === proyectoId);
-  const delProyecto = useMemo(() => partidas.filter((p) => p.proyecto_id === proyectoId), [partidas, proyectoId]);
-  const hojas = useMemo(
-    () => delProyecto.filter((p) => !delProyecto.some((h) => h.padre_id === p.id)),
-    [delProyecto],
-  );
+  /** Partidas hoja (sin títulos) del origen elegido. */
+  const hojas = useMemo(() => {
+    const base: Array<{ id: string; codigo: string; nombre: string; metrado: number; rendimiento: number; jornada: number; padre_id: string | null }> =
+      origen === "obra"
+        ? partidas
+            .filter((p) => p.proyecto_id === proyectoSel)
+            .map((p) => ({ id: p.id, codigo: (p as { codigo?: string }).codigo ?? "", nombre: (p as { nombre?: string }).nombre ?? "", metrado: Number(p.metrado ?? 0), rendimiento: Number(p.rendimiento ?? 1), jornada: Number(p.jornada ?? 8), padre_id: p.padre_id ?? null }))
+        : itemsCot.map((i) => ({ ...i, metrado: Number(i.metrado ?? 0), rendimiento: Number(i.rendimiento ?? 1), jornada: Number(i.jornada ?? 8) }));
+    return base.filter((p) => !base.some((h) => h.padre_id === p.id));
+  }, [origen, partidas, proyectoSel, itemsCot]);
+  const columnaApu = origen === "obra" ? "partida_id" : "cotizacion_item_id";
 
   const { data: comps = [] } = useQuery({
-    queryKey: ["apu_obra", proyectoId, hojas.map((h) => h.id).join(",")],
+    queryKey: ["apu_req", origen, hojas.map((h) => h.id).join(",")],
     enabled: hojas.length > 0,
     queryFn: async () => {
       const { data, error } = await apuDb
         .from("apu_componentes")
         .select("*")
-        .in("partida_id", hojas.map((h) => h.id));
+        .in(columnaApu, hojas.map((h) => h.id));
       if (error) throw error;
-      return (data ?? []) as (ComponenteApu & { partida_id: string })[];
+      return (data ?? []) as (ComponenteApu & { partida_id: string | null; cotizacion_item_id: string | null })[];
+    },
+  });
+  const { data: origenesReq = [] } = useQuery({
+    queryKey: ["requerimiento_item_origenes"],
+    queryFn: async () => {
+      const { data, error } = await apuDb.from("requerimiento_item_origenes").select("*");
+      if (error) throw error;
+      return (data ?? []) as Array<{ id: string; requerimiento_item_id: string; partida_codigo: string; partida_nombre: string; metrado: number; cantidad_unitaria: number; cantidad: number }>;
     },
   });
 
@@ -98,32 +147,48 @@ function RequerimientosPage() {
     },
   });
 
-  /** Explosión: Σ metrado × cantidad unitaria del APU, por insumo. */
+  type Origen = { partidaId: string; codigo: string; nombre: string; metrado: number; unitaria: number; cantidad: number };
+  /** Desdoblamiento: Σ metrado de la partida × cantidad del insumo en su APU, consolidado por insumo. */
   const explosion = useMemo(() => {
-    const mapa = new Map<string, { insumoId: string; total: number; partidas: number }>();
+    const mapa = new Map<string, { insumoId: string; total: number; partidas: number; origenes: Origen[] }>();
     for (const c of comps) {
-      const p = hojas.find((h) => h.id === c.partida_id);
+      const pid = origen === "obra" ? c.partida_id : c.cotizacion_item_id;
+      const p = hojas.find((h) => h.id === pid);
       if (!p) continue;
-      const q = Number(p.metrado ?? 0) * cantidadComponente(c, Number(p.rendimiento ?? 1), Number(p.jornada ?? 8));
-      const act = mapa.get(c.insumo_id) ?? { insumoId: c.insumo_id, total: 0, partidas: 0 };
+      const unitaria = cantidadComponente(c, p.rendimiento || 1, p.jornada || 8);
+      const q = p.metrado * unitaria;
+      const act = mapa.get(c.insumo_id) ?? { insumoId: c.insumo_id, total: 0, partidas: 0, origenes: [] };
       act.total += q;
       act.partidas += 1;
+      act.origenes.push({ partidaId: p.id, codigo: p.codigo, nombre: p.nombre, metrado: p.metrado, unitaria, cantidad: q });
       mapa.set(c.insumo_id, act);
     }
-    const reqsObra = new Set(reqs.filter((r) => r.proyecto_id === proyectoId && r.estado !== "Rechazado").map((r) => r.id));
+    const reqsBase = new Set(
+      reqs
+        .filter((r) => r.estado !== "Rechazado" && (origen === "cotizacion" ? r.cotizacion_id === cotizacionId : r.proyecto_id === proyectoId && r.origen !== "cotizacion"))
+        .map((r) => r.id),
+    );
     return [...mapa.values()]
       .map((e) => {
         const ins = insumos.find((i) => i.id === e.insumoId);
         const requerido = reqItems
-          .filter((it) => reqsObra.has(it.requerimiento_id) && it.insumo_id === e.insumoId)
+          .filter((it) => reqsBase.has(it.requerimiento_id) && it.insumo_id === e.insumoId)
           .reduce((s, it) => s + Number(it.cantidad), 0);
         return { ...e, ins, requerido, saldo: Math.max(0, e.total - requerido) };
       })
       .filter((e) => e.ins)
       .sort((a, b) => a.ins!.nombre.localeCompare(b.ins!.nombre));
-  }, [comps, hojas, insumos, reqs, reqItems, proyectoId]);
+  }, [comps, hojas, insumos, reqs, reqItems, proyectoId, origen, cotizacionId]);
 
-  const sinApu = hojas.filter((h) => !comps.some((c) => c.partida_id === h.id)).length;
+  const listo = origen === "obra" ? !!proyectoSel : !!cotizacionId;
+  const sinApu = hojas.filter((h) => !comps.some((c) => (origen === "obra" ? c.partida_id : c.cotizacion_item_id) === h.id)).length;
+  const alternar = (id: string) =>
+    setExpandidos((s) => {
+      const n = new Set(s);
+      if (n.has(id)) n.delete(id);
+      else n.add(id);
+      return n;
+    });
   const nombreProy = (id: string) => {
     const p = proyectos.find((x) => x.id === id);
     return p ? (p.codigo ? `${p.codigo} · ${p.nombre}` : p.nombre) : "—";
@@ -133,17 +198,24 @@ function RequerimientosPage() {
   async function generar() {
     setError("");
     setAviso("");
+    if (!proyectoId) return setError("La cotización aprobada no está vinculada a una obra; conviértela en proyecto primero.");
     const filas = explosion.filter((e) => tipos.includes(e.ins!.tipo) && e.saldo > 0.0001);
     if (!filas.length) return setError("No hay saldo por requerir para los tipos seleccionados.");
     const n = reqs.filter((r) => r.proyecto_id === proyectoId).length + 1;
     const codigo = `REQ-${proyecto?.codigo || "OBRA"}-${String(n).padStart(3, "0")}`;
     const { data: req, error: e1 } = await apuDb
       .from("requerimientos")
-      .insert({ proyecto_id: proyectoId, codigo, observacion: "Generado por explosión de insumos" })
+      .insert({
+        proyecto_id: proyectoId,
+        codigo,
+        origen,
+        cotizacion_id: origen === "cotizacion" ? cotizacionId : null,
+        observacion: origen === "cotizacion" ? `Desdoblamiento de APU de ${cotizacion?.codigo ?? "cotización"}` : "Generado por explosión de insumos",
+      })
       .select("id")
       .single();
     if (e1) return setError(e1.message);
-    const { error: e2 } = await apuDb.from("requerimiento_items").insert(
+    const { data: creados, error: e2 } = await apuDb.from("requerimiento_items").insert(
       filas.map((e) => ({
         requerimiento_id: req.id,
         insumo_id: e.insumoId,
@@ -153,8 +225,24 @@ function RequerimientosPage() {
         cantidad: Math.round(e.saldo * 10000) / 10000,
         precio_referencial: Number(e.ins!.precio),
       })),
-    );
+    ).select("id, insumo_id");
     if (e2) return setError(e2.message);
+    const origenesFilas = (creados ?? []).flatMap((it: { id: string; insumo_id: string }) =>
+      (filas.find((f) => f.insumoId === it.insumo_id)?.origenes ?? []).map((o) => ({
+        requerimiento_item_id: it.id,
+        cotizacion_item_id: origen === "cotizacion" ? o.partidaId : null,
+        partida_codigo: o.codigo,
+        partida_nombre: o.nombre,
+        metrado: o.metrado,
+        cantidad_unitaria: Math.round(o.unitaria * 1e6) / 1e6,
+        cantidad: Math.round(o.cantidad * 1e4) / 1e4,
+      })),
+    );
+    if (origenesFilas.length) {
+      const { error: e3 } = await apuDb.from("requerimiento_item_origenes").insert(origenesFilas);
+      if (e3) return setError(e3.message);
+    }
+    qc.invalidateQueries({ queryKey: ["requerimiento_item_origenes"] });
     setAviso(`Requerimiento ${codigo} generado con ${filas.length} insumos.`);
     setAbierto(req.id);
     qc.invalidateQueries({ queryKey: ["requerimientos"] });
@@ -176,13 +264,15 @@ function RequerimientosPage() {
   }
 
   function exportar() {
-    exportarExcel(`explosion-insumos-${proyecto?.codigo || "obra"}`, [
+    const ref = origen === "cotizacion" ? cotizacion?.codigo : proyecto?.codigo;
+    exportarExcel(`desdoblamiento-insumos-${ref || "obra"}`, [
       {
-        nombre: "Explosión de insumos",
+        nombre: "Consolidado",
         filas: explosion.map((e) => ({
           Tipo: nombreTipo(e.ins!.tipo),
           Insumo: e.ins!.nombre,
           Unidad: e.ins!.unidad,
+          Partidas: e.partidas,
           "Cantidad total": Number(e.total.toFixed(4)),
           "Ya requerido": Number(e.requerido.toFixed(4)),
           "Saldo por requerir": Number(e.saldo.toFixed(4)),
@@ -191,8 +281,60 @@ function RequerimientosPage() {
             : {}),
         })),
       },
+      {
+        nombre: "Origen por partida",
+        filas: explosion.flatMap((e) =>
+          e.origenes.map((o) => ({
+            Tipo: nombreTipo(e.ins!.tipo),
+            Insumo: e.ins!.nombre,
+            Unidad: e.ins!.unidad,
+            "Código partida": o.codigo,
+            Partida: o.nombre,
+            Metrado: Number(o.metrado.toFixed(4)),
+            "Cantidad APU": Number(o.unitaria.toFixed(6)),
+            Subtotal: Number(o.cantidad.toFixed(4)),
+          })),
+        ),
+      },
     ]);
   }
+
+  const cols = gestiona ? 8 : 6;
+  const filaInsumo = (e: (typeof explosion)[number], incluido: boolean, conTipo: boolean) => {
+    const ver = expandidos.has(e.insumoId);
+    return (
+      <React.Fragment key={e.insumoId}>
+        <tr className={`border-b border-line/40 ${incluido ? "" : "opacity-60"}`}>
+          <td className="truncate px-5 py-1.5 text-ink">
+            <button type="button" onClick={() => alternar(e.insumoId)} className="inline-flex max-w-full items-center gap-1 text-left" title="Ver origen por partida">
+              {ver ? <ChevronDown size={13} className="shrink-0 text-primary" /> : <ChevronRight size={13} className="shrink-0 text-primary" />}
+              <span className="truncate">{e.ins!.nombre}</span>
+              {conTipo && <span className="ml-1 shrink-0 text-[10px] text-muted-foreground">· {nombreTipo(e.ins!.tipo)}</span>}
+            </button>
+          </td>
+          <td className="px-2 py-1.5 text-muted-foreground">{e.ins!.unidad}</td>
+          <td className="px-2 py-1.5 text-center text-muted-foreground">{e.partidas}</td>
+          <td className="px-2 py-1.5 text-right">{num(e.total)}</td>
+          <td className="px-2 py-1.5 text-right text-muted-foreground">{num(e.requerido)}</td>
+          <td className={`px-2 py-1.5 text-right font-semibold ${e.saldo > 0 ? "text-ink" : "text-muted-foreground"}`}>{num(e.saldo)}</td>
+          {gestiona && <td className="px-2 py-1.5 text-right">{num(Number(e.ins!.precio))}</td>}
+          {gestiona && <td className="px-5 py-1.5 text-right">{soles(e.total * Number(e.ins!.precio))}</td>}
+        </tr>
+        {ver &&
+          e.origenes.map((o, i) => (
+            <tr key={`${e.insumoId}-${i}`} className="border-b border-line/20 bg-muted/20 text-[11px] text-muted-foreground">
+              <td className="truncate px-5 py-1 pl-11" colSpan={2}>
+                <span className="text-primary">{o.codigo || "—"}</span> {o.nombre}
+              </td>
+              <td className="px-2 py-1 text-right" colSpan={2}>
+                {num(o.metrado)} × {num(o.unitaria, 4)} = <span className="text-ink">{num(o.cantidad)}</span>
+              </td>
+              <td colSpan={cols - 4} />
+            </tr>
+          ))}
+      </React.Fragment>
+    );
+  };
 
   return (
     <>
@@ -200,7 +342,7 @@ function RequerimientosPage() {
         titulo="Requerimientos"
         subtitulo="Logística"
         acciones={
-          proyectoId && explosion.length > 0 ? (
+          listo && explosion.length > 0 ? (
             <Boton variante="linea" onClick={exportar}>
               <Upload size={14} className="mr-1 inline" /> Exportar a Excel
             </Boton>
@@ -208,17 +350,40 @@ function RequerimientosPage() {
         }
       />
 
-      <Panel titulo="Explosión de insumos por obra" className="mb-5">
+      <Panel titulo="Desdoblamiento de APU en insumos" className="mb-5">
         <div className="flex flex-wrap items-end gap-3 border-b border-line px-5 py-3 font-mono text-xs">
-          <label className="min-w-64 flex-1">
-            <span className="label-mono">Obra</span>
-            <Select className="mt-1" value={proyectoId} onChange={(e) => setProyectoId(e.target.value)}>
-              <option value="">Seleccionar obra…</option>
-              {proyectos.map((p) => (
-                <option key={p.id} value={p.id}>{p.codigo ? `${p.codigo} · ${p.nombre}` : p.nombre}</option>
-              ))}
+          <label>
+            <span className="label-mono">Origen</span>
+            <Select className="mt-1" value={origen} onChange={(e) => { setOrigen(e.target.value as "obra" | "cotizacion"); setExpandidos(new Set()); }}>
+              <option value="cotizacion">Desde cotización aprobada</option>
+              <option value="obra">Desde obra</option>
             </Select>
           </label>
+          <label className="min-w-64 flex-1">
+            <span className="label-mono">{origen === "obra" ? "Obra" : "Cotización aprobada"}</span>
+            {origen === "obra" ? (
+              <Select className="mt-1" value={proyectoSel} onChange={(e) => setProyectoSel(e.target.value)}>
+                <option value="">Seleccionar obra…</option>
+                {proyectos.map((p) => (
+                  <option key={p.id} value={p.id}>{p.codigo ? `${p.codigo} · ${p.nombre}` : p.nombre}</option>
+                ))}
+              </Select>
+            ) : (
+              <Select className="mt-1" value={cotizacionId} onChange={(e) => setCotizacionId(e.target.value)}>
+                <option value="">{cotizaciones.length ? "Seleccionar cotización…" : "No hay cotizaciones aprobadas"}</option>
+                {cotizaciones.map((c) => (
+                  <option key={c.id} value={c.id}>{c.codigo} · {c.nombre}{c.cliente ? ` — ${c.cliente}` : ""}</option>
+                ))}
+              </Select>
+            )}
+          </label>
+          <div className="flex overflow-hidden rounded border border-line">
+            {(["tipo", "consolidada"] as const).map((v) => (
+              <button key={v} type="button" onClick={() => setVista(v)} className={`px-3 py-1.5 ${vista === v ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}>
+                {v === "tipo" ? "Por tipo" : "Consolidada"}
+              </button>
+            ))}
+          </div>
           <div className="flex flex-wrap items-center gap-3">
             {TIPOS_INSUMO.map(([k, t]) => (
               <label key={k} className="flex items-center gap-1.5">
@@ -232,7 +397,7 @@ function RequerimientosPage() {
               </label>
             ))}
           </div>
-          {proyectoId && (
+          {listo && (
             <Boton onClick={() => void generar()}>
               <Zap size={14} className="mr-1 inline" /> Generar requerimiento
             </Boton>
@@ -241,60 +406,52 @@ function RequerimientosPage() {
         {error && <p className="px-5 pt-3 font-mono text-xs text-bad">{error}</p>}
         {aviso && <p className="px-5 pt-3 font-mono text-xs text-primary">{aviso}</p>}
 
-        {!proyectoId ? (
-          <Vacio texto="Selecciona una obra para calcular sus insumos a partir del análisis de precios de cada partida." />
+        {!listo ? (
+          <Vacio texto={origen === "obra" ? "Selecciona una obra para calcular sus insumos a partir del análisis de precios de cada partida." : "Selecciona una cotización aprobada: cada partida se desdobla en sus insumos (metrado × cantidad del APU)."} />
         ) : explosion.length === 0 ? (
-          <Vacio texto="Las partidas de esta obra todavía no tienen análisis de precios unitarios." />
+          <Vacio texto="Las partidas todavía no tienen análisis de precios unitarios." />
         ) : (
           <>
-            {sinApu > 0 && (
-              <p className="px-5 pt-3 font-mono text-[11px] text-muted-foreground">
-                {sinApu} de {hojas.length} partidas no tienen análisis de precios y no se incluyen en el cálculo.
-              </p>
-            )}
+            <p className="px-5 pt-3 font-mono text-[11px] text-muted-foreground">
+              Cantidad total = metrado de la partida × cantidad del insumo en su APU. Pulsa un insumo para ver de qué partidas proviene.
+              {sinApu > 0 && ` ${sinApu} de ${hojas.length} partidas no tienen APU y no se incluyen.`}
+            </p>
             <table className="mt-2 w-full table-fixed font-mono text-xs">
               <thead>
                 <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                  <th className="w-[34%] px-5 py-2 font-medium">Insumo</th>
-                  <th className="w-[7%] px-2 py-2 font-medium">Und.</th>
-                  <th className="w-[12%] px-2 py-2 text-right font-medium">Cantidad total</th>
-                  <th className="w-[12%] px-2 py-2 text-right font-medium">Ya requerido</th>
-                  <th className="w-[12%] px-2 py-2 text-right font-medium">Saldo</th>
-                  {gestiona && <th className="w-[10%] px-2 py-2 text-right font-medium">Precio</th>}
+                  <th className="w-[32%] px-5 py-2 font-medium">Insumo</th>
+                  <th className="w-[6%] px-2 py-2 font-medium">Und.</th>
+                  <th className="w-[7%] px-2 py-2 text-center font-medium">Partidas</th>
+                  <th className="w-[11%] px-2 py-2 text-right font-medium">Cantidad total</th>
+                  <th className="w-[11%] px-2 py-2 text-right font-medium">Ya requerido</th>
+                  <th className="w-[11%] px-2 py-2 text-right font-medium">Saldo</th>
+                  {gestiona && <th className="w-[9%] px-2 py-2 text-right font-medium">Precio</th>}
                   {gestiona && <th className="w-[13%] px-5 py-2 text-right font-medium">Parcial</th>}
                 </tr>
               </thead>
               <tbody>
-                {TIPOS_INSUMO.map(([k, t]) => {
-                  const filas = explosion.filter((e) => e.ins!.tipo === k);
-                  if (!filas.length) return null;
-                  const incluido = tipos.includes(k);
-                  return (
-                    <React.Fragment key={k}>
-                      <tr className="bg-muted/40">
-                        <td colSpan={gestiona ? 6 : 5} className="px-5 py-1.5 font-semibold text-primary">
-                          {t} {!incluido && <span className="ml-1 text-[10px] font-normal text-muted-foreground">(no se incluye en el requerimiento)</span>}
-                        </td>
-                        {gestiona && (
-                          <td className="px-5 py-1.5 text-right font-semibold">
-                            {soles(filas.reduce((s, e) => s + e.total * Number(e.ins!.precio), 0))}
-                          </td>
-                        )}
-                      </tr>
-                      {filas.map((e) => (
-                        <tr key={e.insumoId} className={`border-b border-line/40 ${incluido ? "" : "opacity-60"}`}>
-                          <td className="truncate px-5 py-1.5 text-ink">{e.ins!.nombre}</td>
-                          <td className="px-2 py-1.5 text-muted-foreground">{e.ins!.unidad}</td>
-                          <td className="px-2 py-1.5 text-right">{num(e.total)}</td>
-                          <td className="px-2 py-1.5 text-right text-muted-foreground">{num(e.requerido)}</td>
-                          <td className={`px-2 py-1.5 text-right font-semibold ${e.saldo > 0 ? "text-ink" : "text-muted-foreground"}`}>{num(e.saldo)}</td>
-                          {gestiona && <td className="px-2 py-1.5 text-right">{num(Number(e.ins!.precio))}</td>}
-                          {gestiona && <td className="px-5 py-1.5 text-right">{soles(e.total * Number(e.ins!.precio))}</td>}
-                        </tr>
-                      ))}
-                    </React.Fragment>
-                  );
-                })}
+                {vista === "consolidada"
+                  ? explosion.map((e) => filaInsumo(e, tipos.includes(e.ins!.tipo), true))
+                  : TIPOS_INSUMO.map(([k, t]) => {
+                      const filas = explosion.filter((e) => e.ins!.tipo === k);
+                      if (!filas.length) return null;
+                      const incluido = tipos.includes(k);
+                      return (
+                        <React.Fragment key={k}>
+                          <tr className="bg-muted/40">
+                            <td colSpan={gestiona ? cols - 1 : cols} className="px-5 py-1.5 font-semibold text-primary">
+                              {t} {!incluido && <span className="ml-1 text-[10px] font-normal text-muted-foreground">(no se incluye en el requerimiento)</span>}
+                            </td>
+                            {gestiona && (
+                              <td className="px-5 py-1.5 text-right font-semibold">
+                                {soles(filas.reduce((s, e) => s + e.total * Number(e.ins!.precio), 0))}
+                              </td>
+                            )}
+                          </tr>
+                          {filas.map((e) => filaInsumo(e, incluido, false))}
+                        </React.Fragment>
+                      );
+                    })}
               </tbody>
             </table>
           </>
@@ -355,7 +512,7 @@ function RequerimientosPage() {
                       </td>
                     </tr>
                     {ver &&
-                      its.map((i) => (
+                      its.flatMap((i) => [(
                         <tr key={i.id} className="border-b border-line/30 bg-muted/10">
                           <td className="px-5 py-1.5 pl-10 text-[10px] text-muted-foreground">{nombreTipo(i.tipo)}</td>
                           <td className="px-3 py-1.5">{i.descripcion}</td>
@@ -364,7 +521,16 @@ function RequerimientosPage() {
                           {gestiona && <td className="px-3 py-1.5 text-right">{soles(Number(i.cantidad) * Number(i.precio_referencial))}</td>}
                           <td colSpan={2} />
                         </tr>
-                      ))}
+                      ), ...origenesReq
+                        .filter((o) => o.requerimiento_item_id === i.id)
+                        .map((o) => (
+                          <tr key={o.id} className="border-b border-line/20 text-[11px] text-muted-foreground">
+                            <td />
+                            <td className="truncate px-3 py-1 pl-6" colSpan={2}><span className="text-primary">{o.partida_codigo || "—"}</span> {o.partida_nombre}</td>
+                            <td className="px-3 py-1 text-right">{num(Number(o.metrado))} × {num(Number(o.cantidad_unitaria), 4)} = {num(Number(o.cantidad))}</td>
+                            <td colSpan={gestiona ? 3 : 2} />
+                          </tr>
+                        ))])}
                   </React.Fragment>
                 );
               })}
