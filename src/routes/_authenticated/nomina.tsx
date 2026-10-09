@@ -356,11 +356,12 @@ function Nomina() {
         titulo="Nómina y Boletas"
         subtitulo="Planilla mensual del personal en 5ta categoría"
         acciones={
-          pestana === "planilla" && boletas.length > 0 && (
+          pestana === "planilla" && (
             <div className="flex gap-2">
               {!cerrada && (
                 <Boton variante="linea" onClick={generar}><Wand2 size={13} /> Generar boletas de pago</Boton>
               )}
+              {boletas.length > 0 && (
               <Boton
                 variante="linea"
                 onClick={() =>
@@ -385,6 +386,7 @@ function Nomina() {
               >
                 <Upload size={13} /> Exportar a Excel
               </Boton>
+              )}
             </div>
           )
         }
@@ -518,7 +520,12 @@ function Nomina() {
 
       <Panel titulo={`Planilla ${periodo}`} extra={<span className="font-mono text-[11px] text-muted-foreground">{boletas.length} boletas</span>}>
         {!planilla || boletas.length === 0 ? (
-          <Vacio texto="Aún no se ha generado la planilla de este mes." />
+          <div className="flex flex-col items-center gap-3 py-2">
+            <Vacio texto="Aún no se ha generado la planilla de este mes." />
+            {!cerrada && (
+              <Boton variante="linea" onClick={generar}><Wand2 size={13} /> Generar boletas de pago</Boton>
+            )}
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[1400px] font-mono text-xs">
