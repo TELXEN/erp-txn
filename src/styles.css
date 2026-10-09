@@ -275,9 +275,15 @@
     display: none !important;
   }
 
+  /* La boleta se compacta a media hoja A4: se ensancha antes de escalar para
+     que el ancho impreso siga siendo el útil de la página (~186 mm). */
   .honorario-print-root .honorario-print-sheet {
     margin: 0 auto;
     box-shadow: none;
+    width: 300mm !important;
+    min-height: 0 !important;
+    transform: scale(0.62);
+    transform-origin: top center;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
