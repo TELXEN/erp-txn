@@ -142,7 +142,19 @@ export function HojaDetalleHonorario({ empresa, trabajador, proyecto, detalle, t
         <h1 className="text-center text-xl font-bold uppercase" style={{ color: DOC.dark }}>Detalle de pago</h1>
         <div className="text-right text-[9px]">
           <b>RECIBO</b>
-          <p>{detalle.numero_recibo || "Pendiente de N°"}</p>
+          {editable ? (
+            <input
+              aria-label="N° de recibo"
+              type="text"
+              maxLength={20}
+              placeholder="Pendiente de N°"
+              className="w-full max-w-[140px] border-0 border-b border-dashed border-primary/40 bg-transparent px-1 py-0 text-right text-[10px] leading-tight font-semibold outline-none focus:border-primary print:border-0"
+              value={detalle.numero_recibo}
+              onChange={(e) => cambia("numero_recibo")(e.target.value)}
+            />
+          ) : (
+            <p>{detalle.numero_recibo || "Pendiente de N°"}</p>
+          )}
         </div>
       </header>
 
