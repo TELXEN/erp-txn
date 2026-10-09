@@ -42,10 +42,12 @@ function Hoja({ boleta: b, trabajador: t, empresa, periodo, editable, cambiar }:
       <div className="shrink-0 text-center"><h1 className="text-lg font-bold uppercase">Boleta de pago</h1><p className="text-[8px] font-semibold uppercase text-muted-foreground">Quinta categoría</p><p className="mt-1 text-[10px]">{periodo}</p></div>
     </header>
     <section className="mb-3 border border-line">
+      {grupo("Datos de la empresa")}
       <div className="grid grid-cols-2 divide-x divide-line"><Dato nombre="RUC" valor={empresa?.ruc} /><Dato nombre="Razón social" valor={empresa?.razon_social} /></div>
       <Dato nombre="Dirección fiscal" valor={empresa?.direccion} />
     </section>
     <section className="mb-3 border border-line">
+      {grupo("Datos del trabajador")}
       <Dato nombre="Apellidos y nombres" valor={t?.nombre} />
       <div className="grid grid-cols-2 divide-x divide-line"><div><Dato nombre="DNI" valor={t?.dni} /><Dato nombre="Cargo" valor={t?.cargo} /><Dato nombre="Régimen" valor={b.regimen_laboral} /><Dato nombre="Días laborados" valor={String(b.dias_laborados)} /></div><div><Dato nombre="Cuenta de depósito" valor={t?.numero_cuenta} /><Dato nombre="Banco" valor={t?.banco} /><Dato nombre="CUSPP" valor={t?.cuspp} /><Dato nombre="Fecha de ingreso" valor={fecha(t?.fecha_ingreso ?? null)} /></div></div>
     </section>
