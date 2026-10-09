@@ -603,25 +603,28 @@ function Dashboard() {
 
       {/* Tabla por obra con semáforos */}
       <div className="mt-4">
-        <Panel titulo="Resumen financiero por obra">
+        <Panel
+          titulo="Resumen financiero por obra"
+          extra={<span className="label-mono">Importes en soles (S/)</span>}
+        >
           {filasTabla.length === 0 ? (
             <Vacio texto="No hay obras registradas." />
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full text-[13px]">
                 <thead>
                   <tr className="border-b border-(--line-60) text-left">
-                    <th className="label-mono px-4 py-2">Obra</th>
-                    <th className="label-mono px-4 py-2 text-right">Costo directo</th>
-                    <th className="label-mono px-4 py-2 text-right">GG previsto</th>
-                    <th className="label-mono px-4 py-2 text-right">Utilidad prevista</th>
-                    <th className="label-mono px-4 py-2 text-right">Ofertado</th>
-                    <th className="label-mono px-4 py-2 text-right">Cobrado</th>
-                    <th className="label-mono px-4 py-2 text-right">Por cobrar</th>
-                    <th className="label-mono px-4 py-2 text-right">Costo real</th>
-                    <th className="label-mono px-4 py-2 text-right">Utilidad real</th>
-                    <th className="label-mono px-4 py-2 text-right">Margen</th>
-                    <th className="label-mono px-4 py-2">Condición</th>
+                    <th className="label-mono px-2 py-2">Obra</th>
+                    <th className="label-mono px-2 py-2 text-right">Costo directo</th>
+                    <th className="label-mono px-2 py-2 text-right">GG previsto</th>
+                    <th className="label-mono px-2 py-2 text-right">Utilidad prevista</th>
+                    <th className="label-mono px-2 py-2 text-right">Ofertado</th>
+                    <th className="label-mono px-2 py-2 text-right">Cobrado</th>
+                    <th className="label-mono px-2 py-2 text-right">Por cobrar</th>
+                    <th className="label-mono px-2 py-2 text-right">Costo real</th>
+                    <th className="label-mono px-2 py-2 text-right">Utilidad real</th>
+                    <th className="label-mono px-2 py-2 text-right">Margen</th>
+                    <th className="label-mono px-2 py-2">Condición</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-(--line-60)">
@@ -629,51 +632,53 @@ function Dashboard() {
                     const s = salud(f);
                     return (
                       <tr key={f.id}>
-                        <td className="px-4 py-2 font-medium">{f.nombre}</td>
-                        <td className="px-4 py-2 text-right font-mono">
-                          {soles(f.presupuesto)}
+                        <td className="px-2 py-2 font-medium whitespace-nowrap">{f.nombre}</td>
+                        <td className="px-2 py-2 text-right font-mono whitespace-nowrap">
+                          {monto(f.presupuesto)}
                           {f.adicionales !== 0 && (
-                            <span className="block text-[11px] text-muted-foreground">
-                              contr. {soles(f.contractual)} · adic. {soles(f.adicionales)}
+                            <span className="block text-[10px] text-muted-foreground">
+                              contr. {monto(f.contractual)} · adic. {monto(f.adicionales)}
                             </span>
                           )}
                         </td>
-                        <td className="px-4 py-2 text-right font-mono">
-                          {soles(f.ggPresupuestado)}
-                          <span className="ml-1 text-[11px] text-muted-foreground">({f.pctGG}%)</span>
-                          <span className="block text-[11px] text-muted-foreground">
-                            real {soles(f.ggReal)}
+                        <td className="px-2 py-2 text-right font-mono whitespace-nowrap">
+                          {monto(f.ggPresupuestado)}
+                          <span className="ml-1 text-[10px] text-muted-foreground">({f.pctGG}%)</span>
+                          <span className="block text-[10px] text-muted-foreground">
+                            real {monto(f.ggReal)}
                           </span>
                         </td>
-                        <td className="px-4 py-2 text-right font-mono">
-                          {soles(f.utilidadPrevista)}
-                          <span className="ml-1 text-[11px] text-muted-foreground">({f.pctUtilidad}%)</span>
+                        <td className="px-2 py-2 text-right font-mono whitespace-nowrap">
+                          {monto(f.utilidadPrevista)}
+                          <span className="ml-1 text-[10px] text-muted-foreground">({f.pctUtilidad}%)</span>
                         </td>
-                        <td className="px-4 py-2 text-right font-mono font-semibold">{soles(f.ofertado)}</td>
-                        <td className="px-4 py-2 text-right font-mono">{soles(f.cobrado)}</td>
-                        <td className="px-4 py-2 text-right font-mono text-muted-foreground">
-                          {soles(f.pendiente)}
+                        <td className="px-2 py-2 text-right font-mono font-semibold whitespace-nowrap">
+                          {monto(f.ofertado)}
+                        </td>
+                        <td className="px-2 py-2 text-right font-mono whitespace-nowrap">{monto(f.cobrado)}</td>
+                        <td className="px-2 py-2 text-right font-mono text-muted-foreground whitespace-nowrap">
+                          {monto(f.pendiente)}
                         </td>
                         <td
-                          className={`px-4 py-2 text-right font-mono ${
+                          className={`px-2 py-2 text-right font-mono whitespace-nowrap ${
                             f.costoReal > f.ofertado && f.ofertado > 0 ? "text-bad" : ""
                           }`}
                         >
-                          {soles(f.costoReal)}
+                          {monto(f.costoReal)}
                         </td>
                         <td
-                          className={`px-4 py-2 text-right font-mono font-semibold ${
+                          className={`px-2 py-2 text-right font-mono font-semibold whitespace-nowrap ${
                             f.margen < 0 ? "text-bad" : "text-good"
                           }`}
                         >
-                          {soles(f.margen)}
+                          {monto(f.margen)}
                         </td>
-                        <td className="px-4 py-2 text-right font-mono">
+                        <td className="px-2 py-2 text-right font-mono whitespace-nowrap">
                           {pct(f.margenPct)}
-                          <span className="block text-[11px] text-muted-foreground">{pct(f.roiPct)} s/ costo</span>
+                          <span className="block text-[10px] text-muted-foreground">{pct(f.roiPct)} s/ costo</span>
                         </td>
-                        <td className="px-4 py-2">
-                          <span className="inline-flex items-center gap-2 text-[12px]">
+                        <td className="px-2 py-2">
+                          <span className="inline-flex items-center gap-2 whitespace-nowrap text-[11px]">
                             <span className="h-2.5 w-2.5 rounded-full" style={{ background: s.color }} />
                             {s.texto}
                           </span>
@@ -725,11 +730,24 @@ function Dashboard() {
   );
 }
 
+/** Importe sin símbolo: el encabezado del panel ya indica que todo está en soles. */
+const monto = (n: number) =>
+  (Number.isFinite(n) ? n : 0).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
 /** Semáforo de salud financiera de una obra. */
-function salud(f: { margen: number; margenPct: number; cobranzaPct: number; costoReal: number; ofertado: number }) {
+function salud(f: {
+  margen: number;
+  margenPct: number;
+  cobranzaPct: number;
+  facturado: number;
+  costoReal: number;
+  ofertado: number;
+}) {
   if (f.margen < 0 || (f.ofertado > 0 && f.costoReal > f.ofertado))
     return { color: "#DC2626", texto: "Déficit / Sobrecosto" };
-  if (f.cobranzaPct < 70 || f.margenPct < 15) return { color: "#F59E0B", texto: "Alerta" };
+  // La cobranza solo alarma cuando ya hay facturado sin cobrar; una obra que aún no factura no está en riesgo.
+  const cobranzaEnRiesgo = f.facturado > 0 && f.cobranzaPct < 70;
+  if (cobranzaEnRiesgo || f.margenPct < 15) return { color: "#F59E0B", texto: "Alerta" };
   return { color: "#10B981", texto: "Saludable" };
 }
 
