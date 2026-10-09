@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { Building2, Check, Printer, Save } from "lucide-react";
+import { Check, Printer, Save } from "lucide-react";
+import { LogoEmpresa } from "@/components/personal/LogoEmpresa";
 import { Boton, VentanaFlotante } from "@/components/ui-kit";
 import type { Trabajador } from "@/lib/datos";
 import { fecha, soles } from "@/lib/format";
@@ -18,7 +19,7 @@ export type BoletaNomina = {
   fecha_pago: string | null; numero_operacion: string;
 };
 export type ValoresNomina = Pick<BoletaNomina, "dias_laborados" | "horas_extra" | "otros_ingresos" | "renta_quinta" | "otros_descuentos">;
-type Empresa = { razon_social?: string; ruc?: string; direccion?: string; logo_url?: string } | null | undefined;
+type Empresa = { razon_social?: string; ruc?: string; direccion?: string; logo_url?: string; eslogan?: string } | null | undefined;
 
 function Dato({ nombre, valor, sinLinea }: { nombre: string; valor?: string | undefined; sinLinea?: boolean }) {
   return <div className={`grid grid-cols-[138px_minmax(0,1fr)] items-center ${sinLinea ? "" : "border-b border-line"}`}><span className="flex justify-between bg-muted/35 px-2 py-1.5 text-[9px] font-semibold uppercase"><span>{nombre}</span><span>:</span></span><span className="min-w-0 px-2 py-1.5 text-[10px]">{valor || "—"}</span></div>;
@@ -39,7 +40,7 @@ function Hoja({ boleta: b, trabajador: t, empresa, periodo, editable, cambiar }:
   const grupo = (titulo: string) => <h2 className="border-b border-line px-2 py-1 text-center text-[9px] leading-tight font-bold uppercase text-paper" style={{ background: DOC.dark }}>{titulo}</h2>;
   return <article className="honorario-print-sheet mx-auto w-[184mm] max-w-full border border-line bg-paper p-5 text-ink shadow-sm" style={{ fontFamily: fuente.css }}>
     <header className="mb-3 flex items-center justify-between gap-4 border-b-2 border-primary pb-3">
-      <div className="flex min-w-0 items-center gap-3">{empresa?.logo_url ? <img src={empresa.logo_url} alt={empresa.razon_social ?? "Empresa"} className="h-12 w-24 object-contain" /> : <Building2 size={30} className="text-primary" />}<span className="text-sm font-bold">{"\n"}</span></div>
+      <div className="flex min-w-0 items-center gap-3"><LogoEmpresa empresa={empresa} className="w-[150px]" imgClassName="h-12 w-24 object-contain" iconSize={30} /><span className="text-sm font-bold">{"\n"}</span></div>
       <div className="shrink-0 text-center"><h1 className="text-lg font-bold uppercase">Boleta de pago</h1><p className="text-[8px] font-semibold uppercase text-muted-foreground">Quinta categoría</p><p className="mt-1 text-[10px]">{periodo}</p></div>
     </header>
     <section className="mb-3 border border-line">
