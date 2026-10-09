@@ -160,20 +160,20 @@ export function HojaDetalleHonorario({ empresa, trabajador, proyecto, detalle, t
             </Fila>
           </div>
           <div>
-            <Fila etiqueta="Cta. de depósito" valor={trabajador?.numero_cuenta ?? ""} />
+            <Fila etiqueta="Cuenta de depósito" valor={trabajador?.numero_cuenta ?? ""} />
             <Fila etiqueta="Banco" valor={trabajador?.banco ?? ""} />
           </div>
           <div className="col-span-2 grid grid-cols-[1fr_0.55fr] border-t" style={{ borderColor: DOC.line }}>
-            <div className="flex items-center gap-3 border-r" style={{ borderColor: DOC.line }}>
-              <span className="shrink-0 px-2 py-1.5 text-[9px] font-bold uppercase" style={{ background: DOC.soft }}>Mes</span>
+            <div className="flex items-stretch border-r" style={{ borderColor: DOC.line }}>
+              <EtiquetaDosp texto="Mes" />
               {editable ? (
                 <select aria-label="Mes" className={INPUT_DATO} value={detalle.mes} onChange={(e) => cambia("mes")(e.target.value)}>
                   {MESES.map((mes, indice) => <option key={mes} value={indice + 1}>{mes}</option>)}
                 </select>
               ) : <span className="flex-1 px-2 py-1.5 text-left text-[10px]">{MESES[detalle.mes - 1] ?? "—"}</span>}
             </div>
-            <div className="flex items-center gap-3">
-              <span className="shrink-0 px-2 py-1.5 text-[9px] font-bold uppercase" style={{ background: DOC.soft }}>Año</span>
+            <div className="flex items-stretch">
+              <EtiquetaDosp texto="Año" />
               {editable ? (
                 <input aria-label="Año" type="number" min="2020" max="2100" className={`${INPUT_DATO} text-center tabular-nums`} value={detalle.anio} onChange={(e) => cambia("anio")(e.target.value)} />
               ) : <span className="flex-1 px-2 py-1.5 text-left text-[10px] tabular-nums">{detalle.anio}</span>}
