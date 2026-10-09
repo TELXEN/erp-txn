@@ -3401,6 +3401,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "requerimiento_item_origenes_cotizacion_item_fk"
+            columns: ["cotizacion_item_id"]
+            isOneToOne: false
+            referencedRelation: "cotizacion_items"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "requerimiento_item_origenes_requerimiento_item_id_fkey"
             columns: ["requerimiento_item_id"]
             isOneToOne: false

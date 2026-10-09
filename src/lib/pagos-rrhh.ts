@@ -197,13 +197,26 @@ export function costoPersonalPorProyecto(
     if (m && total > 0) m.forEach((w, p) => sumar(p, d, (Number(d.monto) * w) / total));
     else sumar(d.proyecto_id || SIN_ASIGNAR, d, Number(d.monto));
   });
+  // Sin boleta/recibo aún: se estima con el costo del tareo (se reemplaza al emitir el documento).
+  const costoTareo = new Map<string, Map<string, number>>();
+  tareos.forEach((t) => {
+    const k = `${t.trabajador_id}|${t.fecha.slice(0, 7)}`;
+    const m = costoTareo.get(k) ?? new Map<string, number>();
+    m.set(t.proyecto_id, (m.get(t.proyecto_id) ?? 0) + (Number(t.costo_soles) || 0));
+    costoTareo.set(k, m);
+  });
   const pendientes = new Map<string, Set<string>>();
+  let estimado = 0;
   pesos.forEach((_, k) => {
     if (conDoc.has(k)) return;
     const [t = "", periodo = ""] = k.split("|");
     const s = pendientes.get(periodo) ?? new Set<string>();
     s.add(t);
     pendientes.set(periodo, s);
+    costoTareo.get(k)?.forEach((monto, p) => {
+      estimado += monto;
+      sumar(p, { trabajador_id: t, anio: 0, mes: 0, monto, tipo: "boleta" }, monto);
+    });
   });
-  return { porProyecto: res, pendientes };
+  return { porProyecto: res, pendientes, estimado: Math.round(estimado * 100) / 100 };
 }

@@ -176,7 +176,8 @@ function RequerimientosPage() {
           .reduce((s, it) => s + Number(it.cantidad), 0);
         return { ...e, ins, requerido, saldo: Math.max(0, e.total - requerido) };
       })
-      .filter((e) => e.ins)
+      // Requerimientos: a costo (sin margen) y sin herramientas manuales (no son comprables).
+      .filter((e) => e.ins && e.ins.tipo !== "HT")
       .sort((a, b) => a.ins!.nombre.localeCompare(b.ins!.nombre));
   }, [comps, hojas, insumos, reqs, reqItems, proyectoId, origen, cotizacionId]);
 
