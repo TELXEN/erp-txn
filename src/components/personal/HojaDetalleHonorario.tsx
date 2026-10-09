@@ -57,11 +57,22 @@ const fechaLarga = (valor: string, lugar: string) => {
 const INPUT_NUM = "w-full min-w-0 bg-transparent text-right text-[10px] font-semibold tabular-nums outline-none border-b border-dashed border-primary/40 focus:border-primary print:border-0";
 const INPUT_DATO = "min-w-0 flex-1 border-0 border-b border-dashed border-primary/40 bg-transparent px-1 py-1 text-[10px] font-semibold outline-none focus:border-primary print:border-0 print:appearance-none";
 
+const ANCHO_ETIQUETA = "w-[128px]";
+
+function EtiquetaDosp({ texto }: { texto: string }) {
+  return (
+    <span className={`flex ${ANCHO_ETIQUETA} shrink-0 items-center justify-between px-2 py-1.5 text-[9px] font-bold uppercase`} style={{ background: DOC.soft }}>
+      <span>{texto}</span>
+      <span>:</span>
+    </span>
+  );
+}
+
 function Fila({ etiqueta, valor, valorIzquierda, children }: { etiqueta: string; valor?: string; valorIzquierda?: boolean; children?: React.ReactNode }) {
   return (
-    <div className="flex items-center justify-between gap-3 border-b last:border-b-0" style={{ borderColor: DOC.line }}>
-      <span className="shrink-0 px-2 py-1.5 text-[9px] font-bold uppercase" style={{ background: DOC.soft }}>{etiqueta}</span>
-      {children ?? <span className={`px-2 py-1.5 text-[10px] ${valorIzquierda ? "flex-1 text-left" : "text-right"}`}>{valor || "—"}</span>}
+    <div className="flex items-stretch border-b last:border-b-0" style={{ borderColor: DOC.line }}>
+      <EtiquetaDosp texto={etiqueta} />
+      {children ?? <span className={`flex-1 px-2 py-1.5 text-[10px] ${valorIzquierda ? "text-left" : "text-right"}`}>{valor || "—"}</span>}
     </div>
   );
 }
@@ -96,9 +107,9 @@ export function HojaDetalleHonorario({ empresa, trabajador, proyecto, detalle, t
   // Cada concepto se valora en jornales: viaje/2, extras/10.5, feriados×2.
   const remuneraciones: { etiqueta: string; campo?: keyof DetalleHonorario; cantidad?: string; valor: number }[] = [
     { etiqueta: "Días laborados", campo: "dias_laborados", cantidad: String(detalle.dias_laborados || 0), valor: detalle.dias_laborados * detalle.costo_unitario },
-    { etiqueta: "Días de viaje (½ jornal)", campo: "dias_viaje", cantidad: String(detalle.dias_viaje || 0), valor: (detalle.dias_viaje / 2) * detalle.costo_unitario },
-    { etiqueta: "Horas extras (÷10.5)", campo: "horas_extras", cantidad: String(detalle.horas_extras || 0), valor: (detalle.horas_extras / 10.5) * detalle.costo_unitario },
-    { etiqueta: "Feriados (×2 jornales)", campo: "otros_remuneraciones", cantidad: String(detalle.otros_remuneraciones || 0), valor: detalle.otros_remuneraciones * 2 * detalle.costo_unitario },
+    { etiqueta: "Días de viaje", campo: "dias_viaje", cantidad: String(detalle.dias_viaje || 0), valor: (detalle.dias_viaje / 2) * detalle.costo_unitario },
+    { etiqueta: "Horas extras", campo: "horas_extras", cantidad: String(detalle.horas_extras || 0), valor: (detalle.horas_extras / 10.5) * detalle.costo_unitario },
+    { etiqueta: "Feriados", campo: "otros_remuneraciones", cantidad: String(detalle.otros_remuneraciones || 0), valor: detalle.otros_remuneraciones * 2 * detalle.costo_unitario },
     { etiqueta: "Inducción", campo: "induccion", cantidad: String(detalle.induccion || 0), valor: detalle.induccion * detalle.costo_unitario },
     { etiqueta: "Costo unitario", campo: "costo_unitario", valor: detalle.costo_unitario },
     { etiqueta: "Saldo del mes anterior", campo: "saldo_mes_anterior", valor: detalle.saldo_mes_anterior },
