@@ -284,7 +284,7 @@ function Dashboard() {
       consumoPresupuesto: presupuesto > 0 ? (costoDirectoReal / presupuesto) * 100 : 0,
       consumoGG: ggPresupuestado > 0 ? (ggReal / ggPresupuestado) * 100 : 0,
     };
-  }, [filasTabla]);
+  }, [filasTabla, global, personal]);
 
   const composicion = useMemo(() => {
     const valores: Record<ClaveComposicion, number> = {
