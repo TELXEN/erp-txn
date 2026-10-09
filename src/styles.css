@@ -280,9 +280,9 @@
   .honorario-print-root .honorario-print-sheet {
     margin: 0 auto;
     box-shadow: none;
-    width: 258mm !important;
+    width: 276mm !important;
     min-height: 0 !important;
-    transform: scale(0.72);
+    transform: scale(0.69);
     transform-origin: top center;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
