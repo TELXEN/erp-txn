@@ -6,6 +6,7 @@ import type { Trabajador } from "@/lib/datos";
 import { fecha, soles } from "@/lib/format";
 import { montoEnLetras } from "@/lib/facturacion";
 import { useFuenteDocumento } from "@/lib/fuentes-documentos";
+import { DOC } from "@/lib/documento-tema";
 
 export type BoletaNomina = {
   id: string; planilla_id: string; trabajador_id: string; regimen_laboral: string;
@@ -34,8 +35,8 @@ function Hoja({ boleta: b, trabajador: t, empresa, periodo, editable, cambiar }:
       {editable && campo && cambiar ? <label className="flex items-center justify-end gap-1 font-semibold"><span>S/</span><input aria-label={etiqueta} type="number" step="0.01" min="0" value={importe} onChange={(e) => cambiar(campo, e.target.value)} className="w-[62px] min-w-0 border-b border-dashed border-primary/40 bg-transparent text-right tabular-nums outline-none focus:border-primary" /></label> : <span className="whitespace-nowrap text-right font-semibold tabular-nums">{soles(importe)}</span>}
     </div>
   );
-  const cabecera = (titulo: string) => <><h2 className="bg-primary px-2.5 py-2 text-center text-[10px] font-bold uppercase text-primary-foreground">{titulo}</h2><div className="flex justify-between border-b border-line bg-muted/35 px-2.5 py-1 text-[8px] font-bold uppercase"><span>Concepto</span><span>Monto</span></div></>;
-  const grupo = (titulo: string) => <h2 className="border-b border-line bg-primary px-2.5 py-1.5 text-center text-[9px] font-bold uppercase text-primary-foreground">{titulo}</h2>;
+  const cabecera = (titulo: string) => <><h2 className="px-2 py-1 text-center text-[10px] leading-tight font-bold uppercase text-paper" style={{ background: DOC.dark }}>{titulo}</h2><div className="flex justify-between border-b border-line bg-muted/35 px-2 py-0.5 text-[8px] leading-tight font-bold uppercase"><span>Concepto</span><span>Monto</span></div></>;
+  const grupo = (titulo: string) => <h2 className="border-b border-line px-2 py-1 text-center text-[9px] leading-tight font-bold uppercase text-paper" style={{ background: DOC.dark }}>{titulo}</h2>;
   return <article className="honorario-print-sheet mx-auto w-[184mm] max-w-full border border-line bg-paper p-5 text-ink shadow-sm" style={{ fontFamily: fuente.css }}>
     <header className="mb-3 flex items-center justify-between gap-4 border-b-2 border-primary pb-3">
       <div className="flex min-w-0 items-center gap-3">{empresa?.logo_url ? <img src={empresa.logo_url} alt={empresa.razon_social ?? "Empresa"} className="h-12 w-24 object-contain" /> : <Building2 size={30} className="text-primary" />}<span className="text-sm font-bold">{empresa?.razon_social ?? "TELXEN SAC"}</span></div>
