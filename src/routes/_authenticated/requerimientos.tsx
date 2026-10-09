@@ -54,30 +54,77 @@ function RequerimientosPage() {
   const { data: proyectos = [] } = useProyectos();
   const { data: partidas = [] } = usePartidas();
   const { data: insumos = [] } = useInsumos();
-  const [proyectoId, setProyectoId] = useState("");
+  const [origen, setOrigen] = useState<"obra" | "cotizacion">("cotizacion");
+  const [cotizacionId, setCotizacionId] = useState("");
+  const [vista, setVista] = useState<"tipo" | "consolidada">("tipo");
+  const [expandidos, setExpandidos] = useState<Set<string>>(new Set());
+  const [proyectoSel, setProyectoSel] = useState("");
   const [tipos, setTipos] = useState<TipoInsumo[]>(["MAT", "EQ", "SC"]);
   const [abierto, setAbierto] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [aviso, setAviso] = useState("");
   const [busqueda, setBusqueda] = useState("");
 
+  const { data: cotizaciones = [] } = useQuery({
+    queryKey: ["cotizaciones_aprobadas"],
+    queryFn: async () => {
+      const { data, error } = await apuDb
+        .from("cotizaciones")
+        .select("id, codigo, nombre, cliente, proyecto_id")
+        .eq("estado", "Aprobada")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as { id: string; codigo: string; nombre: string; cliente: string; proyecto_id: string | null }[];
+    },
+  });
+  const cotizacion = cotizaciones.find((c) => c.id === cotizacionId);
+  const proyectoId = origen === "obra" ? proyectoSel : (cotizacion?.proyecto_id ?? "");
+
+  const { data: itemsCot = [] } = useQuery({
+    queryKey: ["cotizacion_items_req", cotizacionId],
+    enabled: origen === "cotizacion" && !!cotizacionId,
+    queryFn: async () => {
+      const { data, error } = await apuDb
+        .from("cotizacion_items")
+        .select("id, codigo, nombre, metrado, rendimiento, jornada, padre_id, orden")
+        .eq("cotizacion_id", cotizacionId)
+        .order("orden");
+      if (error) throw error;
+      return (data ?? []) as Array<{ id: string; codigo: string; nombre: string; metrado: number; rendimiento: number; jornada: number; padre_id: string | null }>;
+    },
+  });
+
   const proyecto = proyectos.find((p) => p.id === proyectoId);
-  const delProyecto = useMemo(() => partidas.filter((p) => p.proyecto_id === proyectoId), [partidas, proyectoId]);
-  const hojas = useMemo(
-    () => delProyecto.filter((p) => !delProyecto.some((h) => h.padre_id === p.id)),
-    [delProyecto],
-  );
+  /** Partidas hoja (sin títulos) del origen elegido. */
+  const hojas = useMemo(() => {
+    const base: Array<{ id: string; codigo: string; nombre: string; metrado: number; rendimiento: number; jornada: number; padre_id: string | null }> =
+      origen === "obra"
+        ? partidas
+            .filter((p) => p.proyecto_id === proyectoSel)
+            .map((p) => ({ id: p.id, codigo: (p as { codigo?: string }).codigo ?? "", nombre: (p as { nombre?: string }).nombre ?? "", metrado: Number(p.metrado ?? 0), rendimiento: Number(p.rendimiento ?? 1), jornada: Number(p.jornada ?? 8), padre_id: p.padre_id ?? null }))
+        : itemsCot.map((i) => ({ ...i, metrado: Number(i.metrado ?? 0), rendimiento: Number(i.rendimiento ?? 1), jornada: Number(i.jornada ?? 8) }));
+    return base.filter((p) => !base.some((h) => h.padre_id === p.id));
+  }, [origen, partidas, proyectoSel, itemsCot]);
+  const columnaApu = origen === "obra" ? "partida_id" : "cotizacion_item_id";
 
   const { data: comps = [] } = useQuery({
-    queryKey: ["apu_obra", proyectoId, hojas.map((h) => h.id).join(",")],
+    queryKey: ["apu_req", origen, hojas.map((h) => h.id).join(",")],
     enabled: hojas.length > 0,
     queryFn: async () => {
       const { data, error } = await apuDb
         .from("apu_componentes")
         .select("*")
-        .in("partida_id", hojas.map((h) => h.id));
+        .in(columnaApu, hojas.map((h) => h.id));
       if (error) throw error;
-      return (data ?? []) as (ComponenteApu & { partida_id: string })[];
+      return (data ?? []) as (ComponenteApu & { partida_id: string | null; cotizacion_item_id: string | null })[];
+    },
+  });
+  const { data: origenesReq = [] } = useQuery({
+    queryKey: ["requerimiento_item_origenes"],
+    queryFn: async () => {
+      const { data, error } = await apuDb.from("requerimiento_item_origenes").select("*");
+      if (error) throw error;
+      return (data ?? []) as Array<{ id: string; requerimiento_item_id: string; partida_codigo: string; partida_nombre: string; metrado: number; cantidad_unitaria: number; cantidad: number }>;
     },
   });
 
