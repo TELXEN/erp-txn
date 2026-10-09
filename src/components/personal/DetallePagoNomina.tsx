@@ -29,9 +29,9 @@ function Hoja({ boleta: b, trabajador: t, empresa, periodo, editable, cambiar }:
 }) {
   const { fuente } = useFuenteDocumento();
   const fila = (etiqueta: string, importe: number, campo?: keyof ValoresNomina) => (
-    <div key={etiqueta} className="grid grid-cols-[minmax(0,1fr)_104px] items-center border-b border-line px-2.5 py-1.5 text-[10px] last:border-0">
+    <div key={etiqueta} className="grid grid-cols-[minmax(0,1fr)_86px] items-center border-b border-line px-2.5 py-1.5 text-[10px] last:border-0">
       <span>{etiqueta}</span>
-      {editable && campo && cambiar ? <label className="flex items-center justify-end gap-1 font-semibold"><span>S/</span><input aria-label={etiqueta} type="number" step="0.01" min="0" value={importe} onChange={(e) => cambiar(campo, e.target.value)} className="w-[78px] min-w-0 border-b border-dashed border-primary/40 bg-transparent text-right tabular-nums outline-none focus:border-primary" /></label> : <span className="whitespace-nowrap text-right font-semibold tabular-nums">{soles(importe)}</span>}
+      {editable && campo && cambiar ? <label className="flex items-center justify-end gap-1 font-semibold"><span>S/</span><input aria-label={etiqueta} type="number" step="0.01" min="0" value={importe} onChange={(e) => cambiar(campo, e.target.value)} className="w-[62px] min-w-0 border-b border-dashed border-primary/40 bg-transparent text-right tabular-nums outline-none focus:border-primary" /></label> : <span className="whitespace-nowrap text-right font-semibold tabular-nums">{soles(importe)}</span>}
     </div>
   );
   const cabecera = (titulo: string) => <><h2 className="bg-primary px-2.5 py-2 text-center text-[10px] font-bold uppercase text-primary-foreground">{titulo}</h2><div className="flex justify-between border-b border-line bg-muted/35 px-2.5 py-1 text-[8px] font-bold uppercase"><span>Concepto</span><span>Monto</span></div></>;
@@ -48,9 +48,9 @@ function Hoja({ boleta: b, trabajador: t, empresa, periodo, editable, cambiar }:
       <Dato nombre="Apellidos y nombres" valor={t?.nombre} />
       <div className="grid grid-cols-2 divide-x divide-line"><div><Dato nombre="DNI" valor={t?.dni} /><Dato nombre="Cargo" valor={t?.cargo} /><Dato nombre="Régimen" valor={b.regimen_laboral} /><Dato nombre="Días laborados" valor={String(b.dias_laborados)} /></div><div><Dato nombre="Cuenta de depósito" valor={t?.numero_cuenta} /><Dato nombre="Banco" valor={t?.banco} /><Dato nombre="CUSPP" valor={t?.cuspp} /><Dato nombre="Fecha de ingreso" valor={fecha(t?.fecha_ingreso ?? null)} /></div></div>
     </section>
-    <div className="grid grid-cols-[1.12fr_1.12fr_0.9fr] border border-line">
+    <div className="grid grid-cols-[1.04fr_1.40fr_0.90fr] border border-line">
       <section className="border-r border-line">{cabecera("Remuneraciones")}{fila("Sueldo básico", b.sueldo_basico)}{fila("Asignación familiar", b.asignacion_familiar)}{fila("Horas extra", b.horas_extra)}{fila("Otros ingresos", b.otros_ingresos, "otros_ingresos")}</section>
-      <section className="border-r border-line">{cabecera("Descuentos")}{fila("Aporte previsional", b.aporte_pension)}{fila("Renta 5ta categoría", b.renta_quinta, "renta_quinta")}{fila("Otros descuentos", b.otros_descuentos, "otros_descuentos")}</section>
+      <section className="border-r border-line">{cabecera("Descuentos")}{fila(b.sistema_pensiones && b.sistema_pensiones !== "Ninguno" ? `Aporte previsional (${b.sistema_pensiones})` : "Aporte previsional", b.aporte_pension)}{fila("Renta 5ta categoría", b.renta_quinta, "renta_quinta")}{fila("Otros descuentos", b.otros_descuentos, "otros_descuentos")}</section>
       <section>{cabecera("Aportes empleador")}{fila(b.regimen_laboral === "MYPE Micro" ? "SIS" : "EsSalud", b.essalud)}</section>
       <div className="border-r border-t border-line bg-muted/35 font-bold">{fila("Total ingresos", b.total_ingresos)}</div><div className="border-r border-t border-line bg-muted/35 font-bold">{fila("Total descuentos", b.total_descuentos)}</div><div className="border-t border-line bg-muted/35 font-bold">{fila("Total aportes", b.essalud)}</div>
     </div>
