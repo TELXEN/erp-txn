@@ -175,7 +175,7 @@ function Dashboard() {
         const costoDirectoReal = materiales + subcontratos + equipos + servicios + mod + honorarios;
         const ggReal = generales + staff;
         const costoReal = costoDirectoReal + ggReal;
-        const margen = presupuesto - costoReal;
+        const margen = oferta.ofertado - costoReal;
         const facturado = cobrado + pendiente;
 
         return {
@@ -204,7 +204,7 @@ function Dashboard() {
           ggReal,
           costoReal,
           margen,
-          margenPct: presupuesto > 0 ? (margen / presupuesto) * 100 : 0,
+          margenPct: oferta.ofertado > 0 ? (margen / oferta.ofertado) * 100 : 0,
           roiPct: costoReal > 0 ? (margen / costoReal) * 100 : 0,
           variacionUtilidad: margen - oferta.utilidad,
           cobranzaPct: facturado > 0 ? (cobrado / facturado) * 100 : 0,
@@ -253,7 +253,7 @@ function Dashboard() {
     const ggReal = generales + staff;
     const costoReal = costoDirectoReal + ggReal;
     const facturado = cobrado + pendiente;
-    const margen = presupuesto - costoReal;
+    const margen = ofertado - costoReal;
     return {
       presupuesto,
       contractual,
@@ -276,7 +276,7 @@ function Dashboard() {
       ggReal,
       costoReal,
       margen,
-      margenPct: presupuesto > 0 ? (margen / presupuesto) * 100 : 0,
+      margenPct: ofertado > 0 ? (margen / ofertado) * 100 : 0,
       roiPct: costoReal > 0 ? (margen / costoReal) * 100 : 0,
       margenSobreOferta: ofertado > 0 ? (margen / ofertado) * 100 : 0,
       variacionUtilidad: margen - utilidadPrevista,
@@ -512,7 +512,7 @@ function Dashboard() {
           valor={datos.margen}
           tono={datos.margen < 0 ? "bad" : "good"}
           lineas={[
-            `Presupuesto ${soles(datos.presupuesto)} − Costo real ${soles(datos.costoReal)}`,
+            `Presupuesto ${soles(datos.ofertado)} − Costo real ${soles(datos.costoReal)}`,
             `Prevista ${soles(datos.utilidadPrevista)} · Margen ${pct(datos.margenPct)} s/ presupuesto`,
           ]}
         />
