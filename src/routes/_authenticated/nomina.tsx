@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, ClipboardList, Database, Lock, Pencil, Printer, RefreshCw, Trash2, Unlock, Upload, Wand2 } from "lucide-react";
+import { Check, ClipboardList, Database, Lock, FileText, RefreshCw, Trash2, Unlock, Upload, Wand2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
@@ -10,7 +10,7 @@ import { fecha, hoy, MESES, soles } from "@/lib/format";
 import { type Trabajador, useTareos, useTrabajadores } from "@/lib/datos";
 import { resumenTareoHonorario } from "@/components/personal/DetallePagoHonorario";
 import { useEmpresa } from "@/lib/empresa";
-import { useFuenteDocumento } from "@/lib/fuentes-documentos";
+import { DetallePagoNomina, type BoletaNomina, type ValoresNomina } from "@/components/personal/DetallePagoNomina";
 import { exportarExcel } from "@/lib/exportar";
 import { aporteAfp, useComisionesAfp } from "@/lib/afp";
 import type { ComisionAfp } from "@/lib/decolecta.functions";
@@ -36,29 +36,7 @@ const TASA_ONP = 0.13;
 const SIS_MICRO = 15;
 
 type Planilla = { id: string; anio: number; mes: number; estado: string };
-type Boleta = {
-  id: string;
-  planilla_id: string;
-  trabajador_id: string;
-  regimen_laboral: string;
-  sistema_pensiones: string;
-  dias_laborados: number;
-  sueldo_basico: number;
-  asignacion_familiar: number;
-  horas_extra: number;
-  otros_ingresos: number;
-  total_ingresos: number;
-  aporte_pension: number;
-  renta_quinta: number;
-  otros_descuentos: number;
-  total_descuentos: number;
-  neto_pagar: number;
-  essalud: number;
-  estado_pago: string;
-  banco_id: string | null;
-  fecha_pago: string | null;
-  numero_operacion: string;
-};
+type Boleta = BoletaNomina;
 
 const r2 = (n: number) => Math.round(n * 100) / 100;
 
@@ -107,14 +85,13 @@ const fechaHora = (iso: string) => {
 function Nomina() {
   const { rol } = useAuth();
   const qc = useQueryClient();
-  const { data: trabajadores = [] } = useTrabajadores();
-  const { data: tareos = [] } = useTareos();
+  const { data: trabajadores = [], isFetched: personalListo } = useTrabajadores();
+  const { data: tareos = [], isFetched: tareoListo } = useTareos();
   const { data: empresa } = useEmpresa();
-  const { fuente } = useFuenteDocumento();
   const ahora = new Date();
   const [anio, setAnio] = useState(ahora.getFullYear());
   const [mes, setMes] = useState(ahora.getMonth() + 1);
-  const [editando, setEditando] = useState<Record<string, Record<string, string>>>({});
+  const [detalle, setDetalle] = useState<Boleta | null>(null);
   const [pestana, setPestana] = useState<"planilla" | "datos">("planilla");
   const [pago, setPago] = useState<{ boleta_id?: string; banco_id: string; fecha_pago: string; numero_operacion: string } | null>(null);
   const [error, setError] = useState("");
@@ -135,7 +112,8 @@ function Nomina() {
     queryKey: ["boletas", planilla?.id],
     enabled: !!planilla,
     queryFn: async () => {
-      const { data, error } = await supabase.from("boletas").select("*").eq("planilla_id", planilla!.id);
+      if (!planilla) return [];
+      const { data, error } = await supabase.from("boletas").select("*").eq("planilla_id", planilla.id);
       if (error) throw error;
       return data as Boleta[];
     },
@@ -148,8 +126,6 @@ function Nomina() {
       return data;
     },
   });
-
-  if (!puedeVerDinero(rol)) return <SinAcceso />;
 
   const enPlanilla = trabajadores.filter((t) => t.tipo_contratacion !== "Honorarios" && t.activo);
   const tDe = (id: string) => trabajadores.find((t) => t.id === id);
@@ -180,13 +156,15 @@ function Nomina() {
       if (err) return setError(err.message);
       p = data as Planilla;
     }
+    if (!p || p.estado === "Cerrada") return;
+    const planillaId = p.id;
     const existentes = new Set(boletas.map((b) => b.trabajador_id));
     const nuevas = enPlanilla
       .filter((t) => !existentes.has(t.id) && Number(t.sueldo_mensual) > 0)
       .map((t) => {
         const dt = datosTareo(t);
         return {
-          planilla_id: p!.id,
+          planilla_id: planillaId,
           trabajador_id: t.id,
           ...calcularBoleta(t, { dias_laborados: dt.dias_laborados, horas_extra: dt.horas_extra, otros_ingresos: 0, renta_quinta: 0, otros_descuentos: 0 }, comisiones, rmvDe(periodoAfp)),
         };
@@ -218,24 +196,34 @@ function Nomina() {
     await refrescar();
   }
 
-  // Actualización automática: si cambian el tareo, el personal o las comisiones,
-  // las boletas pendientes se recalculan solas (las pagadas no se tocan).
-  const autoRef = useRef("");
+  // Recalcula únicamente boletas pendientes; no crea filas ni modifica las validadas.
   useEffect(() => {
-    if (!planilla || cerrada || boletas.length === 0) return;
-    const clave = JSON.stringify([
-      tareos.map((t) => [t.trabajador_id, t.fecha, t.tipo, t.horas, t.asistencia]),
-      trabajadores.map((t) => [t.id, t.sueldo_mensual, t.tipo_contratacion, t.activo]),
-      comisiones,
-    ]);
-    if (!autoRef.current) { autoRef.current = clave; return; }
-    if (autoRef.current === clave) return;
-    autoRef.current = clave;
-    void generar();
+    if (!puedeVerDinero(rol) || !planilla || cerrada || !personalListo || !tareoListo) return;
+    let cancelado = false;
+    const sincronizar = async () => {
+      let cambios = false;
+      for (const b of boletas) {
+        if (cancelado) return;
+        if (b.estado_pago === "Pagado") continue;
+        const t = tDe(b.trabajador_id);
+        if (!t) continue;
+        const dt = datosTareo(t);
+        const calc = calcularBoleta(t, { dias_laborados: dt.dias_laborados, horas_extra: dt.horas_extra, otros_ingresos: Number(b.otros_ingresos), renta_quinta: Number(b.renta_quinta), otros_descuentos: Number(b.otros_descuentos) }, comisiones, rmvDe(periodoAfp));
+        const difiere = Object.entries(calc).some(([campo, valor]) => String(b[campo as keyof Boleta]) !== String(valor));
+        if (!difiere) continue;
+        const { error: err } = await supabase.from("boletas").update(calc).eq("id", b.id).eq("estado_pago", "Pendiente");
+        if (err) { if (!cancelado) setError(err.message); return; }
+        cambios = true;
+      }
+      if (cambios && !cancelado) await qc.invalidateQueries({ queryKey: ["boletas"] });
+    };
+    void sincronizar();
+    return () => { cancelado = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tareos, trabajadores, comisiones, planilla, cerrada, boletas.length]);
+  }, [tareos, trabajadores, comisiones, planilla, boletas, cerrada, personalListo, tareoListo, periodoAfp, rol]);
 
   async function eliminar(b: Boleta) {
+    if (cerrada) return setError("Reabre la planilla antes de eliminar una boleta.");
     if (b.estado_pago === "Pagado") return setError("No se puede eliminar una boleta pagada.");
     if (!window.confirm(`¿Eliminar la boleta de ${tDe(b.trabajador_id)?.nombre ?? "este trabajador"}?`)) return;
     const { error: err } = await supabase.from("boletas").delete().eq("id", b.id);
@@ -243,32 +231,22 @@ function Nomina() {
     await refrescar();
   }
 
-  const valor = (b: Boleta, campo: keyof Boleta) => editando[b.id]?.[campo] ?? String(b[campo] ?? 0);
-  const cambiar = (id: string, campo: string, v: string) =>
-    setEditando((e) => ({ ...e, [id]: { ...e[id], [campo]: v } }));
-
-  async function guardarFila(b: Boleta) {
+  async function guardarDetalle(b: Boleta, valores: ValoresNomina): Promise<boolean> {
     const t = tDe(b.trabajador_id);
-    if (!t) return;
-    const num = (c: keyof Boleta) => Number(valor(b, c) || 0);
-    const dias = num("dias_laborados");
-    if (dias < 0 || dias > 30) return setError("Los días laborados deben estar entre 0 y 30.");
-    const calc = calcularBoleta(t, {
-      dias_laborados: dias,
-      horas_extra: num("horas_extra"),
-      otros_ingresos: num("otros_ingresos"),
-      renta_quinta: num("renta_quinta"),
-      otros_descuentos: num("otros_descuentos"),
-    }, comisiones, rmvDe(periodoAfp));
-    const { error: err } = await supabase.from("boletas").update(calc).eq("id", b.id);
-    if (err) return setError(err.message);
-    setEditando(({ [b.id]: _, ...resto }) => resto);
+    if (!t || cerrada || b.estado_pago === "Pagado") return false;
+    if (Object.values(valores).some((v) => !Number.isFinite(v) || v < 0) || valores.dias_laborados > 30) return false;
+    const calc = calcularBoleta(t, valores, comisiones, rmvDe(periodoAfp));
+    if (calc.neto_pagar < 0) return false;
+    const { error: err } = await supabase.from("boletas").update(calc).eq("id", b.id).eq("estado_pago", "Pendiente");
+    if (err) { setError(err.message); return false; }
     await refrescar();
+    return true;
   }
 
   async function cambiarEstado() {
     if (!planilla) return;
-    if (Object.keys(editando).length) return setError("Guarda los cambios pendientes antes de cerrar.");
+    if (detalle) return setError("Guarda y cierra el detalle antes de validar.");
+    if (!cerrada && (boletas.length === 0 || boletas.some((b) => !Number.isFinite(Number(b.neto_pagar)) || Number(b.neto_pagar) < 0 || Number(b.total_ingresos) <= 0))) return setError("Revisa las boletas antes de validar: deben tener ingresos y un neto válido.");
     const nuevo = cerrada ? "Borrador" : "Cerrada";
     if (cerrada && boletas.some((b) => b.estado_pago === "Pagado")) return setError("No se puede reabrir: hay boletas pagadas.");
     const { error: err } = await supabase.from("planillas").update({ estado: nuevo }).eq("id", planilla.id);
@@ -278,6 +256,7 @@ function Nomina() {
 
   async function pagarTodo() {
     if (!pago || !planilla) return;
+    if (!cerrada) return setError("Valida las boletas antes de registrar el pago.");
     if (!pago.banco_id || !pago.fecha_pago || !pago.numero_operacion.trim())
       return setError("Para pagar indica banco, fecha y número de operación.");
     const { boleta_id, ...datosPago } = pago;
@@ -293,62 +272,11 @@ function Nomina() {
     await refrescar();
   }
 
-  function imprimir(lista: Boleta[]) {
-    const w = window.open("", "_blank");
-    if (!w) return;
-    const esc = (s: string) => s.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]!);
-    const m = (n: number) => `S/ ${Number(n).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-    const fila = (a: string, b: number) => `<tr><td>${a}</td><td class="n">${m(b)}</td></tr>`;
-    const html = lista
-      .map((b) => {
-        const t = tDe(b.trabajador_id);
-        return `<section class="boleta">
-        <header><div><b>${esc(empresa?.razon_social ?? "TELXEN SAC")}</b><br/>RUC ${esc(empresa?.ruc ?? "")}<br/>${esc(empresa?.direccion ?? "")}</div>
-        <div class="r"><b>BOLETA DE PAGO</b><br/>${periodo}<br/>D.S. 001-98-TR</div></header>
-        <table class="datos"><tr><td>Trabajador</td><td><b>${esc(t?.nombre ?? "")}</b></td><td>DNI</td><td>${esc(t?.dni ?? "")}</td></tr>
-        <tr><td>Cargo</td><td>${esc(t?.cargo ?? "")}</td><td>Fecha ingreso</td><td>${fecha(t?.fecha_ingreso ?? null)}</td></tr>
-        <tr><td>Régimen</td><td>${esc(b.regimen_laboral)}</td><td>Pensión</td><td>${esc(b.sistema_pensiones)} ${esc(t?.cuspp ?? "")}</td></tr>
-        <tr><td>Días laborados</td><td>${b.dias_laborados}</td><td>Cuenta</td><td>${esc(t?.banco ?? "")} ${esc(t?.numero_cuenta ?? "")}</td></tr></table>
-        <div class="cols">
-          <table><thead><tr><th colspan="2">Ingresos</th></tr></thead>${fila("Sueldo básico", b.sueldo_basico)}${fila("Asignación familiar", b.asignacion_familiar)}${fila("Horas extra", b.horas_extra)}${fila("Otros ingresos", b.otros_ingresos)}<tr class="t"><td>Total ingresos</td><td class="n">${m(b.total_ingresos)}</td></tr></table>
-          <table><thead><tr><th colspan="2">Descuentos</th></tr></thead>${fila(b.sistema_pensiones === "ONP" ? "ONP 13%" : b.sistema_pensiones, b.aporte_pension)}${fila("Renta 5ta categoría", b.renta_quinta)}${fila("Otros descuentos", b.otros_descuentos)}<tr class="t"><td>Total descuentos</td><td class="n">${m(b.total_descuentos)}</td></tr></table>
-          <table><thead><tr><th colspan="2">Aportes empleador</th></tr></thead>${fila(b.regimen_laboral === "MYPE Micro" ? "SIS" : "EsSalud", b.essalud)}</table>
-        </div>
-        <p class="neto">NETO A PAGAR: ${m(b.neto_pagar)}</p>
-        <div class="firmas"><span>Empleador</span><span>Trabajador</span></div></section>`;
-      })
-      .join("");
-    w.document.write(`<html><head><title>Boletas ${periodo}</title><style>
-      body{font-family:${fuente.css};font-size:11px;color:#111;margin:20px}
-      .boleta{border:1px solid #333;padding:14px;margin-bottom:24px;page-break-after:always}
-      header{display:flex;justify-content:space-between;border-bottom:2px solid #003352;padding-bottom:8px;margin-bottom:8px}.r{text-align:right}
-      table{width:100%;border-collapse:collapse}td,th{padding:3px 5px;border-bottom:1px solid #ddd;text-align:left}
-      th{background:#003352;color:#fff}.n{text-align:right}.t td{font-weight:bold;border-top:1px solid #333}
-      .cols{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:10px}
-      .neto{text-align:right;font-size:14px;font-weight:bold;margin-top:10px}
-      .firmas{display:flex;justify-content:space-around;margin-top:50px}.firmas span{border-top:1px solid #333;padding-top:4px;width:180px;text-align:center}
-    </style></head><body>${html}<script>window.onload=()=>window.print()</script></body></html>`);
-    w.document.close();
-  }
-
   const suma = (c: keyof Boleta) => boletas.reduce((s, b) => s + Number(b[c] ?? 0), 0);
   const ordenadas = [...boletas].sort((a, b) => (tDe(a.trabajador_id)?.nombre ?? "").localeCompare(tDe(b.trabajador_id)?.nombre ?? ""));
   const pendientes = boletas.filter((b) => b.estado_pago === "Pendiente").length;
-  const celda = (b: Boleta, campo: keyof Boleta) =>
-    cerrada || !editando[b.id] ? soles(Number(b[campo])) : (
-      <Input type="number" step="0.01" min="0" value={valor(b, campo)} onChange={(e) => cambiar(b.id, campo, e.target.value)} className="py-1 text-right text-xs" />
-    );
-  const empezarEdicion = (b: Boleta) =>
-    setEditando((e) => ({
-      ...e,
-      [b.id]: {
-        dias_laborados: String(b.dias_laborados),
-        horas_extra: String(b.horas_extra),
-        otros_ingresos: String(b.otros_ingresos),
-        renta_quinta: String(b.renta_quinta),
-        otros_descuentos: String(b.otros_descuentos),
-      },
-    }));
+  const celda = (b: Boleta, campo: keyof Boleta) => soles(Number(b[campo]));
+  if (!puedeVerDinero(rol)) return <SinAcceso />;
 
   return (
     <>
@@ -464,18 +392,18 @@ function Nomina() {
           <Panel className="mb-4">
         <div className="flex flex-wrap items-end gap-3 p-3">
           <Campo etiqueta="Mes">
-            <Select value={mes} onChange={(e) => { setMes(Number(e.target.value)); setEditando({}); }} className="py-1.5">
+            <Select value={mes} onChange={(e) => { setMes(Number(e.target.value)); setDetalle(null); setPago(null); }} className="py-1.5">
               {MESES.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
             </Select>
           </Campo>
           <Campo etiqueta="Año">
-            <Input type="number" value={anio} onChange={(e) => { setAnio(Number(e.target.value)); setEditando({}); }} className="w-24 py-1.5" />
+            <Input type="number" value={anio} onChange={(e) => { setAnio(Number(e.target.value)); setDetalle(null); setPago(null); }} className="w-24 py-1.5" />
           </Campo>
           {planilla && (
             <>
-              <Etiqueta tono={cerrada ? "good" : "neutro"}>{planilla.estado}</Etiqueta>
+              <Etiqueta tono={cerrada ? "good" : "neutro"}>{cerrada ? "Validada" : "Borrador"}</Etiqueta>
               <Boton variante="linea" onClick={cambiarEstado}>
-                {cerrada ? <><Unlock size={13} /> Reabrir</> : <><Lock size={13} /> Cerrar planilla</>}
+                {cerrada ? <><Unlock size={13} /> Reabrir</> : <><Lock size={13} /> Validar boletas</>}
               </Boton>
               {cerrada && pendientes > 0 && !pago && (
                 <Boton variante="accion" onClick={() => setPago({ banco_id: "", fecha_pago: hoy(), numero_operacion: "" })}>
@@ -543,11 +471,10 @@ function Nomina() {
               <tbody>
                 {ordenadas.map((b) => {
                   const t = tDe(b.trabajador_id);
-                  const sucio = !!editando[b.id];
                   return (
                     <tr key={b.id} className="border-b border-line/60 last:border-0">
                       <td className="px-4 py-2 font-semibold text-ink">{t?.nombre}<span className="block text-[10px] font-normal text-muted-foreground">{b.regimen_laboral} · {b.sistema_pensiones}</span></td>
-                      <td className="px-2 py-2">{cerrada || !sucio ? b.dias_laborados : <Input type="number" min="0" max="30" value={valor(b, "dias_laborados")} onChange={(e) => cambiar(b.id, "dias_laborados", e.target.value)} className="py-1 text-xs" />}</td>
+                      <td className="px-2 py-2">{b.dias_laborados}</td>
                       <td className="px-2 py-2 text-right">{soles(Number(b.sueldo_basico))}</td>
                       <td className="px-2 py-2 text-right">{soles(Number(b.asignacion_familiar))}</td>
                       <td className="px-2 py-2 text-right">{celda(b, "horas_extra")}</td>
@@ -564,18 +491,9 @@ function Nomina() {
                       </td>
                       <td className="px-4 py-2">
                         <div className="flex justify-end gap-1">
-                          {sucio ? (
-                            <button type="button" title="Recalcular y guardar" onClick={() => guardarFila(b)} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground"><Check size={14} /></button>
-                          ) : !cerrada && b.estado_pago !== "Pagado" && (
-                            <button type="button" title="Editar boleta" onClick={() => empezarEdicion(b)} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"><Pencil size={14} /></button>
-                          )}
-                          <button type="button" title="Imprimir boleta" onClick={() => imprimir([b])} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"><Printer size={14} /></button>
-                          {b.estado_pago !== "Pagado" && (
-                            <button type="button" title="Registrar pago" onClick={() => setPago({ boleta_id: b.id, banco_id: "", fecha_pago: hoy(), numero_operacion: "" })} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"><Check size={14} /></button>
-                          )}
-                          {!cerrada && b.estado_pago !== "Pagado" && (
-                            <button type="button" title="Eliminar" onClick={() => eliminar(b)} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-bad hover:text-bad"><Trash2 size={14} /></button>
-                          )}
+                          <Boton variante="linea" title="Editar o imprimir detalle" aria-label="Editar o imprimir detalle" onClick={() => { setError(""); setDetalle(b); }} className="h-8 w-8 p-0 border-line text-muted-foreground"><FileText size={15} /></Boton>
+                          <Boton variante="linea" title={cerrada ? "Registrar pago" : "Valida las boletas para registrar pago"} aria-label="Registrar pago" disabled={!cerrada || b.estado_pago === "Pagado"} onClick={() => { if (cerrada) setPago({ boleta_id: b.id, banco_id: "", fecha_pago: hoy(), numero_operacion: "" }); }} className="h-7 w-7 p-0 border-line text-muted-foreground"><Check size={14} /></Boton>
+                          <Boton variante="linea" title="Eliminar" aria-label="Eliminar" disabled={cerrada || b.estado_pago === "Pagado"} onClick={() => void eliminar(b)} className="h-7 w-7 p-0 border-line text-muted-foreground hover:border-bad hover:bg-transparent hover:text-bad"><Trash2 size={14} /></Boton>
                         </div>
                       </td>
                     </tr>
@@ -588,6 +506,7 @@ function Nomina() {
       </Panel>
         </>
       )}
+      {detalle && <DetallePagoNomina key={detalle.id} boleta={boletas.find((b) => b.id === detalle.id) ?? detalle} trabajador={tDe(detalle.trabajador_id)} empresa={empresa} periodo={periodo} bloqueada={cerrada || detalle.estado_pago === "Pagado"} recalcular={(valores) => { const t = tDe(detalle.trabajador_id); return t ? calcularBoleta(t, valores, comisiones, rmvDe(periodoAfp)) : {}; }} onGuardar={(valores) => guardarDetalle(detalle, valores)} onCerrar={() => setDetalle(null)} />}
     </>
   );
 }
