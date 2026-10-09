@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, FileText, Plus, Trash2, Upload, Wand2 } from "lucide-react";
+import { Check, FileText, Trash2, Upload, Wand2 } from "lucide-react";
 import { GenerarBoletasHonorarios } from "@/components/personal/GenerarBoletasHonorarios";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
@@ -57,17 +57,6 @@ type Recibo = {
   fondo_pensiones: number;
   descuento_herramientas: number;
   lugar_emision: string;
-};
-
-const nuevoDetalle = (): FormularioHonorario => {
-  const ahora = new Date();
-  return {
-    trabajador_id: "", proyecto_id: "", numero_recibo: "", fecha_emision: hoy(), concepto: "",
-    mes: ahora.getMonth() + 1, anio: ahora.getFullYear(), dias_laborados: 0, dias_viaje: 0,
-    horas_extras: 0, otros_remuneraciones: 0, induccion: 0, costo_unitario: 0, saldo_mes_anterior: 0,
-    adelantos: 0, devolucion_gastos: 0, pagos_a_cuenta_planilla: 0, fondo_pensiones: 0,
-    descuento_herramientas: 0, lugar_emision: "Huancayo", retencion: 0,
-  };
 };
 
 function Honorarios() {
@@ -230,9 +219,6 @@ function Honorarios() {
         subtitulo="Prestadores de 4ta categoría · retención 8% sobre recibos mayores a S/ 1,500"
         acciones={
           <div className="flex gap-2">
-            <Boton onClick={() => { setError(""); setEditor({ clave: `nuevo-${Date.now()}`, form: nuevoDetalle() }); }}>
-              <Plus size={14} /> Nuevo detalle
-            </Boton>
             <Boton variante="linea" onClick={() => { setAviso(""); setGenerador(true); }}>
               <Wand2 size={14} /> Generar boletas de pago
             </Boton>
