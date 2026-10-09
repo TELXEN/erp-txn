@@ -46,11 +46,11 @@ function Hoja({ boleta: b, trabajador: t, empresa, periodo, editable, cambiar }:
     </section>
     <section className="mb-3 border border-line">
       <Dato nombre="Apellidos y nombres" valor={t?.nombre} />
-      <div className="grid grid-cols-2 divide-x divide-line"><div><Dato nombre="DNI" valor={t?.dni} /><Dato nombre="Cargo" valor={t?.cargo} /><Dato nombre="Régimen" valor={b.regimen_laboral} /><Dato nombre="Días laborados" valor={String(b.dias_laborados)} /></div><div><Dato nombre="Cuenta de depósito" valor={t?.numero_cuenta} /><Dato nombre="Banco" valor={t?.banco} /><Dato nombre="Pensión / CUSPP" valor={`${b.sistema_pensiones} ${t?.cuspp ?? ""}`} /><Dato nombre="Fecha de ingreso" valor={fecha(t?.fecha_ingreso ?? null)} /></div></div>
+      <div className="grid grid-cols-2 divide-x divide-line"><div><Dato nombre="DNI" valor={t?.dni} /><Dato nombre="Cargo" valor={t?.cargo} /><Dato nombre="Régimen" valor={b.regimen_laboral} /><Dato nombre="Días laborados" valor={String(b.dias_laborados)} /></div><div><Dato nombre="Cuenta de depósito" valor={t?.numero_cuenta} /><Dato nombre="Banco" valor={t?.banco} /><Dato nombre="CUSPP" valor={t?.cuspp} /><Dato nombre="Fecha de ingreso" valor={fecha(t?.fecha_ingreso ?? null)} /></div></div>
     </section>
     <div className="grid grid-cols-[1.12fr_1.12fr_0.9fr] border border-line">
       <section className="border-r border-line">{cabecera("Remuneraciones")}{fila("Sueldo básico", b.sueldo_basico)}{fila("Asignación familiar", b.asignacion_familiar)}{fila("Horas extra", b.horas_extra)}{fila("Otros ingresos", b.otros_ingresos, "otros_ingresos")}</section>
-      <section className="border-r border-line">{cabecera("Descuentos")}{fila(b.sistema_pensiones, b.aporte_pension)}{fila("Renta 5ta categoría", b.renta_quinta, "renta_quinta")}{fila("Otros descuentos", b.otros_descuentos, "otros_descuentos")}</section>
+      <section className="border-r border-line">{cabecera("Descuentos")}{fila("Aporte previsional", b.aporte_pension)}{fila("Renta 5ta categoría", b.renta_quinta, "renta_quinta")}{fila("Otros descuentos", b.otros_descuentos, "otros_descuentos")}</section>
       <section>{cabecera("Aportes empleador")}{fila(b.regimen_laboral === "MYPE Micro" ? "SIS" : "EsSalud", b.essalud)}</section>
       <div className="border-r border-t border-line bg-muted/35 font-bold">{fila("Total ingresos", b.total_ingresos)}</div><div className="border-r border-t border-line bg-muted/35 font-bold">{fila("Total descuentos", b.total_descuentos)}</div><div className="border-t border-line bg-muted/35 font-bold">{fila("Total aportes", b.essalud)}</div>
     </div>
