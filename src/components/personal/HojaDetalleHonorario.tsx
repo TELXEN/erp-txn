@@ -101,6 +101,15 @@ function Monto({ etiqueta, valor, editable, onCambiar }: { etiqueta: string; val
   );
 }
 
+function CabeceraMonto() {
+  return (
+    <div className="flex items-center justify-between gap-3 border-b px-2 py-1 text-[8px] leading-tight font-bold uppercase" style={{ borderColor: DOC.line, background: DOC.soft }}>
+      <span>Concepto</span>
+      <span>Monto</span>
+    </div>
+  );
+}
+
 export function HojaDetalleHonorario({ empresa, trabajador, proyecto, detalle, totalRemuneraciones, totalDescuentos, neto, editable = false, onCambiar, selectores }: Props) {
   const cambia = (campo: keyof DetalleHonorario) => (valor: string) => {
     onCambiar?.(campo, valor);
@@ -187,7 +196,7 @@ export function HojaDetalleHonorario({ empresa, trabajador, proyecto, detalle, t
       <section className="mt-3 grid flex-1 grid-cols-[1.18fr_1fr_1.12fr] border" style={{ borderColor: DOC.line }}>
         <div className="border-r" style={{ borderColor: DOC.line }}>
           <h3 className="px-2 py-1 text-center text-[10px] leading-tight font-bold uppercase" style={{ background: DOC.total }}>Remuneraciones</h3>
-          <div className={`grid ${COL_MONTO} items-center gap-2 border-b px-2 py-1 text-[8px] font-bold uppercase`} style={{ borderColor: DOC.line, background: DOC.soft }}>
+          <div className={`grid ${COL_MONTO} items-center gap-2 border-b px-2.5 py-1 text-[8px] leading-tight font-bold uppercase`} style={{ borderColor: DOC.line, background: DOC.soft }}>
             <span>Concepto</span><span className="text-center">Cant.</span><span className="text-right">Monto</span>
           </div>
           {remuneraciones.map((r) =>
@@ -200,6 +209,7 @@ export function HojaDetalleHonorario({ empresa, trabajador, proyecto, detalle, t
         </div>
         <div className="border-r" style={{ borderColor: DOC.line }}>
           <h3 className="px-2 py-1 text-center text-[10px] leading-tight font-bold uppercase" style={{ background: DOC.total }}>Descuentos</h3>
+          <CabeceraMonto />
           {descuentos.map((d) => d.campo && editable
             ? <Monto key={d.etiqueta} etiqueta={d.etiqueta} valor={d.valor} editable onCambiar={cambia(d.campo)} />
             : <Monto key={d.etiqueta} etiqueta={d.etiqueta} valor={d.valor} />)}
