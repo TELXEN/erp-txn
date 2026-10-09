@@ -89,7 +89,9 @@ function Monto({ etiqueta, valor, editable, onCambiar }: { etiqueta: string; val
 }
 
 export function HojaDetalleHonorario({ empresa, trabajador, proyecto, detalle, totalRemuneraciones, totalDescuentos, neto, editable = false, onCambiar }: Props) {
-  const cambia = (campo: keyof DetalleHonorario) => (valor: string) => onCambiar?.(campo, valor);
+  const cambia = (campo: keyof DetalleHonorario) => (valor: string) => {
+    onCambiar?.(campo, valor);
+  };
   // Cada concepto se valora en jornales: viaje/2, extras/10.5, feriados×2.
   const remuneraciones: { etiqueta: string; campo?: keyof DetalleHonorario; cantidad?: string; valor: number }[] = [
     { etiqueta: "Días laborados", campo: "dias_laborados", cantidad: String(detalle.dias_laborados || 0), valor: detalle.dias_laborados * detalle.costo_unitario },
