@@ -356,11 +356,12 @@ function Nomina() {
         titulo="Nómina y Boletas"
         subtitulo="Planilla mensual del personal en 5ta categoría"
         acciones={
-          pestana === "planilla" && boletas.length > 0 && (
+          pestana === "planilla" && (
             <div className="flex gap-2">
               {!cerrada && (
                 <Boton variante="linea" onClick={generar}><Wand2 size={13} /> Generar boletas de pago</Boton>
               )}
+              {boletas.length > 0 && (
               <Boton
                 variante="linea"
                 onClick={() =>
