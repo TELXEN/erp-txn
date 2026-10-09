@@ -95,6 +95,11 @@ function Nomina() {
   const [pestana, setPestana] = useState<"planilla" | "datos">("planilla");
   const [pago, setPago] = useState<{ boleta_id?: string; banco_id: string; fecha_pago: string; numero_operacion: string } | null>(null);
   const [error, setError] = useState("");
+  useEffect(() => {
+    if (!pago?.boleta_id) return;
+    const contenedor = document.getElementById("nomina-pago-individual")?.closest("table")?.parentElement;
+    if (contenedor) contenedor.scrollLeft = contenedor.scrollWidth;
+  }, [pago?.boleta_id]);
   const periodoAfp = `${anio}-${String(mes).padStart(2, "0")}`;
   const { comisiones, origen: origenAfp, data: afpData, actualizar: actualizarAfp, isFetching: cargandoAfp } = useComisionesAfp(periodoAfp);
   const [msgAfp, setMsgAfp] = useState("");
@@ -413,7 +418,7 @@ function Nomina() {
             </>
           )}
         </div>
-        {pago && (
+        {pago && !pago.boleta_id && (
           <div className="flex flex-wrap items-end gap-2 border-t border-line p-3">
             <Campo etiqueta="Banco">
               <Select value={pago.banco_id} onChange={(e) => setPago({ ...pago, banco_id: e.target.value })} className="py-1.5">
@@ -465,7 +470,7 @@ function Nomina() {
                   <th className="px-2 py-2 text-right">Ingresos</th><th className="px-2 py-2 text-right">ONP/AFP</th>
                   <th className="w-24 px-2 py-2 text-right">Renta 5ta</th><th className="w-24 px-2 py-2 text-right">Otros desc.</th>
                   <th className="px-2 py-2 text-right">Neto</th><th className="px-2 py-2 text-right">EsSalud</th>
-                  <th className="px-2 py-2">Estado</th><th className="sticky right-0 z-10 w-32 border-l border-line bg-card px-3 py-2 text-right">Acciones</th>
+                  <th className="px-2 py-2">Estado / Pago</th><th className="sticky right-0 z-10 w-32 border-l border-line bg-card px-3 py-2 text-right">Acciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -486,14 +491,36 @@ function Nomina() {
                       <td className="px-2 py-2 text-right font-semibold text-ink">{soles(Number(b.neto_pagar))}</td>
                       <td className="px-2 py-2 text-right">{soles(Number(b.essalud))}</td>
                       <td className="px-2 py-2">
-                        <Etiqueta tono={b.estado_pago === "Pagado" ? "good" : "bad"}>{b.estado_pago}</Etiqueta>
-                        {b.fecha_pago && <span className="block text-[10px] text-muted-foreground">{fecha(b.fecha_pago)}</span>}
+                        {pago?.boleta_id === b.id ? (
+                          <div id="nomina-pago-individual" className="grid min-w-48 gap-1">
+                            <Select aria-label="Banco de pago" value={pago.banco_id} onChange={(e) => { const v = e.target.value; setPago((p) => p ? { ...p, banco_id: v } : p); }} className="py-1 text-xs">
+                              <option value="">Banco…</option>
+                              {bancos.map((banco) => <option key={banco.id} value={banco.id}>{banco.nombre} · {banco.numero_cuenta}</option>)}
+                            </Select>
+                            <Input aria-label="Fecha de pago" type="date" value={pago.fecha_pago} onChange={(e) => { const v = e.target.value; setPago((p) => p ? { ...p, fecha_pago: v } : p); }} className="py-1 text-xs" />
+                            <Input aria-label="N° operación" placeholder="N° operación" value={pago.numero_operacion} onChange={(e) => { const v = e.target.value; setPago((p) => p ? { ...p, numero_operacion: v } : p); }} className="py-1 text-xs" />
+                          </div>
+                        ) : (
+                          <>
+                            <Etiqueta tono={b.estado_pago === "Pagado" ? "good" : "bad"}>{b.estado_pago}</Etiqueta>
+                            {b.estado_pago === "Pagado" && <span className="mt-0.5 block text-[10px] text-muted-foreground">{fecha(b.fecha_pago)} · Op. {b.numero_operacion}</span>}
+                          </>
+                        )}
                       </td>
                       <td className="sticky right-0 z-10 border-l border-line bg-card px-3 py-2">
                         <div className="flex items-center justify-end gap-1">
+                          {pago?.boleta_id === b.id ? (
+                            <>
+                              <Boton onClick={pagarTodo} className="py-1">Confirmar</Boton>
+                              <Boton variante="linea" onClick={() => { setPago(null); setError(""); }} className="py-1">Cancelar</Boton>
+                            </>
+                          ) : (
+                            <>
                           <Boton variante="linea" title="Editar o imprimir detalle" aria-label="Editar o imprimir detalle" onClick={() => { setError(""); setDetalle(b); }} className="h-8 w-8 shrink-0 !p-0 border-line text-muted-foreground hover:bg-transparent hover:border-primary hover:text-primary"><FileText size={15} className="shrink-0" /></Boton>
-                          <Boton variante="linea" title={cerrada ? "Registrar pago" : "Valida las boletas para registrar pago"} aria-label="Registrar pago" disabled={!cerrada || b.estado_pago === "Pagado"} onClick={() => { if (cerrada) setPago({ boleta_id: b.id, banco_id: "", fecha_pago: hoy(), numero_operacion: "" }); }} className="h-8 w-8 shrink-0 !p-0 border-line text-muted-foreground hover:bg-transparent hover:border-primary hover:text-primary"><Check size={15} className="shrink-0" /></Boton>
+                          <Boton variante="linea" title={cerrada ? "Registrar pago" : "Valida las boletas para registrar pago"} aria-label="Registrar pago" disabled={!cerrada || b.estado_pago === "Pagado"} onClick={() => { if (cerrada) { setError(""); setPago({ boleta_id: b.id, banco_id: "", fecha_pago: hoy(), numero_operacion: "" }); } }} className="h-8 w-8 shrink-0 !p-0 border-line text-muted-foreground hover:bg-transparent hover:border-primary hover:text-primary"><Check size={15} className="shrink-0" /></Boton>
                           <Boton variante="linea" title="Eliminar" aria-label="Eliminar" disabled={cerrada || b.estado_pago === "Pagado"} onClick={() => void eliminar(b)} className="h-8 w-8 shrink-0 !p-0 border-line text-muted-foreground hover:border-bad hover:bg-transparent hover:text-bad"><Trash2 size={15} className="shrink-0" /></Boton>
+                            </>
+                          )}
                         </div>
                       </td>
                     </tr>
