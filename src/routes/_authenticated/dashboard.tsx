@@ -219,6 +219,17 @@ function Dashboard() {
     [global, seleccion, porProyecto],
   );
 
+  const avisoPendientes = useMemo(
+    () =>
+      [...personal.pendientes.entries()]
+        .sort()
+        .map(([per, set]) => {
+          const [a, m] = per.split("-");
+          return `⚠ ${set.size} trabajador(es) con tareo sin boleta en ${MESES[Number(m) - 1]} ${a}`;
+        }),
+    [personal],
+  );
+
   const datos = useMemo(() => {
     const sum = (f: (x: (typeof filasTabla)[number]) => number) => filasTabla.reduce((s, x) => s + f(x), 0);
     const presupuesto = sum((f) => f.presupuesto);
@@ -231,10 +242,11 @@ function Dashboard() {
     const subcontratos = sum((f) => f.subcontratos);
     const equipos = sum((f) => f.equipos);
     const servicios = sum((f) => f.servicios);
-    const mod = sum((f) => f.mod);
-    const staff = sum((f) => f.staff);
+    const sa = global ? (personal.porProyecto.get(SIN_ASIGNAR) ?? { mod: 0, honorarios: 0, staff: 0 }) : { mod: 0, honorarios: 0, staff: 0 };
+    const mod = sum((f) => f.mod) + sa.mod;
+    const staff = sum((f) => f.staff) + sa.staff;
     const generales = sum((f) => f.generales);
-    const honorarios = sum((f) => f.honorarios);
+    const honorarios = sum((f) => f.honorarios) + sa.honorarios;
     const contractual = sum((f) => f.contractual);
     const adicionales = sum((f) => f.adicionales);
     const costoDirectoReal = materiales + subcontratos + equipos + servicios + mod + honorarios;
@@ -491,6 +503,8 @@ function Dashboard() {
             )}`,
             `Honorarios ${soles(datos.honorarios)}`,
             `GG + Staff ${soles(datos.ggReal)}`,
+            "Personal valorizado desde boletas y recibos, repartido por tareo",
+            ...avisoPendientes,
           ]}
         />
         <Kpi
