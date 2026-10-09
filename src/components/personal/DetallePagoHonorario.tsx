@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { Eye, Printer, Save, Wand2 } from "lucide-react";
-import { Boton, Campo, Input, Select, VentanaFlotante } from "@/components/ui-kit";
+import { Printer, Save, Wand2 } from "lucide-react";
+import { Boton, VentanaFlotante } from "@/components/ui-kit";
 import { HojaDetalleHonorario, type DetalleHonorario } from "@/components/personal/HojaDetalleHonorario";
-import { MESES, soles } from "@/lib/format";
+import { soles } from "@/lib/format";
 import type { Tareo } from "@/lib/datos";
 
 type Opcion = { id: string; nombre: string; codigo?: string | null };
@@ -49,6 +49,12 @@ export function calcularDetalleHonorario(form: FormularioHonorario, suspension =
   return { bruto, retencion, descuentos, neto: bruto - descuentos };
 }
 
+const CAMPOS_NUMERICOS = new Set<keyof DetalleHonorario>([
+  "mes", "anio", "dias_laborados", "dias_viaje", "horas_extras", "otros_remuneraciones", "induccion",
+  "costo_unitario", "saldo_mes_anterior", "adelantos", "devolucion_gastos", "pagos_a_cuenta_planilla",
+  "fondo_pensiones", "descuento_herramientas",
+]);
+
 export function DetallePagoHonorario({
   abierta,
   inicial,
@@ -73,9 +79,7 @@ export function DetallePagoHonorario({
   onGuardar: (form: FormularioHonorario) => Promise<void>;
 }) {
   const [form, setForm] = useState(inicial);
-  const [vista, setVista] = useState(false);
   const [avisoTareo, setAvisoTareo] = useState("");
-  const hojaRef = useRef<HTMLDivElement>(null);
   const [montado, setMontado] = useState(false);
   useEffect(() => setMontado(true), []);
 
@@ -88,7 +92,9 @@ export function DetallePagoHonorario({
   const trabajador = trabajadores.find((item) => item.id === form.trabajador_id) ?? null;
   const proyecto = proyectos.find((item) => item.id === form.proyecto_id);
   const totales = useMemo(() => calcularDetalleHonorario(form, !!trabajador?.suspension_cuarta), [form, trabajador]);
-  const actualizarNumero = (campo: keyof FormularioHonorario, valor: string) => setForm((actual) => ({ ...actual, [campo]: Math.max(0, Number(valor) || 0) }));
+
+  const onCambiar = (campo: keyof DetalleHonorario, valor: string) =>
+    setForm((actual) => ({ ...actual, [campo]: CAMPOS_NUMERICOS.has(campo) ? Math.max(0, Number(valor) || 0) : valor }));
 
   // Autocompletar desde la ficha del trabajador y su tareo del período.
   const clavePeriodo = `${form.trabajador_id}|${form.proyecto_id}|${form.mes}|${form.anio}`;
@@ -113,73 +119,48 @@ export function DetallePagoHonorario({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clavePeriodo, tareos]);
 
-  const hoja = <HojaDetalleHonorario empresa={empresa} trabajador={trabajador} proyecto={proyecto ? `${proyecto.codigo ?? ""} ${proyecto.nombre}`.trim() : "Oficina Central"} detalle={{ ...form, retencion: totales.retencion }} totalRemuneraciones={totales.bruto} totalDescuentos={totales.descuentos} neto={totales.neto} />;
+  const hojaImpresion = <HojaDetalleHonorario empresa={empresa} trabajador={trabajador} proyecto={proyecto ? `${proyecto.codigo ?? ""} ${proyecto.nombre}`.trim() : "Oficina Central"} detalle={{ ...form, retencion: totales.retencion }} totalRemuneraciones={totales.bruto} totalDescuentos={totales.descuentos} neto={totales.neto} />;
 
   return (
-    <VentanaFlotante titulo="Detalle de pago por honorarios" subtitulo="Completa los importes y revisa la hoja A4 antes de guardar." abierta={abierta} onCerrar={onCerrar} ancho="max-w-[1500px]" ocultarBarra>
-      <div className="grid min-h-[680px] lg:grid-cols-[440px_1fr]">
-        <form onSubmit={(e) => { e.preventDefault(); void onGuardar(form); }} className={`${vista ? "hidden lg:block" : "block"} border-r border-line bg-muted/25 p-4`}>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Campo etiqueta="Prestador"><Select required value={form.trabajador_id} onChange={(e) => setForm({ ...form, trabajador_id: e.target.value })}><option value="">Selecciona…</option>{trabajadores.map((t) => <option key={t.id} value={t.id}>{t.nombre}</option>)}</Select></Campo>
-            <Campo etiqueta="Proyecto"><Select value={form.proyecto_id} onChange={(e) => setForm({ ...form, proyecto_id: e.target.value })}><option value="">Oficina Central</option>{proyectos.map((p) => <option key={p.id} value={p.id}>{p.codigo ? `${p.codigo} ` : ""}{p.nombre}</option>)}</Select></Campo>
-            <Campo etiqueta="N° recibo"><Input required maxLength={20} value={form.numero_recibo} onChange={(e) => setForm({ ...form, numero_recibo: e.target.value.toUpperCase() })} placeholder="E001-25" /></Campo>
-            <Campo etiqueta="Fecha de emisión"><Input required type="date" value={form.fecha_emision} onChange={(e) => setForm({ ...form, fecha_emision: e.target.value })} /></Campo>
-            <Campo etiqueta="Mes"><Select value={form.mes} onChange={(e) => setForm({ ...form, mes: Number(e.target.value) })}>{MESES.map((mes, i) => <option key={mes} value={i + 1}>{mes}</option>)}</Select></Campo>
-            <Campo etiqueta="Año"><Input type="number" min="2000" max="2200" value={form.anio} onChange={(e) => actualizarNumero("anio", e.target.value)} /></Campo>
-          </div>
-
-          <fieldset className="mt-4 rounded-md border border-line bg-card p-3">
-            <legend className="px-1 text-xs font-bold text-primary">Remuneraciones</legend>
-            {avisoTareo && (
-              <p className="mb-2 flex items-start gap-1.5 rounded-md bg-primary/8 px-2 py-1.5 text-[11px] text-muted-foreground sm:col-span-2">
-                <Wand2 size={12} className="mt-0.5 shrink-0 text-primary" /> {avisoTareo}
-              </p>
-            )}
-            <div className="grid gap-2 sm:grid-cols-2">
-              {([[
-                "dias_laborados", "Días laborados"], ["costo_unitario", "Costo unitario (S/)"], ["dias_viaje", "Días de viaje"], ["horas_extras", "Horas extras"], ["otros_remuneraciones", "Feriados"], ["induccion", "Inducción (días)"], ["saldo_mes_anterior", "Saldo mes anterior (S/)"]
-              ] as [keyof FormularioHonorario, string][]).map(([campo, etiqueta]) => <Campo key={campo} etiqueta={etiqueta}><Input type="number" min="0" step="0.01" value={form[campo] as number} onChange={(e) => actualizarNumero(campo, e.target.value)} /></Campo>)}
-            </div>
-          </fieldset>
-
-          <fieldset className="mt-3 rounded-md border border-line bg-card p-3">
-            <legend className="px-1 text-xs font-bold text-primary">Descuentos</legend>
-            <div className="grid gap-2 sm:grid-cols-2">
-              {([[
-                "adelantos", "Adelantos"], ["devolucion_gastos", "Devolución de gastos"], ["pagos_a_cuenta_planilla", "Pagos a cuenta"], ["fondo_pensiones", "Fondo de pensiones"], ["descuento_herramientas", "Pérdida de herramientas"]
-              ] as [keyof FormularioHonorario, string][]).map(([campo, etiqueta]) => <Campo key={campo} etiqueta={etiqueta}><Input type="number" min="0" step="0.01" value={form[campo] as number} onChange={(e) => actualizarNumero(campo, e.target.value)} /></Campo>)}
-            </div>
-          </fieldset>
-
-          <div className="mt-3 grid gap-3">
-            <Campo etiqueta="Concepto del recibo"><textarea required maxLength={800} rows={4} value={form.concepto} onChange={(e) => setForm({ ...form, concepto: e.target.value })} className="w-full resize-none rounded-md border border-line bg-card px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/15" /></Campo>
-            <Campo etiqueta="Lugar de emisión"><Input maxLength={80} value={form.lugar_emision} onChange={(e) => setForm({ ...form, lugar_emision: e.target.value })} /></Campo>
-          </div>
-
-          <div className="mt-4 rounded-md bg-primary/8 p-3 text-xs">
-            <div className="flex justify-between"><span>Total remuneraciones</span><b>{soles(totales.bruto)}</b></div>
-            <div className="mt-1 flex justify-between"><span>Descuentos (incluye retención {soles(totales.retencion)})</span><b>{soles(totales.descuentos)}</b></div>
-            <div className="mt-2 flex justify-between border-t border-primary/20 pt-2 text-sm"><b>Neto a pagar</b><b>{soles(totales.neto)}</b></div>
-          </div>
-          {error && <p className="mt-3 text-xs text-bad">{error}</p>}
-          <div className="mt-4 flex flex-wrap justify-end gap-2">
-            <Boton type="button" variante="linea" className="lg:hidden" onClick={() => setVista(true)}><Eye size={14} /> Vista previa</Boton>
-            <Boton type="submit" disabled={guardando || totales.bruto <= 0 || totales.neto < 0}><Save size={14} /> {guardando ? "Guardando…" : "Guardar detalle"}</Boton>
-          </div>
-        </form>
-
-        <div className={`${vista ? "block" : "hidden lg:block"} overflow-auto bg-muted/40 p-4 print:block print:overflow-visible print:bg-paper print:p-0`}>
-          <div className="mb-3 flex justify-between print:hidden">
-            <Boton type="button" variante="linea" className="lg:hidden" onClick={() => setVista(false)}>Volver a editar</Boton>
+    <VentanaFlotante titulo="Detalle de pago por honorarios" subtitulo="Edita los datos directamente sobre la hoja; lo que ves es lo que se imprime." abierta={abierta} onCerrar={onCerrar} ancho="max-w-[1100px]" ocultarBarra>
+      <div className="flex min-h-[680px] flex-col">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line bg-muted/25 px-4 py-2.5 print:hidden">
+          {avisoTareo ? (
+            <p className="flex min-w-0 flex-1 items-start gap-1.5 text-[11px] text-muted-foreground">
+              <Wand2 size={12} className="mt-0.5 shrink-0 text-primary" /> <span className="min-w-0">{avisoTareo}</span>
+            </p>
+          ) : <span className="flex-1" />}
+          <div className="flex shrink-0 items-center gap-2">
             <Boton type="button" variante="linea" onClick={imprimir}><Printer size={14} /> Imprimir / Guardar PDF</Boton>
+            <Boton type="button" disabled={guardando || totales.bruto <= 0 || totales.neto < 0 || !form.trabajador_id} onClick={() => void onGuardar(form)}><Save size={14} /> {guardando ? "Guardando…" : "Guardar detalle"}</Boton>
           </div>
-          <div ref={hojaRef} className="origin-top scale-[0.82] lg:scale-[0.78] xl:scale-[0.9] print:scale-100">
-            {hoja}
-          </div>
+        </div>
+        {error && <p className="border-b border-line bg-bad/5 px-4 py-2 text-xs text-bad print:hidden">{error}</p>}
+
+        <div className="flex-1 overflow-auto bg-muted/40 p-4 print:overflow-visible print:bg-paper print:p-0">
+          <HojaDetalleHonorario
+            editable
+            empresa={empresa}
+            trabajador={trabajador}
+            proyecto={proyecto ? `${proyecto.codigo ?? ""} ${proyecto.nombre}`.trim() : "Oficina Central"}
+            detalle={{ ...form, retencion: totales.retencion }}
+            totalRemuneraciones={totales.bruto}
+            totalDescuentos={totales.descuentos}
+            neto={totales.neto}
+            onCambiar={onCambiar}
+            selectores={{
+              trabajadores,
+              proyectos,
+              trabajadorId: form.trabajador_id,
+              proyectoId: form.proyecto_id,
+              onTrabajador: (id) => setForm((actual) => ({ ...actual, trabajador_id: id })),
+              onProyecto: (id) => setForm((actual) => ({ ...actual, proyecto_id: id })),
+            }}
+          />
         </div>
       </div>
       {/* Copia exclusiva para impresión, fuera de la ventana: nada la recorta ni escala. */}
-      {montado && abierta && createPortal(<div className="honorario-print-root hidden print:block">{hoja}</div>, document.body)}
+      {montado && abierta && createPortal(<div className="honorario-print-root hidden print:block">{hojaImpresion}</div>, document.body)}
     </VentanaFlotante>
   );
 }
