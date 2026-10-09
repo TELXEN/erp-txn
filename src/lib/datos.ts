@@ -2,12 +2,31 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PRIORIDADES, SITUACIONES } from "@/lib/configuracion";
 
+const PAGINA = 1000;
+
+/**
+ * Lee todas las filas por páginas de 1 000: el servidor corta cada respuesta en 1 000
+ * filas sin avisar, lo que dejaría totales incompletos.
+ */
+export async function leerTodo<T>(
+  construir: () => { range: (a: number, b: number) => PromiseLike<{ data: unknown; error: unknown }> },
+): Promise<T[]> {
+  const filas: T[] = [];
+  for (let desde = 0; ; desde += PAGINA) {
+    const { data, error } = await construir().range(desde, desde + PAGINA - 1);
+    if (error) throw error;
+    const lote = (data ?? []) as T[];
+    filas.push(...lote);
+    if (lote.length < PAGINA) return filas;
+  }
+}
+
 async function pedir<T>(tabla: string, columnas = "*", orden?: { col: string; asc?: boolean }) {
-  let q = supabase.from(tabla as never).select(columnas);
-  if (orden) q = q.order(orden.col, { ascending: orden.asc ?? true });
-  const { data, error } = await q;
-  if (error) throw error;
-  return (data ?? []) as T[];
+  return leerTodo<T>(() => {
+    let q = supabase.from(tabla as never).select(columnas);
+    if (orden) q = q.order(orden.col, { ascending: orden.asc ?? true });
+    return q.order("id" as never); // desempate estable entre páginas
+  });
 }
 
 export type Proyecto = {

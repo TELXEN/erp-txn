@@ -77,26 +77,20 @@ function Dashboard() {
   const { data: recibos = [] } = useQuery({
     queryKey: ["recibos_honorarios"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("recibos_honorarios")
-        .select("trabajador_id,proyecto_id,mes,anio,monto_bruto");
-      if (error) throw error;
-      return (data ?? []) as { trabajador_id: string; proyecto_id: string | null; mes: number; anio: number; monto_bruto: number }[];
+      return leerTodo<{ trabajador_id: string; proyecto_id: string | null; mes: number; anio: number; monto_bruto: number }>(() =>
+        supabase.from("recibos_honorarios").select("trabajador_id,proyecto_id,mes,anio,monto_bruto").order("id"),
+      );
     },
   });
   const { data: boletasNom = [] } = useQuery({
     queryKey: ["boletas_dashboard"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("boletas")
-        .select("trabajador_id,total_ingresos,essalud,planillas(anio,mes)");
-      if (error) throw error;
-      return (data ?? []) as unknown as {
+      return leerTodo<{
         trabajador_id: string;
         total_ingresos: number;
         essalud: number;
         planillas: { anio: number; mes: number } | null;
-      }[];
+      }>(() => supabase.from("boletas").select("trabajador_id,total_ingresos,essalud,planillas(anio,mes)").order("id"));
     },
   });
   const [seleccion, setSeleccion] = useState("global");
