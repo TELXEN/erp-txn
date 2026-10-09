@@ -237,6 +237,13 @@ function Dashboard() {
     };
   }, [filasTabla, global, personal]);
 
+  // Micro-indicadores de la tarjeta "Saldo Disponible por Ejecutar".
+  const saldoCD = datos.cdPrevisto - datos.costoDirectoReal;
+  const saldoGG = datos.ggPresupuestado - datos.ggReal;
+  const consumoCD = datos.cdPrevisto > 0 ? (datos.costoDirectoReal / datos.cdPrevisto) * 100 : 0;
+  const consumoGG = datos.ggPresupuestado > 0 ? (datos.ggReal / datos.ggPresupuestado) * 100 : 0;
+  const desvGGTotal = datos.desvGG;
+
   const composicion = useMemo(() => {
     const valores: Record<ClaveComposicion, number> = {
       materiales: datos.materiales,
