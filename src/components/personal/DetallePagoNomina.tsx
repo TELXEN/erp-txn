@@ -39,7 +39,7 @@ function Hoja({ boleta: b, trabajador: t, empresa, periodo, editable, cambiar }:
   const grupo = (titulo: string) => <h2 className="border-b border-line px-2 py-1 text-center text-[9px] leading-tight font-bold uppercase text-paper" style={{ background: DOC.dark }}>{titulo}</h2>;
   return <article className="honorario-print-sheet mx-auto w-[184mm] max-w-full border border-line bg-paper p-5 text-ink shadow-sm" style={{ fontFamily: fuente.css }}>
     <header className="mb-3 flex items-center justify-between gap-4 border-b-2 border-primary pb-3">
-      <div className="flex min-w-0 items-center gap-3">{empresa?.logo_url ? <img src={empresa.logo_url} alt={empresa.razon_social ?? "Empresa"} className="h-12 w-24 object-contain" /> : <Building2 size={30} className="text-primary" />}<span className="text-sm font-bold">{empresa?.razon_social ?? "TELXEN SAC"}</span></div>
+      <div className="flex min-w-0 items-center gap-3">{empresa?.logo_url ? <img src={empresa.logo_url} alt={empresa.razon_social ?? "Empresa"} className="h-12 w-24 object-contain" /> : <Building2 size={30} className="text-primary" />}<span className="text-sm font-bold">{"\n"}</span></div>
       <div className="shrink-0 text-center"><h1 className="text-lg font-bold uppercase">Boleta de pago</h1><p className="text-[8px] font-semibold uppercase text-muted-foreground">Quinta categoría</p><p className="mt-1 text-[10px]">{periodo}</p></div>
     </header>
     <section className="mb-3 border border-line">
