@@ -20,8 +20,8 @@ export type BoletaNomina = {
 export type ValoresNomina = Pick<BoletaNomina, "dias_laborados" | "horas_extra" | "otros_ingresos" | "renta_quinta" | "otros_descuentos">;
 type Empresa = { razon_social?: string; ruc?: string; direccion?: string; logo_url?: string } | null | undefined;
 
-function Dato({ nombre, valor }: { nombre: string; valor?: string | undefined }) {
-  return <div className="grid grid-cols-[138px_minmax(0,1fr)] items-center border-b border-line last:border-0"><span className="flex justify-between bg-muted/35 px-2 py-1.5 text-[9px] font-semibold uppercase"><span>{nombre}</span><span>:</span></span><span className="min-w-0 px-2 py-1.5 text-[10px]">{valor || "—"}</span></div>;
+function Dato({ nombre, valor, sinLinea }: { nombre: string; valor?: string | undefined; sinLinea?: boolean }) {
+  return <div className={`grid grid-cols-[138px_minmax(0,1fr)] items-center ${sinLinea ? "" : "border-b border-line"}`}><span className="flex justify-between bg-muted/35 px-2 py-1.5 text-[9px] font-semibold uppercase"><span>{nombre}</span><span>:</span></span><span className="min-w-0 px-2 py-1.5 text-[10px]">{valor || "—"}</span></div>;
 }
 
 function Hoja({ boleta: b, trabajador: t, empresa, periodo, editable, cambiar }: {
