@@ -1692,6 +1692,7 @@ export type Database = {
           monto: number
           monto_soles: number
           numero_operacion: string
+          orden_compra_item_id: string | null
           partida_id: string
           precio_unitario: number
           proveedor: string
@@ -1719,6 +1720,7 @@ export type Database = {
           monto?: number
           monto_soles?: number
           numero_operacion?: string
+          orden_compra_item_id?: string | null
           partida_id: string
           precio_unitario?: number
           proveedor?: string
@@ -1746,6 +1748,7 @@ export type Database = {
           monto?: number
           monto_soles?: number
           numero_operacion?: string
+          orden_compra_item_id?: string | null
           partida_id?: string
           precio_unitario?: number
           proveedor?: string
@@ -1774,6 +1777,13 @@ export type Database = {
             columns: ["insumo_id"]
             isOneToOne: false
             referencedRelation: "insumos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gastos_directos_orden_compra_item_id_fkey"
+            columns: ["orden_compra_item_id"]
+            isOneToOne: false
+            referencedRelation: "orden_compra_items"
             referencedColumns: ["id"]
           },
           {
@@ -2452,6 +2462,7 @@ export type Database = {
           insumo_id: string | null
           orden_id: string
           precio_unitario: number
+          requerimiento_item_id: string | null
           unidad: string
         }
         Insert: {
@@ -2462,6 +2473,7 @@ export type Database = {
           insumo_id?: string | null
           orden_id: string
           precio_unitario?: number
+          requerimiento_item_id?: string | null
           unidad?: string
         }
         Update: {
@@ -2472,6 +2484,7 @@ export type Database = {
           insumo_id?: string | null
           orden_id?: string
           precio_unitario?: number
+          requerimiento_item_id?: string | null
           unidad?: string
         }
         Relationships: [
@@ -2487,6 +2500,13 @@ export type Database = {
             columns: ["orden_id"]
             isOneToOne: false
             referencedRelation: "ordenes_compra"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orden_compra_items_requerimiento_item_id_fkey"
+            columns: ["requerimiento_item_id"]
+            isOneToOne: false
+            referencedRelation: "requerimiento_items"
             referencedColumns: ["id"]
           },
         ]
