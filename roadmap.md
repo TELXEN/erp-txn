@@ -13,7 +13,7 @@
 - [x] Decisiones Gerencia aplicadas: requerimientos a costo sin herramientas manuales; MO estimada con tareo sin boleta.
 - [x] Etapa 2: índices en 69 relaciones + vínculo formal origen de requerimiento → partida de cotización.
 - [x] Etapa 1: lectura completa en listados compartidos y Dashboard financiero (resto de pantallas con consultas propias: pendiente de revisión).
-- [ ] Etapa 3: trazabilidad Requerimiento → OC → Gasto directo → Pago.
+- [x] Etapa 3: trazabilidad Requerimiento → OC → Gasto directo → Pago (vínculos por ítem y estado en la OC).
 - [ ] Etapa 4: regla única de redondeo.
 - [ ] Etapa 5: pruebas automáticas de cálculos.
 - [ ] Etapa 6: costo real de obra único en todos los paneles.
