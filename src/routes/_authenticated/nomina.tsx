@@ -108,6 +108,7 @@ function Nomina() {
   const { rol } = useAuth();
   const qc = useQueryClient();
   const { data: trabajadores = [] } = useTrabajadores();
+  const { data: tareos = [] } = useTareos();
   const { data: empresa } = useEmpresa();
   const { fuente } = useFuenteDocumento();
   const ahora = new Date();
@@ -115,7 +116,7 @@ function Nomina() {
   const [mes, setMes] = useState(ahora.getMonth() + 1);
   const [editando, setEditando] = useState<Record<string, Record<string, string>>>({});
   const [pestana, setPestana] = useState<"planilla" | "datos">("planilla");
-  const [pago, setPago] = useState<{ banco_id: string; fecha_pago: string; numero_operacion: string } | null>(null);
+  const [pago, setPago] = useState<{ boleta_id?: string; banco_id: string; fecha_pago: string; numero_operacion: string } | null>(null);
   const [error, setError] = useState("");
   const periodoAfp = `${anio}-${String(mes).padStart(2, "0")}`;
   const { comisiones, origen: origenAfp, data: afpData, actualizar: actualizarAfp, isFetching: cargandoAfp } = useComisionesAfp(periodoAfp);
