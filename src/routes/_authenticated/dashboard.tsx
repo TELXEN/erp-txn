@@ -467,15 +467,60 @@ function Dashboard() {
             datos.margen <= 0 ? "⚠ Alerta crítica: utilidad agotada" : `Margen ${pct(datos.margenPct)} s/ ofertado`,
           ]}
         />
-        <Kpi
-          etiqueta="Saldo Disponible por Ejecutar"
-          valor={datos.saldoOperativo}
-          tono={datos.saldoOperativo < 0 ? "bad" : "good"}
-          lineas={[
-            `C. directo ${soles(datos.cdPrevisto - datos.costoDirectoReal)} · GG ${soles(datos.ggPresupuestado - datos.ggReal)}`,
-            "Excluye la utilidad prevista",
-          ]}
-        />
+        <div className="panel rise flex flex-col p-5">
+          <p className="label-mono">Saldo Disponible por Ejecutar</p>
+          <p className={`mt-2 font-mono text-2xl font-bold tracking-tight ${datos.saldoOperativo < 0 ? "text-bad" : "text-ink"}`}>
+            {soles(datos.saldoOperativo)}
+          </p>
+          <p className="font-mono text-[10px] text-muted-foreground">Cada presupuesto se controla por separado</p>
+          <div className="mt-3 space-y-3">
+            <div>
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-mono text-[10px] uppercase tracking-wide text-muted-foreground">Disp. Costo Directo</span>
+                {saldoCD < 0 ? (
+                  <span className="rounded bg-bad/10 px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase text-bad">⚠ Sobregirado</span>
+                ) : (
+                  <span className="font-mono text-[12px] font-bold text-good">{soles(saldoCD)}</span>
+                )}
+              </div>
+              {saldoCD < 0 && (
+                <p className="text-right font-mono text-[12px] font-bold text-bad">{soles(saldoCD)}</p>
+              )}
+              <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                <div
+                  className={`growx h-full rounded-full ${consumoCD > 100 ? "bg-bad" : "bg-good"}`}
+                  style={{ width: `${Math.min(consumoCD, 100)}%` }}
+                />
+              </div>
+              <p className="mt-0.5 font-mono text-[10px] text-muted-foreground">
+                {soles(datos.costoDirectoReal)} de {soles(datos.cdPrevisto)} · {pct(consumoCD)}
+              </p>
+            </div>
+            <div>
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-mono text-[10px] uppercase tracking-wide text-muted-foreground">Disp. Gastos Generales</span>
+                {saldoGG < 0 ? (
+                  <span className="rounded bg-bad/10 px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase text-bad">⚠ Sobregirado</span>
+                ) : null}
+                <span className={`font-mono text-[12px] font-bold ${saldoGG < 0 ? "text-bad" : "text-good"}`}>{soles(saldoGG)}</span>
+              </div>
+              <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                <div
+                  className={`growx h-full rounded-full ${consumoGG > 100 ? "bg-bad" : "bg-good"}`}
+                  style={{ width: `${Math.min(consumoGG, 100)}%` }}
+                />
+              </div>
+              <p className="mt-0.5 font-mono text-[10px] text-muted-foreground">
+                {soles(datos.ggReal)} de {soles(datos.ggPresupuestado)} · {pct(consumoGG)}
+              </p>
+            </div>
+          </div>
+          <p className="mt-3 border-t pt-2 font-mono text-[10px] leading-snug text-muted-foreground">
+            {desvGGTotal > 0
+              ? `Nota: El sobregiro de GG (${soles(desvGGTotal)}) ya se encuentra descontado de la Utilidad Real en tiempo real.`
+              : "Nota: Sin sobregiro de GG; la utilidad real mantiene su valor previsto."}
+          </p>
+        </div>
       </div>
 
       {/* Nivel 2: composición y termómetros */}
