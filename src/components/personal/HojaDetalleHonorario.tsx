@@ -164,8 +164,8 @@ export function HojaDetalleHonorario({ empresa, trabajador, proyecto, detalle, t
       <section className="mt-3 border" style={{ borderColor: DOC.line }}>
         <h2 className="px-2 py-1 text-[10px] leading-tight font-bold uppercase text-paper" style={{ background: DOC.dark }}>Datos de la empresa</h2>
         <div className="grid grid-cols-[1fr_1fr]">
-          <div className="border-r" style={{ borderColor: DOC.line }}><Fila etiqueta="RUC" valor={empresa?.ruc ?? ""} alinear="izq" /></div>
-          <div><Fila etiqueta="Razón social" valor={empresa?.razon_social ?? ""} alinear="izq" /></div>
+          <div className="border-r border-b" style={{ borderColor: DOC.line }}><Fila etiqueta="RUC" valor={empresa?.ruc ?? ""} alinear="izq" /></div>
+          <div className="border-b" style={{ borderColor: DOC.line }}><Fila etiqueta="Razón social" valor={empresa?.razon_social ?? ""} alinear="izq" /></div>
           <div className="col-span-2 border-t" style={{ borderColor: DOC.line }}><Fila etiqueta="Dirección fiscal" valor={empresa?.direccion ?? ""} alinear="izq" /></div>
         </div>
       </section>
