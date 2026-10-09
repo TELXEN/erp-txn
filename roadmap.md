@@ -6,3 +6,4 @@
 - [x] Reorganizar los datos de empresa y trabajador; permitir editar prestador, mes y año por separado sobre la boleta.
 - [x] Alinear AÑO en la misma columna vertical que BANCO y llevar RAZÓN SOCIAL al centro de la página.
 - [x] Justificar RUC con la dirección y la razón social a la izquierda; centrar cuenta de depósito, banco y año.
+- [x] Cabecera CONCEPTO y MONTO en Descuentos, con rótulos e importes alineados en la misma vertical que Remuneraciones.
