@@ -50,6 +50,13 @@
       "when": 1791550895192,
       "tag": "0006_requerimientos_desde_cotizacion",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791558617910,
+      "tag": "0007_indices_relaciones_auditoria",
+      "breakpoints": true
     }
   ]
 }
