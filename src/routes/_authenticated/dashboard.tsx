@@ -225,7 +225,7 @@ function Dashboard() {
         .sort()
         .map(([per, set]) => {
           const [a, m] = per.split("-");
-          return `⚠ ${set.size} trabajador(es) con tareo sin boleta en ${MESES[Number(m) - 1]} ${a}`;
+          return `⚠ ${set.size} trabajador(es) sin boleta en ${MESES[Number(m) - 1]} ${a}: costo estimado con el tareo hasta emitirla`;
         }),
     [personal],
   );
