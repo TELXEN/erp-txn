@@ -169,7 +169,9 @@ export function HojaDetalleHonorario({ empresa, trabajador, proyecto, detalle, t
         </div>
         <div className="border-r" style={{ borderColor: DOC.line }}>
           <h3 className="px-2 py-2 text-center text-[10px] font-bold uppercase" style={{ background: DOC.total }}>Descuentos</h3>
-          {descuentos.map((d) => <Monto key={d.etiqueta} etiqueta={d.etiqueta} valor={d.valor} editable={editable && !!d.campo} onCambiar={d.campo ? cambia(d.campo) : undefined} />)}
+          {descuentos.map((d) => d.campo && editable
+            ? <Monto key={d.etiqueta} etiqueta={d.etiqueta} valor={d.valor} editable onCambiar={cambia(d.campo)} />
+            : <Monto key={d.etiqueta} etiqueta={d.etiqueta} valor={d.valor} />)}
         </div>
         <div className="flex flex-col">
           <h3 className="px-2 py-2 text-center text-[10px] font-bold uppercase" style={{ background: DOC.total }}>Concepto del recibo por honorarios</h3>
