@@ -840,8 +840,7 @@ function BolsaEjecutada({ etiqueta, real, base }: { etiqueta: string; real: numb
         <div className={`h-full rounded-full ${excedido ? "bg-bad" : cerca ? "bg-warn" : "bg-good"}`} style={{ width: `${Math.min(p, 100)}%` }} />
       </div>
       <p className={`mt-1 text-[11px] tabular-nums ${excedido ? "font-semibold text-bad" : "text-muted-foreground"}`}>
-        Base {soles(base)} · te quedan {soles(Math.abs(saldo))}
-        {saldo < -0.005 ? " menos" : ""}
+        Base {soles(base)} · te quedan {saldo < -0.005 ? `-${soles(Math.abs(saldo))}` : soles(saldo)}
       </p>
     </div>
   );
