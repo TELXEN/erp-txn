@@ -64,6 +64,13 @@
       "when": 1791558984833,
       "tag": "0008_trazabilidad_compras",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1791559174071,
+      "tag": "0009_regla_unica_redondeo",
+      "breakpoints": true
     }
   ]
 }
