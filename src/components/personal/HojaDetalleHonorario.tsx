@@ -71,7 +71,7 @@ function EtiquetaDosp({ texto }: { texto: string }) {
 function Fila({ etiqueta, valor, alinear = "der", children }: { etiqueta: string; valor?: string; alinear?: "izq" | "centro" | "der"; children?: React.ReactNode }) {
   const texto = alinear === "izq" ? "text-left" : alinear === "centro" ? "text-center" : "text-right";
   return (
-    <div className="flex items-center border-b last:border-b-0" style={{ borderColor: DOC.line }}>
+    <div className="flex items-stretch border-b last:border-b-0" style={{ borderColor: DOC.line }}>
       <EtiquetaDosp texto={etiqueta} />
       {children ?? <span className={`flex-1 px-2 py-1 text-[10px] leading-tight ${texto}`}>{valor || "—"}</span>}
     </div>
@@ -126,7 +126,7 @@ export function HojaDetalleHonorario({ empresa, trabajador, proyecto, detalle, t
 
   return (
     <article className="honorario-print-sheet mx-auto flex min-h-[297mm] w-[248mm] max-w-none flex-col bg-paper p-[12mm] text-ink shadow-lg print:min-h-0 print:p-[6mm] print:shadow-none" style={{ fontFamily: DOC_FUENTE_CSS }}>
-      <header className="grid grid-cols-[150px_1fr_150px] items-center border-b-2 pb-4" style={{ borderColor: DOC.dark }}>
+      <header className="grid grid-cols-[150px_1fr_150px] items-center border-b-2 pb-2" style={{ borderColor: DOC.dark }}>
         <div className="flex h-16 items-center justify-start">
           {empresa?.logo_url ? <img src={empresa.logo_url} alt="Logotipo" className="max-h-16 max-w-36 object-contain" /> : <Building2 size={42} style={{ color: DOC.dark }} />}
         </div>
