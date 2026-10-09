@@ -54,14 +54,14 @@ const fechaLarga = (valor: string, lugar: string) => {
   return `${lugar}, ${dia} de ${MESES[mes - 1]?.toLowerCase() ?? ""} del ${anio}`;
 };
 
-const INPUT_NUM = "w-full min-w-0 bg-transparent text-right text-[10px] font-semibold tabular-nums outline-none border-b border-dashed border-primary/40 focus:border-primary print:border-0";
-const INPUT_DATO = "min-w-0 flex-1 border-0 border-b border-dashed border-primary/40 bg-transparent px-1 py-1 text-[10px] font-semibold outline-none focus:border-primary print:border-0 print:appearance-none";
+const INPUT_NUM = "w-full min-w-0 bg-transparent py-0 text-right text-[10px] leading-tight font-semibold tabular-nums outline-none border-b border-dashed border-primary/40 focus:border-primary print:border-0";
+const INPUT_DATO = "min-w-0 flex-1 border-0 border-b border-dashed border-primary/40 bg-transparent px-1 py-0 text-[10px] leading-tight font-semibold outline-none focus:border-primary print:border-0 print:appearance-none";
 
 const ANCHO_ETIQUETA = "w-[128px]";
 
 function EtiquetaDosp({ texto }: { texto: string }) {
   return (
-    <span className={`flex ${ANCHO_ETIQUETA} shrink-0 items-center justify-between px-2 py-1.5 text-[9px] font-bold uppercase`} style={{ background: DOC.soft }}>
+    <span className={`flex ${ANCHO_ETIQUETA} shrink-0 items-center justify-between px-2 py-1 text-[9px] leading-tight font-bold uppercase`} style={{ background: DOC.soft }}>
       <span>{texto}</span>
       <span>:</span>
     </span>
@@ -71,9 +71,9 @@ function EtiquetaDosp({ texto }: { texto: string }) {
 function Fila({ etiqueta, valor, alinear = "der", children }: { etiqueta: string; valor?: string; alinear?: "izq" | "centro" | "der"; children?: React.ReactNode }) {
   const texto = alinear === "izq" ? "text-left" : alinear === "centro" ? "text-center" : "text-right";
   return (
-    <div className="flex items-stretch border-b last:border-b-0" style={{ borderColor: DOC.line }}>
+    <div className="flex items-center border-b last:border-b-0" style={{ borderColor: DOC.line }}>
       <EtiquetaDosp texto={etiqueta} />
-      {children ?? <span className={`flex-1 px-2 py-1.5 text-[10px] ${texto}`}>{valor || "—"}</span>}
+      {children ?? <span className={`flex-1 px-2 py-1 text-[10px] leading-tight ${texto}`}>{valor || "—"}</span>}
     </div>
   );
 }
@@ -82,21 +82,21 @@ const COL_MONTO = "grid-cols-[minmax(0,1fr)_48px_90px]";
 
 function MontoCant({ etiqueta, cantidad, valor }: { etiqueta: string; cantidad?: string | undefined; valor: number }) {
   return (
-    <div className={`grid ${COL_MONTO} items-center gap-2 border-b px-2.5 py-2 last:border-b-0`} style={{ borderColor: DOC.line }}>
+    <div className={`grid ${COL_MONTO} items-center gap-2 border-b px-2.5 py-1 last:border-b-0`} style={{ borderColor: DOC.line }}>
       <span className="text-[10px] leading-tight">{etiqueta}</span>
-      <span className="text-center text-[10px] font-semibold tabular-nums">{cantidad ?? "—"}</span>
-      <span className="whitespace-nowrap text-right text-[10px] font-semibold tabular-nums">{soles(valor)}</span>
+      <span className="text-center text-[10px] leading-tight font-semibold tabular-nums">{cantidad ?? "—"}</span>
+      <span className="whitespace-nowrap text-right text-[10px] leading-tight font-semibold tabular-nums">{soles(valor)}</span>
     </div>
   );
 }
 
 function Monto({ etiqueta, valor, editable, onCambiar }: { etiqueta: string; valor: number; editable?: boolean; onCambiar?: (valor: string) => void }) {
   return (
-    <div className="flex items-center justify-between gap-3 border-b px-2 py-2 last:border-b-0" style={{ borderColor: DOC.line }}>
+    <div className="flex items-center justify-between gap-3 border-b px-2 py-1 last:border-b-0" style={{ borderColor: DOC.line }}>
       <span className="text-[10px] leading-tight">{etiqueta}</span>
       {editable && onCambiar
-        ? <span className="flex min-w-[98px] items-center justify-end gap-1"><span className="text-[10px] font-semibold">S/</span><input type="number" min="0" step="0.01" className={`${INPUT_NUM} max-w-[76px]`} value={valor} onChange={(e) => onCambiar(e.target.value)} /></span>
-        : <span className="whitespace-nowrap text-[10px] font-semibold tabular-nums">{soles(valor)}</span>}
+        ? <span className="flex min-w-[98px] items-center justify-end gap-1"><span className="text-[10px] leading-tight font-semibold">S/</span><input type="number" min="0" step="0.01" className={`${INPUT_NUM} max-w-[76px]`} value={valor} onChange={(e) => onCambiar(e.target.value)} /></span>
+        : <span className="whitespace-nowrap text-[10px] leading-tight font-semibold tabular-nums">{soles(valor)}</span>}
     </div>
   );
 }
