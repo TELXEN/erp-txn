@@ -319,12 +319,12 @@ function Honorarios() {
                     <td className="px-3 py-2">
                       {pago?.id === r.id ? (
                         <div className="grid gap-1">
-                          <Select value={pago.banco_id} onChange={(e) => setPago({ ...pago, banco_id: e.target.value })} className="py-1 text-xs">
+                          <Select value={pago?.banco_id ?? ""} onChange={(e) => { const v = e.target.value; setPago((p) => (p ? { ...p, banco_id: v } : p)); }} className="py-1 text-xs">
                             <option value="">Banco…</option>
                             {bancos.map((b) => <option key={b.id} value={b.id}>{b.nombre} · {b.numero_cuenta}</option>)}
                           </Select>
-                          <Input type="date" value={pago.fecha_pago} onChange={(e) => setPago({ ...pago, fecha_pago: e.target.value })} className="py-1 text-xs" />
-                          <Input placeholder="N° operación" value={pago.numero_operacion} onChange={(e) => setPago({ ...pago, numero_operacion: e.target.value })} className="py-1 text-xs" />
+                          <Input type="date" value={pago?.fecha_pago ?? ""} onChange={(e) => { const v = e.target.value; setPago((p) => (p ? { ...p, fecha_pago: v } : p)); }} className="py-1 text-xs" />
+                          <Input placeholder="N° operación" value={pago?.numero_operacion ?? ""} onChange={(e) => { const v = e.target.value; setPago((p) => (p ? { ...p, numero_operacion: v } : p)); }} className="py-1 text-xs" />
                         </div>
                       ) : (
                         <>
