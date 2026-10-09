@@ -247,10 +247,14 @@ function Honorarios() {
       />
 
       <div className="mb-4 grid gap-3 sm:grid-cols-3">
-        {[["Total bruto", totBruto], ["Retenciones 4ta (por declarar)", totRet], ["Neto pendiente de pago", totPend]].map(([t, v]) => (
-          <div key={t as string} className="panel p-4">
-            <p className="label-mono">{t}</p>
-            <p className="mt-1 text-lg font-semibold">{soles(v as number)}</p>
+        {[
+          { t: "Total bruto", v: totBruto, barra: "border-l-chip-1", fondo: "bg-chip-1/5", acento: "text-chip-1" },
+          { t: "Retenciones 4ta (por declarar)", v: totRet, barra: "border-l-chip-margenes", fondo: "bg-chip-margenes/5", acento: "text-chip-margenes" },
+          { t: "Neto pendiente de pago", v: totPend, barra: "border-l-chip-mat", fondo: "bg-chip-mat/5", acento: "text-chip-mat" },
+        ].map((c) => (
+          <div key={c.t} className={`panel border-l-[3px] p-4 ${c.barra} ${c.fondo}`}>
+            <p className="label-mono">{c.t}</p>
+            <p className={`mt-1 text-right text-lg font-semibold ${c.acento}`}>{soles(c.v)}</p>
           </div>
         ))}
       </div>
