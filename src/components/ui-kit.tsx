@@ -114,13 +114,15 @@ export function Boton({
   );
 }
 
-export function Etiqueta({ tono, children }: { tono: "good" | "bad" | "neutro"; children: ReactNode }) {
+export function Etiqueta({ tono, children }: { tono: "good" | "bad" | "warn" | "neutro"; children: ReactNode }) {
   const c =
     tono === "good"
       ? "text-good bg-good/10 ring-good/20"
       : tono === "bad"
         ? "text-bad bg-bad/10 ring-bad/20"
-        : "text-muted-foreground bg-muted ring-line";
+        : tono === "warn"
+          ? "text-warn bg-warn/10 ring-warn/25"
+          : "text-muted-foreground bg-muted ring-line";
   return (
     <span className={`inline-flex items-center rounded-full px-2 py-0.5 font-mono text-[11px] ring-1 ${c}`}>
       {children}
