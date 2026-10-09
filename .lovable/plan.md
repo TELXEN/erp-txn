@@ -18,14 +18,15 @@ La ventana del detalle de pago por honorarios deja de tener el formulario a la i
 - Totales, retención y neto a pagar se recalculan en tiempo real con la fórmula actual (costo unitario × jornales equivalentes).
 
 ### 2. Ventana a una sola columna (src/components/personal/DetallePagoHonorario.tsx)
-- Se elimina el formulario lateral y la alternancia vista previa/edición: la ventana muestra solo la hoja A4 a todo el ancho.
+- Se elimina el formulario lateral y la alternancia vista previa/edición: la hoja ocupa toda la ventana en modo edición (sin escala reducida, tamaño de letra cómodo para llenar datos).
 - Barra superior de la ventana con: aviso del tareo (la nota azul de carga automática), botón Guardar y botón Imprimir / Guardar PDF.
 - La fuente de datos no cambia: días laborados, viaje, horas extras, feriados e inducción se cargan automáticamente desde el tareo, y DNI, cuenta, banco y jornal desde el registro de personal; la edición directa sobre la hoja solo permite ajustes puntuales.
 - Se conserva la validación antes de guardar (bruto > 0, neto ≥ 0, N° de recibo obligatorio).
 - La impresión sigue igual: copia de la hoja fuera de la ventana vía portal y CSS de impresión en styles.css (los campos se imprimen como texto plano, sin bordes de input).
 
-### 3. Impresión limpia
+### 3. Impresión limpia y compacta
 - En @media print los inputs de la hoja se renderizan como texto (apariencia de documento, sin cajas ni focos), igual que la copia de impresión actual.
+- La impresión usa formato A4 con la hoja compactada a media página (estilo A5 vertical: márgenes, tipografía y espaciados reducidos en print) para que el documento ocupe solo la mitad superior de la hoja y se pueda cortar; si el contenido excede, cae a página completa sin cortarse.
 
 ## Verificación
 - Compilación sin errores.
