@@ -32,4 +32,5 @@
 - Primary creation uses VentanaFlotante (optional hidden scrollbars) with consecutive saves and explicit close; project cost eligibility is enforced by database triggers across every cost source — keeps entry efficient and prevents bypasses.
 - Detraction collections store the BN account in ventas.banco_detraccion_id; treasury splits the sale between both banks — no duplicate sale rows.
 - Paid Decolecta data is cached and shared ERP-wide: exchange rate via useTipoCambioHoy (tipo_cambio_diario, per Lima date), AFP commissions via useComisionesAfp (afp_comisiones_mensuales, per month) — one paid call per period.
-- Honorarium payment details persist on recibos_honorarios and use one shared A4 sheet for preview and printing — history and output calculations stay aligned.
+- Honoraria use recibos_honorarios and one preview/print sheet — aligned outputs.
+- Payroll uses DetallePagoNomina WYSIWYG/DOM print; Cerrada gates payments — matches treasury.
