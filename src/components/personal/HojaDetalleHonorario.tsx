@@ -83,7 +83,7 @@ const COL_MONTO = "grid-cols-[minmax(0,1fr)_48px_90px]";
 function MontoCant({ etiqueta, cantidad, valor }: { etiqueta: string; cantidad?: string | undefined; valor: number }) {
   return (
     <div className={`grid ${COL_MONTO} items-center gap-2 border-b px-2.5 py-1 last:border-b-0`} style={{ borderColor: DOC.line }}>
-      <span className="text-[10px] leading-tight">{etiqueta}</span>
+      <span className="whitespace-nowrap text-[10px] leading-tight">{etiqueta}</span>
       <span className="text-center text-[10px] leading-tight font-semibold tabular-nums">{cantidad ?? "—"}</span>
       <span className="whitespace-nowrap text-right text-[10px] leading-tight font-semibold tabular-nums">{soles(valor)}</span>
     </div>
@@ -224,7 +224,7 @@ export function HojaDetalleHonorario({ empresa, trabajador, proyecto, detalle, t
         </div>
       </section>
 
-      <section className="grid grid-cols-3 border-x border-b" style={{ borderColor: DOC.line }}>
+      <section className="grid grid-cols-[1.18fr_1fr_1.12fr] border-x border-b" style={{ borderColor: DOC.line }}>
         <div className="border-r px-3 py-2" style={{ borderColor: DOC.line }}><p className="text-[9px] uppercase">Total remuneraciones</p><p className="mt-0.5 text-right text-sm font-bold">{soles(totalRemuneraciones)}</p></div>
         <div className="border-r px-3 py-2" style={{ borderColor: DOC.line }}><p className="text-[9px] uppercase">Total descuentos</p><p className="mt-0.5 text-right text-sm font-bold">{soles(totalDescuentos)}</p></div>
         <div className="px-3 py-2" style={{ background: DOC.total }}><p className="text-[9px] font-bold uppercase">Neto a pagar</p><p className="mt-0.5 text-right text-base font-bold">{soles(neto)}</p></div>
