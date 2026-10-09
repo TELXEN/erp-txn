@@ -4421,6 +4421,15 @@ export type Database = {
         }
         Returns: boolean
       }
+      integrar_importacion: {
+        Args: {
+          _gasto_general: Json
+          _gastos_directos: Json
+          _id: string
+          _movimientos: Json
+        }
+        Returns: undefined
+      }
       is_admin_o_gerente: { Args: { _user_id: string }; Returns: boolean }
       mover_item_wbs: {
         Args: { _direccion: number; _id: string; _tabla: string }

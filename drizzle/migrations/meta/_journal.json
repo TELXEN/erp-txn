@@ -71,6 +71,13 @@
       "when": 1791559174071,
       "tag": "0009_regla_unica_redondeo",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1791560429575,
+      "tag": "0010_integrar_importacion_atomica",
+      "breakpoints": true
     }
   ]
 }
