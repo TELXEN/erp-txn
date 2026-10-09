@@ -34,3 +34,4 @@
 - Paid Decolecta data is cached and shared ERP-wide: exchange rate via useTipoCambioHoy (tipo_cambio_diario, per Lima date), AFP commissions via useComisionesAfp (afp_comisiones_mensuales, per month) — one paid call per period.
 - Honoraria use recibos_honorarios and one preview/print sheet — aligned outputs.
 - Payroll uses DetallePagoNomina WYSIWYG/DOM print; Cerrada gates payments — matches treasury.
+- Amounts are rounded to 2 decimals and quantities/unit prices to 4 by BEFORE triggers on gastos_directos, gastos_generales and ventas; totals are sums of rounded lines — one rounding rule regardless of which screen writes.
