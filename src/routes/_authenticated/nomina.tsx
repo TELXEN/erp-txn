@@ -160,6 +160,16 @@ function Nomina() {
     await qc.invalidateQueries({ queryKey: ["boletas"] });
   };
 
+  /** Días y horas extra del trabajador según el tareo del período (todas las obras). */
+  const datosTareo = (t: Trabajador) => {
+    const r = resumenTareoHonorario(tareos, t.id, "", mes, anio, 0);
+    if (!r.filas) return { dias_laborados: 30, horas_extra: 0, conTareo: false };
+    const dias = Math.min(30, r.dias + r.viaje + r.feriados + r.induccion);
+    // Horas extra valorizadas: hora = sueldo/240, recargo legal 25%.
+    const horas_extra = r2(r.extras * (Number(t.sueldo_mensual) / 240) * 1.25);
+    return { dias_laborados: dias, horas_extra, conTareo: true };
+  };
+
   async function generar() {
     setError("");
     const sinSueldo = enPlanilla.filter((t) => !(Number(t.sueldo_mensual) > 0));
@@ -173,17 +183,46 @@ function Nomina() {
     const existentes = new Set(boletas.map((b) => b.trabajador_id));
     const nuevas = enPlanilla
       .filter((t) => !existentes.has(t.id) && Number(t.sueldo_mensual) > 0)
-      .map((t) => ({
-        planilla_id: p!.id,
-        trabajador_id: t.id,
-        ...calcularBoleta(t, { dias_laborados: 30, horas_extra: 0, otros_ingresos: 0, renta_quinta: 0, otros_descuentos: 0 }, comisiones, rmvDe(periodoAfp)),
-      }));
+      .map((t) => {
+        const dt = datosTareo(t);
+        return {
+          planilla_id: p!.id,
+          trabajador_id: t.id,
+          ...calcularBoleta(t, { dias_laborados: dt.dias_laborados, horas_extra: dt.horas_extra, otros_ingresos: 0, renta_quinta: 0, otros_descuentos: 0 }, comisiones, rmvDe(periodoAfp)),
+        };
+      });
     if (nuevas.length) {
       const { error: err } = await supabase.from("boletas").insert(nuevas);
       if (err) return setError(err.message);
     }
+    // Actualiza las boletas pendientes con el tareo más reciente (las pagadas no se tocan).
+    for (const b of boletas) {
+      if (b.estado_pago === "Pagado") continue;
+      const t = tDe(b.trabajador_id);
+      if (!t) continue;
+      const dt = datosTareo(t);
+      if (!dt.conTareo) continue;
+      if (dt.dias_laborados === Number(b.dias_laborados) && dt.horas_extra === Number(b.horas_extra)) continue;
+      const calc = calcularBoleta(t, {
+        dias_laborados: dt.dias_laborados,
+        horas_extra: dt.horas_extra,
+        otros_ingresos: Number(b.otros_ingresos),
+        renta_quinta: Number(b.renta_quinta),
+        otros_descuentos: Number(b.otros_descuentos),
+      }, comisiones, rmvDe(periodoAfp));
+      const { error: err } = await supabase.from("boletas").update(calc).eq("id", b.id);
+      if (err) return setError(err.message);
+    }
     if (sinSueldo.length)
       setError(`Sin sueldo mensual (no incluidos): ${sinSueldo.map((t) => t.nombre).join(", ")}. Complétalo en Personal.`);
+    await refrescar();
+  }
+
+  async function eliminar(b: Boleta) {
+    if (b.estado_pago === "Pagado") return setError("No se puede eliminar una boleta pagada.");
+    if (!window.confirm(`¿Eliminar la boleta de ${tDe(b.trabajador_id)?.nombre ?? "este trabajador"}?`)) return;
+    const { error: err } = await supabase.from("boletas").delete().eq("id", b.id);
+    if (err) return setError(err.message);
     await refrescar();
   }
 
