@@ -300,7 +300,7 @@ function Nomina() {
                         const t = tDe(b.trabajador_id);
                         return {
                           DNI: t?.dni ?? "", Trabajador: t?.nombre ?? "", Cargo: t?.cargo ?? "", Régimen: b.regimen_laboral,
-                          Pensión: b.sistema_pensiones, Días: b.dias_laborados, "Básico (S/)": Number(b.sueldo_basico),
+                          CUSPP: t?.cuspp ?? "", Días: b.dias_laborados, "Básico (S/)": Number(b.sueldo_basico),
                           "Asig. familiar (S/)": Number(b.asignacion_familiar), "Horas extra (S/)": Number(b.horas_extra),
                           "Otros ingresos (S/)": Number(b.otros_ingresos), "Total ingresos (S/)": Number(b.total_ingresos),
                           "ONP/AFP (S/)": Number(b.aporte_pension), "Renta 5ta (S/)": Number(b.renta_quinta),
@@ -473,7 +473,7 @@ function Nomina() {
                   const t = tDe(b.trabajador_id);
                   return (
                     <tr key={b.id} className="border-b border-line/60 last:border-0">
-                      <td className="px-4 py-2 font-semibold text-ink">{t?.nombre}<span className="block text-[10px] font-normal text-muted-foreground">{b.regimen_laboral} · {b.sistema_pensiones}</span></td>
+                      <td className="px-4 py-2 font-semibold text-ink">{t?.nombre}<span className="block text-[10px] font-normal text-muted-foreground">{b.regimen_laboral}{t?.cuspp ? ` · ${t.cuspp}` : ""}</span></td>
                       <td className="px-2 py-2">{b.dias_laborados}</td>
                       <td className="px-2 py-2 text-right">{soles(Number(b.sueldo_basico))}</td>
                       <td className="px-2 py-2 text-right">{soles(Number(b.asignacion_familiar))}</td>
