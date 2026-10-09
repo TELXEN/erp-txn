@@ -29,10 +29,10 @@ describe("APU", () => {
       8, 8, 5,
     );
     // MO = 1 × 8 ÷ 8 × 20 = 20 ; MAT = 2 × 10 = 20 ; HT = 5% × 20 = 1
-    expect(r.tot.MO).toBe(20);
-    expect(r.tot.MAT).toBe(20);
+    expect(r.tot["MO"]).toBe(20);
+    expect(r.tot["MAT"]).toBe(20);
     expect(r.herramientas).toBe(1);
-    expect(r.tot.EQ).toBe(1);
+    expect(r.tot["EQ"]).toBe(1);
     expect(r.pu).toBe(41);
   });
 });
