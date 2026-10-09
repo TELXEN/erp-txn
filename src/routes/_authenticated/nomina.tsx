@@ -263,11 +263,14 @@ function Nomina() {
     if (!pago || !planilla) return;
     if (!pago.banco_id || !pago.fecha_pago || !pago.numero_operacion.trim())
       return setError("Para pagar indica banco, fecha y número de operación.");
-    const { error: err } = await supabase
+    const { boleta_id, ...datosPago } = pago;
+    let q = supabase
       .from("boletas")
-      .update({ estado_pago: "Pagado", ...pago, numero_operacion: pago.numero_operacion.trim() })
+      .update({ estado_pago: "Pagado", ...datosPago, numero_operacion: pago.numero_operacion.trim() })
       .eq("planilla_id", planilla.id)
       .eq("estado_pago", "Pendiente");
+    if (boleta_id) q = q.eq("id", boleta_id);
+    const { error: err } = await q;
     if (err) return setError(err.message);
     setPago(null);
     await refrescar();
@@ -315,9 +318,20 @@ function Nomina() {
   const ordenadas = [...boletas].sort((a, b) => (tDe(a.trabajador_id)?.nombre ?? "").localeCompare(tDe(b.trabajador_id)?.nombre ?? ""));
   const pendientes = boletas.filter((b) => b.estado_pago === "Pendiente").length;
   const celda = (b: Boleta, campo: keyof Boleta) =>
-    cerrada ? soles(Number(b[campo])) : (
+    cerrada || !editando[b.id] ? soles(Number(b[campo])) : (
       <Input type="number" step="0.01" min="0" value={valor(b, campo)} onChange={(e) => cambiar(b.id, campo, e.target.value)} className="py-1 text-right text-xs" />
     );
+  const empezarEdicion = (b: Boleta) =>
+    setEditando((e) => ({
+      ...e,
+      [b.id]: {
+        dias_laborados: String(b.dias_laborados),
+        horas_extra: String(b.horas_extra),
+        otros_ingresos: String(b.otros_ingresos),
+        renta_quinta: String(b.renta_quinta),
+        otros_descuentos: String(b.otros_descuentos),
+      },
+    }));
 
   return (
     <>
@@ -437,7 +451,7 @@ function Nomina() {
             <Input type="number" value={anio} onChange={(e) => { setAnio(Number(e.target.value)); setEditando({}); }} className="w-24 py-1.5" />
           </Campo>
           {!cerrada && (
-            <Boton onClick={generar}>{planilla ? "Agregar personal faltante" : `Generar planilla ${periodo}`}</Boton>
+            <Boton onClick={generar}><Wand2 size={13} /> {planilla ? "Actualizar boletas desde el tareo" : `Generar boletas de pago ${periodo}`}</Boton>
           )}
           {planilla && (
             <>
@@ -447,7 +461,7 @@ function Nomina() {
               </Boton>
               {cerrada && pendientes > 0 && !pago && (
                 <Boton variante="accion" onClick={() => setPago({ banco_id: "", fecha_pago: hoy(), numero_operacion: "" })}>
-                  <Check size={13} /> Registrar pago ({pendientes})
+                  <Check size={13} /> Pagar todas las pendientes ({pendientes})
                 </Boton>
               )}
             </>
@@ -510,7 +524,7 @@ function Nomina() {
                   return (
                     <tr key={b.id} className="border-b border-line/60 last:border-0">
                       <td className="px-4 py-2 font-semibold text-ink">{t?.nombre}<span className="block text-[10px] font-normal text-muted-foreground">{b.regimen_laboral} · {b.sistema_pensiones}</span></td>
-                      <td className="px-2 py-2">{cerrada ? b.dias_laborados : <Input type="number" min="0" max="30" value={valor(b, "dias_laborados")} onChange={(e) => cambiar(b.id, "dias_laborados", e.target.value)} className="py-1 text-xs" />}</td>
+                      <td className="px-2 py-2">{cerrada || !sucio ? b.dias_laborados : <Input type="number" min="0" max="30" value={valor(b, "dias_laborados")} onChange={(e) => cambiar(b.id, "dias_laborados", e.target.value)} className="py-1 text-xs" />}</td>
                       <td className="px-2 py-2 text-right">{soles(Number(b.sueldo_basico))}</td>
                       <td className="px-2 py-2 text-right">{soles(Number(b.asignacion_familiar))}</td>
                       <td className="px-2 py-2 text-right">{celda(b, "horas_extra")}</td>
@@ -527,8 +541,18 @@ function Nomina() {
                       </td>
                       <td className="px-4 py-2">
                         <div className="flex justify-end gap-1">
-                          {sucio && <button type="button" title="Recalcular y guardar" onClick={() => guardarFila(b)} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground"><Check size={14} /></button>}
+                          {sucio ? (
+                            <button type="button" title="Recalcular y guardar" onClick={() => guardarFila(b)} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground"><Check size={14} /></button>
+                          ) : !cerrada && b.estado_pago !== "Pagado" && (
+                            <button type="button" title="Editar boleta" onClick={() => empezarEdicion(b)} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"><Pencil size={14} /></button>
+                          )}
                           <button type="button" title="Imprimir boleta" onClick={() => imprimir([b])} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"><Printer size={14} /></button>
+                          {b.estado_pago !== "Pagado" && (
+                            <button type="button" title="Registrar pago" onClick={() => setPago({ boleta_id: b.id, banco_id: "", fecha_pago: hoy(), numero_operacion: "" })} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"><Check size={14} /></button>
+                          )}
+                          {!cerrada && b.estado_pago !== "Pagado" && (
+                            <button type="button" title="Eliminar" onClick={() => eliminar(b)} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-bad hover:text-bad"><Trash2 size={14} /></button>
+                          )}
                         </div>
                       </td>
                     </tr>
