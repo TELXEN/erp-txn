@@ -82,7 +82,11 @@ function DashboardProyectos() {
         const adicionalesOf = oferta(propias.filter((x) => !esContractual(x.tipo_presupuesto ?? "Contractual", tiposPresupuesto)));
         const presupuestoDesglosado = { contractual: contractualOf, adicionales: adicionalesOf, vigente: contractualOf + adicionalesOf };
         const presupuesto = presupuestoDesglosado.vigente;
-        const costoReal = costoDe(p.id).costoReal;
+        const co = costoDe(p.id);
+        const costoReal = co.costoReal;
+        const ofTotal = ofertaProyecto(propias, tiposPresupuesto, Number(p.pct_gastos_generales), Number(p.pct_utilidad));
+        const cdPres = ofTotal.costoDirecto, ggPres = ofTotal.gastosGenerales, utPres = ofTotal.utilidad;
+        const cdReal = co.costoDirectoReal, ggReal = co.ggReal;
         const partidasContractuales = propias.filter((x) => esContractual(x.tipo_presupuesto ?? "Contractual", tiposPresupuesto)).length;
         const partidasAdicionales = propias.length - partidasContractuales;
         const baseAvance = partidasAvance.reduce((s, x) => s + Number(x.presupuesto_inicial), 0);
@@ -113,6 +117,7 @@ function DashboardProyectos() {
           desviacion,
           diferencia: presupuesto - costoReal,
           desviado: gastado > avance,
+          cdPres, ggPres, utPres, cdReal, ggReal,
         };
       }),
     [proyectos, partidas, gastosD, gastosG, tareos, tiposPresupuesto, cronograma],
@@ -136,6 +141,11 @@ function DashboardProyectos() {
       costoReal,
       diferencia: presupuesto - costoReal,
       gastadoPct: presupuesto > 0 ? (costoReal / presupuesto) * 100 : 0,
+      cdPres: filas.reduce((s, f) => s + f.cdPres, 0),
+      ggPres: filas.reduce((s, f) => s + f.ggPres, 0),
+      utPres: filas.reduce((s, f) => s + f.utPres, 0),
+      cdReal: filas.reduce((s, f) => s + f.cdReal, 0),
+      ggReal: filas.reduce((s, f) => s + f.ggReal, 0),
       desviadas: filas.filter((f) => f.desviado).length,
     };
   }, [filas, proyectos]);
@@ -197,6 +207,11 @@ function DashboardProyectos() {
       desviacion,
       diferencia: presupuesto - costoReal,
       desviado: gastado > avance,
+      cdPres: filas.reduce((s, f) => s + f.cdPres, 0),
+      ggPres: filas.reduce((s, f) => s + f.ggPres, 0),
+      utPres: filas.reduce((s, f) => s + f.utPres, 0),
+      cdReal: filas.reduce((s, f) => s + f.cdReal, 0),
+      ggReal: filas.reduce((s, f) => s + f.ggReal, 0),
     };
   }, [filas]);
 
@@ -395,38 +410,19 @@ function DashboardProyectos() {
       </section>
 
       {verDinero && (
-        <section className="mb-4 grid gap-3 md:grid-cols-3" aria-label="Resumen financiero de la cartera">
+        <section className="mb-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4" aria-label="Control presupuestal de la cartera">
           <div className="kpi-tarjeta">
             <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Presupuesto vigente</p>
             <p className="mt-2 text-2xl font-bold tabular-nums text-ink">{soles(resumen.presupuesto)}</p>
-            <p className="mt-1 text-[11px] text-muted-foreground tabular-nums">
-              Contractual {soles(resumen.presupuestoContractual)} · Adicionales {soles(resumen.adicionales)}
-            </p>
-          </div>
-          <div className="kpi-tarjeta">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Costo ejecutado</p>
-              <span
-                className={`rounded-full px-2 py-0.5 text-[11px] font-semibold tabular-nums ${
-                  resumen.gastadoPct > 100 ? "bg-bad/10 text-bad" : resumen.gastadoPct > 90 ? "bg-warn/10 text-warn" : "bg-primary/10 text-primary"
-                }`}
-              >
-                {resumen.gastadoPct > 90 ? "▲ " : ""}{pct(resumen.gastadoPct)} consumido
-              </span>
-            </div>
-            <p className="mt-2 text-2xl font-bold tabular-nums text-ink">{soles(resumen.costoReal)}</p>
-            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
-              <div
-                className={`h-full rounded-full ${resumen.gastadoPct > 100 ? "bg-bad" : resumen.gastadoPct > 90 ? "bg-warn" : "bg-primary"}`}
-                style={{ width: `${Math.min(resumen.gastadoPct, 100)}%` }}
-              />
+            <div className="mt-2 space-y-0.5 text-[11px] tabular-nums text-muted-foreground">
+              <p className="flex justify-between"><span>Costo directo</span><span>{soles(resumen.cdPres)}</span></p>
+              <p className="flex justify-between"><span>Gastos generales</span><span>{soles(resumen.ggPres)}</span></p>
+              <p className="flex justify-between"><span>Utilidad proyectada 🔒</span><span>{soles(resumen.utPres)}</span></p>
             </div>
           </div>
-          <div className="kpi-tarjeta">
-            <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Saldo disponible</p>
-            <p className={`mt-2 text-2xl font-bold tabular-nums ${resumen.diferencia < 0 ? "text-bad" : "text-good"}`}>{soles(resumen.diferencia)}</p>
-            <p className="mt-1 text-[11px] text-muted-foreground">{resumen.diferencia < 0 ? "Sobrecosto sobre el presupuesto vigente" : "Presupuesto aún por ejecutar"}</p>
-          </div>
+          <BolsaEjecutada etiqueta="Costo directo ejecutado" real={resumen.cdReal} base={resumen.cdPres} />
+          <BolsaEjecutada etiqueta="Gastos generales ejecutados" real={resumen.ggReal} base={resumen.ggPres} />
+          <UtilidadReal proyectada={resumen.utPres} real={resumen.utPres - Math.max(0, resumen.cdReal - resumen.cdPres) - Math.max(0, resumen.ggReal - resumen.ggPres)} />
         </section>
       )}
 
@@ -467,7 +463,7 @@ function DashboardProyectos() {
                 <div className="mb-2 rounded-md border border-line bg-muted/30 px-3 py-2 text-center">
                   <p className="label-mono text-[9px]">Costo ejecutado</p>
                   <p className={`font-mono text-sm font-semibold ${obraSel.desviado ? "text-bad" : "text-ink"}`}>{soles(obraSel.costoReal)}</p>
-                  <p className="font-mono text-[10px] text-muted-foreground">{pct(obraSel.gastado ?? 0)} del presupuesto</p>
+                  <p className="font-mono text-[10px] text-muted-foreground">{pct(obraSel.gastado ?? 0)} avance financiero · independiente del físico</p>
                 </div>
               )}
 
@@ -512,9 +508,11 @@ function DashboardProyectos() {
         <div className="panel rise overflow-hidden">
           <div className="border-b border-line px-4 py-3"><p className="label-mono">{esTodos ? "Resumen financiero de la cartera" : "Resumen financiero del proyecto"}</p></div>
           <div className="divide-y divide-line">
-            <DatoFinanciero etiqueta="Presupuesto contractual" valor={soles(obraSel?.presupuestoContractual ?? 0)} />
-            <DatoFinanciero etiqueta="Adicionales de obra" valor={soles(obraSel?.adicionales ?? 0)} {...((obraSel?.adicionales ?? 0) > 0 ? { tono: "primary" as const } : {})} />
-            <DatoFinanciero etiqueta="Presupuesto vigente" valor={soles(obraSel?.presupuesto ?? 0)} tono="good" />
+            <DatoFinanciero etiqueta="Presupuesto contractual total" valor={soles(obraSel?.presupuesto ?? 0)} />
+            <DatoFinanciero etiqueta="(−) Costo directo presupuestado" valor={soles(obraSel?.cdPres ?? 0)} />
+            <DatoFinanciero etiqueta="(−) Gastos generales presupuestados" valor={soles(obraSel?.ggPres ?? 0)} />
+            <DatoFinanciero etiqueta="(=) Utilidad objetivo protegida" valor={soles(obraSel?.utPres ?? 0)} tono="good" />
+            {(obraSel?.adicionales ?? 0) > 0 && <DatoFinanciero etiqueta="Incluye adicionales de obra" valor={soles(obraSel?.adicionales ?? 0)} tono="primary" />}
           </div>
         </div>
         )}
@@ -792,3 +790,40 @@ function DatoIcono({ icono, etiqueta, valor, tono }: { icono: ReactNode; etiquet
   );
 }
 
+
+function BolsaEjecutada({ etiqueta, real, base }: { etiqueta: string; real: number; base: number }) {
+  const p = base > 0 ? (real / base) * 100 : real > 0 ? 100 : 0;
+  const excedido = real > base + 0.005;
+  return (
+    <div className={`kpi-tarjeta ${excedido ? "ring-1 ring-bad/40" : ""}`}>
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{etiqueta}</p>
+        <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold tabular-nums ${excedido ? "bg-bad/10 text-bad" : p > 90 ? "bg-warn/10 text-warn" : "bg-primary/10 text-primary"}`}>{pct(p)}</span>
+      </div>
+      <p className={`mt-2 text-2xl font-bold tabular-nums ${excedido ? "text-bad" : "text-ink"}`}>{soles(real)}</p>
+      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
+        <div className={`h-full rounded-full ${excedido ? "bg-bad" : p > 90 ? "bg-warn" : "bg-primary"}`} style={{ width: `${Math.min(p, 100)}%` }} />
+      </div>
+      <p className={`mt-1 text-[11px] tabular-nums ${excedido ? "font-semibold text-bad" : "text-muted-foreground"}`}>
+        {excedido ? `▲ Presupuesto excedido en ${soles(real - base)}` : `Base ${soles(base)} · saldo ${soles(base - real)}`}
+      </p>
+    </div>
+  );
+}
+
+function UtilidadReal({ proyectada, real }: { proyectada: number; real: number }) {
+  const critico = real <= 0;
+  const p = proyectada > 0 ? (real / proyectada) * 100 : 0;
+  return (
+    <div className={`kpi-tarjeta ${critico ? "bg-bad/5 ring-1 ring-bad/40" : real < proyectada ? "ring-1 ring-warn/40" : "ring-1 ring-good/30"}`}>
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Utilidad real</p>
+        <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold tabular-nums ${critico ? "bg-bad/10 text-bad" : real < proyectada ? "bg-warn/10 text-warn" : "bg-good/10 text-good"}`}>{pct(p)} de la proyectada</span>
+      </div>
+      <p className={`mt-2 text-2xl font-bold tabular-nums ${critico ? "text-bad" : real < proyectada ? "text-warn" : "text-good"}`}>{soles(real)}</p>
+      <p className={`mt-1 text-[11px] ${critico ? "font-semibold text-bad" : "text-muted-foreground"}`}>
+        {critico ? "⚠ Alerta crítica: la obra ya no deja utilidad" : real < proyectada ? `Excesos de costo restan ${soles(proyectada - real)}` : `Utilidad proyectada intacta (${soles(proyectada)})`}
+      </p>
+    </div>
+  );
+}
