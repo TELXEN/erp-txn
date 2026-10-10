@@ -23,7 +23,7 @@ export const useToleranciaAvance = () =>
     queryKey: ["control_sobrecosto"],
     queryFn: async () => {
       const { data } = await db.from("control_sobrecosto").select("tolerancia_pct").maybeSingle();
-      return Number(data?.tolerancia_pct ?? 15);
+      return Number(data?.tolerancia_pct ?? 10);
     },
   });
 
