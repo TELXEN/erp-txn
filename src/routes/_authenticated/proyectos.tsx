@@ -406,21 +406,6 @@ function Proyectos() {
             </Seccion>
 
             <Seccion titulo="Finanzas (%)">
-              <div className="grid grid-cols-2 gap-3">
-                <CampoF etiqueta="% Gastos Generales">
-                  <Input type="number" min={0} max={100} step="0.1" value={form.pct_gastos_generales} onChange={(e) => setForm({ ...form, pct_gastos_generales: e.target.value })} />
-                </CampoF>
-                <CampoF etiqueta="% Utilidad Prevista">
-                  <Input type="number" min={0} max={100} step="0.1" value={form.pct_utilidad} onChange={(e) => setForm({ ...form, pct_utilidad: e.target.value })} />
-                </CampoF>
-              </div>
-              <div className="flex gap-2 rounded-md border border-primary/20 bg-primary/5 p-3 text-xs leading-relaxed text-ink">
-                <Info className="mt-0.5 size-4 shrink-0 text-primary" />
-                <p>
-                  Ambos porcentajes se aplican sobre el costo directo neto de las partidas:{" "}
-                  <strong>Oferta = Costo Directo + Gastos Generales + Utilidad.</strong>
-                </p>
-              </div>
               <CampoF etiqueta="Costo Directo Base (techo de obra, S/)">
                 <Input type="number" min={0} step="0.01" value={form.cd_base} onChange={(e) => setForm({ ...form, cd_base: e.target.value })} placeholder="Opcional" />
               </CampoF>
@@ -438,6 +423,21 @@ function Proyectos() {
                 );
               })()}
               <p className="text-[10px] text-muted-foreground">Las partidas no podrán sumar más que el Costo Directo Base.</p>
+              <div className="grid grid-cols-2 gap-3 pt-1">
+                <CampoF etiqueta="% Gastos Generales">
+                  <Input type="number" min={0} max={100} step="0.1" value={form.pct_gastos_generales} onChange={(e) => setForm({ ...form, pct_gastos_generales: e.target.value })} />
+                </CampoF>
+                <CampoF etiqueta="% Utilidad Prevista">
+                  <Input type="number" min={0} max={100} step="0.1" value={form.pct_utilidad} onChange={(e) => setForm({ ...form, pct_utilidad: e.target.value })} />
+                </CampoF>
+              </div>
+              <div className="flex gap-2 rounded-md border border-primary/20 bg-primary/5 p-3 text-xs leading-relaxed text-ink">
+                <Info className="mt-0.5 size-4 shrink-0 text-primary" />
+                <p>
+                  Ambos porcentajes se aplican sobre el costo directo neto de las partidas:{" "}
+                  <strong>Oferta = Costo Directo + Gastos Generales + Utilidad.</strong>
+                </p>
+              </div>
             </Seccion>
           </div>
           <div className="flex flex-wrap items-center justify-end gap-3 border-t border-line pt-3">
