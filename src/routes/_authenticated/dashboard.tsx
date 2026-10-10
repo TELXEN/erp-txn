@@ -474,9 +474,9 @@ function Dashboard() {
             datos.margen <= 0 ? "⚠ Alerta crítica: utilidad agotada" : `Margen ${pct(datos.margenPct)} s/ ofertado`,
           ]}
         />
-        <div className="panel rise flex flex-col p-5">
-          <p className="label-mono">Saldo Disponible por Ejecutar</p>
-          <p className={`mt-2 font-mono text-2xl font-bold tracking-tight ${datos.saldoOperativo < 0 ? "text-bad" : "text-ink"}`}>
+        <div className="kpi-tarjeta flex flex-col">
+          <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Saldo Disponible por Ejecutar</p>
+          <p className={`mt-2 text-2xl font-bold tabular-nums ${datos.saldoOperativo < 0 ? "text-bad" : "text-ink"}`}>
             {soles(datos.saldoOperativo)}
           </p>
           <p className="font-mono text-[10px] text-muted-foreground">Cada presupuesto se controla por separado</p>
