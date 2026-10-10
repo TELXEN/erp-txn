@@ -134,6 +134,13 @@
       "when": 1791611121393,
       "tag": "0018_fix_candado_columnas_solicitudes",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1791611478140,
+      "tag": "0019_candado_por_rubro",
+      "breakpoints": true
     }
   ]
 }
