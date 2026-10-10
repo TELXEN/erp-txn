@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { leerTodo } from "@/lib/datos";
-import { useInsumos, useMargenesInsumo } from "@/lib/apu";
+import { precioVenta, useInsumos, useMargenesInsumo } from "@/lib/apu";
 import { useCostoObras } from "@/lib/costo-obra";
 
 const db = supabase as unknown as { from: (t: string) => any };
