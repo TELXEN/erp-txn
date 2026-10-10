@@ -555,7 +555,7 @@ export function FechaPeru({ valor, onChange }: { valor: string; onChange: (v: st
   );
 }
 
-/** Ventana «Registrar compra»: resumen de la partida + campos; queda abierta tras guardar. */
+/** Ventana «Registrar compra» / «Editar compra»: resumen de la partida + campos. */
 function ModalCompra({
   partida,
   insumos,
@@ -564,6 +564,8 @@ function ModalCompra({
   onCerrar,
   onRegistrar,
   onSolicitar,
+  inicial,
+  esEdicion = false,
 }: {
   partida: PartidaResumen;
   insumos: InsumoApu[];
@@ -572,8 +574,11 @@ function ModalCompra({
   onCerrar: () => void;
   onRegistrar: (b: Borrador) => Promise<string | null>;
   onSolicitar: (b: Borrador, motivo: string) => Promise<string | null>;
+  /** Compra ya registrada: la ventana se abre precargada y guarda los cambios. */
+  inicial?: Borrador;
+  esEdicion?: boolean;
 }) {
-  const [b, setB] = useState<Borrador>(borradorVacio);
+  const [b, setB] = useState<Borrador>(inicial ?? borradorVacio);
   const [error, setError] = useState("");
   const [ok, setOk] = useState("");
   const [bloqueo, setBloqueo] = useState("");
@@ -599,6 +604,7 @@ function ModalCompra({
     setGuardando(false);
     if (err) { setBloqueo(esSobrecosto(err) ? textoSobrecosto(err) : ""); return setError(esSobrecosto(err) ? "" : err); }
     setBloqueo("");
+    if (esEdicion) return onCerrar();
     setOk(`Compra registrada · ${soles(totalC / 100)}`);
     setB(borradorVacio());
   }
@@ -609,7 +615,7 @@ function ModalCompra({
   const muestraOperacion = contado && b.banco_id && b.banco_id !== "caja";
 
   return (
-    <VentanaFlotante titulo="Registrar compra" abierta onCerrar={onCerrar} ancho="max-w-2xl" ocultarBarra>
+    <VentanaFlotante titulo={esEdicion ? "Editar compra" : "Registrar compra"} abierta onCerrar={onCerrar} ancho="max-w-2xl" ocultarBarra>
       <div className="font-['Roboto']">
         {/* Contexto de la partida (precargado y bloqueado) */}
         <div className="grid grid-cols-12 gap-x-5 gap-y-3 border-b border-line bg-muted/40 px-5 py-4">
@@ -617,7 +623,7 @@ function ModalCompra({
           <div className="col-span-7"><p className={etq}>Descripción</p><p className="truncate text-sm font-medium text-ink" title={partida.nombre}>{partida.nombre}</p></div>
           <div className="col-span-2"><p className={etq}>Und.</p><p className="text-sm font-medium text-ink">{partida.unidad || "—"}</p></div>
           <div className="col-span-3"><p className={etq}>Presupuesto</p><p className="text-sm tabular-nums text-ink">{soles(presuC / 100)}</p></div>
-          <div className="col-span-3"><p className={etq}>Costo real</p><p className="text-sm tabular-nums text-ink">{soles(costoC / 100)}</p></div>
+          <div className="col-span-3"><p className={etq}>{esEdicion ? "Costo real (sin esta compra)" : "Costo real"}</p><p className="text-sm tabular-nums text-ink">{soles(costoC / 100)}</p></div>
           <div className="col-span-6 flex flex-col justify-end">
             <div className="flex items-end justify-between">
               <p className={etq}>Saldo disponible</p>
@@ -738,7 +744,7 @@ function ModalCompra({
             {error && <span className="mr-auto text-[11px] text-bad">{error}</span>}
             {ok && !error && <span className="mr-auto inline-flex items-center gap-1 text-[11px] text-good"><Check size={13} /> {ok}</span>}
             <Boton type="button" variante="linea" onClick={onCerrar}>Cancelar</Boton>
-            <Boton type="submit" disabled={guardando}><Check size={13} /> {guardando ? "Guardando…" : "Guardar"}</Boton>
+            <Boton type="submit" disabled={guardando}><Check size={13} /> {guardando ? "Guardando…" : esEdicion ? "Guardar cambios" : "Guardar"}</Boton>
           </div>
         </form>
       </div>
