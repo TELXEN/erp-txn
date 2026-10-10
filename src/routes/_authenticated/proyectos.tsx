@@ -567,6 +567,16 @@ function Proyectos() {
                               title="% Utilidad Prevista"
                             />
                           </div>
+                          <Input
+                            type="number"
+                            min={0}
+                            step="0.01"
+                            className="mt-1.5 py-1 text-[11px]"
+                            value={editando.cd_base}
+                            onChange={(e) => setEditando({ ...editando, cd_base: e.target.value })}
+                            placeholder="Costo Directo Base (techo)"
+                            title="Costo Directo Base (techo de obra)"
+                          />
                         </td>
                         <td className="px-3 py-2 align-top">
                           <Select
@@ -711,6 +721,7 @@ function Proyectos() {
                                    fecha_corte_programado: p.fecha_corte_programado ?? "",
                                   pct_gastos_generales: String(p.pct_gastos_generales ?? 0),
                                   pct_utilidad: String(p.pct_utilidad ?? 0),
+                                  cd_base: (p as { cd_base?: number | null }).cd_base == null ? "" : String((p as { cd_base?: number | null }).cd_base),
                                 })
                               }
                               title="Editar"
