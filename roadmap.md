@@ -27,3 +27,7 @@
 - [x] Orden del formulario de proyectos: Costo Directo Base arriba, porcentajes debajo.
 - [x] Contador de solicitudes pendientes en el Dashboard de Proyectos.
 - [x] Etiqueta «Bloqueada» en cada partida del Dashboard de Proyectos.
+## Listado de proyectos
+
+- [x] Iconos de acción: mismo tamaño y nitidez, ver/editar/eliminar distinguibles por color, separador antes de eliminar y columna con ancho suficiente.
+
