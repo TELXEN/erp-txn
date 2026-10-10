@@ -168,38 +168,49 @@ function Proyectos() {
   const clientesFiltro = useMemo(() => [...new Set(todosProyectos.map((p) => p.cliente).filter(Boolean))].sort(), [todosProyectos]);
   const proyectoVisto = todosProyectos.find((p) => p.id === viendoId) ?? null;
 
+  const camposForm = () => ({
+    nombre: form.nombre.trim(),
+    cliente: form.cliente.trim(),
+    ubicacion: form.ubicacion.trim(),
+    estado: estadoDe(form.situacion),
+    situacion: form.situacion,
+    responsable_id: form.responsable_id || null,
+    fecha_inicio: form.fecha_inicio || null,
+    fecha_fin: form.fecha_fin || null,
+    avance_programado_pct: form.avance_programado_pct === "" ? null : Number(form.avance_programado_pct),
+    fecha_corte_programado: form.fecha_corte_programado || null,
+    pct_gastos_generales: Number(form.pct_gastos_generales) || 0,
+    pct_utilidad: Number(form.pct_utilidad) || 0,
+    cd_base: form.cd_base === "" ? null : Number(form.cd_base),
+  });
+
   async function guardar(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     if ((form.avance_programado_pct && !form.fecha_corte_programado) || (!form.avance_programado_pct && form.fecha_corte_programado)) {
       return setError("Registra juntos el avance programado y su fecha de corte.");
     }
-    let codigo = "";
-    {
-      try {
-        codigo = await generarCodigoProyecto();
-      } catch (e2) {
-        return setError(
-          e2 instanceof Error ? e2.message : "No se pudo generar el código automático de la obra.",
-        );
-      }
+    if (editandoId) {
+      const { error: err } = await supabase
+        .from("proyectos")
+        .update({ ...camposForm(), codigo: form.codigo.trim().toUpperCase() || null } as never)
+        .eq("id", editandoId);
+      if (err)
+        return setError(err.code === "23505" ? "Ese código ya está asignado a otra obra." : err.message);
+      setEditandoId(null);
+      setFormAbierto(false);
+      qc.invalidateQueries({ queryKey: ["proyectos"] });
+      return;
     }
-    const { error: err } = await supabase.from("proyectos").insert({
-      codigo,
-      nombre: form.nombre.trim(),
-      cliente: form.cliente.trim(),
-      ubicacion: form.ubicacion.trim(),
-      estado: estadoDe(form.situacion),
-      situacion: form.situacion,
-      responsable_id: form.responsable_id || null,
-      fecha_inicio: form.fecha_inicio || null,
-      fecha_fin: form.fecha_fin || null,
-      avance_programado_pct: form.avance_programado_pct === "" ? null : Number(form.avance_programado_pct),
-      fecha_corte_programado: form.fecha_corte_programado || null,
-      pct_gastos_generales: Number(form.pct_gastos_generales) || 0,
-      pct_utilidad: Number(form.pct_utilidad) || 0,
-      cd_base: form.cd_base === "" ? null : Number(form.cd_base),
-    } as never);
+    let codigo = "";
+    try {
+      codigo = await generarCodigoProyecto();
+    } catch (e2) {
+      return setError(
+        e2 instanceof Error ? e2.message : "No se pudo generar el código automático de la obra.",
+      );
+    }
+    const { error: err } = await supabase.from("proyectos").insert({ codigo, ...camposForm() } as never);
     if (err)
       return setError(
         err.code === "23505" ? "Ese código ya está asignado a otra obra." : err.message,
@@ -224,35 +235,36 @@ function Proyectos() {
     qc.invalidateQueries({ queryKey: ["proyectos"] });
   }
 
-  async function actualizar(e?: React.FormEvent) {
-    e?.preventDefault();
-    if (!editando) return;
+  function abrirEdicion(p: Proyecto) {
     setError("");
-    if ((editando.avance_programado_pct && !editando.fecha_corte_programado) || (!editando.avance_programado_pct && editando.fecha_corte_programado)) {
-      return setError("Registra juntos el avance programado y su fecha de corte.");
-    }
-    const { error: err } = await supabase
-      .from("proyectos")
-      .update({
-        codigo: editando.codigo.trim().toUpperCase() || null,
-        nombre: editando.nombre.trim(),
-        estado: estadoDe(editando.situacion),
-        situacion: editando.situacion,
-        responsable_id: editando.responsable_id || null,
-        fecha_inicio: editando.fecha_inicio || null,
-        fecha_fin: editando.fecha_fin || null,
-        avance_programado_pct: editando.avance_programado_pct === "" ? null : Number(editando.avance_programado_pct),
-        fecha_corte_programado: editando.fecha_corte_programado || null,
-        pct_gastos_generales: Number(editando.pct_gastos_generales) || 0,
-        pct_utilidad: Number(editando.pct_utilidad) || 0,
-        cd_base: editando.cd_base === "" ? null : Number(editando.cd_base),
-      } as never)
-      .eq("id", editando.id);
-    if (err)
-      return setError(
-        err.code === "23505" ? "Ese código ya está asignado a otra obra." : err.message,
-      );
-    setEditando(null);
+    setForm({
+      codigo: p.codigo ?? "",
+      nombre: p.nombre,
+      cliente: p.cliente ?? "",
+      ubicacion: p.ubicacion ?? "",
+      estado: p.estado,
+      situacion: p.situacion,
+      responsable_id: p.responsable_id ?? "",
+      fecha_inicio: p.fecha_inicio ?? "",
+      fecha_fin: p.fecha_fin ?? "",
+      avance_programado_pct: p.avance_programado_pct === null ? "" : String(p.avance_programado_pct),
+      fecha_corte_programado: p.fecha_corte_programado ?? "",
+      pct_gastos_generales: String(p.pct_gastos_generales ?? 0),
+      pct_utilidad: String(p.pct_utilidad ?? 0),
+      cd_base: p.cd_base == null ? "" : String(p.cd_base),
+    });
+    setEditandoId(p.id);
+    setFormAbierto(true);
+  }
+
+  async function confirmarBaja() {
+    if (!eliminando) return;
+    setBajando(true);
+    setError("");
+    const { error: err } = await supabase.rpc("eliminar_proyecto", { _id: eliminando.id });
+    setBajando(false);
+    if (err) return setError(err.message);
+    setEliminando(null);
     qc.invalidateQueries({ queryKey: ["proyectos"] });
   }
 
