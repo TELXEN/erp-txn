@@ -480,6 +480,18 @@ function GastosDirectos() {
                           {abierta && (
                             <tr className="border-b border-line/40">
                               <td colSpan={11} className="px-8 py-3">
+                                {autorizadasDe(p.id).map((s) => (
+                                  <div key={s.id} className="mb-2 flex flex-wrap items-center gap-3 rounded-md border border-good/40 bg-good/10 px-3 py-2">
+                                    <Check size={13} className="shrink-0 text-good" />
+                                    <p className="flex-1 text-[11px] text-ink">
+                                      <b>Compra autorizada por Gerencia:</b> {s.descripcion || "Sin descripción"} · {soles(Number(s.monto))}
+                                      <span className="text-muted-foreground"> · vence {fmtFecha(s.vence_en.slice(0, 10))}</span>
+                                    </p>
+                                    <Boton type="button" onClick={() => abrirAutorizada(p.id, s)}>
+                                      <Pencil size={12} /> Registrar compra autorizada
+                                    </Boton>
+                                  </div>
+                                ))}
                                 <div className="overflow-hidden rounded-md border border-line">
                                 <table className="w-full text-[11px]">
                                   <thead>
