@@ -7,9 +7,9 @@ import { useCostoObras } from "@/lib/costo-obra";
 
 const db = supabase as unknown as { from: (t: string) => any };
 
-/** Regla del candado: costo acumulado + compra ≤ presupuesto × (avance/100 + tolerancia/100). */
-export function limiteCompra(presupuesto: number, avancePct: number, toleranciaPct: number) {
-  return Number(presupuesto || 0) * (Number(avancePct || 0) / 100 + Number(toleranciaPct || 0) / 100);
+/** Regla del candado: costo acumulado + compra ≤ presupuesto × (1 + tolerancia/100). El avance físico ya no reduce el límite. */
+export function limiteCompra(presupuesto: number, _avancePct: number, toleranciaPct: number) {
+  return Number(presupuesto || 0) * (1 + Number(toleranciaPct || 0) / 100);
 }
 export function compraPermitida(acumulado: number, nueva: number, presupuesto: number, avancePct: number, toleranciaPct: number) {
   return acumulado + nueva <= limiteCompra(presupuesto, avancePct, toleranciaPct) + 0.005;
