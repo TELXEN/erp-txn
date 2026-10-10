@@ -10,6 +10,12 @@ Gran parte de lo pedido ya existe en el ERP (dashboards con semáforo y erosión
 - Al guardar una partida (o su APU), si la suma de metrado × P.U. de todas las partidas supera el Costo Directo Base, se bloquea con un mensaje que indica cuánto excede.
 - Validación también en la base de datos, para que nadie la salte.
 
+## 2b. Desglose del costo directo
+- El costo directo de cada partida y del proyecto se muestra separado en: Materiales, Mano de obra, Herramientas y equipos, Herramientas manuales (% fijo de la mano de obra, no editable, tomado de Márgenes APU) y Subcontratos.
+- La base del proyecto (Costo Directo Base) se reparte en esos cinco rubros a partir de los APU de sus partidas.
+- En Costos directos y en el Dashboard de Proyectos: tabla base vs. real por rubro con semáforo; cada compra exige elegir el rubro.
+- Herramientas manuales no recibe compras: su real se calcula como el % sobre la mano de obra real.
+
 ## 3. Candado de compras por avance físico
 - Al registrar un costo directo en una partida se valida:
   costo real acumulado + nueva compra <= presupuesto de la partida × (avance % / 100 + tolerancia).
