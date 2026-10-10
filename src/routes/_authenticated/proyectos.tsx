@@ -541,7 +541,7 @@ function Proyectos() {
                 return (
                   <tr key={p.id} className="border-b border-line/60 transition-colors hover:bg-muted/50">
                         <td className="px-5 py-3 align-top font-bold text-ink break-words"><Resaltar texto={p.codigo || "—"} termino={busqueda} /></td>
-                        <td className="truncate px-3 py-3 align-top text-muted-foreground"><Resaltar texto={p.cliente || "—"} termino={busqueda} /></td>
+                        <td className="px-3 py-3 align-top break-words whitespace-normal text-muted-foreground" title={p.cliente || ""}><Resaltar texto={p.cliente || "—"} termino={busqueda} /></td>
                         <td className="px-3 py-3 align-top text-[13px] font-semibold text-ink break-words whitespace-normal">
                           <Resaltar texto={p.nombre} termino={busqueda} />
                         </td>

@@ -34,3 +34,4 @@
 - Honoraria (recibos_honorarios) and payroll (DetallePagoNomina) each use one WYSIWYG preview/print sheet; Cerrada gates payroll payments — aligned outputs.
 - BEFORE triggers round amounts (2 dp) and quantities/unit prices (4 dp) on gastos_directos, gastos_generales and ventas — one rounding rule for every writer.
 - Real project cost comes only from useCostoObras (src/lib/costo-obra.ts) — every panel shows the same figure.
+- UI buttons merge classes with cn() in ui-kit (Boton), so a passed className always beats base utilities; table row actions use BotonIcono (fixed square button, tones neutro/primario/peligro) — icons keep their size and never get squeezed by conflicting padding.
