@@ -34,3 +34,4 @@
 - Honoraria (recibos_honorarios) and payroll (DetallePagoNomina) each use one WYSIWYG preview/print sheet; Cerrada gates payroll payments — aligned outputs.
 - BEFORE triggers round amounts (2 dp) and quantities/unit prices (4 dp) on gastos_directos, gastos_generales and ventas — one rounding rule for every writer.
 - Real project cost comes only from useCostoObras (src/lib/costo-obra.ts) — every panel shows the same figure.
+- Overrun lock and CD-ceiling rules live in DB triggers (validar_candado_compra, validar_techo_partidas) with Gerencia overrides in solicitudes_desbloqueo — no write path can bypass them.
