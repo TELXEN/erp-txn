@@ -501,7 +501,7 @@ function DashboardProyectos() {
           </div>
           <BolsaEjecutada etiqueta="Costo directo ejecutado" real={cdR} base={cdP} />
           <BolsaEjecutada etiqueta="Gastos generales ejecutados" real={ggR} base={ggP} />
-          <UtilidadReal proyectada={utP} real={utP - Math.max(0, cdR - cdP) - Math.max(0, ggR - ggP)} />
+          <UtilidadReal proyectada={utP} real={utP + (cdP - cdR) + (ggP - ggR)} />
         </section>
         );
       })()}

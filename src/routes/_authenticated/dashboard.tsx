@@ -108,11 +108,9 @@ function Dashboard() {
         );
 
         const { costoDirectoReal, ggReal, costoReal } = costoDe(p.id);
-        // Utilidad real = prevista − exceso de costo directo − exceso de GG (los ahorros no la inflan).
+        // Utilidad real = prevista + saldo sin ejecutar de CD y GG (ahorros suman, excesos restan).
         const cdPrevisto = oferta.costoDirecto;
-        const desvCD = Math.max(0, costoDirectoReal - cdPrevisto);
-        const desvGG = Math.max(0, ggReal - oferta.gastosGenerales);
-        const margen = oferta.utilidad - desvCD - desvGG;
+        const margen = oferta.utilidad + (cdPrevisto - costoDirectoReal) + (oferta.gastosGenerales - ggReal);
         const saldoOperativo = cdPrevisto - costoDirectoReal + (oferta.gastosGenerales - ggReal);
         const facturado = cobrado + pendiente;
 
