@@ -30,4 +30,5 @@
 ## Listado de proyectos
 
 - [x] Iconos de acción: mismo tamaño y nitidez, ver/editar/eliminar distinguibles por color, separador antes de eliminar y columna con ancho suficiente.
+- [x] Editar una compra registrada: icono de lápiz en cada fila, ventana «Editar compra» precargada y guardado sin duplicar el registro; el candado de sobrecosto también revisa la edición.
 

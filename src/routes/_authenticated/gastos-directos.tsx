@@ -3,8 +3,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
-import { CalendarIcon, Check, ChevronDown, ChevronRight, Plus, Lock, Search, Trash2, Upload } from "lucide-react";
+import { Boton, BotonIcono, Campo, Input, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
+import { CalendarIcon, Check, ChevronDown, ChevronRight, Pencil, Plus, Lock, Search, Trash2, Upload } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Calendar } from "@/components/ui/calendar";
@@ -28,7 +28,7 @@ import { esSobrecosto, solicitarDesbloqueo, textoSobrecosto, useSolicitudesDesbl
 import { agruparSoloPorCategoria } from "@/lib/categorias";
 import { InsigniaPago, PLAZOS, condicionVacia, datosCondicion } from "@/components/CondicionPago";
 
-type Compra = GastoDirecto & { cantidad?: number; precio_unitario?: number; comprobante?: string; condicion_pago?: string; fecha_vencimiento?: string | null; estado_pago?: string; banco_id?: string | null; numero_operacion?: string; insumo_id?: string | null };
+type Compra = GastoDirecto & { cantidad?: number; precio_unitario?: number; comprobante?: string; condicion_pago?: string; dias_credito?: number; fecha_vencimiento?: string | null; estado_pago?: string; fecha_pago?: string | null; banco_id?: string | null; numero_operacion?: string; insumo_id?: string | null };
 
 type InsumoApu = { id: string; descripcion: string; tipo: string; codigo: string | null };
 
@@ -112,7 +112,7 @@ function GastosDirectos() {
   const [proyectoId, setProyectoId] = useState("");
   const [abiertas, setAbiertas] = useState<Record<string, boolean>>({});
   const [gruposCerrados, setGruposCerrados] = useState<Record<string, boolean>>({});
-  const [modalPid, setModalPid] = useState<string | null>(null);
+  const [modal, setModal] = useState<{ pid: string; editando?: Compra } | null>(null);
   const [busqueda, setBusqueda] = useState("");
   const { data: cuentas = [] } = useQuery({
     queryKey: ["bancos"],
@@ -171,14 +171,42 @@ function GastosDirectos() {
 
   function abrirCompra(pid: string) {
     setAbiertas((a) => ({ ...a, [pid]: true }));
-    setModalPid(pid);
+    setModal({ pid });
   }
 
   function alternar(pid: string) {
     setAbiertas((a) => ({ ...a, [pid]: !a[pid] }));
   }
 
-  async function registrar(pid: string, b: Borrador, insumos: InsumoApu[]): Promise<string | null> {
+  /** Edición sobre una compra ya registrada: la ventana se abre precargada. */
+  function abrirEdicion(g: Compra) {
+    setAbiertas((a) => ({ ...a, [g.partida_id]: true }));
+    setModal({ pid: g.partida_id, editando: g });
+  }
+
+  function borradorDeCompra(g: Compra): Borrador {
+    const contado = (g.condicion_pago ?? "Contado") !== "Crédito";
+    const nombrePartida = partidas.find((p) => p.id === g.partida_id)?.nombre;
+    const desc = g.insumo_id ? (maestroInsumos.find((i) => i.id === g.insumo_id)?.descripcion ?? "") : "";
+    return {
+      key: seqBorrador++,
+      fecha: g.fecha,
+      comprobante: g.comprobante ?? "",
+      proveedor_id: g.proveedor_id ?? "",
+      insumoTexto: desc || (g.descripcion === nombrePartida ? "" : g.descripcion),
+      insumo_id: g.insumo_id ?? null,
+      ...condicionVacia(g.condicion_pago ?? "Contado"),
+      dias_credito: String(g.dias_credito ?? 0),
+      banco_id: g.banco_id ?? (contado ? "caja" : ""),
+      numero_operacion: g.numero_operacion ?? "",
+      cantidad: String(g.cantidad ?? ""),
+      precio_unitario: String(g.precio_unitario ?? ""),
+      rubro: g.rubro ?? "",
+    };
+  }
+
+  /** Guarda la compra: inserta una nueva o actualiza la que se está editando. */
+  async function guardar(pid: string, b: Borrador, insumos: InsumoApu[], editando?: Compra): Promise<string | null> {
     const partida = partidas.find((p) => p.id === pid);
     if (!partida) return "Partida no encontrada.";
     if (!b.proveedor_id) return "Elige el proveedor.";
@@ -190,7 +218,8 @@ function GastosDirectos() {
     const prov = terceros.find((t) => t.id === b.proveedor_id);
     const insumo = insumos.find((i) => i.id === b.insumo_id);
     const monto = cent(Number(b.cantidad) * Number(b.precio_unitario)) / 100;
-    const { error: err } = await supabase.from("gastos_directos").insert({
+    const estado = editando?.estado_pago ?? (contado ? "Pagada" : "Pendiente");
+    const datos = {
       proyecto_id: proyectoId,
       partida_id: pid,
       descripcion: b.insumoTexto.trim().toUpperCase() || partida.nombre,
@@ -207,11 +236,15 @@ function GastosDirectos() {
       rubro: b.rubro || (insumo ? rubroDeTipo(insumo.tipo) : "Materiales"),
       fecha: b.fecha,
       ...datosCondicion(b, b.fecha),
-      estado_pago: contado ? "Pagada" : "Pendiente",
+      estado_pago: estado,
       banco_id: contado && b.banco_id !== "caja" ? b.banco_id : null,
-      fecha_pago: contado ? b.fecha : null,
+      fecha_pago: estado === "Pagada" ? (editando?.fecha_pago ?? b.fecha) : null,
       numero_operacion: contado && b.banco_id !== "caja" ? b.numero_operacion.trim() : "",
-    } as never);
+    } as never;
+    const q = editando
+      ? supabase.from("gastos_directos").update(datos).eq("id", editando.id)
+      : supabase.from("gastos_directos").insert(datos);
+    const { error: err } = await q;
     if (err) return err.message;
     qc.invalidateQueries({ queryKey: ["gastos_directos"] });
     qc.invalidateQueries({ queryKey: ["solicitudes_desbloqueo"] });
@@ -461,9 +494,14 @@ function GastosDirectos() {
                                         </td>
                                         <td className="px-2 text-right font-semibold">{soles(Number(g.monto_soles))}</td>
                                         <td className="px-3 text-right">
-                                          <button type="button" onClick={() => eliminar(g.id)} className="text-muted-foreground hover:text-bad" title="Eliminar">
-                                            <Trash2 size={13} />
-                                          </button>
+                                          <div className="flex items-center justify-end gap-1">
+                                            <BotonIcono etiqueta="Editar compra" tono="neutro" className="size-7" onClick={() => abrirEdicion(g)}>
+                                              <Pencil size={12} />
+                                            </BotonIcono>
+                                            <BotonIcono etiqueta="Eliminar compra" tono="peligro" className="size-7" onClick={() => eliminar(g.id)}>
+                                              <Trash2 size={12} />
+                                            </BotonIcono>
+                                          </div>
                                         </td>
                                       </tr>
                                     ))}
@@ -494,18 +532,22 @@ function GastosDirectos() {
           </div>
         )}
       </Panel>
-      {modalPid && (() => {
-        const mp = partidas.find((x) => x.id === modalPid);
+      {modal && (() => {
+        const mp = partidas.find((x) => x.id === modal.pid);
         if (!mp) return null;
+        const ed = modal.editando;
+        const costoBase = ed ? (cent(costoDe(mp.id)) - cent(Number(ed.monto_soles))) / 100 : costoDe(mp.id);
         return (
           <ModalCompra
-            key={modalPid}
-            partida={{ codigo: mp.codigo, nombre: mp.nombre, unidad: mp.unidad, presupuesto: Number(mp.presupuesto_inicial), costo: costoDe(mp.id) }}
+            key={ed ? `edit-${ed.id}` : mp.id}
+            partida={{ codigo: mp.codigo, nombre: mp.nombre, unidad: mp.unidad, presupuesto: Number(mp.presupuesto_inicial), costo: costoBase }}
             insumos={maestroInsumos}
             proveedores={proveedores}
             cuentas={cuentasActivas}
-            onCerrar={() => setModalPid(null)}
-            onRegistrar={(b) => registrar(mp.id, b, maestroInsumos)}
+            onCerrar={() => setModal(null)}
+            inicial={ed ? borradorDeCompra(ed) : undefined}
+            esEdicion={!!ed}
+            onRegistrar={(b) => guardar(mp.id, b, maestroInsumos, ed)}
             onSolicitar={(b, m) => solicitar(mp.id, b, maestroInsumos, m)}
           />
         );
@@ -555,7 +597,7 @@ export function FechaPeru({ valor, onChange }: { valor: string; onChange: (v: st
   );
 }
 
-/** Ventana «Registrar compra»: resumen de la partida + campos; queda abierta tras guardar. */
+/** Ventana «Registrar compra» / «Editar compra»: resumen de la partida + campos. */
 function ModalCompra({
   partida,
   insumos,
@@ -564,6 +606,8 @@ function ModalCompra({
   onCerrar,
   onRegistrar,
   onSolicitar,
+  inicial,
+  esEdicion = false,
 }: {
   partida: PartidaResumen;
   insumos: InsumoApu[];
@@ -572,8 +616,11 @@ function ModalCompra({
   onCerrar: () => void;
   onRegistrar: (b: Borrador) => Promise<string | null>;
   onSolicitar: (b: Borrador, motivo: string) => Promise<string | null>;
+  /** Compra ya registrada: la ventana se abre precargada y guarda los cambios. */
+  inicial?: Borrador | undefined;
+  esEdicion?: boolean;
 }) {
-  const [b, setB] = useState<Borrador>(borradorVacio);
+  const [b, setB] = useState<Borrador>(inicial ?? borradorVacio);
   const [error, setError] = useState("");
   const [ok, setOk] = useState("");
   const [bloqueo, setBloqueo] = useState("");
@@ -599,6 +646,7 @@ function ModalCompra({
     setGuardando(false);
     if (err) { setBloqueo(esSobrecosto(err) ? textoSobrecosto(err) : ""); return setError(esSobrecosto(err) ? "" : err); }
     setBloqueo("");
+    if (esEdicion) return onCerrar();
     setOk(`Compra registrada · ${soles(totalC / 100)}`);
     setB(borradorVacio());
   }
@@ -609,7 +657,7 @@ function ModalCompra({
   const muestraOperacion = contado && b.banco_id && b.banco_id !== "caja";
 
   return (
-    <VentanaFlotante titulo="Registrar compra" abierta onCerrar={onCerrar} ancho="max-w-2xl" ocultarBarra>
+    <VentanaFlotante titulo={esEdicion ? "Editar compra" : "Registrar compra"} abierta onCerrar={onCerrar} ancho="max-w-2xl" ocultarBarra>
       <div className="font-['Roboto']">
         {/* Contexto de la partida (precargado y bloqueado) */}
         <div className="grid grid-cols-12 gap-x-5 gap-y-3 border-b border-line bg-muted/40 px-5 py-4">
@@ -617,7 +665,7 @@ function ModalCompra({
           <div className="col-span-7"><p className={etq}>Descripción</p><p className="truncate text-sm font-medium text-ink" title={partida.nombre}>{partida.nombre}</p></div>
           <div className="col-span-2"><p className={etq}>Und.</p><p className="text-sm font-medium text-ink">{partida.unidad || "—"}</p></div>
           <div className="col-span-3"><p className={etq}>Presupuesto</p><p className="text-sm tabular-nums text-ink">{soles(presuC / 100)}</p></div>
-          <div className="col-span-3"><p className={etq}>Costo real</p><p className="text-sm tabular-nums text-ink">{soles(costoC / 100)}</p></div>
+          <div className="col-span-3"><p className={etq}>{esEdicion ? "Costo real (sin esta compra)" : "Costo real"}</p><p className="text-sm tabular-nums text-ink">{soles(costoC / 100)}</p></div>
           <div className="col-span-6 flex flex-col justify-end">
             <div className="flex items-end justify-between">
               <p className={etq}>Saldo disponible</p>
@@ -738,7 +786,7 @@ function ModalCompra({
             {error && <span className="mr-auto text-[11px] text-bad">{error}</span>}
             {ok && !error && <span className="mr-auto inline-flex items-center gap-1 text-[11px] text-good"><Check size={13} /> {ok}</span>}
             <Boton type="button" variante="linea" onClick={onCerrar}>Cancelar</Boton>
-            <Boton type="submit" disabled={guardando}><Check size={13} /> {guardando ? "Guardando…" : "Guardar"}</Boton>
+            <Boton type="submit" disabled={guardando}><Check size={13} /> {guardando ? "Guardando…" : esEdicion ? "Guardar cambios" : "Guardar"}</Boton>
           </div>
         </form>
       </div>
