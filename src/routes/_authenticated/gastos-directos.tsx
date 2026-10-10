@@ -13,6 +13,7 @@ import { Buscador, Resaltar, coincide } from "@/components/Buscador";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
 import {
+  RUBROS_COSTO,
   type RubroCosto,
   type GastoDirecto,
   useGastosDirectos,
