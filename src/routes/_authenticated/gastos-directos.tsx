@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
-import { CalendarIcon, Check, ChevronDown, ChevronRight, Plus, Search, Trash2, Upload } from "lucide-react";
+import { CalendarIcon, Check, ChevronDown, ChevronRight, Plus, Lock, Search, Trash2, Upload } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Calendar } from "@/components/ui/calendar";
@@ -22,6 +22,8 @@ import {
 } from "@/lib/datos";
 import { InsigniaRubro } from "@/components/estado-ui";
 import { exportarExcel } from "@/lib/exportar";
+import { DesgloseCd } from "@/components/DesgloseCd";
+import { esSobrecosto, solicitarDesbloqueo, textoSobrecosto, useSolicitudesDesbloqueo } from "@/lib/sobrecosto";
 import { agruparSoloPorCategoria } from "@/lib/categorias";
 import { InsigniaPago, PLAZOS, condicionVacia, datosCondicion } from "@/components/CondicionPago";
 
@@ -99,6 +101,7 @@ export const Route = createFileRoute("/_authenticated/gastos-directos")({
 function GastosDirectos() {
   const { rol } = useAuth();
   const qc = useQueryClient();
+  const { data: solicitudes = [] } = useSolicitudesDesbloqueo();
   const { data: proyectos = [] } = useProyectos();
   const { data: partidas = [] } = usePartidas();
   const { data: gastosRaw = [] } = useGastosDirectos();
@@ -502,6 +505,7 @@ function GastosDirectos() {
             cuentas={cuentasActivas}
             onCerrar={() => setModalPid(null)}
             onRegistrar={(b) => registrar(mp.id, b, maestroInsumos)}
+            onSolicitar={(b, m) => solicitar(mp.id, b, maestroInsumos, m)}
           />
         );
       })()}
