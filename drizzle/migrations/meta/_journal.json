@@ -148,6 +148,13 @@
       "when": 1791611818700,
       "tag": "0020_candado_rubro_precio_base",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1791612223658,
+      "tag": "0021_candado_rubro_precio_ofertado",
+      "breakpoints": true
     }
   ]
 }
