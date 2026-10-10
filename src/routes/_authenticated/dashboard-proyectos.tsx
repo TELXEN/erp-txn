@@ -85,6 +85,16 @@ function DashboardProyectos() {
   }, []);
 
 
+  // Guarda cada cambio de obra y vuelve a "todos" si la obra guardada ya no existe.
+  useEffect(() => {
+    try {
+      localStorage.setItem("dashboard-proyectos:obra", obraId);
+    } catch {}
+  }, [obraId]);
+  useEffect(() => {
+    if (obraId !== "todos" && proyectos.length > 0 && !proyectos.some((p) => p.id === obraId)) setObraId("todos");
+  }, [proyectos, obraId]);
+
   const filas = useMemo(
     () =>
       proyectos.map((p) => {
