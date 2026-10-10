@@ -1011,7 +1011,7 @@ function UtilidadReal({ proyectada, real }: { proyectada: number; real: number }
       </div>
       <p className={`mt-2 text-2xl font-bold tabular-nums ${critico ? "text-bad" : real < proyectada ? "text-warn" : "text-good"}`}>{soles(real)}</p>
       <p className={`mt-1 text-[11px] ${critico ? "font-semibold text-bad" : "text-muted-foreground"}`}>
-        {critico ? "⚠ Alerta crítica: la obra ya no deja utilidad" : real < proyectada ? `Excesos de costo restan ${soles(proyectada - real)}` : `Utilidad proyectada intacta (${soles(proyectada)})`}
+        {critico ? "⚠ Alerta crítica: la obra ya no deja utilidad" : real < proyectada ? `Excesos de costo restan ${soles(proyectada - real)}` : real > proyectada ? `Ahorros en costos suman ${soles(real - proyectada)}` : `Utilidad proyectada intacta (${soles(proyectada)})`}
       </p>
     </div>
   );
