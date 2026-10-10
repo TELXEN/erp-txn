@@ -18,6 +18,7 @@ export type CostoObra = {
   subcontratos: number;
   equipos: number; // incluye flota propia (tareo vehicular)
   servicios: number;
+  herramientas: number; // herramientas manuales compradas
   mod: number;
   honorarios: number;
   staff: number;
@@ -28,7 +29,7 @@ export type CostoObra = {
 };
 
 const VACIO: CostoObra = {
-  materiales: 0, subcontratos: 0, equipos: 0, servicios: 0, mod: 0, honorarios: 0,
+  materiales: 0, subcontratos: 0, equipos: 0, servicios: 0, herramientas: 0, mod: 0, honorarios: 0,
   staff: 0, generales: 0, costoDirectoReal: 0, ggReal: 0, costoReal: 0,
 };
 
@@ -98,6 +99,7 @@ export function useCostoObras() {
       if (r === "Subcontratos") c.subcontratos += v;
       else if (r === "Equipos") c.equipos += v;
       else if (r === "Servicios") c.servicios += v;
+      else if (r === "Herramientas manuales") c.herramientas += v;
       else c.materiales += v;
     });
     tareoVeh.forEach((t: { proyecto_id: string; costo_soles: number }) => { get(t.proyecto_id).equipos += Number(t.costo_soles); });
@@ -107,7 +109,7 @@ export function useCostoObras() {
       c.mod += p.mod; c.honorarios += p.honorarios; c.staff += p.staff;
     });
     m.forEach((c) => {
-      c.costoDirectoReal = c.materiales + c.subcontratos + c.equipos + c.servicios + c.mod + c.honorarios;
+      c.costoDirectoReal = c.materiales + c.subcontratos + c.equipos + c.servicios + c.herramientas + c.mod + c.honorarios;
       c.ggReal = c.generales + c.staff;
       c.costoReal = c.costoDirectoReal + c.ggReal;
     });

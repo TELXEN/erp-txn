@@ -1275,6 +1275,24 @@ export type Database = {
         }
         Relationships: []
       }
+      control_sobrecosto: {
+        Row: {
+          id: boolean
+          tolerancia_pct: number
+          updated_at: string
+        }
+        Insert: {
+          id?: boolean
+          tolerancia_pct?: number
+          updated_at?: string
+        }
+        Update: {
+          id?: boolean
+          tolerancia_pct?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       cotizacion_items: {
         Row: {
           categoria: string
@@ -3200,6 +3218,7 @@ export type Database = {
         Row: {
           archivado_en: string | null
           avance_programado_pct: number | null
+          cd_base: number | null
           cliente: string
           codigo: string | null
           created_at: string
@@ -3219,6 +3238,7 @@ export type Database = {
         Insert: {
           archivado_en?: string | null
           avance_programado_pct?: number | null
+          cd_base?: number | null
           cliente?: string
           codigo?: string | null
           created_at?: string
@@ -3238,6 +3258,7 @@ export type Database = {
         Update: {
           archivado_en?: string | null
           avance_programado_pct?: number | null
+          cd_base?: number | null
           cliente?: string
           codigo?: string | null
           created_at?: string
@@ -3711,6 +3732,78 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      solicitudes_desbloqueo: {
+        Row: {
+          created_at: string
+          descripcion: string
+          estado: string
+          exceso: number
+          id: string
+          monto: number
+          motivo: string
+          partida_id: string | null
+          proveedor: string
+          proyecto_id: string
+          resuelto_en: string | null
+          resuelto_por: string | null
+          rubro: string
+          solicitado_por: string | null
+          usada_en: string | null
+          vence_en: string | null
+        }
+        Insert: {
+          created_at?: string
+          descripcion?: string
+          estado?: string
+          exceso?: number
+          id?: string
+          monto?: number
+          motivo?: string
+          partida_id?: string | null
+          proveedor?: string
+          proyecto_id: string
+          resuelto_en?: string | null
+          resuelto_por?: string | null
+          rubro?: string
+          solicitado_por?: string | null
+          usada_en?: string | null
+          vence_en?: string | null
+        }
+        Update: {
+          created_at?: string
+          descripcion?: string
+          estado?: string
+          exceso?: number
+          id?: string
+          monto?: number
+          motivo?: string
+          partida_id?: string | null
+          proveedor?: string
+          proyecto_id?: string
+          resuelto_en?: string | null
+          resuelto_por?: string | null
+          rubro?: string
+          solicitado_por?: string | null
+          usada_en?: string | null
+          vence_en?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "solicitudes_desbloqueo_partida_id_fkey"
+            columns: ["partida_id"]
+            isOneToOne: false
+            referencedRelation: "partidas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "solicitudes_desbloqueo_proyecto_id_fkey"
+            columns: ["proyecto_id"]
+            isOneToOne: false
+            referencedRelation: "proyectos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tareo_vehiculos: {
         Row: {
@@ -4431,6 +4524,7 @@ export type Database = {
         Returns: undefined
       }
       is_admin_o_gerente: { Args: { _user_id: string }; Returns: boolean }
+      mo_presupuestada: { Args: { _proyecto: string }; Returns: number }
       mover_item_wbs: {
         Args: { _direccion: number; _id: string; _tabla: string }
         Returns: undefined

@@ -1,3 +1,4 @@
+import { DesgloseCd } from "@/components/DesgloseCd";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState, type ReactNode } from "react";
 import { AlertTriangle, CalendarDays, Clock3, Flag, Layers3, ListTodo, Upload } from "lucide-react";
@@ -547,6 +548,8 @@ function DashboardProyectos() {
         </div>
       </Panel>
 
+
+      {verDinero && !esTodos && <div className="mb-4"><DesgloseCd proyectoId={obraId} /></div>}
 
       <Panel
         titulo={verDinero ? "Curva S — Avance programado, real y costo" : "Curva S — Avance programado versus real"}

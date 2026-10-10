@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
-import { CalendarIcon, Check, ChevronDown, ChevronRight, Plus, Search, Trash2, Upload } from "lucide-react";
+import { CalendarIcon, Check, ChevronDown, ChevronRight, Plus, Lock, Search, Trash2, Upload } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Calendar } from "@/components/ui/calendar";
@@ -13,6 +13,7 @@ import { Buscador, Resaltar, coincide } from "@/components/Buscador";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
 import {
+  RUBROS_COSTO,
   type RubroCosto,
   type GastoDirecto,
   useGastosDirectos,
@@ -22,6 +23,8 @@ import {
 } from "@/lib/datos";
 import { InsigniaRubro } from "@/components/estado-ui";
 import { exportarExcel } from "@/lib/exportar";
+import { DesgloseCd } from "@/components/DesgloseCd";
+import { esSobrecosto, solicitarDesbloqueo, textoSobrecosto, useSolicitudesDesbloqueo } from "@/lib/sobrecosto";
 import { agruparSoloPorCategoria } from "@/lib/categorias";
 import { InsigniaPago, PLAZOS, condicionVacia, datosCondicion } from "@/components/CondicionPago";
 
@@ -45,6 +48,7 @@ type Borrador = {
   numero_operacion: string;
   cantidad: string;
   precio_unitario: string;
+  rubro: string;
 };
 
 let seqBorrador = 1;
@@ -60,6 +64,7 @@ const borradorVacio = (): Borrador => ({
   numero_operacion: "",
   cantidad: "",
   precio_unitario: "",
+  rubro: "",
 });
 
 /** Tipo de insumo → rubro de la compra. */
@@ -67,7 +72,7 @@ const RUBRO_POR_TIPO: Record<string, RubroCosto> = {
   MO: "Servicios",
   MAT: "Materiales",
   EQ: "Equipos",
-  HT: "Materiales",
+  HT: "Herramientas manuales",
   SC: "Subcontratos",
 };
 const rubroDeTipo = (tipo?: string) => RUBRO_POR_TIPO[tipo ?? ""] ?? "Materiales";
@@ -97,6 +102,7 @@ export const Route = createFileRoute("/_authenticated/gastos-directos")({
 function GastosDirectos() {
   const { rol } = useAuth();
   const qc = useQueryClient();
+  const { data: solicitudes = [] } = useSolicitudesDesbloqueo();
   const { data: proyectos = [] } = useProyectos();
   const { data: partidas = [] } = usePartidas();
   const { data: gastosRaw = [] } = useGastosDirectos();
@@ -160,6 +166,7 @@ function GastosDirectos() {
   const nombreProv = (g: Compra) =>
     (g.proveedor_id ? terceros.find((t) => t.id === g.proveedor_id)?.razon_social : null) ?? g.proveedor ?? "—";
 
+  const pendientes = solicitudes.filter((x) => x.proyecto_id === proyectoId && x.estado === "Pendiente").length;
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
   function abrirCompra(pid: string) {
@@ -197,7 +204,7 @@ function GastosDirectos() {
       moneda: "PEN",
       tipo_cambio: 1,
       monto_soles: monto,
-      rubro: insumo ? rubroDeTipo(insumo.tipo) : "Materiales",
+      rubro: b.rubro || (insumo ? rubroDeTipo(insumo.tipo) : "Materiales"),
       fecha: b.fecha,
       ...datosCondicion(b, b.fecha),
       estado_pago: contado ? "Pagada" : "Pendiente",
@@ -207,7 +214,24 @@ function GastosDirectos() {
     } as never);
     if (err) return err.message;
     qc.invalidateQueries({ queryKey: ["gastos_directos"] });
+    qc.invalidateQueries({ queryKey: ["solicitudes_desbloqueo"] });
     return null;
+  }
+
+  async function solicitar(pid: string, b: Borrador, insumos: InsumoApu[], motivo: string) {
+    const prov = terceros.find((t) => t.id === b.proveedor_id);
+    const insumo = insumos.find((i) => i.id === b.insumo_id);
+    const err = await solicitarDesbloqueo({
+      proyecto_id: proyectoId,
+      partida_id: pid,
+      rubro: b.rubro || (insumo ? rubroDeTipo(insumo.tipo) : "Materiales"),
+      descripcion: b.insumoTexto.trim().toUpperCase(),
+      proveedor: prov?.razon_social ?? "",
+      monto: cent(Number(b.cantidad) * Number(b.precio_unitario)) / 100,
+      motivo,
+    });
+    qc.invalidateQueries({ queryKey: ["solicitudes_desbloqueo"] });
+    return err;
   }
 
   async function alternarPago(g: Compra) {
@@ -297,6 +321,13 @@ function GastosDirectos() {
           <TarjetaSaldo saldo={presuTotal - costoTotal} consumo={consumo} />
         </div>
       </Panel>
+
+      {pendientes > 0 && (
+        <p className="mb-3 rounded-md border border-warn/30 bg-warn/10 px-4 py-2 text-xs text-warn">
+          {pendientes} solicitud{pendientes === 1 ? "" : "es"} de desbloqueo pendiente{pendientes === 1 ? "" : "s"} de aprobación de Gerencia en esta obra.
+        </p>
+      )}
+      <div className="mb-4"><DesgloseCd proyectoId={proyectoId} /></div>
 
       <Panel
         titulo="Control por partida"
@@ -475,6 +506,7 @@ function GastosDirectos() {
             cuentas={cuentasActivas}
             onCerrar={() => setModalPid(null)}
             onRegistrar={(b) => registrar(mp.id, b, maestroInsumos)}
+            onSolicitar={(b, m) => solicitar(mp.id, b, maestroInsumos, m)}
           />
         );
       })()}
@@ -531,6 +563,7 @@ function ModalCompra({
   cuentas,
   onCerrar,
   onRegistrar,
+  onSolicitar,
 }: {
   partida: PartidaResumen;
   insumos: InsumoApu[];
@@ -538,10 +571,13 @@ function ModalCompra({
   cuentas: Cuenta[];
   onCerrar: () => void;
   onRegistrar: (b: Borrador) => Promise<string | null>;
+  onSolicitar: (b: Borrador, motivo: string) => Promise<string | null>;
 }) {
   const [b, setB] = useState<Borrador>(borradorVacio);
   const [error, setError] = useState("");
   const [ok, setOk] = useState("");
+  const [bloqueo, setBloqueo] = useState("");
+  const [motivo, setMotivo] = useState("");
   const [guardando, setGuardando] = useState(false);
   const contado = b.condicion_pago !== "Crédito";
   const totalC = cent(Number(b.cantidad || 0) * Number(b.precio_unitario || 0));
@@ -561,7 +597,8 @@ function ModalCompra({
     setOk("");
     const err = await onRegistrar(b);
     setGuardando(false);
-    if (err) return setError(err);
+    if (err) { setBloqueo(esSobrecosto(err) ? textoSobrecosto(err) : ""); return setError(esSobrecosto(err) ? "" : err); }
+    setBloqueo("");
     setOk(`Compra registrada · ${soles(totalC / 100)}`);
     setB(borradorVacio());
   }
@@ -609,9 +646,15 @@ function ModalCompra({
               value={b.insumoTexto}
               insumos={insumos}
               onChange={(v) => setB({ ...b, insumoTexto: v.toUpperCase(), insumo_id: null })}
-              onElegir={(i) => setB({ ...b, insumoTexto: i.descripcion.toUpperCase(), insumo_id: i.id })}
+              onElegir={(i) => setB({ ...b, insumoTexto: i.descripcion.toUpperCase(), insumo_id: i.id, rubro: rubroDeTipo(i.tipo) })}
               onEnter={() => void enviar()}
             /></label>
+
+          <label className="block"><span className={etqF}>Tipo de recurso</span>
+            <Select required value={b.rubro} onChange={(e) => setB({ ...b, rubro: e.target.value })} className={inp}>
+              <option value="">Según el insumo…</option>
+              {RUBROS_COSTO.map((r) => <option key={r} value={r}>{r === "Equipos" ? "Herramientas y equipos" : r}</option>)}
+            </Select></label>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <label><span className={etqF}>Pago</span>
@@ -674,6 +717,22 @@ function ModalCompra({
               </div>
             </div>
           </div>
+
+          {bloqueo && (
+            <div className="space-y-2 rounded-lg border border-bad/40 bg-bad/10 px-4 py-3">
+              <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-bad"><Lock size={13} /> Partida bloqueada por sobrecosto</p>
+              <p className="text-xs text-ink">{bloqueo}</p>
+              <div className="flex flex-wrap gap-2">
+                <Input value={motivo} onChange={(e) => setMotivo(e.target.value)} placeholder="Motivo para Gerencia (opcional)" className="h-8 flex-1 text-xs" maxLength={300} />
+                <Boton type="button" onClick={async () => {
+                  const e = await onSolicitar(b, motivo.trim());
+                  if (e) return setError(e);
+                  setBloqueo(""); setMotivo("");
+                  setOk("Solicitud enviada a Gerencia. Cuando la apruebe, vuelve a guardar esta compra.");
+                }}>Solicitar desbloqueo a Gerencia</Boton>
+              </div>
+            </div>
+          )}
 
           <div className="flex flex-wrap items-center justify-end gap-3 pt-1">
             {error && <span className="mr-auto text-[11px] text-bad">{error}</span>}

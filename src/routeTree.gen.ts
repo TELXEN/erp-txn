@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedAlmacenRouteImport } from './routes/_authenticated/almacen'
+import { Route as AuthenticatedAprobacionesRouteImport } from './routes/_authenticated/aprobaciones'
 import { Route as AuthenticatedApuVistaRouteImport } from './routes/_authenticated/apu-vista'
 import { Route as AuthenticatedAvanceRouteImport } from './routes/_authenticated/avance'
 import { Route as AuthenticatedBeneficiosRouteImport } from './routes/_authenticated/beneficios'
@@ -62,6 +63,12 @@ const AuthenticatedAlmacenRoute = AuthenticatedAlmacenRouteImport.update({
   path: '/almacen',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAprobacionesRoute =
+  AuthenticatedAprobacionesRouteImport.update({
+    id: '/aprobaciones',
+    path: '/aprobaciones',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedApuVistaRoute = AuthenticatedApuVistaRouteImport.update({
   id: '/apu-vista',
   path: '/apu-vista',
@@ -255,6 +262,7 @@ const AuthenticatedVehiculosRoute = AuthenticatedVehiculosRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/almacen': typeof AuthenticatedAlmacenRoute
+  '/aprobaciones': typeof AuthenticatedAprobacionesRoute
   '/apu-vista': typeof AuthenticatedApuVistaRoute
   '/avance': typeof AuthenticatedAvanceRoute
   '/beneficios': typeof AuthenticatedBeneficiosRoute
@@ -294,6 +302,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/almacen': typeof AuthenticatedAlmacenRoute
+  '/aprobaciones': typeof AuthenticatedAprobacionesRoute
   '/apu-vista': typeof AuthenticatedApuVistaRoute
   '/avance': typeof AuthenticatedAvanceRoute
   '/beneficios': typeof AuthenticatedBeneficiosRoute
@@ -335,6 +344,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/_authenticated/almacen': typeof AuthenticatedAlmacenRoute
+  '/_authenticated/aprobaciones': typeof AuthenticatedAprobacionesRoute
   '/_authenticated/apu-vista': typeof AuthenticatedApuVistaRoute
   '/_authenticated/avance': typeof AuthenticatedAvanceRoute
   '/_authenticated/beneficios': typeof AuthenticatedBeneficiosRoute
@@ -376,6 +386,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/almacen'
+    | '/aprobaciones'
     | '/apu-vista'
     | '/avance'
     | '/beneficios'
@@ -415,6 +426,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/almacen'
+    | '/aprobaciones'
     | '/apu-vista'
     | '/avance'
     | '/beneficios'
@@ -455,6 +467,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/_authenticated/almacen'
+    | '/_authenticated/aprobaciones'
     | '/_authenticated/apu-vista'
     | '/_authenticated/avance'
     | '/_authenticated/beneficios'
@@ -518,6 +531,13 @@ declare module '@tanstack/react-router' {
       path: '/almacen'
       fullPath: '/almacen'
       preLoaderRoute: typeof AuthenticatedAlmacenRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/aprobaciones': {
+      id: '/_authenticated/aprobaciones'
+      path: '/aprobaciones'
+      fullPath: '/aprobaciones'
+      preLoaderRoute: typeof AuthenticatedAprobacionesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/apu-vista': {
@@ -770,6 +790,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAlmacenRoute: typeof AuthenticatedAlmacenRoute
+  AuthenticatedAprobacionesRoute: typeof AuthenticatedAprobacionesRoute
   AuthenticatedApuVistaRoute: typeof AuthenticatedApuVistaRoute
   AuthenticatedAvanceRoute: typeof AuthenticatedAvanceRoute
   AuthenticatedBeneficiosRoute: typeof AuthenticatedBeneficiosRoute
@@ -809,6 +830,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAlmacenRoute: AuthenticatedAlmacenRoute,
+  AuthenticatedAprobacionesRoute: AuthenticatedAprobacionesRoute,
   AuthenticatedApuVistaRoute: AuthenticatedApuVistaRoute,
   AuthenticatedAvanceRoute: AuthenticatedAvanceRoute,
   AuthenticatedBeneficiosRoute: AuthenticatedBeneficiosRoute,
