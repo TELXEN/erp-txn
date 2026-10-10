@@ -72,6 +72,18 @@ function DashboardProyectos() {
   const [obraId, setObraId] = useState("todos");
   const [filtroEstado, setFiltroEstado] = useState<string>("Todos");
 
+  // Recupera la última obra seleccionada: persiste al cerrar la pestaña o cambiar de ventana.
+  useEffect(() => {
+    const guardada = (() => {
+      try {
+        return localStorage.getItem("dashboard-proyectos:obra");
+      } catch {
+        return null;
+      }
+    })();
+    if (guardada) setObraId(guardada);
+  }, []);
+
 
   const filas = useMemo(
     () =>
