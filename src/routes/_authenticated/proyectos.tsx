@@ -405,7 +405,7 @@ function Proyectos() {
               </div>
             </Seccion>
 
-            <Seccion titulo="Finanzas (%)">
+            <Seccion titulo="Costo Directo Base y Finanzas (%)">
               <CampoF etiqueta="Costo Directo Base (techo de obra, S/)">
                 <Input type="number" min={0} step="0.01" value={form.cd_base} onChange={(e) => setForm({ ...form, cd_base: e.target.value })} placeholder="Opcional" />
               </CampoF>
