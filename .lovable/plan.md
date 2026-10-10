@@ -14,7 +14,7 @@ Gran parte de lo pedido ya existe en el ERP (dashboards con semáforo y erosión
 - El costo directo de cada partida y del proyecto se muestra separado en: Materiales, Mano de obra, Herramientas y equipos, Herramientas manuales (% fijo de la mano de obra, no editable, tomado de Márgenes APU) y Subcontratos.
 - La base del proyecto (Costo Directo Base) se reparte en esos cinco rubros a partir de los APU de sus partidas.
 - En Costos directos y en el Dashboard de Proyectos: tabla base vs. real por rubro con semáforo; cada compra exige elegir el rubro.
-- Herramientas manuales no recibe compras: su real se calcula como el % sobre la mano de obra real.
+- Herramientas manuales: su base es el % sobre la mano de obra presupuestada (ej. 5% = S/ 1,000). Se registran compras reales de herramientas manuales y la suma no puede superar esa base; si la supera, la compra se bloquea.
 - Mano de obra presupuestada = suma de la mano de obra de todas las partidas (desde sus APU).
 - Mano de obra real = costo del tareo del personal obrero que ejecuta partidas; el staff (supervisión) no entra aquí, va a gastos generales.
 
