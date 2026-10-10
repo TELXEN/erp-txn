@@ -522,14 +522,14 @@ function Proyectos() {
           <table className="w-full min-w-[1280px] table-fixed font-['Roboto'] text-xs">
             <thead>
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                <th className="w-[8%] px-5 py-2 font-medium">Código</th>
-                <th className="w-[9%] px-3 py-2 font-medium">Cliente</th>
-                <th className="w-[14%] px-3 py-2 font-medium">Nombre de la obra</th>
-                <th className="w-[11%] px-3 py-2 font-medium">Responsable</th>
-                <th className="w-[11%] px-3 py-2 font-medium">Plazo</th>
-                <th className="w-[8%] px-3 py-2 font-medium">Avance</th>
-                <th className="w-[8%] px-3 py-2 text-right font-medium">Presupuesto</th>
-                <th className="w-[9%] px-3 py-2 text-right font-medium">Costo ejecutado</th>
+                <th className="w-[7%] px-5 py-2 font-medium">Código</th>
+                <th className="w-[11%] px-3 py-2 font-medium">Cliente</th>
+                <th className="w-[18%] px-3 py-2 font-medium">Nombre de la obra</th>
+                <th className="w-[10%] px-3 py-2 font-medium">Responsable</th>
+                <th className="w-[10%] px-3 py-2 font-medium">Plazo</th>
+                <th className="w-[7%] px-3 py-2 font-medium">Avance</th>
+                <th className="w-[7%] px-3 py-2 text-right font-medium">Presupuesto</th>
+                <th className="w-[8%] px-3 py-2 text-right font-medium">Costo ejecutado</th>
                 <th className="w-[7%] px-3 py-2 font-medium">ESTADO</th>
                 <th className="w-[215px] px-3 py-2 text-right font-medium">Acciones</th>
               </tr>
