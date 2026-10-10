@@ -112,7 +112,7 @@ function GastosDirectos() {
   const [proyectoId, setProyectoId] = useState("");
   const [abiertas, setAbiertas] = useState<Record<string, boolean>>({});
   const [gruposCerrados, setGruposCerrados] = useState<Record<string, boolean>>({});
-  const [modal, setModal] = useState<{ pid: string; editando?: Compra } | null>(null);
+  const [modal, setModal] = useState<{ pid: string; editando?: Compra; inicial?: Borrador } | null>(null);
   const [busqueda, setBusqueda] = useState("");
   const { data: cuentas = [] } = useQuery({
     queryKey: ["bancos"],
@@ -176,6 +176,31 @@ function GastosDirectos() {
 
   function alternar(pid: string) {
     setAbiertas((a) => ({ ...a, [pid]: !a[pid] }));
+  }
+
+  /** Solicitudes aprobadas por Gerencia, vigentes y aún no usadas, de una partida. */
+  function autorizadasDe(pid: string) {
+    const ahora = new Date();
+    return solicitudes.filter(
+      (s) => s.partida_id === pid && s.estado === "Aprobada" && !s.usada_en && !!s.vence_en && new Date(s.vence_en) >= ahora,
+    );
+  }
+
+  /** Abre la ventana precargada con los datos de la compra autorizada por Gerencia. */
+  function abrirAutorizada(pid: string, s: (typeof solicitudes)[number]) {
+    setAbiertas((a) => ({ ...a, [pid]: true }));
+    const prov = terceros.find((t) => t.razon_social === s.proveedor);
+    setModal({
+      pid,
+      inicial: {
+        ...borradorVacio(),
+        insumoTexto: s.descripcion ?? "",
+        proveedor_id: prov?.id ?? "",
+        rubro: s.rubro ?? "",
+        cantidad: "1",
+        precio_unitario: String(Number(s.monto).toFixed(2)),
+      },
+    });
   }
 
   /** Edición sobre una compra ya registrada: la ventana se abre precargada. */
@@ -455,6 +480,18 @@ function GastosDirectos() {
                           {abierta && (
                             <tr className="border-b border-line/40">
                               <td colSpan={11} className="px-8 py-3">
+                                {autorizadasDe(p.id).map((s) => (
+                                  <div key={s.id} className="mb-2 flex flex-wrap items-center gap-3 rounded-md border border-good/40 bg-good/10 px-3 py-2">
+                                    <Check size={13} className="shrink-0 text-good" />
+                                    <p className="flex-1 text-[11px] text-ink">
+                                      <b>Compra autorizada por Gerencia:</b> {s.descripcion || "Sin descripción"} · {soles(Number(s.monto))}
+                                      <span className="text-muted-foreground"> · vence {fmtFecha((s.vence_en ?? "").slice(0, 10))}</span>
+                                    </p>
+                                    <Boton type="button" onClick={() => abrirAutorizada(p.id, s)}>
+                                      <Pencil size={12} /> Registrar compra autorizada
+                                    </Boton>
+                                  </div>
+                                ))}
                                 <div className="overflow-hidden rounded-md border border-line">
                                 <table className="w-full text-[11px]">
                                   <thead>
@@ -539,13 +576,13 @@ function GastosDirectos() {
         const costoBase = ed ? (cent(costoDe(mp.id)) - cent(Number(ed.monto_soles))) / 100 : costoDe(mp.id);
         return (
           <ModalCompra
-            key={ed ? `edit-${ed.id}` : mp.id}
+            key={ed ? `edit-${ed.id}` : modal.inicial ? `aut-${modal.inicial.key}` : mp.id}
             partida={{ codigo: mp.codigo, nombre: mp.nombre, unidad: mp.unidad, presupuesto: Number(mp.presupuesto_inicial), costo: costoBase }}
             insumos={maestroInsumos}
             proveedores={proveedores}
             cuentas={cuentasActivas}
             onCerrar={() => setModal(null)}
-            inicial={ed ? borradorDeCompra(ed) : undefined}
+            inicial={ed ? borradorDeCompra(ed) : modal.inicial}
             esEdicion={!!ed}
             onRegistrar={(b) => guardar(mp.id, b, maestroInsumos, ed)}
             onSolicitar={(b, m) => solicitar(mp.id, b, maestroInsumos, m)}
