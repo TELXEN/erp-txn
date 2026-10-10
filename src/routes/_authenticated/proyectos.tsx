@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useRef, useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Archive, ArchiveRestore, Calculator, Copy, Eye, Info, LayoutGrid, MoreHorizontal, Pencil, Plus, Table2, Trash2 } from "lucide-react";
+import { Archive, ArchiveRestore, Calculator, Copy, EllipsisVertical, Eye, Info, LayoutGrid, Plus, SquarePen, Table2, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, Input, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
+import { Boton, BotonIcono, Input, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
@@ -60,13 +60,9 @@ function Desglose({
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <button
-          type="button"
-          className="grid h-7 w-7 place-items-center rounded-md border border-line hover:border-primary hover:text-primary"
-          title="Ver desglose financiero"
-        >
-          <Calculator className="size-4" />
-        </button>
+        <BotonIcono etiqueta="Ver desglose financiero">
+          <Calculator size={17} strokeWidth={1.9} />
+        </BotonIcono>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-64 font-mono text-xs">
         <p className="mb-2 text-sm font-semibold text-ink">Desglose financiero</p>
@@ -569,7 +565,7 @@ function Proyectos() {
                           <InsigniaSituacion valor={p.situacion} />
                         </td>
                         <td className="px-5 py-3 align-top text-right">
-                          <div className="inline-flex items-center gap-1.5">
+                          <div className="inline-flex items-center gap-1">
                             <Desglose
                               o={ofertaProyecto(
                                 partidas.filter((x) => x.proyecto_id === p.id),
@@ -580,18 +576,25 @@ function Proyectos() {
                               pctGG={Number(p.pct_gastos_generales ?? 0)}
                               pctUt={Number(p.pct_utilidad ?? 0)}
                             />
-                            <Boton variante="linea" className="h-8 w-8 px-0" aria-label="Ver proyecto" title="Ver" onClick={() => setViendoId(p.id)}><Eye className="size-[18px]" /></Boton>
-                            <Boton variante="linea" className="h-8 w-8 px-0" aria-label="Editar proyecto" title="Editar" onClick={() => abrirEdicion(p)}>
-                              <Pencil className="size-[18px]" />
-                            </Boton>
-                            <Boton variante="linea" className="h-8 w-8 px-0" aria-label="Eliminar proyecto" title="Eliminar" onClick={() => { setError(""); setEliminando(p); }}>
-                              <Trash2 className="size-[18px]" />
-                            </Boton>
+                            <BotonIcono etiqueta="Ver datos de registro" onClick={() => setViendoId(p.id)}>
+                              <Eye size={17} strokeWidth={1.9} />
+                            </BotonIcono>
+                            <BotonIcono etiqueta="Editar proyecto" tono="primario" onClick={() => abrirEdicion(p)}>
+                              <SquarePen size={17} strokeWidth={1.9} />
+                            </BotonIcono>
+                            <span className="mx-1 h-5 w-px shrink-0 bg-line" aria-hidden="true" />
+                            <BotonIcono etiqueta="Eliminar proyecto" tono="peligro" onClick={() => { setError(""); setEliminando(p); }}>
+                              <Trash2 size={17} strokeWidth={1.9} />
+                            </BotonIcono>
                             <DropdownMenu>
-                              <DropdownMenuTrigger asChild><Boton variante="linea" className="h-8 w-8 px-0" aria-label="Más acciones" title="Más acciones"><MoreHorizontal className="size-[18px]" /></Boton></DropdownMenuTrigger>
+                              <DropdownMenuTrigger asChild>
+                                <BotonIcono etiqueta="Más acciones">
+                                  <EllipsisVertical size={17} strokeWidth={1.9} />
+                                </BotonIcono>
+                              </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => duplicar(p.id)}><Copy /> Duplicar como borrador</DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => cambiarArchivo(p.id, !p.archivado_en)}>{p.archivado_en ? <ArchiveRestore /> : <Archive />}{p.archivado_en ? "Restaurar" : "Archivar"}</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => duplicar(p.id)}><Copy size={15} strokeWidth={1.9} /> Duplicar como borrador</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => cambiarArchivo(p.id, !p.archivado_en)}>{p.archivado_en ? <ArchiveRestore size={15} strokeWidth={1.9} /> : <Archive size={15} strokeWidth={1.9} />}{p.archivado_en ? "Restaurar" : "Archivar"}</DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </div>
