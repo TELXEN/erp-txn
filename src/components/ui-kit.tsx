@@ -135,7 +135,7 @@ export function BotonIcono({
   const tonos = {
     neutro: "border-line bg-card text-muted-foreground hover:border-primary/45 hover:bg-primary/10 hover:text-primary",
     primario: "border-primary/25 bg-primary/5 text-primary hover:border-primary/50 hover:bg-primary/12",
-    peligro: "border-line bg-card text-muted-foreground hover:border-bad/45 hover:bg-bad/10 hover:text-bad",
+    peligro: "border-bad/30 bg-bad/5 text-bad hover:border-bad/50 hover:bg-bad/12",
   }[tono];
   return (
     <button
