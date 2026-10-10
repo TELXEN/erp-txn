@@ -111,8 +111,45 @@ export function Boton({
   return (
     <button
       {...props}
-      className={`inline-flex items-center justify-center gap-2 rounded-md px-3 py-2 font-mono text-xs font-medium transition-colors disabled:opacity-50 ${estilos} ${props.className ?? ""}`}
+      className={cn(
+        "inline-flex items-center justify-center gap-2 rounded-md px-3 py-2 font-mono text-xs font-medium transition-colors disabled:opacity-50",
+        estilos,
+        className,
+      )}
     />
+  );
+}
+
+// Botón cuadrado para acciones de tabla: icono siempre del mismo tamaño,
+// con tono según la acción (ver, editar, eliminar).
+export function BotonIcono({
+  etiqueta,
+  tono = "neutro",
+  className,
+  children,
+  ...props
+}: ButtonHTMLAttributes<HTMLButtonElement> & {
+  etiqueta: string;
+  tono?: "neutro" | "primario" | "peligro";
+}) {
+  const tonos = {
+    neutro: "border-line bg-card text-muted-foreground hover:border-primary/45 hover:bg-primary/10 hover:text-primary",
+    primario: "border-primary/25 bg-primary/5 text-primary hover:border-primary/50 hover:bg-primary/12",
+    peligro: "border-line bg-card text-muted-foreground hover:border-bad/45 hover:bg-bad/10 hover:text-bad",
+  }[tono];
+  return (
+    <button
+      {...props}
+      title={etiqueta}
+      aria-label={etiqueta}
+      className={cn(
+        "grid size-8 shrink-0 place-items-center rounded-md border transition-colors disabled:pointer-events-none disabled:opacity-50",
+        tonos,
+        className,
+      )}
+    >
+      {children}
+    </button>
   );
 }
 
