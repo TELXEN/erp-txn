@@ -433,7 +433,7 @@ function Dashboard() {
           EMO: {emoAlerta.v > 0 && `${emoAlerta.v} vencido(s)`}{emoAlerta.v > 0 && emoAlerta.p > 0 && " · "}{emoAlerta.p > 0 && `${emoAlerta.p} por vencer en 30 días`} — ver en Gestión de Personal
         </Link>
       )}
-      <div id="reporte-financiero">
+      <div id="reporte-financiero" className="tablero-financiero">
         {/* Nivel 1: KPIs ejecutivos */}
         <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
         <Kpi
