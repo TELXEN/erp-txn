@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useRef, useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Archive, ArchiveRestore, Check, Copy, Eye, Info, LayoutGrid, MoreHorizontal, Pencil, Plus, Table2, X } from "lucide-react";
+import { Archive, ArchiveRestore, Calculator, Copy, Eye, Info, LayoutGrid, MoreHorizontal, Pencil, Plus, Table2, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Input, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
@@ -17,6 +17,15 @@ function Seccion({ titulo, children }: { titulo: string; children: ReactNode }) 
     <div className="space-y-3 rounded-lg border border-line bg-muted/30 p-4">
       <h3 className="text-sm font-semibold text-ink">{titulo}</h3>
       {children}
+    </div>
+  );
+}
+
+function Dato({ etiqueta, valor }: { etiqueta: string; valor: ReactNode }) {
+  return (
+    <div className="min-w-0">
+      <p className="text-[10px] font-medium uppercase tracking-[0.08em] text-muted-foreground">{etiqueta}</p>
+      <div className="mt-0.5 text-sm text-ink">{valor}</div>
     </div>
   );
 }
@@ -56,7 +65,7 @@ function Desglose({
           className="grid h-7 w-7 place-items-center rounded-md border border-line hover:border-primary hover:text-primary"
           title="Ver desglose financiero"
         >
-          <Eye className="size-4" />
+          <Calculator className="size-4" />
         </button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-64 font-mono text-xs">
@@ -75,6 +84,7 @@ import { Kanban } from "@/components/Kanban";
 import { useAuth, puedeVerDinero } from "@/lib/auth";
 import { fecha, soles } from "@/lib/format";
 import {
+  type Proyecto,
   ofertaProyecto,
   useEstadosProyecto,
   nombresEstados,
@@ -146,21 +156,9 @@ function Proyectos() {
     cd_base: "",
   });
   const [error, setError] = useState("");
-  const [editando, setEditando] = useState<{
-    id: string;
-    codigo: string;
-    nombre: string;
-    estado: "En Ejecucion" | "Finalizado";
-    situacion: string;
-    responsable_id: string;
-    fecha_inicio: string;
-    fecha_fin: string;
-    avance_programado_pct: string;
-    fecha_corte_programado: string;
-    pct_gastos_generales: string;
-    pct_utilidad: string;
-    cd_base: string;
-  } | null>(null);
+  const [editandoId, setEditandoId] = useState<string | null>(null);
+  const [eliminando, setEliminando] = useState<Proyecto | null>(null);
+  const [bajando, setBajando] = useState(false);
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
@@ -179,38 +177,49 @@ function Proyectos() {
   const clientesFiltro = useMemo(() => [...new Set(todosProyectos.map((p) => p.cliente).filter(Boolean))].sort(), [todosProyectos]);
   const proyectoVisto = todosProyectos.find((p) => p.id === viendoId) ?? null;
 
+  const camposForm = () => ({
+    nombre: form.nombre.trim(),
+    cliente: form.cliente.trim(),
+    ubicacion: form.ubicacion.trim(),
+    estado: estadoDe(form.situacion),
+    situacion: form.situacion,
+    responsable_id: form.responsable_id || null,
+    fecha_inicio: form.fecha_inicio || null,
+    fecha_fin: form.fecha_fin || null,
+    avance_programado_pct: form.avance_programado_pct === "" ? null : Number(form.avance_programado_pct),
+    fecha_corte_programado: form.fecha_corte_programado || null,
+    pct_gastos_generales: Number(form.pct_gastos_generales) || 0,
+    pct_utilidad: Number(form.pct_utilidad) || 0,
+    cd_base: form.cd_base === "" ? null : Number(form.cd_base),
+  });
+
   async function guardar(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     if ((form.avance_programado_pct && !form.fecha_corte_programado) || (!form.avance_programado_pct && form.fecha_corte_programado)) {
       return setError("Registra juntos el avance programado y su fecha de corte.");
     }
-    let codigo = "";
-    {
-      try {
-        codigo = await generarCodigoProyecto();
-      } catch (e2) {
-        return setError(
-          e2 instanceof Error ? e2.message : "No se pudo generar el código automático de la obra.",
-        );
-      }
+    if (editandoId) {
+      const { error: err } = await supabase
+        .from("proyectos")
+        .update({ ...camposForm(), codigo: form.codigo.trim().toUpperCase() || null } as never)
+        .eq("id", editandoId);
+      if (err)
+        return setError(err.code === "23505" ? "Ese código ya está asignado a otra obra." : err.message);
+      setEditandoId(null);
+      setFormAbierto(false);
+      qc.invalidateQueries({ queryKey: ["proyectos"] });
+      return;
     }
-    const { error: err } = await supabase.from("proyectos").insert({
-      codigo,
-      nombre: form.nombre.trim(),
-      cliente: form.cliente.trim(),
-      ubicacion: form.ubicacion.trim(),
-      estado: estadoDe(form.situacion),
-      situacion: form.situacion,
-      responsable_id: form.responsable_id || null,
-      fecha_inicio: form.fecha_inicio || null,
-      fecha_fin: form.fecha_fin || null,
-      avance_programado_pct: form.avance_programado_pct === "" ? null : Number(form.avance_programado_pct),
-      fecha_corte_programado: form.fecha_corte_programado || null,
-      pct_gastos_generales: Number(form.pct_gastos_generales) || 0,
-      pct_utilidad: Number(form.pct_utilidad) || 0,
-      cd_base: form.cd_base === "" ? null : Number(form.cd_base),
-    } as never);
+    let codigo = "";
+    try {
+      codigo = await generarCodigoProyecto();
+    } catch (e2) {
+      return setError(
+        e2 instanceof Error ? e2.message : "No se pudo generar el código automático de la obra.",
+      );
+    }
+    const { error: err } = await supabase.from("proyectos").insert({ codigo, ...camposForm() } as never);
     if (err)
       return setError(
         err.code === "23505" ? "Ese código ya está asignado a otra obra." : err.message,
@@ -235,35 +244,36 @@ function Proyectos() {
     qc.invalidateQueries({ queryKey: ["proyectos"] });
   }
 
-  async function actualizar(e?: React.FormEvent) {
-    e?.preventDefault();
-    if (!editando) return;
+  function abrirEdicion(p: Proyecto) {
     setError("");
-    if ((editando.avance_programado_pct && !editando.fecha_corte_programado) || (!editando.avance_programado_pct && editando.fecha_corte_programado)) {
-      return setError("Registra juntos el avance programado y su fecha de corte.");
-    }
-    const { error: err } = await supabase
-      .from("proyectos")
-      .update({
-        codigo: editando.codigo.trim().toUpperCase() || null,
-        nombre: editando.nombre.trim(),
-        estado: estadoDe(editando.situacion),
-        situacion: editando.situacion,
-        responsable_id: editando.responsable_id || null,
-        fecha_inicio: editando.fecha_inicio || null,
-        fecha_fin: editando.fecha_fin || null,
-        avance_programado_pct: editando.avance_programado_pct === "" ? null : Number(editando.avance_programado_pct),
-        fecha_corte_programado: editando.fecha_corte_programado || null,
-        pct_gastos_generales: Number(editando.pct_gastos_generales) || 0,
-        pct_utilidad: Number(editando.pct_utilidad) || 0,
-        cd_base: editando.cd_base === "" ? null : Number(editando.cd_base),
-      } as never)
-      .eq("id", editando.id);
-    if (err)
-      return setError(
-        err.code === "23505" ? "Ese código ya está asignado a otra obra." : err.message,
-      );
-    setEditando(null);
+    setForm({
+      codigo: p.codigo ?? "",
+      nombre: p.nombre,
+      cliente: p.cliente ?? "",
+      ubicacion: p.ubicacion ?? "",
+      estado: p.estado,
+      situacion: p.situacion,
+      responsable_id: p.responsable_id ?? "",
+      fecha_inicio: p.fecha_inicio ?? "",
+      fecha_fin: p.fecha_fin ?? "",
+      avance_programado_pct: p.avance_programado_pct === null ? "" : String(p.avance_programado_pct),
+      fecha_corte_programado: p.fecha_corte_programado ?? "",
+      pct_gastos_generales: String(p.pct_gastos_generales ?? 0),
+      pct_utilidad: String(p.pct_utilidad ?? 0),
+      cd_base: p.cd_base == null ? "" : String(p.cd_base),
+    });
+    setEditandoId(p.id);
+    setFormAbierto(true);
+  }
+
+  async function confirmarBaja() {
+    if (!eliminando) return;
+    setBajando(true);
+    setError("");
+    const { error: err } = await supabase.rpc("eliminar_proyecto", { _id: eliminando.id });
+    setBajando(false);
+    if (err) return setError(err.message);
+    setEliminando(null);
     qc.invalidateQueries({ queryKey: ["proyectos"] });
   }
 
@@ -338,17 +348,21 @@ function Proyectos() {
         }
       />
 
-      <VentanaFlotante abierta={formAbierto} onCerrar={() => setFormAbierto(false)} titulo="Nuevo proyecto" subtitulo="Registra una obra y continúa con otra sin cerrar la ventana." ancho="max-w-6xl">
+      <VentanaFlotante abierta={formAbierto} onCerrar={() => { setFormAbierto(false); setEditandoId(null); }} titulo={editandoId ? "Editar proyecto" : "Nuevo proyecto"} subtitulo={editandoId ? "Corrige los datos registrados de la obra." : "Registra una obra y continúa con otra sin cerrar la ventana."} ancho="max-w-6xl">
         <form id="form-proyecto" onSubmit={guardar} className="space-y-4 p-5">
           <div className="grid gap-4 lg:grid-cols-3">
             <Seccion titulo="Información General">
               <CampoF etiqueta="Código de la obra">
-                <Input
-                  disabled
-                  value=""
-                  placeholder={codificacion ? previsualizarCodigo(codificacion) : "Automático"}
-                  title="Se asigna automáticamente al registrar"
-                />
+                {editandoId ? (
+                  <Input value={form.codigo} onChange={(e) => setForm({ ...form, codigo: e.target.value })} maxLength={30} title="Código asignado a la obra" />
+                ) : (
+                  <Input
+                    disabled
+                    value=""
+                    placeholder={codificacion ? previsualizarCodigo(codificacion) : "Automático"}
+                    title="Se asigna automáticamente al registrar"
+                  />
+                )}
               </CampoF>
               <CampoF etiqueta="Cliente">
                 <Select value={form.cliente} onChange={(e) => setForm({ ...form, cliente: e.target.value })}>
@@ -441,9 +455,15 @@ function Proyectos() {
             </Seccion>
           </div>
           <div className="flex flex-wrap items-center justify-end gap-3 border-t border-line pt-3">
-            <Boton type="button" variante="linea" onClick={() => setFormAbierto(false)}>Cancelar</Boton>
-            <Boton type="submit" variante="linea" onClick={() => { cerrarTrasGuardar.current = false; }}>Registrar otro</Boton>
-            <Boton type="submit" variante="accion" className="px-6 py-2.5 text-sm" onClick={() => { cerrarTrasGuardar.current = true; }}>Registrar y cerrar</Boton>
+            <Boton type="button" variante="linea" onClick={() => { setFormAbierto(false); setEditandoId(null); }}>Cancelar</Boton>
+            {editandoId ? (
+              <Boton type="submit" variante="accion" className="px-6 py-2.5 text-sm">Guardar cambios</Boton>
+            ) : (
+              <>
+                <Boton type="submit" variante="linea" onClick={() => { cerrarTrasGuardar.current = false; }}>Registrar otro</Boton>
+                <Boton type="submit" variante="accion" className="px-6 py-2.5 text-sm" onClick={() => { cerrarTrasGuardar.current = true; }}>Registrar y cerrar</Boton>
+              </>
+            )}
           </div>
           {error && <p className="font-mono text-xs text-bad">{error}</p>}
         </form>
@@ -520,155 +540,10 @@ function Proyectos() {
             </thead>
             <tbody>
               {proyectos.map((p) => {
-                const enEdicion = editando?.id === p.id;
                 const presupuesto = presupuestoProyecto(p.id, partidas);
                 const costoReal = costoDe(p.id).costoReal;
                 return (
                   <tr key={p.id} className="border-b border-line/60 transition-colors hover:bg-muted/50">
-                    {enEdicion ? (
-                      <>
-                        <td className="px-5 py-2 align-top">
-                          <Input
-                            className="py-1 text-[11px] uppercase"
-                            value={editando.codigo}
-                            onChange={(e) => setEditando({ ...editando, codigo: e.target.value })}
-                            maxLength={30}
-                            placeholder="Código"
-                            title="Código de la obra"
-                          />
-                        </td>
-                        <td className="truncate px-3 py-2.5 text-muted-foreground">{p.cliente || "—"}</td>
-                        <td className="px-3 py-2 align-top">
-                          <Input
-                            value={editando.nombre}
-                            onChange={(e) => setEditando({ ...editando, nombre: e.target.value })}
-                            maxLength={120}
-                            autoFocus
-                          />
-                          <div className="mt-1.5 grid grid-cols-2 gap-1.5">
-                            <Input
-                              type="number"
-                              min={0}
-                              max={100}
-                              step="0.1"
-                              className="py-1 text-[11px]"
-                              value={editando.pct_gastos_generales}
-                              onChange={(e) => setEditando({ ...editando, pct_gastos_generales: e.target.value })}
-                              title="% Gastos Generales"
-                            />
-                            <Input
-                              type="number"
-                              min={0}
-                              max={100}
-                              step="0.1"
-                              className="py-1 text-[11px]"
-                              value={editando.pct_utilidad}
-                              onChange={(e) => setEditando({ ...editando, pct_utilidad: e.target.value })}
-                              title="% Utilidad Prevista"
-                            />
-                          </div>
-                          <Input
-                            type="number"
-                            min={0}
-                            step="0.01"
-                            className="mt-1.5 py-1 text-[11px]"
-                            value={editando.cd_base}
-                            onChange={(e) => setEditando({ ...editando, cd_base: e.target.value })}
-                            placeholder="Costo Directo Base (techo)"
-                            title="Costo Directo Base (techo de obra)"
-                          />
-                        </td>
-                        <td className="px-3 py-2 align-top">
-                          <Select
-                            value={editando.responsable_id}
-                            onChange={(e) => setEditando({ ...editando, responsable_id: e.target.value })}
-                            className="py-1 text-[11px]"
-                          >
-                            <option value="">Sin asignar</option>
-                            {trabajadores.filter((t) => t.activo || t.id === editando.responsable_id).map((t) => (
-                              <option key={t.id} value={t.id}>{t.nombre}</option>
-                            ))}
-                          </Select>
-                        </td>
-                        <td className="px-3 py-2 align-top">
-                          <div className="grid gap-1.5">
-                            <Input
-                              type="date"
-                              className="py-1 text-[11px]"
-                              value={editando.fecha_inicio}
-                              onChange={(e) => setEditando({ ...editando, fecha_inicio: e.target.value })}
-                              title="Fecha de inicio"
-                            />
-                            <Input
-                              type="date"
-                              className="py-1 text-[11px]"
-                              value={editando.fecha_fin}
-                              onChange={(e) => setEditando({ ...editando, fecha_fin: e.target.value })}
-                              title="Fecha de fin estimada"
-                            />
-                            <div className="grid grid-cols-2 gap-1.5">
-                              <Input
-                                type="number"
-                                min={0}
-                                max={100}
-                                step="0.01"
-                                className="py-1 text-[11px]"
-                                value={editando.avance_programado_pct}
-                                onChange={(e) => setEditando({ ...editando, avance_programado_pct: e.target.value })}
-                                placeholder="Prog. %"
-                                title="Avance programado acumulado"
-                              />
-                              <Input
-                                type="date"
-                                className="py-1 text-[11px]"
-                                value={editando.fecha_corte_programado}
-                                onChange={(e) => setEditando({ ...editando, fecha_corte_programado: e.target.value })}
-                                title="Fecha de corte programada"
-                              />
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-3 py-2 align-top text-muted-foreground">Se actualiza al guardar</td>
-                        <td className="px-3 py-2.5 text-right whitespace-nowrap">{soles(presupuesto)}</td>
-                        <td
-                          className={`px-3 py-2.5 text-right whitespace-nowrap ${costoReal > presupuesto && presupuesto > 0 ? "text-bad" : "text-ink"}`}
-                        >
-                          {soles(costoReal)}
-                        </td>
-                        <td className="px-3 py-2">
-                          <Select
-                            value={editando.situacion}
-                            onChange={(e) => setEditando({ ...editando, situacion: e.target.value })}
-                            className="py-1 text-xs"
-                          >
-                            {nombresEstados(estadosQ.data).map((s) => (
-                              <option key={s} value={s}>
-                                {s}
-                              </option>
-                            ))}
-                          </Select>
-                        </td>
-                        <td className="px-5 py-2 text-right">
-                          <div className="inline-flex items-center gap-1.5">
-                            <button
-                              onClick={() => actualizar()}
-                              className="grid h-7 w-7 place-items-center rounded-md border border-line hover:border-primary hover:text-primary"
-                              title="Guardar"
-                            >
-                              <Check className="size-4" />
-                            </button>
-                            <button
-                              onClick={() => setEditando(null)}
-                              className="grid h-7 w-7 place-items-center rounded-md border border-line hover:border-bad hover:text-bad"
-                              title="Cancelar"
-                            >
-                              <X className="size-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </>
-                    ) : (
-                      <>
                         <td className="px-5 py-3 align-top font-bold text-ink break-words"><Resaltar texto={p.codigo || "—"} termino={busqueda} /></td>
                         <td className="truncate px-3 py-3 align-top text-muted-foreground"><Resaltar texto={p.cliente || "—"} termino={busqueda} /></td>
                         <td className="px-3 py-3 align-top text-[13px] font-semibold text-ink break-words whitespace-normal">
@@ -706,27 +581,11 @@ function Proyectos() {
                               pctUt={Number(p.pct_utilidad ?? 0)}
                             />
                             <Boton variante="linea" className="h-8 w-8 px-0" aria-label="Ver proyecto" title="Ver" onClick={() => setViendoId(p.id)}><Eye className="size-[18px]" /></Boton>
-                            <Boton variante="linea" className="h-8 w-8 px-0"
-                              onClick={() =>
-                                setEditando({
-                                  id: p.id,
-                                  codigo: p.codigo ?? "",
-                                  nombre: p.nombre,
-                                  estado: p.estado,
-                                  situacion: p.situacion,
-                                  responsable_id: p.responsable_id ?? "",
-                                  fecha_inicio: p.fecha_inicio ?? "",
-                                  fecha_fin: p.fecha_fin ?? "",
-                                   avance_programado_pct: p.avance_programado_pct === null ? "" : String(p.avance_programado_pct),
-                                   fecha_corte_programado: p.fecha_corte_programado ?? "",
-                                  pct_gastos_generales: String(p.pct_gastos_generales ?? 0),
-                                  pct_utilidad: String(p.pct_utilidad ?? 0),
-                                  cd_base: (p as { cd_base?: number | null }).cd_base == null ? "" : String((p as { cd_base?: number | null }).cd_base),
-                                })
-                              }
-                              title="Editar"
-                            >
+                            <Boton variante="linea" className="h-8 w-8 px-0" aria-label="Editar proyecto" title="Editar" onClick={() => abrirEdicion(p)}>
                               <Pencil className="size-[18px]" />
+                            </Boton>
+                            <Boton variante="linea" className="h-8 w-8 px-0" aria-label="Eliminar proyecto" title="Eliminar" onClick={() => { setError(""); setEliminando(p); }}>
+                              <Trash2 className="size-[18px]" />
                             </Boton>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild><Boton variante="linea" className="h-8 w-8 px-0" aria-label="Más acciones" title="Más acciones"><MoreHorizontal className="size-[18px]" /></Boton></DropdownMenuTrigger>
@@ -737,8 +596,6 @@ function Proyectos() {
                             </DropdownMenu>
                           </div>
                         </td>
-                      </>
-                    )}
                   </tr>
                 );
               })}
@@ -747,13 +604,64 @@ function Proyectos() {
           </div>
         )}
       </Panel>
-      <VentanaFlotante abierta={Boolean(proyectoVisto)} onCerrar={() => setViendoId(null)} titulo="Resumen del proyecto" subtitulo={proyectoVisto?.codigo ?? ""} ancho="max-w-2xl">
+      <VentanaFlotante abierta={Boolean(proyectoVisto)} onCerrar={() => setViendoId(null)} titulo="Datos de registro de la obra" subtitulo={proyectoVisto?.codigo ?? ""} ancho="max-w-3xl">
         {proyectoVisto && (
-          <div className="grid gap-4 p-5 font-['Roboto'] sm:grid-cols-2">
-            <Seccion titulo="Proyecto"><p className="font-semibold text-ink">{proyectoVisto.nombre}</p><p className="text-sm text-muted-foreground">{proyectoVisto.cliente || "Sin cliente"}</p><p className="text-sm text-muted-foreground">{proyectoVisto.ubicacion || "Sin ubicación"}</p></Seccion>
-            <Seccion titulo="Estado y plazo"><InsigniaSituacion valor={proyectoVisto.situacion} /><p className="text-sm text-ink">{fecha(proyectoVisto.fecha_inicio)} — {fecha(proyectoVisto.fecha_fin)}</p><p className="text-sm text-muted-foreground">Responsable: {trabajadores.find((t) => t.id === proyectoVisto.responsable_id)?.nombre ?? "Sin asignar"}</p></Seccion>
-            <Seccion titulo="Presupuesto"><p className="text-right text-lg font-bold tabular-nums text-ink">{soles(presupuestoProyecto(proyectoVisto.id, partidas))}</p><p className="flex items-center justify-end gap-1 text-[11px] text-primary"><Info size={12} className="shrink-0" />Se completa a partir de las partidas</p></Seccion>
-            <Seccion titulo="Costo ejecutado"><p className="text-right text-lg font-bold tabular-nums text-ink">{soles(costoDe(proyectoVisto.id).costoReal)}</p></Seccion>
+          <div className="space-y-4 p-5 font-['Roboto']">
+            <div className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
+              <Dato etiqueta="Código" valor={proyectoVisto.codigo || "—"} />
+              <Dato etiqueta="Cliente" valor={proyectoVisto.cliente || "Sin cliente"} />
+              <Dato etiqueta="Nombre de la obra" valor={proyectoVisto.nombre} />
+              <Dato etiqueta="Ubicación" valor={proyectoVisto.ubicacion || "Sin ubicación"} />
+              <Dato etiqueta="Responsable" valor={trabajadores.find((t) => t.id === proyectoVisto.responsable_id)?.nombre ?? "Sin asignar"} />
+              <Dato etiqueta="Situación" valor={<InsigniaSituacion valor={proyectoVisto.situacion} />} />
+              <Dato etiqueta="Fecha de inicio" valor={fecha(proyectoVisto.fecha_inicio)} />
+              <Dato etiqueta="Fecha de fin estimada" valor={fecha(proyectoVisto.fecha_fin)} />
+              <Dato etiqueta="Fecha de corte programado" valor={fecha(proyectoVisto.fecha_corte_programado)} />
+              <Dato etiqueta="Avance programado" valor={proyectoVisto.avance_programado_pct === null ? "—" : `${Number(proyectoVisto.avance_programado_pct).toFixed(1)}%`} />
+              <Dato etiqueta="% Gastos Generales" valor={`${Number(proyectoVisto.pct_gastos_generales ?? 0)}%`} />
+              <Dato etiqueta="% Utilidad Prevista" valor={`${Number(proyectoVisto.pct_utilidad ?? 0)}%`} />
+              <Dato etiqueta="Costo Directo Base" valor={proyectoVisto.cd_base == null ? "Sin techo definido" : soles(proyectoVisto.cd_base)} />
+              <Dato etiqueta="Registrada" valor={fecha(proyectoVisto.created_at?.slice(0, 10) ?? null)} />
+            </div>
+            {(() => {
+              const o = ofertaProyecto(
+                partidas.filter((x) => x.proyecto_id === proyectoVisto.id),
+                tiposPresupuesto,
+                proyectoVisto.pct_gastos_generales,
+                proyectoVisto.pct_utilidad,
+              );
+              return (
+                <div className="grid grid-cols-2 gap-3 rounded-lg border border-line bg-muted/40 p-3 text-center text-xs sm:grid-cols-4">
+                  <div><p className="text-muted-foreground">C. Directo</p><p className="font-semibold tabular-nums text-ink">{soles(o.costoDirecto)}</p></div>
+                  <div><p className="text-muted-foreground">+ G. Generales</p><p className="font-semibold tabular-nums text-ink">{soles(o.gastosGenerales)}</p></div>
+                  <div><p className="text-muted-foreground">+ Utilidad</p><p className="font-semibold tabular-nums text-ink">{soles(o.utilidad)}</p></div>
+                  <div><p className="text-muted-foreground">= Presupuesto</p><p className="font-bold tabular-nums text-primary">{soles(o.ofertado)}</p></div>
+                </div>
+              );
+            })()}
+            <div className="flex items-center justify-between rounded-lg border border-line bg-card px-3 py-2 text-xs">
+              <span className="text-muted-foreground">Costo ejecutado a la fecha</span>
+              <span className="font-semibold tabular-nums text-ink">{soles(costoDe(proyectoVisto.id).costoReal)}</span>
+            </div>
+          </div>
+        )}
+      </VentanaFlotante>
+
+      <VentanaFlotante abierta={Boolean(eliminando)} onCerrar={() => { setEliminando(null); setError(""); }} titulo="Eliminar obra" subtitulo={eliminando?.codigo ?? ""} ancho="max-w-md">
+        {eliminando && (
+          <div className="space-y-4 p-5 font-['Roboto']">
+            <p className="text-sm leading-relaxed text-ink">
+              Se quitará <strong>{eliminando.nombre}</strong> de la lista y se borrarán sus{" "}
+              <strong>{partidas.filter((x) => x.proyecto_id === eliminando.id).length}</strong> partida(s). Esta acción no se puede deshacer.
+            </p>
+            <p className="text-xs leading-relaxed text-muted-foreground">
+              Si la obra ya tiene compras, facturas, tareos u otros registros, no se dejará eliminar: en ese caso archívela para quitarla de la lista sin perder historial.
+            </p>
+            {error && <p className="rounded-md border border-bad/30 bg-bad/10 p-3 text-xs leading-relaxed text-bad">{error}</p>}
+            <div className="flex justify-end gap-3">
+              <Boton type="button" variante="linea" onClick={() => { setEliminando(null); setError(""); }} disabled={bajando}>Cancelar</Boton>
+              <Boton type="button" variante="peligro" onClick={() => void confirmarBaja()} disabled={bajando}>{bajando ? "Eliminando..." : "Eliminar definitivamente"}</Boton>
+            </div>
           </div>
         )}
       </VentanaFlotante>
