@@ -1,6 +1,6 @@
 import { DesgloseCd } from "@/components/DesgloseCd";
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AlertTriangle, CalendarDays, Clock3, Flag, Layers3, ListTodo, Lock, Upload } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Panel, Select, Vacio } from "@/components/ui-kit";
@@ -84,13 +84,18 @@ function DashboardProyectos() {
     if (guardada) setObraId(guardada);
   }, []);
 
-
-  // Guarda cada cambio de obra y vuelve a "todos" si la obra guardada ya no existe.
+  // Guarda cada cambio de obra (no al montar, para no pisar el valor restaurado).
+  const primerCambio = useRef(true);
   useEffect(() => {
+    if (primerCambio.current) {
+      primerCambio.current = false;
+      return;
+    }
     try {
       localStorage.setItem("dashboard-proyectos:obra", obraId);
     } catch {}
   }, [obraId]);
+  // Vuelve a "todos" si la obra guardada ya no existe.
   useEffect(() => {
     if (obraId !== "todos" && proyectos.length > 0 && !proyectos.some((p) => p.id === obraId)) setObraId("todos");
   }, [proyectos, obraId]);
