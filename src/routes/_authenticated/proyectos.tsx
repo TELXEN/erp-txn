@@ -604,13 +604,64 @@ function Proyectos() {
           </div>
         )}
       </Panel>
-      <VentanaFlotante abierta={Boolean(proyectoVisto)} onCerrar={() => setViendoId(null)} titulo="Resumen del proyecto" subtitulo={proyectoVisto?.codigo ?? ""} ancho="max-w-2xl">
+      <VentanaFlotante abierta={Boolean(proyectoVisto)} onCerrar={() => setViendoId(null)} titulo="Datos de registro de la obra" subtitulo={proyectoVisto?.codigo ?? ""} ancho="max-w-3xl">
         {proyectoVisto && (
-          <div className="grid gap-4 p-5 font-['Roboto'] sm:grid-cols-2">
-            <Seccion titulo="Proyecto"><p className="font-semibold text-ink">{proyectoVisto.nombre}</p><p className="text-sm text-muted-foreground">{proyectoVisto.cliente || "Sin cliente"}</p><p className="text-sm text-muted-foreground">{proyectoVisto.ubicacion || "Sin ubicación"}</p></Seccion>
-            <Seccion titulo="Estado y plazo"><InsigniaSituacion valor={proyectoVisto.situacion} /><p className="text-sm text-ink">{fecha(proyectoVisto.fecha_inicio)} — {fecha(proyectoVisto.fecha_fin)}</p><p className="text-sm text-muted-foreground">Responsable: {trabajadores.find((t) => t.id === proyectoVisto.responsable_id)?.nombre ?? "Sin asignar"}</p></Seccion>
-            <Seccion titulo="Presupuesto"><p className="text-right text-lg font-bold tabular-nums text-ink">{soles(presupuestoProyecto(proyectoVisto.id, partidas))}</p><p className="flex items-center justify-end gap-1 text-[11px] text-primary"><Info size={12} className="shrink-0" />Se completa a partir de las partidas</p></Seccion>
-            <Seccion titulo="Costo ejecutado"><p className="text-right text-lg font-bold tabular-nums text-ink">{soles(costoDe(proyectoVisto.id).costoReal)}</p></Seccion>
+          <div className="space-y-4 p-5 font-['Roboto']">
+            <div className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
+              <Dato etiqueta="Código" valor={proyectoVisto.codigo || "—"} />
+              <Dato etiqueta="Cliente" valor={proyectoVisto.cliente || "Sin cliente"} />
+              <Dato etiqueta="Nombre de la obra" valor={proyectoVisto.nombre} />
+              <Dato etiqueta="Ubicación" valor={proyectoVisto.ubicacion || "Sin ubicación"} />
+              <Dato etiqueta="Responsable" valor={trabajadores.find((t) => t.id === proyectoVisto.responsable_id)?.nombre ?? "Sin asignar"} />
+              <Dato etiqueta="Situación" valor={<InsigniaSituacion valor={proyectoVisto.situacion} />} />
+              <Dato etiqueta="Fecha de inicio" valor={fecha(proyectoVisto.fecha_inicio)} />
+              <Dato etiqueta="Fecha de fin estimada" valor={fecha(proyectoVisto.fecha_fin)} />
+              <Dato etiqueta="Fecha de corte programado" valor={fecha(proyectoVisto.fecha_corte_programado)} />
+              <Dato etiqueta="Avance programado" valor={proyectoVisto.avance_programado_pct === null ? "—" : `${Number(proyectoVisto.avance_programado_pct).toFixed(1)}%`} />
+              <Dato etiqueta="% Gastos Generales" valor={`${Number(proyectoVisto.pct_gastos_generales ?? 0)}%`} />
+              <Dato etiqueta="% Utilidad Prevista" valor={`${Number(proyectoVisto.pct_utilidad ?? 0)}%`} />
+              <Dato etiqueta="Costo Directo Base" valor={proyectoVisto.cd_base == null ? "Sin techo definido" : soles(proyectoVisto.cd_base)} />
+              <Dato etiqueta="Registrada" valor={fecha(proyectoVisto.created_at?.slice(0, 10) ?? null)} />
+            </div>
+            {(() => {
+              const o = ofertaProyecto(
+                partidas.filter((x) => x.proyecto_id === proyectoVisto.id),
+                tiposPresupuesto,
+                proyectoVisto.pct_gastos_generales,
+                proyectoVisto.pct_utilidad,
+              );
+              return (
+                <div className="grid grid-cols-2 gap-3 rounded-lg border border-line bg-muted/40 p-3 text-center text-xs sm:grid-cols-4">
+                  <div><p className="text-muted-foreground">C. Directo</p><p className="font-semibold tabular-nums text-ink">{soles(o.costoDirecto)}</p></div>
+                  <div><p className="text-muted-foreground">+ G. Generales</p><p className="font-semibold tabular-nums text-ink">{soles(o.gastosGenerales)}</p></div>
+                  <div><p className="text-muted-foreground">+ Utilidad</p><p className="font-semibold tabular-nums text-ink">{soles(o.utilidad)}</p></div>
+                  <div><p className="text-muted-foreground">= Presupuesto</p><p className="font-bold tabular-nums text-primary">{soles(o.ofertado)}</p></div>
+                </div>
+              );
+            })()}
+            <div className="flex items-center justify-between rounded-lg border border-line bg-card px-3 py-2 text-xs">
+              <span className="text-muted-foreground">Costo ejecutado a la fecha</span>
+              <span className="font-semibold tabular-nums text-ink">{soles(costoDe(proyectoVisto.id).costoReal)}</span>
+            </div>
+          </div>
+        )}
+      </VentanaFlotante>
+
+      <VentanaFlotante abierta={Boolean(eliminando)} onCerrar={() => { setEliminando(null); setError(""); }} titulo="Eliminar obra" subtitulo={eliminando?.codigo ?? ""} ancho="max-w-md">
+        {eliminando && (
+          <div className="space-y-4 p-5 font-['Roboto']">
+            <p className="text-sm leading-relaxed text-ink">
+              Se quitará <strong>{eliminando.nombre}</strong> de la lista y se borrarán sus{" "}
+              <strong>{partidas.filter((x) => x.proyecto_id === eliminando.id).length}</strong> partida(s). Esta acción no se puede deshacer.
+            </p>
+            <p className="text-xs leading-relaxed text-muted-foreground">
+              Si la obra ya tiene compras, facturas, tareos u otros registros, no se dejará eliminar: en ese caso archívela para quitarla de la lista sin perder historial.
+            </p>
+            {error && <p className="rounded-md border border-bad/30 bg-bad/10 p-3 text-xs leading-relaxed text-bad">{error}</p>}
+            <div className="flex justify-end gap-3">
+              <Boton type="button" variante="linea" onClick={() => { setEliminando(null); setError(""); }} disabled={bajando}>Cancelar</Boton>
+              <Boton type="button" variante="peligro" onClick={() => void confirmarBaja()} disabled={bajando}>{bajando ? "Eliminando..." : "Eliminar definitivamente"}</Boton>
+            </div>
           </div>
         )}
       </VentanaFlotante>
