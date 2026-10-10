@@ -182,7 +182,7 @@ function GastosDirectos() {
   function autorizadasDe(pid: string) {
     const ahora = new Date();
     return solicitudes.filter(
-      (s) => s.partida_id === pid && s.estado === "Aprobada" && !s.usada_en && new Date(s.vence_en) >= ahora,
+      (s) => s.partida_id === pid && s.estado === "Aprobada" && !s.usada_en && !!s.vence_en && new Date(s.vence_en) >= ahora,
     );
   }
 
@@ -485,7 +485,7 @@ function GastosDirectos() {
                                     <Check size={13} className="shrink-0 text-good" />
                                     <p className="flex-1 text-[11px] text-ink">
                                       <b>Compra autorizada por Gerencia:</b> {s.descripcion || "Sin descripción"} · {soles(Number(s.monto))}
-                                      <span className="text-muted-foreground"> · vence {fmtFecha(s.vence_en.slice(0, 10))}</span>
+                                      <span className="text-muted-foreground"> · vence {fmtFecha((s.vence_en ?? "").slice(0, 10))}</span>
                                     </p>
                                     <Boton type="button" onClick={() => abrirAutorizada(p.id, s)}>
                                       <Pencil size={12} /> Registrar compra autorizada
