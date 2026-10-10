@@ -85,3 +85,14 @@ describe("Costo de personal por obra", () => {
     expect(porProyecto.get("C")?.honorarios).toBe(500);
   });
 });
+
+import { compraPermitida, limiteCompra } from "./sobrecosto";
+describe("candado de compras por avance físico", () => {
+  it("límite = presupuesto × (avance + tolerancia)", () => {
+    expect(limiteCompra(1000, 10, 15)).toBeCloseTo(250);
+  });
+  it("bloquea cuando la compra supera el límite", () => {
+    expect(compraPermitida(200, 40, 1000, 10, 15)).toBe(true);
+    expect(compraPermitida(200, 60, 1000, 10, 15)).toBe(false);
+  });
+});

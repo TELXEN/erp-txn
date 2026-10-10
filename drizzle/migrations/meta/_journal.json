@@ -85,6 +85,13 @@
       "when": 1791604567564,
       "tag": "0011_control_sobrecostos",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1791604826423,
+      "tag": "0012_mo_presupuestada_margen_tipo",
+      "breakpoints": true
     }
   ]
 }
