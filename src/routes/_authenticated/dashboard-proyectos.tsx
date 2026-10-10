@@ -974,7 +974,7 @@ function BolsaEjecutada({ etiqueta, real, base }: { etiqueta: string; real: numb
 }
 
 function UtilidadReal({ proyectada, real }: { proyectada: number; real: number }) {
-  const critico = real <= 0;
+  const critico = proyectada > 0 && real <= 0;
   const p = proyectada > 0 ? (real / proyectada) * 100 : 0;
   return (
     <div className={`kpi-tarjeta ${critico ? "bg-bad/5 ring-1 ring-bad/40" : real < proyectada ? "ring-1 ring-warn/40" : "ring-1 ring-good/30"}`}>
