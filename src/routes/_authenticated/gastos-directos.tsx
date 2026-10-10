@@ -67,7 +67,7 @@ const RUBRO_POR_TIPO: Record<string, RubroCosto> = {
   MO: "Servicios",
   MAT: "Materiales",
   EQ: "Equipos",
-  HT: "Materiales",
+  HT: "Herramientas manuales",
   SC: "Subcontratos",
 };
 const rubroDeTipo = (tipo?: string) => RUBRO_POR_TIPO[tipo ?? ""] ?? "Materiales";

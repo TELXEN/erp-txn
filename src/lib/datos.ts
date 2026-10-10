@@ -153,7 +153,7 @@ export type Tercero = {
   activo: boolean;
 };
 
-export const RUBROS_COSTO = ["Materiales", "Subcontratos", "Equipos", "Servicios"] as const;
+export const RUBROS_COSTO = ["Materiales", "Subcontratos", "Equipos", "Herramientas manuales", "Servicios"] as const;
 export type RubroCosto = (typeof RUBROS_COSTO)[number];
 
 export type GastoDirecto = {
