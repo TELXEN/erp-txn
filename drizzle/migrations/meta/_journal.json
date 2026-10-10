@@ -155,6 +155,13 @@
       "when": 1791612223658,
       "tag": "0021_candado_rubro_precio_ofertado",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1791612837590,
+      "tag": "0022_candado_mensaje_marca_sobrecosto",
+      "breakpoints": true
     }
   ]
 }
