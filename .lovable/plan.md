@@ -15,6 +15,8 @@ Gran parte de lo pedido ya existe en el ERP (dashboards con semáforo y erosión
 - La base del proyecto (Costo Directo Base) se reparte en esos cinco rubros a partir de los APU de sus partidas.
 - En Costos directos y en el Dashboard de Proyectos: tabla base vs. real por rubro con semáforo; cada compra exige elegir el rubro.
 - Herramientas manuales no recibe compras: su real se calcula como el % sobre la mano de obra real.
+- Mano de obra presupuestada = suma de la mano de obra de todas las partidas (desde sus APU).
+- Mano de obra real = costo del tareo del personal obrero que ejecuta partidas; el staff (supervisión) no entra aquí, va a gastos generales.
 
 ## 3. Candado de compras por avance físico
 - Al registrar un costo directo en una partida se valida:
