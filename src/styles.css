@@ -336,3 +336,14 @@ aside .md\:overflow-y-auto:hover::-webkit-scrollbar-thumb { background: color-mi
   font-variant-numeric: tabular-nums;
 }
 .tablero-proyectos .label-mono { font-weight: 500; letter-spacing: 0.06em; }
+
+/* Dashboard financiero: misma tipografía que el Dashboard de proyectos */
+.tablero-financiero {
+  font-family: Roboto, var(--font-global);
+}
+.tablero-financiero .font-mono,
+.tablero-financiero .label-mono {
+  font-family: Roboto, var(--font-global);
+  font-variant-numeric: tabular-nums;
+}
+.tablero-financiero .label-mono { font-weight: 500; letter-spacing: 0.06em; }
