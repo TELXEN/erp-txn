@@ -54,30 +54,32 @@ export function Buscador({
   className?: string;
 }) {
   return (
-    <div className={`relative flex items-center ${className}`}>
-      <Search size={14} className="pointer-events-none absolute left-2.5 text-muted-foreground" />
-      <input
-        type="search"
-        value={valor}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        aria-label={placeholder}
-        className={`w-56 rounded-md border bg-card py-1.5 pl-8 pr-8 text-xs outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15 ${
-          valor ? "border-cta ring-2 ring-cta/30" : "border-line"
-        }`}
-      />
-      {valor && (
-        <button
-          type="button"
-          onClick={() => onChange("")}
-          title="Limpiar búsqueda"
-          className="absolute right-2 text-muted-foreground hover:text-ink"
-        >
-          <X size={14} />
-        </button>
-      )}
+    <div className={`flex items-center gap-2 ${className}`}>
+      <div className="relative flex items-center">
+        <Search size={14} className="pointer-events-none absolute left-2.5 text-muted-foreground" />
+        <input
+          type="search"
+          value={valor}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          aria-label={placeholder}
+          className={`w-56 rounded-md border bg-card py-1.5 pl-8 pr-8 text-xs outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15 ${
+            valor ? "border-cta ring-2 ring-cta/30" : "border-line"
+          }`}
+        />
+        {valor && (
+          <button
+            type="button"
+            onClick={() => onChange("")}
+            title="Limpiar búsqueda"
+            className="absolute right-2 text-muted-foreground hover:text-ink"
+          >
+            <X size={14} />
+          </button>
+        )}
+      </div>
       {valor && total !== undefined && (
-        <span className="ml-2 whitespace-nowrap font-mono text-[10px] text-muted-foreground">
+        <span className="whitespace-nowrap font-mono text-[10px] text-muted-foreground">
           {total} resultado{total === 1 ? "" : "s"}
         </span>
       )}
