@@ -97,7 +97,7 @@ export function useDesgloseCd(proyectoId?: string | null) {
   });
 
   return useMemo<FilaDesglose[]>(() => {
-    const base: Record<string, number> = { MAT: 0, MO: 0, EQ: 0, HT: 0, SC: 0 };
+    const base: Record<ClaveRubro, number> = { MAT: 0, MO: 0, EQ: 0, HT: 0, SC: 0 };
     if (data) {
       const ins = new Map(insumos.map((i) => [i.id, i]));
       const part = new Map(data.partidas.map((p) => [p.id, p]));
@@ -107,13 +107,13 @@ export function useDesgloseCd(proyectoId?: string | null) {
         if (!p || !i || i.tipo === "HT") return;
         const rend = Number(p.rendimiento) || 0;
         const cant = Number(c.cuadrilla) > 0 && rend > 0 ? (Number(c.cuadrilla) * (Number(p.jornada) || 8)) / rend : Number(c.cantidad);
-        const t = base[i.tipo] !== undefined ? i.tipo : "MAT";
+        const t: ClaveRubro = (["MAT", "MO", "EQ", "SC"] as string[]).includes(i.tipo) ? (i.tipo as ClaveRubro) : "MAT";
         base[t] += Number(p.metrado || 0) * cant * precioVenta(i);
       });
     }
     base.HT = (base.MO * Number(margenes?.HT ?? 0)) / 100;
     const c = proyectoId ? costoDe(proyectoId) : null;
-    const real: Record<string, number> = {
+    const real: Record<ClaveRubro, number> = {
       MAT: c?.materiales ?? 0,
       MO: (c?.mod ?? 0) + (c?.honorarios ?? 0),
       EQ: c?.equipos ?? 0,
