@@ -99,6 +99,13 @@
       "when": 1791605677396,
       "tag": "0013_eliminar_proyecto",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1791610009402,
+      "tag": "0014_candado_compra_solo_presupuesto",
+      "breakpoints": true
     }
   ]
 }
