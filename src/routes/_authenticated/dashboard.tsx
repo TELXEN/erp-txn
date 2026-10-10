@@ -742,18 +742,18 @@ function Kpi({
   tono?: "good" | "bad";
 }) {
   return (
-    <div className="panel rise p-5">
-      <p className="label-mono">{etiqueta}</p>
+    <div className="kpi-tarjeta flex flex-col">
+      <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{etiqueta}</p>
       <p
-        className={`mt-2 font-mono text-2xl font-bold tracking-tight ${
+        className={`mt-2 text-2xl font-bold tabular-nums ${
           tono === "bad" ? "text-bad" : tono === "good" ? "text-good" : "text-ink"
         }`}
       >
         {soles(valor)}
       </p>
-      <div className="mt-1 space-y-0.5">
+      <div className="mt-2 space-y-1 border-t border-line pt-2">
         {lineas.map((l) => (
-          <p key={l} className="font-mono text-[11px] text-muted-foreground">
+          <p key={l} className="text-[11px] leading-snug tabular-nums text-muted-foreground">
             {l}
           </p>
         ))}
