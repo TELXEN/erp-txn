@@ -576,13 +576,13 @@ function GastosDirectos() {
         const costoBase = ed ? (cent(costoDe(mp.id)) - cent(Number(ed.monto_soles))) / 100 : costoDe(mp.id);
         return (
           <ModalCompra
-            key={ed ? `edit-${ed.id}` : mp.id}
+            key={ed ? `edit-${ed.id}` : modal.inicial ? `aut-${modal.inicial.key}` : mp.id}
             partida={{ codigo: mp.codigo, nombre: mp.nombre, unidad: mp.unidad, presupuesto: Number(mp.presupuesto_inicial), costo: costoBase }}
             insumos={maestroInsumos}
             proveedores={proveedores}
             cuentas={cuentasActivas}
             onCerrar={() => setModal(null)}
-            inicial={ed ? borradorDeCompra(ed) : undefined}
+            inicial={ed ? borradorDeCompra(ed) : modal.inicial}
             esEdicion={!!ed}
             onRegistrar={(b) => guardar(mp.id, b, maestroInsumos, ed)}
             onSolicitar={(b, m) => solicitar(mp.id, b, maestroInsumos, m)}
