@@ -1,6 +1,7 @@
 import type { ReactNode, InputHTMLAttributes, SelectHTMLAttributes, ButtonHTMLAttributes } from "react";
 import { useEffect, useState } from "react";
 import { Info, X } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 
 export function Panel({
@@ -98,6 +99,7 @@ export function Select(props: SelectHTMLAttributes<HTMLSelectElement>) {
 
 export function Boton({
   variante = "primario",
+  className,
   ...props
 }: ButtonHTMLAttributes<HTMLButtonElement> & { variante?: "primario" | "linea" | "peligro" | "accion" }) {
   const estilos = {
