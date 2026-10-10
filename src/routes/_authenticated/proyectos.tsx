@@ -143,6 +143,7 @@ function Proyectos() {
     fecha_corte_programado: "",
     pct_gastos_generales: "10",
     pct_utilidad: "10",
+    cd_base: "",
   });
   const [error, setError] = useState("");
   const [editando, setEditando] = useState<{
@@ -158,6 +159,7 @@ function Proyectos() {
     fecha_corte_programado: string;
     pct_gastos_generales: string;
     pct_utilidad: string;
+    cd_base: string;
   } | null>(null);
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
@@ -207,7 +209,8 @@ function Proyectos() {
       fecha_corte_programado: form.fecha_corte_programado || null,
       pct_gastos_generales: Number(form.pct_gastos_generales) || 0,
       pct_utilidad: Number(form.pct_utilidad) || 0,
-    });
+      cd_base: form.cd_base === "" ? null : Number(form.cd_base),
+    } as never);
     if (err)
       return setError(
         err.code === "23505" ? "Ese código ya está asignado a otra obra." : err.message,
@@ -226,6 +229,7 @@ function Proyectos() {
       fecha_corte_programado: "",
       pct_gastos_generales: "10",
       pct_utilidad: "10",
+      cd_base: "",
     });
     if (cerrarTrasGuardar.current) setFormAbierto(false);
     qc.invalidateQueries({ queryKey: ["proyectos"] });
@@ -252,7 +256,8 @@ function Proyectos() {
         fecha_corte_programado: editando.fecha_corte_programado || null,
         pct_gastos_generales: Number(editando.pct_gastos_generales) || 0,
         pct_utilidad: Number(editando.pct_utilidad) || 0,
-      })
+        cd_base: editando.cd_base === "" ? null : Number(editando.cd_base),
+      } as never)
       .eq("id", editando.id);
     if (err)
       return setError(
@@ -416,6 +421,23 @@ function Proyectos() {
                   <strong>Oferta = Costo Directo + Gastos Generales + Utilidad.</strong>
                 </p>
               </div>
+              <CampoF etiqueta="Costo Directo Base (techo de obra, S/)">
+                <Input type="number" min={0} step="0.01" value={form.cd_base} onChange={(e) => setForm({ ...form, cd_base: e.target.value })} placeholder="Opcional" />
+              </CampoF>
+              {form.cd_base !== "" && (() => {
+                const cd = Number(form.cd_base) || 0;
+                const gg = (cd * (Number(form.pct_gastos_generales) || 0)) / 100;
+                const ut = (cd * (Number(form.pct_utilidad) || 0)) / 100;
+                return (
+                  <div className="grid grid-cols-4 gap-2 rounded-md border border-line bg-muted/40 p-2 text-center text-[11px]">
+                    <div><p className="text-muted-foreground">C. Directo</p><p className="font-semibold tabular-nums">{soles(cd)}</p></div>
+                    <div><p className="text-muted-foreground">+ G. Generales</p><p className="font-semibold tabular-nums">{soles(gg)}</p></div>
+                    <div><p className="text-muted-foreground">+ Utilidad</p><p className="font-semibold tabular-nums">{soles(ut)}</p></div>
+                    <div><p className="text-muted-foreground">= Contractual</p><p className="font-bold tabular-nums text-primary">{soles(cd + gg + ut)}</p></div>
+                  </div>
+                );
+              })()}
+              <p className="text-[10px] text-muted-foreground">Las partidas no podrán sumar más que el Costo Directo Base.</p>
             </Seccion>
           </div>
           <div className="flex flex-wrap items-center justify-end gap-3 border-t border-line pt-3">
