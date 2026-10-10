@@ -112,7 +112,7 @@ function GastosDirectos() {
   const [proyectoId, setProyectoId] = useState("");
   const [abiertas, setAbiertas] = useState<Record<string, boolean>>({});
   const [gruposCerrados, setGruposCerrados] = useState<Record<string, boolean>>({});
-  const [modal, setModal] = useState<{ pid: string; editando?: Compra } | null>(null);
+  const [modal, setModal] = useState<{ pid: string; editando?: Compra; inicial?: Borrador } | null>(null);
   const [busqueda, setBusqueda] = useState("");
   const { data: cuentas = [] } = useQuery({
     queryKey: ["bancos"],
@@ -176,6 +176,31 @@ function GastosDirectos() {
 
   function alternar(pid: string) {
     setAbiertas((a) => ({ ...a, [pid]: !a[pid] }));
+  }
+
+  /** Solicitudes aprobadas por Gerencia, vigentes y aún no usadas, de una partida. */
+  function autorizadasDe(pid: string) {
+    const ahora = new Date();
+    return solicitudes.filter(
+      (s) => s.partida_id === pid && s.estado === "Aprobada" && !s.usada_en && new Date(s.vence_en) >= ahora,
+    );
+  }
+
+  /** Abre la ventana precargada con los datos de la compra autorizada por Gerencia. */
+  function abrirAutorizada(pid: string, s: (typeof solicitudes)[number]) {
+    setAbiertas((a) => ({ ...a, [pid]: true }));
+    const prov = terceros.find((t) => t.razon_social === s.proveedor);
+    setModal({
+      pid,
+      inicial: {
+        ...borradorVacio(),
+        insumoTexto: s.descripcion ?? "",
+        proveedor_id: prov?.id ?? "",
+        rubro: s.rubro ?? "",
+        cantidad: "1",
+        precio_unitario: String(Number(s.monto).toFixed(2)),
+      },
+    });
   }
 
   /** Edición sobre una compra ya registrada: la ventana se abre precargada. */
