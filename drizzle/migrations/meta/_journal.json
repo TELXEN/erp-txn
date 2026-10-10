@@ -92,6 +92,13 @@
       "when": 1791604826423,
       "tag": "0012_mo_presupuestada_margen_tipo",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1791605677396,
+      "tag": "0013_eliminar_proyecto",
+      "breakpoints": true
     }
   ]
 }

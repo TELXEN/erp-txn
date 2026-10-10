@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useRef, useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Archive, ArchiveRestore, Check, Copy, Eye, Info, LayoutGrid, MoreHorizontal, Pencil, Plus, Table2, X } from "lucide-react";
+import { Archive, ArchiveRestore, Calculator, Copy, Eye, Info, LayoutGrid, MoreHorizontal, Pencil, Plus, Table2, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Input, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
@@ -56,7 +56,7 @@ function Desglose({
           className="grid h-7 w-7 place-items-center rounded-md border border-line hover:border-primary hover:text-primary"
           title="Ver desglose financiero"
         >
-          <Eye className="size-4" />
+          <Calculator className="size-4" />
         </button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-64 font-mono text-xs">
@@ -75,6 +75,7 @@ import { Kanban } from "@/components/Kanban";
 import { useAuth, puedeVerDinero } from "@/lib/auth";
 import { fecha, soles } from "@/lib/format";
 import {
+  type Proyecto,
   ofertaProyecto,
   useEstadosProyecto,
   nombresEstados,
@@ -146,21 +147,9 @@ function Proyectos() {
     cd_base: "",
   });
   const [error, setError] = useState("");
-  const [editando, setEditando] = useState<{
-    id: string;
-    codigo: string;
-    nombre: string;
-    estado: "En Ejecucion" | "Finalizado";
-    situacion: string;
-    responsable_id: string;
-    fecha_inicio: string;
-    fecha_fin: string;
-    avance_programado_pct: string;
-    fecha_corte_programado: string;
-    pct_gastos_generales: string;
-    pct_utilidad: string;
-    cd_base: string;
-  } | null>(null);
+  const [editandoId, setEditandoId] = useState<string | null>(null);
+  const [eliminando, setEliminando] = useState<Proyecto | null>(null);
+  const [bajando, setBajando] = useState(false);
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
@@ -338,17 +327,21 @@ function Proyectos() {
         }
       />
 
-      <VentanaFlotante abierta={formAbierto} onCerrar={() => setFormAbierto(false)} titulo="Nuevo proyecto" subtitulo="Registra una obra y continúa con otra sin cerrar la ventana." ancho="max-w-6xl">
+      <VentanaFlotante abierta={formAbierto} onCerrar={() => { setFormAbierto(false); setEditandoId(null); }} titulo={editandoId ? "Editar proyecto" : "Nuevo proyecto"} subtitulo={editandoId ? "Corrige los datos registrados de la obra." : "Registra una obra y continúa con otra sin cerrar la ventana."} ancho="max-w-6xl">
         <form id="form-proyecto" onSubmit={guardar} className="space-y-4 p-5">
           <div className="grid gap-4 lg:grid-cols-3">
             <Seccion titulo="Información General">
               <CampoF etiqueta="Código de la obra">
-                <Input
-                  disabled
-                  value=""
-                  placeholder={codificacion ? previsualizarCodigo(codificacion) : "Automático"}
-                  title="Se asigna automáticamente al registrar"
-                />
+                {editandoId ? (
+                  <Input value={form.codigo} onChange={(e) => setForm({ ...form, codigo: e.target.value })} maxLength={30} title="Código asignado a la obra" />
+                ) : (
+                  <Input
+                    disabled
+                    value=""
+                    placeholder={codificacion ? previsualizarCodigo(codificacion) : "Automático"}
+                    title="Se asigna automáticamente al registrar"
+                  />
+                )}
               </CampoF>
               <CampoF etiqueta="Cliente">
                 <Select value={form.cliente} onChange={(e) => setForm({ ...form, cliente: e.target.value })}>
@@ -441,9 +434,15 @@ function Proyectos() {
             </Seccion>
           </div>
           <div className="flex flex-wrap items-center justify-end gap-3 border-t border-line pt-3">
-            <Boton type="button" variante="linea" onClick={() => setFormAbierto(false)}>Cancelar</Boton>
-            <Boton type="submit" variante="linea" onClick={() => { cerrarTrasGuardar.current = false; }}>Registrar otro</Boton>
-            <Boton type="submit" variante="accion" className="px-6 py-2.5 text-sm" onClick={() => { cerrarTrasGuardar.current = true; }}>Registrar y cerrar</Boton>
+            <Boton type="button" variante="linea" onClick={() => { setFormAbierto(false); setEditandoId(null); }}>Cancelar</Boton>
+            {editandoId ? (
+              <Boton type="submit" variante="accion" className="px-6 py-2.5 text-sm">Guardar cambios</Boton>
+            ) : (
+              <>
+                <Boton type="submit" variante="linea" onClick={() => { cerrarTrasGuardar.current = false; }}>Registrar otro</Boton>
+                <Boton type="submit" variante="accion" className="px-6 py-2.5 text-sm" onClick={() => { cerrarTrasGuardar.current = true; }}>Registrar y cerrar</Boton>
+              </>
+            )}
           </div>
           {error && <p className="font-mono text-xs text-bad">{error}</p>}
         </form>
