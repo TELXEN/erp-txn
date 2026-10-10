@@ -85,7 +85,7 @@ function Aprobaciones() {
       </Panel>
 
       <Panel titulo={`Pendientes (${pendientes.length})`} className="mb-4">
-        {pendientes.length === 0 ? <Vacio>No hay solicitudes pendientes.</Vacio> : (
+        {pendientes.length === 0 ? <Vacio texto="No hay solicitudes pendientes." /> : (
           <div className="divide-y divide-line">
             {pendientes.map((s) => (
               <div key={s.id} className="flex flex-wrap items-center gap-3 px-4 py-3 text-xs">
@@ -104,7 +104,7 @@ function Aprobaciones() {
       </Panel>
 
       <Panel titulo="Historial">
-        {historial.length === 0 ? <Vacio>Sin historial.</Vacio> : (
+        {historial.length === 0 ? <Vacio texto="Sin historial." /> : (
           <div className="divide-y divide-line">
             {historial.map((s) => (
               <div key={s.id} className="flex flex-wrap items-center gap-3 px-4 py-2 text-xs">
