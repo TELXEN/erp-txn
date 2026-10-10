@@ -24,3 +24,6 @@
 - [x] Desglose CD por rubro (materiales, MO por tareo de obreros, equipos, herramientas manuales % MO con tope de compra, subcontratos).
 - [x] Candado de compras por avance físico + tolerancia y solicitudes de desbloqueo.
 - [x] Panel de Aprobaciones de Gerencia.
+- [x] Orden del formulario de proyectos: Costo Directo Base arriba, porcentajes debajo.
+- [ ] Contador de solicitudes pendientes en el Dashboard de Proyectos.
+- [ ] Etiqueta «Bloqueada» en cada partida del Dashboard de Proyectos.
