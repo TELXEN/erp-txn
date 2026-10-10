@@ -433,7 +433,7 @@ function Dashboard() {
           EMO: {emoAlerta.v > 0 && `${emoAlerta.v} vencido(s)`}{emoAlerta.v > 0 && emoAlerta.p > 0 && " · "}{emoAlerta.p > 0 && `${emoAlerta.p} por vencer en 30 días`} — ver en Gestión de Personal
         </Link>
       )}
-      <div id="reporte-financiero">
+      <div id="reporte-financiero" className="tablero-financiero">
         {/* Nivel 1: KPIs ejecutivos */}
         <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
         <Kpi
@@ -474,9 +474,9 @@ function Dashboard() {
             datos.margen <= 0 ? "⚠ Alerta crítica: utilidad agotada" : `Margen ${pct(datos.margenPct)} s/ ofertado`,
           ]}
         />
-        <div className="panel rise flex flex-col p-5">
-          <p className="label-mono">Saldo Disponible por Ejecutar</p>
-          <p className={`mt-2 font-mono text-2xl font-bold tracking-tight ${datos.saldoOperativo < 0 ? "text-bad" : "text-ink"}`}>
+        <div className="kpi-tarjeta flex flex-col">
+          <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Saldo Disponible por Ejecutar</p>
+          <p className={`mt-2 text-2xl font-bold tabular-nums ${datos.saldoOperativo < 0 ? "text-bad" : "text-ink"}`}>
             {soles(datos.saldoOperativo)}
           </p>
           <p className="font-mono text-[10px] text-muted-foreground">Cada presupuesto se controla por separado</p>
@@ -485,9 +485,9 @@ function Dashboard() {
               <div className="flex items-center justify-between gap-2">
                 <span className="font-mono text-[10px] uppercase tracking-wide text-muted-foreground">Disp. Costo Directo</span>
                 {saldoCD < 0 ? (
-                  <span className="rounded bg-bad/10 px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase text-bad">⚠ Sobregirado</span>
+                  <span className="rounded bg-bad/10 px-1.5 py-0.5 font-mono text-[9px] font-bold whitespace-nowrap uppercase text-bad">⚠ Sobregirado</span>
                 ) : (
-                  <span className="font-mono text-[12px] font-bold text-good">{soles(saldoCD)}</span>
+                  <span className="font-mono text-[12px] font-bold whitespace-nowrap text-good">{soles(saldoCD)}</span>
                 )}
               </div>
               {saldoCD < 0 && (
@@ -507,10 +507,10 @@ function Dashboard() {
               <div className="flex items-center justify-between gap-2">
                 <span className="font-mono text-[10px] uppercase tracking-wide text-muted-foreground">Disp. Gastos Generales</span>
                 {saldoGG < 0 && (
-                  <span className="shrink-0 rounded bg-bad/10 px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase text-bad">⚠ Sobregirado</span>
+                  <span className="shrink-0 rounded bg-bad/10 px-1.5 py-0.5 font-mono text-[9px] font-bold whitespace-nowrap uppercase text-bad">⚠ Sobregirado</span>
                 )}
               </div>
-              <p className={`text-right font-mono text-[12px] font-bold ${saldoGG < 0 ? "text-bad" : "text-good"}`}>{soles(saldoGG)}</p>
+              <p className={`text-right font-mono text-[12px] font-bold whitespace-nowrap ${saldoGG < 0 ? "text-bad" : "text-good"}`}>{soles(saldoGG)}</p>
               <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-muted">
                 <div
                   className={`growx h-full rounded-full ${consumoGG > 100 ? "bg-bad" : "bg-good"}`}
@@ -742,18 +742,18 @@ function Kpi({
   tono?: "good" | "bad";
 }) {
   return (
-    <div className="panel rise p-5">
-      <p className="label-mono">{etiqueta}</p>
+    <div className="kpi-tarjeta flex flex-col">
+      <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{etiqueta}</p>
       <p
-        className={`mt-2 font-mono text-2xl font-bold tracking-tight ${
+        className={`mt-2 text-2xl font-bold tabular-nums ${
           tono === "bad" ? "text-bad" : tono === "good" ? "text-good" : "text-ink"
         }`}
       >
         {soles(valor)}
       </p>
-      <div className="mt-1 space-y-0.5">
+      <div className="mt-2 space-y-1 border-t border-line pt-2">
         {lineas.map((l) => (
-          <p key={l} className="font-mono text-[11px] text-muted-foreground">
+          <p key={l} className="text-[11px] leading-snug tabular-nums text-muted-foreground">
             {l}
           </p>
         ))}
