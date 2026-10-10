@@ -196,10 +196,10 @@ function Dashboard() {
     const costoReal = costoDirectoReal + ggReal;
     const facturado = cobrado + pendiente;
     const cdPrevisto = sum((f) => f.cdPrevisto);
-    // Por obra: el exceso de una obra no se compensa con el ahorro de otra.
+    // Utilidad de cartera = suma de la utilidad real de cada obra, menos los costos sin asignar.
     const desvCD = sum((f) => f.desvCD) + sa.mod + sa.honorarios;
     const desvGG = sum((f) => f.desvGG) + sa.staff;
-    const margen = utilidadPrevista - desvCD - desvGG;
+    const margen = sum((f) => f.margen) - sa.mod - sa.honorarios - sa.staff;
     const saldoOperativo = cdPrevisto - costoDirectoReal + (ggPresupuestado - ggReal);
     return {
       cdPrevisto,
