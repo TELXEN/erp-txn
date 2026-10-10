@@ -617,7 +617,7 @@ function ModalCompra({
   onRegistrar: (b: Borrador) => Promise<string | null>;
   onSolicitar: (b: Borrador, motivo: string) => Promise<string | null>;
   /** Compra ya registrada: la ventana se abre precargada y guarda los cambios. */
-  inicial?: Borrador;
+  inicial?: Borrador | undefined;
   esEdicion?: boolean;
 }) {
   const [b, setB] = useState<Borrador>(inicial ?? borradorVacio);
