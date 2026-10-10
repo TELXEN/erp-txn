@@ -452,22 +452,32 @@ function DashboardProyectos() {
         })}
       </section>
 
-      {verDinero && (
-        <section className="mb-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4" aria-label="Control presupuestal de la cartera">
+      {verDinero && (() => {
+        // Con una obra seleccionada las tarjetas muestran esa obra; con «Todos», la cartera.
+        const f = esTodos ? null : obraSel;
+        const pres = f ? f.presupuesto : resumen.presupuesto;
+        const cdP = f ? f.cdPres : resumen.cdPres;
+        const ggP = f ? f.ggPres : resumen.ggPres;
+        const utP = f ? f.utPres : resumen.utPres;
+        const cdR = f ? f.cdReal : resumen.cdReal;
+        const ggR = f ? f.ggReal : resumen.ggReal;
+        return (
+        <section className="mb-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4" aria-label={esTodos ? "Control presupuestal de la cartera" : "Control presupuestal de la obra seleccionada"}>
           <div className="kpi-tarjeta">
             <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Presupuesto vigente</p>
-            <p className="mt-2 text-2xl font-bold tabular-nums text-ink">{soles(resumen.presupuesto)}</p>
+            <p className="mt-2 text-2xl font-bold tabular-nums text-ink">{soles(pres)}</p>
             <div className="mt-2 space-y-0.5 text-[11px] tabular-nums text-muted-foreground">
-              <p className="flex justify-between"><span>Costo directo</span><span>{soles(resumen.cdPres)}</span></p>
-              <p className="flex justify-between"><span>Gastos generales</span><span>{soles(resumen.ggPres)}</span></p>
-              <p className="flex justify-between"><span>Utilidad proyectada 🔒</span><span>{soles(resumen.utPres)}</span></p>
+              <p className="flex justify-between"><span>Costo directo</span><span>{soles(cdP)}</span></p>
+              <p className="flex justify-between"><span>Gastos generales</span><span>{soles(ggP)}</span></p>
+              <p className="flex justify-between"><span>Utilidad proyectada 🔒</span><span>{soles(utP)}</span></p>
             </div>
           </div>
-          <BolsaEjecutada etiqueta="Costo directo ejecutado" real={resumen.cdReal} base={resumen.cdPres} />
-          <BolsaEjecutada etiqueta="Gastos generales ejecutados" real={resumen.ggReal} base={resumen.ggPres} />
-          <UtilidadReal proyectada={resumen.utPres} real={resumen.utPres - Math.max(0, resumen.cdReal - resumen.cdPres) - Math.max(0, resumen.ggReal - resumen.ggPres)} />
+          <BolsaEjecutada etiqueta="Costo directo ejecutado" real={cdR} base={cdP} />
+          <BolsaEjecutada etiqueta="Gastos generales ejecutados" real={ggR} base={ggP} />
+          <UtilidadReal proyectada={utP} real={utP - Math.max(0, cdR - cdP) - Math.max(0, ggR - ggP)} />
         </section>
-      )}
+        );
+      })()}
 
       <section className={`mb-4 grid gap-3 ${verDinero ? "lg:grid-cols-3" : "lg:grid-cols-2"}`} aria-label="Resumen del proyecto seleccionado">
         <div className="panel rise flex flex-col justify-between p-4">
