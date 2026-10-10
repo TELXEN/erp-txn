@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { leerTodo } from "@/lib/datos";
-import { useInsumos, useMargenesInsumo } from "@/lib/apu";
+import { precioVenta, useInsumos, useMargenesInsumo } from "@/lib/apu";
 import { useCostoObras } from "@/lib/costo-obra";
 
 const db = supabase as unknown as { from: (t: string) => any };
@@ -109,7 +109,7 @@ export function useDesgloseCd(proyectoId?: string | null) {
         const rend = Number(p.rendimiento) || 0;
         const cant = Number(c.cuadrilla) > 0 && rend > 0 ? (Number(c.cuadrilla) * (Number(p.jornada) || 8)) / rend : Number(c.cantidad);
         const t: ClaveRubro = (["MAT", "MO", "EQ", "SC"] as string[]).includes(i.tipo) ? (i.tipo as ClaveRubro) : "MAT";
-        base[t] += Number(p.metrado || 0) * cant * Number(i.precio); // precio base, sin margen
+        base[t] += Number(p.metrado || 0) * cant * precioVenta(i); // precio ofertado del APU (con margen)
       });
     }
     base.HT = (base.MO * Number(margenes?.HT ?? 0)) / 100;
