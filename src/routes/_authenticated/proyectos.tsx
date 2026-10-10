@@ -21,6 +21,15 @@ function Seccion({ titulo, children }: { titulo: string; children: ReactNode }) 
   );
 }
 
+function Dato({ etiqueta, valor }: { etiqueta: string; valor: ReactNode }) {
+  return (
+    <div className="min-w-0">
+      <p className="text-[10px] font-medium uppercase tracking-[0.08em] text-muted-foreground">{etiqueta}</p>
+      <div className="mt-0.5 text-sm text-ink">{valor}</div>
+    </div>
+  );
+}
+
 function CampoF({ etiqueta, requerido, children }: { etiqueta: string; requerido?: boolean; children: ReactNode }) {
   return (
     <label className="block">
@@ -531,155 +540,10 @@ function Proyectos() {
             </thead>
             <tbody>
               {proyectos.map((p) => {
-                const enEdicion = editando?.id === p.id;
                 const presupuesto = presupuestoProyecto(p.id, partidas);
                 const costoReal = costoDe(p.id).costoReal;
                 return (
                   <tr key={p.id} className="border-b border-line/60 transition-colors hover:bg-muted/50">
-                    {enEdicion ? (
-                      <>
-                        <td className="px-5 py-2 align-top">
-                          <Input
-                            className="py-1 text-[11px] uppercase"
-                            value={editando.codigo}
-                            onChange={(e) => setEditando({ ...editando, codigo: e.target.value })}
-                            maxLength={30}
-                            placeholder="Código"
-                            title="Código de la obra"
-                          />
-                        </td>
-                        <td className="truncate px-3 py-2.5 text-muted-foreground">{p.cliente || "—"}</td>
-                        <td className="px-3 py-2 align-top">
-                          <Input
-                            value={editando.nombre}
-                            onChange={(e) => setEditando({ ...editando, nombre: e.target.value })}
-                            maxLength={120}
-                            autoFocus
-                          />
-                          <div className="mt-1.5 grid grid-cols-2 gap-1.5">
-                            <Input
-                              type="number"
-                              min={0}
-                              max={100}
-                              step="0.1"
-                              className="py-1 text-[11px]"
-                              value={editando.pct_gastos_generales}
-                              onChange={(e) => setEditando({ ...editando, pct_gastos_generales: e.target.value })}
-                              title="% Gastos Generales"
-                            />
-                            <Input
-                              type="number"
-                              min={0}
-                              max={100}
-                              step="0.1"
-                              className="py-1 text-[11px]"
-                              value={editando.pct_utilidad}
-                              onChange={(e) => setEditando({ ...editando, pct_utilidad: e.target.value })}
-                              title="% Utilidad Prevista"
-                            />
-                          </div>
-                          <Input
-                            type="number"
-                            min={0}
-                            step="0.01"
-                            className="mt-1.5 py-1 text-[11px]"
-                            value={editando.cd_base}
-                            onChange={(e) => setEditando({ ...editando, cd_base: e.target.value })}
-                            placeholder="Costo Directo Base (techo)"
-                            title="Costo Directo Base (techo de obra)"
-                          />
-                        </td>
-                        <td className="px-3 py-2 align-top">
-                          <Select
-                            value={editando.responsable_id}
-                            onChange={(e) => setEditando({ ...editando, responsable_id: e.target.value })}
-                            className="py-1 text-[11px]"
-                          >
-                            <option value="">Sin asignar</option>
-                            {trabajadores.filter((t) => t.activo || t.id === editando.responsable_id).map((t) => (
-                              <option key={t.id} value={t.id}>{t.nombre}</option>
-                            ))}
-                          </Select>
-                        </td>
-                        <td className="px-3 py-2 align-top">
-                          <div className="grid gap-1.5">
-                            <Input
-                              type="date"
-                              className="py-1 text-[11px]"
-                              value={editando.fecha_inicio}
-                              onChange={(e) => setEditando({ ...editando, fecha_inicio: e.target.value })}
-                              title="Fecha de inicio"
-                            />
-                            <Input
-                              type="date"
-                              className="py-1 text-[11px]"
-                              value={editando.fecha_fin}
-                              onChange={(e) => setEditando({ ...editando, fecha_fin: e.target.value })}
-                              title="Fecha de fin estimada"
-                            />
-                            <div className="grid grid-cols-2 gap-1.5">
-                              <Input
-                                type="number"
-                                min={0}
-                                max={100}
-                                step="0.01"
-                                className="py-1 text-[11px]"
-                                value={editando.avance_programado_pct}
-                                onChange={(e) => setEditando({ ...editando, avance_programado_pct: e.target.value })}
-                                placeholder="Prog. %"
-                                title="Avance programado acumulado"
-                              />
-                              <Input
-                                type="date"
-                                className="py-1 text-[11px]"
-                                value={editando.fecha_corte_programado}
-                                onChange={(e) => setEditando({ ...editando, fecha_corte_programado: e.target.value })}
-                                title="Fecha de corte programada"
-                              />
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-3 py-2 align-top text-muted-foreground">Se actualiza al guardar</td>
-                        <td className="px-3 py-2.5 text-right whitespace-nowrap">{soles(presupuesto)}</td>
-                        <td
-                          className={`px-3 py-2.5 text-right whitespace-nowrap ${costoReal > presupuesto && presupuesto > 0 ? "text-bad" : "text-ink"}`}
-                        >
-                          {soles(costoReal)}
-                        </td>
-                        <td className="px-3 py-2">
-                          <Select
-                            value={editando.situacion}
-                            onChange={(e) => setEditando({ ...editando, situacion: e.target.value })}
-                            className="py-1 text-xs"
-                          >
-                            {nombresEstados(estadosQ.data).map((s) => (
-                              <option key={s} value={s}>
-                                {s}
-                              </option>
-                            ))}
-                          </Select>
-                        </td>
-                        <td className="px-5 py-2 text-right">
-                          <div className="inline-flex items-center gap-1.5">
-                            <button
-                              onClick={() => actualizar()}
-                              className="grid h-7 w-7 place-items-center rounded-md border border-line hover:border-primary hover:text-primary"
-                              title="Guardar"
-                            >
-                              <Check className="size-4" />
-                            </button>
-                            <button
-                              onClick={() => setEditando(null)}
-                              className="grid h-7 w-7 place-items-center rounded-md border border-line hover:border-bad hover:text-bad"
-                              title="Cancelar"
-                            >
-                              <X className="size-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </>
-                    ) : (
-                      <>
                         <td className="px-5 py-3 align-top font-bold text-ink break-words"><Resaltar texto={p.codigo || "—"} termino={busqueda} /></td>
                         <td className="truncate px-3 py-3 align-top text-muted-foreground"><Resaltar texto={p.cliente || "—"} termino={busqueda} /></td>
                         <td className="px-3 py-3 align-top text-[13px] font-semibold text-ink break-words whitespace-normal">
@@ -717,27 +581,11 @@ function Proyectos() {
                               pctUt={Number(p.pct_utilidad ?? 0)}
                             />
                             <Boton variante="linea" className="h-8 w-8 px-0" aria-label="Ver proyecto" title="Ver" onClick={() => setViendoId(p.id)}><Eye className="size-[18px]" /></Boton>
-                            <Boton variante="linea" className="h-8 w-8 px-0"
-                              onClick={() =>
-                                setEditando({
-                                  id: p.id,
-                                  codigo: p.codigo ?? "",
-                                  nombre: p.nombre,
-                                  estado: p.estado,
-                                  situacion: p.situacion,
-                                  responsable_id: p.responsable_id ?? "",
-                                  fecha_inicio: p.fecha_inicio ?? "",
-                                  fecha_fin: p.fecha_fin ?? "",
-                                   avance_programado_pct: p.avance_programado_pct === null ? "" : String(p.avance_programado_pct),
-                                   fecha_corte_programado: p.fecha_corte_programado ?? "",
-                                  pct_gastos_generales: String(p.pct_gastos_generales ?? 0),
-                                  pct_utilidad: String(p.pct_utilidad ?? 0),
-                                  cd_base: (p as { cd_base?: number | null }).cd_base == null ? "" : String((p as { cd_base?: number | null }).cd_base),
-                                })
-                              }
-                              title="Editar"
-                            >
+                            <Boton variante="linea" className="h-8 w-8 px-0" aria-label="Editar proyecto" title="Editar" onClick={() => abrirEdicion(p)}>
                               <Pencil className="size-[18px]" />
+                            </Boton>
+                            <Boton variante="linea" className="h-8 w-8 px-0" aria-label="Eliminar proyecto" title="Eliminar" onClick={() => { setError(""); setEliminando(p); }}>
+                              <Trash2 className="size-[18px]" />
                             </Boton>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild><Boton variante="linea" className="h-8 w-8 px-0" aria-label="Más acciones" title="Más acciones"><MoreHorizontal className="size-[18px]" /></Boton></DropdownMenuTrigger>
@@ -748,8 +596,6 @@ function Proyectos() {
                             </DropdownMenu>
                           </div>
                         </td>
-                      </>
-                    )}
                   </tr>
                 );
               })}
