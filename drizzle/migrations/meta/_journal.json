@@ -127,6 +127,13 @@
       "when": 1791610873688,
       "tag": "0017_fix_candado_presupuesto_inicial",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1791611121393,
+      "tag": "0018_fix_candado_columnas_solicitudes",
+      "breakpoints": true
     }
   ]
 }
