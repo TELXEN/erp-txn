@@ -41,6 +41,7 @@ export type Solicitud = {
   solicitado_por: string | null;
   resuelto_en: string | null;
   vence_en: string | null;
+  usada_en: string | null;
   created_at: string;
 };
 
