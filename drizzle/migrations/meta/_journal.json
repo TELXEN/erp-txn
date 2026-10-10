@@ -113,6 +113,13 @@
       "when": 1791610326703,
       "tag": "0015_candado_compra_edicion",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1791610581130,
+      "tag": "0016_candado_compra_tolerancia_10",
+      "breakpoints": true
     }
   ]
 }
