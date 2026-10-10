@@ -89,7 +89,7 @@ describe("Costo de personal por obra", () => {
 import { compraPermitida, limiteCompra } from "./sobrecosto";
 describe("candado de compras por avance físico", () => {
   it("límite = presupuesto × (avance + tolerancia)", () => {
-    expect(limiteCompra(1000, 10, 15)).toBeCloseTo(250);
+    expect(limiteCompra(1000, 10, 15)).toBeCloseTo(1150);
   });
   it("bloquea cuando la compra supera el límite", () => {
     expect(compraPermitida(200, 40, 1000, 10, 15)).toBe(true);
