@@ -120,6 +120,13 @@
       "when": 1791610581130,
       "tag": "0016_candado_compra_tolerancia_10",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1791610873688,
+      "tag": "0017_fix_candado_presupuesto_inicial",
+      "breakpoints": true
     }
   ]
 }
