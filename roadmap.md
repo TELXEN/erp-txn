@@ -18,3 +18,9 @@
 - [x] Etapa 5: pruebas automáticas de cálculos (src/lib/calculos.test.ts, 9 casos).
 - [x] Etapa 6: costo real de obra único en todos los paneles.
 - [x] Etapa 7: integración de importaciones transaccional.
+
+## Control de sobrecostos
+- [x] Costo Directo Base (techo) en proyectos y bloqueo de partidas que lo superen.
+- [x] Desglose CD por rubro (materiales, MO por tareo de obreros, equipos, herramientas manuales % MO con tope de compra, subcontratos).
+- [x] Candado de compras por avance físico + tolerancia y solicitudes de desbloqueo.
+- [x] Panel de Aprobaciones de Gerencia.
