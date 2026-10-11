@@ -74,7 +74,21 @@ function Cotizaciones() {
   const { data: cotizaciones = [] } = useCotizaciones();
   const { data: especialidades = [] } = useEspecialidadesPartida();
   const { data: unidades = [] } = useUnidadesMedida();
-  const { data: maestras = [] } = usePartidasMaestras();
+  const { data: partidasApu = [] } = usePartidasApu();
+  const costosApu = useCostosPartidasApu();
+  // Catálogo de la cotización: partidas del Banco APU con su P.U. calculado desde la receta.
+  const maestras = partidasApu.map((p) => ({
+    id: p.id,
+    codigo: p.codigo_jerarquico ?? "",
+    nombre: p.descripcion ?? "",
+    especialidad: p.especialidad ?? "",
+    categoria: "",
+    marca: "",
+    unidad: p.unidad ?? "und",
+    precio_unitario: costosApu.get(p.id) ?? 0,
+    activo: true,
+    rendimiento: Number(p.rendimiento_diario ?? 1),
+  }));
   const { data: categorias = [] } = useCategoriasPartida();
   const { data: clientes = [] } = useQuery({
     queryKey: ["terceros", "clientes-activos"],
