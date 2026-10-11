@@ -304,43 +304,6 @@ export function HojaCotizacion({
 
         <div style={{ marginTop: 16 }}>{children}</div>
 
-        <div style={{ width: 248, marginLeft: "auto", marginTop: 20, fontSize: 11, background: DOC.total, borderRadius: 6, padding: 6 }}>
-          {[
-            ["COSTO DIRECTO", money(sim, totales.costoDirecto), false] as const,
-          ].map(([t, v]) => (
-            <div key={t} style={{ display: "flex", justifyContent: "space-between", padding: "5px 8px", borderBottom: `1px solid ${C.line}`, fontWeight: 700 }}><span>{t}</span><span>{v}</span></div>
-          ))}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "5px 8px", borderBottom: `1px solid ${C.line}` }}>
-            <span style={{ display: "inline-flex", alignItems: "center" }}>
-              <span style={{ display: "inline-block", width: 96 }}>Gastos generales</span>
-              <input key={`gg-${cot.id}-${cot.pct_gastos_generales}`} type="number" step="0.5" min="0" defaultValue={Number(cot.pct_gastos_generales)} onBlur={(e) => alSalir("pct_gastos_generales", Number(e.target.value || 0), Number(cot.pct_gastos_generales))} style={{ ...ed, width: 44, borderBottom: "none", textAlign: "right" }} />%
-            </span>
-            <span>{money(sim, totales.gastosGenerales)}</span>
-          </div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "5px 8px", borderBottom: `1px solid ${C.line}` }}>
-            <span style={{ display: "inline-flex", alignItems: "center" }}>
-              <span style={{ display: "inline-block", width: 96 }}>Utilidad</span>
-              <input key={`ut-${cot.id}-${cot.pct_utilidad}`} type="number" step="0.5" min="0" defaultValue={Number(cot.pct_utilidad)} onBlur={(e) => alSalir("pct_utilidad", Number(e.target.value || 0), Number(cot.pct_utilidad))} style={{ ...ed, width: 44, borderBottom: "none", textAlign: "right" }} />%
-            </span>
-            <span>{money(sim, totales.utilidad)}</span>
-          </div>
-          <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 8px", borderBottom: `1px solid ${C.line}`, fontWeight: 700 }}><span>SUBTOTAL</span><span>{money(sim, totales.total)}</span></div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "5px 8px", borderBottom: `1px solid ${C.line}` }}>
-            <span style={{ display: "inline-flex", alignItems: "center" }}>
-              <span style={{ display: "inline-block", width: 96 }}>IGV</span>
-              <span style={{ display: "inline-block", width: 44, textAlign: "right", paddingRight: 16 }}>{conIgv ? "18" : "0"}</span>%
-            </span>
-            <span>{money(sim, igv)}</span>
-          </div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "5px 8px", borderTop: `1px solid ${DOC.green}`, marginTop: 3, color: DOC.green, fontWeight: 700, fontSize: 13, lineHeight: 1.15 }}>
-            <span>IMPORTE TOTAL</span><span>{money(sim, totalConIgv)}</span>
-          </div>
-          {esUsd && tc > 0 && (
-            <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 8px", color: C.muted, fontSize: 11 }}>
-              <span>Equivalente en soles (T.C. {tc.toFixed(3)})</span><span>{money("S/", totalConIgv * tc)}</span>
-            </div>
-          )}
-        </div>
 
         <div style={{ marginTop: 18 }}>
           <button type="button" onClick={() => setCondicionesAbiertas(true)} className="inline-flex h-8 items-center gap-2 rounded-md border border-line bg-background px-3 text-xs font-medium hover:bg-muted">
