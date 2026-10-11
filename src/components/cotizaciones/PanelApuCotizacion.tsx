@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, ChevronRight, Plus, Trash2, Upload } from "lucide-react";
 import { Boton, Select } from "@/components/ui-kit";
 import { BANCOS_RECURSO, costoReceta, dbBanco, useBancoTabla, useRecursosApu, type FilaCalculo } from "@/lib/banco-apu";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import type { Cotizacion, CotizacionItem } from "@/lib/cotizaciones";
 
@@ -337,6 +338,7 @@ function Metrado({ item, cotId }: { item: CotizacionItem; cotId: string }) {
 
 /** Pie: incidencia por tipo de recurso y resumen de costos de toda la cotización. */
 export function ResumenCotizacion({ cot, items }: { cot: Cotizacion; items: CotizacionItem[] }) {
+  const qc = useQueryClient();
   const recursos = useRecursosApu();
   const { data: detalle = [] } = useBancoTabla("cotizacion_apu_detalle");
   const sim = cot.moneda === "USD" ? "US$" : "S/";
