@@ -182,7 +182,6 @@ export function CotizacionHoja({
   const mon = (n: number) => `${compacta ? "" : `${simbolo} `}${Number(n || 0).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   const qc = useQueryClient();
   const [colapsados, setColapsados] = useState<Set<string>>(new Set());
-  const [apuAbierto, setApuAbierto] = useState<string | null>(null);
   const [activo, setActivo] = useState<{ r: number; c: number }>({ r: 0, c: 1 });
   const [seleccionadas, setSeleccionadas] = useState<Set<string>>(new Set());
   const anclaSeleccion = useRef<number | null>(null);
@@ -241,7 +240,7 @@ export function CotizacionHoja({
     return () => {
       vivo = false;
     };
-  }, [items, apuAbierto]);
+  }, [items]);
 
   const visibles = useMemo(() => {
     const out: Fila[] = [];
@@ -1415,16 +1414,6 @@ export function CotizacionHoja({
                   <td className={`${celdaBase} whitespace-nowrap text-right font-semibold text-ink`}>{mon(f.total)}</td>
                   <td className={`${celdaBase} text-right`}>
                     <div className="flex items-center justify-end gap-1">
-                      {!f.agrupadora && (
-                        <button
-                          type="button"
-                          title="Desglose de insumos (APU)"
-                          onClick={() => setApuAbierto(apuAbierto === it.id ? null : it.id)}
-                          className={`rounded border border-line text-muted-foreground hover:border-primary hover:text-primary ${compacta ? "px-1 py-1" : "px-2 py-1 text-[11.5px]"}`}
-                        >
-                          {compacta ? <Calculator size={12} /> : "APU"}
-                        </button>
-                      )}
                       {f.nivel === 3 && (
                         <button
                           type="button"
@@ -1506,13 +1495,6 @@ export function CotizacionHoja({
                   )}
                 </ContextMenuContent>
                 </ContextMenu>
-                {apuAbierto === it.id && (
-                  <tr>
-                    <td colSpan={8} className="border-b border-line bg-muted/20 p-0">
-                      <DesgloseApu item={it} alCambiar={refrescar} />
-                    </td>
-                  </tr>
-                )}
                 {filaFantasma}
               </React.Fragment>
             );
