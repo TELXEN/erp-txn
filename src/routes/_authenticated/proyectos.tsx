@@ -350,14 +350,14 @@ function Proyectos() {
           <div className="flex items-center gap-1 rounded-md border border-line bg-card p-1">
             <button
               type="button"
-              onClick={() => setVista("tabla")}
+              onClick={() => { setVista("tabla"); localStorage.setItem("proyectos:vista", "tabla"); }}
               className={`inline-flex items-center gap-1.5 rounded px-2.5 py-1.5 font-mono text-[11px] ${vista === "tabla" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-ink"}`}
             >
               <Table2 size={13} /> Tabla
             </button>
             <button
               type="button"
-              onClick={() => setVista("kanban")}
+              onClick={() => { setVista("kanban"); localStorage.setItem("proyectos:vista", "kanban"); }}
               className={`inline-flex items-center gap-1.5 rounded px-2.5 py-1.5 font-mono text-[11px] ${vista === "kanban" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-ink"}`}
             >
               <LayoutGrid size={13} /> Kanban
@@ -488,6 +488,22 @@ function Proyectos() {
           {error && <p className="font-mono text-xs text-bad">{error}</p>}
         </form>
       </VentanaFlotante>
+
+      <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
+        {[
+          { k: "Proyectos activos", v: String(resumen.total), sub: `${resumen.enEjecucion} en ejecución` },
+          { k: "Presupuesto cartera", v: soles(resumen.presupuesto), sub: "Suma de partidas" },
+          { k: "Costo ejecutado", v: soles(resumen.costo), sub: resumen.presupuesto > 0 ? `${((resumen.costo / resumen.presupuesto) * 100).toFixed(1)}% del presupuesto` : "Sin presupuesto" },
+          { k: "Avance físico promedio", v: resumen.avancePromedio === null ? "—" : `${resumen.avancePromedio.toFixed(1)}%`, sub: "Obras con partidas" },
+          { k: "En esta vista", v: String(proyectos.length), sub: segmento === "Todos" ? "Todos los estados" : segmento },
+        ].map((c) => (
+          <div key={c.k} className="rounded-lg border border-line bg-card px-3 py-2.5">
+            <p className="text-[10px] font-medium uppercase tracking-[0.08em] text-muted-foreground">{c.k}</p>
+            <p className="mt-0.5 truncate text-lg font-bold tabular-nums text-ink">{c.v}</p>
+            <p className="truncate text-[10px] text-muted-foreground">{c.sub}</p>
+          </div>
+        ))}
+      </div>
 
       <Panel
         titulo={vista === "tabla" ? "Listado de proyectos" : "Tablero Kanban de proyectos"}
