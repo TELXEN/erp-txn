@@ -175,13 +175,16 @@ function altoEstimadoFila(fila: Fila, charsPorLinea = 62) {
 function paginarFilas(filas: Fila[], horizontal = false, factor = 1) {
   if (filas.length === 0) return [[]] as Fila[][];
   const charsPorLinea = horizontal ? 95 : 62;
+  // A4 horizontal mide 1123 × 794 px a 96 dpi. Antes se calculaba con 700 px
+  // de alto, por lo que se enviaban filas a otra hoja dejando espacio visible.
+  const altoAdicionalHorizontal = horizontal ? 94 : 0;
   const paginas: Fila[][] = [];
   let pendientes = [...filas];
   let primeraHoja = true;
 
   while (pendientes.length > 0) {
-    const capacidad = (horizontal ? (primeraHoja ? 330 : 455) : primeraHoja ? 470 : 650) * factor;
-    const capacidadFinal = (horizontal ? (primeraHoja ? 175 : 245) : primeraHoja ? 250 : 350) * factor;
+    const capacidad = ((horizontal ? (primeraHoja ? 330 : 455) : primeraHoja ? 470 : 650) + altoAdicionalHorizontal) * factor;
+    const capacidadFinal = ((horizontal ? (primeraHoja ? 175 : 245) : primeraHoja ? 250 : 350) + altoAdicionalHorizontal) * factor;
     const altoPendiente = pendientes.reduce((suma, fila) => suma + altoEstimadoFila(fila, charsPorLinea), 0);
 
     if (altoPendiente <= capacidadFinal) {
@@ -259,7 +262,7 @@ function VistaCotizacion() {
   const horizontal = horizontalPreferida ?? cot?.orientacion === "horizontal";
   const paginaW = horizontal ? 1123 : 794;
   const interiorW = horizontal ? 1087 : 754;
-  const paginaH = horizontal ? 700 : 990;
+  const paginaH = horizontal ? 794 : 990;
   const [factorPagina, setFactorPagina] = useState(1);
   const [finalAparte, setFinalAparte] = useState(false);
   useEffect(() => { setFactorPagina(1); setFinalAparte(false); }, [id, horizontal, items.length]);
