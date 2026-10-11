@@ -1222,16 +1222,14 @@ export function CotizacionHoja({
           </Button>
         )}
       </div>
-      <table className="w-full min-w-[1180px] table-fixed font-mono text-[10.5px]">
+      <table className={`w-full table-fixed font-mono text-[10.5px] ${compacta ? "" : "min-w-[1180px]"}`}>
         <colgroup>
-          <col style={{ width: "10%" }} />
-          <col style={{ width: "36%" }} />
-          <col style={{ width: "11%" }} />
-          <col style={{ width: "7%" }} />
-          <col style={{ width: "6%" }} />
-          <col style={{ width: "11%" }} />
-          <col style={{ width: "11%" }} />
-          <col style={{ width: "8%" }} />
+          {(compacta
+            ? ["9%", "30%", "9%", "7%", "9%", "11%", "11%", "14%"]
+            : ["10%", "36%", "11%", "7%", "6%", "11%", "11%", "8%"]
+          ).map((w, i) => (
+            <col key={i} style={{ width: w }} />
+          ))}
         </colgroup>
         <thead>
           <tr className="h-7 text-left text-[9.5px] uppercase tracking-normal" style={{ background: DOC.green, color: DOC.white }}>
