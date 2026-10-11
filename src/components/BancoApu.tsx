@@ -182,6 +182,7 @@ function ListaBanco({ tabla, seleccion, onSeleccion }: { tabla: Tabla; seleccion
   }
 
   return (
+    <>
     <Panel
       titulo={cfg.titulo}
       extra={
@@ -266,11 +267,12 @@ function ListaBanco({ tabla, seleccion, onSeleccion }: { tabla: Tabla; seleccion
         )}
       </VentanaFlotante>
 
+    </Panel>
       {nueva && (
         <DialogoNuevaPartida partidas={filasRaw} onCerrar={() => setNueva(false)}
           onGuardado={(id) => { setNueva(false); setEstado("activo"); setFiltro(""); setBusqueda(""); refrescar(); onSeleccion?.(id); }} />
       )}
-    </Panel>
+
   );
 }
 
@@ -341,6 +343,7 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
   }
 
   return (
+    <>
     <Panel titulo={`${partida.codigo_jerarquico || "s/c"} · ${partida.descripcion}`}>
       <div className="px-5 py-4"><p className="mb-3 text-xs text-muted-foreground">{partida.unidad} · Rendimiento {partida.rendimiento_diario}/día{partida.especialidad ? ` · ${partida.especialidad}` : ""}</p>
       <div className="space-y-3">
@@ -385,13 +388,14 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
         <span className="text-sm font-semibold">Costo total del APU</span>
         <span className="font-mono text-sm font-semibold text-primary">{soles(calc.total)}</span>
       </div>
+      </div>
+    </Panel>
       {agregar && (
         <DialogoAgregarInsumo grupo={agregar} partida={partida} opciones={(fuentes[agregar[1]] ?? []).filter((x) => x.estado === "activo" && x.id !== partida.id)}
           existentes={detalles.filter((d) => d.partida_padre_id === partida.id)}
           onCerrar={() => setAgregar(null)} onGuardado={() => { setAgregar(null); refrescar(); }} />
       )}
-      </div>
-    </Panel>
+    </>
   );
 }
 
