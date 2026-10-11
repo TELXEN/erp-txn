@@ -78,6 +78,7 @@ export function HojaCotizacion({
   /** En modo edición se oculta el encabezado corporativo y la ficha de cliente. */
   mostrarEncabezado?: boolean;
 }) {
+  const [condicionesAbiertas, setCondicionesAbiertas] = useState(false);
   const qc = useQueryClient();
   const { data: empresa } = useEmpresa();
   const { data: tcActual = 0 } = useTipoCambioActual();
