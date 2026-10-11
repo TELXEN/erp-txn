@@ -1,7 +1,7 @@
 import { codigoContextual } from "@/lib/categorias";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { createFileRoute } from "@tanstack/react-router";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
@@ -73,8 +73,20 @@ function Partidas() {
   const { data: unidades = [] } = useUnidadesMedida();
   const { data: maestras = [] } = usePartidasMaestras();
 
-  const [filtroProyecto, setFiltroProyecto] = useState("");
+  const [filtroProyecto, setFiltroProyecto] = useState(() => localStorage.getItem("partidas:proyecto") ?? "");
   const [filtroTipo, setFiltroTipo] = useState("");
+  const [filtroEsp, setFiltroEsp] = useState("");
+
+  useEffect(() => {
+    localStorage.setItem("partidas:proyecto", filtroProyecto);
+  }, [filtroProyecto]);
+
+  // Si el proyecto recordado ya no existe, vuelve a «Todos»
+  useEffect(() => {
+    if (filtroProyecto && proyectos.length > 0 && !proyectos.some((p) => p.id === filtroProyecto)) {
+      setFiltroProyecto("");
+    }
+  }, [filtroProyecto, proyectos]);
   const [vista, setVista] = useState<"tabla" | "kanban">("tabla");
   const [modalNueva, setModalNueva] = useState(false);
   const [colapsados, setColapsados] = useState<Set<string>>(new Set());
