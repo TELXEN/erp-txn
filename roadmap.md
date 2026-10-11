@@ -40,3 +40,6 @@
 ## Configuración del Sistema
 - [x] Agrupar la pestaña «Datos de la empresa» en dos bloques con rótulo propio: Datos de la empresa y Cuentas bancarias.
 - [x] Separar esos dos bloques en pestañas independientes: «Datos de la empresa» y «Cuentas bancarias», cada una con su propio contenido.
+
+## Dashboard Financiero
+- [ ] Añadir dona de categorías de gastos generales a la derecha de la composición del costo real y compactar las barras de control.
