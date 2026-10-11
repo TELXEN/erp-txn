@@ -128,9 +128,12 @@ function Proyectos() {
   const { data: tiposPresupuesto = [] } = useTiposPresupuesto();
   const estadosQ = useEstadosProyecto();
   const { data: codificacion } = useCodificacion();
-  const [vista, setVista] = useState<"tabla" | "kanban">("tabla");
+  const [vista, setVista] = useState<"tabla" | "kanban">(() => (localStorage.getItem("proyectos:vista") === "kanban" ? "kanban" : "tabla"));
   const [busqueda, setBusqueda] = useState("");
-  const [segmento, setSegmento] = useState<"Todos" | "Borradores" | "En Ejecución" | "Finalizados" | "Archivados">("Todos");
+  const [segmento, setSegmento] = useState<"Todos" | "Borradores" | "En Ejecución" | "Finalizados" | "Archivados">(() => {
+    const s = localStorage.getItem("proyectos:segmento");
+    return s === "Borradores" || s === "En Ejecución" || s === "Finalizados" || s === "Archivados" ? s : "Todos";
+  });
   const [clienteFiltro, setClienteFiltro] = useState("");
   const [viendoId, setViendoId] = useState<string | null>(null);
   const [formAbierto, setFormAbierto] = useState(false);
@@ -172,6 +175,27 @@ function Proyectos() {
   });
   const clientesFiltro = useMemo(() => [...new Set(todosProyectos.map((p) => p.cliente).filter(Boolean))].sort(), [todosProyectos]);
   const proyectoVisto = todosProyectos.find((p) => p.id === viendoId) ?? null;
+
+  const avanceRealDe = (proyectoId: string) => {
+    const ps = partidas.filter((x) => x.proyecto_id === proyectoId);
+    if (ps.length === 0) return null;
+    return ps.reduce((a, x) => a + Number(x.avance_fisico_pct ?? 0), 0) / ps.length;
+  };
+
+  const resumen = useMemo(() => {
+    const activos = todosProyectos.filter((p) => !p.archivado_en);
+    const presupuesto = activos.reduce((a, p) => a + presupuestoProyecto(p.id, partidas), 0);
+    const costo = activos.reduce((a, p) => a + costoDe(p.id).costoReal, 0);
+    const conAvance = activos.map((p) => avanceRealDe(p.id)).filter((v): v is number => v !== null);
+    return {
+      total: activos.length,
+      enEjecucion: activos.filter((p) => p.situacion === "En proceso" || p.situacion === "Retrasado").length,
+      presupuesto,
+      costo,
+      avancePromedio: conAvance.length ? conAvance.reduce((a, v) => a + v, 0) / conAvance.length : null,
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [todosProyectos, partidas, costoDe]);
 
   const camposForm = () => ({
     nombre: form.nombre.trim(),
