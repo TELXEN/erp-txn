@@ -162,7 +162,7 @@ function Datos() {
       />
 
 
-      <div className="mb-4 flex flex-wrap gap-1 border-b border-line pb-3">
+      <div className="mb-4 flex flex-wrap items-center gap-5 border-b border-line pb-2">
         {(GRUPOS_CONFIG.find((g) => g.items.some(([p]) => p === pestana)) ?? GRUPOS_CONFIG[0]!).items.map(([p, texto]) => (
           <button
             key={p}
