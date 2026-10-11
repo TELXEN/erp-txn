@@ -272,7 +272,7 @@ function ListaBanco({ tabla, seleccion, onSeleccion }: { tabla: Tabla; seleccion
         <DialogoNuevaPartida partidas={filasRaw} onCerrar={() => setNueva(false)}
           onGuardado={(id) => { setNueva(false); setEstado("activo"); setFiltro(""); setBusqueda(""); refrescar(); onSeleccion?.(id); }} />
       )}
-
+    </>
   );
 }
 
