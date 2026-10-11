@@ -42,4 +42,4 @@
 - [x] Separar esos dos bloques en pestañas independientes: «Datos de la empresa» y «Cuentas bancarias», cada una con su propio contenido.
 
 ## Dashboard Financiero
-- [ ] Añadir dona de categorías de gastos generales a la derecha de la composición del costo real y compactar las barras de control.
+- [x] Añadir dona de categorías de gastos generales a la derecha de la composición del costo real y compactar las barras de control.
