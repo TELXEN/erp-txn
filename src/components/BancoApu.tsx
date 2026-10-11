@@ -244,7 +244,7 @@ function ListaBanco({ tabla, seleccion, onSeleccion }: { tabla: Tabla; seleccion
       <VentanaFlotante abierta={!!form} onCerrar={() => setForm(null)} ancho="max-w-2xl"
         titulo={`${editId ? "Editar" : "Nuevo"} — ${cfg.titulo}`}>
         {form && (
-          <form className="grid gap-3 sm:grid-cols-2" onSubmit={(e) => { e.preventDefault(); guardar(false); }}>
+          <form className="grid gap-3 p-5 sm:grid-cols-2" onSubmit={(e) => { e.preventDefault(); guardar(false); }}>
             {cfg.campos.filter((c) => !c.soloSi || c.soloSi(form)).map((c) => (
               <Campo key={c.k} etiqueta={c.t}>
                 {c.tipo === "sel" ? (
@@ -487,7 +487,7 @@ function DialogoNuevaPartida({ partidas, onCerrar, onGuardado }: { partidas: Fil
 
   return (
     <VentanaFlotante abierta onCerrar={onCerrar} ancho="max-w-2xl" titulo="Nueva partida">
-      <form className="grid gap-3 sm:grid-cols-2" onSubmit={(e) => { e.preventDefault(); guardar(); }}>
+      <form className="grid gap-3 p-5 sm:grid-cols-2" onSubmit={(e) => { e.preventDefault(); guardar(); }}>
         <Campo etiqueta="Especialidad">
           <Select value={f.especialidad} onChange={(e) => elegirEsp(e.target.value)}>
             <option value="">—</option>
