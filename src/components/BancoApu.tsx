@@ -220,7 +220,8 @@ function ListaBanco({ tabla, seleccion, onSeleccion }: { tabla: Tabla; seleccion
                 <tr key={f.id} className={`border-b border-line/60 hover:bg-muted/40 ${onSeleccion ? "cursor-pointer" : ""} ${seleccion === f.id ? "bg-primary/10" : ""}`}
                   onClick={() => onSeleccion?.(f.id)}>
                   {cfg.columnas.map(([k, , tp]) => {
-                    const largo = k === "descripcion";
+                    const fijo = k === "codigo" || k === "codigo_jerarquico" || k === "unidad";
+                    const largo = tp === "txt" && !fijo;
                     return (
                       <td key={k} className={`px-3 py-0.5 ${largo ? "w-full max-w-[1px]" : tp !== "txt" ? "whitespace-nowrap text-right font-mono" : "whitespace-nowrap"}`}>
                         <span className={`block ${largo ? "truncate" : ""}`}>
