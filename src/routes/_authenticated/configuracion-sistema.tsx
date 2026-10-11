@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
 import { Building2, Check, FileText, Landmark, ShieldCheck, SlidersHorizontal } from "lucide-react";
 import { Boton, Panel } from "@/components/ui-kit";
 import { DatosEmpresa } from "@/components/DatosEmpresa";
@@ -26,31 +26,6 @@ function IconoPaletaColores({ className }: { className?: string }) {
       <circle cx="8.5" cy="7.5" r="1.4" fill="#22c55e" stroke="none" />
       <circle cx="6.5" cy="12.5" r="1.4" fill="#3b82f6" stroke="none" />
     </svg>
-  );
-}
-
-function Grupo({
-  ficha,
-  nombre,
-  children,
-}: {
-  ficha: ReactNode;
-  nombre: string;
-  children: ReactNode;
-}) {
-  return (
-    <section className="space-y-3" aria-label={nombre}>
-      <header className="flex items-center gap-2.5">
-        <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
-          {ficha}
-        </span>
-        <h2 className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-          {nombre}
-        </h2>
-        <span className="h-px flex-1 bg-line" aria-hidden="true" />
-      </header>
-      <div className="space-y-4">{children}</div>
-    </section>
   );
 }
 
