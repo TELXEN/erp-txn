@@ -963,20 +963,3 @@ function Dato({ titulo, valor, tono = "text-ink" }: { titulo: string; valor: str
 function solesSaldo(v: number) {
   return v < 0 ? `(${soles(Math.abs(v))})` : soles(v);
 }
-
-function TarjetaSaldo({ saldo, consumo }: { saldo: number; consumo: number }) {
-  const color = consumo > 100 ? "bg-bad" : consumo >= 80 ? "bg-accent" : "bg-good";
-  return (
-    <div className="rounded-md border border-line bg-muted/30 px-3 py-2">
-      <p className="label-mono">Saldo</p>
-      <p className={`mt-0.5 tabular-nums text-xl font-bold tracking-tight ${saldo < 0 ? "text-bad" : "text-good"}`}>{solesSaldo(saldo)}</p>
-      <div className="mt-2 flex items-center justify-between text-[10px] uppercase tracking-wider text-muted-foreground">
-        <span>% Consumido Global</span>
-        <span className={`tabular-nums font-semibold ${consumo > 100 ? "text-bad" : "text-ink"}`}>{consumo.toFixed(1)}%</span>
-      </div>
-      <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
-        <div className={`h-full rounded-full ${color}`} style={{ width: `${Math.min(100, Math.max(0, consumo))}%` }} />
-      </div>
-    </div>
-  );
-}
