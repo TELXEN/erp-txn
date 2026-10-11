@@ -356,14 +356,14 @@ export async function aplicarPlantilla(plantillaId: string, cotizacionId: string
   };
   const precio = new Map(
     partidasBanco.map((p) => [
-      String(p.descripcion).trim().toLowerCase(),
+      String(p["descripcion"]).trim().toLowerCase(),
       costoReceta(
-        detalleBanco.filter((d) => d.partida_padre_id === p.id),
+        detalleBanco.filter((d) => d["partida_padre_id"] === p["id"]),
         recursosBanco,
-        Number(p.rendimiento_diario) || 1,
+        Number(p["rendimiento_diario"]) || 1,
         8,
         partidasBanco,
-        new Set([String(p.id)]),
+        new Set([String(p["id"])]),
         detalleBanco,
       ).total,
     ]),

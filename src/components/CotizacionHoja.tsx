@@ -1722,7 +1722,7 @@ function DesgloseApu({ item, alCambiar }: { item: CotizacionItem; alCambiar: () 
     const [col, id] = valor.split(":");
     await dbBanco.from("cotizacion_apu_detalle").insert({
       cotizacion_item_id: item.id,
-      [col]: id,
+      [col ?? ""]: id,
       cantidad_o_cuadrilla: 1,
     });
     setNuevo("");
