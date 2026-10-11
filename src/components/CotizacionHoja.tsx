@@ -161,6 +161,7 @@ export function CotizacionHoja({
   multi = true,
   alcance = "ambos",
   onSeleccionar,
+  compacta = false,
 }: {
   /** Avisa la partida activa (para el panel APU de la pantalla dividida). */
   onSeleccionar?: (itemId: string | null) => void;
@@ -175,6 +176,8 @@ export function CotizacionHoja({
   simbolo?: string;
   moneda?: "PEN" | "USD";
   tipoCambio?: number;
+  /** En la pantalla dividida la tabla se ajusta al ancho del panel, sin desplazamiento lateral. */
+  compacta?: boolean;
 }) {
   const mon = (n: number) => `${simbolo} ${Number(n || 0).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   const qc = useQueryClient();

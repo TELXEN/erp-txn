@@ -740,6 +740,7 @@ function Cotizaciones() {
               multi={Boolean(cot.multidisciplinaria)}
               alcance={cot.alcance ?? "ambos"}
               onSeleccionar={setPartidaActiva}
+              compacta
             />
           </HojaCotizacion>
           </div>
