@@ -26,7 +26,8 @@ import {
 } from "@/lib/categorias";
 import { BANCOS_RECURSO, costoReceta, dbBanco, useBancoTabla, useRecursosApu } from "@/lib/banco-apu";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
-import { gruposPermitidos, precioMaestroEnMoneda, useGruposCotizacion, usePartidasMaestras, type CotizacionItem, type PartidaMaestra } from "@/lib/cotizaciones";
+import { gruposPermitidos, precioMaestroEnMoneda, useGruposCotizacion, type CotizacionItem, type PartidaMaestra } from "@/lib/cotizaciones";
+import { useCatalogoCotizacion } from "@/lib/banco-apu";
 import { recodificarWbs } from "@/lib/wbs";
 import { DOC } from "@/lib/documento-tema";
 
@@ -198,7 +199,7 @@ export function CotizacionHoja({
   );
   // Categorías y partidas también salen del catálogo maestro.
   const { data: catalogoCat = [] } = useCategoriasPartida();
-  const { data: maestras = [] } = usePartidasMaestras();
+  const maestras = useCatalogoCotizacion();
 
   const arbol = useMemo(() => construirArbol(items, multi), [items, multi]);
 
