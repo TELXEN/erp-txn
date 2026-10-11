@@ -7,7 +7,7 @@ import { Encabezado } from "@/components/AppShell";
 import { Boton, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { InsigniaCategoriaGasto } from "@/components/estado-ui";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
-import { Building2, CalendarDays, Check, ChevronDown, ChevronRight, Info, Paperclip, Pencil, Plus, Search, Truck, Trash2, Upload, X } from "lucide-react";
+import { CalendarDays, Check, ChevronDown, ChevronRight, Info, Paperclip, Pencil, Plus, Search, Trash2, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
@@ -114,12 +114,13 @@ function GastosGenerales() {
   const [hasta, setHasta] = useState("");
   const [filtroCategoria, setFiltroCategoria] = useState("Todas");
   const [cerrados, setCerrados] = useState<Set<string>>(new Set());
-  const [pestana, setPestana] = useState<"gastos" | "mantenimiento" | "combustible">("gastos");
-  const gruposGastos = [
-    { titulo: "Gastos indirectos", icono: Building2, items: ["gastos"] as const },
-    { titulo: "Flota", icono: Truck, items: ["mantenimiento", "combustible"] as const },
-  ];
-  const grupoActivo = gruposGastos.find((g) => (g.items as readonly string[]).includes(pestana)) ?? gruposGastos[0];
+  const [pestana, setPestana] = useState<"resumen" | "gastos" | "mantenimiento" | "combustible">(() => {
+    const v = localStorage.getItem("gastos-generales:pestana");
+    return v === "gastos" || v === "mantenimiento" || v === "combustible" ? v : "resumen";
+  });
+  useEffect(() => {
+    localStorage.setItem("gastos-generales:pestana", pestana);
+  }, [pestana]);
   const ayudaCategoria = categorias.find((c) => c.nombre === form.categoria)?.descripcion ?? "";
   const [editando, setEditando] = useState<{
     id: string;
@@ -170,8 +171,8 @@ function GastosGenerales() {
       filas.push({ nombre: filtroCategoria || "Sin categoría", clave: filtroCategoria, total: 0 });
     return filas;
   })();
-  const total = gastosBusqueda.reduce((s, g) => s + Number(g.monto_soles), 0);
-  const pagado = gastosBusqueda
+  const total = porAmbito.reduce((s, g) => s + Number(g.monto_soles), 0);
+  const pagado = porAmbito
     .filter((g) => (g as Pago).estado_pago === "Pagada")
     .reduce((s, g) => s + Number(g.monto_soles), 0);
   const porPagar = total - pagado;
@@ -218,7 +219,7 @@ function GastosGenerales() {
     .sort((a, b) => (a.fecha < b.fecha ? 1 : -1));
   const totalMant = listaMant.reduce((s, f) => s + f.monto, 0);
   const totalComb = listaComb.reduce((s, f) => s + f.monto, 0);
-  const granTotal = total + totalMant + totalComb;
+  const flotaTotal = totalMant + totalComb;
   const desglose = [
     ...totalesCategoria.map((t) => ({ ...t, filtrable: true })),
     ...(totalMant > 0 ? [{ nombre: "Mantenimiento vehicular", clave: "", total: totalMant, filtrable: false }] : []),
@@ -406,17 +407,27 @@ function GastosGenerales() {
         }
       />
 
-      <div className="mb-3 flex flex-wrap gap-1">
-        {gruposGastos.map((g) => { const Icono = g.icono; return <Boton key={g.titulo} variante={g === grupoActivo ? "primario" : "linea"} onClick={() => { const primero = g.items[0]; if (primero) setPestana(primero); }}><Icono size={13} />{g.titulo}</Boton>; })}
+      <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-center">
+        <Select value={ambito} onChange={(e) => setAmbito(e.target.value)} className="md:w-64">
+          <option value="Todas">Todas las imputaciones</option>
+          <option value="Oficina">Oficina Central (gastos de sede)</option>
+          {proyectos.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.codigo ? `${p.codigo} · ` : ""}
+              {p.nombre}
+            </option>
+          ))}
+        </Select>
       </div>
       <div className="mb-4 flex flex-wrap items-center gap-1 overflow-x-auto border-b border-line pb-3">
         {(
           [
+            ["resumen", "Resumen"],
             ["gastos", "Gastos generales"],
             ["mantenimiento", "Mantenimiento"],
             ["combustible", "Combustible"],
           ] as const
-        ).filter(([id]) => (grupoActivo?.items as readonly string[] | undefined)?.includes(id)).map(([id, txt]) => (
+        ).map(([id, txt]) => (
           <button
             key={id}
             type="button"
@@ -428,28 +439,33 @@ function GastosGenerales() {
         ))}
       </div>
 
-      {(
-        <div className="mb-4 grid gap-4 lg:grid-cols-2">
-          <section className="panel rise flex flex-col justify-between p-5">
-            <div>
-              <p className="label-mono">Total gastos</p>
-              <p className="mt-1 font-mono text-3xl font-bold tracking-tight text-ink">{soles(granTotal)}</p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Gastos generales {soles(total)} · Flota {soles(totalMant + totalComb)}
-              </p>
+      {pestana === "resumen" && (
+        <>
+          <div className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+            <div className="panel rise p-4">
+              <p className="label-mono">Gastos generales</p>
+              <p className="mt-1 font-mono text-xl font-bold tabular-nums text-ink">{soles(total)}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{porAmbito.length} comprobantes</p>
             </div>
-            <div className="mt-5 grid grid-cols-2 gap-3">
-              <div className="rounded-md bg-good/10 px-3 py-2.5">
-                <p className="label-mono text-good">Pagado</p>
-                <p className="font-mono text-lg font-bold text-good">{soles(pagado + totalMant + totalComb)}</p>
-              </div>
-              <div className={`rounded-md px-3 py-2.5 ${porPagar > 0.004 ? "bg-bad/10" : "bg-muted"}`}>
-                <p className={`label-mono ${porPagar > 0.004 ? "text-bad" : ""}`}>Por pagar (crédito)</p>
-                <p className={`font-mono text-lg font-bold ${porPagar > 0.004 ? "text-bad" : "text-ink"}`}>{soles(porPagar)}</p>
-              </div>
+            <div className="panel rise p-4">
+              <p className="label-mono">Flota</p>
+              <p className="mt-1 font-mono text-xl font-bold tabular-nums text-ink">{soles(flotaTotal)}</p>
+              <p className="mt-1 text-xs text-muted-foreground">Mantenimiento y combustible</p>
             </div>
-          </section>
-          <section className="panel rise p-5">
+            <div className="panel rise p-4">
+              <p className="label-mono">Total del periodo</p>
+              <p className="mt-1 font-mono text-xl font-bold tabular-nums text-ink">{soles(total + flotaTotal)}</p>
+            </div>
+            <div className="panel rise p-4">
+              <p className="label-mono text-good">Pagado</p>
+              <p className="mt-1 font-mono text-xl font-bold tabular-nums text-good">{soles(pagado + flotaTotal)}</p>
+            </div>
+            <div className="panel rise p-4">
+              <p className={`label-mono ${porPagar > 0.004 ? "text-bad" : ""}`}>Por pagar (crédito)</p>
+              <p className={`mt-1 font-mono text-xl font-bold tabular-nums ${porPagar > 0.004 ? "text-bad" : "text-ink"}`}>{soles(porPagar)}</p>
+            </div>
+          </div>
+          <section className="panel rise mb-4 p-5">
             <p className="label-mono mb-3">Desglose por categoría</p>
             {desglose.length === 0 ? (
               <p className="py-4 text-center font-mono text-xs text-muted-foreground">Sin gastos en este periodo.</p>
@@ -527,7 +543,7 @@ function GastosGenerales() {
               </div>
             )}
           </section>
-        </div>
+        </>
       )}
 
       {pestana === "mantenimiento" && (
@@ -624,16 +640,6 @@ function GastosGenerales() {
       {pestana === "gastos" && (
       <>
       <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-center">
-        <Select value={ambito} onChange={(e) => setAmbito(e.target.value)} className="md:w-64">
-          <option value="Todas">Todas las imputaciones</option>
-          <option value="Oficina">Oficina Central (gastos de sede)</option>
-          {proyectos.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.codigo ? `${p.codigo} · ` : ""}
-              {p.nombre}
-            </option>
-          ))}
-        </Select>
         <div className="relative flex-1">
           <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <Input
