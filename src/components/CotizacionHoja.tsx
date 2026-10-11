@@ -24,7 +24,7 @@ import {
   siguienteCodigoSubpartida,
   useCategoriasPartida,
 } from "@/lib/categorias";
-import { BANCOS_RECURSO, costoReceta, dbBanco, useBancoTabla, useRecursosApu } from "@/lib/banco-apu";
+import { BANCOS_RECURSO, copiarRecetaACotizacion, costoReceta, dbBanco, useBancoTabla, useRecursosApu } from "@/lib/banco-apu";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
 import { gruposPermitidos, precioMaestroEnMoneda, useGruposCotizacion, type CotizacionItem, type PartidaMaestra } from "@/lib/cotizaciones";
 import { useCatalogoCotizacion } from "@/lib/banco-apu";
@@ -160,7 +160,10 @@ export function CotizacionHoja({
   tipoCambio = 0,
   multi = true,
   alcance = "ambos",
+  onSeleccionar,
 }: {
+  /** Avisa la partida activa (para el panel APU de la pantalla dividida). */
+  onSeleccionar?: (itemId: string | null) => void;
   /** Multidisciplinaria: el capítulo es la especialidad; si no, el capítulo es el grupo (Suministro / Montaje). */
   multi?: boolean;
   alcance?: string;
@@ -415,6 +418,19 @@ export function CotizacionHoja({
   }
 
   /** Crea una partida dentro de una especialidad/categoría, con código EDT automático. */
+  /** Copia fija de la receta del Banco APU a la partida de la cotización y fija su P.U. */
+  async function vincularReceta(itemId: string, partidaApuId: string) {
+    try {
+      const factor = moneda === "USD" ? 1 / (Number(tipoCambio) || 1) : 1;
+      const r = await copiarRecetaACotizacion(itemId, partidaApuId, factor);
+      if (r.filas > 0)
+        await supabase.from("cotizacion_items").update({ precio_unitario: r.pu, rendimiento: r.rendimiento, jornada: 8 } as never).eq("id", itemId);
+      await qc.invalidateQueries({ queryKey: ["banco_apu", "cotizacion_apu_detalle"] });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "No se pudo copiar la receta del banco.");
+    }
+  }
+
   async function crearPartida(esp: string, cat: string, nombre: string, unidad = "glb", maestra?: PartidaMaestra) {
     setError("");
     const categoria = maestra ? maestra.categoria || cat : cat;
@@ -425,7 +441,7 @@ export function CotizacionHoja({
       setError(e instanceof Error ? e.message : "No se pudo convertir el precio de la partida.");
       return false;
     }
-    const { error: err } = await supabase.from("cotizacion_items").insert({
+    const { data: nuevo, error: err } = await supabase.from("cotizacion_items").insert({
       cotizacion_id: cotizacionId,
       codigo: codigoContextual(esp, categoria, items),
       nombre: maestra?.nombre ?? (nombre.trim() || "Nueva partida"),
@@ -437,11 +453,13 @@ export function CotizacionHoja({
       metrado: 1,
       precio_unitario: precioUnitario,
       orden: items.length + 1,
-    });
+      ...(maestra ? { partida_apu_id: maestra.id } : {}),
+    } as never).select("id").single();
     if (err) {
       setError(err.message);
       return false;
     }
+    if (maestra && nuevo?.id) await vincularReceta(nuevo.id as string, maestra.id);
     await refrescar();
     return true;
   }
@@ -976,9 +994,11 @@ export function CotizacionHoja({
                   marca: m.marca ?? "",
                   unidad: m.unidad,
                   precio_unitario: precioUnitario,
+                  partida_apu_id: m.id,
                 } as never)
                 .eq("id", f.it.id);
               if (err) setError(err.message);
+              else await vincularReceta(f.it.id, m.id);
               setEditando(false);
               await refrescar();
               setActivo({ r: activo.r, c: 4 });
