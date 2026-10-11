@@ -127,7 +127,7 @@ export function useCostosPartidasApu() {
   const mapa = new Map<string, number>();
   for (const p of partidas) {
     const propias = detalle.filter((d) => d.partida_padre_id === p.id);
-    mapa.set(p.id, costoReceta(propias, recursos, Number(p.rendimiento_diario) || 1, 8, partidas, new Set([p.id])).total);
+    mapa.set(p.id, costoReceta(propias, recursos, Number(p.rendimiento_diario) || 1, 8, partidas, new Set([p.id]), detalle).total);
   }
   return mapa;
 }
