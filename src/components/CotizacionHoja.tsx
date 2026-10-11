@@ -283,6 +283,12 @@ export function CotizacionHoja({
     return out;
   }, [arbol, colapsados]);
 
+  const filaActiva = visibles[activo.r];
+  const idActivo = filaActiva && filaActiva.clase === "item" ? filaActiva.it.id : null;
+  useEffect(() => {
+    onSeleccionar?.(idActivo);
+  }, [idActivo, onSeleccionar]);
+
   useEffect(() => {
     const disponibles = new Set(visibles.filter((f) => f.clase === "item").map((f) => f.clave));
     setSeleccionadas((prev) => {
