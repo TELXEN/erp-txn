@@ -12,7 +12,7 @@ function recargarSiModuloFalla(err: unknown) {
   // Permite hasta 2 recargas en 60 s: una sola recarga a veces no basta si el
   // navegador conserva varios módulos desactualizados encadenados.
   const raw = sessionStorage.getItem(RELOAD_KEY) ?? "0:0";
-  const [firstAt, count] = raw.split(":").map(Number);
+  const [firstAt = 0, count = 0] = raw.split(":").map(Number);
   const now = Date.now();
   if (now - firstAt < 60000 && count >= 2) return false;
   sessionStorage.setItem(RELOAD_KEY, now - firstAt < 60000 ? `${firstAt}:${count + 1}` : `${now}:1`);

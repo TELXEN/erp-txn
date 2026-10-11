@@ -46,7 +46,7 @@ function ErrorComponent({ error, reset }: import("@tanstack/react-router").Error
     if (!moduloIncompatible) return;
     const clave = "root-module-reload-at";
     const raw = sessionStorage.getItem(clave) ?? "0:0";
-    const [primera, veces] = raw.split(":").map(Number);
+    const [primera = 0, veces = 0] = raw.split(":").map(Number);
     const ahora = Date.now();
     if (ahora - primera < 60000 && veces >= 2) return;
     sessionStorage.setItem(clave, ahora - primera < 60000 ? `${primera}:${veces + 1}` : `${ahora}:1`);
