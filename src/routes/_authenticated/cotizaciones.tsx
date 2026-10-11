@@ -251,6 +251,7 @@ function Cotizaciones() {
       metrado: Number(item.metrado || 0),
       precio_unitario: Number(item.precio_unitario || 0),
       orden: items.length + 1,
+      partida_apu_id: maestraSel && maestraSel !== "manual" ? maestraSel : null,
     });
     if (err) return setError(err.message);
     setMaestraSel("");
@@ -282,18 +283,17 @@ function Cotizaciones() {
     setError("");
     setAviso("");
     if (!item.nombre.trim()) return setError("Escribe la descripción antes de guardarla en el banco.");
-    const { error: err } = await supabase.from("partidas_maestras").insert({
-      codigo: "",
-      nombre: item.nombre.trim(),
+    const { error: err } = await dbBanco.from("partidas_apu").insert({
+      codigo_jerarquico: "",
+      descripcion: item.nombre.trim(),
       especialidad: item.especialidad,
-      categoria: item.categoria,
-      marca: item.marca.trim(),
       unidad: item.unidad,
-      precio_unitario: Number(item.precio_unitario || 0),
+      rendimiento_diario: 1,
+      estado: "activo",
     });
     if (err) return setError(err.message);
-    qc.invalidateQueries({ queryKey: ["partidas_maestras"] });
-    setAviso("Partida guardada en el banco maestro.");
+    qc.invalidateQueries({ queryKey: ["banco_apu"] });
+    setAviso("Partida guardada en el Banco APU. Define su receta en Datos APU.");
   }
 
 
