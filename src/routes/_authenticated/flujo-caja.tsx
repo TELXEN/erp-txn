@@ -473,6 +473,27 @@ function FlujoCaja() {
         }
       />
 
+      <div className="mb-4 flex gap-1 border-b border-line">
+        {([
+          { id: "resumen" as const, etiqueta: "Resumen" },
+          { id: "matriz" as const, etiqueta: "Matriz anual" },
+        ]).map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            onClick={() => cambiarPestana(t.id)}
+            className={`-mb-px border-b-2 px-3 py-2 text-[12px] font-semibold transition-colors ${
+              pestana === t.id
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {t.etiqueta}
+          </button>
+        ))}
+      </div>
+
+      {pestana === "resumen" && (<>
       <div className={`mb-5 grid gap-4 ${global ? "xl:grid-cols-4" : "xl:grid-cols-3"}`}>
         {[
           { titulo: global ? "Saldos" : "Proyección de la obra", items: kpisA, alertar: true },
