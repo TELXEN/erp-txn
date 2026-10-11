@@ -4,7 +4,8 @@ import React, { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
-import { ApuPartida } from "@/components/ApuPartida";
+import { ApuBanco, ORIGEN_COTIZACION } from "@/components/ApuCotizacion";
+import { dbBanco, useCostosPartidasApu, usePartidasApu } from "@/lib/banco-apu";
 import { AutoMaestra, CotizacionHoja } from "@/components/CotizacionHoja";
 import { HojaCotizacion } from "@/components/cotizaciones/HojaCotizacion";
 
@@ -40,7 +41,6 @@ import {
   useCodificacionCotizacion,
   useCotizacionItems,
   useCotizaciones,
-  usePartidasMaestras,
   vigenciaHasta,
   type Cotizacion,
   type CotizacionItem,
