@@ -24,7 +24,7 @@ import {
   siguienteCodigoSubpartida,
   useCategoriasPartida,
 } from "@/lib/categorias";
-import { apuDb, calcularApu, nombreTipo, precioVenta, TIPOS_INSUMO, tiposVisibles, useComponentesApu, useInsumos, useMargenesInsumo } from "@/lib/apu";
+import { BANCOS_RECURSO, costoReceta, dbBanco, useBancoTabla, useRecursosApu } from "@/lib/banco-apu";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
 import { gruposPermitidos, precioMaestroEnMoneda, useGruposCotizacion, usePartidasMaestras, type CotizacionItem, type PartidaMaestra } from "@/lib/cotizaciones";
 import { recodificarWbs } from "@/lib/wbs";
@@ -224,8 +224,8 @@ export function CotizacionHoja({
     (async () => {
       const ids = items.map((i) => i.id);
       if (!ids.length) return setConApu(new Set());
-      const { data } = await apuDb
-        .from("apu_componentes")
+      const { data } = await dbBanco
+        .from("cotizacion_apu_detalle")
         .select("cotizacion_item_id")
         .in("cotizacion_item_id", ids);
       if (!vivo) return;
