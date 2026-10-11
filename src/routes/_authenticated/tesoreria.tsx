@@ -512,30 +512,11 @@ function Tesoreria() {
           </div>
         )}
       </Panel>
+        </>
+      )}
 
-      <div className="mb-3 flex gap-2">
-        {(["cxc", "cxp"] as const).map((t) => {
-          const activa = pestana === t;
-          const tono = t === "cxc"
-            ? activa
-              ? "border-good bg-good text-white"
-              : "border-good/50 text-good hover:bg-good/10"
-            : activa
-              ? "border-warn bg-warn text-white"
-              : "border-warn/50 text-warn hover:bg-warn/10";
-          return (
-            <button
-              key={t}
-              type="button"
-              onClick={() => { setPestana(t); setAccion(null); setFiltroVence(null); setTercero(""); setSeleccion(new Set()); }}
-              className={`rounded-md border px-3 py-1.5 text-xs transition ${tono}`}
-            >
-              {t === "cxc" ? `Cuentas por cobrar (${cxc.length})` : `Cuentas por pagar (${cxp.length})`}
-            </button>
-          );
-        })}
-      </div>
-
+      {pestana !== "resumen" && (
+        <>
       <div className="mb-4 grid gap-3 sm:grid-cols-4">
         {tarjeta(pestana === "cxc" ? "Total por cobrar" : "Total por pagar", k.total, null)}
         {tarjeta("Vencido", k.vencido, "vencido", k.vencido > 0 ? "text-bad" : "text-ink")}
