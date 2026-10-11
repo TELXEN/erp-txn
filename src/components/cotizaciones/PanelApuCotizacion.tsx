@@ -342,6 +342,13 @@ export function ResumenCotizacion({ cot, items }: { cot: Cotizacion; items: Coti
   const recursos = useRecursosApu();
   const { data: detalle = [] } = useBancoTabla("cotizacion_apu_detalle");
   const sim = cot.moneda === "USD" ? "US$" : "S/";
+
+  async function cambiarPct(campo: "pct_gastos_generales" | "pct_utilidad", valor: number, actual: number) {
+    if (valor === actual) return;
+    await supabase.from("cotizaciones").update({ [campo]: valor } as never).eq("id", cot.id);
+    qc.invalidateQueries({ queryKey: ["cotizaciones"] });
+    qc.invalidateQueries({ queryKey: ["cotizacion"] });
+  }
   const hojas = items.filter((i) => i.tipo !== "grupo" && !items.some((h) => h.padre_id === i.id));
   const porTipo: { [k: string]: number; OTROS: number } = { MO: 0, MAT: 0, EQ: 0, SC: 0, OTROS: 0 };
   let cd = 0;
