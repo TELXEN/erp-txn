@@ -113,7 +113,15 @@ const diasA = (f: string | null) =>
 function Tesoreria() {
   const { rol } = useAuth();
   const qc = useQueryClient();
-  const [pestana, setPestana] = useState<"cxc" | "cxp">("cxc");
+  type Pestana = "resumen" | "cxc" | "cxp";
+  const [pestana, setPestanaBase] = useState<Pestana>(() => {
+    const g = localStorage.getItem("tesoreria:pestana");
+    return g === "cxc" || g === "cxp" ? g : "resumen";
+  });
+  const setPestana = (t: Pestana) => {
+    setPestanaBase(t);
+    localStorage.setItem("tesoreria:pestana", t);
+  };
   const [busqueda, setBusqueda] = useState("");
   const [cerrados, setCerrados] = useState<Set<string>>(new Set());
   const [accion, setAccion] = useState<{
