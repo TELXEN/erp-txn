@@ -565,7 +565,9 @@ function FlujoCaja() {
           </ResponsiveContainer>
         </div>
         </Panel>
+      </>)}
 
+      {pestana === "matriz" && (<>
       <Panel titulo="Matriz anual" extra={<span className="label-mono">Doble clic en una meta para editarla</span>}>
         <div className="w-full overflow-x-auto">
           <table className="w-full table-fixed border-separate border-spacing-0 text-xs tabular-nums [&_td]:whitespace-nowrap">
