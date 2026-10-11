@@ -3,8 +3,8 @@
 Hoy la pestaña Partidas del Banco APU muestra una lista y la receta se abre en una ventana aparte. Se convierte en pantalla dividida y se rediseñan los dos tipos de «+ Aumentar».
 
 ## Pantalla dividida (pestaña Partidas)
-- Izquierda (~40%): árbol de partidas agrupado por especialidad, con buscador y botón «+ Aumentar».
-- Derecha (~60%): APU de la partida elegida, con cuatro grupos plegables (MANO DE OBRA, MATERIALES, EQUIPOS Y HERRAMIENTAS, SUBCONTRATOS), subtotales y costo total del APU.
+- Izquierda (60%): árbol de partidas agrupado por especialidad, con buscador y botón «+ Aumentar».
+- Derecha (40%): APU de la partida elegida, con cuatro grupos plegables (MANO DE OBRA, MATERIALES, EQUIPOS Y HERRAMIENTAS, SUBCONTRATOS), subtotales y costo total del APU.
 - La partida seleccionada se recuerda al recargar. Las otras pestañas (Materiales, Mano de obra, etc.) no cambian.
 
 ## 1. «+ Aumentar» del panel izquierdo (nueva partida)
