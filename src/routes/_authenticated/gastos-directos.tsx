@@ -442,7 +442,10 @@ function GastosDirectos() {
         </p>
       )}
       <div className="mb-4"><DesgloseCd proyectoId={proyectoId} /></div>
+      </>
+      )}
 
+      {pestana === "partidas" && (
       <Panel
         titulo="Control por partida"
         extra={<Buscador valor={busqueda} onChange={setBusqueda} placeholder="Buscar por código o partida..." total={partidasProy.length} />}
