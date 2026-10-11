@@ -272,6 +272,9 @@ function Dashboard() {
       const nombre = g.categoria?.trim() || "Sin categoría";
       totales.set(nombre, (totales.get(nombre) ?? 0) + Number(g.monto_soles));
     });
+    if (datos.staff > 0) {
+      totales.set("Staff técnico / personal indirecto", (totales.get("Staff técnico / personal indirecto") ?? 0) + datos.staff);
+    }
     const total = [...totales.values()].reduce((s, v) => s + v, 0);
     return [...totales.keys()].sort((a, b) => a.localeCompare(b, "es")).map((nombre, i) => ({
       nombre,
@@ -279,7 +282,7 @@ function Dashboard() {
       color: COLORES_GG[i % COLORES_GG.length],
       porcentaje: total > 0 ? ((totales.get(nombre) ?? 0) / total) * 100 : 0,
     })).filter((c) => c.valor > 0).sort((a, b) => b.valor - a.valor);
-  }, [gastosG, filasTabla]);
+  }, [gastosG, filasTabla, datos.staff]);
 
   const barras = useMemo(() => {
     if (global) return [];
