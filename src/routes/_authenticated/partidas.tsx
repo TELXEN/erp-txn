@@ -1,7 +1,7 @@
 import { codigoContextual } from "@/lib/categorias";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { createFileRoute } from "@tanstack/react-router";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
@@ -73,8 +73,20 @@ function Partidas() {
   const { data: unidades = [] } = useUnidadesMedida();
   const { data: maestras = [] } = usePartidasMaestras();
 
-  const [filtroProyecto, setFiltroProyecto] = useState("");
+  const [filtroProyecto, setFiltroProyecto] = useState(() => localStorage.getItem("partidas:proyecto") ?? "");
   const [filtroTipo, setFiltroTipo] = useState("");
+  const [filtroEsp, setFiltroEsp] = useState("");
+
+  useEffect(() => {
+    localStorage.setItem("partidas:proyecto", filtroProyecto);
+  }, [filtroProyecto]);
+
+  // Si el proyecto recordado ya no existe, vuelve a «Todos»
+  useEffect(() => {
+    if (filtroProyecto && proyectos.length > 0 && !proyectos.some((p) => p.id === filtroProyecto)) {
+      setFiltroProyecto("");
+    }
+  }, [filtroProyecto, proyectos]);
   const [vista, setVista] = useState<"tabla" | "kanban">("tabla");
   const [modalNueva, setModalNueva] = useState(false);
   const [colapsados, setColapsados] = useState<Set<string>>(new Set());
@@ -161,11 +173,17 @@ function Partidas() {
       partidas.filter(
         (p) =>
           (!filtroProyecto || p.proyecto_id === filtroProyecto) &&
+          (!filtroEsp || p.especialidad === filtroEsp) &&
           (!filtroTipo || (p.tipo_presupuesto ?? "Contractual") === filtroTipo) && (!busqueda || coincidentes.has(p.id)),
       ),
-    [partidas, filtroProyecto, filtroTipo],
+    [partidas, filtroProyecto, filtroEsp, filtroTipo, busqueda, coincidentes],
   );
   const resumen = useMemo(() => resumenPresupuesto(visibles, tipos), [visibles, tipos]);
+  const resumenPartidas = useMemo(() => {
+    const total = visibles.length;
+    const promedio = total > 0 ? visibles.reduce((s, p) => s + Number(p.avance_pct), 0) / total : 0;
+    return { total, promedio };
+  }, [visibles]);
   const nombresTipos = useMemo(() => {
     const activos = tipos.filter((t) => t.activo).map((t) => t.nombre);
     const usados = partidas.map((p) => p.tipo_presupuesto ?? "Contractual");
@@ -645,15 +663,17 @@ function Partidas() {
       </VentanaFlotante>
 
       <>
-      <div className="mb-4 grid gap-3 sm:grid-cols-3">
+      <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-5">
         {[
-          { etiqueta: "Presupuesto contractual", valor: resumen.contractual },
-          { etiqueta: "Total adicionales", valor: resumen.adicionales },
-          { etiqueta: "Presupuesto vigente", valor: resumen.vigente },
+          { etiqueta: "Presupuesto contractual", valor: soles(resumen.contractual) },
+          { etiqueta: "Total adicionales", valor: soles(resumen.adicionales) },
+          { etiqueta: "Presupuesto vigente", valor: soles(resumen.vigente) },
+          { etiqueta: "Partidas", valor: String(resumenPartidas.total) },
+          { etiqueta: "Avance promedio", valor: `${resumenPartidas.promedio.toFixed(1)}%` },
         ].map((d) => (
-          <div key={d.etiqueta} className="rounded-md border border-line bg-card p-4">
-            <p className="label-mono text-muted-foreground">{d.etiqueta}</p>
-            <p className="mt-1 font-mono text-lg font-semibold text-ink">{soles(d.valor)}</p>
+          <div key={d.etiqueta} className="rounded-lg border border-line bg-card px-3 py-2">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{d.etiqueta}</p>
+            <p className="text-lg font-bold tabular-nums">{d.valor}</p>
           </div>
         ))}
       </div>
@@ -661,12 +681,20 @@ function Partidas() {
       <Panel
         titulo={vista === "kanban" ? "Tablero Kanban de partidas" : "Listado por proyecto y tipos"}
         extra={
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Select className="w-52" value={filtroProyecto} onChange={(e) => setFiltroProyecto(e.target.value)}>
               <option value="">Todos los proyectos</option>
               {proyectos.map((p) => (
                 <option key={p.id} value={p.id}>
                   <Resaltar texto={p.nombre} termino={busqueda}/>
+                </option>
+              ))}
+            </Select>
+            <Select className="w-56" value={filtroEsp} onChange={(e) => setFiltroEsp(e.target.value)}>
+              <option value="">Todas las especialidades</option>
+              {nombresEspecialidades.map((e) => (
+                <option key={e} value={e}>
+                  {e}
                 </option>
               ))}
             </Select>
@@ -732,7 +760,7 @@ function Partidas() {
             const nPartidas = espGrupos.reduce((s, [, l]) => s + l.length, 0);
             return (
             <div key={proyecto} className="border-b border-line last:border-0">
-              <div className="flex items-center justify-between gap-3 bg-sidebar px-5 py-2">
+              <div className="flex items-center justify-between gap-3 border-b-2 border-primary/40 bg-primary px-5 py-2.5">
                 <button
                   type="button"
                   onClick={() => alternar(claveProy)}
@@ -740,17 +768,22 @@ function Partidas() {
                   className="flex min-w-0 flex-1 items-center gap-2 text-left"
                 >
                   {proyAbierto ? (
-                    <ChevronUp size={14} className="shrink-0 text-slate-300" />
+                    <ChevronUp size={14} className="shrink-0 text-primary-foreground/80" />
                   ) : (
-                    <ChevronDown size={14} className="shrink-0 text-slate-300" />
+                    <ChevronDown size={14} className="shrink-0 text-primary-foreground/80" />
                   )}
-                  <p className="truncate text-xs font-semibold uppercase tracking-wider text-[#F8FAFC]">{proyecto}</p>
-                  <span className="shrink-0 font-mono text-[10px] text-slate-300">({nPartidas} partidas)</span>
+                  <p className="truncate text-sm font-bold uppercase tracking-wide text-primary-foreground">{proyecto}</p>
+                  <span className="shrink-0 rounded-full bg-primary-foreground/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary-foreground/90">
+                    Proyecto
+                  </span>
+                  <span className="shrink-0 font-mono text-[10px] text-primary-foreground/80">
+                    {nPartidas} partida{nPartidas === 1 ? "" : "s"} · {soles(espGrupos.reduce((s, [, l]) => s + l.reduce((a, x) => a + Number(x.presupuesto_inicial), 0), 0))}
+                  </span>
                 </button>
                 <button
                   type="button"
                   onClick={() => void renumerar(proyectoId, proyecto)}
-                  className="inline-flex items-center gap-1.5 rounded border border-white/20 px-2 py-1 font-mono text-[10px] text-slate-300 transition-colors hover:border-white/40 hover:text-white"
+                  className="inline-flex items-center gap-1.5 rounded border border-primary-foreground/25 px-2 py-1 font-mono text-[10px] text-primary-foreground/85 transition-colors hover:border-primary-foreground/50 hover:text-primary-foreground"
                 >
                   <ListOrdered size={12} /> Renumerar WBS
                 </button>
@@ -1046,15 +1079,22 @@ function Partidas() {
                             <td className="whitespace-nowrap px-2 py-2.5 text-right">{agrupadora ? "—" : soles(Number(p.precio_unitario ?? 0))}</td>
                             <td className={`whitespace-nowrap px-3 py-2.5 text-right ${agrupadora ? "font-semibold text-ink" : ""}`}>{soles(presuFila)}</td>
                             <td className="whitespace-nowrap px-3 py-2.5 text-right">
-                              <span className="inline-flex items-center justify-end gap-1.5">
-                                <span className="h-1 w-10 overflow-hidden rounded-full bg-muted">
-                                  <span
-                                    className="block h-full rounded-full bg-primary"
-                                    style={{ width: `${Math.min(100, Math.max(0, Number(p.avance_pct)))}%` }}
-                                  />
-                                </span>
-                                {pct(Number(p.avance_pct))}
-                              </span>
+                              {(() => {
+                                const av = Math.min(100, Math.max(0, Number(p.avance_pct)));
+                                const color = av >= 100 ? "bg-good" : av > 0 ? "bg-warn" : "bg-muted-foreground/30";
+                                return (
+                                  <span className="inline-flex items-center justify-end gap-1.5">
+                                    <span className="flex h-3.5 w-16 items-center overflow-hidden rounded-full bg-muted">
+                                      <span
+                                        className={`flex h-full items-center justify-end rounded-full ${color}`}
+                                        style={{ width: `${Math.max(av, 14)}%` }}
+                                      >
+                                        <span className="pr-0.5 text-[8px] font-bold tabular-nums text-primary-foreground">{Math.round(av)}%</span>
+                                      </span>
+                                    </span>
+                                  </span>
+                                );
+                              })()}
                             </td>
                             <td className="px-3 py-2.5">
                               <InsigniaTipoPresupuesto valor={p.tipo_presupuesto ?? "Contractual"} />
