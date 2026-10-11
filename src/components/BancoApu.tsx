@@ -89,7 +89,7 @@ export function BancoApu() {
   const cambiar = (t: Tabla) => { setTab(t); localStorage.setItem("banco-apu:tab", t); };
   return (
     <>
-      <div className="mb-4 flex flex-wrap gap-1 border-b border-line pb-3">
+      <div className="mb-3 flex flex-wrap gap-1 border-b border-line pb-2">
         {TABS.map((t) => (
           <button key={t} type="button" onClick={() => cambiar(t)}
             className={`rounded-md border-b-2 px-3 py-1.5 text-xs transition-colors ${tab === t ? "border-cta bg-primary/10 font-semibold text-primary" : "border-transparent text-muted-foreground hover:bg-muted hover:text-primary"}`}>
@@ -207,31 +207,36 @@ function ListaBanco({ tabla, seleccion, onSeleccion }: { tabla: Tabla; seleccion
         <Vacio texto="Sin registros." />
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-line text-left label-mono">
-                {cfg.columnas.map(([k, t, tp]) => <th key={k} className={`px-4 py-2 ${tp !== "txt" ? "text-right" : ""}`}>{t}</th>)}
-                <th className="px-4 py-2">Estado</th>
-                <th className="px-4 py-2 text-right">Acciones</th>
+                {cfg.columnas.map(([k, t, tp]) => <th key={k} className={`px-3 py-1 ${tp !== "txt" ? "text-right" : ""}`}>{t}</th>)}
+                <th className="px-3 py-1">Estado</th>
+                <th className="px-3 py-1 text-right">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {visibles.map((f) => (
                 <tr key={f.id} className={`border-b border-line/60 hover:bg-muted/40 ${onSeleccion ? "cursor-pointer" : ""} ${seleccion === f.id ? "bg-primary/10" : ""}`}
                   onClick={() => onSeleccion?.(f.id)}>
-                  {cfg.columnas.map(([k, , tp]) => (
-                    <td key={k} className={`px-4 py-2 ${tp !== "txt" ? "text-right font-mono" : ""}`}>
-                      {tp === "sol" ? soles(Number(f[k] ?? 0)) : tp === "num" ? Number(f[k] ?? 0).toLocaleString("es-PE") : <Resaltar texto={f[k]} termino={busqueda} />}
-                    </td>
-                  ))}
-                  <td className="px-4 py-2"><Etiqueta tono={f.estado === "activo" ? "good" : "neutro"}>{f.estado === "activo" ? "Activo" : "Inactivo"}</Etiqueta></td>
-                  <td className="px-4 py-2" onClick={(e) => e.stopPropagation()}>
+                  {cfg.columnas.map(([k, , tp]) => {
+                    const largo = k === "descripcion";
+                    return (
+                      <td key={k} className={`px-3 py-0.5 ${largo ? "w-full max-w-[1px]" : tp !== "txt" ? "whitespace-nowrap text-right font-mono" : "whitespace-nowrap"}`}>
+                        <span className={`block ${largo ? "truncate" : ""}`}>
+                          {tp === "sol" ? soles(Number(f[k] ?? 0)) : tp === "num" ? Number(f[k] ?? 0).toLocaleString("es-PE") : <Resaltar texto={f[k]} termino={busqueda} />}
+                        </span>
+                      </td>
+                    );
+                  })}
+                  <td className="px-3 py-0.5"><Etiqueta tono={f.estado === "activo" ? "good" : "neutro"}>{f.estado === "activo" ? "Activo" : "Inactivo"}</Etiqueta></td>
+                  <td className="px-3 py-0.5" onClick={(e) => e.stopPropagation()}>
                     <div className="flex justify-end gap-1">
-                      {onSeleccion && <BotonIcono etiqueta="Análisis (receta APU)" tono="primario" onClick={() => onSeleccion(f.id)}><Calculator size={14} /></BotonIcono>}
-                      <BotonIcono etiqueta="Editar" onClick={() => abrir(f)}><Pencil size={14} /></BotonIcono>
+                      {onSeleccion && <BotonIcono etiqueta="Análisis (receta APU)" tono="primario" className="size-6" onClick={() => onSeleccion(f.id)}><Calculator size={13} /></BotonIcono>}
+                      <BotonIcono etiqueta="Editar" className="size-6" onClick={() => abrir(f)}><Pencil size={13} /></BotonIcono>
                       {f.estado === "activo"
-                        ? <BotonIcono etiqueta="Quitar" tono="peligro" onClick={() => quitar(f)}><Trash2 size={14} /></BotonIcono>
-                        : <Boton variante="linea" className="py-1" onClick={() => reactivar(f)}>Reactivar</Boton>}
+                        ? <BotonIcono etiqueta="Quitar" tono="peligro" className="size-6" onClick={() => quitar(f)}><Trash2 size={13} /></BotonIcono>
+                        : <Boton variante="linea" className="h-6 px-2 py-0 text-[11px]" onClick={() => reactivar(f)}>Reactivar</Boton>}
                     </div>
                   </td>
                 </tr>
