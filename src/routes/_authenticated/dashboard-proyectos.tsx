@@ -261,22 +261,27 @@ function DashboardProyectos() {
     return { dias, vencido: dias < 0 };
   }, [obraSel]);
 
+  // Movimientos fechados de la Curva S: el total acumulado coincide con costoDe() (fuente única).
   const movimientos = useMemo(() => {
-    if (esTodos) {
-      return [
-        ...gastosD.map((g) => ({ fecha: g.fecha, monto: Number(g.monto_soles) })),
-        ...gastosG.map((g) => ({ fecha: g.fecha, monto: Number(g.monto_soles) })),
-        ...tareos.map((t) => ({ fecha: t.fecha, monto: Number(t.costo_soles) })),
-      ];
-    }
     const id = obraSel?.proyecto.id;
-    if (!id || id === "todos") return [];
-    return [
-      ...gastosD.filter((g) => g.proyecto_id === id).map((g) => ({ fecha: g.fecha, monto: Number(g.monto_soles) })),
-      ...gastosG.filter((g) => g.proyecto_id === id).map((g) => ({ fecha: g.fecha, monto: Number(g.monto_soles) })),
-      ...tareos.filter((t) => t.proyecto_id === id).map((t) => ({ fecha: t.fecha, monto: Number(t.costo_soles) })),
-    ];
-  }, [esTodos, obraSel, gastosD, gastosG, tareos]);
+    if (!esTodos && (!id || id === "todos")) return [];
+    const ids = esTodos ? Array.from(new Set(proyectos.map((p) => p.id))) : [id as string];
+    const out: { fecha: string; monto: number }[] = [];
+    ids.forEach((pid) => {
+      const c = costoDe(pid);
+      gastosD.filter((g) => g.proyecto_id === pid).forEach((g) => out.push({ fecha: g.fecha, monto: Number(g.monto_soles) }));
+      gastosG.filter((g) => g.proyecto_id === pid).forEach((g) => out.push({ fecha: g.fecha, monto: Number(g.monto_soles) }));
+      tareoVeh.filter((t: { proyecto_id: string }) => t.proyecto_id === pid).forEach((t: { fecha: string; costo_soles: number }) => out.push({ fecha: t.fecha, monto: Number(t.costo_soles) }));
+      // Personal (boletas/recibos repartidos por tareo): se distribuye en las fechas del tareo.
+      const personal = c.mod + c.honorarios + c.staff;
+      const tar = tareos.filter((t) => t.proyecto_id === pid);
+      const base = tar.reduce((s, t) => s + Number(t.costo_soles || 0), 0);
+      if (personal > 0 && tar.length > 0) {
+        tar.forEach((t) => out.push({ fecha: t.fecha, monto: base > 0 ? (personal * Number(t.costo_soles || 0)) / base : personal / tar.length }));
+      }
+    });
+    return out;
+  }, [esTodos, obraSel, proyectos, costoDe, gastosD, gastosG, tareos, tareoVeh]);
 
   const partidasHoja = useMemo(() => {
     if (!obraSel) return [];
@@ -295,7 +300,7 @@ function DashboardProyectos() {
     return partidas.filter((p) => p.proyecto_id === obraSel.proyecto.id && p.prioridad === "Alta").length;
   }, [esTodos, obraSel, partidas]);
 
-  /** Estado del candado por partida: real acumulado frente a presupuesto × (avance + tolerancia). */
+  /** Estado del candado por partida: real acumulado frente a presupuesto × (1 + tolerancia). */
   const filasPartidas = useMemo(() => {
     const hoy = new Date().toISOString();
     const autorizadas = new Set(
@@ -697,7 +702,7 @@ function DashboardProyectos() {
             </div>
           )}
           <p className="border-t border-line px-4 py-2 font-mono text-[10px] leading-relaxed text-muted-foreground">
-            Límite = presupuesto × (avance {pct(obraSel?.avance ?? 0)} + tolerancia {pct(Number(tolerancia))}). Una partida bloqueada no admite más compras hasta que Gerencia apruebe una solicitud de desbloqueo.
+            Límite = presupuesto ofertado × 110% (por partida y por rubro: materiales, equipos, subcontratos; herramientas manuales hasta su % de la mano de obra). Una partida bloqueada no admite más compras hasta que Gerencia apruebe una solicitud de desbloqueo.
           </p>
         </Panel>
       )}
@@ -713,6 +718,7 @@ function DashboardProyectos() {
             fechaInicio={obraSel.proyecto.fecha_inicio}
             fechaFin={obraSel.proyecto.fecha_fin}
             presupuesto={obraSel.presupuesto}
+            presupuestoCosto={obraSel.cdPres + obraSel.ggPres}
             presupuestoContractual={obraSel.presupuestoContractual}
             adicionales={obraSel.adicionales}
             avanceFisico={obraSel.avance}
