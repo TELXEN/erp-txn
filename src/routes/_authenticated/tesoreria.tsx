@@ -664,6 +664,8 @@ function Tesoreria() {
           </div>
         )}
       </Panel>
+        </>
+      )}
 
       {lote && (
         <div
