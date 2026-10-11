@@ -261,14 +261,19 @@ function VistaCotizacion() {
   const interiorW = horizontal ? 1087 : 754;
   const paginaH = horizontal ? 700 : 990;
   const [factorPagina, setFactorPagina] = useState(1);
-  useEffect(() => { setFactorPagina(1); }, [id, horizontal, items.length]);
+  const [finalAparte, setFinalAparte] = useState(false);
+  useEffect(() => { setFactorPagina(1); setFinalAparte(false); }, [id, horizontal, items.length]);
   const nombreArchivo = `Cotizacion_${(cot?.cliente || "Cliente").replace(/[^\w-]+/g, "_")}_${cot?.codigo ?? "sin_codigo"}`;
-  const paginas = paginarFilas(construirFilas(items as unknown as ItemCot[], { multi: Boolean(cot?.multidisciplinaria), alcance: cot?.alcance }), horizontal, factorPagina);
-  // Si alguna hoja se desborda (estimación corta), se reduce la capacidad y se reparte en más hojas.
+  const paginas = paginarFilas(construirFilas(items as unknown as ItemCot[], { multi: Boolean(cot?.multidisciplinaria), alcance: cot?.alcance }), horizontal, factorPagina).concat(finalAparte ? [[]] : []);
+  // Si una hoja de partidas se desborda, se reduce un poco la capacidad; si solo se desborda la última
+  // (por el bloque de totales y condiciones), ese bloque pasa a una hoja propia.
   useLayoutEffect(() => {
-    const hojas = document.querySelectorAll<HTMLElement>("#cotizacion-impresion .cotizacion-hoja");
-    const desborda = [...hojas].some((h) => h.scrollHeight > h.clientHeight + 1);
-    if (desborda && factorPagina > 0.3) setFactorPagina((f) => Math.max(0.3, f - 0.08));
+    const hojas = [...document.querySelectorAll<HTMLElement>("#cotizacion-impresion .cotizacion-hoja")];
+    const desborda = (h: HTMLElement) => h.scrollHeight > h.clientHeight + 1;
+    const intermedias = hojas.slice(0, -1).some(desborda);
+    if (intermedias && factorPagina > 0.6) { setFactorPagina((f) => Math.max(0.6, f - 0.05)); return; }
+    const ultima = hojas[hojas.length - 1];
+    if (ultima && desborda(ultima) && !finalAparte && hojas.length > 0) setFinalAparte(true);
   });
   const porGrupo = subtotalesPorGrupo(items as unknown as ItemCot[]);
 
