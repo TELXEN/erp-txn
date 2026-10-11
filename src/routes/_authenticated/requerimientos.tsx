@@ -192,7 +192,7 @@ function RequerimientosPage() {
     }
     // Banco APU: recursos a costo (sin margen). Equipos «%» no son comprables y se omiten.
     for (const d of detBanco) {
-      const pid = String(origen === "obra" ? d.partida_obra_id : d.cotizacion_item_id ?? "");
+      const pid = String(origen === "obra" ? d["partida_obra_id"] : d["cotizacion_item_id"] ?? "");
       const p = hojas.find((h) => h.id === pid);
       if (!p) continue;
       const found = BANCOS_RECURSO.find(([col]) => d[col]);
@@ -200,7 +200,7 @@ function RequerimientosPage() {
       const [col, tabla, , tipo] = found;
       const r = (recursos[tabla] ?? []).find((x: { id: string }) => x.id === d[col]);
       if (!r) continue;
-      const q = Number(d.cantidad_o_cuadrilla) || 0;
+      const q = Number(d["cantidad_o_cuadrilla"]) || 0;
       if (tabla === "equipos_herramientas" && r.unidad === "%") continue;
       const porRendimiento = tabla === "mano_obra" || (tabla === "equipos_herramientas" && r.unidad === "H-M");
       const unitaria = porRendimiento ? (q * (p.jornada || 8)) / (p.rendimiento || 1) : q;
@@ -225,7 +225,7 @@ function RequerimientosPage() {
   const listo = origen === "obra" ? !!proyectoSel : !!cotizacionId;
   const sinApu = hojas.filter((h) =>
     !comps.some((c) => (origen === "obra" ? c.partida_id : c.cotizacion_item_id) === h.id) &&
-    !detBanco.some((d) => String(origen === "obra" ? d.partida_obra_id : d.cotizacion_item_id ?? "") === h.id),
+    !detBanco.some((d) => String(origen === "obra" ? d["partida_obra_id"] : d["cotizacion_item_id"] ?? "") === h.id),
   ).length;
   const alternar = (id: string) =>
     setExpandidos((s) => {
