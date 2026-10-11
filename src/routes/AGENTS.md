@@ -1,0 +1,1 @@
+- Protected routes check the session locally (getSession) in beforeLoad and every route has a pending screen (PantallaCarga) — navigation never waits on the network with a blank page.
