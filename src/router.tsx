@@ -1,6 +1,7 @@
 import { QueryClient } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
+import { PantallaCarga } from "./components/PantallaCarga";
 
 // Recarga única cuando el navegador conserva módulos incompatibles tras una actualización en caliente.
 const RELOAD_KEY = "chunk-reload-at";
@@ -40,6 +41,8 @@ export const getRouter = () => {
     context: { queryClient },
     scrollRestoration: true,
     defaultPreloadStaleTime: 0,
+    defaultPendingComponent: () => <PantallaCarga />,
+    defaultPendingMs: 200,
     defaultOnCatch: (err) => {
       if (typeof window !== "undefined") recargarSiModuloFalla(err);
     },
