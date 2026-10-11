@@ -182,7 +182,6 @@ export function CotizacionHoja({
   const mon = (n: number) => `${compacta ? "" : `${simbolo} `}${Number(n || 0).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   const qc = useQueryClient();
   const [colapsados, setColapsados] = useState<Set<string>>(new Set());
-  const [apuAbierto, setApuAbierto] = useState<string | null>(null);
   const [activo, setActivo] = useState<{ r: number; c: number }>({ r: 0, c: 1 });
   const [seleccionadas, setSeleccionadas] = useState<Set<string>>(new Set());
   const anclaSeleccion = useRef<number | null>(null);
@@ -241,7 +240,7 @@ export function CotizacionHoja({
     return () => {
       vivo = false;
     };
-  }, [items, apuAbierto]);
+  }, [items]);
 
   const visibles = useMemo(() => {
     const out: Fila[] = [];
@@ -1415,16 +1414,6 @@ export function CotizacionHoja({
                   <td className={`${celdaBase} whitespace-nowrap text-right font-semibold text-ink`}>{mon(f.total)}</td>
                   <td className={`${celdaBase} text-right`}>
                     <div className="flex items-center justify-end gap-1">
-                      {!f.agrupadora && (
-                        <button
-                          type="button"
-                          title="Desglose de insumos (APU)"
-                          onClick={() => setApuAbierto(apuAbierto === it.id ? null : it.id)}
-                          className={`rounded border border-line text-muted-foreground hover:border-primary hover:text-primary ${compacta ? "px-1 py-1" : "px-2 py-1 text-[11.5px]"}`}
-                        >
-                          {compacta ? <Calculator size={12} /> : "APU"}
-                        </button>
-                      )}
                       {f.nivel === 3 && (
                         <button
                           type="button"
@@ -1474,7 +1463,7 @@ export function CotizacionHoja({
                     <ListPlus size={14} className="mr-2" /> Insertar partida debajo
                   </ContextMenuItem>
                   {!f.agrupadora && (
-                    <ContextMenuItem onSelect={() => setApuAbierto(it.id)}>
+                    <ContextMenuItem onSelect={() => setActivo({ r, c: 1 })}>
                       <Calculator size={14} className="mr-2" /> Ver APU
                     </ContextMenuItem>
                   )}
@@ -1506,13 +1495,6 @@ export function CotizacionHoja({
                   )}
                 </ContextMenuContent>
                 </ContextMenu>
-                {apuAbierto === it.id && (
-                  <tr>
-                    <td colSpan={8} className="border-b border-line bg-muted/20 p-0">
-                      <DesgloseApu item={it} alCambiar={refrescar} />
-                    </td>
-                  </tr>
-                )}
                 {filaFantasma}
               </React.Fragment>
             );
@@ -1726,130 +1708,3 @@ function FilaFantasma({
   );
 }
 
-/** Sub-tabla de recursos del Banco APU (materiales, mano de obra, equipos y subcontratos) con edición en línea. */
-function DesgloseApu({ item, alCambiar }: { item: CotizacionItem; alCambiar: () => void }) {
-  const qc = useQueryClient();
-  const recursos = useRecursosApu();
-  const { data: detalle = [] } = useBancoTabla("cotizacion_apu_detalle");
-  const [nuevo, setNuevo] = useState("");
-  const rend = Number(item.rendimiento ?? 1) || 1;
-  const jornada = Number(item.jornada ?? 8) || 8;
-  const propias = detalle.filter((d) => d.cotizacion_item_id === item.id);
-  const calc = costoReceta(propias, recursos, rend, jornada);
-
-  async function sincronizarPu() {
-    await supabase.from("cotizacion_items").update({ precio_unitario: calc.total }).eq("id", item.id);
-    alCambiar();
-  }
-
-  const refrescar = async () => {
-    await qc.invalidateQueries({ queryKey: ["banco_apu", "cotizacion_apu_detalle"] });
-  };
-
-  async function agregar(valor: string) {
-    if (!valor) return;
-    const [col, id] = valor.split(":");
-    await dbBanco.from("cotizacion_apu_detalle").insert({
-      cotizacion_item_id: item.id,
-      [col ?? ""]: id,
-      cantidad_o_cuadrilla: 1,
-    });
-    setNuevo("");
-    await refrescar();
-  }
-
-  async function cambiar(id: string, v: string) {
-    await dbBanco.from("cotizacion_apu_detalle").update({ cantidad_o_cuadrilla: Number(v || 0) }).eq("id", id);
-    await refrescar();
-  }
-
-  async function quitar(id: string) {
-    await dbBanco.from("cotizacion_apu_detalle").delete().eq("id", id);
-    await refrescar();
-  }
-
-  async function cambiarPartida(campo: "rendimiento" | "jornada", v: string) {
-    await supabase.from("cotizacion_items").update({ [campo]: Number(v || 0) } as never).eq("id", item.id);
-    alCambiar();
-  }
-
-  const inp = "w-20 rounded border border-line bg-card px-1.5 py-1 text-right text-[12.5px] outline-none focus:border-primary";
-
-  return (
-    <div className="px-6 py-3">
-      <div className="mb-2 flex flex-wrap items-center gap-4 font-mono text-[12px] text-muted-foreground">
-        <span className="font-semibold uppercase tracking-wider text-ink">Análisis de precios · {item.nombre}</span>
-        <label className="flex items-center gap-1">
-          Rendimiento
-          <input className={inp} type="number" step="0.01" defaultValue={rend} onBlur={(e) => void cambiarPartida("rendimiento", e.target.value)} />
-        </label>
-        <label className="flex items-center gap-1">
-          Jornada
-          <input className={inp} type="number" step="0.5" defaultValue={jornada} onBlur={(e) => void cambiarPartida("jornada", e.target.value)} />
-        </label>
-      </div>
-      <table className="w-full font-mono text-[12.5px]">
-        <thead>
-          <tr className="border-b border-line text-left text-[11px] uppercase tracking-wider text-muted-foreground">
-            <th className="py-1">Banco</th>
-            <th className="py-1">Recurso</th>
-            <th className="py-1">Und.</th>
-            <th className="py-1 text-right">Cant./Cuadrilla</th>
-            <th className="py-1 text-right">C. unitario</th>
-            <th className="py-1 text-right">Parcial</th>
-            <th />
-          </tr>
-        </thead>
-        <tbody>
-          {calc.filas.map((f) => (
-            <tr key={f.d.id} className="border-b border-line/50">
-              <td className="py-1 text-muted-foreground">{f.banco}</td>
-              <td className="py-1 text-ink">{f.nombre}</td>
-              <td className="py-1 text-muted-foreground">{f.und}</td>
-              <td className="py-1 text-right">
-                <input className={inp} type="number" step="0.0001" defaultValue={f.cantidad} onBlur={(e) => void cambiar(f.d.id, e.target.value)} />
-              </td>
-              <td className="py-1 text-right">{f.esPctMo ? `${f.cu.toFixed(2)}% MO` : soles(f.cu)}</td>
-              <td className="py-1 text-right font-semibold text-ink">{soles(f.parcial)}</td>
-              <td className="py-1 text-right">
-                <button type="button" onClick={() => void quitar(f.d.id)} className="text-muted-foreground hover:text-bad">
-                  <Trash2 size={12} />
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
-        <select
-          value={nuevo}
-          onChange={(e) => void agregar(e.target.value)}
-          className="rounded border border-line bg-card px-2 py-1 font-mono text-[12.5px] outline-none focus:border-primary"
-        >
-          <option value="">+ Agregar recurso…</option>
-          {BANCOS_RECURSO.map(([col, tabla, etiqueta]) => (
-            <optgroup key={col} label={etiqueta}>
-              {(recursos[tabla] ?? []).filter((r) => r.estado === "activo").map((r) => (
-                <option key={r.id} value={`${col}:${r.id}`}>
-                  {r.descripcion} · {r.unidad} · {soles(Number(r.costo_unitario ?? r.costo_hora ?? 0))}
-                </option>
-              ))}
-            </optgroup>
-          ))}
-        </select>
-        <div className="flex items-center gap-3 font-mono text-[12.5px]">
-          <span className="text-muted-foreground">
-            P.U. calculado <strong className="text-ink">{soles(calc.total)}</strong>
-          </span>
-          <button
-            type="button"
-            onClick={() => void sincronizarPu()}
-            className="rounded-md border border-primary/40 px-2.5 py-1.5 text-[12.5px] text-primary hover:bg-primary/10"
-          >
-            Aplicar al C. unitario
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
