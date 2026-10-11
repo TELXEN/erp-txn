@@ -367,7 +367,7 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
                   <tbody>
                     {filas.map((f) => (
                       <tr key={f.d.id} className="border-t border-line/60">
-                        <td className="px-2 py-1">{f.nombre}<span className="ml-1 shrink-0 whitespace-nowrap text-muted-foreground">{f.und}</span></td>
+                        <td className="w-full max-w-[1px] px-2 py-1"><div className="flex items-baseline gap-1"><span className="min-w-0 truncate">{f.nombre}</span><span className="shrink-0 whitespace-nowrap text-muted-foreground">{f.und}</span></div></td>
                         <td className="w-20 px-1 py-1">
                           <Input type="number" step="any" defaultValue={f.d.cantidad_o_cuadrilla} className="py-0.5 text-right text-xs"
                             onBlur={(e) => Number(e.target.value) !== Number(f.d.cantidad_o_cuadrilla) && cambiarCant(f.d.id, e.target.value)} />
