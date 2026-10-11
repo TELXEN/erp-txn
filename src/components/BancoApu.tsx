@@ -95,22 +95,40 @@ export function BancoApu() {
           </button>
         ))}
       </div>
-      <ListaBanco key={tab} tabla={tab} />
+      {tab === "partidas_apu" ? <SplitPartidas /> : <ListaBanco key={tab} tabla={tab} />}
     </>
   );
 }
 
-function ListaBanco({ tabla }: { tabla: Tabla }) {
+function SplitPartidas() {
+  const [sel, setSel] = useState<string>(() => (typeof window !== "undefined" && localStorage.getItem("banco-apu:partida")) || "");
+  const elegir = (id: string) => { setSel(id); localStorage.setItem("banco-apu:partida", id); };
+  const { data: pa = [] } = useTabla("partidas_apu");
+  const partida = pa.find((p) => p.id === sel);
+  return (
+    <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+      <div className="min-w-0"><ListaBanco tabla="partidas_apu" seleccion={sel} onSeleccion={elegir} /></div>
+      <div className="min-w-0">
+        {partida ? <PanelApuMaestro partida={partida} /> : <Panel titulo="Análisis de precios unitarios"><Vacio texto="Elige una partida a la izquierda para ver y armar su APU." /></Panel>}
+      </div>
+    </div>
+  );
+}
+
+function ListaBanco({ tabla, seleccion, onSeleccion }: { tabla: Tabla; seleccion?: string; onSeleccion?: (id: string) => void }) {
   const cfg = CONFIG[tabla];
   const qc = useQueryClient();
-  const { data: filas = [] } = useTabla(tabla);
+  const { data: filasRaw = [] } = useTabla(tabla);
+  const filas = tabla === "partidas_apu"
+    ? [...filasRaw].sort((a, b) => String(a.codigo_jerarquico ?? "").localeCompare(String(b.codigo_jerarquico ?? ""), "es", { numeric: true }))
+    : filasRaw;
   const { data: especialidades = [] } = useEspecialidadesPartida();
   const [busqueda, setBusqueda] = useState("");
   const [filtro, setFiltro] = useState("");
   const [estado, setEstado] = useState("activo");
   const [form, setForm] = useState<Fila | null>(null);
   const [editId, setEditId] = useState<string | null>(null);
-  const [receta, setReceta] = useState<Fila | null>(null);
+  const [nueva, setNueva] = useState(false);
   const [aviso, setAviso] = useState("");
 
   const opcionesFiltro = useMemo(
