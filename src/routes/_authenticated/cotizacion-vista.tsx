@@ -1,8 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Panel, Vacio } from "@/components/ui-kit";
+import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { useEmpresa } from "@/lib/empresa";
 import { useFuenteDocumento } from "@/lib/fuentes-documentos";
@@ -252,7 +253,10 @@ function VistaCotizacion() {
   const esUsd = cot?.moneda === "USD";
   const sim = simboloMoneda(cot?.moneda);
   const tc = Number(cot?.tipo_cambio) || 0;
-  const horizontal = cot?.orientacion === "horizontal";
+  const [horizontalPreferida, setHorizontalPreferida] = useState<boolean | null>(null);
+  useEffect(() => { setHorizontalPreferida(null); }, [id]);
+  const qc = useQueryClient();
+  const horizontal = horizontalPreferida ?? cot?.orientacion === "horizontal";
   const paginaW = horizontal ? 1123 : 794;
   const interiorW = horizontal ? 1087 : 754;
   const paginaH = horizontal ? 700 : 990;
@@ -271,6 +275,15 @@ function VistaCotizacion() {
       .catch(() => {
         window.prompt("Copia este enlace de vista previa:", url);
       });
+  }
+
+  function alternarHorizontal(v: boolean) {
+    setHorizontalPreferida(v);
+    void supabase
+      .from("cotizaciones")
+      .update({ orientacion: v ? "horizontal" : "vertical" })
+      .eq("id", id)
+      .then(() => qc.invalidateQueries({ queryKey: ["cotizaciones"] }));
   }
 
   async function descargarPdf() {
@@ -432,7 +445,11 @@ function VistaCotizacion() {
         titulo="Vista previa de cotización"
         subtitulo={`${cot.codigo ?? "Sin código"} · ${cot.cliente || "Cliente sin registrar"}`}
         acciones={
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <label className="no-print flex h-8 cursor-pointer items-center gap-2 rounded-md border border-line px-3 text-xs font-medium select-none" title="Imprimir y exportar la hoja en A4 horizontal">
+              <Checkbox checked={horizontal} onCheckedChange={(v) => alternarHorizontal(v === true)} />
+              A4 horizontal
+            </label>
             <Link to="/cotizaciones">
               <Boton variante="linea"><ArrowLeft size={13} /> Volver</Boton>
             </Link>
@@ -445,6 +462,7 @@ function VistaCotizacion() {
           </div>
         }
       />
+      <style>{horizontal ? "@page { size: A4 landscape; }" : "@page { size: A4 portrait; }"}</style>
 
       <div className="overflow-x-auto pb-8">
         <div className="mx-auto" style={{ width: interiorW }}>
