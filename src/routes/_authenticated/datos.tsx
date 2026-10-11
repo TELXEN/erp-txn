@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
-import { Building2, Check, Coins, FolderKanban, HardHat, Pencil, Plus, SlidersHorizontal, Tag, Trash2, Upload, X } from "lucide-react";
+import { Check, Coins, FolderKanban, HardHat, Pencil, Plus, SlidersHorizontal, Tag, Trash2, Upload, X } from "lucide-react";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { exportarExcel } from "@/lib/exportar";
 import {
@@ -26,7 +26,7 @@ import {
 } from "@/lib/datos";
 import { PRIORIDADES, SITUACIONES, tonoPrioridad, tonoSituacion } from "@/lib/configuracion";
 import { CodificacionDocumentos } from "@/components/CodificacionDocumentos";
-import { CuentasBancarias, type CuentaBancaria } from "@/components/CuentasBancarias";
+import { type CuentaBancaria } from "@/components/CuentasBancarias";
 import { RubrosIngreso } from "@/components/RubrosIngreso";
 
 export const Route = createFileRoute("/_authenticated/datos")({
@@ -54,7 +54,6 @@ type Catalogo = {
   tipo?: string;
 };
 type Pestana =
-  | "bancos"
   | "cargos"
   | "categoriasgg"
   | "costos"
@@ -65,7 +64,6 @@ type Pestana =
   | "marcas";
 
 const GRUPOS_CONFIG: { titulo: string; icono: React.ElementType; items: [Pestana, string][] }[] = [
-  { titulo: "Empresa", icono: Building2, items: [["bancos", "Cuentas bancarias"]] },
   { titulo: "Codificación", icono: FolderKanban, items: [["codificacion", "Codificación de Documentos"]] },
   { titulo: "Parámetros de proyectos", icono: SlidersHorizontal, items: [["configuracion", "Parámetros de proyectos"]] },
   { titulo: "Marcas", icono: Tag, items: [["marcas", "Registro de marcas"]] },
@@ -84,7 +82,7 @@ const ETIQUETA_MONEDA: Record<string, string> = {
 function Datos() {
   const { rol } = useAuth();
   const qc = useQueryClient();
-  const [pestana, setPestana] = useState<Pestana>("bancos");
+  const [pestana, setPestana] = useState<Pestana>("codificacion");
   const [error, setError] = useState("");
 
   const { data: bancos = [] } = useQuery({
@@ -210,9 +208,7 @@ function Datos() {
       {error && <p className="mb-3 font-mono text-xs text-bad">{error}</p>}
 
 
-      {pestana === "bancos" ? (
-        <CuentasBancarias />
-      ) : pestana === "cargos" ? (
+      {pestana === "cargos" ? (
         <CargosPersonal />
       ) : pestana === "categoriasgg" ? (
         <CategoriasGastoGeneral />
