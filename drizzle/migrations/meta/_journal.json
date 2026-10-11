@@ -176,6 +176,13 @@
       "when": 1791732189935,
       "tag": "0024_banco_apu_relacional",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1791733636473,
+      "tag": "0025_vincular_banco_apu_cotizaciones",
+      "breakpoints": true
     }
   ]
 }

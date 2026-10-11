@@ -1293,6 +1293,75 @@ export type Database = {
         }
         Relationships: []
       }
+      cotizacion_apu_detalle: {
+        Row: {
+          cantidad_o_cuadrilla: number
+          cotizacion_item_id: string
+          created_at: string
+          equipo_id: string | null
+          id: string
+          mano_obra_id: string | null
+          material_id: string | null
+          subcontrato_id: string | null
+        }
+        Insert: {
+          cantidad_o_cuadrilla?: number
+          cotizacion_item_id: string
+          created_at?: string
+          equipo_id?: string | null
+          id?: string
+          mano_obra_id?: string | null
+          material_id?: string | null
+          subcontrato_id?: string | null
+        }
+        Update: {
+          cantidad_o_cuadrilla?: number
+          cotizacion_item_id?: string
+          created_at?: string
+          equipo_id?: string | null
+          id?: string
+          mano_obra_id?: string | null
+          material_id?: string | null
+          subcontrato_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cotizacion_apu_detalle_cotizacion_item_id_fkey"
+            columns: ["cotizacion_item_id"]
+            isOneToOne: false
+            referencedRelation: "cotizacion_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cotizacion_apu_detalle_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "equipos_herramientas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cotizacion_apu_detalle_mano_obra_id_fkey"
+            columns: ["mano_obra_id"]
+            isOneToOne: false
+            referencedRelation: "mano_obra"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cotizacion_apu_detalle_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "materiales"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cotizacion_apu_detalle_subcontrato_id_fkey"
+            columns: ["subcontrato_id"]
+            isOneToOne: false
+            referencedRelation: "subcontratos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cotizacion_items: {
         Row: {
           categoria: string
@@ -1308,6 +1377,7 @@ export type Database = {
           nombre: string
           orden: number
           padre_id: string | null
+          partida_apu_id: string | null
           pct_herramientas: number
           precio_unitario: number
           rendimiento: number
@@ -1329,6 +1399,7 @@ export type Database = {
           nombre: string
           orden?: number
           padre_id?: string | null
+          partida_apu_id?: string | null
           pct_herramientas?: number
           precio_unitario?: number
           rendimiento?: number
@@ -1350,6 +1421,7 @@ export type Database = {
           nombre?: string
           orden?: number
           padre_id?: string | null
+          partida_apu_id?: string | null
           pct_herramientas?: number
           precio_unitario?: number
           rendimiento?: number
@@ -1370,6 +1442,13 @@ export type Database = {
             columns: ["padre_id"]
             isOneToOne: false
             referencedRelation: "cotizacion_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cotizacion_items_partida_apu_id_fkey"
+            columns: ["partida_apu_id"]
+            isOneToOne: false
+            referencedRelation: "partidas_apu"
             referencedColumns: ["id"]
           },
         ]
