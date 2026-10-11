@@ -68,11 +68,14 @@ export function HojaCotizacion({
   items,
   clientes,
   children,
+  mostrarEncabezado = true,
 }: {
   cot: Cotizacion;
   items: CotizacionItem[];
   clientes: { id: string; razon_social: string; numero_documento: string }[];
   children: ReactNode;
+  /** En modo edición se oculta el encabezado corporativo y la ficha de cliente. */
+  mostrarEncabezado?: boolean;
 }) {
   const qc = useQueryClient();
   const { data: empresa } = useEmpresa();
@@ -116,7 +119,7 @@ export function HojaCotizacion({
         style={{
           width: "100%", maxWidth: 1500, boxSizing: "border-box",
           margin: "0 auto",
-          padding: "36px 38px",
+          padding: mostrarEncabezado ? "36px 38px" : "14px 12px",
           background: C.white,
           color: C.ink,
           fontFamily: DOC_FUENTE_CSS,
@@ -125,6 +128,8 @@ export function HojaCotizacion({
           boxShadow: "0 12px 35px rgba(15,23,42,.18)",
         }}
       >
+        {mostrarEncabezado && (
+          <>
         <header style={{ display: "flex", gap: 22, alignItems: "flex-start", borderBottom: `2px solid ${C.green}`, paddingBottom: 14 }}>
           <div style={{ width: 96, display: "flex", alignItems: "center", justifyContent: "center" }}>
             {empresa?.logo_url ? (
@@ -292,6 +297,8 @@ export function HojaCotizacion({
             </div>
           </div>
         </div>
+          </>
+        )}
 
         <div style={{ marginTop: 16 }}>{children}</div>
 

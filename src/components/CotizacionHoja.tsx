@@ -161,6 +161,7 @@ export function CotizacionHoja({
   multi = true,
   alcance = "ambos",
   onSeleccionar,
+  compacta = false,
 }: {
   /** Avisa la partida activa (para el panel APU de la pantalla dividida). */
   onSeleccionar?: (itemId: string | null) => void;
@@ -175,8 +176,10 @@ export function CotizacionHoja({
   simbolo?: string;
   moneda?: "PEN" | "USD";
   tipoCambio?: number;
+  /** En la pantalla dividida la tabla se ajusta al ancho del panel, sin desplazamiento lateral. */
+  compacta?: boolean;
 }) {
-  const mon = (n: number) => `${simbolo} ${Number(n || 0).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const mon = (n: number) => `${compacta ? "" : `${simbolo} `}${Number(n || 0).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   const qc = useQueryClient();
   const [colapsados, setColapsados] = useState<Set<string>>(new Set());
   const [apuAbierto, setApuAbierto] = useState<string | null>(null);
@@ -907,7 +910,9 @@ export function CotizacionHoja({
     }
   }
 
-  const celdaBase = "border-b border-line/60 px-2.5 py-2 outline-none focus:ring-2 focus:ring-primary/40";
+  const celdaBase = compacta
+    ? "border-b border-line/60 overflow-hidden text-ellipsis whitespace-nowrap px-1 py-1 outline-none focus:ring-2 focus:ring-primary/40"
+    : "border-b border-line/60 px-2.5 py-2 outline-none focus:ring-2 focus:ring-primary/40";
 
   function editor(f: Fila, c: number) {
     const col = COLUMNAS[c] as Columna;
@@ -1222,16 +1227,14 @@ export function CotizacionHoja({
           </Button>
         )}
       </div>
-      <table className="w-full min-w-[1180px] table-fixed font-mono text-[10.5px]">
+      <table className={`w-full table-fixed font-mono ${compacta ? "text-[9.5px]" : "text-[10.5px]"} ${compacta ? "" : "min-w-[1180px]"}`}>
         <colgroup>
-          <col style={{ width: "10%" }} />
-          <col style={{ width: "36%" }} />
-          <col style={{ width: "11%" }} />
-          <col style={{ width: "7%" }} />
-          <col style={{ width: "6%" }} />
-          <col style={{ width: "11%" }} />
-          <col style={{ width: "11%" }} />
-          <col style={{ width: "8%" }} />
+          {(compacta
+            ? ["9%", "30%", "9%", "7%", "9%", "11%", "11%", "14%"]
+            : ["10%", "36%", "11%", "7%", "6%", "11%", "11%", "8%"]
+          ).map((w, i) => (
+            <col key={i} style={{ width: w }} />
+          ))}
         </colgroup>
         <thead>
           <tr className="h-7 text-left text-[9.5px] uppercase tracking-normal" style={{ background: DOC.green, color: DOC.white }}>
@@ -1379,7 +1382,7 @@ export function CotizacionHoja({
                     f,
                     r,
                     0,
-                    <span className="flex w-full items-center justify-start gap-1 whitespace-nowrap text-left text-[12px] text-primary" style={{ paddingLeft: sangria }}>
+                    <span className={`flex w-full items-center justify-start gap-1 whitespace-nowrap text-left text-primary ${compacta ? "text-[9.5px]" : "text-[12px]"}`} style={{ paddingLeft: sangria }}>
                       {f.agrupadora && (
                         <button type="button" onClick={() => alternar(f.clave)} className="text-muted-foreground">
                           {colapsados.has(f.clave) ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
@@ -1390,7 +1393,7 @@ export function CotizacionHoja({
                     </span>,
                     "text-left",
                   )}
-                  {celda(f, r, 1, <span className="block border-l border-line/70 pl-6" style={{ color: DOC.ink }}>{it.nombre}</span>)}
+                  {celda(f, r, 1, <span className={`block border-l border-line/70 ${compacta ? "pl-1" : "pl-6"}`} style={{ color: DOC.ink }}>{it.nombre}</span>)}
                   {bloqueada ? (
                     <td className={`${celdaBase} text-center`}>—</td>
                   ) : (
@@ -1417,9 +1420,9 @@ export function CotizacionHoja({
                           type="button"
                           title="Desglose de insumos (APU)"
                           onClick={() => setApuAbierto(apuAbierto === it.id ? null : it.id)}
-                          className="rounded border border-line px-2 py-1 text-[11.5px] text-muted-foreground hover:border-primary hover:text-primary"
+                          className={`rounded border border-line text-muted-foreground hover:border-primary hover:text-primary ${compacta ? "px-1 py-1" : "px-2 py-1 text-[11.5px]"}`}
                         >
-                          APU
+                          {compacta ? <Calculator size={12} /> : "APU"}
                         </button>
                       )}
                       {f.nivel === 3 && (

@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Buscador, Resaltar, coincide } from "@/components/Buscador";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
@@ -46,7 +46,7 @@ import {
   type CotizacionItem,
   type EstadoCotizacion,
 } from "@/lib/cotizaciones";
-import { Check, Calculator, CornerDownRight, Upload, X, Eye, Trash2, ArrowLeft, Library, Plus, Pencil, Copy, FileText, LayoutTemplate } from "lucide-react";
+import { Check, Calculator, CornerDownRight, Upload, X, Eye, EyeOff, Trash2, ArrowLeft, Library, Plus, Pencil, Copy, FileText, LayoutTemplate } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/cotizaciones")({
   head: () => ({
@@ -140,6 +140,16 @@ function Cotizaciones() {
     : null;
 
   const [partidaActiva, setPartidaActiva] = useState<string | null>(null);
+  /** En edición la hoja arranca sin encabezado: solo se ve la tabla de partidas. */
+  const [encabezado, setEncabezado] = useState(false);
+  useEffect(() => {
+    if (localStorage.getItem("cotizaciones:encabezado") === "visible") setEncabezado(true);
+  }, []);
+  const alternarEncabezado = () => {
+    const nuevo = !encabezado;
+    setEncabezado(nuevo);
+    localStorage.setItem("cotizaciones:encabezado", nuevo ? "visible" : "oculto");
+  };
   const [apu, setApu] = useState<(typeof items)[number] | null>(null);
   const [nuevaSub, setNuevaSub] = useState<{
     padre_id: string;
@@ -618,6 +628,9 @@ function Cotizaciones() {
             <Select className="w-36" value={cot.estado} onChange={(e) => cambiarEstado(cot.id, e.target.value as EstadoCotizacion)}>
               {ESTADOS_COTIZACION.map((e) => <option key={e} value={e}>{e}</option>)}
             </Select>
+            <Boton variante="linea" onClick={alternarEncabezado} title="Mostrar u ocultar el encabezado de la hoja">
+              {encabezado ? <Eye size={13} /> : <EyeOff size={13} />} Encabezado
+            </Boton>
             <Link to="/cotizacion-vista" search={{ id: cot.id }}>
               <Boton variante="linea"><Eye size={13} /> Vista previa A4</Boton>
             </Link>
@@ -716,7 +729,7 @@ function Cotizaciones() {
         <div className="flex flex-col gap-2 bg-muted/60 px-2 py-2 lg:h-[calc(100vh-15rem)] lg:flex-row lg:overflow-hidden">
           <div className="flex min-h-0 flex-col lg:w-[60%]">
           <div className="min-h-0 flex-1 overflow-auto">
-          <HojaCotizacion cot={cot} items={items} clientes={clientes}>
+          <HojaCotizacion cot={cot} items={items} clientes={clientes} mostrarEncabezado={encabezado}>
             <CotizacionHoja
               cotizacionId={cot.id}
               items={itemsHoja}
@@ -727,6 +740,7 @@ function Cotizaciones() {
               multi={Boolean(cot.multidisciplinaria)}
               alcance={cot.alcance ?? "ambos"}
               onSeleccionar={setPartidaActiva}
+              compacta
             />
           </HojaCotizacion>
           </div>
