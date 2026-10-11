@@ -249,7 +249,7 @@ export async function copiarRecetaACotizacion(itemId: string, partidaApuId: stri
   const res = await Promise.all(tablas.map((t) => dbBanco.from(t).select("*")));
   const err = res.find((r: { error: unknown }) => r.error);
   if (err) throw err.error;
-  const [partidas, detalle, materiales, mano_obra, equipos_herramientas, subcontratos] = res.map((r: { data: Recurso[] }) => r.data ?? []);
+  const [partidas, detalle, materiales, mano_obra, equipos_herramientas, subcontratos] = res.map((r: { data: Recurso[] }) => r.data ?? []) as Recurso[][] as [Recurso[], Recurso[], Recurso[], Recurso[], Recurso[], Recurso[]];
   const recursos = { materiales, mano_obra, equipos_herramientas, subcontratos };
   const filas = aplanarReceta(partidaApuId, partidas, detalle, recursos, factor);
   const p = partidas.find((x: Recurso) => x.id === partidaApuId);

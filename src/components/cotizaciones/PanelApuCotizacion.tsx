@@ -57,7 +57,8 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
   }
 
   async function actualizar(f: FilaCalculo, campo: "cantidad_o_cuadrilla" | "precio_unitario", v: number) {
-    const cambios: Record<string, unknown> = { [campo]: v };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const cambios: any = { [campo]: v };
     // Al editar, la fila queda con copia fija aunque viniera del banco.
     if (f.d.precio_unitario === null || f.d.precio_unitario === undefined) {
       cambios.descripcion = f.nombre;
@@ -107,10 +108,10 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
         _horaria: horaria,
       };
     });
-    const actualizarOrigen = Boolean(it.partida_apu_id) && window.confirm(
+    const actualizarOrigen = Boolean((it as { partida_apu_id?: string | null }).partida_apu_id) && window.confirm(
       "¿Actualizar la receta original del Banco APU con las cantidades de esta cotización?\n\nAceptar: actualiza la receta original (los precios del banco no cambian).\nCancelar: te ofrecerá guardarla como partida maestra nueva.",
     );
-    let destino = actualizarOrigen ? (it.partida_apu_id as string) : null;
+    let destino = actualizarOrigen ? ((it as { partida_apu_id?: string | null }).partida_apu_id as string) : null;
     if (!destino) {
       if (!window.confirm(`¿Guardar «${it.nombre}» como nueva partida maestra en el Banco APU?`)) return;
       const { data, error } = await dbBanco.from("partidas_apu").insert({
@@ -294,7 +295,8 @@ function Metrado({ item, cotId }: { item: CotizacionItem; cotId: string }) {
   const set = (i: number, k: keyof LineaMetrado, v: string) =>
     setLineas((p) => p.map((l, j) => (j === i ? { ...l, [k]: k === "desc" ? v : Number(v || 0) } : l)));
   async function guardar(aplicar: boolean) {
-    const cambios: Record<string, unknown> = { metrado_detalle: lineas };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const cambios: any = { metrado_detalle: lineas };
     if (aplicar) cambios.metrado = Math.round(total * 10000) / 10000;
     await dbBanco.from("cotizacion_items").update(cambios).eq("id", item.id);
     qc.invalidateQueries({ queryKey: ["cotizacion_items", cotId] });
@@ -339,23 +341,23 @@ export function ResumenCotizacion({ cot, items }: { cot: Cotizacion; items: Coti
   const { data: detalle = [] } = useBancoTabla("cotizacion_apu_detalle");
   const sim = cot.moneda === "USD" ? "US$" : "S/";
   const hojas = items.filter((i) => i.tipo !== "grupo" && !items.some((h) => h.padre_id === i.id));
-  const porTipo: Record<string, number> = { MO: 0, MAT: 0, EQ: 0, SC: 0, OTROS: 0 };
+  const porTipo: { [k: string]: number; OTROS: number } = { MO: 0, MAT: 0, EQ: 0, SC: 0, OTROS: 0 };
   let cd = 0;
   for (const i of hojas) {
     const m = Number(i.metrado || 0);
     const parcial = m * Number(i.precio_unitario || 0);
     cd += parcial;
     const propias = detalle.filter((d) => d.cotizacion_item_id === i.id);
-    if (!propias.length) { porTipo.OTROS! += parcial; continue; }
+    if (!propias.length) { porTipo.OTROS += parcial; continue; }
     const c = costoReceta(propias, recursos, Number(i.rendimiento ?? 1), Number(i.jornada ?? 8));
     for (const f of c.filas) porTipo[f.tipo in porTipo ? f.tipo : "OTROS"]! += f.parcial * m;
-    porTipo.OTROS! += parcial - c.total * m;
+    porTipo.OTROS += parcial - c.total * m;
   }
   const gg = (cd * Number(cot.pct_gastos_generales || 0)) / 100;
   const ut = (cd * Number(cot.pct_utilidad || 0)) / 100;
   const parcialT = cd + gg + ut;
   const igv = cot.aplica_igv === false ? 0 : parcialT * 0.18;
-  const filasInc = [...GRUPOS_RECURSO, ["OTROS", "SIN APU"] as [string, string]].filter(([t]) => t !== "OTROS" || Math.abs(porTipo.OTROS!) > 0.005);
+  const filasInc = [...GRUPOS_RECURSO, ["OTROS", "SIN APU"] as [string, string]].filter(([t]) => t !== "OTROS" || Math.abs(porTipo.OTROS) > 0.005);
   return (
     <div className="grid gap-2 border-t border-line bg-card p-2 font-mono text-[11px] md:grid-cols-2">
       <table className="w-full">
