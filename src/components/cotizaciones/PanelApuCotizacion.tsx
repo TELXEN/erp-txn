@@ -376,16 +376,37 @@ export function ResumenCotizacion({ cot, items }: { cot: Cotizacion; items: Coti
       </table>
       <table className="w-full">
         <tbody>
+          <tr className="border-b border-line/40"><td className="px-2 py-0.5">Costo directo</td><td className="px-2 py-0.5 text-right">{sim} {num(cd)}</td></tr>
           {([
-            ["Costo directo", cd],
-            [`Gastos generales ${num(Number(cot.pct_gastos_generales), 0)}%`, gg],
-            [`Utilidad ${num(Number(cot.pct_utilidad), 0)}%`, ut],
-            ["Monto parcial", parcialT],
-            ["IGV 18%", igv],
-          ] as [string, number][]).map(([n, v]) => (
-            <tr key={n} className="border-b border-line/40"><td className="px-2 py-0.5">{n}</td><td className="px-2 py-0.5 text-right">{sim} {num(v)}</td></tr>
+            ["Gastos generales", "pct_gastos_generales", gg],
+            ["Utilidad", "pct_utilidad", ut],
+          ] as [string, "pct_gastos_generales" | "pct_utilidad", number][]).map(([n, campo, v]) => (
+            <tr key={campo} className="border-b border-line/40">
+              <td className="px-2 py-0.5">
+                <span className="inline-flex items-center gap-1">
+                  {n}
+                  <input
+                    key={`${cot.id}-${campo}-${cot[campo]}`}
+                    type="number"
+                    step="0.5"
+                    min="0"
+                    defaultValue={Number(cot[campo])}
+                    title={`% de ${n.toLowerCase()} aplicado sobre el costo directo`}
+                    onBlur={(e) => void cambiarPct(campo, Number(e.target.value || 0), Number(cot[campo]))}
+                    className="w-12 rounded border border-line bg-background px-1 py-0 text-right outline-none focus:border-primary"
+                  />
+                  %
+                </span>
+              </td>
+              <td className="px-2 py-0.5 text-right">{sim} {num(v)}</td>
+            </tr>
           ))}
+          <tr className="border-b border-line/40"><td className="px-2 py-0.5">Monto parcial</td><td className="px-2 py-0.5 text-right">{sim} {num(parcialT)}</td></tr>
+          <tr className="border-b border-line/40"><td className="px-2 py-0.5">IGV {cot.aplica_igv === false ? 0 : 18}%</td><td className="px-2 py-0.5 text-right">{sim} {num(igv)}</td></tr>
           <tr className="font-semibold text-primary"><td className="px-2 py-1">TOTAL</td><td className="px-2 py-1 text-right">{sim} {num(parcialT + igv)}</td></tr>
+          {cot.moneda === "USD" && Number(cot.tipo_cambio) > 0 && (
+            <tr className="text-muted-foreground"><td className="px-2 py-0.5">Equivalente en soles</td><td className="px-2 py-0.5 text-right">S/ {num((parcialT + igv) * Number(cot.tipo_cambio))}</td></tr>
+          )}
         </tbody>
       </table>
     </div>
