@@ -371,10 +371,19 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
               </div>
               {!cerrado && filas.length > 0 && (
                 <table className="w-full text-xs">
+                  <thead>
+                    <tr className="label-mono leading-none">
+                      <th className="w-full max-w-[1px] whitespace-nowrap px-2 py-1 text-left font-medium">Recurso</th>
+                      <th className="whitespace-nowrap px-1 py-1 text-right font-medium">Cant.</th>
+                      <th className="whitespace-nowrap px-2 py-1 text-right font-medium">C. unit.</th>
+                      <th className="whitespace-nowrap px-2 py-1 text-right font-medium">Parcial</th>
+                      <th className="py-1 pl-1 pr-2.5" />
+                    </tr>
+                  </thead>
                   <tbody>
                     {filas.map((f) => (
                       <tr key={f.d.id} className="border-t border-line/60">
-                        <td className="w-full max-w-[1px] px-2 py-0.5"><div className="flex items-baseline gap-1"><span className="min-w-0 truncate">{f.nombre}</span><span className="shrink-0 whitespace-nowrap text-muted-foreground">{f.und}</span></div></td>
+                        <td className="w-full max-w-[1px] px-2 py-0.5"><div className="flex items-baseline gap-1"><span className="min-w-0 truncate" title={f.nombre}>{f.nombre}</span><span className="shrink-0 whitespace-nowrap text-muted-foreground">{f.und}</span></div></td>
                         <td className="w-16 px-1 py-0.5">
                           <Input type="number" step="any" defaultValue={f.d.cantidad_o_cuadrilla} className="text-right text-xs" style={{ padding: "1px 6px", fontSize: 12, minWidth: 54 }}
                             onBlur={(e) => Number(e.target.value) !== Number(f.d.cantidad_o_cuadrilla) && cambiarCant(f.d.id, e.target.value)} />
