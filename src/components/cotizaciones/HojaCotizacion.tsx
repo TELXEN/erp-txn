@@ -128,6 +128,8 @@ export function HojaCotizacion({
           boxShadow: "0 12px 35px rgba(15,23,42,.18)",
         }}
       >
+        {mostrarEncabezado && (
+          <>
         <header style={{ display: "flex", gap: 22, alignItems: "flex-start", borderBottom: `2px solid ${C.green}`, paddingBottom: 14 }}>
           <div style={{ width: 96, display: "flex", alignItems: "center", justifyContent: "center" }}>
             {empresa?.logo_url ? (
