@@ -179,7 +179,7 @@ function Proyectos() {
   const avanceRealDe = (proyectoId: string) => {
     const ps = partidas.filter((x) => x.proyecto_id === proyectoId);
     if (ps.length === 0) return null;
-    return ps.reduce((a, x) => a + Number(x.avance_fisico_pct ?? 0), 0) / ps.length;
+    return ps.reduce((a, x) => a + Number(x.avance_pct ?? 0), 0) / ps.length;
   };
 
   const resumen = useMemo(() => {
