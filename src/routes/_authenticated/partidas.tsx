@@ -443,7 +443,7 @@ function Partidas() {
       </div>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-line pb-3">
         <div className="flex flex-wrap gap-1">
-          <button type="button" className="rounded-md border-b-2 border-cta bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary">Listado y estructura</button>
+          <button type="button" className="rounded-md border-b-2 border-cta bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary">{"\n"}</button>
         </div>
         <Boton onClick={abrirNueva} className="mb-1">+ Nueva partida</Boton>
       </div>
