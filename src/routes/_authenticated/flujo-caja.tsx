@@ -713,6 +713,7 @@ function FlujoCaja() {
         compras al crédito y pagos pendientes de RR. HH. En la vista por obra no se incluyen planillas ni tributos.
       </p>
       </details>
+      </>)}
     </div>
   );
 }
