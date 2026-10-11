@@ -663,15 +663,17 @@ function Partidas() {
       </VentanaFlotante>
 
       <>
-      <div className="mb-4 grid gap-3 sm:grid-cols-3">
+      <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-5">
         {[
-          { etiqueta: "Presupuesto contractual", valor: resumen.contractual },
-          { etiqueta: "Total adicionales", valor: resumen.adicionales },
-          { etiqueta: "Presupuesto vigente", valor: resumen.vigente },
+          { etiqueta: "Presupuesto contractual", valor: soles(resumen.contractual) },
+          { etiqueta: "Total adicionales", valor: soles(resumen.adicionales) },
+          { etiqueta: "Presupuesto vigente", valor: soles(resumen.vigente) },
+          { etiqueta: "Partidas", valor: String(resumenPartidas.total) },
+          { etiqueta: "Avance promedio", valor: `${resumenPartidas.promedio.toFixed(1)}%` },
         ].map((d) => (
-          <div key={d.etiqueta} className="rounded-md border border-line bg-card p-4">
-            <p className="label-mono text-muted-foreground">{d.etiqueta}</p>
-            <p className="mt-1 font-mono text-lg font-semibold text-ink">{soles(d.valor)}</p>
+          <div key={d.etiqueta} className="rounded-lg border border-line bg-card px-3 py-2">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{d.etiqueta}</p>
+            <p className="text-lg font-bold tabular-nums">{d.valor}</p>
           </div>
         ))}
       </div>
