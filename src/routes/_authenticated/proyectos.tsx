@@ -128,9 +128,12 @@ function Proyectos() {
   const { data: tiposPresupuesto = [] } = useTiposPresupuesto();
   const estadosQ = useEstadosProyecto();
   const { data: codificacion } = useCodificacion();
-  const [vista, setVista] = useState<"tabla" | "kanban">("tabla");
+  const [vista, setVista] = useState<"tabla" | "kanban">(() => (localStorage.getItem("proyectos:vista") === "kanban" ? "kanban" : "tabla"));
   const [busqueda, setBusqueda] = useState("");
-  const [segmento, setSegmento] = useState<"Todos" | "Borradores" | "En Ejecución" | "Finalizados" | "Archivados">("Todos");
+  const [segmento, setSegmento] = useState<"Todos" | "Borradores" | "En Ejecución" | "Finalizados" | "Archivados">(() => {
+    const s = localStorage.getItem("proyectos:segmento");
+    return s === "Borradores" || s === "En Ejecución" || s === "Finalizados" || s === "Archivados" ? s : "Todos";
+  });
   const [clienteFiltro, setClienteFiltro] = useState("");
   const [viendoId, setViendoId] = useState<string | null>(null);
   const [formAbierto, setFormAbierto] = useState(false);
@@ -172,6 +175,27 @@ function Proyectos() {
   });
   const clientesFiltro = useMemo(() => [...new Set(todosProyectos.map((p) => p.cliente).filter(Boolean))].sort(), [todosProyectos]);
   const proyectoVisto = todosProyectos.find((p) => p.id === viendoId) ?? null;
+
+  const avanceRealDe = (proyectoId: string) => {
+    const ps = partidas.filter((x) => x.proyecto_id === proyectoId);
+    if (ps.length === 0) return null;
+    return ps.reduce((a, x) => a + Number(x.avance_pct ?? 0), 0) / ps.length;
+  };
+
+  const resumen = useMemo(() => {
+    const activos = todosProyectos.filter((p) => !p.archivado_en);
+    const presupuesto = activos.reduce((a, p) => a + presupuestoProyecto(p.id, partidas), 0);
+    const costo = activos.reduce((a, p) => a + costoDe(p.id).costoReal, 0);
+    const conAvance = activos.map((p) => avanceRealDe(p.id)).filter((v): v is number => v !== null);
+    return {
+      total: activos.length,
+      enEjecucion: activos.filter((p) => p.situacion === "En proceso" || p.situacion === "Retrasado").length,
+      presupuesto,
+      costo,
+      avancePromedio: conAvance.length ? conAvance.reduce((a, v) => a + v, 0) / conAvance.length : null,
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [todosProyectos, partidas, costoDe]);
 
   const camposForm = () => ({
     nombre: form.nombre.trim(),
@@ -326,14 +350,14 @@ function Proyectos() {
           <div className="flex items-center gap-1 rounded-md border border-line bg-card p-1">
             <button
               type="button"
-              onClick={() => setVista("tabla")}
+              onClick={() => { setVista("tabla"); localStorage.setItem("proyectos:vista", "tabla"); }}
               className={`inline-flex items-center gap-1.5 rounded px-2.5 py-1.5 font-mono text-[11px] ${vista === "tabla" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-ink"}`}
             >
               <Table2 size={13} /> Tabla
             </button>
             <button
               type="button"
-              onClick={() => setVista("kanban")}
+              onClick={() => { setVista("kanban"); localStorage.setItem("proyectos:vista", "kanban"); }}
               className={`inline-flex items-center gap-1.5 rounded px-2.5 py-1.5 font-mono text-[11px] ${vista === "kanban" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-ink"}`}
             >
               <LayoutGrid size={13} /> Kanban
@@ -465,6 +489,22 @@ function Proyectos() {
         </form>
       </VentanaFlotante>
 
+      <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
+        {[
+          { k: "Proyectos activos", v: String(resumen.total), sub: `${resumen.enEjecucion} en ejecución` },
+          { k: "Presupuesto cartera", v: soles(resumen.presupuesto), sub: "Suma de partidas" },
+          { k: "Costo ejecutado", v: soles(resumen.costo), sub: resumen.presupuesto > 0 ? `${((resumen.costo / resumen.presupuesto) * 100).toFixed(1)}% del presupuesto` : "Sin presupuesto" },
+          { k: "Avance físico promedio", v: resumen.avancePromedio === null ? "—" : `${resumen.avancePromedio.toFixed(1)}%`, sub: "Obras con partidas" },
+          { k: "En esta vista", v: String(proyectos.length), sub: segmento === "Todos" ? "Todos los estados" : segmento },
+        ].map((c) => (
+          <div key={c.k} className="rounded-lg border border-line bg-card px-3 py-2.5">
+            <p className="text-[10px] font-medium uppercase tracking-[0.08em] text-muted-foreground">{c.k}</p>
+            <p className="mt-0.5 truncate text-lg font-bold tabular-nums text-ink">{c.v}</p>
+            <p className="truncate text-[10px] text-muted-foreground">{c.sub}</p>
+          </div>
+        ))}
+      </div>
+
       <Panel
         titulo={vista === "tabla" ? "Listado de proyectos" : "Tablero Kanban de proyectos"}
         extra={
@@ -481,7 +521,7 @@ function Proyectos() {
           {segmentos.map((item) => {
             const cantidad = todosProyectos.filter((p) => item === "Archivados" ? Boolean(p.archivado_en) : !p.archivado_en && pertenece(p.situacion, item)).length;
             return (
-              <Boton key={item} type="button" variante="linea" onClick={() => setSegmento(item)} className={`shrink-0 rounded-b-none border-b-0 ${segmento === item ? "bg-primary text-primary-foreground" : "border-transparent text-muted-foreground"}`}>
+              <Boton key={item} type="button" variante="linea" onClick={() => { setSegmento(item); localStorage.setItem("proyectos:segmento", item); }} className={`shrink-0 rounded-b-none border-b-0 ${segmento === item ? "bg-primary text-primary-foreground" : "border-transparent text-muted-foreground"}`}>
                 {item}<span className="tabular-nums opacity-70">{cantidad}</span>
               </Boton>
             );
@@ -552,8 +592,23 @@ function Proyectos() {
                           <span className="block">{fecha(p.fecha_inicio)} — {fecha(p.fecha_fin)}</span>
                         </td>
                         <td className="px-3 py-3 align-top">
-                          <div className="mb-1 flex justify-between text-[10px] text-muted-foreground"><span>Programado</span><span className="tabular-nums">{p.avance_programado_pct === null ? "—" : `${Number(p.avance_programado_pct).toFixed(1)}%`}</span></div>
-                          <div className="h-1.5 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-primary" style={{ width: `${Math.min(100, Math.max(0, Number(p.avance_programado_pct ?? 0)))}%` }} /></div>
+                          {(() => {
+                            const real = avanceRealDe(p.id);
+                            const prog = p.avance_programado_pct === null ? null : Number(p.avance_programado_pct);
+                            const barra = (v: number) => (v >= 100 ? "bg-good" : v > 0 ? "bg-warn" : "bg-muted-foreground/30");
+                            return (
+                              <div className="space-y-1.5">
+                                <div>
+                                  <div className="mb-0.5 flex justify-between text-[10px] text-muted-foreground"><span>Real</span><span className="tabular-nums">{real === null ? "—" : `${real.toFixed(1)}%`}</span></div>
+                                  <div className="h-1.5 overflow-hidden rounded-full bg-muted"><div className={`h-full rounded-full ${barra(real ?? 0)}`} style={{ width: `${Math.min(100, Math.max(0, real ?? 0))}%` }} /></div>
+                                </div>
+                                <div>
+                                  <div className="mb-0.5 flex justify-between text-[10px] text-muted-foreground"><span>Programado</span><span className="tabular-nums">{prog === null ? "—" : `${prog.toFixed(1)}%`}</span></div>
+                                  <div className="h-1.5 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-primary" style={{ width: `${Math.min(100, Math.max(0, prog ?? 0))}%` }} /></div>
+                                </div>
+                              </div>
+                            );
+                          })()}
                         </td>
                         <td className="px-3 py-3 align-top text-right whitespace-nowrap tabular-nums">{soles(presupuesto)}</td>
                         <td
