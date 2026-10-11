@@ -110,6 +110,9 @@ function GastosDirectos() {
   const { data: terceros = [] } = useTerceros();
   const proveedores = terceros.filter((t) => t.es_proveedor && t.activo);
   const [proyectoId, setProyectoId] = useState(() => localStorage.getItem("gastos-directos:proyecto") ?? "");
+  const [pestana, setPestana] = useState<"resumen" | "partidas">(() =>
+    localStorage.getItem("gastos-directos:pestana") === "partidas" ? "partidas" : "resumen",
+  );
   const [abiertas, setAbiertas] = useState<Record<string, boolean>>({});
   const [gruposCerrados, setGruposCerrados] = useState<Record<string, boolean>>({});
   const [modal, setModal] = useState<{ pid: string; editando?: Compra; inicial?: Borrador } | null>(null);
