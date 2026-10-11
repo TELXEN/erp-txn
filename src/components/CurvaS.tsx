@@ -28,6 +28,7 @@ export function CurvaS({
   fechaInicio,
   fechaFin,
   presupuesto,
+  presupuestoCosto,
   presupuestoContractual,
   adicionales,
   avanceFisico,
@@ -42,6 +43,8 @@ export function CurvaS({
   fechaInicio: string | null;
   fechaFin: string | null;
   presupuesto: number;
+  /** Presupuesto de costo (CD + GG, sin utilidad): base del CPI. */
+  presupuestoCosto?: number;
   presupuestoContractual: number;
   adicionales: number;
   avanceFisico: number;
@@ -93,9 +96,14 @@ export function CurvaS({
       gastadoSoles: ultimoCosto?.soles ?? 0,
       programadoHoy,
       spi: programadoHoy > 0 ? avanceFisico / programadoHoy : 0,
-      cpi: (ultimoCosto?.costo ?? 0) > 0 ? avanceFisico / (ultimoCosto?.costo ?? 1) : 0,
+      cpi: (() => {
+        // CPI = valor ganado / costo real; valor ganado = avance físico × presupuesto de costo (sin utilidad).
+        const base = presupuestoCosto && presupuestoCosto > 0 ? presupuestoCosto : presupuesto;
+        const real = ultimoCosto?.soles ?? 0;
+        return real > 0 ? ((avanceFisico / 100) * base) / real : 0;
+      })(),
     };
-  }, [fechaInicio, fechaFin, periodicidad, cronograma, partidas, presupuesto, avanceFisico, avanceProgramadoOficial, movimientos]);
+  }, [fechaInicio, fechaFin, periodicidad, cronograma, partidas, presupuesto, presupuestoCosto, avanceFisico, avanceProgramadoOficial, movimientos]);
 
 
   if (!datos) {
@@ -151,7 +159,7 @@ export function CurvaS({
                   <span>
                     <strong>SPI</strong> = avance físico real ÷ avance programado oficial.{" "}
                     <em>{"\u003e 1"}</em> = adelanto; <em>{"< 1"}</em> = retraso.
-                    {mostrarDinero && <><br /><strong>CPI</strong> = avance físico real ÷ % de presupuesto gastado. <em>{"\u003e 1"}</em> = ahorro; <em>{"< 1"}</em> = sobrecosto.</>}
+                    {mostrarDinero && <><br /><strong>CPI</strong> = (avance físico × presupuesto de costo sin utilidad) ÷ costo real. <em>{"\u003e 1"}</em> = ahorro; <em>{"< 1"}</em> = sobrecosto.</>}
                   </span>
                 }
               />
