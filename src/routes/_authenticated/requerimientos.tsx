@@ -314,15 +314,15 @@ function RequerimientosPage() {
       {
         nombre: "Consolidado",
         filas: explosion.map((e) => ({
-          Tipo: nombreTipo(e.ins!.tipo),
-          Insumo: e.ins!.nombre,
-          Unidad: e.ins!.unidad,
+          Tipo: nombreTipo(e.tipo),
+          Insumo: e.nombre,
+          Unidad: e.unidad,
           Partidas: e.partidas,
           "Cantidad total": Number(e.total.toFixed(4)),
           "Ya requerido": Number(e.requerido.toFixed(4)),
           "Saldo por requerir": Number(e.saldo.toFixed(4)),
           ...(gestiona
-            ? { "Precio (S/)": Number(e.ins!.precio), "Parcial (S/)": Math.round(e.total * Number(e.ins!.precio) * 100) / 100 }
+            ? { "Precio (S/)": e.precio, "Parcial (S/)": Math.round(e.total * e.precio * 100) / 100 }
             : {}),
         })),
       },
@@ -330,9 +330,9 @@ function RequerimientosPage() {
         nombre: "Origen por partida",
         filas: explosion.flatMap((e) =>
           e.origenes.map((o) => ({
-            Tipo: nombreTipo(e.ins!.tipo),
-            Insumo: e.ins!.nombre,
-            Unidad: e.ins!.unidad,
+            Tipo: nombreTipo(e.tipo),
+            Insumo: e.nombre,
+            Unidad: e.unidad,
             "Código partida": o.codigo,
             Partida: o.nombre,
             Metrado: Number(o.metrado.toFixed(4)),
