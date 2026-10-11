@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Boton, Campo, Input } from "@/components/ui-kit";
+import { PantallaCarga } from "@/components/PantallaCarga";
 
 export const Route = createFileRoute("/")({
   ssr: false,
@@ -20,6 +21,7 @@ export const Route = createFileRoute("/")({
       },
     ],
   }),
+  pendingComponent: () => <PantallaCarga completa />,
   component: Login,
 });
 
