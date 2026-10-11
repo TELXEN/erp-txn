@@ -374,7 +374,7 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
                         </td>
                         <td className="px-2 py-1 text-right font-mono">{soles(f.cu)}</td>
                         <td className="px-2 py-1 text-right font-mono">{soles(f.parcial)}</td>
-                        <td className="w-8 px-1"><BotonIcono etiqueta="Quitar fila" tono="peligro" onClick={() => quitarFila(f.d.id)}><X size={13} /></BotonIcono></td>
+                        <td className="w-8 py-1 pl-1 pr-3"><BotonIcono etiqueta="Quitar fila" tono="peligro" onClick={() => quitarFila(f.d.id)}><X size={13} /></BotonIcono></td>
                       </tr>
                     ))}
                   </tbody>
