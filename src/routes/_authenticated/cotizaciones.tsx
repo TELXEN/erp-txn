@@ -245,7 +245,7 @@ function Cotizaciones() {
     qc.invalidateQueries({ queryKey: ["cotizacion_items", cot.id] });
   }
 
-  function cargarMaestraEnFormulario(m: { id: string; codigo: string; nombre: string; especialidad: string; categoria: string; marca: string; unidad: string; precio_unitario: number }, metrado: string) {
+  function cargarMaestraEnFormulario(m: { id: string; codigo: string; nombre: string; especialidad: string; categoria?: string; marca?: string; unidad: string; precio_unitario: number }, metrado: string) {
     if (!cot) return;
     setError("");
     try {
