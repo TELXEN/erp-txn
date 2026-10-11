@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Panel, Vacio } from "@/components/ui-kit";
@@ -172,7 +172,7 @@ function altoEstimadoFila(fila: Fila, charsPorLinea = 62) {
   return 14 + lineas * 15;
 }
 
-function paginarFilas(filas: Fila[], horizontal = false) {
+function paginarFilas(filas: Fila[], horizontal = false, factor = 1) {
   if (filas.length === 0) return [[]] as Fila[][];
   const charsPorLinea = horizontal ? 95 : 62;
   const paginas: Fila[][] = [];
@@ -180,8 +180,8 @@ function paginarFilas(filas: Fila[], horizontal = false) {
   let primeraHoja = true;
 
   while (pendientes.length > 0) {
-    const capacidad = horizontal ? (primeraHoja ? 330 : 455) : primeraHoja ? 470 : 650;
-    const capacidadFinal = horizontal ? (primeraHoja ? 175 : 245) : primeraHoja ? 250 : 350;
+    const capacidad = (horizontal ? (primeraHoja ? 330 : 455) : primeraHoja ? 470 : 650) * factor;
+    const capacidadFinal = (horizontal ? (primeraHoja ? 175 : 245) : primeraHoja ? 250 : 350) * factor;
     const altoPendiente = pendientes.reduce((suma, fila) => suma + altoEstimadoFila(fila, charsPorLinea), 0);
 
     if (altoPendiente <= capacidadFinal) {
@@ -260,9 +260,17 @@ function VistaCotizacion() {
   const paginaW = horizontal ? 1123 : 794;
   const interiorW = horizontal ? 1087 : 754;
   const paginaH = horizontal ? 700 : 990;
+  const [factorPagina, setFactorPagina] = useState(1);
+  useEffect(() => { setFactorPagina(1); }, [id, horizontal, items.length]);
   const nombreArchivo = `Cotizacion_${(cot?.cliente || "Cliente").replace(/[^\w-]+/g, "_")}_${cot?.codigo ?? "sin_codigo"}`;
-  const paginas = paginarFilas(construirFilas(items as unknown as ItemCot[], { multi: Boolean(cot?.multidisciplinaria), alcance: cot?.alcance }), horizontal)
-  const porGrupo = subtotalesPorGrupo(items as unknown as ItemCot[]);;
+  const paginas = paginarFilas(construirFilas(items as unknown as ItemCot[], { multi: Boolean(cot?.multidisciplinaria), alcance: cot?.alcance }), horizontal, factorPagina);
+  // Si alguna hoja se desborda (estimación corta), se reduce la capacidad y se reparte en más hojas.
+  useLayoutEffect(() => {
+    const hojas = document.querySelectorAll<HTMLElement>("#cotizacion-impresion .cotizacion-hoja");
+    const desborda = [...hojas].some((h) => h.scrollHeight > h.clientHeight + 1);
+    if (desborda && factorPagina > 0.3) setFactorPagina((f) => Math.max(0.3, f - 0.08));
+  });
+  const porGrupo = subtotalesPorGrupo(items as unknown as ItemCot[]);
 
   function copiarEnlace() {
     const url = `${window.location.origin}/cotizacion-vista?id=${id}`;
