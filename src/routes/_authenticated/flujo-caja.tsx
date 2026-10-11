@@ -111,6 +111,14 @@ function FlujoCaja() {
   const [obra, setObra] = useState("global");
   const [costoAbierto, setCostoAbierto] = useState(false);
   const [verTendencia, setVerTendencia] = useState(true);
+  const [pestana, setPestana] = useState<"resumen" | "matriz">(() => {
+    const g = localStorage.getItem("flujo-caja:pestana");
+    return g === "matriz" ? "matriz" : "resumen";
+  });
+  const cambiarPestana = (p: "resumen" | "matriz") => {
+    setPestana(p);
+    localStorage.setItem("flujo-caja:pestana", p);
+  };
   const global = obra === "global";
   const { data: proyectos = [] } = useProyectos();
   const { data: bancos = [] } = useQuery({
