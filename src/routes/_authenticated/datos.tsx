@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
-import { Check, Coins, Pencil, Plus, Trash2, Upload, X } from "lucide-react";
+import { Building2, Check, Coins, FolderKanban, HardHat, Pencil, Plus, SlidersHorizontal, Tag, Trash2, Upload, X } from "lucide-react";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { exportarExcel } from "@/lib/exportar";
 import {
@@ -65,7 +65,12 @@ type Pestana =
   | "marcas";
 
 const GRUPOS_CONFIG: { titulo: string; icono: React.ElementType; items: [Pestana, string][] }[] = [
+  { titulo: "Empresa", icono: Building2, items: [["bancos", "Cuentas bancarias"]] },
+  { titulo: "Codificación", icono: FolderKanban, items: [["codificacion", "Codificación de Documentos"]] },
+  { titulo: "Parámetros de proyectos", icono: SlidersHorizontal, items: [["configuracion", "Parámetros de proyectos"]] },
+  { titulo: "Marcas", icono: Tag, items: [["marcas", "Registro de marcas"]] },
   { titulo: "Costos y Finanzas", icono: Coins, items: [["categoriasgg", "Categorías de gastos generales"], ["centros", "Centros de costos"], ["costos", "Rubros de costos"], ["ingresos", "Rubros de ingresos"]] },
+  { titulo: "Recursos Humanos", icono: HardHat, items: [["cargos", "Cargos del personal"]] },
 ];
 
 const MONEDAS = ["PEN", "USD", "PEN/USD"];
@@ -79,7 +84,7 @@ const ETIQUETA_MONEDA: Record<string, string> = {
 function Datos() {
   const { rol } = useAuth();
   const qc = useQueryClient();
-  const [pestana, setPestana] = useState<Pestana>("categoriasgg");
+  const [pestana, setPestana] = useState<Pestana>("bancos");
   const [error, setError] = useState("");
 
   const { data: bancos = [] } = useQuery({
@@ -161,6 +166,26 @@ function Datos() {
         }
       />
 
+
+      <div className="mb-3 flex flex-wrap gap-1">
+        {GRUPOS_CONFIG.map((g) => {
+          const Icono = g.icono;
+          const activo = g.items.some(([p]) => p === pestana);
+          return (
+            <Boton
+              key={g.titulo}
+              variante={activo ? "primario" : "linea"}
+              onClick={() => {
+                const primero = g.items[0];
+                if (primero) setPestana(primero[0]);
+                setError("");
+              }}
+            >
+              <Icono size={13} /> {g.titulo}
+            </Boton>
+          );
+        })}
+      </div>
 
       <div className="mb-4 flex flex-wrap items-center gap-5 border-b border-line pb-2">
         {(GRUPOS_CONFIG.find((g) => g.items.some(([p]) => p === pestana)) ?? GRUPOS_CONFIG[0]!).items.map(([p, texto]) => (
