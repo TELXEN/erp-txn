@@ -628,6 +628,9 @@ function Cotizaciones() {
             <Select className="w-36" value={cot.estado} onChange={(e) => cambiarEstado(cot.id, e.target.value as EstadoCotizacion)}>
               {ESTADOS_COTIZACION.map((e) => <option key={e} value={e}>{e}</option>)}
             </Select>
+            <Boton variante="linea" onClick={alternarEncabezado} title="Mostrar u ocultar el encabezado de la hoja">
+              {encabezado ? <Eye size={13} /> : <EyeOff size={13} />} Encabezado
+            </Boton>
             <Link to="/cotizacion-vista" search={{ id: cot.id }}>
               <Boton variante="linea"><Eye size={13} /> Vista previa A4</Boton>
             </Link>
