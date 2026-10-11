@@ -445,7 +445,11 @@ function VistaCotizacion() {
         titulo="Vista previa de cotización"
         subtitulo={`${cot.codigo ?? "Sin código"} · ${cot.cliente || "Cliente sin registrar"}`}
         acciones={
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <label className="no-print flex h-8 cursor-pointer items-center gap-2 rounded-md border border-line px-3 text-xs font-medium select-none" title="Imprimir y exportar la hoja en A4 horizontal">
+              <Checkbox checked={horizontal} onCheckedChange={(v) => alternarHorizontal(v === true)} />
+              A4 horizontal
+            </label>
             <Link to="/cotizaciones">
               <Boton variante="linea"><ArrowLeft size={13} /> Volver</Boton>
             </Link>
@@ -458,6 +462,7 @@ function VistaCotizacion() {
           </div>
         }
       />
+      <style>{horizontal ? "@page { size: A4 landscape; }" : "@page { size: A4 portrait; }"}</style>
 
       <div className="overflow-x-auto pb-8">
         <div className="mx-auto" style={{ width: interiorW }}>
