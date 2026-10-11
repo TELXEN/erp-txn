@@ -113,7 +113,15 @@ const diasA = (f: string | null) =>
 function Tesoreria() {
   const { rol } = useAuth();
   const qc = useQueryClient();
-  const [pestana, setPestana] = useState<"cxc" | "cxp">("cxc");
+  type Pestana = "resumen" | "cxc" | "cxp";
+  const [pestana, setPestanaBase] = useState<Pestana>(() => {
+    const g = localStorage.getItem("tesoreria:pestana");
+    return g === "cxc" || g === "cxp" ? g : "resumen";
+  });
+  const setPestana = (t: Pestana) => {
+    setPestanaBase(t);
+    localStorage.setItem("tesoreria:pestana", t);
+  };
   const [busqueda, setBusqueda] = useState("");
   const [cerrados, setCerrados] = useState<Set<string>>(new Set());
   const [accion, setAccion] = useState<{
@@ -414,7 +422,43 @@ function Tesoreria() {
         }
       />
 
-      <div className="panel mb-4 flex flex-wrap items-center justify-between gap-4 border-primary/30 bg-primary/5 p-5">
+      <div className="mb-4 flex gap-1 border-b border-line">
+        {(["resumen", "cxc", "cxp"] as const).map((t) => {
+          const activa = pestana === t;
+          const etiqueta =
+            t === "resumen" ? "Resumen" : t === "cxc" ? `Cuentas por cobrar (${cxc.length})` : `Cuentas por pagar (${cxp.length})`;
+          return (
+            <button
+              key={t}
+              type="button"
+              onClick={() => { setPestana(t); setAccion(null); setFiltroVence(null); setTercero(""); setSeleccion(new Set()); }}
+              className={`-mb-px border-b-2 px-4 py-2 text-xs font-medium transition ${
+                activa ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-ink"
+              }`}
+            >
+              {etiqueta}
+            </button>
+          );
+        })}
+      </div>
+
+      {pestana === "resumen" && (
+        <>
+          <div className="mb-4 grid gap-3 sm:grid-cols-4">
+            {[
+              { t: "Total por cobrar", v: kc.total, tono: "text-good" },
+              { t: "Vencido por cobrar", v: kc.vencido, tono: kc.vencido > 0 ? "text-bad" : "text-ink" },
+              { t: "Total por pagar", v: kp.total, tono: "text-warn" },
+              { t: "Vencido por pagar", v: kp.vencido, tono: kp.vencido > 0 ? "text-bad" : "text-ink" },
+            ].map((c) => (
+              <div key={c.t} className="panel p-4">
+                <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">{c.t}</p>
+                <p className={`mt-1 text-lg font-semibold tabular-nums ${c.tono}`}>{soles(c.v)}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="panel mb-4 flex flex-wrap items-center justify-between gap-4 border-primary/30 bg-primary/5 p-5">
         <div>
           <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">Balance consolidado en PEN</p>
           <p className="mt-1 text-xs text-muted-foreground">
@@ -468,30 +512,11 @@ function Tesoreria() {
           </div>
         )}
       </Panel>
+        </>
+      )}
 
-      <div className="mb-3 flex gap-2">
-        {(["cxc", "cxp"] as const).map((t) => {
-          const activa = pestana === t;
-          const tono = t === "cxc"
-            ? activa
-              ? "border-good bg-good text-white"
-              : "border-good/50 text-good hover:bg-good/10"
-            : activa
-              ? "border-warn bg-warn text-white"
-              : "border-warn/50 text-warn hover:bg-warn/10";
-          return (
-            <button
-              key={t}
-              type="button"
-              onClick={() => { setPestana(t); setAccion(null); setFiltroVence(null); setTercero(""); setSeleccion(new Set()); }}
-              className={`rounded-md border px-3 py-1.5 text-xs transition ${tono}`}
-            >
-              {t === "cxc" ? `Cuentas por cobrar (${cxc.length})` : `Cuentas por pagar (${cxp.length})`}
-            </button>
-          );
-        })}
-      </div>
-
+      {pestana !== "resumen" && (
+        <>
       <div className="mb-4 grid gap-3 sm:grid-cols-4">
         {tarjeta(pestana === "cxc" ? "Total por cobrar" : "Total por pagar", k.total, null)}
         {tarjeta("Vencido", k.vencido, "vencido", k.vencido > 0 ? "text-bad" : "text-ink")}
@@ -639,6 +664,8 @@ function Tesoreria() {
           </div>
         )}
       </Panel>
+        </>
+      )}
 
       {lote && (
         <div
