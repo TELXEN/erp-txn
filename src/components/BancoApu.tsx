@@ -428,7 +428,7 @@ function DialogoAgregarInsumo({ grupo, partida, opciones, existentes, onCerrar, 
   return (
     <VentanaFlotante abierta onCerrar={onCerrar} ancho="max-w-xl" titulo={`Agregar — ${titulo}`} subtitulo={partida.descripcion}>
       {!elegido ? (
-        <div>
+        <div className="p-5">
           <Input autoFocus placeholder="Busca por código, descripción o marca…" value={q} onChange={(e) => setQ(e.target.value)} />
           <div className="mt-2 max-h-80 overflow-y-auto rounded-md border border-line">
             {lista.length === 0 && <Vacio texto="Sin coincidencias." />}
@@ -443,7 +443,7 @@ function DialogoAgregarInsumo({ grupo, partida, opciones, existentes, onCerrar, 
           </div>
         </div>
       ) : (
-        <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); guardar(); }}>
+        <form className="space-y-3 p-5" onSubmit={(e) => { e.preventDefault(); guardar(); }}>
           <div className="flex items-center justify-between rounded-md border border-line px-3 py-2 text-sm">
             <span className="min-w-0 truncate">{elegido.codigo ?? elegido.codigo_jerarquico} · {elegido.descripcion}{elegido.marca ? ` · ${elegido.marca}` : ""}</span>
             <Boton type="button" variante="linea" className="py-1" onClick={() => setElegido(null)}>Cambiar</Boton>
