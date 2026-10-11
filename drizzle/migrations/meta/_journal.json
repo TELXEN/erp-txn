@@ -169,6 +169,13 @@
       "when": 1791613261178,
       "tag": "0023_candado_consumir_autorizacion_rubro",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1791732189935,
+      "tag": "0024_banco_apu_relacional",
+      "breakpoints": true
     }
   ]
 }

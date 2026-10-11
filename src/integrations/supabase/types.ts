@@ -1633,6 +1633,48 @@ export type Database = {
         }
         Relationships: []
       }
+      equipos_herramientas: {
+        Row: {
+          codigo: string
+          costo_hora: number
+          costo_unitario: number | null
+          created_at: string
+          descripcion: string
+          estado: string
+          id: string
+          margen: number
+          tipo: string
+          unidad: string
+          updated_at: string
+        }
+        Insert: {
+          codigo?: string
+          costo_hora?: number
+          costo_unitario?: number | null
+          created_at?: string
+          descripcion: string
+          estado?: string
+          id?: string
+          margen?: number
+          tipo?: string
+          unidad?: string
+          updated_at?: string
+        }
+        Update: {
+          codigo?: string
+          costo_hora?: number
+          costo_unitario?: number | null
+          created_at?: string
+          descripcion?: string
+          estado?: string
+          id?: string
+          margen?: number
+          tipo?: string
+          unidad?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       especialidades_partida: {
         Row: {
           activo: boolean
@@ -2232,6 +2274,39 @@ export type Database = {
         }
         Relationships: []
       }
+      mano_obra: {
+        Row: {
+          codigo: string
+          costo_hora: number
+          created_at: string
+          descripcion: string
+          estado: string
+          id: string
+          unidad: string
+          updated_at: string
+        }
+        Insert: {
+          codigo?: string
+          costo_hora?: number
+          created_at?: string
+          descripcion: string
+          estado?: string
+          id?: string
+          unidad?: string
+          updated_at?: string
+        }
+        Update: {
+          codigo?: string
+          costo_hora?: number
+          created_at?: string
+          descripcion?: string
+          estado?: string
+          id?: string
+          unidad?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       mantenimientos_vehiculo: {
         Row: {
           banco_id: string | null
@@ -2364,6 +2439,48 @@ export type Database = {
             referencedColumns: ["clave"]
           },
         ]
+      }
+      materiales: {
+        Row: {
+          codigo: string
+          costo_unitario: number | null
+          created_at: string
+          descripcion: string
+          estado: string
+          id: string
+          marca: string
+          margen: number
+          precio_base: number
+          unidad: string
+          updated_at: string
+        }
+        Insert: {
+          codigo?: string
+          costo_unitario?: number | null
+          created_at?: string
+          descripcion: string
+          estado?: string
+          id?: string
+          marca?: string
+          margen?: number
+          precio_base?: number
+          unidad?: string
+          updated_at?: string
+        }
+        Update: {
+          codigo?: string
+          costo_unitario?: number | null
+          created_at?: string
+          descripcion?: string
+          estado?: string
+          id?: string
+          marca?: string
+          margen?: number
+          precio_base?: number
+          unidad?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       metas_flujo_caja: {
         Row: {
@@ -2700,6 +2817,85 @@ export type Database = {
         }
         Relationships: []
       }
+      partida_detalle: {
+        Row: {
+          cantidad_o_cuadrilla: number
+          created_at: string
+          equipo_id: string | null
+          id: string
+          mano_obra_id: string | null
+          material_id: string | null
+          partida_padre_id: string
+          subcontrato_id: string | null
+          subpartida_hijo_id: string | null
+        }
+        Insert: {
+          cantidad_o_cuadrilla?: number
+          created_at?: string
+          equipo_id?: string | null
+          id?: string
+          mano_obra_id?: string | null
+          material_id?: string | null
+          partida_padre_id: string
+          subcontrato_id?: string | null
+          subpartida_hijo_id?: string | null
+        }
+        Update: {
+          cantidad_o_cuadrilla?: number
+          created_at?: string
+          equipo_id?: string | null
+          id?: string
+          mano_obra_id?: string | null
+          material_id?: string | null
+          partida_padre_id?: string
+          subcontrato_id?: string | null
+          subpartida_hijo_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partida_detalle_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "equipos_herramientas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partida_detalle_mano_obra_id_fkey"
+            columns: ["mano_obra_id"]
+            isOneToOne: false
+            referencedRelation: "mano_obra"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partida_detalle_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "materiales"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partida_detalle_partida_padre_id_fkey"
+            columns: ["partida_padre_id"]
+            isOneToOne: false
+            referencedRelation: "partidas_apu"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partida_detalle_subcontrato_id_fkey"
+            columns: ["subcontrato_id"]
+            isOneToOne: false
+            referencedRelation: "subcontratos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partida_detalle_subpartida_hijo_id_fkey"
+            columns: ["subpartida_hijo_id"]
+            isOneToOne: false
+            referencedRelation: "partidas_apu"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partidas: {
         Row: {
           aplica_gg: boolean
@@ -2792,6 +2988,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      partidas_apu: {
+        Row: {
+          codigo_jerarquico: string
+          created_at: string
+          descripcion: string
+          especialidad: string
+          estado: string
+          id: string
+          rendimiento_diario: number
+          unidad: string
+          updated_at: string
+        }
+        Insert: {
+          codigo_jerarquico?: string
+          created_at?: string
+          descripcion: string
+          especialidad?: string
+          estado?: string
+          id?: string
+          rendimiento_diario?: number
+          unidad?: string
+          updated_at?: string
+        }
+        Update: {
+          codigo_jerarquico?: string
+          created_at?: string
+          descripcion?: string
+          especialidad?: string
+          estado?: string
+          id?: string
+          rendimiento_diario?: number
+          unidad?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       partidas_maestras: {
         Row: {
@@ -3805,6 +4037,45 @@ export type Database = {
           },
         ]
       }
+      subcontratos: {
+        Row: {
+          codigo: string
+          costo: number
+          costo_unitario: number | null
+          created_at: string
+          descripcion: string
+          estado: string
+          id: string
+          margen: number
+          unidad: string
+          updated_at: string
+        }
+        Insert: {
+          codigo?: string
+          costo?: number
+          costo_unitario?: number | null
+          created_at?: string
+          descripcion: string
+          estado?: string
+          id?: string
+          margen?: number
+          unidad?: string
+          updated_at?: string
+        }
+        Update: {
+          codigo?: string
+          costo?: number
+          costo_unitario?: number | null
+          created_at?: string
+          descripcion?: string
+          estado?: string
+          id?: string
+          margen?: number
+          unidad?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       tareo_vehiculos: {
         Row: {
           conductor_id: string | null
@@ -4529,6 +4800,10 @@ export type Database = {
       mover_item_wbs: {
         Args: { _direccion: number; _id: string; _tabla: string }
         Returns: undefined
+      }
+      quitar_recurso_apu: {
+        Args: { _id: string; _tabla: string }
+        Returns: string
       }
       recodificar_wbs: { Args: never; Returns: undefined }
       siguiente_codigo_cotizacion: { Args: never; Returns: string }

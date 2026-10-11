@@ -9,6 +9,7 @@ import { EspecialidadesPartida } from "@/components/EspecialidadesPartida";
 import { CategoriasPartida } from "@/components/CategoriasPartida";
 import { PartidasMaestras } from "@/components/PartidasMaestras";
 import { GruposCotizacion } from "@/components/GruposCotizacion";
+import { BancoApu } from "@/components/BancoApu";
 
 export const Route = createFileRoute("/_authenticated/datos-apu")({
   head: () => ({
@@ -30,11 +31,11 @@ export const Route = createFileRoute("/_authenticated/datos-apu")({
   component: DatosApu,
 });
 
-type Pestana = "insumos" | "unidades" | "especialidades" | "categorias" | "maestras" | "grupos";
+type Pestana = "banco" | "insumos" | "unidades" | "especialidades" | "categorias" | "maestras" | "grupos";
 
 const GRUPOS_APU: { titulo: string; icono: React.ElementType; items: [Pestana, string][] }[] = [
-  { titulo: "Banco de partidas", icono: FolderKanban, items: [["maestras", "\n"]] },
-  { titulo: "Maestro de insumos", icono: Package, items: [["insumos", "\n"]] },
+  { titulo: "Banco APU", icono: FolderKanban, items: [["banco", "\n"]] },
+  { titulo: "Maestro anterior", icono: Package, items: [["maestras", "Partidas maestras"], ["insumos", "Insumos"]] },
   {
     titulo: "Catálogo técnico",
     icono: Layers,
@@ -48,7 +49,7 @@ const GRUPOS_APU: { titulo: string; icono: React.ElementType; items: [Pestana, s
 ];
 
 function DatosApu() {
-  const [pestana, setPestana] = useState<Pestana>("maestras");
+  const [pestana, setPestana] = useState<Pestana>("banco");
   const grupoActivo = GRUPOS_APU.find((g) => g.items.some(([p]) => p === pestana)) ?? GRUPOS_APU[0]!;
 
   return (
@@ -98,7 +99,9 @@ function DatosApu() {
         </div>
       )}
 
-      {pestana === "insumos" ? (
+      {pestana === "banco" ? (
+        <BancoApu />
+      ) : pestana === "insumos" ? (
         <Insumos />
       ) : pestana === "unidades" ? (
         <UnidadesMedida />
