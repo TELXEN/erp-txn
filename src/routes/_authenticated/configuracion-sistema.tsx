@@ -29,6 +29,31 @@ function IconoPaletaColores({ className }: { className?: string }) {
   );
 }
 
+function Grupo({
+  ficha,
+  nombre,
+  children,
+}: {
+  ficha: ReactNode;
+  nombre: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="space-y-3" aria-label={nombre}>
+      <header className="flex items-center gap-2.5">
+        <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
+          {ficha}
+        </span>
+        <h2 className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+          {nombre}
+        </h2>
+        <span className="h-px flex-1 bg-line" aria-hidden="true" />
+      </header>
+      <div className="space-y-4">{children}</div>
+    </section>
+  );
+}
+
 export const Route = createFileRoute("/_authenticated/configuracion-sistema")({
   head: () => ({
     meta: [
@@ -101,10 +126,14 @@ function ConfiguracionSistema() {
             })}
           </div>
             </Panel> : pestana === "tipografia" ? <TipografiaDocumentosPanel /> : pestana === "empresa" ? (
-          <>
-            <DatosEmpresa />
-            <CuentasBancarias />
-          </>
+          <div className="space-y-7">
+            <Grupo ficha={<Building2 className="size-4" />} nombre="Datos de la empresa">
+              <DatosEmpresa />
+            </Grupo>
+            <Grupo ficha={<Landmark className="size-4" />} nombre="Cuentas bancarias">
+              <CuentasBancarias />
+            </Grupo>
+          </div>
         ) : <UsuariosPanel />}
     </div>
   );
