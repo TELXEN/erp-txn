@@ -19,7 +19,7 @@ type CampoDef = {
   t: string;
   tipo?: "num" | "sel";
   opciones?: string[];
-  soloSi?: (f: Record<string, string>) => boolean;
+  soloSi?: (f: Fila) => boolean;
 };
 
 const CONFIG: Record<Tabla, { titulo: string; campos: CampoDef[]; columnas: [string, string, "num" | "txt" | "sol"][]; filtro?: string }> = {
@@ -108,7 +108,7 @@ function ListaBanco({ tabla }: { tabla: Tabla }) {
   const [busqueda, setBusqueda] = useState("");
   const [filtro, setFiltro] = useState("");
   const [estado, setEstado] = useState("activo");
-  const [form, setForm] = useState<Record<string, string> | null>(null);
+  const [form, setForm] = useState<Fila | null>(null);
   const [editId, setEditId] = useState<string | null>(null);
   const [receta, setReceta] = useState<Fila | null>(null);
   const [aviso, setAviso] = useState("");
@@ -126,7 +126,7 @@ function ListaBanco({ tabla }: { tabla: Tabla }) {
   const refrescar = () => qc.invalidateQueries({ queryKey: ["banco_apu"] });
 
   function abrir(f?: Fila) {
-    const base: Record<string, string> = {};
+    const base: Fila = {};
     for (const c of cfg.campos) base[c.k] = f ? String(f[c.k] ?? "") : c.opciones?.[0] ?? (c.tipo === "num" ? "0" : "");
     if (!f && tabla === "mano_obra") base.unidad = "H-H";
     if (!f && tabla === "partidas_apu") base.rendimiento_diario = "1";
@@ -285,7 +285,7 @@ function RecetaApu({ partida, onCerrar }: { partida: Fila; onCerrar: () => void 
     const propias = detalles.filter((d) => d.partida_padre_id === id);
     const filas = propias.map((d) => {
       const [col, tabla, etiqueta] = BANCOS.find(([c]) => d[c]) ?? BANCOS[0];
-      const r = fuentes[tabla].find((x) => x.id === d[col]);
+      const r = (fuentes[tabla] ?? []).find((x) => x.id === d[col]);
       const q = Number(d.cantidad_o_cuadrilla);
       let cu = 0, parcial = 0;
       if (tabla === "partidas_apu") { cu = costo(d[col] as string, new Set(visitados)).total; parcial = q * cu; }
@@ -301,7 +301,7 @@ function RecetaApu({ partida, onCerrar }: { partida: Fila; onCerrar: () => void 
   const calc = costo(partida.id);
 
   const [col, tabla, etiqueta] = BANCOS[banco]!;
-  const opciones = fuentes[tabla].filter((x) => x.estado === "activo" && x.id !== partida.id);
+  const opciones = (fuentes[tabla] ?? []).filter((x) => x.estado === "activo" && x.id !== partida.id);
   const refrescar = () => qc.invalidateQueries({ queryKey: ["banco_apu", "partida_detalle"] });
 
   async function agregar() {
