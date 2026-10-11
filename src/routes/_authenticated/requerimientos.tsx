@@ -123,6 +123,22 @@ function RequerimientosPage() {
       return (data ?? []) as (ComponenteApu & { partida_id: string | null; cotizacion_item_id: string | null })[];
     },
   });
+  // Receta del Banco APU de las partidas hoja (cotización u obra).
+  const { data: detBanco = [] } = useQuery({
+    queryKey: ["apu_req_banco", origen, hojas.map((h) => h.id).join(",")],
+    enabled: hojas.length > 0,
+    queryFn: async () => {
+      const ids = hojas.map((h) => h.id);
+      if (origen === "cotizacion") {
+        const { data, error } = await dbBanco.from("cotizacion_apu_detalle").select("*").in("cotizacion_item_id", ids);
+        if (error) throw error;
+        return (data ?? []) as Record<string, string | number | null>[];
+      }
+      const { data, error } = await dbBanco.from("partida_detalle").select("*").in("partida_obra_id", ids);
+      if (error) throw error;
+      return (data ?? []) as Record<string, string | number | null>[];
+    },
+  });
   const { data: origenesReq = [] } = useQuery({
     queryKey: ["requerimiento_item_origenes"],
     queryFn: async () => {
