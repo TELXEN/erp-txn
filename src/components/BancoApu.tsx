@@ -342,7 +342,7 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
 
   return (
     <Panel titulo={`${partida.codigo_jerarquico || "s/c"} · ${partida.descripcion}`}>
-      <p className="mb-3 text-xs text-muted-foreground">{partida.unidad} · Rendimiento {partida.rendimiento_diario}/día{partida.especialidad ? ` · ${partida.especialidad}` : ""}</p>
+      <div className="px-5 py-4"><p className="mb-3 text-xs text-muted-foreground">{partida.unidad} · Rendimiento {partida.rendimiento_diario}/día{partida.especialidad ? ` · ${partida.especialidad}` : ""}</p>
       <div className="space-y-3">
         {GRUPOS.map((g) => {
           const [col, , titulo] = g;
@@ -390,6 +390,7 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
           existentes={detalles.filter((d) => d.partida_padre_id === partida.id)}
           onCerrar={() => setAgregar(null)} onGuardado={() => { setAgregar(null); refrescar(); }} />
       )}
+      </div>
     </Panel>
   );
 }
