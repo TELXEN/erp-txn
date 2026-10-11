@@ -45,9 +45,11 @@ function ErrorComponent({ error, reset }: import("@tanstack/react-router").Error
     const moduloIncompatible = /Cannot read properties of null \(reading ['"](?:useContext|useState|useEffect)['"]\)|Invalid hook call|Failed to fetch dynamically imported module|Importing a module script failed/i.test(mensaje);
     if (!moduloIncompatible) return;
     const clave = "root-module-reload-at";
-    const ultimaRecarga = Number(sessionStorage.getItem(clave) ?? 0);
-    if (Date.now() - ultimaRecarga < 10000) return;
-    sessionStorage.setItem(clave, String(Date.now()));
+    const raw = sessionStorage.getItem(clave) ?? "0:0";
+    const [primera, veces] = raw.split(":").map(Number);
+    const ahora = Date.now();
+    if (ahora - primera < 60000 && veces >= 2) return;
+    sessionStorage.setItem(clave, ahora - primera < 60000 ? `${primera}:${veces + 1}` : `${ahora}:1`);
     window.location.reload();
   }, [error]);
 
