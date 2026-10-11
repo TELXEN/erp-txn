@@ -110,6 +110,9 @@ function GastosDirectos() {
   const { data: terceros = [] } = useTerceros();
   const proveedores = terceros.filter((t) => t.es_proveedor && t.activo);
   const [proyectoId, setProyectoId] = useState(() => localStorage.getItem("gastos-directos:proyecto") ?? "");
+  const [pestana, setPestana] = useState<"resumen" | "partidas">(() =>
+    localStorage.getItem("gastos-directos:pestana") === "partidas" ? "partidas" : "resumen",
+  );
   const [abiertas, setAbiertas] = useState<Record<string, boolean>>({});
   const [gruposCerrados, setGruposCerrados] = useState<Record<string, boolean>>({});
   const [modal, setModal] = useState<{ pid: string; editando?: Compra; inicial?: Borrador } | null>(null);
@@ -153,6 +156,10 @@ function GastosDirectos() {
     }
     localStorage.setItem("gastos-directos:proyecto", proyectoId);
   }, [proyectos, proyectoId]);
+
+  useEffect(() => {
+    localStorage.setItem("gastos-directos:pestana", pestana);
+  }, [pestana]);
 
   const proyecto = proyectos.find((p) => p.id === proyectoId);
   const partidasProy = useMemo(
@@ -382,6 +389,29 @@ function GastosDirectos() {
         </div>
       </Panel>
 
+      {pendientes > 0 && (
+        <p className="mb-3 rounded-md border border-warn/30 bg-warn/10 px-4 py-2 text-xs text-warn">
+          {pendientes} solicitud{pendientes === 1 ? "" : "es"} de desbloqueo pendiente{pendientes === 1 ? "" : "s"} de aprobación de Gerencia en esta obra.
+        </p>
+      )}
+
+      <div className="mb-4 flex gap-1 border-b border-line">
+        {([["resumen", "Resumen de Costos Directos"], ["partidas", "Control por partida"]] as const).map(([k, etiqueta]) => (
+          <button
+            key={k}
+            type="button"
+            onClick={() => setPestana(k)}
+            className={`-mb-px rounded-t-md border-b-2 px-4 py-2 text-xs font-semibold uppercase tracking-wide transition ${
+              pestana === k ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-ink"
+            }`}
+          >
+            {etiqueta}
+          </button>
+        ))}
+      </div>
+
+      {pestana === "resumen" && (
+      <>
       <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
         <div className="rounded-lg border border-line bg-card px-3 py-2.5">
           <p className="text-[10px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Partidas</p>
@@ -412,13 +442,11 @@ function GastosDirectos() {
         </div>
       </div>
 
-      {pendientes > 0 && (
-        <p className="mb-3 rounded-md border border-warn/30 bg-warn/10 px-4 py-2 text-xs text-warn">
-          {pendientes} solicitud{pendientes === 1 ? "" : "es"} de desbloqueo pendiente{pendientes === 1 ? "" : "s"} de aprobación de Gerencia en esta obra.
-        </p>
-      )}
       <div className="mb-4"><DesgloseCd proyectoId={proyectoId} /></div>
+      </>
+      )}
 
+      {pestana === "partidas" && (
       <Panel
         titulo="Control por partida"
         extra={<Buscador valor={busqueda} onChange={setBusqueda} placeholder="Buscar por código o partida..." total={partidasProy.length} />}
@@ -601,6 +629,7 @@ function GastosDirectos() {
           </div>
         )}
       </Panel>
+      )}
       {modal && (() => {
         const mp = partidas.find((x) => x.id === modal.pid);
         if (!mp) return null;
