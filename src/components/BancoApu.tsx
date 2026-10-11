@@ -371,6 +371,15 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
               </div>
               {!cerrado && filas.length > 0 && (
                 <table className="w-full text-xs">
+                  <thead>
+                    <tr className="label-mono">
+                      <th className="w-full max-w-[1px] px-2 py-0.5 text-left font-medium">Recurso</th>
+                      <th className="px-1 py-0.5 text-right font-medium">Cant.</th>
+                      <th className="px-2 py-0.5 text-right font-medium">C. unit.</th>
+                      <th className="px-2 py-0.5 text-right font-medium">Parcial</th>
+                      <th className="py-0.5 pl-1 pr-2.5" />
+                    </tr>
+                  </thead>
                   <tbody>
                     {filas.map((f) => (
                       <tr key={f.d.id} className="border-t border-line/60">
