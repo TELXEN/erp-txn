@@ -25,7 +25,6 @@ import {
   useTrabajadores,
 } from "@/lib/datos";
 import { PRIORIDADES, SITUACIONES, tonoPrioridad, tonoSituacion } from "@/lib/configuracion";
-import { DatosEmpresa } from "@/components/DatosEmpresa";
 import { CodificacionDocumentos } from "@/components/CodificacionDocumentos";
 import { CuentasBancarias, type CuentaBancaria } from "@/components/CuentasBancarias";
 import { RubrosIngreso } from "@/components/RubrosIngreso";
@@ -63,11 +62,10 @@ type Pestana =
   | "centros"
   | "configuracion"
   | "codificacion"
-  | "empresa"
   | "marcas";
 
 const GRUPOS_CONFIG: { titulo: string; icono: React.ElementType; items: [Pestana, string][] }[] = [
-  { titulo: "Empresa", icono: Building2, items: [["empresa", "Datos de la empresa"], ["bancos", "Cuentas bancarias"]] },
+  { titulo: "Empresa", icono: Building2, items: [["bancos", "Cuentas bancarias"]] },
   { titulo: "Codificación", icono: FolderKanban, items: [["codificacion", "Codificación de Documentos"]] },
   { titulo: "Parámetros de proyectos", icono: SlidersHorizontal, items: [["configuracion", "Parámetros de proyectos"]] },
   { titulo: "Marcas", icono: Tag, items: [["marcas", "Registro de marcas"]] },
@@ -86,7 +84,7 @@ const ETIQUETA_MONEDA: Record<string, string> = {
 function Datos() {
   const { rol } = useAuth();
   const qc = useQueryClient();
-  const [pestana, setPestana] = useState<Pestana>("empresa");
+  const [pestana, setPestana] = useState<Pestana>("bancos");
   const [error, setError] = useState("");
 
   const { data: bancos = [] } = useQuery({
@@ -223,8 +221,6 @@ function Datos() {
         <ConfiguracionProyectos />
       ) : pestana === "codificacion" ? (
         <CodificacionDocumentos />
-      ) : pestana === "empresa" ? (
-        <DatosEmpresa />
       ) : pestana === "ingresos" ? (
         <RubrosIngreso />
       ) : (
