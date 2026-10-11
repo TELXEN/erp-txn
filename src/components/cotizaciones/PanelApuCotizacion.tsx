@@ -182,7 +182,7 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
                           <td className="truncate px-2 py-1 text-muted-foreground">{f.d.codigo || "—"}</td>
                           <td className="truncate px-1 py-1 text-ink" title={f.nombre}>{f.nombre}</td>
                           <td className="px-1 py-1 text-muted-foreground">{f.und}</td>
-                          <td className="px-1 py-1 text-right">{f.esPctMo ? "" : num(horaria ? f.cantidad : 0, horaria ? 2 : 0) && horaria ? num(f.cantidad, 2) : ""}</td>
+                          <td className="px-1 py-1 text-right">{horaria ? num(f.cantidad) : ""}</td>
                           <td className="px-1 py-0.5">
                             <input key={`${f.d.id}-q-${f.cantidad}`} type="number" step="0.0001" defaultValue={Number(recurso.toFixed(4))}
                               className="w-full rounded border border-transparent bg-transparent px-1 text-right hover:border-line focus:border-primary focus:outline-none"
