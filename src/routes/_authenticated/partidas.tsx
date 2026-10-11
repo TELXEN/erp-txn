@@ -1079,15 +1079,22 @@ function Partidas() {
                             <td className="whitespace-nowrap px-2 py-2.5 text-right">{agrupadora ? "—" : soles(Number(p.precio_unitario ?? 0))}</td>
                             <td className={`whitespace-nowrap px-3 py-2.5 text-right ${agrupadora ? "font-semibold text-ink" : ""}`}>{soles(presuFila)}</td>
                             <td className="whitespace-nowrap px-3 py-2.5 text-right">
-                              <span className="inline-flex items-center justify-end gap-1.5">
-                                <span className="h-1 w-10 overflow-hidden rounded-full bg-muted">
-                                  <span
-                                    className="block h-full rounded-full bg-primary"
-                                    style={{ width: `${Math.min(100, Math.max(0, Number(p.avance_pct)))}%` }}
-                                  />
-                                </span>
-                                {pct(Number(p.avance_pct))}
-                              </span>
+                              {(() => {
+                                const av = Math.min(100, Math.max(0, Number(p.avance_pct)));
+                                const color = av >= 100 ? "bg-good" : av > 0 ? "bg-warn" : "bg-muted-foreground/30";
+                                return (
+                                  <span className="inline-flex items-center justify-end gap-1.5">
+                                    <span className="flex h-3.5 w-16 items-center overflow-hidden rounded-full bg-muted">
+                                      <span
+                                        className={`flex h-full items-center justify-end rounded-full ${color}`}
+                                        style={{ width: `${Math.max(av, 14)}%` }}
+                                      >
+                                        <span className="pr-0.5 text-[8px] font-bold tabular-nums text-primary-foreground">{Math.round(av)}%</span>
+                                      </span>
+                                    </span>
+                                  </span>
+                                );
+                              })()}
                             </td>
                             <td className="px-3 py-2.5">
                               <InsigniaTipoPresupuesto valor={p.tipo_presupuesto ?? "Contractual"} />
