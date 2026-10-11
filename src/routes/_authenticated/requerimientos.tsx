@@ -346,28 +346,28 @@ function RequerimientosPage() {
 
   const cols = gestiona ? 8 : 6;
   const filaInsumo = (e: (typeof explosion)[number], incluido: boolean, conTipo: boolean) => {
-    const ver = expandidos.has(e.insumoId);
+    const ver = expandidos.has(e.clave);
     return (
-      <React.Fragment key={e.insumoId}>
+      <React.Fragment key={e.clave}>
         <tr className={`border-b border-line/40 ${incluido ? "" : "opacity-60"}`}>
           <td className="truncate px-5 py-1.5 text-ink">
-            <button type="button" onClick={() => alternar(e.insumoId)} className="inline-flex max-w-full items-center gap-1 text-left" title="Ver origen por partida">
+            <button type="button" onClick={() => alternar(e.clave)} className="inline-flex max-w-full items-center gap-1 text-left" title="Ver origen por partida">
               {ver ? <ChevronDown size={13} className="shrink-0 text-primary" /> : <ChevronRight size={13} className="shrink-0 text-primary" />}
-              <span className="truncate">{e.ins!.nombre}</span>
-              {conTipo && <span className="ml-1 shrink-0 text-[10px] text-muted-foreground">· {nombreTipo(e.ins!.tipo)}</span>}
+              <span className="truncate">{e.nombre}</span>
+              {conTipo && <span className="ml-1 shrink-0 text-[10px] text-muted-foreground">· {nombreTipo(e.tipo)}</span>}
             </button>
           </td>
-          <td className="px-2 py-1.5 text-muted-foreground">{e.ins!.unidad}</td>
+          <td className="px-2 py-1.5 text-muted-foreground">{e.unidad}</td>
           <td className="px-2 py-1.5 text-center text-muted-foreground">{e.partidas}</td>
           <td className="px-2 py-1.5 text-right">{num(e.total)}</td>
           <td className="px-2 py-1.5 text-right text-muted-foreground">{num(e.requerido)}</td>
           <td className={`px-2 py-1.5 text-right font-semibold ${e.saldo > 0 ? "text-ink" : "text-muted-foreground"}`}>{num(e.saldo)}</td>
-          {gestiona && <td className="px-2 py-1.5 text-right">{num(Number(e.ins!.precio))}</td>}
-          {gestiona && <td className="px-5 py-1.5 text-right">{soles(e.total * Number(e.ins!.precio))}</td>}
+          {gestiona && <td className="px-2 py-1.5 text-right">{num(e.precio)}</td>}
+          {gestiona && <td className="px-5 py-1.5 text-right">{soles(e.total * e.precio)}</td>}
         </tr>
         {ver &&
           e.origenes.map((o, i) => (
-            <tr key={`${e.insumoId}-${i}`} className="border-b border-line/20 bg-muted/20 text-[11px] text-muted-foreground">
+            <tr key={`${e.clave}-${i}`} className="border-b border-line/20 bg-muted/20 text-[11px] text-muted-foreground">
               <td className="truncate px-5 py-1 pl-11" colSpan={2}>
                 <span className="text-primary">{o.codigo || "—"}</span> {o.nombre}
               </td>
@@ -476,9 +476,9 @@ function RequerimientosPage() {
               </thead>
               <tbody>
                 {vista === "consolidada"
-                  ? explosion.map((e) => filaInsumo(e, tipos.includes(e.ins!.tipo), true))
+                  ? explosion.map((e) => filaInsumo(e, tipos.includes(e.tipo as TipoInsumo), true))
                   : TIPOS_INSUMO.map(([k, t]) => {
-                      const filas = explosion.filter((e) => e.ins!.tipo === k);
+                      const filas = explosion.filter((e) => e.tipo === k);
                       if (!filas.length) return null;
                       const incluido = tipos.includes(k);
                       return (
@@ -489,7 +489,7 @@ function RequerimientosPage() {
                             </td>
                             {gestiona && (
                               <td className="px-5 py-1.5 text-right font-semibold">
-                                {soles(filas.reduce((s, e) => s + e.total * Number(e.ins!.precio), 0))}
+                                {soles(filas.reduce((s, e) => s + e.total * e.precio, 0))}
                               </td>
                             )}
                           </tr>
