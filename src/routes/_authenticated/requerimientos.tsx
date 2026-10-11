@@ -166,20 +166,46 @@ function RequerimientosPage() {
   });
 
   type Origen = { partidaId: string; codigo: string; nombre: string; metrado: number; unitaria: number; cantidad: number };
-  /** Desdoblamiento: Σ metrado de la partida × cantidad del insumo en su APU, consolidado por insumo. */
+  type Entrada = {
+    clave: string; insumoId: string | null; tipo: string; nombre: string; unidad: string; precio: number;
+    total: number; partidas: number; origenes: Origen[]; requerido: number; saldo: number;
+  };
+  /** Desdoblamiento: Σ metrado de la partida × cantidad del recurso en su APU, consolidado por recurso. */
   const explosion = useMemo(() => {
-    const mapa = new Map<string, { insumoId: string; total: number; partidas: number; origenes: Origen[] }>();
+    const mapa = new Map<string, Entrada>();
+    const agregar = (clave: string, base: Omit<Entrada, "total" | "partidas" | "origenes" | "requerido" | "saldo">, p: (typeof hojas)[number], unitaria: number) => {
+      const q = p.metrado * unitaria;
+      const act = mapa.get(clave) ?? { ...base, total: 0, partidas: 0, origenes: [], requerido: 0, saldo: 0 };
+      act.total += q;
+      act.partidas += 1;
+      act.origenes.push({ partidaId: p.id, codigo: p.codigo, nombre: p.nombre, metrado: p.metrado, unitaria, cantidad: q });
+      mapa.set(clave, act);
+    };
+    // APU anterior (insumos) — cotizaciones y obras migradas antes del Banco APU.
     for (const c of comps) {
       const pid = origen === "obra" ? c.partida_id : c.cotizacion_item_id;
       const p = hojas.find((h) => h.id === pid);
       if (!p) continue;
-      const unitaria = cantidadComponente(c, p.rendimiento || 1, p.jornada || 8);
-      const q = p.metrado * unitaria;
-      const act = mapa.get(c.insumo_id) ?? { insumoId: c.insumo_id, total: 0, partidas: 0, origenes: [] };
-      act.total += q;
-      act.partidas += 1;
-      act.origenes.push({ partidaId: p.id, codigo: p.codigo, nombre: p.nombre, metrado: p.metrado, unitaria, cantidad: q });
-      mapa.set(c.insumo_id, act);
+      const ins = insumos.find((i) => i.id === c.insumo_id);
+      if (!ins || ins.tipo === "HT") continue;
+      agregar(`ins:${c.insumo_id}`, { clave: `ins:${c.insumo_id}`, insumoId: c.insumo_id, tipo: ins.tipo, nombre: ins.nombre, unidad: ins.unidad, precio: Number(ins.precio) }, p, cantidadComponente(c, p.rendimiento || 1, p.jornada || 8));
+    }
+    // Banco APU: recursos a costo (sin margen). Equipos «%» no son comprables y se omiten.
+    for (const d of detBanco) {
+      const pid = String(origen === "obra" ? d.partida_obra_id : d.cotizacion_item_id ?? "");
+      const p = hojas.find((h) => h.id === pid);
+      if (!p) continue;
+      const found = BANCOS_RECURSO.find(([col]) => d[col]);
+      if (!found) continue;
+      const [col, tabla, , tipo] = found;
+      const r = (recursos[tabla] ?? []).find((x: { id: string }) => x.id === d[col]);
+      if (!r) continue;
+      const q = Number(d.cantidad_o_cuadrilla) || 0;
+      if (tabla === "equipos_herramientas" && r.unidad === "%") continue;
+      const porRendimiento = tabla === "mano_obra" || (tabla === "equipos_herramientas" && r.unidad === "H-M");
+      const unitaria = porRendimiento ? (q * (p.jornada || 8)) / (p.rendimiento || 1) : q;
+      const precio = Number(tabla === "materiales" ? r.precio_base : tabla === "mano_obra" || tabla === "equipos_herramientas" ? r.costo_hora : r.costo) || 0;
+      agregar(`banco:${tipo}:${r.id}`, { clave: `banco:${tipo}:${r.id}`, insumoId: null, tipo, nombre: r.descripcion, unidad: r.unidad, precio }, p, unitaria);
     }
     const reqsBase = new Set(
       reqs
@@ -188,16 +214,13 @@ function RequerimientosPage() {
     );
     return [...mapa.values()]
       .map((e) => {
-        const ins = insumos.find((i) => i.id === e.insumoId);
         const requerido = reqItems
-          .filter((it) => reqsBase.has(it.requerimiento_id) && it.insumo_id === e.insumoId)
+          .filter((it) => reqsBase.has(it.requerimiento_id) && (e.insumoId ? it.insumo_id === e.insumoId : !it.insumo_id && it.tipo === e.tipo && it.descripcion === e.nombre))
           .reduce((s, it) => s + Number(it.cantidad), 0);
-        return { ...e, ins, requerido, saldo: Math.max(0, e.total - requerido) };
+        return { ...e, requerido, saldo: Math.max(0, e.total - requerido) };
       })
-      // Requerimientos: a costo (sin margen) y sin herramientas manuales (no son comprables).
-      .filter((e) => e.ins && e.ins.tipo !== "HT")
-      .sort((a, b) => a.ins!.nombre.localeCompare(b.ins!.nombre));
-  }, [comps, hojas, insumos, reqs, reqItems, proyectoId, origen, cotizacionId]);
+      .sort((a, b) => a.nombre.localeCompare(b.nombre));
+  }, [comps, detBanco, hojas, insumos, recursos, reqs, reqItems, proyectoId, origen, cotizacionId]);
 
   const listo = origen === "obra" ? !!proyectoSel : !!cotizacionId;
   const sinApu = hojas.filter((h) => !comps.some((c) => (origen === "obra" ? c.partida_id : c.cotizacion_item_id) === h.id)).length;
