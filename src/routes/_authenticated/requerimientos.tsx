@@ -223,7 +223,10 @@ function RequerimientosPage() {
   }, [comps, detBanco, hojas, insumos, recursos, reqs, reqItems, proyectoId, origen, cotizacionId]);
 
   const listo = origen === "obra" ? !!proyectoSel : !!cotizacionId;
-  const sinApu = hojas.filter((h) => !comps.some((c) => (origen === "obra" ? c.partida_id : c.cotizacion_item_id) === h.id)).length;
+  const sinApu = hojas.filter((h) =>
+    !comps.some((c) => (origen === "obra" ? c.partida_id : c.cotizacion_item_id) === h.id) &&
+    !detBanco.some((d) => String(origen === "obra" ? d.partida_obra_id : d.cotizacion_item_id ?? "") === h.id),
+  ).length;
   const alternar = (id: string) =>
     setExpandidos((s) => {
       const n = new Set(s);
@@ -241,7 +244,7 @@ function RequerimientosPage() {
     setError("");
     setAviso("");
     if (!proyectoId) return setError("La cotización aprobada no está vinculada a una obra; conviértela en proyecto primero.");
-    const filas = explosion.filter((e) => tipos.includes(e.ins!.tipo) && e.saldo > 0.0001);
+    const filas = explosion.filter((e) => tipos.includes(e.tipo as TipoInsumo) && e.saldo > 0.0001);
     if (!filas.length) return setError("No hay saldo por requerir para los tipos seleccionados.");
     const n = reqs.filter((r) => r.proyecto_id === proyectoId).length + 1;
     const codigo = `REQ-${proyecto?.codigo || "OBRA"}-${String(n).padStart(3, "0")}`;
@@ -261,16 +264,16 @@ function RequerimientosPage() {
       filas.map((e) => ({
         requerimiento_id: req.id,
         insumo_id: e.insumoId,
-        tipo: e.ins!.tipo,
-        descripcion: e.ins!.nombre,
-        unidad: e.ins!.unidad,
+        tipo: e.tipo,
+        descripcion: e.nombre,
+        unidad: e.unidad,
         cantidad: Math.round(e.saldo * 10000) / 10000,
-        precio_referencial: Number(e.ins!.precio),
+        precio_referencial: e.precio,
       })),
-    ).select("id, insumo_id");
+    ).select("id");
     if (e2) return setError(e2.message);
-    const origenesFilas = (creados ?? []).flatMap((it: { id: string; insumo_id: string }) =>
-      (filas.find((f) => f.insumoId === it.insumo_id)?.origenes ?? []).map((o) => ({
+    const origenesFilas = (creados ?? []).flatMap((it: { id: string }, idx: number) =>
+      (filas[idx]?.origenes ?? []).map((o) => ({
         requerimiento_item_id: it.id,
         cotizacion_item_id: origen === "cotizacion" ? o.partidaId : null,
         partida_codigo: o.codigo,
