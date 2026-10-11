@@ -616,8 +616,8 @@ function Cotizaciones() {
   /* ---------------- MODO EDITOR ---------------- */
   if (cot && totales) {
     return (
-      <div className="-mx-4 -my-6 min-h-full bg-background sm:-mx-6">
-        <div className="sticky top-0 z-20 flex flex-wrap items-center gap-2 border-b border-line bg-background/95 px-4 py-2 backdrop-blur sm:px-6">
+      <div className="-mx-4 -mb-6 flex h-[calc(100%+1.5rem)] min-h-full flex-col bg-background sm:-mx-6">
+        <div className="sticky top-0 z-20 flex shrink-0 flex-wrap items-center gap-2 border-b border-line bg-background px-4 py-2 sm:px-6">
           <Boton variante="linea" onClick={() => { setSeleccion(null); setError(""); setAviso(""); }}>
             <ArrowLeft size={13} /> Volver al listado
           </Boton>
@@ -726,7 +726,7 @@ function Cotizaciones() {
           </Panel>
         )}
 
-        <div className="flex flex-col gap-2 bg-muted/60 px-2 py-2 lg:h-[calc(100vh-15rem)] lg:flex-row lg:overflow-hidden">
+        <div className="flex flex-col gap-2 bg-muted/60 px-2 py-2 lg:min-h-0 lg:flex-1 lg:flex-row lg:overflow-hidden">
           <div className="flex min-h-0 flex-col lg:w-[60%]">
           <div className="min-h-0 flex-1 overflow-auto">
           <HojaCotizacion cot={cot} items={items} clientes={clientes} mostrarEncabezado={encabezado}>
