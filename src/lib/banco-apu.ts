@@ -75,6 +75,7 @@ export function costoReceta(
   jornada = 8,
   partidas: Recurso[] = [],
   visitados = new Set<string>(),
+  detalleCompleto?: DetalleApu[],
 ): { total: number; filas: FilaCalculo[] } {
   const rend = Number(rendimiento) || 1;
   const jor = Number(jornada) || 8;
@@ -85,8 +86,9 @@ export function costoReceta(
       const hijoId = d.subpartida_hijo_id as string;
       if (hijoId && !visitados.has(hijoId)) {
         const hijo = partidas.find((p) => p.id === hijoId);
+        const detHijo = (detalleCompleto ?? []).filter((x) => x.partida_padre_id === hijoId);
         const sub = costoReceta(
-          [], recursos, Number(hijo?.rendimiento_diario) || 1, 8, partidas, new Set(visitados).add(hijoId),
+          detHijo, recursos, Number(hijo?.rendimiento_diario) || 1, 8, partidas, new Set(visitados).add(hijoId), detalleCompleto,
         );
         const q = Number(d.cantidad_o_cuadrilla) || 0;
         return { d, banco: "Subpartidas", tipo: "SUB", recursoId: hijoId, nombre: hijo?.descripcion ?? "(no encontrada)", und: hijo?.unidad ?? "", cu: sub.total, cantidad: q, parcial: q * sub.total };
