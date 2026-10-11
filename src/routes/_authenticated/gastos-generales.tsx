@@ -7,7 +7,7 @@ import { Encabezado } from "@/components/AppShell";
 import { Boton, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { InsigniaCategoriaGasto } from "@/components/estado-ui";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
-import { Building2, CalendarDays, Check, ChevronDown, ChevronRight, Info, Paperclip, Pencil, Plus, Search, Truck, Trash2, Upload, X } from "lucide-react";
+import { CalendarDays, Check, ChevronDown, ChevronRight, Info, Paperclip, Pencil, Plus, Search, Trash2, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
