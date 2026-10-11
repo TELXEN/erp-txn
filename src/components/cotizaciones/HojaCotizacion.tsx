@@ -295,6 +295,8 @@ export function HojaCotizacion({
             </div>
           </div>
         </div>
+          </>
+        )}
 
         <div style={{ marginTop: 16 }}>{children}</div>
 

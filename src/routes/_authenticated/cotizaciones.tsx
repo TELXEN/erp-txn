@@ -140,6 +140,16 @@ function Cotizaciones() {
     : null;
 
   const [partidaActiva, setPartidaActiva] = useState<string | null>(null);
+  /** En edición la hoja arranca sin encabezado: solo se ve la tabla de partidas. */
+  const [encabezado, setEncabezado] = useState(false);
+  useEffect(() => {
+    if (localStorage.getItem("cotizaciones:encabezado") === "visible") setEncabezado(true);
+  }, []);
+  const alternarEncabezado = () => {
+    const nuevo = !encabezado;
+    setEncabezado(nuevo);
+    localStorage.setItem("cotizaciones:encabezado", nuevo ? "visible" : "oculto");
+  };
   const [apu, setApu] = useState<(typeof items)[number] | null>(null);
   const [nuevaSub, setNuevaSub] = useState<{
     padre_id: string;
