@@ -119,32 +119,30 @@ function SplitPartidas() {
   const { data: pa = [] } = useTabla("partidas_apu");
   const partida = pa.find((p) => p.id === sel);
   return (
-    <>
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-        <div className="min-w-0"><ListaBanco tabla="partidas_apu" seleccion={sel} onSeleccion={elegir} /></div>
-        <div className="min-w-0">
-          {!partida ? (
-            <Panel titulo="Análisis de precios unitarios"><Vacio texto="Elige una partida a la izquierda para ver y armar su APU." /></Panel>
-          ) : pie === "analisis" ? (
-            <PanelApuMaestro partida={partida} />
-          ) : pie === "especificaciones" ? (
-            <PanelEspecificaciones partida={partida} />
-          ) : pie === "metrado" ? (
-            <PanelMetrado partida={partida} />
-          ) : (
-            <PanelConsolidado partida={partida} />
-          )}
+    <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+      <div className="min-w-0"><ListaBanco tabla="partidas_apu" seleccion={sel} onSeleccion={elegir} /></div>
+      <div className="min-w-0">
+        {!partida ? (
+          <Panel titulo="Análisis de precios unitarios"><Vacio texto="Elige una partida a la izquierda para ver y armar su APU." /></Panel>
+        ) : pie === "analisis" ? (
+          <PanelApuMaestro partida={partida} />
+        ) : pie === "especificaciones" ? (
+          <PanelEspecificaciones partida={partida} />
+        ) : pie === "metrado" ? (
+          <PanelMetrado partida={partida} />
+        ) : (
+          <PanelConsolidado partida={partida} />
+        )}
+        <div className="mt-2 flex flex-wrap items-stretch gap-x-1 border-t border-line">
+          {PIE.map((p) => (
+            <button key={p} type="button" onClick={() => elegirPie(p)}
+              className={`-mt-px border-t-[3px] px-2 py-1 text-[11px] leading-tight transition-colors ${pie === p ? "border-primary font-semibold text-foreground" : "border-transparent text-muted-foreground hover:bg-muted hover:text-foreground"}`}>
+              {PIE_TITULOS[p]}
+            </button>
+          ))}
         </div>
       </div>
-      <div className="mt-3 flex flex-wrap items-stretch gap-1 border-t border-line">
-        {PIE.map((p) => (
-          <button key={p} type="button" onClick={() => elegirPie(p)}
-            className={`-mt-px border-t-[3px] px-3 py-1.5 text-xs transition-colors ${pie === p ? "border-primary font-semibold text-foreground" : "border-transparent text-muted-foreground hover:bg-muted hover:text-foreground"}`}>
-            {PIE_TITULOS[p]}
-          </button>
-        ))}
-      </div>
-    </>
+    </div>
   );
 }
 
