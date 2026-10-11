@@ -175,13 +175,16 @@ function altoEstimadoFila(fila: Fila, charsPorLinea = 62) {
 function paginarFilas(filas: Fila[], horizontal = false, factor = 1) {
   if (filas.length === 0) return [[]] as Fila[][];
   const charsPorLinea = horizontal ? 95 : 62;
+  // A4 horizontal mide 1123 × 794 px a 96 dpi. Antes se calculaba con 700 px
+  // de alto, por lo que se enviaban filas a otra hoja dejando espacio visible.
+  const altoAdicionalHorizontal = horizontal ? 94 : 0;
   const paginas: Fila[][] = [];
   let pendientes = [...filas];
   let primeraHoja = true;
 
   while (pendientes.length > 0) {
-    const capacidad = (horizontal ? (primeraHoja ? 330 : 455) : primeraHoja ? 470 : 650) * factor;
-    const capacidadFinal = (horizontal ? (primeraHoja ? 175 : 245) : primeraHoja ? 250 : 350) * factor;
+    const capacidad = ((horizontal ? (primeraHoja ? 330 : 455) : primeraHoja ? 470 : 650) + altoAdicionalHorizontal) * factor;
+    const capacidadFinal = ((horizontal ? (primeraHoja ? 175 : 245) : primeraHoja ? 250 : 350) + altoAdicionalHorizontal) * factor;
     const altoPendiente = pendientes.reduce((suma, fila) => suma + altoEstimadoFila(fila, charsPorLinea), 0);
 
     if (altoPendiente <= capacidadFinal) {
@@ -259,7 +262,7 @@ function VistaCotizacion() {
   const horizontal = horizontalPreferida ?? cot?.orientacion === "horizontal";
   const paginaW = horizontal ? 1123 : 794;
   const interiorW = horizontal ? 1087 : 754;
-  const paginaH = horizontal ? 700 : 990;
+  const paginaH = horizontal ? 794 : 990;
   const [factorPagina, setFactorPagina] = useState(1);
   const [finalAparte, setFinalAparte] = useState(false);
   useEffect(() => { setFactorPagina(1); setFinalAparte(false); }, [id, horizontal, items.length]);
@@ -619,8 +622,13 @@ function VistaCotizacion() {
 
 
                 {esUltima && (
-                  <div className="bloque-final" style={{ pageBreakInside: "avoid" }}>
-                    <div className="flex justify-end" style={{ marginTop: 14 }}>
+                  <div
+                    className="bloque-final"
+                    style={horizontal
+                      ? { pageBreakInside: "avoid", display: "grid", gridTemplateColumns: "minmax(0, 1fr) 248px", gap: 28, alignItems: "start", marginTop: 14 }
+                      : { pageBreakInside: "avoid" }}
+                  >
+                    <div className="flex justify-end" style={{ marginTop: horizontal ? 0 : 14, gridColumn: horizontal ? 2 : undefined }}>
                       <div style={{ width: 248, fontSize: "8.5pt" }}>
 
                         {porGrupo.length > 1 && porGrupo.map(([g, v]) => (
@@ -641,7 +649,7 @@ function VistaCotizacion() {
                         )}
                       </div>
                     </div>
-                    <div style={{ marginTop: 16, borderTop: `1px solid ${C.slate100}`, paddingTop: 10, fontSize: 8, color: C.slate500, lineHeight: 1.45 }}>
+                    <div style={{ marginTop: horizontal ? 0 : 16, borderTop: `1px solid ${C.slate100}`, paddingTop: 10, fontSize: 8, color: C.slate500, lineHeight: 1.45, gridColumn: horizontal ? 1 : undefined, gridRow: horizontal ? 1 : undefined }}>
                       <div style={{ fontSize: 8, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, color: C.slate700, marginBottom: 5 }}>Términos y condiciones</div>
                       {([
                         ["Recursos humanos", (cot as unknown as Record<string, string>)["recursos_humanos"]],
