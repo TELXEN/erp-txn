@@ -392,8 +392,9 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
 
   return (
     <>
-    <Panel titulo={`${partida.codigo_jerarquico || "s/c"} · ${partida.descripcion}`}>
-      <div className="px-4 py-3"><p className="mb-2 text-xs text-muted-foreground">{partida.unidad} · Rendimiento {partida.rendimiento_diario}/día{partida.especialidad ? ` · ${partida.especialidad}` : ""}</p>
+    <Panel titulo={`${partida.codigo_jerarquico || "s/c"} · ${partida.descripcion}`} className="flex h-full flex-col">
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3"><p className="mb-2 text-xs text-muted-foreground">{partida.unidad} · Rendimiento {partida.rendimiento_diario}/día{partida.especialidad ? ` · ${partida.especialidad}` : ""}</p>
+
       <div className="space-y-2">
         {GRUPOS.map((g) => {
           const [col, , titulo] = g;
@@ -441,12 +442,13 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
           );
         })}
       </div>
-      <div className="mt-2 flex items-center justify-between border-t border-line pt-1.5">
+      </div>
+      <div className="flex shrink-0 items-center justify-between border-t border-line px-4 py-2">
         <span className="text-sm font-semibold">Costo total del APU</span>
         <span className="font-mono text-sm font-semibold text-primary">{soles(calc.total)}</span>
       </div>
-      </div>
     </Panel>
+
       {agregar && (
         <DialogoAgregarInsumo grupo={agregar} partida={partida} opciones={(fuentes[agregar[1]] ?? []).filter((x) => x.estado === "activo" && x.id !== partida.id)}
           existentes={detalles.filter((d) => d.partida_padre_id === partida.id)}
@@ -596,12 +598,12 @@ function PanelEspecificaciones({ partida }: { partida: Fila }) {
   }
 
   return (
-    <Panel titulo={`Especificaciones técnicas · ${partida.codigo_jerarquico || "s/c"}`}>
-      <div className="px-4 py-3">
-        <textarea className={`${areaTexto} min-h-64 resize-y`} value={txt}
+    <Panel titulo={`Especificaciones técnicas · ${partida.codigo_jerarquico || "s/c"}`} className="flex h-full flex-col">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-4 py-3">
+        <textarea className={`${areaTexto} min-h-0 flex-1 resize-none`} value={txt}
           onChange={(e) => { setTxt(e.target.value); setAviso(""); }}
           placeholder="Alcance, norma aplicable, equipo y control de calidad, condiciones de aceptación…" />
-        <div className="mt-2 flex items-center justify-between gap-3">
+        <div className="mt-2 flex shrink-0 items-center justify-between gap-3">
           <span className={`text-xs ${aviso.startsWith("Guardado") ? "text-good" : "text-muted-foreground"}`}>{aviso || "Se guarda en la ficha de la partida."}</span>
           <div className="flex gap-2">
             <Boton type="button" variante="linea" onClick={() => { setTxt(String(partida.especificaciones ?? "")); setAviso(""); }}>Descartar</Boton>
@@ -610,6 +612,7 @@ function PanelEspecificaciones({ partida }: { partida: Fila }) {
         </div>
       </div>
     </Panel>
+
   );
 }
 
@@ -651,8 +654,10 @@ function PanelMetrado({ partida }: { partida: Fila }) {
 
   return (
     <Panel titulo={`Metrado · ${partida.codigo_jerarquico || "s/c"}`}
-      extra={<Boton className="py-1 text-xs" onClick={aumentar}><Plus size={13} /> Agregar fila</Boton>}>
-      <div className="px-4 py-3">
+      extra={<Boton className="py-1 text-xs" onClick={aumentar}><Plus size={13} /> Agregar fila</Boton>}
+      className="flex h-full flex-col">
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
+
         {filas.length === 0 ? (
           <Vacio texto="Aún no hay mediciones. Agrega la primera fila del metrado." />
         ) : (
@@ -693,12 +698,13 @@ function PanelMetrado({ partida }: { partida: Fila }) {
             </tbody>
           </table>
         )}
-        <div className="mt-2 flex items-center justify-between border-t border-line pt-1.5 text-xs">
-          <span className="text-muted-foreground">{filas.length} medición{filas.length === 1 ? "" : "es"}</span>
-          <span className="font-semibold">Total en {partida.unidad}: <span className="font-mono">{total.toLocaleString("es-PE", { maximumFractionDigits: 4 })}</span></span>
-        </div>
+      </div>
+      <div className="flex shrink-0 items-center justify-between border-t border-line px-4 py-2 text-xs">
+        <span className="text-muted-foreground">{filas.length} medición{filas.length === 1 ? "" : "es"}</span>
+        <span className="font-semibold">Total en {partida.unidad}: <span className="font-mono">{total.toLocaleString("es-PE", { maximumFractionDigits: 4 })}</span></span>
       </div>
     </Panel>
+
   );
 }
 
@@ -732,8 +738,9 @@ function PanelConsolidado({ partida }: { partida: Fila }) {
   const { costo } = useApuMaestro();
   const { grupos, total, recursos } = consolidarApu(costo, partida.id);
   return (
-    <Panel titulo={`Consolidado de partida · ${partida.codigo_jerarquico || "s/c"}`}>
-      <div className="px-4 py-3">
+    <Panel titulo={`Consolidado de partida · ${partida.codigo_jerarquico || "s/c"}`} className="flex h-full flex-col">
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
+
         <p className="mb-2 truncate text-xs text-muted-foreground" title={partida.descripcion}>
           {partida.descripcion} · {partida.unidad} · Rendimiento {partida.rendimiento_diario}/día · {recursos} recurso{recursos === 1 ? "" : "s"}
         </p>
@@ -769,11 +776,12 @@ function PanelConsolidado({ partida }: { partida: Fila }) {
             </table>
           </div>
         ))}
-        <div className="mt-2 flex items-center justify-between border-t border-line pt-1.5">
-          <span className="text-sm font-semibold">Costo unitario consolidado ({partida.unidad})</span>
-          <span className="font-mono text-sm font-semibold text-primary">{soles(total)}</span>
-        </div>
+      </div>
+      <div className="flex shrink-0 items-center justify-between border-t border-line px-4 py-2">
+        <span className="text-sm font-semibold">Costo unitario consolidado ({partida.unidad})</span>
+        <span className="font-mono text-sm font-semibold text-primary">{soles(total)}</span>
       </div>
     </Panel>
+
   );
 }
