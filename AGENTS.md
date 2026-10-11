@@ -36,3 +36,4 @@
 - Real project cost comes only from useCostoObras (src/lib/costo-obra.ts) — every panel shows the same figure.
 - GG charts group existing expenses by selected scope without altering totals — presentation only.
 - UI buttons merge classes with cn() so a passed className beats base utilities; table row actions use BotonIcono (tones neutro/primario/peligro) — icons never get squeezed by padding.
+- Protected routes check the session locally (getSession) in beforeLoad and every route has a pending screen (PantallaCarga) — navigation never waits on the network with a blank page.
