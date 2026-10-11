@@ -222,9 +222,10 @@ function ListaBanco({ tabla, seleccion, onSeleccion }: { tabla: Tabla; seleccion
                   {cfg.columnas.map(([k, , tp]) => {
                     const fijo = k === "codigo" || k === "codigo_jerarquico" || k === "unidad";
                     const largo = tp === "txt" && !fijo;
+                    const ancho = k === "descripcion" ? "w-full max-w-[1px]" : "max-w-[74px]";
                     return (
-                      <td key={k} className={`px-2 py-0.5 ${largo ? "w-full max-w-[1px]" : tp !== "txt" ? "whitespace-nowrap text-right font-mono" : "whitespace-nowrap"}`}>
-                        <span className={`block ${largo ? "truncate" : ""}`}>
+                      <td key={k} className={`px-2 py-0.5 ${largo ? ancho : tp !== "txt" ? "whitespace-nowrap text-right font-mono" : "whitespace-nowrap"}`}>
+                        <span className={`block ${largo ? "truncate" : ""}`} title={largo ? String(f[k] ?? "") : undefined}>
                           {tp === "sol" ? soles(Number(f[k] ?? 0)) : tp === "num" ? Number(f[k] ?? 0).toLocaleString("es-PE") : <Resaltar texto={f[k]} termino={busqueda} />}
                         </span>
                       </td>
@@ -375,7 +376,7 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
                       <tr key={f.d.id} className="border-t border-line/60">
                         <td className="w-full max-w-[1px] px-2 py-0.5"><div className="flex items-baseline gap-1"><span className="min-w-0 truncate">{f.nombre}</span><span className="shrink-0 whitespace-nowrap text-muted-foreground">{f.und}</span></div></td>
                         <td className="w-16 px-1 py-0.5">
-                          <Input type="number" step="any" defaultValue={f.d.cantidad_o_cuadrilla} className="text-right text-xs" style={{ padding: "1px 6px", fontSize: 12 }}
+                          <Input type="number" step="any" defaultValue={f.d.cantidad_o_cuadrilla} className="text-right text-xs" style={{ padding: "1px 6px", fontSize: 12, minWidth: 54 }}
                             onBlur={(e) => Number(e.target.value) !== Number(f.d.cantidad_o_cuadrilla) && cambiarCant(f.d.id, e.target.value)} />
                         </td>
                         <td className="whitespace-nowrap px-2 py-0.5 text-right font-mono">{soles(f.cu)}</td>
