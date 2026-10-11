@@ -277,6 +277,15 @@ function VistaCotizacion() {
       });
   }
 
+  function alternarHorizontal(v: boolean) {
+    setHorizontalPreferida(v);
+    void supabase
+      .from("cotizaciones")
+      .update({ orientacion: v ? "horizontal" : "vertical" })
+      .eq("id", id)
+      .then(() => qc.invalidateQueries({ queryKey: ["cotizaciones"] }));
+  }
+
   async function descargarPdf() {
     const el = document.getElementById("cotizacion-impresion");
     if (!el) return;
