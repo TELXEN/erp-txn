@@ -389,6 +389,23 @@ function GastosDirectos() {
         </div>
       </Panel>
 
+      <div className="mb-4 flex gap-1 border-b border-line">
+        {([["resumen", "Resumen de Costos Directos"], ["partidas", "Control por partida"]] as const).map(([k, etiqueta]) => (
+          <button
+            key={k}
+            type="button"
+            onClick={() => setPestana(k)}
+            className={`-mb-px rounded-t-md border-b-2 px-4 py-2 text-xs font-semibold uppercase tracking-wide transition ${
+              pestana === k ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-ink"
+            }`}
+          >
+            {etiqueta}
+          </button>
+        ))}
+      </div>
+
+      {pestana === "resumen" && (
+      <>
       <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
         <div className="rounded-lg border border-line bg-card px-3 py-2.5">
           <p className="text-[10px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Partidas</p>
