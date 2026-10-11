@@ -13,8 +13,7 @@
 - The project S-curve plans from the work-item schedule, marks current physical progress as cut-off, and shows cost progress only to money roles — truthful history and role visibility.
 - Preliquidation PDFs use @react-pdf/renderer; quotation PDFs use fixed A4 HTML sheets with repeated headers/page numbers — predictable multi-page exports.
 - Electronic invoices use dedicated comprobantes_electronicos/items/cuotas tables, while emitted invoices/receipts mirror into ventas for treasury compatibility; numbering is reserved only by an authenticated server function.
-- Invoice A4 pages reserve a fixed bottom area repeating the fiscal footer on every page — items never overlap it.
-- Quotation, preliquidation and invoice editing render in normal flow with the sidebar visible; preview/PDF stays fixed A4 — navigation stays available.
+- Quotation/preliquidation/invoice editing renders in normal flow with sidebar visible; preview/PDF is fixed A4 and invoices repeat the fiscal footer in a reserved bottom area.
 - Typography comes from the local-font catalogue in configuracion_documentos (UI via --font-global, mono separate; PDF/Excel get the same font) — consistent outputs.
 - Document codes (projects, quotations, preliquidations, custom) are configured as rows in codificacion_documentos: free code + zero-padded correlative, generated via siguiente_codigo_documento — single source for all document numbering.
 - Insumo types live in the tipos_insumo table (key, name, digit, correlative); code reads them via useTiposInsumo and never hardcodes the type list except the five protected system keys — users can add types.
@@ -26,7 +25,6 @@
 - Quotation hierarchy uses `especialidad` as the chapter for single-discipline quotes, while multidisciplinary quotes use it for discipline and `grupo` for group; templates preserve this structure. Master prices are PEN, converted on entry — no mixed currencies.
 - On desktop, AppShell owns viewport height; sidebar and workspace scroll independently — navigation stays fixed.
 - Quotation WBS codes: multidisciplinary = 4 levels Especialidad.Grupo.Categoría.Partida (01.01.01.01); single-discipline = 3 levels Grupo.Categoría.Partida (chapter is the group). Group 00 = none. numeracionCotizacion (src/lib/categorias.ts) is the single source; projects copy codes on conversion.
-- Vehicle timekeeping uses one row per usage day and only the daily rate; mileage remains in transfers.
 - EMO validity is computed in src/lib/emo.ts from each worker's latest exam (emos_trabajador, admin/gerente-only) — one rule feeds every EMO alert.
 - Primary creation uses VentanaFlotante (optional hidden scrollbars) with consecutive saves and explicit close; cost eligibility, overrun lock and CD ceiling are DB triggers (Gerencia overrides via solicitudes_desbloqueo).
 - Detraction collections store the BN account in ventas.banco_detraccion_id; treasury splits the sale between both banks — no duplicate sale rows.
@@ -34,6 +32,5 @@
 - Honoraria (recibos_honorarios) and payroll (DetallePagoNomina) each use one WYSIWYG preview/print sheet; Cerrada gates payroll payments — aligned outputs.
 - BEFORE triggers round amounts (2 dp) and quantities/unit prices (4 dp) on gastos_directos, gastos_generales and ventas — one rounding rule for every writer.
 - Real project cost comes only from useCostoObras (src/lib/costo-obra.ts) — every panel shows the same figure.
-- GG charts only regroup expenses by scope — totals unchanged.
 - UI buttons merge classes with cn() so a passed className beats base utilities; table row actions use BotonIcono (tones neutro/primario/peligro) — icons never get squeezed by padding.
-- APU relacional: materiales, mano_obra, equipos_herramientas, subcontratos, partidas_apu y partida_detalle (FK anulables, una por fila) alimentan el Banco APU; quitar usa quitar_recurso_apu (inactiva si está en uso) — no se pierde historial de recetas.
+- Banco APU: five resource tables + partida_detalle (one nullable FK per row); removal goes through quitar_recurso_apu (deactivates if used) — recipes keep history.
