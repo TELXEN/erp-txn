@@ -96,7 +96,12 @@ export function costoReceta(
       return { d, banco: "Subpartidas", tipo: "SUB", recursoId: hijoId, nombre: "(ciclo)", und: "", cu: 0, cantidad: 0, parcial: 0 };
     }
     const [col, tabla, etiqueta, tipo] = found;
-    const r = (recursos[tabla as keyof RecursosApu] ?? []).find((x) => x.id === d[col]);
+    const banco = (recursos[tabla as keyof RecursosApu] ?? []).find((x) => x.id === d[col]);
+    // Copia fija de la cotización: si existe, manda sobre el banco.
+    const fijo = d.precio_unitario !== undefined && d.precio_unitario !== null;
+    const r = fijo
+      ? { ...banco, descripcion: d.descripcion || banco?.descripcion, unidad: d.unidad || banco?.unidad, costo_hora: Number(d.precio_unitario), costo_unitario: Number(d.precio_unitario) }
+      : banco;
     const q = Number(d.cantidad_o_cuadrilla) || 0;
     let cu = 0, parcial = 0, esPctMo = false;
     if (tabla === "mano_obra") {
@@ -161,4 +166,100 @@ export function useCatalogoCotizacion(): PartidaCatalogo[] {
     activo: true,
     rendimiento: Number(p.rendimiento_diario ?? 1),
   }));
+}
+
+/** Fila de copia fija para cotizacion_apu_detalle. */
+export type FilaCopiaApu = {
+  material_id: string | null;
+  mano_obra_id: string | null;
+  equipo_id: string | null;
+  subcontrato_id: string | null;
+  cantidad_o_cuadrilla: number;
+  codigo: string;
+  descripcion: string;
+  marca: string;
+  unidad: string;
+  tipo_recurso: string;
+  precio_unitario: number;
+};
+
+/**
+ * Aplana la receta de una partida del banco (subpartidas incluidas) en filas con
+ * precio fijo en la moneda indicada. `factor` convierte PEN → moneda (1 o 1/TC).
+ * Las cantidades de subpartidas se reescalan al rendimiento de la partida padre.
+ */
+export function aplanarReceta(
+  partidaId: string,
+  partidas: Recurso[],
+  detalle: DetalleApu[],
+  recursos: RecursosApu,
+  factor: number,
+  multiplicador = 1,
+  rendPadre?: number,
+  visitados = new Set<string>(),
+): FilaCopiaApu[] {
+  if (visitados.has(partidaId)) return [];
+  visitados = new Set(visitados).add(partidaId);
+  const p = partidas.find((x) => x.id === partidaId);
+  const rend = Number(p?.rendimiento_diario) || 1;
+  const rp = rendPadre ?? rend;
+  const propias = detalle.filter((d) => d.partida_padre_id === partidaId);
+  const salida: FilaCopiaApu[] = [];
+  const esRaiz = rendPadre === undefined;
+  const totalMoHijo = esRaiz ? 0 : costoReceta(propias.filter((d) => d.mano_obra_id), recursos, rend).total;
+  for (const d of propias) {
+    if (d.subpartida_hijo_id) {
+      salida.push(...aplanarReceta(d.subpartida_hijo_id, partidas, detalle, recursos, factor, multiplicador * (Number(d.cantidad_o_cuadrilla) || 0), rp, visitados));
+      continue;
+    }
+    const found = BANCOS_RECURSO.find(([c]) => d[c]);
+    if (!found) continue;
+    const [col, tabla, , tipo] = found;
+    const r = (recursos[tabla as keyof RecursosApu] ?? []).find((x) => x.id === d[col]);
+    if (!r) continue;
+    const q = Number(d.cantidad_o_cuadrilla) || 0;
+    const horaria = tabla === "mano_obra" || (tabla === "equipos_herramientas" && r.unidad === "H-M");
+    const pct = tabla === "equipos_herramientas" && r.unidad === "%";
+    const fila: FilaCopiaApu = {
+      material_id: null, mano_obra_id: null, equipo_id: null, subcontrato_id: null,
+      [col]: r.id,
+      cantidad_o_cuadrilla: q * multiplicador,
+      codigo: r.codigo ?? "", descripcion: r.descripcion ?? "", marca: r.marca ?? "", unidad: r.unidad ?? "",
+      tipo_recurso: tipo,
+      precio_unitario: Math.round((tabla === "mano_obra" ? Number(r.costo_hora) : Number(r.costo_unitario)) * factor * 10000) / 10000,
+    } as FilaCopiaApu;
+    if (horaria) fila.cantidad_o_cuadrilla = (q * multiplicador * rp) / rend;
+    if (pct) {
+      if (esRaiz) fila.precio_unitario = Number(r.costo_hora);
+      else {
+        // % sobre la MO de la subpartida: se fija como importe por unidad del padre.
+        fila.unidad = "glb";
+        fila.cantidad_o_cuadrilla = multiplicador;
+        fila.precio_unitario = Math.round(((totalMoHijo * Number(r.costo_hora) * q) / 100) * factor * 10000) / 10000;
+      }
+    }
+    salida.push(fila);
+  }
+  return salida;
+}
+
+/** Copia la receta del banco (copia fija) a una partida de cotización y devuelve su P.U. */
+export async function copiarRecetaACotizacion(itemId: string, partidaApuId: string, factor: number) {
+  const tablas = ["partidas_apu", "partida_detalle", "materiales", "mano_obra", "equipos_herramientas", "subcontratos"];
+  const res = await Promise.all(tablas.map((t) => dbBanco.from(t).select("*")));
+  const err = res.find((r: { error: unknown }) => r.error);
+  if (err) throw err.error;
+  const [partidas, detalle, materiales, mano_obra, equipos_herramientas, subcontratos] = res.map((r: { data: Recurso[] }) => r.data ?? []);
+  const recursos = { materiales, mano_obra, equipos_herramientas, subcontratos };
+  const filas = aplanarReceta(partidaApuId, partidas, detalle, recursos, factor);
+  const p = partidas.find((x: Recurso) => x.id === partidaApuId);
+  const rend = Number(p?.rendimiento_diario) || 1;
+  const { error: e1 } = await dbBanco.from("cotizacion_apu_detalle").delete().eq("cotizacion_item_id", itemId);
+  if (e1) throw e1;
+  if (filas.length) {
+    const { error: e2 } = await dbBanco.from("cotizacion_apu_detalle").insert(filas.map((f) => ({ ...f, cotizacion_item_id: itemId })));
+    if (e2) throw e2;
+  }
+  const pu = Math.round(costoReceta(filas, recursos, rend, 8).total * 10000) / 10000;
+  return { pu, rendimiento: rend, filas: filas.length };
 }
