@@ -1,13 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { FolderKanban, Layers, Package } from "lucide-react";
+import { FolderKanban, Layers } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
 import { Boton } from "@/components/ui-kit";
-import { Insumos } from "@/components/Insumos";
 import { UnidadesMedida } from "@/components/UnidadesMedida";
 import { EspecialidadesPartida } from "@/components/EspecialidadesPartida";
 import { CategoriasPartida } from "@/components/CategoriasPartida";
-import { PartidasMaestras } from "@/components/PartidasMaestras";
 import { GruposCotizacion } from "@/components/GruposCotizacion";
 import { BancoApu } from "@/components/BancoApu";
 
@@ -31,11 +29,10 @@ export const Route = createFileRoute("/_authenticated/datos-apu")({
   component: DatosApu,
 });
 
-type Pestana = "banco" | "insumos" | "unidades" | "especialidades" | "categorias" | "maestras" | "grupos";
+type Pestana = "banco" | "unidades" | "especialidades" | "categorias" | "grupos";
 
 const GRUPOS_APU: { titulo: string; icono: React.ElementType; items: [Pestana, string][] }[] = [
   { titulo: "Banco APU", icono: FolderKanban, items: [["banco", "\n"]] },
-  { titulo: "Maestro anterior", icono: Package, items: [["maestras", "Partidas maestras"], ["insumos", "Insumos"]] },
   {
     titulo: "Catálogo técnico",
     icono: Layers,
@@ -101,18 +98,14 @@ function DatosApu() {
 
       {pestana === "banco" ? (
         <BancoApu />
-      ) : pestana === "insumos" ? (
-        <Insumos />
       ) : pestana === "unidades" ? (
         <UnidadesMedida />
       ) : pestana === "especialidades" ? (
         <EspecialidadesPartida />
       ) : pestana === "grupos" ? (
         <GruposCotizacion />
-      ) : pestana === "categorias" ? (
-        <CategoriasPartida />
       ) : (
-        <PartidasMaestras />
+        <CategoriasPartida />
       )}
     </>
   );
