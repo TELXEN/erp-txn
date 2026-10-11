@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Calculator, Pencil, Plus, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -102,18 +102,49 @@ export function BancoApu() {
   );
 }
 
+const PIE = ["analisis", "especificaciones", "metrado", "consolidado"] as const;
+type Pie = (typeof PIE)[number];
+const PIE_TITULOS: Record<Pie, string> = {
+  analisis: "Análisis de costo unitario",
+  especificaciones: "Especificaciones técnicas",
+  metrado: "Metrado",
+  consolidado: "Consolidado de partida",
+};
+
 function SplitPartidas() {
   const [sel, setSel] = useState<string>(() => (typeof window !== "undefined" && localStorage.getItem("banco-apu:partida")) || "");
   const elegir = (id: string) => { setSel(id); localStorage.setItem("banco-apu:partida", id); };
+  const [pie, setPie] = useState<Pie>(() => (typeof window !== "undefined" && (localStorage.getItem("banco-apu:pie") as Pie)) || "analisis");
+  const elegirPie = (p: Pie) => { setPie(p); localStorage.setItem("banco-apu:pie", p); };
   const { data: pa = [] } = useTabla("partidas_apu");
   const partida = pa.find((p) => p.id === sel);
   return (
-    <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-      <div className="min-w-0"><ListaBanco tabla="partidas_apu" seleccion={sel} onSeleccion={elegir} /></div>
-      <div className="min-w-0">
-        {partida ? <PanelApuMaestro partida={partida} /> : <Panel titulo="Análisis de precios unitarios"><Vacio texto="Elige una partida a la izquierda para ver y armar su APU." /></Panel>}
+    <>
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+        <div className="min-w-0"><ListaBanco tabla="partidas_apu" seleccion={sel} onSeleccion={elegir} /></div>
+        <div className="min-w-0">
+          {!partida ? (
+            <Panel titulo="Análisis de precios unitarios"><Vacio texto="Elige una partida a la izquierda para ver y armar su APU." /></Panel>
+          ) : pie === "analisis" ? (
+            <PanelApuMaestro partida={partida} />
+          ) : pie === "especificaciones" ? (
+            <PanelEspecificaciones partida={partida} />
+          ) : pie === "metrado" ? (
+            <PanelMetrado partida={partida} />
+          ) : (
+            <PanelConsolidado partida={partida} />
+          )}
+        </div>
       </div>
-    </div>
+      <div className="mt-3 flex flex-wrap items-stretch gap-1 border-t border-line">
+        {PIE.map((p) => (
+          <button key={p} type="button" onClick={() => elegirPie(p)}
+            className={`-mt-px border-t-[3px] px-3 py-1.5 text-xs transition-colors ${pie === p ? "border-primary font-semibold text-foreground" : "border-transparent text-muted-foreground hover:bg-muted hover:text-foreground"}`}>
+            {PIE_TITULOS[p]}
+          </button>
+        ))}
+      </div>
+    </>
   );
 }
 
@@ -303,8 +334,9 @@ const GRUPOS = [
 ] as const;
 type Grupo = (typeof GRUPOS)[number];
 
-function PanelApuMaestro({ partida }: { partida: Fila }) {
-  const qc = useQueryClient();
+type FilaC = { d: Detalle; col: string; nombre: string; und: string; cu: number; parcial: number; pct?: boolean };
+
+function useApuMaestro() {
   const { data: det = [] } = useTabla("partida_detalle");
   const { data: mat = [] } = useTabla("materiales");
   const { data: mo = [] } = useTabla("mano_obra");
@@ -312,11 +344,8 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
   const { data: sc = [] } = useTabla("subcontratos");
   const { data: pa = [] } = useTabla("partidas_apu");
   const fuentes: Record<string, Fila[]> = { materiales: mat, mano_obra: mo, equipos_herramientas: eq, subcontratos: sc, partidas_apu: pa };
-  const [cerrados, setCerrados] = useState<Record<string, boolean>>({});
-  const [agregar, setAgregar] = useState<Grupo | null>(null);
   const detalles = det as Detalle[];
 
-  type FilaC = { d: Detalle; col: string; nombre: string; und: string; cu: number; parcial: number; pct?: boolean };
   const costo = (id: string, visitados = new Set<string>()): { total: number; filas: FilaC[] } => {
     if (visitados.has(id)) return { total: 0, filas: [] };
     visitados.add(id);
@@ -337,6 +366,15 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
     for (const f of filas) if (f.pct) f.parcial = (totalMo * f.cu * Number(f.d.cantidad_o_cuadrilla)) / 100;
     return { total: filas.reduce((s, f) => s + f.parcial, 0), filas };
   };
+
+  return { costo, fuentes, detalles, partidas: pa };
+}
+
+function PanelApuMaestro({ partida }: { partida: Fila }) {
+  const qc = useQueryClient();
+  const { costo, fuentes, detalles } = useApuMaestro();
+  const [cerrados, setCerrados] = useState<Record<string, boolean>>({});
+  const [agregar, setAgregar] = useState<Grupo | null>(null);
   const calc = costo(partida.id);
   const refrescar = () => qc.invalidateQueries({ queryKey: ["banco_apu", "partida_detalle"] });
 
@@ -533,5 +571,206 @@ function DialogoNuevaPartida({ partidas, onCerrar, onGuardado }: { partidas: Fil
         </div>
       </form>
     </VentanaFlotante>
+  );
+}
+
+// ---------- Pie del APU: especificaciones técnicas, metrado y consolidado ----------
+
+const areaTexto =
+  "w-full rounded-md border border-line bg-card px-3 py-2 text-sm text-foreground outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15";
+
+function PanelEspecificaciones({ partida }: { partida: Fila }) {
+  const qc = useQueryClient();
+  const [txt, setTxt] = useState(String(partida.especificaciones ?? ""));
+  const [aviso, setAviso] = useState("");
+  useEffect(() => { setTxt(String(partida.especificaciones ?? "")); setAviso(""); }, [partida.id, partida.especificaciones]);
+
+  async function guardar() {
+    const { error } = await db.from("partidas_apu").update({ especificaciones: txt }).eq("id", partida.id);
+    if (error) return setAviso(error.message);
+    setAviso("Guardado en la ficha de la partida.");
+    qc.invalidateQueries({ queryKey: ["banco_apu", "partidas_apu"] });
+  }
+
+  return (
+    <Panel titulo={`Especificaciones técnicas · ${partida.codigo_jerarquico || "s/c"}`}>
+      <div className="px-4 py-3">
+        <textarea className={`${areaTexto} min-h-64 resize-y`} value={txt}
+          onChange={(e) => { setTxt(e.target.value); setAviso(""); }}
+          placeholder="Alcance, norma aplicable, equipo y control de calidad, condiciones de aceptación…" />
+        <div className="mt-2 flex items-center justify-between gap-3">
+          <span className={`text-xs ${aviso.startsWith("Guardado") ? "text-good" : "text-muted-foreground"}`}>{aviso || "Se guarda en la ficha de la partida."}</span>
+          <div className="flex gap-2">
+            <Boton type="button" variante="linea" onClick={() => { setTxt(String(partida.especificaciones ?? "")); setAviso(""); }}>Descartar</Boton>
+            <Boton type="button" onClick={guardar}>Guardar</Boton>
+          </div>
+        </div>
+      </div>
+    </Panel>
+  );
+}
+
+function PanelMetrado({ partida }: { partida: Fila }) {
+  const qc = useQueryClient();
+  const { data: filas = [] } = useQuery({
+    queryKey: ["banco_apu", "partidas_apu_metrado", partida.id],
+    queryFn: async () => {
+      const { data, error } = await db.from("partidas_apu_metrado").select("*").eq("partida_id", partida.id).order("orden").order("created_at");
+      if (error) throw error;
+      return (data ?? []) as Fila[];
+    },
+  });
+  const { data: unidades = [] } = useUnidadesMedida();
+  const unds = useMemo(() => [...new Set([partida.unidad, ...unidades.filter((u) => u.activo).map((u) => u.simbolo)].filter(Boolean))], [unidades, partida.unidad]);
+
+  const refrescar = () => qc.invalidateQueries({ queryKey: ["banco_apu", "partidas_apu_metrado"] });
+  const guardarFila = async (id: string, datos: Record<string, unknown>) => {
+    const { error } = await db.from("partidas_apu_metrado").update(datos).eq("id", id);
+    if (error) window.alert(error.message);
+    refrescar();
+  };
+
+  async function aumentar() {
+    const orden = filas.reduce((s, f) => Math.max(s, Number(f.orden) || 0), 0) + 1;
+    const { error } = await db.from("partidas_apu_metrado").insert({ partida_id: partida.id, unidad: partida.unidad ?? "", orden });
+    if (error) return window.alert(error.message);
+    refrescar();
+  }
+
+  async function quitar(id: string) {
+    if (!window.confirm("¿Quitar esta medición?")) return;
+    const { error } = await db.from("partidas_apu_metrado").delete().eq("id", id);
+    if (error) return window.alert(error.message);
+    refrescar();
+  }
+
+  const total = filas.filter((f) => String(f.unidad) === String(partida.unidad)).reduce((s, f) => s + Number(f.cantidad ?? 0), 0);
+
+  return (
+    <Panel titulo={`Metrado · ${partida.codigo_jerarquico || "s/c"}`}
+      extra={<Boton className="py-1 text-xs" onClick={aumentar}><Plus size={13} /> Agregar fila</Boton>}>
+      <div className="px-4 py-3">
+        {filas.length === 0 ? (
+          <Vacio texto="Aún no hay mediciones. Agrega la primera fila del metrado." />
+        ) : (
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="border-b border-line label-mono leading-none">
+                <th className="w-full max-w-[1px] whitespace-nowrap px-2 py-1 text-left font-medium">Concepto</th>
+                <th className="whitespace-nowrap px-1 py-1 text-right font-medium">Und.</th>
+                <th className="whitespace-nowrap px-2 py-1 text-right font-medium">Cantidad</th>
+                <th className="whitespace-nowrap px-2 py-1 text-left font-medium">Observación</th>
+                <th className="py-1 pl-1 pr-2.5" />
+              </tr>
+            </thead>
+            <tbody>
+              {filas.map((f) => (
+                <tr key={f.id} className="border-b border-line/60">
+                  <td className="w-full max-w-[1px] px-1 py-0.5">
+                    <Input defaultValue={f.concepto} className="text-xs" style={{ padding: "1px 6px", fontSize: 12 }}
+                      onBlur={(e) => e.target.value !== String(f.concepto ?? "") && guardarFila(f.id, { concepto: e.target.value })} />
+                  </td>
+                  <td className="w-20 px-1 py-0.5">
+                    <Select value={String(f.unidad ?? "")} className="text-xs" style={{ padding: "1px 4px", fontSize: 12 }}
+                      onChange={(e) => guardarFila(f.id, { unidad: e.target.value })}>
+                      {unds.map((u) => <option key={u}>{u}</option>)}
+                    </Select>
+                  </td>
+                  <td className="w-24 px-1 py-0.5">
+                    <Input type="number" step="any" defaultValue={f.cantidad} className="text-right text-xs" style={{ padding: "1px 6px", fontSize: 12 }}
+                      onBlur={(e) => Number(e.target.value) !== Number(f.cantidad ?? 0) && guardarFila(f.id, { cantidad: Number(e.target.value) })} />
+                  </td>
+                  <td className="w-56 px-1 py-0.5">
+                    <Input defaultValue={f.observacion} className="text-xs" style={{ padding: "1px 6px", fontSize: 12 }}
+                      onBlur={(e) => e.target.value !== String(f.observacion ?? "") && guardarFila(f.id, { observacion: e.target.value })} />
+                  </td>
+                  <td className="w-6 py-0.5 pl-1 pr-2.5"><BotonIcono etiqueta="Quitar fila" tono="peligro" className="size-6" onClick={() => quitar(f.id)}><X size={12} /></BotonIcono></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+        <div className="mt-2 flex items-center justify-between border-t border-line pt-1.5 text-xs">
+          <span className="text-muted-foreground">{filas.length} medición{filas.length === 1 ? "" : "es"}</span>
+          <span className="font-semibold">Total en {partida.unidad}: <span className="font-mono">{total.toLocaleString("es-PE", { maximumFractionDigits: 4 })}</span></span>
+        </div>
+      </div>
+    </Panel>
+  );
+}
+
+type RecursoConsolidado = { k: string; nombre: string; und: string; col: string; cu: number; cantidad: number; parcial: number; pct: boolean };
+
+function consolidarApu(costo: (id: string) => { total: number; filas: FilaC[] }, id: string) {
+  const vistos = new Set<string>();
+  const mapa = new Map<string, RecursoConsolidado>();
+  const caminar = (padre: string) => {
+    if (vistos.has(padre)) return;
+    vistos.add(padre);
+    for (const f of costo(padre).filas) {
+      if (f.col === "subpartida_hijo_id") { caminar(String(f.d[f.col])); continue; }
+      const k = `${f.col}:${f.d[f.col]}`;
+      const a = mapa.get(k) ?? { k, nombre: f.nombre, und: f.und, col: f.col, cu: f.cu, cantidad: 0, parcial: 0, pct: !!f.pct };
+      a.cantidad += Number(f.d.cantidad_o_cuadrilla) || 0;
+      a.parcial += f.parcial;
+      mapa.set(k, a);
+    }
+  };
+  caminar(id);
+  const valores = [...mapa.values()];
+  const grupos = GRUPOS.map(([col, , titulo]) => ({
+    col, titulo,
+    filas: valores.filter((f) => f.col === col).sort((a, b) => a.nombre.localeCompare(b.nombre, "es")),
+  })).filter((g) => g.filas.length > 0);
+  return { grupos, total: valores.reduce((s, f) => s + f.parcial, 0), recursos: valores.length };
+}
+
+function PanelConsolidado({ partida }: { partida: Fila }) {
+  const { costo } = useApuMaestro();
+  const { grupos, total, recursos } = consolidarApu(costo, partida.id);
+  return (
+    <Panel titulo={`Consolidado de partida · ${partida.codigo_jerarquico || "s/c"}`}>
+      <div className="px-4 py-3">
+        <p className="mb-2 truncate text-xs text-muted-foreground" title={partida.descripcion}>
+          {partida.descripcion} · {partida.unidad} · Rendimiento {partida.rendimiento_diario}/día · {recursos} recurso{recursos === 1 ? "" : "s"}
+        </p>
+        {grupos.length === 0 ? (
+          <Vacio texto="Esta partida aún no tiene recursos en su APU." />
+        ) : grupos.map((g) => (
+          <div key={g.col} className="mb-2 rounded-md border border-line">
+            <div className="flex items-center justify-between bg-muted/40 px-2.5 py-1 text-xs font-semibold text-primary">
+              <span>{g.titulo}</span>
+              <span className="font-mono font-normal">{soles(g.filas.reduce((s, f) => s + f.parcial, 0))}</span>
+            </div>
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="label-mono leading-none">
+                  <th className="w-full max-w-[1px] whitespace-nowrap px-2 py-1 text-left font-medium">Recurso</th>
+                  <th className="whitespace-nowrap px-1 py-1 text-right font-medium">Cant.</th>
+                  <th className="whitespace-nowrap px-1 py-1 text-right font-medium">Und.</th>
+                  <th className="whitespace-nowrap px-2 py-1 text-right font-medium">C. unit.</th>
+                  <th className="whitespace-nowrap px-2 py-1 text-right font-medium">Parcial</th>
+                </tr>
+              </thead>
+              <tbody>
+                {g.filas.map((f) => (
+                  <tr key={f.k} className="border-t border-line/60">
+                    <td className="w-full max-w-[1px] px-2 py-0.5"><span className="block truncate" title={f.nombre}>{f.nombre}</span></td>
+                    <td className="whitespace-nowrap px-1 py-0.5 text-right font-mono">{f.pct ? `${f.cantidad}%` : f.cantidad.toLocaleString("es-PE", { maximumFractionDigits: 4 })}</td>
+                    <td className="whitespace-nowrap px-1 py-0.5 text-right text-muted-foreground">{f.und}</td>
+                    <td className="whitespace-nowrap px-2 py-0.5 text-right font-mono">{f.pct ? `${f.cu}%` : soles(f.cu)}</td>
+                    <td className="whitespace-nowrap px-2 py-0.5 text-right font-mono">{soles(f.parcial)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ))}
+        <div className="mt-2 flex items-center justify-between border-t border-line pt-1.5">
+          <span className="text-sm font-semibold">Costo unitario consolidado ({partida.unidad})</span>
+          <span className="font-mono text-sm font-semibold text-primary">{soles(total)}</span>
+        </div>
+      </div>
+    </Panel>
   );
 }
