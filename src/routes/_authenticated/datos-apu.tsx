@@ -77,22 +77,26 @@ function DatosApu() {
         })}
       </div>
 
-      <div className="mb-4 flex flex-wrap gap-1 border-b border-line pb-3">
-        {grupoActivo.items.map(([p, texto]) => (
-          <button
-            key={p}
-            type="button"
-            onClick={() => setPestana(p)}
-            className={`rounded-md border-b-2 px-3 py-1.5 text-xs transition-colors ${
-              pestana === p
-                ? "border-cta bg-primary/10 font-semibold text-primary"
-                : "border-transparent text-muted-foreground hover:bg-muted hover:text-primary"
-            }`}
-          >
-            {texto}
-          </button>
-        ))}
-      </div>
+      {grupoActivo.items.some(([, texto]) => texto.trim()) && (
+        <div className="mb-4 flex flex-wrap gap-1 border-b border-line pb-3">
+          {grupoActivo.items
+            .filter(([, texto]) => texto.trim())
+            .map(([p, texto]) => (
+              <button
+                key={p}
+                type="button"
+                onClick={() => setPestana(p)}
+                className={`rounded-md border-b-2 px-3 py-1.5 text-xs transition-colors ${
+                  pestana === p
+                    ? "border-cta bg-primary/10 font-semibold text-primary"
+                    : "border-transparent text-muted-foreground hover:bg-muted hover:text-primary"
+                }`}
+              >
+                {texto}
+              </button>
+            ))}
+        </div>
+      )}
 
       {pestana === "insumos" ? (
         <Insumos />
