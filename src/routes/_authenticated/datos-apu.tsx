@@ -33,7 +33,7 @@ export const Route = createFileRoute("/_authenticated/datos-apu")({
 type Pestana = "insumos" | "unidades" | "especialidades" | "categorias" | "maestras" | "grupos";
 
 const GRUPOS_APU: { titulo: string; icono: React.ElementType; items: [Pestana, string][] }[] = [
-  { titulo: "Banco de partidas", icono: FolderKanban, items: [["maestras", "Registro de partidas"]] },
+  { titulo: "Banco de partidas", icono: FolderKanban, items: [["maestras", "\n"]] },
   { titulo: "Maestro de insumos", icono: Package, items: [["insumos", "Maestro de insumos"]] },
   {
     titulo: "Catálogo técnico",
