@@ -34,7 +34,7 @@ type Pestana = "insumos" | "unidades" | "especialidades" | "categorias" | "maest
 
 const GRUPOS_APU: { titulo: string; icono: React.ElementType; items: [Pestana, string][] }[] = [
   { titulo: "Banco de partidas", icono: FolderKanban, items: [["maestras", "\n"]] },
-  { titulo: "Maestro de insumos", icono: Package, items: [["insumos", "Maestro de insumos"]] },
+  { titulo: "Maestro de insumos", icono: Package, items: [["insumos", "\n"]] },
   {
     titulo: "Catálogo técnico",
     icono: Layers,
