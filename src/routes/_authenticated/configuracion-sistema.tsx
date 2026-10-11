@@ -58,6 +58,9 @@ function ConfiguracionSistema() {
         </div>
       </div>
       <div className="flex flex-wrap gap-2 border-b border-line pb-2" role="tablist" aria-label="Configuración del sistema">
+        <Boton type="button" variante="linea" role="tab" aria-selected={pestana === "empresa"} onClick={() => setPestana("empresa")} className={pestana === "empresa" ? "border-primary bg-primary/5 text-primary" : ""}>
+          <Building2 className="size-4 text-primary" /> Datos de la empresa
+        </Boton>
         <Boton type="button" variante="linea" role="tab" aria-selected={pestana === "tema"} onClick={() => setPestana("tema")} className={pestana === "tema" ? "border-primary bg-primary/5 text-primary" : ""}>
           <IconoPaletaColores className="size-5" /> Tema de colores
         </Boton>
@@ -66,9 +69,6 @@ function ConfiguracionSistema() {
         </Boton>
         <Boton type="button" variante="linea" role="tab" aria-selected={pestana === "usuarios"} onClick={() => setPestana("usuarios")} className={pestana === "usuarios" ? "border-primary bg-primary/5 text-primary" : ""}>
           <ShieldCheck className="size-4 text-primary" /> Usuarios y Roles
-        </Boton>
-        <Boton type="button" variante="linea" role="tab" aria-selected={pestana === "empresa"} onClick={() => setPestana("empresa")} className={pestana === "empresa" ? "border-primary bg-primary/5 text-primary" : ""}>
-          <Building2 className="size-4 text-primary" /> Datos de la empresa
         </Boton>
       </div>
       {pestana === "tema" ? <Panel titulo="Tema de colores" extra={<IconoPaletaColores className="size-5" />}>
