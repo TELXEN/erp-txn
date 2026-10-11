@@ -173,11 +173,17 @@ function Partidas() {
       partidas.filter(
         (p) =>
           (!filtroProyecto || p.proyecto_id === filtroProyecto) &&
+          (!filtroEsp || p.especialidad === filtroEsp) &&
           (!filtroTipo || (p.tipo_presupuesto ?? "Contractual") === filtroTipo) && (!busqueda || coincidentes.has(p.id)),
       ),
-    [partidas, filtroProyecto, filtroTipo],
+    [partidas, filtroProyecto, filtroEsp, filtroTipo, busqueda, coincidentes],
   );
   const resumen = useMemo(() => resumenPresupuesto(visibles, tipos), [visibles, tipos]);
+  const resumenPartidas = useMemo(() => {
+    const total = visibles.length;
+    const promedio = total > 0 ? visibles.reduce((s, p) => s + Number(p.avance_pct), 0) / total : 0;
+    return { total, promedio };
+  }, [visibles]);
   const nombresTipos = useMemo(() => {
     const activos = tipos.filter((t) => t.activo).map((t) => t.nombre);
     const usados = partidas.map((p) => p.tipo_presupuesto ?? "Contractual");
