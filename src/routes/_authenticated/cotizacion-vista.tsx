@@ -253,7 +253,10 @@ function VistaCotizacion() {
   const esUsd = cot?.moneda === "USD";
   const sim = simboloMoneda(cot?.moneda);
   const tc = Number(cot?.tipo_cambio) || 0;
-  const horizontal = cot?.orientacion === "horizontal";
+  const [horizontalPreferida, setHorizontalPreferida] = useState<boolean | null>(null);
+  useEffect(() => { setHorizontalPreferida(null); }, [id]);
+  const qc = useQueryClient();
+  const horizontal = horizontalPreferida ?? cot?.orientacion === "horizontal";
   const paginaW = horizontal ? 1123 : 794;
   const interiorW = horizontal ? 1087 : 754;
   const paginaH = horizontal ? 700 : 990;
