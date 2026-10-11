@@ -157,6 +157,10 @@ function GastosDirectos() {
     localStorage.setItem("gastos-directos:proyecto", proyectoId);
   }, [proyectos, proyectoId]);
 
+  useEffect(() => {
+    localStorage.setItem("gastos-directos:pestana", pestana);
+  }, [pestana]);
+
   const proyecto = proyectos.find((p) => p.id === proyectoId);
   const partidasProy = useMemo(
     () =>
