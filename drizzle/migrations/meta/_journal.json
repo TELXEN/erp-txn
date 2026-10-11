@@ -183,6 +183,13 @@
       "when": 1791733636473,
       "tag": "0025_vincular_banco_apu_cotizaciones",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1791733760261,
+      "tag": "0026_apu_banco_en_obras",
+      "breakpoints": true
     }
   ]
 }

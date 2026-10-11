@@ -2904,7 +2904,8 @@ export type Database = {
           id: string
           mano_obra_id: string | null
           material_id: string | null
-          partida_padre_id: string
+          partida_obra_id: string | null
+          partida_padre_id: string | null
           subcontrato_id: string | null
           subpartida_hijo_id: string | null
         }
@@ -2915,7 +2916,8 @@ export type Database = {
           id?: string
           mano_obra_id?: string | null
           material_id?: string | null
-          partida_padre_id: string
+          partida_obra_id?: string | null
+          partida_padre_id?: string | null
           subcontrato_id?: string | null
           subpartida_hijo_id?: string | null
         }
@@ -2926,7 +2928,8 @@ export type Database = {
           id?: string
           mano_obra_id?: string | null
           material_id?: string | null
-          partida_padre_id?: string
+          partida_obra_id?: string | null
+          partida_padre_id?: string | null
           subcontrato_id?: string | null
           subpartida_hijo_id?: string | null
         }
@@ -2950,6 +2953,13 @@ export type Database = {
             columns: ["material_id"]
             isOneToOne: false
             referencedRelation: "materiales"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partida_detalle_partida_obra_id_fkey"
+            columns: ["partida_obra_id"]
+            isOneToOne: false
+            referencedRelation: "partidas"
             referencedColumns: ["id"]
           },
           {
@@ -2991,6 +3001,7 @@ export type Database = {
           metrado: number
           nombre: string
           padre_id: string | null
+          partida_apu_id: string | null
           pct_herramientas: number
           precio_unitario: number
           presupuesto_inicial: number
@@ -3016,6 +3027,7 @@ export type Database = {
           metrado?: number
           nombre: string
           padre_id?: string | null
+          partida_apu_id?: string | null
           pct_herramientas?: number
           precio_unitario?: number
           presupuesto_inicial?: number
@@ -3041,6 +3053,7 @@ export type Database = {
           metrado?: number
           nombre?: string
           padre_id?: string | null
+          partida_apu_id?: string | null
           pct_herramientas?: number
           precio_unitario?: number
           presupuesto_inicial?: number
@@ -3057,6 +3070,13 @@ export type Database = {
             columns: ["padre_id"]
             isOneToOne: false
             referencedRelation: "partidas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partidas_partida_apu_id_fkey"
+            columns: ["partida_apu_id"]
+            isOneToOne: false
+            referencedRelation: "partidas_apu"
             referencedColumns: ["id"]
           },
           {
