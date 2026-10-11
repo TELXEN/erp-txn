@@ -109,7 +109,7 @@ function GastosDirectos() {
   const gastos = gastosRaw as Compra[];
   const { data: terceros = [] } = useTerceros();
   const proveedores = terceros.filter((t) => t.es_proveedor && t.activo);
-  const [proyectoId, setProyectoId] = useState("");
+  const [proyectoId, setProyectoId] = useState(() => localStorage.getItem("gastos-directos:proyecto") ?? "");
   const [abiertas, setAbiertas] = useState<Record<string, boolean>>({});
   const [gruposCerrados, setGruposCerrados] = useState<Record<string, boolean>>({});
   const [modal, setModal] = useState<{ pid: string; editando?: Compra; inicial?: Borrador } | null>(null);
@@ -146,7 +146,12 @@ function GastosDirectos() {
   };
 
   useEffect(() => {
-    if (!proyectoId && proyectos.length) setProyectoId(proyectos[0]!.id);
+    if (!proyectos.length) return;
+    if (!proyectoId || !proyectos.some((p) => p.id === proyectoId)) {
+      setProyectoId(proyectos[0]!.id);
+      return;
+    }
+    localStorage.setItem("gastos-directos:proyecto", proyectoId);
   }, [proyectos, proyectoId]);
 
   const proyecto = proyectos.find((p) => p.id === proyectoId);
@@ -362,7 +367,7 @@ function GastosDirectos() {
       />
 
       <Panel className="mb-4">
-        <div className="grid gap-4 p-5 md:grid-cols-[minmax(220px,1.2fr)_repeat(4,1fr)] md:items-end">
+        <div className="grid gap-4 p-5 md:grid-cols-[minmax(220px,1.2fr)_1fr] md:items-end">
           <Campo etiqueta="Obra">
             <Select value={proyectoId} onChange={(e) => setProyectoId(e.target.value)}>
               {proyectos.map((p) => (
@@ -374,11 +379,38 @@ function GastosDirectos() {
             </Select>
           </Campo>
           <Dato titulo="Cliente" valor={proyecto?.cliente || "—"} />
-          <Dato titulo="Presupuesto CD" valor={soles(presuTotal)} />
-          <Dato titulo="Costo real" valor={soles(costoTotal)} />
-          <TarjetaSaldo saldo={presuTotal - costoTotal} consumo={consumo} />
         </div>
       </Panel>
+
+      <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
+        <div className="rounded-lg border border-line bg-card px-3 py-2.5">
+          <p className="text-[10px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Partidas</p>
+          <p className="mt-0.5 text-lg font-bold tabular-nums text-ink">{partidasProy.length}</p>
+          <p className="truncate text-[10px] text-muted-foreground">En esta obra</p>
+        </div>
+        <div className="rounded-lg border border-line bg-card px-3 py-2.5">
+          <p className="text-[10px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Presupuesto CD</p>
+          <p className="mt-0.5 truncate text-lg font-bold tabular-nums text-ink">{soles(presuTotal)}</p>
+          <p className="truncate text-[10px] text-muted-foreground">Suma de partidas</p>
+        </div>
+        <div className="rounded-lg border border-line bg-card px-3 py-2.5">
+          <p className="text-[10px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Costo real</p>
+          <p className="mt-0.5 truncate text-lg font-bold tabular-nums text-ink">{soles(costoTotal)}</p>
+          <p className="truncate text-[10px] text-muted-foreground">{comprasProy.length} compra{comprasProy.length === 1 ? "" : "s"}</p>
+        </div>
+        <div className="rounded-lg border border-line bg-card px-3 py-2.5">
+          <p className="text-[10px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Saldo</p>
+          <p className={`mt-0.5 truncate text-lg font-bold tabular-nums ${presuTotal - costoTotal < 0 ? "text-bad" : "text-good"}`}>{soles(Math.abs(presuTotal - costoTotal))}</p>
+          <p className="truncate text-[10px] text-muted-foreground">{presuTotal - costoTotal < 0 ? "Excedes la base" : "Te quedan"}</p>
+        </div>
+        <div className="rounded-lg border border-line bg-card px-3 py-2.5">
+          <p className="text-[10px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Consumo</p>
+          <p className={`mt-0.5 text-lg font-bold tabular-nums ${consumo > 100 ? "text-bad" : consumo >= 80 ? "text-warn" : "text-good"}`}>{consumo.toFixed(1)}%</p>
+          <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
+            <div className={`h-full rounded-full ${consumo > 100 ? "bg-bad" : consumo >= 80 ? "bg-warn" : "bg-good"}`} style={{ width: `${Math.min(100, consumo)}%` }} />
+          </div>
+        </div>
+      </div>
 
       {pendientes > 0 && (
         <p className="mb-3 rounded-md border border-warn/30 bg-warn/10 px-4 py-2 text-xs text-warn">
@@ -930,21 +962,4 @@ function Dato({ titulo, valor, tono = "text-ink" }: { titulo: string; valor: str
 
 function solesSaldo(v: number) {
   return v < 0 ? `(${soles(Math.abs(v))})` : soles(v);
-}
-
-function TarjetaSaldo({ saldo, consumo }: { saldo: number; consumo: number }) {
-  const color = consumo > 100 ? "bg-bad" : consumo >= 80 ? "bg-accent" : "bg-good";
-  return (
-    <div className="rounded-md border border-line bg-muted/30 px-3 py-2">
-      <p className="label-mono">Saldo</p>
-      <p className={`mt-0.5 tabular-nums text-xl font-bold tracking-tight ${saldo < 0 ? "text-bad" : "text-good"}`}>{solesSaldo(saldo)}</p>
-      <div className="mt-2 flex items-center justify-between text-[10px] uppercase tracking-wider text-muted-foreground">
-        <span>% Consumido Global</span>
-        <span className={`tabular-nums font-semibold ${consumo > 100 ? "text-bad" : "text-ink"}`}>{consumo.toFixed(1)}%</span>
-      </div>
-      <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
-        <div className={`h-full rounded-full ${color}`} style={{ width: `${Math.min(100, Math.max(0, consumo))}%` }} />
-      </div>
-    </div>
-  );
 }
