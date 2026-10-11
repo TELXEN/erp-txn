@@ -71,16 +71,6 @@ function ControlAvance({
           <Plus size={16} />
         </button>
       </div>
-      <input
-        type="range"
-        min={0}
-        max={100}
-        step={1}
-        value={valor}
-        onChange={(e) => onChange(Number(e.target.value))}
-        className="w-40 accent-primary"
-        aria-label="Barra de avance"
-      />
       <div className="flex gap-1">
         {[0, 25, 50, 75, 100].map((v) => (
           <button
