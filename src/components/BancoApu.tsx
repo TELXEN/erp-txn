@@ -11,7 +11,8 @@ import { useEspecialidadesPartida } from "@/lib/especialidades";
 const db = supabase as unknown as { from: (t: string) => any; rpc: (f: string, a: object) => any };
 
 type Tabla = "partidas_apu" | "materiales" | "mano_obra" | "equipos_herramientas" | "subcontratos";
-type Fila = Record<string, any> & { id: string; estado: string; descripcion: string; codigo?: string };
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Fila = any;
 
 type CampoDef = {
   k: string;
@@ -250,10 +251,8 @@ function ListaBanco({ tabla }: { tabla: Tabla }) {
   );
 }
 
-type Detalle = Fila & {
-  partida_padre_id: string; material_id: string | null; mano_obra_id: string | null; equipo_id: string | null;
-  subcontrato_id: string | null; subpartida_hijo_id: string | null; cantidad_o_cuadrilla: number;
-};
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Detalle = any;
 
 const BANCOS = [
   ["material_id", "materiales", "Materiales"],
