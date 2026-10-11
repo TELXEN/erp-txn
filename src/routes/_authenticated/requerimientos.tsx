@@ -9,6 +9,7 @@ import { useAuth, puedeVerDinero } from "@/lib/auth";
 import { soles } from "@/lib/format";
 import { usePartidas, useProyectos } from "@/lib/datos";
 import { TIPOS_INSUMO, apuDb, cantidadComponente, nombreTipo, useInsumos, type ComponenteApu, type TipoInsumo } from "@/lib/apu";
+import { BANCOS_RECURSO, dbBanco, useRecursosApu } from "@/lib/banco-apu";
 import { exportarExcel } from "@/lib/exportar";
 
 export const Route = createFileRoute("/_authenticated/requerimientos")({
@@ -56,6 +57,7 @@ function RequerimientosPage() {
   const { data: proyectos = [] } = useProyectos();
   const { data: partidas = [] } = usePartidas();
   const { data: insumos = [] } = useInsumos();
+  const recursos = useRecursosApu();
   const [origen, setOrigen] = useState<"obra" | "cotizacion">("cotizacion");
   const [cotizacionId, setCotizacionId] = useState("");
   const [vista, setVista] = useState<"tipo" | "consolidada">("tipo");
