@@ -628,6 +628,7 @@ function GastosDirectos() {
           </div>
         )}
       </Panel>
+      )}
       {modal && (() => {
         const mp = partidas.find((x) => x.id === modal.pid);
         if (!mp) return null;
