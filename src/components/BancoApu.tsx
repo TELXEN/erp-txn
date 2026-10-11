@@ -196,7 +196,7 @@ function ListaBanco({ tabla, seleccion, onSeleccion }: { tabla: Tabla; seleccion
             <option value="inactivo">Inactivos</option>
             <option value="">Todos</option>
           </Select>
-          <Boton onClick={() => abrir()}><Plus size={13} /> Aumentar</Boton>
+          <Boton onClick={() => (tabla === "partidas_apu" ? setNueva(true) : abrir())}><Plus size={13} /> Aumentar</Boton>
         </div>
       }
     >
@@ -214,8 +214,8 @@ function ListaBanco({ tabla, seleccion, onSeleccion }: { tabla: Tabla; seleccion
             </thead>
             <tbody>
               {visibles.map((f) => (
-                <tr key={f.id} className={`border-b border-line/60 hover:bg-muted/40 ${tabla === "partidas_apu" ? "cursor-pointer" : ""}`}
-                  onClick={() => tabla === "partidas_apu" && setReceta(f)}>
+                <tr key={f.id} className={`border-b border-line/60 hover:bg-muted/40 ${onSeleccion ? "cursor-pointer" : ""} ${seleccion === f.id ? "bg-primary/10" : ""}`}
+                  onClick={() => onSeleccion?.(f.id)}>
                   {cfg.columnas.map(([k, , tp]) => (
                     <td key={k} className={`px-4 py-2 ${tp !== "txt" ? "text-right font-mono" : ""}`}>
                       {tp === "sol" ? soles(Number(f[k] ?? 0)) : tp === "num" ? Number(f[k] ?? 0).toLocaleString("es-PE") : <Resaltar texto={f[k]} termino={busqueda} />}
@@ -224,7 +224,7 @@ function ListaBanco({ tabla, seleccion, onSeleccion }: { tabla: Tabla; seleccion
                   <td className="px-4 py-2"><Etiqueta tono={f.estado === "activo" ? "good" : "neutro"}>{f.estado === "activo" ? "Activo" : "Inactivo"}</Etiqueta></td>
                   <td className="px-4 py-2" onClick={(e) => e.stopPropagation()}>
                     <div className="flex justify-end gap-1">
-                      {tabla === "partidas_apu" && <BotonIcono etiqueta="Análisis (receta APU)" tono="primario" onClick={() => setReceta(f)}><Calculator size={14} /></BotonIcono>}
+                      {onSeleccion && <BotonIcono etiqueta="Análisis (receta APU)" tono="primario" onClick={() => onSeleccion(f.id)}><Calculator size={14} /></BotonIcono>}
                       <BotonIcono etiqueta="Editar" onClick={() => abrir(f)}><Pencil size={14} /></BotonIcono>
                       {f.estado === "activo"
                         ? <BotonIcono etiqueta="Quitar" tono="peligro" onClick={() => quitar(f)}><Trash2 size={14} /></BotonIcono>
@@ -264,7 +264,10 @@ function ListaBanco({ tabla, seleccion, onSeleccion }: { tabla: Tabla; seleccion
         )}
       </VentanaFlotante>
 
-      {receta && <RecetaApu partida={receta} onCerrar={() => setReceta(null)} />}
+      {nueva && (
+        <DialogoNuevaPartida partidas={filasRaw} onCerrar={() => setNueva(false)}
+          onGuardado={(id) => { setNueva(false); setEstado("activo"); setFiltro(""); setBusqueda(""); refrescar(); onSeleccion?.(id); }} />
+      )}
     </Panel>
   );
 }
@@ -280,114 +283,3 @@ const BANCOS = [
   ["subpartida_hijo_id", "partidas_apu", "Subpartidas"],
 ] as const;
 
-function RecetaApu({ partida, onCerrar }: { partida: Fila; onCerrar: () => void }) {
-  const qc = useQueryClient();
-  const { data: det = [] } = useTabla("partida_detalle");
-  const { data: mat = [] } = useTabla("materiales");
-  const { data: mo = [] } = useTabla("mano_obra");
-  const { data: eq = [] } = useTabla("equipos_herramientas");
-  const { data: sc = [] } = useTabla("subcontratos");
-  const { data: pa = [] } = useTabla("partidas_apu");
-  const fuentes: Record<string, Fila[]> = { materiales: mat, mano_obra: mo, equipos_herramientas: eq, subcontratos: sc, partidas_apu: pa };
-  const [banco, setBanco] = useState(0);
-  const [elegido, setElegido] = useState("");
-  const [error, setError] = useState("");
-  const detalles = det as Detalle[];
-
-  // Costo de una partida (recursivo, protegido contra ciclos).
-  const costo = (id: string, visitados = new Set<string>()): { total: number; filas: { d: Detalle; banco: string; nombre: string; und: string; cu: number; parcial: number }[] } => {
-    if (visitados.has(id)) return { total: 0, filas: [] };
-    visitados.add(id);
-    const p = pa.find((x) => x.id === id);
-    const rend = Number(p?.rendimiento_diario) || 1;
-    const propias = detalles.filter((d) => d.partida_padre_id === id);
-    const filas = propias.map((d) => {
-      const [col, tabla, etiqueta] = BANCOS.find(([c]) => d[c]) ?? BANCOS[0];
-      const r = (fuentes[tabla] ?? []).find((x) => x.id === d[col]);
-      const q = Number(d.cantidad_o_cuadrilla);
-      let cu = 0, parcial = 0;
-      if (tabla === "partidas_apu") { cu = costo(d[col] as string, new Set(visitados)).total; parcial = q * cu; }
-      else if (tabla === "mano_obra") { cu = Number(r?.costo_hora ?? 0); parcial = (q * 8 * cu) / rend; }
-      else if (tabla === "equipos_herramientas" && r?.unidad === "H-M") { cu = Number(r?.costo_unitario ?? 0); parcial = (q * 8 * cu) / rend; }
-      else { cu = Number(r?.costo_unitario ?? 0); parcial = q * cu; }
-      return { d, banco: etiqueta, nombre: r?.descripcion ?? "(no encontrado)", und: r?.unidad ?? "", cu, parcial, pct: tabla === "equipos_herramientas" && r?.unidad === "%" };
-    });
-    const totalMo = filas.filter((f) => f.d.mano_obra_id).reduce((s, f) => s + f.parcial, 0);
-    for (const f of filas) if ((f as { pct?: boolean }).pct) f.parcial = (totalMo * f.cu * Number(f.d.cantidad_o_cuadrilla)) / 100;
-    return { total: filas.reduce((s, f) => s + f.parcial, 0), filas };
-  };
-  const calc = costo(partida.id);
-
-  const [col, tabla, etiqueta] = BANCOS[banco]!;
-  const opciones = (fuentes[tabla] ?? []).filter((x) => x.estado === "activo" && x.id !== partida.id);
-  const refrescar = () => qc.invalidateQueries({ queryKey: ["banco_apu", "partida_detalle"] });
-
-  async function agregar() {
-    if (!elegido) return;
-    setError("");
-    const { error: e } = await db.from("partida_detalle").insert({ partida_padre_id: partida.id, [col]: elegido, cantidad_o_cuadrilla: 1 });
-    if (e) return setError(e.message);
-    setElegido("");
-    refrescar();
-  }
-  async function cambiarCant(id: string, v: string) {
-    await db.from("partida_detalle").update({ cantidad_o_cuadrilla: Number(v || 0) }).eq("id", id);
-    refrescar();
-  }
-  async function quitarFila(id: string) {
-    await db.from("partida_detalle").delete().eq("id", id);
-    refrescar();
-  }
-
-  return (
-    <VentanaFlotante abierta onCerrar={onCerrar} ancho="max-w-5xl"
-      titulo={`Análisis de precios — ${partida.descripcion}`}
-      subtitulo={`${partida.codigo_jerarquico || "s/c"} · ${partida.unidad} · Rendimiento ${partida.rendimiento_diario}/día`}>
-      <div className="mb-3 flex flex-wrap items-end gap-2">
-        <Campo etiqueta="Banco">
-          <Select value={banco} onChange={(e) => { setBanco(Number(e.target.value)); setElegido(""); }} className="w-48">
-            {BANCOS.map(([, , t], i) => <option key={t} value={i}>{t}</option>)}
-          </Select>
-        </Campo>
-        <Campo etiqueta={etiqueta}>
-          <Select value={elegido} onChange={(e) => setElegido(e.target.value)} className="w-80">
-            <option value="">Selecciona…</option>
-            {opciones.map((o) => <option key={o.id} value={o.id}>{(o.codigo ?? o.codigo_jerarquico) ? `${o.codigo ?? o.codigo_jerarquico} · ` : ""}{o.descripcion}</option>)}
-          </Select>
-        </Campo>
-        <Boton onClick={agregar} disabled={!elegido}><Plus size={13} /> Agregar fila</Boton>
-      </div>
-      {error && <p className="mb-2 text-xs text-bad">{error}</p>}
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b border-line text-left label-mono">
-            <th className="px-3 py-2">Banco</th><th className="px-3 py-2">Descripción</th><th className="px-3 py-2">Und</th>
-            <th className="px-3 py-2 text-right">Cant./Cuadrilla</th><th className="px-3 py-2 text-right">C. unitario</th>
-            <th className="px-3 py-2 text-right">Parcial</th><th />
-          </tr>
-        </thead>
-        <tbody>
-          {calc.filas.length === 0 && <tr><td colSpan={7}><Vacio texto="Agrega recursos de los bancos o subpartidas." /></td></tr>}
-          {calc.filas.map((f) => (
-            <tr key={f.d.id} className="border-b border-line/60">
-              <td className="px-3 py-1.5 text-xs text-muted-foreground">{f.banco}</td>
-              <td className="px-3 py-1.5">{f.nombre}</td>
-              <td className="px-3 py-1.5">{f.und}</td>
-              <td className="px-3 py-1.5 text-right">
-                <Input type="number" step="any" defaultValue={f.d.cantidad_o_cuadrilla} className="w-24 py-1 text-right"
-                  onBlur={(e) => Number(e.target.value) !== Number(f.d.cantidad_o_cuadrilla) && cambiarCant(f.d.id, e.target.value)} />
-              </td>
-              <td className="px-3 py-1.5 text-right font-mono">{soles(f.cu)}</td>
-              <td className="px-3 py-1.5 text-right font-mono">{soles(f.parcial)}</td>
-              <td className="px-3 py-1.5"><BotonIcono etiqueta="Quitar fila" tono="peligro" onClick={() => quitarFila(f.d.id)}><X size={14} /></BotonIcono></td>
-            </tr>
-          ))}
-        </tbody>
-        <tfoot>
-          <tr><td colSpan={5} className="px-3 py-2 text-right font-semibold">Costo total de la partida</td>
-            <td className="px-3 py-2 text-right font-mono font-semibold text-primary">{soles(calc.total)}</td><td /></tr>
-        </tfoot>
-      </table>
-    </VentanaFlotante>
-  );
-}
