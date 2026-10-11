@@ -6,7 +6,7 @@ import { soles } from "@/lib/format";
 import { BANCOS_RECURSO, costoReceta, dbBanco, useBancoTabla, useRecursosApu } from "@/lib/banco-apu";
 import { useUnidadesMedida } from "@/lib/unidades";
 
-type ItemCotizacion = {
+type ItemApu = {
   id: string;
   nombre: string;
   unidad: string;
@@ -16,22 +16,31 @@ type ItemCotizacion = {
   partida_apu_id?: string | null;
 };
 
+export type OrigenBanco =
+  | { tipo: "cotizacion"; tablaDetalle: "cotizacion_apu_detalle"; columna: "cotizacion_item_id"; tablaItem: "cotizacion_items" }
+  | { tipo: "obra"; tablaDetalle: "partida_detalle"; columna: "partida_obra_id"; tablaItem: "partidas" };
+
+export const ORIGEN_COTIZACION: OrigenBanco = { tipo: "cotizacion", tablaDetalle: "cotizacion_apu_detalle", columna: "cotizacion_item_id", tablaItem: "cotizacion_items" };
+export const ORIGEN_OBRA: OrigenBanco = { tipo: "obra", tablaDetalle: "partida_detalle", columna: "partida_obra_id", tablaItem: "partidas" };
+
 /**
- * Análisis de precios de un ítem de cotización, respaldado por el Banco APU
- * (cotizacion_apu_detalle + recursos de los cuatro bancos).
+ * Análisis de precios de un ítem (cotización u obra) respaldado por el Banco APU:
+ * recursos de los cuatro bancos y receta copiable desde la partida de origen.
  */
-export function ApuCotizacion({
+export function ApuBanco({
   item,
+  origen,
   onCerrar,
   invalidar = [],
 }: {
-  item: ItemCotizacion;
+  item: ItemApu;
+  origen: OrigenBanco;
   onCerrar: () => void;
   invalidar?: unknown[][];
 }) {
   const qc = useQueryClient();
   const recursos = useRecursosApu();
-  const { data: detalle = [] } = useBancoTabla("cotizacion_apu_detalle");
+  const { data: detalle = [] } = useBancoTabla(origen.tablaDetalle);
   const { data: detalleBanco = [] } = useBancoTabla("partida_detalle");
   const { data: partidasBanco = [] } = useBancoTabla("partidas_apu");
   const { data: unidades = [] } = useUnidadesMedida();
@@ -42,10 +51,10 @@ export function ApuCotizacion({
   const [elegido, setElegido] = useState("");
   const [error, setError] = useState("");
 
-  const propias = detalle.filter((d) => d.cotizacion_item_id === item.id);
+  const propias = detalle.filter((d) => d[origen.columna] === item.id);
   const calc = costoReceta(propias, recursos, Number(rend), Number(jornada));
   const partidaBanco = partidasBanco.find((p) => p.id === item.partida_apu_id);
-  const refrescar = () => qc.invalidateQueries({ queryKey: ["banco_apu", "cotizacion_apu_detalle"] });
+  const refrescar = () => qc.invalidateQueries({ queryKey: ["banco_apu", origen.tablaDetalle] });
 
   const [col, tabla, etiqueta] = BANCOS_RECURSO[banco]!;
   const opciones = (recursos[tabla as keyof typeof recursos] ?? []).filter((x) => x.estado === "activo");
@@ -54,20 +63,20 @@ export function ApuCotizacion({
     if (!elegido) return;
     setError("");
     const { error: e } = await dbBanco
-      .from("cotizacion_apu_detalle")
-      .insert({ cotizacion_item_id: item.id, [col]: elegido, cantidad_o_cuadrilla: 1 });
+      .from(origen.tablaDetalle)
+      .insert({ [origen.columna]: item.id, [col]: elegido, cantidad_o_cuadrilla: 1 });
     if (e) return setError(e.message);
     setElegido("");
     refrescar();
   }
 
   async function cambiarCant(id: string, v: string) {
-    await dbBanco.from("cotizacion_apu_detalle").update({ cantidad_o_cuadrilla: Number(v || 0) }).eq("id", id);
+    await dbBanco.from(origen.tablaDetalle).update({ cantidad_o_cuadrilla: Number(v || 0) }).eq("id", id);
     refrescar();
   }
 
   async function quitarFila(id: string) {
-    await dbBanco.from("cotizacion_apu_detalle").delete().eq("id", id);
+    await dbBanco.from(origen.tablaDetalle).delete().eq("id", id);
     refrescar();
   }
 
@@ -77,10 +86,10 @@ export function ApuCotizacion({
     setError("");
     const base = detalleBanco.filter((d) => d.partida_padre_id === partidaBanco.id && !d.subpartida_hijo_id);
     if (!base.length) return setError("La partida del Banco APU todavía no tiene receta (o solo tiene subpartidas).");
-    await dbBanco.from("cotizacion_apu_detalle").delete().eq("cotizacion_item_id", item.id);
-    const { error: e } = await dbBanco.from("cotizacion_apu_detalle").insert(
+    await dbBanco.from(origen.tablaDetalle).delete().eq(origen.columna, item.id);
+    const { error: e } = await dbBanco.from(origen.tablaDetalle).insert(
       base.map((b: { material_id: string | null; mano_obra_id: string | null; equipo_id: string | null; subcontrato_id: string | null; cantidad_o_cuadrilla: number }) => ({
-        cotizacion_item_id: item.id,
+        [origen.columna]: item.id,
         material_id: b.material_id,
         mano_obra_id: b.mano_obra_id,
         equipo_id: b.equipo_id,
@@ -97,12 +106,18 @@ export function ApuCotizacion({
   async function guardar() {
     setError("");
     if (!(Number(rend) > 0)) return setError("El rendimiento debe ser mayor que cero.");
-    const { error: err } = await dbBanco
-      .from("cotizacion_items")
-      .update({ rendimiento: Number(rend), jornada: Number(jornada) || 8, precio_unitario: calc.total, unidad: und })
-      .eq("id", item.id);
+    const cambios: Record<string, number | string> = {
+      rendimiento: Number(rend),
+      jornada: Number(jornada) || 8,
+      precio_unitario: calc.total,
+      unidad: und,
+    };
+    if (origen.tipo === "obra")
+      cambios["presupuesto_inicial"] = Math.round(Number(item.metrado ?? 0) * calc.total * 100) / 100;
+    const { error: err } = await dbBanco.from(origen.tablaItem).update(cambios).eq("id", item.id);
     if (err) return setError(err.message);
     qc.invalidateQueries({ queryKey: ["cotizacion_items"] });
+    qc.invalidateQueries({ queryKey: ["partidas"] });
     for (const k of invalidar) qc.invalidateQueries({ queryKey: k });
     onCerrar();
   }
