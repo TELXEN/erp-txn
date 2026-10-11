@@ -9,7 +9,6 @@ import { dbBanco, useCostosPartidasApu, usePartidasApu } from "@/lib/banco-apu";
 import { AutoMaestra, CotizacionHoja } from "@/components/CotizacionHoja";
 import { HojaCotizacion } from "@/components/cotizaciones/HojaCotizacion";
 
-import { apuDb } from "@/lib/apu";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
