@@ -68,11 +68,14 @@ export function HojaCotizacion({
   items,
   clientes,
   children,
+  mostrarEncabezado = true,
 }: {
   cot: Cotizacion;
   items: CotizacionItem[];
   clientes: { id: string; razon_social: string; numero_documento: string }[];
   children: ReactNode;
+  /** En modo edición se oculta el encabezado corporativo y la ficha de cliente. */
+  mostrarEncabezado?: boolean;
 }) {
   const qc = useQueryClient();
   const { data: empresa } = useEmpresa();
