@@ -1218,14 +1218,6 @@ export function CotizacionHoja({
     <>
     <div className="overflow-x-auto">
       {error && <p className="px-5 py-2 font-mono text-xs text-bad">{error}</p>}
-      <div className="flex flex-wrap items-center gap-3 border-b border-line bg-muted/30 px-5 py-2 font-mono text-[11.5px] text-muted-foreground print:hidden">
-        <span>Clic derecho: menú · Shift + clic selecciona varias partidas · Doble clic edita · Enter guarda · Esc cancela · Flechas y Tab navegan · Insert añade fila</span>
-        {seleccionadas.size > 1 && (
-          <Button variant="destructive" size="sm" className="ml-auto h-7" onClick={() => void borrarSeleccionadas()}>
-            <Trash2 size={13} /> Borrar {seleccionadas.size} seleccionadas
-          </Button>
-        )}
-      </div>
       <table className={`w-full table-fixed font-mono ${compacta ? "text-[9.5px]" : "text-[10.5px]"} ${compacta ? "" : "min-w-[1180px]"}`}>
         <colgroup>
           {(compacta
@@ -1513,6 +1505,14 @@ export function CotizacionHoja({
         </tbody>
       </table>
     </div>
+      <div className="flex flex-wrap items-center gap-3 border-t border-line bg-muted/30 px-5 py-2 font-mono text-[11.5px] text-muted-foreground print:hidden">
+        <span>Clic derecho: menú · Shift + clic selecciona varias partidas · Doble clic edita · Enter guarda · Esc cancela · Flechas y Tab navegan · Insert añade fila</span>
+        {seleccionadas.size > 1 && (
+          <Button variant="destructive" size="sm" className="ml-auto h-7" onClick={() => void borrarSeleccionadas()}>
+            <Trash2 size={13} /> Borrar {seleccionadas.size} seleccionadas
+          </Button>
+        )}
+      </div>
       <div className="sticky bottom-0 z-10 flex flex-wrap items-center justify-end gap-x-6 gap-y-1 border-t border-line bg-card/95 px-5 py-2 font-mono text-[11.5px] backdrop-blur print:hidden">
         {arbol
           .filter((f) => f.clase === "cap")
