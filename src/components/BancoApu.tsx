@@ -6,6 +6,8 @@ import { Boton, BotonIcono, Campo, Etiqueta, Input, Panel, Select, Vacio, Ventan
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { soles } from "@/lib/format";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
+import { useUnidadesMedida } from "@/lib/unidades";
+import { siguienteCodigoJerarquico } from "@/lib/banco-apu";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = supabase as unknown as { from: (t: string) => any; rpc: (f: string, a: object) => any };
@@ -95,22 +97,40 @@ export function BancoApu() {
           </button>
         ))}
       </div>
-      <ListaBanco key={tab} tabla={tab} />
+      {tab === "partidas_apu" ? <SplitPartidas /> : <ListaBanco key={tab} tabla={tab} />}
     </>
   );
 }
 
-function ListaBanco({ tabla }: { tabla: Tabla }) {
+function SplitPartidas() {
+  const [sel, setSel] = useState<string>(() => (typeof window !== "undefined" && localStorage.getItem("banco-apu:partida")) || "");
+  const elegir = (id: string) => { setSel(id); localStorage.setItem("banco-apu:partida", id); };
+  const { data: pa = [] } = useTabla("partidas_apu");
+  const partida = pa.find((p) => p.id === sel);
+  return (
+    <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+      <div className="min-w-0"><ListaBanco tabla="partidas_apu" seleccion={sel} onSeleccion={elegir} /></div>
+      <div className="min-w-0">
+        {partida ? <PanelApuMaestro partida={partida} /> : <Panel titulo="Análisis de precios unitarios"><Vacio texto="Elige una partida a la izquierda para ver y armar su APU." /></Panel>}
+      </div>
+    </div>
+  );
+}
+
+function ListaBanco({ tabla, seleccion, onSeleccion }: { tabla: Tabla; seleccion?: string; onSeleccion?: (id: string) => void }) {
   const cfg = CONFIG[tabla];
   const qc = useQueryClient();
-  const { data: filas = [] } = useTabla(tabla);
+  const { data: filasRaw = [] } = useTabla(tabla);
+  const filas = tabla === "partidas_apu"
+    ? [...filasRaw].sort((a, b) => String(a.codigo_jerarquico ?? "").localeCompare(String(b.codigo_jerarquico ?? ""), "es", { numeric: true }))
+    : filasRaw;
   const { data: especialidades = [] } = useEspecialidadesPartida();
   const [busqueda, setBusqueda] = useState("");
   const [filtro, setFiltro] = useState("");
   const [estado, setEstado] = useState("activo");
   const [form, setForm] = useState<Fila | null>(null);
   const [editId, setEditId] = useState<string | null>(null);
-  const [receta, setReceta] = useState<Fila | null>(null);
+  const [nueva, setNueva] = useState(false);
   const [aviso, setAviso] = useState("");
 
   const opcionesFiltro = useMemo(
@@ -162,6 +182,7 @@ function ListaBanco({ tabla }: { tabla: Tabla }) {
   }
 
   return (
+    <>
     <Panel
       titulo={cfg.titulo}
       extra={
@@ -178,7 +199,7 @@ function ListaBanco({ tabla }: { tabla: Tabla }) {
             <option value="inactivo">Inactivos</option>
             <option value="">Todos</option>
           </Select>
-          <Boton onClick={() => abrir()}><Plus size={13} /> Aumentar</Boton>
+          <Boton onClick={() => (tabla === "partidas_apu" ? setNueva(true) : abrir())}><Plus size={13} /> Aumentar</Boton>
         </div>
       }
     >
@@ -196,8 +217,8 @@ function ListaBanco({ tabla }: { tabla: Tabla }) {
             </thead>
             <tbody>
               {visibles.map((f) => (
-                <tr key={f.id} className={`border-b border-line/60 hover:bg-muted/40 ${tabla === "partidas_apu" ? "cursor-pointer" : ""}`}
-                  onClick={() => tabla === "partidas_apu" && setReceta(f)}>
+                <tr key={f.id} className={`border-b border-line/60 hover:bg-muted/40 ${onSeleccion ? "cursor-pointer" : ""} ${seleccion === f.id ? "bg-primary/10" : ""}`}
+                  onClick={() => onSeleccion?.(f.id)}>
                   {cfg.columnas.map(([k, , tp]) => (
                     <td key={k} className={`px-4 py-2 ${tp !== "txt" ? "text-right font-mono" : ""}`}>
                       {tp === "sol" ? soles(Number(f[k] ?? 0)) : tp === "num" ? Number(f[k] ?? 0).toLocaleString("es-PE") : <Resaltar texto={f[k]} termino={busqueda} />}
@@ -206,7 +227,7 @@ function ListaBanco({ tabla }: { tabla: Tabla }) {
                   <td className="px-4 py-2"><Etiqueta tono={f.estado === "activo" ? "good" : "neutro"}>{f.estado === "activo" ? "Activo" : "Inactivo"}</Etiqueta></td>
                   <td className="px-4 py-2" onClick={(e) => e.stopPropagation()}>
                     <div className="flex justify-end gap-1">
-                      {tabla === "partidas_apu" && <BotonIcono etiqueta="Análisis (receta APU)" tono="primario" onClick={() => setReceta(f)}><Calculator size={14} /></BotonIcono>}
+                      {onSeleccion && <BotonIcono etiqueta="Análisis (receta APU)" tono="primario" onClick={() => onSeleccion(f.id)}><Calculator size={14} /></BotonIcono>}
                       <BotonIcono etiqueta="Editar" onClick={() => abrir(f)}><Pencil size={14} /></BotonIcono>
                       {f.estado === "activo"
                         ? <BotonIcono etiqueta="Quitar" tono="peligro" onClick={() => quitar(f)}><Trash2 size={14} /></BotonIcono>
@@ -246,8 +267,12 @@ function ListaBanco({ tabla }: { tabla: Tabla }) {
         )}
       </VentanaFlotante>
 
-      {receta && <RecetaApu partida={receta} onCerrar={() => setReceta(null)} />}
     </Panel>
+      {nueva && (
+        <DialogoNuevaPartida partidas={filasRaw} onCerrar={() => setNueva(false)}
+          onGuardado={(id) => { setNueva(false); setEstado("activo"); setFiltro(""); setBusqueda(""); refrescar(); onSeleccion?.(id); }} />
+      )}
+    </>
   );
 }
 
@@ -262,7 +287,16 @@ const BANCOS = [
   ["subpartida_hijo_id", "partidas_apu", "Subpartidas"],
 ] as const;
 
-function RecetaApu({ partida, onCerrar }: { partida: Fila; onCerrar: () => void }) {
+const GRUPOS = [
+  ["mano_obra_id", "mano_obra", "MANO DE OBRA"],
+  ["material_id", "materiales", "MATERIALES"],
+  ["equipo_id", "equipos_herramientas", "EQUIPOS Y HERRAMIENTAS"],
+  ["subcontrato_id", "subcontratos", "SUBCONTRATOS"],
+  ["subpartida_hijo_id", "partidas_apu", "SUBPARTIDAS"],
+] as const;
+type Grupo = (typeof GRUPOS)[number];
+
+function PanelApuMaestro({ partida }: { partida: Fila }) {
   const qc = useQueryClient();
   const { data: det = [] } = useTabla("partida_detalle");
   const { data: mat = [] } = useTabla("materiales");
@@ -271,20 +305,18 @@ function RecetaApu({ partida, onCerrar }: { partida: Fila; onCerrar: () => void 
   const { data: sc = [] } = useTabla("subcontratos");
   const { data: pa = [] } = useTabla("partidas_apu");
   const fuentes: Record<string, Fila[]> = { materiales: mat, mano_obra: mo, equipos_herramientas: eq, subcontratos: sc, partidas_apu: pa };
-  const [banco, setBanco] = useState(0);
-  const [elegido, setElegido] = useState("");
-  const [error, setError] = useState("");
+  const [cerrados, setCerrados] = useState<Record<string, boolean>>({});
+  const [agregar, setAgregar] = useState<Grupo | null>(null);
   const detalles = det as Detalle[];
 
-  // Costo de una partida (recursivo, protegido contra ciclos).
-  const costo = (id: string, visitados = new Set<string>()): { total: number; filas: { d: Detalle; banco: string; nombre: string; und: string; cu: number; parcial: number }[] } => {
+  type FilaC = { d: Detalle; col: string; nombre: string; und: string; cu: number; parcial: number; pct?: boolean };
+  const costo = (id: string, visitados = new Set<string>()): { total: number; filas: FilaC[] } => {
     if (visitados.has(id)) return { total: 0, filas: [] };
     visitados.add(id);
     const p = pa.find((x) => x.id === id);
     const rend = Number(p?.rendimiento_diario) || 1;
-    const propias = detalles.filter((d) => d.partida_padre_id === id);
-    const filas = propias.map((d) => {
-      const [col, tabla, etiqueta] = BANCOS.find(([c]) => d[c]) ?? BANCOS[0];
+    const filas: FilaC[] = detalles.filter((d) => d.partida_padre_id === id).map((d) => {
+      const [col, tabla] = GRUPOS.find(([c]) => d[c]) ?? GRUPOS[0];
       const r = (fuentes[tabla] ?? []).find((x) => x.id === d[col]);
       const q = Number(d.cantidad_o_cuadrilla);
       let cu = 0, parcial = 0;
@@ -292,26 +324,15 @@ function RecetaApu({ partida, onCerrar }: { partida: Fila; onCerrar: () => void 
       else if (tabla === "mano_obra") { cu = Number(r?.costo_hora ?? 0); parcial = (q * 8 * cu) / rend; }
       else if (tabla === "equipos_herramientas" && r?.unidad === "H-M") { cu = Number(r?.costo_unitario ?? 0); parcial = (q * 8 * cu) / rend; }
       else { cu = Number(r?.costo_unitario ?? 0); parcial = q * cu; }
-      return { d, banco: etiqueta, nombre: r?.descripcion ?? "(no encontrado)", und: r?.unidad ?? "", cu, parcial, pct: tabla === "equipos_herramientas" && r?.unidad === "%" };
+      return { d, col, nombre: r?.descripcion ?? "(no encontrado)", und: r?.unidad ?? "", cu, parcial, pct: tabla === "equipos_herramientas" && r?.unidad === "%" };
     });
-    const totalMo = filas.filter((f) => f.d.mano_obra_id).reduce((s, f) => s + f.parcial, 0);
-    for (const f of filas) if ((f as { pct?: boolean }).pct) f.parcial = (totalMo * f.cu * Number(f.d.cantidad_o_cuadrilla)) / 100;
+    const totalMo = filas.filter((f) => f.col === "mano_obra_id").reduce((s, f) => s + f.parcial, 0);
+    for (const f of filas) if (f.pct) f.parcial = (totalMo * f.cu * Number(f.d.cantidad_o_cuadrilla)) / 100;
     return { total: filas.reduce((s, f) => s + f.parcial, 0), filas };
   };
   const calc = costo(partida.id);
-
-  const [col, tabla, etiqueta] = BANCOS[banco]!;
-  const opciones = (fuentes[tabla] ?? []).filter((x) => x.estado === "activo" && x.id !== partida.id);
   const refrescar = () => qc.invalidateQueries({ queryKey: ["banco_apu", "partida_detalle"] });
 
-  async function agregar() {
-    if (!elegido) return;
-    setError("");
-    const { error: e } = await db.from("partida_detalle").insert({ partida_padre_id: partida.id, [col]: elegido, cantidad_o_cuadrilla: 1 });
-    if (e) return setError(e.message);
-    setElegido("");
-    refrescar();
-  }
   async function cambiarCant(id: string, v: string) {
     await db.from("partida_detalle").update({ cantidad_o_cuadrilla: Number(v || 0) }).eq("id", id);
     refrescar();
@@ -322,54 +343,179 @@ function RecetaApu({ partida, onCerrar }: { partida: Fila; onCerrar: () => void 
   }
 
   return (
-    <VentanaFlotante abierta onCerrar={onCerrar} ancho="max-w-5xl"
-      titulo={`Análisis de precios — ${partida.descripcion}`}
-      subtitulo={`${partida.codigo_jerarquico || "s/c"} · ${partida.unidad} · Rendimiento ${partida.rendimiento_diario}/día`}>
-      <div className="mb-3 flex flex-wrap items-end gap-2">
-        <Campo etiqueta="Banco">
-          <Select value={banco} onChange={(e) => { setBanco(Number(e.target.value)); setElegido(""); }} className="w-48">
-            {BANCOS.map(([, , t], i) => <option key={t} value={i}>{t}</option>)}
-          </Select>
-        </Campo>
-        <Campo etiqueta={etiqueta}>
-          <Select value={elegido} onChange={(e) => setElegido(e.target.value)} className="w-80">
-            <option value="">Selecciona…</option>
-            {opciones.map((o) => <option key={o.id} value={o.id}>{(o.codigo ?? o.codigo_jerarquico) ? `${o.codigo ?? o.codigo_jerarquico} · ` : ""}{o.descripcion}</option>)}
-          </Select>
-        </Campo>
-        <Boton onClick={agregar} disabled={!elegido}><Plus size={13} /> Agregar fila</Boton>
+    <>
+    <Panel titulo={`${partida.codigo_jerarquico || "s/c"} · ${partida.descripcion}`}>
+      <div className="px-5 py-4"><p className="mb-3 text-xs text-muted-foreground">{partida.unidad} · Rendimiento {partida.rendimiento_diario}/día{partida.especialidad ? ` · ${partida.especialidad}` : ""}</p>
+      <div className="space-y-3">
+        {GRUPOS.map((g) => {
+          const [col, , titulo] = g;
+          const filas = calc.filas.filter((f) => f.col === col);
+          const sub = filas.reduce((s, f) => s + f.parcial, 0);
+          const cerrado = cerrados[col];
+          return (
+            <div key={col} className="rounded-md border border-line">
+              <div className="flex items-center gap-2 bg-muted/40 px-3 py-1.5">
+                <button type="button" className="min-w-0 flex-1 truncate text-left text-xs font-semibold text-primary"
+                  onClick={() => setCerrados({ ...cerrados, [col]: !cerrado })}>
+                  {cerrado ? "▸" : "▾"} {titulo} <span className="font-normal text-muted-foreground">({filas.length})</span>
+                </button>
+                <span className="shrink-0 font-mono text-xs">{soles(sub)}</span>
+                <BotonIcono etiqueta={`Agregar a ${titulo.toLowerCase()}`} tono="primario" onClick={() => setAgregar(g)}><Plus size={14} /></BotonIcono>
+              </div>
+              {!cerrado && filas.length > 0 && (
+                <table className="w-full text-xs">
+                  <tbody>
+                    {filas.map((f) => (
+                      <tr key={f.d.id} className="border-t border-line/60">
+                        <td className="px-2 py-1">{f.nombre}<span className="ml-1 text-muted-foreground">{f.und}</span></td>
+                        <td className="w-20 px-1 py-1">
+                          <Input type="number" step="any" defaultValue={f.d.cantidad_o_cuadrilla} className="py-0.5 text-right text-xs"
+                            onBlur={(e) => Number(e.target.value) !== Number(f.d.cantidad_o_cuadrilla) && cambiarCant(f.d.id, e.target.value)} />
+                        </td>
+                        <td className="px-2 py-1 text-right font-mono">{soles(f.cu)}</td>
+                        <td className="px-2 py-1 text-right font-mono">{soles(f.parcial)}</td>
+                        <td className="w-8 px-1"><BotonIcono etiqueta="Quitar fila" tono="peligro" onClick={() => quitarFila(f.d.id)}><X size={13} /></BotonIcono></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          );
+        })}
       </div>
-      {error && <p className="mb-2 text-xs text-bad">{error}</p>}
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b border-line text-left label-mono">
-            <th className="px-3 py-2">Banco</th><th className="px-3 py-2">Descripción</th><th className="px-3 py-2">Und</th>
-            <th className="px-3 py-2 text-right">Cant./Cuadrilla</th><th className="px-3 py-2 text-right">C. unitario</th>
-            <th className="px-3 py-2 text-right">Parcial</th><th />
-          </tr>
-        </thead>
-        <tbody>
-          {calc.filas.length === 0 && <tr><td colSpan={7}><Vacio texto="Agrega recursos de los bancos o subpartidas." /></td></tr>}
-          {calc.filas.map((f) => (
-            <tr key={f.d.id} className="border-b border-line/60">
-              <td className="px-3 py-1.5 text-xs text-muted-foreground">{f.banco}</td>
-              <td className="px-3 py-1.5">{f.nombre}</td>
-              <td className="px-3 py-1.5">{f.und}</td>
-              <td className="px-3 py-1.5 text-right">
-                <Input type="number" step="any" defaultValue={f.d.cantidad_o_cuadrilla} className="w-24 py-1 text-right"
-                  onBlur={(e) => Number(e.target.value) !== Number(f.d.cantidad_o_cuadrilla) && cambiarCant(f.d.id, e.target.value)} />
-              </td>
-              <td className="px-3 py-1.5 text-right font-mono">{soles(f.cu)}</td>
-              <td className="px-3 py-1.5 text-right font-mono">{soles(f.parcial)}</td>
-              <td className="px-3 py-1.5"><BotonIcono etiqueta="Quitar fila" tono="peligro" onClick={() => quitarFila(f.d.id)}><X size={14} /></BotonIcono></td>
-            </tr>
-          ))}
-        </tbody>
-        <tfoot>
-          <tr><td colSpan={5} className="px-3 py-2 text-right font-semibold">Costo total de la partida</td>
-            <td className="px-3 py-2 text-right font-mono font-semibold text-primary">{soles(calc.total)}</td><td /></tr>
-        </tfoot>
-      </table>
+      <div className="mt-3 flex items-center justify-between border-t border-line pt-2">
+        <span className="text-sm font-semibold">Costo total del APU</span>
+        <span className="font-mono text-sm font-semibold text-primary">{soles(calc.total)}</span>
+      </div>
+      </div>
+    </Panel>
+      {agregar && (
+        <DialogoAgregarInsumo grupo={agregar} partida={partida} opciones={(fuentes[agregar[1]] ?? []).filter((x) => x.estado === "activo" && x.id !== partida.id)}
+          existentes={detalles.filter((d) => d.partida_padre_id === partida.id)}
+          onCerrar={() => setAgregar(null)} onGuardado={() => { setAgregar(null); refrescar(); }} />
+      )}
+    </>
+  );
+}
+
+function DialogoAgregarInsumo({ grupo, partida, opciones, existentes, onCerrar, onGuardado }: {
+  grupo: Grupo; partida: Fila; opciones: Fila[]; existentes: Detalle[]; onCerrar: () => void; onGuardado: () => void;
+}) {
+  const [col, , titulo] = grupo;
+  const [q, setQ] = useState("");
+  const [elegido, setElegido] = useState<Fila | null>(null);
+  const [cant, setCant] = useState("");
+  const [error, setError] = useState("");
+  const lista = opciones.filter((o) => coincide(q, o.codigo ?? o.codigo_jerarquico, o.descripcion, o.marca)).slice(0, 50);
+
+  async function guardar() {
+    if (!elegido) return setError("Elige un insumo.");
+    const n = Number(cant);
+    if (!(n > 0)) return setError("Ingresa la cantidad / cuadrilla (mayor que 0).");
+    const ya = existentes.find((d) => d[col] === elegido.id);
+    if (ya) {
+      if (!window.confirm(`«${elegido.descripcion}» ya está en el APU. ¿Sumar ${n} a su cantidad actual (${ya.cantidad_o_cuadrilla})?`)) return;
+      const { error: e } = await db.from("partida_detalle").update({ cantidad_o_cuadrilla: Number(ya.cantidad_o_cuadrilla) + n }).eq("id", ya.id);
+      if (e) return setError(e.message);
+    } else {
+      const { error: e } = await db.from("partida_detalle").insert({ partida_padre_id: partida.id, [col]: elegido.id, cantidad_o_cuadrilla: n });
+      if (e) return setError(e.message);
+    }
+    onGuardado();
+  }
+
+  return (
+    <VentanaFlotante abierta onCerrar={onCerrar} ancho="max-w-xl" titulo={`Agregar — ${titulo}`} subtitulo={partida.descripcion}>
+      {!elegido ? (
+        <div className="p-5">
+          <Input autoFocus placeholder="Busca por código, descripción o marca…" value={q} onChange={(e) => setQ(e.target.value)} />
+          <div className="mt-2 max-h-80 overflow-y-auto rounded-md border border-line">
+            {lista.length === 0 && <Vacio texto="Sin coincidencias." />}
+            {lista.map((o) => (
+              <button key={o.id} type="button" onClick={() => setElegido(o)}
+                className="flex w-full items-center gap-2 border-b border-line/60 px-3 py-1.5 text-left text-xs hover:bg-primary/10">
+                <span className="w-24 shrink-0 font-mono text-muted-foreground">{o.codigo ?? o.codigo_jerarquico ?? ""}</span>
+                <span className="min-w-0 flex-1 truncate"><Resaltar texto={o.descripcion} termino={q} /></span>
+                {o.marca && <span className="shrink-0 text-muted-foreground">{o.marca}</span>}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <form className="space-y-3 p-5" onSubmit={(e) => { e.preventDefault(); guardar(); }}>
+          <div className="flex items-center justify-between rounded-md border border-line px-3 py-2 text-sm">
+            <span className="min-w-0 truncate">{elegido.codigo ?? elegido.codigo_jerarquico} · {elegido.descripcion}{elegido.marca ? ` · ${elegido.marca}` : ""}</span>
+            <Boton type="button" variante="linea" className="py-1" onClick={() => setElegido(null)}>Cambiar</Boton>
+          </div>
+          <Campo etiqueta="Cantidad / Cuadrilla">
+            <Input autoFocus type="number" step="any" value={cant} onChange={(e) => setCant(e.target.value)} />
+          </Campo>
+          {error && <p className="text-xs text-bad">{error}</p>}
+          <div className="flex justify-end gap-2">
+            <Boton type="button" variante="linea" onClick={onCerrar}>Cerrar</Boton>
+            <Boton type="submit"><Plus size={13} /> Agregar</Boton>
+          </div>
+        </form>
+      )}
+      {!elegido && error && <p className="mt-2 text-xs text-bad">{error}</p>}
+    </VentanaFlotante>
+  );
+}
+
+function DialogoNuevaPartida({ partidas, onCerrar, onGuardado }: { partidas: Fila[]; onCerrar: () => void; onGuardado: (id: string) => void }) {
+  const { data: especialidades = [] } = useEspecialidadesPartida();
+  const { data: unidades = [] } = useUnidadesMedida();
+  const [f, setF] = useState({ especialidad: "", codigo: "", descripcion: "", unidad: "und", rendimiento: "1" });
+  const [error, setError] = useState("");
+  const listaUnd = unidades.filter((u) => u.activo).map((u) => u.simbolo);
+  const unds = listaUnd.length ? listaUnd : ["und", "m", "m2", "m3", "kg", "glb"];
+
+  function elegirEsp(nombre: string) {
+    const pref = especialidades.find((e) => e.nombre === nombre)?.codigo ?? "";
+    setF({ ...f, especialidad: nombre, codigo: siguienteCodigoJerarquico(partidas.map((p) => String(p.codigo_jerarquico ?? "")), pref) });
+  }
+  async function guardar() {
+    if (!f.descripcion.trim()) return setError("Escribe la descripción.");
+    const { data, error: e } = await db.from("partidas_apu").insert({
+      especialidad: f.especialidad, codigo_jerarquico: f.codigo.trim(), descripcion: f.descripcion.trim(),
+      unidad: f.unidad, rendimiento_diario: Number(f.rendimiento) || 1,
+    }).select("id").single();
+    if (e) return setError(e.message);
+    onGuardado(data.id);
+  }
+
+  return (
+    <VentanaFlotante abierta onCerrar={onCerrar} ancho="max-w-2xl" titulo="Nueva partida">
+      <form className="grid gap-3 sm:grid-cols-2" onSubmit={(e) => { e.preventDefault(); guardar(); }}>
+        <Campo etiqueta="Especialidad">
+          <Select value={f.especialidad} onChange={(e) => elegirEsp(e.target.value)}>
+            <option value="">—</option>
+            {especialidades.filter((e) => e.activo).map((e) => <option key={e.id} value={e.nombre}>{e.codigo} · {e.nombre}</option>)}
+          </Select>
+        </Campo>
+        <Campo etiqueta="Código jerárquico (sugerido)">
+          <Input value={f.codigo} onChange={(e) => setF({ ...f, codigo: e.target.value })} />
+        </Campo>
+        <div className="sm:col-span-2">
+          <Campo etiqueta="Descripción *">
+            <Input autoFocus value={f.descripcion} onChange={(e) => setF({ ...f, descripcion: e.target.value })} />
+          </Campo>
+        </div>
+        <Campo etiqueta="Unidad">
+          <Select value={f.unidad} onChange={(e) => setF({ ...f, unidad: e.target.value })}>
+            {[...new Set([f.unidad, ...unds])].map((u) => <option key={u}>{u}</option>)}
+          </Select>
+        </Campo>
+        <Campo etiqueta="Rendimiento diario">
+          <Input type="number" step="any" value={f.rendimiento} onChange={(e) => setF({ ...f, rendimiento: e.target.value })} />
+        </Campo>
+        {error && <p className="text-xs text-bad sm:col-span-2">{error}</p>}
+        <div className="flex justify-end gap-2 sm:col-span-2">
+          <Boton type="button" variante="linea" onClick={onCerrar}>Cerrar</Boton>
+          <Boton type="submit">Guardar</Boton>
+        </div>
+      </form>
     </VentanaFlotante>
   );
 }

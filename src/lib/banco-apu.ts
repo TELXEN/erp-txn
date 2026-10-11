@@ -263,3 +263,20 @@ export async function copiarRecetaACotizacion(itemId: string, partidaApuId: stri
   const pu = Math.round(costoReceta(filas, recursos, rend, 8).total * 10000) / 10000;
   return { pu, rendimiento: rend, filas: filas.length };
 }
+
+/** Siguiente código jerárquico de una rama: último 04.01.02 → 04.01.03. Sin partidas: NN.01.01. */
+export function siguienteCodigoJerarquico(codigos: string[], prefijo: string): string {
+  if (!prefijo) return "";
+  const nums = (c: string) => c.split(".").map((s) => Number(s) || 0);
+  const rama = codigos.filter((c) => c && (c === prefijo || c.startsWith(`${prefijo}.`)) && c !== prefijo);
+  if (rama.length === 0) return `${prefijo}.01.01`;
+  rama.sort((a, b) => {
+    const x = nums(a), y = nums(b);
+    for (let i = 0; i < Math.max(x.length, y.length); i++) if ((x[i] ?? 0) !== (y[i] ?? 0)) return (x[i] ?? 0) - (y[i] ?? 0);
+    return 0;
+  });
+  const partes = rama[rama.length - 1]!.split(".");
+  const ult = partes.length - 1;
+  partes[ult] = String((Number(partes[ult]) || 0) + 1).padStart(Math.max(2, partes[ult]!.length), "0");
+  return partes.join(".");
+}
