@@ -6,6 +6,8 @@ import { Boton, BotonIcono, Campo, Etiqueta, Input, Panel, Select, Vacio, Ventan
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { soles } from "@/lib/format";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
+import { useUnidadesMedida } from "@/lib/unidades";
+import { siguienteCodigoJerarquico } from "@/lib/banco-apu";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = supabase as unknown as { from: (t: string) => any; rpc: (f: string, a: object) => any };
@@ -283,3 +285,232 @@ const BANCOS = [
   ["subpartida_hijo_id", "partidas_apu", "Subpartidas"],
 ] as const;
 
+const GRUPOS = [
+  ["mano_obra_id", "mano_obra", "MANO DE OBRA"],
+  ["material_id", "materiales", "MATERIALES"],
+  ["equipo_id", "equipos_herramientas", "EQUIPOS Y HERRAMIENTAS"],
+  ["subcontrato_id", "subcontratos", "SUBCONTRATOS"],
+  ["subpartida_hijo_id", "partidas_apu", "SUBPARTIDAS"],
+] as const;
+type Grupo = (typeof GRUPOS)[number];
+
+function PanelApuMaestro({ partida }: { partida: Fila }) {
+  const qc = useQueryClient();
+  const { data: det = [] } = useTabla("partida_detalle");
+  const { data: mat = [] } = useTabla("materiales");
+  const { data: mo = [] } = useTabla("mano_obra");
+  const { data: eq = [] } = useTabla("equipos_herramientas");
+  const { data: sc = [] } = useTabla("subcontratos");
+  const { data: pa = [] } = useTabla("partidas_apu");
+  const fuentes: Record<string, Fila[]> = { materiales: mat, mano_obra: mo, equipos_herramientas: eq, subcontratos: sc, partidas_apu: pa };
+  const [cerrados, setCerrados] = useState<Record<string, boolean>>({});
+  const [agregar, setAgregar] = useState<Grupo | null>(null);
+  const detalles = det as Detalle[];
+
+  type FilaC = { d: Detalle; col: string; nombre: string; und: string; cu: number; parcial: number; pct?: boolean };
+  const costo = (id: string, visitados = new Set<string>()): { total: number; filas: FilaC[] } => {
+    if (visitados.has(id)) return { total: 0, filas: [] };
+    visitados.add(id);
+    const p = pa.find((x) => x.id === id);
+    const rend = Number(p?.rendimiento_diario) || 1;
+    const filas: FilaC[] = detalles.filter((d) => d.partida_padre_id === id).map((d) => {
+      const [col, tabla] = GRUPOS.find(([c]) => d[c]) ?? GRUPOS[0];
+      const r = (fuentes[tabla] ?? []).find((x) => x.id === d[col]);
+      const q = Number(d.cantidad_o_cuadrilla);
+      let cu = 0, parcial = 0;
+      if (tabla === "partidas_apu") { cu = costo(d[col] as string, new Set(visitados)).total; parcial = q * cu; }
+      else if (tabla === "mano_obra") { cu = Number(r?.costo_hora ?? 0); parcial = (q * 8 * cu) / rend; }
+      else if (tabla === "equipos_herramientas" && r?.unidad === "H-M") { cu = Number(r?.costo_unitario ?? 0); parcial = (q * 8 * cu) / rend; }
+      else { cu = Number(r?.costo_unitario ?? 0); parcial = q * cu; }
+      return { d, col, nombre: r?.descripcion ?? "(no encontrado)", und: r?.unidad ?? "", cu, parcial, pct: tabla === "equipos_herramientas" && r?.unidad === "%" };
+    });
+    const totalMo = filas.filter((f) => f.col === "mano_obra_id").reduce((s, f) => s + f.parcial, 0);
+    for (const f of filas) if (f.pct) f.parcial = (totalMo * f.cu * Number(f.d.cantidad_o_cuadrilla)) / 100;
+    return { total: filas.reduce((s, f) => s + f.parcial, 0), filas };
+  };
+  const calc = costo(partida.id);
+  const refrescar = () => qc.invalidateQueries({ queryKey: ["banco_apu", "partida_detalle"] });
+
+  async function cambiarCant(id: string, v: string) {
+    await db.from("partida_detalle").update({ cantidad_o_cuadrilla: Number(v || 0) }).eq("id", id);
+    refrescar();
+  }
+  async function quitarFila(id: string) {
+    await db.from("partida_detalle").delete().eq("id", id);
+    refrescar();
+  }
+
+  return (
+    <Panel titulo={`${partida.codigo_jerarquico || "s/c"} · ${partida.descripcion}`}>
+      <p className="mb-3 text-xs text-muted-foreground">{partida.unidad} · Rendimiento {partida.rendimiento_diario}/día{partida.especialidad ? ` · ${partida.especialidad}` : ""}</p>
+      <div className="space-y-3">
+        {GRUPOS.map((g) => {
+          const [col, , titulo] = g;
+          const filas = calc.filas.filter((f) => f.col === col);
+          const sub = filas.reduce((s, f) => s + f.parcial, 0);
+          const cerrado = cerrados[col];
+          return (
+            <div key={col} className="rounded-md border border-line">
+              <div className="flex items-center gap-2 bg-muted/40 px-3 py-1.5">
+                <button type="button" className="min-w-0 flex-1 truncate text-left text-xs font-semibold text-primary"
+                  onClick={() => setCerrados({ ...cerrados, [col]: !cerrado })}>
+                  {cerrado ? "▸" : "▾"} {titulo} <span className="font-normal text-muted-foreground">({filas.length})</span>
+                </button>
+                <span className="shrink-0 font-mono text-xs">{soles(sub)}</span>
+                <BotonIcono etiqueta={`Agregar a ${titulo.toLowerCase()}`} tono="primario" onClick={() => setAgregar(g)}><Plus size={14} /></BotonIcono>
+              </div>
+              {!cerrado && filas.length > 0 && (
+                <table className="w-full text-xs">
+                  <tbody>
+                    {filas.map((f) => (
+                      <tr key={f.d.id} className="border-t border-line/60">
+                        <td className="px-2 py-1">{f.nombre}<span className="ml-1 text-muted-foreground">{f.und}</span></td>
+                        <td className="w-20 px-1 py-1">
+                          <Input type="number" step="any" defaultValue={f.d.cantidad_o_cuadrilla} className="py-0.5 text-right text-xs"
+                            onBlur={(e) => Number(e.target.value) !== Number(f.d.cantidad_o_cuadrilla) && cambiarCant(f.d.id, e.target.value)} />
+                        </td>
+                        <td className="px-2 py-1 text-right font-mono">{soles(f.cu)}</td>
+                        <td className="px-2 py-1 text-right font-mono">{soles(f.parcial)}</td>
+                        <td className="w-8 px-1"><BotonIcono etiqueta="Quitar fila" tono="peligro" onClick={() => quitarFila(f.d.id)}><X size={13} /></BotonIcono></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      <div className="mt-3 flex items-center justify-between border-t border-line pt-2">
+        <span className="text-sm font-semibold">Costo total del APU</span>
+        <span className="font-mono text-sm font-semibold text-primary">{soles(calc.total)}</span>
+      </div>
+      {agregar && (
+        <DialogoAgregarInsumo grupo={agregar} partida={partida} opciones={(fuentes[agregar[1]] ?? []).filter((x) => x.estado === "activo" && x.id !== partida.id)}
+          existentes={detalles.filter((d) => d.partida_padre_id === partida.id)}
+          onCerrar={() => setAgregar(null)} onGuardado={() => { setAgregar(null); refrescar(); }} />
+      )}
+    </Panel>
+  );
+}
+
+function DialogoAgregarInsumo({ grupo, partida, opciones, existentes, onCerrar, onGuardado }: {
+  grupo: Grupo; partida: Fila; opciones: Fila[]; existentes: Detalle[]; onCerrar: () => void; onGuardado: () => void;
+}) {
+  const [col, , titulo] = grupo;
+  const [q, setQ] = useState("");
+  const [elegido, setElegido] = useState<Fila | null>(null);
+  const [cant, setCant] = useState("");
+  const [error, setError] = useState("");
+  const lista = opciones.filter((o) => coincide(q, o.codigo ?? o.codigo_jerarquico, o.descripcion, o.marca)).slice(0, 50);
+
+  async function guardar() {
+    if (!elegido) return setError("Elige un insumo.");
+    const n = Number(cant);
+    if (!(n > 0)) return setError("Ingresa la cantidad / cuadrilla (mayor que 0).");
+    const ya = existentes.find((d) => d[col] === elegido.id);
+    if (ya) {
+      if (!window.confirm(`«${elegido.descripcion}» ya está en el APU. ¿Sumar ${n} a su cantidad actual (${ya.cantidad_o_cuadrilla})?`)) return;
+      const { error: e } = await db.from("partida_detalle").update({ cantidad_o_cuadrilla: Number(ya.cantidad_o_cuadrilla) + n }).eq("id", ya.id);
+      if (e) return setError(e.message);
+    } else {
+      const { error: e } = await db.from("partida_detalle").insert({ partida_padre_id: partida.id, [col]: elegido.id, cantidad_o_cuadrilla: n });
+      if (e) return setError(e.message);
+    }
+    onGuardado();
+  }
+
+  return (
+    <VentanaFlotante abierta onCerrar={onCerrar} ancho="max-w-xl" titulo={`Agregar — ${titulo}`} subtitulo={partida.descripcion}>
+      {!elegido ? (
+        <div>
+          <Input autoFocus placeholder="Busca por código, descripción o marca…" value={q} onChange={(e) => setQ(e.target.value)} />
+          <div className="mt-2 max-h-80 overflow-y-auto rounded-md border border-line">
+            {lista.length === 0 && <Vacio texto="Sin coincidencias." />}
+            {lista.map((o) => (
+              <button key={o.id} type="button" onClick={() => setElegido(o)}
+                className="flex w-full items-center gap-2 border-b border-line/60 px-3 py-1.5 text-left text-xs hover:bg-primary/10">
+                <span className="w-24 shrink-0 font-mono text-muted-foreground">{o.codigo ?? o.codigo_jerarquico ?? ""}</span>
+                <span className="min-w-0 flex-1 truncate"><Resaltar texto={o.descripcion} termino={q} /></span>
+                {o.marca && <span className="shrink-0 text-muted-foreground">{o.marca}</span>}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); guardar(); }}>
+          <div className="flex items-center justify-between rounded-md border border-line px-3 py-2 text-sm">
+            <span className="min-w-0 truncate">{elegido.codigo ?? elegido.codigo_jerarquico} · {elegido.descripcion}{elegido.marca ? ` · ${elegido.marca}` : ""}</span>
+            <Boton type="button" variante="linea" className="py-1" onClick={() => setElegido(null)}>Cambiar</Boton>
+          </div>
+          <Campo etiqueta="Cantidad / Cuadrilla">
+            <Input autoFocus type="number" step="any" value={cant} onChange={(e) => setCant(e.target.value)} />
+          </Campo>
+          {error && <p className="text-xs text-bad">{error}</p>}
+          <div className="flex justify-end gap-2">
+            <Boton type="button" variante="linea" onClick={onCerrar}>Cerrar</Boton>
+            <Boton type="submit"><Plus size={13} /> Agregar</Boton>
+          </div>
+        </form>
+      )}
+      {!elegido && error && <p className="mt-2 text-xs text-bad">{error}</p>}
+    </VentanaFlotante>
+  );
+}
+
+function DialogoNuevaPartida({ partidas, onCerrar, onGuardado }: { partidas: Fila[]; onCerrar: () => void; onGuardado: (id: string) => void }) {
+  const { data: especialidades = [] } = useEspecialidadesPartida();
+  const { data: unidades = [] } = useUnidadesMedida();
+  const [f, setF] = useState({ especialidad: "", codigo: "", descripcion: "", unidad: "und", rendimiento: "1" });
+  const [error, setError] = useState("");
+  const listaUnd = unidades.filter((u) => u.activo).map((u) => u.simbolo);
+  const unds = listaUnd.length ? listaUnd : ["und", "m", "m2", "m3", "kg", "glb"];
+
+  function elegirEsp(nombre: string) {
+    const pref = especialidades.find((e) => e.nombre === nombre)?.codigo ?? "";
+    setF({ ...f, especialidad: nombre, codigo: siguienteCodigoJerarquico(partidas.map((p) => String(p.codigo_jerarquico ?? "")), pref) });
+  }
+  async function guardar() {
+    if (!f.descripcion.trim()) return setError("Escribe la descripción.");
+    const { data, error: e } = await db.from("partidas_apu").insert({
+      especialidad: f.especialidad, codigo_jerarquico: f.codigo.trim(), descripcion: f.descripcion.trim(),
+      unidad: f.unidad, rendimiento_diario: Number(f.rendimiento) || 1,
+    }).select("id").single();
+    if (e) return setError(e.message);
+    onGuardado(data.id);
+  }
+
+  return (
+    <VentanaFlotante abierta onCerrar={onCerrar} ancho="max-w-2xl" titulo="Nueva partida">
+      <form className="grid gap-3 sm:grid-cols-2" onSubmit={(e) => { e.preventDefault(); guardar(); }}>
+        <Campo etiqueta="Especialidad">
+          <Select value={f.especialidad} onChange={(e) => elegirEsp(e.target.value)}>
+            <option value="">—</option>
+            {especialidades.filter((e) => e.activo).map((e) => <option key={e.id} value={e.nombre}>{e.codigo} · {e.nombre}</option>)}
+          </Select>
+        </Campo>
+        <Campo etiqueta="Código jerárquico (sugerido)">
+          <Input value={f.codigo} onChange={(e) => setF({ ...f, codigo: e.target.value })} />
+        </Campo>
+        <div className="sm:col-span-2">
+          <Campo etiqueta="Descripción *">
+            <Input autoFocus value={f.descripcion} onChange={(e) => setF({ ...f, descripcion: e.target.value })} />
+          </Campo>
+        </div>
+        <Campo etiqueta="Unidad">
+          <Select value={f.unidad} onChange={(e) => setF({ ...f, unidad: e.target.value })}>
+            {[...new Set([f.unidad, ...unds])].map((u) => <option key={u}>{u}</option>)}
+          </Select>
+        </Campo>
+        <Campo etiqueta="Rendimiento diario">
+          <Input type="number" step="any" value={f.rendimiento} onChange={(e) => setF({ ...f, rendimiento: e.target.value })} />
+        </Campo>
+        {error && <p className="text-xs text-bad sm:col-span-2">{error}</p>}
+        <div className="flex justify-end gap-2 sm:col-span-2">
+          <Boton type="button" variante="linea" onClick={onCerrar}>Cerrar</Boton>
+          <Boton type="submit">Guardar</Boton>
+        </div>
+      </form>
+    </VentanaFlotante>
+  );
+}
