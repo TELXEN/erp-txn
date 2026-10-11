@@ -61,6 +61,7 @@ const COMPOSICION = [
 ] as const;
 
 type ClaveComposicion = (typeof COMPOSICION)[number]["clave"];
+const COLORES_GG = ["var(--chip-1)", "var(--chip-mat)", "var(--chip-margenes)", "var(--chip-eq)", "var(--chip-4)", "var(--chip-codificacion)", "var(--chip-3)", "var(--chip-2)"];
 
 function Dashboard() {
   const { rol } = useAuth();
@@ -262,6 +263,23 @@ function Dashboard() {
       porcentaje: datos.costoReal > 0 ? (valores[c.clave] / datos.costoReal) * 100 : 0,
     })).filter((c) => c.valor > 0);
   }, [datos]);
+
+  const categoriasGG = useMemo(() => {
+    const ids = new Set(filasTabla.map((f) => f.id));
+    const totales = new Map<string, number>();
+    gastosG.forEach((g) => {
+      if (!g.proyecto_id || !ids.has(g.proyecto_id)) return;
+      const nombre = g.categoria?.trim() || "Sin categoría";
+      totales.set(nombre, (totales.get(nombre) ?? 0) + Number(g.monto_soles));
+    });
+    const total = [...totales.values()].reduce((s, v) => s + v, 0);
+    return [...totales.keys()].sort((a, b) => a.localeCompare(b, "es")).map((nombre, i) => ({
+      nombre,
+      valor: totales.get(nombre) ?? 0,
+      color: COLORES_GG[i % COLORES_GG.length],
+      porcentaje: total > 0 ? ((totales.get(nombre) ?? 0) / total) * 100 : 0,
+    })).filter((c) => c.valor > 0).sort((a, b) => b.valor - a.valor);
+  }, [gastosG, filasTabla]);
 
   const barras = useMemo(() => {
     if (global) return [];
@@ -531,13 +549,13 @@ function Dashboard() {
       </div>
 
       {/* Nivel 2: composición y termómetros */}
-      <div className="grid gap-4 lg:grid-cols-5">
-        <div className="lg:col-span-2">
+      <div className="grid items-stretch gap-4 lg:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(240px,0.8fr)]">
+        <div className="min-w-0">
           <Panel titulo="Composición del costo real" className="flex h-full flex-col">
             {composicion.length === 0 ? (
               <Vacio texto="Aún no hay costos registrados." />
             ) : (
-              <div className="flex flex-1 flex-col items-center gap-4 px-5 py-4 sm:flex-row sm:items-center">
+              <div className="flex flex-1 flex-col items-center gap-4 px-5 py-4">
                 <div className="relative h-40 w-40 shrink-0">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -588,7 +606,43 @@ function Dashboard() {
         </div>
 
 
-        <div className="lg:col-span-3">
+        <div className="min-w-0">
+          <Panel titulo="Gastos generales por categoría" className="flex h-full flex-col">
+            {categoriasGG.length === 0 ? (
+              <Vacio texto="Sin gastos generales registrados." />
+            ) : (
+              <div className="flex flex-1 flex-col items-center gap-4 px-5 py-4">
+                <div className="relative h-40 w-40 shrink-0" role="img" aria-label="Distribución de gastos generales por categoría">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie data={categoriasGG} dataKey="valor" nameKey="nombre" innerRadius={50} outerRadius={72} paddingAngle={2} stroke="none">
+                        {categoriasGG.map((c) => <Cell key={c.nombre} fill={c.color} />)}
+                      </Pie>
+                      <Tooltip formatter={(v: number) => soles(Number(v))} contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid var(--line)", background: "var(--card)", color: "var(--ink)" }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="label-mono text-[10px]">Gastos generales</span>
+                    <span className="font-mono text-[13px] font-bold text-ink">{soles(categoriasGG.reduce((s, c) => s + c.valor, 0))}</span>
+                  </div>
+                </div>
+                <ul className="flex w-full min-w-0 flex-col space-y-2">
+                  {categoriasGG.map((c) => (
+                    <li key={c.nombre} className="flex items-center gap-2 text-[12px] leading-tight">
+                      <span className="h-2.5 w-2.5 shrink-0 rounded-sm" style={{ background: c.color }} />
+                      <span className="min-w-0 flex-1">
+                        <span className="block break-words">{c.nombre}</span>
+                        <span className="block font-mono text-[11px] text-muted-foreground">{soles(c.valor)} · {pct(c.porcentaje)}</span>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </Panel>
+        </div>
+
+        <div className="min-w-0 lg:col-span-2 xl:col-span-1">
           <Panel titulo="Indicadores de control" className="h-full">
             <div className="space-y-4 px-5 py-4">
               <Termometro
@@ -776,24 +830,24 @@ function Termometro({
   const porcentaje = meta > 0 ? (actual / meta) * 100 : 0;
   const color = invertido
     ? porcentaje > 100
-      ? "#DC2626"
+      ? "var(--bad)"
       : porcentaje > 85
-        ? "#F59E0B"
-        : "#10B981"
+        ? "var(--warn)"
+        : "var(--good)"
     : porcentaje >= 70
-      ? "#10B981"
+      ? "var(--good)"
       : porcentaje >= 40
-        ? "#F59E0B"
-        : "#DC2626";
+        ? "var(--warn)"
+        : "var(--bad)";
   return (
     <div>
-      <div className="flex items-baseline justify-between">
-        <span className="label-mono">{etiqueta}</span>
-        <span className="font-mono text-sm font-semibold" style={{ color }}>
+      <div className="flex items-baseline justify-between gap-2">
+        <span className="label-mono min-w-0">{etiqueta}</span>
+        <span className="shrink-0 font-mono text-sm font-semibold" style={{ color }}>
           {pct(porcentaje)}
         </span>
       </div>
-      <div className="mt-1.5 h-3 w-full overflow-hidden rounded-full bg-muted">
+      <div className="mt-1.5 h-2 w-full max-w-80 overflow-hidden rounded-full bg-muted">
         <div
           className="growx h-full rounded-full"
           style={{ width: `${Math.min(porcentaje, 100)}%`, background: color }}
