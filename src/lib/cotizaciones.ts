@@ -2,6 +2,7 @@ import { useTipoCambioHoy } from "@/lib/tipo-cambio";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { previsualizarCodigoDocumento, useCodificacionDocumento } from "@/lib/codificacion-documentos";
+import { costoReceta } from "@/lib/banco-apu";
 
 export type EstadoCotizacion = "Borrador" | "Enviada" | "Aprobada" | "Rechazada";
 
