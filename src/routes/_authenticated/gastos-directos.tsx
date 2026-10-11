@@ -389,6 +389,12 @@ function GastosDirectos() {
         </div>
       </Panel>
 
+      {pendientes > 0 && (
+        <p className="mb-3 rounded-md border border-warn/30 bg-warn/10 px-4 py-2 text-xs text-warn">
+          {pendientes} solicitud{pendientes === 1 ? "" : "es"} de desbloqueo pendiente{pendientes === 1 ? "" : "s"} de aprobación de Gerencia en esta obra.
+        </p>
+      )}
+
       <div className="mb-4 flex gap-1 border-b border-line">
         {([["resumen", "Resumen de Costos Directos"], ["partidas", "Control por partida"]] as const).map(([k, etiqueta]) => (
           <button
