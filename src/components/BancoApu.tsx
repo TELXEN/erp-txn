@@ -140,7 +140,7 @@ function ListaBanco({ tabla }: { tabla: Tabla }) {
     if (!form.descripcion?.trim()) return setAviso("Escribe la descripción.");
     const datos: Record<string, unknown> = {};
     for (const c of cfg.campos) datos[c.k] = c.tipo === "num" ? Number(form[c.k] || 0) : form[c.k]?.trim() ?? "";
-    if (tabla === "equipos_herramientas" && form.tipo !== "alquilado") datos.margen = 0;
+    if (tabla === "equipos_herramientas" && form.tipo !== "alquilado") datos["margen"] = 0;
     const { error } = editId ? await db.from(tabla).update(datos).eq("id", editId) : await db.from(tabla).insert(datos);
     if (error) return setAviso(error.message);
     refrescar();
