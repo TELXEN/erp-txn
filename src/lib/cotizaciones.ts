@@ -328,16 +328,46 @@ export async function guardarComoPlantilla(cot: Cotizacion & { multidisciplinari
 
 /** Copia la estructura de una plantilla a una cotización; toma precios actuales del Registro de partidas. */
 export async function aplicarPlantilla(plantillaId: string, cotizacionId: string) {
-  const [{ data: items, error }, { data: maestras }, { data: cotizacion, error: errorCotizacion }] = await Promise.all([
+  const [{ data: items, error }, { data: cotizacion, error: errorCotizacion }] = await Promise.all([
     sb.from("plantilla_cotizacion_items").select("*").eq("plantilla_id", plantillaId).order("orden"),
-    supabase.from("partidas_maestras").select("nombre, precio_unitario"),
     supabase.from("cotizaciones").select("moneda, tipo_cambio").eq("id", cotizacionId).single(),
   ]);
   if (error) throw error;
   if (errorCotizacion) throw errorCotizacion;
   const moneda = cotizacion.moneda === "USD" ? "USD" : "PEN";
   const tipoCambio = Number(cotizacion.tipo_cambio);
-  const precio = new Map((maestras ?? []).map((m) => [m.nombre.trim().toLowerCase(), Number(m.precio_unitario)]));
+  // Precios del Banco APU: P.U. calculado desde la receta de cada partida.
+  const [rPartidas, rDetalle, rMat, rMo, rEq, rSc] = await Promise.all([
+    supabase.from("partidas_apu").select("*"),
+    supabase.from("partida_detalle").select("*"),
+    supabase.from("materiales").select("*").eq("estado", "Activo"),
+    supabase.from("mano_obra").select("*").eq("estado", "Activo"),
+    supabase.from("equipos_herramientas").select("*").eq("estado", "Activo"),
+    supabase.from("subcontratos").select("*").eq("estado", "Activo"),
+  ]);
+  type Fila = Record<string, unknown>;
+  const partidasBanco = (rPartidas.data ?? []) as Fila[];
+  const detalleBanco = (rDetalle.data ?? []) as Fila[];
+  const recursosBanco = {
+    materiales: (rMat.data ?? []) as Fila[],
+    mano_obra: (rMo.data ?? []) as Fila[],
+    equipos_herramientas: (rEq.data ?? []) as Fila[],
+    subcontratos: (rSc.data ?? []) as Fila[],
+  };
+  const precio = new Map(
+    partidasBanco.map((p) => [
+      String(p.descripcion).trim().toLowerCase(),
+      costoReceta(
+        detalleBanco.filter((d) => d.partida_padre_id === p.id),
+        recursosBanco,
+        Number(p.rendimiento_diario) || 1,
+        8,
+        partidasBanco,
+        new Set([String(p.id)]),
+        detalleBanco,
+      ).total,
+    ]),
+  );
   await copiarFilas("cotizacion_items", (items ?? []) as FilaCopiable[], { cotizacion_id: cotizacionId }, (i) => ({
     ...base(i),
     metrado: i.tipo === "grupo" ? 0 : Number(i.metrado) || 1,
