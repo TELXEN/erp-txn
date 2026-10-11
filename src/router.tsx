@@ -9,9 +9,13 @@ function recargarSiModuloFalla(err: unknown) {
   const moduloDesactualizado = /Failed to fetch dynamically imported module|Importing a module script failed|error loading dynamically imported module/i.test(msg);
   const reactDesactualizado = /Cannot read properties of null \(reading ['"](?:useContext|useState|useEffect)['"]\)|Invalid hook call/i.test(msg);
   if (!moduloDesactualizado && !reactDesactualizado) return false;
-  const last = Number(sessionStorage.getItem(RELOAD_KEY) ?? 0);
-  if (Date.now() - last < 10000) return false;
-  sessionStorage.setItem(RELOAD_KEY, String(Date.now()));
+  // Permite hasta 2 recargas en 60 s: una sola recarga a veces no basta si el
+  // navegador conserva varios módulos desactualizados encadenados.
+  const raw = sessionStorage.getItem(RELOAD_KEY) ?? "0:0";
+  const [firstAt = 0, count = 0] = raw.split(":").map(Number);
+  const now = Date.now();
+  if (now - firstAt < 60000 && count >= 2) return false;
+  sessionStorage.setItem(RELOAD_KEY, now - firstAt < 60000 ? `${firstAt}:${count + 1}` : `${now}:1`);
   window.location.reload();
   return true;
 }
