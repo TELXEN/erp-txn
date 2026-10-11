@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Check, FileText, ShieldCheck, SlidersHorizontal } from "lucide-react";
+import { Building2, Check, FileText, ShieldCheck, SlidersHorizontal } from "lucide-react";
 import { Boton, Panel } from "@/components/ui-kit";
+import { DatosEmpresa } from "@/components/DatosEmpresa";
 import { TipografiaDocumentosPanel } from "@/components/TipografiaDocumentos";
 import { UsuariosPanel } from "@/components/UsuariosPanel";
 import { TEMAS, useTema } from "@/lib/temas";
@@ -41,7 +42,7 @@ export const Route = createFileRoute("/_authenticated/configuracion-sistema")({
 
 function ConfiguracionSistema() {
   const { tema, cambiarTema } = useTema();
-  const [pestana, setPestana] = useState<"tema" | "tipografia" | "usuarios">("tema");
+  const [pestana, setPestana] = useState<"tema" | "tipografia" | "usuarios" | "empresa">("tema");
 
   return (
     <div className="space-y-4">
@@ -65,6 +66,9 @@ function ConfiguracionSistema() {
         </Boton>
         <Boton type="button" variante="linea" role="tab" aria-selected={pestana === "usuarios"} onClick={() => setPestana("usuarios")} className={pestana === "usuarios" ? "border-primary bg-primary/5 text-primary" : ""}>
           <ShieldCheck className="size-4 text-primary" /> Usuarios y Roles
+        </Boton>
+        <Boton type="button" variante="linea" role="tab" aria-selected={pestana === "empresa"} onClick={() => setPestana("empresa")} className={pestana === "empresa" ? "border-primary bg-primary/5 text-primary" : ""}>
+          <Building2 className="size-4 text-primary" /> Datos de la empresa
         </Boton>
       </div>
       {pestana === "tema" ? <Panel titulo="Tema de colores" extra={<IconoPaletaColores className="size-5" />}>
@@ -95,7 +99,7 @@ function ConfiguracionSistema() {
               );
             })}
           </div>
-      </Panel> : pestana === "tipografia" ? <TipografiaDocumentosPanel /> : <UsuariosPanel />}
+      </Panel> : pestana === "tipografia" ? <TipografiaDocumentosPanel /> : pestana === "empresa" ? <DatosEmpresa /> : <UsuariosPanel />}
     </div>
   );
 }
