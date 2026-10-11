@@ -31,6 +31,6 @@
 - Paid Decolecta data is cached and shared ERP-wide: exchange rate via useTipoCambioHoy (tipo_cambio_diario, per Lima date), AFP commissions via useComisionesAfp (afp_comisiones_mensuales, per month) — one paid call per period.
 - Honoraria (recibos_honorarios) and payroll (DetallePagoNomina) each use one WYSIWYG preview/print sheet; Cerrada gates payroll payments — aligned outputs.
 - BEFORE triggers round amounts (2 dp) and quantities/unit prices (4 dp) on gastos_directos, gastos_generales and ventas — one rounding rule for every writer.
-- Real project cost comes only from useCostoObras (src/lib/costo-obra.ts) — every panel shows the same figure.
+- Real project cost comes only from useCostoObras (src/lib/costo-obra.ts) — every panel shows the same figure; GG charts only regroup by scope.
 - UI buttons merge classes with cn() so a passed className beats base utilities; table row actions use BotonIcono (tones neutro/primario/peligro) — icons never get squeezed by padding.
 - Banco APU: five resource tables + partida_detalle (one nullable FK per row); removal goes through quitar_recurso_apu (deactivates if used) — recipes keep history.
