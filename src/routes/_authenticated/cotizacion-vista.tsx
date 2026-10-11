@@ -622,13 +622,8 @@ function VistaCotizacion() {
 
 
                 {esUltima && (
-                  <div
-                    className="bloque-final"
-                    style={horizontal
-                      ? { pageBreakInside: "avoid", display: "grid", gridTemplateColumns: "minmax(0, 1fr) 248px", gap: 28, alignItems: "start", marginTop: 14 }
-                      : { pageBreakInside: "avoid" }}
-                  >
-                    <div className="flex justify-end" style={{ marginTop: horizontal ? 0 : 14, gridColumn: horizontal ? 2 : undefined }}>
+                  <div className="bloque-final" style={{ pageBreakInside: "avoid" }}>
+                    <div className="flex justify-end" style={{ marginTop: 14 }}>
                       <div style={{ width: 248, fontSize: "8.5pt" }}>
 
                         {porGrupo.length > 1 && porGrupo.map(([g, v]) => (
@@ -649,7 +644,7 @@ function VistaCotizacion() {
                         )}
                       </div>
                     </div>
-                    <div style={{ marginTop: horizontal ? 0 : 16, borderTop: `1px solid ${C.slate100}`, paddingTop: 10, fontSize: 8, color: C.slate500, lineHeight: 1.45, gridColumn: horizontal ? 1 : undefined, gridRow: horizontal ? 1 : undefined }}>
+                    <div style={{ marginTop: 16, borderTop: `1px solid ${C.slate100}`, paddingTop: 10, fontSize: 8, color: C.slate500, lineHeight: 1.45, textAlign: "left" }}>
                       <div style={{ fontSize: 8, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, color: C.slate700, marginBottom: 5 }}>Términos y condiciones</div>
                       {([
                         ["Recursos humanos", (cot as unknown as Record<string, string>)["recursos_humanos"]],
@@ -657,14 +652,14 @@ function VistaCotizacion() {
                         ["Condiciones de pago", (cot as unknown as Record<string, string>)["condiciones_pago"]],
                         ["Condiciones comerciales", cot.condiciones],
                       ] as const).filter(([, v]) => (v ?? "").trim()).map(([t, v]) => (
-                        <div key={t} style={{ marginTop: 5 }}>
+                        <div key={t} style={{ marginTop: 5, textAlign: "left" }}>
                           <b style={{ color: C.slate700 }}>{t}:</b>
                           <ul style={{ margin: "2px 0 0 14px", padding: 0, listStyle: "disc" }}>
                             {String(v).split("\n").map((l) => l.trim()).filter(Boolean).map((l, i) => <li key={i}>{l}</li>)}
                           </ul>
                         </div>
                       ))}
-                      <div style={{ marginTop: 7, color: C.slate400 }}>
+                      <div style={{ marginTop: 7, color: C.slate400, textAlign: "left" }}>
                         {conIgv
                           ? `Precios expresados en ${esUsd ? "dólares americanos" : "soles"}, incluyen IGV (18%).`
                           : `Precios expresados en ${esUsd ? "dólares americanos" : "soles"}, no afectos a IGV.`}{" "}
