@@ -36,3 +36,4 @@
 - Real project cost comes only from useCostoObras (src/lib/costo-obra.ts) — every panel shows the same figure.
 - GG charts only regroup expenses by scope — totals unchanged.
 - UI buttons merge classes with cn() so a passed className beats base utilities; table row actions use BotonIcono (tones neutro/primario/peligro) — icons never get squeezed by padding.
+- APU relacional: materiales, mano_obra, equipos_herramientas, subcontratos, partidas_apu y partida_detalle (FK anulables, una por fila) alimentan el Banco APU; quitar usa quitar_recurso_apu (inactiva si está en uso) — no se pierde historial de recetas.
