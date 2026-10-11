@@ -681,12 +681,20 @@ function Partidas() {
       <Panel
         titulo={vista === "kanban" ? "Tablero Kanban de partidas" : "Listado por proyecto y tipos"}
         extra={
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Select className="w-52" value={filtroProyecto} onChange={(e) => setFiltroProyecto(e.target.value)}>
               <option value="">Todos los proyectos</option>
               {proyectos.map((p) => (
                 <option key={p.id} value={p.id}>
                   <Resaltar texto={p.nombre} termino={busqueda}/>
+                </option>
+              ))}
+            </Select>
+            <Select className="w-56" value={filtroEsp} onChange={(e) => setFiltroEsp(e.target.value)}>
+              <option value="">Todas las especialidades</option>
+              {nombresEspecialidades.map((e) => (
+                <option key={e} value={e}>
+                  {e}
                 </option>
               ))}
             </Select>
