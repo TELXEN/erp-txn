@@ -7,7 +7,7 @@ import { Boton, Vacio } from "@/components/ui-kit";
 import { useEmpresa } from "@/lib/empresa";
 import { useFuenteDocumento } from "@/lib/fuentes-documentos";
 import { useCotizaciones } from "@/lib/cotizaciones";
-import { apuDb, calcularApu, precioVenta, TIPOS_INSUMO, useInsumos, useMargenesInsumo, type ComponenteApu } from "@/lib/apu";
+import { BANCOS_RECURSO, costoReceta, dbBanco, useRecursosApu, type DetalleApu } from "@/lib/banco-apu";
 
 export const Route = createFileRoute("/_authenticated/apu-vista")({
   validateSearch: (s: Record<string, unknown>) => ({
@@ -33,33 +33,28 @@ const n4 = (n: number) => n.toLocaleString("es-PE", { minimumFractionDigits: 4, 
 
 type Item = {
   id: string; codigo: string | null; nombre: string; unidad: string; especialidad: string;
-  metrado: number; precio_unitario: number; rendimiento: number; jornada: number; pct_herramientas: number; orden: number;
+  metrado: number; precio_unitario: number; rendimiento: number; jornada: number; orden: number;
 };
 
-type Ficha = { it: Item; comps: ComponenteApu[] };
+type Ficha = { it: Item; comps: DetalleApu[] };
 
 /** Altura estimada (px) de una ficha APU dentro de la hoja de 794 px de ancho. */
-function altoEstimadoApu(f: Ficha, margenHt: number) {
-  // Cabecera de partida (2 filas) + cabecera de tabla
+function altoEstimadoApu(f: Ficha) {
   let h = 56 + 28;
-  // Una fila de subtítulo por tipo de insumo (estimación sin resolver insumos)
   const nComps = f.comps.length;
   const nGrupos = Math.min(4, Math.max(1, Math.ceil(nComps / 4)));
   h += nGrupos * 24 + nComps * 20;
-  // Herramientas manuales (% MO)
-  if (margenHt > 0 && f.comps.length) h += 20;
-  // Total + nota al pie + separador
   h += 34 + 22 + 16;
   return h;
 }
 
 /** Empaqueta fichas en hojas A4 sin cortar ninguna ficha. */
-function paginarApus(fichas: Ficha[], capacidad: number, margenHt: number) {
+function paginarApus(fichas: Ficha[], capacidad: number) {
   const paginas: Ficha[][] = [];
   let actual: Ficha[] = [];
   let restante = capacidad;
   for (const f of fichas) {
-    const h = altoEstimadoApu(f, margenHt);
+    const h = altoEstimadoApu(f);
     if (actual.length && h > restante) {
       paginas.push(actual);
       actual = [];
@@ -81,11 +76,7 @@ function VistaApu() {
   const { data: empresa } = useEmpresa();
   const { fuente } = useFuenteDocumento();
   const { data: cotizaciones = [] } = useCotizaciones();
-  const { data: insumos = [] } = useInsumos();
-  const { data: margenes } = useMargenesInsumo();
-  // Insumo «Herramientas manuales» del maestro (código 40000001): su C. Unitario es el % de MO de respaldo.
-  const insumoHT = insumos.find((i) => i.tipo === "HT" && i.codigo === "40000001");
-  const pctH = Number(margenes?.HT ?? 0);
+  const recursos = useRecursosApu();
   const cot = cotizaciones.find((c) => c.id === id);
   const [pdf, setPdf] = useState(false);
 
@@ -93,7 +84,7 @@ function VistaApu() {
     queryKey: ["apu-dossier", id, item],
     enabled: !!id,
     queryFn: async () => {
-      let q = apuDb.from("cotizacion_items").select("*").eq("cotizacion_id", id).neq("tipo", "grupo");
+      let q = dbBanco.from("cotizacion_items").select("*").eq("cotizacion_id", id).neq("tipo", "grupo");
       if (item) q = q.eq("id", item);
       const { data: its, error } = await q;
       if (error) throw error;
@@ -101,11 +92,11 @@ function VistaApu() {
         String(a.codigo ?? "").localeCompare(String(b.codigo ?? ""), undefined, { numeric: true }) || a.orden - b.orden);
       const ids = lista.map((i) => i.id);
       const { data: comps, error: e2 } = ids.length
-        ? await apuDb.from("apu_componentes").select("*").in("cotizacion_item_id", ids).order("created_at")
+        ? await dbBanco.from("cotizacion_apu_detalle").select("*").in("cotizacion_item_id", ids).order("created_at")
         : { data: [], error: null };
       if (e2) throw e2;
-      const porItem = new Map<string, ComponenteApu[]>();
-      for (const c of (comps ?? []) as (ComponenteApu & { cotizacion_item_id: string })[]) {
+      const porItem = new Map<string, DetalleApu[]>();
+      for (const c of (comps ?? []) as (DetalleApu & { cotizacion_item_id: string })[]) {
         if (!porItem.has(c.cotizacion_item_id)) porItem.set(c.cotizacion_item_id, []);
         porItem.get(c.cotizacion_item_id)!.push(c);
       }
@@ -114,7 +105,7 @@ function VistaApu() {
   });
 
   const fichas = data ?? [];
-  const paginas = paginarApus(fichas, CAPACIDAD, pctH);
+  const paginas = paginarApus(fichas, CAPACIDAD);
   const nombreArchivo = `APU_${cot?.codigo ?? "cotizacion"}${item && fichas[0] ? "_" + (fichas[0].it.codigo ?? "") : ""}`;
 
   async function descargar() {
@@ -162,7 +153,7 @@ function VistaApu() {
                   </div>
                 </div>
                 {pagina.map(({ it, comps }, fIdx) => {
-                  const calc = calcularApu(comps, insumos, Number(it.rendimiento ?? 1), Number(it.jornada ?? 8), pctH);
+                  const calc = costoReceta(comps, recursos, Number(it.rendimiento ?? 1), Number(it.jornada ?? 8));
                   return (
                     <div key={it.id} className="apu-ficha" style={{ pageBreakInside: "avoid", marginTop: fIdx === 0 ? 10 : 14, paddingTop: fIdx === 0 ? 0 : 12, borderTop: fIdx === 0 ? "none" : `1.5px dashed ${C.line}` }}>
                       <table style={{ width: "100%", borderCollapse: "collapse" }}>
@@ -171,53 +162,44 @@ function VistaApu() {
                           <tr>
                             <td style={{ color: C.mute }}>Rendimiento</td><td>{n2(Number(it.rendimiento ?? 1))} {it.unidad}/día · Jornada {n2(Number(it.jornada ?? 8))} h</td>
                             <td style={{ color: C.mute, textAlign: "right" }}>Costo unitario directo por {it.unidad}</td>
-                            <td style={{ textAlign: "right", fontWeight: 700, fontSize: 11, color: C.em }}>S/ {n2(calc.pu)}</td>
+                            <td style={{ textAlign: "right", fontWeight: 700, fontSize: 11, color: C.em }}>S/ {n2(calc.total)}</td>
                           </tr>
                         </tbody>
                       </table>
                       <table style={{ width: "100%", marginTop: 8, borderCollapse: "collapse" }}>
                         <thead>
                           <tr style={{ background: C.ink, color: C.white }}>
-                            {["Código", "Descripción del insumo", "Und.", "Cuadrilla", "Cantidad", "Precio S/", "Parcial S/"].map((h, i) => (
+                            {["Recurso", "Descripción", "Und.", "Cant./Cuadrilla", "C. unitario S/", "Parcial S/"].map((h, i) => (
                               <th key={h} style={{ padding: "5px 6px", textAlign: i > 2 ? "right" : "left", fontWeight: 600 }}>{h}</th>
                             ))}
                           </tr>
                         </thead>
                         <tbody>
-                          {TIPOS_INSUMO.map(([tipo, titulo]) => {
-                            const filas = calc.filas.filter((f) => f.ins?.tipo === tipo);
-                            const conH = tipo === "EQ" && calc.herramientas > 0;
-                            if (tipo === "HT") return null;
-                            if (!filas.length && !conH) return null;
+                          {BANCOS_RECURSO.map(([, , titulo, tipo]) => {
+                            const filas = calc.filas.filter((f) => f.tipo === tipo);
+                            if (!filas.length) return null;
+                            const subtotal = filas.reduce((s, f) => s + f.parcial, 0);
                             return [
                               <tr key={tipo} style={{ background: C.emBg }}>
-                                <td colSpan={6} style={{ padding: "4px 6px", fontWeight: 700, color: C.em }}>{titulo}</td>
-                                <td style={{ padding: "4px 6px", textAlign: "right", fontWeight: 700 }}>{n2(calc.tot[tipo] ?? 0)}</td>
+                                <td colSpan={5} style={{ padding: "4px 6px", fontWeight: 700, color: C.em }}>{titulo}</td>
+                                <td style={{ padding: "4px 6px", textAlign: "right", fontWeight: 700 }}>{n2(subtotal)}</td>
                               </tr>,
-                              ...filas.map(({ c, ins, cantidad, parcial }) => (
-                                <tr key={c.id} style={{ borderBottom: `0.5px solid ${C.line}` }}>
-                                  <td style={{ padding: "3px 6px", color: C.mute }}>{ins?.codigo}</td>
-                                  <td style={{ padding: "3px 6px" }}>{ins?.nombre}</td>
-                                  <td style={{ padding: "3px 6px" }}>{ins?.unidad}</td>
-                                  <td style={{ padding: "3px 6px", textAlign: "right" }}>{Number(c.cuadrilla) > 0 ? n2(Number(c.cuadrilla)) : ""}</td>
-                                  <td style={{ padding: "3px 6px", textAlign: "right" }}>{n4(cantidad)}</td>
-                                  <td style={{ padding: "3px 6px", textAlign: "right" }}>{ins?.tipo === "HT" ? `${n2(cantidad)}%` : n2(ins ? precioVenta(ins) : 0)}</td>
-                                  <td style={{ padding: "3px 6px", textAlign: "right" }}>{n2(parcial)}</td>
+                              ...filas.map((f) => (
+                                <tr key={f.d.id} style={{ borderBottom: `0.5px solid ${C.line}` }}>
+                                  <td style={{ padding: "3px 6px", color: C.mute }}>{f.banco}</td>
+                                  <td style={{ padding: "3px 6px" }}>{f.nombre}</td>
+                                  <td style={{ padding: "3px 6px" }}>{f.und}</td>
+                                  <td style={{ padding: "3px 6px", textAlign: "right" }}>{n4(f.cantidad)}</td>
+                                  <td style={{ padding: "3px 6px", textAlign: "right" }}>{f.esPctMo ? `${n2(f.cu)}% MO` : n2(f.cu)}</td>
+                                  <td style={{ padding: "3px 6px", textAlign: "right" }}>{n2(f.parcial)}</td>
                                 </tr>
                               )),
-                              conH ? (
-                                <tr key="h" style={{ borderBottom: `0.5px solid ${C.line}` }}>
-                                  <td style={{ padding: "3px 6px", color: C.mute }}>{insumoHT?.codigo || "40000001"}</td><td style={{ padding: "3px 6px" }}>{insumoHT?.nombre || "Herramientas manuales"}</td><td style={{ padding: "3px 6px" }}>{insumoHT?.unidad || "%MO"}</td><td />
-                                  <td style={{ padding: "3px 6px", textAlign: "right" }}>{n2(pctH)}%</td><td />
-                                  <td style={{ padding: "3px 6px", textAlign: "right" }}>{n2(calc.herramientas)}</td>
-                                </tr>
-                              ) : null,
                             ];
                           })}
-                          {!comps.length && <tr><td colSpan={7} style={{ padding: 10, color: C.mute }}>Partida sin insumos analizados.</td></tr>}
+                          {!comps.length && <tr><td colSpan={6} style={{ padding: 10, color: C.mute }}>Partida sin recursos analizados.</td></tr>}
                           <tr style={{ background: C.soft }}>
-                            <td colSpan={6} style={{ padding: "6px", textAlign: "right", fontWeight: 700 }}>COSTO UNITARIO DIRECTO</td>
-                            <td style={{ padding: "6px", textAlign: "right", fontWeight: 700, fontSize: 11 }}>{n2(calc.pu)}</td>
+                            <td colSpan={5} style={{ padding: "6px", textAlign: "right", fontWeight: 700 }}>COSTO UNITARIO DIRECTO</td>
+                            <td style={{ padding: "6px", textAlign: "right", fontWeight: 700, fontSize: 11 }}>{n2(calc.total)}</td>
                           </tr>
                         </tbody>
                       </table>
@@ -225,7 +207,7 @@ function VistaApu() {
                   );
                 })}
                 <p style={{ marginTop: 10, color: C.mute, fontSize: 8 }}>
-                  Mano de obra y equipos: cantidad = cuadrilla × jornada ÷ rendimiento. Materiales y subcontratos: cantidad por unidad de partida. Precios en soles, sin IGV.
+                  Mano de obra y equipos H-M: parcial = cuadrilla × jornada × costo ÷ rendimiento. Equipos «%»: porcentaje sobre la mano de obra. Materiales y subcontratos: cantidad × costo unitario. Precios en soles, sin IGV.
                 </p>
               </section>
             ))}

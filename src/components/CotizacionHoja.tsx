@@ -24,9 +24,10 @@ import {
   siguienteCodigoSubpartida,
   useCategoriasPartida,
 } from "@/lib/categorias";
-import { apuDb, calcularApu, nombreTipo, precioVenta, TIPOS_INSUMO, tiposVisibles, useComponentesApu, useInsumos, useMargenesInsumo } from "@/lib/apu";
+import { BANCOS_RECURSO, costoReceta, dbBanco, useBancoTabla, useRecursosApu } from "@/lib/banco-apu";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
-import { gruposPermitidos, precioMaestroEnMoneda, useGruposCotizacion, usePartidasMaestras, type CotizacionItem, type PartidaMaestra } from "@/lib/cotizaciones";
+import { gruposPermitidos, precioMaestroEnMoneda, useGruposCotizacion, type CotizacionItem, type PartidaMaestra } from "@/lib/cotizaciones";
+import { useCatalogoCotizacion } from "@/lib/banco-apu";
 import { recodificarWbs } from "@/lib/wbs";
 import { DOC } from "@/lib/documento-tema";
 
@@ -198,7 +199,7 @@ export function CotizacionHoja({
   );
   // Categorías y partidas también salen del catálogo maestro.
   const { data: catalogoCat = [] } = useCategoriasPartida();
-  const { data: maestras = [] } = usePartidasMaestras();
+  const maestras = useCatalogoCotizacion();
 
   const arbol = useMemo(() => construirArbol(items, multi), [items, multi]);
 
@@ -224,8 +225,8 @@ export function CotizacionHoja({
     (async () => {
       const ids = items.map((i) => i.id);
       if (!ids.length) return setConApu(new Set());
-      const { data } = await apuDb
-        .from("apu_componentes")
+      const { data } = await dbBanco
+        .from("cotizacion_apu_detalle")
         .select("cotizacion_item_id")
         .in("cotizacion_item_id", ids);
       if (!vivo) return;
@@ -1696,59 +1697,45 @@ function FilaFantasma({
   );
 }
 
-/** Sub-tabla de insumos (materiales, mano de obra, equipos y subcontratos) con edición en línea. */
+/** Sub-tabla de recursos del Banco APU (materiales, mano de obra, equipos y subcontratos) con edición en línea. */
 function DesgloseApu({ item, alCambiar }: { item: CotizacionItem; alCambiar: () => void }) {
   const qc = useQueryClient();
-  const { data: insumos = [] } = useInsumos();
-  const { data: comps = [] } = useComponentesApu(item.id, "cotizacion");
-  const { data: margenes } = useMargenesInsumo();
+  const recursos = useRecursosApu();
+  const { data: detalle = [] } = useBancoTabla("cotizacion_apu_detalle");
   const [nuevo, setNuevo] = useState("");
   const rend = Number(item.rendimiento ?? 1) || 1;
   const jornada = Number(item.jornada ?? 8) || 8;
-  // Insumo «Herramientas manuales» del maestro (código 40000001): su C. Unitario es el % de MO de respaldo.
-  const insumoHT = insumos.find((i) => i.tipo === "HT" && i.codigo === "40000001");
-  const pctH = Number(margenes?.HT ?? 0);
-  const calc = calcularApu(comps, insumos, rend, jornada, pctH);
-  const herrFila = (
-    <tr key="herr" className="border-b border-line/50">
-      <td className="py-1 text-muted-foreground">{nombreTipo("EQ")}</td>
-      <td className="py-1 text-ink">{insumoHT?.nombre || "Herramientas manuales"}</td>
-      <td className="py-1 text-muted-foreground">%MO</td>
-      <td /><td className="py-1 text-right">{pctH.toFixed(2)}%</td><td />
-      <td className="py-1 text-right font-semibold text-ink">{soles(calc.herramientas)}</td><td />
-    </tr>
-  );
+  const propias = detalle.filter((d) => d.cotizacion_item_id === item.id);
+  const calc = costoReceta(propias, recursos, rend, jornada);
 
   async function sincronizarPu() {
-    await supabase.from("cotizacion_items").update({ precio_unitario: calc.pu }).eq("id", item.id);
+    await supabase.from("cotizacion_items").update({ precio_unitario: calc.total }).eq("id", item.id);
     alCambiar();
   }
 
   const refrescar = async () => {
-    await qc.invalidateQueries({ queryKey: ["apu_componentes", item.id] });
+    await qc.invalidateQueries({ queryKey: ["banco_apu", "cotizacion_apu_detalle"] });
   };
 
-  async function agregar(id: string) {
-    const ins = insumos.find((i) => i.id === id);
-    if (!ins) return;
-    const conCuadrilla = ins.tipo === "MO" || (ins.tipo === "EQ" && ins.unidad === "hm");
-    await apuDb.from("apu_componentes").insert({
+  async function agregar(valor: string) {
+    if (!valor) return;
+    const [col, id] = valor.split(":");
+    await dbBanco.from("cotizacion_apu_detalle").insert({
       cotizacion_item_id: item.id,
-      insumo_id: id,
-      cuadrilla: conCuadrilla ? 1 : 0,
-      cantidad: conCuadrilla ? 0 : 1,
+      [col ?? ""]: id,
+      cantidad_o_cuadrilla: 1,
     });
     setNuevo("");
     await refrescar();
   }
 
-  async function cambiar(id: string, campo: "cuadrilla" | "cantidad", v: string) {
-    await apuDb.from("apu_componentes").update({ [campo]: Number(v || 0) }).eq("id", id);
+  async function cambiar(id: string, v: string) {
+    await dbBanco.from("cotizacion_apu_detalle").update({ cantidad_o_cuadrilla: Number(v || 0) }).eq("id", id);
     await refrescar();
   }
 
   async function quitar(id: string) {
-    await apuDb.from("apu_componentes").delete().eq("id", id);
+    await dbBanco.from("cotizacion_apu_detalle").delete().eq("id", id);
     await refrescar();
   }
 
@@ -1771,51 +1758,37 @@ function DesgloseApu({ item, alCambiar }: { item: CotizacionItem; alCambiar: () 
           Jornada
           <input className={inp} type="number" step="0.5" defaultValue={jornada} onBlur={(e) => void cambiarPartida("jornada", e.target.value)} />
         </label>
-        <span className="flex items-center gap-1">
-          % Herram.
-          <span className="inline-block w-20 text-right">{pctH.toFixed(2)}%</span>
-        </span>
       </div>
       <table className="w-full font-mono text-[12.5px]">
         <thead>
           <tr className="border-b border-line text-left text-[11px] uppercase tracking-wider text-muted-foreground">
-            <th className="py-1">Tipo</th>
-            <th className="py-1">Insumo</th>
+            <th className="py-1">Banco</th>
+            <th className="py-1">Recurso</th>
             <th className="py-1">Und.</th>
-            <th className="py-1 text-right">Cuadrilla</th>
-            <th className="py-1 text-right">Cantidad</th>
-            <th className="py-1 text-right">Precio</th>
+            <th className="py-1 text-right">Cant./Cuadrilla</th>
+            <th className="py-1 text-right">C. unitario</th>
             <th className="py-1 text-right">Parcial</th>
             <th />
           </tr>
         </thead>
         <tbody>
-          {[...calc.filas].sort((a, b) => TIPOS_INSUMO.findIndex(([k]) => k === a.ins?.tipo) - TIPOS_INSUMO.findIndex(([k]) => k === b.ins?.tipo)).flatMap(({ c, ins, cantidad, parcial }, idx, arr) => [
-            <tr key={c.id} className="border-b border-line/50">
-              <td className="py-1 text-muted-foreground">{nombreTipo(ins?.tipo ?? "")}</td>
-              <td className="py-1 text-ink">{ins?.nombre ?? "—"}</td>
-              <td className="py-1 text-muted-foreground">{ins?.unidad ?? ""}</td>
+          {calc.filas.map((f) => (
+            <tr key={f.d.id} className="border-b border-line/50">
+              <td className="py-1 text-muted-foreground">{f.banco}</td>
+              <td className="py-1 text-ink">{f.nombre}</td>
+              <td className="py-1 text-muted-foreground">{f.und}</td>
               <td className="py-1 text-right">
-                <input className={inp} type="number" step="0.01" defaultValue={Number(c.cuadrilla)} onBlur={(e) => void cambiar(c.id, "cuadrilla", e.target.value)} />
+                <input className={inp} type="number" step="0.0001" defaultValue={f.cantidad} onBlur={(e) => void cambiar(f.d.id, e.target.value)} />
               </td>
+              <td className="py-1 text-right">{f.esPctMo ? `${f.cu.toFixed(2)}% MO` : soles(f.cu)}</td>
+              <td className="py-1 text-right font-semibold text-ink">{soles(f.parcial)}</td>
               <td className="py-1 text-right">
-                {Number(c.cuadrilla) > 0 ? (
-                  num(cantidad)
-                ) : (
-                  <input className={inp} type="number" step="0.01" defaultValue={Number(c.cantidad)} onBlur={(e) => void cambiar(c.id, "cantidad", e.target.value)} />
-                )}
-              </td>
-              <td className="py-1 text-right">{ins?.tipo === "HT" ? `${cantidad.toFixed(2)}%` : soles(ins ? precioVenta(ins) : 0)}</td>
-              <td className="py-1 text-right font-semibold text-ink">{soles(parcial)}</td>
-              <td className="py-1 text-right">
-                <button type="button" onClick={() => void quitar(c.id)} className="text-muted-foreground hover:text-bad">
+                <button type="button" onClick={() => void quitar(f.d.id)} className="text-muted-foreground hover:text-bad">
                   <Trash2 size={12} />
                 </button>
               </td>
-            </tr>,
-            ...(calc.herramientas > 0 && ins?.tipo === "EQ" && arr[idx + 1]?.ins?.tipo !== "EQ" ? [herrFila] : []),
-          ])}
-          {calc.herramientas > 0 && !calc.filas.some((f) => f.ins?.tipo === "EQ") && herrFila}
+            </tr>
+          ))}
         </tbody>
       </table>
       <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
@@ -1824,12 +1797,12 @@ function DesgloseApu({ item, alCambiar }: { item: CotizacionItem; alCambiar: () 
           onChange={(e) => void agregar(e.target.value)}
           className="rounded border border-line bg-card px-2 py-1 font-mono text-[12.5px] outline-none focus:border-primary"
         >
-          <option value="">+ Agregar insumo…</option>
-          {tiposVisibles().map(([t, etiqueta]) => (
-            <optgroup key={t} label={etiqueta}>
-              {insumos.filter((i) => i.activo && i.tipo === t).map((i) => (
-                <option key={i.id} value={i.id}>
-                  {i.nombre} · {i.unidad} · {i.tipo === "HT" ? `${(Number(i.precio) > 0 ? Number(i.precio) : (margenes?.HT ?? 0)).toFixed(2)}%` : soles(Number(i.precio))}
+          <option value="">+ Agregar recurso…</option>
+          {BANCOS_RECURSO.map(([col, tabla, etiqueta]) => (
+            <optgroup key={col} label={etiqueta}>
+              {(recursos[tabla] ?? []).filter((r) => r.estado === "activo").map((r) => (
+                <option key={r.id} value={`${col}:${r.id}`}>
+                  {r.descripcion} · {r.unidad} · {soles(Number(r.costo_unitario ?? r.costo_hora ?? 0))}
                 </option>
               ))}
             </optgroup>
@@ -1837,7 +1810,7 @@ function DesgloseApu({ item, alCambiar }: { item: CotizacionItem; alCambiar: () 
         </select>
         <div className="flex items-center gap-3 font-mono text-[12.5px]">
           <span className="text-muted-foreground">
-            P.U. calculado <strong className="text-ink">{soles(calc.pu)}</strong>
+            P.U. calculado <strong className="text-ink">{soles(calc.total)}</strong>
           </span>
           <button
             type="button"

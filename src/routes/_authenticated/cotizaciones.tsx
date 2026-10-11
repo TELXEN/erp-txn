@@ -4,11 +4,11 @@ import React, { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
-import { ApuPartida } from "@/components/ApuPartida";
+import { ApuBanco, ORIGEN_COTIZACION } from "@/components/ApuCotizacion";
+import { dbBanco, useCatalogoCotizacion } from "@/lib/banco-apu";
 import { AutoMaestra, CotizacionHoja } from "@/components/CotizacionHoja";
 import { HojaCotizacion } from "@/components/cotizaciones/HojaCotizacion";
 
-import { apuDb } from "@/lib/apu";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
@@ -40,7 +40,6 @@ import {
   useCodificacionCotizacion,
   useCotizacionItems,
   useCotizaciones,
-  usePartidasMaestras,
   vigenciaHasta,
   type Cotizacion,
   type CotizacionItem,
@@ -74,7 +73,8 @@ function Cotizaciones() {
   const { data: cotizaciones = [] } = useCotizaciones();
   const { data: especialidades = [] } = useEspecialidadesPartida();
   const { data: unidades = [] } = useUnidadesMedida();
-  const { data: maestras = [] } = usePartidasMaestras();
+  // Catálogo de la cotización: partidas del Banco APU con su P.U. calculado desde la receta.
+  const maestras = useCatalogoCotizacion();
   const { data: categorias = [] } = useCategoriasPartida();
   const { data: clientes = [] } = useQuery({
     queryKey: ["terceros", "clientes-activos"],
@@ -237,6 +237,7 @@ function Cotizaciones() {
       metrado: Number(item.metrado || 0),
       precio_unitario: Number(item.precio_unitario || 0),
       orden: items.length + 1,
+      partida_apu_id: maestraSel && maestraSel !== "manual" ? maestraSel : null,
     });
     if (err) return setError(err.message);
     setMaestraSel("");
@@ -244,7 +245,7 @@ function Cotizaciones() {
     qc.invalidateQueries({ queryKey: ["cotizacion_items", cot.id] });
   }
 
-  function cargarMaestraEnFormulario(m: (typeof maestras)[number], metrado: string) {
+  function cargarMaestraEnFormulario(m: { id: string; codigo: string; nombre: string; especialidad: string; categoria?: string; marca?: string; unidad: string; precio_unitario: number }, metrado: string) {
     if (!cot) return;
     setError("");
     try {
@@ -268,18 +269,17 @@ function Cotizaciones() {
     setError("");
     setAviso("");
     if (!item.nombre.trim()) return setError("Escribe la descripción antes de guardarla en el banco.");
-    const { error: err } = await supabase.from("partidas_maestras").insert({
-      codigo: "",
-      nombre: item.nombre.trim(),
+    const { error: err } = await dbBanco.from("partidas_apu").insert({
+      codigo_jerarquico: "",
+      descripcion: item.nombre.trim(),
       especialidad: item.especialidad,
-      categoria: item.categoria,
-      marca: item.marca.trim(),
       unidad: item.unidad,
-      precio_unitario: Number(item.precio_unitario || 0),
+      rendimiento_diario: 1,
+      estado: "activo",
     });
     if (err) return setError(err.message);
-    qc.invalidateQueries({ queryKey: ["partidas_maestras"] });
-    setAviso("Partida guardada en el banco maestro.");
+    qc.invalidateQueries({ queryKey: ["banco_apu"] });
+    setAviso("Partida guardada en el Banco APU. Define su receta en Datos APU.");
   }
 
 
@@ -537,6 +537,7 @@ function Cotizaciones() {
           tipo_presupuesto: "Contractual",
           rendimiento: Number(i.rendimiento ?? 1),
           jornada: Number(i.jornada ?? 8),
+          partida_apu_id: (i as { partida_apu_id?: string | null }).partida_apu_id ?? null,
         });
       const { error: errP } = await supabase.from("partidas").insert(items.filter((i) => !i.padre_id).map(aFila));
       if (errP) throw errP;
@@ -545,17 +546,19 @@ function Cotizaciones() {
         const { error: errH } = await supabase.from("partidas").insert(hijos.map(aFila));
         if (errH) throw errH;
       }
-      const { data: apuCot } = await apuDb
-        .from("apu_componentes")
-        .select("cotizacion_item_id, insumo_id, cuadrilla, cantidad")
+      const { data: apuCot } = await dbBanco
+        .from("cotizacion_apu_detalle")
+        .select("cotizacion_item_id, material_id, mano_obra_id, equipo_id, subcontrato_id, cantidad_o_cuadrilla")
         .in("cotizacion_item_id", items.map((i) => i.id));
       if (apuCot?.length) {
-        const { error: errA } = await apuDb.from("apu_componentes").insert(
-          apuCot.map((c: { cotizacion_item_id: string; insumo_id: string; cuadrilla: number; cantidad: number }) => ({
-            partida_id: nuevosIds.get(c.cotizacion_item_id),
-            insumo_id: c.insumo_id,
-            cuadrilla: c.cuadrilla,
-            cantidad: c.cantidad,
+        const { error: errA } = await dbBanco.from("partida_detalle").insert(
+          apuCot.map((c: { cotizacion_item_id: string; material_id: string | null; mano_obra_id: string | null; equipo_id: string | null; subcontrato_id: string | null; cantidad_o_cuadrilla: number }) => ({
+            partida_obra_id: nuevosIds.get(c.cotizacion_item_id),
+            material_id: c.material_id,
+            mano_obra_id: c.mano_obra_id,
+            equipo_id: c.equipo_id,
+            subcontrato_id: c.subcontrato_id,
+            cantidad_o_cuadrilla: c.cantidad_o_cuadrilla,
           })),
         );
         if (errA) throw errA;
@@ -723,9 +726,9 @@ function Cotizaciones() {
           </HojaCotizacion>
         </div>
         {apu && (
-          <ApuPartida
-            origen="cotizacion"
-            partida={{ ...apu, rendimiento: Number(apu.rendimiento ?? 1), jornada: Number(apu.jornada ?? 8), pct_herramientas: Number(apu.pct_herramientas ?? 3), metrado: Number(apu.metrado ?? 0) }}
+          <ApuBanco
+            origen={ORIGEN_COTIZACION}
+            item={{ ...apu, rendimiento: Number(apu.rendimiento ?? 1), jornada: Number(apu.jornada ?? 8), metrado: Number(apu.metrado ?? 0), partida_apu_id: (apu as { partida_apu_id?: string | null }).partida_apu_id ?? null }}
             invalidar={[["cotizacion_items", seleccion]]}
             onCerrar={() => setApu(null)}
           />

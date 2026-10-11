@@ -131,3 +131,34 @@ export function useCostosPartidasApu() {
   }
   return mapa;
 }
+
+export type PartidaCatalogo = {
+  id: string;
+  codigo: string;
+  nombre: string;
+  especialidad: string;
+  categoria: string;
+  marca: string;
+  unidad: string;
+  precio_unitario: number;
+  activo: boolean;
+  rendimiento: number;
+};
+
+/** Catálogo de partidas para cotizaciones: Banco APU con el P.U. calculado desde su receta. */
+export function useCatalogoCotizacion(): PartidaCatalogo[] {
+  const { data: partidas = [] } = usePartidasApu();
+  const costos = useCostosPartidasApu();
+  return partidas.map((p) => ({
+    id: p.id,
+    codigo: p.codigo_jerarquico ?? "",
+    nombre: p.descripcion ?? "",
+    especialidad: p.especialidad ?? "",
+    categoria: "",
+    marca: "",
+    unidad: p.unidad ?? "und",
+    precio_unitario: costos.get(p.id) ?? 0,
+    activo: true,
+    rendimiento: Number(p.rendimiento_diario ?? 1),
+  }));
+}

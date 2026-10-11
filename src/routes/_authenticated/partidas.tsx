@@ -40,7 +40,7 @@ import {
 } from "@/lib/categorias";
 import { montoPartida, useUnidadesMedida } from "@/lib/unidades";
 import { ImportarExcel } from "@/components/ImportarExcel";
-import { ApuPartida } from "@/components/ApuPartida";
+import { ApuBanco, ORIGEN_OBRA } from "@/components/ApuCotizacion";
 import { usePartidasMaestras } from "@/lib/cotizaciones";
 
 const cantidad = (n: number) =>
@@ -1183,9 +1183,9 @@ function Partidas() {
       </Panel>
       </>
       {apu && (
-        <ApuPartida
-          origen="obra"
-          partida={{ ...apu, rendimiento: Number(apu.rendimiento ?? 1), jornada: Number(apu.jornada ?? 8), pct_herramientas: Number(apu.pct_herramientas ?? 3), metrado: Number(apu.metrado ?? 0) }}
+        <ApuBanco
+          origen={ORIGEN_OBRA}
+          item={{ ...apu, rendimiento: Number(apu.rendimiento ?? 1), jornada: Number(apu.jornada ?? 8), metrado: Number(apu.metrado ?? 0), partida_apu_id: (apu as { partida_apu_id?: string | null }).partida_apu_id ?? null }}
           invalidar={[["partidas"]]}
           onCerrar={() => setApu(null)}
         />
