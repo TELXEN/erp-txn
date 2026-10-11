@@ -168,6 +168,12 @@ export async function convertirMonedaCotizacion(cotizacionId: string, moneda: "P
     const { error: e2 } = await supabase.from("cotizacion_items").update({ precio_unitario: nuevo } as never).eq("id", it.id);
     if (e2) throw e2;
   }
+  // Copias fijas del APU: también cambian de moneda (los % de equipos no).
+  const { data: det } = await sb.from("cotizacion_apu_detalle").select("id, precio_unitario, unidad, cotizacion_items!inner(cotizacion_id)").eq("cotizacion_items.cotizacion_id", cotizacionId);
+  for (const d of (det ?? []) as { id: string; precio_unitario: number | null; unidad: string }[]) {
+    if (d.precio_unitario === null || d.unidad === "%") continue;
+    await sb.from("cotizacion_apu_detalle").update({ precio_unitario: Math.round(Number(d.precio_unitario) * factor * 10000) / 10000 }).eq("id", d.id);
+  }
   const { error: e3 } = await supabase
     .from("cotizaciones")
     .update({ moneda, tipo_cambio: tc } as never)

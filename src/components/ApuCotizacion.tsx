@@ -3,7 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Copy, Plus, Trash2, X } from "lucide-react";
 import { Boton, Input, Select } from "@/components/ui-kit";
 import { soles } from "@/lib/format";
-import { BANCOS_RECURSO, costoReceta, dbBanco, useBancoTabla, useRecursosApu } from "@/lib/banco-apu";
+import { BANCOS_RECURSO, copiarRecetaACotizacion, costoReceta, dbBanco, useBancoTabla, useRecursosApu } from "@/lib/banco-apu";
 import { useUnidadesMedida } from "@/lib/unidades";
 
 type ItemApu = {
@@ -84,6 +84,17 @@ export function ApuBanco({
     if (!partidaBanco) return;
     if (propias.length && !window.confirm("Se reemplazarán los recursos actuales por la receta del Banco APU. ¿Continuar?")) return;
     setError("");
+    if (origen.tipo === "cotizacion") {
+      try {
+        const r = await copiarRecetaACotizacion(item.id, partidaBanco.id, 1);
+        setRend(String(r.rendimiento));
+        setUnd(partidaBanco.unidad || "und");
+        refrescar();
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "No se pudo copiar la receta.");
+      }
+      return;
+    }
     const base = detalleBanco.filter((d) => d.partida_padre_id === partidaBanco.id && !d.subpartida_hijo_id);
     if (!base.length) return setError("La partida del Banco APU todavía no tiene receta (o solo tiene subpartidas).");
     await dbBanco.from(origen.tablaDetalle).delete().eq(origen.columna, item.id);

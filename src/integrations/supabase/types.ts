@@ -1296,33 +1296,51 @@ export type Database = {
       cotizacion_apu_detalle: {
         Row: {
           cantidad_o_cuadrilla: number
+          codigo: string
           cotizacion_item_id: string
           created_at: string
+          descripcion: string
           equipo_id: string | null
           id: string
           mano_obra_id: string | null
+          marca: string
           material_id: string | null
+          precio_unitario: number | null
           subcontrato_id: string | null
+          tipo_recurso: string
+          unidad: string
         }
         Insert: {
           cantidad_o_cuadrilla?: number
+          codigo?: string
           cotizacion_item_id: string
           created_at?: string
+          descripcion?: string
           equipo_id?: string | null
           id?: string
           mano_obra_id?: string | null
+          marca?: string
           material_id?: string | null
+          precio_unitario?: number | null
           subcontrato_id?: string | null
+          tipo_recurso?: string
+          unidad?: string
         }
         Update: {
           cantidad_o_cuadrilla?: number
+          codigo?: string
           cotizacion_item_id?: string
           created_at?: string
+          descripcion?: string
           equipo_id?: string | null
           id?: string
           mano_obra_id?: string | null
+          marca?: string
           material_id?: string | null
+          precio_unitario?: number | null
           subcontrato_id?: string | null
+          tipo_recurso?: string
+          unidad?: string
         }
         Relationships: [
           {
@@ -1369,11 +1387,13 @@ export type Database = {
           cotizacion_id: string
           created_at: string
           especialidad: string
+          especificaciones: string
           grupo: string
           id: string
           jornada: number
           marca: string
           metrado: number
+          metrado_detalle: Json
           nombre: string
           orden: number
           padre_id: string | null
@@ -1391,11 +1411,13 @@ export type Database = {
           cotizacion_id: string
           created_at?: string
           especialidad?: string
+          especificaciones?: string
           grupo?: string
           id?: string
           jornada?: number
           marca?: string
           metrado?: number
+          metrado_detalle?: Json
           nombre: string
           orden?: number
           padre_id?: string | null
@@ -1413,11 +1435,13 @@ export type Database = {
           cotizacion_id?: string
           created_at?: string
           especialidad?: string
+          especificaciones?: string
           grupo?: string
           id?: string
           jornada?: number
           marca?: string
           metrado?: number
+          metrado_detalle?: Json
           nombre?: string
           orden?: number
           padre_id?: string | null
