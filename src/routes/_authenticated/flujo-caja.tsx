@@ -111,6 +111,14 @@ function FlujoCaja() {
   const [obra, setObra] = useState("global");
   const [costoAbierto, setCostoAbierto] = useState(false);
   const [verTendencia, setVerTendencia] = useState(true);
+  const [pestana, setPestana] = useState<"resumen" | "matriz">(() => {
+    const g = localStorage.getItem("flujo-caja:pestana");
+    return g === "matriz" ? "matriz" : "resumen";
+  });
+  const cambiarPestana = (p: "resumen" | "matriz") => {
+    setPestana(p);
+    localStorage.setItem("flujo-caja:pestana", p);
+  };
   const global = obra === "global";
   const { data: proyectos = [] } = useProyectos();
   const { data: bancos = [] } = useQuery({
@@ -465,6 +473,27 @@ function FlujoCaja() {
         }
       />
 
+      <div className="mb-4 flex gap-1 border-b border-line">
+        {([
+          { id: "resumen" as const, etiqueta: "Resumen" },
+          { id: "matriz" as const, etiqueta: "Matriz anual" },
+        ]).map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            onClick={() => cambiarPestana(t.id)}
+            className={`-mb-px border-b-2 px-3 py-2 text-[12px] font-semibold transition-colors ${
+              pestana === t.id
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {t.etiqueta}
+          </button>
+        ))}
+      </div>
+
+      {pestana === "resumen" && (<>
       <div className={`mb-5 grid gap-4 ${global ? "xl:grid-cols-4" : "xl:grid-cols-3"}`}>
         {[
           { titulo: global ? "Saldos" : "Proyección de la obra", items: kpisA, alertar: true },
@@ -536,7 +565,9 @@ function FlujoCaja() {
           </ResponsiveContainer>
         </div>
         </Panel>
+      </>)}
 
+      {pestana === "matriz" && (<>
       <Panel titulo="Matriz anual" extra={<span className="label-mono">Doble clic en una meta para editarla</span>}>
         <div className="w-full overflow-x-auto">
           <table className="w-full table-fixed border-separate border-spacing-0 text-xs tabular-nums [&_td]:whitespace-nowrap">
@@ -682,6 +713,7 @@ function FlujoCaja() {
         compras al crédito y pagos pendientes de RR. HH. En la vista por obra no se incluyen planillas ni tributos.
       </p>
       </details>
+      </>)}
     </div>
   );
 }
