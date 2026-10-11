@@ -1463,7 +1463,7 @@ export function CotizacionHoja({
                     <ListPlus size={14} className="mr-2" /> Insertar partida debajo
                   </ContextMenuItem>
                   {!f.agrupadora && (
-                    <ContextMenuItem onSelect={() => setApuAbierto(it.id)}>
+                    <ContextMenuItem onSelect={() => setActivo({ r, c: 1 })}>
                       <Calculator size={14} className="mr-2" /> Ver APU
                     </ContextMenuItem>
                   )}
