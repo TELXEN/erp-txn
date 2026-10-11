@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Building2, Check, FileText, ShieldCheck, SlidersHorizontal } from "lucide-react";
 import { Boton, Panel } from "@/components/ui-kit";
 import { DatosEmpresa } from "@/components/DatosEmpresa";
+import { CuentasBancarias } from "@/components/CuentasBancarias";
 import { TipografiaDocumentosPanel } from "@/components/TipografiaDocumentos";
 import { UsuariosPanel } from "@/components/UsuariosPanel";
 import { TEMAS, useTema } from "@/lib/temas";
@@ -99,7 +100,12 @@ function ConfiguracionSistema() {
               );
             })}
           </div>
-      </Panel> : pestana === "tipografia" ? <TipografiaDocumentosPanel /> : pestana === "empresa" ? <DatosEmpresa /> : <UsuariosPanel />}
+            </Panel> : pestana === "tipografia" ? <TipografiaDocumentosPanel /> : pestana === "empresa" ? (
+          <>
+            <DatosEmpresa />
+            <CuentasBancarias />
+          </>
+        ) : <UsuariosPanel />}
     </div>
   );
 }
