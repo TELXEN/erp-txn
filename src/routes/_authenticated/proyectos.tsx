@@ -521,7 +521,7 @@ function Proyectos() {
           {segmentos.map((item) => {
             const cantidad = todosProyectos.filter((p) => item === "Archivados" ? Boolean(p.archivado_en) : !p.archivado_en && pertenece(p.situacion, item)).length;
             return (
-              <Boton key={item} type="button" variante="linea" onClick={() => setSegmento(item)} className={`shrink-0 rounded-b-none border-b-0 ${segmento === item ? "bg-primary text-primary-foreground" : "border-transparent text-muted-foreground"}`}>
+              <Boton key={item} type="button" variante="linea" onClick={() => { setSegmento(item); localStorage.setItem("proyectos:segmento", item); }} className={`shrink-0 rounded-b-none border-b-0 ${segmento === item ? "bg-primary text-primary-foreground" : "border-transparent text-muted-foreground"}`}>
                 {item}<span className="tabular-nums opacity-70">{cantidad}</span>
               </Boton>
             );
@@ -592,8 +592,23 @@ function Proyectos() {
                           <span className="block">{fecha(p.fecha_inicio)} — {fecha(p.fecha_fin)}</span>
                         </td>
                         <td className="px-3 py-3 align-top">
-                          <div className="mb-1 flex justify-between text-[10px] text-muted-foreground"><span>Programado</span><span className="tabular-nums">{p.avance_programado_pct === null ? "—" : `${Number(p.avance_programado_pct).toFixed(1)}%`}</span></div>
-                          <div className="h-1.5 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-primary" style={{ width: `${Math.min(100, Math.max(0, Number(p.avance_programado_pct ?? 0)))}%` }} /></div>
+                          {(() => {
+                            const real = avanceRealDe(p.id);
+                            const prog = p.avance_programado_pct === null ? null : Number(p.avance_programado_pct);
+                            const barra = (v: number) => (v >= 100 ? "bg-good" : v > 0 ? "bg-warn" : "bg-muted-foreground/30");
+                            return (
+                              <div className="space-y-1.5">
+                                <div>
+                                  <div className="mb-0.5 flex justify-between text-[10px] text-muted-foreground"><span>Real</span><span className="tabular-nums">{real === null ? "—" : `${real.toFixed(1)}%`}</span></div>
+                                  <div className="h-1.5 overflow-hidden rounded-full bg-muted"><div className={`h-full rounded-full ${barra(real ?? 0)}`} style={{ width: `${Math.min(100, Math.max(0, real ?? 0))}%` }} /></div>
+                                </div>
+                                <div>
+                                  <div className="mb-0.5 flex justify-between text-[10px] text-muted-foreground"><span>Programado</span><span className="tabular-nums">{prog === null ? "—" : `${prog.toFixed(1)}%`}</span></div>
+                                  <div className="h-1.5 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-primary" style={{ width: `${Math.min(100, Math.max(0, prog ?? 0))}%` }} /></div>
+                                </div>
+                              </div>
+                            );
+                          })()}
                         </td>
                         <td className="px-3 py-3 align-top text-right whitespace-nowrap tabular-nums">{soles(presupuesto)}</td>
                         <td
