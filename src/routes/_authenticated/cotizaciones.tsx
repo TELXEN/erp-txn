@@ -551,6 +551,7 @@ function Cotizaciones() {
           tipo_presupuesto: "Contractual",
           rendimiento: Number(i.rendimiento ?? 1),
           jornada: Number(i.jornada ?? 8),
+          partida_apu_id: (i as { partida_apu_id?: string | null }).partida_apu_id ?? null,
         });
       const { error: errP } = await supabase.from("partidas").insert(items.filter((i) => !i.padre_id).map(aFila));
       if (errP) throw errP;
@@ -559,17 +560,19 @@ function Cotizaciones() {
         const { error: errH } = await supabase.from("partidas").insert(hijos.map(aFila));
         if (errH) throw errH;
       }
-      const { data: apuCot } = await apuDb
-        .from("apu_componentes")
-        .select("cotizacion_item_id, insumo_id, cuadrilla, cantidad")
+      const { data: apuCot } = await dbBanco
+        .from("cotizacion_apu_detalle")
+        .select("cotizacion_item_id, material_id, mano_obra_id, equipo_id, subcontrato_id, cantidad_o_cuadrilla")
         .in("cotizacion_item_id", items.map((i) => i.id));
       if (apuCot?.length) {
-        const { error: errA } = await apuDb.from("apu_componentes").insert(
-          apuCot.map((c: { cotizacion_item_id: string; insumo_id: string; cuadrilla: number; cantidad: number }) => ({
-            partida_id: nuevosIds.get(c.cotizacion_item_id),
-            insumo_id: c.insumo_id,
-            cuadrilla: c.cuadrilla,
-            cantidad: c.cantidad,
+        const { error: errA } = await dbBanco.from("partida_detalle").insert(
+          apuCot.map((c: { cotizacion_item_id: string; material_id: string | null; mano_obra_id: string | null; equipo_id: string | null; subcontrato_id: string | null; cantidad_o_cuadrilla: number }) => ({
+            partida_obra_id: nuevosIds.get(c.cotizacion_item_id),
+            material_id: c.material_id,
+            mano_obra_id: c.mano_obra_id,
+            equipo_id: c.equipo_id,
+            subcontrato_id: c.subcontrato_id,
+            cantidad_o_cuadrilla: c.cantidad_o_cuadrilla,
           })),
         );
         if (errA) throw errA;
@@ -737,9 +740,9 @@ function Cotizaciones() {
           </HojaCotizacion>
         </div>
         {apu && (
-          <ApuPartida
-            origen="cotizacion"
-            partida={{ ...apu, rendimiento: Number(apu.rendimiento ?? 1), jornada: Number(apu.jornada ?? 8), pct_herramientas: Number(apu.pct_herramientas ?? 3), metrado: Number(apu.metrado ?? 0) }}
+          <ApuBanco
+            origen={ORIGEN_COTIZACION}
+            item={{ ...apu, rendimiento: Number(apu.rendimiento ?? 1), jornada: Number(apu.jornada ?? 8), metrado: Number(apu.metrado ?? 0), partida_apu_id: (apu as { partida_apu_id?: string | null }).partida_apu_id ?? null }}
             invalidar={[["cotizacion_items", seleccion]]}
             onCerrar={() => setApu(null)}
           />
