@@ -36,3 +36,6 @@
 ## Catálogos Maestros
 - [x] Restaurar los accesos Empresa (Cuentas bancarias), Codificación, Parámetros de proyectos, Marcas y Recursos Humanos (Cargos del personal), además de Costos y Finanzas.
 - [x] Cuentas bancarias trasladado a Configuración del Sistema › Datos de la empresa; Catálogos Maestros conserva Codificación, Parámetros de proyectos, Marcas, Costos y Finanzas y Recursos Humanos.
+
+## Configuración del Sistema
+- [x] Agrupar la pestaña «Datos de la empresa» en dos bloques con rótulo propio: Datos de la empresa y Cuentas bancarias.
