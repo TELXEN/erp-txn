@@ -3118,6 +3118,7 @@ export type Database = {
           created_at: string
           descripcion: string
           especialidad: string
+          especificaciones: string | null
           estado: string
           id: string
           rendimiento_diario: number
@@ -3129,6 +3130,7 @@ export type Database = {
           created_at?: string
           descripcion: string
           especialidad?: string
+          especificaciones?: string | null
           estado?: string
           id?: string
           rendimiento_diario?: number
@@ -3140,6 +3142,7 @@ export type Database = {
           created_at?: string
           descripcion?: string
           especialidad?: string
+          especificaciones?: string | null
           estado?: string
           id?: string
           rendimiento_diario?: number
@@ -3147,6 +3150,50 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      partidas_apu_metrado: {
+        Row: {
+          cantidad: number
+          concepto: string
+          created_at: string
+          id: string
+          observacion: string
+          orden: number
+          partida_id: string
+          unidad: string
+          updated_at: string
+        }
+        Insert: {
+          cantidad?: number
+          concepto?: string
+          created_at?: string
+          id?: string
+          observacion?: string
+          orden?: number
+          partida_id: string
+          unidad?: string
+          updated_at?: string
+        }
+        Update: {
+          cantidad?: number
+          concepto?: string
+          created_at?: string
+          id?: string
+          observacion?: string
+          orden?: number
+          partida_id?: string
+          unidad?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partidas_apu_metrado_partida_id_fkey"
+            columns: ["partida_id"]
+            isOneToOne: false
+            referencedRelation: "partidas_apu"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       partidas_maestras: {
         Row: {

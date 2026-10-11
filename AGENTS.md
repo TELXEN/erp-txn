@@ -34,3 +34,4 @@
 - Real project cost comes only from useCostoObras (src/lib/costo-obra.ts) — every panel shows the same figure; GG charts only regroup by scope.
 - UI buttons merge classes with cn() so a passed className beats base utilities; table row actions use BotonIcono (tones neutro/primario/peligro) — icons never get squeezed by padding.
 - Banco APU: five resource tables + partida_detalle (one nullable FK per row); removal goes through quitar_recurso_apu (deactivates if used) — recipes keep history.
+- APU pie: specs on partidas_apu.especificaciones, metrado on partidas_apu_metrado, consolidado derived.
