@@ -210,9 +210,9 @@ function ListaBanco({ tabla, seleccion, onSeleccion }: { tabla: Tabla; seleccion
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-line text-left label-mono">
-                {cfg.columnas.map(([k, t, tp]) => <th key={k} className={`px-3 py-1 ${tp !== "txt" ? "text-right" : ""}`}>{t}</th>)}
-                <th className="px-3 py-1">Estado</th>
-                <th className="px-3 py-1 text-right">Acciones</th>
+                {cfg.columnas.map(([k, t, tp]) => <th key={k} className={`px-2 py-1 ${tp !== "txt" ? "text-right" : ""}`}>{t}</th>)}
+                <th className="px-2 py-1">Estado</th>
+                <th className="px-2 py-1 text-right">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -223,7 +223,7 @@ function ListaBanco({ tabla, seleccion, onSeleccion }: { tabla: Tabla; seleccion
                     const fijo = k === "codigo" || k === "codigo_jerarquico" || k === "unidad";
                     const largo = tp === "txt" && !fijo;
                     return (
-                      <td key={k} className={`px-3 py-0.5 ${largo ? "w-full max-w-[1px]" : tp !== "txt" ? "whitespace-nowrap text-right font-mono" : "whitespace-nowrap"}`}>
+                      <td key={k} className={`px-2 py-0.5 ${largo ? "w-full max-w-[1px]" : tp !== "txt" ? "whitespace-nowrap text-right font-mono" : "whitespace-nowrap"}`}>
                         <span className={`block ${largo ? "truncate" : ""}`}>
                           {tp === "sol" ? soles(Number(f[k] ?? 0)) : tp === "num" ? Number(f[k] ?? 0).toLocaleString("es-PE") : <Resaltar texto={f[k]} termino={busqueda} />}
                         </span>
