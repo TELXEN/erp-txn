@@ -89,7 +89,7 @@ export function BancoApu() {
   const cambiar = (t: Tabla) => { setTab(t); localStorage.setItem("banco-apu:tab", t); };
   return (
     <>
-      <div className="mb-4 flex flex-wrap gap-1 border-b border-line pb-3">
+      <div className="mb-3 flex flex-wrap gap-1 border-b border-line pb-2">
         {TABS.map((t) => (
           <button key={t} type="button" onClick={() => cambiar(t)}
             className={`rounded-md border-b-2 px-3 py-1.5 text-xs transition-colors ${tab === t ? "border-cta bg-primary/10 font-semibold text-primary" : "border-transparent text-muted-foreground hover:bg-muted hover:text-primary"}`}>
@@ -207,31 +207,38 @@ function ListaBanco({ tabla, seleccion, onSeleccion }: { tabla: Tabla; seleccion
         <Vacio texto="Sin registros." />
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-line text-left label-mono">
-                {cfg.columnas.map(([k, t, tp]) => <th key={k} className={`px-4 py-2 ${tp !== "txt" ? "text-right" : ""}`}>{t}</th>)}
-                <th className="px-4 py-2">Estado</th>
-                <th className="px-4 py-2 text-right">Acciones</th>
+                {cfg.columnas.map(([k, t, tp]) => <th key={k} className={`px-2 py-1 ${tp !== "txt" ? "text-right" : ""}`}>{t}</th>)}
+                <th className="px-2 py-1">Estado</th>
+                <th className="px-2 py-1 text-right">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {visibles.map((f) => (
                 <tr key={f.id} className={`border-b border-line/60 hover:bg-muted/40 ${onSeleccion ? "cursor-pointer" : ""} ${seleccion === f.id ? "bg-primary/10" : ""}`}
                   onClick={() => onSeleccion?.(f.id)}>
-                  {cfg.columnas.map(([k, , tp]) => (
-                    <td key={k} className={`px-4 py-2 ${tp !== "txt" ? "text-right font-mono" : ""}`}>
-                      {tp === "sol" ? soles(Number(f[k] ?? 0)) : tp === "num" ? Number(f[k] ?? 0).toLocaleString("es-PE") : <Resaltar texto={f[k]} termino={busqueda} />}
-                    </td>
-                  ))}
-                  <td className="px-4 py-2"><Etiqueta tono={f.estado === "activo" ? "good" : "neutro"}>{f.estado === "activo" ? "Activo" : "Inactivo"}</Etiqueta></td>
-                  <td className="px-4 py-2" onClick={(e) => e.stopPropagation()}>
+                  {cfg.columnas.map(([k, , tp]) => {
+                    const fijo = k === "codigo" || k === "codigo_jerarquico" || k === "unidad";
+                    const largo = tp === "txt" && !fijo;
+                    const ancho = k === "descripcion" ? "w-full max-w-[1px]" : "max-w-[74px]";
+                    return (
+                      <td key={k} className={`px-2 py-0.5 ${largo ? ancho : tp !== "txt" ? "whitespace-nowrap text-right font-mono" : "whitespace-nowrap"}`}>
+                        <span className={`block ${largo ? "truncate" : ""}`} title={largo ? String(f[k] ?? "") : undefined}>
+                          {tp === "sol" ? soles(Number(f[k] ?? 0)) : tp === "num" ? Number(f[k] ?? 0).toLocaleString("es-PE") : <Resaltar texto={f[k]} termino={busqueda} />}
+                        </span>
+                      </td>
+                    );
+                  })}
+                  <td className="px-3 py-0.5"><Etiqueta tono={f.estado === "activo" ? "good" : "neutro"}>{f.estado === "activo" ? "Activo" : "Inactivo"}</Etiqueta></td>
+                  <td className="px-3 py-0.5" onClick={(e) => e.stopPropagation()}>
                     <div className="flex justify-end gap-1">
-                      {onSeleccion && <BotonIcono etiqueta="Análisis (receta APU)" tono="primario" onClick={() => onSeleccion(f.id)}><Calculator size={14} /></BotonIcono>}
-                      <BotonIcono etiqueta="Editar" onClick={() => abrir(f)}><Pencil size={14} /></BotonIcono>
+                      {onSeleccion && <BotonIcono etiqueta="Análisis (receta APU)" tono="primario" className="size-6" onClick={() => onSeleccion(f.id)}><Calculator size={13} /></BotonIcono>}
+                      <BotonIcono etiqueta="Editar" className="size-6" onClick={() => abrir(f)}><Pencil size={13} /></BotonIcono>
                       {f.estado === "activo"
-                        ? <BotonIcono etiqueta="Quitar" tono="peligro" onClick={() => quitar(f)}><Trash2 size={14} /></BotonIcono>
-                        : <Boton variante="linea" className="py-1" onClick={() => reactivar(f)}>Reactivar</Boton>}
+                        ? <BotonIcono etiqueta="Quitar" tono="peligro" className="size-6" onClick={() => quitar(f)}><Trash2 size={13} /></BotonIcono>
+                        : <Boton variante="linea" className="h-6 px-2 py-0 text-[11px]" onClick={() => reactivar(f)}>Reactivar</Boton>}
                     </div>
                   </td>
                 </tr>
@@ -345,8 +352,8 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
   return (
     <>
     <Panel titulo={`${partida.codigo_jerarquico || "s/c"} · ${partida.descripcion}`}>
-      <div className="px-5 py-4"><p className="mb-3 text-xs text-muted-foreground">{partida.unidad} · Rendimiento {partida.rendimiento_diario}/día{partida.especialidad ? ` · ${partida.especialidad}` : ""}</p>
-      <div className="space-y-3">
+      <div className="px-4 py-3"><p className="mb-2 text-xs text-muted-foreground">{partida.unidad} · Rendimiento {partida.rendimiento_diario}/día{partida.especialidad ? ` · ${partida.especialidad}` : ""}</p>
+      <div className="space-y-2">
         {GRUPOS.map((g) => {
           const [col, , titulo] = g;
           const filas = calc.filas.filter((f) => f.col === col);
@@ -354,27 +361,27 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
           const cerrado = cerrados[col];
           return (
             <div key={col} className="rounded-md border border-line">
-              <div className="flex items-center gap-2 bg-muted/40 px-3 py-1.5">
+              <div className="flex items-center gap-2 bg-muted/40 px-2.5 py-1">
                 <button type="button" className="min-w-0 flex-1 truncate text-left text-xs font-semibold text-primary"
                   onClick={() => setCerrados({ ...cerrados, [col]: !cerrado })}>
                   {cerrado ? "▸" : "▾"} {titulo} <span className="font-normal text-muted-foreground">({filas.length})</span>
                 </button>
                 <span className="shrink-0 font-mono text-xs">{soles(sub)}</span>
-                <BotonIcono etiqueta={`Agregar a ${titulo.toLowerCase()}`} tono="primario" onClick={() => setAgregar(g)}><Plus size={14} /></BotonIcono>
+                <BotonIcono etiqueta={`Agregar a ${titulo.toLowerCase()}`} tono="primario" className="size-6" onClick={() => setAgregar(g)}><Plus size={13} /></BotonIcono>
               </div>
               {!cerrado && filas.length > 0 && (
                 <table className="w-full text-xs">
                   <tbody>
                     {filas.map((f) => (
                       <tr key={f.d.id} className="border-t border-line/60">
-                        <td className="w-full max-w-[1px] px-2 py-1"><div className="flex items-baseline gap-1"><span className="min-w-0 truncate">{f.nombre}</span><span className="shrink-0 whitespace-nowrap text-muted-foreground">{f.und}</span></div></td>
-                        <td className="w-20 px-1 py-1">
-                          <Input type="number" step="any" defaultValue={f.d.cantidad_o_cuadrilla} className="py-0.5 text-right text-xs"
+                        <td className="w-full max-w-[1px] px-2 py-0.5"><div className="flex items-baseline gap-1"><span className="min-w-0 truncate">{f.nombre}</span><span className="shrink-0 whitespace-nowrap text-muted-foreground">{f.und}</span></div></td>
+                        <td className="w-16 px-1 py-0.5">
+                          <Input type="number" step="any" defaultValue={f.d.cantidad_o_cuadrilla} className="text-right text-xs" style={{ padding: "1px 6px", fontSize: 12, minWidth: 54 }}
                             onBlur={(e) => Number(e.target.value) !== Number(f.d.cantidad_o_cuadrilla) && cambiarCant(f.d.id, e.target.value)} />
                         </td>
-                        <td className="whitespace-nowrap px-2 py-1 text-right font-mono">{soles(f.cu)}</td>
-                        <td className="whitespace-nowrap px-2 py-1 text-right font-mono">{soles(f.parcial)}</td>
-                        <td className="w-8 py-1 pl-1 pr-3"><BotonIcono etiqueta="Quitar fila" tono="peligro" onClick={() => quitarFila(f.d.id)}><X size={13} /></BotonIcono></td>
+                        <td className="whitespace-nowrap px-2 py-0.5 text-right font-mono">{soles(f.cu)}</td>
+                        <td className="whitespace-nowrap px-2 py-0.5 text-right font-mono">{soles(f.parcial)}</td>
+                        <td className="w-6 py-0.5 pl-1 pr-2.5"><BotonIcono etiqueta="Quitar fila" tono="peligro" className="size-6" onClick={() => quitarFila(f.d.id)}><X size={12} /></BotonIcono></td>
                       </tr>
                     ))}
                   </tbody>
@@ -384,7 +391,7 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
           );
         })}
       </div>
-      <div className="mt-3 flex items-center justify-between border-t border-line pt-2">
+      <div className="mt-2 flex items-center justify-between border-t border-line pt-1.5">
         <span className="text-sm font-semibold">Costo total del APU</span>
         <span className="font-mono text-sm font-semibold text-primary">{soles(calc.total)}</span>
       </div>
