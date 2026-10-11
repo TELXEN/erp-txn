@@ -5,7 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { ApuBanco, ORIGEN_COTIZACION } from "@/components/ApuCotizacion";
-import { dbBanco, useCostosPartidasApu, usePartidasApu } from "@/lib/banco-apu";
+import { dbBanco, useCatalogoCotizacion } from "@/lib/banco-apu";
 import { AutoMaestra, CotizacionHoja } from "@/components/CotizacionHoja";
 import { HojaCotizacion } from "@/components/cotizaciones/HojaCotizacion";
 
@@ -73,21 +73,8 @@ function Cotizaciones() {
   const { data: cotizaciones = [] } = useCotizaciones();
   const { data: especialidades = [] } = useEspecialidadesPartida();
   const { data: unidades = [] } = useUnidadesMedida();
-  const { data: partidasApu = [] } = usePartidasApu();
-  const costosApu = useCostosPartidasApu();
   // Catálogo de la cotización: partidas del Banco APU con su P.U. calculado desde la receta.
-  const maestras = partidasApu.map((p) => ({
-    id: p.id,
-    codigo: p.codigo_jerarquico ?? "",
-    nombre: p.descripcion ?? "",
-    especialidad: p.especialidad ?? "",
-    categoria: "",
-    marca: "",
-    unidad: p.unidad ?? "und",
-    precio_unitario: costosApu.get(p.id) ?? 0,
-    activo: true,
-    rendimiento: Number(p.rendimiento_diario ?? 1),
-  }));
+  const maestras = useCatalogoCotizacion();
   const { data: categorias = [] } = useCategoriasPartida();
   const { data: clientes = [] } = useQuery({
     queryKey: ["terceros", "clientes-activos"],
