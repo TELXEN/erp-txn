@@ -119,9 +119,21 @@ export function costoReceta(
     }
     return { d, banco: etiqueta, tipo, recursoId: d[col] as string, nombre: r?.descripcion ?? "(no encontrado)", und: r?.unidad ?? "", cu, cantidad: q, parcial, esPctMo };
   });
-  const totalMo = filas.filter((f) => f.tipo === "MO").reduce((s, f) => s + f.parcial, 0);
-  for (const f of filas) if (f.esPctMo) f.parcial = (totalMo * f.cu * f.cantidad) / 100;
-  return { total: filas.reduce((s, f) => s + f.parcial, 0), filas };
+  // Fusionar duplicados del mismo recurso (mismo tipo, recurso y precio): una fila con la cantidad sumada.
+  const fusion = new Map<string, FilaCalculo>();
+  for (const f of filas) {
+    const clave = `${f.tipo}:${f.recursoId}:${f.cu}`;
+    const ya = fusion.get(clave);
+    if (ya) {
+      ya.d = { ...ya.d, cantidad_o_cuadrilla: (Number(ya.d.cantidad_o_cuadrilla) || 0) + (Number(f.d.cantidad_o_cuadrilla) || 0) };
+      ya.cantidad += f.cantidad;
+      ya.parcial += f.parcial;
+    } else fusion.set(clave, { ...f });
+  }
+  const filasU = [...fusion.values()];
+  const totalMo = filasU.filter((f) => f.tipo === "MO").reduce((s, f) => s + f.parcial, 0);
+  for (const f of filasU) if (f.esPctMo) f.parcial = (totalMo * f.cu * f.cantidad) / 100;
+  return { total: filasU.reduce((s, f) => s + f.parcial, 0), filas: filasU };
 }
 
 /** PU calculado de cada partida del banco (mapa id → costo total por unidad). */
