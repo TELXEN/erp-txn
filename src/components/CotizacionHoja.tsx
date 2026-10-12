@@ -1254,12 +1254,19 @@ export function CotizacionHoja({
             if (f.clase !== "item") {
               const cap = f.clase === "cap";
               const esGrp = f.clase === "grp";
+              // Color por nivel: especialidad azul, grupo verde, categoría ámbar (sobrio, solo en pantalla).
+              const nivelTono = cap
+                ? { fondo: "#D5DFF8", franja: "#A3B6EA" }
+                : esGrp
+                  ? { fondo: "#CFEEDC", franja: "#8FCFAC" }
+                  : { fondo: "#FBE1C4", franja: "#EFB673" };
               return (
                 <React.Fragment key={f.clave}>
                 <ContextMenu>
                 <ContextMenuTrigger asChild>
                 <tr
-                  className={`${cap ? "bg-muted/50" : "bg-muted/25"} data-[state=open]:outline data-[state=open]:outline-1 data-[state=open]:outline-primary`}
+                  className="data-[state=open]:outline data-[state=open]:outline-1 data-[state=open]:outline-primary"
+                  style={{ backgroundColor: nivelTono.fondo, boxShadow: `inset 3px 0 0 0 ${nivelTono.franja}` }}
                   onContextMenu={() => setActivo({ r, c: 1 })}
                 >
                   {celda(
