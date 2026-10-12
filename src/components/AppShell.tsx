@@ -138,7 +138,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    aplicarFuenteGlobal(configuracionDocumentos?.fuente_pdf);
+    aplicarFuenteGlobal("roboto");
   }, [configuracionDocumentos?.fuente_pdf]);
 
   function alternarCategoria(titulo: string) {
@@ -260,7 +260,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </button>
         </header>
 
-        <main className="min-w-0 flex-1 px-4 py-6 sm:px-6 md:min-h-0 md:overflow-y-auto md:overscroll-contain">{children}</main>
+        <main className="min-w-0 flex-1 px-3 py-3 sm:px-4 md:min-h-0 md:overflow-y-auto md:overscroll-contain"><div className="mx-auto w-full max-w-[1600px]">{children}</div></main>
       </div>
     </div>
   );
@@ -270,7 +270,7 @@ export function Encabezado({
   titulo,
   subtitulo,
   acciones,
-  className = "mb-5",
+  className = "mb-3",
 }: {
   titulo: string;
   subtitulo: string;
@@ -281,7 +281,7 @@ export function Encabezado({
     <div className={className}>
       <p className="label-mono mb-1">{subtitulo}</p>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold tracking-tight">{titulo}</h1>
+        <h1 className="text-lg font-bold tracking-tight md:text-xl lg:text-2xl">{titulo}</h1>
         {acciones && <div className="no-print flex flex-wrap items-center gap-2">{acciones}</div>}
       </div>
     </div>
