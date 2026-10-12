@@ -119,9 +119,9 @@ function SplitPartidas() {
   const { data: pa = [] } = useTabla("partidas_apu");
   const partida = pa.find((p) => p.id === sel);
   return (
-    <div className="grid items-stretch gap-4 lg:h-[calc(100dvh-280px)] lg:min-h-[400px] lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-      <div className="min-h-0 min-w-0"><ListaBanco tabla="partidas_apu" seleccion={sel} onSeleccion={elegir} llena /></div>
-      <div className="flex min-h-0 min-w-0 flex-col">
+    <div className="grid grid-cols-1 items-stretch gap-4 lg:h-[calc(100dvh-240px)] lg:min-h-[400px] lg:grid-cols-12">
+      <div className="min-h-0 min-w-0 lg:col-span-7"><ListaBanco tabla="partidas_apu" seleccion={sel} onSeleccion={elegir} llena /></div>
+      <div className="flex min-h-[420px] min-w-0 flex-col lg:col-span-5 lg:min-h-0">
         <div className="min-h-0 flex-1">
           {!partida ? (
             <Panel titulo="Análisis de precios unitarios" className="flex h-full flex-col"><div className="min-h-0 flex-1 overflow-y-auto"><Vacio texto="Elige una partida a la izquierda para ver y armar su APU." /></div></Panel>
