@@ -376,9 +376,9 @@ function useApuMaestro() {
       } else fusion.set(clave, { ...f });
     }
     const filasU = [...fusion.values()];
-    const totalMo = filas.filter((f) => f.col === "mano_obra_id").reduce((s, f) => s + f.parcial, 0);
-    for (const f of filas) if (f.pct) f.parcial = (totalMo * f.cu * Number(f.d.cantidad_o_cuadrilla)) / 100;
-    return { total: filas.reduce((s, f) => s + f.parcial, 0), filas };
+    const totalMo = filasU.filter((f) => f.col === "mano_obra_id").reduce((s, f) => s + f.parcial, 0);
+    for (const f of filasU) if (f.pct) f.parcial = (totalMo * f.cu * Number(f.d.cantidad_o_cuadrilla)) / 100;
+    return { total: filasU.reduce((s, f) => s + f.parcial, 0), filas: filasU };
   };
 
   return { costo, fuentes, detalles, partidas: pa };
