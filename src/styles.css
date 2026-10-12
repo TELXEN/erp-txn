@@ -347,3 +347,11 @@ aside .md\:overflow-y-auto:hover::-webkit-scrollbar-thumb { background: color-mi
   font-variant-numeric: tabular-nums;
 }
 .tablero-financiero .label-mono { font-weight: 500; letter-spacing: 0.06em; }
+
+/* Densidad global: texto base 12/14 px, celdas compactas y tablas desplazables */
+@layer base {
+  body { font-size: 0.75rem; }
+  @media (min-width: 768px) { body { font-size: 0.875rem; } }
+  main table th, main table td { padding-block: 0.25rem; }
+  main .panel:has(> table), main .panel > div:has(> table) { overflow-x: auto; }
+}
