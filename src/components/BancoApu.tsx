@@ -365,6 +365,17 @@ function useApuMaestro() {
       else { cu = Number(r?.costo_unitario ?? 0); parcial = q * cu; }
       return { d, col, nombre: r?.descripcion ?? "(no encontrado)", und: r?.unidad ?? "", cu, parcial, pct: tabla === "equipos_herramientas" && r?.unidad === "%" };
     });
+    // Fusionar duplicados del mismo recurso: una sola fila con la cantidad sumada
+    const fusion = new Map<string, FilaC>();
+    for (const f of filas) {
+      const clave = `${f.col}:${f.d[f.col]}`;
+      const ya = fusion.get(clave);
+      if (ya) {
+        ya.d = { ...ya.d, cantidad_o_cuadrilla: Number(ya.d.cantidad_o_cuadrilla) + Number(f.d.cantidad_o_cuadrilla) };
+        ya.parcial += f.parcial;
+      } else fusion.set(clave, { ...f });
+    }
+    const filasU = [...fusion.values()];
     const totalMo = filas.filter((f) => f.col === "mano_obra_id").reduce((s, f) => s + f.parcial, 0);
     for (const f of filas) if (f.pct) f.parcial = (totalMo * f.cu * Number(f.d.cantidad_o_cuadrilla)) / 100;
     return { total: filas.reduce((s, f) => s + f.parcial, 0), filas };
