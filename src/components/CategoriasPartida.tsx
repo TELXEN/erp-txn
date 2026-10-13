@@ -184,7 +184,7 @@ export function CategoriasPartida() {
                 className={inputCls}
                 placeholder="Escribe la categoría y pulsa Enter…"
                 maxLength={120}
-                value={nueva.nombre}
+                value={nueva.nombre} data-formato="titulo"
                 onChange={(e) => setNueva({ ...nueva, nombre: e.target.value })}
                 onKeyDown={teclaNueva}
               />
@@ -226,7 +226,7 @@ export function CategoriasPartida() {
                 <td className="px-3 py-2">
                   <Input
                     className="py-1 text-xs"
-                    value={editando.nombre}
+                    value={editando.nombre} data-formato="titulo"
                     onChange={(ev) => setEditando({ ...editando, nombre: ev.target.value })}
                   />
                 </td>

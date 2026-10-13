@@ -11,9 +11,8 @@
 - Project/quotation codes are generated only via server fn reservarCodigo (src/lib/codigos.functions.ts); the SQL functions are service_role-only — prevents direct calls from the browser.
 - The programmed-progress matrix stores one percentage per leaf work item and project-defined period; dashboard calculations must exclude grouping rows to avoid double counting.
 - The project S-curve plans from the work-item schedule, marks current physical progress as cut-off, and shows cost progress only to money roles — truthful history and role visibility.
-- Preliquidation PDFs use @react-pdf/renderer; quotation PDFs use fixed A4 HTML sheets with repeated headers/page numbers — predictable multi-page exports.
+- Preliquidation PDFs use @react-pdf/renderer; quotation/invoice previews are fixed A4 HTML sheets (repeated headers, page numbers, invoice fiscal footer) while editing stays in normal flow — predictable exports.
 - Electronic invoices use dedicated comprobantes_electronicos/items/cuotas tables, while emitted invoices/receipts mirror into ventas for treasury compatibility; numbering is reserved only by an authenticated server function.
-- Quotation/preliquidation/invoice editing renders in normal flow with sidebar visible; preview/PDF is fixed A4 and invoices repeat the fiscal footer in a reserved bottom area.
 - Typography comes from the local-font catalogue in configuracion_documentos (UI via --font-global, mono separate; PDF/Excel get the same font) — consistent outputs.
 - Document codes (projects, quotations, preliquidations, custom) are configured as rows in codificacion_documentos: free code + zero-padded correlative, generated via siguiente_codigo_documento — single source for all document numbering.
 - Insumo types live in the tipos_insumo table (key, name, digit, correlative); code reads them via useTiposInsumo and never hardcodes the type list except the five protected system keys — users can add types.
@@ -21,7 +20,7 @@
 - Sidebar colors use dedicated theme tokens (never altering business screens); primary/action buttons use the sidebar base color — keeps workflows tied to navigation.
 - Invoice/quotation/preliquidation colors and font come from src/lib/documento-tema.ts; preliquidation uses one sheet (HojaPreliquidacion.tsx) with amounts in src/lib/preliquidacion-montos.ts — outputs never diverge.
 - SUNAT purchase invoices archive in comprobantes_recibidos(+_items) and the private comprobantes-compra bucket; only the authenticated descargarComprobantesSire server fn downloads, in batches of 10 — SOL credentials stay server-side.
-- SIRE uses one persistent period selector and global synchronization control for RVIE and RCE across all SIRE tabs — keeps both books aligned to the same accounting period.
+- SIRE uses one persistent period selector and sync control for RVIE and RCE — books stay aligned.
 - Quotation hierarchy uses `especialidad` as the chapter for single-discipline quotes, while multidisciplinary quotes use it for discipline and `grupo` for group; templates preserve this structure. Master prices are PEN, converted on entry — no mixed currencies.
 - On desktop, AppShell owns viewport height; sidebar and workspace scroll independently — navigation stays fixed.
 - Quotation WBS codes: multidisciplinary = 4 levels Especialidad.Grupo.Categoría.Partida (01.01.01.01); single-discipline = 3 levels Grupo.Categoría.Partida (chapter is the group). Group 00 = none. numeracionCotizacion (src/lib/categorias.ts) is the single source; projects copy codes on conversion.
@@ -33,5 +32,5 @@
 - BEFORE triggers round amounts (2 dp) and quantities/unit prices (4 dp) on gastos_directos, gastos_generales and ventas — one rounding rule for every writer.
 - Real project cost comes only from useCostoObras (src/lib/costo-obra.ts) — every panel shows the same figure; GG charts only regroup by scope.
 - UI buttons merge classes with cn() so a passed className beats base utilities; table row actions use BotonIcono (tones neutro/primario/peligro) — icons never get squeezed by padding.
-- Banco APU: five resource tables + partida_detalle (one nullable FK per row); removal goes through quitar_recurso_apu (deactivates if used) — recipes keep history.
-- APU pie: specs on partidas_apu.especificaciones, metrado on partidas_apu_metrado, consolidado derived.
+- Banco APU: five resource tables + partida_detalle (one nullable FK per row); removal via quitar_recurso_apu (deactivates if used); specs on partidas_apu.especificaciones, metrado in partidas_apu_metrado — recipes keep history.
+- Text auto-format: inputs opt in with data-formato=oracion|titulo|cargo|unidad, handled globally by FormatoGlobal (AppShell) using src/lib/formato-texto.ts — one rule set for every form.

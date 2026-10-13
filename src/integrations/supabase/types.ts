@@ -3967,6 +3967,33 @@ export type Database = {
           },
         ]
       }
+      respaldo_textos: {
+        Row: {
+          columna: string
+          created_at: string
+          fila_id: string
+          id: number
+          tabla: string
+          valor: string | null
+        }
+        Insert: {
+          columna: string
+          created_at?: string
+          fila_id: string
+          id?: number
+          tabla: string
+          valor?: string | null
+        }
+        Update: {
+          columna?: string
+          created_at?: string
+          fila_id?: string
+          id?: number
+          tabla?: string
+          valor?: string | null
+        }
+        Relationships: []
+      }
       rubros_ingreso: {
         Row: {
           activo: boolean

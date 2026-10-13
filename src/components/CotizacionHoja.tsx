@@ -1,3 +1,4 @@
+import { formatearSiGritado } from "@/lib/formato-texto";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowDown, ArrowUp, BookOpen, Boxes, Calculator, Lock, ChevronDown, ChevronRight, CornerDownRight, FolderPlus, Layers, ListPlus, Plus, Trash2 } from "lucide-react";
@@ -336,7 +337,12 @@ export function CotizacionHoja({
   async function guardar(f: Fila, c: number, v: string) {
     setError("");
     const col = COLUMNAS[c] as Columna;
-    const texto = v.trim();
+    const texto =
+      col === "nombre"
+        ? formatearSiGritado(v, f.clase === "item" ? "oracion" : "titulo")
+        : col === "marca"
+          ? formatearSiGritado(v, "titulo")
+          : v.trim();
 
     if (f.clase === "grp") {
       // Renombrar el grupo: actualiza todas las filas de esa especialidad que lo usan.

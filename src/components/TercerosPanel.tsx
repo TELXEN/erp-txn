@@ -208,7 +208,7 @@ export function TercerosPanel({ modo }: { modo: "cliente" | "proveedor" }) {
                     <td className="px-3 py-2">
                       <Input
                         className="py-1 text-xs"
-                        value={editando.razon_social}
+                        value={editando.razon_social} data-formato="titulo"
                         onChange={(e) => setEditando({ ...editando, razon_social: e.target.value })}
                       />
                       <div className="mt-1 flex gap-3 text-[10px]">
@@ -445,7 +445,7 @@ function ModalTercero({
           <div className="sm:col-span-2">
             <Campo etiqueta="Razón social / Nombre">
               <Input
-                value={form.razon_social}
+                value={form.razon_social} data-formato="titulo"
                 onChange={(e) => setForm({ ...form, razon_social: e.target.value })}
                 required
                 maxLength={160}

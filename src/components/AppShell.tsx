@@ -1,6 +1,7 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState, type ReactNode } from "react";
+import { FormatoGlobal } from "@/components/FormatoGlobal";
 import { Calculator, ChevronDown } from "lucide-react";
 import {
   Activity,
@@ -173,6 +174,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen w-full text-ink md:h-screen md:overflow-hidden md:[--app-sidebar-width:236px]">
+      <FormatoGlobal />
       <aside className="no-print flex min-h-full flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground md:fixed md:inset-y-0 md:left-0 md:z-30 md:h-screen md:min-h-0 md:w-[var(--app-sidebar-width)] md:overflow-hidden">
         <div className="flex min-h-[69px] shrink-0 items-center gap-2.5 border-b border-sidebar-border px-5 py-3">
           <span className="grid size-8 shrink-0 place-items-center rounded-md bg-cta font-mono text-sm font-bold text-cta-foreground">

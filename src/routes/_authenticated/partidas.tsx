@@ -549,10 +549,10 @@ function Partidas() {
             <p className="mt-1 text-[10px] text-muted-foreground">Sugerido automáticamente, puedes editarlo.</p>
           </Campo>
           <Campo etiqueta="Descripción de partida">
-            <Input value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} required maxLength={140} />
+            <Input value={form.nombre} data-formato="oracion" onChange={(e) => setForm({ ...form, nombre: e.target.value })} required maxLength={140} />
           </Campo>
           <Campo etiqueta="Marca">
-            <Input value={form.marca} onChange={(e) => setForm({ ...form, marca: e.target.value })} maxLength={60} placeholder="Sin marca" />
+            <Input value={form.marca} data-formato="titulo" onChange={(e) => setForm({ ...form, marca: e.target.value })} maxLength={60} placeholder="Sin marca" />
           </Campo>
           <Campo etiqueta="Unidad">
             <Select value={form.unidad} onChange={(e) => setForm({ ...form, unidad: e.target.value })} required>
@@ -870,14 +870,14 @@ function Partidas() {
                             <td className="px-3 py-2">
                               <Input
                                 autoFocus
-                                value={nuevaSub.nombre}
+                                value={nuevaSub.nombre} data-formato="oracion"
                                 onChange={(e) => setNuevaSub({ ...nuevaSub, nombre: e.target.value })}
                                 className="py-1 text-xs"
                                 placeholder="Descripción de la subpartida"
                               />
                             </td>
                             <td className="px-2 py-2">
-                              <Input value={nuevaSub.marca} onChange={(e) => setNuevaSub({ ...nuevaSub, marca: e.target.value })}
+                              <Input value={nuevaSub.marca} data-formato="titulo" onChange={(e) => setNuevaSub({ ...nuevaSub, marca: e.target.value })}
                                 className="py-1 text-xs" placeholder="-" />
                             </td>
                             <td className="px-2 py-2">
@@ -933,14 +933,14 @@ function Partidas() {
                               </td>
                               <td className="px-3 py-2">
                                 <Input
-                                  value={editando.nombre}
+                                  value={editando.nombre} data-formato="oracion"
                                   onChange={(e) => setEditando({ ...editando, nombre: e.target.value })}
                                   className="py-1 text-xs"
                                 />
                               </td>
                               <td className="px-2 py-2">
                                 <Input
-                                  value={editando.marca ?? ""}
+                                  value={editando.marca ?? ""} data-formato="titulo"
                                   onChange={(e) => setEditando({ ...editando, marca: e.target.value })}
                                   className="py-1 text-xs"
                                   placeholder="-"
