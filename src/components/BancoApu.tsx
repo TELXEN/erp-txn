@@ -611,7 +611,7 @@ function PanelEspecificaciones({ partida }: { partida: Fila }) {
   return (
     <Panel titulo={`Especificaciones técnicas · ${partida.codigo_jerarquico || "s/c"}`} className="flex h-full flex-col">
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-4 py-3">
-        <textarea className={`${areaTexto} min-h-0 flex-1 resize-none`} value={txt}
+        <textarea data-formato="oracion" className={`${areaTexto} min-h-0 flex-1 resize-none`} value={txt}
           onChange={(e) => { setTxt(e.target.value); setAviso(""); }}
           placeholder="Alcance, norma aplicable, equipo y control de calidad, condiciones de aceptación…" />
         <div className="mt-2 flex shrink-0 items-center justify-between gap-3">

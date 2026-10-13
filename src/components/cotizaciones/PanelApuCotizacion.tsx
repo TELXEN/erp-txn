@@ -276,7 +276,7 @@ function Especificaciones({ item }: { item: CotizacionItem }) {
   const qc = useQueryClient();
   const inicial = (item as { especificaciones?: string }).especificaciones ?? "";
   return (
-    <textarea key={item.id} defaultValue={inicial} placeholder="Especificaciones técnicas de la partida…"
+    <textarea data-formato="oracion" key={item.id} defaultValue={inicial} placeholder="Especificaciones técnicas de la partida…"
       className="h-full min-h-60 w-full resize-none bg-transparent p-3 text-xs outline-none"
       onBlur={async (e) => {
         if (e.target.value === inicial) return;
