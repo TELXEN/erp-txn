@@ -35,3 +35,4 @@
 - UI buttons merge classes with cn() so a passed className beats base utilities; table row actions use BotonIcono (tones neutro/primario/peligro) — icons never get squeezed by padding.
 - Banco APU: five resource tables + partida_detalle (one nullable FK per row); removal goes through quitar_recurso_apu (deactivates if used) — recipes keep history.
 - APU pie: specs on partidas_apu.especificaciones, metrado on partidas_apu_metrado, consolidado derived.
+- Text auto-format: inputs opt in with data-formato=oracion|titulo|cargo|unidad, handled globally by FormatoGlobal (AppShell) using src/lib/formato-texto.ts — one rule set for every form.
