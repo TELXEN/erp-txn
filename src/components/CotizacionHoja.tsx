@@ -336,7 +336,12 @@ export function CotizacionHoja({
   async function guardar(f: Fila, c: number, v: string) {
     setError("");
     const col = COLUMNAS[c] as Columna;
-    const texto = v.trim();
+    const texto =
+      col === "nombre"
+        ? formatearSiGritado(v, f.clase === "item" ? "oracion" : "titulo")
+        : col === "marca"
+          ? formatearSiGritado(v, "titulo")
+          : v.trim();
 
     if (f.clase === "grp") {
       // Renombrar el grupo: actualiza todas las filas de esa especialidad que lo usan.
