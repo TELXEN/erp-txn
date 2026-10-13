@@ -102,7 +102,7 @@ export function UnidadesMedida() {
                 className={`${inputCls} font-mono`}
                 placeholder="m2"
                 maxLength={10}
-                value={nueva.simbolo}
+                value={nueva.simbolo} data-formato="unidad"
                 onChange={(e) => setNueva({ ...nueva, simbolo: e.target.value })}
                 onKeyDown={teclaNueva}
               />
@@ -112,7 +112,7 @@ export function UnidadesMedida() {
                 className={inputCls}
                 placeholder="Descripción y Enter…"
                 maxLength={60}
-                value={nueva.descripcion}
+                value={nueva.descripcion} data-formato="oracion"
                 onChange={(e) => setNueva({ ...nueva, descripcion: e.target.value })}
                 onKeyDown={teclaNueva}
               />
@@ -149,7 +149,7 @@ export function UnidadesMedida() {
                 <td className="px-5 py-2">
                   <Input
                     className="py-1 font-mono text-xs"
-                    value={editando.simbolo}
+                    value={editando.simbolo} data-formato="unidad"
                     onChange={(ev) => setEditando({ ...editando, simbolo: ev.target.value })}
                     maxLength={10}
                   />
@@ -157,7 +157,7 @@ export function UnidadesMedida() {
                 <td className="px-3 py-2">
                   <Input
                     className="py-1 text-xs"
-                    value={editando.descripcion}
+                    value={editando.descripcion} data-formato="oracion"
                     onChange={(ev) => setEditando({ ...editando, descripcion: ev.target.value })}
                   />
                 </td>

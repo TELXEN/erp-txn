@@ -314,7 +314,7 @@ function CatalogoMaestro({
           <Campo etiqueta="Nombre">
             <Input
               className="py-1.5"
-              value={form.nombre}
+              value={form.nombre} data-formato="oracion"
               onChange={(e) => setForm({ ...form, nombre: e.target.value })}
               required
               maxLength={120}
@@ -323,7 +323,7 @@ function CatalogoMaestro({
           <Campo etiqueta="Descripción">
             <Input
               className="py-1.5"
-              value={form.descripcion}
+              value={form.descripcion} data-formato="oracion"
               onChange={(e) => setForm({ ...form, descripcion: e.target.value })}
               maxLength={240}
             />
@@ -360,10 +360,10 @@ function CatalogoMaestro({
                       <Input className="py-1 uppercase" value={editando.codigo} onChange={(e) => setEditando({ ...editando, codigo: e.target.value })} />
                     </td>
                     <td className="px-3 py-2">
-                      <Input className="py-1" value={editando.nombre} onChange={(e) => setEditando({ ...editando, nombre: e.target.value })} />
+                      <Input className="py-1" value={editando.nombre} data-formato="oracion" onChange={(e) => setEditando({ ...editando, nombre: e.target.value })} />
                     </td>
                     <td className="px-3 py-2">
-                      <Input className="py-1" value={editando.descripcion} onChange={(e) => setEditando({ ...editando, descripcion: e.target.value })} />
+                      <Input className="py-1" value={editando.descripcion} data-formato="oracion" onChange={(e) => setEditando({ ...editando, descripcion: e.target.value })} />
                     </td>
                     <td className="px-5 py-2">
                       <div className="flex items-center justify-end gap-1">
@@ -465,7 +465,7 @@ function CargosPersonal() {
 
         <form onSubmit={agregar} className="mb-3 grid gap-2 sm:grid-cols-[1fr_220px_auto]">
           <Input
-            value={nuevo.nombre}
+            value={nuevo.nombre} data-formato="oracion"
             onChange={(e) => setNuevo({ ...nuevo, nombre: e.target.value })}
             placeholder="Ej. INGENIERO DE CALIDAD"
             maxLength={60}
@@ -491,7 +491,7 @@ function CargosPersonal() {
                   <>
                     <Input
                       className="min-w-40 flex-1 py-1 text-xs"
-                      value={editando.nombre}
+                      value={editando.nombre} data-formato="oracion"
                       onChange={(e) => setEditando({ ...editando, nombre: e.target.value })}
                       maxLength={60}
                     />
@@ -607,13 +607,13 @@ function CategoriasGastoGeneral() {
 
         <form onSubmit={agregar} className="mb-3 grid gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_auto]">
           <Input
-            value={nombre}
+            value={nombre} data-formato="oracion"
             onChange={(e) => setNombre(e.target.value)}
             placeholder="Ej. Mantenimiento de vehículos"
             maxLength={60}
           />
           <Input
-            value={descripcion}
+            value={descripcion} data-formato="oracion"
             onChange={(e) => setDescripcion(e.target.value)}
             placeholder="Qué gastos incluye esta categoría (guía para quien registra)"
             maxLength={200}
@@ -632,13 +632,13 @@ function CategoriasGastoGeneral() {
                   <>
                     <Input
                       className="min-w-40 flex-1 py-1 text-xs"
-                      value={editando.nombre}
+                      value={editando.nombre} data-formato="oracion"
                       onChange={(e) => setEditando({ ...editando, nombre: e.target.value })}
                       maxLength={60}
                     />
                     <Input
                       className="min-w-56 flex-[2] py-1 text-xs"
-                      value={editando.descripcion}
+                      value={editando.descripcion} data-formato="oracion"
                       onChange={(e) => setEditando({ ...editando, descripcion: e.target.value })}
                       placeholder="Descripción de la categoría"
                       maxLength={200}
@@ -826,7 +826,7 @@ function ListaEditable<T extends ItemEditable>({
               <>
                 <Input
                   autoFocus
-                  value={editando.nombre}
+                  value={editando.nombre} data-formato="oracion"
                   onChange={(e) => setEditando({ ...editando, nombre: e.target.value })}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") renombrar(t);
@@ -1149,7 +1149,7 @@ function EstadosProyecto() {
               <>
                 <Input
                   autoFocus
-                  value={editando.nombre}
+                  value={editando.nombre} data-formato="oracion"
                   onChange={(e) => setEditando({ ...editando, nombre: e.target.value })}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") renombrar();

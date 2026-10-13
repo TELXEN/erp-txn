@@ -325,7 +325,7 @@ function ManoObraWysiwyg({
                 className={inputCls}
                 autoFocus={enfoqueNueva}
                 placeholder="Escribe la descripción y pulsa Enter…"
-                value={nueva.nombre}
+                value={nueva.nombre} data-formato="cargo"
                 onChange={(e) => setNueva({ ...nueva, nombre: e.target.value })}
                 onKeyDown={teclaNueva}
               />
@@ -417,7 +417,7 @@ function ManoObraWysiwyg({
                 {esEdicion ? (
                   <>
                     <td className="px-5 py-2 text-muted-foreground">{editando.codigo || "—"}</td>
-                    <td className="px-3 py-2"><Input className="py-1 text-xs" value={editando.nombre} onChange={(e) => setEditando({ ...editando, nombre: e.target.value })} /></td>
+                    <td className="px-3 py-2"><Input className="py-1 text-xs" value={editando.nombre} data-formato="cargo" onChange={(e) => setEditando({ ...editando, nombre: e.target.value })} /></td>
                     <td className="px-3 py-2">
                       <select className={selCls} value={editando.regimen} onChange={(e) => setEditando({ ...editando, regimen: e.target.value as RegimenLaboral })}>
                         {REGIMENES_LABORALES.map((r) => <option key={r} value={r}>{r}</option>)}
@@ -635,7 +635,7 @@ function MaterialesWysiwyg({
                 className={inputCls}
                 autoFocus={enfoqueNueva}
                 placeholder="Escribe la descripción y pulsa Enter…"
-                value={nueva.nombre}
+                value={nueva.nombre} data-formato="oracion"
                 onChange={(e) => setNueva({ ...nueva, nombre: e.target.value })}
                 onKeyDown={teclaNueva}
               />
@@ -692,7 +692,7 @@ function MaterialesWysiwyg({
                 {esEdicion ? (
                   <>
                     <td className="px-5 py-2 text-muted-foreground">{editando.codigo || "—"}</td>
-                    <td className="px-3 py-2"><Input className="py-1 text-xs" value={editando.nombre} onChange={(e) => setEditando({ ...editando, nombre: e.target.value })} /></td>
+                    <td className="px-3 py-2"><Input className="py-1 text-xs" value={editando.nombre} data-formato="oracion" onChange={(e) => setEditando({ ...editando, nombre: e.target.value })} /></td>
                     {!esSC && (
                       <td className="px-3 py-2">
                         <select className={selCls} value={editando.marca_id} onChange={(e) => setEditando({ ...editando, marca_id: e.target.value })}>
@@ -878,7 +878,7 @@ function EquiposWysiwyg({
     return (
       <>
         <td className="px-3 py-2">
-          <input className={inputCls} autoFocus={enfoqueNueva} placeholder="Escribe la descripción y pulsa Enter…" value={f.nombre} onChange={(e) => set({ ...f, nombre: e.target.value })} onKeyDown={onKey} />
+          <input className={inputCls} autoFocus={enfoqueNueva} placeholder="Escribe la descripción y pulsa Enter…" value={f.nombre} data-formato="oracion" onChange={(e) => set({ ...f, nombre: e.target.value })} onKeyDown={onKey} />
         </td>
         <td className="px-3 py-2">
           <select className={selCls} value={f.clase} onChange={(e) => { const c = e.target.value as Clase; set({ ...f, clase: c, unidad: unidadDe(c) }); }}>
@@ -1085,7 +1085,7 @@ function HerramientasWysiwyg({
           <tr className="border-b border-dashed border-line/60 bg-muted/20">
             <td className="px-5 py-2 text-muted-foreground/60">auto</td>
             <td className="px-3 py-2">
-              <input className={inputCls} autoFocus={enfoqueNueva} placeholder="Escribe la descripción y pulsa Enter…" value={nombre} onChange={(e) => setNombre(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void crear(); } }} />
+              <input className={inputCls} autoFocus={enfoqueNueva} placeholder="Escribe la descripción y pulsa Enter…" value={nombre} data-formato="oracion" onChange={(e) => setNombre(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void crear(); } }} />
             </td>
             <td className="px-3 py-2 text-center text-muted-foreground">%MO</td>
             <td className="px-3 py-2">
@@ -1102,7 +1102,7 @@ function HerramientasWysiwyg({
               <tr key={i.id} className="border-b border-line/40">
                 <td className="px-5 py-2 text-muted-foreground">{editando.codigo || "—"}</td>
                 <td className="px-3 py-2">
-                  <input className={inputCls} value={editando.nombre} onChange={(e) => setEditando({ ...editando, nombre: e.target.value })} onKeyDown={(e) => { if (e.key === "Enter") void guardarEdicion(); if (e.key === "Escape") setEditando(null); }} />
+                  <input className={inputCls} value={editando.nombre} data-formato="oracion" onChange={(e) => setEditando({ ...editando, nombre: e.target.value })} onKeyDown={(e) => { if (e.key === "Enter") void guardarEdicion(); if (e.key === "Escape") setEditando(null); }} />
                 </td>
                 <td className="px-3 py-2 text-center text-muted-foreground">%MO</td>
                 <td className="px-3 py-2">

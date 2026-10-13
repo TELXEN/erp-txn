@@ -240,7 +240,7 @@ export function PartidasMaestras() {
                 <td className="bg-card px-3 py-2">
                     <Input
                       className="py-1 text-xs"
-                      value={nueva.nombre}
+                      value={nueva.nombre} data-formato="oracion"
                       onChange={(e) => setNueva({ ...nueva, nombre: e.target.value })}
                       onKeyDown={teclaNueva}
                       maxLength={160}
@@ -354,7 +354,7 @@ export function PartidasMaestras() {
                     <td className="px-3 py-2">
                       <Input
                         className="py-1 text-xs"
-                        value={editando.nombre}
+                        value={editando.nombre} data-formato="oracion"
                         onChange={(ev) => setEditando({ ...editando, nombre: ev.target.value })}
                         onKeyDown={(ev) => {
                           if (ev.key === "Enter") { ev.preventDefault(); void guardar(); }

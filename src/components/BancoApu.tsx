@@ -569,7 +569,7 @@ function DialogoNuevaPartida({ partidas, onCerrar, onGuardado }: { partidas: Fil
         </Campo>
         <div className="sm:col-span-2">
           <Campo etiqueta="Descripción *">
-            <Input autoFocus value={f.descripcion} onChange={(e) => setF({ ...f, descripcion: e.target.value })} />
+            <Input autoFocus value={f.descripcion} data-formato="oracion" onChange={(e) => setF({ ...f, descripcion: e.target.value })} />
           </Campo>
         </div>
         <Campo etiqueta="Unidad">

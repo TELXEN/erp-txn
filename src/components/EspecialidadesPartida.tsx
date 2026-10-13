@@ -135,7 +135,7 @@ export function EspecialidadesPartida() {
               <input
                 className="w-full rounded-md border border-line bg-background px-2 py-1 text-xs outline-none focus:border-primary"
                 placeholder="Escribe la especialidad y pulsa Enter…"
-                value={nueva}
+                value={nueva} data-formato="titulo"
                 maxLength={80}
                 onChange={(e) => setNueva(e.target.value)}
                 onKeyDown={teclaNueva}
@@ -164,7 +164,7 @@ export function EspecialidadesPartida() {
                 <td className="px-3 py-2">
                   <Input
                     className="py-1 text-xs"
-                    value={editando.nombre}
+                    value={editando.nombre} data-formato="titulo"
                     onChange={(ev) => setEditando({ ...editando, nombre: ev.target.value })}
                   />
                 </td>
