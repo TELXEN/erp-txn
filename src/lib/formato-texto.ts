@@ -3,7 +3,7 @@ export type ModoFormato = "oracion" | "titulo" | "cargo" | "unidad";
 
 const SIGLAS = new Set([
   "PVC", "HVAC", "LED", "IP65", "ASTM", "ISO", "HA-25", "AC", "DC", "BIM", "CAD", "ERP", "API",
-  "AWG", "THW", "THHN", "NTP", "SAC", "S.A.C.", "SRL", "EIRL", "SA", "IGV", "SUNAT", "RUC", "DNI",
+  "AWG", "ABB", "PAT", "S.R.L.", "S.A.", "THW", "THHN", "NTP", "SAC", "S.A.C.", "SRL", "EIRL", "SA", "IGV", "SUNAT", "RUC", "DNI",
   "NYY", "N2XOH", "LSOH", "HDPE", "CPVC", "UPS", "PLC", "SCADA", "CCTV", "UTP", "FTP", "TV",
   "MT", "BT", "AT", "IEC", "NEC", "NFPA", "ANSI", "IEEE", "EPP", "SST", "SCTR", "EMO", "GLP",
   "APU", "WBS", "PDF", "USB", "WIFI", "GPS", "TELXEN", "XLPE", "EMT", "IMC", "TW",
