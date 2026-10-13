@@ -10,7 +10,7 @@ function fijarValor(el: HTMLInputElement | HTMLTextAreaElement, valor: string) {
 
 export function aplicarFormato(el: EventTarget | null) {
   if (!(el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement)) return;
-  const modo = el.dataset.formato as ModoFormato | undefined;
+  const modo = el.dataset["formato"] as ModoFormato | undefined;
   if (!modo || !el.value) return;
   const nuevo = formatearSiGritado(el.value, modo);
   if (nuevo !== el.value) fijarValor(el, nuevo);
