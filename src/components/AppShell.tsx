@@ -139,6 +139,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    if (!configuracionDocumentos) return;
     aplicarFuenteGlobal(configuracionDocumentos?.fuente_pdf);
   }, [configuracionDocumentos?.fuente_pdf]);
 

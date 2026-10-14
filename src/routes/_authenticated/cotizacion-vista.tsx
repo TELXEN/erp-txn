@@ -307,18 +307,21 @@ function VistaCotizacion() {
     if (!el) return;
     setPdfCargando(true);
     try {
+      await document.fonts.ready;
       const html2pdf = (await import("html2pdf.js")).default;
-      await html2pdf()
-        .set({
-          margin: [7, 3, 7, 3],
-          filename: `${nombreArchivo}.pdf`,
-          image: { type: "jpeg", quality: 0.98 },
+      const { jsPDF } = await import("jspdf");
+      const doc = new jsPDF({ unit: "mm", format: "a4", orientation: horizontal ? "landscape" : "portrait" });
+      const hojas = Array.from(el.querySelectorAll<HTMLElement>(".cotizacion-hoja"));
+      for (const [indice, hoja] of hojas.entries()) {
+        const canvas = await html2pdf().set({
+          margin: 0,
           html2canvas: { scale: 3, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: paginaW, backgroundColor: "#ffffff", logging: false },
-          jsPDF: { unit: "mm", format: "a4", orientation: horizontal ? "landscape" : "portrait" },
-          pagebreak: { mode: ["css", "legacy"], avoid: ["tr", ".bloque-final"] },
-        } as never)
-        .from(el)
-        .save();
+          pagebreak: { mode: [] },
+        } as never).from(hoja).toCanvas().get("canvas") as HTMLCanvasElement;
+        if (indice > 0) doc.addPage();
+        doc.addImage(canvas.toDataURL("image/jpeg", 0.98), "JPEG", 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
+      }
+      doc.save(`${nombreArchivo}.pdf`);
     } finally {
       setPdfCargando(false);
     }
