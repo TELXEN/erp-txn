@@ -9,6 +9,8 @@ export const Route = createFileRoute("/_authenticated/usuarios")({
       { name: "description", content: "Asignación de roles: ingeniero de campo, administrador de oficina y gerente." },
       { property: "og:title", content: "Usuarios y Roles — ERP TELXEN" },
       { property: "og:description", content: "Asignación de roles del sistema." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Usuarios,

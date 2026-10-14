@@ -25,6 +25,8 @@ export const Route = createFileRoute("/_authenticated/gastos-generales")({
       { name: "description", content: "Compras indirectas y costos de oficina no vinculados a partidas, en Soles." },
       { property: "og:title", content: "Gastos Generales — ERP TELXEN" },
       { property: "og:description", content: "Costos administrativos consolidados en Soles." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: GastosGenerales,

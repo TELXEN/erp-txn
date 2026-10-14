@@ -17,6 +17,8 @@ export const Route = createFileRoute("/_authenticated/avance")({
       { name: "description", content: "Registro del porcentaje de avance físico actual por partida en obra." },
       { property: "og:title", content: "Avance Físico — ERP TELXEN" },
       { property: "og:description", content: "Registro del avance físico por partida." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Avance,

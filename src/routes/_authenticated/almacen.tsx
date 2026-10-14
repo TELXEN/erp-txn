@@ -19,6 +19,8 @@ export const Route = createFileRoute("/_authenticated/almacen")({
       { name: "description", content: "Ingresos y salidas de materiales, equipos y servicios por obra." },
       { property: "og:title", content: "Almacén — ERP TELXEN SAC" },
       { property: "og:description", content: "Registro de ingresos y salidas de almacén por obra." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: AlmacenPage,

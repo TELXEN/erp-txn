@@ -11,6 +11,8 @@ export const Route = createFileRoute("/_authenticated/proveedores")({
       { name: "description", content: "Registro de proveedores del ERP TELXEN." },
       { property: "og:title", content: "Proveedores — ERP TELXEN" },
       { property: "og:description", content: "Catálogo de proveedores para compras y logística." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Proveedores,

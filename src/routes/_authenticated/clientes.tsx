@@ -11,6 +11,8 @@ export const Route = createFileRoute("/_authenticated/clientes")({
       { name: "description", content: "Registro de clientes del ERP TELXEN." },
       { property: "og:title", content: "Clientes — ERP TELXEN" },
       { property: "og:description", content: "Catálogo de clientes con contactos y documentos." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Clientes,

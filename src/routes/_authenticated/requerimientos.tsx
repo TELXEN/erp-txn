@@ -19,6 +19,8 @@ export const Route = createFileRoute("/_authenticated/requerimientos")({
       { name: "description", content: "Explosión de insumos por obra y requerimientos de materiales, equipos y servicios." },
       { property: "og:title", content: "Requerimientos — ERP TELXEN SAC" },
       { property: "og:description", content: "Explosión de insumos desde el análisis de precios y requerimientos por obra." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: RequerimientosPage,
