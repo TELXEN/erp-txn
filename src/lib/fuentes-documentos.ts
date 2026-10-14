@@ -16,7 +16,6 @@ export type FuenteDocumento = {
   descripcion: string;
   css: string;
   pdfFamily: string;
-  jsPdfFamily: "helvetica" | "times";
   excelFamily: string;
 };
 
@@ -28,7 +27,6 @@ const FUENTE_CARLITO: FuenteDocumento = {
   descripcion: "Corporativa, compacta y familiar para documentos comerciales.",
   css: 'Carlito, Calibri, "Segoe UI", sans-serif',
   pdfFamily: "PdfCarlito",
-  jsPdfFamily: "helvetica",
   excelFamily: "Carlito",
 };
 
@@ -40,7 +38,6 @@ export const FUENTES_DOCUMENTOS: FuenteDocumento[] = [
     descripcion: "Clara y neutral, compatible con tablas y reportes extensos.",
     css: '"Liberation Sans", Arial, Helvetica, sans-serif',
     pdfFamily: "PdfArial",
-    jsPdfFamily: "helvetica",
     excelFamily: "Arial",
   },
   {
@@ -49,7 +46,6 @@ export const FUENTES_DOCUMENTOS: FuenteDocumento[] = [
     descripcion: "Clásica y formal para documentos administrativos.",
     css: '"Liberation Serif", "Times New Roman", Times, serif',
     pdfFamily: "PdfTimes",
-    jsPdfFamily: "times",
     excelFamily: "Times New Roman",
   },
   {
@@ -58,7 +54,6 @@ export const FUENTES_DOCUMENTOS: FuenteDocumento[] = [
     descripcion: "Moderna y muy legible en tamaños pequeños.",
     css: '"Source Sans 3", Arial, sans-serif',
     pdfFamily: "PdfSourceSans3",
-    jsPdfFamily: "helvetica",
     excelFamily: "Source Sans 3",
   },
   {
@@ -67,7 +62,6 @@ export const FUENTES_DOCUMENTOS: FuenteDocumento[] = [
     descripcion: "Contemporánea y limpia para documentos técnicos y ejecutivos.",
     css: '"Source Sans 3", "Segoe UI", sans-serif',
     pdfFamily: "PdfSegoeUI",
-    jsPdfFamily: "helvetica",
     excelFamily: "Segoe UI",
   },
   {
@@ -76,7 +70,6 @@ export const FUENTES_DOCUMENTOS: FuenteDocumento[] = [
     descripcion: "Equilibrada y legible en reportes, cuadros y cifras.",
     css: 'Roboto, Arial, sans-serif',
     pdfFamily: "PdfRoboto",
-    jsPdfFamily: "helvetica",
     excelFamily: "Roboto",
   },
   {
@@ -85,7 +78,6 @@ export const FUENTES_DOCUMENTOS: FuenteDocumento[] = [
     descripcion: "Sobria y precisa para presentaciones comerciales.",
     css: '"Liberation Sans", "Helvetica Neue", Arial, sans-serif',
     pdfFamily: "PdfHelveticaNeue",
-    jsPdfFamily: "helvetica",
     excelFamily: "Helvetica Neue",
   },
 ];
