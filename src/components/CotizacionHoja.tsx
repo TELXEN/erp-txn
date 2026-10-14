@@ -458,7 +458,7 @@ export function CotizacionHoja({
     const { data: nuevo, error: err } = await supabase.from("cotizacion_items").insert({
       cotizacion_id: cotizacionId,
       codigo: codigoContextual(esp, categoria, items),
-      nombre: maestra?.nombre ?? (nombre.trim() || "Nueva partida"),
+      nombre: maestra?.nombre ?? (formatearSiGritado(nombre.trim(), "oracion") || "Nueva partida"),
       especialidad: esp,
       categoria,
       grupo: categoria ? grupoDeCat(items, esp, categoria) : "",
