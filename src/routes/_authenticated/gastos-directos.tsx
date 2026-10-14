@@ -94,6 +94,8 @@ export const Route = createFileRoute("/_authenticated/gastos-directos")({
       { name: "description", content: "Control presupuestario por partida: presupuesto vs costo real de compras." },
       { property: "og:title", content: "Costos Directos — ERP TELXEN" },
       { property: "og:description", content: "Presupuesto vs costo real por partida de obra." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: GastosDirectos,
@@ -362,7 +364,7 @@ function GastosDirectos() {
   }
 
   return (
-    <div className="font-['Roboto']">
+    <div className="font-sans">
       <Encabezado
         titulo="Costos Directos"
         subtitulo="Presupuesto vs costo real por partida"
@@ -756,7 +758,7 @@ function ModalCompra({
 
   return (
     <VentanaFlotante titulo={esEdicion ? "Editar compra" : "Registrar compra"} abierta onCerrar={onCerrar} ancho="max-w-2xl" ocultarBarra>
-      <div className="font-['Roboto']">
+      <div className="font-sans">
         {/* Contexto de la partida (precargado y bloqueado) */}
         <div className="grid grid-cols-12 gap-x-5 gap-y-3 border-b border-line bg-muted/40 px-5 py-4">
           <div className="col-span-3"><p className={etq}>Código de partida</p><p className="text-sm font-medium text-ink">{partida.codigo || "—"}</p></div>

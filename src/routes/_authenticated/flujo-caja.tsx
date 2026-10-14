@@ -445,7 +445,7 @@ function FlujoCaja() {
   });
 
   return (
-    <div style={{ fontFamily: "Roboto, system-ui, sans-serif" }}>
+    <div style={{ fontFamily: "var(--font-global)" }}>
       <Encabezado
         titulo="Flujo de Caja"
         subtitulo={global ? "Finanzas y Contabilidad · Consolidado global en Soles" : `Flujo de la obra ${proyectos.find((p) => p.id === obra)?.nombre ?? ""} en Soles`}

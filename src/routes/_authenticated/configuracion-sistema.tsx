@@ -36,6 +36,8 @@ export const Route = createFileRoute("/_authenticated/configuracion-sistema")({
       { name: "description", content: "Parámetros generales del sistema ERP TELXEN." },
       { property: "og:title", content: "Configuración del Sistema — TELXEN ERP" },
       { property: "og:description", content: "Parámetros generales del sistema ERP TELXEN." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: ConfiguracionSistema,

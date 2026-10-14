@@ -559,7 +559,7 @@ function Proyectos() {
           />
         ) : (
           <div className="overflow-x-auto">
-          <table className="w-full min-w-[1280px] table-fixed font-['Roboto'] text-xs">
+          <table className="w-full min-w-[1280px] table-fixed font-sans text-xs">
             <thead>
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
                 <th className="w-[7%] px-5 py-2 font-medium">Código</th>
@@ -664,7 +664,7 @@ function Proyectos() {
       </Panel>
       <VentanaFlotante abierta={Boolean(proyectoVisto)} onCerrar={() => setViendoId(null)} titulo="Datos de registro de la obra" subtitulo={proyectoVisto?.codigo ?? ""} ancho="max-w-3xl">
         {proyectoVisto && (
-          <div className="space-y-4 p-5 font-['Roboto']">
+          <div className="space-y-4 p-5 font-sans">
             <div className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
               <Dato etiqueta="Código" valor={proyectoVisto.codigo || "—"} />
               <Dato etiqueta="Cliente" valor={proyectoVisto.cliente || "Sin cliente"} />
@@ -707,7 +707,7 @@ function Proyectos() {
 
       <VentanaFlotante abierta={Boolean(eliminando)} onCerrar={() => { setEliminando(null); setError(""); }} titulo="Eliminar obra" subtitulo={eliminando?.codigo ?? ""} ancho="max-w-md">
         {eliminando && (
-          <div className="space-y-4 p-5 font-['Roboto']">
+          <div className="space-y-4 p-5 font-sans">
             <p className="text-sm leading-relaxed text-ink">
               Se quitará <strong>{eliminando.nombre}</strong> de la lista y se borrarán sus{" "}
               <strong>{partidas.filter((x) => x.proyecto_id === eliminando.id).length}</strong> partida(s). Esta acción no se puede deshacer.
