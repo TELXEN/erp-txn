@@ -3,6 +3,14 @@ import { useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/_authenticated/panel")({
+  head: () => ({ meta: [
+    { title: "Acceso al panel — ERP TELXEN" },
+    { name: "description", content: "Acceso al panel de gestión TELXEN según el rol asignado." },
+    { property: "og:title", content: "Acceso al panel — ERP TELXEN" },
+    { property: "og:description", content: "Acceso a la gestión de proyectos TELXEN." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: Panel,
 });
 

@@ -24,6 +24,8 @@ export const Route = createFileRoute("/_authenticated/datos-apu")({
         content:
           "Maestro de insumos, unidades de medida y catálogo técnico WBS (especialidades, categorías y partidas) para el análisis de precios unitarios.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: DatosApu,

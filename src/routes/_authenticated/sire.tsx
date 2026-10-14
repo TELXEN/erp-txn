@@ -373,7 +373,7 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
         {paso === 2 && (
           <Panel titulo={`PASO 2 · CONCILIACIÓN SUNAT vs ERP · ${(MESES[m - 1] ?? "").toUpperCase()} ${y}`} extra={pasosExtra}>
             {visibles.length === 0 ? <Vacio texto="Sin documentos en este filtro" /> : (
-              <div className="max-h-[calc(100vh-470px)] min-h-[260px] overflow-auto" style={{ fontFamily: "Roboto, Arial, sans-serif" }}>
+              <div className="max-h-[calc(100vh-470px)] min-h-[260px] overflow-auto" style={{ fontFamily: "var(--font-global)" }}>
                 <div className="sticky top-0 z-20 flex h-[36px] flex-nowrap items-center gap-1 overflow-x-auto whitespace-nowrap border-b border-line bg-card px-3 py-1">
                   {libro === "RCE" && (
                     <>
@@ -555,7 +555,7 @@ function ResumenOperaciones({ periodo, libro }: { periodo: string; libro: Libro 
   const listo = (r: typeof rv) => r && r.estado !== "Pendiente";
   const neta = listo(rv) && listo(rc) ? r2(Number(rv?.total_igv ?? 0) - Number(rc?.total_igv ?? 0)) : null;
   return (
-    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3" style={{ fontFamily: "Roboto, Arial, sans-serif" }}>
+    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3" style={{ fontFamily: "var(--font-global)" }}>
       {tarjeta("RVIE", "VENTAS (RVIE)", ReceiptText)}
       {tarjeta("RCE", "COMPRAS (RCE)", ShoppingBag)}
       <div
@@ -627,7 +627,7 @@ function VincularManual({ item, libro, periodo, items, onCerrar, onVincular }: {
     .sort((a, b) => Number(b.serie_numero.toUpperCase().startsWith(serieItem) || b.ruc === item.ruc) - Number(a.serie_numero.toUpperCase().startsWith(serieItem) || a.ruc === item.ruc) || Math.abs(a.total - (item.total_sunat ?? 0)) - Math.abs(b.total - (item.total_sunat ?? 0)));
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4" onClick={onCerrar}>
-      <div className="w-full max-w-2xl rounded-lg bg-card shadow-xl ring-1 ring-line" style={{ fontFamily: "Roboto, Arial, sans-serif" }} onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-2xl rounded-lg bg-card shadow-xl ring-1 ring-line" style={{ fontFamily: "var(--font-global)" }} onClick={(e) => e.stopPropagation()}>
         <div className="border-b border-line px-5 py-3">
           <p className="text-sm font-semibold">Vincular manualmente</p>
           <p className="text-xs text-muted-foreground">SUNAT: <b>{item.serie_numero}</b> · {item.ruc} {item.razon} · <span className="tabular-nums">{soles(item.total_sunat ?? 0)}</span></p>

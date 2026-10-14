@@ -1,7 +1,7 @@
 import { Document, Image, Page, StyleSheet, Text, View, pdf } from "@react-pdf/renderer";
 import { familiaReactPdf } from "@/lib/fuentes-documentos-pdf";
 import type { FuenteDocumentoId } from "@/lib/fuentes-documentos";
-import { DOC, DOC_ALIAS, DOC_FUENTE_PDF } from "@/lib/documento-tema";
+import { DOC, DOC_ALIAS } from "@/lib/documento-tema";
 
 type LineaPdf = {
   descripcion: string;
@@ -133,7 +133,7 @@ const numero = (valor: number, decimales = 2) =>
   Number(valor || 0).toLocaleString("es-PE", { minimumFractionDigits: decimales, maximumFractionDigits: decimales });
 
 function PreliquidacionDocument({ datos }: { datos: DatosPreliquidacionPdf }) {
-  const styles = crearEstilos(familiaReactPdf(DOC_FUENTE_PDF));
+  const styles = crearEstilos(familiaReactPdf(datos.fuentePdf));
   const simbolo = datos.moneda === "USD" ? "US$" : "S/";
   const dinero = (valor: number) => `${simbolo} ${numero(valor)}`;
   const descuento = datos.detraccionPen > 0 ? `S/ ${numero(datos.detraccionPen, 0)}` : datos.retencionPen > 0 ? `S/ ${numero(datos.retencionPen)}` : "No aplica";

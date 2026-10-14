@@ -34,10 +34,10 @@ const edSel: CSSProperties = { ...ed, cursor: "pointer" };
 const cel: CSSProperties = { ...ed, borderBottom: "none", padding: "4px 2px" };
 
 function Bloque({ titulo, children, style }: { titulo: string; children: ReactNode; style?: CSSProperties }) {
-  return <div style={{ ...style }}><span style={{ fontSize: 9, color: C.green, fontFamily: "Roboto, Arial, sans-serif", fontWeight: 700, letterSpacing: ".06em", textTransform: "uppercase" }}>{titulo}</span><div style={{ marginTop: 5, display: "grid", gap: 4 }}>{children}</div></div>;
+  return <div style={{ ...style }}><span style={{ fontSize: 9, color: C.green, fontFamily: "var(--font-global)", fontWeight: 700, letterSpacing: ".06em", textTransform: "uppercase" }}>{titulo}</span><div style={{ marginTop: 5, display: "grid", gap: 4 }}>{children}</div></div>;
 }
 function Linea({ etiqueta, children }: { etiqueta: string; children: ReactNode }) {
-  return <label style={{ display: "grid", gridTemplateColumns: "88px 1fr", alignItems: "center", gap: 6 }}><span style={{ fontSize: 9, color: C.muted, fontFamily: "Roboto, Arial, sans-serif", fontWeight: 700, textTransform: "uppercase" }}>{etiqueta}</span>{children}</label>;
+  return <label style={{ display: "grid", gridTemplateColumns: "88px 1fr", alignItems: "center", gap: 6 }}><span style={{ fontSize: 9, color: C.muted, fontFamily: "var(--font-global)", fontWeight: 700, textTransform: "uppercase" }}>{etiqueta}</span>{children}</label>;
 }
 
 export type Empresa = { razon_social?: string; eslogan?: string; ruc?: string; direccion?: string; telefono?: string; web?: string; logo_url?: string } | null | undefined;
@@ -89,18 +89,18 @@ export function HojaComprobante(props: {
 
   return (
     <div className="cpe-editor-canvas" style={{ overflowX: "auto", paddingBottom: 18 }}>
-      <section className="cpe-editor-sheet" style={{ width: "100%", maxWidth: 1500, minWidth: 980, minHeight: 1123, boxSizing: "border-box", margin: "0 auto", padding: "36px 38px", background: C.white, color: C.ink, fontFamily: "Roboto, Arial, sans-serif", fontWeight: 400, fontSize: 12.5, boxShadow: "0 12px 35px rgba(26,43,76,.14)", display: "flex", flexDirection: "column" }}>
+      <section className="cpe-editor-sheet" style={{ width: "100%", maxWidth: 1500, minWidth: 980, minHeight: 1123, boxSizing: "border-box", margin: "0 auto", padding: "36px 38px", background: C.white, color: C.ink, fontFamily: "var(--font-global)", fontWeight: 400, fontSize: 12.5, boxShadow: "0 12px 35px rgba(26,43,76,.14)", display: "flex", flexDirection: "column" }}>
         <header style={{ display: "flex", gap: 22, alignItems: "flex-start", borderBottom: `3px solid ${C.green}`, paddingBottom: 14, color: C.green }}>
           <div style={{ width: 96, display: "flex", alignItems: "center", justifyContent: "center" }}>{empresa?.logo_url ? <img src={empresa.logo_url} alt="" style={{ maxWidth: 92, maxHeight: 54 }} /> : <div style={{ width: 52, height: 52, borderRadius: 9, background: C.green, color: C.white, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800 }}>TX</div>}</div>
           <div style={{ flex: 1, minHeight: 76, textAlign: "right", paddingRight: 10, display: "flex", flexDirection: "column", justifyContent: "flex-start" }}>
             <b style={{ fontSize: 15, fontWeight: 700 }}>{empresa?.razon_social || "TELXEN SAC"}</b>
-            <div style={{ fontFamily: "Roboto, Arial, sans-serif", fontWeight: 300, fontSize: 8, marginTop: 2, lineHeight: 1.15, textAlign: "right" }}>{empresa?.eslogan || "SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL"}</div>
-            <div style={{ fontFamily: "Roboto, Arial, sans-serif", fontWeight: 300, fontSize: 8.5, marginTop: 2, lineHeight: 1.15, textAlign: "right" }}>{empresa?.direccion || "—"}</div>
-            <div style={{ fontFamily: "Roboto, Arial, sans-serif", fontWeight: 300, fontSize: 8.5, marginTop: 2, lineHeight: 1.15, textAlign: "right" }}>{empresa?.web || "—"}</div>
+            <div style={{ fontFamily: "var(--font-global)", fontWeight: 300, fontSize: 8, marginTop: 2, lineHeight: 1.15, textAlign: "right" }}>{empresa?.eslogan || "SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL"}</div>
+            <div style={{ fontFamily: "var(--font-global)", fontWeight: 300, fontSize: 8.5, marginTop: 2, lineHeight: 1.15, textAlign: "right" }}>{empresa?.direccion || "—"}</div>
+            <div style={{ fontFamily: "var(--font-global)", fontWeight: 300, fontSize: 8.5, marginTop: 2, lineHeight: 1.15, textAlign: "right" }}>{empresa?.web || "—"}</div>
           </div>
           <div style={{ width: 248, textAlign: "center", flexShrink: 0, display: "flex", flexDirection: "column", justifyContent: "center" }}>
             <div style={{ background: C.white, border: `1px solid ${C.line}`, borderTop: `4px solid ${C.green}`, borderRadius: 8, boxShadow: "0 1px 2px rgba(16,24,40,.06)", padding: "12px 10px", color: C.green }}>
-              <select value={tipo} disabled={bloqueado} onChange={(e) => onTipoChange(e.target.value as TipoComprobante)} title="Tipo de comprobante" style={{ ...edSel, textAlign: "center", fontFamily: "Roboto, Arial, sans-serif", fontSize: 12, fontWeight: 700, borderBottom: "none", whiteSpace: "nowrap" }}>
+              <select value={tipo} disabled={bloqueado} onChange={(e) => onTipoChange(e.target.value as TipoComprobante)} title="Tipo de comprobante" style={{ ...edSel, textAlign: "center", fontFamily: "var(--font-global)", fontSize: 12, fontWeight: 700, borderBottom: "none", whiteSpace: "nowrap" }}>
                 {tipos.map((p) => <option key={p.tipo} value={p.tipo}>{p.corto}</option>)}
               </select>
               <div style={{ fontSize: 9, fontWeight: 700, marginTop: 4 }}>RUC: {empresa?.ruc || "—"}</div>

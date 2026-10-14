@@ -53,6 +53,8 @@ export const Route = createFileRoute("/_authenticated/partidas")({
       { name: "description", content: "Partidas organizadas por proyecto y especialidad, con presupuesto y costo real." },
       { property: "og:title", content: "Partidas — ERP TELXEN" },
       { property: "og:description", content: "Partidas por proyecto y especialidad con presupuesto y costo real." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Partidas,

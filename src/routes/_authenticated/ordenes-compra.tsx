@@ -27,6 +27,8 @@ export const Route = createFileRoute("/_authenticated/ordenes-compra")({
       { name: "description", content: "Órdenes de compra a proveedores, generadas desde requerimientos y recibidas en almacén." },
       { property: "og:title", content: "Órdenes de Compra — ERP TELXEN SAC" },
       { property: "og:description", content: "Órdenes de compra a proveedores por obra." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: OrdenesCompraPage,

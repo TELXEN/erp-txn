@@ -25,6 +25,8 @@ export const Route = createFileRoute("/_authenticated/gastos-generales")({
       { name: "description", content: "Compras indirectas y costos de oficina no vinculados a partidas, en Soles." },
       { property: "og:title", content: "Gastos Generales — ERP TELXEN" },
       { property: "og:description", content: "Costos administrativos consolidados en Soles." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: GastosGenerales,
@@ -346,7 +348,7 @@ function GastosGenerales() {
   }
 
   return (
-    <div className="[font-family:Roboto,sans-serif]">
+    <div className="font-sans">
       <Encabezado
         titulo="Gastos Generales"
         subtitulo="Compras indirectas y oficina"
@@ -936,7 +938,7 @@ function ModalGasto({
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-foreground/40 p-4" onMouseDown={onCerrar}>
-      <div className="panel my-8 w-full max-w-4xl overflow-hidden [font-family:Roboto,sans-serif]" onMouseDown={(e) => e.stopPropagation()}>
+      <div className="panel my-8 w-full max-w-4xl overflow-hidden font-sans" onMouseDown={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between border-b border-line px-5 py-3">
           <div>
             <h2 className="text-base font-semibold tracking-tight">Registrar gasto general</h2>

@@ -415,7 +415,7 @@ function CajaChica() {
   }
 
   return (
-    <div className="font-['Roboto']">
+    <div className="font-sans">
       <Encabezado titulo="Caja Chica" subtitulo="Efectivo entregado y rendición de cuentas" />
 
       <div className="mb-4 grid gap-3 sm:grid-cols-3">
@@ -514,7 +514,7 @@ function CajaChica() {
           className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-foreground/40 p-4"
           onMouseDown={(e) => { if (e.target === e.currentTarget) setModalNueva(false); }}
         >
-          <form onSubmit={crearCaja} className="relative mt-10 w-full max-w-2xl rounded-lg border border-line bg-card font-['Roboto'] shadow-xl">
+          <form onSubmit={crearCaja} className="relative mt-10 w-full max-w-2xl rounded-lg border border-line bg-card font-sans shadow-xl">
             <div className="flex items-center justify-between border-b border-line px-6 py-4">
               <h2 className="text-base font-semibold text-ink">Nueva entrega de efectivo</h2>
               <button type="button" onClick={() => setModalNueva(false)} className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-ink" title="Cerrar">
@@ -633,7 +633,7 @@ function CajaChica() {
         ancho="max-w-3xl"
       >
         {cajaRendir && (
-          <form onSubmit={(e) => registrarRendicion(e, cajaRendir.id, cajaRendir.proyecto_id)} className="grid gap-3 font-['Roboto'] sm:grid-cols-2">
+          <form onSubmit={(e) => registrarRendicion(e, cajaRendir.id, cajaRendir.proyecto_id)} className="grid gap-3 font-sans sm:grid-cols-2">
             <Campo etiqueta="¿Qué se compró o pagó?">
               <Input value={rend.descripcion} onChange={(e) => setRend({ ...rend, descripcion: e.target.value })} maxLength={160} />
             </Campo>
@@ -687,7 +687,7 @@ function CajaChica() {
 
       {cajaDetalle && (
         <div className="fixed inset-0 z-50 flex justify-end bg-foreground/40" onMouseDown={() => setDetalleId(null)}>
-          <div className="flex h-full w-full max-w-2xl animate-in slide-in-from-right flex-col overflow-y-auto border-l border-line bg-card font-['Roboto'] shadow-2xl duration-300" onMouseDown={(e) => e.stopPropagation()}>
+          <div className="flex h-full w-full max-w-2xl animate-in slide-in-from-right flex-col overflow-y-auto border-l border-line bg-card font-sans shadow-2xl duration-300" onMouseDown={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-line px-5 py-3">
               <div>
                 <h2 className="text-base font-semibold tracking-tight text-ink">Comprobantes rendidos</h2>

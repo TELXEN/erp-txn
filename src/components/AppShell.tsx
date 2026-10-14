@@ -139,7 +139,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    aplicarFuenteGlobal("roboto");
+    if (!configuracionDocumentos) return;
+    aplicarFuenteGlobal(configuracionDocumentos?.fuente_pdf);
   }, [configuracionDocumentos?.fuente_pdf]);
 
   function alternarCategoria(titulo: string) {

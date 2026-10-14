@@ -391,7 +391,7 @@ function Tesoreria() {
   };
 
   return (
-    <div className="font-['Roboto']">
+    <div className="font-sans">
       <Encabezado
         titulo="Tesorería"
         subtitulo="Bancos, cuentas por cobrar y cuentas por pagar"
@@ -706,7 +706,7 @@ function Tesoreria() {
         const bn = cuentas.find((c) => c.id === accion.banco_det);
         return (
           <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-foreground/40 p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) setAccion(null); }}>
-            <div className="mt-14 w-full max-w-lg rounded-lg border border-line bg-card font-['Roboto'] shadow-xl">
+            <div className="mt-14 w-full max-w-lg rounded-lg border border-line bg-card font-sans shadow-xl">
               <div className="flex items-center justify-between border-b border-line px-5 py-3">
                 <h2 className="text-sm font-semibold text-ink">{p.tabla === "ventas" ? "Registrar cobro" : "Registrar pago"}</h2>
                 <button type="button" onClick={() => setAccion(null)} className="rounded-md p-1 text-muted-foreground hover:bg-muted" title="Cerrar"><X size={16} /></button>

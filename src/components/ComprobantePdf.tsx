@@ -1,7 +1,7 @@
 import { Document, Image, Page, StyleSheet, Text, View, pdf } from "@react-pdf/renderer";
 import { familiaReactPdf } from "@/lib/fuentes-documentos-pdf";
 import type { FuenteDocumentoId } from "@/lib/fuentes-documentos";
-import { DOC, DOC_FUENTE_PDF } from "@/lib/documento-tema";
+import { DOC } from "@/lib/documento-tema";
 
 export type DatosComprobantePdf = {
   tipoNombre: string; numero: string; estado: string; fecha: string; fechaVencimiento: string; moneda: "PEN" | "USD"; tipoCambio: number;
@@ -21,7 +21,7 @@ const crearEstilos=(fontFamily:string)=>StyleSheet.create({
 const n=(v:number)=>Number(v||0).toLocaleString("es-PE",{minimumFractionDigits:2,maximumFractionDigits:2});
 const f=(v:string)=>{const [a,m,d]=v.slice(0,10).split("-");return a&&m&&d?`${d}/${m}/${a}`:v||"—"};
 export function ComprobanteDocument({d}:{d:DatosComprobantePdf}){
- const fontFamily=familiaReactPdf(DOC_FUENTE_PDF); const s=crearEstilos(fontFamily);
+ const fontFamily=familiaReactPdf(d.fuentePdf); const s=crearEstilos(fontFamily);
  const sym=d.moneda==="USD"?"US$":"S/"; const money=(v:number)=>`${sym} ${n(v)}`; const slogan=(d.empresa.eslogan||"SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL").split(/,(.+)/).filter(Boolean).map(x=>x.trim());
  const importeEnLetras=/^SON:/i.test(d.totalLetras.trim())?d.totalLetras:`SON: ${d.totalLetras}`;
  return <Document title={`${d.tipoNombre} ${d.numero}`} author={d.empresa.razonSocial}><Page size="A4" style={s.page}>

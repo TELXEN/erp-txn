@@ -71,7 +71,7 @@ function Aprobaciones() {
   const color: Record<string, string> = { Aprobada: "bg-good/10 text-good", Usada: "bg-muted text-muted-foreground", Rechazada: "bg-bad/10 text-bad" };
 
   return (
-    <div className="font-['Roboto']">
+    <div className="font-sans">
       <Encabezado titulo="Aprobaciones" subtitulo="Compras bloqueadas por sobrecosto (avance físico + tolerancia)" />
 
       <Panel className="mb-4">

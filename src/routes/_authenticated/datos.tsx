@@ -39,6 +39,8 @@ export const Route = createFileRoute("/_authenticated/datos")({
       },
       { property: "og:title", content: "Datos — ERP TELXEN" },
       { property: "og:description", content: "Registro central de clientes, proveedores y bancos." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Datos,

@@ -18,6 +18,8 @@ export const Route = createFileRoute("/_authenticated/inventario")({
       { name: "description", content: "Stock valorizado por obra al costo promedio." },
       { property: "og:title", content: "Inventario — ERP TELXEN SAC" },
       { property: "og:description", content: "Stock valorizado de materiales y equipos por obra." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: InventarioPage,

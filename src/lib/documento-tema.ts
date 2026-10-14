@@ -2,7 +2,6 @@
  * Tema documental compartido: Factura electrónica, Cotización y Preliquidación.
  * Cambiar un valor aquí actualiza los tres documentos (pantalla, impresión y PDF).
  */
-import type { FuenteDocumentoId } from "@/lib/fuentes-documentos";
 
 export const DOC = {
   ink: "#374151",
@@ -35,9 +34,8 @@ export const DOC_MONO = {
   white: "#ffffff",
 } as const;
 
-/** Fuente fija de los documentos comerciales/fiscales. */
-export const DOC_FUENTE_CSS = "Roboto, Arial, sans-serif";
-export const DOC_FUENTE_PDF: FuenteDocumentoId = "roboto";
+/** Las hojas HTML heredan la misma selección que el ERP. */
+export const DOC_FUENTE_CSS = "var(--font-global)";
 
 /** Alias para plantillas que usan nombres pizarra/esmeralda: mapean al tema documental. */
 export const DOC_ALIAS = {

@@ -2,6 +2,7 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { soles } from "./format";
 import { fuenteDocumento, type FuenteDocumentoId } from "./fuentes-documentos";
+import { registrarFuenteJsPdf } from "./fuentes-jspdf";
 
 export type Hoja = { nombre: string; filas: Record<string, string | number>[] };
 
@@ -39,7 +40,7 @@ export type BarraPdf = {
   diferencia: number;
 };
 
-export function exportarPdf(opciones: {
+export async function exportarPdf(opciones: {
   titulo: string;
   subtitulo: string;
   kpis?: { etiqueta: string; valor: number }[];
@@ -48,8 +49,9 @@ export function exportarPdf(opciones: {
   archivo: string;
   fuentePdf?: FuenteDocumentoId;
 }) {
-  const doc = new jsPDF({ unit: "pt", format: "a4" });
-  const familia = fuenteDocumento(opciones.fuentePdf).jsPdfFamily;
+  const doc = new jsPDF({ unit: "pt", format: "a4", putOnlyUsedFonts: true });
+  const seleccion = opciones.fuentePdf ?? (typeof document === "undefined" ? undefined : document.documentElement.dataset["fuenteDocumento"]);
+  const familia = await registrarFuenteJsPdf(doc, seleccion);
   const ancho = doc.internal.pageSize.getWidth();
   const margen = 40;
   let y = 48;
@@ -69,22 +71,25 @@ export function exportarPdf(opciones: {
   y += 20;
 
   if (opciones.kpis?.length) {
-    const w = (ancho - margen * 2 - 16) / opciones.kpis.length;
+    const columnas = Math.min(3, opciones.kpis.length);
+    const w = (ancho - margen * 2 - 8 * (columnas - 1)) / columnas;
+    const alto = 72;
     opciones.kpis.forEach((k, i) => {
-      const x = margen + i * (w + 8);
+      const x = margen + (i % columnas) * (w + 8);
+      const filaY = y + Math.floor(i / columnas) * (alto + 8);
       doc.setDrawColor(220, 216, 200);
-      doc.roundedRect(x, y, w, 56, 4, 4);
+      doc.roundedRect(x, filaY, w, alto, 4, 4);
       doc.setFontSize(8);
       doc.setTextColor(110);
-      doc.text(k.etiqueta.toUpperCase(), x + 10, y + 18);
+      doc.text(doc.splitTextToSize(k.etiqueta.toUpperCase(), w - 20), x + 10, filaY + 18);
       doc.setFontSize(13);
       doc.setFont(familia, "bold");
       doc.setTextColor(k.valor < 0 ? 210 : 20, k.valor < 0 ? 63 : 20, k.valor < 0 ? 47 : 26);
-      doc.text(soles(k.valor), x + 10, y + 40);
+      doc.text(soles(k.valor), x + 10, filaY + 54);
       doc.setFont(familia, "normal");
       doc.setTextColor(20);
     });
-    y += 76;
+    y += Math.ceil(opciones.kpis.length / columnas) * (alto + 8) + 12;
   }
 
   if (opciones.barras?.length) {
