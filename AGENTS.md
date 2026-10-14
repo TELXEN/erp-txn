@@ -13,7 +13,7 @@
 - The project S-curve plans from the work-item schedule, marks current physical progress as cut-off, and shows cost progress only to money roles — truthful history and role visibility.
 - Preliquidation PDFs use @react-pdf/renderer; quotation/invoice previews are fixed A4 HTML sheets (repeated headers, page numbers, invoice fiscal footer) while editing stays in normal flow — predictable exports.
 - Electronic invoices use dedicated comprobantes_electronicos/items/cuotas tables, while emitted invoices/receipts mirror into ventas for treasury compatibility; numbering is reserved only by an authenticated server function.
-- Typography comes from the local-font catalogue in configuracion_documentos (UI via --font-global, mono separate; PDF/Excel get the same font) — consistent outputs.
+- Typography uses configuracion_documentos and the local catalogue: all UI font tokens share --font-global; PDF embeds the selected local font and Excel uses its catalogue family — consistent outputs.
 - Document codes (projects, quotations, preliquidations, custom) are configured as rows in codificacion_documentos: free code + zero-padded correlative, generated via siguiente_codigo_documento — single source for all document numbering.
 - Insumo types live in the tipos_insumo table (key, name, digit, correlative); code reads them via useTiposInsumo and never hardcodes the type list except the five protected system keys — users can add types.
 - The HT (herramientas manuales) type is hidden (tipos_insumo.oculto); calcularApu adds it automatically as the last row of the EQ group using the HT percentage from Márgenes APU — users never attach it manually.
