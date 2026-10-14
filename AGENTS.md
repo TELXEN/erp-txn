@@ -14,7 +14,7 @@
 - Preliquidation PDFs use @react-pdf/renderer; quotation/invoice previews are fixed A4 HTML sheets (repeated headers, page numbers, invoice fiscal footer) while editing stays in normal flow — predictable exports.
 - Electronic invoices use dedicated comprobantes_electronicos/items/cuotas tables, while emitted invoices/receipts mirror into ventas for treasury compatibility; numbering is reserved only by an authenticated server function.
 - Typography uses configuracion_documentos and the local catalogue: all UI font tokens share --font-global; PDF embeds the selected local font and Excel uses its catalogue family — consistent outputs.
-- Document codes (projects, quotations, preliquidations, custom) are configured as rows in codificacion_documentos: free code + zero-padded correlative, generated via siguiente_codigo_documento — single source for all document numbering.
+- Document codes use codificacion_documentos and siguiente_codigo_documento (free code + padded correlative) — one numbering source.
 - Read tipos_insumo via useTiposInsumo; only five system keys may be hardcoded — users can add types.
 - The HT (herramientas manuales) type is hidden (tipos_insumo.oculto); calcularApu adds it automatically as the last row of the EQ group using the HT percentage from Márgenes APU — users never attach it manually.
 - Sidebar colors use dedicated theme tokens (never altering business screens); primary/action buttons use the sidebar base color — keeps workflows tied to navigation.
