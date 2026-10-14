@@ -921,7 +921,7 @@ export function CotizacionHoja({
 
   function editor(f: Fila, c: number) {
     const col = COLUMNAS[c] as Columna;
-    const alinear = col === "marca" || col === "unidad" || col === "metrado" ? "text-center" : col === "precio_unitario" ? "text-right" : "";
+    const alinear = col === "marca" || col === "unidad" || col === "metrado" ? "text-center" : col === "precio_unitario" ? "text-right font-mono" : col === "metrado" || col === "codigo" ? "font-mono" : "";
     const comun = {
       autoFocus: true,
       value: valor,
@@ -1302,7 +1302,7 @@ export function CotizacionHoja({
                   <td className={`${celdaBase} text-center`}>—</td>
                   <td className={`${celdaBase} text-center`}>—</td>
                   <td className={`${celdaBase} text-right`}>—</td>
-                  <td className={`${celdaBase} text-right font-semibold text-ink`}>{mon(f.total)}</td>
+                  <td className={`${celdaBase} text-right font-mono font-semibold text-ink`}>{mon(f.total)}</td>
                   <td className={celdaBase} />
                 </tr>
                 </ContextMenuTrigger>
@@ -1410,13 +1410,13 @@ export function CotizacionHoja({
                     celda(f, r, 4, <span className="block text-center">{num(it.metrado)}</span>, "text-center")
                   )}
                   {bloqueada || puFijo ? (
-                    <td className={`${celdaBase} whitespace-nowrap text-right ${puFijo ? "italic" : ""}`}>
+                    <td className={`${celdaBase} whitespace-nowrap text-right font-mono ${puFijo ? "italic" : ""}`}>
                       {bloqueada ? "—" : mon(Number(it.precio_unitario))}
                     </td>
                   ) : (
-                    celda(f, r, 5, <span className="whitespace-nowrap">{mon(Number(it.precio_unitario))}</span>, "text-right")
+                    celda(f, r, 5, <span className="whitespace-nowrap">{mon(Number(it.precio_unitario))}</span>, "text-right font-mono")
                   )}
-                  <td className={`${celdaBase} whitespace-nowrap text-right font-semibold text-ink`}>{mon(f.total)}</td>
+                  <td className={`${celdaBase} whitespace-nowrap text-right font-mono font-semibold text-ink`}>{mon(f.total)}</td>
                   <td className={`${celdaBase} text-right`}>
                     <div className="flex items-center justify-end gap-1">
                       {f.nivel === 3 && (
