@@ -18,7 +18,8 @@ export async function exportarExcel(archivo: string, hojas: Hoja[]) {
     datos.forEach((fila) => hoja.addRow(columnas.map((columna) => fila[columna] ?? "")));
     hoja.eachRow((fila, indice) => {
       fila.eachCell({ includeEmpty: true }, (celda) => {
-        celda.font = { ...celda.font, name: fuente.excelFamily, bold: indice === 1 };
+        const numero = indice > 1 && typeof celda.value === "number";
+        celda.font = { ...celda.font, name: numero ? (fuente.excelCifras ?? fuente.excelFamily) : fuente.excelFamily, bold: indice === 1 };
       });
     });
     hoja.columns.forEach((columna) => {
@@ -52,6 +53,7 @@ export async function exportarPdf(opciones: {
   const doc = new jsPDF({ unit: "pt", format: "a4", putOnlyUsedFonts: true });
   const seleccion = opciones.fuentePdf ?? (typeof document === "undefined" ? undefined : document.documentElement.dataset["fuenteDocumento"]);
   const familia = await registrarFuenteJsPdf(doc, seleccion);
+  const cifras = fuenteDocumento(seleccion).pdfCifras ?? familia;
   const ancho = doc.internal.pageSize.getWidth();
   const margen = 40;
   let y = 48;
@@ -83,7 +85,7 @@ export async function exportarPdf(opciones: {
       doc.setTextColor(110);
       doc.text(doc.splitTextToSize(k.etiqueta.toUpperCase(), w - 20), x + 10, filaY + 18);
       doc.setFontSize(13);
-      doc.setFont(familia, "bold");
+      doc.setFont(cifras, "bold");
       doc.setTextColor(k.valor < 0 ? 210 : 20, k.valor < 0 ? 63 : 20, k.valor < 0 ? 47 : 26);
       doc.text(soles(k.valor), x + 10, filaY + 54);
       doc.setFont(familia, "normal");
