@@ -315,7 +315,8 @@ function VistaCotizacion() {
       for (const [indice, hoja] of hojas.entries()) {
         const canvas = await html2pdf().set({
           margin: 0,
-          html2canvas: { scale: 3, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: paginaW, backgroundColor: "#ffffff", logging: false },
+          jsPDF: { unit: "mm", format: "a4", orientation: horizontal ? "landscape" : "portrait" },
+          html2canvas: { scale: 3, width: hoja.offsetWidth, height: hoja.offsetHeight, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: paginaW, backgroundColor: "#ffffff", logging: false },
           pagebreak: { mode: [] },
         } as never).from(hoja).toCanvas().get("canvas") as HTMLCanvasElement;
         if (indice > 0) doc.addPage();
