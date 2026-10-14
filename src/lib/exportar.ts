@@ -144,6 +144,7 @@ export async function exportarPdf(opciones: {
       styles: { font: familia, fontSize: 8, cellPadding: 4 },
       headStyles: { fillColor: [31, 111, 84], textColor: 255 },
       margin: { left: margen, right: margen },
+      didParseCell: (d) => { if (d.section === "body" && typeof d.cell.raw === "number") { d.cell.styles.font = cifras; d.cell.styles.halign = "right"; } },
     });
   }
 
