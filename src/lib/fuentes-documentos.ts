@@ -8,7 +8,8 @@ export type FuenteDocumentoId =
   | "source-sans-3"
   | "segoe-ui"
   | "roboto"
-  | "helvetica-neue";
+  | "helvetica-neue"
+  | "inter-jetbrains";
 
 export type FuenteDocumento = {
   id: FuenteDocumentoId;
@@ -17,6 +18,10 @@ export type FuenteDocumento = {
   css: string;
   pdfFamily: string;
   excelFamily: string;
+  /** Familia para códigos y cifras; por defecto la misma del texto. */
+  cssCifras?: string;
+  pdfCifras?: string;
+  excelCifras?: string;
 };
 
 export const FUENTE_DOCUMENTO_DEFECTO: FuenteDocumentoId = "carlito";
@@ -80,6 +85,17 @@ export const FUENTES_DOCUMENTOS: FuenteDocumento[] = [
     pdfFamily: "PdfHelveticaNeue",
     excelFamily: "Helvetica Neue",
   },
+  {
+    id: "inter-jetbrains",
+    nombre: "Inter + JetBrains Mono",
+    descripcion: "Inter para textos; JetBrains Mono para códigos y cifras alineadas.",
+    css: 'Inter, Arial, sans-serif',
+    pdfFamily: "PdfInter",
+    excelFamily: "Inter",
+    cssCifras: '"JetBrains Mono", Consolas, monospace',
+    pdfCifras: "PdfJetBrainsMono",
+    excelCifras: "JetBrains Mono",
+  },
 ];
 
 export function esFuenteDocumento(valor: string | null | undefined): valor is FuenteDocumentoId {
@@ -94,6 +110,7 @@ export function aplicarFuenteGlobal(valor: string | null | undefined) {
   if (typeof document === "undefined") return;
   const fuente = fuenteDocumento(valor);
   document.documentElement.style.setProperty("--font-global", fuente.css);
+  document.documentElement.style.setProperty("--font-cifras", fuente.cssCifras ?? fuente.css);
   document.documentElement.dataset["fuenteDocumento"] = fuente.id;
 }
 

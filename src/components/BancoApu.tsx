@@ -258,7 +258,7 @@ function ListaBanco({ tabla, seleccion, onSeleccion, llena = false }: { tabla: T
                     const largo = tp === "txt" && !fijo;
                     const ancho = k === "descripcion" ? "w-full max-w-[1px]" : "max-w-[74px]";
                     return (
-                      <td key={k} className={`px-2 py-0.5 ${largo ? ancho : tp !== "txt" ? "whitespace-nowrap text-right font-mono" : "whitespace-nowrap"}`}>
+                      <td key={k} className={`px-2 py-0.5 ${largo ? ancho : tp !== "txt" ? "whitespace-nowrap text-right font-mono" : k === "codigo" || k === "codigo_jerarquico" ? "whitespace-nowrap font-mono" : "whitespace-nowrap"}`}>
                         <span className={`block ${largo ? "truncate" : ""}`} title={largo ? String(f[k] ?? "") : undefined}>
                           {tp === "sol" ? soles(Number(f[k] ?? 0)) : tp === "num" ? Number(f[k] ?? 0).toLocaleString("es-PE") : <Resaltar texto={f[k]} termino={busqueda} />}
                         </span>

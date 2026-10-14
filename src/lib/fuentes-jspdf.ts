@@ -9,6 +9,10 @@ import sansRegular from "@/assets/fonts/liberation-sans-regular.ttf?url";
 import sansBold from "@/assets/fonts/liberation-sans-bold.ttf?url";
 import serifRegular from "@/assets/fonts/liberation-serif-regular.ttf?url";
 import serifBold from "@/assets/fonts/liberation-serif-bold.ttf?url";
+import interRegular from "@/assets/fonts/inter-regular.ttf?url";
+import interBold from "@/assets/fonts/inter-bold.ttf?url";
+import monoRegular from "@/assets/fonts/jetbrains-mono-regular.ttf?url";
+import monoBold from "@/assets/fonts/jetbrains-mono-bold.ttf?url";
 import { fuenteDocumento } from "./fuentes-documentos";
 
 const archivos: Record<string, readonly [string, string]> = {
@@ -19,7 +23,9 @@ const archivos: Record<string, readonly [string, string]> = {
   "segoe-ui": [sourceRegular, sourceBold],
   roboto: [robotoRegular, robotoBold],
   "helvetica-neue": [sansRegular, sansBold],
+  "inter-jetbrains": [interRegular, interBold],
 };
+const archivosCifras: Record<string, readonly [string, string]> = { "inter-jetbrains": [monoRegular, monoBold] };
 const cache = new Map<string, Promise<string>>();
 
 function cargar(url: string) {
@@ -49,5 +55,15 @@ export async function registrarFuenteJsPdf(doc: jsPDF, id: string | undefined) {
     doc.addFileToVFS(nombre, contenido);
     doc.addFont(nombre, fuente.pdfFamily, estilo);
   });
+  const cifras = archivosCifras[fuente.id];
+  if (cifras && fuente.pdfCifras) {
+    const d = await Promise.all(cifras.map(cargar));
+    d.forEach((contenido, i) => {
+      const estilo = i === 0 ? "normal" : "bold";
+      const nombre = `${fuente.pdfCifras}-${estilo}.ttf`;
+      doc.addFileToVFS(nombre, contenido);
+      doc.addFont(nombre, fuente.pdfCifras!, estilo);
+    });
+  }
   return fuente.pdfFamily;
 }
