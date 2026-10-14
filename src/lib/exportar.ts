@@ -2,6 +2,7 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { soles } from "./format";
 import { fuenteDocumento, type FuenteDocumentoId } from "./fuentes-documentos";
+import { registrarFuenteJsPdf } from "./fuentes-jspdf";
 
 export type Hoja = { nombre: string; filas: Record<string, string | number>[] };
 
@@ -39,7 +40,7 @@ export type BarraPdf = {
   diferencia: number;
 };
 
-export function exportarPdf(opciones: {
+export async function exportarPdf(opciones: {
   titulo: string;
   subtitulo: string;
   kpis?: { etiqueta: string; valor: number }[];
@@ -49,7 +50,8 @@ export function exportarPdf(opciones: {
   fuentePdf?: FuenteDocumentoId;
 }) {
   const doc = new jsPDF({ unit: "pt", format: "a4" });
-  const familia = fuenteDocumento(opciones.fuentePdf).jsPdfFamily;
+  const seleccion = opciones.fuentePdf ?? (typeof document === "undefined" ? undefined : document.documentElement.dataset["fuenteDocumento"]);
+  const familia = await registrarFuenteJsPdf(doc, seleccion);
   const ancho = doc.internal.pageSize.getWidth();
   const margen = 40;
   let y = 48;

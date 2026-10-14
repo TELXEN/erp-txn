@@ -31,7 +31,7 @@ export function registrarFuentesPdf() {
   registradas = true;
 }
 
-export function familiaReactPdf(id: FuenteDocumentoId) {
+export function familiaReactPdf(id?: FuenteDocumentoId) {
   registrarFuentesPdf();
   return fuenteDocumento(id).pdfFamily;
 }

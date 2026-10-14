@@ -98,12 +98,12 @@
 
   --font-display: var(--font-global);
   --font-sans: var(--font-global);
-  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --font-mono: var(--font-global);
 }
 
 :root {
   --radius: 0.5rem;
-  --font-global: Roboto, Arial, sans-serif;
+  --font-global: Carlito, Calibri, sans-serif;
 
   --paper: rgb(251 250 246);
   --ink: rgb(19 19 22);
@@ -297,7 +297,7 @@
 /* Dashboard de proyectos: fondo claro, tarjetas KPI y cartera */
 .tablero-proyectos {
   --tablero-fondo: oklch(0.984 0.003 247.858);
-  font-family: Roboto, var(--font-global);
+  font-family: var(--font-global);
   background-color: var(--tablero-fondo);
   margin: -1.5rem -1.5rem 0;
   padding: 1.5rem;
@@ -332,18 +332,18 @@ aside .md\:overflow-y-auto::-webkit-scrollbar-thumb { background: transparent; b
 aside .md\:overflow-y-auto:hover::-webkit-scrollbar-thumb { background: color-mix(in oklab, var(--color-sidebar-foreground) 35%, transparent); }
 .tablero-proyectos .font-mono,
 .tablero-proyectos .label-mono {
-  font-family: Roboto, var(--font-global);
+  font-family: var(--font-global);
   font-variant-numeric: tabular-nums;
 }
 .tablero-proyectos .label-mono { font-weight: 500; letter-spacing: 0.06em; }
 
 /* Dashboard financiero: misma tipografía que el Dashboard de proyectos */
 .tablero-financiero {
-  font-family: Roboto, var(--font-global);
+  font-family: var(--font-global);
 }
 .tablero-financiero .font-mono,
 .tablero-financiero .label-mono {
-  font-family: Roboto, var(--font-global);
+  font-family: var(--font-global);
   font-variant-numeric: tabular-nums;
 }
 .tablero-financiero .label-mono { font-weight: 500; letter-spacing: 0.06em; }
