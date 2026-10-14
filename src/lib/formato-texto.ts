@@ -67,11 +67,22 @@ export function formatearTexto(texto: string, modo: ModoFormato): string {
   return salida.join(" ");
 }
 
-/** Sólo reformatea si el texto viene gritado (evita deshacer nombres propios bien escritos). */
+/** Palabra con mayúsculas anómalas: una minúscula seguida de mayúscula (motoRES, cabLE). */
+function anomala(p: string) {
+  return !esProtegida(p) && /\p{Ll}\p{Lu}/u.test(p);
+}
+
+/** Sólo reformatea si el texto viene gritado (evita deshacer nombres propios bien escritos);
+ *  las palabras con mayúsculas anómalas se pasan siempre a minúsculas. */
 export function formatearSiGritado(texto: string, modo: ModoFormato) {
   if (modo === "unidad") return normalizarUnidad(texto);
   if (modo === "oracion" && !gritado(texto)) {
-    const t = texto.replace(/\s+/g, " ").trim();
+    const t = texto
+      .replace(/\s+/g, " ")
+      .trim()
+      .split(" ")
+      .map((p) => (anomala(p) ? p.toLowerCase() : p))
+      .join(" ");
     return t ? capital(t) : t;
   }
   return formatearTexto(texto, modo);
