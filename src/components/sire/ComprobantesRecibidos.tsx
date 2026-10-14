@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Panel, Boton, Select } from "@/components/ui-kit";
 import { soles } from "@/lib/format";
 import { descargarComprobantesSire } from "@/lib/sire.functions";
+import appCss from "@/styles.css?url";
 
 type ItemRce = { clave: string; fecha: string; tipo: string; serie_numero: string; ruc: string; razon: string; base: number; igv: number; total_sunat: number | null; moneda?: string; tipo_cambio?: number };
 type Recibido = {
@@ -116,9 +117,11 @@ export function ComprobantesRecibidos({ periodo, items }: { periodo: string; ite
   }
 
   async function ficha(i: ItemRce, r?: Recibido) {
+    const familia = getComputedStyle(document.documentElement).getPropertyValue("--font-global").trim();
     const w = window.open("", "_blank");
     if (!w) return;
-    w.document.write("<p style='font-family:Arial;padding:24px'>Preparando factura…</p>");
+    w.document.write("<p style='padding:24px'>Preparando factura…</p>");
+    w.document.body.style.fontFamily = familia;
     const esc = (s: unknown) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
     const m = (n: number) => Number(n || 0).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const fmt = (v?: string | null) => { if (!v) return "—"; const s = String(v).slice(0, 10); const [a, b, c] = s.split("-"); return a && b && c && a.length === 4 ? `${c}/${b}/${a}` : s; };
@@ -144,7 +147,8 @@ export function ComprobantesRecibidos({ periodo, items }: { periodo: string; ite
     const filaD = (l: string, v: string) => `<div class="kv"><b>${l}</b><span>:</span><span>${esc(v)}</span></div>`;
     const filaT = (l: string, v: number, b = false) => `<tr${b ? ' class="tt"' : ""}><td>${l}</td><td class="r">${sim} ${m(v)}</td></tr>`;
     w.document.open();
-    w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(i.serie_numero)} · ${esc(i.razon)}</title><style>
+    w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(i.serie_numero)} · ${esc(i.razon)}</title><link rel="stylesheet" href="${esc(new URL(appCss, window.location.href).href)}"><style>
+      :root{--font-global:${familia}}
       @page{size:A4;margin:14mm}*{box-sizing:border-box}
       body{font-family:var(--font-global,Arial),Arial,sans-serif;color:#1f2937;font-size:9.5pt;margin:0}
       .hoja{max-width:182mm;margin:0 auto}
@@ -180,7 +184,7 @@ export function ComprobantesRecibidos({ periodo, items }: { periodo: string; ite
         <table class="tot">${filaT("Op. gravadas", i.base)}${nog ? filaT("Op. no gravadas", nog) : ""}${isc ? filaT("ISC", isc) : ""}${filaT("IGV (18%)", i.igv)}${otros ? filaT("Otros tributos", otros) : ""}${filaT("Importe total", total, true)}</table></div>
       <div class="son">${esc(montoEnLetras(total, moneda))}</div>
       <div class="nota">Representación generada por el ERP con los datos fiscales declarados en SUNAT (SIRE · RCE), periodo ${esc(periodo)}. ${(its as any[]).length ? "Detalle de ítems obtenido del XML del proveedor." : "SUNAT no entregó el detalle de ítems; se muestra el importe consolidado."} No reemplaza al comprobante original emitido por el proveedor.</div>
-    </div><script>window.onload=()=>setTimeout(()=>window.print(),300)</script></body></html>`);
+    </div><script>window.onload=async()=>{await document.fonts.ready;window.print()}</script></body></html>`);
     w.document.close();
   }
 
