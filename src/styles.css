@@ -7,6 +7,10 @@
 @import "@fontsource/source-sans-3/700.css";
 @import "@fontsource/roboto/400.css";
 @import "@fontsource/roboto/700.css";
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/700.css";
+@import "@fontsource/jetbrains-mono/400.css";
+@import "@fontsource/jetbrains-mono/700.css";
 
 @font-face {
   font-family: "Liberation Sans";
@@ -98,12 +102,13 @@
 
   --font-display: var(--font-global);
   --font-sans: var(--font-global);
-  --font-mono: var(--font-global);
+  --font-mono: var(--font-cifras);
 }
 
 :root {
   --radius: 0.5rem;
   --font-global: Carlito, Calibri, sans-serif;
+  --font-cifras: var(--font-global);
 
   --paper: rgb(251 250 246);
   --ink: rgb(19 19 22);
@@ -248,7 +253,7 @@
 }
 
 @utility label-mono {
-  font-family: var(--font-mono);
+  font-family: var(--font-global);
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.14em;
@@ -330,7 +335,7 @@ aside .md\:overflow-y-auto:hover { scrollbar-color: color-mix(in oklab, var(--co
 aside .md\:overflow-y-auto::-webkit-scrollbar { width: 6px; }
 aside .md\:overflow-y-auto::-webkit-scrollbar-thumb { background: transparent; border-radius: 3px; }
 aside .md\:overflow-y-auto:hover::-webkit-scrollbar-thumb { background: color-mix(in oklab, var(--color-sidebar-foreground) 35%, transparent); }
-.tablero-proyectos .font-mono,
+.tablero-proyectos .font-mono { font-family: var(--font-cifras); }
 .tablero-proyectos .label-mono {
   font-family: var(--font-global);
   font-variant-numeric: tabular-nums;
@@ -341,7 +346,7 @@ aside .md\:overflow-y-auto:hover::-webkit-scrollbar-thumb { background: color-mi
 .tablero-financiero {
   font-family: var(--font-global);
 }
-.tablero-financiero .font-mono,
+.tablero-financiero .font-mono { font-family: var(--font-cifras); }
 .tablero-financiero .label-mono {
   font-family: var(--font-global);
   font-variant-numeric: tabular-nums;
@@ -354,4 +359,17 @@ aside .md\:overflow-y-auto:hover::-webkit-scrollbar-thumb { background: color-mi
   @media (min-width: 768px) { body { font-size: 0.875rem; } }
   main table th, main table td { padding-block: 0.25rem; }
   main .panel:has(> table), main .panel > div:has(> table) { overflow-x: auto; }
+}
+
+/* Cifras y códigos: familia de cifras, ancho fijo, a la derecha */
+@utility cifra {
+  font-family: var(--font-cifras);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.font-mono { font-variant-numeric: tabular-nums; }
+/* Tablas APU / cotización: código e importe fijos al desplazar en pantallas < 1280 px */
+@media (max-width: 1279px) {
+  .tabla-apu .col-fija-izq { position: sticky; left: 0; z-index: 1; background: var(--color-card); box-shadow: 2px 0 4px -2px color-mix(in oklab, var(--color-ink) 18%, transparent); }
+  .tabla-apu .col-fija-der { position: sticky; right: 0; z-index: 1; background: var(--color-card); box-shadow: -2px 0 4px -2px color-mix(in oklab, var(--color-ink) 18%, transparent); }
 }
