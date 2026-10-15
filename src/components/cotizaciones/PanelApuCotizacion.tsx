@@ -54,6 +54,9 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
   const [editJornada, setEditJornada] = useState(false);
   const [jornadaLocal, setJornadaLocal] = useState<number | null>(null);
   const [pctHt, setPctHt] = useState(5);
+  const [menu, setMenu] = useState<(EstadoMenuApu & { t: string; f: FilaCalculo | undefined }) | null>(null);
+  const cerrarMenu = useCallback(() => setMenu(null), []);
+  const [destino, setDestino] = useState<{ orden: number; ref: string; texto: string } | null>(null);
   const sim = cot.moneda === "USD" ? "US$" : "S/";
   const factor = cot.moneda === "USD" ? 1 / (Number(cot.tipo_cambio) || 1) : 1;
 
@@ -68,6 +71,7 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
 
   useEffect(() => {
     setAviso("");
+    setDestino(null);
     setRendLocal(null);
     setJornadaLocal(null);
     setEditJornada(false);
@@ -149,11 +153,46 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
       cotizacion_item_id: it.id, [col]: r.id, cantidad_o_cuadrilla: 1,
       codigo: r.codigo ?? "", descripcion: r.descripcion ?? "", marca: r.marca ?? "", unidad: r.unidad ?? "", tipo_recurso: tipo,
       precio_unitario: pct ? base : Math.round(base * factor * 10000) / 10000,
+      orden: destino?.orden ?? propias.reduce((s, d) => Math.max(s, Number(d.orden) || 0), 0) + 10,
     };
     const { data, error } = await dbBanco.from("cotizacion_apu_detalle").insert(fila).select("*").single();
     if (error) return setAviso(error.message);
     setElegido("");
+    setDestino(null);
     await aplicarPu([...propias, data]);
+    await refrescar();
+  }
+
+  function abrirMenu(e: React.MouseEvent, t: string, f: FilaCalculo | undefined, habilitadas: EstadoMenuApu["habilitadas"]) {
+    e.preventDefault();
+    setMenu({ x: e.clientX, y: e.clientY, t, f, habilitadas });
+  }
+  async function accionMenu(a: AccionApu, m: NonNullable<typeof menu>) {
+    const { t, f } = m;
+    if (a === "eliminar") return f && quitar(f.d.id as string);
+    const idx = BANCOS_RECURSO.findIndex((b) => b[3] === t);
+    if (a === "final" || !f) {
+      if (idx >= 0) { setBanco(idx); setElegido(""); }
+      setDestino(null);
+      return;
+    }
+    const mapa = await renumerarApu("cotizacion_apu_detalle", propias as { id: string; orden?: number }[]);
+    const base = mapa.get(f.d.id as string) ?? 0;
+    if (a === "encima" || a === "debajo") {
+      if (idx >= 0) { setBanco(idx); setElegido(""); }
+      setDestino({ orden: base + (a === "encima" ? -5 : 5), ref: f.d.id as string, texto: `${a === "encima" ? "encima de" : "debajo de"} «${f.nombre}»` });
+      return;
+    }
+    const filasG = calc.filas.filter((x) => x.tipo === t);
+    const i = filasG.findIndex((x) => x.d.id === f.d.id);
+    const v = filasG[a === "subir" ? i - 1 : i + 1];
+    if (v) {
+      const ov = mapa.get(v.d.id as string) ?? 0;
+      await Promise.all([
+        dbBanco.from("cotizacion_apu_detalle").update({ orden: ov }).eq("id", f.d.id),
+        dbBanco.from("cotizacion_apu_detalle").update({ orden: base }).eq("id", v.d.id),
+      ]);
+    }
     await refrescar();
   }
 
@@ -185,7 +224,7 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
       if (error) return setAviso(error.message);
     }
     const { error: e2 } = await dbBanco.from("partida_detalle").insert(
-      filasBanco.map(({ _horaria, ...f }) => ({ ...f, partida_padre_id: destino })),
+      filasBanco.map(({ _horaria, ...f }, i) => ({ ...f, partida_padre_id: destino, orden: (i + 1) * 10 })),
     );
     if (e2) return setAviso(e2.message);
     qc.invalidateQueries({ queryKey: ["banco_apu"] });
@@ -199,6 +238,7 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
 
   return (
     <div className="flex h-full min-h-0 flex-col">
+      {menu && <MenuContextualApu menu={menu} onCerrar={cerrarMenu} onAccion={(a) => void accionMenu(a, menu)} />}
       <div className="border-b border-line px-3 py-2">
         <p className="truncate text-xs font-semibold text-ink" title={it.nombre}>{it.codigo} · {it.nombre}</p>
       </div>
@@ -227,13 +267,13 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
         {pestana === "acu" && (
           <>
             <table className="w-full table-fixed border-collapse">
-              <colgroup><col style={{ width: 74 }} /><col /><col style={{ width: 34 }} /><col style={{ width: 52 }} /><col style={{ width: 78 }} /><col style={{ width: 50 }} /><col style={{ width: 62 }} /><col style={{ width: 20 }} /></colgroup>
+              <colgroup><col style={{ width: 74 }} /><col /><col style={{ width: 34 }} /><col style={{ width: 52 }} /><col style={{ width: 78 }} /><col style={{ width: 50 }} /><col style={{ width: 62 }} /></colgroup>
               <thead className="sticky top-0 z-10 bg-card">
                 <tr className="border-b border-line">
                   <th className={`${th} text-left`}>Código</th><th className={`${th} text-left`}>Descripción</th><th className={`${th} text-center`}>Unid.</th>
                   <th className={`${th} text-right`}>Recurso</th><th className={`${th} text-right`}>Cantidad</th>
                   <th className={`${th} text-right`}>Precio</th>
-                  <th className={`${th} text-right`}>Total</th><th />
+                  <th className={`${th} text-right`}>Total</th>
                 </tr>
               </thead>
               <tbody>
@@ -242,18 +282,16 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
                   const sub = sumar2(filas.map((f) => f.parcial)) + (t === "EQ" ? htTotal : 0);
                   const idxBanco = BANCOS_RECURSO.findIndex((b) => b[3] === t);
                   return [
-                    <tr key={t} className="border-b border-line bg-muted/60">
+                    <tr key={t} className="border-b border-line bg-muted/60" onContextMenu={(e) => abrirMenu(e, t, undefined, { final: idxBanco >= 0 })}>
                       <td colSpan={6} className={`${td} font-bold text-foreground/80`}>▾ {titulo}</td>
                       <td className={`${td} text-right font-mono font-bold`}>{num(sub)}</td>
-                      <td className="h-[26px] !py-0 px-0.5">
-                        {idxBanco >= 0 && <BotonIcono etiqueta={`Agregar a ${titulo.toLowerCase()}`} tono="primario" className="size-5" onClick={() => { setBanco(idxBanco); setElegido(""); }}><Plus size={13} /></BotonIcono>}
-                      </td>
                     </tr>,
-                    ...filas.map((f) => {
+                    ...filas.map((f, i) => {
                       const horaria = f.tipo === "MO" || (f.tipo === "EQ" && f.und === "H-M");
                       const hh = horaria ? (f.cantidad * jornada) / rend : f.cantidad;
                       return (
-                        <tr key={f.d.id} className="border-b border-line/70 hover:bg-primary/5">
+                        <tr key={f.d.id} className={`border-b border-line/70 hover:bg-primary/5 ${destino?.ref === f.d.id ? "bg-primary/10" : ""}`}
+                          onContextMenu={(e) => abrirMenu(e, t, f, { encima: idxBanco >= 0, debajo: idxBanco >= 0, final: idxBanco >= 0, subir: i > 0, bajar: i < filas.length - 1, eliminar: true })}>
                           <td className={`${td} font-mono text-[11px] text-muted-foreground`}><span className="block truncate" title={f.d.codigo ?? ""}>{f.d.codigo || "—"}</span></td>
                           <td className={td}><span className="block min-w-0 truncate" title={f.nombre}>{f.nombre}</span></td>
                           <td className={`${td} text-center text-muted-foreground`}>{f.esPctMo ? "%…" : f.und}</td>
@@ -271,12 +309,11 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
                               : <CeldaNum valor={f.cu} dec={4} onGuardar={(v) => void actualizar(f, "precio_unitario", v)} />}
                           </td>
                           <td className={`${td} text-right font-mono`}>{num(f.parcial)}</td>
-                          <td className="h-[26px] !py-0 px-0.5"><BotonIcono etiqueta="Quitar fila" tono="peligro" className="size-5" onClick={() => void quitar(f.d.id)}><X size={12} /></BotonIcono></td>
                         </tr>
                       );
                     }),
                     ...(t === "EQ" && htVisible ? [
-                      <tr key="ht" className="border-b border-line/70 bg-warn/5">
+                      <tr key="ht" className="border-b border-line/70 bg-warn/5" onContextMenu={(e) => abrirMenu(e, t, undefined, { final: idxBanco >= 0 })}>
                         <td className={`${td} font-mono text-[11px] text-muted-foreground`}>HT</td>
                         <td className={td}><span className="block min-w-0 truncate italic text-foreground/80" title="Herramientas manuales">Herramientas manuales</span></td>
                         <td className={`${td} text-center text-muted-foreground`}>%…</td>
@@ -284,7 +321,6 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
                         <td className={td}><CeldaNum valor={pctHt} dec={2} sufijo="%mo" onGuardar={(v) => void guardarPctHt(v)} /></td>
                         <td className={`${td} text-right font-mono`}>{num(totalMo)}</td>
                         <td className={`${td} text-right font-mono`}>{num(htTotal)}</td>
-                        <td />
                       </tr>,
                     ] : []),
                   ];
@@ -301,6 +337,7 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
                 {opciones.map((o) => <option key={o.id} value={o.id}>{o.codigo ? `${o.codigo} · ` : ""}{o.descripcion}</option>)}
               </Select>
               <Boton onClick={() => void agregar()} disabled={!elegido}><Plus size={12} /> Agregar</Boton>
+              {destino && <span className="w-full text-[11px] text-primary">Se insertará {destino.texto} · <button type="button" className="underline" onClick={() => setDestino(null)}>al final</button></span>}
             </div>
           </>
         )}
