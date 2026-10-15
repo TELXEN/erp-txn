@@ -3121,6 +3121,7 @@ export type Database = {
           especificaciones: string | null
           estado: string
           id: string
+          pct_herramientas: number
           rendimiento_diario: number
           unidad: string
           updated_at: string
@@ -3133,6 +3134,7 @@ export type Database = {
           especificaciones?: string | null
           estado?: string
           id?: string
+          pct_herramientas?: number
           rendimiento_diario?: number
           unidad?: string
           updated_at?: string
@@ -3145,6 +3147,7 @@ export type Database = {
           especificaciones?: string | null
           estado?: string
           id?: string
+          pct_herramientas?: number
           rendimiento_diario?: number
           unidad?: string
           updated_at?: string

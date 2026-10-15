@@ -1,0 +1,1 @@
+alter table public.partidas_apu add column if not exists pct_herramientas numeric not null default 5;

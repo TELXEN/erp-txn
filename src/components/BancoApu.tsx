@@ -405,7 +405,8 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
   const [rendLocal, setRendLocal] = useState<number | null>(null);
   const [editJornada, setEditJornada] = useState(false);
   const [jornada, setJornada] = useState<number>(() => Number(localStorage.getItem(`banco-apu:jornada:${partida.id}`)) || 8);
-  useEffect(() => { setRendLocal(null); setEditJornada(false); setJornada(Number(localStorage.getItem(`banco-apu:jornada:${partida.id}`)) || 8); }, [partida.id, partida.rendimiento_diario]);
+  const [pctHt, setPctHt] = useState<number>(() => Number(partida.pct_herramientas ?? 5));
+  useEffect(() => { setRendLocal(null); setEditJornada(false); setJornada(Number(localStorage.getItem(`banco-apu:jornada:${partida.id}`)) || 8); setPctHt(Number(partida.pct_herramientas ?? 5)); }, [partida.id, partida.rendimiento_diario, partida.pct_herramientas]);
   const rend = rendLocal ?? (Number(partida.rendimiento_diario) || 1);
   const jornadaEfectiva = editJornada ? jornada : 8;
   const calc = costo(partida.id, new Set(), rend, jornadaEfectiva);
@@ -433,6 +434,15 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
   const th = "h-[30px] !py-0 border-r border-line px-1 text-[12px] font-semibold text-foreground/80 whitespace-nowrap last:border-r-0";
   const td = "h-[26px] !py-0 leading-none border-r border-line/70 px-1.5 align-middle text-[12px] whitespace-nowrap";
   const totalMo = sumar2(calc.filas.filter((f) => f.col === "mano_obra_id").map((f) => f.parcial));
+  // Herramientas manuales: % editable sobre la mano de obra (defecto 5 %); solo si hay MO.
+  const htVisible = totalMo > 0;
+  const htTotal = htVisible ? r2((totalMo * pctHt) / 100) : 0;
+  async function guardarPctHt(v: number) {
+    if (!(v >= 0)) return;
+    setPctHt(v);
+    await db.from("partidas_apu").update({ pct_herramientas: v }).eq("id", partida.id);
+    await qc.invalidateQueries({ queryKey: ["banco_apu", "partidas_apu"] });
+  }
 
   return (
     <>
@@ -468,7 +478,7 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
             {GRUPOS.map((g) => {
               const [col, , titulo] = g;
               const filas = calc.filas.filter((f) => f.col === col);
-                            const sub = sumar2(filas.map((f) => f.parcial));
+              const sub = sumar2(filas.map((f) => f.parcial)) + (col === "equipo_id" ? htTotal : 0);
               return [
                 <tr key={col} className="border-b border-line bg-muted/60">
                   <td colSpan={6} className={`${td} font-bold text-foreground/80`}>▾ {titulo}</td>
@@ -487,6 +497,18 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
                     <td className="h-[26px] !py-0 px-0.5"><BotonIcono etiqueta="Quitar fila" tono="peligro" className="size-5" onClick={() => quitarFila(f)}><X size={12} /></BotonIcono></td>
                   </tr>
                 )),
+                ...(col === "equipo_id" && htVisible ? [
+                  <tr key="ht" className="border-b border-line/70 bg-warn/5">
+                    <td className={td}><span className="min-w-0 truncate italic text-foreground/80">Herramientas manuales</span></td>
+                    <td className={`${td} text-center text-muted-foreground`}>%…</td>
+                    <td className={td}></td>
+                    <td className={td}><CeldaNum valor={pctHt} dec={2} sufijo="%mo" onGuardar={(v) => void guardarPctHt(v)} /></td>
+                    <td className={td}></td>
+                    <td className={`${td} text-right font-mono`}>{n2(totalMo)}</td>
+                    <td className={`${td} text-right font-mono`}>{n2(htTotal)}</td>
+                    <td />
+                  </tr>,
+                ] : []),
               ];
             })}
           </tbody>
@@ -494,7 +516,7 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
       </div>
       <div className="flex shrink-0 items-center justify-end gap-4 border-t border-line bg-muted/30 px-4 py-2">
         <span className="text-[15px] font-bold">Costo total del APU</span>
-        <span className="font-mono text-[15px] font-bold text-primary">S/ {n2(calc.total)}</span>
+        <span className="font-mono text-[15px] font-bold text-primary">S/ {n2(calc.total + htTotal)}</span>
       </div>
     </Panel>
 
