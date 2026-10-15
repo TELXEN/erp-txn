@@ -5,7 +5,33 @@ import { createPortal } from "react-dom";
 
 const RanuraEncabezado = createContext<HTMLElement | null>(null);
 import { FormatoGlobal } from "@/components/FormatoGlobal";
-import { Calculator, ChevronDown, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { Calculator, ChevronDown, PanelLeftClose, PanelLeftOpen, Maximize2, Minimize2 } from "lucide-react";
+
+function BotonPantallaCompleta() {
+  const [activa, setActiva] = useState(false);
+  useEffect(() => {
+    const actualizar = () => setActiva(!!document.fullscreenElement);
+    actualizar();
+    document.addEventListener("fullscreenchange", actualizar);
+    return () => document.removeEventListener("fullscreenchange", actualizar);
+  }, []);
+  const alternar = () => {
+    if (document.fullscreenElement) void document.exitFullscreen();
+    else void document.documentElement.requestFullscreen?.().catch(() => {});
+  };
+  const etiqueta = activa ? "Salir de pantalla completa" : "Pantalla completa";
+  return (
+    <button
+      type="button"
+      onClick={alternar}
+      title={etiqueta}
+      aria-label={etiqueta}
+      className="grid size-7 place-items-center rounded-md text-brand-foreground/70 transition-colors hover:bg-brand-foreground/10 hover:text-brand-foreground"
+    >
+      {activa ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
+    </button>
+  );
+}
 import {
   Activity,
   Banknote,
@@ -301,6 +327,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           >
             Cerrar Sesión
           </button>
+          <BotonPantallaCompleta />
         </header>
 
         <main className="min-w-0 flex-1 px-3 py-3 sm:px-4 md:min-h-0 md:overflow-y-auto md:overscroll-contain"><div className="mx-auto w-full max-w-[1600px]"><RanuraEncabezado.Provider value={ranura}>{children}</RanuraEncabezado.Provider></div></main>
