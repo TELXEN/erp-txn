@@ -921,7 +921,7 @@ export function CotizacionHoja({
 
   function editor(f: Fila, c: number) {
     const col = COLUMNAS[c] as Columna;
-    const alinear = col === "marca" || col === "unidad" || col === "metrado" ? "text-center" : col === "precio_unitario" ? "text-right font-mono" : col === "codigo" ? "font-mono" : "";
+    const alinear = col === "unidad" ? "text-left" : col === "marca" || col === "metrado" ? "text-center" : col === "precio_unitario" ? "text-right font-mono" : col === "codigo" ? "font-mono" : "";
     const comun = {
       autoFocus: true,
       value: valor,
