@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Plus, Trash2, Upload, X } from "lucide-react";
+import { Plus, Upload, X } from "lucide-react";
 import { Boton, BotonIcono, Select } from "@/components/ui-kit";
 import { BANCOS_RECURSO, costoReceta, dbBanco, useBancoTabla, useRecursosApu, type FilaCalculo } from "@/lib/banco-apu";
 import { r2, sumar2 } from "@/lib/decimal";
