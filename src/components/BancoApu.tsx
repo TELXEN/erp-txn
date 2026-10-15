@@ -152,6 +152,7 @@ function ListaBanco({ tabla, seleccion, onSeleccion, llena = false }: { tabla: T
     ? [...filasRaw].sort((a, b) => String(a.codigo_jerarquico ?? "").localeCompare(String(b.codigo_jerarquico ?? ""), "es", { numeric: true }))
     : filasRaw;
   const { data: especialidades = [] } = useEspecialidadesPartida();
+  const { data: unidades = [] } = useUnidadesMedida();
   const [busqueda, setBusqueda] = useState("");
   const [filtro, setFiltro] = useState("");
   const [estado, setEstado] = useState("activo");
@@ -164,6 +165,14 @@ function ListaBanco({ tabla, seleccion, onSeleccion, llena = false }: { tabla: T
     () => (cfg.filtro ? [...new Set(filas.map((f) => String(f[cfg.filtro!] ?? "")).filter(Boolean))].sort() : []),
     [filas, cfg.filtro],
   );
+  // Unidad siempre desde el catálogo de unidades; si el valor guardado no está en él, se muestra igual para no perderlo.
+  const undOpciones = useMemo(() => {
+    const act = unidades.filter((u) => u.activo);
+    const cur = String(form?.unidad ?? "").trim();
+    if (cur && !act.some((u) => u.simbolo === cur))
+      return [{ id: `fuera:${cur}`, simbolo: cur, descripcion: "fuera del catálogo", orden: -1, activo: true }, ...act];
+    return act;
+  }, [unidades, form?.unidad]);
   const visibles = filas.filter(
     (f) =>
       (!estado || f.estado === estado) &&
@@ -284,10 +293,18 @@ function ListaBanco({ tabla, seleccion, onSeleccion, llena = false }: { tabla: T
             {cfg.campos.filter((c) => !c.soloSi || c.soloSi(form)).map((c) => (
               <Campo key={c.k} etiqueta={c.t}>
                 {c.tipo === "sel" ? (
-                  <Select value={form[c.k]} onChange={(e) => setForm({ ...form, [c.k]: e.target.value })}>
-                    {c.k === "especialidad" && <option value="">—</option>}
-                    {(c.opciones ?? especialidades.map((e: { nombre: string }) => e.nombre)).map((o) => <option key={o}>{o}</option>)}
-                  </Select>
+                  c.k === "unidad" ? (
+                    <Select value={form[c.k]} onChange={(e) => setForm({ ...form, [c.k]: e.target.value })}>
+                      {undOpciones.map((u) => (
+                        <option key={u.id} value={u.simbolo}>{u.simbolo} · {u.descripcion}</option>
+                      ))}
+                    </Select>
+                  ) : (
+                    <Select value={form[c.k]} onChange={(e) => setForm({ ...form, [c.k]: e.target.value })}>
+                      {c.k === "especialidad" && <option value="">—</option>}
+                      {(c.opciones ?? especialidades.map((e: { nombre: string }) => e.nombre)).map((o) => <option key={o}>{o}</option>)}
+                    </Select>
+                  )
                 ) : (
                   <Input type={c.tipo === "num" ? "number" : "text"} step="any" value={form[c.k]} autoFocus={c.k === "descripcion"}
                     onChange={(e) => setForm({ ...form, [c.k]: e.target.value })} />
@@ -598,8 +615,12 @@ function DialogoNuevaPartida({ partidas, onCerrar, onGuardado }: { partidas: Fil
   const { data: unidades = [] } = useUnidadesMedida();
   const [f, setF] = useState({ especialidad: "", codigo: "", descripcion: "", unidad: "und", rendimiento: "1" });
   const [error, setError] = useState("");
-  const listaUnd = unidades.filter((u) => u.activo).map((u) => u.simbolo);
-  const unds = listaUnd.length ? listaUnd : ["und", "m", "m2", "m3", "kg", "glb"];
+  const listaUnd = unidades.filter((u) => u.activo);
+  const unds = listaUnd.map((u) => u.simbolo);
+  const etiquetaUnd = (s: string) => {
+    const u = listaUnd.find((x) => x.simbolo === s);
+    return u ? `${u.simbolo} · ${u.descripcion}` : s;
+  };
 
   function elegirEsp(nombre: string) {
     const pref = especialidades.find((e) => e.nombre === nombre)?.codigo ?? "";
