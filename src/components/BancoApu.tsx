@@ -465,7 +465,7 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
       </div>
       <div className="min-h-0 flex-1 overflow-auto">
         <table className="w-full table-fixed border-collapse">
-          <colgroup><col /><col style={{ width: 34 }} /><col style={{ width: 50 }} /><col style={{ width: 100 }} /><col style={{ width: 34 }} /><col style={{ width: 56 }} /><col style={{ width: 60 }} /><col style={{ width: 24 }} /></colgroup>
+          <colgroup><col /><col style={{ width: 34 }} /><col style={{ width: 50 }} /><col style={{ width: 100 }} /><col style={{ width: 56 }} /><col style={{ width: 60 }} /><col style={{ width: 24 }} /></colgroup>
           <thead className="sticky top-0 z-10 bg-card">
             <tr className="border-b border-line">
               <th className={`${th} text-left`}>Descripción</th><th className={`${th} text-center`}>Unid.</th>
