@@ -125,7 +125,7 @@ function Cotizaciones() {
     especialidad: "",
     categoria: "",
     marca: "",
-    unidad: "glb",
+    unidad: "GLB",
     metrado: "1",
     precio_unitario: "",
   });
@@ -301,7 +301,7 @@ function Cotizaciones() {
       codigo: siguienteCodigoSubpartida(padre.codigo, items.filter((x) => x.padre_id === padre.id)),
       nombre: "",
       marca: padre.marca ?? "",
-      unidad: padre.unidad || "glb",
+      unidad: padre.unidad || "GLB",
       metrado: "1",
       precio_unitario: "",
     });

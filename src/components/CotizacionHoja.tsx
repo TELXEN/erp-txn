@@ -421,7 +421,7 @@ export function CotizacionHoja({
       categoria: cat,
       grupo: cat ? grupoDeCat(items, esp, cat) : "",
       marca: "",
-      unidad: f.clase === "item" ? f.it.unidad : "glb",
+      unidad: f.clase === "item" ? f.it.unidad : "GLB",
       metrado: 1,
       precio_unitario: 0,
       orden: items.length + 1,
@@ -445,7 +445,7 @@ export function CotizacionHoja({
     }
   }
 
-  async function crearPartida(esp: string, cat: string, nombre: string, unidad = "glb", maestra?: PartidaMaestra) {
+  async function crearPartida(esp: string, cat: string, nombre: string, unidad = "GLB", maestra?: PartidaMaestra) {
     setError("");
     const categoria = maestra ? maestra.categoria || cat : cat;
     let precioUnitario = 0;
@@ -503,7 +503,7 @@ export function CotizacionHoja({
         especialidad: padre.especialidad,
         categoria: padre.categoria ?? "",
         marca: padre.marca ?? "",
-        unidad: padre.unidad || "glb",
+        unidad: padre.unidad || "GLB",
         metrado: 1,
         precio_unitario: 0,
         orden: items.length + 1,
@@ -619,7 +619,7 @@ export function CotizacionHoja({
       categoria: cat,
       grupo: grp,
       marca: "",
-      unidad: "glb",
+      unidad: "GLB",
       metrado: 0,
       precio_unitario: 0,
       orden: items.length + 1,
@@ -748,7 +748,7 @@ export function CotizacionHoja({
         categoria,
         grupo,
         marca: "",
-        unidad: "glb",
+        unidad: "GLB",
         metrado: 0,
         precio_unitario: 0,
         orden: items.length + indice + 1,
