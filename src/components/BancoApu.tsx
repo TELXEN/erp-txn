@@ -77,7 +77,7 @@ const useTabla = (t: Tabla | "partida_detalle") =>
   useQuery({
     queryKey: ["banco_apu", t],
     queryFn: async () => {
-      const { data, error } = await db.from(t).select("*").order("created_at");
+      const { data, error } = await (t === "partida_detalle" ? db.from(t).select("*").order("orden") : db.from(t).select("*")).order("created_at");
       if (error) throw error;
       return (data ?? []) as Fila[];
     },

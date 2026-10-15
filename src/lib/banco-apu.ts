@@ -288,7 +288,7 @@ export async function copiarRecetaACotizacion(itemId: string, partidaApuId: stri
   const { error: e1 } = await dbBanco.from("cotizacion_apu_detalle").delete().eq("cotizacion_item_id", itemId);
   if (e1) throw e1;
   if (filas.length) {
-    const { error: e2 } = await dbBanco.from("cotizacion_apu_detalle").insert(filas.map((f) => ({ ...f, cotizacion_item_id: itemId })));
+    const { error: e2 } = await dbBanco.from("cotizacion_apu_detalle").insert(filas.map((f, i) => ({ ...f, cotizacion_item_id: itemId, orden: (i + 1) * 10 })));
     if (e2) throw e2;
   }
   const pu = Math.round(costoReceta(filas, recursos, rend, 8).total * 10000) / 10000;
