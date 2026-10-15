@@ -434,6 +434,15 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
   const th = "h-[30px] !py-0 border-r border-line px-1 text-[12px] font-semibold text-foreground/80 whitespace-nowrap last:border-r-0";
   const td = "h-[26px] !py-0 leading-none border-r border-line/70 px-1.5 align-middle text-[12px] whitespace-nowrap";
   const totalMo = sumar2(calc.filas.filter((f) => f.col === "mano_obra_id").map((f) => f.parcial));
+  // Herramientas manuales: % editable sobre la mano de obra (defecto 5 %); solo si hay MO.
+  const htVisible = totalMo > 0;
+  const htTotal = htVisible ? r2((totalMo * pctHt) / 100) : 0;
+  async function guardarPctHt(v: number) {
+    if (!(v >= 0)) return;
+    setPctHt(v);
+    await db.from("partidas_apu").update({ pct_herramientas: v }).eq("id", partida.id);
+    await qc.invalidateQueries({ queryKey: ["banco_apu", "partidas_apu"] });
+  }
 
   return (
     <>
