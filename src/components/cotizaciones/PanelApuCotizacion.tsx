@@ -278,7 +278,7 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
                     ...(t === "EQ" && htVisible ? [
                       <tr key="ht" className="border-b border-line/70 bg-warn/5">
                         <td className={`${td} font-mono text-[11px] text-muted-foreground`}>HT</td>
-                        <td className={td}><span className="min-w-0 truncate italic text-foreground/80">Herramientas manuales</span></td>
+                        <td className={td}><span className="block min-w-0 truncate italic text-foreground/80" title="Herramientas manuales">Herramientas manuales</span></td>
                         <td className={`${td} text-center text-muted-foreground`}>%…</td>
                         <td className={td}></td>
                         <td className={td}><CeldaNum valor={pctHt} dec={2} sufijo="%mo" onGuardar={(v) => void guardarPctHt(v)} /></td>
