@@ -766,7 +766,7 @@ function consolidarApu(costo: (id: string) => { total: number; filas: FilaC[] },
       if (f.col === "subpartida_hijo_id") { caminar(String(f.d[f.col])); continue; }
       const k = `${f.col}:${f.d[f.col]}`;
       const a = mapa.get(k) ?? { k, nombre: f.nombre, und: f.und, col: f.col, cu: f.cu, cantidad: 0, parcial: 0, pct: !!f.pct };
-      a.cantidad += Number(f.d.cantidad_o_cuadrilla) || 0;
+      a.cantidad += f.q;
       a.parcial += f.parcial;
       mapa.set(k, a);
     }
