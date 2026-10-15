@@ -459,7 +459,7 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
           <thead className="sticky top-0 z-10 bg-card">
             <tr className="border-b border-line">
               <th className={`${th} text-left`}>Descripción</th><th className={`${th} text-center`}>Unid.</th>
-              <th className={`${th} text-right`}>Nro. Rec.</th><th className={`${th} text-right`}>Cantidad</th>
+              <th className={`${th} text-right`}>Recurso</th><th className={`${th} text-right`}>Cantidad</th>
               <th className={`${th} text-right`}>% De…</th><th className={`${th} text-right`}>Precio</th>
               <th className={`${th} text-right`}>Total</th><th />
             </tr>
