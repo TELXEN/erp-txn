@@ -481,7 +481,7 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
               const sub = sumar2(filas.map((f) => f.parcial)) + (col === "equipo_id" ? htTotal : 0);
               return [
                 <tr key={col} className="border-b border-line bg-muted/60">
-                  <td colSpan={6} className={`${td} font-bold text-foreground/80`}>▾ {titulo}</td>
+                  <td colSpan={5} className={`${td} font-bold text-foreground/80`}>▾ {titulo}</td>
                   <td className={`${td} text-right font-mono font-bold`}>{n2(sub)}</td>
                   <td className="h-[26px] !py-0 px-0.5"><BotonIcono etiqueta={`Agregar a ${titulo.toLowerCase()}`} tono="primario" className="size-5" onClick={() => setAgregar(g)}><Plus size={13} /></BotonIcono></td>
                 </tr>,
