@@ -729,7 +729,7 @@ function Cotizaciones() {
           </Panel>
         )}
 
-        <div className="flex flex-col gap-2 bg-muted/60 px-2 py-2 lg:h-[calc(100dvh-226px)] lg:min-h-0 lg:flex-1 lg:flex-row lg:overflow-hidden">
+        <div className="flex flex-col gap-2 bg-muted/60 px-2 py-2 lg:h-[calc(100dvh-226px)] lg:min-h-0 lg:flex-row lg:overflow-hidden">
           <div className="flex min-h-0 flex-col lg:w-[60%]">
           <div className="min-h-0 flex-1 overflow-auto">
           <HojaCotizacion cot={cot} items={items} clientes={clientes} mostrarEncabezado={encabezado}>
