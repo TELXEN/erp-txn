@@ -91,8 +91,8 @@ export function formatearSiGritado(texto: string, modo: ModoFormato) {
 const UNIDADES: Record<string, string> = {
   kw: "kW", mw: "MW", w: "W", kva: "kVA", mpa: "MPa", kpa: "kPa", pa: "Pa", psi: "psi", bar: "bar",
   m: "m", m2: "m²", "m²": "m²", m3: "m³", "m³": "m³", cm: "cm", mm: "mm", km: "km", ml: "ml",
-  kg: "kg", g: "g", ton: "ton", t: "ton", h: "h", hh: "hh", hm: "hm", min: "min", mes: "mes",
-  dia: "día", "día": "día", und: "und", u: "und", unid: "und", glb: "glb", gl: "gl", l: "L", lt: "L",
+  kg: "kg", g: "g", ton: "ton", t: "ton", h: "h", hh: "H-H", "h-h": "H-H", hm: "H-M", "h-m": "H-M", min: "min", mes: "mes",
+  dia: "día", "día": "día", und: "und", u: "und", unid: "und", glb: "GLB", gl: "gl", l: "L", lt: "L",
   v: "V", kv: "kV", a: "A", pto: "pto", par: "par", jgo: "jgo", rll: "rll", bls: "bls", pza: "pza",
 };
 export function normalizarUnidad(texto: string) {
