@@ -391,7 +391,7 @@ function useApuMaestro() {
 const n2 = (n: number) => n.toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const n4 = (n: number) => n.toLocaleString("es-PE", { minimumFractionDigits: 4, maximumFractionDigits: 4 });
 
-function CeldaNum({ valor, dec, onGuardar, deshabilitado }: { valor: number; dec: number; onGuardar?: (v: number) => void; deshabilitado?: boolean }) {
+function CeldaNum({ valor, dec, onGuardar, deshabilitado }: { valor: number; dec: number; onGuardar?: ((v: number) => void) | undefined; deshabilitado?: boolean | undefined }) {
   if (!onGuardar || deshabilitado)
     return <div className={`flex h-full items-center justify-end font-mono ${deshabilitado ? "text-muted-foreground/50" : ""}`}>{deshabilitado ? "—" : dec === 4 ? n4(valor) : n2(valor)}</div>;
   return (
