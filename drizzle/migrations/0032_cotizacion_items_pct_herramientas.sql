@@ -1,0 +1,1 @@
+ALTER TABLE public.cotizacion_items ADD COLUMN IF NOT EXISTS pct_herramientas numeric NOT NULL DEFAULT 5;

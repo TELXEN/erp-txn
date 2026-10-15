@@ -225,6 +225,13 @@
       "when": 1792066542221,
       "tag": "0031_apu_pct_herramientas",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1792067206531,
+      "tag": "0032_cotizacion_items_pct_herramientas",
+      "breakpoints": true
     }
   ]
 }
