@@ -69,7 +69,6 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
 
   useEffect(() => {
     setAviso("");
-    setDestino(null);
     setRendLocal(null);
     setJornadaLocal(null);
     setEditJornada(false);
@@ -139,28 +138,6 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
     await refrescar();
   }
 
-  const [col, tabla, etiqueta, tipo] = BANCOS_RECURSO[banco]!;
-  const opciones = (recursos[tabla as keyof typeof recursos] ?? []).filter((x) => x.estado === "activo");
-
-  async function agregar() {
-    const r = opciones.find((o) => o.id === elegido);
-    if (!r) return;
-    const pct = tabla === "equipos_herramientas" && r.unidad === "%";
-    const base = tabla === "mano_obra" ? Number(r.costo_hora) : pct ? Number(r.costo_hora) : Number(r.costo_unitario);
-    const fila = {
-      cotizacion_item_id: it.id, [col]: r.id, cantidad_o_cuadrilla: 1,
-      codigo: r.codigo ?? "", descripcion: r.descripcion ?? "", marca: r.marca ?? "", unidad: r.unidad ?? "", tipo_recurso: tipo,
-      precio_unitario: pct ? base : Math.round(base * factor * 10000) / 10000,
-      orden: destino?.orden ?? propias.reduce((s, d) => Math.max(s, Number(d.orden) || 0), 0) + 10,
-    };
-    const { data, error } = await dbBanco.from("cotizacion_apu_detalle").insert(fila).select("*").single();
-    if (error) return setAviso(error.message);
-    setElegido("");
-    setDestino(null);
-    await aplicarPu([...propias, data]);
-    await refrescar();
-  }
-
   function abrirMenu(e: React.MouseEvent, t: string, f: FilaCalculo | undefined, habilitadas: EstadoMenuApu["habilitadas"]) {
     e.preventDefault();
     setMenu({ x: e.clientX, y: e.clientY, t, f, habilitadas });
@@ -168,19 +145,9 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
   async function accionMenu(a: AccionApu, m: NonNullable<typeof menu>) {
     const { t, f } = m;
     if (a === "eliminar") return f && quitar(f.d.id as string);
-    const idx = BANCOS_RECURSO.findIndex((b) => b[3] === t);
-    if (a === "final" || !f) {
-      if (idx >= 0) { setBanco(idx); setElegido(""); }
-      setDestino(null);
-      return;
-    }
+    if (!f || a === "final" || a === "encima" || a === "debajo") return;
     const mapa = await renumerarApu("cotizacion_apu_detalle", propias as { id: string; orden?: number }[]);
     const base = mapa.get(f.d.id as string) ?? 0;
-    if (a === "encima" || a === "debajo") {
-      if (idx >= 0) { setBanco(idx); setElegido(""); }
-      setDestino({ orden: base + (a === "encima" ? -5 : 5), ref: f.d.id as string, texto: `${a === "encima" ? "encima de" : "debajo de"} «${f.nombre}»` });
-      return;
-    }
     const filasG = calc.filas.filter((x) => x.tipo === t);
     const i = filasG.findIndex((x) => x.d.id === f.d.id);
     const v = filasG[a === "subir" ? i - 1 : i + 1];
