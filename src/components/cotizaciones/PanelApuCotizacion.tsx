@@ -256,8 +256,9 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
                   const filas = calc.filas.filter((f) => f.tipo === t);
                   const sub = sumar2(filas.map((f) => f.parcial)) + (t === "EQ" ? htTotal : 0);
                   return [
-                    <tr key={t} className="border-b border-line bg-muted/60">
-                      <td colSpan={6} className={`${td} font-bold text-foreground/80`}>▾ {titulo}</td>
+                    <tr key={t} className="border-b border-line bg-muted/60"
+                      onContextMenu={(e) => abrirMenu(e, t, undefined, { final: true })}>
+                       <td colSpan={6} className={`${td} font-bold text-foreground/80`}>▾ {titulo}</td>
                       <td className={`${td} text-right font-mono font-bold`}>{num(sub)}</td>
                     </tr>,
                     ...filas.map((f, i) => {
@@ -265,7 +266,7 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
                       const hh = horaria ? (f.cantidad * jornada) / rend : f.cantidad;
                       return (
                         <tr key={f.d.id} className="border-b border-line/70 hover:bg-primary/5"
-                          onContextMenu={(e) => abrirMenu(e, t, f, { subir: i > 0, bajar: i < filas.length - 1, eliminar: true })}>
+                          onContextMenu={(e) => abrirMenu(e, t, f, { encima: true, debajo: true, final: true, subir: i > 0, bajar: i < filas.length - 1, eliminar: true })}>
                           <td className={`${td} font-mono text-[11px] text-muted-foreground`}><span className="block truncate" title={f.d.codigo ?? ""}>{f.d.codigo || "—"}</span></td>
                           <td className={td}><span className="block min-w-0 truncate" title={f.nombre}>{f.nombre}</span></td>
                           <td className={`${td} text-center text-muted-foreground`}>{f.esPctMo ? "%…" : f.und}</td>
@@ -301,7 +302,7 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
                 })}
               </tbody>
             </table>
-            {!propias.length && <p className="px-3 py-4 text-xs text-muted-foreground">Esta partida aún no tiene APU. Elige la partida desde el banco en la hoja; los insumos se agregan en el Banco APU.</p>}
+            {!propias.length && <p className="px-3 py-4 text-xs text-muted-foreground">Esta partida aún no tiene APU. Haz clic derecho sobre un grupo (Mano de Obra, Materiales…) para agregar insumos.</p>}
           </>
         )}
         {pestana === "esp" && <Especificaciones item={it} />}
