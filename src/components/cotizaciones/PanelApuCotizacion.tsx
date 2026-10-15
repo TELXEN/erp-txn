@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Plus, Trash2, Upload, X } from "lucide-react";
+import { Plus, Upload, X } from "lucide-react";
 import { Boton, BotonIcono, Select } from "@/components/ui-kit";
 import { BANCOS_RECURSO, costoReceta, dbBanco, useBancoTabla, useRecursosApu, type FilaCalculo } from "@/lib/banco-apu";
 import { r2, sumar2 } from "@/lib/decimal";
@@ -15,8 +15,7 @@ export const GRUPOS_RECURSO: [string, string][] = [
   ["SC", "SUBCONTRATOS"],
 ];
 
-type Pestana = "acu" | "esp" | "metrado" | "consolidado";
-type LineaMetrado = { desc: string; veces: number; largo: number; ancho: number; alto: number };
+type Pestana = "acu" | "esp";
 
 const num = (n: number, d = 2) => Number(n || 0).toLocaleString("es-PE", { minimumFractionDigits: d, maximumFractionDigits: d });
 
@@ -306,31 +305,6 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
           </>
         )}
         {pestana === "esp" && <Especificaciones item={it} />}
-        {pestana === "metrado" && <Metrado item={it} cotId={cot.id} />}
-        {pestana === "consolidado" && (
-          <table className="w-full font-mono text-xs">
-            <tbody>
-              {GRUPOS_RECURSO.map(([t, titulo]) => {
-                const sub = calc.filas.filter((f) => f.tipo === t).reduce((s, f) => s + f.parcial, 0) + (t === "EQ" ? htTotal : 0);
-                const totalC = calc.total + htTotal;
-                return (
-                  <tr key={t} className="border-b border-line/50">
-                    <td className="px-3 py-1.5">{titulo}</td>
-                    <td className="px-3 py-1.5 text-right">{totalC ? num((sub / totalC) * 100) : "0.00"}%</td>
-                    <td className="px-3 py-1.5 text-right">{sim} {num(sub)}</td>
-                    <td className="px-3 py-1.5 text-right text-muted-foreground">{sim} {num(sub * Number(it.metrado))}</td>
-                  </tr>
-                );
-              })}
-              <tr className="font-semibold">
-                <td className="px-3 py-1.5">Costo unitario / Parcial</td>
-                <td />
-                <td className="px-3 py-1.5 text-right">{sim} {num(calc.total + htTotal)}</td>
-                <td className="px-3 py-1.5 text-right">{sim} {num((calc.total + htTotal) * Number(it.metrado))}</td>
-              </tr>
-            </tbody>
-          </table>
-        )}
       </div>
 
       {pestana === "acu" && (
@@ -346,7 +320,7 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
         </div>
       )}
       <div className="flex border-t border-line bg-muted/40 text-[11px]">
-        {([["acu", "Análisis de costo unitario"], ["esp", "Especificaciones técnicas"], ["metrado", "Metrado"], ["consolidado", "Consolidado de partida"]] as [Pestana, string][]).map(([p, t]) => (
+        {([["acu", "Análisis de costo unitario"], ["esp", "Especificaciones técnicas"]] as [Pestana, string][]).map(([p, t]) => (
           <button key={p} type="button" onClick={() => setPestana(p)}
             className={`flex-1 truncate border-t-2 px-2 py-1.5 ${pestana === p ? "border-primary bg-card font-semibold text-primary" : "border-transparent text-muted-foreground hover:text-primary"}`}>
             {t}
@@ -371,55 +345,6 @@ function Especificaciones({ item }: { item: CotizacionItem }) {
   );
 }
 
-function Metrado({ item, cotId }: { item: CotizacionItem; cotId: string }) {
-  const qc = useQueryClient();
-  const guardado = ((item as { metrado_detalle?: LineaMetrado[] }).metrado_detalle ?? []) as LineaMetrado[];
-  const [lineas, setLineas] = useState<LineaMetrado[]>(guardado);
-  useEffect(() => setLineas(guardado), [item.id]); // eslint-disable-line react-hooks/exhaustive-deps
-  const parcial = (l: LineaMetrado) => (l.veces || 0) * (l.largo || 1) * (l.ancho || 1) * (l.alto || 1);
-  const total = lineas.reduce((s, l) => s + parcial(l), 0);
-  const set = (i: number, k: keyof LineaMetrado, v: string) =>
-    setLineas((p) => p.map((l, j) => (j === i ? { ...l, [k]: k === "desc" ? v : Number(v || 0) } : l)));
-  async function guardar(aplicar: boolean) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const cambios: any = { metrado_detalle: lineas };
-    if (aplicar) cambios.metrado = Math.round(total * 10000) / 10000;
-    await dbBanco.from("cotizacion_items").update(cambios).eq("id", item.id);
-    qc.invalidateQueries({ queryKey: ["cotizacion_items", cotId] });
-  }
-  return (
-    <div className="p-2">
-      <table className="w-full font-mono text-[11px]">
-        <thead>
-          <tr className="text-left text-[10px] uppercase text-muted-foreground">
-            <th className="px-1 py-1 font-medium">Descripción</th>
-            {["Veces", "Largo", "Ancho", "Alto", "Parcial"].map((h) => <th key={h} className="w-14 px-1 py-1 text-right font-medium">{h}</th>)}
-            <th className="w-5" />
-          </tr>
-        </thead>
-        <tbody>
-          {lineas.map((l, i) => (
-            <tr key={i} className="border-b border-line/40">
-              <td><input value={l.desc} onChange={(e) => set(i, "desc", e.target.value)} className="w-full bg-transparent px-1 outline-none" /></td>
-              {(["veces", "largo", "ancho", "alto"] as const).map((k) => (
-                <td key={k}><input type="number" value={l[k] || ""} onChange={(e) => set(i, k, e.target.value)} className="w-full bg-transparent px-1 text-right outline-none" /></td>
-              ))}
-              <td className="px-1 text-right">{num(parcial(l))}</td>
-              <td><button type="button" onClick={() => setLineas((p) => p.filter((_, j) => j !== i))} className="text-muted-foreground hover:text-bad"><Trash2 size={11} /></button></td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <div className="mt-2 flex flex-wrap items-center gap-2">
-        <Boton variante="linea" onClick={() => setLineas((p) => [...p, { desc: "", veces: 1, largo: 0, ancho: 0, alto: 0 }])}><Plus size={12} /> Línea</Boton>
-        <span className="ml-auto font-mono text-xs">Total: {num(total, 4)} {item.unidad}</span>
-        <Boton variante="linea" onClick={() => void guardar(false)}>Guardar</Boton>
-        <Boton onClick={() => void guardar(true)}>Aplicar al metrado</Boton>
-      </div>
-      <p className="mt-2 text-[10px] text-muted-foreground">Las medidas vacías cuentan como 1.</p>
-    </div>
-  );
-}
 
 /** Pie: incidencia por tipo de recurso y resumen de costos de toda la cotización. */
 export function ResumenCotizacion({ cot, items }: { cot: Cotizacion; items: CotizacionItem[] }) {
