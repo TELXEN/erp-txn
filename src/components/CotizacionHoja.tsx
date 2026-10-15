@@ -192,6 +192,7 @@ export function CotizacionHoja({
   const celdas = useRef(new Map<string, HTMLTableCellElement | null>());
   const [conApu, setConApu] = useState<Set<string>>(new Set());
   const [grupoDialogo, setGrupoDialogo] = useState(false);
+  const [catDialogo, setCatDialogo] = useState<{ esp: string; grp: string } | null>(null);
   /** Qué crea el diálogo: "esp" = especialidad/capítulo; "grp" = grupo del catálogo (solo multidisciplinarias). */
   const [modoGrupo, setModoGrupo] = useState<"esp" | "grp">("esp");
   const [nombreGrupo, setNombreGrupo] = useState("");
@@ -643,23 +644,29 @@ export function CotizacionHoja({
     if (ok) setGrupoDialogo(false);
   }
 
-  /** Añade la siguiente categoría libre del catálogo maestro (dentro del grupo, si se indica). */
-  async function nuevaCategoria(esp: string, grp = "") {
+  /** Categorías del catálogo maestro disponibles para la especialidad (dentro del grupo, si se indica). */
+  function candidatasCategoria(esp: string, grp = "") {
     const usadas = new Set(items.filter((i) => i.especialidad === esp).map((i) => (i.categoria ?? "").trim()));
     const g = (c: (typeof catalogoCat)[number]) => (c as { grupo?: string }).grupo ?? "";
     const candidatas = multi
       ? (() => {
           const base = categoriasDe(esp, catalogoCat);
           const orden = grp ? [...base.filter((c) => g(c) === grp), ...base.filter((c) => g(c) !== grp)] : base;
-          return orden.map((c) => c.nombre);
+          return orden;
         })()
       : (() => {
           // Primero las asociadas a este grupo, luego las sin grupo y al final el resto.
           const activas = catalogoCat.filter((c) => c.activo);
           const orden = [...activas.filter((c) => g(c) === esp), ...activas.filter((c) => !g(c)), ...activas.filter((c) => g(c) && g(c) !== esp)];
-          return [...new Set(orden.map((c) => c.nombre))];
+          const vistas = new Set<string>();
+          return orden.filter((c) => (vistas.has(c.nombre) ? false : (vistas.add(c.nombre), true)));
         })();
-    const libre = candidatas.find((n) => !usadas.has(n));
+    return candidatas.map((c) => ({ ...c, usada: usadas.has(c.nombre) }));
+  }
+
+  /** Inserta la categoría elegida del catálogo maestro. */
+  async function nuevaCategoria(esp: string, grp = "", nombre?: string) {
+    const libre = nombre ?? candidatasCategoria(esp, grp).find((c) => !c.usada)?.nombre;
     if (!libre)
       return setError(`No quedan categorías libres para ${esp}. Regístralas en Datos › Catálogo técnico.`);
     await crearGrupo(esp, libre, grp);
@@ -1184,10 +1191,70 @@ export function CotizacionHoja({
       </Dialog>
   );
 
+  const dialogoCategoria = (
+    <Dialog open={catDialogo !== null} onOpenChange={(v) => !v && setCatDialogo(null)}>
+      <DialogContent className="max-w-sm print:hidden">
+        <DialogHeader>
+          <DialogTitle>Agregar categoría{catDialogo ? ` · ${catDialogo.esp}` : ""}</DialogTitle>
+        </DialogHeader>
+        {catDialogo && (
+          <div className="space-y-3">
+            {(() => {
+              const lista = candidatasCategoria(catDialogo.esp, catDialogo.grp);
+              const libres = lista.filter((c) => !c.usada);
+              if (!lista.length)
+                return (
+                  <p className="text-xs text-muted-foreground">
+                    No hay categorías registradas para esta {multi ? "especialidad" : "agrupación"}. Regístralas en Datos › Catálogo técnico.
+                  </p>
+                );
+              if (!libres.length)
+                return <p className="text-xs text-muted-foreground">Todas las categorías del catálogo ya están en la hoja.</p>;
+              return (
+                <ul className="max-h-64 space-y-1 overflow-y-auto rounded-md border border-line p-1.5">
+                  {lista.map((c) => (
+                    <li
+                      key={c.id}
+                      role="button"
+                      tabIndex={c.usada ? -1 : 0}
+                      aria-disabled={c.usada}
+                      onClick={() => {
+                        if (c.usada) return;
+                        void nuevaCategoria(catDialogo.esp, catDialogo.grp, c.nombre).then(() => setCatDialogo(null));
+                      }}
+                      onKeyDown={(e) => {
+                        if (c.usada || e.key !== "Enter") return;
+                        void nuevaCategoria(catDialogo.esp, catDialogo.grp, c.nombre).then(() => setCatDialogo(null));
+                      }}
+                      className={`flex items-center justify-between rounded px-2 py-1 text-[12.5px] ${
+                        c.usada ? "cursor-not-allowed text-muted-foreground/60" : "cursor-pointer hover:bg-muted hover:text-primary"
+                      }`}
+                    >
+                      <span>{c.nombre}</span>
+                      <span className="font-mono text-[10.5px] text-muted-foreground">{c.usada ? "en la hoja" : c.codigo}</span>
+                    </li>
+                  ))}
+                </ul>
+              );
+            })()}
+            <p className="font-mono text-[10.5px] leading-relaxed text-muted-foreground">
+              Las categorías salen del catálogo maestro (Datos › Catálogo técnico); su código ordena la numeración de la hoja.
+            </p>
+            {error && <p className="font-mono text-xs text-bad">{error}</p>}
+          </div>
+        )}
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setCatDialogo(null)}>Cerrar</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+
   if (!items.length)
     return (
       <>
       {dialogoGrupo}
+      {dialogoCategoria}
       <div className="flex flex-col items-center gap-4 px-6 py-14 text-center print:hidden">
         <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Hoja en blanco</p>
         <h3 className="text-base font-semibold text-ink">¿Cómo quieres empezar el presupuesto?</h3>
@@ -1324,7 +1391,7 @@ export function CotizacionHoja({
                     </ContextMenuItem>
                   )}
                   {(cap || esGrp) && (
-                    <ContextMenuItem onSelect={() => void nuevaCategoria(f.esp, f.clase === "grp" ? f.grp : "")}>
+                    <ContextMenuItem onSelect={() => setCatDialogo({ esp: f.esp, grp: f.clase === "grp" ? f.grp : "" })}>
                       <FolderPlus size={14} className="mr-2" /> Agregar categoría
                     </ContextMenuItem>
                   )}
@@ -1547,6 +1614,7 @@ export function CotizacionHoja({
         </span>
       </div>
       {dialogoGrupo}
+      {dialogoCategoria}
     </>
   );
 }
