@@ -54,6 +54,7 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
   const [jornadaLocal, setJornadaLocal] = useState<number | null>(null);
   const [pctHt, setPctHt] = useState(5);
   const [menu, setMenu] = useState<(EstadoMenuApu & { t: string; f: FilaCalculo | undefined }) | null>(null);
+  const [agregar, setAgregar] = useState<{ t: string; orden: number } | null>(null);
   const cerrarMenu = useCallback(() => setMenu(null), []);
   const sim = cot.moneda === "USD" ? "US$" : "S/";
   const factor = cot.moneda === "USD" ? 1 / (Number(cot.tipo_cambio) || 1) : 1;
@@ -145,7 +146,16 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
   async function accionMenu(a: AccionApu, m: NonNullable<typeof menu>) {
     const { t, f } = m;
     if (a === "eliminar") return f && quitar(f.d.id as string);
-    if (!f || a === "final" || a === "encima" || a === "debajo") return;
+    if (a === "final" || a === "encima" || a === "debajo") {
+      const mapa = await renumerarApu("cotizacion_apu_detalle", propias as { id: string; orden?: number }[]);
+      const filasG = calc.filas.filter((x) => x.tipo === t);
+      let orden = 10;
+      if (a === "final" && filasG.length) orden = (mapa.get(filasG[filasG.length - 1].d.id as string) ?? filasG.length * 10) + 10;
+      else if (f) orden = (mapa.get(f.d.id as string) ?? 0) + (a === "encima" ? -5 : 5);
+      setAgregar({ t, orden });
+      return;
+    }
+    if (!f) return;
     const mapa = await renumerarApu("cotizacion_apu_detalle", propias as { id: string; orden?: number }[]);
     const base = mapa.get(f.d.id as string) ?? 0;
     const filasG = calc.filas.filter((x) => x.tipo === t);
