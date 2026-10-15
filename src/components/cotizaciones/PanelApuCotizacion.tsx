@@ -214,6 +214,12 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
   return (
     <div className="flex h-full min-h-0 flex-col">
       {menu && <MenuContextualApu menu={menu} onCerrar={cerrarMenu} onAccion={(a) => void accionMenu(a, menu)} />}
+      {agregar && (
+        <DialogoAgregarInsumoCot tipo={agregar.t} orden={agregar.orden} itemId={it.id} nombrePartida={it.nombre}
+          recursos={recursos} existentes={propias}
+          onCerrar={() => setAgregar(null)}
+          onGuardado={async (nuevas) => { setAgregar(null); await aplicarPu(nuevas); await refrescar(); }} />
+      )}
       <div className="border-b border-line px-3 py-2">
         <p className="truncate text-xs font-semibold text-ink" title={it.nombre}>{it.codigo} · {it.nombre}</p>
       </div>
