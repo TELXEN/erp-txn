@@ -1,13 +1,14 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Calculator, Pencil, Plus, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Boton, BotonIcono, Campo, Etiqueta, Input, Panel, Select, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
+import { MenuContextualApu, type AccionApu, type EstadoMenuApu } from "@/components/MenuContextualApu";
 import { soles } from "@/lib/format";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
 import { useUnidadesMedida } from "@/lib/unidades";
-import { siguienteCodigoJerarquico } from "@/lib/banco-apu";
+import { renumerarApu, siguienteCodigoJerarquico } from "@/lib/banco-apu";
 import { r2, r4, sumar2 } from "@/lib/decimal";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -77,7 +78,7 @@ const useTabla = (t: Tabla | "partida_detalle") =>
   useQuery({
     queryKey: ["banco_apu", t],
     queryFn: async () => {
-      const { data, error } = await db.from(t).select("*").order("created_at");
+      const { data, error } = await (t === "partida_detalle" ? db.from(t).select("*").order("orden") : db.from(t).select("*")).order("created_at");
       if (error) throw error;
       return (data ?? []) as Fila[];
     },
@@ -419,6 +420,9 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
   const qc = useQueryClient();
   const { costo, fuentes, detalles } = useApuMaestro();
   const [agregar, setAgregar] = useState<Grupo | null>(null);
+  const [menu, setMenu] = useState<(EstadoMenuApu & { g: Grupo; f: FilaC | undefined }) | null>(null);
+  const cerrarMenu = useCallback(() => setMenu(null), []);
+  const [ordenNuevo, setOrdenNuevo] = useState<number | null>(null);
   const [rendLocal, setRendLocal] = useState<number | null>(null);
   const [editJornada, setEditJornada] = useState(false);
   const [jornada, setJornada] = useState<number>(() => Number(localStorage.getItem(`banco-apu:jornada:${partida.id}`)) || 8);
@@ -461,8 +465,37 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
     await qc.invalidateQueries({ queryKey: ["banco_apu", "partidas_apu"] });
   }
 
+  const propiasOrden = detalles.filter((d) => d.partida_padre_id === partida.id);
+  function abrirMenu(e: React.MouseEvent, g: Grupo, f: FilaC | undefined, habilitadas: EstadoMenuApu["habilitadas"]) {
+    e.preventDefault();
+    setMenu({ x: e.clientX, y: e.clientY, g, f, habilitadas });
+  }
+  async function accionMenu(a: AccionApu, m: NonNullable<typeof menu>) {
+    const { g, f } = m;
+    if (a === "eliminar") return f && quitarFila(f);
+    if (a === "final" || !f) {
+      const max = propiasOrden.reduce((s, d) => Math.max(s, Number(d.orden) || 0), 0);
+      setOrdenNuevo(max + 10);
+      return setAgregar(g);
+    }
+    const mapa = await renumerarApu("partida_detalle", propiasOrden as { id: string; orden?: number }[]);
+    const base = mapa.get(f.d.id as string) ?? 0;
+    if (a === "encima" || a === "debajo") {
+      setOrdenNuevo(base + (a === "encima" ? -5 : 5));
+      return setAgregar(g);
+    }
+    const filasG = calc.filas.filter((x) => x.col === g[0]);
+    const i = filasG.findIndex((x) => x.d.id === f.d.id);
+    const v = filasG[a === "subir" ? i - 1 : i + 1];
+    if (!v) return refrescar();
+    const ov = mapa.get(v.d.id as string) ?? 0;
+    await Promise.all([db.from("partida_detalle").update({ orden: ov }).eq("id", f.d.id), db.from("partida_detalle").update({ orden: base }).eq("id", v.d.id)]);
+    refrescar();
+  }
+
   return (
     <>
+    {menu && <MenuContextualApu menu={menu} onCerrar={cerrarMenu} onAccion={(a) => void accionMenu(a, menu)} />}
     <Panel titulo={`${partida.codigo_jerarquico || "s/c"} · ${partida.descripcion}`} className="flex h-full flex-col">
       <div className="flex shrink-0 flex-wrap items-center gap-4 border-b border-line bg-muted/50 px-4 py-2 text-[13px] shadow-sm">
         <label className="flex items-center gap-2"><span className="font-bold text-foreground/80">Rend. diario</span>
@@ -482,13 +515,13 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
       </div>
       <div className="min-h-0 flex-1 overflow-auto">
         <table className="w-full table-fixed border-collapse">
-          <colgroup><col style={{ width: 74 }} /><col /><col style={{ width: 34 }} /><col style={{ width: 52 }} /><col style={{ width: 78 }} /><col style={{ width: 50 }} /><col style={{ width: 62 }} /><col style={{ width: 20 }} /></colgroup>
+          <colgroup><col style={{ width: 74 }} /><col /><col style={{ width: 34 }} /><col style={{ width: 52 }} /><col style={{ width: 78 }} /><col style={{ width: 50 }} /><col style={{ width: 62 }} /></colgroup>
           <thead className="sticky top-0 z-10 bg-card">
             <tr className="border-b border-line">
               <th className={`${th} text-left`}>Código</th><th className={`${th} text-left`}>Descripción</th><th className={`${th} text-center`}>Unid.</th>
               <th className={`${th} text-right`}>Recurso</th><th className={`${th} text-right`}>Cantidad</th>
               <th className={`${th} text-right`}>Precio</th>
-              <th className={`${th} text-right`}>Total</th><th />
+              <th className={`${th} text-right`}>Total</th>
             </tr>
           </thead>
           <tbody>
@@ -497,13 +530,13 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
               const filas = calc.filas.filter((f) => f.col === col);
               const sub = sumar2(filas.map((f) => f.parcial)) + (col === "equipo_id" ? htTotal : 0);
               return [
-                <tr key={col} className="border-b border-line bg-muted/60">
+                <tr key={col} className="border-b border-line bg-muted/60" onContextMenu={(e) => abrirMenu(e, g, undefined, { final: true })}>
                   <td colSpan={6} className={`${td} font-bold text-foreground/80`}>▾ {titulo}</td>
                   <td className={`${td} text-right font-mono font-bold`}>{n2(sub)}</td>
-                  <td className="h-[26px] !py-0 px-0.5"><BotonIcono etiqueta={`Agregar a ${titulo.toLowerCase()}`} tono="primario" className="size-5" onClick={() => setAgregar(g)}><Plus size={13} /></BotonIcono></td>
                 </tr>,
-                ...filas.map((f) => (
-                  <tr key={f.d.id} className="border-b border-line/70 hover:bg-primary/5">
+                ...filas.map((f, i) => (
+                  <tr key={f.d.id} className="border-b border-line/70 hover:bg-primary/5"
+                    onContextMenu={(e) => abrirMenu(e, g, f, { encima: true, debajo: true, final: true, subir: i > 0, bajar: i < filas.length - 1, eliminar: true })}>
                     <td className={`${td} font-mono text-[11px] text-muted-foreground`}><span className="block truncate" title={f.codigo ?? ""}>{f.codigo || "—"}</span></td>
                     <td className={td}><div className="flex min-w-0 items-center gap-1.5"><span className="min-w-0 truncate" title={f.nombre}>{f.nombre}</span></div></td>
                     <td className={`${td} text-center text-muted-foreground`}>{f.pct ? "%…" : f.und}</td>
@@ -511,11 +544,10 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
                     <td className={td}>{f.pct ? <CeldaNum valor={f.cu * f.q} dec={4} sufijo="%mo" onGuardar={(v) => f.cu > 0 && guardarQ(f, v / f.cu)} /> : <CeldaNum valor={f.cant} dec={4} sufijo={f.und.toLowerCase()} onGuardar={f.horas ? undefined : (v) => guardarQ(f, v)} />}</td>
                     <td className={`${td} text-right font-mono`}>{n2(f.pct ? totalMo : f.cu)}</td>
                     <td className={`${td} text-right font-mono`}>{n2(f.parcial)}</td>
-                    <td className="h-[26px] !py-0 px-0.5"><BotonIcono etiqueta="Quitar fila" tono="peligro" className="size-5" onClick={() => quitarFila(f)}><X size={12} /></BotonIcono></td>
                   </tr>
                 )),
                 ...(col === "equipo_id" && htVisible ? [
-                  <tr key="ht" className="border-b border-line/70 bg-warn/5">
+                  <tr key="ht" className="border-b border-line/70 bg-warn/5" onContextMenu={(e) => abrirMenu(e, g, undefined, { final: true })}>
                     <td className={`${td} font-mono text-[11px] text-muted-foreground`}>HT</td>
                     <td className={td}><span className="block min-w-0 truncate italic text-foreground/80" title="Herramientas manuales">Herramientas manuales</span></td>
                     <td className={`${td} text-center text-muted-foreground`}>%…</td>
@@ -523,7 +555,6 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
                     <td className={td}><CeldaNum valor={pctHt} dec={2} sufijo="%mo" onGuardar={(v) => void guardarPctHt(v)} /></td>
                     <td className={`${td} text-right font-mono`}>{n2(totalMo)}</td>
                     <td className={`${td} text-right font-mono`}>{n2(htTotal)}</td>
-                    <td />
                   </tr>,
                 ] : []),
               ];
@@ -539,15 +570,15 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
 
       {agregar && (
         <DialogoAgregarInsumo grupo={agregar} partida={partida} opciones={(fuentes[agregar[1]] ?? []).filter((x) => x.estado === "activo" && x.id !== partida.id)}
-          existentes={detalles.filter((d) => d.partida_padre_id === partida.id)}
+          existentes={detalles.filter((d) => d.partida_padre_id === partida.id)} orden={ordenNuevo ?? 0}
           onCerrar={() => setAgregar(null)} onGuardado={() => { setAgregar(null); refrescar(); }} />
       )}
     </>
   );
 }
 
-function DialogoAgregarInsumo({ grupo, partida, opciones, existentes, onCerrar, onGuardado }: {
-  grupo: Grupo; partida: Fila; opciones: Fila[]; existentes: Detalle[]; onCerrar: () => void; onGuardado: () => void;
+function DialogoAgregarInsumo({ grupo, partida, opciones, existentes, orden, onCerrar, onGuardado }: {
+  grupo: Grupo; partida: Fila; opciones: Fila[]; existentes: Detalle[]; orden: number; onCerrar: () => void; onGuardado: () => void;
 }) {
   const [col, , titulo] = grupo;
   const [q, setQ] = useState("");
@@ -566,7 +597,7 @@ function DialogoAgregarInsumo({ grupo, partida, opciones, existentes, onCerrar, 
       const { error: e } = await db.from("partida_detalle").update({ cantidad_o_cuadrilla: Number(ya.cantidad_o_cuadrilla) + n }).eq("id", ya.id);
       if (e) return setError(e.message);
     } else {
-      const { error: e } = await db.from("partida_detalle").insert({ partida_padre_id: partida.id, [col]: elegido.id, cantidad_o_cuadrilla: n });
+      const { error: e } = await db.from("partida_detalle").insert({ partida_padre_id: partida.id, [col]: elegido.id, cantidad_o_cuadrilla: n, orden });
       if (e) return setError(e.message);
     }
     onGuardado();

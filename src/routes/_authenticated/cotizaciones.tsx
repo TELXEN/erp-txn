@@ -560,7 +560,7 @@ function Cotizaciones() {
       }
       const { data: apuCot } = await dbBanco
         .from("cotizacion_apu_detalle")
-        .select("cotizacion_item_id, material_id, mano_obra_id, equipo_id, subcontrato_id, cantidad_o_cuadrilla")
+        .select("cotizacion_item_id, material_id, mano_obra_id, equipo_id, subcontrato_id, cantidad_o_cuadrilla, orden")
         .in("cotizacion_item_id", items.map((i) => i.id));
       if (apuCot?.length) {
         const { error: errA } = await dbBanco.from("partida_detalle").insert(
@@ -571,6 +571,7 @@ function Cotizaciones() {
             equipo_id: c.equipo_id,
             subcontrato_id: c.subcontrato_id,
             cantidad_o_cuadrilla: c.cantidad_o_cuadrilla,
+            orden: (c as { orden?: number }).orden ?? 0,
           })),
         );
         if (errA) throw errA;
