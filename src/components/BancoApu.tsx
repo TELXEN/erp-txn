@@ -396,7 +396,7 @@ function CeldaNum({ valor, dec, onGuardar, deshabilitado, sufijo }: { sufijo?: s
     return <div className={`flex h-full items-center justify-end font-mono ${deshabilitado ? "text-muted-foreground/50" : ""}`}>{deshabilitado ? "" : dec === 4 ? n4(valor) : n2(valor)}{!deshabilitado && sufijo ? <span className="ml-1 w-7 text-left text-muted-foreground">{sufijo}</span> : null}</div>;
   return (
     <div className="flex h-full items-center"><input key={valor} type="number" step="any" defaultValue={valor.toFixed(dec)}
-      className="h-6 w-full min-w-0 rounded-sm border border-transparent bg-transparent px-1 text-right font-mono text-[12px] outline-none hover:border-line focus:border-primary focus:bg-background"
+      className="h-6 w-full min-w-0 rounded-sm border border-transparent bg-transparent px-1 text-right font-mono text-[12px] outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none hover:border-line focus:border-primary focus:bg-background"
       onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
       onBlur={(e) => { const v = Number(e.target.value || 0); if (v !== Number(valor.toFixed(dec))) onGuardar(v); }} />{sufijo ? <span className="ml-1 w-7 shrink-0 text-muted-foreground">{sufijo}</span> : null}</div>
   );
@@ -474,7 +474,7 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
                 </tr>,
                 ...filas.map((f) => (
                   <tr key={f.d.id} className="border-b border-line/70 hover:bg-primary/5">
-                    <td className={td}><div className="flex min-w-0 items-center gap-1.5">{f.codigo && <span className="shrink-0 font-mono text-[11px] text-muted-foreground">{f.codigo}</span>}<span className="min-w-0 truncate" title={f.nombre}>{f.nombre}</span></div></td>
+                    <td className={td}><div className="flex min-w-0 items-center gap-1.5">{f.codigo && <span className="hidden shrink-0 2xl:inline font-mono text-[11px] text-muted-foreground">{f.codigo}</span>}<span className="min-w-0 truncate" title={f.nombre}>{f.nombre}</span></div></td>
                     <td className={`${td} text-center text-muted-foreground`}>{f.pct ? "%…" : f.und}</td>
                     <td className={td}><CeldaNum valor={f.q} dec={2} deshabilitado={!f.horas} onGuardar={(v) => guardarQ(f, v)} /></td>
                     <td className={td}>{f.pct ? <CeldaNum valor={f.cu * f.q} dec={4} sufijo="%mo" onGuardar={(v) => f.cu > 0 && guardarQ(f, v / f.cu)} /> : <CeldaNum valor={f.cant} dec={4} sufijo={f.und.toLowerCase()} onGuardar={f.horas ? undefined : (v) => guardarQ(f, v)} />}</td>
