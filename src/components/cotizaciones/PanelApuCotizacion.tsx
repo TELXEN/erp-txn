@@ -32,10 +32,10 @@ function CeldaNum({ valor, dec, onGuardar, sufijo, deshabilitado }: {
   return (
     <div className="flex items-center">
       <input key={valor.toFixed(dec)} type="number" step="any" defaultValue={valor.toFixed(dec)}
-        className="h-6 w-full min-w-0 rounded-sm border border-transparent bg-transparent px-0.5 text-right font-mono text-[12px] outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none hover:border-line focus:border-primary focus:bg-background"
+        className="h-6 w-full min-w-0 rounded-sm border border-transparent bg-transparent px-0.5 text-right font-mono text-[11px] outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none hover:border-line focus:border-primary focus:bg-background"
         onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
         onBlur={(e) => { const v = Number(e.target.value || 0); if (v !== Number(valor.toFixed(dec))) onGuardar(v); }} />
-      {sufijo ? <span className="ml-0.5 w-7 shrink-0 text-muted-foreground">{sufijo}</span> : null}
+      {sufijo ? <span className="ml-0.5 w-6 shrink-0 text-muted-foreground">{sufijo}</span> : null}
     </div>
   );
 }

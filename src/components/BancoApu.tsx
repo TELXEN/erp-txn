@@ -409,9 +409,9 @@ function CeldaNum({ valor, dec, onGuardar, deshabilitado, sufijo }: { sufijo?: s
     return <div className={`flex h-full items-center justify-end font-mono ${deshabilitado ? "text-muted-foreground/50" : ""}`}>{deshabilitado ? "" : dec === 4 ? n4(valor) : n2(valor)}{!deshabilitado && sufijo ? <span className="ml-1 w-7 text-left text-muted-foreground">{sufijo}</span> : null}</div>;
   return (
     <div className="flex h-full items-center"><input key={valor} type="number" step="any" defaultValue={valor.toFixed(dec)}
-      className="h-6 w-full min-w-0 rounded-sm border border-transparent bg-transparent px-0.5 text-right font-mono text-[12px] outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none hover:border-line focus:border-primary focus:bg-background"
+      className="h-6 w-full min-w-0 rounded-sm border border-transparent bg-transparent px-0.5 text-right font-mono text-[11px] outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none hover:border-line focus:border-primary focus:bg-background"
       onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
-      onBlur={(e) => { const v = Number(e.target.value || 0); if (v !== Number(valor.toFixed(dec))) onGuardar(v); }} />{sufijo ? <span className="ml-0.5 w-7 shrink-0 text-muted-foreground">{sufijo}</span> : null}</div>
+      onBlur={(e) => { const v = Number(e.target.value || 0); if (v !== Number(valor.toFixed(dec))) onGuardar(v); }} />{sufijo ? <span className="ml-0.5 w-6 shrink-0 text-muted-foreground">{sufijo}</span> : null}</div>
   );
 }
 
@@ -448,8 +448,8 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
     await qc.invalidateQueries({ queryKey: ["banco_apu", "partidas_apu"] });
   }
 
-  const th = "h-[30px] !py-0 border-r border-line px-1 text-[12px] font-semibold uppercase tracking-wide text-foreground/80 whitespace-nowrap last:border-r-0";
-  const td = "h-[26px] !py-0 leading-none border-r border-line/70 px-1.5 align-middle text-[12px] whitespace-nowrap";
+  const th = "h-[30px] !py-0 border-r border-line px-1 text-[10px] font-semibold uppercase text-foreground/80 whitespace-nowrap last:border-r-0";
+  const td = "h-[26px] !py-0 leading-none border-r border-line/70 px-1 align-middle text-[11px] whitespace-nowrap";
   const totalMo = sumar2(calc.filas.filter((f) => f.col === "mano_obra_id").map((f) => f.parcial));
   // Herramientas manuales: % editable sobre la mano de obra (defecto 5 %); solo si hay MO.
   const htVisible = totalMo > 0;
@@ -482,7 +482,7 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
       </div>
       <div className="min-h-0 flex-1 overflow-auto">
         <table className="w-full table-fixed border-collapse">
-          <colgroup><col style={{ width: 78 }} /><col /><col style={{ width: 34 }} /><col style={{ width: 50 }} /><col style={{ width: 100 }} /><col style={{ width: 56 }} /><col style={{ width: 60 }} /><col style={{ width: 24 }} /></colgroup>
+          <colgroup><col style={{ width: 74 }} /><col /><col style={{ width: 34 }} /><col style={{ width: 52 }} /><col style={{ width: 78 }} /><col style={{ width: 50 }} /><col style={{ width: 62 }} /><col style={{ width: 20 }} /></colgroup>
           <thead className="sticky top-0 z-10 bg-card">
             <tr className="border-b border-line">
               <th className={`${th} text-left`}>Código</th><th className={`${th} text-left`}>Descripción</th><th className={`${th} text-center`}>Unid.</th>
