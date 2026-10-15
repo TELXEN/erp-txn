@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Plus, Upload } from "lucide-react";
-import { Boton, Select } from "@/components/ui-kit";
+import { Upload } from "lucide-react";
+import { Boton } from "@/components/ui-kit";
 import { MenuContextualApu, type AccionApu, type EstadoMenuApu } from "@/components/MenuContextualApu";
-import { BANCOS_RECURSO, costoReceta, dbBanco, renumerarApu, useBancoTabla, useRecursosApu, type FilaCalculo } from "@/lib/banco-apu";
+import { costoReceta, dbBanco, renumerarApu, useBancoTabla, useRecursosApu, type FilaCalculo } from "@/lib/banco-apu";
 import { r2, sumar2 } from "@/lib/decimal";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -48,8 +48,6 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
   const recursos = useRecursosApu();
   const { data: detalle = [] } = useBancoTabla("cotizacion_apu_detalle");
   const [pestana, setPestana] = useState<Pestana>("acu");
-  const [banco, setBanco] = useState(0);
-  const [elegido, setElegido] = useState("");
   const [aviso, setAviso] = useState("");
   const [rendLocal, setRendLocal] = useState<number | null>(null);
   const [editJornada, setEditJornada] = useState(false);
@@ -57,7 +55,6 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
   const [pctHt, setPctHt] = useState(5);
   const [menu, setMenu] = useState<(EstadoMenuApu & { t: string; f: FilaCalculo | undefined }) | null>(null);
   const cerrarMenu = useCallback(() => setMenu(null), []);
-  const [destino, setDestino] = useState<{ orden: number; ref: string; texto: string } | null>(null);
   const sim = cot.moneda === "USD" ? "US$" : "S/";
   const factor = cot.moneda === "USD" ? 1 / (Number(cot.tipo_cambio) || 1) : 1;
 
@@ -72,7 +69,6 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
 
   useEffect(() => {
     setAviso("");
-    setDestino(null);
     setRendLocal(null);
     setJornadaLocal(null);
     setEditJornada(false);
@@ -142,28 +138,6 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
     await refrescar();
   }
 
-  const [col, tabla, etiqueta, tipo] = BANCOS_RECURSO[banco]!;
-  const opciones = (recursos[tabla as keyof typeof recursos] ?? []).filter((x) => x.estado === "activo");
-
-  async function agregar() {
-    const r = opciones.find((o) => o.id === elegido);
-    if (!r) return;
-    const pct = tabla === "equipos_herramientas" && r.unidad === "%";
-    const base = tabla === "mano_obra" ? Number(r.costo_hora) : pct ? Number(r.costo_hora) : Number(r.costo_unitario);
-    const fila = {
-      cotizacion_item_id: it.id, [col]: r.id, cantidad_o_cuadrilla: 1,
-      codigo: r.codigo ?? "", descripcion: r.descripcion ?? "", marca: r.marca ?? "", unidad: r.unidad ?? "", tipo_recurso: tipo,
-      precio_unitario: pct ? base : Math.round(base * factor * 10000) / 10000,
-      orden: destino?.orden ?? propias.reduce((s, d) => Math.max(s, Number(d.orden) || 0), 0) + 10,
-    };
-    const { data, error } = await dbBanco.from("cotizacion_apu_detalle").insert(fila).select("*").single();
-    if (error) return setAviso(error.message);
-    setElegido("");
-    setDestino(null);
-    await aplicarPu([...propias, data]);
-    await refrescar();
-  }
-
   function abrirMenu(e: React.MouseEvent, t: string, f: FilaCalculo | undefined, habilitadas: EstadoMenuApu["habilitadas"]) {
     e.preventDefault();
     setMenu({ x: e.clientX, y: e.clientY, t, f, habilitadas });
@@ -171,19 +145,9 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
   async function accionMenu(a: AccionApu, m: NonNullable<typeof menu>) {
     const { t, f } = m;
     if (a === "eliminar") return f && quitar(f.d.id as string);
-    const idx = BANCOS_RECURSO.findIndex((b) => b[3] === t);
-    if (a === "final" || !f) {
-      if (idx >= 0) { setBanco(idx); setElegido(""); }
-      setDestino(null);
-      return;
-    }
+    if (!f || a === "final" || a === "encima" || a === "debajo") return;
     const mapa = await renumerarApu("cotizacion_apu_detalle", propias as { id: string; orden?: number }[]);
     const base = mapa.get(f.d.id as string) ?? 0;
-    if (a === "encima" || a === "debajo") {
-      if (idx >= 0) { setBanco(idx); setElegido(""); }
-      setDestino({ orden: base + (a === "encima" ? -5 : 5), ref: f.d.id as string, texto: `${a === "encima" ? "encima de" : "debajo de"} «${f.nombre}»` });
-      return;
-    }
     const filasG = calc.filas.filter((x) => x.tipo === t);
     const i = filasG.findIndex((x) => x.d.id === f.d.id);
     const v = filasG[a === "subir" ? i - 1 : i + 1];
@@ -281,9 +245,8 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
                 {GRUPOS_RECURSO.map(([t, titulo]) => {
                   const filas = calc.filas.filter((f) => f.tipo === t);
                   const sub = sumar2(filas.map((f) => f.parcial)) + (t === "EQ" ? htTotal : 0);
-                  const idxBanco = BANCOS_RECURSO.findIndex((b) => b[3] === t);
                   return [
-                    <tr key={t} className="border-b border-line bg-muted/60" onContextMenu={(e) => abrirMenu(e, t, undefined, { final: idxBanco >= 0 })}>
+                    <tr key={t} className="border-b border-line bg-muted/60">
                       <td colSpan={6} className={`${td} font-bold text-foreground/80`}>▾ {titulo}</td>
                       <td className={`${td} text-right font-mono font-bold`}>{num(sub)}</td>
                     </tr>,
@@ -291,8 +254,8 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
                       const horaria = f.tipo === "MO" || (f.tipo === "EQ" && f.und === "H-M");
                       const hh = horaria ? (f.cantidad * jornada) / rend : f.cantidad;
                       return (
-                        <tr key={f.d.id} className={`border-b border-line/70 hover:bg-primary/5 ${destino?.ref === f.d.id ? "bg-primary/10" : ""}`}
-                          onContextMenu={(e) => abrirMenu(e, t, f, { encima: idxBanco >= 0, debajo: idxBanco >= 0, final: idxBanco >= 0, subir: i > 0, bajar: i < filas.length - 1, eliminar: true })}>
+                        <tr key={f.d.id} className="border-b border-line/70 hover:bg-primary/5"
+                          onContextMenu={(e) => abrirMenu(e, t, f, { subir: i > 0, bajar: i < filas.length - 1, eliminar: true })}>
                           <td className={`${td} font-mono text-[11px] text-muted-foreground`}><span className="block truncate" title={f.d.codigo ?? ""}>{f.d.codigo || "—"}</span></td>
                           <td className={td}><span className="block min-w-0 truncate" title={f.nombre}>{f.nombre}</span></td>
                           <td className={`${td} text-center text-muted-foreground`}>{f.esPctMo ? "%…" : f.und}</td>
@@ -314,7 +277,7 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
                       );
                     }),
                     ...(t === "EQ" && htVisible ? [
-                      <tr key="ht" className="border-b border-line/70 bg-warn/5" onContextMenu={(e) => abrirMenu(e, t, undefined, { final: idxBanco >= 0 })}>
+                      <tr key="ht" className="border-b border-line/70 bg-warn/5">
                         <td className={`${td} font-mono text-[11px] text-muted-foreground`}>HT</td>
                         <td className={td}><span className="block min-w-0 truncate italic text-foreground/80" title="Herramientas manuales">Herramientas manuales</span></td>
                         <td className={`${td} text-center text-muted-foreground`}>%…</td>
@@ -328,18 +291,7 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
                 })}
               </tbody>
             </table>
-            {!propias.length && <p className="px-3 py-4 text-xs text-muted-foreground">Esta partida aún no tiene APU. Elige la partida desde el banco en la hoja o agrega recursos abajo.</p>}
-            <div className="flex flex-wrap items-center gap-1.5 border-t border-line px-2 py-2">
-              <Select value={banco} onChange={(e) => { setBanco(Number(e.target.value)); setElegido(""); }} className="w-36 py-1 text-[11px]">
-                {BANCOS_RECURSO.map(([, , t], i) => <option key={t} value={i}>{t}</option>)}
-              </Select>
-              <Select value={elegido} onChange={(e) => setElegido(e.target.value)} className="min-w-0 flex-1 py-1 text-[11px]">
-                <option value="">{etiqueta}…</option>
-                {opciones.map((o) => <option key={o.id} value={o.id}>{o.codigo ? `${o.codigo} · ` : ""}{o.descripcion}</option>)}
-              </Select>
-              <Boton onClick={() => void agregar()} disabled={!elegido}><Plus size={12} /> Agregar</Boton>
-              {destino && <span className="w-full text-[11px] text-primary">Se insertará {destino.texto} · <button type="button" className="underline" onClick={() => setDestino(null)}>al final</button></span>}
-            </div>
+            {!propias.length && <p className="px-3 py-4 text-xs text-muted-foreground">Esta partida aún no tiene APU. Elige la partida desde el banco en la hoja; los insumos se agregan en el Banco APU.</p>}
           </>
         )}
         {pestana === "esp" && <Especificaciones item={it} />}
