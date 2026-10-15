@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Upload } from "lucide-react";
-import { Boton } from "@/components/ui-kit";
+import { Plus, Upload } from "lucide-react";
+import { Boton, Campo, Input, Resaltar, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { MenuContextualApu, type AccionApu, type EstadoMenuApu } from "@/components/MenuContextualApu";
-import { costoReceta, dbBanco, renumerarApu, useBancoTabla, useRecursosApu, type FilaCalculo } from "@/lib/banco-apu";
+import { BANCOS_RECURSO, costoReceta, dbBanco, renumerarApu, useBancoTabla, useRecursosApu, type FilaCalculo, type RecursosApu } from "@/lib/banco-apu";
 import { r2, sumar2 } from "@/lib/decimal";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -54,6 +54,7 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
   const [jornadaLocal, setJornadaLocal] = useState<number | null>(null);
   const [pctHt, setPctHt] = useState(5);
   const [menu, setMenu] = useState<(EstadoMenuApu & { t: string; f: FilaCalculo | undefined }) | null>(null);
+  const [agregar, setAgregar] = useState<{ t: string; orden: number } | null>(null);
   const cerrarMenu = useCallback(() => setMenu(null), []);
   const sim = cot.moneda === "USD" ? "US$" : "S/";
   const factor = cot.moneda === "USD" ? 1 / (Number(cot.tipo_cambio) || 1) : 1;
@@ -145,7 +146,16 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
   async function accionMenu(a: AccionApu, m: NonNullable<typeof menu>) {
     const { t, f } = m;
     if (a === "eliminar") return f && quitar(f.d.id as string);
-    if (!f || a === "final" || a === "encima" || a === "debajo") return;
+    if (a === "final" || a === "encima" || a === "debajo") {
+      const mapa = await renumerarApu("cotizacion_apu_detalle", propias as { id: string; orden?: number }[]);
+      const filasG = calc.filas.filter((x) => x.tipo === t);
+      let orden = 10;
+      if (a === "final" && filasG.length) orden = (mapa.get(filasG[filasG.length - 1].d.id as string) ?? filasG.length * 10) + 10;
+      else if (f) orden = (mapa.get(f.d.id as string) ?? 0) + (a === "encima" ? -5 : 5);
+      setAgregar({ t, orden });
+      return;
+    }
+    if (!f) return;
     const mapa = await renumerarApu("cotizacion_apu_detalle", propias as { id: string; orden?: number }[]);
     const base = mapa.get(f.d.id as string) ?? 0;
     const filasG = calc.filas.filter((x) => x.tipo === t);
@@ -204,6 +214,12 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
   return (
     <div className="flex h-full min-h-0 flex-col">
       {menu && <MenuContextualApu menu={menu} onCerrar={cerrarMenu} onAccion={(a) => void accionMenu(a, menu)} />}
+      {agregar && (
+        <DialogoAgregarInsumoCot tipo={agregar.t} orden={agregar.orden} itemId={it.id} nombrePartida={it.nombre}
+          recursos={recursos} existentes={propias}
+          onCerrar={() => setAgregar(null)}
+          onGuardado={async (nuevas) => { setAgregar(null); await aplicarPu(nuevas); await refrescar(); }} />
+      )}
       <div className="border-b border-line px-3 py-2">
         <p className="truncate text-xs font-semibold text-ink" title={it.nombre}>{it.codigo} · {it.nombre}</p>
       </div>
@@ -246,8 +262,9 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
                   const filas = calc.filas.filter((f) => f.tipo === t);
                   const sub = sumar2(filas.map((f) => f.parcial)) + (t === "EQ" ? htTotal : 0);
                   return [
-                    <tr key={t} className="border-b border-line bg-muted/60">
-                      <td colSpan={6} className={`${td} font-bold text-foreground/80`}>▾ {titulo}</td>
+                    <tr key={t} className="border-b border-line bg-muted/60"
+                      onContextMenu={(e) => abrirMenu(e, t, undefined, { final: true })}>
+                       <td colSpan={6} className={`${td} font-bold text-foreground/80`}>▾ {titulo}</td>
                       <td className={`${td} text-right font-mono font-bold`}>{num(sub)}</td>
                     </tr>,
                     ...filas.map((f, i) => {
@@ -255,7 +272,7 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
                       const hh = horaria ? (f.cantidad * jornada) / rend : f.cantidad;
                       return (
                         <tr key={f.d.id} className="border-b border-line/70 hover:bg-primary/5"
-                          onContextMenu={(e) => abrirMenu(e, t, f, { subir: i > 0, bajar: i < filas.length - 1, eliminar: true })}>
+                          onContextMenu={(e) => abrirMenu(e, t, f, { encima: true, debajo: true, final: true, subir: i > 0, bajar: i < filas.length - 1, eliminar: true })}>
                           <td className={`${td} font-mono text-[11px] text-muted-foreground`}><span className="block truncate" title={f.d.codigo ?? ""}>{f.d.codigo || "—"}</span></td>
                           <td className={td}><span className="block min-w-0 truncate" title={f.nombre}>{f.nombre}</span></td>
                           <td className={`${td} text-center text-muted-foreground`}>{f.esPctMo ? "%…" : f.und}</td>
@@ -291,7 +308,7 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
                 })}
               </tbody>
             </table>
-            {!propias.length && <p className="px-3 py-4 text-xs text-muted-foreground">Esta partida aún no tiene APU. Elige la partida desde el banco en la hoja; los insumos se agregan en el Banco APU.</p>}
+            {!propias.length && <p className="px-3 py-4 text-xs text-muted-foreground">Esta partida aún no tiene APU. Haz clic derecho sobre un grupo (Mano de Obra, Materiales…) para agregar insumos.</p>}
           </>
         )}
         {pestana === "esp" && <Especificaciones item={it} />}
@@ -417,5 +434,80 @@ export function ResumenCotizacion({ cot, items }: { cot: Cotizacion; items: Coti
         </tbody>
       </table>
     </div>
+  );
+}
+
+/** Buscador de insumos del banco para agregar al APU de la cotización (menú contextual). */
+function DialogoAgregarInsumoCot({ tipo, orden, itemId, nombrePartida, recursos, existentes, onCerrar, onGuardado }: {
+  tipo: string; orden: number; itemId: string; nombrePartida: string; recursos: RecursosApu;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  existentes: any[]; onCerrar: () => void; onGuardado: (nuevas: any[]) => void | Promise<void>;
+}) {
+  const found = BANCOS_RECURSO.find((b) => b[3] === tipo);
+  const [col, tabla, titulo] = found ?? ["material_id", "materiales", "Materiales"];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const opciones = ((recursos[tabla as keyof RecursosApu] ?? []) as any[]).filter((x) => x.estado !== "inactivo");
+  const [q, setQ] = useState("");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [elegido, setElegido] = useState<any | null>(null);
+  const [cant, setCant] = useState("");
+  const [error, setError] = useState("");
+  const lista = opciones
+    .filter((o) => `${o.codigo ?? ""} ${o.descripcion ?? ""} ${o.marca ?? ""}`.toLowerCase().includes(q.toLowerCase()))
+    .slice(0, 50);
+
+  async function guardar() {
+    if (!elegido) return setError("Elige un insumo.");
+    const n = Number(cant);
+    if (!(n > 0)) return setError("Ingresa la cantidad / cuadrilla (mayor que 0).");
+    const ya = existentes.find((d) => d[col] === elegido.id);
+    if (ya) {
+      if (!window.confirm(`«${elegido.descripcion}» ya está en el APU. ¿Sumar ${n} a su cantidad actual (${ya.cantidad_o_cuadrilla})?`)) return;
+      const { error: e } = await dbBanco.from("cotizacion_apu_detalle").update({ cantidad_o_cuadrilla: Number(ya.cantidad_o_cuadrilla) + n }).eq("id", ya.id);
+      if (e) return setError(e.message);
+      await onGuardado(existentes.map((d) => (d.id === ya.id ? { ...d, cantidad_o_cuadrilla: Number(ya.cantidad_o_cuadrilla) + n } : d)));
+      return;
+    }
+    const fila = { cotizacion_item_id: itemId, [col]: elegido.id, cantidad_o_cuadrilla: n, orden };
+    const { error: e } = await dbBanco.from("cotizacion_apu_detalle").insert(fila);
+    if (e) return setError(e.message);
+    await onGuardado([...existentes, fila]);
+  }
+
+  return (
+    <VentanaFlotante abierta onCerrar={onCerrar} ancho="max-w-xl" titulo={`Agregar — ${titulo}`} subtitulo={nombrePartida}>
+      {!elegido ? (
+        <div className="p-5">
+          <Input autoFocus placeholder="Busca por código, descripción o marca…" value={q} onChange={(e) => setQ(e.target.value)} />
+          <div className="mt-2 max-h-80 overflow-y-auto rounded-md border border-line">
+            {lista.length === 0 && <Vacio texto="Sin coincidencias." />}
+            {lista.map((o) => (
+              <button key={o.id} type="button" onClick={() => setElegido(o)}
+                className="flex w-full items-center gap-2 border-b border-line/60 px-3 py-1.5 text-left text-xs hover:bg-primary/10">
+                <span className="w-24 shrink-0 font-mono text-muted-foreground">{o.codigo ?? ""}</span>
+                <span className="min-w-0 flex-1 truncate"><Resaltar texto={o.descripcion ?? ""} termino={q} /></span>
+                {o.marca && <span className="shrink-0 text-muted-foreground">{o.marca}</span>}
+              </button>
+            ))}
+          </div>
+          {error && <p className="mt-2 text-xs text-bad">{error}</p>}
+        </div>
+      ) : (
+        <form className="space-y-3 p-5" onSubmit={(e) => { e.preventDefault(); void guardar(); }}>
+          <div className="flex items-center justify-between rounded-md border border-line px-3 py-2 text-sm">
+            <span className="min-w-0 truncate">{elegido.codigo ?? ""} · {elegido.descripcion}{elegido.marca ? ` · ${elegido.marca}` : ""}</span>
+            <Boton type="button" variante="linea" className="py-1" onClick={() => setElegido(null)}>Cambiar</Boton>
+          </div>
+          <Campo etiqueta="Cantidad / Cuadrilla">
+            <Input autoFocus type="number" step="any" value={cant} onChange={(e) => setCant(e.target.value)} />
+          </Campo>
+          {error && <p className="text-xs text-bad">{error}</p>}
+          <div className="flex justify-end gap-2">
+            <Boton type="button" variante="linea" onClick={onCerrar}>Cerrar</Boton>
+            <Boton type="submit"><Plus size={13} /> Agregar</Boton>
+          </div>
+        </form>
+      )}
+    </VentanaFlotante>
   );
 }
