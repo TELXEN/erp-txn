@@ -497,6 +497,18 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
                     <td className="h-[26px] !py-0 px-0.5"><BotonIcono etiqueta="Quitar fila" tono="peligro" className="size-5" onClick={() => quitarFila(f)}><X size={12} /></BotonIcono></td>
                   </tr>
                 )),
+                ...(col === "equipo_id" && htVisible ? [
+                  <tr key="ht" className="border-b border-line/70 bg-warn/5">
+                    <td className={td}><span className="min-w-0 truncate italic text-foreground/80">Herramientas manuales</span></td>
+                    <td className={`${td} text-center text-muted-foreground`}>%…</td>
+                    <td className={td}></td>
+                    <td className={td}><CeldaNum valor={pctHt} dec={2} sufijo="%mo" onGuardar={(v) => void guardarPctHt(v)} /></td>
+                    <td className={td}></td>
+                    <td className={`${td} text-right font-mono`}>{n2(totalMo)}</td>
+                    <td className={`${td} text-right font-mono`}>{n2(htTotal)}</td>
+                    <td />
+                  </tr>,
+                ] : []),
               ];
             })}
           </tbody>
