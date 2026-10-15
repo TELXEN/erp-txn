@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Upload } from "lucide-react";
-import { Boton } from "@/components/ui-kit";
+import { Plus, Upload } from "lucide-react";
+import { Boton, Campo, Input, Resaltar, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { MenuContextualApu, type AccionApu, type EstadoMenuApu } from "@/components/MenuContextualApu";
-import { costoReceta, dbBanco, renumerarApu, useBancoTabla, useRecursosApu, type FilaCalculo } from "@/lib/banco-apu";
+import { BANCOS_RECURSO, costoReceta, dbBanco, renumerarApu, useBancoTabla, useRecursosApu, type FilaCalculo, type RecursosApu } from "@/lib/banco-apu";
 import { r2, sumar2 } from "@/lib/decimal";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
