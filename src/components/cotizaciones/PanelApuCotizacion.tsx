@@ -195,7 +195,7 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
   }
 
   const puedeExportar = rol === "gerente" || rol === "administrador";
-  const th = "h-[30px] !py-0 border-r border-line px-1 text-[12px] font-semibold text-foreground/80 whitespace-nowrap last:border-r-0";
+  const th = "h-[30px] !py-0 border-r border-line px-1 text-[12px] font-semibold uppercase tracking-wide text-foreground/80 whitespace-nowrap last:border-r-0";
   const td = "h-[26px] !py-0 leading-none border-r border-line/70 px-1.5 align-middle text-[12px] whitespace-nowrap";
 
   return (

@@ -431,7 +431,7 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
     await qc.invalidateQueries({ queryKey: ["banco_apu", "partidas_apu"] });
   }
 
-  const th = "h-[30px] !py-0 border-r border-line px-1 text-[12px] font-semibold text-foreground/80 whitespace-nowrap last:border-r-0";
+  const th = "h-[30px] !py-0 border-r border-line px-1 text-[12px] font-semibold uppercase tracking-wide text-foreground/80 whitespace-nowrap last:border-r-0";
   const td = "h-[26px] !py-0 leading-none border-r border-line/70 px-1.5 align-middle text-[12px] whitespace-nowrap";
   const totalMo = sumar2(calc.filas.filter((f) => f.col === "mano_obra_id").map((f) => f.parcial));
   // Herramientas manuales: % editable sobre la mano de obra (defecto 5 %); solo si hay MO.
