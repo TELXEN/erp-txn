@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Plus, Upload } from "lucide-react";
-import { Boton, Select } from "@/components/ui-kit";
+import { Upload } from "lucide-react";
+import { Boton } from "@/components/ui-kit";
 import { MenuContextualApu, type AccionApu, type EstadoMenuApu } from "@/components/MenuContextualApu";
-import { BANCOS_RECURSO, costoReceta, dbBanco, renumerarApu, useBancoTabla, useRecursosApu, type FilaCalculo } from "@/lib/banco-apu";
+import { costoReceta, dbBanco, renumerarApu, useBancoTabla, useRecursosApu, type FilaCalculo } from "@/lib/banco-apu";
 import { r2, sumar2 } from "@/lib/decimal";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -48,8 +48,6 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
   const recursos = useRecursosApu();
   const { data: detalle = [] } = useBancoTabla("cotizacion_apu_detalle");
   const [pestana, setPestana] = useState<Pestana>("acu");
-  const [banco, setBanco] = useState(0);
-  const [elegido, setElegido] = useState("");
   const [aviso, setAviso] = useState("");
   const [rendLocal, setRendLocal] = useState<number | null>(null);
   const [editJornada, setEditJornada] = useState(false);
@@ -57,7 +55,6 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
   const [pctHt, setPctHt] = useState(5);
   const [menu, setMenu] = useState<(EstadoMenuApu & { t: string; f: FilaCalculo | undefined }) | null>(null);
   const cerrarMenu = useCallback(() => setMenu(null), []);
-  const [destino, setDestino] = useState<{ orden: number; ref: string; texto: string } | null>(null);
   const sim = cot.moneda === "USD" ? "US$" : "S/";
   const factor = cot.moneda === "USD" ? 1 / (Number(cot.tipo_cambio) || 1) : 1;
 
