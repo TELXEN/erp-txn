@@ -48,3 +48,4 @@
 ## Banco APU
 - [x] Encabezados del APU (código, descripción, unidad, recurso, cantidad, precio, total) en mayúsculas, en Banco APU y cotizaciones.
 - [x] Unidades de las partidas y recursos del Banco APU elegidas de la tabla de unidades (unidades_medida), no texto libre; catálogo completado con H-H y H-M y «glb» unificado a GLB.
+- [x] En cotizaciones, la lista desplegable de unidades se justifica a la izquierda (celda UNIDAD en modo edición y ventana de nueva partida).
