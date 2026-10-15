@@ -31,7 +31,7 @@ const CONFIG: Record<Tabla, { titulo: string; campos: CampoDef[]; columnas: [str
     campos: [
       { k: "codigo_jerarquico", t: "Código jerárquico" },
       { k: "descripcion", t: "Descripción" },
-      { k: "unidad", t: "Unidad" },
+      { k: "unidad", t: "Unidad", tipo: "sel" },
       { k: "rendimiento_diario", t: "Rendimiento diario", tipo: "num" },
       { k: "especialidad", t: "Especialidad", tipo: "sel" },
     ],
@@ -42,14 +42,14 @@ const CONFIG: Record<Tabla, { titulo: string; campos: CampoDef[]; columnas: [str
     titulo: "Materiales",
     campos: [
       { k: "codigo", t: "Código" }, { k: "descripcion", t: "Descripción" }, { k: "marca", t: "Marca" },
-      { k: "unidad", t: "Unidad" }, { k: "precio_base", t: "Precio base", tipo: "num" }, { k: "margen", t: "Margen %", tipo: "num" },
+      { k: "unidad", t: "Unidad", tipo: "sel" }, { k: "precio_base", t: "Precio base", tipo: "num" }, { k: "margen", t: "Margen %", tipo: "num" },
     ],
     columnas: [["codigo", "Código", "txt"], ["descripcion", "Descripción", "txt"], ["marca", "Marca", "txt"], ["unidad", "Und", "txt"], ["precio_base", "P. base", "sol"], ["margen", "Margen %", "num"], ["costo_unitario", "C. unitario", "sol"]],
     filtro: "marca",
   },
   mano_obra: {
     titulo: "Mano de Obra",
-    campos: [{ k: "codigo", t: "Código" }, { k: "descripcion", t: "Descripción" }, { k: "unidad", t: "Unidad" }, { k: "costo_hora", t: "Costo hora", tipo: "num" }],
+    campos: [{ k: "codigo", t: "Código" }, { k: "descripcion", t: "Descripción" }, { k: "unidad", t: "Unidad", tipo: "sel" }, { k: "costo_hora", t: "Costo hora", tipo: "num" }],
     columnas: [["codigo", "Código", "txt"], ["descripcion", "Descripción", "txt"], ["unidad", "Und", "txt"], ["costo_hora", "Costo hora", "sol"]],
   },
   equipos_herramientas: {
@@ -57,7 +57,7 @@ const CONFIG: Record<Tabla, { titulo: string; campos: CampoDef[]; columnas: [str
     campos: [
       { k: "codigo", t: "Código" }, { k: "descripcion", t: "Descripción" },
       { k: "tipo", t: "Tipo", tipo: "sel", opciones: ["propio", "alquilado"] },
-      { k: "unidad", t: "Unidad", tipo: "sel", opciones: ["H-M", "%"] },
+      { k: "unidad", t: "Unidad", tipo: "sel" },
       { k: "costo_hora", t: "Costo hora / %", tipo: "num" },
       { k: "margen", t: "Margen %", tipo: "num", soloSi: (f) => f.tipo === "alquilado" },
     ],
@@ -66,7 +66,7 @@ const CONFIG: Record<Tabla, { titulo: string; campos: CampoDef[]; columnas: [str
   },
   subcontratos: {
     titulo: "Subcontratos",
-    campos: [{ k: "codigo", t: "Código" }, { k: "descripcion", t: "Descripción" }, { k: "unidad", t: "Unidad" }, { k: "costo", t: "Costo", tipo: "num" }, { k: "margen", t: "Margen %", tipo: "num" }],
+    campos: [{ k: "codigo", t: "Código" }, { k: "descripcion", t: "Descripción" }, { k: "unidad", t: "Unidad", tipo: "sel" }, { k: "costo", t: "Costo", tipo: "num" }, { k: "margen", t: "Margen %", tipo: "num" }],
     columnas: [["codigo", "Código", "txt"], ["descripcion", "Descripción", "txt"], ["unidad", "Und", "txt"], ["costo", "Costo", "sol"], ["margen", "Margen %", "num"], ["costo_unitario", "C. unitario", "sol"]],
   },
 };
@@ -152,6 +152,7 @@ function ListaBanco({ tabla, seleccion, onSeleccion, llena = false }: { tabla: T
     ? [...filasRaw].sort((a, b) => String(a.codigo_jerarquico ?? "").localeCompare(String(b.codigo_jerarquico ?? ""), "es", { numeric: true }))
     : filasRaw;
   const { data: especialidades = [] } = useEspecialidadesPartida();
+  const { data: unidades = [] } = useUnidadesMedida();
   const [busqueda, setBusqueda] = useState("");
   const [filtro, setFiltro] = useState("");
   const [estado, setEstado] = useState("activo");
@@ -164,6 +165,14 @@ function ListaBanco({ tabla, seleccion, onSeleccion, llena = false }: { tabla: T
     () => (cfg.filtro ? [...new Set(filas.map((f) => String(f[cfg.filtro!] ?? "")).filter(Boolean))].sort() : []),
     [filas, cfg.filtro],
   );
+  // Unidad siempre desde el catálogo de unidades; si el valor guardado no está en él, se muestra igual para no perderlo.
+  const undOpciones = useMemo(() => {
+    const act = unidades.filter((u) => u.activo);
+    const cur = String(form?.unidad ?? "").trim();
+    if (cur && !act.some((u) => u.simbolo === cur))
+      return [{ id: `fuera:${cur}`, simbolo: cur, descripcion: "fuera del catálogo", orden: -1, activo: true }, ...act];
+    return act;
+  }, [unidades, form?.unidad]);
   const visibles = filas.filter(
     (f) =>
       (!estado || f.estado === estado) &&
@@ -284,10 +293,18 @@ function ListaBanco({ tabla, seleccion, onSeleccion, llena = false }: { tabla: T
             {cfg.campos.filter((c) => !c.soloSi || c.soloSi(form)).map((c) => (
               <Campo key={c.k} etiqueta={c.t}>
                 {c.tipo === "sel" ? (
-                  <Select value={form[c.k]} onChange={(e) => setForm({ ...form, [c.k]: e.target.value })}>
-                    {c.k === "especialidad" && <option value="">—</option>}
-                    {(c.opciones ?? especialidades.map((e: { nombre: string }) => e.nombre)).map((o) => <option key={o}>{o}</option>)}
-                  </Select>
+                  c.k === "unidad" ? (
+                    <Select value={form[c.k]} onChange={(e) => setForm({ ...form, [c.k]: e.target.value })}>
+                      {undOpciones.map((u) => (
+                        <option key={u.id} value={u.simbolo}>{u.simbolo} · {u.descripcion}</option>
+                      ))}
+                    </Select>
+                  ) : (
+                    <Select value={form[c.k]} onChange={(e) => setForm({ ...form, [c.k]: e.target.value })}>
+                      {c.k === "especialidad" && <option value="">—</option>}
+                      {(c.opciones ?? especialidades.map((e: { nombre: string }) => e.nombre)).map((o) => <option key={o}>{o}</option>)}
+                    </Select>
+                  )
                 ) : (
                   <Input type={c.tipo === "num" ? "number" : "text"} step="any" value={form[c.k]} autoFocus={c.k === "descripcion"}
                     onChange={(e) => setForm({ ...form, [c.k]: e.target.value })} />
@@ -431,7 +448,7 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
     await qc.invalidateQueries({ queryKey: ["banco_apu", "partidas_apu"] });
   }
 
-  const th = "h-[30px] !py-0 border-r border-line px-1 text-[12px] font-semibold text-foreground/80 whitespace-nowrap last:border-r-0";
+  const th = "h-[30px] !py-0 border-r border-line px-1 text-[12px] font-semibold uppercase tracking-wide text-foreground/80 whitespace-nowrap last:border-r-0";
   const td = "h-[26px] !py-0 leading-none border-r border-line/70 px-1.5 align-middle text-[12px] whitespace-nowrap";
   const totalMo = sumar2(calc.filas.filter((f) => f.col === "mano_obra_id").map((f) => f.parcial));
   // Herramientas manuales: % editable sobre la mano de obra (defecto 5 %); solo si hay MO.
@@ -598,8 +615,12 @@ function DialogoNuevaPartida({ partidas, onCerrar, onGuardado }: { partidas: Fil
   const { data: unidades = [] } = useUnidadesMedida();
   const [f, setF] = useState({ especialidad: "", codigo: "", descripcion: "", unidad: "und", rendimiento: "1" });
   const [error, setError] = useState("");
-  const listaUnd = unidades.filter((u) => u.activo).map((u) => u.simbolo);
-  const unds = listaUnd.length ? listaUnd : ["und", "m", "m2", "m3", "kg", "glb"];
+  const listaUnd = unidades.filter((u) => u.activo);
+  const unds = listaUnd.map((u) => u.simbolo);
+  const etiquetaUnd = (s: string) => {
+    const u = listaUnd.find((x) => x.simbolo === s);
+    return u ? `${u.simbolo} · ${u.descripcion}` : s;
+  };
 
   function elegirEsp(nombre: string) {
     const pref = especialidades.find((e) => e.nombre === nombre)?.codigo ?? "";
@@ -634,7 +655,7 @@ function DialogoNuevaPartida({ partidas, onCerrar, onGuardado }: { partidas: Fil
         </div>
         <Campo etiqueta="Unidad">
           <Select value={f.unidad} onChange={(e) => setF({ ...f, unidad: e.target.value })}>
-            {[...new Set([f.unidad, ...unds])].map((u) => <option key={u}>{u}</option>)}
+            {[...new Set([f.unidad, ...unds])].map((u) => <option key={u} value={u}>{etiquetaUnd(u)}</option>)}
           </Select>
         </Campo>
         <Campo etiqueta="Rendimiento diario">

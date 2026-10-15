@@ -246,7 +246,7 @@ export function aplanarReceta(
       if (esRaiz) fila.precio_unitario = Number(r.costo_hora);
       else {
         // % sobre la MO de la subpartida: se fija como importe por unidad del padre.
-        fila.unidad = "glb";
+        fila.unidad = "GLB";
         fila.cantidad_o_cuadrilla = multiplicador;
         fila.precio_unitario = Math.round(((totalMoHijo * Number(r.costo_hora) * q) / 100) * factor * 10000) / 10000;
       }

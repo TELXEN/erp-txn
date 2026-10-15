@@ -44,3 +44,7 @@
 
 ## Dashboard Financiero
 - [x] Añadir dona de categorías de gastos generales a la derecha de la composición del costo real y compactar las barras de control.
+
+## Banco APU
+- [x] Encabezados del APU (código, descripción, unidad, recurso, cantidad, precio, total) en mayúsculas, en Banco APU y cotizaciones.
+- [x] Unidades de las partidas y recursos del Banco APU elegidas de la tabla de unidades (unidades_medida), no texto libre; catálogo completado con H-H y H-M y «glb» unificado a GLB.

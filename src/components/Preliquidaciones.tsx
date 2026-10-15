@@ -48,7 +48,7 @@ const ESTADO_TONO: Record<string, "good" | "bad" | "neutro"> = {
   Facturada: "good",
 };
 
-const itemVacio = (): ItemPL => ({ descripcion: "", unidad: "glb", cantidad: "1", precio_unitario: "" });
+const itemVacio = (): ItemPL => ({ descripcion: "", unidad: "GLB", cantidad: "1", precio_unitario: "" });
 
 export type ClientePL = { id: string; razon_social: string; numero_documento?: string | null; direccion?: string | null };
 
@@ -211,7 +211,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
       .filter((p) => marcadas.includes(p.id))
       .map((p) => ({
         descripcion: `${p.codigo ? p.codigo + " " : ""}${p.nombre}`,
-        unidad: p.unidad || "glb",
+        unidad: p.unidad || "GLB",
         cantidad: String(Number(p.metrado) || 1),
         precio_unitario: String(Math.round(Number(p.precio_unitario) * factor * 100) / 100),
       }));
@@ -315,7 +315,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
       validas.map((l, i) => ({
         preliquidacion_id: id!,
         descripcion: l.descripcion.trim(),
-        unidad: l.unidad.trim() || "glb",
+        unidad: l.unidad.trim() || "GLB",
         cantidad: Number(l.cantidad),
         precio_unitario: Number(l.precio_unitario || 0),
         orden: i,

@@ -431,7 +431,7 @@ export async function aplicarAlcanceCotizacion(cotizacionId: string, alcance: Al
     const { error: e3 } = await supabase.from("cotizacion_items").insert(
       faltan.map((g) => ({
         cotizacion_id: cotizacionId, codigo: "", nombre: "", especialidad: g, categoria: "", marca: "",
-        unidad: "glb", metrado: 0, precio_unitario: 0, orden: ++orden, tipo: "grupo",
+        unidad: "GLB", metrado: 0, precio_unitario: 0, orden: ++orden, tipo: "grupo",
       })) as never,
     );
     if (e3) throw e3;

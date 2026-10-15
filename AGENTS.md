@@ -34,3 +34,4 @@
 - UI buttons merge classes with cn() so a passed className beats base utilities; table row actions use BotonIcono (tones neutro/primario/peligro) — icons never get squeezed by padding.
 - Banco APU: five resource tables + partida_detalle (one nullable FK per row); removal via quitar_recurso_apu (deactivates if used); specs on partidas_apu.especificaciones, metrado in partidas_apu_metrado — recipes keep history.
 - Text format opts in via data-formato; FormatoGlobal (AppShell) uses formato-texto.ts — shared rules.
+- Units come only from unidades_medida (selects in Banco APU, cotización sheet and new-partida dialogs); the canonical symbols the costing code compares are H-H (mano de obra), H-M (equipos por hora), % (porcentaje sobre MO) and GLB — keep them in the catalogue so nothing falls back to free text.
