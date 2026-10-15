@@ -395,7 +395,7 @@ function CeldaNum({ valor, dec, onGuardar, deshabilitado, sufijo }: { sufijo?: s
   if (!onGuardar || deshabilitado)
     return <div className={`flex h-full items-center justify-end font-mono ${deshabilitado ? "text-muted-foreground/50" : ""}`}>{deshabilitado ? "" : dec === 4 ? n4(valor) : n2(valor)}{!deshabilitado && sufijo ? <span className="ml-1 w-7 text-left text-muted-foreground">{sufijo}</span> : null}</div>;
   return (
-    <div className="flex h-full items-center"><input key={valor} type="number" step="any" defaultValue={Number(valor.toFixed(dec))}
+    <div className="flex h-full items-center"><input key={valor} type="number" step="any" defaultValue={valor.toFixed(dec)}
       className="h-6 w-full min-w-0 rounded-sm border border-transparent bg-transparent px-1 text-right font-mono text-[12px] outline-none hover:border-line focus:border-primary focus:bg-background"
       onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
       onBlur={(e) => { const v = Number(e.target.value || 0); if (v !== Number(valor.toFixed(dec))) onGuardar(v); }} />{sufijo ? <span className="ml-1 w-7 shrink-0 text-muted-foreground">{sufijo}</span> : null}</div>
@@ -431,8 +431,8 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
     await qc.invalidateQueries({ queryKey: ["banco_apu", "partidas_apu"] });
   }
 
-  const th = "h-[30px] border-r border-line px-1.5 text-[12px] font-semibold text-foreground/80 whitespace-nowrap last:border-r-0";
-  const td = "h-[26px] border-r border-line/70 px-1.5 align-middle text-[12px] whitespace-nowrap";
+  const th = "h-[30px] !py-0 border-r border-line px-1 text-[12px] font-semibold text-foreground/80 whitespace-nowrap last:border-r-0";
+  const td = "h-[26px] !py-0 leading-none border-r border-line/70 px-1.5 align-middle text-[12px] whitespace-nowrap";
   const totalMo = sumar2(calc.filas.filter((f) => f.col === "mano_obra_id").map((f) => f.parcial));
 
   return (
@@ -448,11 +448,11 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
         <label className="flex items-center gap-2"><span className="font-bold text-foreground/80">Jornada</span>
           <input value="8.00" readOnly disabled className="h-7 w-16 rounded border border-line bg-muted px-2 text-right font-mono text-muted-foreground" />
           <span className="text-muted-foreground">h/día</span></label>
-        {partida.especialidad && <span className="ml-auto truncate text-xs text-muted-foreground">{partida.especialidad}</span>}
+        
       </div>
       <div className="min-h-0 flex-1 overflow-auto">
-        <table className="w-full min-w-[560px] table-fixed border-collapse">
-          <colgroup><col /><col style={{ width: 38 }} /><col style={{ width: 58 }} /><col style={{ width: 104 }} /><col style={{ width: 48 }} /><col style={{ width: 62 }} /><col style={{ width: 66 }} /><col style={{ width: 26 }} /></colgroup>
+        <table className="w-full table-fixed border-collapse">
+          <colgroup><col /><col style={{ width: 34 }} /><col style={{ width: 46 }} /><col style={{ width: 92 }} /><col style={{ width: 40 }} /><col style={{ width: 56 }} /><col style={{ width: 60 }} /><col style={{ width: 24 }} /></colgroup>
           <thead className="sticky top-0 z-10 bg-card">
             <tr className="border-b border-line">
               <th className={`${th} text-left`}>Descripción</th><th className={`${th} text-center`}>Unid.</th>
@@ -470,7 +470,7 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
                 <tr key={col} className="border-b border-line bg-muted/60">
                   <td colSpan={6} className={`${td} font-bold text-foreground/80`}>▾ {titulo}</td>
                   <td className={`${td} text-right font-mono font-bold`}>{n2(sub)}</td>
-                  <td className="h-8 px-1"><BotonIcono etiqueta={`Agregar a ${titulo.toLowerCase()}`} tono="primario" className="size-6" onClick={() => setAgregar(g)}><Plus size={13} /></BotonIcono></td>
+                  <td className="h-[26px] !py-0 px-0.5"><BotonIcono etiqueta={`Agregar a ${titulo.toLowerCase()}`} tono="primario" className="size-5" onClick={() => setAgregar(g)}><Plus size={13} /></BotonIcono></td>
                 </tr>,
                 ...filas.map((f) => (
                   <tr key={f.d.id} className="border-b border-line/70 hover:bg-primary/5">
@@ -481,7 +481,7 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
                     <td className={td}></td>
                     <td className={`${td} text-right font-mono`}>{n2(f.pct ? totalMo : f.cu)}</td>
                     <td className={`${td} text-right font-mono`}>{n2(f.parcial)}</td>
-                    <td className="h-8 px-1"><BotonIcono etiqueta="Quitar fila" tono="peligro" className="size-6" onClick={() => quitarFila(f)}><X size={12} /></BotonIcono></td>
+                    <td className="h-[26px] !py-0 px-0.5"><BotonIcono etiqueta="Quitar fila" tono="peligro" className="size-5" onClick={() => quitarFila(f)}><X size={12} /></BotonIcono></td>
                   </tr>
                 )),
               ];
