@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 
 const RanuraEncabezado = createContext<HTMLElement | null>(null);
 import { FormatoGlobal } from "@/components/FormatoGlobal";
-import { Calculator, ChevronDown } from "lucide-react";
+import { Calculator, ChevronDown, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import {
   Activity,
   Banknote,
@@ -136,6 +136,16 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const [abierta, setAbierta] = useState<string | null>(null);
   const [ranura, setRanura] = useState<HTMLDivElement | null>(null);
+  const [colapsado, setColapsado] = useState(false);
+  useEffect(() => {
+    try { setColapsado(window.localStorage.getItem("erp-telxen-sidebar-colapsado") === "1"); } catch { /* */ }
+  }, []);
+  function alternarPanel() {
+    setColapsado((v) => {
+      try { window.localStorage.setItem("erp-telxen-sidebar-colapsado", v ? "0" : "1"); } catch { /* */ }
+      return !v;
+    });
+  }
 
   useEffect(() => {
     aplicarTema(leerTema());
@@ -178,22 +188,47 @@ export function AppShell({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen w-full text-ink md:h-screen md:overflow-hidden md:[--app-sidebar-width:236px]">
+    <div className={`min-h-screen w-full text-ink md:h-screen md:overflow-hidden ${colapsado ? "md:[--app-sidebar-width:56px]" : "md:[--app-sidebar-width:236px]"}`}>
       <FormatoGlobal />
       <aside className="no-print flex min-h-full flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground md:fixed md:inset-y-0 md:left-0 md:z-30 md:h-screen md:min-h-0 md:w-[var(--app-sidebar-width)] md:overflow-hidden">
-        <div className="flex h-12 shrink-0 items-center gap-2.5 border-b border-sidebar-border px-5">
+        <div className={`flex h-12 shrink-0 items-center gap-2.5 border-b border-sidebar-border ${colapsado ? "justify-center px-2" : "px-5"}`}>
           <span className="grid size-8 shrink-0 place-items-center rounded-md bg-cta font-mono text-sm font-bold text-cta-foreground">
             TXN
           </span>
-          <div className="min-w-0 leading-none">
+          <div className={`min-w-0 leading-none ${colapsado ? "hidden" : ""}`}>
             <p className="text-sm font-bold tracking-tight">ERP TELXEN SAC</p>
             <p className="mt-1 whitespace-nowrap font-mono text-[10px] uppercase tracking-[0.14em] text-sidebar-muted">Gestión de Proyectos</p>
           </div>
         </div>
 
-        <div className="flex flex-1 flex-col px-3 py-5 md:min-h-0 md:overflow-y-auto md:overscroll-contain">
-          <p className="px-2 pb-2 font-mono text-[10px] uppercase tracking-[0.14em] text-sidebar-muted">Módulos</p>
-          <nav className="space-y-2 text-sm">
+        <div className={`flex flex-1 flex-col py-5 md:min-h-0 md:overflow-y-auto md:overscroll-contain ${colapsado ? "px-2" : "px-3"}`}>
+          <div className={`flex items-center pb-2 ${colapsado ? "justify-center" : "justify-between px-2"}`}>
+            {!colapsado && <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-sidebar-muted">Módulos</p>}
+            <button
+              type="button"
+              onClick={alternarPanel}
+              title={colapsado ? "Abrir panel" : "Colapsar panel"}
+              aria-label={colapsado ? "Abrir panel de navegación" : "Colapsar panel de navegación"}
+              className="hidden size-6 place-items-center rounded-md text-sidebar-muted hover:bg-sidebar-hover hover:text-sidebar-foreground md:grid"
+            >
+              {colapsado ? <PanelLeftOpen className="size-4" /> : <PanelLeftClose className="size-4" />}
+            </button>
+          </div>
+          {colapsado ? (
+            <nav className="hidden flex-col items-center gap-1 md:flex">
+              {categorias.flatMap((c) => c.items).map((m) => {
+                const Icono = m.icono;
+                const activo = pathname === m.a;
+                return (
+                  <Link key={m.a} to={m.a} title={m.texto} aria-label={m.texto}
+                    className={`grid size-9 place-items-center rounded-md ${activo ? "bg-cta text-cta-foreground" : "text-sidebar-foreground hover:bg-sidebar-hover"}`}>
+                    <Icono className="size-4" />
+                  </Link>
+                );
+              })}
+            </nav>
+          ) : null}
+          <nav className={`space-y-2 text-sm ${colapsado ? "md:hidden" : ""}`}>
             {categorias.map((c) => {
               const abierta = estaAbierta(c);
               return (
@@ -236,7 +271,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             })}
           </nav>
 
-          <div className="mt-6 rounded-md border border-sidebar-border bg-sidebar-panel p-3">
+          <div className={`mt-6 rounded-md border border-sidebar-border bg-sidebar-panel p-3 ${colapsado ? "md:hidden" : ""}`}>
             <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-sidebar-muted">Rol activo</p>
             <p className="mt-1 text-sm font-semibold">{rol ? ETIQUETA_ROL[rol] : "Sin rol asignado"}</p>
             <p className="mt-1 font-mono text-[10px] text-sidebar-muted">
