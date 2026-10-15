@@ -44,10 +44,7 @@ function SirePage() {
   ];
   return (
     <div>
-      <div className="mb-2 flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
-        <h1 className="text-xl font-bold tracking-tight">SIRE SUNAT</h1>
-        <p className="label-mono">FINANZAS Y CONTABILIDAD · REGISTROS ELECTRÓNICOS</p>
-      </div>
+      <Encabezado titulo="SIRE SUNAT" subtitulo="FINANZAS Y CONTABILIDAD · REGISTROS ELECTRÓNICOS" />
       <div className="sticky top-0 z-30 -mx-1 bg-background px-1 pb-1">
         <SincronizacionGlobal periodo={periodo} onPeriodoChange={setPeriodo}
           botonConfig={rol === "gerente" ? (
