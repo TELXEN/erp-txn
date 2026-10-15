@@ -25,7 +25,7 @@ const vacio = {
   especialidad: "",
   categoria: "",
   marca: "",
-  unidad: "glb",
+  unidad: "GLB",
   precio_unitario: "",
   tipo_partida: "MAT",
 };
