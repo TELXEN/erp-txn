@@ -502,7 +502,6 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
                     <td className={`${td} text-center text-muted-foreground`}>%…</td>
                     <td className={td}></td>
                     <td className={td}><CeldaNum valor={pctHt} dec={2} sufijo="%mo" onGuardar={(v) => void guardarPctHt(v)} /></td>
-                    <td className={td}></td>
                     <td className={`${td} text-right font-mono`}>{n2(totalMo)}</td>
                     <td className={`${td} text-right font-mono`}>{n2(htTotal)}</td>
                     <td />
