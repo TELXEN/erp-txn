@@ -401,7 +401,9 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
   const { costo, fuentes, detalles } = useApuMaestro();
   const [agregar, setAgregar] = useState<Grupo | null>(null);
   const [rendLocal, setRendLocal] = useState<number | null>(null);
-  useEffect(() => setRendLocal(null), [partida.id, partida.rendimiento_diario]);
+  const [editJornada, setEditJornada] = useState(false);
+  const [jornada, setJornada] = useState<number>(() => Number(localStorage.getItem(`banco-apu:jornada:${partida.id}`)) || 8);
+  useEffect(() => { setRendLocal(null); setEditJornada(false); setJornada(Number(localStorage.getItem(`banco-apu:jornada:${partida.id}`)) || 8); }, [partida.id, partida.rendimiento_diario]);
   const rend = rendLocal ?? (Number(partida.rendimiento_diario) || 1);
   const calc = costo(partida.id, new Set(), rend);
   const refrescar = () => qc.invalidateQueries({ queryKey: ["banco_apu", "partida_detalle"] });
