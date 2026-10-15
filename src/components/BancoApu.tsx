@@ -1,13 +1,14 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Calculator, Pencil, Plus, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Boton, BotonIcono, Campo, Etiqueta, Input, Panel, Select, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
+import { MenuContextualApu, type AccionApu, type EstadoMenuApu } from "@/components/MenuContextualApu";
 import { soles } from "@/lib/format";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
 import { useUnidadesMedida } from "@/lib/unidades";
-import { siguienteCodigoJerarquico } from "@/lib/banco-apu";
+import { renumerarApu, siguienteCodigoJerarquico } from "@/lib/banco-apu";
 import { r2, r4, sumar2 } from "@/lib/decimal";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
