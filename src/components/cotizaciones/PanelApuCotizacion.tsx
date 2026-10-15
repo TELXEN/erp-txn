@@ -25,17 +25,17 @@ function CeldaNum({ valor, dec, onGuardar, sufijo, deshabilitado }: {
 }) {
   if (deshabilitado || !onGuardar)
     return (
-      <div className="flex h-6 items-center justify-end font-mono text-[12px] text-muted-foreground">
-        {valor.toFixed(dec)}{sufijo ? <span className="ml-0.5 w-7 shrink-0">{sufijo}</span> : null}
+      <div className="flex h-6 items-center justify-end font-mono text-[11px] text-muted-foreground">
+        {valor.toFixed(dec)}{sufijo ? <span className="ml-0.5 w-6 shrink-0">{sufijo}</span> : null}
       </div>
     );
   return (
     <div className="flex items-center">
       <input key={valor.toFixed(dec)} type="number" step="any" defaultValue={valor.toFixed(dec)}
-        className="h-6 w-full min-w-0 rounded-sm border border-transparent bg-transparent px-0.5 text-right font-mono text-[12px] outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none hover:border-line focus:border-primary focus:bg-background"
+        className="h-6 w-full min-w-0 rounded-sm border border-transparent bg-transparent px-0.5 text-right font-mono text-[11px] outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none hover:border-line focus:border-primary focus:bg-background"
         onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
         onBlur={(e) => { const v = Number(e.target.value || 0); if (v !== Number(valor.toFixed(dec))) onGuardar(v); }} />
-      {sufijo ? <span className="ml-0.5 w-7 shrink-0 text-muted-foreground">{sufijo}</span> : null}
+      {sufijo ? <span className="ml-0.5 w-6 shrink-0 text-muted-foreground">{sufijo}</span> : null}
     </div>
   );
 }
@@ -194,8 +194,8 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
   }
 
   const puedeExportar = rol === "gerente" || rol === "administrador";
-  const th = "h-[30px] !py-0 border-r border-line px-1 text-[12px] font-semibold uppercase tracking-wide text-foreground/80 whitespace-nowrap last:border-r-0";
-  const td = "h-[26px] !py-0 leading-none border-r border-line/70 px-1.5 align-middle text-[12px] whitespace-nowrap";
+  const th = "h-[30px] !py-0 border-r border-line px-1 text-[10px] font-semibold uppercase text-foreground/80 whitespace-nowrap last:border-r-0";
+  const td = "h-[26px] !py-0 leading-none border-r border-line/70 px-1 align-middle text-[11px] whitespace-nowrap";
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -227,7 +227,7 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
         {pestana === "acu" && (
           <>
             <table className="w-full table-fixed border-collapse">
-              <colgroup><col style={{ width: 78 }} /><col /><col style={{ width: 34 }} /><col style={{ width: 50 }} /><col style={{ width: 100 }} /><col style={{ width: 56 }} /><col style={{ width: 60 }} /><col style={{ width: 24 }} /></colgroup>
+              <colgroup><col style={{ width: 74 }} /><col /><col style={{ width: 34 }} /><col style={{ width: 52 }} /><col style={{ width: 78 }} /><col style={{ width: 50 }} /><col style={{ width: 62 }} /><col style={{ width: 20 }} /></colgroup>
               <thead className="sticky top-0 z-10 bg-card">
                 <tr className="border-b border-line">
                   <th className={`${th} text-left`}>Código</th><th className={`${th} text-left`}>Descripción</th><th className={`${th} text-center`}>Unid.</th>
@@ -267,7 +267,7 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
                           </td>
                           <td className={td}>
                             {f.esPctMo
-                              ? <div className="flex h-6 items-center justify-end font-mono text-[12px] text-muted-foreground">{num(totalMo)}</div>
+                              ? <div className="flex h-6 items-center justify-end font-mono text-[11px] text-muted-foreground">{num(totalMo)}</div>
                               : <CeldaNum valor={f.cu} dec={4} onGuardar={(v) => void actualizar(f, "precio_unitario", v)} />}
                           </td>
                           <td className={`${td} text-right font-mono`}>{num(f.parcial)}</td>
@@ -278,7 +278,7 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
                     ...(t === "EQ" && htVisible ? [
                       <tr key="ht" className="border-b border-line/70 bg-warn/5">
                         <td className={`${td} font-mono text-[11px] text-muted-foreground`}>HT</td>
-                        <td className={td}><span className="min-w-0 truncate italic text-foreground/80">Herramientas manuales</span></td>
+                        <td className={td}><span className="block min-w-0 truncate italic text-foreground/80" title="Herramientas manuales">Herramientas manuales</span></td>
                         <td className={`${td} text-center text-muted-foreground`}>%…</td>
                         <td className={td}></td>
                         <td className={td}><CeldaNum valor={pctHt} dec={2} sufijo="%mo" onGuardar={(v) => void guardarPctHt(v)} /></td>

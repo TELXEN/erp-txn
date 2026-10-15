@@ -49,3 +49,5 @@
 - [x] Encabezados del APU (código, descripción, unidad, recurso, cantidad, precio, total) en mayúsculas, en Banco APU y cotizaciones.
 - [x] Unidades de las partidas y recursos del Banco APU elegidas de la tabla de unidades (unidades_medida), no texto libre; catálogo completado con H-H y H-M y «glb» unificado a GLB.
 - [x] En cotizaciones, la lista desplegable de unidades se justifica a la izquierda (celda UNIDAD en modo edición y ventana de nueva partida).
+- [x] En el APU de cotizaciones el pie del panel derecho solo muestra «Análisis de costo unitario» y «Especificaciones técnicas» (sin Metrado ni Consolidado de partida); el panel queda con tamaño fijo y sus pestañas siempre visibles.
+- [x] Encabezados de la grilla APU sin traslape: títulos a 10 px, cifras a 11 px y anchos de columna rebalanceados, igual en Banco APU y cotizaciones.
