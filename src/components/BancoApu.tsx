@@ -103,13 +103,11 @@ export function BancoApu() {
   );
 }
 
-const PIE = ["analisis", "especificaciones", "metrado", "consolidado"] as const;
+const PIE = ["analisis", "especificaciones"] as const;
 type Pie = (typeof PIE)[number];
 const PIE_TITULOS: Record<Pie, string> = {
   analisis: "Análisis de costo unitario",
   especificaciones: "Especificaciones técnicas",
-  metrado: "Metrado",
-  consolidado: "Consolidado de partida",
 };
 
 function SplitPartidas() {
@@ -128,12 +126,8 @@ function SplitPartidas() {
             <Panel titulo="Análisis de precios unitarios" className="flex h-full flex-col"><div className="min-h-0 flex-1 overflow-y-auto"><Vacio texto="Elige una partida a la izquierda para ver y armar su APU." /></div></Panel>
           ) : pie === "analisis" ? (
             <PanelApuMaestro partida={partida} />
-          ) : pie === "especificaciones" ? (
-            <PanelEspecificaciones partida={partida} />
-          ) : pie === "metrado" ? (
-            <PanelMetrado partida={partida} />
           ) : (
-            <PanelConsolidado partida={partida} />
+            <PanelEspecificaciones partida={partida} />
           )}
         </div>
         <div className="mt-2 flex shrink-0 flex-wrap items-stretch gap-x-1 border-t border-line">
@@ -407,7 +401,9 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
   const { costo, fuentes, detalles } = useApuMaestro();
   const [agregar, setAgregar] = useState<Grupo | null>(null);
   const [rendLocal, setRendLocal] = useState<number | null>(null);
-  useEffect(() => setRendLocal(null), [partida.id, partida.rendimiento_diario]);
+  const [editJornada, setEditJornada] = useState(false);
+  const [jornada, setJornada] = useState<number>(() => Number(localStorage.getItem(`banco-apu:jornada:${partida.id}`)) || 8);
+  useEffect(() => { setRendLocal(null); setEditJornada(false); setJornada(Number(localStorage.getItem(`banco-apu:jornada:${partida.id}`)) || 8); }, [partida.id, partida.rendimiento_diario]);
   const rend = rendLocal ?? (Number(partida.rendimiento_diario) || 1);
   const calc = costo(partida.id, new Set(), rend);
   const refrescar = () => qc.invalidateQueries({ queryKey: ["banco_apu", "partida_detalle"] });
@@ -446,9 +442,13 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
             onBlur={(e) => { const v = Number(e.target.value); if (v !== rend) void guardarRend(v); }} />
           <span className="text-muted-foreground">{partida.unidad}/día</span></label>
         <label className="flex items-center gap-2"><span className="font-bold text-foreground/80">Jornada</span>
-          <input value="8.00" readOnly disabled className="h-7 w-16 rounded border border-line bg-muted px-2 text-right font-mono text-muted-foreground" />
-          <span className="text-muted-foreground">h/día</span></label>
-        
+          <input key={`jor:${partida.id}:${jornada}`} type="number" step="0.5" min="1" max="24" defaultValue={jornada.toFixed(2)} readOnly={!editJornada} disabled={!editJornada}
+            className={`h-7 w-16 rounded border border-line px-2 text-right font-mono outline-none ${editJornada ? "bg-warn/20 focus:border-primary" : "bg-muted text-muted-foreground"}`}
+            onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
+            onBlur={(e) => { const v = Number(e.target.value); if (v > 0 && v <= 24 && v !== jornada) { setJornada(v); localStorage.setItem(`banco-apu:jornada:${partida.id}`, String(v)); } }} />
+          <span className="text-muted-foreground">h/día</span>
+          <input type="checkbox" checked={editJornada} onChange={(e) => setEditJornada(e.target.checked)} title="Editar jornada"
+            className="h-4 w-4 cursor-pointer accent-primary" /></label>
       </div>
       <div className="min-h-0 flex-1 overflow-auto">
         <table className="w-full table-fixed border-collapse">
