@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Plus, Upload } from "lucide-react";
-import { Boton, Campo, Input, Resaltar, Vacio, VentanaFlotante } from "@/components/ui-kit";
+import { Boton, Campo, Input, Vacio, VentanaFlotante } from "@/components/ui-kit";
+import { Resaltar } from "@/components/Buscador";
 import { MenuContextualApu, type AccionApu, type EstadoMenuApu } from "@/components/MenuContextualApu";
 import { BANCOS_RECURSO, costoReceta, dbBanco, renumerarApu, useBancoTabla, useRecursosApu, type FilaCalculo, type RecursosApu } from "@/lib/banco-apu";
 import { r2, sumar2 } from "@/lib/decimal";
@@ -150,7 +151,7 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
       const mapa = await renumerarApu("cotizacion_apu_detalle", propias as { id: string; orden?: number }[]);
       const filasG = calc.filas.filter((x) => x.tipo === t);
       let orden = 10;
-      if (a === "final" && filasG.length) orden = (mapa.get(filasG[filasG.length - 1].d.id as string) ?? filasG.length * 10) + 10;
+      if (a === "final" && filasG.length) orden = (mapa.get(filasG[filasG.length - 1]!.d.id as string) ?? filasG.length * 10) + 10;
       else if (f) orden = (mapa.get(f.d.id as string) ?? 0) + (a === "encima" ? -5 : 5);
       setAgregar({ t, orden });
       return;
