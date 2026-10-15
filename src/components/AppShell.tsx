@@ -1,6 +1,9 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
+
+const RanuraEncabezado = createContext<HTMLElement | null>(null);
 import { FormatoGlobal } from "@/components/FormatoGlobal";
 import { Calculator, ChevronDown } from "lucide-react";
 import {
@@ -132,6 +135,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   })).filter((c) => c.items.length > 0);
 
   const [abierta, setAbierta] = useState<string | null>(null);
+  const [ranura, setRanura] = useState<HTMLDivElement | null>(null);
 
   useEffect(() => {
     aplicarTema(leerTema());
@@ -177,7 +181,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="min-h-screen w-full text-ink md:h-screen md:overflow-hidden md:[--app-sidebar-width:236px]">
       <FormatoGlobal />
       <aside className="no-print flex min-h-full flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground md:fixed md:inset-y-0 md:left-0 md:z-30 md:h-screen md:min-h-0 md:w-[var(--app-sidebar-width)] md:overflow-hidden">
-        <div className="flex min-h-[69px] shrink-0 items-center gap-2.5 border-b border-sidebar-border px-5 py-3">
+        <div className="flex h-12 shrink-0 items-center gap-2.5 border-b border-sidebar-border px-5">
           <span className="grid size-8 shrink-0 place-items-center rounded-md bg-cta font-mono text-sm font-bold text-cta-foreground">
             TXN
           </span>
@@ -243,9 +247,10 @@ export function AppShell({ children }: { children: ReactNode }) {
       </aside>
 
       <div className="flex min-h-screen min-w-0 flex-col md:ml-[var(--app-sidebar-width)] md:h-screen md:min-h-0 md:w-[calc(100%-var(--app-sidebar-width))] md:overflow-hidden">
-        <header className="no-print sticky top-0 z-20 flex min-h-[69px] shrink-0 items-center justify-end gap-3 border-b border-brand bg-brand px-5 py-3 text-brand-foreground">
+        <header className="no-print sticky top-0 z-20 flex min-h-12 shrink-0 items-center gap-3 border-b border-brand bg-brand px-4 py-1.5 text-brand-foreground">
+          <div ref={setRanura} className="flex min-w-0 flex-1 items-center" />
           <div className="flex items-center gap-2">
-            <span className="grid size-8 place-items-center rounded-full bg-cta text-xs font-semibold text-cta-foreground">
+            <span className="grid size-7 place-items-center rounded-full bg-cta text-xs font-semibold text-cta-foreground">
               {iniciales}
             </span>
             <div className="hidden leading-tight sm:block">
@@ -263,7 +268,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </button>
         </header>
 
-        <main className="min-w-0 flex-1 px-3 py-3 sm:px-4 md:min-h-0 md:overflow-y-auto md:overscroll-contain"><div className="mx-auto w-full max-w-[1600px]">{children}</div></main>
+        <main className="min-w-0 flex-1 px-3 py-3 sm:px-4 md:min-h-0 md:overflow-y-auto md:overscroll-contain"><div className="mx-auto w-full max-w-[1600px]"><RanuraEncabezado.Provider value={ranura}>{children}</RanuraEncabezado.Provider></div></main>
       </div>
     </div>
   );
@@ -280,6 +285,19 @@ export function Encabezado({
   acciones?: ReactNode;
   className?: string;
 }) {
+  const ranura = useContext(RanuraEncabezado);
+  if (ranura) {
+    return createPortal(
+      <div className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-x-4 gap-y-1">
+        <div className="min-w-0 leading-tight">
+          <h1 className="truncate text-base font-bold tracking-tight" title={subtitulo}>{titulo}</h1>
+          <p className="truncate font-mono text-[10px] uppercase tracking-wide text-brand-foreground/70">{subtitulo}</p>
+        </div>
+        {acciones && <div className="flex flex-wrap items-center gap-2">{acciones}</div>}
+      </div>,
+      ranura,
+    );
+  }
   return (
     <div className={className}>
       <p className="label-mono mb-1">{subtitulo}</p>
