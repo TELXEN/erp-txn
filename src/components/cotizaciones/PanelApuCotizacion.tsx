@@ -245,9 +245,8 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
                 {GRUPOS_RECURSO.map(([t, titulo]) => {
                   const filas = calc.filas.filter((f) => f.tipo === t);
                   const sub = sumar2(filas.map((f) => f.parcial)) + (t === "EQ" ? htTotal : 0);
-                  const idxBanco = BANCOS_RECURSO.findIndex((b) => b[3] === t);
                   return [
-                    <tr key={t} className="border-b border-line bg-muted/60" onContextMenu={(e) => abrirMenu(e, t, undefined, { final: idxBanco >= 0 })}>
+                    <tr key={t} className="border-b border-line bg-muted/60">
                       <td colSpan={6} className={`${td} font-bold text-foreground/80`}>▾ {titulo}</td>
                       <td className={`${td} text-right font-mono font-bold`}>{num(sub)}</td>
                     </tr>,
@@ -255,8 +254,8 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
                       const horaria = f.tipo === "MO" || (f.tipo === "EQ" && f.und === "H-M");
                       const hh = horaria ? (f.cantidad * jornada) / rend : f.cantidad;
                       return (
-                        <tr key={f.d.id} className={`border-b border-line/70 hover:bg-primary/5 ${destino?.ref === f.d.id ? "bg-primary/10" : ""}`}
-                          onContextMenu={(e) => abrirMenu(e, t, f, { encima: idxBanco >= 0, debajo: idxBanco >= 0, final: idxBanco >= 0, subir: i > 0, bajar: i < filas.length - 1, eliminar: true })}>
+                        <tr key={f.d.id} className="border-b border-line/70 hover:bg-primary/5"
+                          onContextMenu={(e) => abrirMenu(e, t, f, { subir: i > 0, bajar: i < filas.length - 1, eliminar: true })}>
                           <td className={`${td} font-mono text-[11px] text-muted-foreground`}><span className="block truncate" title={f.d.codigo ?? ""}>{f.d.codigo || "—"}</span></td>
                           <td className={td}><span className="block min-w-0 truncate" title={f.nombre}>{f.nombre}</span></td>
                           <td className={`${td} text-center text-muted-foreground`}>{f.esPctMo ? "%…" : f.und}</td>
@@ -292,18 +291,7 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
                 })}
               </tbody>
             </table>
-            {!propias.length && <p className="px-3 py-4 text-xs text-muted-foreground">Esta partida aún no tiene APU. Elige la partida desde el banco en la hoja o agrega recursos abajo.</p>}
-            <div className="flex flex-wrap items-center gap-1.5 border-t border-line px-2 py-2">
-              <Select value={banco} onChange={(e) => { setBanco(Number(e.target.value)); setElegido(""); }} className="w-36 py-1 text-[11px]">
-                {BANCOS_RECURSO.map(([, , t], i) => <option key={t} value={i}>{t}</option>)}
-              </Select>
-              <Select value={elegido} onChange={(e) => setElegido(e.target.value)} className="min-w-0 flex-1 py-1 text-[11px]">
-                <option value="">{etiqueta}…</option>
-                {opciones.map((o) => <option key={o.id} value={o.id}>{o.codigo ? `${o.codigo} · ` : ""}{o.descripcion}</option>)}
-              </Select>
-              <Boton onClick={() => void agregar()} disabled={!elegido}><Plus size={12} /> Agregar</Boton>
-              {destino && <span className="w-full text-[11px] text-primary">Se insertará {destino.texto} · <button type="button" className="underline" onClick={() => setDestino(null)}>al final</button></span>}
-            </div>
+            {!propias.length && <p className="px-3 py-4 text-xs text-muted-foreground">Esta partida aún no tiene APU. Elige la partida desde el banco en la hoja; los insumos se agregan en el Banco APU.</p>}
           </>
         )}
         {pestana === "esp" && <Especificaciones item={it} />}
