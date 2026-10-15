@@ -26,7 +26,7 @@ type CampoDef = {
   soloSi?: (f: Fila) => boolean;
 };
 
-const CONFIG: Record<Tabla, { titulo: string; campos: CampoDef[]; columnas: [string, string, "num" | "txt" | "sol"][]; filtro?: string }> = {
+const CONFIG: Record<Tabla, { titulo: string; campos: CampoDef[]; columnas: [string, string, "num" | "txt" | "sol"][]; filtro?: string; buscar?: string[] }> = {
   partidas_apu: {
     titulo: "Partidas",
     campos: [
@@ -36,7 +36,8 @@ const CONFIG: Record<Tabla, { titulo: string; campos: CampoDef[]; columnas: [str
       { k: "rendimiento_diario", t: "Rendimiento diario", tipo: "num" },
       { k: "especialidad", t: "Especialidad", tipo: "sel" },
     ],
-    columnas: [["codigo_jerarquico", "Código", "txt"], ["descripcion", "Descripción", "txt"], ["unidad", "Und", "txt"], ["rendimiento_diario", "Rend./día", "num"], ["especialidad", "Especialidad", "txt"]],
+    columnas: [["descripcion", "Descripción", "txt"], ["unidad", "Und", "txt"], ["rendimiento_diario", "Rend./día", "num"], ["especialidad", "Especialidad", "txt"]],
+    buscar: ["codigo_jerarquico"],
     filtro: "especialidad",
   },
   materiales: {
@@ -178,7 +179,7 @@ function ListaBanco({ tabla, seleccion, onSeleccion, llena = false }: { tabla: T
     (f) =>
       (!estado || f.estado === estado) &&
       (!filtro || String(f[cfg.filtro!]) === filtro) &&
-      coincide(busqueda, ...cfg.columnas.map(([k]) => f[k])),
+      coincide(busqueda, ...cfg.columnas.map(([k]) => f[k]), ...(cfg.buscar ?? []).map((k) => f[k])),
   );
   const refrescar = () => qc.invalidateQueries({ queryKey: ["banco_apu"] });
 
