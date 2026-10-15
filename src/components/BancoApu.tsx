@@ -407,7 +407,8 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
   const [jornada, setJornada] = useState<number>(() => Number(localStorage.getItem(`banco-apu:jornada:${partida.id}`)) || 8);
   useEffect(() => { setRendLocal(null); setEditJornada(false); setJornada(Number(localStorage.getItem(`banco-apu:jornada:${partida.id}`)) || 8); }, [partida.id, partida.rendimiento_diario]);
   const rend = rendLocal ?? (Number(partida.rendimiento_diario) || 1);
-  const calc = costo(partida.id, new Set(), rend, jornada);
+  const jornadaEfectiva = editJornada ? jornada : 8;
+  const calc = costo(partida.id, new Set(), rend, jornadaEfectiva);
   const refrescar = () => qc.invalidateQueries({ queryKey: ["banco_apu", "partida_detalle"] });
 
   // Guarda el valor en la fila fusionada y elimina duplicados del mismo recurso.
@@ -444,7 +445,7 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
             onBlur={(e) => { const v = Number(e.target.value); if (v !== rend) void guardarRend(v); }} />
           <span className="text-muted-foreground">{partida.unidad}/día</span></label>
         <label className="flex items-center gap-2"><span className="font-bold text-foreground/80">Jornada</span>
-          <input key={`jor:${partida.id}:${jornada}`} type="number" step="0.5" min="1" max="24" defaultValue={jornada.toFixed(2)} readOnly={!editJornada} disabled={!editJornada}
+          <input key={`jor:${partida.id}:${jornadaEfectiva}`} type="number" step="0.5" min="1" max="24" defaultValue={jornadaEfectiva.toFixed(2)} readOnly={!editJornada} disabled={!editJornada}
             className={`h-7 w-16 rounded border border-line px-2 text-right font-mono outline-none ${editJornada ? "bg-warn/20 focus:border-primary" : "bg-muted text-muted-foreground"}`}
             onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
             onBlur={(e) => { const v = Number(e.target.value); if (v > 0 && v <= 24 && v !== jornada) { setJornada(v); localStorage.setItem(`banco-apu:jornada:${partida.id}`, String(v)); } }} />
