@@ -465,10 +465,10 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
       </div>
       <div className="min-h-0 flex-1 overflow-auto">
         <table className="w-full table-fixed border-collapse">
-          <colgroup><col /><col style={{ width: 34 }} /><col style={{ width: 50 }} /><col style={{ width: 100 }} /><col style={{ width: 56 }} /><col style={{ width: 60 }} /><col style={{ width: 24 }} /></colgroup>
+          <colgroup><col style={{ width: 78 }} /><col /><col style={{ width: 34 }} /><col style={{ width: 50 }} /><col style={{ width: 100 }} /><col style={{ width: 56 }} /><col style={{ width: 60 }} /><col style={{ width: 24 }} /></colgroup>
           <thead className="sticky top-0 z-10 bg-card">
             <tr className="border-b border-line">
-              <th className={`${th} text-left`}>Descripción</th><th className={`${th} text-center`}>Unid.</th>
+              <th className={`${th} text-left`}>Código</th><th className={`${th} text-left`}>Descripción</th><th className={`${th} text-center`}>Unid.</th>
               <th className={`${th} text-right`}>Recurso</th><th className={`${th} text-right`}>Cantidad</th>
               <th className={`${th} text-right`}>Precio</th>
               <th className={`${th} text-right`}>Total</th><th />
@@ -481,13 +481,14 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
               const sub = sumar2(filas.map((f) => f.parcial)) + (col === "equipo_id" ? htTotal : 0);
               return [
                 <tr key={col} className="border-b border-line bg-muted/60">
-                  <td colSpan={5} className={`${td} font-bold text-foreground/80`}>▾ {titulo}</td>
+                  <td colSpan={6} className={`${td} font-bold text-foreground/80`}>▾ {titulo}</td>
                   <td className={`${td} text-right font-mono font-bold`}>{n2(sub)}</td>
                   <td className="h-[26px] !py-0 px-0.5"><BotonIcono etiqueta={`Agregar a ${titulo.toLowerCase()}`} tono="primario" className="size-5" onClick={() => setAgregar(g)}><Plus size={13} /></BotonIcono></td>
                 </tr>,
                 ...filas.map((f) => (
                   <tr key={f.d.id} className="border-b border-line/70 hover:bg-primary/5">
-                    <td className={td}><div className="flex min-w-0 items-center gap-1.5">{f.codigo && <span className="hidden shrink-0 2xl:inline font-mono text-[11px] text-muted-foreground">{f.codigo}</span>}<span className="min-w-0 truncate" title={f.nombre}>{f.nombre}</span></div></td>
+                    <td className={`${td} font-mono text-[11px] text-muted-foreground`}><span className="block truncate" title={f.codigo ?? ""}>{f.codigo || "—"}</span></td>
+                    <td className={td}><div className="flex min-w-0 items-center gap-1.5"><span className="min-w-0 truncate" title={f.nombre}>{f.nombre}</span></div></td>
                     <td className={`${td} text-center text-muted-foreground`}>{f.pct ? "%…" : f.und}</td>
                     <td className={td}><CeldaNum valor={f.q} dec={2} deshabilitado={!f.horas} onGuardar={(v) => guardarQ(f, v)} /></td>
                     <td className={td}>{f.pct ? <CeldaNum valor={f.cu * f.q} dec={4} sufijo="%mo" onGuardar={(v) => f.cu > 0 && guardarQ(f, v / f.cu)} /> : <CeldaNum valor={f.cant} dec={4} sufijo={f.und.toLowerCase()} onGuardar={f.horas ? undefined : (v) => guardarQ(f, v)} />}</td>
@@ -498,6 +499,7 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
                 )),
                 ...(col === "equipo_id" && htVisible ? [
                   <tr key="ht" className="border-b border-line/70 bg-warn/5">
+                    <td className={`${td} font-mono text-[11px] text-muted-foreground`}>HT</td>
                     <td className={td}><span className="min-w-0 truncate italic text-foreground/80">Herramientas manuales</span></td>
                     <td className={`${td} text-center text-muted-foreground`}>%…</td>
                     <td className={td}></td>
