@@ -8,6 +8,7 @@ import { soles } from "@/lib/format";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
 import { useUnidadesMedida } from "@/lib/unidades";
 import { siguienteCodigoJerarquico } from "@/lib/banco-apu";
+import { r2, r4, sumar2 } from "@/lib/decimal";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = supabase as unknown as { from: (t: string) => any; rpc: (f: string, a: object) => any };
@@ -337,7 +338,7 @@ const GRUPOS = [
 ] as const;
 type Grupo = (typeof GRUPOS)[number];
 
-type FilaC = { d: Detalle; col: string; nombre: string; und: string; cu: number; parcial: number; pct?: boolean };
+type FilaC = { d: Detalle; col: string; codigo: string; nombre: string; und: string; cu: number; q: number; cant: number; parcial: number; pct?: boolean; horas?: boolean };
 
 function useApuMaestro() {
   const { data: det = [] } = useTabla("partida_detalle");
@@ -349,114 +350,148 @@ function useApuMaestro() {
   const fuentes: Record<string, Fila[]> = { materiales: mat, mano_obra: mo, equipos_herramientas: eq, subcontratos: sc, partidas_apu: pa };
   const detalles = det as Detalle[];
 
-  const costo = (id: string, visitados = new Set<string>()): { total: number; filas: FilaC[] } => {
+  const costo = (id: string, visitados = new Set<string>(), rendForzado?: number): { total: number; filas: FilaC[] } => {
     if (visitados.has(id)) return { total: 0, filas: [] };
     visitados.add(id);
     const p = pa.find((x) => x.id === id);
-    const rend = Number(p?.rendimiento_diario) || 1;
-    const filas: FilaC[] = detalles.filter((d) => d.partida_padre_id === id).map((d) => {
+    const rend = rendForzado || Number(p?.rendimiento_diario) || 1;
+    // 1) Fusionar duplicados del mismo recurso sumando la cuadrilla/cantidad.
+    const fusion = new Map<string, Detalle>();
+    for (const d of detalles.filter((x) => x.partida_padre_id === id)) {
+      const [col] = GRUPOS.find(([c]) => d[c]) ?? GRUPOS[0];
+      const clave = `${col}:${d[col]}`;
+      const ya = fusion.get(clave);
+      if (ya) fusion.set(clave, { ...ya, cantidad_o_cuadrilla: Number(ya.cantidad_o_cuadrilla) + Number(d.cantidad_o_cuadrilla) });
+      else fusion.set(clave, d);
+    }
+    // 2) Calcular cada fila desde cero (cantidades a 4 dp, totales a 2 dp).
+    const filas: FilaC[] = [...fusion.values()].map((d) => {
       const [col, tabla] = GRUPOS.find(([c]) => d[c]) ?? GRUPOS[0];
       const r = (fuentes[tabla] ?? []).find((x) => x.id === d[col]);
-      const q = Number(d.cantidad_o_cuadrilla);
-      let cu = 0, parcial = 0;
-      if (tabla === "partidas_apu") { cu = costo(d[col] as string, new Set(visitados)).total; parcial = q * cu; }
-      else if (tabla === "mano_obra") { cu = Number(r?.costo_hora ?? 0); parcial = (q * 8 * cu) / rend; }
-      else if (tabla === "equipos_herramientas" && r?.unidad === "H-M") { cu = Number(r?.costo_unitario ?? 0); parcial = (q * 8 * cu) / rend; }
-      else { cu = Number(r?.costo_unitario ?? 0); parcial = q * cu; }
-      return { d, col, nombre: r?.descripcion ?? "(no encontrado)", und: r?.unidad ?? "", cu, parcial, pct: tabla === "equipos_herramientas" && r?.unidad === "%" };
+      const q = Number(d.cantidad_o_cuadrilla) || 0;
+      const base = { d, col, codigo: String(r?.codigo ?? r?.codigo_jerarquico ?? ""), nombre: r?.descripcion ?? "(no encontrado)", und: r?.unidad ?? "", q };
+      if (tabla === "partidas_apu") { const cu = costo(d[col] as string, new Set(visitados)).total; return { ...base, cu, cant: q, parcial: r2(q * cu) }; }
+      if (tabla === "mano_obra" || (tabla === "equipos_herramientas" && r?.unidad === "H-M")) {
+        const cu = Number(tabla === "mano_obra" ? r?.costo_hora : r?.costo_unitario) || 0;
+        const cant = r4((q * 8) / rend);
+        return { ...base, cu, cant, parcial: r2(cant * cu), horas: true };
+      }
+      if (tabla === "equipos_herramientas" && r?.unidad === "%") return { ...base, cu: Number(r?.costo_hora ?? 0), cant: 0, parcial: 0, pct: true };
+      const cu = Number(r?.costo_unitario ?? 0);
+      return { ...base, cu, cant: q, parcial: r2(q * cu) };
     });
-    // Fusionar duplicados del mismo recurso: una sola fila con la cantidad sumada
-    const fusion = new Map<string, FilaC>();
-    for (const f of filas) {
-      const clave = `${f.col}:${f.d[f.col]}`;
-      const ya = fusion.get(clave);
-      if (ya) {
-        ya.d = { ...ya.d, cantidad_o_cuadrilla: Number(ya.d.cantidad_o_cuadrilla) + Number(f.d.cantidad_o_cuadrilla) };
-        ya.parcial += f.parcial;
-      } else fusion.set(clave, { ...f });
-    }
-    const filasU = [...fusion.values()];
-    const totalMo = filasU.filter((f) => f.col === "mano_obra_id").reduce((s, f) => s + f.parcial, 0);
-    for (const f of filasU) if (f.pct) f.parcial = (totalMo * f.cu * Number(f.d.cantidad_o_cuadrilla)) / 100;
-    return { total: filasU.reduce((s, f) => s + f.parcial, 0), filas: filasU };
+    const totalMo = sumar2(filas.filter((f) => f.col === "mano_obra_id").map((f) => f.parcial));
+    for (const f of filas) if (f.pct) f.parcial = r2((totalMo * f.cu * f.q) / 100);
+    return { total: sumar2(filas.map((f) => f.parcial)), filas };
   };
 
   return { costo, fuentes, detalles, partidas: pa };
 }
 
+const n2 = (n: number) => n.toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const n4 = (n: number) => n.toLocaleString("es-PE", { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+
+function CeldaNum({ valor, dec, onGuardar, deshabilitado }: { valor: number; dec: number; onGuardar?: ((v: number) => void) | undefined; deshabilitado?: boolean | undefined }) {
+  if (!onGuardar || deshabilitado)
+    return <div className={`flex h-full items-center justify-end font-mono ${deshabilitado ? "text-muted-foreground/50" : ""}`}>{deshabilitado ? "—" : dec === 4 ? n4(valor) : n2(valor)}</div>;
+  return (
+    <input key={valor} type="number" step="any" defaultValue={Number(valor.toFixed(dec))}
+      className="h-6 w-full rounded border border-line bg-background px-1.5 text-right font-mono text-[13px] outline-none focus:border-primary"
+      onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
+      onBlur={(e) => { const v = Number(e.target.value || 0); if (v !== Number(valor.toFixed(dec))) onGuardar(v); }} />
+  );
+}
+
 function PanelApuMaestro({ partida }: { partida: Fila }) {
   const qc = useQueryClient();
   const { costo, fuentes, detalles } = useApuMaestro();
-  const [cerrados, setCerrados] = useState<Record<string, boolean>>({});
   const [agregar, setAgregar] = useState<Grupo | null>(null);
-  const calc = costo(partida.id);
+  const [rendLocal, setRendLocal] = useState<number | null>(null);
+  useEffect(() => setRendLocal(null), [partida.id, partida.rendimiento_diario]);
+  const rend = rendLocal ?? (Number(partida.rendimiento_diario) || 1);
+  const calc = costo(partida.id, new Set(), rend);
   const refrescar = () => qc.invalidateQueries({ queryKey: ["banco_apu", "partida_detalle"] });
 
-  async function cambiarCant(id: string, v: string) {
-    await db.from("partida_detalle").update({ cantidad_o_cuadrilla: Number(v || 0) }).eq("id", id);
+  // Guarda el valor en la fila fusionada y elimina duplicados del mismo recurso.
+  async function guardarQ(f: FilaC, v: number) {
+    const dup = detalles.filter((d) => d.partida_padre_id === partida.id && d[f.col] === f.d[f.col] && d.id !== f.d.id);
+    await db.from("partida_detalle").update({ cantidad_o_cuadrilla: v }).eq("id", f.d.id);
+    if (dup.length) await db.from("partida_detalle").delete().in("id", dup.map((d) => d.id));
     refrescar();
   }
-  async function quitarFila(id: string) {
-    await db.from("partida_detalle").delete().eq("id", id);
+  async function quitarFila(f: FilaC) {
+    const ids = detalles.filter((d) => d.partida_padre_id === partida.id && d[f.col] === f.d[f.col]).map((d) => d.id);
+    await db.from("partida_detalle").delete().in("id", ids.length ? ids : [f.d.id]);
     refrescar();
   }
+  async function guardarRend(v: number) {
+    if (!(v > 0)) return setRendLocal(null);
+    setRendLocal(v);
+    await db.from("partidas_apu").update({ rendimiento_diario: v }).eq("id", partida.id);
+    await qc.invalidateQueries({ queryKey: ["banco_apu", "partidas_apu"] });
+  }
+
+  const th = "h-[38px] px-2 text-[13px] font-bold text-foreground/80 whitespace-nowrap";
+  const td = "h-8 px-2 align-middle text-[13px]";
 
   return (
     <>
     <Panel titulo={`${partida.codigo_jerarquico || "s/c"} · ${partida.descripcion}`} className="flex h-full flex-col">
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3"><p className="mb-2 text-xs text-muted-foreground">{partida.unidad} · Rendimiento {partida.rendimiento_diario}/día{partida.especialidad ? ` · ${partida.especialidad}` : ""}</p>
-
-      <div className="space-y-2">
-        {GRUPOS.map((g) => {
-          const [col, , titulo] = g;
-          const filas = calc.filas.filter((f) => f.col === col);
-          const sub = filas.reduce((s, f) => s + f.parcial, 0);
-          const cerrado = cerrados[col];
-          return (
-            <div key={col} className="rounded-md border border-line">
-              <div className="flex items-center gap-2 bg-muted/40 px-2.5 py-1">
-                <button type="button" className="min-w-0 flex-1 truncate text-left text-xs font-semibold text-primary"
-                  onClick={() => setCerrados({ ...cerrados, [col]: !cerrado })}>
-                  {cerrado ? "▸" : "▾"} {titulo} <span className="font-normal text-muted-foreground">({filas.length})</span>
-                </button>
-                <span className="shrink-0 font-mono text-xs">{soles(sub)}</span>
-                <BotonIcono etiqueta={`Agregar a ${titulo.toLowerCase()}`} tono="primario" className="size-6" onClick={() => setAgregar(g)}><Plus size={13} /></BotonIcono>
-              </div>
-              {!cerrado && filas.length > 0 && (
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr className="label-mono leading-none">
-                      <th className="w-full max-w-[1px] whitespace-nowrap px-2 py-1 text-left font-medium">Recurso</th>
-                      <th className="whitespace-nowrap px-1 py-1 text-right font-medium">Cant.</th>
-                      <th className="whitespace-nowrap px-2 py-1 text-right font-medium">C. unit.</th>
-                      <th className="whitespace-nowrap px-2 py-1 text-right font-medium">Parcial</th>
-                      <th className="py-1 pl-1 pr-2.5" />
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filas.map((f) => (
-                      <tr key={f.d.id} className="border-t border-line/60">
-                        <td className="w-full max-w-[1px] px-2 py-0.5"><div className="flex items-baseline gap-1"><span className="min-w-0 truncate" title={f.nombre}>{f.nombre}</span><span className="shrink-0 whitespace-nowrap text-muted-foreground">{f.und}</span></div></td>
-                        <td className="w-16 px-1 py-0.5">
-                          <Input type="number" step="any" defaultValue={f.d.cantidad_o_cuadrilla} className="text-right text-xs" style={{ padding: "1px 6px", fontSize: 12, minWidth: 54 }}
-                            onBlur={(e) => Number(e.target.value) !== Number(f.d.cantidad_o_cuadrilla) && cambiarCant(f.d.id, e.target.value)} />
-                        </td>
-                        <td className="whitespace-nowrap px-2 py-0.5 text-right font-mono">{soles(f.cu)}</td>
-                        <td className="whitespace-nowrap px-2 py-0.5 text-right font-mono">{soles(f.parcial)}</td>
-                        <td className="w-6 py-0.5 pl-1 pr-2.5"><BotonIcono etiqueta="Quitar fila" tono="peligro" className="size-6" onClick={() => quitarFila(f.d.id)}><X size={12} /></BotonIcono></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
-          );
-        })}
+      <div className="flex shrink-0 flex-wrap items-center gap-4 border-b border-line bg-muted/50 px-4 py-2 text-[13px] shadow-sm">
+        <label className="flex items-center gap-2"><span className="font-bold text-foreground/80">Rend. diario</span>
+          <input key={`${partida.id}:${rend}`} type="number" step="0.01" defaultValue={rend.toFixed(2)}
+            className="h-7 w-24 rounded border border-line bg-background px-2 text-right font-mono outline-none focus:border-primary"
+            onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
+            onBlur={(e) => { const v = Number(e.target.value); if (v !== rend) void guardarRend(v); }} />
+          <span className="text-muted-foreground">{partida.unidad}/día</span></label>
+        <label className="flex items-center gap-2"><span className="font-bold text-foreground/80">Jornada</span>
+          <input value="8.00" readOnly disabled className="h-7 w-16 rounded border border-line bg-muted px-2 text-right font-mono text-muted-foreground" />
+          <span className="text-muted-foreground">h/día</span></label>
+        {partida.especialidad && <span className="ml-auto truncate text-xs text-muted-foreground">{partida.especialidad}</span>}
       </div>
+      <div className="min-h-0 flex-1 overflow-auto">
+        <table className="w-full min-w-[820px] table-fixed border-collapse">
+          <colgroup><col style={{ minWidth: 250 }} /><col style={{ width: 60 }} /><col style={{ width: 90 }} /><col style={{ width: 100 }} /><col style={{ width: 80 }} /><col style={{ width: 100 }} /><col style={{ width: 110 }} /><col style={{ width: 34 }} /></colgroup>
+          <thead className="sticky top-0 z-10 bg-card">
+            <tr className="border-b border-line">
+              <th className={`${th} text-left`}>Descripción</th><th className={`${th} text-center`}>Unid.</th>
+              <th className={`${th} text-right`}>Nro. Rec.</th><th className={`${th} text-right`}>Cantidad</th>
+              <th className={`${th} text-right`}>% De…</th><th className={`${th} text-right`}>Precio</th>
+              <th className={`${th} text-right`}>Total</th><th />
+            </tr>
+          </thead>
+          <tbody>
+            {GRUPOS.map((g) => {
+              const [col, , titulo] = g;
+              const filas = calc.filas.filter((f) => f.col === col);
+              if (col === "subpartida_hijo_id" && !filas.length) return null;
+              const sub = sumar2(filas.map((f) => f.parcial));
+              return [
+                <tr key={col} className="border-b border-line bg-muted/40">
+                  <td colSpan={6} className={`${td} font-bold text-foreground/80`}>{titulo} <span className="font-normal text-muted-foreground">({filas.length})</span></td>
+                  <td className={`${td} text-right font-mono font-bold`}>S/ {n2(sub)}</td>
+                  <td className="h-8 px-1"><BotonIcono etiqueta={`Agregar a ${titulo.toLowerCase()}`} tono="primario" className="size-6" onClick={() => setAgregar(g)}><Plus size={13} /></BotonIcono></td>
+                </tr>,
+                ...filas.map((f) => (
+                  <tr key={f.d.id} className="border-b border-line/70">
+                    <td className={td}><div className="flex min-w-0 items-center gap-1.5">{f.codigo && <span className="shrink-0 font-mono text-[11px] text-muted-foreground">{f.codigo}</span>}<span className="min-w-0 truncate" title={f.nombre}>{f.nombre}</span></div></td>
+                    <td className={`${td} text-center text-muted-foreground`}>{f.pct ? "%mo" : f.und}</td>
+                    <td className={td}><CeldaNum valor={f.q} dec={2} deshabilitado={!f.horas} onGuardar={(v) => guardarQ(f, v)} /></td>
+                    <td className={td}><CeldaNum valor={f.cant} dec={4} deshabilitado={f.pct} onGuardar={f.horas ? undefined : (v) => guardarQ(f, v)} /></td>
+                    <td className={td}>{f.pct ? <CeldaNum valor={f.cu * f.q} dec={4} onGuardar={(v) => f.cu > 0 && guardarQ(f, v / f.cu)} /> : <div className="text-right text-muted-foreground/50">—</div>}</td>
+                    <td className={`${td} text-right font-mono`}>{f.pct ? "—" : `S/ ${n2(f.cu)}`}</td>
+                    <td className={`${td} text-right font-mono`}>S/ {n2(f.parcial)}</td>
+                    <td className="h-8 px-1"><BotonIcono etiqueta="Quitar fila" tono="peligro" className="size-6" onClick={() => quitarFila(f)}><X size={12} /></BotonIcono></td>
+                  </tr>
+                )),
+              ];
+            })}
+          </tbody>
+        </table>
       </div>
-      <div className="flex shrink-0 items-center justify-between border-t border-line px-4 py-2">
-        <span className="text-sm font-semibold">Costo total del APU</span>
-        <span className="font-mono text-sm font-semibold text-primary">{soles(calc.total)}</span>
+      <div className="flex shrink-0 items-center justify-end gap-4 border-t border-line bg-muted/30 px-4 py-2">
+        <span className="text-[15px] font-bold">Costo total del APU</span>
+        <span className="font-mono text-[15px] font-bold text-primary">S/ {n2(calc.total)}</span>
       </div>
     </Panel>
 
@@ -731,7 +766,7 @@ function consolidarApu(costo: (id: string) => { total: number; filas: FilaC[] },
       if (f.col === "subpartida_hijo_id") { caminar(String(f.d[f.col])); continue; }
       const k = `${f.col}:${f.d[f.col]}`;
       const a = mapa.get(k) ?? { k, nombre: f.nombre, und: f.und, col: f.col, cu: f.cu, cantidad: 0, parcial: 0, pct: !!f.pct };
-      a.cantidad += Number(f.d.cantidad_o_cuadrilla) || 0;
+      a.cantidad += f.q;
       a.parcial += f.parcial;
       mapa.set(k, a);
     }

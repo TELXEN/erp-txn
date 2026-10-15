@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { r2, r4, sumar2 } from "@/lib/decimal";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const dbBanco = supabase as unknown as { from: (t: string) => any };
@@ -106,16 +107,16 @@ export function costoReceta(
     let cu = 0, parcial = 0, esPctMo = false;
     if (tabla === "mano_obra") {
       cu = Number(r?.costo_hora ?? 0);
-      parcial = (q * jor * cu) / rend;
+      parcial = r2(r4((q * jor) / rend) * cu);
     } else if (tabla === "equipos_herramientas" && r?.unidad === "H-M") {
       cu = Number(r?.costo_unitario ?? 0);
-      parcial = (q * jor * cu) / rend;
+      parcial = r2(r4((q * jor) / rend) * cu);
     } else if (tabla === "equipos_herramientas" && r?.unidad === "%") {
       cu = Number(r?.costo_hora ?? 0);
       esPctMo = true;
     } else {
       cu = Number(r?.costo_unitario ?? 0);
-      parcial = q * cu;
+      parcial = r2(q * cu);
     }
     return { d, banco: etiqueta, tipo, recursoId: d[col] as string, nombre: r?.descripcion ?? "(no encontrado)", und: r?.unidad ?? "", cu, cantidad: q, parcial, esPctMo };
   });
@@ -131,9 +132,9 @@ export function costoReceta(
     } else fusion.set(clave, { ...f });
   }
   const filasU = [...fusion.values()];
-  const totalMo = filasU.filter((f) => f.tipo === "MO").reduce((s, f) => s + f.parcial, 0);
-  for (const f of filasU) if (f.esPctMo) f.parcial = (totalMo * f.cu * f.cantidad) / 100;
-  return { total: filasU.reduce((s, f) => s + f.parcial, 0), filas: filasU };
+  const totalMo = sumar2(filasU.filter((f) => f.tipo === "MO").map((f) => f.parcial));
+  for (const f of filasU) if (f.esPctMo) f.parcial = r2((totalMo * f.cu * f.cantidad) / 100);
+  return { total: sumar2(filasU.map((f) => f.parcial)), filas: filasU };
 }
 
 /** PU calculado de cada partida del banco (mapa id → costo total por unidad). */
