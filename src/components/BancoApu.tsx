@@ -31,7 +31,7 @@ const CONFIG: Record<Tabla, { titulo: string; campos: CampoDef[]; columnas: [str
     campos: [
       { k: "codigo_jerarquico", t: "Código jerárquico" },
       { k: "descripcion", t: "Descripción" },
-      { k: "unidad", t: "Unidad" },
+      { k: "unidad", t: "Unidad", tipo: "sel" },
       { k: "rendimiento_diario", t: "Rendimiento diario", tipo: "num" },
       { k: "especialidad", t: "Especialidad", tipo: "sel" },
     ],
@@ -42,14 +42,14 @@ const CONFIG: Record<Tabla, { titulo: string; campos: CampoDef[]; columnas: [str
     titulo: "Materiales",
     campos: [
       { k: "codigo", t: "Código" }, { k: "descripcion", t: "Descripción" }, { k: "marca", t: "Marca" },
-      { k: "unidad", t: "Unidad" }, { k: "precio_base", t: "Precio base", tipo: "num" }, { k: "margen", t: "Margen %", tipo: "num" },
+      { k: "unidad", t: "Unidad", tipo: "sel" }, { k: "precio_base", t: "Precio base", tipo: "num" }, { k: "margen", t: "Margen %", tipo: "num" },
     ],
     columnas: [["codigo", "Código", "txt"], ["descripcion", "Descripción", "txt"], ["marca", "Marca", "txt"], ["unidad", "Und", "txt"], ["precio_base", "P. base", "sol"], ["margen", "Margen %", "num"], ["costo_unitario", "C. unitario", "sol"]],
     filtro: "marca",
   },
   mano_obra: {
     titulo: "Mano de Obra",
-    campos: [{ k: "codigo", t: "Código" }, { k: "descripcion", t: "Descripción" }, { k: "unidad", t: "Unidad" }, { k: "costo_hora", t: "Costo hora", tipo: "num" }],
+    campos: [{ k: "codigo", t: "Código" }, { k: "descripcion", t: "Descripción" }, { k: "unidad", t: "Unidad", tipo: "sel" }, { k: "costo_hora", t: "Costo hora", tipo: "num" }],
     columnas: [["codigo", "Código", "txt"], ["descripcion", "Descripción", "txt"], ["unidad", "Und", "txt"], ["costo_hora", "Costo hora", "sol"]],
   },
   equipos_herramientas: {
@@ -57,7 +57,7 @@ const CONFIG: Record<Tabla, { titulo: string; campos: CampoDef[]; columnas: [str
     campos: [
       { k: "codigo", t: "Código" }, { k: "descripcion", t: "Descripción" },
       { k: "tipo", t: "Tipo", tipo: "sel", opciones: ["propio", "alquilado"] },
-      { k: "unidad", t: "Unidad", tipo: "sel", opciones: ["H-M", "%"] },
+      { k: "unidad", t: "Unidad", tipo: "sel" },
       { k: "costo_hora", t: "Costo hora / %", tipo: "num" },
       { k: "margen", t: "Margen %", tipo: "num", soloSi: (f) => f.tipo === "alquilado" },
     ],
@@ -66,7 +66,7 @@ const CONFIG: Record<Tabla, { titulo: string; campos: CampoDef[]; columnas: [str
   },
   subcontratos: {
     titulo: "Subcontratos",
-    campos: [{ k: "codigo", t: "Código" }, { k: "descripcion", t: "Descripción" }, { k: "unidad", t: "Unidad" }, { k: "costo", t: "Costo", tipo: "num" }, { k: "margen", t: "Margen %", tipo: "num" }],
+    campos: [{ k: "codigo", t: "Código" }, { k: "descripcion", t: "Descripción" }, { k: "unidad", t: "Unidad", tipo: "sel" }, { k: "costo", t: "Costo", tipo: "num" }, { k: "margen", t: "Margen %", tipo: "num" }],
     columnas: [["codigo", "Código", "txt"], ["descripcion", "Descripción", "txt"], ["unidad", "Und", "txt"], ["costo", "Costo", "sol"], ["margen", "Margen %", "num"], ["costo_unitario", "C. unitario", "sol"]],
   },
 };
