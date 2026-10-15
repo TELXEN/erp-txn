@@ -655,7 +655,7 @@ function DialogoNuevaPartida({ partidas, onCerrar, onGuardado }: { partidas: Fil
         </div>
         <Campo etiqueta="Unidad">
           <Select value={f.unidad} onChange={(e) => setF({ ...f, unidad: e.target.value })}>
-            {[...new Set([f.unidad, ...unds])].map((u) => <option key={u}>{u}</option>)}
+            {[...new Set([f.unidad, ...unds])].map((u) => <option key={u} value={u}>{etiquetaUnd(u)}</option>)}
           </Select>
         </Campo>
         <Campo etiqueta="Rendimiento diario">
