@@ -405,7 +405,8 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
   const [rendLocal, setRendLocal] = useState<number | null>(null);
   const [editJornada, setEditJornada] = useState(false);
   const [jornada, setJornada] = useState<number>(() => Number(localStorage.getItem(`banco-apu:jornada:${partida.id}`)) || 8);
-  useEffect(() => { setRendLocal(null); setEditJornada(false); setJornada(Number(localStorage.getItem(`banco-apu:jornada:${partida.id}`)) || 8); }, [partida.id, partida.rendimiento_diario]);
+  const [pctHt, setPctHt] = useState<number>(() => Number(partida.pct_herramientas ?? 5));
+  useEffect(() => { setRendLocal(null); setEditJornada(false); setJornada(Number(localStorage.getItem(`banco-apu:jornada:${partida.id}`)) || 8); setPctHt(Number(partida.pct_herramientas ?? 5)); }, [partida.id, partida.rendimiento_diario, partida.pct_herramientas]);
   const rend = rendLocal ?? (Number(partida.rendimiento_diario) || 1);
   const jornadaEfectiva = editJornada ? jornada : 8;
   const calc = costo(partida.id, new Set(), rend, jornadaEfectiva);
