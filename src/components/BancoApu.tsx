@@ -445,7 +445,7 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
             onBlur={(e) => { const v = Number(e.target.value); if (v !== rend) void guardarRend(v); }} />
           <span className="text-muted-foreground">{partida.unidad}/día</span></label>
         <label className="flex items-center gap-2"><span className="font-bold text-foreground/80">Jornada</span>
-          <input key={`jor:${partida.id}:${jornada}`} type="number" step="0.5" min="1" max="24" defaultValue={jornada.toFixed(2)} readOnly={!editJornada} disabled={!editJornada}
+          <input key={`jor:${partida.id}:${jornadaEfectiva}`} type="number" step="0.5" min="1" max="24" value={jornadaEfectiva.toFixed(2)} readOnly={!editJornada} disabled={!editJornada}
             className={`h-7 w-16 rounded border border-line px-2 text-right font-mono outline-none ${editJornada ? "bg-warn/20 focus:border-primary" : "bg-muted text-muted-foreground"}`}
             onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
             onBlur={(e) => { const v = Number(e.target.value); if (v > 0 && v <= 24 && v !== jornada) { setJornada(v); localStorage.setItem(`banco-apu:jornada:${partida.id}`, String(v)); } }} />
