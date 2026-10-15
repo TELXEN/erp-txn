@@ -708,7 +708,10 @@ function Cotizaciones() {
               </Campo>
               <Campo etiqueta="Unidad">
                 <Select value={item.unidad} onChange={(e) => setItem({ ...item, unidad: e.target.value })}>
-                  {unidades.filter((u) => u.activo).map((u) => <option key={u.id} value={u.simbolo}>{u.simbolo}</option>)}
+                  {item.unidad && !unidades.some((u) => u.activo && u.simbolo === item.unidad) && (
+                    <option value={item.unidad}>{item.unidad}</option>
+                  )}
+                  {unidades.filter((u) => u.activo).map((u) => <option key={u.id} value={u.simbolo}>{u.simbolo} · {u.descripcion}</option>)}
                 </Select>
               </Campo>
               <Campo etiqueta="Metrado">

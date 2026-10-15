@@ -171,7 +171,7 @@ export function CotizacionHoja({
   alcance?: string;
   cotizacionId: string;
   items: CotizacionItem[];
-  unidades: { id: string; simbolo: string; activo: boolean }[];
+  unidades: { id: string; simbolo: string; descripcion: string; activo: boolean }[];
   alAbrirCatalogo?: () => void;
   /** Símbolo de la moneda de la cotización (S/ o US$) para los importes de la hoja. */
   simbolo?: string;
@@ -977,16 +977,20 @@ export function CotizacionHoja({
         </select>
       );
     }
-    if (col === "unidad")
+    if (col === "unidad") {
+      const lista = unidades.filter((u) => u.activo);
+      const fuera = valor && !lista.some((u) => u.simbolo === valor);
       return (
         <select {...comun} onChange={(e) => setValor(e.target.value)}>
-          {unidades.filter((u) => u.activo).map((u) => (
+          {fuera && <option value={valor}>{valor}</option>}
+          {lista.map((u) => (
             <option key={u.id} value={u.simbolo}>
-              {u.simbolo}
+              {u.simbolo} · {u.descripcion}
             </option>
           ))}
         </select>
       );
+    }
     if (col === "nombre" && f.clase === "item")
       return (
         <AutoMaestra
