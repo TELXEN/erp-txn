@@ -616,39 +616,47 @@ function Cotizaciones() {
 
   /* ---------------- MODO EDITOR ---------------- */
   if (cot && totales) {
+    // Opción 1: el título y los botones viven en la barra superior del sistema.
+    const enBarra = "border-brand-foreground/30 bg-brand-foreground/10 text-brand-foreground hover:bg-primary hover:text-primary-foreground";
     return (
       <div className="-mx-4 -mb-6 flex h-[calc(100%+1.5rem)] min-h-full flex-col bg-background sm:-mx-6">
-        <div className="sticky top-0 z-20 flex shrink-0 flex-wrap items-center gap-2 border-b border-line bg-background px-4 py-2 sm:px-6">
-          <Boton variante="linea" onClick={() => { setSeleccion(null); setError(""); setAviso(""); }}>
-            <ArrowLeft size={13} /> Volver al listado
-          </Boton>
-          <span className="font-mono text-sm font-semibold text-primary">{cot.codigo ?? "Cotización"}</span>
-          <span className="truncate text-sm text-ink">{cot.nombre || "Sin descripción"}</span>
-          <Vigencia c={cot} />
-          <div className="ml-auto flex flex-wrap items-center gap-2">
-            <Select className="w-36" value={cot.estado} onChange={(e) => cambiarEstado(cot.id, e.target.value as EstadoCotizacion)}>
-              {ESTADOS_COTIZACION.map((e) => <option key={e} value={e}>{e}</option>)}
-            </Select>
-            <Boton variante="linea" onClick={alternarEncabezado} title="Mostrar u ocultar el encabezado de la hoja">
-              {encabezado ? <Eye size={13} /> : <EyeOff size={13} />} Encabezado
-            </Boton>
-            <Link to="/cotizacion-vista" search={{ id: cot.id }}>
-              <Boton variante="linea"><Eye size={13} /> Vista previa A4</Boton>
-            </Link>
-            <Link to="/apu-vista" search={{ id: cot.id, item: "" }}>
-              <Boton variante="linea"><Calculator size={13} /> Dossier APU</Boton>
-            </Link>
-            <Boton variante="linea" onClick={() => void guardarPlantilla()} title="Guardar la estructura como plantilla">
-              <Library size={13} /> Guardar como plantilla
-            </Boton>
-            <Boton variante="linea" onClick={exportarCotizacion} title="Exportar Excel">
-              <Upload size={13} /> Excel
-            </Boton>
-            <Boton onClick={convertirEnObra} disabled={Boolean(cot.proyecto_id)}>
-              {cot.proyecto_id ? "Obra generada" : "Convertir en obra"}
-            </Boton>
-          </div>
-        </div>
+        <Encabezado
+          titulo={cot.nombre || cot.codigo || "Cotización"}
+          subtitulo={`Cotización ${cot.codigo ?? ""} · modo edición`}
+          acciones={
+            <div className="flex flex-wrap items-center gap-2">
+              <Boton variante="linea" className={enBarra} onClick={() => { setSeleccion(null); setError(""); setAviso(""); }}>
+                <ArrowLeft size={13} /> Volver
+              </Boton>
+              <Vigencia c={cot} />
+              <select
+                value={cot.estado}
+                onChange={(e) => cambiarEstado(cot.id, e.target.value as EstadoCotizacion)}
+                className="h-8 w-32 rounded-md border border-brand-foreground/30 bg-brand-foreground/10 px-2 font-mono text-xs text-brand-foreground"
+              >
+                {ESTADOS_COTIZACION.map((e) => <option key={e} value={e}>{e}</option>)}
+              </select>
+              <Boton variante="linea" className={enBarra} onClick={alternarEncabezado} title="Mostrar u ocultar el encabezado de la hoja">
+                {encabezado ? <Eye size={13} /> : <EyeOff size={13} />} Encabezado
+              </Boton>
+              <Link to="/cotizacion-vista" search={{ id: cot.id }}>
+                <Boton variante="linea" className={enBarra}><Eye size={13} /> Vista previa A4</Boton>
+              </Link>
+              <Link to="/apu-vista" search={{ id: cot.id, item: "" }}>
+                <Boton variante="linea" className={enBarra}><Calculator size={13} /> Dossier APU</Boton>
+              </Link>
+              <Boton variante="linea" className={enBarra} onClick={() => void guardarPlantilla()} title="Guardar la estructura como plantilla">
+                <Library size={13} /> Guardar como plantilla
+              </Boton>
+              <Boton variante="linea" className={enBarra} onClick={exportarCotizacion} title="Exportar Excel">
+                <Upload size={13} /> Excel
+              </Boton>
+              <Boton onClick={convertirEnObra} disabled={Boolean(cot.proyecto_id)}>
+                {cot.proyecto_id ? "Obra generada" : "Convertir en obra"}
+              </Boton>
+            </div>
+          }
+        />
         {error && <p className="mb-2 font-mono text-xs text-bad">{error}</p>}
         {aviso && <p className="mb-2 font-mono text-xs text-good">{aviso}</p>}
 
@@ -730,7 +738,7 @@ function Cotizaciones() {
           </Panel>
         )}
 
-        <div className="flex flex-col gap-2 bg-muted/60 px-2 py-2 lg:h-[calc(100dvh-150px)] lg:min-h-0 lg:flex-row lg:overflow-hidden">
+        <div className="flex flex-col gap-2 bg-muted/60 px-2 py-2 lg:h-auto lg:min-h-0 lg:flex-1 lg:flex-row lg:overflow-hidden">
           <div className="flex min-h-0 flex-col lg:w-[60%]">
           <div className="min-h-0 flex-1 overflow-auto">
           <HojaCotizacion cot={cot} items={items} clientes={clientes} mostrarEncabezado={encabezado}>
