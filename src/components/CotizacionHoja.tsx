@@ -1331,7 +1331,7 @@ export function CotizacionHoja({
                     </ContextMenuItem>
                   )}
                   {(cap || esGrp) && (
-                    <ContextMenuItem onSelect={() => void nuevaCategoria(f.esp, f.clase === "grp" ? f.grp : "")}>
+                    <ContextMenuItem onSelect={() => setCatDialogo({ esp: f.esp, grp: f.clase === "grp" ? f.grp : "" })}>
                       <FolderPlus size={14} className="mr-2" /> Agregar categoría
                     </ContextMenuItem>
                   )}
