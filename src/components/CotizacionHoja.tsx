@@ -192,6 +192,7 @@ export function CotizacionHoja({
   const celdas = useRef(new Map<string, HTMLTableCellElement | null>());
   const [conApu, setConApu] = useState<Set<string>>(new Set());
   const [grupoDialogo, setGrupoDialogo] = useState(false);
+  const [catDialogo, setCatDialogo] = useState<{ esp: string; grp: string } | null>(null);
   /** Qué crea el diálogo: "esp" = especialidad/capítulo; "grp" = grupo del catálogo (solo multidisciplinarias). */
   const [modoGrupo, setModoGrupo] = useState<"esp" | "grp">("esp");
   const [nombreGrupo, setNombreGrupo] = useState("");
@@ -643,23 +644,29 @@ export function CotizacionHoja({
     if (ok) setGrupoDialogo(false);
   }
 
-  /** Añade la siguiente categoría libre del catálogo maestro (dentro del grupo, si se indica). */
-  async function nuevaCategoria(esp: string, grp = "") {
+  /** Categorías del catálogo maestro disponibles para la especialidad (dentro del grupo, si se indica). */
+  function candidatasCategoria(esp: string, grp = "") {
     const usadas = new Set(items.filter((i) => i.especialidad === esp).map((i) => (i.categoria ?? "").trim()));
     const g = (c: (typeof catalogoCat)[number]) => (c as { grupo?: string }).grupo ?? "";
     const candidatas = multi
       ? (() => {
           const base = categoriasDe(esp, catalogoCat);
           const orden = grp ? [...base.filter((c) => g(c) === grp), ...base.filter((c) => g(c) !== grp)] : base;
-          return orden.map((c) => c.nombre);
+          return orden;
         })()
       : (() => {
           // Primero las asociadas a este grupo, luego las sin grupo y al final el resto.
           const activas = catalogoCat.filter((c) => c.activo);
           const orden = [...activas.filter((c) => g(c) === esp), ...activas.filter((c) => !g(c)), ...activas.filter((c) => g(c) && g(c) !== esp)];
-          return [...new Set(orden.map((c) => c.nombre))];
+          const vistas = new Set<string>();
+          return orden.filter((c) => (vistas.has(c.nombre) ? false : (vistas.add(c.nombre), true)));
         })();
-    const libre = candidatas.find((n) => !usadas.has(n));
+    return candidatas.map((c) => ({ ...c, usada: usadas.has(c.nombre) }));
+  }
+
+  /** Inserta la categoría elegida del catálogo maestro. */
+  async function nuevaCategoria(esp: string, grp = "", nombre?: string) {
+    const libre = nombre ?? candidatasCategoria(esp, grp).find((c) => !c.usada)?.nombre;
     if (!libre)
       return setError(`No quedan categorías libres para ${esp}. Regístralas en Datos › Catálogo técnico.`);
     await crearGrupo(esp, libre, grp);
