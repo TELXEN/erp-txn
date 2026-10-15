@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Plus, Upload, X } from "lucide-react";
-import { Boton, BotonIcono, Select } from "@/components/ui-kit";
-import { BANCOS_RECURSO, costoReceta, dbBanco, useBancoTabla, useRecursosApu, type FilaCalculo } from "@/lib/banco-apu";
+import { Plus, Upload } from "lucide-react";
+import { Boton, Select } from "@/components/ui-kit";
+import { MenuContextualApu, type AccionApu, type EstadoMenuApu } from "@/components/MenuContextualApu";
+import { BANCOS_RECURSO, costoReceta, dbBanco, renumerarApu, useBancoTabla, useRecursosApu, type FilaCalculo } from "@/lib/banco-apu";
 import { r2, sumar2 } from "@/lib/decimal";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
