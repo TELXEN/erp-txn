@@ -103,13 +103,11 @@ export function BancoApu() {
   );
 }
 
-const PIE = ["analisis", "especificaciones", "metrado", "consolidado"] as const;
+const PIE = ["analisis", "especificaciones"] as const;
 type Pie = (typeof PIE)[number];
 const PIE_TITULOS: Record<Pie, string> = {
   analisis: "Análisis de costo unitario",
   especificaciones: "Especificaciones técnicas",
-  metrado: "Metrado",
-  consolidado: "Consolidado de partida",
 };
 
 function SplitPartidas() {
@@ -128,12 +126,8 @@ function SplitPartidas() {
             <Panel titulo="Análisis de precios unitarios" className="flex h-full flex-col"><div className="min-h-0 flex-1 overflow-y-auto"><Vacio texto="Elige una partida a la izquierda para ver y armar su APU." /></div></Panel>
           ) : pie === "analisis" ? (
             <PanelApuMaestro partida={partida} />
-          ) : pie === "especificaciones" ? (
-            <PanelEspecificaciones partida={partida} />
-          ) : pie === "metrado" ? (
-            <PanelMetrado partida={partida} />
           ) : (
-            <PanelConsolidado partida={partida} />
+            <PanelEspecificaciones partida={partida} />
           )}
         </div>
         <div className="mt-2 flex shrink-0 flex-wrap items-stretch gap-x-1 border-t border-line">
