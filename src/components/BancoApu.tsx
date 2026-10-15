@@ -344,11 +344,12 @@ function useApuMaestro() {
   const fuentes: Record<string, Fila[]> = { materiales: mat, mano_obra: mo, equipos_herramientas: eq, subcontratos: sc, partidas_apu: pa };
   const detalles = det as Detalle[];
 
-  const costo = (id: string, visitados = new Set<string>(), rendForzado?: number): { total: number; filas: FilaC[] } => {
+  const costo = (id: string, visitados = new Set<string>(), rendForzado?: number, jornadaFija?: number): { total: number; filas: FilaC[] } => {
     if (visitados.has(id)) return { total: 0, filas: [] };
     visitados.add(id);
     const p = pa.find((x) => x.id === id);
     const rend = rendForzado || Number(p?.rendimiento_diario) || 1;
+    const jor = jornadaFija ?? 8;
     // 1) Fusionar duplicados del mismo recurso sumando la cuadrilla/cantidad.
     const fusion = new Map<string, Detalle>();
     for (const d of detalles.filter((x) => x.partida_padre_id === id)) {
@@ -364,10 +365,11 @@ function useApuMaestro() {
       const r = (fuentes[tabla] ?? []).find((x) => x.id === d[col]);
       const q = Number(d.cantidad_o_cuadrilla) || 0;
       const base = { d, col, codigo: String(r?.codigo ?? r?.codigo_jerarquico ?? ""), nombre: r?.descripcion ?? "(no encontrado)", und: r?.unidad ?? "", q };
-      if (tabla === "partidas_apu") { const cu = costo(d[col] as string, new Set(visitados)).total; return { ...base, cu, cant: q, parcial: r2(q * cu) }; }
+      if (tabla === "partidas_apu") { const cu = costo(d[col] as string, new Set(visitados), undefined, jor).total; return { ...base, cu, cant: q, parcial: r2(q * cu) }; }
       if (tabla === "mano_obra" || (tabla === "equipos_herramientas" && r?.unidad === "H-M")) {
         const cu = Number(tabla === "mano_obra" ? r?.costo_hora : r?.costo_unitario) || 0;
-        const cant = r4((q * 8) / rend);
+        // HH = (cuadrilla × jornada) / rendimiento
+        const cant = r4((q * jor) / rend);
         return { ...base, cu, cant, parcial: r2(cant * cu), horas: true };
       }
       if (tabla === "equipos_herramientas" && r?.unidad === "%") return { ...base, cu: Number(r?.costo_hora ?? 0), cant: 0, parcial: 0, pct: true };
