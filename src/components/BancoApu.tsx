@@ -491,7 +491,6 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
                     <td className={`${td} text-center text-muted-foreground`}>{f.pct ? "%…" : f.und}</td>
                     <td className={td}><CeldaNum valor={f.q} dec={2} deshabilitado={!f.horas} onGuardar={(v) => guardarQ(f, v)} /></td>
                     <td className={td}>{f.pct ? <CeldaNum valor={f.cu * f.q} dec={4} sufijo="%mo" onGuardar={(v) => f.cu > 0 && guardarQ(f, v / f.cu)} /> : <CeldaNum valor={f.cant} dec={4} sufijo={f.und.toLowerCase()} onGuardar={f.horas ? undefined : (v) => guardarQ(f, v)} />}</td>
-                    <td className={td}></td>
                     <td className={`${td} text-right font-mono`}>{n2(f.pct ? totalMo : f.cu)}</td>
                     <td className={`${td} text-right font-mono`}>{n2(f.parcial)}</td>
                     <td className="h-[26px] !py-0 px-0.5"><BotonIcono etiqueta="Quitar fila" tono="peligro" className="size-5" onClick={() => quitarFila(f)}><X size={12} /></BotonIcono></td>
