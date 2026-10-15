@@ -24,11 +24,29 @@ export const useBancoTabla = (t: BancoTabla | "partidas_apu" | "partida_detalle"
   useQuery({
     queryKey: ["banco_apu", t],
     queryFn: async () => {
-      const { data, error } = await dbBanco.from(t).select("*").order("created_at");
+      let q = dbBanco.from(t).select("*");
+      if (t === "partida_detalle" || t === "cotizacion_apu_detalle") q = q.order("orden");
+      const { data, error } = await q.order("created_at");
       if (error) throw error;
       return (data ?? []) as Recurso[];
     },
   });
+
+/**
+ * Renumera (10, 20, 30…) las filas de detalle APU en el orden dado y devuelve el nuevo orden por id.
+ * Solo actualiza las filas cuyo orden cambia.
+ */
+export async function renumerarApu(tabla: "partida_detalle" | "cotizacion_apu_detalle", filas: { id: string; orden?: number | null }[]) {
+  const mapa = new Map<string, number>();
+  const cambios: Promise<unknown>[] = [];
+  filas.forEach((f, i) => {
+    const n = (i + 1) * 10;
+    mapa.set(f.id, n);
+    if (Number(f.orden) !== n) cambios.push(dbBanco.from(tabla).update({ orden: n }).eq("id", f.id));
+  });
+  await Promise.all(cambios);
+  return mapa;
+}
 
 /** Partidas activas del Banco APU. */
 export const usePartidasApu = () => {
