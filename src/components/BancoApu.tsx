@@ -465,12 +465,12 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
       </div>
       <div className="min-h-0 flex-1 overflow-auto">
         <table className="w-full table-fixed border-collapse">
-          <colgroup><col /><col style={{ width: 34 }} /><col style={{ width: 50 }} /><col style={{ width: 100 }} /><col style={{ width: 34 }} /><col style={{ width: 56 }} /><col style={{ width: 60 }} /><col style={{ width: 24 }} /></colgroup>
+          <colgroup><col /><col style={{ width: 34 }} /><col style={{ width: 50 }} /><col style={{ width: 100 }} /><col style={{ width: 56 }} /><col style={{ width: 60 }} /><col style={{ width: 24 }} /></colgroup>
           <thead className="sticky top-0 z-10 bg-card">
             <tr className="border-b border-line">
               <th className={`${th} text-left`}>Descripción</th><th className={`${th} text-center`}>Unid.</th>
               <th className={`${th} text-right`}>Recurso</th><th className={`${th} text-right`}>Cantidad</th>
-              <th className={`${th} text-right`}>% De…</th><th className={`${th} text-right`}>Precio</th>
+              <th className={`${th} text-right`}>Precio</th>
               <th className={`${th} text-right`}>Total</th><th />
             </tr>
           </thead>
@@ -481,7 +481,7 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
               const sub = sumar2(filas.map((f) => f.parcial)) + (col === "equipo_id" ? htTotal : 0);
               return [
                 <tr key={col} className="border-b border-line bg-muted/60">
-                  <td colSpan={6} className={`${td} font-bold text-foreground/80`}>▾ {titulo}</td>
+                  <td colSpan={5} className={`${td} font-bold text-foreground/80`}>▾ {titulo}</td>
                   <td className={`${td} text-right font-mono font-bold`}>{n2(sub)}</td>
                   <td className="h-[26px] !py-0 px-0.5"><BotonIcono etiqueta={`Agregar a ${titulo.toLowerCase()}`} tono="primario" className="size-5" onClick={() => setAgregar(g)}><Plus size={13} /></BotonIcono></td>
                 </tr>,
@@ -491,7 +491,6 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
                     <td className={`${td} text-center text-muted-foreground`}>{f.pct ? "%…" : f.und}</td>
                     <td className={td}><CeldaNum valor={f.q} dec={2} deshabilitado={!f.horas} onGuardar={(v) => guardarQ(f, v)} /></td>
                     <td className={td}>{f.pct ? <CeldaNum valor={f.cu * f.q} dec={4} sufijo="%mo" onGuardar={(v) => f.cu > 0 && guardarQ(f, v / f.cu)} /> : <CeldaNum valor={f.cant} dec={4} sufijo={f.und.toLowerCase()} onGuardar={f.horas ? undefined : (v) => guardarQ(f, v)} />}</td>
-                    <td className={td}></td>
                     <td className={`${td} text-right font-mono`}>{n2(f.pct ? totalMo : f.cu)}</td>
                     <td className={`${td} text-right font-mono`}>{n2(f.parcial)}</td>
                     <td className="h-[26px] !py-0 px-0.5"><BotonIcono etiqueta="Quitar fila" tono="peligro" className="size-5" onClick={() => quitarFila(f)}><X size={12} /></BotonIcono></td>
@@ -503,7 +502,6 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
                     <td className={`${td} text-center text-muted-foreground`}>%…</td>
                     <td className={td}></td>
                     <td className={td}><CeldaNum valor={pctHt} dec={2} sufijo="%mo" onGuardar={(v) => void guardarPctHt(v)} /></td>
-                    <td className={td}></td>
                     <td className={`${td} text-right font-mono`}>{n2(totalMo)}</td>
                     <td className={`${td} text-right font-mono`}>{n2(htTotal)}</td>
                     <td />
