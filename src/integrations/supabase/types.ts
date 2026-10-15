@@ -1305,6 +1305,7 @@ export type Database = {
           mano_obra_id: string | null
           marca: string
           material_id: string | null
+          orden: number
           precio_unitario: number | null
           subcontrato_id: string | null
           tipo_recurso: string
@@ -1321,6 +1322,7 @@ export type Database = {
           mano_obra_id?: string | null
           marca?: string
           material_id?: string | null
+          orden?: number
           precio_unitario?: number | null
           subcontrato_id?: string | null
           tipo_recurso?: string
@@ -1337,6 +1339,7 @@ export type Database = {
           mano_obra_id?: string | null
           marca?: string
           material_id?: string | null
+          orden?: number
           precio_unitario?: number | null
           subcontrato_id?: string | null
           tipo_recurso?: string
@@ -2928,6 +2931,7 @@ export type Database = {
           id: string
           mano_obra_id: string | null
           material_id: string | null
+          orden: number
           partida_obra_id: string | null
           partida_padre_id: string | null
           subcontrato_id: string | null
@@ -2940,6 +2944,7 @@ export type Database = {
           id?: string
           mano_obra_id?: string | null
           material_id?: string | null
+          orden?: number
           partida_obra_id?: string | null
           partida_padre_id?: string | null
           subcontrato_id?: string | null
@@ -2952,6 +2957,7 @@ export type Database = {
           id?: string
           mano_obra_id?: string | null
           material_id?: string | null
+          orden?: number
           partida_obra_id?: string | null
           partida_padre_id?: string | null
           subcontrato_id?: string | null

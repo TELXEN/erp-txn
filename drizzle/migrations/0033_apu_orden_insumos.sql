@@ -1,0 +1,4 @@
+ALTER TABLE public.partida_detalle ADD COLUMN IF NOT EXISTS orden integer NOT NULL DEFAULT 0;
+ALTER TABLE public.cotizacion_apu_detalle ADD COLUMN IF NOT EXISTS orden integer NOT NULL DEFAULT 0;
+UPDATE public.partida_detalle d SET orden = s.n FROM (SELECT id, row_number() OVER (PARTITION BY coalesce(partida_padre_id, partida_obra_id) ORDER BY created_at, id) * 10 AS n FROM public.partida_detalle) s WHERE s.id = d.id;
+UPDATE public.cotizacion_apu_detalle d SET orden = s.n FROM (SELECT id, row_number() OVER (PARTITION BY cotizacion_item_id ORDER BY created_at, id) * 10 AS n FROM public.cotizacion_apu_detalle) s WHERE s.id = d.id;

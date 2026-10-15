@@ -232,6 +232,13 @@
       "when": 1792067206531,
       "tag": "0032_cotizacion_items_pct_herramientas",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1792070416748,
+      "tag": "0033_apu_orden_insumos",
+      "breakpoints": true
     }
   ]
 }
