@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { ChevronDown, ChevronRight, Plus, Trash2, Upload } from "lucide-react";
-import { Boton, Select } from "@/components/ui-kit";
+import { Plus, Trash2, Upload, X } from "lucide-react";
+import { Boton, BotonIcono, Select } from "@/components/ui-kit";
 import { BANCOS_RECURSO, costoReceta, dbBanco, useBancoTabla, useRecursosApu, type FilaCalculo } from "@/lib/banco-apu";
+import { r2, sumar2 } from "@/lib/decimal";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import type { Cotizacion, CotizacionItem } from "@/lib/cotizaciones";
@@ -19,26 +20,60 @@ type LineaMetrado = { desc: string; veces: number; largo: number; ancho: number;
 
 const num = (n: number, d = 2) => Number(n || 0).toLocaleString("es-PE", { minimumFractionDigits: d, maximumFractionDigits: d });
 
-/** Panel derecho: APU propio de la partida de la cotización (copia fija, independiente del banco). */
+/** Celda numérica editable al estilo de la grilla del Banco APU (Enter o salir guarda). */
+function CeldaNum({ valor, dec, onGuardar, sufijo, deshabilitado }: {
+  valor: number; dec: number; onGuardar?: (v: number) => void; sufijo?: string; deshabilitado?: boolean;
+}) {
+  if (deshabilitado || !onGuardar)
+    return (
+      <div className="flex h-6 items-center justify-end font-mono text-[12px] text-muted-foreground">
+        {valor.toFixed(dec)}{sufijo ? <span className="ml-0.5 w-7 shrink-0">{sufijo}</span> : null}
+      </div>
+    );
+  return (
+    <div className="flex items-center">
+      <input key={valor.toFixed(dec)} type="number" step="any" defaultValue={valor.toFixed(dec)}
+        className="h-6 w-full min-w-0 rounded-sm border border-transparent bg-transparent px-0.5 text-right font-mono text-[12px] outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none hover:border-line focus:border-primary focus:bg-background"
+        onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
+        onBlur={(e) => { const v = Number(e.target.value || 0); if (v !== Number(valor.toFixed(dec))) onGuardar(v); }} />
+      {sufijo ? <span className="ml-0.5 w-7 shrink-0 text-muted-foreground">{sufijo}</span> : null}
+    </div>
+  );
+}
+
+/** Panel derecho: APU propio de la partida de la cotización (copia fija, independiente del banco). Misma grilla que el Banco APU. */
 export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: CotizacionItem | null }) {
   const qc = useQueryClient();
   const { rol } = useAuth();
   const recursos = useRecursosApu();
   const { data: detalle = [] } = useBancoTabla("cotizacion_apu_detalle");
   const [pestana, setPestana] = useState<Pestana>("acu");
-  const [cerrados, setCerrados] = useState<Set<string>>(new Set());
   const [banco, setBanco] = useState(0);
   const [elegido, setElegido] = useState("");
   const [aviso, setAviso] = useState("");
+  const [rendLocal, setRendLocal] = useState<number | null>(null);
+  const [editJornada, setEditJornada] = useState(false);
+  const [jornadaLocal, setJornadaLocal] = useState<number | null>(null);
+  const [pctHt, setPctHt] = useState(5);
   const sim = cot.moneda === "USD" ? "US$" : "S/";
   const factor = cot.moneda === "USD" ? 1 / (Number(cot.tipo_cambio) || 1) : 1;
 
   const propias = useMemo(() => (item ? detalle.filter((d) => d.cotizacion_item_id === item.id) : []), [detalle, item]);
-  const rend = Number(item?.rendimiento ?? 1) || 1;
-  const jornada = Number(item?.jornada ?? 8) || 8;
+  const rend = rendLocal ?? (Number(item?.rendimiento ?? 1) || 1);
+  const jornada = editJornada ? (jornadaLocal ?? (Number(item?.jornada ?? 8) || 8)) : 8;
   const calc = costoReceta(propias, recursos, rend, jornada);
+  const totalMo = sumar2(calc.filas.filter((f) => f.tipo === "MO").map((f) => f.parcial));
+  // Herramientas manuales: % editable sobre la mano de obra (defecto 5 %); solo si hay MO.
+  const htVisible = totalMo > 0;
+  const htTotal = htVisible ? r2((totalMo * pctHt) / 100) : 0;
 
-  useEffect(() => setAviso(""), [item?.id]);
+  useEffect(() => {
+    setAviso("");
+    setRendLocal(null);
+    setJornadaLocal(null);
+    setEditJornada(false);
+    setPctHt(Number((item as { pct_herramientas?: number } | null)?.pct_herramientas ?? 5));
+  }, [item?.id, (item as { pct_herramientas?: number } | null)?.pct_herramientas]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!item)
     return (
@@ -49,12 +84,36 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
 
   const it = item;
   const refrescar = () => qc.invalidateQueries({ queryKey: ["banco_apu", "cotizacion_apu_detalle"] });
+  const refrescarItem = () => qc.invalidateQueries({ queryKey: ["cotizacion_items", cot.id] });
 
-  /** Recalcula el P.U. local y lo guarda en la partida de la cotización. */
-  async function aplicarPu(filas: unknown[]) {
-    const pu = Math.round(costoReceta(filas, recursos, rend, jornada).total * 10000) / 10000;
+  /** Recalcula el P.U. local (incluye herramientas manuales) y lo guarda en la partida de la cotización. */
+  async function aplicarPu(filas: unknown[], r = rend, j = jornada, pct = pctHt) {
+    const c = costoReceta(filas, recursos, r, j);
+    const mo = sumar2(c.filas.filter((f) => f.tipo === "MO").map((f) => f.parcial));
+    const pu = Math.round((c.total + r2((mo * pct) / 100)) * 10000) / 10000;
     await dbBanco.from("cotizacion_items").update({ precio_unitario: pu }).eq("id", it.id);
-    await qc.invalidateQueries({ queryKey: ["cotizacion_items", cot.id] });
+    await refrescarItem();
+  }
+
+  async function guardarRend(v: number) {
+    if (!(v > 0)) return setRendLocal(null);
+    setRendLocal(v);
+    await dbBanco.from("cotizacion_items").update({ rendimiento: v }).eq("id", it.id);
+    await aplicarPu(propias, v);
+  }
+
+  async function guardarJornada(v: number) {
+    if (!(v > 0 && v <= 24)) return;
+    setJornadaLocal(v);
+    await dbBanco.from("cotizacion_items").update({ jornada: v }).eq("id", it.id);
+    await aplicarPu(propias, rend, v);
+  }
+
+  async function guardarPctHt(v: number) {
+    if (!(v >= 0)) return;
+    setPctHt(v);
+    await dbBanco.from("cotizacion_items").update({ pct_herramientas: v }).eq("id", it.id);
+    await aplicarPu(propias, rend, jornada, v);
   }
 
   async function actualizar(f: FilaCalculo, campo: "cantidad_o_cuadrilla" | "precio_unitario", v: number) {
@@ -136,83 +195,102 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
   }
 
   const puedeExportar = rol === "gerente" || rol === "administrador";
+  const th = "h-[30px] !py-0 border-r border-line px-1 text-[12px] font-semibold text-foreground/80 whitespace-nowrap last:border-r-0";
+  const td = "h-[26px] !py-0 leading-none border-r border-line/70 px-1.5 align-middle text-[12px] whitespace-nowrap";
 
   return (
     <div className="flex h-full min-h-0 flex-col">
       <div className="border-b border-line px-3 py-2">
         <p className="truncate text-xs font-semibold text-ink" title={it.nombre}>{it.codigo} · {it.nombre}</p>
-        <div className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5 font-mono text-[11px] text-muted-foreground">
-          <span>Rend.: {num(rend)} {it.unidad}/día</span>
-          <span>Metrado: {num(Number(it.metrado))} {it.unidad}</span>
-          <span className="ml-auto font-semibold text-primary">P.U. {sim} {num(calc.total)}</span>
-        </div>
       </div>
+
+      {pestana === "acu" && (
+        <div className="flex shrink-0 flex-wrap items-center gap-4 border-b border-line bg-muted/50 px-4 py-2 text-[13px] shadow-sm">
+          <label className="flex items-center gap-2"><span className="font-bold text-foreground/80">Rend. diario</span>
+            <input key={`${it.id}:${rend}`} type="number" step="0.01" defaultValue={rend.toFixed(2)}
+              className="h-7 w-24 rounded border border-line bg-warn/20 px-2 text-right font-mono outline-none focus:border-primary"
+              onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
+              onBlur={(e) => { const v = Number(e.target.value); if (v !== rend) void guardarRend(v); }} />
+            <span className="text-muted-foreground">{it.unidad}/día</span></label>
+          <label className="flex items-center gap-2"><span className="font-bold text-foreground/80">Jornada</span>
+            <input key={`jor:${it.id}:${jornada}`} type="number" step="0.5" min="1" max="24" defaultValue={jornada.toFixed(2)} readOnly={!editJornada} disabled={!editJornada}
+              className={`h-7 w-16 rounded border border-line px-2 text-right font-mono outline-none ${editJornada ? "bg-warn/20 focus:border-primary" : "bg-muted text-muted-foreground"}`}
+              onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
+              onBlur={(e) => { const v = Number(e.target.value); if (v > 0 && v <= 24 && v !== jornada) void guardarJornada(v); }} />
+            <span className="text-muted-foreground">h/día</span>
+            <input type="checkbox" checked={editJornada} onChange={(e) => setEditJornada(e.target.checked)} title="Editar jornada"
+              className="h-4 w-4 cursor-pointer accent-primary" /></label>
+          <span className="ml-auto font-mono text-[11px] text-muted-foreground">Metrado: {num(Number(it.metrado))} {it.unidad}</span>
+        </div>
+      )}
 
       <div className="min-h-0 flex-1 overflow-auto">
         {pestana === "acu" && (
           <>
-            <table className="w-full table-fixed font-mono text-[11px]">
-              <thead className="sticky top-0 bg-card">
-                <tr className="border-b border-line text-left text-[10px] uppercase text-muted-foreground">
-                  <th className="w-[13%] px-2 py-1.5 font-medium">Cod.</th>
-                  <th className="w-[33%] px-1 py-1.5 font-medium">Descripción</th>
-                  <th className="w-[8%] px-1 py-1.5 font-medium">Und.</th>
-                  <th className="w-[11%] px-1 py-1.5 text-right font-medium">Recurso</th>
-                  <th className="w-[12%] px-1 py-1.5 text-right font-medium">Cantidad</th>
-                  <th className="w-[11%] px-1 py-1.5 text-right font-medium">Precio</th>
-                  <th className="w-[12%] px-2 py-1.5 text-right font-medium">Total</th>
+            <table className="w-full table-fixed border-collapse">
+              <colgroup><col style={{ width: 78 }} /><col /><col style={{ width: 34 }} /><col style={{ width: 50 }} /><col style={{ width: 100 }} /><col style={{ width: 56 }} /><col style={{ width: 60 }} /><col style={{ width: 24 }} /></colgroup>
+              <thead className="sticky top-0 z-10 bg-card">
+                <tr className="border-b border-line">
+                  <th className={`${th} text-left`}>Código</th><th className={`${th} text-left`}>Descripción</th><th className={`${th} text-center`}>Unid.</th>
+                  <th className={`${th} text-right`}>Recurso</th><th className={`${th} text-right`}>Cantidad</th>
+                  <th className={`${th} text-right`}>Precio</th>
+                  <th className={`${th} text-right`}>Total</th><th />
                 </tr>
               </thead>
-              {GRUPOS_RECURSO.map(([t, titulo]) => {
-                const filas = calc.filas.filter((f) => f.tipo === t);
-                if (!filas.length) return null;
-                const sub = filas.reduce((s, f) => s + f.parcial, 0);
-                const cerrado = cerrados.has(t);
-                return (
-                  <tbody key={t}>
-                    <tr className="cursor-pointer bg-muted/60" onClick={() => setCerrados((p) => { const n = new Set(p); if (n.has(t)) n.delete(t); else n.add(t); return n; })}>
-                      <td colSpan={6} className="px-2 py-1 font-semibold text-ink">
-                        <span className="inline-flex items-center gap-1">{cerrado ? <ChevronRight size={11} /> : <ChevronDown size={11} />}{titulo}</span>
+              <tbody>
+                {GRUPOS_RECURSO.map(([t, titulo]) => {
+                  const filas = calc.filas.filter((f) => f.tipo === t);
+                  const sub = sumar2(filas.map((f) => f.parcial)) + (t === "EQ" ? htTotal : 0);
+                  const idxBanco = BANCOS_RECURSO.findIndex((b) => b[3] === t);
+                  return [
+                    <tr key={t} className="border-b border-line bg-muted/60">
+                      <td colSpan={6} className={`${td} font-bold text-foreground/80`}>▾ {titulo}</td>
+                      <td className={`${td} text-right font-mono font-bold`}>{num(sub)}</td>
+                      <td className="h-[26px] !py-0 px-0.5">
+                        {idxBanco >= 0 && <BotonIcono etiqueta={`Agregar a ${titulo.toLowerCase()}`} tono="primario" className="size-5" onClick={() => { setBanco(idxBanco); setElegido(""); }}><Plus size={13} /></BotonIcono>}
                       </td>
-                      <td className="px-2 py-1 text-right font-semibold text-ink">{num(sub)}</td>
-                    </tr>
-                    {!cerrado && filas.map((f) => {
+                    </tr>,
+                    ...filas.map((f) => {
                       const horaria = f.tipo === "MO" || (f.tipo === "EQ" && f.und === "H-M");
-                      const recurso = horaria ? (f.cantidad * jornada) / rend : f.cantidad;
+                      const hh = horaria ? (f.cantidad * jornada) / rend : f.cantidad;
                       return (
-                        <tr key={f.d.id} className="group border-b border-line/40">
-                          <td className="truncate px-2 py-1 text-muted-foreground">{f.d.codigo || "—"}</td>
-                          <td className="truncate px-1 py-1 text-ink" title={f.nombre}>{f.nombre}</td>
-                          <td className="px-1 py-1 text-muted-foreground">{f.und}</td>
-                          <td className="px-1 py-1 text-right">{horaria ? num(f.cantidad) : ""}</td>
-                          <td className="px-1 py-0.5">
-                            <input key={`${f.d.id}-q-${f.cantidad}`} type="number" step="0.0001" defaultValue={Number(recurso.toFixed(4))}
-                              className="w-full rounded border border-transparent bg-transparent px-1 text-right hover:border-line focus:border-primary focus:outline-none"
-                              onBlur={(e) => {
-                                const v = Number(e.target.value || 0);
-                                const q = horaria ? (v * rend) / jornada : v;
-                                if (Math.abs(q - f.cantidad) > 1e-9) void actualizar(f, "cantidad_o_cuadrilla", q);
-                              }} />
+                        <tr key={f.d.id} className="border-b border-line/70 hover:bg-primary/5">
+                          <td className={`${td} font-mono text-[11px] text-muted-foreground`}><span className="block truncate" title={f.d.codigo ?? ""}>{f.d.codigo || "—"}</span></td>
+                          <td className={td}><span className="block min-w-0 truncate" title={f.nombre}>{f.nombre}</span></td>
+                          <td className={`${td} text-center text-muted-foreground`}>{f.esPctMo ? "%…" : f.und}</td>
+                          <td className={td}>{f.esPctMo ? null : <CeldaNum valor={f.cantidad} dec={2} deshabilitado={!horaria} onGuardar={(v) => void actualizar(f, "cantidad_o_cuadrilla", v)} />}</td>
+                          <td className={td}>
+                            {f.esPctMo
+                              ? <CeldaNum valor={f.cu} dec={2} sufijo="%mo" onGuardar={(v) => void actualizar(f, "precio_unitario", v)} />
+                              : horaria
+                                ? <CeldaNum valor={hh} dec={4} sufijo={f.und.toLowerCase()} deshabilitado />
+                                : <CeldaNum valor={f.cantidad} dec={4} sufijo={f.und.toLowerCase()} onGuardar={(v) => void actualizar(f, "cantidad_o_cuadrilla", v)} />}
                           </td>
-                          <td className="px-1 py-0.5">
-                            <input key={`${f.d.id}-p-${f.cu}`} type="number" step="0.01" defaultValue={Number(f.cu.toFixed(4))}
-                              title={f.esPctMo ? "% sobre la mano de obra" : "Precio local de esta cotización"}
-                              className="w-full rounded border border-transparent bg-transparent px-1 text-right hover:border-line focus:border-primary focus:outline-none"
-                              onBlur={(e) => {
-                                const v = Number(e.target.value || 0);
-                                if (Math.abs(v - f.cu) > 1e-9) void actualizar(f, "precio_unitario", v);
-                              }} />
+                          <td className={td}>
+                            {f.esPctMo
+                              ? <div className="flex h-6 items-center justify-end font-mono text-[12px] text-muted-foreground">{num(totalMo)}</div>
+                              : <CeldaNum valor={f.cu} dec={4} onGuardar={(v) => void actualizar(f, "precio_unitario", v)} />}
                           </td>
-                          <td className="px-2 py-1 text-right">
-                            <span className="group-hover:hidden">{num(f.parcial)}</span>
-                            <button type="button" title="Quitar" onClick={() => void quitar(f.d.id)} className="hidden text-muted-foreground hover:text-bad group-hover:inline"><Trash2 size={12} /></button>
-                          </td>
+                          <td className={`${td} text-right font-mono`}>{num(f.parcial)}</td>
+                          <td className="h-[26px] !py-0 px-0.5"><BotonIcono etiqueta="Quitar fila" tono="peligro" className="size-5" onClick={() => void quitar(f.d.id)}><X size={12} /></BotonIcono></td>
                         </tr>
                       );
-                    })}
-                  </tbody>
-                );
-              })}
+                    }),
+                    ...(t === "EQ" && htVisible ? [
+                      <tr key="ht" className="border-b border-line/70 bg-warn/5">
+                        <td className={`${td} font-mono text-[11px] text-muted-foreground`}>HT</td>
+                        <td className={td}><span className="min-w-0 truncate italic text-foreground/80">Herramientas manuales</span></td>
+                        <td className={`${td} text-center text-muted-foreground`}>%…</td>
+                        <td className={td}></td>
+                        <td className={td}><CeldaNum valor={pctHt} dec={2} sufijo="%mo" onGuardar={(v) => void guardarPctHt(v)} /></td>
+                        <td className={`${td} text-right font-mono`}>{num(totalMo)}</td>
+                        <td className={`${td} text-right font-mono`}>{num(htTotal)}</td>
+                        <td />
+                      </tr>,
+                    ] : []),
+                  ];
+                })}
+              </tbody>
             </table>
             {!propias.length && <p className="px-3 py-4 text-xs text-muted-foreground">Esta partida aún no tiene APU. Elige la partida desde el banco en la hoja o agrega recursos abajo.</p>}
             <div className="flex flex-wrap items-center gap-1.5 border-t border-line px-2 py-2">
@@ -233,11 +311,12 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
           <table className="w-full font-mono text-xs">
             <tbody>
               {GRUPOS_RECURSO.map(([t, titulo]) => {
-                const sub = calc.filas.filter((f) => f.tipo === t).reduce((s, f) => s + f.parcial, 0);
+                const sub = calc.filas.filter((f) => f.tipo === t).reduce((s, f) => s + f.parcial, 0) + (t === "EQ" ? htTotal : 0);
+                const totalC = calc.total + htTotal;
                 return (
                   <tr key={t} className="border-b border-line/50">
                     <td className="px-3 py-1.5">{titulo}</td>
-                    <td className="px-3 py-1.5 text-right">{calc.total ? num((sub / calc.total) * 100) : "0.00"}%</td>
+                    <td className="px-3 py-1.5 text-right">{totalC ? num((sub / totalC) * 100) : "0.00"}%</td>
                     <td className="px-3 py-1.5 text-right">{sim} {num(sub)}</td>
                     <td className="px-3 py-1.5 text-right text-muted-foreground">{sim} {num(sub * Number(it.metrado))}</td>
                   </tr>
@@ -246,14 +325,20 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
               <tr className="font-semibold">
                 <td className="px-3 py-1.5">Costo unitario / Parcial</td>
                 <td />
-                <td className="px-3 py-1.5 text-right">{sim} {num(calc.total)}</td>
-                <td className="px-3 py-1.5 text-right">{sim} {num(calc.total * Number(it.metrado))}</td>
+                <td className="px-3 py-1.5 text-right">{sim} {num(calc.total + htTotal)}</td>
+                <td className="px-3 py-1.5 text-right">{sim} {num((calc.total + htTotal) * Number(it.metrado))}</td>
               </tr>
             </tbody>
           </table>
         )}
       </div>
 
+      {pestana === "acu" && (
+        <div className="flex shrink-0 items-center justify-end gap-4 border-t border-line bg-muted/30 px-4 py-2">
+          <span className="text-[15px] font-bold">Costo total del APU</span>
+          <span className="font-mono text-[15px] font-bold text-primary">{sim} {num(calc.total + htTotal)}</span>
+        </div>
+      )}
       {aviso && <p className="border-t border-line px-3 py-1 text-[11px] text-muted-foreground">{aviso}</p>}
       {puedeExportar && pestana === "acu" && (
         <div className="flex justify-end border-t border-line px-2 py-1.5">
