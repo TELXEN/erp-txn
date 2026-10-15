@@ -619,7 +619,7 @@ function Cotizaciones() {
     // Opción 1: el título y los botones viven en la barra superior del sistema.
     const enBarra = "border-brand-foreground/30 bg-brand-foreground/10 text-brand-foreground hover:bg-primary hover:text-primary-foreground";
     return (
-      <div className="-mx-4 -mb-6 flex h-[calc(100%+1.5rem)] min-h-full flex-col bg-background sm:-mx-6">
+      <div className="-mx-3 -mb-3 flex flex-col bg-background sm:-mx-4 lg:h-[calc(100dvh-3.75rem)] lg:overflow-hidden">
         <Encabezado
           titulo={cot.nombre || cot.codigo || "Cotización"}
           subtitulo={`Cotización ${cot.codigo ?? ""} · modo edición`}
