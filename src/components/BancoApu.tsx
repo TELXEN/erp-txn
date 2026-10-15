@@ -478,7 +478,7 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
             {GRUPOS.map((g) => {
               const [col, , titulo] = g;
               const filas = calc.filas.filter((f) => f.col === col);
-                            const sub = sumar2(filas.map((f) => f.parcial));
+              const sub = sumar2(filas.map((f) => f.parcial)) + (col === "equipo_id" ? htTotal : 0);
               return [
                 <tr key={col} className="border-b border-line bg-muted/60">
                   <td colSpan={6} className={`${td} font-bold text-foreground/80`}>▾ {titulo}</td>
@@ -516,7 +516,7 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
       </div>
       <div className="flex shrink-0 items-center justify-end gap-4 border-t border-line bg-muted/30 px-4 py-2">
         <span className="text-[15px] font-bold">Costo total del APU</span>
-        <span className="font-mono text-[15px] font-bold text-primary">S/ {n2(calc.total)}</span>
+        <span className="font-mono text-[15px] font-bold text-primary">S/ {n2(calc.total + htTotal)}</span>
       </div>
     </Panel>
 
