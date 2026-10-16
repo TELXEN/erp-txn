@@ -11,6 +11,7 @@ import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { MESES, pct, soles } from "@/lib/format";
 import { SIN_ASIGNAR } from "@/lib/pagos-rrhh";
 import { useCostoObras } from "@/lib/costo-obra";
+import { GananciaPerdida } from "@/components/dashboard/GananciaPerdida";
 import {
   clasificacionDeCargo,
   costoRealPartida,
@@ -64,6 +65,7 @@ type ClaveComposicion = (typeof COMPOSICION)[number]["clave"];
 const COLORES_GG = ["var(--chip-1)", "var(--chip-mat)", "var(--chip-margenes)", "var(--chip-eq)", "var(--chip-4)", "var(--chip-codificacion)", "var(--chip-3)", "var(--chip-2)"];
 
 function Dashboard() {
+  const [pestana, setPestana] = useState<"resumen" | "gp">("resumen");
   const { rol } = useAuth();
   const { data: emosDash = [] } = useEmos(puedeVerDinero(rol));
   const emoAlerta = (() => { let v = 0, p = 0; ultimoEmoPorTrabajador(emosDash).forEach((e) => { const s = estadoEmo(e.fecha_vencimiento); if (s === "vencido") v++; else if (s === "por_vencer") p++; }); return { v, p }; })();
@@ -455,6 +457,111 @@ function Dashboard() {
         </Link>
       )}
       <div id="reporte-financiero" className="tablero-financiero">
+        <div className="mb-4 flex gap-1 border-b border-line">
+          {([["resumen", "Resumen"], ["gp", "Ganancia / Pérdida"]] as const).map(([k, t]) => (
+            <button key={k} onClick={() => setPestana(k)} className={`-mb-px border-b-2 px-4 py-2 text-sm font-semibold ${pestana === k ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"}`}>{t}</button>
+          ))}
+        </div>
+        {pestana === "gp" ? (
+          <>
+            <GananciaPerdida />
+      {/* Tabla por obra con semáforos */}
+      <div className="mt-4">
+        <Panel
+          titulo="Resumen financiero por obra"
+          extra={<span className="label-mono">Importes en soles (S/)</span>}
+        >
+          {filasTabla.length === 0 ? (
+            <Vacio texto="No hay obras registradas." />
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-[13px]">
+                <thead>
+                  <tr className="border-b border-(--line-60) text-left">
+                    <th className="label-mono px-2 py-2">Obra</th>
+                    <th className="label-mono px-2 py-2 text-right">Ofertado total</th>
+                    <th className="label-mono px-2 py-2 text-right">C. directo previsto</th>
+                    <th className="label-mono px-2 py-2 text-right">GG previsto</th>
+                    <th className="label-mono px-2 py-2 text-right">Utilidad prevista</th>
+                    <th className="label-mono px-2 py-2 text-right">C. directo real</th>
+                    <th className="label-mono px-2 py-2 text-right">GG real</th>
+                    <th className="label-mono px-2 py-2 text-right">Utilidad real</th>
+                    <th className="label-mono px-2 py-2">Condición</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-(--line-60)">
+                  {filasTabla.map((f) => {
+                    const s = salud(f);
+                    return (
+                      <tr key={f.id}>
+                        <td className="px-2 py-2 font-medium whitespace-nowrap">{f.nombre}</td>
+                        <td className="px-2 py-2 text-right font-mono font-semibold whitespace-nowrap">
+                          {monto(f.ofertado)}
+                          {f.adicionales !== 0 && <span className="block text-[10px] font-normal text-muted-foreground">incl. adic. {monto(f.adicionales)}</span>}
+                        </td>
+                        <td className="px-2 py-2 text-right font-mono whitespace-nowrap">{monto(f.cdPrevisto)}</td>
+                        <td className="px-2 py-2 text-right font-mono whitespace-nowrap">
+                          {monto(f.ggPresupuestado)}<span className="ml-1 text-[10px] text-muted-foreground">({f.pctGG}%)</span>
+                        </td>
+                        <td className="px-2 py-2 text-right font-mono whitespace-nowrap">
+                          {monto(f.utilidadPrevista)}<span className="ml-1 text-[10px] text-muted-foreground">({f.pctUtilidad}%)</span>
+                        </td>
+                        <td className={`px-2 py-2 text-right font-mono whitespace-nowrap ${f.desvCD > 0 ? "text-bad" : ""}`}>{monto(f.costoDirectoReal)}</td>
+                        <td className={`px-2 py-2 text-right font-mono whitespace-nowrap ${f.desvGG > 0 ? "text-bad" : ""}`}>{monto(f.ggReal)}</td>
+                        <td className={`px-2 py-2 text-right font-mono font-semibold whitespace-nowrap ${f.margen < f.utilidadPrevista - 0.005 ? "text-bad" : "text-good"}`}>
+                          {monto(f.margen)}
+                        </td>
+                        <td className="px-2 py-2">
+                          <span className="inline-flex items-center gap-2 whitespace-nowrap text-[11px]">
+                            <span className="h-2.5 w-2.5 rounded-full" style={{ background: s.color }} />
+                            {s.texto}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </Panel>
+      </div>
+
+      <div className="mt-4">
+        <Panel titulo={global ? "Rendimiento por Partida" : `Rendimiento por Partida — ${nombreVista}`}>
+          {global ? (
+            <Vacio texto="Selecciona un proyecto específico para ver el rendimiento por partida." />
+          ) : barras.length === 0 ? (
+            <Vacio texto="Este proyecto aún no tiene partidas registradas." />
+          ) : (
+            <ul className="divide-y divide-(--line-60)">
+              {barras.map((b) => {
+                const sobre = b.gastado > b.avance;
+                return (
+                  <li key={b.partida} className="flex flex-wrap items-center gap-4 px-5 py-4">
+                    <div className="min-w-64 flex-1">
+                      <p className="text-sm font-semibold">{b.partida}</p>
+                      <div className="mt-2 space-y-1.5">
+                        <Barra etiqueta="Avance Físico" valor={b.avance} clase="bg-primary" />
+                        <Barra etiqueta="Presupuesto Gastado" valor={b.gastado} clase={sobre ? "bg-bad" : "bg-good"} />
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="label-mono">Diferencia</p>
+                      <p className={`font-mono text-sm font-semibold ${b.diferencia < 0 ? "text-bad" : "text-good"}`}>
+                        {soles(b.diferencia)}
+                      </p>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </Panel>
+      </div>
+          </>
+        ) : (
+        <>
         {/* Nivel 1: KPIs ejecutivos */}
         <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
         <Kpi
@@ -666,100 +773,8 @@ function Dashboard() {
         </div>
       </div>
 
-      {/* Tabla por obra con semáforos */}
-      <div className="mt-4">
-        <Panel
-          titulo="Resumen financiero por obra"
-          extra={<span className="label-mono">Importes en soles (S/)</span>}
-        >
-          {filasTabla.length === 0 ? (
-            <Vacio texto="No hay obras registradas." />
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-[13px]">
-                <thead>
-                  <tr className="border-b border-(--line-60) text-left">
-                    <th className="label-mono px-2 py-2">Obra</th>
-                    <th className="label-mono px-2 py-2 text-right">Ofertado total</th>
-                    <th className="label-mono px-2 py-2 text-right">C. directo previsto</th>
-                    <th className="label-mono px-2 py-2 text-right">GG previsto</th>
-                    <th className="label-mono px-2 py-2 text-right">Utilidad prevista</th>
-                    <th className="label-mono px-2 py-2 text-right">C. directo real</th>
-                    <th className="label-mono px-2 py-2 text-right">GG real</th>
-                    <th className="label-mono px-2 py-2 text-right">Utilidad real</th>
-                    <th className="label-mono px-2 py-2">Condición</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-(--line-60)">
-                  {filasTabla.map((f) => {
-                    const s = salud(f);
-                    return (
-                      <tr key={f.id}>
-                        <td className="px-2 py-2 font-medium whitespace-nowrap">{f.nombre}</td>
-                        <td className="px-2 py-2 text-right font-mono font-semibold whitespace-nowrap">
-                          {monto(f.ofertado)}
-                          {f.adicionales !== 0 && <span className="block text-[10px] font-normal text-muted-foreground">incl. adic. {monto(f.adicionales)}</span>}
-                        </td>
-                        <td className="px-2 py-2 text-right font-mono whitespace-nowrap">{monto(f.cdPrevisto)}</td>
-                        <td className="px-2 py-2 text-right font-mono whitespace-nowrap">
-                          {monto(f.ggPresupuestado)}<span className="ml-1 text-[10px] text-muted-foreground">({f.pctGG}%)</span>
-                        </td>
-                        <td className="px-2 py-2 text-right font-mono whitespace-nowrap">
-                          {monto(f.utilidadPrevista)}<span className="ml-1 text-[10px] text-muted-foreground">({f.pctUtilidad}%)</span>
-                        </td>
-                        <td className={`px-2 py-2 text-right font-mono whitespace-nowrap ${f.desvCD > 0 ? "text-bad" : ""}`}>{monto(f.costoDirectoReal)}</td>
-                        <td className={`px-2 py-2 text-right font-mono whitespace-nowrap ${f.desvGG > 0 ? "text-bad" : ""}`}>{monto(f.ggReal)}</td>
-                        <td className={`px-2 py-2 text-right font-mono font-semibold whitespace-nowrap ${f.margen < f.utilidadPrevista - 0.005 ? "text-bad" : "text-good"}`}>
-                          {monto(f.margen)}
-                        </td>
-                        <td className="px-2 py-2">
-                          <span className="inline-flex items-center gap-2 whitespace-nowrap text-[11px]">
-                            <span className="h-2.5 w-2.5 rounded-full" style={{ background: s.color }} />
-                            {s.texto}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </Panel>
-      </div>
-
-      <div className="mt-4">
-        <Panel titulo={global ? "Rendimiento por Partida" : `Rendimiento por Partida — ${nombreVista}`}>
-          {global ? (
-            <Vacio texto="Selecciona un proyecto específico para ver el rendimiento por partida." />
-          ) : barras.length === 0 ? (
-            <Vacio texto="Este proyecto aún no tiene partidas registradas." />
-          ) : (
-            <ul className="divide-y divide-(--line-60)">
-              {barras.map((b) => {
-                const sobre = b.gastado > b.avance;
-                return (
-                  <li key={b.partida} className="flex flex-wrap items-center gap-4 px-5 py-4">
-                    <div className="min-w-64 flex-1">
-                      <p className="text-sm font-semibold">{b.partida}</p>
-                      <div className="mt-2 space-y-1.5">
-                        <Barra etiqueta="Avance Físico" valor={b.avance} clase="bg-primary" />
-                        <Barra etiqueta="Presupuesto Gastado" valor={b.gastado} clase={sobre ? "bg-bad" : "bg-good"} />
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="label-mono">Diferencia</p>
-                      <p className={`font-mono text-sm font-semibold ${b.diferencia < 0 ? "text-bad" : "text-good"}`}>
-                        {soles(b.diferencia)}
-                      </p>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </Panel>
-      </div>
+        </>
+        )}
       </div>
     </>
   );
