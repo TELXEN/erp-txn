@@ -528,7 +528,7 @@ function Personal() {
                   return (
                     <Fragment key={t.id}>
                     <tr className="border-b border-line/60 align-top last:border-0 hover:bg-muted/30">
-                      <td className="px-4 py-3.5">{esEdicion && d ? <Input inputMode="numeric" maxLength={8} value={d.dni} onChange={(e) => actualizarCampo("dni", e.target.value.replace(/\D/g, ""))} className="py-1 text-xs" required /> : <Resaltar texto={t.dni} termino={busqueda}/>}</td>
+                      <td className="px-2 py-3.5">{esEdicion && d ? <Input inputMode="numeric" maxLength={8} value={d.dni} onChange={(e) => actualizarCampo("dni", e.target.value.replace(/\D/g, ""))} className="py-1 text-xs" required /> : <Resaltar texto={t.dni} termino={busqueda}/>}</td>
                       <td className="px-3 py-3.5 font-semibold text-ink">{esEdicion && d ? <Input value={d.nombre} onChange={(e) => actualizarCampo("nombre", e.target.value)} className="py-1 text-xs" maxLength={100} required /> : <Resaltar texto={t.nombre} termino={busqueda}/>}</td>
                       <td className="px-3 py-3.5 text-ink">{esEdicion && d ? <Select value={d.cargo} onChange={(e) => actualizarCampo("cargo", e.target.value)} className="py-1 text-xs"><option value="">Selecciona…</option>{cargosActivos.map((c) => <option key={c.id} value={c.nombre}>{c.nombre}</option>)}</Select> : <span className="block"><Resaltar texto={t.cargo} termino={busqueda}/><span className="mt-1 inline-block rounded-full border border-line bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">{clasifDe(t.cargo) === "Indirecto" ? "Staff · Gasto general" : "Mano de obra directa"}</span></span>}</td>
                       <td className="px-3 py-3.5 text-right">{esEdicion && d ? <Input type="number" step="0.01" min="0" value={d.jornal_diario} onChange={(e) => actualizarCampo("jornal_diario", e.target.value)} className="py-1 text-right text-xs" required /> : <span className="whitespace-nowrap tabular-nums">{soles(Number(t.jornal_diario))}</span>}</td>
@@ -559,7 +559,7 @@ function Personal() {
                     </tr>
                     {esEdicion && d && (
                       <tr className="border-b border-line/60 bg-muted/30">
-                        <td colSpan={11} className="px-4 py-2">
+                        <td colSpan={11} className="px-2 py-2">
                           <div className="grid gap-3 sm:grid-cols-3"><div className="grid grid-cols-2 gap-3 content-start">{seccionLaboral(d, actualizarCampo, false)}</div><div className="grid grid-cols-2 gap-3 content-start">{seccionSalario(d, actualizarCampo, false)}</div><div className="grid grid-cols-2 gap-3 content-start">{seccionPrevision(d, actualizarCampo)}</div></div>
                         </td>
                       </tr>
