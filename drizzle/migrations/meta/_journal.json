@@ -239,6 +239,13 @@
       "when": 1792070416748,
       "tag": "0033_apu_orden_insumos",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1792123677193,
+      "tag": "0034_restringir_politicas_true_a_personal",
+      "breakpoints": true
     }
   ]
 }
