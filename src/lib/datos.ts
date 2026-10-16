@@ -153,6 +153,7 @@ export type Tercero = {
   celular_contacto: string;
   condicion_pago: string;
   activo: boolean;
+  es_agente_retencion: boolean;
 };
 
 export const RUBROS_COSTO = ["Materiales", "Subcontratos", "Equipos", "Herramientas manuales", "Servicios"] as const;
