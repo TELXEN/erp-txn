@@ -100,7 +100,7 @@ export const estadoDetraccion = (montoSoles: number, actual?: string | null) =>
   montoSoles > UMBRAL_DETRACCION ? (actual === "Pagada" ? "Pagada" : "No pagada") : "No aplica";
 
 /** Insignia de detracción: roja y visible mientras no esté pagada. */
-export function InsigniaDetraccion({ estado, onClick }: { estado?: string | null; onClick?: () => void }) {
+export function InsigniaDetraccion({ estado, onClick }: { estado?: string | null | undefined; onClick?: () => void }) {
   if (!estado || estado === "No aplica") return null;
   const pagada = estado === "Pagada";
   return (
