@@ -6,6 +6,12 @@ Nueva sección en el Dashboard financiero, con fondo blanco y tarjetas, que usa 
 - Arriba del Dashboard financiero habrá dos pestañas: **Resumen** (lo que existe hoy) y **Ganancia / Pérdida** (el panel nuevo).
 - Las tablas "Resumen financiero por obra" y "Rendimiento por Partida" salen de la pestaña Resumen y se muestran al pie de la pestaña **Ganancia / Pérdida**, debajo de sus tarjetas y del gráfico.
 
+## Diseño (según la imagen de referencia)
+- Selector: etiqueta oscura "Selecciona un año →" pegada a una casilla blanca con borde verde azulado donde se elige el año.
+- Tarjeta KPI: encabezado oscuro "Ganancia / Pérdida del año", monto grande en negrita sobre blanco y franja inferior ancha de color sólido (rojo o verde) con el % en blanco.
+- Análisis: filas con un cuadro oscuro a la izquierda con el número y el texto en negrita a la derecha, separadas por líneas finas.
+- Gráfico: tarjeta blanca con borde gris fino, título "Ingresos vs Gastos" afuera arriba a la izquierda, leyenda centrada arriba, barras verde y rojo juntas, valores encima de cada barra (incluidos los meses en cero), línea negra fina y suave sin puntos con etiquetas de valor, y los meses abajo sin líneas de cuadrícula.
+
 ## Qué verá el usuario
 
 1. **Selector superior**: menú "Selecciona un año →" con borde gris fino. Muestra los años que tienen movimientos (por ejemplo 2026 y 2027) y por defecto el año actual.
