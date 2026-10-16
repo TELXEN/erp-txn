@@ -10,6 +10,7 @@ import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { calcularVencimiento } from "@/components/CondicionPago";
 import { ConfigDecolecta } from "@/components/facturacion/ConfigDecolecta";
 import { ComprobantesCompras } from "@/components/facturacion/ComprobantesCompras";
+import { RegistrarVentaExterna } from "@/components/facturacion/RegistrarVentaExterna";
 import { HojaComprobante, nuevoFormCpe, type FormCpe } from "@/components/facturacion/HojaComprobante";
 import { supabase } from "@/integrations/supabase/client";
 import { useEmpresa } from "@/lib/empresa";
@@ -35,6 +36,7 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
   const [docs, setDocs] = useState<DocRelacionado[]>([docRelacionadoVacio()]);
   const [cuotas, setCuotas] = useState<CuotaEditor[]>([]);
   const [busqueda, setBusqueda] = useState(""); const [error, setError] = useState(""); const [guardando, setGuardando] = useState(false); const [cargado, setCargado] = useState("");
+  const [ventaExt, setVentaExt] = useState(false);
   const [editando, setEditando] = useState<Comprobante | null>(null); const [porEliminar, setPorEliminar] = useState<Comprobante | null>(null);
 
   const { data: empresa } = useEmpresa();
@@ -170,7 +172,7 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
   ].filter((g) => g.tipos.length > 0);
   const grupoActivo = gruposFacturacion.find((g) => vista === "recibidos" ? g.tipos.some((p) => p.tipo === "recibidos") : g.tipos.some((p) => p.tipo === pestana)) ?? gruposFacturacion[0];
   const ETIQUETA_BOTON: Record<string, string> = { "01": "Crear Factura", "03": "Crear Boleta", "07": "Crear Notas de Crédito", "08": "Crear Notas de Débito", "20": "Crear Retenciones", "40": "Crear Percepciones", RA: "Nueva comunicación de baja" };
-  return <><Encabezado titulo={esGuias ? "Guías de Remisión" : "Facturación Electrónica"} subtitulo={esGuias ? "Logística · guías de remisión remitente y traslados" : "Comercial · comprobantes, estados SUNAT y cobranza"} acciones={<div className="flex items-center gap-2">{!esGuias && (rol === "gerente" || rol === "administrador") && <ConfigDecolecta />}{vista === "recibidos" ? null : abierto ? <Boton variante="linea" onClick={cerrar}>Cerrar editor</Boton> : <Boton onClick={() => abrirNuevo(pestana)}><FilePlus2 size={14} />{esGuias ? "Nueva guía de remisión" : ETIQUETA_BOTON[pestana] ?? "Nuevo comprobante"}</Boton>}</div>} />
+  return <><Encabezado titulo={esGuias ? "Guías de Remisión" : "Facturación Electrónica"} subtitulo={esGuias ? "Logística · guías de remisión remitente y traslados" : "Comercial · comprobantes, estados SUNAT y cobranza"} acciones={<div className="flex items-center gap-2"><RegistrarVentaExterna abierta={ventaExt} onCerrar={() => setVentaExt(false)} />{!esGuias && (rol === "gerente" || rol === "administrador") && <ConfigDecolecta />}{!esGuias && vista !== "recibidos" && !abierto && <Boton variante="accion" onClick={() => setVentaExt(true)}><ReceiptText size={14} />Registrar venta</Boton>}{vista === "recibidos" ? null : abierto ? <Boton variante="linea" onClick={cerrar}>Cerrar editor</Boton> : <Boton onClick={() => abrirNuevo(pestana)}><FilePlus2 size={14} />{esGuias ? "Nueva guía de remisión" : ETIQUETA_BOTON[pestana] ?? "Nuevo comprobante"}</Boton>}</div>} />
     {!esGuias && <>
       <div className="mb-3 flex flex-wrap gap-1">
         {gruposFacturacion.map((g) => {
