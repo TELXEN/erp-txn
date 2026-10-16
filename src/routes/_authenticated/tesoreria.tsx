@@ -98,7 +98,13 @@ type Pendiente = {
   pctDet?: number;
   tcDoc?: number;
   detEstado?: string;
+  esDet?: boolean;
 };
+
+/** Detracción de una compra en soles: la registrada o 12 % por defecto (entero, SUNAT). */
+type DetC = { monto_soles?: unknown; monto_detraccion?: unknown; detraccion_estado?: unknown; detraccion_banco_id?: unknown };
+const detCompra = (x: DetC, pct?: number) =>
+  pct != null ? Math.round((Number(x.monto_soles) * pct) / 100) : Number(x.monto_detraccion) || Math.round(Number(x.monto_soles) * 0.12);
 
 const dinero = (n: number, m: string) =>
   `${m === "USD" ? "US$" : "S/"} ${Number(n || 0).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -181,10 +187,19 @@ function Tesoreria() {
           vs.filter((v) => v.banco_id === c.id)
             .reduce((s, v) => s + enMonedaCuenta(v, c) - (v.banco_detraccion_id ? detEnCuenta(v) : 0), 0) +
           vs.filter((v) => v.banco_detraccion_id === c.id).reduce((s, v) => s + detEnCuenta(v), 0);
+        type G = Mov & DetC;
+        const compras = [...(gd as unknown as G[]), ...(gg as unknown as G[])];
+        const detC = (g: G) => (c.monedas === "PEN" ? detCompra(g) : detCompra(g) / (Number(g.tipo_cambio) || 1));
         const egresos =
-          [...(gd as unknown as Mov[]), ...(gg as unknown as Mov[])]
+          compras
             .filter((g) => g.banco_id === c.id && g.estado_pago === "Pagada")
-            .reduce((s, g) => s + enMonedaCuenta(g, c), 0) +
+            .reduce((s, g) => {
+              const separada = g.detraccion_estado === "No pagada" || (g.detraccion_estado === "Pagada" && !!g.detraccion_banco_id);
+              return s + enMonedaCuenta(g, c) - (separada ? detC(g) : 0);
+            }, 0) +
+          compras
+            .filter((g) => g.detraccion_estado === "Pagada" && g.detraccion_banco_id === c.id)
+            .reduce((s, g) => s + detC(g), 0) +
           cajas
             .filter((k) => k.banco_id === c.id)
             .reduce(
@@ -256,6 +271,33 @@ function Tesoreria() {
       soles: Number(x.monto_soles),
       detEstado: String(x.detraccion_estado ?? ""),
     })),
+    ...[
+    ...(gd as unknown as R[]).map((x) => ({ x, tabla: "gastos_directos" as const })),
+    ...(gg as unknown as R[]).map((x) => ({ x, tabla: "gastos_generales" as const })),
+  ]
+    .filter(({ x }) => x.detraccion_estado === "No pagada" && (x.condicion_pago !== "Crédito" || x.estado_pago === "Pagada"))
+    .map(({ x, tabla }) => {
+      const d = detCompra(x as unknown as DetC);
+      return {
+        id: String(x.id),
+        tabla,
+        esDet: true,
+        tercero: nombreTercero(x.proveedor_id as string | null, String(x.proveedor ?? "")),
+        documento: `Detracción · ${x.comprobante || "—"}`,
+        obra: nombreObra(x.proyecto_id as string | null),
+        detalle: `Detracción SPOT · ${tabla === "gastos_directos" ? `Costo directo · ${x.rubro ?? ""}` : `Gasto general · ${x.categoria ?? ""}`}`,
+        descripcion: String(x.descripcion ?? ""),
+        emision: String(x.fecha),
+        vencimiento: String(x.fecha),
+        condicion: "Detracción",
+        moneda: "PEN",
+        monto: d,
+        soles: d,
+        base: Number(x.monto_soles),
+        pctDet: Number(x.pct_detraccion) || 12,
+        detEstado: "No pagada",
+      };
+    }),
     ...(rrhh?.pendientes ?? []).map((d) => ({
       id: d.tabla + d.id, tabla: "rrhh" as const, doc: d, tercero: d.tercero, documento: d.documento, obra: d.obra,
       detalle: d.detalle, descripcion: d.descripcion, emision: d.emision, vencimiento: d.vencimiento,
@@ -282,7 +324,7 @@ function Tesoreria() {
       (!desde || (p.vencimiento ?? "") >= desde) &&
       (!hasta || (p.vencimiento ?? "9999") <= hasta),
   );
-  const clave = (p: Pendiente) => p.tabla + p.id;
+  const clave = (p: Pendiente) => p.tabla + p.id + (p.esDet ? ":det" : "");
   const seleccionados = listaFiltrada.filter((p) => seleccion.has(clave(p)));
   const totalSel = seleccionados.reduce((s2, p) => s2 + p.soles, 0);
   const alternar = (ps: Pendiente[], marcar: boolean) =>
@@ -323,6 +365,15 @@ function Tesoreria() {
     }
     const det = accion && accion.p === p && accion.detr && p.tabla === "ventas" ? accion : null;
     if (p.tabla !== "ventas" && cuentasDet.some((c) => c.id === banco_id)) return "Los pagos a proveedores no pueden salir de la cuenta de detracciones (Banco de la Nación).";
+    if (p.esDet) {
+      const pct = accion && accion.p === p ? Number(accion.pct) || 12 : p.pctDet ?? 12;
+      const { error: e3 } = await supabase.from(p.tabla as "gastos_directos").update({
+        detraccion_estado: "Pagada", detraccion_banco_id: banco_id, detraccion_fecha: fecha,
+        detraccion_constancia: numero_operacion, pct_detraccion: pct,
+        monto_detraccion: Math.round(((p.base ?? 0) * pct) / 100),
+      } as never).eq("id", p.id);
+      return e3 ? e3.message : null;
+    }
     const cambios =
       p.tabla === "ventas"
         ? {
@@ -340,7 +391,9 @@ function Tesoreria() {
           }
         : {
             estado_pago: "Pagada", fecha_pago: fecha, banco_id, numero_operacion,
-            ...(accion && accion.p === p && accion.detr ? { detraccion_estado: "Pagada" } : {}),
+            ...(accion && accion.p === p && accion.detr
+              ? { detraccion_estado: "Pagada", detraccion_banco_id: banco_id, detraccion_fecha: fecha, pct_detraccion: 12, monto_detraccion: Math.round(p.soles * 0.12) }
+              : {}),
           };
     const { error: err } = await supabase.from(p.tabla as "ventas").update(cambios as never).eq("id", p.id);
     return err ? err.message : null;
@@ -727,7 +780,18 @@ function Tesoreria() {
                   <span className="text-muted-foreground">Monto</span>
                   <span className="text-right tabular-nums"><b className="text-ink">{dinero(p.base ?? p.monto, p.moneda)}</b>{p.moneda === "USD" && <span className="ml-2 text-muted-foreground">≈ {soles(totalS)}</span>}</span>
                 </div>
-                <label className="block text-[10px] uppercase tracking-wider text-muted-foreground">Cuenta bancaria de destino
+                {p.esDet && (
+                  <div className="grid grid-cols-[90px_1fr] items-end gap-2 rounded-md border border-bad/40 bg-bad/5 p-3">
+                    <label className="block text-[10px] uppercase tracking-wider text-muted-foreground">% detracción
+                      <Input type="number" step="0.01" min="0" max="99" className="text-right" value={accion.pct} onChange={(e) => setAccion({ ...accion, pct: e.target.value })} />
+                    </label>
+                    <div className="text-right tabular-nums">
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Depósito SPOT (factura {soles(p.base ?? 0)})</p>
+                      <b className="text-sm text-ink">{soles(Math.round(((p.base ?? 0) * (Number(accion.pct) || 0)) / 100))}</b>
+                    </div>
+                  </div>
+                )}
+                <label className="block text-[10px] uppercase tracking-wider text-muted-foreground">{p.tabla === "ventas" ? "Cuenta bancaria de destino" : "Cuenta bancaria de origen"}
                   <Select value={accion.banco_id} onChange={(e) => setAccion({ ...accion, banco_id: e.target.value })}>
                     <option value="">Selecciona…</option>
                     {cuentasCom.map((c) => (
@@ -736,7 +800,7 @@ function Tesoreria() {
                   </Select>
                 </label>
                 <div className="grid grid-cols-2 gap-2">
-                  <label className="block text-[10px] uppercase tracking-wider text-muted-foreground">N° de operación
+                  <label className="block text-[10px] uppercase tracking-wider text-muted-foreground">{p.esDet ? "N° de constancia SPOT" : "N° de operación"}
                     <Input value={accion.operacion} onChange={(e) => setAccion({ ...accion, operacion: e.target.value })} />
                   </label>
                   <label className="block text-[10px] uppercase tracking-wider text-muted-foreground">Fecha
@@ -774,7 +838,7 @@ function Tesoreria() {
                     )}
                   </div>
                 )}
-                {(p.tabla === "gastos_directos" || p.tabla === "gastos_generales") && p.detEstado === "No pagada" && (
+                {(p.tabla === "gastos_directos" || p.tabla === "gastos_generales") && !p.esDet && p.detEstado === "No pagada" && (
                   <div className="rounded-md border border-bad/40 bg-bad/5 p-3">
                     <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-ink">
                       <input type="checkbox" className="h-4 w-4 accent-primary" checked={accion.detr} onChange={(e) => setAccion({ ...accion, detr: e.target.checked })} />
