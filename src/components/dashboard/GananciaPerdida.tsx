@@ -79,20 +79,24 @@ export function GananciaPerdida() {
     const mejor = con.reduce((a, b) => (b.neto > a.neto ? b : a));
     const peor = con.reduce((a, b) => (b.neto < a.neto ? b : a));
     const pos = con.filter((d) => d.neto > 0).length;
-    const primero =
-      mejor.neto > 0
-        ? `El mes con mayor ganancia fue ${mejor.mes}, con un resultado de ${soles(mejor.neto)}`
-        : mejor.neto < 0
-          ? `Ningún mes registró ganancia. El mes con menor pérdida fue ${mejor.mes}, con un resultado de ${soles(mejor.neto)}`
-          : "Ningún mes registró ganancia neta (resultado en equilibrio)";
-    const segundo =
-      peor.neto < 0
-        ? `El mes con mayor pérdida fue ${peor.mes}, con un resultado de ${soles(peor.neto)}`
-        : `El mes con menor ganancia fue ${peor.mes}, con un resultado de ${soles(peor.neto)}`;
     const tercero =
       pos === 0
         ? `Ninguno de los ${con.length} meses con movimiento cerró en positivo`
         : `${pos} de ${con.length} meses con movimiento cerraron en positivo`;
+    const res = (d: { neto: number }) => `con un resultado de ${soles(d.neto)}`;
+    // Un solo mes con movimiento: una sola frase, sin "mayor" y "menor" sobre el mismo mes.
+    if (con.length === 1 || mejor.mes === peor.mes) {
+      const t = mejor.neto > 0 ? "ganancia" : mejor.neto < 0 ? "pérdida" : "resultado en equilibrio";
+      return [`Solo ${mejor.mes} tuvo movimiento y cerró con ${t}, ${res(mejor)}`, tercero];
+    }
+    const primero =
+      mejor.neto > 0
+        ? `El mes con mayor ganancia fue ${mejor.mes}, ${res(mejor)}`
+        : `Ningún mes registró ganancia; el mes con menor pérdida fue ${mejor.mes}, ${res(mejor)}`;
+    const segundo =
+      peor.neto < 0
+        ? `El mes con mayor pérdida fue ${peor.mes}, ${res(peor)}`
+        : `El mes con menor ganancia fue ${peor.mes}, ${res(peor)}`;
     return [primero, segundo, tercero];
   }, [datos]);
 
