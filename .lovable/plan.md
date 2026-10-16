@@ -4,7 +4,7 @@ Nueva sección en el Dashboard financiero, con fondo blanco y tarjetas, que usa 
 
 ## Organización de la página
 - Arriba del Dashboard financiero habrá dos pestañas: **Resumen** (lo que existe hoy) y **Ganancia / Pérdida** (el panel nuevo).
-- En la pestaña Resumen, las tablas "Resumen financiero por obra" y "Rendimiento por Partida" pasan al pie de la página, debajo del resto de tarjetas y gráficos.
+- Las tablas "Resumen financiero por obra" y "Rendimiento por Partida" salen de la pestaña Resumen y se muestran al pie de la pestaña **Ganancia / Pérdida**, debajo de sus tarjetas y del gráfico.
 
 ## Qué verá el usuario
 
