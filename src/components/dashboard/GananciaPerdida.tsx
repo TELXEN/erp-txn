@@ -12,15 +12,22 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { useGastosDirectos, useGastosGenerales, useVentas } from "@/lib/datos";
+import { useCajasChicas, useGastosDirectos, useGastosGenerales, useVentas } from "@/lib/datos";
 import { useTareoVehiculos } from "@/lib/vehiculos";
 import { useBoletasCosto, useRecibosCosto } from "@/lib/costo-obra";
+import { usePagosRRHH } from "@/lib/pagos-rrhh";
 import { soles } from "@/lib/format";
 
 const MESES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 const corto = (v: number) => `S/ ${Math.round(v).toLocaleString("es-PE")}`;
 
-/** Ingresos (ventas por fecha de emisión) vs gastos reales por mes, consolidado. */
+type Modo = "caja" | "devengado";
+const TEXTOS = {
+  caja: { titulo: "Flujo neto del año", grafico: "Cobranzas vs Pagos", ing: "Cobranzas", gas: "Pagos", neto: "Flujo neto", pos: "superávit", neg: "déficit de caja" },
+  devengado: { titulo: "Ganancia / Pérdida del año", grafico: "Ingresos vs Gastos", ing: "Ingresos", gas: "Gastos", neto: "Ganancia / Pérdida", pos: "ganancia", neg: "pérdida" },
+} as const;
+
+/** Modo devengado: ventas emitidas vs gastos registrados. Modo caja: cobrado vs pagado. Consolidado. */
 export function GananciaPerdida() {
   const { data: ventas = [] } = useVentas();
   const { data: gd = [] } = useGastosDirectos();
@@ -28,6 +35,10 @@ export function GananciaPerdida() {
   const { data: tv = [] } = useTareoVehiculos();
   const { data: boletas = [] } = useBoletasCosto();
   const { data: recibos = [] } = useRecibosCosto();
+  const { data: cajas = [] } = useCajasChicas();
+  const { data: rrhh } = usePagosRRHH();
+  const [modo, setModo] = useState<Modo>("caja");
+  const T = TEXTOS[modo];
 
   const porAnio = useMemo(() => {
     const m = new Map<number, { ing: number[]; gas: number[] }>();
@@ -42,19 +53,31 @@ export function GananciaPerdida() {
     const porFecha = (f: string | null | undefined, v: number, tipo: "ing" | "gas") => {
       if (!f) return;
       const a = Number(f.slice(0, 4)), mes = Number(f.slice(5, 7)) - 1;
-      sumar(a, mes, v, tipo);
+      sumar(a, mes, Number(v) || 0, tipo);
     };
-    ventas.forEach((v) => {
-      const x = v as typeof v & { fecha_emision?: string | null; created_at?: string };
-      porFecha(x.fecha_emision ?? x.created_at, Number(v.monto_soles), "ing");
-    });
-    gd.forEach((g) => porFecha(g.fecha, Number(g.monto_soles), "gas"));
-    gg.forEach((g) => porFecha(g.fecha, Number(g.monto_soles), "gas"));
-    tv.forEach((t: { fecha: string; costo_soles: number }) => porFecha(t.fecha, Number(t.costo_soles), "gas"));
-    boletas.forEach((b) => { if (b.planillas) sumar(b.planillas.anio, b.planillas.mes - 1, Number(b.total_ingresos) + Number(b.essalud), "gas"); });
-    recibos.forEach((r) => { if (r.anio && r.mes) sumar(r.anio, r.mes - 1, Number(r.monto_bruto), "gas"); });
+    type Mv = { fecha?: string | null; fecha_pago?: string | null; fecha_emision?: string | null; created_at?: string; monto_soles: number; estado?: string; estado_pago?: string | null; condicion_pago?: string; caja_chica_id?: string | null };
+    if (modo === "devengado") {
+      (ventas as unknown as Mv[]).forEach((v) => porFecha(v.fecha_emision ?? v.created_at, v.monto_soles, "ing"));
+      gd.forEach((g) => porFecha(g.fecha, Number(g.monto_soles), "gas"));
+      gg.forEach((g) => porFecha(g.fecha, Number(g.monto_soles), "gas"));
+      tv.forEach((t: { fecha: string; costo_soles: number }) => porFecha(t.fecha, Number(t.costo_soles), "gas"));
+      boletas.forEach((b) => { if (b.planillas) sumar(b.planillas.anio, b.planillas.mes - 1, Number(b.total_ingresos) + Number(b.essalud), "gas"); });
+      recibos.forEach((r) => { if (r.anio && r.mes) sumar(r.anio, r.mes - 1, Number(r.monto_bruto), "gas"); });
+    } else {
+      // Mismo criterio que Flujo de Caja: cobros por fecha de pago; pagos bancarios efectivos.
+      (ventas as unknown as Mv[]).forEach((v) => { if (v.estado === "Pagado") porFecha(v.fecha_pago, v.monto_soles, "ing"); });
+      const pago = (g: Mv) => {
+        if (g.caja_chica_id) return; // salió del banco al entregar la caja chica
+        if (g.estado_pago === "Pagada" || g.condicion_pago !== "Crédito")
+          porFecha(g.fecha_pago ?? (g.condicion_pago !== "Crédito" ? g.fecha : null), g.monto_soles, "gas");
+      };
+      (gd as unknown as Mv[]).forEach(pago);
+      (gg as unknown as Mv[]).forEach(pago);
+      cajas.forEach((c) => porFecha(c.fecha_entrega, Number(c.monto_entregado), "gas"));
+      (rrhh?.egresos ?? []).forEach((e) => porFecha(e.fecha_pago, Number(e.monto), "gas"));
+    }
     return m;
-  }, [ventas, gd, gg, tv, boletas, recibos]);
+  }, [modo, ventas, gd, gg, tv, boletas, recibos, cajas, rrhh]);
 
   const anioActual = new Date().getFullYear();
   const anios = useMemo(() => {
