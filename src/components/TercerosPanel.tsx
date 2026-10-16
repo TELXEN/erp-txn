@@ -421,9 +421,13 @@ function ModalTercero({
       >
         <div className="flex items-start justify-between gap-3 border-b border-line px-5 py-3">
           <div>
-            <h2 className="text-sm font-bold text-ink">Registrar {nombreSingular}</h2>
+            <h2 className="text-sm font-bold text-ink">
+              {editando ? "Editar" : "Registrar"} {nombreSingular}
+            </h2>
             <p className="text-xs text-muted-foreground">
-              Se guardará en el catálogo y quedará disponible para cotizaciones, proyectos y compras.
+              {editando
+                ? "Los cambios se aplican al catálogo y quedan disponibles para cotizaciones, proyectos y compras."
+                : "Se guardará en el catálogo y quedará disponible para cotizaciones, proyectos y compras."}
             </p>
           </div>
           <button
@@ -525,6 +529,29 @@ function ModalTercero({
             </div>
           )}
 
+          {editando && (
+            <div className="flex flex-wrap gap-4 rounded-md border border-line bg-muted/40 px-3 py-2 text-xs text-ink sm:col-span-2">
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 accent-primary"
+                  checked={form.es_cliente}
+                  onChange={(e) => setForm({ ...form, es_cliente: e.target.checked })}
+                />
+                Cliente
+              </label>
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 accent-primary"
+                  checked={form.es_proveedor}
+                  onChange={(e) => setForm({ ...form, es_proveedor: e.target.checked })}
+                />
+                Proveedor
+              </label>
+            </div>
+          )}
+
           {error && <p className="font-mono text-xs text-bad sm:col-span-2">{error}</p>}
           {ok && !error && <p className="font-mono text-xs text-ok sm:col-span-2">{ok}</p>}
 
@@ -533,7 +560,7 @@ function ModalTercero({
               Cancelar
             </Boton>
             <Boton type="submit" variante="accion" disabled={guardando}>
-              <Check size={14} /> {guardando ? "Guardando…" : "Guardar"}
+              <Check size={14} /> {guardando ? "Guardando…" : editando ? "Guardar cambios" : "Guardar"}
             </Boton>
           </div>
         </form>
