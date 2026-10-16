@@ -40,13 +40,13 @@ export function RegistrarVentaExterna({ abierta, onCerrar }: { abierta: boolean;
 
   async function guardar(seguir: boolean) {
     const numero = f.numero.trim().toUpperCase();
-    if (!/^[A-Z0-9]{4}-\d{1,8}$/.test(numero)) return toast.error("Número inválido. Usa serie-correlativo, p. ej. F001-123");
-    if (!f.cliente_id) return toast.error("Elige el cliente");
-    if (valor <= 0) return toast.error("Ingresa el valor de venta");
-    if (f.moneda === "USD" && tc <= 0) return toast.error("Ingresa el tipo de cambio");
+    if (!/^[A-Z0-9]{4}-\d{1,8}$/.test(numero)) { toast.error("Número inválido. Usa serie-correlativo, p. ej. F001-123"); return; }
+    if (!f.cliente_id) { toast.error("Elige el cliente"); return; }
+    if (valor <= 0) { toast.error("Ingresa el valor de venta"); return; }
+    if (f.moneda === "USD" && tc <= 0) { toast.error("Ingresa el tipo de cambio"); return; }
     setGuardando(true);
     const { data: dup } = await supabase.from("ventas").select("id").eq("numero_factura", numero).eq("cliente_id", f.cliente_id).limit(1);
-    if (dup?.length) { setGuardando(false); return toast.error(`${numero} ya está registrada para este cliente`); }
+    if (dup?.length) { setGuardando(false); toast.error(`${numero} ya está registrada para este cliente`); return; }
     const dias = f.condicion === "Crédito" ? Math.max(0, Number(f.dias || 0)) : 0;
     const venc = new Date(`${f.fecha}T12:00:00`); venc.setDate(venc.getDate() + dias);
     const esDet = aplica && f.regimen === "detraccion"; const esRet = aplica && f.regimen === "retencion";
@@ -59,7 +59,7 @@ export function RegistrarVentaExterna({ abierta, onCerrar }: { abierta: boolean;
       rubro: f.proyecto_id ? "Proyectos / Obras" : "Servicios",
     } as never);
     setGuardando(false);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success(`Venta ${numero} registrada`);
     qc.invalidateQueries({ queryKey: ["ventas"] });
     if (seguir) { setF((p) => ({ ...vacio(p.tc), fecha: p.fecha, cliente_id: p.cliente_id, proyecto_id: p.proyecto_id, regimen: p.regimen, tipo: p.tipo })); setIgvManual(false); } else onCerrar();
