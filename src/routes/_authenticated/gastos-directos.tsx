@@ -261,6 +261,7 @@ function GastosDirectos() {
     const insumo = insumos.find((i) => i.id === b.insumo_id);
     const monto = cent(Number(b.cantidad) * Number(b.precio_unitario)) / 100;
     const estado = editando?.estado_pago ?? (contado ? "Pagada" : "Pendiente");
+    const rubroFinal = b.rubro || (insumo ? rubroDeTipo(insumo.tipo) : "Materiales");
     const datos = {
       proyecto_id: proyectoId,
       partida_id: pid,
@@ -275,14 +276,14 @@ function GastosDirectos() {
       moneda: "PEN",
       tipo_cambio: 1,
       monto_soles: monto,
-      rubro: b.rubro || (insumo ? rubroDeTipo(insumo.tipo) : "Materiales"),
+      rubro: rubroFinal,
       fecha: b.fecha,
       ...datosCondicion(b, b.fecha),
       estado_pago: estado,
       banco_id: contado && b.banco_id !== "caja" ? b.banco_id : null,
       fecha_pago: estado === "Pagada" ? (editando?.fecha_pago ?? b.fecha) : null,
       numero_operacion: contado && b.banco_id !== "caja" ? b.numero_operacion.trim() : "",
-      detraccion_estado: estadoDetraccion(monto, b.detraccion),
+      detraccion_estado: estadoDetraccion(rubroFinal === "Materiales" ? 0 : monto, b.detraccion),
     } as never;
     const q = editando
       ? supabase.from("gastos_directos").update(datos).eq("id", editando.id)
@@ -855,7 +856,7 @@ function ModalCompra({
             </div>
           </div>
 
-          <CampoDetraccion montoSoles={totalC / 100} valor={b.detraccion} onChange={(v) => setB({ ...b, detraccion: v })} />
+          <CampoDetraccion montoSoles={(b.rubro || "Materiales") === "Materiales" ? 0 : totalC / 100} valor={b.detraccion} onChange={(v) => setB({ ...b, detraccion: v })} />
 
           <div className={`overflow-hidden rounded-lg border ${saldoNuevo < 0 ? "border-bad/40 bg-bad/10" : "border-line"}`}>
             <div className="border-b border-line bg-muted/50 px-4 py-2">
