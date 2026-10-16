@@ -347,6 +347,7 @@ export function TercerosPanel({ modo }: { modo: "cliente" | "proveedor" }) {
       {modalNuevo && (
         <ModalTercero
           nombreSingular={nombreSingular}
+          esCliente={esCliente}
           form={form}
           setForm={setForm}
           ok={ok}
@@ -365,6 +366,7 @@ export function TercerosPanel({ modo }: { modo: "cliente" | "proveedor" }) {
 
 function ModalTercero({
   nombreSingular,
+  esCliente,
   form,
   setForm,
   ok,
@@ -372,6 +374,7 @@ function ModalTercero({
   onCerrar,
 }: {
   nombreSingular: string;
+  esCliente: boolean;
   form: FormTercero;
   setForm: (f: FormTercero) => void;
   ok: string;
