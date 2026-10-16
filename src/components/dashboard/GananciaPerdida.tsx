@@ -36,10 +36,13 @@ export function GananciaPerdida() {
       if (!r) { r = { ing: Array(12).fill(0), gas: Array(12).fill(0) }; m.set(a, r); }
       return r;
     };
+    const sumar = (a: number, mes: number, v: number, tipo: "ing" | "gas") => {
+      if (a && mes >= 0 && mes < 12) { const arr = get(a)[tipo]; arr[mes] = (arr[mes] ?? 0) + v; }
+    };
     const porFecha = (f: string | null | undefined, v: number, tipo: "ing" | "gas") => {
       if (!f) return;
       const a = Number(f.slice(0, 4)), mes = Number(f.slice(5, 7)) - 1;
-      if (a && mes >= 0 && mes < 12) get(a)[tipo][mes] += v;
+      sumar(a, mes, v, tipo);
     };
     ventas.forEach((v) => {
       const x = v as typeof v & { fecha_emision?: string | null; created_at?: string };
@@ -48,8 +51,8 @@ export function GananciaPerdida() {
     gd.forEach((g) => porFecha(g.fecha, Number(g.monto_soles), "gas"));
     gg.forEach((g) => porFecha(g.fecha, Number(g.monto_soles), "gas"));
     tv.forEach((t: { fecha: string; costo_soles: number }) => porFecha(t.fecha, Number(t.costo_soles), "gas"));
-    boletas.forEach((b) => { if (b.planillas) get(b.planillas.anio).gas[b.planillas.mes - 1] += Number(b.total_ingresos) + Number(b.essalud); });
-    recibos.forEach((r) => { if (r.anio && r.mes) get(r.anio).gas[r.mes - 1] += Number(r.monto_bruto); });
+    boletas.forEach((b) => { if (b.planillas) sumar(b.planillas.anio, b.planillas.mes - 1, Number(b.total_ingresos) + Number(b.essalud), "gas"); });
+    recibos.forEach((r) => { if (r.anio && r.mes) sumar(r.anio, r.mes - 1, Number(r.monto_bruto), "gas"); });
     return m;
   }, [ventas, gd, gg, tv, boletas, recibos]);
 
@@ -62,7 +65,7 @@ export function GananciaPerdida() {
 
   const datos = useMemo(() => {
     const r = porAnio.get(anio) ?? { ing: Array(12).fill(0), gas: Array(12).fill(0) };
-    return MESES.map((mes, i) => ({ mes, ingresos: r.ing[i], gastos: r.gas[i], neto: r.ing[i] - r.gas[i] }));
+    return MESES.map((mes, i) => ({ mes, ingresos: r.ing[i] ?? 0, gastos: r.gas[i] ?? 0, neto: (r.ing[i] ?? 0) - (r.gas[i] ?? 0) }));
   }, [porAnio, anio]);
 
   const ingTotal = datos.reduce((s, d) => s + d.ingresos, 0);
