@@ -298,7 +298,7 @@ export function HojaPreliquidacion(props: Props) {
                 {editable && (
                   <td style={{ ...celda, textAlign: "center" }}>
                     {lineas.length > 1 && (
-                      <button type="button" onClick={() => onQuitarLinea?.(i)} style={{ background: "none", border: "none", cursor: "pointer", color: DOC.mute, padding: 0 }} aria-label="Quitar línea">
+                      <button type="button" onClick={() => onQuitarLinea?.(i)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--color-bad)", padding: 0 }} aria-label="Quitar línea">
                         <Trash2 size={13} />
                       </button>
                     )}

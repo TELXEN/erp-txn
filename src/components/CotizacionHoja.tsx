@@ -1513,7 +1513,7 @@ export function CotizacionHoja({
                           type="button"
                           title="Eliminar fila"
                           onClick={() => void borrar(it.id)}
-                          className="rounded border border-line p-1 text-muted-foreground hover:border-bad hover:text-bad"
+                          className="rounded border border-line p-1 text-bad hover:border-bad"
                         >
                           <Trash2 size={12} />
                         </button>

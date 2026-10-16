@@ -205,7 +205,7 @@ export function CodificacionInsumos({ onAgregarTipo }: { onAgregarTipo?: (tipo: 
                           type="button"
                           title={`Eliminar tipo ${t.nombre}`}
                           onClick={() => void eliminarTipo(t)}
-                          className="grid h-6 w-6 place-items-center rounded-md border border-line text-muted-foreground transition-colors hover:bg-bad/10 hover:text-bad"
+                          className="grid h-6 w-6 place-items-center rounded-md border border-line text-bad transition-colors hover:bg-bad/10"
                         >
                           <Trash2 size={12} />
                         </button>

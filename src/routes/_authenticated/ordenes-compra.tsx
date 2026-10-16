@@ -399,7 +399,7 @@ function OrdenesCompraPage() {
                       <td className="px-2 py-1"><Input className="py-0.5 text-right text-xs" type="number" step="0.01" min="0" value={l.precio_unitario} onChange={(e) => set({ precio_unitario: e.target.value })} /></td>
                       <td className="px-2 py-1 text-right">{soles(Number(l.cantidad || 0) * Number(l.precio_unitario || 0))}</td>
                       <td className="text-right">
-                        <button type="button" title="Quitar" onClick={() => setLineas(lineas.filter((_, j) => j !== idx))} className="text-muted-foreground hover:text-bad"><Trash2 size={13} /></button>
+                        <button type="button" title="Quitar" onClick={() => setLineas(lineas.filter((_, j) => j !== idx))} className="text-bad"><Trash2 size={13} /></button>
                       </td>
                     </tr>
                   );
@@ -488,7 +488,7 @@ function OrdenesCompraPage() {
                               <PackageCheck size={15} />
                             </button>
                           )}
-                          <button type="button" title="Eliminar" onClick={() => void eliminar(o.id)} className="text-muted-foreground hover:text-bad">
+                          <button type="button" title="Eliminar" onClick={() => void eliminar(o.id)} className="text-bad">
                             <Trash2 size={13} />
                           </button>
                         </div>

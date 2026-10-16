@@ -213,7 +213,7 @@ export function ApuBanco({
                 <td className="px-2 py-1.5 text-right">{f.esPctMo ? `${f.cu.toFixed(2)}% MO` : f.cu.toFixed(2)}</td>
                 <td className="px-2 py-1.5 text-right">{f.parcial.toFixed(2)}</td>
                 <td className="px-5 py-1 text-right">
-                  <button type="button" onClick={() => quitarFila(f.d.id)} title="Quitar" className="text-muted-foreground hover:text-bad"><Trash2 size={13} /></button>
+                  <button type="button" onClick={() => quitarFila(f.d.id)} title="Quitar" className="text-bad"><Trash2 size={13} /></button>
                 </td>
               </tr>
             ))}

@@ -97,7 +97,7 @@ export function PlantillasCotizacion() {
                     <td className="px-2 py-1">
                       <div className="flex justify-end gap-1">
                         <button type="button" title="Copiar" onClick={() => void duplicar(p)} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:text-primary"><Copy size={13} /></button>
-                        <button type="button" title="Eliminar" onClick={() => void borrar(p)} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:text-destructive"><Trash2 size={13} /></button>
+                        <button type="button" title="Eliminar" onClick={() => void borrar(p)} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-bad"><Trash2 size={13} /></button>
                       </div>
                     </td>
                   </tr>

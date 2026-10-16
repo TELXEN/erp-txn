@@ -525,7 +525,7 @@ export function PartidasMaestras() {
                           type="button"
                           onClick={() => eliminar(p.id)}
                           title="Eliminar"
-                          className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-bad hover:text-bad"
+                          className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-bad/40 text-bad hover:border-bad"
                         >
                           <Trash2 size={14} />
                         </button>

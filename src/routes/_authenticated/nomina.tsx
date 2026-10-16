@@ -518,7 +518,7 @@ function Nomina() {
                             <>
                           <Boton variante="linea" title="Editar o imprimir detalle" aria-label="Editar o imprimir detalle" onClick={() => { setError(""); setDetalle(b); }} className="h-8 w-8 shrink-0 !p-0 border-line text-muted-foreground hover:bg-transparent hover:border-primary hover:text-primary"><FileText size={15} className="shrink-0" /></Boton>
                           <Boton variante="linea" title={cerrada ? "Registrar pago" : "Valida las boletas para registrar pago"} aria-label="Registrar pago" disabled={!cerrada || b.estado_pago === "Pagado"} onClick={() => { if (cerrada) { setError(""); setPago({ boleta_id: b.id, banco_id: "", fecha_pago: hoy(), numero_operacion: "" }); } }} className="h-8 w-8 shrink-0 !p-0 border-line text-muted-foreground hover:bg-transparent hover:border-primary hover:text-primary"><Check size={15} className="shrink-0" /></Boton>
-                          <Boton variante="linea" title="Eliminar" aria-label="Eliminar" disabled={cerrada || b.estado_pago === "Pagado"} onClick={() => void eliminar(b)} className="h-8 w-8 shrink-0 !p-0 border-line text-muted-foreground hover:border-bad hover:bg-transparent hover:text-bad"><Trash2 size={15} className="shrink-0" /></Boton>
+                          <Boton variante="linea" title="Eliminar" aria-label="Eliminar" disabled={cerrada || b.estado_pago === "Pagado"} onClick={() => void eliminar(b)} className="h-8 w-8 shrink-0 !p-0 border-bad/40 text-bad hover:border-bad hover:bg-transparent"><Trash2 size={15} className="shrink-0" /></Boton>
                             </>
                           )}
                         </div>

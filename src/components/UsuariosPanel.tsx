@@ -302,7 +302,7 @@ export function UsuariosPanel() {
                               type="button"
                               onClick={() => eliminar(u.id)}
                               disabled={esPropio}
-                              className="inline-flex h-7 w-7 items-center justify-center rounded border border-line text-muted-foreground hover:border-bad hover:text-bad disabled:opacity-40"
+                              className="inline-flex h-7 w-7 items-center justify-center rounded border border-bad/40 text-bad hover:border-bad disabled:opacity-40"
                               aria-label="Eliminar"
                             >
                               <Trash2 className="h-3.5 w-3.5" />

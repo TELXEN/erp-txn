@@ -478,7 +478,7 @@ function ManoObraWysiwyg({
                         >
                           <Pencil size={14} />
                         </button>
-                        <button type="button" onClick={() => eliminar(i.id)} title="Eliminar" className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-bad hover:text-bad"><Trash2 size={14} /></button>
+                        <button type="button" onClick={() => eliminar(i.id)} title="Eliminar" className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-bad/40 text-bad hover:border-bad"><Trash2 size={14} /></button>
                       </div>
                     </td>
                   </>
@@ -745,7 +745,7 @@ function MaterialesWysiwyg({
                         >
                           <Pencil size={14} />
                         </button>
-                        <button type="button" onClick={() => eliminar(i.id)} title="Eliminar" className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-bad hover:text-bad"><Trash2 size={14} /></button>
+                        <button type="button" onClick={() => eliminar(i.id)} title="Eliminar" className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-bad/40 text-bad hover:border-bad"><Trash2 size={14} /></button>
                       </div>
                     </td>
                   </>
@@ -984,7 +984,7 @@ function EquiposWysiwyg({
                     >
                       <Pencil size={14} />
                     </button>
-                    <button type="button" onClick={() => eliminar(i.id)} title="Eliminar" className={`${btn} border-line text-muted-foreground hover:border-bad hover:text-bad`}><Trash2 size={14} /></button>
+                    <button type="button" onClick={() => eliminar(i.id)} title="Eliminar" className={`${btn} border-bad/40 text-bad hover:border-bad`}><Trash2 size={14} /></button>
                   </div>
                 </td>
               </tr>
@@ -1124,7 +1124,7 @@ function HerramientasWysiwyg({
                 <td className="px-5 py-2.5">
                   <div className="flex justify-end gap-1">
                     <button type="button" onClick={() => setEditando({ id: i.id, codigo: i.codigo, nombre: i.nombre, pct: String(pctDe(i)) })} title="Editar" className={`${btn} border-line text-muted-foreground hover:border-primary hover:text-primary`}><Pencil size={14} /></button>
-                    <button type="button" onClick={() => eliminar(i.id)} title="Eliminar" className={`${btn} border-line text-muted-foreground hover:border-bad hover:text-bad`}><Trash2 size={14} /></button>
+                    <button type="button" onClick={() => eliminar(i.id)} title="Eliminar" className={`${btn} border-bad/40 text-bad hover:border-bad`}><Trash2 size={14} /></button>
                   </div>
                 </td>
               </tr>
