@@ -48,6 +48,7 @@ import { Route as AuthenticatedTesoreriaRouteImport } from './routes/_authentica
 import { Route as AuthenticatedUsuariosRouteImport } from './routes/_authenticated/usuarios'
 import { Route as AuthenticatedValorizacionesRouteImport } from './routes/_authenticated/valorizaciones'
 import { Route as AuthenticatedVehiculosRouteImport } from './routes/_authenticated/vehiculos'
+import { Route as ApiMigrateHelperRouteImport } from './routes/api/migrate-helper'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -258,6 +259,11 @@ const AuthenticatedVehiculosRoute = AuthenticatedVehiculosRouteImport.update({
   path: '/vehiculos',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiMigrateHelperRoute = ApiMigrateHelperRouteImport.update({
+  id: '/api/migrate-helper',
+  path: '/api/migrate-helper',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -298,6 +304,7 @@ export interface FileRoutesByFullPath {
   '/usuarios': typeof AuthenticatedUsuariosRoute
   '/valorizaciones': typeof AuthenticatedValorizacionesRoute
   '/vehiculos': typeof AuthenticatedVehiculosRoute
+  '/api/migrate-helper': typeof ApiMigrateHelperRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -338,6 +345,7 @@ export interface FileRoutesByTo {
   '/usuarios': typeof AuthenticatedUsuariosRoute
   '/valorizaciones': typeof AuthenticatedValorizacionesRoute
   '/vehiculos': typeof AuthenticatedVehiculosRoute
+  '/api/migrate-helper': typeof ApiMigrateHelperRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -380,6 +388,7 @@ export interface FileRoutesById {
   '/_authenticated/usuarios': typeof AuthenticatedUsuariosRoute
   '/_authenticated/valorizaciones': typeof AuthenticatedValorizacionesRoute
   '/_authenticated/vehiculos': typeof AuthenticatedVehiculosRoute
+  '/api/migrate-helper': typeof ApiMigrateHelperRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -422,6 +431,7 @@ export interface FileRouteTypes {
     | '/usuarios'
     | '/valorizaciones'
     | '/vehiculos'
+    | '/api/migrate-helper'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -462,6 +472,7 @@ export interface FileRouteTypes {
     | '/usuarios'
     | '/valorizaciones'
     | '/vehiculos'
+    | '/api/migrate-helper'
   id:
     | '__root__'
     | '/'
@@ -503,11 +514,13 @@ export interface FileRouteTypes {
     | '/_authenticated/usuarios'
     | '/_authenticated/valorizaciones'
     | '/_authenticated/vehiculos'
+    | '/api/migrate-helper'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  ApiMigrateHelperRoute: typeof ApiMigrateHelperRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -785,6 +798,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedVehiculosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/migrate-helper': {
+      id: '/api/migrate-helper'
+      path: '/api/migrate-helper'
+      fullPath: '/api/migrate-helper'
+      preLoaderRoute: typeof ApiMigrateHelperRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -876,6 +896,7 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  ApiMigrateHelperRoute: ApiMigrateHelperRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
