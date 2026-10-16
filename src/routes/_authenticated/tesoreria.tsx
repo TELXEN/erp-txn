@@ -99,6 +99,7 @@ type Pendiente = {
   tcDoc?: number;
   detEstado?: string;
   esDet?: boolean;
+  agenteRet?: boolean;
 };
 
 /** Detracción de una compra en soles: la registrada o 12 % por defecto (entero, SUNAT). */
@@ -134,7 +135,7 @@ function Tesoreria() {
   const [cerrados, setCerrados] = useState<Set<string>>(new Set());
   const [accion, setAccion] = useState<{
     p: Pendiente; banco_id: string; fecha: string; operacion: string;
-    detr: boolean; pct: string; banco_det: string; constancia: string;
+    detr: boolean; ret: boolean; pct: string; banco_det: string; constancia: string;
   } | null>(null);
   const { data: tcInfo } = useTipoCambioHoy();
   const { data: ventasTC = [] } = useVentas();
@@ -177,9 +178,9 @@ function Tesoreria() {
   const saldos = useMemo(
     () =>
       cuentas.map((c) => {
-        type V = Mov & { estado: string; banco_detraccion_id?: string | null; monto_detraccion?: number };
+        type V = Mov & { estado: string; banco_detraccion_id?: string | null; monto_detraccion?: number; monto_retencion?: number };
         const detEnCuenta = (v: V) => {
-          const d = Number(v.monto_detraccion || 0);
+          const d = Number(v.monto_detraccion || 0) || Number(v.monto_retencion || 0);
           return c.monedas === "PEN" ? d : d / (Number(v.tipo_cambio) || 1);
         };
         const vs = (ventas as unknown as V[]).filter((v) => v.estado === "Pagado");
@@ -246,6 +247,7 @@ function Tesoreria() {
         base: Number(x.total) > 0 ? Number(x.total) : Number(x.monto),
         pctDet: Number(x.pct_detraccion) || 0,
         tcDoc: Number(x.tipo_cambio) || 1,
+        agenteRet: !!terceros.find((t) => t.id === x.cliente_id)?.es_agente_retencion,
       };
     });
 
