@@ -76,6 +76,7 @@ type R = {
   fecha?: string | number | null;
   estado?: string | number | null;
   descripcion?: string | number | null;
+  detraccion_estado?: string | number | null;
 };
 
 type Pendiente = {
@@ -96,6 +97,7 @@ type Pendiente = {
   base?: number;
   pctDet?: number;
   tcDoc?: number;
+  detEstado?: string;
 };
 
 const dinero = (n: number, m: string) =>
@@ -113,10 +115,10 @@ const diasA = (f: string | null) =>
 function Tesoreria() {
   const { rol } = useAuth();
   const qc = useQueryClient();
-  type Pestana = "resumen" | "cxc" | "cxp";
+  type Pestana = "resumen" | "cxc" | "cxp" | "personal";
   const [pestana, setPestanaBase] = useState<Pestana>(() => {
     const g = localStorage.getItem("tesoreria:pestana");
-    return g === "cxc" || g === "cxp" ? g : "resumen";
+    return g === "cxc" || g === "cxp" || g === "personal" ? g : "resumen";
   });
   const setPestana = (t: Pestana) => {
     setPestanaBase(t);
@@ -252,6 +254,7 @@ function Tesoreria() {
       moneda: String(x.moneda),
       monto: Number(x.monto),
       soles: Number(x.monto_soles),
+      detEstado: String(x.detraccion_estado ?? ""),
     })),
     ...(rrhh?.pendientes ?? []).map((d) => ({
       id: d.tabla + d.id, tabla: "rrhh" as const, doc: d, tercero: d.tercero, documento: d.documento, obra: d.obra,
@@ -260,7 +263,9 @@ function Tesoreria() {
     })),
   ];
 
-  const listaBase = (pestana === "cxc" ? cxc : cxp);
+  const cxpProv = cxp.filter((p) => p.tabla !== "rrhh");
+  const cxpPer = cxp.filter((p) => p.tabla === "rrhh");
+  const listaBase = pestana === "cxc" ? cxc : pestana === "personal" ? cxpPer : cxpProv;
   const enVence = (p: Pendiente) => {
     const d = diasA(p.vencimiento);
     if (filtroVence === "vencido") return d < 0;
@@ -317,6 +322,7 @@ function Tesoreria() {
       return e2 ? e2.message : null;
     }
     const det = accion && accion.p === p && accion.detr && p.tabla === "ventas" ? accion : null;
+    if (p.tabla !== "ventas" && cuentasDet.some((c) => c.id === banco_id)) return "Los pagos a proveedores no pueden salir de la cuenta de detracciones (Banco de la Nación).";
     const cambios =
       p.tabla === "ventas"
         ? {
@@ -332,7 +338,10 @@ function Tesoreria() {
                 }
               : {}),
           }
-        : { estado_pago: "Pagada", fecha_pago: fecha, banco_id, numero_operacion };
+        : {
+            estado_pago: "Pagada", fecha_pago: fecha, banco_id, numero_operacion,
+            ...(accion && accion.p === p && accion.detr ? { detraccion_estado: "Pagada" } : {}),
+          };
     const { error: err } = await supabase.from(p.tabla as "ventas").update(cambios as never).eq("id", p.id);
     return err ? err.message : null;
   }
@@ -341,7 +350,7 @@ function Tesoreria() {
     if (!accion) return;
     if (!accion.banco_id) return setError("Elige la cuenta bancaria.");
     if (!accion.operacion.trim()) return setError("Ingresa el N° de operación.");
-    if (accion.detr) {
+    if (accion.detr && accion.p.tabla === "ventas") {
       if (!(Number(accion.pct) > 0 && Number(accion.pct) < 100)) return setError("Ingresa un porcentaje de detracción válido.");
       if (!accion.banco_det) return setError("Elige la cuenta del Banco de la Nación.");
     }
@@ -407,7 +416,7 @@ function Tesoreria() {
                     "Saldo inicial": Number(s.c.saldo_inicial), Ingresos: s.ingresos, Egresos: s.egresos, Saldo: s.saldo,
                   })),
                 },
-                ...[["Cuentas por cobrar", cxc], ["Cuentas por pagar", cxp]].map(([n, l]) => ({
+                ...[["Cuentas por cobrar", cxc], ["Pagos a proveedores", cxpProv], ["Pagos de personal", cxpPer]].map(([n, l]) => ({
                   nombre: n as string,
                   filas: (l as Pendiente[]).map((p) => ({
                     Tercero: p.tercero, Documento: p.documento, Obra: p.obra, Detalle: p.detalle,
@@ -423,10 +432,10 @@ function Tesoreria() {
       />
 
       <div className="mb-4 flex gap-1 border-b border-line">
-        {(["resumen", "cxc", "cxp"] as const).map((t) => {
+        {(["resumen", "cxc", "cxp", "personal"] as const).map((t) => {
           const activa = pestana === t;
           const etiqueta =
-            t === "resumen" ? "Resumen" : t === "cxc" ? `Cuentas por cobrar (${cxc.length})` : `Cuentas por pagar (${cxp.length})`;
+            t === "resumen" ? "Resumen" : t === "cxc" ? `Cuentas por cobrar (${cxc.length})` : t === "cxp" ? `Pagos a proveedores (${cxpProv.length})` : `Pagos de personal (${cxpPer.length})`;
           return (
             <button
               key={t}
@@ -524,7 +533,7 @@ function Tesoreria() {
         {tarjeta("Vence en 30 días", k.mes, "mes")}
       </div>
 
-<Panel titulo={pestana === "cxc" ? "Facturas emitidas pendientes de cobro" : "Compras al crédito, planillas, honorarios, beneficios y obligaciones con el Estado"}
+<Panel titulo={pestana === "cxc" ? "Facturas emitidas pendientes de cobro" : pestana === "personal" ? "Planillas, honorarios, beneficios y obligaciones laborales" : "Compras al crédito de costos directos y gastos generales"}
 >
         <div className="flex flex-wrap items-end gap-2 border-b border-line bg-muted/40 px-4 py-3">
           <div className="relative min-w-[220px] flex-1">
@@ -542,7 +551,7 @@ function Tesoreria() {
           <label className="text-[10px] uppercase text-muted-foreground">Hasta
             <Input type="date" value={hasta} onChange={(e) => { setHasta(e.target.value); limpiarFiltros(); }} />
           </label>
-          <label className="text-[10px] uppercase text-muted-foreground">{pestana === "cxc" ? "Cliente" : "Proveedor"}
+          <label className="text-[10px] uppercase text-muted-foreground">{pestana === "cxc" ? "Cliente" : pestana === "personal" ? "Trabajador" : "Proveedor"}
             <Select value={tercero} onChange={(e) => { setTercero(e.target.value); limpiarFiltros(); }}>
               <option value="">Todos</option>
               {tercerosLista.map((t) => <option key={t} value={t}>{t}</option>)}
@@ -580,7 +589,7 @@ function Tesoreria() {
                       onChange={(e) => alternar(lista, e.target.checked)}
                     />
                   </th>
-                  <th className="px-4 py-2 font-medium">{pestana === "cxc" ? "Cliente" : "Proveedor"}</th>
+                  <th className="px-4 py-2 font-medium">{pestana === "cxc" ? "Cliente" : pestana === "personal" ? "Trabajador" : "Proveedor"}</th>
                   <th className="px-3 py-2 font-medium">Documento</th>
                   <th className="px-3 py-2 font-medium">Descripción</th>
                   <th className="px-3 py-2 font-medium">Emisión</th>
@@ -683,7 +692,7 @@ function Tesoreria() {
               </p>
               <Select value={lote.banco_id} onChange={(e) => setLote({ ...lote, banco_id: e.target.value })}>
                 <option value="">{pestana === "cxc" ? "Cuenta de ingreso…" : "Cuenta de egreso…"}</option>
-                {cuentas.filter((c) => c.activo).map((c) => (
+                {(pestana === "cxc" ? cuentas.filter((c) => c.activo) : cuentasCom).map((c) => (
                   <option key={c.id} value={c.id}>{c.nombre} · {c.monedas} · {c.numero_cuenta}</option>
                 ))}
               </Select>
@@ -721,7 +730,7 @@ function Tesoreria() {
                 <label className="block text-[10px] uppercase tracking-wider text-muted-foreground">Cuenta bancaria de destino
                   <Select value={accion.banco_id} onChange={(e) => setAccion({ ...accion, banco_id: e.target.value })}>
                     <option value="">Selecciona…</option>
-                    {(p.tabla === "ventas" ? cuentasCom : cuentas.filter((c) => c.activo)).map((c) => (
+                    {cuentasCom.map((c) => (
                       <option key={c.id} value={c.id}>{c.nombre} · {c.monedas} · {c.numero_cuenta}</option>
                     ))}
                   </Select>
@@ -763,6 +772,15 @@ function Tesoreria() {
                         </div>
                       </div>
                     )}
+                  </div>
+                )}
+                {(p.tabla === "gastos_directos" || p.tabla === "gastos_generales") && p.detEstado === "No pagada" && (
+                  <div className="rounded-md border border-bad/40 bg-bad/5 p-3">
+                    <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-ink">
+                      <input type="checkbox" className="h-4 w-4 accent-primary" checked={accion.detr} onChange={(e) => setAccion({ ...accion, detr: e.target.checked })} />
+                      <Landmark size={14} /> Detracción pagada junto con este pago
+                    </label>
+                    <p className="mt-1 text-[11px] text-muted-foreground">El depósito de la detracción sale de la cuenta comercial elegida, nunca de la cuenta del Banco de la Nación. Si no lo marcas, la detracción seguirá en rojo como no pagada.</p>
                   </div>
                 )}
                 {error && <p className="text-bad">{error}</p>}
