@@ -253,6 +253,13 @@
       "when": 1792173183515,
       "tag": "0035_detraccion_estado_gastos",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1792175313526,
+      "tag": "0036_detraccion_compras",
+      "breakpoints": true
     }
   ]
 }

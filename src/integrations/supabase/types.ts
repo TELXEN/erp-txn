@@ -1847,7 +1847,10 @@ export type Database = {
           condicion_pago: string
           created_at: string
           descripcion: string
+          detraccion_banco_id: string | null
+          detraccion_constancia: string | null
           detraccion_estado: string
+          detraccion_fecha: string | null
           dias_credito: number
           estado_pago: string
           fecha: string
@@ -1857,10 +1860,12 @@ export type Database = {
           insumo_id: string | null
           moneda: Database["public"]["Enums"]["moneda"]
           monto: number
+          monto_detraccion: number | null
           monto_soles: number
           numero_operacion: string
           orden_compra_item_id: string | null
           partida_id: string
+          pct_detraccion: number | null
           precio_unitario: number
           proveedor: string
           proveedor_id: string | null
@@ -1876,7 +1881,10 @@ export type Database = {
           condicion_pago?: string
           created_at?: string
           descripcion: string
+          detraccion_banco_id?: string | null
+          detraccion_constancia?: string | null
           detraccion_estado?: string
+          detraccion_fecha?: string | null
           dias_credito?: number
           estado_pago?: string
           fecha?: string
@@ -1886,10 +1894,12 @@ export type Database = {
           insumo_id?: string | null
           moneda?: Database["public"]["Enums"]["moneda"]
           monto?: number
+          monto_detraccion?: number | null
           monto_soles?: number
           numero_operacion?: string
           orden_compra_item_id?: string | null
           partida_id: string
+          pct_detraccion?: number | null
           precio_unitario?: number
           proveedor?: string
           proveedor_id?: string | null
@@ -1905,7 +1915,10 @@ export type Database = {
           condicion_pago?: string
           created_at?: string
           descripcion?: string
+          detraccion_banco_id?: string | null
+          detraccion_constancia?: string | null
           detraccion_estado?: string
+          detraccion_fecha?: string | null
           dias_credito?: number
           estado_pago?: string
           fecha?: string
@@ -1915,10 +1928,12 @@ export type Database = {
           insumo_id?: string | null
           moneda?: Database["public"]["Enums"]["moneda"]
           monto?: number
+          monto_detraccion?: number | null
           monto_soles?: number
           numero_operacion?: string
           orden_compra_item_id?: string | null
           partida_id?: string
+          pct_detraccion?: number | null
           precio_unitario?: number
           proveedor?: string
           proveedor_id?: string | null
@@ -1939,6 +1954,13 @@ export type Database = {
             columns: ["caja_chica_id"]
             isOneToOne: false
             referencedRelation: "cajas_chicas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gastos_directos_detraccion_banco_id_fkey"
+            columns: ["detraccion_banco_id"]
+            isOneToOne: false
+            referencedRelation: "bancos"
             referencedColumns: ["id"]
           },
           {
@@ -1987,7 +2009,10 @@ export type Database = {
           condicion_pago: string
           created_at: string
           descripcion: string
+          detraccion_banco_id: string | null
+          detraccion_constancia: string | null
           detraccion_estado: string
+          detraccion_fecha: string | null
           dias_credito: number
           estado_pago: string
           fecha: string
@@ -1996,8 +2021,10 @@ export type Database = {
           id: string
           moneda: Database["public"]["Enums"]["moneda"]
           monto: number
+          monto_detraccion: number | null
           monto_soles: number
           numero_operacion: string
+          pct_detraccion: number | null
           proveedor: string
           proveedor_id: string | null
           proyecto_id: string | null
@@ -2011,7 +2038,10 @@ export type Database = {
           condicion_pago?: string
           created_at?: string
           descripcion: string
+          detraccion_banco_id?: string | null
+          detraccion_constancia?: string | null
           detraccion_estado?: string
+          detraccion_fecha?: string | null
           dias_credito?: number
           estado_pago?: string
           fecha?: string
@@ -2020,8 +2050,10 @@ export type Database = {
           id?: string
           moneda?: Database["public"]["Enums"]["moneda"]
           monto?: number
+          monto_detraccion?: number | null
           monto_soles?: number
           numero_operacion?: string
+          pct_detraccion?: number | null
           proveedor?: string
           proveedor_id?: string | null
           proyecto_id?: string | null
@@ -2035,7 +2067,10 @@ export type Database = {
           condicion_pago?: string
           created_at?: string
           descripcion?: string
+          detraccion_banco_id?: string | null
+          detraccion_constancia?: string | null
           detraccion_estado?: string
+          detraccion_fecha?: string | null
           dias_credito?: number
           estado_pago?: string
           fecha?: string
@@ -2044,8 +2079,10 @@ export type Database = {
           id?: string
           moneda?: Database["public"]["Enums"]["moneda"]
           monto?: number
+          monto_detraccion?: number | null
           monto_soles?: number
           numero_operacion?: string
+          pct_detraccion?: number | null
           proveedor?: string
           proveedor_id?: string | null
           proyecto_id?: string | null
@@ -2064,6 +2101,13 @@ export type Database = {
             columns: ["caja_chica_id"]
             isOneToOne: false
             referencedRelation: "cajas_chicas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gastos_generales_detraccion_banco_id_fkey"
+            columns: ["detraccion_banco_id"]
+            isOneToOne: false
+            referencedRelation: "bancos"
             referencedColumns: ["id"]
           },
           {
