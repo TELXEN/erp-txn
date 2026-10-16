@@ -99,6 +99,7 @@ type Pendiente = {
   tcDoc?: number;
   detEstado?: string;
   esDet?: boolean;
+  agenteRet?: boolean;
 };
 
 /** Detracción de una compra en soles: la registrada o 12 % por defecto (entero, SUNAT). */
@@ -134,7 +135,7 @@ function Tesoreria() {
   const [cerrados, setCerrados] = useState<Set<string>>(new Set());
   const [accion, setAccion] = useState<{
     p: Pendiente; banco_id: string; fecha: string; operacion: string;
-    detr: boolean; pct: string; banco_det: string; constancia: string;
+    detr: boolean; ret: boolean; pct: string; banco_det: string; constancia: string;
   } | null>(null);
   const { data: tcInfo } = useTipoCambioHoy();
   const { data: ventasTC = [] } = useVentas();
@@ -177,9 +178,9 @@ function Tesoreria() {
   const saldos = useMemo(
     () =>
       cuentas.map((c) => {
-        type V = Mov & { estado: string; banco_detraccion_id?: string | null; monto_detraccion?: number };
+        type V = Mov & { estado: string; banco_detraccion_id?: string | null; monto_detraccion?: number; monto_retencion?: number };
         const detEnCuenta = (v: V) => {
-          const d = Number(v.monto_detraccion || 0);
+          const d = Number(v.monto_detraccion || 0) || Number(v.monto_retencion || 0);
           return c.monedas === "PEN" ? d : d / (Number(v.tipo_cambio) || 1);
         };
         const vs = (ventas as unknown as V[]).filter((v) => v.estado === "Pagado");
@@ -246,6 +247,7 @@ function Tesoreria() {
         base: Number(x.total) > 0 ? Number(x.total) : Number(x.monto),
         pctDet: Number(x.pct_detraccion) || 0,
         tcDoc: Number(x.tipo_cambio) || 1,
+        agenteRet: !!terceros.find((t) => t.id === x.cliente_id)?.es_agente_retencion,
       };
     });
 
@@ -364,6 +366,7 @@ function Tesoreria() {
       return e2 ? e2.message : null;
     }
     const det = accion && accion.p === p && accion.detr && p.tabla === "ventas" ? accion : null;
+    const ret = accion && accion.p === p && accion.ret && p.tabla === "ventas" ? accion : null;
     if (p.tabla !== "ventas" && cuentasDet.some((c) => c.id === banco_id)) return "Los pagos a proveedores no pueden salir de la cuenta de detracciones (Banco de la Nación).";
     if (p.esDet) {
       const pct = accion && accion.p === p ? Number(accion.pct) || 12 : p.pctDet ?? 12;
@@ -378,6 +381,15 @@ function Tesoreria() {
       p.tabla === "ventas"
         ? {
             estado: "Pagado", fecha_pago: fecha, banco_id, numero_operacion,
+            ...(ret
+              ? {
+                  monto_retencion: Math.round((p.base ?? p.monto) * (p.moneda === "USD" ? (p.tcDoc ?? 1) : 1) * 3) / 100,
+                  retencion_estado: "Depositada",
+                  retencion_fecha: fecha,
+                  retencion_constancia: ret.constancia.trim(),
+                  banco_detraccion_id: ret.banco_det,
+                }
+              : {}),
             ...(det
               ? {
                   banco_detraccion_id: det.banco_det,
@@ -407,6 +419,8 @@ function Tesoreria() {
       if (!(Number(accion.pct) > 0 && Number(accion.pct) < 100)) return setError("Ingresa un porcentaje de detracción válido.");
       if (!accion.banco_det) return setError("Elige la cuenta del Banco de la Nación.");
     }
+    if (accion.ret && accion.p.tabla === "ventas" && !accion.banco_det)
+      return setError("Elige la cuenta del Banco de la Nación donde el cliente depositó la retención.");
     setError("");
     const msg = await registrarUno(accion.p, accion.banco_id, accion.fecha, accion.operacion.trim());
     if (msg) return setError(msg);
@@ -711,7 +725,7 @@ function Tesoreria() {
                             <td className="whitespace-nowrap px-3 py-2.5 text-right tabular-nums">{dinero(p.monto, p.moneda)}</td>
                             <td className="whitespace-nowrap px-3 py-2.5 text-right font-semibold tabular-nums">{p.moneda === "PEN" ? soles(p.soles) : <span title={tcHoy > 0 ? `TC ref. ${tcHoy.toFixed(3)}` : "TC del documento"}>{soles(p.soles)}<span className="block text-[9px] font-normal text-muted-foreground">TC ref. {(tcHoy || p.tcDoc || 0).toFixed(3)}</span></span>}</td>
                             <td className="px-4 py-2 text-right">
-                              <Boton type="button" variante="linea" onClick={() => { setError(""); setAccion({ p, banco_id: "", fecha: hoy(), operacion: "", detr: false, pct: String(p.pctDet || 12), banco_det: cuentasDet[0]?.id ?? "", constancia: "" }); }}>
+                              <Boton type="button" variante="linea" onClick={() => { setError(""); setAccion({ p, banco_id: "", fecha: hoy(), operacion: "", detr: false, ret: false, pct: String(p.pctDet || 12), banco_det: cuentasDet[0]?.id ?? "", constancia: "" }); }}>
                                 {pestana === "cxc" ? "Registrar cobro" : "Registrar pago"}
                               </Boton>
                             </td>
@@ -764,6 +778,7 @@ function Tesoreria() {
         const p = accion.p;
         const det = accion.detr ? montoDetraccion(p, Number(accion.pct) || 0) : 0;
         const totalS = (p.base ?? p.monto) * (p.moneda === "USD" ? (p.tcDoc ?? 1) : 1);
+        const retM = accion.ret ? Math.round(totalS * 3) / 100 : 0;
         const banco = cuentas.find((c) => c.id === accion.banco_id);
         const bn = cuentas.find((c) => c.id === accion.banco_det);
         return (
@@ -833,6 +848,32 @@ function Tesoreria() {
                           <div className="flex justify-between"><span>{bn?.nombre ?? "Banco de la Nación"}</span><b className="text-ink">{soles(det)}</b></div>
                           <div className="flex justify-between"><span>{banco?.nombre ?? "Banco comercial"}</span><b className="text-ink">{soles(totalS - det)}</b></div>
                           <div className="flex justify-between border-t border-line pt-1 text-muted-foreground"><span>Total</span><span>{soles(totalS)}</span></div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+                {p.tabla === "ventas" && p.agenteRet && !accion.detr && (
+                  <div className="rounded-md border border-line p-3">
+                    <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-ink">
+                      <input type="checkbox" className="h-4 w-4 accent-primary" checked={accion.ret} onChange={(e) => setAccion({ ...accion, ret: e.target.checked })} />
+                      <Landmark size={14} /> Aplicar retención IGV 3 % (cliente agente de retención)
+                    </label>
+                    {accion.ret && (
+                      <div className="mt-3 space-y-2">
+                        <label className="block text-[10px] uppercase tracking-wider text-muted-foreground">Cuenta de detracciones (Banco de la Nación)
+                          <Select value={accion.banco_det} onChange={(e) => setAccion({ ...accion, banco_det: e.target.value })}>
+                            <option value="">Selecciona…</option>
+                            {cuentasDet.map((c) => (<option key={c.id} value={c.id}>{c.nombre} · {c.numero_cuenta}</option>))}
+                          </Select>
+                        </label>
+                        <label className="block text-[10px] uppercase tracking-wider text-muted-foreground">N° de constancia de retención (opcional)
+                          <Input value={accion.constancia} onChange={(e) => setAccion({ ...accion, constancia: e.target.value })} />
+                        </label>
+                        <div className="space-y-1 rounded-md bg-muted/50 p-2.5 tabular-nums">
+                          <div className="flex justify-between"><span>Retención 3 % · {bn?.nombre ?? "Banco de la Nación"}</span><b className="text-ink">{soles(retM)}</b></div>
+                          <div className="flex justify-between"><span>Neto cobrado · {banco?.nombre ?? "Banco comercial"}</span><b className="text-ink">{soles(totalS - retM)}</b></div>
+                          <div className="flex justify-between border-t border-line pt-1 text-muted-foreground"><span>Total factura</span><span>{soles(totalS)}</span></div>
                         </div>
                       </div>
                     )}

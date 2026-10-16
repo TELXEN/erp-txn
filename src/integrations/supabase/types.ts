@@ -4456,6 +4456,7 @@ export type Database = {
           created_at: string
           direccion: string
           email: string
+          es_agente_retencion: boolean
           es_cliente: boolean
           es_proveedor: boolean
           id: string
@@ -4473,6 +4474,7 @@ export type Database = {
           created_at?: string
           direccion?: string
           email?: string
+          es_agente_retencion?: boolean
           es_cliente?: boolean
           es_proveedor?: boolean
           id?: string
@@ -4490,6 +4492,7 @@ export type Database = {
           created_at?: string
           direccion?: string
           email?: string
+          es_agente_retencion?: boolean
           es_cliente?: boolean
           es_proveedor?: boolean
           id?: string
@@ -4913,6 +4916,9 @@ export type Database = {
           pct_detraccion: number
           preliquidacion_id: string | null
           proyecto_id: string | null
+          retencion_constancia: string
+          retencion_estado: string
+          retencion_fecha: string | null
           rubro: string
           tipo_cambio: number
           tipo_tributario: string
@@ -4946,6 +4952,9 @@ export type Database = {
           pct_detraccion?: number
           preliquidacion_id?: string | null
           proyecto_id?: string | null
+          retencion_constancia?: string
+          retencion_estado?: string
+          retencion_fecha?: string | null
           rubro?: string
           tipo_cambio?: number
           tipo_tributario?: string
@@ -4979,6 +4988,9 @@ export type Database = {
           pct_detraccion?: number
           preliquidacion_id?: string | null
           proyecto_id?: string | null
+          retencion_constancia?: string
+          retencion_estado?: string
+          retencion_fecha?: string | null
           rubro?: string
           tipo_cambio?: number
           tipo_tributario?: string
