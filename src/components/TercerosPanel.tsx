@@ -354,20 +354,16 @@ export function TercerosPanel({ modo }: { modo: "cliente" | "proveedor" }) {
         )}
       </Panel>
 
-      {modalNuevo && (
+      {modalAbierto && (
         <ModalTercero
           nombreSingular={nombreSingular}
           esCliente={esCliente}
+          editando={!!editando}
           form={form}
           setForm={setForm}
           ok={ok}
-          onGuardar={async () => {
-            const msg = await guardarTercero();
-            if (msg) return msg;
-            setOk(`${esCliente ? "Cliente" : "Proveedor"} registrado · ${new Date().toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit" })}`);
-            return null;
-          }}
-          onCerrar={() => setModalNuevo(false)}
+          onGuardar={guardarTercero}
+          onCerrar={() => setModalAbierto(false)}
         />
       )}
     </>
@@ -377,6 +373,7 @@ export function TercerosPanel({ modo }: { modo: "cliente" | "proveedor" }) {
 function ModalTercero({
   nombreSingular,
   esCliente,
+  editando,
   form,
   setForm,
   ok,
@@ -385,6 +382,7 @@ function ModalTercero({
 }: {
   nombreSingular: string;
   esCliente: boolean;
+  editando: boolean;
   form: FormTercero;
   setForm: (f: FormTercero) => void;
   ok: string;
