@@ -1847,6 +1847,7 @@ export type Database = {
           condicion_pago: string
           created_at: string
           descripcion: string
+          detraccion_estado: string
           dias_credito: number
           estado_pago: string
           fecha: string
@@ -1875,6 +1876,7 @@ export type Database = {
           condicion_pago?: string
           created_at?: string
           descripcion: string
+          detraccion_estado?: string
           dias_credito?: number
           estado_pago?: string
           fecha?: string
@@ -1903,6 +1905,7 @@ export type Database = {
           condicion_pago?: string
           created_at?: string
           descripcion?: string
+          detraccion_estado?: string
           dias_credito?: number
           estado_pago?: string
           fecha?: string
@@ -1984,6 +1987,7 @@ export type Database = {
           condicion_pago: string
           created_at: string
           descripcion: string
+          detraccion_estado: string
           dias_credito: number
           estado_pago: string
           fecha: string
@@ -2007,6 +2011,7 @@ export type Database = {
           condicion_pago?: string
           created_at?: string
           descripcion: string
+          detraccion_estado?: string
           dias_credito?: number
           estado_pago?: string
           fecha?: string
@@ -2030,6 +2035,7 @@ export type Database = {
           condicion_pago?: string
           created_at?: string
           descripcion?: string
+          detraccion_estado?: string
           dias_credito?: number
           estado_pago?: string
           fecha?: string

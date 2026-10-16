@@ -14,7 +14,7 @@ import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
 import { useCategoriasGastoGeneral, useGastosGenerales, useProyectos, useTerceros } from "@/lib/datos";
 import { exportarExcel } from "@/lib/exportar";
-import { InsigniaPago, PLAZOS, condicionVacia, datosCondicion } from "@/components/CondicionPago";
+import { CampoDetraccion, InsigniaDetraccion, InsigniaPago, PLAZOS, condicionVacia, datosCondicion, estadoDetraccion } from "@/components/CondicionPago";
 import { FechaPeru } from "./gastos-directos";
 import { useMantenimientos, useTraslados, useVehiculos } from "@/lib/vehiculos";
 
@@ -39,6 +39,7 @@ type Pago = {
   comprobante?: string;
   banco_id?: string | null;
   caja_chica_id?: string | null;
+  detraccion_estado?: string;
 };
 
 type Cuenta = { id: string; nombre: string; monedas: string; tipo_cuenta: string; numero_cuenta: string; activo: boolean };
@@ -70,6 +71,7 @@ const formGastoVacio = () => ({
   fecha: hoy(),
   banco_id: "",
   numero_operacion: "",
+  detraccion: "No pagada",
   ...condicionVacia(),
 });
 type FormGasto = ReturnType<typeof formGastoVacio>;
@@ -278,6 +280,7 @@ function GastosGenerales() {
       banco_id: contado && form.banco_id !== "caja" ? form.banco_id : null,
       numero_operacion: contado ? form.numero_operacion.trim() : "",
       fecha_pago: contado ? form.fecha : null,
+      detraccion_estado: estadoDetraccion(Number(form.monto || 0) * tc, form.detraccion),
     } as never);
     if (err) return err.message;
     setForm({ ...form, descripcion: "", comprobante: "", proveedor_id: "", monto: "" });
@@ -290,6 +293,11 @@ function GastosGenerales() {
       .from("gastos_generales")
       .update({ estado_pago: g.estado_pago === "Pagada" ? "Pendiente" : "Pagada" } as never)
       .eq("id", g.id);
+    qc.invalidateQueries({ queryKey: ["gastos_generales"] });
+  }
+
+  async function alternarDetraccion(g: Pago & { id: string }) {
+    await supabase.from("gastos_generales").update({ detraccion_estado: g.detraccion_estado === "Pagada" ? "No pagada" : "Pagada" } as never).eq("id", g.id);
     qc.invalidateQueries({ queryKey: ["gastos_generales"] });
   }
 
@@ -809,6 +817,7 @@ function GastosGenerales() {
                               >
                                 <Pastilla g={g as Pago} />
                               </button>
+                              <div><InsigniaDetraccion estado={(g as Pago).detraccion_estado} onClick={() => alternarDetraccion(g as Pago & { id: string })} /></div>
                               {detallePago(g) && (
                                 <div className="mt-1 truncate text-[10px] font-medium text-muted-foreground">{detallePago(g)}</div>
                               )}
@@ -1041,6 +1050,8 @@ function ModalGasto({
                 <Input value={form.numero_operacion} onChange={(e) => setForm({ ...form, numero_operacion: e.target.value })} maxLength={40} className={inp} /></label>
             )}
           </div>
+
+          <CampoDetraccion className="mt-4" montoSoles={equivalente} valor={form.detraccion} onChange={(v) => setForm({ ...form, detraccion: v })} />
 
           <div className="mt-4 flex items-center justify-between gap-3 rounded-md border border-line bg-muted/30 px-4 py-3 text-xs">
             <p className={etq}>Equivalente en soles</p>

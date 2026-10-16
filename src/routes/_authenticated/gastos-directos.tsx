@@ -26,9 +26,9 @@ import { exportarExcel } from "@/lib/exportar";
 import { DesgloseCd } from "@/components/DesgloseCd";
 import { esSobrecosto, solicitarDesbloqueo, textoSobrecosto, useSolicitudesDesbloqueo } from "@/lib/sobrecosto";
 import { agruparSoloPorCategoria } from "@/lib/categorias";
-import { InsigniaPago, PLAZOS, condicionVacia, datosCondicion } from "@/components/CondicionPago";
+import { CampoDetraccion, InsigniaDetraccion, InsigniaPago, PLAZOS, condicionVacia, datosCondicion, estadoDetraccion } from "@/components/CondicionPago";
 
-type Compra = GastoDirecto & { cantidad?: number; precio_unitario?: number; comprobante?: string; condicion_pago?: string; dias_credito?: number; fecha_vencimiento?: string | null; estado_pago?: string; fecha_pago?: string | null; banco_id?: string | null; numero_operacion?: string; insumo_id?: string | null };
+type Compra = GastoDirecto & { cantidad?: number; precio_unitario?: number; comprobante?: string; condicion_pago?: string; dias_credito?: number; fecha_vencimiento?: string | null; estado_pago?: string; fecha_pago?: string | null; banco_id?: string | null; numero_operacion?: string; insumo_id?: string | null; detraccion_estado?: string };
 
 type InsumoApu = { id: string; descripcion: string; tipo: string; codigo: string | null };
 
@@ -46,6 +46,7 @@ type Borrador = {
   dias_credito: string;
   banco_id: string;
   numero_operacion: string;
+  detraccion: string;
   cantidad: string;
   precio_unitario: string;
   rubro: string;
@@ -62,6 +63,7 @@ const borradorVacio = (): Borrador => ({
   ...condicionVacia(),
   banco_id: "",
   numero_operacion: "",
+  detraccion: "No pagada",
   cantidad: "",
   precio_unitario: "",
   rubro: "",
@@ -238,6 +240,7 @@ function GastosDirectos() {
       dias_credito: String(g.dias_credito ?? 0),
       banco_id: g.banco_id ?? (contado ? "caja" : ""),
       numero_operacion: g.numero_operacion ?? "",
+      detraccion: g.detraccion_estado ?? "No pagada",
       cantidad: String(g.cantidad ?? ""),
       precio_unitario: String(g.precio_unitario ?? ""),
       rubro: g.rubro ?? "",
@@ -279,6 +282,7 @@ function GastosDirectos() {
       banco_id: contado && b.banco_id !== "caja" ? b.banco_id : null,
       fecha_pago: estado === "Pagada" ? (editando?.fecha_pago ?? b.fecha) : null,
       numero_operacion: contado && b.banco_id !== "caja" ? b.numero_operacion.trim() : "",
+      detraccion_estado: estadoDetraccion(monto, b.detraccion),
     } as never;
     const q = editando
       ? supabase.from("gastos_directos").update(datos).eq("id", editando.id)
@@ -308,6 +312,11 @@ function GastosDirectos() {
 
   async function alternarPago(g: Compra) {
     await supabase.from("gastos_directos").update({ estado_pago: g.estado_pago === "Pagada" ? "Pendiente" : "Pagada" } as never).eq("id", g.id);
+    qc.invalidateQueries({ queryKey: ["gastos_directos"] });
+  }
+
+  async function alternarDetraccion(g: Compra) {
+    await supabase.from("gastos_directos").update({ detraccion_estado: g.detraccion_estado === "Pagada" ? "No pagada" : "Pagada" } as never).eq("id", g.id);
     qc.invalidateQueries({ queryKey: ["gastos_directos"] });
   }
 
@@ -581,6 +590,7 @@ function GastosDirectos() {
                                           <button type="button" title="Cambiar estado de pago" disabled={g.condicion_pago !== "Crédito"} onClick={() => alternarPago(g)}>
                                             <InsigniaPago condicion={g.condicion_pago} vencimiento={g.fecha_vencimiento} pagado={g.estado_pago === "Pagada"} />
                                           </button>
+                                          <InsigniaDetraccion estado={g.detraccion_estado} onClick={() => alternarDetraccion(g)} />
                                         </td>
                                         <td className="px-2 text-[10px] text-muted-foreground">
                                           {g.banco_id ? nombreBanco(g.banco_id) : g.condicion_pago === "Crédito" ? "—" : "Caja Chica"}
@@ -844,6 +854,8 @@ function ModalCompra({
               <p className="text-right text-sm font-bold tabular-nums text-ink">{soles(totalC / 100)}</p>
             </div>
           </div>
+
+          <CampoDetraccion montoSoles={totalC / 100} valor={b.detraccion} onChange={(v) => setB({ ...b, detraccion: v })} />
 
           <div className={`overflow-hidden rounded-lg border ${saldoNuevo < 0 ? "border-bad/40 bg-bad/10" : "border-line"}`}>
             <div className="border-b border-line bg-muted/50 px-4 py-2">
