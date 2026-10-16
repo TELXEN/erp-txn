@@ -777,8 +777,8 @@ function Tesoreria() {
       {accion && (() => {
         const p = accion.p;
         const det = accion.detr ? montoDetraccion(p, Number(accion.pct) || 0) : 0;
-        const retM = accion.ret ? Math.round(totalS * 3) / 100 : 0;
         const totalS = (p.base ?? p.monto) * (p.moneda === "USD" ? (p.tcDoc ?? 1) : 1);
+        const retM = accion.ret ? Math.round(totalS * 3) / 100 : 0;
         const banco = cuentas.find((c) => c.id === accion.banco_id);
         const bn = cuentas.find((c) => c.id === accion.banco_det);
         return (
@@ -848,6 +848,32 @@ function Tesoreria() {
                           <div className="flex justify-between"><span>{bn?.nombre ?? "Banco de la Nación"}</span><b className="text-ink">{soles(det)}</b></div>
                           <div className="flex justify-between"><span>{banco?.nombre ?? "Banco comercial"}</span><b className="text-ink">{soles(totalS - det)}</b></div>
                           <div className="flex justify-between border-t border-line pt-1 text-muted-foreground"><span>Total</span><span>{soles(totalS)}</span></div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+                {p.tabla === "ventas" && p.agenteRet && !accion.detr && (
+                  <div className="rounded-md border border-line p-3">
+                    <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-ink">
+                      <input type="checkbox" className="h-4 w-4 accent-primary" checked={accion.ret} onChange={(e) => setAccion({ ...accion, ret: e.target.checked })} />
+                      <Landmark size={14} /> Aplicar retención IGV 3 % (cliente agente de retención)
+                    </label>
+                    {accion.ret && (
+                      <div className="mt-3 space-y-2">
+                        <label className="block text-[10px] uppercase tracking-wider text-muted-foreground">Cuenta de detracciones (Banco de la Nación)
+                          <Select value={accion.banco_det} onChange={(e) => setAccion({ ...accion, banco_det: e.target.value })}>
+                            <option value="">Selecciona…</option>
+                            {cuentasDet.map((c) => (<option key={c.id} value={c.id}>{c.nombre} · {c.numero_cuenta}</option>))}
+                          </Select>
+                        </label>
+                        <label className="block text-[10px] uppercase tracking-wider text-muted-foreground">N° de constancia de retención (opcional)
+                          <Input value={accion.constancia} onChange={(e) => setAccion({ ...accion, constancia: e.target.value })} />
+                        </label>
+                        <div className="space-y-1 rounded-md bg-muted/50 p-2.5 tabular-nums">
+                          <div className="flex justify-between"><span>Retención 3 % · {bn?.nombre ?? "Banco de la Nación"}</span><b className="text-ink">{soles(retM)}</b></div>
+                          <div className="flex justify-between"><span>Neto cobrado · {banco?.nombre ?? "Banco comercial"}</span><b className="text-ink">{soles(totalS - retM)}</b></div>
+                          <div className="flex justify-between border-t border-line pt-1 text-muted-foreground"><span>Total factura</span><span>{soles(totalS)}</span></div>
                         </div>
                       </div>
                     )}
