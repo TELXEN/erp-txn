@@ -22,7 +22,7 @@ export default defineConfig({
         enforce: "pre",
         applyToEnvironment: (env) => env.name !== "client",
         resolveId(id) {
-          if (id === "@react-pdf/renderer") return stubPdf;
+          return id === "@react-pdf/renderer" ? stubPdf : null;
         },
       },
     ],
