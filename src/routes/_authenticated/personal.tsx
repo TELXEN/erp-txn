@@ -505,20 +505,20 @@ function Personal() {
           <Vacio texto="Aún no hay personal registrado." />
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-[1540px] w-full table-fixed font-mono text-xs">
+<table className="w-full table-fixed font-mono text-xs">
               <thead>
                 <tr className="border-b border-line text-left text-[10px] uppercase text-ink bg-muted/50">
-                  <th className="w-[9%] px-4 py-2 font-medium">DNI</th>
-                  <th className="w-[15%] px-3 py-2 font-medium">Apellidos y Nombre(s)</th>
-                  <th className="w-[16%] px-3 py-2 font-medium">Cargo</th>
-                  <th className="w-[11%] px-3 py-2 text-right font-medium whitespace-nowrap">Jornal diario</th>
-                  <th className="w-[13%] px-3 py-2 font-medium">N° Cuenta</th>
-                  <th className="w-[15%] px-3 py-2 font-medium">CCI</th>
-                  <th className="w-[10%] px-3 py-2 font-medium">Banco</th>
-                  <th className="w-[8%] px-3 py-2 font-medium">N° Celular</th>
-                  <th className="w-[12%] px-3 py-2 font-medium">Contrato</th>
-                  <th className="w-[8%] px-3 py-2 font-medium">EMO</th>
-                  <th className="w-[7%] px-4 py-2 text-right font-medium">Acciones</th>
+                  <th className="w-[8%] px-2 py-2 font-medium">DNI</th>
+                  <th className="w-[15%] px-2 py-2 font-medium">Apellidos y Nombre(s)</th>
+                  <th className="w-[15%] px-2 py-2 font-medium">Cargo</th>
+                  <th className="w-[9%] px-2 py-2 text-right font-medium whitespace-nowrap">Jornal diario</th>
+                  <th className="w-[12%] px-2 py-2 font-medium">N° Cuenta</th>
+                  <th className="w-[14%] px-2 py-2 font-medium">CCI</th>
+                  <th className="w-[9%] px-2 py-2 font-medium">Banco</th>
+                  <th className="w-[8%] px-2 py-2 font-medium">N° Celular</th>
+                  <th className="w-[11%] px-2 py-2 font-medium">Contrato</th>
+                  <th className="w-[7%] px-2 py-2 font-medium">EMO</th>
+                  <th className="w-[7%] px-2 py-2 text-right font-medium">Acciones</th>
                 </tr>
               </thead>
               <tbody>
