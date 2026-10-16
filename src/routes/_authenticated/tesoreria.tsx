@@ -777,6 +777,7 @@ function Tesoreria() {
       {accion && (() => {
         const p = accion.p;
         const det = accion.detr ? montoDetraccion(p, Number(accion.pct) || 0) : 0;
+        const retM = accion.ret ? Math.round(totalS * 3) / 100 : 0;
         const totalS = (p.base ?? p.monto) * (p.moneda === "USD" ? (p.tcDoc ?? 1) : 1);
         const banco = cuentas.find((c) => c.id === accion.banco_id);
         const bn = cuentas.find((c) => c.id === accion.banco_det);
