@@ -93,3 +93,41 @@ export function InsigniaPago({
     </span>
   );
 }
+
+/** Facturas mayores a este monto (S/) requieren detracción. */
+export const UMBRAL_DETRACCION = 700;
+export const estadoDetraccion = (montoSoles: number, actual?: string | null) =>
+  montoSoles > UMBRAL_DETRACCION ? (actual === "Pagada" ? "Pagada" : "No pagada") : "No aplica";
+
+/** Insignia de detracción: roja y visible mientras no esté pagada. */
+export function InsigniaDetraccion({ estado, onClick }: { estado?: string | null; onClick?: () => void }) {
+  if (!estado || estado === "No aplica") return null;
+  const pagada = estado === "Pagada";
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title="Cambiar estado de la detracción"
+      className={`mt-1 inline-flex whitespace-nowrap rounded px-1.5 py-0.5 text-[10px] font-semibold ${pagada ? "bg-good/15 text-good" : "bg-bad text-background"}`}
+    >
+      Detracción · {pagada ? "Pagada" : "No pagada"}
+    </button>
+  );
+}
+
+/** Campo del formulario: aparece solo si la factura supera el umbral. */
+export function CampoDetraccion({ montoSoles, valor, onChange, className = "" }: { montoSoles: number; valor: string; onChange: (v: string) => void; className?: string }) {
+  if (montoSoles <= UMBRAL_DETRACCION) return null;
+  const pagada = valor === "Pagada";
+  return (
+    <div className={`rounded-md border px-3 py-2 ${pagada ? "border-line" : "border-bad bg-bad/10"} ${className}`}>
+      <p className={`mb-1 text-[10px] font-bold uppercase tracking-wider ${pagada ? "text-muted-foreground" : "text-bad"}`}>
+        Factura mayor a S/ {UMBRAL_DETRACCION} · registra la detracción
+      </p>
+      <select value={pagada ? "Pagada" : "No pagada"} onChange={(e) => onChange(e.target.value)} className="h-8 w-full rounded border border-line bg-background px-2 text-xs">
+        <option value="No pagada">Detracción no pagada</option>
+        <option value="Pagada">Detracción pagada</option>
+      </select>
+    </div>
+  );
+}
