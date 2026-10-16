@@ -4985,6 +4985,7 @@ export type Database = {
     }
     Functions: {
       eliminar_proyecto: { Args: { _id: string }; Returns: Json }
+      es_personal: { Args: { _user_id: string }; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
