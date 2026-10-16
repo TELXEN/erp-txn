@@ -176,7 +176,7 @@ export function GananciaPerdida() {
         </div>
 
         <div className="min-w-0">
-          <h3 className="mb-2 text-base font-semibold">Ingresos vs Gastos</h3>
+          <h3 className="mb-2 text-base font-semibold">{T.grafico}</h3>
           <div className="h-[420px] border border-line p-2">
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart data={datos} margin={{ top: 24, right: 16, left: 16, bottom: 8 }} barGap={0}>
@@ -185,13 +185,13 @@ export function GananciaPerdida() {
                 <ReferenceLine y={0} stroke="var(--line)" />
                 <Tooltip formatter={(v: number) => soles(v)} />
                 <Legend verticalAlign="top" height={32} iconType="rect" wrapperStyle={{ fontSize: 12 }} />
-                <Bar dataKey="ingresos" name="Ingresos" fill="var(--good)" maxBarSize={36}>
+                <Bar dataKey="ingresos" name={T.ing} fill="var(--good)" maxBarSize={36}>
                   <LabelList dataKey="ingresos" position="top" formatter={corto} style={{ fontSize: 10 }} />
                 </Bar>
-                <Bar dataKey="gastos" name="Gastos" fill="var(--bad)" maxBarSize={36}>
+                <Bar dataKey="gastos" name={T.gas} fill="var(--bad)" maxBarSize={36}>
                   <LabelList dataKey="gastos" position="top" formatter={corto} style={{ fontSize: 10 }} />
                 </Bar>
-                <Line type="monotone" dataKey="neto" name="Ganancia / Pérdida" stroke="var(--ink)" strokeWidth={1.5} dot={false} />
+                <Line type="monotone" dataKey="neto" name={T.neto} stroke="var(--ink)" strokeWidth={1.5} dot={false} />
               </ComposedChart>
             </ResponsiveContainer>
           </div>
