@@ -2,6 +2,10 @@
 
 Nueva sección en el Dashboard financiero, con fondo blanco y tarjetas, que usa datos reales del ERP (no inventados) en soles (S/).
 
+## Organización de la página
+- Arriba del Dashboard financiero habrá dos pestañas: **Resumen** (lo que existe hoy) y **Ganancia / Pérdida** (el panel nuevo).
+- En la pestaña Resumen, las tablas "Resumen financiero por obra" y "Rendimiento por Partida" pasan al pie de la página, debajo del resto de tarjetas y gráficos.
+
 ## Qué verá el usuario
 
 1. **Selector superior**: menú "Selecciona un año →" con borde gris fino. Muestra los años que tienen movimientos (por ejemplo 2026 y 2027) y por defecto el año actual.
