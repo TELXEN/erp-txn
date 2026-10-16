@@ -108,40 +108,57 @@ export function GananciaPerdida() {
         : `${pos} de ${con.length} meses con movimiento cerraron en positivo`;
     const res = (d: { neto: number }) => `con un resultado de ${soles(d.neto)}`;
     // Un solo mes con movimiento: una sola frase, sin "mayor" y "menor" sobre el mismo mes.
+    const { pos: P, neg: N } = TEXTOS[modo];
     if (con.length === 1 || mejor.mes === peor.mes) {
-      const t = mejor.neto > 0 ? "ganancia" : mejor.neto < 0 ? "pérdida" : "resultado en equilibrio";
+      const t = mejor.neto > 0 ? P : mejor.neto < 0 ? N : "resultado en equilibrio";
       return [`Solo ${mejor.mes} tuvo movimiento y cerró con ${t}, ${res(mejor)}`, tercero];
     }
     const primero =
       mejor.neto > 0
-        ? `El mes con mayor ganancia fue ${mejor.mes}, ${res(mejor)}`
-        : `Ningún mes registró ganancia; el mes con menor pérdida fue ${mejor.mes}, ${res(mejor)}`;
+        ? `El mes con mayor ${P} fue ${mejor.mes}, ${res(mejor)}`
+        : `Ningún mes registró ${P}; el mes con menor ${N} fue ${mejor.mes}, ${res(mejor)}`;
     const segundo =
       peor.neto < 0
-        ? `El mes con mayor pérdida fue ${peor.mes}, ${res(peor)}`
-        : `El mes con menor ganancia fue ${peor.mes}, ${res(peor)}`;
+        ? `El mes con mayor ${N} fue ${peor.mes}, ${res(peor)}`
+        : `El mes con menor ${P} fue ${peor.mes}, ${res(peor)}`;
     return [primero, segundo, tercero];
-  }, [datos]);
+  }, [datos, modo]);
 
   return (
     <div className="mb-4 rounded-lg bg-card p-4">
-      <div className="mb-4 flex w-full max-w-md text-sm">
-        <span className="flex items-center gap-1.5 bg-ink px-3 py-1.5 font-semibold text-background">
-          Selecciona un año <ArrowRight size={14} />
-        </span>
-        <select
-          value={anio}
-          onChange={(e) => setAnio(Number(e.target.value))}
-          className="flex-1 border-2 border-primary bg-background px-3 py-1.5 text-center text-sm outline-hidden"
-        >
-          {anios.map((a) => <option key={a} value={a}>{a}</option>)}
-        </select>
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        <div className="flex w-full max-w-md text-sm">
+          <span className="flex items-center gap-1.5 bg-ink px-3 py-1.5 font-semibold text-background">
+            Selecciona un año <ArrowRight size={14} />
+          </span>
+          <select
+            value={anio}
+            onChange={(e) => setAnio(Number(e.target.value))}
+            className="flex-1 border-2 border-primary bg-background px-3 py-1.5 text-center text-sm outline-hidden"
+          >
+            {anios.map((a) => <option key={a} value={a}>{a}</option>)}
+          </select>
+        </div>
+        <div role="tablist" className="flex border border-line text-sm">
+          {([["caja", "Flujo de caja real (cobrado vs pagado)"], ["devengado", "Rentabilidad (devengado)"]] as const).map(([k, l]) => (
+            <button
+              key={k}
+              type="button"
+              role="tab"
+              aria-selected={modo === k}
+              onClick={() => setModo(k)}
+              className={`px-3 py-1.5 font-semibold ${modo === k ? "bg-ink text-background" : "bg-background text-muted-foreground hover:text-foreground"}`}
+            >
+              {l}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
         <div className="min-w-0">
           <div className="overflow-hidden border border-line">
-            <div className="bg-ink px-4 py-3 text-base font-semibold text-background">Ganancia / Pérdida del año</div>
+            <div className="bg-ink px-4 py-3 text-base font-semibold text-background">{T.titulo}</div>
             <div className="py-8 text-center text-4xl font-bold">{soles(neto)}</div>
             <div className={`py-4 text-center text-3xl font-bold text-background ${positivo ? "bg-good" : "bg-bad"}`}>
               {margen.toFixed(1)}%
