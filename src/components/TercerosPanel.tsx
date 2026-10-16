@@ -19,6 +19,7 @@ export type Tercero = {
   contacto: string;
   celular_contacto: string;
   activo: boolean;
+  es_agente_retencion: boolean;
 };
 
 type FormTercero = {
@@ -32,6 +33,7 @@ type FormTercero = {
   email: string;
   contacto: string;
   celular_contacto: string;
+  es_agente_retencion: boolean;
 };
 
 const TIPOS_DOC = ["RUC", "DNI", "CE", "OTRO"];
@@ -60,6 +62,7 @@ export function TercerosPanel({ modo }: { modo: "cliente" | "proveedor" }) {
     email: "",
     contacto: "",
     celular_contacto: "",
+    es_agente_retencion: false,
   };
 
   const [error, setError] = useState("");
@@ -490,6 +493,24 @@ function ModalTercero({
               maxLength={30}
             />
           </Campo>
+          {esCliente && (
+            <div className="sm:col-span-2">
+              <label className="flex cursor-pointer items-center gap-2 rounded-md border border-line bg-muted/40 px-3 py-2 text-xs text-ink">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 accent-primary"
+                  checked={form.es_agente_retencion}
+                  onChange={(e) => setForm({ ...form, es_agente_retencion: e.target.checked })}
+                />
+                <span>
+                  <b>Agente de retención del IGV (SUNAT)</b>
+                  <span className="block text-[11px] text-muted-foreground">
+                    Si el cliente es agente de retención, en ventas de materiales mayores a S/ 700 te retendrá el 3 % del total.
+                  </span>
+                </span>
+              </label>
+            </div>
+          )}
 
           {error && <p className="font-mono text-xs text-bad sm:col-span-2">{error}</p>}
           {ok && !error && <p className="font-mono text-xs text-ok sm:col-span-2">{ok}</p>}
