@@ -366,6 +366,7 @@ function Tesoreria() {
       return e2 ? e2.message : null;
     }
     const det = accion && accion.p === p && accion.detr && p.tabla === "ventas" ? accion : null;
+    const ret = accion && accion.p === p && accion.ret && p.tabla === "ventas" ? accion : null;
     if (p.tabla !== "ventas" && cuentasDet.some((c) => c.id === banco_id)) return "Los pagos a proveedores no pueden salir de la cuenta de detracciones (Banco de la Nación).";
     if (p.esDet) {
       const pct = accion && accion.p === p ? Number(accion.pct) || 12 : p.pctDet ?? 12;
@@ -380,6 +381,15 @@ function Tesoreria() {
       p.tabla === "ventas"
         ? {
             estado: "Pagado", fecha_pago: fecha, banco_id, numero_operacion,
+            ...(ret
+              ? {
+                  monto_retencion: Math.round((p.base ?? p.monto) * (p.moneda === "USD" ? (p.tcDoc ?? 1) : 1) * 3) / 100,
+                  retencion_estado: "Depositada",
+                  retencion_fecha: fecha,
+                  retencion_constancia: ret.constancia.trim(),
+                  banco_detraccion_id: ret.banco_det,
+                }
+              : {}),
             ...(det
               ? {
                   banco_detraccion_id: det.banco_det,
@@ -409,6 +419,8 @@ function Tesoreria() {
       if (!(Number(accion.pct) > 0 && Number(accion.pct) < 100)) return setError("Ingresa un porcentaje de detracción válido.");
       if (!accion.banco_det) return setError("Elige la cuenta del Banco de la Nación.");
     }
+    if (accion.ret && accion.p.tabla === "ventas" && !accion.banco_det)
+      return setError("Elige la cuenta del Banco de la Nación donde el cliente depositó la retención.");
     setError("");
     const msg = await registrarUno(accion.p, accion.banco_id, accion.fecha, accion.operacion.trim());
     if (msg) return setError(msg);
@@ -713,7 +725,7 @@ function Tesoreria() {
                             <td className="whitespace-nowrap px-3 py-2.5 text-right tabular-nums">{dinero(p.monto, p.moneda)}</td>
                             <td className="whitespace-nowrap px-3 py-2.5 text-right font-semibold tabular-nums">{p.moneda === "PEN" ? soles(p.soles) : <span title={tcHoy > 0 ? `TC ref. ${tcHoy.toFixed(3)}` : "TC del documento"}>{soles(p.soles)}<span className="block text-[9px] font-normal text-muted-foreground">TC ref. {(tcHoy || p.tcDoc || 0).toFixed(3)}</span></span>}</td>
                             <td className="px-4 py-2 text-right">
-                              <Boton type="button" variante="linea" onClick={() => { setError(""); setAccion({ p, banco_id: "", fecha: hoy(), operacion: "", detr: false, pct: String(p.pctDet || 12), banco_det: cuentasDet[0]?.id ?? "", constancia: "" }); }}>
+                              <Boton type="button" variante="linea" onClick={() => { setError(""); setAccion({ p, banco_id: "", fecha: hoy(), operacion: "", detr: false, ret: false, pct: String(p.pctDet || 12), banco_det: cuentasDet[0]?.id ?? "", constancia: "" }); }}>
                                 {pestana === "cxc" ? "Registrar cobro" : "Registrar pago"}
                               </Boton>
                             </td>
