@@ -215,7 +215,7 @@ export function HojaComprobante(props: {
               <td style={{ padding: 4, verticalAlign: "top" }}><input type="number" step="0.01" value={x.descuento} onChange={(e) => actualizarItem(i, "descuento", e.target.value)} style={{ ...cel, textAlign: "right" }} /></td>
               <td style={{ padding: 6, textAlign: "right", fontWeight: 700, verticalAlign: "top" }}>{money(calcularItem(x, form.operacion_tipo, Number(form.igv_tasa)).subtotal)}</td>
             </>}
-            <td style={{ width: 22 }}><button type="button" title="Quitar" onClick={() => setItems(items.length === 1 ? [itemComprobanteVacio()] : items.filter((_, n) => n !== i))} style={{ border: "none", background: "transparent", color: C.muted, cursor: "pointer" }}><Trash2 size={13} /></button></td>
+            <td style={{ width: 22 }}><button type="button" title="Quitar" onClick={() => setItems(items.length === 1 ? [itemComprobanteVacio()] : items.filter((_, n) => n !== i))} style={{ border: "none", background: "transparent", color: "var(--color-bad)", cursor: "pointer" }}><Trash2 size={13} /></button></td>
           </tr>)}</tbody>
         </table>}
         {usaItems(tipo) && <button type="button" onClick={() => setItems([...items, itemComprobanteVacio()])} style={{ marginTop: 7, fontSize: 9.5, border: `1px dashed ${C.green}`, color: C.green, background: C.white, borderRadius: 4, padding: "4px 9px", cursor: "pointer", display: "inline-flex", gap: 4, alignItems: "center" }}><Plus size={12} />Agregar línea</button>}
@@ -229,7 +229,7 @@ export function HojaComprobante(props: {
             <td style={{ padding: 4, width: 100 }}><input value={d.numero} onChange={(e) => actualizarDoc(i, "numero", e.target.value)} style={cel} /></td>
             <td style={{ padding: 4, width: 110 }}><input type="date" value={d.fecha} onChange={(e) => actualizarDoc(i, "fecha", e.target.value)} style={cel} /></td>
             <td style={{ padding: 4, width: 96 }}><input type="number" step="0.01" value={d.importe} onChange={(e) => actualizarDoc(i, "importe", e.target.value)} style={{ ...cel, textAlign: "right" }} /></td>
-            <td style={{ width: 22 }}><button type="button" title="Quitar" onClick={() => setDocs(docs.length === 1 ? [docRelacionadoVacio()] : docs.filter((_, n) => n !== i))} style={{ border: "none", background: "transparent", color: C.muted, cursor: "pointer" }}><Trash2 size={13} /></button></td>
+            <td style={{ width: 22 }}><button type="button" title="Quitar" onClick={() => setDocs(docs.length === 1 ? [docRelacionadoVacio()] : docs.filter((_, n) => n !== i))} style={{ border: "none", background: "transparent", color: "var(--color-bad)", cursor: "pointer" }}><Trash2 size={13} /></button></td>
           </tr>)}</tbody>
         </table>
           <button type="button" onClick={() => setDocs([...docs, docRelacionadoVacio()])} style={{ marginTop: 7, fontSize: 9.5, border: `1px dashed ${C.green}`, color: C.green, background: C.white, borderRadius: 4, padding: "4px 9px", cursor: "pointer", display: "inline-flex", gap: 4, alignItems: "center" }}><Plus size={12} />Agregar comprobante</button></>}
@@ -294,7 +294,7 @@ export function HojaComprobante(props: {
                           <input type="number" step="0.01" value={q.monto} onChange={(e) => setCuotas(cuotas.map((c, n) => (n === i ? { ...c, monto: e.target.value } : c)))} style={{ ...cel, border: "none", textAlign: "right", flex: 1 }} />
                         </span>
                       </td>
-                      <td style={{ width: 18 }}><button type="button" title="Quitar cuota" onClick={() => setCuotas(cuotas.filter((_, n) => n !== i))} style={{ border: "none", background: "transparent", color: C.muted, cursor: "pointer" }}><Trash2 size={11} /></button></td>
+                      <td style={{ width: 18 }}><button type="button" title="Quitar cuota" onClick={() => setCuotas(cuotas.filter((_, n) => n !== i))} style={{ border: "none", background: "transparent", color: "var(--color-bad)", cursor: "pointer" }}><Trash2 size={11} /></button></td>
                     </tr>)}</tbody>
                   </table>
                   <button type="button" onClick={() => setCuotas([...cuotas, cuotaVacia(form.fecha_vencimiento)])} style={{ marginTop: 4, fontSize: 9, border: `1px dashed ${C.green}`, color: C.green, background: C.white, borderRadius: 4, padding: "2px 7px", cursor: "pointer", display: "inline-flex", gap: 3, alignItems: "center" }}><Plus size={11} />Agregar cuota</button>
