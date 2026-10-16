@@ -69,7 +69,7 @@ export function TercerosPanel({ modo }: { modo: "cliente" | "proveedor" }) {
   const [form, setForm] = useState<FormTercero>(formVacio);
   const [editando, setEditando] = useState<Tercero | null>(null);
   const [busqueda, setBusqueda] = useState("");
-  const [modalNuevo, setModalNuevo] = useState(false);
+  const [modalAbierto, setModalAbierto] = useState(false);
   const [ok, setOk] = useState("");
 
   const { data: terceros = [] } = useQuery({
@@ -85,39 +85,56 @@ export function TercerosPanel({ modo }: { modo: "cliente" | "proveedor" }) {
     coincide(busqueda, t.numero_documento, t.razon_social, t.contacto, t.email),
   );
 
+  function abrirNuevo() {
+    setForm(formVacio);
+    setEditando(null);
+    setOk("");
+    setError("");
+    setModalAbierto(true);
+  }
+
+  function abrirEdicion(t: Tercero) {
+    setForm({
+      tipo_documento: t.tipo_documento,
+      numero_documento: t.numero_documento,
+      razon_social: t.razon_social,
+      es_cliente: t.es_cliente,
+      es_proveedor: t.es_proveedor,
+      direccion: t.direccion,
+      telefono: t.telefono,
+      email: t.email,
+      contacto: t.contacto,
+      celular_contacto: t.celular_contacto,
+      es_agente_retencion: t.es_agente_retencion,
+    });
+    setEditando(t);
+    setOk("");
+    setError("");
+    setModalAbierto(true);
+  }
+
   async function guardarTercero(): Promise<string | null> {
     const msg = validarDoc(form.tipo_documento, form.numero_documento);
     if (msg) return msg;
-    const { error: err } = await supabase.from("terceros").insert({
+    if (!form.es_cliente && !form.es_proveedor) return "Marca si es Cliente, Proveedor o ambos.";
+    const campos = {
       ...form,
       numero_documento: form.numero_documento.trim(),
       razon_social: form.razon_social.trim(),
-      condicion_pago: "Contado",
-    });
+    };
+    const { error: err } = editando
+      ? await supabase.from("terceros").update(campos).eq("id", editando.id)
+      : await supabase.from("terceros").insert({ ...campos, condicion_pago: "Contado" });
     if (err)
       return err.code === "23505"
         ? "Ya existe un registro con ese número de documento."
         : err.message;
-    setForm(formVacio);
+    setOk(
+      `${esCliente ? "Cliente" : "Proveedor"} ${editando ? "actualizado" : "registrado"} · ${new Date().toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit" })}`,
+    );
+    if (!editando) setForm(formVacio);
     qc.invalidateQueries({ queryKey: ["terceros"] });
     return null;
-  }
-
-  async function actualizarTercero() {
-    if (!editando) return;
-    setError("");
-    const msg = validarDoc(editando.tipo_documento, editando.numero_documento);
-    if (msg) return setError(msg);
-    if (!editando.es_cliente && !editando.es_proveedor)
-      return setError("Marca si es Cliente, Proveedor o ambos.");
-    const { id, ...campos } = editando;
-    const { error: err } = await supabase.from("terceros").update(campos).eq("id", id);
-    if (err)
-      return setError(
-        err.code === "23505" ? "Ya existe un registro con ese número de documento." : err.message,
-      );
-    setEditando(null);
-    qc.invalidateQueries({ queryKey: ["terceros"] });
   }
 
   async function eliminarTercero(id: string) {
@@ -160,11 +177,7 @@ export function TercerosPanel({ modo }: { modo: "cliente" | "proveedor" }) {
             </Boton>
             <Boton
               variante="accion"
-              onClick={() => {
-                setForm(formVacio);
-                setOk("");
-                setModalNuevo(true);
-              }}
+              onClick={abrirNuevo}
             >
               <Plus size={14} /> Registrar {nombreSingular}
             </Boton>
@@ -187,187 +200,73 @@ export function TercerosPanel({ modo }: { modo: "cliente" | "proveedor" }) {
               </tr>
             </thead>
             <tbody>
-              {lista.map((t) =>
-                editando?.id === t.id ? (
-                  <tr key={t.id} className="border-b border-line/60 last:border-0 align-top">
-                    <td className="px-5 py-2">
-                      <Select
-                        className="py-1 text-xs"
-                        value={editando.tipo_documento}
-                        onChange={(e) => setEditando({ ...editando, tipo_documento: e.target.value })}
+              {lista.map((t) => (
+                <tr key={t.id} className="border-b border-line/60 last:border-0">
+                  <td className="px-5 py-2.5">
+                    <span className="text-muted-foreground">{t.tipo_documento}</span>{" "}
+                    <Resaltar texto={t.numero_documento} termino={busqueda} />
+                  </td>
+                  <td className="px-3 py-2.5 font-semibold text-ink">
+                    <Resaltar texto={t.razon_social} termino={busqueda} />
+                    {esCliente && t.es_proveedor && (
+                      <span className="ml-1"><Etiqueta tono="neutro">También proveedor</Etiqueta></span>
+                    )}
+                    {!esCliente && t.es_cliente && (
+                      <span className="ml-1"><Etiqueta tono="neutro">También cliente</Etiqueta></span>
+                    )}
+                  </td>
+                  <td className="truncate px-3 py-2.5 text-muted-foreground">{t.direccion || "—"}</td>
+                  <td className="px-3 py-2.5 text-muted-foreground">{t.telefono || "—"}</td>
+                  <td className="px-3 py-2.5 text-muted-foreground">
+                    {t.contacto ? (
+                      <>
+                        <span className="block truncate text-ink"><Resaltar texto={t.contacto} termino={busqueda} /></span>
+                        <span className="block truncate text-[10px]">{t.celular_contacto || "—"}</span>
+                      </>
+                    ) : (
+                      "—"
+                    )}
+                  </td>
+                  <td className="truncate px-3 py-2.5 text-muted-foreground">
+                    <Resaltar texto={t.email || "—"} termino={busqueda} />
+                  </td>
+                  <td className="px-5 py-2">
+                    <div className="flex items-center justify-end gap-1">
+                      <button
+                        type="button"
+                        onClick={() => abrirEdicion(t)}
+                        className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"
+                        title="Editar"
                       >
-                        {TIPOS_DOC.map((d) => (
-                          <option key={d} value={d}>
-                            {d}
-                          </option>
-                        ))}
-                      </Select>
-                      <Input
-                        className="mt-1 py-1 text-xs"
-                        value={editando.numero_documento}
-                        onChange={(e) => setEditando({ ...editando, numero_documento: e.target.value })}
-                      />
-                    </td>
-                    <td className="px-3 py-2">
-                      <Input
-                        className="py-1 text-xs"
-                        value={editando.razon_social} data-formato="titulo"
-                        onChange={(e) => setEditando({ ...editando, razon_social: e.target.value })}
-                      />
-                      <div className="mt-1 flex gap-3 text-[10px]">
-                        <label className="flex items-center gap-1.5">
-                          <input
-                            type="checkbox"
-                            checked={editando.es_cliente}
-                            onChange={(e) => setEditando({ ...editando, es_cliente: e.target.checked })}
-                          />
-                          Cliente
-                        </label>
-                        <label className="flex items-center gap-1.5">
-                          <input
-                            type="checkbox"
-                            checked={editando.es_proveedor}
-                            onChange={(e) => setEditando({ ...editando, es_proveedor: e.target.checked })}
-                          />
-                          Proveedor
-                        </label>
-                        {esCliente && (
-                          <label className="flex items-center gap-1.5" title="Si es agente de retención, en ventas de materiales mayores a S/ 700 te retendrá el 3 % del total">
-                            <input
-                              type="checkbox"
-                              checked={editando.es_agente_retencion}
-                              onChange={(e) => setEditando({ ...editando, es_agente_retencion: e.target.checked })}
-                            />
-                            Agente de retención
-                          </label>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-3 py-2">
-                      <Input
-                        className="py-1 text-xs"
-                        value={editando.direccion}
-                        onChange={(e) => setEditando({ ...editando, direccion: e.target.value })}
-                      />
-                    </td>
-                    <td className="px-3 py-2">
-                      <Input
-                        className="py-1 text-xs"
-                        value={editando.telefono}
-                        onChange={(e) => setEditando({ ...editando, telefono: e.target.value })}
-                      />
-                    </td>
-                    <td className="px-3 py-2">
-                      <Input
-                        className="py-1 text-xs"
-                        placeholder="Persona de contacto"
-                        value={editando.contacto}
-                        onChange={(e) => setEditando({ ...editando, contacto: e.target.value })}
-                      />
-                      <Input
-                        className="mt-1 py-1 text-xs"
-                        placeholder="Celular / Teléfono"
-                        value={editando.celular_contacto}
-                        onChange={(e) => setEditando({ ...editando, celular_contacto: e.target.value })}
-                      />
-                    </td>
-                    <td className="px-3 py-2">
-                      <Input
-                        className="py-1 text-xs"
-                        value={editando.email}
-                        onChange={(e) => setEditando({ ...editando, email: e.target.value })}
-                      />
-                    </td>
-                    <td className="px-5 py-2">
-                      <div className="flex items-center justify-end gap-1">
-                        <button
-                          type="button"
-                          onClick={actualizarTercero}
-                          className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground"
-                          title="Guardar"
-                        >
-                          <Check size={14} />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setEditando(null)}
-                          className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line hover:bg-muted"
-                          title="Cancelar"
-                        >
-                          <X size={14} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ) : (
-                  <tr key={t.id} className="border-b border-line/60 last:border-0">
-                    <td className="px-5 py-2.5">
-                      <span className="text-muted-foreground">{t.tipo_documento}</span> <Resaltar texto={t.numero_documento} termino={busqueda} />
-                    </td>
-                    <td className="px-3 py-2.5 font-semibold text-ink">
-                      <Resaltar texto={t.razon_social} termino={busqueda} />
-                      {esCliente && t.es_proveedor && (
-                        <span className="ml-1"><Etiqueta tono="neutro">También proveedor</Etiqueta></span>
-                      )}
-                      {!esCliente && t.es_cliente && (
-                        <span className="ml-1"><Etiqueta tono="neutro">También cliente</Etiqueta></span>
-                      )}
-                    </td>
-                    <td className="truncate px-3 py-2.5 text-muted-foreground">{t.direccion || "—"}</td>
-                    <td className="px-3 py-2.5 text-muted-foreground">{t.telefono || "—"}</td>
-                    <td className="px-3 py-2.5 text-muted-foreground">
-                      {t.contacto ? (
-                        <>
-                          <span className="block truncate text-ink"><Resaltar texto={t.contacto} termino={busqueda} /></span>
-                          <span className="block truncate text-[10px]">{t.celular_contacto || "—"}</span>
-                        </>
-                      ) : (
-                        "—"
-                      )}
-                    </td>
-                    <td className="truncate px-3 py-2.5 text-muted-foreground"><Resaltar texto={t.email || "—"} termino={busqueda} /></td>
-                    <td className="px-5 py-2">
-                      <div className="flex items-center justify-end gap-1">
-                        <button
-                          type="button"
-                          onClick={() => setEditando(t)}
-                          className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"
-                          title="Editar"
-                        >
-                          <Pencil size={14} />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => eliminarTercero(t.id)}
-                          className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-bad/40 text-bad hover:border-bad"
-                          title="Eliminar"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ),
-              )}
+                        <Pencil size={14} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => eliminarTercero(t.id)}
+                        className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-bad/40 text-bad hover:border-bad"
+                        title="Eliminar"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         )}
       </Panel>
 
-      {modalNuevo && (
+      {modalAbierto && (
         <ModalTercero
           nombreSingular={nombreSingular}
           esCliente={esCliente}
+          editando={!!editando}
           form={form}
           setForm={setForm}
           ok={ok}
-          onGuardar={async () => {
-            const msg = await guardarTercero();
-            if (msg) return msg;
-            setOk(`${esCliente ? "Cliente" : "Proveedor"} registrado · ${new Date().toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit" })}`);
-            return null;
-          }}
-          onCerrar={() => setModalNuevo(false)}
+          onGuardar={guardarTercero}
+          onCerrar={() => setModalAbierto(false)}
         />
       )}
     </>
@@ -377,6 +276,7 @@ export function TercerosPanel({ modo }: { modo: "cliente" | "proveedor" }) {
 function ModalTercero({
   nombreSingular,
   esCliente,
+  editando,
   form,
   setForm,
   ok,
@@ -385,6 +285,7 @@ function ModalTercero({
 }: {
   nombreSingular: string;
   esCliente: boolean;
+  editando: boolean;
   form: FormTercero;
   setForm: (f: FormTercero) => void;
   ok: string;
@@ -421,9 +322,13 @@ function ModalTercero({
       >
         <div className="flex items-start justify-between gap-3 border-b border-line px-5 py-3">
           <div>
-            <h2 className="text-sm font-bold text-ink">Registrar {nombreSingular}</h2>
+            <h2 className="text-sm font-bold text-ink">
+              {editando ? "Editar" : "Registrar"} {nombreSingular}
+            </h2>
             <p className="text-xs text-muted-foreground">
-              Se guardará en el catálogo y quedará disponible para cotizaciones, proyectos y compras.
+              {editando
+                ? "Los cambios se aplican al catálogo y quedan disponibles para cotizaciones, proyectos y compras."
+                : "Se guardará en el catálogo y quedará disponible para cotizaciones, proyectos y compras."}
             </p>
           </div>
           <button
@@ -525,6 +430,29 @@ function ModalTercero({
             </div>
           )}
 
+          {editando && (
+            <div className="flex flex-wrap gap-4 rounded-md border border-line bg-muted/40 px-3 py-2 text-xs text-ink sm:col-span-2">
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 accent-primary"
+                  checked={form.es_cliente}
+                  onChange={(e) => setForm({ ...form, es_cliente: e.target.checked })}
+                />
+                Cliente
+              </label>
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 accent-primary"
+                  checked={form.es_proveedor}
+                  onChange={(e) => setForm({ ...form, es_proveedor: e.target.checked })}
+                />
+                Proveedor
+              </label>
+            </div>
+          )}
+
           {error && <p className="font-mono text-xs text-bad sm:col-span-2">{error}</p>}
           {ok && !error && <p className="font-mono text-xs text-ok sm:col-span-2">{ok}</p>}
 
@@ -533,7 +461,7 @@ function ModalTercero({
               Cancelar
             </Boton>
             <Boton type="submit" variante="accion" disabled={guardando}>
-              <Check size={14} /> {guardando ? "Guardando…" : "Guardar"}
+              <Check size={14} /> {guardando ? "Guardando…" : editando ? "Guardar cambios" : "Guardar"}
             </Boton>
           </div>
         </form>
