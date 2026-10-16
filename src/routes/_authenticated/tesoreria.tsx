@@ -102,7 +102,8 @@ type Pendiente = {
 };
 
 /** Detracción de una compra en soles: la registrada o 12 % por defecto (entero, SUNAT). */
-const detCompra = (x: Record<string, unknown>, pct?: number) =>
+type DetC = { monto_soles?: unknown; monto_detraccion?: unknown; detraccion_estado?: unknown; detraccion_banco_id?: unknown };
+const detCompra = (x: DetC, pct?: number) =>
   pct != null ? Math.round((Number(x.monto_soles) * pct) / 100) : Number(x.monto_detraccion) || Math.round(Number(x.monto_soles) * 0.12);
 
 const dinero = (n: number, m: string) =>
@@ -186,7 +187,7 @@ function Tesoreria() {
           vs.filter((v) => v.banco_id === c.id)
             .reduce((s, v) => s + enMonedaCuenta(v, c) - (v.banco_detraccion_id ? detEnCuenta(v) : 0), 0) +
           vs.filter((v) => v.banco_detraccion_id === c.id).reduce((s, v) => s + detEnCuenta(v), 0);
-        type G = Mov & Record<string, unknown>;
+        type G = Mov & DetC;
         const compras = [...(gd as unknown as G[]), ...(gg as unknown as G[])];
         const detC = (g: G) => (c.monedas === "PEN" ? detCompra(g) : detCompra(g) / (Number(g.tipo_cambio) || 1));
         const egresos =
@@ -276,7 +277,7 @@ function Tesoreria() {
   ]
     .filter(({ x }) => x.detraccion_estado === "No pagada" && (x.condicion_pago !== "Crédito" || x.estado_pago === "Pagada"))
     .map(({ x, tabla }) => {
-      const d = detCompra(x as unknown as Record<string, unknown>);
+      const d = detCompra(x as unknown as DetC);
       return {
         id: String(x.id),
         tabla,
