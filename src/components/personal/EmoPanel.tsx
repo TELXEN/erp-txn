@@ -306,7 +306,7 @@ export function EmoPanel({ trabajadores }: { trabajadores: Trabajador[] }) {
                       <td className="px-4 py-3">
                         <div className="flex justify-end gap-1">
                           <button type="button" onClick={() => editar(e)} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary" title="Editar"><Pencil size={14} /></button>
-                          <button type="button" onClick={() => eliminar(e)} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-bad hover:text-bad" title="Eliminar"><Trash2 size={14} /></button>
+                          <button type="button" onClick={() => eliminar(e)} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-bad/40 text-bad hover:border-bad" title="Eliminar"><Trash2 size={14} /></button>
                         </div>
                       </td>
                     </tr>

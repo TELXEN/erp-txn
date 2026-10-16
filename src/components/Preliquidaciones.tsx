@@ -709,7 +709,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
                         {editable(p) && (
                           <>
                             <button onClick={() => editar(p)} className="text-muted-foreground hover:text-ink" aria-label="Editar"><Pencil size={14} /></button>
-                            <button onClick={() => eliminar(p)} className="text-muted-foreground hover:text-bad" aria-label="Eliminar"><Trash2 size={14} /></button>
+                            <button onClick={() => eliminar(p)} className="text-bad" aria-label="Eliminar"><Trash2 size={14} /></button>
                           </>
                         )}
                       </div>

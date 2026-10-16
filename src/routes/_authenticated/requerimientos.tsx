@@ -552,7 +552,7 @@ function RequerimientosPage() {
                       </td>
                       <td className="px-5 py-2 text-right">
                         {(gestiona || r.estado === "Pendiente") && (
-                          <button type="button" onClick={() => void eliminar(r.id)} title="Eliminar" className="text-muted-foreground hover:text-bad">
+                          <button type="button" onClick={() => void eliminar(r.id)} title="Eliminar" className="text-bad">
                             <Trash2 size={13} />
                           </button>
                         )}

@@ -847,7 +847,7 @@ function GastosGenerales() {
                                 <button
                                   type="button"
                                   onClick={() => eliminar(g.id)}
-                                  className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-bad/10 hover:text-bad"
+                                  className="inline-flex h-8 w-8 items-center justify-center rounded-md text-bad transition-colors hover:bg-bad/10"
                                   title="Eliminar"
                                   aria-label="Eliminar"
                                 >

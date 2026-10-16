@@ -382,7 +382,7 @@ function CatalogoMaestro({
                     <td className="px-5 py-2">
                       <div className="flex items-center justify-end gap-1">
                         <button type="button" onClick={() => setEditando(registro)} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary" title="Editar"><Pencil size={14} /></button>
-                        <button type="button" onClick={() => eliminar(registro.id)} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-bad hover:text-bad" title="Eliminar"><Trash2 size={14} /></button>
+                        <button type="button" onClick={() => eliminar(registro.id)} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-bad/40 text-bad hover:border-bad" title="Eliminar"><Trash2 size={14} /></button>
                       </div>
                     </td>
                   </tr>
@@ -516,7 +516,7 @@ function CargosPersonal() {
                     </Etiqueta>
                     <span className="font-mono text-[10px] text-muted-foreground">{personas} persona(s)</span>
                     <button type="button" onClick={() => setEditando({ id: c.id, nombre: c.nombre, clasificacion: c.clasificacion, original: c.nombre })} title="Editar" className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"><Pencil size={14} /></button>
-                    <button type="button" onClick={() => eliminar(c.id, c.nombre)} title="Eliminar" className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-bad hover:text-bad"><Trash2 size={14} /></button>
+                    <button type="button" onClick={() => eliminar(c.id, c.nombre)} title="Eliminar" className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-bad/40 text-bad hover:border-bad"><Trash2 size={14} /></button>
                   </>
                 )}
               </div>
@@ -699,7 +699,7 @@ function CategoriasGastoGeneral() {
                       type="button"
                       onClick={() => eliminar(c.id, c.nombre)}
                       title="Eliminar"
-                      className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-bad hover:text-bad"
+                      className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-bad/40 text-bad hover:border-bad"
                     >
                       <Trash2 size={14} />
                     </button>
@@ -1139,7 +1139,7 @@ function EstadosProyecto() {
               type="button"
               onClick={() => setAgregando(false)}
               title="Cancelar"
-              className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-bad hover:text-bad"
+              className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-bad/40 text-bad hover:border-bad"
             >
               <X size={14} />
             </button>
@@ -1171,7 +1171,7 @@ function EstadosProyecto() {
                   type="button"
                   onClick={() => setEditando(null)}
                   title="Cancelar"
-                  className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-bad hover:text-bad"
+                  className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-bad/40 text-bad hover:border-bad"
                 >
                   <X size={14} />
                 </button>
@@ -1196,7 +1196,7 @@ function EstadosProyecto() {
                     type="button"
                     onClick={() => eliminar(s.id, s.nombre)}
                     title="Eliminar"
-                    className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-bad hover:text-bad"
+                    className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-bad/40 text-bad hover:border-bad"
                   >
                     <Trash2 size={14} />
                   </button>

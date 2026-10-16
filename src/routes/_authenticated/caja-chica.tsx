@@ -393,7 +393,7 @@ function CajaChica() {
                   <td className="px-3 py-2.5 text-right tabular-nums">{soles(r.monto)}</td>
                   {editable && (
                     <td className="px-4 py-2 text-right">
-                      <button type="button" onClick={() => eliminarRendicion(r.tabla, r.id)} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-bad hover:text-bad" title="Eliminar">
+                      <button type="button" onClick={() => eliminarRendicion(r.tabla, r.id)} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-bad/40 text-bad hover:border-bad" title="Eliminar">
                         <Trash2 size={14} />
                       </button>
                     </td>

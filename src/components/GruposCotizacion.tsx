@@ -49,7 +49,7 @@ export function GruposCotizacion() {
                   <label className="flex items-center gap-1"><input type="checkbox" checked={g.activo} onChange={async (e) => { await sb.from("grupos_cotizacion").update({ activo: e.target.checked }).eq("id", g.id); refrescar(); }} /> Activo</label>
                 </td>
                 <td className="px-2 py-1 text-right">
-                  <button type="button" title="Eliminar" className="text-muted-foreground hover:text-destructive"
+                  <button type="button" title="Eliminar" className="text-bad"
                     onClick={async () => { if (window.confirm(`¿Eliminar el grupo «${g.nombre}»?`)) { await sb.from("grupos_cotizacion").delete().eq("id", g.id); refrescar(); } }}>
                     <Trash2 size={13} />
                   </button>

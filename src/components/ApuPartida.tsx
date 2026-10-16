@@ -200,7 +200,7 @@ export function ApuPartida({
                       <td className="px-2 py-1.5 text-right">{tipo === "HT" ? `${cantidad.toFixed(2)}%` : (ins ? precioVenta(ins) : 0).toFixed(2)}</td>
                       <td className="px-2 py-1.5 text-right">{parcial.toFixed(2)}</td>
                       <td className="px-5 py-1 text-right">
-                        <button type="button" onClick={() => quitar(c.id)} title="Quitar" className="text-muted-foreground hover:text-bad"><Trash2 size={13} /></button>
+                        <button type="button" onClick={() => quitar(c.id)} title="Quitar" className="text-bad"><Trash2 size={13} /></button>
                       </td>
                     </tr>
                   );

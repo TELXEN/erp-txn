@@ -228,7 +228,7 @@ function AlmacenPage() {
                   <td className="px-3 py-2 text-right">{soles(Number(m.cantidad) * Number(m.costo_unitario))}</td>
                   <td className="px-3 py-2 text-muted-foreground"><Resaltar texto={m.documento || "—"} termino={busqueda} /></td>
                   <td className="px-5 py-2 text-right">
-                    <button type="button" title="Eliminar" onClick={() => void eliminar(m.id)} className="text-muted-foreground hover:text-bad">
+                    <button type="button" title="Eliminar" onClick={() => void eliminar(m.id)} className="text-bad">
                       <Trash2 size={13} />
                     </button>
                   </td>
