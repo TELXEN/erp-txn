@@ -231,6 +231,16 @@ export function TercerosPanel({ modo }: { modo: "cliente" | "proveedor" }) {
                           />
                           Proveedor
                         </label>
+                        {esCliente && (
+                          <label className="flex items-center gap-1.5" title="Si es agente de retención, en ventas de materiales mayores a S/ 700 te retendrá el 3 % del total">
+                            <input
+                              type="checkbox"
+                              checked={editando.es_agente_retencion}
+                              onChange={(e) => setEditando({ ...editando, es_agente_retencion: e.target.checked })}
+                            />
+                            Agente de retención
+                          </label>
+                        )}
                       </div>
                     </td>
                     <td className="px-3 py-2">
