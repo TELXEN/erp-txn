@@ -246,6 +246,13 @@
       "when": 1792123677193,
       "tag": "0034_restringir_politicas_true_a_personal",
       "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1792173183515,
+      "tag": "0035_detraccion_estado_gastos",
+      "breakpoints": true
     }
   ]
 }
