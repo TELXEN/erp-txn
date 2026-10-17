@@ -531,7 +531,7 @@ function Cotizaciones() {
       const id = await crearRevision(cot);
       qc.invalidateQueries({ queryKey: ["cotizaciones"] });
       setSeleccion(id);
-      setAviso(`Nueva revisión creada: ${cot.codigo} ${etiquetaRevision(String(hermanas.length).padStart(2, "0"))}.`);
+      setAviso(`Nueva revisión de ${cot.codigo} creada como Borrador.`);
     } catch (e2) {
       setError(e2 instanceof Error ? e2.message : "No se pudo crear la revisión.");
     }
