@@ -75,7 +75,10 @@ const cantidad = (n: number | string) =>
 function Cotizaciones() {
   const { rol } = useAuth();
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const { data: cotizaciones = [] } = useCotizaciones();
+  /** Una fila por código: la revisión más reciente de cada cotización. */
+  const vigentes = ultimasRevisiones(cotizaciones);
   const { data: especialidades = [] } = useEspecialidadesPartida();
   const { data: unidades = [] } = useUnidadesMedida();
   // Catálogo de la cotización: partidas del Banco APU con su P.U. calculado desde la receta.
@@ -142,6 +145,9 @@ function Cotizaciones() {
   const totales = cot
     ? totalesCotizacion(items, Number(cot.pct_gastos_generales), Number(cot.pct_utilidad))
     : null;
+  /** Revisiones hermanas del mismo código (de la más antigua a la más reciente). */
+  const hermanas = cot ? revisionesDeCodigo(cotizaciones, cot.codigo) : [];
+  const esUltimaRevision = hermanas.length > 0 && hermanas[hermanas.length - 1].id === cot?.id;
 
   const [partidaActiva, setPartidaActiva] = useState<string | null>(null);
   /** En edición la hoja arranca sin encabezado: solo se ve la tabla de partidas. */
