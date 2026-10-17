@@ -115,6 +115,35 @@ export type Database = {
           },
         ]
       }
+      banco_saldos: {
+        Row: {
+          banco_id: string
+          egresos: number
+          ingresos: number
+          saldo: number
+        }
+        Insert: {
+          banco_id: string
+          egresos?: number
+          ingresos?: number
+          saldo?: number
+        }
+        Update: {
+          banco_id?: string
+          egresos?: number
+          ingresos?: number
+          saldo?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "banco_saldos_banco_id_fkey"
+            columns: ["banco_id"]
+            isOneToOne: true
+            referencedRelation: "bancos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bancos: {
         Row: {
           activo: boolean
@@ -1837,6 +1866,113 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      financiamiento_cuotas: {
+        Row: {
+          banco_id: string | null
+          capital: number
+          comision: number
+          fecha_pago: string | null
+          financiamiento_id: string
+          id: string
+          interes: number
+          numero: number
+          numero_operacion: string | null
+          vencimiento: string
+        }
+        Insert: {
+          banco_id?: string | null
+          capital: number
+          comision?: number
+          fecha_pago?: string | null
+          financiamiento_id: string
+          id?: string
+          interes?: number
+          numero: number
+          numero_operacion?: string | null
+          vencimiento: string
+        }
+        Update: {
+          banco_id?: string | null
+          capital?: number
+          comision?: number
+          fecha_pago?: string | null
+          financiamiento_id?: string
+          id?: string
+          interes?: number
+          numero?: number
+          numero_operacion?: string | null
+          vencimiento?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financiamiento_cuotas_banco_id_fkey"
+            columns: ["banco_id"]
+            isOneToOne: false
+            referencedRelation: "bancos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financiamiento_cuotas_financiamiento_id_fkey"
+            columns: ["financiamiento_id"]
+            isOneToOne: false
+            referencedRelation: "financiamientos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      financiamientos: {
+        Row: {
+          acreedor: string
+          banco_id: string
+          capital: number
+          creado_por: string
+          created_at: string
+          fecha_desembolso: string
+          id: string
+          moneda: string
+          notas: string
+          numero_operacion: string
+          referencia: string
+          tipo_cambio: number
+        }
+        Insert: {
+          acreedor: string
+          banco_id: string
+          capital: number
+          creado_por: string
+          created_at?: string
+          fecha_desembolso: string
+          id?: string
+          moneda: string
+          notas?: string
+          numero_operacion: string
+          referencia: string
+          tipo_cambio?: number
+        }
+        Update: {
+          acreedor?: string
+          banco_id?: string
+          capital?: number
+          creado_por?: string
+          created_at?: string
+          fecha_desembolso?: string
+          id?: string
+          moneda?: string
+          notas?: string
+          numero_operacion?: string
+          referencia?: string
+          tipo_cambio?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financiamientos_banco_id_fkey"
+            columns: ["banco_id"]
+            isOneToOne: false
+            referencedRelation: "bancos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       gastos_directos: {
         Row: {
@@ -5070,11 +5206,29 @@ export type Database = {
         Args: { _direccion: number; _id: string; _tabla: string }
         Returns: undefined
       }
+      movimiento_bancario: {
+        Args: { _fila: Json; _tabla: string }
+        Returns: {
+          banco_id: string
+          egreso: number
+          ingreso: number
+        }[]
+      }
+      pagar_financiamiento: {
+        Args: {
+          _banco: string
+          _cuota: string
+          _fecha: string
+          _operacion: string
+        }
+        Returns: undefined
+      }
       quitar_recurso_apu: {
         Args: { _id: string; _tabla: string }
         Returns: string
       }
       recodificar_wbs: { Args: never; Returns: undefined }
+      registrar_financiamiento: { Args: { _datos: Json }; Returns: string }
       siguiente_codigo_cotizacion: { Args: never; Returns: string }
       siguiente_codigo_documento: { Args: { _nombre: string }; Returns: string }
       siguiente_codigo_insumo: { Args: { _tipo: string }; Returns: string }

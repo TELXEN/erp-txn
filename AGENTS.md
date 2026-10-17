@@ -13,11 +13,11 @@
 - S-curve uses work-item schedules and current physical cut-off; cost progress is money-role-only — truthful history.
 - Preliquidation PDFs use @react-pdf/renderer; quotation/invoice previews are fixed A4 HTML sheets (repeated headers, page numbers, invoice fiscal footer) while editing stays in normal flow — predictable exports.
 - Electronic invoices use dedicated comprobantes_electronicos/items/cuotas tables, while emitted invoices/receipts mirror into ventas for treasury compatibility; numbering is reserved only by an authenticated server function.
-- Typography uses configuracion_documentos and the local catalogue: all UI font tokens share --font-global; PDF embeds the selected local font and Excel uses its catalogue family — consistent outputs.
+- Typography: configuracion_documentos/local catalogue, UI --font-global, PDF embeds chosen font, Excel uses catalogue family — consistent outputs.
 - Document codes use codificacion_documentos and siguiente_codigo_documento (free code + padded correlative) — one numbering source.
 - Read tipos_insumo via useTiposInsumo; only five system keys may be hardcoded — users can add types.
 - The HT (herramientas manuales) type is hidden (tipos_insumo.oculto); calcularApu adds it automatically as the last row of the EQ group using the HT percentage from Márgenes APU — users never attach it manually.
-- Sidebar colors use dedicated theme tokens (never altering business screens); primary/action buttons use the sidebar base color — keeps workflows tied to navigation.
+- Sidebar has dedicated theme tokens; primary/action buttons use its base color without altering business screens — consistent navigation.
 - Invoice/quotation/preliquidation colors and font come from src/lib/documento-tema.ts; preliquidation uses one sheet (HojaPreliquidacion.tsx) with amounts in src/lib/preliquidacion-montos.ts — outputs never diverge.
 - SUNAT purchase invoices archive in comprobantes_recibidos(+_items) and the private comprobantes-compra bucket; only the authenticated descargarComprobantesSire server fn downloads, in batches of 10 — SOL credentials stay server-side.
 - SIRE uses one persistent period selector and sync control for RVIE and RCE — books stay aligned.
@@ -33,6 +33,7 @@
 - Real project cost comes only from useCostoObras (src/lib/costo-obra.ts) — every panel shows the same figure; GG charts only regroup by scope.
 - UI buttons merge classes with cn() so a passed className beats base utilities; table row actions use BotonIcono (tones neutro/primario/peligro) — icons never get squeezed by padding.
 - Banco APU: five resource tables + partida_detalle (one nullable FK per row); removal via quitar_recurso_apu (deactivates if used); specs on partidas_apu.especificaciones, metrado in partidas_apu_metrado — recipes keep history.
-- Text format opts in via data-formato; FormatoGlobal (AppShell) uses formato-texto.ts — shared rules.
+- Text: data-formato and FormatoGlobal/formato-texto.ts — shared rules.
 - Units come only from unidades_medida (selects in Banco APU, cotización sheet and new-partida dialogs); the canonical symbols the costing code compares are H-H (mano de obra), H-M (equipos por hora), % (porcentaje sobre MO) and GLB — keep them in the catalogue so nothing falls back to free text.
-- Server-side endpoints are TanStack file routes under src/routes/api/ (auth-protected) or src/routes/api/public/ (external callers); Supabase Edge Functions cannot be added here — one server runtime.
+- TanStack routes: api/ protected, api/public/ verified external callers; no Edge Functions.
+- banco_saldos is maintained atomically by source triggers; debits reject insufficient funds. Role-checked loan RPCs preserve posted history and prevent duplicate payments — concurrent writers cannot overspend.

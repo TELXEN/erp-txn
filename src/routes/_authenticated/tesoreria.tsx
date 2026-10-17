@@ -23,6 +23,9 @@ import { InsigniaPago } from "@/components/CondicionPago";
 import type { CuentaBancaria } from "@/components/CuentasBancarias";
 import { exportarExcel } from "@/lib/exportar";
 import { pagarRRHH, usePagosRRHH, type DocRRHH } from "@/lib/pagos-rrhh";
+import { FinanciamientoPanel } from "@/components/FinanciamientoPanel";
+import { useSaldosBancarios } from "@/lib/financiamiento";
+import { saldoTrasPago } from "@/lib/financiamiento-calculos";
 
 export const Route = createFileRoute("/_authenticated/tesoreria")({
   head: () => ({
@@ -122,10 +125,10 @@ const diasA = (f: string | null) =>
 function Tesoreria() {
   const { rol } = useAuth();
   const qc = useQueryClient();
-  type Pestana = "resumen" | "cxc" | "cxp" | "personal";
+  type Pestana = "resumen" | "cxc" | "cxp" | "personal" | "financiamiento";
   const [pestana, setPestanaBase] = useState<Pestana>(() => {
     const g = localStorage.getItem("tesoreria:pestana");
-    return g === "cxc" || g === "cxp" || g === "personal" ? g : "resumen";
+    return g === "cxc" || g === "cxp" || g === "personal" || g === "financiamiento" ? g : "resumen";
   });
   const setPestana = (t: Pestana) => {
     setPestanaBase(t);
@@ -152,6 +155,7 @@ function Tesoreria() {
   const [lote, setLote] = useState<{ banco_id: string; fecha: string; operacion: string } | null>(null);
   const [errorLote, setErrorLote] = useState("");
   const [procesando, setProcesando] = useState(false);
+  const { data: saldosRegistrados = [], error: errorSaldos } = useSaldosBancarios();
 
   const { data: cuentas = [] } = useQuery({
     queryKey: ["bancos"],
@@ -175,56 +179,10 @@ function Tesoreria() {
   const nombreTercero = (id: string | null, respaldo = "") =>
     (id ? terceros.find((t) => t.id === id)?.razon_social : null) ?? (respaldo || "—");
 
-  const saldos = useMemo(
-    () =>
-      cuentas.map((c) => {
-        type V = Mov & { estado: string; banco_detraccion_id?: string | null; monto_detraccion?: number; monto_retencion?: number };
-        const detEnCuenta = (v: V) => {
-          const d = Number(v.monto_detraccion || 0) || Number(v.monto_retencion || 0);
-          return c.monedas === "PEN" ? d : d / (Number(v.tipo_cambio) || 1);
-        };
-        const vs = (ventas as unknown as V[]).filter((v) => v.estado === "Pagado");
-        const ingresos =
-          vs.filter((v) => v.banco_id === c.id)
-            .reduce((s, v) => s + enMonedaCuenta(v, c) - (v.banco_detraccion_id ? detEnCuenta(v) : 0), 0) +
-          vs.filter((v) => v.banco_detraccion_id === c.id).reduce((s, v) => s + detEnCuenta(v), 0);
-        type G = Mov & DetC;
-        const compras = [...(gd as unknown as G[]), ...(gg as unknown as G[])];
-        const detC = (g: G) => (c.monedas === "PEN" ? detCompra(g) : detCompra(g) / (Number(g.tipo_cambio) || 1));
-        const egresos =
-          compras
-            .filter((g) => g.banco_id === c.id && g.estado_pago === "Pagada")
-            .reduce((s, g) => {
-              const separada = g.detraccion_estado === "No pagada" || (g.detraccion_estado === "Pagada" && !!g.detraccion_banco_id);
-              return s + enMonedaCuenta(g, c) - (separada ? detC(g) : 0);
-            }, 0) +
-          compras
-            .filter((g) => g.detraccion_estado === "Pagada" && g.detraccion_banco_id === c.id)
-            .reduce((s, g) => s + detC(g), 0) +
-          cajas
-            .filter((k) => k.banco_id === c.id)
-            .reduce(
-              (s, k) =>
-                s +
-                enMonedaCuenta(
-                  {
-                    moneda: "PEN",
-                    monto: Number(k.monto_entregado),
-                    monto_soles: Number(k.monto_entregado),
-                    tipo_cambio: 1,
-                  } as Mov,
-                  c,
-                ),
-              0,
-            ) +
-          [
-            ...mantVeh.filter((m) => m.banco_id === c.id).map((m) => Number(m.costo)),
-            ...trasVeh.filter((t) => t.banco_id === c.id).map((t) => Number(t.combustible_monto)),
-          ].reduce((s, m) => s + enMonedaCuenta({ moneda: "PEN", monto: m, monto_soles: m, tipo_cambio: 1 } as Mov, c), 0);
-        return { c, ingresos, egresos, saldo: Number(c.saldo_inicial) + ingresos - egresos };
-      }),
-    [cuentas, ventas, gd, gg, cajas, rrhh, mantVeh, trasVeh],
-  );
+  const saldos = useMemo(() => cuentas.map((c) => {
+    const r = saldosRegistrados.find((s) => s.banco_id === c.id);
+    return { c, ingresos: Number(r?.ingresos ?? 0), egresos: Number(r?.egresos ?? 0), saldo: Number(r?.saldo ?? c.saldo_inicial) };
+  }), [cuentas, saldosRegistrados]);
 
   const cxc: Pendiente[] = (ventas as unknown as (Mov & Record<string, never>)[])
     .filter((v) => (v as unknown as { estado: string }).estado !== "Pagado")
@@ -360,7 +318,24 @@ function Tesoreria() {
   const cuentasCom = cuentas.filter((c) => c.activo && !/detracc/i.test(c.tipo_cuenta ?? ""));
   const consolidado = saldoPEN + saldoUSD * tcHoy;
 
+  function importeEgreso(p: Pendiente, bancoId: string) {
+    const c = cuentas.find((c) => c.id === bancoId);
+    if (!c) return 0;
+    const original = [...gd, ...gg].find((g) => g.id === p.id);
+    const tc = Number(original?.tipo_cambio) || p.tcDoc || 1;
+    if (p.esDet) return Math.round((p.base ?? 0) * (accion?.p === p ? Number(accion.pct) : p.pctDet ?? 12) / 100) / (c.monedas === "USD" ? tc : 1);
+    let importe = c.monedas === p.moneda ? p.monto : c.monedas === "PEN" ? p.soles : p.soles / tc;
+    if (original && p.detEstado === "No pagada" && !(accion?.p === p && accion.detr)) importe -= detCompra(original as unknown as DetC) / (c.monedas === "USD" ? tc : 1);
+    return importe;
+  }
+
   async function registrarUno(p: Pendiente, banco_id: string, fecha: string, numero_operacion: string): Promise<string | null> {
+    if (p.tabla !== "ventas") {
+      const { data: saldo, error: errSaldo } = await supabase.from("banco_saldos").select("saldo").eq("banco_id", banco_id).single();
+      if (errSaldo || !saldo) return "No se pudo verificar el saldo disponible. Intenta nuevamente.";
+      const check = saldoTrasPago(Number(saldo.saldo), importeEgreso(p, banco_id));
+      if (check.insuficiente) return `Saldo insuficiente. Faltan ${dinero(check.faltante, cuentas.find((c) => c.id === banco_id)?.monedas ?? "PEN")}. Registra el financiamiento antes de pagar.`;
+    }
     if (p.tabla === "rrhh" && p.doc) {
       const { error: e2 } = await pagarRRHH(p.doc, banco_id, fecha, numero_operacion);
       return e2 ? e2.message : null;
@@ -412,7 +387,7 @@ function Tesoreria() {
   }
 
   async function confirmar() {
-    if (!accion) return;
+    if (!accion || procesando) return;
     if (!accion.banco_id) return setError("Elige la cuenta bancaria.");
     if (!accion.operacion.trim()) return setError("Ingresa el N° de operación.");
     if (accion.detr && accion.p.tabla === "ventas") {
@@ -422,10 +397,13 @@ function Tesoreria() {
     if (accion.ret && accion.p.tabla === "ventas" && !accion.banco_det)
       return setError("Elige la cuenta del Banco de la Nación donde el cliente depositó la retención.");
     setError("");
-    const msg = await registrarUno(accion.p, accion.banco_id, accion.fecha, accion.operacion.trim());
-    if (msg) return setError(msg);
-    setAccion(null);
-    qc.invalidateQueries();
+    setProcesando(true);
+    try {
+      const msg = await registrarUno(accion.p, accion.banco_id, accion.fecha, accion.operacion.trim());
+      if (msg) return setError(msg);
+      setAccion(null); qc.invalidateQueries();
+    } catch (e) { setError(e instanceof Error ? e.message : "No se pudo registrar el pago."); }
+    finally { setProcesando(false); }
   }
 
   async function confirmarLote() {
@@ -498,13 +476,13 @@ function Tesoreria() {
         }
       />
 
-      <div className="mb-4 flex gap-1 border-b border-line">
-        {(["resumen", "cxc", "cxp", "personal"] as const).map((t) => {
+      <div className="mb-4 flex flex-wrap gap-1 border-b border-line">
+        {(["resumen", "cxc", "cxp", "personal", "financiamiento"] as const).map((t) => {
           const activa = pestana === t;
           const etiqueta =
-            t === "resumen" ? "Resumen" : t === "cxc" ? `Cuentas por cobrar (${cxc.length})` : t === "cxp" ? `Pagos a proveedores (${cxpProv.length})` : `Pagos de personal (${cxpPer.length})`;
+            t === "resumen" ? "Resumen" : t === "financiamiento" ? "Préstamos / Financiamiento" : t === "cxc" ? `Cuentas por cobrar (${cxc.length})` : t === "cxp" ? `Pagos a proveedores (${cxpProv.length})` : `Pagos de personal (${cxpPer.length})`;
           return (
-            <button
+            <Boton variante="linea"
               key={t}
               type="button"
               onClick={() => { setPestana(t); setAccion(null); setFiltroVence(null); setTercero(""); setSeleccion(new Set()); }}
@@ -513,7 +491,7 @@ function Tesoreria() {
               }`}
             >
               {etiqueta}
-            </button>
+            </Boton>
           );
         })}
       </div>
@@ -591,7 +569,9 @@ function Tesoreria() {
         </>
       )}
 
-      {pestana !== "resumen" && (
+      {errorSaldos && <p role="alert" className="mb-3 text-xs text-bad">No se pudieron actualizar los saldos; los pagos requieren verificar fondos.</p>}
+      {pestana === "financiamiento" && <FinanciamientoPanel cuentas={cuentas} />}
+      {pestana !== "resumen" && pestana !== "financiamiento" && (
         <>
       <div className="mb-4 grid gap-3 sm:grid-cols-4">
         {tarjeta(pestana === "cxc" ? "Total por cobrar" : "Total por pagar", k.total, null)}
@@ -781,6 +761,9 @@ function Tesoreria() {
         const retM = accion.ret ? Math.round(totalS * 3) / 100 : 0;
         const banco = cuentas.find((c) => c.id === accion.banco_id);
         const bn = cuentas.find((c) => c.id === accion.banco_det);
+        const disponible = saldosRegistrados.find((s) => s.banco_id === accion.banco_id);
+        const egreso = importeEgreso(p, accion.banco_id);
+        const check = disponible ? saldoTrasPago(Number(disponible.saldo), egreso) : null;
         return (
           <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-foreground/40 p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) setAccion(null); }}>
             <div className="mt-14 w-full max-w-lg rounded-lg border border-line bg-card font-sans shadow-xl">
@@ -888,11 +871,16 @@ function Tesoreria() {
                     <p className="mt-1 text-[11px] text-muted-foreground">El depósito de la detracción sale de la cuenta comercial elegida, nunca de la cuenta del Banco de la Nación. Si no lo marcas, la detracción seguirá en rojo como no pagada.</p>
                   </div>
                 )}
-                {error && <p className="text-bad">{error}</p>}
+                {p.tabla !== "ventas" && banco && <div className={`rounded-md border p-3 tabular-nums ${check?.insuficiente ? "border-bad/40 bg-bad/5 text-bad" : "border-line bg-muted/30"}`}>
+                  <p>Saldo disponible: <b>{disponible ? dinero(Number(disponible.saldo), banco.monedas) : "Consultando…"}</b></p>
+                  <p>Pago: <b>{dinero(egreso, banco.monedas)}</b></p>
+                  {check?.insuficiente ? <p>Saldo insuficiente. Faltan {dinero(check.faltante, banco.monedas)}. Registra el financiamiento antes de pagar.</p> : check && <p>Saldo después del pago: {dinero(check.resultado, banco.monedas)}</p>}
+                </div>}
+                {error && <p role="alert" className="text-bad">{error}</p>}
               </div>
               <div className="flex justify-end gap-2 border-t border-line px-5 py-3">
                 <Boton type="button" variante="linea" onClick={() => setAccion(null)}>Cancelar</Boton>
-                <Boton type="button" variante="accion" onClick={confirmar}>Confirmar</Boton>
+                <Boton type="button" variante="accion" onClick={confirmar} disabled={procesando || (p.tabla !== "ventas" && !!banco && (!check || check.insuficiente))}>{procesando ? "Registrando…" : "Confirmar"}</Boton>
               </div>
             </div>
           </div>

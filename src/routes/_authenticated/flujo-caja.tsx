@@ -25,6 +25,7 @@ import { usePagosRRHH } from "@/lib/pagos-rrhh";
 import { useCajasChicas, useGastosDirectos, useGastosGenerales, useProyectos, useVentas } from "@/lib/datos";
 import { useMantenimientos, useTraslados } from "@/lib/vehiculos";
 import { exportarExcel } from "@/lib/exportar";
+import { useFinanciamientos } from "@/lib/financiamiento";
 
 const f2 = new Intl.NumberFormat("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const s2 = (n: number) => (n < 0 ? `S/ -${f2.format(Math.abs(n))}` : `S/ ${f2.format(n || 0)}`);
@@ -137,6 +138,7 @@ function FlujoCaja() {
   const { data: rrhh } = usePagosRRHH();
   const { data: mantVeh = [] } = useMantenimientos();
   const { data: trasVeh = [] } = useTraslados();
+  const { data: financiamiento } = useFinanciamientos();
 
   const { data: metas = [] } = useQuery({
     queryKey: ["metas_flujo_caja", anio],
@@ -198,6 +200,9 @@ function FlujoCaja() {
       egComb: 0,
       egCaja: 0,
       egRRHH: 0,
+      financIngreso: 0,
+      financPago: 0,
+      financPendiente: 0,
       ingresoProy: 0,
       egresoProy: 0,
     }));
@@ -270,6 +275,22 @@ function FlujoCaja() {
       .filter((t) => !t.caja_chica_id && Number(t.combustible_monto) > 0 && (global || t.proyecto_id === obra))
       .forEach((t) => sumar(t.fecha, t.combustible_monto, "egComb"));
 
+    if (global && financiamiento) {
+      const registrarFin = (fecha: string | null, monto: number, ingreso: boolean) => {
+        if (previo(fecha)) apertura += ingreso ? monto : -monto;
+        const mes = mesDe(fecha, anio);
+        const f = mes ? base[mes - 1] : undefined;
+        if (f) { if (ingreso) f.financIngreso += monto; else f.financPago += monto; }
+      };
+      financiamiento.prestamos.forEach((p) => registrarFin(p.fecha_desembolso, Number(p.capital) * Number(p.tipo_cambio), true));
+      financiamiento.cuotas.forEach((c) => {
+        const p = financiamiento.prestamos.find((p) => p.id === c.financiamiento_id);
+        if (!p) return;
+        const monto = (Number(c.capital) + Number(c.interes) + Number(c.comision)) * Number(p.tipo_cambio);
+        if (c.fecha_pago) registrarFin(c.fecha_pago, monto, false);
+        else { const mes = mesDe(c.vencimiento, anio); const f = mes ? base[mes - 1] : undefined; if (f) f.financPendiente += monto; }
+      });
+    }
     let acumulado = 0;
     let saldo = apertura;
     let saldoProy = apertura;
@@ -278,8 +299,8 @@ function FlujoCaja() {
       const resultadoReal = f.ingresoReal - f.costoReal;
       acumulado += resultadoReal;
       const saldoInicioMes = saldo;
-      saldo += resultadoReal;
-      saldoProy += resultadoReal + f.ingresoProy - f.egresoProy;
+      saldo += resultadoReal + f.financIngreso - f.financPago;
+      saldoProy += resultadoReal + f.ingresoProy - f.egresoProy + f.financIngreso - f.financPago - f.financPendiente;
       return {
         ...f,
         resultadoObjetivo,
@@ -294,7 +315,7 @@ function FlujoCaja() {
         saldoProyectado: saldoProy,
       };
     });
-  }, [metas, ventas, gastosD, gastosG, cajas, rrhh, anio, bancos, global, obra, mantVeh, trasVeh]);
+  }, [metas, ventas, gastosD, gastosG, cajas, rrhh, anio, bancos, global, obra, mantVeh, trasVeh, financiamiento]);
 
   const total = useMemo(
     () =>
@@ -325,6 +346,11 @@ function FlujoCaja() {
   const cierreProy = filas[11]?.saldoProyectado ?? 0;
   const lineasTesoreria: { concepto: string; valores: number[]; total: number; fuerte?: boolean; alerta?: boolean }[] = [
     { concepto: "Saldo inicial del mes", valores: filas.map((f) => f.saldoInicioMes), total: apertura },
+    ...(global ? [
+      { concepto: "Desembolsos de financiamiento (+)", valores: filas.map((f) => f.financIngreso), total: filas.reduce((s, f) => s + f.financIngreso, 0) },
+      { concepto: "Cuotas de financiamiento pagadas (−)", valores: filas.map((f) => f.financPago), total: filas.reduce((s, f) => s + f.financPago, 0) },
+      { concepto: "Cuotas de financiamiento pendientes", valores: filas.map((f) => f.financPendiente), total: filas.reduce((s, f) => s + f.financPendiente, 0) },
+    ] : []),
     { concepto: "Saldo al cierre (real)", valores: filas.map((f) => f.saldoCierre), total: cierre, fuerte: true, alerta: true },
     { concepto: "Ingreso proyectado (CxC)", valores: filas.map((f) => f.ingresoProy), total: total.ingresoProy },
     { concepto: "Egreso proyectado (CxP)", valores: filas.map((f) => f.egresoProy), total: total.egresoProy },
