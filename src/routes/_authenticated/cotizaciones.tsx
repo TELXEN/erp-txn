@@ -651,13 +651,33 @@ function Cotizaciones() {
       <div className="-mx-3 -mb-3 flex flex-col bg-background sm:-mx-4 lg:h-[calc(100dvh-3.75rem)] lg:overflow-hidden">
         <Encabezado
           titulo={cot.nombre || cot.codigo || "Cotización"}
-          subtitulo={`Cotización ${cot.codigo ?? ""} · modo edición`}
+          subtitulo={`Cotización ${cot.codigo ?? ""} · ${etiquetaRevision(cot.revision)} · modo edición`}
           acciones={
             <div className="flex flex-wrap items-center gap-2">
               <Boton variante="linea" className={enBarra} onClick={() => { setSeleccion(null); setError(""); setAviso(""); }}>
                 <ArrowLeft size={13} /> Volver
               </Boton>
               <Vigencia c={cot} />
+              {hermanas.length > 1 && (
+                <select
+                  value={cot.id}
+                  onChange={(e) => {
+                    const destino = hermanas.find((h) => h.id === e.target.value);
+                    if (!destino) return;
+                    // Las revisiones históricas se consultan en la vista A4 (solo lectura).
+                    if (destino.id === hermanas[hermanas.length - 1].id) setSeleccion(destino.id);
+                    else void navigate({ to: "/cotizacion-vista", search: { id: destino.id } });
+                  }}
+                  title="Revisiones de esta cotización"
+                  className="h-8 rounded-md border border-brand-foreground/30 bg-brand-foreground/10 px-2 font-mono text-xs text-brand-foreground"
+                >
+                  {hermanas.map((h) => (
+                    <option key={h.id} value={h.id}>
+                      {etiquetaRevision(h.revision)}{h.id === hermanas[hermanas.length - 1].id ? " · actual" : " · histórica"}
+                    </option>
+                  ))}
+                </select>
+              )}
               <select
                 value={cot.estado}
                 onChange={(e) => cambiarEstado(cot.id, e.target.value as EstadoCotizacion)}
@@ -665,6 +685,11 @@ function Cotizaciones() {
               >
                 {ESTADOS_COTIZACION.map((e) => <option key={e} value={e}>{e}</option>)}
               </select>
+              {esUltimaRevision && !cot.proyecto_id && (
+                <Boton variante="linea" className={enBarra} onClick={() => void nuevaRevision()} title="Clonar esta cotización como la siguiente revisión">
+                  <History size={13} /> Nueva revisión
+                </Boton>
+              )}
               <Boton variante="linea" className={enBarra} onClick={alternarEncabezado} title="Mostrar u ocultar el encabezado de la hoja">
                 {encabezado ? <Eye size={13} /> : <EyeOff size={13} />} Encabezado
               </Boton>
