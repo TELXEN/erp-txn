@@ -3,7 +3,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { coincide, Resaltar } from "@/components/Buscador";
 import { Fragment, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, Landmark, Search, Upload, X } from "lucide-react";
+import { AlertTriangle, ArrowLeftRight, Landmark, Search, Upload, X } from "lucide-react";
+import { TransferenciaCuentas } from "@/components/TransferenciaCuentas";
 import { useServerFn } from "@tanstack/react-start";
 import { useTipoCambioHoy } from "@/lib/tipo-cambio";
 import { supabase } from "@/integrations/supabase/client";
@@ -148,6 +149,7 @@ function Tesoreria() {
   const tcHoy = tcInfo?.venta || Number(tcRespaldo?.tipo_cambio ?? 0);
   const [error, setError] = useState("");
   const [filtroVence, setFiltroVence] = useState<"vencido" | "semana" | "mes" | null>(null);
+  const [transferir, setTransferir] = useState<{ c: CuentaBancaria; saldo: number } | null>(null);
   const [desde, setDesde] = useState("");
   const [hasta, setHasta] = useState("");
   const [tercero, setTercero] = useState("");
@@ -545,11 +547,22 @@ function Tesoreria() {
           <Vacio texto="Registra tus cuentas en Catálogos Maestros › Bancos." />
         ) : (
           <div className="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-3">
-            {saldos.filter((s) => s.c.activo).map((s) => (
-              <div key={s.c.id} className={`rounded-lg border p-3 text-xs ${s.saldo < 0 ? "border-bad/40 bg-bad/10" : "border-line"}`}>
-                <div className="flex justify-between">
+            {saldos.filter((s) => s.c.activo).map((s) => {
+              const transferible = !/detracc/i.test(s.c.tipo_cuenta ?? "");
+              return (
+              <div key={s.c.id}
+                onContextMenu={transferible ? (e) => { e.preventDefault(); setTransferir(s); } : undefined}
+                title={transferible ? "Clic derecho para transferir a otra cuenta" : undefined}
+                className={`rounded-lg border p-3 text-xs ${transferible ? "cursor-context-menu" : ""} ${s.saldo < 0 ? "border-bad/40 bg-bad/10" : "border-line"}`}>
+                <div className="flex justify-between gap-2">
                   <b className="text-ink">{s.c.nombre}</b>
-                  <span className="text-muted-foreground">{s.c.monedas} · {s.c.tipo_cuenta}</span>
+                  <span className="flex items-center gap-1.5 text-muted-foreground">{s.c.monedas} · {s.c.tipo_cuenta}
+                    {transferible && (
+                      <button type="button" onClick={() => setTransferir(s)} aria-label={`Transferir desde ${s.c.nombre}`} className="rounded p-0.5 hover:bg-muted hover:text-primary">
+                        <ArrowLeftRight size={13} />
+                      </button>
+                    )}
+                  </span>
                 </div>
                 <p className="text-[10px] text-muted-foreground">N° {String(s.c.numero_cuenta ?? "").replace(/^\s*(n[°º.]?|nro\.?|cta\.?)\s*/i, "") || "—"}</p>
                 <p className={`mt-2 flex items-center justify-end gap-1.5 text-lg font-semibold tabular-nums ${s.saldo < 0 ? "text-bad" : "text-ink"}`}>
@@ -562,10 +575,12 @@ function Tesoreria() {
                   <div className="flex justify-between"><span>Egresos (−)</span><span className="text-bad">{dinero(s.egresos, s.c.monedas)}</span></div>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </Panel>
+      {transferir && <TransferenciaCuentas origen={transferir} saldos={saldos} tcSugerido={tcHoy} onClose={() => setTransferir(null)} />}
         </>
       )}
 
