@@ -281,6 +281,13 @@
       "when": 1792209243501,
       "tag": "0039_codigo_unico_por_revision",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1792212704475,
+      "tag": "0040_financiamiento_y_saldo_disponible",
+      "breakpoints": true
     }
   ]
 }
