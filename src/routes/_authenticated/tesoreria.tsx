@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { coincide, Resaltar } from "@/components/Buscador";
 import { Fragment, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, ArrowLeftRight, Landmark, Search, Upload, X } from "lucide-react";
+import { AlertTriangle, ArrowLeftRight, ArrowUpRight, Landmark, Search, Upload, X } from "lucide-react";
 import { TransferenciaCuentas } from "@/components/TransferenciaCuentas";
 import { useServerFn } from "@tanstack/react-start";
 import { useTipoCambioHoy } from "@/lib/tipo-cambio";
@@ -129,11 +129,11 @@ function Tesoreria() {
   type Pestana = "resumen" | "cxc" | "cxp" | "personal" | "financiamiento";
   const [pestana, setPestanaBase] = useState<Pestana>(() => {
     const g = localStorage.getItem("tesoreria:pestana");
-    return g === "cxc" || g === "cxp" || g === "personal" || g === "financiamiento" ? g : "resumen";
+    return g === "financiamiento" ? g : "resumen";
   });
   const setPestana = (t: Pestana) => {
     setPestanaBase(t);
-    localStorage.setItem("tesoreria:pestana", t);
+    if (t === "resumen" || t === "financiamiento") localStorage.setItem("tesoreria:pestana", t);
   };
   const [busqueda, setBusqueda] = useState("");
   const [cerrados, setCerrados] = useState<Set<string>>(new Set());
@@ -479,8 +479,8 @@ function Tesoreria() {
       />
 
       <div className="mb-4 flex flex-wrap gap-1 border-b border-line">
-        {(["resumen", "cxc", "cxp", "personal", "financiamiento"] as const).map((t) => {
-          const activa = pestana === t;
+        {(["resumen", "financiamiento"] as const).map((t) => {
+          const activa = pestana === t || (t === "resumen" && pestana !== "financiamiento");
           const etiqueta =
             t === "resumen" ? "Resumen" : t === "financiamiento" ? "Préstamos / Financiamiento" : t === "cxc" ? `Cuentas por cobrar (${cxc.length})` : t === "cxp" ? `Pagos a proveedores (${cxpProv.length})` : `Pagos de personal (${cxpPer.length})`;
           return (
@@ -502,16 +502,22 @@ function Tesoreria() {
         <>
           <div className="mb-4 grid gap-3 sm:grid-cols-4">
             {[
-              { t: "Total por cobrar", v: kc.total, tono: "text-good" },
-              { t: "Vencido por cobrar", v: kc.vencido, tono: kc.vencido > 0 ? "text-bad" : "text-ink" },
-              { t: "Total por pagar", v: kp.total, tono: "text-warn" },
-              { t: "Vencido por pagar", v: kp.vencido, tono: kp.vencido > 0 ? "text-bad" : "text-ink" },
-            ].map((c) => (
-              <div key={c.t} className="panel p-4">
+              { t: "Total por cobrar", v: kc.total, tono: "text-good", d: "cxc" as const, f: null },
+              { t: "Vencido por cobrar", v: kc.vencido, tono: kc.vencido > 0 ? "text-bad" : "text-ink", d: "cxc" as const, f: "vencido" as const },
+              { t: "Total por pagar", v: kp.total, tono: "text-warn", d: "cxp" as const, f: null },
+              { t: "Vencido por pagar", v: kp.vencido, tono: kp.vencido > 0 ? "text-bad" : "text-ink", d: "cxp" as const, f: "vencido" as const },
+            ].map((c) => {
+              const abrir = () => { setPestana(c.d); setAccion(null); setTercero(""); setSeleccion(new Set()); setFiltroVence(c.f); };
+              return (
+              <button type="button" key={c.t} onClick={abrir} onContextMenu={(e) => { e.preventDefault(); abrir(); }}
+                title="Clic o clic derecho para ver detalle y gestionar cobros/pagos"
+                className="panel relative p-4 text-left transition hover:bg-ink/5">
+                <ArrowUpRight size={13} className="absolute right-3 top-3 text-muted-foreground" />
                 <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">{c.t}</p>
                 <p className={`mt-1 text-lg font-semibold tabular-nums ${c.tono}`}>{soles(c.v)}</p>
-              </div>
-            ))}
+              </button>
+              );
+            })}
           </div>
 
           <div className="panel mb-4 flex flex-wrap items-center justify-between gap-4 border-primary/30 bg-primary/5 p-5">
@@ -587,7 +593,21 @@ function Tesoreria() {
       {errorSaldos && <p role="alert" className="mb-3 text-xs text-bad">No se pudieron actualizar los saldos; los pagos requieren verificar fondos.</p>}
       {pestana === "financiamiento" && <FinanciamientoPanel cuentas={cuentas} />}
       {pestana !== "resumen" && pestana !== "financiamiento" && (
-        <>
+        <div className="fixed inset-0 z-40 flex items-start justify-center overflow-y-auto bg-foreground/40 p-4"
+          onMouseDown={(e) => { if (e.target === e.currentTarget) setPestana("resumen"); }}>
+        <div className="my-8 w-full max-w-6xl rounded-lg border border-line bg-background p-4 shadow-xl">
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <h2 className="text-sm font-semibold text-ink">{pestana === "cxc" ? `Cuentas por cobrar (${cxc.length})` : "Cuentas por pagar"}</h2>
+            <div className="flex items-center gap-2">
+              {pestana !== "cxc" && (["cxp", "personal"] as const).map((t) => (
+                <button key={t} type="button" onClick={() => { setPestana(t); setAccion(null); setFiltroVence(null); setTercero(""); setSeleccion(new Set()); }}
+                  className={`rounded-full border px-3 py-1 text-xs ${pestana === t ? "border-primary bg-primary/10 text-primary" : "border-line text-muted-foreground hover:text-ink"}`}>
+                  {t === "cxp" ? `Proveedores y compras (${cxpProv.length})` : `Personal y planilla (${cxpPer.length})`}
+                </button>
+              ))}
+              <button type="button" onClick={() => setPestana("resumen")} className="rounded-md p-1 text-muted-foreground hover:bg-muted" title="Cerrar"><X size={16} /></button>
+            </div>
+          </div>
       <div className="mb-4 grid gap-3 sm:grid-cols-4">
         {tarjeta(pestana === "cxc" ? "Total por cobrar" : "Total por pagar", k.total, null)}
         {tarjeta("Vencido", k.vencido, "vencido", k.vencido > 0 ? "text-bad" : "text-ink")}
@@ -735,7 +755,8 @@ function Tesoreria() {
           </div>
         )}
       </Panel>
-        </>
+        </div>
+        </div>
       )}
 
       {lote && (
