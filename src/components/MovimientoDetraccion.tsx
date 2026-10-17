@@ -33,7 +33,7 @@ export function MovimientoDetraccion({ cuenta, tipoInicial, onClose }: { cuenta:
     if (!valido) return;
     setGuardando(true); setError("");
     const { error } = await supabase.rpc("registrar_movimiento_detraccion", {
-      _banco: String(cuenta.c.id), _tipo: tipo, _concepto: concepto, _periodo: periodo, _monto: m, _fecha: fecha, _operacion: operacion.trim(), _notas: notas,
+      _banco: String(cuenta.c.id), _tipo: tipo, _concepto: concepto ?? "", _periodo: periodo, _monto: m, _fecha: fecha, _operacion: operacion.trim(), _notas: notas,
     });
     setGuardando(false);
     if (error) return setError(error.message);
