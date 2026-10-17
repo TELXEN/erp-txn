@@ -17,6 +17,7 @@ import { useTareoVehiculos } from "@/lib/vehiculos";
 import { useBoletasCosto, useRecibosCosto } from "@/lib/costo-obra";
 import { usePagosRRHH } from "@/lib/pagos-rrhh";
 import { soles } from "@/lib/format";
+import { useFinanciamientos } from "@/lib/financiamiento";
 
 const MESES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 const corto = (v: number) => `S/ ${Math.round(v).toLocaleString("es-PE")}`;
@@ -37,6 +38,7 @@ export function GananciaPerdida() {
   const { data: recibos = [] } = useRecibosCosto();
   const { data: cajas = [] } = useCajasChicas();
   const { data: rrhh } = usePagosRRHH();
+  const { data: financiamiento } = useFinanciamientos();
   const [modo, setModo] = useState<Modo>("caja");
   const T = TEXTOS[modo];
 
@@ -76,8 +78,15 @@ export function GananciaPerdida() {
       cajas.forEach((c) => porFecha(c.fecha_entrega, Number(c.monto_entregado), "gas"));
       (rrhh?.egresos ?? []).forEach((e) => porFecha(e.fecha_pago, Number(e.monto), "gas"));
     }
+    // Financing principal is neither revenue nor an operating expense.
+    // Only interest and fees affect this profitability / operating cash chart.
+    financiamiento?.cuotas.forEach((c) => {
+      const p = financiamiento.prestamos.find((p) => p.id === c.financiamiento_id);
+      if (!p) return;
+      porFecha(modo === "devengado" ? c.vencimiento : c.fecha_pago, (Number(c.interes) + Number(c.comision)) * Number(p.tipo_cambio), "gas");
+    });
     return m;
-  }, [modo, ventas, gd, gg, tv, boletas, recibos, cajas, rrhh]);
+  }, [modo, ventas, gd, gg, tv, boletas, recibos, cajas, rrhh, financiamiento]);
 
   const anioActual = new Date().getFullYear();
   const anios = useMemo(() => {
