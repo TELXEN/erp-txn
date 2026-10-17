@@ -151,6 +151,7 @@ function Tesoreria() {
   const [error, setError] = useState("");
   const [filtroVence, setFiltroVence] = useState<"vencido" | "semana" | "mes" | null>(null);
   const [transferir, setTransferir] = useState<{ c: CuentaBancaria; saldo: number } | null>(null);
+  const [detraccion, setDetraccion] = useState<{ s: { c: CuentaBancaria; saldo: number }; tipo: "ingreso" | "pago_sunat" } | null>(null);
   const [desde, setDesde] = useState("");
   const [hasta, setHasta] = useState("");
   const [tercero, setTercero] = useState("");
