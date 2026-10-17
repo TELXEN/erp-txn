@@ -1,4 +1,5 @@
 # Roadmap
+- [ ] Préstamos / Financiamiento en Tesorería: desembolsos, cuotas y saldos; bloqueo de pagos sin fondos y verificación.
 - [x] Unificar fuente seleccionada en todo el ERP, PDF y Excel sin cambiar tamaños; verificar guardado y exportaciones.
 - [x] Unificar acciones de nómina con honorarios, editar sobre la hoja y habilitar pagos solo después de validar las boletas.
 
