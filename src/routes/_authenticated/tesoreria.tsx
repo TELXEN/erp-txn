@@ -5,6 +5,7 @@ import { Fragment, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, ArrowLeftRight, ArrowUpRight, Landmark, Search, Upload, X } from "lucide-react";
 import { TransferenciaCuentas } from "@/components/TransferenciaCuentas";
+import { MovimientoDetraccion } from "@/components/MovimientoDetraccion";
 import { useServerFn } from "@tanstack/react-start";
 import { useTipoCambioHoy } from "@/lib/tipo-cambio";
 import { supabase } from "@/integrations/supabase/client";
@@ -557,19 +558,24 @@ function Tesoreria() {
               const transferible = !/detracc/i.test(s.c.tipo_cuenta ?? "");
               return (
               <div key={s.c.id}
-                onContextMenu={transferible ? (e) => { e.preventDefault(); setTransferir(s); } : undefined}
-                title={transferible ? "Clic derecho para transferir a otra cuenta" : undefined}
-                className={`rounded-lg border p-3 text-xs ${transferible ? "cursor-context-menu" : ""} ${s.saldo < 0 ? "border-bad/40 bg-bad/10" : "border-line"}`}>
+                onContextMenu={(e) => { e.preventDefault(); if (transferible) setTransferir(s); else setDetraccion({ s, tipo: "pago_sunat" }); }}
+                title={transferible ? "Clic derecho para transferir a otra cuenta" : "Clic derecho para registrar ingresos o pagos a SUNAT"}
+                className={`rounded-lg border p-3 text-xs cursor-context-menu ${s.saldo < 0 ? "border-bad/40 bg-bad/10" : transferible ? "border-line" : "border-warn/40 bg-warn/5"}`}>
                 <div className="flex justify-between gap-2">
                   <b className="text-ink">{s.c.nombre}</b>
                   <span className="flex items-center gap-1.5 text-muted-foreground">{s.c.monedas} · {s.c.tipo_cuenta}
-                    {transferible && (
+                    {transferible ? (
                       <button type="button" onClick={() => setTransferir(s)} aria-label={`Transferir desde ${s.c.nombre}`} className="rounded p-0.5 hover:bg-muted hover:text-primary">
                         <ArrowLeftRight size={13} />
+                      </button>
+                    ) : (
+                      <button type="button" onClick={() => setDetraccion({ s, tipo: "pago_sunat" })} aria-label="Movimientos de detracciones" className="rounded p-0.5 hover:bg-muted hover:text-primary">
+                        <Landmark size={13} />
                       </button>
                     )}
                   </span>
                 </div>
+                {!transferible && <p className="mt-1 inline-block rounded bg-warn/15 px-1.5 py-0.5 text-[10px] font-medium text-warn">Cuenta intangible SPOT · solo tributos SUNAT</p>}
                 <p className="text-[10px] text-muted-foreground">N° {String(s.c.numero_cuenta ?? "").replace(/^\s*(n[°º.]?|nro\.?|cta\.?)\s*/i, "") || "—"}</p>
                 <p className={`mt-2 flex items-center justify-end gap-1.5 text-lg font-semibold tabular-nums ${s.saldo < 0 ? "text-bad" : "text-ink"}`}>
                   {s.saldo < 0 && <AlertTriangle size={16} />}
@@ -587,6 +593,7 @@ function Tesoreria() {
         )}
       </Panel>
       {transferir && <TransferenciaCuentas origen={transferir} saldos={saldos} tcSugerido={tcHoy} onClose={() => setTransferir(null)} />}
+      {detraccion && <MovimientoDetraccion cuenta={detraccion.s} tipoInicial={detraccion.tipo} onClose={() => setDetraccion(null)} />}
         </>
       )}
 
