@@ -549,10 +549,10 @@ export async function crearRevision(cot: Cotizacion): Promise<string> {
   }
 
   // Detalle APU de cada partida, remapeado a los nuevos ítems.
-  const { data: apu, error: e4 } = await sb
-    .from("cotizacion_apu_detalle")
-    .select("*")
-    .in("cotizacion_item_id", (orig ?? []).map((i: { id: string }) => i.id));
+  const idsOrigen = (orig ?? []).map((i: { id: string }) => i.id);
+  const { data: apu, error: e4 } = idsOrigen.length
+    ? await sb.from("cotizacion_apu_detalle").select("*").in("cotizacion_item_id", idsOrigen)
+    : { data: [], error: null };
   if (e4) throw e4;
   if (apu?.length) {
     const filas = (apu as Record<string, unknown>[])
