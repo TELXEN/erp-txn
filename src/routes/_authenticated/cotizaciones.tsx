@@ -511,11 +511,30 @@ function Cotizaciones() {
     }
   }
 
-  async function borrarCotizacion(id: string) {
-    if (!window.confirm("¿Eliminar esta cotización y todas sus partidas?")) return;
-    await supabase.from("cotizaciones").delete().eq("id", id);
-    if (seleccion === id) setSeleccion(null);
+  async function borrarCotizacion(c: Cotizacion) {
+    const hermanasBorrar = revisionesDeCodigo(cotizaciones, c.codigo);
+    const mensaje = hermanasBorrar.length > 1
+      ? `¿Eliminar la cotización ${c.codigo ?? ""} y todas sus ${hermanasBorrar.length} revisiones?`
+      : "¿Eliminar esta cotización y todas sus partidas?";
+    if (!window.confirm(mensaje)) return;
+    const ids = hermanasBorrar.length ? hermanasBorrar.map((h) => h.id) : [c.id];
+    await supabase.from("cotizaciones").delete().in("id", ids);
+    if (seleccion && ids.includes(seleccion)) setSeleccion(null);
     qc.invalidateQueries({ queryKey: ["cotizaciones"] });
+  }
+
+  async function nuevaRevision() {
+    if (!cot) return;
+    setError("");
+    setAviso("");
+    try {
+      const id = await crearRevision(cot);
+      qc.invalidateQueries({ queryKey: ["cotizaciones"] });
+      setSeleccion(id);
+      setAviso(`Nueva revisión creada: ${cot.codigo} ${etiquetaRevision(String(hermanas.length).padStart(2, "0"))}.`);
+    } catch (e2) {
+      setError(e2 instanceof Error ? e2.message : "No se pudo crear la revisión.");
+    }
   }
 
   async function convertirEnObra() {
