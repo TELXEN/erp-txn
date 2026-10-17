@@ -2880,6 +2880,56 @@ export type Database = {
           },
         ]
       }
+      movimientos_detracciones: {
+        Row: {
+          banco_id: string
+          concepto: string
+          creado_por: string | null
+          created_at: string
+          fecha: string
+          id: string
+          monto: number
+          notas: string | null
+          numero_operacion: string
+          periodo: string | null
+          tipo: string
+        }
+        Insert: {
+          banco_id: string
+          concepto: string
+          creado_por?: string | null
+          created_at?: string
+          fecha?: string
+          id?: string
+          monto: number
+          notas?: string | null
+          numero_operacion: string
+          periodo?: string | null
+          tipo: string
+        }
+        Update: {
+          banco_id?: string
+          concepto?: string
+          creado_por?: string | null
+          created_at?: string
+          fecha?: string
+          id?: string
+          monto?: number
+          notas?: string | null
+          numero_operacion?: string
+          periodo?: string | null
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "movimientos_detracciones_banco_id_fkey"
+            columns: ["banco_id"]
+            isOneToOne: false
+            referencedRelation: "bancos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orden_compra_items: {
         Row: {
           cantidad: number
@@ -5286,6 +5336,19 @@ export type Database = {
       }
       recodificar_wbs: { Args: never; Returns: undefined }
       registrar_financiamiento: { Args: { _datos: Json }; Returns: string }
+      registrar_movimiento_detraccion: {
+        Args: {
+          _banco: string
+          _concepto: string
+          _fecha: string
+          _monto: number
+          _notas?: string
+          _operacion: string
+          _periodo: string
+          _tipo: string
+        }
+        Returns: string
+      }
       registrar_transferencia: {
         Args: {
           _destino: string
