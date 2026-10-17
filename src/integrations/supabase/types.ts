@@ -4805,6 +4805,63 @@ export type Database = {
         }
         Relationships: []
       }
+      transferencias_bancarias: {
+        Row: {
+          banco_destino_id: string
+          banco_origen_id: string
+          creado_por: string
+          created_at: string
+          fecha: string
+          id: string
+          monto_destino: number
+          monto_origen: number
+          notas: string
+          numero_operacion: string
+          tipo_cambio: number
+        }
+        Insert: {
+          banco_destino_id: string
+          banco_origen_id: string
+          creado_por: string
+          created_at?: string
+          fecha: string
+          id?: string
+          monto_destino: number
+          monto_origen: number
+          notas?: string
+          numero_operacion: string
+          tipo_cambio?: number
+        }
+        Update: {
+          banco_destino_id?: string
+          banco_origen_id?: string
+          creado_por?: string
+          created_at?: string
+          fecha?: string
+          id?: string
+          monto_destino?: number
+          monto_origen?: number
+          notas?: string
+          numero_operacion?: string
+          tipo_cambio?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transferencias_bancarias_banco_destino_id_fkey"
+            columns: ["banco_destino_id"]
+            isOneToOne: false
+            referencedRelation: "bancos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transferencias_bancarias_banco_origen_id_fkey"
+            columns: ["banco_origen_id"]
+            isOneToOne: false
+            referencedRelation: "bancos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       traslados_vehiculo: {
         Row: {
           banco_id: string | null
@@ -5229,6 +5286,18 @@ export type Database = {
       }
       recodificar_wbs: { Args: never; Returns: undefined }
       registrar_financiamiento: { Args: { _datos: Json }; Returns: string }
+      registrar_transferencia: {
+        Args: {
+          _destino: string
+          _fecha: string
+          _monto: number
+          _notas?: string
+          _operacion: string
+          _origen: string
+          _tc: number
+        }
+        Returns: string
+      }
       siguiente_codigo_cotizacion: { Args: never; Returns: string }
       siguiente_codigo_documento: { Args: { _nombre: string }; Returns: string }
       siguiente_codigo_insumo: { Args: { _tipo: string }; Returns: string }
