@@ -627,12 +627,12 @@ function Cotizaciones() {
   const diasRestantes = (c: (typeof cotizaciones)[number]) =>
     Math.round((new Date(`${vigenciaHasta(c.fecha_emision, Number(c.validez_dias))}T00:00:00`).getTime() - new Date(`${hoyStr}T00:00:00`).getTime()) / 86400000);
   const total = (id: string) => totalesLista[id] ?? 0;
-  const filtradas = cotizaciones
+  const filtradas = vigentes
     .filter((c) => coincide(busqueda, c.codigo, c.cliente, c.nombre, c.estado))
     .filter((c) => pestana === "Todas" || (pestana === "En Obra" ? Boolean(c.proyecto_id) : c.estado === pestana));
-  const kpiMes = cotizaciones.filter((c) => c.fecha_emision.startsWith(mesActual)).reduce((s, c) => s + total(c.id), 0);
-  const kpiAprob = cotizaciones.filter((c) => c.estado === "Aprobada");
-  const kpiPend = cotizaciones.filter((c) => c.estado === "Enviada" || c.estado === "Borrador");
+  const kpiMes = vigentes.filter((c) => c.fecha_emision.startsWith(mesActual)).reduce((s, c) => s + total(c.id), 0);
+  const kpiAprob = vigentes.filter((c) => c.estado === "Aprobada");
+  const kpiPend = vigentes.filter((c) => c.estado === "Enviada" || c.estado === "Borrador");
   const PESTANAS = ["Todas", ...ESTADOS_COTIZACION, "En Obra"] as const;
 
   const Vigencia = ({ c }: { c: (typeof cotizaciones)[number] }) => {
@@ -883,7 +883,7 @@ function Cotizaciones() {
 
       <div className="mb-4 flex flex-wrap gap-1 border-b border-line pb-3">
         {PESTANAS.map((p) => {
-          const n = p === "Todas" ? cotizaciones.length : p === "En Obra" ? cotizaciones.filter((c) => c.proyecto_id).length : cotizaciones.filter((c) => c.estado === p).length;
+          const n = p === "Todas" ? vigentes.length : p === "En Obra" ? vigentes.filter((c) => c.proyecto_id).length : vigentes.filter((c) => c.estado === p).length;
           return (
             <button
               key={p}
@@ -923,7 +923,14 @@ function Cotizaciones() {
             <tbody>
               {filtradas.map((c) => (
                 <tr key={c.id} className="cursor-pointer border-b border-line/60 last:border-0 hover:bg-primary/5" onDoubleClick={() => setSeleccion(c.id)}>
-                  <td className="px-5 py-2.5 font-semibold text-primary"><Resaltar texto={c.codigo ?? "—"} termino={busqueda} /></td>
+                  <td className="px-5 py-2.5 font-semibold text-primary">
+                    <div className="flex items-center gap-2">
+                      <Resaltar texto={c.codigo ?? "—"} termino={busqueda} />
+                      <span className="rounded border border-line px-1 py-0.5 text-[9px] font-semibold text-muted-foreground" title={`${revisionesDeCodigo(cotizaciones, c.codigo).length} revisión(es) guardada(s)`}>
+                        {etiquetaRevision(c.revision)}
+                      </span>
+                    </div>
+                  </td>
                   <td className="px-3 py-2.5 text-muted-foreground"><Resaltar texto={c.cliente || "—"} termino={busqueda} /></td>
                   <td className="px-3 py-2.5 font-semibold text-ink"><Resaltar texto={c.nombre || "—"} termino={busqueda} /></td>
                   <td className="px-3 py-2.5 text-muted-foreground">{fmtFecha(c.fecha_emision)}</td>
@@ -948,7 +955,7 @@ function Cotizaciones() {
                       <button type="button" title="Editar" aria-label="Editar" onClick={() => setSeleccion(c.id)} className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-line text-muted-foreground hover:bg-primary/10 hover:text-primary">
                         <Pencil size={14} />
                       </button>
-                      <button type="button" title="Eliminar" aria-label="Eliminar" onClick={() => borrarCotizacion(c.id)} className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-line text-bad hover:bg-bad/10">
+                      <button type="button" title="Eliminar" aria-label="Eliminar" onClick={() => borrarCotizacion(c)} className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-line text-bad hover:bg-bad/10">
                         <Trash2 size={14} />
                       </button>
                     </div>
