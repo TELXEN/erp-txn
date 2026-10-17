@@ -556,10 +556,10 @@ export async function crearRevision(cot: Cotizacion): Promise<string> {
   if (e4) throw e4;
   if (apu?.length) {
     const filas = (apu as Record<string, unknown>[])
-      .filter((d) => mapa.has(String(d.cotizacion_item_id)))
+      .filter((d) => mapa.has(String(d["cotizacion_item_id"])))
       .map((d) => {
-        const { id: _id, cotizacion_item_id, created_at: _c, ...resto } = d;
-        return { ...resto, cotizacion_item_id: mapa.get(String(cotizacion_item_id)) };
+        const { id: _id, created_at: _c, ...resto } = d;
+        return { ...resto, cotizacion_item_id: mapa.get(String(d["cotizacion_item_id"])) };
       });
     if (filas.length) {
       const { error: e5 } = await sb.from("cotizacion_apu_detalle").insert(filas);

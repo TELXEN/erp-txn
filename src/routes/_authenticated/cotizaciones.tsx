@@ -147,7 +147,7 @@ function Cotizaciones() {
     : null;
   /** Revisiones hermanas del mismo código (de la más antigua a la más reciente). */
   const hermanas = cot ? revisionesDeCodigo(cotizaciones, cot.codigo) : [];
-  const esUltimaRevision = hermanas.length > 0 && hermanas[hermanas.length - 1].id === cot?.id;
+  const esUltimaRevision = hermanas.length > 0 && hermanas.at(-1)?.id === cot?.id;
 
   const [partidaActiva, setPartidaActiva] = useState<string | null>(null);
   /** En edición la hoja arranca sin encabezado: solo se ve la tabla de partidas. */
@@ -665,7 +665,7 @@ function Cotizaciones() {
                     const destino = hermanas.find((h) => h.id === e.target.value);
                     if (!destino) return;
                     // Las revisiones históricas se consultan en la vista A4 (solo lectura).
-                    if (destino.id === hermanas[hermanas.length - 1].id) setSeleccion(destino.id);
+                    if (destino.id === hermanas.at(-1)?.id) setSeleccion(destino.id);
                     else void navigate({ to: "/cotizacion-vista", search: { id: destino.id } });
                   }}
                   title="Revisiones de esta cotización"
@@ -673,7 +673,7 @@ function Cotizaciones() {
                 >
                   {hermanas.map((h) => (
                     <option key={h.id} value={h.id}>
-                      {etiquetaRevision(h.revision)}{h.id === hermanas[hermanas.length - 1].id ? " · actual" : " · histórica"}
+                      {etiquetaRevision(h.revision)}{h.id === hermanas.at(-1)?.id ? " · actual" : " · histórica"}
                     </option>
                   ))}
                 </select>
