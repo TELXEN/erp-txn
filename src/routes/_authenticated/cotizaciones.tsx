@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Buscador, Resaltar, coincide } from "@/components/Buscador";
 import React, { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -30,7 +30,11 @@ import { exportarExcel } from "@/lib/exportar";
 import { PlantillasCotizacion } from "@/components/cotizaciones/PlantillasCotizacion";
 import {
   aplicarPlantilla,
+  crearRevision,
+  etiquetaRevision,
   guardarComoPlantilla,
+  revisionesDeCodigo,
+  ultimasRevisiones,
   usePlantillasCotizacion,
   ESTADOS_COTIZACION,
   generarCodigoCotizacion,
@@ -46,7 +50,7 @@ import {
   type CotizacionItem,
   type EstadoCotizacion,
 } from "@/lib/cotizaciones";
-import { Check, Calculator, CornerDownRight, Upload, X, Eye, EyeOff, Trash2, ArrowLeft, Library, Plus, Pencil, Copy, FileText, LayoutTemplate } from "lucide-react";
+import { Check, Calculator, CornerDownRight, Upload, X, Eye, EyeOff, Trash2, ArrowLeft, Library, Plus, Pencil, Copy, FileText, LayoutTemplate, History } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/cotizaciones")({
   head: () => ({
@@ -71,7 +75,10 @@ const cantidad = (n: number | string) =>
 function Cotizaciones() {
   const { rol } = useAuth();
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const { data: cotizaciones = [] } = useCotizaciones();
+  /** Una fila por código: la revisión más reciente de cada cotización. */
+  const vigentes = ultimasRevisiones(cotizaciones);
   const { data: especialidades = [] } = useEspecialidadesPartida();
   const { data: unidades = [] } = useUnidadesMedida();
   // Catálogo de la cotización: partidas del Banco APU con su P.U. calculado desde la receta.
@@ -138,6 +145,9 @@ function Cotizaciones() {
   const totales = cot
     ? totalesCotizacion(items, Number(cot.pct_gastos_generales), Number(cot.pct_utilidad))
     : null;
+  /** Revisiones hermanas del mismo código (de la más antigua a la más reciente). */
+  const hermanas = cot ? revisionesDeCodigo(cotizaciones, cot.codigo) : [];
+  const esUltimaRevision = hermanas.length > 0 && hermanas.at(-1)?.id === cot?.id;
 
   const [partidaActiva, setPartidaActiva] = useState<string | null>(null);
   /** En edición la hoja arranca sin encabezado: solo se ve la tabla de partidas. */
@@ -501,11 +511,30 @@ function Cotizaciones() {
     }
   }
 
-  async function borrarCotizacion(id: string) {
-    if (!window.confirm("¿Eliminar esta cotización y todas sus partidas?")) return;
-    await supabase.from("cotizaciones").delete().eq("id", id);
-    if (seleccion === id) setSeleccion(null);
+  async function borrarCotizacion(c: Cotizacion) {
+    const hermanasBorrar = revisionesDeCodigo(cotizaciones, c.codigo);
+    const mensaje = hermanasBorrar.length > 1
+      ? `¿Eliminar la cotización ${c.codigo ?? ""} y todas sus ${hermanasBorrar.length} revisiones?`
+      : "¿Eliminar esta cotización y todas sus partidas?";
+    if (!window.confirm(mensaje)) return;
+    const ids = hermanasBorrar.length ? hermanasBorrar.map((h) => h.id) : [c.id];
+    await supabase.from("cotizaciones").delete().in("id", ids);
+    if (seleccion && ids.includes(seleccion)) setSeleccion(null);
     qc.invalidateQueries({ queryKey: ["cotizaciones"] });
+  }
+
+  async function nuevaRevision() {
+    if (!cot) return;
+    setError("");
+    setAviso("");
+    try {
+      const id = await crearRevision(cot);
+      qc.invalidateQueries({ queryKey: ["cotizaciones"] });
+      setSeleccion(id);
+      setAviso(`Nueva revisión de ${cot.codigo} creada como Borrador.`);
+    } catch (e2) {
+      setError(e2 instanceof Error ? e2.message : "No se pudo crear la revisión.");
+    }
   }
 
   async function convertirEnObra() {
@@ -598,12 +627,12 @@ function Cotizaciones() {
   const diasRestantes = (c: (typeof cotizaciones)[number]) =>
     Math.round((new Date(`${vigenciaHasta(c.fecha_emision, Number(c.validez_dias))}T00:00:00`).getTime() - new Date(`${hoyStr}T00:00:00`).getTime()) / 86400000);
   const total = (id: string) => totalesLista[id] ?? 0;
-  const filtradas = cotizaciones
+  const filtradas = vigentes
     .filter((c) => coincide(busqueda, c.codigo, c.cliente, c.nombre, c.estado))
     .filter((c) => pestana === "Todas" || (pestana === "En Obra" ? Boolean(c.proyecto_id) : c.estado === pestana));
-  const kpiMes = cotizaciones.filter((c) => c.fecha_emision.startsWith(mesActual)).reduce((s, c) => s + total(c.id), 0);
-  const kpiAprob = cotizaciones.filter((c) => c.estado === "Aprobada");
-  const kpiPend = cotizaciones.filter((c) => c.estado === "Enviada" || c.estado === "Borrador");
+  const kpiMes = vigentes.filter((c) => c.fecha_emision.startsWith(mesActual)).reduce((s, c) => s + total(c.id), 0);
+  const kpiAprob = vigentes.filter((c) => c.estado === "Aprobada");
+  const kpiPend = vigentes.filter((c) => c.estado === "Enviada" || c.estado === "Borrador");
   const PESTANAS = ["Todas", ...ESTADOS_COTIZACION, "En Obra"] as const;
 
   const Vigencia = ({ c }: { c: (typeof cotizaciones)[number] }) => {
@@ -622,13 +651,33 @@ function Cotizaciones() {
       <div className="-mx-3 -mb-3 flex flex-col bg-background sm:-mx-4 lg:h-[calc(100dvh-3.75rem)] lg:overflow-hidden">
         <Encabezado
           titulo={cot.nombre || cot.codigo || "Cotización"}
-          subtitulo={`Cotización ${cot.codigo ?? ""} · modo edición`}
+          subtitulo={`Cotización ${cot.codigo ?? ""} · ${etiquetaRevision(cot.revision)} · modo edición`}
           acciones={
             <div className="flex flex-wrap items-center gap-2">
               <Boton variante="linea" className={enBarra} onClick={() => { setSeleccion(null); setError(""); setAviso(""); }}>
                 <ArrowLeft size={13} /> Volver
               </Boton>
               <Vigencia c={cot} />
+              {hermanas.length > 1 && (
+                <select
+                  value={cot.id}
+                  onChange={(e) => {
+                    const destino = hermanas.find((h) => h.id === e.target.value);
+                    if (!destino) return;
+                    // Las revisiones históricas se consultan en la vista A4 (solo lectura).
+                    if (destino.id === hermanas.at(-1)?.id) setSeleccion(destino.id);
+                    else void navigate({ to: "/cotizacion-vista", search: { id: destino.id } });
+                  }}
+                  title="Revisiones de esta cotización"
+                  className="h-8 rounded-md border border-brand-foreground/30 bg-brand-foreground/10 px-2 font-mono text-xs text-brand-foreground"
+                >
+                  {hermanas.map((h) => (
+                    <option key={h.id} value={h.id}>
+                      {etiquetaRevision(h.revision)}{h.id === hermanas.at(-1)?.id ? " · actual" : " · histórica"}
+                    </option>
+                  ))}
+                </select>
+              )}
               <select
                 value={cot.estado}
                 onChange={(e) => cambiarEstado(cot.id, e.target.value as EstadoCotizacion)}
@@ -636,6 +685,11 @@ function Cotizaciones() {
               >
                 {ESTADOS_COTIZACION.map((e) => <option key={e} value={e}>{e}</option>)}
               </select>
+              {esUltimaRevision && !cot.proyecto_id && (
+                <Boton variante="linea" className={enBarra} onClick={() => void nuevaRevision()} title="Clonar esta cotización como la siguiente revisión">
+                  <History size={13} /> Nueva revisión
+                </Boton>
+              )}
               <Boton variante="linea" className={enBarra} onClick={alternarEncabezado} title="Mostrar u ocultar el encabezado de la hoja">
                 {encabezado ? <Eye size={13} /> : <EyeOff size={13} />} Encabezado
               </Boton>
@@ -829,7 +883,7 @@ function Cotizaciones() {
 
       <div className="mb-4 flex flex-wrap gap-1 border-b border-line pb-3">
         {PESTANAS.map((p) => {
-          const n = p === "Todas" ? cotizaciones.length : p === "En Obra" ? cotizaciones.filter((c) => c.proyecto_id).length : cotizaciones.filter((c) => c.estado === p).length;
+          const n = p === "Todas" ? vigentes.length : p === "En Obra" ? vigentes.filter((c) => c.proyecto_id).length : vigentes.filter((c) => c.estado === p).length;
           return (
             <button
               key={p}
@@ -869,7 +923,14 @@ function Cotizaciones() {
             <tbody>
               {filtradas.map((c) => (
                 <tr key={c.id} className="cursor-pointer border-b border-line/60 last:border-0 hover:bg-primary/5" onDoubleClick={() => setSeleccion(c.id)}>
-                  <td className="px-5 py-2.5 font-semibold text-primary"><Resaltar texto={c.codigo ?? "—"} termino={busqueda} /></td>
+                  <td className="px-5 py-2.5 font-semibold text-primary">
+                    <div className="flex items-center gap-2">
+                      <Resaltar texto={c.codigo ?? "—"} termino={busqueda} />
+                      <span className="rounded border border-line px-1 py-0.5 text-[9px] font-semibold text-muted-foreground" title={`${revisionesDeCodigo(cotizaciones, c.codigo).length} revisión(es) guardada(s)`}>
+                        {etiquetaRevision(c.revision)}
+                      </span>
+                    </div>
+                  </td>
                   <td className="px-3 py-2.5 text-muted-foreground"><Resaltar texto={c.cliente || "—"} termino={busqueda} /></td>
                   <td className="px-3 py-2.5 font-semibold text-ink"><Resaltar texto={c.nombre || "—"} termino={busqueda} /></td>
                   <td className="px-3 py-2.5 text-muted-foreground">{fmtFecha(c.fecha_emision)}</td>
@@ -894,7 +955,7 @@ function Cotizaciones() {
                       <button type="button" title="Editar" aria-label="Editar" onClick={() => setSeleccion(c.id)} className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-line text-muted-foreground hover:bg-primary/10 hover:text-primary">
                         <Pencil size={14} />
                       </button>
-                      <button type="button" title="Eliminar" aria-label="Eliminar" onClick={() => borrarCotizacion(c.id)} className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-line text-bad hover:bg-bad/10">
+                      <button type="button" title="Eliminar" aria-label="Eliminar" onClick={() => borrarCotizacion(c)} className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-line text-bad hover:bg-bad/10">
                         <Trash2 size={14} />
                       </button>
                     </div>

@@ -437,3 +437,134 @@ export async function aplicarAlcanceCotizacion(cotizacionId: string, alcance: Al
     if (e3) throw e3;
   }
 }
+
+/* ---------------- Revisiones de cotización ---------------- */
+
+/** Etiqueta visible de una revisión: Rev. 00, Rev. 01, … */
+export const etiquetaRevision = (rev?: string | null) => `Rev. ${(rev ?? "00").padStart(2, "0")}`;
+
+const numRevision = (c: Pick<Cotizacion, "revision">) => Number(c.revision ?? "00") || 0;
+
+/** Una fila por código: la revisión más alta de cada cotización. */
+export function ultimasRevisiones(lista: Cotizacion[]) {
+  const mapa = new Map<string, Cotizacion>();
+  for (const c of lista) {
+    const clave = c.codigo ?? c.id;
+    const actual = mapa.get(clave);
+    if (!actual || numRevision(c) > numRevision(actual)) mapa.set(clave, c);
+  }
+  return [...mapa.values()];
+}
+
+/** Todas las revisiones de un mismo código, ordenadas de la más antigua a la más reciente. */
+export function revisionesDeCodigo(lista: Cotizacion[], codigo: string | null | undefined) {
+  return lista.filter((c) => c.codigo && c.codigo === codigo).sort((a, b) => numRevision(a) - numRevision(b));
+}
+
+/**
+ * Crea la siguiente revisión de una cotización: clona la cabecera (mismo código,
+ * revisión correlativa, estado Borrador), sus partidas y el detalle APU de cada una.
+ * Devuelve el id de la nueva revisión.
+ */
+export async function crearRevision(cot: Cotizacion): Promise<string> {
+  const { data: hermanas, error: e0 } = await supabase
+    .from("cotizaciones")
+    .select("revision")
+    .eq("codigo", cot.codigo ?? "");
+  if (e0) throw e0;
+  const siguiente = Math.max(0, ...(hermanas ?? []).map((h) => Number(h.revision) || 0)) + 1;
+  const revision = String(siguiente).padStart(2, "0");
+
+  const { data: nueva, error: e1 } = await supabase
+    .from("cotizaciones")
+    .insert({
+      codigo: cot.codigo,
+      cliente_id: cot.cliente_id ?? null,
+      cliente: cot.cliente,
+      nombre: cot.nombre,
+      ubicacion: cot.ubicacion,
+      fecha_emision: new Date().toISOString().slice(0, 10),
+      validez_dias: cot.validez_dias,
+      pct_gastos_generales: cot.pct_gastos_generales,
+      pct_utilidad: cot.pct_utilidad,
+      condiciones: cot.condiciones,
+      recursos_humanos: cot.recursos_humanos ?? "",
+      tiempo_ejecucion: cot.tiempo_ejecucion ?? "",
+      condiciones_pago: cot.condiciones_pago ?? "",
+      aplica_igv: cot.aplica_igv ?? true,
+      moneda: cot.moneda,
+      tipo_cambio: cot.tipo_cambio,
+      orientacion: cot.orientacion ?? "vertical",
+      multidisciplinaria: cot.multidisciplinaria ?? false,
+      alcance: cot.alcance ?? "ambos",
+      revision,
+      estado: "Borrador",
+    } as never)
+    .select("id")
+    .single();
+  if (e1) throw e1;
+
+  const { data: orig, error: e2 } = await supabase
+    .from("cotizacion_items")
+    .select("*")
+    .eq("cotizacion_id", cot.id)
+    .order("orden");
+  if (e2) throw e2;
+
+  const mapa = new Map<string, string>();
+  let pendientes = [...(orig ?? [])] as CotizacionItem[];
+  while (pendientes.length) {
+    const listos = pendientes.filter((i) => !i.padre_id || mapa.has(i.padre_id));
+    if (!listos.length) break;
+    const { data: nuevas, error: e3 } = await supabase
+      .from("cotizacion_items")
+      .insert(
+        listos.map((i) => ({
+          cotizacion_id: nueva.id,
+          padre_id: i.padre_id ? (mapa.get(i.padre_id) ?? null) : null,
+          tipo: i.tipo,
+          codigo: i.codigo,
+          nombre: i.nombre,
+          especialidad: i.especialidad,
+          grupo: i.grupo ?? "",
+          categoria: i.categoria,
+          marca: i.marca,
+          unidad: i.unidad,
+          metrado: i.metrado,
+          precio_unitario: i.precio_unitario,
+          rendimiento: i.rendimiento,
+          jornada: i.jornada,
+          pct_herramientas: i.pct_herramientas,
+          orden: i.orden,
+        })) as never,
+      )
+      .select("id");
+    if (e3) throw e3;
+    if (!nuevas) throw new Error("No se pudieron copiar las partidas.");
+    listos.forEach((i, idx) => {
+      const nuevoId = (nuevas as { id: string }[])[idx]?.id;
+      if (nuevoId) mapa.set(i.id, nuevoId);
+    });
+    pendientes = pendientes.filter((i) => !mapa.has(i.id));
+  }
+
+  // Detalle APU de cada partida, remapeado a los nuevos ítems.
+  const idsOrigen = (orig ?? []).map((i: { id: string }) => i.id);
+  const { data: apu, error: e4 } = idsOrigen.length
+    ? await sb.from("cotizacion_apu_detalle").select("*").in("cotizacion_item_id", idsOrigen)
+    : { data: [], error: null };
+  if (e4) throw e4;
+  if (apu?.length) {
+    const filas = (apu as Record<string, unknown>[])
+      .filter((d) => mapa.has(String(d["cotizacion_item_id"])))
+      .map((d) => {
+        const { id: _id, created_at: _c, ...resto } = d;
+        return { ...resto, cotizacion_item_id: mapa.get(String(d["cotizacion_item_id"])) };
+      });
+    if (filas.length) {
+      const { error: e5 } = await sb.from("cotizacion_apu_detalle").insert(filas);
+      if (e5) throw e5;
+    }
+  }
+  return nueva.id as string;
+}

@@ -267,6 +267,20 @@
       "when": 1792179019939,
       "tag": "0037_agente_retencion_clientes",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1792208934264,
+      "tag": "0038_revisiones_cotizacion",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1792209243501,
+      "tag": "0039_codigo_unico_por_revision",
+      "breakpoints": true
     }
   ]
 }

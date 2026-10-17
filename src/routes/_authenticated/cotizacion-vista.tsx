@@ -396,7 +396,7 @@ function VistaCotizacion() {
   const celda = { padding: "12px 14px", borderBottom: `1px solid ${C.slate100}`, verticalAlign: "middle" } as const;
   const cargando = cargandoCotizaciones || cargandoItems || cargandoEmpresa;
 
-  const revision = `Rev. ${(cot as unknown as { revision?: string } | null)?.revision?.trim() || "01"}`;
+  const revision = `Rev. ${((cot as unknown as { revision?: string } | null)?.revision?.trim() || "00").padStart(2, "0")}`;
 
   function encabezadoHoja(numero: number, totalHojas: number) {
     const light = { fontFamily: DOC_FUENTE_CSS, fontWeight: 300 } as const;
