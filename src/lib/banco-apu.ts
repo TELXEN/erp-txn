@@ -203,7 +203,6 @@ export type FilaCopiaApu = {
  */
 export function aplanarReceta(
   partidaId: string,
-  partidas: Recurso[],
   detalle: DetalleApu[],
   recursos: RecursosApu,
   factor: number,
