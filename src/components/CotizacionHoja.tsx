@@ -616,18 +616,16 @@ export function CotizacionHoja({
   }
 
 
-  /** Borra solo la partida (y sus subpartidas); la especialidad y la categoría se conservan. */
+  /** Borra solo la partida; la especialidad y la categoría se conservan. */
   async function borrar(id: string) {
     const it = items.find((i) => i.id === id);
     if (!it) return;
     setError("");
-    const hijos = items.filter((i) => i.padre_id === id);
-    const ids = new Set([id, ...hijos.map((h) => h.id)]);
-    const { error: err } = await supabase.from("cotizacion_items").delete().in("id", [...ids]);
+    const { error: err } = await supabase.from("cotizacion_items").delete().eq("id", id);
     if (err) return setError(err.message);
     const cat = (it.categoria ?? "").trim();
     const quedaGrupo = items.some(
-      (i) => !ids.has(i.id) && i.especialidad === it.especialidad && (i.categoria ?? "").trim() === cat,
+      (i) => i.id !== id && i.especialidad === it.especialidad && (i.categoria ?? "").trim() === cat,
     );
     if (!quedaGrupo) await crearGrupo(it.especialidad, cat, it.grupo ?? "");
     else refrescar();
@@ -651,9 +649,9 @@ export function CotizacionHoja({
   async function borrarSeleccionadas() {
     const filas = visibles.filter((f): f is Extract<Fila, { clase: "item" }> => f.clase === "item" && seleccionadas.has(f.clave));
     if (filas.length < 2) return;
-    const protegidas = filas.filter((f) => f.agrupadora || conApu.has(f.it.id));
+    const protegidas = filas.filter((f) => conApu.has(f.it.id));
     if (protegidas.length) {
-      setError(`No se puede borrar la selección: ${protegidas.length} partida(s) tienen subpartidas o APU asociado.`);
+      setError(`No se puede borrar la selección: ${protegidas.length} partida(s) tienen APU asociado.`);
       return;
     }
     if (!window.confirm(`¿Borrar las ${filas.length} partidas seleccionadas? Esta acción no se puede deshacer.`)) return;
