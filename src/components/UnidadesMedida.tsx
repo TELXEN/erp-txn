@@ -1,244 +1,112 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Check, Pencil, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { Input, Panel, Select } from "@/components/ui-kit";
-import { useUnidadesMedida, type UnidadMedida } from "@/lib/unidades";
+import { Boton, Campo, Input, Panel, Vacio, VentanaFlotante } from "@/components/ui-kit";
+import { BarraIconosHoja } from "@/components/BarraIconosHoja";
+import { useUnidadesMedida } from "@/lib/unidades";
 
-const vacio = { simbolo: "", descripcion: "", orden: "" };
+type Modo = "nuevo" | "editar" | "copiar";
+const vacio = { simbolo: "", descripcion: "", orden: "", activo: true };
 
+/** Catálogo de unidades de medida: hoja limpia + barra de iconos + ventana flotante. */
 export function UnidadesMedida() {
   const qc = useQueryClient();
   const { data: lista = [] } = useUnidadesMedida();
-  const [nueva, setNueva] = useState(vacio);
-  const [editando, setEditando] = useState<UnidadMedida | null>(null);
-  const [error, setError] = useState("");
-  const [guardando, setGuardando] = useState(false);
+  const [sel, setSel] = useState("");
+  const [modo, setModo] = useState<Modo | null>(null);
+  const [form, setForm] = useState(vacio);
+  const [aviso, setAviso] = useState("");
+  const actual = lista.find((u) => u.id === sel);
 
   const refrescar = () => {
     qc.invalidateQueries({ queryKey: ["unidades_medida"] });
     qc.invalidateQueries({ queryKey: ["partidas"] });
   };
 
-  async function crear() {
-    if (guardando) return;
-    setError("");
-    const simbolo = nueva.simbolo.trim();
-    if (!simbolo) return setError("Escribe el símbolo de la unidad (ej. m2).");
-    setGuardando(true);
-    try {
-      const { error: err } = await supabase.from("unidades_medida").insert({
-        simbolo,
-        descripcion: nueva.descripcion.trim(),
-        orden: Number(nueva.orden) || lista.length + 1,
-      });
-      if (err)
-        throw new Error(err.message.includes("duplicate") ? "Esa unidad ya está registrada." : err.message);
-      setNueva(vacio);
-      refrescar();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "No se pudo registrar.");
-    } finally {
-      setGuardando(false);
-    }
+  function abrir(m: Modo, id = sel) {
+    const actual = lista.find((x) => x.id === id);
+    setModo(m); setAviso("");
+    if (m === "nuevo" || !actual) return setForm({ ...vacio, orden: String(lista.length + 1) });
+    setForm({
+      simbolo: m === "copiar" ? "" : actual.simbolo,
+      descripcion: actual.descripcion ?? "",
+      orden: m === "copiar" ? String(lista.length + 1) : String(actual.orden ?? ""),
+      activo: actual.activo,
+    });
   }
 
   async function guardar() {
-    if (!editando) return;
-    setError("");
-    const anterior = lista.find((u) => u.id === editando.id);
-    const simbolo = editando.simbolo.trim();
-    const { error: err } = await supabase
-      .from("unidades_medida")
-      .update({
-        simbolo,
-        descripcion: editando.descripcion.trim(),
-        orden: Number(editando.orden) || 0,
-        activo: editando.activo,
-      })
-      .eq("id", editando.id);
-    if (err) return setError(err.message);
-    if (anterior && anterior.simbolo !== simbolo) {
-      await supabase.from("partidas").update({ unidad: simbolo }).eq("unidad", anterior.simbolo);
-    }
-    setEditando(null);
+    const simbolo = form.simbolo.trim();
+    if (!simbolo) return setAviso("Escribe el símbolo de la unidad (ej. m2).");
+    const datos = { simbolo, descripcion: form.descripcion.trim(), orden: Number(form.orden) || lista.length + 1, activo: form.activo };
+    const editar = modo === "editar" && actual;
+    const { error } = editar
+      ? await supabase.from("unidades_medida").update(datos).eq("id", actual.id)
+      : await supabase.from("unidades_medida").insert(datos);
+    if (error) return setAviso(error.message.includes("duplicate") ? "Esa unidad ya está registrada." : error.message);
+    if (editar && actual.simbolo !== simbolo) await supabase.from("partidas").update({ unidad: simbolo }).eq("unidad", actual.simbolo);
+    setModo(null);
     refrescar();
   }
 
-  async function eliminar(id: string) {
-    if (!window.confirm("¿Eliminar esta unidad de medida del catálogo?")) return;
-    setError("");
-    const { error: err } = await supabase.from("unidades_medida").delete().eq("id", id);
-    if (err) return setError(err.message);
+  async function eliminar() {
+    if (!actual || !window.confirm(`¿Eliminar la unidad «${actual.simbolo}» del catálogo?`)) return;
+    const { error } = await supabase.from("unidades_medida").delete().eq("id", actual.id);
+    if (error) return window.alert(error.message);
+    setSel("");
     refrescar();
   }
-
-  const teclaNueva = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      void crear();
-    }
-  };
-
-  const inputCls = "w-full rounded-md border border-line bg-background px-2 py-1 text-xs outline-none focus:border-primary";
 
   return (
-    <Panel titulo="Unidades de medida">
-      <table className="w-full table-fixed font-mono text-xs">
-        <thead>
-          <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-            <th className="w-[14%] px-5 py-2 font-medium">Símbolo</th>
-            <th className="w-[44%] px-3 py-2 font-medium">Descripción</th>
-            <th className="w-[12%] px-3 py-2 text-right font-medium">Orden</th>
-            <th className="w-[15%] px-3 py-2 font-medium">Estado</th>
-            <th className="w-[15%] px-5 py-2 text-right font-medium">Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {/* Fila de captura rápida (siempre visible arriba) */}
-          <tr className="border-b border-dashed border-line/60 bg-muted/20">
-            <td className="px-5 py-2">
-              <input
-                className={`${inputCls} font-mono`}
-                placeholder="m2"
-                maxLength={10}
-                value={nueva.simbolo} data-formato="unidad"
-                onChange={(e) => setNueva({ ...nueva, simbolo: e.target.value })}
-                onKeyDown={teclaNueva}
-              />
-            </td>
-            <td className="px-3 py-2">
-              <input
-                className={inputCls}
-                placeholder="Descripción y Enter…"
-                maxLength={60}
-                value={nueva.descripcion} data-formato="oracion"
-                onChange={(e) => setNueva({ ...nueva, descripcion: e.target.value })}
-                onKeyDown={teclaNueva}
-              />
-            </td>
-            <td className="px-3 py-2">
-              <input
-                className={`${inputCls} text-right`}
-                type="number"
-                min={0}
-                placeholder={String(lista.length + 1)}
-                value={nueva.orden}
-                onChange={(e) => setNueva({ ...nueva, orden: e.target.value })}
-                onKeyDown={teclaNueva}
-              />
-            </td>
-            <td className="px-3 py-2 text-muted-foreground/60">Activa</td>
-            <td className="px-5 py-2">
-              <div className="flex items-center justify-end">
-                <button
-                  type="button"
-                  onClick={() => void crear()}
-                  disabled={guardando}
-                  title="Registrar unidad"
-                  className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground disabled:opacity-50"
-                >
-                  <Check size={14} />
-                </button>
-              </div>
-            </td>
-          </tr>
-          {lista.map((u) =>
-            editando?.id === u.id ? (
-              <tr key={u.id} className="border-b border-line/40 last:border-0">
-                <td className="px-5 py-2">
-                  <Input
-                    className="py-1 font-mono text-xs"
-                    value={editando.simbolo} data-formato="unidad"
-                    onChange={(ev) => setEditando({ ...editando, simbolo: ev.target.value })}
-                    maxLength={10}
-                  />
-                </td>
-                <td className="px-3 py-2">
-                  <Input
-                    className="py-1 text-xs"
-                    value={editando.descripcion} data-formato="oracion"
-                    onChange={(ev) => setEditando({ ...editando, descripcion: ev.target.value })}
-                  />
-                </td>
-                <td className="px-3 py-2">
-                  <Input
-                    className="py-1 text-right text-xs"
-                    type="number"
-                    value={editando.orden}
-                    onChange={(ev) => setEditando({ ...editando, orden: Number(ev.target.value) })}
-                  />
-                </td>
-                <td className="px-3 py-2">
-                  <Select
-                    className="py-1 text-xs"
-                    value={editando.activo ? "si" : "no"}
-                    onChange={(ev) => setEditando({ ...editando, activo: ev.target.value === "si" })}
-                  >
-                    <option value="si">Activa</option>
-                    <option value="no">Inactiva</option>
-                  </Select>
-                </td>
-                <td className="px-5 py-2">
-                  <div className="flex items-center justify-end gap-1">
-                    <button
-                      type="button"
-                      onClick={guardar}
-                      title="Guardar"
-                      className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground"
-                    >
-                      <Check size={14} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setEditando(null)}
-                      title="Cancelar"
-                      className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line hover:bg-muted"
-                    >
-                      <X size={14} />
-                    </button>
-                  </div>
-                </td>
+    <div className="flex items-start gap-3">
+      <Panel titulo="Unidades de medida" className="min-w-0 flex-1">
+        {lista.length === 0 ? <Vacio texto="Sin unidades." /> : (
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="border-b border-line text-left label-mono">
+                <th className="w-28 px-2 py-1">Símbolo</th><th className="px-2 py-1">Descripción</th>
+                <th className="w-20 px-2 py-1 text-right">Orden</th><th className="w-24 px-2 py-1">Estado</th>
               </tr>
-            ) : (
-              <tr key={u.id} className="border-b border-line/40 last:border-0">
-                <td className="px-5 py-2.5 font-semibold text-primary">{u.simbolo}</td>
-                <td className="px-3 py-2.5 text-ink">{u.descripcion}</td>
-                <td className="px-3 py-2.5 text-right text-muted-foreground">{u.orden}</td>
-                <td className="px-3 py-2.5">
-                  <span className={u.activo ? "text-good" : "text-muted-foreground"}>
-                    {u.activo ? "Activa" : "Inactiva"}
-                  </span>
-                </td>
-                <td className="px-5 py-2.5">
-                  <div className="flex items-center justify-end gap-1">
-                    <button
-                      type="button"
-                      onClick={() => setEditando(u)}
-                      title="Editar"
-                      className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"
-                    >
-                      <Pencil size={14} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => eliminar(u.id)}
-                      title="Eliminar"
-                      className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-bad/40 text-bad hover:border-bad"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ),
-          )}
-        </tbody>
-      </table>
-      {error && <p className="px-5 py-2 font-mono text-xs text-bad">{error}</p>}
-      <p className="border-t border-line px-5 py-3 font-mono text-[10px] leading-relaxed text-muted-foreground">
-        Escribe en la primera fila y pulsa Enter para registrar. El presupuesto de cada partida se calcula como metrado × precio unitario. Para trabajos a suma alzada usa la unidad «glb» con metrado 1.
-      </p>
-    </Panel>
+            </thead>
+            <tbody>
+              {lista.map((u) => (
+                <tr key={u.id} onClick={() => setSel(u.id)} onDoubleClick={() => { setSel(u.id); abrir("editar", u.id); }}
+                  className={`cursor-pointer border-b border-line/60 hover:bg-muted/40 ${sel === u.id ? "bg-primary/10" : ""}`}>
+                  <td className="px-2 py-0.5 font-mono">{u.simbolo}</td>
+                  <td className="px-2 py-0.5">{u.descripcion}</td>
+                  <td className="px-2 py-0.5 text-right font-mono">{u.orden}</td>
+                  <td className="px-2 py-0.5 text-muted-foreground">{u.activo ? "Activa" : "Inactiva"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </Panel>
+      <BarraIconosHoja objeto="unidad" haySeleccion={!!actual}
+        onAgregar={() => abrir("nuevo")} onEditar={() => abrir("editar")} onCopiar={() => abrir("copiar")} onEliminar={() => void eliminar()} />
+
+      <VentanaFlotante abierta={!!modo} onCerrar={() => setModo(null)} ancho="max-w-lg"
+        titulo={modo === "editar" ? "Editar unidad" : modo === "copiar" ? "Copiar unidad" : "Nueva unidad"}>
+        <form className="grid gap-3 p-5 sm:grid-cols-2" onSubmit={(e) => { e.preventDefault(); void guardar(); }}>
+          <Campo etiqueta="Símbolo">
+            <Input autoFocus maxLength={10} value={form.simbolo} data-formato="unidad" placeholder="m2" onChange={(e) => setForm({ ...form, simbolo: e.target.value })} />
+          </Campo>
+          <Campo etiqueta="Orden">
+            <Input type="number" min={0} value={form.orden} onChange={(e) => setForm({ ...form, orden: e.target.value })} />
+          </Campo>
+          <div className="sm:col-span-2">
+            <Campo etiqueta="Descripción">
+              <Input maxLength={60} value={form.descripcion} data-formato="oracion" onChange={(e) => setForm({ ...form, descripcion: e.target.value })} />
+            </Campo>
+          </div>
+          <label className="flex items-center gap-2 text-xs sm:col-span-2"><input type="checkbox" checked={form.activo} onChange={(e) => setForm({ ...form, activo: e.target.checked })} /> Activa</label>
+          {aviso && <p className="text-xs text-bad sm:col-span-2">{aviso}</p>}
+          <div className="flex justify-end gap-2 sm:col-span-2">
+            <Boton type="button" variante="linea" onClick={() => setModo(null)}>Cerrar</Boton>
+            <Boton type="submit">Guardar</Boton>
+          </div>
+        </form>
+      </VentanaFlotante>
+    </div>
   );
 }
