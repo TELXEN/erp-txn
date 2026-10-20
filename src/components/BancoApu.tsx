@@ -73,7 +73,10 @@ const CONFIG: Record<Tabla, { titulo: string; campos: CampoDef[]; columnas: [str
   },
 };
 
-const TABS = Object.keys(CONFIG) as Tabla[];
+// Pestañas visibles: Partidas e Insumos (los cuatro recursos agrupados en una sola lista).
+type Vista = "partidas_apu" | "insumos";
+const TABS: [Vista, string][] = [["partidas_apu", "Partidas"], ["insumos", "Insumos"]];
+const GRUPOS_INSUMO: Tabla[] = ["materiales", "mano_obra", "equipos_herramientas", "subcontratos"];
 
 const useTabla = (t: Tabla | "partida_detalle") =>
   useQuery({
@@ -86,21 +89,27 @@ const useTabla = (t: Tabla | "partida_detalle") =>
   });
 
 export function BancoApu() {
-  const [tab, setTab] = useState<Tabla>(() =>
-    (typeof window !== "undefined" && (localStorage.getItem("banco-apu:tab") as Tabla)) || "partidas_apu",
+  const [tab, setTab] = useState<Vista>(() =>
+    typeof window !== "undefined" && localStorage.getItem("banco-apu:tab") === "partidas_apu" ? "partidas_apu" : typeof window !== "undefined" && localStorage.getItem("banco-apu:tab") ? "insumos" : "partidas_apu",
   );
-  const cambiar = (t: Tabla) => { setTab(t); localStorage.setItem("banco-apu:tab", t); };
+  const cambiar = (t: Vista) => { setTab(t); localStorage.setItem("banco-apu:tab", t); };
   return (
     <>
       <div className="mb-3 flex flex-wrap gap-1 border-b border-line pb-2">
-        {TABS.map((t) => (
+        {TABS.map(([t, titulo]) => (
           <button key={t} type="button" onClick={() => cambiar(t)}
             className={`rounded-md border-b-2 px-3 py-1.5 text-xs transition-colors ${tab === t ? "border-cta bg-primary/10 font-semibold text-primary" : "border-transparent text-muted-foreground hover:bg-muted hover:text-primary"}`}>
-            {CONFIG[t].titulo}
+            {titulo}
           </button>
         ))}
       </div>
-      {tab === "partidas_apu" ? <SplitPartidas /> : <ListaBanco key={tab} tabla={tab} />}
+      {tab === "partidas_apu" ? (
+        <SplitPartidas />
+      ) : (
+        <div className="space-y-4">
+          {GRUPOS_INSUMO.map((t) => <ListaBanco key={t} tabla={t} />)}
+        </div>
+      )}
     </>
   );
 }
