@@ -23,7 +23,7 @@
 - SIRE uses one persistent period selector and sync control for RVIE and RCE — books stay aligned.
 - Quotation hierarchy uses `especialidad` as the chapter for single-discipline quotes, while multidisciplinary quotes use it for discipline and `grupo` for group; templates preserve this structure. Master prices are PEN, converted on entry — no mixed currencies.
 - On desktop, AppShell owns viewport height; sidebar and workspace scroll independently — navigation stays fixed.
-- Quotation WBS codes: multidisciplinary = 4 levels Especialidad.Grupo.Categoría.Partida (01.01.01.01); single-discipline = 3 levels Grupo.Categoría.Partida (chapter is the group). Group 00 = none. numeracionCotizacion (src/lib/categorias.ts) is the single source; projects copy codes on conversion.
+- Quotation WBS: multi = 4 levels Especialidad.Grupo.Categoría.Partida; single = 3 levels Grupo.Categoría.Partida (group is chapter); group 00 = none. numeracionCotizacion is the single source; projects copy codes on conversion. Subpartidas removed everywhere; legacy padre_id columns deprecated.
 - EMO validity is computed in src/lib/emo.ts from each worker's latest exam (emos_trabajador, admin/gerente-only) — one rule feeds every EMO alert.
 - Primary creation uses VentanaFlotante (optional hidden scrollbars) with consecutive saves and explicit close; cost eligibility, overrun lock and CD ceiling are DB triggers (Gerencia overrides via solicitudes_desbloqueo).
 - Detraction collections store the BN account in ventas.banco_detraccion_id; treasury splits the sale between both banks — no duplicate sale rows.
