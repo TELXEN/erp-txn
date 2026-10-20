@@ -59,7 +59,7 @@ export function GruposCotizacion() {
   async function eliminar() {
     if (!actual || !window.confirm(`¿Eliminar el título «${actual.nombre.toUpperCase()}»?`)) return;
     const { error } = await sb.from("grupos_cotizacion").delete().eq("id", actual.id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setSel("");
     refrescar();
   }
