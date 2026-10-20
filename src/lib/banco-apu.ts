@@ -85,35 +85,18 @@ export type FilaCalculo = {
 /**
  * Costo de una receta APU. MO y equipos H-M: parcial = cuadrilla × jornada × CU ÷ rendimiento.
  * Equipos «%»: porcentaje sobre el total de mano de obra. Materiales/subcontratos: cantidad × CU.
- * Las subpartidas (solo en partida_detalle) se resuelven recursivamente con protección contra ciclos.
  */
 export function costoReceta(
   detalles: DetalleApu[],
   recursos: RecursosApu,
   rendimiento: number,
   jornada = 8,
-  partidas: Recurso[] = [],
-  visitados = new Set<string>(),
-  detalleCompleto?: DetalleApu[],
 ): { total: number; filas: FilaCalculo[] } {
   const rend = Number(rendimiento) || 1;
   const jor = Number(jornada) || 8;
-  const filas: FilaCalculo[] = detalles.map((d) => {
+  const filas: FilaCalculo[] = detalles.flatMap((d) => {
     const found = BANCOS_RECURSO.find(([c]) => d[c]);
-    if (!found) {
-      // Subpartida (solo aplica al detalle del banco).
-      const hijoId = d.subpartida_hijo_id as string;
-      if (hijoId && !visitados.has(hijoId)) {
-        const hijo = partidas.find((p) => p.id === hijoId);
-        const detHijo = (detalleCompleto ?? []).filter((x) => x.partida_padre_id === hijoId);
-        const sub = costoReceta(
-          detHijo, recursos, Number(hijo?.rendimiento_diario) || 1, 8, partidas, new Set(visitados).add(hijoId), detalleCompleto,
-        );
-        const q = Number(d.cantidad_o_cuadrilla) || 0;
-        return { d, banco: "Subpartidas", tipo: "SUB", recursoId: hijoId, nombre: hijo?.descripcion ?? "(no encontrada)", und: hijo?.unidad ?? "", cu: sub.total, cantidad: q, parcial: q * sub.total };
-      }
-      return { d, banco: "Subpartidas", tipo: "SUB", recursoId: hijoId, nombre: "(ciclo)", und: "", cu: 0, cantidad: 0, parcial: 0 };
-    }
+    if (!found) return [];
     const [col, tabla, etiqueta, tipo] = found;
     const banco = (recursos[tabla as keyof RecursosApu] ?? []).find((x) => x.id === d[col]);
     // Copia fija de la cotización: si existe, manda sobre el banco.
@@ -163,7 +146,7 @@ export function useCostosPartidasApu() {
   const mapa = new Map<string, number>();
   for (const p of partidas) {
     const propias = detalle.filter((d) => d.partida_padre_id === p.id);
-    mapa.set(p.id, costoReceta(propias, recursos, Number(p.rendimiento_diario) || 1, 8, partidas, new Set([p.id]), detalle).total);
+    mapa.set(p.id, costoReceta(propias, recursos, Number(p.rendimiento_diario) || 1, 8).total);
   }
   return mapa;
 }
@@ -215,9 +198,8 @@ export type FilaCopiaApu = {
 };
 
 /**
- * Aplana la receta de una partida del banco (subpartidas incluidas) en filas con
- * precio fijo en la moneda indicada. `factor` convierte PEN → moneda (1 o 1/TC).
- * Las cantidades de subpartidas se reescalan al rendimiento de la partida padre.
+ * Aplana la receta de una partida del banco en filas con precio fijo en la
+ * moneda indicada. `factor` convierte PEN → moneda (1 o 1/TC).
  */
 export function aplanarReceta(
   partidaId: string,
@@ -225,24 +207,9 @@ export function aplanarReceta(
   detalle: DetalleApu[],
   recursos: RecursosApu,
   factor: number,
-  multiplicador = 1,
-  rendPadre?: number,
-  visitados = new Set<string>(),
 ): FilaCopiaApu[] {
-  if (visitados.has(partidaId)) return [];
-  visitados = new Set(visitados).add(partidaId);
-  const p = partidas.find((x) => x.id === partidaId);
-  const rend = Number(p?.rendimiento_diario) || 1;
-  const rp = rendPadre ?? rend;
-  const propias = detalle.filter((d) => d.partida_padre_id === partidaId);
   const salida: FilaCopiaApu[] = [];
-  const esRaiz = rendPadre === undefined;
-  const totalMoHijo = esRaiz ? 0 : costoReceta(propias.filter((d) => d.mano_obra_id), recursos, rend).total;
-  for (const d of propias) {
-    if (d.subpartida_hijo_id) {
-      salida.push(...aplanarReceta(d.subpartida_hijo_id, partidas, detalle, recursos, factor, multiplicador * (Number(d.cantidad_o_cuadrilla) || 0), rp, visitados));
-      continue;
-    }
+  for (const d of detalle.filter((x) => x.partida_padre_id === partidaId)) {
     const found = BANCOS_RECURSO.find(([c]) => d[c]);
     if (!found) continue;
     const [col, tabla, , tipo] = found;
@@ -254,21 +221,13 @@ export function aplanarReceta(
     const fila: FilaCopiaApu = {
       material_id: null, mano_obra_id: null, equipo_id: null, subcontrato_id: null,
       [col]: r.id,
-      cantidad_o_cuadrilla: q * multiplicador,
+      cantidad_o_cuadrilla: q,
       codigo: r.codigo ?? "", descripcion: r.descripcion ?? "", marca: r.marca ?? "", unidad: r.unidad ?? "",
       tipo_recurso: tipo,
       precio_unitario: Math.round((tabla === "mano_obra" ? Number(r.costo_hora) : Number(r.costo_unitario)) * factor * 10000) / 10000,
     } as FilaCopiaApu;
-    if (horaria) fila.cantidad_o_cuadrilla = (q * multiplicador * rp) / rend;
-    if (pct) {
-      if (esRaiz) fila.precio_unitario = Number(r.costo_hora);
-      else {
-        // % sobre la MO de la subpartida: se fija como importe por unidad del padre.
-        fila.unidad = "GLB";
-        fila.cantidad_o_cuadrilla = multiplicador;
-        fila.precio_unitario = Math.round(((totalMoHijo * Number(r.costo_hora) * q) / 100) * factor * 10000) / 10000;
-      }
-    }
+    if (horaria) fila.cantidad_o_cuadrilla = q;
+    if (pct) fila.precio_unitario = Number(r.costo_hora);
     salida.push(fila);
   }
   return salida;
@@ -282,7 +241,7 @@ export async function copiarRecetaACotizacion(itemId: string, partidaApuId: stri
   if (err) throw err.error;
   const [partidas, detalle, materiales, mano_obra, equipos_herramientas, subcontratos] = res.map((r: { data: Recurso[] }) => r.data ?? []) as Recurso[][] as [Recurso[], Recurso[], Recurso[], Recurso[], Recurso[], Recurso[]];
   const recursos = { materiales, mano_obra, equipos_herramientas, subcontratos };
-  const filas = aplanarReceta(partidaApuId, partidas, detalle, recursos, factor);
+  const filas = aplanarReceta(partidaApuId, detalle, recursos, factor);
   const p = partidas.find((x: Recurso) => x.id === partidaApuId);
   const rend = Number(p?.rendimiento_diario) || 1;
   const { error: e1 } = await dbBanco.from("cotizacion_apu_detalle").delete().eq("cotizacion_item_id", itemId);
