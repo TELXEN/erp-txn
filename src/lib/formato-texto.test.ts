@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatearTexto } from "./formato-texto";
+import { formatearSiGritado, formatearTexto } from "./formato-texto";
 
 describe("formatearTexto", () => {
   it("oración con siglas", () => {
@@ -18,6 +18,13 @@ describe("formatearTexto", () => {
   });
   it("cargo", () => {
     expect(formatearTexto("GERENTE DE PROYECTOS Senior", "cargo")).toBe("Gerente de proyectos senior");
+  });
+  it("mayúsculas (especialidades)", () => {
+    expect(formatearTexto("Instalaciones auxiliares (HVAC y contra incendio)", "mayusculas")).toBe(
+      "INSTALACIONES AUXILIARES (HVAC Y CONTRA INCENDIO)",
+    );
+    // FormatoGlobal usa formatearSiGritado al salir del campo: también sube lo escrito en minúscula.
+    expect(formatearSiGritado("estructuras metálicas", "mayusculas")).toBe("ESTRUCTURAS METÁLICAS");
   });
   it("unidad", () => {
     expect(formatearTexto("M2", "unidad")).toBe("m²");
