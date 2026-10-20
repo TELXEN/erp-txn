@@ -1399,20 +1399,9 @@ export function CotizacionHoja({
                   <td className={`${celdaBase} whitespace-nowrap text-right font-mono font-semibold text-ink`}>{mon(f.total)}</td>
                   <td className={`${celdaBase} text-right`}>
                     <div className="flex items-center justify-end gap-1">
-                      {f.nivel === 3 && (
-                        <button
-                          type="button"
-                          title="Agregar subpartida (nivel 2)"
-                          aria-label="Agregar subpartida (nivel 2)"
-                          onClick={() => void crearSubpartida(it)}
-                          className="rounded border border-line p-1 text-muted-foreground hover:border-primary hover:text-primary"
-                        >
-                          <CornerDownRight size={12} />
-                        </button>
-                      )}
-                      {f.agrupadora || puFijo ? (
+                      {puFijo ? (
                         <span
-                          title={f.agrupadora ? "Tiene subpartidas asociadas" : "Tiene APU asociado"}
+                          title="Tiene APU asociado"
                           className="rounded border border-line p-1 text-muted-foreground/60"
                         >
                           <Lock size={12} />
@@ -1447,16 +1436,12 @@ export function CotizacionHoja({
                   <ContextMenuItem onSelect={() => void insertarFila(r)}>
                     <ListPlus size={14} className="mr-2" /> Insertar partida debajo
                   </ContextMenuItem>
-                  {!f.agrupadora && (
-                    <ContextMenuItem onSelect={() => setActivo({ r, c: 1 })}>
-                      <Calculator size={14} className="mr-2" /> Ver APU
-                    </ContextMenuItem>
-                  )}
-                  {!f.agrupadora && (
-                    <ContextMenuItem onSelect={() => { window.location.href = `/apu-vista?id=${cotizacionId}&item=${it.id}`; }}>
-                      <Calculator size={14} className="mr-2" /> Imprimir ficha APU
-                    </ContextMenuItem>
-                  )}
+                  <ContextMenuItem onSelect={() => setActivo({ r, c: 1 })}>
+                    <Calculator size={14} className="mr-2" /> Ver APU
+                  </ContextMenuItem>
+                  <ContextMenuItem onSelect={() => { window.location.href = `/apu-vista?id=${cotizacionId}&item=${it.id}`; }}>
+                    <Calculator size={14} className="mr-2" /> Imprimir ficha APU
+                  </ContextMenuItem>
                   <ContextMenuSeparator />
                   <ContextMenuItem disabled={!puedeDesplazar(f, -1)} onSelect={() => void desplazarFila(f, -1)}>
                     <ArrowUp size={14} className="mr-2" /> Mover arriba
@@ -1469,9 +1454,9 @@ export function CotizacionHoja({
                     <ContextMenuItem className="text-bad focus:text-bad" onSelect={() => void borrarSeleccionadas()}>
                       <Trash2 size={14} className="mr-2" /> Borrar {seleccionadas.size} partidas seleccionadas
                     </ContextMenuItem>
-                  ) : f.agrupadora || puFijo ? (
+                  ) : puFijo ? (
                     <ContextMenuItem disabled>
-                      <Lock size={14} className="mr-2" /> {f.agrupadora ? "Tiene subpartidas" : "Tiene APU asociado"}
+                      <Lock size={14} className="mr-2" /> Tiene APU asociado
                     </ContextMenuItem>
                   ) : (
                     <ContextMenuItem className="text-bad focus:text-bad" onSelect={() => void borrar(it.id)}>
