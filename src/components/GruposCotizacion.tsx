@@ -36,7 +36,8 @@ export function GruposCotizacion() {
   const existe = (n: string, exceptoId?: string) =>
     grupos.some((g) => g.id !== exceptoId && claveNombre(g.nombre) === claveNombre(n));
 
-  function abrir(m: Modo) {
+  function abrir(m: Modo, id = sel) {
+    const actual = grupos.find((x) => x.id === id);
     setModo(m); setAviso("");
     setNombre(m === "nuevo" || !actual ? "" : m === "copiar" ? `${actual.nombre} (copia)` : actual.nombre);
     setActivo(m === "nuevo" || !actual ? true : actual.activo);
@@ -75,7 +76,7 @@ export function GruposCotizacion() {
             </thead>
             <tbody>
               {grupos.map((g, i) => (
-                <tr key={g.id} onClick={() => setSel(g.id)} onDoubleClick={() => { setSel(g.id); setTimeout(() => abrir("editar")); }}
+                <tr key={g.id} onClick={() => setSel(g.id)} onDoubleClick={() => { setSel(g.id); abrir("editar", g.id); }}
                   className={`cursor-pointer border-b border-line/60 hover:bg-muted/40 ${sel === g.id ? "bg-primary/10" : ""}`}>
                   <td className="px-2 py-0.5 font-mono text-muted-foreground">{String(i + 1).padStart(2, "0")}</td>
                   <td className="px-2 py-0.5 uppercase">{g.nombre}</td>

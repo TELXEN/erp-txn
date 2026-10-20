@@ -23,7 +23,8 @@ export function UnidadesMedida() {
     qc.invalidateQueries({ queryKey: ["partidas"] });
   };
 
-  function abrir(m: Modo) {
+  function abrir(m: Modo, id = sel) {
+    const actual = lista.find((x) => x.id === id);
     setModo(m); setAviso("");
     if (m === "nuevo" || !actual) return setForm({ ...vacio, orden: String(lista.length + 1) });
     setForm({
@@ -69,7 +70,7 @@ export function UnidadesMedida() {
             </thead>
             <tbody>
               {lista.map((u) => (
-                <tr key={u.id} onClick={() => setSel(u.id)} onDoubleClick={() => { setSel(u.id); setTimeout(() => abrir("editar")); }}
+                <tr key={u.id} onClick={() => setSel(u.id)} onDoubleClick={() => { setSel(u.id); abrir("editar", u.id); }}
                   className={`cursor-pointer border-b border-line/60 hover:bg-muted/40 ${sel === u.id ? "bg-primary/10" : ""}`}>
                   <td className="px-2 py-0.5 font-mono">{u.simbolo}</td>
                   <td className="px-2 py-0.5">{u.descripcion}</td>
