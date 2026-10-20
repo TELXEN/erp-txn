@@ -19,10 +19,8 @@ import {
   agruparPorCategoria,
   categoriasDe,
   codigoContextual,
-  ordenarJerarquia,
   numeracionCotizacion,
   cambiosNumeracion,
-  siguienteCodigoSubpartida,
   useCategoriasPartida,
 } from "@/lib/categorias";
 import { BANCOS_RECURSO, copiarRecetaACotizacion, costoReceta, dbBanco, useBancoTabla, useRecursosApu } from "@/lib/banco-apu";
@@ -40,7 +38,7 @@ type Fila =
   | { clase: "cap"; clave: string; codigo: string; texto: string; esp: string; total: number }
   | { clase: "grp"; clave: string; codigo: string; texto: string; esp: string; grp: string; total: number }
   | { clase: "sub"; clave: string; codigo: string; texto: string; esp: string; cat: string; grp: string; total: number }
-  | { clase: "item"; clave: string; it: CotizacionItem; nivel: 3 | 4; agrupadora: boolean; total: number };
+  | { clase: "item"; clave: string; it: CotizacionItem; total: number };
 
 /** Grupo de una categoría dentro de la especialidad: el primero no vacío de sus filas. */
 const grupoDeCat = (items: CotizacionItem[], esp: string, cat: string) =>
@@ -72,7 +70,7 @@ function buscarMaestras(maestras: PartidaMaestra[], texto: string, limite = 8): 
     .slice(0, limite);
 }
 
-/** Construye el árbol visible: capítulo (especialidad), grupo (solo multi), subcapítulo (categoría), partidas y subpartidas. */
+/** Construye el árbol visible: capítulo (especialidad), grupo (solo multi), subcapítulo (categoría) y partidas. */
 function construirArbol(items: CotizacionItem[], multi = false): Fila[] {
   const wbs = numeracionCotizacion(items, multi);
   const filas: Fila[] = [];
@@ -132,11 +130,8 @@ function construirArbol(items: CotizacionItem[], multi = false): Fila[] {
             (a.orden ?? Number.MAX_SAFE_INTEGER) - (b.orden ?? Number.MAX_SAFE_INTEGER) ||
             (a.codigo ?? "").localeCompare(b.codigo ?? "", undefined, { numeric: true }),
         );
-        for (const nodo of ordenarJerarquia(porCodigo)) {
-          const t = nodo.agrupadora
-            ? nodo.hijos.reduce((s, h) => s + Number(h.metrado) * Number(h.precio_unitario), 0)
-            : Number(nodo.fila.metrado) * Number(nodo.fila.precio_unitario);
-          filas.push({ clase: "item", clave: `i:${nodo.fila.id}`, it: nodo.fila, nivel: nodo.nivel, agrupadora: nodo.agrupadora, total: t });
+        for (const it of porCodigo) {
+          filas.push({ clase: "item", clave: `i:${it.id}`, it, total: Number(it.metrado) * Number(it.precio_unitario) });
         }
       }
     }
