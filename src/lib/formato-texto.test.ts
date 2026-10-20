@@ -67,3 +67,15 @@ describe("ordenarPorNombre (A→Z automático)", () => {
     expect(titles.map((t) => t.nombre)).toEqual(["ZETA", "ALFA"]);
   });
 });
+
+describe("claveNombre (nombres repetidos)", () => {
+  it("trata como iguales las variantes por mayúsculas, tildes o espacios", () => {
+    expect(claveNombre("obras   civiles")).toBe(claveNombre("OBRAS CIVILES"));
+    expect(claveNombre("  estructuras metálicas ")).toBe(claveNombre("ESTRUCTURAS METÁLICAS"));
+    expect(claveNombre("diseño y construcción")).toBe(claveNombre("DISEÑO Y CONSTRUCCIÓN"));
+  });
+  it("mantiene distintos los nombres que sí son distintos", () => {
+    expect(claveNombre("Estructuras Metálicas")).not.toBe(claveNombre("Estructuras de Concreto"));
+    expect(claveNombre("Piping")).not.toBe(claveNombre("Piping de Procesos y Utilidades"));
+  });
+});
