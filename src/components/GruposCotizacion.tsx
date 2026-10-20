@@ -46,9 +46,9 @@ export function GruposCotizacion() {
         </p>
         <table className="w-full text-xs">
           <tbody>
-            {grupos.map((g) => (
+            {grupos.map((g, i) => (
               <tr key={g.id} className="border-b border-line/60">
-                <td className="w-10 px-2 py-1 text-muted-foreground">{String(g.orden).padStart(2, "0")}</td>
+                <td className="w-10 px-2 py-1 text-muted-foreground">{String(i + 1).padStart(2, "0")}</td>
                 <td className="px-2 py-1">
                   <input key={g.nombre} defaultValue={g.nombre} data-formato="titulo" className={`${campo} uppercase`}
                     onBlur={async (e) => {

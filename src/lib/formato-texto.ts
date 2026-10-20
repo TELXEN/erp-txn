@@ -103,3 +103,11 @@ export function normalizarUnidad(texto: string) {
   return UNIDADES[k] ?? t;
 }
 export const unidadValida = (t: string) => /^[\p{L}²³%/.\-\d ]{1,12}$/u.test(t.trim());
+
+const COLADOR_ES = new Intl.Collator("es", { sensitivity: "base", numeric: true });
+
+/** Orden alfabético A→Z en español: ignora mayúsculas y tildes; la ñ no se separa de la N. */
+export function ordenarPorNombre<T extends { nombre: string }>(filas: T[]): T[] {
+  return [...filas].sort((a, b) => COLADOR_ES.compare(a.nombre ?? "", b.nombre ?? ""));
+}
+
