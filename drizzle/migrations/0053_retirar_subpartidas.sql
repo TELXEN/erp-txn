@@ -1,0 +1,3 @@
+COMMENT ON COLUMN public.cotizacion_items.padre_id IS 'DEPRECATED: las subpartidas ya no existen en cotizaciones ni en obras. La columna queda solo por historial; la app ya no la escribe ni la muestra.';
+COMMENT ON COLUMN public.partidas.padre_id IS 'DEPRECATED: las subpartidas ya no existen en cotizaciones ni en obras. La columna queda solo por historial; la app ya no la escribe ni la muestra.';
+COMMENT ON COLUMN public.plantilla_cotizacion_items.padre_id IS 'DEPRECATED: las subpartidas ya no existen en cotizaciones ni en obras. La columna queda solo por historial; la app ya no la escribe ni la muestra.';
