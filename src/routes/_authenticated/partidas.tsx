@@ -776,79 +776,9 @@ function Partidas() {
                           <td colSpan={4} />
                         </tr>
                       )}
-                      {ordenarJerarquia(sub.items).map(({ fila: p, nivel, agrupadora, hijos }) => {
+                      {sub.items.map((p) => {
                         const enEdicion = editando?.id === p.id;
-                        const presuFila = agrupadora
-                          ? hijos.reduce((s, h) => s + Number(h.presupuesto_inicial), 0)
-                          : Number(p.presupuesto_inicial);
-                        const ultimoHijo =
-                          nivel === 4 && sub.items.filter((x) => x.padre_id === p.padre_id).at(-1)?.id === p.id;
-                        const formSubAqui =
-                          nuevaSub &&
-                          ((nivel === 4 && ultimoHijo && nuevaSub.padre_id === p.padre_id) ||
-                            (nivel === 3 && !agrupadora && nuevaSub.padre_id === p.id));
-                        const filaNueva = formSubAqui ? (
-                          <tr key={`nueva-${p.id}`} className="border-b border-line/40 bg-primary/5">
-                            <td className="px-5 py-2 pl-8">
-                              <Input
-                                value={nuevaSub.codigo}
-                                onChange={(e) => setNuevaSub({ ...nuevaSub, codigo: e.target.value })}
-                                className="py-1 font-mono text-xs"
-                                placeholder="01.01.01.01"
-                              />
-                            </td>
-                            <td className="px-3 py-2">
-                              <Input
-                                autoFocus
-                                value={nuevaSub.nombre} data-formato="oracion"
-                                onChange={(e) => setNuevaSub({ ...nuevaSub, nombre: e.target.value })}
-                                className="py-1 text-xs"
-                                placeholder="Descripción de la subpartida"
-                              />
-                            </td>
-                            <td className="px-2 py-2">
-                              <Input value={nuevaSub.marca} data-formato="titulo" onChange={(e) => setNuevaSub({ ...nuevaSub, marca: e.target.value })}
-                                className="py-1 text-xs" placeholder="-" />
-                            </td>
-                            <td className="px-2 py-2">
-                              <Select
-                                value={nuevaSub.unidad}
-                                onChange={(e) => setNuevaSub({ ...nuevaSub, unidad: e.target.value })}
-                                className="py-1 text-xs"
-                              >
-                                {[...new Set([...unidades.filter((u) => u.activo).map((u) => u.simbolo), nuevaSub.unidad])].map((u) => (
-                                  <option key={u} value={u}>{u}</option>
-                                ))}
-                              </Select>
-                            </td>
-                            <td className="px-2 py-2">
-                              <Input type="number" step="0.01" min="0" value={nuevaSub.metrado}
-                                onChange={(e) => setNuevaSub({ ...nuevaSub, metrado: e.target.value })}
-                                className="py-1 text-right text-xs" />
-                            </td>
-                            <td className="px-2 py-2">
-                              <Input type="number" step="0.01" min="0" value={nuevaSub.precio_unitario}
-                                onChange={(e) => setNuevaSub({ ...nuevaSub, precio_unitario: e.target.value })}
-                                className="py-1 text-right text-xs" />
-                            </td>
-                            <td className="px-3 py-2.5 text-right font-semibold text-ink">
-                              {soles(montoPartida(nuevaSub.metrado, nuevaSub.precio_unitario))}
-                            </td>
-                            <td colSpan={3} className="px-3 py-2 text-[10px] text-muted-foreground">Nueva subpartida</td>
-                            <td className="px-5 py-2">
-                              <div className="flex items-center justify-end gap-1">
-                                <button type="button" onClick={() => void guardarSubpartida()} title="Guardar subpartida"
-                                  className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground">
-                                  <Check size={14} />
-                                </button>
-                                <button type="button" onClick={() => setNuevaSub(null)} title="Cancelar"
-                                  className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line hover:bg-muted">
-                                  <X size={14} />
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ) : null;
+                        const presuFila = Number(p.presupuesto_inicial);
                         if (enEdicion) {
                           return (
                             <tr key={p.id} className="border-b border-line/40 last:border-0">
