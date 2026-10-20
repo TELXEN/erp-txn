@@ -1,19 +1,19 @@
-# Codificación modular de insumos (9 dígitos continuos)
+# Codificación modular de insumos (8 dígitos continuos)
 
 ## Objetivo
-Cada insumo (material, mano de obra, equipo/herramienta, subcontrato) recibe un código de 9 dígitos:
-`EE` especialidad + `TT` tipo de insumo + `SS` subfamilia + `NNN` correlativo. Se guarda y se muestra sin puntos, p. ej. `401013001`.
+Cada insumo (material, mano de obra, equipo/herramienta, subcontrato) recibe un código de 8 dígitos:
+`EE` especialidad + `T` tipo de insumo + `SS` subfamilia + `NNN` correlativo. Se guarda y se muestra sin puntos, p. ej. `40113001`.
 
 ## Niveles
 1. **Especialidad (EE)**: el catálogo actual «Especialidad de partidas» pasa a usar código libre de 2 dígitos (01–99), editable y sin repetidos. Valores iniciales: 10 Obras Preliminares / Estructuras, 20 Arquitectura y Acabados, 30 Instalaciones Sanitarias, 40 Instalaciones Eléctricas / Automatización. Las 18 especialidades actuales reciben un código según su equivalencia (las que no encajen se numeran libres, p. ej. 50, 60…), para que puedas ajustarlo.
-2. **Tipo de insumo (TT)**: fijo — 10 Materiales, 20 Mano de Obra, 30 Equipos/Herramientas, 40 Subcontratos.
+2. **Tipo de insumo (T, 1 dígito)**: fijo — 1 Materiales, 2 Mano de Obra, 3 Equipos/Herramientas, 4 Subcontratos.
 3. **Subfamilia (SS)**: nuevo catálogo ligado a una especialidad, agrupado por bloque. Se carga para la especialidad 40 la lista completa de tu documento (Media Tensión 01–08, Baja Tensión 10–15, Control y Protecciones 20–26, Iluminación y Tierras 30–34, 40–41).
 4. **Correlativo (NNN)**: automático 001–999 por cada combinación especialidad + tipo + subfamilia; lo reserva la base de datos para que dos usuarios no obtengan el mismo número.
 
 ## Pantallas
 - **Configuración del sistema › Codificación de insumos**: gestionar Especialidades (código + nombre), ver los 4 tipos fijos y gestionar Subfamilias (especialidad, bloque, código, nombre), con alta, edición y eliminación como los demás catálogos, avisando duplicados.
 - **Ventana de nuevo/editar/copiar insumo**: se eligen especialidad y subfamilia (el tipo ya se elige ahí); el código se genera solo al guardar. Cambiar especialidad o subfamilia al editar genera un código nuevo.
-- Hoja de Insumos, APU y cotizaciones muestran el código de 9 dígitos sin puntos.
+- Hoja de Insumos, APU y cotizaciones muestran el código de 8 dígitos sin puntos.
 
 ## Insumos existentes
 Se recodifican todos. Como aún no tienen especialidad ni subfamilia, quedan marcados **«Sin clasificar»** (resaltados) hasta que les asignes ambas; al hacerlo reciben su código definitivo.
@@ -21,5 +21,5 @@ Se recodifican todos. Como aún no tienen especialidad ni subfamilia, quedan mar
 ## Detalles técnicos
 - Migración aditiva: `especialidades_partida.codigo_modular char(2)` único; tabla `subfamilias_insumo` (especialidad_id, bloque, codigo char(2), nombre, unique(especialidad_id,codigo)) con GRANT + RLS (lectura personal, escritura admin/gerente); columnas `especialidad_id`, `subfamilia_id` en las 4 tablas de recursos.
 - Función SECURITY DEFINER `siguiente_codigo_insumo_modular(esp, tipo, subfam)` con bloqueo por combinación, max+1 sobre `codigo` existente; error al pasar 999.
-- Prueba del armado del código (`40`+`10`+`13`+`1` → `401013001`).
+- Prueba del armado del código (`40`+`1`+`13`+`1` → `40113001`).
 - El WBS de partidas (`recodificar_wbs`) no cambia.
