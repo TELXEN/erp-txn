@@ -40,7 +40,7 @@ const GRUPOS_APU: { titulo: string; icono: React.ElementType; items: [Pestana, s
     icono: Layers,
     items: [
       ["especialidades", "Especialidad de partidas"],
-      ["grupos", "Grupos de partidas"],
+      ["grupos", "Títulos de partidas"],
       ["categorias", "Categorías de partidas"],
       ["unidades", "Unidades de medida"],
     ],
