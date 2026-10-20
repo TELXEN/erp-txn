@@ -416,7 +416,9 @@ function CeldaNum({ valor, dec, onGuardar, deshabilitado, sufijo }: { sufijo?: s
   );
 }
 
-function PanelApuMaestro({ partida }: { partida: Fila }) {
+type Comando = { a: "nuevo" | "editar" | "copiar" | "eliminar"; n: number };
+
+function PanelApuMaestro({ partida, selFila, onSelFila, comando }: { partida: Fila; selFila?: string; onSelFila?: (id: string) => void; comando?: Comando | null }) {
   const qc = useQueryClient();
   const { costo, fuentes, detalles } = useApuMaestro();
   const [agregar, setAgregar] = useState<Grupo | null>(null);
@@ -493,6 +495,22 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
     refrescar();
   }
 
+  // Acciones de la barra vertical sobre el insumo seleccionado del APU.
+  useEffect(() => {
+    if (!comando || !selFila) return;
+    const f = calc.filas.find((x) => x.d.id === selFila);
+    const g = f && GRUPOS.find(([c]) => c === f.col);
+    if (!f || !g) return;
+    const m = { x: 0, y: 0, g, f, habilitadas: {} };
+    if (comando.a === "nuevo") void accionMenu("debajo", m);
+    else if (comando.a === "eliminar") { if (window.confirm(`¿Quitar «${f.nombre}» del APU?`)) { void quitarFila(f); onSelFila?.(""); } }
+    else if (comando.a === "editar") {
+      const inp = document.querySelector<HTMLInputElement>(`[data-fila-apu="${f.d.id}"] input`);
+      if (inp) { inp.focus(); inp.select(); }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [comando?.n]);
+
   return (
     <>
     {menu && <MenuContextualApu menu={menu} onCerrar={cerrarMenu} onAccion={(a) => void accionMenu(a, menu)} />}
@@ -535,7 +553,8 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
                   <td className={`${td} text-right font-mono font-bold`}>{n2(sub)}</td>
                 </tr>,
                 ...filas.map((f, i) => (
-                  <tr key={f.d.id} className="border-b border-line/70 hover:bg-primary/5"
+                  <tr key={f.d.id} data-fila-apu={f.d.id} className={`cursor-pointer border-b border-line/70 hover:bg-primary/5 ${selFila === f.d.id ? "bg-primary/10" : ""}`}
+                    onClick={() => onSelFila?.(f.d.id)}
                     onContextMenu={(e) => abrirMenu(e, g, f, { encima: true, debajo: true, final: true, subir: i > 0, bajar: i < filas.length - 1, eliminar: true })}>
                     <td className={`${td} font-mono text-[11px] text-muted-foreground`}><span className="block truncate" title={f.codigo ?? ""}>{f.codigo || "—"}</span></td>
                     <td className={td}><div className="flex min-w-0 items-center gap-1.5"><span className="min-w-0 truncate" title={f.nombre}>{f.nombre}</span></div></td>
