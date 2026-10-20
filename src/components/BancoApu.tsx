@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Calculator, Pencil, Plus, Trash2, X } from "lucide-react";
+import { Calculator, Copy, Pencil, Plus, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Boton, BotonIcono, Campo, Etiqueta, Input, Panel, Select, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
@@ -106,9 +106,7 @@ export function BancoApu() {
       {tab === "partidas_apu" ? (
         <SplitPartidas />
       ) : (
-        <div className="space-y-4">
-          {GRUPOS_INSUMO.map((t) => <ListaBanco key={t} tabla={t} />)}
-        </div>
+        <HojaInsumos />
       )}
     </>
   );
@@ -916,5 +914,139 @@ function PanelConsolidado({ partida }: { partida: Fila }) {
       </div>
     </Panel>
 
+  );
+}
+
+
+// ================= Hoja limpia de insumos con barra de acciones =================
+
+function HojaInsumos() {
+  const qc = useQueryClient();
+  const mat = useTabla("materiales").data ?? [];
+  const mo = useTabla("mano_obra").data ?? [];
+  const eq = useTabla("equipos_herramientas").data ?? [];
+  const sc = useTabla("subcontratos").data ?? [];
+  const datos: Record<string, Fila[]> = { materiales: mat, mano_obra: mo, equipos_herramientas: eq, subcontratos: sc };
+  const { data: unidades = [] } = useUnidadesMedida();
+  const [busqueda, setBusqueda] = useState("");
+  const [sel, setSel] = useState<{ tabla: Tabla; fila: Fila } | null>(null);
+  const [modo, setModo] = useState<"nuevo" | "editar" | "copiar" | null>(null);
+  const [tipo, setTipo] = useState<Tabla>("materiales");
+  const [form, setForm] = useState<Fila>({});
+  const [aviso, setAviso] = useState("");
+  const refrescar = () => qc.invalidateQueries({ queryKey: ["banco_apu"] });
+  const total = GRUPOS_INSUMO.reduce((n, t) => n + datos[t]!.filter((f) => f.estado === "activo").length, 0);
+
+  function base(t: Tabla, f?: Fila) {
+    const b: Fila = {};
+    for (const c of CONFIG[t].campos) b[c.k] = f ? String(f[c.k] ?? "") : c.opciones?.[0] ?? (c.tipo === "num" ? "0" : "");
+    if (!f && t === "mano_obra") b.unidad = "H-H";
+    if (!f && !b.unidad) b.unidad = unidades.find((u) => u.activo)?.simbolo ?? "";
+    return b;
+  }
+  function abrir(m: "nuevo" | "editar" | "copiar") {
+    setAviso("");
+    if (m === "nuevo") { setTipo("materiales"); setForm(base("materiales")); }
+    else if (sel) {
+      const b = base(sel.tabla, sel.fila);
+      if (m === "copiar") { b.codigo = ""; b.descripcion = `${b.descripcion} (copia)`; }
+      setTipo(sel.tabla); setForm(b);
+    } else return;
+    setModo(m);
+  }
+  async function guardar() {
+    if (!form.descripcion?.trim()) return setAviso("Escribe la descripción.");
+    const d: Record<string, unknown> = {};
+    for (const c of CONFIG[tipo].campos) d[c.k] = c.tipo === "num" ? Number(form[c.k] || 0) : String(form[c.k] ?? "").trim();
+    if (tipo === "equipos_herramientas" && form.tipo !== "alquilado") d["margen"] = 0;
+    const { error } = modo === "editar" && sel ? await db.from(tipo).update(d).eq("id", sel.fila.id) : await db.from(tipo).insert(d);
+    if (error) return setAviso(error.message);
+    refrescar(); setModo(null);
+  }
+  async function quitar() {
+    if (!sel || !window.confirm(`¿Eliminar «${sel.fila.descripcion}»?`)) return;
+    const { data, error } = await db.rpc("quitar_recurso_apu", { _tabla: sel.tabla, _id: sel.fila.id });
+    if (error) return window.alert(error.message);
+    if (data === "inactivado") window.alert("Está en uso en una o más partidas: se marcó como Inactivo en lugar de eliminarse.");
+    setSel(null); refrescar();
+  }
+  const undOpc = unidades.filter((u) => u.activo);
+  const cur = String(form.unidad ?? "");
+  const unds = cur && !undOpc.some((u) => u.simbolo === cur) ? [{ id: "x", simbolo: cur, descripcion: "fuera del catálogo" }, ...undOpc] : undOpc;
+
+  return (
+    <div className="flex gap-3">
+      <div className="min-w-0 flex-1 rounded-md border border-line bg-card">
+        <div className="flex items-center justify-between border-b border-line px-3 py-2">
+          <span className="text-xs font-semibold">Insumos</span>
+          <Buscador valor={busqueda} onChange={setBusqueda} total={total} />
+        </div>
+        {GRUPOS_INSUMO.map((t) => {
+          const cfg = CONFIG[t];
+          const filas = datos[t]!.filter((f) => f.estado === "activo" && coincide(busqueda, ...cfg.columnas.map(([k]) => f[k])));
+          return (
+            <div key={t}>
+              <div className="border-b border-line bg-muted/50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide">{cfg.titulo} <span className="font-normal text-muted-foreground">({filas.length})</span></div>
+              {filas.length === 0 ? <p className="px-3 py-1.5 text-xs text-muted-foreground">Sin insumos</p> : (
+                <table className="w-full text-xs">
+                  <thead><tr className="border-b border-line text-left label-mono">
+                    {cfg.columnas.map(([k, tt, tp]) => <th key={k} className={`px-2 py-0.5 ${tp !== "txt" ? "text-right" : ""}`}>{tt}</th>)}
+                  </tr></thead>
+                  <tbody>
+                    {filas.map((f) => (
+                      <tr key={f.id} onClick={() => setSel({ tabla: t, fila: f })} onDoubleClick={() => { setSel({ tabla: t, fila: f }); setTimeout(() => abrir("editar")); }}
+                        className={`cursor-pointer border-b border-line/60 hover:bg-muted/40 ${sel?.fila.id === f.id ? "bg-primary/10" : ""}`}>
+                        {cfg.columnas.map(([k, , tp]) => (
+                          <td key={k} className={`px-2 py-0.5 ${tp !== "txt" ? "whitespace-nowrap text-right font-mono" : k === "descripcion" ? "w-full" : "whitespace-nowrap"}`}>
+                            {tp === "sol" ? soles(Number(f[k] ?? 0)) : tp === "num" ? Number(f[k] ?? 0).toLocaleString("es-PE") : <Resaltar texto={f[k]} termino={busqueda} />}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="sticky top-2 flex h-fit flex-col gap-1.5 rounded-md border border-line bg-card p-1.5">
+        <BotonIcono etiqueta="Agregar nuevo insumo" title="Agregar nuevo insumo" tono="primario" onClick={() => abrir("nuevo")}><Plus size={15} /></BotonIcono>
+        <BotonIcono etiqueta="Editar insumo" title="Editar insumo" disabled={!sel} onClick={() => abrir("editar")}><Pencil size={15} /></BotonIcono>
+        <BotonIcono etiqueta="Copiar insumo" title="Copiar insumo" disabled={!sel} onClick={() => abrir("copiar")}><Copy size={15} /></BotonIcono>
+        <BotonIcono etiqueta="Eliminar insumo" title="Eliminar insumo" tono="peligro" disabled={!sel} onClick={quitar}><Trash2 size={15} /></BotonIcono>
+      </div>
+
+      <VentanaFlotante abierta={!!modo} onCerrar={() => setModo(null)} ancho="max-w-2xl"
+        titulo={modo === "editar" ? "Editar insumo" : modo === "copiar" ? "Copiar insumo" : "Nuevo insumo"}>
+        <form className="grid gap-3 p-5 sm:grid-cols-2" onSubmit={(e) => { e.preventDefault(); guardar(); }}>
+          <Campo etiqueta="Tipo de insumo">
+            <Select value={tipo} disabled={modo === "editar"} onChange={(e) => { const t = e.target.value as Tabla; setTipo(t); setForm({ ...base(t), codigo: form.codigo, descripcion: form.descripcion }); }}>
+              {GRUPOS_INSUMO.map((t) => <option key={t} value={t}>{CONFIG[t].titulo}</option>)}
+            </Select>
+          </Campo>
+          {CONFIG[tipo].campos.filter((c) => !c.soloSi || c.soloSi(form)).map((c) => (
+            <Campo key={c.k} etiqueta={c.t}>
+              {c.tipo === "sel" ? (
+                <Select value={form[c.k] ?? ""} onChange={(e) => setForm({ ...form, [c.k]: e.target.value })}>
+                  {c.k === "unidad"
+                    ? unds.map((u) => <option key={u.id} value={u.simbolo}>{u.simbolo} · {u.descripcion}</option>)
+                    : (c.opciones ?? []).map((o) => <option key={o}>{o}</option>)}
+                </Select>
+              ) : (
+                <Input type={c.tipo === "num" ? "number" : "text"} step="any" value={form[c.k] ?? ""} autoFocus={c.k === "descripcion"}
+                  onChange={(e) => setForm({ ...form, [c.k]: e.target.value })} />
+              )}
+            </Campo>
+          ))}
+          {aviso && <p className="text-xs text-destructive sm:col-span-2">{aviso}</p>}
+          <div className="flex justify-end gap-2 sm:col-span-2">
+            <Boton type="button" variante="linea" onClick={() => setModo(null)}>Cerrar</Boton>
+            <Boton type="submit">Guardar</Boton>
+          </div>
+        </form>
+      </VentanaFlotante>
+    </div>
   );
 }
