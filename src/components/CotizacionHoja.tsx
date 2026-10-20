@@ -142,7 +142,6 @@ function construirArbol(items: CotizacionItem[], multi = false): Fila[] {
 /** Columnas editables según la naturaleza de la fila. */
 function columnasEditables(f: Fila, conApu: boolean): number[] {
   if (f.clase !== "item") return [0, 1];
-  if (f.agrupadora) return [0, 1];
   return conApu ? [0, 1, 2, 3, 4] : [0, 1, 2, 3, 4, 5];
 }
 
@@ -271,12 +270,6 @@ export function CotizacionHoja({
         continue;
       }
       if (subOculto) continue;
-      if (f.nivel === 4) {
-        if (padreOculto) continue;
-        out.push(f);
-        continue;
-      }
-      padreOculto = f.agrupadora && colapsados.has(f.clave) ? f.clave : null;
       out.push(f);
     }
     return out;
@@ -474,67 +467,6 @@ export function CotizacionHoja({
     return true;
   }
 
-  /** Crea una subpartida de segundo nivel debajo de una partida principal. */
-  async function crearSubpartida(padre: CotizacionItem) {
-    setError("");
-    const hijos = items.filter((i) => i.padre_id === padre.id);
-    const primera = hijos.length === 0;
-    const parcialPadre = Number(padre.metrado) * Number(padre.precio_unitario);
-    if (
-      primera &&
-      parcialPadre > 0 &&
-      !window.confirm(
-        `"${padre.nombre}" pasará a ser partida agrupadora: su subtotal será la suma de sus subpartidas y su cantidad/precio propios (${soles(parcialPadre)}) se pondrán en cero. ¿Continuar?`,
-      )
-    )
-      return;
-
-    const { data, error: err } = await supabase
-      .from("cotizacion_items")
-      .insert({
-        cotizacion_id: cotizacionId,
-        padre_id: padre.id,
-        codigo: siguienteCodigoSubpartida(padre.codigo ?? "", hijos),
-        nombre: "Nueva subpartida",
-        especialidad: padre.especialidad,
-        categoria: padre.categoria ?? "",
-        marca: padre.marca ?? "",
-        unidad: padre.unidad || "GLB",
-        metrado: 1,
-        precio_unitario: 0,
-        orden: items.length + 1,
-      })
-      .select("id")
-      .single();
-    if (err) return setError(err.message);
-    if (primera) {
-      const { error: padreErr } = await supabase
-        .from("cotizacion_items")
-        .update({ metrado: 1, precio_unitario: 0 })
-        .eq("id", padre.id);
-      if (padreErr) return setError(padreErr.message);
-    }
-    await refrescar();
-    setColapsados((prev) => {
-      const siguiente = new Set(prev);
-      siguiente.delete(`i:${padre.id}`);
-      return siguiente;
-    });
-    const nuevaFila = construirArbol([
-      ...items,
-      {
-        ...padre,
-        id: data.id,
-        padre_id: padre.id,
-        codigo: siguienteCodigoSubpartida(padre.codigo ?? "", hijos),
-        nombre: "Nueva subpartida",
-        metrado: 1,
-        precio_unitario: 0,
-      },
-    ]).findIndex((f) => f.clase === "item" && f.it.id === data.id);
-    if (nuevaFila >= 0) setActivo({ r: nuevaFila, c: 1 });
-  }
-
   /** Abre el diálogo para crear un grupo/especialidad nuevo con nombre libre (sin límite de grupos). */
   function nuevaEspecialidad() {
     setModoGrupo("esp");
@@ -667,7 +599,7 @@ export function CotizacionHoja({
     await crearGrupo(esp, libre, grp);
   }
 
-  /** Borra una especialidad o una categoría completa (partidas, subpartidas y marcadoras). */
+  /** Borra una especialidad o una categoría completa (partidas y marcadoras). */
   async function borrarGrupo(esp: string, cat: string | null) {
     const afectadas = items.filter(
       (i) => i.especialidad === esp && (cat === null || ((i.categoria ?? "").trim() || "Sin categoría") === cat),
