@@ -6,7 +6,7 @@ import { Boton } from "@/components/ui-kit";
 import { UnidadesMedida } from "@/components/UnidadesMedida";
 import { EspecialidadesPartida } from "@/components/EspecialidadesPartida";
 import { GruposCotizacion } from "@/components/GruposCotizacion";
-import { CodificacionModularInsumos } from "@/components/CodificacionModularInsumos";
+import { HojaSubfamilias } from "@/components/HojaSubfamilias";
 import { BancoApu } from "@/components/BancoApu";
 
 export const Route = createFileRoute("/_authenticated/datos-apu")({
@@ -103,7 +103,7 @@ function DatosApu() {
       ) : pestana === "unidades" ? (
         <UnidadesMedida />
       ) : pestana === "subfamilias" ? (
-        <CodificacionModularInsumos soloSubfamilias />
+        <HojaSubfamilias />
       ) : pestana === "especialidades" ? (
         <EspecialidadesPartida />
       ) : (
