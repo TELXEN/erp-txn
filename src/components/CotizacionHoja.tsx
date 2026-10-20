@@ -1355,7 +1355,6 @@ export function CotizacionHoja({
               );
             }
             const it = f.it;
-            const bloqueada = f.agrupadora;
             const puFijo = conApu.has(it.id);
             const sangria = 0;
             return (
@@ -1363,7 +1362,7 @@ export function CotizacionHoja({
                 <ContextMenu>
                 <ContextMenuTrigger asChild>
                 <tr
-                  className={`${f.agrupadora ? "bg-muted/10" : ""} aria-selected:bg-primary/15 data-[state=open]:bg-primary/5`}
+                  className={`aria-selected:bg-primary/15 data-[state=open]:bg-primary/5`}
                   aria-selected={seleccionadas.has(f.clave)}
                   onClick={(e) => seleccionarPartida(e, r, f)}
                   onContextMenu={() => {
@@ -1382,31 +1381,17 @@ export function CotizacionHoja({
                     r,
                     0,
                     <span className={`flex w-full items-center justify-start gap-1 whitespace-nowrap text-left text-primary ${compacta ? "text-[9.5px]" : "text-[12px]"}`} style={{ paddingLeft: sangria }}>
-                      {f.agrupadora && (
-                        <button type="button" onClick={() => alternar(f.clave)} className="text-muted-foreground">
-                          {colapsados.has(f.clave) ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
-                        </button>
-                      )}
-                      {f.nivel === 4 && <CornerDownRight size={11} className="text-muted-foreground" />}
                       {it.codigo || "—"}
                     </span>,
                     "text-left",
                   )}
                   {celda(f, r, 1, <span className={`block border-l border-line/70 ${compacta ? "pl-1" : "pl-6"}`} style={{ color: DOC.ink }}>{it.nombre}</span>)}
-                  {bloqueada ? (
-                    <td className={`${celdaBase} text-center`}>—</td>
-                  ) : (
-                    celda(f, r, 2, <span className="block text-center text-[9px]">{it.marca || "-"}</span>, "text-center")
-                  )}
-                  {bloqueada ? <td className={`${celdaBase} text-center`}>—</td> : celda(f, r, 3, <span className="block text-center">{it.unidad}</span>, "text-center")}
-                  {bloqueada ? (
-                    <td className={`${celdaBase} text-center`}>—</td>
-                  ) : (
-                    celda(f, r, 4, <span className="block text-center">{num(it.metrado)}</span>, "text-center")
-                  )}
-                  {bloqueada || puFijo ? (
-                    <td className={`${celdaBase} whitespace-nowrap text-right font-mono ${puFijo ? "italic" : ""}`}>
-                      {bloqueada ? "—" : mon(Number(it.precio_unitario))}
+                  {celda(f, r, 2, <span className="block text-center text-[9px]">{it.marca || "-"}</span>, "text-center")}
+                  {celda(f, r, 3, <span className="block text-center">{it.unidad}</span>, "text-center")}
+                  {celda(f, r, 4, <span className="block text-center">{num(it.metrado)}</span>, "text-center")}
+                  {puFijo ? (
+                    <td className={`${celdaBase} whitespace-nowrap text-right font-mono italic`}>
+                      {mon(Number(it.precio_unitario))}
                     </td>
                   ) : (
                     celda(f, r, 5, <span className="whitespace-nowrap">{mon(Number(it.precio_unitario))}</span>, "text-right font-mono")
