@@ -367,7 +367,7 @@ export function ResumenCotizacion({ cot, items }: { cot: Cotizacion; items: Coti
     qc.invalidateQueries({ queryKey: ["cotizaciones"] });
     qc.invalidateQueries({ queryKey: ["cotizacion"] });
   }
-  const hojas = items.filter((i) => i.tipo !== "grupo" && !items.some((h) => h.padre_id === i.id));
+  const hojas = items.filter((i) => i.tipo !== "grupo");
   const porTipo: { [k: string]: number; OTROS: number } = { MO: 0, MAT: 0, EQ: 0, SC: 0, OTROS: 0 };
   let cd = 0;
   for (const i of hojas) {
