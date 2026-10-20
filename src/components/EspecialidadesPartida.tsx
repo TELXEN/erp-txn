@@ -50,7 +50,7 @@ export function EspecialidadesPartida() {
   async function crear(bloque: BloqueEspecialidad) {
     if (guardando) return;
     setError("");
-    const nombre = nueva[bloque].trim();
+    const nombre = enMayusculas(nueva[bloque]);
     if (!nombre) return setError("Escribe el nombre de la especialidad.");
     setGuardando(true);
     try {
@@ -77,10 +77,11 @@ export function EspecialidadesPartida() {
     setError("");
     const anterior = lista.find((e) => e.id === editando.id);
     const cambioBloque = anterior && anterior.bloque !== editando.bloque;
+    const nombre = enMayusculas(editando.nombre);
     const { error: err } = await supabase
       .from("especialidades_partida")
       .update({
-        nombre: editando.nombre.trim(),
+        nombre,
         activo: editando.activo,
         descripcion: editando.descripcion?.trim() || null,
         bloque: editando.bloque,
@@ -88,10 +89,10 @@ export function EspecialidadesPartida() {
       })
       .eq("id", editando.id);
     if (err) return setError(err.message);
-    if (anterior && anterior.nombre !== editando.nombre.trim()) {
+    if (anterior && anterior.nombre !== nombre) {
       await supabase
         .from("partidas")
-        .update({ especialidad: editando.nombre.trim() })
+        .update({ especialidad: nombre })
         .eq("especialidad", anterior.nombre);
     }
     if (cambioBloque) await recodificarWbs().catch(() => undefined);
