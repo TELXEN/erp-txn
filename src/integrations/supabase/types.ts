@@ -1813,8 +1813,10 @@ export type Database = {
       especialidades_partida: {
         Row: {
           activo: boolean
+          bloque: string
           codigo: string
           created_at: string
+          descripcion: string | null
           id: string
           nombre: string
           orden: number
@@ -1822,8 +1824,10 @@ export type Database = {
         }
         Insert: {
           activo?: boolean
+          bloque?: string
           codigo?: string
           created_at?: string
+          descripcion?: string | null
           id?: string
           nombre: string
           orden?: number
@@ -1831,8 +1835,10 @@ export type Database = {
         }
         Update: {
           activo?: boolean
+          bloque?: string
           codigo?: string
           created_at?: string
+          descripcion?: string | null
           id?: string
           nombre?: string
           orden?: number
