@@ -68,7 +68,7 @@ export function CodificacionModularInsumos({ soloSubfamilias = false }: { soloSu
     <div className="space-y-3">
       {!soloSubfamilias && <>
       <p className="text-xs text-muted-foreground">
-        Código de insumo de 8 dígitos: <span className="font-mono">EE T SS NNN</span> — especialidad (2), tipo (1), subfamilia (2) y correlativo automático (3). Ej. <span className="font-mono">40113001</span>.
+        Código de insumo de 8 dígitos: <span className="font-mono">T EE SS NNN</span> — tipo (1), especialidad (2), subfamilia (2, solo materiales; los demás 00) y correlativo (3). Ej. <span className="font-mono">10613001</span> / <span className="font-mono">20600001</span>.
       </p>
       <div className="grid gap-3 lg:grid-cols-[1fr_220px]">
         <Panel titulo="Nivel 1 · Especialidades (2 dígitos)">
