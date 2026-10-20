@@ -1,4 +1,4 @@
-import { formatearSiGritado } from "@/lib/formato-texto";
+import { formatearSiGritado, ordenarPorNombre } from "@/lib/formato-texto";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowDown, ArrowUp, BookOpen, Boxes, Calculator, Lock, ChevronDown, ChevronRight, CornerDownRight, FolderPlus, Layers, ListPlus, Plus, Trash2 } from "lucide-react";
@@ -1133,8 +1133,7 @@ export function CotizacionHoja({
                     <p className="text-xs text-muted-foreground">Aún no hay grupos.</p>
                   ) : (
                     <ul className="max-h-40 space-y-1 overflow-y-auto rounded-md border border-line p-1.5">
-                      {[...catalogoGrupos]
-                        .sort((a, b) => a.orden - b.orden)
+                      {ordenarPorNombre(catalogoGrupos)
                         .map((g) => (
                           <li
                             key={g.id}

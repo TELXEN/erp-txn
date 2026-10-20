@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatearSiGritado, formatearTexto } from "./formato-texto";
+import { formatearSiGritado, formatearTexto, ordenarPorNombre } from "./formato-texto";
 
 describe("formatearTexto", () => {
   it("oración con siglas", () => {
@@ -39,5 +39,31 @@ describe("Title Case Industrial (títulos de partidas)", () => {
   });
   it("capitaliza el conector si inicia la frase", () => {
     expect(formatearTexto("de la obra", "titulo")).toBe("De la Obra");
+  });
+});
+
+describe("ordenarPorNombre (A→Z automático)", () => {
+  it("ordena alfabéticamente sin importar mayúsculas ni tildes", () => {
+    const titles = [
+      { nombre: "transporte de materiales" },
+      { nombre: "OBRAS PRELIMINARES" },
+      { nombre: "Área de campamento" },
+      { nombre: "mecánicos" },
+    ];
+    expect(ordenarPorNombre(titles).map((t) => t.nombre)).toEqual([
+      "Área de campamento",
+      "mecánicos",
+      "OBRAS PRELIMINARES",
+      "transporte de materiales",
+    ]);
+  });
+  it("mantiene la ñ como letra del alfabeto español (después de la N)", () => {
+    const titles = [{ nombre: "ÑUÑ" }, { nombre: "OBRAS" }, { nombre: "NUDO" }];
+    expect(ordenarPorNombre(titles).map((t) => t.nombre)).toEqual(["NUDO", "ÑUÑ", "OBRAS"]);
+  });
+  it("no altera el listado original", () => {
+    const titles = [{ nombre: "ZETA" }, { nombre: "ALFA" }];
+    ordenarPorNombre(titles);
+    expect(titles.map((t) => t.nombre)).toEqual(["ZETA", "ALFA"]);
   });
 });
