@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Check, ChevronDown, ChevronRight, Info, Pencil, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { Input, Panel, Select } from "@/components/ui-kit";
 import {
   BLOQUES_ESPECIALIDAD,
@@ -11,6 +12,7 @@ import {
 } from "@/lib/especialidades";
 import { FlechasOrden } from "@/components/FlechasOrden";
 import { moverWbs, recodificarWbs } from "@/lib/wbs";
+import { claveNombre } from "@/lib/formato-texto";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const btn =
@@ -32,6 +34,14 @@ export function EspecialidadesPartida() {
   const hermanos = seleccionada ? delBloque(seleccionada.bloque) : [];
   const indice = seleccionada ? hermanos.findIndex((e) => e.id === seleccionada.id) : -1;
   const enMayusculas = (s: string) => s.trim().toUpperCase();
+  /** ¿Ya hay una especialidad con este nombre? (mayúsculas, tildes y espacios no cuentan) */
+  const existe = (nombre: string, exceptoId?: string) =>
+    lista.some((e) => e.id !== exceptoId && claveNombre(e.nombre) === claveNombre(nombre));
+  const avisarRepetido = (nombre: string) => {
+    const msg = `La especialidad «${nombre}» ya existe.`;
+    setError(msg);
+    toast.error(msg);
+  };
 
   const refrescar = () => {
     qc.invalidateQueries({ queryKey: ["especialidades_partida"] });
@@ -52,6 +62,10 @@ export function EspecialidadesPartida() {
     setError("");
     const nombre = enMayusculas(nueva[bloque]);
     if (!nombre) return setError("Escribe el nombre de la especialidad.");
+    if (existe(nombre)) {
+      avisarRepetido(nombre);
+      return;
+    }
     setGuardando(true);
     try {
       const orden = Math.max(0, ...delBloque(bloque).map((x) => x.orden)) + 1;
@@ -78,6 +92,10 @@ export function EspecialidadesPartida() {
     const anterior = lista.find((e) => e.id === editando.id);
     const cambioBloque = anterior && anterior.bloque !== editando.bloque;
     const nombre = enMayusculas(editando.nombre);
+    if (existe(nombre, editando.id)) {
+      avisarRepetido(nombre);
+      return;
+    }
     const { error: err } = await supabase
       .from("especialidades_partida")
       .update({
@@ -219,7 +237,7 @@ export function EspecialidadesPartida() {
         })}
         {error && <p className="px-5 py-2 font-mono text-xs text-bad">{error}</p>}
         <p className="border-t border-line px-5 py-3 font-mono text-[10px] leading-relaxed text-muted-foreground">
-          Pasa el mouse sobre una especialidad para ver su alcance. Selecciónala y usa las flechas para reordenar dentro de su bloque; los códigos de categorías y partidas se actualizan solos.
+          Pasa el mouse sobre una especialidad para ver su alcance. Selecciónala y usa las flechas para reordenar dentro de su bloque; los códigos de categorías y partidas se actualizan solos. Los nombres no se pueden repetir: si ya existe, se avisa.
         </p>
       </Panel>
     </TooltipProvider>
