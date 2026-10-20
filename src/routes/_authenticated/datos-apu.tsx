@@ -5,7 +5,6 @@ import { Encabezado } from "@/components/AppShell";
 import { Boton } from "@/components/ui-kit";
 import { UnidadesMedida } from "@/components/UnidadesMedida";
 import { EspecialidadesPartida } from "@/components/EspecialidadesPartida";
-import { CategoriasPartida } from "@/components/CategoriasPartida";
 import { GruposCotizacion } from "@/components/GruposCotizacion";
 import { BancoApu } from "@/components/BancoApu";
 
@@ -31,7 +30,7 @@ export const Route = createFileRoute("/_authenticated/datos-apu")({
   component: DatosApu,
 });
 
-type Pestana = "banco" | "unidades" | "especialidades" | "categorias" | "grupos";
+type Pestana = "banco" | "unidades" | "especialidades" | "grupos";
 
 const GRUPOS_APU: { titulo: string; icono: React.ElementType; items: [Pestana, string][] }[] = [
   { titulo: "Banco APU", icono: FolderKanban, items: [["banco", "\n"]] },
@@ -41,7 +40,6 @@ const GRUPOS_APU: { titulo: string; icono: React.ElementType; items: [Pestana, s
     items: [
       ["especialidades", "Especialidad de partidas"],
       ["grupos", "Títulos de partidas"],
-      ["categorias", "Categorías de partidas"],
       ["unidades", "Unidades de medida"],
     ],
   },
@@ -104,10 +102,8 @@ function DatosApu() {
         <UnidadesMedida />
       ) : pestana === "especialidades" ? (
         <EspecialidadesPartida />
-      ) : pestana === "grupos" ? (
-        <GruposCotizacion />
       ) : (
-        <CategoriasPartida />
+        <GruposCotizacion />
       )}
     </>
   );
