@@ -365,6 +365,13 @@
       "when": 1792528092495,
       "tag": "0051_codigo_insumo_tipo_primero",
       "breakpoints": true
+    },
+    {
+      "idx": 52,
+      "version": "7",
+      "when": 1792529754820,
+      "tag": "0052_marcar_subpartida_obsoleta",
+      "breakpoints": true
     }
   ]
 }
