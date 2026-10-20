@@ -44,7 +44,7 @@ export function GruposCotizacion() {
               <tr key={g.id} className="border-b border-line/60">
                 <td className="w-10 px-2 py-1 text-muted-foreground">{String(g.orden).padStart(2, "0")}</td>
                 <td className="px-2 py-1">
-                  <input key={g.nombre} defaultValue={g.nombre} data-formato="titulo" className={`${campo} font-semibold`}
+                  <input key={g.nombre} defaultValue={g.nombre} data-formato="titulo" className={`${campo} uppercase`}
                     onBlur={async (e) => {
                       const v = titular(e.target.value);
                       e.target.value = v;
