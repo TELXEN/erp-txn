@@ -33,7 +33,7 @@
 - Real project cost comes only from useCostoObras (src/lib/costo-obra.ts) — every panel shows the same figure; GG charts only regroup by scope.
 - UI buttons merge classes with cn() so a passed className beats base utilities; table row actions use BotonIcono (tones neutro/primario/peligro).
 - Banco APU: five resource tables + partida_detalle (one nullable FK per row); removal via quitar_recurso_apu (deactivates if used); specs on partidas_apu.especificaciones, metrado in partidas_apu_metrado — recipes keep history.
-- Text: data-formato and FormatoGlobal/formato-texto.ts — shared rules.
+- Text: data-formato and FormatoGlobal/formato-texto.ts — shared rules; claveNombre() folds case/accents so catalog names can't repeat.
 - Units come only from unidades_medida (selects in Banco APU, cotización sheet and new-partida dialogs); the canonical symbols the costing code compares are H-H (mano de obra), H-M (equipos por hora), % (porcentaje sobre MO) and GLB — keep them in the catalogue so nothing falls back to free text.
 - TanStack routes: api/ protected, api/public/ verified external callers; no Edge Functions.
 - banco_saldos is maintained atomically by source triggers; debits reject insufficient funds. Role-checked loan RPCs preserve posted history and prevent duplicate payments — concurrent writers cannot overspend.
