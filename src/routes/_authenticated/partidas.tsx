@@ -131,15 +131,6 @@ function Partidas() {
   const [busqueda, setBusqueda] = useState("");
 
   const [apu, setApu] = useState<(typeof partidas)[number] | null>(null);
-  const [nuevaSub, setNuevaSub] = useState<{
-    padre_id: string;
-    codigo: string;
-    nombre: string;
-    marca: string;
-    unidad: string;
-    metrado: string;
-    precio_unitario: string;
-  } | null>(null);
 
   const nombreProyecto = (id: string) => {
     const p = proyectos.find((x) => x.id === id);
@@ -154,11 +145,6 @@ function Partidas() {
       const p = partidas.find((x) => x.id === id);
       if (!p) return false;
       if (coincide(busqueda, p.nombre, p.codigo)) {
-        match.add(id);
-        return true;
-      }
-      const hijos = partidas.filter((x) => x.padre_id === id);
-      if (hijos.some((h) => check(h.id))) {
         match.add(id);
         return true;
       }
@@ -275,62 +261,6 @@ function Partidas() {
     setError("");
     const { error: err } = await supabase.from("partidas").delete().eq("id", id);
     if (err) return setError(err.message);
-    qc.invalidateQueries({ queryKey: ["partidas"] });
-  }
-
-  function abrirSubpartida(padre: (typeof partidas)[number]) {
-    setNuevaSub({
-      padre_id: padre.id,
-      codigo: siguienteCodigoSubpartida(padre.codigo, partidas.filter((x) => x.padre_id === padre.id)),
-      nombre: "",
-      marca: padre.marca ?? "",
-      unidad: padre.unidad || "GLB",
-      metrado: "1",
-      precio_unitario: "",
-    });
-  }
-
-  async function guardarSubpartida() {
-    if (!nuevaSub) return;
-    const padre = partidas.find((x) => x.id === nuevaSub.padre_id);
-    if (!padre) return;
-    if (!nuevaSub.nombre.trim()) return setError("Escribe la descripción de la subpartida.");
-    const primera = !partidas.some((x) => x.padre_id === padre.id);
-    if (
-      primera &&
-      Number(padre.presupuesto_inicial) > 0 &&
-      !window.confirm(
-        `"${padre.nombre}" pasará a ser partida agrupadora: su presupuesto será la suma de sus subpartidas y su metrado/P.U. propios (${soles(Number(padre.presupuesto_inicial))}) se pondrán en cero. ¿Continuar?`,
-      )
-    )
-      return;
-    setError("");
-    const { error: err } = await supabase.from("partidas").insert({
-      proyecto_id: padre.proyecto_id,
-      padre_id: padre.id,
-      codigo: nuevaSub.codigo.trim(),
-      nombre: nuevaSub.nombre.trim(),
-      especialidad: padre.especialidad,
-      categoria: padre.categoria ?? "",
-      prioridad: padre.prioridad,
-      tipo_presupuesto: padre.tipo_presupuesto ?? "Contractual",
-      aplica_gg: padre.aplica_gg,
-      aplica_utilidad: padre.aplica_utilidad,
-      aplica_gg_utilidad: padre.aplica_gg_utilidad,
-      marca: nuevaSub.marca.trim(),
-      unidad: nuevaSub.unidad,
-      metrado: Number(nuevaSub.metrado || 0),
-      precio_unitario: Number(nuevaSub.precio_unitario || 0),
-      presupuesto_inicial: montoPartida(nuevaSub.metrado, nuevaSub.precio_unitario),
-    });
-    if (err) return setError(err.message);
-    if (primera) {
-      await supabase
-        .from("partidas")
-        .update({ metrado: 1, precio_unitario: 0, presupuesto_inicial: 0 })
-        .eq("id", padre.id);
-    }
-    setNuevaSub(null);
     qc.invalidateQueries({ queryKey: ["partidas"] });
   }
 
