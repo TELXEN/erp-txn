@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Panel } from "@/components/ui-kit";
 import { useGruposCotizacion } from "@/lib/cotizaciones";
 import { recodificarWbs } from "@/lib/wbs";
-import { formatearTexto } from "@/lib/formato-texto";
+import { formatearTexto, claveNombre } from "@/lib/formato-texto";
 
 /** Title Case Industrial: palabras clave con mayúscula inicial, conectores en minúscula. */
 const titular = (s: string) => formatearTexto(s, "titulo");
@@ -24,9 +24,8 @@ export function GruposCotizacion() {
     qc.invalidateQueries({ queryKey: ["categorias_partida"] });
   };
 
-  const clave = (s: string) => s.trim().toLocaleLowerCase("es").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ");
   const existe = (nombre: string, exceptoId?: string) =>
-    grupos.some((g) => g.id !== exceptoId && clave(g.nombre) === clave(nombre));
+    grupos.some((g) => g.id !== exceptoId && claveNombre(g.nombre) === claveNombre(nombre));
 
   async function nuevo() {
     let nombre = window.prompt("Nombre del título (ej. Centro de Control de Motores)")?.trim();

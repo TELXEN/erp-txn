@@ -111,3 +111,13 @@ export function ordenarPorNombre<T extends { nombre: string }>(filas: T[]): T[] 
   return [...filas].sort((a, b) => COLADOR_ES.compare(a.nombre ?? "", b.nombre ?? ""));
 }
 
+/** Clave para detectar nombres repetidos: mayúsculas, tildes y espacios de más no cuentan. */
+export function claveNombre(texto: string) {
+  return String(texto ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toUpperCase();
+}
+
