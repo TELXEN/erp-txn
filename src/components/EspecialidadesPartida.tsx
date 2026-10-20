@@ -43,7 +43,9 @@ export function EspecialidadesPartida() {
     setAviso("");
     try {
       if (modo === "editar" && !sel) throw new Error("La especialidad ya no está disponible.");
-      const { error: err } = await supabase.rpc("guardar_especialidad", { _id: modo === "editar" ? sel?.id ?? null : null, _codigo: codigo, _nombre: nombre, _descripcion: form.descripcion.trim() });
+      const { error: err } = modo === "editar" && sel
+        ? await supabase.rpc("guardar_especialidad", { _id: sel.id, _codigo: codigo, _nombre: nombre, _descripcion: form.descripcion.trim() })
+        : await supabase.from("especialidades_partida").insert({ codigo, codigo_modular: codigo, nombre, descripcion: form.descripcion.trim() || null, orden: Number(codigo), bloque: "construccion", activo: true });
       if (err) throw new Error(err.message.includes("duplicate") ? "El nombre o código ya existe." : err.message);
       refrescar(); setModo(null);
     } catch (e) { setAviso(e instanceof Error ? e.message : "No se pudo guardar."); }
