@@ -37,17 +37,11 @@ export function PlantillasCotizacion() {
     delete (resto as Record<string, unknown>)["updated_at"];
     const { data } = await sb.from("plantillas_cotizacion").insert({ ...resto, nombre: `${p.nombre} (copia)` }).select("id").single();
     const { data: items } = await sb.from("plantilla_cotizacion_items").select("*").eq("plantilla_id", p.id).order("orden");
-    const mapa = new Map<string, string>();
-    let pend = [...((items ?? []) as { id: string; padre_id: string | null }[])];
-    while (pend.length && data) {
-      const listos = pend.filter((i) => !i.padre_id || mapa.has(i.padre_id));
-      if (!listos.length) break;
-      const { data: n } = await sb
+    if (items?.length && data) {
+      const { error } = await sb
         .from("plantilla_cotizacion_items")
-        .insert(listos.map(({ id: _x, ...r }) => ({ ...r, created_at: undefined, plantilla_id: data.id, padre_id: r.padre_id ? mapa.get(r.padre_id) : null })))
-        .select("id");
-      listos.forEach((i, k) => n?.[k] && mapa.set(i.id, n[k].id));
-      pend = pend.filter((i) => !mapa.has(i.id));
+        .insert((items as Record<string, unknown>[]).map(({ id: _x, created_at: _c, ...r }) => ({ ...r, plantilla_id: data.id })));
+      if (error) throw error;
     }
     refrescar();
   }

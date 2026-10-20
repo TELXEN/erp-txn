@@ -23,7 +23,7 @@ import {
   nombresPrioridades,
 } from "@/lib/datos";
 import { exportarExcel } from "@/lib/exportar";
-import { Pencil, Trash2, Check, X, LayoutGrid, Table2, Upload, ListOrdered, Calculator, CornerDownRight, ChevronDown, ChevronUp, FolderKanban } from "lucide-react";
+import { Pencil, Trash2, Check, X, LayoutGrid, Table2, Upload, ListOrdered, Calculator, ChevronDown, ChevronUp, FolderKanban } from "lucide-react";
 import { Kanban } from "@/components/Kanban";
 import { InsigniaPrioridad, InsigniaTipoPresupuesto } from "@/components/estado-ui";
 import { PRIORIDADES } from "@/lib/configuracion";
@@ -31,9 +31,7 @@ import { siguienteCodigoPartida, useEspecialidadesPartida } from "@/lib/especial
 import {
   agruparSoloPorCategoria,
   categoriasDe,
-  ordenarJerarquia,
   prefijosWBS,
-  siguienteCodigoSubpartida,
   renumerarWBS,
   siguienteCodigoEnCategoria,
   useCategoriasPartida,
@@ -133,15 +131,6 @@ function Partidas() {
   const [busqueda, setBusqueda] = useState("");
 
   const [apu, setApu] = useState<(typeof partidas)[number] | null>(null);
-  const [nuevaSub, setNuevaSub] = useState<{
-    padre_id: string;
-    codigo: string;
-    nombre: string;
-    marca: string;
-    unidad: string;
-    metrado: string;
-    precio_unitario: string;
-  } | null>(null);
 
   const nombreProyecto = (id: string) => {
     const p = proyectos.find((x) => x.id === id);
@@ -156,11 +145,6 @@ function Partidas() {
       const p = partidas.find((x) => x.id === id);
       if (!p) return false;
       if (coincide(busqueda, p.nombre, p.codigo)) {
-        match.add(id);
-        return true;
-      }
-      const hijos = partidas.filter((x) => x.padre_id === id);
-      if (hijos.some((h) => check(h.id))) {
         match.add(id);
         return true;
       }
@@ -277,62 +261,6 @@ function Partidas() {
     setError("");
     const { error: err } = await supabase.from("partidas").delete().eq("id", id);
     if (err) return setError(err.message);
-    qc.invalidateQueries({ queryKey: ["partidas"] });
-  }
-
-  function abrirSubpartida(padre: (typeof partidas)[number]) {
-    setNuevaSub({
-      padre_id: padre.id,
-      codigo: siguienteCodigoSubpartida(padre.codigo, partidas.filter((x) => x.padre_id === padre.id)),
-      nombre: "",
-      marca: padre.marca ?? "",
-      unidad: padre.unidad || "GLB",
-      metrado: "1",
-      precio_unitario: "",
-    });
-  }
-
-  async function guardarSubpartida() {
-    if (!nuevaSub) return;
-    const padre = partidas.find((x) => x.id === nuevaSub.padre_id);
-    if (!padre) return;
-    if (!nuevaSub.nombre.trim()) return setError("Escribe la descripción de la subpartida.");
-    const primera = !partidas.some((x) => x.padre_id === padre.id);
-    if (
-      primera &&
-      Number(padre.presupuesto_inicial) > 0 &&
-      !window.confirm(
-        `"${padre.nombre}" pasará a ser partida agrupadora: su presupuesto será la suma de sus subpartidas y su metrado/P.U. propios (${soles(Number(padre.presupuesto_inicial))}) se pondrán en cero. ¿Continuar?`,
-      )
-    )
-      return;
-    setError("");
-    const { error: err } = await supabase.from("partidas").insert({
-      proyecto_id: padre.proyecto_id,
-      padre_id: padre.id,
-      codigo: nuevaSub.codigo.trim(),
-      nombre: nuevaSub.nombre.trim(),
-      especialidad: padre.especialidad,
-      categoria: padre.categoria ?? "",
-      prioridad: padre.prioridad,
-      tipo_presupuesto: padre.tipo_presupuesto ?? "Contractual",
-      aplica_gg: padre.aplica_gg,
-      aplica_utilidad: padre.aplica_utilidad,
-      aplica_gg_utilidad: padre.aplica_gg_utilidad,
-      marca: nuevaSub.marca.trim(),
-      unidad: nuevaSub.unidad,
-      metrado: Number(nuevaSub.metrado || 0),
-      precio_unitario: Number(nuevaSub.precio_unitario || 0),
-      presupuesto_inicial: montoPartida(nuevaSub.metrado, nuevaSub.precio_unitario),
-    });
-    if (err) return setError(err.message);
-    if (primera) {
-      await supabase
-        .from("partidas")
-        .update({ metrado: 1, precio_unitario: 0, presupuesto_inicial: 0 })
-        .eq("id", padre.id);
-    }
-    setNuevaSub(null);
     qc.invalidateQueries({ queryKey: ["partidas"] });
   }
 
@@ -848,79 +776,9 @@ function Partidas() {
                           <td colSpan={4} />
                         </tr>
                       )}
-                      {ordenarJerarquia(sub.items).map(({ fila: p, nivel, agrupadora, hijos }) => {
+                      {sub.items.map((p) => {
                         const enEdicion = editando?.id === p.id;
-                        const presuFila = agrupadora
-                          ? hijos.reduce((s, h) => s + Number(h.presupuesto_inicial), 0)
-                          : Number(p.presupuesto_inicial);
-                        const ultimoHijo =
-                          nivel === 4 && sub.items.filter((x) => x.padre_id === p.padre_id).at(-1)?.id === p.id;
-                        const formSubAqui =
-                          nuevaSub &&
-                          ((nivel === 4 && ultimoHijo && nuevaSub.padre_id === p.padre_id) ||
-                            (nivel === 3 && !agrupadora && nuevaSub.padre_id === p.id));
-                        const filaNueva = formSubAqui ? (
-                          <tr key={`nueva-${p.id}`} className="border-b border-line/40 bg-primary/5">
-                            <td className="px-5 py-2 pl-8">
-                              <Input
-                                value={nuevaSub.codigo}
-                                onChange={(e) => setNuevaSub({ ...nuevaSub, codigo: e.target.value })}
-                                className="py-1 font-mono text-xs"
-                                placeholder="01.01.01.01"
-                              />
-                            </td>
-                            <td className="px-3 py-2">
-                              <Input
-                                autoFocus
-                                value={nuevaSub.nombre} data-formato="oracion"
-                                onChange={(e) => setNuevaSub({ ...nuevaSub, nombre: e.target.value })}
-                                className="py-1 text-xs"
-                                placeholder="Descripción de la subpartida"
-                              />
-                            </td>
-                            <td className="px-2 py-2">
-                              <Input value={nuevaSub.marca} data-formato="titulo" onChange={(e) => setNuevaSub({ ...nuevaSub, marca: e.target.value })}
-                                className="py-1 text-xs" placeholder="-" />
-                            </td>
-                            <td className="px-2 py-2">
-                              <Select
-                                value={nuevaSub.unidad}
-                                onChange={(e) => setNuevaSub({ ...nuevaSub, unidad: e.target.value })}
-                                className="py-1 text-xs"
-                              >
-                                {[...new Set([...unidades.filter((u) => u.activo).map((u) => u.simbolo), nuevaSub.unidad])].map((u) => (
-                                  <option key={u} value={u}>{u}</option>
-                                ))}
-                              </Select>
-                            </td>
-                            <td className="px-2 py-2">
-                              <Input type="number" step="0.01" min="0" value={nuevaSub.metrado}
-                                onChange={(e) => setNuevaSub({ ...nuevaSub, metrado: e.target.value })}
-                                className="py-1 text-right text-xs" />
-                            </td>
-                            <td className="px-2 py-2">
-                              <Input type="number" step="0.01" min="0" value={nuevaSub.precio_unitario}
-                                onChange={(e) => setNuevaSub({ ...nuevaSub, precio_unitario: e.target.value })}
-                                className="py-1 text-right text-xs" />
-                            </td>
-                            <td className="px-3 py-2.5 text-right font-semibold text-ink">
-                              {soles(montoPartida(nuevaSub.metrado, nuevaSub.precio_unitario))}
-                            </td>
-                            <td colSpan={3} className="px-3 py-2 text-[10px] text-muted-foreground">Nueva subpartida</td>
-                            <td className="px-5 py-2">
-                              <div className="flex items-center justify-end gap-1">
-                                <button type="button" onClick={() => void guardarSubpartida()} title="Guardar subpartida"
-                                  className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground">
-                                  <Check size={14} />
-                                </button>
-                                <button type="button" onClick={() => setNuevaSub(null)} title="Cancelar"
-                                  className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line hover:bg-muted">
-                                  <X size={14} />
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ) : null;
+                        const presuFila = Number(p.presupuesto_inicial);
                         if (enEdicion) {
                           return (
                             <tr key={p.id} className="border-b border-line/40 last:border-0">
@@ -1053,8 +911,8 @@ function Partidas() {
                         }
                         return (
                           <React.Fragment key={p.id}>
-                          <tr className={`group border-b border-line/40 last:border-0 ${agrupadora ? "bg-muted/10" : ""}`}>
-                            <td className={`py-2.5 pr-2 ${nivel === 4 ? "pl-9" : "pl-5"}`}>
+                          <tr className="group border-b border-line/40 last:border-0">
+                            <td className="py-2.5 pr-2 pl-5">
                               {p.codigo ? (
                                 <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] text-primary">
                                   <Resaltar texto={p.codigo} termino={busqueda}/>
@@ -1063,20 +921,14 @@ function Partidas() {
                                 <span className="text-muted-foreground">—</span>
                               )}
                             </td>
-                            <td className={`px-3 py-2.5 text-ink ${nivel === 4 ? "pl-6 font-normal" : "font-semibold"}`}>
-                              {nivel === 4 && <CornerDownRight size={11} className="mr-1 inline text-muted-foreground" />}
+                            <td className="px-3 py-2.5 font-semibold text-ink">
                               <Resaltar texto={p.nombre} termino={busqueda}/>
-                              {agrupadora && (
-                                <span className="ml-1.5 font-mono text-[9px] uppercase text-muted-foreground">
-                                  ({hijos.length} subpartidas)
-                                </span>
-                              )}
                             </td>
-                            <td className="max-w-0 overflow-hidden text-ellipsis whitespace-nowrap px-2 py-2.5 text-muted-foreground" title={p.marca || undefined}>{agrupadora ? "—" : p.marca || "-"}</td>
-                            <td className="px-2 py-2.5 text-muted-foreground">{agrupadora ? "—" : p.unidad || "—"}</td>
-                            <td className="whitespace-nowrap px-2 py-2.5 text-right">{agrupadora ? "—" : cantidad(Number(p.metrado ?? 0))}</td>
-                            <td className="whitespace-nowrap px-2 py-2.5 text-right">{agrupadora ? "—" : soles(Number(p.precio_unitario ?? 0))}</td>
-                            <td className={`whitespace-nowrap px-3 py-2.5 text-right ${agrupadora ? "font-semibold text-ink" : ""}`}>{soles(presuFila)}</td>
+                            <td className="max-w-0 overflow-hidden text-ellipsis whitespace-nowrap px-2 py-2.5 text-muted-foreground" title={p.marca || undefined}>{p.marca || "-"}</td>
+                            <td className="px-2 py-2.5 text-muted-foreground">{p.unidad || "—"}</td>
+                            <td className="whitespace-nowrap px-2 py-2.5 text-right">{cantidad(Number(p.metrado ?? 0))}</td>
+                            <td className="whitespace-nowrap px-2 py-2.5 text-right">{soles(Number(p.precio_unitario ?? 0))}</td>
+                            <td className="whitespace-nowrap px-3 py-2.5 text-right">{soles(presuFila)}</td>
                             <td className="whitespace-nowrap px-3 py-2.5 text-right">
                               {(() => {
                                 const av = Math.min(100, Math.max(0, Number(p.avance_pct)));
@@ -1112,26 +964,14 @@ function Partidas() {
                             </td>
                             <td className="px-5 py-2.5">
                               <div className="flex items-center justify-end gap-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
-                                {!agrupadora && (
-                                  <button
-                                    type="button"
-                                    onClick={() => setApu(p)}
-                                    title="Análisis de precios unitarios"
-                                    className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"
-                                  >
-                                    <Calculator size={14} />
-                                  </button>
-                                )}
-                                {nivel === 3 && (
-                                  <button
-                                    type="button"
-                                    onClick={() => abrirSubpartida(p)}
-                                    className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"
-                                    title="Agregar subpartida (4.° nivel)"
-                                  >
-                                    <CornerDownRight size={14} />
-                                  </button>
-                                )}
+                                <button
+                                  type="button"
+                                  onClick={() => setApu(p)}
+                                  title="Análisis de precios unitarios"
+                                  className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"
+                                >
+                                  <Calculator size={14} />
+                                </button>
                                 <button
                                   type="button"
                                   onClick={() =>
@@ -1166,7 +1006,6 @@ function Partidas() {
                               </div>
                             </td>
                           </tr>
-                          {filaNueva}
                           </React.Fragment>
                         );
                       })}

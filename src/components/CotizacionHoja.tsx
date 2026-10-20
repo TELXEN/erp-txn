@@ -1,7 +1,7 @@
 import { formatearSiGritado, ordenarPorNombre } from "@/lib/formato-texto";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowDown, ArrowUp, BookOpen, Boxes, Calculator, Lock, ChevronDown, ChevronRight, CornerDownRight, FolderPlus, Layers, ListPlus, Plus, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, BookOpen, Boxes, Calculator, Lock, ChevronDown, ChevronRight, FolderPlus, Layers, ListPlus, Plus, Trash2 } from "lucide-react";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -19,10 +19,8 @@ import {
   agruparPorCategoria,
   categoriasDe,
   codigoContextual,
-  ordenarJerarquia,
   numeracionCotizacion,
   cambiosNumeracion,
-  siguienteCodigoSubpartida,
   useCategoriasPartida,
 } from "@/lib/categorias";
 import { BANCOS_RECURSO, copiarRecetaACotizacion, costoReceta, dbBanco, useBancoTabla, useRecursosApu } from "@/lib/banco-apu";
@@ -40,7 +38,7 @@ type Fila =
   | { clase: "cap"; clave: string; codigo: string; texto: string; esp: string; total: number }
   | { clase: "grp"; clave: string; codigo: string; texto: string; esp: string; grp: string; total: number }
   | { clase: "sub"; clave: string; codigo: string; texto: string; esp: string; cat: string; grp: string; total: number }
-  | { clase: "item"; clave: string; it: CotizacionItem; nivel: 3 | 4; agrupadora: boolean; total: number };
+  | { clase: "item"; clave: string; it: CotizacionItem; total: number };
 
 /** Grupo de una categoría dentro de la especialidad: el primero no vacío de sus filas. */
 const grupoDeCat = (items: CotizacionItem[], esp: string, cat: string) =>
@@ -72,7 +70,7 @@ function buscarMaestras(maestras: PartidaMaestra[], texto: string, limite = 8): 
     .slice(0, limite);
 }
 
-/** Construye el árbol visible: capítulo (especialidad), grupo (solo multi), subcapítulo (categoría), partidas y subpartidas. */
+/** Construye el árbol visible: capítulo (especialidad), grupo (solo multi), subcapítulo (categoría) y partidas. */
 function construirArbol(items: CotizacionItem[], multi = false): Fila[] {
   const wbs = numeracionCotizacion(items, multi);
   const filas: Fila[] = [];
@@ -132,11 +130,8 @@ function construirArbol(items: CotizacionItem[], multi = false): Fila[] {
             (a.orden ?? Number.MAX_SAFE_INTEGER) - (b.orden ?? Number.MAX_SAFE_INTEGER) ||
             (a.codigo ?? "").localeCompare(b.codigo ?? "", undefined, { numeric: true }),
         );
-        for (const nodo of ordenarJerarquia(porCodigo)) {
-          const t = nodo.agrupadora
-            ? nodo.hijos.reduce((s, h) => s + Number(h.metrado) * Number(h.precio_unitario), 0)
-            : Number(nodo.fila.metrado) * Number(nodo.fila.precio_unitario);
-          filas.push({ clase: "item", clave: `i:${nodo.fila.id}`, it: nodo.fila, nivel: nodo.nivel, agrupadora: nodo.agrupadora, total: t });
+        for (const it of porCodigo) {
+          filas.push({ clase: "item", clave: `i:${it.id}`, it, total: Number(it.metrado) * Number(it.precio_unitario) });
         }
       }
     }
@@ -147,7 +142,6 @@ function construirArbol(items: CotizacionItem[], multi = false): Fila[] {
 /** Columnas editables según la naturaleza de la fila. */
 function columnasEditables(f: Fila, conApu: boolean): number[] {
   if (f.clase !== "item") return [0, 1];
-  if (f.agrupadora) return [0, 1];
   return conApu ? [0, 1, 2, 3, 4] : [0, 1, 2, 3, 4, 5];
 }
 
@@ -276,12 +270,6 @@ export function CotizacionHoja({
         continue;
       }
       if (subOculto) continue;
-      if (f.nivel === 4) {
-        if (padreOculto) continue;
-        out.push(f);
-        continue;
-      }
-      padreOculto = f.agrupadora && colapsados.has(f.clave) ? f.clave : null;
       out.push(f);
     }
     return out;
@@ -406,7 +394,7 @@ export function CotizacionHoja({
     const esp = f.clase === "item" ? f.it.especialidad : f.esp;
     const cat = f.clase === "item" ? f.it.categoria ?? "" : f.clase === "sub" ? (f.cat === "Sin categoría" ? "" : f.cat) : "";
     const hermanos = items.filter(
-      (i) => i.especialidad === esp && (i.categoria ?? "") === cat && !i.padre_id,
+      (i) => i.especialidad === esp && (i.categoria ?? "") === cat,
     );
     const base = (hermanos[0]?.codigo ?? "").split(".").slice(0, 2).join(".");
     const usados = hermanos
@@ -477,67 +465,6 @@ export function CotizacionHoja({
     if (maestra && nuevo?.id) await vincularReceta(nuevo.id as string, maestra.id);
     await refrescar();
     return true;
-  }
-
-  /** Crea una subpartida de segundo nivel debajo de una partida principal. */
-  async function crearSubpartida(padre: CotizacionItem) {
-    setError("");
-    const hijos = items.filter((i) => i.padre_id === padre.id);
-    const primera = hijos.length === 0;
-    const parcialPadre = Number(padre.metrado) * Number(padre.precio_unitario);
-    if (
-      primera &&
-      parcialPadre > 0 &&
-      !window.confirm(
-        `"${padre.nombre}" pasará a ser partida agrupadora: su subtotal será la suma de sus subpartidas y su cantidad/precio propios (${soles(parcialPadre)}) se pondrán en cero. ¿Continuar?`,
-      )
-    )
-      return;
-
-    const { data, error: err } = await supabase
-      .from("cotizacion_items")
-      .insert({
-        cotizacion_id: cotizacionId,
-        padre_id: padre.id,
-        codigo: siguienteCodigoSubpartida(padre.codigo ?? "", hijos),
-        nombre: "Nueva subpartida",
-        especialidad: padre.especialidad,
-        categoria: padre.categoria ?? "",
-        marca: padre.marca ?? "",
-        unidad: padre.unidad || "GLB",
-        metrado: 1,
-        precio_unitario: 0,
-        orden: items.length + 1,
-      })
-      .select("id")
-      .single();
-    if (err) return setError(err.message);
-    if (primera) {
-      const { error: padreErr } = await supabase
-        .from("cotizacion_items")
-        .update({ metrado: 1, precio_unitario: 0 })
-        .eq("id", padre.id);
-      if (padreErr) return setError(padreErr.message);
-    }
-    await refrescar();
-    setColapsados((prev) => {
-      const siguiente = new Set(prev);
-      siguiente.delete(`i:${padre.id}`);
-      return siguiente;
-    });
-    const nuevaFila = construirArbol([
-      ...items,
-      {
-        ...padre,
-        id: data.id,
-        padre_id: padre.id,
-        codigo: siguienteCodigoSubpartida(padre.codigo ?? "", hijos),
-        nombre: "Nueva subpartida",
-        metrado: 1,
-        precio_unitario: 0,
-      },
-    ]).findIndex((f) => f.clase === "item" && f.it.id === data.id);
-    if (nuevaFila >= 0) setActivo({ r: nuevaFila, c: 1 });
   }
 
   /** Abre el diálogo para crear un grupo/especialidad nuevo con nombre libre (sin límite de grupos). */
@@ -672,7 +599,7 @@ export function CotizacionHoja({
     await crearGrupo(esp, libre, grp);
   }
 
-  /** Borra una especialidad o una categoría completa (partidas, subpartidas y marcadoras). */
+  /** Borra una especialidad o una categoría completa (partidas y marcadoras). */
   async function borrarGrupo(esp: string, cat: string | null) {
     const afectadas = items.filter(
       (i) => i.especialidad === esp && (cat === null || ((i.categoria ?? "").trim() || "Sin categoría") === cat),
@@ -689,18 +616,16 @@ export function CotizacionHoja({
   }
 
 
-  /** Borra solo la partida (y sus subpartidas); la especialidad y la categoría se conservan. */
+  /** Borra solo la partida; la especialidad y la categoría se conservan. */
   async function borrar(id: string) {
     const it = items.find((i) => i.id === id);
     if (!it) return;
     setError("");
-    const hijos = items.filter((i) => i.padre_id === id);
-    const ids = new Set([id, ...hijos.map((h) => h.id)]);
-    const { error: err } = await supabase.from("cotizacion_items").delete().in("id", [...ids]);
+    const { error: err } = await supabase.from("cotizacion_items").delete().eq("id", id);
     if (err) return setError(err.message);
     const cat = (it.categoria ?? "").trim();
     const quedaGrupo = items.some(
-      (i) => !ids.has(i.id) && i.especialidad === it.especialidad && (i.categoria ?? "").trim() === cat,
+      (i) => i.id !== id && i.especialidad === it.especialidad && (i.categoria ?? "").trim() === cat,
     );
     if (!quedaGrupo) await crearGrupo(it.especialidad, cat, it.grupo ?? "");
     else refrescar();
@@ -724,9 +649,9 @@ export function CotizacionHoja({
   async function borrarSeleccionadas() {
     const filas = visibles.filter((f): f is Extract<Fila, { clase: "item" }> => f.clase === "item" && seleccionadas.has(f.clave));
     if (filas.length < 2) return;
-    const protegidas = filas.filter((f) => f.agrupadora || conApu.has(f.it.id));
+    const protegidas = filas.filter((f) => conApu.has(f.it.id));
     if (protegidas.length) {
-      setError(`No se puede borrar la selección: ${protegidas.length} partida(s) tienen subpartidas o APU asociado.`);
+      setError(`No se puede borrar la selección: ${protegidas.length} partida(s) tienen APU asociado.`);
       return;
     }
     if (!window.confirm(`¿Borrar las ${filas.length} partidas seleccionadas? Esta acción no se puede deshacer.`)) return;
@@ -823,8 +748,7 @@ export function CotizacionHoja({
       (x) =>
         x.clase === "item" &&
         x.it.especialidad === f.it.especialidad &&
-        (x.it.categoria ?? "") === (f.it.categoria ?? "") &&
-        (x.it.padre_id ?? null) === (f.it.padre_id ?? null),
+        (x.it.categoria ?? "") === (f.it.categoria ?? ""),
     );
   }
 
@@ -1430,7 +1354,6 @@ export function CotizacionHoja({
               );
             }
             const it = f.it;
-            const bloqueada = f.agrupadora;
             const puFijo = conApu.has(it.id);
             const sangria = 0;
             return (
@@ -1438,7 +1361,7 @@ export function CotizacionHoja({
                 <ContextMenu>
                 <ContextMenuTrigger asChild>
                 <tr
-                  className={`${f.agrupadora ? "bg-muted/10" : ""} aria-selected:bg-primary/15 data-[state=open]:bg-primary/5`}
+                  className={`aria-selected:bg-primary/15 data-[state=open]:bg-primary/5`}
                   aria-selected={seleccionadas.has(f.clave)}
                   onClick={(e) => seleccionarPartida(e, r, f)}
                   onContextMenu={() => {
@@ -1457,31 +1380,17 @@ export function CotizacionHoja({
                     r,
                     0,
                     <span className={`flex w-full items-center justify-start gap-1 whitespace-nowrap text-left text-primary ${compacta ? "text-[9.5px]" : "text-[12px]"}`} style={{ paddingLeft: sangria }}>
-                      {f.agrupadora && (
-                        <button type="button" onClick={() => alternar(f.clave)} className="text-muted-foreground">
-                          {colapsados.has(f.clave) ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
-                        </button>
-                      )}
-                      {f.nivel === 4 && <CornerDownRight size={11} className="text-muted-foreground" />}
                       {it.codigo || "—"}
                     </span>,
                     "text-left",
                   )}
                   {celda(f, r, 1, <span className={`block border-l border-line/70 ${compacta ? "pl-1" : "pl-6"}`} style={{ color: DOC.ink }}>{it.nombre}</span>)}
-                  {bloqueada ? (
-                    <td className={`${celdaBase} text-center`}>—</td>
-                  ) : (
-                    celda(f, r, 2, <span className="block text-center text-[9px]">{it.marca || "-"}</span>, "text-center")
-                  )}
-                  {bloqueada ? <td className={`${celdaBase} text-center`}>—</td> : celda(f, r, 3, <span className="block text-center">{it.unidad}</span>, "text-center")}
-                  {bloqueada ? (
-                    <td className={`${celdaBase} text-center`}>—</td>
-                  ) : (
-                    celda(f, r, 4, <span className="block text-center">{num(it.metrado)}</span>, "text-center")
-                  )}
-                  {bloqueada || puFijo ? (
-                    <td className={`${celdaBase} whitespace-nowrap text-right font-mono ${puFijo ? "italic" : ""}`}>
-                      {bloqueada ? "—" : mon(Number(it.precio_unitario))}
+                  {celda(f, r, 2, <span className="block text-center text-[9px]">{it.marca || "-"}</span>, "text-center")}
+                  {celda(f, r, 3, <span className="block text-center">{it.unidad}</span>, "text-center")}
+                  {celda(f, r, 4, <span className="block text-center">{num(it.metrado)}</span>, "text-center")}
+                  {puFijo ? (
+                    <td className={`${celdaBase} whitespace-nowrap text-right font-mono italic`}>
+                      {mon(Number(it.precio_unitario))}
                     </td>
                   ) : (
                     celda(f, r, 5, <span className="whitespace-nowrap">{mon(Number(it.precio_unitario))}</span>, "text-right font-mono")
@@ -1489,20 +1398,9 @@ export function CotizacionHoja({
                   <td className={`${celdaBase} whitespace-nowrap text-right font-mono font-semibold text-ink`}>{mon(f.total)}</td>
                   <td className={`${celdaBase} text-right`}>
                     <div className="flex items-center justify-end gap-1">
-                      {f.nivel === 3 && (
-                        <button
-                          type="button"
-                          title="Agregar subpartida (nivel 2)"
-                          aria-label="Agregar subpartida (nivel 2)"
-                          onClick={() => void crearSubpartida(it)}
-                          className="rounded border border-line p-1 text-muted-foreground hover:border-primary hover:text-primary"
-                        >
-                          <CornerDownRight size={12} />
-                        </button>
-                      )}
-                      {f.agrupadora || puFijo ? (
+                      {puFijo ? (
                         <span
-                          title={f.agrupadora ? "Tiene subpartidas asociadas" : "Tiene APU asociado"}
+                          title="Tiene APU asociado"
                           className="rounded border border-line p-1 text-muted-foreground/60"
                         >
                           <Lock size={12} />
@@ -1537,16 +1435,12 @@ export function CotizacionHoja({
                   <ContextMenuItem onSelect={() => void insertarFila(r)}>
                     <ListPlus size={14} className="mr-2" /> Insertar partida debajo
                   </ContextMenuItem>
-                  {!f.agrupadora && (
-                    <ContextMenuItem onSelect={() => setActivo({ r, c: 1 })}>
-                      <Calculator size={14} className="mr-2" /> Ver APU
-                    </ContextMenuItem>
-                  )}
-                  {!f.agrupadora && (
-                    <ContextMenuItem onSelect={() => { window.location.href = `/apu-vista?id=${cotizacionId}&item=${it.id}`; }}>
-                      <Calculator size={14} className="mr-2" /> Imprimir ficha APU
-                    </ContextMenuItem>
-                  )}
+                  <ContextMenuItem onSelect={() => setActivo({ r, c: 1 })}>
+                    <Calculator size={14} className="mr-2" /> Ver APU
+                  </ContextMenuItem>
+                  <ContextMenuItem onSelect={() => { window.location.href = `/apu-vista?id=${cotizacionId}&item=${it.id}`; }}>
+                    <Calculator size={14} className="mr-2" /> Imprimir ficha APU
+                  </ContextMenuItem>
                   <ContextMenuSeparator />
                   <ContextMenuItem disabled={!puedeDesplazar(f, -1)} onSelect={() => void desplazarFila(f, -1)}>
                     <ArrowUp size={14} className="mr-2" /> Mover arriba
@@ -1559,9 +1453,9 @@ export function CotizacionHoja({
                     <ContextMenuItem className="text-bad focus:text-bad" onSelect={() => void borrarSeleccionadas()}>
                       <Trash2 size={14} className="mr-2" /> Borrar {seleccionadas.size} partidas seleccionadas
                     </ContextMenuItem>
-                  ) : f.agrupadora || puFijo ? (
+                  ) : puFijo ? (
                     <ContextMenuItem disabled>
-                      <Lock size={14} className="mr-2" /> {f.agrupadora ? "Tiene subpartidas" : "Tiene APU asociado"}
+                      <Lock size={14} className="mr-2" /> Tiene APU asociado
                     </ContextMenuItem>
                   ) : (
                     <ContextMenuItem className="text-bad focus:text-bad" onSelect={() => void borrar(it.id)}>

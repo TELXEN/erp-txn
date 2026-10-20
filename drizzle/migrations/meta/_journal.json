@@ -372,6 +372,13 @@
       "when": 1792529754820,
       "tag": "0052_marcar_subpartida_obsoleta",
       "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "7",
+      "when": 1792530119097,
+      "tag": "0053_retirar_subpartidas",
+      "breakpoints": true
     }
   ]
 }

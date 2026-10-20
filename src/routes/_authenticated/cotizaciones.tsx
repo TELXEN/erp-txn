@@ -20,8 +20,6 @@ import {
   codigoContextual,
   prefijosWBS,
   cambiosNumeracion,
-  ordenarJerarquia,
-  siguienteCodigoSubpartida,
   useCategoriasPartida,
 } from "@/lib/categorias";
 import { useUnidadesMedida } from "@/lib/unidades";
@@ -161,15 +159,6 @@ function Cotizaciones() {
     localStorage.setItem("cotizaciones:encabezado", nuevo ? "visible" : "oculto");
   };
   const [apu, setApu] = useState<(typeof items)[number] | null>(null);
-  const [nuevaSub, setNuevaSub] = useState<{
-    padre_id: string;
-    codigo: string;
-    nombre: string;
-    marca: string;
-    unidad: string;
-    metrado: string;
-    precio_unitario: string;
-  } | null>(null);
 
   const [pestana, setPestana] = useState<"Todas" | EstadoCotizacion | "En Obra">("Todas");
   const [verCatalogo, setVerCatalogo] = useState(false);
@@ -302,56 +291,6 @@ function Cotizaciones() {
     if (err) return setError(err.message);
     qc.invalidateQueries({ queryKey: ["banco_apu"] });
     setAviso("Partida guardada en el Banco APU. Define su receta en Datos APU.");
-  }
-
-
-  function abrirSubpartida(padre: (typeof items)[number]) {
-    setNuevaSub({
-      padre_id: padre.id,
-      codigo: siguienteCodigoSubpartida(padre.codigo, items.filter((x) => x.padre_id === padre.id)),
-      nombre: "",
-      marca: padre.marca ?? "",
-      unidad: padre.unidad || "GLB",
-      metrado: "1",
-      precio_unitario: "",
-    });
-  }
-
-  async function guardarSubpartida() {
-    if (!cot || !nuevaSub) return;
-    const padre = items.find((x) => x.id === nuevaSub.padre_id);
-    if (!padre) return;
-    if (!nuevaSub.nombre.trim()) return setError("Escribe la descripción de la subpartida.");
-    const primera = !items.some((x) => x.padre_id === padre.id);
-    const parcialPadre = Number(padre.metrado) * Number(padre.precio_unitario);
-    if (
-      primera &&
-      parcialPadre > 0 &&
-      !window.confirm(
-        `"${padre.nombre}" pasará a ser partida agrupadora: su parcial será la suma de sus subpartidas y su metrado/P.U. propios (${soles(parcialPadre)}) se pondrán en cero. ¿Continuar?`,
-      )
-    )
-      return;
-    setError("");
-    const { error: err } = await supabase.from("cotizacion_items").insert({
-      cotizacion_id: cot.id,
-      padre_id: padre.id,
-      codigo: nuevaSub.codigo.trim(),
-      nombre: nuevaSub.nombre.trim(),
-      especialidad: padre.especialidad,
-      categoria: padre.categoria ?? "",
-      marca: nuevaSub.marca.trim(),
-      unidad: nuevaSub.unidad,
-      metrado: Number(nuevaSub.metrado || 0),
-      precio_unitario: Number(nuevaSub.precio_unitario || 0),
-      orden: items.length + 1,
-    });
-    if (err) return setError(err.message);
-    if (primera) {
-      await supabase.from("cotizacion_items").update({ metrado: 1, precio_unitario: 0 }).eq("id", padre.id);
-    }
-    setNuevaSub(null);
-    qc.invalidateQueries({ queryKey: ["cotizacion_items", cot.id] });
   }
 
   async function borrarItem(id: string) {

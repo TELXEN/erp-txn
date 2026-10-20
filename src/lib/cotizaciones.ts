@@ -267,26 +267,16 @@ type FilaCopiable = {
   orden: number;
 };
 
-/** Copia filas jerárquicas a otra tabla, remapeando padre_id por niveles. */
+/** Copia filas a otra tabla. */
 async function copiarFilas(
   tabla: "cotizacion_items" | "plantilla_cotizacion_items",
   origen: FilaCopiable[],
   extra: Record<string, unknown>,
   transformar: (f: FilaCopiable) => Record<string, unknown>,
 ) {
-  const mapa = new Map<string, string>();
-  let pendientes = [...origen];
-  while (pendientes.length) {
-    const listos = pendientes.filter((i) => !i.padre_id || mapa.has(i.padre_id));
-    if (!listos.length) break;
-    const { data, error } = await sb
-      .from(tabla)
-      .insert(listos.map((i) => ({ ...extra, ...transformar(i), padre_id: i.padre_id ? mapa.get(i.padre_id) ?? null : null })))
-      .select("id");
-    if (error) throw error;
-    listos.forEach((i, idx) => data?.[idx]?.id && mapa.set(i.id, data[idx].id));
-    pendientes = pendientes.filter((i) => !mapa.has(i.id));
-  }
+  if (!origen.length) return;
+  const { error } = await sb.from(tabla).insert(origen.map((i) => ({ ...extra, ...transformar(i) })));
+  if (error) throw error;
 }
 
 const base = (i: FilaCopiable) => ({
@@ -502,24 +492,21 @@ export async function crearRevision(cot: Cotizacion): Promise<string> {
     .single();
   if (e1) throw e1;
 
-  const { data: orig, error: e2 } = await supabase
+  const orig = (await supabase
     .from("cotizacion_items")
     .select("*")
     .eq("cotizacion_id", cot.id)
-    .order("orden");
-  if (e2) throw e2;
+    .order("orden")) as { data: CotizacionItem[] | null; error: { message: string } | null };
+  if (orig.error) throw orig.error;
+  const itemsOrigen = orig.data ?? [];
 
   const mapa = new Map<string, string>();
-  let pendientes = [...(orig ?? [])] as CotizacionItem[];
-  while (pendientes.length) {
-    const listos = pendientes.filter((i) => !i.padre_id || mapa.has(i.padre_id));
-    if (!listos.length) break;
+  if (itemsOrigen.length) {
     const { data: nuevas, error: e3 } = await supabase
       .from("cotizacion_items")
       .insert(
-        listos.map((i) => ({
+        itemsOrigen.map((i) => ({
           cotizacion_id: nueva.id,
-          padre_id: i.padre_id ? (mapa.get(i.padre_id) ?? null) : null,
           tipo: i.tipo,
           codigo: i.codigo,
           nombre: i.nombre,
@@ -539,15 +526,14 @@ export async function crearRevision(cot: Cotizacion): Promise<string> {
       .select("id");
     if (e3) throw e3;
     if (!nuevas) throw new Error("No se pudieron copiar las partidas.");
-    listos.forEach((i, idx) => {
+    itemsOrigen.forEach((i, idx) => {
       const nuevoId = (nuevas as { id: string }[])[idx]?.id;
       if (nuevoId) mapa.set(i.id, nuevoId);
     });
-    pendientes = pendientes.filter((i) => !mapa.has(i.id));
   }
 
   // Detalle APU de cada partida, remapeado a los nuevos ítems.
-  const idsOrigen = (orig ?? []).map((i: { id: string }) => i.id);
+  const idsOrigen = itemsOrigen.map((i: { id: string }) => i.id);
   const { data: apu, error: e4 } = idsOrigen.length
     ? await sb.from("cotizacion_apu_detalle").select("*").in("cotizacion_item_id", idsOrigen)
     : { data: [], error: null };
