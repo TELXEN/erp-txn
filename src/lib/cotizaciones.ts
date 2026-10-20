@@ -369,9 +369,6 @@ export async function aplicarPlantilla(plantillaId: string, cotizacionId: string
         recursosBanco,
         Number(p["rendimiento_diario"]) || 1,
         8,
-        partidasBanco,
-        new Set([String(p["id"])]),
-        detalleBanco,
       ).total,
     ]),
   );

@@ -343,20 +343,11 @@ function ListaBanco({ tabla, seleccion, onSeleccion, llena = false }: { tabla: T
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Detalle = any;
 
-const BANCOS = [
-  ["material_id", "materiales", "Materiales"],
-  ["mano_obra_id", "mano_obra", "Mano de Obra"],
-  ["equipo_id", "equipos_herramientas", "Equipos/Herramientas"],
-  ["subcontrato_id", "subcontratos", "Subcontratos"],
-  ["subpartida_hijo_id", "partidas_apu", "Subpartidas"],
-] as const;
-
 const GRUPOS = [
   ["mano_obra_id", "mano_obra", "MANO DE OBRA"],
   ["material_id", "materiales", "MATERIALES"],
   ["equipo_id", "equipos_herramientas", "EQUIPOS Y HERRAMIENTAS"],
   ["subcontrato_id", "subcontratos", "SUBCONTRATOS"],
-  ["subpartida_hijo_id", "partidas_apu", "SUBPARTIDAS"],
 ] as const;
 type Grupo = (typeof GRUPOS)[number];
 
@@ -369,8 +360,8 @@ function useApuMaestro() {
   const { data: eq = [] } = useTabla("equipos_herramientas");
   const { data: sc = [] } = useTabla("subcontratos");
   const { data: pa = [] } = useTabla("partidas_apu");
-  const fuentes: Record<string, Fila[]> = { materiales: mat, mano_obra: mo, equipos_herramientas: eq, subcontratos: sc, partidas_apu: pa };
-  const detalles = det as Detalle[];
+  const fuentes: Record<string, Fila[]> = { materiales: mat, mano_obra: mo, equipos_herramientas: eq, subcontratos: sc };
+  const detalles = (det as Detalle[]).filter((x) => GRUPOS.some(([c]) => x[c]));
 
   const costo = (id: string, visitados = new Set<string>(), rendForzado?: number, jornadaFija?: number): { total: number; filas: FilaC[] } => {
     if (visitados.has(id)) return { total: 0, filas: [] };
@@ -393,7 +384,6 @@ function useApuMaestro() {
       const r = (fuentes[tabla] ?? []).find((x) => x.id === d[col]);
       const q = Number(d.cantidad_o_cuadrilla) || 0;
       const base = { d, col, codigo: String(r?.codigo ?? r?.codigo_jerarquico ?? ""), nombre: r?.descripcion ?? "(no encontrado)", und: r?.unidad ?? "", q };
-      if (tabla === "partidas_apu") { const cu = costo(d[col] as string, new Set(visitados), undefined, jor).total; return { ...base, cu, cant: q, parcial: r2(q * cu) }; }
       if (tabla === "mano_obra" || (tabla === "equipos_herramientas" && r?.unidad === "H-M")) {
         const cu = Number(tabla === "mano_obra" ? r?.costo_hora : r?.costo_unitario) || 0;
         // HH = (cuadrilla × jornada) / rendimiento
@@ -850,7 +840,6 @@ function consolidarApu(costo: (id: string) => { total: number; filas: FilaC[] },
     if (vistos.has(padre)) return;
     vistos.add(padre);
     for (const f of costo(padre).filas) {
-      if (f.col === "subpartida_hijo_id") { caminar(String(f.d[f.col])); continue; }
       const k = `${f.col}:${f.d[f.col]}`;
       const a = mapa.get(k) ?? { k, nombre: f.nombre, und: f.und, col: f.col, cu: f.cu, cantidad: 0, parcial: 0, pct: !!f.pct };
       a.cantidad += f.q;

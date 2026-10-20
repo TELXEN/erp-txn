@@ -55,3 +55,4 @@
 - [x] Encabezados de la grilla APU sin traslape: títulos a 10 px, cifras a 11 px y anchos de columna rebalanceados, igual en Banco APU y cotizaciones.
 - [x] Quitar la columna Código de la lista de partidas (ventana izquierda del APU); el buscador sigue encontrando por código.
 - [x] Cotizaciones: «Agregar categoría» abre selector vinculado al catálogo maestro (categorias_partida), con código y marca de las ya usadas
+- [x] Quitar Subpartidas del APU: la receta del banco solo usa mano de obra, materiales, equipos/herramientas y subcontratos.

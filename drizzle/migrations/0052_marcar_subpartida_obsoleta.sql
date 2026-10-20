@@ -1,0 +1,1 @@
+COMMENT ON COLUMN public.partida_detalle.subpartida_hijo_id IS 'DEPRECATED: las subpartidas ya no forman parte del APU. La columna queda solo por historial; la app ya no la escribe ni la muestra.';
