@@ -127,15 +127,27 @@ function SplitPartidas() {
   const elegirPie = (p: Pie) => { setPie(p); localStorage.setItem("banco-apu:pie", p); };
   const { data: pa = [] } = useTabla("partidas_apu");
   const partida = pa.find((p) => p.id === sel);
+  const [foco, setFoco] = useState<"partida" | "apu">("partida");
+  const [selFila, setSelFila] = useState("");
+  const [cmdLista, setCmdLista] = useState<Comando | null>(null);
+  const [cmdApu, setCmdApu] = useState<Comando | null>(null);
+  useEffect(() => { setSelFila(""); setFoco("partida"); }, [sel]);
+  const enApu = foco === "apu" && !!selFila && pie === "analisis";
+  const ejecutar = (a: Comando["a"]) => {
+    if (enApu && a !== "copiar") setCmdApu({ a, n: Date.now() });
+    else setCmdLista({ a, n: Date.now() });
+  };
+  const obj = enApu ? "insumo del APU" : "partida";
+  const haySel = enApu || !!partida;
   return (
-    <div className="grid grid-cols-1 items-stretch gap-4 lg:h-[calc(100dvh-240px)] lg:min-h-[400px] lg:grid-cols-12">
-      <div className="min-h-0 min-w-0 lg:col-span-7"><ListaBanco tabla="partidas_apu" seleccion={sel} onSeleccion={elegir} llena /></div>
-      <div className="flex min-h-[420px] min-w-0 flex-col lg:col-span-5 lg:min-h-0">
+    <div className="grid grid-cols-1 items-stretch gap-4 lg:h-[calc(100dvh-240px)] lg:min-h-[400px] lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)_auto]">
+      <div className="min-h-0 min-w-0"><ListaBanco tabla="partidas_apu" seleccion={sel} onSeleccion={(id) => { elegir(id); setFoco("partida"); }} llena comando={cmdLista} /></div>
+      <div className="flex min-h-[420px] min-w-0 flex-col lg:min-h-0">
         <div className="min-h-0 flex-1">
           {!partida ? (
             <Panel titulo="Análisis de precios unitarios" className="flex h-full flex-col"><div className="min-h-0 flex-1 overflow-y-auto"><Vacio texto="Elige una partida a la izquierda para ver y armar su APU." /></div></Panel>
           ) : pie === "analisis" ? (
-            <PanelApuMaestro partida={partida} />
+            <PanelApuMaestro partida={partida} selFila={selFila} onSelFila={(id) => { setSelFila(id); setFoco(id ? "apu" : "partida"); }} comando={cmdApu} />
           ) : (
             <PanelEspecificaciones partida={partida} />
           )}
@@ -149,6 +161,12 @@ function SplitPartidas() {
             </button>
           ))}
         </div>
+      </div>
+      <div className="flex h-fit flex-row gap-1.5 rounded-md border border-line bg-card p-1.5 lg:sticky lg:top-2 lg:flex-col">
+        <BotonIcono etiqueta={enApu ? "Agregar insumo al APU" : "Agregar nueva partida"} title={enApu ? "Agregar insumo al APU" : "Agregar nueva partida"} tono="primario" onClick={() => ejecutar("nuevo")}><Plus size={15} /></BotonIcono>
+        <BotonIcono etiqueta={`Editar ${obj}`} title={`Editar ${obj}`} disabled={!haySel} onClick={() => ejecutar("editar")}><Pencil size={15} /></BotonIcono>
+        <BotonIcono etiqueta="Copiar partida con su APU" title="Copiar partida con su APU" disabled={!partida} onClick={() => ejecutar("copiar")}><Copy size={15} /></BotonIcono>
+        <BotonIcono etiqueta={`Eliminar ${obj}`} title={`Eliminar ${obj}`} tono="peligro" disabled={!haySel} onClick={() => ejecutar("eliminar")}><Trash2 size={15} /></BotonIcono>
       </div>
     </div>
   );
@@ -232,7 +250,7 @@ function ListaBanco({ tabla, seleccion, onSeleccion, llena = false, comando }: {
   async function copiarPartida(f: Fila) {
     const cod = String(f.codigo_jerarquico ?? "");
     const pref = cod.split(".").slice(0, -1).join(".");
-    const nuevoCod = pref ? siguienteCodigoJerarquico(filasRaw.map((p) => String(p.codigo_jerarquico ?? "")), pref.split(".")[0]!) : "";
+    const nuevoCod = pref ? siguienteCodigoJerarquico(filasRaw.map((p) => String(p.codigo_jerarquico ?? "")), pref) : "";
     const { id: _i, created_at: _c, updated_at: _u, ...resto } = f;
     const { data, error } = await db.from("partidas_apu").insert({ ...resto, codigo_jerarquico: nuevoCod, descripcion: `${f.descripcion} (copia)`, estado: "activo" }).select("id").single();
     if (error) return window.alert(error.message);
@@ -278,7 +296,7 @@ function ListaBanco({ tabla, seleccion, onSeleccion, llena = false, comando }: {
             <option value="inactivo">Inactivos</option>
             <option value="">Todos</option>
           </Select>
-          <Boton onClick={() => (tabla === "partidas_apu" ? setNueva(true) : abrir())}><Plus size={13} /> Aumentar</Boton>
+          {!onSeleccion && <Boton onClick={() => (tabla === "partidas_apu" ? setNueva(true) : abrir())}><Plus size={13} /> Aumentar</Boton>}
         </div>
       }
     >
@@ -291,7 +309,7 @@ function ListaBanco({ tabla, seleccion, onSeleccion, llena = false, comando }: {
               <tr className="border-b border-line text-left label-mono">
                 {cfg.columnas.map(([k, t, tp]) => <th key={k} className={`px-2 py-1 ${tp !== "txt" ? "text-right" : ""}`}>{t}</th>)}
                 <th className="px-2 py-1">Estado</th>
-                <th className="px-2 py-1 text-right">Acciones</th>
+                {!onSeleccion && <th className="px-2 py-1 text-right">Acciones</th>}
               </tr>
             </thead>
             <tbody>
@@ -311,15 +329,14 @@ function ListaBanco({ tabla, seleccion, onSeleccion, llena = false, comando }: {
                     );
                   })}
                   <td className="px-3 py-0.5"><Etiqueta tono={f.estado === "activo" ? "good" : "neutro"}>{f.estado === "activo" ? "Activo" : "Inactivo"}</Etiqueta></td>
-                  <td className="px-3 py-0.5" onClick={(e) => e.stopPropagation()}>
+                  {onSeleccion ? (f.estado !== "activo" && <td className="px-3 py-0.5" onClick={(e) => e.stopPropagation()}><Boton variante="linea" className="h-6 px-2 py-0 text-[11px]" onClick={() => reactivar(f)}>Reactivar</Boton></td>) : <td className="px-3 py-0.5" onClick={(e) => e.stopPropagation()}>
                     <div className="flex justify-end gap-1">
-                      {onSeleccion && <BotonIcono etiqueta="Análisis (receta APU)" tono="primario" className="size-6" onClick={() => onSeleccion(f.id)}><Calculator size={13} /></BotonIcono>}
                       <BotonIcono etiqueta="Editar" className="size-6" onClick={() => abrir(f)}><Pencil size={13} /></BotonIcono>
                       {f.estado === "activo"
                         ? <BotonIcono etiqueta="Quitar" tono="peligro" className="size-6" onClick={() => quitar(f)}><Trash2 size={13} /></BotonIcono>
                         : <Boton variante="linea" className="h-6 px-2 py-0 text-[11px]" onClick={() => reactivar(f)}>Reactivar</Boton>}
                     </div>
-                  </td>
+                  </td>}
                 </tr>
               ))}
             </tbody>
