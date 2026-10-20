@@ -1,7 +1,7 @@
 import { formatearSiGritado, ordenarPorNombre } from "@/lib/formato-texto";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowDown, ArrowUp, BookOpen, Boxes, Calculator, Lock, ChevronDown, ChevronRight, CornerDownRight, FolderPlus, Layers, ListPlus, Plus, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, BookOpen, Boxes, Calculator, Lock, ChevronDown, ChevronRight, FolderPlus, Layers, ListPlus, Plus, Trash2 } from "lucide-react";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -394,7 +394,7 @@ export function CotizacionHoja({
     const esp = f.clase === "item" ? f.it.especialidad : f.esp;
     const cat = f.clase === "item" ? f.it.categoria ?? "" : f.clase === "sub" ? (f.cat === "Sin categoría" ? "" : f.cat) : "";
     const hermanos = items.filter(
-      (i) => i.especialidad === esp && (i.categoria ?? "") === cat && !i.padre_id,
+      (i) => i.especialidad === esp && (i.categoria ?? "") === cat,
     );
     const base = (hermanos[0]?.codigo ?? "").split(".").slice(0, 2).join(".");
     const usados = hermanos
@@ -748,8 +748,7 @@ export function CotizacionHoja({
       (x) =>
         x.clase === "item" &&
         x.it.especialidad === f.it.especialidad &&
-        (x.it.categoria ?? "") === (f.it.categoria ?? "") &&
-        (x.it.padre_id ?? null) === (f.it.padre_id ?? null),
+        (x.it.categoria ?? "") === (f.it.categoria ?? ""),
     );
   }
 
