@@ -154,7 +154,7 @@ export function EspecialidadesPartida() {
                     editando?.id === e.id ? (
                       <li key={e.id} className="grid gap-2 bg-primary/5 px-4 py-2 sm:grid-cols-[70px_1fr_1.4fr_150px_110px_auto] sm:items-center">
                         <span className="text-muted-foreground">{e.codigo}</span>
-                        <Input className="py-1 text-xs" value={editando.nombre} data-formato="titulo"
+                        <Input className="py-1 text-xs" value={editando.nombre} data-formato="mayusculas"
                           onChange={(ev) => setEditando({ ...editando, nombre: ev.target.value })} />
                         <Input className="py-1 text-xs" placeholder="Descripción de ayuda" value={editando.descripcion ?? ""}
                           onChange={(ev) => setEditando({ ...editando, descripcion: ev.target.value })} />
@@ -205,7 +205,7 @@ export function EspecialidadesPartida() {
                     <input
                       className="flex-1 rounded-md border border-line bg-background px-2 py-1 text-xs outline-none focus:border-primary"
                       placeholder="Nueva especialidad y Enter…"
-                      value={nueva[clave]} data-formato="titulo" maxLength={80}
+                      value={nueva[clave]} data-formato="mayusculas" maxLength={80}
                       onChange={(ev) => setNueva((n) => ({ ...n, [clave]: ev.target.value }))}
                       onKeyDown={(ev) => { if (ev.key === "Enter") { ev.preventDefault(); void crear(clave); } }}
                     />
