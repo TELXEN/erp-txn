@@ -31,3 +31,13 @@ describe("formatearTexto", () => {
     expect(formatearTexto("KW", "unidad")).toBe("kW");
   });
 });
+
+describe("Title Case Industrial (títulos de partidas)", () => {
+  it("capitaliza palabras clave y deja conectores en minúscula", () => {
+    expect(formatearTexto("centro de control de motores", "titulo")).toBe("Centro de Control de Motores");
+    expect(formatearTexto("MEDIA TENSIÓN PARA LA CHANCADORA PRIMARIA", "titulo")).toBe("Media Tensión para la Chancadora Primaria");
+  });
+  it("capitaliza el conector si inicia la frase", () => {
+    expect(formatearTexto("de la obra", "titulo")).toBe("De la Obra");
+  });
+});
