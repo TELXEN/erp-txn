@@ -920,6 +920,13 @@ function PanelConsolidado({ partida }: { partida: Fila }) {
 
 // ================= Hoja limpia de insumos con barra de acciones =================
 
+const ordenEs = new Intl.Collator("es", { sensitivity: "base", numeric: true });
+/** Solo la primera letra en mayúscula; el resto en minúscula. */
+export const primeraMayuscula = (t: string) => {
+  const x = String(t ?? "").trim().replace(/\s+/g, " ").toLocaleLowerCase("es");
+  return x.charAt(0).toLocaleUpperCase("es") + x.slice(1);
+};
+
 function HojaInsumos() {
   const qc = useQueryClient();
   const mat = useTabla("materiales").data ?? [];
@@ -960,6 +967,8 @@ function HojaInsumos() {
     const d: Record<string, unknown> = {};
     for (const c of CONFIG[tipo].campos) d[c.k] = c.tipo === "num" ? Number(form[c.k] || 0) : String(form[c.k] ?? "").trim();
     if (tipo === "equipos_herramientas" && form.tipo !== "alquilado") d["margen"] = 0;
+    d["descripcion"] = primeraMayuscula(String(d["descripcion"]));
+    if (typeof d["marca"] === "string" && d["marca"]) d["marca"] = primeraMayuscula(d["marca"]);
     const { error } = modo === "editar" && sel ? await db.from(tipo).update(d).eq("id", sel.fila.id) : await db.from(tipo).insert(d);
     if (error) return setAviso(error.message);
     refrescar(); setModo(null);
@@ -984,7 +993,9 @@ function HojaInsumos() {
         </div>
         {GRUPOS_INSUMO.map((t) => {
           const cfg = CONFIG[t];
-          const filas = datos[t]!.filter((f) => f.estado === "activo" && coincide(busqueda, ...cfg.columnas.map(([k]) => f[k])));
+          const filas = datos[t]!
+            .filter((f) => f.estado === "activo" && coincide(busqueda, ...cfg.columnas.map(([k]) => f[k])))
+            .sort((a, b) => ordenEs.compare(String(a.descripcion ?? ""), String(b.descripcion ?? "")));
           return (
             <div key={t}>
               <div className="border-b border-line bg-muted/50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide">{cfg.titulo} <span className="font-normal text-muted-foreground">({filas.length})</span></div>
@@ -999,7 +1010,7 @@ function HojaInsumos() {
                         className={`cursor-pointer border-b border-line/60 hover:bg-muted/40 ${sel?.fila.id === f.id ? "bg-primary/10" : ""}`}>
                         {cfg.columnas.map(([k, , tp]) => (
                           <td key={k} className={`px-2 py-0.5 ${tp !== "txt" ? "whitespace-nowrap text-right font-mono" : k === "descripcion" ? "w-full" : "whitespace-nowrap"}`}>
-                            {tp === "sol" ? soles(Number(f[k] ?? 0)) : tp === "num" ? Number(f[k] ?? 0).toLocaleString("es-PE") : <Resaltar texto={f[k]} termino={busqueda} />}
+                            {tp === "sol" ? soles(Number(f[k] ?? 0)) : tp === "num" ? Number(f[k] ?? 0).toLocaleString("es-PE") : <Resaltar texto={k === "descripcion" || k === "marca" ? primeraMayuscula(f[k]) : f[k]} termino={busqueda} />}
                           </td>
                         ))}
                       </tr>
