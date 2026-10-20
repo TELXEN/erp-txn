@@ -40,7 +40,7 @@ export function PlantillasCotizacion() {
     if (items?.length && data) {
       const { error } = await sb
         .from("plantilla_cotizacion_items")
-        .insert(items.map(({ id: _x, created_at: _c, ...r }) => ({ ...r, plantilla_id: data.id })));
+        .insert((items as Record<string, unknown>[]).map(({ id: _x, created_at: _c, ...r }) => ({ ...r, plantilla_id: data.id })));
       if (error) throw error;
     }
     refrescar();
