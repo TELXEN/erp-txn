@@ -163,9 +163,6 @@ function ListaBanco({ tabla, seleccion, onSeleccion, llena = false }: { tabla: T
     : filasRaw;
   const { data: especialidades = [] } = useEspecialidadesPartida();
   const { data: unidades = [] } = useUnidadesMedida();
-  const { data: especialidades = [] } = useEspecialidadesPartida();
-  const { data: subfamilias = [] } = useSubfamilias();
-  const espCod = especialidades.filter((e) => e.codigo_modular).sort((a, b) => String(a.codigo_modular).localeCompare(String(b.codigo_modular)));
   const [busqueda, setBusqueda] = useState("");
   const [filtro, setFiltro] = useState("");
   const [estado, setEstado] = useState("activo");
@@ -938,6 +935,9 @@ function HojaInsumos() {
   const mo = useTabla("mano_obra").data ?? [];
   const eq = useTabla("equipos_herramientas").data ?? [];
   const sc = useTabla("subcontratos").data ?? [];
+  const { data: espLista = [] } = useEspecialidadesPartida();
+  const { data: subfamilias = [] } = useSubfamilias();
+  const espCod = espLista.filter((e) => e.codigo_modular).sort((a, b) => String(a.codigo_modular).localeCompare(String(b.codigo_modular)));
   const datos: Record<string, Fila[]> = { materiales: mat, mano_obra: mo, equipos_herramientas: eq, subcontratos: sc };
   const { data: unidades = [] } = useUnidadesMedida();
   const [busqueda, setBusqueda] = useState("");

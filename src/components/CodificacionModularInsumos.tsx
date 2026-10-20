@@ -27,36 +27,36 @@ export function CodificacionModularInsumos() {
 
   async function guardarCodigoEsp(id: string, codigo: string) {
     const c = codigo.trim();
-    if (c && !dos(c)) return toast.error("El código debe tener 2 dígitos (01–99).");
-    if (c && esp.some((e) => e.id !== id && e.codigo_modular === c)) return toast.error(`El código ${c} ya existe.`);
+    if (c && !dos(c)) return void toast.error("El código debe tener 2 dígitos (01–99).");
+    if (c && esp.some((e) => e.id !== id && e.codigo_modular === c)) return void toast.error(`El código ${c} ya existe.`);
     const { error } = await supabase.from("especialidades_partida").update({ codigo_modular: c || null }).eq("id", id);
-    if (error) return toast.error(error.message);
+    if (error) return void toast.error(error.message);
     setEdit(null); refrescar();
   }
 
   async function crearSub() {
     const { bloque, codigo, nombre } = nuevaSub;
-    if (!actual || !dos(codigo) || !nombre.trim()) return toast.error("Completa código de 2 dígitos y nombre.");
-    if (subsEsp.some((s) => s.codigo === codigo.trim())) return toast.error(`El código ${codigo} ya existe en esta especialidad.`);
-    if (subsEsp.some((s) => claveNombre(s.nombre) === claveNombre(nombre))) return toast.error(`La subfamilia «${nombre.trim()}» ya existe.`);
+    if (!actual || !dos(codigo) || !nombre.trim()) return void toast.error("Completa código de 2 dígitos y nombre.");
+    if (subsEsp.some((s) => s.codigo === codigo.trim())) return void toast.error(`El código ${codigo} ya existe en esta especialidad.`);
+    if (subsEsp.some((s) => claveNombre(s.nombre) === claveNombre(nombre))) return void toast.error(`La subfamilia «${nombre.trim()}» ya existe.`);
     const { error } = await supabase.from("subfamilias_insumo").insert({ especialidad_id: actual, bloque: bloque.trim(), codigo: codigo.trim(), nombre: nombre.trim() });
-    if (error) return toast.error(error.message);
+    if (error) return void toast.error(error.message);
     setNuevaSub({ bloque, codigo: "", nombre: "" }); refrescar();
   }
 
   async function guardarSub(id: string, bloque: string, codigo: string, nombre: string) {
-    if (!dos(codigo) || !nombre.trim()) return toast.error("Completa código de 2 dígitos y nombre.");
-    if (subsEsp.some((s) => s.id !== id && s.codigo === codigo.trim())) return toast.error(`El código ${codigo} ya existe en esta especialidad.`);
-    if (subsEsp.some((s) => s.id !== id && claveNombre(s.nombre) === claveNombre(nombre))) return toast.error(`La subfamilia «${nombre.trim()}» ya existe.`);
+    if (!dos(codigo) || !nombre.trim()) return void toast.error("Completa código de 2 dígitos y nombre.");
+    if (subsEsp.some((s) => s.id !== id && s.codigo === codigo.trim())) return void toast.error(`El código ${codigo} ya existe en esta especialidad.`);
+    if (subsEsp.some((s) => s.id !== id && claveNombre(s.nombre) === claveNombre(nombre))) return void toast.error(`La subfamilia «${nombre.trim()}» ya existe.`);
     const { error } = await supabase.from("subfamilias_insumo").update({ bloque: bloque.trim(), codigo: codigo.trim(), nombre: nombre.trim() }).eq("id", id);
-    if (error) return toast.error(error.message);
+    if (error) return void toast.error(error.message);
     setEdit(null); refrescar();
   }
 
   async function quitarSub(id: string, nombre: string) {
     if (!window.confirm(`¿Eliminar la subfamilia «${nombre}»? Los insumos que la usan quedarán sin clasificar.`)) return;
     const { error } = await supabase.from("subfamilias_insumo").delete().eq("id", id);
-    if (error) return toast.error(error.message);
+    if (error) return void toast.error(error.message);
     refrescar();
   }
 
