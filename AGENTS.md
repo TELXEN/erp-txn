@@ -17,7 +17,7 @@
 - Document codes use codificacion_documentos and siguiente_codigo_documento (free code + padded correlative) — one numbering source.
 - Read tipos_insumo via useTiposInsumo; only five system keys may be hardcoded — users can add types.
 - The HT (herramientas manuales) type is hidden (tipos_insumo.oculto); calcularApu adds it automatically as the last row of the EQ group using the HT percentage from Márgenes APU — users never attach it manually.
-- Sidebar has dedicated theme tokens; primary/action buttons use its base color without altering business screens — consistent navigation.
+- Sidebar has dedicated theme tokens; primary/action buttons use its base color without altering business screens.
 - Invoice/quotation/preliquidation colors and font come from src/lib/documento-tema.ts; preliquidation uses one sheet (HojaPreliquidacion.tsx) with amounts in src/lib/preliquidacion-montos.ts — outputs never diverge.
 - SUNAT purchase invoices archive in comprobantes_recibidos(+_items) and the private comprobantes-compra bucket; only the authenticated descargarComprobantesSire server fn downloads, in batches of 10 — SOL credentials stay server-side.
 - SIRE uses one persistent period selector and sync control for RVIE and RCE — books stay aligned.
@@ -31,7 +31,7 @@
 - Honoraria (recibos_honorarios) and payroll (DetallePagoNomina) each use one WYSIWYG preview/print sheet; Cerrada gates payroll payments — aligned outputs.
 - BEFORE triggers round amounts (2 dp) and quantities/unit prices (4 dp) on gastos_directos, gastos_generales and ventas — one rounding rule for every writer.
 - Real project cost comes only from useCostoObras (src/lib/costo-obra.ts) — every panel shows the same figure; GG charts only regroup by scope.
-- UI buttons merge classes with cn() so a passed className beats base utilities; table row actions use BotonIcono (tones neutro/primario/peligro) — icons never get squeezed by padding.
+- UI buttons merge classes with cn() so a passed className beats base utilities; table row actions use BotonIcono (tones neutro/primario/peligro).
 - Banco APU: five resource tables + partida_detalle (one nullable FK per row); removal via quitar_recurso_apu (deactivates if used); specs on partidas_apu.especificaciones, metrado in partidas_apu_metrado — recipes keep history.
 - Text: data-formato and FormatoGlobal/formato-texto.ts — shared rules.
 - Units come only from unidades_medida (selects in Banco APU, cotización sheet and new-partida dialogs); the canonical symbols the costing code compares are H-H (mano de obra), H-M (equipos por hora), % (porcentaje sobre MO) and GLB — keep them in the catalogue so nothing falls back to free text.
