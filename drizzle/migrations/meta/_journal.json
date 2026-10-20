@@ -330,6 +330,13 @@
       "when": 1792509883484,
       "tag": "0046_especialidades_orden_por_bloque",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1792517839032,
+      "tag": "0047_especialidades_nombre_normalizado_unico",
+      "breakpoints": true
     }
   ]
 }
