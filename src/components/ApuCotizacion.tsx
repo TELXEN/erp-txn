@@ -95,8 +95,8 @@ export function ApuBanco({
       }
       return;
     }
-    const base = detalleBanco.filter((d) => d.partida_padre_id === partidaBanco.id && !d.subpartida_hijo_id);
-    if (!base.length) return setError("La partida del Banco APU todavía no tiene receta (o solo tiene subpartidas).");
+    const base = detalleBanco.filter((d) => d.partida_padre_id === partidaBanco.id);
+    if (!base.length) return setError("La partida del Banco APU todavía no tiene receta.");
     await dbBanco.from(origen.tablaDetalle).delete().eq(origen.columna, item.id);
     const { error: e } = await dbBanco.from(origen.tablaDetalle).insert(
       base.map((b: { material_id: string | null; mano_obra_id: string | null; equipo_id: string | null; subcontrato_id: string | null; cantidad_o_cuadrilla: number }) => ({

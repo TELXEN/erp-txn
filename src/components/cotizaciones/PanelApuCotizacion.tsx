@@ -196,7 +196,7 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
       destino = data.id as string;
       await dbBanco.from("cotizacion_items").update({ partida_apu_id: destino }).eq("id", it.id);
     } else {
-      const { error } = await dbBanco.from("partida_detalle").delete().eq("partida_padre_id", destino).is("subpartida_hijo_id", null);
+      const { error } = await dbBanco.from("partida_detalle").delete().eq("partida_padre_id", destino);
       if (error) return setAviso(error.message);
     }
     const { error: e2 } = await dbBanco.from("partida_detalle").insert(
