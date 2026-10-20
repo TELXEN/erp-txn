@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Calculator, Copy, Pencil, Plus, Trash2, X } from "lucide-react";
+import { Copy, Pencil, Plus, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Boton, BotonIcono, Campo, Etiqueta, Input, Panel, Select, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
@@ -127,15 +127,27 @@ function SplitPartidas() {
   const elegirPie = (p: Pie) => { setPie(p); localStorage.setItem("banco-apu:pie", p); };
   const { data: pa = [] } = useTabla("partidas_apu");
   const partida = pa.find((p) => p.id === sel);
+  const [foco, setFoco] = useState<"partida" | "apu">("partida");
+  const [selFila, setSelFila] = useState("");
+  const [cmdLista, setCmdLista] = useState<Comando | null>(null);
+  const [cmdApu, setCmdApu] = useState<Comando | null>(null);
+  useEffect(() => { setSelFila(""); setFoco("partida"); }, [sel]);
+  const enApu = foco === "apu" && !!selFila && pie === "analisis";
+  const ejecutar = (a: Comando["a"]) => {
+    if (enApu && a !== "copiar") setCmdApu({ a, n: Date.now() });
+    else setCmdLista({ a, n: Date.now() });
+  };
+  const obj = enApu ? "insumo del APU" : "partida";
+  const haySel = enApu || !!partida;
   return (
-    <div className="grid grid-cols-1 items-stretch gap-4 lg:h-[calc(100dvh-240px)] lg:min-h-[400px] lg:grid-cols-12">
-      <div className="min-h-0 min-w-0 lg:col-span-7"><ListaBanco tabla="partidas_apu" seleccion={sel} onSeleccion={elegir} llena /></div>
-      <div className="flex min-h-[420px] min-w-0 flex-col lg:col-span-5 lg:min-h-0">
+    <div className="grid grid-cols-1 items-stretch gap-4 lg:h-[calc(100dvh-240px)] lg:min-h-[400px] lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)_auto]">
+      <div className="min-h-0 min-w-0"><ListaBanco tabla="partidas_apu" seleccion={sel} onSeleccion={(id) => { elegir(id); setFoco("partida"); }} llena comando={cmdLista} /></div>
+      <div className="flex min-h-[420px] min-w-0 flex-col lg:min-h-0">
         <div className="min-h-0 flex-1">
           {!partida ? (
             <Panel titulo="Análisis de precios unitarios" className="flex h-full flex-col"><div className="min-h-0 flex-1 overflow-y-auto"><Vacio texto="Elige una partida a la izquierda para ver y armar su APU." /></div></Panel>
           ) : pie === "analisis" ? (
-            <PanelApuMaestro partida={partida} />
+            <PanelApuMaestro partida={partida} selFila={selFila} onSelFila={(id) => { setSelFila(id); setFoco(id ? "apu" : "partida"); }} comando={cmdApu} />
           ) : (
             <PanelEspecificaciones partida={partida} />
           )}
@@ -150,11 +162,17 @@ function SplitPartidas() {
           ))}
         </div>
       </div>
+      <div className="flex h-fit flex-row gap-1.5 rounded-md border border-line bg-card p-1.5 lg:sticky lg:top-2 lg:flex-col">
+        <BotonIcono etiqueta={enApu ? "Agregar insumo al APU" : "Agregar nueva partida"} title={enApu ? "Agregar insumo al APU" : "Agregar nueva partida"} tono="primario" onClick={() => ejecutar("nuevo")}><Plus size={15} /></BotonIcono>
+        <BotonIcono etiqueta={`Editar ${obj}`} title={`Editar ${obj}`} disabled={!haySel} onClick={() => ejecutar("editar")}><Pencil size={15} /></BotonIcono>
+        <BotonIcono etiqueta="Copiar partida con su APU" title="Copiar partida con su APU" disabled={!partida} onClick={() => ejecutar("copiar")}><Copy size={15} /></BotonIcono>
+        <BotonIcono etiqueta={`Eliminar ${obj}`} title={`Eliminar ${obj}`} tono="peligro" disabled={!haySel} onClick={() => ejecutar("eliminar")}><Trash2 size={15} /></BotonIcono>
+      </div>
     </div>
   );
 }
 
-function ListaBanco({ tabla, seleccion, onSeleccion, llena = false }: { tabla: Tabla; seleccion?: string; onSeleccion?: (id: string) => void; llena?: boolean }) {
+function ListaBanco({ tabla, seleccion, onSeleccion, llena = false, comando }: { tabla: Tabla; seleccion?: string; onSeleccion?: (id: string) => void; llena?: boolean; comando?: Comando | null }) {
   const cfg = CONFIG[tabla];
   const qc = useQueryClient();
   const { data: filasRaw = [] } = useTabla(tabla);
@@ -204,7 +222,7 @@ function ListaBanco({ tabla, seleccion, onSeleccion, llena = false }: { tabla: T
   async function guardar(cerrar: boolean) {
     if (!form) return;
     if (!form.descripcion?.trim()) return setAviso("Escribe la descripción.");
-    if (!form.especialidad_id || !form.subfamilia_id) return setAviso("Elige la especialidad y la subfamilia: con ellas se genera el código.");
+    if (tabla !== "partidas_apu" && (!form.especialidad_id || !form.subfamilia_id)) return setAviso("Elige la especialidad y la subfamilia: con ellas se genera el código.");
     const datos: Record<string, unknown> = {};
     for (const c of cfg.campos) datos[c.k] = c.tipo === "num" ? Number(form[c.k] || 0) : form[c.k]?.trim() ?? "";
     if (tabla === "equipos_herramientas" && form.tipo !== "alquilado") datos["margen"] = 0;
@@ -228,6 +246,36 @@ function ListaBanco({ tabla, seleccion, onSeleccion, llena = false }: { tabla: T
     refrescar();
   }
 
+  // Copia una partida con su receta APU completa.
+  async function copiarPartida(f: Fila) {
+    const cod = String(f.codigo_jerarquico ?? "");
+    const pref = cod.split(".").slice(0, -1).join(".");
+    const nuevoCod = pref ? siguienteCodigoJerarquico(filasRaw.map((p) => String(p.codigo_jerarquico ?? "")), pref) : "";
+    const { id: _i, created_at: _c, updated_at: _u, ...resto } = f;
+    const { data, error } = await db.from("partidas_apu").insert({ ...resto, codigo_jerarquico: nuevoCod, descripcion: `${f.descripcion} (copia)`, estado: "activo" }).select("id").single();
+    if (error) return window.alert(error.message);
+    const { data: det = [] } = await db.from("partida_detalle").select("*").eq("partida_padre_id", f.id);
+    if (det?.length) {
+      const filasN = det.map(({ id: _x, created_at: _y, updated_at: _z, ...d }: Fila) => ({ ...d, partida_padre_id: data.id }));
+      const { error: e2 } = await db.from("partida_detalle").insert(filasN);
+      if (e2) window.alert(e2.message);
+    }
+    refrescar();
+    onSeleccion?.(data.id);
+  }
+
+  useEffect(() => {
+    if (!comando) return;
+    const f = filasRaw.find((x) => x.id === seleccion);
+    if (comando.a === "nuevo") setNueva(true);
+    else if (!f) return;
+    else if (comando.a === "editar") abrir(f);
+    else if (comando.a === "copiar") void copiarPartida(f);
+    else if (comando.a === "eliminar") void quitar(f);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [comando?.n]);
+
+
   return (
     <>
     <Panel
@@ -248,7 +296,7 @@ function ListaBanco({ tabla, seleccion, onSeleccion, llena = false }: { tabla: T
             <option value="inactivo">Inactivos</option>
             <option value="">Todos</option>
           </Select>
-          <Boton onClick={() => (tabla === "partidas_apu" ? setNueva(true) : abrir())}><Plus size={13} /> Aumentar</Boton>
+          {!onSeleccion && <Boton onClick={() => (tabla === "partidas_apu" ? setNueva(true) : abrir())}><Plus size={13} /> Aumentar</Boton>}
         </div>
       }
     >
@@ -261,7 +309,7 @@ function ListaBanco({ tabla, seleccion, onSeleccion, llena = false }: { tabla: T
               <tr className="border-b border-line text-left label-mono">
                 {cfg.columnas.map(([k, t, tp]) => <th key={k} className={`px-2 py-1 ${tp !== "txt" ? "text-right" : ""}`}>{t}</th>)}
                 <th className="px-2 py-1">Estado</th>
-                <th className="px-2 py-1 text-right">Acciones</th>
+                {!onSeleccion && <th className="px-2 py-1 text-right">Acciones</th>}
               </tr>
             </thead>
             <tbody>
@@ -281,15 +329,14 @@ function ListaBanco({ tabla, seleccion, onSeleccion, llena = false }: { tabla: T
                     );
                   })}
                   <td className="px-3 py-0.5"><Etiqueta tono={f.estado === "activo" ? "good" : "neutro"}>{f.estado === "activo" ? "Activo" : "Inactivo"}</Etiqueta></td>
-                  <td className="px-3 py-0.5" onClick={(e) => e.stopPropagation()}>
+                  {onSeleccion ? (f.estado !== "activo" && <td className="px-3 py-0.5" onClick={(e) => e.stopPropagation()}><Boton variante="linea" className="h-6 px-2 py-0 text-[11px]" onClick={() => reactivar(f)}>Reactivar</Boton></td>) : <td className="px-3 py-0.5" onClick={(e) => e.stopPropagation()}>
                     <div className="flex justify-end gap-1">
-                      {onSeleccion && <BotonIcono etiqueta="Análisis (receta APU)" tono="primario" className="size-6" onClick={() => onSeleccion(f.id)}><Calculator size={13} /></BotonIcono>}
                       <BotonIcono etiqueta="Editar" className="size-6" onClick={() => abrir(f)}><Pencil size={13} /></BotonIcono>
                       {f.estado === "activo"
                         ? <BotonIcono etiqueta="Quitar" tono="peligro" className="size-6" onClick={() => quitar(f)}><Trash2 size={13} /></BotonIcono>
                         : <Boton variante="linea" className="h-6 px-2 py-0 text-[11px]" onClick={() => reactivar(f)}>Reactivar</Boton>}
                     </div>
-                  </td>
+                  </td>}
                 </tr>
               ))}
             </tbody>
@@ -416,7 +463,9 @@ function CeldaNum({ valor, dec, onGuardar, deshabilitado, sufijo }: { sufijo?: s
   );
 }
 
-function PanelApuMaestro({ partida }: { partida: Fila }) {
+type Comando = { a: "nuevo" | "editar" | "copiar" | "eliminar"; n: number };
+
+function PanelApuMaestro({ partida, selFila, onSelFila, comando }: { partida: Fila; selFila?: string; onSelFila?: (id: string) => void; comando?: Comando | null }) {
   const qc = useQueryClient();
   const { costo, fuentes, detalles } = useApuMaestro();
   const [agregar, setAgregar] = useState<Grupo | null>(null);
@@ -493,6 +542,22 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
     refrescar();
   }
 
+  // Acciones de la barra vertical sobre el insumo seleccionado del APU.
+  useEffect(() => {
+    if (!comando || !selFila) return;
+    const f = calc.filas.find((x) => x.d.id === selFila);
+    const g = f && GRUPOS.find(([c]) => c === f.col);
+    if (!f || !g) return;
+    const m = { x: 0, y: 0, g, f, habilitadas: {} };
+    if (comando.a === "nuevo") void accionMenu("debajo", m);
+    else if (comando.a === "eliminar") { if (window.confirm(`¿Quitar «${f.nombre}» del APU?`)) { void quitarFila(f); onSelFila?.(""); } }
+    else if (comando.a === "editar") {
+      const inp = document.querySelector<HTMLInputElement>(`[data-fila-apu="${f.d.id}"] input`);
+      if (inp) { inp.focus(); inp.select(); }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [comando?.n]);
+
   return (
     <>
     {menu && <MenuContextualApu menu={menu} onCerrar={cerrarMenu} onAccion={(a) => void accionMenu(a, menu)} />}
@@ -535,7 +600,8 @@ function PanelApuMaestro({ partida }: { partida: Fila }) {
                   <td className={`${td} text-right font-mono font-bold`}>{n2(sub)}</td>
                 </tr>,
                 ...filas.map((f, i) => (
-                  <tr key={f.d.id} className="border-b border-line/70 hover:bg-primary/5"
+                  <tr key={f.d.id} data-fila-apu={f.d.id} className={`cursor-pointer border-b border-line/70 hover:bg-primary/5 ${selFila === f.d.id ? "bg-primary/10" : ""}`}
+                    onClick={() => onSelFila?.(f.d.id)}
                     onContextMenu={(e) => abrirMenu(e, g, f, { encima: true, debajo: true, final: true, subir: i > 0, bajar: i < filas.length - 1, eliminar: true })}>
                     <td className={`${td} font-mono text-[11px] text-muted-foreground`}><span className="block truncate" title={f.codigo ?? ""}>{f.codigo || "—"}</span></td>
                     <td className={td}><div className="flex min-w-0 items-center gap-1.5"><span className="min-w-0 truncate" title={f.nombre}>{f.nombre}</span></div></td>
