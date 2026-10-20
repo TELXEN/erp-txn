@@ -58,7 +58,7 @@ export function GruposCotizacion() {
             ))}
           </tbody>
         </table>
-        <button type="button" onClick={() => void nuevo()} className="mt-3 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:opacity-90">+ Agregar grupo</button>
+        <button type="button" onClick={() => void nuevo()} className="mt-3 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:opacity-90">+ Agregar título</button>
       </div>
     </Panel>
   );
