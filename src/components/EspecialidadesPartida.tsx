@@ -31,6 +31,7 @@ export function EspecialidadesPartida() {
   const delBloque = (b: BloqueEspecialidad) => lista.filter((e) => e.bloque === b);
   const hermanos = seleccionada ? delBloque(seleccionada.bloque) : [];
   const indice = seleccionada ? hermanos.findIndex((e) => e.id === seleccionada.id) : -1;
+  const enMayusculas = (s: string) => s.trim().toUpperCase();
 
   const refrescar = () => {
     qc.invalidateQueries({ queryKey: ["especialidades_partida"] });
