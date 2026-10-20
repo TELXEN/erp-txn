@@ -6,6 +6,7 @@ import { Boton } from "@/components/ui-kit";
 import { UnidadesMedida } from "@/components/UnidadesMedida";
 import { EspecialidadesPartida } from "@/components/EspecialidadesPartida";
 import { GruposCotizacion } from "@/components/GruposCotizacion";
+import { CodificacionModularInsumos } from "@/components/CodificacionModularInsumos";
 import { BancoApu } from "@/components/BancoApu";
 
 export const Route = createFileRoute("/_authenticated/datos-apu")({
@@ -30,7 +31,7 @@ export const Route = createFileRoute("/_authenticated/datos-apu")({
   component: DatosApu,
 });
 
-type Pestana = "banco" | "unidades" | "especialidades" | "grupos";
+type Pestana = "banco" | "unidades" | "especialidades" | "grupos" | "subfamilias";
 
 const GRUPOS_APU: { titulo: string; icono: React.ElementType; items: [Pestana, string][] }[] = [
   { titulo: "Banco APU", icono: FolderKanban, items: [["banco", "\n"]] },
@@ -39,6 +40,7 @@ const GRUPOS_APU: { titulo: string; icono: React.ElementType; items: [Pestana, s
     icono: Layers,
     items: [
       ["especialidades", "Especialidad de partidas"],
+      ["subfamilias", "Subfamilias de insumos"],
       ["grupos", "Títulos de partidas"],
       ["unidades", "Unidades de medida"],
     ],
@@ -100,6 +102,8 @@ function DatosApu() {
         <BancoApu />
       ) : pestana === "unidades" ? (
         <UnidadesMedida />
+      ) : pestana === "subfamilias" ? (
+        <CodificacionModularInsumos soloSubfamilias />
       ) : pestana === "especialidades" ? (
         <EspecialidadesPartida />
       ) : (

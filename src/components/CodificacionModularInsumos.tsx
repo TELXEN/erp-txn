@@ -10,7 +10,7 @@ import { claveNombre } from "@/lib/formato-texto";
 
 const dos = (v: string) => /^\d{2}$/.test(v.trim());
 
-export function CodificacionModularInsumos() {
+export function CodificacionModularInsumos({ soloSubfamilias = false }: { soloSubfamilias?: boolean }) {
   const qc = useQueryClient();
   const { data: esp = [] } = useEspecialidadesPartida();
   const { data: subs = [] } = useSubfamilias();
@@ -66,6 +66,7 @@ export function CodificacionModularInsumos() {
 
   return (
     <div className="space-y-3">
+      {!soloSubfamilias && <>
       <p className="text-xs text-muted-foreground">
         Código de insumo de 8 dígitos: <span className="font-mono">EE T SS NNN</span> — especialidad (2), tipo (1), subfamilia (2) y correlativo automático (3). Ej. <span className="font-mono">40113001</span>.
       </p>
@@ -110,6 +111,7 @@ export function CodificacionModularInsumos() {
         </Panel>
       </div>
 
+      </>}
       <Panel titulo="Nivel 3 · Subfamilias técnicas" extra={
         <Select value={actual} onChange={(e) => setEspSel(e.target.value)} className="h-7 text-xs">
           {ordenadas.map((e) => <option key={e.id} value={e.id}>{e.codigo_modular ?? "—"} · {e.nombre}</option>)}
