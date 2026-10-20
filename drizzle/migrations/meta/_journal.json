@@ -344,6 +344,13 @@
       "when": 1792517864529,
       "tag": "0048_especialidades_nombre_normalizado_unico_fix",
       "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1792523976817,
+      "tag": "0049_codificacion_modular_insumos",
+      "breakpoints": true
     }
   ]
 }

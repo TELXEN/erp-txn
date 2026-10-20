@@ -17,6 +17,7 @@ export type EspecialidadPartida = {
   activo: boolean;
   bloque: BloqueEspecialidad;
   descripcion: string | null;
+  codigo_modular: string | null;
 };
 
 export const useEspecialidadesPartida = () =>
