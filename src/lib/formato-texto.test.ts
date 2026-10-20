@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatearTexto } from "./formato-texto";
+import { formatearSiGritado, formatearTexto } from "./formato-texto";
 
 describe("formatearTexto", () => {
   it("oración con siglas", () => {
