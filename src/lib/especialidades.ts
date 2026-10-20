@@ -2,12 +2,21 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Partida } from "@/lib/datos";
 
+export type BloqueEspecialidad = "ingenieria" | "construccion";
+
+export const BLOQUES_ESPECIALIDAD: { clave: BloqueEspecialidad; titulo: string }[] = [
+  { clave: "ingenieria", titulo: "Ingeniería del proyecto" },
+  { clave: "construccion", titulo: "Construcción y montaje industrial" },
+];
+
 export type EspecialidadPartida = {
   id: string;
   codigo: string;
   nombre: string;
   orden: number;
   activo: boolean;
+  bloque: BloqueEspecialidad;
+  descripcion: string | null;
 };
 
 export const useEspecialidadesPartida = () =>
@@ -17,6 +26,7 @@ export const useEspecialidadesPartida = () =>
       const { data, error } = await supabase
         .from("especialidades_partida")
         .select("*")
+        .order("bloque", { ascending: false })
         .order("orden");
       if (error) throw error;
       return (data ?? []) as EspecialidadPartida[];

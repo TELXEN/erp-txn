@@ -309,6 +309,20 @@
       "when": 1792216152872,
       "tag": "0043_movimientos_detracciones",
       "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1792508564462,
+      "tag": "0044_especialidades_bloques",
+      "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1792508640851,
+      "tag": "0045_mover_especialidad_por_bloque",
+      "breakpoints": true
     }
   ]
 }
