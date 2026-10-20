@@ -139,6 +139,8 @@ function SplitPartidas() {
   };
   const obj = enApu ? "insumo del APU" : "partida";
   const haySel = enApu || !!partida;
+  const [menuMas, setMenuMas] = useState(false);
+  const agregarGrupo = (grupo: string) => { setMenuMas(false); if (pie !== "analisis") elegirPie("analisis"); setCmdApu({ a: "nuevo", grupo, n: Date.now() }); };
   return (
     <div className="grid grid-cols-1 items-stretch gap-4 lg:h-[calc(100dvh-240px)] lg:min-h-[400px] lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)_auto]">
       <div className="min-h-0 min-w-0"><ListaBanco tabla="partidas_apu" seleccion={sel} onSeleccion={(id) => { elegir(id); setFoco("partida"); }} llena comando={cmdLista} /></div>
@@ -163,7 +165,19 @@ function SplitPartidas() {
         </div>
       </div>
       <div className="flex h-fit flex-row gap-1.5 rounded-md border border-line bg-card p-1.5 lg:sticky lg:top-2 lg:flex-col">
-        <BotonIcono etiqueta={enApu ? "Agregar insumo al APU" : "Agregar nueva partida"} title={enApu ? "Agregar insumo al APU" : "Agregar nueva partida"} tono="primario" onClick={() => ejecutar("nuevo")}><Plus size={15} /></BotonIcono>
+        <div className="relative">
+          <BotonIcono etiqueta="Agregar" title="Agregar partida o insumo al APU" tono="primario" onClick={() => setMenuMas((v) => !v)}><Plus size={15} /></BotonIcono>
+          {menuMas && (
+            <div role="menu" className="absolute right-full top-0 z-50 mr-1 w-56 rounded-md border border-line bg-popover py-1 text-[12px] text-popover-foreground shadow-lg">
+              <button type="button" role="menuitem" className="flex w-full px-3 py-1.5 text-left hover:bg-primary/10" onClick={() => { setMenuMas(false); setCmdLista({ a: "nuevo", n: Date.now() }); }}>Nueva partida</button>
+              <div className="my-1 border-t border-line" />
+              <p className="px-3 pb-1 text-[10px] uppercase text-muted-foreground">Agregar insumo al APU</p>
+              {GRUPOS.map(([c, , t]) => (
+                <button key={c} type="button" role="menuitem" disabled={!partida} className="flex w-full px-3 py-1.5 text-left hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-40" onClick={() => agregarGrupo(c)}>{t}</button>
+              ))}
+            </div>
+          )}
+        </div>
         <BotonIcono etiqueta={`Editar ${obj}`} title={`Editar ${obj}`} disabled={!haySel} onClick={() => ejecutar("editar")}><Pencil size={15} /></BotonIcono>
         <BotonIcono etiqueta="Copiar partida con su APU" title="Copiar partida con su APU" disabled={!partida} onClick={() => ejecutar("copiar")}><Copy size={15} /></BotonIcono>
         <BotonIcono etiqueta={`Eliminar ${obj}`} title={`Eliminar ${obj}`} tono="peligro" disabled={!haySel} onClick={() => ejecutar("eliminar")}><Trash2 size={15} /></BotonIcono>
@@ -463,7 +477,7 @@ function CeldaNum({ valor, dec, onGuardar, deshabilitado, sufijo }: { sufijo?: s
   );
 }
 
-type Comando = { a: "nuevo" | "editar" | "copiar" | "eliminar"; n: number };
+type Comando = { a: "nuevo" | "editar" | "copiar" | "eliminar"; n: number; grupo?: string };
 
 function PanelApuMaestro({ partida, selFila, onSelFila, comando }: { partida: Fila; selFila?: string; onSelFila?: (id: string) => void; comando?: Comando | null }) {
   const qc = useQueryClient();
@@ -544,7 +558,13 @@ function PanelApuMaestro({ partida, selFila, onSelFila, comando }: { partida: Fi
 
   // Acciones de la barra vertical sobre el insumo seleccionado del APU.
   useEffect(() => {
-    if (!comando || !selFila) return;
+    if (!comando) return;
+    if (comando.a === "nuevo" && comando.grupo) {
+      const gg = GRUPOS.find(([c]) => c === comando.grupo);
+      if (gg) void accionMenu("final", { x: 0, y: 0, g: gg, f: undefined, habilitadas: {} });
+      return;
+    }
+    if (!selFila) return;
     const f = calc.filas.find((x) => x.d.id === selFila);
     const g = f && GRUPOS.find(([c]) => c === f.col);
     if (!f || !g) return;
