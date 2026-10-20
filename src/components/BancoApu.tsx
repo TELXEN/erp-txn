@@ -944,8 +944,9 @@ function HojaInsumos() {
     if (!f && !b.unidad) b.unidad = unidades.find((u) => u.activo)?.simbolo ?? "";
     return b;
   }
-  function abrir(m: "nuevo" | "editar" | "copiar") {
+  function abrir(m: "nuevo" | "editar" | "copiar", objetivo = sel) {
     setAviso("");
+    const sel = objetivo;
     if (m === "nuevo") { setTipo("materiales"); setForm(base("materiales")); }
     else if (sel) {
       const b = base(sel.tabla, sel.fila);
@@ -994,7 +995,7 @@ function HojaInsumos() {
                   </tr></thead>
                   <tbody>
                     {filas.map((f) => (
-                      <tr key={f.id} onClick={() => setSel({ tabla: t, fila: f })} onDoubleClick={() => { setSel({ tabla: t, fila: f }); setTimeout(() => abrir("editar")); }}
+                      <tr key={f.id} onClick={() => setSel({ tabla: t, fila: f })} onDoubleClick={() => { setSel({ tabla: t, fila: f }); abrir("editar", { tabla: t, fila: f }); }}
                         className={`cursor-pointer border-b border-line/60 hover:bg-muted/40 ${sel?.fila.id === f.id ? "bg-primary/10" : ""}`}>
                         {cfg.columnas.map(([k, , tp]) => (
                           <td key={k} className={`px-2 py-0.5 ${tp !== "txt" ? "whitespace-nowrap text-right font-mono" : k === "descripcion" ? "w-full" : "whitespace-nowrap"}`}>
