@@ -977,11 +977,13 @@ function HojaInsumos() {
     if (tipo === "equipos_herramientas" && form.tipo !== "alquilado") d["margen"] = 0;
     d["descripcion"] = primeraMayuscula(String(d["descripcion"]));
     if (typeof d["marca"] === "string" && d["marca"]) d["marca"] = primeraMayuscula(d["marca"]);
-    d["especialidad_id"] = form.especialidad_id; d["subfamilia_id"] = form.subfamilia_id;
+    const conSub = tipo === "materiales";
+    if (!form.especialidad_id || (conSub && !form.subfamilia_id)) return setAviso(conSub ? "Elige la especialidad y la subfamilia: con ellas se genera el código." : "Elige la especialidad: con ella se genera el código.");
+    d["especialidad_id"] = form.especialidad_id; d["subfamilia_id"] = conSub ? form.subfamilia_id : null;
     const [oe, os, oc] = String(form._orig ?? "").split("|");
-    if (modo === "editar" && oe === form.especialidad_id && os === form.subfamilia_id && /^\d{8}$/.test(oc ?? "")) d["codigo"] = oc;
+    if (modo === "editar" && oe === form.especialidad_id && (conSub ? os === form.subfamilia_id : true) && /^\d{8}$/.test(oc ?? "")) d["codigo"] = oc;
     else {
-      const { data: cod, error: ec } = await db.rpc("siguiente_codigo_insumo_modular", { _especialidad: form.especialidad_id, _tipo: tipo, _subfamilia: form.subfamilia_id });
+      const { data: cod, error: ec } = await db.rpc("siguiente_codigo_insumo_modular", { _especialidad: form.especialidad_id, _tipo: tipo, _subfamilia: conSub ? form.subfamilia_id : null });
       if (ec) return setAviso(ec.message);
       d["codigo"] = cod;
     }
@@ -1026,7 +1028,7 @@ function HojaInsumos() {
                         className={`cursor-pointer border-b border-line/60 hover:bg-muted/40 ${sel?.fila.id === f.id ? "bg-primary/10" : ""}`}>
                         {cfg.columnas.map(([k, , tp]) => (
                           <td key={k} className={`px-2 py-0.5 ${tp !== "txt" ? "whitespace-nowrap text-right font-mono" : k === "descripcion" ? "w-full" : "whitespace-nowrap"}`}>
-                            {tp === "sol" ? soles(Number(f[k] ?? 0)) : tp === "num" ? Number(f[k] ?? 0).toLocaleString("es-PE") : <><Resaltar texto={k === "descripcion" || k === "marca" ? primeraMayuscula(f[k]) : f[k]} termino={busqueda} />{k === "codigo" && !f.subfamilia_id && <span className="ml-1 rounded bg-destructive/10 px-1 text-[10px] font-semibold text-destructive">Sin clasificar</span>}</>}
+                            {tp === "sol" ? soles(Number(f[k] ?? 0)) : tp === "num" ? Number(f[k] ?? 0).toLocaleString("es-PE") : <><Resaltar texto={k === "descripcion" || k === "marca" ? primeraMayuscula(f[k]) : f[k]} termino={busqueda} />{k === "codigo" && (!f.especialidad_id || (t === "materiales" && !f.subfamilia_id)) && <span className="ml-1 rounded bg-destructive/10 px-1 text-[10px] font-semibold text-destructive">Sin clasificar</span>}</>}
                           </td>
                         ))}
                       </tr>
@@ -1060,13 +1062,13 @@ function HojaInsumos() {
               {espCod.map((e) => <option key={e.id} value={e.id}>{e.codigo_modular} · {e.nombre}</option>)}
             </Select>
           </Campo>
-          <Campo etiqueta="Subfamilia">
+          {tipo === "materiales" && <Campo etiqueta="Subfamilia">
             <Select value={form.subfamilia_id ?? ""} onChange={(e) => setForm({ ...form, subfamilia_id: e.target.value })} disabled={!form.especialidad_id}>
               <option value="">— Elegir —</option>
               {subfamilias.filter((s) => s.especialidad_id === form.especialidad_id && s.activo).map((s) => <option key={s.id} value={s.id}>{s.codigo} · {s.nombre}{s.bloque ? ` (${s.bloque})` : ""}</option>)}
             </Select>
-          </Campo>
-          <p className="text-[11px] text-muted-foreground sm:col-span-2">Código: <span className="font-mono">{form.codigo && modo === "editar" ? form.codigo : "se genera al guardar"}</span> (especialidad + tipo + subfamilia + correlativo).</p>
+          </Campo>}
+          <p className="text-[11px] text-muted-foreground sm:col-span-2">Código: <span className="font-mono">{form.codigo && modo === "editar" ? form.codigo : "se genera al guardar"}</span> (tipo + especialidad + {tipo === "materiales" ? "subfamilia" : "00"} + correlativo).</p>
           {CONFIG[tipo].campos.filter((c) => c.k !== "codigo" && (!c.soloSi || c.soloSi(form))).map((c) => (
             <Campo key={c.k} etiqueta={c.t}>
               {c.tipo === "sel" ? (
