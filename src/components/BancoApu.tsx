@@ -154,7 +154,7 @@ function SplitPartidas() {
   );
 }
 
-function ListaBanco({ tabla, seleccion, onSeleccion, llena = false }: { tabla: Tabla; seleccion?: string; onSeleccion?: (id: string) => void; llena?: boolean }) {
+function ListaBanco({ tabla, seleccion, onSeleccion, llena = false, comando }: { tabla: Tabla; seleccion?: string; onSeleccion?: (id: string) => void; llena?: boolean; comando?: Comando | null }) {
   const cfg = CONFIG[tabla];
   const qc = useQueryClient();
   const { data: filasRaw = [] } = useTabla(tabla);
@@ -204,7 +204,7 @@ function ListaBanco({ tabla, seleccion, onSeleccion, llena = false }: { tabla: T
   async function guardar(cerrar: boolean) {
     if (!form) return;
     if (!form.descripcion?.trim()) return setAviso("Escribe la descripción.");
-    if (!form.especialidad_id || !form.subfamilia_id) return setAviso("Elige la especialidad y la subfamilia: con ellas se genera el código.");
+    if (tabla !== "partidas_apu" && (!form.especialidad_id || !form.subfamilia_id)) return setAviso("Elige la especialidad y la subfamilia: con ellas se genera el código.");
     const datos: Record<string, unknown> = {};
     for (const c of cfg.campos) datos[c.k] = c.tipo === "num" ? Number(form[c.k] || 0) : form[c.k]?.trim() ?? "";
     if (tabla === "equipos_herramientas" && form.tipo !== "alquilado") datos["margen"] = 0;
@@ -227,6 +227,36 @@ function ListaBanco({ tabla, seleccion, onSeleccion, llena = false }: { tabla: T
     await db.from(tabla).update({ estado: "activo" }).eq("id", f.id);
     refrescar();
   }
+
+  // Copia una partida con su receta APU completa.
+  async function copiarPartida(f: Fila) {
+    const cod = String(f.codigo_jerarquico ?? "");
+    const pref = cod.split(".").slice(0, -1).join(".");
+    const nuevoCod = pref ? siguienteCodigoJerarquico(filasRaw.map((p) => String(p.codigo_jerarquico ?? "")), pref.split(".")[0]!) : "";
+    const { id: _i, created_at: _c, updated_at: _u, ...resto } = f;
+    const { data, error } = await db.from("partidas_apu").insert({ ...resto, codigo_jerarquico: nuevoCod, descripcion: `${f.descripcion} (copia)`, estado: "activo" }).select("id").single();
+    if (error) return window.alert(error.message);
+    const { data: det = [] } = await db.from("partida_detalle").select("*").eq("partida_padre_id", f.id);
+    if (det?.length) {
+      const filasN = det.map(({ id: _x, created_at: _y, updated_at: _z, ...d }: Fila) => ({ ...d, partida_padre_id: data.id }));
+      const { error: e2 } = await db.from("partida_detalle").insert(filasN);
+      if (e2) window.alert(e2.message);
+    }
+    refrescar();
+    onSeleccion?.(data.id);
+  }
+
+  useEffect(() => {
+    if (!comando) return;
+    const f = filasRaw.find((x) => x.id === seleccion);
+    if (comando.a === "nuevo") setNueva(true);
+    else if (!f) return;
+    else if (comando.a === "editar") abrir(f);
+    else if (comando.a === "copiar") void copiarPartida(f);
+    else if (comando.a === "eliminar") void quitar(f);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [comando?.n]);
+
 
   return (
     <>
