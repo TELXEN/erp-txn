@@ -10,6 +10,7 @@ const SIGLAS = new Set([
 ]);
 const MINUSCULAS_TITULO = new Set([
   "de", "del", "la", "las", "el", "los", "y", "e", "o", "u", "en", "con", "para", "por", "a", "al", "sin", "sobre",
+  "un", "una", "unos", "unas", "entre", "hacia", "desde", "hasta", "contra", "según", "tras", "ante", "bajo", "ni",
 ]);
 const ROMANOS = /^(?=[MDCLXVI])M*(C[MD]|D?C{0,3})(X[CL]|L?X{0,3})(I[XV]|V?I{0,3})$/;
 

@@ -4,6 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Panel } from "@/components/ui-kit";
 import { useGruposCotizacion } from "@/lib/cotizaciones";
 import { recodificarWbs } from "@/lib/wbs";
+import { formatearTexto } from "@/lib/formato-texto";
+
+/** Title Case Industrial: palabras clave con mayúscula inicial, conectores en minúscula. */
+const titular = (s: string) => formatearTexto(s, "titulo");
 
 const sb = supabase as unknown as { from: (t: string) => any };
 const campo = "w-full rounded border border-line bg-card px-2 py-1 text-xs";
@@ -20,8 +24,9 @@ export function GruposCotizacion() {
   };
 
   async function nuevo() {
-    const nombre = window.prompt("Nombre del grupo (ej. PRUEBAS Y PUESTA EN SERVICIO)")?.trim().toUpperCase();
+    let nombre = window.prompt("Nombre del título (ej. Centro de Control de Motores)")?.trim();
     if (!nombre) return;
+    nombre = titular(nombre);
     await sb.from("grupos_cotizacion").insert({ nombre, orden: grupos.length + 1 });
     refrescar();
   }
@@ -39,9 +44,10 @@ export function GruposCotizacion() {
               <tr key={g.id} className="border-b border-line/60">
                 <td className="w-10 px-2 py-1 text-muted-foreground">{String(g.orden).padStart(2, "0")}</td>
                 <td className="px-2 py-1">
-                  <input key={g.nombre} defaultValue={g.nombre} className={`${campo} font-semibold`}
+                  <input key={g.nombre} defaultValue={g.nombre} data-formato="titulo" className={`${campo} font-semibold`}
                     onBlur={async (e) => {
-                      const v = e.target.value.trim().toUpperCase();
+                      const v = titular(e.target.value);
+                      e.target.value = v;
                       if (v && v !== g.nombre) { await sb.from("grupos_cotizacion").update({ nombre: v }).eq("id", g.id); refrescar(); }
                     }} />
                 </td>
