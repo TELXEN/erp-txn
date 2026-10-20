@@ -8,6 +8,7 @@ import { MenuContextualApu, type AccionApu, type EstadoMenuApu } from "@/compone
 import { soles } from "@/lib/format";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
 import { useUnidadesMedida } from "@/lib/unidades";
+import { useSubfamilias } from "@/lib/codigo-insumo";
 import { renumerarApu, siguienteCodigoJerarquico } from "@/lib/banco-apu";
 import { r2, r4, sumar2 } from "@/lib/decimal";
 
@@ -162,6 +163,9 @@ function ListaBanco({ tabla, seleccion, onSeleccion, llena = false }: { tabla: T
     : filasRaw;
   const { data: especialidades = [] } = useEspecialidadesPartida();
   const { data: unidades = [] } = useUnidadesMedida();
+  const { data: especialidades = [] } = useEspecialidadesPartida();
+  const { data: subfamilias = [] } = useSubfamilias();
+  const espCod = especialidades.filter((e) => e.codigo_modular).sort((a, b) => String(a.codigo_modular).localeCompare(String(b.codigo_modular)));
   const [busqueda, setBusqueda] = useState("");
   const [filtro, setFiltro] = useState("");
   const [estado, setEstado] = useState("activo");
@@ -203,6 +207,7 @@ function ListaBanco({ tabla, seleccion, onSeleccion, llena = false }: { tabla: T
   async function guardar(cerrar: boolean) {
     if (!form) return;
     if (!form.descripcion?.trim()) return setAviso("Escribe la descripción.");
+    if (!form.especialidad_id || !form.subfamilia_id) return setAviso("Elige la especialidad y la subfamilia: con ellas se genera el código.");
     const datos: Record<string, unknown> = {};
     for (const c of cfg.campos) datos[c.k] = c.tipo === "num" ? Number(form[c.k] || 0) : form[c.k]?.trim() ?? "";
     if (tabla === "equipos_herramientas" && form.tipo !== "alquilado") datos["margen"] = 0;
@@ -949,6 +954,8 @@ function HojaInsumos() {
     for (const c of CONFIG[t].campos) b[c.k] = f ? String(f[c.k] ?? "") : c.opciones?.[0] ?? (c.tipo === "num" ? "0" : "");
     if (!f && t === "mano_obra") b.unidad = "H-H";
     if (!f && !b.unidad) b.unidad = unidades.find((u) => u.activo)?.simbolo ?? "";
+    b.especialidad_id = f?.especialidad_id ?? "";
+    b.subfamilia_id = f?.subfamilia_id ?? "";
     return b;
   }
   function abrir(m: "nuevo" | "editar" | "copiar", objetivo = sel) {
@@ -959,6 +966,7 @@ function HojaInsumos() {
       const b = base(sel.tabla, sel.fila);
       if (m === "copiar") { b.codigo = ""; b.descripcion = `${b.descripcion} (copia)`; }
       setTipo(sel.tabla); setForm(b);
+      if (m === "editar") b._orig = `${sel.fila.especialidad_id ?? ""}|${sel.fila.subfamilia_id ?? ""}|${sel.fila.codigo ?? ""}`;
     } else return;
     setModo(m);
   }
@@ -969,6 +977,14 @@ function HojaInsumos() {
     if (tipo === "equipos_herramientas" && form.tipo !== "alquilado") d["margen"] = 0;
     d["descripcion"] = primeraMayuscula(String(d["descripcion"]));
     if (typeof d["marca"] === "string" && d["marca"]) d["marca"] = primeraMayuscula(d["marca"]);
+    d["especialidad_id"] = form.especialidad_id; d["subfamilia_id"] = form.subfamilia_id;
+    const [oe, os, oc] = String(form._orig ?? "").split("|");
+    if (modo === "editar" && oe === form.especialidad_id && os === form.subfamilia_id && /^\d{8}$/.test(oc ?? "")) d["codigo"] = oc;
+    else {
+      const { data: cod, error: ec } = await db.rpc("siguiente_codigo_insumo_modular", { _especialidad: form.especialidad_id, _tipo: tipo, _subfamilia: form.subfamilia_id });
+      if (ec) return setAviso(ec.message);
+      d["codigo"] = cod;
+    }
     const { error } = modo === "editar" && sel ? await db.from(tipo).update(d).eq("id", sel.fila.id) : await db.from(tipo).insert(d);
     if (error) return setAviso(error.message);
     refrescar(); setModo(null);
@@ -1010,7 +1026,7 @@ function HojaInsumos() {
                         className={`cursor-pointer border-b border-line/60 hover:bg-muted/40 ${sel?.fila.id === f.id ? "bg-primary/10" : ""}`}>
                         {cfg.columnas.map(([k, , tp]) => (
                           <td key={k} className={`px-2 py-0.5 ${tp !== "txt" ? "whitespace-nowrap text-right font-mono" : k === "descripcion" ? "w-full" : "whitespace-nowrap"}`}>
-                            {tp === "sol" ? soles(Number(f[k] ?? 0)) : tp === "num" ? Number(f[k] ?? 0).toLocaleString("es-PE") : <Resaltar texto={k === "descripcion" || k === "marca" ? primeraMayuscula(f[k]) : f[k]} termino={busqueda} />}
+                            {tp === "sol" ? soles(Number(f[k] ?? 0)) : tp === "num" ? Number(f[k] ?? 0).toLocaleString("es-PE") : <><Resaltar texto={k === "descripcion" || k === "marca" ? primeraMayuscula(f[k]) : f[k]} termino={busqueda} />{k === "codigo" && !f.subfamilia_id && <span className="ml-1 rounded bg-destructive/10 px-1 text-[10px] font-semibold text-destructive">Sin clasificar</span>}</>}
                           </td>
                         ))}
                       </tr>
@@ -1034,11 +1050,24 @@ function HojaInsumos() {
         titulo={modo === "editar" ? "Editar insumo" : modo === "copiar" ? "Copiar insumo" : "Nuevo insumo"}>
         <form className="grid gap-3 p-5 sm:grid-cols-2" onSubmit={(e) => { e.preventDefault(); guardar(); }}>
           <Campo etiqueta="Tipo de insumo">
-            <Select value={tipo} disabled={modo === "editar"} onChange={(e) => { const t = e.target.value as Tabla; setTipo(t); setForm({ ...base(t), codigo: form.codigo, descripcion: form.descripcion }); }}>
+            <Select value={tipo} disabled={modo === "editar"} onChange={(e) => { const t = e.target.value as Tabla; setTipo(t); setForm({ ...base(t), descripcion: form.descripcion, especialidad_id: form.especialidad_id, subfamilia_id: form.subfamilia_id }); }}>
               {GRUPOS_INSUMO.map((t) => <option key={t} value={t}>{CONFIG[t].titulo}</option>)}
             </Select>
           </Campo>
-          {CONFIG[tipo].campos.filter((c) => !c.soloSi || c.soloSi(form)).map((c) => (
+          <Campo etiqueta="Especialidad (código)">
+            <Select value={form.especialidad_id ?? ""} onChange={(e) => setForm({ ...form, especialidad_id: e.target.value, subfamilia_id: "" })}>
+              <option value="">— Elegir —</option>
+              {espCod.map((e) => <option key={e.id} value={e.id}>{e.codigo_modular} · {e.nombre}</option>)}
+            </Select>
+          </Campo>
+          <Campo etiqueta="Subfamilia">
+            <Select value={form.subfamilia_id ?? ""} onChange={(e) => setForm({ ...form, subfamilia_id: e.target.value })} disabled={!form.especialidad_id}>
+              <option value="">— Elegir —</option>
+              {subfamilias.filter((s) => s.especialidad_id === form.especialidad_id && s.activo).map((s) => <option key={s.id} value={s.id}>{s.codigo} · {s.nombre}{s.bloque ? ` (${s.bloque})` : ""}</option>)}
+            </Select>
+          </Campo>
+          <p className="text-[11px] text-muted-foreground sm:col-span-2">Código: <span className="font-mono">{form.codigo && modo === "editar" ? form.codigo : "se genera al guardar"}</span> (especialidad + tipo + subfamilia + correlativo).</p>
+          {CONFIG[tipo].campos.filter((c) => c.k !== "codigo" && (!c.soloSi || c.soloSi(form))).map((c) => (
             <Campo key={c.k} etiqueta={c.t}>
               {c.tipo === "sel" ? (
                 <Select value={form[c.k] ?? ""} onChange={(e) => setForm({ ...form, [c.k]: e.target.value })}>
