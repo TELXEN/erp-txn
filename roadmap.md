@@ -1,4 +1,5 @@
 # Roadmap
+- [x] Reorganizar especialidades por disciplinas 01–09 y 99 conservando vínculos; hoja e iconos como Insumos y verificación.
 - [x] Préstamos / Financiamiento en Tesorería: desembolsos, cuotas y saldos; bloqueo de pagos sin fondos y verificación.
 - [x] Unificar fuente seleccionada en todo el ERP, PDF y Excel sin cambiar tamaños; verificar guardado y exportaciones.
 - [x] Unificar acciones de nómina con honorarios, editar sobre la hoja y habilitar pagos solo después de validar las boletas.
