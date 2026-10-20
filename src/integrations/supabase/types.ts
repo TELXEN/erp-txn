@@ -1775,9 +1775,11 @@ export type Database = {
           costo_unitario: number | null
           created_at: string
           descripcion: string
+          especialidad_id: string | null
           estado: string
           id: string
           margen: number
+          subfamilia_id: string | null
           tipo: string
           unidad: string
           updated_at: string
@@ -1788,9 +1790,11 @@ export type Database = {
           costo_unitario?: number | null
           created_at?: string
           descripcion: string
+          especialidad_id?: string | null
           estado?: string
           id?: string
           margen?: number
+          subfamilia_id?: string | null
           tipo?: string
           unidad?: string
           updated_at?: string
@@ -1801,20 +1805,38 @@ export type Database = {
           costo_unitario?: number | null
           created_at?: string
           descripcion?: string
+          especialidad_id?: string | null
           estado?: string
           id?: string
           margen?: number
+          subfamilia_id?: string | null
           tipo?: string
           unidad?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "equipos_herramientas_especialidad_id_fkey"
+            columns: ["especialidad_id"]
+            isOneToOne: false
+            referencedRelation: "especialidades_partida"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "equipos_herramientas_subfamilia_id_fkey"
+            columns: ["subfamilia_id"]
+            isOneToOne: false
+            referencedRelation: "subfamilias_insumo"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       especialidades_partida: {
         Row: {
           activo: boolean
           bloque: string
           codigo: string
+          codigo_modular: string | null
           created_at: string
           descripcion: string | null
           id: string
@@ -1826,6 +1848,7 @@ export type Database = {
           activo?: boolean
           bloque?: string
           codigo?: string
+          codigo_modular?: string | null
           created_at?: string
           descripcion?: string | null
           id?: string
@@ -1837,6 +1860,7 @@ export type Database = {
           activo?: boolean
           bloque?: string
           codigo?: string
+          codigo_modular?: string | null
           created_at?: string
           descripcion?: string | null
           id?: string
@@ -2578,8 +2602,10 @@ export type Database = {
           costo_hora: number
           created_at: string
           descripcion: string
+          especialidad_id: string | null
           estado: string
           id: string
+          subfamilia_id: string | null
           unidad: string
           updated_at: string
         }
@@ -2588,8 +2614,10 @@ export type Database = {
           costo_hora?: number
           created_at?: string
           descripcion: string
+          especialidad_id?: string | null
           estado?: string
           id?: string
+          subfamilia_id?: string | null
           unidad?: string
           updated_at?: string
         }
@@ -2598,12 +2626,29 @@ export type Database = {
           costo_hora?: number
           created_at?: string
           descripcion?: string
+          especialidad_id?: string | null
           estado?: string
           id?: string
+          subfamilia_id?: string | null
           unidad?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "mano_obra_especialidad_id_fkey"
+            columns: ["especialidad_id"]
+            isOneToOne: false
+            referencedRelation: "especialidades_partida"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mano_obra_subfamilia_id_fkey"
+            columns: ["subfamilia_id"]
+            isOneToOne: false
+            referencedRelation: "subfamilias_insumo"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       mantenimientos_vehiculo: {
         Row: {
@@ -2744,11 +2789,13 @@ export type Database = {
           costo_unitario: number | null
           created_at: string
           descripcion: string
+          especialidad_id: string | null
           estado: string
           id: string
           marca: string
           margen: number
           precio_base: number
+          subfamilia_id: string | null
           unidad: string
           updated_at: string
         }
@@ -2757,11 +2804,13 @@ export type Database = {
           costo_unitario?: number | null
           created_at?: string
           descripcion: string
+          especialidad_id?: string | null
           estado?: string
           id?: string
           marca?: string
           margen?: number
           precio_base?: number
+          subfamilia_id?: string | null
           unidad?: string
           updated_at?: string
         }
@@ -2770,15 +2819,32 @@ export type Database = {
           costo_unitario?: number | null
           created_at?: string
           descripcion?: string
+          especialidad_id?: string | null
           estado?: string
           id?: string
           marca?: string
           margen?: number
           precio_base?: number
+          subfamilia_id?: string | null
           unidad?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "materiales_especialidad_id_fkey"
+            columns: ["especialidad_id"]
+            isOneToOne: false
+            referencedRelation: "especialidades_partida"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "materiales_subfamilia_id_fkey"
+            columns: ["subfamilia_id"]
+            isOneToOne: false
+            referencedRelation: "subfamilias_insumo"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       metas_flujo_caja: {
         Row: {
@@ -4492,9 +4558,11 @@ export type Database = {
           costo_unitario: number | null
           created_at: string
           descripcion: string
+          especialidad_id: string | null
           estado: string
           id: string
           margen: number
+          subfamilia_id: string | null
           unidad: string
           updated_at: string
         }
@@ -4504,9 +4572,11 @@ export type Database = {
           costo_unitario?: number | null
           created_at?: string
           descripcion: string
+          especialidad_id?: string | null
           estado?: string
           id?: string
           margen?: number
+          subfamilia_id?: string | null
           unidad?: string
           updated_at?: string
         }
@@ -4516,13 +4586,68 @@ export type Database = {
           costo_unitario?: number | null
           created_at?: string
           descripcion?: string
+          especialidad_id?: string | null
           estado?: string
           id?: string
           margen?: number
+          subfamilia_id?: string | null
           unidad?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "subcontratos_especialidad_id_fkey"
+            columns: ["especialidad_id"]
+            isOneToOne: false
+            referencedRelation: "especialidades_partida"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subcontratos_subfamilia_id_fkey"
+            columns: ["subfamilia_id"]
+            isOneToOne: false
+            referencedRelation: "subfamilias_insumo"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subfamilias_insumo: {
+        Row: {
+          activo: boolean
+          bloque: string
+          codigo: string
+          created_at: string
+          especialidad_id: string
+          id: string
+          nombre: string
+        }
+        Insert: {
+          activo?: boolean
+          bloque?: string
+          codigo: string
+          created_at?: string
+          especialidad_id: string
+          id?: string
+          nombre: string
+        }
+        Update: {
+          activo?: boolean
+          bloque?: string
+          codigo?: string
+          created_at?: string
+          especialidad_id?: string
+          id?: string
+          nombre?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subfamilias_insumo_especialidad_id_fkey"
+            columns: ["especialidad_id"]
+            isOneToOne: false
+            referencedRelation: "especialidades_partida"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tareo_vehiculos: {
         Row: {
@@ -5370,6 +5495,10 @@ export type Database = {
       siguiente_codigo_cotizacion: { Args: never; Returns: string }
       siguiente_codigo_documento: { Args: { _nombre: string }; Returns: string }
       siguiente_codigo_insumo: { Args: { _tipo: string }; Returns: string }
+      siguiente_codigo_insumo_modular: {
+        Args: { _especialidad: string; _subfamilia: string; _tipo: string }
+        Returns: string
+      }
       siguiente_codigo_preliquidacion: { Args: never; Returns: string }
       siguiente_codigo_proyecto: { Args: never; Returns: string }
       siguiente_numero_comprobante: {
