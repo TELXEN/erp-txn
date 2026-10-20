@@ -1,5 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Panel } from "@/components/ui-kit";
 import { useGruposCotizacion } from "@/lib/cotizaciones";
@@ -23,10 +24,15 @@ export function GruposCotizacion() {
     qc.invalidateQueries({ queryKey: ["categorias_partida"] });
   };
 
+  const clave = (s: string) => s.trim().toLocaleLowerCase("es").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ");
+  const existe = (nombre: string, exceptoId?: string) =>
+    grupos.some((g) => g.id !== exceptoId && clave(g.nombre) === clave(nombre));
+
   async function nuevo() {
     let nombre = window.prompt("Nombre del título (ej. Centro de Control de Motores)")?.trim();
     if (!nombre) return;
     nombre = titular(nombre);
+    if (existe(nombre)) { toast.error(`El título «${nombre.toUpperCase()}» ya existe`); return; }
     await sb.from("grupos_cotizacion").insert({ nombre, orden: grupos.length + 1 });
     refrescar();
   }
@@ -47,6 +53,7 @@ export function GruposCotizacion() {
                   <input key={g.nombre} defaultValue={g.nombre} data-formato="titulo" className={`${campo} uppercase`}
                     onBlur={async (e) => {
                       const v = titular(e.target.value);
+                      if (v && existe(v, g.id)) { toast.error(`El título «${v.toUpperCase()}» ya existe`); e.target.value = g.nombre; return; }
                       e.target.value = v;
                       if (v && v !== g.nombre) { await sb.from("grupos_cotizacion").update({ nombre: v }).eq("id", g.id); refrescar(); }
                     }} />
