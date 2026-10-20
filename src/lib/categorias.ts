@@ -260,12 +260,6 @@ export function renumerarWBS<T extends FilaCodigo & { id: string; padre_id?: str
   return cambios;
 }
 
-type FilaJerarquia = { id: string; padre_id?: string | null; orden?: number | null };
-
-/**
- * Ordena filas de un grupo en árbol: cada partida seguida de sus subpartidas (4.° nivel).
- * Devuelve la fila, su nivel (3 = partida, 4 = subpartida) y si es agrupadora.
- */
 /** Comparación natural de códigos WBS: "01.01.02" < "01.01.03". */
 function compararCodigosWBS(a: string, b: string) {
   const na = a.split(".").map((x) => Number(x) || 0);
@@ -277,53 +271,9 @@ function compararCodigosWBS(a: string, b: string) {
   return 0;
 }
 
-export function ordenarJerarquia<T extends FilaJerarquia & { codigo?: string | null }>(filas: T[]) {
-  const ids = new Set(filas.map((f) => f.id));
-  const hijos = new Map<string, T[]>();
-  for (const f of filas) {
-    if (f.padre_id && ids.has(f.padre_id)) {
-      if (!hijos.has(f.padre_id)) hijos.set(f.padre_id, []);
-      hijos.get(f.padre_id)!.push(f);
-    }
-  }
-  // El orden editable manda; el código queda como desempate para datos antiguos sin orden.
-  const porCodigo = (arr: T[]) =>
-    arr
-      .map((f, i) => ({ f, i }))
-      .sort(
-        (x, y) =>
-          (x.f.orden ?? Number.MAX_SAFE_INTEGER) - (y.f.orden ?? Number.MAX_SAFE_INTEGER) ||
-          compararCodigosWBS((x.f.codigo ?? "").trim(), (y.f.codigo ?? "").trim()) ||
-          x.i - y.i,
-      )
-      .map((e) => e.f);
-  const out: { fila: T; nivel: 3 | 4; agrupadora: boolean; hijos: T[] }[] = [];
-  for (const f of porCodigo(filas.filter((f) => !f.padre_id || !ids.has(f.padre_id)))) {
-    const h = porCodigo(hijos.get(f.id) ?? []);
-    out.push({ fila: f, nivel: 3, agrupadora: h.length > 0, hijos: h });
-    for (const c of h) out.push({ fila: c, nivel: 4, agrupadora: false, hijos: [] });
-  }
-  return out;
-}
-
-/** Siguiente código de subpartida: 01.01.01 → 01.01.01.01, 01.01.01.02... */
-export function siguienteCodigoSubpartida(
-  codigoPadre: string,
-  hermanos: { codigo?: string | null }[],
-) {
-  const base = (codigoPadre ?? "").trim();
-  const usados = hermanos
-    .map((h) => (h.codigo ?? "").trim())
-    .filter((c) => base && c.startsWith(`${base}.`))
-    .map((c) => Number(c.slice(base.length + 1).split(".")[0]))
-    .filter((n) => Number.isFinite(n));
-  const n = (usados.length ? Math.max(...usados) : 0) + 1;
-  return base ? `${base}.${pad2(n)}` : "";
-}
-
 // ============================================================================
 // Numeración WBS de cotizaciones. Multidisciplinaria: 4 niveles Especialidad.Grupo.Categoría.Partida
-// (01.01.01.01; subpartidas agregan un 5.° nivel). Una disciplina: 3 niveles Grupo.Categoría.Partida
+// (01.01.01.01). Una disciplina: 3 niveles Grupo.Categoría.Partida
 // (01.01.01; el grupo es el capítulo). El grupo "00" = sin grupo.
 // ============================================================================
 
