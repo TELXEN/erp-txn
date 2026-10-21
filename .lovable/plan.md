@@ -3,7 +3,7 @@
 Afecta la columna vertical de iconos (Agregar, Editar, Copiar, Mover, Eliminar, bloque Documento) en: Cotizaciones (lista y hoja), plantillas, Banco APU (partidas e insumos), Especialidades, Subfamilias, Títulos de partidas y Unidades de medida.
 
 ## Qué cambia a la vista
-- **Iconos más grandes y con trazo más firme**: de 15 px a 17 px, trazo 2.25, en lugar del gris apagado actual.
+- **Mismo tamaño de iconos (15 px)**, pero con trazo más firme (2.25) y color definido en lugar del gris apagado actual.
 - **Color por acción, siempre visible** (no solo al pasar el mouse):
   - Agregar: botón relleno con el color principal del ERP e icono claro (acción destacada).
   - Editar / Copiar / Mover / Documento: icono en tono oscuro de texto (no gris), borde definido.
