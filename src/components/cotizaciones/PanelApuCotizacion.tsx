@@ -155,6 +155,11 @@ export function PanelApuCotizacion({ cot, item, comando }: { cot: Cotizacion; it
   async function accionMenu(a: AccionApu, m: NonNullable<typeof menu>) {
     const { t, f } = m;
     if (a === "eliminar") return f && quitar(f.d.id as string);
+    if (t === "INSUMO" && (a === "final" || a === "encima" || a === "debajo")) {
+      const orden = propias.length ? Math.max(...propias.map((d) => Number(d.orden) || 0)) + 10 : 10;
+      setAgregar({ t, orden });
+      return;
+    }
     if (a === "final" || a === "encima" || a === "debajo") {
       const mapa = await renumerarApu("cotizacion_apu_detalle", propias as { id: string; orden?: number }[]);
       const filasG = calc.filas.filter((x) => x.tipo === t);
@@ -226,10 +231,9 @@ export function PanelApuCotizacion({ cot, item, comando }: { cot: Cotizacion; it
     <div className="flex h-full min-h-0 flex-col">
       {menu && <MenuContextualApu menu={menu} onCerrar={cerrarMenu} onAccion={(a) => void accionMenu(a, menu)} />}
       {agregar && (
-        <DialogoAgregarInsumoCot tipo={agregar.t} orden={agregar.orden} itemId={it.id} nombrePartida={it.nombre}
-          recursos={recursos} existentes={propias}
-          onCerrar={() => setAgregar(null)}
-          onGuardado={async (nuevas) => { setAgregar(null); await aplicarPu(nuevas); await refrescar(); }} />
+        <VentanaInsumo modo="nuevo" agregarA={{ titulo: it.nombre }}
+          soloTabla={agregar.t === "INSUMO" ? undefined : BANCOS_RECURSO.find((b) => b[3] === agregar.t)?.[1] as SelInsumo["tabla"] | undefined}
+          alAgregar={agregarApu} onCerrar={() => setAgregar(null)} />
       )}
       <div className="border-b border-line px-3 py-2">
         <p className="truncate text-xs font-semibold text-ink" title={it.nombre}>{it.codigo} · {it.nombre}</p>
