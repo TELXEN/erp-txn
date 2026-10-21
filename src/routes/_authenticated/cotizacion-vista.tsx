@@ -12,7 +12,7 @@ import { useAuth } from "@/lib/auth";
 import { nivelDe, numerarNiveles, totalesNiveles } from "@/lib/niveles-cotizacion";
 import { simboloMoneda, totalesCotizacion, useCotizacionItems, useCotizaciones, vigenciaHasta } from "@/lib/cotizaciones";
 import { DOC, DOC_FUENTE_CSS, DOC_MONO } from "@/lib/documento-tema";
-import { ArrowLeft, FileDown, FileSpreadsheet } from "lucide-react";
+import { ArrowLeft, FileDown, FileSpreadsheet, Calculator } from "lucide-react";
 import type { ReactNode } from "react";
 
 /** Eslogan en dos líneas: se corta en la primera coma. */
