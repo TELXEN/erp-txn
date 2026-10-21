@@ -176,19 +176,30 @@ export function HojaCotizacion({
             <div style={{ display: "grid", gap: 15 }}>
               <label>
                 <EtiquetaCampo>RUC</EtiquetaCampo>
-                <select
-                  value={cot.cliente_id ?? ""}
-                  onChange={(e) => {
-                    const c = clientes.find((x) => x.id === e.target.value);
-                    void guardar({ cliente_id: e.target.value || null, cliente: c?.razon_social ?? cot.cliente });
+                <input
+                  key={`ruc-${cot.id}-${cot.cliente_id}-${(cot as { ruc_cliente?: string }).ruc_cliente}`}
+                  list={`clientes-ruc-${cot.id}`}
+                  placeholder="Escribe o elige un RUC"
+                  defaultValue={(cot as { ruc_cliente?: string }).ruc_cliente || clientes.find((x) => x.id === cot.cliente_id)?.numero_documento || ""}
+                  onBlur={(e) => {
+                    const ruc = e.target.value.split(" — ")[0].trim();
+                    const c = clientes.find((x) => x.numero_documento === ruc);
+                    const actual = (cot as { ruc_cliente?: string }).ruc_cliente ?? "";
+                    if (c) {
+                      if (c.id === cot.cliente_id && actual === ruc) return;
+                      void guardar({ cliente_id: c.id, cliente: c.razon_social, ruc_cliente: ruc });
+                    } else {
+                      if (ruc === actual && !cot.cliente_id) return;
+                      void guardar({ cliente_id: null, ruc_cliente: ruc });
+                    }
                   }}
-                  style={{ ...edSel, minHeight: 34, padding: "7px 10px", border: `1px solid ${C.line}`, borderRadius: 5, background: C.soft, fontWeight: 700 }}
-                >
-                  <option value="">Seleccionar cliente</option>
-                  {clientes.map((c) => (
-                    <option key={c.id} value={c.id}>{c.numero_documento || "Sin RUC"}</option>
+                  style={{ ...ed, minHeight: 34, padding: "7px 10px", border: `1px solid ${C.line}`, borderRadius: 5, background: C.soft, fontWeight: 700 }}
+                />
+                <datalist id={`clientes-ruc-${cot.id}`}>
+                  {clientes.filter((c) => c.numero_documento).map((c) => (
+                    <option key={c.id} value={c.numero_documento}>{c.razon_social}</option>
                   ))}
-                </select>
+                </datalist>
               </label>
               <label>
                 <EtiquetaCampo>Razón social</EtiquetaCampo>
