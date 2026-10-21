@@ -379,6 +379,13 @@
       "when": 1792530119097,
       "tag": "0053_retirar_subpartidas",
       "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "7",
+      "when": 1792555562699,
+      "tag": "0054_niveles_cotizacion",
+      "breakpoints": true
     }
   ]
 }

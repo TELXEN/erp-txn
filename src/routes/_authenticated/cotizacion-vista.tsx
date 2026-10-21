@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEmpresa } from "@/lib/empresa";
 import { useFuenteDocumento } from "@/lib/fuentes-documentos";
 import { useAuth } from "@/lib/auth";
+import { nivelDe, numerarNiveles, totalesNiveles } from "@/lib/niveles-cotizacion";
 import { simboloMoneda, totalesCotizacion, useCotizacionItems, useCotizaciones, vigenciaHasta } from "@/lib/cotizaciones";
 import { DOC, DOC_FUENTE_CSS, DOC_MONO } from "@/lib/documento-tema";
 import { ArrowLeft, FileDown, FileSpreadsheet } from "lucide-react";
@@ -86,83 +87,30 @@ type Fila =
   | { clase: "sub"; llave: string; texto: string; numero: string; total: number }
   | { clase: "item"; llave: string; item: ItemCot; indice: number; numero: string };
 
-/**
- * Construye las filas de la hoja con niveles dinámicos:
- * multidisciplinaria → especialidad > grupo > categoría; una disciplina → grupo > categoría.
- * Si solo hay un grupo y el alcance es parcial, el nivel de grupo no se imprime.
- */
-function construirFilas(items: ItemCot[], opts: { multi?: boolean; alcance?: string | undefined } = {}): Fila[] {
-  const filas: Fila[] = [];
-  const claveNiveles = (it: ItemCot): string[] => {
-    const cat = (it.categoria ?? "").trim() || "Sin categoría";
-    if (opts.multi) return [(it.especialidad || "").trim() || "Sin especialidad", (it.grupo || "").trim(), cat];
-    return [(it.especialidad || "").trim() || "Sin grupo", cat];
-  };
-  const tops = new Set(items.map((i) => claveNiveles(i)[0]));
-  const omitirTop = !opts.multi && tops.size <= 1 && opts.alcance && opts.alcance !== "ambos";
-  type Nodo = { hijos: Map<string, Nodo>; items: ItemCot[] };
-  const raiz: Nodo = { hijos: new Map(), items: [] };
-  for (const it of items) {
-    let n = raiz;
-    const niveles = claveNiveles(it).slice(omitirTop ? 1 : 0);
-    for (const k of niveles) {
-      if (!n.hijos.has(k)) n.hijos.set(k, { hijos: new Map(), items: [] });
-      n = n.hijos.get(k)!;
-    }
-    n.items.push(it);
-  }
+/** Filas de la hoja por niveles: Especialidad > Título > Subtítulo (opcional) > Partida, numeradas por posición. */
+function construirFilas(items: ItemCot[], _opts: { multi?: boolean; alcance?: string | undefined } = {}): Fila[] {
+  const lista = items as unknown as (ItemCot & { nivel?: string; tipo?: string; orden?: number })[];
+  const { orden, codigos, profundidad } = numerarNiveles(lista);
+  const totales = totalesNiveles(orden);
   let n = 0;
-  // Los números salen del código WBS guardado (01.01.01.01 = especialidad.grupo.categoría.partida).
-  const primerCodigo = (nodo: Nodo): string => {
-    const it = nodo.items.find((i) => (i.codigo ?? "").trim());
-    if (it) return (it.codigo as string).trim();
-    for (const h of nodo.hijos.values()) {
-      const c = primerCodigo(h);
-      if (c) return c;
-    }
-    return "";
-  };
-  // Suma de las partidas del nodo y sus descendientes (total del encabezado).
-  const totalNodo = (nodo: Nodo): number =>
-    nodo.items.reduce((t, i) => t + Number(i.metrado) * Number(i.precio_unitario), 0) +
-    [...nodo.hijos.values()].reduce((t, h) => t + totalNodo(h), 0);
-  // Multi: 4 niveles (esp.grupo.cat.partida); una disciplina: 3 niveles (grupo.cat.partida). En ambos el primer nivel visible es 1 segmento.
-  const desfase = 1 + (omitirTop ? 1 : 0);
-  const recorrer = (nodo: Nodo, prefijo: string, prof: number) => {
-    let j = 0;
-    for (const [k, hijo] of nodo.hijos) {
-      const vacio = k === "" || k === "Sin categoría";
-      const omitir = vacio && nodo.hijos.size === 1;
-      if (omitir) {
-        recorrer(hijo, prefijo, prof + 1);
-        continue;
-      }
-      j += 1;
-      const cod = primerCodigo(hijo).split(".");
-      const numero = cod.length >= prof + desfase ? cod.slice(0, prof + desfase).join(".") : prefijo ? `${prefijo}.${String(j).padStart(2, "0")}` : String(j).padStart(2, "0");
-      filas.push({ clase: prof === 0 ? "grupo" : "sub", llave: `n-${numero}-${k}`, texto: prof === 0 ? k.toUpperCase() : k, numero, total: totalNodo(hijo) });
-      recorrer(hijo, numero, prof + 1);
-    }
-    let kk = 0;
-    for (const it of nodo.items) {
-      n += 1;
-      kk += 1;
-      filas.push({ clase: "item", llave: it.id, item: it, indice: n, numero: (it.codigo ?? "").trim() || (prefijo ? `${prefijo}.${kk}` : String(kk)) });
-    }
-  };
-  recorrer(raiz, "", 0);
-  return filas;
+  return orden.map((it) => {
+    const numero = codigos.get(it.id) ?? "";
+    if (nivelDe(it) === "partida") return { clase: "item" as const, llave: it.id, item: it, indice: ++n, numero };
+    return {
+      clase: (profundidad.get(it.id) ?? 0) === 0 ? ("grupo" as const) : ("sub" as const),
+      llave: it.id,
+      texto: it.nombre,
+      numero,
+      total: totales.get(it.id) ?? 0,
+    };
+  });
 }
 
-/** Costo directo por grupo (Suministro / Montaje) para el desglose. */
+/** Subtotales de los capítulos principales (primer nivel) para el desglose. */
 function subtotalesPorGrupo(items: ItemCot[]) {
-  const m = new Map<string, number>();
-  for (const it of items) {
-    const g = (it.grupo || "").trim();
-    if (!g) continue;
-    m.set(g, (m.get(g) ?? 0) + Number(it.metrado) * Number(it.precio_unitario));
-  }
-  return [...m.entries()];
+  return construirFilas(items)
+    .filter((f): f is Extract<Fila, { clase: "grupo" }> => f.clase === "grupo")
+    .map((f) => [`${f.numero} ${f.texto}`, f.total] as [string, number]);
 }
 
 function altoEstimadoFila(fila: Fila, charsPorLinea = 62) {
@@ -226,7 +174,7 @@ function paginarFilas(filas: Fila[], horizontal = false, factor = 1) {
 function VistaCotizacion() {
   const { id } = Route.useSearch();
   const { data: cotizaciones = [], isLoading: cargandoCotizaciones } = useCotizaciones();
-  const { data: items = [], isLoading: cargandoItems } = useCotizacionItems(id || null);
+  const { data: items = [], isLoading: cargandoItems } = useCotizacionItems(id || null, true);
   const { data: empresa, isLoading: cargandoEmpresa } = useEmpresa();
   const { fuente } = useFuenteDocumento();
   const { nombre, email } = useAuth();

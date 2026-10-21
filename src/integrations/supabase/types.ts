@@ -1426,6 +1426,7 @@ export type Database = {
           marca: string
           metrado: number
           metrado_detalle: Json
+          nivel: string
           nombre: string
           orden: number
           padre_id: string | null
@@ -1450,6 +1451,7 @@ export type Database = {
           marca?: string
           metrado?: number
           metrado_detalle?: Json
+          nivel?: string
           nombre: string
           orden?: number
           padre_id?: string | null
@@ -1474,6 +1476,7 @@ export type Database = {
           marca?: string
           metrado?: number
           metrado_detalle?: Json
+          nivel?: string
           nombre?: string
           orden?: number
           padre_id?: string | null
@@ -3659,6 +3662,7 @@ export type Database = {
           id: string
           marca: string
           metrado: number
+          nivel: string
           nombre: string
           orden: number
           padre_id: string | null
@@ -3676,6 +3680,7 @@ export type Database = {
           id?: string
           marca?: string
           metrado?: number
+          nivel?: string
           nombre?: string
           orden?: number
           padre_id?: string | null
@@ -3693,6 +3698,7 @@ export type Database = {
           id?: string
           marca?: string
           metrado?: number
+          nivel?: string
           nombre?: string
           orden?: number
           padre_id?: string | null

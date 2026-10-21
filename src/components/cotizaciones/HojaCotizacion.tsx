@@ -225,12 +225,6 @@ export function HojaCotizacion({
               <Linea etiqueta="Emisión">
                 <input key={`fec-${cot.id}-${cot.fecha_emision}`} type="date" defaultValue={cot.fecha_emision} onBlur={(e) => alSalir("fecha_emision", e.target.value, cot.fecha_emision)} style={{ ...ed, textAlign: "right", fontWeight: 600 }} />
               </Linea>
-              <Linea etiqueta="Tipo">
-                <select value={multi ? "multi" : "una"} onChange={(e) => void cambiarModo(e.target.value === "multi")} style={{ ...edSel, textAlign: "right", fontWeight: 600 }}>
-                  <option value="una">Una disciplina</option>
-                  <option value="multi">Multidisciplinaria</option>
-                </select>
-              </Linea>
               <Linea etiqueta="Moneda">
                 <select
                   value={esUsd ? "USD" : "PEN"}

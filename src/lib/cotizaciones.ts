@@ -281,6 +281,7 @@ async function copiarFilas(
 
 const base = (i: FilaCopiable) => ({
   tipo: i.tipo || "partida",
+  nivel: (i as { nivel?: string }).nivel || (i.tipo === "grupo" ? "titulo" : "partida"),
   grupo: i.grupo ?? "",
   especialidad: i.especialidad ?? "",
   categoria: i.categoria ?? "",
@@ -508,6 +509,7 @@ export async function crearRevision(cot: Cotizacion): Promise<string> {
         itemsOrigen.map((i) => ({
           cotizacion_id: nueva.id,
           tipo: i.tipo,
+          nivel: (i as { nivel?: string }).nivel ?? "partida",
           codigo: i.codigo,
           nombre: i.nombre,
           especialidad: i.especialidad,
