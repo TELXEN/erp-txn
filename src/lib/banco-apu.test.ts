@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 vi.mock("@/integrations/supabase/client", () => ({ supabase: {} }));
-const { siguienteCodigoJerarquico: s, filaRecursoCotizacion, costoReceta } = await import("@/lib/banco-apu");
+const { siguienteCodigoJerarquico: s, filaRecursoCotizacion, costoReceta, incidenciaPartidaApu } = await import("@/lib/banco-apu");
 
 describe("siguienteCodigoJerarquico", () => {
   it("incrementa el último nivel", () => expect(s(["04.01.01", "04.01.02", "05.01.09"], "04")).toBe("04.01.03"));
@@ -30,5 +30,29 @@ describe("vinculación de insumos en cotizaciones", () => {
     const fila = filaRecursoCotizacion("materiales", { id: "nuevo", codigo: "10613001", descripcion: "Material nuevo", costo_unitario: 10, unidad: "und" }, 3, 1);
     expect(fila.material_id).toBe("nuevo");
     expect(fila.codigo).toBe("10613001");
+  });
+});
+
+describe("incidencia del APU en el desglose", () => {
+  const recursos = { materiales: [], mano_obra: [], equipos_herramientas: [], subcontratos: [] };
+  const calculo = costoReceta([
+    { mano_obra_id: "mo", descripcion: "Capataz", unidad: "H-H", precio_unitario: 10.4773, cantidad_o_cuadrilla: 1 },
+    { equipo_id: "eq", descripcion: "Mezcladora", unidad: "H-M", precio_unitario: 36.3795, cantidad_o_cuadrilla: 1 },
+    { material_id: "mat", descripcion: "Cable", unidad: "m", precio_unitario: 12.7328, cantidad_o_cuadrilla: 125 },
+  ], recursos, 1, 8);
+  it("C006: el 5% de herramientas pertenece a equipos, sin importe sin APU", () => {
+    const incidencia = incidenciaPartidaApu(calculo, 1970.65, 1, 5);
+    expect(incidencia.EQ).toBeCloseTo(295.23, 2);
+    expect(incidencia.OTROS).toBe(0);
+    expect(incidencia.AJUSTE).toBe(0);
+    expect(Object.values(incidencia).reduce((s, v) => s + v, 0)).toBeCloseTo(1970.65, 2);
+  });
+  it("una partida realmente sin recursos se registra como sin APU", () => {
+    expect(incidenciaPartidaApu({ total: 0, filas: [] }, 100, 2, 5).OTROS).toBe(200);
+  });
+  it("un precio manual distinto no se confunde con ausencia de APU", () => {
+    const incidencia = incidenciaPartidaApu(calculo, 2000.65, 2, 5);
+    expect(incidencia.AJUSTE).toBe(60);
+    expect(incidencia.OTROS).toBe(0);
   });
 });

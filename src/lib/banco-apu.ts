@@ -138,6 +138,29 @@ export function costoReceta(
   return { total: sumar2(filasU.map((f) => f.parcial)), filas: filasU };
 }
 
+/** Incidencia de una partida: HT pertenece a EQ; una diferencia de precio no implica ausencia de APU. */
+export function incidenciaPartidaApu(
+  calculo: ReturnType<typeof costoReceta>,
+  precioUnitario: number,
+  metrado: number,
+  pctHerramientas: number,
+) {
+  const importes: Record<string, number> = { MO: 0, MAT: 0, EQ: 0, SC: 0, OTROS: 0, AJUSTE: 0 };
+  if (!calculo.filas.length) {
+    importes.OTROS = precioUnitario * metrado;
+    return importes;
+  }
+  for (const fila of calculo.filas) {
+    const tipo = fila.tipo in importes ? fila.tipo : "AJUSTE";
+    importes[tipo] = (importes[tipo] ?? 0) + fila.parcial * metrado;
+  }
+  const manoObra = sumar2(calculo.filas.filter((f) => f.tipo === "MO").map((f) => f.parcial));
+  const herramientas = r2((manoObra * pctHerramientas) / 100);
+  importes.EQ = (importes.EQ ?? 0) + herramientas * metrado;
+  importes.AJUSTE = (importes.AJUSTE ?? 0) + r2(precioUnitario - calculo.total - herramientas) * metrado;
+  return importes;
+}
+
 /** PU calculado de cada partida del banco (mapa id → costo total por unidad). */
 export function useCostosPartidasApu() {
   const { data: partidas = [] } = useBancoTabla("partidas_apu");

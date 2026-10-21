@@ -4,7 +4,7 @@ import { Plus, Upload } from "lucide-react";
 import { Boton, Campo, Input, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { Resaltar } from "@/components/Buscador";
 import { MenuContextualApu, type AccionApu, type EstadoMenuApu } from "@/components/MenuContextualApu";
-import { BANCOS_RECURSO, costoReceta, filaRecursoCotizacion, dbBanco, renumerarApu, useBancoTabla, useRecursosApu, type FilaCalculo, type RecursosApu } from "@/lib/banco-apu";
+import { BANCOS_RECURSO, costoReceta, incidenciaPartidaApu, filaRecursoCotizacion, dbBanco, renumerarApu, useBancoTabla, useRecursosApu, type FilaCalculo, type RecursosApu } from "@/lib/banco-apu";
 import { VentanaInsumo, CANCELADO, type SelInsumo } from "@/components/InsumoVentana";
 import { r2, sumar2 } from "@/lib/decimal";
 import { PCT_HERRAMIENTAS_DEFECTO } from "@/lib/apu";
@@ -404,23 +404,26 @@ export function ResumenCotizacion({ cot, items }: { cot: Cotizacion; items: Coti
     qc.invalidateQueries({ queryKey: ["cotizacion"] });
   }
   const hojas = items.filter((i) => i.tipo !== "grupo");
-  const porTipo: { [k: string]: number; OTROS: number } = { MO: 0, MAT: 0, EQ: 0, SC: 0, OTROS: 0 };
+  const porTipo: Record<string, number> = { MO: 0, MAT: 0, EQ: 0, SC: 0, OTROS: 0, AJUSTE: 0 };
   let cd = 0;
   for (const i of hojas) {
     const m = Number(i.metrado || 0);
     const parcial = m * Number(i.precio_unitario || 0);
     cd += parcial;
     const propias = detalle.filter((d) => d.cotizacion_item_id === i.id);
-    if (!propias.length) { porTipo.OTROS += parcial; continue; }
     const c = costoReceta(propias, recursos, Number(i.rendimiento ?? 1), Number(i.jornada ?? 8));
-    for (const f of c.filas) porTipo[f.tipo in porTipo ? f.tipo : "OTROS"]! += f.parcial * m;
-    porTipo.OTROS += parcial - c.total * m;
+    const incidencia = incidenciaPartidaApu(c, Number(i.precio_unitario || 0), m, Number(i.pct_herramientas ?? PCT_HERRAMIENTAS_DEFECTO));
+    for (const [tipo, importe] of Object.entries(incidencia)) porTipo[tipo] = (porTipo[tipo] ?? 0) + importe;
   }
   const gg = (cd * Number(cot.pct_gastos_generales || 0)) / 100;
   const ut = (cd * Number(cot.pct_utilidad || 0)) / 100;
   const parcialT = cd + gg + ut;
   const igv = cot.aplica_igv === false ? 0 : parcialT * 0.18;
-  const filasInc = [...GRUPOS_RECURSO, ["OTROS", "SIN APU"] as [string, string]].filter(([t]) => t !== "OTROS" || Math.abs(porTipo.OTROS) > 0.005);
+  const filasInc: [string, string][] = [
+    ...GRUPOS_RECURSO.map(([t, nombre]): [string, string] => [t, t === "EQ" ? "EQUIPOS Y HERRAMIENTAS" : nombre]),
+    ["OTROS", "SIN APU"],
+    ["AJUSTE", "AJUSTE DE PRECIO"],
+  ].filter(([t]) => (t !== "OTROS" && t !== "AJUSTE") || Math.abs(porTipo[t] ?? 0) > 0.005) as [string, string][];
   return (
     <div className="grid gap-2 border-t border-line bg-card p-2 font-mono text-[11px] md:grid-cols-2">
       <table className="w-full">
@@ -429,8 +432,8 @@ export function ResumenCotizacion({ cot, items }: { cot: Cotizacion; items: Coti
           {filasInc.map(([t, n]) => (
             <tr key={t} className="border-b border-line/40">
               <td className="px-2 py-0.5">{n}</td>
-              <td className="px-2 py-0.5 text-right">{cd ? num((porTipo[t]! / cd) * 100) : "0.00"}%</td>
-              <td className="px-2 py-0.5 text-right">{sim} {num(porTipo[t]!)}</td>
+              <td className="px-2 py-0.5 text-right">{cd ? num(((porTipo[t] ?? 0) / cd) * 100) : "0.00"}%</td>
+              <td className="px-2 py-0.5 text-right">{sim} {num(porTipo[t] ?? 0)}</td>
             </tr>
           ))}
         </tbody>
