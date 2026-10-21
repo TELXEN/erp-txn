@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Plus, Upload } from "lucide-react";
 import { Boton, Campo, Input, Vacio, VentanaFlotante } from "@/components/ui-kit";
@@ -43,7 +43,7 @@ function CeldaNum({ valor, dec, onGuardar, sufijo, deshabilitado }: {
 }
 
 /** Panel derecho: APU propio de la partida de la cotización (copia fija, independiente del banco). Misma grilla que el Banco APU. */
-export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: CotizacionItem | null }) {
+export function PanelApuCotizacion({ cot, item, comando }: { cot: Cotizacion; item: CotizacionItem | null; comando?: { grupo: string; n: number } | null }) {
   const qc = useQueryClient();
   const { rol } = useAuth();
   const recursos = useRecursosApu();
@@ -76,6 +76,13 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
     setEditJornada(false);
     setPctHt(Number((item as { pct_herramientas?: number } | null)?.pct_herramientas ?? 5));
   }, [item?.id, (item as { pct_herramientas?: number } | null)?.pct_herramientas]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const accionRef = useRef<((a: AccionApu, m: never) => Promise<unknown>) | null>(null);
+  useEffect(() => {
+    if (!comando || !item) return;
+    setPestana("acu");
+    void accionRef.current?.("final", { t: comando.grupo, f: undefined } as never);
+  }, [comando?.n]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!item)
     return (
@@ -171,6 +178,8 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
     }
     await refrescar();
   }
+
+  accionRef.current = accionMenu;
 
   async function exportar() {
     if (!propias.length) return setAviso("La partida no tiene recursos para exportar.");
