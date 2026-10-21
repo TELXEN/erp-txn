@@ -568,46 +568,65 @@ function VistaCotizacion() {
 
                 {esUltima && (
                   <div className="bloque-final" style={{ pageBreakInside: "avoid" }}>
-                    <div className="flex justify-end" style={{ marginTop: 14 }}>
-                      <div style={{ width: 248, fontSize: "8.5pt" }}>
-
-                        <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700 }}><span>Costo Directo</span><span>{S(sim, calculo.costoDirecto)}</span></div>
-                        {calculo.gastosGenerales > 0 && <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700 }}><span style={{ display: "flex" }}><span style={{ display: "inline-block", width: 96 }}>Gastos Generales</span><span style={{ display: "inline-block", width: 44, textAlign: "right" }}>({Number(cot.pct_gastos_generales)}%)</span></span><span>{S(sim, calculo.gastosGenerales)}</span></div>}
-                        {calculo.utilidad > 0 && <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700 }}><span style={{ display: "flex" }}><span style={{ display: "inline-block", width: 96 }}>Utilidad</span><span style={{ display: "inline-block", width: 44, textAlign: "right" }}>({Number(cot.pct_utilidad)}%)</span></span><span>{S(sim, calculo.utilidad)}</span></div>}
-                        {(calculo.gastosGenerales > 0 || calculo.utilidad > 0) && <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700, fontWeight: 600 }}><span>Subtotal</span><span>{S(sim, subtotal)}</span></div>}
-                        <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700, borderBottom: `1px solid ${C.slate100}` }}><span style={{ display: "flex" }}><span style={{ display: "inline-block", width: 96 }}>IGV</span><span style={{ display: "inline-block", width: 44, textAlign: "right" }}>{conIgv ? "(18%)" : "(0%)"}</span></span><span>{S(sim, igv)}</span></div>
-                        <div className="flex justify-between" style={{ marginTop: 5, padding: "6px 12px", alignItems: "center", background: C.slate900, color: C.white, borderRadius: 6, fontFamily: DOC_FUENTE_CSS, fontSize: "9.5pt", lineHeight: 1.15, fontWeight: 400 }}>
-                          <span>TOTAL</span><span>{S(sim, total)}</span>
-                        </div>
-                        {esUsd && tc > 0 && (
-                          <div className="flex justify-between" style={{ marginTop: 5, padding: "5px 0", color: C.slate500, fontSize: "7.5pt" }}>
-                            <span>Equivalente en soles (T.C. {tc.toFixed(3)})</span><span>{S("S/", total * tc)}</span>
+                    {(() => {
+                      const bloqueTotales = (
+                        <div style={{ width: 248, flexShrink: 0, fontSize: "8.5pt" }}>
+                          <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700 }}><span>Costo Directo</span><span>{S(sim, calculo.costoDirecto)}</span></div>
+                          {calculo.gastosGenerales > 0 && <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700 }}><span style={{ display: "flex" }}><span style={{ display: "inline-block", width: 96 }}>Gastos Generales</span><span style={{ display: "inline-block", width: 44, textAlign: "right" }}>({Number(cot.pct_gastos_generales)}%)</span></span><span>{S(sim, calculo.gastosGenerales)}</span></div>}
+                          {calculo.utilidad > 0 && <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700 }}><span style={{ display: "flex" }}><span style={{ display: "inline-block", width: 96 }}>Utilidad</span><span style={{ display: "inline-block", width: 44, textAlign: "right" }}>({Number(cot.pct_utilidad)}%)</span></span><span>{S(sim, calculo.utilidad)}</span></div>}
+                          {(calculo.gastosGenerales > 0 || calculo.utilidad > 0) && <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700, fontWeight: 600 }}><span>Subtotal</span><span>{S(sim, subtotal)}</span></div>}
+                          <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700, borderBottom: `1px solid ${C.slate100}` }}><span style={{ display: "flex" }}><span style={{ display: "inline-block", width: 96 }}>IGV</span><span style={{ display: "inline-block", width: 44, textAlign: "right" }}>{conIgv ? "(18%)" : "(0%)"}</span></span><span>{S(sim, igv)}</span></div>
+                          <div className="flex justify-between" style={{ marginTop: 5, padding: "6px 12px", alignItems: "center", background: C.slate900, color: C.white, borderRadius: 6, fontFamily: DOC_FUENTE_CSS, fontSize: "9.5pt", lineHeight: 1.15, fontWeight: 400 }}>
+                            <span>TOTAL</span><span>{S(sim, total)}</span>
                           </div>
-                        )}
-                      </div>
-                    </div>
-                    <div style={{ marginTop: 16, borderTop: `1px solid ${C.slate100}`, paddingTop: 10, fontSize: 8, color: C.slate500, lineHeight: 1.45, textAlign: "left" }}>
-                      <div style={{ fontSize: 8, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, color: C.slate700, marginBottom: 5 }}>Términos y condiciones</div>
-                      {([
-                        ["Recursos humanos", (cot as unknown as Record<string, string>)["recursos_humanos"]],
-                        ["Tiempo de ejecución", (cot as unknown as Record<string, string>)["tiempo_ejecucion"]],
-                        ["Condiciones de pago", (cot as unknown as Record<string, string>)["condiciones_pago"]],
-                        ["Condiciones comerciales", cot.condiciones],
-                      ] as const).filter(([, v]) => (v ?? "").trim()).map(([t, v]) => (
-                        <div key={t} style={{ marginTop: 5, textAlign: "left" }}>
-                          <b style={{ color: C.slate700 }}>{t}:</b>
-                          <ul style={{ margin: "2px 0 0 14px", padding: 0, listStyle: "disc" }}>
-                            {String(v).split("\n").map((l) => l.trim()).filter(Boolean).map((l, i) => <li key={i}>{l}</li>)}
-                          </ul>
+                          {esUsd && tc > 0 && (
+                            <div className="flex justify-between" style={{ marginTop: 5, padding: "5px 0", color: C.slate500, fontSize: "7.5pt" }}>
+                              <span>Equivalente en soles (T.C. {tc.toFixed(3)})</span><span>{S("S/", total * tc)}</span>
+                            </div>
+                          )}
                         </div>
-                      ))}
-                      <div style={{ marginTop: 7, color: C.slate400, textAlign: "left" }}>
-                        {conIgv
-                          ? `Precios expresados en ${esUsd ? "dólares americanos" : "soles"}, incluyen IGV (18%).`
-                          : `Precios expresados en ${esUsd ? "dólares americanos" : "soles"}, no afectos a IGV.`}{" "}
-                        Oferta válida hasta la fecha indicada.
-                      </div>
-                    </div>
+                      );
+                      const bloqueTerminos = (
+                        <div style={{ fontSize: 8, color: C.slate500, lineHeight: 1.45, textAlign: "left" }}>
+                          <div style={{ fontSize: 8, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, color: C.slate700, marginBottom: 5 }}>Términos y condiciones</div>
+                          {([
+                            ["Recursos humanos", (cot as unknown as Record<string, string>)["recursos_humanos"]],
+                            ["Tiempo de ejecución", (cot as unknown as Record<string, string>)["tiempo_ejecucion"]],
+                            ["Condiciones de pago", (cot as unknown as Record<string, string>)["condiciones_pago"]],
+                            ["Condiciones comerciales", cot.condiciones],
+                          ] as const).filter(([, v]) => (v ?? "").trim()).map(([t, v]) => (
+                            <div key={t} style={{ marginTop: 5, textAlign: "left" }}>
+                              <b style={{ color: C.slate700 }}>{t}:</b>
+                              <ul style={{ margin: "2px 0 0 14px", padding: 0, listStyle: "disc" }}>
+                                {String(v).split("\n").map((l) => l.trim()).filter(Boolean).map((l, i) => <li key={i}>{l}</li>)}
+                              </ul>
+                            </div>
+                          ))}
+                          <div style={{ marginTop: 7, color: C.slate400, textAlign: "left" }}>
+                            {conIgv
+                              ? `Precios expresados en ${esUsd ? "dólares americanos" : "soles"}, incluyen IGV (18%).`
+                              : `Precios expresados en ${esUsd ? "dólares americanos" : "soles"}, no afectos a IGV.`}{" "}
+                            Oferta válida hasta la fecha indicada.
+                          </div>
+                        </div>
+                      );
+                      // En horizontal el desglose y los términos van lado a lado para aprovechar
+                      // el ancho y que el bloque final quepa en la misma hoja.
+                      if (horizontal) {
+                        return (
+                          <div style={{ display: "flex", gap: 28, alignItems: "flex-start", marginTop: 12, borderTop: `1px solid ${C.slate100}`, paddingTop: 10 }}>
+                            <div style={{ flex: 1, minWidth: 0 }}>{bloqueTerminos}</div>
+                            {bloqueTotales}
+                          </div>
+                        );
+                      }
+                      return (
+                        <>
+                          <div className="flex justify-end" style={{ marginTop: 14 }}>{bloqueTotales}</div>
+                          <div style={{ marginTop: 16, borderTop: `1px solid ${C.slate100}`, paddingTop: 10 }}>{bloqueTerminos}</div>
+                        </>
+                      );
+                    })()}
                   </div>
                 )}
                 <div style={{ position: "absolute", right: 24, width: 248, bottom: 15, textAlign: "center", fontSize: 9, color: C.slate400 }}>
