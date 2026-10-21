@@ -12,7 +12,7 @@ describe("duplicado de insumo", () => {
     expect(buscarInsumoDuplicado(filas, "cable unipolar 2x14")?.id).toBe("1");
   });
   it("detecta también el repetido inactivo", () => {
-    expect(buscarInsumoDuplicado(filas, "Cable Unipolar 2x14 ", undefined, true)?.id).toBe("2");
+    expect(buscarInsumoDuplicado(filas, "Cable Unipolar 2x14 ", "1", true)?.id).toBe("2");
   });
   it("ignora la propia fila al editar", () => {
     expect(buscarInsumoDuplicado(filas, "CAPATAZ", "3")).toBeNull();
