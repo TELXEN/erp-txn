@@ -1,4 +1,5 @@
 # Roadmap
+- [ ] Igualar el formato del Dossier APU al Análisis de Precios Unitarios y verificar sin modificar cotizaciones.
 - [x] Dejar el porcentaje de herramientas manuales en 5% por defecto (Márgenes APU, partidas nuevas y cálculo); verificado en pantalla.
 - [x] Reorganizar especialidades por disciplinas 01–09 y 99 conservando vínculos; hoja e iconos como Insumos y verificación.
 - [x] Préstamos / Financiamiento en Tesorería: desembolsos, cuotas y saldos; bloqueo de pagos sin fondos y verificación.
