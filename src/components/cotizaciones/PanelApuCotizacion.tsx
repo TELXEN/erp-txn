@@ -148,6 +148,27 @@ export function PanelApuCotizacion({ cot, item, comando }: { cot: Cotizacion; it
     await refrescar();
   }
 
+  /** Agrega el insumo elegido en la ventana de insumo a la receta de esta partida. */
+  async function agregarApu(s: SelInsumo, cant: number): Promise<string | null> {
+    const col = BANCOS_RECURSO.find((b) => b[1] === s.tabla)?.[0];
+    if (!col) return "Grupo desconocido.";
+    const ya = propias.find((d) => d[col] === s.fila.id);
+    if (ya) {
+      if (!window.confirm(`«${s.fila.descripcion}» ya está en el APU. ¿Sumar ${cant} a su cantidad actual (${ya.cantidad_o_cuadrilla})?`)) return CANCELADO;
+      const { error: e } = await dbBanco.from("cotizacion_apu_detalle").update({ cantidad_o_cuadrilla: Number(ya.cantidad_o_cuadrilla) + cant }).eq("id", ya.id);
+      if (e) return e.message;
+      await aplicarPu(propias.map((d) => (d.id === ya.id ? { ...d, cantidad_o_cuadrilla: Number(ya.cantidad_o_cuadrilla) + cant } : d)));
+    } else {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const fila: any = { cotizacion_item_id: it.id, [col]: s.fila.id, cantidad_o_cuadrilla: cant, orden: agregar?.orden ?? 0 };
+      const { error: e } = await dbBanco.from("cotizacion_apu_detalle").insert(fila);
+      if (e) return e.message;
+      await aplicarPu([...propias, fila]);
+    }
+    refrescar();
+    return null;
+  }
+
   function abrirMenu(e: React.MouseEvent, t: string, f: FilaCalculo | undefined, habilitadas: EstadoMenuApu["habilitadas"]) {
     e.preventDefault();
     setMenu({ x: e.clientX, y: e.clientY, t, f, habilitadas });
