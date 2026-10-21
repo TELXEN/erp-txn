@@ -19,6 +19,7 @@ import {
   nivelDe,
   moverBloqueNivel,
   numerarNiveles,
+  posicionInsercion,
   totalesNiveles,
   type NivelCotizacion,
 } from "@/lib/niveles-cotizacion";
@@ -166,7 +167,7 @@ export function HojaNiveles({
         return;
       }
       // Nuevo: entra al final del bloque de la fila elegida (como hijo o siguiente hermano).
-      const pos = seleccionado ? bloqueDe(orden, seleccionado.id)[1] : orden.length;
+      const pos = posicionInsercion(orden, f.nivel, seleccionado?.id ?? null);
       const { data, error: err } = await db
         .from("cotizacion_items")
         .insert({ ...datos, cotizacion_id: cotizacionId, codigo: "", especialidad: "", categoria: "", marca: "", orden: pos + 1, partida_apu_id: f.apuId })

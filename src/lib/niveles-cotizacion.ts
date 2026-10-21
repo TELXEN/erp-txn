@@ -80,6 +80,8 @@ export function moverBloqueNivel<T extends FilaNivel>(filas: T[], id: string, di
   const [inicio, fin] = bloqueDe(orden, id);
   const bloque = orden.slice(inicio, fin);
   if (!vecino) {
+    // Solo las partidas cruzan al grupo vecino; los encabezados se mueven dentro de su grupo.
+    if (nivelDe(actual) !== "partida") return null;
     const limite = direccion === "subir" ? orden[inicio - 1] : orden[fin];
     if (!limite || RANGO_NIVEL[nivelDe(limite)] >= RANGO_NIVEL[nivelDe(actual)]) return null;
     // Do not lift the first child above the first heading into an orphan root.
@@ -113,4 +115,23 @@ export function totalesNiveles<T extends FilaNivel & { metrado?: number | string
     tot.set(f.id, s);
   });
   return tot;
+}
+
+/**
+ * Posición (índice en el orden numerado) donde entra una fila nueva:
+ * especialidad al final de la hoja; título al final de su especialidad (o de la hoja);
+ * subtítulo y partida al final del bloque de la fila seleccionada.
+ */
+export function posicionInsercion<T extends FilaNivel>(ordenadas: T[], nivel: string, seleccionadoId: string | null): number {
+  if (nivel === "especialidad" || !seleccionadoId) return ordenadas.length;
+  const idx = ordenadas.findIndex((f) => f.id === seleccionadoId);
+  if (idx < 0) return ordenadas.length;
+  if (nivel === "titulo") {
+    for (let i = idx; i >= 0; i--) {
+      const fila = ordenadas[i];
+      if (fila && nivelDe(fila) === "especialidad") return bloqueDe(ordenadas, fila.id)[1];
+    }
+    return ordenadas.length;
+  }
+  return bloqueDe(ordenadas, seleccionadoId)[1];
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatearNivel, moverBloqueNivel, numerarNiveles } from "./niveles-cotizacion";
+import { formatearNivel, moverBloqueNivel, numerarNiveles, posicionInsercion } from "./niveles-cotizacion";
 
 const f = (id: string, nivel: string, orden: number) => ({ id, nivel, orden });
 
@@ -34,10 +34,11 @@ describe("mover filas de cotización", () => {
     expect(moverBloqueNivel(movidas, "p3", "bajar")?.map((fila) => fila.id)).toEqual(filas.map((fila) => fila.id));
   });
   for (const [nivel, padre] of [["titulo", "especialidad"], ["subtitulo", "titulo"]]) {
-    it(`cambia ${nivel} de grupo conservando sus partidas`, () => {
-      const filas = [f("g1", padre ?? "titulo", 1), f("a", nivel ?? "titulo", 2), f("p1", "partida", 3), f("g2", padre ?? "titulo", 4), f("b", nivel ?? "titulo", 5), f("p2", "partida", 6)];
-      expect(moverBloqueNivel(filas, "b", "subir")?.map((fila) => fila.id)).toEqual(["g1", "a", "p1", "b", "p2", "g2"]);
-      expect(moverBloqueNivel(filas, "a", "bajar")?.map((fila) => fila.id)).toEqual(["g1", "g2", "a", "p1", "b", "p2"]);
+    it(`${nivel} no cruza a otro grupo y se mueve con sus partidas`, () => {
+      const filas = [f("g1", padre ?? "titulo", 1), f("a", nivel ?? "titulo", 2), f("p1", "partida", 3), f("a2", nivel ?? "titulo", 4), f("p4", "partida", 5), f("g2", padre ?? "titulo", 6), f("b", nivel ?? "titulo", 7), f("p2", "partida", 8)];
+      expect(moverBloqueNivel(filas, "b", "subir")).toBeNull();
+      expect(moverBloqueNivel(filas, "a2", "bajar")).toBeNull();
+      expect(moverBloqueNivel(filas, "a", "bajar")?.map((fila) => fila.id)).toEqual(["g1", "a2", "p4", "a", "p1", "g2", "b", "p2"]);
     });
   }
 });
@@ -73,5 +74,22 @@ describe("formato por nivel", () => {
   });
   it("partida solo con la primera letra en mayúscula", () => {
     expect(formatearNivel("INSTALACIÓN DE TABLERO GENERAL", "partida")).toBe("Instalación de tablero general");
+  });
+});
+
+describe("posición de filas nuevas", () => {
+  const filas = [f("e1", "especialidad", 1), f("t1", "titulo", 2), f("p1", "partida", 3), f("p2", "partida", 4), f("e2", "especialidad", 5), f("t2", "titulo", 6), f("p3", "partida", 7)];
+  it("especialidad nueva va al final de la hoja", () => {
+    expect(posicionInsercion(filas, "especialidad", "p1")).toBe(7);
+  });
+  it("título nuevo desde una partida intermedia va al final de su especialidad", () => {
+    expect(posicionInsercion(filas, "titulo", "p1")).toBe(4);
+  });
+  it("sin especialidades el título va al final de la hoja", () => {
+    const sin = [f("t1", "titulo", 1), f("p1", "partida", 2), f("t2", "titulo", 3), f("p2", "partida", 4)];
+    expect(posicionInsercion(sin, "titulo", "p1")).toBe(4);
+  });
+  it("partida nueva entra tras la fila seleccionada", () => {
+    expect(posicionInsercion(filas, "partida", "p1")).toBe(3);
   });
 });
