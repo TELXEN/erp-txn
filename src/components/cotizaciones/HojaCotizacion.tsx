@@ -1,4 +1,5 @@
 import { useState, type CSSProperties, type ReactNode } from "react";
+import { VentanaFlotante } from "@/components/ui-kit";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DOC, DOC_FUENTE_CSS } from "@/lib/documento-tema";
 import { useQueryClient } from "@tanstack/react-query";
@@ -70,6 +71,7 @@ export function HojaCotizacion({
   clientes,
   children,
   mostrarEncabezado = true,
+  ventanaEncabezado,
 }: {
   cot: Cotizacion;
   items: CotizacionItem[];
@@ -77,6 +79,8 @@ export function HojaCotizacion({
   children: ReactNode;
   /** En modo edición se oculta el encabezado corporativo y la ficha de cliente. */
   mostrarEncabezado?: boolean;
+  /** Si se indica, el encabezado se edita en una ventana flotante en vez de en la hoja. */
+  ventanaEncabezado?: { abierta: boolean; onCerrar: () => void };
 }) {
   const [condicionesAbiertas, setCondicionesAbiertas] = useState(false);
   const qc = useQueryClient();
@@ -130,8 +134,8 @@ export function HojaCotizacion({
           boxShadow: "0 12px 35px rgba(15,23,42,.18)",
         }}
       >
-        {mostrarEncabezado && (
-          <>
+        {(ventanaEncabezado ? ventanaEncabezado.abierta : mostrarEncabezado) && (
+          <EnvolturaEncabezado ventana={ventanaEncabezado}>
         <header style={{ display: "flex", gap: 22, alignItems: "flex-start", borderBottom: `2px solid ${C.green}`, paddingBottom: 14 }}>
           <div style={{ width: 96, display: "flex", alignItems: "center", justifyContent: "center" }}>
             {empresa?.logo_url ? (
@@ -293,7 +297,7 @@ export function HojaCotizacion({
             </div>
           </div>
         </div>
-          </>
+          </EnvolturaEncabezado>
         )}
 
         <div style={{ marginTop: 16 }}>{children}</div>
@@ -340,5 +344,14 @@ export function HojaCotizacion({
         </div>
       </section>
     </div>
+  );
+}
+
+function EnvolturaEncabezado({ ventana, children }: { ventana?: undefined | { abierta: boolean; onCerrar: () => void }; children: ReactNode }) {
+  if (!ventana) return <>{children}</>;
+  return (
+    <VentanaFlotante titulo="Encabezado de la cotización" subtitulo="Los cambios se guardan al salir de cada campo" abierta={ventana.abierta} onCerrar={ventana.onCerrar} ancho="max-w-6xl">
+      <div style={{ background: C.white, color: C.ink, fontFamily: DOC_FUENTE_CSS, fontSize: 12.5, padding: 8 }}>{children}</div>
+    </VentanaFlotante>
   );
 }

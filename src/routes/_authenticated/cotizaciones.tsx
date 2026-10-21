@@ -155,14 +155,6 @@ function Cotizaciones() {
   const [slotBarra, setSlotBarra] = useState<HTMLDivElement | null>(null);
   /** En edición la hoja arranca sin encabezado: solo se ve la tabla de partidas. */
   const [encabezado, setEncabezado] = useState(false);
-  useEffect(() => {
-    if (localStorage.getItem("cotizaciones:encabezado") === "visible") setEncabezado(true);
-  }, []);
-  const alternarEncabezado = () => {
-    const nuevo = !encabezado;
-    setEncabezado(nuevo);
-    localStorage.setItem("cotizaciones:encabezado", nuevo ? "visible" : "oculto");
-  };
   const [apu, setApu] = useState<(typeof items)[number] | null>(null);
 
   const [pestana, setPestana] = useState<"Todas" | EstadoCotizacion | "En Obra">("Todas");
@@ -487,6 +479,7 @@ function Cotizaciones() {
     setError("");
     setAviso("");
     if (cot.proyecto_id) return setError("Esta cotización ya generó una obra.");
+    if (cot.estado !== "Aprobada") return setError("Solo una cotización aprobada puede convertirse en obra.");
     if (items.length === 0) return setError("Agrega al menos una partida antes de convertirla en obra.");
     try {
       const codigo = await generarCodigoProyecto();
@@ -635,8 +628,8 @@ function Cotizaciones() {
                   <History size={13} /> Nueva revisión
                 </Boton>
               )}
-              <Boton variante="linea" className={enBarra} onClick={alternarEncabezado} title="Mostrar u ocultar el encabezado de la hoja">
-                {encabezado ? <Eye size={13} /> : <EyeOff size={13} />} Encabezado
+              <Boton variante="linea" className={enBarra} onClick={() => setEncabezado(true)} title="Completar los datos del encabezado">
+                <Pencil size={13} /> Encabezado
               </Boton>
               <Link to="/cotizacion-vista" search={{ id: cot.id }}>
                 <Boton variante="linea" className={enBarra}><Eye size={13} /> Vista previa A4</Boton>
@@ -650,7 +643,7 @@ function Cotizaciones() {
               <Boton variante="linea" className={enBarra} onClick={exportarCotizacion} title="Exportar Excel">
                 <Upload size={13} /> Excel
               </Boton>
-              <Boton onClick={convertirEnObra} disabled={Boolean(cot.proyecto_id)}>
+              <Boton onClick={convertirEnObra} disabled={Boolean(cot.proyecto_id) || cot.estado !== "Aprobada"} title={cot.estado !== "Aprobada" && !cot.proyecto_id ? "Solo disponible para cotizaciones aprobadas" : undefined}>
                 {cot.proyecto_id ? "Obra generada" : "Convertir en obra"}
               </Boton>
             </div>
@@ -740,7 +733,7 @@ function Cotizaciones() {
         <div className="flex flex-col gap-2 bg-muted/60 px-2 py-2 lg:h-auto lg:min-h-0 lg:flex-1 lg:flex-row lg:overflow-hidden lg:pr-1">
           <div className="flex min-h-0 min-w-0 flex-col lg:w-[58%]">
           <div className="min-h-0 flex-1 overflow-auto">
-          <HojaCotizacion cot={cot} items={items} clientes={clientes} mostrarEncabezado={encabezado}>
+          <HojaCotizacion cot={cot} items={items} clientes={clientes} mostrarEncabezado={false} ventanaEncabezado={{ abierta: encabezado, onCerrar: () => setEncabezado(false) }}>
             <HojaNiveles
               cotizacionId={cot.id}
               items={itemsHoja}
