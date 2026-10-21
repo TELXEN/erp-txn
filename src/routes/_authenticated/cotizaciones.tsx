@@ -155,6 +155,17 @@ function Cotizaciones() {
   const [slotBarra, setSlotBarra] = useState<HTMLDivElement | null>(null);
   /** En edición la hoja arranca sin encabezado: solo se ve la tabla de partidas. */
   const [encabezado, setEncabezado] = useState(false);
+  /** En escritorio el editor ocupa exactamente el alto visible: cada panel desplaza su propio contenido. */
+  const ajustarAlto = useCallback((el: HTMLDivElement | null) => {
+    if (!el) return;
+    const medir = () => {
+      if (window.innerWidth < 1024) { el.style.height = ""; return; }
+      el.style.height = `${Math.max(320, window.innerHeight - el.getBoundingClientRect().top - 12)}px`;
+    };
+    medir();
+    requestAnimationFrame(medir);
+    window.addEventListener("resize", medir);
+  }, []);
   const [apu, setApu] = useState<(typeof items)[number] | null>(null);
 
   const [pestana, setPestana] = useState<"Todas" | EstadoCotizacion | "En Obra">("Todas");
@@ -586,7 +597,7 @@ function Cotizaciones() {
     // Opción 1: el título y los botones viven en la barra superior del sistema.
     const enBarra = "border-brand-foreground/30 bg-brand-foreground/10 text-brand-foreground hover:bg-primary hover:text-primary-foreground";
     return (
-      <div className="-mx-3 -mb-3 flex flex-col bg-background sm:-mx-4 lg:h-[calc(100dvh-3.75rem)] lg:overflow-hidden">
+      <div ref={ajustarAlto} className="-mx-3 -mb-3 flex flex-col bg-background sm:-mx-4 lg:overflow-hidden">
         <Encabezado
           titulo={cot.nombre || cot.codigo || "Cotización"}
           subtitulo={`Cotización ${cot.codigo ?? ""} · ${etiquetaRevision(cot.revision)} · modo edición`}
