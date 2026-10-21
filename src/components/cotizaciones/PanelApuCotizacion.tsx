@@ -7,6 +7,7 @@ import { MenuContextualApu, type AccionApu, type EstadoMenuApu } from "@/compone
 import { BANCOS_RECURSO, costoReceta, filaRecursoCotizacion, dbBanco, renumerarApu, useBancoTabla, useRecursosApu, type FilaCalculo, type RecursosApu } from "@/lib/banco-apu";
 import { VentanaInsumo, CANCELADO, type SelInsumo } from "@/components/InsumoVentana";
 import { r2, sumar2 } from "@/lib/decimal";
+import { PCT_HERRAMIENTAS_DEFECTO } from "@/lib/apu";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import type { Cotizacion, CotizacionItem } from "@/lib/cotizaciones";

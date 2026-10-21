@@ -11,6 +11,7 @@ import { useUnidadesMedida } from "@/lib/unidades";
 import { renumerarApu, siguienteCodigoJerarquico } from "@/lib/banco-apu";
 import { VentanaInsumo, primeraMayuscula, CANCELADO, type ModoInsumo, type TablaInsumo, type SelInsumo } from "@/components/InsumoVentana";
 import { r2, r4, sumar2 } from "@/lib/decimal";
+import { PCT_HERRAMIENTAS_DEFECTO } from "@/lib/apu";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = supabase as unknown as { from: (t: string) => any; rpc: (f: string, a: object) => any };
