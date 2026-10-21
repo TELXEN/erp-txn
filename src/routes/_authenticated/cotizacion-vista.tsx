@@ -419,6 +419,9 @@ function VistaCotizacion() {
             <Link to="/apu-vista" search={{ id, item: "" }}>
               <Boton variante="linea"><Calculator size={14} /> Dossier APU</Boton>
             </Link>
+            <Link to="/gg-vista" search={{ id }}>
+              <Boton variante="linea"><Calculator size={14} /> Gastos generales</Boton>
+            </Link>
             <Boton variante="linea" onClick={() => void descargarPdf(true)} disabled={pdfCargando} title="Un solo PDF con la cotización y su dossier APU">
               <FileDown size={14} /> PDF cotización + dossier
             </Boton>
