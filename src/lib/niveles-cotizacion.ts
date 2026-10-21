@@ -80,18 +80,18 @@ export function moverBloqueNivel<T extends FilaNivel>(filas: T[], id: string, di
   const [inicio, fin] = bloqueDe(orden, id);
   const bloque = orden.slice(inicio, fin);
   if (!vecino) {
-    if (nivelDe(actual) !== "partida") {
+    const limite = direccion === "subir" ? orden[inicio - 1] : orden[fin];
+    if (limite && nivelDe(actual) !== "partida" && padres.get(limite.id) === padres.get(id)) {
       // Encabezado sin hermanos de su nivel: intercambia con el bloque hermano contiguo
-      // (partida u otro encabezado) dentro del mismo grupo; nunca cruza su propio padre.
-      const limite = direccion === "subir" ? orden[inicio - 1] : orden[fin];
-      if (!limite || padres.get(limite.id) !== padres.get(id)) return null;
+      // (partida u otro encabezado) dentro del mismo grupo.
       const [limInicio, limFin] = bloqueDe(orden, limite.id);
       const nueva = direccion === "subir"
         ? [...orden.slice(0, limInicio), ...bloque, ...orden.slice(limInicio, inicio), ...orden.slice(fin)]
         : [...orden.slice(0, inicio), ...orden.slice(fin, limFin), ...bloque, ...orden.slice(limFin)];
       return nueva.map((fila, i) => ({ ...fila, orden: i + 1 }));
     }
-    const limite = direccion === "subir" ? orden[inicio - 1] : orden[fin];
+    // Partidas y subtítulos cruzan el encabezado contiguo para cambiar de grupo.
+    if (nivelDe(actual) !== "partida" && nivelDe(actual) !== "subtitulo") return null;
     if (!limite || RANGO_NIVEL[nivelDe(limite)] >= RANGO_NIVEL[nivelDe(actual)]) return null;
     // Do not lift the first child above the first heading into an orphan root.
     if (direccion === "subir" && inicio < 2) return null;
