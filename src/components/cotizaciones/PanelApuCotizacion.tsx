@@ -4,7 +4,7 @@ import { Plus, Upload } from "lucide-react";
 import { Boton, Campo, Input, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { Resaltar } from "@/components/Buscador";
 import { MenuContextualApu, type AccionApu, type EstadoMenuApu } from "@/components/MenuContextualApu";
-import { BANCOS_RECURSO, costoReceta, dbBanco, renumerarApu, useBancoTabla, useRecursosApu, type FilaCalculo, type RecursosApu } from "@/lib/banco-apu";
+import { BANCOS_RECURSO, costoReceta, filaRecursoCotizacion, dbBanco, renumerarApu, useBancoTabla, useRecursosApu, type FilaCalculo, type RecursosApu } from "@/lib/banco-apu";
 import { VentanaInsumo, CANCELADO, type SelInsumo } from "@/components/InsumoVentana";
 import { r2, sumar2 } from "@/lib/decimal";
 import { supabase } from "@/integrations/supabase/client";
@@ -160,7 +160,7 @@ export function PanelApuCotizacion({ cot, item, comando }: { cot: Cotizacion; it
       await aplicarPu(propias.map((d) => (d.id === ya.id ? { ...d, cantidad_o_cuadrilla: Number(ya.cantidad_o_cuadrilla) + cant } : d)));
     } else {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const fila: any = { cotizacion_item_id: it.id, [col]: s.fila.id, cantidad_o_cuadrilla: cant, orden: agregar?.orden ?? 0 };
+      const fila: any = { ...filaRecursoCotizacion(s.tabla, s.fila, cant, factor), cotizacion_item_id: it.id, orden: agregar?.orden ?? 0 };
       const { error: e } = await dbBanco.from("cotizacion_apu_detalle").insert(fila);
       if (e) return e.message;
       await aplicarPu([...propias, fila]);

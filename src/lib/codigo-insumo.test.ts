@@ -11,6 +11,9 @@ describe("código modular de insumos", () => {
   it("subcontratos con 00 y 8 dígitos", () => {
     expect(armarCodigoInsumo("subcontratos", "99", null, 25)).toBe("49900025");
   });
+  it("equipos y herramientas usan tipo 3 y subfamilia 00", () => {
+    expect(armarCodigoInsumo("equipos_herramientas", "06", "13", 1)).toBe("30600001");
+  });
   it("material sin subfamilia se rechaza", () => {
     expect(() => armarCodigoInsumo("materiales", "06", null, 1)).toThrow();
   });

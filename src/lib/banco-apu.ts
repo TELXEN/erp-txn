@@ -119,7 +119,7 @@ export function costoReceta(
       cu = Number(r?.costo_unitario ?? 0);
       parcial = r2(q * cu);
     }
-    return { d, banco: etiqueta, tipo, recursoId: d[col] as string, nombre: r?.descripcion ?? "(no encontrado)", und: r?.unidad ?? "", cu, cantidad: q, parcial, esPctMo };
+    return { d: { ...d, codigo: d.codigo || banco?.codigo || "" }, banco: etiqueta, tipo, recursoId: d[col] as string, nombre: r?.descripcion ?? "(no encontrado)", und: r?.unidad ?? "", cu, cantidad: q, parcial, esPctMo };
   });
   // Fusionar duplicados del mismo recurso (mismo tipo, recurso y precio): una fila con la cantidad sumada.
   const fusion = new Map<string, FilaCalculo>();
@@ -197,6 +197,23 @@ export type FilaCopiaApu = {
   precio_unitario: number;
 };
 
+/** Conserva el vínculo al catálogo y congela sus datos al incorporarlo a una cotización. */
+export function filaRecursoCotizacion(tabla: BancoTabla, recurso: Recurso, cantidad: number, factor: number): FilaCopiaApu {
+  const banco = BANCOS_RECURSO.find((b) => b[1] === tabla);
+  if (!banco || !recurso?.id) throw new Error("Insumo no válido.");
+  const [col, , , tipo] = banco;
+  const porcentaje = tabla === "equipos_herramientas" && recurso.unidad === "%";
+  const precio = tabla === "mano_obra" || porcentaje ? Number(recurso.costo_hora) : Number(recurso.costo_unitario);
+  return {
+    material_id: null, mano_obra_id: null, equipo_id: null, subcontrato_id: null,
+    [col]: recurso.id,
+    cantidad_o_cuadrilla: cantidad,
+    codigo: recurso.codigo ?? "", descripcion: recurso.descripcion ?? "", marca: recurso.marca ?? "",
+    unidad: recurso.unidad ?? "", tipo_recurso: tipo,
+    precio_unitario: porcentaje ? precio : Math.round(precio * factor * 10000) / 10000,
+  };
+}
+
 /**
  * Aplana la receta de una partida del banco en filas con precio fijo en la
  * moneda indicada. `factor` convierte PEN → moneda (1 o 1/TC).
@@ -211,23 +228,11 @@ export function aplanarReceta(
   for (const d of detalle.filter((x) => x.partida_padre_id === partidaId)) {
     const found = BANCOS_RECURSO.find(([c]) => d[c]);
     if (!found) continue;
-    const [col, tabla, , tipo] = found;
+    const [col, tabla] = found;
     const r = (recursos[tabla as keyof RecursosApu] ?? []).find((x) => x.id === d[col]);
     if (!r) continue;
     const q = Number(d.cantidad_o_cuadrilla) || 0;
-    const horaria = tabla === "mano_obra" || (tabla === "equipos_herramientas" && r.unidad === "H-M");
-    const pct = tabla === "equipos_herramientas" && r.unidad === "%";
-    const fila: FilaCopiaApu = {
-      material_id: null, mano_obra_id: null, equipo_id: null, subcontrato_id: null,
-      [col]: r.id,
-      cantidad_o_cuadrilla: q,
-      codigo: r.codigo ?? "", descripcion: r.descripcion ?? "", marca: r.marca ?? "", unidad: r.unidad ?? "",
-      tipo_recurso: tipo,
-      precio_unitario: Math.round((tabla === "mano_obra" ? Number(r.costo_hora) : Number(r.costo_unitario)) * factor * 10000) / 10000,
-    } as FilaCopiaApu;
-    if (horaria) fila.cantidad_o_cuadrilla = q;
-    if (pct) fila.precio_unitario = Number(r.costo_hora);
-    salida.push(fila);
+    salida.push(filaRecursoCotizacion(tabla, r, q, factor));
   }
   return salida;
 }
