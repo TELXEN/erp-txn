@@ -106,6 +106,8 @@ function Cotizaciones() {
   const [error, setError] = useState("");
   const [aviso, setAviso] = useState("");
   const [busqueda, setBusqueda] = useState("");
+  /** Fila seleccionada en «Cotizaciones registradas»: activa la barra vertical de iconos. */
+  const [filaSel, setFilaSel] = useState<string | null>(null);
   const [seccion, setSeccion] = useState<"cotizaciones" | "plantillas">("cotizaciones");
 
   const [form, setForm] = useState({
