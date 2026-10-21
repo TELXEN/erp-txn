@@ -1,4 +1,5 @@
 # Roadmap
+- [ ] Cotizaciones: iconos Subir/Bajar para ordenar filas con su contenido y actualizar numeración; pruebas y verificación.
 - [x] Insertar partida: opciones Banco de partidas / Crear nueva; ventana verificada sin alterar datos reales. Inserción desde banco no comprobada por catálogo vacío.
 - [x] Plantillas: iconos de acciones en columna vertical a la derecha (hoja limpia, ventana única para alta/edición/copia) y verificación en pantalla.
 - [x] Igualar el formato del Dossier APU al Análisis de Precios Unitarios; pantalla y descarga PDF verificadas sin modificar cotizaciones.
