@@ -125,7 +125,7 @@ export function HojaCotizacion({
         style={{
           width: "100%", maxWidth: 1500, boxSizing: "border-box",
           margin: "0 auto",
-          padding: mostrarEncabezado ? "36px 38px" : "8px",
+          padding: mostrarEncabezado ? "36px 38px" : "0 8px 8px",
           background: C.white,
           color: C.ink,
           fontFamily: DOC_FUENTE_CSS,
