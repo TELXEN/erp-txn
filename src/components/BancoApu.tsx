@@ -1010,61 +1010,15 @@ function HojaInsumos() {
   const mo = useTabla("mano_obra").data ?? [];
   const eq = useTabla("equipos_herramientas").data ?? [];
   const sc = useTabla("subcontratos").data ?? [];
-  const { data: espLista = [] } = useEspecialidadesPartida();
-  const { data: subfamilias = [] } = useSubfamilias();
-  const espCod = espLista.filter((e) => e.codigo_modular).sort((a, b) => String(a.codigo_modular).localeCompare(String(b.codigo_modular)));
-  const datos: Record<string, Fila[]> = { materiales: mat, mano_obra: mo, equipos_herramientas: eq, subcontratos: sc };
-  const { data: unidades = [] } = useUnidadesMedida();
-  const [busqueda, setBusqueda] = useState("");
-  const [sel, setSel] = useState<{ tabla: Tabla; fila: Fila } | null>(null);
-  const [modo, setModo] = useState<"nuevo" | "editar" | "copiar" | null>(null);
-  const [tipo, setTipo] = useState<Tabla>("materiales");
-  const [form, setForm] = useState<Fila>({});
-  const [aviso, setAviso] = useState("");
+  const [sel, setSel] = useState<{ tabla: TablaInsumo; fila: Fila } | null>(null);
+  const [modo, setModo] = useState<ModoInsumo | null>(null);
   const refrescar = () => qc.invalidateQueries({ queryKey: ["banco_apu"] });
   const total = GRUPOS_INSUMO.reduce((n, t) => n + datos[t]!.filter((f) => f.estado === "activo").length, 0);
 
-  function base(t: Tabla, f?: Fila) {
-    const b: Fila = {};
-    for (const c of CONFIG[t].campos) b[c.k] = f ? String(f[c.k] ?? "") : c.opciones?.[0] ?? (c.tipo === "num" ? "0" : "");
-    if (!f && t === "mano_obra") b.unidad = "H-H";
-    if (!f && !b.unidad) b.unidad = unidades.find((u) => u.activo)?.simbolo ?? "";
-    b.especialidad_id = f?.especialidad_id ?? "";
-    b.subfamilia_id = f?.subfamilia_id ?? "";
-    return b;
-  }
-  function abrir(m: "nuevo" | "editar" | "copiar", objetivo = sel) {
-    setAviso("");
-    const sel = objetivo;
-    if (m === "nuevo") { setTipo("materiales"); setForm(base("materiales")); }
-    else if (sel) {
-      const b = base(sel.tabla, sel.fila);
-      if (m === "copiar") { b.codigo = ""; b.descripcion = `${b.descripcion} (copia)`; }
-      setTipo(sel.tabla); setForm(b);
-      if (m === "editar") b._orig = `${sel.fila.especialidad_id ?? ""}|${sel.fila.subfamilia_id ?? ""}|${sel.fila.codigo ?? ""}`;
-    } else return;
-    setModo(m);
-  }
-  async function guardar() {
-    if (!form.descripcion?.trim()) return setAviso("Escribe la descripción.");
-    const d: Record<string, unknown> = {};
-    for (const c of CONFIG[tipo].campos) d[c.k] = c.tipo === "num" ? Number(form[c.k] || 0) : String(form[c.k] ?? "").trim();
-    if (tipo === "equipos_herramientas" && form.tipo !== "alquilado") d["margen"] = 0;
-    d["descripcion"] = primeraMayuscula(String(d["descripcion"]));
-    if (typeof d["marca"] === "string" && d["marca"]) d["marca"] = primeraMayuscula(d["marca"]);
-    const conSub = tipo === "materiales";
-    if (!form.especialidad_id || (conSub && !form.subfamilia_id)) return setAviso(conSub ? "Elige la especialidad y la subfamilia: con ellas se genera el código." : "Elige la especialidad: con ella se genera el código.");
-    d["especialidad_id"] = form.especialidad_id; d["subfamilia_id"] = conSub ? form.subfamilia_id : null;
-    const [oe, os, oc] = String(form._orig ?? "").split("|");
-    if (modo === "editar" && oe === form.especialidad_id && (conSub ? os === form.subfamilia_id : true) && /^\d{8}$/.test(oc ?? "")) d["codigo"] = oc;
-    else {
-      const { data: cod, error: ec } = await db.rpc("siguiente_codigo_insumo_modular", { _especialidad: form.especialidad_id, _tipo: tipo, _subfamilia: conSub ? form.subfamilia_id : null });
-      if (ec) return setAviso(ec.message);
-      d["codigo"] = cod;
-    }
-    const { error } = modo === "editar" && sel ? await db.from(tipo).update(d).eq("id", sel.fila.id) : await db.from(tipo).insert(d);
-    if (error) return setAviso(error.message);
-    refrescar(); setModo(null);
+  function abrir(m: ModoInsumo, objetivo = sel) {
+    if (m === "nuevo") { setSel(null); setModo(m); return; }
+    if (!objetivo) return;
+    setSel(objetivo); setModo(m);
   }
   async function quitar() {
     if (!sel || !window.confirm(`¿Eliminar «${sel.fila.descripcion}»?`)) return;
