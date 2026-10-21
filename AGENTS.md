@@ -11,7 +11,7 @@
 - Reserve project/quotation codes via reservarCodigo only; SQL functions are service_role-only — no browser numbering.
 - Programmed progress stores percentages per leaf item/period; dashboards exclude grouping rows — no double counting.
 - S-curve uses work-item schedules and current physical cut-off; cost progress is money-role-only — truthful history.
-- Preliquidation PDFs use @react-pdf/renderer; quotation/invoice previews are fixed A4 HTML sheets (repeated headers, page numbers, invoice fiscal footer) while editing stays in normal flow — predictable exports.
+- Preliquidation uses @react-pdf/renderer; quotation/invoice previews use fixed A4 HTML. Quotation pagination uses measured rows/closing heights via paginacion-cotizacion, keeping headings with items — no premature breaks.
 - Electronic invoices use dedicated comprobantes_electronicos/items/cuotas tables, while emitted invoices/receipts mirror into ventas for treasury compatibility; numbering is reserved only by an authenticated server function.
 - Typography: configuracion_documentos/local catalogue, UI --font-global, PDF embeds chosen font, Excel uses catalogue family — consistent outputs.
 - Document codes use codificacion_documentos and siguiente_codigo_documento (free code + padded correlative) — one numbering source.
