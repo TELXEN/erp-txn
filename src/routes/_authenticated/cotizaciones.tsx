@@ -11,7 +11,7 @@ import { HojaNiveles } from "@/components/cotizaciones/HojaNiveles";
 import { PanelApuCotizacion, ResumenCotizacion } from "@/components/cotizaciones/PanelApuCotizacion";
 import { HojaCotizacion } from "@/components/cotizaciones/HojaCotizacion";
 
-import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
+import { Boton, BotonIcono, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
