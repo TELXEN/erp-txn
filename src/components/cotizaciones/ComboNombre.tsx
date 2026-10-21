@@ -23,7 +23,7 @@ export function ComboNombre({
     () => (clave ? opciones.filter((o) => claveNombre(o).includes(clave)) : opciones).slice(0, 300),
     [opciones, clave],
   );
-  const enCatalogo = !value.trim() || opciones.some((o) => claveNombre(o) === clave);
+  const enCatalogo = !value.trim() || opciones.some((o) => claveNombre(o) === clave) || (abierto && filtradas.length > 0);
   const dosColumnas = listaAlta && filtradas.length > 10;
 
   const elegir = (o: string) => {
