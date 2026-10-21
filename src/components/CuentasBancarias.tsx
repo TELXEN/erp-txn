@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, Pencil, Trash2, X } from "lucide-react";
+import { Check, X } from "lucide-react";
+import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { supabase } from "@/integrations/supabase/client";
 import { Boton, Campo, Input, Panel, Select, Vacio } from "@/components/ui-kit";
 import { fecha, hoy } from "@/lib/format";
@@ -51,6 +52,7 @@ export function CuentasBancarias() {
   const [edit, setEdit] = useState<(typeof vacio & { id: string; activo: boolean }) | null>(null);
   const [error, setError] = useState("");
   const [verInactivas, setVerInactivas] = useState(false);
+  const [sel, setSel] = useState("");
 
   const { data: cuentas = [] } = useQuery({
     queryKey: ["bancos"],
@@ -112,6 +114,11 @@ export function CuentasBancarias() {
     qc.invalidateQueries({ queryKey: ["bancos"] });
   }
 
+  const editarCuenta = (c: CuentaBancaria) => setEdit({ id: c.id, activo: c.activo, nombre: c.nombre, monedas: c.monedas,
+    tipo_cuenta: c.tipo_cuenta, numero_cuenta: c.numero_cuenta, cci: c.cci,
+    saldo_inicial: String(c.saldo_inicial), fecha_saldo_inicial: c.fecha_saldo_inicial });
+
+  const actualSel = (id: string) => visibles.find((c) => c.id === id);
   const visibles = cuentas.filter((c) => verInactivas || c.activo);
   const totalPEN = cuentas.filter((c) => c.activo && c.monedas === "PEN").reduce((s, c) => s + Number(c.saldo_inicial), 0);
   const totalUSD = cuentas.filter((c) => c.activo && c.monedas === "USD").reduce((s, c) => s + Number(c.saldo_inicial), 0);
@@ -176,7 +183,8 @@ export function CuentasBancarias() {
         </Panel>
       )}
 
-      <Panel
+      <div className="flex items-start gap-3">
+      <Panel className="min-w-0 flex-1"
         titulo="Cuentas bancarias de la empresa"
         extra={
           <div className="flex items-center gap-4 font-mono text-[11px] text-muted-foreground">
@@ -203,12 +211,11 @@ export function CuentasBancarias() {
                   <th className="px-3 py-2 text-right font-medium">Saldo inicial</th>
                   <th className="px-3 py-2 font-medium">Al</th>
                   <th className="px-3 py-2 font-medium">Estado</th>
-                  <th className="px-4 py-2"></th>
                 </tr>
               </thead>
               <tbody>
                 {visibles.map((c) => (
-                  <tr key={c.id} className={`border-b border-line/60 last:border-0 ${c.activo ? "" : "opacity-50"}`}>
+                  <tr key={c.id} onClick={() => setSel(c.id)} onDoubleClick={() => editarCuenta(c)} className={`cursor-pointer border-b border-line/60 last:border-0 hover:bg-muted/40 ${sel === c.id ? "bg-primary/10" : ""} ${c.activo ? "" : "opacity-50"}`}>
                     <td className="px-4 py-2.5 font-semibold text-ink">{c.nombre}</td>
                     <td className="px-3 py-2.5">{c.monedas}</td>
                     <td className="px-3 py-2.5 text-muted-foreground">{c.tipo_cuenta}</td>
@@ -222,21 +229,6 @@ export function CuentasBancarias() {
                         {c.activo ? "Activa" : "Inactiva"}
                       </button>
                     </td>
-                    <td className="px-4 py-2">
-                      <div className="flex items-center justify-end gap-1">
-                        <button type="button" title="Editar"
-                          onClick={() => setEdit({ id: c.id, activo: c.activo, nombre: c.nombre, monedas: c.monedas,
-                            tipo_cuenta: c.tipo_cuenta, numero_cuenta: c.numero_cuenta, cci: c.cci,
-                            saldo_inicial: String(c.saldo_inicial), fecha_saldo_inicial: c.fecha_saldo_inicial })}
-                          className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary">
-                          <Pencil size={14} />
-                        </button>
-                        {esGerente && <button type="button" title="Eliminar" onClick={() => eliminar(c.id)}
-                          className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-bad/40 text-bad hover:border-bad">
-                          <Trash2 size={14} />
-                        </button>}
-                      </div>
-                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -244,6 +236,11 @@ export function CuentasBancarias() {
           </div>
         )}
       </Panel>
+      <BarraIconosHoja objeto="cuenta" haySeleccion={!!actualSel(sel)}
+        onAgregar={() => { setEdit(null); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+        onEditar={() => { const c = actualSel(sel); if (c) editarCuenta(c); }}
+        onEliminar={esGerente ? () => { if (sel) void eliminar(sel).then(() => setSel("")); } : undefined} />
+      </div>
     </>
   );
 }

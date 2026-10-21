@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Boton, Campo, Input, Panel, Vacio } from "@/components/ui-kit";
+import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 
 export type RubroIngreso = { id: string; nombre: string; descripcion: string; orden: number; activo: boolean };
 
@@ -23,6 +23,8 @@ export function RubrosIngreso() {
   const [nombre, setNombre] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [error, setError] = useState("");
+  const [sel, setSel] = useState("");
+  const actual = rubros.find((r) => r.id === sel);
   const tabla = () => supabase.from("rubros_ingreso" as never);
   const refrescar = () => qc.invalidateQueries({ queryKey: ["rubros_ingreso"] });
 
@@ -54,7 +56,7 @@ export function RubrosIngreso() {
       <Panel titulo="Nuevo rubro de ingreso" className="mb-4">
         <form onSubmit={crear} className="grid gap-3 p-4 sm:grid-cols-4">
           <Campo etiqueta="Nombre">
-            <Input value={nombre} onChange={(e) => setNombre(e.target.value)} maxLength={80} placeholder="Mantenimiento" />
+            <Input id="rubro-nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} maxLength={80} placeholder="Mantenimiento" />
           </Campo>
           <div className="sm:col-span-2">
             <Campo etiqueta="Descripción">
@@ -65,7 +67,8 @@ export function RubrosIngreso() {
           {error && <p className="font-mono text-xs text-bad sm:col-span-4">{error}</p>}
         </form>
       </Panel>
-      <Panel titulo="Rubros de ingreso">
+      <div className="flex items-start gap-3">
+      <Panel titulo="Rubros de ingreso" className="min-w-0 flex-1">
         {rubros.length === 0 ? (
           <Vacio texto="Aún no hay rubros." />
         ) : (
@@ -75,23 +78,16 @@ export function RubrosIngreso() {
                 <th className="px-5 py-2 font-medium">Rubro</th>
                 <th className="px-3 py-2 font-medium">Descripción</th>
                 <th className="px-3 py-2 font-medium">Estado</th>
-                <th className="px-5 py-2 text-right font-medium">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {rubros.map((r) => (
-                <tr key={r.id} className="border-b border-line/40 last:border-0">
+                <tr key={r.id} onClick={() => setSel(r.id)} className={`cursor-pointer border-b border-line/40 last:border-0 hover:bg-muted/40 ${sel === r.id ? "bg-primary/10" : ""}`}>
                   <td className="px-5 py-2.5 text-ink">{r.nombre}</td>
                   <td className="px-3 py-2.5 text-muted-foreground">{r.descripcion || "—"}</td>
                   <td className="px-3 py-2.5">
                     <button type="button" onClick={() => alternar(r)} className={r.activo ? "text-good" : "text-muted-foreground"}>
                       {r.activo ? "Activo" : "Inactivo"}
-                    </button>
-                  </td>
-                  <td className="px-5 py-2.5 text-right">
-                    <button type="button" onClick={() => eliminar(r)} title="Eliminar"
-                      className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-bad/40 text-bad hover:border-bad">
-                      <Trash2 size={14} />
                     </button>
                   </td>
                 </tr>
@@ -100,6 +96,10 @@ export function RubrosIngreso() {
           </table>
         )}
       </Panel>
+      <BarraIconosHoja objeto="rubro" haySeleccion={!!actual}
+        onAgregar={() => document.querySelector<HTMLInputElement>("#rubro-nombre")?.focus()}
+        onEliminar={() => { if (actual) void eliminar(actual).then(() => setSel("")); }} />
+      </div>
     </>
   );
 }
