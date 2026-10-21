@@ -77,7 +77,7 @@ const CONFIG: Record<Tabla, { titulo: string; campos: CampoDef[]; columnas: [str
 // Pestañas visibles: Partidas e Insumos (los cuatro recursos agrupados en una sola lista).
 type Vista = "partidas_apu" | "insumos";
 const TABS: [Vista, string][] = [["partidas_apu", "Partidas"], ["insumos", "Insumos"]];
-const GRUPOS_INSUMO: Tabla[] = ["materiales", "mano_obra", "equipos_herramientas", "subcontratos"];
+const GRUPOS_INSUMO: TablaInsumo[] = ["materiales", "mano_obra", "equipos_herramientas", "subcontratos"];
 
 const useTabla = (t: Tabla | "partida_detalle") =>
   useQuery({
