@@ -509,6 +509,7 @@ export async function crearRevision(cot: Cotizacion): Promise<string> {
         itemsOrigen.map((i) => ({
           cotizacion_id: nueva.id,
           tipo: i.tipo,
+          nivel: (i as { nivel?: string }).nivel ?? "partida",
           codigo: i.codigo,
           nombre: i.nombre,
           especialidad: i.especialidad,
