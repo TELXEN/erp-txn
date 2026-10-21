@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Boton, Campo, Input, Select, VentanaFlotante } from "@/components/ui-kit";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
 import { useUnidadesMedida } from "@/lib/unidades";
 import { useSubfamilias } from "@/lib/codigo-insumo";
+import { useBancoTabla } from "@/lib/banco-apu";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type FilaInsumo = any;
@@ -58,23 +59,43 @@ export const primeraMayuscula = (t: string) => {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = supabase as unknown as { from: (t: string) => any; rpc: (f: string, a: object) => any };
 
+const ordenEs = new Intl.Collator("es", { sensitivity: "base", numeric: true });
+/** La ventana devuelve esto cuando el usuario canceló la suma a una cantidad existente. */
+export const CANCELADO = "cancelado";
+
 /** Ventana de insumo compartida: agregar, editar y copiar en el catálogo maestro.
- *  Se monta condicionalmente, así que el estado se reinicia en cada apertura. */
+ *  Con `alAgregar` (contexto de receta APU) ofrece dos pestañas: «Seleccionar existente»
+ *  para elegir un insumo del catálogo y agregarlo con su cantidad, o «Crear nuevo»
+ *  para registrarlo y continuar con la cantidad. Se monta condicionalmente, así que
+ *  el estado se reinicia en cada apertura. */
 export function VentanaInsumo({
   modo,
   sel,
   onCerrar,
   onGuardado,
+  agregarA,
+  soloTabla,
+  alAgregar,
 }: {
   modo: ModoInsumo;
   sel?: SelInsumo | null;
   onCerrar: () => void;
   onGuardado?: () => void;
+  /** Presente cuando la ventana agrega a la receta de una partida: muestra el destino. */
+  agregarA?: { titulo: string };
+  /** Restringe la lista del selector a un solo grupo (elegido en el menú +). */
+  soloTabla?: TablaInsumo;
+  /** Inserta el insumo en la receta; devuelve null si agregó, un mensaje si falló. */
+  alAgregar?: (s: SelInsumo, cant: number) => Promise<string | null>;
 }) {
   const qc = useQueryClient();
   const { data: espLista = [] } = useEspecialidadesPartida();
   const { data: subfamilias = [] } = useSubfamilias();
   const { data: unidades = [] } = useUnidadesMedida();
+  const { data: mats = [] } = useBancoTabla("materiales");
+  const { data: mob = [] } = useBancoTabla("mano_obra");
+  const { data: eqs = [] } = useBancoTabla("equipos_herramientas");
+  const { data: subs = [] } = useBancoTabla("subcontratos");
   const espCod = espLista.filter((e) => e.codigo_modular).sort((a, b) => String(a.codigo_modular).localeCompare(String(b.codigo_modular)));
 
   function base(t: TablaInsumo, f?: FilaInsumo) {
@@ -87,15 +108,43 @@ export function VentanaInsumo({
     return b;
   }
 
-  const [tipo, setTipo] = useState<TablaInsumo>(modo === "nuevo" ? "materiales" : sel!.tabla);
+  const dual = Boolean(alAgregar);
+  const [pestana, setPestana] = useState<"sel" | "crear">(dual ? "sel" : "crear");
+  const [tipo, setTipo] = useState<TablaInsumo>(modo === "nuevo" ? soloTabla ?? "materiales" : sel!.tabla);
   const [form, setForm] = useState<FilaInsumo>(() => {
-    if (modo === "nuevo") return base("materiales");
+    if (modo === "nuevo") return base(soloTabla ?? "materiales");
     const b = base(sel!.tabla, sel!.fila);
     if (modo === "copiar") { b.codigo = ""; b.descripcion = `${b.descripcion} (copia)`; }
     if (modo === "editar") b._orig = `${sel!.fila.especialidad_id ?? ""}|${sel!.fila.subfamilia_id ?? ""}|${sel!.fila.codigo ?? ""}`;
     return b;
   });
   const [aviso, setAviso] = useState("");
+  const [q, setQ] = useState("");
+  const [elegido, setElegido] = useState<SelInsumo | null>(null);
+  const [cant, setCant] = useState("1");
+
+  /** Catálogo para el selector: activos, ordenados A→Z y filtrados por la búsqueda. */
+  const tablas = useMemo<Record<TablaInsumo, FilaInsumo[]>>(
+    () => ({ materiales: mats, mano_obra: mob, equipos_herramientas: eqs, subcontratos: subs }),
+    [mats, mob, eqs, subs],
+  );
+  const gruposSel = (soloTabla ? [soloTabla] : (Object.keys(CONFIG) as TablaInsumo[])).filter((t) => (tablas[t] ?? []).some((f) => f.estado !== "inactivo"));
+  const listaDe = (t: TablaInsumo) =>
+    (tablas[t] ?? [])
+      .filter((f) => f.estado !== "inactivo")
+      .filter((f) => `${f.codigo ?? ""} ${f.descripcion ?? ""} ${f.marca ?? ""}`.toLowerCase().includes(q.toLowerCase()))
+      .sort((a, b) => ordenEs.compare(String(a.descripcion ?? ""), String(b.descripcion ?? "")));
+
+  async function usar() {
+    if (!elegido) return;
+    const n = Number(cant);
+    if (!(n > 0)) return setAviso("Ingresa la cantidad / cuadrilla (mayor que 0).");
+    setAviso("");
+    const err = await alAgregar!(elegido, n);
+    if (err === CANCELADO) return;
+    if (err) return setAviso(err);
+    onCerrar();
+  }
 
   async function guardar() {
     if (!form.descripcion?.trim()) return setAviso("Escribe la descripción.");
@@ -114,9 +163,24 @@ export function VentanaInsumo({
       if (ec) return setAviso(ec.message);
       d["codigo"] = cod;
     }
-    const { error } = modo === "editar" && sel ? await db.from(tipo).update(d).eq("id", sel.fila.id) : await db.from(tipo).insert(d);
+    if (modo === "editar" && sel) {
+      const { error } = await db.from(tipo).update(d).eq("id", sel.fila.id);
+      if (error) return setAviso(error.message);
+      qc.invalidateQueries({ queryKey: ["banco_apu"] });
+      onGuardado?.();
+      onCerrar();
+      return;
+    }
+    const { data: nueva, error } = await db.from(tipo).insert(d).select("*").single();
     if (error) return setAviso(error.message);
     qc.invalidateQueries({ queryKey: ["banco_apu"] });
+    if (alAgregar) {
+      onGuardado?.();
+      setElegido({ tabla: tipo, fila: nueva });
+      setPestana("sel");
+      setAviso("");
+      return;
+    }
     onGuardado?.();
     onCerrar();
   }
@@ -125,48 +189,102 @@ export function VentanaInsumo({
   const cur = String(form.unidad ?? "");
   const unds = cur && !undOpc.some((u) => u.simbolo === cur) ? [{ id: "x", simbolo: cur, descripcion: "fuera del catálogo" }, ...undOpc] : undOpc;
 
+  const pestanaCls = (p: "sel" | "crear") =>
+    `-mb-px border-b-2 px-3 py-1.5 text-xs font-medium ${pestana === p ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`;
+
+  const formulario = (
+    <form className="grid gap-3 p-5 sm:grid-cols-2" onSubmit={(e) => { e.preventDefault(); guardar(); }}>
+      <Campo etiqueta="Tipo de insumo">
+        <Select value={tipo} disabled={modo === "editar"} onChange={(e) => { const t = e.target.value as TablaInsumo; setTipo(t); setForm({ ...base(t), descripcion: form.descripcion, especialidad_id: form.especialidad_id, subfamilia_id: form.subfamilia_id }); }}>
+          {(Object.keys(CONFIG) as TablaInsumo[]).map((t) => <option key={t} value={t}>{CONFIG[t].titulo}</option>)}
+        </Select>
+      </Campo>
+      <Campo etiqueta="Especialidad (código)">
+        <Select value={form.especialidad_id ?? ""} onChange={(e) => setForm({ ...form, especialidad_id: e.target.value, subfamilia_id: "" })}>
+          <option value="">— Elegir —</option>
+          {espCod.map((e) => <option key={e.id} value={e.id}>{e.codigo_modular} · {e.nombre}</option>)}
+        </Select>
+      </Campo>
+      {tipo === "materiales" && <Campo etiqueta="Subfamilia">
+        <Select value={form.subfamilia_id ?? ""} onChange={(e) => setForm({ ...form, subfamilia_id: e.target.value })} disabled={!form.especialidad_id}>
+          <option value="">— Elegir —</option>
+          {subfamilias.filter((s) => s.especialidad_id === form.especialidad_id && s.activo).map((s) => <option key={s.id} value={s.id}>{s.codigo} · {s.nombre}{s.bloque ? ` (${s.bloque})` : ""}</option>)}
+        </Select>
+      </Campo>}
+      <p className="text-[11px] text-muted-foreground sm:col-span-2">Código: <span className="font-mono">{form.codigo && modo === "editar" ? form.codigo : "se genera al guardar"}</span> (tipo + especialidad + {tipo === "materiales" ? "subfamilia" : "00"} + correlativo).</p>
+      {CONFIG[tipo].campos.filter((c) => c.k !== "codigo" && (!c.soloSi || c.soloSi(form))).map((c) => (
+        <Campo key={c.k} etiqueta={c.t}>
+          {c.tipo === "sel" ? (
+            <Select value={form[c.k] ?? ""} onChange={(e) => setForm({ ...form, [c.k]: e.target.value })}>
+              {c.k === "unidad"
+                ? unds.map((u) => <option key={u.id} value={u.simbolo}>{u.simbolo} · {u.descripcion}</option>)
+                : (c.opciones ?? []).map((o) => <option key={o}>{o}</option>)}
+            </Select>
+          ) : (
+            <Input type={c.tipo === "num" ? "number" : "text"} step="any" value={form[c.k] ?? ""} autoFocus={c.k === "descripcion"}
+              onChange={(e) => setForm({ ...form, [c.k]: e.target.value })} />
+          )}
+        </Campo>
+      ))}
+      {aviso && <p className="text-xs text-destructive sm:col-span-2">{aviso}</p>}
+      <div className="flex justify-end gap-2 sm:col-span-2">
+        <Boton type="button" variante="linea" onClick={onCerrar}>Cerrar</Boton>
+        <Boton type="submit">{dual ? "Guardar y continuar" : "Guardar"}</Boton>
+      </div>
+    </form>
+  );
+
+  const selector = elegido ? (
+    <form className="space-y-3 p-5" onSubmit={(e) => { e.preventDefault(); void usar(); }}>
+      <div className="flex items-center justify-between rounded-md border border-line px-3 py-2 text-sm">
+        <span className="min-w-0 truncate">{elegido.fila.codigo ?? ""} · {elegido.fila.descripcion}{elegido.fila.marca ? ` · ${elegido.fila.marca}` : ""}</span>
+        <Boton type="button" variante="linea" className="py-1" onClick={() => setElegido(null)}>Cambiar</Boton>
+      </div>
+      <Campo etiqueta="Cantidad / Cuadrilla">
+        <Input autoFocus type="number" step="any" value={cant} onChange={(e) => setCant(e.target.value)} />
+      </Campo>
+      {aviso && <p className="text-xs text-destructive">{aviso}</p>}
+      <div className="flex justify-end gap-2">
+        <Boton type="button" variante="linea" onClick={onCerrar}>Cerrar</Boton>
+        <Boton type="submit">Agregar</Boton>
+      </div>
+    </form>
+  ) : (
+    <div className="p-5">
+      <Input autoFocus placeholder="Busca por código, descripción o marca…" value={q} onChange={(e) => setQ(e.target.value)} />
+      <div className="mt-2 max-h-[60vh] overflow-y-auto rounded-md border border-line">
+        {gruposSel.length === 0 && <p className="px-3 py-4 text-xs text-muted-foreground">Sin insumos activos en el catálogo.</p>}
+        {gruposSel.map((t) => (
+          <div key={t}>
+            <p className="sticky top-0 z-10 bg-muted px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{CONFIG[t].titulo}</p>
+            {listaDe(t).map((f) => (
+              <button key={f.id} type="button" onClick={() => setElegido({ tabla: t, fila: f })}
+                className="flex w-full items-center gap-2 border-b border-line/60 px-3 py-1.5 text-left text-xs hover:bg-primary/10">
+                <span className="w-24 shrink-0 font-mono text-muted-foreground">{f.codigo ?? ""}</span>
+                <span className="min-w-0 flex-1 truncate">{f.descripcion ?? ""}</span>
+                {f.marca && <span className="shrink-0 text-muted-foreground">{f.marca}</span>}
+                <span className="shrink-0 text-muted-foreground">{f.unidad ?? ""}</span>
+              </button>
+            ))}
+          </div>
+        ))}
+        {gruposSel.length > 0 && !gruposSel.some((t) => listaDe(t).length) && <p className="px-3 py-4 text-xs text-muted-foreground">Sin coincidencias.</p>}
+      </div>
+      {aviso && <p className="mt-2 text-xs text-destructive">{aviso}</p>}
+    </div>
+  );
+
   return (
     <VentanaFlotante abierta onCerrar={onCerrar} ancho="max-w-2xl"
-      titulo={modo === "editar" ? "Editar insumo" : modo === "copiar" ? "Copiar insumo" : "Nuevo insumo"}>
-      <form className="grid gap-3 p-5 sm:grid-cols-2" onSubmit={(e) => { e.preventDefault(); guardar(); }}>
-        <Campo etiqueta="Tipo de insumo">
-          <Select value={tipo} disabled={modo === "editar"} onChange={(e) => { const t = e.target.value as TablaInsumo; setTipo(t); setForm({ ...base(t), descripcion: form.descripcion, especialidad_id: form.especialidad_id, subfamilia_id: form.subfamilia_id }); }}>
-            {(Object.keys(CONFIG) as TablaInsumo[]).map((t) => <option key={t} value={t}>{CONFIG[t].titulo}</option>)}
-          </Select>
-        </Campo>
-        <Campo etiqueta="Especialidad (código)">
-          <Select value={form.especialidad_id ?? ""} onChange={(e) => setForm({ ...form, especialidad_id: e.target.value, subfamilia_id: "" })}>
-            <option value="">— Elegir —</option>
-            {espCod.map((e) => <option key={e.id} value={e.id}>{e.codigo_modular} · {e.nombre}</option>)}
-          </Select>
-        </Campo>
-        {tipo === "materiales" && <Campo etiqueta="Subfamilia">
-          <Select value={form.subfamilia_id ?? ""} onChange={(e) => setForm({ ...form, subfamilia_id: e.target.value })} disabled={!form.especialidad_id}>
-            <option value="">— Elegir —</option>
-            {subfamilias.filter((s) => s.especialidad_id === form.especialidad_id && s.activo).map((s) => <option key={s.id} value={s.id}>{s.codigo} · {s.nombre}{s.bloque ? ` (${s.bloque})` : ""}</option>)}
-          </Select>
-        </Campo>}
-        <p className="text-[11px] text-muted-foreground sm:col-span-2">Código: <span className="font-mono">{form.codigo && modo === "editar" ? form.codigo : "se genera al guardar"}</span> (tipo + especialidad + {tipo === "materiales" ? "subfamilia" : "00"} + correlativo).</p>
-        {CONFIG[tipo].campos.filter((c) => c.k !== "codigo" && (!c.soloSi || c.soloSi(form))).map((c) => (
-          <Campo key={c.k} etiqueta={c.t}>
-            {c.tipo === "sel" ? (
-              <Select value={form[c.k] ?? ""} onChange={(e) => setForm({ ...form, [c.k]: e.target.value })}>
-                {c.k === "unidad"
-                  ? unds.map((u) => <option key={u.id} value={u.simbolo}>{u.simbolo} · {u.descripcion}</option>)
-                  : (c.opciones ?? []).map((o) => <option key={o}>{o}</option>)}
-              </Select>
-            ) : (
-              <Input type={c.tipo === "num" ? "number" : "text"} step="any" value={form[c.k] ?? ""} autoFocus={c.k === "descripcion"}
-                onChange={(e) => setForm({ ...form, [c.k]: e.target.value })} />
-            )}
-          </Campo>
-        ))}
-        {aviso && <p className="text-xs text-destructive sm:col-span-2">{aviso}</p>}
-        <div className="flex justify-end gap-2 sm:col-span-2">
-          <Boton type="button" variante="linea" onClick={onCerrar}>Cerrar</Boton>
-          <Boton type="submit">Guardar</Boton>
+      titulo={dual ? "Agregar insumo" : modo === "editar" ? "Editar insumo" : modo === "copiar" ? "Copiar insumo" : "Nuevo insumo"}
+      subtitulo={agregarA?.titulo}>
+      {dual && (
+        <div className="flex gap-1 border-b border-line px-5">
+          <button type="button" className={pestanaCls("sel")} onClick={() => { setPestana("sel"); setAviso(""); }}>Seleccionar existente</button>
+          <button type="button" className={pestanaCls("crear")} onClick={() => { setPestana("crear"); setAviso(""); }}>Crear nuevo</button>
         </div>
-      </form>
+      )}
+      {(!dual || pestana === "crear") ? formulario : selector}
     </VentanaFlotante>
   );
 }
