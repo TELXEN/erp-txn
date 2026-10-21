@@ -1,5 +1,5 @@
 import { createPortal } from "react-dom";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowDown, ArrowUp, Copy, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -32,6 +32,8 @@ type Item = CotizacionItem & { nivel?: string; partida_apu_id?: string | null };
 type Form = { nivel: NivelCotizacion; nombre: string; unidad: string; metrado: string; precio: string; apuId: string | null };
 
 /** Hoja de cotización por niveles: Especialidad > Título > Subtítulo (opcional) > Partida. */
+export type AccionDocumento = { etiqueta: string; icono: ReactNode; onClick: () => void; oculto?: boolean };
+
 export function HojaNiveles({
   cotizacionId,
   items,
@@ -42,6 +44,7 @@ export function HojaNiveles({
   onSeleccionar,
   barraEn,
   onAgregarInsumo,
+  accionesDocumento,
 }: {
   cotizacionId: string;
   items: Item[];
@@ -53,7 +56,10 @@ export function HojaNiveles({
   barraEn?: HTMLElement | null;
   /** Abre la ventana de insumo del panel APU (crear nuevo o seleccionar del catálogo). */
   onAgregarInsumo?: () => void;
+  /** Acciones poco usadas sobre toda la cotización (bloque «Documento» de la barra). */
+  accionesDocumento?: AccionDocumento[];
 }) {
+  const docs = (accionesDocumento ?? []).filter((a) => !a.oculto);
   const qc = useQueryClient();
   const { data: especialidades = [] } = useEspecialidadesPartida();
   const { data: titulos = [] } = useGruposCotizacion();
@@ -268,6 +274,14 @@ export function HojaNiveles({
         <BotonIcono etiqueta="Bajar" title="Bajar con su contenido" disabled={!bajar || ocupado} onClick={() => void mover("bajar")}><ArrowDown size={15} /></BotonIcono>
         <div className="border-t border-line" />
         <BotonIcono etiqueta="Eliminar" title="Eliminar con su contenido" tono="peligro" disabled={!seleccionado} onClick={() => void eliminar()}><Trash2 size={15} /></BotonIcono>
+        {docs.length > 0 && (
+          <>
+            <div className="border-t-2 border-line" title="Documento" />
+            {docs.map((a) => (
+              <BotonIcono key={a.etiqueta} etiqueta={a.etiqueta} onClick={a.onClick}>{a.icono}</BotonIcono>
+            ))}
+          </>
+        )}
       </div>
   );
 
@@ -336,6 +350,15 @@ export function HojaNiveles({
         <ContextMenuItem disabled={!bajar || ocupado} onSelect={() => void mover("bajar")}><ArrowDown size={13} className="mr-2" /> Mover abajo</ContextMenuItem>
         <ContextMenuSeparator />
         <ContextMenuItem disabled={!seleccionado} className="text-bad focus:text-bad" onSelect={() => void eliminar()}><Trash2 size={13} className="mr-2" /> Eliminar</ContextMenuItem>
+        {docs.length > 0 && (
+          <>
+            <ContextMenuSeparator />
+            <div className="px-2 py-1 font-mono text-[10px] uppercase text-muted-foreground">Documento</div>
+            {docs.map((a) => (
+              <ContextMenuItem key={a.etiqueta} onSelect={() => a.onClick()}><span className="mr-2 inline-flex [&>svg]:size-[13px]">{a.icono}</span> {a.etiqueta}</ContextMenuItem>
+            ))}
+          </>
+        )}
       </ContextMenuContent>
       </ContextMenu>
 
