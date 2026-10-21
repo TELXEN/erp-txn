@@ -578,9 +578,6 @@ function VistaCotizacion() {
                     <div className="flex justify-end" style={{ marginTop: 14 }}>
                       <div style={{ width: 248, fontSize: "8.5pt" }}>
 
-                        {porGrupo.length > 1 && porGrupo.map(([g, v]) => (
-                          <div key={g} className="flex justify-between" style={{ padding: "3px 0", color: C.slate500, fontSize: "8pt" }}><span>{g.charAt(0) + g.slice(1).toLowerCase()}</span><span>{S(sim, v)}</span></div>
-                        ))}
                         <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700 }}><span>Costo Directo</span><span>{S(sim, calculo.costoDirecto)}</span></div>
                         {calculo.gastosGenerales > 0 && <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700 }}><span style={{ display: "flex" }}><span style={{ display: "inline-block", width: 96 }}>Gastos Generales</span><span style={{ display: "inline-block", width: 44, textAlign: "right" }}>({Number(cot.pct_gastos_generales)}%)</span></span><span>{S(sim, calculo.gastosGenerales)}</span></div>}
                         {calculo.utilidad > 0 && <div className="flex justify-between" style={{ padding: "5px 0", color: C.slate700 }}><span style={{ display: "flex" }}><span style={{ display: "inline-block", width: 96 }}>Utilidad</span><span style={{ display: "inline-block", width: 44, textAlign: "right" }}>({Number(cot.pct_utilidad)}%)</span></span><span>{S(sim, calculo.utilidad)}</span></div>}
