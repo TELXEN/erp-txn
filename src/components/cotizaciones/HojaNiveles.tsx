@@ -443,7 +443,7 @@ export function HojaNiveles({
                   <Input type="number" step="0.01" min="0" value={f.metrado} onChange={(e) => setF({ metrado: e.target.value })} />
                 </Campo>
                 <Campo etiqueta={`P. unitario (${simbolo})`}>
-                  <Input type="number" step="0.01" min="0" value={f.precio} onChange={(e) => setF({ precio: e.target.value })} />
+                  <Input type="number" step="0.0001" min="0" value={f.precio} onChange={(e) => setF({ precio: e.target.value })} />
                 </Campo>
               </>
             )}
