@@ -21,5 +21,6 @@ Hoy cada fila nueva se inserta justo debajo de la fila seleccionada. Si estás e
 
 ## Mover especialidades, títulos y subtítulos con todo su grupo
 - Al subir o bajar una especialidad, un título o un subtítulo, se mueven juntos el encabezado y todo lo que contiene (títulos, subtítulos y partidas) en un solo bloque. Ninguna partida se queda atrás ni pasa a otro grupo.
-- Un encabezado intercambia su lugar con el grupo completo vecino del mismo nivel. Si cruza a otro grupo (por ejemplo, un título que pasa a la especialidad anterior), entra al final de ese grupo con todo su contenido.
-- Técnico: revisar `moverBloqueNivel` en `src/lib/niveles-cotizacion.ts` cuando cruza un encabezado. Al bajar, debe saltar el grupo destino completo y no solo su primera fila; al subir, debe ubicarse al final del grupo anterior. Agregar pruebas para especialidad, título y subtítulo con varias partidas, que comprueben que el contenido de cada grupo es el mismo antes y después de moverlo.
+- Los encabezados (especialidad, título, subtítulo) solo cambian de lugar con su vecino del mismo nivel y dentro del mismo grupo superior. No cruzan a otro grupo: en el primer o el último lugar, la flecha correspondiente queda desactivada.
+- Las partidas se mueven libremente arriba o abajo, fila por fila, y pueden pasar al grupo vecino (por ejemplo, 2.1 a 1.3).
+- Técnico: en `moverBloqueNivel` (`src/lib/niveles-cotizacion.ts`), permitir el cruce de encabezado solo cuando la fila es una partida. Para especialidad, título y subtítulo, devolver `null` si no hay un hermano vecino; así las flechas de la barra y del menú se desactivan. Agregar pruebas: un título con varias partidas se mueve completo y no cruza a otra especialidad, y una partida sí cruza al grupo vecino.
