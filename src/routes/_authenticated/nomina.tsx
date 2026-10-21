@@ -521,8 +521,8 @@ function Nomina() {
       </Panel><BarraIconosHoja objeto="registro" haySeleccion={!!boletas.find((x) => x.id === sel)} extras={boletas.filter((x) => x.id === sel).map((b) => <div key={b.id}><div>
                           {pago?.boleta_id === b.id ? (
                             <>
-                              <BotonIcono etiqueta="Confirmar" onClick={pagarTodo}>Confirmar</BotonIcono>
-                              <BotonIcono etiqueta="Cancelar" onClick={() => { setPago(null); setError(""); }}>Cancelar</BotonIcono>
+                              <BotonIcono etiqueta="Confirmar" onClick={pagarTodo}><Check size={15} /></BotonIcono>
+                              <BotonIcono etiqueta="Cancelar" onClick={() => { setPago(null); setError(""); }}><span className="text-base">×</span></BotonIcono>
                             </>
                           ) : (
                             <>

@@ -417,8 +417,8 @@ function Beneficios() {
       </Panel><BarraIconosHoja objeto="registro" haySeleccion={!!registros.find((x) => x.id === sel)} extras={registros.filter((x) => x.id === sel).map((r) => <div key={r.id}><div>
                           {pago?.id === r.id ? (
                             <>
-                              <BotonIcono etiqueta="Confirmar" onClick={confirmarPago}>Confirmar</BotonIcono>
-                              <BotonIcono etiqueta="Cancelar" onClick={() => setPago(null)}>Cancelar</BotonIcono>
+                              <BotonIcono etiqueta="Confirmar" onClick={confirmarPago}><Check size={15} /></BotonIcono>
+                              <BotonIcono etiqueta="Cancelar" onClick={() => setPago(null)}><span className="text-base">×</span></BotonIcono>
                             </>
                           ) : (
                             <>

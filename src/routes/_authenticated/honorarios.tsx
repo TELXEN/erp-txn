@@ -300,7 +300,17 @@ function Honorarios() {
               </thead>
               <tbody>
                 {recibosFiltrados.map((r) => (
-                  <tr key={r.id} onClick={() => setSel(r.id)} className={`cursor-pointer border-b border-line/60 align-top last:border-0 hover:bg-muted/40 ${sel === r.id ? "bg-primary/10" : ""}`}>
+                  <tr key={r.id} onClick={() => setSel(r.id)} onDoubleClick={() => {
+                              setError("");
+                              setEditor({ clave: r.id, form: {
+                                trabajador_id: r.trabajador_id, proyecto_id: r.proyecto_id ?? "", numero_recibo: r.numero_recibo ?? "",
+                                fecha_emision: r.fecha_emision, concepto: r.concepto, mes: Number(r.mes), anio: Number(r.anio),
+                                dias_laborados: Number(r.dias_laborados), dias_viaje: Number(r.dias_viaje), horas_extras: Number(r.horas_extras),
+                                otros_remuneraciones: Number(r.otros_remuneraciones), induccion: Number(r.induccion ?? 0), costo_unitario: Number(r.costo_unitario), saldo_mes_anterior: Number(r.saldo_mes_anterior),
+                                adelantos: Number(r.adelantos), devolucion_gastos: Number(r.devolucion_gastos), pagos_a_cuenta_planilla: Number(r.pagos_a_cuenta_planilla),
+                                fondo_pensiones: Number(r.fondo_pensiones), descuento_herramientas: Number(r.descuento_herramientas), lugar_emision: r.lugar_emision, retencion: Number(r.retencion),
+                              } });
+                            }} className={`cursor-pointer border-b border-line/60 align-top last:border-0 hover:bg-muted/40 ${sel === r.id ? "bg-primary/10" : ""}`}>
                     <td className="px-4 py-2">{fecha(r.fecha_emision)}</td>
                     <td className="px-3 py-2 font-semibold text-ink"><Resaltar texto={nombreDe(r.trabajador_id)} termino={busqueda}/><span className="block text-[10px] font-normal text-muted-foreground"><Resaltar texto={r.concepto} termino={busqueda}/></span></td>
                     <td className="px-3 py-2">{r.numero_recibo ? <Resaltar texto={r.numero_recibo} termino={busqueda}/> : <Etiqueta tono="warn">Pendiente de N°</Etiqueta>}</td>
@@ -335,8 +345,8 @@ function Honorarios() {
       </Panel><BarraIconosHoja objeto="registro" haySeleccion={!!recibosFiltrados.find((x) => x.id === sel)} extras={recibosFiltrados.filter((x) => x.id === sel).map((r) => <div key={r.id}><div>
                         {pago?.id === r.id ? (
                           <>
-                            <BotonIcono etiqueta="Confirmar" onClick={confirmarPago}>Confirmar</BotonIcono>
-                            <BotonIcono etiqueta="Cancelar" onClick={() => setPago(null)}>Cancelar</BotonIcono>
+                            <BotonIcono etiqueta="Confirmar" onClick={confirmarPago}><Check size={15} /></BotonIcono>
+                            <BotonIcono etiqueta="Cancelar" onClick={() => setPago(null)}><span className="text-base">×</span></BotonIcono>
                           </>
                         ) : (
                           <>

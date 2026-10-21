@@ -1,3 +1,5 @@
+import { BarraIconosHoja } from "@/components/BarraIconosHoja";
+import { BotonIcono } from "@/components/ui-kit";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -99,6 +101,7 @@ function aplicarSello(mapa: Record<string, Marca>, f: string, sello: TipoDia, ho
 }
 
 function TareoPage() {
+  const [sel, setSel] = useState("");
   const { rol } = useAuth();
   const qc = useQueryClient();
   const { data: proyectos = [] } = useProyectos();
@@ -435,9 +438,8 @@ function TareoPage() {
         </form>
       </Panel>
 
-      <Panel
+      <div className="flex items-start gap-3"><Panel className="min-w-0 flex-1"
         titulo="Consolidado mensual"
-        className="mb-4"
         extra={
           <div className="flex flex-wrap items-center gap-3">
             <span className="font-mono text-[11px] text-muted-foreground">
@@ -471,7 +473,7 @@ function TareoPage() {
               </thead>
               <tbody>
                 {consolidado.map((c) => (
-                  <tr key={c.id} className="border-b border-line/60 last:border-0">
+                  <tr key={c.id} onClick={() => setSel(c.id)} onDoubleClick={() => { iniciarEdicion(c.id); }} className={`cursor-pointer border-b border-line/60 last:border-0 hover:bg-muted/40 ${sel === c.id ? "bg-primary/10" : ""}`}>
                     <td className="px-5 py-2.5 font-semibold text-ink">{c.nombre}</td>
                     <td className="px-3 py-2.5">
                       <span className={c.clasificacion === "Indirecto" ? "text-primary" : "text-muted-foreground"}>
@@ -485,27 +487,7 @@ function TareoPage() {
                     <td className="px-3 py-2.5 text-right">{c.horas}</td>
                     <td className="px-3 py-2.5 text-right font-semibold text-ink">{c.jornales}</td>
                     <td className="px-5 py-2.5">
-                      <div className="flex items-center justify-end gap-1.5">
-                        <span className="mr-2">{soles(c.costo)}</span>
-                        <button
-                          type="button"
-                          onClick={() => verCalendario(c.id)}
-                          title="Ver días trabajados"
-                          aria-label={`Ver días trabajados de ${c.nombre}`}
-                          className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground transition-colors hover:border-primary hover:text-primary"
-                        >
-                          <Eye size={14} />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => iniciarEdicion(c.id)}
-                          title="Editar días trabajados"
-                          aria-label={`Editar días trabajados de ${c.nombre}`}
-                          className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground transition-colors hover:border-primary hover:text-primary"
-                        >
-                          <Pencil size={13} />
-                        </button>
-                      </div>
+                      {soles(c.costo)}
                     </td>
                   </tr>
                 ))}
@@ -513,7 +495,7 @@ function TareoPage() {
             </table>
           </div>
         )}
-      </Panel>
+      </Panel><BarraIconosHoja objeto="asistencia" haySeleccion={consolidado.some((c) => c.id === sel)} onEditar={() => { if (consolidado.some((c) => c.id === sel)) iniciarEdicion(sel); }} extras={<BotonIcono etiqueta="Ver días trabajados" disabled={!consolidado.some((c) => c.id === sel)} onClick={() => verCalendario(sel)}><Eye size={15} /></BotonIcono>} /></div>
 
       {trabajadorVisible && (
         <Panel
@@ -586,7 +568,7 @@ function TareoPage() {
         </Panel>
       )}
 
-      <Panel titulo="Últimos registros">
+      <div className="flex items-start gap-3"><Panel className="min-w-0 flex-1" titulo="Últimos registros">
         {tareos.length === 0 ? (
           <Vacio texto="Aún no hay tareos." />
         ) : (
@@ -599,7 +581,7 @@ function TareoPage() {
                 <th className="px-3 py-2 font-medium">Tipo</th>
                 <th className="px-3 py-2 text-right font-medium">Jornal eq.</th>
                 <th className="px-3 py-2 text-right font-medium">Costo</th>
-                <th className="px-5 py-2"></th>
+                
               </tr>
             </thead>
             <tbody>
@@ -607,7 +589,7 @@ function TareoPage() {
                 const tipo = tipoDeTareo(t);
                 const info = infoTipo(tipo);
                 return (
-                  <tr key={t.id} className="border-b border-line/60 last:border-0">
+                  <tr key={t.id} onClick={() => setSel(t.id)} className={`cursor-pointer border-b border-line/60 last:border-0 hover:bg-muted/40 ${sel === t.id ? "bg-primary/10" : ""}`}>
                     <td className="px-5 py-2.5">{fmtFecha(t.fecha)}</td>
                     <td className="px-3 py-2.5 font-semibold text-ink">{nombreTrab(t.trabajador_id)}</td>
                     <td className="px-3 py-2.5 text-muted-foreground">{nombreProy(t.proyecto_id)}</td>
@@ -618,16 +600,14 @@ function TareoPage() {
                     </td>
                     <td className="px-3 py-2.5 text-right">{Number(t.asistencia)}</td>
                     <td className="px-3 py-2.5 text-right">{soles(Number(t.costo_soles))}</td>
-                    <td className="px-5 py-2.5 text-right">
-                      <button onClick={() => eliminar(t.id)} className="font-mono text-[11px] text-bad">Eliminar</button>
-                    </td>
+                    
                   </tr>
                 );
               })}
             </tbody>
           </table>
         )}
-      </Panel>
+      </Panel><BarraIconosHoja objeto="tareo" haySeleccion={tareos.some((t) => t.id === sel)} onEliminar={() => { if (tareos.some((t) => t.id === sel)) void eliminar(sel); }} /></div>
     </>
   );
 }
