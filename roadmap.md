@@ -64,3 +64,8 @@
 - [x] Quitar la columna Código de la lista de partidas (ventana izquierda del APU); el buscador sigue encontrando por código.
 - [x] Cotizaciones: «Agregar categoría» abre selector vinculado al catálogo maestro (categorias_partida), con código y marca de las ya usadas
 - [x] Quitar Subpartidas del APU: la receta del banco solo usa mano de obra, materiales, equipos/herramientas y subcontratos.
+
+## Porcentajes
+- [x] Alinear GG, utilidad e IGV en la misma vertical y evitar que las etiquetas se traslapen con los campos.
+- [x] Ajustar los porcentajes a dos decimales: guardado (trigger en cotizaciones, proyectos y plantillas), hoja, vista previa A4, PDF, Excel y datos de registro de obra; TXN26-C006 y TXN26-C008 corregidos.
+- [x] Sincronizar el % de gastos generales al cerrar la ventana (leía el costo directo en 0 y no guardaba; TXN26-C008 pasó de 0 % a 21.17 %).
