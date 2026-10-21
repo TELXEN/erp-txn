@@ -179,7 +179,7 @@ export function GastosGeneralesCotizacion({ abierta, onCerrar, cotizacionId, cos
                     </td>
                     <td className="px-1">
                       <input key={f.id + f.descripcion} defaultValue={f.descripcion} disabled={soloLectura}
-                        className={cn(celda, "tabular-nums-none", f.nivel === "item" && "pl-3")}
+                        className={cn(celda, f.nivel === "item" && "pl-3")}
                         onBlur={(e) => { const v = e.target.value.trim(); if (v && v !== f.descripcion) void editar(f.id, { descripcion: f.nivel === "bloque" ? v.toUpperCase() : v }); }} />
                     </td>
                     {enc ? (
