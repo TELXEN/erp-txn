@@ -159,7 +159,7 @@ export function GastosGeneralesCotizacion({ abierta, onCerrar, cotizacionId, cos
           <Printer size={13} /> Hoja impresa A4
         </Link>
       </div>
-      {total <= 0 && <p className="mt-2 text-xs text-muted-foreground">Mientras el total sea cero, la cotización conserva su % manual ({pctActual} %).</p>}
+      {total <= 0 && <p className="mt-2 text-xs text-muted-foreground">Mientras el total sea cero, la cotización conserva su % manual ({Number(pctActual).toFixed(2)} %).</p>}
       {soloLectura && <p className="mt-2 text-xs text-muted-foreground">Revisión histórica: solo lectura.</p>}
       {error && <p className="mt-2 text-xs text-bad">{error}</p>}
 

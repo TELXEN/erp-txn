@@ -18,9 +18,9 @@ export const parcialGG = (f: Pick<FilaGG, "cantidad" | "tiempo" | "precio_unitar
 export const totalGG = (filas: FilaGG[]) =>
   Math.round(filas.filter((f) => f.nivel === "item").reduce((s, f) => s + parcialGG(f), 0) * 100) / 100;
 
-/** % GG = total GG ÷ costo directo × 100 (4 decimales); 0 si no hay costo directo. */
+/** % GG = total GG ÷ costo directo × 100 (2 decimales); 0 si no hay costo directo. */
 export const pctGG = (total: number, costoDirecto: number) =>
-  costoDirecto > 0 ? Math.round((total / costoDirecto) * 100 * 10000) / 10000 : 0;
+  costoDirecto > 0 ? Math.round((total / costoDirecto) * 100 * 100) / 100 : 0;
 
 const RANGO: Record<NivelGG, number> = { bloque: 0, grupo: 1, item: 2 };
 

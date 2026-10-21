@@ -8,6 +8,10 @@ describe("gastos generales de cotización", () => {
   it("% GG = total GG / costo directo × 100", () => {
     expect(pctGG(1500, 10000)).toBe(15);
   });
+  it("% GG se ajusta a dos decimales", () => {
+    expect(pctGG(30000, 141680)).toBe(21.17);
+    expect(pctGG(1500, 10000)).toBe(15);
+  });
   it("sin costo directo el % es 0", () => {
     expect(pctGG(1500, 0)).toBe(0);
   });

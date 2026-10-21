@@ -28,7 +28,7 @@
 - Detraction collections store the BN account in ventas.banco_detraccion_id; treasury splits the sale between both banks — no duplicate sale rows.
 - Paid Decolecta data is cached and shared ERP-wide: exchange rate via useTipoCambioHoy (tipo_cambio_diario, per Lima date), AFP commissions via useComisionesAfp (afp_comisiones_mensuales, per month) — one paid call per period.
 - Honoraria (recibos_honorarios) and payroll (DetallePagoNomina) each use one WYSIWYG preview/print sheet; Cerrada gates payroll payments — aligned outputs.
-- BEFORE triggers round amounts (2 dp) and quantities/unit prices (4 dp) on gastos_directos, gastos_generales and ventas — one rounding rule for every writer.
+- BEFORE triggers round amounts (2 dp), qtys/prices (4 dp) and percentages (2 dp) on gastos_directos, gastos_generales, ventas, cotizaciones, proyectos, plantillas.
 - Real project cost comes only from useCostoObras (src/lib/costo-obra.ts) — every panel shows the same figure; GG charts only regroup by scope.
 - UI buttons merge classes with cn() so a passed className beats base utilities; table row actions use BotonIcono (tones neutro/primario/peligro).
 - Banco APU: five resource tables + partida_detalle (one FK per row); quitar_recurso_apu deactivates used resources; specs on partidas_apu.especificaciones, metrado on partidas_apu_metrado — preserves history.

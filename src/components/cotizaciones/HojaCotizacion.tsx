@@ -316,7 +316,7 @@ export function HojaCotizacion({
                 <label style={{ padding: "8px 9px", border: `1px solid ${C.line}`, borderRadius: 5, background: C.soft }}>
                   <EtiquetaCampo>IGV</EtiquetaCampo>
                   <select value={conIgv ? "si" : "no"} onChange={(e) => void guardar({ aplica_igv: e.target.value === "si" })} style={{ ...edSel, padding: 0, borderBottom: "none", fontWeight: 700 }}>
-                    <option value="si">Con IGV (18%)</option>
+                    <option value="si">Con IGV (18.00%)</option>
                     <option value="no">Sin IGV</option>
                   </select>
                 </label>
