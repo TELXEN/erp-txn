@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { BotonIcono, Boton, Campo, Input, Select, VentanaFlotante } from "@/components/ui-kit";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { VentanaInsumo } from "@/components/InsumoVentana";
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { AutoMaestra } from "@/components/CotizacionHoja";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
 import { precioMaestroEnMoneda, useGruposCotizacion, type CotizacionItem, type PartidaMaestra } from "@/lib/cotizaciones";
