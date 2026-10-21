@@ -184,6 +184,10 @@ function VistaApu() {
                         <tbody>
                           {GRUPOS.map(([tipo, titulo]) => {
                             const filas = calc.filas.filter((f) => f.tipo === tipo);
+                            // Solo se muestra un grupo si tiene al menos un insumo;
+                            // EQUIPOS Y HERRAMIENTAS también aparece cuando su fila
+                            // automática de herramientas manuales (% de MO) aplica.
+                            if (!filas.length && !(tipo === "EQ" && totalMo > 0)) return [];
                             const subtotal = sumar2(filas.map((f) => f.parcial)) + (tipo === "EQ" ? htTotal : 0);
                             return [
                               <tr key={tipo} className="border-b border-line bg-muted/60">
