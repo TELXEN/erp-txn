@@ -83,6 +83,7 @@ export function HojaCotizacion({
   ventanaEncabezado?: { abierta: boolean; onCerrar: () => void };
 }) {
   const [condicionesAbiertas, setCondicionesAbiertas] = useState(false);
+  const [consultaRuc, setConsultaRuc] = useState("");
   const qc = useQueryClient();
   const { data: empresa } = useEmpresa();
   const { data: tcActual = 0 } = useTipoCambioActual();
@@ -190,11 +191,26 @@ export function HojaCotizacion({
                       void guardar({ cliente_id: c.id, cliente: c.razon_social, ruc_cliente: ruc });
                     } else {
                       if (ruc === actual && !cot.cliente_id) return;
-                      void guardar({ cliente_id: null, ruc_cliente: ruc });
+                      void (async () => {
+                        await guardar({ cliente_id: null, ruc_cliente: ruc });
+                        if (!/^(\d{8}|\d{11})$/.test(ruc)) return;
+                        setConsultaRuc("Consultando SUNAT…");
+                        try {
+                          const { consultarDocumentoSunat } = await import("@/lib/decolecta.functions");
+                          const r = await consultarDocumentoSunat({ data: { numero: ruc } });
+                          if (r.encontrado) {
+                            await guardar({ cliente: r.razonSocial, ...(r.direccion && !cot.ubicacion ? { ubicacion: r.direccion } : {}) });
+                            setConsultaRuc(r.estado ? `SUNAT: ${r.estado}${r.condicion ? " · " + r.condicion : ""}` : "");
+                          } else setConsultaRuc(r.mensaje);
+                        } catch {
+                          setConsultaRuc("No se pudo consultar SUNAT.");
+                        }
+                      })();
                     }
                   }}
                   style={{ ...ed, minHeight: 34, padding: "7px 10px", border: `1px solid ${C.line}`, borderRadius: 5, background: C.soft, fontWeight: 700 }}
                 />
+                {consultaRuc && <span style={{ display: "block", marginTop: 4, fontSize: 9.5, color: DOC.mute }}>{consultaRuc}</span>}
                 <datalist id={`clientes-ruc-${cot.id}`}>
                   {clientes.filter((c) => c.numero_documento).map((c) => (
                     <option key={c.id} value={c.numero_documento}>{c.razon_social}</option>
