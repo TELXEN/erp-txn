@@ -8,8 +8,8 @@ import { MenuContextualApu, type AccionApu, type EstadoMenuApu } from "@/compone
 import { soles } from "@/lib/format";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
 import { useUnidadesMedida } from "@/lib/unidades";
-import { useSubfamilias } from "@/lib/codigo-insumo";
 import { renumerarApu, siguienteCodigoJerarquico } from "@/lib/banco-apu";
+import { VentanaInsumo, primeraMayuscula, type ModoInsumo, type TablaInsumo } from "@/components/InsumoVentana";
 import { r2, r4, sumar2 } from "@/lib/decimal";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -77,7 +77,7 @@ const CONFIG: Record<Tabla, { titulo: string; campos: CampoDef[]; columnas: [str
 // Pestañas visibles: Partidas e Insumos (los cuatro recursos agrupados en una sola lista).
 type Vista = "partidas_apu" | "insumos";
 const TABS: [Vista, string][] = [["partidas_apu", "Partidas"], ["insumos", "Insumos"]];
-const GRUPOS_INSUMO: Tabla[] = ["materiales", "mano_obra", "equipos_herramientas", "subcontratos"];
+const GRUPOS_INSUMO: TablaInsumo[] = ["materiales", "mano_obra", "equipos_herramientas", "subcontratos"];
 
 const useTabla = (t: Tabla | "partida_detalle") =>
   useQuery({
@@ -998,11 +998,6 @@ function PanelConsolidado({ partida }: { partida: Fila }) {
 // ================= Hoja limpia de insumos con barra de acciones =================
 
 const ordenEs = new Intl.Collator("es", { sensitivity: "base", numeric: true });
-/** Solo la primera letra en mayúscula; el resto en minúscula. */
-export const primeraMayuscula = (t: string) => {
-  const x = String(t ?? "").trim().replace(/\s+/g, " ").toLocaleLowerCase("es");
-  return x.charAt(0).toLocaleUpperCase("es") + x.slice(1);
-};
 
 function HojaInsumos() {
   const qc = useQueryClient();
@@ -1010,61 +1005,17 @@ function HojaInsumos() {
   const mo = useTabla("mano_obra").data ?? [];
   const eq = useTabla("equipos_herramientas").data ?? [];
   const sc = useTabla("subcontratos").data ?? [];
-  const { data: espLista = [] } = useEspecialidadesPartida();
-  const { data: subfamilias = [] } = useSubfamilias();
-  const espCod = espLista.filter((e) => e.codigo_modular).sort((a, b) => String(a.codigo_modular).localeCompare(String(b.codigo_modular)));
   const datos: Record<string, Fila[]> = { materiales: mat, mano_obra: mo, equipos_herramientas: eq, subcontratos: sc };
-  const { data: unidades = [] } = useUnidadesMedida();
   const [busqueda, setBusqueda] = useState("");
-  const [sel, setSel] = useState<{ tabla: Tabla; fila: Fila } | null>(null);
-  const [modo, setModo] = useState<"nuevo" | "editar" | "copiar" | null>(null);
-  const [tipo, setTipo] = useState<Tabla>("materiales");
-  const [form, setForm] = useState<Fila>({});
-  const [aviso, setAviso] = useState("");
+  const [sel, setSel] = useState<{ tabla: TablaInsumo; fila: Fila } | null>(null);
+  const [modo, setModo] = useState<ModoInsumo | null>(null);
   const refrescar = () => qc.invalidateQueries({ queryKey: ["banco_apu"] });
   const total = GRUPOS_INSUMO.reduce((n, t) => n + datos[t]!.filter((f) => f.estado === "activo").length, 0);
 
-  function base(t: Tabla, f?: Fila) {
-    const b: Fila = {};
-    for (const c of CONFIG[t].campos) b[c.k] = f ? String(f[c.k] ?? "") : c.opciones?.[0] ?? (c.tipo === "num" ? "0" : "");
-    if (!f && t === "mano_obra") b.unidad = "H-H";
-    if (!f && !b.unidad) b.unidad = unidades.find((u) => u.activo)?.simbolo ?? "";
-    b.especialidad_id = f?.especialidad_id ?? "";
-    b.subfamilia_id = f?.subfamilia_id ?? "";
-    return b;
-  }
-  function abrir(m: "nuevo" | "editar" | "copiar", objetivo = sel) {
-    setAviso("");
-    const sel = objetivo;
-    if (m === "nuevo") { setTipo("materiales"); setForm(base("materiales")); }
-    else if (sel) {
-      const b = base(sel.tabla, sel.fila);
-      if (m === "copiar") { b.codigo = ""; b.descripcion = `${b.descripcion} (copia)`; }
-      setTipo(sel.tabla); setForm(b);
-      if (m === "editar") b._orig = `${sel.fila.especialidad_id ?? ""}|${sel.fila.subfamilia_id ?? ""}|${sel.fila.codigo ?? ""}`;
-    } else return;
-    setModo(m);
-  }
-  async function guardar() {
-    if (!form.descripcion?.trim()) return setAviso("Escribe la descripción.");
-    const d: Record<string, unknown> = {};
-    for (const c of CONFIG[tipo].campos) d[c.k] = c.tipo === "num" ? Number(form[c.k] || 0) : String(form[c.k] ?? "").trim();
-    if (tipo === "equipos_herramientas" && form.tipo !== "alquilado") d["margen"] = 0;
-    d["descripcion"] = primeraMayuscula(String(d["descripcion"]));
-    if (typeof d["marca"] === "string" && d["marca"]) d["marca"] = primeraMayuscula(d["marca"]);
-    const conSub = tipo === "materiales";
-    if (!form.especialidad_id || (conSub && !form.subfamilia_id)) return setAviso(conSub ? "Elige la especialidad y la subfamilia: con ellas se genera el código." : "Elige la especialidad: con ella se genera el código.");
-    d["especialidad_id"] = form.especialidad_id; d["subfamilia_id"] = conSub ? form.subfamilia_id : null;
-    const [oe, os, oc] = String(form._orig ?? "").split("|");
-    if (modo === "editar" && oe === form.especialidad_id && (conSub ? os === form.subfamilia_id : true) && /^\d{8}$/.test(oc ?? "")) d["codigo"] = oc;
-    else {
-      const { data: cod, error: ec } = await db.rpc("siguiente_codigo_insumo_modular", { _especialidad: form.especialidad_id, _tipo: tipo, _subfamilia: conSub ? form.subfamilia_id : null });
-      if (ec) return setAviso(ec.message);
-      d["codigo"] = cod;
-    }
-    const { error } = modo === "editar" && sel ? await db.from(tipo).update(d).eq("id", sel.fila.id) : await db.from(tipo).insert(d);
-    if (error) return setAviso(error.message);
-    refrescar(); setModo(null);
+  function abrir(m: ModoInsumo, objetivo = sel) {
+    if (m === "nuevo") { setSel(null); setModo(m); return; }
+    if (!objetivo) return;
+    setSel(objetivo); setModo(m);
   }
   async function quitar() {
     if (!sel || !window.confirm(`¿Eliminar «${sel.fila.descripcion}»?`)) return;
@@ -1073,9 +1024,6 @@ function HojaInsumos() {
     if (data === "inactivado") window.alert("Está en uso en una o más partidas: se marcó como Inactivo en lugar de eliminarse.");
     setSel(null); refrescar();
   }
-  const undOpc = unidades.filter((u) => u.activo);
-  const cur = String(form.unidad ?? "");
-  const unds = cur && !undOpc.some((u) => u.simbolo === cur) ? [{ id: "x", simbolo: cur, descripcion: "fuera del catálogo" }, ...undOpc] : undOpc;
 
   return (
     <div className="flex gap-3">
@@ -1123,48 +1071,9 @@ function HojaInsumos() {
         <BotonIcono etiqueta="Eliminar insumo" title="Eliminar insumo" tono="peligro" disabled={!sel} onClick={quitar}><Trash2 size={15} /></BotonIcono>
       </div>
 
-      <VentanaFlotante abierta={!!modo} onCerrar={() => setModo(null)} ancho="max-w-2xl"
-        titulo={modo === "editar" ? "Editar insumo" : modo === "copiar" ? "Copiar insumo" : "Nuevo insumo"}>
-        <form className="grid gap-3 p-5 sm:grid-cols-2" onSubmit={(e) => { e.preventDefault(); guardar(); }}>
-          <Campo etiqueta="Tipo de insumo">
-            <Select value={tipo} disabled={modo === "editar"} onChange={(e) => { const t = e.target.value as Tabla; setTipo(t); setForm({ ...base(t), descripcion: form.descripcion, especialidad_id: form.especialidad_id, subfamilia_id: form.subfamilia_id }); }}>
-              {GRUPOS_INSUMO.map((t) => <option key={t} value={t}>{CONFIG[t].titulo}</option>)}
-            </Select>
-          </Campo>
-          <Campo etiqueta="Especialidad (código)">
-            <Select value={form.especialidad_id ?? ""} onChange={(e) => setForm({ ...form, especialidad_id: e.target.value, subfamilia_id: "" })}>
-              <option value="">— Elegir —</option>
-              {espCod.map((e) => <option key={e.id} value={e.id}>{e.codigo_modular} · {e.nombre}</option>)}
-            </Select>
-          </Campo>
-          {tipo === "materiales" && <Campo etiqueta="Subfamilia">
-            <Select value={form.subfamilia_id ?? ""} onChange={(e) => setForm({ ...form, subfamilia_id: e.target.value })} disabled={!form.especialidad_id}>
-              <option value="">— Elegir —</option>
-              {subfamilias.filter((s) => s.especialidad_id === form.especialidad_id && s.activo).map((s) => <option key={s.id} value={s.id}>{s.codigo} · {s.nombre}{s.bloque ? ` (${s.bloque})` : ""}</option>)}
-            </Select>
-          </Campo>}
-          <p className="text-[11px] text-muted-foreground sm:col-span-2">Código: <span className="font-mono">{form.codigo && modo === "editar" ? form.codigo : "se genera al guardar"}</span> (tipo + especialidad + {tipo === "materiales" ? "subfamilia" : "00"} + correlativo).</p>
-          {CONFIG[tipo].campos.filter((c) => c.k !== "codigo" && (!c.soloSi || c.soloSi(form))).map((c) => (
-            <Campo key={c.k} etiqueta={c.t}>
-              {c.tipo === "sel" ? (
-                <Select value={form[c.k] ?? ""} onChange={(e) => setForm({ ...form, [c.k]: e.target.value })}>
-                  {c.k === "unidad"
-                    ? unds.map((u) => <option key={u.id} value={u.simbolo}>{u.simbolo} · {u.descripcion}</option>)
-                    : (c.opciones ?? []).map((o) => <option key={o}>{o}</option>)}
-                </Select>
-              ) : (
-                <Input type={c.tipo === "num" ? "number" : "text"} step="any" value={form[c.k] ?? ""} autoFocus={c.k === "descripcion"}
-                  onChange={(e) => setForm({ ...form, [c.k]: e.target.value })} />
-              )}
-            </Campo>
-          ))}
-          {aviso && <p className="text-xs text-destructive sm:col-span-2">{aviso}</p>}
-          <div className="flex justify-end gap-2 sm:col-span-2">
-            <Boton type="button" variante="linea" onClick={() => setModo(null)}>Cerrar</Boton>
-            <Boton type="submit">Guardar</Boton>
-          </div>
-        </form>
-      </VentanaFlotante>
+      {modo && (
+        <VentanaInsumo modo={modo} sel={sel} onCerrar={() => setModo(null)} />
+      )}
     </div>
   );
 }

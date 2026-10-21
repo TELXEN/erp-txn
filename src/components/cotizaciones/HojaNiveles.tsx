@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { BotonIcono, Boton, Campo, Input, Select, VentanaFlotante } from "@/components/ui-kit";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { GRUPOS_RECURSO } from "@/components/cotizaciones/PanelApuCotizacion";
+import { VentanaInsumo } from "@/components/InsumoVentana";
 import { AutoMaestra } from "@/components/CotizacionHoja";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
 import { precioMaestroEnMoneda, useGruposCotizacion, type CotizacionItem, type PartidaMaestra } from "@/lib/cotizaciones";
@@ -38,7 +38,6 @@ export function HojaNiveles({
   tipoCambio = 0,
   onSeleccionar,
   barraEn,
-  onAgregarInsumo,
 }: {
   cotizacionId: string;
   items: Item[];
@@ -48,7 +47,6 @@ export function HojaNiveles({
   tipoCambio?: number;
   onSeleccionar?: (id: string | null) => void;
   barraEn?: HTMLElement | null;
-  onAgregarInsumo?: (grupo: string) => void;
 }) {
   const qc = useQueryClient();
   const { data: especialidades = [] } = useEspecialidadesPartida();
@@ -57,6 +55,7 @@ export function HojaNiveles({
   const [sel, setSel] = useState<string | null>(null);
   const [ventana, setVentana] = useState<{ modo: "nuevo" | "editar"; id?: string; form: Form } | null>(null);
   const [error, setError] = useState("");
+  const [ins, setIns] = useState(false);
   const [ocupado, setOcupado] = useState(false);
 
   const { orden, codigos, profundidad } = useMemo(() => numerarNiveles(items), [items]);
@@ -225,14 +224,8 @@ export function HojaNiveles({
             {NIVELES.map((n) => (
               <DropdownMenuItem key={n} onSelect={() => abrirNuevo(n)}>{NOMBRE_NIVEL[n]}</DropdownMenuItem>
             ))}
-            {onAgregarInsumo && (<>
-              <div className="my-1 border-t border-line" />
-              {GRUPOS_RECURSO.map(([g, nombre]) => (
-                <DropdownMenuItem key={g} disabled={!seleccionado || nivelDe(seleccionado) !== "partida"} onSelect={() => onAgregarInsumo(g)}>
-                  {g === "EQ" ? "EQUIPOS Y HERRAMIENTAS" : nombre}
-                </DropdownMenuItem>
-              ))}
-            </>)}
+            <div className="my-1 border-t border-line" />
+            <DropdownMenuItem onSelect={() => setIns(true)}>Insumo</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
         <BotonIcono etiqueta="Editar" title="Editar" disabled={!seleccionado} onClick={() => abrirEditar()}><Pencil size={15} /></BotonIcono>
@@ -357,6 +350,8 @@ export function HojaNiveles({
           </form>
         )}
       </VentanaFlotante>
+
+      {ins && <VentanaInsumo modo="nuevo" onCerrar={() => setIns(false)} />}
     </div>
   );
 }
