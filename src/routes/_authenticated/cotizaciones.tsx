@@ -149,7 +149,7 @@ function Cotizaciones() {
   const esUltimaRevision = hermanas.length > 0 && hermanas.at(-1)?.id === cot?.id;
 
   const [partidaActiva, setPartidaActiva] = useState<string | null>(null);
-  const [cmdInsumo, setCmdInsumo] = useState<{ grupo: string; n: number } | null>(null);
+  const [cmdInsumo] = useState<{ grupo: string; n: number } | null>(null);
   const [slotBarra, setSlotBarra] = useState<HTMLDivElement | null>(null);
   /** En edición la hoja arranca sin encabezado: solo se ve la tabla de partidas. */
   const [encabezado, setEncabezado] = useState(false);
@@ -748,7 +748,6 @@ function Cotizaciones() {
               tipoCambio={Number(cot.tipo_cambio)}
               onSeleccionar={setPartidaActiva}
               barraEn={slotBarra}
-              onAgregarInsumo={(grupo) => setCmdInsumo({ grupo, n: Date.now() })}
             />
           </HojaCotizacion>
           </div>
