@@ -653,26 +653,12 @@ function Cotizaciones() {
               >
                 {ESTADOS_COTIZACION.map((e) => <option key={e} value={e}>{e}</option>)}
               </select>
-              {esUltimaRevision && !cot.proyecto_id && (
-                <Boton variante="linea" className={enBarra} onClick={() => void nuevaRevision()} title="Clonar esta cotización como la siguiente revisión">
-                  <History size={13} /> Nueva revisión
-                </Boton>
-              )}
               <Boton variante="linea" className={enBarra} onClick={() => setEncabezado(true)} title="Completar los datos del encabezado">
                 <Pencil size={13} /> Encabezado
               </Boton>
               <Link to="/cotizacion-vista" search={{ id: cot.id }}>
                 <Boton variante="linea" className={enBarra}><Eye size={13} /> Vista previa A4</Boton>
               </Link>
-              <Link to="/apu-vista" search={{ id: cot.id, item: "" }}>
-                <Boton variante="linea" className={enBarra}><Calculator size={13} /> Dossier APU</Boton>
-              </Link>
-              <Boton variante="linea" className={enBarra} onClick={() => void guardarPlantilla()} title="Guardar la estructura como plantilla">
-                <Library size={13} /> Guardar como plantilla
-              </Boton>
-              <Boton variante="linea" className={enBarra} onClick={exportarCotizacion} title="Exportar Excel">
-                <Upload size={13} /> Excel
-              </Boton>
               <Boton onClick={convertirEnObra} disabled={Boolean(cot.proyecto_id) || cot.estado !== "Aprobada"} title={cot.estado !== "Aprobada" && !cot.proyecto_id ? "Solo disponible para cotizaciones aprobadas" : undefined}>
                 {cot.proyecto_id ? "Obra generada" : "Convertir en obra"}
               </Boton>
@@ -773,6 +759,12 @@ function Cotizaciones() {
               tipoCambio={Number(cot.tipo_cambio)}
               onSeleccionar={setPartidaActiva}
               barraEn={slotBarra}
+              accionesDocumento={[
+                { etiqueta: "Nueva revisión", icono: <History size={15} />, oculto: !esUltimaRevision || Boolean(cot.proyecto_id), onClick: () => { if (confirm("¿Crear una nueva revisión clonando esta cotización?")) void nuevaRevision(); } },
+                { etiqueta: "Dossier APU", icono: <Calculator size={15} />, onClick: () => void navigate({ to: "/apu-vista", search: { id: cot.id, item: "" } }) },
+                { etiqueta: "Guardar como plantilla", icono: <Library size={15} />, onClick: () => void guardarPlantilla() },
+                { etiqueta: "Exportar a Excel", icono: <FileSpreadsheet size={15} />, onClick: exportarCotizacion },
+              ]}
               onAgregarInsumo={() => {
                 if (!partidaActiva) return setError("Selecciona una partida de la hoja para agregar un insumo a su APU.");
                 setCmdInsumo({ grupo: "INSUMO", n: Date.now() });

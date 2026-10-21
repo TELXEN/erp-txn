@@ -274,6 +274,14 @@ export function HojaNiveles({
         <BotonIcono etiqueta="Bajar" title="Bajar con su contenido" disabled={!bajar || ocupado} onClick={() => void mover("bajar")}><ArrowDown size={15} /></BotonIcono>
         <div className="border-t border-line" />
         <BotonIcono etiqueta="Eliminar" title="Eliminar con su contenido" tono="peligro" disabled={!seleccionado} onClick={() => void eliminar()}><Trash2 size={15} /></BotonIcono>
+        {docs.length > 0 && (
+          <>
+            <div className="border-t-2 border-line" title="Documento" />
+            {docs.map((a) => (
+              <BotonIcono key={a.etiqueta} etiqueta={a.etiqueta} onClick={a.onClick}>{a.icono}</BotonIcono>
+            ))}
+          </>
+        )}
       </div>
   );
 
@@ -342,6 +350,15 @@ export function HojaNiveles({
         <ContextMenuItem disabled={!bajar || ocupado} onSelect={() => void mover("bajar")}><ArrowDown size={13} className="mr-2" /> Mover abajo</ContextMenuItem>
         <ContextMenuSeparator />
         <ContextMenuItem disabled={!seleccionado} className="text-bad focus:text-bad" onSelect={() => void eliminar()}><Trash2 size={13} className="mr-2" /> Eliminar</ContextMenuItem>
+        {docs.length > 0 && (
+          <>
+            <ContextMenuSeparator />
+            <div className="px-2 py-1 font-mono text-[10px] uppercase text-muted-foreground">Documento</div>
+            {docs.map((a) => (
+              <ContextMenuItem key={a.etiqueta} onSelect={() => a.onClick()}><span className="mr-2 inline-flex [&>svg]:size-[13px]">{a.icono}</span> {a.etiqueta}</ContextMenuItem>
+            ))}
+          </>
+        )}
       </ContextMenuContent>
       </ContextMenu>
 
