@@ -393,6 +393,13 @@
       "when": 1792558346351,
       "tag": "0055_herramientas_manuales_defecto_5",
       "breakpoints": true
+    },
+    {
+      "idx": 56,
+      "version": "7",
+      "when": 1792597740730,
+      "tag": "0056_cotizacion_ruc_cliente",
+      "breakpoints": true
     }
   ]
 }
