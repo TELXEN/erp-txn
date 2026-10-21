@@ -208,8 +208,12 @@ export type ComponenteApu = {
 const db = supabase as unknown as { from: (t: string) => any };
 
 export type MargenesInsumo = { MO: number; MAT: number; EQ: number; HT: number; SC: number } & Record<string, number>;
+
+/** % de la mano de obra que se asigna a herramientas manuales cuando no hay otro valor guardado. */
+export const PCT_HERRAMIENTAS_DEFECTO = 5;
+
 // Claves fijas por defecto; los tipos personalizados se agregan al leer márgenes.
-export const MARGENES_DEFECTO: MargenesInsumo = { MO: 0, MAT: 0, EQ: 0, HT: 0, SC: 0 };
+export const MARGENES_DEFECTO: MargenesInsumo = { MO: 0, MAT: 0, EQ: 0, HT: PCT_HERRAMIENTAS_DEFECTO, SC: 0 };
 
 async function cargarMargenes(): Promise<MargenesInsumo> {
   const { data, error } = await db.from("margenes_insumo").select("tipo, margen_pct");
