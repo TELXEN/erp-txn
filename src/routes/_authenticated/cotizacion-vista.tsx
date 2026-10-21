@@ -394,7 +394,7 @@ function VistaCotizacion() {
     return (
       <Panel titulo="Vista previa de cotización">
         <div className="p-5"><Vacio texto="Selecciona una cotización registrada para visualizarla." /></div>
-        <div className="border-t border-line p-4"><Link to="/cotizaciones" search={{ abrir: id || undefined }}><Boton variante="linea"><ArrowLeft size={13} /> Volver a cotizaciones</Boton></Link></div>
+        <div className="border-t border-line p-4"><Link to="/cotizaciones" search={id ? { abrir: id } : {}}><Boton variante="linea"><ArrowLeft size={13} /> Volver a cotizaciones</Boton></Link></div>
       </Panel>
     );
   }
@@ -410,7 +410,7 @@ function VistaCotizacion() {
               <Checkbox checked={horizontal} onCheckedChange={(v) => alternarHorizontal(v === true)} />
               A4 horizontal
             </label>
-            <Link to="/cotizaciones" search={{ abrir: id || undefined }}>
+            <Link to="/cotizaciones" search={id ? { abrir: id } : {}}>
               <Boton variante="linea"><ArrowLeft size={13} /> Volver</Boton>
             </Link>
             <Boton variante="linea" onClick={() => void exportarExcel()} disabled={items.length === 0}>
