@@ -51,7 +51,8 @@ import {
   type CotizacionItem,
   type EstadoCotizacion,
 } from "@/lib/cotizaciones";
-import { Check, Calculator, CornerDownRight, Upload, FileSpreadsheet, X, Eye, EyeOff, Trash2, ArrowLeft, Library, Plus, Pencil, Copy, FileText, LayoutTemplate, History } from "lucide-react";
+import { Check, Calculator, CornerDownRight, Upload, FileSpreadsheet, X, Eye, EyeOff, Trash2, ArrowLeft, Library, Plus, Pencil, Copy, FileText, LayoutTemplate, History, Receipt } from "lucide-react";
+import { GastosGeneralesCotizacion } from "@/components/cotizaciones/GastosGeneralesCotizacion";
 
 export const Route = createFileRoute("/_authenticated/cotizaciones")({
   validateSearch: (s: Record<string, unknown>): { abrir?: string } =>
@@ -160,6 +161,7 @@ function Cotizaciones() {
   const [slotBarra, setSlotBarra] = useState<HTMLDivElement | null>(null);
   /** En edición la hoja arranca sin encabezado: solo se ve la tabla de partidas. */
   const [encabezado, setEncabezado] = useState(false);
+  const [ventanaGG, setVentanaGG] = useState(false);
   /** Al crear una cotización se exige elegir la moneda antes de generarla. */
   const [pidiendoMoneda, setPidiendoMoneda] = useState(false);
   const [monedaNueva, setMonedaNueva] = useState<"" | "PEN" | "USD">("");
@@ -656,6 +658,9 @@ function Cotizaciones() {
               <Boton variante="linea" className={enBarra} onClick={() => setEncabezado(true)} title="Completar los datos del encabezado">
                 <Pencil size={13} /> Encabezado
               </Boton>
+              <Boton variante="linea" className={enBarra} onClick={() => setVentanaGG(true)} title="Desagregado de gastos generales">
+                <Receipt size={13} /> Gastos generales
+              </Boton>
               <Link to="/cotizacion-vista" search={{ id: cot.id }}>
                 <Boton variante="linea" className={enBarra}><Eye size={13} /> Vista previa A4</Boton>
               </Link>
@@ -760,6 +765,7 @@ function Cotizaciones() {
               onSeleccionar={setPartidaActiva}
               barraEn={slotBarra}
               accionesDocumento={[
+                { etiqueta: "Gastos generales", icono: <Receipt size={15} />, onClick: () => setVentanaGG(true) },
                 { etiqueta: "Nueva revisión", icono: <History size={15} />, oculto: !esUltimaRevision || Boolean(cot.proyecto_id), onClick: () => { if (confirm("¿Crear una nueva revisión clonando esta cotización?")) void nuevaRevision(); } },
                 { etiqueta: "Dossier APU", icono: <Calculator size={15} />, onClick: () => void navigate({ to: "/apu-vista", search: { id: cot.id, item: "" } }) },
                 { etiqueta: "Guardar como plantilla", icono: <Library size={15} />, onClick: () => void guardarPlantilla() },
@@ -771,6 +777,9 @@ function Cotizaciones() {
               }}
             />
           </HojaCotizacion>
+          <GastosGeneralesCotizacion abierta={ventanaGG} onCerrar={() => setVentanaGG(false)} cotizacionId={cot.id}
+            costoDirecto={totales?.costoDirecto ?? 0} pctActual={Number(cot.pct_gastos_generales)} moneda={cot.moneda}
+            soloLectura={!esUltimaRevision} />
           </div>
           <div className="shrink-0"><ResumenCotizacion cot={cot} items={itemsHoja} /></div>
           </div>
