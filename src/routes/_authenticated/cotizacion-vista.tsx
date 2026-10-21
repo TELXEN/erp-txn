@@ -106,12 +106,6 @@ function construirFilas(items: ItemCot[], _opts: { multi?: boolean; alcance?: st
   });
 }
 
-/** Subtotales de los capítulos principales (primer nivel) para el desglose. */
-function subtotalesPorGrupo(items: ItemCot[]) {
-  return construirFilas(items)
-    .filter((f): f is Extract<Fila, { clase: "grupo" }> => f.clase === "grupo")
-    .map((f) => [`${f.numero} ${f.texto}`, f.total] as [string, number]);
-}
 
 function altoEstimadoFila(fila: Fila, charsPorLinea = 62) {
   if (fila.clase !== "item") return 22;
