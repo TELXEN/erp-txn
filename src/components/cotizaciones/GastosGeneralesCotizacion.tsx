@@ -54,10 +54,15 @@ export function GastosGeneralesCotizacion({ abierta, onCerrar, cotizacionId, cos
     if (soloLectura) return;
     const t = totalGG(nuevas);
     if (t <= 0) return; // hoja vacía: se mantiene el % manual
-    const p = pctGG(t, costoDirecto);
-    if (Math.abs(p - pctActual) < 0.00005) return;
-    await supabase.from("cotizaciones").update({ pct_gastos_generales: p }).eq("id", cotizacionId);
-    qc.invalidateQueries({ queryKey: ["cotizaciones"] });
+    // Costo directo fresco desde la base (el prop puede llegar en 0 si la hoja aún carga)
+    const { data: its, error: e0 } = await supabase.from("cotizacion_items").select("metrado, precio_unitario, tipo").eq("cotizacion_id", cotizacionId);
+    if (e0) return setError(e0.message);
+    const cd = (its ?? []).filter((i) => i.tipo !== "grupo").reduce((s, i) => s + Number(i.metrado || 0) * Number(i.precio_unitario || 0), 0);
+    const p = pctGG(t, cd);
+    const { error: e } = await supabase.from("cotizaciones").update({ pct_gastos_generales: p }).eq("id", cotizacionId);
+    if (e) return setError(e.message);
+    await qc.invalidateQueries({ queryKey: ["cotizaciones"] });
+    await qc.invalidateQueries({ queryKey: ["cotizacion_items"] });
   }
 
   async function reordenar(nuevas: FilaGG[]) {
