@@ -5,6 +5,7 @@ import { Boton, Campo, Input, Select, VentanaFlotante } from "@/components/ui-ki
 import { useEspecialidadesPartida } from "@/lib/especialidades";
 import { useUnidadesMedida } from "@/lib/unidades";
 import { useSubfamilias } from "@/lib/codigo-insumo";
+import { buscarInsumoDuplicado } from "@/lib/insumo-duplicado";
 import { useBancoTabla } from "@/lib/banco-apu";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
