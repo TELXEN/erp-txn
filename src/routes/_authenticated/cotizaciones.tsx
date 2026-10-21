@@ -745,6 +745,7 @@ function Cotizaciones() {
               moneda={cot.moneda}
               tipoCambio={Number(cot.tipo_cambio)}
               onSeleccionar={setPartidaActiva}
+              barraEn={slotBarra}
             />
           </HojaCotizacion>
           </div>
@@ -753,6 +754,7 @@ function Cotizaciones() {
           <aside className="min-h-[24rem] overflow-hidden rounded-md border border-line bg-card lg:h-full lg:min-h-0 lg:w-[40%]">
             <PanelApuCotizacion cot={cot} item={itemsHoja.find((i) => i.id === partidaActiva) ?? null} />
           </aside>
+          <div ref={setSlotBarra} className="shrink-0" />
         </div>
         {apu && (
           <ApuBanco

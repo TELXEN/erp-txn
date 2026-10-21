@@ -1,3 +1,4 @@
+import { createPortal } from "react-dom";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Copy, Pencil, Plus, Trash2 } from "lucide-react";
@@ -35,6 +36,7 @@ export function HojaNiveles({
   moneda = "PEN",
   tipoCambio = 0,
   onSeleccionar,
+  barraEn,
 }: {
   cotizacionId: string;
   items: Item[];
@@ -43,6 +45,7 @@ export function HojaNiveles({
   moneda?: "PEN" | "USD";
   tipoCambio?: number;
   onSeleccionar?: (id: string | null) => void;
+  barraEn?: HTMLElement | null;
 }) {
   const qc = useQueryClient();
   const { data: especialidades = [] } = useEspecialidadesPartida();
@@ -209,6 +212,24 @@ export function HojaNiveles({
         ? titulos.filter((t) => t.activo).map((t) => formatearNivel(t.nombre, "titulo"))
         : [];
 
+  const barra = (
+      <div className="sticky top-2 flex h-fit flex-col gap-1.5 rounded-md border border-line bg-card p-1.5">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <BotonIcono etiqueta="Agregar" title="Agregar" tono="primario"><Plus size={15} /></BotonIcono>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent side="left" align="start">
+            {NIVELES.map((n) => (
+              <DropdownMenuItem key={n} onSelect={() => abrirNuevo(n)}>{NOMBRE_NIVEL[n]}</DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <BotonIcono etiqueta="Editar" title="Editar" disabled={!seleccionado} onClick={() => abrirEditar()}><Pencil size={15} /></BotonIcono>
+        <BotonIcono etiqueta="Copiar" title="Copiar con su contenido" disabled={!seleccionado} onClick={() => void copiar()}><Copy size={15} /></BotonIcono>
+        <BotonIcono etiqueta="Eliminar" title="Eliminar con su contenido" tono="peligro" disabled={!seleccionado} onClick={() => void eliminar()}><Trash2 size={15} /></BotonIcono>
+      </div>
+  );
+
   return (
     <div className="flex w-full gap-2">
       <div className="min-w-0 flex-1 overflow-x-auto rounded-md border border-line bg-card">
@@ -253,21 +274,7 @@ export function HojaNiveles({
         </table>
       </div>
 
-      <div className="sticky top-2 flex h-fit flex-col gap-1.5 rounded-md border border-line bg-card p-1.5">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <BotonIcono etiqueta="Agregar" title="Agregar" tono="primario"><Plus size={15} /></BotonIcono>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent side="left" align="start">
-            {NIVELES.map((n) => (
-              <DropdownMenuItem key={n} onSelect={() => abrirNuevo(n)}>{NOMBRE_NIVEL[n]}</DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <BotonIcono etiqueta="Editar" title="Editar" disabled={!seleccionado} onClick={() => abrirEditar()}><Pencil size={15} /></BotonIcono>
-        <BotonIcono etiqueta="Copiar" title="Copiar con su contenido" disabled={!seleccionado} onClick={() => void copiar()}><Copy size={15} /></BotonIcono>
-        <BotonIcono etiqueta="Eliminar" title="Eliminar con su contenido" tono="peligro" disabled={!seleccionado} onClick={() => void eliminar()}><Trash2 size={15} /></BotonIcono>
-      </div>
+      {barraEn ? createPortal(barra, barraEn) : barra}
 
       <VentanaFlotante
         abierta={Boolean(ventana)}
