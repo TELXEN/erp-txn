@@ -30,7 +30,7 @@ export function numerarGG(filas: FilaGG[]): Map<string, string> {
   const res = new Map<string, string>();
   for (const f of filas) {
     const r = RANGO[f.nivel];
-    c[r]++;
+    c[r] = (c[r] ?? 0) + 1;
     for (let k = r + 1; k < 3; k++) c[k] = 0;
     res.set(f.id, c.slice(0, r + 1).map((n) => n || 1).join("."));
   }
