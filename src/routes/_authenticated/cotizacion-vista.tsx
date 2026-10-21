@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { colorearParaExportar } from "@/lib/exportar-colores";
 import { useEffect, useLayoutEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Encabezado } from "@/components/AppShell";
@@ -243,7 +244,28 @@ function VistaCotizacion() {
       .then(() => qc.invalidateQueries({ queryKey: ["cotizaciones"] }));
   }
 
-  async function descargarPdf() {
+  /** Carga el dossier APU de esta misma revisión en un iframe oculto para capturar sus hojas. */
+  async function hojasDossier(): Promise<{ iframe: HTMLIFrameElement; hojas: HTMLElement[] }> {
+    const iframe = document.createElement("iframe");
+    iframe.style.cssText = "position:fixed;left:-10000px;top:0;width:900px;height:1200px;border:0";
+    iframe.src = `/apu-vista?id=${encodeURIComponent(id)}&item=`;
+    document.body.appendChild(iframe);
+    const limite = Date.now() + 30000;
+    while (Date.now() < limite) {
+      await new Promise((r) => setTimeout(r, 400));
+      const d = iframe.contentDocument;
+      const cont = d?.getElementById("apu-impresion");
+      if (cont) {
+        await d!.fonts.ready;
+        await new Promise((r) => setTimeout(r, 600));
+        return { iframe, hojas: Array.from(cont.querySelectorAll<HTMLElement>(":scope > section")) };
+      }
+      if (d?.body?.innerText.includes("Ninguna partida de esta cotización tiene análisis")) break;
+    }
+    return { iframe, hojas: [] };
+  }
+
+  async function descargarPdf(conDossier = false) {
     const el = document.getElementById("cotizacion-impresion");
     if (!el) return;
     setPdfCargando(true);
@@ -263,7 +285,20 @@ function VistaCotizacion() {
         if (indice > 0) doc.addPage();
         doc.addImage(canvas.toDataURL("image/jpeg", 0.98), "JPEG", 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
       }
-      doc.save(`${nombreArchivo}.pdf`);
+      if (conDossier) {
+        const { iframe, hojas: hojasApu } = await hojasDossier();
+        try {
+          const html2canvas = (await import("html2canvas")).default;
+          for (const hoja of hojasApu) {
+            const canvas = await html2canvas(hoja, { scale: 2.5, useCORS: true, backgroundColor: "#ffffff", logging: false, windowWidth: 794, onclone: colorearParaExportar });
+            doc.addPage("a4", "portrait");
+            const w = doc.internal.pageSize.getWidth();
+            const h = Math.min(doc.internal.pageSize.getHeight(), (canvas.height * w) / canvas.width);
+            doc.addImage(canvas.toDataURL("image/jpeg", 0.98), "JPEG", 0, 0, w, h);
+          }
+        } finally { iframe.remove(); }
+      }
+      doc.save(`${nombreArchivo}${conDossier ? "_con_dossier_APU" : ""}.pdf`);
     } finally {
       setPdfCargando(false);
     }
@@ -417,7 +452,13 @@ function VistaCotizacion() {
             <Boton variante="linea" onClick={() => void exportarExcel()} disabled={items.length === 0}>
               <FileSpreadsheet size={14} /> Exportar a Excel
             </Boton>
-            <Boton variante="accion" onClick={descargarPdf} disabled={pdfCargando}>
+            <Link to="/apu-vista" search={{ id, item: "" }}>
+              <Boton variante="linea"><Calculator size={14} /> Dossier APU</Boton>
+            </Link>
+            <Boton variante="linea" onClick={() => void descargarPdf(true)} disabled={pdfCargando} title="Un solo PDF con la cotización y su dossier APU">
+              <FileDown size={14} /> PDF cotización + dossier
+            </Boton>
+            <Boton variante="accion" onClick={() => void descargarPdf()} disabled={pdfCargando}>
               <FileDown size={14} /> {pdfCargando ? "Generando..." : "Descargar PDF"}
             </Boton>
           </div>
