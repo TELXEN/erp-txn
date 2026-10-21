@@ -1,5 +1,5 @@
 import { createPortal } from "react-dom";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowDown, ArrowUp, Copy, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -32,6 +32,8 @@ type Item = CotizacionItem & { nivel?: string; partida_apu_id?: string | null };
 type Form = { nivel: NivelCotizacion; nombre: string; unidad: string; metrado: string; precio: string; apuId: string | null };
 
 /** Hoja de cotización por niveles: Especialidad > Título > Subtítulo (opcional) > Partida. */
+export type AccionDocumento = { etiqueta: string; icono: ReactNode; onClick: () => void; oculto?: boolean };
+
 export function HojaNiveles({
   cotizacionId,
   items,
@@ -42,6 +44,7 @@ export function HojaNiveles({
   onSeleccionar,
   barraEn,
   onAgregarInsumo,
+  accionesDocumento,
 }: {
   cotizacionId: string;
   items: Item[];
@@ -53,7 +56,10 @@ export function HojaNiveles({
   barraEn?: HTMLElement | null;
   /** Abre la ventana de insumo del panel APU (crear nuevo o seleccionar del catálogo). */
   onAgregarInsumo?: () => void;
+  /** Acciones poco usadas sobre toda la cotización (bloque «Documento» de la barra). */
+  accionesDocumento?: AccionDocumento[];
 }) {
+  const docs = (accionesDocumento ?? []).filter((a) => !a.oculto);
   const qc = useQueryClient();
   const { data: especialidades = [] } = useEspecialidadesPartida();
   const { data: titulos = [] } = useGruposCotizacion();
