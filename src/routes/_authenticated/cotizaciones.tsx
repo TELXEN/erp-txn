@@ -51,7 +51,7 @@ import {
   type CotizacionItem,
   type EstadoCotizacion,
 } from "@/lib/cotizaciones";
-import { Check, Calculator, CornerDownRight, Upload, X, Eye, EyeOff, Trash2, ArrowLeft, Library, Plus, Pencil, Copy, FileText, LayoutTemplate, History } from "lucide-react";
+import { Check, Calculator, CornerDownRight, Upload, FileSpreadsheet, X, Eye, EyeOff, Trash2, ArrowLeft, Library, Plus, Pencil, Copy, FileText, LayoutTemplate, History } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/cotizaciones")({
   validateSearch: (s: Record<string, unknown>): { abrir?: string } =>
