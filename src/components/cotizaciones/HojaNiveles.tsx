@@ -350,6 +350,8 @@ export function HojaNiveles({
           </form>
         )}
       </VentanaFlotante>
+
+      {ins && <VentanaInsumo modo="nuevo" onCerrar={() => setIns(false)} />}
     </div>
   );
 }
