@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { colorearParaExportar } from "@/lib/exportar-colores";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, FileDown } from "lucide-react";
@@ -120,27 +121,7 @@ function VistaApu() {
         margin: [7, 5, 7, 5], filename: `${nombreArchivo}.pdf`, image: { type: "jpeg", quality: 0.98 },
         html2canvas: {
           scale: 3, useCORS: true, windowWidth: 794, backgroundColor: "#ffffff", logging: false,
-          onclone: (doc: Document) => {
-            // html2canvas cannot parse Tailwind v4's modern color functions.
-            // Resolve the actual themed colors to RGB only in the export clone.
-            const canvas = doc.createElement("canvas");
-            canvas.width = canvas.height = 1;
-            const ctx = canvas.getContext("2d");
-            const view = doc.defaultView;
-            if (!ctx || !view) return;
-            for (const node of doc.querySelectorAll<HTMLElement>("*")) {
-              const computed = view.getComputedStyle(node);
-              for (const prop of ["color", "background-color", "border-top-color", "border-right-color", "border-bottom-color", "border-left-color", "outline-color", "text-decoration-color"]) {
-                const value = computed.getPropertyValue(prop);
-                if (!/(?:oklab|oklch|color-mix|color\()/.test(value)) continue;
-                ctx.clearRect(0, 0, 1, 1);
-                ctx.fillStyle = value;
-                ctx.fillRect(0, 0, 1, 1);
-                const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
-                node.style.setProperty(prop, `rgba(${r}, ${g}, ${b}, ${(a ?? 255) / 255})`, "important");
-              }
-            }
-          },
+          onclone: colorearParaExportar,
         },
         jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
         pagebreak: { mode: ["css", "legacy"], avoid: ["tr", ".apu-ficha"] },
@@ -152,7 +133,7 @@ function VistaApu() {
     <div className="space-y-4">
       <Encabezado titulo={item ? "Ficha de APU" : "Dossier de APU"} subtitulo={cot ? `${cot.codigo ?? ""} — ${cot.cliente}` : "Análisis de precios unitarios"} />
       <div className="flex flex-wrap gap-2 print:hidden">
-        <Link to="/cotizaciones"><Boton variante="linea"><ArrowLeft size={13} /> Volver</Boton></Link>
+        <Link to="/cotizacion-vista" search={{ id }}><Boton variante="linea"><ArrowLeft size={13} /> Volver a la vista previa</Boton></Link>
         {item && <Link to="/apu-vista" search={{ id, item: "" }}><Boton variante="linea">Ver dossier completo</Boton></Link>}
         <Boton onClick={() => void descargar()} disabled={pdf || !fichas.length}><FileDown size={13} /> {pdf ? "Generando…" : "Descargar PDF"}</Boton>
       </div>
