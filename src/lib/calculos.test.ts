@@ -35,6 +35,12 @@ describe("APU", () => {
     expect(r.tot["EQ"]).toBe(1);
     expect(r.pu).toBe(41);
   });
+  it("herramientas manuales: 5% de la mano de obra por defecto", () => {
+    expect(MARGENES_DEFECTO.HT).toBe(5);
+    expect(PCT_HERRAMIENTAS_DEFECTO).toBe(5);
+    const r = calcularApu([comp("c1", "mo", 1, 0)], [ins("mo", "MO", 20)] as never, 8, 8, PCT_HERRAMIENTAS_DEFECTO);
+    expect(r.herramientas).toBe(1); // MO = 1 × 8 ÷ 8 × 20 = 20 → 5% = 1
+  });
 });
 
 describe("Oferta", () => {
