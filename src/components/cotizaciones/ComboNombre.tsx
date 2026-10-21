@@ -82,6 +82,7 @@ export function ComboNombre({
               <li key={o}>
                 <button
                   type="button"
+                  title={o}
                   data-activo={i === activo}
                   onMouseDown={(e) => {
                     e.preventDefault();
