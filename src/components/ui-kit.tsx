@@ -140,6 +140,7 @@ export function BotonIcono({
   return (
     <button
       {...props}
+      data-tono={tono}
       title={etiqueta}
       aria-label={etiqueta}
       className={cn(

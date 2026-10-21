@@ -96,7 +96,7 @@ export function HojaSubfamilias() {
         })}
       </div>
 
-      <div className="sticky top-2 flex h-fit flex-col gap-1.5 rounded-md border border-line bg-card p-1.5">
+      <div className="sticky top-2 flex h-fit flex-col gap-1.5 rounded-md border p-1.5 barra-iconos">
         <BotonIcono etiqueta="Agregar nueva subfamilia" title="Agregar nueva subfamilia" tono="primario" onClick={() => abrir("nuevo")}><Plus size={15} /></BotonIcono>
         <BotonIcono etiqueta="Editar subfamilia" title="Editar subfamilia" disabled={!sel} onClick={() => abrir("editar")}><Pencil size={15} /></BotonIcono>
         <BotonIcono etiqueta="Copiar subfamilia" title="Copiar subfamilia" disabled={!sel} onClick={() => abrir("copiar")}><Copy size={15} /></BotonIcono>

@@ -165,7 +165,7 @@ function SplitPartidas() {
           ))}
         </div>
       </div>
-      <div className="relative flex h-fit flex-col gap-1.5 rounded-md border border-line bg-card p-1.5 lg:sticky lg:top-2">
+      <div className="relative flex h-fit flex-col gap-1.5 rounded-md border p-1.5 barra-iconos lg:sticky lg:top-2">
         <div className="relative">
           <BotonIcono etiqueta="Agregar" title="Agregar partida o insumo al APU" tono="primario" onClick={() => setMenuMas((v) => !v)}><Plus size={15} /></BotonIcono>
           {menuMas && (
@@ -1017,7 +1017,7 @@ function HojaInsumos() {
         })}
       </div>
 
-      <div className="sticky top-2 flex h-fit flex-col gap-1.5 rounded-md border border-line bg-card p-1.5">
+      <div className="sticky top-2 flex h-fit flex-col gap-1.5 rounded-md border p-1.5 barra-iconos">
         <BotonIcono etiqueta="Agregar nuevo insumo" title="Agregar nuevo insumo" tono="primario" onClick={() => abrir("nuevo")}><Plus size={15} /></BotonIcono>
         <BotonIcono etiqueta="Editar insumo" title="Editar insumo" disabled={!sel} onClick={() => abrir("editar")}><Pencil size={15} /></BotonIcono>
         <BotonIcono etiqueta="Copiar insumo" title="Copiar insumo" disabled={!sel} onClick={() => abrir("copiar")}><Copy size={15} /></BotonIcono>

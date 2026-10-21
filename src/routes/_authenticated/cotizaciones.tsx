@@ -933,7 +933,7 @@ function Cotizaciones() {
       {(() => {
         const sel = filtradas.find((c) => c.id === filaSel) ?? null;
         return (
-          <div className="sticky top-2 flex h-fit flex-col gap-1.5 rounded-md border border-line bg-card p-1.5">
+          <div className="sticky top-2 flex h-fit flex-col gap-1.5 rounded-md border p-1.5 barra-iconos">
             <BotonIcono etiqueta="Vista previa" title="Vista previa" tono="primario" disabled={!sel} onClick={() => sel && navigate({ to: "/cotizacion-vista", search: { id: sel.id } })}><Eye size={15} /></BotonIcono>
             <BotonIcono etiqueta="Editar" title="Editar cotización" disabled={!sel} onClick={() => sel && setSeleccion(sel.id)}><Pencil size={15} /></BotonIcono>
             <BotonIcono etiqueta="Copiar" title="Copiar cotización" disabled={!sel} onClick={() => sel && void duplicar(sel)}><Copy size={15} /></BotonIcono>

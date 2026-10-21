@@ -79,7 +79,7 @@ export function EspecialidadesPartida() {
         </table>
         {visibles.length === 0 && <p className="px-3 py-1.5 text-xs text-muted-foreground">Sin especialidades</p>}
       </div>
-      <div className="sticky top-2 flex h-fit flex-col gap-1.5 rounded-md border border-line bg-card p-1.5">
+      <div className="sticky top-2 flex h-fit flex-col gap-1.5 rounded-md border p-1.5 barra-iconos">
         <BotonIcono etiqueta="Agregar nueva especialidad" tono="primario" onClick={() => abrir("nuevo")}><Plus size={15} /></BotonIcono>
         <BotonIcono etiqueta="Editar especialidad" disabled={!sel} onClick={() => abrir("editar")}><Pencil size={15} /></BotonIcono>
         <BotonIcono etiqueta="Copiar especialidad" disabled={!sel} onClick={() => abrir("copiar")}><Copy size={15} /></BotonIcono>
