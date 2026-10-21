@@ -9,6 +9,8 @@ import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator,
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AutoMaestra } from "@/components/CotizacionHoja";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ComboNombre } from "@/components/cotizaciones/ComboNombre";
+import { claveNombre } from "@/lib/formato-texto";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
 import { precioMaestroEnMoneda, useGruposCotizacion, type CotizacionItem, type PartidaMaestra } from "@/lib/cotizaciones";
 import { copiarRecetaACotizacion, useCatalogoCotizacion } from "@/lib/banco-apu";
@@ -151,7 +153,8 @@ export function HojaNiveles({
     const f = ventana.form;
     if (ventana.modo === "nuevo" && f.nivel === "partida" && origenPartida === "banco" && !f.apuId)
       return setError("Selecciona una partida del Banco de partidas.");
-    const nombre = formatearNivel(f.nombre, f.nivel);
+    const delCatalogo = opcionesNombre.find((o) => claveNombre(o) === claveNombre(f.nombre));
+    const nombre = formatearNivel(delCatalogo ?? f.nombre, f.nivel);
     if (!nombre) return setError("Escribe o elige el nombre.");
     const esPartida = f.nivel === "partida";
     const datos = {
@@ -400,11 +403,7 @@ export function HojaNiveles({
             <div className="sm:col-span-2">
               <Campo etiqueta={ventana?.modo === "nuevo" && f.nivel === "partida" && origenPartida === "banco" ? "Partida del banco" : "Nombre"}>
                 {opcionesNombre.length > 0 ? (
-                  <Select value={f.nombre} onChange={(e) => setF({ nombre: e.target.value })} autoFocus>
-                    <option value="">— Elegir —</option>
-                    {f.nombre && !opcionesNombre.includes(f.nombre) && <option value={f.nombre}>{f.nombre}</option>}
-                    {opcionesNombre.map((o) => <option key={o} value={o}>{o}</option>)}
-                  </Select>
+                  <ComboNombre value={f.nombre} opciones={opcionesNombre} onChange={(v) => setF({ nombre: v })} />
                 ) : f.nivel === "partida" && !(ventana?.modo === "nuevo" && origenPartida === "nueva") ? (
                   <AutoMaestra
                     key={`${ventana?.modo}-${origenPartida}`}
