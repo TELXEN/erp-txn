@@ -299,7 +299,7 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
   const sinIgv = useMemo(() => items.filter((i) => (i.igv ?? 0) === 0), [items]);
   const sumaSinIgv = useMemo(() => r2(sinIgv.reduce((s, i) => s + (i.total_sunat ?? i.base + i.igv), 0)), [sinIgv]);
   const igvParcial = useMemo(() => items.filter((i) => { const t = tasaIgv(i); return t >= 0.10 && t < 0.1795; }), [items]);
-  const sumaIgvParcial = useMemo(() => r2(igvParcial.reduce((s, i) => s + (i.total_sunat ?? i.base + i.igv), 0)), [igvParcial]);
+  const sumaIgvParcial = useMemo(() => r2(igvParcial.reduce((s, i) => s + (i.base ?? 0), 0)), [igvParcial]);
 
   function generarTxt() {
     const ruc = rucEmpresa ?? "";
