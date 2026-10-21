@@ -42,17 +42,17 @@ describe("incidencia del APU en el desglose", () => {
   ], recursos, 1, 8);
   it("C006: el 5% de herramientas pertenece a equipos, sin importe sin APU", () => {
     const incidencia = incidenciaPartidaApu(calculo, 1970.65, 1, 5);
-    expect(incidencia.EQ).toBeCloseTo(295.23, 2);
-    expect(incidencia.OTROS).toBe(0);
-    expect(incidencia.AJUSTE).toBe(0);
+    expect(incidencia["EQ"]).toBeCloseTo(295.23, 2);
+    expect(incidencia["OTROS"]).toBe(0);
+    expect(incidencia["AJUSTE"]).toBe(0);
     expect(Object.values(incidencia).reduce((s, v) => s + v, 0)).toBeCloseTo(1970.65, 2);
   });
   it("una partida realmente sin recursos se registra como sin APU", () => {
-    expect(incidenciaPartidaApu({ total: 0, filas: [] }, 100, 2, 5).OTROS).toBe(200);
+    expect(incidenciaPartidaApu({ total: 0, filas: [] }, 100, 2, 5)["OTROS"]).toBe(200);
   });
   it("un precio manual distinto no se confunde con ausencia de APU", () => {
     const incidencia = incidenciaPartidaApu(calculo, 2000.65, 2, 5);
-    expect(incidencia.AJUSTE).toBe(60);
-    expect(incidencia.OTROS).toBe(0);
+    expect(incidencia["AJUSTE"]).toBe(60);
+    expect(incidencia["OTROS"]).toBe(0);
   });
 });
