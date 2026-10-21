@@ -375,7 +375,7 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
                   {libro === "RCE" && (
                     <>
                       <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-sky-500/10 px-2.5 py-1 font-mono text-[11px] text-sky-700 ring-1 ring-sky-500/25 dark:text-sky-400">
-                        <AlertTriangle className="size-3" />IGV 10–18%: {igvParcial.length} comp. · {soles(sumaIgvParcial)}
+                        <AlertTriangle className="size-3" />IGV entre 10% y 10.5%: {igvParcial.length} comp. · {soles(sumaIgvParcial)}
                       </span>
                       <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-amber-500/10 px-2.5 py-1 font-mono text-[11px] text-amber-700 ring-1 ring-amber-500/25 dark:text-amber-400">
                         <AlertTriangle className="size-3" />Sin IGV: {sinIgv.length} comp. · {soles(sumaSinIgv)}
@@ -449,7 +449,7 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
             {libro === "RCE" && (
               <p className="border-t border-line px-5 py-2 font-mono text-[10px] text-muted-foreground">
                 <span className="mr-1 inline-block size-2 rounded-sm bg-sky-500/40 align-middle" />
-                Azul: IGV entre 10% y 18% (tasas parciales) — {igvParcial.length} comp. por {soles(sumaIgvParcial)}.{" "}
+                Azul: IGV entre 10% y 10.5% (tasas parciales) — {igvParcial.length} comp. por {soles(sumaIgvParcial)}.{" "}
                 <span className="ml-1 inline-block size-2 rounded-sm bg-amber-500/40 align-middle" />
                 Ámbar: comprobantes sin IGV (exonerados) — {sinIgv.length} comp. por {soles(sumaSinIgv)}.
               </p>
