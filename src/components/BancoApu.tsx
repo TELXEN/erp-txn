@@ -8,8 +8,8 @@ import { MenuContextualApu, type AccionApu, type EstadoMenuApu } from "@/compone
 import { soles } from "@/lib/format";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
 import { useUnidadesMedida } from "@/lib/unidades";
-import { useSubfamilias } from "@/lib/codigo-insumo";
 import { renumerarApu, siguienteCodigoJerarquico } from "@/lib/banco-apu";
+import { VentanaInsumo, primeraMayuscula, type ModoInsumo, type TablaInsumo } from "@/components/InsumoVentana";
 import { r2, r4, sumar2 } from "@/lib/decimal";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -997,12 +997,6 @@ function PanelConsolidado({ partida }: { partida: Fila }) {
 
 // ================= Hoja limpia de insumos con barra de acciones =================
 
-const ordenEs = new Intl.Collator("es", { sensitivity: "base", numeric: true });
-/** Solo la primera letra en mayúscula; el resto en minúscula. */
-export const primeraMayuscula = (t: string) => {
-  const x = String(t ?? "").trim().replace(/\s+/g, " ").toLocaleLowerCase("es");
-  return x.charAt(0).toLocaleUpperCase("es") + x.slice(1);
-};
 
 function HojaInsumos() {
   const qc = useQueryClient();
