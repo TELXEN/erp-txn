@@ -45,7 +45,7 @@ describe("mover filas de cotización", () => {
     expect(subida.map((fila) => fila.id)).toEqual(["g1", "a", "p1", "a2", "p4", "b", "p2", "g2"]);
     expect(numerarNiveles(subida).codigos.get("b")).toBe("1.3");
     const bajada = moverBloqueNivel(filas, "a2", "bajar") ?? [];
-    expect(bajada.map((fila) => fila.id)).toEqual(["g1", "a", "p1", "g2", "b", "p2", "a2", "p4"]);
+    expect(bajada.map((fila) => fila.id)).toEqual(["g1", "a", "p1", "g2", "a2", "p4", "b", "p2"]);
     expect(numerarNiveles(bajada).codigos.get("a2")).toBe("2.1");
     expect(moverBloqueNivel(filas, "a", "bajar")?.map((fila) => fila.id)).toEqual(["g1", "a2", "p4", "a", "p1", "g2", "b", "p2"]);
   });
