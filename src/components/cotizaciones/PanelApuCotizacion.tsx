@@ -398,8 +398,9 @@ export function ResumenCotizacion({ cot, items }: { cot: Cotizacion; items: Coti
   const sim = cot.moneda === "USD" ? "US$" : "S/";
 
   async function cambiarPct(campo: "pct_gastos_generales" | "pct_utilidad", valor: number, actual: number) {
-    if (valor === actual) return;
-    await supabase.from("cotizaciones").update({ [campo]: valor } as never).eq("id", cot.id);
+    const nuevo = Math.round(valor * 100) / 100; // dos decimales
+    if (nuevo === actual) return;
+    await supabase.from("cotizaciones").update({ [campo]: nuevo } as never).eq("id", cot.id);
     qc.invalidateQueries({ queryKey: ["cotizaciones"] });
     qc.invalidateQueries({ queryKey: ["cotizacion"] });
   }
@@ -453,9 +454,9 @@ export function ResumenCotizacion({ cot, items }: { cot: Cotizacion; items: Coti
                   <input
                     key={`${cot.id}-${campo}-${cot[campo]}`}
                     type="number"
-                    step="0.5"
+                    step="0.01"
                     min="0"
-                    defaultValue={Number(cot[campo])}
+                    defaultValue={Number(cot[campo] ?? 0).toFixed(2)}
                     aria-label={`Porcentaje de ${n.toLowerCase()}`}
                     title={`% de ${n.toLowerCase()} aplicado sobre el costo directo`}
                     onBlur={(e) => void cambiarPct(campo, Number(e.target.value || 0), Number(cot[campo]))}
@@ -468,7 +469,7 @@ export function ResumenCotizacion({ cot, items }: { cot: Cotizacion; items: Coti
             </tr>
           ))}
           <tr className="border-b border-line/40"><td className="px-2 py-0.5">Monto parcial</td><td /><td className="px-2 py-0.5 text-right whitespace-nowrap">{sim} {num(parcialT)}</td></tr>
-          <tr className="border-b border-line/40"><td className="px-2 py-0.5">IGV</td><td className="px-1 py-0.5"><span className="flex items-center gap-1"><span className="min-w-0 flex-1 px-1 text-right tabular-nums">{cot.aplica_igv === false ? 0 : 18}</span><span className="shrink-0 text-muted-foreground">%</span></span></td><td className="px-2 py-0.5 text-right whitespace-nowrap">{sim} {num(igv)}</td></tr>
+          <tr className="border-b border-line/40"><td className="px-2 py-0.5">IGV</td><td className="px-1 py-0.5"><span className="flex items-center gap-1"><span className="min-w-0 flex-1 px-1 text-right tabular-nums">{(cot.aplica_igv === false ? 0 : 18).toFixed(2)}</span><span className="shrink-0 text-muted-foreground">%</span></span></td><td className="px-2 py-0.5 text-right whitespace-nowrap">{sim} {num(igv)}</td></tr>
           <tr className="font-semibold text-primary"><td className="px-2 py-1">TOTAL</td><td /><td className="px-2 py-1 text-right whitespace-nowrap">{sim} {num(parcialT + igv)}</td></tr>
           {cot.moneda === "USD" && Number(cot.tipo_cambio) > 0 && (
             <tr className="text-muted-foreground"><td className="px-2 py-0.5">Equivalente en soles</td><td /><td className="px-2 py-0.5 text-right whitespace-nowrap">S/ {num((parcialT + igv) * Number(cot.tipo_cambio))}</td></tr>

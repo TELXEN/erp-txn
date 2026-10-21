@@ -67,8 +67,8 @@ function Desglose({
       <PopoverContent align="end" className="w-64 font-mono text-xs">
         <p className="mb-2 text-sm font-semibold text-ink">Desglose financiero</p>
         {fila("Costo directo", o.costoDirecto)}
-        {fila(`Gastos generales ${pctGG}%`, o.gastosGenerales)}
-        {fila(`Utilidad ${pctUt}%`, o.utilidad)}
+        {fila(`Gastos generales ${pctGG.toFixed(2)}%`, o.gastosGenerales)}
+        {fila(`Utilidad ${pctUt.toFixed(2)}%`, o.utilidad)}
         {fila("Oferta", o.ofertado, true)}
       </PopoverContent>
     </Popover>
@@ -152,8 +152,8 @@ function Proyectos() {
     fecha_fin: "",
     avance_programado_pct: "",
     fecha_corte_programado: "",
-    pct_gastos_generales: "10",
-    pct_utilidad: "10",
+    pct_gastos_generales: "10.00",
+    pct_utilidad: "10.00",
     cd_base: "",
   });
   const [error, setError] = useState("");
@@ -258,8 +258,8 @@ function Proyectos() {
       fecha_fin: "",
       avance_programado_pct: "",
       fecha_corte_programado: "",
-      pct_gastos_generales: "10",
-      pct_utilidad: "10",
+      pct_gastos_generales: "10.00",
+      pct_utilidad: "10.00",
       cd_base: "",
     });
     if (cerrarTrasGuardar.current) setFormAbierto(false);
@@ -280,8 +280,8 @@ function Proyectos() {
       fecha_fin: p.fecha_fin ?? "",
       avance_programado_pct: p.avance_programado_pct === null ? "" : String(p.avance_programado_pct),
       fecha_corte_programado: p.fecha_corte_programado ?? "",
-      pct_gastos_generales: String(p.pct_gastos_generales ?? 0),
-      pct_utilidad: String(p.pct_utilidad ?? 0),
+      pct_gastos_generales: Number(p.pct_gastos_generales ?? 0).toFixed(2),
+      pct_utilidad: Number(p.pct_utilidad ?? 0).toFixed(2),
       cd_base: p.cd_base == null ? "" : String(p.cd_base),
     });
     setEditandoId(p.id);
@@ -461,10 +461,10 @@ function Proyectos() {
               <p className="text-[10px] text-muted-foreground">Las partidas no podrán sumar más que el Costo Directo Base.</p>
               <div className="grid grid-cols-2 gap-3 pt-1">
                 <CampoF etiqueta="% Gastos Generales">
-                  <Input type="number" min={0} max={100} step="0.1" value={form.pct_gastos_generales} onChange={(e) => setForm({ ...form, pct_gastos_generales: e.target.value })} />
+                  <Input type="number" min={0} max={100} step="0.01" value={form.pct_gastos_generales} onChange={(e) => setForm({ ...form, pct_gastos_generales: e.target.value })} />
                 </CampoF>
                 <CampoF etiqueta="% Utilidad Prevista">
-                  <Input type="number" min={0} max={100} step="0.1" value={form.pct_utilidad} onChange={(e) => setForm({ ...form, pct_utilidad: e.target.value })} />
+                  <Input type="number" min={0} max={100} step="0.01" value={form.pct_utilidad} onChange={(e) => setForm({ ...form, pct_utilidad: e.target.value })} />
                 </CampoF>
               </div>
               <div className="flex gap-2 rounded-md border border-primary/20 bg-primary/5 p-3 text-xs leading-relaxed text-ink">
@@ -659,8 +659,8 @@ function Proyectos() {
               <Dato etiqueta="Fecha de fin estimada" valor={fecha(proyectoVisto.fecha_fin)} />
               <Dato etiqueta="Fecha de corte programado" valor={fecha(proyectoVisto.fecha_corte_programado)} />
               <Dato etiqueta="Avance programado" valor={proyectoVisto.avance_programado_pct === null ? "—" : `${Number(proyectoVisto.avance_programado_pct).toFixed(1)}%`} />
-              <Dato etiqueta="% Gastos Generales" valor={`${Number(proyectoVisto.pct_gastos_generales ?? 0)}%`} />
-              <Dato etiqueta="% Utilidad Prevista" valor={`${Number(proyectoVisto.pct_utilidad ?? 0)}%`} />
+              <Dato etiqueta="% Gastos Generales" valor={`${Number(proyectoVisto.pct_gastos_generales ?? 0).toFixed(2)}%`} />
+              <Dato etiqueta="% Utilidad Prevista" valor={`${Number(proyectoVisto.pct_utilidad ?? 0).toFixed(2)}%`} />
               <Dato etiqueta="Costo Directo Base" valor={proyectoVisto.cd_base == null ? "Sin techo definido" : soles(proyectoVisto.cd_base)} />
               <Dato etiqueta="Registrada" valor={fecha(proyectoVisto.created_at?.slice(0, 10) ?? null)} />
             </div>

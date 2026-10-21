@@ -303,15 +303,15 @@ function VistaCotizacion() {
     const pctUt = Number(cot.pct_utilidad) || 0;
     let base = `G${sub.number}`;
     if (pctGg > 0) {
-      const f = ws.addRow(["", `GASTOS GENERALES (${pctGg}%)`, "", "", "", "", { formula: `ROUND(G${sub.number}*${pctGg / 100},2)` }]);
+      const f = ws.addRow(["", `GASTOS GENERALES (${pctGg.toFixed(2)}%)`, "", "", "", "", { formula: `ROUND(G${sub.number}*${pctGg / 100},2)` }]);
       base += `+G${f.number}`;
     }
     if (pctUt > 0) {
-      const f = ws.addRow(["", `UTILIDAD (${pctUt}%)`, "", "", "", "", { formula: `ROUND(G${sub.number}*${pctUt / 100},2)` }]);
+      const f = ws.addRow(["", `UTILIDAD (${pctUt.toFixed(2)}%)`, "", "", "", "", { formula: `ROUND(G${sub.number}*${pctUt / 100},2)` }]);
       base += `+G${f.number}`;
     }
     const filaSub = ws.addRow(["", "SUBTOTAL", "", "", "", "", { formula: base }]);
-    const filaIgv = ws.addRow(["", conIgv ? "IGV (18%)" : "IGV (0%)", "", "", "", "", { formula: conIgv ? `ROUND(G${filaSub.number}*0.18,2)` : "0" }]);
+    const filaIgv = ws.addRow(["", conIgv ? "IGV (18.00%)" : "IGV (0.00%)", "", "", "", "", { formula: conIgv ? `ROUND(G${filaSub.number}*0.18,2)` : "0" }]);
     const tot = ws.addRow(["", "TOTAL", "", "", "", "", { formula: `G${filaSub.number}+G${filaIgv.number}` }]);
     tot.font = { name: fuenteExcel, bold: true };
     ws.eachRow((fila) => fila.eachCell({ includeEmpty: true }, (celda) => {
@@ -580,10 +580,10 @@ function VistaCotizacion() {
                       const bloqueTotales = (
                         <div style={{ width: 248, flexShrink: 0, fontSize: "8.5pt", lineHeight: 1.2 }}>
                           <div className="flex justify-between" style={{ padding: "2px 0", alignItems: "center", color: C.slate700 }}><span>Costo Directo</span><span>{S(sim, calculo.costoDirecto)}</span></div>
-                          {calculo.gastosGenerales > 0 && <div className="flex justify-between" style={{ padding: "2px 0", alignItems: "center", color: C.slate700 }}><span style={{ display: "flex" }}><span style={{ display: "inline-block", width: 96 }}>Gastos Generales</span><span style={{ display: "inline-block", width: 44, textAlign: "right" }}>({Number(cot.pct_gastos_generales)}%)</span></span><span>{S(sim, calculo.gastosGenerales)}</span></div>}
-                          {calculo.utilidad > 0 && <div className="flex justify-between" style={{ padding: "2px 0", alignItems: "center", color: C.slate700 }}><span style={{ display: "flex" }}><span style={{ display: "inline-block", width: 96 }}>Utilidad</span><span style={{ display: "inline-block", width: 44, textAlign: "right" }}>({Number(cot.pct_utilidad)}%)</span></span><span>{S(sim, calculo.utilidad)}</span></div>}
+                          {calculo.gastosGenerales > 0 && <div className="flex justify-between" style={{ padding: "2px 0", alignItems: "center", color: C.slate700 }}><span style={{ display: "flex" }}><span style={{ display: "inline-block", width: 96 }}>Gastos Generales</span><span style={{ display: "inline-block", width: 44, textAlign: "right" }}>({Number(cot.pct_gastos_generales ?? 0).toFixed(2)}%)</span></span><span>{S(sim, calculo.gastosGenerales)}</span></div>}
+                          {calculo.utilidad > 0 && <div className="flex justify-between" style={{ padding: "2px 0", alignItems: "center", color: C.slate700 }}><span style={{ display: "flex" }}><span style={{ display: "inline-block", width: 96 }}>Utilidad</span><span style={{ display: "inline-block", width: 44, textAlign: "right" }}>({Number(cot.pct_utilidad ?? 0).toFixed(2)}%)</span></span><span>{S(sim, calculo.utilidad)}</span></div>}
                           {(calculo.gastosGenerales > 0 || calculo.utilidad > 0) && <div className="flex justify-between" style={{ padding: "2px 0", alignItems: "center", color: C.slate700, fontWeight: 600 }}><span>Subtotal</span><span>{S(sim, subtotal)}</span></div>}
-                          <div className="flex justify-between" style={{ padding: "2px 0", alignItems: "center", color: C.slate700, borderBottom: `1px solid ${C.slate100}` }}><span style={{ display: "flex" }}><span style={{ display: "inline-block", width: 96 }}>IGV</span><span style={{ display: "inline-block", width: 44, textAlign: "right" }}>{conIgv ? "(18%)" : "(0%)"}</span></span><span>{S(sim, igv)}</span></div>
+                          <div className="flex justify-between" style={{ padding: "2px 0", alignItems: "center", color: C.slate700, borderBottom: `1px solid ${C.slate100}` }}><span style={{ display: "flex" }}><span style={{ display: "inline-block", width: 96 }}>IGV</span><span style={{ display: "inline-block", width: 44, textAlign: "right" }}>{conIgv ? "(18.00%)" : "(0.00%)"}</span></span><span>{S(sim, igv)}</span></div>
                           <div className="flex justify-between" style={{ marginTop: 4, padding: "5px 12px", alignItems: "center", background: C.slate900, color: C.white, borderRadius: 6, fontFamily: DOC_FUENTE_CSS, fontSize: "9.5pt", lineHeight: 1.15, fontWeight: 400 }}>
                             <span>TOTAL</span><span>{S(sim, total)}</span>
                           </div>
