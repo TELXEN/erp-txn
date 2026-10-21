@@ -372,10 +372,10 @@ export function HojaNiveles({
         titulo={`${ventana?.modo === "editar" ? "Editar" : "Agregar"} ${f ? NOMBRE_NIVEL[f.nivel].toLowerCase() : ""}`}
         subtitulo={ventana?.modo === "nuevo" && seleccionado ? `Se agrega después de «${seleccionado.nombre}»` : ""}
         onCerrar={() => setVentana(null)}
-        ancho="max-w-xl"
+        ancho={f && (f.nivel === "especialidad" || f.nivel === "titulo") ? "max-w-2xl" : "max-w-xl"}
       >
         {f && (
-          <form onSubmit={guardar} className="grid gap-3 p-4 sm:grid-cols-2">
+          <form onSubmit={guardar} className="grid gap-4 p-5 sm:grid-cols-2">
             {ventana?.modo === "nuevo" && (
               <Campo etiqueta="Nivel">
                 <Select value={f.nivel} onChange={(e) => { setError(""); setF({ nivel: e.target.value as NivelCotizacion, nombre: "", apuId: null, unidad: "GLB", precio: "0" }); }}>
@@ -403,7 +403,7 @@ export function HojaNiveles({
             <div className="sm:col-span-2">
               <Campo etiqueta={ventana?.modo === "nuevo" && f.nivel === "partida" && origenPartida === "banco" ? "Partida del banco" : "Nombre"}>
                 {opcionesNombre.length > 0 ? (
-                  <ComboNombre value={f.nombre} opciones={opcionesNombre} onChange={(v) => setF({ nombre: v })} />
+                  <ComboNombre value={f.nombre} opciones={opcionesNombre} onChange={(v) => setF({ nombre: v })} listaAlta={f.nivel === "especialidad" || f.nivel === "titulo"} />
                 ) : f.nivel === "partida" && !(ventana?.modo === "nuevo" && origenPartida === "nueva") ? (
                   <AutoMaestra
                     key={`${ventana?.modo}-${origenPartida}`}
