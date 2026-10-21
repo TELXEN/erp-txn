@@ -1,3 +1,5 @@
+import { BarraIconosHoja } from "@/components/BarraIconosHoja";
+import { BotonIcono } from "@/components/ui-kit";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -145,6 +147,7 @@ function Beneficios() {
   const qc = useQueryClient();
   const { data: trabajadores = [] } = useTrabajadores();
   const ahora = new Date();
+  const [sel, setSel] = useState("");
   const [tipo, setTipo] = useState<Tipo>("CTS");
   const [anio, setAnio] = useState(ahora.getFullYear());
   const [periodo, setPeriodo] = useState(ahora.getMonth() < 5 || ahora.getMonth() >= 10 ? "Mayo" : "Noviembre");
@@ -353,7 +356,7 @@ function Beneficios() {
         </div>
       )}
 
-      <Panel titulo={tipo === "Liquidación" ? "Liquidaciones registradas" : `${tipo} ${periodo} ${anio}`}>
+      <div className="flex items-start gap-3"><Panel className="min-w-0 flex-1" titulo={tipo === "Liquidación" ? "Liquidaciones registradas" : `${tipo} ${periodo} ${anio}`}>
         {registros.length === 0 ? (
           <Vacio texto="Aún no hay cálculos para este periodo." />
         ) : (
@@ -364,14 +367,14 @@ function Beneficios() {
                   <th className="px-4 py-2">Trabajador</th><th className="px-2 py-2">{tipo === "Liquidación" ? "Ingreso – Cese" : "Cómputo"}</th>
                   <th className="px-2 py-2 text-right">Tiempo</th><th className="px-2 py-2 text-right">Rem. computable</th>
                   <th className="px-2 py-2 text-right">Monto</th><th className="px-2 py-2 text-right">Bonificación</th>
-                  <th className="px-2 py-2 text-right">Total</th><th className="px-2 py-2">Estado / Pago</th><th className="px-4 py-2 text-right">Acciones</th>
+                  <th className="px-2 py-2 text-right">Total</th><th className="px-2 py-2">Estado / Pago</th>
                 </tr>
               </thead>
               <tbody>
                 {registros.map((r) => {
                   const t = tDe(r.trabajador_id);
                   return (
-                    <tr key={r.id} className="border-b border-line/60 align-top last:border-0">
+                    <tr key={r.id} onClick={() => setSel(r.id)} className={`cursor-pointer border-b border-line/60 align-top last:border-0 hover:bg-muted/40 ${sel === r.id ? "bg-primary/10" : ""}`}>
                       <td className="px-4 py-2 font-semibold text-ink">{t?.nombre}<span className="block text-[10px] font-normal text-muted-foreground">{t?.regimen_laboral}</span></td>
                       <td className="px-2 py-2">{fecha(r.fecha_desde)} – {fecha(r.fecha_hasta)}</td>
                       <td className="px-2 py-2 text-right">
@@ -403,23 +406,7 @@ function Beneficios() {
                           </>
                         )}
                       </td>
-                      <td className="px-4 py-2">
-                        <div className="flex justify-end gap-1">
-                          {pago?.id === r.id ? (
-                            <>
-                              <Boton onClick={confirmarPago} className="py-1">Confirmar</Boton>
-                              <Boton variante="linea" onClick={() => setPago(null)} className="py-1">Cancelar</Boton>
-                            </>
-                          ) : (
-                            <>
-                              {r.estado_pago === "Pendiente" && (
-                                <button type="button" title={tipo === "CTS" ? "Registrar depósito" : "Registrar pago"} onClick={() => setPago({ id: r.id, banco_id: "", fecha_pago: hoy(), numero_operacion: "" })} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"><Check size={14} /></button>
-                              )}
-                              <button type="button" title="Eliminar" onClick={() => eliminar(r)} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-bad/40 text-bad hover:border-bad"><Trash2 size={14} /></button>
-                            </>
-                          )}
-                        </div>
-                      </td>
+                      
                     </tr>
                   );
                 })}
@@ -427,7 +414,21 @@ function Beneficios() {
             </table>
           </div>
         )}
-      </Panel>
+      </Panel><BarraIconosHoja objeto="registro" haySeleccion={!!registros.find((x) => x.id === sel)} extras={registros.filter((x) => x.id === sel).map((r) => <div key={r.id}><div>
+                          {pago?.id === r.id ? (
+                            <>
+                              <BotonIcono etiqueta="Confirmar" onClick={confirmarPago}><Check size={15} /></BotonIcono>
+                              <BotonIcono etiqueta="Cancelar" onClick={() => setPago(null)}><span className="text-base">×</span></BotonIcono>
+                            </>
+                          ) : (
+                            <>
+                              {r.estado_pago === "Pendiente" && (
+                                <BotonIcono etiqueta={tipo === "CTS" ? "Registrar depósito" : "Registrar pago"} onClick={() => setPago({ id: r.id, banco_id: "", fecha_pago: hoy(), numero_operacion: "" })}><Check size={15} /></BotonIcono>
+                              )}
+                              <BotonIcono etiqueta="Eliminar" onClick={() => eliminar(r)}><Trash2 size={15} /></BotonIcono>
+                            </>
+                          )}
+                        </div></div>)} /></div>
     </>
   );
 }

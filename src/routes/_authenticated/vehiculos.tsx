@@ -1,3 +1,5 @@
+import { BarraIconosHoja } from "@/components/BarraIconosHoja";
+import { BotonIcono } from "@/components/ui-kit";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -77,6 +79,7 @@ const VACIO_VEHICULO = {
 };
 
 function PaginaVehiculos() {
+  const [sel, setSel] = useState("");
   const { rol } = useAuth();
   const qc = useQueryClient();
   const esDinero = rol === "administrador" || rol === "gerente";
@@ -656,7 +659,7 @@ function PaginaVehiculos() {
               </form>
             </VentanaFlotante>}
 
-          <Panel titulo={`Flota (${vehiculos.length})`} extra={esDinero ? <Boton variante="accion" onClick={() => { setEditVeh(null); setFormVeh(VACIO_VEHICULO); setModalVehiculo(true); }}><Plus size={13} /> Registrar vehículo</Boton> : undefined}>
+          <div className="flex items-start gap-3"><Panel className="min-w-0 flex-1" titulo={`Flota (${vehiculos.length})`} extra={esDinero ? <Boton variante="accion" onClick={() => { setEditVeh(null); setFormVeh(VACIO_VEHICULO); setModalVehiculo(true); }}><Plus size={13} /> Registrar vehículo</Boton> : undefined}>
             {vehiculos.length === 0 ? <Vacio texto="Aún no hay vehículos registrados." /> : (
               <div className="overflow-x-auto">
                 <table className="w-full">
@@ -664,14 +667,14 @@ function PaginaVehiculos() {
                     <th className={th}>Placa</th><th className={th}>Vehículo</th><th className={th}>Propiedad</th>
                     <th className={th}>Km</th><th className={th}>SOAT</th><th className={th}>Rev. técnica</th>
                     {esDinero && <th className={th}>Tarifa día</th>}
-                    <th className={th}>Estado</th>{esDinero && <th className={th}></th>}
+                    <th className={th}>Estado</th>
                   </tr></thead>
                   <tbody>
                     {vehiculos.map((v) => {
                       const dSoat = diasPara(v.soat_vencimiento);
                       const dRev = diasPara(v.revision_tecnica_vencimiento);
                       return (
-                        <tr key={v.id} className="border-b border-line/60">
+                        <tr key={v.id} onClick={() => setSel(v.id)} onDoubleClick={() => { if (esDinero) editarVehiculo(v); }} className={`cursor-pointer border-b border-line/60 hover:bg-muted/40 ${sel === v.id ? "bg-primary/10" : ""}`}>
                           <td className={`${td} font-mono font-semibold`}>{v.placa}</td>
                           <td className={td}>{[v.marca, v.modelo, v.anio].filter(Boolean).join(" ") || v.tipo}</td>
                           <td className={td}><Etiqueta tono={v.propiedad === "Propio" ? "good" : "neutro"}>{v.propiedad}</Etiqueta></td>
@@ -680,12 +683,7 @@ function PaginaVehiculos() {
                           <td className={td}>{dRev == null ? "—" : <span className={dRev <= 30 ? "font-semibold text-bad" : ""}>{v.revision_tecnica_vencimiento}</span>}</td>
                           {esDinero && <td className={`${td} font-mono`}>{fmtSoles(v.tarifa_dia)}</td>}
                           <td className={td}><Etiqueta tono={v.estado === "Operativo" ? "good" : v.estado === "En taller" ? "neutro" : "bad"}>{v.estado}</Etiqueta></td>
-                          {esDinero && (
-                            <td className={`${td} text-right`}>
-                              <button onClick={() => editarVehiculo(v)} className="mr-2 text-primary" aria-label="Editar"><Pencil className="size-3.5" /></button>
-                              <button onClick={() => borrarVehiculo(v)} className="text-bad" aria-label="Eliminar"><Trash2 className="size-3.5" /></button>
-                            </td>
-                          )}
+                          
                         </tr>
                       );
                     })}
@@ -693,7 +691,7 @@ function PaginaVehiculos() {
                 </table>
               </div>
             )}
-          </Panel>
+          </Panel><BarraIconosHoja objeto="registro" haySeleccion={!!vehiculos.find((x) => x.id === sel)} onEliminar={esDinero ? () => { const v = vehiculos.find((x) => x.id === sel); if (v) void borrarVehiculo(v); } : undefined} onEditar={esDinero ? () => { const v = vehiculos.find((x) => x.id === sel); if (v) editarVehiculo(v); } : undefined} /></div>
         </div>
       )}
 
@@ -810,18 +808,18 @@ function PaginaVehiculos() {
             </div>
           </Panel>
 
-          <Panel titulo={`Traslados (${traslados.length})`}>
+          <div className="flex items-start gap-3"><Panel className="min-w-0 flex-1" titulo={`Traslados (${traslados.length})`}>
             {traslados.length === 0 ? <Vacio texto="Sin traslados registrados." /> : (
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead><tr className="border-b border-line">
                     <th className={th}>Fecha</th><th className={th}>Vehículo</th><th className={th}>Ruta</th>
                     <th className={th}>Conductor</th><th className={th}>Km</th><th className={th}>Combustible</th>
-                    <th className={th}>Carga</th>{esDinero && <th className={th}></th>}
+                    <th className={th}>Carga</th>
                   </tr></thead>
                   <tbody>
                     {traslados.map((t) => (
-                      <tr key={t.id} className="border-b border-line/60">
+                      <tr key={t.id} onClick={() => setSel(t.id)} className={`cursor-pointer border-b border-line/60 hover:bg-muted/40 ${sel === t.id ? "bg-primary/10" : ""}`}>
                         <td className={`${td} font-mono`}>{t.fecha}</td>
                         <td className={td}>{mapaVehiculo.get(t.vehiculo_id)?.placa ?? "—"}</td>
                         <td className={td}>{t.origen} → {t.destino}</td>
@@ -830,14 +828,14 @@ function PaginaVehiculos() {
                         <td className={`${td} font-mono`}>{t.combustible_galones} gal{esDinero && t.combustible_monto ? ` · ${fmtSoles(t.combustible_monto)}` : ""}
                           {esDinero && Number(t.combustible_monto) > 0 && <div className="text-[10px] text-muted-foreground">{nombreOrigen(t)}{t.numero_operacion ? ` · Op. ${t.numero_operacion}` : ""}</div>}</td>
                         <td className={`${td} text-muted-foreground`}>{t.carga}</td>
-                        {esDinero && <td className={`${td} text-right`}><button onClick={() => borrarTraslado(t.id)} className="text-bad" aria-label="Eliminar"><Trash2 className="size-3.5" /></button></td>}
+                        
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
             )}
-          </Panel>
+          </Panel><BarraIconosHoja objeto="registro" haySeleccion={!!traslados.find((x) => x.id === sel)} onEliminar={esDinero ? () => { const t = traslados.find((x) => x.id === sel); if (t) void borrarTraslado(t.id); } : undefined} /></div>
         </div>
       )}
 
@@ -871,7 +869,7 @@ function PaginaVehiculos() {
                 </div>
               </Panel>
 
-              <Panel titulo="Plan de mantenimiento preventivo">
+              <div className="flex items-start gap-3"><Panel className="min-w-0 flex-1" titulo="Plan de mantenimiento preventivo">
                 <div className="grid grid-cols-2 gap-3 p-5 md:grid-cols-4">
                   <Campo etiqueta="Vehículo">
                     <Select value={formPlan.vehiculo_id} onChange={(e) => setFormPlan({ ...formPlan, vehiculo_id: e.target.value })}>
@@ -891,39 +889,39 @@ function PaginaVehiculos() {
                     <table className="w-full">
                       <thead><tr className="border-b border-line">
                         <th className={th}>Vehículo</th><th className={th}>Tarea</th><th className={th}>Frecuencia</th>
-                        <th className={th}>Próximo km</th><th className={th}>Próxima fecha</th><th className={th}></th>
+                        <th className={th}>Próximo km</th><th className={th}>Próxima fecha</th>
                       </tr></thead>
                       <tbody>
                         {plan.filter((p) => p.activo).map((p) => (
-                          <tr key={p.id} className="border-b border-line/60">
+                          <tr key={p.id} onClick={() => setSel(p.id)} className={`cursor-pointer border-b border-line/60 hover:bg-muted/40 ${sel === p.id ? "bg-primary/10" : ""}`}>
                             <td className={td}>{mapaVehiculo.get(p.vehiculo_id)?.placa ?? "—"}</td>
                             <td className={td}>{p.descripcion}</td>
                             <td className={`${td} font-mono`}>{[p.cada_km ? `${p.cada_km} km` : null, p.cada_meses ? `${p.cada_meses} meses` : null].filter(Boolean).join(" / ") || "—"}</td>
                             <td className={`${td} font-mono`}>{p.proximo_km ?? "—"}</td>
                             <td className={`${td} font-mono`}>{p.proxima_fecha ?? "—"}</td>
-                            <td className={`${td} text-right`}><button onClick={() => borrarPlan(p.id)} className="text-bad" aria-label="Eliminar"><Trash2 className="size-3.5" /></button></td>
+                            
                           </tr>
                         ))}
                       </tbody>
                     </table>
                   </div>
                 )}
-              </Panel>
+              </Panel><BarraIconosHoja objeto="registro" haySeleccion={!!plan.find((x) => x.id === sel)} onEliminar={esDinero ? () => { const p = plan.find((x) => x.id === sel); if (p) void borrarPlan(p.id); } : undefined} /></div>
             </>
           )}
 
-          <Panel titulo={`Historial de mantenimientos (${mantenimientos.length})`}>
+          <div className="flex items-start gap-3"><Panel className="min-w-0 flex-1" titulo={`Historial de mantenimientos (${mantenimientos.length})`}>
             {mantenimientos.length === 0 ? <Vacio texto="Sin mantenimientos registrados." /> : (
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead><tr className="border-b border-line">
                     <th className={th}>Fecha</th><th className={th}>Vehículo</th><th className={th}>Tipo</th>
                     <th className={th}>Km</th>{esDinero && <th className={th}>Costo</th>}
-                    <th className={th}>Detalle</th>{esDinero && <th className={th}></th>}
+                    <th className={th}>Detalle</th>
                   </tr></thead>
                   <tbody>
                     {mantenimientos.map((m) => (
-                      <tr key={m.id} className="border-b border-line/60">
+                      <tr key={m.id} onClick={() => setSel(m.id)} className={`cursor-pointer border-b border-line/60 hover:bg-muted/40 ${sel === m.id ? "bg-primary/10" : ""}`}>
                         <td className={`${td} font-mono`}>{m.fecha}</td>
                         <td className={td}>{mapaVehiculo.get(m.vehiculo_id)?.placa ?? "—"}</td>
                         <td className={td}><Etiqueta tono={m.tipo === "Preventivo" ? "good" : "bad"}>{m.tipo}</Etiqueta></td>
@@ -931,14 +929,14 @@ function PaginaVehiculos() {
                         {esDinero && <td className={`${td} font-mono`}>{fmtSoles(m.costo)}</td>}
                         {esDinero && <td className={`${td} text-xs text-muted-foreground`}>{Number(m.costo) > 0 ? nombreOrigen(m) : "—"}{m.numero_operacion ? ` · Op. ${m.numero_operacion}` : ""}</td>}
                         <td className={`${td} text-muted-foreground`}>{m.detalle}</td>
-                        {esDinero && <td className={`${td} text-right`}><button onClick={() => borrarMantenimiento(m.id)} className="text-bad" aria-label="Eliminar"><Trash2 className="size-3.5" /></button></td>}
+                        
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
             )}
-          </Panel>
+          </Panel><BarraIconosHoja objeto="registro" haySeleccion={!!mantenimientos.find((x) => x.id === sel)} onEliminar={esDinero ? () => { const m = mantenimientos.find((x) => x.id === sel); if (m) void borrarMantenimiento(m.id); } : undefined} /></div>
         </div>
       )}
 

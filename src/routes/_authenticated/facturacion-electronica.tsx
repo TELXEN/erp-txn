@@ -1,3 +1,5 @@
+import { BarraIconosHoja } from "@/components/BarraIconosHoja";
+import { BotonIcono } from "@/components/ui-kit";
 import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -28,6 +30,7 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
   const { rol } = useAuth(); const preliquidacion = (useSearch({ strict: false }) as { preliquidacion?: string }).preliquidacion ?? ""; const navigate = useNavigate(); const qc = useQueryClient();
   const crear = useServerFn(crearComprobanteElectronico); const actualizar = useServerFn(actualizarBorradorComprobante); const eliminar = useServerFn(eliminarBorradorComprobante);
   const pestanaInicial: TipoComprobante = esGuias ? "09" : "01";
+  const [sel, setSel] = useState("");
   const [pestana, setPestana] = useState<TipoComprobante>(pestanaInicial);
   const [vista, setVista] = useState<"emitidos" | "recibidos">("emitidos");
   const [abierto, setAbierto] = useState(Boolean(preliquidacion));
@@ -217,20 +220,17 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
       </Panel>
     </div>}
 
-    <Panel titulo={PESTANAS_CPE.find((p) => p.tipo === pestana)?.etiqueta ?? "Comprobantes"} extra={<Buscador valor={busqueda} onChange={setBusqueda} total={filtrados.length} placeholder="Buscar número, cliente o estado..." />}>
-      {filtrados.length === 0 ? <Vacio texto="Aún no hay documentos de este tipo." /> : <div className="overflow-x-auto"><table className="w-full font-mono text-xs"><thead><tr className="border-b border-line text-left text-[10px] uppercase text-muted-foreground"><th className="px-5 py-2">Comprobante</th><th className="px-3 py-2">Cliente</th><th className="px-3 py-2">Emisión</th><th className="px-3 py-2">Condición</th><th className="px-3 py-2 text-right">Total</th><th className="px-3 py-2">Estado fiscal</th><th className="px-5 py-2" /></tr></thead><tbody>{filtrados.map((x) => <tr key={x.id} className="border-b border-line/60">
+    <div className="flex items-start gap-3"><Panel className="min-w-0 flex-1" titulo={PESTANAS_CPE.find((p) => p.tipo === pestana)?.etiqueta ?? "Comprobantes"} extra={<Buscador valor={busqueda} onChange={setBusqueda} total={filtrados.length} placeholder="Buscar número, cliente o estado..." />}>
+      {filtrados.length === 0 ? <Vacio texto="Aún no hay documentos de este tipo." /> : <div className="overflow-x-auto"><table className="w-full font-mono text-xs"><thead><tr className="border-b border-line text-left text-[10px] uppercase text-muted-foreground"><th className="px-5 py-2">Comprobante</th><th className="px-3 py-2">Cliente</th><th className="px-3 py-2">Emisión</th><th className="px-3 py-2">Condición</th><th className="px-3 py-2 text-right">Total</th><th className="px-3 py-2">Estado fiscal</th></tr></thead><tbody>{filtrados.map((x) => <tr key={x.id} onClick={() => setSel(x.id)} onDoubleClick={() => { if (x.estado_fiscal === "Borrador") void editarBorrador(x); }} className={`cursor-pointer border-b border-line/60 hover:bg-muted/40 ${sel === x.id ? "bg-primary/10" : ""}`}>
         <td className="px-5 py-2.5"><b><Resaltar texto={x.numero} termino={busqueda} /></b><div className="text-[10px] text-muted-foreground">{TIPOS_COMPROBANTE[x.tipo_comprobante as TipoComprobante]}</div></td>
         <td className="px-3 py-2.5">{x.cliente_razon_social || clientes.find((c) => c.id === x.cliente_id)?.razon_social || "—"}</td>
         <td className="px-3 py-2.5">{fmtFecha(x.fecha_emision)}</td>
         <td className="px-3 py-2.5">{x.condicion_pago}</td>
         <td className="px-3 py-2.5 text-right font-semibold">{x.moneda === "USD" ? `US$ ${Number(x.total).toFixed(2)}` : soles(Number(x.total))}</td>
         <td className="px-3 py-2.5"><Etiqueta tono={x.estado_fiscal === "Aceptado con CDR" ? "good" : x.estado_fiscal === "Rechazado" ? "bad" : "neutro"}>{x.estado_fiscal}</Etiqueta></td>
-        <td className="px-5 py-2.5 text-right"><TooltipProvider delayDuration={200}><div className="inline-flex gap-1">
-          <Tooltip><TooltipTrigger asChild><Link to="/comprobante-vista" search={{ id: x.id }} aria-label={`Vista previa de ${x.numero}`} title="Vista previa" className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-line text-muted-foreground hover:bg-primary/10 hover:text-primary"><Eye size={15} /></Link></TooltipTrigger><TooltipContent>Vista previa</TooltipContent></Tooltip>
-          {x.estado_fiscal === "Borrador" && <><Tooltip><TooltipTrigger asChild><button type="button" aria-label={`Editar ${x.numero}`} title="Editar" onClick={() => void editarBorrador(x)} className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-line text-muted-foreground hover:bg-primary/10 hover:text-primary"><Pencil size={14} /></button></TooltipTrigger><TooltipContent>Editar borrador</TooltipContent></Tooltip><Tooltip><TooltipTrigger asChild><button type="button" aria-label={`Eliminar ${x.numero}`} title="Eliminar" onClick={() => setPorEliminar(x)} className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-line text-bad hover:bg-bad/10"><Trash2 size={14} /></button></TooltipTrigger><TooltipContent>Eliminar borrador</TooltipContent></Tooltip></>}
-        </div></TooltipProvider></td>
+        
       </tr>)}</tbody></table></div>}
-    </Panel>
+    </Panel><BarraIconosHoja objeto="borrador" haySeleccion={filtrados.some((x) => x.id === sel && x.estado_fiscal === "Borrador")} onEditar={() => { const x = filtrados.find((x) => x.id === sel); if (x?.estado_fiscal === "Borrador") void editarBorrador(x); }} onEliminar={() => { const x = filtrados.find((x) => x.id === sel); if (x?.estado_fiscal === "Borrador") setPorEliminar(x); }} extras={<BotonIcono etiqueta="Vista previa" disabled={!filtrados.some((x) => x.id === sel)} onClick={() => { void navigate({ to: "/comprobante-vista", search: { id: sel } }); }}><Eye size={15} /></BotonIcono>} /></div>
     </>}
     <AlertDialog open={Boolean(porEliminar)} onOpenChange={(open) => { if (!open) setPorEliminar(null); }}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Eliminar borrador</AlertDialogTitle><AlertDialogDescription>Se eliminará permanentemente el comprobante {porEliminar?.numero}. Esta acción no se puede deshacer.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel disabled={guardando}>Cancelar</AlertDialogCancel><AlertDialogAction disabled={guardando} onClick={() => void confirmarEliminar()} className="bg-bad text-paper hover:bg-bad/90">Eliminar</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog></>;
 }

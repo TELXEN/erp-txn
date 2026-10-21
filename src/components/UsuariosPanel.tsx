@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Check, Eye, EyeOff, Info, Pencil, Trash2, UserPlus, X } from "lucide-react";
+import { BarraIconosHoja } from "@/components/BarraIconosHoja";
+import { Check, Eye, EyeOff, Info, UserPlus, X } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
@@ -44,6 +45,7 @@ export function UsuariosPanel() {
   type Edicion = { id: string; nombre: string; email: string; rol: Rol };
   const [editando, setEditando] = useState<Edicion | null>(null);
   const [guardandoEdicion, setGuardandoEdicion] = useState(false);
+  const [sel, setSel] = useState("");
 
   if (rol !== "gerente") return <SinAcceso />;
 
@@ -99,6 +101,8 @@ export function UsuariosPanel() {
       setMensaje({ tipo: "error", texto: err instanceof Error ? err.message : "No se pudo eliminar el usuario." });
     }
   }
+
+  const usuarioSel = usuarios.find((u) => u.id === sel);
 
   return (
     <div className="space-y-4">
@@ -199,7 +203,8 @@ export function UsuariosPanel() {
         </Panel>
       )}
 
-      <Panel titulo="Usuarios registrados">
+      <div className="flex items-start gap-3">
+      <Panel titulo="Usuarios registrados" className="min-w-0 flex-1">
         {usuarios.length === 0 ? (
           <Vacio texto="No hay usuarios registrados." />
         ) : (
@@ -209,7 +214,7 @@ export function UsuariosPanel() {
                 <th className="px-5 py-2 font-medium w-4/12">Nombre</th>
                 <th className="px-3 py-2 font-medium w-3/12">Correo</th>
                 <th className="px-3 py-2 font-medium w-3/12">Rol asignado</th>
-                <th className="px-5 py-2 text-right font-medium w-2/12">Acciones</th>
+                <th className="px-5 py-2 text-right font-medium w-2/12"></th>
               </tr>
             </thead>
             <tbody>
@@ -217,7 +222,7 @@ export function UsuariosPanel() {
                 const esPropio = u.id === session?.user.id;
                 const enEdicion = editando?.id === u.id;
                 return (
-                  <tr key={u.id} className="border-b border-line/60 last:border-0">
+                  <tr key={u.id} onClick={() => setSel(u.id)} onDoubleClick={() => !enEdicion && iniciarEdicion(u)} className={`cursor-pointer border-b border-line/60 last:border-0 hover:bg-muted/40 ${sel === u.id ? "bg-primary/10" : ""}`}>
                     {enEdicion ? (
                       <>
                         <td className="px-5 py-2">
@@ -288,27 +293,7 @@ export function UsuariosPanel() {
                             <span className="text-muted-foreground">Sin rol</span>
                           )}
                         </td>
-                        <td className="px-5 py-2.5 text-right">
-                          <div className="inline-flex items-center gap-1.5">
-                            <button
-                              type="button"
-                              onClick={() => iniciarEdicion(u)}
-                              className="inline-flex h-7 w-7 items-center justify-center rounded border border-line text-muted-foreground hover:border-primary hover:text-primary"
-                              aria-label="Editar"
-                            >
-                              <Pencil className="h-3.5 w-3.5" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => eliminar(u.id)}
-                              disabled={esPropio}
-                              className="inline-flex h-7 w-7 items-center justify-center rounded border border-bad/40 text-bad hover:border-bad disabled:opacity-40"
-                              aria-label="Eliminar"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </button>
-                          </div>
-                        </td>
+                        <td className="px-5 py-2.5" />
                       </>
                     )}
                   </tr>
@@ -318,6 +303,11 @@ export function UsuariosPanel() {
           </table>
         )}
       </Panel>
+      <BarraIconosHoja objeto="usuario" haySeleccion={!!usuarioSel}
+        onAgregar={() => setAbierto(true)}
+        onEditar={() => { if (usuarioSel) iniciarEdicion(usuarioSel); }}
+        onEliminar={() => { if (usuarioSel && usuarioSel.id !== session?.user.id) { void eliminar(usuarioSel.id); setSel(""); } }} />
+      </div>
     </div>
   );
 }

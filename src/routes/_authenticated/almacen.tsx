@@ -1,7 +1,8 @@
+import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowDownToLine, ArrowUpFromLine, Trash2, Upload } from "lucide-react";
+import { ArrowDownToLine, ArrowUpFromLine, Upload } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
@@ -48,6 +49,8 @@ function AlmacenPage() {
   const [filtroTipo, setFiltroTipo] = useState("");
   const [error, setError] = useState("");
   const [busqueda, setBusqueda] = useState("");
+  const [sel, setSel] = useState("");
+  const actual = movs.find((x) => x.id === sel);
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
@@ -180,7 +183,8 @@ function AlmacenPage() {
         </p>
       </Panel>
 
-      <Panel
+      <div className="flex items-start gap-3">
+      <Panel className="min-w-0 flex-1"
         titulo="Movimientos"
         extra={
           <div className="flex gap-2">
@@ -210,12 +214,11 @@ function AlmacenPage() {
                 <th className="px-3 py-2 text-right font-medium">Cantidad</th>
                 <th className="px-3 py-2 text-right font-medium">Importe</th>
                 <th className="px-3 py-2 font-medium">Documento</th>
-                <th className="px-5 py-2" />
               </tr>
             </thead>
             <tbody>
               {visibles.map((m) => (
-                <tr key={m.id} className="border-b border-line/40">
+                <tr key={m.id} onClick={() => setSel(m.id)} className={`cursor-pointer border-b border-line/40 hover:bg-muted/40 ${sel === m.id ? "bg-primary/10" : ""}`}>
                   <td className="px-5 py-2">{m.fecha}</td>
                   <td className="px-3 py-2">
                     <span className={`inline-flex items-center gap-1 ${m.tipo === "Ingreso" ? "text-primary" : "text-muted-foreground"}`}>
@@ -227,17 +230,15 @@ function AlmacenPage() {
                   <td className="px-3 py-2 text-right">{num(Number(m.cantidad))} {m.unidad}</td>
                   <td className="px-3 py-2 text-right">{soles(Number(m.cantidad) * Number(m.costo_unitario))}</td>
                   <td className="px-3 py-2 text-muted-foreground"><Resaltar texto={m.documento || "—"} termino={busqueda} /></td>
-                  <td className="px-5 py-2 text-right">
-                    <button type="button" title="Eliminar" onClick={() => void eliminar(m.id)} className="text-bad">
-                      <Trash2 size={13} />
-                    </button>
-                  </td>
+
                 </tr>
               ))}
             </tbody>
           </table>
         )}
       </Panel>
+      <BarraIconosHoja objeto="movimiento" haySeleccion={!!actual} onEliminar={() => { if (actual) void eliminar(actual.id); }} />
+      </div>
     </>
   );
 }

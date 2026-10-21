@@ -1,10 +1,11 @@
+import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { createFileRoute } from "@tanstack/react-router";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { Fragment, useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
+import { Boton, BotonIcono, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { InsigniaCategoriaGasto } from "@/components/estado-ui";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { CalendarDays, Check, ChevronDown, ChevronRight, Info, Paperclip, Pencil, Plus, Search, Trash2, Upload, X } from "lucide-react";
@@ -114,6 +115,7 @@ function GastosGenerales() {
   const [error, setError] = useState("");
   const [ambito, setAmbito] = useState("Todas");
   const [busqueda, setBusqueda] = useState("");
+  const [sel, setSel] = useState("");
   const [desde, setDesde] = useState("");
   const [hasta, setHasta] = useState("");
   const [filtroCategoria, setFiltroCategoria] = useState("Todas");
@@ -181,6 +183,7 @@ function GastosGenerales() {
     .reduce((s, g) => s + Number(g.monto_soles), 0);
   const porPagar = total - pagado;
 
+  const actual = gastosBusqueda.find((x) => x.id === sel);
   const gruposCategoria = Array.from(new Set(gastosBusqueda.map((g) => g.categoria || "Sin categoría"))).sort();
 
   // Egresos de flota (módulo Vehículos): mantenimiento mecánico y combustible
@@ -672,7 +675,8 @@ function GastosGenerales() {
           <Plus size={14} /> Registrar Gasto
         </Boton>
       </div>
-      <Panel>
+      <div className="flex items-start gap-3">
+      <Panel className="min-w-0 flex-1">
         {gastosBusqueda.length === 0 ? (
           <Vacio
             texto={
@@ -693,7 +697,6 @@ function GastosGenerales() {
                 <th className="w-[35%] px-3 py-2.5 font-medium">Detalle</th>
                 <th className="w-[14%] px-3 py-2.5 font-medium">Estado</th>
                 <th className="w-[14%] px-3 py-2.5 text-right font-medium">Monto</th>
-                <th className="w-[12%] px-5 py-2.5 text-right font-medium">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -704,7 +707,7 @@ function GastosGenerales() {
                 return (
                   <Fragment key={cat}>
                     <tr className="border-b border-line bg-muted/40">
-                      <td colSpan={6} className="px-5 py-2.5">
+                      <td colSpan={5} className="px-5 py-2.5">
                         <button
                           type="button"
                           onClick={() => alternarGrupo(cat)}
@@ -768,9 +771,7 @@ function GastosGenerales() {
                                 onChange={(e) => setEditando({ ...editando, monto: e.target.value })}
                                 className="py-1 text-xs"
                               />
-                            </td>
-                            <td className="px-5 py-2">
-                              <div className="flex items-center justify-end gap-1">
+                              <div className="mt-2 flex items-center justify-end gap-1">
                                 <button
                                   type="button"
                                   onClick={actualizarEdicion}
@@ -791,7 +792,7 @@ function GastosGenerales() {
                             </td>
                           </tr>
                         ) : (
-                          <tr key={g.id} className="border-b border-line/60 transition-colors hover:bg-muted/30">
+                          <tr key={g.id} onClick={() => setSel(g.id)} onDoubleClick={() => { setSel(g.id); iniciarEdicion(g); }} className={`cursor-pointer border-b border-line/40 hover:bg-muted/40 ${sel === g.id ? "bg-primary/10" : ""}`}>
                             <td className="px-5 py-3 text-ink">{fmtFecha(g.fecha)}</td>
                             <td className="px-3 py-3 text-ink">
                               {(g as Pago).comprobante?.trim() ? (
@@ -832,38 +833,7 @@ function GastosGenerales() {
                                 soles(Number(g.monto))
                               )}
                             </td>
-                            <td className="px-5 py-3">
-                              <div className="flex items-center justify-end gap-2">
-                                <button
-                                  type="button"
-                                  onClick={() => abrirAdjunto(adjuntoDe(g.id))}
-                                  disabled={!adjuntoDe(g.id)?.pdf_path && !adjuntoDe(g.id)?.xml_path}
-                                  className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-muted-foreground"
-                                  title={adjuntoDe(g.id)?.pdf_path || adjuntoDe(g.id)?.xml_path ? "Abrir sustento adjunto" : "Sin PDF o XML adjunto"}
-                                  aria-label={adjuntoDe(g.id)?.pdf_path || adjuntoDe(g.id)?.xml_path ? "Abrir sustento adjunto" : "Sin PDF o XML adjunto"}
-                                >
-                                  <Paperclip size={15} />
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => iniciarEdicion(g)}
-                                  className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
-                                  title="Editar"
-                                  aria-label="Editar"
-                                >
-                                  <Pencil size={15} />
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => eliminar(g.id)}
-                                  className="inline-flex h-8 w-8 items-center justify-center rounded-md text-bad transition-colors hover:bg-bad/10"
-                                  title="Eliminar"
-                                  aria-label="Eliminar"
-                                >
-                                  <Trash2 size={15} />
-                                </button>
-                              </div>
-                            </td>
+
                           </tr>
                         )
                       )}
@@ -875,6 +845,8 @@ function GastosGenerales() {
           </div>
         )}
        </Panel>
+      <BarraIconosHoja objeto="gasto" haySeleccion={!!actual} onEditar={() => { if (actual) iniciarEdicion(actual); }} onEliminar={() => { if (actual) void eliminar(actual.id); }} extras={<BotonIcono etiqueta="Abrir sustento adjunto" disabled={!actual || (!adjuntoDe(actual.id)?.pdf_path && !adjuntoDe(actual.id)?.xml_path)} onClick={() => { if (actual) abrirAdjunto(adjuntoDe(actual.id)); }}><Paperclip size={15} /></BotonIcono>} />
+      </div>
       </>
       )}
 

@@ -1,7 +1,8 @@
+import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { createFileRoute } from "@tanstack/react-router";
 import React, { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronDown, ChevronRight, Trash2, Upload, Zap } from "lucide-react";
+import { ChevronDown, ChevronRight, Upload, Zap } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Panel, Select, Vacio } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
@@ -70,6 +71,7 @@ function RequerimientosPage() {
   const [error, setError] = useState("");
   const [aviso, setAviso] = useState("");
   const [busqueda, setBusqueda] = useState("");
+  const [sel, setSel] = useState("");
 
   const { data: cotizaciones = [] } = useQuery({
     queryKey: ["cotizaciones_aprobadas"],
@@ -240,6 +242,7 @@ function RequerimientosPage() {
     const p = proyectos.find((x) => x.id === id);
     return p ? (p.codigo ? `${p.codigo} · ${p.nombre}` : p.nombre) : "—";
   };
+  const actual = reqs.find((x) => x.id === sel);
   const reqsVisibles = reqs.filter((r) => (!proyectoId || r.proyecto_id === proyectoId) && coincide(busqueda, r.codigo, nombreProy(r.proyecto_id), r.observacion));
 
   async function generar() {
@@ -505,7 +508,8 @@ function RequerimientosPage() {
         )}
       </Panel>
 
-      <Panel titulo="Requerimientos registrados" extra={<Buscador valor={busqueda} onChange={setBusqueda} placeholder="Buscar por código, obra u observación..." total={reqsVisibles.length} />}>
+      <div className="flex items-start gap-3">
+      <Panel className="min-w-0 flex-1" titulo="Requerimientos registrados" extra={<Buscador valor={busqueda} onChange={setBusqueda} placeholder="Buscar por código, obra u observación..." total={reqsVisibles.length} />}>
         {reqsVisibles.length === 0 ? (
           busqueda ? <Vacio texto={`Sin coincidencias para «${busqueda}»`} /> : <Vacio texto="Todavía no hay requerimientos." />
         ) : (
@@ -518,7 +522,6 @@ function RequerimientosPage() {
                 <th className="px-3 py-2 text-right font-medium">Ítems</th>
                 {gestiona && <th className="px-3 py-2 text-right font-medium">Referencial</th>}
                 <th className="px-3 py-2 font-medium">Estado</th>
-                <th className="px-5 py-2" />
               </tr>
             </thead>
             <tbody>
@@ -527,7 +530,7 @@ function RequerimientosPage() {
                 const ver = abierto === r.id;
                 return (
                   <React.Fragment key={r.id}>
-                    <tr className="border-b border-line/40">
+                    <tr onClick={() => setSel(r.id)} className={`cursor-pointer border-b border-line/40 hover:bg-muted/40 ${sel === r.id ? "bg-primary/10" : ""}`}>
                       <td className="px-5 py-2">
                         <button type="button" onClick={() => setAbierto(ver ? null : r.id)} className="inline-flex items-center gap-1 text-primary">
                           {ver ? <ChevronDown size={13} /> : <ChevronRight size={13} />} <Resaltar texto={r.codigo} termino={busqueda} />
@@ -550,13 +553,7 @@ function RequerimientosPage() {
                           r.estado
                         )}
                       </td>
-                      <td className="px-5 py-2 text-right">
-                        {(gestiona || r.estado === "Pendiente") && (
-                          <button type="button" onClick={() => void eliminar(r.id)} title="Eliminar" className="text-bad">
-                            <Trash2 size={13} />
-                          </button>
-                        )}
-                      </td>
+
                     </tr>
                     {ver &&
                       its.flatMap((i) => [(
@@ -566,7 +563,7 @@ function RequerimientosPage() {
                           <td className="px-3 py-1.5 text-muted-foreground">{i.unidad}</td>
                           <td className="px-3 py-1.5 text-right">{num(Number(i.cantidad))}</td>
                           {gestiona && <td className="px-3 py-1.5 text-right">{soles(Number(i.cantidad) * Number(i.precio_referencial))}</td>}
-                          <td colSpan={2} />
+                          <td />
                         </tr>
                       ), ...origenesReq
                         .filter((o) => o.requerimiento_item_id === i.id)
@@ -575,7 +572,7 @@ function RequerimientosPage() {
                             <td />
                             <td className="truncate px-3 py-1 pl-6" colSpan={2}><span className="text-primary">{o.partida_codigo || "—"}</span> {o.partida_nombre}</td>
                             <td className="px-3 py-1 text-right">{num(Number(o.metrado))} × {num(Number(o.cantidad_unitaria), 4)} = {num(Number(o.cantidad))}</td>
-                            <td colSpan={gestiona ? 3 : 2} />
+                            <td colSpan={gestiona ? 2 : 1} />
                           </tr>
                         ))])}
                   </React.Fragment>
@@ -585,6 +582,8 @@ function RequerimientosPage() {
           </table>
         )}
       </Panel>
+      <BarraIconosHoja objeto="requerimiento" haySeleccion={!!actual} onEliminar={gestiona || actual?.estado === "Pendiente" ? () => { if (actual) void eliminar(actual.id); } : undefined} />
+      </div>
     </>
   );
 }

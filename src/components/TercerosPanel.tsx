@@ -3,7 +3,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, Vacio } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
-import { Check, Pencil, Plus, Trash2, Upload, X } from "lucide-react";
+import { Check, Plus, Upload, X } from "lucide-react";
+import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { exportarExcel } from "@/lib/exportar";
 
 export type Tercero = {
@@ -71,6 +72,7 @@ export function TercerosPanel({ modo }: { modo: "cliente" | "proveedor" }) {
   const [busqueda, setBusqueda] = useState("");
   const [modalAbierto, setModalAbierto] = useState(false);
   const [ok, setOk] = useState("");
+  const [sel, setSel] = useState("");
 
   const { data: terceros = [] } = useQuery({
     queryKey: ["terceros"],
@@ -148,7 +150,8 @@ export function TercerosPanel({ modo }: { modo: "cliente" | "proveedor" }) {
     <>
       {error && <p className="mb-3 font-mono text-xs text-bad">{error}</p>}
 
-      <Panel
+      <div className="flex items-start gap-3">
+      <Panel className="min-w-0 flex-1"
         titulo={nombrePlural}
         extra={
           <div className="flex flex-wrap items-center gap-2">
@@ -196,12 +199,11 @@ export function TercerosPanel({ modo }: { modo: "cliente" | "proveedor" }) {
                 <th className="w-[10%] px-3 py-2 font-medium">Teléfono</th>
                 <th className="w-[15%] px-3 py-2 font-medium">Contacto</th>
                 <th className="w-[15%] px-3 py-2 font-medium">Correo</th>
-                <th className="w-[12%] px-5 py-2"></th>
               </tr>
             </thead>
             <tbody>
               {lista.map((t) => (
-                <tr key={t.id} className="border-b border-line/60 last:border-0">
+                <tr key={t.id} onClick={() => setSel(t.id)} onDoubleClick={() => abrirEdicion(t)} className={`cursor-pointer border-b border-line/60 last:border-0 hover:bg-muted/40 ${sel === t.id ? "bg-primary/10" : ""}`}>
                   <td className="px-5 py-2.5">
                     <span className="text-muted-foreground">{t.tipo_documento}</span>{" "}
                     <Resaltar texto={t.numero_documento} termino={busqueda} />
@@ -230,32 +232,17 @@ export function TercerosPanel({ modo }: { modo: "cliente" | "proveedor" }) {
                   <td className="truncate px-3 py-2.5 text-muted-foreground">
                     <Resaltar texto={t.email || "—"} termino={busqueda} />
                   </td>
-                  <td className="px-5 py-2">
-                    <div className="flex items-center justify-end gap-1">
-                      <button
-                        type="button"
-                        onClick={() => abrirEdicion(t)}
-                        className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"
-                        title="Editar"
-                      >
-                        <Pencil size={14} />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => eliminarTercero(t.id)}
-                        className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-bad/40 text-bad hover:border-bad"
-                        title="Eliminar"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         )}
       </Panel>
+      <BarraIconosHoja objeto={nombreSingular.toLowerCase()} haySeleccion={!!lista.find((t) => t.id === sel)}
+        onAgregar={abrirNuevo}
+        onEditar={() => { const t = lista.find((x) => x.id === sel); if (t) abrirEdicion(t); }}
+        onEliminar={() => { if (sel) { void eliminarTercero(sel); setSel(""); } }} />
+      </div>
 
       {modalAbierto && (
         <ModalTercero

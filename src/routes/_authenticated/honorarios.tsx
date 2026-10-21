@@ -1,3 +1,5 @@
+import { BarraIconosHoja } from "@/components/BarraIconosHoja";
+import { BotonIcono } from "@/components/ui-kit";
 import { createFileRoute } from "@tanstack/react-router";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { useEffect, useRef, useState } from "react";
@@ -84,6 +86,7 @@ function Honorarios() {
   });
 
   const prestadores = trabajadores.filter((t) => t.tipo_contratacion === "Honorarios");
+  const [sel, setSel] = useState("");
   const [editor, setEditor] = useState<{ clave: string; form: FormularioHonorario } | null>(null);
   const nombreDe = (id: string) => trabajadores.find((t) => t.id === id)?.nombre ?? "—";
   const [guardando, setGuardando] = useState(false);
@@ -263,7 +266,7 @@ function Honorarios() {
       {aviso && <p className="mb-3 rounded-md bg-primary/8 px-3 py-2 text-xs text-primary">{aviso}</p>}
       {error && !editor && <p className="mb-3 font-mono text-xs text-bad">{error}</p>}
 
-      <Panel titulo="Recibos registrados"
+      <div className="flex items-start gap-3"><Panel className="min-w-0 flex-1" titulo="Recibos registrados"
         extra={
           <div className="flex items-center gap-2">
             <Buscador
@@ -292,12 +295,22 @@ function Honorarios() {
                 <tr className="border-b border-line text-left text-[10px] uppercase text-muted-foreground">
                   <th className="px-4 py-2">Fecha</th><th className="px-3 py-2">Prestador</th><th className="px-3 py-2">N° Recibo</th>
                   <th className="px-3 py-2">Obra</th><th className="px-3 py-2 text-right">Bruto</th><th className="px-3 py-2 text-right">Retención</th>
-                  <th className="px-3 py-2 text-right">Neto</th><th className="px-3 py-2">Estado / Pago</th><th className="px-4 py-2 text-right">Acciones</th>
+                  <th className="px-3 py-2 text-right">Neto</th><th className="px-3 py-2">Estado / Pago</th>
                 </tr>
               </thead>
               <tbody>
                 {recibosFiltrados.map((r) => (
-                  <tr key={r.id} className="border-b border-line/60 align-top last:border-0">
+                  <tr key={r.id} onClick={() => setSel(r.id)} onDoubleClick={() => {
+                              setError("");
+                              setEditor({ clave: r.id, form: {
+                                trabajador_id: r.trabajador_id, proyecto_id: r.proyecto_id ?? "", numero_recibo: r.numero_recibo ?? "",
+                                fecha_emision: r.fecha_emision, concepto: r.concepto, mes: Number(r.mes), anio: Number(r.anio),
+                                dias_laborados: Number(r.dias_laborados), dias_viaje: Number(r.dias_viaje), horas_extras: Number(r.horas_extras),
+                                otros_remuneraciones: Number(r.otros_remuneraciones), induccion: Number(r.induccion ?? 0), costo_unitario: Number(r.costo_unitario), saldo_mes_anterior: Number(r.saldo_mes_anterior),
+                                adelantos: Number(r.adelantos), devolucion_gastos: Number(r.devolucion_gastos), pagos_a_cuenta_planilla: Number(r.pagos_a_cuenta_planilla),
+                                fondo_pensiones: Number(r.fondo_pensiones), descuento_herramientas: Number(r.descuento_herramientas), lugar_emision: r.lugar_emision, retencion: Number(r.retencion),
+                              } });
+                            }} className={`cursor-pointer border-b border-line/60 align-top last:border-0 hover:bg-muted/40 ${sel === r.id ? "bg-primary/10" : ""}`}>
                     <td className="px-4 py-2">{fecha(r.fecha_emision)}</td>
                     <td className="px-3 py-2 font-semibold text-ink"><Resaltar texto={nombreDe(r.trabajador_id)} termino={busqueda}/><span className="block text-[10px] font-normal text-muted-foreground"><Resaltar texto={r.concepto} termino={busqueda}/></span></td>
                     <td className="px-3 py-2">{r.numero_recibo ? <Resaltar texto={r.numero_recibo} termino={busqueda}/> : <Etiqueta tono="warn">Pendiente de N°</Etiqueta>}</td>
@@ -322,16 +335,22 @@ function Honorarios() {
                         </>
                       )}
                     </td>
-                    <td className="px-4 py-2">
-                      <div className="flex justify-end gap-1">
+                    
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Panel><BarraIconosHoja objeto="registro" haySeleccion={!!recibosFiltrados.find((x) => x.id === sel)} extras={recibosFiltrados.filter((x) => x.id === sel).map((r) => <div key={r.id}><div>
                         {pago?.id === r.id ? (
                           <>
-                            <Boton onClick={confirmarPago} className="py-1">Confirmar</Boton>
-                            <Boton variante="linea" onClick={() => setPago(null)} className="py-1">Cancelar</Boton>
+                            <BotonIcono etiqueta="Confirmar" onClick={confirmarPago}><Check size={15} /></BotonIcono>
+                            <BotonIcono etiqueta="Cancelar" onClick={() => setPago(null)}><span className="text-base">×</span></BotonIcono>
                           </>
                         ) : (
                           <>
-                            <button type="button" title="Editar o imprimir detalle" onClick={() => {
+                            <BotonIcono etiqueta="Editar o imprimir detalle" onClick={() => {
                               setError("");
                               setEditor({ clave: r.id, form: {
                                 trabajador_id: r.trabajador_id, proyecto_id: r.proyecto_id ?? "", numero_recibo: r.numero_recibo ?? "",
@@ -341,22 +360,14 @@ function Honorarios() {
                                 adelantos: Number(r.adelantos), devolucion_gastos: Number(r.devolucion_gastos), pagos_a_cuenta_planilla: Number(r.pagos_a_cuenta_planilla),
                                 fondo_pensiones: Number(r.fondo_pensiones), descuento_herramientas: Number(r.descuento_herramientas), lugar_emision: r.lugar_emision, retencion: Number(r.retencion),
                               } });
-                            }} className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"><FileText size={15} /></button>
+                            }}><FileText size={15} /></BotonIcono>
                             {r.estado_pago === "Pendiente" && r.numero_recibo && (
-                              <button type="button" title="Registrar pago" onClick={() => setPago({ id: r.id, banco_id: "", fecha_pago: hoy(), numero_operacion: "" })} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"><Check size={14} /></button>
+                              <BotonIcono etiqueta="Registrar pago" onClick={() => setPago({ id: r.id, banco_id: "", fecha_pago: hoy(), numero_operacion: "" })}><Check size={15} /></BotonIcono>
                             )}
-                            <button type="button" title="Eliminar" onClick={() => eliminar(r)} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-bad/40 text-bad hover:border-bad"><Trash2 size={14} /></button>
+                            <BotonIcono etiqueta="Eliminar" onClick={() => eliminar(r)}><Trash2 size={15} /></BotonIcono>
                           </>
                         )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </Panel>
+                      </div></div>)} /></div>
       {generador && (
         <GenerarBoletasHonorarios
           prestadores={prestadores}

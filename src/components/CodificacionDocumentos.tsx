@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Check, Pencil, Plus, Trash2, X } from "lucide-react";
+import { Check, Plus, X } from "lucide-react";
+import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { supabase } from "@/integrations/supabase/client";
 import { Panel } from "@/components/ui-kit";
 import {
@@ -99,8 +100,10 @@ export function CodificacionDocumentos() {
     } else if (e.key === "Escape") cancelar?.();
   };
 
+  const filaSel = filas.find((f) => f.id === seleccion);
+
   return (
-    <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
+    <div className="grid items-start gap-4 lg:grid-cols-[1fr_320px_auto]">
       <Panel titulo="Codificación de documentos">
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
@@ -168,23 +171,7 @@ export function CodificacionDocumentos() {
                             <button type="button" title="Guardar" onClick={() => guardar(f)} className="rounded p-1 text-good hover:bg-muted"><Check className="h-4 w-4" /></button>
                             <button type="button" title="Cancelar" onClick={() => setEditando(null)} className="rounded p-1 text-muted-foreground hover:bg-muted"><X className="h-4 w-4" /></button>
                           </>
-                        ) : (
-                          <>
-                            <button
-                              type="button"
-                              title="Editar"
-                              onClick={() => {
-                                setEditando(f.id);
-                                setSeleccion(f.id);
-                                setEdicion({ codigo: f.codigo, digitos: f.digitos, correlativo_actual: f.correlativo_actual, nombre: f.nombre });
-                              }}
-                              className="rounded p-1 text-primary hover:bg-muted"
-                            >
-                              <Pencil className="h-3.5 w-3.5" />
-                            </button>
-                            <button type="button" title="Eliminar" onClick={() => eliminar(f)} className="rounded p-1 text-bad hover:bg-muted"><Trash2 className="h-3.5 w-3.5" /></button>
-                          </>
-                        )}
+                        ) : null}
                       </div>
                     </td>
                   </tr>
@@ -245,6 +232,10 @@ export function CodificacionDocumentos() {
           </p>
         </div>
       </Panel>
+      <BarraIconosHoja objeto="codificación" haySeleccion={!!filaSel}
+        onAgregar={() => document.querySelector<HTMLInputElement>('input[placeholder="Ej. TXN26-OC"]')?.focus()}
+        onEditar={() => { if (!filaSel) return; setEditando(filaSel.id); setEdicion({ codigo: filaSel.codigo, digitos: filaSel.digitos, correlativo_actual: filaSel.correlativo_actual, nombre: filaSel.nombre }); }}
+        onEliminar={() => { if (filaSel) void eliminar(filaSel); }} />
     </div>
   );
 }

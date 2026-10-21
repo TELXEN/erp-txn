@@ -1,12 +1,12 @@
+import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useRef, useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Archive, ArchiveRestore, Calculator, Copy, EllipsisVertical, Eye, Info, LayoutGrid, Plus, SquarePen, Table2, Trash2 } from "lucide-react";
+import { Archive, Calculator, Eye, Info, LayoutGrid, Plus, Table2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, BotonIcono, Input, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 function estadoDe(situacion: string): "En Ejecucion" | "Finalizado" {
   return situacion.trim().toLowerCase().startsWith("finaliz") ? "Finalizado" : "En Ejecucion";
@@ -61,7 +61,7 @@ function Desglose({
     <Popover>
       <PopoverTrigger asChild>
         <BotonIcono etiqueta="Ver desglose financiero">
-          <Calculator size={17} strokeWidth={1.9} />
+          <Calculator size={15} strokeWidth={1.9} />
         </BotonIcono>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-64 font-mono text-xs">
@@ -130,6 +130,8 @@ function Proyectos() {
   const { data: codificacion } = useCodificacion();
   const [vista, setVista] = useState<"tabla" | "kanban">(() => (localStorage.getItem("proyectos:vista") === "kanban" ? "kanban" : "tabla"));
   const [busqueda, setBusqueda] = useState("");
+  const [sel, setSel] = useState("");
+  const actual = todosProyectos.find((x) => x.id === sel);
   const [segmento, setSegmento] = useState<"Todos" | "Borradores" | "En Ejecución" | "Finalizados" | "Archivados">(() => {
     const s = localStorage.getItem("proyectos:segmento");
     return s === "Borradores" || s === "En Ejecución" || s === "Finalizados" || s === "Archivados" ? s : "Todos";
@@ -505,7 +507,8 @@ function Proyectos() {
         ))}
       </div>
 
-      <Panel
+      <div className="flex items-start gap-3">
+      <Panel className="min-w-0 flex-1"
         titulo={vista === "tabla" ? "Listado de proyectos" : "Tablero Kanban de proyectos"}
         extra={
           <div className="flex flex-wrap items-center gap-2">
@@ -571,7 +574,6 @@ function Proyectos() {
                 <th className="w-[7%] px-3 py-2 text-right font-medium">Presupuesto</th>
                 <th className="w-[8%] px-3 py-2 text-right font-medium">Costo ejecutado</th>
                 <th className="w-[7%] px-3 py-2 font-medium">ESTADO</th>
-                <th className="w-[215px] px-3 py-2 text-right font-medium">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -579,7 +581,7 @@ function Proyectos() {
                 const presupuesto = presupuestoProyecto(p.id, partidas);
                 const costoReal = costoDe(p.id).costoReal;
                 return (
-                  <tr key={p.id} className="border-b border-line/60 transition-colors hover:bg-muted/50">
+                  <tr key={p.id} onClick={() => setSel(p.id)} onDoubleClick={() => { setSel(p.id); abrirEdicion(p); }} className={`cursor-pointer border-b border-line/40 hover:bg-muted/40 ${sel === p.id ? "bg-primary/10" : ""}`}>
                         <td className="px-5 py-3 align-top font-bold text-ink break-words"><Resaltar texto={p.codigo || "—"} termino={busqueda} /></td>
                         <td className="px-3 py-3 align-top break-words whitespace-normal text-muted-foreground" title={p.cliente || ""}><Resaltar texto={p.cliente || "—"} termino={busqueda} /></td>
                         <td className="px-3 py-3 align-top text-[13px] font-semibold text-ink break-words whitespace-normal">
@@ -619,41 +621,7 @@ function Proyectos() {
                         <td className="px-3 py-3 align-top">
                           <InsigniaSituacion valor={p.situacion} />
                         </td>
-                        <td className="px-3 py-3 align-top text-right">
-                          <div className="inline-flex items-center gap-1">
-                            <Desglose
-                              o={ofertaProyecto(
-                                partidas.filter((x) => x.proyecto_id === p.id),
-                                tiposPresupuesto,
-                                p.pct_gastos_generales,
-                                p.pct_utilidad,
-                              )}
-                              pctGG={Number(p.pct_gastos_generales ?? 0)}
-                              pctUt={Number(p.pct_utilidad ?? 0)}
-                            />
-                            <BotonIcono etiqueta="Ver datos de registro" onClick={() => setViendoId(p.id)}>
-                              <Eye size={17} strokeWidth={1.9} />
-                            </BotonIcono>
-                            <BotonIcono etiqueta="Editar proyecto" tono="primario" onClick={() => abrirEdicion(p)}>
-                              <SquarePen size={17} strokeWidth={1.9} />
-                            </BotonIcono>
-                            <span className="mx-1 h-5 w-px shrink-0 bg-line" aria-hidden="true" />
-                            <BotonIcono etiqueta="Eliminar proyecto" tono="peligro" onClick={() => { setError(""); setEliminando(p); }}>
-                              <Trash2 size={17} strokeWidth={1.9} />
-                            </BotonIcono>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <BotonIcono etiqueta="Más acciones">
-                                  <EllipsisVertical size={17} strokeWidth={1.9} />
-                                </BotonIcono>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => duplicar(p.id)}><Copy size={15} strokeWidth={1.9} /> Duplicar como borrador</DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => cambiarArchivo(p.id, !p.archivado_en)}>{p.archivado_en ? <ArchiveRestore size={15} strokeWidth={1.9} /> : <Archive size={15} strokeWidth={1.9} />}{p.archivado_en ? "Restaurar" : "Archivar"}</DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
-                        </td>
+
                   </tr>
                 );
               })}
@@ -662,6 +630,21 @@ function Proyectos() {
           </div>
         )}
       </Panel>
+      <BarraIconosHoja objeto="proyecto" haySeleccion={!!actual} onAgregar={() => { setError(""); setFormAbierto(true); }} onEditar={() => { if (actual) abrirEdicion(actual); }} onCopiar={() => { if (actual) void duplicar(actual.id); }} onEliminar={() => { if (actual) { setError(""); setEliminando(actual); } }} extras={<>
+        {actual && <Desglose
+                              o={ofertaProyecto(
+                                partidas.filter((x) => x.proyecto_id === actual.id),
+                                tiposPresupuesto,
+                                actual.pct_gastos_generales,
+                                actual.pct_utilidad,
+                              )}
+                              pctGG={Number(actual.pct_gastos_generales ?? 0)}
+                              pctUt={Number(actual.pct_utilidad ?? 0)}
+                            />}
+        <BotonIcono etiqueta="Ver datos de registro" disabled={!actual} onClick={() => { if (actual) setViendoId(actual.id); }}><Eye size={15} /></BotonIcono>
+        <BotonIcono etiqueta={actual?.archivado_en ? "Restaurar" : "Archivar"} disabled={!actual} onClick={() => { if (actual) void cambiarArchivo(actual.id, !actual.archivado_en); }}><Archive size={15} /></BotonIcono>
+      </>} />
+      </div>
       <VentanaFlotante abierta={Boolean(proyectoVisto)} onCerrar={() => setViendoId(null)} titulo="Datos de registro de la obra" subtitulo={proyectoVisto?.codigo ?? ""} ancho="max-w-3xl">
         {proyectoVisto && (
           <div className="space-y-4 p-5 font-sans">

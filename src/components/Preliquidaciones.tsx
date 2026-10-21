@@ -1,10 +1,11 @@
+import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { useEffect, useState } from "react";
 import { useTipoCambioHoy } from "@/lib/tipo-cambio";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Copy, Eye, ListPlus, Pencil, Plus, Receipt, Trash2, Upload } from "lucide-react";
-import { Link } from "@tanstack/react-router";
+import { Eye, ListPlus, Plus, Receipt, Upload } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
-import { Boton, Campo, Etiqueta, Input, Panel, Select, Vacio } from "@/components/ui-kit";
+import { Boton, BotonIcono, Campo, Etiqueta, Input, Panel, Select, Vacio } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { condicionVacia, datosCondicion, PLAZOS } from "@/components/CondicionPago";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
@@ -64,6 +65,7 @@ type CuentaBanco = { nombre: string; numero_cuenta: string; cci: string; monedas
 type PartidaObra = { id: string; codigo: string; nombre: string; unidad: string; metrado: number; precio_unitario: number; padre_id: string | null };
 
 export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe, onFacturar }: Props) {
+  const navigate = useNavigate();
   const qc = useQueryClient();
   const { data: empresa } = useEmpresa();
   const { data: unidades = [] } = useUnidadesMedida();
@@ -132,6 +134,8 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
   const [abierto, setAbierto] = useState(false);
   const [error, setError] = useState("");
   const [busqueda, setBusqueda] = useState("");
+  const [sel, setSel] = useState("");
+  const actual = lista.find((x) => x.id === sel);
   const [selectorPartidas, setSelectorPartidas] = useState(false);
   const [marcadas, setMarcadas] = useState<string[]>([]);
   const [cintaColapsada, setCintaColapsada] = useState(false);
@@ -591,7 +595,8 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
         ))}
       </div>
 
-      <Panel
+      <div className="flex items-start gap-3">
+      <Panel className="min-w-0 flex-1"
         titulo="Preliquidaciones"
         extra={
           <div className="flex items-center gap-2">
@@ -640,7 +645,6 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
                 <th className="px-3 py-2 text-right font-medium">Detracción / Retención</th>
                 <th className="px-3 py-2 text-right font-medium">Neto a cobrar</th>
                 <th className="px-3 py-2 font-medium">Estado</th>
-                <th className="px-5 py-2 text-right font-medium">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -648,7 +652,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
                 const mm = calcularMontos(netoDe(p.id), Number(p.pct_detraccion), Number(p.tipo_cambio), p.tipo_tributario ?? "detraccion");
                 const fm = (n: number) => (p.moneda === "USD" ? `US$ ${n.toFixed(2)}` : soles(n));
                 return (
-                  <tr key={p.id} className="border-b border-line/60 last:border-0">
+                  <tr key={p.id} onClick={() => setSel(p.id)} onDoubleClick={() => { setSel(p.id); if (editable(p)) void editar(p); }} className={`cursor-pointer border-b border-line/40 hover:bg-muted/40 ${sel === p.id ? "bg-primary/10" : ""}`}>
                     <td className="px-5 py-2.5 font-semibold text-ink"><Resaltar texto={p.codigo} termino={busqueda} /><div className="text-[10px] font-normal text-muted-foreground">{fmtFecha(p.fecha)}</div></td>
                     <td className="px-3 py-2.5"><Resaltar texto={p.concepto} termino={busqueda} /></td>
                     <td className="px-3 py-2.5 text-muted-foreground">
@@ -687,33 +691,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
                       )}
                       <span className="sr-only"><Etiqueta tono={ESTADO_TONO[p.estado] ?? "neutro"}>{p.estado}</Etiqueta></span>
                     </td>
-                    <td className="px-5 py-2.5">
-                      <div className="flex items-center justify-end gap-2">
-                        {p.estado === "Aprobada" && (
-                          <Boton onClick={() => onFacturar(p, netoDe(p.id))}><Receipt size={13} /> Facturar</Boton>
-                        )}
-                        <div className="group/tip relative">
-                          <Link
-                            to="/preliquidacion-vista"
-                            search={{ id: p.id }}
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-line text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
-                            aria-label="Vista previa"
-                          >
-                            <Eye size={15} />
-                          </Link>
-                          <span className="pointer-events-none absolute -top-8 right-0 whitespace-nowrap rounded-md bg-ink px-2 py-1 text-xs text-background opacity-0 shadow transition-opacity group-hover/tip:opacity-100">
-                            Vista previa
-                          </span>
-                        </div>
-                        <button onClick={() => duplicar(p)} className="text-muted-foreground hover:text-ink" aria-label="Duplicar" title="Duplicar"><Copy size={14} /></button>
-                        {editable(p) && (
-                          <>
-                            <button onClick={() => editar(p)} className="text-muted-foreground hover:text-ink" aria-label="Editar"><Pencil size={14} /></button>
-                            <button onClick={() => eliminar(p)} className="text-bad" aria-label="Eliminar"><Trash2 size={14} /></button>
-                          </>
-                        )}
-                      </div>
-                    </td>
+
                   </tr>
                 );
               })}
@@ -721,6 +699,11 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
           </table>
         )}
       </Panel>
+      <BarraIconosHoja objeto="preliquidación" haySeleccion={!!actual} onAgregar={!abierto ? nuevo : undefined} onEditar={actual && editable(actual) ? () => void editar(actual) : undefined} onCopiar={() => { if (actual) void duplicar(actual); }} onEliminar={actual && editable(actual) ? () => void eliminar(actual) : undefined} extras={<>
+        <BotonIcono etiqueta="Facturar" disabled={!actual || actual.estado !== "Aprobada"} onClick={() => { if (actual) onFacturar(actual, netoDe(actual.id)); }}><Receipt size={15} /></BotonIcono>
+        <BotonIcono etiqueta="Vista previa" disabled={!actual} onClick={() => { if (actual) void navigate({ to: "/preliquidacion-vista", search: { id: actual.id } }); }}><Eye size={15} /></BotonIcono>
+      </>} />
+      </div>
     </>
   );
 }
