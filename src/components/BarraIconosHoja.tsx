@@ -6,8 +6,8 @@ import { BotonIcono } from "@/components/ui-kit";
  *  Las acciones omitidas no se muestran; `extras` va en un bloque inferior. */
 export function BarraIconosHoja({ objeto, haySeleccion, onAgregar, onEditar, onCopiar, onEliminar, extras }: {
   objeto: string; haySeleccion: boolean;
-  onAgregar?: () => void; onEditar?: () => void; onCopiar?: () => void; onEliminar?: () => void;
-  extras?: ReactNode;
+  onAgregar?: (() => void) | undefined; onEditar?: (() => void) | undefined; onCopiar?: (() => void) | undefined; onEliminar?: (() => void) | undefined;
+  extras?: ReactNode | undefined;
 }) {
   return (
     <div className="sticky top-2 flex h-fit shrink-0 flex-col gap-1.5 rounded-md border p-1.5 barra-iconos">
