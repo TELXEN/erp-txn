@@ -67,10 +67,10 @@ export function PlantillasCotizacion() {
         if (e) throw e;
       } else {
         const origen = modo === "copiar" ? seleccionada : null;
-        const base = origen ? ({ ...(origen as Record<string, unknown>), id: undefined } as Record<string, unknown>) : {};
-        delete base.id;
-        delete base.created_at;
-        delete base.updated_at;
+        const base: Record<string, unknown> = origen ? { ...(origen as Record<string, unknown>) } : {};
+        delete base["id"];
+        delete base["created_at"];
+        delete base["updated_at"];
         const { data, error: e } = await sb
           .from("plantillas_cotizacion")
           .insert({ ...base, nombre, descripcion: form.descripcion })
