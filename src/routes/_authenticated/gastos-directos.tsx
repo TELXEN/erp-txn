@@ -1,3 +1,4 @@
+import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { createFileRoute } from "@tanstack/react-router";
 import React, { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -121,6 +122,7 @@ function GastosDirectos() {
   const [gruposCerrados, setGruposCerrados] = useState<Record<string, boolean>>({});
   const [modal, setModal] = useState<{ pid: string; editando?: Compra; inicial?: Borrador } | null>(null);
   const [busqueda, setBusqueda] = useState("");
+  const [sel, setSel] = useState("");
   const { data: cuentas = [] } = useQuery({
     queryKey: ["bancos"],
     queryFn: async () => {
@@ -174,6 +176,7 @@ function GastosDirectos() {
     [partidas, proyectoId, busqueda],
   );
   const comprasProy = gastos.filter((g) => g.proyecto_id === proyectoId);
+  const actual = comprasProy.find((x) => x.id === sel);
   const costoDe = (pid: string) => sumar(comprasProy.filter((g) => g.partida_id === pid).map((g) => Number(g.monto_soles)));
   const cantDe = (pid: string) => comprasProy.filter((g) => g.partida_id === pid).reduce((s, g) => s + Number(g.cantidad ?? 0), 0);
   const presuTotal = sumar(partidasProy.map((p) => Number(p.presupuesto_inicial)));
@@ -459,7 +462,8 @@ function GastosDirectos() {
       )}
 
       {pestana === "partidas" && (
-      <Panel
+      <div className="flex items-start gap-3">
+      <Panel className="min-w-0 flex-1"
         titulo="Control por partida"
         extra={<Buscador valor={busqueda} onChange={setBusqueda} placeholder="Buscar por código o partida..." total={partidasProy.length} />}
       >
@@ -577,12 +581,11 @@ function GastosDirectos() {
                                       <th className="px-2 text-right font-medium">Cantidad</th>
                                       <th className="px-2 text-right font-medium">P.U. compra</th>
                                       <th className="px-2 text-right font-medium">Costo real</th>
-                                      <th className="px-3"></th>
                                     </tr>
                                   </thead>
                                   <tbody>
                                     {compras.map((g) => (
-                                      <tr key={g.id} className="border-t border-line/40">
+                                      <tr key={g.id} onClick={() => setSel(g.id)} onDoubleClick={() => { setSel(g.id); abrirEdicion(g); }} className={`cursor-pointer border-b border-line/40 hover:bg-muted/40 ${sel === g.id ? "bg-primary/10" : ""}`}>
                                         <td className="px-3 py-1.5">{fmtFecha(g.fecha)}</td>
                                         <td className="px-2">{g.comprobante || "—"}</td>
                                         <td className="px-2">{nombreProv(g)}</td>
@@ -603,20 +606,11 @@ function GastosDirectos() {
                                           {num(Number(g.precio_unitario ?? 0))}
                                         </td>
                                         <td className="px-2 text-right font-semibold">{soles(Number(g.monto_soles))}</td>
-                                        <td className="px-3 text-right">
-                                          <div className="flex items-center justify-end gap-1">
-                                            <BotonIcono etiqueta="Editar compra" tono="neutro" className="size-7" onClick={() => abrirEdicion(g)}>
-                                              <Pencil size={12} />
-                                            </BotonIcono>
-                                            <BotonIcono etiqueta="Eliminar compra" tono="peligro" className="size-7" onClick={() => eliminar(g.id)}>
-                                              <Trash2 size={12} />
-                                            </BotonIcono>
-                                          </div>
-                                        </td>
+
                                       </tr>
                                     ))}
                                     {compras.length === 0 && (
-                                      <tr><td colSpan={10} className="px-3 py-2 text-muted-foreground">Sin compras registradas.</td></tr>
+                                      <tr><td colSpan={9} className="px-3 py-2 text-muted-foreground">Sin compras registradas.</td></tr>
                                     )}
                                   </tbody>
                                 </table>
@@ -642,6 +636,8 @@ function GastosDirectos() {
           </div>
         )}
       </Panel>
+      <BarraIconosHoja objeto="compra" haySeleccion={!!actual} onEditar={() => { if (actual) abrirEdicion(actual); }} onEliminar={() => { if (actual) void eliminar(actual.id); }} />
+      </div>
       )}
       {modal && (() => {
         const mp = partidas.find((x) => x.id === modal.pid);

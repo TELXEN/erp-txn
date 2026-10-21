@@ -1,3 +1,5 @@
+import { BarraIconosHoja } from "@/components/BarraIconosHoja";
+import { BotonIcono } from "@/components/ui-kit";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -89,6 +91,7 @@ function Nomina() {
   const { data: tareos = [], isFetched: tareoListo } = useTareos();
   const { data: empresa } = useEmpresa();
   const ahora = new Date();
+  const [sel, setSel] = useState("");
   const [anio, setAnio] = useState(ahora.getFullYear());
   const [mes, setMes] = useState(ahora.getMonth() + 1);
   const [detalle, setDetalle] = useState<Boleta | null>(null);
@@ -451,7 +454,7 @@ function Nomina() {
             </div>
           )}
 
-      <Panel titulo={`Planilla ${periodo}`} extra={<span className="font-mono text-[11px] text-muted-foreground">{boletas.length} boletas</span>}>
+      <div className="flex items-start gap-3"><Panel className="min-w-0 flex-1" titulo={`Planilla ${periodo}`} extra={<span className="font-mono text-[11px] text-muted-foreground">{boletas.length} boletas</span>}>
         {!planilla || boletas.length === 0 ? (
           <div className="flex flex-col items-center gap-3 py-2">
             <Vacio texto="Aún no se ha generado la planilla de este mes." />
@@ -470,14 +473,14 @@ function Nomina() {
                   <th className="px-2 py-2 text-right">Ingresos</th><th className="px-2 py-2 text-right">ONP/AFP</th>
                   <th className="w-24 px-2 py-2 text-right">Renta 5ta</th><th className="w-24 px-2 py-2 text-right">Otros desc.</th>
                   <th className="px-2 py-2 text-right">Neto</th><th className="px-2 py-2 text-right">EsSalud</th>
-                  <th className="px-2 py-2">Estado / Pago</th><th className="sticky right-0 z-10 w-32 border-l border-line bg-card px-3 py-2 text-right">Acciones</th>
+                  <th className="px-2 py-2">Estado / Pago</th>
                 </tr>
               </thead>
               <tbody>
                 {ordenadas.map((b) => {
                   const t = tDe(b.trabajador_id);
                   return (
-                    <tr key={b.id} className="border-b border-line/60 last:border-0">
+                    <tr key={b.id} onClick={() => setSel(b.id)} onDoubleClick={() => { setError(""); setDetalle(b); }} className={`cursor-pointer border-b border-line/60 last:border-0 hover:bg-muted/40 ${sel === b.id ? "bg-primary/10" : ""}`}>
                       <td className="px-4 py-2 font-semibold text-ink">{t?.nombre}<span className="block text-[10px] font-normal text-muted-foreground">{b.regimen_laboral}{t?.cuspp ? ` · ${t.cuspp}` : ""}</span></td>
                       <td className="px-2 py-2">{b.dias_laborados}</td>
                       <td className="px-2 py-2 text-right">{soles(Number(b.sueldo_basico))}</td>
@@ -507,22 +510,7 @@ function Nomina() {
                           </>
                         )}
                       </td>
-                      <td className="sticky right-0 z-10 border-l border-line bg-card px-3 py-2">
-                        <div className="flex items-center justify-end gap-1">
-                          {pago?.boleta_id === b.id ? (
-                            <>
-                              <Boton onClick={pagarTodo} className="py-1">Confirmar</Boton>
-                              <Boton variante="linea" onClick={() => { setPago(null); setError(""); }} className="py-1">Cancelar</Boton>
-                            </>
-                          ) : (
-                            <>
-                          <Boton variante="linea" title="Editar o imprimir detalle" aria-label="Editar o imprimir detalle" onClick={() => { setError(""); setDetalle(b); }} className="h-8 w-8 shrink-0 !p-0 border-line text-muted-foreground hover:bg-transparent hover:border-primary hover:text-primary"><FileText size={15} className="shrink-0" /></Boton>
-                          <Boton variante="linea" title={cerrada ? "Registrar pago" : "Valida las boletas para registrar pago"} aria-label="Registrar pago" disabled={!cerrada || b.estado_pago === "Pagado"} onClick={() => { if (cerrada) { setError(""); setPago({ boleta_id: b.id, banco_id: "", fecha_pago: hoy(), numero_operacion: "" }); } }} className="h-8 w-8 shrink-0 !p-0 border-line text-muted-foreground hover:bg-transparent hover:border-primary hover:text-primary"><Check size={15} className="shrink-0" /></Boton>
-                          <Boton variante="linea" title="Eliminar" aria-label="Eliminar" disabled={cerrada || b.estado_pago === "Pagado"} onClick={() => void eliminar(b)} className="h-8 w-8 shrink-0 !p-0 border-bad/40 text-bad hover:border-bad hover:bg-transparent"><Trash2 size={15} className="shrink-0" /></Boton>
-                            </>
-                          )}
-                        </div>
-                      </td>
+                      
                     </tr>
                   );
                 })}
@@ -530,7 +518,20 @@ function Nomina() {
             </table>
           </div>
         )}
-      </Panel>
+      </Panel><BarraIconosHoja objeto="registro" haySeleccion={!!boletas.find((x) => x.id === sel)} extras={boletas.filter((x) => x.id === sel).map((b) => <div key={b.id}><div>
+                          {pago?.boleta_id === b.id ? (
+                            <>
+                              <BotonIcono etiqueta="Confirmar" onClick={pagarTodo}>Confirmar</BotonIcono>
+                              <BotonIcono etiqueta="Cancelar" onClick={() => { setPago(null); setError(""); }}>Cancelar</BotonIcono>
+                            </>
+                          ) : (
+                            <>
+                          <BotonIcono etiqueta="Editar o imprimir detalle" onClick={() => { setError(""); setDetalle(b); }}><FileText size={15} /></BotonIcono>
+                          <BotonIcono etiqueta={cerrada ? "Registrar pago" : "Valida las boletas para registrar pago"} disabled={!cerrada || b.estado_pago === "Pagado"} onClick={() => { if (cerrada) { setError(""); setPago({ boleta_id: b.id, banco_id: "", fecha_pago: hoy(), numero_operacion: "" }); } }}><Check size={15} /></BotonIcono>
+                          <BotonIcono etiqueta="Eliminar" disabled={cerrada || b.estado_pago === "Pagado"} onClick={() => void eliminar(b)}><Trash2 size={15} /></BotonIcono>
+                            </>
+                          )}
+                        </div></div>)} /></div>
         </>
       )}
       {detalle && <DetallePagoNomina key={detalle.id} boleta={boletas.find((b) => b.id === detalle.id) ?? detalle} trabajador={tDe(detalle.trabajador_id)} empresa={empresa} periodo={periodo} bloqueada={cerrada || detalle.estado_pago === "Pagado"} recalcular={(valores) => { const t = tDe(detalle.trabajador_id); return t ? calcularBoleta(t, valores, comisiones, rmvDe(periodoAfp)) : {}; }} onGuardar={(valores) => guardarDetalle(detalle, valores)} onCerrar={() => setDetalle(null)} />}

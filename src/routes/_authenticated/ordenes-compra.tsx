@@ -1,9 +1,10 @@
+import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { createFileRoute } from "@tanstack/react-router";
 import React, { useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, ChevronRight, PackageCheck, Plus, Trash2, Upload } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
+import { Boton, BotonIcono, Campo, Input, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { soles } from "@/lib/format";
@@ -73,6 +74,8 @@ function OrdenesCompraPage() {
   const [error, setError] = useState("");
   const [aviso, setAviso] = useState("");
   const [busqueda, setBusqueda] = useState("");
+  const [sel, setSel] = useState("");
+  const actual = ordenes.find((x) => x.id === sel);
   const [modalNueva, setModalNueva] = useState(false);
   const cerrarTrasGuardar = useRef(false);
 
@@ -430,7 +433,8 @@ function OrdenesCompraPage() {
         </form>
       </VentanaFlotante>
 
-      <Panel
+      <div className="flex items-start gap-3">
+      <Panel className="min-w-0 flex-1"
         titulo="Órdenes emitidas"
         extra={
           <div className="flex flex-wrap items-center gap-2">
@@ -456,7 +460,6 @@ function OrdenesCompraPage() {
                 <th className="px-3 py-2 font-medium">Entrega</th>
                 <th className="px-3 py-2 text-right font-medium">Total</th>
                 <th className="px-3 py-2 font-medium">Estado</th>
-                <th className="px-5 py-2" />
               </tr>
             </thead>
             <tbody>
@@ -465,7 +468,7 @@ function OrdenesCompraPage() {
                 const ver = abierto === o.id;
                 return (
                   <React.Fragment key={o.id}>
-                    <tr className="border-b border-line/40">
+                    <tr onClick={() => setSel(o.id)} className={`cursor-pointer border-b border-line/40 hover:bg-muted/40 ${sel === o.id ? "bg-primary/10" : ""}`}>
                       <td className="px-5 py-2">
                         <button type="button" onClick={() => setAbierto(ver ? null : o.id)} className="inline-flex items-center gap-1 text-primary">
                           {ver ? <ChevronDown size={13} /> : <ChevronRight size={13} />} <Resaltar texto={o.codigo} termino={busqueda} />
@@ -481,18 +484,7 @@ function OrdenesCompraPage() {
                           {ESTADOS_OC.map((s) => <option key={s}>{s}</option>)}
                         </Select>
                       </td>
-                      <td className="px-5 py-2">
-                        <div className="flex items-center justify-end gap-2">
-                          {o.estado !== "Anulada" && o.estado !== "Recibida" && (
-                            <button type="button" title="Recibir en almacén" onClick={() => void recibir(o.id)} className="text-muted-foreground hover:text-primary">
-                              <PackageCheck size={15} />
-                            </button>
-                          )}
-                          <button type="button" title="Eliminar" onClick={() => void eliminar(o.id)} className="text-bad">
-                            <Trash2 size={13} />
-                          </button>
-                        </div>
-                      </td>
+
                     </tr>
                     {ver &&
                       its.map((i) => (
@@ -502,7 +494,7 @@ function OrdenesCompraPage() {
                           <td className="px-3 py-1.5 text-right">{num(Number(i.cantidad))}</td>
                           <td className="px-3 py-1.5 text-right text-muted-foreground">Recibido {num(recibido(i.id))}</td>
                           <td className="px-3 py-1.5 text-right">{soles(Number(i.cantidad) * Number(i.precio_unitario))}</td>
-                          <td colSpan={2} className="px-3 py-1.5 text-muted-foreground">P.U. {num(Number(i.precio_unitario))} · {estadoCompra(i.id)}</td>
+                          <td colSpan={1} className="px-3 py-1.5 text-muted-foreground">P.U. {num(Number(i.precio_unitario))} · {estadoCompra(i.id)}</td>
                         </tr>
                       ))}
                   </React.Fragment>
@@ -512,6 +504,8 @@ function OrdenesCompraPage() {
           </table>
         )}
       </Panel>
+      <BarraIconosHoja objeto="orden de compra" haySeleccion={!!actual} onAgregar={() => { setError(""); setAviso(""); setModalNueva(true); }} onEliminar={() => { if (actual) void eliminar(actual.id); }} extras={<BotonIcono etiqueta="Recibir en almacén" disabled={!actual || actual.estado === "Anulada" || actual.estado === "Recibida"} onClick={() => { if (actual) void recibir(actual.id); }}><PackageCheck size={15} /></BotonIcono>} />
+      </div>
     </>
   );
 }

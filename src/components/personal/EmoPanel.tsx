@@ -1,3 +1,5 @@
+import { BarraIconosHoja } from "@/components/BarraIconosHoja";
+import { BotonIcono } from "@/components/ui-kit";
 import { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { CalendarClock, CheckCircle2, Pencil, Plus, Stethoscope, Trash2, Upload, Wallet, X, AlertTriangle } from "lucide-react";
@@ -38,6 +40,7 @@ function Etq({ t, req, children }: { t: string; req?: boolean; children: React.R
 export function EmoPanel({ trabajadores }: { trabajadores: Trabajador[] }) {
   const qc = useQueryClient();
   const { data: emos, isLoading: cargando } = useEmos();
+  const [sel, setSel] = useState("");
   const [abierto, setAbierto] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState<FormEmo>(VACIO());
@@ -262,7 +265,7 @@ export function EmoPanel({ trabajadores }: { trabajadores: Trabajador[] }) {
         </Panel>
       )}
 
-      <Panel titulo="Exámenes médicos ocupacionales"
+      <div className="flex items-start gap-3"><Panel className="min-w-0 flex-1" titulo="Exámenes médicos ocupacionales"
         extra={
           <div className="flex flex-wrap items-center gap-2">
             <Input value={fTexto} onChange={(e) => setFTexto(e.target.value)} placeholder="Trabajador o DNI…" className="w-44 py-1 text-xs" />
@@ -283,7 +286,7 @@ export function EmoPanel({ trabajadores }: { trabajadores: Trabajador[] }) {
                 <tr className="border-b border-line bg-muted/50 text-left text-[10px] uppercase text-ink">
                   <th className="px-4 py-2">Trabajador</th><th className="px-3 py-2">Tipo / resultado</th><th className="px-3 py-2">Exámenes</th>
                   <th className="px-3 py-2">Fecha EMO</th><th className="px-3 py-2">Vencimiento</th><th className="px-3 py-2">Clínica</th>
-                  <th className="px-3 py-2 text-right">Costo</th><th className="px-3 py-2">Pago</th><th className="px-4 py-2 text-right">Acciones</th>
+                  <th className="px-3 py-2 text-right">Costo</th><th className="px-3 py-2">Pago</th>
                 </tr>
               </thead>
               <tbody>
@@ -292,7 +295,7 @@ export function EmoPanel({ trabajadores }: { trabajadores: Trabajador[] }) {
                   const s = estadoEmo(e.fecha_vencimiento);
                   const d = diasParaVencer(e.fecha_vencimiento);
                   return (
-                    <tr key={e.id} className="border-b border-line/60 align-top last:border-0 hover:bg-muted/30">
+                    <tr key={e.id} onClick={() => setSel(e.id)} onDoubleClick={() => { editar(e); }} className={`cursor-pointer border-b border-line/60 align-top last:border-0  hover:bg-muted/40 ${sel === e.id ? "bg-primary/10" : ""}`}>
                       <td className="px-4 py-3"><span className="block font-semibold text-ink">{t?.nombre ?? "—"}</span><span className="font-mono text-[10px] text-muted-foreground">{t?.dni}</span></td>
                       <td className="px-3 py-3"><span className="block text-ink">{e.tipo_emo}</span><span className={`text-[10px] ${e.resultado === "No apto" ? "text-bad" : e.resultado === "Apto" ? "text-good" : "text-warn"}`}>{e.resultado}</span>{e.restricciones && <span className="block text-[10px] text-muted-foreground">{e.restricciones}</span>}</td>
                       <td className="max-w-[220px] px-3 py-3 text-[11px] text-muted-foreground">{(e.examenes ?? []).join(", ")}</td>
@@ -302,13 +305,8 @@ export function EmoPanel({ trabajadores }: { trabajadores: Trabajador[] }) {
                       <td className="px-3 py-3 text-right tabular-nums">{soles(Number(e.costo))}</td>
                       <td className="px-3 py-3">{e.estado_pago === "Pagado"
                         ? <span className="text-good"><span className="block font-semibold">Pagado</span><span className="font-mono text-[10px]">{fmt(e.fecha_pago)}</span></span>
-                        : <button type="button" onClick={() => marcarPagado(e)} className="rounded-full border border-warn/50 px-2 py-0.5 text-[10px] font-semibold text-warn hover:bg-warn/10" title="Marcar como pagado">Pendiente · pagar</button>}</td>
-                      <td className="px-4 py-3">
-                        <div className="flex justify-end gap-1">
-                          <button type="button" onClick={() => editar(e)} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary" title="Editar"><Pencil size={14} /></button>
-                          <button type="button" onClick={() => eliminar(e)} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-bad/40 text-bad hover:border-bad" title="Eliminar"><Trash2 size={14} /></button>
-                        </div>
-                      </td>
+                        : <span className="text-warn">Pendiente</span>}</td>
+                      
                     </tr>
                   );
                 })}
@@ -316,7 +314,7 @@ export function EmoPanel({ trabajadores }: { trabajadores: Trabajador[] }) {
             </table>
           </div>
         )}
-      </Panel>
+      </Panel><BarraIconosHoja objeto="EMO" haySeleccion={!!filtrados.find((e) => e.id === sel)} onEditar={() => { const e = filtrados.find((e) => e.id === sel); if (e) editar(e); }} onEliminar={() => { const e = filtrados.find((e) => e.id === sel); if (e) void eliminar(e); }} extras={<BotonIcono etiqueta="Marcar como pagado" disabled={!filtrados.some((e) => e.id === sel && e.estado_pago !== "Pagado")} onClick={() => { const e = filtrados.find((e) => e.id === sel); if (e) void marcarPagado(e); }}><Wallet size={15} /></BotonIcono>} /></div>
       <p className="mt-2 flex items-center gap-1 text-[11px] text-muted-foreground"><Stethoscope size={12} /> Se alerta cuando faltan 30 días o menos para el vencimiento del último EMO de cada trabajador.</p>
     </>
   );

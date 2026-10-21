@@ -1,3 +1,4 @@
+import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { createFileRoute } from "@tanstack/react-router";
 import React, { useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -81,6 +82,8 @@ function ImportacionesPage() {
   const [error, setError] = useState("");
   const [aviso, setAviso] = useState("");
   const [busqueda, setBusqueda] = useState("");
+  const [sel, setSel] = useState("");
+  const actual = imps.find((x) => x.id === sel);
   const [guardando, setGuardando] = useState(false);
   const [modalNueva, setModalNueva] = useState(false);
   const cerrarTrasGuardar = useRef(false);
@@ -334,7 +337,8 @@ function ImportacionesPage() {
       </VentanaFlotante>
 
       <div className="mt-5" />
-      <Panel
+      <div className="flex items-start gap-3">
+      <Panel className="min-w-0 flex-1"
         titulo="Carpetas de importación"
         extra={
           <div className="flex flex-wrap items-center gap-2">
@@ -356,7 +360,7 @@ function ImportacionesPage() {
                 <th className="px-5 py-2 font-medium">Código</th><th className="px-3 font-medium">Proveedor</th>
                 <th className="px-3 font-medium">Destino</th><th className="px-3 font-medium">Despacho</th>
                 <th className="px-3 font-medium">Tracking</th><th className="px-3 font-medium">Arribo</th>
-                <th className="px-3 text-right font-medium">FOB</th><th className="px-3 text-right font-medium">Costo S/</th><th className="px-3 font-medium">Estado</th><th />
+                <th className="px-3 text-right font-medium">FOB</th><th className="px-3 text-right font-medium">Costo S/</th><th className="px-3 font-medium">Estado</th>
               </tr>
             </thead>
             <tbody>
@@ -364,7 +368,7 @@ function ImportacionesPage() {
                 const deImp = items.filter((x) => x.importacion_id === i.id);
                 return (
                   <React.Fragment key={i.id}>
-                    <tr className="border-b border-line/40">
+                    <tr onClick={() => setSel(i.id)} className={`cursor-pointer border-b border-line/40 hover:bg-muted/40 ${sel === i.id ? "bg-primary/10" : ""}`}>
                       <td className="px-5 py-2">
                         <button className="flex items-center gap-1 font-semibold text-ink" onClick={() => setAbierto(abierto === i.id ? null : i.id)}>
                           {abierto === i.id ? <ChevronDown size={12} /> : <ChevronRight size={12} />} {i.codigo}
@@ -382,11 +386,11 @@ function ImportacionesPage() {
                           {ESTADOS.map((s) => <option key={s}>{s}</option>)}
                         </Select>
                       </td>
-                      <td className="px-3"><button onClick={() => eliminar(i)} className="text-bad" title="Eliminar"><Trash2 size={14} /></button></td>
+
                     </tr>
                     {abierto === i.id && (
                       <tr className="bg-muted/40">
-                        <td colSpan={10} className="px-8 py-3">
+                        <td colSpan={9} className="px-8 py-3">
                           <div className="mb-2 flex flex-wrap gap-4 text-muted-foreground">
                             <span>Incoterm: {i.incoterm}</span><span>Pedido: {i.fecha_pedido}</span>
                             <span>Embarque: {i.fecha_embarque ?? "—"}</span>
@@ -438,6 +442,8 @@ function ImportacionesPage() {
           </table>
         )}
       </Panel>
+      <BarraIconosHoja objeto="importación" haySeleccion={!!actual} onAgregar={() => { setError(""); setAviso(""); setModalNueva(true); }} onEliminar={() => { if (actual) void eliminar(actual); }} />
+      </div>
     </>
   );
 }

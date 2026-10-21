@@ -1,3 +1,5 @@
+import { BarraIconosHoja } from "@/components/BarraIconosHoja";
+import { BotonIcono } from "@/components/ui-kit";
 import { createFileRoute } from "@tanstack/react-router";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { Fragment, useState } from "react";
@@ -141,6 +143,7 @@ function Personal() {
   const { data: cargos = [] } = useCargos();
   const cargosActivos = cargos.filter((c) => c.activo);
   const clasifDe = (nombre: string) => clasificacionDeCargo(nombre, cargos);
+  const [sel, setSel] = useState("");
   const [form, setForm] = useState<FormPersonal>(FORM_INICIAL);
   const [busqueda, setBusqueda] = useState("");
   const trabajadoresFiltrados = trabajadores.filter((t) =>
@@ -479,7 +482,7 @@ function Personal() {
         </form>
       </VentanaFlotante>
 
-      <Panel titulo="Planilla"
+      <div className="flex items-start gap-3"><Panel className="min-w-0 flex-1" titulo="Planilla"
         extra={
           <div className="flex items-center gap-2">
             <Buscador
@@ -518,7 +521,7 @@ function Personal() {
                   <th className="w-[8%] px-2 py-2 font-medium">N° Celular</th>
                   <th className="w-[11%] px-2 py-2 font-medium">Contrato</th>
                   <th className="w-[7%] px-2 py-2 font-medium">EMO</th>
-                  <th className="w-[7%] px-2 py-2 text-right font-medium">Acciones</th>
+                  
                 </tr>
               </thead>
               <tbody>
@@ -527,7 +530,7 @@ function Personal() {
                   const d = editando?.datos;
                   return (
                     <Fragment key={t.id}>
-                    <tr className="border-b border-line/60 align-top last:border-0 hover:bg-muted/30">
+                    <tr onClick={() => setSel(t.id)} onDoubleClick={() => iniciarEdicion(t)} className={`cursor-pointer border-b border-line/60 align-top last:border-0 hover:bg-muted/40 ${sel === t.id ? "bg-primary/10" : ""}`}>
                       <td className="px-2 py-3.5">{esEdicion && d ? <Input inputMode="numeric" maxLength={8} value={d.dni} onChange={(e) => actualizarCampo("dni", e.target.value.replace(/\D/g, ""))} className="py-1 text-xs" required /> : <Resaltar texto={t.dni} termino={busqueda}/>}</td>
                       <td className="px-2 py-3.5 font-semibold text-ink">{esEdicion && d ? <Input value={d.nombre} onChange={(e) => actualizarCampo("nombre", e.target.value)} className="py-1 text-xs" maxLength={100} required /> : <Resaltar texto={t.nombre} termino={busqueda}/>}</td>
                       <td className="px-2 py-3.5 text-ink">{esEdicion && d ? <Select value={d.cargo} onChange={(e) => actualizarCampo("cargo", e.target.value)} className="py-1 text-xs"><option value="">Selecciona…</option>{cargosActivos.map((c) => <option key={c.id} value={c.nombre}>{c.nombre}</option>)}</Select> : <span className="block"><Resaltar texto={t.cargo} termino={busqueda}/><span className="mt-1 inline-block rounded-full border border-line bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">{clasifDe(t.cargo) === "Indirecto" ? "Staff · Gasto general" : "Mano de obra directa"}</span></span>}</td>
@@ -541,25 +544,11 @@ function Personal() {
                         <span className="block text-[10px] text-muted-foreground">{t.tipo_contratacion === "Honorarios" ? (t.suspension_cuarta ? "Suspensión 4ta" : "Retención 8%") : `${t.regimen_laboral} · ${t.sistema_pensiones}`}</span>
                       </td>
                       <td className="px-2 py-3.5">{(() => { const s = estadoEmo(ultimos.get(t.id)?.fecha_vencimiento); return <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-[11px]"><span className={`h-2 w-2 rounded-full ${ESTADO_EMO_INFO[s].punto}`} />{ESTADO_EMO_INFO[s].texto}</span>; })()}</td>
-                      <td className="px-2 py-3.5">
-                        <div className="flex items-center justify-end gap-1">
-                          {esEdicion ? (
-                            <>
-                              <button type="button" onClick={actualizar} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground" title="Guardar"><Check size={14} /></button>
-                              <button type="button" onClick={() => setEditando(null)} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line hover:bg-muted" title="Cancelar"><X size={14} /></button>
-                            </>
-                          ) : (
-                            <>
-                              <button type="button" onClick={() => iniciarEdicion(t)} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary" title="Editar"><Pencil size={14} /></button>
-                              <button type="button" onClick={() => eliminar(t.id)} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-bad/40 text-bad hover:border-bad" title="Eliminar"><Trash2 size={14} /></button>
-                            </>
-                          )}
-                        </div>
-                      </td>
+                      
                     </tr>
                     {esEdicion && d && (
                       <tr className="border-b border-line/60 bg-muted/30">
-                        <td colSpan={11} className="px-2 py-2">
+                        <td colSpan={10} className="px-2 py-2">
                           <div className="grid gap-3 sm:grid-cols-3"><div className="grid grid-cols-2 gap-3 content-start">{seccionLaboral(d, actualizarCampo, false)}</div><div className="grid grid-cols-2 gap-3 content-start">{seccionSalario(d, actualizarCampo, false)}</div><div className="grid grid-cols-2 gap-3 content-start">{seccionPrevision(d, actualizarCampo)}</div></div>
                         </td>
                       </tr>
@@ -571,7 +560,7 @@ function Personal() {
             </table>
           </div>
         )}
-      </Panel>
+      </Panel><BarraIconosHoja objeto="trabajador" haySeleccion={!!trabajadoresFiltrados.find((t) => t.id === sel)} onEditar={() => { const t = trabajadoresFiltrados.find((t) => t.id === sel); if (t) iniciarEdicion(t); }} onEliminar={() => { if (trabajadoresFiltrados.some((t) => t.id === sel)) void eliminar(sel); }} extras={editando && <><BotonIcono etiqueta="Guardar" onClick={actualizar}><Check size={15} /></BotonIcono><BotonIcono etiqueta="Cancelar" onClick={() => setEditando(null)}><X size={15} /></BotonIcono></>} /></div>
       </>}
     </>
   );
