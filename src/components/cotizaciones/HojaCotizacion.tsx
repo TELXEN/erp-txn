@@ -182,7 +182,7 @@ export function HojaCotizacion({
                   placeholder="Escribe o elige un RUC"
                   defaultValue={(cot as { ruc_cliente?: string }).ruc_cliente || clientes.find((x) => x.id === cot.cliente_id)?.numero_documento || ""}
                   onBlur={(e) => {
-                    const ruc = e.target.value.split(" — ")[0].trim();
+                    const ruc = (e.target.value.split(" — ")[0] ?? "").trim();
                     const c = clientes.find((x) => x.numero_documento === ruc);
                     const actual = (cot as { ruc_cliente?: string }).ruc_cliente ?? "";
                     if (c) {
