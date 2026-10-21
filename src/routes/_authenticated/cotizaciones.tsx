@@ -401,6 +401,7 @@ function Cotizaciones() {
               cotizacion_id: nueva.id,
               padre_id: i.padre_id ? (mapa.get(i.padre_id) ?? null) : null,
               tipo: i.tipo,
+              nivel: (i as { nivel?: string }).nivel ?? "partida",
               codigo: i.codigo,
               nombre: i.nombre,
               especialidad: i.especialidad,
