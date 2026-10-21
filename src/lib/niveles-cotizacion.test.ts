@@ -41,11 +41,12 @@ describe("mover filas de cotización", () => {
       expect(moverBloqueNivel(filas, "a", "bajar")?.map((fila) => fila.id)).toEqual(["g1", "a2", "p4", "a", "p1", "g2", "b", "p2"]);
     });
   }
-  it("subtítulo único intercambia con el bloque hermano contiguo dentro de su título", () => {
+  it("subtítulo único intercambia con el bloque hermano contiguo y cruza títulos", () => {
     const filas = [f("t1", "titulo", 1), f("p1", "partida", 2), f("s1", "subtitulo", 3), f("p2", "partida", 4), f("t2", "titulo", 5), f("p3", "partida", 6)];
     expect(moverBloqueNivel(filas, "s1", "subir")?.map((fila) => fila.id)).toEqual(["t1", "s1", "p2", "p1", "t2", "p3"]);
-    // Bajar cruzaría el encabezado t2: no puede salir de su título.
-    expect(moverBloqueNivel(filas, "s1", "bajar")).toBeNull();
+    const bajada = moverBloqueNivel(filas, "s1", "bajar") ?? [];
+    expect(bajada.map((fila) => fila.id)).toEqual(["t1", "p1", "t2", "s1", "p2", "p3"]);
+    expect(numerarNiveles(bajada).codigos.get("s1")).toBe("2.1");
     const ultimo = [f("t1", "titulo", 1), f("p1", "partida", 2), f("s1", "subtitulo", 3), f("p2", "partida", 4)];
     expect(moverBloqueNivel(ultimo, "s1", "subir")?.map((fila) => fila.id)).toEqual(["t1", "s1", "p2", "p1"]);
     expect(moverBloqueNivel(ultimo, "s1", "bajar")).toBeNull();
