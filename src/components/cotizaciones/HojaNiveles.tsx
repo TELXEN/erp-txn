@@ -15,7 +15,6 @@ import {
   NOMBRE_NIVEL,
   nivelDe,
   numerarNiveles,
-  RANGO_NIVEL,
   totalesNiveles,
   type NivelCotizacion,
 } from "@/lib/niveles-cotizacion";
@@ -98,7 +97,8 @@ export function HojaNiveles({
     setError("");
     setVentana({ modo: "nuevo", form: { nivel, nombre: "", unidad: "GLB", metrado: "1", precio: "0", apuId: null } });
   }
-  function abrirEditar() {
+  function abrirEditar(fila: Item | null = seleccionado) {
+    const seleccionado = fila;
     if (!seleccionado) return;
     setError("");
     setVentana({
@@ -152,7 +152,7 @@ export function HojaNiveles({
       const pos = seleccionado ? bloqueDe(orden, seleccionado.id)[1] : orden.length;
       const { data, error: err } = await db
         .from("cotizacion_items")
-        .insert({ ...datos, cotizacion_id: cotizacionId, codigo: "", especialidad: "", categoria: "", marca: "", orden: pos + 0.5, partida_apu_id: f.apuId })
+        .insert({ ...datos, cotizacion_id: cotizacionId, codigo: "", especialidad: "", categoria: "", marca: "", orden: pos + 1, partida_apu_id: f.apuId })
         .select("*")
         .single();
       if (err) throw err;
@@ -237,7 +237,7 @@ export function HojaNiveles({
                 <tr
                   key={fila.id}
                   onClick={() => setSel(fila.id)}
-                  onDoubleClick={() => { setSel(fila.id); setTimeout(abrirEditar, 0); }}
+                  onDoubleClick={() => { setSel(fila.id); abrirEditar(fila); }}
                   className={`cursor-pointer border-b border-line/60 ${estilo} ${elegido ? "outline outline-2 -outline-offset-2 outline-primary" : "hover:bg-muted/40"}`}
                 >
                   <td className="px-2 py-1 font-mono">{codigos.get(fila.id)}</td>
@@ -264,7 +264,7 @@ export function HojaNiveles({
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
-        <BotonIcono etiqueta="Editar" title="Editar" disabled={!seleccionado} onClick={abrirEditar}><Pencil size={15} /></BotonIcono>
+        <BotonIcono etiqueta="Editar" title="Editar" disabled={!seleccionado} onClick={() => abrirEditar()}><Pencil size={15} /></BotonIcono>
         <BotonIcono etiqueta="Copiar" title="Copiar con su contenido" disabled={!seleccionado} onClick={() => void copiar()}><Copy size={15} /></BotonIcono>
         <BotonIcono etiqueta="Eliminar" title="Eliminar con su contenido" tono="peligro" disabled={!seleccionado} onClick={() => void eliminar()}><Trash2 size={15} /></BotonIcono>
       </div>
@@ -343,4 +343,3 @@ export function HojaNiveles({
   );
 }
 
-export { RANGO_NIVEL };
