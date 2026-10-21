@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowDown, ArrowUp, ChevronDown, ChevronRight, FolderPlus, ListPlus, Rows3 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { ArrowDown, ArrowUp, ChevronDown, Printer, ChevronRight, FolderPlus, ListPlus, Rows3 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { BotonIcono, VentanaFlotante } from "@/components/ui-kit";
 import { BarraIconosHoja } from "@/components/BarraIconosHoja";
@@ -147,6 +148,11 @@ export function GastosGeneralesCotizacion({ abierta, onCerrar, cotizacionId, cos
             <div className={cn("mt-1 text-xl font-semibold tabular-nums", c)}>{v}</div>
           </div>
         ))}
+      </div>
+      <div className="mt-2 flex justify-end">
+        <Link to="/gg-vista" search={{ id: cotizacionId }} className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline">
+          <Printer size={13} /> Hoja impresa A4
+        </Link>
       </div>
       {total <= 0 && <p className="mt-2 text-xs text-muted-foreground">Mientras el total sea cero, la cotización conserva su % manual ({pctActual} %).</p>}
       {soloLectura && <p className="mt-2 text-xs text-muted-foreground">Revisión histórica: solo lectura.</p>}
