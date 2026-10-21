@@ -54,6 +54,8 @@ import {
 import { Check, Calculator, CornerDownRight, Upload, X, Eye, EyeOff, Trash2, ArrowLeft, Library, Plus, Pencil, Copy, FileText, LayoutTemplate, History } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/cotizaciones")({
+  validateSearch: (s: Record<string, unknown>): { abrir?: string } =>
+    typeof s["abrir"] === "string" && s["abrir"] ? { abrir: s["abrir"] } : {},
   head: () => ({
     meta: [
       { title: "Cotizaciones — ERP TELXEN" },
@@ -102,7 +104,8 @@ function Cotizaciones() {
   const { data: plantillas = [] } = usePlantillasCotizacion();
   const [plantillaSel, setPlantillaSel] = useState("");
 
-  const [seleccion, setSeleccion] = useState<string | null>(null);
+  const { abrir } = Route.useSearch();
+  const [seleccion, setSeleccion] = useState<string | null>(abrir ?? null);
   const { data: items = [] } = useCotizacionItems(seleccion);
   const { data: itemsHoja = [] } = useCotizacionItems(seleccion, true);
   const [error, setError] = useState("");
