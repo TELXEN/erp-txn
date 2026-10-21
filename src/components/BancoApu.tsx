@@ -997,6 +997,7 @@ function PanelConsolidado({ partida }: { partida: Fila }) {
 
 // ================= Hoja limpia de insumos con barra de acciones =================
 
+const ordenEs = new Intl.Collator("es", { sensitivity: "base", numeric: true });
 
 function HojaInsumos() {
   const qc = useQueryClient();
