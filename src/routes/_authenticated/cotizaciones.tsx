@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Buscador, Resaltar, coincide } from "@/components/Buscador";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
@@ -160,11 +160,12 @@ function Cotizaciones() {
     if (!el) return;
     const medir = () => {
       if (window.innerWidth < 1024) { el.style.height = ""; return; }
-      el.style.height = `${Math.max(320, window.innerHeight - el.getBoundingClientRect().top - 12)}px`;
+      el.style.height = `${Math.max(320, window.innerHeight - el.getBoundingClientRect().top)}px`;
     };
     medir();
     requestAnimationFrame(medir);
     window.addEventListener("resize", medir);
+    return () => window.removeEventListener("resize", medir);
   }, []);
   const [apu, setApu] = useState<(typeof items)[number] | null>(null);
 
