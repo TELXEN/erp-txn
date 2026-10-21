@@ -21,9 +21,8 @@
 - Invoice/quotation/preliquidation colors and font come from src/lib/documento-tema.ts; preliquidation uses one sheet (HojaPreliquidacion.tsx) with amounts in src/lib/preliquidacion-montos.ts — outputs never diverge.
 - SUNAT purchase invoices archive in comprobantes_recibidos(+_items) and the private comprobantes-compra bucket; only the authenticated descargarComprobantesSire server fn downloads, in batches of 10 — SOL credentials stay server-side.
 - SIRE uses one persistent period selector and sync control for RVIE and RCE — books stay aligned.
-- Quotation hierarchy uses `especialidad` as the chapter for single-discipline quotes, while multidisciplinary quotes use it for discipline and `grupo` for group; templates preserve this structure. Master prices are PEN, converted on entry — no mixed currencies.
 - On desktop, AppShell owns viewport height; sidebar and workspace scroll independently — navigation stays fixed.
-- Quotation WBS: multi = 4 levels Especialidad.Grupo.Categoría.Partida; single = 3 levels Grupo.Categoría.Partida (group is chapter); group 00 = none. numeracionCotizacion is the single source; projects copy codes on conversion. Subpartidas removed everywhere; legacy padre_id columns deprecated.
+- Quotation sheet: flat rows ordered by `orden` with `nivel` (especialidad>titulo>subtitulo>partida); niveles-cotizacion.ts numbers (N.0, N.1…) and formats; stored codigo synced for project conversion. Master prices PEN, converted on entry. Subpartidas/padre_id deprecated.
 - EMO validity is computed in src/lib/emo.ts from each worker's latest exam (emos_trabajador, admin/gerente-only) — one rule feeds every EMO alert.
 - Primary creation uses VentanaFlotante (optional hidden scrollbars) with consecutive saves and explicit close; cost eligibility, overrun lock and CD ceiling are DB triggers (Gerencia overrides via solicitudes_desbloqueo).
 - Detraction collections store the BN account in ventas.banco_detraccion_id; treasury splits the sale between both banks — no duplicate sale rows.
