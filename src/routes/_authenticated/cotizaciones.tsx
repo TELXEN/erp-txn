@@ -735,7 +735,7 @@ function Cotizaciones() {
         )}
 
         <div className="flex flex-col gap-2 bg-muted/60 px-2 py-2 lg:h-auto lg:min-h-0 lg:flex-1 lg:flex-row lg:overflow-hidden lg:pr-1">
-          <div className="flex min-h-0 flex-col lg:w-[60%]">
+          <div className="flex min-h-0 min-w-0 flex-col lg:w-[58%]">
           <div className="min-h-0 flex-1 overflow-auto">
           <HojaCotizacion cot={cot} items={items} clientes={clientes} mostrarEncabezado={encabezado}>
             <HojaNiveles
@@ -752,7 +752,7 @@ function Cotizaciones() {
           </div>
           <ResumenCotizacion cot={cot} items={itemsHoja} />
           </div>
-          <aside className="min-h-[24rem] overflow-hidden rounded-md border border-line bg-card lg:h-full lg:min-h-0 lg:w-[40%]">
+          <aside className="min-h-[24rem] overflow-hidden rounded-md border border-line bg-card lg:h-full lg:min-h-0 lg:min-w-0 lg:flex-1">
             <PanelApuCotizacion cot={cot} item={itemsHoja.find((i) => i.id === partidaActiva) ?? null} />
           </aside>
           <div ref={setSlotBarra} className="shrink-0" />
