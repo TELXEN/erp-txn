@@ -9,7 +9,7 @@ import { soles } from "@/lib/format";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
 import { useUnidadesMedida } from "@/lib/unidades";
 import { renumerarApu, siguienteCodigoJerarquico } from "@/lib/banco-apu";
-import { VentanaInsumo, primeraMayuscula, type ModoInsumo, type TablaInsumo } from "@/components/InsumoVentana";
+import { VentanaInsumo, primeraMayuscula, CANCELADO, type ModoInsumo, type TablaInsumo, type SelInsumo } from "@/components/InsumoVentana";
 import { r2, r4, sumar2 } from "@/lib/decimal";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -655,9 +655,25 @@ function PanelApuMaestro({ partida, selFila, onSelFila, comando }: { partida: Fi
     </Panel>
 
       {agregar && (
-        <DialogoAgregarInsumo grupo={agregar} partida={partida} opciones={(fuentes[agregar[1]] ?? []).filter((x) => x.estado === "activo" && x.id !== partida.id)}
-          existentes={detalles.filter((d) => d.partida_padre_id === partida.id)} orden={ordenNuevo ?? 0}
-          onCerrar={() => setAgregar(null)} onGuardado={() => { setAgregar(null); refrescar(); }} />
+        <VentanaInsumo modo="nuevo" agregarA={{ titulo: partida.descripcion }} soloTabla={agregar[1] as TablaInsumo}
+          alAgregar={async (s: SelInsumo, cant: number): Promise<string | null> => {
+            const col = agregar[0];
+            const propias = detalles.filter((d) => d.partida_padre_id === partida.id);
+            const ya = propias.find((d) => d[col] === s.fila.id);
+            if (ya) {
+              if (!window.confirm(`«${s.fila.descripcion}» ya está en el APU. ¿Sumar ${cant} a su cantidad actual (${ya.cantidad_o_cuadrilla})?`)) return CANCELADO;
+              const { error: e } = await db.from("partida_detalle").update({ cantidad_o_cuadrilla: Number(ya.cantidad_o_cuadrilla) + cant }).eq("id", ya.id);
+              if (e) return e.message;
+            } else {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const fila: any = { partida_padre_id: partida.id, [col]: s.fila.id, cantidad_o_cuadrilla: cant, orden: ordenNuevo ?? 0 };
+              const { error: e } = await db.from("partida_detalle").insert(fila);
+              if (e) return e.message;
+            }
+            refrescar();
+            return null;
+          }}
+          onCerrar={() => { setAgregar(null); refrescar(); }} />
       )}
     </>
   );
