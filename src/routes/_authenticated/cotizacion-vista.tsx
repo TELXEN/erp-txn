@@ -612,7 +612,7 @@ function VistaCotizacion() {
                           ))}
                           <div style={{ marginTop: 7, color: C.slate400, textAlign: "left" }}>
                             {conIgv
-                              ? `Precios expresados en ${esUsd ? "dólares americanos" : "soles"}, incluyen IGV (18%).`
+                              ? `Precios expresados en ${esUsd ? "dólares americanos" : "soles"}, incluyen IGV (18.00%).`
                               : `Precios expresados en ${esUsd ? "dólares americanos" : "soles"}, no afectos a IGV.`}{" "}
                             Oferta válida hasta la fecha indicada.
                           </div>
