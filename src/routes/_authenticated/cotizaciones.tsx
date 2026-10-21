@@ -849,7 +849,8 @@ function Cotizaciones() {
         })}
       </div>
 
-      <Panel titulo="Cotizaciones registradas" className="mb-4" extra={<Buscador valor={busqueda} onChange={setBusqueda} placeholder="Buscar por código, cliente o trabajo..." total={filtradas.length} />}>
+      <div className="mb-4 flex items-start gap-3">
+      <Panel titulo="Cotizaciones registradas" className="min-w-0 flex-1" extra={<Buscador valor={busqueda} onChange={setBusqueda} placeholder="Buscar por código, cliente o trabajo..." total={filtradas.length} />}>
         {cotizaciones.length === 0 ? (
           <Vacio texto="Aún no hay cotizaciones. Pulsa «Nueva cotización»." />
         ) : filtradas.length === 0 ? (
@@ -864,13 +865,12 @@ function Cotizaciones() {
                 <th className="px-3 py-2 font-medium">Emisión</th>
                 <th className="px-3 py-2 font-medium">Vigente hasta</th>
                 <th className="px-3 py-2 text-right font-medium">Total</th>
-                <th className="px-3 py-2 font-medium">Estado</th>
-                <th className="px-5 py-2 text-right font-medium">Acciones</th>
+                <th className="px-5 py-2 font-medium">Estado</th>
               </tr>
             </thead>
             <tbody>
               {filtradas.map((c) => (
-                <tr key={c.id} className="cursor-pointer border-b border-line/60 last:border-0 hover:bg-primary/5" onDoubleClick={() => setSeleccion(c.id)}>
+                <tr key={c.id} onClick={() => setFilaSel(c.id)} onDoubleClick={() => setSeleccion(c.id)} className={`cursor-pointer border-b border-line/60 last:border-0 hover:bg-primary/5 ${filaSel === c.id ? "bg-primary/8" : ""}`}>
                   <td className="px-5 py-2.5 font-semibold text-primary">
                     <div className="flex items-center gap-2">
                       <Resaltar texto={c.codigo ?? "—"} termino={busqueda} />
@@ -886,26 +886,10 @@ function Cotizaciones() {
                     <div className="flex items-center gap-2">{fmtFecha(vigenciaHasta(c.fecha_emision, Number(c.validez_dias)))} <Vigencia c={c} /></div>
                   </td>
                   <td className="px-3 py-2.5 text-right">{simboloMoneda(c.moneda)} {total(c.id).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                  <td className="px-3 py-2.5">
+                  <td className="px-5 py-2.5">
                     <div className="flex gap-1">
                       <Etiqueta tono={tonoEstado(c.estado)}>{c.estado}</Etiqueta>
                       {c.proyecto_id && <Etiqueta tono="good">En obra</Etiqueta>}
-                    </div>
-                  </td>
-                  <td className="px-5 py-2.5 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <Link to="/cotizacion-vista" search={{ id: c.id }} title="Vista previa" aria-label="Vista previa" className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-line text-muted-foreground hover:bg-primary/10 hover:text-primary">
-                        <Eye size={15} />
-                      </Link>
-                      <button type="button" title="Copiar" aria-label="Copiar" onClick={() => void duplicar(c)} className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-line text-muted-foreground hover:bg-primary/10 hover:text-primary">
-                        <Copy size={14} />
-                      </button>
-                      <button type="button" title="Editar" aria-label="Editar" onClick={() => setSeleccion(c.id)} className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-line text-muted-foreground hover:bg-primary/10 hover:text-primary">
-                        <Pencil size={14} />
-                      </button>
-                      <button type="button" title="Eliminar" aria-label="Eliminar" onClick={() => borrarCotizacion(c)} className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-line text-bad hover:bg-bad/10">
-                        <Trash2 size={14} />
-                      </button>
                     </div>
                   </td>
                 </tr>
@@ -914,6 +898,18 @@ function Cotizaciones() {
           </table>
         )}
       </Panel>
+      {(() => {
+        const sel = filtradas.find((c) => c.id === filaSel) ?? null;
+        return (
+          <div className="sticky top-2 flex h-fit flex-col gap-1.5 rounded-md border border-line bg-card p-1.5">
+            <BotonIcono etiqueta="Vista previa" title="Vista previa" tono="primario" disabled={!sel} onClick={() => sel && navigate({ to: "/cotizacion-vista", search: { id: sel.id } })}><Eye size={15} /></BotonIcono>
+            <BotonIcono etiqueta="Editar" title="Editar cotización" disabled={!sel} onClick={() => sel && setSeleccion(sel.id)}><Pencil size={15} /></BotonIcono>
+            <BotonIcono etiqueta="Copiar" title="Copiar cotización" disabled={!sel} onClick={() => sel && void duplicar(sel)}><Copy size={15} /></BotonIcono>
+            <BotonIcono etiqueta="Eliminar" title="Eliminar cotización" tono="peligro" disabled={!sel} onClick={() => sel && borrarCotizacion(sel)}><Trash2 size={15} /></BotonIcono>
+          </div>
+        );
+      })()}
+      </div>
         </>
       )}
     </>
