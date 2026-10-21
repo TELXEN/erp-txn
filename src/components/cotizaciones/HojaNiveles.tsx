@@ -210,7 +210,7 @@ export function HojaNiveles({
         : [];
 
   return (
-    <div className="flex gap-2 pr-12">
+    <div className="flex w-full gap-2">
       <div className="min-w-0 flex-1 overflow-x-auto rounded-md border border-line bg-card">
         <table className="w-full text-xs">
           <thead>
@@ -253,7 +253,7 @@ export function HojaNiveles({
         </table>
       </div>
 
-      <div className="fixed right-2 top-1/2 z-30 flex h-fit -translate-y-1/2 flex-col shadow-md gap-1.5 rounded-md border border-line bg-card p-1.5">
+      <div className="sticky top-2 flex h-fit flex-col gap-1.5 rounded-md border border-line bg-card p-1.5">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <BotonIcono etiqueta="Agregar" title="Agregar" tono="primario"><Plus size={15} /></BotonIcono>
