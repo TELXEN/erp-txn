@@ -155,6 +155,10 @@ function Cotizaciones() {
   const [slotBarra, setSlotBarra] = useState<HTMLDivElement | null>(null);
   /** En edición la hoja arranca sin encabezado: solo se ve la tabla de partidas. */
   const [encabezado, setEncabezado] = useState(false);
+  /** Al crear una cotización se exige elegir la moneda antes de generarla. */
+  const [pidiendoMoneda, setPidiendoMoneda] = useState(false);
+  const [monedaNueva, setMonedaNueva] = useState<"" | "PEN" | "USD">("");
+  const { data: tcHoy = 0 } = useTipoCambioActual();
   /** En escritorio el editor ocupa exactamente el alto visible: cada panel desplaza su propio contenido. */
   const ajustarAlto = useCallback((el: HTMLDivElement | null) => {
     if (!el) return;
@@ -191,6 +195,10 @@ function Cotizaciones() {
   async function crear() {
     setError("");
     setAviso("");
+    if (!monedaNueva) {
+      setError("Selecciona la moneda de la cotización (Soles o Dólares).");
+      return;
+    }
     try {
       const codigo = form.codigo.trim().toUpperCase() || (await generarCodigoCotizacion());
       const cliente = clientes.find((c) => c.id === form.cliente_id);
@@ -213,6 +221,8 @@ function Cotizaciones() {
           condiciones_pago: form.condiciones_pago.trim(),
           aplica_igv: form.aplica_igv === "si",
           estado: "Borrador",
+          moneda: monedaNueva,
+          ...(monedaNueva === "USD" ? { tipo_cambio: tcHoy || 3.75 } : {}),
           ...(pl
             ? {
                 nombre: form.nombre.trim() || pl.nombre,
