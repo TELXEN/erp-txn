@@ -44,10 +44,10 @@ type Ficha = { it: Item; comps: DetalleApu[] };
 
 /** Altura estimada (px) de una ficha APU dentro de la hoja de 794 px de ancho. */
 function altoEstimadoApu(f: Ficha) {
-  let h = 56 + 28;
+  let h = 22 + 20;
   const nComps = f.comps.length;
-  h += 4 * 26 + (nComps + 1) * 26;
-  h += 34 + 22 + 16;
+  h += 4 * 18 + (nComps + 1) * 18;
+  h += 22 + 22 + 10;
   return h;
 }
 
@@ -163,21 +163,21 @@ function VistaApu() {
                   const totalMo = sumar2(calc.filas.filter((f) => f.tipo === "MO").map((f) => f.parcial));
                   const pctHt = Number(it.pct_herramientas ?? PCT_HERRAMIENTAS_DEFECTO);
                   const htTotal = r2(totalMo * pctHt / 100);
-                  const td = "h-[26px] border-r border-line/70 px-1 align-middle text-[11px] last:border-r-0";
+                  const td = "h-[18px] border-r border-line/70 px-1 align-middle text-[9px] leading-tight last:border-r-0";
                   return (
-                    <div key={it.id} className={`apu-ficha break-inside-avoid ${fIdx === 0 ? "mt-2.5" : "mt-3.5 border-t border-dashed border-line pt-3"}`}>
-                      <div className="border-b border-line px-3 py-2 text-xs font-semibold">{it.codigo} · {it.nombre}</div>
-                      <div className="flex flex-wrap items-center gap-4 border-b border-line bg-muted/50 px-3 py-2 text-[13px]">
+                    <div key={it.id} className={`apu-ficha break-inside-avoid ${fIdx === 0 ? "mt-2" : "mt-2 border-t border-dashed border-line pt-2"}`}>
+                      <div className="border-b border-line px-2 py-1 text-[10px] font-semibold leading-tight">{it.codigo} · {it.nombre}</div>
+                      <div className="flex flex-wrap items-center gap-4 border-b border-line bg-muted/50 px-2 py-0.5 text-[9.5px] leading-tight">
                         <span><strong>Rend. diario</strong> <span className="font-mono">{n2(Number(it.rendimiento ?? 1))}</span> {it.unidad}/día</span>
                         <span><strong>Jornada</strong> <span className="font-mono">{n2(Number(it.jornada ?? 8))}</span> h/día</span>
-                        <span className="ml-auto font-mono text-[11px] text-muted-foreground">Metrado: {n2(Number(it.metrado))} {it.unidad}</span>
+                        <span className="ml-auto font-mono text-[9px] text-muted-foreground">Metrado: {n2(Number(it.metrado))} {it.unidad}</span>
                       </div>
                       <table className="w-full table-fixed border-collapse">
                         <colgroup><col className="w-[74px]" /><col /><col className="w-[40px]" /><col className="w-[60px]" /><col className="w-[104px]" /><col className="w-[80px]" /><col className="w-[80px]" /></colgroup>
                         <thead>
                           <tr className="border-b border-line bg-card">
                             {["CÓDIGO", "DESCRIPCIÓN", "UNID.", "RECURSO", "CANTIDAD", "PRECIO", "TOTAL"].map((h, i) => (
-                              <th key={h} className={`h-[30px] whitespace-nowrap border-r border-line px-1 text-[10px] font-semibold text-foreground/80 last:border-r-0 ${i < 2 ? "text-left" : i === 2 ? "text-center" : "text-right"}`}>{h}</th>
+                              <th key={h} className={`h-[20px] whitespace-nowrap border-r border-line px-1 text-[8.5px] font-semibold text-foreground/80 last:border-r-0 ${i < 2 ? "text-left" : i === 2 ? "text-center" : "text-right"}`}>{h}</th>
                             ))}
                           </tr>
                         </thead>
@@ -218,10 +218,10 @@ function VistaApu() {
                               ] : []),
                             ];
                           })}
-                          {!comps.length && <tr><td colSpan={7} className="px-3 py-3 text-[11px] text-muted-foreground">Partida sin recursos analizados.</td></tr>}
+                          {!comps.length && <tr><td colSpan={7} className="px-2 py-1 text-[9px] text-muted-foreground">Partida sin recursos analizados.</td></tr>}
                         </tbody>
                       </table>
-                      <div className="flex items-center justify-end gap-4 border-t border-line bg-muted/30 px-4 py-2 text-[15px] font-bold">
+                      <div className="flex items-center justify-end gap-4 border-t border-line bg-muted/30 px-2 py-1 text-[11px] font-bold leading-tight">
                         <span>Costo total del APU</span><span className="font-mono text-primary">{cot?.moneda === "USD" ? "US$" : "S/"} {n2(calc.total + htTotal)}</span>
                       </div>
                     </div>
