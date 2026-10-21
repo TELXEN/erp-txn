@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Copy, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Panel, Vacio } from "@/components/ui-kit";
-import { ALCANCES, usePlantillasCotizacion, type PlantillaCotizacion } from "@/lib/cotizaciones";
+import { usePlantillasCotizacion, type PlantillaCotizacion } from "@/lib/cotizaciones";
 
 const sb = supabase as unknown as { from: (t: string) => any };
 const campo = "w-full rounded border border-line bg-card px-2 py-1 text-xs";
@@ -55,7 +55,7 @@ export function PlantillasCotizacion() {
     <Panel titulo="Plantillas por tipo de obra" className="mb-4">
       <div className="p-3">
           <p className="mb-2 text-[11px] text-muted-foreground">
-            Para llenar una plantilla: arma una cotización con sus grupos, categorías y partidas y usa «Guardar como plantilla». Al crear una cotización elige la plantilla junto al botón «Nueva cotización».
+            Para llenar una plantilla: arma una cotización con sus especialidades, títulos, subtítulos y partidas y usa «Guardar como plantilla». Al crear una cotización elige la plantilla junto al botón «Nueva cotización».
           </p>
           {plantillas.length === 0 ? (
             <Vacio texto="Sin plantillas." />
@@ -65,8 +65,6 @@ export function PlantillasCotizacion() {
                 <tr className="border-b border-line text-left text-[10px] uppercase text-muted-foreground">
                   <th className="px-2 py-1.5">Tipo de obra</th>
                   <th className="px-2 py-1.5">Descripción</th>
-                  <th className="px-2 py-1.5">Tipo</th>
-                  <th className="px-2 py-1.5">Alcance</th>
                   <th className="px-2 py-1.5 text-right">Partidas</th>
                   <th className="px-2 py-1.5 text-right">Acciones</th>
                 </tr>
@@ -76,17 +74,6 @@ export function PlantillasCotizacion() {
                   <tr key={p.id} className="border-b border-line/60">
                     <td className="px-2 py-1"><input key={p.nombre} defaultValue={p.nombre} onBlur={(e) => e.target.value.trim() && e.target.value !== p.nombre && void guardar(p, { nombre: e.target.value.trim() })} className={`${campo} font-semibold`} /></td>
                     <td className="px-2 py-1"><input key={p.descripcion} defaultValue={p.descripcion} onBlur={(e) => e.target.value !== p.descripcion && void guardar(p, { descripcion: e.target.value })} className={campo} /></td>
-                    <td className="px-2 py-1">
-                      <select value={p.multidisciplinaria ? "multi" : "una"} onChange={(e) => void guardar(p, { multidisciplinaria: e.target.value === "multi" })} className={campo}>
-                        <option value="una">Una disciplina</option>
-                        <option value="multi">Multidisciplinaria</option>
-                      </select>
-                    </td>
-                    <td className="px-2 py-1">
-                      <select value={p.alcance} onChange={(e) => void guardar(p, { alcance: e.target.value as PlantillaCotizacion["alcance"] })} className={campo}>
-                        {ALCANCES.map(([v, t]) => <option key={v} value={v}>{t}</option>)}
-                      </select>
-                    </td>
                     <td className="px-2 py-1 text-right">{conteo[p.id] ?? 0}</td>
                     <td className="px-2 py-1">
                       <div className="flex justify-end gap-1">
