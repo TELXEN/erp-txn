@@ -22,7 +22,7 @@
 - SUNAT purchase invoices archive in comprobantes_recibidos(+_items) and the private comprobantes-compra bucket; only the authenticated descargarComprobantesSire server fn downloads, in batches of 10 — SOL credentials stay server-side.
 - SIRE uses one persistent period selector and sync control for RVIE and RCE — books stay aligned.
 - On desktop, AppShell owns viewport height; sidebar and workspace scroll independently — navigation stays fixed.
-- Quotation rows: flat `orden` + `nivel`; niveles-cotizacion.ts numbers/formats. APU inserts use filaRecursoCotizacion for catalog FK/code snapshots; PEN master prices.
+- Quotation rows use flat `orden` + `nivel` and niveles-cotizacion.ts. HojaNiveles separates bank/new insertion; bank copies recipes, new stays independent. APU inserts use filaRecursoCotizacion for FK/code snapshots; PEN master prices.
 - EMO validity is computed in src/lib/emo.ts from each worker's latest exam (emos_trabajador, admin/gerente-only) — one rule feeds every EMO alert.
 - Primary creation uses VentanaFlotante (optional hidden scrollbars) with consecutive saves and explicit close; cost eligibility, overrun lock and CD ceiling are DB triggers (Gerencia overrides via solicitudes_desbloqueo).
 - Detraction collections store the BN account in ventas.banco_detraccion_id; treasury splits the sale between both banks — no duplicate sale rows.
