@@ -1,4 +1,5 @@
 # Roadmap
+- [ ] Corregir movimiento entre grupos: partida 2.1 → 1.3 al subir, conservar contenido y verificar.
 - [x] Cotizaciones: iconos Subir/Bajar por nivel con contenido y numeración; 11 pruebas pasan y columna verificada. No se movieron datos reales; hoja consultada vacía.
 - [x] Insertar partida: opciones Banco de partidas / Crear nueva; ventana verificada sin alterar datos reales. Inserción desde banco no comprobada por catálogo vacío.
 - [x] Plantillas: iconos de acciones en columna vertical a la derecha (hoja limpia, ventana única para alta/edición/copia) y verificación en pantalla.
