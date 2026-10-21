@@ -438,38 +438,40 @@ export function ResumenCotizacion({ cot, items }: { cot: Cotizacion; items: Coti
           ))}
         </tbody>
       </table>
-      <table className="w-full">
+      <table className="w-full table-fixed">
+        <colgroup><col /><col className="w-20" /><col className="w-[40%]" /></colgroup>
         <tbody>
-          <tr className="border-b border-line/40"><td className="px-2 py-0.5">Costo directo</td><td className="px-2 py-0.5 text-right">{sim} {num(cd)}</td></tr>
+          <tr className="border-b border-line/40"><td className="px-2 py-0.5">Costo directo</td><td /><td className="px-2 py-0.5 text-right whitespace-nowrap">{sim} {num(cd)}</td></tr>
           {([
             ["Gastos generales", "pct_gastos_generales", gg],
             ["Utilidad", "pct_utilidad", ut],
           ] as [string, "pct_gastos_generales" | "pct_utilidad", number][]).map(([n, campo, v]) => (
             <tr key={campo} className="border-b border-line/40">
-              <td className="px-2 py-0.5">
-                <span className="inline-flex items-center gap-1">
-                  {n}
+              <td className="px-2 py-0.5 break-words">{n}</td>
+              <td className="px-1 py-0.5">
+                <span className="flex items-center gap-1">
                   <input
                     key={`${cot.id}-${campo}-${cot[campo]}`}
                     type="number"
                     step="0.5"
                     min="0"
                     defaultValue={Number(cot[campo])}
+                    aria-label={`Porcentaje de ${n.toLowerCase()}`}
                     title={`% de ${n.toLowerCase()} aplicado sobre el costo directo`}
                     onBlur={(e) => void cambiarPct(campo, Number(e.target.value || 0), Number(cot[campo]))}
-                    className="w-12 rounded border border-line bg-background px-1 py-0 text-right outline-none focus:border-primary"
+                    className="w-full min-w-0 rounded border border-line bg-background px-1 py-0 text-right tabular-nums outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none focus:border-primary"
                   />
-                  %
+                  <span className="shrink-0 text-muted-foreground">%</span>
                 </span>
               </td>
-              <td className="px-2 py-0.5 text-right">{sim} {num(v)}</td>
+              <td className="px-2 py-0.5 text-right whitespace-nowrap">{sim} {num(v)}</td>
             </tr>
           ))}
-          <tr className="border-b border-line/40"><td className="px-2 py-0.5">Monto parcial</td><td className="px-2 py-0.5 text-right">{sim} {num(parcialT)}</td></tr>
-          <tr className="border-b border-line/40"><td className="px-2 py-0.5">IGV {cot.aplica_igv === false ? 0 : 18}%</td><td className="px-2 py-0.5 text-right">{sim} {num(igv)}</td></tr>
-          <tr className="font-semibold text-primary"><td className="px-2 py-1">TOTAL</td><td className="px-2 py-1 text-right">{sim} {num(parcialT + igv)}</td></tr>
+          <tr className="border-b border-line/40"><td className="px-2 py-0.5">Monto parcial</td><td /><td className="px-2 py-0.5 text-right whitespace-nowrap">{sim} {num(parcialT)}</td></tr>
+          <tr className="border-b border-line/40"><td className="px-2 py-0.5">IGV</td><td className="px-1 py-0.5"><span className="flex items-center gap-1"><span className="min-w-0 flex-1 px-1 text-right tabular-nums">{cot.aplica_igv === false ? 0 : 18}</span><span className="shrink-0 text-muted-foreground">%</span></span></td><td className="px-2 py-0.5 text-right whitespace-nowrap">{sim} {num(igv)}</td></tr>
+          <tr className="font-semibold text-primary"><td className="px-2 py-1">TOTAL</td><td /><td className="px-2 py-1 text-right whitespace-nowrap">{sim} {num(parcialT + igv)}</td></tr>
           {cot.moneda === "USD" && Number(cot.tipo_cambio) > 0 && (
-            <tr className="text-muted-foreground"><td className="px-2 py-0.5">Equivalente en soles</td><td className="px-2 py-0.5 text-right">S/ {num((parcialT + igv) * Number(cot.tipo_cambio))}</td></tr>
+            <tr className="text-muted-foreground"><td className="px-2 py-0.5">Equivalente en soles</td><td /><td className="px-2 py-0.5 text-right whitespace-nowrap">S/ {num((parcialT + igv) * Number(cot.tipo_cambio))}</td></tr>
           )}
         </tbody>
       </table>
