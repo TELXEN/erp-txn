@@ -58,7 +58,7 @@ export function bloqueDe<T extends FilaNivel>(ordenadas: T[], id: string): [numb
   return [i, j];
 }
 
-/** Total de una fila encabezado = suma de sus partidas; de una partida = metrado × P.U. */
+/** Mueve entre hermanos del mismo nivel, preservando el contenido de cada encabezado. */
 export function moverBloqueNivel<T extends FilaNivel>(filas: T[], id: string, direccion: "subir" | "bajar"): T[] | null {
   const { orden } = numerarNiveles(filas);
   const padres = new Map<string, string | null>();

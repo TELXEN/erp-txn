@@ -227,7 +227,7 @@ export function HojaNiveles({
     try {
       // Keep previous order values so sincronizar persists the changed positions.
       const anteriores = new Map(orden.map((fila) => [fila.id, fila.orden]));
-      await sincronizar(nueva.map((fila) => ({ ...fila, orden: anteriores.get(fila.id) })));
+      await sincronizar(nueva.map((fila) => ({ ...fila, orden: anteriores.get(fila.id) ?? fila.orden })));
       await refrescar();
     } catch (x) {
       toast.error(x instanceof Error ? x.message : "No se pudo mover la fila.");
