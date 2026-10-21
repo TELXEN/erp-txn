@@ -19,6 +19,7 @@ import {
   nivelDe,
   moverBloqueNivel,
   numerarNiveles,
+  posicionInsercion,
   totalesNiveles,
   type NivelCotizacion,
 } from "@/lib/niveles-cotizacion";
