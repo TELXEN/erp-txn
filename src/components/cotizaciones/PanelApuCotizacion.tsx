@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Plus, Upload } from "lucide-react";
 import { Boton, Campo, Input, Vacio, VentanaFlotante } from "@/components/ui-kit";
@@ -76,6 +76,13 @@ export function PanelApuCotizacion({ cot, item, comando }: { cot: Cotizacion; it
     setEditJornada(false);
     setPctHt(Number((item as { pct_herramientas?: number } | null)?.pct_herramientas ?? 5));
   }, [item?.id, (item as { pct_herramientas?: number } | null)?.pct_herramientas]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const accionRef = useRef<((a: AccionApu, m: never) => Promise<unknown>) | null>(null);
+  useEffect(() => {
+    if (!comando || !item) return;
+    setPestana("acu");
+    void accionRef.current?.("final", { t: comando.grupo, f: undefined } as never);
+  }, [comando?.n]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!item)
     return (
@@ -172,12 +179,7 @@ export function PanelApuCotizacion({ cot, item, comando }: { cot: Cotizacion; it
     await refrescar();
   }
 
-  useEffect(() => {
-    if (!comando || !item) return;
-    setPestana("acu");
-    void accionMenu("final", { t: comando.grupo, f: undefined } as unknown as NonNullable<typeof menu>);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [comando?.n]);
+  accionRef.current = accionMenu;
 
   async function exportar() {
     if (!propias.length) return setAviso("La partida no tiene recursos para exportar.");
