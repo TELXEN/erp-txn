@@ -1534,6 +1534,7 @@ export type Database = {
           proyecto_id: string | null
           recursos_humanos: string
           revision: string
+          ruc_cliente: string
           tiempo_ejecucion: string
           tipo_cambio: number
           ubicacion: string
@@ -1561,6 +1562,7 @@ export type Database = {
           proyecto_id?: string | null
           recursos_humanos?: string
           revision?: string
+          ruc_cliente?: string
           tiempo_ejecucion?: string
           tipo_cambio?: number
           ubicacion?: string
@@ -1588,6 +1590,7 @@ export type Database = {
           proyecto_id?: string | null
           recursos_humanos?: string
           revision?: string
+          ruc_cliente?: string
           tiempo_ejecucion?: string
           tipo_cambio?: number
           ubicacion?: string

@@ -11,7 +11,9 @@ import { HojaNiveles } from "@/components/cotizaciones/HojaNiveles";
 import { PanelApuCotizacion, ResumenCotizacion } from "@/components/cotizaciones/PanelApuCotizacion";
 import { HojaCotizacion } from "@/components/cotizaciones/HojaCotizacion";
 
-import { Boton, BotonIcono, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
+import { Boton, BotonIcono, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
+import { cn } from "@/lib/utils";
+import { useTipoCambioActual } from "@/lib/cotizaciones";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
@@ -155,6 +157,10 @@ function Cotizaciones() {
   const [slotBarra, setSlotBarra] = useState<HTMLDivElement | null>(null);
   /** En edición la hoja arranca sin encabezado: solo se ve la tabla de partidas. */
   const [encabezado, setEncabezado] = useState(false);
+  /** Al crear una cotización se exige elegir la moneda antes de generarla. */
+  const [pidiendoMoneda, setPidiendoMoneda] = useState(false);
+  const [monedaNueva, setMonedaNueva] = useState<"" | "PEN" | "USD">("");
+  const { data: tcHoy = 0 } = useTipoCambioActual();
   /** En escritorio el editor ocupa exactamente el alto visible: cada panel desplaza su propio contenido. */
   const ajustarAlto = useCallback((el: HTMLDivElement | null) => {
     if (!el) return;
@@ -191,6 +197,10 @@ function Cotizaciones() {
   async function crear() {
     setError("");
     setAviso("");
+    if (!monedaNueva) {
+      setError("Selecciona la moneda de la cotización (Soles o Dólares).");
+      return;
+    }
     try {
       const codigo = form.codigo.trim().toUpperCase() || (await generarCodigoCotizacion());
       const cliente = clientes.find((c) => c.id === form.cliente_id);
@@ -213,6 +223,8 @@ function Cotizaciones() {
           condiciones_pago: form.condiciones_pago.trim(),
           aplica_igv: form.aplica_igv === "si",
           estado: "Borrador",
+          moneda: monedaNueva,
+          ...(monedaNueva === "USD" ? { tipo_cambio: tcHoy || 3.75 } : {}),
           ...(pl
             ? {
                 nombre: form.nombre.trim() || pl.nombre,
@@ -236,7 +248,10 @@ function Cotizaciones() {
       }
       setVerCatalogo(false);
       qc.invalidateQueries({ queryKey: ["cotizaciones"] });
+      setPidiendoMoneda(false);
+      setMonedaNueva("");
       setSeleccion(data.id);
+      setEncabezado(true);
     } catch (e2) {
       setError(e2 instanceof Error ? e2.message : "No se pudo crear la cotización.");
     }
@@ -800,9 +815,26 @@ function Cotizaciones() {
                 <option key={p.id} value={p.id}>Plantilla: {p.nombre}</option>
               ))}
             </select>
-            <Boton onClick={() => void crear()}>
+            <Boton onClick={() => { setMonedaNueva(""); setError(""); setPidiendoMoneda(true); }}>
               <Plus size={14} /> Nueva cotización
             </Boton>
+            <VentanaFlotante titulo="Nueva cotización" subtitulo="Elige la moneda; luego completarás el encabezado" abierta={pidiendoMoneda} onCerrar={() => setPidiendoMoneda(false)} ancho="max-w-md">
+              <div className="space-y-3 p-4">
+                <p className="text-xs font-semibold">Moneda de la cotización <span className="text-bad">*</span></p>
+                <div className="grid grid-cols-2 gap-2">
+                  {(["PEN", "USD"] as const).map((m) => (
+                    <button key={m} type="button" onClick={() => setMonedaNueva(m)} className={cn("rounded-md border px-3 py-3 text-sm font-semibold", monedaNueva === m ? "border-primary bg-primary/10 text-primary" : "border-line hover:bg-muted")}>
+                      {m === "PEN" ? "Soles (S/)" : "Dólares (US$)"}
+                    </button>
+                  ))}
+                </div>
+                {error && <p className="text-xs text-bad">{error}</p>}
+                <div className="flex justify-end gap-2">
+                  <Boton variante="linea" onClick={() => setPidiendoMoneda(false)}>Cancelar</Boton>
+                  <Boton disabled={!monedaNueva} onClick={() => void crear()}>Crear y completar encabezado</Boton>
+                </div>
+              </div>
+            </VentanaFlotante>
           </div> : undefined
         }
       />
