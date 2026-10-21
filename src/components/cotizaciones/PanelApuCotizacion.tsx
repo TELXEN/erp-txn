@@ -7,6 +7,7 @@ import { MenuContextualApu, type AccionApu, type EstadoMenuApu } from "@/compone
 import { BANCOS_RECURSO, costoReceta, filaRecursoCotizacion, dbBanco, renumerarApu, useBancoTabla, useRecursosApu, type FilaCalculo, type RecursosApu } from "@/lib/banco-apu";
 import { VentanaInsumo, CANCELADO, type SelInsumo } from "@/components/InsumoVentana";
 import { r2, sumar2 } from "@/lib/decimal";
+import { PCT_HERRAMIENTAS_DEFECTO } from "@/lib/apu";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import type { Cotizacion, CotizacionItem } from "@/lib/cotizaciones";
@@ -75,7 +76,7 @@ export function PanelApuCotizacion({ cot, item, comando }: { cot: Cotizacion; it
     setRendLocal(null);
     setJornadaLocal(null);
     setEditJornada(false);
-    setPctHt(Number((item as { pct_herramientas?: number } | null)?.pct_herramientas ?? 5));
+    setPctHt(Number((item as { pct_herramientas?: number } | null)?.pct_herramientas ?? PCT_HERRAMIENTAS_DEFECTO));
   }, [item?.id, (item as { pct_herramientas?: number } | null)?.pct_herramientas]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const accionRef = useRef<((a: AccionApu, m: never) => Promise<unknown>) | null>(null);

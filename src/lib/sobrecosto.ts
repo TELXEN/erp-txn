@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { leerTodo } from "@/lib/datos";
-import { precioVenta, useInsumos, useMargenesInsumo } from "@/lib/apu";
+import { PCT_HERRAMIENTAS_DEFECTO, precioVenta, useInsumos, useMargenesInsumo } from "@/lib/apu";
 import { useCostoObras } from "@/lib/costo-obra";
 
 const db = supabase as unknown as { from: (t: string) => any };
@@ -112,7 +112,7 @@ export function useDesgloseCd(proyectoId?: string | null) {
         base[t] += Number(p.metrado || 0) * cant * precioVenta(i); // precio ofertado del APU (con margen)
       });
     }
-    base.HT = (base.MO * Number(margenes?.HT ?? 0)) / 100;
+    base.HT = (base.MO * Number(margenes?.HT ?? PCT_HERRAMIENTAS_DEFECTO)) / 100;
     const c = proyectoId ? costoDe(proyectoId) : null;
     const real: Record<ClaveRubro, number> = {
       MAT: c?.materiales ?? 0,

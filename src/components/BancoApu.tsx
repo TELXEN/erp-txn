@@ -11,6 +11,7 @@ import { useUnidadesMedida } from "@/lib/unidades";
 import { renumerarApu, siguienteCodigoJerarquico } from "@/lib/banco-apu";
 import { VentanaInsumo, primeraMayuscula, CANCELADO, type ModoInsumo, type TablaInsumo, type SelInsumo } from "@/components/InsumoVentana";
 import { r2, r4, sumar2 } from "@/lib/decimal";
+import { PCT_HERRAMIENTAS_DEFECTO } from "@/lib/apu";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = supabase as unknown as { from: (t: string) => any; rpc: (f: string, a: object) => any };
@@ -489,8 +490,8 @@ function PanelApuMaestro({ partida, selFila, onSelFila, comando }: { partida: Fi
   const [rendLocal, setRendLocal] = useState<number | null>(null);
   const [editJornada, setEditJornada] = useState(false);
   const [jornada, setJornada] = useState<number>(() => Number(localStorage.getItem(`banco-apu:jornada:${partida.id}`)) || 8);
-  const [pctHt, setPctHt] = useState<number>(() => Number(partida.pct_herramientas ?? 5));
-  useEffect(() => { setRendLocal(null); setEditJornada(false); setJornada(Number(localStorage.getItem(`banco-apu:jornada:${partida.id}`)) || 8); setPctHt(Number(partida.pct_herramientas ?? 5)); }, [partida.id, partida.rendimiento_diario, partida.pct_herramientas]);
+  const [pctHt, setPctHt] = useState<number>(() => Number(partida.pct_herramientas ?? PCT_HERRAMIENTAS_DEFECTO));
+  useEffect(() => { setRendLocal(null); setEditJornada(false); setJornada(Number(localStorage.getItem(`banco-apu:jornada:${partida.id}`)) || 8); setPctHt(Number(partida.pct_herramientas ?? PCT_HERRAMIENTAS_DEFECTO)); }, [partida.id, partida.rendimiento_diario, partida.pct_herramientas]);
   const rend = rendLocal ?? (Number(partida.rendimiento_diario) || 1);
   const jornadaEfectiva = editJornada ? jornada : 8;
   const calc = costo(partida.id, new Set(), rend, jornadaEfectiva);
