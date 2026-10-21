@@ -277,7 +277,7 @@ export function VentanaInsumo({
   return (
     <VentanaFlotante abierta onCerrar={onCerrar} ancho="max-w-2xl"
       titulo={dual ? "Agregar insumo" : modo === "editar" ? "Editar insumo" : modo === "copiar" ? "Copiar insumo" : "Nuevo insumo"}
-      subtitulo={agregarA?.titulo}>
+      {...(agregarA ? { subtitulo: agregarA.titulo } : {})}>
       {dual && (
         <div className="flex gap-1 border-b border-line px-5">
           <button type="button" className={pestanaCls("sel")} onClick={() => { setPestana("sel"); setAviso(""); }}>Seleccionar existente</button>

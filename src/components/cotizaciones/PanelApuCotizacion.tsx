@@ -253,7 +253,7 @@ export function PanelApuCotizacion({ cot, item, comando }: { cot: Cotizacion; it
       {menu && <MenuContextualApu menu={menu} onCerrar={cerrarMenu} onAccion={(a) => void accionMenu(a, menu)} />}
       {agregar && (
         <VentanaInsumo modo="nuevo" agregarA={{ titulo: it.nombre }}
-          soloTabla={agregar.t === "INSUMO" ? undefined : BANCOS_RECURSO.find((b) => b[3] === agregar.t)?.[1] as SelInsumo["tabla"] | undefined}
+          {...(agregar.t === "INSUMO" ? {} : { soloTabla: BANCOS_RECURSO.find((b) => b[3] === agregar.t)?.[1] as SelInsumo["tabla"] | undefined })}
           alAgregar={agregarApu} onCerrar={() => setAgregar(null)} />
       )}
       <div className="border-b border-line px-3 py-2">
