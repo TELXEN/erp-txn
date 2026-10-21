@@ -58,6 +58,35 @@ export function bloqueDe<T extends FilaNivel>(ordenadas: T[], id: string): [numb
   return [i, j];
 }
 
+/** Mueve entre hermanos del mismo nivel, preservando el contenido de cada encabezado. */
+export function moverBloqueNivel<T extends FilaNivel>(filas: T[], id: string, direccion: "subir" | "bajar"): T[] | null {
+  const { orden } = numerarNiveles(filas);
+  const padres = new Map<string, string | null>();
+  const pila: T[] = [];
+  for (const fila of orden) {
+    const rango = RANGO_NIVEL[nivelDe(fila)];
+    let ultimo = pila.at(-1);
+    while (ultimo && RANGO_NIVEL[nivelDe(ultimo)] >= rango) {
+      pila.pop();
+      ultimo = pila.at(-1);
+    }
+    padres.set(fila.id, ultimo?.id ?? null);
+    pila.push(fila);
+  }
+  const actual = orden.find((fila) => fila.id === id);
+  if (!actual) return null;
+  const hermanos = orden.filter((fila) => nivelDe(fila) === nivelDe(actual) && padres.get(fila.id) === padres.get(id));
+  const vecino = hermanos[hermanos.findIndex((fila) => fila.id === id) + (direccion === "subir" ? -1 : 1)];
+  if (!vecino) return null;
+  const [inicio, fin] = bloqueDe(orden, id);
+  const [vecInicio, vecFin] = bloqueDe(orden, vecino.id);
+  const bloque = orden.slice(inicio, fin);
+  const nueva = direccion === "subir"
+    ? [...orden.slice(0, vecInicio), ...bloque, ...orden.slice(vecInicio, inicio), ...orden.slice(fin)]
+    : [...orden.slice(0, inicio), ...orden.slice(fin, vecFin), ...bloque, ...orden.slice(vecFin)];
+  return nueva.map((fila, i) => ({ ...fila, orden: i + 1 }));
+}
+
 /** Total de una fila encabezado = suma de sus partidas; de una partida = metrado × P.U. */
 export function totalesNiveles<T extends FilaNivel & { metrado?: number | string; precio_unitario?: number | string }>(ordenadas: T[]) {
   const tot = new Map<string, number>();

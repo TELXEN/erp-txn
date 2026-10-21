@@ -1,7 +1,7 @@
 import { createPortal } from "react-dom";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Copy, Pencil, Plus, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, Copy, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { BotonIcono, Boton, Campo, Input, Select, VentanaFlotante } from "@/components/ui-kit";
@@ -16,6 +16,7 @@ import {
   formatearNivel,
   NOMBRE_NIVEL,
   nivelDe,
+  moverBloqueNivel,
   numerarNiveles,
   totalesNiveles,
   type NivelCotizacion,
@@ -88,7 +89,11 @@ export function HojaNiveles({
       if ((f.categoria ?? "") !== tit) cambio['categoria'] = tit;
       if (Object.keys(cambio).length) cambios.push(db.from("cotizacion_items").update(cambio).eq("id", f.id));
     });
-    await Promise.all(cambios);
+    const resultados = await Promise.all(cambios);
+    for (const resultado of resultados) {
+      const fallo = (resultado as { error?: { message: string } } | null)?.error;
+      if (fallo) throw new Error(fallo.message);
+    }
   }
 
   // Filas agregadas por otras vías (catálogo, plantillas) se numeran solas.
@@ -212,6 +217,26 @@ export function HojaNiveles({
   }
 
   const f = ventana?.form;
+  const subir = sel ? moverBloqueNivel(orden, sel, "subir") : null;
+  const bajar = sel ? moverBloqueNivel(orden, sel, "bajar") : null;
+  async function mover(direccion: "subir" | "bajar") {
+    const nueva = direccion === "subir" ? subir : bajar;
+    if (!nueva || ocupado) return;
+    setOcupado(true);
+    sincronizando.current = true;
+    try {
+      // Keep previous order values so sincronizar persists the changed positions.
+      const anteriores = new Map(orden.map((fila) => [fila.id, fila.orden]));
+      await sincronizar(nueva.map((fila) => ({ ...fila, orden: anteriores.get(fila.id) ?? fila.orden })));
+      await refrescar();
+    } catch (x) {
+      toast.error(x instanceof Error ? x.message : "No se pudo mover la fila.");
+      await refrescar();
+    } finally {
+      sincronizando.current = false;
+      setOcupado(false);
+    }
+  }
   const setF = (p: Partial<Form>) => ventana && setVentana({ ...ventana, form: { ...ventana.form, ...p } });
   const opcionesNombre =
     f?.nivel === "especialidad"
@@ -236,6 +261,10 @@ export function HojaNiveles({
         </DropdownMenu>
         <BotonIcono etiqueta="Editar" title="Editar" disabled={!seleccionado} onClick={() => abrirEditar()}><Pencil size={15} /></BotonIcono>
         <BotonIcono etiqueta="Copiar" title="Copiar con su contenido" disabled={!seleccionado} onClick={() => void copiar()}><Copy size={15} /></BotonIcono>
+        <div className="border-t border-line" />
+        <BotonIcono etiqueta="Subir" title="Subir con su contenido" disabled={!subir || ocupado} onClick={() => void mover("subir")}><ArrowUp size={15} /></BotonIcono>
+        <BotonIcono etiqueta="Bajar" title="Bajar con su contenido" disabled={!bajar || ocupado} onClick={() => void mover("bajar")}><ArrowDown size={15} /></BotonIcono>
+        <div className="border-t border-line" />
         <BotonIcono etiqueta="Eliminar" title="Eliminar con su contenido" tono="peligro" disabled={!seleccionado} onClick={() => void eliminar()}><Trash2 size={15} /></BotonIcono>
       </div>
   );
