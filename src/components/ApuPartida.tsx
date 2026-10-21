@@ -5,7 +5,7 @@ import { Boton, Input } from "@/components/ui-kit";
 import { BuscadorInsumo } from "@/components/BuscadorInsumo";
 import { soles } from "@/lib/format";
 import type { PartidaMaestra } from "@/lib/cotizaciones";
-import { ORIGEN_APU, TIPOS_INSUMO, apuDb, calcularApu, precioVenta, useComponentesApu, useInsumos, useMargenesInsumo, type OrigenApu } from "@/lib/apu";
+import { ORIGEN_APU, PCT_HERRAMIENTAS_DEFECTO, TIPOS_INSUMO, apuDb, calcularApu, precioVenta, useComponentesApu, useInsumos, useMargenesInsumo, type OrigenApu } from "@/lib/apu";
 import { usePartidasMaestras } from "@/lib/cotizaciones";
 import { useUnidadesMedida } from "@/lib/unidades";
 
@@ -44,7 +44,7 @@ export function ApuPartida({
   const { data: margenes } = useMargenesInsumo();
   // Insumo «Herramientas manuales» del maestro (código 40000001): su C. Unitario es el % de MO de respaldo.
   const insumoHT = insumos.find((i) => i.tipo === "HT" && i.codigo === "40000001");
-  const pctH = Number(margenes?.HT ?? 0);
+  const pctH = Number(margenes?.HT ?? PCT_HERRAMIENTAS_DEFECTO);
   const [nuevo, setNuevo] = useState("");
   const [error, setError] = useState("");
   const calc = calcularApu(comps, insumos, Number(rend), Number(jornada), Number(pctH));
