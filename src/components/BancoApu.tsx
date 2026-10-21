@@ -1010,6 +1010,8 @@ function HojaInsumos() {
   const mo = useTabla("mano_obra").data ?? [];
   const eq = useTabla("equipos_herramientas").data ?? [];
   const sc = useTabla("subcontratos").data ?? [];
+  const datos: Record<string, Fila[]> = { materiales: mat, mano_obra: mo, equipos_herramientas: eq, subcontratos: sc };
+  const [busqueda, setBusqueda] = useState("");
   const [sel, setSel] = useState<{ tabla: TablaInsumo; fila: Fila } | null>(null);
   const [modo, setModo] = useState<ModoInsumo | null>(null);
   const refrescar = () => qc.invalidateQueries({ queryKey: ["banco_apu"] });
@@ -1027,9 +1029,6 @@ function HojaInsumos() {
     if (data === "inactivado") window.alert("Está en uso en una o más partidas: se marcó como Inactivo en lugar de eliminarse.");
     setSel(null); refrescar();
   }
-  const undOpc = unidades.filter((u) => u.activo);
-  const cur = String(form.unidad ?? "");
-  const unds = cur && !undOpc.some((u) => u.simbolo === cur) ? [{ id: "x", simbolo: cur, descripcion: "fuera del catálogo" }, ...undOpc] : undOpc;
 
   return (
     <div className="flex gap-3">
