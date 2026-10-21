@@ -16,14 +16,30 @@ describe("mover filas de cotización", () => {
       expect(moverBloqueNivel(bajada ?? [], "a", "subir")?.map((fila) => fila.id)).toEqual(filas.map((fila) => fila.id));
     });
   }
-  it("no cruza encabezados ni permite mover fuera de los límites", () => {
+  it("permite cruzar encabezados sin salir de los límites", () => {
     const filas = [f("e1", "especialidad", 1), f("p1", "partida", 2), f("e2", "especialidad", 3), f("p2", "partida", 4)];
-    expect(moverBloqueNivel(filas, "p1", "bajar")).toBeNull();
-    expect(moverBloqueNivel(filas, "p2", "subir")).toBeNull();
+    expect(moverBloqueNivel(filas, "p1", "bajar")?.map((fila) => fila.id)).toEqual(["e1", "e2", "p1", "p2"]);
+    expect(moverBloqueNivel(filas, "p2", "subir")?.map((fila) => fila.id)).toEqual(["e1", "p1", "p2", "e2"]);
+    expect(moverBloqueNivel(filas, "p1", "subir")).toBeNull();
     expect(moverBloqueNivel(filas, "e1", "subir")).toBeNull();
     expect(moverBloqueNivel(filas, "e2", "bajar")).toBeNull();
     expect(moverBloqueNivel(filas, "missing", "subir")).toBeNull();
   });
+  it("subir la partida 2.1 la convierte en 1.3 al final del título anterior", () => {
+    const filas = [f("t1", "titulo", 1), f("p1", "partida", 2), f("p2", "partida", 3), f("t2", "titulo", 4), f("p3", "partida", 5)];
+    expect(numerarNiveles(filas).codigos.get("p3")).toBe("2.1");
+    const movidas = moverBloqueNivel(filas, "p3", "subir") ?? [];
+    expect(movidas.map((fila) => fila.id)).toEqual(["t1", "p1", "p2", "p3", "t2"]);
+    expect(numerarNiveles(movidas).codigos.get("p3")).toBe("1.3");
+    expect(moverBloqueNivel(movidas, "p3", "bajar")?.map((fila) => fila.id)).toEqual(filas.map((fila) => fila.id));
+  });
+  for (const [nivel, padre] of [["titulo", "especialidad"], ["subtitulo", "titulo"]]) {
+    it(`cambia ${nivel} de grupo conservando sus partidas`, () => {
+      const filas = [f("g1", padre ?? "titulo", 1), f("a", nivel ?? "titulo", 2), f("p1", "partida", 3), f("g2", padre ?? "titulo", 4), f("b", nivel ?? "titulo", 5), f("p2", "partida", 6)];
+      expect(moverBloqueNivel(filas, "b", "subir")?.map((fila) => fila.id)).toEqual(["g1", "a", "p1", "b", "p2", "g2"]);
+      expect(moverBloqueNivel(filas, "a", "bajar")?.map((fila) => fila.id)).toEqual(["g1", "g2", "a", "p1", "b", "p2"]);
+    });
+  }
 });
 
 describe("numeración de la cotización", () => {

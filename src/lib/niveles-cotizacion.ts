@@ -58,7 +58,7 @@ export function bloqueDe<T extends FilaNivel>(ordenadas: T[], id: string): [numb
   return [i, j];
 }
 
-/** Mueve entre hermanos del mismo nivel, preservando el contenido de cada encabezado. */
+/** Mueve bloques entre hermanos o cruza el encabezado contiguo para cambiar de grupo. */
 export function moverBloqueNivel<T extends FilaNivel>(filas: T[], id: string, direccion: "subir" | "bajar"): T[] | null {
   const { orden } = numerarNiveles(filas);
   const padres = new Map<string, string | null>();
@@ -77,10 +77,19 @@ export function moverBloqueNivel<T extends FilaNivel>(filas: T[], id: string, di
   if (!actual) return null;
   const hermanos = orden.filter((fila) => nivelDe(fila) === nivelDe(actual) && padres.get(fila.id) === padres.get(id));
   const vecino = hermanos[hermanos.findIndex((fila) => fila.id === id) + (direccion === "subir" ? -1 : 1)];
-  if (!vecino) return null;
   const [inicio, fin] = bloqueDe(orden, id);
-  const [vecInicio, vecFin] = bloqueDe(orden, vecino.id);
   const bloque = orden.slice(inicio, fin);
+  if (!vecino) {
+    const limite = direccion === "subir" ? orden[inicio - 1] : orden[fin];
+    if (!limite || RANGO_NIVEL[nivelDe(limite)] >= RANGO_NIVEL[nivelDe(actual)]) return null;
+    // Do not lift the first child above the first heading into an orphan root.
+    if (direccion === "subir" && inicio < 2) return null;
+    const nueva = direccion === "subir"
+      ? [...orden.slice(0, inicio - 1), ...bloque, limite, ...orden.slice(fin)]
+      : [...orden.slice(0, inicio), limite, ...bloque, ...orden.slice(fin + 1)];
+    return nueva.map((fila, i) => ({ ...fila, orden: i + 1 }));
+  }
+  const [vecInicio, vecFin] = bloqueDe(orden, vecino.id);
   const nueva = direccion === "subir"
     ? [...orden.slice(0, vecInicio), ...bloque, ...orden.slice(vecInicio, inicio), ...orden.slice(fin)]
     : [...orden.slice(0, inicio), ...orden.slice(fin, vecFin), ...bloque, ...orden.slice(vecFin)];
