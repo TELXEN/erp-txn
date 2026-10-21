@@ -31,10 +31,11 @@
 - BEFORE triggers round amounts (2 dp) and quantities/unit prices (4 dp) on gastos_directos, gastos_generales and ventas — one rounding rule for every writer.
 - Real project cost comes only from useCostoObras (src/lib/costo-obra.ts) — every panel shows the same figure; GG charts only regroup by scope.
 - UI buttons merge classes with cn() so a passed className beats base utilities; table row actions use BotonIcono (tones neutro/primario/peligro).
-- Banco APU: five resource tables + partida_detalle (one nullable FK per row); removal via quitar_recurso_apu (deactivates if used); specs on partidas_apu.especificaciones, metrado in partidas_apu_metrado — recipes keep history.
+- Banco APU: five resource tables + partida_detalle (one FK per row); quitar_recurso_apu deactivates used resources; specs on partidas_apu.especificaciones, metrado on partidas_apu_metrado — preserves history.
 - APU dossier is a read-only A4 rendering of the quotation APU grid, preserving its resource columns, group order, quantity semantics and manual-tools row so exports match the editor.
 - Text: data-formato/FormatoGlobal; claveNombre folds case/accents for uniqueness.
 - Units: unidades_medida only, including APU/quotation/new-item selects; retain H-H (labor), H-M (hourly equipment), % (labor percentage), GLB — no free text.
-- Specialties use explicit editable codes, never positional recoding; archive removals to preserve subfamilies. Rename via guardar_especialidad for atomic live-catalog links; preserve document history.
+- Specialties: explicit editable codes; archive removals. Rename via guardar_especialidad for atomic catalog links; preserve history.
 - TanStack routes: api/ protected, api/public/ verified external callers; no Edge Functions.
+- Quotation incidence uses incidenciaPartidaApu: HT belongs to EQ; missing APU means no resources, not a price adjustment.
 - banco_saldos is maintained atomically by source triggers; debits reject insufficient funds. Role-checked loan RPCs preserve posted history and prevent duplicate payments — concurrent writers cannot overspend.
