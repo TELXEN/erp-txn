@@ -76,7 +76,7 @@ export function ComboNombre({
             ref={listaRef}
             className={`mt-1 overflow-y-auto rounded-md border border-line bg-card py-1 text-[13px] shadow-sm ${
               listaAlta ? "max-h-[min(46vh,420px)]" : "max-h-60"
-            } ${dosColumnas ? "grid grid-cols-2 gap-x-1" : ""}`}
+            } ${dosColumnas ? "mb-3 grid grid-cols-2 gap-x-1" : "mb-3"}`}
           >
             {filtradas.map((o, i) => (
               <li key={o}>
