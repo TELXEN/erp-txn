@@ -43,7 +43,7 @@ function CeldaNum({ valor, dec, onGuardar, sufijo, deshabilitado }: {
 }
 
 /** Panel derecho: APU propio de la partida de la cotización (copia fija, independiente del banco). Misma grilla que el Banco APU. */
-export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: CotizacionItem | null }) {
+export function PanelApuCotizacion({ cot, item, comando }: { cot: Cotizacion; item: CotizacionItem | null; comando?: { grupo: string; n: number } | null }) {
   const qc = useQueryClient();
   const { rol } = useAuth();
   const recursos = useRecursosApu();
@@ -171,6 +171,13 @@ export function PanelApuCotizacion({ cot, item }: { cot: Cotizacion; item: Cotiz
     }
     await refrescar();
   }
+
+  useEffect(() => {
+    if (!comando || !item) return;
+    setPestana("acu");
+    void accionMenu("final", { t: comando.grupo, f: undefined } as unknown as NonNullable<typeof menu>);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [comando?.n]);
 
   async function exportar() {
     if (!propias.length) return setAviso("La partida no tiene recursos para exportar.");

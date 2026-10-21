@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { BotonIcono, Boton, Campo, Input, Select, VentanaFlotante } from "@/components/ui-kit";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { GRUPOS_RECURSO } from "@/components/cotizaciones/PanelApuCotizacion";
 import { AutoMaestra } from "@/components/CotizacionHoja";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
 import { precioMaestroEnMoneda, useGruposCotizacion, type CotizacionItem, type PartidaMaestra } from "@/lib/cotizaciones";
@@ -37,6 +38,7 @@ export function HojaNiveles({
   tipoCambio = 0,
   onSeleccionar,
   barraEn,
+  onAgregarInsumo,
 }: {
   cotizacionId: string;
   items: Item[];
@@ -46,6 +48,7 @@ export function HojaNiveles({
   tipoCambio?: number;
   onSeleccionar?: (id: string | null) => void;
   barraEn?: HTMLElement | null;
+  onAgregarInsumo?: (grupo: string) => void;
 }) {
   const qc = useQueryClient();
   const { data: especialidades = [] } = useEspecialidadesPartida();
@@ -222,6 +225,14 @@ export function HojaNiveles({
             {NIVELES.map((n) => (
               <DropdownMenuItem key={n} onSelect={() => abrirNuevo(n)}>{NOMBRE_NIVEL[n]}</DropdownMenuItem>
             ))}
+            {onAgregarInsumo && (<>
+              <div className="my-1 border-t border-line" />
+              {GRUPOS_RECURSO.map(([g, nombre]) => (
+                <DropdownMenuItem key={g} disabled={!seleccionado || nivelDe(seleccionado) !== "partida"} onSelect={() => onAgregarInsumo(g)}>
+                  {g === "EQ" ? "EQUIPOS Y HERRAMIENTAS" : nombre}
+                </DropdownMenuItem>
+              ))}
+            </>)}
           </DropdownMenuContent>
         </DropdownMenu>
         <BotonIcono etiqueta="Editar" title="Editar" disabled={!seleccionado} onClick={() => abrirEditar()}><Pencil size={15} /></BotonIcono>
