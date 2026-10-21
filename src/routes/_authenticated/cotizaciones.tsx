@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Buscador, Resaltar, coincide } from "@/components/Buscador";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
@@ -155,6 +155,18 @@ function Cotizaciones() {
   const [slotBarra, setSlotBarra] = useState<HTMLDivElement | null>(null);
   /** En edición la hoja arranca sin encabezado: solo se ve la tabla de partidas. */
   const [encabezado, setEncabezado] = useState(false);
+  /** En escritorio el editor ocupa exactamente el alto visible: cada panel desplaza su propio contenido. */
+  const ajustarAlto = useCallback((el: HTMLDivElement | null) => {
+    if (!el) return;
+    const medir = () => {
+      if (window.innerWidth < 1024) { el.style.height = ""; return; }
+      el.style.height = `${Math.max(320, window.innerHeight - el.getBoundingClientRect().top)}px`;
+    };
+    medir();
+    requestAnimationFrame(medir);
+    window.addEventListener("resize", medir);
+    return () => window.removeEventListener("resize", medir);
+  }, []);
   const [apu, setApu] = useState<(typeof items)[number] | null>(null);
 
   const [pestana, setPestana] = useState<"Todas" | EstadoCotizacion | "En Obra">("Todas");
@@ -586,7 +598,7 @@ function Cotizaciones() {
     // Opción 1: el título y los botones viven en la barra superior del sistema.
     const enBarra = "border-brand-foreground/30 bg-brand-foreground/10 text-brand-foreground hover:bg-primary hover:text-primary-foreground";
     return (
-      <div className="-mx-3 -mb-3 flex flex-col bg-background sm:-mx-4 lg:h-[calc(100dvh-3.75rem)] lg:overflow-hidden">
+      <div ref={ajustarAlto} className="-mx-3 -mb-3 flex flex-col bg-background sm:-mx-4 lg:overflow-hidden">
         <Encabezado
           titulo={cot.nombre || cot.codigo || "Cotización"}
           subtitulo={`Cotización ${cot.codigo ?? ""} · ${etiquetaRevision(cot.revision)} · modo edición`}
@@ -732,7 +744,7 @@ function Cotizaciones() {
 
         <div className="flex flex-col gap-2 bg-muted/60 px-2 py-2 lg:h-auto lg:min-h-0 lg:flex-1 lg:flex-row lg:overflow-hidden lg:pr-1">
           <div className="flex min-h-0 min-w-0 flex-col lg:w-[58%]">
-          <div className="min-h-0 flex-1 overflow-auto">
+          <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
           <HojaCotizacion cot={cot} items={items} clientes={clientes} mostrarEncabezado={false} ventanaEncabezado={{ abierta: encabezado, onCerrar: () => setEncabezado(false) }}>
             <HojaNiveles
               cotizacionId={cot.id}
@@ -750,9 +762,9 @@ function Cotizaciones() {
             />
           </HojaCotizacion>
           </div>
-          <ResumenCotizacion cot={cot} items={itemsHoja} />
+          <div className="shrink-0"><ResumenCotizacion cot={cot} items={itemsHoja} /></div>
           </div>
-          <aside className="min-h-[24rem] overflow-hidden rounded-md border border-line bg-card lg:h-full lg:min-h-0 lg:min-w-0 lg:flex-1">
+          <aside className="flex min-h-[24rem] flex-col overflow-hidden rounded-md border border-line bg-card lg:h-full lg:min-h-0 lg:min-w-0 lg:flex-1">
             <PanelApuCotizacion cot={cot} item={itemsHoja.find((i) => i.id === partidaActiva) ?? null} comando={cmdInsumo} />
           </aside>
           <div ref={setSlotBarra} className="shrink-0" />
