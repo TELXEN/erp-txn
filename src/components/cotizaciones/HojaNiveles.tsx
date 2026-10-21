@@ -5,6 +5,7 @@ import { ArrowDown, ArrowUp, Copy, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { BotonIcono, Boton, Campo, Input, Select, VentanaFlotante } from "@/components/ui-kit";
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuSub, ContextMenuSubContent, ContextMenuSubTrigger, ContextMenuTrigger } from "@/components/ui/context-menu";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AutoMaestra } from "@/components/CotizacionHoja";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -271,6 +272,8 @@ export function HojaNiveles({
 
   return (
     <div className="flex w-full gap-2">
+      <ContextMenu>
+      <ContextMenuTrigger asChild>
       <div className="min-w-0 flex-1 overflow-x-auto rounded-md border border-line bg-card">
         <table className="w-full text-xs">
           <thead>
@@ -297,6 +300,7 @@ export function HojaNiveles({
                 <tr
                   key={fila.id}
                   onClick={() => setSel(fila.id)}
+                  onContextMenu={() => setSel(fila.id)}
                   onDoubleClick={() => { setSel(fila.id); abrirEditar(fila); }}
                   className={`cursor-pointer border-b border-line/60 ${estilo} ${elegido ? "outline outline-2 -outline-offset-2 outline-primary" : "hover:bg-muted/40"}`}
                 >
@@ -312,6 +316,27 @@ export function HojaNiveles({
           </tbody>
         </table>
       </div>
+      </ContextMenuTrigger>
+      <ContextMenuContent className="w-52 text-xs">
+        <ContextMenuSub>
+          <ContextMenuSubTrigger><Plus size={13} className="mr-2" /> Agregar</ContextMenuSubTrigger>
+          <ContextMenuSubContent>
+            {NIVELES.map((n) => (
+              <ContextMenuItem key={n} onSelect={() => abrirNuevo(n)}>{NOMBRE_NIVEL[n]}</ContextMenuItem>
+            ))}
+            <ContextMenuSeparator />
+            <ContextMenuItem disabled={!seleccionado || nivelDe(seleccionado) !== "partida"} onSelect={() => onAgregarInsumo?.()}>Insumo</ContextMenuItem>
+          </ContextMenuSubContent>
+        </ContextMenuSub>
+        <ContextMenuItem disabled={!seleccionado} onSelect={() => abrirEditar()}><Pencil size={13} className="mr-2" /> Editar</ContextMenuItem>
+        <ContextMenuItem disabled={!seleccionado} onSelect={() => void copiar()}><Copy size={13} className="mr-2" /> Copiar</ContextMenuItem>
+        <ContextMenuSeparator />
+        <ContextMenuItem disabled={!subir || ocupado} onSelect={() => void mover("subir")}><ArrowUp size={13} className="mr-2" /> Mover arriba</ContextMenuItem>
+        <ContextMenuItem disabled={!bajar || ocupado} onSelect={() => void mover("bajar")}><ArrowDown size={13} className="mr-2" /> Mover abajo</ContextMenuItem>
+        <ContextMenuSeparator />
+        <ContextMenuItem disabled={!seleccionado} className="text-bad focus:text-bad" onSelect={() => void eliminar()}><Trash2 size={13} className="mr-2" /> Eliminar</ContextMenuItem>
+      </ContextMenuContent>
+      </ContextMenu>
 
       {barraEn ? createPortal(barra, barraEn) : barra}
 
