@@ -552,5 +552,13 @@ export async function crearRevision(cot: Cotizacion): Promise<string> {
       if (e5) throw e5;
     }
   }
+  // Desagregado de gastos generales.
+  const { data: gg } = await sb.from("cotizacion_gastos_generales").select("*").eq("cotizacion_id", cot.id);
+  if (gg?.length) {
+    const { error: e5 } = await sb.from("cotizacion_gastos_generales").insert(
+      (gg as Record<string, unknown>[]).map(({ id: _id, created_at: _c, ...r }) => ({ ...r, cotizacion_id: nueva.id })),
+    );
+    if (e5) throw e5;
+  }
   return nueva.id as string;
 }

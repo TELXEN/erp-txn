@@ -1412,6 +1412,53 @@ export type Database = {
           },
         ]
       }
+      cotizacion_gastos_generales: {
+        Row: {
+          cantidad: number
+          cotizacion_id: string
+          created_at: string
+          descripcion: string
+          id: string
+          nivel: string
+          orden: number
+          precio_unitario: number
+          tiempo: number
+          unidad: string
+        }
+        Insert: {
+          cantidad?: number
+          cotizacion_id: string
+          created_at?: string
+          descripcion?: string
+          id?: string
+          nivel?: string
+          orden?: number
+          precio_unitario?: number
+          tiempo?: number
+          unidad?: string
+        }
+        Update: {
+          cantidad?: number
+          cotizacion_id?: string
+          created_at?: string
+          descripcion?: string
+          id?: string
+          nivel?: string
+          orden?: number
+          precio_unitario?: number
+          tiempo?: number
+          unidad?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cotizacion_gastos_generales_cotizacion_id_fkey"
+            columns: ["cotizacion_id"]
+            isOneToOne: false
+            referencedRelation: "cotizaciones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cotizacion_items: {
         Row: {
           categoria: string
