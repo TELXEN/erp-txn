@@ -150,7 +150,8 @@ export function TercerosPanel({ modo }: { modo: "cliente" | "proveedor" }) {
     <>
       {error && <p className="mb-3 font-mono text-xs text-bad">{error}</p>}
 
-      <Panel
+      <div className="flex items-start gap-3">
+      <Panel className="min-w-0 flex-1"
         titulo={nombrePlural}
         extra={
           <div className="flex flex-wrap items-center gap-2">
