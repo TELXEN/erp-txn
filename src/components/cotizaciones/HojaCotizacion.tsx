@@ -120,18 +120,18 @@ export function HojaCotizacion({
   };
 
   return (
-    <div style={{ overflowX: "auto", padding: "18px 0", background: C.soft }}>
+    <div style={{ overflowX: "auto", padding: mostrarEncabezado ? "18px 0" : 0, background: C.soft }}>
       <section
         style={{
           width: "100%", maxWidth: 1500, boxSizing: "border-box",
           margin: "0 auto",
-          padding: mostrarEncabezado ? "36px 38px" : "14px 12px",
+          padding: mostrarEncabezado ? "36px 38px" : "8px",
           background: C.white,
           color: C.ink,
           fontFamily: DOC_FUENTE_CSS,
           fontWeight: 400,
           fontSize: 12.5,
-          boxShadow: "0 12px 35px rgba(15,23,42,.18)",
+          boxShadow: mostrarEncabezado ? "0 12px 35px rgba(15,23,42,.18)" : "none",
         }}
       >
         {(ventanaEncabezado ? ventanaEncabezado.abierta : mostrarEncabezado) && (
@@ -300,7 +300,7 @@ export function HojaCotizacion({
           </EnvolturaEncabezado>
         )}
 
-        <div style={{ marginTop: 16 }}>{children}</div>
+        <div style={{ marginTop: mostrarEncabezado ? 16 : 0 }}>{children}</div>
 
 
         <div style={{ marginTop: 18 }}>

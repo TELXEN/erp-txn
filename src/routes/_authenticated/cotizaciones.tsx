@@ -732,7 +732,7 @@ function Cotizaciones() {
 
         <div className="flex flex-col gap-2 bg-muted/60 px-2 py-2 lg:h-auto lg:min-h-0 lg:flex-1 lg:flex-row lg:overflow-hidden lg:pr-1">
           <div className="flex min-h-0 min-w-0 flex-col lg:w-[58%]">
-          <div className="min-h-0 flex-1 overflow-auto">
+          <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
           <HojaCotizacion cot={cot} items={items} clientes={clientes} mostrarEncabezado={false} ventanaEncabezado={{ abierta: encabezado, onCerrar: () => setEncabezado(false) }}>
             <HojaNiveles
               cotizacionId={cot.id}
@@ -750,9 +750,9 @@ function Cotizaciones() {
             />
           </HojaCotizacion>
           </div>
-          <ResumenCotizacion cot={cot} items={itemsHoja} />
+          <div className="shrink-0"><ResumenCotizacion cot={cot} items={itemsHoja} /></div>
           </div>
-          <aside className="min-h-[24rem] overflow-hidden rounded-md border border-line bg-card lg:h-full lg:min-h-0 lg:min-w-0 lg:flex-1">
+          <aside className="flex min-h-[24rem] flex-col overflow-hidden rounded-md border border-line bg-card lg:h-full lg:min-h-0 lg:min-w-0 lg:flex-1">
             <PanelApuCotizacion cot={cot} item={itemsHoja.find((i) => i.id === partidaActiva) ?? null} comando={cmdInsumo} />
           </aside>
           <div ref={setSlotBarra} className="shrink-0" />
