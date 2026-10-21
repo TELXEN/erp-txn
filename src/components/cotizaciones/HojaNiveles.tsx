@@ -403,7 +403,7 @@ export function HojaNiveles({
             <div className="sm:col-span-2">
               <Campo etiqueta={ventana?.modo === "nuevo" && f.nivel === "partida" && origenPartida === "banco" ? "Partida del banco" : "Nombre"}>
                 {opcionesNombre.length > 0 ? (
-                  <ComboNombre value={f.nombre} opciones={opcionesNombre} onChange={(v) => setF({ nombre: v })} />
+                  <ComboNombre value={f.nombre} opciones={opcionesNombre} onChange={(v) => setF({ nombre: v })} listaAlta={f.nivel === "especialidad" || f.nivel === "titulo"} />
                 ) : f.nivel === "partida" && !(ventana?.modo === "nuevo" && origenPartida === "nueva") ? (
                   <AutoMaestra
                     key={`${ventana?.modo}-${origenPartida}`}
