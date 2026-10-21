@@ -254,7 +254,7 @@ export function HojaNiveles({
         : [];
 
   const barra = (
-      <div className="sticky top-2 flex h-fit flex-col gap-1.5 rounded-md border border-line bg-card p-1.5">
+      <div className="sticky top-2 flex h-fit flex-col gap-1.5 rounded-md border p-1.5 barra-iconos">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <BotonIcono etiqueta="Agregar" title="Agregar" tono="primario"><Plus size={15} /></BotonIcono>

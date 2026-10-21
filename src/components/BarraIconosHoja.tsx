@@ -7,7 +7,7 @@ export function BarraIconosHoja({ objeto, haySeleccion, onAgregar, onEditar, onC
   onAgregar: () => void; onEditar: () => void; onCopiar: () => void; onEliminar: () => void;
 }) {
   return (
-    <div className="sticky top-2 flex h-fit flex-col gap-1.5 rounded-md border border-line bg-card p-1.5">
+    <div className="sticky top-2 flex h-fit flex-col gap-1.5 rounded-md border p-1.5 barra-iconos">
       <BotonIcono etiqueta={`Agregar ${objeto}`} title={`Agregar ${objeto}`} tono="primario" onClick={onAgregar}><Plus size={15} /></BotonIcono>
       <BotonIcono etiqueta={`Editar ${objeto}`} title={`Editar ${objeto}`} disabled={!haySeleccion} onClick={onEditar}><Pencil size={15} /></BotonIcono>
       <BotonIcono etiqueta={`Copiar ${objeto}`} title={`Copiar ${objeto}`} disabled={!haySeleccion} onClick={onCopiar}><Copy size={15} /></BotonIcono>
