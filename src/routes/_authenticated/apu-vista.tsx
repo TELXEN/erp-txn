@@ -7,7 +7,10 @@ import { Boton, Vacio } from "@/components/ui-kit";
 import { useEmpresa } from "@/lib/empresa";
 import { useFuenteDocumento } from "@/lib/fuentes-documentos";
 import { useCotizaciones } from "@/lib/cotizaciones";
-import { BANCOS_RECURSO, costoReceta, dbBanco, useRecursosApu, type DetalleApu } from "@/lib/banco-apu";
+import { costoReceta, dbBanco, useRecursosApu, type DetalleApu } from "@/lib/banco-apu";
+
+import { PCT_HERRAMIENTAS_DEFECTO } from "@/lib/apu";
+import { r2, sumar2 } from "@/lib/decimal";
 
 export const Route = createFileRoute("/_authenticated/apu-vista")({
   validateSearch: (s: Record<string, unknown>) => ({
@@ -27,13 +30,13 @@ export const Route = createFileRoute("/_authenticated/apu-vista")({
   component: VistaApu,
 });
 
-const C = { ink: "#0f172a", mid: "#334155", mute: "#64748b", line: "#cbd5e1", soft: "#f1f5f9", em: "#047857", emBg: "#ecfdf5", white: "#ffffff" };
+const GRUPOS = [["MO", "MANO DE OBRA"], ["MAT", "MATERIALES"], ["EQ", "EQUIPOS Y HERRAMIENTAS"], ["SC", "SUBCONTRATOS"]] as const;
 const n2 = (n: number) => n.toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const n4 = (n: number) => n.toLocaleString("es-PE", { minimumFractionDigits: 4, maximumFractionDigits: 4 });
 
 type Item = {
   id: string; codigo: string | null; nombre: string; unidad: string; especialidad: string;
-  metrado: number; precio_unitario: number; rendimiento: number; jornada: number; orden: number;
+  metrado: number; precio_unitario: number; rendimiento: number; jornada: number; orden: number; pct_herramientas: number | null;
 };
 
 type Ficha = { it: Item; comps: DetalleApu[] };
@@ -42,8 +45,7 @@ type Ficha = { it: Item; comps: DetalleApu[] };
 function altoEstimadoApu(f: Ficha) {
   let h = 56 + 28;
   const nComps = f.comps.length;
-  const nGrupos = Math.min(4, Math.max(1, Math.ceil(nComps / 4)));
-  h += nGrupos * 24 + nComps * 20;
+  h += 4 * 26 + (nComps + 1) * 26;
   h += 34 + 22 + 16;
   return h;
 }
@@ -98,7 +100,7 @@ function VistaApu() {
       const porItem = new Map<string, DetalleApu[]>();
       for (const c of (comps ?? []) as (DetalleApu & { cotizacion_item_id: string })[]) {
         if (!porItem.has(c.cotizacion_item_id)) porItem.set(c.cotizacion_item_id, []);
-        porItem.get(c.cotizacion_item_id)!.push(c);
+        porItem.get(c.cotizacion_item_id)?.push(c);
       }
       return lista.filter((i) => item || porItem.has(i.id)).map((i) => ({ it: i, comps: porItem.get(i.id) ?? [] }));
     },
@@ -116,7 +118,30 @@ function VistaApu() {
       const html2pdf = (await import("html2pdf.js")).default;
       await html2pdf().set({
         margin: [7, 5, 7, 5], filename: `${nombreArchivo}.pdf`, image: { type: "jpeg", quality: 0.98 },
-        html2canvas: { scale: 3, useCORS: true, windowWidth: 794, backgroundColor: "#ffffff", logging: false },
+        html2canvas: {
+          scale: 3, useCORS: true, windowWidth: 794, backgroundColor: "#ffffff", logging: false,
+          onclone: (doc: Document) => {
+            // html2canvas cannot parse Tailwind v4's modern color functions.
+            // Resolve the actual themed colors to RGB only in the export clone.
+            const canvas = doc.createElement("canvas");
+            canvas.width = canvas.height = 1;
+            const ctx = canvas.getContext("2d");
+            const view = doc.defaultView;
+            if (!ctx || !view) return;
+            for (const node of doc.querySelectorAll<HTMLElement>("*")) {
+              const computed = view.getComputedStyle(node);
+              for (const prop of ["color", "background-color", "border-top-color", "border-right-color", "border-bottom-color", "border-left-color", "outline-color", "text-decoration-color"]) {
+                const value = computed.getPropertyValue(prop);
+                if (!/(?:oklab|oklch|color-mix|color\()/.test(value)) continue;
+                ctx.clearRect(0, 0, 1, 1);
+                ctx.fillStyle = value;
+                ctx.fillRect(0, 0, 1, 1);
+                const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
+                node.style.setProperty(prop, `rgba(${r}, ${g}, ${b}, ${(a ?? 255) / 255})`, "important");
+              }
+            }
+          },
+        },
         jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
         pagebreak: { mode: ["css", "legacy"], avoid: ["tr", ".apu-ficha"] },
       } as never).from(el).save();
@@ -135,80 +160,94 @@ function VistaApu() {
         <Vacio texto={item ? "La partida no existe." : "Ninguna partida de esta cotización tiene análisis de precios todavía."} />
       ) : (
         <div className="overflow-x-auto">
-          <div id="apu-impresion" style={{ width: 794, margin: "0 auto", fontFamily: fuente.css, color: C.ink, background: C.white }}>
+          <div id="apu-impresion" className="apu-documento mx-auto bg-card text-foreground" style={{ width: 794, fontFamily: fuente.css }}>
             {paginas.map((pagina, pIdx) => (
               <section key={pIdx} style={{ padding: "28px 34px", minHeight: ALTO_HOJA, pageBreakAfter: pIdx < paginas.length - 1 ? "always" : "auto", fontSize: 9 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 12, borderBottom: `2px solid ${C.em}`, paddingBottom: 10 }}>
-                  {empresa?.logo_url ? <img src={empresa.logo_url} alt="" crossOrigin="anonymous" style={{ height: 46, objectFit: "contain" }} /> :
-                    <div style={{ width: 46, height: 46, background: C.em, color: C.white, fontWeight: 700, fontSize: 18, display: "flex", alignItems: "center", justifyContent: "center" }}>TX</div>}
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 12, fontWeight: 700 }}>{empresa?.razon_social ?? "TELXEN SAC"}</div>
-                    <div style={{ color: C.mute }}>RUC {empresa?.ruc ?? ""} · {empresa?.direccion ?? ""}</div>
-                    <div style={{ color: C.mute }}>Cliente: {cot?.cliente ?? ""}</div>
+                <div className="flex items-center gap-3 border-b-2 border-primary pb-2.5">
+                  {empresa?.logo_url ? <img src={empresa.logo_url} alt="" crossOrigin="anonymous" className="h-12 object-contain" /> :
+                    <div className="flex h-12 w-12 items-center justify-center bg-primary text-lg font-bold text-primary-foreground">TX</div>}
+                  <div className="flex-1">
+                    <div className="text-xs font-bold">{empresa?.razon_social ?? "TELXEN SAC"}</div>
+                    <div className="text-muted-foreground">RUC {empresa?.ruc ?? ""} · {empresa?.direccion ?? ""}</div>
+                    <div className="text-muted-foreground">Cliente: {cot?.cliente ?? ""}</div>
                   </div>
-                  <div style={{ border: `1.5px solid ${C.em}`, textAlign: "center", padding: "6px 12px" }}>
-                    <div style={{ fontWeight: 700, color: C.em }}>ANÁLISIS DE PRECIOS UNITARIOS</div>
-                    <div style={{ fontWeight: 700 }}>{cot?.codigo ?? ""}</div>
-                    <div style={{ color: C.mute }}>Hoja {pIdx + 1} de {paginas.length}</div>
+                  <div className="border border-primary px-3 py-1.5 text-center">
+                    <div className="font-bold text-primary">ANÁLISIS DE PRECIOS UNITARIOS</div>
+                    <div className="font-bold">{cot?.codigo ?? ""}</div>
+                    <div className="text-muted-foreground">Hoja {pIdx + 1} de {paginas.length}</div>
                   </div>
                 </div>
                 {pagina.map(({ it, comps }, fIdx) => {
                   const calc = costoReceta(comps, recursos, Number(it.rendimiento ?? 1), Number(it.jornada ?? 8));
+                  const totalMo = sumar2(calc.filas.filter((f) => f.tipo === "MO").map((f) => f.parcial));
+                  const pctHt = Number(it.pct_herramientas ?? PCT_HERRAMIENTAS_DEFECTO);
+                  const htTotal = r2(totalMo * pctHt / 100);
+                  const td = "h-[26px] border-r border-line/70 px-1 align-middle text-[11px] last:border-r-0";
                   return (
-                    <div key={it.id} className="apu-ficha" style={{ pageBreakInside: "avoid", marginTop: fIdx === 0 ? 10 : 14, paddingTop: fIdx === 0 ? 0 : 12, borderTop: fIdx === 0 ? "none" : `1.5px dashed ${C.line}` }}>
-                      <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                        <tbody>
-                          <tr><td style={{ color: C.mute, width: 90 }}>Partida</td><td colSpan={3} style={{ fontWeight: 700 }}>{it.codigo} {it.nombre}</td></tr>
-                          <tr>
-                            <td style={{ color: C.mute }}>Rendimiento</td><td>{n2(Number(it.rendimiento ?? 1))} {it.unidad}/día · Jornada {n2(Number(it.jornada ?? 8))} h</td>
-                            <td style={{ color: C.mute, textAlign: "right" }}>Costo unitario directo por {it.unidad}</td>
-                            <td style={{ textAlign: "right", fontWeight: 700, fontSize: 11, color: C.em }}>S/ {n2(calc.total)}</td>
-                          </tr>
-                        </tbody>
-                      </table>
-                      <table style={{ width: "100%", marginTop: 8, borderCollapse: "collapse" }}>
+                    <div key={it.id} className={`apu-ficha break-inside-avoid ${fIdx === 0 ? "mt-2.5" : "mt-3.5 border-t border-dashed border-line pt-3"}`}>
+                      <div className="border-b border-line px-3 py-2 text-xs font-semibold">{it.codigo} · {it.nombre}</div>
+                      <div className="flex flex-wrap items-center gap-4 border-b border-line bg-muted/50 px-3 py-2 text-[13px]">
+                        <span><strong>Rend. diario</strong> <span className="font-mono">{n2(Number(it.rendimiento ?? 1))}</span> {it.unidad}/día</span>
+                        <span><strong>Jornada</strong> <span className="font-mono">{n2(Number(it.jornada ?? 8))}</span> h/día</span>
+                        <span className="ml-auto font-mono text-[11px] text-muted-foreground">Metrado: {n2(Number(it.metrado))} {it.unidad}</span>
+                      </div>
+                      <table className="w-full table-fixed border-collapse">
+                        <colgroup><col className="w-[74px]" /><col /><col className="w-[40px]" /><col className="w-[60px]" /><col className="w-[104px]" /><col className="w-[80px]" /><col className="w-[80px]" /></colgroup>
                         <thead>
-                          <tr style={{ background: C.ink, color: C.white }}>
-                            {["Recurso", "Descripción", "Und.", "Cant./Cuadrilla", "C. unitario S/", "Parcial S/"].map((h, i) => (
-                              <th key={h} style={{ padding: "5px 6px", textAlign: i > 2 ? "right" : "left", fontWeight: 600 }}>{h}</th>
+                          <tr className="border-b border-line bg-card">
+                            {["CÓDIGO", "DESCRIPCIÓN", "UNID.", "RECURSO", "CANTIDAD", "PRECIO", "TOTAL"].map((h, i) => (
+                              <th key={h} className={`h-[30px] whitespace-nowrap border-r border-line px-1 text-[10px] font-semibold text-foreground/80 last:border-r-0 ${i < 2 ? "text-left" : i === 2 ? "text-center" : "text-right"}`}>{h}</th>
                             ))}
                           </tr>
                         </thead>
                         <tbody>
-                          {BANCOS_RECURSO.map(([, , titulo, tipo]) => {
+                          {GRUPOS.map(([tipo, titulo]) => {
                             const filas = calc.filas.filter((f) => f.tipo === tipo);
-                            if (!filas.length) return null;
-                            const subtotal = filas.reduce((s, f) => s + f.parcial, 0);
+                            const subtotal = sumar2(filas.map((f) => f.parcial)) + (tipo === "EQ" ? htTotal : 0);
                             return [
-                              <tr key={tipo} style={{ background: C.emBg }}>
-                                <td colSpan={5} style={{ padding: "4px 6px", fontWeight: 700, color: C.em }}>{titulo}</td>
-                                <td style={{ padding: "4px 6px", textAlign: "right", fontWeight: 700 }}>{n2(subtotal)}</td>
+                              <tr key={tipo} className="border-b border-line bg-muted/60">
+                                <td colSpan={6} className={`${td} font-bold text-foreground/80`}>▾ {titulo}</td>
+                                <td className={`${td} text-right font-mono font-bold`}>{n2(subtotal)}</td>
                               </tr>,
-                              ...filas.map((f) => (
-                                <tr key={f.d.id} style={{ borderBottom: `0.5px solid ${C.line}` }}>
-                                  <td style={{ padding: "3px 6px", color: C.mute }}>{f.banco}</td>
-                                  <td style={{ padding: "3px 6px" }}>{f.nombre}</td>
-                                  <td style={{ padding: "3px 6px" }}>{f.und}</td>
-                                  <td style={{ padding: "3px 6px", textAlign: "right" }}>{n4(f.cantidad)}</td>
-                                  <td style={{ padding: "3px 6px", textAlign: "right" }}>{f.esPctMo ? `${n2(f.cu)}% MO` : n2(f.cu)}</td>
-                                  <td style={{ padding: "3px 6px", textAlign: "right" }}>{n2(f.parcial)}</td>
-                                </tr>
-                              )),
+                              ...filas.map((f) => {
+                                const horaria = f.tipo === "MO" || (f.tipo === "EQ" && f.und === "H-M");
+                                const cantidad = horaria ? f.cantidad * Number(it.jornada ?? 8) / (Number(it.rendimiento) || 1) : f.cantidad;
+                                return (
+                                  <tr key={f.d.id} className="border-b border-line/70">
+                                    <td className={`${td} font-mono text-muted-foreground`}>{f.d.codigo || "—"}</td>
+                                    <td className={td}>{f.nombre}</td>
+                                    <td className={`${td} text-center text-muted-foreground`}>{f.esPctMo ? "%" : f.und}</td>
+                                    <td className={`${td} text-right font-mono text-muted-foreground`}>{f.esPctMo ? "" : n2(f.cantidad)}</td>
+                                    <td className={`${td} whitespace-nowrap text-right font-mono`}>{f.esPctMo ? `${n2(f.cu)} %mo` : `${n4(cantidad)} ${f.und.toLowerCase()}`}</td>
+                                    <td className={`${td} text-right font-mono`}>{f.esPctMo ? n2(totalMo) : n4(f.cu)}</td>
+                                    <td className={`${td} text-right font-mono`}>{n2(f.parcial)}</td>
+                                  </tr>
+                                );
+                              }),
+                              ...(tipo === "EQ" && totalMo > 0 ? [
+                                <tr key="ht" className="border-b border-line/70 bg-warn/5">
+                                  <td className={`${td} font-mono text-muted-foreground`}>HT</td>
+                                  <td className={`${td} italic`}>Herramientas manuales</td>
+                                  <td className={`${td} text-center text-muted-foreground`}>%</td>
+                                  <td className={td}></td>
+                                  <td className={`${td} text-right font-mono`}>{n2(pctHt)} %mo</td>
+                                  <td className={`${td} text-right font-mono`}>{n2(totalMo)}</td>
+                                  <td className={`${td} text-right font-mono`}>{n2(htTotal)}</td>
+                                </tr>,
+                              ] : []),
                             ];
                           })}
-                          {!comps.length && <tr><td colSpan={6} style={{ padding: 10, color: C.mute }}>Partida sin recursos analizados.</td></tr>}
-                          <tr style={{ background: C.soft }}>
-                            <td colSpan={5} style={{ padding: "6px", textAlign: "right", fontWeight: 700 }}>COSTO UNITARIO DIRECTO</td>
-                            <td style={{ padding: "6px", textAlign: "right", fontWeight: 700, fontSize: 11 }}>{n2(calc.total)}</td>
-                          </tr>
+                          {!comps.length && <tr><td colSpan={7} className="px-3 py-3 text-[11px] text-muted-foreground">Partida sin recursos analizados.</td></tr>}
                         </tbody>
                       </table>
+                      <div className="flex items-center justify-end gap-4 border-t border-line bg-muted/30 px-4 py-2 text-[15px] font-bold">
+                        <span>Costo total del APU</span><span className="font-mono text-primary">{cot?.moneda === "USD" ? "US$" : "S/"} {n2(calc.total + htTotal)}</span>
+                      </div>
                     </div>
+
                   );
                 })}
-                <p style={{ marginTop: 10, color: C.mute, fontSize: 8 }}>
-                  Mano de obra y equipos H-M: parcial = cuadrilla × jornada × costo ÷ rendimiento. Equipos «%»: porcentaje sobre la mano de obra. Materiales y subcontratos: cantidad × costo unitario. Precios en soles, sin IGV.
-                </p>
+
               </section>
             ))}
           </div>
