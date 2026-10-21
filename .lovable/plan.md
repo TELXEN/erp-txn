@@ -18,3 +18,8 @@ Hoy cada fila nueva se inserta justo debajo de la fila seleccionada. Si estás e
   - Otros niveles → `bloqueDe(orden, seleccionado.id)[1]`, igual que hoy.
 - La función va en `src/lib/niveles-cotizacion.ts`, con pruebas unitarias que cubren: título agregado desde una partida intermedia queda al final y no cambia el padre de esas partidas; especialidad siempre al final; título al final de su especialidad.
 - No hay cambios en datos: las filas que hoy están mal agrupadas se corrigen moviéndolas con ↑/↓.
+
+## Mover especialidades, títulos y subtítulos con todo su grupo
+- Al subir o bajar una especialidad, un título o un subtítulo, se mueven juntos el encabezado y todo lo que contiene (títulos, subtítulos y partidas) en un solo bloque. Ninguna partida se queda atrás ni pasa a otro grupo.
+- Un encabezado intercambia su lugar con el grupo completo vecino del mismo nivel. Si cruza a otro grupo (por ejemplo, un título que pasa a la especialidad anterior), entra al final de ese grupo con todo su contenido.
+- Técnico: revisar `moverBloqueNivel` en `src/lib/niveles-cotizacion.ts` cuando cruza un encabezado. Al bajar, debe saltar el grupo destino completo y no solo su primera fila; al subir, debe ubicarse al final del grupo anterior. Agregar pruebas para especialidad, título y subtítulo con varias partidas, que comprueben que el contenido de cada grupo es el mismo antes y después de moverlo.
