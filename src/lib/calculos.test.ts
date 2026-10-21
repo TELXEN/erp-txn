@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/integrations/supabase/client", () => ({ supabase: {} }));
 
-const { calcularApu, cantidadComponente, precioVenta } = await import("@/lib/apu");
+const { calcularApu, cantidadComponente, precioVenta, MARGENES_DEFECTO, PCT_HERRAMIENTAS_DEFECTO } = await import("@/lib/apu");
 const { costoPersonalPorProyecto } = await import("@/lib/pagos-rrhh");
 const { estructuraOferta } = await import("@/lib/datos");
 

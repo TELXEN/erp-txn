@@ -76,7 +76,7 @@ export function PanelApuCotizacion({ cot, item, comando }: { cot: Cotizacion; it
     setRendLocal(null);
     setJornadaLocal(null);
     setEditJornada(false);
-    setPctHt(Number((item as { pct_herramientas?: number } | null)?.pct_herramientas ?? 5));
+    setPctHt(Number((item as { pct_herramientas?: number } | null)?.pct_herramientas ?? PCT_HERRAMIENTAS_DEFECTO));
   }, [item?.id, (item as { pct_herramientas?: number } | null)?.pct_herramientas]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const accionRef = useRef<((a: AccionApu, m: never) => Promise<unknown>) | null>(null);
