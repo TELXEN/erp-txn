@@ -1076,48 +1076,9 @@ function HojaInsumos() {
         <BotonIcono etiqueta="Eliminar insumo" title="Eliminar insumo" tono="peligro" disabled={!sel} onClick={quitar}><Trash2 size={15} /></BotonIcono>
       </div>
 
-      <VentanaFlotante abierta={!!modo} onCerrar={() => setModo(null)} ancho="max-w-2xl"
-        titulo={modo === "editar" ? "Editar insumo" : modo === "copiar" ? "Copiar insumo" : "Nuevo insumo"}>
-        <form className="grid gap-3 p-5 sm:grid-cols-2" onSubmit={(e) => { e.preventDefault(); guardar(); }}>
-          <Campo etiqueta="Tipo de insumo">
-            <Select value={tipo} disabled={modo === "editar"} onChange={(e) => { const t = e.target.value as Tabla; setTipo(t); setForm({ ...base(t), descripcion: form.descripcion, especialidad_id: form.especialidad_id, subfamilia_id: form.subfamilia_id }); }}>
-              {GRUPOS_INSUMO.map((t) => <option key={t} value={t}>{CONFIG[t].titulo}</option>)}
-            </Select>
-          </Campo>
-          <Campo etiqueta="Especialidad (código)">
-            <Select value={form.especialidad_id ?? ""} onChange={(e) => setForm({ ...form, especialidad_id: e.target.value, subfamilia_id: "" })}>
-              <option value="">— Elegir —</option>
-              {espCod.map((e) => <option key={e.id} value={e.id}>{e.codigo_modular} · {e.nombre}</option>)}
-            </Select>
-          </Campo>
-          {tipo === "materiales" && <Campo etiqueta="Subfamilia">
-            <Select value={form.subfamilia_id ?? ""} onChange={(e) => setForm({ ...form, subfamilia_id: e.target.value })} disabled={!form.especialidad_id}>
-              <option value="">— Elegir —</option>
-              {subfamilias.filter((s) => s.especialidad_id === form.especialidad_id && s.activo).map((s) => <option key={s.id} value={s.id}>{s.codigo} · {s.nombre}{s.bloque ? ` (${s.bloque})` : ""}</option>)}
-            </Select>
-          </Campo>}
-          <p className="text-[11px] text-muted-foreground sm:col-span-2">Código: <span className="font-mono">{form.codigo && modo === "editar" ? form.codigo : "se genera al guardar"}</span> (tipo + especialidad + {tipo === "materiales" ? "subfamilia" : "00"} + correlativo).</p>
-          {CONFIG[tipo].campos.filter((c) => c.k !== "codigo" && (!c.soloSi || c.soloSi(form))).map((c) => (
-            <Campo key={c.k} etiqueta={c.t}>
-              {c.tipo === "sel" ? (
-                <Select value={form[c.k] ?? ""} onChange={(e) => setForm({ ...form, [c.k]: e.target.value })}>
-                  {c.k === "unidad"
-                    ? unds.map((u) => <option key={u.id} value={u.simbolo}>{u.simbolo} · {u.descripcion}</option>)
-                    : (c.opciones ?? []).map((o) => <option key={o}>{o}</option>)}
-                </Select>
-              ) : (
-                <Input type={c.tipo === "num" ? "number" : "text"} step="any" value={form[c.k] ?? ""} autoFocus={c.k === "descripcion"}
-                  onChange={(e) => setForm({ ...form, [c.k]: e.target.value })} />
-              )}
-            </Campo>
-          ))}
-          {aviso && <p className="text-xs text-destructive sm:col-span-2">{aviso}</p>}
-          <div className="flex justify-end gap-2 sm:col-span-2">
-            <Boton type="button" variante="linea" onClick={() => setModo(null)}>Cerrar</Boton>
-            <Boton type="submit">Guardar</Boton>
-          </div>
-        </form>
-      </VentanaFlotante>
+      {modo && (
+        <VentanaInsumo modo={modo} sel={sel} onCerrar={() => setModo(null)} />
+      )}
     </div>
   );
 }
