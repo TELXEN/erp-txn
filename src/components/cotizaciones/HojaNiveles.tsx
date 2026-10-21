@@ -73,11 +73,11 @@ export function HojaNiveles({
       if (n === "especialidad") { esp = f.nombre; tit = ""; }
       if (n === "titulo") tit = f.nombre;
       const cambio: Record<string, unknown> = {};
-      if (f.orden !== i + 1) cambio.orden = i + 1;
-      if (f.codigo !== c.get(f.id)) cambio.codigo = c.get(f.id);
+      if (f.orden !== i + 1) cambio['orden'] = i + 1;
+      if (f.codigo !== c.get(f.id)) cambio['codigo'] = c.get(f.id);
       const e = esp || tit;
-      if (f.especialidad !== e) cambio.especialidad = e;
-      if ((f.categoria ?? "") !== tit) cambio.categoria = tit;
+      if (f.especialidad !== e) cambio['especialidad'] = e;
+      if ((f.categoria ?? "") !== tit) cambio['categoria'] = tit;
       if (Object.keys(cambio).length) cambios.push(db.from("cotizacion_items").update(cambio).eq("id", f.id));
     });
     await Promise.all(cambios);
@@ -176,7 +176,7 @@ export function HojaNiveles({
     const bloque = orden.slice(ini, fin);
     const filas = bloque.map(({ id: _i, created_at: _c, updated_at: _u, ...r }: Item & { created_at?: string; updated_at?: string }) => ({ ...r, codigo: "" }));
     const { data, error: err } = await db.from("cotizacion_items").insert(filas).select("*");
-    if (err) return toast.error(err.message);
+    if (err) { toast.error(err.message); return; }
     const nuevas = (data as Item[]).sort((a, b) => a.orden - b.orden);
     await sincronizar([...orden.slice(0, fin), ...nuevas, ...orden.slice(fin)]);
     for (let k = 0; k < bloque.length; k++) {
@@ -194,7 +194,7 @@ export function HojaNiveles({
     const extra = ids.length > 1 ? ` y ${ids.length - 1} fila(s) que contiene` : "";
     if (!window.confirm(`¿Eliminar «${seleccionado.nombre}»${extra}?`)) return;
     const { error: err } = await db.from("cotizacion_items").delete().in("id", ids);
-    if (err) return toast.error(err.message);
+    if (err) { toast.error(err.message); return; }
     await sincronizar(orden.filter((f) => !ids.includes(f.id)));
     setSel(null);
     await refrescar();
@@ -272,7 +272,7 @@ export function HojaNiveles({
       <VentanaFlotante
         abierta={Boolean(ventana)}
         titulo={`${ventana?.modo === "editar" ? "Editar" : "Agregar"} ${f ? NOMBRE_NIVEL[f.nivel].toLowerCase() : ""}`}
-        subtitulo={ventana?.modo === "nuevo" && seleccionado ? `Se agrega después de «${seleccionado.nombre}»` : undefined}
+        subtitulo={ventana?.modo === "nuevo" && seleccionado ? `Se agrega después de «${seleccionado.nombre}»` : ""}
         onCerrar={() => setVentana(null)}
         ancho="max-w-xl"
       >
