@@ -1,4 +1,5 @@
 # Roadmap
+- [ ] Insertar partida en cotizaciones: elegir crear una nueva o seleccionar del Banco de partidas y verificar la ventana sin alterar datos reales.
 - [x] Plantillas: iconos de acciones en columna vertical a la derecha (hoja limpia, ventana única para alta/edición/copia) y verificación en pantalla.
 - [x] Igualar el formato del Dossier APU al Análisis de Precios Unitarios; pantalla y descarga PDF verificadas sin modificar cotizaciones.
 - [x] Dejar el porcentaje de herramientas manuales en 5% por defecto (Márgenes APU, partidas nuevas y cálculo); verificado en pantalla.
