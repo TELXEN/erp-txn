@@ -220,7 +220,6 @@ function VistaCotizacion() {
     const ultima = hojas[hojas.length - 1];
     if (ultima && desborda(ultima) && !finalAparte && hojas.length > 0) setFinalAparte(true);
   });
-  const porGrupo = subtotalesPorGrupo(items as unknown as ItemCot[]);
 
   function copiarEnlace() {
     const url = `${window.location.origin}/cotizacion-vista?id=${id}`;
