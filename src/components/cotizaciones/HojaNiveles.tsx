@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { BotonIcono, Boton, Campo, Input, Select, VentanaFlotante } from "@/components/ui-kit";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AutoMaestra } from "@/components/CotizacionHoja";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
 import { precioMaestroEnMoneda, useGruposCotizacion, type CotizacionItem, type PartidaMaestra } from "@/lib/cotizaciones";
 import { copiarRecetaACotizacion, useCatalogoCotizacion } from "@/lib/banco-apu";
@@ -58,6 +59,7 @@ export function HojaNiveles({
   const [ventana, setVentana] = useState<{ modo: "nuevo" | "editar"; id?: string; form: Form } | null>(null);
   const [error, setError] = useState("");
   const [ocupado, setOcupado] = useState(false);
+  const [origenPartida, setOrigenPartida] = useState<"banco" | "nueva">("banco");
 
   const { orden, codigos, profundidad } = useMemo(() => numerarNiveles(items), [items]);
   const totales = useMemo(() => totalesNiveles(orden), [orden]);
@@ -101,6 +103,7 @@ export function HojaNiveles({
 
   function abrirNuevo(nivel: NivelCotizacion) {
     setError("");
+    setOrigenPartida("banco");
     setVentana({ modo: "nuevo", form: { nivel, nombre: "", unidad: "GLB", metrado: "1", precio: "0", apuId: null } });
   }
   function abrirEditar(fila: Item | null = seleccionado) {
@@ -133,6 +136,8 @@ export function HojaNiveles({
     e.preventDefault();
     if (!ventana) return;
     const f = ventana.form;
+    if (ventana.modo === "nuevo" && f.nivel === "partida" && origenPartida === "banco" && !f.apuId)
+      return setError("Selecciona una partida del Banco de partidas.");
     const nombre = formatearNivel(f.nombre, f.nivel);
     if (!nombre) return setError("Escribe o elige el nombre.");
     const esPartida = f.nivel === "partida";
@@ -292,21 +297,39 @@ export function HojaNiveles({
           <form onSubmit={guardar} className="grid gap-3 p-4 sm:grid-cols-2">
             {ventana?.modo === "nuevo" && (
               <Campo etiqueta="Nivel">
-                <Select value={f.nivel} onChange={(e) => setF({ nivel: e.target.value as NivelCotizacion, nombre: "" })}>
+                <Select value={f.nivel} onChange={(e) => { setError(""); setF({ nivel: e.target.value as NivelCotizacion, nombre: "", apuId: null, unidad: "GLB", precio: "0" }); }}>
                   {NIVELES.map((n) => <option key={n} value={n}>{NOMBRE_NIVEL[n]}</option>)}
                 </Select>
               </Campo>
             )}
+            {ventana?.modo === "nuevo" && f.nivel === "partida" && (
+              <Tabs
+                value={origenPartida}
+                onValueChange={(v) => {
+                  if (v !== "banco" && v !== "nueva") return;
+                  setOrigenPartida(v);
+                  setError("");
+                  setF({ nombre: "", apuId: null, unidad: "GLB", precio: "0" });
+                }}
+                className="sm:col-span-2"
+              >
+                <TabsList className="h-auto w-full flex-wrap">
+                  <TabsTrigger value="banco" disabled={ocupado} className="flex-1 text-xs">Banco de partidas</TabsTrigger>
+                  <TabsTrigger value="nueva" disabled={ocupado} className="flex-1 text-xs">Crear nueva</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            )}
             <div className="sm:col-span-2">
-              <Campo etiqueta="Nombre">
+              <Campo etiqueta={ventana?.modo === "nuevo" && f.nivel === "partida" && origenPartida === "banco" ? "Partida del banco" : "Nombre"}>
                 {opcionesNombre.length > 0 ? (
                   <Select value={f.nombre} onChange={(e) => setF({ nombre: e.target.value })} autoFocus>
                     <option value="">— Elegir —</option>
                     {f.nombre && !opcionesNombre.includes(f.nombre) && <option value={f.nombre}>{f.nombre}</option>}
                     {opcionesNombre.map((o) => <option key={o} value={o}>{o}</option>)}
                   </Select>
-                ) : f.nivel === "partida" ? (
+                ) : f.nivel === "partida" && !(ventana?.modo === "nuevo" && origenPartida === "nueva") ? (
                   <AutoMaestra
+                    key={`${ventana?.modo}-${origenPartida}`}
                     value={f.nombre}
                     onChange={(v) => setF({ nombre: v, apuId: null })}
                     maestras={catalogo}
@@ -319,13 +342,16 @@ export function HojaNiveles({
                       })
                     }
                     autoFocus
-                    placeholder="Busca en el Banco APU o escribe"
+                    placeholder="Buscar partida por código o descripción…"
                     className="w-full rounded border border-line bg-card px-2 py-1.5 text-xs"
                   />
                 ) : (
-                  <Input value={f.nombre} onChange={(e) => setF({ nombre: e.target.value })} onBlur={(e) => setF({ nombre: formatearNivel(e.target.value, f.nivel) })} autoFocus />
+                  <Input value={f.nombre} onChange={(e) => setF({ nombre: e.target.value, apuId: null })} onBlur={(e) => setF({ nombre: formatearNivel(e.target.value, f.nivel) })} placeholder={f.nivel === "partida" ? "Descripción de la nueva partida" : undefined} autoFocus />
                 )}
               </Campo>
+              {ventana?.modo === "nuevo" && f.nivel === "partida" && origenPartida === "banco" && catalogo.length === 0 && (
+                <p className="mt-2 text-xs text-muted-foreground">No hay partidas disponibles en el banco.</p>
+              )}
             </div>
             {f.nivel === "partida" && (
               <>
@@ -346,7 +372,7 @@ export function HojaNiveles({
             {error && <p className="text-xs text-bad sm:col-span-2">{error}</p>}
             <div className="flex justify-end gap-2 sm:col-span-2">
               <Boton type="button" variante="linea" onClick={() => setVentana(null)}>Cerrar</Boton>
-              <Boton type="submit" disabled={ocupado}>Guardar</Boton>
+              <Boton type="submit" disabled={ocupado || (ventana?.modo === "nuevo" && f.nivel === "partida" && origenPartida === "banco" && !f.apuId)}>{ventana?.modo === "nuevo" && f.nivel === "partida" && origenPartida === "banco" ? "Insertar partida" : "Guardar"}</Boton>
             </div>
           </form>
         )}
