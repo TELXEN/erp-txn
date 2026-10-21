@@ -149,6 +149,7 @@ function Cotizaciones() {
   const esUltimaRevision = hermanas.length > 0 && hermanas.at(-1)?.id === cot?.id;
 
   const [partidaActiva, setPartidaActiva] = useState<string | null>(null);
+  const [slotBarra, setSlotBarra] = useState<HTMLDivElement | null>(null);
   /** En edición la hoja arranca sin encabezado: solo se ve la tabla de partidas. */
   const [encabezado, setEncabezado] = useState(false);
   useEffect(() => {
@@ -733,8 +734,8 @@ function Cotizaciones() {
           </Panel>
         )}
 
-        <div className="flex flex-col gap-2 bg-muted/60 px-2 py-2 lg:h-auto lg:min-h-0 lg:flex-1 lg:flex-row lg:overflow-hidden">
-          <div className="flex min-h-0 flex-col lg:w-[60%]">
+        <div className="flex flex-col gap-2 bg-muted/60 px-2 py-2 lg:h-auto lg:min-h-0 lg:flex-1 lg:flex-row lg:overflow-hidden lg:pr-1">
+          <div className="flex min-h-0 min-w-0 flex-col lg:w-[58%]">
           <div className="min-h-0 flex-1 overflow-auto">
           <HojaCotizacion cot={cot} items={items} clientes={clientes} mostrarEncabezado={encabezado}>
             <HojaNiveles
@@ -745,14 +746,16 @@ function Cotizaciones() {
               moneda={cot.moneda}
               tipoCambio={Number(cot.tipo_cambio)}
               onSeleccionar={setPartidaActiva}
+              barraEn={slotBarra}
             />
           </HojaCotizacion>
           </div>
           <ResumenCotizacion cot={cot} items={itemsHoja} />
           </div>
-          <aside className="min-h-[24rem] overflow-hidden rounded-md border border-line bg-card lg:h-full lg:min-h-0 lg:w-[40%]">
+          <aside className="min-h-[24rem] overflow-hidden rounded-md border border-line bg-card lg:h-full lg:min-h-0 lg:min-w-0 lg:flex-1">
             <PanelApuCotizacion cot={cot} item={itemsHoja.find((i) => i.id === partidaActiva) ?? null} />
           </aside>
+          <div ref={setSlotBarra} className="shrink-0" />
         </div>
         {apu && (
           <ApuBanco
