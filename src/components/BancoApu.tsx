@@ -142,7 +142,7 @@ function SplitPartidas() {
   const [menuMas, setMenuMas] = useState(false);
   const agregarGrupo = (grupo: string) => { setMenuMas(false); if (pie !== "analisis") elegirPie("analisis"); setCmdApu({ a: "nuevo", grupo, n: Date.now() }); };
   return (
-    <div className="grid grid-cols-1 items-stretch gap-4 lg:h-[calc(100dvh-240px)] lg:min-h-[400px] lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)_auto]">
+    <div className="grid grid-cols-1 items-stretch gap-4 lg:h-[calc(100dvh-240px)] lg:min-h-[400px] pr-12 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
       <div className="min-h-0 min-w-0"><ListaBanco tabla="partidas_apu" seleccion={sel} onSeleccion={(id) => { elegir(id); setFoco("partida"); }} llena comando={cmdLista} /></div>
       <div className="flex min-h-[420px] min-w-0 flex-col lg:min-h-0">
         <div className="min-h-0 flex-1">
