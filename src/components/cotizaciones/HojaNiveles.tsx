@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { BotonIcono, Boton, Campo, Input, Select, VentanaFlotante } from "@/components/ui-kit";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { GRUPOS_RECURSO } from "@/components/cotizaciones/PanelApuCotizacion";
+import { VentanaInsumo } from "@/components/InsumoVentana";
 import { AutoMaestra } from "@/components/CotizacionHoja";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
 import { precioMaestroEnMoneda, useGruposCotizacion, type CotizacionItem, type PartidaMaestra } from "@/lib/cotizaciones";
@@ -38,7 +38,6 @@ export function HojaNiveles({
   tipoCambio = 0,
   onSeleccionar,
   barraEn,
-  onAgregarInsumo,
 }: {
   cotizacionId: string;
   items: Item[];
@@ -48,7 +47,6 @@ export function HojaNiveles({
   tipoCambio?: number;
   onSeleccionar?: (id: string | null) => void;
   barraEn?: HTMLElement | null;
-  onAgregarInsumo?: (grupo: string) => void;
 }) {
   const qc = useQueryClient();
   const { data: especialidades = [] } = useEspecialidadesPartida();
