@@ -347,7 +347,7 @@ export function HojaCotizacion({
   );
 }
 
-function EnvolturaEncabezado({ ventana, children }: { ventana?: { abierta: boolean; onCerrar: () => void }; children: ReactNode }) {
+function EnvolturaEncabezado({ ventana, children }: { ventana?: undefined | { abierta: boolean; onCerrar: () => void }; children: ReactNode }) {
   if (!ventana) return <>{children}</>;
   return (
     <VentanaFlotante titulo="Encabezado de la cotización" subtitulo="Los cambios se guardan al salir de cada campo" abierta={ventana.abierta} onCerrar={ventana.onCerrar} ancho="max-w-6xl">
