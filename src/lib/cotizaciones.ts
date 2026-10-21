@@ -281,6 +281,7 @@ async function copiarFilas(
 
 const base = (i: FilaCopiable) => ({
   tipo: i.tipo || "partida",
+  nivel: (i as { nivel?: string }).nivel || (i.tipo === "grupo" ? "titulo" : "partida"),
   grupo: i.grupo ?? "",
   especialidad: i.especialidad ?? "",
   categoria: i.categoria ?? "",

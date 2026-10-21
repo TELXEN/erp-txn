@@ -6,7 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { ApuBanco, ORIGEN_COTIZACION } from "@/components/ApuCotizacion";
 import { dbBanco, useCatalogoCotizacion } from "@/lib/banco-apu";
-import { AutoMaestra, CotizacionHoja } from "@/components/CotizacionHoja";
+import { AutoMaestra } from "@/components/CotizacionHoja";
+import { HojaNiveles } from "@/components/cotizaciones/HojaNiveles";
 import { PanelApuCotizacion, ResumenCotizacion } from "@/components/cotizaciones/PanelApuCotizacion";
 import { HojaCotizacion } from "@/components/cotizaciones/HojaCotizacion";
 
@@ -735,17 +736,14 @@ function Cotizaciones() {
           <div className="flex min-h-0 flex-col lg:w-[60%]">
           <div className="min-h-0 flex-1 overflow-auto">
           <HojaCotizacion cot={cot} items={items} clientes={clientes} mostrarEncabezado={encabezado}>
-            <CotizacionHoja
+            <HojaNiveles
               cotizacionId={cot.id}
               items={itemsHoja}
               unidades={unidades}
               simbolo={simboloMoneda(cot.moneda)}
               moneda={cot.moneda}
               tipoCambio={Number(cot.tipo_cambio)}
-              multi={Boolean(cot.multidisciplinaria)}
-              alcance={cot.alcance ?? "ambos"}
               onSeleccionar={setPartidaActiva}
-              compacta
             />
           </HojaCotizacion>
           </div>
