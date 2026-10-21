@@ -148,6 +148,8 @@ export function VentanaInsumo({
 
   async function guardar() {
     if (!form.descripcion?.trim()) return setAviso("Escribe la descripción.");
+    const dup = buscarInsumoDuplicado(tablas[tipo] ?? [], String(form.descripcion), modo === "editar" ? sel?.fila.id : undefined, true);
+    if (dup) return setAviso(dup.estado === "inactivo" ? `El insumo «${primeraMayuscula(form.descripcion.trim())}» ya existe pero está inactivo.` : `El insumo «${primeraMayuscula(form.descripcion.trim())}» ya existe en ${CONFIG[tipo].titulo}.`);
     const d: Record<string, unknown> = {};
     for (const c of CONFIG[tipo].campos) d[c.k] = c.tipo === "num" ? Number(form[c.k] || 0) : String(form[c.k] ?? "").trim();
     if (tipo === "equipos_herramientas" && form.tipo !== "alquilado") d["margen"] = 0;
