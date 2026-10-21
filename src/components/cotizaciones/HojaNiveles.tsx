@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { BotonIcono, Boton, Campo, Input, Select, VentanaFlotante } from "@/components/ui-kit";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { VentanaInsumo } from "@/components/InsumoVentana";
 import { AutoMaestra } from "@/components/CotizacionHoja";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
 import { precioMaestroEnMoneda, useGruposCotizacion, type CotizacionItem, type PartidaMaestra } from "@/lib/cotizaciones";
@@ -38,6 +37,7 @@ export function HojaNiveles({
   tipoCambio = 0,
   onSeleccionar,
   barraEn,
+  onAgregarInsumo,
 }: {
   cotizacionId: string;
   items: Item[];
@@ -47,6 +47,8 @@ export function HojaNiveles({
   tipoCambio?: number;
   onSeleccionar?: (id: string | null) => void;
   barraEn?: HTMLElement | null;
+  /** Abre la ventana de insumo del panel APU (crear nuevo o seleccionar del catálogo). */
+  onAgregarInsumo?: () => void;
 }) {
   const qc = useQueryClient();
   const { data: especialidades = [] } = useEspecialidadesPartida();
@@ -55,7 +57,6 @@ export function HojaNiveles({
   const [sel, setSel] = useState<string | null>(null);
   const [ventana, setVentana] = useState<{ modo: "nuevo" | "editar"; id?: string; form: Form } | null>(null);
   const [error, setError] = useState("");
-  const [ins, setIns] = useState(false);
   const [ocupado, setOcupado] = useState(false);
 
   const { orden, codigos, profundidad } = useMemo(() => numerarNiveles(items), [items]);
@@ -225,7 +226,7 @@ export function HojaNiveles({
               <DropdownMenuItem key={n} onSelect={() => abrirNuevo(n)}>{NOMBRE_NIVEL[n]}</DropdownMenuItem>
             ))}
             <div className="my-1 border-t border-line" />
-            <DropdownMenuItem onSelect={() => setIns(true)}>Insumo</DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => onAgregarInsumo?.()}>Insumo</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
         <BotonIcono etiqueta="Editar" title="Editar" disabled={!seleccionado} onClick={() => abrirEditar()}><Pencil size={15} /></BotonIcono>
@@ -350,8 +351,6 @@ export function HojaNiveles({
           </form>
         )}
       </VentanaFlotante>
-
-      {ins && <VentanaInsumo modo="nuevo" onCerrar={() => setIns(false)} />}
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { Boton, Campo, Input, Vacio, VentanaFlotante } from "@/components/ui-kit
 import { Resaltar } from "@/components/Buscador";
 import { MenuContextualApu, type AccionApu, type EstadoMenuApu } from "@/components/MenuContextualApu";
 import { BANCOS_RECURSO, costoReceta, dbBanco, renumerarApu, useBancoTabla, useRecursosApu, type FilaCalculo, type RecursosApu } from "@/lib/banco-apu";
+import { VentanaInsumo, CANCELADO, type SelInsumo } from "@/components/InsumoVentana";
 import { r2, sumar2 } from "@/lib/decimal";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -147,6 +148,27 @@ export function PanelApuCotizacion({ cot, item, comando }: { cot: Cotizacion; it
     await refrescar();
   }
 
+  /** Agrega el insumo elegido en la ventana de insumo a la receta de esta partida. */
+  async function agregarApu(s: SelInsumo, cant: number): Promise<string | null> {
+    const col = BANCOS_RECURSO.find((b) => b[1] === s.tabla)?.[0];
+    if (!col) return "Grupo desconocido.";
+    const ya = propias.find((d) => d[col] === s.fila.id);
+    if (ya) {
+      if (!window.confirm(`«${s.fila.descripcion}» ya está en el APU. ¿Sumar ${cant} a su cantidad actual (${ya.cantidad_o_cuadrilla})?`)) return CANCELADO;
+      const { error: e } = await dbBanco.from("cotizacion_apu_detalle").update({ cantidad_o_cuadrilla: Number(ya.cantidad_o_cuadrilla) + cant }).eq("id", ya.id);
+      if (e) return e.message;
+      await aplicarPu(propias.map((d) => (d.id === ya.id ? { ...d, cantidad_o_cuadrilla: Number(ya.cantidad_o_cuadrilla) + cant } : d)));
+    } else {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const fila: any = { cotizacion_item_id: it.id, [col]: s.fila.id, cantidad_o_cuadrilla: cant, orden: agregar?.orden ?? 0 };
+      const { error: e } = await dbBanco.from("cotizacion_apu_detalle").insert(fila);
+      if (e) return e.message;
+      await aplicarPu([...propias, fila]);
+    }
+    refrescar();
+    return null;
+  }
+
   function abrirMenu(e: React.MouseEvent, t: string, f: FilaCalculo | undefined, habilitadas: EstadoMenuApu["habilitadas"]) {
     e.preventDefault();
     setMenu({ x: e.clientX, y: e.clientY, t, f, habilitadas });
@@ -154,6 +176,11 @@ export function PanelApuCotizacion({ cot, item, comando }: { cot: Cotizacion; it
   async function accionMenu(a: AccionApu, m: NonNullable<typeof menu>) {
     const { t, f } = m;
     if (a === "eliminar") return f && quitar(f.d.id as string);
+    if (t === "INSUMO" && (a === "final" || a === "encima" || a === "debajo")) {
+      const orden = propias.length ? Math.max(...propias.map((d) => Number(d.orden) || 0)) + 10 : 10;
+      setAgregar({ t, orden });
+      return;
+    }
     if (a === "final" || a === "encima" || a === "debajo") {
       const mapa = await renumerarApu("cotizacion_apu_detalle", propias as { id: string; orden?: number }[]);
       const filasG = calc.filas.filter((x) => x.tipo === t);
@@ -225,10 +252,9 @@ export function PanelApuCotizacion({ cot, item, comando }: { cot: Cotizacion; it
     <div className="flex h-full min-h-0 flex-col">
       {menu && <MenuContextualApu menu={menu} onCerrar={cerrarMenu} onAccion={(a) => void accionMenu(a, menu)} />}
       {agregar && (
-        <DialogoAgregarInsumoCot tipo={agregar.t} orden={agregar.orden} itemId={it.id} nombrePartida={it.nombre}
-          recursos={recursos} existentes={propias}
-          onCerrar={() => setAgregar(null)}
-          onGuardado={async (nuevas) => { setAgregar(null); await aplicarPu(nuevas); await refrescar(); }} />
+        <VentanaInsumo modo="nuevo" agregarA={{ titulo: it.nombre }}
+          {...(agregar.t === "INSUMO" ? {} : { soloTabla: BANCOS_RECURSO.find((b) => b[3] === agregar.t)?.[1] as SelInsumo["tabla"] })}
+          alAgregar={agregarApu} onCerrar={() => setAgregar(null)} />
       )}
       <div className="border-b border-line px-3 py-2">
         <p className="truncate text-xs font-semibold text-ink" title={it.nombre}>{it.codigo} · {it.nombre}</p>
@@ -447,77 +473,3 @@ export function ResumenCotizacion({ cot, items }: { cot: Cotizacion; items: Coti
   );
 }
 
-/** Buscador de insumos del banco para agregar al APU de la cotización (menú contextual). */
-function DialogoAgregarInsumoCot({ tipo, orden, itemId, nombrePartida, recursos, existentes, onCerrar, onGuardado }: {
-  tipo: string; orden: number; itemId: string; nombrePartida: string; recursos: RecursosApu;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  existentes: any[]; onCerrar: () => void; onGuardado: (nuevas: any[]) => void | Promise<void>;
-}) {
-  const found = BANCOS_RECURSO.find((b) => b[3] === tipo);
-  const [col, tabla, titulo] = found ?? ["material_id", "materiales", "Materiales"];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const opciones = ((recursos[tabla as keyof RecursosApu] ?? []) as any[]).filter((x) => x.estado !== "inactivo");
-  const [q, setQ] = useState("");
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [elegido, setElegido] = useState<any | null>(null);
-  const [cant, setCant] = useState("");
-  const [error, setError] = useState("");
-  const lista = opciones
-    .filter((o) => `${o.codigo ?? ""} ${o.descripcion ?? ""} ${o.marca ?? ""}`.toLowerCase().includes(q.toLowerCase()))
-    .slice(0, 50);
-
-  async function guardar() {
-    if (!elegido) return setError("Elige un insumo.");
-    const n = Number(cant);
-    if (!(n > 0)) return setError("Ingresa la cantidad / cuadrilla (mayor que 0).");
-    const ya = existentes.find((d) => d[col] === elegido.id);
-    if (ya) {
-      if (!window.confirm(`«${elegido.descripcion}» ya está en el APU. ¿Sumar ${n} a su cantidad actual (${ya.cantidad_o_cuadrilla})?`)) return;
-      const { error: e } = await dbBanco.from("cotizacion_apu_detalle").update({ cantidad_o_cuadrilla: Number(ya.cantidad_o_cuadrilla) + n }).eq("id", ya.id);
-      if (e) return setError(e.message);
-      await onGuardado(existentes.map((d) => (d.id === ya.id ? { ...d, cantidad_o_cuadrilla: Number(ya.cantidad_o_cuadrilla) + n } : d)));
-      return;
-    }
-    const fila = { cotizacion_item_id: itemId, [col]: elegido.id, cantidad_o_cuadrilla: n, orden };
-    const { error: e } = await dbBanco.from("cotizacion_apu_detalle").insert(fila);
-    if (e) return setError(e.message);
-    await onGuardado([...existentes, fila]);
-  }
-
-  return (
-    <VentanaFlotante abierta onCerrar={onCerrar} ancho="max-w-xl" titulo={`Agregar — ${titulo}`} subtitulo={nombrePartida}>
-      {!elegido ? (
-        <div className="p-5">
-          <Input autoFocus placeholder="Busca por código, descripción o marca…" value={q} onChange={(e) => setQ(e.target.value)} />
-          <div className="mt-2 max-h-80 overflow-y-auto rounded-md border border-line">
-            {lista.length === 0 && <Vacio texto="Sin coincidencias." />}
-            {lista.map((o) => (
-              <button key={o.id} type="button" onClick={() => setElegido(o)}
-                className="flex w-full items-center gap-2 border-b border-line/60 px-3 py-1.5 text-left text-xs hover:bg-primary/10">
-                <span className="w-24 shrink-0 font-mono text-muted-foreground">{o.codigo ?? ""}</span>
-                <span className="min-w-0 flex-1 truncate"><Resaltar texto={o.descripcion ?? ""} termino={q} /></span>
-                {o.marca && <span className="shrink-0 text-muted-foreground">{o.marca}</span>}
-              </button>
-            ))}
-          </div>
-          {error && <p className="mt-2 text-xs text-bad">{error}</p>}
-        </div>
-      ) : (
-        <form className="space-y-3 p-5" onSubmit={(e) => { e.preventDefault(); void guardar(); }}>
-          <div className="flex items-center justify-between rounded-md border border-line px-3 py-2 text-sm">
-            <span className="min-w-0 truncate">{elegido.codigo ?? ""} · {elegido.descripcion}{elegido.marca ? ` · ${elegido.marca}` : ""}</span>
-            <Boton type="button" variante="linea" className="py-1" onClick={() => setElegido(null)}>Cambiar</Boton>
-          </div>
-          <Campo etiqueta="Cantidad / Cuadrilla">
-            <Input autoFocus type="number" step="any" value={cant} onChange={(e) => setCant(e.target.value)} />
-          </Campo>
-          {error && <p className="text-xs text-bad">{error}</p>}
-          <div className="flex justify-end gap-2">
-            <Boton type="button" variante="linea" onClick={onCerrar}>Cerrar</Boton>
-            <Boton type="submit"><Plus size={13} /> Agregar</Boton>
-          </div>
-        </form>
-      )}
-    </VentanaFlotante>
-  );
-}

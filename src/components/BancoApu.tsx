@@ -9,7 +9,7 @@ import { soles } from "@/lib/format";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
 import { useUnidadesMedida } from "@/lib/unidades";
 import { renumerarApu, siguienteCodigoJerarquico } from "@/lib/banco-apu";
-import { VentanaInsumo, primeraMayuscula, type ModoInsumo, type TablaInsumo } from "@/components/InsumoVentana";
+import { VentanaInsumo, primeraMayuscula, CANCELADO, type ModoInsumo, type TablaInsumo, type SelInsumo } from "@/components/InsumoVentana";
 import { r2, r4, sumar2 } from "@/lib/decimal";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -655,75 +655,27 @@ function PanelApuMaestro({ partida, selFila, onSelFila, comando }: { partida: Fi
     </Panel>
 
       {agregar && (
-        <DialogoAgregarInsumo grupo={agregar} partida={partida} opciones={(fuentes[agregar[1]] ?? []).filter((x) => x.estado === "activo" && x.id !== partida.id)}
-          existentes={detalles.filter((d) => d.partida_padre_id === partida.id)} orden={ordenNuevo ?? 0}
-          onCerrar={() => setAgregar(null)} onGuardado={() => { setAgregar(null); refrescar(); }} />
+        <VentanaInsumo modo="nuevo" agregarA={{ titulo: partida.descripcion }} soloTabla={agregar[1] as TablaInsumo}
+          alAgregar={async (s: SelInsumo, cant: number): Promise<string | null> => {
+            const col = agregar[0];
+            const propias = detalles.filter((d) => d.partida_padre_id === partida.id);
+            const ya = propias.find((d) => d[col] === s.fila.id);
+            if (ya) {
+              if (!window.confirm(`«${s.fila.descripcion}» ya está en el APU. ¿Sumar ${cant} a su cantidad actual (${ya.cantidad_o_cuadrilla})?`)) return CANCELADO;
+              const { error: e } = await db.from("partida_detalle").update({ cantidad_o_cuadrilla: Number(ya.cantidad_o_cuadrilla) + cant }).eq("id", ya.id);
+              if (e) return e.message;
+            } else {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const fila: any = { partida_padre_id: partida.id, [col]: s.fila.id, cantidad_o_cuadrilla: cant, orden: ordenNuevo ?? 0 };
+              const { error: e } = await db.from("partida_detalle").insert(fila);
+              if (e) return e.message;
+            }
+            refrescar();
+            return null;
+          }}
+          onCerrar={() => { setAgregar(null); refrescar(); }} />
       )}
     </>
-  );
-}
-
-function DialogoAgregarInsumo({ grupo, partida, opciones, existentes, orden, onCerrar, onGuardado }: {
-  grupo: Grupo; partida: Fila; opciones: Fila[]; existentes: Detalle[]; orden: number; onCerrar: () => void; onGuardado: () => void;
-}) {
-  const [col, , titulo] = grupo;
-  const [q, setQ] = useState("");
-  const [elegido, setElegido] = useState<Fila | null>(null);
-  const [cant, setCant] = useState("");
-  const [error, setError] = useState("");
-  const lista = opciones.filter((o) => coincide(q, o.codigo ?? o.codigo_jerarquico, o.descripcion, o.marca)).slice(0, 50);
-
-  async function guardar() {
-    if (!elegido) return setError("Elige un insumo.");
-    const n = Number(cant);
-    if (!(n > 0)) return setError("Ingresa la cantidad / cuadrilla (mayor que 0).");
-    const ya = existentes.find((d) => d[col] === elegido.id);
-    if (ya) {
-      if (!window.confirm(`«${elegido.descripcion}» ya está en el APU. ¿Sumar ${n} a su cantidad actual (${ya.cantidad_o_cuadrilla})?`)) return;
-      const { error: e } = await db.from("partida_detalle").update({ cantidad_o_cuadrilla: Number(ya.cantidad_o_cuadrilla) + n }).eq("id", ya.id);
-      if (e) return setError(e.message);
-    } else {
-      const { error: e } = await db.from("partida_detalle").insert({ partida_padre_id: partida.id, [col]: elegido.id, cantidad_o_cuadrilla: n, orden });
-      if (e) return setError(e.message);
-    }
-    onGuardado();
-  }
-
-  return (
-    <VentanaFlotante abierta onCerrar={onCerrar} ancho="max-w-xl" titulo={`Agregar — ${titulo}`} subtitulo={partida.descripcion}>
-      {!elegido ? (
-        <div className="p-5">
-          <Input autoFocus placeholder="Busca por código, descripción o marca…" value={q} onChange={(e) => setQ(e.target.value)} />
-          <div className="mt-2 max-h-80 overflow-y-auto rounded-md border border-line">
-            {lista.length === 0 && <Vacio texto="Sin coincidencias." />}
-            {lista.map((o) => (
-              <button key={o.id} type="button" onClick={() => setElegido(o)}
-                className="flex w-full items-center gap-2 border-b border-line/60 px-3 py-1.5 text-left text-xs hover:bg-primary/10">
-                <span className="w-24 shrink-0 font-mono text-muted-foreground">{o.codigo ?? o.codigo_jerarquico ?? ""}</span>
-                <span className="min-w-0 flex-1 truncate"><Resaltar texto={o.descripcion} termino={q} /></span>
-                {o.marca && <span className="shrink-0 text-muted-foreground">{o.marca}</span>}
-              </button>
-            ))}
-          </div>
-        </div>
-      ) : (
-        <form className="space-y-3 p-5" onSubmit={(e) => { e.preventDefault(); guardar(); }}>
-          <div className="flex items-center justify-between rounded-md border border-line px-3 py-2 text-sm">
-            <span className="min-w-0 truncate">{elegido.codigo ?? elegido.codigo_jerarquico} · {elegido.descripcion}{elegido.marca ? ` · ${elegido.marca}` : ""}</span>
-            <Boton type="button" variante="linea" className="py-1" onClick={() => setElegido(null)}>Cambiar</Boton>
-          </div>
-          <Campo etiqueta="Cantidad / Cuadrilla">
-            <Input autoFocus type="number" step="any" value={cant} onChange={(e) => setCant(e.target.value)} />
-          </Campo>
-          {error && <p className="text-xs text-bad">{error}</p>}
-          <div className="flex justify-end gap-2">
-            <Boton type="button" variante="linea" onClick={onCerrar}>Cerrar</Boton>
-            <Boton type="submit"><Plus size={13} /> Agregar</Boton>
-          </div>
-        </form>
-      )}
-      {!elegido && error && <p className="mt-2 text-xs text-bad">{error}</p>}
-    </VentanaFlotante>
   );
 }
 
