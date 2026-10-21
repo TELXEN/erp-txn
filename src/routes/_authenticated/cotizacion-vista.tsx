@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { paginarCotizacion } from "@/lib/paginacion-cotizacion";
 import { colorearParaExportar } from "@/lib/exportar-colores";
 import { useEffect, useLayoutEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -108,64 +109,6 @@ function construirFilas(items: ItemCot[], _opts: { multi?: boolean; alcance?: st
 }
 
 
-function altoEstimadoFila(fila: Fila, charsPorLinea = 62) {
-  if (fila.clase !== "item") return 22;
-  // La descripción ocupa la mitad del nuevo ancho útil: ~62 caracteres por línea en vertical.
-  const lineas = Math.max(1, Math.ceil((fila.item.nombre || "").length / charsPorLinea));
-  return 14 + lineas * 15;
-}
-
-function paginarFilas(filas: Fila[], horizontal = false, factor = 1) {
-  if (filas.length === 0) return [[]] as Fila[][];
-  const charsPorLinea = horizontal ? 95 : 62;
-  // A4 horizontal mide 1123 × 794 px a 96 dpi. Antes se calculaba con 700 px
-  // de alto, por lo que se enviaban filas a otra hoja dejando espacio visible.
-  const altoAdicionalHorizontal = horizontal ? 94 : 0;
-  const paginas: Fila[][] = [];
-  let pendientes = [...filas];
-  let primeraHoja = true;
-
-  while (pendientes.length > 0) {
-    const capacidad = ((horizontal ? (primeraHoja ? 330 : 455) : primeraHoja ? 470 : 650) + altoAdicionalHorizontal) * factor;
-    const capacidadFinal = ((horizontal ? (primeraHoja ? 175 : 245) : primeraHoja ? 250 : 350) + altoAdicionalHorizontal) * factor;
-    const altoPendiente = pendientes.reduce((suma, fila) => suma + altoEstimadoFila(fila, charsPorLinea), 0);
-
-    if (altoPendiente <= capacidadFinal) {
-      paginas.push(pendientes);
-      pendientes = [];
-      break;
-    }
-
-    const pagina: Fila[] = [];
-    let usado = 0;
-    while (pendientes.length > 0) {
-      const proximo = pendientes[0];
-      if (!proximo) break;
-      const siguiente = altoEstimadoFila(proximo, charsPorLinea);
-      if (pagina.length > 0 && usado + siguiente > capacidad) break;
-      if (pagina.length > 0 && pendientes.length === 1) break;
-      const fila = pendientes.shift();
-      if (!fila) break;
-      pagina.push(fila);
-      usado += siguiente;
-    }
-    // Evita dejar un título de grupo huérfano al final de la hoja.
-    while (pagina.length > 0 && pagina[pagina.length - 1]?.clase !== "item") {
-      const huerfano = pagina.pop();
-      if (huerfano) pendientes.unshift(huerfano);
-    }
-    if (pagina.length === 0) {
-      const forzado = pendientes.shift();
-      if (forzado) pagina.push(forzado);
-    }
-    paginas.push(pagina);
-    primeraHoja = false;
-  }
-
-  return paginas;
-}
-
-
 function VistaCotizacion() {
   const { id } = Route.useSearch();
   const { data: cotizaciones = [], isLoading: cargandoCotizaciones } = useCotizaciones();
@@ -206,21 +149,42 @@ function VistaCotizacion() {
   const paginaW = horizontal ? 1123 : 794;
   const interiorW = horizontal ? 1087 : 754;
   const paginaH = horizontal ? 794 : 990;
-  const [factorPagina, setFactorPagina] = useState(1);
-  const [finalAparte, setFinalAparte] = useState(false);
-  useEffect(() => { setFactorPagina(1); setFinalAparte(false); }, [id, horizontal, items.length]);
+  const [reparto, setReparto] = useState<string[][] | null>(null);
+  const [fuentesListas, setFuentesListas] = useState(false);
+  useEffect(() => { void document.fonts.ready.then(() => setFuentesListas(true)); }, []);
+  useEffect(() => { setReparto(null); }, [id, horizontal]);
   const nombreArchivo = `Cotizacion_${(cot?.cliente || "Cliente").replace(/[^\w-]+/g, "_")}_${cot?.codigo ?? "sin_codigo"}`;
-  const paginas = paginarFilas(construirFilas(items as unknown as ItemCot[], { multi: Boolean(cot?.multidisciplinaria), alcance: cot?.alcance }), horizontal, factorPagina).concat(finalAparte ? [[]] : []);
-  // Si una hoja de partidas se desborda, se reduce un poco la capacidad; si solo se desborda la última
-  // (por el bloque de totales y condiciones), ese bloque pasa a una hoja propia.
+  const filas = construirFilas(items as unknown as ItemCot[], { multi: Boolean(cot?.multidisciplinaria), alcance: cot?.alcance });
+  const porId = new Map(filas.map((fila) => [fila.llave, fila]));
+  const paginas = reparto && reparto.flat().length === filas.length && reparto.flat().every((llave) => porId.has(llave))
+    ? reparto.map((pagina) => pagina.flatMap((llave) => { const fila = porId.get(llave); return fila ? [fila] : []; }))
+    : [filas];
+  // Measure the actual document, rather than reserving a fixed amount for its closing block.
   useLayoutEffect(() => {
-    const hojas = [...document.querySelectorAll<HTMLElement>("#cotizacion-impresion .cotizacion-hoja")];
-    const desborda = (h: HTMLElement) => h.scrollHeight > h.clientHeight + 1;
-    const intermedias = hojas.slice(0, -1).some(desborda);
-    if (intermedias && factorPagina > 0.6) { setFactorPagina((f) => Math.max(0.6, f - 0.05)); return; }
-    const ultima = hojas[hojas.length - 1];
-    if (ultima && desborda(ultima) && !finalAparte && hojas.length > 0) setFinalAparte(true);
+    const primera = document.querySelector<HTMLElement>("#cotizacion-impresion .cotizacion-hoja");
+    const tabla = primera?.querySelector("table");
+    const cabecera = tabla?.querySelector("thead");
+    const cierre = document.querySelector<HTMLElement>("#cotizacion-impresion .bloque-final");
+    const encabezado = primera?.firstElementChild;
+    if (!primera || !tabla || !cabecera || !cierre || !encabezado) return;
+    const altos = new Map<string, number>();
+    document.querySelectorAll<HTMLElement>("#cotizacion-impresion tr[data-fila]").forEach((fila) => {
+      const llave = fila.dataset["fila"];
+      if (llave) altos.set(llave, fila.getBoundingClientRect().height);
+    });
+    if (altos.size !== filas.length) return;
+    const origen = primera.getBoundingClientRect().top;
+    const limite = paginaH - 38 - 2;
+    const nuevo = paginarCotizacion(filas, {
+      alto: (fila) => altos.get(fila.llave) ?? 0,
+      encabezado: (fila) => fila.clase !== "item",
+      primera: limite - (cabecera.getBoundingClientRect().bottom - origen),
+      siguientes: limite - (encabezado.getBoundingClientRect().bottom - origen + 16 + cabecera.getBoundingClientRect().height),
+      cierre: cierre.getBoundingClientRect().height,
+    }).map((pagina) => pagina.map((fila) => fila.llave));
+    if (JSON.stringify(nuevo) !== JSON.stringify(reparto)) setReparto(nuevo);
   });
+  void fuentesListas;
 
   function copiarEnlace() {
     const url = `${window.location.origin}/cotizacion-vista?id=${id}`;
@@ -544,7 +508,7 @@ function VistaCotizacion() {
                       if (fila.clase !== "item") {
                         const esGrupo = fila.clase === "grupo";
                         return (
-                          <tr key={fila.llave} style={{ pageBreakInside: "avoid" }}>
+                          <tr key={fila.llave} data-fila={fila.llave} style={{ pageBreakInside: "avoid" }}>
                             <td
                               style={{
                                 padding: esGrupo ? "7px 6px" : "5px 6px",
@@ -592,7 +556,7 @@ function VistaCotizacion() {
                       }
                       const it = fila.item;
                       return (
-                        <tr key={fila.llave} style={{ pageBreakInside: "avoid" }}>
+                        <tr key={fila.llave} data-fila={fila.llave} style={{ pageBreakInside: "avoid" }}>
                           <td style={{ ...celda, padding: "6px 6px", textAlign: "left", color: C.slate500 }}>{it.codigo || fila.numero}</td>
                           <td style={{ ...celda, padding: "6px 8px", wordBreak: "break-word", color: NIVEL.partida }}>{it.nombre}</td>
                           <td style={{ ...celda, padding: "6px 6px", textAlign: "center", color: C.slate500, fontSize: "7pt", wordBreak: "break-word" }}>{it.marca?.trim() || "-"}</td>
