@@ -164,7 +164,7 @@ function SplitPartidas() {
           ))}
         </div>
       </div>
-      <div className="flex h-fit flex-row gap-1.5 rounded-md border border-line bg-card p-1.5 lg:sticky lg:top-2 lg:flex-col">
+      <div className="fixed right-2 top-1/2 z-30 flex h-fit -translate-y-1/2 flex-col gap-1.5 rounded-md border border-line bg-card p-1.5 shadow-md">
         <div className="relative">
           <BotonIcono etiqueta="Agregar" title="Agregar partida o insumo al APU" tono="primario" onClick={() => setMenuMas((v) => !v)}><Plus size={15} /></BotonIcono>
           {menuMas && (
