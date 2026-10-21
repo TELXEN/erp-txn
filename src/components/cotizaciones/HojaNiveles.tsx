@@ -55,6 +55,7 @@ export function HojaNiveles({
   const [sel, setSel] = useState<string | null>(null);
   const [ventana, setVentana] = useState<{ modo: "nuevo" | "editar"; id?: string; form: Form } | null>(null);
   const [error, setError] = useState("");
+  const [ins, setIns] = useState(false);
   const [ocupado, setOcupado] = useState(false);
 
   const { orden, codigos, profundidad } = useMemo(() => numerarNiveles(items), [items]);
@@ -223,14 +224,8 @@ export function HojaNiveles({
             {NIVELES.map((n) => (
               <DropdownMenuItem key={n} onSelect={() => abrirNuevo(n)}>{NOMBRE_NIVEL[n]}</DropdownMenuItem>
             ))}
-            {onAgregarInsumo && (<>
-              <div className="my-1 border-t border-line" />
-              {GRUPOS_RECURSO.map(([g, nombre]) => (
-                <DropdownMenuItem key={g} disabled={!seleccionado || nivelDe(seleccionado) !== "partida"} onSelect={() => onAgregarInsumo(g)}>
-                  {g === "EQ" ? "EQUIPOS Y HERRAMIENTAS" : nombre}
-                </DropdownMenuItem>
-              ))}
-            </>)}
+            <div className="my-1 border-t border-line" />
+            <DropdownMenuItem onSelect={() => setIns(true)}>Insumo</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
         <BotonIcono etiqueta="Editar" title="Editar" disabled={!seleccionado} onClick={() => abrirEditar()}><Pencil size={15} /></BotonIcono>
