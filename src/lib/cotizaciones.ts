@@ -479,6 +479,7 @@ export async function crearRevision(cot: Cotizacion): Promise<string> {
       condiciones: cot.condiciones,
       recursos_humanos: cot.recursos_humanos ?? "",
       tiempo_ejecucion: cot.tiempo_ejecucion ?? "",
+      duracion_meses: (cot as { duracion_meses?: number }).duracion_meses ?? 1,
       condiciones_pago: cot.condiciones_pago ?? "",
       aplica_igv: cot.aplica_igv ?? true,
       moneda: cot.moneda,
