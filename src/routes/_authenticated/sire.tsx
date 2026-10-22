@@ -402,13 +402,15 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
                   </thead>
                   <tbody>
                     {visibles.map((i) => {
-                      const e = ESTADO_UI[i.estado];
+                      const kSel = esRce ? cc.kDe(i as any) : null;
+                      const registrada = esRce && !!kSel && cc.registradas.has(kSel);
+                      const e = registrada ? { t: "Registrado en ERP", c: "text-good bg-good/10 ring-good/20", I: CheckCircle2 } : ESTADO_UI[i.estado];
                       const t = tasaIgv(i);
                       const parcial = t >= 0.10 && t < 0.1795;
                       const sin = (i.igv ?? 0) === 0;
                       return (
-                        <tr key={i.clave} onClick={() => setDetalle(i)} className={`cursor-pointer border-t border-line ${parcial ? "bg-sky-500/[0.07] hover:bg-sky-500/[0.13]" : sin ? "bg-amber-500/[0.07] hover:bg-amber-500/[0.13]" : "hover:bg-muted/30"}`}>
-                          {esRce && <td className="px-2 py-2 text-center" onClick={(ev) => ev.stopPropagation()}>{(() => { const k = cc.kDe(i as any); return k ? <input type="checkbox" checked={cc.sel.has(k)} onChange={() => cc.toggle(k)} /> : null; })()}</td>}
+                        <tr key={i.clave} onClick={() => setDetalle(i)} className={`cursor-pointer border-t border-line ${registrada ? "bg-good/[0.06] hover:bg-good/[0.12]" : parcial ? "bg-sky-500/[0.07] hover:bg-sky-500/[0.13]" : sin ? "bg-amber-500/[0.07] hover:bg-amber-500/[0.13]" : "hover:bg-muted/30"}`}>
+                          {esRce && <td className="px-2 py-2 text-center" onClick={(ev) => ev.stopPropagation()}>{kSel ? <input type="checkbox" checked={cc.sel.has(kSel)} onChange={() => cc.toggle(kSel)} /> : null}</td>}
                           <td className="px-3 py-2 font-mono text-xs">{fmtFecha(i.fecha)}</td>
                           <td className="px-3 py-2 font-mono text-xs">{i.tipo}</td>
                           <td className="px-3 py-2 font-mono text-xs whitespace-nowrap">{i.serie_numero}</td>
