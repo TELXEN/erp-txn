@@ -1,7 +1,7 @@
 # Descarga de XML, PDF y CDR de compras desde SUNAT
 
 ## Qué sabemos
-- La descarga ya usa tus credenciales del SIRE (Client ID, Secret, Usuario y Clave SOL); no hace falta nada más de tu parte.
+- La descarga ya usa tus credenciales del SIRE. Confirmado en la configuración guardada: RUC, Client ID, Client Secret, Usuario SOL y Clave SOL están completos (por eso la sincronización de compras y ventas funciona). No hace falta nada más de tu parte.
 - El único intento guardado quedó como «No disponible: el servicio de consulta no respondió»: la conexión con SUNAT se cortó antes de recibir respuesta. No fue rechazo de credenciales. La causa exacta (dirección del servicio, formato de la consulta o bloqueo de SUNAT) aún no está confirmada.
 
 ## Pasos
