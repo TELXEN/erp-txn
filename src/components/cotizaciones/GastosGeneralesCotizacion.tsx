@@ -338,7 +338,7 @@ export function GastosGeneralesCotizacion({ abierta, onCerrar, cotizacionId, cos
             </>} /></div>
         )}
       </div>
-      <div className="ml-auto mt-3 grid w-full max-w-4xl shrink-0 grid-cols-2 rounded-md border text-xs">
+      <div className="ml-auto mt-3 grid w-full max-w-4xl shrink-0 grid-flow-col grid-cols-2 grid-rows-4 rounded-md border text-xs">
         {([
           ["Costo directo total", costoDirecto, ""],
           ["(+) Total gastos generales fijos", fijos, ""],
