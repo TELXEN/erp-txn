@@ -3,7 +3,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { zipSync } from "fflate";
-import { Download, FileCode2, FileText, ShieldCheck, FolderDown, ClipboardCheck, XCircle, Printer, Paperclip } from "lucide-react";
+import { Download, FileCode2, FileText, ShieldCheck, FolderDown, ClipboardCheck, XCircle, Printer, Paperclip, Lock } from "lucide-react";
+import { esSobrecosto, textoSobrecosto } from "@/lib/sobrecosto";
 import { supabase } from "@/integrations/supabase/client";
 import { Panel, Boton, Select } from "@/components/ui-kit";
 import { soles } from "@/lib/format";
@@ -260,6 +261,7 @@ type Dest = { tipo: "gg" | "gd"; categoria: string; proyecto: string; partida: s
 function RegistrarModal({ recibidos, onCerrar, onListo }: { recibidos: Recibido[]; onCerrar: () => void; onListo: () => void }) {
   const [dest, setDest] = useState<Record<string, Dest>>({});
   const [ocupado, setOcupado] = useState(false);
+  const [bloqueo, setBloqueo] = useState<string | null>(null);
   const { data: cats = [] } = useQuery({ queryKey: ["cat-gg"], queryFn: async () => (await supabase.from("categorias_gasto_general").select("nombre").eq("activo", true).order("orden")).data ?? [] });
   const { data: proys = [] } = useQuery({ queryKey: ["proy-min"], queryFn: async () => (await supabase.from("proyectos").select("id, codigo, nombre").order("codigo")).data ?? [] });
   const { data: parts = [] } = useQuery({ queryKey: ["part-min"], queryFn: async () => (await supabase.from("partidas").select("id, proyecto_id, codigo, nombre")).data ?? [] });
@@ -277,6 +279,7 @@ function RegistrarModal({ recibidos, onCerrar, onListo }: { recibidos: Recibido[
   async function confirmar() {
     for (const r of recibidos) { const x = d(r.id); if (x.tipo === "gd" && (!x.proyecto || !x.partida)) { toast.error(`Elige proyecto y partida para ${r.serie}-${r.numero}`); return; } }
     setOcupado(true);
+    setBloqueo(null);
     let n = 0;
     try {
       for (const r of recibidos) {
@@ -311,9 +314,13 @@ function RegistrarModal({ recibidos, onCerrar, onListo }: { recibidos: Recibido[
       toast.success(`${n} facturas registradas en el ERP`);
       onListo(); onCerrar();
     } catch (e) {
-      const msg = String((e as { message?: string })?.message || "Error al registrar").replace(/^SOBRECOSTO\|/, "");
-      toast.error(msg, { duration: 10000 });
-      onListo();
+      const raw = String((e as { message?: string })?.message || "Error al registrar");
+      if (esSobrecosto(raw)) {
+        setBloqueo(textoSobrecosto(raw));
+      } else {
+        toast.error(raw, { duration: 10000 });
+        onListo();
+      }
     } finally { setOcupado(false); }
   }
 
@@ -324,6 +331,17 @@ function RegistrarModal({ recibidos, onCerrar, onListo }: { recibidos: Recibido[
           <div><p className="label-mono">REGISTRAR EN EL ERP</p><p className="text-sm">{recibidos.length} facturas descargadas sin registrar</p></div>
           <button onClick={onCerrar} aria-label="Cerrar" className="text-muted-foreground hover:text-ink"><XCircle className="size-5" /></button>
         </div>
+        {bloqueo && (
+          <div className="flex items-start gap-2 border-b border-bad/40 bg-bad/10 px-5 py-3">
+            <Lock className="mt-0.5 size-4 shrink-0 text-bad" />
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-bold uppercase tracking-wide text-bad">Partida bloqueada por sobrecosto</p>
+              <p className="mt-0.5 text-xs text-ink">{bloqueo}</p>
+              <p className="mt-1 text-[11px] text-muted-foreground">Asigna la factura a otra partida con presupuesto disponible, regístrala como Gasto General o solicita un desbloqueo a Gerencia.</p>
+            </div>
+            <button onClick={() => setBloqueo(null)} aria-label="Cerrar aviso" className="text-muted-foreground hover:text-ink"><XCircle className="size-4" /></button>
+          </div>
+        )}
         {recibidos.length === 0 ? <p className="p-6 text-sm text-muted-foreground">No hay facturas descargadas pendientes de registrar.</p> : (
           <table className="w-full text-sm">
             <thead className="bg-muted/50 font-mono text-[10px] uppercase text-muted-foreground">
