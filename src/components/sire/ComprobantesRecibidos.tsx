@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { zipSync } from "fflate";
-import { Download, FileCode2, FileText, ShieldCheck, FolderDown, ClipboardCheck, XCircle, Printer, Paperclip, ChevronRight } from "lucide-react";
+import { Download, FileCode2, FileText, ShieldCheck, FolderDown, ClipboardCheck, XCircle, Printer, Paperclip } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Panel, Boton, Select } from "@/components/ui-kit";
 import { soles } from "@/lib/format";
