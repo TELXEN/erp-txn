@@ -25,16 +25,28 @@ function detectar(u: Uint8Array): Archivo | null {
 export async function descargarCpe(token: string, ruc: string, tipo: string, serie: string, numero: string, tipoArchivo: "01" | "02" | "03"): Promise<Archivo | null> {
   const id = [ruc, tipo, serie, numero].map((x) => String(x ?? "").trim());
   if (id.some((x) => !x || !/^[A-Za-z0-9]+$/.test(x))) throw new Error("Datos del comprobante incompletos para consultar SUNAT");
-  let r: Response;
-  try {
-    r = await fetch(`${CPE}/${id.map(encodeURIComponent).join("-")}-2/${tipoArchivo}`, { headers: { Authorization: `Bearer ${token}` } });
-  } catch (e) {
-    console.error("SUNAT CPE fetch", e);
-    throw new Error("No disponible en SUNAT (servicio de consulta no respondió)");
+  const url = `${CPE}/${id.map(encodeURIComponent).join("-")}-2/${tipoArchivo}`;
+  let r: Response | null = null;
+  let causa = "";
+  for (let intento = 0; intento < 2 && !r; intento++) {
+    try {
+      r = await fetch(url, { headers: { Authorization: `Bearer ${token}`, Accept: "application/json, application/xml, application/pdf, */*" }, signal: AbortSignal.timeout(25000) });
+    } catch (e) {
+      causa = e instanceof Error ? `${e.name}: ${e.message}` : String(e);
+      console.error("SUNAT CPE fetch", tipoArchivo, url.replace(CPE, ""), causa);
+    }
   }
+  if (!r) throw new Error(`SUNAT no respondió; vuelve a intentar (${causa.slice(0, 80)})`);
   if (r.status === 404 || r.status === 204) return null;
-  if (r.status === 401 || r.status === 403) throw new Error("SUNAT no autorizó la descarga (revisa que las credenciales API tengan acceso a consulta de comprobantes).");
-  if (!r.ok) throw new Error(`SUNAT respondió ${r.status}`);
+  if (!r.ok) {
+    const cuerpo = (await r.text().catch(() => "")).slice(0, 300);
+    console.error("SUNAT CPE", tipoArchivo, r.status, cuerpo);
+    let msg = "";
+    try { const j = JSON.parse(cuerpo); msg = j?.errors?.map((x: any) => x.msg).join(" · ") || j?.msg || j?.message || ""; } catch { /* */ }
+    if (r.status === 401 || r.status === 403) throw new Error(`Credenciales sin permiso de consulta de comprobantes en SUNAT${msg ? `: ${msg}` : ""}`);
+    if (r.status === 422 && /no existe|no se encontr/i.test(msg)) return null;
+    throw new Error(`SUNAT respondió ${r.status}${msg ? `: ${msg}` : ""}`);
+  }
   const u = new Uint8Array(await r.arrayBuffer());
   const directo = detectar(u);
   if (directo) return directo;
