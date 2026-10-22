@@ -13,6 +13,7 @@ import { Encabezado } from "@/components/AppShell";
 import { Panel, Campo, Input, Select, Boton, SinAcceso, Vacio } from "@/components/ui-kit";
 import { MESES, fecha as fmtFecha, soles } from "@/lib/format";
 import { guardarConfigSire, validarConexionSire, sincronizarSire, aceptarSire } from "@/lib/sire.functions";
+import { ComprobantesRecibidos } from "@/components/sire/ComprobantesRecibidos";
 
 export const Route = createFileRoute("/_authenticated/sire")({
   head: () => ({
@@ -460,7 +461,7 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
             </div>
           </Panel>
         )}
-        {paso === 2 && libro === "RCE" && <p className="mt-3 text-xs text-muted-foreground">La descarga y adjuntos de comprobantes de proveedores se gestionan en Facturación Electrónica → Recibidos (compras).</p>}
+        {paso === 2 && libro === "RCE" && <p className="mt-3 text-xs text-muted-foreground">La descarga de XML / PDF / CDR y el registro en el ERP de cada factura de proveedor se hacen en la sección «Comprobantes de compra» de esta misma pestaña, más abajo.</p>}
 
         {paso === 3 && reg && (
           <Panel titulo={`PASO 3 · CIERRE Y ENVÍO · ${(MESES[m - 1] ?? "").toUpperCase()} ${y}`} extra={pasosExtra}>
@@ -492,6 +493,9 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
           </Panel>
         )}
       </div>
+      {libro === "RCE" && (items.length === 0
+        ? <Panel titulo="COMPROBANTES DE COMPRA · XML / PDF / CDR"><Vacio texto="Sin compras sincronizadas en este periodo. Pulsa «Sincronizar Compras y Ventas» para traerlas de SUNAT." /></Panel>
+        : <ComprobantesRecibidos periodo={periodo} items={items} />)}
     </div>
   );
 }

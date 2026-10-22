@@ -4,14 +4,13 @@ import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-r
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Eye, FilePlus2, Landmark, Pencil, ReceiptText, ShoppingBag, Trash2 } from "lucide-react";
+import { Eye, FilePlus2, Landmark, Pencil, ReceiptText, Trash2 } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Etiqueta, Panel, SinAcceso, Vacio } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { calcularVencimiento } from "@/components/CondicionPago";
 import { ConfigDecolecta } from "@/components/facturacion/ConfigDecolecta";
-import { ComprobantesCompras } from "@/components/facturacion/ComprobantesCompras";
 import { RegistrarVentaExterna } from "@/components/facturacion/RegistrarVentaExterna";
 import { HojaComprobante, nuevoFormCpe, type FormCpe } from "@/components/facturacion/HojaComprobante";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,7 +31,6 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
   const pestanaInicial: TipoComprobante = esGuias ? "09" : "01";
   const [sel, setSel] = useState("");
   const [pestana, setPestana] = useState<TipoComprobante>(pestanaInicial);
-  const [vista, setVista] = useState<"emitidos" | "recibidos">("emitidos");
   const [abierto, setAbierto] = useState(Boolean(preliquidacion));
   const [form, setForm] = useState<FormCpe>(() => nuevoFormCpe(pestanaInicial, SERIE_DEFECTO[pestanaInicial]));
   const [items, setItems] = useState<ItemEditor[]>([itemComprobanteVacio()]);
