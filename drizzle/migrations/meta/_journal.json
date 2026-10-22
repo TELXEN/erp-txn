@@ -421,6 +421,13 @@
       "when": 1792611468983,
       "tag": "0059_redondear_porcentajes_2_decimales",
       "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "7",
+      "when": 1792683237486,
+      "tag": "0060_gg_fijos_variables",
+      "breakpoints": true
     }
   ]
 }
