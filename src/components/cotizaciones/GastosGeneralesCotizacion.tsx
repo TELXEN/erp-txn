@@ -1,3 +1,4 @@
+import * as React from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
@@ -212,8 +213,9 @@ export function GastosGeneralesCotizacion({ abierta, onCerrar, cotizacionId, cos
   const celda = "h-6 w-full rounded border border-transparent bg-transparent px-1 text-xs tabular-nums hover:border-line focus:border-primary focus:outline-none disabled:hover:border-transparent";
 
   return (
-    <VentanaFlotante titulo="Gastos generales" subtitulo="Desagregado de gastos generales de la cotización" abierta={abierta} onCerrar={onCerrar} ancho="max-w-[96rem] max-h-[calc(100dvh-2rem)]" ocultarBarra>
-      <div className="grid grid-cols-3 gap-3">
+    <VentanaFlotante titulo="Gastos generales" subtitulo="Desagregado de gastos generales de la cotización" abierta={abierta} onCerrar={onCerrar} ancho="max-w-[calc(100vw-1rem)]" ocultarBarra pantallaCompleta>
+      <div className="flex min-h-0 flex-1 flex-col p-4">
+      <div className="grid shrink-0 grid-cols-3 gap-3">
         {[
           ["Costo directo", fmt(costoDirecto), ""],
           ["Total gastos generales", fmt(total), ""],
@@ -225,7 +227,7 @@ export function GastosGeneralesCotizacion({ abierta, onCerrar, cotizacionId, cos
           </div>
         ))}
       </div>
-      <div className="mt-2 flex flex-wrap items-center gap-4 text-xs">
+      <div className="mt-2 flex shrink-0 flex-wrap items-center gap-4 text-xs">
         <label className="flex items-center gap-1.5">Duración del proyecto (meses)
           <input key={"d" + duracionMeses} type="number" min={0.5} step="0.5" defaultValue={duracion} disabled={soloLectura}
             className="h-6 w-20 rounded border px-1 text-right tabular-nums"
@@ -253,23 +255,23 @@ export function GastosGeneralesCotizacion({ abierta, onCerrar, cotizacionId, cos
       {soloLectura && <p className="mt-2 text-xs text-muted-foreground">Revisión histórica: solo lectura.</p>}
       {error && <p className="mt-2 text-xs text-bad">{error}</p>}
 
-      <div className="mt-3 flex gap-2">
-        <div className="min-w-0 flex-1 rounded-md">
-          <div ref={tablaRef as unknown as React.RefObject<HTMLDivElement>} className="space-y-3">
-            {(["fijo", "variable"] as const).map((tipo) => (
-              <div key={tipo}>
-                <div className="mb-1 flex items-center justify-between">
-                  <h3 className="text-xs font-semibold uppercase tracking-wide">{tipo === "fijo" ? "Tabla 1 · Gastos generales fijos (no relacionados con el tiempo)" : "Tabla 2 · Gastos generales variables (relacionados con la duración)"}</h3>
-                  {!soloLectura && <button type="button" onClick={() => void agregarFila(tipo)} className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"><ListPlus size={13} /> Agregar fila</button>}
-                </div>
-                <div className="rounded-md border">
-          <table className="w-full text-xs">
-                <colgroup><col className="w-16" /><col /><col className="w-24" /><col className="w-20" /><col className="w-20" /><col className="w-28" /><col className="w-28" /></colgroup>
-                <thead className="bg-muted text-[10px] uppercase text-muted-foreground">
+      <div className="mt-3 flex min-h-0 flex-1 gap-2">
+        <div className="min-h-0 min-w-0 flex-1 overflow-y-auto rounded-md border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div ref={tablaRef as unknown as React.RefObject<HTMLDivElement>}>
+            <table className="w-full text-xs">
+              <colgroup><col className="w-16" /><col /><col className="w-24" /><col className="w-20" /><col className="w-20" /><col className="w-28" /><col className="w-28" /></colgroup>
+              <thead className="sticky top-0 z-10 bg-muted text-[10px] uppercase text-muted-foreground">
                   <tr><th className="px-2 py-1.5 text-left">Ítem</th><th className="px-1 text-left">Descripción</th><th className="px-1 text-left">Unidad</th><th className="px-1 text-right">Cantidad</th><th className="px-1 text-right">Tiempo (meses)</th><th className="px-1 text-right">Costo unitario</th><th className="px-2 text-right">Total</th></tr>
                 </thead>
-                <tbody>
-                  {cargando && <tr><td colSpan={7} className="p-4 text-center text-muted-foreground">Cargando…</td></tr>}
+              <tbody>
+              {(["fijo", "variable"] as const).map((tipo) => (
+                <React.Fragment key={tipo}>
+                  <tr className="border-t bg-card"><td colSpan={7} className="px-2 py-1.5"><div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold uppercase tracking-wide">{tipo === "fijo" ? "Tabla 1 · Gastos generales fijos (no relacionados con el tiempo)" : "Tabla 2 · Gastos generales variables (relacionados con la duración)"}</span>
+                    {!soloLectura && <button type="button" onClick={() => void agregarFila(tipo)} className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"><ListPlus size={13} /> Agregar fila</button>}
+                  </div></td></tr>
+
+                  {tipo === "fijo" && cargando && <tr><td colSpan={7} className="p-4 text-center text-muted-foreground">Cargando…</td></tr>}
                   {visibles.filter(({ f }) => (f.tipo ?? "variable") === tipo).map(({ f, i }) => {
                     const enc = f.nivel !== "item";
                     const abierto = !cerrados.has(f.id);
@@ -316,14 +318,12 @@ export function GastosGeneralesCotizacion({ abierta, onCerrar, cotizacionId, cos
                       </tr>
                     );
                   })}
-                </tbody>
-                <tfoot className="bg-muted font-bold">
-                  <tr><td colSpan={6} className="px-2 py-1.5 text-right">TOTAL GASTOS GENERALES {tipo === "fijo" ? "FIJOS" : "VARIABLES"}</td><td className="px-2 text-right tabular-nums">{fmt(tipo === "fijo" ? fijos : variables)}</td></tr>
-                </tfoot>
-              </table>
-                    </div>
-              </div>
-            ))}
+                
+                  <tr className="bg-muted font-bold"><td colSpan={6} className="px-2 py-1.5 text-right">TOTAL GASTOS GENERALES {tipo === "fijo" ? "FIJOS" : "VARIABLES"}</td><td className="px-2 text-right tabular-nums">{fmt(tipo === "fijo" ? fijos : variables)}</td></tr>
+                </React.Fragment>
+              ))}
+              </tbody>
+            </table>
           </div>
         </div>
         {!soloLectura && (
@@ -338,7 +338,7 @@ export function GastosGeneralesCotizacion({ abierta, onCerrar, cotizacionId, cos
             </>} /></div>
         )}
       </div>
-      <div className="ml-auto mt-3 w-full max-w-md rounded-md border text-xs">
+      <div className="ml-auto mt-3 grid w-full max-w-4xl shrink-0 grid-flow-col grid-cols-2 grid-rows-4 rounded-md border text-xs">
         {([
           ["Costo directo total", costoDirecto, ""],
           ["(+) Total gastos generales fijos", fijos, ""],
@@ -349,8 +349,9 @@ export function GastosGeneralesCotizacion({ abierta, onCerrar, cotizacionId, cos
           [`(+) IGV (${aplicaIgv ? "18.00" : "0.00"} %)`, res.igv, ""],
           ["(=) PRESUPUESTO FINAL TOTAL", res.total, "font-bold bg-muted text-primary"],
         ] as const).map(([t, v, c]) => (
-          <div key={t} className={cn("flex justify-between border-b px-3 py-1 last:border-b-0", c)}><span>{t}</span><span className="tabular-nums">{fmt(v)}</span></div>
+          <div key={t} className={cn("flex justify-between border-b px-3 py-1", c)}><span>{t}</span><span className="tabular-nums">{fmt(v)}</span></div>
         ))}
+      </div>
       </div>
     </VentanaFlotante>
   );
