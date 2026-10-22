@@ -441,8 +441,7 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
                                   sessionStorage.setItem("sire-prefill-cpe", JSON.stringify({ fecha: i.fecha, tipo: i.tipo, serie_numero: i.serie_numero, ruc: i.ruc, razon: i.razon, base: i.base, igv: i.igv, total: i.total_sunat, moneda: i.moneda ?? "PEN", tipo_cambio: i.tipo_cambio ?? 0, vencimiento: i.vencimiento ?? "" }));
                                   navigate({ to: "/facturacion-electronica", search: { preliquidacion: "" } });
                                 } else {
-                                  toast.info(`Registra ${i.serie_numero} · ${i.razon} · ${soles(i.total_sunat ?? 0)}`);
-                                  navigate({ to: "/gastos-generales" });
+                                  void cc.registrarUno(i as any);
                                 }
                               }}><Plus className="size-3" />{libro === "RCE" ? "Registrar en Gasto" : "Emitir"}</Boton>
                               <button title="Vincular manualmente con un documento del ERP" aria-label="Vincular manualmente" onClick={(ev) => { ev.stopPropagation(); setVinculando(i); }}
