@@ -4,8 +4,8 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
-import { ChevronDown, ChevronRight, Clock, Hourglass, Info, Lock, Plus, Receipt, Search, Trash2, Upload, Wallet, X } from "lucide-react";
+import { Boton, BotonIcono, Campo, Input, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
+import { ChevronDown, ChevronRight, Clock, Hourglass, Info, Lock, Plus, Receipt, Search, RotateCcw, FileSpreadsheet, Upload, Wallet, X } from "lucide-react";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
 import {
@@ -18,6 +18,7 @@ import {
   useProyectos,
   useTrabajadores,
 } from "@/lib/datos";
+import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { exportarExcel } from "@/lib/exportar";
 import { useMantenimientos, useTraslados } from "@/lib/vehiculos";
 
@@ -96,6 +97,8 @@ function CajaChica() {
   const [rendirId, setRendirId] = useState<string | null>(null);
   const [detalleId, setDetalleId] = useState<string | null>(null);
   const [soloAtrasadas, setSoloAtrasadas] = useState(false);
+  const [seleccion, setSeleccion] = useState<string | null>(null);
+  const [rendicionSel, setRendicionSel] = useState<{ tabla: string; id: string } | null>(null);
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
@@ -259,7 +262,7 @@ function CajaChica() {
     qc.invalidateQueries({ queryKey: ["cajas_chicas"] });
   }
 
-  const COLS = "grid grid-cols-[1.1fr_1.5fr_0.95fr_1fr_0.85fr_0.85fr_0.95fr_0.7fr_0.75fr] items-center gap-3";
+  const COLS = "grid grid-cols-[1.1fr_1.5fr_0.95fr_1fr_0.85fr_0.85fr_0.95fr_0.7fr] items-center gap-3";
   const totalComprobantes = cajas.reduce((s, c) => s + rendicionesDe(c.id).length, 0);
   const pctRendido = totalEntregado > 0 ? (totalRendido / totalEntregado) * 100 : 0;
   const pendiente = totalEntregado - totalRendido;
@@ -275,6 +278,7 @@ function CajaChica() {
 
   const cajaRendir = cajas.find((c) => c.id === rendirId);
   const cajaDetalle = cajas.find((c) => c.id === detalleId);
+  const cajaSel = visibles.find((c) => c.id === seleccion);
 
   const fila = (c: (typeof cajas)[number], enGrupo: boolean) => {
     const rendido = rendidoDe(c.id);
@@ -288,9 +292,9 @@ function CajaChica() {
         <div
           role="button"
           tabIndex={0}
-          onClick={() => setAbierta(expandida ? null : c.id)}
-          onKeyDown={(e) => { if (e.key === "Enter") setAbierta(expandida ? null : c.id); }}
-          className={`${COLS} w-full cursor-pointer px-5 py-3 text-left text-sm transition-colors hover:bg-ink/5 ${expandida ? "bg-ink/5" : ""} ${enGrupo ? "pl-10" : ""}`}
+          onClick={() => { setSeleccion(c.id); setRendicionSel(null); setAbierta(expandida ? null : c.id); }}
+          onKeyDown={(e) => { if (e.key === "Enter") { setSeleccion(c.id); setRendicionSel(null); setAbierta(expandida ? null : c.id); } }}
+          className={`${COLS} w-full cursor-pointer px-5 py-3 text-left text-sm transition-colors hover:bg-ink/5 ${seleccion === c.id ? "bg-primary/10" : ""} ${enGrupo ? "pl-10" : ""}`}
         >
           <span className="truncate font-semibold text-ink">
             {enGrupo ? <span className="text-xs font-normal text-muted-foreground">Entrega</span> : <Resaltar texto={nombreResp(c.responsable_id)} termino={busqueda} />}
@@ -330,29 +334,13 @@ function CajaChica() {
               {c.estado}
             </span>
           </span>
-          <span className="text-right">
-            {c.estado === "Abierta" && (
-              <button
-                type="button"
-                onClick={(e) => { e.stopPropagation(); setErrorRend(""); setRendirId(c.id); }}
-                className="inline-flex h-8 items-center gap-1 rounded-md bg-primary px-2.5 text-xs font-semibold text-primary-foreground hover:brightness-95"
-              >
-                <Plus size={13} /> Rendir
-              </button>
-            )}
-          </span>
+
         </div>
 
         {expandida && (
           <div className="border-t border-line bg-muted/30 px-5 py-4">
-            {tablaComprobantes(lista, c.estado === "Abierta")}
+            {tablaComprobantes(lista, c.estado === "Abierta", c.id)}
             <div className="mt-4 flex flex-wrap items-center gap-3">
-              {c.estado === "Abierta" ? (
-                <Boton variante="linea" onClick={() => liquidar(c.id)}><Lock size={13} /> Liquidar y cerrar caja</Boton>
-              ) : (
-                <Boton variante="linea" onClick={() => reabrir(c.id)}>Reabrir caja</Boton>
-              )}
-              <Boton variante="peligro" onClick={() => eliminarCaja(c.id)}>Eliminar caja</Boton>
               <span className="text-xs text-muted-foreground">
                 {saldo > 0.009
                   ? `Debe devolver a la empresa ${soles(saldo)}`
@@ -368,7 +356,7 @@ function CajaChica() {
     );
   };
 
-  function tablaComprobantes(lista: ReturnType<typeof rendicionesDe>, editable: boolean) {
+  function tablaComprobantes(lista: ReturnType<typeof rendicionesDe>, editable: boolean, cajaId?: string) {
     return (
       <div className="overflow-hidden rounded-md border border-line bg-card">
         {lista.length === 0 ? (
@@ -381,23 +369,17 @@ function CajaChica() {
                 <th className="px-3 py-2 font-medium">Detalle</th>
                 <th className="px-3 py-2 font-medium">Imputación</th>
                 <th className="px-3 py-2 text-right font-medium">Monto</th>
-                {editable && <th className="px-4 py-2"></th>}
+
               </tr>
             </thead>
             <tbody>
               {lista.map((r) => (
-                <tr key={r.id} className="border-b border-line/60 last:border-0">
+                <tr key={r.id} onClick={() => { if (editable && cajaId) { setSeleccion(cajaId); setRendicionSel({ tabla: r.tabla, id: r.id }); } }} className={`border-b border-line/60 last:border-0 ${editable ? "cursor-pointer" : ""} ${rendicionSel?.id === r.id ? "bg-primary/10" : ""}`}>
                   <td className="px-4 py-2.5 text-right tabular-nums">{fmtFecha(r.fecha)}</td>
                   <td className="px-3 py-2.5 font-semibold text-ink">{r.descripcion}</td>
                   <td className="px-3 py-2.5 text-muted-foreground">{r.destino} · {r.detalle}</td>
                   <td className="px-3 py-2.5 text-right tabular-nums">{soles(r.monto)}</td>
-                  {editable && (
-                    <td className="px-4 py-2 text-right">
-                      <button type="button" onClick={() => eliminarRendicion(r.tabla, r.id)} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-bad/40 text-bad hover:border-bad" title="Eliminar">
-                        <Trash2 size={14} />
-                      </button>
-                    </td>
-                  )}
+
                 </tr>
               ))}
             </tbody>
@@ -405,7 +387,7 @@ function CajaChica() {
               <tr className="border-t border-line bg-muted/40 font-semibold">
                 <td colSpan={3} className="px-4 py-2 text-right uppercase tracking-wider text-muted-foreground">Total rendido</td>
                 <td className="px-3 py-2 text-right tabular-nums text-ink">{soles(lista.reduce((s, r) => s + r.monto, 0))}</td>
-                {editable && <td />}
+
               </tr>
             </tfoot>
           </table>
@@ -479,34 +461,7 @@ function CajaChica() {
           <input type="checkbox" checked={agrupar} onChange={(e) => setAgrupar(e.target.checked)} className="h-4 w-4 accent-primary" />
           Agrupar por responsable
         </label>
-        <Boton
-          variante="linea"
-          onClick={() =>
-            exportarExcel("caja-chica", [
-              {
-                nombre: "Caja Chica",
-                filas: cajas.map((c) => ({
-                  "Fecha de entrega": c.fecha_entrega,
-                  Obra: nombreProy(c.proyecto_id),
-                  Responsable: nombreResp(c.responsable_id),
-                  Motivo: c.motivo,
-                  "Cuenta bancaria de origen": nombreBanco(c.banco_id),
-                  "N° de operación": c.numero_operacion ?? "",
-                  "Entregado (S/)": Number(c.monto_entregado),
-                  "Rendido (S/)": rendidoDe(c.id),
-                  "Saldo (S/)": Number(c.monto_entregado) - rendidoDe(c.id),
-                  Estado: c.estado,
-                  "Fecha de liquidación": c.fecha_liquidacion ?? "",
-                })),
-              },
-            ])
-          }
-        >
-          <Upload size={13} /> Exportar a Excel
-        </Boton>
-        <Boton variante="accion" onClick={() => { setError(""); setModalNueva(true); }}>
-          <Plus size={14} /> Nueva Entrega de Efectivo
-        </Boton>
+
       </div>
 
       {modalNueva && (
@@ -572,7 +527,8 @@ function CajaChica() {
         </div>
       )}
 
-      <Panel titulo="Cajas chicas registradas">
+      <div className="flex items-start gap-3">
+      <Panel titulo="Cajas chicas registradas" className="min-w-0 flex-1">
         {visibles.length === 0 ? (
           <Vacio texto={busqueda ? `Sin coincidencias para «${busqueda}»` : soloAtrasadas ? "No hay cajas atrasadas." : "Aún no hay entregas de efectivo registradas."} />
         ) : (
@@ -580,7 +536,7 @@ function CajaChica() {
             <div className="min-w-[1080px] divide-y divide-line">
               <div className={`${COLS} bg-muted px-5 py-2.5 text-[10px] font-medium uppercase tracking-[0.1em] text-muted-foreground`}>
                 <span>Líder responsable</span><span>Obra / Detalle</span><span>Fecha de entrega</span><span>Origen / Operación</span>
-                <span className="text-right">Monto entregado</span><span className="text-right">Rendido</span><span className="text-right">Saldo</span><span className="text-center">Estado</span><span className="text-right">Acciones</span>
+                <span className="text-right">Monto entregado</span><span className="text-right">Rendido</span><span className="text-right">Saldo</span><span className="text-center">Estado</span>
               </div>
               {agrupar
                 ? grupos.map(({ resp, lista }) => {
@@ -604,7 +560,7 @@ function CajaChica() {
                             <span className="truncate">{nombreResp(resp)}</span>
                           </span>
                           <span className="truncate text-xs uppercase text-ink">
-                            {obras.size === 1 ? nombreProy(lista[0]!.proyecto_id) : "Varias obras"}
+                            {obras.size === 1 ? nombreProy(lista[0]?.proyecto_id ?? "") : "Varias obras"}
                             <span className="ml-2 normal-case text-muted-foreground">· {lista.length} entrega(s)</span>
                           </span>
                           <span /><span />
@@ -613,7 +569,7 @@ function CajaChica() {
                           <span className={`text-right text-sm font-bold tabular-nums ${ent - ren < -0.009 ? "text-bad" : "text-ink"}`}>
                             {ent - ren < -0.009 ? `(${soles(Math.abs(ent - ren))})` : soles(ent - ren)}
                           </span>
-                          <span /><span />
+                          <span />
                         </button>
                         {abiertoG && <div className="divide-y divide-line">{lista.map((c) => fila(c, true))}</div>}
                       </div>
@@ -624,6 +580,34 @@ function CajaChica() {
           </div>
         )}
       </Panel>
+      <BarraIconosHoja objeto={rendicionSel ? "comprobante rendido" : "caja chica"} haySeleccion={Boolean(cajaSel)}
+        onAgregar={() => { setError(""); setModalNueva(true); }}
+        onEliminar={cajaSel ? () => { if (rendicionSel && cajaSel.estado === "Abierta") void eliminarRendicion(rendicionSel.tabla, rendicionSel.id); else if (!rendicionSel) void eliminarCaja(cajaSel.id); } : undefined}
+        extras={<>
+          <BotonIcono etiqueta="Rendir comprobante" tono="primario" disabled={!cajaSel || cajaSel.estado !== "Abierta"} onClick={() => { if (cajaSel) { setErrorRend(""); setRendirId(cajaSel.id); } }}><Receipt size={15} /></BotonIcono>
+          <BotonIcono etiqueta="Ver comprobantes" disabled={!cajaSel} onClick={() => { if (cajaSel) setDetalleId(cajaSel.id); }}><Search size={15} /></BotonIcono>
+          <BotonIcono etiqueta={cajaSel?.estado === "Liquidada" ? "Reabrir caja" : "Liquidar y cerrar caja"} disabled={!cajaSel} onClick={() => { if (cajaSel) { if (cajaSel.estado === "Abierta") void liquidar(cajaSel.id); else void reabrir(cajaSel.id); } }}>{cajaSel?.estado === "Liquidada" ? <RotateCcw size={15} /> : <Lock size={15} />}</BotonIcono>
+          <div className="my-1 border-t border-line" />
+          <BotonIcono etiqueta="Exportar a Excel" onClick={() => exportarExcel("caja-chica", [
+              {
+                nombre: "Caja Chica",
+                filas: cajas.map((c) => ({
+                  "Fecha de entrega": c.fecha_entrega,
+                  Obra: nombreProy(c.proyecto_id),
+                  Responsable: nombreResp(c.responsable_id),
+                  Motivo: c.motivo,
+                  "Cuenta bancaria de origen": nombreBanco(c.banco_id),
+                  "N° de operación": c.numero_operacion ?? "",
+                  "Entregado (S/)": Number(c.monto_entregado),
+                  "Rendido (S/)": rendidoDe(c.id),
+                  "Saldo (S/)": Number(c.monto_entregado) - rendidoDe(c.id),
+                  Estado: c.estado,
+                  "Fecha de liquidación": c.fecha_liquidacion ?? "",
+                })),
+              },
+            ])}><FileSpreadsheet size={15} /></BotonIcono>
+        </>} />
+      </div>
 
       <VentanaFlotante
         abierta={!!cajaRendir}
