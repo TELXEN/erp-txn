@@ -35,6 +35,7 @@ export function useComprobantesCompra(periodo: string, items: ItemRce[], activo 
     queryFn: async () => ((await supabase.from("comprobantes_recibidos").select("*").eq("periodo", periodo)).data ?? []) as Recibido[],
   });
   const porClave = useMemo(() => new Map(recibidos.map((r) => [claveDe(r.ruc_emisor, r.tipo, r.serie, r.numero), r])), [recibidos]);
+  const registradas = useMemo(() => new Set(recibidos.filter((r) => r.registrado_en).map((r) => claveDe(r.ruc_emisor, r.tipo, r.serie, r.numero))), [recibidos]);
   const filas = items.filter((i) => i.ruc && i.serie_numero.includes("-")).map((i) => {
     const p = partes(i.serie_numero);
     const k = claveDe(i.ruc, i.tipo, p.serie, p.numero);
@@ -253,7 +254,7 @@ export function useComprobantesCompra(periodo: string, items: ItemRce[], activo 
   });
   const modal = registrar && <RegistrarModal recibidos={lista}
     onCerrar={() => { setRegistrar(false); setUno(null); }} onListo={() => qc.invalidateQueries()} />;
-  return { kDe, sel, toggle, todos, toggleTodos, barra, progreso, archivos, modal, registrarUno };
+  return { kDe, sel, toggle, todos, toggleTodos, barra, progreso, archivos, modal, registrarUno, registradas };
 }
 
 type Dest = { tipo: "gg" | "gd"; categoria: string; proyecto: string; partida: string };
