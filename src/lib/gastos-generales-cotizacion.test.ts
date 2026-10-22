@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { moverGG, numerarGG, pctGG, subtotalGG, totalGG, type FilaGG } from "./gastos-generales-cotizacion";
+import { moverGG, numerarGG, parcialGG, pctGG, resumenPresupuesto, subtotalGG, totalGG, type FilaGG } from "./gastos-generales-cotizacion";
 
 const f = (id: string, nivel: FilaGG["nivel"], cantidad = 0, tiempo = 1, pu = 0): FilaGG =>
   ({ id, cotizacion_id: "c", orden: 0, nivel, descripcion: id, unidad: "mes", cantidad, tiempo, precio_unitario: pu });
@@ -28,5 +28,17 @@ describe("gastos generales de cotización", () => {
   it("mover grupo arrastra sus ítems", () => {
     const filas = [f("g1", "grupo"), f("i1", "item"), f("g2", "grupo"), f("i2", "item")];
     expect(moverGG(filas, 2, -1)!.map((x) => x.id)).toEqual(["g2", "i2", "g1", "i1"]);
+  });
+});
+
+describe("gastos fijos y variables", () => {
+  it("fijo ignora el tiempo", () => {
+    expect(parcialGG({ cantidad: 1, tiempo: 6, precio_unitario: 500, tipo: "fijo" })).toBe(500);
+  });
+  it("variable multiplica por el tiempo", () => {
+    expect(parcialGG({ cantidad: 0.5, tiempo: 6, precio_unitario: 1000, tipo: "variable" })).toBe(3000);
+  });
+  it("resumen: CD 10,000 + GG 3,000, utilidad 10%, IGV 18%", () => {
+    expect(resumenPresupuesto(10000, 1000, 2000, 10, 18)).toEqual({ subtotal: 13000, utilidad: 1300, venta: 14300, igv: 2574, total: 16874 });
   });
 });

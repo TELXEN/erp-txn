@@ -10,10 +10,32 @@ export type FilaGG = {
   cantidad: number;
   tiempo: number;
   precio_unitario: number;
+  /** 'fijo' ignora el tiempo; 'variable' multiplica por la duración. */
+  tipo?: TipoGG;
+  tiempo_manual?: boolean;
 };
+export type TipoGG = "fijo" | "variable";
 
-export const parcialGG = (f: Pick<FilaGG, "cantidad" | "tiempo" | "precio_unitario">) =>
-  Math.round(Number(f.cantidad || 0) * Number(f.tiempo || 0) * Number(f.precio_unitario || 0) * 100) / 100;
+export const parcialGG = (f: Pick<FilaGG, "cantidad" | "tiempo" | "precio_unitario"> & { tipo?: TipoGG }) =>
+  Math.round(Number(f.cantidad || 0) * (f.tipo === "fijo" ? 1 : Number(f.tiempo || 0)) * Number(f.precio_unitario || 0) * 100) / 100;
+
+const r2 = (n: number) => Math.round(n * 100) / 100;
+
+/** Totales separados de gastos fijos y variables. */
+export function totalesGG(filas: FilaGG[]) {
+  let fijos = 0, variables = 0;
+  for (const f of filas) if (f.nivel === "item") (f.tipo === "fijo" ? (fijos += parcialGG(f)) : (variables += parcialGG(f)));
+  return { fijos: r2(fijos), variables: r2(variables) };
+}
+
+/** Desglose final: subtotal = CD + GG; utilidad sobre el subtotal; IGV sobre el valor venta. */
+export function resumenPresupuesto(cd: number, fijos: number, variables: number, pctUtilidad: number, pctIgv: number) {
+  const subtotal = r2(cd + fijos + variables);
+  const utilidad = r2(subtotal * pctUtilidad / 100);
+  const venta = r2(subtotal + utilidad);
+  const igv = r2(venta * pctIgv / 100);
+  return { subtotal, utilidad, venta, igv, total: r2(venta + igv) };
+}
 
 export const totalGG = (filas: FilaGG[]) =>
   Math.round(filas.filter((f) => f.nivel === "item").reduce((s, f) => s + parcialGG(f), 0) * 100) / 100;
@@ -72,30 +94,45 @@ export function moverGG(filas: FilaGG[], idx: number, dir: -1 | 1): FilaGG[] | n
   return [...filas.slice(0, j), ...filas.slice(idx, fin), ...filas.slice(j, idx), ...filas.slice(fin)];
 }
 
-const I = (d: string, u = "und-mes") => ({ nivel: "item" as const, descripcion: d, unidad: u });
-/** Estructura estándar precargada la primera vez. */
-export const ESTRUCTURA_GG: { nivel: NivelGG; descripcion: string; unidad?: string }[] = [
-  { nivel: "bloque", descripcion: "GASTOS VARIABLES (No relacionados con el tiempo de ejecución de la obra)" },
-  { nivel: "grupo", descripcion: "Gastos de Licitación y Contratación" },
-  I("Compra de bases de licitación"), I("Visita a obra para formulación de propuesta"), I("Gastos notariales"),
-  I("Tasas y comisiones por fianzas"), I("Costos por elaboración de propuesta"), I("Estudios previos para formulación de propuesta"),
-  { nivel: "grupo", descripcion: "Gastos Indirectos Varios" },
-  I("Investigaciones y estudios aplicados a propuestas no adjudicadas"), I("Gastos de licitación no adjudicadas"),
-  I("Gastos notariales y legales relativos a la empresa en general"), I("Seguros contra siniestros relativos a la empresa"),
-  I("Auditorías y trabajos especializados de la empresa"), I("Pagos por uso de licencias y obligaciones tributarias"),
-  { nivel: "bloque", descripcion: "GASTOS FIJOS (Relacionados con el tiempo de ejecución de la obra)" },
-  { nivel: "grupo", descripcion: "Gastos de Administración de Obra" },
-  I("Sueldos, bonificaciones y beneficios sociales (personal técnico - administrativo)"), I("Gastos de supervisión"),
-  I("Gastos de ingeniero de seguridad"), I("Gastos de ingeniero de calidad"),
-  I("Jornales, bonificaciones y beneficios sociales (personal de mantenimiento, vigilancia, etc.)", "año"),
-  I("Gastos por traslado de personal", "mes"), I("Útiles de escritorio y papelería en general de oficina"),
-  I("Copias e impresiones de planos"), I("Amortización de instrumentos de ingeniería y equipamiento de oficina en campamentos"),
-  I("Pasajes y viáticos del personal de obra"), I("Botiquín"), I("Mantenimiento de campamento"),
-  { nivel: "grupo", descripcion: "Gastos de Administración de Oficina" },
-  I("Dietas del directorio"), I("Sueldos del personal directivo de obra"), I("Sueldos del personal de administración"),
-  I("Alquiler de locales"), I("Luz, agua, teléfonos, correos"), I("Impresiones y papelería de oficinas"),
-  I("Copias e impresión de planos"), I("Amortización de equipos de oficina"), I("Pasajes y viáticos del personal de oficina"),
-  { nivel: "grupo", descripcion: "Gastos Financieros relativos a la Obra" },
-  I("Gastos por renovación de cartas fianza"), I("Intereses financieros"), I("Costos y mantenimiento de cuentas"),
-  I("Obtención de cartas fianza"),
+type Semilla = { nivel: NivelGG; descripcion: string; unidad?: string; cantidad?: number; tipo: TipoGG };
+const F = (d: string, u = "GLB", c = 1): Semilla => ({ nivel: "item", descripcion: d, unidad: u, cantidad: c, tipo: "fijo" });
+const V = (d: string, c = 1): Semilla => ({ nivel: "item", descripcion: d, unidad: "mes", cantidad: c, tipo: "variable" });
+const G = (d: string, tipo: TipoGG): Semilla => ({ nivel: "grupo", descripcion: d, tipo });
+/** Estructura estándar precargada: 1 Fijos (no dependen del plazo), 2 Variables (dependen de la duración). */
+export const ESTRUCTURA_GG: Semilla[] = [
+  { nivel: "bloque", descripcion: "GASTOS GENERALES FIJOS (No relacionados con el tiempo)", tipo: "fijo" },
+  G("Ingeniería, legales y documentación", "fijo"),
+  F("Ingeniería: Revisión de diagramas unifilares y memorias de cálculo"),
+  F("Legales/Permisos: Firmas y trámites ante entidades/Perito Colegiado"),
+  F("Planos As-Built: Documentación final conforme a obra"),
+  G("Movilización y logística", "fijo"),
+  F("Movilización: Flete de maquinaria pesada (Grúas, elevadores de tijera)", "viaje", 2),
+  F("Logística: Traslado de herramientas, tableros y transformadores", "viaje", 2),
+  F("Desmovilización y limpieza final de la obra"),
+  G("Instalaciones provisionales", "fijo"),
+  F("Facilidades Temporales: Implementación de oficinas/talleres provisionales"),
+  F("Almacén Seguro: Resguardo techado para cables y componentes críticos"),
+  G("Seguros y financieros", "fijo"),
+  F("Seguros: Pólizas de Responsabilidad Civil y SCTR"),
+  F("Financieros: Gastos bancarios por cartas fianza de anticipo/fiel cumplimiento"),
+  { nivel: "bloque", descripcion: "GASTOS GENERALES VARIABLES (Relacionados con la duración de la obra)", tipo: "variable" },
+  G("Staff", "variable"),
+  V("Staff: Ingeniero Residente / Gerente de Obra"),
+  V("Staff: Supervisor de Seguridad y Salud Ocupacional HSE/SST"),
+  V("Staff: Planificador / Controlador de Proyectos", 0.5),
+  V("Staff: Maestro de Obra / Líder Eléctrico"),
+  V("Staff: Almacenero / Guardián nocturno de obra"),
+  G("Logística", "variable"),
+  V("Logística: Alojamiento y alimentación para el personal de Staff"),
+  V("Logística: Alquiler de camioneta de supervisión 4x4, inc. combustible"),
+  V("Logística: Internet de obra, telefonía y energía provisional"),
+  V("Logística: Alquiler de baños químicos y gestión de residuos industriales"),
+  G("Seguridad", "variable"),
+  V("Seguridad: Reposición de EPP dieléctrico e ignífugo Arc Flash"),
+  V("Seguridad: Consumibles para sistemas de bloqueo y etiquetado LOTO"),
+  V("Seguridad: Equipos de rescate médico y estaciones de primeros auxilios"),
+  G("Herramientas", "variable"),
+  V("Herramientas: Alquiler de andamios certificados y plataformas"),
+  V("Herramientas: Alquiler de herramientas aisladas 1000V y ponchadoras hidráulicas"),
+  V("Herramientas: Certificación y calibración de equipos Megger/Telurómetro"),
 ];

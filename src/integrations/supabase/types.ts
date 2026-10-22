@@ -1423,6 +1423,8 @@ export type Database = {
           orden: number
           precio_unitario: number
           tiempo: number
+          tiempo_manual: boolean
+          tipo: string
           unidad: string
         }
         Insert: {
@@ -1435,6 +1437,8 @@ export type Database = {
           orden?: number
           precio_unitario?: number
           tiempo?: number
+          tiempo_manual?: boolean
+          tipo?: string
           unidad?: string
         }
         Update: {
@@ -1447,6 +1451,8 @@ export type Database = {
           orden?: number
           precio_unitario?: number
           tiempo?: number
+          tiempo_manual?: boolean
+          tipo?: string
           unidad?: string
         }
         Relationships: [
@@ -1569,6 +1575,7 @@ export type Database = {
           condiciones: string
           condiciones_pago: string
           created_at: string
+          duracion_meses: number
           estado: string
           fecha_emision: string
           id: string
@@ -1597,6 +1604,7 @@ export type Database = {
           condiciones?: string
           condiciones_pago?: string
           created_at?: string
+          duracion_meses?: number
           estado?: string
           fecha_emision?: string
           id?: string
@@ -1625,6 +1633,7 @@ export type Database = {
           condiciones?: string
           condiciones_pago?: string
           created_at?: string
+          duracion_meses?: number
           estado?: string
           fecha_emision?: string
           id?: string
