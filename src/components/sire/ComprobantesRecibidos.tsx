@@ -26,6 +26,7 @@ export function useComprobantesCompra(periodo: string, items: ItemRce[], activo 
   const [sel, setSel] = useState<Set<string>>(new Set());
   const [prog, setProg] = useState<{ h: number; t: number } | null>(null);
   const [registrar, setRegistrar] = useState(false);
+  const [uno, setUno] = useState<string | null>(null);
   const qk = ["sire-recibidos", periodo];
   const { data: recibidos = [] } = useQuery({
     queryKey: qk,
@@ -227,9 +228,31 @@ export function useComprobantesCompra(periodo: string, items: ItemRce[], activo 
       </div>
     );
   };
-  const modal = registrar && <RegistrarModal recibidos={recibidos.filter((r) => !r.registrado_en && (sel.size === 0 || sel.has(claveDe(r.ruc_emisor, r.tipo, r.serie, r.numero))))}
-    onCerrar={() => setRegistrar(false)} onListo={() => qc.invalidateQueries({ queryKey: qk })} />;
-  return { kDe, sel, toggle, todos, toggleTodos, barra, progreso, archivos, modal };
+  /** Registra una sola factura: descarga su XML si falta y abre la ventana solo con ella. */
+  async function registrarUno(i: ItemRce) {
+    const f = filas.find((x) => x.i.clave === i.clave);
+    if (!f) { toast.error("La factura no tiene RUC o serie válidos"); return; }
+    if (f.r?.registrado_en) { toast.info("Esta factura ya está registrada en el ERP"); return; }
+    if (!f.r || f.r.estado_descarga !== "Descargado") {
+      const t = toast.loading(`Descargando ${i.serie_numero} de SUNAT…`);
+      try {
+        const r = await descargar$({ data: { periodo, docs: [{ ruc: i.ruc, razon: i.razon ?? "", tipo: i.tipo, serie: f.serie, numero: f.numero, fecha: i.fecha ?? "", moneda: i.moneda || "PEN", tipo_cambio: i.tipo_cambio || 1, base: i.base, igv: i.igv, total: i.total_sunat ?? 0 }] } });
+        toast.dismiss(t);
+        if (r.error) { toast.error(r.error); return; }
+        const z = r.resultados[0] as any;
+        if (z && !z.ok) toast.warning(`SUNAT no entregó el XML${z.error ? `: ${z.error}` : ""}. Se registra con los importes de SUNAT.`);
+      } catch (e) { toast.dismiss(t); toast.error(e instanceof Error ? e.message : "Error"); return; }
+      await qc.refetchQueries({ queryKey: qk });
+    }
+    setUno(f.k); setRegistrar(true);
+  }
+  const lista = recibidos.filter((r) => {
+    const k = claveDe(r.ruc_emisor, r.tipo, r.serie, r.numero);
+    return !r.registrado_en && (uno ? k === uno : sel.size === 0 || sel.has(k));
+  });
+  const modal = registrar && <RegistrarModal recibidos={lista}
+    onCerrar={() => { setRegistrar(false); setUno(null); }} onListo={() => qc.invalidateQueries()} />;
+  return { kDe, sel, toggle, todos, toggleTodos, barra, progreso, archivos, modal, registrarUno };
 }
 
 type Dest = { tipo: "gg" | "gd"; categoria: string; proyecto: string; partida: string };
