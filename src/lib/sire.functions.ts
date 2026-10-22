@@ -90,10 +90,14 @@ export const aceptarSire = createServerFn({ method: "POST" })
     const s = await import("./sire-sunat.server");
     try {
       const token = await s.obtenerToken(await s.cargarCredenciales());
-      await s.aceptarPropuesta(token, data.libro, data.periodo.replace("-", ""));
-      return { ok: true, mensaje: `Propuesta ${data.libro} aceptada en SUNAT` };
+      const r = await s.aceptarPropuesta(token, data.libro, data.periodo.replace("-", ""));
+      return { ok: true, mensaje: `Propuesta ${data.libro} aceptada en SUNAT`, ticket: r?.numTicket ?? null };
     } catch (e) {
-      return { ok: false, mensaje: e instanceof Error ? e.message : "Error al aceptar" };
+      const cods = (e as { codigos?: string[] }).codigos ?? [];
+      // 42208: SUNAT ya tiene un preliminar registrado para el período (la propuesta ya fue aceptada)
+      if (cods.includes("42208"))
+        return { ok: true, mensaje: `SUNAT ya tiene registrado el preliminar ${data.libro} de este período; se marca como Aceptado`, ticket: null };
+      return { ok: false, mensaje: e instanceof Error ? e.message : "Error al aceptar", ticket: null };
     }
   });
 
