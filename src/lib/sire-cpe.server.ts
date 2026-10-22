@@ -30,7 +30,7 @@ export async function descargarCpe(token: string, ruc: string, tipo: string, ser
   let causa = "";
   for (let intento = 0; intento < 2 && !r; intento++) {
     try {
-      r = await fetch(url, { headers: { Authorization: `Bearer ${token}`, Accept: "application/json, application/xml, application/pdf, */*" }, signal: AbortSignal.timeout(25000) });
+      r = await fetch(url, { headers: { Authorization: `Bearer ${token}`, Accept: "*/*", "User-Agent": "Mozilla/5.0 (compatible; ERP-TELXEN/1.0)" }, signal: AbortSignal.timeout(25000) });
     } catch (e) {
       causa = e instanceof Error ? `${e.name}: ${e.message}` : String(e);
       console.error("SUNAT CPE fetch", tipoArchivo, url.replace(CPE, ""), causa);
