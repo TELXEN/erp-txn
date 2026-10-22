@@ -28,7 +28,7 @@ export async function descargarCpe(token: string, ruc: string, tipo: string, ser
   const url = `${CPE}/${id.map(encodeURIComponent).join("-")}-2/${tipoArchivo}`;
   let r: Response | null = null;
   let causa = "";
-  for (let intento = 0; intento < 2 && !r; intento++) {
+  for (let intento = 0; intento < 3 && !r; intento++) {
     try {
       r = await fetch(url, { headers: { Authorization: `Bearer ${token}`, Accept: "*/*", "User-Agent": "Mozilla/5.0 (compatible; ERP-TELXEN/1.0)" }, signal: AbortSignal.timeout(25000) });
     } catch (e) {
