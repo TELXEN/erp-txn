@@ -436,7 +436,7 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
                           </td>
                           <td className="px-3 py-2"><span className={`inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 font-mono text-[10px] ring-1 ${e.c}`}><e.I className="size-3" />{e.t}</span></td>
                           <td className="px-3 py-2 text-right">
-                            {i.estado === "faltante" && (
+                            {i.estado === "faltante" && !registrada && (
                               <div className="flex items-center justify-end gap-1">
                               <Boton variante="linea" className="whitespace-nowrap !py-1" onClick={(ev) => { ev.stopPropagation();
                                 if (libro === "RVIE") {
