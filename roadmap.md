@@ -1,4 +1,5 @@
 # Roadmap
+- [x] Separadores de acciones, barra derecha en Caja chica, controles GG e IGV editable (18.00/0.00) y quitar Codificación de insumos de Configuración. Pantallas y guardado de IGV verificados; Caja chica no tiene filas para probar rendiciones.
 - [x] Corregir saltos prematuros en la cotización vertical: grupos y cierre en una hoja; pantalla y PDF verificados sin modificar datos.
 - [x] Corregir movimiento entre grupos: partida 2.1 → 1.3; 14 pruebas pasan y partida real movida al grupo anterior, persistencia confirmada al recargar.
 - [x] Cotizaciones: iconos Subir/Bajar por nivel con contenido y numeración; 11 pruebas pasan y columna verificada. No se movieron datos reales; hoja consultada vacía.

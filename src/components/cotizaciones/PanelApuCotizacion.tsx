@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Plus, Upload } from "lucide-react";
-import { Boton, Campo, Input, Vacio, VentanaFlotante } from "@/components/ui-kit";
+import { Boton, Campo, Input, Select, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { Resaltar } from "@/components/Buscador";
 import { MenuContextualApu, type AccionApu, type EstadoMenuApu } from "@/components/MenuContextualApu";
 import { BANCOS_RECURSO, costoReceta, incidenciaPartidaApu, filaRecursoCotizacion, dbBanco, renumerarApu, useBancoTabla, useRecursosApu, type FilaCalculo, type RecursosApu } from "@/lib/banco-apu";
@@ -391,18 +391,30 @@ function Especificaciones({ item }: { item: CotizacionItem }) {
 
 
 /** Pie: incidencia por tipo de recurso y resumen de costos de toda la cotización. */
-export function ResumenCotizacion({ cot, items }: { cot: Cotizacion; items: CotizacionItem[] }) {
+export function ResumenCotizacion({ cot, items, soloLectura = false }: { cot: Cotizacion; items: CotizacionItem[]; soloLectura?: boolean }) {
   const qc = useQueryClient();
+  const [errorPct, setErrorPct] = useState("");
   const recursos = useRecursosApu();
   const { data: detalle = [] } = useBancoTabla("cotizacion_apu_detalle");
   const sim = cot.moneda === "USD" ? "US$" : "S/";
 
   async function cambiarPct(campo: "pct_gastos_generales" | "pct_utilidad", valor: number, actual: number) {
+    if (soloLectura || !Number.isFinite(valor) || valor < 0) return;
     const nuevo = Math.round(valor * 100) / 100; // dos decimales
     if (nuevo === actual) return;
-    await supabase.from("cotizaciones").update({ [campo]: nuevo } as never).eq("id", cot.id);
+    const { error } = await supabase.from("cotizaciones").update({ [campo]: nuevo } as never).eq("id", cot.id);
+    if (error) return setErrorPct(error.message);
+    setErrorPct("");
     qc.invalidateQueries({ queryKey: ["cotizaciones"] });
     qc.invalidateQueries({ queryKey: ["cotizacion"] });
+  }
+  async function cambiarIgv(aplica: boolean) {
+    if (soloLectura) return;
+    const { error } = await supabase.from("cotizaciones").update({ aplica_igv: aplica }).eq("id", cot.id);
+    if (error) return setErrorPct(error.message);
+    setErrorPct("");
+    await qc.invalidateQueries({ queryKey: ["cotizaciones"] });
+    await qc.invalidateQueries({ queryKey: ["cotizacion"] });
   }
   const hojas = items.filter((i) => i.tipo !== "grupo");
   const porTipo: Record<string, number> = { MO: 0, MAT: 0, EQ: 0, SC: 0, OTROS: 0, AJUSTE: 0 };
@@ -456,6 +468,7 @@ export function ResumenCotizacion({ cot, items }: { cot: Cotizacion; items: Coti
                     type="number"
                     step="0.01"
                     min="0"
+                    disabled={soloLectura}
                     defaultValue={Number(cot[campo] ?? 0).toFixed(2)}
                     aria-label={`Porcentaje de ${n.toLowerCase()}`}
                     title={`% de ${n.toLowerCase()} aplicado sobre el costo directo`}
@@ -469,11 +482,12 @@ export function ResumenCotizacion({ cot, items }: { cot: Cotizacion; items: Coti
             </tr>
           ))}
           <tr className="border-b border-line/40"><td className="px-2 py-0.5">Monto parcial</td><td /><td className="px-2 py-0.5 text-right whitespace-nowrap">{sim} {num(parcialT)}</td></tr>
-          <tr className="border-b border-line/40"><td className="px-2 py-0.5">IGV</td><td className="px-1 py-0.5"><span className="flex items-center gap-1"><span className="min-w-0 flex-1 px-1 text-right tabular-nums">{(cot.aplica_igv === false ? 0 : 18).toFixed(2)}</span><span className="shrink-0 text-muted-foreground">%</span></span></td><td className="px-2 py-0.5 text-right whitespace-nowrap">{sim} {num(igv)}</td></tr>
+          <tr className="border-b border-line/40"><td className="px-2 py-0.5">IGV</td><td className="px-1 py-0.5"><span className="flex items-center gap-1"><Select aria-label="Porcentaje de IGV" title="Cambiar IGV: 18.00% o 0.00%" disabled={soloLectura} value={cot.aplica_igv === false ? "0" : "18"} onChange={(e) => void cambiarIgv(e.target.value === "18")} className="min-w-0 appearance-none rounded px-1 py-0 text-right text-[11px] tabular-nums"><option value="18">18.00</option><option value="0">0.00</option></Select><span className="shrink-0 text-muted-foreground">%</span></span></td><td className="px-2 py-0.5 text-right whitespace-nowrap">{sim} {num(igv)}</td></tr>
           <tr className="font-semibold text-primary"><td className="px-2 py-1">TOTAL</td><td /><td className="px-2 py-1 text-right whitespace-nowrap">{sim} {num(parcialT + igv)}</td></tr>
           {cot.moneda === "USD" && Number(cot.tipo_cambio) > 0 && (
             <tr className="text-muted-foreground"><td className="px-2 py-0.5">Equivalente en soles</td><td /><td className="px-2 py-0.5 text-right whitespace-nowrap">S/ {num((parcialT + igv) * Number(cot.tipo_cambio))}</td></tr>
           )}
+          {errorPct && <tr><td colSpan={3} className="px-2 text-bad">{errorPct}</td></tr>}
         </tbody>
       </table>
     </div>

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { ArrowDown, ArrowUp, ChevronDown, Printer, ChevronRight, FolderPlus, ListPlus, Rows3 } from "lucide-react";
@@ -26,6 +26,13 @@ export function GastosGeneralesCotizacion({ abierta, onCerrar, cotizacionId, cos
   const [sel, setSel] = useState<string | null>(null);
   const [cerrados, setCerrados] = useState<Set<string>>(new Set());
   const [error, setError] = useState("");
+  const tablaRef = useRef<HTMLTableElement>(null);
+  const enfocarFila = (id: string | null) => {
+    if (!id) return;
+    const campo = Array.from(tablaRef.current?.querySelectorAll<HTMLInputElement>("input[data-fila-gg]") ?? []).find((input) => input.dataset["filaGg"] === id);
+    campo?.focus();
+    campo?.select();
+  };
   const sim = moneda === "USD" ? "US$" : "S/";
   const fmt = (n: number) => `${sim} ${n.toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
@@ -82,14 +89,17 @@ export function GastosGeneralesCotizacion({ abierta, onCerrar, cotizacionId, cos
 
   async function agregar(nivel: NivelGG) {
     const idx = sel ? filas.findIndex((f) => f.id === sel) : -1;
-    const pos = idx < 0 ? filas.length : nivel === "item" && filas[idx]!.nivel === "item" ? idx + 1 : finBloqueGG(filas, idx);
-    const insertar = idx >= 0 && nivel !== "item" && filas[idx]!.nivel === "bloque" && nivel === "grupo" ? finBloqueGG(filas, idx) : pos;
+    const seleccionada = filas[idx];
+    const pos = !seleccionada ? filas.length : nivel === "item" && seleccionada.nivel === "item" ? idx + 1 : finBloqueGG(filas, idx);
+    const insertar = seleccionada?.nivel === "bloque" && nivel === "grupo" ? finBloqueGG(filas, idx) : pos;
     const { data, error: e } = await db.from(TABLA)
       .insert({ cotizacion_id: cotizacionId, orden: insertar, nivel, descripcion: nivel === "item" ? "Nuevo ítem" : nivel === "grupo" ? "Nuevo grupo" : "NUEVO BLOQUE", unidad: "und-mes" })
       .select("*").single();
     if (e) return setError(e.message);
     await reordenar([...filas.slice(0, insertar), data as FilaGG, ...filas.slice(insertar)]);
     setSel((data as FilaGG).id);
+    setCerrados(new Set());
+    requestAnimationFrame(() => enfocarFila((data as FilaGG).id));
   }
 
   async function copiar() {
@@ -112,7 +122,8 @@ export function GastosGeneralesCotizacion({ abierta, onCerrar, cotizacionId, cos
     if (idx < 0) return;
     const fin = finBloqueGG(filas, idx);
     const n = fin - idx - 1;
-    if (!confirm(n ? `¿Eliminar «${filas[idx]!.descripcion}» y sus ${n} fila(s)?` : `¿Eliminar «${filas[idx]!.descripcion}»?`)) return;
+    const seleccionada = filas[idx];
+    if (!seleccionada || !confirm(n ? `¿Eliminar «${seleccionada.descripcion}» y sus ${n} fila(s)?` : `¿Eliminar «${seleccionada.descripcion}»?`)) return;
     const ids = filas.slice(idx, fin).map((f) => f.id);
     const { error: e } = await db.from(TABLA).delete().in("id", ids);
     if (e) return setError(e.message);
@@ -165,7 +176,7 @@ export function GastosGeneralesCotizacion({ abierta, onCerrar, cotizacionId, cos
 
       <div className="mt-3 flex gap-2">
         <div className="max-h-[60vh] min-w-0 flex-1 overflow-auto rounded-md border">
-          <table className="w-full text-xs">
+          <table ref={tablaRef} className="w-full text-xs">
             <colgroup><col className="w-16" /><col /><col className="w-24" /><col className="w-20" /><col className="w-20" /><col className="w-28" /><col className="w-28" /></colgroup>
             <thead className="sticky top-0 z-10 bg-muted text-[10px] uppercase text-muted-foreground">
               <tr><th className="px-2 py-1.5 text-left">Ítem</th><th className="px-1 text-left">Descripción</th><th className="px-1 text-left">Unidad</th><th className="px-1 text-right">Cantidad</th><th className="px-1 text-right">Tiempo</th><th className="px-1 text-right">P. unitario</th><th className="px-2 text-right">Parcial</th></tr>
@@ -176,7 +187,7 @@ export function GastosGeneralesCotizacion({ abierta, onCerrar, cotizacionId, cos
                 const enc = f.nivel !== "item";
                 const abierto = !cerrados.has(f.id);
                 return (
-                  <tr key={f.id} onClick={() => setSel(f.id)}
+                  <tr key={f.id} onClick={() => setSel(f.id)} onDoubleClick={() => !soloLectura && enfocarFila(f.id)}
                     className={cn("h-[29px] border-t", f.nivel === "bloque" && "bg-muted/60 font-bold", f.nivel === "grupo" && "bg-muted/25 font-semibold", sel === f.id && "bg-primary/10")}>
                     <td className="px-2 font-mono">
                       <span className="inline-flex items-center gap-0.5">
@@ -189,7 +200,7 @@ export function GastosGeneralesCotizacion({ abierta, onCerrar, cotizacionId, cos
                       </span>
                     </td>
                     <td className="px-1">
-                      <input key={f.id + f.descripcion} defaultValue={f.descripcion} disabled={soloLectura}
+                      <input data-fila-gg={f.id} aria-label={`Descripción ${numeros.get(f.id)}`} key={f.id + f.descripcion} defaultValue={f.descripcion} disabled={soloLectura}
                         className={cn(celda, f.nivel === "item" && "pl-3")}
                         onBlur={(e) => { const v = e.target.value.trim(); if (v && v !== f.descripcion) void editar(f.id, { descripcion: f.nivel === "bloque" ? v.toUpperCase() : v }); }} />
                     </td>
@@ -223,13 +234,14 @@ export function GastosGeneralesCotizacion({ abierta, onCerrar, cotizacionId, cos
           </table>
         </div>
         {!soloLectura && (
-          <BarraIconosHoja objeto="fila" haySeleccion={Boolean(sel)} onCopiar={copiar} onEliminar={eliminar}
+          <BarraIconosHoja objeto="fila de gastos generales" haySeleccion={Boolean(sel)} onEditar={() => enfocarFila(sel)} onCopiar={copiar} onEliminar={eliminar}
             extras={<>
               <BotonIcono etiqueta="Agregar ítem" tono="primario" onClick={() => void agregar("item")}><ListPlus size={15} /></BotonIcono>
               <BotonIcono etiqueta="Agregar grupo" onClick={() => void agregar("grupo")}><FolderPlus size={15} /></BotonIcono>
               <BotonIcono etiqueta="Agregar bloque" onClick={() => void agregar("bloque")}><Rows3 size={15} /></BotonIcono>
-              <BotonIcono etiqueta="Subir" disabled={!sel} onClick={() => void mover(-1)}><ArrowUp size={15} /></BotonIcono>
-              <BotonIcono etiqueta="Bajar" disabled={!sel} onClick={() => void mover(1)}><ArrowDown size={15} /></BotonIcono>
+              <div className="my-1 border-t border-line" />
+              <BotonIcono etiqueta="Subir" disabled={!sel || !moverGG(filas, filas.findIndex((f) => f.id === sel), -1)} onClick={() => void mover(-1)}><ArrowUp size={15} /></BotonIcono>
+              <BotonIcono etiqueta="Bajar" disabled={!sel || !moverGG(filas, filas.findIndex((f) => f.id === sel), 1)} onClick={() => void mover(1)}><ArrowDown size={15} /></BotonIcono>
             </>} />
         )}
       </div>
