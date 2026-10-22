@@ -779,7 +779,8 @@ function Cotizaciones() {
           </HojaCotizacion>
           <GastosGeneralesCotizacion abierta={ventanaGG} onCerrar={() => setVentanaGG(false)} cotizacionId={cot.id}
             costoDirecto={totales?.costoDirecto ?? 0} pctActual={Number(cot.pct_gastos_generales)} moneda={cot.moneda}
-            soloLectura={!esUltimaRevision} />
+            soloLectura={!esUltimaRevision} pctUtilidad={Number(cot.pct_utilidad)} aplicaIgv={cot.aplica_igv ?? true}
+            duracionMeses={Number((cot as { duracion_meses?: number }).duracion_meses ?? 1)} />
           </div>
           <div className="shrink-0"><ResumenCotizacion cot={cot} items={itemsHoja} soloLectura={!esUltimaRevision} /></div>
           </div>
