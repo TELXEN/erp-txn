@@ -51,10 +51,14 @@ async function api<T>(token: string, path: string, init?: RequestInit): Promise<
   try { j = JSON.parse(txt); } catch { /* no json */ }
   if (!r.ok) {
     console.error("SUNAT api", path, r.status, txt.slice(0, 500));
-    const msg = j?.msg ?? j?.errors?.[0]?.msg ?? j?.message;
+    const errs = (Array.isArray(j?.errors) ? j.errors : []) as { cod?: string | number; msg?: string }[];
+    const detalle = errs.map((e) => e.msg).filter(Boolean).join(" · ");
+    const msg = detalle || j?.msg || j?.message;
     if (r.status === 401) throw new SunatError("La sesión con SUNAT expiró o no tiene permiso para el SIRE.");
     if (r.status >= 500) throw new SunatError("El servicio SIRE de SUNAT no está disponible en este momento.");
-    throw new SunatError(msg ? `SUNAT: ${msg}` : `SUNAT respondió con error ${r.status}.`);
+    const err = new SunatError(msg ? `SUNAT: ${msg}` : `SUNAT respondió con error ${r.status}.`);
+    (err as SunatError & { codigos?: string[] }).codigos = errs.map((e) => String(e.cod ?? ""));
+    throw err;
   }
   return j as T;
 }
