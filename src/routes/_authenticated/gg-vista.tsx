@@ -9,7 +9,7 @@ import { useEmpresa } from "@/lib/empresa";
 import { useFuenteDocumento } from "@/lib/fuentes-documentos";
 import { useCotizaciones } from "@/lib/cotizaciones";
 import { dbBanco } from "@/lib/banco-apu";
-import { numerarGG, parcialGG, pctGG, subtotalGG, totalGG, type FilaGG } from "@/lib/gastos-generales-cotizacion";
+import { numerarGG, parcialGG, pctGG, resumenPresupuesto, subtotalGG, totalGG, totalesGG, type FilaGG } from "@/lib/gastos-generales-cotizacion";
 
 export const Route = createFileRoute("/_authenticated/gg-vista")({
   validateSearch: (s: Record<string, unknown>) => ({ id: typeof s["id"] === "string" ? s["id"] : "" }),
@@ -58,6 +58,10 @@ function VistaGG() {
   const cd = data?.costoDirecto ?? 0;
   const total = totalGG(filas);
   const pct = pctGG(total, cd);
+  const { fijos, variables } = totalesGG(filas);
+  const pctU = Number(cot?.pct_utilidad ?? 0);
+  const pctI = (cot?.aplica_igv ?? true) ? 18 : 0;
+  const res = resumenPresupuesto(cd, fijos, variables, pctU, pctI);
   const numeros = numerarGG(filas);
   const sim = cot?.moneda === "USD" ? "US$" : "S/";
   const paginas: { f: FilaGG; i: number }[][] = [];
@@ -117,7 +121,7 @@ function VistaGG() {
                   <colgroup><col className="w-[52px]" /><col /><col className="w-[48px]" /><col className="w-[52px]" /><col className="w-[48px]" /><col className="w-[72px]" /><col className="w-[80px]" /></colgroup>
                   <thead>
                     <tr className="border-y border-line bg-muted/60">
-                      {["ÍTEM", "DESCRIPCIÓN", "UNID.", "CANT.", "TIEMPO", "P. UNIT.", "PARCIAL"].map((h, i) => (
+                      {["ÍTEM", "DESCRIPCIÓN", "UNID.", "CANT.", "T. (MESES)", "C. UNIT.", "TOTAL"].map((h, i) => (
                         <th key={h} className={`h-[20px] border-r border-line px-1 text-[8.5px] font-semibold last:border-r-0 ${i < 2 ? "text-left" : i === 2 ? "text-center" : "text-right"}`}>{h}</th>
                       ))}
                     </tr>
@@ -129,7 +133,7 @@ function VistaGG() {
                         <td className={`${td} pl-3`}>{f.descripcion}</td>
                         <td className={`${td} text-center text-muted-foreground`}>{f.unidad}</td>
                         <td className={`${td} text-right font-mono`}>{n2(Number(f.cantidad))}</td>
-                        <td className={`${td} text-right font-mono`}>{n2(Number(f.tiempo))}</td>
+                        <td className={`${td} text-right font-mono`}>{f.tipo === "fijo" ? "N/A" : n2(Number(f.tiempo))}</td>
                         <td className={`${td} text-right font-mono`}>{n2(Number(f.precio_unitario))}</td>
                         <td className={`${td} text-right font-mono`}>{n2(parcialGG(f))}</td>
                       </tr>
@@ -143,11 +147,20 @@ function VistaGG() {
                   </tbody>
                 </table>
                 {pIdx === paginas.length - 1 && (
-                  <div className="ml-auto mt-3 w-72 border border-line text-[10px]">
-                    {[["Costo directo", `${sim} ${n2(cd)}`], ["Total gastos generales", `${sim} ${n2(total)}`]].map(([a, b]) => (
-                      <div key={a} className="flex justify-between border-b border-line px-2 py-1"><span>{a}</span><span className="font-mono">{b}</span></div>
+                  <div className="ml-auto mt-3 w-80 border border-line text-[10px]">
+                    {([
+                      ["Costo directo total", cd, ""],
+                      ["(+) Total gastos generales fijos", fijos, ""],
+                      ["(+) Total gastos generales variables", variables, ""],
+                      ["(=) Subtotal valor referencial", res.subtotal, "font-semibold bg-muted/40"],
+                      [`(+) Margen de utilidad (${n2(pctU)} %)`, res.utilidad, ""],
+                      ["(=) Valor venta neto total", res.venta, "font-semibold bg-muted/40"],
+                      [`(+) IGV (${n2(pctI)} %)`, res.igv, ""],
+                      ["(=) PRESUPUESTO FINAL TOTAL", res.total, "font-bold bg-muted/60 text-[11px]"],
+                    ] as const).map(([a, b, c]) => (
+                      <div key={a} className={`flex justify-between border-b border-line px-2 py-1 last:border-b-0 ${c}`}><span>{a}</span><span className="font-mono">{sim} {n2(b)}</span></div>
                     ))}
-                    <div className="flex justify-between bg-muted/40 px-2 py-1 text-[11px] font-bold"><span>% Gastos generales</span><span className="font-mono text-primary">{n2(pct)} %</span></div>
+                    <div className="px-2 py-1 text-right text-muted-foreground">% Gastos generales: {n2(pct)} %</div>
                   </div>
                 )}
               </section>
