@@ -311,7 +311,8 @@ function RegistrarModal({ recibidos, onCerrar, onListo }: { recibidos: Recibido[
       toast.success(`${n} facturas registradas en el ERP`);
       onListo(); onCerrar();
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Error al registrar");
+      const msg = String((e as { message?: string })?.message || "Error al registrar").replace(/^SOBRECOSTO\|/, "");
+      toast.error(msg, { duration: 10000 });
       onListo();
     } finally { setOcupado(false); }
   }
