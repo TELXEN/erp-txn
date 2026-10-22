@@ -29,7 +29,7 @@ export function GastosGeneralesCotizacion({ abierta, onCerrar, cotizacionId, cos
   const tablaRef = useRef<HTMLTableElement>(null);
   const enfocarFila = (id: string | null) => {
     if (!id) return;
-    const campo = Array.from(tablaRef.current?.querySelectorAll<HTMLInputElement>("input[data-fila-gg]") ?? []).find((input) => input.dataset.filaGg === id);
+    const campo = Array.from(tablaRef.current?.querySelectorAll<HTMLInputElement>("input[data-fila-gg]") ?? []).find((input) => input.dataset["filaGg"] === id);
     campo?.focus();
     campo?.select();
   };
