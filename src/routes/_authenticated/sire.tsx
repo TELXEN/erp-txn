@@ -372,6 +372,13 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
 
         {paso === 2 && (
           <Panel titulo={`PASO 2 · CONCILIACIÓN SUNAT vs ERP · ${(MESES[m - 1] ?? "").toUpperCase()} ${y}`} extra={pasosExtra}>
+            {esRce && items.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2 border-b border-line px-3 py-1.5">
+                <span className="label-mono mr-auto">XML / PDF / CDR{cc.sel.size ? ` · ${cc.sel.size} seleccionadas` : ""}</span>
+                {cc.barra}
+              </div>
+            )}
+            {esRce && cc.progreso}
             {visibles.length === 0 ? <Vacio texto="Sin documentos en este filtro" /> : (
               <div className="max-h-[calc(100vh-470px)] min-h-[260px] overflow-auto" style={{ fontFamily: "var(--font-global)" }}>
                 <div className="sticky top-0 z-20 flex h-[36px] flex-nowrap items-center gap-1 overflow-x-auto whitespace-nowrap border-b border-line bg-card px-3 py-1">
@@ -465,7 +472,6 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
             </div>
           </Panel>
         )}
-        {paso === 2 && libro === "RCE" && <p className="mt-3 text-xs text-muted-foreground">La descarga de XML / PDF / CDR y el registro en el ERP de cada factura de proveedor se hacen en la sección «Comprobantes de compra» de esta misma pestaña, más abajo.</p>}
 
         {paso === 3 && reg && (
           <Panel titulo={`PASO 3 · CIERRE Y ENVÍO · ${(MESES[m - 1] ?? "").toUpperCase()} ${y}`} extra={pasosExtra}>
@@ -497,9 +503,7 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
           </Panel>
         )}
       </div>
-      {libro === "RCE" && (items.length === 0
-        ? <Panel titulo="COMPROBANTES DE COMPRA · XML / PDF / CDR"><Vacio texto="Sin compras sincronizadas en este periodo. Pulsa «Sincronizar Compras y Ventas» para traerlas de SUNAT." /></Panel>
-        : <ComprobantesRecibidos periodo={periodo} items={items} />)}
+      {cc.modal}
     </div>
   );
 }
