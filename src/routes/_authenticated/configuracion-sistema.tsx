@@ -1,12 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Binary, Building2, Check, FileText, Landmark, ShieldCheck, SlidersHorizontal } from "lucide-react";
+import { Building2, Check, FileText, Landmark, ShieldCheck, SlidersHorizontal } from "lucide-react";
 import { Boton, Panel } from "@/components/ui-kit";
 import { DatosEmpresa } from "@/components/DatosEmpresa";
 import { CuentasBancarias } from "@/components/CuentasBancarias";
 import { TipografiaDocumentosPanel } from "@/components/TipografiaDocumentos";
 import { UsuariosPanel } from "@/components/UsuariosPanel";
-import { CodificacionModularInsumos } from "@/components/CodificacionModularInsumos";
 import { TEMAS, useTema } from "@/lib/temas";
 
 function IconoPaletaColores({ className }: { className?: string }) {
@@ -46,7 +45,7 @@ export const Route = createFileRoute("/_authenticated/configuracion-sistema")({
 
 function ConfiguracionSistema() {
   const { tema, cambiarTema } = useTema();
-  const [pestana, setPestana] = useState<"tema" | "tipografia" | "usuarios" | "empresa" | "bancos" | "codinsumos">("tema");
+  const [pestana, setPestana] = useState<"tema" | "tipografia" | "usuarios" | "empresa" | "bancos">("tema");
 
   return (
     <div className="space-y-4">
@@ -77,9 +76,6 @@ function ConfiguracionSistema() {
         <Boton type="button" variante="linea" role="tab" aria-selected={pestana === "usuarios"} onClick={() => setPestana("usuarios")} className={pestana === "usuarios" ? "border-primary bg-primary/5 text-primary" : ""}>
           <ShieldCheck className="size-4 text-primary" /> Usuarios y Roles
         </Boton>
-        <Boton type="button" variante="linea" role="tab" aria-selected={pestana === "codinsumos"} onClick={() => setPestana("codinsumos")} className={pestana === "codinsumos" ? "border-primary bg-primary/5 text-primary" : ""}>
-          <Binary className="size-4 text-primary" /> Codificación de insumos
-        </Boton>
       </div>
       {pestana === "tema" ? <Panel titulo="Tema de colores" extra={<IconoPaletaColores className="size-5" />}>
           <div className="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -109,7 +105,7 @@ function ConfiguracionSistema() {
               );
             })}
           </div>
-            </Panel> : pestana === "tipografia" ? <TipografiaDocumentosPanel /> : pestana === "empresa" ? <DatosEmpresa /> : pestana === "bancos" ? <CuentasBancarias /> : pestana === "codinsumos" ? <CodificacionModularInsumos /> : <UsuariosPanel />}
+            </Panel> : pestana === "tipografia" ? <TipografiaDocumentosPanel /> : pestana === "empresa" ? <DatosEmpresa /> : pestana === "bancos" ? <CuentasBancarias /> : <UsuariosPanel />}
     </div>
   );
 }
