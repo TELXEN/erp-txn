@@ -43,7 +43,8 @@ export async function descargarCpe(token: string, ruc: string, tipo: string, ser
     console.error("SUNAT CPE", tipoArchivo, r.status, cuerpo);
     let msg = "";
     try { const j = JSON.parse(cuerpo); msg = j?.errors?.map((x: any) => x.desError ?? x.msg).join(" · ") || j?.msg || j?.message || "";
-      if (j?.errors?.some((x: any) => String(x.codError) === "113")) return null; // SUNAT: sin resultados } catch { /* */ }
+      if (j?.errors?.some((x: any) => String(x.codError) === "113")) return null; // SUNAT: sin resultados
+    } catch { /* */ }
     if (r.status === 401 || r.status === 403) throw new Error(`Credenciales sin permiso de consulta de comprobantes en SUNAT${msg ? `: ${msg}` : ""}`);
     if (r.status === 422 && /no existe|no se encontr/i.test(msg)) return null;
     throw new Error(`SUNAT respondió ${r.status}${msg ? `: ${msg}` : ""}`);
