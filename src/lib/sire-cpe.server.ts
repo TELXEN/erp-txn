@@ -25,16 +25,30 @@ function detectar(u: Uint8Array): Archivo | null {
 export async function descargarCpe(token: string, ruc: string, tipo: string, serie: string, numero: string, tipoArchivo: "01" | "02" | "03"): Promise<Archivo | null> {
   const id = [ruc, tipo, serie, numero].map((x) => String(x ?? "").trim());
   if (id.some((x) => !x || !/^[A-Za-z0-9]+$/.test(x))) throw new Error("Datos del comprobante incompletos para consultar SUNAT");
-  let r: Response;
-  try {
-    r = await fetch(`${CPE}/${id.map(encodeURIComponent).join("-")}-2/${tipoArchivo}`, { headers: { Authorization: `Bearer ${token}` } });
-  } catch (e) {
-    console.error("SUNAT CPE fetch", e);
-    throw new Error("No disponible en SUNAT (servicio de consulta no respondió)");
+  const url = `${CPE}/${id.map(encodeURIComponent).join("-")}-2/${tipoArchivo}`;
+  let r: Response | null = null;
+  let causa = "";
+  for (let intento = 0; intento < 3 && !r; intento++) {
+    try {
+      r = await fetch(url, { headers: { Authorization: `Bearer ${token}`, Accept: "*/*", "User-Agent": "Mozilla/5.0 (compatible; ERP-TELXEN/1.0)" }, signal: AbortSignal.timeout(25000) });
+    } catch (e) {
+      causa = e instanceof Error ? `${e.name}: ${e.message}` : String(e);
+      console.error("SUNAT CPE fetch", tipoArchivo, url.replace(CPE, ""), causa);
+    }
   }
+  if (!r) throw new Error(`SUNAT no respondió; vuelve a intentar (${causa.slice(0, 80)})`);
   if (r.status === 404 || r.status === 204) return null;
-  if (r.status === 401 || r.status === 403) throw new Error("SUNAT no autorizó la descarga (revisa que las credenciales API tengan acceso a consulta de comprobantes).");
-  if (!r.ok) throw new Error(`SUNAT respondió ${r.status}`);
+  if (!r.ok) {
+    const cuerpo = (await r.text().catch(() => "")).slice(0, 300);
+    console.error("SUNAT CPE", tipoArchivo, r.status, cuerpo);
+    let msg = "";
+    try { const j = JSON.parse(cuerpo); msg = j?.errors?.map((x: any) => x.desError ?? x.msg).join(" · ") || j?.msg || j?.message || "";
+      if (j?.errors?.some((x: any) => String(x.codError) === "113")) return null; // SUNAT: sin resultados
+    } catch { /* */ }
+    if (r.status === 401 || r.status === 403) throw new Error(`Credenciales sin permiso de consulta de comprobantes en SUNAT${msg ? `: ${msg}` : ""}`);
+    if (r.status === 422 && /no existe|no se encontr/i.test(msg)) return null;
+    throw new Error(`SUNAT respondió ${r.status}${msg ? `: ${msg}` : ""}`);
+  }
   const u = new Uint8Array(await r.arrayBuffer());
   const directo = detectar(u);
   if (directo) return directo;
@@ -46,12 +60,20 @@ export async function descargarCpe(token: string, ruc: string, tipo: string, ser
   return null;
 }
 
+/** Si el ZIP del XML trae la constancia (archivo R-*.xml), la devuelve como CDR. */
+export function cdrDe(a: Archivo): Archivo | null {
+  if (a.ext !== "zip") return null;
+  const f = unzipSync(a.bytes);
+  const n = Object.keys(f).find((k) => /(^|\/)R-.*\.xml$/i.test(k));
+  return n ? { bytes: f[n]!, ext: "xml", mime: "application/xml" } : null;
+}
+
 /** Si es ZIP, extrae el primer XML. */
 export function xmlDe(a: Archivo): string | null {
   if (a.ext === "xml") return strFromU8(a.bytes);
   if (a.ext === "zip") {
     const f = unzipSync(a.bytes);
-    const n = Object.keys(f).find((k) => k.toLowerCase().endsWith(".xml"));
+    const n = Object.keys(f).find((k) => k.toLowerCase().endsWith(".xml") && !/(^|\/)R-/i.test(k)) ?? Object.keys(f).find((k) => k.toLowerCase().endsWith(".xml"));
     return n ? strFromU8(f[n]!) : null;
   }
   return null;

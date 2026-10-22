@@ -142,9 +142,9 @@ export const descargarComprobantesSire = createServerFn({ method: "POST" })
           .catch((e) => { if (t !== "03") motivo ??= e instanceof Error ? e.message : "No disponible en SUNAT"; return null; });
         const xml = await bajar("02");
         const pdf = await bajar("01");
-        const cdr = await bajar("03");
+        const cdr = (xml && c.cdrDe(xml)) || (await bajar("03"));
         fila.xml_path = await subir(xml, "");
-        fila.pdf_path = await subir(pdf, "");
+        fila.pdf_path = await subir(pdf, "-pdf");
         fila.cdr_path = await subir(cdr, "-cdr");
         fila.estado_descarga = xml ? "Descargado" : "No disponible";
         fila.error = xml ? (cdr ? null : "CDR no disponible") : (motivo ?? "No disponible en SUNAT; puedes registrarla con los datos de la propuesta");

@@ -24,7 +24,6 @@ export function ComprobantesCompras() {
   const [fase, setFase] = useState("");
   const mm = String(m).padStart(2, "0");
   const periodoSire = `${y}-${mm}`; // formato usado por SIRE
-  const periodo = `${y}${mm}`; // formato de archivos recibidos
   const qk = ["sire", "RCE", periodoSire];
   const { data: reg, isLoading } = useQuery({
     queryKey: qk,
@@ -82,7 +81,7 @@ export function ComprobantesCompras() {
         <p className="border-t border-line px-4 py-2 text-xs text-muted-foreground">Usa esta pestaña para recuperar facturas perdidas: trae de SUNAT las compras del mes, ubica la factura y adjunta el PDF/XML o regístrala con los datos oficiales.</p>
       </Panel>
       <div className="mt-4">
-        {isLoading ? null : items.length === 0 ? <Panel titulo="Sin datos"><Vacio texto="No hay compras de este periodo. Pulsa «Sincronizar con SUNAT» para traerlas." /></Panel> : <ComprobantesRecibidos periodo={periodo} items={items} />}
+        {isLoading ? null : items.length === 0 ? <Panel titulo="Sin datos"><Vacio texto="No hay compras de este periodo. Pulsa «Sincronizar con SUNAT» para traerlas." /></Panel> : <ComprobantesRecibidos periodo={periodoSire} items={items} />}
       </div>
     </>
   );
