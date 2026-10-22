@@ -1,7 +1,7 @@
 # SIRE: corregir «Enviar Aceptación a SUNAT»
 
 ## Qué pasa
-Al pulsar «Enviar Aceptación a SUNAT» (Ventas RVIE, septiembre 2026) SUNAT responde «Unprocessable Entity – Se presentaron errores de validación». Hoy solo mostramos ese mensaje genérico; SUNAT envía además el detalle de cada error (código y motivo), que estamos descartando. La causa exacta aún no está confirmada.
+Al pulsar «Enviar Aceptación a SUNAT» (Ventas RVIE, septiembre 2026) SUNAT responde «Unprocessable Entity – Se presentaron errores de validación». Se revisan ambos libros: Ventas (RVIE) y Compras (RCE). Hoy solo mostramos ese mensaje genérico; SUNAT envía además el detalle de cada error (código y motivo), que estamos descartando. La causa exacta aún no está confirmada.
 
 ## Pasos
 1. **Ver el motivo real**: mostrar en el aviso todos los errores que devuelve SUNAT (código + texto) y guardarlos en el registro del servidor. Reproducir el envío para leer la causa.
