@@ -212,7 +212,7 @@ export function GastosGeneralesCotizacion({ abierta, onCerrar, cotizacionId, cos
   const celda = "h-6 w-full rounded border border-transparent bg-transparent px-1 text-xs tabular-nums hover:border-line focus:border-primary focus:outline-none disabled:hover:border-transparent";
 
   return (
-    <VentanaFlotante titulo="Gastos generales" subtitulo="Desagregado de gastos generales de la cotización" abierta={abierta} onCerrar={onCerrar} ancho="max-w-[96rem]">
+    <VentanaFlotante titulo="Gastos generales" subtitulo="Desagregado de gastos generales de la cotización" abierta={abierta} onCerrar={onCerrar} ancho="max-w-[96rem] max-h-[calc(100dvh-2rem)]" ocultarBarra>
       <div className="grid grid-cols-3 gap-3">
         {[
           ["Costo directo", fmt(costoDirecto), ""],
