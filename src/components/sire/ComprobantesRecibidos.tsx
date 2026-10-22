@@ -279,6 +279,7 @@ function RegistrarModal({ recibidos, onCerrar, onListo }: { recibidos: Recibido[
   async function confirmar() {
     for (const r of recibidos) { const x = d(r.id); if (x.tipo === "gd" && (!x.proyecto || !x.partida)) { toast.error(`Elige proyecto y partida para ${r.serie}-${r.numero}`); return; } }
     setOcupado(true);
+    setBloqueo(null);
     let n = 0;
     try {
       for (const r of recibidos) {
