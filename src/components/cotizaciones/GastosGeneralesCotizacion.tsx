@@ -212,7 +212,7 @@ export function GastosGeneralesCotizacion({ abierta, onCerrar, cotizacionId, cos
   const celda = "h-6 w-full rounded border border-transparent bg-transparent px-1 text-xs tabular-nums hover:border-line focus:border-primary focus:outline-none disabled:hover:border-transparent";
 
   return (
-    <VentanaFlotante titulo="Gastos generales" subtitulo="Desagregado de gastos generales de la cotización" abierta={abierta} onCerrar={onCerrar} ancho="max-w-7xl">
+    <VentanaFlotante titulo="Gastos generales" subtitulo="Desagregado de gastos generales de la cotización" abierta={abierta} onCerrar={onCerrar} ancho="max-w-[96rem] max-h-[calc(100dvh-2rem)]" ocultarBarra>
       <div className="grid grid-cols-3 gap-3">
         {[
           ["Costo directo", fmt(costoDirecto), ""],
@@ -254,7 +254,7 @@ export function GastosGeneralesCotizacion({ abierta, onCerrar, cotizacionId, cos
       {error && <p className="mt-2 text-xs text-bad">{error}</p>}
 
       <div className="mt-3 flex gap-2">
-        <div className="max-h-[60vh] min-w-0 flex-1 overflow-auto rounded-md border">
+        <div className="min-w-0 flex-1 rounded-md">
           <div ref={tablaRef as unknown as React.RefObject<HTMLDivElement>} className="space-y-3">
             {(["fijo", "variable"] as const).map((tipo) => (
               <div key={tipo}>
