@@ -1,4 +1,4 @@
-import { Fragment, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -20,16 +20,16 @@ const BUCKET = "comprobantes-compra";
 const claveDe = (ruc: string, tipo: string, serie: string, numero: string) => `${ruc}-${tipo}-${serie}-${numero}`.toUpperCase();
 function partes(sn: string) { const i = sn.lastIndexOf("-"); return { serie: sn.slice(0, i), numero: sn.slice(i + 1).replace(/^0+(?=\d)/, "") }; }
 
-export function ComprobantesRecibidos({ periodo, items }: { periodo: string; items: ItemRce[] }) {
+export function useComprobantesCompra(periodo: string, items: ItemRce[], activo = true) {
   const qc = useQueryClient();
   const descargar$ = useServerFn(descargarComprobantesSire);
   const [sel, setSel] = useState<Set<string>>(new Set());
   const [prog, setProg] = useState<{ h: number; t: number } | null>(null);
   const [registrar, setRegistrar] = useState(false);
-  const [abierto, setAbierto] = useState<string | null>(null);
   const qk = ["sire-recibidos", periodo];
   const { data: recibidos = [] } = useQuery({
     queryKey: qk,
+    enabled: activo,
     queryFn: async () => ((await supabase.from("comprobantes_recibidos").select("*").eq("periodo", periodo)).data ?? []) as Recibido[],
   });
   const porClave = useMemo(() => new Map(recibidos.map((r) => [claveDe(r.ruc_emisor, r.tipo, r.serie, r.numero), r])), [recibidos]);
@@ -193,70 +193,43 @@ export function ComprobantesRecibidos({ periodo, items }: { periodo: string; ite
       className={`rounded p-1 ${p ? "text-primary hover:bg-muted" : "text-muted-foreground/40"}`}><I className="size-4" /></button>
   );
 
-  return (
-    <Panel titulo="COMPROBANTES DE COMPRA · XML / PDF / CDR"
-      extra={<div className="flex flex-wrap gap-2">
-        <Boton variante="linea" onClick={() => descargar()} disabled={!!prog}><Download className="size-3.5" />Descargar XML de SUNAT{sel.size ? ` (${sel.size})` : ""}</Boton>
-        <Boton variante="linea" onClick={() => descargar(true)} disabled={!!prog}>Reintentar fallidas</Boton>
-        <Boton variante="linea" onClick={zip}><FolderDown className="size-3.5" />ZIP del período</Boton>
-        <Boton onClick={() => setRegistrar(true)}><ClipboardCheck className="size-3.5" />Registrar en el ERP</Boton>
-      </div>}>
-      {prog && (
-        <div className="space-y-1 px-5 py-3">
-          <p className="font-mono text-[11px] text-muted-foreground">{prog.h} de {prog.t} descargados…</p>
-          <div className="h-1.5 overflow-hidden rounded-full bg-muted"><div className="h-full bg-primary transition-all" style={{ width: `${(prog.h / prog.t) * 100}%` }} /></div>
-        </div>
-      )}
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="bg-muted/50 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-            <tr>
-              <th className="px-3 py-2"><input type="checkbox" checked={todos} onChange={() => setSel(todos ? new Set() : new Set(filas.map((f) => f.k)))} /></th>
-              <th className="px-3 py-2 text-left">Comprobante</th><th className="px-3 py-2 text-left">Proveedor</th>
-              <th className="px-3 py-2 text-right">Total</th><th className="px-3 py-2 text-left">Descarga</th>
-              <th className="px-3 py-2 text-center">Archivos</th><th className="px-3 py-2 text-left">ERP</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filas.map(({ k, i, r }) => (
-              <Fragment key={k}>
-              <tr className="border-t border-line">
-                <td className="px-3 py-1.5 text-center"><input type="checkbox" checked={sel.has(k)} onChange={() => { const s = new Set(sel); s.has(k) ? s.delete(k) : s.add(k); setSel(s); }} /></td>
-                <td className="whitespace-nowrap px-3 py-1.5 font-mono text-xs">
-                  <button disabled={!r} title={r ? "Ver detalle de ítems" : "Sin registro aún"} onClick={() => setAbierto(abierto === k ? null : k)} className="inline-flex items-center gap-1 hover:text-primary disabled:opacity-50">
-                    <ChevronRight className={`size-3.5 transition-transform ${abierto === k ? "rotate-90" : ""}`} />{i.serie_numero}
-                  </button>
-                </td>
-                <td className="px-3 py-1.5"><p className="font-mono text-[11px] text-muted-foreground">{i.ruc}</p><p className="truncate text-xs">{i.razon}</p></td>
-                <td className="px-3 py-1.5 text-right font-mono text-xs">{soles(i.total_sunat ?? 0)}</td>
-                <td className="px-3 py-1.5 font-mono text-[11px]">
-                  {!r ? <span className="text-muted-foreground">Pendiente</span>
-                    : r.estado_descarga === "Descargado" ? <span className="text-good">XML de SUNAT</span>
-                    : r.pdf_path || r.xml_path ? <span className="text-good">Original adjuntado</span>
-                    : <span className="text-primary">XML no disponible en SUNAT</span>}
-                  {r?.error && <p className="text-[10px] text-muted-foreground">{r.error}</p>}
-                  {r && r.estado_descarga !== "Descargado" && !r.pdf_path && !r.xml_path && <p className="text-[10px] text-muted-foreground">Adjunta el XML del proveedor (clip) para leer los ítems.</p>}
-                </td>
-                <td className="px-3 py-1.5 text-center whitespace-nowrap">
-                  <Ic p={r?.xml_path ?? null} I={FileCode2} t="XML" /><Ic p={r?.pdf_path ?? null} I={FileText} t="PDF" /><Ic p={r?.cdr_path ?? null} I={ShieldCheck} t="CDR" />
-                  <button title="Factura A4 (imprimir / PDF)" onClick={() => ficha(i, r)} className="rounded p-1 text-primary hover:bg-muted"><Printer className="size-4" /></button>
-                  <label title="Adjuntar PDF o XML original" className="cursor-pointer rounded p-1 text-primary hover:bg-muted inline-flex">
-                    <Paperclip className="size-4" />
-                    <input type="file" accept=".pdf,.xml" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) adjuntar(k, i, f); e.target.value = ""; }} />
-                  </label>
-                </td>
-                <td className="px-3 py-1.5 font-mono text-[11px]">{r?.registrado_en ? <span className="text-good">Registrada</span> : "—"}</td>
-              </tr>
-              {abierto === k && r && <tr className="bg-muted/30"><td /><td colSpan={6} className="px-3 py-2"><DetalleItems id={r.id} moneda={r.moneda} /></td></tr>}
-              </Fragment>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      {registrar && <RegistrarModal recibidos={recibidos.filter((r) => !r.registrado_en && (sel.size === 0 || sel.has(claveDe(r.ruc_emisor, r.tipo, r.serie, r.numero))))}
-        onCerrar={() => setRegistrar(false)} onListo={() => qc.invalidateQueries({ queryKey: qk })} />}
-    </Panel>
+  const kDe = (i: ItemRce) => filas.find((f) => f.i.clave === i.clave)?.k ?? null;
+  const toggle = (k: string) => { const s = new Set(sel); s.has(k) ? s.delete(k) : s.add(k); setSel(s); };
+  const toggleTodos = () => setSel(todos ? new Set() : new Set(filas.map((f) => f.k)));
+  const barra = (
+    <>
+      <Boton variante="linea" className="!py-1" onClick={() => descargar()} disabled={!!prog}><Download className="size-3.5" />Descargar XML de SUNAT{sel.size ? ` (${sel.size})` : ""}</Boton>
+      <Boton variante="linea" className="!py-1" onClick={() => descargar(true)} disabled={!!prog}>Reintentar fallidas</Boton>
+      <Boton variante="linea" className="!py-1" onClick={zip}><FolderDown className="size-3.5" />ZIP del período</Boton>
+      <Boton className="!py-1" onClick={() => setRegistrar(true)}><ClipboardCheck className="size-3.5" />Registrar en el ERP</Boton>
+    </>
   );
+  const progreso = prog && (
+    <div className="space-y-1 px-5 py-2">
+      <p className="font-mono text-[11px] text-muted-foreground">{prog.h} de {prog.t} descargados…</p>
+      <div className="h-1.5 overflow-hidden rounded-full bg-muted"><div className="h-full bg-primary transition-all" style={{ width: `${(prog.h / prog.t) * 100}%` }} /></div>
+    </div>
+  );
+  const archivos = (i: ItemRce) => {
+    const k = kDe(i);
+    if (!k) return null;
+    const r = porClave.get(k);
+    return (
+      <div className="flex items-center whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+        <Ic p={r?.xml_path ?? null} I={FileCode2} t="XML" /><Ic p={r?.pdf_path ?? null} I={FileText} t="PDF" /><Ic p={r?.cdr_path ?? null} I={ShieldCheck} t="CDR" />
+        <button title="Factura A4 (imprimir / PDF)" onClick={() => ficha(i, r)} className="rounded p-1 text-primary hover:bg-muted"><Printer className="size-4" /></button>
+        <label title="Adjuntar PDF o XML original" className="inline-flex cursor-pointer rounded p-1 text-primary hover:bg-muted">
+          <Paperclip className="size-4" />
+          <input type="file" accept=".pdf,.xml" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) adjuntar(k, i, f); e.target.value = ""; }} />
+        </label>
+        {r?.registrado_en && <span className="ml-1 font-mono text-[10px] text-good">ERP ✓</span>}
+        {r?.error && <span title={r.error} className="ml-1 font-mono text-[10px] text-muted-foreground">!</span>}
+      </div>
+    );
+  };
+  const modal = registrar && <RegistrarModal recibidos={recibidos.filter((r) => !r.registrado_en && (sel.size === 0 || sel.has(claveDe(r.ruc_emisor, r.tipo, r.serie, r.numero))))}
+    onCerrar={() => setRegistrar(false)} onListo={() => qc.invalidateQueries({ queryKey: qk })} />;
+  return { kDe, sel, toggle, todos, toggleTodos, barra, progreso, archivos, modal };
 }
 
 type Dest = { tipo: "gg" | "gd"; categoria: string; proyecto: string; partida: string };
