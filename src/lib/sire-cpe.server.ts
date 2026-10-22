@@ -42,7 +42,8 @@ export async function descargarCpe(token: string, ruc: string, tipo: string, ser
     const cuerpo = (await r.text().catch(() => "")).slice(0, 300);
     console.error("SUNAT CPE", tipoArchivo, r.status, cuerpo);
     let msg = "";
-    try { const j = JSON.parse(cuerpo); msg = j?.errors?.map((x: any) => x.msg).join(" · ") || j?.msg || j?.message || ""; } catch { /* */ }
+    try { const j = JSON.parse(cuerpo); msg = j?.errors?.map((x: any) => x.desError ?? x.msg).join(" · ") || j?.msg || j?.message || "";
+      if (j?.errors?.some((x: any) => String(x.codError) === "113")) return null; // SUNAT: sin resultados } catch { /* */ }
     if (r.status === 401 || r.status === 403) throw new Error(`Credenciales sin permiso de consulta de comprobantes en SUNAT${msg ? `: ${msg}` : ""}`);
     if (r.status === 422 && /no existe|no se encontr/i.test(msg)) return null;
     throw new Error(`SUNAT respondió ${r.status}${msg ? `: ${msg}` : ""}`);
@@ -58,12 +59,20 @@ export async function descargarCpe(token: string, ruc: string, tipo: string, ser
   return null;
 }
 
+/** Si el ZIP del XML trae la constancia (archivo R-*.xml), la devuelve como CDR. */
+export function cdrDe(a: Archivo): Archivo | null {
+  if (a.ext !== "zip") return null;
+  const f = unzipSync(a.bytes);
+  const n = Object.keys(f).find((k) => /(^|\/)R-.*\.xml$/i.test(k));
+  return n ? { bytes: f[n]!, ext: "xml", mime: "application/xml" } : null;
+}
+
 /** Si es ZIP, extrae el primer XML. */
 export function xmlDe(a: Archivo): string | null {
   if (a.ext === "xml") return strFromU8(a.bytes);
   if (a.ext === "zip") {
     const f = unzipSync(a.bytes);
-    const n = Object.keys(f).find((k) => k.toLowerCase().endsWith(".xml"));
+    const n = Object.keys(f).find((k) => k.toLowerCase().endsWith(".xml") && !/(^|\/)R-/i.test(k)) ?? Object.keys(f).find((k) => k.toLowerCase().endsWith(".xml"));
     return n ? strFromU8(f[n]!) : null;
   }
   return null;
