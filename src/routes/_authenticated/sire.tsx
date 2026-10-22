@@ -13,7 +13,7 @@ import { Encabezado } from "@/components/AppShell";
 import { Panel, Campo, Input, Select, Boton, SinAcceso, Vacio } from "@/components/ui-kit";
 import { MESES, fecha as fmtFecha, soles } from "@/lib/format";
 import { guardarConfigSire, validarConexionSire, sincronizarSire, aceptarSire } from "@/lib/sire.functions";
-import { ComprobantesRecibidos } from "@/components/sire/ComprobantesRecibidos";
+import { useComprobantesCompra } from "@/components/sire/ComprobantesRecibidos";
 
 export const Route = createFileRoute("/_authenticated/sire")({
   head: () => ({
@@ -293,6 +293,8 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
     disc: items.filter((i) => i.estado === "discrepancia").length,
     sunat: items.filter((i) => i.estado === "faltante").length,
   }), [items]);
+  const cc = useComprobantesCompra(periodo, items as any, libro === "RCE");
+  const esRce = libro === "RCE";
   const visibles = items.filter((i) => filtro === "todos" || (filtro === "ok" && i.estado === "match") || (filtro === "disc" && i.estado === "discrepancia") || (filtro === "sunat" && i.estado === "faltante"));
 
   // IGV de compras: separar comprobantes sin IGV (ámbar) y con tasa parcial entre 10% y 18% (azul).
@@ -370,6 +372,13 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
 
         {paso === 2 && (
           <Panel titulo={`PASO 2 · CONCILIACIÓN SUNAT vs ERP · ${(MESES[m - 1] ?? "").toUpperCase()} ${y}`} extra={pasosExtra}>
+            {esRce && items.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2 border-b border-line px-3 py-1.5">
+                <span className="label-mono mr-auto">XML / PDF / CDR{cc.sel.size ? ` · ${cc.sel.size} seleccionadas` : ""}</span>
+                {cc.barra}
+              </div>
+            )}
+            {esRce && cc.progreso}
             {visibles.length === 0 ? <Vacio texto="Sin documentos en este filtro" /> : (
               <div className="max-h-[calc(100vh-470px)] min-h-[260px] overflow-auto" style={{ fontFamily: "var(--font-global)" }}>
                 <div className="sticky top-0 z-20 flex h-[36px] flex-nowrap items-center gap-1 overflow-x-auto whitespace-nowrap border-b border-line bg-card px-3 py-1">
@@ -389,7 +398,7 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
                 </div>
                 <table className="w-full min-w-[1100px] text-sm">
                   <thead className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                    <tr>{["Fecha", "Tipo", "Serie-Número", "RUC / Razón social", "Base", "IGV", "Total SUNAT", "Total ERP", "Estado", ""].map((h, i) => <th key={i} className={`sticky top-[36px] z-10 whitespace-nowrap bg-muted px-3 py-1.5 ${i >= 4 && i <= 7 ? "text-right" : "text-left"} ${i === 3 ? "w-[30%] min-w-[260px]" : ""}`}>{h}</th>)}</tr>
+                    <tr>{esRce && <th className="sticky top-[36px] z-10 bg-muted px-2 py-1.5"><input type="checkbox" aria-label="Seleccionar todas" checked={cc.todos} onChange={cc.toggleTodos} /></th>}{["Fecha", "Tipo", "Serie-Número", "RUC / Razón social", "Base", "IGV", "Total SUNAT", "Total ERP", "Estado", ""].map((h, i) => <th key={i} className={`sticky top-[36px] z-10 whitespace-nowrap bg-muted px-3 py-1.5 ${i >= 4 && i <= 7 ? "text-right" : "text-left"} ${i === 3 ? "w-[30%] min-w-[260px]" : ""}`}>{h}</th>)}{esRce && <th className="sticky top-[36px] z-10 whitespace-nowrap bg-muted px-3 py-1.5 text-left">Archivos</th>}</tr>
                   </thead>
                   <tbody>
                     {visibles.map((i) => {
@@ -399,6 +408,7 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
                       const sin = (i.igv ?? 0) === 0;
                       return (
                         <tr key={i.clave} onClick={() => setDetalle(i)} className={`cursor-pointer border-t border-line ${parcial ? "bg-sky-500/[0.07] hover:bg-sky-500/[0.13]" : sin ? "bg-amber-500/[0.07] hover:bg-amber-500/[0.13]" : "hover:bg-muted/30"}`}>
+                          {esRce && <td className="px-2 py-2 text-center" onClick={(ev) => ev.stopPropagation()}>{(() => { const k = cc.kDe(i as any); return k ? <input type="checkbox" checked={cc.sel.has(k)} onChange={() => cc.toggle(k)} /> : null; })()}</td>}
                           <td className="px-3 py-2 font-mono text-xs">{fmtFecha(i.fecha)}</td>
                           <td className="px-3 py-2 font-mono text-xs">{i.tipo}</td>
                           <td className="px-3 py-2 font-mono text-xs whitespace-nowrap">{i.serie_numero}</td>
@@ -440,6 +450,7 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
                               </div>
                             )}
                           </td>
+                          {esRce && <td className="px-2 py-1">{cc.archivos(i as any)}</td>}
                         </tr>
                       );
                     })}
@@ -461,7 +472,6 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
             </div>
           </Panel>
         )}
-        {paso === 2 && libro === "RCE" && <p className="mt-3 text-xs text-muted-foreground">La descarga de XML / PDF / CDR y el registro en el ERP de cada factura de proveedor se hacen en la sección «Comprobantes de compra» de esta misma pestaña, más abajo.</p>}
 
         {paso === 3 && reg && (
           <Panel titulo={`PASO 3 · CIERRE Y ENVÍO · ${(MESES[m - 1] ?? "").toUpperCase()} ${y}`} extra={pasosExtra}>
@@ -493,9 +503,7 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
           </Panel>
         )}
       </div>
-      {libro === "RCE" && (items.length === 0
-        ? <Panel titulo="COMPROBANTES DE COMPRA · XML / PDF / CDR"><Vacio texto="Sin compras sincronizadas en este periodo. Pulsa «Sincronizar Compras y Ventas» para traerlas de SUNAT." /></Panel>
-        : <ComprobantesRecibidos periodo={periodo} items={items} />)}
+      {cc.modal}
     </div>
   );
 }

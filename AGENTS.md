@@ -20,7 +20,7 @@
 - Sidebar has dedicated theme tokens; primary/action buttons use its base color without altering business screens.
 - Invoice/quotation/preliquidation colors and font come from src/lib/documento-tema.ts; preliquidation uses one sheet (HojaPreliquidacion.tsx) with amounts in src/lib/preliquidacion-montos.ts — outputs never diverge.
 - SUNAT purchase invoices archive in comprobantes_recibidos(+_items) and the private comprobantes-compra bucket; only the authenticated descargarComprobantesSire server fn downloads, in batches of 10 — SOL credentials stay server-side.
-- SIRE owns RCE end to end: one persistent period selector and sync control for both books, plus the purchase XML/PDF/CDR download and ERP register table — Facturación Electrónica is sales-only.
+- SIRE owns RCE end to end: one persistent period selector and sync control for both books, with the purchase XML/PDF/CDR download and ERP register merged into the RCE conciliation table — Facturación Electrónica is sales-only.
 - On desktop, AppShell owns viewport height; sidebar and workspace scroll independently — navigation stays fixed.
 - Quotation rows use flat `orden` + `nivel` and niveles-cotizacion.ts; moves preserve descendants and may cross adjacent headings to change groups. HojaNiveles separates bank/new insertion; bank copies recipes, new stays independent. APU inserts use filaRecursoCotizacion for FK/code snapshots; PEN master prices.
 - EMO validity is computed in src/lib/emo.ts from each worker's latest exam (emos_trabajador, admin/gerente-only) — one rule feeds every EMO alert.
