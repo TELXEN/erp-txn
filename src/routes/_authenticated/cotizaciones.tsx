@@ -781,7 +781,7 @@ function Cotizaciones() {
             costoDirecto={totales?.costoDirecto ?? 0} pctActual={Number(cot.pct_gastos_generales)} moneda={cot.moneda}
             soloLectura={!esUltimaRevision} />
           </div>
-          <div className="shrink-0"><ResumenCotizacion cot={cot} items={itemsHoja} /></div>
+          <div className="shrink-0"><ResumenCotizacion cot={cot} items={itemsHoja} soloLectura={!esUltimaRevision} /></div>
           </div>
           <aside className="flex min-h-[24rem] flex-col overflow-hidden rounded-md border border-line bg-card lg:h-full lg:min-h-0 lg:min-w-0 lg:flex-1">
             <PanelApuCotizacion cot={cot} item={itemsHoja.find((i) => i.id === partidaActiva) ?? null} comando={cmdInsumo} />
