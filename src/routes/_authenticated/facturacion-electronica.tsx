@@ -169,11 +169,10 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
   const gruposFacturacion = [
     { titulo: "Comprobantes emitidos", icono: ReceiptText, tipos: tiposVisibles.filter((p) => ["01", "03", "07", "08", "09"].includes(p.tipo)) },
     { titulo: "Operaciones especiales", icono: Landmark, tipos: tiposVisibles.filter((p) => ["20", "40", "RA"].includes(p.tipo)) },
-    { titulo: "Compras recibidas", icono: ShoppingBag, tipos: [{ tipo: "recibidos", etiqueta: "Recibidos (compras)" }] },
   ].filter((g) => g.tipos.length > 0);
-  const grupoActivo = gruposFacturacion.find((g) => vista === "recibidos" ? g.tipos.some((p) => p.tipo === "recibidos") : g.tipos.some((p) => p.tipo === pestana)) ?? gruposFacturacion[0];
+  const grupoActivo = gruposFacturacion.find((g) => g.tipos.some((p) => p.tipo === pestana)) ?? gruposFacturacion[0];
   const ETIQUETA_BOTON: Record<string, string> = { "01": "Crear Factura", "03": "Crear Boleta", "07": "Crear Notas de Crédito", "08": "Crear Notas de Débito", "20": "Crear Retenciones", "40": "Crear Percepciones", RA: "Nueva comunicación de baja" };
-  return <><Encabezado titulo={esGuias ? "Guías de Remisión" : "Facturación Electrónica"} subtitulo={esGuias ? "Logística · guías de remisión remitente y traslados" : "Comercial · comprobantes, estados SUNAT y cobranza"} acciones={<div className="flex items-center gap-2"><RegistrarVentaExterna abierta={ventaExt} onCerrar={() => setVentaExt(false)} />{!esGuias && (rol === "gerente" || rol === "administrador") && <ConfigDecolecta />}{!esGuias && vista !== "recibidos" && !abierto && <Boton variante="accion" title="Registrar ventas de facturas emitidas por terceros" onClick={() => setVentaExt(true)}><ReceiptText size={14} />Registrar venta</Boton>}{vista === "recibidos" ? null : abierto ? <Boton variante="linea" onClick={cerrar}>Cerrar editor</Boton> : <Boton onClick={() => abrirNuevo(pestana)}><FilePlus2 size={14} />{esGuias ? "Nueva guía de remisión" : ETIQUETA_BOTON[pestana] ?? "Nuevo comprobante"}</Boton>}</div>} />
+  return <><Encabezado titulo={esGuias ? "Guías de Remisión" : "Facturación Electrónica"} subtitulo={esGuias ? "Logística · guías de remisión remitente y traslados" : "Comercial · comprobantes, estados SUNAT y cobranza"} acciones={<div className="flex items-center gap-2"><RegistrarVentaExterna abierta={ventaExt} onCerrar={() => setVentaExt(false)} />{!esGuias && (rol === "gerente" || rol === "administrador") && <ConfigDecolecta />}{!esGuias && !abierto && <Boton variante="accion" title="Registrar ventas de facturas emitidas por terceros" onClick={() => setVentaExt(true)}><ReceiptText size={14} />Registrar venta</Boton>}{abierto ? <Boton variante="linea" onClick={cerrar}>Cerrar editor</Boton> : <Boton onClick={() => abrirNuevo(pestana)}><FilePlus2 size={14} />{esGuias ? "Nueva guía de remisión" : ETIQUETA_BOTON[pestana] ?? "Nuevo comprobante"}</Boton>}</div>} />
     {!esGuias && <>
       <div className="mb-3 flex flex-wrap gap-1">
         {gruposFacturacion.map((g) => {
@@ -182,23 +181,20 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
           return <Boton key={g.titulo} variante={activo ? "primario" : "linea"} onClick={() => {
             const primero = g.tipos[0];
             if (!primero) return;
-            if (primero.tipo === "recibidos") setVista("recibidos");
-            else { setVista("emitidos"); setPestana(primero.tipo as TipoComprobante); if (abierto) cambiarTipo(primero.tipo as TipoComprobante); }
+            setPestana(primero.tipo as TipoComprobante); if (abierto) cambiarTipo(primero.tipo as TipoComprobante);
           }}><Icono size={13} />{g.titulo}</Boton>;
         })}
       </div>
       <div className="mb-4 flex flex-wrap gap-1 border-b border-line pb-3">
         {grupoActivo?.tipos.map((p) => {
-          const activo = p.tipo === "recibidos" ? vista === "recibidos" : vista === "emitidos" && pestana === p.tipo;
+          const activo = pestana === p.tipo;
           return <button key={p.tipo} type="button" onClick={() => {
-            if (p.tipo === "recibidos") setVista("recibidos");
-            else { setVista("emitidos"); setPestana(p.tipo as TipoComprobante); if (abierto) cambiarTipo(p.tipo as TipoComprobante); }
+            setPestana(p.tipo as TipoComprobante); if (abierto) cambiarTipo(p.tipo as TipoComprobante);
           }} className={`rounded-md border-b-2 px-3 py-1.5 text-xs transition-colors ${activo ? "border-cta bg-primary/10 font-semibold text-primary" : "border-transparent text-muted-foreground hover:bg-muted hover:text-primary"}`}>{p.etiqueta}</button>;
         })}
       </div>
     </>}
 
-    {vista === "recibidos" && !esGuias ? <ComprobantesCompras /> : <>
 
     {abierto && <div className="-mx-4 -my-6 min-h-full bg-background sm:-mx-6">
       <Panel
@@ -229,6 +225,5 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
         
       </tr>)}</tbody></table></div>}
     </Panel><BarraIconosHoja objeto="borrador" haySeleccion={filtrados.some((x) => x.id === sel && x.estado_fiscal === "Borrador")} onEditar={() => { const x = filtrados.find((x) => x.id === sel); if (x?.estado_fiscal === "Borrador") void editarBorrador(x); }} onEliminar={() => { const x = filtrados.find((x) => x.id === sel); if (x?.estado_fiscal === "Borrador") setPorEliminar(x); }} extras={<BotonIcono etiqueta="Vista previa" disabled={!filtrados.some((x) => x.id === sel)} onClick={() => { void navigate({ to: "/comprobante-vista", search: { id: sel } }); }}><Eye size={15} /></BotonIcono>} /></div>
-    </>}
     <AlertDialog open={Boolean(porEliminar)} onOpenChange={(open) => { if (!open) setPorEliminar(null); }}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Eliminar borrador</AlertDialogTitle><AlertDialogDescription>Se eliminará permanentemente el comprobante {porEliminar?.numero}. Esta acción no se puede deshacer.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel disabled={guardando}>Cancelar</AlertDialogCancel><AlertDialogAction disabled={guardando} onClick={() => void confirmarEliminar()} className="bg-bad text-paper hover:bg-bad/90">Eliminar</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog></>;
 }
