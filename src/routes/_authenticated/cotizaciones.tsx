@@ -860,12 +860,14 @@ function Cotizaciones() {
 
       <div className="mb-4 grid gap-3 sm:grid-cols-3">
         {[
-          ["Cotizado este mes", soles(kpiMes)],
-          ["Aprobadas", `${kpiAprob.length} · ${soles(kpiAprob.reduce((s, c) => s + total(c.id), 0))}`],
-          ["Pendientes de respuesta", `${kpiPend.length} · ${soles(kpiPend.reduce((s, c) => s + total(c.id), 0))}`],
-        ].map(([t, v]) => (
+          { t: "Cotizado este mes", v: soles(kpiMes) },
+          { t: "Aprobadas", n: kpiAprob.length, v: soles(kpiAprob.reduce((s, c) => s + total(c.id), 0)) },
+          { t: "Pendientes de respuesta", n: kpiPend.length, v: soles(kpiPend.reduce((s, c) => s + total(c.id), 0)) },
+        ].map(({ t, n, v }) => (
           <div key={t} className="rounded-lg border border-line bg-card px-4 py-3">
-            <div className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground">{t}</div>
+            <div className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+              {t}{n !== undefined ? ` (${n})` : ""}
+            </div>
             <div className="mt-1 font-mono text-base font-semibold text-ink">{v}</div>
           </div>
         ))}
