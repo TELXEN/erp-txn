@@ -254,7 +254,7 @@ export function useComprobantesCompra(periodo: string, items: ItemRce[], activo 
   });
   const modal = registrar && <RegistrarModal recibidos={lista}
     onCerrar={() => { setRegistrar(false); setUno(null); }} onListo={() => qc.invalidateQueries()} />;
-  return { kDe, sel, toggle, todos, toggleTodos, barra, progreso, archivos, modal, registrarUno };
+  return { kDe, sel, toggle, todos, toggleTodos, barra, progreso, archivos, modal, registrarUno, registradas };
 }
 
 type Dest = { tipo: "gg" | "gd"; categoria: string; proyecto: string; partida: string };
