@@ -3,8 +3,11 @@
 Aplicar el mismo criterio de Proyectos, Partidas y Avance físico a las demás pantallas con listados.
 
 ## Criterio (igual en todas)
-- Un solo botón con lupa en el extremo derecho de la línea del título.
-- Al hacer clic se despliega un menú con la búsqueda y todos los filtros de esa pantalla.
+- La lupa va en la barra vertical derecha de la página, como el primer icono (arriba), separada del resto.
+- Si la pantalla ya tiene barra de iconos (Agregar, Editar, Copiar, Eliminar…), la lupa se integra en ella con su separador.
+- Si la pantalla no tiene barra, se crea una barra vertical derecha solo con la lupa.
+- Proyectos, Partidas y Avance físico también mueven su lupa a esa barra.
+- Al hacer clic se despliega un menú hacia la izquierda con la búsqueda y todos los filtros de esa pantalla.
 - El cursor queda en el cuadro de búsqueda; se cierra al hacer clic fuera o con Esc.
 - La lupa muestra un punto con el número de filtros activos (la búsqueda cuenta como uno).
 - «Limpiar filtros» deja todo en «Todos».
