@@ -198,85 +198,65 @@ function Avance() {
 
   return (
     <>
-      <Encabezado titulo="Avance Físico por Partida" subtitulo="Registro de campo" />
-      <div className="mb-3 flex flex-wrap gap-1">
-        <Boton variante="primario"><Gauge size={13} />Control de avance</Boton>
-      </div>
-      <div className="mb-4 flex flex-wrap gap-1 border-b border-line pb-3">
-        <Pestana activa={vista === "real"} onClick={() => setVista("real")}>
-          Avance real
-        </Pestana>
-        <Pestana activa={vista === "cronograma"} onClick={() => setVista("cronograma")}>
-          Avance programado
-        </Pestana>
-      </div>
+      <Encabezado
+        titulo="Avance Físico por Partida"
+        subtitulo="Registro de campo"
+        acciones={
+          <div className="flex flex-wrap items-center gap-1.5">
+            {vista === "real" && (
+              <>
+                <div className="relative w-44">
+                  <Search size={13} className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <Input className="h-7 py-0 pl-7 text-xs" placeholder="Buscar partida..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
+                </div>
+                <Select aria-label="Proyecto" className="h-7 w-44 py-0 text-xs" value={filtroProyecto} onChange={(e) => setFiltroProyecto(e.target.value)}>
+                  <option value="">Todos los proyectos</option>
+                  {proyectos.map((p) => (
+                    <option key={p.id} value={p.id}>{p.nombre}</option>
+                  ))}
+                </Select>
+                <Select aria-label="Especialidad" className="h-7 w-44 py-0 text-xs" value={filtroEsp} onChange={(e) => setFiltroEsp(e.target.value)}>
+                  <option value="">Todas las especialidades</option>
+                  {ESPECIALIDADES.map((e) => (
+                    <option key={e} value={e}>{e}</option>
+                  ))}
+                </Select>
+                <MenuFiltros activos={orden !== "wbs" ? 1 : 0} onLimpiar={() => setOrden("wbs")}>
+                  <label className="grid gap-1 text-[11px] text-muted-foreground">
+                    Orden
+                    <Select className="h-7 py-0 text-xs" value={orden} onChange={(e) => setOrden(e.target.value as Orden)}>
+                      <option value="wbs">Código WBS</option>
+                      <option value="avance">Mayor avance</option>
+                      <option value="nombre">Alfabético</option>
+                    </Select>
+                  </label>
+                </MenuFiltros>
+              </>
+            )}
+            <div className="flex items-center gap-0.5 rounded-md border border-line bg-card p-0.5">
+              <Pestana activa={vista === "real"} onClick={() => setVista("real")}>Avance real</Pestana>
+              <Pestana activa={vista === "cronograma"} onClick={() => setVista("cronograma")}>Avance programado</Pestana>
+            </div>
+          </div>
+        }
+      />
       {vista === "cronograma" ? (
         <CronogramaObra />
       ) : (
         <>
           {error && <p className="mb-3 rounded-md bg-bad/10 px-3 py-2 font-mono text-xs text-bad">{error}</p>}
 
-          {/* Resumen del alcance visible */}
-          <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-5">
-            <div className="rounded-lg border border-line bg-card px-3 py-2">
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Avance promedio</p>
-              <p className="text-lg font-bold tabular-nums">{resumen.promedio.toFixed(1)}%</p>
-            </div>
-            <div className="rounded-lg border border-line bg-card px-3 py-2">
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Partidas</p>
-              <p className="text-lg font-bold tabular-nums">{resumen.total}</p>
-            </div>
-            <div className="rounded-lg border border-line bg-card px-3 py-2">
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Sin iniciar</p>
-              <p className="text-lg font-bold tabular-nums text-muted-foreground">{resumen.sinIniciar}</p>
-            </div>
-            <div className="rounded-lg border border-line bg-card px-3 py-2">
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">En curso</p>
-              <p className="text-lg font-bold tabular-nums text-warn">{resumen.enCurso}</p>
-            </div>
-            <div className="rounded-lg border border-line bg-card px-3 py-2">
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Terminadas</p>
-              <p className="text-lg font-bold tabular-nums text-good">{resumen.terminadas}</p>
-            </div>
-          </div>
+          <FranjaResumen
+            items={[
+              { etiqueta: "Avance promedio", valor: `${resumen.promedio.toFixed(1)}%` },
+              { etiqueta: "Partidas", valor: resumen.total },
+              { etiqueta: "Sin iniciar", valor: resumen.sinIniciar, tono: "text-muted-foreground" },
+              { etiqueta: "En curso", valor: resumen.enCurso, tono: "text-warn" },
+              { etiqueta: "Terminadas", valor: resumen.terminadas, tono: "text-good" },
+            ]}
+          />
 
-          <Panel
-            titulo="Partidas asignadas"
-            extra={
-              <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-                <Select className="w-full sm:w-52" value={filtroProyecto} onChange={(e) => setFiltroProyecto(e.target.value)}>
-                  <option value="">Todos los proyectos</option>
-                  {proyectos.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.nombre}
-                    </option>
-                  ))}
-                </Select>
-                <Select className="w-full sm:w-56" value={filtroEsp} onChange={(e) => setFiltroEsp(e.target.value)}>
-                  <option value="">Todas las especialidades</option>
-                  {ESPECIALIDADES.map((e) => (
-                    <option key={e} value={e}>
-                      {e}
-                    </option>
-                  ))}
-                </Select>
-                <div className="relative w-full sm:w-52">
-                  <Search size={14} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    className="pl-8"
-                    placeholder="Buscar partida..."
-                    value={busqueda}
-                    onChange={(e) => setBusqueda(e.target.value)}
-                  />
-                </div>
-                <Select className="w-full sm:w-44" value={orden} onChange={(e) => setOrden(e.target.value as Orden)}>
-                  <option value="wbs">Orden: código WBS</option>
-                  <option value="avance">Orden: mayor avance</option>
-                  <option value="nombre">Orden: alfabético</option>
-                </Select>
-              </div>
-            }
-          >
+          <Panel titulo="Partidas asignadas">
             {porProyecto.length === 0 ? (
               <Vacio texto="No hay partidas con estos filtros." />
             ) : (
