@@ -324,7 +324,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
 
   async function cambiarEstado(p: Preliquidacion, estado: string) {
     if (estado === "Aprobada") {
-      const saldo = ofertadoDe(p.proyecto_id) - facturadoDe(p.proyecto_id) - comprometidoDe(p.proyecto_id, p.id);
+      const saldo = p.proyecto_id ? ofertadoDe(p.proyecto_id) - facturadoDe(p.proyecto_id) - comprometidoDe(p.proyecto_id, p.id) : Infinity;
       const neto = netoDe(p.id) * Number(p.tipo_cambio || 1);
       if (neto > saldo + 0.01)
         return alert(`No se puede aprobar: el neto ${soles(neto)} supera el saldo disponible de la obra (${soles(Math.max(saldo, 0))}).`);
@@ -371,16 +371,16 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
               </div>
             ) : (
               <div className="space-y-3">
-                <Campo>
-                  <Etiqueta>Cliente</Etiqueta>
+                <div>
+                  <label className="mb-1 block text-[10px] font-semibold uppercase text-muted-foreground">Cliente</label>
                   <Select value={cliDlg} onChange={(e) => setCliDlg(e.target.value)}>
                     <option value="">Selecciona...</option>
                     {clientes.map((c) => <option key={c.id} value={c.id}>{c.razon_social}</option>)}
                   </Select>
-                </Campo>
+                </div>
                 {cliDlg && (proyDlg.length ? (
                   <div className="max-h-64 space-y-1 overflow-y-auto">
-                    <Etiqueta>Proyectos del cliente</Etiqueta>
+                    <label className="mb-1 block text-[10px] font-semibold uppercase text-muted-foreground">Proyectos del cliente</label>
                     {proyDlg.map((p) => (
                       <button key={p.id} type="button" className="block w-full rounded border border-line px-2 py-1.5 text-left text-xs hover:border-primary hover:bg-primary/5" onClick={() => abrirNuevo("cliente", cliDlg, p.id)}>
                         <span className="text-muted-foreground">{p.codigo}</span> {p.nombre}
