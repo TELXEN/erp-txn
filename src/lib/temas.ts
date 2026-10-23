@@ -2,9 +2,6 @@ import { useEffect, useState } from "react";
 
 export type TemaId =
   | "telxen"
-  | "esmeralda"
-  | "cobalto"
-  | "zafiro"
   | "obsidiana"
   | "word"
   | "excel"
@@ -77,78 +74,6 @@ export const TEMAS: Tema[] = [
     },
   },
   {
-    id: "esmeralda",
-    nombre: "Esmeralda y Pizarra",
-    descripcion: "Menú pizarra y verde esmeralda",
-    muestraBase: "#1E293B",
-    muestraAcento: "#059669",
-    vars: {
-      "--brand": "oklch(0.975 0.004 250)",
-      "--brand-foreground": "#1E293B",
-      "--cta": "#047857",
-      "--cta-foreground": "#FFFFFF",
-      "--primary": "#1E293B",
-      "--primary-foreground": "#FFFFFF",
-      "--accent": "#047857",
-      "--accent-foreground": "#FFFFFF",
-      "--ring": "#047857",
-      "--sidebar": "#1E293B",
-      "--sidebar-foreground": "#FAFAFA",
-      "--sidebar-muted": "#CBD5E1",
-      "--sidebar-border": "#475569",
-      "--sidebar-hover": "#334155",
-      "--sidebar-panel": "#172033",
-    },
-  },
-  {
-    id: "cobalto",
-    nombre: "Cobalto y Naranja",
-    descripcion: "Menú azul cobalto y naranja de obra",
-    muestraBase: "#0A2540",
-    muestraAcento: "#EA580C",
-    vars: {
-      "--brand": "oklch(0.975 0.008 250)",
-      "--brand-foreground": "#0A2540",
-      "--cta": "#C2410C",
-      "--cta-foreground": "#FFFFFF",
-      "--primary": "#27356E",
-      "--primary-foreground": "#FFFFFF",
-      "--accent": "#C2410C",
-      "--accent-foreground": "#FFFFFF",
-      "--ring": "#1E40AF",
-      "--sidebar": "#27356E",
-      "--sidebar-foreground": "#FAFAFA",
-      "--sidebar-muted": "#BFDBFE",
-      "--sidebar-border": "#4A5C9E",
-      "--sidebar-hover": "#2F4080",
-      "--sidebar-panel": "#202C5A",
-    },
-  },
-  {
-    id: "zafiro",
-    nombre: "Zafiro y Cian",
-    descripcion: "Menú negro con acentos zafiro y cian",
-    muestraBase: "#0A2647",
-    muestraAcento: "#0FAAFF",
-    vars: {
-      "--brand": "oklch(0.975 0.006 235)",
-      "--brand-foreground": "#0A2647",
-      "--cta": "#0FAAFF",
-      "--cta-foreground": "#0A2647",
-      "--primary": "#1B1D24",
-      "--primary-foreground": "#FFFFFF",
-      "--accent": "#0FAAFF",
-      "--accent-foreground": "#0A2647",
-      "--ring": "#0284C7",
-      "--sidebar": "#1B1D24",
-      "--sidebar-foreground": "#FAFAFA",
-      "--sidebar-muted": "#A1A1AA",
-      "--sidebar-border": "#30333D",
-      "--sidebar-hover": "#262933",
-      "--sidebar-panel": "#23252D",
-    },
-  },
-  {
     id: "obsidiana",
     nombre: "TELXEN Obsidiana",
     descripcion: "Menú negro, texto blanco y acento amarillo",
@@ -217,7 +142,7 @@ export function leerTema(): TemaId {
   try {
     const guardado = window.localStorage.getItem(LS_TEMA);
     if (TEMAS.some((t) => t.id === guardado)) return guardado as TemaId;
-    if (guardado === "redwood" || guardado === "monocromo") return "telxen";
+    if (guardado === "redwood" || guardado === "monocromo" || guardado === "esmeralda" || guardado === "cobalto" || guardado === "zafiro") return "telxen";
   } catch {
     // almacenamiento no disponible
   }
