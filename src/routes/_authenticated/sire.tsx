@@ -14,6 +14,7 @@ import { Panel, Campo, Input, Select, Boton, SinAcceso, Vacio, tipoDistintivo } 
 import { MESES, fecha as fmtFecha, soles } from "@/lib/format";
 import { guardarConfigSire, validarConexionSire, sincronizarSire, aceptarSire } from "@/lib/sire.functions";
 import { useComprobantesCompra } from "@/components/sire/ComprobantesRecibidos";
+import { RegistrarVentaExterna, type VentaInicial } from "@/components/facturacion/RegistrarVentaExterna";
 
 export const Route = createFileRoute("/_authenticated/sire")({
   head: () => ({
@@ -211,7 +212,6 @@ const ESTADO_UI: Record<Estado, { t: string; c: string; I: React.ElementType }> 
 
 function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
   const qc = useQueryClient();
-  const navigate = useNavigate();
   const { session } = useAuth();
   const [paso, setPaso] = useState(1);
   const [detalle, setDetalle] = useState<Item | null>(null);
@@ -219,6 +219,13 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
   const { data: rucEmpresa } = useQuery({ queryKey: ["sire-ruc"], queryFn: async () => (await supabase.from("empresa_config").select("ruc").limit(1).maybeSingle()).data?.ruc ?? "" });
   const [filtro, setFiltro] = useState<"todos" | "ok" | "disc" | "sunat">("todos");
   const [vinculando, setVinculando] = useState<Item | null>(null);
+  const [ventaSel, setVentaSel] = useState<Item | null>(null);
+  const [ventasReg, setVentasReg] = useState<Set<string>>(new Set());
+  const ventaInicial = useMemo<VentaInicial | null>(() => {
+    if (!ventaSel) return null;
+    const usd = (ventaSel.moneda ?? "PEN") === "USD";
+    return { tipo: ventaSel.tipo === "03" ? "Boleta" : "Factura", numero: ventaSel.serie_numero, fecha: ventaSel.fecha, moneda: usd ? "USD" : "PEN", tc: usd ? String(ventaSel.tipo_cambio || 3.75) : "1", valor: String(ventaSel.base ?? 0), igv: String(ventaSel.igv ?? 0), concepto: `Comprobante ${ventaSel.serie_numero} (registro SIRE)`, ruc: ventaSel.ruc, razon: ventaSel.razon };
+  }, [ventaSel]);
 
   const { data: reg } = useQuery({
     queryKey: ["sire", libro, periodo],
@@ -292,6 +299,8 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
   return (
     <div className="min-w-0 max-w-full space-y-2">
 
+      {libro === "RVIE" && <RegistrarVentaExterna abierta={!!ventaSel} inicial={ventaInicial} onCerrar={() => setVentaSel(null)}
+        onGuardado={() => { const k = ventaSel?.clave; if (k) setVentasReg((s) => new Set(s).add(k)); }} />}
       {vinculando && reg && <VincularManual item={vinculando} libro={libro} periodo={periodo} items={items} onCerrar={() => setVinculando(null)}
         onVincular={async (d) => {
           const nuevos = items.map((x) => x.clave !== vinculando.clave ? x : { ...x, total_erp: d.total, igv_erp: d.igv, vinculado: d.serie_numero, estado: (Math.abs((x.moneda && x.moneda !== "PEN" ? (x.total_sunat ?? 0) * (x.tipo_cambio || 1) : (x.total_sunat ?? 0)) - d.total) > 0.01 ? "discrepancia" : "match") as Estado });
@@ -347,7 +356,7 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
                   <tbody>
                     {visibles.map((i) => {
                       const kSel = esRce ? cc.kDe(i as any) : null;
-                      const registrada = esRce && !!kSel && cc.registradas.has(kSel);
+                      const registrada = esRce ? !!kSel && cc.registradas.has(kSel) : ventasReg.has(i.clave);
                       const e = registrada ? { t: "Registrado en ERP", c: "text-good bg-good/10 ring-good/20", I: CheckCircle2 } : ESTADO_UI[i.estado];
                       const t = tasaIgv(i);
                       const parcial = t >= 0.10 && t < 0.1795;
@@ -382,17 +391,12 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
                           <td className="px-3 py-2 text-right">
                             {i.estado === "faltante" && !registrada && (
                               <div className="flex items-center justify-end gap-1">
-                              {/* Emitir (Ventas/RVIE): abre Facturación Electrónica con los datos de este comprobante
-                                  que solo existe en SUNAT, para que quede registrado también en el ERP.
+                              {/* Registrar Ventas (RVIE): el comprobante ya fue emitido; se registra en Ventas sin salir de SIRE.
                                   Registrar en Gasto (Compras/RCE): imputa la factura de proveedor a Costo Directo o Gasto General. */}
-                              <Boton variante="linea" className="whitespace-nowrap !py-1" title={libro === "RCE" ? "Registrar esta factura de proveedor como Costo Directo o Gasto General en el ERP" : "Abrir Facturación Electrónica con este comprobante de SUNAT precargado para registrarlo en el ERP"} onClick={(ev) => { ev.stopPropagation();
-                                if (libro === "RVIE") {
-                                  sessionStorage.setItem("sire-prefill-cpe", JSON.stringify({ fecha: i.fecha, tipo: i.tipo, serie_numero: i.serie_numero, ruc: i.ruc, razon: i.razon, base: i.base, igv: i.igv, total: i.total_sunat, moneda: i.moneda ?? "PEN", tipo_cambio: i.tipo_cambio ?? 0, vencimiento: i.vencimiento ?? "" }));
-                                  navigate({ to: "/facturacion-electronica", search: { preliquidacion: "" } });
-                                } else {
-                                  void cc.registrarUno(i as any);
-                                }
-                              }}><Plus className="size-3" />{libro === "RCE" ? "Registrar en Gasto" : "Emitir"}</Boton>
+                              <Boton variante="linea" className="whitespace-nowrap !py-1" title={libro === "RCE" ? "Registrar esta factura de proveedor como Costo Directo o Gasto General en el ERP" : "Registrar en Ventas este comprobante ya emitido, con los datos de SUNAT precargados"} onClick={(ev) => { ev.stopPropagation();
+                                if (libro === "RVIE") setVentaSel(i);
+                                else void cc.registrarUno(i as any);
+                              }}><Plus className="size-3" />{libro === "RCE" ? "Registrar en Gasto" : "Registrar Ventas"}</Boton>
                               <button title="Vincular manualmente con un documento del ERP" aria-label="Vincular manualmente" onClick={(ev) => { ev.stopPropagation(); setVinculando(i); }}
                                 className="inline-flex items-center gap-1 whitespace-nowrap rounded-md px-2 py-1 text-[11px] text-muted-foreground ring-1 ring-line hover:bg-muted hover:text-primary"><Link2 className="size-3" />Vincular</button>
                               </div>
@@ -417,7 +421,7 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
             {libro === "RVIE" && (
               <p className="border-t border-line px-5 py-2 font-mono text-[10px] text-muted-foreground">
                 <Plus className="mr-1 inline-block size-3 align-middle text-primary" />
-                «Emitir» abre Facturación Electrónica con este comprobante de SUNAT precargado, para que quede registrado en el ERP.{" "}
+                «Registrar Ventas» registra en el ERP este comprobante ya emitido, sin salir de SIRE y con los datos de SUNAT precargados.{" "}
                 <Link2 className="mx-1 inline-block size-3 align-middle" />
                 «Vincular» lo asocia a un documento ya emitido en el ERP sin duplicarlo.
               </p>
