@@ -374,14 +374,14 @@ export function MenuFiltros({ activos, onLimpiar, children }: { activos: number;
   );
 }
 
-/** Resumen en una sola franja baja: etiqueta y valor en línea. */
+/** Fila de tarjetas de resumen con el mismo tamaño que TarjetaResumen (Cotizaciones). */
 export function FranjaResumen({ items }: { items: { etiqueta: string; valor: ReactNode; tono?: string }[] }) {
   return (
-    <div className="mb-2 flex flex-wrap items-center divide-x divide-line rounded-md border border-line bg-card px-1 py-1.5">
+    <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
       {items.map((d) => (
-        <div key={d.etiqueta} className="flex items-baseline gap-1.5 px-3">
-          <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{d.etiqueta}</span>
-          <span className={cn("text-sm font-bold tabular-nums", d.tono)}>{d.valor}</span>
+        <div key={d.etiqueta} className="panel p-4">
+          <p className="label-mono text-muted-foreground">{d.etiqueta}</p>
+          <p className={cn("mt-1 font-mono text-xl font-bold tabular-nums text-ink", d.tono)}>{d.valor}</p>
         </div>
       ))}
     </div>
