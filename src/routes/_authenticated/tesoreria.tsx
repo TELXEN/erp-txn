@@ -486,16 +486,18 @@ function Tesoreria() {
           const etiqueta =
             t === "resumen" ? "Resumen" : t === "financiamiento" ? "Préstamos / Financiamiento" : t === "cxc" ? `Cuentas por cobrar (${cxc.length})` : t === "cxp" ? `Pagos a proveedores (${cxpProv.length})` : `Pagos de personal (${cxpPer.length})`;
           return (
-            <Boton variante="linea"
+            <button
               key={t}
               type="button"
+              role="tab"
+              aria-selected={activa}
               onClick={() => { setPestana(t); setAccion(null); setFiltroVence(null); setTercero(""); setSeleccion(new Set()); }}
-              className={`-mb-px border-b-2 px-4 py-2 text-xs font-medium transition ${
-                activa ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-ink"
+              className={`-mb-px min-h-9 border-b-2 px-4 py-2 text-xs font-medium transition-colors ${
+                activa ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:border-line hover:text-ink"
               }`}
             >
               {etiqueta}
-            </Boton>
+            </button>
           );
         })}
       </div>
