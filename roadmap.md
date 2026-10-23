@@ -75,4 +75,5 @@
 - [x] Base: cabecera, pestañas, tarjetas, filas de carga, vacío con icono, franja entre filas y foco visible; Configuración adoptada.
 - [x] Pestañas uniformes en Tesorería, SIRE y Nómina.
 - [x] Cotizaciones: tarjetas de resumen y pestañas uniformes (Caja chica ya cumplía el formato).
-- [ ] Dashboard, menú lateral, ventanas y revisión de contraste (siguientes etapas).
+- [x] Dashboard y Personal: pestañas uniformes.
+- [ ] Revisión de contraste en los cinco temas (opcional, a pedido).
