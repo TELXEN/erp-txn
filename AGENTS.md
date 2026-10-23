@@ -24,6 +24,7 @@
 - SIRE owns RCE end to end: one persistent period selector and sync control for both books, with the purchase XML/PDF/CDR download and ERP register merged into the RCE conciliation table — Facturación Electrónica is sales-only.
 - On desktop, AppShell owns viewport height; sidebar and workspace scroll independently — navigation stays fixed.
 - Quotation rows use flat `orden` + `nivel` and niveles-cotizacion.ts; moves preserve descendants and may cross adjacent headings to change groups. HojaNiveles separates bank/new insertion; bank copies recipes, new stays independent. APU inserts use filaRecursoCotizacion for FK/code snapshots; PEN master prices.
+- Banco APU partidas are stored and listed alphabetically (Spanish collator, accents/case-insensitive) and their hierarchical codes are renumbered by alphabetical position inside each especialidad branch — single source codigosAlfabetizados/alfabetizarPartidas/guardarPartidaEnBanco in banco-apu.ts, so no screen assigns bank codes by hand.
 - EMO validity is computed in src/lib/emo.ts from each worker's latest exam (emos_trabajador, admin/gerente-only) — one rule feeds every EMO alert.
 - Primary creation uses VentanaFlotante (optional hidden scrollbars) with consecutive saves and explicit close; cost eligibility, overrun lock and CD ceiling are DB triggers (Gerencia overrides via solicitudes_desbloqueo).
 - Detraction collections store the BN account in ventas.banco_detraccion_id; treasury splits the sale between both banks — no duplicate sale rows.
