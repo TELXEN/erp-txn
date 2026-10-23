@@ -371,7 +371,7 @@ export function MenuFiltros({ activos, onLimpiar, children, flotante = false }: 
   }, [flotante]);
   const lupa = (
     <div className="relative">
-      <BotonIcono etiqueta="Buscar y filtrar" tono="primario" onClick={() => setAbierto((v) => !v)} aria-expanded={abierto}>
+      <BotonIcono etiqueta="Buscar y filtrar" onClick={() => setAbierto((v) => !v)} aria-expanded={abierto} className={cn("opacity-70 hover:opacity-100", abierto && "border-primary/50 text-primary opacity-100")}>
         <Search size={15} />
       </BotonIcono>
       {activos > 0 && (
