@@ -346,7 +346,7 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
   );
 
   return (
-    <div className="space-y-2">
+    <div className="min-w-0 max-w-full space-y-2">
 
       {vinculando && reg && <VincularManual item={vinculando} libro={libro} periodo={periodo} items={items} onCerrar={() => setVinculando(null)}
         onVincular={async (d) => {
@@ -380,7 +380,7 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
             )}
             {esRce && cc.progreso}
             {visibles.length === 0 ? <Vacio texto="Sin documentos en este filtro" /> : (
-              <div className="max-h-[calc(100vh-470px)] min-h-[260px] overflow-auto" style={{ fontFamily: "var(--font-global)" }}>
+              <div className="max-h-[calc(100vh-470px)] min-h-[260px] max-w-full overflow-auto" style={{ fontFamily: "var(--font-global)" }}>
                 <div className="sticky top-0 z-20 flex h-[36px] flex-nowrap items-center gap-1 overflow-x-auto whitespace-nowrap border-b border-line bg-card px-3 py-1">
                   {libro === "RCE" && (
                     <>
@@ -396,9 +396,9 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
                     <button key={k} onClick={() => setFiltro(k)} className={`inline-flex shrink-0 items-center gap-1 rounded-md px-2.5 py-1 text-[11px] ${k === "disc" && cuenta.disc > 0 ? (filtro === k ? "bg-amber-500 font-semibold text-white ring-1 ring-amber-600" : "bg-amber-500/15 font-semibold text-amber-700 ring-1 ring-amber-500/40 hover:bg-amber-500/25 dark:text-amber-400") : filtro === k ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}>{k === "disc" && cuenta.disc > 0 && <AlertTriangle className="size-3" />}{t} <span className={k === "disc" && cuenta.disc > 0 ? "" : "opacity-70"}>({cuenta[k]})</span></button>
                   ))}
                 </div>
-                <table className="w-full min-w-[1100px] text-sm">
+                <table className={`w-full min-w-[1100px] text-sm ${esRce ? "[&_th]:px-2 [&_td]:px-2" : ""}`}>
                   <thead className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                    <tr>{esRce && <th className="sticky top-[36px] z-10 bg-muted px-2 py-1.5"><input type="checkbox" aria-label="Seleccionar todas" checked={cc.todos} onChange={cc.toggleTodos} /></th>}{["Fecha", "Tipo", "Serie-Número", "RUC / Razón social", "Base", "IGV", "Total SUNAT", "Total ERP", "Estado", ""].map((h, i) => <th key={i} className={`sticky top-[36px] z-10 whitespace-nowrap bg-muted px-3 py-1.5 ${i >= 4 && i <= 7 ? "text-right" : "text-left"} ${i === 3 ? "w-[30%] min-w-[260px]" : ""}`}>{h}</th>)}{esRce && <th className="sticky top-[36px] z-10 whitespace-nowrap bg-muted px-3 py-1.5 text-left">Archivos</th>}</tr>
+                    <tr>{esRce && <th className="sticky top-[36px] z-10 bg-muted px-2 py-1.5"><input type="checkbox" aria-label="Seleccionar todas" checked={cc.todos} onChange={cc.toggleTodos} /></th>}{["Fecha", "Tipo", "Serie-Número", "RUC / Razón social", "Base", "IGV", "Total SUNAT", "Total ERP", "Estado", ""].map((h, i) => <th key={i} className={`sticky top-[36px] z-10 whitespace-nowrap bg-muted px-3 py-1.5 ${i >= 4 && i <= 7 ? "text-right" : "text-left"} ${i === 3 ? (esRce ? "w-[22%] min-w-[200px]" : "w-[30%] min-w-[260px]") : ""}`}>{h}</th>)}{esRce && <th className="sticky top-[36px] z-10 whitespace-nowrap bg-muted px-3 py-1.5 text-left">Archivos</th>}</tr>
                   </thead>
                   <tbody>
                     {visibles.map((i) => {
