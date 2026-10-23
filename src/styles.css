@@ -320,6 +320,12 @@
   padding: 1rem 1.1rem;
   transition: border-color 0.15s, transform 0.15s;
 }
+/* Distintivo por tipo de dato en tarjetas de resumen: tinte suave + marco fino. */
+.kpi-tarjeta, [data-distintivo] { --dist: var(--color-primary); background-color: color-mix(in oklab, var(--dist) 6%, var(--color-card)) !important; border-color: color-mix(in oklab, var(--dist) 28%, var(--color-line)) !important; }
+[data-distintivo="avance"] { --dist: #0284C7; }
+[data-distintivo="cantidad"] { --dist: #64748B; }
+[data-distintivo="warn"] { --dist: var(--color-warn); }
+[data-distintivo="bad"] { --dist: var(--color-bad); }
 button.kpi-tarjeta:hover { border-color: color-mix(in oklab, var(--color-primary) 40%, var(--color-line)); }
 .proyecto-tarjeta {
   border-radius: var(--radius);
