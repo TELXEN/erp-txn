@@ -8,7 +8,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Eye, FilePlus2, Landmark, Pencil, ReceiptText, Trash2 } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, Etiqueta, MenuFiltros, Panel, SinAcceso, Vacio } from "@/components/ui-kit";
+import { Boton, Campo, Etiqueta, MenuFiltros, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { calcularVencimiento } from "@/components/CondicionPago";
 import { ConfigDecolecta } from "@/components/facturacion/ConfigDecolecta";
@@ -33,6 +33,10 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
   const [sel, setSel] = useState("");
   const [pestana, setPestana] = useState<TipoComprobante>(pestanaInicial);
   const [abierto, setAbierto] = useState(Boolean(preliquidacion));
+  const [origenAbierto, setOrigenAbierto] = useState(false);
+  const [origen, setOrigen] = useState<"libre" | "preliquidacion">("libre");
+  const [seleccionPl, setSeleccionPl] = useState("");
+  const [preliquidacionOrigen, setPreliquidacionOrigen] = useState(preliquidacion);
   const [form, setForm] = useState<FormCpe>(() => nuevoFormCpe(pestanaInicial, SERIE_DEFECTO[pestanaInicial]));
   const [items, setItems] = useState<ItemEditor[]>([itemComprobanteVacio()]);
   const [docs, setDocs] = useState<DocRelacionado[]>([docRelacionadoVacio()]);
@@ -47,13 +51,15 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
   const { data: series = [] } = useQuery({ queryKey: ["series_comprobante"], queryFn: async () => { const { data, error } = await supabase.from("series_comprobante").select("*").eq("activo", true).order("serie"); if (error) throw error; return data ?? []; } });
   const { data: lista = [] } = useQuery({ queryKey: ["comprobantes_electronicos"], queryFn: async () => { const { data, error } = await supabase.from("comprobantes_electronicos").select("*").order("created_at", { ascending: false }); if (error) throw error; return (data ?? []) as Comprobante[]; } });
   const { data: refs = [] } = useQuery({ queryKey: ["comprobantes-referencia"], queryFn: async () => { const { data, error } = await supabase.from("comprobantes_electronicos").select("id,numero,tipo_comprobante,total").in("tipo_comprobante", ["01", "03"]).neq("estado_fiscal", "Borrador").order("fecha_emision", { ascending: false }); if (error) throw error; return data ?? []; } });
-  const { data: pl } = useQuery({ queryKey: ["preliquidacion-facturar", preliquidacion], enabled: Boolean(preliquidacion), queryFn: async () => { const [{ data: p, error }, { data: ls, error: e2 }] = await Promise.all([supabase.from("preliquidaciones").select("*").eq("id", preliquidacion).single(), supabase.from("preliquidacion_items").select("*").eq("preliquidacion_id", preliquidacion).order("orden")]); if (error) throw error; if (e2) throw e2; return { p, ls: ls ?? [] }; } });
+  const { data: preliquidacionesDisponibles = [], isPending: buscandoPl, error: errorListaPl } = useQuery({ queryKey: ["preliquidaciones", "para-facturar"], enabled: origenAbierto, queryFn: async () => { const { data, error } = await supabase.from("preliquidaciones").select("id,codigo,concepto,proyecto_id,cliente_id,moneda").eq("estado", "Aprobada").order("fecha", { ascending: false }); if (error) throw error; return data ?? []; } });
+  const { data: pl, isFetching: cargandoPl, error: errorPl } = useQuery({ queryKey: ["preliquidacion-facturar", preliquidacionOrigen], enabled: Boolean(preliquidacionOrigen), queryFn: async () => { const [{ data: p, error }, { data: ls, error: e2 }] = await Promise.all([supabase.from("preliquidaciones").select("*").eq("id", preliquidacionOrigen).single(), supabase.from("preliquidacion_items").select("*").eq("preliquidacion_id", preliquidacionOrigen).order("orden")]); if (error) throw error; if (e2) throw e2; return { p, ls: ls ?? [] }; } });
 
-  if (pl && cargado !== preliquidacion) {
-    setCargado(preliquidacion); const p = pl.p; const cliente = clientes.find((c) => c.id === p.cliente_id);
+  useEffect(() => {
+    if (!pl || !preliquidacionOrigen || cargado === preliquidacionOrigen || (pl.p.cliente_id && !clientes.length)) return;
+    setCargado(preliquidacionOrigen); const p = pl.p; const cliente = clientes.find((c) => c.id === p.cliente_id);
     setForm((f) => ({ ...f, cliente_id: p.cliente_id ?? "", cliente_numero_documento: cliente?.numero_documento ?? "", cliente_razon_social: cliente?.razon_social ?? "", cliente_direccion: cliente?.direccion ?? "", proyecto_id: p.proyecto_id, fecha_emision: hoy(), moneda: p.moneda as "PEN" | "USD", tipo_cambio: String(p.tipo_cambio), condicion_pago: p.condicion_pago, dias_credito: String(p.dias_credito), tipo_tributario: p.tipo_tributario as TipoTributarioCpe, pct_detraccion: String(p.pct_detraccion), codigo_spot: p.tipo_tributario === "detraccion" ? "037" : "", orden_compra: p.concepto, observacion: p.observacion }));
     setItems(pl.ls.map((x) => { const m = /^\s*(\d{1,2}(?:\.\d{1,2})*)\s+(.*)$/.exec(x.descripcion); return { codigo: m?.[1]?.replaceAll(".", "") ?? "", descripcion: m?.[2] ?? x.descripcion, unidad_sunat: "ZZ", cantidad: String(x.cantidad), valor_unitario: String(x.precio_unitario), descuento: "0" }; }));
-  }
+  }, [pl, preliquidacionOrigen, cargado, clientes]);
 
   const tipo = form.tipo_comprobante as TipoComprobante;
   const tc = form.moneda === "USD" ? Number(form.tipo_cambio || 0) : 1;
@@ -72,7 +78,7 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
       const [serie = "", corr = ""] = x.serie_numero.split("-");
       const cli = clientes.find((c) => c.numero_documento === x.ruc);
       const usd = x.moneda === "USD";
-      setPestana(t); setEditando(null); setError("");
+      setPestana(t); setEditando(null); setPreliquidacionOrigen(""); setCargado(""); setError("");
       setForm({ ...nuevoFormCpe(t, serie || SERIE_DEFECTO[t]), correlativo_inicial: String(Number(corr) || ""), fecha_emision: x.fecha, fecha_vencimiento: x.vencimiento || x.fecha, cliente_id: cli?.id ?? "", cliente_numero_documento: x.ruc, cliente_razon_social: cli?.razon_social ?? x.razon, cliente_direccion: cli?.direccion ?? "", moneda: usd ? "USD" : "PEN", tipo_cambio: usd ? String(x.tipo_cambio || 3.75) : "3.750", operacion_tipo: x.igv > 0 ? "gravada" : "exonerada", observacion: `Importado desde SIRE SUNAT: ${x.serie_numero}` });
       setItems([{ ...itemComprobanteVacio(), descripcion: `Comprobante ${x.serie_numero} (registro SIRE)`, cantidad: "1", valor_unitario: String(x.base) }]);
       setDocs([docRelacionadoVacio()]); setCuotas([]); setAbierto(true);
@@ -84,13 +90,15 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
 
   function abrirNuevo(t: TipoComprobante) {
     const serie = series.find((s) => s.tipo_comprobante === t)?.serie ?? SERIE_DEFECTO[t];
-    setEditando(null); setError(""); setForm(nuevoFormCpe(t, serie)); setItems([itemComprobanteVacio()]); setDocs([docRelacionadoVacio()]); setCuotas([]); setAbierto(true);
+    setEditando(null); setError(""); setPreliquidacionOrigen(""); setCargado(""); setForm(nuevoFormCpe(t, serie)); setItems([itemComprobanteVacio()]); setDocs([docRelacionadoVacio()]); setCuotas([]);
+    if (t === "01") { setOrigen("libre"); setSeleccionPl(""); setOrigenAbierto(true); setAbierto(false); }
+    else setAbierto(true);
   }
   function cambiarTipo(t: TipoComprobante) {
     const serie = series.find((s) => s.tipo_comprobante === t)?.serie ?? SERIE_DEFECTO[t];
     setPestana(t); setForm({ ...form, tipo_comprobante: t, serie, referencia_id: t === "07" || t === "08" ? form.referencia_id : "" });
   }
-  function cerrar() { setAbierto(false); setEditando(null); setForm(nuevoFormCpe(pestana, SERIE_DEFECTO[pestana])); setItems([itemComprobanteVacio()]); setDocs([docRelacionadoVacio()]); setCuotas([]); }
+  function cerrar() { setAbierto(false); setEditando(null); setPreliquidacionOrigen(""); setCargado(""); setForm(nuevoFormCpe(pestana, SERIE_DEFECTO[pestana])); setItems([itemComprobanteVacio()]); setDocs([docRelacionadoVacio()]); setCuotas([]); }
 
   async function editarBorrador(x: Comprobante) {
     setError(""); setGuardando(true);
@@ -103,7 +111,7 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
       if (cuotasError) throw cuotasError;
       const guia = (x.datos_guia ?? {}) as Record<string, string>; const regimen = (x.datos_regimen ?? {}) as Record<string, string>;
       const base = nuevoFormCpe(x.tipo_comprobante as TipoComprobante, x.serie);
-      setEditando(x); setPestana(x.tipo_comprobante as TipoComprobante);
+      setEditando(x); setPreliquidacionOrigen(""); setCargado(""); setPestana(x.tipo_comprobante as TipoComprobante);
       setForm({ ...base, ...guia, tipo_comprobante: x.tipo_comprobante as TipoComprobante, serie: x.serie, cliente_id: x.cliente_id ?? "", proyecto_id: x.proyecto_id ?? "", referencia_id: x.comprobante_referencia_id ?? "", motivo_nota_codigo: x.motivo_nota_codigo, motivo_nota_descripcion: x.motivo_nota_descripcion, fecha_emision: x.fecha_emision, fecha_vencimiento: x.fecha_vencimiento ?? x.fecha_emision, moneda: x.moneda as "PEN" | "USD", tipo_cambio: String(x.tipo_cambio), operacion_tipo: x.operacion_tipo as OperacionTipo, condicion_pago: x.condicion_pago, dias_credito: String(x.dias_credito), tipo_tributario: x.tipo_tributario as TipoTributarioCpe, pct_detraccion: String(x.pct_detraccion), codigo_spot: x.codigo_spot, orden_compra: x.orden_compra, observacion: x.observacion, cliente_numero_documento: x.cliente_numero_documento ?? "", cliente_razon_social: x.cliente_razon_social ?? "", cliente_direccion: x.cliente_direccion ?? "", cliente_ciudad: x.cliente_ciudad ?? "", cliente_estado_sunat: x.cliente_estado_sunat ?? "", cliente_condicion_sunat: x.cliente_condicion_sunat ?? "", guia_remision_numero: x.guia_remision_numero ?? "", igv_tasa: String(x.igv_tasa ?? 18), anticipo_tipo: x.anticipo_tipo ?? "ninguno", anticipo_documento: x.anticipo_documento ?? "", anticipo_monto: Number(x.anticipo_monto ?? 0) ? String(x.anticipo_monto) : "", isc: String(x.isc ?? 0), icbper: String(x.icbper ?? 0), otros_cargos: String(x.otros_cargos ?? 0), otros_tributos: String(x.otros_tributos ?? 0), regimen_tasa: regimen["tasa"] ?? base.regimen_tasa, motivo_baja: x.motivo_baja ?? base.motivo_baja });
       setItems((filas ?? []).map((i) => ({ codigo: i.codigo, descripcion: i.descripcion, unidad_sunat: i.unidad_sunat, cantidad: String(i.cantidad), valor_unitario: String(i.valor_unitario), descuento: String(i.descuento) })));
       setCuotas((filasCuotas ?? []).map((q) => ({ fecha: q.fecha_vencimiento, monto: String(q.monto) })));
@@ -115,6 +123,7 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
 
   async function guardar(emitir: boolean) {
     setError("");
+    if (preliquidacionOrigen && (cargandoPl || errorPl || cargado !== preliquidacionOrigen)) return setError("Espera a que se carguen los datos de la preliquidación.");
     const validos = items.filter((x) => x.descripcion.trim() && Number(x.cantidad) > 0);
     const relValidos = docs.filter((d) => d.numero.trim() && Number(d.importe) > 0);
     if (!form.cliente_razon_social.trim()) return setError("Indica el nombre o razón social del cliente.");
@@ -136,7 +145,7 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
       const datosGuia = tipo === "09" ? { guia_motivo: form.guia_motivo, guia_modalidad: form.guia_modalidad, guia_fecha_traslado: form.guia_fecha_traslado, guia_transportista: form.guia_transportista, guia_transportista_doc: form.guia_transportista_doc, guia_placa: form.guia_placa, guia_licencia: form.guia_licencia, guia_peso: form.guia_peso, guia_bultos: form.guia_bultos, guia_partida: form.guia_partida, guia_partida_ubigeo: form.guia_partida_ubigeo, guia_llegada: form.guia_llegada, guia_llegada_ubigeo: form.guia_llegada_ubigeo } : {};
       const datosRegimen = tipo === "20" || tipo === "40" ? { tasa: form.regimen_tasa, total_comprobantes: String(totalRegimen), importe: String(importeRegimen) } : {};
       const payload = {
-        tipo_comprobante: tipo, serie: form.serie, correlativo_inicial: form.correlativo_inicial ? Number(form.correlativo_inicial) : null, preliquidacion_id: preliquidacion || editando?.preliquidacion_id || null, proyecto_id: form.proyecto_id || null, cliente_id: form.cliente_id || null,
+        tipo_comprobante: tipo, serie: form.serie, correlativo_inicial: form.correlativo_inicial ? Number(form.correlativo_inicial) : null, preliquidacion_id: preliquidacionOrigen || editando?.preliquidacion_id || null, proyecto_id: form.proyecto_id || null, cliente_id: form.cliente_id || null,
         comprobante_referencia_id: form.referencia_id || null, motivo_nota_codigo: form.motivo_nota_codigo, motivo_nota_descripcion: form.motivo_nota_descripcion,
         fecha_emision: form.fecha_emision, fecha_vencimiento: fechaVenc, moneda: form.moneda, tipo_cambio: tc, operacion_tipo: form.operacion_tipo,
         cliente_ciudad: form.cliente_ciudad, guia_remision_numero: form.guia_remision_numero, igv_tasa: Number(form.igv_tasa || 18),
@@ -197,13 +206,35 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
     </>}
 
 
+    <VentanaFlotante titulo="Crear factura" abierta={origenAbierto} onCerrar={() => setOrigenAbierto(false)} ancho="max-w-xl">
+      <div className="space-y-4 p-5">
+        <div className="flex gap-2" role="group" aria-label="Origen de la factura">
+          <Boton variante={origen === "libre" ? "primario" : "linea"} aria-pressed={origen === "libre"} onClick={() => setOrigen("libre")}><FilePlus2 size={14} />Factura libre</Boton>
+          <Boton variante={origen === "preliquidacion" ? "primario" : "linea"} aria-pressed={origen === "preliquidacion"} onClick={() => setOrigen("preliquidacion")}><ReceiptText size={14} />Desde preliquidación</Boton>
+        </div>
+        {origen === "preliquidacion" && <Campo etiqueta="Preliquidación aprobada">
+          <Select aria-label="Preliquidación aprobada" value={seleccionPl} onChange={(e) => setSeleccionPl(e.target.value)} disabled={buscandoPl}>
+            <option value="">{buscandoPl ? "Cargando…" : "Selecciona una preliquidación"}</option>
+            {preliquidacionesDisponibles.map((p) => <option key={p.id} value={p.id}>{p.codigo} · {clientes.find((c) => c.id === p.cliente_id)?.razon_social ?? proyectos.find((x) => x.id === p.proyecto_id)?.nombre ?? ""} · {p.concepto}</option>)}
+          </Select>
+          {errorListaPl && <p role="alert" className="mt-2 text-xs text-bad">No se pudieron cargar las preliquidaciones.</p>}
+          {!buscandoPl && !errorListaPl && !preliquidacionesDisponibles.length && <p className="mt-2 text-xs text-muted-foreground">No hay preliquidaciones aprobadas pendientes de facturar.</p>}
+        </Campo>}
+        <div className="flex justify-end gap-2 border-t border-line pt-4">
+          <Boton variante="linea" onClick={() => setOrigenAbierto(false)}>Cancelar</Boton>
+          <Boton disabled={origen === "preliquidacion" && (!seleccionPl || buscandoPl || Boolean(errorListaPl))} onClick={() => { setPreliquidacionOrigen(origen === "preliquidacion" ? seleccionPl : ""); setOrigenAbierto(false); setAbierto(true); }}>{origen === "preliquidacion" ? "Cargar datos" : "Continuar"}</Boton>
+        </div>
+      </div>
+    </VentanaFlotante>
     {abierto && <div className="-mx-4 -my-6 min-h-full bg-background sm:-mx-6">
       <Panel
-        titulo={editando ? `Editar borrador ${editando.numero}` : preliquidacion ? "Facturar preliquidación" : esGuias ? "Nueva guía de remisión" : "Nuevo comprobante electrónico"}
+        titulo={editando ? `Editar borrador ${editando.numero}` : preliquidacionOrigen ? `Facturar preliquidación ${pl?.p.codigo ?? ""}` : esGuias ? "Nueva guía de remisión" : "Nuevo comprobante electrónico"}
         extra={<Boton variante="linea" onClick={cerrar}>Cerrar editor</Boton>}
         className="min-h-full"
       >
       <div className="bg-muted/60 px-4 py-2 sm:px-6">
+        {preliquidacionOrigen && cargandoPl && <p role="status" className="py-2 text-sm text-muted-foreground">Cargando preliquidación…</p>}
+        {errorPl && <p role="alert" className="py-2 text-sm text-bad">No se pudo cargar la preliquidación: {errorPl.message}</p>}
         <HojaComprobante form={form} setForm={setForm} items={items} setItems={setItems} docs={docs} setDocs={setDocs} cuotas={cuotas} setCuotas={setCuotas} empresa={empresa} clientes={clientes} proyectos={proyectos.map((p) => ({ id: p.id, nombre: p.nombre, codigo: p.codigo ?? "" }))} refs={refs} series={series} numeroPreview={editando ? String(editando.correlativo).padStart(8, "0") : "[AUTOGENERADO]"} montos={montos} totalRegimen={totalRegimen} importeRegimen={importeRegimen} onTipoChange={cambiarTipo} bloqueado={Boolean(editando)} tipos={tiposVisibles} />
       </div>
       <div className="sticky bottom-0 z-10 flex flex-wrap items-center gap-2 border-t border-line bg-card/95 p-4 shadow-lg backdrop-blur">
