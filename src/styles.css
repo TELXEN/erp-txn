@@ -359,6 +359,13 @@ aside .md\:overflow-y-auto:hover::-webkit-scrollbar-thumb { background: color-mi
   @media (min-width: 768px) { body { font-size: 0.875rem; } }
   main table th, main table td { padding-block: 0.25rem; }
   main .panel:has(> table), main .panel > div:has(> table) { overflow-x: auto; }
+  /* Franja suave entre filas (las clases de color de fila siguen ganando) */
+  main table tbody tr:nth-child(even) { background-color: color-mix(in oklab, var(--color-muted) 35%, transparent); }
+  /* Foco visible al usar el teclado */
+  :where(button, a, [role="tab"], input, select, textarea):focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
 }
 
 /* Cifras y códigos: familia de cifras, ancho fijo, a la derecha */

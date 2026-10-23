@@ -1,6 +1,6 @@
 import type { ReactNode, InputHTMLAttributes, SelectHTMLAttributes, ButtonHTMLAttributes } from "react";
 import { useEffect, useState } from "react";
-import { Info, X } from "lucide-react";
+import { Inbox, Info, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 
@@ -172,8 +172,140 @@ export function Etiqueta({ tono, children }: { tono: "good" | "bad" | "warn" | "
   );
 }
 
-export function Vacio({ texto }: { texto: string }) {
-  return <p className="px-5 py-8 text-center font-mono text-xs text-muted-foreground">{texto}</p>;
+export function Vacio({ texto, icono, accion }: { texto: string; icono?: ReactNode; accion?: ReactNode }) {
+  return (
+    <div className="flex flex-col items-center gap-2 px-5 py-8 text-center">
+      <span className="grid size-9 place-items-center rounded-full bg-muted text-muted-foreground">
+        {icono ?? <Inbox className="size-4" />}
+      </span>
+      <p className="font-mono text-xs text-muted-foreground">{texto}</p>
+      {accion}
+    </div>
+  );
+}
+
+/** Cabecera común de módulo: ruta + título a la izquierda, contexto al centro, acciones a la derecha. */
+export function CabeceraModulo({
+  ruta,
+  titulo,
+  descripcion,
+  icono,
+  contexto,
+  acciones,
+}: {
+  ruta?: string;
+  titulo: string;
+  descripcion?: string;
+  icono?: ReactNode;
+  contexto?: ReactNode;
+  acciones?: ReactNode;
+}) {
+  return (
+    <header className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex min-w-0 items-center gap-3">
+        {icono && <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">{icono}</div>}
+        <div className="min-w-0">
+          {ruta && <p className="label-mono text-muted-foreground">{ruta}</p>}
+          <h1 className="truncate text-xl font-bold">{titulo}</h1>
+          {descripcion && <p className="text-sm text-muted-foreground">{descripcion}</p>}
+        </div>
+      </div>
+      {contexto && <div className="flex items-center gap-2">{contexto}</div>}
+      {acciones && <div className="flex flex-wrap items-center gap-2">{acciones}</div>}
+    </header>
+  );
+}
+
+/** Pestañas internas uniformes: línea inferior con el color del menú. */
+export function Pestanas<T extends string>({
+  opciones,
+  valor,
+  onCambiar,
+  etiqueta,
+}: {
+  opciones: { id: T; texto: string; icono?: ReactNode }[];
+  valor: T;
+  onCambiar: (v: T) => void;
+  etiqueta: string;
+}) {
+  return (
+    <div role="tablist" aria-label={etiqueta} className="flex flex-wrap gap-1 border-b border-line">
+      {opciones.map((o) => {
+        const activa = o.id === valor;
+        return (
+          <button
+            key={o.id}
+            type="button"
+            role="tab"
+            aria-selected={activa}
+            onClick={() => onCambiar(o.id)}
+            className={cn(
+              "-mb-px inline-flex min-h-9 items-center gap-2 border-b-2 px-3 py-2 text-xs font-medium transition-colors",
+              activa ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:border-line hover:text-ink",
+            )}
+          >
+            {o.icono}
+            {o.texto}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/** Tarjeta de resumen: etiqueta (con cantidad), monto grande; color solo en alerta; clic opcional para filtrar. */
+export function TarjetaResumen({
+  etiqueta,
+  cantidad,
+  valor,
+  alerta,
+  activa,
+  onClick,
+}: {
+  etiqueta: string;
+  cantidad?: number;
+  valor: ReactNode;
+  alerta?: "bad" | "warn";
+  activa?: boolean;
+  onClick?: () => void;
+}) {
+  const color = alerta === "bad" ? "text-bad" : alerta === "warn" ? "text-warn" : "text-ink";
+  const Comp = onClick ? "button" : "div";
+  return (
+    <Comp
+      type={onClick ? "button" : undefined}
+      onClick={onClick}
+      aria-pressed={onClick ? !!activa : undefined}
+      className={cn(
+        "panel block w-full p-4 text-left transition-colors",
+        onClick && "hover:border-primary/50",
+        activa && "border-primary ring-2 ring-primary/30",
+      )}
+    >
+      <p className="label-mono text-muted-foreground">
+        {etiqueta}
+        {cantidad !== undefined && ` (${cantidad})`}
+      </p>
+      <p className={cn("mt-1 font-mono text-xl font-bold tabular-nums", color)}>{valor}</p>
+    </Comp>
+  );
+}
+
+/** Filas grises mientras carga una tabla. */
+export function FilasCargando({ filas = 6, columnas = 5 }: { filas?: number; columnas?: number }) {
+  return (
+    <>
+      {Array.from({ length: filas }).map((_, i) => (
+        <tr key={i} aria-hidden="true">
+          {Array.from({ length: columnas }).map((_, j) => (
+            <td key={j} className="px-3 py-1.5">
+              <span className="block h-3 animate-pulse rounded bg-muted" />
+            </td>
+          ))}
+        </tr>
+      ))}
+    </>
+  );
 }
 
 export function SinAcceso() {
