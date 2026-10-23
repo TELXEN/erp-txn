@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 vi.mock("@/integrations/supabase/client", () => ({ supabase: {} }));
-const { siguienteCodigoJerarquico: s, filaRecursoCotizacion, costoReceta, incidenciaPartidaApu } = await import("@/lib/banco-apu");
+const { siguienteCodigoJerarquico: s, filaRecursoCotizacion, costoReceta, incidenciaPartidaApu, ordenarPartidasAlfabetico, codigosAlfabetizados, codigoAlfabeticoSugerido } = await import("@/lib/banco-apu");
 
 describe("siguienteCodigoJerarquico", () => {
   it("incrementa el último nivel", () => expect(s(["04.01.01", "04.01.02", "05.01.09"], "04")).toBe("04.01.03"));
@@ -54,5 +54,34 @@ describe("incidencia del APU en el desglose", () => {
     const incidencia = incidenciaPartidaApu(calculo, 2000.65, 2, 5);
     expect(incidencia["AJUSTE"]).toBe(60);
     expect(incidencia["OTROS"]).toBe(0);
+  });
+});
+
+describe("partidas del banco guardadas por orden alfabético", () => {
+  const p = (id: string, codigo: string, descripcion: string, especialidad = "ELÉCTRICA") => ({ id, codigo_jerarquico: codigo, descripcion, especialidad });
+  it("ordena A→Z sin tildes ni mayúsculas", () => {
+    const orden = ordenarPartidasAlfabetico([p("1", "06.01.01", "Zanjas"), p("2", "06.01.02", "ángeles"), p("3", "06.01.03", "Banquetas")]);
+    expect(orden.map((x) => x.descripcion)).toEqual(["ángeles", "Banquetas", "Zanjas"]);
+  });
+  it("renumera el correlativo según la letra", () => {
+    expect(codigosAlfabetizados([p("1", "06.01.01", "Zanjas"), p("2", "06.01.02", "Alumbrado")]))
+      .toEqual([{ id: "2", codigo: "06.01.01" }, { id: "1", codigo: "06.01.02" }]);
+  });
+  it("no toca los códigos que ya siguen el orden alfabético", () => {
+    expect(codigosAlfabetizados([p("1", "06.01.01", "Alumbrado"), p("2", "06.01.02", "Zanjas")])).toEqual([]);
+  });
+  it("da código a una partida guardada sin código", () => {
+    expect(codigosAlfabetizados([p("1", "06.01.01", "Zanjas"), p("2", "", "Alumbrado")], () => "06"))
+      .toEqual([{ id: "2", codigo: "06.01.01" }, { id: "1", codigo: "06.01.02" }]);
+  });
+  it("cada especialidad numera su propia rama", () => {
+    const prefijo = (x: { especialidad?: string }) => (x.especialidad === "ILUMINACIÓN" ? "07" : "06");
+    expect(codigosAlfabetizados([p("1", "06.01.01", "Zanjas"), p("2", "07.01.01", "Tableros", "ILUMINACIÓN"), p("3", "", "Alumbrado", "ILUMINACIÓN")], prefijo))
+      .toEqual([{ id: "3", codigo: "07.01.01" }, { id: "2", codigo: "07.01.02" }]);
+  });
+  it("sugiere el hueco alfabético de una partida nueva", () => {
+    const partidas = [p("1", "06.01.01", "Alumbrado"), p("2", "06.01.02", "Zanjas")];
+    expect(codigoAlfabeticoSugerido(partidas, "06", "Transformador")).toBe("06.01.02");
+    expect(codigoAlfabeticoSugerido(partidas, "06", "Acometida")).toBe("06.01.01");
   });
 });

@@ -4,7 +4,8 @@ import { Plus, Upload } from "lucide-react";
 import { Boton, Campo, Input, Select, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { Resaltar } from "@/components/Buscador";
 import { MenuContextualApu, type AccionApu, type EstadoMenuApu } from "@/components/MenuContextualApu";
-import { BANCOS_RECURSO, costoReceta, incidenciaPartidaApu, filaRecursoCotizacion, dbBanco, renumerarApu, useBancoTabla, useRecursosApu, type FilaCalculo, type RecursosApu } from "@/lib/banco-apu";
+import { BANCOS_RECURSO, costoReceta, guardarPartidaEnBanco, incidenciaPartidaApu, filaRecursoCotizacion, dbBanco, renumerarApu, useBancoTabla, useRecursosApu, type FilaCalculo, type RecursosApu } from "@/lib/banco-apu";
+import { useEspecialidadesPartida } from "@/lib/especialidades";
 import { VentanaInsumo, CANCELADO, type SelInsumo } from "@/components/InsumoVentana";
 import { r2, sumar2 } from "@/lib/decimal";
 import { PCT_HERRAMIENTAS_DEFECTO } from "@/lib/apu";
@@ -49,6 +50,7 @@ export function PanelApuCotizacion({ cot, item, comando }: { cot: Cotizacion; it
   const qc = useQueryClient();
   const { rol } = useAuth();
   const recursos = useRecursosApu();
+  const { data: especialidades = [] } = useEspecialidadesPartida();
   const { data: detalle = [] } = useBancoTabla("cotizacion_apu_detalle");
   const [pestana, setPestana] = useState<Pestana>("acu");
   const [aviso, setAviso] = useState("");
@@ -225,12 +227,13 @@ export function PanelApuCotizacion({ cot, item, comando }: { cot: Cotizacion; it
     let destino = actualizarOrigen ? ((it as { partida_apu_id?: string | null }).partida_apu_id as string) : null;
     if (!destino) {
       if (!window.confirm(`¿Guardar «${it.nombre}» como nueva partida maestra en el Banco APU?`)) return;
-      const { data, error } = await dbBanco.from("partidas_apu").insert({
-        codigo_jerarquico: it.codigo ?? "", descripcion: it.nombre, unidad: it.unidad, rendimiento_diario: rend,
+      // La partida maestra entra al banco por orden alfabético: el código se asigna solo.
+      const { id, error } = await guardarPartidaEnBanco({
+        codigo_jerarquico: "", descripcion: it.nombre, unidad: it.unidad, rendimiento_diario: rend,
         especialidad: it.especialidad ?? "", estado: "activo",
-      }).select("id").single();
-      if (error) return setAviso(error.message);
-      destino = data.id as string;
+      }, especialidades);
+      if (error) return setAviso(error);
+      destino = id as string;
       await dbBanco.from("cotizacion_items").update({ partida_apu_id: destino }).eq("id", it.id);
     } else {
       const { error } = await dbBanco.from("partida_detalle").delete().eq("partida_padre_id", destino);

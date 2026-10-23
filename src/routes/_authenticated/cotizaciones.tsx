@@ -6,7 +6,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { ApuBanco, ORIGEN_COTIZACION } from "@/components/ApuCotizacion";
-import { dbBanco, useCatalogoCotizacion } from "@/lib/banco-apu";
+import { dbBanco, guardarPartidaEnBanco, useCatalogoCotizacion } from "@/lib/banco-apu";
 import { AutoMaestra } from "@/components/CotizacionHoja";
 import { HojaNiveles } from "@/components/cotizaciones/HojaNiveles";
 import { PanelApuCotizacion, ResumenCotizacion } from "@/components/cotizaciones/PanelApuCotizacion";
@@ -310,15 +310,16 @@ function Cotizaciones() {
     setError("");
     setAviso("");
     if (!item.nombre.trim()) return setError("Escribe la descripción antes de guardarla en el banco.");
-    const { error: err } = await dbBanco.from("partidas_apu").insert({
+    // La partida entra al banco por orden alfabético: el código se asigna solo.
+    const { error: err } = await guardarPartidaEnBanco({
       codigo_jerarquico: "",
       descripcion: item.nombre.trim(),
       especialidad: item.especialidad,
       unidad: item.unidad,
       rendimiento_diario: 1,
       estado: "activo",
-    });
-    if (err) return setError(err.message);
+    }, especialidades);
+    if (err) return setError(err);
     qc.invalidateQueries({ queryKey: ["banco_apu"] });
     setAviso("Partida guardada en el Banco APU. Define su receta en Datos APU.");
   }
