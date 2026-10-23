@@ -413,12 +413,12 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
           extra={<Boton type="button" variante="linea" onClick={() => setAbierto(false)}>Cerrar editor</Boton>}
         >
           <form onSubmit={guardar} className="p-5">
-            <div className="mb-3 overflow-hidden rounded-lg bg-[#1A2B4C] text-white shadow-sm">
-              <div className="flex items-center justify-between border-b border-white/10 px-4 py-1">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-[#F1C40F]">
+            <div className="mb-3 overflow-hidden rounded-lg bg-sidebar text-sidebar-foreground shadow-sm">
+              <div className="flex items-center justify-between border-b border-sidebar-border px-4 py-1">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-sidebar-foreground">
                   Configuración de preliquidación
                   {cintaColapsada && form.proyecto_id && (
-                    <span className="ml-2 font-medium normal-case tracking-normal text-slate-300">
+                    <span className="ml-2 font-medium normal-case tracking-normal text-sidebar-muted">
                       {nombreProy(form.proyecto_id)} · {nombreCliente(form.cliente_id || null)}
                     </span>
                   )}
@@ -426,17 +426,17 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
                 <button
                   type="button"
                   onClick={() => setCintaColapsada((v) => !v)}
-                  className="rounded bg-white/10 px-2 py-0.5 text-[10px] text-slate-300 transition-colors hover:bg-white/20"
+                  className="rounded bg-sidebar-hover px-2 py-0.5 text-[10px] text-sidebar-muted transition-colors hover:bg-sidebar-border"
                 >
                   {cintaColapsada ? "Expandir panel" : "Contraer panel"}
                 </button>
               </div>
               {!cintaColapsada && (
-                <div className="grid grid-cols-2 gap-px bg-white/10 p-px sm:grid-cols-4 lg:grid-cols-7">
-                  <div className="flex min-w-0 flex-col bg-[#1A2B4C] p-2">
-                    <label className="mb-0.5 text-[9px] font-bold uppercase text-slate-400">Proyecto</label>
+                <div className="grid grid-cols-2 gap-px bg-sidebar-border p-px sm:grid-cols-4 lg:grid-cols-7">
+                  <div className="flex min-w-0 flex-col bg-sidebar p-2">
+                    <label className="mb-0.5 text-[9px] font-bold uppercase text-sidebar-muted">Proyecto</label>
                     <select
-                      className="-ml-1 w-full rounded bg-transparent px-1 text-xs font-medium text-white focus:outline-none focus:ring-1 focus:ring-[#F1C40F] [&>option]:text-black"
+                      className="-ml-1 w-full rounded bg-transparent px-1 text-xs font-medium text-sidebar-foreground focus:outline-none focus:ring-1 focus:ring-sidebar-foreground/60 [&>option]:text-black"
                       value={form.proyecto_id}
                       onChange={(e) => elegirProyecto(e.target.value)}
                       required={origen === "cliente"}
@@ -447,10 +447,10 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
                       ))}
                     </select>
                   </div>
-                  <div className="flex min-w-0 flex-col bg-[#1A2B4C] p-2">
-                    <label className="mb-0.5 text-[9px] font-bold uppercase text-slate-400">Cliente</label>
+                  <div className="flex min-w-0 flex-col bg-sidebar p-2">
+                    <label className="mb-0.5 text-[9px] font-bold uppercase text-sidebar-muted">Cliente</label>
                     <select
-                      className="-ml-1 w-full rounded bg-transparent px-1 text-xs font-medium text-white focus:outline-none focus:ring-1 focus:ring-[#F1C40F] [&>option]:text-black"
+                      className="-ml-1 w-full rounded bg-transparent px-1 text-xs font-medium text-sidebar-foreground focus:outline-none focus:ring-1 focus:ring-sidebar-foreground/60 [&>option]:text-black"
                       value={form.cliente_id}
                       onChange={(e) => setForm({ ...form, cliente_id: e.target.value })}
                       disabled={origen === "cliente"}
@@ -461,10 +461,10 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
                       ))}
                     </select>
                   </div>
-                  <div className="flex min-w-0 flex-col bg-[#1A2B4C] p-2">
-                    <label className="mb-0.5 text-[9px] font-bold uppercase text-slate-400">Régimen</label>
+                  <div className="flex min-w-0 flex-col bg-sidebar p-2">
+                    <label className="mb-0.5 text-[9px] font-bold uppercase text-sidebar-muted">Régimen</label>
                     <select
-                      className="-ml-1 w-full rounded bg-transparent px-1 text-xs font-medium text-white focus:outline-none focus:ring-1 focus:ring-[#F1C40F] [&>option]:text-black"
+                      className="-ml-1 w-full rounded bg-transparent px-1 text-xs font-medium text-sidebar-foreground focus:outline-none focus:ring-1 focus:ring-sidebar-foreground/60 [&>option]:text-black"
                       value={`${form.tipo_tributario}|${form.pct_detraccion}`}
                       onChange={(e) => {
                         const [t, p] = e.target.value.split("|");
@@ -477,23 +477,23 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
                       </option>
                     </select>
                   </div>
-                  <div className="flex min-w-0 flex-col bg-[#1A2B4C] p-2">
-                    <label className="mb-0.5 text-[9px] font-bold uppercase text-slate-400">% aplicado</label>
+                  <div className="flex min-w-0 flex-col bg-sidebar p-2">
+                    <label className="mb-0.5 text-[9px] font-bold uppercase text-sidebar-muted">% aplicado</label>
                     <input
                       type="number"
                       step="0.01"
                       min="0"
                       max="100"
-                      className="-ml-1 w-full rounded bg-transparent px-1 text-xs font-medium text-white focus:outline-none focus:ring-1 focus:ring-[#F1C40F] disabled:text-slate-500"
+                      className="-ml-1 w-full rounded bg-transparent px-1 text-xs font-medium text-sidebar-foreground focus:outline-none focus:ring-1 focus:ring-sidebar-foreground/60 disabled:text-sidebar-muted/60"
                       value={form.pct_detraccion}
                       disabled={form.tipo_tributario === "ninguno"}
                       onChange={(e) => setForm({ ...form, pct_detraccion: e.target.value })}
                     />
                   </div>
-                  <div className="flex min-w-0 flex-col bg-[#1A2B4C] p-2">
-                    <label className="mb-0.5 text-[9px] font-bold uppercase text-slate-400">Condición</label>
+                  <div className="flex min-w-0 flex-col bg-sidebar p-2">
+                    <label className="mb-0.5 text-[9px] font-bold uppercase text-sidebar-muted">Condición</label>
                     <select
-                      className="-ml-1 w-full rounded bg-transparent px-1 text-xs font-medium text-white focus:outline-none focus:ring-1 focus:ring-[#F1C40F] [&>option]:text-black"
+                      className="-ml-1 w-full rounded bg-transparent px-1 text-xs font-medium text-sidebar-foreground focus:outline-none focus:ring-1 focus:ring-sidebar-foreground/60 [&>option]:text-black"
                       value={form.condicion_pago}
                       onChange={(e) => setForm({ ...form, ...condicionVacia(e.target.value) })}
                     >
@@ -501,14 +501,14 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
                       <option value="Crédito">Crédito</option>
                     </select>
                   </div>
-                  <div className="flex min-w-0 flex-col bg-[#1A2B4C] p-2">
-                    <label className="mb-0.5 truncate text-[9px] font-bold uppercase text-slate-400" title={form.condicion_pago === "Crédito" ? `Vence ${fmtFecha(venc)}` : "Días de crédito"}>
+                  <div className="flex min-w-0 flex-col bg-sidebar p-2">
+                    <label className="mb-0.5 truncate text-[9px] font-bold uppercase text-sidebar-muted" title={form.condicion_pago === "Crédito" ? `Vence ${fmtFecha(venc)}` : "Días de crédito"}>
                       {form.condicion_pago === "Crédito" ? `Días · vence ${fmtFecha(venc)}` : "Días crédito"}
                     </label>
                     {form.condicion_pago === "Crédito" ? (
                       <div className="flex gap-1">
                         <select
-                          className="-ml-1 w-full min-w-0 rounded bg-transparent px-1 text-xs font-medium text-white focus:outline-none focus:ring-1 focus:ring-[#F1C40F] [&>option]:text-black"
+                          className="-ml-1 w-full min-w-0 rounded bg-transparent px-1 text-xs font-medium text-sidebar-foreground focus:outline-none focus:ring-1 focus:ring-sidebar-foreground/60 [&>option]:text-black"
                           value={PLAZOS.includes(Number(form.dias_credito)) ? form.dias_credito : "otro"}
                           onChange={(e) => e.target.value !== "otro" && setForm({ ...form, dias_credito: e.target.value })}
                         >
@@ -521,23 +521,23 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
                           type="number"
                           min="0"
                           step="1"
-                          className="w-14 rounded bg-transparent px-1 text-xs font-medium text-white focus:outline-none focus:ring-1 focus:ring-[#F1C40F]"
+                          className="w-14 rounded bg-transparent px-1 text-xs font-medium text-sidebar-foreground focus:outline-none focus:ring-1 focus:ring-sidebar-foreground/60"
                           value={form.dias_credito}
                           onChange={(e) => setForm({ ...form, dias_credito: e.target.value })}
                         />
                       </div>
                     ) : (
-                      <span className="px-1 text-xs text-slate-500">—</span>
+                      <span className="px-1 text-xs text-sidebar-muted">—</span>
                     )}
                   </div>
-                  <div className="flex min-w-0 flex-col bg-[#1A2B4C] p-2 ring-1 ring-inset ring-[#F1C40F]/30">
-                    <label className="mb-0.5 text-[9px] font-bold uppercase text-[#F1C40F]">Saldo obra</label>
+                  <div className="flex min-w-0 flex-col bg-sidebar p-2 ring-1 ring-inset ring-sidebar-foreground/25">
+                    <label className="mb-0.5 text-[9px] font-bold uppercase text-sidebar-foreground">Saldo obra</label>
                     {form.proyecto_id ? (
                       <span className={`px-1 text-xs font-bold ${saldoSel - netoForm * tc >= 0 ? "text-emerald-300" : "text-red-300"}`}>
                         {soles(saldoSel)}
                       </span>
                     ) : (
-                      <span className="px-1 text-xs text-slate-500">—</span>
+                      <span className="px-1 text-xs text-sidebar-muted">—</span>
                     )}
                   </div>
                 </div>
