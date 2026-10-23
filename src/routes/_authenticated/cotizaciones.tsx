@@ -859,32 +859,25 @@ function Cotizaciones() {
       </p>
 
       <div className="mb-4 grid gap-3 sm:grid-cols-3">
-        {[
-          { t: "Cotizado este mes", v: soles(kpiMes) },
-          { t: "Aprobadas", n: kpiAprob.length, v: soles(kpiAprob.reduce((s, c) => s + total(c.id), 0)) },
-          { t: "Pendientes de respuesta", n: kpiPend.length, v: soles(kpiPend.reduce((s, c) => s + total(c.id), 0)) },
-        ].map(({ t, n, v }) => (
-          <div key={t} className="rounded-lg border border-line bg-card px-4 py-3">
-            <div className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-              {t}{n !== undefined ? ` (${n})` : ""}
-            </div>
-            <div className="mt-1 font-mono text-base font-semibold text-ink">{v}</div>
-          </div>
-        ))}
+        <TarjetaResumen etiqueta="Cotizado este mes" valor={soles(kpiMes)} />
+        <TarjetaResumen etiqueta="Aprobadas" cantidad={kpiAprob.length} valor={soles(kpiAprob.reduce((s, c) => s + total(c.id), 0))} />
+        <TarjetaResumen etiqueta="Pendientes de respuesta" cantidad={kpiPend.length} valor={soles(kpiPend.reduce((s, c) => s + total(c.id), 0))} alerta={kpiPend.length > 0 ? "warn" : undefined} />
       </div>
 
-      <div className="mb-4 flex flex-wrap gap-1 border-b border-line pb-3">
+      <div role="tablist" aria-label="Estado de cotizaciones" className="mb-4 flex flex-wrap gap-1 border-b border-line">
         {PESTANAS.map((p) => {
           const n = p === "Todas" ? vigentes.length : p === "En Obra" ? vigentes.filter((c) => c.proyecto_id).length : vigentes.filter((c) => c.estado === p).length;
           return (
             <button
               key={p}
               type="button"
+              role="tab"
+              aria-selected={pestana === p}
               onClick={() => setPestana(p)}
-              className={`rounded-md border-b-2 px-3 py-1.5 text-xs transition-colors ${
+              className={`-mb-px min-h-9 border-b-2 px-3 py-2 text-xs font-medium transition-colors ${
                 pestana === p
-                  ? "border-cta bg-primary/10 font-semibold text-primary"
-                  : "border-transparent text-muted-foreground hover:bg-muted hover:text-primary"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground hover:border-line hover:text-ink"
               }`}
             >
               {p} <span className="opacity-60">({n})</span>
