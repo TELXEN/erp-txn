@@ -4,8 +4,8 @@
 
 1. **Al pulsar «Nueva guía de remisión»** se abre primero una ventana «Crear guía» con dos opciones:
    - **Libre**: abre la guía vacía, como hoy (destinatario y detalle escritos a mano).
-   - **Cliente**: pide elegir el cliente y luego uno de sus proyectos. La guía queda vinculada a ese proyecto.
-2. **Detalle de la guía con proyecto**: un botón «Cargar partidas del proyecto» abre una lista con casillas de las partidas de esa obra (código WBS, descripción, unidad, metrado). Las marcadas se agregan como líneas de la guía (descripción y unidad); la cantidad se puede editar. También se pueden seguir escribiendo líneas a mano.
+   - **Cliente**: pide elegir el cliente y, si quieres, uno de sus proyectos. El proyecto es opcional: puedes crear la guía solo con el cliente.
+2. **Detalle de la guía con proyecto**: un botón «Cargar partidas del proyecto» abre una lista con casillas de las partidas de esa obra (código WBS, descripción, unidad, metrado). Las marcadas se agregan como líneas de la guía con el metrado completo como cantidad (editable después). Sin proyecto, el botón no aparece. También se pueden seguir escribiendo líneas a mano.
 3. **Nuevo catálogo «Transportistas»** (menú Logística, junto a Proveedores), con lista, lupa de filtros y barra de iconos como las demás pantallas. Cada transportista guarda:
    - Empresa: RUC, Razón social, Dirección, Teléfono, Correo
    - N° de registro MTC
@@ -22,9 +22,6 @@
    Al cambiar la modalidad, el bloque muestra solo los datos que corresponden.
 6. La hoja impresa/PDF de la guía muestra los nuevos datos (MTC, certificado, entidad, conductor con DNI y licencia).
 
-## Preguntas abiertas
-- ¿«Cliente» debe permitir guía sin proyecto (solo cliente)? Por defecto: proyecto obligatorio.
-- ¿Las cantidades de partidas cargadas toman el metrado completo o empiezan en 0? Por defecto: metrado completo, editable.
 
 ## Detalles técnicos
 - Migración: tablas `transportistas`, `transportista_vehiculos`, `transportista_conductores` (GRANT a authenticated/service_role, RLS para personal vía `es_personal`), índice único por RUC.
