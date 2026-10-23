@@ -80,6 +80,7 @@ const MENU: Categoria[] = [
       { a: "/cotizaciones", texto: "Cotizaciones", roles: ["administrador", "gerente"], icono: FileText },
       { a: "/valorizaciones", texto: "Preliquidaciones", roles: ["administrador", "gerente"], icono: Banknote },
       { a: "/facturacion-electronica", texto: "Facturación Electrónica", roles: ["administrador", "gerente"], icono: ReceiptText },
+      { a: "/registro-ventas", texto: "Registro de Ventas", roles: ["administrador", "gerente"], icono: FileSpreadsheet },
     ],
   },
   {
