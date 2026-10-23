@@ -364,6 +364,11 @@ export function MenuFiltros({ activos, onLimpiar, children, flotante = false }: 
     window.addEventListener("keydown", tecla);
     return () => window.removeEventListener("keydown", tecla);
   }, [abierto]);
+  useEffect(() => {
+    if (!flotante) return;
+    document.documentElement.classList.add("con-barra-filtros");
+    return () => document.documentElement.classList.remove("con-barra-filtros");
+  }, [flotante]);
   const lupa = (
     <div className="relative">
       <BotonIcono etiqueta="Buscar y filtrar" tono="primario" onClick={() => setAbierto((v) => !v)} aria-expanded={abierto}>
