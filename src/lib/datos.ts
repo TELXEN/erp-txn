@@ -36,6 +36,8 @@ export type Proyecto = {
   nombre: string;
   cliente: string;
   ubicacion: string;
+  documento_tipo?: string;
+  documento_numero?: string;
   estado: "En Ejecucion" | "Finalizado";
   situacion: string;
   fecha_inicio: string | null;

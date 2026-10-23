@@ -49,6 +49,7 @@ type Props = {
   cliente: HojaPLCliente;
   proyectoNombre: string;
   concepto: string;
+  ordenCompra?: string;
   lineas: HojaPLLinea[];
   amortizacion: number;
   tipoTributario: TipoTributario;
@@ -63,7 +64,7 @@ type Props = {
   /** true: la hoja ocupa todo el ancho disponible (edición); false: A4 fijo 794 px. */
   anchoCompleto?: boolean;
   unidades?: { id: string; simbolo: string; activo: boolean }[];
-  onCampo?: (campo: "fecha" | "moneda" | "tipo_cambio" | "concepto" | "observacion" | "amortizacion" | "dias_credito", valor: string) => void;
+  onCampo?: (campo: "fecha" | "moneda" | "tipo_cambio" | "concepto" | "orden_compra" | "observacion" | "amortizacion" | "dias_credito", valor: string) => void;
   onLinea?: (indice: number, cambios: Partial<HojaPLLinea>) => void;
   onQuitarLinea?: (indice: number) => void;
   onAgregarLinea?: () => void;
@@ -73,7 +74,7 @@ type Props = {
 
 export function HojaPreliquidacion(props: Props) {
   const {
-    empresa, codigo, estado, fecha, moneda, tipoCambio, cliente, proyectoNombre, concepto,
+    empresa, codigo, estado, fecha, moneda, tipoCambio, cliente, proyectoNombre, concepto, ordenCompra = "",
     lineas, amortizacion, tipoTributario, pctDetraccion, condicionPago, diasCredito,
     fechaVencimiento, observacion, cuentas,
     editable = false, anchoCompleto = false, unidades = [],
@@ -187,9 +188,9 @@ export function HojaPreliquidacion(props: Props) {
           <div style={valor}>{proyectoNombre || "—"}</div>
           <div style={{ ...etiqueta, marginTop: 8 }}>Orden de compra</div>
           {editable ? (
-            <input value={concepto} onChange={(e) => onCampo?.("concepto", e.target.value)} maxLength={160} placeholder="Ej. OC-2026-0154" style={{ ...ed, ...valor }} />
+            <input aria-label="Orden de compra" value={ordenCompra} onChange={(e) => onCampo?.("orden_compra", e.target.value)} maxLength={160} placeholder="Número del documento" style={{ ...ed, ...valor }} />
           ) : (
-            <div style={valor}>{concepto || "—"}</div>
+            <div style={valor}>{ordenCompra || "—"}</div>
           )}
         </div>
         <div style={{ width: "23%" }}>
@@ -213,6 +214,10 @@ export function HojaPreliquidacion(props: Props) {
       </div>
 
       {/* Detalle */}
+      {(concepto || editable) && <div className="mb-4">
+        <div style={etiqueta}>Descripción</div>
+        {editable ? <input aria-label="Descripción de la preliquidación" value={concepto} onChange={(e) => onCampo?.("concepto", e.target.value)} style={{ ...ed, ...valor }} /> : <div style={valor}>{concepto}</div>}
+      </div>}
       <div style={tituloSeccion}>Detalle de la preliquidación</div>
       <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: editable ? 4 : 16, tableLayout: "fixed" }}>
         <colgroup>

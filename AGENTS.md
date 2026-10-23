@@ -12,6 +12,7 @@
 - Programmed progress stores percentages per leaf item/period; dashboards exclude grouping rows — no double counting.
 - S-curve uses work-item schedules and current physical cut-off; cost progress is money-role-only — truthful history.
 - Preliquidation uses @react-pdf/renderer; quotation/invoice previews use fixed A4 HTML. Quotation pagination uses measured rows/closing heights via paginacion-cotizacion, keeping headings with items — no premature breaks.
+- Project commercial references are copied into preliquidaciones.orden_compra on project selection and saved independently of concepto; previews and exports read the saved reference, not the project's current number, to preserve history.
 - Electronic invoices use dedicated comprobantes_electronicos/items/cuotas tables, while emitted invoices/receipts mirror into ventas for treasury compatibility; numbering is reserved only by an authenticated server function.
 - Invoice creation chooses its source before opening the editor; keep the selected preliquidation ID in editor state, not the URL, so a later free invoice never inherits an old link.
 - Typography: configuracion_documentos/local catalogue, UI --font-global, PDF embeds chosen font, Excel uses catalogue family — consistent outputs.

@@ -33,6 +33,7 @@ export type DatosPreliquidacionPdf = {
   cliente: { razonSocial: string; ruc: string; direccion: string };
   proyecto: string;
   ordenCompra: string;
+  concepto?: string;
   moneda: "PEN" | "USD";
   tipoCambio: number;
   lineas: LineaPdf[];
@@ -199,6 +200,7 @@ function PreliquidacionDocument({ datos }: { datos: DatosPreliquidacionPdf }) {
           </View>
         </View>
 
+        {datos.concepto ? <View style={{ marginBottom: 12 }}><Text style={styles.label}>Descripción</Text><Text style={styles.value}>{datos.concepto}</Text></View> : null}
         <Text style={styles.sectionTitle}>Detalle de la preliquidación</Text>
         <View style={styles.table}>
           <View style={styles.tableHeader} fixed>
