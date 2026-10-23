@@ -54,7 +54,7 @@ function SirePage() {
           subtabs={
             <div className="flex items-center gap-2">
               {pestanas.map(({ k, t, i: I }) => (
-                <button key={k} onClick={() => setTab(k)} className={`inline-flex items-center gap-2 rounded-md px-3 py-2 font-mono text-xs font-medium transition-colors ${tab === k ? "bg-primary text-primary-foreground hover:ring-2 hover:ring-cta/70" : "border border-primary/40 bg-card text-primary hover:bg-primary hover:text-primary-foreground"}`}><I className="size-3.5" />{t}</button>
+                <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)} className={`inline-flex min-h-9 items-center gap-2 border-b-2 px-3 py-2 text-xs font-medium transition-colors ${tab === k ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:border-line hover:text-ink"}`}><I className="size-3.5" />{t}</button>
               ))}
             </div>
           } />

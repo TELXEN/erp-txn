@@ -328,13 +328,16 @@ function Nomina() {
         }
       />
 
-      <div className="mb-4 flex flex-wrap gap-2">
-        <Boton variante={pestana === "planilla" ? "primario" : "linea"} onClick={() => setPestana("planilla")}>
-          <ClipboardList size={13} /> Planilla
-        </Boton>
-        <Boton variante={pestana === "datos" ? "primario" : "linea"} onClick={() => setPestana("datos")}>
-          <Database size={13} /> Datos
-        </Boton>
+      <div className="mb-4">
+        <Pestanas
+          etiqueta="Nómina"
+          valor={pestana}
+          onCambiar={setPestana}
+          opciones={[
+            { id: "planilla", texto: "Planilla", icono: <ClipboardList size={13} /> },
+            { id: "datos", texto: "Datos", icono: <Database size={13} /> },
+          ]}
+        />
       </div>
 
       {pestana === "datos" ? (
