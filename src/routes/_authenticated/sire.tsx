@@ -482,7 +482,7 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
                 { t: "IGV TOTAL", v: soles(Number(reg.total_igv)) },
                 { t: "TOTAL DE DOCUMENTOS", v: String(reg.total_docs) },
               ].map((c) => (
-                <div key={c.t} className="rounded-lg border border-line bg-card p-4">
+                <div key={c.t} data-distintivo={tipoDistintivo(c.v)} className="rounded-lg border border-line bg-card p-4">
                   <p className="label-mono">{c.t}</p>
                   <p className="mt-1 text-2xl font-bold tracking-tight">{c.v}</p>
                 </div>

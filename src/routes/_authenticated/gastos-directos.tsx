@@ -429,27 +429,27 @@ function GastosDirectos() {
       {pestana === "resumen" && (
       <>
       <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
-        <div className="rounded-lg border border-line bg-card px-3 py-2.5">
+        <div data-distintivo="cantidad" className="rounded-lg border border-line bg-card px-3 py-2.5">
           <p className="text-[10px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Partidas</p>
           <p className="mt-0.5 text-lg font-bold tabular-nums text-ink">{partidasProy.length}</p>
           <p className="truncate text-[10px] text-muted-foreground">En esta obra</p>
         </div>
-        <div className="rounded-lg border border-line bg-card px-3 py-2.5">
+        <div data-distintivo="monto" className="rounded-lg border border-line bg-card px-3 py-2.5">
           <p className="text-[10px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Presupuesto CD</p>
           <p className="mt-0.5 truncate text-lg font-bold tabular-nums text-ink">{soles(presuTotal)}</p>
           <p className="truncate text-[10px] text-muted-foreground">Suma de partidas</p>
         </div>
-        <div className="rounded-lg border border-line bg-card px-3 py-2.5">
+        <div data-distintivo="monto" className="rounded-lg border border-line bg-card px-3 py-2.5">
           <p className="text-[10px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Costo real</p>
           <p className="mt-0.5 truncate text-lg font-bold tabular-nums text-ink">{soles(costoTotal)}</p>
           <p className="truncate text-[10px] text-muted-foreground">{comprasProy.length} compra{comprasProy.length === 1 ? "" : "s"}</p>
         </div>
-        <div className="rounded-lg border border-line bg-card px-3 py-2.5">
+        <div data-distintivo={presuTotal - costoTotal < 0 ? "bad" : "monto"} className="rounded-lg border border-line bg-card px-3 py-2.5">
           <p className="text-[10px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Saldo</p>
           <p className={`mt-0.5 truncate text-lg font-bold tabular-nums ${presuTotal - costoTotal < 0 ? "text-bad" : "text-good"}`}>{soles(Math.abs(presuTotal - costoTotal))}</p>
           <p className="truncate text-[10px] text-muted-foreground">{presuTotal - costoTotal < 0 ? "Excedes la base" : "Te quedan"}</p>
         </div>
-        <div className="rounded-lg border border-line bg-card px-3 py-2.5">
+        <div data-distintivo="monto" className="rounded-lg border border-line bg-card px-3 py-2.5">
           <p className="text-[10px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Consumo</p>
           <p className={`mt-0.5 text-lg font-bold tabular-nums ${consumo > 100 ? "text-bad" : consumo >= 80 ? "text-warn" : "text-good"}`}>{consumo.toFixed(1)}%</p>
           <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
