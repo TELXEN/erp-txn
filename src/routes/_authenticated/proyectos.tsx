@@ -161,7 +161,6 @@ function Proyectos() {
   const [eliminando, setEliminando] = useState<Proyecto | null>(null);
   const [bajando, setBajando] = useState(false);
 
-  if (!puedeVerDinero(rol)) return <SinAcceso />;
 
   const pertenece = (situacion: string, nombre: typeof segmento) => {
     if (nombre === "Borradores") return situacion === "Borrador";
@@ -342,6 +341,7 @@ function Proyectos() {
     }
   }
 
+  if (!puedeVerDinero(rol)) return <SinAcceso />;
   return (
     <>
       <Encabezado
