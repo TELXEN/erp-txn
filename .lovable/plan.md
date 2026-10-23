@@ -1,7 +1,7 @@
 # SIRE Ventas: registrar dentro de SIRE, igual que Compras
 
 ## Cómo quedará
-- En SIRE › Ventas (RVIE) el botón «Emitir» pasa a llamarse «Registrar». Ya no lleva a Facturación Electrónica ni sale de SIRE.
+- En SIRE › Ventas (RVIE) el botón «Emitir» pasa a llamarse «Registrar Ventas». Ya no lleva a Facturación Electrónica ni sale de SIRE.
 - Al pulsarlo se abre ahí mismo la ventana «Registrar venta» (la misma de Registro de Ventas), ya llena con los datos de SUNAT: tipo, número, fecha, cliente (buscado por RUC), moneda, tipo de cambio, valor de venta, IGV y vencimiento.
 - Si el cliente no está en el catálogo, se avisa para elegirlo antes de guardar.
 - Al guardar, la fila queda en verde «Registrado en ERP» sin desaparecer, y la venta aparece también en Registro de Ventas.
