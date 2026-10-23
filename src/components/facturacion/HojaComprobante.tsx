@@ -1,4 +1,4 @@
-import { useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { DOC } from "@/lib/documento-tema";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
@@ -9,6 +9,9 @@ import { consultarDocumentoSunat, consultarTipoCambio } from "@/lib/decolecta.fu
 import { fechaLima, useTipoCambioHoy } from "@/lib/tipo-cambio";
 import { CODIGOS_SPOT, MODALIDADES_TRASLADO, MOTIVOS_BAJA, MOTIVOS_NOTA_CREDITO, MOTIVOS_NOTA_DEBITO, MOTIVOS_TRASLADO, PESTANAS_CPE, TASAS_IGV, TASAS_PERCEPCION, TASAS_RETENCION, TIPOS_DOC_RELACIONADO, UNIDADES_SUNAT, calcularItem, cuotaVacia, docRelacionadoVacio, itemComprobanteVacio, montoEnLetras, repartirCuotas, usaImportes, usaItems, usaRelacionados, type CuotaEditor, type DocRelacionado, type ItemEditor, type OperacionTipo, type TipoComprobante, type TipoTributarioCpe } from "@/lib/facturacion";
 import { hoy } from "@/lib/format";
+import { nombreConductor, useTransportistas, vencido } from "@/lib/transportistas";
+import { VentanaTransportista } from "@/components/TransportistasPanel";
+import { VentanaPartidasGuia, unidadSunat } from "@/components/facturacion/PartidasGuia";
 
 export const C = DOC;
 const CARD: CSSProperties = { background: "#ffffff", border: "1px solid #E5E7EB", borderRadius: 8, boxShadow: "0 1px 2px rgba(16,24,40,.06)", padding: 14, textAlign: "left" };
@@ -60,6 +63,18 @@ export function HojaComprobante(props: {
   const { data: cuentas = [] } = useQuery({ queryKey: ["bancos-cpe"], queryFn: async () => { const { data, error } = await supabase.from("bancos").select("nombre,numero_cuenta,cci,monedas,tipo_cuenta").eq("activo", true).order("nombre"); if (error) throw error; return (data ?? []) as CuentaCpe[]; } });
   const buscarDoc = useServerFn(consultarDocumentoSunat); const buscarTc = useServerFn(consultarTipoCambio); const { data: tcHoy } = useTipoCambioHoy();
   const [aviso, setAviso] = useState(""); const [buscando, setBuscando] = useState(false);
+  const [verPartidas, setVerPartidas] = useState(false); const [nuevoTransp, setNuevoTransp] = useState(false); const [pendienteTransp, setPendienteTransp] = useState("");
+  const { data: transportistas = [] } = useTransportistas();
+  const esGuia = form.tipo_comprobante === "09";
+  const { data: flota = [] } = useQuery({ queryKey: ["vehiculos", "propios"], enabled: esGuia, queryFn: async () => { const { data, error } = await supabase.from("vehiculos").select("id,placa,marca,modelo").eq("propiedad", "Propio").order("placa"); if (error) throw error; return data ?? []; } });
+  const { data: personal = [] } = useQuery({ queryKey: ["trabajadores", "conductores"], enabled: esGuia, queryFn: async () => { const { data, error } = await supabase.from("trabajadores").select("id,nombre,dni").eq("activo", true).order("nombre"); if (error) throw error; return data ?? []; } });
+  const transpSel = transportistas.find((t) => t.id === form.guia_transportista_id);
+  function elegirTransportista(id: string) {
+    const t = transportistas.find((x) => x.id === id);
+    setForm({ ...form, guia_transportista_id: id, guia_transportista: t?.razon_social ?? "", guia_transportista_doc: t?.ruc ?? "", guia_mtc: t?.registro_mtc ?? "", guia_certificado: t?.certificado_habilitacion ?? "", guia_entidad_autorizacion: t?.entidad_autorizacion ?? "", guia_autorizacion: t?.numero_autorizacion ?? "", guia_placa: "", guia_placa_secundaria: "", guia_conductor_nombre: "", guia_conductor_doc: "", guia_licencia: "", guia_licencia_categoria: "" });
+    if (t && vencido(t.certificado_vencimiento)) setAviso(`El certificado de habilitación de ${t.razon_social} está vencido.`);
+  }
+  useEffect(() => { if (pendienteTransp && transportistas.some((t) => t.id === pendienteTransp)) { elegirTransportista(pendienteTransp); setPendienteTransp(""); } }, [pendienteTransp, transportistas]); // eslint-disable-line react-hooks/exhaustive-deps
   const tipo = form.tipo_comprobante as TipoComprobante;
   const etiquetaTipo = PESTANAS_CPE.find((p) => p.tipo === tipo)?.corto ?? "";
   const sym = form.moneda === "USD" ? "US$" : "S/";
@@ -168,12 +183,28 @@ export function HojaComprobante(props: {
             <Linea etiqueta="Peso (kg)"><input type="number" step="0.01" value={form.guia_peso} onChange={(e) => set("guia_peso", e.target.value)} style={ed} /></Linea>
             <Linea etiqueta="Bultos"><input type="number" value={form.guia_bultos} onChange={(e) => set("guia_bultos", e.target.value)} style={ed} /></Linea>
           </Bloque>
-          <Bloque titulo="TRANSPORTISTA / VEHÍCULO">
-            <Linea etiqueta="Transportista"><input value={form.guia_transportista} onChange={(e) => set("guia_transportista", e.target.value)} style={ed} /></Linea>
+          {form.guia_modalidad === "01" ? <Bloque titulo="TRANSPORTISTA (TRANSPORTE PÚBLICO)">
+            <Linea etiqueta="Catálogo"><span style={{ display: "flex", gap: 4 }}><select value={form.guia_transportista_id} onChange={(e) => elegirTransportista(e.target.value)} style={edSel}><option value="">Selecciona transportista…</option>{transportistas.filter((t) => t.activo || t.id === form.guia_transportista_id).map((t) => <option key={t.id} value={t.id}>{t.razon_social}</option>)}</select><button type="button" onClick={() => setNuevoTransp(true)} title="Registrar transportista" style={{ border: `1px solid ${C.green}`, color: C.green, background: C.white, borderRadius: 4, padding: "0 6px", cursor: "pointer" }}><Plus size={11} /></button></span></Linea>
             <Linea etiqueta="RUC"><input value={form.guia_transportista_doc} onChange={(e) => set("guia_transportista_doc", e.target.value)} style={ed} /></Linea>
-            <Linea etiqueta="Placa"><input value={form.guia_placa} onChange={(e) => set("guia_placa", e.target.value.toUpperCase())} style={ed} /></Linea>
-            <Linea etiqueta="Licencia"><input value={form.guia_licencia} onChange={(e) => set("guia_licencia", e.target.value.toUpperCase())} style={ed} /></Linea>
-          </Bloque>
+            <Linea etiqueta="Razón social"><input value={form.guia_transportista} onChange={(e) => set("guia_transportista", e.target.value)} style={ed} /></Linea>
+            <Linea etiqueta="Registro MTC"><input value={form.guia_mtc} onChange={(e) => set("guia_mtc", e.target.value.toUpperCase())} style={ed} /></Linea>
+            <Linea etiqueta="Cert. habilit."><input value={form.guia_certificado} onChange={(e) => set("guia_certificado", e.target.value.toUpperCase())} style={ed} /></Linea>
+            <Linea etiqueta="Entidad autoriz."><input value={form.guia_entidad_autorizacion} onChange={(e) => set("guia_entidad_autorizacion", e.target.value)} style={ed} /></Linea>
+            <Linea etiqueta="N° autoriz."><input value={form.guia_autorizacion} onChange={(e) => set("guia_autorizacion", e.target.value.toUpperCase())} style={ed} /></Linea>
+            {transpSel && <>
+              <Linea etiqueta="Vehículo"><select value={transpSel.vehiculos.find((v) => v.placa === form.guia_placa)?.id ?? ""} onChange={(e) => { const v = transpSel.vehiculos.find((x) => x.id === e.target.value); setForm({ ...form, guia_placa: v?.placa ?? "", guia_placa_secundaria: v?.placa_secundaria ?? "" }); }} style={edSel}><option value="">(Opcional)</option>{transpSel.vehiculos.map((v) => <option key={v.id} value={v.id}>{v.placa}{v.placa_secundaria ? ` / ${v.placa_secundaria}` : ""}</option>)}</select></Linea>
+              <Linea etiqueta="Conductor"><select value={transpSel.conductores.find((c) => c.numero_documento === form.guia_conductor_doc)?.id ?? ""} onChange={(e) => { const c = transpSel.conductores.find((x) => x.id === e.target.value); setForm({ ...form, guia_conductor_nombre: c ? nombreConductor(c) : "", guia_conductor_doc_tipo: c?.tipo_documento ?? "DNI", guia_conductor_doc: c?.numero_documento ?? "", guia_licencia: c?.licencia ?? "", guia_licencia_categoria: c?.categoria_licencia ?? "" }); if (c && vencido(c.licencia_vencimiento)) setAviso(`La licencia de ${nombreConductor(c)} está vencida.`); }} style={edSel}><option value="">(Opcional)</option>{transpSel.conductores.map((c) => <option key={c.id} value={c.id}>{nombreConductor(c)}</option>)}</select></Linea>
+            </>}
+            {(form.guia_placa || form.guia_conductor_doc) && <div style={{ fontSize: 8.5, color: C.muted }}>{form.guia_placa && `Placa ${form.guia_placa}${form.guia_placa_secundaria ? ` / ${form.guia_placa_secundaria}` : ""}`}{form.guia_conductor_doc && ` · ${form.guia_conductor_nombre} · ${form.guia_conductor_doc_tipo} ${form.guia_conductor_doc} · Lic. ${form.guia_licencia} ${form.guia_licencia_categoria}`}</div>}
+          </Bloque> : <Bloque titulo="VEHÍCULO Y CONDUCTOR (TRANSPORTE PRIVADO)">
+            <Linea etiqueta="Vehículo"><select value={form.guia_vehiculo_propio_id} onChange={(e) => { const v = flota.find((x) => x.id === e.target.value); setForm({ ...form, guia_vehiculo_propio_id: e.target.value, guia_placa: v?.placa ?? form.guia_placa }); }} style={edSel}><option value="">Flota TELXEN…</option>{flota.map((v) => <option key={v.id} value={v.id}>{v.placa} · {v.marca} {v.modelo}</option>)}</select></Linea>
+            <Linea etiqueta="Placa *"><input value={form.guia_placa} onChange={(e) => set("guia_placa", e.target.value.toUpperCase())} style={ed} /></Linea>
+            <Linea etiqueta="Conductor"><select value={form.guia_conductor_propio_id} onChange={(e) => { const t = personal.find((x) => x.id === e.target.value); setForm({ ...form, guia_conductor_propio_id: e.target.value, guia_conductor_nombre: t?.nombre ?? form.guia_conductor_nombre, guia_conductor_doc_tipo: "DNI", guia_conductor_doc: t?.dni ?? form.guia_conductor_doc }); }} style={edSel}><option value="">Personal TELXEN…</option>{personal.map((t) => <option key={t.id} value={t.id}>{t.nombre}</option>)}</select></Linea>
+            <Linea etiqueta="Nombre *"><input value={form.guia_conductor_nombre} onChange={(e) => set("guia_conductor_nombre", e.target.value)} style={ed} /></Linea>
+            <Linea etiqueta="DNI *"><input value={form.guia_conductor_doc} onChange={(e) => set("guia_conductor_doc", e.target.value.replace(/\D/g, "").slice(0, 8))} style={ed} /></Linea>
+            <Linea etiqueta="Licencia *"><input value={form.guia_licencia} onChange={(e) => set("guia_licencia", e.target.value.toUpperCase())} style={ed} /></Linea>
+            <Linea etiqueta="Categoría"><input value={form.guia_licencia_categoria} onChange={(e) => set("guia_licencia_categoria", e.target.value.toUpperCase())} placeholder="A-IIb" style={ed} /></Linea>
+          </Bloque>}
           <Bloque titulo="PUNTOS DE PARTIDA Y LLEGADA">
             <Linea etiqueta="Partida"><input value={form.guia_partida} onChange={(e) => set("guia_partida", e.target.value)} style={ed} /></Linea>
             <Linea etiqueta="Ubigeo"><input value={form.guia_partida_ubigeo} onChange={(e) => set("guia_partida_ubigeo", e.target.value)} style={ed} /></Linea>
@@ -181,6 +212,10 @@ export function HojaComprobante(props: {
             <Linea etiqueta="Ubigeo"><input value={form.guia_llegada_ubigeo} onChange={(e) => set("guia_llegada_ubigeo", e.target.value)} style={ed} /></Linea>
           </Bloque>
         </div>}
+
+        {tipo === "09" && form.proyecto_id && <div style={{ marginTop: 8, display: "flex", justifyContent: "flex-end" }}><button type="button" onClick={() => setVerPartidas(true)} style={{ border: `1px solid ${C.green}`, color: C.green, background: C.white, borderRadius: 4, padding: "4px 10px", fontSize: 10, fontWeight: 700, cursor: "pointer" }}>Cargar partidas del proyecto</button></div>}
+        {verPartidas && <VentanaPartidasGuia proyectoId={form.proyecto_id} onCerrar={() => setVerPartidas(false)} onCargar={(ps) => { const actuales = items.filter((x) => x.descripcion.trim()); setItems([...actuales, ...ps.map((p) => ({ ...itemComprobanteVacio(), codigo: p.codigo ?? "", descripcion: p.nombre, unidad_sunat: unidadSunat(p.unidad), cantidad: String(Number(p.metrado ?? 0)) }))]); setVerPartidas(false); }} />}
+        {nuevoTransp && <VentanaTransportista inicial={null} onCerrar={() => setNuevoTransp(false)} onGuardado={(id) => setPendienteTransp(id)} />}
 
         {(tipo === "20" || tipo === "40") && <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginTop: 15, fontSize: 10, border: `1px solid ${C.line}`, padding: 12 }}>
           <Bloque titulo={tipo === "20" ? "RÉGIMEN DE RETENCIONES" : "RÉGIMEN DE PERCEPCIONES"}>
