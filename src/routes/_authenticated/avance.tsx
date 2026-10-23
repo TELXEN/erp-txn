@@ -98,20 +98,16 @@ function Avance() {
   const { rol } = useAuth();
   const { data: proyectos = [] } = useProyectos();
   const { data: partidas = [] } = usePartidas();
-  const [filtroProyecto, setFiltroProyecto] = useState(() => localStorage.getItem(LS_PROYECTO) ?? "");
-  const [filtroEsp, setFiltroEsp] = useState("");
-  const [busqueda, setBusqueda] = useState("");
-  const [orden, setOrden] = useState<Orden>("wbs");
+  const [filtroProyecto, setFiltroProyecto] = useRecordado(LS_PROYECTO + ":v2", "");
+  const [filtroEsp, setFiltroEsp] = useRecordado("avance:especialidad", "");
+  const [busqueda, setBusqueda] = useRecordado("avance:busqueda", "");
+  const [orden, setOrden] = useRecordado<Orden>("avance:orden", "wbs");
   const [valores, setValores] = useState<Record<string, number>>({});
   const [guardando, setGuardando] = useState("");
   const [guardandoTodo, setGuardandoTodo] = useState(false);
   const [error, setError] = useState("");
-  const [vista, setVista] = useState<"real" | "cronograma">("real");
-  const [plegadas, setPlegadas] = useState<Record<string, boolean>>({});
-
-  useEffect(() => {
-    localStorage.setItem(LS_PROYECTO, filtroProyecto);
-  }, [filtroProyecto]);
+  const [vista, setVista] = useRecordado<"real" | "cronograma">("avance:vista", "real");
+  const [plegadas, setPlegadas] = useRecordado<Record<string, boolean>>("avance:plegadas", {});
 
   // Si el proyecto recordado ya no existe, vuelve a «Todos»
   useEffect(() => {
