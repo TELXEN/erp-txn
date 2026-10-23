@@ -6,7 +6,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
+import { Boton, Campo, FranjaResumen, Input, MenuFiltros, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { pct, soles } from "@/lib/format";
 import {
@@ -24,7 +24,7 @@ import {
   nombresPrioridades,
 } from "@/lib/datos";
 import { exportarExcel } from "@/lib/exportar";
-import { Pencil, Trash2, Check, X, LayoutGrid, Table2, Upload, ListOrdered, Calculator, ChevronDown, ChevronUp, FolderKanban } from "lucide-react";
+import { Pencil, Trash2, Check, X, LayoutGrid, Table2, Upload, ListOrdered, Calculator, ChevronDown, ChevronUp } from "lucide-react";
 import { Kanban } from "@/components/Kanban";
 import { InsigniaPrioridad, InsigniaTipoPresupuesto } from "@/components/estado-ui";
 import { PRIORIDADES } from "@/lib/configuracion";
@@ -330,43 +330,61 @@ function Partidas() {
         titulo="Partidas"
         subtitulo="Organizadas por proyecto y especialidad"
         acciones={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-1.5">
             <Buscador
               valor={busqueda}
               onChange={setBusqueda}
               total={visibles.length}
               placeholder="Buscar partidas o códigos..."
             />
-            <div className="flex items-center gap-1 rounded-md border border-line bg-card p-1">
+            <Select aria-label="Proyecto" className="h-7 w-36 py-0 text-xs" value={filtroProyecto} onChange={(e) => setFiltroProyecto(e.target.value)}>
+              <option value="">Todos los proyectos</option>
+              {proyectos.map((p) => (
+                <option key={p.id} value={p.id}>{p.nombre}</option>
+              ))}
+            </Select>
+            <Select aria-label="Especialidad" className="h-7 w-36 py-0 text-xs" value={filtroEsp} onChange={(e) => setFiltroEsp(e.target.value)}>
+              <option value="">Todas las especialidades</option>
+              {nombresEspecialidades.map((e) => (
+                <option key={e} value={e}>{e}</option>
+              ))}
+            </Select>
+            <MenuFiltros activos={filtroTipo ? 1 : 0} onLimpiar={() => setFiltroTipo("")}>
+              <Campo etiqueta="Tipo de presupuesto">
+                <Select className="h-7 py-0 text-xs" value={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value)}>
+                  <option value="">Todos los tipos</option>
+                  {nombresTipos.map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </Select>
+              </Campo>
+            </MenuFiltros>
+            <div className="flex items-center gap-0.5 rounded-md border border-line bg-card p-0.5">
               <button
                 type="button"
+                title="Tabla"
                 onClick={() => setVista("tabla")}
-                className={`inline-flex items-center gap-1.5 rounded px-2.5 py-1.5 font-mono text-[11px] ${vista === "tabla" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-ink"}`}
+                className={`inline-flex items-center rounded px-1.5 py-1 ${vista === "tabla" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-ink"}`}
               >
-                <Table2 size={13} /> Tabla
+                <Table2 size={13} />
               </button>
               <button
                 type="button"
+                title="Kanban"
                 onClick={() => setVista("kanban")}
-                className={`inline-flex items-center gap-1.5 rounded px-2.5 py-1.5 font-mono text-[11px] ${vista === "kanban" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-ink"}`}
+                className={`inline-flex items-center rounded px-1.5 py-1 ${vista === "kanban" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-ink"}`}
               >
-                <LayoutGrid size={13} /> Kanban
+                <LayoutGrid size={13} />
               </button>
             </div>
             <ImportarExcel />
-            <Boton variante="linea" onClick={exportar}>
-              <Upload size={13} /> Exportar a Excel
+            <Boton variante="linea" onClick={exportar} title="Exportar a Excel" aria-label="Exportar a Excel">
+              <Upload size={13} />
             </Boton>
+            <Boton onClick={abrirNueva}>+ Nueva partida</Boton>
           </div>
         }
       />
-
-      <div className="mb-3 flex flex-wrap gap-1">
-        <Boton variante="primario"><FolderKanban size={13} />Gestión de partidas</Boton>
-      </div>
-      <div className="mb-4 flex flex-wrap items-center justify-end gap-2 border-b border-line pb-3">
-        <Boton onClick={abrirNueva} className="mb-1">+ Nueva partida</Boton>
-      </div>
 
       <VentanaFlotante abierta={modalNueva} onCerrar={() => setModalNueva(false)} titulo="Registrar nueva partida" subtitulo="Registra varias partidas consecutivamente y cierra cuando termines." ancho="max-w-6xl">
         <form onSubmit={guardar} className="grid gap-3 p-5 sm:grid-cols-6">
@@ -583,52 +601,17 @@ function Partidas() {
       </VentanaFlotante>
 
       <>
-      <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-5">
-        {[
-          { etiqueta: "Presupuesto contractual", valor: soles(resumen.contractual) },
-          { etiqueta: "Total adicionales", valor: soles(resumen.adicionales) },
-          { etiqueta: "Presupuesto vigente", valor: soles(resumen.vigente) },
+      <FranjaResumen
+        items={[
+          { etiqueta: "Contractual", valor: soles(resumen.contractual) },
+          { etiqueta: "Adicionales", valor: soles(resumen.adicionales) },
+          { etiqueta: "Vigente", valor: soles(resumen.vigente) },
           { etiqueta: "Partidas", valor: String(resumenPartidas.total) },
-          { etiqueta: "Avance promedio", valor: `${resumenPartidas.promedio.toFixed(1)}%` },
-        ].map((d) => (
-          <div key={d.etiqueta} className="rounded-lg border border-line bg-card px-3 py-2">
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{d.etiqueta}</p>
-            <p className="text-lg font-bold tabular-nums">{d.valor}</p>
-          </div>
-        ))}
-      </div>
+          { etiqueta: "Avance prom.", valor: `${resumenPartidas.promedio.toFixed(1)}%` },
+        ]}
+      />
 
-      <Panel
-        titulo={vista === "kanban" ? "Tablero Kanban de partidas" : "Listado por proyecto y tipos"}
-        extra={
-          <div className="flex flex-wrap gap-2">
-            <Select className="w-52" value={filtroProyecto} onChange={(e) => setFiltroProyecto(e.target.value)}>
-              <option value="">Todos los proyectos</option>
-              {proyectos.map((p) => (
-                <option key={p.id} value={p.id}>
-                  <Resaltar texto={p.nombre} termino={busqueda}/>
-                </option>
-              ))}
-            </Select>
-            <Select className="w-56" value={filtroEsp} onChange={(e) => setFiltroEsp(e.target.value)}>
-              <option value="">Todas las especialidades</option>
-              {nombresEspecialidades.map((e) => (
-                <option key={e} value={e}>
-                  {e}
-                </option>
-              ))}
-            </Select>
-            <Select className="w-52" value={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value)}>
-              <option value="">Todos los tipos</option>
-              {nombresTipos.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </Select>
-          </div>
-        }
-      >
+      <Panel titulo={vista === "kanban" ? "Tablero Kanban de partidas" : "Listado por proyecto y tipos"}>
         {grupos.length === 0 ? (
           <Vacio texto="No hay partidas con estos filtros." />
         ) : vista === "kanban" ? (

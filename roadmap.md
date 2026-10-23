@@ -78,3 +78,4 @@
 - [x] Dashboard y Personal: pestañas uniformes.
 - [ ] Revisión de contraste en los cinco temas (opcional, a pedido).
 - [x] Recordar filtros/vista/grupos en Partidas y Avance físico
+- [x] Filtros compactos en Proyectos, Partidas y Avance físico
