@@ -195,7 +195,7 @@ function PreliquidacionDocument({ datos }: { datos: DatosPreliquidacionPdf }) {
             <Text style={styles.value}>{formatoFecha(datos.fecha)}</Text>
             <Text style={[styles.label, { marginTop: 8 }]}>Moneda</Text>
             <Text style={styles.value}>{datos.moneda === "USD" ? "Dólares (USD)" : "Soles (PEN)"}</Text>
-            {datos.moneda === "USD" ? <Text style={styles.subvalue}>T.C. {numero(datos.tipoCambio, 3)}</Text> : null}
+            {datos.moneda === "USD" ? <Text style={styles.subvalue}>T.C. detracción {numero(datos.tipoCambio, 3)}</Text> : null}
           </View>
         </View>
 
@@ -224,7 +224,6 @@ function PreliquidacionDocument({ datos }: { datos: DatosPreliquidacionPdf }) {
             <Text style={styles.sectionTitle}>Condición comercial</Text>
             <View style={styles.paymentRow}><Text>Condición de pago</Text><Text style={styles.value}>{datos.condicionPago}</Text></View>
             {datos.condicionPago === "Crédito" ? <><View style={styles.paymentRow}><Text>Plazo</Text><Text>{datos.diasCredito} días</Text></View><View style={styles.paymentRow}><Text>Vencimiento estimado</Text><Text>{formatoFecha(datos.fechaVencimiento)}</Text></View></> : null}
-            {datos.moneda === "USD" ? <View style={styles.paymentRow}><Text>Total referencial en PEN</Text><Text>S/ {numero(datos.total * datos.tipoCambio)}</Text></View> : null}
           </View>
           <View style={styles.totals}>
             {datos.amortizacion > 0 ? <><View style={styles.totalRow}><Text>Valor ejecutado</Text><Text>{dinero(datos.valorEjecutado)}</Text></View><View style={styles.totalRow}><Text>Amortización (−)</Text><Text>{dinero(datos.amortizacion)}</Text></View></> : null}

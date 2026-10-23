@@ -127,7 +127,8 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
 
   const [form, setForm] = useState(formVacio());
   useEffect(() => {
-    if (tcHoy > 0 && !(Number(form.tipo_cambio) > 0)) setForm((f) => ({ ...f, tipo_cambio: String(tcHoy) }));
+    // El T.C. solo sirve para la detracción/retención: se toma siempre de Decolecta (SUNAT del día).
+    if (tcHoy > 0 && Number(form.tipo_cambio) !== tcHoy) setForm((f) => ({ ...f, tipo_cambio: String(tcHoy) }));
   }, [tcHoy, form.tipo_cambio]);
   const [lineas, setLineas] = useState<ItemPL[]>([itemVacio()]);
   const [editando, setEditando] = useState<string | null>(null);
@@ -190,13 +191,17 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
     coincide(busqueda, p.codigo, p.concepto, nombreProy(p.proyecto_id), nombreCliente(p.cliente_id), p.estado, facturaDe(p.id)?.numero_factura ?? ""),
   );
 
-  // KPIs (en soles)
-  const netoPen = (p: Preliquidacion) => netoDe(p.id) * Number(p.tipo_cambio || 1);
+  // KPIs separados por moneda (el cobro en dólares es fijo, sin conversión)
+  const grupo = (f: (p: Preliquidacion) => boolean) => {
+    const ps = lista.filter(f);
+    const suma = (mon: string) => ps.filter((p) => (p.moneda ?? "PEN") === mon).reduce((s, p) => s + netoDe(p.id), 0);
+    return { pen: suma("PEN"), usd: suma("USD"), n: ps.length };
+  };
   const mesHoy = hoy().slice(0, 7);
   const kpis = [
-    { t: "En elaboración / enviadas", v: lista.filter((p) => ["Borrador", "Enviada", "Observada"].includes(p.estado)).reduce((s, p) => s + netoPen(p), 0), n: lista.filter((p) => ["Borrador", "Enviada", "Observada"].includes(p.estado)).length },
-    { t: "Aprobadas por facturar", v: lista.filter((p) => p.estado === "Aprobada").reduce((s, p) => s + netoPen(p), 0), n: lista.filter((p) => p.estado === "Aprobada").length },
-    { t: "Facturadas del mes", v: lista.filter((p) => p.estado === "Facturada" && (facturaDe(p.id)?.fecha_emision ?? p.fecha).slice(0, 7) === mesHoy).reduce((s, p) => s + netoPen(p), 0), n: lista.filter((p) => p.estado === "Facturada" && (facturaDe(p.id)?.fecha_emision ?? p.fecha).slice(0, 7) === mesHoy).length },
+    { t: "En elaboración / enviadas", ...grupo((p) => ["Borrador", "Enviada", "Observada"].includes(p.estado)) },
+    { t: "Aprobadas por facturar", ...grupo((p) => p.estado === "Aprobada") },
+    { t: "Facturadas del mes", ...grupo((p) => p.estado === "Facturada" && (facturaDe(p.id)?.fecha_emision ?? p.fecha).slice(0, 7) === mesHoy) },
   ];
 
   function elegirProyecto(id: string) {
@@ -502,13 +507,6 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
               )}
             </div>
 
-            {form.moneda === "USD" && tcHoy > 0 && Number(form.tipo_cambio) !== tcHoy && (
-              <div className="mb-2 flex justify-end">
-                <button type="button" className="rounded-md border border-primary/40 bg-card px-2 py-1 font-mono text-[11px] text-primary hover:bg-primary hover:text-primary-foreground" title="Aplicar el tipo de cambio SUNAT de hoy" onClick={() => setForm((f) => ({ ...f, tipo_cambio: String(tcHoy) }))}>
-                  SUNAT {tcHoy.toFixed(3)}
-                </button>
-              </div>
-            )}
             <HojaPreliquidacion
               editable
               anchoCompleto
@@ -589,7 +587,10 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
         {kpis.map((k) => (
           <div key={k.t} data-distintivo="monto" className="rounded-lg border border-line bg-card p-4">
             <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">{k.t}</p>
-            <p className="font-mono text-lg font-semibold text-ink">{soles(k.v)}</p>
+            <div className="mt-1 grid grid-cols-2 gap-2">
+              <div><p className="text-[10px] text-muted-foreground">Total en Soles</p><p className="font-mono text-lg font-semibold text-ink">S/ {k.pen.toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p></div>
+              <div><p className="text-[10px] text-muted-foreground">Total en Dólares</p><p className="font-mono text-lg font-semibold text-ink">$ {k.usd.toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p></div>
+            </div>
             <p className="font-mono text-[10px] text-muted-foreground">{k.n} preliquidación(es)</p>
           </div>
         ))}
