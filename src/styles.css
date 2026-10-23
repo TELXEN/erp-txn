@@ -384,13 +384,15 @@ aside .md\:overflow-y-auto:hover::-webkit-scrollbar-thumb { background: color-mi
   .tabla-apu .col-fija-der { position: sticky; right: 0; z-index: 1; background: var(--color-card); box-shadow: -2px 0 4px -2px color-mix(in oklab, var(--color-ink) 18%, transparent); }
 }
 
-/* Barra vertical de acciones a la derecha: contraste alto y color por acción (tamaño de iconos sin cambios). */
+/* Barra vertical de acciones a la derecha: contraste alto y color por acción (botones 26 px, iconos 13 px). */
 @utility barra-iconos {
   border-color: color-mix(in oklab, var(--foreground) 18%, var(--border));
   background: var(--card);
   box-shadow: 0 1px 2px color-mix(in oklab, var(--foreground) 8%, transparent), 0 6px 16px -8px color-mix(in oklab, var(--foreground) 22%, transparent);
   & button[data-tono] { transition: background-color .15s, color .15s, border-color .15s, box-shadow .15s, transform .15s; }
-  & button[data-tono] svg { stroke-width: 2.25; }
+  & button[data-tono] { width: 1.625rem; height: 1.625rem; }
+  & button[data-tono] svg { width: 13px; height: 13px; stroke-width: 2.25; }
+  & { gap: .25rem; padding: .25rem; }
   & button[data-tono]:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 3px 8px -3px color-mix(in oklab, var(--foreground) 35%, transparent); }
   & button[data-tono]:disabled { opacity: .4; box-shadow: none; }
   & button[data-tono="neutro"] { color: var(--foreground); border-color: color-mix(in oklab, var(--foreground) 22%, var(--border)); background: var(--card); }
@@ -405,5 +407,5 @@ aside .md\:overflow-y-auto:hover::-webkit-scrollbar-thumb { background: color-mi
 
 /* Barra flotante de filtros (lupa) a la derecha: reserva su espacio en el área de trabajo. */
 @media (min-width: 768px) {
-  .con-barra-filtros main { padding-right: 3.75rem; }
+  .con-barra-filtros main { padding-right: 3.25rem; }
 }
