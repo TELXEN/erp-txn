@@ -596,7 +596,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
         ))}
       </div>}
 
-      <div className="flex items-start gap-3">
+      {!abierto && <div className="flex items-start gap-3">
       <Panel className="min-w-0 flex-1"
         titulo="Preliquidaciones"
         extra={
