@@ -16,7 +16,10 @@
    - Estado activo/inactivo
    El RUC se valida con 11 dígitos y no se repite; se avisa cuando la licencia o el certificado están vencidos.
 4. **En la guía**, el bloque «Transportista» tiene un selector del catálogo: al elegirlo se llenan RUC, razón social, MTC, certificado y entidad; luego se elige vehículo y conductor de ese transportista y se llenan placa, DNI y licencia. Los datos quedan copiados en la guía (si después cambias el catálogo, las guías emitidas no cambian). Se puede registrar un transportista nuevo desde la misma guía sin salir.
-5. Modalidad **transporte privado** (vehículo propio): el selector ofrece los vehículos y conductores de la flota TELXEN en lugar del transportista.
+5. **Modalidad del traslado** (según SUNAT):
+   - **Transporte público**: la guía usa un transportista del catálogo (empresa con RUC, registro MTC y autorización). Es obligatorio elegir transportista; el conductor y la placa son opcionales, como pide SUNAT para esta modalidad.
+   - **Transporte privado** (vehículo propio): el selector ofrece los vehículos y conductores de la flota TELXEN; placa, DNI y licencia del conductor son obligatorios.
+   Al cambiar la modalidad, el bloque muestra solo los datos que corresponden.
 6. La hoja impresa/PDF de la guía muestra los nuevos datos (MTC, certificado, entidad, conductor con DNI y licencia).
 
 ## Preguntas abiertas
