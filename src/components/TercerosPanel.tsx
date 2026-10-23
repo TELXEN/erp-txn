@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, Vacio } from "@/components/ui-kit";
@@ -75,21 +75,6 @@ export function TercerosPanel({ modo }: { modo: "cliente" | "proveedor" }) {
   const [modalAbierto, setModalAbierto] = useState(false);
   const [ok, setOk] = useState("");
   const [sel, setSel] = useState("");
-  const [buscando, setBuscando] = useState(false);
-  const [aviso, setAviso] = useState("");
-  const buscarDoc = useServerFn(consultarDocumentoSunat);
-
-  /** Autocompleta razón social y dirección desde SUNAT (RUC) o RENIEC (DNI) vía Decolecta. */
-  async function consultar(num: string) {
-    if (!/^(\d{8}|\d{11})$/.test(num)) { setAviso("Ingresa 11 dígitos (RUC) u 8 dígitos (DNI)."); return; }
-    setBuscando(true); setAviso("Consultando…");
-    try {
-      const r = await buscarDoc({ data: { numero: num } });
-      if (r.encontrado) setForm((f) => ({ ...f, numero_documento: num, razon_social: r.razonSocial, direccion: r.direccion || f.direccion }));
-      const noApto = r.encontrado && r.tipoDocumento === "RUC" && (r.estado !== "ACTIVO" || r.condicion !== "HABIDO");
-      setAviso(r.mensaje || (noApto ? `Atención: el RUC figura ${r.estado} · ${r.condicion} en SUNAT.` : r.encontrado ? `Datos obtenidos de ${r.tipoDocumento === "RUC" ? "SUNAT" : "RENIEC"} (Decolecta).` : ""));
-    } catch { setAviso("No se pudo completar la consulta."); } finally { setBuscando(false); }
-  }
 
   const { data: terceros = [] } = useQuery({
     queryKey: ["terceros"],
@@ -109,7 +94,7 @@ export function TercerosPanel({ modo }: { modo: "cliente" | "proveedor" }) {
     setEditando(null);
     setOk("");
     setError("");
-    (setAviso(""), setModalAbierto(true));
+    setModalAbierto(true);
   }
 
   function abrirEdicion(t: Tercero) {
@@ -129,7 +114,7 @@ export function TercerosPanel({ modo }: { modo: "cliente" | "proveedor" }) {
     setEditando(t);
     setOk("");
     setError("");
-    (setAviso(""), setModalAbierto(true));
+    setModalAbierto(true);
   }
 
   async function guardarTercero(): Promise<string | null> {
@@ -298,6 +283,22 @@ function ModalTercero({
 }) {
   const [error, setError] = useState("");
   const [guardando, setGuardando] = useState(false);
+  const formRef = useRef(form); formRef.current = form;
+  const [buscando, setBuscando] = useState(false);
+  const [aviso, setAviso] = useState("");
+  const buscarDoc = useServerFn(consultarDocumentoSunat);
+
+  /** Autocompleta razón social y dirección desde SUNAT (RUC) o RENIEC (DNI) vía Decolecta. */
+  async function consultar(num: string) {
+    if (!/^(\d{8}|\d{11})$/.test(num)) { setAviso("Ingresa 11 dígitos (RUC) u 8 dígitos (DNI)."); return; }
+    setBuscando(true); setAviso("Consultando…");
+    try {
+      const r = await buscarDoc({ data: { numero: num } });
+      if (r.encontrado) setForm({ ...formRef.current, numero_documento: num, razon_social: r.razonSocial, direccion: r.direccion || formRef.current.direccion });
+      const noApto = r.encontrado && r.tipoDocumento === "RUC" && (r.estado !== "ACTIVO" || r.condicion !== "HABIDO");
+      setAviso(r.mensaje || (noApto ? `Atención: el RUC figura ${r.estado} · ${r.condicion} en SUNAT.` : r.encontrado ? `Datos obtenidos de ${r.tipoDocumento === "RUC" ? "SUNAT" : "RENIEC"} (Decolecta).` : ""));
+    } catch { setAviso("No se pudo completar la consulta."); } finally { setBuscando(false); }
+  }
 
   useEffect(() => {
     const fn = (e: KeyboardEvent) => {
