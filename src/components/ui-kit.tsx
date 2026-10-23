@@ -263,11 +263,11 @@ export function TarjetaResumen({
   onClick,
 }: {
   etiqueta: string;
-  cantidad?: number;
+  cantidad?: number | undefined;
   valor: ReactNode;
-  alerta?: "bad" | "warn";
-  activa?: boolean;
-  onClick?: () => void;
+  alerta?: "bad" | "warn" | undefined;
+  activa?: boolean | undefined;
+  onClick?: (() => void) | undefined;
 }) {
   const color = alerta === "bad" ? "text-bad" : alerta === "warn" ? "text-warn" : "text-ink";
   const Comp = onClick ? "button" : "div";
