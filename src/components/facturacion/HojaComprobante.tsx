@@ -214,7 +214,7 @@ export function HojaComprobante(props: {
         </div>}
 
         {tipo === "09" && form.proyecto_id && <div style={{ marginTop: 8, display: "flex", justifyContent: "flex-end" }}><button type="button" onClick={() => setVerPartidas(true)} style={{ border: `1px solid ${C.green}`, color: C.green, background: C.white, borderRadius: 4, padding: "4px 10px", fontSize: 10, fontWeight: 700, cursor: "pointer" }}>Cargar partidas del proyecto</button></div>}
-        {verPartidas && <VentanaPartidasGuia proyectoId={form.proyecto_id} onCerrar={() => setVerPartidas(false)} onCargar={(ps) => { const actuales = items.filter((x) => x.descripcion.trim()); setItems([...actuales, ...ps.map((p) => ({ ...itemComprobanteVacio(), codigo: p.codigo ?? "", descripcion: p.nombre, unidad_sunat: unidadSunat(p.unidad), cantidad: String(Number(p.metrado ?? 0)) }))]); setVerPartidas(false); }} />}
+        {verPartidas && <VentanaPartidasGuia proyectoId={form.proyecto_id} onCerrar={() => setVerPartidas(false)} onCargar={(ps) => { const actuales = items.filter((x) => x.descripcion.trim()); setItems([...actuales, ...ps.map((p) => ({ ...itemComprobanteVacio(), descripcion: p.nombre, unidad_sunat: unidadSunat(p.unidad), cantidad: String(Number(p.metrado ?? 0)) }))]); setVerPartidas(false); }} />}
         {nuevoTransp && <VentanaTransportista inicial={null} onCerrar={() => setNuevoTransp(false)} onGuardado={(id) => setPendienteTransp(id)} />}
 
         {(tipo === "20" || tipo === "40") && <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginTop: 15, fontSize: 10, border: `1px solid ${C.line}`, padding: 12 }}>
