@@ -272,7 +272,7 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
         {error && <p className="text-xs text-bad">{error}</p>}
       </div>
       </Panel>
-    </div>}
+    </div>
     </div>}
 
     {!abierto && <div className="flex items-start gap-3"><Panel className="min-w-0 flex-1" titulo={PESTANAS_CPE.find((p) => p.tipo === pestana)?.etiqueta ?? "Comprobantes"}>
