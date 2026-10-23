@@ -516,7 +516,7 @@ function Tesoreria() {
               return (
               <button type="button" key={c.t} onClick={abrir} onContextMenu={(e) => { e.preventDefault(); abrir(); }}
                 title="Clic o clic derecho para ver detalle y gestionar cobros/pagos"
-                className="panel relative p-4 text-left transition hover:bg-ink/5">
+                data-distintivo={c.tono === "text-bad" ? "bad" : c.tono === "text-warn" ? "warn" : "monto"} className="panel relative p-4 text-left transition hover:bg-ink/5">
                 <ArrowUpRight size={13} className="absolute right-3 top-3 text-muted-foreground" />
                 <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">{c.t}</p>
                 <p className={`mt-1 text-lg font-semibold tabular-nums ${c.tono}`}>{soles(c.v)}</p>

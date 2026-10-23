@@ -456,25 +456,25 @@ function GastosGenerales() {
       {pestana === "resumen" && (
         <>
           <div className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-            <div className="panel rise p-4">
+            <div data-distintivo="monto" className="panel rise p-4">
               <p className="label-mono">Gastos generales</p>
               <p className="mt-1 font-mono text-xl font-bold tabular-nums text-ink">{soles(total)}</p>
               <p className="mt-1 text-xs text-muted-foreground">{porAmbito.length} comprobantes</p>
             </div>
-            <div className="panel rise p-4">
+            <div data-distintivo="monto" className="panel rise p-4">
               <p className="label-mono">Flota</p>
               <p className="mt-1 font-mono text-xl font-bold tabular-nums text-ink">{soles(flotaTotal)}</p>
               <p className="mt-1 text-xs text-muted-foreground">Mantenimiento y combustible</p>
             </div>
-            <div className="panel rise p-4">
+            <div data-distintivo="monto" className="panel rise p-4">
               <p className="label-mono">Total del periodo</p>
               <p className="mt-1 font-mono text-xl font-bold tabular-nums text-ink">{soles(total + flotaTotal)}</p>
             </div>
-            <div className="panel rise p-4">
+            <div data-distintivo="monto" className="panel rise p-4">
               <p className="label-mono text-good">Pagado</p>
               <p className="mt-1 font-mono text-xl font-bold tabular-nums text-good">{soles(pagado + flotaTotal)}</p>
             </div>
-            <div className="panel rise p-4">
+            <div data-distintivo={porPagar > 0.004 ? "bad" : "monto"} className="panel rise p-4">
               <p className={`label-mono ${porPagar > 0.004 ? "text-bad" : ""}`}>Por pagar (crédito)</p>
               <p className={`mt-1 font-mono text-xl font-bold tabular-nums ${porPagar > 0.004 ? "text-bad" : "text-ink"}`}>{soles(porPagar)}</p>
             </div>
