@@ -1,3 +1,4 @@
+import { useRecordado } from "@/lib/recordado";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Buscador, Resaltar, coincide } from "@/components/Buscador";
 import React, { useCallback, useEffect, useState } from "react";
@@ -11,7 +12,7 @@ import { HojaNiveles } from "@/components/cotizaciones/HojaNiveles";
 import { PanelApuCotizacion, ResumenCotizacion } from "@/components/cotizaciones/PanelApuCotizacion";
 import { HojaCotizacion } from "@/components/cotizaciones/HojaCotizacion";
 
-import { Boton, BotonIcono, Campo, Etiqueta, Input, Panel, Select, SinAcceso, TarjetaResumen, Vacio, VentanaFlotante } from "@/components/ui-kit";
+import { Boton, BotonIcono, Campo, Etiqueta, Input, MenuFiltros, Panel, Select, SinAcceso, TarjetaResumen, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { cn } from "@/lib/utils";
 import { useTipoCambioActual } from "@/lib/cotizaciones";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
@@ -111,7 +112,7 @@ function Cotizaciones() {
   const { data: itemsHoja = [] } = useCotizacionItems(seleccion, true);
   const [error, setError] = useState("");
   const [aviso, setAviso] = useState("");
-  const [busqueda, setBusqueda] = useState("");
+  const [busqueda, setBusqueda] = useRecordado("cotizaciones:busqueda", "");
   /** Fila seleccionada en «Cotizaciones registradas»: activa la barra vertical de iconos. */
   const [filaSel, setFilaSel] = useState<string | null>(null);
   const [seccion, setSeccion] = useState<"cotizaciones" | "plantillas">("cotizaciones");
@@ -887,7 +888,7 @@ function Cotizaciones() {
       </div>
 
       <div className="mb-4 flex items-start gap-3">
-      <Panel titulo="Cotizaciones registradas" className="min-w-0 flex-1" extra={<Buscador valor={busqueda} onChange={setBusqueda} placeholder="Buscar por código, cliente o trabajo..." total={filtradas.length} />}>
+      <Panel titulo="Cotizaciones registradas" className="min-w-0 flex-1">
         {cotizaciones.length === 0 ? (
           <Vacio texto="Aún no hay cotizaciones. Pulsa «Nueva cotización»." />
         ) : filtradas.length === 0 ? (
@@ -939,6 +940,8 @@ function Cotizaciones() {
         const sel = filtradas.find((c) => c.id === filaSel) ?? null;
         return (
           <div className="sticky top-2 flex h-fit flex-col gap-1.5 rounded-md border p-1.5 barra-iconos">
+            <MenuFiltros activos={busqueda ? 1 : 0} onLimpiar={() => setBusqueda("")}><Buscador valor={busqueda} onChange={setBusqueda} total={filtradas.length} placeholder="Buscar por código, cliente o trabajo..." /></MenuFiltros>
+            <div className="mb-1 border-b" />
             <BotonIcono etiqueta="Vista previa" title="Vista previa" tono="primario" disabled={!sel} onClick={() => sel && navigate({ to: "/cotizacion-vista", search: { id: sel.id } })}><Eye size={15} /></BotonIcono>
             <BotonIcono etiqueta="Editar" title="Editar cotización" disabled={!sel} onClick={() => sel && setSeleccion(sel.id)}><Pencil size={15} /></BotonIcono>
             <BotonIcono etiqueta="Copiar" title="Copiar cotización" disabled={!sel} onClick={() => sel && void duplicar(sel)}><Copy size={15} /></BotonIcono>
