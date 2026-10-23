@@ -24,7 +24,7 @@ export function nuevoFormCpe(tipo: TipoComprobante, serie: string) {
     fecha_vencimiento: hoy(), guia_remision_numero: "", igv_tasa: "18", anticipo_tipo: "ninguno", anticipo_documento: "", anticipo_monto: "",
     isc: "0", icbper: "0", otros_cargos: "0", otros_tributos: "0",
     guia_motivo: "01", guia_modalidad: "02", guia_fecha_traslado: hoy(), guia_transportista: "", guia_transportista_doc: "", guia_placa: "", guia_licencia: "",
-    guia_peso: "", guia_bultos: "", guia_partida: "", guia_partida_ubigeo: "", guia_llegada: "", guia_llegada_ubigeo: "",
+    guia_peso: "", guia_bultos: "", guia_origen: "libre", guia_transportista_id: "", guia_mtc: "", guia_certificado: "", guia_entidad_autorizacion: "", guia_autorizacion: "", guia_placa_secundaria: "", guia_conductor_nombre: "", guia_conductor_doc_tipo: "DNI", guia_conductor_doc: "", guia_licencia_categoria: "", guia_vehiculo_propio_id: "", guia_conductor_propio_id: "", guia_partida: "", guia_partida_ubigeo: "", guia_llegada: "", guia_llegada_ubigeo: "",
     regimen_tasa: tipo === "40" ? "2" : "3", motivo_baja: "01",
   };
 }

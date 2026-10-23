@@ -46,6 +46,7 @@ import { Route as AuthenticatedRequerimientosRouteImport } from './routes/_authe
 import { Route as AuthenticatedSireRouteImport } from './routes/_authenticated/sire'
 import { Route as AuthenticatedTareoRouteImport } from './routes/_authenticated/tareo'
 import { Route as AuthenticatedTesoreriaRouteImport } from './routes/_authenticated/tesoreria'
+import { Route as AuthenticatedTransportistasRouteImport } from './routes/_authenticated/transportistas'
 import { Route as AuthenticatedUsuariosRouteImport } from './routes/_authenticated/usuarios'
 import { Route as AuthenticatedValorizacionesRouteImport } from './routes/_authenticated/valorizaciones'
 import { Route as AuthenticatedVehiculosRouteImport } from './routes/_authenticated/vehiculos'
@@ -249,6 +250,12 @@ const AuthenticatedTesoreriaRoute = AuthenticatedTesoreriaRouteImport.update({
   path: '/tesoreria',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedTransportistasRoute =
+  AuthenticatedTransportistasRouteImport.update({
+    id: '/transportistas',
+    path: '/transportistas',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedUsuariosRoute = AuthenticatedUsuariosRouteImport.update({
   id: '/usuarios',
   path: '/usuarios',
@@ -308,6 +315,7 @@ export interface FileRoutesByFullPath {
   '/sire': typeof AuthenticatedSireRoute
   '/tareo': typeof AuthenticatedTareoRoute
   '/tesoreria': typeof AuthenticatedTesoreriaRoute
+  '/transportistas': typeof AuthenticatedTransportistasRoute
   '/usuarios': typeof AuthenticatedUsuariosRoute
   '/valorizaciones': typeof AuthenticatedValorizacionesRoute
   '/vehiculos': typeof AuthenticatedVehiculosRoute
@@ -350,6 +358,7 @@ export interface FileRoutesByTo {
   '/sire': typeof AuthenticatedSireRoute
   '/tareo': typeof AuthenticatedTareoRoute
   '/tesoreria': typeof AuthenticatedTesoreriaRoute
+  '/transportistas': typeof AuthenticatedTransportistasRoute
   '/usuarios': typeof AuthenticatedUsuariosRoute
   '/valorizaciones': typeof AuthenticatedValorizacionesRoute
   '/vehiculos': typeof AuthenticatedVehiculosRoute
@@ -394,6 +403,7 @@ export interface FileRoutesById {
   '/_authenticated/sire': typeof AuthenticatedSireRoute
   '/_authenticated/tareo': typeof AuthenticatedTareoRoute
   '/_authenticated/tesoreria': typeof AuthenticatedTesoreriaRoute
+  '/_authenticated/transportistas': typeof AuthenticatedTransportistasRoute
   '/_authenticated/usuarios': typeof AuthenticatedUsuariosRoute
   '/_authenticated/valorizaciones': typeof AuthenticatedValorizacionesRoute
   '/_authenticated/vehiculos': typeof AuthenticatedVehiculosRoute
@@ -438,6 +448,7 @@ export interface FileRouteTypes {
     | '/sire'
     | '/tareo'
     | '/tesoreria'
+    | '/transportistas'
     | '/usuarios'
     | '/valorizaciones'
     | '/vehiculos'
@@ -480,6 +491,7 @@ export interface FileRouteTypes {
     | '/sire'
     | '/tareo'
     | '/tesoreria'
+    | '/transportistas'
     | '/usuarios'
     | '/valorizaciones'
     | '/vehiculos'
@@ -523,6 +535,7 @@ export interface FileRouteTypes {
     | '/_authenticated/sire'
     | '/_authenticated/tareo'
     | '/_authenticated/tesoreria'
+    | '/_authenticated/transportistas'
     | '/_authenticated/usuarios'
     | '/_authenticated/valorizaciones'
     | '/_authenticated/vehiculos'
@@ -796,6 +809,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTesoreriaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/transportistas': {
+      id: '/_authenticated/transportistas'
+      path: '/transportistas'
+      fullPath: '/transportistas'
+      preLoaderRoute: typeof AuthenticatedTransportistasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/usuarios': {
       id: '/_authenticated/usuarios'
       path: '/usuarios'
@@ -863,6 +883,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSireRoute: typeof AuthenticatedSireRoute
   AuthenticatedTareoRoute: typeof AuthenticatedTareoRoute
   AuthenticatedTesoreriaRoute: typeof AuthenticatedTesoreriaRoute
+  AuthenticatedTransportistasRoute: typeof AuthenticatedTransportistasRoute
   AuthenticatedUsuariosRoute: typeof AuthenticatedUsuariosRoute
   AuthenticatedValorizacionesRoute: typeof AuthenticatedValorizacionesRoute
   AuthenticatedVehiculosRoute: typeof AuthenticatedVehiculosRoute
@@ -906,6 +927,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSireRoute: AuthenticatedSireRoute,
   AuthenticatedTareoRoute: AuthenticatedTareoRoute,
   AuthenticatedTesoreriaRoute: AuthenticatedTesoreriaRoute,
+  AuthenticatedTransportistasRoute: AuthenticatedTransportistasRoute,
   AuthenticatedUsuariosRoute: AuthenticatedUsuariosRoute,
   AuthenticatedValorizacionesRoute: AuthenticatedValorizacionesRoute,
   AuthenticatedVehiculosRoute: AuthenticatedVehiculosRoute,
