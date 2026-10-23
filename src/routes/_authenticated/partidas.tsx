@@ -665,7 +665,7 @@ function Partidas() {
             const nPartidas = espGrupos.reduce((s, [, l]) => s + l.length, 0);
             return (
             <div key={proyecto} className="border-b border-line last:border-0">
-              <div className="flex items-center justify-between gap-3 border-b-2 border-primary/40 bg-primary px-5 py-2.5">
+              <div className="flex items-center justify-between gap-3 border-b border-l-4 border-line border-l-primary bg-primary/[0.07] px-5 py-2.5">
                 <button
                   type="button"
                   onClick={() => alternar(claveProy)}
@@ -673,22 +673,22 @@ function Partidas() {
                   className="flex min-w-0 flex-1 items-center gap-2 text-left"
                 >
                   {proyAbierto ? (
-                    <ChevronUp size={14} className="shrink-0 text-primary-foreground/80" />
+                    <ChevronUp size={14} className="shrink-0 text-primary" />
                   ) : (
-                    <ChevronDown size={14} className="shrink-0 text-primary-foreground/80" />
+                    <ChevronDown size={14} className="shrink-0 text-primary" />
                   )}
-                  <p className="truncate text-sm font-bold uppercase tracking-wide text-primary-foreground">{proyecto}</p>
-                  <span className="shrink-0 rounded-full bg-primary-foreground/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary-foreground/90">
+                  <p className="truncate text-sm font-bold uppercase tracking-wide text-primary">{proyecto}</p>
+                  <span className="shrink-0 rounded-full border border-primary/30 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary">
                     Proyecto
                   </span>
-                  <span className="shrink-0 font-mono text-[10px] text-primary-foreground/80">
+                  <span className="shrink-0 font-mono text-[10px] text-muted-foreground">
                     {nPartidas} partida{nPartidas === 1 ? "" : "s"} · {soles(espGrupos.reduce((s, [, l]) => s + l.reduce((a, x) => a + Number(x.presupuesto_inicial), 0), 0))}
                   </span>
                 </button>
                 <button
                   type="button"
                   onClick={() => void renumerar(proyectoId, proyecto)}
-                  className="inline-flex items-center gap-1.5 rounded border border-primary-foreground/25 px-2 py-1 font-mono text-[10px] text-primary-foreground/85 transition-colors hover:border-primary-foreground/50 hover:text-primary-foreground"
+                  className="inline-flex items-center gap-1.5 rounded border border-line bg-card px-2 py-1 font-mono text-[10px] text-ink transition-colors hover:border-primary hover:text-primary"
                 >
                   <ListOrdered size={12} /> Renumerar WBS
                 </button>

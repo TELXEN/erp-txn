@@ -266,11 +266,11 @@ function Avance() {
             ) : (
               porProyecto.map(({ pid, nombre, grupos }) => (
                 <div key={pid}>
-                  <div className="flex items-center justify-between gap-3 border-b-2 border-primary/40 bg-primary px-5 py-2.5">
-                    <p className="text-sm font-bold uppercase tracking-wide text-primary-foreground">
+                  <div className="flex items-center justify-between gap-3 border-b border-l-4 border-line border-l-primary bg-primary/[0.07] px-5 py-2.5">
+                    <p className="text-sm font-bold uppercase tracking-wide text-primary">
                       {nombre}
                     </p>
-                    <span className="rounded-full bg-primary-foreground/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary-foreground/90">
+                    <span className="rounded-full border border-primary/30 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary">
                       Proyecto
                     </span>
                   </div>
