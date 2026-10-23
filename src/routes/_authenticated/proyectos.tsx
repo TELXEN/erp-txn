@@ -365,6 +365,7 @@ function Proyectos() {
               <LayoutGrid size={13} /> Kanban
             </button>
           </div>
+          <Boton variante="accion" onClick={() => { setError(""); setFormAbierto(true); }}><Plus size={13} /> Nuevo proyecto</Boton>
           <MenuFiltros activos={[busqueda, clienteFiltro].filter(Boolean).length} onLimpiar={() => { setBusqueda(""); setClienteFiltro(""); }}>
             <Buscador valor={busqueda} onChange={setBusqueda} total={proyectos.length} placeholder="Buscar proyecto..." />
             <Campo etiqueta="Cliente">
@@ -374,7 +375,6 @@ function Proyectos() {
               </Select>
             </Campo>
           </MenuFiltros>
-          <Boton variante="accion" onClick={() => { setError(""); setFormAbierto(true); }}><Plus size={13} /> Nuevo proyecto</Boton>
           </div>
         }
       />
