@@ -605,11 +605,11 @@ function Partidas() {
       <>
       <FranjaResumen
         items={[
-          { etiqueta: "Presupuesto contractual", valor: soles(resumen.contractual) },
-          { etiqueta: "Total adicionales", valor: soles(resumen.adicionales) },
-          { etiqueta: "Presupuesto vigente", valor: soles(resumen.vigente) },
-          { etiqueta: "Partidas", valor: String(resumenPartidas.total) },
-          { etiqueta: "Avance promedio", valor: `${resumenPartidas.promedio.toFixed(1)}%` },
+          { etiqueta: "Presupuesto contractual", valor: soles(resumen.contractual), guia: "Partidas del contrato" },
+          { etiqueta: "Total adicionales", valor: soles(resumen.adicionales), guia: "Partidas fuera del contrato" },
+          { etiqueta: "Presupuesto vigente", valor: soles(resumen.vigente), guia: "Contractual + adicionales" },
+          { etiqueta: "Partidas", valor: String(resumenPartidas.total), guia: "Según filtros aplicados" },
+          { etiqueta: "Avance promedio", valor: `${resumenPartidas.promedio.toFixed(1)}%`, guia: "Promedio de partidas visibles" },
         ]}
       />
 

@@ -5,7 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Check, ChevronDown, ChevronRight, Minus, Plus, Save, Search, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, FranjaResumen, Input, MenuFiltros, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
+import { Boton, Campo, FranjaResumen, Input, MenuFiltros, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { useAuth } from "@/lib/auth";
 import { ESPECIALIDADES } from "@/lib/format";
 import { CronogramaObra } from "@/components/CronogramaObra";
@@ -252,11 +252,11 @@ function Avance() {
 
           <FranjaResumen
             items={[
-              { etiqueta: "Avance promedio", valor: `${resumen.promedio.toFixed(1)}%` },
-              { etiqueta: "Partidas", valor: resumen.total },
-              { etiqueta: "Sin iniciar", valor: resumen.sinIniciar, tono: "text-muted-foreground" },
-              { etiqueta: "En curso", valor: resumen.enCurso, tono: "text-warn" },
-              { etiqueta: "Terminadas", valor: resumen.terminadas, tono: "text-good" },
+              { etiqueta: "Avance promedio", valor: `${resumen.promedio.toFixed(1)}%`, guia: "Promedio de partidas visibles" },
+              { etiqueta: "Partidas", valor: resumen.total, guia: "Según filtros aplicados" },
+              { etiqueta: "Sin iniciar", valor: resumen.sinIniciar, tono: "text-muted-foreground", guia: "0% de avance" },
+              { etiqueta: "En curso", valor: resumen.enCurso, tono: "text-warn", guia: "Entre 1% y 99%" },
+              { etiqueta: "Terminadas", valor: resumen.terminadas, tono: "text-good", guia: "100% de avance" },
             ]}
           />
 

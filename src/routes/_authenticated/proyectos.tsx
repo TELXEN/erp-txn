@@ -502,11 +502,11 @@ function Proyectos() {
 
       <FranjaResumen
         items={[
-          { etiqueta: "Proyectos activos", valor: `${resumen.total} (${resumen.enEjecucion} en ejec.)` },
-          { etiqueta: "Presupuesto cartera", valor: soles(resumen.presupuesto) },
-          { etiqueta: "Costo ejecutado", valor: resumen.presupuesto > 0 ? `${soles(resumen.costo)} · ${((resumen.costo / resumen.presupuesto) * 100).toFixed(1)}%` : soles(resumen.costo) },
-          { etiqueta: "Avance físico promedio", valor: resumen.avancePromedio === null ? "—" : `${resumen.avancePromedio.toFixed(1)}%` },
-          { etiqueta: "En esta vista", valor: String(proyectos.length) },
+          { etiqueta: "Proyectos activos", valor: String(resumen.total), guia: `${resumen.enEjecucion} en ejecución` },
+          { etiqueta: "Presupuesto cartera", valor: soles(resumen.presupuesto), guia: "Suma de partidas" },
+          { etiqueta: "Costo ejecutado", valor: soles(resumen.costo), guia: resumen.presupuesto > 0 ? `${((resumen.costo / resumen.presupuesto) * 100).toFixed(1)}% del presupuesto` : "Sin presupuesto" },
+          { etiqueta: "Avance físico promedio", valor: resumen.avancePromedio === null ? "—" : `${resumen.avancePromedio.toFixed(1)}%`, guia: "Obras con partidas" },
+          { etiqueta: "En esta vista", valor: String(proyectos.length), guia: "Según filtros aplicados" },
         ]}
       />
 
