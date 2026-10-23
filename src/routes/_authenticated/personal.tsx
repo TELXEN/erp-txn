@@ -11,7 +11,7 @@ import { EmoPanel } from "@/components/personal/EmoPanel";
 import { estadoEmo, ESTADO_EMO_INFO, ultimoEmoPorTrabajador, useEmos } from "@/lib/emo";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
+import { Boton, Campo, Input, Panel, Pestanas, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { soles } from "@/lib/format";
 import { clasificacionDeCargo, type Trabajador, useCargos, useTrabajadores } from "@/lib/datos";
@@ -428,12 +428,25 @@ function Personal() {
         }
       />
 
-      <div className="mb-4 flex flex-wrap gap-1">
-        <Boton variante={pestana === "personal" ? "primario" : "linea"} onClick={() => setPestana("personal")}><Users size={13} /> Personal</Boton>
-        <Boton variante={pestana === "emo" ? "primario" : "linea"} onClick={() => setPestana("emo")}>
-          <Stethoscope size={13} /> EMO (Exámenes médicos)
-          {alertasEmo > 0 && <span className={`ml-1 rounded-full px-1.5 text-[10px] font-bold text-primary-foreground ${hayVencidos ? "bg-bad" : "bg-warn"}`}>{alertasEmo}</span>}
-        </Boton>
+      <div className="mb-4">
+        <Pestanas
+          etiqueta="Personal"
+          valor={pestana}
+          onCambiar={setPestana}
+          opciones={[
+            { id: "personal", texto: "Personal", icono: <Users size={13} /> },
+            {
+              id: "emo",
+              icono: <Stethoscope size={13} />,
+              texto: (
+                <>
+                  EMO (Exámenes médicos)
+                  {alertasEmo > 0 && <span className={`ml-1 rounded-full px-1.5 text-[10px] font-bold text-primary-foreground ${hayVencidos ? "bg-bad" : "bg-warn"}`}>{alertasEmo}</span>}
+                </>
+              ),
+            },
+          ]}
+        />
       </div>
 
       {pestana === "emo" ? <EmoPanel trabajadores={trabajadores} /> : <>
