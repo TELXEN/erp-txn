@@ -6,11 +6,12 @@ import { Boton } from "@/components/ui-kit";
 import { estadoDecolecta, guardarDecolecta, probarDecolecta } from "@/lib/decolecta.functions";
 
 /** Botón + panel para que Gerencia/Administración configure la clave de Decolecta. */
-export function ConfigDecolecta() {
+export function ConfigDecolecta({ enLinea = false }: { enLinea?: boolean } = {}) {
   const estado = useServerFn(estadoDecolecta);
   const guardar = useServerFn(guardarDecolecta);
   const probar = useServerFn(probarDecolecta);
-  const [abierto, setAbierto] = useState(false);
+  const [abiertoBoton, setAbierto] = useState(false);
+  const abierto = enLinea || abiertoBoton;
   const [info, setInfo] = useState<{ configurado: boolean; terminacion: string; actualizado: string } | null>(null);
   const [clave, setClave] = useState("");
   const [ocupado, setOcupado] = useState<"" | "g" | "p">("");
@@ -36,15 +37,15 @@ export function ConfigDecolecta() {
 
   return (
     <div className="relative">
-      <Boton variante="linea" onClick={() => setAbierto((v) => !v)}>
+      {!enLinea && <Boton variante="linea" onClick={() => setAbierto((v) => !v)}>
         <KeyRound size={14} />API Decolecta
         <span className={`ml-1 inline-block size-2 rounded-full ${info?.configurado ? "bg-good" : "bg-bad"}`} />
-      </Boton>
+      </Boton>}
       {abierto && (
-        <div className="absolute right-0 top-full z-40 mt-2 w-96 rounded-lg border bg-card p-4 shadow-lg">
+        <div className={enLinea ? "rounded-lg border bg-card p-4" : "absolute right-0 top-full z-40 mt-2 w-96 rounded-lg border bg-card p-4 shadow-lg"}>
           <div className="mb-2 flex items-center justify-between">
-            <h3 className="text-sm font-semibold">Consulta RUC / DNI y tipo de cambio</h3>
-            <button onClick={() => setAbierto(false)} aria-label="Cerrar" className="text-muted-foreground hover:text-foreground"><X size={16} /></button>
+            <h3 className="text-sm font-semibold">{enLinea ? "API Decolecta · RUC / DNI, tipo de cambio y AFP" : "Consulta RUC / DNI y tipo de cambio"}</h3>
+            {!enLinea && <button onClick={() => setAbierto(false)} aria-label="Cerrar" className="text-muted-foreground hover:text-foreground"><X size={16} /></button>}
           </div>
           <p className="mb-3 text-xs text-muted-foreground">
             {info?.configurado

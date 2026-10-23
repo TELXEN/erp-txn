@@ -1,11 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Building2, Check, FileText, Landmark, ShieldCheck, SlidersHorizontal } from "lucide-react";
+import { Building2, Check, Plug, FileText, Landmark, ShieldCheck, SlidersHorizontal } from "lucide-react";
 import { Boton, CabeceraModulo, Panel, Pestanas } from "@/components/ui-kit";
 import { DatosEmpresa } from "@/components/DatosEmpresa";
 import { CuentasBancarias } from "@/components/CuentasBancarias";
 import { TipografiaDocumentosPanel } from "@/components/TipografiaDocumentos";
 import { UsuariosPanel } from "@/components/UsuariosPanel";
+import { ConfigDecolecta } from "@/components/facturacion/ConfigDecolecta";
+import { ConfigSol } from "@/components/sire/ConfigSol";
+import { useAuth } from "@/lib/auth";
 import { TEMAS, useTema } from "@/lib/temas";
 
 function IconoPaletaColores({ className }: { className?: string }) {
@@ -45,7 +48,8 @@ export const Route = createFileRoute("/_authenticated/configuracion-sistema")({
 
 function ConfiguracionSistema() {
   const { tema, cambiarTema } = useTema();
-  const [pestana, setPestana] = useState<"tema" | "tipografia" | "usuarios" | "empresa" | "bancos">("tema");
+  const [pestana, setPestana] = useState<"tema" | "tipografia" | "usuarios" | "empresa" | "bancos" | "integraciones">("tema");
+  const { rol } = useAuth();
 
   return (
     <div className="space-y-4">
@@ -65,6 +69,7 @@ function ConfiguracionSistema() {
           { id: "tema", texto: "Tema de colores", icono: <IconoPaletaColores className="size-4" /> },
           { id: "tipografia", texto: "Tipografía de documentos", icono: <FileText className="size-4" /> },
           { id: "usuarios", texto: "Usuarios y Roles", icono: <ShieldCheck className="size-4" /> },
+          ...(rol === "gerente" || rol === "administrador" ? [{ id: "integraciones" as const, texto: "Integraciones", icono: <Plug className="size-4" /> }] : []),
         ]}
       />
       {pestana === "tema" ? <Panel titulo="Tema de colores" extra={<IconoPaletaColores className="size-5" />}>
@@ -95,7 +100,7 @@ function ConfiguracionSistema() {
               );
             })}
           </div>
-            </Panel> : pestana === "tipografia" ? <TipografiaDocumentosPanel /> : pestana === "empresa" ? <DatosEmpresa /> : pestana === "bancos" ? <CuentasBancarias /> : <UsuariosPanel />}
+            </Panel> : pestana === "tipografia" ? <TipografiaDocumentosPanel /> : pestana === "empresa" ? <DatosEmpresa /> : pestana === "bancos" ? <CuentasBancarias /> : pestana === "integraciones" ? <div className="grid gap-4 xl:grid-cols-2"><ConfigDecolecta enLinea />{rol === "gerente" ? <ConfigSol /> : <Panel titulo="SUNAT SIRE · API SOL"><p className="p-5 text-sm text-muted-foreground">Solo Gerencia puede ver o cambiar las credenciales SOL.</p></Panel>}</div> : <UsuariosPanel />}
     </div>
   );
 }

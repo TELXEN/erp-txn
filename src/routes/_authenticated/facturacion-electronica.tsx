@@ -11,7 +11,6 @@ import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Etiqueta, MenuFiltros, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { calcularVencimiento } from "@/components/CondicionPago";
-import { ConfigDecolecta } from "@/components/facturacion/ConfigDecolecta";
 import { RegistrarVentaExterna } from "@/components/facturacion/RegistrarVentaExterna";
 import { HojaComprobante, nuevoFormCpe, type FormCpe } from "@/components/facturacion/HojaComprobante";
 import { supabase } from "@/integrations/supabase/client";
@@ -188,7 +187,7 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
   ].filter((g) => g.tipos.length > 0);
   const grupoActivo = gruposFacturacion.find((g) => g.tipos.some((p) => p.tipo === pestana)) ?? gruposFacturacion[0];
   const ETIQUETA_BOTON: Record<string, string> = { "01": "Crear Factura", "03": "Crear Boleta", "07": "Crear Notas de Crédito", "08": "Crear Notas de Débito", "20": "Crear Retenciones", "40": "Crear Percepciones", RA: "Nueva comunicación de baja" };
-  return <><Encabezado titulo={esGuias ? "Guías de Remisión" : "Facturación Electrónica"} subtitulo={esGuias ? "Logística · guías de remisión remitente y traslados" : "Comercial · comprobantes, estados SUNAT y cobranza"} acciones={<div className="flex items-center gap-2">{!esGuias && (rol === "gerente" || rol === "administrador") && <ConfigDecolecta />}{abierto ? <Boton variante="linea" onClick={cerrar}>Cerrar editor</Boton> : <Boton onClick={() => abrirNuevo(pestana)}><FilePlus2 size={14} />{esGuias ? "Crear Guía de Remisión" : ETIQUETA_BOTON[pestana] ?? "Nuevo comprobante"}</Boton>}</div>} />
+  return <><Encabezado titulo={esGuias ? "Guías de Remisión" : "Facturación Electrónica"} subtitulo={esGuias ? "Logística · guías de remisión remitente y traslados" : "Comercial · comprobantes, estados SUNAT y cobranza"} acciones={<div className="flex items-center gap-2">{abierto ? <Boton variante="linea" onClick={cerrar}>Cerrar editor</Boton> : <Boton onClick={() => abrirNuevo(pestana)}><FilePlus2 size={14} />{esGuias ? "Crear Guía de Remisión" : ETIQUETA_BOTON[pestana] ?? "Nuevo comprobante"}</Boton>}</div>} />
     <div className={`flex flex-col ${abierto ? "md:h-[calc(100dvh-3rem)] md:-my-3 md:min-h-0 md:overflow-hidden" : ""}`}>
     {!esGuias && <>
       <div className="mb-3 flex flex-wrap gap-1">
