@@ -1,3 +1,4 @@
+import { useRecordado } from "@/lib/recordado";
 import { codigoContextual } from "@/lib/categorias";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { createFileRoute } from "@tanstack/react-router";
@@ -120,7 +121,7 @@ function Partidas() {
     aplica_gg: boolean;
     aplica_utilidad: boolean;
   } | null>(null);
-  const [busqueda, setBusqueda] = useState("");
+  const [busqueda, setBusqueda] = useRecordado("partidas:busqueda", "");
 
   const [apu, setApu] = useState<(typeof partidas)[number] | null>(null);
 

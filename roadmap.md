@@ -77,3 +77,4 @@
 - [x] Cotizaciones: tarjetas de resumen y pestañas uniformes (Caja chica ya cumplía el formato).
 - [x] Dashboard y Personal: pestañas uniformes.
 - [ ] Revisión de contraste en los cinco temas (opcional, a pedido).
+- [x] Recordar filtros/vista/grupos en Partidas y Avance físico
