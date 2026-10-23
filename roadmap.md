@@ -76,7 +76,7 @@
 - [x] Pestañas uniformes en Tesorería, SIRE y Nómina.
 - [x] Cotizaciones: tarjetas de resumen y pestañas uniformes (Caja chica ya cumplía el formato).
 - [x] Dashboard y Personal: pestañas uniformes.
-- [ ] Revisión de contraste en los cinco temas (opcional, a pedido).
+- [x] Revisión de contraste en los cinco temas (opcional, a pedido).
 - [x] Recordar filtros/vista/grupos en Partidas y Avance físico
 - [x] Filtros compactos en Proyectos, Partidas y Avance físico
 - [x] Filtros en lupa y tarjetas uniformes con guía
