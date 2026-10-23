@@ -3888,7 +3888,7 @@ export type Database = {
           moneda: Database["public"]["Enums"]["moneda"]
           observacion: string
           pct_detraccion: number
-          proyecto_id: string
+          proyecto_id: string | null
           tipo_cambio: number
           tipo_tributario: string
           updated_at: string
@@ -3908,7 +3908,7 @@ export type Database = {
           moneda?: Database["public"]["Enums"]["moneda"]
           observacion?: string
           pct_detraccion?: number
-          proyecto_id: string
+          proyecto_id?: string | null
           tipo_cambio?: number
           tipo_tributario?: string
           updated_at?: string
@@ -3928,7 +3928,7 @@ export type Database = {
           moneda?: Database["public"]["Enums"]["moneda"]
           observacion?: string
           pct_detraccion?: number
-          proyecto_id?: string
+          proyecto_id?: string | null
           tipo_cambio?: number
           tipo_tributario?: string
           updated_at?: string

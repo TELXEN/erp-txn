@@ -1,0 +1,1 @@
+ALTER TABLE public.preliquidaciones ALTER COLUMN proyecto_id DROP NOT NULL;

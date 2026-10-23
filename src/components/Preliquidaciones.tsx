@@ -2,7 +2,7 @@ import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { useEffect, useState } from "react";
 import { useTipoCambioHoy } from "@/lib/tipo-cambio";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Eye, ListPlus, Plus, Receipt, Upload } from "lucide-react";
+import { Eye, Plus, Receipt, Upload } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Boton, BotonIcono, Campo, Etiqueta, Input, Panel, Select, Vacio } from "@/components/ui-kit";
@@ -23,7 +23,7 @@ export type { TipoTributario };
 export type Preliquidacion = {
   id: string;
   codigo: string;
-  proyecto_id: string;
+  proyecto_id: string | null;
   cliente_id: string | null;
   concepto: string;
   fecha: string;
@@ -62,7 +62,6 @@ type Props = {
 };
 
 type CuentaBanco = { nombre: string; numero_cuenta: string; cci: string; monedas: string; tipo_cuenta: string };
-type PartidaObra = { id: string; codigo: string; nombre: string; unidad: string; metrado: number; precio_unitario: number; padre_id: string | null };
 
 export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe, onFacturar }: Props) {
   const navigate = useNavigate();
@@ -137,29 +136,13 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
   const [busqueda, setBusqueda] = useState("");
   const [sel, setSel] = useState("");
   const actual = lista.find((x) => x.id === sel);
-  const [selectorPartidas, setSelectorPartidas] = useState(false);
-  const [marcadas, setMarcadas] = useState<string[]>([]);
   const [cintaColapsada, setCintaColapsada] = useState(false);
+  // Origen de la preliquidación nueva: libre o desde un cliente (estado del editor, no URL).
+  const [origen, setOrigen] = useState<"libre" | "cliente">("libre");
+  const [dlgOrigen, setDlgOrigen] = useState<null | "elegir" | "cliente">(null);
+  const [cliDlg, setCliDlg] = useState("");
 
-
-
-  const { data: partidasObra = [] } = useQuery({
-    queryKey: ["partidas", "obra-pl", form.proyecto_id],
-    enabled: !!form.proyecto_id,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("partidas")
-        .select("id, codigo, nombre, unidad, metrado, precio_unitario, padre_id")
-        .eq("proyecto_id", form.proyecto_id)
-        .order("codigo");
-      if (error) throw error;
-      const todas = (data ?? []) as PartidaObra[];
-      const padres = new Set(todas.map((p) => p.padre_id).filter(Boolean));
-      return todas.filter((p) => !padres.has(p.id));
-    },
-  });
-
-  const nombreProy = (id: string) => proyectos.find((p) => p.id === id)?.nombre ?? "—";
+  const nombreProy = (id: string | null) => proyectos.find((p) => p.id === id)?.nombre ?? "—";
   const datosCliente = (id: string | null) => clientes.find((c) => c.id === id) ?? null;
   const nombreCliente = (id: string | null) => datosCliente(id)?.razon_social ?? "—";
   const rucCliente = (id: string | null) => datosCliente(id)?.numero_documento ?? "";
@@ -204,44 +187,46 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
     { t: "Facturadas del mes", ...grupo((p) => p.estado === "Facturada" && (facturaDe(p.id)?.fecha_emision ?? p.fecha).slice(0, 7) === mesHoy) },
   ];
 
+  const clave = (s: string | null | undefined) => (s ?? "").normalize("NFD").replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+  const proyectosDe = (clienteId: string) => {
+    const c = clientes.find((x) => x.id === clienteId);
+    if (!c) return [];
+    return proyectos.filter((p) => clave(p.cliente) === clave(c.razon_social));
+  };
+  const conceptoDe = (id: string) => {
+    const p = proyectos.find((x) => x.id === id);
+    return p ? `${p.codigo ? p.codigo + " " : ""}${p.nombre}` : "";
+  };
+
   function elegirProyecto(id: string) {
     const proy = proyectos.find((p) => p.id === id);
-    const nombre = (proy?.cliente ?? "").trim().toLowerCase();
-    const cli = nombre ? clientes.find((c) => c.razon_social.trim().toLowerCase() === nombre) : undefined;
-    setForm({ ...form, proyecto_id: id, cliente_id: cli?.id ?? form.cliente_id });
-    setSelectorPartidas(false);
-    setMarcadas([]);
+    const nombre = clave(proy?.cliente);
+    const cli = nombre ? clientes.find((c) => clave(c.razon_social) === nombre) : undefined;
+    // El concepto toma el nombre del proyecto solo si el usuario no lo ha personalizado.
+    const previo = form.proyecto_id ? conceptoDe(form.proyecto_id) : "";
+    const concepto = !form.concepto.trim() || form.concepto === previo ? conceptoDe(id) : form.concepto;
+    setForm({ ...form, proyecto_id: id, cliente_id: origen === "cliente" ? form.cliente_id : cli?.id ?? form.cliente_id, concepto });
   }
-
-  function cargarPartidas() {
-    const proy = proyectos.find((p) => p.id === form.proyecto_id);
-    const factor = 1 + (Number(proy?.pct_gastos_generales ?? 0) + Number(proy?.pct_utilidad ?? 0)) / 100;
-    const nuevas: ItemPL[] = partidasObra
-      .filter((p) => marcadas.includes(p.id))
-      .map((p) => ({
-        descripcion: `${p.codigo ? p.codigo + " " : ""}${p.nombre}`,
-        unidad: p.unidad || "GLB",
-        cantidad: String(Number(p.metrado) || 1),
-        precio_unitario: String(Math.round(Number(p.precio_unitario) * factor * 100) / 100),
-      }));
-    const actuales = lineas.filter((l) => l.descripcion.trim() || Number(l.precio_unitario) > 0);
-    setLineas([...actuales, ...nuevas].length ? [...actuales, ...nuevas] : [itemVacio()]);
-    setSelectorPartidas(false);
-    setMarcadas([]);
-  }
-
 
   function nuevo() {
-    setForm(formVacio());
+    setCliDlg("");
+    setDlgOrigen("elegir");
+  }
+
+  function abrirNuevo(o: "libre" | "cliente", clienteId = "", proyectoId = "") {
+    setOrigen(o);
+    setForm({ ...formVacio(), cliente_id: clienteId, proyecto_id: proyectoId, concepto: proyectoId ? conceptoDe(proyectoId) : "" });
     setLineas([itemVacio()]);
     setEditando(null);
     setError("");
+    setDlgOrigen(null);
     setAbierto(true);
   }
 
   function editar(p: Preliquidacion) {
+    setOrigen("libre");
     setForm({
-      proyecto_id: p.proyecto_id,
+      proyecto_id: p.proyecto_id ?? "",
       cliente_id: p.cliente_id ?? "",
       concepto: p.concepto,
       fecha: p.fecha,
@@ -288,7 +273,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
       setError(`Aviso: el neto (${soles(netoForm * tc)}) supera el saldo disponible de la obra (${soles(Math.max(saldoSel, 0))}). Se guardó igual como borrador.`);
     const cond = datosCondicion(form, form.fecha);
     const datos = {
-      proyecto_id: form.proyecto_id,
+      proyecto_id: form.proyecto_id || null,
       cliente_id: form.cliente_id || null,
       concepto: form.concepto.trim(),
       fecha: form.fecha,
@@ -339,7 +324,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
 
   async function cambiarEstado(p: Preliquidacion, estado: string) {
     if (estado === "Aprobada") {
-      const saldo = ofertadoDe(p.proyecto_id) - facturadoDe(p.proyecto_id) - comprometidoDe(p.proyecto_id, p.id);
+      const saldo = p.proyecto_id ? ofertadoDe(p.proyecto_id) - facturadoDe(p.proyecto_id) - comprometidoDe(p.proyecto_id, p.id) : Infinity;
       const neto = netoDe(p.id) * Number(p.tipo_cambio || 1);
       if (neto > saldo + 0.01)
         return alert(`No se puede aprobar: el neto ${soles(neto)} supera el saldo disponible de la obra (${soles(Math.max(saldo, 0))}).`);
@@ -366,8 +351,55 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
 
   const editable = (p: Preliquidacion) => p.estado === "Borrador" || p.estado === "Observada";
 
+  const proyDlg = cliDlg ? proyectosDe(cliDlg) : [];
   return (
     <>
+      {dlgOrigen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 p-4" onClick={() => setDlgOrigen(null)}>
+          <div className="w-full max-w-md rounded-lg border border-line bg-card p-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <h3 className="mb-3 text-sm font-semibold">Nueva preliquidación</h3>
+            {dlgOrigen === "elegir" ? (
+              <div className="grid grid-cols-2 gap-2">
+                <button type="button" className="rounded-md border border-line p-3 text-left hover:border-primary hover:bg-primary/5" onClick={() => abrirNuevo("libre")}>
+                  <div className="text-sm font-medium">Libre</div>
+                  <div className="text-xs text-muted-foreground">Editor vacío, cliente y proyecto opcionales.</div>
+                </button>
+                <button type="button" className="rounded-md border border-line p-3 text-left hover:border-primary hover:bg-primary/5" onClick={() => setDlgOrigen("cliente")}>
+                  <div className="text-sm font-medium">Desde cliente</div>
+                  <div className="text-xs text-muted-foreground">Elige cliente y uno de sus proyectos.</div>
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div>
+                  <label className="mb-1 block text-[10px] font-semibold uppercase text-muted-foreground">Cliente</label>
+                  <Select value={cliDlg} onChange={(e) => setCliDlg(e.target.value)}>
+                    <option value="">Selecciona...</option>
+                    {clientes.map((c) => <option key={c.id} value={c.id}>{c.razon_social}</option>)}
+                  </Select>
+                </div>
+                {cliDlg && (proyDlg.length ? (
+                  <div className="max-h-64 space-y-1 overflow-y-auto">
+                    <label className="mb-1 block text-[10px] font-semibold uppercase text-muted-foreground">Proyectos del cliente</label>
+                    {proyDlg.map((p) => (
+                      <button key={p.id} type="button" className="block w-full rounded border border-line px-2 py-1.5 text-left text-xs hover:border-primary hover:bg-primary/5" onClick={() => abrirNuevo("cliente", cliDlg, p.id)}>
+                        <span className="text-muted-foreground">{p.codigo}</span> {p.nombre}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="space-y-2 text-xs text-muted-foreground">
+                    <p>Este cliente no tiene proyectos registrados.</p>
+                    <Boton type="button" variante="linea" onClick={() => abrirNuevo("libre", cliDlg)}>Continuar como libre</Boton>
+                  </div>
+                ))}
+                <Boton type="button" variante="linea" onClick={() => setDlgOrigen("elegir")}>Volver</Boton>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {abierto && (
         <div className="-mx-4 -my-6 min-h-full bg-background sm:-mx-6">
         <Panel
@@ -402,10 +434,10 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
                       className="-ml-1 w-full rounded bg-transparent px-1 text-xs font-medium text-white focus:outline-none focus:ring-1 focus:ring-[#F1C40F] [&>option]:text-black"
                       value={form.proyecto_id}
                       onChange={(e) => elegirProyecto(e.target.value)}
-                      required
+                      required={origen === "cliente"}
                     >
-                      <option value="">Selecciona...</option>
-                      {proyectos.map((p) => (
+                      <option value="">{origen === "cliente" ? "Selecciona..." : "Sin proyecto"}</option>
+                      {(origen === "cliente" && form.cliente_id ? proyectosDe(form.cliente_id) : proyectos).map((p) => (
                         <option key={p.id} value={p.id}>{p.codigo ? `${p.codigo} · ` : ""}{p.nombre}</option>
                       ))}
                     </select>
@@ -416,7 +448,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
                       className="-ml-1 w-full rounded bg-transparent px-1 text-xs font-medium text-white focus:outline-none focus:ring-1 focus:ring-[#F1C40F] [&>option]:text-black"
                       value={form.cliente_id}
                       onChange={(e) => setForm({ ...form, cliente_id: e.target.value })}
-                      required
+                      disabled={origen === "cliente"}
                     >
                       <option value="">Selecciona...</option>
                       {clientes.map((c) => (
@@ -533,45 +565,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
               onLinea={(i, cambios) => setLineas(lineas.map((x, k) => (k === i ? { ...x, ...cambios } : x)))}
               onQuitarLinea={(i) => setLineas(lineas.filter((_, k) => k !== i))}
               onAgregarLinea={() => setLineas([...lineas, itemVacio()])}
-              accionesLineas={
-                <Boton type="button" variante="linea" disabled={!form.proyecto_id} onClick={() => setSelectorPartidas(!selectorPartidas)}>
-                  <ListPlus size={13} /> Cargar partidas de la obra
-                </Boton>
-              }
             />
-
-            {selectorPartidas && (
-              <div className="mt-3 rounded-lg border border-line bg-muted/20 p-3">
-                {partidasObra.length === 0 ? (
-                  <p className="font-mono text-xs text-muted-foreground">Esta obra no tiene partidas registradas.</p>
-                ) : (
-                  <>
-                    <p className="mb-2 font-mono text-[10px] text-muted-foreground">
-                      P.U. incluye gastos generales y utilidad de la obra. Marca las partidas a cobrar:
-                    </p>
-                    <div className="max-h-56 space-y-1 overflow-y-auto">
-                      {partidasObra.map((p) => (
-                        <label key={p.id} className="flex cursor-pointer items-center gap-2 font-mono text-xs">
-                          <input
-                            type="checkbox"
-                            checked={marcadas.includes(p.id)}
-                            onChange={(e) => setMarcadas(e.target.checked ? [...marcadas, p.id] : marcadas.filter((x) => x !== p.id))}
-                          />
-                          <span className="text-muted-foreground">{p.codigo}</span> {p.nombre}
-                          <span className="ml-auto text-muted-foreground">{Number(p.metrado)} {p.unidad}</span>
-                        </label>
-                      ))}
-                    </div>
-                    <div className="mt-2 flex gap-2">
-                      <Boton type="button" disabled={!marcadas.length} onClick={cargarPartidas}>Agregar {marcadas.length || ""} partida(s)</Boton>
-                      <Boton type="button" variante="linea" onClick={() => setMarcadas(marcadas.length === partidasObra.length ? [] : partidasObra.map((p) => p.id))}>
-                        {marcadas.length === partidasObra.length ? "Quitar todas" : "Marcar todas"}
-                      </Boton>
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
 
             <div className="mt-4 flex gap-2">
               <Boton type="submit">{editando ? "Guardar cambios" : "Guardar borrador"}</Boton>
