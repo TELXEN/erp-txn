@@ -5,7 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Archive, Calculator, Eye, Info, LayoutGrid, Plus, Table2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, BotonIcono, Input, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
+import { Boton, BotonIcono, FranjaResumen, InfoTooltip, Input, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 function estadoDe(situacion: string): "En Ejecucion" | "Finalizado" {

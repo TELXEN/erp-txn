@@ -5,7 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Check, ChevronDown, ChevronRight, Gauge, Minus, Plus, Save, Search, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
+import { Boton, FranjaResumen, Input, MenuFiltros, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { useAuth } from "@/lib/auth";
 import { ESPECIALIDADES } from "@/lib/format";
 import { CronogramaObra } from "@/components/CronogramaObra";
