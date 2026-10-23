@@ -73,4 +73,5 @@
 
 ## Mejora del front end
 - [x] Base: cabecera, pestañas, tarjetas, filas de carga, vacío con icono, franja entre filas y foco visible; Configuración adoptada.
-- [ ] Adoptar cabecera, pestañas y tarjetas en Tesorería, SIRE, Dashboard, Cotizaciones, Caja chica y Nómina (por etapas, con revisión del usuario).
+- [x] Pestañas uniformes en Tesorería, SIRE y Nómina.
+- [ ] Tarjetas, filas de carga y vacío en Dashboard, Cotizaciones y Caja chica (siguiente etapa).

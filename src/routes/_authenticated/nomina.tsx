@@ -6,7 +6,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, ClipboardList, Database, Lock, FileText, RefreshCw, Trash2, Unlock, Upload, Wand2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
+import { Boton, Campo, Etiqueta, Input, Panel, Pestanas, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha, hoy, MESES, soles } from "@/lib/format";
 import { type Trabajador, useTareos, useTrabajadores } from "@/lib/datos";
@@ -328,13 +328,16 @@ function Nomina() {
         }
       />
 
-      <div className="mb-4 flex flex-wrap gap-2">
-        <Boton variante={pestana === "planilla" ? "primario" : "linea"} onClick={() => setPestana("planilla")}>
-          <ClipboardList size={13} /> Planilla
-        </Boton>
-        <Boton variante={pestana === "datos" ? "primario" : "linea"} onClick={() => setPestana("datos")}>
-          <Database size={13} /> Datos
-        </Boton>
+      <div className="mb-4">
+        <Pestanas
+          etiqueta="Nómina"
+          valor={pestana}
+          onCambiar={setPestana}
+          opciones={[
+            { id: "planilla", texto: "Planilla", icono: <ClipboardList size={13} /> },
+            { id: "datos", texto: "Datos", icono: <Database size={13} /> },
+          ]}
+        />
       </div>
 
       {pestana === "datos" ? (
