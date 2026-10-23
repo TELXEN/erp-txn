@@ -239,7 +239,7 @@ function AlmacenPage() {
           </div>
         </form>
         <p className="border-t border-line px-5 py-2 font-mono text-[10px] text-muted-foreground">
-          Los ingresos por compra se registran desde Órdenes de Compra con el botón "Recibir en almacén". Las salidas se valorizan al costo promedio.
+          Los ingresos por compra se registran desde Órdenes de Compra con el botón "Recibir en almacén", o aquí vinculando el ingreso a una orden pendiente: el estado de la orden se actualiza solo. Las salidas se valorizan al costo promedio.
         </p>
       </Panel>
 
