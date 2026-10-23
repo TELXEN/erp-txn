@@ -207,40 +207,7 @@ function Avance() {
               <Pestana activa={vista === "real"} onClick={() => setVista("real")}>Avance real</Pestana>
               <Pestana activa={vista === "cronograma"} onClick={() => setVista("cronograma")}>Avance programado</Pestana>
             </div>
-            {vista === "real" && (
-              <MenuFiltros flotante
-                activos={[busqueda, filtroProyecto, filtroEsp, orden !== "wbs"].filter(Boolean).length}
-                onLimpiar={() => { setBusqueda(""); setFiltroProyecto(""); setFiltroEsp(""); setOrden("wbs"); }}
-              >
-                <div className="relative">
-                  <Search size={13} className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                  <Input className="h-8 py-0 pl-7 text-xs" placeholder="Buscar partida..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
-                </div>
-                <Campo etiqueta="Proyecto">
-                  <Select className="h-8 py-0 text-xs" value={filtroProyecto} onChange={(e) => setFiltroProyecto(e.target.value)}>
-                    <option value="">Todos los proyectos</option>
-                    {proyectos.map((p) => (
-                      <option key={p.id} value={p.id}>{p.nombre}</option>
-                    ))}
-                  </Select>
-                </Campo>
-                <Campo etiqueta="Especialidad">
-                  <Select className="h-8 py-0 text-xs" value={filtroEsp} onChange={(e) => setFiltroEsp(e.target.value)}>
-                    <option value="">Todas las especialidades</option>
-                    {ESPECIALIDADES.map((e) => (
-                      <option key={e} value={e}>{e}</option>
-                    ))}
-                  </Select>
-                </Campo>
-                <Campo etiqueta="Orden">
-                  <Select className="h-8 py-0 text-xs" value={orden} onChange={(e) => setOrden(e.target.value as Orden)}>
-                    <option value="wbs">Código WBS</option>
-                    <option value="avance">Mayor avance</option>
-                    <option value="nombre">Alfabético</option>
-                  </Select>
-                </Campo>
-              </MenuFiltros>
-            )}
+            
           </div>
         }
       />
@@ -260,6 +227,7 @@ function Avance() {
             ]}
           />
 
+<div className="flex items-start gap-3"><div className="min-w-0 flex-1">
           <Panel titulo="Partidas asignadas">
             {porProyecto.length === 0 ? (
               <Vacio texto="No hay partidas con estos filtros." />
@@ -353,6 +321,38 @@ function Avance() {
               ))
             )}
           </Panel>
+</div><div className="sticky top-2 flex h-fit shrink-0 flex-col gap-1.5 rounded-md border p-1.5 barra-iconos"><MenuFiltros
+                activos={[busqueda, filtroProyecto, filtroEsp, orden !== "wbs"].filter(Boolean).length}
+                onLimpiar={() => { setBusqueda(""); setFiltroProyecto(""); setFiltroEsp(""); setOrden("wbs"); }}
+              >
+                <div className="relative">
+                  <Search size={13} className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <Input className="h-8 py-0 pl-7 text-xs" placeholder="Buscar partida..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
+                </div>
+                <Campo etiqueta="Proyecto">
+                  <Select className="h-8 py-0 text-xs" value={filtroProyecto} onChange={(e) => setFiltroProyecto(e.target.value)}>
+                    <option value="">Todos los proyectos</option>
+                    {proyectos.map((p) => (
+                      <option key={p.id} value={p.id}>{p.nombre}</option>
+                    ))}
+                  </Select>
+                </Campo>
+                <Campo etiqueta="Especialidad">
+                  <Select className="h-8 py-0 text-xs" value={filtroEsp} onChange={(e) => setFiltroEsp(e.target.value)}>
+                    <option value="">Todas las especialidades</option>
+                    {ESPECIALIDADES.map((e) => (
+                      <option key={e} value={e}>{e}</option>
+                    ))}
+                  </Select>
+                </Campo>
+                <Campo etiqueta="Orden">
+                  <Select className="h-8 py-0 text-xs" value={orden} onChange={(e) => setOrden(e.target.value as Orden)}>
+                    <option value="wbs">Código WBS</option>
+                    <option value="avance">Mayor avance</option>
+                    <option value="nombre">Alfabético</option>
+                  </Select>
+                </Campo>
+              </MenuFiltros></div></div>
 
           {/* Barra fija de guardado masivo */}
           {pendientes > 0 && (
