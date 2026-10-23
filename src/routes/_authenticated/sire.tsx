@@ -225,7 +225,11 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
     queryFn: async () => (await supabase.from("sire_periodos").select("*").eq("libro", libro).eq("periodo", periodo).maybeSingle()).data,
   });
   const items = (reg?.items as Item[] | undefined) ?? [];
-  useEffect(() => { setPaso(reg && reg.estado !== "Pendiente" ? (reg.estado === "Aceptado" ? 3 : 2) : 1); }, [reg?.id, reg?.estado]);
+  // Al abrir un libro se carga primero su listado de documentos; el cierre queda a un clic.
+  useEffect(() => {
+    if (!reg || reg.estado === "Pendiente") { setPaso(1); return; }
+    setPaso(Array.isArray(reg.items) && (reg.items as Item[]).length > 0 ? 2 : 3);
+  }, [reg?.id, reg?.estado]);
 
   const cuenta = useMemo(() => ({
     todos: items.length,
