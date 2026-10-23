@@ -36,6 +36,7 @@
 - Banco APU: five resource tables + partida_detalle (one FK per row); quitar_recurso_apu deactivates used resources; specs on partidas_apu.especificaciones, metrado on partidas_apu_metrado — preserves history.
 - APU dossier is a read-only A4 rendering of the quotation APU grid, preserving its resource columns, group order, quantity semantics and manual-tools row so exports match the editor.
 - Text: data-formato/FormatoGlobal; claveNombre folds case/accents for uniqueness.
+- Editable catalogues can opt into a shared text-format mode applied both on blur and before saving — brand spelling stays consistent without changing other catalogues.
 - Units: unidades_medida only, including APU/quotation/new-item selects; retain H-H (labor), H-M (hourly equipment), % (labor percentage), GLB — no free text.
 - Specialties: explicit editable codes; archive removals. Rename via guardar_especialidad for atomic catalog links; preserve history.
 - TanStack routes: api/ protected, api/public/ verified external callers; no Edge Functions.

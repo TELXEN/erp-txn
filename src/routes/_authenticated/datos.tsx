@@ -28,6 +28,7 @@ import { PRIORIDADES, SITUACIONES, tonoPrioridad, tonoSituacion } from "@/lib/co
 import { CodificacionDocumentos } from "@/components/CodificacionDocumentos";
 import { type CuentaBancaria } from "@/components/CuentasBancarias";
 import { RubrosIngreso } from "@/components/RubrosIngreso";
+import { formatearTexto, type ModoFormato } from "@/lib/formato-texto";
 
 export const Route = createFileRoute("/_authenticated/datos")({
   head: () => ({
@@ -721,6 +722,7 @@ type ItemEditable = { id: string; nombre: string };
 
 function ListaEditable<T extends ItemEditable>({
   titulo,
+  formato,
   descripcion,
   items,
   placeholder,
@@ -733,6 +735,7 @@ function ListaEditable<T extends ItemEditable>({
   onEliminar,
 }: {
   titulo: string;
+  formato?: ModoFormato;
   descripcion: string;
   items: T[];
   placeholder: string;
@@ -751,7 +754,7 @@ function ListaEditable<T extends ItemEditable>({
 
   async function agregar(e: React.FormEvent) {
     e.preventDefault();
-    const limpio = nuevo.trim();
+    const limpio = formato ? formatearTexto(nuevo, formato) : nuevo.trim();
     if (!limpio) return;
     setError("");
     const err = await onAgregar(limpio);
@@ -762,7 +765,7 @@ function ListaEditable<T extends ItemEditable>({
 
   async function renombrar(t: T) {
     if (!editando) return;
-    const limpio = editando.nombre.trim();
+    const limpio = formato ? formatearTexto(editando.nombre, formato) : editando.nombre.trim();
     if (!limpio) return;
     if (limpio === t.nombre) return setEditando(null);
     setError("");
@@ -804,6 +807,7 @@ function ListaEditable<T extends ItemEditable>({
             <Input
               autoFocus
               value={nuevo}
+              data-formato={formato}
               onChange={(e) => setNuevo(e.target.value)}
               onKeyDown={(e) => e.key === "Escape" && setAgregando(false)}
               placeholder={placeholder}
@@ -828,7 +832,7 @@ function ListaEditable<T extends ItemEditable>({
               <>
                 <Input
                   autoFocus
-                  value={editando.nombre} data-formato="oracion"
+                  value={editando.nombre} data-formato={formato ?? "oracion"}
                   onChange={(e) => setEditando({ ...editando, nombre: e.target.value })}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") renombrar(t);
@@ -961,6 +965,7 @@ function MarcasPanel() {
   return (
     <ListaEditable
       titulo="Registro de marcas"
+      formato="marca"
       descripcion="Marcas de materiales disponibles en el Maestro de insumos."
       items={data}
       placeholder="Nombre de la nueva marca"
