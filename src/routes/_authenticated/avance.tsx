@@ -2,7 +2,7 @@ import { useRecordado } from "@/lib/recordado";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Check, ChevronDown, ChevronRight, Gauge, Minus, Plus, Save, Search, X } from "lucide-react";
+import { Check, ChevronDown, ChevronRight, Minus, Plus, Save, Search, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, FranjaResumen, Input, MenuFiltros, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";

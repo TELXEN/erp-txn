@@ -24,7 +24,7 @@ import {
   nombresPrioridades,
 } from "@/lib/datos";
 import { exportarExcel } from "@/lib/exportar";
-import { Pencil, Trash2, Check, X, LayoutGrid, Table2, Upload, ListOrdered, Calculator, ChevronDown, ChevronUp, FolderKanban } from "lucide-react";
+import { Pencil, Trash2, Check, X, LayoutGrid, Table2, Upload, ListOrdered, Calculator, ChevronDown, ChevronUp } from "lucide-react";
 import { Kanban } from "@/components/Kanban";
 import { InsigniaPrioridad, InsigniaTipoPresupuesto } from "@/components/estado-ui";
 import { PRIORIDADES } from "@/lib/configuracion";
