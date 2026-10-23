@@ -137,27 +137,11 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
   const [busqueda, setBusqueda] = useState("");
   const [sel, setSel] = useState("");
   const actual = lista.find((x) => x.id === sel);
-  const [selectorPartidas, setSelectorPartidas] = useState(false);
-  const [marcadas, setMarcadas] = useState<string[]>([]);
   const [cintaColapsada, setCintaColapsada] = useState(false);
-
-
-
-  const { data: partidasObra = [] } = useQuery({
-    queryKey: ["partidas", "obra-pl", form.proyecto_id],
-    enabled: !!form.proyecto_id,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("partidas")
-        .select("id, codigo, nombre, unidad, metrado, precio_unitario, padre_id")
-        .eq("proyecto_id", form.proyecto_id)
-        .order("codigo");
-      if (error) throw error;
-      const todas = (data ?? []) as PartidaObra[];
-      const padres = new Set(todas.map((p) => p.padre_id).filter(Boolean));
-      return todas.filter((p) => !padres.has(p.id));
-    },
-  });
+  // Origen de la preliquidación nueva: libre o desde un cliente (estado del editor, no URL).
+  const [origen, setOrigen] = useState<"libre" | "cliente">("libre");
+  const [dlgOrigen, setDlgOrigen] = useState<null | "elegir" | "cliente">(null);
+  const [cliDlg, setCliDlg] = useState("");
 
   const nombreProy = (id: string) => proyectos.find((p) => p.id === id)?.nombre ?? "—";
   const datosCliente = (id: string | null) => clientes.find((c) => c.id === id) ?? null;
