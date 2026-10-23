@@ -1,3 +1,4 @@
+import { useRecordado } from "@/lib/recordado";
 import { codigoContextual } from "@/lib/categorias";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { createFileRoute } from "@tanstack/react-router";
@@ -73,13 +74,9 @@ function Partidas() {
   const { data: unidades = [] } = useUnidadesMedida();
   const { data: maestras = [] } = usePartidasMaestras();
 
-  const [filtroProyecto, setFiltroProyecto] = useState(() => localStorage.getItem("partidas:proyecto") ?? "");
-  const [filtroTipo, setFiltroTipo] = useState("");
-  const [filtroEsp, setFiltroEsp] = useState("");
-
-  useEffect(() => {
-    localStorage.setItem("partidas:proyecto", filtroProyecto);
-  }, [filtroProyecto]);
+  const [filtroProyecto, setFiltroProyecto] = useRecordado("partidas:proyecto:v2", "");
+  const [filtroTipo, setFiltroTipo] = useRecordado("partidas:tipo", "");
+  const [filtroEsp, setFiltroEsp] = useRecordado("partidas:especialidad", "");
 
   // Si el proyecto recordado ya no existe, vuelve a «Todos»
   useEffect(() => {
@@ -87,16 +84,12 @@ function Partidas() {
       setFiltroProyecto("");
     }
   }, [filtroProyecto, proyectos]);
-  const [vista, setVista] = useState<"tabla" | "kanban">("tabla");
+  const [vista, setVista] = useRecordado<"tabla" | "kanban">("partidas:vista", "tabla");
   const [modalNueva, setModalNueva] = useState(false);
-  const [colapsados, setColapsados] = useState<Set<string>>(new Set());
+  const [colapsadosLista, setColapsadosLista] = useRecordado<string[]>("partidas:colapsados", []);
+  const colapsados = useMemo(() => new Set(colapsadosLista), [colapsadosLista]);
   const alternar = (clave: string) =>
-    setColapsados((prev) => {
-      const nx = new Set(prev);
-      if (nx.has(clave)) nx.delete(clave);
-      else nx.add(clave);
-      return nx;
-    });
+    setColapsadosLista((prev) => (prev.includes(clave) ? prev.filter((c) => c !== clave) : [...prev, clave]));
   const accionRef = React.useRef<"volver" | "otra">("volver");
   const [form, setForm] = useState({
     proyecto_id: "",
@@ -128,7 +121,7 @@ function Partidas() {
     aplica_gg: boolean;
     aplica_utilidad: boolean;
   } | null>(null);
-  const [busqueda, setBusqueda] = useState("");
+  const [busqueda, setBusqueda] = useRecordado("partidas:busqueda", "");
 
   const [apu, setApu] = useState<(typeof partidas)[number] | null>(null);
 
