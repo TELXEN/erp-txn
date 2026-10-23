@@ -12,7 +12,7 @@ import { soles } from "@/lib/format";
 import { useProyectos } from "@/lib/datos";
 import { apuDb, useInsumos } from "@/lib/apu";
 import { exportarExcel } from "@/lib/exportar";
-import { calcularStock, claveStock, num, useMovimientos } from "@/lib/logistica";
+import { calcularStock, claveStock, num, sincronizarEstadoOC, useItemsOC, useMovimientos, useOrdenesCompra } from "@/lib/logistica";
 
 export const Route = createFileRoute("/_authenticated/almacen")({
   head: () => ({
@@ -36,11 +36,14 @@ function AlmacenPage() {
   const { data: proyectos = [] } = useProyectos();
   const { data: insumos = [] } = useInsumos();
   const { data: movs = [] } = useMovimientos();
+  const { data: ordenes = [] } = useOrdenesCompra();
+  const { data: itemsOC = [] } = useItemsOC();
   const [form, setForm] = useState({
     tipo: "Salida" as "Ingreso" | "Salida",
     fecha: hoy(),
     proyecto_id: "",
     insumo_id: "",
+    orden_item_id: "",
     cantidad: "",
     costo_unitario: "",
     documento: "",
@@ -70,6 +73,25 @@ function AlmacenPage() {
       ? insumos.filter((i) => stock.some((s) => s.proyecto_id === form.proyecto_id && s.insumo_id === i.id && s.stock > 0))
       : insumos.filter((i) => i.activo && i.tipo !== "MO");
 
+  /** Ítems de OC (no anuladas) de la obra con saldo pendiente para el insumo elegido. */
+  const recibidoItem = (itemId: string) =>
+    movs.filter((m) => m.orden_item_id === itemId && m.tipo === "Ingreso").reduce((s, m) => s + Number(m.cantidad), 0);
+  const ocPendientes = itemsOC
+    .map((i) => {
+      const oc = ordenes.find((o) => o.id === i.orden_id);
+      const saldo = Number(i.cantidad) - recibidoItem(i.id);
+      return { item: i, oc, saldo };
+    })
+    .filter(
+      (x) =>
+        x.oc &&
+        x.oc.estado !== "Anulada" &&
+        x.oc.proyecto_id === form.proyecto_id &&
+        x.item.insumo_id === form.insumo_id &&
+        x.saldo > 0.0001,
+    );
+  const ocSel = ocPendientes.find((x) => x.item.id === form.orden_item_id);
+
   async function guardar(e: React.FormEvent) {
     e.preventDefault();
     setError("");
@@ -78,6 +100,8 @@ function AlmacenPage() {
     if (!(cant > 0)) return setError("La cantidad debe ser mayor que cero.");
     if (form.tipo === "Salida" && cant > (stockSel?.stock ?? 0) + 0.0001)
       return setError(`Stock insuficiente: disponible ${num(stockSel?.stock ?? 0)} ${ins.unidad}.`);
+    if (form.tipo === "Ingreso" && ocSel && cant > ocSel.saldo + 0.0001)
+      return setError(`La cantidad supera el saldo pendiente de ${ocSel.oc!.codigo}: ${num(ocSel.saldo)} ${ins.unidad}.`);
     const { error: err } = await apuDb.from("movimientos_almacen").insert({
       tipo: form.tipo,
       fecha: form.fecha,
@@ -88,18 +112,29 @@ function AlmacenPage() {
       cantidad: cant,
       costo_unitario:
         form.tipo === "Ingreso" ? Number(form.costo_unitario || ins.precio) : Number(stockSel?.costoPromedio ?? 0),
+      orden_item_id: form.tipo === "Ingreso" && form.orden_item_id ? form.orden_item_id : null,
       documento: form.documento.trim(),
       observacion: form.observacion.trim(),
     });
     if (err) return setError(err.message);
-    setForm({ ...form, insumo_id: "", cantidad: "", costo_unitario: "", documento: "", observacion: "" });
+    if (form.tipo === "Ingreso" && ocSel?.oc) {
+      await sincronizarEstadoOC(ocSel.oc.id);
+      qc.invalidateQueries({ queryKey: ["ordenes_compra"] });
+    }
+    setForm({ ...form, insumo_id: "", orden_item_id: "", cantidad: "", costo_unitario: "", documento: "", observacion: "" });
     qc.invalidateQueries({ queryKey: ["movimientos_almacen"] });
   }
 
   async function eliminar(id: string) {
     if (!window.confirm("¿Eliminar este movimiento de almacén?")) return;
+    const mov = movs.find((m) => m.id === id);
+    const ocDel = mov?.orden_item_id ? ordenes.find((o) => o.id === itemsOC.find((i) => i.id === mov.orden_item_id)?.orden_id) : undefined;
     const { error: err } = await apuDb.from("movimientos_almacen").delete().eq("id", id);
     if (err) return setError(err.message);
+    if (ocDel) {
+      await sincronizarEstadoOC(ocDel.id);
+      qc.invalidateQueries({ queryKey: ["ordenes_compra"] });
+    }
     qc.invalidateQueries({ queryKey: ["movimientos_almacen"] });
   }
 
@@ -140,7 +175,7 @@ function AlmacenPage() {
       <Panel titulo="Registrar movimiento" className="mb-5">
         <form onSubmit={guardar} className="grid gap-3 px-5 py-4 sm:grid-cols-4">
           <Campo etiqueta="Tipo">
-            <Select value={form.tipo} onChange={(e) => setForm({ ...form, tipo: e.target.value as "Ingreso" | "Salida", insumo_id: "" })}>
+            <Select value={form.tipo} onChange={(e) => setForm({ ...form, tipo: e.target.value as "Ingreso" | "Salida", insumo_id: "", orden_item_id: "" })}>
               <option value="Salida">Salida a obra (consumo)</option>
               <option value="Ingreso">Ingreso manual</option>
             </Select>
@@ -149,17 +184,41 @@ function AlmacenPage() {
             <Input type="date" value={form.fecha} onChange={(e) => setForm({ ...form, fecha: e.target.value })} />
           </Campo>
           <Campo etiqueta="Obra">
-            <Select value={form.proyecto_id} onChange={(e) => setForm({ ...form, proyecto_id: e.target.value, insumo_id: "" })}>
+            <Select value={form.proyecto_id} onChange={(e) => setForm({ ...form, proyecto_id: e.target.value, insumo_id: "", orden_item_id: "" })}>
               <option value="">Seleccionar…</option>
               {proyectos.map((p) => <option key={p.id} value={p.id}>{nombreProy(p.id)}</option>)}
             </Select>
           </Campo>
           <Campo etiqueta="Insumo">
-            <Select value={form.insumo_id} disabled={!form.proyecto_id} onChange={(e) => setForm({ ...form, insumo_id: e.target.value })}>
+            <Select value={form.insumo_id} disabled={!form.proyecto_id} onChange={(e) => setForm({ ...form, insumo_id: e.target.value, orden_item_id: "" })}>
               <option value="">{form.tipo === "Salida" && opciones.length === 0 ? "Sin stock en esta obra" : "Seleccionar…"}</option>
               {opciones.map((i) => <option key={i.id} value={i.id}>{i.nombre} ({i.unidad})</option>)}
             </Select>
           </Campo>
+          {form.tipo === "Ingreso" && form.insumo_id && ocPendientes.length > 0 && (
+            <Campo etiqueta="Orden de compra (opcional)">
+              <Select
+                value={form.orden_item_id}
+                onChange={(e) => {
+                  const sel = ocPendientes.find((x) => x.item.id === e.target.value);
+                  setForm({
+                    ...form,
+                    orden_item_id: e.target.value,
+                    cantidad: sel ? String(Math.round(sel.saldo * 10000) / 10000) : form.cantidad,
+                    costo_unitario: sel ? String(sel.item.precio_unitario) : form.costo_unitario,
+                    documento: sel ? sel.oc!.codigo : form.documento,
+                  });
+                }}
+              >
+                <option value="">Ingreso libre (sin OC)</option>
+                {ocPendientes.map((x) => (
+                  <option key={x.item.id} value={x.item.id}>
+                    {x.oc!.codigo} · pendiente {num(x.saldo)} {x.item.unidad}
+                  </option>
+                ))}
+              </Select>
+            </Campo>
+          )}
           <Campo etiqueta={`Cantidad${stockSel ? ` · stock ${num(stockSel.stock)}` : ""}`}>
             <Input type="number" step="0.0001" min="0" value={form.cantidad} onChange={(e) => setForm({ ...form, cantidad: e.target.value })} />
           </Campo>
@@ -180,7 +239,7 @@ function AlmacenPage() {
           </div>
         </form>
         <p className="border-t border-line px-5 py-2 font-mono text-[10px] text-muted-foreground">
-          Los ingresos por compra se registran desde Órdenes de Compra con el botón "Recibir en almacén". Las salidas se valorizan al costo promedio.
+          Los ingresos por compra se registran desde Órdenes de Compra con el botón "Recibir en almacén", o aquí vinculando el ingreso a una orden pendiente: el estado de la orden se actualiza solo. Las salidas se valorizan al costo promedio.
         </p>
       </Panel>
 
