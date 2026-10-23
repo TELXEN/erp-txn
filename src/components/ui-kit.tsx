@@ -351,8 +351,10 @@ export function InfoTooltip({ content }: { content: ReactNode }) {
 }
 
 
-/** Lupa con menú desplegable que agrupa la búsqueda y los filtros de la página. */
-export function MenuFiltros({ activos, onLimpiar, children }: { activos: number; onLimpiar: () => void; children: ReactNode }) {
+/** Lupa con menú desplegable que agrupa la búsqueda y los filtros de la página.
+ *  Va en la barra vertical derecha: dentro de BarraIconosHoja (prop `filtros`) o, si la
+ *  pantalla no tiene barra, con `flotante` como barra propia fija al lado derecho. */
+export function MenuFiltros({ activos, onLimpiar, children, flotante = false }: { activos: number; onLimpiar: () => void; children: ReactNode; flotante?: boolean }) {
   const [abierto, setAbierto] = useState(false);
   const panel = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -362,28 +364,18 @@ export function MenuFiltros({ activos, onLimpiar, children }: { activos: number;
     window.addEventListener("keydown", tecla);
     return () => window.removeEventListener("keydown", tecla);
   }, [abierto]);
-  return (
+  const lupa = (
     <div className="relative">
-      <button
-        type="button"
-        onClick={() => setAbierto((v) => !v)}
-        aria-expanded={abierto}
-        aria-label="Buscar y filtrar"
-        title="Buscar y filtrar"
-        className={cn(
-          "relative inline-flex h-8 w-8 items-center justify-center rounded-md border border-line bg-card text-ink hover:bg-muted",
-          abierto && "border-primary",
-        )}
-      >
+      <BotonIcono etiqueta="Buscar y filtrar" tono="primario" onClick={() => setAbierto((v) => !v)} aria-expanded={abierto}>
         <Search size={15} />
-        {activos > 0 && (
-          <span className="absolute -right-1.5 -top-1.5 min-w-4 rounded-full bg-primary px-1 text-center text-[10px] font-bold leading-4 text-primary-foreground">{activos}</span>
-        )}
-      </button>
+      </BotonIcono>
+      {activos > 0 && (
+        <span className="pointer-events-none absolute -right-1.5 -top-1.5 min-w-4 rounded-full bg-primary px-1 text-center text-[10px] font-bold leading-4 text-primary-foreground">{activos}</span>
+      )}
       {abierto && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setAbierto(false)} />
-          <div ref={panel} className="absolute right-0 top-full z-50 mt-1 grid w-72 gap-2.5 rounded-md border border-line bg-paper p-3 text-ink shadow-lg">
+          <div ref={panel} className="absolute right-full top-0 z-50 mr-2 grid w-72 gap-2.5 rounded-md border border-line bg-paper p-3 text-left text-ink shadow-lg">
             {children}
             <button type="button" onClick={onLimpiar} className="justify-self-end text-[11px] text-primary hover:underline">Limpiar filtros</button>
           </div>
@@ -391,6 +383,8 @@ export function MenuFiltros({ activos, onLimpiar, children }: { activos: number;
       )}
     </div>
   );
+  if (!flotante) return lupa;
+  return <div className="fixed right-3 top-24 z-30 flex flex-col gap-1.5 rounded-md border p-1.5 shadow-sm barra-iconos">{lupa}</div>;
 }
 
 /** Fila de tarjetas de resumen: etiqueta, dato principal grande y guía o dato secundario en letra pequeña. */
