@@ -1,3 +1,4 @@
+import { useRecordado } from "@/lib/recordado";
 import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { BotonIcono } from "@/components/ui-kit";
 import { createFileRoute } from "@tanstack/react-router";
@@ -8,7 +9,7 @@ import { Check, FileText, Trash2, Upload, Wand2 } from "lucide-react";
 import { GenerarBoletasHonorarios } from "@/components/personal/GenerarBoletasHonorarios";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
+import { Boton, Etiqueta, Input, MenuFiltros, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { DetallePagoHonorario, calcularDetalleHonorario, resumenTareoHonorario, type FormularioHonorario } from "@/components/personal/DetallePagoHonorario";
 import { useEmpresa } from "@/lib/empresa";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
@@ -90,7 +91,7 @@ function Honorarios() {
   const [editor, setEditor] = useState<{ clave: string; form: FormularioHonorario } | null>(null);
   const nombreDe = (id: string) => trabajadores.find((t) => t.id === id)?.nombre ?? "—";
   const [guardando, setGuardando] = useState(false);
-  const [busqueda, setBusqueda] = useState("");
+  const [busqueda, setBusqueda] = useRecordado("honorarios:busqueda", "");
   const recibosFiltrados = recibos.filter((r) =>
     coincide(busqueda, nombreDe(r.trabajador_id), r.numero_recibo ?? "", r.concepto),
   );
@@ -269,12 +270,6 @@ function Honorarios() {
       <div className="flex items-start gap-3"><Panel className="min-w-0 flex-1" titulo="Recibos registrados"
         extra={
           <div className="flex items-center gap-2">
-            <Buscador
-              valor={busqueda}
-              onChange={setBusqueda}
-              total={recibosFiltrados.length}
-              placeholder="Buscar por prestador, recibo o concepto..."
-            />
             <span className="font-mono text-[11px] text-muted-foreground">{recibos.length} recibos</span>
           </div>
         }>
@@ -342,7 +337,7 @@ function Honorarios() {
             </table>
           </div>
         )}
-      </Panel><BarraIconosHoja objeto="registro" haySeleccion={!!recibosFiltrados.find((x) => x.id === sel)} extras={recibosFiltrados.filter((x) => x.id === sel).map((r) => <div key={r.id}><div>
+      </Panel><BarraIconosHoja objeto="registro" filtros={<MenuFiltros activos={busqueda ? 1 : 0} onLimpiar={() => setBusqueda("")}><Buscador valor={busqueda} onChange={setBusqueda} total={recibosFiltrados.length} placeholder="Buscar por prestador, recibo o concepto..." /></MenuFiltros>} haySeleccion={!!recibosFiltrados.find((x) => x.id === sel)} extras={recibosFiltrados.filter((x) => x.id === sel).map((r) => <div key={r.id}><div>
                         {pago?.id === r.id ? (
                           <>
                             <BotonIcono etiqueta="Confirmar" onClick={confirmarPago}><Check size={15} /></BotonIcono>

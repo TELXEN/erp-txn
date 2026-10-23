@@ -1,10 +1,11 @@
+import { useRecordado } from "@/lib/recordado";
 import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { createFileRoute } from "@tanstack/react-router";
 import React, { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, BotonIcono, Campo, Input, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
+import { Boton, BotonIcono, Campo, Input, MenuFiltros, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { CalendarIcon, Check, ChevronDown, ChevronRight, Pencil, Plus, Lock, Search, Trash2, Upload } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -121,7 +122,7 @@ function GastosDirectos() {
   const [abiertas, setAbiertas] = useState<Record<string, boolean>>({});
   const [gruposCerrados, setGruposCerrados] = useState<Record<string, boolean>>({});
   const [modal, setModal] = useState<{ pid: string; editando?: Compra; inicial?: Borrador } | null>(null);
-  const [busqueda, setBusqueda] = useState("");
+  const [busqueda, setBusqueda] = useRecordado("gastos-directos:busqueda", "");
   const [sel, setSel] = useState("");
   const { data: cuentas = [] } = useQuery({
     queryKey: ["bancos"],
@@ -465,7 +466,6 @@ function GastosDirectos() {
       <div className="flex items-start gap-3">
       <Panel className="min-w-0 flex-1"
         titulo="Control por partida"
-        extra={<Buscador valor={busqueda} onChange={setBusqueda} placeholder="Buscar por código o partida..." total={partidasProy.length} />}
       >
         {partidasProy.length === 0 ? (
           busqueda ? <Vacio texto={`Sin coincidencias para «${busqueda}»`} /> : <Vacio texto="Esta obra aún no tiene partidas registradas." />
@@ -636,7 +636,7 @@ function GastosDirectos() {
           </div>
         )}
       </Panel>
-      <BarraIconosHoja objeto="compra" haySeleccion={!!actual} onEditar={() => { if (actual) abrirEdicion(actual); }} onEliminar={() => { if (actual) void eliminar(actual.id); }} />
+      <BarraIconosHoja objeto="compra" filtros={<MenuFiltros activos={busqueda ? 1 : 0} onLimpiar={() => setBusqueda("")}><Buscador valor={busqueda} onChange={setBusqueda} total={partidasProy.length} placeholder="Buscar por código o partida..." /></MenuFiltros>} haySeleccion={!!actual} onEditar={() => { if (actual) abrirEdicion(actual); }} onEliminar={() => { if (actual) void eliminar(actual.id); }} />
       </div>
       )}
       {modal && (() => {

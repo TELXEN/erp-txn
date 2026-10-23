@@ -402,3 +402,8 @@ aside .md\:overflow-y-auto:hover::-webkit-scrollbar-thumb { background: color-mi
   & > button[data-tono="peligro"] { margin-top: .375rem; position: relative; }
   & > button[data-tono="peligro"]::before { content: ""; position: absolute; top: -.375rem; left: 0; right: 0; border-top: 1px solid var(--border); }
 }
+
+/* Barra flotante de filtros (lupa) a la derecha: reserva su espacio en el área de trabajo. */
+@media (min-width: 768px) {
+  .con-barra-filtros main { padding-right: 3.75rem; }
+}

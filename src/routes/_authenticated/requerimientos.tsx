@@ -1,10 +1,11 @@
+import { useRecordado } from "@/lib/recordado";
 import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { createFileRoute } from "@tanstack/react-router";
 import React, { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, ChevronRight, Upload, Zap } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, Panel, Select, Vacio } from "@/components/ui-kit";
+import { Boton, MenuFiltros, Panel, Select, Vacio } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { useAuth, puedeVerDinero } from "@/lib/auth";
 import { soles } from "@/lib/format";
@@ -70,7 +71,7 @@ function RequerimientosPage() {
   const [abierto, setAbierto] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [aviso, setAviso] = useState("");
-  const [busqueda, setBusqueda] = useState("");
+  const [busqueda, setBusqueda] = useRecordado("requerimientos:busqueda", "");
   const [sel, setSel] = useState("");
 
   const { data: cotizaciones = [] } = useQuery({
@@ -509,7 +510,7 @@ function RequerimientosPage() {
       </Panel>
 
       <div className="flex items-start gap-3">
-      <Panel className="min-w-0 flex-1" titulo="Requerimientos registrados" extra={<Buscador valor={busqueda} onChange={setBusqueda} placeholder="Buscar por código, obra u observación..." total={reqsVisibles.length} />}>
+      <Panel className="min-w-0 flex-1" titulo="Requerimientos registrados">
         {reqsVisibles.length === 0 ? (
           busqueda ? <Vacio texto={`Sin coincidencias para «${busqueda}»`} /> : <Vacio texto="Todavía no hay requerimientos." />
         ) : (
@@ -582,7 +583,7 @@ function RequerimientosPage() {
           </table>
         )}
       </Panel>
-      <BarraIconosHoja objeto="requerimiento" haySeleccion={!!actual} onEliminar={gestiona || actual?.estado === "Pendiente" ? () => { if (actual) void eliminar(actual.id); } : undefined} />
+      <BarraIconosHoja objeto="requerimiento" filtros={<MenuFiltros activos={busqueda ? 1 : 0} onLimpiar={() => setBusqueda("")}><Buscador valor={busqueda} onChange={setBusqueda} total={reqsVisibles.length} placeholder="Buscar por código, obra u observación..." /></MenuFiltros>} haySeleccion={!!actual} onEliminar={gestiona || actual?.estado === "Pendiente" ? () => { if (actual) void eliminar(actual.id); } : undefined} />
       </div>
     </>
   );

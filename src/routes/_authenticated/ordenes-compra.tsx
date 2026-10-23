@@ -1,10 +1,11 @@
+import { useRecordado } from "@/lib/recordado";
 import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { createFileRoute } from "@tanstack/react-router";
 import React, { useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, ChevronRight, PackageCheck, Plus, Trash2, Upload } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, BotonIcono, Campo, Input, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
+import { Boton, BotonIcono, Campo, Input, MenuFiltros, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { soles } from "@/lib/format";
@@ -70,10 +71,10 @@ function OrdenesCompraPage() {
   const [lineas, setLineas] = useState<Linea[]>([]);
   const [insumoSel, setInsumoSel] = useState("");
   const [abierto, setAbierto] = useState<string | null>(null);
-  const [filtro, setFiltro] = useState("");
+  const [filtro, setFiltro] = useRecordado("ordenes-compra:obra", "");
   const [error, setError] = useState("");
   const [aviso, setAviso] = useState("");
-  const [busqueda, setBusqueda] = useState("");
+  const [busqueda, setBusqueda] = useRecordado("ordenes-compra:busqueda", "");
   const [sel, setSel] = useState("");
   const actual = ordenes.find((x) => x.id === sel);
   const [modalNueva, setModalNueva] = useState(false);
@@ -438,11 +439,6 @@ function OrdenesCompraPage() {
         titulo="Órdenes emitidas"
         extra={
           <div className="flex flex-wrap items-center gap-2">
-          <Buscador valor={busqueda} onChange={setBusqueda} placeholder="Buscar por código, obra, proveedor..." total={visibles.length} />
-          <Select className="w-64 py-1 text-xs" value={filtro} onChange={(e) => setFiltro(e.target.value)}>
-            <option value="">Todas las obras</option>
-            {proyectos.map((p) => <option key={p.id} value={p.id}>{nombreProy(p.id)}</option>)}
-          </Select>
           <Boton variante="accion" onClick={() => { setError(""); setAviso(""); setModalNueva(true); }}><Plus size={13} /> Nueva orden de compra</Boton>
           </div>
         }
@@ -504,7 +500,16 @@ function OrdenesCompraPage() {
           </table>
         )}
       </Panel>
-      <BarraIconosHoja objeto="orden de compra" haySeleccion={!!actual} onAgregar={() => { setError(""); setAviso(""); setModalNueva(true); }} onEliminar={() => { if (actual) void eliminar(actual.id); }} extras={<BotonIcono etiqueta="Recibir en almacén" disabled={!actual || actual.estado === "Anulada" || actual.estado === "Recibida"} onClick={() => { if (actual) void recibir(actual.id); }}><PackageCheck size={15} /></BotonIcono>} />
+      <BarraIconosHoja objeto="orden de compra" filtros={
+        <MenuFiltros activos={[busqueda, filtro].filter(Boolean).length} onLimpiar={() => { setBusqueda(""); setFiltro(""); }}>
+          <Buscador valor={busqueda} onChange={setBusqueda} placeholder="Buscar por código, obra, proveedor..." total={visibles.length} />
+          <Campo etiqueta="Obra">
+            <Select className="h-8 py-0 text-xs" value={filtro} onChange={(e) => setFiltro(e.target.value)}>
+              <option value="">Todas las obras</option>
+              {proyectos.map((p) => <option key={p.id} value={p.id}>{nombreProy(p.id)}</option>)}
+            </Select>
+          </Campo>
+        </MenuFiltros>} haySeleccion={!!actual} onAgregar={() => { setError(""); setAviso(""); setModalNueva(true); }} onEliminar={() => { if (actual) void eliminar(actual.id); }} extras={<BotonIcono etiqueta="Recibir en almacén" disabled={!actual || actual.estado === "Anulada" || actual.estado === "Recibida"} onClick={() => { if (actual) void recibir(actual.id); }}><PackageCheck size={15} /></BotonIcono>} />
       </div>
     </>
   );

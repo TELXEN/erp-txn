@@ -80,3 +80,4 @@
 - [x] Recordar filtros/vista/grupos en Partidas y Avance físico
 - [x] Filtros compactos en Proyectos, Partidas y Avance físico
 - [x] Filtros en lupa y tarjetas uniformes con guía
+- [x] Lupa de filtros en la barra vertical derecha (integrada a la barra de iconos) en todo el ERP

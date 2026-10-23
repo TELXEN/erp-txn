@@ -1,10 +1,11 @@
+import { useRecordado } from "@/lib/recordado";
 import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { createFileRoute } from "@tanstack/react-router";
 import React, { useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, ChevronRight, Plus, Trash2, Upload } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
+import { Boton, Campo, Input, MenuFiltros, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { useProyectos, useTerceros } from "@/lib/datos";
@@ -78,10 +79,10 @@ function ImportacionesPage() {
   const [lineas, setLineas] = useState<Linea[]>([]);
   const [insumoSel, setInsumoSel] = useState("");
   const [abierto, setAbierto] = useState<string | null>(null);
-  const [filtro, setFiltro] = useState("");
+  const [filtro, setFiltro] = useRecordado("importaciones:estado", "");
   const [error, setError] = useState("");
   const [aviso, setAviso] = useState("");
-  const [busqueda, setBusqueda] = useState("");
+  const [busqueda, setBusqueda] = useRecordado("importaciones:busqueda", "");
   const [sel, setSel] = useState("");
   const actual = imps.find((x) => x.id === sel);
   const [guardando, setGuardando] = useState(false);
@@ -342,11 +343,6 @@ function ImportacionesPage() {
         titulo="Carpetas de importación"
         extra={
           <div className="flex flex-wrap items-center gap-2">
-            <Buscador valor={busqueda} onChange={setBusqueda} placeholder="Buscar por código, proveedor, obra, tracking..." total={lista.length} />
-            <Select className="w-48 py-1 text-xs" value={filtro} onChange={(e) => setFiltro(e.target.value)}>
-              <option value="">Todos los estados</option>
-              {ESTADOS.map((s) => <option key={s}>{s}</option>)}
-            </Select>
             <Boton variante="accion" onClick={() => { setError(""); setAviso(""); setModalNueva(true); }}><Plus size={13} /> Nueva importación</Boton>
           </div>
         }
@@ -442,7 +438,16 @@ function ImportacionesPage() {
           </table>
         )}
       </Panel>
-      <BarraIconosHoja objeto="importación" haySeleccion={!!actual} onAgregar={() => { setError(""); setAviso(""); setModalNueva(true); }} onEliminar={() => { if (actual) void eliminar(actual); }} />
+      <BarraIconosHoja objeto="importación" filtros={
+        <MenuFiltros activos={[busqueda, filtro].filter(Boolean).length} onLimpiar={() => { setBusqueda(""); setFiltro(""); }}>
+          <Buscador valor={busqueda} onChange={setBusqueda} placeholder="Buscar por código, proveedor, obra, tracking..." total={lista.length} />
+          <Campo etiqueta="Estado">
+            <Select className="h-8 py-0 text-xs" value={filtro} onChange={(e) => setFiltro(e.target.value)}>
+              <option value="">Todos los estados</option>
+              {ESTADOS.map((s) => <option key={s}>{s}</option>)}
+            </Select>
+          </Campo>
+        </MenuFiltros>} haySeleccion={!!actual} onAgregar={() => { setError(""); setAviso(""); setModalNueva(true); }} onEliminar={() => { if (actual) void eliminar(actual); }} />
       </div>
     </>
   );

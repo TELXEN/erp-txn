@@ -1,3 +1,4 @@
+import { useRecordado } from "@/lib/recordado";
 import { useMantenimientos, useTraslados } from "@/lib/vehiculos";
 import { createFileRoute } from "@tanstack/react-router";
 import { coincide, Resaltar } from "@/components/Buscador";
@@ -10,7 +11,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useTipoCambioHoy } from "@/lib/tipo-cambio";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
+import { Boton, Campo, Input, MenuFiltros, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
 import {
@@ -136,7 +137,7 @@ function Tesoreria() {
     setPestanaBase(t);
     if (t === "resumen" || t === "financiamiento") localStorage.setItem("tesoreria:pestana", t);
   };
-  const [busqueda, setBusqueda] = useState("");
+  const [busqueda, setBusqueda] = useRecordado("tesoreria:busqueda", "");
   const [cerrados, setCerrados] = useState<Set<string>>(new Set());
   const [accion, setAccion] = useState<{
     p: Pendiente; banco_id: string; fecha: string; operacion: string;
@@ -628,32 +629,17 @@ function Tesoreria() {
 <Panel titulo={pestana === "cxc" ? "Facturas emitidas pendientes de cobro" : pestana === "personal" ? "Planillas, honorarios, beneficios y obligaciones laborales" : "Compras al crédito de costos directos y gastos generales"}
 >
         <div className="flex flex-wrap items-end gap-2 border-b border-line bg-muted/40 px-4 py-3">
-          <div className="relative min-w-[220px] flex-1">
-            <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <input
-              value={busqueda}
-              onChange={(e) => { setBusqueda(e.target.value); limpiarFiltros(); }}
-              placeholder={`Buscar en ${pestana === "cxc" ? "cobranzas" : "pagos"}...`}
-              className="h-9 w-full rounded-md border border-line bg-card pl-9 pr-3 text-sm text-ink outline-none focus:border-primary"
-            />
-          </div>
-          <label className="text-[10px] uppercase text-muted-foreground">Vence desde
-            <Input type="date" value={desde} onChange={(e) => { setDesde(e.target.value); limpiarFiltros(); }} />
-          </label>
-          <label className="text-[10px] uppercase text-muted-foreground">Hasta
-            <Input type="date" value={hasta} onChange={(e) => { setHasta(e.target.value); limpiarFiltros(); }} />
-          </label>
-          <label className="text-[10px] uppercase text-muted-foreground">{pestana === "cxc" ? "Cliente" : pestana === "personal" ? "Trabajador" : "Proveedor"}
-            <Select value={tercero} onChange={(e) => { setTercero(e.target.value); limpiarFiltros(); }}>
-              <option value="">Todos</option>
-              {tercerosLista.map((t) => <option key={t} value={t}>{t}</option>)}
-            </Select>
-          </label>
-          {(desde || hasta || tercero || filtroVence) && (
-            <Boton variante="linea" onClick={() => { setDesde(""); setHasta(""); setTercero(""); setFiltroVence(null); limpiarFiltros(); }}>
-              Limpiar filtros
-            </Boton>
-          )}
+          <MenuFiltros flotante activos={[busqueda, desde, hasta, tercero, filtroVence].filter(Boolean).length} onLimpiar={() => { setBusqueda(""); setDesde(""); setHasta(""); setTercero(""); setFiltroVence(null); limpiarFiltros(); }}>
+            <Input className="h-8 py-0 text-xs" value={busqueda} onChange={(e) => { setBusqueda(e.target.value); limpiarFiltros(); }} placeholder={`Buscar en ${pestana === "cxc" ? "cobranzas" : "pagos"}...`} />
+            <Campo etiqueta="Vence desde"><Input type="date" className="h-8 py-0 text-xs" value={desde} onChange={(e) => { setDesde(e.target.value); limpiarFiltros(); }} /></Campo>
+            <Campo etiqueta="Hasta"><Input type="date" className="h-8 py-0 text-xs" value={hasta} onChange={(e) => { setHasta(e.target.value); limpiarFiltros(); }} /></Campo>
+            <Campo etiqueta={pestana === "cxc" ? "Cliente" : pestana === "personal" ? "Trabajador" : "Proveedor"}>
+              <Select className="h-8 py-0 text-xs" value={tercero} onChange={(e) => { setTercero(e.target.value); limpiarFiltros(); }}>
+                <option value="">Todos</option>
+                {tercerosLista.map((t) => <option key={t} value={t}>{t}</option>)}
+              </Select>
+            </Campo>
+          </MenuFiltros>
           {seleccionados.length > 0 && (
             <Boton variante="accion" onClick={() => { setErrorLote(""); setLote({ banco_id: "", fecha: hoy(), operacion: "" }); }}>
               {pestana === "cxc" ? "Registrar cobros en lote" : "Registrar pagos en lote"} ({seleccionados.length} · {soles(totalSel)})

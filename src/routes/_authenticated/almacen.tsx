@@ -1,10 +1,11 @@
+import { useRecordado } from "@/lib/recordado";
 import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowDownToLine, ArrowUpFromLine, Upload } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
+import { Boton, Campo, Input, MenuFiltros, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { soles } from "@/lib/format";
@@ -45,10 +46,10 @@ function AlmacenPage() {
     documento: "",
     observacion: "",
   });
-  const [filtroObra, setFiltroObra] = useState("");
-  const [filtroTipo, setFiltroTipo] = useState("");
+  const [filtroObra, setFiltroObra] = useRecordado("almacen:obra", "");
+  const [filtroTipo, setFiltroTipo] = useRecordado("almacen:tipo", "");
   const [error, setError] = useState("");
-  const [busqueda, setBusqueda] = useState("");
+  const [busqueda, setBusqueda] = useRecordado("almacen:busqueda", "");
   const [sel, setSel] = useState("");
   const actual = movs.find((x) => x.id === sel);
 
@@ -186,20 +187,6 @@ function AlmacenPage() {
       <div className="flex items-start gap-3">
       <Panel className="min-w-0 flex-1"
         titulo="Movimientos"
-        extra={
-          <div className="flex gap-2">
-            <Buscador valor={busqueda} onChange={setBusqueda} placeholder="Buscar por insumo, obra, documento..." total={visibles.length} />
-            <Select className="w-56 py-1 text-xs" value={filtroObra} onChange={(e) => setFiltroObra(e.target.value)}>
-              <option value="">Todas las obras</option>
-              {proyectos.map((p) => <option key={p.id} value={p.id}>{nombreProy(p.id)}</option>)}
-            </Select>
-            <Select className="w-32 py-1 text-xs" value={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value)}>
-              <option value="">Todos</option>
-              <option>Ingreso</option>
-              <option>Salida</option>
-            </Select>
-          </div>
-        }
       >
         {visibles.length === 0 ? (
           busqueda ? <Vacio texto={`Sin coincidencias para «${busqueda}»`} /> : <Vacio texto="Todavía no hay movimientos de almacén." />
@@ -237,7 +224,23 @@ function AlmacenPage() {
           </table>
         )}
       </Panel>
-      <BarraIconosHoja objeto="movimiento" haySeleccion={!!actual} onEliminar={() => { if (actual) void eliminar(actual.id); }} />
+      <BarraIconosHoja objeto="movimiento" filtros={
+        <MenuFiltros activos={[busqueda, filtroObra, filtroTipo].filter(Boolean).length} onLimpiar={() => { setBusqueda(""); setFiltroObra(""); setFiltroTipo(""); }}>
+          <Buscador valor={busqueda} onChange={setBusqueda} placeholder="Buscar por insumo, obra, documento..." total={visibles.length} />
+          <Campo etiqueta="Obra">
+            <Select className="h-8 py-0 text-xs" value={filtroObra} onChange={(e) => setFiltroObra(e.target.value)}>
+              <option value="">Todas las obras</option>
+              {proyectos.map((p) => <option key={p.id} value={p.id}>{nombreProy(p.id)}</option>)}
+            </Select>
+          </Campo>
+          <Campo etiqueta="Tipo">
+            <Select className="h-8 py-0 text-xs" value={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value)}>
+              <option value="">Todos</option>
+              <option>Ingreso</option>
+              <option>Salida</option>
+            </Select>
+          </Campo>
+        </MenuFiltros>} haySeleccion={!!actual} onEliminar={() => { if (actual) void eliminar(actual.id); }} />
       </div>
     </>
   );
