@@ -6,9 +6,10 @@
 - Si ese RUC no está en el catálogo, en vez de la lista aparece «Cliente no registrado · RUC …» con el botón **«Registrar cliente»**: consulta Decolecta, lo guarda en Clientes y lo deja elegido, sin salir de la ventana.
 - No se puede guardar mientras el cliente no coincida con el RUC de la factura.
 
-**2. Sin duplicados**
-- Un mismo número de comprobante (p. ej. F001-24) solo puede registrarse una vez en Ventas, sea cual sea el cliente. Si ya existe, el aviso dice con qué cliente quedó registrado.
-- Lo mismo aplica al registro manual desde Registro de Ventas.
+**2. Sin duplicados (cliente + número)**
+- Se valida la pareja RUC del cliente + número de comprobante: la misma combinación no puede registrarse dos veces. Distintos clientes sí pueden tener el mismo número.
+- Desde SIRE, como el cliente queda amarrado al RUC de la factura, ya no puede repetirse la venta con otro cliente (el caso que se vio).
+- Lo mismo aplica al registro manual y a la edición en Registro de Ventas.
 
 **3. Editar y eliminar en Registro de Ventas**
 - Cada fila tendrá los botones Editar (lápiz) y Eliminar (rojo) al final, como en los demás listados.
