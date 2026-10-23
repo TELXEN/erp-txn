@@ -109,7 +109,7 @@ export function TercerosPanel({ modo }: { modo: "cliente" | "proveedor" }) {
     setEditando(null);
     setOk("");
     setError("");
-    setModalAbierto(true);
+    (setAviso(""), setModalAbierto(true));
   }
 
   function abrirEdicion(t: Tercero) {
@@ -129,7 +129,7 @@ export function TercerosPanel({ modo }: { modo: "cliente" | "proveedor" }) {
     setEditando(t);
     setOk("");
     setError("");
-    setModalAbierto(true);
+    (setAviso(""), setModalAbierto(true));
   }
 
   async function guardarTercero(): Promise<string | null> {
