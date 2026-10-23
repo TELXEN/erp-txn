@@ -72,6 +72,23 @@ export const useRequerimientos = () => lista<Requerimiento>("requerimientos");
 export const useItemsReq = () => lista<ItemReq>("requerimiento_items");
 
 export const ESTADOS_OC = ["Emitida", "Recibida parcial", "Recibida", "Anulada"];
+
+/** Recalcula el estado de una OC según lo recibido en almacén (no toca Anulada). */
+export async function sincronizarEstadoOC(ordenId: string) {
+  const { data: oc } = await apuDb.from("ordenes_compra").select("id,estado").eq("id", ordenId).single();
+  if (!oc || oc.estado === "Anulada") return;
+  const { data: items } = await apuDb.from("orden_compra_items").select("id,cantidad").eq("orden_id", ordenId);
+  const ids = (items ?? []).map((i) => i.id);
+  const { data: movs } = ids.length
+    ? await apuDb.from("movimientos_almacen").select("orden_item_id,cantidad").eq("tipo", "Ingreso").in("orden_item_id", ids)
+    : { data: [] as { orden_item_id: string; cantidad: number }[] };
+  const recibido = new Map<string, number>();
+  for (const m of movs ?? []) recibido.set(m.orden_item_id, (recibido.get(m.orden_item_id) ?? 0) + Number(m.cantidad));
+  const total = (items ?? []).reduce((s, i) => s + Number(i.cantidad), 0);
+  const rec = (items ?? []).reduce((s, i) => s + Math.min(Number(i.cantidad), recibido.get(i.id) ?? 0), 0);
+  const estado = rec <= 0.0001 ? "Emitida" : rec >= total - 0.0001 ? "Recibida" : "Recibida parcial";
+  if (estado !== oc.estado) await apuDb.from("ordenes_compra").update({ estado }).eq("id", ordenId);
+}
 export const num = (n: number, d = 2) =>
   Number(n || 0).toLocaleString("es-PE", { minimumFractionDigits: d, maximumFractionDigits: d });
 
