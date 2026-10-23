@@ -42,6 +42,7 @@ import { Route as AuthenticatedPersonalRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedPreliquidacionVistaRouteImport } from './routes/_authenticated/preliquidacion-vista'
 import { Route as AuthenticatedProveedoresRouteImport } from './routes/_authenticated/proveedores'
 import { Route as AuthenticatedProyectosRouteImport } from './routes/_authenticated/proyectos'
+import { Route as AuthenticatedRegistroVentasRouteImport } from './routes/_authenticated/registro-ventas'
 import { Route as AuthenticatedRequerimientosRouteImport } from './routes/_authenticated/requerimientos'
 import { Route as AuthenticatedSireRouteImport } from './routes/_authenticated/sire'
 import { Route as AuthenticatedTareoRouteImport } from './routes/_authenticated/tareo'
@@ -229,6 +230,12 @@ const AuthenticatedProyectosRoute = AuthenticatedProyectosRouteImport.update({
   path: '/proyectos',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedRegistroVentasRoute =
+  AuthenticatedRegistroVentasRouteImport.update({
+    id: '/registro-ventas',
+    path: '/registro-ventas',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedRequerimientosRoute =
   AuthenticatedRequerimientosRouteImport.update({
     id: '/requerimientos',
@@ -311,6 +318,7 @@ export interface FileRoutesByFullPath {
   '/preliquidacion-vista': typeof AuthenticatedPreliquidacionVistaRoute
   '/proveedores': typeof AuthenticatedProveedoresRoute
   '/proyectos': typeof AuthenticatedProyectosRoute
+  '/registro-ventas': typeof AuthenticatedRegistroVentasRoute
   '/requerimientos': typeof AuthenticatedRequerimientosRoute
   '/sire': typeof AuthenticatedSireRoute
   '/tareo': typeof AuthenticatedTareoRoute
@@ -354,6 +362,7 @@ export interface FileRoutesByTo {
   '/preliquidacion-vista': typeof AuthenticatedPreliquidacionVistaRoute
   '/proveedores': typeof AuthenticatedProveedoresRoute
   '/proyectos': typeof AuthenticatedProyectosRoute
+  '/registro-ventas': typeof AuthenticatedRegistroVentasRoute
   '/requerimientos': typeof AuthenticatedRequerimientosRoute
   '/sire': typeof AuthenticatedSireRoute
   '/tareo': typeof AuthenticatedTareoRoute
@@ -399,6 +408,7 @@ export interface FileRoutesById {
   '/_authenticated/preliquidacion-vista': typeof AuthenticatedPreliquidacionVistaRoute
   '/_authenticated/proveedores': typeof AuthenticatedProveedoresRoute
   '/_authenticated/proyectos': typeof AuthenticatedProyectosRoute
+  '/_authenticated/registro-ventas': typeof AuthenticatedRegistroVentasRoute
   '/_authenticated/requerimientos': typeof AuthenticatedRequerimientosRoute
   '/_authenticated/sire': typeof AuthenticatedSireRoute
   '/_authenticated/tareo': typeof AuthenticatedTareoRoute
@@ -444,6 +454,7 @@ export interface FileRouteTypes {
     | '/preliquidacion-vista'
     | '/proveedores'
     | '/proyectos'
+    | '/registro-ventas'
     | '/requerimientos'
     | '/sire'
     | '/tareo'
@@ -487,6 +498,7 @@ export interface FileRouteTypes {
     | '/preliquidacion-vista'
     | '/proveedores'
     | '/proyectos'
+    | '/registro-ventas'
     | '/requerimientos'
     | '/sire'
     | '/tareo'
@@ -531,6 +543,7 @@ export interface FileRouteTypes {
     | '/_authenticated/preliquidacion-vista'
     | '/_authenticated/proveedores'
     | '/_authenticated/proyectos'
+    | '/_authenticated/registro-ventas'
     | '/_authenticated/requerimientos'
     | '/_authenticated/sire'
     | '/_authenticated/tareo'
@@ -781,6 +794,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProyectosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/registro-ventas': {
+      id: '/_authenticated/registro-ventas'
+      path: '/registro-ventas'
+      fullPath: '/registro-ventas'
+      preLoaderRoute: typeof AuthenticatedRegistroVentasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/requerimientos': {
       id: '/_authenticated/requerimientos'
       path: '/requerimientos'
@@ -879,6 +899,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPreliquidacionVistaRoute: typeof AuthenticatedPreliquidacionVistaRoute
   AuthenticatedProveedoresRoute: typeof AuthenticatedProveedoresRoute
   AuthenticatedProyectosRoute: typeof AuthenticatedProyectosRoute
+  AuthenticatedRegistroVentasRoute: typeof AuthenticatedRegistroVentasRoute
   AuthenticatedRequerimientosRoute: typeof AuthenticatedRequerimientosRoute
   AuthenticatedSireRoute: typeof AuthenticatedSireRoute
   AuthenticatedTareoRoute: typeof AuthenticatedTareoRoute
@@ -923,6 +944,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPreliquidacionVistaRoute: AuthenticatedPreliquidacionVistaRoute,
   AuthenticatedProveedoresRoute: AuthenticatedProveedoresRoute,
   AuthenticatedProyectosRoute: AuthenticatedProyectosRoute,
+  AuthenticatedRegistroVentasRoute: AuthenticatedRegistroVentasRoute,
   AuthenticatedRequerimientosRoute: AuthenticatedRequerimientosRoute,
   AuthenticatedSireRoute: AuthenticatedSireRoute,
   AuthenticatedTareoRoute: AuthenticatedTareoRoute,
