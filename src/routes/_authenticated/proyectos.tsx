@@ -97,6 +97,7 @@ import {
 import { useTareoVehiculos } from "@/lib/vehiculos";
 import { useCostoObras } from "@/lib/costo-obra";
 import { generarCodigoProyecto, previsualizarCodigo, useCodificacion } from "@/lib/codificacion";
+import { TIPOS_DOCUMENTO_PROYECTO } from "@/lib/documento-proyecto";
 
 export const Route = createFileRoute("/_authenticated/proyectos")({
   head: () => ({
@@ -155,6 +156,8 @@ function Proyectos() {
     pct_gastos_generales: "10.00",
     pct_utilidad: "10.00",
     cd_base: "",
+    documento_tipo: "",
+    documento_numero: "",
   });
   const [error, setError] = useState("");
   const [editandoId, setEditandoId] = useState<string | null>(null);
@@ -202,6 +205,8 @@ function Proyectos() {
     nombre: form.nombre.trim(),
     cliente: form.cliente.trim(),
     ubicacion: form.ubicacion.trim(),
+    documento_tipo: form.documento_tipo,
+    documento_numero: form.documento_tipo ? form.documento_numero.trim() : "",
     estado: estadoDe(form.situacion),
     situacion: form.situacion,
     responsable_id: form.responsable_id || null,
@@ -260,6 +265,8 @@ function Proyectos() {
       pct_gastos_generales: "10.00",
       pct_utilidad: "10.00",
       cd_base: "",
+      documento_tipo: "",
+      documento_numero: "",
     });
     if (cerrarTrasGuardar.current) setFormAbierto(false);
     qc.invalidateQueries({ queryKey: ["proyectos"] });
@@ -282,6 +289,8 @@ function Proyectos() {
       pct_gastos_generales: Number(p.pct_gastos_generales ?? 0).toFixed(2),
       pct_utilidad: Number(p.pct_utilidad ?? 0).toFixed(2),
       cd_base: p.cd_base == null ? "" : String(p.cd_base),
+      documento_tipo: p.documento_tipo ?? "",
+      documento_numero: p.documento_numero ?? "",
     });
     setEditandoId(p.id);
     setFormAbierto(true);
@@ -323,6 +332,8 @@ function Proyectos() {
         nombre: `${original.nombre} (copia)`,
         cliente: original.cliente,
         ubicacion: original.ubicacion,
+        documento_tipo: original.documento_tipo ?? "",
+        documento_numero: original.documento_numero ?? "",
         estado: "En Ejecucion",
         situacion: "Borrador",
         responsable_id: original.responsable_id,
@@ -399,6 +410,15 @@ function Proyectos() {
               </CampoF>
               <CampoF etiqueta="Ubicación">
                 <Input value={form.ubicacion} onChange={(e) => setForm({ ...form, ubicacion: e.target.value })} maxLength={120} />
+              </CampoF>
+              <CampoF etiqueta="Documento de referencia">
+                <Select value={form.documento_tipo} onChange={(e) => setForm({ ...form, documento_tipo: e.target.value, documento_numero: e.target.value ? form.documento_numero : "" })}>
+                  <option value="">No corresponde</option>
+                  {TIPOS_DOCUMENTO_PROYECTO.map((tipo) => <option key={tipo} value={tipo}>{tipo}</option>)}
+                </Select>
+              </CampoF>
+              <CampoF etiqueta="Número del documento">
+                <Input value={form.documento_numero} onChange={(e) => setForm({ ...form, documento_numero: e.target.value })} disabled={!form.documento_tipo} maxLength={160} placeholder="Opcional" />
               </CampoF>
               <CampoF etiqueta="Responsable">
                 <Select value={form.responsable_id} onChange={(e) => setForm({ ...form, responsable_id: e.target.value })}>
@@ -643,6 +663,8 @@ function Proyectos() {
               <Dato etiqueta="Cliente" valor={proyectoVisto.cliente || "Sin cliente"} />
               <Dato etiqueta="Nombre de la obra" valor={proyectoVisto.nombre} />
               <Dato etiqueta="Ubicación" valor={proyectoVisto.ubicacion || "Sin ubicación"} />
+              <Dato etiqueta="Documento de referencia" valor={proyectoVisto.documento_tipo || "No corresponde"} />
+              <Dato etiqueta="Número del documento" valor={proyectoVisto.documento_numero || "—"} />
               <Dato etiqueta="Responsable" valor={trabajadores.find((t) => t.id === proyectoVisto.responsable_id)?.nombre ?? "Sin asignar"} />
               <Dato etiqueta="Situación" valor={<InsigniaSituacion valor={proyectoVisto.situacion} />} />
               <Dato etiqueta="Fecha de inicio" valor={fecha(proyectoVisto.fecha_inicio)} />

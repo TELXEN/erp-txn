@@ -13,6 +13,7 @@ import { exportarExcel } from "@/lib/exportar";
 import { useEmpresa } from "@/lib/empresa";
 import { useUnidadesMedida } from "@/lib/unidades";
 import { HojaPreliquidacion } from "@/components/HojaPreliquidacion";
+import { numeroDocumentoProyecto, type DocumentoProyecto } from "@/lib/documento-proyecto";
 import { calcularMontos, IGV, UMBRAL_DETRACCION, REGIMENES, type TipoTributario } from "@/lib/preliquidacion-montos";
 
 
@@ -26,6 +27,7 @@ export type Preliquidacion = {
   proyecto_id: string | null;
   cliente_id: string | null;
   concepto: string;
+  orden_compra?: string;
   fecha: string;
   moneda: "PEN" | "USD";
   tipo_cambio: number;
@@ -54,7 +56,7 @@ const itemVacio = (): ItemPL => ({ descripcion: "", unidad: "GLB", cantidad: "1"
 export type ClientePL = { id: string; razon_social: string; numero_documento?: string | null; direccion?: string | null };
 
 type Props = {
-  proyectos: { id: string; nombre: string; codigo: string | null; cliente?: string; pct_gastos_generales?: number; pct_utilidad?: number }[];
+  proyectos: ({ id: string; nombre: string; codigo: string | null; cliente?: string; pct_gastos_generales?: number; pct_utilidad?: number } & DocumentoProyecto)[];
   clientes: ClientePL[];
   ofertadoDe: (proyectoId: string) => number;
   facturadoDe: (proyectoId: string) => number;
@@ -113,6 +115,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
     proyecto_id: "",
     cliente_id: "",
     concepto: "",
+    orden_compra: "",
     fecha: hoy(),
     moneda: "PEN",
     tipo_cambio: tcHoy > 0 ? String(tcHoy) : "",
@@ -205,7 +208,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
     // El concepto toma el nombre del proyecto solo si el usuario no lo ha personalizado.
     const previo = form.proyecto_id ? conceptoDe(form.proyecto_id) : "";
     const concepto = !form.concepto.trim() || form.concepto === previo ? conceptoDe(id) : form.concepto;
-    setForm({ ...form, proyecto_id: id, cliente_id: origen === "cliente" ? form.cliente_id : cli?.id ?? form.cliente_id, concepto });
+    setForm({ ...form, proyecto_id: id, cliente_id: origen === "cliente" ? form.cliente_id : cli?.id ?? form.cliente_id, concepto, orden_compra: numeroDocumentoProyecto(proy) });
   }
 
   function nuevo() {
@@ -215,7 +218,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
 
   function abrirNuevo(o: "libre" | "cliente", clienteId = "", proyectoId = "") {
     setOrigen(o);
-    setForm({ ...formVacio(), cliente_id: clienteId, proyecto_id: proyectoId, concepto: proyectoId ? conceptoDe(proyectoId) : "" });
+    setForm({ ...formVacio(), cliente_id: clienteId, proyecto_id: proyectoId, concepto: proyectoId ? conceptoDe(proyectoId) : "", orden_compra: numeroDocumentoProyecto(proyectos.find((p) => p.id === proyectoId)) });
     setLineas([itemVacio()]);
     setEditando(null);
     setError("");
@@ -229,6 +232,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
       proyecto_id: p.proyecto_id ?? "",
       cliente_id: p.cliente_id ?? "",
       concepto: p.concepto,
+      orden_compra: p.orden_compra ?? "",
       fecha: p.fecha,
       moneda: p.moneda,
       tipo_cambio: String(p.tipo_cambio),
@@ -276,6 +280,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
       proyecto_id: form.proyecto_id || null,
       cliente_id: form.cliente_id || null,
       concepto: form.concepto.trim(),
+      orden_compra: form.orden_compra.trim(),
       fecha: form.fecha,
       moneda: form.moneda as "PEN" | "USD",
       tipo_cambio: tc,
@@ -551,6 +556,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
               cliente={clienteSel ? { razon_social: clienteSel.razon_social, numero_documento: clienteSel.numero_documento, direccion: clienteSel.direccion } : null}
               proyectoNombre={form.proyecto_id ? nombreProy(form.proyecto_id) : ""}
               concepto={form.concepto}
+              ordenCompra={form.orden_compra}
               lineas={lineas}
               amortizacion={amortForm}
               tipoTributario={form.tipo_tributario}
@@ -608,7 +614,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
                         Código: p.codigo, Fecha: p.fecha, Obra: nombreProy(p.proyecto_id), Cliente: nombreCliente(p.cliente_id),
                         RUC: rucCliente(p.cliente_id), Dirección: dirCliente(p.cliente_id),
                         "Amortización adelanto": amortDe(p.id), Factura: facturaDe(p.id)?.numero_factura ?? "",
-                        "Orden de compra": p.concepto, Moneda: p.moneda, Neto: mm.neto, IGV: mm.igv, Total: mm.total,
+                        "Orden de compra": p.orden_compra ?? "", Descripción: p.concepto, Moneda: p.moneda, Neto: mm.neto, IGV: mm.igv, Total: mm.total,
                         Régimen: mm.tipo === "detraccion" ? `Detracción ${p.pct_detraccion}%` : mm.tipo === "retencion" ? `Retención ${p.pct_detraccion}%` : "Ninguno",
                         "Detracción (S/)": mm.detraccionPen, "Retención (S/)": mm.retencionPen,
                         "Neto a cobrar": mm.cobrar, Condición: p.condicion_pago,
@@ -649,7 +655,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
                 return (
                   <tr key={p.id} onClick={() => setSel(p.id)} onDoubleClick={() => { setSel(p.id); if (editable(p)) void editar(p); }} className={`cursor-pointer border-b border-line/40 hover:bg-muted/40 ${sel === p.id ? "bg-primary/10" : ""}`}>
                     <td className="px-5 py-2.5 font-semibold text-ink"><Resaltar texto={p.codigo} termino={busqueda} /><div className="text-[10px] font-normal text-muted-foreground">{fmtFecha(p.fecha)}</div></td>
-                    <td className="px-3 py-2.5"><Resaltar texto={p.concepto} termino={busqueda} /></td>
+                    <td className="px-3 py-2.5"><Resaltar texto={p.orden_compra || "—"} termino={busqueda} /><div className="text-[10px] text-muted-foreground"><Resaltar texto={p.concepto} termino={busqueda} /></div></td>
                     <td className="px-3 py-2.5 text-muted-foreground">
                       <Resaltar texto={nombreCliente(p.cliente_id)} termino={busqueda} />
                       {rucCliente(p.cliente_id) && <div className="text-[10px]">RUC <Resaltar texto={rucCliente(p.cliente_id)} termino={busqueda} /></div>}

@@ -165,7 +165,8 @@ function VistaPreliquidacion() {
           direccion: cliente?.direccion || "",
         },
         proyecto: proyecto?.nombre || "—",
-        ordenCompra: pl.concepto,
+        ordenCompra: pl.orden_compra ?? "",
+        concepto: pl.concepto,
         moneda: pl.moneda,
         tipoCambio: tc,
         lineas: lineas.map((l) => ({
@@ -230,6 +231,7 @@ function VistaPreliquidacion() {
           cliente={cliente ?? null}
           proyectoNombre={proyecto?.nombre || "—"}
           concepto={pl.concepto}
+          ordenCompra={pl.orden_compra ?? ""}
           lineas={lineas.map((l) => ({
             descripcion: l.descripcion,
             unidad: l.unidad,
