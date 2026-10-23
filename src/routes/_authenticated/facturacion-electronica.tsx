@@ -189,6 +189,7 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
   const grupoActivo = gruposFacturacion.find((g) => g.tipos.some((p) => p.tipo === pestana)) ?? gruposFacturacion[0];
   const ETIQUETA_BOTON: Record<string, string> = { "01": "Crear Factura", "03": "Crear Boleta", "07": "Crear Notas de Crédito", "08": "Crear Notas de Débito", "20": "Crear Retenciones", "40": "Crear Percepciones", RA: "Nueva comunicación de baja" };
   return <><Encabezado titulo={esGuias ? "Guías de Remisión" : "Facturación Electrónica"} subtitulo={esGuias ? "Logística · guías de remisión remitente y traslados" : "Comercial · comprobantes, estados SUNAT y cobranza"} acciones={<div className="flex items-center gap-2"><RegistrarVentaExterna abierta={ventaExt} onCerrar={() => setVentaExt(false)} />{!esGuias && (rol === "gerente" || rol === "administrador") && <ConfigDecolecta />}{!esGuias && !abierto && <Boton variante="accion" title="Registrar ventas de facturas emitidas por terceros" onClick={() => setVentaExt(true)}><ReceiptText size={14} />Registrar venta</Boton>}{abierto ? <Boton variante="linea" onClick={cerrar}>Cerrar editor</Boton> : <Boton onClick={() => abrirNuevo(pestana)}><FilePlus2 size={14} />{esGuias ? "Nueva guía de remisión" : ETIQUETA_BOTON[pestana] ?? "Nuevo comprobante"}</Boton>}</div>} />
+    <div className={`flex flex-col ${abierto ? "md:h-[calc(100dvh-3rem)] md:-my-3 md:min-h-0 md:overflow-hidden" : ""}`}>
     {!esGuias && <>
       <div className="mb-3 flex flex-wrap gap-1">
         {gruposFacturacion.map((g) => {
@@ -253,18 +254,18 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
         </div>
       </div>
     </VentanaFlotante>
-    {abierto && <div className="-mx-4 -my-6 min-h-full bg-background sm:-mx-6">
+    {abierto && <div className="-mx-3 flex flex-1 flex-col bg-background sm:-mx-4 md:min-h-0">
       <Panel
         titulo={editando ? `Editar borrador ${editando.numero}` : preliquidacionOrigen ? `Facturar preliquidación ${pl?.p.codigo ?? ""}` : esGuias ? "Nueva guía de remisión" : "Nuevo comprobante electrónico"}
         extra={<Boton variante="linea" onClick={cerrar}>Cerrar editor</Boton>}
-        className="min-h-full"
+        className="flex min-h-0 flex-1 flex-col overflow-hidden"
       >
-      <div className="bg-muted/60 px-4 py-2 sm:px-6">
+      <div className="min-h-0 flex-1 overflow-y-auto bg-muted/60 px-4 py-2 sm:px-6">
         {preliquidacionOrigen && cargandoPl && <p role="status" className="py-2 text-sm text-muted-foreground">Cargando preliquidación…</p>}
         {errorPl && <p role="alert" className="py-2 text-sm text-bad">No se pudo cargar la preliquidación: {errorPl.message}</p>}
         <HojaComprobante form={form} setForm={setForm} items={items} setItems={setItems} docs={docs} setDocs={setDocs} cuotas={cuotas} setCuotas={setCuotas} empresa={empresa} clientes={clientes} proyectos={proyectos.map((p) => ({ id: p.id, nombre: p.nombre, codigo: p.codigo ?? "" }))} refs={refs} series={series} numeroPreview={editando ? String(editando.correlativo).padStart(8, "0") : "[AUTOGENERADO]"} montos={montos} totalRegimen={totalRegimen} importeRegimen={importeRegimen} onTipoChange={cambiarTipo} bloqueado={Boolean(editando)} tipos={tiposVisibles} />
       </div>
-      <div className="sticky bottom-0 z-10 flex flex-wrap items-center gap-2 border-t border-line bg-card/95 p-4 shadow-lg backdrop-blur">
+      <div className="flex shrink-0 flex-wrap items-center gap-2 border-t border-line bg-card p-3">
         <Boton disabled={guardando} onClick={() => void guardar(false)}>{editando ? "Guardar cambios" : "Guardar borrador"}</Boton>
         {!editando && <Boton variante="accion" disabled={guardando} onClick={() => void guardar(true)}><ReceiptText size={14} />Emitir comprobante</Boton>}
         <Boton variante="linea" type="button" onClick={cerrar}>Cancelar</Boton>
@@ -272,8 +273,9 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
       </div>
       </Panel>
     </div>}
+    </div>
 
-    <div className="flex items-start gap-3"><Panel className="min-w-0 flex-1" titulo={PESTANAS_CPE.find((p) => p.tipo === pestana)?.etiqueta ?? "Comprobantes"}>
+    {!abierto && <div className="flex items-start gap-3"><Panel className="min-w-0 flex-1" titulo={PESTANAS_CPE.find((p) => p.tipo === pestana)?.etiqueta ?? "Comprobantes"}>
       {filtrados.length === 0 ? <Vacio texto="Aún no hay documentos de este tipo." /> : <div className="overflow-x-auto"><table className="w-full font-mono text-xs"><thead><tr className="border-b border-line text-left text-[10px] uppercase text-muted-foreground"><th className="px-5 py-2">Comprobante</th><th className="px-3 py-2">Cliente</th><th className="px-3 py-2">Emisión</th><th className="px-3 py-2">Condición</th><th className="px-3 py-2 text-right">Total</th><th className="px-3 py-2">Estado fiscal</th></tr></thead><tbody>{filtrados.map((x) => <tr key={x.id} onClick={() => setSel(x.id)} onDoubleClick={() => { if (x.estado_fiscal === "Borrador") void editarBorrador(x); }} className={`cursor-pointer border-b border-line/60 hover:bg-muted/40 ${sel === x.id ? "bg-primary/10" : ""}`}>
         <td className="px-5 py-2.5"><b><Resaltar texto={x.numero} termino={busqueda} /></b><div className="text-[10px] text-muted-foreground">{TIPOS_COMPROBANTE[x.tipo_comprobante as TipoComprobante]}</div></td>
         <td className="px-3 py-2.5">{x.cliente_razon_social || clientes.find((c) => c.id === x.cliente_id)?.razon_social || "—"}</td>
@@ -283,6 +285,6 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
         <td className="px-3 py-2.5"><Etiqueta tono={x.estado_fiscal === "Aceptado con CDR" ? "good" : x.estado_fiscal === "Rechazado" ? "bad" : "neutro"}>{x.estado_fiscal}</Etiqueta></td>
         
       </tr>)}</tbody></table></div>}
-    </Panel><BarraIconosHoja objeto="borrador" filtros={<MenuFiltros activos={busqueda ? 1 : 0} onLimpiar={() => setBusqueda("")}><Buscador valor={busqueda} onChange={setBusqueda} total={filtrados.length} placeholder="Buscar número, cliente o estado..." /></MenuFiltros>} haySeleccion={filtrados.some((x) => x.id === sel && x.estado_fiscal === "Borrador")} onEditar={() => { const x = filtrados.find((x) => x.id === sel); if (x?.estado_fiscal === "Borrador") void editarBorrador(x); }} onEliminar={() => { const x = filtrados.find((x) => x.id === sel); if (x?.estado_fiscal === "Borrador") setPorEliminar(x); }} extras={<BotonIcono etiqueta="Vista previa" disabled={!filtrados.some((x) => x.id === sel)} onClick={() => { void navigate({ to: "/comprobante-vista", search: { id: sel } }); }}><Eye size={15} /></BotonIcono>} /></div>
+    </Panel><BarraIconosHoja objeto="borrador" filtros={<MenuFiltros activos={busqueda ? 1 : 0} onLimpiar={() => setBusqueda("")}><Buscador valor={busqueda} onChange={setBusqueda} total={filtrados.length} placeholder="Buscar número, cliente o estado..." /></MenuFiltros>} haySeleccion={filtrados.some((x) => x.id === sel && x.estado_fiscal === "Borrador")} onEditar={() => { const x = filtrados.find((x) => x.id === sel); if (x?.estado_fiscal === "Borrador") void editarBorrador(x); }} onEliminar={() => { const x = filtrados.find((x) => x.id === sel); if (x?.estado_fiscal === "Borrador") setPorEliminar(x); }} extras={<BotonIcono etiqueta="Vista previa" disabled={!filtrados.some((x) => x.id === sel)} onClick={() => { void navigate({ to: "/comprobante-vista", search: { id: sel } }); }}><Eye size={15} /></BotonIcono>} /></div>}
     <AlertDialog open={Boolean(porEliminar)} onOpenChange={(open) => { if (!open) setPorEliminar(null); }}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Eliminar borrador</AlertDialogTitle><AlertDialogDescription>Se eliminará permanentemente el comprobante {porEliminar?.numero}. Esta acción no se puede deshacer.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel disabled={guardando}>Cancelar</AlertDialogCancel><AlertDialogAction disabled={guardando} onClick={() => void confirmarEliminar()} className="bg-bad text-paper hover:bg-bad/90">Eliminar</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog></>;
 }
