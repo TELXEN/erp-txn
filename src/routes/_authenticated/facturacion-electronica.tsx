@@ -189,6 +189,7 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
   const grupoActivo = gruposFacturacion.find((g) => g.tipos.some((p) => p.tipo === pestana)) ?? gruposFacturacion[0];
   const ETIQUETA_BOTON: Record<string, string> = { "01": "Crear Factura", "03": "Crear Boleta", "07": "Crear Notas de Crédito", "08": "Crear Notas de Débito", "20": "Crear Retenciones", "40": "Crear Percepciones", RA: "Nueva comunicación de baja" };
   return <><Encabezado titulo={esGuias ? "Guías de Remisión" : "Facturación Electrónica"} subtitulo={esGuias ? "Logística · guías de remisión remitente y traslados" : "Comercial · comprobantes, estados SUNAT y cobranza"} acciones={<div className="flex items-center gap-2"><RegistrarVentaExterna abierta={ventaExt} onCerrar={() => setVentaExt(false)} />{!esGuias && (rol === "gerente" || rol === "administrador") && <ConfigDecolecta />}{!esGuias && !abierto && <Boton variante="accion" title="Registrar ventas de facturas emitidas por terceros" onClick={() => setVentaExt(true)}><ReceiptText size={14} />Registrar venta</Boton>}{abierto ? <Boton variante="linea" onClick={cerrar}>Cerrar editor</Boton> : <Boton onClick={() => abrirNuevo(pestana)}><FilePlus2 size={14} />{esGuias ? "Nueva guía de remisión" : ETIQUETA_BOTON[pestana] ?? "Nuevo comprobante"}</Boton>}</div>} />
+    <div className={`flex flex-col ${abierto ? "md:h-[calc(100dvh-3rem)] md:-my-3 md:min-h-0 md:overflow-hidden" : ""}`}>
     {!esGuias && <>
       <div className="mb-3 flex flex-wrap gap-1">
         {gruposFacturacion.map((g) => {
@@ -253,7 +254,7 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
         </div>
       </div>
     </VentanaFlotante>
-    {abierto && <div className="-mx-3 -my-3 flex flex-col bg-background sm:-mx-4 md:h-[calc(100dvh-3rem)] md:min-h-0 md:overflow-hidden">
+    {abierto && <div className="-mx-3 flex flex-1 flex-col bg-background sm:-mx-4 md:min-h-0">
       <Panel
         titulo={editando ? `Editar borrador ${editando.numero}` : preliquidacionOrigen ? `Facturar preliquidación ${pl?.p.codigo ?? ""}` : esGuias ? "Nueva guía de remisión" : "Nuevo comprobante electrónico"}
         extra={<Boton variante="linea" onClick={cerrar}>Cerrar editor</Boton>}
