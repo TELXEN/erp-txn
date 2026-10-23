@@ -139,7 +139,8 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
   const [busqueda, setBusqueda] = useState("");
   const [sel, setSel] = useState("");
   const actual = lista.find((x) => x.id === sel);
-  const [cintaColapsada, setCintaColapsada] = useState(false);
+  /** Control en línea sobre la hoja: mismo texto del documento con subrayado punteado. */
+  const edHoja: React.CSSProperties = { background: "transparent", border: "none", borderBottom: "1px dashed color-mix(in oklab, currentColor 40%, transparent)", font: "inherit", color: "inherit", width: "100%", padding: 0, outline: "none" };
   // Origen de la preliquidación nueva: libre o desde un cliente (estado del editor, no URL).
   const [origen, setOrigen] = useState<"libre" | "cliente">("libre");
   const [dlgOrigen, setDlgOrigen] = useState<null | "elegir" | "cliente">(null);
