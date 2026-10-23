@@ -14,7 +14,8 @@ Editar una preliquidación existente no cambia: abre directo el editor.
 ## Reglas
 - En modo Desde cliente, el selector de proyecto del editor solo lista proyectos de ese cliente.
 - Cambiar de proyecto en el editor reemplaza solo la parte del nombre si el usuario no la modificó; si ya la editó, no se sobrescribe.
-- Saldo de obra, «Cargar partidas» y aviso de sobre-saldo solo aplican cuando hay proyecto.
+- La preliquidación es a nivel global: se retira el botón «Cargar partidas» del editor; las líneas se escriben a mano.
+- Saldo de obra y aviso de sobre-saldo solo aplican cuando hay proyecto.
 
 ## Detalles técnicos
 - La base exige hoy proyecto en cada preliquidación; una migración lo vuelve opcional para permitir Libre sin proyecto (cliente sigue opcional).
