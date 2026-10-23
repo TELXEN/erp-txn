@@ -2,7 +2,7 @@ import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { useEffect, useState } from "react";
 import { useTipoCambioHoy } from "@/lib/tipo-cambio";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Eye, ListPlus, Plus, Receipt, Upload } from "lucide-react";
+import { Eye, Plus, Receipt, Upload } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Boton, BotonIcono, Campo, Etiqueta, Input, Panel, Select, Vacio } from "@/components/ui-kit";
@@ -23,7 +23,7 @@ export type { TipoTributario };
 export type Preliquidacion = {
   id: string;
   codigo: string;
-  proyecto_id: string;
+  proyecto_id: string | null;
   cliente_id: string | null;
   concepto: string;
   fecha: string;
@@ -62,7 +62,6 @@ type Props = {
 };
 
 type CuentaBanco = { nombre: string; numero_cuenta: string; cci: string; monedas: string; tipo_cuenta: string };
-type PartidaObra = { id: string; codigo: string; nombre: string; unidad: string; metrado: number; precio_unitario: number; padre_id: string | null };
 
 export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe, onFacturar }: Props) {
   const navigate = useNavigate();
@@ -143,7 +142,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
   const [dlgOrigen, setDlgOrigen] = useState<null | "elegir" | "cliente">(null);
   const [cliDlg, setCliDlg] = useState("");
 
-  const nombreProy = (id: string) => proyectos.find((p) => p.id === id)?.nombre ?? "—";
+  const nombreProy = (id: string | null) => proyectos.find((p) => p.id === id)?.nombre ?? "—";
   const datosCliente = (id: string | null) => clientes.find((c) => c.id === id) ?? null;
   const nombreCliente = (id: string | null) => datosCliente(id)?.razon_social ?? "—";
   const rucCliente = (id: string | null) => datosCliente(id)?.numero_documento ?? "";
