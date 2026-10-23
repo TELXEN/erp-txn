@@ -1,6 +1,6 @@
 import type { ReactNode, InputHTMLAttributes, SelectHTMLAttributes, ButtonHTMLAttributes } from "react";
 import { useEffect, useState } from "react";
-import { Inbox, Info, X } from "lucide-react";
+import { Inbox, Info, SlidersHorizontal, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 
@@ -347,3 +347,43 @@ export function InfoTooltip({ content }: { content: ReactNode }) {
   );
 }
 
+
+/** Botón «Filtros» con menú desplegable para filtros secundarios; muestra cuántos están activos. */
+export function MenuFiltros({ activos, onLimpiar, children }: { activos: number; onLimpiar: () => void; children: ReactNode }) {
+  const [abierto, setAbierto] = useState(false);
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setAbierto((v) => !v)}
+        aria-expanded={abierto}
+        className="inline-flex h-7 items-center gap-1.5 rounded-md border border-line bg-card px-2.5 text-xs text-ink hover:bg-muted"
+      >
+        <SlidersHorizontal size={13} /> Filtros{activos > 0 && <span className="rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">{activos}</span>}
+      </button>
+      {abierto && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setAbierto(false)} />
+          <div className="absolute right-0 top-full z-50 mt-1 grid w-64 gap-2 rounded-md border border-line bg-paper p-3 text-ink shadow-lg">
+            {children}
+            <button type="button" onClick={onLimpiar} className="justify-self-end text-[11px] text-primary hover:underline">Limpiar filtros</button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+/** Resumen en una sola franja baja: etiqueta y valor en línea. */
+export function FranjaResumen({ items }: { items: { etiqueta: string; valor: ReactNode; tono?: string }[] }) {
+  return (
+    <div className="mb-2 flex flex-wrap items-center divide-x divide-line rounded-md border border-line bg-card px-1 py-1.5">
+      {items.map((d) => (
+        <div key={d.etiqueta} className="flex items-baseline gap-1.5 px-3">
+          <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{d.etiqueta}</span>
+          <span className={cn("text-sm font-bold tabular-nums", d.tono)}>{d.valor}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
