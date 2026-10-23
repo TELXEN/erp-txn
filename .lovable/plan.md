@@ -14,7 +14,7 @@
    - Vehículos: placa principal, placa secundaria (carreta/semirremolque), marca, N° TUCE/tarjeta de circulación
    - Conductores (uno o varios): nombres, apellidos, tipo y N° de documento (DNI/CE), N° de licencia, categoría de licencia, vencimiento de licencia, celular
    - Estado activo/inactivo
-   El RUC se valida con 11 dígitos y no se repite; se avisa cuando la licencia o el certificado están vencidos.
+   El RUC se valida con Decolecta (consulta SUNAT ya usada en el ERP): al escribirlo se llenan razón social y dirección y se muestra estado/condición; si no está activo y habido se avisa. No se repite en el catálogo. Se avisa cuando la licencia o el certificado están vencidos.
 4. **En la guía**, el bloque «Transportista» tiene un selector del catálogo: al elegirlo se llenan RUC, razón social, MTC, certificado y entidad; luego se elige vehículo y conductor de ese transportista y se llenan placa, DNI y licencia. Los datos quedan copiados en la guía (si después cambias el catálogo, las guías emitidas no cambian). Se puede registrar un transportista nuevo desde la misma guía sin salir.
 5. **Modalidad del traslado** (según SUNAT):
    - **Transporte público**: la guía usa un transportista del catálogo (empresa con RUC, registro MTC y autorización). Es obligatorio elegir transportista; el conductor y la placa son opcionales, como pide SUNAT para esta modalidad.
