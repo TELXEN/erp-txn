@@ -209,13 +209,13 @@ function Avance() {
                   <Search size={13} className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
                   <Input className="h-7 py-0 pl-7 text-xs" placeholder="Buscar partida..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
                 </div>
-                <Select aria-label="Proyecto" className="h-7 w-44 py-0 text-xs" value={filtroProyecto} onChange={(e) => setFiltroProyecto(e.target.value)}>
+                <Select aria-label="Proyecto" className="h-7 w-36 py-0 text-xs" value={filtroProyecto} onChange={(e) => setFiltroProyecto(e.target.value)}>
                   <option value="">Todos los proyectos</option>
                   {proyectos.map((p) => (
                     <option key={p.id} value={p.id}>{p.nombre}</option>
                   ))}
                 </Select>
-                <Select aria-label="Especialidad" className="h-7 w-44 py-0 text-xs" value={filtroEsp} onChange={(e) => setFiltroEsp(e.target.value)}>
+                <Select aria-label="Especialidad" className="h-7 w-36 py-0 text-xs" value={filtroEsp} onChange={(e) => setFiltroEsp(e.target.value)}>
                   <option value="">Todas las especialidades</option>
                   {ESPECIALIDADES.map((e) => (
                     <option key={e} value={e}>{e}</option>

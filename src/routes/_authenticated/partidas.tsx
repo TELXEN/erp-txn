@@ -337,13 +337,13 @@ function Partidas() {
               total={visibles.length}
               placeholder="Buscar partidas o códigos..."
             />
-            <Select aria-label="Proyecto" className="h-7 w-44 py-0 text-xs" value={filtroProyecto} onChange={(e) => setFiltroProyecto(e.target.value)}>
+            <Select aria-label="Proyecto" className="h-7 w-36 py-0 text-xs" value={filtroProyecto} onChange={(e) => setFiltroProyecto(e.target.value)}>
               <option value="">Todos los proyectos</option>
               {proyectos.map((p) => (
                 <option key={p.id} value={p.id}>{p.nombre}</option>
               ))}
             </Select>
-            <Select aria-label="Especialidad" className="h-7 w-44 py-0 text-xs" value={filtroEsp} onChange={(e) => setFiltroEsp(e.target.value)}>
+            <Select aria-label="Especialidad" className="h-7 w-36 py-0 text-xs" value={filtroEsp} onChange={(e) => setFiltroEsp(e.target.value)}>
               <option value="">Todas las especialidades</option>
               {nombresEspecialidades.map((e) => (
                 <option key={e} value={e}>{e}</option>
