@@ -736,19 +736,25 @@ function DialogoNuevaPartida({ partidas, onCerrar, onGuardado }: { partidas: Fil
     const u = listaUnd.find((x) => x.simbolo === s);
     return u ? `${u.simbolo} · ${u.descripcion}` : s;
   };
+  const prefijoDe = (p: Fila) => especialidades.find((e) => e.nombre === p.especialidad)?.codigo ?? "";
+  const rama = especialidades.find((e) => e.nombre === f.especialidad)?.codigo ?? "";
 
+  // El código no se escribe a mano: la partida entra en el hueco que le da su letra.
   function elegirEsp(nombre: string) {
     const pref = especialidades.find((e) => e.nombre === nombre)?.codigo ?? "";
-    setF({ ...f, especialidad: nombre, codigo: siguienteCodigoJerarquico(partidas.map((p) => String(p.codigo_jerarquico ?? "")), pref) });
+    setF({ ...f, especialidad: nombre, codigo: codigoAlfabeticoSugerido(partidas, pref, f.descripcion.trim(), prefijoDe) });
+  }
+  function escribirDescripcion(descripcion: string) {
+    setF({ ...f, descripcion, codigo: codigoAlfabeticoSugerido(partidas, rama, descripcion.trim(), prefijoDe) });
   }
   async function guardar() {
     if (!f.descripcion.trim()) return setError("Escribe la descripción.");
-    const { data, error: e } = await db.from("partidas_apu").insert({
+    const { id, error: e } = await guardarPartidaEnBanco({
       especialidad: f.especialidad, codigo_jerarquico: f.codigo.trim(), descripcion: f.descripcion.trim(),
       unidad: f.unidad, rendimiento_diario: Number(f.rendimiento) || 1,
-    }).select("id").single();
-    if (e) return setError(e.message);
-    onGuardado(data.id);
+    }, especialidades);
+    if (e) return setError(e);
+    if (id) onGuardado(id);
   }
 
   return (
@@ -760,12 +766,12 @@ function DialogoNuevaPartida({ partidas, onCerrar, onGuardado }: { partidas: Fil
             {especialidades.filter((e) => e.activo).map((e) => <option key={e.id} value={e.nombre}>{e.codigo} · {e.nombre}</option>)}
           </Select>
         </Campo>
-        <Campo etiqueta="Código jerárquico (sugerido)">
-          <Input value={f.codigo} onChange={(e) => setF({ ...f, codigo: e.target.value })} />
+        <Campo etiqueta="Código jerárquico (por orden alfabético)">
+          <Input value={f.codigo} readOnly title="Se asigna solo, según la letra de la descripción" />
         </Campo>
         <div className="sm:col-span-2">
           <Campo etiqueta="Descripción *">
-            <Input autoFocus value={f.descripcion} data-formato="oracion" onChange={(e) => setF({ ...f, descripcion: e.target.value })} />
+            <Input autoFocus value={f.descripcion} data-formato="oracion" onChange={(e) => escribirDescripcion(e.target.value)} />
           </Campo>
         </div>
         <Campo etiqueta="Unidad">
