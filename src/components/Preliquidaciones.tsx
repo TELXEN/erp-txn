@@ -204,38 +204,39 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
     { t: "Facturadas del mes", ...grupo((p) => p.estado === "Facturada" && (facturaDe(p.id)?.fecha_emision ?? p.fecha).slice(0, 7) === mesHoy) },
   ];
 
+  const clave = (s: string | null | undefined) => (s ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
+  const proyectosDe = (clienteId: string) => {
+    const c = clientes.find((x) => x.id === clienteId);
+    if (!c) return [];
+    return proyectos.filter((p) => clave(p.cliente) === clave(c.razon_social));
+  };
+  const conceptoDe = (id: string) => {
+    const p = proyectos.find((x) => x.id === id);
+    return p ? `${p.codigo ? p.codigo + " " : ""}${p.nombre}` : "";
+  };
+
   function elegirProyecto(id: string) {
     const proy = proyectos.find((p) => p.id === id);
-    const nombre = (proy?.cliente ?? "").trim().toLowerCase();
-    const cli = nombre ? clientes.find((c) => c.razon_social.trim().toLowerCase() === nombre) : undefined;
-    setForm({ ...form, proyecto_id: id, cliente_id: cli?.id ?? form.cliente_id });
-    setSelectorPartidas(false);
-    setMarcadas([]);
+    const nombre = clave(proy?.cliente);
+    const cli = nombre ? clientes.find((c) => clave(c.razon_social) === nombre) : undefined;
+    // El concepto toma el nombre del proyecto solo si el usuario no lo ha personalizado.
+    const previo = form.proyecto_id ? conceptoDe(form.proyecto_id) : "";
+    const concepto = !form.concepto.trim() || form.concepto === previo ? conceptoDe(id) : form.concepto;
+    setForm({ ...form, proyecto_id: id, cliente_id: origen === "cliente" ? form.cliente_id : cli?.id ?? form.cliente_id, concepto });
   }
-
-  function cargarPartidas() {
-    const proy = proyectos.find((p) => p.id === form.proyecto_id);
-    const factor = 1 + (Number(proy?.pct_gastos_generales ?? 0) + Number(proy?.pct_utilidad ?? 0)) / 100;
-    const nuevas: ItemPL[] = partidasObra
-      .filter((p) => marcadas.includes(p.id))
-      .map((p) => ({
-        descripcion: `${p.codigo ? p.codigo + " " : ""}${p.nombre}`,
-        unidad: p.unidad || "GLB",
-        cantidad: String(Number(p.metrado) || 1),
-        precio_unitario: String(Math.round(Number(p.precio_unitario) * factor * 100) / 100),
-      }));
-    const actuales = lineas.filter((l) => l.descripcion.trim() || Number(l.precio_unitario) > 0);
-    setLineas([...actuales, ...nuevas].length ? [...actuales, ...nuevas] : [itemVacio()]);
-    setSelectorPartidas(false);
-    setMarcadas([]);
-  }
-
 
   function nuevo() {
-    setForm(formVacio());
+    setCliDlg("");
+    setDlgOrigen("elegir");
+  }
+
+  function abrirNuevo(o: "libre" | "cliente", clienteId = "", proyectoId = "") {
+    setOrigen(o);
+    setForm({ ...formVacio(), cliente_id: clienteId, proyecto_id: proyectoId, concepto: proyectoId ? conceptoDe(proyectoId) : "" });
     setLineas([itemVacio()]);
     setEditando(null);
     setError("");
+    setDlgOrigen(null);
     setAbierto(true);
   }
 
@@ -288,7 +289,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
       setError(`Aviso: el neto (${soles(netoForm * tc)}) supera el saldo disponible de la obra (${soles(Math.max(saldoSel, 0))}). Se guardó igual como borrador.`);
     const cond = datosCondicion(form, form.fecha);
     const datos = {
-      proyecto_id: form.proyecto_id,
+      proyecto_id: form.proyecto_id || null,
       cliente_id: form.cliente_id || null,
       concepto: form.concepto.trim(),
       fecha: form.fecha,
@@ -402,10 +403,10 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
                       className="-ml-1 w-full rounded bg-transparent px-1 text-xs font-medium text-white focus:outline-none focus:ring-1 focus:ring-[#F1C40F] [&>option]:text-black"
                       value={form.proyecto_id}
                       onChange={(e) => elegirProyecto(e.target.value)}
-                      required
+                      required={origen === "cliente"}
                     >
-                      <option value="">Selecciona...</option>
-                      {proyectos.map((p) => (
+                      <option value="">{origen === "cliente" ? "Selecciona..." : "Sin proyecto"}</option>
+                      {(origen === "cliente" && form.cliente_id ? proyectosDe(form.cliente_id) : proyectos).map((p) => (
                         <option key={p.id} value={p.id}>{p.codigo ? `${p.codigo} · ` : ""}{p.nombre}</option>
                       ))}
                     </select>
@@ -416,7 +417,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
                       className="-ml-1 w-full rounded bg-transparent px-1 text-xs font-medium text-white focus:outline-none focus:ring-1 focus:ring-[#F1C40F] [&>option]:text-black"
                       value={form.cliente_id}
                       onChange={(e) => setForm({ ...form, cliente_id: e.target.value })}
-                      required
+                      disabled={origen === "cliente"}
                     >
                       <option value="">Selecciona...</option>
                       {clientes.map((c) => (
