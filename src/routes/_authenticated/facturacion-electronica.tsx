@@ -43,6 +43,7 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
   const [cuotas, setCuotas] = useState<CuotaEditor[]>([]);
   const [busqueda, setBusqueda] = useRecordado("facturacion:busqueda", ""); const [error, setError] = useState(""); const [guardando, setGuardando] = useState(false); const [cargado, setCargado] = useState("");
   const [ventaExt, setVentaExt] = useState(false);
+  const [origenGuiaAbierto, setOrigenGuiaAbierto] = useState(false); const [origenGuia, setOrigenGuia] = useState<"libre" | "cliente">("libre"); const [guiaCliente, setGuiaCliente] = useState(""); const [guiaProyecto, setGuiaProyecto] = useState("");
   const [editando, setEditando] = useState<Comprobante | null>(null); const [porEliminar, setPorEliminar] = useState<Comprobante | null>(null);
 
   const { data: empresa } = useEmpresa();
@@ -92,6 +93,7 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
     const serie = series.find((s) => s.tipo_comprobante === t)?.serie ?? SERIE_DEFECTO[t];
     setEditando(null); setError(""); setPreliquidacionOrigen(""); setCargado(""); setForm(nuevoFormCpe(t, serie)); setItems([itemComprobanteVacio()]); setDocs([docRelacionadoVacio()]); setCuotas([]);
     if (t === "01") { setOrigen("libre"); setSeleccionPl(""); setOrigenAbierto(true); setAbierto(false); }
+    else if (t === "09") { setOrigenGuia("libre"); setGuiaCliente(""); setGuiaProyecto(""); setOrigenGuiaAbierto(true); setAbierto(false); }
     else setAbierto(true);
   }
   function cambiarTipo(t: TipoComprobante) {
@@ -223,6 +225,27 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
         <div className="flex justify-end gap-2 border-t border-line pt-4">
           <Boton variante="linea" onClick={() => setOrigenAbierto(false)}>Cancelar</Boton>
           <Boton disabled={origen === "preliquidacion" && (!seleccionPl || buscandoPl || Boolean(errorListaPl))} onClick={() => { setPreliquidacionOrigen(origen === "preliquidacion" ? seleccionPl : ""); setOrigenAbierto(false); setAbierto(true); }}>{origen === "preliquidacion" ? "Cargar datos" : "Continuar"}</Boton>
+        </div>
+      </div>
+    </VentanaFlotante>
+    <VentanaFlotante titulo="Crear guía de remisión" abierta={origenGuiaAbierto} onCerrar={() => setOrigenGuiaAbierto(false)} ancho="max-w-xl">
+      <div className="space-y-4 p-5">
+        <div className="flex gap-2" role="group" aria-label="Origen de la guía">
+          <Boton variante={origenGuia === "libre" ? "primario" : "linea"} aria-pressed={origenGuia === "libre"} onClick={() => setOrigenGuia("libre")}><FilePlus2 size={14} />Libre</Boton>
+          <Boton variante={origenGuia === "cliente" ? "primario" : "linea"} aria-pressed={origenGuia === "cliente"} onClick={() => setOrigenGuia("cliente")}><ReceiptText size={14} />Cliente</Boton>
+        </div>
+        {origenGuia === "cliente" && <div className="grid gap-3">
+          <Campo etiqueta="Cliente"><Select aria-label="Cliente" value={guiaCliente} onChange={(e) => setGuiaCliente(e.target.value)}><option value="">Selecciona un cliente</option>{clientes.map((c) => <option key={c.id} value={c.id}>{c.razon_social}</option>)}</Select></Campo>
+          <Campo etiqueta="Proyecto (opcional)"><Select aria-label="Proyecto" value={guiaProyecto} onChange={(e) => setGuiaProyecto(e.target.value)}><option value="">Sin proyecto</option>{proyectos.map((p) => <option key={p.id} value={p.id}>{p.codigo} · {p.nombre}</option>)}</Select></Campo>
+          <p className="text-xs text-muted-foreground">Con proyecto podrás cargar sus partidas en el detalle de la guía.</p>
+        </div>}
+        <div className="flex justify-end gap-2 border-t border-line pt-4">
+          <Boton variante="linea" onClick={() => setOrigenGuiaAbierto(false)}>Cancelar</Boton>
+          <Boton disabled={origenGuia === "cliente" && !guiaCliente} onClick={() => {
+            const c = clientes.find((x) => x.id === guiaCliente);
+            setForm((f) => origenGuia === "cliente" && c ? { ...f, guia_origen: "cliente", cliente_id: c.id, cliente_numero_documento: c.numero_documento, cliente_razon_social: c.razon_social, cliente_direccion: c.direccion ?? "", proyecto_id: guiaProyecto } : { ...f, guia_origen: "libre" });
+            setOrigenGuiaAbierto(false); setAbierto(true);
+          }}>Continuar</Boton>
         </div>
       </div>
     </VentanaFlotante>
