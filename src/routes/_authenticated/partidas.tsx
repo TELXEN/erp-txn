@@ -331,34 +331,6 @@ function Partidas() {
         subtitulo="Organizadas por proyecto y especialidad"
         acciones={
           <div className="flex flex-wrap items-center gap-1.5">
-            <Buscador
-              valor={busqueda}
-              onChange={setBusqueda}
-              total={visibles.length}
-              placeholder="Buscar partidas o códigos..."
-            />
-            <Select aria-label="Proyecto" className="h-7 w-36 py-0 text-xs" value={filtroProyecto} onChange={(e) => setFiltroProyecto(e.target.value)}>
-              <option value="">Todos los proyectos</option>
-              {proyectos.map((p) => (
-                <option key={p.id} value={p.id}>{p.nombre}</option>
-              ))}
-            </Select>
-            <Select aria-label="Especialidad" className="h-7 w-36 py-0 text-xs" value={filtroEsp} onChange={(e) => setFiltroEsp(e.target.value)}>
-              <option value="">Todas las especialidades</option>
-              {nombresEspecialidades.map((e) => (
-                <option key={e} value={e}>{e}</option>
-              ))}
-            </Select>
-            <MenuFiltros activos={filtroTipo ? 1 : 0} onLimpiar={() => setFiltroTipo("")}>
-              <Campo etiqueta="Tipo de presupuesto">
-                <Select className="h-7 py-0 text-xs" value={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value)}>
-                  <option value="">Todos los tipos</option>
-                  {nombresTipos.map((t) => (
-                    <option key={t} value={t}>{t}</option>
-                  ))}
-                </Select>
-              </Campo>
-            </MenuFiltros>
             <div className="flex items-center gap-0.5 rounded-md border border-line bg-card p-0.5">
               <button
                 type="button"
@@ -382,6 +354,36 @@ function Partidas() {
               <Upload size={13} />
             </Boton>
             <Boton onClick={abrirNueva}>+ Nueva partida</Boton>
+            <MenuFiltros
+              activos={[busqueda, filtroProyecto, filtroEsp, filtroTipo].filter(Boolean).length}
+              onLimpiar={() => { setBusqueda(""); setFiltroProyecto(""); setFiltroEsp(""); setFiltroTipo(""); }}
+            >
+              <Buscador valor={busqueda} onChange={setBusqueda} total={visibles.length} placeholder="Buscar partidas o códigos..." />
+              <Campo etiqueta="Proyecto">
+                <Select className="h-8 py-0 text-xs" value={filtroProyecto} onChange={(e) => setFiltroProyecto(e.target.value)}>
+                  <option value="">Todos los proyectos</option>
+                  {proyectos.map((p) => (
+                    <option key={p.id} value={p.id}>{p.nombre}</option>
+                  ))}
+                </Select>
+              </Campo>
+              <Campo etiqueta="Especialidad">
+                <Select className="h-8 py-0 text-xs" value={filtroEsp} onChange={(e) => setFiltroEsp(e.target.value)}>
+                  <option value="">Todas las especialidades</option>
+                  {nombresEspecialidades.map((e) => (
+                    <option key={e} value={e}>{e}</option>
+                  ))}
+                </Select>
+              </Campo>
+              <Campo etiqueta="Tipo de presupuesto">
+                <Select className="h-8 py-0 text-xs" value={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value)}>
+                  <option value="">Todos los tipos</option>
+                  {nombresTipos.map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </Select>
+              </Campo>
+            </MenuFiltros>
           </div>
         }
       />
