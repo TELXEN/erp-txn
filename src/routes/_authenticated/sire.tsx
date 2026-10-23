@@ -10,7 +10,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Encabezado } from "@/components/AppShell";
-import { Panel, Campo, Input, Select, Boton, SinAcceso, Vacio } from "@/components/ui-kit";
+import { Panel, Campo, Input, Select, Boton, SinAcceso, Vacio, tipoDistintivo } from "@/components/ui-kit";
 import { MESES, fecha as fmtFecha, soles } from "@/lib/format";
 import { guardarConfigSire, validarConexionSire, sincronizarSire, aceptarSire } from "@/lib/sire.functions";
 import { useComprobantesCompra } from "@/components/sire/ComprobantesRecibidos";
