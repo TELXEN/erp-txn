@@ -70,6 +70,10 @@ type Props = {
   onAgregarLinea?: () => void;
   /** Botones extra bajo la tabla en modo edición (p. ej. «Cargar partidas de la obra»). */
   accionesLineas?: ReactNode;
+  /** Controles en línea (edición) que sustituyen el texto de cliente, proyecto y condición comercial. */
+  editorCliente?: ReactNode;
+  editorProyecto?: ReactNode;
+  editorCondicion?: ReactNode;
 };
 
 export function HojaPreliquidacion(props: Props) {
@@ -179,13 +183,13 @@ export function HojaPreliquidacion(props: Props) {
       >
         <div style={{ flex: 1 }}>
           <div style={etiqueta}>Cliente</div>
-          <div style={valor}>{cliente?.razon_social || "—"}</div>
+          {props.editorCliente ?? <div style={valor}>{cliente?.razon_social || "—"}</div>}
           <div style={subvalor}>RUC {cliente?.numero_documento || "—"}</div>
           <div style={subvalor}>{cliente?.direccion || "Dirección no registrada"}</div>
         </div>
         <div style={{ flex: 1 }}>
           <div style={etiqueta}>Proyecto / obra</div>
-          <div style={valor}>{proyectoNombre || "—"}</div>
+          {props.editorProyecto ?? <div style={valor}>{proyectoNombre || "—"}</div>}
           <div style={{ ...etiqueta, marginTop: 8 }}>Orden de compra</div>
           {editable ? (
             <input aria-label="Orden de compra" value={ordenCompra} onChange={(e) => onCampo?.("orden_compra", e.target.value)} maxLength={160} placeholder="Número del documento" style={{ ...ed, ...valor }} />
@@ -323,6 +327,7 @@ export function HojaPreliquidacion(props: Props) {
       <div className="flex items-start justify-between" style={{ marginBottom: 18 }}>
         <div style={{ width: "52%", padding: 12, border: `1px solid ${DOC.line}`, borderRadius: 5 }}>
           <div style={tituloSeccion}>Condición comercial</div>
+          {props.editorCondicion ?? (<>
           <div className="flex justify-between" style={{ marginTop: 5 }}><span>Condición de pago</span><span style={valor}>{condicionPago}</span></div>
           {condicionPago === "Crédito" && (
             <>
@@ -339,6 +344,7 @@ export function HojaPreliquidacion(props: Props) {
               <div className="flex justify-between" style={{ marginTop: 5 }}><span>Vencimiento estimado</span><span>{F(fechaVencimiento)}</span></div>
             </>
           )}
+          </>)}
         </div>
         <div style={{ width: "42%" }}>
           <div className="flex justify-between" style={{ padding: "5px 0", borderBottom: `1px solid ${DOC.line}` }}><span>Valor ejecutado</span><span>{D(bruto)}</span></div>
