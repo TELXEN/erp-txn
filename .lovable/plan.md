@@ -1,25 +1,52 @@
-# Propuestas para mejorar la pantalla del ERP
+# Propuesta de mejora del front end del ERP
 
-Cada punto se puede aprobar por separado. No cambia cálculos ni reglas del negocio.
+Este plan solo cambia lo visual y la forma de moverse entre pantallas. Los datos, los cálculos y los permisos siguen igual. Se aplica por etapas y cada una se revisa en pantalla.
 
-## 1. Inicio con alertas del día
-Una pantalla de inicio según el rol que muestra lo pendiente: cobros vencidos, partidas bloqueadas por sobrecosto, boletas sin validar, EMO por vencer y solicitudes que esperan a Gerencia. Al pulsar una alerta se abre el módulo que corresponde.
+## 1. Cabecera común en cada módulo
+Todas las pantallas tendrán la misma franja superior:
+- a la izquierda, la ruta (por ejemplo «Finanzas › SIRE SUNAT») y el título;
+- en el centro, el período o la obra activa;
+- a la derecha, las acciones principales.
 
-## 2. Búsqueda rápida (Ctrl+K)
-Desde cualquier pantalla puedes escribir el nombre de un módulo, una obra, una cotización, un proveedor o una factura y saltar directo a ella.
+Hoy cada módulo ordena esto a su manera: Tesorería, SIRE, Dashboard y Cotizaciones lo hacen distinto.
 
-## 3. Tablas más cómodas
-- Totales fijos al pie de la tabla en todas las hojas.
-- Columnas que puedes ocultar, y el sistema recuerda tu elección.
-- Filtros que se mantienen al volver a la pantalla.
+## 2. Pestañas uniformes
+Las pestañas internas (Configuración, Ventas/Compras, Nómina, Tesorería…) tendrán un solo estilo: una línea inferior con el color del menú. Así dejan de mezclarse con los botones normales.
 
-## 4. Uso en celular para campo
-Tareo, requerimientos y caja chica se adaptan al celular, con botones grandes y formularios en una sola columna.
+## 3. Tarjetas de resumen con el mismo formato
+- Etiqueta arriba, monto grande y cantidad entre paréntesis en la etiqueta.
+- Un color solo cuando hay alerta.
+- Al pulsar la tarjeta se filtra la tabla, como ya ocurre en Tesorería.
 
-## 5. Aspecto uniforme
-Todas las pantallas usan la misma cabecera (título, período y acciones) y los mismos mensajes cuando una lista está vacía o cargando.
+Este formato se aplica a Dashboard, Cotizaciones, SIRE, Caja chica y Nómina.
+
+## 4. Tablas más legibles
+- Encabezado y totales fijos al hacer scroll.
+- Importes alineados a la derecha, con el mismo ancho de cifra.
+- Franja suave entre filas.
+- Se mantiene la densidad compacta ya aprobada.
+
+## 5. Estados de carga y vacío
+Mientras carga, la tabla mostrará filas grises con la misma forma de la tabla, en lugar de quedar en blanco. Cuando no hay datos, un mensaje con icono dirá qué hacer, por ejemplo «Sincroniza el período».
+
+## 6. Menú lateral más claro
+- Iconos agrupados por área, con el módulo activo resaltado.
+- Al pasar el cursor con el menú colapsado se verá el nombre del módulo.
+- Los módulos más usados quedarán arriba.
+
+## 7. Ventanas flotantes consistentes
+Todas las ventanas de registro y edición tendrán el título y los botones Guardar/Cerrar fijos, y el contenido se desplazará por dentro, igual que la ventana de gastos generales.
+
+## 8. Accesibilidad y contraste
+- Revisar el contraste en los cinco temas.
+- Foco visible al usar el teclado.
+- Tamaños mínimos para hacer clic.
+
+## Orden propuesto
+1 y 2 → 3 → 4 y 5 → 6 → 7 → 8.
 
 ## Detalles técnicos
-- Solo cambios de presentación. Se reutilizan los datos actuales, los componentes `ui-kit` y `BarraIconosHoja`, y los tokens de tema.
-- La búsqueda usa `cmdk`, que ya trae shadcn, y consultas de solo lectura.
-- Cada etapa se revisa en pantalla con Playwright, en escritorio y en celular.
+- Nuevos componentes en `ui-kit`: `CabeceraModulo`, `Pestanas`, `TarjetaResumen`, `FilasCargando`, y `Vacio` mejorado. Se adoptan pantalla por pantalla.
+- Solo tokens semánticos de `styles.css`, sin colores fijos, y `cn()` para combinar clases.
+- La densidad se conserva tal como dice `mem://design/densidad`.
+- Cada etapa se verifica con Playwright en escritorio y en celular, y sin errores de compilación.
