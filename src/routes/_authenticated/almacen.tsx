@@ -12,7 +12,7 @@ import { soles } from "@/lib/format";
 import { useProyectos } from "@/lib/datos";
 import { apuDb, useInsumos } from "@/lib/apu";
 import { exportarExcel } from "@/lib/exportar";
-import { calcularStock, claveStock, num, useMovimientos } from "@/lib/logistica";
+import { calcularStock, claveStock, num, sincronizarEstadoOC, useItemsOC, useMovimientos, useOrdenesCompra } from "@/lib/logistica";
 
 export const Route = createFileRoute("/_authenticated/almacen")({
   head: () => ({
@@ -36,11 +36,14 @@ function AlmacenPage() {
   const { data: proyectos = [] } = useProyectos();
   const { data: insumos = [] } = useInsumos();
   const { data: movs = [] } = useMovimientos();
+  const { data: ordenes = [] } = useOrdenesCompra();
+  const { data: itemsOC = [] } = useItemsOC();
   const [form, setForm] = useState({
     tipo: "Salida" as "Ingreso" | "Salida",
     fecha: hoy(),
     proyecto_id: "",
     insumo_id: "",
+    orden_item_id: "",
     cantidad: "",
     costo_unitario: "",
     documento: "",
