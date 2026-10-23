@@ -354,36 +354,7 @@ function Partidas() {
               <Upload size={13} />
             </Boton>
             <Boton onClick={abrirNueva}>+ Nueva partida</Boton>
-            <MenuFiltros flotante
-              activos={[busqueda, filtroProyecto, filtroEsp, filtroTipo].filter(Boolean).length}
-              onLimpiar={() => { setBusqueda(""); setFiltroProyecto(""); setFiltroEsp(""); setFiltroTipo(""); }}
-            >
-              <Buscador valor={busqueda} onChange={setBusqueda} total={visibles.length} placeholder="Buscar partidas o códigos..." />
-              <Campo etiqueta="Proyecto">
-                <Select className="h-8 py-0 text-xs" value={filtroProyecto} onChange={(e) => setFiltroProyecto(e.target.value)}>
-                  <option value="">Todos los proyectos</option>
-                  {proyectos.map((p) => (
-                    <option key={p.id} value={p.id}>{p.nombre}</option>
-                  ))}
-                </Select>
-              </Campo>
-              <Campo etiqueta="Especialidad">
-                <Select className="h-8 py-0 text-xs" value={filtroEsp} onChange={(e) => setFiltroEsp(e.target.value)}>
-                  <option value="">Todas las especialidades</option>
-                  {nombresEspecialidades.map((e) => (
-                    <option key={e} value={e}>{e}</option>
-                  ))}
-                </Select>
-              </Campo>
-              <Campo etiqueta="Tipo de presupuesto">
-                <Select className="h-8 py-0 text-xs" value={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value)}>
-                  <option value="">Todos los tipos</option>
-                  {nombresTipos.map((t) => (
-                    <option key={t} value={t}>{t}</option>
-                  ))}
-                </Select>
-              </Campo>
-            </MenuFiltros>
+            
           </div>
         }
       />
@@ -613,6 +584,7 @@ function Partidas() {
         ]}
       />
 
+<div className="flex items-start gap-3"><div className="min-w-0 flex-1">
       <Panel titulo={vista === "kanban" ? "Tablero Kanban de partidas" : "Listado por proyecto y tipos"}>
         {grupos.length === 0 ? (
           <Vacio texto="No hay partidas con estos filtros." />
@@ -1000,6 +972,36 @@ function Partidas() {
           })
         )}
       </Panel>
+</div><div className="sticky top-2 flex h-fit shrink-0 flex-col gap-1.5 rounded-md border p-1.5 barra-iconos"><MenuFiltros
+              activos={[busqueda, filtroProyecto, filtroEsp, filtroTipo].filter(Boolean).length}
+              onLimpiar={() => { setBusqueda(""); setFiltroProyecto(""); setFiltroEsp(""); setFiltroTipo(""); }}
+            >
+              <Buscador valor={busqueda} onChange={setBusqueda} total={visibles.length} placeholder="Buscar partidas o códigos..." />
+              <Campo etiqueta="Proyecto">
+                <Select className="h-8 py-0 text-xs" value={filtroProyecto} onChange={(e) => setFiltroProyecto(e.target.value)}>
+                  <option value="">Todos los proyectos</option>
+                  {proyectos.map((p) => (
+                    <option key={p.id} value={p.id}>{p.nombre}</option>
+                  ))}
+                </Select>
+              </Campo>
+              <Campo etiqueta="Especialidad">
+                <Select className="h-8 py-0 text-xs" value={filtroEsp} onChange={(e) => setFiltroEsp(e.target.value)}>
+                  <option value="">Todas las especialidades</option>
+                  {nombresEspecialidades.map((e) => (
+                    <option key={e} value={e}>{e}</option>
+                  ))}
+                </Select>
+              </Campo>
+              <Campo etiqueta="Tipo de presupuesto">
+                <Select className="h-8 py-0 text-xs" value={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value)}>
+                  <option value="">Todos los tipos</option>
+                  {nombresTipos.map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </Select>
+              </Campo>
+            </MenuFiltros></div></div>
       </>
       {apu && (
         <ApuBanco
