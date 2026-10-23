@@ -596,7 +596,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
         ))}
       </div>}
 
-      <div className="flex items-start gap-3">
+      {!abierto && <div className="flex items-start gap-3">
       <Panel className="min-w-0 flex-1"
         titulo="Preliquidaciones"
         extra={
@@ -704,7 +704,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
         <BotonIcono etiqueta="Facturar" disabled={!actual || actual.estado !== "Aprobada"} onClick={() => { if (actual) onFacturar(actual, netoDe(actual.id)); }}><Receipt size={15} /></BotonIcono>
         <BotonIcono etiqueta="Vista previa" disabled={!actual} onClick={() => { if (actual) void navigate({ to: "/preliquidacion-vista", search: { id: actual.id } }); }}><Eye size={15} /></BotonIcono>
       </>} />
-      </div>
+      </div>}
     </>
   );
 }
