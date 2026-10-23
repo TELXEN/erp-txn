@@ -459,7 +459,7 @@ function Dashboard() {
       <div id="reporte-financiero" className="tablero-financiero">
         <div className="mb-4 flex gap-1 border-b border-line">
           {([["resumen", "Resumen"], ["gp", "Ganancia / Pérdida"]] as const).map(([k, t]) => (
-            <button key={k} onClick={() => setPestana(k)} className={`-mb-px border-b-2 px-4 py-2 text-sm font-semibold ${pestana === k ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"}`}>{t}</button>
+            <button key={k} onClick={() => setPestana(k)} className={`-mb-px border-b-2 px-4 py-2 text-sm font-semibold ${pestana === k ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:border-line hover:text-ink"}`}>{t}</button>
           ))}
         </div>
         {pestana === "gp" ? (

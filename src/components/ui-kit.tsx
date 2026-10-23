@@ -223,7 +223,7 @@ export function Pestanas<T extends string>({
   onCambiar,
   etiqueta,
 }: {
-  opciones: { id: T; texto: string; icono?: ReactNode }[];
+  opciones: { id: T; texto: ReactNode; icono?: ReactNode }[];
   valor: T;
   onCambiar: (v: T) => void;
   etiqueta: string;
