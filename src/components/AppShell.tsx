@@ -89,7 +89,6 @@ const MENU: Categoria[] = [
       { a: "/proyectos", texto: "Proyectos", roles: ["administrador", "gerente"], icono: Building2 },
       { a: "/partidas", texto: "Partidas", roles: ["administrador", "gerente"], icono: Layers },
       { a: "/avance", texto: "Avance Físico", roles: ["ingeniero", "gerente"], icono: Activity },
-      { a: "/tareo", texto: "Tareo Diario", roles: ["administrador", "gerente"], icono: CalendarDays },
       { a: "/aprobaciones", texto: "Aprobaciones", roles: ["administrador", "gerente"], icono: ShieldCheck },
     ],
   },
@@ -121,6 +120,7 @@ const MENU: Categoria[] = [
     titulo: "Recursos Humanos",
     items: [
       { a: "/personal", texto: "Personal", roles: ["administrador", "gerente"], icono: Users },
+      { a: "/tareo", texto: "Tareo Diario", roles: ["administrador", "gerente"], icono: CalendarDays },
       { a: "/honorarios", texto: "Recibos por Honorarios", roles: ["administrador", "gerente"], icono: ReceiptText },
       { a: "/nomina", texto: "Nómina y Boletas", roles: ["administrador", "gerente"], icono: FileSpreadsheet },
       { a: "/beneficios", texto: "Beneficios Sociales", roles: ["administrador", "gerente"], icono: HandCoins },
