@@ -224,8 +224,9 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
   }
 
   function editar(p: Preliquidacion) {
+    setOrigen("libre");
     setForm({
-      proyecto_id: p.proyecto_id,
+      proyecto_id: p.proyecto_id ?? "",
       cliente_id: p.cliente_id ?? "",
       concepto: p.concepto,
       fecha: p.fecha,
@@ -350,8 +351,55 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
 
   const editable = (p: Preliquidacion) => p.estado === "Borrador" || p.estado === "Observada";
 
+  const proyDlg = cliDlg ? proyectosDe(cliDlg) : [];
   return (
     <>
+      {dlgOrigen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 p-4" onClick={() => setDlgOrigen(null)}>
+          <div className="w-full max-w-md rounded-lg border border-line bg-card p-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <h3 className="mb-3 text-sm font-semibold">Nueva preliquidación</h3>
+            {dlgOrigen === "elegir" ? (
+              <div className="grid grid-cols-2 gap-2">
+                <button type="button" className="rounded-md border border-line p-3 text-left hover:border-primary hover:bg-primary/5" onClick={() => abrirNuevo("libre")}>
+                  <div className="text-sm font-medium">Libre</div>
+                  <div className="text-xs text-muted-foreground">Editor vacío, cliente y proyecto opcionales.</div>
+                </button>
+                <button type="button" className="rounded-md border border-line p-3 text-left hover:border-primary hover:bg-primary/5" onClick={() => setDlgOrigen("cliente")}>
+                  <div className="text-sm font-medium">Desde cliente</div>
+                  <div className="text-xs text-muted-foreground">Elige cliente y uno de sus proyectos.</div>
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <Campo>
+                  <Etiqueta>Cliente</Etiqueta>
+                  <Select value={cliDlg} onChange={(e) => setCliDlg(e.target.value)}>
+                    <option value="">Selecciona...</option>
+                    {clientes.map((c) => <option key={c.id} value={c.id}>{c.razon_social}</option>)}
+                  </Select>
+                </Campo>
+                {cliDlg && (proyDlg.length ? (
+                  <div className="max-h-64 space-y-1 overflow-y-auto">
+                    <Etiqueta>Proyectos del cliente</Etiqueta>
+                    {proyDlg.map((p) => (
+                      <button key={p.id} type="button" className="block w-full rounded border border-line px-2 py-1.5 text-left text-xs hover:border-primary hover:bg-primary/5" onClick={() => abrirNuevo("cliente", cliDlg, p.id)}>
+                        <span className="text-muted-foreground">{p.codigo}</span> {p.nombre}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="space-y-2 text-xs text-muted-foreground">
+                    <p>Este cliente no tiene proyectos registrados.</p>
+                    <Boton type="button" variante="linea" onClick={() => abrirNuevo("libre", cliDlg)}>Continuar como libre</Boton>
+                  </div>
+                ))}
+                <Boton type="button" variante="linea" onClick={() => setDlgOrigen("elegir")}>Volver</Boton>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {abierto && (
         <div className="-mx-4 -my-6 min-h-full bg-background sm:-mx-6">
         <Panel
