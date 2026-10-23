@@ -341,7 +341,8 @@ function ListaBanco({ tabla, seleccion, onSeleccion, llena = false, comando }: {
             <tbody>
               {visibles.map((f) => (
                 <tr key={f.id} className={`border-b border-line/60 hover:bg-muted/40 ${onSeleccion ? "cursor-pointer" : ""} ${seleccion === f.id ? "bg-primary/10" : ""}`}
-                  onClick={() => onSeleccion?.(f.id)}>
+                  onClick={() => onSeleccion?.(f.id)}
+                  onContextMenu={tabla === "partidas_apu" ? (e) => { e.preventDefault(); onSeleccion?.(f.id); setMenuCtx({ x: e.clientX, y: e.clientY, f }); } : undefined}>
                   {cfg.columnas.map(([k, , tp]) => {
                     const fijo = k === "codigo" || k === "codigo_jerarquico" || k === "unidad";
                     const largo = tp === "txt" && !fijo;
