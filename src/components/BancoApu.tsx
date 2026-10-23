@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Copy, Pencil, Plus, Trash2, X } from "lucide-react";
+import { Copy, Pencil, Plus, RotateCcw, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Boton, BotonIcono, Campo, Etiqueta, Input, Panel, Select, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
@@ -203,6 +203,17 @@ function ListaBanco({ tabla, seleccion, onSeleccion, llena = false, comando }: {
   const [editId, setEditId] = useState<string | null>(null);
   const [nueva, setNueva] = useState(false);
   const [aviso, setAviso] = useState("");
+  const [menuCtx, setMenuCtx] = useState<{ x: number; y: number; f: Fila } | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!menuCtx) return;
+    const cerrar = (e: Event) => { if (!menuRef.current?.contains(e.target as Node)) setMenuCtx(null); };
+    const tecla = (e: KeyboardEvent) => e.key === "Escape" && setMenuCtx(null);
+    document.addEventListener("mousedown", cerrar);
+    document.addEventListener("scroll", cerrar, true);
+    document.addEventListener("keydown", tecla);
+    return () => { document.removeEventListener("mousedown", cerrar); document.removeEventListener("scroll", cerrar, true); document.removeEventListener("keydown", tecla); };
+  }, [menuCtx]);
 
   const opcionesFiltro = useMemo(
     () => (cfg.filtro ? [...new Set(filas.map((f) => String(f[cfg.filtro!] ?? "")).filter(Boolean))].sort() : []),
@@ -330,7 +341,8 @@ function ListaBanco({ tabla, seleccion, onSeleccion, llena = false, comando }: {
             <tbody>
               {visibles.map((f) => (
                 <tr key={f.id} className={`border-b border-line/60 hover:bg-muted/40 ${onSeleccion ? "cursor-pointer" : ""} ${seleccion === f.id ? "bg-primary/10" : ""}`}
-                  onClick={() => onSeleccion?.(f.id)}>
+                  onClick={() => onSeleccion?.(f.id)}
+                  onContextMenu={tabla === "partidas_apu" ? (e) => { e.preventDefault(); onSeleccion?.(f.id); setMenuCtx({ x: e.clientX, y: e.clientY, f }); } : undefined}>
                   {cfg.columnas.map(([k, , tp]) => {
                     const fijo = k === "codigo" || k === "codigo_jerarquico" || k === "unidad";
                     const largo = tp === "txt" && !fijo;
@@ -394,6 +406,27 @@ function ListaBanco({ tabla, seleccion, onSeleccion, llena = false, comando }: {
       </VentanaFlotante>
 
     </Panel>
+      {menuCtx && (
+        <div ref={menuRef} role="menu" style={{ left: Math.min(menuCtx.x, window.innerWidth - 220), top: Math.min(menuCtx.y, window.innerHeight - 140) }}
+          className="fixed z-50 w-52 rounded-md border border-line bg-popover py-1 text-[12px] text-popover-foreground shadow-lg">
+          <button type="button" role="menuitem" className="flex w-full items-center gap-2 px-3 py-1.5 text-left hover:bg-primary/10"
+            onClick={() => { const f = menuCtx.f; setMenuCtx(null); abrir(f); }}>
+            <Pencil size={14} className="shrink-0" /> Editar partida
+          </button>
+          <div className="my-1 border-t border-line" />
+          {menuCtx.f.estado === "activo" ? (
+            <button type="button" role="menuitem" className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-bad hover:bg-bad/10"
+              onClick={() => { const f = menuCtx.f; setMenuCtx(null); void quitar(f); }}>
+              <Trash2 size={14} className="shrink-0" /> Eliminar partida
+            </button>
+          ) : (
+            <button type="button" role="menuitem" className="flex w-full items-center gap-2 px-3 py-1.5 text-left hover:bg-primary/10"
+              onClick={() => { const f = menuCtx.f; setMenuCtx(null); void reactivar(f); }}>
+              <RotateCcw size={14} className="shrink-0" /> Reactivar partida
+            </button>
+          )}
+        </div>
+      )}
       {nueva && (
         <DialogoNuevaPartida partidas={filasRaw} onCerrar={() => setNueva(false)}
           onGuardado={(id) => { setNueva(false); setEstado("activo"); setFiltro(""); setBusqueda(""); refrescar(); onSeleccion?.(id); }} />
