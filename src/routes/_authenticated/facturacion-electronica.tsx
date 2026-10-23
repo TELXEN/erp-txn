@@ -253,18 +253,18 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
         </div>
       </div>
     </VentanaFlotante>
-    {abierto && <div className="-mx-4 -my-6 min-h-full bg-background sm:-mx-6">
+    {abierto && <div className="-mx-3 -my-3 flex flex-col bg-background sm:-mx-4 md:h-[calc(100dvh-3rem)] md:min-h-0 md:overflow-hidden">
       <Panel
         titulo={editando ? `Editar borrador ${editando.numero}` : preliquidacionOrigen ? `Facturar preliquidación ${pl?.p.codigo ?? ""}` : esGuias ? "Nueva guía de remisión" : "Nuevo comprobante electrónico"}
         extra={<Boton variante="linea" onClick={cerrar}>Cerrar editor</Boton>}
-        className="min-h-full"
+        className="flex min-h-0 flex-1 flex-col overflow-hidden"
       >
-      <div className="bg-muted/60 px-4 py-2 sm:px-6">
+      <div className="min-h-0 flex-1 overflow-y-auto bg-muted/60 px-4 py-2 sm:px-6">
         {preliquidacionOrigen && cargandoPl && <p role="status" className="py-2 text-sm text-muted-foreground">Cargando preliquidación…</p>}
         {errorPl && <p role="alert" className="py-2 text-sm text-bad">No se pudo cargar la preliquidación: {errorPl.message}</p>}
         <HojaComprobante form={form} setForm={setForm} items={items} setItems={setItems} docs={docs} setDocs={setDocs} cuotas={cuotas} setCuotas={setCuotas} empresa={empresa} clientes={clientes} proyectos={proyectos.map((p) => ({ id: p.id, nombre: p.nombre, codigo: p.codigo ?? "" }))} refs={refs} series={series} numeroPreview={editando ? String(editando.correlativo).padStart(8, "0") : "[AUTOGENERADO]"} montos={montos} totalRegimen={totalRegimen} importeRegimen={importeRegimen} onTipoChange={cambiarTipo} bloqueado={Boolean(editando)} tipos={tiposVisibles} />
       </div>
-      <div className="sticky bottom-0 z-10 flex flex-wrap items-center gap-2 border-t border-line bg-card/95 p-4 shadow-lg backdrop-blur">
+      <div className="flex shrink-0 flex-wrap items-center gap-2 border-t border-line bg-card p-3">
         <Boton disabled={guardando} onClick={() => void guardar(false)}>{editando ? "Guardar cambios" : "Guardar borrador"}</Boton>
         {!editando && <Boton variante="accion" disabled={guardando} onClick={() => void guardar(true)}><ReceiptText size={14} />Emitir comprobante</Boton>}
         <Boton variante="linea" type="button" onClick={cerrar}>Cancelar</Boton>
