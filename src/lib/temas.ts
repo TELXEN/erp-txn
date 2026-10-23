@@ -1,6 +1,46 @@
 import { useEffect, useState } from "react";
 
-export type TemaId = "telxen" | "esmeralda" | "cobalto" | "zafiro" | "obsidiana";
+export type TemaId =
+  | "telxen"
+  | "esmeralda"
+  | "cobalto"
+  | "zafiro"
+  | "obsidiana"
+  | "word"
+  | "excel"
+  | "powerpoint";
+
+function temaOffice(
+  id: TemaId,
+  nombre: string,
+  descripcion: string,
+  c: { base: string; panel: string; hover: string; borde: string; muted: string; tinte: string },
+): Tema {
+  return {
+    id,
+    nombre,
+    descripcion,
+    muestraBase: c.base,
+    muestraAcento: c.hover,
+    vars: {
+      "--brand": c.tinte,
+      "--brand-foreground": c.panel,
+      "--cta": c.base,
+      "--cta-foreground": "#FFFFFF",
+      "--primary": c.base,
+      "--primary-foreground": "#FFFFFF",
+      "--accent": c.base,
+      "--accent-foreground": "#FFFFFF",
+      "--ring": c.base,
+      "--sidebar": c.base,
+      "--sidebar-foreground": "#FFFFFF",
+      "--sidebar-muted": c.muted,
+      "--sidebar-border": c.borde,
+      "--sidebar-hover": c.hover,
+      "--sidebar-panel": c.panel,
+    },
+  };
+}
 
 export type Tema = {
   id: TemaId;
@@ -132,6 +172,30 @@ export const TEMAS: Tema[] = [
       "--sidebar-panel": "#242427",
     },
   },
+  temaOffice("word", "Microsoft Word", "Azul Word de Microsoft 365", {
+    base: "#185ABD",
+    panel: "#103F91",
+    hover: "#2B6FD6",
+    borde: "#4A7FCF",
+    muted: "#D0E0F7",
+    tinte: "oklch(0.975 0.01 255)",
+  }),
+  temaOffice("excel", "Microsoft Excel", "Verde Excel de Microsoft 365", {
+    base: "#107C41",
+    panel: "#0A5C30",
+    hover: "#1A8F4F",
+    borde: "#3D9A66",
+    muted: "#CDEBD9",
+    tinte: "oklch(0.975 0.01 155)",
+  }),
+  temaOffice("powerpoint", "Microsoft PowerPoint", "Naranja rojizo PowerPoint de Microsoft 365", {
+    base: "#C43E1C",
+    panel: "#9C3014",
+    hover: "#D35230",
+    borde: "#DB7457",
+    muted: "#F8D6CB",
+    tinte: "oklch(0.975 0.01 40)",
+  }),
 ];
 
 const LS_TEMA = "erp-telxen-tema";
