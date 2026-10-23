@@ -8,7 +8,7 @@ import { MenuContextualApu, type AccionApu, type EstadoMenuApu } from "@/compone
 import { soles } from "@/lib/format";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
 import { useUnidadesMedida } from "@/lib/unidades";
-import { renumerarApu, siguienteCodigoJerarquico } from "@/lib/banco-apu";
+import { alfabetizarPartidas, codigoAlfabeticoSugerido, guardarPartidaEnBanco, ordenarPartidasAlfabetico, renumerarApu, siguienteCodigoJerarquico } from "@/lib/banco-apu";
 import { VentanaInsumo, primeraMayuscula, CANCELADO, type ModoInsumo, type TablaInsumo, type SelInsumo } from "@/components/InsumoVentana";
 import { r2, r4, sumar2 } from "@/lib/decimal";
 import { PCT_HERRAMIENTAS_DEFECTO } from "@/lib/apu";
@@ -191,10 +191,10 @@ function ListaBanco({ tabla, seleccion, onSeleccion, llena = false, comando }: {
   const cfg = CONFIG[tabla];
   const qc = useQueryClient();
   const { data: filasRaw = [] } = useTabla(tabla);
-  const filas = tabla === "partidas_apu"
-    ? [...filasRaw].sort((a, b) => String(a.codigo_jerarquico ?? "").localeCompare(String(b.codigo_jerarquico ?? ""), "es", { numeric: true }))
-    : filasRaw;
+  // Las partidas se guardan y se muestran por orden alfabético (sin tildes ni mayúsculas).
+  const filas = tabla === "partidas_apu" ? ordenarPartidasAlfabetico(filasRaw) : filasRaw;
   const { data: especialidades = [] } = useEspecialidadesPartida();
+  const prefijoDe = (p: Fila) => especialidades.find((e: { nombre: string; codigo: string }) => e.nombre === p.especialidad)?.codigo ?? "";
   const { data: unidades = [] } = useUnidadesMedida();
   const [busqueda, setBusqueda] = useState("");
   const [filtro, setFiltro] = useState("");
@@ -252,8 +252,17 @@ function ListaBanco({ tabla, seleccion, onSeleccion, llena = false, comando }: {
     const datos: Record<string, unknown> = {};
     for (const c of cfg.campos) datos[c.k] = c.tipo === "num" ? Number(form[c.k] || 0) : form[c.k]?.trim() ?? "";
     if (tabla === "equipos_herramientas" && form.tipo !== "alquilado") datos["margen"] = 0;
-    const { error } = editId ? await db.from(tabla).update(datos).eq("id", editId) : await db.from(tabla).insert(datos);
-    if (error) return setAviso(error.message);
+    let id = editId;
+    if (editId) {
+      const { error } = await db.from(tabla).update(datos).eq("id", editId);
+      if (error) return setAviso(error.message);
+    } else {
+      const { data, error } = await db.from(tabla).insert(datos).select("id").single();
+      if (error) return setAviso(error.message);
+      id = (data?.id as string) ?? null;
+    }
+    // La partida entra en el hueco que le da la letra y las demás se renumeran.
+    if (tabla === "partidas_apu" && id) await alfabetizarPartidas([{ id, ...datos }, ...filasRaw.filter((p) => p.id !== id)], prefijoDe);
     refrescar();
     if (cerrar || editId) setForm(null);
     else { abrir(); setAviso("Guardado. Puedes registrar el siguiente."); }
@@ -264,6 +273,8 @@ function ListaBanco({ tabla, seleccion, onSeleccion, llena = false, comando }: {
     const { data, error } = await db.rpc("quitar_recurso_apu", { _tabla: tabla, _id: f.id });
     if (error) return window.alert(error.message);
     if (data === "inactivado") window.alert("Está en uso en una o más partidas: se marcó como Inactivo en lugar de eliminarse.");
+    // Al salir una partida, las que siguen suben un puesto en la numeración alfabética.
+    if (tabla === "partidas_apu" && data !== "inactivado") await alfabetizarPartidas(filasRaw.filter((p) => p.id !== f.id), prefijoDe);
     refrescar();
   }
 
@@ -286,6 +297,7 @@ function ListaBanco({ tabla, seleccion, onSeleccion, llena = false, comando }: {
       const { error: e2 } = await db.from("partida_detalle").insert(filasN);
       if (e2) window.alert(e2.message);
     }
+    await alfabetizarPartidas([...filasRaw, { id: data.id, codigo_jerarquico: nuevoCod, descripcion: `${f.descripcion} (copia)` }], prefijoDe);
     refrescar();
     onSeleccion?.(data.id);
   }
@@ -724,19 +736,25 @@ function DialogoNuevaPartida({ partidas, onCerrar, onGuardado }: { partidas: Fil
     const u = listaUnd.find((x) => x.simbolo === s);
     return u ? `${u.simbolo} · ${u.descripcion}` : s;
   };
+  const prefijoDe = (p: Fila) => especialidades.find((e) => e.nombre === p.especialidad)?.codigo ?? "";
+  const rama = especialidades.find((e) => e.nombre === f.especialidad)?.codigo ?? "";
 
+  // El código no se escribe a mano: la partida entra en el hueco que le da su letra.
   function elegirEsp(nombre: string) {
     const pref = especialidades.find((e) => e.nombre === nombre)?.codigo ?? "";
-    setF({ ...f, especialidad: nombre, codigo: siguienteCodigoJerarquico(partidas.map((p) => String(p.codigo_jerarquico ?? "")), pref) });
+    setF({ ...f, especialidad: nombre, codigo: codigoAlfabeticoSugerido(partidas, pref, f.descripcion.trim(), prefijoDe) });
+  }
+  function escribirDescripcion(descripcion: string) {
+    setF({ ...f, descripcion, codigo: codigoAlfabeticoSugerido(partidas, rama, descripcion.trim(), prefijoDe) });
   }
   async function guardar() {
     if (!f.descripcion.trim()) return setError("Escribe la descripción.");
-    const { data, error: e } = await db.from("partidas_apu").insert({
+    const { id, error: e } = await guardarPartidaEnBanco({
       especialidad: f.especialidad, codigo_jerarquico: f.codigo.trim(), descripcion: f.descripcion.trim(),
       unidad: f.unidad, rendimiento_diario: Number(f.rendimiento) || 1,
-    }).select("id").single();
-    if (e) return setError(e.message);
-    onGuardado(data.id);
+    }, especialidades);
+    if (e) return setError(e);
+    if (id) onGuardado(id);
   }
 
   return (
@@ -748,12 +766,12 @@ function DialogoNuevaPartida({ partidas, onCerrar, onGuardado }: { partidas: Fil
             {especialidades.filter((e) => e.activo).map((e) => <option key={e.id} value={e.nombre}>{e.codigo} · {e.nombre}</option>)}
           </Select>
         </Campo>
-        <Campo etiqueta="Código jerárquico (sugerido)">
-          <Input value={f.codigo} onChange={(e) => setF({ ...f, codigo: e.target.value })} />
+        <Campo etiqueta="Código jerárquico (por orden alfabético)">
+          <Input value={f.codigo} readOnly title="Se asigna solo, según la letra de la descripción" />
         </Campo>
         <div className="sm:col-span-2">
           <Campo etiqueta="Descripción *">
-            <Input autoFocus value={f.descripcion} data-formato="oracion" onChange={(e) => setF({ ...f, descripcion: e.target.value })} />
+            <Input autoFocus value={f.descripcion} data-formato="oracion" onChange={(e) => escribirDescripcion(e.target.value)} />
           </Campo>
         </div>
         <Campo etiqueta="Unidad">

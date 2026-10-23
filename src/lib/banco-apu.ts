@@ -298,3 +298,94 @@ export function siguienteCodigoJerarquico(codigos: string[], prefijo: string): s
   partes[ult] = String((Number(partes[ult]) || 0) + 1).padStart(Math.max(2, partes[ult]!.length), "0");
   return partes.join(".");
 }
+
+/* ---------- Las partidas del banco se guardan por orden alfabético ---------- */
+
+/** Orden alfabético español: ignora tildes y mayúsculas. */
+export const ordenAlfabetico = new Intl.Collator("es", { sensitivity: "base", numeric: true });
+
+/** Partida del banco con los datos necesarios para ordenarla y numerarla. */
+export type PartidaBanco = {
+  id: string;
+  codigo_jerarquico?: string | null;
+  descripcion?: string | null;
+  especialidad?: string | null;
+};
+
+/** Rama de una partida: la especialidad si el catálogo la conoce; si no, el primer tramo de su código. */
+function ramaDe<T extends PartidaBanco>(p: T, prefijoDe?: (p: T) => string) {
+  return (prefijoDe?.(p) ?? "").trim() || String(p.codigo_jerarquico ?? "").split(".")[0]!.trim();
+}
+
+/** Base de los códigos de una rama ("06.01"): la que ya usan las partidas o, si ninguna la tiene, rama.01. */
+function baseDe(ordenadas: PartidaBanco[], rama: string) {
+  const conGrupo = ordenadas.find((p) => String(p.codigo_jerarquico ?? "").split(".").length >= 3);
+  return conGrupo ? String(conGrupo.codigo_jerarquico).split(".").slice(0, -1).join(".") : `${rama}.01`;
+}
+
+/** Partidas ordenadas A→Z por descripción (sin tildes ni mayúsculas). */
+export function ordenarPartidasAlfabetico<T extends PartidaBanco>(partidas: T[]): T[] {
+  return [...partidas].sort((a, b) => ordenAlfabetico.compare(String(a.descripcion ?? ""), String(b.descripcion ?? "")));
+}
+
+/**
+ * Códigos jerárquicos renumerados para que las partidas queden por orden alfabético:
+ * dentro de cada especialidad la primera recibe .01, la siguiente .02… Solo cambia el
+ * correlativo final. Devuelve únicamente las filas cuyo código cambia.
+ */
+export function codigosAlfabetizados<T extends PartidaBanco>(partidas: T[], prefijoDe?: (p: T) => string) {
+  const ramas = new Map<string, T[]>();
+  for (const p of partidas) {
+    const rama = ramaDe(p, prefijoDe);
+    if (!rama) continue;
+    const grupo = ramas.get(rama);
+    if (grupo) grupo.push(p);
+    else ramas.set(rama, [p]);
+  }
+  const cambios: { id: string; codigo: string }[] = [];
+  for (const [rama, filas] of ramas) {
+    const ordenadas = ordenarPartidasAlfabetico(filas);
+    const base = baseDe(ordenadas, rama);
+    ordenadas.forEach((p, i) => {
+      const partes = String(p.codigo_jerarquico ?? "").split(".");
+      const codigo = `${partes.length >= 3 ? partes.slice(0, -1).join(".") : base}.${String(i + 1).padStart(2, "0")}`;
+      if (codigo !== String(p.codigo_jerarquico ?? "")) cambios.push({ id: p.id, codigo });
+    });
+  }
+  return cambios;
+}
+
+/** Renumerar los códigos del banco para que las partidas queden guardadas por orden alfabético. */
+export async function alfabetizarPartidas<T extends PartidaBanco>(partidas: T[], prefijoDe?: (p: T) => string) {
+  const cambios = codigosAlfabetizados(partidas, prefijoDe);
+  await Promise.all(cambios.map((c) => dbBanco.from("partidas_apu").update({ codigo_jerarquico: c.codigo }).eq("id", c.id)));
+  return cambios;
+}
+
+/** Código que le toca a una partida nueva según el hueco alfabético que ocupa en su rama. */
+export function codigoAlfabeticoSugerido<T extends PartidaBanco>(
+  partidas: T[],
+  rama: string,
+  descripcion: string,
+  prefijoDe?: (p: T) => string,
+) {
+  if (!rama) return "";
+  const filas = partidas.filter((p) => ramaDe(p, prefijoDe) === rama);
+  const base = baseDe(ordenarPartidasAlfabetico(filas), rama);
+  const antes = filas.filter((p) => ordenAlfabetico.compare(String(p.descripcion ?? ""), descripcion) < 0).length;
+  return `${base}.${String(antes + 1).padStart(2, "0")}`;
+}
+
+/** Inserta una partida en el banco y le da el código que le corresponde por su letra. */
+export async function guardarPartidaEnBanco(
+  fila: Record<string, unknown>,
+  especialidades: { nombre: string; codigo: string }[],
+): Promise<{ id: string | null; error: string | null }> {
+  const prefijoDe = (p: PartidaBanco) => especialidades.find((e) => e.nombre === p.especialidad)?.codigo ?? "";
+  const { data, error } = await dbBanco.from("partidas_apu").insert(fila).select("id").single();
+  if (error) return { id: null, error: error.message };
+  const { data: banco = [] } = await dbBanco.from("partidas_apu").select("id,codigo_jerarquico,descripcion,especialidad");
+  await alfabetizarPartidas(banco as PartidaBanco[], prefijoDe);
+  return { id: (data?.id as string) ?? null, error: null };
+}
+
