@@ -73,6 +73,25 @@ function AlmacenPage() {
       ? insumos.filter((i) => stock.some((s) => s.proyecto_id === form.proyecto_id && s.insumo_id === i.id && s.stock > 0))
       : insumos.filter((i) => i.activo && i.tipo !== "MO");
 
+  /** Ítems de OC (no anuladas) de la obra con saldo pendiente para el insumo elegido. */
+  const recibidoItem = (itemId: string) =>
+    movs.filter((m) => m.orden_item_id === itemId && m.tipo === "Ingreso").reduce((s, m) => s + Number(m.cantidad), 0);
+  const ocPendientes = itemsOC
+    .map((i) => {
+      const oc = ordenes.find((o) => o.id === i.orden_id);
+      const saldo = Number(i.cantidad) - recibidoItem(i.id);
+      return { item: i, oc, saldo };
+    })
+    .filter(
+      (x) =>
+        x.oc &&
+        x.oc.estado !== "Anulada" &&
+        x.oc.proyecto_id === form.proyecto_id &&
+        x.item.insumo_id === form.insumo_id &&
+        x.saldo > 0.0001,
+    );
+  const ocSel = ocPendientes.find((x) => x.item.id === form.orden_item_id);
+
   async function guardar(e: React.FormEvent) {
     e.preventDefault();
     setError("");
