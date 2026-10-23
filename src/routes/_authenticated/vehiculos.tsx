@@ -964,7 +964,7 @@ function PaginaVehiculos() {
                   ["Alquiler de terceros", fmtSoles(resumen.alquilerTerceros)],
                   ["Mantenimiento + combustible", fmtSoles(resumen.mantenimientoTotal + resumen.combustibleTotal)],
                 ].map(([etiqueta, valor]) => (
-                  <div key={etiqueta} className="panel p-4">
+                  <div key={etiqueta} data-distintivo="monto" className="panel p-4">
                     <p className="label-mono">{etiqueta}</p>
                     <p className="mt-2 font-mono text-lg font-bold">{valor}</p>
                   </div>
