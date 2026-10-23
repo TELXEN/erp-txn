@@ -11,7 +11,9 @@ type Form = { tipo: "Factura" | "Boleta"; numero: string; fecha: string; cliente
 const vacio = (tc = "1"): Form => ({ tipo: "Factura", numero: "", fecha: hoy(), cliente_id: "", proyecto_id: "", concepto: "", moneda: "PEN", tc, valor: "", igv: "", condicion: "Contado", dias: "30", regimen: "ninguno", pct: "12" });
 const r2 = (n: number) => Number(n.toFixed(2));
 
-export function RegistrarVentaExterna({ abierta, onCerrar }: { abierta: boolean; onCerrar: () => void }) {
+export type VentaInicial = Partial<Form> & { ruc?: string; razon?: string };
+
+export function RegistrarVentaExterna({ abierta, onCerrar, inicial, onGuardado }: { abierta: boolean; onCerrar: () => void; inicial?: VentaInicial | null; onGuardado?: () => void }) {
   const qc = useQueryClient();
   const { data: tcHoy } = useTipoCambioHoy();
   const [f, setF] = useState<Form>(vacio());
@@ -20,7 +22,18 @@ export function RegistrarVentaExterna({ abierta, onCerrar }: { abierta: boolean;
   const { data: clientes = [] } = useQuery({ queryKey: ["terceros", "clientes-venta-ext"], queryFn: async () => { const { data, error } = await supabase.from("terceros").select("id,razon_social,numero_documento,es_agente_retencion").eq("es_cliente", true).eq("activo", true).order("razon_social"); if (error) throw error; return data ?? []; } });
   const { data: proyectos = [] } = useQuery({ queryKey: ["proyectos"], queryFn: async () => { const { data, error } = await supabase.from("proyectos").select("id,nombre,codigo").order("nombre"); if (error) throw error; return data ?? []; } });
 
-  useEffect(() => { if (abierta) { setF(vacio(tcHoy?.venta ? String(tcHoy.venta) : "3.75")); setIgvManual(false); } }, [abierta]);
+  useEffect(() => {
+    if (!abierta) return;
+    const base = vacio(tcHoy?.venta ? String(tcHoy.venta) : "3.75");
+    if (inicial) {
+      const { ruc, razon, ...resto } = inicial;
+      const cli = ruc ? clientes.find((c) => c.numero_documento === ruc) : undefined;
+      setF({ ...base, ...resto, cliente_id: cli?.id ?? "", regimen: cli?.es_agente_retencion ? "retencion" : base.regimen });
+      setIgvManual(resto.igv != null);
+      if (ruc && !cli && clientes.length) toast.warning(`El cliente ${razon ?? ""} (RUC ${ruc}) no está en el catálogo de clientes: elígelo o regístralo antes de guardar.`);
+    } else setF(base);
+    if (!inicial) setIgvManual(false);
+  }, [abierta, inicial, clientes.length]);
 
   const set = <K extends keyof Form>(k: K, v: Form[K]) => setF((p) => ({ ...p, [k]: v }));
   const valor = Number(f.valor || 0);
@@ -62,7 +75,8 @@ export function RegistrarVentaExterna({ abierta, onCerrar }: { abierta: boolean;
     if (error) { toast.error(error.message); return; }
     toast.success(`Venta ${numero} registrada`);
     qc.invalidateQueries({ queryKey: ["ventas"] });
-    if (seguir) { setF((p) => ({ ...vacio(p.tc), fecha: p.fecha, cliente_id: p.cliente_id, proyecto_id: p.proyecto_id, regimen: p.regimen, tipo: p.tipo })); setIgvManual(false); } else onCerrar();
+    onGuardado?.();
+    if (seguir && !inicial) { setF((p) => ({ ...vacio(p.tc), fecha: p.fecha, cliente_id: p.cliente_id, proyecto_id: p.proyecto_id, regimen: p.regimen, tipo: p.tipo })); setIgvManual(false); } else onCerrar();
   }
 
   const fmt = (n: number) => (f.moneda === "USD" ? `US$ ${n.toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : soles(n));
