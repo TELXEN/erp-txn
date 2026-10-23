@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, Vacio } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
-import { Check, Plus, Upload, X } from "lucide-react";
+import { Check, Plus, Search, Upload, X } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { consultarDocumentoSunat } from "@/lib/decolecta.functions";
 import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { exportarExcel } from "@/lib/exportar";
 
@@ -281,6 +283,22 @@ function ModalTercero({
 }) {
   const [error, setError] = useState("");
   const [guardando, setGuardando] = useState(false);
+  const formRef = useRef(form); formRef.current = form;
+  const [buscando, setBuscando] = useState(false);
+  const [aviso, setAviso] = useState("");
+  const buscarDoc = useServerFn(consultarDocumentoSunat);
+
+  /** Autocompleta razón social y dirección desde SUNAT (RUC) o RENIEC (DNI) vía Decolecta. */
+  async function consultar(num: string) {
+    if (!/^(\d{8}|\d{11})$/.test(num)) { setAviso("Ingresa 11 dígitos (RUC) u 8 dígitos (DNI)."); return; }
+    setBuscando(true); setAviso("Consultando…");
+    try {
+      const r = await buscarDoc({ data: { numero: num } });
+      if (r.encontrado) setForm({ ...formRef.current, numero_documento: num, razon_social: r.razonSocial, direccion: r.direccion || formRef.current.direccion });
+      const noApto = r.encontrado && r.tipoDocumento === "RUC" && (r.estado !== "ACTIVO" || r.condicion !== "HABIDO");
+      setAviso(r.mensaje || (noApto ? `Atención: el RUC figura ${r.estado} · ${r.condicion} en SUNAT.` : r.encontrado ? `Datos obtenidos de ${r.tipoDocumento === "RUC" ? "SUNAT" : "RENIEC"} (Decolecta).` : ""));
+    } catch { setAviso("No se pudo completar la consulta."); } finally { setBuscando(false); }
+  }
 
   useEffect(() => {
     const fn = (e: KeyboardEvent) => {
@@ -342,13 +360,26 @@ function ModalTercero({
             </Select>
           </Campo>
           <Campo etiqueta="N° documento">
-            <Input
-              value={form.numero_documento}
-              onChange={(e) => setForm({ ...form, numero_documento: e.target.value })}
-              required
-              maxLength={20}
-              autoFocus
-            />
+            <div className="flex gap-1.5">
+              <Input
+                value={form.numero_documento}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setForm({ ...form, numero_documento: v });
+                  const d = v.replace(/\D/g, "");
+                  if (!editando && ((form.tipo_documento === "RUC" && d.length === 11) || (form.tipo_documento === "DNI" && d.length === 8))) void consultar(d);
+                }}
+                required
+                maxLength={20}
+                autoFocus
+              />
+              {(form.tipo_documento === "RUC" || form.tipo_documento === "DNI") && (
+                <Boton type="button" variante="linea" disabled={buscando} onClick={() => void consultar(form.numero_documento.replace(/\D/g, ""))} title="Consultar datos en SUNAT/RENIEC (Decolecta)">
+                  <Search size={13} />{buscando ? "…" : "Consultar"}
+                </Boton>
+              )}
+            </div>
+            {aviso && <p className="mt-1 text-[11px] text-muted-foreground">{aviso}</p>}
           </Campo>
           <div className="sm:col-span-2">
             <Campo etiqueta="Razón social / Nombre">
