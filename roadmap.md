@@ -70,3 +70,7 @@
 - [x] Alinear GG, utilidad e IGV en la misma vertical y evitar que las etiquetas se traslapen con los campos.
 - [x] Ajustar los porcentajes a dos decimales: guardado (trigger en cotizaciones, proyectos y plantillas), hoja, vista previa A4, PDF, Excel y datos de registro de obra; TXN26-C006 y TXN26-C008 corregidos.
 - [x] Sincronizar el % de gastos generales al cerrar la ventana (leía el costo directo en 0 y no guardaba; TXN26-C008 pasó de 0 % a 21.17 %).
+
+## Mejora del front end
+- [x] Base: cabecera, pestañas, tarjetas, filas de carga, vacío con icono, franja entre filas y foco visible; Configuración adoptada.
+- [ ] Adoptar cabecera, pestañas y tarjetas en Tesorería, SIRE, Dashboard, Cotizaciones, Caja chica y Nómina (por etapas, con revisión del usuario).

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Building2, Check, FileText, Landmark, ShieldCheck, SlidersHorizontal } from "lucide-react";
-import { Boton, Panel } from "@/components/ui-kit";
+import { Boton, CabeceraModulo, Panel, Pestanas } from "@/components/ui-kit";
 import { DatosEmpresa } from "@/components/DatosEmpresa";
 import { CuentasBancarias } from "@/components/CuentasBancarias";
 import { TipografiaDocumentosPanel } from "@/components/TipografiaDocumentos";
@@ -49,34 +49,24 @@ function ConfiguracionSistema() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-3">
-        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
-          <SlidersHorizontal className="h-5 w-5" />
-        </div>
-        <div className="min-w-0">
-          <h1 className="truncate text-xl font-bold">Configuración del Sistema</h1>
-          <p className="text-sm text-muted-foreground">
-            Personaliza la apariencia del sistema y sus documentos.
-          </p>
-        </div>
-      </div>
-      <div className="flex flex-wrap gap-2 border-b border-line pb-2" role="tablist" aria-label="Configuración del sistema">
-        <Boton type="button" variante="linea" role="tab" aria-selected={pestana === "empresa"} onClick={() => setPestana("empresa")} className={pestana === "empresa" ? "border-primary bg-primary/5 text-primary" : ""}>
-          <Building2 className="size-4 text-primary" /> Datos de la empresa
-        </Boton>
-        <Boton type="button" variante="linea" role="tab" aria-selected={pestana === "bancos"} onClick={() => setPestana("bancos")} className={pestana === "bancos" ? "border-primary bg-primary/5 text-primary" : ""}>
-          <Landmark className="size-4 text-primary" /> Cuentas bancarias
-        </Boton>
-        <Boton type="button" variante="linea" role="tab" aria-selected={pestana === "tema"} onClick={() => setPestana("tema")} className={pestana === "tema" ? "border-primary bg-primary/5 text-primary" : ""}>
-          <IconoPaletaColores className="size-5" /> Tema de colores
-        </Boton>
-        <Boton type="button" variante="linea" role="tab" aria-selected={pestana === "tipografia"} onClick={() => setPestana("tipografia")} className={pestana === "tipografia" ? "border-primary bg-primary/5 text-primary" : ""}>
-          <FileText className="size-4 text-primary" /> Tipografía de documentos
-        </Boton>
-        <Boton type="button" variante="linea" role="tab" aria-selected={pestana === "usuarios"} onClick={() => setPestana("usuarios")} className={pestana === "usuarios" ? "border-primary bg-primary/5 text-primary" : ""}>
-          <ShieldCheck className="size-4 text-primary" /> Usuarios y Roles
-        </Boton>
-      </div>
+      <CabeceraModulo
+        ruta="Sistema › Configuración"
+        titulo="Configuración del Sistema"
+        descripcion="Personaliza la apariencia del sistema y sus documentos."
+        icono={<SlidersHorizontal className="h-5 w-5" />}
+      />
+      <Pestanas
+        etiqueta="Configuración del sistema"
+        valor={pestana}
+        onCambiar={setPestana}
+        opciones={[
+          { id: "empresa", texto: "Datos de la empresa", icono: <Building2 className="size-4" /> },
+          { id: "bancos", texto: "Cuentas bancarias", icono: <Landmark className="size-4" /> },
+          { id: "tema", texto: "Tema de colores", icono: <IconoPaletaColores className="size-4" /> },
+          { id: "tipografia", texto: "Tipografía de documentos", icono: <FileText className="size-4" /> },
+          { id: "usuarios", texto: "Usuarios y Roles", icono: <ShieldCheck className="size-4" /> },
+        ]}
+      />
       {pestana === "tema" ? <Panel titulo="Tema de colores" extra={<IconoPaletaColores className="size-5" />}>
           <div className="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-3">
             {TEMAS.map((t) => {
