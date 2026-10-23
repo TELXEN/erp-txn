@@ -203,6 +203,17 @@ function ListaBanco({ tabla, seleccion, onSeleccion, llena = false, comando }: {
   const [editId, setEditId] = useState<string | null>(null);
   const [nueva, setNueva] = useState(false);
   const [aviso, setAviso] = useState("");
+  const [menuCtx, setMenuCtx] = useState<{ x: number; y: number; f: Fila } | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!menuCtx) return;
+    const cerrar = (e: Event) => { if (!menuRef.current?.contains(e.target as Node)) setMenuCtx(null); };
+    const tecla = (e: KeyboardEvent) => e.key === "Escape" && setMenuCtx(null);
+    document.addEventListener("mousedown", cerrar);
+    document.addEventListener("scroll", cerrar, true);
+    document.addEventListener("keydown", tecla);
+    return () => { document.removeEventListener("mousedown", cerrar); document.removeEventListener("scroll", cerrar, true); document.removeEventListener("keydown", tecla); };
+  }, [menuCtx]);
 
   const opcionesFiltro = useMemo(
     () => (cfg.filtro ? [...new Set(filas.map((f) => String(f[cfg.filtro!] ?? "")).filter(Boolean))].sort() : []),
