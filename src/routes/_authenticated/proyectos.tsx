@@ -348,7 +348,12 @@ function Proyectos() {
         titulo="Proyectos"
         subtitulo="Obras de la empresa"
         acciones={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-1.5">
+          <Buscador valor={busqueda} onChange={setBusqueda} total={proyectos.length} placeholder="Buscar proyecto..." />
+          <Select aria-label="Filtrar por cliente" value={clienteFiltro} onChange={(e) => setClienteFiltro(e.target.value)} className="h-7 w-44 py-0 text-xs">
+            <option value="">Todos los clientes</option>
+            {clientesFiltro.map((cliente) => <option key={cliente} value={cliente}>{cliente}</option>)}
+          </Select>
           <div className="flex items-center gap-1 rounded-md border border-line bg-card p-1">
             <button
               type="button"
@@ -491,34 +496,20 @@ function Proyectos() {
         </form>
       </VentanaFlotante>
 
-      <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
-        {[
-          { k: "Proyectos activos", v: String(resumen.total), sub: `${resumen.enEjecucion} en ejecución` },
-          { k: "Presupuesto cartera", v: soles(resumen.presupuesto), sub: "Suma de partidas" },
-          { k: "Costo ejecutado", v: soles(resumen.costo), sub: resumen.presupuesto > 0 ? `${((resumen.costo / resumen.presupuesto) * 100).toFixed(1)}% del presupuesto` : "Sin presupuesto" },
-          { k: "Avance físico promedio", v: resumen.avancePromedio === null ? "—" : `${resumen.avancePromedio.toFixed(1)}%`, sub: "Obras con partidas" },
-          { k: "En esta vista", v: String(proyectos.length), sub: segmento === "Todos" ? "Todos los estados" : segmento },
-        ].map((c) => (
-          <div key={c.k} className="rounded-lg border border-line bg-card px-3 py-2.5">
-            <p className="text-[10px] font-medium uppercase tracking-[0.08em] text-muted-foreground">{c.k}</p>
-            <p className="mt-0.5 truncate text-lg font-bold tabular-nums text-ink">{c.v}</p>
-            <p className="truncate text-[10px] text-muted-foreground">{c.sub}</p>
-          </div>
-        ))}
-      </div>
+      <FranjaResumen
+        items={[
+          { etiqueta: "Activos", valor: `${resumen.total} (${resumen.enEjecucion} en ejec.)` },
+          { etiqueta: "Presupuesto cartera", valor: soles(resumen.presupuesto) },
+          { etiqueta: "Costo ejecutado", valor: resumen.presupuesto > 0 ? `${soles(resumen.costo)} · ${((resumen.costo / resumen.presupuesto) * 100).toFixed(1)}%` : soles(resumen.costo) },
+          { etiqueta: "Avance físico prom.", valor: resumen.avancePromedio === null ? "—" : `${resumen.avancePromedio.toFixed(1)}%` },
+          { etiqueta: "En esta vista", valor: String(proyectos.length) },
+        ]}
+      />
 
       <div className="flex items-start gap-3">
       <Panel className="min-w-0 flex-1"
         titulo={vista === "tabla" ? "Listado de proyectos" : "Tablero Kanban de proyectos"}
-        extra={
-          <div className="flex flex-wrap items-center gap-2">
-            <Buscador valor={busqueda} onChange={setBusqueda} total={proyectos.length} placeholder="Buscar proyecto..." />
-            <Select aria-label="Filtrar por cliente" value={clienteFiltro} onChange={(e) => setClienteFiltro(e.target.value)} className="w-52 py-1.5 text-xs">
-              <option value="">Todos los clientes</option>
-              {clientesFiltro.map((cliente) => <option key={cliente} value={cliente}>{cliente}</option>)}
-            </Select>
-          </div>
-        }
+        extra={<InfoTooltip content="El presupuesto del proyecto se completa automáticamente a partir de las partidas registradas." />}
       >
         <div className="flex overflow-x-auto border-b border-line px-4 pt-2" aria-label="Estados de proyectos">
           {segmentos.map((item) => {
@@ -530,10 +521,6 @@ function Proyectos() {
             );
           })}
         </div>
-        <p className="flex items-center gap-1.5 bg-primary/10 px-4 py-2 font-mono text-[11px] text-primary">
-          <Info size={13} className="shrink-0" />
-          El presupuesto del proyecto se completa automáticamente a partir de las partidas registradas.
-        </p>
         {proyectos.length === 0 ? (
           <Vacio texto={busqueda ? `Sin coincidencias para «${busqueda}»` : "Aún no hay proyectos registrados."} />
         ) : vista === "kanban" ? (
