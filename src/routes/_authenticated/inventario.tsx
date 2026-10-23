@@ -1,8 +1,9 @@
+import { useRecordado } from "@/lib/recordado";
 import { createFileRoute } from "@tanstack/react-router";
 import React, { useState } from "react";
 import { Upload } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
+import { Boton, Campo, MenuFiltros, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { soles } from "@/lib/format";
@@ -30,9 +31,9 @@ function InventarioPage() {
   const { data: proyectos = [] } = useProyectos();
   const { data: insumos = [] } = useInsumos();
   const { data: movs = [] } = useMovimientos();
-  const [filtro, setFiltro] = useState("");
+  const [filtro, setFiltro] = useRecordado("inventario:obra", "");
   const [soloConStock, setSoloConStock] = useState(true);
-  const [busqueda, setBusqueda] = useState("");
+  const [busqueda, setBusqueda] = useRecordado("inventario:busqueda", "");
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
@@ -96,17 +97,19 @@ function InventarioPage() {
       <Panel
         titulo="Stock por obra"
         extra={
-          <div className="flex items-center gap-3 font-mono text-xs">
+          <MenuFiltros flotante activos={[busqueda, filtro, !soloConStock].filter(Boolean).length} onLimpiar={() => { setBusqueda(""); setFiltro(""); setSoloConStock(true); }}>
             <Buscador valor={busqueda} onChange={setBusqueda} placeholder="Buscar insumo u obra..." total={filas.length} />
-            <label className="flex items-center gap-1.5">
+            <Campo etiqueta="Obra">
+              <Select className="h-8 py-0 text-xs" value={filtro} onChange={(e) => setFiltro(e.target.value)}>
+                <option value="">Todas las obras</option>
+                {proyectos.map((p) => <option key={p.id} value={p.id}>{nombreProy(p.id)}</option>)}
+              </Select>
+            </Campo>
+            <label className="flex items-center gap-1.5 font-mono text-xs">
               <input type="checkbox" className="size-3.5 accent-[var(--color-primary)]" checked={soloConStock} onChange={(e) => setSoloConStock(e.target.checked)} />
               Solo con stock
             </label>
-            <Select className="w-64 py-1 text-xs" value={filtro} onChange={(e) => setFiltro(e.target.value)}>
-              <option value="">Todas las obras</option>
-              {proyectos.map((p) => <option key={p.id} value={p.id}>{nombreProy(p.id)}</option>)}
-            </Select>
-          </div>
+          </MenuFiltros>
         }
       >
         {filas.length === 0 ? (

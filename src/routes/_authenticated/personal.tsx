@@ -1,3 +1,4 @@
+import { useRecordado } from "@/lib/recordado";
 import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { BotonIcono } from "@/components/ui-kit";
 import { createFileRoute } from "@tanstack/react-router";
@@ -11,7 +12,7 @@ import { EmoPanel } from "@/components/personal/EmoPanel";
 import { estadoEmo, ESTADO_EMO_INFO, ultimoEmoPorTrabajador, useEmos } from "@/lib/emo";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, Campo, Input, Panel, Pestanas, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
+import { Boton, Campo, Input, MenuFiltros, Panel, Pestanas, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { soles } from "@/lib/format";
 import { clasificacionDeCargo, type Trabajador, useCargos, useTrabajadores } from "@/lib/datos";
@@ -145,7 +146,7 @@ function Personal() {
   const clasifDe = (nombre: string) => clasificacionDeCargo(nombre, cargos);
   const [sel, setSel] = useState("");
   const [form, setForm] = useState<FormPersonal>(FORM_INICIAL);
-  const [busqueda, setBusqueda] = useState("");
+  const [busqueda, setBusqueda] = useRecordado("personal:busqueda", "");
   const trabajadoresFiltrados = trabajadores.filter((t) =>
     coincide(busqueda, t.nombre, t.dni, t.cargo),
   );
@@ -498,12 +499,6 @@ function Personal() {
       <div className="flex items-start gap-3"><Panel className="min-w-0 flex-1" titulo="Planilla"
         extra={
           <div className="flex items-center gap-2">
-            <Buscador
-              valor={busqueda}
-              onChange={setBusqueda}
-              total={trabajadoresFiltrados.length}
-              placeholder="Buscar por nombre, DNI o cargo..."
-            />
             <span className="font-mono text-[11px] text-muted-foreground">{trabajadores.length} trabajadores</span>
              <Boton variante="accion" onClick={() => { setRegistrado(""); setMsgReniec(""); setError(""); cerrarTrasGuardar.current = false; setFormAbierto(true); }}><Plus size={13} /> Nuevo trabajador</Boton>
           </div>
@@ -573,7 +568,7 @@ function Personal() {
             </table>
           </div>
         )}
-      </Panel><BarraIconosHoja objeto="trabajador" haySeleccion={!!trabajadoresFiltrados.find((t) => t.id === sel)} onEditar={() => { const t = trabajadoresFiltrados.find((t) => t.id === sel); if (t) iniciarEdicion(t); }} onEliminar={() => { if (trabajadoresFiltrados.some((t) => t.id === sel)) void eliminar(sel); }} extras={editando && <><BotonIcono etiqueta="Guardar" onClick={actualizar}><Check size={15} /></BotonIcono><BotonIcono etiqueta="Cancelar" onClick={() => setEditando(null)}><X size={15} /></BotonIcono></>} /></div>
+      </Panel><BarraIconosHoja objeto="trabajador" filtros={<MenuFiltros activos={busqueda ? 1 : 0} onLimpiar={() => setBusqueda("")}><Buscador valor={busqueda} onChange={setBusqueda} total={trabajadoresFiltrados.length} placeholder="Buscar por nombre, DNI o cargo..." /></MenuFiltros>} haySeleccion={!!trabajadoresFiltrados.find((t) => t.id === sel)} onEditar={() => { const t = trabajadoresFiltrados.find((t) => t.id === sel); if (t) iniciarEdicion(t); }} onEliminar={() => { if (trabajadoresFiltrados.some((t) => t.id === sel)) void eliminar(sel); }} extras={editando && <><BotonIcono etiqueta="Guardar" onClick={actualizar}><Check size={15} /></BotonIcono><BotonIcono etiqueta="Cancelar" onClick={() => setEditando(null)}><X size={15} /></BotonIcono></>} /></div>
       </>}
     </>
   );
