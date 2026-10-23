@@ -366,6 +366,9 @@ aside .md\:overflow-y-auto:hover::-webkit-scrollbar-thumb { background: color-mi
     outline: 2px solid var(--color-primary);
     outline-offset: 2px;
   }
+  aside :where(button, a, [role="tab"], input, select, textarea):focus-visible {
+    outline-color: var(--color-sidebar-foreground);
+  }
 }
 
 /* Cifras y códigos: familia de cifras, ancho fijo, a la derecha */
