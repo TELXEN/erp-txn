@@ -498,10 +498,10 @@ function Proyectos() {
 
       <FranjaResumen
         items={[
-          { etiqueta: "Activos", valor: `${resumen.total} (${resumen.enEjecucion} en ejec.)` },
+          { etiqueta: "Proyectos activos", valor: `${resumen.total} (${resumen.enEjecucion} en ejec.)` },
           { etiqueta: "Presupuesto cartera", valor: soles(resumen.presupuesto) },
           { etiqueta: "Costo ejecutado", valor: resumen.presupuesto > 0 ? `${soles(resumen.costo)} · ${((resumen.costo / resumen.presupuesto) * 100).toFixed(1)}%` : soles(resumen.costo) },
-          { etiqueta: "Avance físico prom.", valor: resumen.avancePromedio === null ? "—" : `${resumen.avancePromedio.toFixed(1)}%` },
+          { etiqueta: "Avance físico promedio", valor: resumen.avancePromedio === null ? "—" : `${resumen.avancePromedio.toFixed(1)}%` },
           { etiqueta: "En esta vista", valor: String(proyectos.length) },
         ]}
       />

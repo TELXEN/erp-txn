@@ -603,11 +603,11 @@ function Partidas() {
       <>
       <FranjaResumen
         items={[
-          { etiqueta: "Contractual", valor: soles(resumen.contractual) },
-          { etiqueta: "Adicionales", valor: soles(resumen.adicionales) },
-          { etiqueta: "Vigente", valor: soles(resumen.vigente) },
+          { etiqueta: "Presupuesto contractual", valor: soles(resumen.contractual) },
+          { etiqueta: "Total adicionales", valor: soles(resumen.adicionales) },
+          { etiqueta: "Presupuesto vigente", valor: soles(resumen.vigente) },
           { etiqueta: "Partidas", valor: String(resumenPartidas.total) },
-          { etiqueta: "Avance prom.", valor: `${resumenPartidas.promedio.toFixed(1)}%` },
+          { etiqueta: "Avance promedio", valor: `${resumenPartidas.promedio.toFixed(1)}%` },
         ]}
       />
 
