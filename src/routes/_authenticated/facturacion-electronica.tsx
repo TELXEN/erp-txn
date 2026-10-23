@@ -126,6 +126,10 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
   async function guardar(emitir: boolean) {
     setError("");
     if (preliquidacionOrigen && (cargandoPl || errorPl || cargado !== preliquidacionOrigen)) return setError("Espera a que se carguen los datos de la preliquidación.");
+    if (emitir && form.tipo_comprobante === "09") {
+      if (form.guia_modalidad === "01" && !/^\d{11}$/.test(form.guia_transportista_doc.trim())) return setError("Transporte público: elige un transportista con RUC válido.");
+      if (form.guia_modalidad === "02" && (!form.guia_placa.trim() || !/^\d{8}$/.test(form.guia_conductor_doc.trim()) || !form.guia_licencia.trim())) return setError("Transporte privado: placa, DNI del conductor y licencia son obligatorios.");
+    }
     const validos = items.filter((x) => x.descripcion.trim() && Number(x.cantidad) > 0);
     const relValidos = docs.filter((d) => d.numero.trim() && Number(d.importe) > 0);
     if (!form.cliente_razon_social.trim()) return setError("Indica el nombre o razón social del cliente.");
