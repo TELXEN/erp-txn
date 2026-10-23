@@ -3887,6 +3887,7 @@ export type Database = {
           id: string
           moneda: Database["public"]["Enums"]["moneda"]
           observacion: string
+          orden_compra: string
           pct_detraccion: number
           proyecto_id: string | null
           tipo_cambio: number
@@ -3907,6 +3908,7 @@ export type Database = {
           id?: string
           moneda?: Database["public"]["Enums"]["moneda"]
           observacion?: string
+          orden_compra?: string
           pct_detraccion?: number
           proyecto_id?: string | null
           tipo_cambio?: number
@@ -3927,6 +3929,7 @@ export type Database = {
           id?: string
           moneda?: Database["public"]["Enums"]["moneda"]
           observacion?: string
+          orden_compra?: string
           pct_detraccion?: number
           proyecto_id?: string | null
           tipo_cambio?: number
@@ -4006,6 +4009,8 @@ export type Database = {
           cliente: string
           codigo: string | null
           created_at: string
+          documento_numero: string
+          documento_tipo: string
           estado: Database["public"]["Enums"]["estado_proyecto"]
           fecha_corte_programado: string | null
           fecha_fin: string | null
@@ -4026,6 +4031,8 @@ export type Database = {
           cliente?: string
           codigo?: string | null
           created_at?: string
+          documento_numero?: string
+          documento_tipo?: string
           estado?: Database["public"]["Enums"]["estado_proyecto"]
           fecha_corte_programado?: string | null
           fecha_fin?: string | null
@@ -4046,6 +4053,8 @@ export type Database = {
           cliente?: string
           codigo?: string | null
           created_at?: string
+          documento_numero?: string
+          documento_tipo?: string
           estado?: Database["public"]["Enums"]["estado_proyecto"]
           fecha_corte_programado?: string | null
           fecha_fin?: string | null
