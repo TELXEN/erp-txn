@@ -14,6 +14,7 @@ import { Panel, Campo, Input, Select, Boton, SinAcceso, Vacio, tipoDistintivo } 
 import { MESES, fecha as fmtFecha, soles } from "@/lib/format";
 import { guardarConfigSire, validarConexionSire, sincronizarSire, aceptarSire } from "@/lib/sire.functions";
 import { useComprobantesCompra } from "@/components/sire/ComprobantesRecibidos";
+import { RegistrarVentaExterna, type VentaInicial } from "@/components/facturacion/RegistrarVentaExterna";
 
 export const Route = createFileRoute("/_authenticated/sire")({
   head: () => ({
@@ -211,7 +212,6 @@ const ESTADO_UI: Record<Estado, { t: string; c: string; I: React.ElementType }> 
 
 function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
   const qc = useQueryClient();
-  const navigate = useNavigate();
   const { session } = useAuth();
   const [paso, setPaso] = useState(1);
   const [detalle, setDetalle] = useState<Item | null>(null);
@@ -299,6 +299,8 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
   return (
     <div className="min-w-0 max-w-full space-y-2">
 
+      {libro === "RVIE" && <RegistrarVentaExterna abierta={!!ventaSel} inicial={ventaInicial} onCerrar={() => setVentaSel(null)}
+        onGuardado={() => { const k = ventaSel?.clave; if (k) setVentasReg((s) => new Set(s).add(k)); }} />}
       {vinculando && reg && <VincularManual item={vinculando} libro={libro} periodo={periodo} items={items} onCerrar={() => setVinculando(null)}
         onVincular={async (d) => {
           const nuevos = items.map((x) => x.clave !== vinculando.clave ? x : { ...x, total_erp: d.total, igv_erp: d.igv, vinculado: d.serie_numero, estado: (Math.abs((x.moneda && x.moneda !== "PEN" ? (x.total_sunat ?? 0) * (x.tipo_cambio || 1) : (x.total_sunat ?? 0)) - d.total) > 0.01 ? "discrepancia" : "match") as Estado });
