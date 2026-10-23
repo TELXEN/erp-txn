@@ -382,7 +382,10 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
                           <td className="px-3 py-2 text-right">
                             {i.estado === "faltante" && !registrada && (
                               <div className="flex items-center justify-end gap-1">
-                              <Boton variante="linea" className="whitespace-nowrap !py-1" onClick={(ev) => { ev.stopPropagation();
+                              {/* Emitir (Ventas/RVIE): abre Facturación Electrónica con los datos de este comprobante
+                                  que solo existe en SUNAT, para que quede registrado también en el ERP.
+                                  Registrar en Gasto (Compras/RCE): imputa la factura de proveedor a Costo Directo o Gasto General. */}
+                              <Boton variante="linea" className="whitespace-nowrap !py-1" title={libro === "RCE" ? "Registrar esta factura de proveedor como Costo Directo o Gasto General en el ERP" : "Abrir Facturación Electrónica con este comprobante de SUNAT precargado para registrarlo en el ERP"} onClick={(ev) => { ev.stopPropagation();
                                 if (libro === "RVIE") {
                                   sessionStorage.setItem("sire-prefill-cpe", JSON.stringify({ fecha: i.fecha, tipo: i.tipo, serie_numero: i.serie_numero, ruc: i.ruc, razon: i.razon, base: i.base, igv: i.igv, total: i.total_sunat, moneda: i.moneda ?? "PEN", tipo_cambio: i.tipo_cambio ?? 0, vencimiento: i.vencimiento ?? "" }));
                                   navigate({ to: "/facturacion-electronica", search: { preliquidacion: "" } });
@@ -409,6 +412,14 @@ function PanelLibro({ libro, periodo }: { libro: Libro; periodo: string }) {
                 Azul: IGV entre 10% y 10.5% (tasas parciales) — {igvParcial.length} comp. por {soles(sumaIgvParcial)}.{" "}
                 <span className="ml-1 inline-block size-2 rounded-sm bg-amber-500/40 align-middle" />
                 Ámbar: comprobantes sin IGV (exonerados) — {sinIgv.length} comp. por {soles(sumaSinIgv)}.
+              </p>
+            )}
+            {libro === "RVIE" && (
+              <p className="border-t border-line px-5 py-2 font-mono text-[10px] text-muted-foreground">
+                <Plus className="mr-1 inline-block size-3 align-middle text-primary" />
+                «Emitir» abre Facturación Electrónica con este comprobante de SUNAT precargado, para que quede registrado en el ERP.{" "}
+                <Link2 className="mx-1 inline-block size-3 align-middle" />
+                «Vincular» lo asocia a un documento ya emitido en el ERP sin duplicarlo.
               </p>
             )}
             <div className="flex justify-between border-t border-line px-5 py-3">
