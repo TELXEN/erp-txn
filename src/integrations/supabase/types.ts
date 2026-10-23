@@ -5108,6 +5108,148 @@ export type Database = {
           },
         ]
       }
+      transportista_conductores: {
+        Row: {
+          apellidos: string
+          categoria_licencia: string
+          celular: string
+          created_at: string
+          id: string
+          licencia: string
+          licencia_vencimiento: string | null
+          nombres: string
+          numero_documento: string
+          tipo_documento: string
+          transportista_id: string
+        }
+        Insert: {
+          apellidos?: string
+          categoria_licencia?: string
+          celular?: string
+          created_at?: string
+          id?: string
+          licencia: string
+          licencia_vencimiento?: string | null
+          nombres: string
+          numero_documento: string
+          tipo_documento?: string
+          transportista_id: string
+        }
+        Update: {
+          apellidos?: string
+          categoria_licencia?: string
+          celular?: string
+          created_at?: string
+          id?: string
+          licencia?: string
+          licencia_vencimiento?: string | null
+          nombres?: string
+          numero_documento?: string
+          tipo_documento?: string
+          transportista_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transportista_conductores_transportista_id_fkey"
+            columns: ["transportista_id"]
+            isOneToOne: false
+            referencedRelation: "transportistas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transportista_vehiculos: {
+        Row: {
+          created_at: string
+          id: string
+          marca: string
+          placa: string
+          placa_secundaria: string
+          tarjeta_circulacion: string
+          transportista_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          marca?: string
+          placa: string
+          placa_secundaria?: string
+          tarjeta_circulacion?: string
+          transportista_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          marca?: string
+          placa?: string
+          placa_secundaria?: string
+          tarjeta_circulacion?: string
+          transportista_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transportista_vehiculos_transportista_id_fkey"
+            columns: ["transportista_id"]
+            isOneToOne: false
+            referencedRelation: "transportistas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transportistas: {
+        Row: {
+          activo: boolean
+          certificado_habilitacion: string
+          certificado_vencimiento: string | null
+          condicion_sunat: string
+          created_at: string
+          direccion: string
+          email: string
+          entidad_autorizacion: string
+          estado_sunat: string
+          id: string
+          numero_autorizacion: string
+          razon_social: string
+          registro_mtc: string
+          ruc: string
+          telefono: string
+        }
+        Insert: {
+          activo?: boolean
+          certificado_habilitacion?: string
+          certificado_vencimiento?: string | null
+          condicion_sunat?: string
+          created_at?: string
+          direccion?: string
+          email?: string
+          entidad_autorizacion?: string
+          estado_sunat?: string
+          id?: string
+          numero_autorizacion?: string
+          razon_social: string
+          registro_mtc?: string
+          ruc: string
+          telefono?: string
+        }
+        Update: {
+          activo?: boolean
+          certificado_habilitacion?: string
+          certificado_vencimiento?: string | null
+          condicion_sunat?: string
+          created_at?: string
+          direccion?: string
+          email?: string
+          entidad_autorizacion?: string
+          estado_sunat?: string
+          id?: string
+          numero_autorizacion?: string
+          razon_social?: string
+          registro_mtc?: string
+          ruc?: string
+          telefono?: string
+        }
+        Relationships: []
+      }
       traslados_vehiculo: {
         Row: {
           banco_id: string | null

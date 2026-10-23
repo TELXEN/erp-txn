@@ -43,6 +43,7 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
   const [cuotas, setCuotas] = useState<CuotaEditor[]>([]);
   const [busqueda, setBusqueda] = useRecordado("facturacion:busqueda", ""); const [error, setError] = useState(""); const [guardando, setGuardando] = useState(false); const [cargado, setCargado] = useState("");
   const [ventaExt, setVentaExt] = useState(false);
+  const [origenGuiaAbierto, setOrigenGuiaAbierto] = useState(false); const [origenGuia, setOrigenGuia] = useState<"libre" | "cliente">("libre"); const [guiaCliente, setGuiaCliente] = useState(""); const [guiaProyecto, setGuiaProyecto] = useState("");
   const [editando, setEditando] = useState<Comprobante | null>(null); const [porEliminar, setPorEliminar] = useState<Comprobante | null>(null);
 
   const { data: empresa } = useEmpresa();
@@ -92,6 +93,7 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
     const serie = series.find((s) => s.tipo_comprobante === t)?.serie ?? SERIE_DEFECTO[t];
     setEditando(null); setError(""); setPreliquidacionOrigen(""); setCargado(""); setForm(nuevoFormCpe(t, serie)); setItems([itemComprobanteVacio()]); setDocs([docRelacionadoVacio()]); setCuotas([]);
     if (t === "01") { setOrigen("libre"); setSeleccionPl(""); setOrigenAbierto(true); setAbierto(false); }
+    else if (t === "09") { setOrigenGuia("libre"); setGuiaCliente(""); setGuiaProyecto(""); setOrigenGuiaAbierto(true); setAbierto(false); }
     else setAbierto(true);
   }
   function cambiarTipo(t: TipoComprobante) {
@@ -124,6 +126,10 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
   async function guardar(emitir: boolean) {
     setError("");
     if (preliquidacionOrigen && (cargandoPl || errorPl || cargado !== preliquidacionOrigen)) return setError("Espera a que se carguen los datos de la preliquidación.");
+    if (emitir && form.tipo_comprobante === "09") {
+      if (form.guia_modalidad === "01" && !/^\d{11}$/.test(form.guia_transportista_doc.trim())) return setError("Transporte público: elige un transportista con RUC válido.");
+      if (form.guia_modalidad === "02" && (!form.guia_placa.trim() || !/^\d{8}$/.test(form.guia_conductor_doc.trim()) || !form.guia_licencia.trim())) return setError("Transporte privado: placa, DNI del conductor y licencia son obligatorios.");
+    }
     const validos = items.filter((x) => x.descripcion.trim() && Number(x.cantidad) > 0);
     const relValidos = docs.filter((d) => d.numero.trim() && Number(d.importe) > 0);
     if (!form.cliente_razon_social.trim()) return setError("Indica el nombre o razón social del cliente.");
@@ -142,7 +148,7 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
       const listaCuotas = cuotasValidas ? cuotas : repartirCuotas(baseCuotas, cuotas.length ? cuotas.map((q) => q.fecha || fechaVenc) : [fechaVenc]);
       const cuotasPayload = esCredito && baseCuotas > 0 ? listaCuotas.map((q, i) => ({ numero: i + 1, fecha_vencimiento: q.fecha || fechaVenc, monto: Number(q.monto || 0) })).filter((q) => q.monto > 0) : [];
       const totalDoc = conImportes ? montos.total : tipo === "20" || tipo === "40" ? importeRegimen : 0;
-      const datosGuia = tipo === "09" ? { guia_motivo: form.guia_motivo, guia_modalidad: form.guia_modalidad, guia_fecha_traslado: form.guia_fecha_traslado, guia_transportista: form.guia_transportista, guia_transportista_doc: form.guia_transportista_doc, guia_placa: form.guia_placa, guia_licencia: form.guia_licencia, guia_peso: form.guia_peso, guia_bultos: form.guia_bultos, guia_partida: form.guia_partida, guia_partida_ubigeo: form.guia_partida_ubigeo, guia_llegada: form.guia_llegada, guia_llegada_ubigeo: form.guia_llegada_ubigeo } : {};
+      const datosGuia: Record<string, string> = tipo === "09" ? Object.fromEntries(Object.entries(form).filter(([k, v]) => k.startsWith("guia_") && k !== "guia_remision_numero" && typeof v === "string")) as Record<string, string> : {};
       const datosRegimen = tipo === "20" || tipo === "40" ? { tasa: form.regimen_tasa, total_comprobantes: String(totalRegimen), importe: String(importeRegimen) } : {};
       const payload = {
         tipo_comprobante: tipo, serie: form.serie, correlativo_inicial: form.correlativo_inicial ? Number(form.correlativo_inicial) : null, preliquidacion_id: preliquidacionOrigen || editando?.preliquidacion_id || null, proyecto_id: form.proyecto_id || null, cliente_id: form.cliente_id || null,
@@ -223,6 +229,27 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
         <div className="flex justify-end gap-2 border-t border-line pt-4">
           <Boton variante="linea" onClick={() => setOrigenAbierto(false)}>Cancelar</Boton>
           <Boton disabled={origen === "preliquidacion" && (!seleccionPl || buscandoPl || Boolean(errorListaPl))} onClick={() => { setPreliquidacionOrigen(origen === "preliquidacion" ? seleccionPl : ""); setOrigenAbierto(false); setAbierto(true); }}>{origen === "preliquidacion" ? "Cargar datos" : "Continuar"}</Boton>
+        </div>
+      </div>
+    </VentanaFlotante>
+    <VentanaFlotante titulo="Crear guía de remisión" abierta={origenGuiaAbierto} onCerrar={() => setOrigenGuiaAbierto(false)} ancho="max-w-xl">
+      <div className="space-y-4 p-5">
+        <div className="flex gap-2" role="group" aria-label="Origen de la guía">
+          <Boton variante={origenGuia === "libre" ? "primario" : "linea"} aria-pressed={origenGuia === "libre"} onClick={() => setOrigenGuia("libre")}><FilePlus2 size={14} />Libre</Boton>
+          <Boton variante={origenGuia === "cliente" ? "primario" : "linea"} aria-pressed={origenGuia === "cliente"} onClick={() => setOrigenGuia("cliente")}><ReceiptText size={14} />Cliente</Boton>
+        </div>
+        {origenGuia === "cliente" && <div className="grid gap-3">
+          <Campo etiqueta="Cliente"><Select aria-label="Cliente" value={guiaCliente} onChange={(e) => setGuiaCliente(e.target.value)}><option value="">Selecciona un cliente</option>{clientes.map((c) => <option key={c.id} value={c.id}>{c.razon_social}</option>)}</Select></Campo>
+          <Campo etiqueta="Proyecto (opcional)"><Select aria-label="Proyecto" value={guiaProyecto} onChange={(e) => setGuiaProyecto(e.target.value)}><option value="">Sin proyecto</option>{proyectos.map((p) => <option key={p.id} value={p.id}>{p.codigo} · {p.nombre}</option>)}</Select></Campo>
+          <p className="text-xs text-muted-foreground">Con proyecto podrás cargar sus partidas en el detalle de la guía.</p>
+        </div>}
+        <div className="flex justify-end gap-2 border-t border-line pt-4">
+          <Boton variante="linea" onClick={() => setOrigenGuiaAbierto(false)}>Cancelar</Boton>
+          <Boton disabled={origenGuia === "cliente" && !guiaCliente} onClick={() => {
+            const c = clientes.find((x) => x.id === guiaCliente);
+            setForm((f) => origenGuia === "cliente" && c ? { ...f, guia_origen: "cliente", cliente_id: c.id, cliente_numero_documento: c.numero_documento, cliente_razon_social: c.razon_social, cliente_direccion: c.direccion ?? "", proyecto_id: guiaProyecto } : { ...f, guia_origen: "libre" });
+            setOrigenGuiaAbierto(false); setAbierto(true);
+          }}>Continuar</Boton>
         </div>
       </div>
     </VentanaFlotante>
