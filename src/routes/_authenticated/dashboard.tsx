@@ -814,7 +814,7 @@ function Kpi({
   tono?: "good" | "bad";
 }) {
   return (
-    <div className="kpi-tarjeta flex flex-col">
+    <div data-distintivo={tono === "bad" ? "bad" : "monto"} className="kpi-tarjeta flex flex-col">
       <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{etiqueta}</p>
       <p
         className={`mt-2 text-2xl font-bold tabular-nums ${

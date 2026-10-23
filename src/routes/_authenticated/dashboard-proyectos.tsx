@@ -468,6 +468,7 @@ function DashboardProyectos() {
               key={situacion}
               type="button"
               aria-pressed={activa}
+              data-distintivo={alerta ? "bad" : "cantidad"}
               onClick={() => setFiltroEstado(activa ? "Todos" : situacion)}
               className={`kpi-tarjeta text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${activa ? "ring-2 ring-primary" : ""}`}
             >
@@ -990,7 +991,7 @@ function BolsaEjecutada({ etiqueta, real, base }: { etiqueta: string; real: numb
   const cerca = nivel === "cerca";
   const saldo = base - real;
   return (
-    <div className={`kpi-tarjeta ${excedido ? "ring-1 ring-bad/40" : cerca ? "ring-1 ring-warn/30" : ""}`}>
+    <div data-distintivo={excedido ? "bad" : cerca ? "warn" : "monto"} className={`kpi-tarjeta ${excedido ? "ring-1 ring-bad/40" : cerca ? "ring-1 ring-warn/30" : ""}`}>
       <div className="flex items-center justify-between gap-2">
         <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{etiqueta}</p>
         <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold tabular-nums ${excedido ? "bg-bad/10 text-bad" : cerca ? "bg-warn/10 text-warn" : "bg-good/10 text-good"}`}>{pct(p)}</span>
@@ -1010,7 +1011,7 @@ function UtilidadReal({ proyectada, real }: { proyectada: number; real: number }
   const critico = proyectada > 0 && real <= 0;
   const p = proyectada > 0 ? (real / proyectada) * 100 : 0;
   return (
-    <div className={`kpi-tarjeta ${critico ? "bg-bad/5 ring-1 ring-bad/40" : real < proyectada ? "ring-1 ring-warn/40" : "ring-1 ring-good/30"}`}>
+    <div data-distintivo={critico ? "bad" : real < proyectada ? "warn" : "monto"} className={`kpi-tarjeta ${critico ? "ring-1 ring-bad/40" : real < proyectada ? "ring-1 ring-warn/40" : "ring-1 ring-good/30"}`}>
       <div className="flex items-center justify-between gap-2">
         <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Utilidad real</p>
         <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold tabular-nums ${critico ? "bg-bad/10 text-bad" : real < proyectada ? "bg-warn/10 text-warn" : "bg-good/10 text-good"}`}>{pct(p)} de la proyectada</span>
