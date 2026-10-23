@@ -100,6 +100,8 @@ function AlmacenPage() {
     if (!(cant > 0)) return setError("La cantidad debe ser mayor que cero.");
     if (form.tipo === "Salida" && cant > (stockSel?.stock ?? 0) + 0.0001)
       return setError(`Stock insuficiente: disponible ${num(stockSel?.stock ?? 0)} ${ins.unidad}.`);
+    if (form.tipo === "Ingreso" && ocSel && cant > ocSel.saldo + 0.0001)
+      return setError(`La cantidad supera el saldo pendiente de ${ocSel.oc!.codigo}: ${num(ocSel.saldo)} ${ins.unidad}.`);
     const { error: err } = await apuDb.from("movimientos_almacen").insert({
       tipo: form.tipo,
       fecha: form.fecha,
@@ -110,18 +112,29 @@ function AlmacenPage() {
       cantidad: cant,
       costo_unitario:
         form.tipo === "Ingreso" ? Number(form.costo_unitario || ins.precio) : Number(stockSel?.costoPromedio ?? 0),
+      orden_item_id: form.tipo === "Ingreso" && form.orden_item_id ? form.orden_item_id : null,
       documento: form.documento.trim(),
       observacion: form.observacion.trim(),
     });
     if (err) return setError(err.message);
-    setForm({ ...form, insumo_id: "", cantidad: "", costo_unitario: "", documento: "", observacion: "" });
+    if (form.tipo === "Ingreso" && ocSel?.oc) {
+      await sincronizarEstadoOC(ocSel.oc.id);
+      qc.invalidateQueries({ queryKey: ["ordenes_compra"] });
+    }
+    setForm({ ...form, insumo_id: "", orden_item_id: "", cantidad: "", costo_unitario: "", documento: "", observacion: "" });
     qc.invalidateQueries({ queryKey: ["movimientos_almacen"] });
   }
 
   async function eliminar(id: string) {
     if (!window.confirm("¿Eliminar este movimiento de almacén?")) return;
+    const mov = movs.find((m) => m.id === id);
+    const ocDel = mov?.orden_item_id ? ordenes.find((o) => o.id === itemsOC.find((i) => i.id === mov.orden_item_id)?.orden_id) : undefined;
     const { error: err } = await apuDb.from("movimientos_almacen").delete().eq("id", id);
     if (err) return setError(err.message);
+    if (ocDel) {
+      await sincronizarEstadoOC(ocDel.id);
+      qc.invalidateQueries({ queryKey: ["ordenes_compra"] });
+    }
     qc.invalidateQueries({ queryKey: ["movimientos_almacen"] });
   }
 
