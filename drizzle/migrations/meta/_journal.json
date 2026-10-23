@@ -428,6 +428,13 @@
       "when": 1792683237486,
       "tag": "0060_gg_fijos_variables",
       "breakpoints": true
+    },
+    {
+      "idx": 61,
+      "version": "7",
+      "when": 1792767832067,
+      "tag": "0061_transportistas",
+      "breakpoints": true
     }
   ]
 }
