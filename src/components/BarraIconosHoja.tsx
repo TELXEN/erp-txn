@@ -3,14 +3,17 @@ import { Copy, Pencil, Plus, Trash2 } from "lucide-react";
 import { BotonIcono } from "@/components/ui-kit";
 
 /** Columna vertical de iconos (Agregar, Editar, Copiar, Eliminar) igual a la hoja de Insumos.
- *  Las acciones omitidas no se muestran; `extras` va en un bloque inferior. */
-export function BarraIconosHoja({ objeto, haySeleccion, onAgregar, onEditar, onCopiar, onEliminar, extras }: {
+ *  `filtros` (la lupa MenuFiltros) va primero, separada; las acciones omitidas no se muestran;
+ *  `extras` va en un bloque inferior. */
+export function BarraIconosHoja({ objeto, haySeleccion, onAgregar, onEditar, onCopiar, onEliminar, extras, filtros }: {
   objeto: string; haySeleccion: boolean;
   onAgregar?: (() => void) | undefined; onEditar?: (() => void) | undefined; onCopiar?: (() => void) | undefined; onEliminar?: (() => void) | undefined;
   extras?: ReactNode | undefined;
+  filtros?: ReactNode | undefined;
 }) {
   return (
     <div className="sticky top-2 flex h-fit shrink-0 flex-col gap-1.5 rounded-md border p-1.5 barra-iconos">
+      {filtros && <div className="mb-1 flex flex-col gap-1.5 border-b pb-2.5">{filtros}</div>}
       {onAgregar && <BotonIcono etiqueta={`Agregar ${objeto}`} tono="primario" onClick={onAgregar}><Plus size={15} /></BotonIcono>}
       {onEditar && <BotonIcono etiqueta={`Editar ${objeto}`} disabled={!haySeleccion} onClick={onEditar}><Pencil size={15} /></BotonIcono>}
       {onCopiar && <BotonIcono etiqueta={`Copiar ${objeto}`} disabled={!haySeleccion} onClick={onCopiar}><Copy size={15} /></BotonIcono>}
