@@ -5,7 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Archive, Calculator, Eye, Info, LayoutGrid, Plus, Table2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, BotonIcono, FranjaResumen, InfoTooltip, Input, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
+import { Boton, BotonIcono, Campo, FranjaResumen, InfoTooltip, MenuFiltros, Input, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 function estadoDe(situacion: string): "En Ejecucion" | "Finalizado" {
@@ -349,11 +349,6 @@ function Proyectos() {
         subtitulo="Obras de la empresa"
         acciones={
           <div className="flex flex-wrap items-center gap-1.5">
-          <Buscador valor={busqueda} onChange={setBusqueda} total={proyectos.length} placeholder="Buscar proyecto..." />
-          <Select aria-label="Filtrar por cliente" value={clienteFiltro} onChange={(e) => setClienteFiltro(e.target.value)} className="h-7 w-44 py-0 text-xs">
-            <option value="">Todos los clientes</option>
-            {clientesFiltro.map((cliente) => <option key={cliente} value={cliente}>{cliente}</option>)}
-          </Select>
           <div className="flex items-center gap-1 rounded-md border border-line bg-card p-1">
             <button
               type="button"
@@ -370,6 +365,15 @@ function Proyectos() {
               <LayoutGrid size={13} /> Kanban
             </button>
           </div>
+          <MenuFiltros activos={[busqueda, clienteFiltro].filter(Boolean).length} onLimpiar={() => { setBusqueda(""); setClienteFiltro(""); }}>
+            <Buscador valor={busqueda} onChange={setBusqueda} total={proyectos.length} placeholder="Buscar proyecto..." />
+            <Campo etiqueta="Cliente">
+              <Select aria-label="Filtrar por cliente" value={clienteFiltro} onChange={(e) => setClienteFiltro(e.target.value)} className="h-8 py-0 text-xs">
+                <option value="">Todos los clientes</option>
+                {clientesFiltro.map((cliente) => <option key={cliente} value={cliente}>{cliente}</option>)}
+              </Select>
+            </Campo>
+          </MenuFiltros>
           <Boton variante="accion" onClick={() => { setError(""); setFormAbierto(true); }}><Plus size={13} /> Nuevo proyecto</Boton>
           </div>
         }
