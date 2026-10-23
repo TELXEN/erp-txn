@@ -59,7 +59,7 @@ export function RegistrarVentaExterna({ abierta, onCerrar, inicial, onGuardado, 
       const razon = r.encontrado ? r.razonSocial : (inicial?.razon ?? "").trim();
       if (!razon) { toast.error(r.mensaje || "No se obtuvo la razón social"); return; }
       const { data: ex } = await supabase.from("terceros").select("id").eq("numero_documento", rucFijo).limit(1);
-      if (ex?.length) await supabase.from("terceros").update({ es_cliente: true, activo: true } as never).eq("id", ex[0].id);
+      if (ex?.length) await supabase.from("terceros").update({ es_cliente: true, activo: true } as never).eq("id", ex[0]!.id);
       else { const { error } = await supabase.from("terceros").insert({ tipo_documento: rucFijo.length === 11 ? "RUC" : "DNI", numero_documento: rucFijo, razon_social: razon, direccion: r.direccion ?? "", es_cliente: true, es_proveedor: false } as never); if (error) { toast.error(error.message); return; } }
       toast.success(`Cliente ${razon} registrado`);
       await qc.invalidateQueries({ queryKey: ["terceros"] });
