@@ -1,3 +1,4 @@
+import { useRecordado } from "@/lib/recordado";
 import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { createFileRoute } from "@tanstack/react-router";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
@@ -5,7 +6,7 @@ import { Fragment, useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, BotonIcono, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
+import { Boton, BotonIcono, Etiqueta, Input, MenuFiltros, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { InsigniaCategoriaGasto } from "@/components/estado-ui";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { CalendarDays, Check, ChevronDown, ChevronRight, Info, Paperclip, Pencil, Plus, Search, Trash2, Upload, X } from "lucide-react";
@@ -114,7 +115,7 @@ function GastosGenerales() {
   const [modalGasto, setModalGasto] = useState(false);
   const [error, setError] = useState("");
   const [ambito, setAmbito] = useState("Todas");
-  const [busqueda, setBusqueda] = useState("");
+  const [busqueda, setBusqueda] = useRecordado("gastos-generales:busqueda", "");
   const [sel, setSel] = useState("");
   const [desde, setDesde] = useState("");
   const [hasta, setHasta] = useState("");
@@ -653,15 +654,7 @@ function GastosGenerales() {
       {pestana === "gastos" && (
       <>
       <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-center">
-        <div className="relative flex-1">
-          <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
-            placeholder="Buscar por descripción o proveedor..."
-            className="pl-9"
-          />
-        </div>
+        <div className="flex-1" />
         {filtroCategoria !== "Todas" && (
           <button
             type="button"
@@ -845,7 +838,7 @@ function GastosGenerales() {
           </div>
         )}
        </Panel>
-      <BarraIconosHoja objeto="gasto" haySeleccion={!!actual} onEditar={() => { if (actual) iniciarEdicion(actual); }} onEliminar={() => { if (actual) void eliminar(actual.id); }} extras={<BotonIcono etiqueta="Abrir sustento adjunto" disabled={!actual || (!adjuntoDe(actual.id)?.pdf_path && !adjuntoDe(actual.id)?.xml_path)} onClick={() => { if (actual) abrirAdjunto(adjuntoDe(actual.id)); }}><Paperclip size={15} /></BotonIcono>} />
+      <BarraIconosHoja objeto="gasto" filtros={<MenuFiltros activos={[busqueda, filtroCategoria !== "Todas"].filter(Boolean).length} onLimpiar={() => { setBusqueda(""); setFiltroCategoria("Todas"); }}><Input className="h-8 py-0 text-xs" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} placeholder="Buscar por descripción o proveedor..." /></MenuFiltros>} haySeleccion={!!actual} onEditar={() => { if (actual) iniciarEdicion(actual); }} onEliminar={() => { if (actual) void eliminar(actual.id); }} extras={<BotonIcono etiqueta="Abrir sustento adjunto" disabled={!actual || (!adjuntoDe(actual.id)?.pdf_path && !adjuntoDe(actual.id)?.xml_path)} onClick={() => { if (actual) abrirAdjunto(adjuntoDe(actual.id)); }}><Paperclip size={15} /></BotonIcono>} />
       </div>
       </>
       )}

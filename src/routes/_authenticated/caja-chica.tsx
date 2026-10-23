@@ -1,10 +1,11 @@
+import { useRecordado } from "@/lib/recordado";
 import { createFileRoute } from "@tanstack/react-router";
 import { coincide, Resaltar } from "@/components/Buscador";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, BotonIcono, Campo, Input, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
+import { Boton, BotonIcono, Campo, Input, MenuFiltros, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { ChevronDown, ChevronRight, Clock, Hourglass, Info, Lock, Plus, Receipt, Search, RotateCcw, FileSpreadsheet, Upload, Wallet, X } from "lucide-react";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
@@ -77,7 +78,7 @@ function CajaChica() {
     banco_id: "",
     numero_operacion: "",
   });
-  const [busqueda, setBusqueda] = useState("");
+  const [busqueda, setBusqueda] = useRecordado("caja-chica:busqueda", "");
   const [modalNueva, setModalNueva] = useState(false);
   const [error, setError] = useState("");
   const [abierta, setAbierta] = useState<string | null>(null);
@@ -448,15 +449,6 @@ function CajaChica() {
       </div>
 
       <div className="mb-3 flex flex-wrap items-center gap-3">
-        <div className="relative min-w-[240px] flex-1">
-          <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <input
-            value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
-            placeholder="Buscar por responsable, obra o número de operación..."
-            className="h-10 w-full rounded-md border border-line bg-card pl-9 pr-3 text-sm text-ink outline-none focus:border-primary"
-          />
-        </div>
         <label className="flex cursor-pointer items-center gap-2 text-sm text-ink">
           <input type="checkbox" checked={agrupar} onChange={(e) => setAgrupar(e.target.checked)} className="h-4 w-4 accent-primary" />
           Agrupar por responsable
@@ -580,7 +572,7 @@ function CajaChica() {
           </div>
         )}
       </Panel>
-      <BarraIconosHoja objeto={rendicionSel ? "comprobante rendido" : "caja chica"} haySeleccion={Boolean(cajaSel)}
+      <BarraIconosHoja filtros={<MenuFiltros activos={busqueda ? 1 : 0} onLimpiar={() => setBusqueda("")}><Input className="h-8 py-0 text-xs" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} placeholder="Buscar por responsable, obra o número de operación..." /></MenuFiltros>} objeto={rendicionSel ? "comprobante rendido" : "caja chica"} haySeleccion={Boolean(cajaSel)}
         onAgregar={() => { setError(""); setModalNueva(true); }}
         onEliminar={cajaSel ? () => { if (rendicionSel && cajaSel.estado === "Abierta") void eliminarRendicion(rendicionSel.tabla, rendicionSel.id); else if (!rendicionSel) void eliminarCaja(cajaSel.id); } : undefined}
         extras={<>
