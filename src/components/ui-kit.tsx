@@ -254,6 +254,22 @@ export function Pestanas<T extends string>({
 }
 
 /** Tarjeta de resumen: etiqueta (con cantidad), monto grande; color solo en alerta; clic opcional para filtrar. */
+export type TipoDistintivo = "monto" | "avance" | "cantidad";
+/** Deduce el tipo de dato de una tarjeta por su valor: S/ → monto, % → avance, resto → cantidad. */
+export function tipoDistintivo(v: ReactNode): TipoDistintivo {
+  const t = typeof v === "string" || typeof v === "number" ? String(v) : textoDe(v);
+  if (/S\/|US\$|\$/.test(t)) return "monto";
+  if (/%/.test(t)) return "avance";
+  return "cantidad";
+}
+function textoDe(v: ReactNode): string {
+  if (v == null || typeof v === "boolean") return "";
+  if (typeof v === "string" || typeof v === "number") return String(v);
+  if (Array.isArray(v)) return v.map(textoDe).join("");
+  const p = (v as { props?: { children?: ReactNode } }).props;
+  return p ? textoDe(p.children) : "";
+}
+
 export function TarjetaResumen({
   etiqueta,
   cantidad,
@@ -262,8 +278,10 @@ export function TarjetaResumen({
   activa,
   onClick,
   guia,
+  tipo,
 }: {
   guia?: ReactNode;
+  tipo?: TipoDistintivo | undefined;
   etiqueta: string;
   cantidad?: number | undefined;
   valor: ReactNode;
@@ -275,6 +293,7 @@ export function TarjetaResumen({
   const Comp = onClick ? "button" : "div";
   return (
     <Comp
+      data-distintivo={alerta ?? tipo ?? tipoDistintivo(valor)}
       type={onClick ? "button" : undefined}
       onClick={onClick}
       aria-pressed={onClick ? !!activa : undefined}
@@ -393,11 +412,11 @@ export function MenuFiltros({ activos, onLimpiar, children, flotante = false }: 
 }
 
 /** Fila de tarjetas de resumen: etiqueta, dato principal grande y guía o dato secundario en letra pequeña. */
-export function FranjaResumen({ items }: { items: { etiqueta: string; valor: ReactNode; tono?: string; guia?: ReactNode }[] }) {
+export function FranjaResumen({ items }: { items: { etiqueta: string; valor: ReactNode; tono?: string; guia?: ReactNode; tipo?: TipoDistintivo }[] }) {
   return (
     <div className="mb-4 grid auto-rows-fr grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
       {items.map((d) => (
-        <TarjetaResumen key={d.etiqueta} etiqueta={d.etiqueta} valor={<span className={d.tono}>{d.valor}</span>} guia={d.guia} />
+        <TarjetaResumen key={d.etiqueta} etiqueta={d.etiqueta} valor={<span className={d.tono}>{d.valor}</span>} guia={d.guia} tipo={d.tipo ?? tipoDistintivo(d.valor)} />
       ))}
     </div>
   );

@@ -402,7 +402,7 @@ function CajaChica() {
       <Encabezado titulo="Caja Chica" subtitulo="Efectivo entregado y rendición de cuentas" />
 
       <div className="mb-4 grid gap-3 sm:grid-cols-3">
-        <div className="panel rise flex flex-col p-5">
+        <div data-distintivo="monto" className="panel rise flex flex-col p-5">
           <div className="flex items-center justify-between">
             <p className="label-mono">Entregado en efectivo</p>
             <Wallet size={16} className="text-muted-foreground" />
@@ -410,7 +410,7 @@ function CajaChica() {
           <p className="mt-2 text-right text-2xl font-bold tabular-nums tracking-tight text-ink">{soles(totalEntregado)}</p>
           <p className="mt-auto pt-3 text-right text-xs text-muted-foreground">{cajas.length} entrega(s) · {totalAbiertas} caja(s) abierta(s)</p>
         </div>
-        <div className="panel rise flex flex-col p-5">
+        <div data-distintivo="monto" className="panel rise flex flex-col p-5">
           <div className="flex items-center justify-between">
             <p className="label-mono">Rendido con comprobantes</p>
             <Receipt size={16} className="text-muted-foreground" />
@@ -426,7 +426,7 @@ function CajaChica() {
             </div>
           </div>
         </div>
-        <div className={`panel rise flex flex-col p-5 ${pendiente > 0.009 ? "border-warn/40" : ""}`}>
+        <div data-distintivo={pendiente > 0.009 ? "warn" : "monto"} className={`panel rise flex flex-col p-5 ${pendiente > 0.009 ? "border-warn/40" : ""}`}>
           <div className="flex items-center justify-between">
             <p className="label-mono">Pendiente por rendir</p>
             <Hourglass size={16} className="text-muted-foreground" />
