@@ -587,7 +587,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
 
       <div className="mb-4 grid gap-3 sm:grid-cols-3">
         {kpis.map((k) => (
-          <div key={k.t} className="rounded-lg border border-line bg-card p-4">
+          <div key={k.t} data-distintivo="monto" className="rounded-lg border border-line bg-card p-4">
             <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">{k.t}</p>
             <p className="font-mono text-lg font-semibold text-ink">{soles(k.v)}</p>
             <p className="font-mono text-[10px] text-muted-foreground">{k.n} preliquidación(es)</p>

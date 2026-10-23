@@ -80,15 +80,15 @@ function InventarioPage() {
         }
       />
       <div className="mb-5 grid gap-3 sm:grid-cols-3">
-        <div className="panel px-5 py-3">
+        <div data-distintivo="monto" className="panel px-5 py-3">
           <p className="label-mono">Valor del inventario</p>
           <p className="font-mono text-lg font-semibold text-primary">{soles(valorTotal)}</p>
         </div>
-        <div className="panel px-5 py-3">
+        <div data-distintivo="cantidad" className="panel px-5 py-3">
           <p className="label-mono">Ítems con stock</p>
           <p className="font-mono text-lg font-semibold">{filas.filter((f) => f.stock > 0.0001).length}</p>
         </div>
-        <div className="panel px-5 py-3">
+        <div data-distintivo="cantidad" className="panel px-5 py-3">
           <p className="label-mono">Obras con almacén</p>
           <p className="font-mono text-lg font-semibold">{obras.length}</p>
         </div>

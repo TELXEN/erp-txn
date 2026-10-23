@@ -235,9 +235,9 @@ function ImportacionesPage() {
         acciones={<Boton variante="linea" onClick={exportar}><Upload size={14} className="mr-1 inline" /> Exportar a Excel</Boton>}
       />
       <div className="mb-5 grid gap-3 sm:grid-cols-3">
-        <div className="panel px-5 py-3"><p className="label-mono">En curso</p><p className="font-mono text-lg font-semibold">{activas.length}</p></div>
-        <div className="panel px-5 py-3"><p className="label-mono">FOB en curso</p><p className="font-mono text-lg font-semibold text-primary">{usd(fobActivo)}</p></div>
-        <div className="panel px-5 py-3"><p className="label-mono">Total registradas</p><p className="font-mono text-lg font-semibold">{imps.length}</p></div>
+        <div data-distintivo="cantidad" className="panel px-5 py-3"><p className="label-mono">En curso</p><p className="font-mono text-lg font-semibold">{activas.length}</p></div>
+        <div data-distintivo="monto" className="panel px-5 py-3"><p className="label-mono">FOB en curso</p><p className="font-mono text-lg font-semibold text-primary">{usd(fobActivo)}</p></div>
+        <div data-distintivo="cantidad" className="panel px-5 py-3"><p className="label-mono">Total registradas</p><p className="font-mono text-lg font-semibold">{imps.length}</p></div>
       </div>
 
       <VentanaFlotante abierta={modalNueva} onCerrar={() => setModalNueva(false)} titulo="Nueva importación" subtitulo="Registra varias carpetas consecutivamente y cierra cuando termines." ancho="max-w-7xl">

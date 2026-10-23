@@ -530,7 +530,7 @@ function FlujoCaja() {
             <h3 className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">{b.titulo}</h3>
             <div className="grid gap-2">
               {b.items.map((k) => (
-                <div key={k.etiqueta} className={`rounded-md border px-3 py-2 ${b.alertar && k.valor < -0.005 ? "border-bad/30 bg-bad/10" : "border-line bg-card"}`}>
+                <div key={k.etiqueta} data-distintivo={k.valor < -0.005 ? "bad" : "monto"} className={`rounded-md border px-3 py-2 ${b.alertar && k.valor < -0.005 ? "border-bad/30 bg-bad/10" : "border-line bg-card"}`}>
                   <p className="label-mono">{k.etiqueta}</p>
                   <p className={`mt-0.5 text-right text-lg font-semibold tabular-nums ${k.valor < -0.005 ? "text-bad" : "text-ink"}`}>{s2(k.valor)}</p>
                   {k.extra && global && <p className="text-right text-[11px] tabular-nums text-muted-foreground">{k.extra} del objetivo</p>}
