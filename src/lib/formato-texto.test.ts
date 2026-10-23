@@ -2,6 +2,13 @@ import { describe, expect, it } from "vitest";
 import { claveNombre, formatearSiGritado, formatearTexto, ordenarPorNombre } from "./formato-texto";
 
 describe("formatearTexto", () => {
+  it("marcas: primera letra mayúscula sin alterar el resto", () => {
+    expect(formatearTexto("indeco", "marca")).toBe("Indeco");
+    expect(formatearTexto("iPhone", "marca")).toBe("IPhone");
+    expect(formatearSiGritado("INDECO", "marca")).toBe("INDECO");
+    expect(formatearSiGritado("Schneider Electric", "marca")).toBe("Schneider Electric");
+    expect(formatearSiGritado("  marca miXta  ", "marca")).toBe("Marca miXta");
+  });
   it("oración con siglas", () => {
     expect(formatearTexto("CABLE ULTRA FLEXIBLE DE COBRE 12 AWG MARCA INDECO", "oracion")).toBe(
       "Cable ultra flexible de cobre 12 AWG marca indeco",

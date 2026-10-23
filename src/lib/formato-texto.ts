@@ -1,5 +1,5 @@
 // Formato automático de textos del ERP (oración, título, cargo, unidad, mayúsculas).
-export type ModoFormato = "oracion" | "titulo" | "cargo" | "unidad" | "mayusculas";
+export type ModoFormato = "oracion" | "titulo" | "cargo" | "unidad" | "mayusculas" | "marca";
 
 const SIGLAS = new Set([
   "PVC", "HVAC", "LED", "IP65", "ASTM", "ISO", "HA-25", "AC", "DC", "BIM", "CAD", "ERP", "API",
@@ -49,6 +49,7 @@ export function formatearTexto(texto: string, modo: ModoFormato): string {
   const original = String(texto);
   const t = original.replace(/\s+/g, " ").trim();
   if (!t) return t;
+  if (modo === "marca") return capital(t);
   if (modo === "unidad") return normalizarUnidad(t);
   if (modo === "mayusculas") return t.toUpperCase();
 
