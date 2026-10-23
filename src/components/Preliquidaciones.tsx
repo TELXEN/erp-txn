@@ -187,7 +187,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
     { t: "Facturadas del mes", ...grupo((p) => p.estado === "Facturada" && (facturaDe(p.id)?.fecha_emision ?? p.fecha).slice(0, 7) === mesHoy) },
   ];
 
-  const clave = (s: string | null | undefined) => (s ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
+  const clave = (s: string | null | undefined) => (s ?? "").normalize("NFD").replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
   const proyectosDe = (clienteId: string) => {
     const c = clientes.find((x) => x.id === clienteId);
     if (!c) return [];
