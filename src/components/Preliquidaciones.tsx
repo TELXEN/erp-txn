@@ -583,18 +583,18 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
         </div>
       )}
 
-      <div className="mb-4 grid gap-3 sm:grid-cols-3">
+      {!abierto && <div className="mb-4 grid gap-3 sm:grid-cols-3">
         {kpis.map((k) => (
           <div key={k.t} data-distintivo="monto" className="rounded-lg border border-line bg-card p-4">
             <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">{k.t}</p>
             <div className="mt-1 grid grid-cols-2 gap-2">
-              <div><p className="text-[10px] text-muted-foreground">Total en Soles</p><p className="font-mono text-lg font-semibold text-ink">S/ {k.pen.toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p></div>
-              <div><p className="text-[10px] text-muted-foreground">Total en Dólares</p><p className="font-mono text-lg font-semibold text-ink">$ {k.usd.toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p></div>
+              <div><p className="text-[10px] text-muted-foreground">Total en Soles</p><p className="font-mono text-lg font-semibold text-moneda-pen">S/ {k.pen.toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p></div>
+              <div><p className="text-[10px] text-muted-foreground">Total en Dólares</p><p className="font-mono text-lg font-semibold text-moneda-usd">$ {k.usd.toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p></div>
             </div>
             <p className="font-mono text-[10px] text-muted-foreground">{k.n} preliquidación(es)</p>
           </div>
         ))}
-      </div>
+      </div>}
 
       <div className="flex items-start gap-3">
       <Panel className="min-w-0 flex-1"
