@@ -354,7 +354,7 @@ function Partidas() {
               <Upload size={13} />
             </Boton>
             <Boton onClick={abrirNueva}>+ Nueva partida</Boton>
-            <MenuFiltros
+            <MenuFiltros flotante
               activos={[busqueda, filtroProyecto, filtroEsp, filtroTipo].filter(Boolean).length}
               onLimpiar={() => { setBusqueda(""); setFiltroProyecto(""); setFiltroEsp(""); setFiltroTipo(""); }}
             >

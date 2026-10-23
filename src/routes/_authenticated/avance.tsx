@@ -208,7 +208,7 @@ function Avance() {
               <Pestana activa={vista === "cronograma"} onClick={() => setVista("cronograma")}>Avance programado</Pestana>
             </div>
             {vista === "real" && (
-              <MenuFiltros
+              <MenuFiltros flotante
                 activos={[busqueda, filtroProyecto, filtroEsp, orden !== "wbs"].filter(Boolean).length}
                 onLimpiar={() => { setBusqueda(""); setFiltroProyecto(""); setFiltroEsp(""); setOrden("wbs"); }}
               >

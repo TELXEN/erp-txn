@@ -366,15 +366,6 @@ function Proyectos() {
             </button>
           </div>
           <Boton variante="accion" onClick={() => { setError(""); setFormAbierto(true); }}><Plus size={13} /> Nuevo proyecto</Boton>
-          <MenuFiltros activos={[busqueda, clienteFiltro].filter(Boolean).length} onLimpiar={() => { setBusqueda(""); setClienteFiltro(""); }}>
-            <Buscador valor={busqueda} onChange={setBusqueda} total={proyectos.length} placeholder="Buscar proyecto..." />
-            <Campo etiqueta="Cliente">
-              <Select aria-label="Filtrar por cliente" value={clienteFiltro} onChange={(e) => setClienteFiltro(e.target.value)} className="h-8 py-0 text-xs">
-                <option value="">Todos los clientes</option>
-                {clientesFiltro.map((cliente) => <option key={cliente} value={cliente}>{cliente}</option>)}
-              </Select>
-            </Campo>
-          </MenuFiltros>
           </div>
         }
       />
@@ -621,7 +612,15 @@ function Proyectos() {
           </div>
         )}
       </Panel>
-      <BarraIconosHoja objeto="proyecto" haySeleccion={!!actual} onAgregar={() => { setError(""); setFormAbierto(true); }} onEditar={() => { if (actual) abrirEdicion(actual); }} onCopiar={() => { if (actual) void duplicar(actual.id); }} onEliminar={() => { if (actual) { setError(""); setEliminando(actual); } }} extras={<>
+      <BarraIconosHoja objeto="proyecto" filtros={<MenuFiltros activos={[busqueda, clienteFiltro].filter(Boolean).length} onLimpiar={() => { setBusqueda(""); setClienteFiltro(""); }}>
+            <Buscador valor={busqueda} onChange={setBusqueda} total={proyectos.length} placeholder="Buscar proyecto..." />
+            <Campo etiqueta="Cliente">
+              <Select aria-label="Filtrar por cliente" value={clienteFiltro} onChange={(e) => setClienteFiltro(e.target.value)} className="h-8 py-0 text-xs">
+                <option value="">Todos los clientes</option>
+                {clientesFiltro.map((cliente) => <option key={cliente} value={cliente}>{cliente}</option>)}
+              </Select>
+            </Campo>
+          </MenuFiltros>} haySeleccion={!!actual} onAgregar={() => { setError(""); setFormAbierto(true); }} onEditar={() => { if (actual) abrirEdicion(actual); }} onCopiar={() => { if (actual) void duplicar(actual.id); }} onEliminar={() => { if (actual) { setError(""); setEliminando(actual); } }} extras={<>
         {actual && <Desglose
                               o={ofertaProyecto(
                                 partidas.filter((x) => x.proyecto_id === actual.id),
