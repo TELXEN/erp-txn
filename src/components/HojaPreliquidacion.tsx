@@ -334,8 +334,6 @@ export function HojaPreliquidacion(props: Props) {
               <div className="flex justify-between" style={{ marginTop: 5 }}><span>Vencimiento estimado</span><span>{F(fechaVencimiento)}</span></div>
             </>
           )}
-          {moneda === "USD" && (
-          )}
         </div>
         <div style={{ width: "42%" }}>
           <div className="flex justify-between" style={{ padding: "5px 0", borderBottom: `1px solid ${DOC.line}` }}><span>Valor ejecutado</span><span>{D(bruto)}</span></div>
