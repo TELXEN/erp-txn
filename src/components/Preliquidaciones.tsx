@@ -533,45 +533,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
               onLinea={(i, cambios) => setLineas(lineas.map((x, k) => (k === i ? { ...x, ...cambios } : x)))}
               onQuitarLinea={(i) => setLineas(lineas.filter((_, k) => k !== i))}
               onAgregarLinea={() => setLineas([...lineas, itemVacio()])}
-              accionesLineas={
-                <Boton type="button" variante="linea" disabled={!form.proyecto_id} onClick={() => setSelectorPartidas(!selectorPartidas)}>
-                  <ListPlus size={13} /> Cargar partidas de la obra
-                </Boton>
-              }
             />
-
-            {selectorPartidas && (
-              <div className="mt-3 rounded-lg border border-line bg-muted/20 p-3">
-                {partidasObra.length === 0 ? (
-                  <p className="font-mono text-xs text-muted-foreground">Esta obra no tiene partidas registradas.</p>
-                ) : (
-                  <>
-                    <p className="mb-2 font-mono text-[10px] text-muted-foreground">
-                      P.U. incluye gastos generales y utilidad de la obra. Marca las partidas a cobrar:
-                    </p>
-                    <div className="max-h-56 space-y-1 overflow-y-auto">
-                      {partidasObra.map((p) => (
-                        <label key={p.id} className="flex cursor-pointer items-center gap-2 font-mono text-xs">
-                          <input
-                            type="checkbox"
-                            checked={marcadas.includes(p.id)}
-                            onChange={(e) => setMarcadas(e.target.checked ? [...marcadas, p.id] : marcadas.filter((x) => x !== p.id))}
-                          />
-                          <span className="text-muted-foreground">{p.codigo}</span> {p.nombre}
-                          <span className="ml-auto text-muted-foreground">{Number(p.metrado)} {p.unidad}</span>
-                        </label>
-                      ))}
-                    </div>
-                    <div className="mt-2 flex gap-2">
-                      <Boton type="button" disabled={!marcadas.length} onClick={cargarPartidas}>Agregar {marcadas.length || ""} partida(s)</Boton>
-                      <Boton type="button" variante="linea" onClick={() => setMarcadas(marcadas.length === partidasObra.length ? [] : partidasObra.map((p) => p.id))}>
-                        {marcadas.length === partidasObra.length ? "Quitar todas" : "Marcar todas"}
-                      </Boton>
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
 
             <div className="mt-4 flex gap-2">
               <Boton type="submit">{editando ? "Guardar cambios" : "Guardar borrador"}</Boton>
