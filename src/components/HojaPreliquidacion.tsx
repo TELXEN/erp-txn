@@ -208,15 +208,7 @@ export function HojaPreliquidacion(props: Props) {
           ) : (
             <div style={valor}>{moneda === "USD" ? "Dólares (USD)" : "Soles (PEN)"}</div>
           )}
-          {moneda === "USD" &&
-            (editable ? (
-              <div style={{ ...subvalor, display: "flex", alignItems: "center", gap: 4 }}>
-                T.C.
-                <input type="number" step="0.001" min="0" value={tipoCambio || ""} onChange={(e) => onCampo?.("tipo_cambio", e.target.value)} style={{ ...ed, width: 70 }} />
-              </div>
-            ) : (
-              <div style={subvalor}>T.C. {N(tc, 3)}</div>
-            ))}
+          {moneda === "USD" && <div style={subvalor} title="Tipo de cambio SUNAT (Decolecta), solo para calcular la detracción o retención">T.C. detracción {N(tc, 3)}</div>}
         </div>
       </div>
 
@@ -343,7 +335,6 @@ export function HojaPreliquidacion(props: Props) {
             </>
           )}
           {moneda === "USD" && (
-            <div className="flex justify-between" style={{ marginTop: 5 }}><span>Total referencial en PEN</span><span>S/ {N(mm.total * tc)}</span></div>
           )}
         </div>
         <div style={{ width: "42%" }}>
