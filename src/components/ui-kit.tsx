@@ -1,6 +1,6 @@
 import type { ReactNode, InputHTMLAttributes, SelectHTMLAttributes, ButtonHTMLAttributes } from "react";
-import { useEffect, useState } from "react";
-import { Inbox, Info, SlidersHorizontal, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Inbox, Info, Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 
@@ -261,7 +261,9 @@ export function TarjetaResumen({
   alerta,
   activa,
   onClick,
+  guia,
 }: {
+  guia?: ReactNode;
   etiqueta: string;
   cantidad?: number | undefined;
   valor: ReactNode;
@@ -277,7 +279,7 @@ export function TarjetaResumen({
       onClick={onClick}
       aria-pressed={onClick ? !!activa : undefined}
       className={cn(
-        "panel block w-full p-4 text-left transition-colors",
+        "panel flex h-full w-full flex-col p-4 text-left transition-colors",
         onClick && "hover:border-primary/50",
         activa && "border-primary ring-2 ring-primary/30",
       )}
@@ -286,7 +288,8 @@ export function TarjetaResumen({
         {etiqueta}
         {cantidad !== undefined && ` (${cantidad})`}
       </p>
-      <p className={cn("mt-1 font-mono text-xl font-bold tabular-nums", color)}>{valor}</p>
+      <p className={cn("mt-1 truncate font-mono text-xl font-bold tabular-nums", color)}>{valor}</p>
+      <p className="mt-0.5 min-h-[15px] truncate text-[11px] leading-[15px] text-muted-foreground">{guia}</p>
     </Comp>
   );
 }
@@ -348,23 +351,39 @@ export function InfoTooltip({ content }: { content: ReactNode }) {
 }
 
 
-/** Botón «Filtros» con menú desplegable para filtros secundarios; muestra cuántos están activos. */
+/** Lupa con menú desplegable que agrupa la búsqueda y los filtros de la página. */
 export function MenuFiltros({ activos, onLimpiar, children }: { activos: number; onLimpiar: () => void; children: ReactNode }) {
   const [abierto, setAbierto] = useState(false);
+  const panel = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!abierto) return;
+    panel.current?.querySelector<HTMLElement>("input, select")?.focus();
+    const tecla = (e: KeyboardEvent) => e.key === "Escape" && setAbierto(false);
+    window.addEventListener("keydown", tecla);
+    return () => window.removeEventListener("keydown", tecla);
+  }, [abierto]);
   return (
     <div className="relative">
       <button
         type="button"
         onClick={() => setAbierto((v) => !v)}
         aria-expanded={abierto}
-        className="inline-flex h-7 items-center gap-1.5 rounded-md border border-line bg-card px-2.5 text-xs text-ink hover:bg-muted"
+        aria-label="Buscar y filtrar"
+        title="Buscar y filtrar"
+        className={cn(
+          "relative inline-flex h-8 w-8 items-center justify-center rounded-md border border-line bg-card text-ink hover:bg-muted",
+          abierto && "border-primary",
+        )}
       >
-        <SlidersHorizontal size={13} /> Filtros{activos > 0 && <span className="rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">{activos}</span>}
+        <Search size={15} />
+        {activos > 0 && (
+          <span className="absolute -right-1.5 -top-1.5 min-w-4 rounded-full bg-primary px-1 text-center text-[10px] font-bold leading-4 text-primary-foreground">{activos}</span>
+        )}
       </button>
       {abierto && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setAbierto(false)} />
-          <div className="absolute right-0 top-full z-50 mt-1 grid w-64 gap-2 rounded-md border border-line bg-paper p-3 text-ink shadow-lg">
+          <div ref={panel} className="absolute right-0 top-full z-50 mt-1 grid w-72 gap-2.5 rounded-md border border-line bg-paper p-3 text-ink shadow-lg">
             {children}
             <button type="button" onClick={onLimpiar} className="justify-self-end text-[11px] text-primary hover:underline">Limpiar filtros</button>
           </div>
@@ -374,15 +393,12 @@ export function MenuFiltros({ activos, onLimpiar, children }: { activos: number;
   );
 }
 
-/** Fila de tarjetas de resumen con el mismo tamaño que TarjetaResumen (Cotizaciones). */
-export function FranjaResumen({ items }: { items: { etiqueta: string; valor: ReactNode; tono?: string }[] }) {
+/** Fila de tarjetas de resumen: etiqueta, dato principal grande y guía o dato secundario en letra pequeña. */
+export function FranjaResumen({ items }: { items: { etiqueta: string; valor: ReactNode; tono?: string; guia?: ReactNode }[] }) {
   return (
-    <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+    <div className="mb-4 grid auto-rows-fr grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
       {items.map((d) => (
-        <div key={d.etiqueta} className="panel p-4">
-          <p className="label-mono text-muted-foreground">{d.etiqueta}</p>
-          <p className={cn("mt-1 font-mono text-xl font-bold tabular-nums text-ink", d.tono)}>{d.valor}</p>
-        </div>
+        <TarjetaResumen key={d.etiqueta} etiqueta={d.etiqueta} valor={<span className={d.tono}>{d.valor}</span>} guia={d.guia} />
       ))}
     </div>
   );

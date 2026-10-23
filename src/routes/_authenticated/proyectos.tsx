@@ -5,7 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Archive, Calculator, Eye, Info, LayoutGrid, Plus, Table2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, BotonIcono, FranjaResumen, InfoTooltip, Input, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
+import { Boton, BotonIcono, Campo, FranjaResumen, InfoTooltip, MenuFiltros, Input, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 function estadoDe(situacion: string): "En Ejecucion" | "Finalizado" {
@@ -349,11 +349,6 @@ function Proyectos() {
         subtitulo="Obras de la empresa"
         acciones={
           <div className="flex flex-wrap items-center gap-1.5">
-          <Buscador valor={busqueda} onChange={setBusqueda} total={proyectos.length} placeholder="Buscar proyecto..." />
-          <Select aria-label="Filtrar por cliente" value={clienteFiltro} onChange={(e) => setClienteFiltro(e.target.value)} className="h-7 w-44 py-0 text-xs">
-            <option value="">Todos los clientes</option>
-            {clientesFiltro.map((cliente) => <option key={cliente} value={cliente}>{cliente}</option>)}
-          </Select>
           <div className="flex items-center gap-1 rounded-md border border-line bg-card p-1">
             <button
               type="button"
@@ -371,6 +366,15 @@ function Proyectos() {
             </button>
           </div>
           <Boton variante="accion" onClick={() => { setError(""); setFormAbierto(true); }}><Plus size={13} /> Nuevo proyecto</Boton>
+          <MenuFiltros activos={[busqueda, clienteFiltro].filter(Boolean).length} onLimpiar={() => { setBusqueda(""); setClienteFiltro(""); }}>
+            <Buscador valor={busqueda} onChange={setBusqueda} total={proyectos.length} placeholder="Buscar proyecto..." />
+            <Campo etiqueta="Cliente">
+              <Select aria-label="Filtrar por cliente" value={clienteFiltro} onChange={(e) => setClienteFiltro(e.target.value)} className="h-8 py-0 text-xs">
+                <option value="">Todos los clientes</option>
+                {clientesFiltro.map((cliente) => <option key={cliente} value={cliente}>{cliente}</option>)}
+              </Select>
+            </Campo>
+          </MenuFiltros>
           </div>
         }
       />
@@ -498,11 +502,11 @@ function Proyectos() {
 
       <FranjaResumen
         items={[
-          { etiqueta: "Proyectos activos", valor: `${resumen.total} (${resumen.enEjecucion} en ejec.)` },
-          { etiqueta: "Presupuesto cartera", valor: soles(resumen.presupuesto) },
-          { etiqueta: "Costo ejecutado", valor: resumen.presupuesto > 0 ? `${soles(resumen.costo)} · ${((resumen.costo / resumen.presupuesto) * 100).toFixed(1)}%` : soles(resumen.costo) },
-          { etiqueta: "Avance físico promedio", valor: resumen.avancePromedio === null ? "—" : `${resumen.avancePromedio.toFixed(1)}%` },
-          { etiqueta: "En esta vista", valor: String(proyectos.length) },
+          { etiqueta: "Proyectos activos", valor: String(resumen.total), guia: `${resumen.enEjecucion} en ejecución` },
+          { etiqueta: "Presupuesto cartera", valor: soles(resumen.presupuesto), guia: "Suma de partidas" },
+          { etiqueta: "Costo ejecutado", valor: soles(resumen.costo), guia: resumen.presupuesto > 0 ? `${((resumen.costo / resumen.presupuesto) * 100).toFixed(1)}% del presupuesto` : "Sin presupuesto" },
+          { etiqueta: "Avance físico promedio", valor: resumen.avancePromedio === null ? "—" : `${resumen.avancePromedio.toFixed(1)}%`, guia: "Obras con partidas" },
+          { etiqueta: "En esta vista", valor: String(proyectos.length), guia: "Según filtros aplicados" },
         ]}
       />
 

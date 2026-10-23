@@ -859,9 +859,9 @@ function Cotizaciones() {
       </p>
 
       <div className="mb-4 grid gap-3 sm:grid-cols-3">
-        <TarjetaResumen etiqueta="Cotizado este mes" valor={soles(kpiMes)} />
-        <TarjetaResumen etiqueta="Aprobadas" cantidad={kpiAprob.length} valor={soles(kpiAprob.reduce((s, c) => s + total(c.id), 0))} />
-        <TarjetaResumen etiqueta="Pendientes de respuesta" cantidad={kpiPend.length} valor={soles(kpiPend.reduce((s, c) => s + total(c.id), 0))} alerta={kpiPend.length > 0 ? "warn" : undefined} />
+        <TarjetaResumen etiqueta="Cotizado este mes" valor={soles(kpiMes)} guia="Emitidas en el mes actual" />
+        <TarjetaResumen etiqueta="Aprobadas" cantidad={kpiAprob.length} valor={soles(kpiAprob.reduce((s, c) => s + total(c.id), 0))} guia="Aceptadas por el cliente" />
+        <TarjetaResumen etiqueta="Pendientes de respuesta" cantidad={kpiPend.length} valor={soles(kpiPend.reduce((s, c) => s + total(c.id), 0))} alerta={kpiPend.length > 0 ? "warn" : undefined} guia="Enviadas, sin respuesta" />
       </div>
 
       <div role="tablist" aria-label="Estado de cotizaciones" className="mb-4 flex flex-wrap gap-1 border-b border-line">

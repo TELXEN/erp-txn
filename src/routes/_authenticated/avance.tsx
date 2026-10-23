@@ -5,7 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Check, ChevronDown, ChevronRight, Minus, Plus, Save, Search, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, FranjaResumen, Input, MenuFiltros, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
+import { Boton, Campo, FranjaResumen, Input, MenuFiltros, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { useAuth } from "@/lib/auth";
 import { ESPECIALIDADES } from "@/lib/format";
 import { CronogramaObra } from "@/components/CronogramaObra";
@@ -203,40 +203,44 @@ function Avance() {
         subtitulo="Registro de campo"
         acciones={
           <div className="flex flex-wrap items-center gap-1.5">
-            {vista === "real" && (
-              <>
-                <div className="relative w-44">
-                  <Search size={13} className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                  <Input className="h-7 py-0 pl-7 text-xs" placeholder="Buscar partida..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
-                </div>
-                <Select aria-label="Proyecto" className="h-7 w-36 py-0 text-xs" value={filtroProyecto} onChange={(e) => setFiltroProyecto(e.target.value)}>
-                  <option value="">Todos los proyectos</option>
-                  {proyectos.map((p) => (
-                    <option key={p.id} value={p.id}>{p.nombre}</option>
-                  ))}
-                </Select>
-                <Select aria-label="Especialidad" className="h-7 w-36 py-0 text-xs" value={filtroEsp} onChange={(e) => setFiltroEsp(e.target.value)}>
-                  <option value="">Todas las especialidades</option>
-                  {ESPECIALIDADES.map((e) => (
-                    <option key={e} value={e}>{e}</option>
-                  ))}
-                </Select>
-                <MenuFiltros activos={orden !== "wbs" ? 1 : 0} onLimpiar={() => setOrden("wbs")}>
-                  <label className="grid gap-1 text-[11px] text-muted-foreground">
-                    Orden
-                    <Select className="h-7 py-0 text-xs" value={orden} onChange={(e) => setOrden(e.target.value as Orden)}>
-                      <option value="wbs">Código WBS</option>
-                      <option value="avance">Mayor avance</option>
-                      <option value="nombre">Alfabético</option>
-                    </Select>
-                  </label>
-                </MenuFiltros>
-              </>
-            )}
             <div className="flex items-center gap-0.5 rounded-md border border-line bg-card p-0.5">
               <Pestana activa={vista === "real"} onClick={() => setVista("real")}>Avance real</Pestana>
               <Pestana activa={vista === "cronograma"} onClick={() => setVista("cronograma")}>Avance programado</Pestana>
             </div>
+            {vista === "real" && (
+              <MenuFiltros
+                activos={[busqueda, filtroProyecto, filtroEsp, orden !== "wbs"].filter(Boolean).length}
+                onLimpiar={() => { setBusqueda(""); setFiltroProyecto(""); setFiltroEsp(""); setOrden("wbs"); }}
+              >
+                <div className="relative">
+                  <Search size={13} className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <Input className="h-8 py-0 pl-7 text-xs" placeholder="Buscar partida..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
+                </div>
+                <Campo etiqueta="Proyecto">
+                  <Select className="h-8 py-0 text-xs" value={filtroProyecto} onChange={(e) => setFiltroProyecto(e.target.value)}>
+                    <option value="">Todos los proyectos</option>
+                    {proyectos.map((p) => (
+                      <option key={p.id} value={p.id}>{p.nombre}</option>
+                    ))}
+                  </Select>
+                </Campo>
+                <Campo etiqueta="Especialidad">
+                  <Select className="h-8 py-0 text-xs" value={filtroEsp} onChange={(e) => setFiltroEsp(e.target.value)}>
+                    <option value="">Todas las especialidades</option>
+                    {ESPECIALIDADES.map((e) => (
+                      <option key={e} value={e}>{e}</option>
+                    ))}
+                  </Select>
+                </Campo>
+                <Campo etiqueta="Orden">
+                  <Select className="h-8 py-0 text-xs" value={orden} onChange={(e) => setOrden(e.target.value as Orden)}>
+                    <option value="wbs">Código WBS</option>
+                    <option value="avance">Mayor avance</option>
+                    <option value="nombre">Alfabético</option>
+                  </Select>
+                </Campo>
+              </MenuFiltros>
+            )}
           </div>
         }
       />
@@ -248,11 +252,11 @@ function Avance() {
 
           <FranjaResumen
             items={[
-              { etiqueta: "Avance promedio", valor: `${resumen.promedio.toFixed(1)}%` },
-              { etiqueta: "Partidas", valor: resumen.total },
-              { etiqueta: "Sin iniciar", valor: resumen.sinIniciar, tono: "text-muted-foreground" },
-              { etiqueta: "En curso", valor: resumen.enCurso, tono: "text-warn" },
-              { etiqueta: "Terminadas", valor: resumen.terminadas, tono: "text-good" },
+              { etiqueta: "Avance promedio", valor: `${resumen.promedio.toFixed(1)}%`, guia: "Promedio de partidas visibles" },
+              { etiqueta: "Partidas", valor: resumen.total, guia: "Según filtros aplicados" },
+              { etiqueta: "Sin iniciar", valor: resumen.sinIniciar, tono: "text-muted-foreground", guia: "0% de avance" },
+              { etiqueta: "En curso", valor: resumen.enCurso, tono: "text-warn", guia: "Entre 1% y 99%" },
+              { etiqueta: "Terminadas", valor: resumen.terminadas, tono: "text-good", guia: "100% de avance" },
             ]}
           />
 
