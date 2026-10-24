@@ -45,6 +45,7 @@ import {
   Gauge,
   ShoppingBag,
   Landmark,
+  Palette,
   Layers,
   Package,
   ShoppingCart,
