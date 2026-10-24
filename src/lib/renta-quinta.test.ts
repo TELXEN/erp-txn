@@ -25,9 +25,9 @@ const r = (n: number) => Math.round(n * 100) / 100;
 
 import { acumuladoAnterior } from "./renta-quinta";
 describe("meses anteriores por fecha de ingreso", () => {
-  const base = { anio: 2026, mes: 10, sueldoContractual: 8000, uit: 5500, eps: false };
+  const base = { anio: 2026, mes: 10, sueldoContractual: () => 8000, uit: 5500, eps: false };
   it("ingreso en octubre: sin meses previos", () => {
-    expect(acumuladoAnterior({ ...base, fechaIngreso: "2026-10-01", reales: [] })).toEqual({ pagado: 0, retenido: 0, estimados: 0 });
+    expect(acumuladoAnterior({ ...base, fechaIngreso: "2026-10-01", reales: [] })).toMatchObject({ pagado: 0, retenido: 0, estimados: 0 });
   });
   it("ingreso en enero sin boletas: estima 9 meses", () => {
     const a = acumuladoAnterior({ ...base, fechaIngreso: "2026-01-02", reales: [] });
@@ -39,5 +39,15 @@ describe("meses anteriores por fecha de ingreso", () => {
     const a = acumuladoAnterior({ ...base, fechaIngreso: "2026-01-02", reales: [{ mes: 9, ingresos: 7000, retenido: 500 }] });
     expect(a.estimados).toBe(8);
     expect(a.pagado).toBe(64000 + 7000);
+  });
+});
+
+describe("procedimiento SUNAT con RMV variable (caso adjunto)", () => {
+  it("proyección anual = 51,273.24 para S/ 3,500 con asignación 113→123", () => {
+    const rem = (m: number) => 3500 + (m >= 10 ? 123 : 113);
+    const a = acumuladoAnterior({ anio: 2026, mes: 10, fechaIngreso: "2026-01-02", sueldoContractual: rem, reales: [], uit: 5500, eps: false });
+    const d = calcularRentaQuinta({ mes: 10, sueldoMes: rem(10), remFutura: rem(10), gratiJulio: rem(7), gratiDic: rem(12), pagadoAnterior: a.pagado, retenidoAnterior: a.retenido, uit: 5500, eps: false });
+    expect(d.proyectada).toBe(51273.24);
+    expect(d.rentaNeta).toBe(12773.24);
   });
 });
