@@ -351,7 +351,7 @@ function Personal() {
           )}
         </label>
         {!planilla && f.suspension_cuarta && (
-          <>
+          <div className="col-span-full grid grid-cols-3 gap-2">
             <CampoF etiqueta="Fecha de la suspensión" req>
               <Input type="date" value={f.suspension_cuarta_fecha} onChange={(e) => { set("suspension_cuarta_fecha", e.target.value); if (e.target.value) set("suspension_cuarta_anio", String(new Date().getFullYear())); }} required className="py-1.5" />
             </CampoF>
@@ -365,7 +365,7 @@ function Personal() {
               </div>
             </CampoF>
             <p className="col-span-full mt-1 text-[10px] text-muted-foreground">El año de vigencia se toma solo del año actual y se renueva al registrar una fecha nueva. Exime de retención solo a recibos de ese año emitidos al menos 2 días después de esta fecha.</p>
-          </>
+          </div>
         )}
       </>
     );
