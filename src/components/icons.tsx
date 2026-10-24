@@ -24,11 +24,10 @@ export function ReciboCodigoBarras({ className, ...props }: SVGProps<SVGSVGEleme
     >
       {/* Recibo con bordes dentados arriba y abajo */}
       <path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z" />
-      {/* Código de barras */}
-      <path strokeWidth={1} d="M8 8v6" />
-      <path strokeWidth={1.8} d="M10.8 8v6" />
-      <path strokeWidth={0.8} d="M13.2 8v6" />
-      <path strokeWidth={1.8} d="M16 8v6" />
+      {/* Código de barras: tres barras separadas para que se lean bien a 16 px */}
+      <path strokeWidth={1.2} d="M8.5 9v5" />
+      <path strokeWidth={2} d="M12 9v5" />
+      <path strokeWidth={1.2} d="M15.5 9v5" />
     </svg>
   );
 }
