@@ -540,10 +540,11 @@ function Tesoreria() {
           {tcInfo?.aviso && !(tcInfo.venta > 0) && tcHoy > 0 && <p className="mt-1 text-[11px] text-warn">Se usa el TC de la última factura en USD como referencia.</p>}
           {tcInfo?.aviso && !(tcHoy > 0) && <p className="mt-1 flex items-center gap-1 text-[11px] text-warn"><AlertTriangle size={12} /> {tcInfo.aviso}</p>}
         </div>
-        <div className="text-right">
+        <div data-distintivo={consolidado < 0 ? "bad" : "monto"} className="panel flex flex-col justify-center gap-0.5 self-stretch px-5 py-3 text-right">
           <p className={`text-3xl font-bold tabular-nums tracking-tight ${consolidado < 0 ? "text-bad" : "text-ink"}`}>{soles(consolidado)}</p>
           <p className="text-xs tabular-nums text-muted-foreground">PEN {dinero(saldoPEN, "PEN")} · USD {dinero(saldoUSD, "USD")}</p>
         </div>
+
       </div>
 
       <Panel
