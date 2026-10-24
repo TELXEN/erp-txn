@@ -4,7 +4,7 @@
 - Al generar o recalcular la planilla del mes, la columna **Renta 5ta** se llena sola para los trabajadores en planilla cuya renta anual proyectada supera 7 UIT. Los que no llegan quedan en 0.
 - El monto sigue siendo editable en la boleta; si lo cambias a mano, se marca como «manual» y no se pisa al recalcular.
 - Al pasar el cursor sobre el monto se ve el detalle: renta proyectada, menos 7 UIT, impuesto anual, retenido en meses anteriores y divisor del mes.
-- La UIT del año se configura en **Datos de AFP** (por defecto S/ 5,350 para 2025; se pide confirmar el valor 2026).
+- La UIT del año se configura en **Datos de AFP**; se carga S/ 5,500 para 2026 (7 UIT = S/ 38,500).
 - En **Registro de personal** se agrega la opción **Seguro de salud: EsSalud / EPS** (EsSalud por defecto). Se usa para la bonificación de gratificación (9 % o 6.75 %) en la proyección de renta de 5ta y aparece en la lista y en la exportación Excel.
 
 ## Regla de cálculo (SUNAT, procedimiento mensual)
