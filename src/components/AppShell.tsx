@@ -61,7 +61,6 @@ import {
   Truck,
   Users,
   ReceiptText,
-  FileSpreadsheet,
   HandCoins,
   Wallet,
   ShieldCheck,
