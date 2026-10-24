@@ -573,7 +573,7 @@ function Tesoreria() {
               <div key={s.c.id}
                 onContextMenu={(e) => { e.preventDefault(); if (transferible) setTransferir(s); else setDetraccion({ s, tipo: "pago_sunat" }); }}
                 title={transferible ? "Clic derecho para transferir a otra cuenta" : "Clic derecho para registrar ingresos o pagos a SUNAT"}
-                className={`rounded-lg border p-3 text-xs cursor-context-menu ${s.saldo < 0 ? "border-bad/40 bg-bad/10" : transferible ? "border-line" : "border-warn/40 bg-warn/5"}`}>
+                className={`rounded-lg border p-4 text-xs cursor-context-menu ${s.saldo < 0 ? "border-bad/40 bg-bad/10" : transferible ? "border-line" : "border-warn/40 bg-warn/5"}`}>
                 <div className="flex justify-between gap-2">
                   <b className="text-ink">{s.c.nombre}</b>
                   <span className="flex items-center gap-1.5 text-muted-foreground">{s.c.monedas} · {s.c.tipo_cuenta}
@@ -594,7 +594,7 @@ function Tesoreria() {
                   {s.saldo < 0 && <AlertTriangle size={16} />}
                   {dinero(s.saldo, s.c.monedas)}
                 </p>
-                <div className="mt-1 space-y-0.5 text-[11px] tabular-nums text-muted-foreground">
+                <div className="mt-2 space-y-1 border-t border-line/70 pt-2 text-[11px] tabular-nums text-muted-foreground">
                   <div className="flex justify-between"><span>Inicial</span><span>{dinero(s.c.saldo_inicial, s.c.monedas)}</span></div>
                   <div className="flex justify-between"><span>Ingresos (+)</span><span className="text-good">{dinero(s.ingresos, s.c.monedas)}</span></div>
                   <div className="flex justify-between"><span>Egresos (−)</span><span className="text-bad">{dinero(s.egresos, s.c.monedas)}</span></div>
