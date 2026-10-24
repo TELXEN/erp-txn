@@ -531,10 +531,11 @@ function Tesoreria() {
             })}
           </div>
 
-          <div className="panel mb-4 flex flex-wrap items-center justify-between gap-4 border-primary/30 bg-primary/5 p-5">
+          <div className="panel mb-4 flex flex-wrap items-center justify-between gap-4 border-primary/30 bg-primary/5 p-4">
         <div>
-          <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">Balance consolidado en PEN</p>
-          <p className="mt-1 text-xs text-muted-foreground">
+          <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">Balance consolidado en PEN</p>
+          <p className="mt-1 text-[13px] text-muted-foreground">
+
             {tcHoy > 0 ? `TC venta ${tcHoy.toFixed(3)}${tcInfo?.venta ? ` · ${fmtFecha(tcInfo.fecha)} · ${tcInfo.fuente}` : " · referencial"}` : "Sin tipo de cambio"}
           </p>
           {tcInfo?.aviso && !(tcInfo.venta > 0) && tcHoy > 0 && <p className="mt-1 text-[11px] text-warn">Se usa el TC de la última factura en USD como referencia.</p>}
