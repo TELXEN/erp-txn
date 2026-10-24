@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 
 const RanuraEncabezado = createContext<HTMLElement | null>(null);
 import { FormatoGlobal } from "@/components/FormatoGlobal";
-import { ReciboCodigoBarras } from "@/components/icons";
+import { ReciboCodigoBarras, NominaBoletas } from "@/components/icons";
 import { Calculator, ChevronDown, PanelLeftClose, PanelLeftOpen, Maximize2, Minimize2 } from "lucide-react";
 
 function BotonPantallaCompleta() {
@@ -130,7 +130,7 @@ const MENU: Categoria[] = [
       { a: "/personal", texto: "Personal", roles: ["administrador", "gerente"], icono: Users },
       { a: "/tareo", texto: "Tareo Diario", roles: ["administrador", "gerente"], icono: CalendarDays },
       { a: "/honorarios", texto: "Recibos por Honorarios", roles: ["administrador", "gerente"], icono: ReceiptText },
-      { a: "/nomina", texto: "Nómina y Boletas", roles: ["administrador", "gerente"], icono: FileSpreadsheet },
+      { a: "/nomina", texto: "Nómina y Boletas", roles: ["administrador", "gerente"], icono: NominaBoletas },
       { a: "/beneficios", texto: "Beneficios Sociales", roles: ["administrador", "gerente"], icono: HandCoins },
     ],
   },
