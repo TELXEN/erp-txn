@@ -5,7 +5,7 @@ import { previsualizarCodigoDocumento, useCodificacionDocumento } from "@/lib/co
 import { costoReceta } from "@/lib/banco-apu";
 import { ordenarPorNombre } from "@/lib/formato-texto";
 
-export type EstadoCotizacion = "Borrador" | "Enviada" | "Aprobada" | "Rechazada";
+export type EstadoCotizacion = "Borrador" | "Enviada" | "Aprobada" | "Rechazada" | "Retomada";
 
 export const ESTADOS_COTIZACION: EstadoCotizacion[] = ["Borrador", "Enviada", "Aprobada", "Rechazada"];
 
@@ -28,6 +28,7 @@ export type Cotizacion = {
   proyecto_id: string | null;
   aplica_igv?: boolean;
   revision?: string;
+  retoma_de_id?: string | null;
   recursos_humanos?: string;
   tiempo_ejecucion?: string;
   condiciones_pago?: string;
@@ -528,7 +529,8 @@ export async function crearRevision(
   const { data: nueva, error: e1 } = await supabase
     .from("cotizaciones")
     .insert({
-      codigo: cot.codigo,
+      codigo: opciones.codigo ?? cot.codigo,
+      retoma_de_id: opciones.codigo ? cot.id : (cot.retoma_de_id ?? null),
       cliente_id: cot.cliente_id ?? null,
       cliente: cot.cliente,
       nombre: cot.nombre,
@@ -580,7 +582,10 @@ export async function crearRevision(
           marca: i.marca,
           unidad: i.unidad,
           metrado: i.metrado,
-          precio_unitario: i.precio_unitario,
+          precio_unitario:
+            precios && i.tipo !== "grupo" && precios.has(String(i.nombre).trim().toLowerCase())
+              ? precioMaestroEnMoneda(precios.get(String(i.nombre).trim().toLowerCase()) ?? 0, cot.moneda, Number(cot.tipo_cambio))
+              : i.precio_unitario,
           rendimiento: i.rendimiento,
           jornada: i.jornada,
           pct_herramientas: i.pct_herramientas,
