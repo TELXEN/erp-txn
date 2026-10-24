@@ -168,3 +168,11 @@ export function cabeceras(d0: number, d1: number, zoom: "dia" | "semana" | "quin
   }
   return { superior, inferior };
 }
+
+// Números de día más pequeños cuando la obra dura más de un mes, para que quepan más en la pantalla.
+export function letraNumerosDias(diasTotales: number, vistaDias: boolean) {
+  if (!vistaDias) return 10;
+  if (diasTotales > 120) return 8;
+  if (diasTotales > 31) return 9;
+  return 10;
+}
