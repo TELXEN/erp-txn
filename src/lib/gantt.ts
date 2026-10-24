@@ -25,8 +25,10 @@ export function rangoPartida(partidaId: string, cron: CronogramaPartida[], per: 
     .filter((c) => c.partida_id === partidaId && (c.periodicidad ?? "mes") === per && Number(c.pct) > 0)
     .map((c) => c.fecha_inicio)
     .sort();
-  if (!filas.length) return null;
-  return { inicio: filas[0], fin: finPeriodo(filas[filas.length - 1]) };
+  const primero = filas[0];
+  const ultimo = filas[filas.length - 1];
+  if (!primero || !ultimo) return null;
+  return { inicio: primero, fin: finPeriodo(ultimo) };
 }
 
 export type Tarea = { id: string; inicio: number; duracion: number };
@@ -44,16 +46,18 @@ export type ResultadoCpm = {
 export function calcularCpm(tareas: Tarea[], deps: Dependencia[]): ResultadoCpm {
   const ids = new Set(tareas.map((t) => t.id));
   const validas = deps.filter((d) => ids.has(d.predecesora_id) && ids.has(d.sucesora_id));
-  const dur = Object.fromEntries(tareas.map((t) => [t.id, t.duracion]));
+  const n = (r: Record<string, number>, k: string) => r[k] ?? 0;
+  const dur: Record<string, number> = Object.fromEntries(tareas.map((t) => [t.id, t.duracion]));
+  const ini: Record<string, number> = Object.fromEntries(tareas.map((t) => [t.id, t.inicio]));
   const entrada: Record<string, number> = Object.fromEntries(tareas.map((t) => [t.id, 0]));
-  validas.forEach((d) => (entrada[d.sucesora_id] += 1));
-  const cola = tareas.filter((t) => entrada[t.id] === 0).map((t) => t.id);
+  validas.forEach((d) => (entrada[d.sucesora_id] = n(entrada, d.sucesora_id) + 1));
+  const cola = tareas.filter((t) => n(entrada, t.id) === 0).map((t) => t.id);
   const orden: string[] = [];
-  while (cola.length) {
-    const id = cola.shift()!;
+  for (let id = cola.shift(); id !== undefined; id = cola.shift()) {
     orden.push(id);
-    validas.filter((d) => d.predecesora_id === id).forEach((d) => {
-      entrada[d.sucesora_id] -= 1;
+    const actual = id;
+    validas.filter((d) => d.predecesora_id === actual).forEach((d) => {
+      entrada[d.sucesora_id] = n(entrada, d.sucesora_id) - 1;
       if (entrada[d.sucesora_id] === 0) cola.push(d.sucesora_id);
     });
   }
@@ -62,18 +66,18 @@ export function calcularCpm(tareas: Tarea[], deps: Dependencia[]): ResultadoCpm 
   const es: Record<string, number> = {};
   const ef: Record<string, number> = {};
   for (const id of orden) {
-    let inicio = tareas.find((t) => t.id === id)!.inicio;
+    let inicio = n(ini, id);
     validas.filter((d) => d.sucesora_id === id).forEach((d) => {
       const p = d.predecesora_id;
       const lag = Number(d.desfase_dias) || 0;
-      if (d.tipo === "FS") inicio = Math.max(inicio, ef[p] + lag);
-      else if (d.tipo === "SS") inicio = Math.max(inicio, es[p] + lag);
-      else inicio = Math.max(inicio, ef[p] + lag - dur[id]);
+      if (d.tipo === "FS") inicio = Math.max(inicio, n(ef, p) + lag);
+      else if (d.tipo === "SS") inicio = Math.max(inicio, n(es, p) + lag);
+      else inicio = Math.max(inicio, n(ef, p) + lag - n(dur, id));
     });
     es[id] = inicio;
-    ef[id] = inicio + dur[id];
+    ef[id] = inicio + n(dur, id);
   }
-  const fin = tareas.length ? Math.max(...tareas.map((t) => ef[t.id])) : 0;
+  const fin = tareas.length ? Math.max(...tareas.map((t) => n(ef, t.id))) : 0;
   const ls: Record<string, number> = {};
   const lf: Record<string, number> = {};
   for (const id of [...orden].reverse()) {
@@ -81,18 +85,19 @@ export function calcularCpm(tareas: Tarea[], deps: Dependencia[]): ResultadoCpm 
     validas.filter((d) => d.predecesora_id === id).forEach((d) => {
       const s = d.sucesora_id;
       const lag = Number(d.desfase_dias) || 0;
-      if (d.tipo === "FS") limite = Math.min(limite, ls[s] - lag);
-      else if (d.tipo === "SS") limite = Math.min(limite, ls[s] - lag + dur[id]);
-      else limite = Math.min(limite, lf[s] - lag);
+      if (d.tipo === "FS") limite = Math.min(limite, n(ls, s) - lag);
+      else if (d.tipo === "SS") limite = Math.min(limite, n(ls, s) - lag + n(dur, id));
+      else limite = Math.min(limite, n(lf, s) - lag);
     });
     lf[id] = limite;
-    ls[id] = limite - dur[id];
+    ls[id] = limite - n(dur, id);
   }
   const holgura: Record<string, number> = {};
   const criticas = new Set<string>();
   tareas.forEach((t) => {
-    holgura[t.id] = ls[t.id] - es[t.id];
-    if (holgura[t.id] <= 0) criticas.add(t.id);
+    const h = n(ls, t.id) - n(es, t.id);
+    holgura[t.id] = h;
+    if (h <= 0) criticas.add(t.id);
   });
   return { es, ef, ls, lf, holgura, criticas, fin };
 }

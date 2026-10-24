@@ -18,7 +18,7 @@ describe("ruta crítica", () => {
         { predecesora_id: "b", sucesora_id: "c", tipo: "FS", desfase_dias: 0 },
       ],
     );
-    expect(r.holgura.b).toBe(6);
+    expect(r.holgura["b"]).toBe(6);
     expect(r.criticas.has("b")).toBe(false);
     expect(r.criticas.has("a")).toBe(true);
   });
@@ -27,7 +27,7 @@ describe("ruta crítica", () => {
       [{ id: "a", inicio: 0, duracion: 5 }, { id: "b", inicio: 0, duracion: 3 }],
       [{ predecesora_id: "a", sucesora_id: "b", tipo: "FS", desfase_dias: 2 }],
     );
-    expect(r.es.b).toBe(7);
+    expect(r.es["b"]).toBe(7);
   });
   it("rechaza ciclos", () => {
     expect(() =>
