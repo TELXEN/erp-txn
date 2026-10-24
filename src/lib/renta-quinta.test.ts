@@ -13,7 +13,7 @@ describe("renta de quinta", () => {
     const d = calcularRentaQuinta({ mes: 1, sueldoMes: 5000, pagadoAnterior: 0, retenidoAnterior: 0, uit: 5500, eps: false });
     expect(d.proyectada).toBe(70900);
     expect(d.rentaNeta).toBe(32400);
-    expect(d.retencion).toBe(216);
+    expect(d.retencion).toBe(240.5);
   });
   it("diciembre retiene el saldo", () => {
     const d = calcularRentaQuinta({ mes: 12, sueldoMes: 5000, pagadoAnterior: 60900, retenidoAnterior: 2000, uit: 5500, eps: false });
