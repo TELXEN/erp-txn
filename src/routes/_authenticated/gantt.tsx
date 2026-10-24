@@ -10,7 +10,7 @@ import {
   PERIODICIDADES, generarPeriodos, hoyISO, programadoPartida, useCronograma, usePartidas, useProyectos,
   type Partida, type Periodicidad,
 } from "@/lib/datos";
-import { NOMBRE_TIPO, aDia, cabeceras, diaSemana, feriadosPeru, calcularCpm, deDia, estadoAvance, letraNumerosDias, rangoPartida, type Dependencia, type TipoDependencia } from "@/lib/gantt";
+import { NOMBRE_TIPO, aDia, cabeceras, diaSemana, feriadosPeru, calcularCpm, deDia, estadoAvance, letraNumerosDias, pasoNumerosDias, rangoPartida, type Dependencia, type TipoDependencia } from "@/lib/gantt";
 import { exportarExcel, exportarPdf } from "@/lib/exportar";
 import { leerTodo } from "@/lib/datos";
 
