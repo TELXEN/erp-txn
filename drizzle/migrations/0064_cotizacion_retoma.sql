@@ -1,0 +1,2 @@
+ALTER TABLE public.cotizaciones ADD COLUMN IF NOT EXISTS retoma_de_id uuid NULL REFERENCES public.cotizaciones(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS cotizaciones_retoma_de_idx ON public.cotizaciones(retoma_de_id);

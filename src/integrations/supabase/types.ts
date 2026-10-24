@@ -1587,6 +1587,7 @@ export type Database = {
           pct_utilidad: number
           proyecto_id: string | null
           recursos_humanos: string
+          retoma_de_id: string | null
           revision: string
           ruc_cliente: string
           tiempo_ejecucion: string
@@ -1616,6 +1617,7 @@ export type Database = {
           pct_utilidad?: number
           proyecto_id?: string | null
           recursos_humanos?: string
+          retoma_de_id?: string | null
           revision?: string
           ruc_cliente?: string
           tiempo_ejecucion?: string
@@ -1645,6 +1647,7 @@ export type Database = {
           pct_utilidad?: number
           proyecto_id?: string | null
           recursos_humanos?: string
+          retoma_de_id?: string | null
           revision?: string
           ruc_cliente?: string
           tiempo_ejecucion?: string
@@ -1666,6 +1669,13 @@ export type Database = {
             columns: ["proyecto_id"]
             isOneToOne: false
             referencedRelation: "proyectos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cotizaciones_retoma_de_id_fkey"
+            columns: ["retoma_de_id"]
+            isOneToOne: false
+            referencedRelation: "cotizaciones"
             referencedColumns: ["id"]
           },
         ]
