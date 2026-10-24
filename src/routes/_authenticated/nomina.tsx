@@ -213,7 +213,7 @@ function Nomina() {
       const dt = datosTareo(t);
       if (!dt.conTareo) continue;
       if (dt.dias_laborados === Number(b.dias_laborados) && dt.horas_extra === Number(b.horas_extra)) continue;
-      const calc = calcularBoleta(t, {
+      const calc = calcConQuinta(t, {
         dias_laborados: dt.dias_laborados,
         horas_extra: dt.horas_extra,
         otros_ingresos: Number(b.otros_ingresos),
