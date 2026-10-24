@@ -86,3 +86,4 @@
 
 - Diagrama Gantt con dependencias y ruta crítica (Operaciones) — hecho
 - [x] Gantt: barras horizontales/verticales en obras de más de un mes; desplazamiento horizontal y último proyecto al volver/recargar verificados. La obra actual tiene solo una partida, sin recorrido vertical necesario.
+- [x] Gantt: fila de letras del día (L M M J V S D) sobre los números, domingo en rojo; verificado en vista por días.
