@@ -1,4 +1,4 @@
-import { estadoSuspension } from "@/lib/suspension-cuarta";
+import { anioVigencia, estadoSuspension } from "@/lib/suspension-cuarta";
 import { useRecordado } from "@/lib/recordado";
 import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { BotonIcono } from "@/components/ui-kit";
@@ -130,7 +130,7 @@ const FORM_INICIAL: FormPersonal = {
 };
 
 function validar(form: FormPersonal) {
-  if (form.tipo_contratacion !== "Planilla" && form.suspension_cuarta && (!form.suspension_cuarta_fecha || !form.suspension_cuarta_anio)) return "Ingresa la fecha y el año de vigencia de la suspensión de 4ta.";
+  if (form.tipo_contratacion !== "Planilla" && form.suspension_cuarta && !form.suspension_cuarta_fecha) return "Ingresa la fecha de la suspensión de 4ta.";
   if (!/^\d{8}$/.test(form.dni)) return "El DNI debe tener 8 dígitos.";
   if (!form.nombre.trim()) return "Ingresa el nombre.";
   if (!form.cargo) return "Selecciona un cargo válido.";
@@ -189,8 +189,13 @@ function Personal() {
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
-  const datosGuardar = (datos: FormPersonal) => {
+  const datosGuardar = (datos: FormPersonal, original?: Trabajador) => {
     const planilla = datos.tipo_contratacion === "Planilla";
+    const anio = anioVigencia({
+      anioGuardado: original?.suspension_cuarta_anio ?? null,
+      fechaNueva: datos.suspension_cuarta_fecha !== (original?.suspension_cuarta_fecha ?? ""),
+      anioActual: new Date().getFullYear(),
+    });
     return {
       dni: datos.dni.trim(),
       nombre: datos.nombre.trim(),
@@ -209,7 +214,7 @@ function Personal() {
       asignacion_familiar: planilla && datos.asignacion_familiar,
       suspension_cuarta: !planilla && datos.suspension_cuarta,
       suspension_cuarta_fecha: !planilla && datos.suspension_cuarta ? datos.suspension_cuarta_fecha || null : null,
-      suspension_cuarta_anio: !planilla && datos.suspension_cuarta && datos.suspension_cuarta_anio ? Number(datos.suspension_cuarta_anio) : null,
+      suspension_cuarta_anio: !planilla && datos.suspension_cuarta ? anio : null,
       suspension_cuarta_constancia: !planilla && datos.suspension_cuarta ? datos.suspension_cuarta_constancia.trim() || null : null,
     };
   };
@@ -266,7 +271,11 @@ function Personal() {
         asignacion_familiar: !!trabajador.asignacion_familiar,
         suspension_cuarta: !!trabajador.suspension_cuarta,
         suspension_cuarta_fecha: trabajador.suspension_cuarta_fecha ?? "",
-        suspension_cuarta_anio: trabajador.suspension_cuarta_anio ? String(trabajador.suspension_cuarta_anio) : "",
+        suspension_cuarta_anio: trabajador.suspension_cuarta_anio
+          ? String(trabajador.suspension_cuarta_anio)
+          : trabajador.suspension_cuarta_fecha
+            ? String(new Date().getFullYear())
+            : "",
         suspension_cuarta_constancia: trabajador.suspension_cuarta_constancia ?? "",
       },
     });
@@ -338,22 +347,25 @@ function Personal() {
           {planilla ? (
             <><input type="checkbox" checked={f.asignacion_familiar} onChange={(e) => set("asignacion_familiar", e.target.checked)} /> Asignación familiar</>
           ) : (
-            <><input type="checkbox" checked={f.suspension_cuarta} onChange={(e) => set("suspension_cuarta", e.target.checked)} /> Suspensión de retención 4ta (se renueva cada año)</>
+            <><input type="checkbox" checked={f.suspension_cuarta} onChange={(e) => { set("suspension_cuarta", e.target.checked); if (e.target.checked) set("suspension_cuarta_anio", String(new Date().getFullYear())); }} /> Suspensión de retención 4ta (se renueva cada año)</>
           )}
         </label>
         {!planilla && f.suspension_cuarta && (
           <>
             <CampoF etiqueta="Fecha de la suspensión" req>
-              <Input type="date" value={f.suspension_cuarta_fecha} onChange={(e) => { set("suspension_cuarta_fecha", e.target.value); if (e.target.value) set("suspension_cuarta_anio", e.target.value.slice(0, 4)); }} required className="py-1.5" />
+              <Input type="date" value={f.suspension_cuarta_fecha} onChange={(e) => { set("suspension_cuarta_fecha", e.target.value); if (e.target.value) set("suspension_cuarta_anio", String(new Date().getFullYear())); }} required className="py-1.5" />
             </CampoF>
-            <CampoF etiqueta="Año de vigencia" req>
-              <Input type="number" min="2000" max="2100" value={f.suspension_cuarta_anio} onChange={(e) => set("suspension_cuarta_anio", e.target.value)} required className="py-1.5" />
+            <CampoF etiqueta="Año de vigencia">
+              <div className="flex h-8 items-center gap-1.5 rounded-md border border-line bg-muted/40 px-2 text-xs font-semibold text-ink">
+                {f.suspension_cuarta_anio || new Date().getFullYear()}
+                <span className="font-normal text-muted-foreground">automático</span>
+              </div>
             </CampoF>
             <div className="col-span-full">
               <CampoF etiqueta="N° constancia / operación">
                 <Input value={f.suspension_cuarta_constancia} maxLength={40} onChange={(e) => set("suspension_cuarta_constancia", e.target.value)} className="py-1.5" />
               </CampoF>
-              <p className="mt-1 text-[10px] text-muted-foreground">Exime de retención solo a recibos del mismo año emitidos al menos 2 días después de esta fecha.</p>
+              <p className="mt-1 text-[10px] text-muted-foreground">El año de vigencia se toma solo del año actual y se renueva al registrar una fecha nueva. Exime de retención solo a recibos de ese año emitidos al menos 2 días después de esta fecha.</p>
             </div>
           </>
         )}
@@ -393,7 +405,7 @@ function Personal() {
     if (mensaje) return setError(mensaje);
     const { error: err } = await supabase
       .from("trabajadores")
-      .update(datosGuardar(editando.datos))
+      .update(datosGuardar(editando.datos, trabajadores.find((t) => t.id === editando.id)))
       .eq("id", editando.id);
     if (err) return setError(err.message);
     setEditando(null);
@@ -415,8 +427,7 @@ function Personal() {
   }
 
   const actualizarCampo = (campo: keyof FormPersonal, valor: string | boolean) => {
-    if (!editando) return;
-    setEditando({ ...editando, datos: aplicarCambio(editando.datos, campo, valor) });
+    setEditando((prev) => (prev ? { ...prev, datos: aplicarCambio(prev.datos, campo, valor) } : prev));
   };
 
   return (

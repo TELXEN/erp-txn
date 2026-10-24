@@ -25,6 +25,20 @@ export function estadoSuspension(t: DatosSuspension | null | undefined, anioActu
   return Number(t.suspension_cuarta_anio) >= anioActual ? "vigente" : "vencida";
 }
 
+/**
+ * Año de vigencia de la suspensión: nunca se escribe a mano. Es el año actual
+ * cada vez que se registra o se renueva (fecha nueva); si solo se editan otros
+ * datos, el año guardado se conserva para que siga constando la renovación real.
+ */
+export function anioVigencia(opts: {
+  anioGuardado?: number | string | null;
+  fechaNueva: boolean;
+  anioActual: number;
+}) {
+  if (opts.fechaNueva || !opts.anioGuardado) return opts.anioActual;
+  return Number(opts.anioGuardado);
+}
+
 /** Motivo legible cuando hay suspensión marcada pero no aplica a este recibo. */
 export function avisoSuspension(t: DatosSuspension | null | undefined, fechaRecibo: string) {
   if (!t?.suspension_cuarta || suspensionVigente(t, fechaRecibo)) return "";
