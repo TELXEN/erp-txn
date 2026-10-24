@@ -271,7 +271,7 @@ function Gantt() {
                 )}
               </div>
               {/* Línea de tiempo */}
-              <div className="relative shrink-0" style={{ width: anchoTotal }}>
+              <div className="relative shrink-0" style={{ width: Math.max(anchoTotal, 640) }}>
                 <div className="sticky top-0 z-10 flex h-10 border-b border-line bg-card">
                   {columnas.map((c) => (
                     <div key={c.inicio} className="shrink-0 overflow-hidden border-r border-line px-1 pt-1 leading-tight text-muted-foreground" style={{ width: (aDia(c.fin) - aDia(c.inicio) + 1) * px }}>
@@ -293,7 +293,7 @@ function Gantt() {
                       return <div key={i} className="absolute h-2 rounded-sm bg-foreground/60" style={{ top: i * ALTO + ALTO / 2 - 4, left: x(a), width: (b - a) * px }} />;
                     }
                     const f = r.fila;
-                    if (f.inicio === null) return <span key={i} className="absolute left-2 italic text-muted-foreground" style={{ top: i * ALTO + 8 }}>Sin programar</span>;
+                    if (f.inicio === null) return <span key={i} className="absolute left-2 whitespace-nowrap italic text-muted-foreground" style={{ top: i * ALTO + 8 }}>Sin programar</span>;
                     const est = estadoAvance(f.real, f.programado);
                     const critica = verCritica && cpm?.criticas.has(f.partida.id);
                     const color = est === "ok" ? "bg-good" : est === "alerta" ? "bg-warn" : "bg-bad";
