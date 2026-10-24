@@ -117,6 +117,8 @@ function VistaCotizacion() {
   const { fuente } = useFuenteDocumento();
   const { nombre, email } = useAuth();
   const cot = cotizaciones.find((fila) => fila.id === id) ?? null;
+  const original = cot?.retoma_de_id ? cotizaciones.find((fila) => fila.id === cot.retoma_de_id) ?? null : null;
+  const retomaDe = original ? `Retoma de ${original.codigo ?? ""} Rev. ${(original.revision ?? "00").padStart(2, "0")}` : "";
   const { data: cliente } = useQuery({
     queryKey: ["tercero-cotizacion", cot?.cliente_id],
     enabled: Boolean(cot?.cliente_id),
@@ -366,6 +368,7 @@ function VistaCotizacion() {
             <div style={{ ...light, fontSize: 10 }}>COTIZACIÓN</div>
             <div style={{ fontSize: 9, fontWeight: 700, marginTop: 4 }}>RUC: {empresa?.ruc || "—"}</div>
             <div style={{ fontSize: 11, fontWeight: 700, marginTop: 3 }}>{cot?.codigo ?? "SIN CÓDIGO"}</div>
+            {retomaDe && <div style={{ fontSize: 7.5, marginTop: 2, color: C.slate500 }}>{retomaDe}</div>}
           </div>
           <div style={{ position: "relative", marginTop: 4, fontSize: 7.5, color: C.slate500, textAlign: "center" }}>
             <span>Hoja {numero} de {totalHojas}</span>

@@ -33,6 +33,8 @@ import { PlantillasCotizacion } from "@/components/cotizaciones/PlantillasCotiza
 import {
   aplicarPlantilla,
   crearRevision,
+  puedeRetomar,
+  retomarCotizacion,
   etiquetaRevision,
   guardarComoPlantilla,
   revisionesDeCodigo,
@@ -52,7 +54,7 @@ import {
   type CotizacionItem,
   type EstadoCotizacion,
 } from "@/lib/cotizaciones";
-import { Check, Calculator, CornerDownRight, Upload, FileSpreadsheet, X, Eye, EyeOff, Trash2, ArrowLeft, Library, Plus, Pencil, Copy, FileText, LayoutTemplate, History, Receipt } from "lucide-react";
+import { Check, Calculator, CornerDownRight, Upload, FileSpreadsheet, X, Eye, EyeOff, Trash2, ArrowLeft, Library, Plus, Pencil, Copy, FileText, LayoutTemplate, History, Receipt, RotateCcw } from "lucide-react";
 import { GastosGeneralesCotizacion } from "@/components/cotizaciones/GastosGeneralesCotizacion";
 
 export const Route = createFileRoute("/_authenticated/cotizaciones")({
@@ -116,6 +118,34 @@ function Cotizaciones() {
   /** Fila seleccionada en «Cotizaciones registradas»: activa la barra vertical de iconos. */
   const [filaSel, setFilaSel] = useState<string | null>(null);
   const [seccion, setSeccion] = useState<"cotizaciones" | "plantillas">("cotizaciones");
+  /** Cotización de un año anterior que se va a retomar con código del año actual. */
+  const [aRetomar, setARetomar] = useState<Cotizacion | null>(null);
+  const [actualizarPrecios, setActualizarPrecios] = useState(false);
+  const [retomando, setRetomando] = useState(false);
+  const codigoDe = (id?: string | null) => {
+    const c = cotizaciones.find((x) => x.id === id);
+    return c ? `${c.codigo ?? ""} ${etiquetaRevision(c.revision)}` : "";
+  };
+  const retomadaPor = (id: string) => cotizaciones.find((x) => x.retoma_de_id === id) ?? null;
+  /** Las retomadas quedan congeladas: se abren en la vista A4. */
+  const abrirCotizacion = (c: Cotizacion) =>
+    c.estado === "Retomada" ? void navigate({ to: "/cotizacion-vista", search: { id: c.id } }) : setSeleccion(c.id);
+  async function confirmarRetoma() {
+    if (!aRetomar) return;
+    setRetomando(true);
+    setError("");
+    try {
+      const { id, codigo } = await retomarCotizacion(aRetomar, actualizarPrecios);
+      await qc.invalidateQueries({ queryKey: ["cotizaciones"] });
+      setAviso(`Cotización retomada como ${codigo} Rev. 00.`);
+      setARetomar(null);
+      setFilaSel(id);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "No se pudo retomar la cotización.");
+    } finally {
+      setRetomando(false);
+    }
+  }
 
   const [form, setForm] = useState({
     codigo: "",
@@ -592,7 +622,7 @@ function Cotizaciones() {
   }
 
   const tonoEstado = (e: EstadoCotizacion) =>
-    e === "Aprobada" ? "good" : e === "Rechazada" ? "bad" : "neutro";
+    e === "Aprobada" ? "good" : e === "Rechazada" ? "bad" : e === "Retomada" ? "warn" : "neutro";
 
   const hoyStr = hoy();
   const mesActual = hoyStr.slice(0, 7);
@@ -623,7 +653,7 @@ function Cotizaciones() {
       <div ref={ajustarAlto} className="-mx-3 -mb-3 flex flex-col bg-background sm:-mx-4 lg:overflow-hidden">
         <Encabezado
           titulo={cot.nombre || cot.codigo || "Cotización"}
-          subtitulo={`Cotización ${cot.codigo ?? ""} · ${etiquetaRevision(cot.revision)} · modo edición`}
+          subtitulo={`Cotización ${cot.codigo ?? ""} · ${etiquetaRevision(cot.revision)}${cot.retoma_de_id ? ` · Retoma de ${codigoDe(cot.retoma_de_id)}` : ""} · modo edición`}
           acciones={
             <div className="flex flex-wrap items-center gap-2">
               <Boton variante="linea" className={enBarra} onClick={() => { setSeleccion(null); setError(""); setAviso(""); }}>
@@ -909,7 +939,7 @@ function Cotizaciones() {
             </thead>
             <tbody>
               {filtradas.map((c) => (
-                <tr key={c.id} onClick={() => setFilaSel(c.id)} onDoubleClick={() => setSeleccion(c.id)} className={`cursor-pointer border-b border-line/60 last:border-0 hover:bg-primary/5 ${filaSel === c.id ? "bg-primary/8" : ""}`}>
+                <tr key={c.id} onClick={() => setFilaSel(c.id)} onDoubleClick={() => abrirCotizacion(c)} className={`cursor-pointer border-b border-line/60 last:border-0 hover:bg-primary/5 ${filaSel === c.id ? "bg-primary/8" : ""}`}>
                   <td className="px-5 py-2.5 font-semibold text-primary">
                     <div className="flex items-center gap-2">
                       <Resaltar texto={c.codigo ?? "—"} termino={busqueda} />
@@ -927,7 +957,12 @@ function Cotizaciones() {
                   <td className="px-3 py-2.5 text-right">{simboloMoneda(c.moneda)} {total(c.id).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                   <td className="px-5 py-2.5">
                     <div className="flex gap-1">
-                      <Etiqueta tono={tonoEstado(c.estado)}>{c.estado}</Etiqueta>
+                      <Etiqueta tono={tonoEstado(c.estado)}>{c.estado === "Retomada" && retomadaPor(c.id) ? `Retomada → ${retomadaPor(c.id)?.codigo}` : c.estado}</Etiqueta>
+                      {c.retoma_de_id && (
+                        <button type="button" onClick={(e) => { e.stopPropagation(); const o = cotizaciones.find((x) => x.id === c.retoma_de_id); if (o) void navigate({ to: "/cotizacion-vista", search: { id: o.id } }); }} title="Abrir la cotización original" className="text-[10px] text-muted-foreground underline">
+                          Retoma de {codigoDe(c.retoma_de_id)}
+                        </button>
+                      )}
                       {c.proyecto_id && <Etiqueta tono="good">En obra</Etiqueta>}
                     </div>
                   </td>
@@ -944,13 +979,34 @@ function Cotizaciones() {
             <MenuFiltros activos={busqueda ? 1 : 0} onLimpiar={() => setBusqueda("")}><Buscador valor={busqueda} onChange={setBusqueda} total={filtradas.length} placeholder="Buscar por código, cliente o trabajo..." /></MenuFiltros>
             <div className="mb-1 border-b" />
             <BotonIcono etiqueta="Vista previa" title="Vista previa" tono="primario" disabled={!sel} onClick={() => sel && navigate({ to: "/cotizacion-vista", search: { id: sel.id } })}><Eye size={15} /></BotonIcono>
-            <BotonIcono etiqueta="Editar" title="Editar cotización" disabled={!sel} onClick={() => sel && setSeleccion(sel.id)}><Pencil size={15} /></BotonIcono>
+            <BotonIcono etiqueta="Editar" title="Editar cotización" disabled={!sel} onClick={() => sel && abrirCotizacion(sel)}><Pencil size={15} /></BotonIcono>
             <BotonIcono etiqueta="Copiar" title="Copiar cotización" disabled={!sel} onClick={() => sel && void duplicar(sel)}><Copy size={15} /></BotonIcono>
             <BotonIcono etiqueta="Eliminar" title="Eliminar cotización" tono="peligro" disabled={!sel} onClick={() => sel && borrarCotizacion(sel)}><Trash2 size={15} /></BotonIcono>
+            <BotonIcono etiqueta={`Retomar en ${new Date().getFullYear()}`} title={sel && puedeRetomar(sel) ? `Retomar en ${new Date().getFullYear()} con código nuevo` : "Solo para cotizaciones de años anteriores no aprobadas"} disabled={!sel || !puedeRetomar(sel)} onClick={() => { if (sel) { setActualizarPrecios(false); setARetomar(sel); } }}><RotateCcw size={15} /></BotonIcono>
           </div>
         );
       })()}
       </div>
+      {aRetomar && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-foreground/40 p-4" onClick={() => !retomando && setARetomar(null)}>
+          <div className="w-full max-w-md rounded-lg border border-line bg-background p-5 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-sm font-semibold text-ink">Retomar en {new Date().getFullYear()}</h3>
+            <p className="mt-2 text-xs text-muted-foreground">
+              Se creará una cotización nueva con el código <span className="font-mono font-semibold text-primary">{codificacionCot ? previsualizarCodigoCotizacion(codificacionCot) : "—"}</span> (Rev. 00), copiando todo de <span className="font-mono">{aRetomar.codigo} {etiquetaRevision(aRetomar.revision)}</span>. La original quedará congelada como «Retomada».
+            </p>
+            <p className="mt-2 text-xs text-muted-foreground">Fecha de emisión: hoy · validez: {aRetomar.validez_dias} días.</p>
+            <label className="mt-3 flex items-center gap-2 text-xs">
+              <input type="checkbox" checked={actualizarPrecios} onChange={(e) => setActualizarPrecios(e.target.checked)} />
+              Actualizar precios al Banco APU actual
+            </label>
+            {error && <p className="mt-2 text-xs text-bad">{error}</p>}
+            <div className="mt-4 flex justify-end gap-2">
+              <Boton variante="linea" onClick={() => setARetomar(null)} disabled={retomando}>Cancelar</Boton>
+              <Boton onClick={() => void confirmarRetoma()} disabled={retomando}>{retomando ? "Retomando…" : "Retomar"}</Boton>
+            </div>
+          </div>
+        </div>
+      )}
         </>
       )}
     </>
