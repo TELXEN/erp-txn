@@ -154,7 +154,7 @@ function Gantt() {
       Fin: f.fin !== null ? fecha(deDia(f.fin - 1)) : "",
       "Programado %": Number(f.programado.toFixed(2)),
       "Real %": Number(f.real.toFixed(2)),
-      Holgura: cpm && f.inicio !== null ? cpm.holgura[f.partida.id] : "",
+      Holgura: cpm && f.inicio !== null ? (cpm.holgura[f.partida.id] ?? "") : "",
       Crítica: cpm?.criticas.has(f.partida.id) ? "Sí" : "No",
     }));
     const nombre = `Gantt ${proyecto.codigo ?? ""} ${proyecto.nombre}`.trim();
@@ -195,8 +195,8 @@ function Gantt() {
               <label className="flex items-center gap-1.5 text-xs">
                 <input type="checkbox" checked={verCritica} onChange={(e) => setVerCritica(e.target.checked)} /> Ver ruta crítica
               </label>
-              <Boton variante="secundario" onClick={() => exportar("pdf")}><FileDown size={14} /> PDF</Boton>
-              <Boton variante="secundario" onClick={() => exportar("xlsx")}><FileSpreadsheet size={14} /> Excel</Boton>
+              <Boton variante="linea" onClick={() => exportar("pdf")}><FileDown size={14} /> PDF</Boton>
+              <Boton variante="linea" onClick={() => exportar("xlsx")}><FileSpreadsheet size={14} /> Excel</Boton>
             </>
           )
         }
@@ -371,7 +371,7 @@ function Marca({ x, texto }: { x: number; texto: string }) {
 function PanelDependencias({
   fila, proyectoId, filas, deps, holgura, onCambio, onAbrir,
 }: {
-  fila: Fila; proyectoId: string; filas: Fila[]; deps: DepFila[]; holgura?: number; onCambio: () => void; onAbrir: () => void;
+  fila: Fila; proyectoId: string; filas: Fila[]; deps: DepFila[]; holgura: number | undefined; onCambio: () => void; onAbrir: () => void;
 }) {
   const [pred, setPred] = useState("");
   const [tipo, setTipo] = useState<TipoDependencia>("FS");
@@ -387,14 +387,14 @@ function PanelDependencias({
       proyecto_id: proyectoId, predecesora_id: pred, sucesora_id: fila.partida.id, tipo, desfase_dias: Number(desfase) || 0,
     });
     setGuardando(false);
-    if (error) return toast.error(error.message.includes("círculo") ? "No se puede: esa dependencia crea un círculo entre partidas" : error.message.includes("duplicate") ? "Esa dependencia ya existe" : error.message);
+    if (error) { toast.error(error.message.includes("círculo") ? "No se puede: esa dependencia crea un círculo entre partidas" : error.message.includes("duplicate") ? "Esa dependencia ya existe" : error.message); return; }
     setPred(""); setDesfase("0");
     toast.success("Dependencia agregada");
     onCambio();
   };
   const quitar = async (id: string) => {
     const { error } = await supabase.from("dependencias_partidas").delete().eq("id", id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     onCambio();
   };
 
@@ -409,7 +409,7 @@ function PanelDependencias({
               {holgura !== undefined && ` · Holgura ${holgura} días${holgura <= 0 ? " (crítica)" : ""}`}
             </p>
           </div>
-          <Boton variante="secundario" onClick={onAbrir}>Abrir en Avance programado</Boton>
+          <Boton variante="linea" onClick={onAbrir}>Abrir en Avance programado</Boton>
         </div>
         <div>
           <p className="mb-1 font-semibold">Depende de…</p>
