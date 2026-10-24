@@ -1,3 +1,4 @@
+// @refresh reset
 import { useCallback, useEffect, useState, type SetStateAction } from "react";
 
 /** useState que se recuerda en este equipo (localStorage) y se restaura al volver a la página. */
