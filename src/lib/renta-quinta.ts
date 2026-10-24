@@ -2,7 +2,7 @@
 
 /** UIT por año fiscal. */
 export const UIT_POR_ANIO: Record<number, number> = { 2025: 5350, 2026: 5500 };
-export const uitDe = (anio: number) => UIT_POR_ANIO[anio] ?? UIT_POR_ANIO[Math.max(...Object.keys(UIT_POR_ANIO).map(Number))];
+export const uitDe = (anio: number): number => UIT_POR_ANIO[anio] ?? (anio > 2026 ? 5500 : 5350);
 
 const TRAMOS: [number, number][] = [[5, 0.08], [20, 0.14], [35, 0.17], [45, 0.2], [Infinity, 0.3]];
 const r2 = (n: number) => Math.round(n * 100) / 100;

@@ -13,7 +13,7 @@ export type BoletaNomina = {
   id: string; planilla_id: string; trabajador_id: string; regimen_laboral: string;
   sistema_pensiones: string; dias_laborados: number; sueldo_basico: number;
   asignacion_familiar: number; horas_extra: number; otros_ingresos: number;
-  total_ingresos: number; aporte_pension: number; renta_quinta: number;
+  total_ingresos: number; aporte_pension: number; renta_quinta: number; renta_quinta_manual?: boolean;
   otros_descuentos: number; total_descuentos: number; neto_pagar: number;
   essalud: number; estado_pago: string; banco_id: string | null;
   fecha_pago: string | null; numero_operacion: string;
