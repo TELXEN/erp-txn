@@ -285,7 +285,7 @@ function Gantt() {
           )}
 
           <Panel>
-            <div ref={contenedor} role="region" aria-label="Calendario Gantt" tabIndex={0} className={`flex max-h-[70vh] text-[11px] ${conBarras ? "overflow-scroll" : "sin-slider overflow-auto"}`}>
+            <div ref={contenedor} role="region" aria-label="Calendario Gantt" tabIndex={0} className={`flex max-h-[70vh] text-[11px] ${conBarras ? "calendario-slider overflow-scroll" : "sin-slider overflow-auto"}`}>
               {/* Columna fija */}
               <div className="sticky left-0 z-20 w-[19rem] shrink-0 border-r border-line bg-card">
                 <div className="sticky top-0 z-10 flex h-10 items-end border-b border-line bg-card px-2 pb-0.5 text-[10px] font-semibold text-muted-foreground">

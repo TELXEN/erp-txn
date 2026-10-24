@@ -386,6 +386,15 @@ aside .md\:overflow-y-auto:hover::-webkit-scrollbar-thumb { background: color-mi
   &::-webkit-scrollbar { width: 0; height: 0; }
 }
 
+@utility calendario-slider {
+  scrollbar-width: auto;
+  scrollbar-color: var(--color-muted-foreground) var(--color-muted);
+  &::-webkit-scrollbar { width: 12px; height: 12px; }
+  &::-webkit-scrollbar-track { background: var(--color-muted); }
+  &::-webkit-scrollbar-thumb { background: var(--color-muted-foreground); border-radius: 4px; border: 2px solid var(--color-muted); }
+  &::-webkit-scrollbar-corner { background: var(--color-muted); }
+}
+
 /* Cifras y códigos: familia de cifras, ancho fijo, a la derecha */
 @utility cifra {
   font-family: var(--font-cifras);
