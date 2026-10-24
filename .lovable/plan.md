@@ -22,9 +22,9 @@ Avance Físico  ->  Valorización N° (período)  ->  Preliquidación  ->  Factu
 4. **Aprobar** congela la valorización (no editable, historial fijo) y habilita **«Generar preliquidación»**, que abre una preliquidación con cliente, proyecto, orden de compra y descripción «Valorización N° X – período» y el monto neto.
 5. Vista previa A4 imprimible / PDF y Excel con el mismo formato.
 
-## Preguntas abiertas (se pueden ajustar luego)
-- Si usan adelanto directo y retención de garantía en sus contratos (se dejan opcionales por defecto).
-- Si la valorización debe exigir la firma/visto del supervisor del cliente (campo de texto opcional).
+## Decisiones
+- Amortización de adelanto y retención de garantía: opcionales, en 0 % por defecto.
+- Firma obligatoria: para aprobar se exige nombre, cargo y fecha de conformidad del supervisor del cliente; aparecen en el bloque de firmas de la hoja A4/PDF.
 
 ## Detalles técnicos
 - Migración: `valorizaciones` (proyecto_id, numero correlativo por proyecto, periodo_inicio/fin, estado, pct_gg, pct_utilidad, pct_adelanto, pct_retencion, montos totales, preliquidacion_id, aprobado_por/en) y `valorizacion_items` (valorizacion_id, partida_id, snapshot de descripción/unidad/metrado/P.U. contratado, metrado_actual). GRANTs, RLS con `is_admin_o_gerente` para aprobar y `es_personal` para leer; trigger que bloquea edición cuando estado = Aprobada y redondeo 2/4 decimales como en las demás tablas.
