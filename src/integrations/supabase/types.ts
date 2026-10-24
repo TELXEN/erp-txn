@@ -1724,6 +1724,58 @@ export type Database = {
           },
         ]
       }
+      dependencias_partidas: {
+        Row: {
+          created_at: string
+          desfase_dias: number
+          id: string
+          predecesora_id: string
+          proyecto_id: string
+          sucesora_id: string
+          tipo: string
+        }
+        Insert: {
+          created_at?: string
+          desfase_dias?: number
+          id?: string
+          predecesora_id: string
+          proyecto_id: string
+          sucesora_id: string
+          tipo?: string
+        }
+        Update: {
+          created_at?: string
+          desfase_dias?: number
+          id?: string
+          predecesora_id?: string
+          proyecto_id?: string
+          sucesora_id?: string
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dependencias_partidas_predecesora_id_fkey"
+            columns: ["predecesora_id"]
+            isOneToOne: false
+            referencedRelation: "partidas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dependencias_partidas_proyecto_id_fkey"
+            columns: ["proyecto_id"]
+            isOneToOne: false
+            referencedRelation: "proyectos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dependencias_partidas_sucesora_id_fkey"
+            columns: ["sucesora_id"]
+            isOneToOne: false
+            referencedRelation: "partidas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       emos_trabajador: {
         Row: {
           clinica: string
