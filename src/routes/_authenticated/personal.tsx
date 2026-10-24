@@ -461,6 +461,7 @@ function Personal() {
         }
       />
 
+      {(() => { const n = trabajadores.filter((t) => t.activo !== false && t.tipo_contratacion === "Honorarios" && ["vencida", "sin_fecha"].includes(estadoSuspension(t, new Date().getFullYear()))).length; return n > 0 ? <p className="mb-3 rounded-md border border-warn/40 bg-warn/10 px-3 py-2 text-xs text-warn">{n} prestador(es) deben renovar o completar su suspensión de 4ta categoría para {new Date().getFullYear()}; mientras tanto se les aplica la retención del 8%.</p> : null; })()}
       <div className="mb-4">
         <Pestanas
           etiqueta="Personal"
@@ -581,7 +582,7 @@ function Personal() {
                       <td className="px-2 py-3.5">{esEdicion && d ? <Input inputMode="tel" maxLength={9} value={d.numero_celular} onChange={(e) => actualizarCampo("numero_celular", e.target.value.replace(/\D/g, ""))} className="py-1 text-xs" required /> : t.numero_celular}</td>
                       <td className="px-2 py-3.5">
                         <span className="block font-semibold text-ink">{t.tipo_contratacion === "Honorarios" ? "RxH" : "Planilla"}</span>
-                        <span className="block text-[10px] text-muted-foreground">{t.tipo_contratacion === "Honorarios" ? (() => { const e = estadoSuspension(t, new Date().getFullYear()); return e === "vigente" ? <span className="text-ok">Suspensión 4ta {t.suspension_cuarta_anio}</span> : e === "vencida" ? <span className="text-warn">Suspensión vencida ({t.suspension_cuarta_anio})</span> : e === "sin_fecha" ? <span className="text-warn">Suspensión sin fecha — completar</span> : "Retención 8%"; })() : `${t.regimen_laboral} · ${t.sistema_pensiones}`}</span>
+                        <span className="block text-[10px] text-muted-foreground">{t.tipo_contratacion === "Honorarios" ? (() => { const e = estadoSuspension(t, new Date().getFullYear()); return e === "vigente" ? <span className="text-good">Suspensión 4ta {t.suspension_cuarta_anio}</span> : e === "vencida" ? <span className="text-warn">Suspensión vencida ({t.suspension_cuarta_anio})</span> : e === "sin_fecha" ? <span className="text-warn">Suspensión sin fecha — completar</span> : "Retención 8%"; })() : `${t.regimen_laboral} · ${t.sistema_pensiones}`}</span>
                       </td>
                       <td className="px-2 py-3.5">{(() => { const s = estadoEmo(ultimos.get(t.id)?.fecha_vencimiento); return <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-[11px]"><span className={`h-2 w-2 rounded-full ${ESTADO_EMO_INFO[s].punto}`} />{ESTADO_EMO_INFO[s].texto}</span>; })()}</td>
                       

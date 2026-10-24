@@ -1,3 +1,4 @@
+import { avisoSuspension, suspensionVigente } from "@/lib/suspension-cuarta";
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { Printer, Save, Wand2 } from "lucide-react";
@@ -7,7 +8,7 @@ import { soles } from "@/lib/format";
 import type { Tareo } from "@/lib/datos";
 
 type Opcion = { id: string; nombre: string; codigo?: string | null };
-type Trabajador = Opcion & { dni?: string; numero_cuenta?: string; banco?: string; suspension_cuarta?: boolean; jornal_diario?: number };
+type Trabajador = Opcion & { dni?: string; numero_cuenta?: string; banco?: string; suspension_cuarta?: boolean; suspension_cuarta_fecha?: string | null; suspension_cuarta_anio?: number | null; jornal_diario?: number };
 
 /** Resume el tareo del trabajador en el proyecto y período elegidos. */
 export function resumenTareoHonorario(tareos: Tareo[], trabajadorId: string, proyectoId: string, mes: number, anio: number, jornal: number) {
@@ -91,7 +92,8 @@ export function DetallePagoHonorario({
   };
   const trabajador = trabajadores.find((item) => item.id === form.trabajador_id) ?? null;
   const proyecto = proyectos.find((item) => item.id === form.proyecto_id);
-  const totales = useMemo(() => calcularDetalleHonorario(form, !!trabajador?.suspension_cuarta), [form, trabajador]);
+  const totales = useMemo(() => calcularDetalleHonorario(form, suspensionVigente(trabajador, form.fecha_emision)), [form, trabajador]);
+  const notaSuspension = avisoSuspension(trabajador, form.fecha_emision);
 
   const onCambiar = (campo: keyof DetalleHonorario, valor: string) =>
     setForm((actual) => ({ ...actual, [campo]: CAMPOS_NUMERICOS.has(campo) ? Math.max(0, Number(valor) || 0) : valor }));
@@ -135,6 +137,7 @@ export function DetallePagoHonorario({
             <Boton type="button" disabled={guardando || totales.bruto <= 0 || totales.neto < 0 || !form.trabajador_id} onClick={() => void onGuardar(form)}><Save size={14} /> {guardando ? "Guardando…" : "Guardar detalle"}</Boton>
           </div>
         </div>
+        {notaSuspension && <p className="border-b border-line bg-warn/10 px-4 py-2 text-xs text-warn print:hidden">{notaSuspension}</p>}
         {error && <p className="border-b border-line bg-bad/5 px-4 py-2 text-xs text-bad print:hidden">{error}</p>}
 
         <div className="flex-1 overflow-auto bg-muted/40 p-4 print:overflow-visible print:bg-paper print:p-0">

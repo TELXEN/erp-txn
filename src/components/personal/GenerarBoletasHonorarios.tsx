@@ -1,3 +1,4 @@
+import { suspensionVigente } from "@/lib/suspension-cuarta";
 import { useMemo, useState } from "react";
 import { Wand2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,7 +7,7 @@ import { calcularDetalleHonorario, resumenTareoHonorario, type FormularioHonorar
 import { MESES, soles } from "@/lib/format";
 import type { Tareo } from "@/lib/datos";
 
-type Prestador = { id: string; nombre: string; jornal_diario?: number; suspension_cuarta?: boolean };
+type Prestador = { id: string; nombre: string; jornal_diario?: number; suspension_cuarta?: boolean; suspension_cuarta_fecha?: string | null; suspension_cuarta_anio?: number | null };
 type Proyecto = { id: string; nombre: string; codigo?: string | null };
 
 /** Genera borradores de recibo (uno por prestador y mes) desde el consolidado del tareo. */
@@ -39,7 +40,7 @@ export function GenerarBoletasHonorarios({ prestadores, proyectos, tareos, exist
         costo_unitario: jornal, saldo_mes_anterior: 0, adelantos: 0, devolucion_gastos: 0, pagos_a_cuenta_planilla: 0,
         fondo_pensiones: 0, descuento_herramientas: 0, lugar_emision: "Huancayo", retencion: 0,
       };
-      const tot = calcularDetalleHonorario(form, !!p.suspension_cuarta);
+      const tot = calcularDetalleHonorario(form, suspensionVigente(p, form.fecha_emision));
       const existe = existentes.some((e) => e.trabajador_id === p.id && Number(e.mes) === mes && Number(e.anio) === anio);
       return { p, r, form, tot, existe, conTareo: r.filas > 0 };
     });
