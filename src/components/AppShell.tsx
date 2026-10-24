@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 
 const RanuraEncabezado = createContext<HTMLElement | null>(null);
 import { FormatoGlobal } from "@/components/FormatoGlobal";
+import { ReciboCodigoBarras } from "@/components/icons";
 import { Calculator, ChevronDown, PanelLeftClose, PanelLeftOpen, Maximize2, Minimize2 } from "lucide-react";
 
 function BotonPantallaCompleta() {
@@ -64,6 +65,7 @@ import {
   HandCoins,
   Wallet,
   ShieldCheck,
+  FolderClosed,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ETIQUETA_ROL, useAuth, type Rol } from "@/lib/auth";
@@ -82,8 +84,8 @@ const MENU: Categoria[] = [
       { a: "/datos-apu", texto: "Análisis de Precios Unitarios (APU)", roles: ["administrador", "gerente"], icono: Calculator },
       { a: "/cotizaciones", texto: "Cotizaciones", roles: ["administrador", "gerente"], icono: FileText },
       { a: "/valorizaciones", texto: "Preliquidaciones", roles: ["administrador", "gerente"], icono: Banknote },
-      { a: "/facturacion-electronica", texto: "Facturación Electrónica", roles: ["administrador", "gerente"], icono: ReceiptText },
-      { a: "/registro-ventas", texto: "Registro de Ventas", roles: ["administrador", "gerente"], icono: FileSpreadsheet },
+      { a: "/facturacion-electronica", texto: "Facturación Electrónica", roles: ["administrador", "gerente"], icono: ReciboCodigoBarras },
+      { a: "/registro-ventas", texto: "Registro de Ventas", roles: ["administrador", "gerente"], icono: FolderClosed },
     ],
   },
   {
