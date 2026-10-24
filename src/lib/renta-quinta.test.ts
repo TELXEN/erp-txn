@@ -51,3 +51,11 @@ describe("procedimiento SUNAT con RMV variable (caso adjunto)", () => {
     expect(d.rentaNeta).toBe(12773.24);
   });
 });
+describe("escala progresiva (caso adjunto)", () => {
+  it("12,773.24 × 8% = 1,021.86 y ÷ 12 ≈ 85.15", () => {
+    expect(impuestoAnual(12773.24, 5500)).toBe(1021.86);
+    const d = calcularRentaQuinta({ mes: 1, sueldoMes: 3613, remFutura: 3613, gratiJulio: 3613, gratiDic: 3613, pagadoAnterior: 0, retenidoAnterior: 0, uit: 5500, eps: false });
+    expect(d.divisor).toBe(12);
+    expect(d.retencion).toBeCloseTo(d.impuesto / 12, 1);
+  });
+});
