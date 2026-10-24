@@ -355,18 +355,16 @@ function Personal() {
             <CampoF etiqueta="Fecha de la suspensión" req>
               <Input type="date" value={f.suspension_cuarta_fecha} onChange={(e) => { set("suspension_cuarta_fecha", e.target.value); if (e.target.value) set("suspension_cuarta_anio", String(new Date().getFullYear())); }} required className="py-1.5" />
             </CampoF>
+            <CampoF etiqueta="N° constancia / operación">
+              <Input value={f.suspension_cuarta_constancia} maxLength={40} onChange={(e) => set("suspension_cuarta_constancia", e.target.value)} className="py-1.5" />
+            </CampoF>
             <CampoF etiqueta="Año de vigencia">
               <div className="flex h-8 items-center gap-1.5 rounded-md border border-line bg-muted/40 px-2 text-xs font-semibold text-ink">
                 {f.suspension_cuarta_anio || new Date().getFullYear()}
                 <span className="font-normal text-muted-foreground">automático</span>
               </div>
             </CampoF>
-            <div className="col-span-full">
-              <CampoF etiqueta="N° constancia / operación">
-                <Input value={f.suspension_cuarta_constancia} maxLength={40} onChange={(e) => set("suspension_cuarta_constancia", e.target.value)} className="py-1.5" />
-              </CampoF>
-              <p className="mt-1 text-[10px] text-muted-foreground">El año de vigencia se toma solo del año actual y se renueva al registrar una fecha nueva. Exime de retención solo a recibos de ese año emitidos al menos 2 días después de esta fecha.</p>
-            </div>
+            <p className="col-span-full mt-1 text-[10px] text-muted-foreground">El año de vigencia se toma solo del año actual y se renueva al registrar una fecha nueva. Exime de retención solo a recibos de ese año emitidos al menos 2 días después de esta fecha.</p>
           </>
         )}
       </>
