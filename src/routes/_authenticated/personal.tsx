@@ -302,7 +302,7 @@ function Personal() {
     </div>
   );
 
-  const seccionLaboral = (f: FormPersonal, set: Setter, conCargo: boolean, bloqueAqui = true) => {
+  const seccionLaboral = (f: FormPersonal, set: Setter, conCargo: boolean) => {
     const planilla = f.tipo_contratacion === "Planilla";
     return (
       <>
@@ -332,7 +332,7 @@ function Personal() {
     );
   };
 
-  const seccionSalario = (f: FormPersonal, set: Setter, conCuenta: boolean) => {
+  const seccionSalario = (f: FormPersonal, set: Setter, conCuenta: boolean, bloqueAqui = true) => {
     const planilla = f.tipo_contratacion === "Planilla";
     return (
       <>
@@ -602,7 +602,7 @@ function Personal() {
                     {esEdicion && d && (
                       <tr className="border-b border-line/60 bg-muted/30">
                         <td colSpan={10} className="px-2 py-2">
-                          <div className="grid gap-3 sm:grid-cols-3"><div className="grid grid-cols-2 gap-3 content-start">{seccionLaboral(d, actualizarCampo, false, false)}</div><div className="grid grid-cols-2 gap-3 content-start">{seccionSalario(d, actualizarCampo, false)}</div><div className="grid grid-cols-2 gap-3 content-start">{seccionPrevision(d, actualizarCampo)}</div></div>
+                          <div className="grid gap-3 sm:grid-cols-3"><div className="grid grid-cols-2 gap-3 content-start">{seccionLaboral(d, actualizarCampo, false)}</div><div className="grid grid-cols-2 gap-3 content-start">{seccionSalario(d, actualizarCampo, false, false)}</div><div className="grid grid-cols-2 gap-3 content-start">{seccionPrevision(d, actualizarCampo)}</div></div>
                           {d.tipo_contratacion !== "Planilla" && d.suspension_cuarta && <div className="mt-2"><BloqueSuspension f={d} set={actualizarCampo} /></div>}
                         </td>
                       </tr>
