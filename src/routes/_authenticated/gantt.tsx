@@ -10,7 +10,7 @@ import {
   PERIODICIDADES, generarPeriodos, hoyISO, programadoPartida, useCronograma, usePartidas, useProyectos,
   type Partida, type Periodicidad,
 } from "@/lib/datos";
-import { NOMBRE_TIPO, aDia, cabeceras, diaSemana, feriadosPeru, calcularCpm, deDia, estadoAvance, letraNumerosDias, pasoNumerosDias, rangoPartida, type Dependencia, type TipoDependencia } from "@/lib/gantt";
+import { NOMBRE_TIPO, aDia, cabeceras, diaSemana, feriadosPeru, calcularCpm, deDia, escalaCalendario, estadoAvance, letraNumerosDias, pasoNumerosDias, rangoPartida, type Dependencia, type TipoDependencia } from "@/lib/gantt";
 import { exportarExcel, exportarPdf } from "@/lib/exportar";
 import { leerTodo } from "@/lib/datos";
 
@@ -35,7 +35,7 @@ const useDependencias = () =>
     queryFn: () => leerTodo<DepFila>(() => supabase.from("dependencias_partidas").select("*").order("id")),
   });
 
-// El calendario se estira para caber en la pantalla: sin barra de desplazamiento horizontal.
+// Obras cortas ajustadas a pantalla; obras largas navegables por mes.
 // RESERVA_DER deja aire a la derecha para que las marcas de inicio/fin y sus rótulos no queden recortadas.
 const ANCHO_FIJO = 306;
 const RESERVA_DER = 76;
@@ -117,7 +117,7 @@ function Gantt() {
     return () => ro.disconnect();
   });
   const diasTotales = datos ? datos.d1 - datos.d0 : 1;
-  const px = Math.max(0.5, ((anchoVista - ANCHO_FIJO - RESERVA_DER) / diasTotales) * Math.max(1, factor));
+  const { conBarras, px } = escalaCalendario(diasTotales, anchoVista - ANCHO_FIJO - RESERVA_DER, factor);
   // Si la obra dura más de un mes, los números de día se escriben más pequeños para que quepan más.
   const letraDias = letraNumerosDias(diasTotales, zoom === "dia");
   // Cada cuántos días se escribe un número: se saltan días si las columnas quedan muy angostas.
@@ -213,7 +213,7 @@ function Gantt() {
         descripcion="Calendario de partidas, dependencias y ruta crítica"
         icono={<ChartGantt size={20} />}
         contexto={
-          <Select value={proyectoId} onChange={(e) => { setProyectoId(e.target.value); setSeleccion(null); }} className="min-w-64">
+          <Select aria-label="Proyecto del Gantt" value={proyectoId} onChange={(e) => { setProyectoId(e.target.value); setSeleccion(null); }} className="min-w-64">
             <option value="">Todas las obras</option>
             {proyectos.filter((p) => !p.archivado_en).map((p) => <option key={p.id} value={p.id}>{p.codigo ? `${p.codigo} · ` : ""}{p.nombre}</option>)}
           </Select>
@@ -285,7 +285,7 @@ function Gantt() {
           )}
 
           <Panel>
-            <div ref={contenedor} className="sin-slider flex max-h-[70vh] overflow-auto text-[11px]">
+            <div ref={contenedor} role="region" aria-label="Calendario Gantt" tabIndex={0} className={`flex max-h-[70vh] text-[11px] ${conBarras ? "overflow-scroll" : "sin-slider overflow-auto"}`}>
               {/* Columna fija */}
               <div className="sticky left-0 z-20 w-[19rem] shrink-0 border-r border-line bg-card">
                 <div className="sticky top-0 z-10 flex h-10 items-end border-b border-line bg-card px-2 pb-0.5 text-[10px] font-semibold text-muted-foreground">

@@ -182,3 +182,11 @@ export function pasoNumerosDias(px: number, letra: number) {
   if (!(px > 0)) return 1;
   return Math.max(1, Math.ceil((letra * 1.7) / px));
 }
+
+/** Obras largas: ventana de un mes, en vez de comprimir todos los meses. */
+export function escalaCalendario(diasTotales: number, anchoDisponible: number, factor: number) {
+  const conBarras = diasTotales > 31;
+  const diasVisibles = conBarras ? 31 : Math.max(1, diasTotales);
+  const px = Math.max(0.5, (Math.max(1, anchoDisponible) / diasVisibles) * Math.max(1, factor));
+  return { conBarras, px };
+}
