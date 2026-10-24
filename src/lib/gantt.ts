@@ -176,3 +176,9 @@ export function letraNumerosDias(diasTotales: number, vistaDias: boolean) {
   if (diasTotales > 31) return 9;
   return 10;
 }
+
+// Cada cuántos días se escribe un número: si las columnas son muy angostas se saltan días para que los números no se encimen.
+export function pasoNumerosDias(px: number, letra: number) {
+  if (!(px > 0)) return 1;
+  return Math.max(1, Math.ceil((letra * 1.7) / px));
+}
