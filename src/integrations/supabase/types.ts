@@ -4905,6 +4905,53 @@ export type Database = {
         }
         Relationships: []
       }
+      terceros_cuentas_bancarias: {
+        Row: {
+          activo: boolean
+          banco: string
+          cci: string
+          created_at: string
+          es_detraccion: boolean
+          es_principal: boolean
+          id: string
+          moneda: string
+          numero_cuenta: string
+          tercero_id: string
+        }
+        Insert: {
+          activo?: boolean
+          banco?: string
+          cci?: string
+          created_at?: string
+          es_detraccion?: boolean
+          es_principal?: boolean
+          id?: string
+          moneda?: string
+          numero_cuenta?: string
+          tercero_id: string
+        }
+        Update: {
+          activo?: boolean
+          banco?: string
+          cci?: string
+          created_at?: string
+          es_detraccion?: boolean
+          es_principal?: boolean
+          id?: string
+          moneda?: string
+          numero_cuenta?: string
+          tercero_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "terceros_cuentas_bancarias_tercero_id_fkey"
+            columns: ["tercero_id"]
+            isOneToOne: false
+            referencedRelation: "terceros"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tipo_cambio_diario: {
         Row: {
           compra: number
