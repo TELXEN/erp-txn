@@ -183,6 +183,17 @@ export function pasoNumerosDias(px: number, letra: number) {
   return Math.max(1, Math.ceil((letra * 1.7) / px));
 }
 
+// Letras del día de la semana, en orden de diaSemana (0 = domingo).
+export const LETRAS_SEMANA = ["D", "L", "M", "M", "J", "V", "S"];
+export const letraSemana = (dia: number) => LETRAS_SEMANA[diaSemana(dia)];
+
+// Una letra suelta ocupa menos que un número de dos cifras, así que admite columnas más angostas.
+export function pasoLetrasSemana(px: number, letra: number) {
+  if (!(px > 0)) return 1;
+  return Math.max(1, Math.ceil((letra * 0.95) / px));
+}
+
+
 /** Obras largas: ventana de un mes, en vez de comprimir todos los meses. */
 export function escalaCalendario(diasTotales: number, anchoDisponible: number, factor: number) {
   const conBarras = diasTotales > 31;
