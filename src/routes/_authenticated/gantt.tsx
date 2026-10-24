@@ -35,9 +35,9 @@ const useDependencias = () =>
     queryFn: () => leerTodo<DepFila>(() => supabase.from("dependencias_partidas").select("*").order("id")),
   });
 
-const PX_DIA: Record<Periodicidad, number> = { dia: 28, semana: 7, quincena: 3.5, mes: 1.6 };
-const ANCHO_FIJO = 352;
-const ALTO = 30;
+// El calendario se estira para caber en la pantalla: sin barra de desplazamiento horizontal.
+const ANCHO_FIJO = 306;
+const ALTO = 26;
 const fecha = (iso: string) => iso.split("-").reverse().join("/");
 
 type Fila = {
@@ -115,7 +115,7 @@ function Gantt() {
     return () => ro.disconnect();
   });
   const diasTotales = datos ? datos.d1 - datos.d0 : 1;
-  const px = Math.max(PX_DIA[zoom] * factor, (anchoVista - ANCHO_FIJO - 2) / diasTotales);
+  const px = Math.max(0.5, ((anchoVista - ANCHO_FIJO - 2) / diasTotales) * Math.max(1, factor));
   const cab = useMemo(() => (datos ? cabeceras(datos.d0, datos.d1, zoom) : { superior: [], inferior: [] }), [datos, zoom]);
   const noLaborables = useMemo(() => {
     if (!datos || px < 3) return [] as { dia: number; nombre: string }[];
@@ -221,7 +221,7 @@ function Gantt() {
                 ))}
               </div>
               <div className="flex rounded-md border border-line p-0.5">
-                <button type="button" title="Alejar" aria-label="Alejar" onClick={() => setFactor(Math.max(0.25, factor / 1.5))} className="rounded px-1.5 py-1 text-muted-foreground hover:bg-muted"><ZoomOut size={14} /></button>
+                <button type="button" title="Alejar (ajustar a la pantalla)" aria-label="Alejar" onClick={() => setFactor(Math.max(1, factor / 1.5))} className="rounded px-1.5 py-1 text-muted-foreground hover:bg-muted"><ZoomOut size={14} /></button>
                 <button type="button" title="Acercar" aria-label="Acercar" onClick={() => setFactor(Math.min(8, factor * 1.5))} className="rounded px-1.5 py-1 text-muted-foreground hover:bg-muted"><ZoomIn size={14} /></button>
                 <button type="button" onClick={irAHoy} className="flex items-center gap-1 rounded px-2 py-1 text-xs text-muted-foreground hover:bg-muted"><CalendarCheck size={14} /> Ir a hoy</button>
               </div>
@@ -279,10 +279,10 @@ function Gantt() {
           )}
 
           <Panel>
-            <div ref={contenedor} className="flex max-h-[70vh] overflow-auto text-xs">
+            <div ref={contenedor} className="sin-slider flex max-h-[70vh] overflow-auto text-[11px]">
               {/* Columna fija */}
-              <div className="sticky left-0 z-20 w-[22rem] shrink-0 border-r border-line bg-card">
-                <div className="sticky top-0 z-10 flex h-12 items-end border-b border-line bg-card px-2 pb-1 font-semibold text-muted-foreground">
+              <div className="sticky left-0 z-20 w-[19rem] shrink-0 border-r border-line bg-card">
+                <div className="sticky top-0 z-10 flex h-10 items-end border-b border-line bg-card px-2 pb-0.5 text-[10px] font-semibold text-muted-foreground">
                   <span className="flex-1">Partida</span><span className="w-12 text-right">Real</span><span className="w-14 text-right">Holgura</span>
                 </div>
                 {render.map((r) =>
@@ -305,18 +305,18 @@ function Gantt() {
               </div>
               {/* Línea de tiempo */}
               <div className="relative shrink-0" style={{ width: anchoTotal }}>
-                <div className="sticky top-0 z-10 h-12 border-b border-line bg-card">
-                  <div className="relative h-6 border-b border-line">
+                <div className="sticky top-0 z-10 h-10 border-b border-line bg-card">
+                  <div className="relative h-5 border-b border-line">
                     {cab.superior.map((t) => (
-                      <div key={t.inicio} className="absolute inset-y-0 overflow-hidden border-r border-line px-1.5 leading-6 font-semibold whitespace-nowrap" style={{ left: x(t.inicio), width: (t.fin - t.inicio) * px }}>{t.etiqueta}</div>
+                      <div key={t.inicio} className="absolute inset-y-0 overflow-hidden border-r border-line px-1 text-[10px] leading-[18px] font-semibold whitespace-nowrap" style={{ left: x(t.inicio), width: (t.fin - t.inicio) * px }}>{t.etiqueta}</div>
                     ))}
                   </div>
-                  <div className="relative h-6">
+                  <div className="relative h-5">
                     {cab.inferior.map((t) => {
                       const finde = zoom === "dia" && (diaSemana(t.inicio) === 0 || diaSemana(t.inicio) === 6);
                       const esHoy = t.inicio <= aDia(hoy) && aDia(hoy) < t.fin;
                       return (
-                        <div key={t.inicio} className={`absolute inset-y-0 overflow-hidden border-r border-line text-center leading-6 whitespace-nowrap ${esHoy ? "bg-cta/20 font-semibold text-foreground" : finde ? "bg-muted text-muted-foreground" : "text-muted-foreground"}`} style={{ left: x(t.inicio), width: (t.fin - t.inicio) * px }}>
+                        <div key={t.inicio} className={`absolute inset-y-0 overflow-hidden border-r border-line text-center text-[10px] leading-[18px] whitespace-nowrap ${esHoy ? "bg-cta/20 font-semibold text-foreground" : finde ? "bg-muted text-muted-foreground" : "text-muted-foreground"}`} style={{ left: x(t.inicio), width: (t.fin - t.inicio) * px }}>
                           {(t.fin - t.inicio) * px >= 16 ? t.etiqueta : ""}
                         </div>
                       );
@@ -339,13 +339,13 @@ function Gantt() {
                       return <div key={i} className="absolute h-2 rounded-sm bg-foreground/60" style={{ top: i * ALTO + ALTO / 2 - 4, left: x(a), width: (b - a) * px }} />;
                     }
                     const f = r.fila;
-                    if (f.inicio === null) return <span key={i} className="absolute left-2 whitespace-nowrap italic text-muted-foreground" style={{ top: i * ALTO + 8 }}>Sin programar</span>;
+                    if (f.inicio === null) return <span key={i} className="absolute left-2 whitespace-nowrap text-[10px] italic text-muted-foreground" style={{ top: i * ALTO + 7 }}>Sin programar</span>;
                     const est = estadoAvance(f.real, f.programado);
                     const critica = verCritica && cpm?.criticas.has(f.partida.id);
                     const color = est === "ok" ? "bg-good" : est === "alerta" ? "bg-warn" : "bg-bad";
                     return (
                       <div key={i} className="contents">
-                      <span className="pointer-events-none absolute z-[6] whitespace-nowrap text-[10px] text-muted-foreground" style={{ top: i * ALTO + 9, left: x(f.fin!) + 6 }}>{fecha(deDia(f.inicio)).slice(0, 5)} – {fecha(deDia(f.fin! - 1)).slice(0, 5)}</span>
+                      <span className="pointer-events-none absolute z-[6] whitespace-nowrap text-[9px] text-muted-foreground" style={{ top: i * ALTO + 8, left: x(f.fin!) + 5 }}>{fecha(deDia(f.inicio)).slice(0, 5)} – {fecha(deDia(f.fin! - 1)).slice(0, 5)}</span>
                       <button
                         type="button"
                         onClick={() => setSeleccion(f.partida.id)}
@@ -354,7 +354,7 @@ function Gantt() {
                         style={{ top: i * ALTO + 6, height: ALTO - 12, left: x(f.inicio), width: Math.max(4, (f.fin! - f.inicio) * px) }}
                       >
                         <span className={`block h-full ${color}`} style={{ width: `${Math.min(100, f.real)}%` }} />
-                        {(f.fin! - f.inicio) * px >= 34 && <span className="absolute inset-0 grid place-items-center text-[10px] font-semibold text-foreground">{f.real.toFixed(0)}%</span>}
+                        {(f.fin! - f.inicio) * px >= 30 && <span className="absolute inset-0 grid place-items-center text-[9px] font-semibold text-foreground">{f.real.toFixed(0)}%</span>}
                       </button>
                       </div>
                     );
@@ -381,7 +381,7 @@ function Gantt() {
                 </div>
               </div>
             </div>
-            <p className="border-t border-line px-3 py-2 text-[11px] text-muted-foreground">
+            <p className="border-t border-line px-3 py-2 text-[10px] text-muted-foreground">
               Barra: periodo programado · relleno: avance real (verde a tiempo, ámbar ligero atraso, rojo atrasada) · borde rojo: ruta crítica · línea vertical: hoy.
             </p>
           </Panel>
@@ -413,7 +413,7 @@ function Marca({ x, texto }: { x: number; texto: string }) {
   return (
     <div className="absolute inset-y-0 z-[4] border-l border-dashed border-primary/60" style={{ left: x }}>
       <span className="absolute -left-[5px] top-1 size-2.5 rotate-45 bg-primary" />
-      <span className="absolute left-2 top-0.5 whitespace-nowrap rounded bg-card/90 px-1 text-[10px] font-semibold text-primary">{texto}</span>
+      <span className="absolute left-2 top-0.5 whitespace-nowrap rounded bg-card/90 px-1 text-[9px] font-semibold text-primary">{texto}</span>
     </div>
   );
 }

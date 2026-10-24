@@ -379,6 +379,13 @@ aside .md\:overflow-y-auto:hover::-webkit-scrollbar-thumb { background: color-mi
   }
 }
 
+/* Hojas y calendarios anchos: se puede desplazar con la rueda, pero sin barra visible */
+@utility sin-slider {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar { width: 0; height: 0; }
+}
+
 /* Cifras y códigos: familia de cifras, ancho fijo, a la derecha */
 @utility cifra {
   font-family: var(--font-cifras);
