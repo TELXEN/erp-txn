@@ -35,6 +35,7 @@ function BotonPantallaCompleta() {
 }
 import {
   Activity,
+  ChartGantt,
   Banknote,
   BarChart3,
   Briefcase,
@@ -94,6 +95,7 @@ const MENU: Categoria[] = [
       { a: "/proyectos", texto: "Proyectos", roles: ["administrador", "gerente"], icono: Building2 },
       { a: "/partidas", texto: "Partidas", roles: ["administrador", "gerente"], icono: Layers },
       { a: "/avance", texto: "Avance Físico", roles: ["ingeniero", "gerente"], icono: Activity },
+      { a: "/gantt", texto: "Diagrama Gantt", roles: ["ingeniero", "administrador", "gerente"], icono: ChartGantt },
       { a: "/valorizaciones-obra", texto: "Valorizaciones", roles: ["ingeniero", "administrador", "gerente"], icono: ClipboardCheck },
       { a: "/aprobaciones", texto: "Aprobaciones", roles: ["administrador", "gerente"], icono: ShieldCheck },
     ],
