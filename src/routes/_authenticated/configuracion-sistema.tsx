@@ -65,8 +65,8 @@ function ConfiguracionSistema() {
         onCambiar={setPestana}
         opciones={[
           { id: "empresa", texto: "Datos de la empresa", icono: <Building2 className="size-4" /> },
-          { id: "bancos", texto: "Cuentas bancarias", icono: <Landmark className="size-4" /> },
           { id: "tema", texto: "Tema de colores", icono: <IconoPaletaColores className="size-4" /> },
+          { id: "bancos", texto: "Cuentas bancarias", icono: <Landmark className="size-4" /> },
           { id: "tipografia", texto: "Tipografía de documentos", icono: <FileText className="size-4" /> },
           { id: "usuarios", texto: "Usuarios y Roles", icono: <ShieldCheck className="size-4" /> },
           ...(rol === "gerente" || rol === "administrador" ? [{ id: "integraciones" as const, texto: "Integraciones", icono: <Plug className="size-4" /> }] : []),
