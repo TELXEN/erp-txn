@@ -337,9 +337,12 @@ function Gantt() {
                     {cab.inferior.map((t) => {
                       const finde = zoom === "dia" && (diaSemana(t.inicio) === 0 || diaSemana(t.inicio) === 6);
                       const esHoy = t.inicio <= aDia(hoy) && aDia(hoy) < t.fin;
+                      const rango = zoom === "dia" ? fecha(deDia(t.inicio)) : `${fecha(deDia(t.inicio))} – ${fecha(deDia(t.fin - 1))}`;
+                      // En semana/quincena/mes la etiqueta se escribe siempre; el salto solo aplica a los números de día.
+                      const etiqueta = zoom === "dia" ? ((t.inicio - (datos?.d0 ?? 0)) % paso === 0 ? t.etiqueta : "") : t.etiqueta;
                       return (
-                        <div key={t.inicio} className={`absolute inset-y-0 overflow-hidden border-r border-line text-center leading-[18px] whitespace-nowrap ${esHoy ? "bg-cta/20 font-semibold text-foreground" : finde ? "bg-muted text-muted-foreground" : "text-muted-foreground"}`} style={{ left: x(t.inicio), width: (t.fin - t.inicio) * px, fontSize: letraDias }}>
-                          {(t.inicio - (datos?.d0 ?? 0)) % paso === 0 ? t.etiqueta : ""}
+                        <div key={t.inicio} title={rango} className={`absolute inset-y-0 overflow-hidden border-r border-line text-center leading-[18px] whitespace-nowrap ${esHoy ? "bg-cta/20 font-semibold text-foreground" : finde ? "bg-muted text-muted-foreground" : "text-muted-foreground"}`} style={{ left: x(t.inicio), width: (t.fin - t.inicio) * px, fontSize: letraDias }}>
+                          {etiqueta}
                         </div>
                       );
                     })}
