@@ -118,6 +118,8 @@ function Gantt() {
   });
   const diasTotales = datos ? datos.d1 - datos.d0 : 1;
   const px = Math.max(0.5, ((anchoVista - ANCHO_FIJO - RESERVA_DER) / diasTotales) * Math.max(1, factor));
+  // Si la obra dura más de un mes, los números de día se escriben más pequeños para que quepan más.
+  const letraDias = zoom === "dia" && diasTotales > 31 ? (diasTotales > 120 ? 8 : 9) : 10;
   const cab = useMemo(() => (datos ? cabeceras(datos.d0, datos.d1, zoom) : { superior: [], inferior: [] }), [datos, zoom]);
   const noLaborables = useMemo(() => {
     if (!datos || px < 3) return [] as { dia: number; nombre: string }[];
