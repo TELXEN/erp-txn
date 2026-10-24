@@ -223,10 +223,6 @@ function TareoPage() {
     qc.invalidateQueries({ queryKey: ["tareos"] });
   }
 
-  async function eliminar(id: string) {
-    await supabase.from("tareos").delete().eq("id", id);
-    qc.invalidateQueries({ queryKey: ["tareos"] });
-  }
 
   function marcasDe(id: string) {
     const mapa: Record<string, Marca> = {};
