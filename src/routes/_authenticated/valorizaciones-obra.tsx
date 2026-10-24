@@ -100,10 +100,10 @@ function ValorizacionesPage() {
   }, [proyectoId, vals, partidas]);
 
   function nueva() {
-    if (!proyectoId) return toast.error("Elige primero el proyecto en la lupa de filtros.");
+    if (!proyectoId) { toast.error("Elige primero el proyecto en la lupa de filtros."); return; }
     const p = proyectos.find((x) => x.id === proyectoId)!;
     const deProy = vals.filter((v) => v.proyecto_id === proyectoId);
-    if (deProy.some((v) => v.estado === "Borrador" || v.estado === "En revisión")) return toast.error("Este proyecto ya tiene una valorización sin aprobar. Termínala antes de crear otra.");
+    if (deProy.some((v) => v.estado === "Borrador" || v.estado === "En revisión")) { toast.error("Este proyecto ya tiene una valorización sin aprobar. Termínala antes de crear otra."); return; }
     const numero = deProy.reduce((m, v) => Math.max(m, v.numero), 0) + 1;
     const ultimaFin = deProy.filter((v) => v.numero === numero - 1)[0]?.periodo_fin;
     const inicio = ultimaFin ? new Date(new Date(ultimaFin).getTime() + 86400000).toISOString().slice(0, 10) : (p.fecha_inicio ?? hoy().slice(0, 8) + "01");
@@ -131,7 +131,7 @@ function ValorizacionesPage() {
   async function guardar(estado?: string) {
     if (!form || !res) return;
     const destino = estado ?? form.estado;
-    if (destino === "Aprobada" && faltaFirma(form)) return toast.error("Para aprobar completa la firma de conformidad del supervisor: nombre, cargo y fecha.");
+    if (destino === "Aprobada" && faltaFirma(form)) { toast.error("Para aprobar completa la firma de conformidad del supervisor: nombre, cargo y fecha."); return; }
     setGuardando(true);
     const datos = { proyecto_id: form.proyecto_id, numero: form.numero, periodo_inicio: form.periodo_inicio, periodo_fin: form.periodo_fin, pct_gg: form.pct_gg, pct_utilidad: form.pct_utilidad, pct_adelanto: form.pct_adelanto, pct_retencion: form.pct_retencion, costo_directo: res.cd, neto: res.neto, firma_nombre: form.firma_nombre.trim(), firma_cargo: form.firma_cargo.trim(), firma_fecha: form.firma_fecha || null, observacion: form.observacion };
     try {
@@ -167,10 +167,10 @@ function ValorizacionesPage() {
 
   async function eliminar() {
     if (!actual) return;
-    if (actual.estado === "Aprobada" || actual.estado === "Preliquidada") return toast.error("Una valorización aprobada no se puede eliminar.");
+    if (actual.estado === "Aprobada" || actual.estado === "Preliquidada") { toast.error("Una valorización aprobada no se puede eliminar."); return; }
     if (!confirm(`¿Eliminar la Valorización N° ${actual.numero}?`)) return;
     const { error } = await db.from("valorizaciones").delete().eq("id", actual.id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setSel(null);
     qc.invalidateQueries({ queryKey: ["valorizaciones"] });
   }
