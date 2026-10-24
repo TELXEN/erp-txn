@@ -47,7 +47,7 @@ describe("ruta crítica", () => {
   });
 });
 
-import { cabeceras, diaSemana, feriadosPeru, aDia, letraNumerosDias } from "./gantt";
+import { cabeceras, diaSemana, feriadosPeru, aDia, letraNumerosDias, pasoNumerosDias } from "./gantt";
 describe("calendario", () => {
   it("feriados de Perú incluyen Fiestas Patrias y Viernes Santo 2026 (3 abr)", () => {
     const f = feriadosPeru(2026);
@@ -78,5 +78,10 @@ describe("letra de los números de día", () => {
   });
   it("fuera de la vista por días se conserva 10 px", () => {
     expect(letraNumerosDias(85, false)).toBe(10);
+  });
+  it("días angostos: se numera cada tantos días", () => {
+    expect(pasoNumerosDias(30, 10)).toBe(1);
+    expect(pasoNumerosDias(8, 9)).toBe(2);
+    expect(pasoNumerosDias(3, 8)).toBe(5);
   });
 });
