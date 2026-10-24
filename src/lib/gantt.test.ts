@@ -47,7 +47,7 @@ describe("ruta crítica", () => {
   });
 });
 
-import { cabeceras, diaSemana, feriadosPeru, aDia, letraNumerosDias, pasoNumerosDias, escalaCalendario } from "./gantt";
+import { cabeceras, diaSemana, feriadosPeru, aDia, letraNumerosDias, letraSemana, pasoLetrasSemana, pasoNumerosDias, escalaCalendario } from "./gantt";
 describe("calendario", () => {
   it("feriados de Perú incluyen Fiestas Patrias y Viernes Santo 2026 (3 abr)", () => {
     const f = feriadosPeru(2026);
@@ -96,5 +96,24 @@ describe("navegación del calendario", () => {
     const larga = escalaCalendario(85, 620, 1);
     expect(larga.conBarras).toBe(true);
     expect(larga.px * 85).toBe(1700);
+  });
+});
+
+describe("letra del día de la semana", () => {
+  it("usa L M M J V S D según el día real", () => {
+    expect(letraSemana(aDia("2026-10-24"))).toBe("S"); // sábado
+    expect(letraSemana(aDia("2026-10-25"))).toBe("D"); // domingo
+    expect(letraSemana(aDia("2026-10-26"))).toBe("L"); // lunes
+    expect(letraSemana(aDia("2026-10-27"))).toBe("M"); // martes
+    expect(letraSemana(aDia("2026-10-28"))).toBe("M"); // miércoles
+    expect(letraSemana(aDia("2026-10-29"))).toBe("J"); // jueves
+    expect(letraSemana(aDia("2026-10-30"))).toBe("V"); // viernes
+  });
+  it("admite columnas más angostas que los números", () => {
+    expect(pasoLetrasSemana(30, 9)).toBe(1);
+    expect(pasoLetrasSemana(8, 9)).toBe(2);
+    expect(pasoLetrasSemana(3, 8)).toBe(3);
+    expect(pasoLetrasSemana(0, 9)).toBe(1);
+    expect(pasoLetrasSemana(8, 9)).toBeLessThan(pasoNumerosDias(8, 9));
   });
 });
