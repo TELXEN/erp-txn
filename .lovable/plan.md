@@ -1,31 +1,29 @@
-# Diagrama Gantt en Operaciones
+# Diagrama Gantt con ruta crítica en Operaciones
 
 ## Objetivo
-Ver en una sola pantalla el calendario de cada obra: qué partidas se ejecutan, cuándo empiezan y terminan, cuánto avanzaron y si van atrasadas, usando los datos que ya se cargan en Avance programado y Avance físico.
+Ver en una sola pantalla el calendario de cada obra: qué partidas se ejecutan, cuándo empiezan y terminan, cuánto avanzaron, cuáles dependen de otras y cuáles forman la **ruta crítica** (las que, si se atrasan, atrasan la entrega de la obra).
 
 ## Ubicación
-Nueva entrada **Diagrama Gantt** en Operaciones, justo después de Avance Físico (antes de Valorizaciones). Mismo acceso que Avance Físico: Ingeniero ve barras y porcentajes sin montos; Administración y Gerencia además ven importes.
+Nueva entrada **Diagrama Gantt** en Operaciones, justo después de Avance Físico (antes de Valorizaciones). Mismo acceso que Avance Físico: Ingeniero ve barras y porcentajes sin montos y puede definir dependencias; Administración y Gerencia además ven importes.
 
 ## Qué verá el usuario
-- **Selector de obra** (o "Todas las obras" para una vista de cartera, una barra por obra con sus fechas de inicio y fin).
-- **Columna izquierda fija**: especialidad > título > partida, con grupos plegables; % de avance real y fechas.
-- **Línea de tiempo** a la derecha con zoom Días / Semanas / Quincenas / Meses (igual que el cronograma).
-- **Cada barra** abarca desde el primer hasta el último periodo con avance programado de la partida:
-  - parte rellena = avance físico real;
-  - color: verde a tiempo, ámbar ligeramente atrasada, rojo atrasada (real menor que lo programado a hoy);
-  - las barras de grupo resumen a sus partidas.
-- **Línea vertical "Hoy"** y marcas de inicio y fin contractual de la obra.
-- **Al pasar el cursor**: programado vs. real a la fecha, días restantes; al hacer clic se abre la partida en Avance programado para editar.
-- Lupa de filtros en la barra derecha (especialidad, estado, solo atrasadas) y exportación a PDF A4 horizontal y Excel.
+- **Selector de obra** (o "Todas las obras": una barra por obra con sus fechas).
+- **Columna izquierda fija**: especialidad > título > partida, grupos plegables, % real, fechas, holgura (días).
+- **Línea de tiempo** con zoom Días / Semanas / Quincenas / Meses.
+- **Barras** desde el primer al último periodo con avance programado; parte rellena = avance real; verde a tiempo, ámbar ligeramente atrasada, rojo atrasada.
+- **Línea "Hoy"** y marcas de inicio y fin contractual.
+- **Dependencias**: flechas entre barras. Se crean desde la ficha de la partida ("Depende de…": tipo Fin→Inicio, Inicio→Inicio, Fin→Fin, con días de desfase).
+- **Ruta crítica**: interruptor "Ver ruta crítica" que resalta con borde intenso las partidas con holgura 0 y sus flechas; tarjeta resumen con duración total calculada, fecha de fin estimada y comparación con el fin contractual.
+- **Alertas**: si una partida crítica va atrasada, aviso rojo con los días que empuja el fin de la obra; si hay dependencias en círculo, se rechaza al guardar.
+- Al pasar el cursor: programado vs. real, holgura y días restantes; clic abre la partida en Avance programado.
+- Lupa de filtros (especialidad, estado, solo atrasadas, solo críticas) y exportación PDF A4 horizontal y Excel.
 
-## Primera etapa y siguientes
-1. **Etapa 1 (esta)**: Gantt de solo lectura derivado del cronograma existente; no se pide información nueva.
-2. **Etapa 2 (opcional, luego)**: arrastrar barras para mover o alargar fechas, que redistribuye los porcentajes del cronograma.
-3. **Etapa 3 (opcional)**: dependencias entre partidas y ruta crítica.
+## Etapas
+1. **Gantt + dependencias + ruta crítica** (esta entrega).
+2. **Opcional, luego**: arrastrar barras para mover o alargar fechas, redistribuyendo los porcentajes del cronograma.
 
 ## Detalles técnicos
-- Datos: `cronograma_partidas` (pct por periodo y periodicidad), `partidas` (avance_pct, presupuesto) y `proyectos` (fechas, periodicidad). Inicio/fin de barra = primer/último periodo con pct > 0 en la periodicidad de la obra; partidas sin cronograma se listan sin barra con aviso "Sin programar".
-- Programado a hoy con `programadoPartida`/`programadoCronograma`; solo partidas hoja, los grupos se agregan ponderando por presupuesto (sin doble conteo).
-- Lógica pura en `src/lib/gantt.ts` (barras, estado de atraso, agregación) con pruebas unitarias; pantalla en `src/routes/_authenticated/gantt.tsx` dibujada con CSS grid/SVG y tokens del tema, sin nuevas dependencias.
-- Usa `CabeceraModulo`, `MenuFiltros`, `Vacio`, `FilasCargando`; recuerda obra, zoom y grupos plegados con `recordado.ts`.
-- Sin cambios en la base de datos en la etapa 1.
+- Datos existentes: `cronograma_partidas`, `partidas`, `proyectos`. Inicio/fin de barra = primer/último periodo con pct > 0 en la periodicidad de la obra; sin cronograma = "Sin programar" (no entra al cálculo crítico).
+- Nueva tabla `dependencias_partidas` (proyecto_id, predecesora_id, sucesora_id, tipo FS/SS/FF, desfase_dias), única por par, con GRANT, RLS por roles existentes y trigger que impide ciclos y partidas de otra obra.
+- Cálculo CPM en `src/lib/gantt.ts`: orden topológico, pasada adelante (inicio/fin temprano) y atrás (tardío), holgura = tardío − temprano; críticas = holgura 0. Solo partidas hoja; grupos agregan ponderando por presupuesto. Pruebas unitarias: cadena simple, ramas paralelas, desfase, ciclo rechazado.
+- Pantalla `src/routes/_authenticated/gantt.tsx` con CSS grid + SVG para flechas, tokens del tema, sin nuevas dependencias; usa `CabeceraModulo`, `MenuFiltros`, `Vacio`, `FilasCargando` y recuerda obra/zoom/grupos con `recordado.ts`.
