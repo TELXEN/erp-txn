@@ -27,6 +27,11 @@ export type EntradaQuinta = {
   retenidoAnterior: number; // renta 5ta retenida en meses anteriores
   uit: number;
   eps: boolean;
+  /** Remuneración contractual de los meses que faltan (por defecto sueldoMes). */
+  remFutura?: number;
+  /** Gratificaciones de julio/diciembre (básico + asignación del mes). En julio ya pasado, null = no corresponde. */
+  gratiJulio?: number | null;
+  gratiDic?: number;
 };
 
 export type DetalleQuinta = {
@@ -36,8 +41,11 @@ export type DetalleQuinta = {
 
 export function calcularRentaQuinta(e: EntradaQuinta): DetalleQuinta {
   const bonif = e.eps ? 0.0675 : 0.09;
-  const gratis = (e.mes <= 7 ? 2 : 1) * e.sueldoMes * (1 + bonif);
-  const proyectada = r2(e.pagadoAnterior + e.sueldoMes * (13 - e.mes) + gratis);
+  const futura = e.remFutura ?? e.sueldoMes;
+  const conBono = (g: number) => g + r2(g * bonif);
+  const julio = e.gratiJulio === undefined ? (e.mes <= 7 ? futura : 0) : (e.gratiJulio ?? 0);
+  const gratis = conBono(julio) + conBono(e.gratiDic ?? futura);
+  const proyectada = r2(e.pagadoAnterior + e.sueldoMes + futura * (12 - e.mes) + gratis);
   const deduccion = 7 * e.uit;
   const rentaNeta = r2(Math.max(0, proyectada - deduccion));
   const impuesto = impuestoAnual(rentaNeta, e.uit);
@@ -60,7 +68,7 @@ export type MesReal = { mes: number; ingresos: number; retenido: number };
  * sin boleta desde la fecha de ingreso, estima el sueldo contractual y su retención simulada.
  */
 export function acumuladoAnterior(p: {
-  anio: number; mes: number; fechaIngreso: string | null | undefined; sueldoContractual: number;
+  anio: number; mes: number; fechaIngreso: string | null | undefined; sueldoContractual: (mes: number) => number;
   reales: MesReal[]; uit: number; eps: boolean;
 }) {
   let pagado = 0, retenido = 0, estimados = 0;
@@ -71,12 +79,13 @@ export function acumuladoAnterior(p: {
     if (reales.length) {
       pagado += reales.reduce((s, x) => s + x.ingresos, 0);
       retenido += reales.reduce((s, x) => s + x.retenido, 0);
-    } else if (m >= desde && p.sueldoContractual > 0) {
-      const d = calcularRentaQuinta({ mes: m, sueldoMes: p.sueldoContractual, pagadoAnterior: pagado, retenidoAnterior: retenido, uit: p.uit, eps: p.eps });
-      pagado += p.sueldoContractual;
+    } else if (m >= desde && p.sueldoContractual(m) > 0) {
+      const sm = p.sueldoContractual(m);
+      const d = calcularRentaQuinta({ mes: m, sueldoMes: sm, remFutura: sm, gratiJulio: m <= 7 || desde <= 7 ? p.sueldoContractual(7) : null, gratiDic: p.sueldoContractual(12), pagadoAnterior: pagado, retenidoAnterior: retenido, uit: p.uit, eps: p.eps });
+      pagado += sm;
       retenido += d.retencion;
       estimados++;
     }
   }
-  return { pagado: r2(pagado), retenido: r2(retenido), estimados };
+  return { pagado: r2(pagado), retenido: r2(retenido), estimados, desde };
 }
