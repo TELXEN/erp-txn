@@ -8,6 +8,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { consultarDocumentoSunat } from "@/lib/decolecta.functions";
 import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { exportarExcel } from "@/lib/exportar";
+import { CuentasTercero } from "@/components/CuentasTercero";
 
 export type Tercero = {
   id: string;
@@ -251,6 +252,7 @@ export function TercerosPanel({ modo }: { modo: "cliente" | "proveedor" }) {
           nombreSingular={nombreSingular}
           esCliente={esCliente}
           editando={!!editando}
+          terceroId={editando?.id ?? null}
           form={form}
           setForm={setForm}
           ok={ok}
@@ -266,6 +268,7 @@ function ModalTercero({
   nombreSingular,
   esCliente,
   editando,
+  terceroId,
   form,
   setForm,
   ok,
@@ -275,6 +278,7 @@ function ModalTercero({
   nombreSingular: string;
   esCliente: boolean;
   editando: boolean;
+  terceroId: string | null;
   form: FormTercero;
   setForm: (f: FormTercero) => void;
   ok: string;
@@ -470,6 +474,8 @@ function ModalTercero({
               </label>
             </div>
           )}
+
+          {terceroId ? <CuentasTercero terceroId={terceroId} /> : <p className="text-[11px] text-muted-foreground sm:col-span-2">Guarda primero para registrar sus cuentas bancarias.</p>}
 
           {error && <p className="font-mono text-xs text-bad sm:col-span-2">{error}</p>}
           {ok && !error && <p className="font-mono text-xs text-ok sm:col-span-2">{ok}</p>}
