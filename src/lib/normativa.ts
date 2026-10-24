@@ -15,7 +15,7 @@ export const NORMATIVA_RESPALDO: FilaNormativa[] = [
 export function normaEn(lista: FilaNormativa[], fecha: string): FilaNormativa {
   const f = fecha.length === 7 ? `${fecha}-31` : fecha;
   const orden = [...(lista.length ? lista : NORMATIVA_RESPALDO)].sort((a, b) => a.vigencia_desde.localeCompare(b.vigencia_desde));
-  return orden.filter((n) => n.vigencia_desde <= f).pop() ?? orden[0];
+  return orden.filter((n) => n.vigencia_desde <= f).pop() ?? orden[0]!;
 }
 /** RMV del período (YYYY-MM). */
 export const rmvEn = (lista: FilaNormativa[], periodo: string) => Number(normaEn(lista, periodo).rmv);
