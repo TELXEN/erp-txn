@@ -22,9 +22,9 @@ import { normaEn, normaNuevaEn, rmvEn, uitEn, useNormativa, type FilaNormativa }
 export const Route = createFileRoute("/_authenticated/nomina")({
   head: () => ({
     meta: [
-      { title: "Nómina y Boletas — ERP TELXEN" },
+      { title: "Boletas de Pago — ERP TELXEN" },
       { name: "description", content: "Planilla mensual, boletas de pago, aportes ONP/AFP y EsSalud." },
-      { property: "og:title", content: "Nómina y Boletas — ERP TELXEN" },
+      { property: "og:title", content: "Boletas de Pago — ERP TELXEN" },
       { property: "og:description", content: "Cálculo de planilla mensual y emisión de boletas de pago." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -323,7 +323,7 @@ function Nomina() {
   return (
     <>
       <Encabezado
-        titulo="Nómina y Boletas"
+        titulo="Boletas de Pago"
         subtitulo="Planilla mensual del personal en 5ta categoría"
         acciones={
           pestana === "planilla" && (
