@@ -122,6 +122,8 @@ function TareoPage() {
   const [diasEditados, setDiasEditados] = useState<Record<string, Marca>>({});
   const [proyectoEdicion, setProyectoEdicion] = useState("");
   const [guardandoEdicion, setGuardandoEdicion] = useState(false);
+  const [consolidadoAbierto, setConsolidadoAbierto] = useState(false);
+
 
   const [anioCal = 2026, mesNumCal = 1] = mesCal.split("-").map(Number);
   const primerDia = (new Date(anioCal, mesNumCal - 1, 1).getDay() + 6) % 7;
@@ -436,6 +438,10 @@ function TareoPage() {
 
       <div className="flex items-start gap-3"><Panel className="min-w-0 flex-1"
         titulo="Consolidado mensual"
+        colapsable
+        abierto={consolidadoAbierto}
+        onAbrirCambiar={setConsolidadoAbierto}
+
         extra={
           <div className="flex flex-wrap items-center gap-3">
             <span className="font-mono text-[11px] text-muted-foreground">
@@ -491,7 +497,7 @@ function TareoPage() {
             </table>
           </div>
         )}
-      </Panel><BarraIconosHoja objeto="asistencia" haySeleccion={consolidado.some((c) => c.id === sel)} onEditar={() => { if (consolidado.some((c) => c.id === sel)) iniciarEdicion(sel); }} extras={<BotonIcono etiqueta="Ver días trabajados" disabled={!consolidado.some((c) => c.id === sel)} onClick={() => verCalendario(sel)}><Eye size={15} /></BotonIcono>} /></div>
+      </Panel>{consolidadoAbierto && <BarraIconosHoja objeto="asistencia" haySeleccion={consolidado.some((c) => c.id === sel)} onEditar={() => { if (consolidado.some((c) => c.id === sel)) iniciarEdicion(sel); }} extras={<BotonIcono etiqueta="Ver días trabajados" disabled={!consolidado.some((c) => c.id === sel)} onClick={() => verCalendario(sel)}><Eye size={15} /></BotonIcono>} />}</div>
 
       {trabajadorVisible && (
         <Panel

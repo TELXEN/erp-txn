@@ -1,6 +1,6 @@
 import type { ReactNode, InputHTMLAttributes, SelectHTMLAttributes, ButtonHTMLAttributes } from "react";
 import { useEffect, useRef, useState } from "react";
-import { Inbox, Info, Search, X } from "lucide-react";
+import { ChevronDown, Inbox, Info, Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 
@@ -9,24 +9,53 @@ export function Panel({
   extra,
   children,
   className = "",
+  colapsable = false,
+  abierto = true,
+  onAbrirCambiar,
 }: {
   titulo?: string;
   extra?: ReactNode;
   children: ReactNode;
   className?: string;
+  colapsable?: boolean;
+  abierto?: boolean;
+  onAbrirCambiar?: (v: boolean) => void;
 }) {
+  const plegado = colapsable && !abierto;
+  const alternar = () => onAbrirCambiar?.(!abierto);
   return (
     <section className={`panel rise overflow-hidden ${className}`}>
       {(titulo || extra) && (
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-5 py-3">
-          {titulo && <h2 className="text-base font-semibold tracking-tight">{titulo}</h2>}
+        <div className={`flex flex-wrap items-center justify-between gap-2 px-5 py-3 ${plegado ? "" : "border-b border-line"}`}>
+          <div className="flex min-w-0 items-center gap-2">
+            {colapsable && (
+              <button
+                type="button"
+                aria-expanded={abierto}
+                onClick={alternar}
+                title={abierto ? "Contraer" : "Desplegar"}
+                className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-line text-muted-foreground hover:bg-muted"
+              >
+                <ChevronDown size={13} className={`transition-transform ${abierto ? "" : "-rotate-90"}`} />
+              </button>
+            )}
+            {titulo &&
+              (colapsable ? (
+                <button type="button" aria-expanded={abierto} onClick={alternar} className="text-base font-semibold tracking-tight hover:text-primary">
+                  {titulo}
+                </button>
+              ) : (
+                <h2 className="text-base font-semibold tracking-tight">{titulo}</h2>
+              ))}
+          </div>
           {extra}
         </div>
       )}
-      {children}
+      {!plegado && children}
     </section>
   );
 }
+
 
 export function VentanaFlotante({
   titulo,
