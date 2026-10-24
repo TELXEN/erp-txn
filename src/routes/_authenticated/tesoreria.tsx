@@ -27,6 +27,7 @@ import type { CuentaBancaria } from "@/components/CuentasBancarias";
 import { exportarExcel } from "@/lib/exportar";
 import { pagarRRHH, usePagosRRHH, type DocRRHH } from "@/lib/pagos-rrhh";
 import { FinanciamientoPanel } from "@/components/FinanciamientoPanel";
+import { ReportePagos } from "@/components/ReportePagos";
 import { useSaldosBancarios } from "@/lib/financiamiento";
 import { saldoTrasPago } from "@/lib/financiamiento-calculos";
 
@@ -106,6 +107,8 @@ type Pendiente = {
   detEstado?: string;
   esDet?: boolean;
   agenteRet?: boolean;
+  terceroId?: string | null;
+  trabajadorId?: string | null;
 };
 
 /** Detracción de una compra en soles: la registrada o 12 % por defecto (entero, SUNAT). */
@@ -224,6 +227,7 @@ function Tesoreria() {
       id: String(x.id),
       tabla,
       tercero: nombreTercero(x.proveedor_id as string | null, String(x.proveedor ?? "")),
+      terceroId: (x.proveedor_id as string | null) ?? null,
       documento: String(x.comprobante || "—"),
       obra: nombreObra(x.proyecto_id as string | null),
       detalle: tabla === "gastos_directos" ? `Costo directo · ${x.rubro ?? ""}` : `Gasto general · ${x.categoria ?? ""}`,
@@ -248,6 +252,7 @@ function Tesoreria() {
         tabla,
         esDet: true,
         tercero: nombreTercero(x.proveedor_id as string | null, String(x.proveedor ?? "")),
+        terceroId: (x.proveedor_id as string | null) ?? null,
         documento: `Detracción · ${x.comprobante || "—"}`,
         obra: nombreObra(x.proyecto_id as string | null),
         detalle: `Detracción SPOT · ${tabla === "gastos_directos" ? `Costo directo · ${x.rubro ?? ""}` : `Gasto general · ${x.categoria ?? ""}`}`,
@@ -264,7 +269,7 @@ function Tesoreria() {
       };
     }),
     ...(rrhh?.pendientes ?? []).map((d) => ({
-      id: d.tabla + d.id, tabla: "rrhh" as const, doc: d, tercero: d.tercero, documento: d.documento, obra: d.obra,
+      id: d.tabla + d.id, tabla: "rrhh" as const, doc: d, tercero: d.tercero, trabajadorId: d.trabajador_id ?? null, documento: d.documento, obra: d.obra,
       detalle: d.detalle, descripcion: d.descripcion, emision: d.emision, vencimiento: d.vencimiento,
       condicion: "Crédito", moneda: "PEN", monto: d.monto, soles: d.monto,
     })),
@@ -299,6 +304,7 @@ function Tesoreria() {
       return n;
     });
   const limpiarFiltros = () => { setSeleccion(new Set()); };
+  const [verReporte, setVerReporte] = useState(false);
   const lista = listaFiltrada.sort((a, b) => (a.vencimiento ?? "").localeCompare(b.vencimiento ?? ""));
   const kpi = (l: Pendiente[]) => ({
     total: l.reduce((s, p) => s + p.soles, 0),
@@ -640,6 +646,12 @@ function Tesoreria() {
               </Select>
             </Campo>
           </MenuFiltros>
+          {pestana !== "cxc" && (
+            <Boton variante="linea" onClick={() => alternar(lista.filter((p) => diasA(p.vencimiento) < 0), true)}>Seleccionar vencidas</Boton>
+          )}
+          {pestana !== "cxc" && seleccionados.length > 0 && (
+            <Boton variante="linea" onClick={() => setVerReporte(true)}>Reporte de pagos ({seleccionados.length})</Boton>
+          )}
           {seleccionados.length > 0 && (
             <Boton variante="accion" onClick={() => { setErrorLote(""); setLote({ banco_id: "", fecha: hoy(), operacion: "" }); }}>
               {pestana === "cxc" ? "Registrar cobros en lote" : "Registrar pagos en lote"} ({seleccionados.length} · {soles(totalSel)})
@@ -755,6 +767,12 @@ function Tesoreria() {
         </div>
       )}
 
+      {verReporte && (
+        <ReportePagos
+          onCerrar={() => setVerReporte(false)}
+          deudas={seleccionados.map((p) => ({ clave: clave(p), tercero: p.tercero, terceroId: p.terceroId, trabajadorId: p.trabajadorId, documento: p.documento, obra: p.obra, descripcion: p.descripcion, moneda: p.moneda, monto: p.monto, esDet: p.esDet }))}
+        />
+      )}
       {lote && (
         <div
           className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-foreground/40 p-4"
