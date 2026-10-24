@@ -770,7 +770,7 @@ function Tesoreria() {
       {verReporte && (
         <ReportePagos
           onCerrar={() => setVerReporte(false)}
-          deudas={seleccionados.map((p) => ({ clave: clave(p), tercero: p.tercero, terceroId: p.terceroId, trabajadorId: p.trabajadorId, documento: p.documento, obra: p.obra, descripcion: p.descripcion, moneda: p.moneda, monto: p.monto, esDet: p.esDet }))}
+          deudas={seleccionados.map((p) => ({ clave: clave(p), tercero: p.tercero, terceroId: p.terceroId ?? null, trabajadorId: p.trabajadorId ?? null, documento: p.documento, obra: p.obra, descripcion: p.descripcion, moneda: p.moneda, monto: p.monto, esDet: !!p.esDet }))}
         />
       )}
       {lote && (
