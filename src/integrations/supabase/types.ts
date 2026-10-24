@@ -289,6 +289,7 @@ export type Database = {
           planilla_id: string
           regimen_laboral: string
           renta_quinta: number
+          renta_quinta_manual: boolean
           sistema_pensiones: string
           sueldo_basico: number
           total_descuentos: number
@@ -314,6 +315,7 @@ export type Database = {
           planilla_id: string
           regimen_laboral?: string
           renta_quinta?: number
+          renta_quinta_manual?: boolean
           sistema_pensiones?: string
           sueldo_basico?: number
           total_descuentos?: number
@@ -339,6 +341,7 @@ export type Database = {
           planilla_id?: string
           regimen_laboral?: string
           renta_quinta?: number
+          renta_quinta_manual?: boolean
           sistema_pensiones?: string
           sueldo_basico?: number
           total_descuentos?: number
@@ -5116,6 +5119,7 @@ export type Database = {
           numero_celular: string
           numero_cuenta: string
           regimen_laboral: string
+          seguro_salud: string
           sistema_pensiones: string
           sueldo_mensual: number
           suspension_cuarta: boolean
@@ -5142,6 +5146,7 @@ export type Database = {
           numero_celular?: string
           numero_cuenta?: string
           regimen_laboral?: string
+          seguro_salud?: string
           sistema_pensiones?: string
           sueldo_mensual?: number
           suspension_cuarta?: boolean
@@ -5168,6 +5173,7 @@ export type Database = {
           numero_celular?: string
           numero_cuenta?: string
           regimen_laboral?: string
+          seguro_salud?: string
           sistema_pensiones?: string
           sueldo_mensual?: number
           suspension_cuarta?: boolean

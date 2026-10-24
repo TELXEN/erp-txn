@@ -16,6 +16,7 @@ import { DetallePagoNomina, type BoletaNomina, type ValoresNomina } from "@/comp
 import { exportarExcel } from "@/lib/exportar";
 import { aporteAfp, useComisionesAfp } from "@/lib/afp";
 import type { ComisionAfp } from "@/lib/decolecta.functions";
+import { calcularRentaQuinta, uitDe, type DetalleQuinta } from "@/lib/renta-quinta";
 
 export const Route = createFileRoute("/_authenticated/nomina")({
   head: () => ({
@@ -126,6 +127,29 @@ function Nomina() {
       return data as Boleta[];
     },
   });
+  const { data: previasAnio = [] } = useQuery({
+    queryKey: ["boletas-anio", anio, mes],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("boletas").select("trabajador_id,total_ingresos,renta_quinta,planillas!inner(anio,mes)").eq("planillas.anio", anio).lt("planillas.mes", mes);
+      if (error) throw error;
+      return data as { trabajador_id: string; total_ingresos: number; renta_quinta: number }[];
+    },
+  });
+  /** Detalle de renta de 5ta del trabajador para el mes, con la remuneración del mes indicada. */
+  const quinta = (t: Trabajador, sueldoMes: number): DetalleQuinta => {
+    const prev = previasAnio.filter((b) => b.trabajador_id === t.id);
+    return calcularRentaQuinta({
+      mes, sueldoMes, uit: uitDe(anio), eps: (t as Trabajador & { seguro_salud?: string }).seguro_salud === "EPS",
+      pagadoAnterior: prev.reduce((s, b) => s + Number(b.total_ingresos), 0),
+      retenidoAnterior: prev.reduce((s, b) => s + Number(b.renta_quinta), 0),
+    });
+  };
+  /** Calcula la boleta poniendo la renta de 5ta automática salvo que sea manual. */
+  const calcConQuinta = (t: Trabajador, v: Parameters<typeof calcularBoleta>[1], manual: boolean) => {
+    if (manual) return calcularBoleta(t, v, comisiones, rmvDe(periodoAfp));
+    const base = calcularBoleta(t, { ...v, renta_quinta: 0 }, comisiones, rmvDe(periodoAfp));
+    return calcularBoleta(t, { ...v, renta_quinta: quinta(t, base.total_ingresos).retencion }, comisiones, rmvDe(periodoAfp));
+  };
   const { data: bancos = [] } = useQuery({
     queryKey: ["bancos"],
     queryFn: async () => {
@@ -174,7 +198,7 @@ function Nomina() {
         return {
           planilla_id: planillaId,
           trabajador_id: t.id,
-          ...calcularBoleta(t, { dias_laborados: dt.dias_laborados, horas_extra: dt.horas_extra, otros_ingresos: 0, renta_quinta: 0, otros_descuentos: 0 }, comisiones, rmvDe(periodoAfp)),
+          ...calcConQuinta(t, { dias_laborados: dt.dias_laborados, horas_extra: dt.horas_extra, otros_ingresos: 0, renta_quinta: 0, otros_descuentos: 0 }, false),
         };
       });
     if (nuevas.length) {
@@ -189,13 +213,13 @@ function Nomina() {
       const dt = datosTareo(t);
       if (!dt.conTareo) continue;
       if (dt.dias_laborados === Number(b.dias_laborados) && dt.horas_extra === Number(b.horas_extra)) continue;
-      const calc = calcularBoleta(t, {
+      const calc = calcConQuinta(t, {
         dias_laborados: dt.dias_laborados,
         horas_extra: dt.horas_extra,
         otros_ingresos: Number(b.otros_ingresos),
         renta_quinta: Number(b.renta_quinta),
         otros_descuentos: Number(b.otros_descuentos),
-      }, comisiones, rmvDe(periodoAfp));
+      }, !!b.renta_quinta_manual);
       const { error: err } = await supabase.from("boletas").update(calc).eq("id", b.id);
       if (err) return setError(err.message);
     }
@@ -216,7 +240,7 @@ function Nomina() {
         const t = tDe(b.trabajador_id);
         if (!t) continue;
         const dt = datosTareo(t);
-        const calc = calcularBoleta(t, { dias_laborados: dt.dias_laborados, horas_extra: dt.horas_extra, otros_ingresos: Number(b.otros_ingresos), renta_quinta: Number(b.renta_quinta), otros_descuentos: Number(b.otros_descuentos) }, comisiones, rmvDe(periodoAfp));
+        const calc = calcConQuinta(t, { dias_laborados: dt.dias_laborados, horas_extra: dt.horas_extra, otros_ingresos: Number(b.otros_ingresos), renta_quinta: Number(b.renta_quinta), otros_descuentos: Number(b.otros_descuentos) }, !!b.renta_quinta_manual);
         const difiere = Object.entries(calc).some(([campo, valor]) => String(b[campo as keyof Boleta]) !== String(valor));
         if (!difiere) continue;
         const { error: err } = await supabase.from("boletas").update(calc).eq("id", b.id).eq("estado_pago", "Pendiente");
@@ -228,7 +252,7 @@ function Nomina() {
     void sincronizar();
     return () => { cancelado = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tareos, trabajadores, comisiones, planilla, boletas, cerrada, personalListo, tareoListo, periodoAfp, rol]);
+  }, [tareos, trabajadores, comisiones, planilla, boletas, previasAnio, cerrada, personalListo, tareoListo, periodoAfp, rol]);
 
   async function eliminar(b: Boleta) {
     if (cerrada) return setError("Reabre la planilla antes de eliminar una boleta.");
@@ -243,9 +267,10 @@ function Nomina() {
     const t = tDe(b.trabajador_id);
     if (!t || cerrada || b.estado_pago === "Pagado") return false;
     if (Object.values(valores).some((v) => !Number.isFinite(v) || v < 0) || valores.dias_laborados > 30) return false;
-    const calc = calcularBoleta(t, valores, comisiones, rmvDe(periodoAfp));
+    const manual = !!b.renta_quinta_manual || Number(valores.renta_quinta) !== Number(b.renta_quinta);
+    const calc = calcConQuinta(t, valores, manual);
     if (calc.neto_pagar < 0) return false;
-    const { error: err } = await supabase.from("boletas").update(calc).eq("id", b.id).eq("estado_pago", "Pendiente");
+    const { error: err } = await supabase.from("boletas").update({ ...calc, renta_quinta_manual: manual }).eq("id", b.id).eq("estado_pago", "Pendiente");
     if (err) { setError(err.message); return false; }
     await refrescar();
     return true;
@@ -342,6 +367,9 @@ function Nomina() {
 
       {pestana === "datos" ? (
         <>
+          <Panel className="mb-4" titulo={`Renta de 5ta categoría ${anio}`}>
+            <p className="text-[12px]">UIT {anio}: <strong>{soles(uitDe(anio))}</strong> · Deducción 7 UIT: <strong>{soles(7 * uitDe(anio))}</strong> · Tramos 8 % / 14 % / 17 % / 20 % / 30 %. La retención se calcula sola en cada boleta y puede corregirse a mano.</p>
+          </Panel>
           <Panel className="mb-4" titulo="Comisiones AFP del mes" extra={
         <div className="flex items-center gap-2">
           <span className="text-[11px] text-muted-foreground">
@@ -492,7 +520,7 @@ function Nomina() {
                       <td className="px-2 py-2 text-right">{celda(b, "otros_ingresos")}</td>
                       <td className="px-2 py-2 text-right">{soles(Number(b.total_ingresos))}</td>
                       <td className="px-2 py-2 text-right">{soles(Number(b.aporte_pension))}</td>
-                      <td className="px-2 py-2 text-right">{celda(b, "renta_quinta")}</td>
+                      <td className="px-2 py-2 text-right" title={(() => { const t = tDe(b.trabajador_id); if (!t) return ""; const d = quinta(t, Number(b.total_ingresos)); return `Proyectada ${soles(d.proyectada)} − 7 UIT ${soles(d.deduccion)} = ${soles(d.rentaNeta)}\nImpuesto anual ${soles(d.impuesto)} − retenido ${soles(d.retenidoAnterior)} ÷ ${d.divisor}${b.renta_quinta_manual ? "\nMonto manual" : ""}`; })()}>{celda(b, "renta_quinta")}{b.renta_quinta_manual && <span className="ml-1 text-[9px] text-warn">manual</span>}</td>
                       <td className="px-2 py-2 text-right">{celda(b, "otros_descuentos")}</td>
                       <td className="px-2 py-2 text-right font-semibold text-ink">{soles(Number(b.neto_pagar))}</td>
                       <td className="px-2 py-2 text-right">{soles(Number(b.essalud))}</td>

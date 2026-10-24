@@ -97,6 +97,7 @@ type FormPersonal = {
   tipo_contratacion: string;
   regimen_laboral: string;
   sistema_pensiones: string;
+  seguro_salud: string;
   cuspp: string;
   fecha_ingreso: string;
   sueldo_mensual: string;
@@ -119,6 +120,7 @@ const FORM_INICIAL: FormPersonal = {
   tipo_contratacion: "Planilla",
   regimen_laboral: "General",
   sistema_pensiones: "ONP",
+  seguro_salud: "EsSalud",
   cuspp: "",
   fecha_ingreso: "",
   sueldo_mensual: "",
@@ -208,6 +210,7 @@ function Personal() {
       tipo_contratacion: datos.tipo_contratacion,
       regimen_laboral: datos.regimen_laboral,
       sistema_pensiones: planilla ? datos.sistema_pensiones : "Ninguno",
+      seguro_salud: datos.seguro_salud === "EPS" ? "EPS" : "EsSalud",
       cuspp: planilla && datos.sistema_pensiones.startsWith("AFP") ? datos.cuspp.trim() : "",
       fecha_ingreso: datos.fecha_ingreso || null,
       sueldo_mensual: Number(datos.sueldo_mensual || 0),
@@ -265,6 +268,7 @@ function Personal() {
         tipo_contratacion: trabajador.tipo_contratacion ?? "Planilla",
         regimen_laboral: trabajador.regimen_laboral ?? "General",
         sistema_pensiones: trabajador.sistema_pensiones ?? "ONP",
+        seguro_salud: (trabajador as { seguro_salud?: string }).seguro_salud ?? "EsSalud",
         cuspp: trabajador.cuspp ?? "",
         fecha_ingreso: trabajador.fecha_ingreso ?? "",
         sueldo_mensual: String(trabajador.sueldo_mensual ?? 0),
@@ -394,6 +398,12 @@ function Personal() {
             className="py-1.5"
           />
         </CampoF>
+        <CampoF etiqueta="Seguro de salud">
+          <Select value={f.seguro_salud} onChange={(e) => set("seguro_salud", e.target.value)} disabled={!planilla} className="py-1.5">
+            <option value="EsSalud">EsSalud</option>
+            <option value="EPS">EPS</option>
+          </Select>
+        </CampoF>
       </>
     );
   };
@@ -456,6 +466,7 @@ function Personal() {
                     "Tipo contratación": t.tipo_contratacion === "Honorarios" ? "Recibo por Honorarios" : "Planilla",
                     "Régimen laboral": t.regimen_laboral,
                     "Sistema pensiones": t.sistema_pensiones,
+                    "Seguro de salud": (t as { seguro_salud?: string }).seguro_salud ?? "EsSalud",
                     CUSPP: t.cuspp,
                     "Fecha ingreso": t.fecha_ingreso ?? "",
                     "Sueldo/Honorario mensual (S/)": Number(t.sueldo_mensual ?? 0),
@@ -594,7 +605,7 @@ function Personal() {
                       <td className="px-2 py-3.5">{esEdicion && d ? <Input inputMode="tel" maxLength={9} value={d.numero_celular} onChange={(e) => actualizarCampo("numero_celular", e.target.value.replace(/\D/g, ""))} className="py-1 text-xs" required /> : t.numero_celular}</td>
                       <td className="px-2 py-3.5">
                         <span className="block font-semibold text-ink">{t.tipo_contratacion === "Honorarios" ? "RxH" : "Planilla"}</span>
-                        <span className="block text-[10px] text-muted-foreground">{t.tipo_contratacion === "Honorarios" ? (() => { const e = estadoSuspension(t, new Date().getFullYear()); return e === "vigente" ? <span className="text-good">Suspensión 4ta {t.suspension_cuarta_anio}</span> : e === "vencida" ? <span className="text-warn">Suspensión vencida ({t.suspension_cuarta_anio})</span> : e === "sin_fecha" ? <span className="text-warn">Suspensión sin fecha — completar</span> : "Retención 8%"; })() : `${t.regimen_laboral} · ${t.sistema_pensiones}`}</span>
+                        <span className="block text-[10px] text-muted-foreground">{t.tipo_contratacion === "Honorarios" ? (() => { const e = estadoSuspension(t, new Date().getFullYear()); return e === "vigente" ? <span className="text-good">Suspensión 4ta {t.suspension_cuarta_anio}</span> : e === "vencida" ? <span className="text-warn">Suspensión vencida ({t.suspension_cuarta_anio})</span> : e === "sin_fecha" ? <span className="text-warn">Suspensión sin fecha — completar</span> : "Retención 8%"; })() : `${t.regimen_laboral} · ${t.sistema_pensiones} · ${(t as { seguro_salud?: string }).seguro_salud ?? "EsSalud"}`}</span>
                       </td>
                       <td className="px-2 py-3.5">{(() => { const s = estadoEmo(ultimos.get(t.id)?.fecha_vencimiento); return <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-[11px]"><span className={`h-2 w-2 rounded-full ${ESTADO_EMO_INFO[s].punto}`} />{ESTADO_EMO_INFO[s].texto}</span>; })()}</td>
                       

@@ -484,6 +484,13 @@
       "when": 1792852066609,
       "tag": "0068_suspension_cuarta_vigencia",
       "breakpoints": true
+    },
+    {
+      "idx": 69,
+      "version": "7",
+      "when": 1792857209182,
+      "tag": "0069_renta_quinta_y_seguro_salud",
+      "breakpoints": true
     }
   ]
 }
