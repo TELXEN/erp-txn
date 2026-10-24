@@ -16,7 +16,7 @@ import { DetallePagoNomina, type BoletaNomina, type ValoresNomina } from "@/comp
 import { exportarExcel } from "@/lib/exportar";
 import { aporteAfp, useComisionesAfp } from "@/lib/afp";
 import type { ComisionAfp } from "@/lib/decolecta.functions";
-import { calcularRentaQuinta, uitDe, type DetalleQuinta } from "@/lib/renta-quinta";
+import { acumuladoAnterior, calcularRentaQuinta, uitDe, type DetalleQuinta } from "@/lib/renta-quinta";
 
 export const Route = createFileRoute("/_authenticated/nomina")({
   head: () => ({
@@ -132,17 +132,18 @@ function Nomina() {
     queryFn: async () => {
       const { data, error } = await supabase.from("boletas").select("trabajador_id,total_ingresos,renta_quinta,planillas!inner(anio,mes)").eq("planillas.anio", anio).lt("planillas.mes", mes);
       if (error) throw error;
-      return data as { trabajador_id: string; total_ingresos: number; renta_quinta: number }[];
+      return data as unknown as { trabajador_id: string; total_ingresos: number; renta_quinta: number; planillas: { mes: number } }[];
     },
   });
-  /** Detalle de renta de 5ta del trabajador para el mes, con la remuneración del mes indicada. */
-  const quinta = (t: Trabajador, sueldoMes: number): DetalleQuinta => {
-    const prev = previasAnio.filter((b) => b.trabajador_id === t.id);
-    return calcularRentaQuinta({
-      mes, sueldoMes, uit: uitDe(anio), eps: (t as Trabajador & { seguro_salud?: string }).seguro_salud === "EPS",
-      pagadoAnterior: prev.reduce((s, b) => s + Number(b.total_ingresos), 0),
-      retenidoAnterior: prev.reduce((s, b) => s + Number(b.renta_quinta), 0),
+  /** Detalle de renta de 5ta: boletas reales previas y, si faltan, meses estimados desde la fecha de ingreso. */
+  const quinta = (t: Trabajador, sueldoMes: number): DetalleQuinta & { estimados: number } => {
+    const eps = (t as Trabajador & { seguro_salud?: string }).seguro_salud === "EPS";
+    const contractual = calcularBoleta(t, { dias_laborados: 30, horas_extra: 0, otros_ingresos: 0, renta_quinta: 0, otros_descuentos: 0 }, comisiones, rmvDe(periodoAfp)).total_ingresos;
+    const prev = acumuladoAnterior({
+      anio, mes, fechaIngreso: t.fecha_ingreso, sueldoContractual: contractual, uit: uitDe(anio), eps,
+      reales: previasAnio.filter((b) => b.trabajador_id === t.id).map((b) => ({ mes: Number(b.planillas?.mes), ingresos: Number(b.total_ingresos), retenido: Number(b.renta_quinta) })),
     });
+    return { ...calcularRentaQuinta({ mes, sueldoMes, uit: uitDe(anio), eps, pagadoAnterior: prev.pagado, retenidoAnterior: prev.retenido }), estimados: prev.estimados };
   };
   /** Calcula la boleta poniendo la renta de 5ta automática salvo que sea manual. */
   const calcConQuinta = (t: Trabajador, v: Parameters<typeof calcularBoleta>[1], manual: boolean) => {

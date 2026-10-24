@@ -22,3 +22,22 @@ describe("renta de quinta", () => {
   });
 });
 const r = (n: number) => Math.round(n * 100) / 100;
+
+import { acumuladoAnterior } from "./renta-quinta";
+describe("meses anteriores por fecha de ingreso", () => {
+  const base = { anio: 2026, mes: 10, sueldoContractual: 8000, uit: 5500, eps: false };
+  it("ingreso en octubre: sin meses previos", () => {
+    expect(acumuladoAnterior({ ...base, fechaIngreso: "2026-10-01", reales: [] })).toEqual({ pagado: 0, retenido: 0, estimados: 0 });
+  });
+  it("ingreso en enero sin boletas: estima 9 meses", () => {
+    const a = acumuladoAnterior({ ...base, fechaIngreso: "2026-01-02", reales: [] });
+    expect(a.estimados).toBe(9);
+    expect(a.pagado).toBe(72000);
+    expect(a.retenido).toBeGreaterThan(0);
+  });
+  it("mezcla boletas reales y faltantes", () => {
+    const a = acumuladoAnterior({ ...base, fechaIngreso: "2026-01-02", reales: [{ mes: 9, ingresos: 7000, retenido: 500 }] });
+    expect(a.estimados).toBe(8);
+    expect(a.pagado).toBe(64000 + 7000);
+  });
+});
