@@ -10,7 +10,7 @@
 - Exportación a Excel incluye fecha y año de vigencia.
 
 ## Validación al registrar el recibo por honorarios
-- La retención del 8% se decide según la **fecha de emisión del recibo**: solo se omite si existe suspensión cuyo año de vigencia coincide con el año del recibo y la fecha de la suspensión es anterior o igual a la del recibo.
+- La retención del 8% se decide según la **fecha de emisión del recibo**: solo se omite si existe suspensión cuyo año de vigencia coincide con el año del recibo y la fecha de la suspensión es **al menos dos días anterior** a la emisión del recibo (ej.: suspensión del 10/03 vale para recibos desde el 12/03).
 - Si la suspensión no está vigente, el detalle de pago lo indica en una nota ámbar («Suspensión de 2025 no vigente para 2026: se aplica retención 8%») y calcula la retención.
 - Aplica igual al editor del detalle, al listado de recibos y a «Generar boletas de pago» desde el tareo, para que todos los montos coincidan.
 - Los recibos ya guardados no se recalculan.
