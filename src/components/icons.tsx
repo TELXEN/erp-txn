@@ -31,3 +31,37 @@ export function ReciboCodigoBarras({ className, ...props }: SVGProps<SVGSVGEleme
     </svg>
   );
 }
+
+/**
+ * Billetes con una hoja.
+ *
+ * Icono propio de «Nómina y Boletas»: un billete al frente con una hoja de
+ * papel asomando detrás. Se dibuja aquí con el mismo trazo (24x24, stroke
+ * currentColor) que los iconos de lucide para que pese igual en el menú.
+ */
+export function NominaBoletas({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+      {...props}
+    >
+      {/* Hoja que asoma detrás del billete */}
+      <path d="M10 10V2h10v14h-2.8" />
+      <path strokeWidth={1.4} d="M13 5h4" />
+      <path strokeWidth={1.4} d="M13 8h4" />
+      {/* Billete al frente */}
+      <rect x="2.5" y="10" width="14.5" height="10" rx="2" />
+      <circle cx="9.75" cy="15" r="2.2" />
+      <path strokeWidth={1.4} d="M5.6 15h.01M13.9 15h.01" />
+    </svg>
+  );
+}
+
