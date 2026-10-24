@@ -283,6 +283,25 @@ function Personal() {
 
   type Setter = (campo: keyof FormPersonal, valor: string | boolean) => void;
 
+  /** Fecha, constancia y año de vigencia en una sola línea horizontal. */
+  const BloqueSuspension = ({ f, set }: { f: FormPersonal; set: Setter }) => (
+    <div className="col-span-full grid grid-cols-3 gap-3">
+      <CampoF etiqueta="Fecha de la suspensión" req>
+        <Input type="date" value={f.suspension_cuarta_fecha} onChange={(e) => { set("suspension_cuarta_fecha", e.target.value); if (e.target.value) set("suspension_cuarta_anio", String(new Date().getFullYear())); }} required className="py-1.5" />
+      </CampoF>
+      <CampoF etiqueta="N° constancia / operación">
+        <Input value={f.suspension_cuarta_constancia} maxLength={40} onChange={(e) => set("suspension_cuarta_constancia", e.target.value)} className="py-1.5" />
+      </CampoF>
+      <CampoF etiqueta="Año de vigencia">
+        <div className="flex h-8 items-center gap-1.5 rounded-md border border-line bg-muted/40 px-2 text-xs font-semibold text-ink">
+          {f.suspension_cuarta_anio || new Date().getFullYear()}
+          <span className="font-normal text-muted-foreground">automático</span>
+        </div>
+      </CampoF>
+      <p className="col-span-full mt-1 text-[10px] text-muted-foreground">El año de vigencia se toma solo del año actual y se renueva al registrar una fecha nueva. Exime de retención solo a recibos de ese año emitidos al menos 2 días después de esta fecha.</p>
+    </div>
+  );
+
   const seccionLaboral = (f: FormPersonal, set: Setter, conCargo: boolean) => {
     const planilla = f.tipo_contratacion === "Planilla";
     return (
@@ -313,7 +332,7 @@ function Personal() {
     );
   };
 
-  const seccionSalario = (f: FormPersonal, set: Setter, conCuenta: boolean) => {
+  const seccionSalario = (f: FormPersonal, set: Setter, conCuenta: boolean, bloqueAqui = true) => {
     const planilla = f.tipo_contratacion === "Planilla";
     return (
       <>
@@ -350,23 +369,7 @@ function Personal() {
             <><input type="checkbox" checked={f.suspension_cuarta} onChange={(e) => { set("suspension_cuarta", e.target.checked); if (e.target.checked) set("suspension_cuarta_anio", String(new Date().getFullYear())); }} /> Suspensión de retención 4ta (se renueva cada año)</>
           )}
         </label>
-        {!planilla && f.suspension_cuarta && (
-          <>
-            <CampoF etiqueta="Fecha de la suspensión" req>
-              <Input type="date" value={f.suspension_cuarta_fecha} onChange={(e) => { set("suspension_cuarta_fecha", e.target.value); if (e.target.value) set("suspension_cuarta_anio", String(new Date().getFullYear())); }} required className="py-1.5" />
-            </CampoF>
-            <CampoF etiqueta="N° constancia / operación">
-              <Input value={f.suspension_cuarta_constancia} maxLength={40} onChange={(e) => set("suspension_cuarta_constancia", e.target.value)} className="py-1.5" />
-            </CampoF>
-            <CampoF etiqueta="Año de vigencia">
-              <div className="flex h-8 items-center gap-1.5 rounded-md border border-line bg-muted/40 px-2 text-xs font-semibold text-ink">
-                {f.suspension_cuarta_anio || new Date().getFullYear()}
-                <span className="font-normal text-muted-foreground">automático</span>
-              </div>
-            </CampoF>
-            <p className="col-span-full mt-1 text-[10px] text-muted-foreground">El año de vigencia se toma solo del año actual y se renueva al registrar una fecha nueva. Exime de retención solo a recibos de ese año emitidos al menos 2 días después de esta fecha.</p>
-          </>
-        )}
+        {!planilla && f.suspension_cuarta && bloqueAqui && <BloqueSuspension f={f} set={set} />}
       </>
     );
   };
@@ -599,7 +602,8 @@ function Personal() {
                     {esEdicion && d && (
                       <tr className="border-b border-line/60 bg-muted/30">
                         <td colSpan={10} className="px-2 py-2">
-                          <div className="grid gap-3 sm:grid-cols-3"><div className="grid grid-cols-2 gap-3 content-start">{seccionLaboral(d, actualizarCampo, false)}</div><div className="grid grid-cols-2 gap-3 content-start">{seccionSalario(d, actualizarCampo, false)}</div><div className="grid grid-cols-2 gap-3 content-start">{seccionPrevision(d, actualizarCampo)}</div></div>
+                          <div className="grid gap-3 sm:grid-cols-3"><div className="grid grid-cols-2 gap-3 content-start">{seccionLaboral(d, actualizarCampo, false)}</div><div className="grid grid-cols-2 gap-3 content-start">{seccionSalario(d, actualizarCampo, false, false)}</div><div className="grid grid-cols-2 gap-3 content-start">{seccionPrevision(d, actualizarCampo)}</div></div>
+                          {d.tipo_contratacion !== "Planilla" && d.suspension_cuarta && <div className="mt-2"><BloqueSuspension f={d} set={actualizarCampo} /></div>}
                         </td>
                       </tr>
                     )}
