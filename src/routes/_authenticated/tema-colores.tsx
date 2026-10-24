@@ -6,9 +6,9 @@ import { TEMAS, useTema } from "@/lib/temas";
 export const Route = createFileRoute("/_authenticated/tema-colores")({
   head: () => ({
     meta: [
-      { title: "Tema de colores — TELXEN ERP" },
+      { title: "Temas de colores — TELXEN ERP" },
       { name: "description", content: "Elige el tema de colores del sistema ERP TELXEN." },
-      { property: "og:title", content: "Tema de colores — TELXEN ERP" },
+      { property: "og:title", content: "Temas de colores — TELXEN ERP" },
       { property: "og:description", content: "Elige el tema de colores del sistema ERP TELXEN." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -23,8 +23,8 @@ function TemaColores() {
   return (
     <div className="space-y-4">
       <CabeceraModulo
-        ruta="Datos › Tema de colores"
-        titulo="Tema de colores"
+        ruta="Temas de colores"
+        titulo="Temas de colores"
         descripcion="Elige los colores del menú y de los botones. La elección se guarda en este equipo."
         icono={<Palette className="h-5 w-5" />}
       />

@@ -133,8 +133,13 @@ const MENU: Categoria[] = [
     titulo: "Datos",
     items: [
       { a: "/datos", texto: "Catalogos Maestros", roles: ["administrador", "gerente"], icono: Settings },
-      { a: "/tema-colores", texto: "Tema de colores", roles: ["ingeniero", "administrador", "gerente"], icono: Palette },
       { a: "/configuracion-sistema", texto: "Configuración del Sistema", roles: ["gerente"], icono: SlidersHorizontal },
+    ],
+  },
+  {
+    titulo: "Temas de colores",
+    items: [
+      { a: "/tema-colores", texto: "Temas de colores", roles: ["ingeniero", "administrador", "gerente"], icono: Palette },
     ],
   },
 ];
