@@ -1,6 +1,6 @@
 import type { ReactNode, InputHTMLAttributes, SelectHTMLAttributes, ButtonHTMLAttributes } from "react";
 import { useEffect, useRef, useState } from "react";
-import { Inbox, Info, Search, X } from "lucide-react";
+import { ChevronDown, Inbox, Info, Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 
