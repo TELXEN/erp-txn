@@ -114,6 +114,6 @@ describe("letra del día de la semana", () => {
     expect(pasoLetrasSemana(8, 9)).toBe(2);
     expect(pasoLetrasSemana(3, 8)).toBe(3);
     expect(pasoLetrasSemana(0, 9)).toBe(1);
-    expect(pasoLetrasSemana(8, 9)).toBeLessThan(pasoNumerosDias(8, 9));
+    expect(pasoLetrasSemana(5, 9)).toBeLessThan(pasoNumerosDias(5, 9));
   });
 });
