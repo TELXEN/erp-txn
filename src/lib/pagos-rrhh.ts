@@ -25,6 +25,8 @@ export type DocRRHH = {
   vencimiento: string | null;
   monto: number;
   extra?: { anio: number; mes: number; concepto: string };
+  /** Trabajador beneficiario (honorarios y beneficios), para su cuenta de abono. */
+  trabajador_id?: string;
 };
 
 export type EgresoRRHH = { banco_id: string | null; fecha_pago: string | null; monto: number };
@@ -62,7 +64,7 @@ export function usePagosRRHH() {
         if (r.estado_pago === "Pagado") egresos.push({ banco_id: s(r.banco_id) || null, fecha_pago: s(r.fecha_pago) || null, monto: n(r.monto_neto) });
         else
           pendientes.push({
-            id: s(r.id), tabla: "recibos_honorarios", tercero: nombre(r.trabajador_id),
+            id: s(r.id), tabla: "recibos_honorarios", tercero: nombre(r.trabajador_id), trabajador_id: s(r.trabajador_id),
             documento: s(r.numero_recibo) || "—", obra: obra(r.proyecto_id), detalle: "Recibo por honorarios (neto)",
             descripcion: s(r.concepto), emision: s(r.fecha_emision), vencimiento: s(r.fecha_emision) || null, monto: n(r.monto_neto),
           });
@@ -89,7 +91,7 @@ export function usePagosRRHH() {
         if (b.estado_pago === "Pagado") egresos.push({ banco_id: s(b.banco_id) || null, fecha_pago: s(b.fecha_pago) || null, monto: n(b.total) });
         else
           pendientes.push({
-            id: s(b.id), tabla: "beneficios_sociales", tercero: nombre(b.trabajador_id),
+            id: s(b.id), tabla: "beneficios_sociales", tercero: nombre(b.trabajador_id), trabajador_id: s(b.trabajador_id),
             documento: `${s(b.tipo)} ${s(b.periodo)} ${s(b.anio)}`.trim(), obra: "Recursos Humanos",
             detalle: s(b.tipo) === "CTS" ? "Depósito CTS" : s(b.tipo) === "Liquidación" ? "Liquidación de beneficios" : "Gratificación + bonificación",
             descripcion: `${s(b.tipo)} · ${s(b.periodo)}`, emision: s(b.fecha_hasta), vencimiento: s(b.fecha_hasta) || null, monto: n(b.total),
