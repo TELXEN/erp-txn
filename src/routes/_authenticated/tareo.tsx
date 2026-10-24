@@ -497,7 +497,7 @@ function TareoPage() {
             </table>
           </div>
         )}
-      </Panel><BarraIconosHoja objeto="asistencia" haySeleccion={consolidado.some((c) => c.id === sel)} onEditar={() => { if (consolidado.some((c) => c.id === sel)) iniciarEdicion(sel); }} extras={<BotonIcono etiqueta="Ver días trabajados" disabled={!consolidado.some((c) => c.id === sel)} onClick={() => verCalendario(sel)}><Eye size={15} /></BotonIcono>} /></div>
+      </Panel>{consolidadoAbierto && <BarraIconosHoja objeto="asistencia" haySeleccion={consolidado.some((c) => c.id === sel)} onEditar={() => { if (consolidado.some((c) => c.id === sel)) iniciarEdicion(sel); }} extras={<BotonIcono etiqueta="Ver días trabajados" disabled={!consolidado.some((c) => c.id === sel)} onClick={() => verCalendario(sel)}><Eye size={15} /></BotonIcono>} />}</div>
 
       {trabajadorVisible && (
         <Panel
