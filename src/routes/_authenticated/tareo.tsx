@@ -438,6 +438,10 @@ function TareoPage() {
 
       <div className="flex items-start gap-3"><Panel className="min-w-0 flex-1"
         titulo="Consolidado mensual"
+        colapsable
+        abierto={consolidadoAbierto}
+        onAbrirCambiar={setConsolidadoAbierto}
+
         extra={
           <div className="flex flex-wrap items-center gap-3">
             <span className="font-mono text-[11px] text-muted-foreground">
