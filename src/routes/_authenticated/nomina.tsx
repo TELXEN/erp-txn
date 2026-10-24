@@ -367,6 +367,9 @@ function Nomina() {
 
       {pestana === "datos" ? (
         <>
+          <Panel className="mb-4" titulo={`Renta de 5ta categoría ${anio}`}>
+            <p className="text-[12px]">UIT {anio}: <strong>{soles(uitDe(anio))}</strong> · Deducción 7 UIT: <strong>{soles(7 * uitDe(anio))}</strong> · Tramos 8 % / 14 % / 17 % / 20 % / 30 %. La retención se calcula sola en cada boleta y puede corregirse a mano.</p>
+          </Panel>
           <Panel className="mb-4" titulo="Comisiones AFP del mes" extra={
         <div className="flex items-center gap-2">
           <span className="text-[11px] text-muted-foreground">
