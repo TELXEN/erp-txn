@@ -122,6 +122,8 @@ function TareoPage() {
   const [diasEditados, setDiasEditados] = useState<Record<string, Marca>>({});
   const [proyectoEdicion, setProyectoEdicion] = useState("");
   const [guardandoEdicion, setGuardandoEdicion] = useState(false);
+  const [consolidadoAbierto, setConsolidadoAbierto] = useState(false);
+
 
   const [anioCal = 2026, mesNumCal = 1] = mesCal.split("-").map(Number);
   const primerDia = (new Date(anioCal, mesNumCal - 1, 1).getDay() + 6) % 7;
