@@ -16,7 +16,7 @@ import { DetallePagoNomina, type BoletaNomina, type ValoresNomina } from "@/comp
 import { exportarExcel } from "@/lib/exportar";
 import { aporteAfp, useComisionesAfp } from "@/lib/afp";
 import type { ComisionAfp } from "@/lib/decolecta.functions";
-import { calcularRentaQuinta, uitDe, type DetalleQuinta } from "@/lib/renta-quinta";
+import { acumuladoAnterior, calcularRentaQuinta, uitDe, type DetalleQuinta } from "@/lib/renta-quinta";
 
 export const Route = createFileRoute("/_authenticated/nomina")({
   head: () => ({
