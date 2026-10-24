@@ -10,7 +10,7 @@ import {
   PERIODICIDADES, generarPeriodos, hoyISO, programadoPartida, useCronograma, usePartidas, useProyectos,
   type Partida, type Periodicidad,
 } from "@/lib/datos";
-import { NOMBRE_TIPO, aDia, cabeceras, diaSemana, feriadosPeru, calcularCpm, deDia, escalaCalendario, estadoAvance, letraNumerosDias, pasoNumerosDias, rangoPartida, type Dependencia, type TipoDependencia } from "@/lib/gantt";
+import { NOMBRE_TIPO, aDia, cabeceras, diaSemana, feriadosPeru, calcularCpm, deDia, escalaCalendario, estadoAvance, letraNumerosDias, letraSemana, pasoLetrasSemana, pasoNumerosDias, rangoPartida, type Dependencia, type TipoDependencia } from "@/lib/gantt";
 import { exportarExcel, exportarPdf } from "@/lib/exportar";
 import { leerTodo } from "@/lib/datos";
 
@@ -122,6 +122,9 @@ function Gantt() {
   const letraDias = letraNumerosDias(diasTotales, zoom === "dia");
   // Cada cuántos días se escribe un número: se saltan días si las columnas quedan muy angostas.
   const paso = pasoNumerosDias(px, letraDias);
+  // Letra del día de la semana (L M M J V S D) sobre los números: una letra cabe en columnas más angostas.
+  const letraLetras = Math.max(8, letraDias - 1);
+  const pasoLetras = pasoLetrasSemana(px, letraLetras);
   const cab = useMemo(() => (datos ? cabeceras(datos.d0, datos.d1, zoom) : { superior: [], inferior: [] }), [datos, zoom]);
   const noLaborables = useMemo(() => {
     if (!datos || px < 3) return [] as { dia: number; nombre: string }[];
@@ -288,7 +291,7 @@ function Gantt() {
             <div ref={contenedor} role="region" aria-label="Calendario Gantt" tabIndex={0} className={`flex max-h-[70vh] text-[11px] ${conBarras ? "calendario-slider overflow-scroll" : "sin-slider overflow-auto"}`}>
               {/* Columna fija */}
               <div className="sticky left-0 z-20 w-[19rem] shrink-0 border-r border-line bg-card">
-                <div className="sticky top-0 z-10 flex h-10 items-end border-b border-line bg-card px-2 pb-0.5 text-[10px] font-semibold text-muted-foreground">
+                <div className="sticky top-0 z-10 flex h-14 items-end border-b border-line bg-card px-2 pb-0.5 text-[10px] font-semibold text-muted-foreground">
                   <span className="flex-1">Partida</span><span className="w-12 text-right">Real</span><span className="w-14 text-right">Holgura</span>
                 </div>
                 {render.map((r) =>
@@ -311,11 +314,24 @@ function Gantt() {
               </div>
               {/* Línea de tiempo */}
               <div className="relative shrink-0" style={{ width: anchoTotal }}>
-                <div className="sticky top-0 z-10 h-10 border-b border-line bg-card">
+                <div className="sticky top-0 z-10 h-14 border-b border-line bg-card">
                   <div className="relative h-5 border-b border-line">
                     {cab.superior.map((t) => (
                       <div key={t.inicio} className="absolute inset-y-0 overflow-hidden border-r border-line px-1 text-[10px] leading-[18px] font-semibold whitespace-nowrap" style={{ left: x(t.inicio), width: (t.fin - t.inicio) * px }}>{t.etiqueta}</div>
                     ))}
+                  </div>
+                  {/* Letra del día de la semana; el domingo se escribe en rojo */}
+                  <div className="relative h-4 border-b border-line">
+                    {cab.inferior.map((t) => {
+                      if (t.fin - t.inicio !== 1) return null;
+                      if ((t.inicio - (datos?.d0 ?? 0)) % pasoLetras !== 0) return null;
+                      const esDomingo = diaSemana(t.inicio) === 0;
+                      return (
+                        <div key={"s" + t.inicio} className={`absolute inset-y-0 overflow-hidden text-center leading-[15px] whitespace-nowrap ${esDomingo ? "font-semibold text-bad" : "text-muted-foreground"}`} style={{ left: x(t.inicio), width: (t.fin - t.inicio) * px, fontSize: letraLetras }}>
+                          {letraSemana(t.inicio)}
+                        </div>
+                      );
+                    })}
                   </div>
                   <div className="relative h-5">
                     {cab.inferior.map((t) => {
