@@ -2446,6 +2446,39 @@ export type Database = {
         }
         Relationships: []
       }
+      historial_normativo: {
+        Row: {
+          base_legal: string
+          created_at: string
+          id: string
+          observaciones: string | null
+          rmv: number
+          uit: number
+          updated_at: string
+          vigencia_desde: string
+        }
+        Insert: {
+          base_legal?: string
+          created_at?: string
+          id?: string
+          observaciones?: string | null
+          rmv: number
+          uit: number
+          updated_at?: string
+          vigencia_desde: string
+        }
+        Update: {
+          base_legal?: string
+          created_at?: string
+          id?: string
+          observaciones?: string | null
+          rmv?: number
+          uit?: number
+          updated_at?: string
+          vigencia_desde?: string
+        }
+        Relationships: []
+      }
       importacion_items: {
         Row: {
           cantidad: number
