@@ -28,6 +28,7 @@ import { Route as AuthenticatedDatosRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedDatosApuRouteImport } from './routes/_authenticated/datos-apu'
 import { Route as AuthenticatedFacturacionElectronicaRouteImport } from './routes/_authenticated/facturacion-electronica'
 import { Route as AuthenticatedFlujoCajaRouteImport } from './routes/_authenticated/flujo-caja'
+import { Route as AuthenticatedGanttRouteImport } from './routes/_authenticated/gantt'
 import { Route as AuthenticatedGastosDirectosRouteImport } from './routes/_authenticated/gastos-directos'
 import { Route as AuthenticatedGastosGeneralesRouteImport } from './routes/_authenticated/gastos-generales'
 import { Route as AuthenticatedGgVistaRouteImport } from './routes/_authenticated/gg-vista'
@@ -154,6 +155,11 @@ const AuthenticatedFacturacionElectronicaRoute =
 const AuthenticatedFlujoCajaRoute = AuthenticatedFlujoCajaRouteImport.update({
   id: '/flujo-caja',
   path: '/flujo-caja',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedGanttRoute = AuthenticatedGanttRouteImport.update({
+  id: '/gantt',
+  path: '/gantt',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedGastosDirectosRoute =
@@ -318,6 +324,7 @@ export interface FileRoutesByFullPath {
   '/datos-apu': typeof AuthenticatedDatosApuRoute
   '/facturacion-electronica': typeof AuthenticatedFacturacionElectronicaRoute
   '/flujo-caja': typeof AuthenticatedFlujoCajaRoute
+  '/gantt': typeof AuthenticatedGanttRoute
   '/gastos-directos': typeof AuthenticatedGastosDirectosRoute
   '/gastos-generales': typeof AuthenticatedGastosGeneralesRoute
   '/gg-vista': typeof AuthenticatedGgVistaRoute
@@ -364,6 +371,7 @@ export interface FileRoutesByTo {
   '/datos-apu': typeof AuthenticatedDatosApuRoute
   '/facturacion-electronica': typeof AuthenticatedFacturacionElectronicaRoute
   '/flujo-caja': typeof AuthenticatedFlujoCajaRoute
+  '/gantt': typeof AuthenticatedGanttRoute
   '/gastos-directos': typeof AuthenticatedGastosDirectosRoute
   '/gastos-generales': typeof AuthenticatedGastosGeneralesRoute
   '/gg-vista': typeof AuthenticatedGgVistaRoute
@@ -412,6 +420,7 @@ export interface FileRoutesById {
   '/_authenticated/datos-apu': typeof AuthenticatedDatosApuRoute
   '/_authenticated/facturacion-electronica': typeof AuthenticatedFacturacionElectronicaRoute
   '/_authenticated/flujo-caja': typeof AuthenticatedFlujoCajaRoute
+  '/_authenticated/gantt': typeof AuthenticatedGanttRoute
   '/_authenticated/gastos-directos': typeof AuthenticatedGastosDirectosRoute
   '/_authenticated/gastos-generales': typeof AuthenticatedGastosGeneralesRoute
   '/_authenticated/gg-vista': typeof AuthenticatedGgVistaRoute
@@ -460,6 +469,7 @@ export interface FileRouteTypes {
     | '/datos-apu'
     | '/facturacion-electronica'
     | '/flujo-caja'
+    | '/gantt'
     | '/gastos-directos'
     | '/gastos-generales'
     | '/gg-vista'
@@ -506,6 +516,7 @@ export interface FileRouteTypes {
     | '/datos-apu'
     | '/facturacion-electronica'
     | '/flujo-caja'
+    | '/gantt'
     | '/gastos-directos'
     | '/gastos-generales'
     | '/gg-vista'
@@ -553,6 +564,7 @@ export interface FileRouteTypes {
     | '/_authenticated/datos-apu'
     | '/_authenticated/facturacion-electronica'
     | '/_authenticated/flujo-caja'
+    | '/_authenticated/gantt'
     | '/_authenticated/gastos-directos'
     | '/_authenticated/gastos-generales'
     | '/_authenticated/gg-vista'
@@ -720,6 +732,13 @@ declare module '@tanstack/react-router' {
       path: '/flujo-caja'
       fullPath: '/flujo-caja'
       preLoaderRoute: typeof AuthenticatedFlujoCajaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/gantt': {
+      id: '/_authenticated/gantt'
+      path: '/gantt'
+      fullPath: '/gantt'
+      preLoaderRoute: typeof AuthenticatedGanttRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/gastos-directos': {
@@ -925,6 +944,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDatosApuRoute: typeof AuthenticatedDatosApuRoute
   AuthenticatedFacturacionElectronicaRoute: typeof AuthenticatedFacturacionElectronicaRoute
   AuthenticatedFlujoCajaRoute: typeof AuthenticatedFlujoCajaRoute
+  AuthenticatedGanttRoute: typeof AuthenticatedGanttRoute
   AuthenticatedGastosDirectosRoute: typeof AuthenticatedGastosDirectosRoute
   AuthenticatedGastosGeneralesRoute: typeof AuthenticatedGastosGeneralesRoute
   AuthenticatedGgVistaRoute: typeof AuthenticatedGgVistaRoute
@@ -972,6 +992,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedFacturacionElectronicaRoute:
     AuthenticatedFacturacionElectronicaRoute,
   AuthenticatedFlujoCajaRoute: AuthenticatedFlujoCajaRoute,
+  AuthenticatedGanttRoute: AuthenticatedGanttRoute,
   AuthenticatedGastosDirectosRoute: AuthenticatedGastosDirectosRoute,
   AuthenticatedGastosGeneralesRoute: AuthenticatedGastosGeneralesRoute,
   AuthenticatedGgVistaRoute: AuthenticatedGgVistaRoute,
