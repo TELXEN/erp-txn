@@ -335,7 +335,7 @@ function Nomina() {
           onCambiar={setPestana}
           opciones={[
             { id: "planilla", texto: "Planilla", icono: <ClipboardList size={13} /> },
-            { id: "datos", texto: "Datos", icono: <Database size={13} /> },
+            { id: "datos", texto: "Datos de AFP", icono: <Database size={13} /> },
           ]}
         />
       </div>
