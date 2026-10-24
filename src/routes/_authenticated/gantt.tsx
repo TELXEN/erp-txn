@@ -120,6 +120,7 @@ function Gantt() {
   const px = Math.max(0.5, ((anchoVista - ANCHO_FIJO - RESERVA_DER) / diasTotales) * Math.max(1, factor));
   // Si la obra dura más de un mes, los números de día se escriben más pequeños para que quepan más.
   const letraDias = letraNumerosDias(diasTotales, zoom === "dia");
+  // Cada cuántos días se escribe un número: se saltan días si las columnas quedan muy angostas.
   const paso = pasoNumerosDias(px, letraDias);
   const cab = useMemo(() => (datos ? cabeceras(datos.d0, datos.d1, zoom) : { superior: [], inferior: [] }), [datos, zoom]);
   const noLaborables = useMemo(() => {
