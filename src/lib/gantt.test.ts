@@ -62,6 +62,22 @@ describe("calendario", () => {
     expect(c.superior.map((s) => s.etiqueta)).toEqual(["Oct 2026", "Nov 2026"]);
     expect(diaSemana(c.inferior[1]!.inicio)).toBe(1);
   });
+  it("semanas se rotulan con su número ISO", () => {
+    const c = cabeceras(aDia("2026-10-19"), aDia("2026-11-09"), "semana");
+    expect(c.inferior.map((s) => s.etiqueta)).toEqual(["Sem 43", "Sem 44", "Sem 45"]);
+  });
+  it("quincenas llevan el mes y meses el nombre corto", () => {
+    const q = cabeceras(aDia("2026-10-01"), aDia("2026-11-15"), "quincena");
+    expect(q.inferior.map((s) => s.etiqueta)).toEqual(["Q1 Oct", "Q2 Oct", "Q1 Nov"]);
+    const m = cabeceras(aDia("2026-10-01"), aDia("2026-12-15"), "mes");
+    expect(m.inferior.map((s) => s.etiqueta)).toEqual(["Oct", "Nov", "Dic"]);
+    expect(m.superior.map((s) => s.etiqueta)).toEqual(["2026"]);
+  });
+  it("número de semana ISO: la semana 1 de 2026 empieza el 29/12/2025", () => {
+    expect(numeroSemana(aDia("2026-01-01"))).toBe(1);
+    expect(numeroSemana(aDia("2025-12-29"))).toBe(1);
+    expect(numeroSemana(aDia("2025-12-28"))).toBe(52);
+  });
 });
 
 describe("letra de los números de día", () => {
