@@ -47,7 +47,7 @@ describe("ruta crítica", () => {
   });
 });
 
-import { cabeceras, diaSemana, feriadosPeru, aDia, letraNumerosDias, letraSemana, pasoLetrasSemana, pasoNumerosDias, escalaCalendario } from "./gantt";
+import { cabeceras, diaSemana, feriadosPeru, aDia, letraNumerosDias, letraSemana, numeroSemana, pasoLetrasSemana, pasoNumerosDias, escalaCalendario } from "./gantt";
 describe("calendario", () => {
   it("feriados de Perú incluyen Fiestas Patrias y Viernes Santo 2026 (3 abr)", () => {
     const f = feriadosPeru(2026);
