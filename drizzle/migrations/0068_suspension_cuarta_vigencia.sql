@@ -1,0 +1,1 @@
+ALTER TABLE public.trabajadores ADD COLUMN IF NOT EXISTS suspension_cuarta_fecha date, ADD COLUMN IF NOT EXISTS suspension_cuarta_anio integer, ADD COLUMN IF NOT EXISTS suspension_cuarta_constancia text;

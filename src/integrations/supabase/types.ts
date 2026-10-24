@@ -5119,6 +5119,9 @@ export type Database = {
           sistema_pensiones: string
           sueldo_mensual: number
           suspension_cuarta: boolean
+          suspension_cuarta_anio: number | null
+          suspension_cuarta_constancia: string | null
+          suspension_cuarta_fecha: string | null
           tipo_contratacion: string
         }
         Insert: {
@@ -5142,6 +5145,9 @@ export type Database = {
           sistema_pensiones?: string
           sueldo_mensual?: number
           suspension_cuarta?: boolean
+          suspension_cuarta_anio?: number | null
+          suspension_cuarta_constancia?: string | null
+          suspension_cuarta_fecha?: string | null
           tipo_contratacion?: string
         }
         Update: {
@@ -5165,6 +5171,9 @@ export type Database = {
           sistema_pensiones?: string
           sueldo_mensual?: number
           suspension_cuarta?: boolean
+          suspension_cuarta_anio?: number | null
+          suspension_cuarta_constancia?: string | null
+          suspension_cuarta_fecha?: string | null
           tipo_contratacion?: string
         }
         Relationships: []
