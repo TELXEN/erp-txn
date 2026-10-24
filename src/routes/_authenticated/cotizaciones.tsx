@@ -992,7 +992,7 @@ function Cotizaciones() {
           <div className="w-full max-w-md rounded-lg border border-line bg-background p-5 shadow-xl" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-sm font-semibold text-ink">Retomar en {new Date().getFullYear()}</h3>
             <p className="mt-2 text-xs text-muted-foreground">
-              Se creará una cotización nueva con el código <span className="font-mono font-semibold text-primary">{previsualizarCodigoCotizacion(codificacionCot)}</span> (Rev. 00), copiando todo de <span className="font-mono">{aRetomar.codigo} {etiquetaRevision(aRetomar.revision)}</span>. La original quedará congelada como «Retomada».
+              Se creará una cotización nueva con el código <span className="font-mono font-semibold text-primary">{codificacionCot ? previsualizarCodigoCotizacion(codificacionCot) : "—"}</span> (Rev. 00), copiando todo de <span className="font-mono">{aRetomar.codigo} {etiquetaRevision(aRetomar.revision)}</span>. La original quedará congelada como «Retomada».
             </p>
             <p className="mt-2 text-xs text-muted-foreground">Fecha de emisión: hoy · validez: {aRetomar.validez_dias} días.</p>
             <label className="mt-3 flex items-center gap-2 text-xs">
