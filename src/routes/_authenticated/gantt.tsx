@@ -382,7 +382,7 @@ function Gantt() {
               </div>
             </div>
             <p className="border-t border-line px-3 py-2 text-[10px] text-muted-foreground">
-              Barra: periodo programado · relleno: avance real (verde a tiempo, ámbar ligero atraso, rojo atrasada) · borde rojo: ruta crítica · línea vertical: hoy.
+              Barra: periodo programado · relleno: avance real (verde a tiempo, ámbar ligero atraso, rojo atrasada) · borde rojo: ruta crítica · línea vertical: hoy. Al acercar con la lupa, desplaza con la rueda del mouse.
             </p>
           </Panel>
 
