@@ -85,3 +85,4 @@
 - [x] Iconos del menú lateral con silueta propia: auto para Vehículos, recibo con código de barras (componente propio) para Facturación Electrónica y carpeta corporativa para Registro de Ventas; verificado en pantalla.
 
 - Diagrama Gantt con dependencias y ruta crítica (Operaciones) — hecho
+- [x] Gantt: barras horizontales/verticales en obras de más de un mes; desplazamiento horizontal y último proyecto al volver/recargar verificados. La obra actual tiene solo una partida, sin recorrido vertical necesario.
