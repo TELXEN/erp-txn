@@ -36,7 +36,9 @@ const useDependencias = () =>
   });
 
 // El calendario se estira para caber en la pantalla: sin barra de desplazamiento horizontal.
+// RESERVA_DER deja aire a la derecha para que las marcas de inicio/fin y sus rótulos no queden recortadas.
 const ANCHO_FIJO = 306;
+const RESERVA_DER = 76;
 const ALTO = 26;
 const fecha = (iso: string) => iso.split("-").reverse().join("/");
 
