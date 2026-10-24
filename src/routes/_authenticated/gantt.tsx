@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChartGantt, ChevronDown, ChevronRight, FileDown, FileSpreadsheet, Plus, Trash2 } from "lucide-react";
+import { CalendarCheck, ChartGantt, ChevronDown, ChevronRight, FileDown, FileSpreadsheet, Plus, Trash2, ZoomIn, ZoomOut } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Boton, BotonIcono, CabeceraModulo, Campo, FilasCargando, FranjaResumen, Input, MenuFiltros, Panel, Select, Vacio } from "@/components/ui-kit";
@@ -10,7 +10,7 @@ import {
   PERIODICIDADES, generarPeriodos, hoyISO, programadoPartida, useCronograma, usePartidas, useProyectos,
   type Partida, type Periodicidad,
 } from "@/lib/datos";
-import { NOMBRE_TIPO, aDia, calcularCpm, deDia, estadoAvance, rangoPartida, type Dependencia, type TipoDependencia } from "@/lib/gantt";
+import { NOMBRE_TIPO, aDia, cabeceras, diaSemana, feriadosPeru, calcularCpm, deDia, estadoAvance, rangoPartida, type Dependencia, type TipoDependencia } from "@/lib/gantt";
 import { exportarExcel, exportarPdf } from "@/lib/exportar";
 import { leerTodo } from "@/lib/datos";
 
@@ -36,6 +36,7 @@ const useDependencias = () =>
   });
 
 const PX_DIA: Record<Periodicidad, number> = { dia: 28, semana: 7, quincena: 3.5, mes: 1.6 };
+const ANCHO_FIJO = 352;
 const ALTO = 30;
 const fecha = (iso: string) => iso.split("-").reverse().join("/");
 
@@ -103,8 +104,35 @@ function Gantt() {
     return { filas, depsObra, cpm, errorCpm, d0, d1 };
   }, [proyecto, partidas, cron, deps, per, hoy]);
 
-  const px = PX_DIA[zoom];
-  const columnas = useMemo(() => (datos ? generarPeriodos(deDia(datos.d0), deDia(datos.d1 - 1), zoom) : []), [datos, zoom]);
+  const [factor, setFactor] = useRecordado("gantt:factor", 1);
+  const contenedor = useRef<HTMLDivElement>(null);
+  const [anchoVista, setAnchoVista] = useState(0);
+  useEffect(() => {
+    const el = contenedor.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setAnchoVista(el.clientWidth));
+    ro.observe(el);
+    return () => ro.disconnect();
+  });
+  const diasTotales = datos ? datos.d1 - datos.d0 : 1;
+  const px = Math.max(PX_DIA[zoom] * factor, (anchoVista - ANCHO_FIJO - 2) / diasTotales);
+  const cab = useMemo(() => (datos ? cabeceras(datos.d0, datos.d1, zoom) : { superior: [], inferior: [] }), [datos, zoom]);
+  const noLaborables = useMemo(() => {
+    if (!datos || px < 3) return [] as { dia: number; nombre: string }[];
+    const fer = new Map<number, string>();
+    for (let a = new Date(datos.d0 * 86400000).getUTCFullYear(); a <= new Date(datos.d1 * 86400000).getUTCFullYear(); a++) feriadosPeru(a).forEach((n, d) => fer.set(d, n));
+    const lista: { dia: number; nombre: string }[] = [];
+    for (let d = datos.d0; d < datos.d1; d++) {
+      const f = fer.get(d);
+      if (f) lista.push({ dia: d, nombre: f });
+      else if (diaSemana(d) === 0 || diaSemana(d) === 6) lista.push({ dia: d, nombre: diaSemana(d) === 0 ? "Domingo" : "Sábado" });
+    }
+    return lista;
+  }, [datos, px]);
+  const irAHoy = () => {
+    const el = contenedor.current;
+    if (el && datos) el.scrollTo({ left: Math.max(0, (aDia(hoy) - datos.d0) * px - (el.clientWidth - ANCHO_FIJO) / 2), behavior: "smooth" });
+  };
 
   const visibles = useMemo(() => {
     if (!datos) return [];
@@ -192,6 +220,11 @@ function Gantt() {
                   <button key={z.valor} type="button" onClick={() => setZoom(z.valor)} className={`rounded px-2 py-1 text-xs ${zoom === z.valor ? "bg-primary/10 font-semibold text-primary" : "text-muted-foreground hover:bg-muted"}`}>{z.nombre}</button>
                 ))}
               </div>
+              <div className="flex rounded-md border border-line p-0.5">
+                <button type="button" title="Alejar" aria-label="Alejar" onClick={() => setFactor(Math.max(0.25, factor / 1.5))} className="rounded px-1.5 py-1 text-muted-foreground hover:bg-muted"><ZoomOut size={14} /></button>
+                <button type="button" title="Acercar" aria-label="Acercar" onClick={() => setFactor(Math.min(8, factor * 1.5))} className="rounded px-1.5 py-1 text-muted-foreground hover:bg-muted"><ZoomIn size={14} /></button>
+                <button type="button" onClick={irAHoy} className="flex items-center gap-1 rounded px-2 py-1 text-xs text-muted-foreground hover:bg-muted"><CalendarCheck size={14} /> Ir a hoy</button>
+              </div>
               <label className="flex items-center gap-1.5 text-xs">
                 <input type="checkbox" checked={verCritica} onChange={(e) => setVerCritica(e.target.checked)} /> Ver ruta crítica
               </label>
@@ -246,10 +279,10 @@ function Gantt() {
           )}
 
           <Panel>
-            <div className="flex max-h-[70vh] overflow-auto text-xs">
+            <div ref={contenedor} className="flex max-h-[70vh] overflow-auto text-xs">
               {/* Columna fija */}
               <div className="sticky left-0 z-20 w-[22rem] shrink-0 border-r border-line bg-card">
-                <div className="sticky top-0 z-10 flex h-10 items-end border-b border-line bg-card px-2 pb-1 font-semibold text-muted-foreground">
+                <div className="sticky top-0 z-10 flex h-12 items-end border-b border-line bg-card px-2 pb-1 font-semibold text-muted-foreground">
                   <span className="flex-1">Partida</span><span className="w-12 text-right">Real</span><span className="w-14 text-right">Holgura</span>
                 </div>
                 {render.map((r) =>
@@ -271,16 +304,29 @@ function Gantt() {
                 )}
               </div>
               {/* Línea de tiempo */}
-              <div className="relative shrink-0" style={{ width: Math.max(anchoTotal, 640) }}>
-                <div className="sticky top-0 z-10 flex h-10 border-b border-line bg-card">
-                  {columnas.map((c) => (
-                    <div key={c.inicio} className="shrink-0 overflow-hidden border-r border-line px-1 pt-1 leading-tight text-muted-foreground" style={{ width: (aDia(c.fin) - aDia(c.inicio) + 1) * px }}>
-                      <div className="truncate font-semibold">{c.etiqueta}</div><div className="truncate text-[10px]">{c.corta}</div>
-                    </div>
-                  ))}
+              <div className="relative shrink-0" style={{ width: anchoTotal }}>
+                <div className="sticky top-0 z-10 h-12 border-b border-line bg-card">
+                  <div className="relative h-6 border-b border-line">
+                    {cab.superior.map((t) => (
+                      <div key={t.inicio} className="absolute inset-y-0 overflow-hidden border-r border-line px-1.5 leading-6 font-semibold whitespace-nowrap" style={{ left: x(t.inicio), width: (t.fin - t.inicio) * px }}>{t.etiqueta}</div>
+                    ))}
+                  </div>
+                  <div className="relative h-6">
+                    {cab.inferior.map((t) => {
+                      const finde = zoom === "dia" && (diaSemana(t.inicio) === 0 || diaSemana(t.inicio) === 6);
+                      const esHoy = t.inicio <= aDia(hoy) && aDia(hoy) < t.fin;
+                      return (
+                        <div key={t.inicio} className={`absolute inset-y-0 overflow-hidden border-r border-line text-center leading-6 whitespace-nowrap ${esHoy ? "bg-cta/20 font-semibold text-foreground" : finde ? "bg-muted text-muted-foreground" : "text-muted-foreground"}`} style={{ left: x(t.inicio), width: (t.fin - t.inicio) * px }}>
+                          {(t.fin - t.inicio) * px >= 16 ? t.etiqueta : ""}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
                 <div className="relative" style={{ height: render.length * ALTO }}>
                   {render.map((r, i) => <div key={i} className={`absolute inset-x-0 border-b border-line ${r.tipo === "grupo" ? "bg-muted/50" : ""}`} style={{ top: i * ALTO, height: ALTO }} />)}
+                  {noLaborables.map((n) => <div key={n.dia} title={`${fecha(deDia(n.dia))} · ${n.nombre}`} className={`absolute inset-y-0 ${n.nombre === "Sábado" || n.nombre === "Domingo" ? "bg-muted/70" : "bg-warn/15"}`} style={{ left: x(n.dia), width: px }} />)}
+                  {cab.inferior.map((t) => <div key={"l" + t.inicio} className="absolute inset-y-0 border-l border-line/60" style={{ left: x(t.inicio) }} />)}
                   {proyecto.fecha_inicio && <Marca x={x(aDia(proyecto.fecha_inicio))} texto="Inicio" />}
                   {proyecto.fecha_fin && <Marca x={x(aDia(proyecto.fecha_fin) + 1)} texto="Fin contrato" />}
                   <div className="absolute inset-y-0 z-[5] w-0.5 bg-cta" style={{ left: x(aDia(hoy)) }} title={`Hoy ${fecha(hoy)}`} />
@@ -298,16 +344,19 @@ function Gantt() {
                     const critica = verCritica && cpm?.criticas.has(f.partida.id);
                     const color = est === "ok" ? "bg-good" : est === "alerta" ? "bg-warn" : "bg-bad";
                     return (
+                      <div key={i} className="contents">
+                      <span className="pointer-events-none absolute z-[6] whitespace-nowrap text-[10px] text-muted-foreground" style={{ top: i * ALTO + 9, left: x(f.fin!) + 6 }}>{fecha(deDia(f.inicio)).slice(0, 5)} – {fecha(deDia(f.fin! - 1)).slice(0, 5)}</span>
                       <button
-                        key={i}
                         type="button"
                         onClick={() => setSeleccion(f.partida.id)}
                         title={`${f.partida.nombre}\n${fecha(deDia(f.inicio))} – ${fecha(deDia(f.fin! - 1))}\nProgramado a hoy ${f.programado.toFixed(1)}% · Real ${f.real.toFixed(1)}%\nHolgura ${cpm?.holgura[f.partida.id] ?? "—"} días · ${Math.max(0, f.fin! - aDia(hoy))} días restantes`}
                         className={`absolute z-[6] overflow-hidden rounded-sm bg-muted ${critica ? "ring-2 ring-bad" : "ring-1 ring-line"}`}
-                        style={{ top: i * ALTO + 7, height: ALTO - 14, left: x(f.inicio), width: Math.max(4, (f.fin! - f.inicio) * px) }}
+                        style={{ top: i * ALTO + 6, height: ALTO - 12, left: x(f.inicio), width: Math.max(4, (f.fin! - f.inicio) * px) }}
                       >
                         <span className={`block h-full ${color}`} style={{ width: `${Math.min(100, f.real)}%` }} />
+                        {(f.fin! - f.inicio) * px >= 34 && <span className="absolute inset-0 grid place-items-center text-[10px] font-semibold text-foreground">{f.real.toFixed(0)}%</span>}
                       </button>
+                      </div>
                     );
                   })}
                   <svg className="pointer-events-none absolute inset-0 z-[7]" width={anchoTotal} height={render.length * ALTO}>
@@ -363,7 +412,8 @@ function promedio(filas: Fila[]) {
 function Marca({ x, texto }: { x: number; texto: string }) {
   return (
     <div className="absolute inset-y-0 z-[4] border-l border-dashed border-primary/60" style={{ left: x }}>
-      <span className="absolute -top-0 left-1 whitespace-nowrap text-[10px] text-primary">{texto}</span>
+      <span className="absolute -left-[5px] top-1 size-2.5 rotate-45 bg-primary" />
+      <span className="absolute left-2 top-0.5 whitespace-nowrap rounded bg-card/90 px-1 text-[10px] font-semibold text-primary">{texto}</span>
     </div>
   );
 }
