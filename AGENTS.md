@@ -49,3 +49,4 @@
 - Carriers (transportistas + vehiculos/conductores) are a catalogue; guías copy carrier, vehicle and driver data into datos_guia so emitted guides never change when the catalogue does.
 - Quotations from a prior year are resumed via retomarCotizacion (new current-year code, Rev. 00, retoma_de_id link, original frozen as Retomada) — yearly numbering stays clean and history is kept.
 - Payment reports (ReportePagos) are read-only lists built from Tesorería CxP selection; payee accounts come from terceros_cuentas_bancarias (providers) or trabajadores (staff) via reporte-pagos.ts — reports never mark payments.
+- Work valuations (valorizaciones/valorizacion_items) snapshot contracted metrado/P.U.; prior accumulation comes only from approved valuations and approval (DB trigger) requires supervisor signature and freezes the row — history never shifts with live progress.
