@@ -52,3 +52,31 @@ export function calcularRentaQuinta(e: EntradaQuinta): DetalleQuinta {
   const retencion = r2(Math.max(0, base / divisor));
   return { proyectada, deduccion, rentaNeta, impuesto, retenidoAnterior: e.retenidoAnterior, divisor, retencion };
 }
+
+export type MesReal = { mes: number; ingresos: number; retenido: number };
+
+/**
+ * Completa meses anteriores del año: usa boletas reales donde existan y, para los meses
+ * sin boleta desde la fecha de ingreso, estima el sueldo contractual y su retención simulada.
+ */
+export function acumuladoAnterior(p: {
+  anio: number; mes: number; fechaIngreso: string | null | undefined; sueldoContractual: number;
+  reales: MesReal[]; uit: number; eps: boolean;
+}) {
+  let pagado = 0, retenido = 0, estimados = 0;
+  const ing = p.fechaIngreso ? new Date(p.fechaIngreso + "T00:00:00") : null;
+  const desde = !ing || ing.getFullYear() < p.anio ? 1 : ing.getFullYear() > p.anio ? 13 : ing.getMonth() + 1;
+  for (let m = 1; m < p.mes; m++) {
+    const reales = p.reales.filter((x) => x.mes === m);
+    if (reales.length) {
+      pagado += reales.reduce((s, x) => s + x.ingresos, 0);
+      retenido += reales.reduce((s, x) => s + x.retenido, 0);
+    } else if (m >= desde && p.sueldoContractual > 0) {
+      const d = calcularRentaQuinta({ mes: m, sueldoMes: p.sueldoContractual, pagadoAnterior: pagado, retenidoAnterior: retenido, uit: p.uit, eps: p.eps });
+      pagado += p.sueldoContractual;
+      retenido += d.retencion;
+      estimados++;
+    }
+  }
+  return { pagado: r2(pagado), retenido: r2(retenido), estimados };
+}
