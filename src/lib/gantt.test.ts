@@ -46,3 +46,20 @@ describe("ruta crítica", () => {
     expect(estadoAvance(30, 50)).toBe("atraso");
   });
 });
+
+import { cabeceras, diaSemana, feriadosPeru, aDia } from "./gantt";
+describe("calendario", () => {
+  it("feriados de Perú incluyen Fiestas Patrias y Viernes Santo 2026 (3 abr)", () => {
+    const f = feriadosPeru(2026);
+    expect(f.get(aDia("2026-07-28"))).toBe("Fiestas Patrias");
+    expect(f.get(aDia("2026-04-03"))).toBe("Viernes Santo");
+  });
+  it("día de semana: 24/10/2026 es sábado", () => {
+    expect(diaSemana(aDia("2026-10-24"))).toBe(6);
+  });
+  it("cabecera por semanas corta en lunes y agrupa por mes", () => {
+    const c = cabeceras(aDia("2026-10-01"), aDia("2026-11-10"), "semana");
+    expect(c.superior.map((s) => s.etiqueta)).toEqual(["Oct 2026", "Nov 2026"]);
+    expect(diaSemana(c.inferior[1]!.inicio)).toBe(1);
+  });
+});

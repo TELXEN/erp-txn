@@ -109,3 +109,62 @@ export function estadoAvance(real: number, programado: number): "ok" | "alerta" 
   if (dif > -10) return "alerta";
   return "atraso";
 }
+
+/** Domingo de Pascua (algoritmo de Meeus). Devuelve número de día. */
+function pascua(anio: number) {
+  const a = anio % 19, b = Math.floor(anio / 100), c = anio % 100, d = Math.floor(b / 4), e = b % 4;
+  const f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const mes = Math.floor((h + l - 7 * m + 114) / 31), dia = ((h + l - 7 * m + 114) % 31) + 1;
+  return aDia(`${anio}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`);
+}
+
+const FIJOS: [string, string][] = [
+  ["01-01", "Año Nuevo"], ["05-01", "Día del Trabajo"], ["06-07", "Batalla de Arica"], ["06-29", "San Pedro y San Pablo"],
+  ["07-23", "Día de la Fuerza Aérea"], ["07-28", "Fiestas Patrias"], ["07-29", "Fiestas Patrias"], ["08-06", "Batalla de Junín"],
+  ["08-30", "Santa Rosa de Lima"], ["10-08", "Combate de Angamos"], ["11-01", "Todos los Santos"], ["12-08", "Inmaculada Concepción"],
+  ["12-09", "Batalla de Ayacucho"], ["12-25", "Navidad"],
+];
+
+/** Feriados nacionales de Perú del año (número de día → nombre). */
+export function feriadosPeru(anio: number): Map<number, string> {
+  const m = new Map<number, string>(FIJOS.map(([md, n]) => [aDia(`${anio}-${md}`), n]));
+  const p = pascua(anio);
+  m.set(p - 3, "Jueves Santo");
+  m.set(p - 2, "Viernes Santo");
+  return m;
+}
+
+/** Día de semana 0=domingo … 6=sábado. */
+export const diaSemana = (dia: number) => (((dia + 4) % 7) + 7) % 7;
+
+const MESES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+export type Tramo = { inicio: number; fin: number; etiqueta: string }; // fin exclusivo
+
+/** Cabecera de dos niveles: superior (meses o años) e inferior (días, semanas, quincenas o meses). */
+export function cabeceras(d0: number, d1: number, zoom: "dia" | "semana" | "quincena" | "mes") {
+  const superior: Tramo[] = [];
+  const inferior: Tramo[] = [];
+  const fechaDe = (n: number) => new Date(n * DIA);
+  const diaDe = (a: number, m: number, d: number) => Math.round(Date.UTC(a, m, d) / DIA);
+  // superior
+  for (let cur = d0; cur < d1; ) {
+    const f = fechaDe(cur);
+    const sig = zoom === "mes" ? diaDe(f.getUTCFullYear() + 1, 0, 1) : diaDe(f.getUTCFullYear(), f.getUTCMonth() + 1, 1);
+    superior.push({ inicio: cur, fin: Math.min(sig, d1), etiqueta: zoom === "mes" ? String(f.getUTCFullYear()) : `${MESES[f.getUTCMonth()]} ${f.getUTCFullYear()}` });
+    cur = sig;
+  }
+  // inferior
+  for (let cur = d0; cur < d1; ) {
+    const f = fechaDe(cur);
+    let sig: number;
+    let etiqueta: string;
+    if (zoom === "dia") { sig = cur + 1; etiqueta = String(f.getUTCDate()); }
+    else if (zoom === "semana") { sig = cur + (7 - ((diaSemana(cur) + 6) % 7)); etiqueta = String(f.getUTCDate()); }
+    else if (zoom === "quincena") { const pri = f.getUTCDate() <= 15; sig = pri ? diaDe(f.getUTCFullYear(), f.getUTCMonth(), 16) : diaDe(f.getUTCFullYear(), f.getUTCMonth() + 1, 1); etiqueta = pri ? "Q1" : "Q2"; }
+    else { sig = diaDe(f.getUTCFullYear(), f.getUTCMonth() + 1, 1); etiqueta = MESES[f.getUTCMonth()] ?? ""; }
+    inferior.push({ inicio: cur, fin: Math.min(sig, d1), etiqueta });
+    cur = sig;
+  }
+  return { superior, inferior };
+}
