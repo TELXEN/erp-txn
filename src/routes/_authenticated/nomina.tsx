@@ -138,12 +138,14 @@ function Nomina() {
   /** Detalle de renta de 5ta: boletas reales previas y, si faltan, meses estimados desde la fecha de ingreso. */
   const quinta = (t: Trabajador, sueldoMes: number): DetalleQuinta & { estimados: number } => {
     const eps = (t as Trabajador & { seguro_salud?: string }).seguro_salud === "EPS";
-    const contractual = calcularBoleta(t, { dias_laborados: 30, horas_extra: 0, otros_ingresos: 0, renta_quinta: 0, otros_descuentos: 0 }, comisiones, rmvDe(periodoAfp)).total_ingresos;
+    // Remuneración computable del mes m: básico completo + asignación con la RMV vigente ese mes.
+    const contractual = (m: number) => calcularBoleta(t, { dias_laborados: 30, horas_extra: 0, otros_ingresos: 0, renta_quinta: 0, otros_descuentos: 0 }, comisiones, rmvDe(`${anio}-${String(m).padStart(2, "0")}`)).total_ingresos;
     const prev = acumuladoAnterior({
       anio, mes, fechaIngreso: t.fecha_ingreso, sueldoContractual: contractual, uit: uitDe(anio), eps,
       reales: previasAnio.filter((b) => b.trabajador_id === t.id).map((b) => ({ mes: Number(b.planillas?.mes), ingresos: Number(b.total_ingresos), retenido: Number(b.renta_quinta) })),
     });
-    return { ...calcularRentaQuinta({ mes, sueldoMes, uit: uitDe(anio), eps, pagadoAnterior: prev.pagado, retenidoAnterior: prev.retenido }), estimados: prev.estimados };
+    const trabajaJulio = mes <= 7 || prev.desde <= 7;
+    return { ...calcularRentaQuinta({ mes, sueldoMes, remFutura: contractual(mes), gratiJulio: trabajaJulio ? contractual(7) : null, gratiDic: contractual(12), uit: uitDe(anio), eps, pagadoAnterior: prev.pagado, retenidoAnterior: prev.retenido }), estimados: prev.estimados };
   };
   /** Calcula la boleta poniendo la renta de 5ta automática salvo que sea manual. */
   const calcConQuinta = (t: Trabajador, v: Parameters<typeof calcularBoleta>[1], manual: boolean) => {
