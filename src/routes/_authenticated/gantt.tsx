@@ -10,7 +10,7 @@ import {
   PERIODICIDADES, generarPeriodos, hoyISO, programadoPartida, useCronograma, usePartidas, useProyectos,
   type Partida, type Periodicidad,
 } from "@/lib/datos";
-import { NOMBRE_TIPO, aDia, cabeceras, diaSemana, feriadosPeru, calcularCpm, deDia, estadoAvance, rangoPartida, type Dependencia, type TipoDependencia } from "@/lib/gantt";
+import { NOMBRE_TIPO, aDia, cabeceras, diaSemana, feriadosPeru, calcularCpm, deDia, estadoAvance, letraNumerosDias, pasoNumerosDias, rangoPartida, type Dependencia, type TipoDependencia } from "@/lib/gantt";
 import { exportarExcel, exportarPdf } from "@/lib/exportar";
 import { leerTodo } from "@/lib/datos";
 
@@ -118,6 +118,10 @@ function Gantt() {
   });
   const diasTotales = datos ? datos.d1 - datos.d0 : 1;
   const px = Math.max(0.5, ((anchoVista - ANCHO_FIJO - RESERVA_DER) / diasTotales) * Math.max(1, factor));
+  // Si la obra dura más de un mes, los números de día se escriben más pequeños para que quepan más.
+  const letraDias = letraNumerosDias(diasTotales, zoom === "dia");
+  // Cada cuántos días se escribe un número: se saltan días si las columnas quedan muy angostas.
+  const paso = pasoNumerosDias(px, letraDias);
   const cab = useMemo(() => (datos ? cabeceras(datos.d0, datos.d1, zoom) : { superior: [], inferior: [] }), [datos, zoom]);
   const noLaborables = useMemo(() => {
     if (!datos || px < 3) return [] as { dia: number; nombre: string }[];
@@ -318,8 +322,8 @@ function Gantt() {
                       const finde = zoom === "dia" && (diaSemana(t.inicio) === 0 || diaSemana(t.inicio) === 6);
                       const esHoy = t.inicio <= aDia(hoy) && aDia(hoy) < t.fin;
                       return (
-                        <div key={t.inicio} className={`absolute inset-y-0 overflow-hidden border-r border-line text-center text-[10px] leading-[18px] whitespace-nowrap ${esHoy ? "bg-cta/20 font-semibold text-foreground" : finde ? "bg-muted text-muted-foreground" : "text-muted-foreground"}`} style={{ left: x(t.inicio), width: (t.fin - t.inicio) * px }}>
-                          {(t.fin - t.inicio) * px >= 16 ? t.etiqueta : ""}
+                        <div key={t.inicio} className={`absolute inset-y-0 overflow-hidden border-r border-line text-center leading-[18px] whitespace-nowrap ${esHoy ? "bg-cta/20 font-semibold text-foreground" : finde ? "bg-muted text-muted-foreground" : "text-muted-foreground"}`} style={{ left: x(t.inicio), width: (t.fin - t.inicio) * px, fontSize: letraDias }}>
+                          {(t.inicio - (datos?.d0 ?? 0)) % paso === 0 ? t.etiqueta : ""}
                         </div>
                       );
                     })}

@@ -47,7 +47,7 @@ describe("ruta crítica", () => {
   });
 });
 
-import { cabeceras, diaSemana, feriadosPeru, aDia } from "./gantt";
+import { cabeceras, diaSemana, feriadosPeru, aDia, letraNumerosDias, pasoNumerosDias } from "./gantt";
 describe("calendario", () => {
   it("feriados de Perú incluyen Fiestas Patrias y Viernes Santo 2026 (3 abr)", () => {
     const f = feriadosPeru(2026);
@@ -61,5 +61,27 @@ describe("calendario", () => {
     const c = cabeceras(aDia("2026-10-01"), aDia("2026-11-10"), "semana");
     expect(c.superior.map((s) => s.etiqueta)).toEqual(["Oct 2026", "Nov 2026"]);
     expect(diaSemana(c.inferior[1]!.inicio)).toBe(1);
+  });
+});
+
+describe("letra de los números de día", () => {
+  it("obra de un mes o menos: 10 px", () => {
+    expect(letraNumerosDias(22, true)).toBe(10);
+    expect(letraNumerosDias(31, true)).toBe(10);
+  });
+  it("obra de más de un mes: 9 px", () => {
+    expect(letraNumerosDias(32, true)).toBe(9);
+    expect(letraNumerosDias(85, true)).toBe(9);
+  });
+  it("obra de más de cuatro meses: 8 px", () => {
+    expect(letraNumerosDias(121, true)).toBe(8);
+  });
+  it("fuera de la vista por días se conserva 10 px", () => {
+    expect(letraNumerosDias(85, false)).toBe(10);
+  });
+  it("días angostos: se numera cada tantos días", () => {
+    expect(pasoNumerosDias(30, 10)).toBe(1);
+    expect(pasoNumerosDias(8, 9)).toBe(2);
+    expect(pasoNumerosDias(3, 8)).toBe(5);
   });
 });
