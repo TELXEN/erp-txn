@@ -30,11 +30,11 @@ async def main():
         await page.get_by_role("link", name="Diagrama Gantt", exact=True).click()
         await page.wait_for_url("**/gantt")
         await select.locator("option").nth(1).wait_for(state="attached", timeout=30000)
-        await page.wait_for_function("([id])=>document.querySelector('[aria-label=\"Proyecto del Gantt\"]').value===id", [project_id])
+        await page.wait_for_function("([id])=>document.querySelector('[aria-label=\"Proyecto del Gantt\"]').value===id", arg=[project_id])
         assert await select.input_value() == project_id
         await page.reload()
         await select.locator("option").nth(1).wait_for(state="attached", timeout=30000)
-        await page.wait_for_function("([id])=>document.querySelector('[aria-label=\"Proyecto del Gantt\"]').value===id", [project_id])
+        await page.wait_for_function("([id])=>document.querySelector('[aria-label=\"Proyecto del Gantt\"]').value===id", arg=[project_id])
         assert await select.input_value() == project_id
         print("Último proyecto restaurado al volver y recargar: OK")
         await browser.close()
