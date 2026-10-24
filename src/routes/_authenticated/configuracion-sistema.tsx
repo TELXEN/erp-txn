@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Building2, Plug, FileText, Landmark, ShieldCheck, SlidersHorizontal } from "lucide-react";
+import { Building2, Plug, FileText, Landmark, Scale, ShieldCheck, SlidersHorizontal } from "lucide-react";
 import { CabeceraModulo, Panel, Pestanas } from "@/components/ui-kit";
 import { DatosEmpresa } from "@/components/DatosEmpresa";
 import { CuentasBancarias } from "@/components/CuentasBancarias";
@@ -9,6 +9,7 @@ import { UsuariosPanel } from "@/components/UsuariosPanel";
 import { ConfigDecolecta } from "@/components/facturacion/ConfigDecolecta";
 import { ConfigSol } from "@/components/sire/ConfigSol";
 import { useAuth } from "@/lib/auth";
+import { HistorialNormativo } from "@/components/HistorialNormativo";
 
 export const Route = createFileRoute("/_authenticated/configuracion-sistema")({
   head: () => ({
@@ -25,7 +26,7 @@ export const Route = createFileRoute("/_authenticated/configuracion-sistema")({
 });
 
 function ConfiguracionSistema() {
-  const [pestana, setPestana] = useState<"tipografia" | "usuarios" | "empresa" | "bancos" | "integraciones">("empresa");
+  const [pestana, setPestana] = useState<"tipografia" | "usuarios" | "empresa" | "bancos" | "integraciones" | "normativa">("empresa");
   const { rol } = useAuth();
 
   return (
@@ -45,10 +46,10 @@ function ConfiguracionSistema() {
           { id: "bancos", texto: "Cuentas bancarias", icono: <Landmark className="size-4" /> },
           { id: "tipografia", texto: "Tipografía de documentos", icono: <FileText className="size-4" /> },
           { id: "usuarios", texto: "Usuarios y Roles", icono: <ShieldCheck className="size-4" /> },
-          ...(rol === "gerente" || rol === "administrador" ? [{ id: "integraciones" as const, texto: "Integraciones", icono: <Plug className="size-4" /> }] : []),
+          ...(rol === "gerente" || rol === "administrador" ? [{ id: "normativa" as const, texto: "Valores normativos (RMV / UIT)", icono: <Scale className="size-4" /> }, { id: "integraciones" as const, texto: "Integraciones", icono: <Plug className="size-4" /> }] : []),
         ]}
       />
-      {pestana === "tipografia" ? <TipografiaDocumentosPanel /> : pestana === "empresa" ? <DatosEmpresa /> : pestana === "bancos" ? <CuentasBancarias /> : pestana === "integraciones" ? <div className="grid gap-4 xl:grid-cols-2"><ConfigDecolecta enLinea />{rol === "gerente" ? <ConfigSol /> : <Panel titulo="SUNAT SIRE · API SOL"><p className="p-5 text-sm text-muted-foreground">Solo Gerencia puede ver o cambiar las credenciales SOL.</p></Panel>}</div> : <UsuariosPanel />}
+      {pestana === "normativa" ? <HistorialNormativo /> : pestana === "tipografia" ? <TipografiaDocumentosPanel /> : pestana === "empresa" ? <DatosEmpresa /> : pestana === "bancos" ? <CuentasBancarias /> : pestana === "integraciones" ? <div className="grid gap-4 xl:grid-cols-2"><ConfigDecolecta enLinea />{rol === "gerente" ? <ConfigSol /> : <Panel titulo="SUNAT SIRE · API SOL"><p className="p-5 text-sm text-muted-foreground">Solo Gerencia puede ver o cambiar las credenciales SOL.</p></Panel>}</div> : <UsuariosPanel />}
     </div>
   );
 }

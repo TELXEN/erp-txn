@@ -91,6 +91,8 @@ const fechaHora = (iso: string) => {
 
 function Nomina() {
   const { rol } = useAuth();
+  const { data: normativa = [] } = useNormativa();
+  NORMATIVA = normativa;
   const qc = useQueryClient();
   const { data: trabajadores = [], isFetched: personalListo } = useTrabajadores();
   const { data: tareos = [], isFetched: tareoListo } = useTareos();
@@ -360,6 +362,12 @@ function Nomina() {
         }
       />
 
+      {normaNuevaEn(normativa, periodoAfp) && (
+        <div className="mb-3 rounded-md border border-warn/40 bg-warn/10 px-3 py-2 text-[12px]">
+          Nuevo valor legal activo en este período: RMV <strong>{soles(rmvDe(periodoAfp))}</strong> · UIT <strong>{soles(uitDe(anio))}</strong>
+          {normaNuevaEn(normativa, periodoAfp)!.base_legal ? ` según ${normaNuevaEn(normativa, periodoAfp)!.base_legal}` : ""}, vigente desde {fecha(normaNuevaEn(normativa, periodoAfp)!.vigencia_desde)}.
+        </div>
+      )}
       <div className="mb-4">
         <Pestanas
           etiqueta="Nómina"
