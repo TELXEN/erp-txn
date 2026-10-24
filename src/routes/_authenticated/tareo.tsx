@@ -568,46 +568,6 @@ function TareoPage() {
         </Panel>
       )}
 
-      <div className="flex items-start gap-3"><Panel className="min-w-0 flex-1" titulo="Últimos registros">
-        {tareos.length === 0 ? (
-          <Vacio texto="Aún no hay tareos." />
-        ) : (
-          <table className="w-full font-mono text-xs">
-            <thead>
-              <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                <th className="px-5 py-2 font-medium">Fecha</th>
-                <th className="px-3 py-2 font-medium">Trabajador</th>
-                <th className="px-3 py-2 font-medium">Proyecto</th>
-                <th className="px-3 py-2 font-medium">Tipo</th>
-                <th className="px-3 py-2 text-right font-medium">Jornal eq.</th>
-                <th className="px-3 py-2 text-right font-medium">Costo</th>
-                
-              </tr>
-            </thead>
-            <tbody>
-              {tareos.slice(0, 40).map((t) => {
-                const tipo = tipoDeTareo(t);
-                const info = infoTipo(tipo);
-                return (
-                  <tr key={t.id} onClick={() => setSel(t.id)} className={`cursor-pointer border-b border-line/60 last:border-0 hover:bg-muted/40 ${sel === t.id ? "bg-primary/10" : ""}`}>
-                    <td className="px-5 py-2.5">{fmtFecha(t.fecha)}</td>
-                    <td className="px-3 py-2.5 font-semibold text-ink">{nombreTrab(t.trabajador_id)}</td>
-                    <td className="px-3 py-2.5 text-muted-foreground">{nombreProy(t.proyecto_id)}</td>
-                    <td className="px-3 py-2.5">
-                      <span className={`inline-flex rounded border px-1.5 py-0.5 text-[10px] ${info.clase}`}>
-                        {info.sigla}{tipo === "extras" ? ` ${horasDe(t)}h` : ""}
-                      </span>
-                    </td>
-                    <td className="px-3 py-2.5 text-right">{Number(t.asistencia)}</td>
-                    <td className="px-3 py-2.5 text-right">{soles(Number(t.costo_soles))}</td>
-                    
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        )}
-      </Panel><BarraIconosHoja objeto="tareo" haySeleccion={tareos.some((t) => t.id === sel)} onEliminar={() => { if (tareos.some((t) => t.id === sel)) void eliminar(sel); }} /></div>
     </>
   );
 }
