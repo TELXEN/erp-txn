@@ -69,7 +69,7 @@ export function HistorialNormativo() {
                 <td className="px-3 py-1 text-right tabular-nums">{soles(Number(f.uit))}</td>
                 <td className="px-3 py-1">{f.base_legal}</td>
                 <td className="px-3 py-1 text-muted-foreground">{f.observaciones}</td>
-                <td className="px-2 py-1 text-right"><BotonIcono tono="peligro" titulo="Eliminar" onClick={(e: React.MouseEvent) => { e.stopPropagation(); eliminar(f); }}><Trash2 className="size-3.5" /></BotonIcono></td>
+                <td className="px-2 py-1 text-right"><BotonIcono tono="peligro" etiqueta="Eliminar" onClick={(e) => { e.stopPropagation(); eliminar(f); }}><Trash2 className="size-3.5" /></BotonIcono></td>
               </tr>
             ))}
           </tbody>

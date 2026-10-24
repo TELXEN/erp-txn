@@ -16,7 +16,8 @@ import { DetallePagoNomina, type BoletaNomina, type ValoresNomina } from "@/comp
 import { exportarExcel } from "@/lib/exportar";
 import { aporteAfp, useComisionesAfp } from "@/lib/afp";
 import type { ComisionAfp } from "@/lib/decolecta.functions";
-import { acumuladoAnterior, calcularRentaQuinta, uitDe, type DetalleQuinta } from "@/lib/renta-quinta";
+import { acumuladoAnterior, calcularRentaQuinta, type DetalleQuinta } from "@/lib/renta-quinta";
+import { normaEn, normaNuevaEn, rmvEn, uitEn, useNormativa, type FilaNormativa } from "@/lib/normativa";
 
 export const Route = createFileRoute("/_authenticated/nomina")({
   head: () => ({
@@ -34,7 +35,10 @@ export const Route = createFileRoute("/_authenticated/nomina")({
 
 // Parámetros legales vigentes (Perú). Las tasas AFP vienen de Decolecta (useComisionesAfp).
 /** RMV vigente por período (S/ 1,230 desde octubre 2026). */
-const rmvDe = (periodo: string) => (periodo >= "2026-10" ? 1230 : 1130);
+/** Historial normativo cargado desde Configuración del Sistema (se asigna al renderizar Nómina). */
+let NORMATIVA: FilaNormativa[] = [];
+const rmvDe = (periodo: string) => rmvEn(NORMATIVA, periodo);
+const uitDe = (anio: number) => uitEn(NORMATIVA, anio);
 const TASA_ONP = 0.13;
 const SIS_MICRO = 15;
 
@@ -414,7 +418,7 @@ function Nomina() {
         <table className="w-full text-sm">
           <tbody>
             {[
-              ["Remuneración Mínima Vital (RMV)", `S/ ${rmvDe(periodoAfp).toLocaleString("es-PE", { minimumFractionDigits: 2 })} · vigente desde ${rmvDe(periodoAfp) === 1230 ? "01/10/2026" : "01/05/2022"}`],
+              ["Remuneración Mínima Vital (RMV)", `S/ ${rmvDe(periodoAfp).toLocaleString("es-PE", { minimumFractionDigits: 2 })} · vigente desde ${fecha(normaEn(NORMATIVA, periodoAfp).vigencia_desde)}${normaEn(NORMATIVA, periodoAfp).base_legal ? ` · ${normaEn(NORMATIVA, periodoAfp).base_legal}` : ""}`],
               ["ONP", "13% de la remuneración"],
               ["EsSalud", "9% de la remuneración · Agrario 6%"],
               ["SIS Microempresa", "S/ 15.00 mensual"],
