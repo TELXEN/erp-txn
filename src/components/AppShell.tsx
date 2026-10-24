@@ -45,6 +45,7 @@ import {
   Gauge,
   ShoppingBag,
   Landmark,
+  Palette,
   Layers,
   Package,
   ShoppingCart,
@@ -132,6 +133,7 @@ const MENU: Categoria[] = [
     titulo: "Datos",
     items: [
       { a: "/datos", texto: "Catalogos Maestros", roles: ["administrador", "gerente"], icono: Settings },
+      { a: "/tema-colores", texto: "Tema de colores", roles: ["ingeniero", "administrador", "gerente"], icono: Palette },
       { a: "/configuracion-sistema", texto: "Configuración del Sistema", roles: ["gerente"], icono: SlidersHorizontal },
     ],
   },
