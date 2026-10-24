@@ -320,8 +320,8 @@ function Gantt() {
                       const finde = zoom === "dia" && (diaSemana(t.inicio) === 0 || diaSemana(t.inicio) === 6);
                       const esHoy = t.inicio <= aDia(hoy) && aDia(hoy) < t.fin;
                       return (
-                        <div key={t.inicio} className={`absolute inset-y-0 overflow-hidden border-r border-line text-center text-[10px] leading-[18px] whitespace-nowrap ${esHoy ? "bg-cta/20 font-semibold text-foreground" : finde ? "bg-muted text-muted-foreground" : "text-muted-foreground"}`} style={{ left: x(t.inicio), width: (t.fin - t.inicio) * px }}>
-                          {(t.fin - t.inicio) * px >= 16 ? t.etiqueta : ""}
+                        <div key={t.inicio} className={`absolute inset-y-0 overflow-hidden border-r border-line text-center leading-[18px] whitespace-nowrap ${esHoy ? "bg-cta/20 font-semibold text-foreground" : finde ? "bg-muted text-muted-foreground" : "text-muted-foreground"}`} style={{ left: x(t.inicio), width: (t.fin - t.inicio) * px, fontSize: letraDias }}>
+                          {(t.fin - t.inicio) * px >= letraDias * 1.6 ? t.etiqueta : ""}
                         </div>
                       );
                     })}
