@@ -127,6 +127,9 @@ export type Trabajador = {
   sueldo_mensual: number;
   asignacion_familiar: boolean;
   suspension_cuarta: boolean;
+  suspension_cuarta_fecha?: string | null;
+  suspension_cuarta_anio?: number | null;
+  suspension_cuarta_constancia?: string | null;
   fecha_cese: string | null;
 };
 

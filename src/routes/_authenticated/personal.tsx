@@ -1,3 +1,4 @@
+import { estadoSuspension } from "@/lib/suspension-cuarta";
 import { useRecordado } from "@/lib/recordado";
 import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { BotonIcono } from "@/components/ui-kit";
@@ -101,6 +102,9 @@ type FormPersonal = {
   sueldo_mensual: string;
   asignacion_familiar: boolean;
   suspension_cuarta: boolean;
+  suspension_cuarta_fecha: string;
+  suspension_cuarta_anio: string;
+  suspension_cuarta_constancia: string;
 };
 
 const FORM_INICIAL: FormPersonal = {
@@ -120,9 +124,13 @@ const FORM_INICIAL: FormPersonal = {
   sueldo_mensual: "",
   asignacion_familiar: false,
   suspension_cuarta: false,
+  suspension_cuarta_fecha: "",
+  suspension_cuarta_anio: "",
+  suspension_cuarta_constancia: "",
 };
 
 function validar(form: FormPersonal) {
+  if (form.tipo_contratacion !== "Planilla" && form.suspension_cuarta && (!form.suspension_cuarta_fecha || !form.suspension_cuarta_anio)) return "Ingresa la fecha y el año de vigencia de la suspensión de 4ta.";
   if (!/^\d{8}$/.test(form.dni)) return "El DNI debe tener 8 dígitos.";
   if (!form.nombre.trim()) return "Ingresa el nombre.";
   if (!form.cargo) return "Selecciona un cargo válido.";
@@ -200,6 +208,9 @@ function Personal() {
       sueldo_mensual: Number(datos.sueldo_mensual || 0),
       asignacion_familiar: planilla && datos.asignacion_familiar,
       suspension_cuarta: !planilla && datos.suspension_cuarta,
+      suspension_cuarta_fecha: !planilla && datos.suspension_cuarta ? datos.suspension_cuarta_fecha || null : null,
+      suspension_cuarta_anio: !planilla && datos.suspension_cuarta && datos.suspension_cuarta_anio ? Number(datos.suspension_cuarta_anio) : null,
+      suspension_cuarta_constancia: !planilla && datos.suspension_cuarta ? datos.suspension_cuarta_constancia.trim() || null : null,
     };
   };
 
@@ -254,6 +265,9 @@ function Personal() {
         sueldo_mensual: String(trabajador.sueldo_mensual ?? 0),
         asignacion_familiar: !!trabajador.asignacion_familiar,
         suspension_cuarta: !!trabajador.suspension_cuarta,
+        suspension_cuarta_fecha: trabajador.suspension_cuarta_fecha ?? "",
+        suspension_cuarta_anio: trabajador.suspension_cuarta_anio ? String(trabajador.suspension_cuarta_anio) : "",
+        suspension_cuarta_constancia: trabajador.suspension_cuarta_constancia ?? "",
       },
     });
   }
@@ -324,9 +338,25 @@ function Personal() {
           {planilla ? (
             <><input type="checkbox" checked={f.asignacion_familiar} onChange={(e) => set("asignacion_familiar", e.target.checked)} /> Asignación familiar</>
           ) : (
-            <><input type="checkbox" checked={f.suspension_cuarta} onChange={(e) => set("suspension_cuarta", e.target.checked)} /> Suspensión de retención 4ta</>
+            <><input type="checkbox" checked={f.suspension_cuarta} onChange={(e) => set("suspension_cuarta", e.target.checked)} /> Suspensión de retención 4ta (se renueva cada año)</>
           )}
         </label>
+        {!planilla && f.suspension_cuarta && (
+          <>
+            <CampoF etiqueta="Fecha de la suspensión" req>
+              <Input type="date" value={f.suspension_cuarta_fecha} onChange={(e) => { set("suspension_cuarta_fecha", e.target.value); if (e.target.value) set("suspension_cuarta_anio", e.target.value.slice(0, 4)); }} required className="py-1.5" />
+            </CampoF>
+            <CampoF etiqueta="Año de vigencia" req>
+              <Input type="number" min="2000" max="2100" value={f.suspension_cuarta_anio} onChange={(e) => set("suspension_cuarta_anio", e.target.value)} required className="py-1.5" />
+            </CampoF>
+            <div className="col-span-full">
+              <CampoF etiqueta="N° constancia / operación">
+                <Input value={f.suspension_cuarta_constancia} maxLength={40} onChange={(e) => set("suspension_cuarta_constancia", e.target.value)} className="py-1.5" />
+              </CampoF>
+              <p className="mt-1 text-[10px] text-muted-foreground">Exime de retención solo a recibos del mismo año emitidos al menos 2 días después de esta fecha.</p>
+            </div>
+          </>
+        )}
       </>
     );
   };
@@ -419,6 +449,8 @@ function Personal() {
                     "Sueldo/Honorario mensual (S/)": Number(t.sueldo_mensual ?? 0),
                     "Asignación familiar": t.asignacion_familiar ? "Sí" : "No",
                     "Suspensión 4ta": t.suspension_cuarta ? "Sí" : "No",
+                    "Fecha suspensión": t.suspension_cuarta_fecha ?? "",
+                    "Año vigencia suspensión": t.suspension_cuarta_anio ?? "",
                   })),
                 },
               ])
@@ -429,6 +461,7 @@ function Personal() {
         }
       />
 
+      {(() => { const n = trabajadores.filter((t) => t.activo !== false && t.tipo_contratacion === "Honorarios" && ["vencida", "sin_fecha"].includes(estadoSuspension(t, new Date().getFullYear()))).length; return n > 0 ? <p className="mb-3 rounded-md border border-warn/40 bg-warn/10 px-3 py-2 text-xs text-warn">{n} prestador(es) deben renovar o completar su suspensión de 4ta categoría para {new Date().getFullYear()}; mientras tanto se les aplica la retención del 8%.</p> : null; })()}
       <div className="mb-4">
         <Pestanas
           etiqueta="Personal"
@@ -549,7 +582,7 @@ function Personal() {
                       <td className="px-2 py-3.5">{esEdicion && d ? <Input inputMode="tel" maxLength={9} value={d.numero_celular} onChange={(e) => actualizarCampo("numero_celular", e.target.value.replace(/\D/g, ""))} className="py-1 text-xs" required /> : t.numero_celular}</td>
                       <td className="px-2 py-3.5">
                         <span className="block font-semibold text-ink">{t.tipo_contratacion === "Honorarios" ? "RxH" : "Planilla"}</span>
-                        <span className="block text-[10px] text-muted-foreground">{t.tipo_contratacion === "Honorarios" ? (t.suspension_cuarta ? "Suspensión 4ta" : "Retención 8%") : `${t.regimen_laboral} · ${t.sistema_pensiones}`}</span>
+                        <span className="block text-[10px] text-muted-foreground">{t.tipo_contratacion === "Honorarios" ? (() => { const e = estadoSuspension(t, new Date().getFullYear()); return e === "vigente" ? <span className="text-good">Suspensión 4ta {t.suspension_cuarta_anio}</span> : e === "vencida" ? <span className="text-warn">Suspensión vencida ({t.suspension_cuarta_anio})</span> : e === "sin_fecha" ? <span className="text-warn">Suspensión sin fecha — completar</span> : "Retención 8%"; })() : `${t.regimen_laboral} · ${t.sistema_pensiones}`}</span>
                       </td>
                       <td className="px-2 py-3.5">{(() => { const s = estadoEmo(ultimos.get(t.id)?.fecha_vencimiento); return <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-[11px]"><span className={`h-2 w-2 rounded-full ${ESTADO_EMO_INFO[s].punto}`} />{ESTADO_EMO_INFO[s].texto}</span>; })()}</td>
                       

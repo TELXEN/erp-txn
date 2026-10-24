@@ -1,3 +1,4 @@
+import { suspensionVigente } from "@/lib/suspension-cuarta";
 import { useRecordado } from "@/lib/recordado";
 import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { BotonIcono } from "@/components/ui-kit";
@@ -134,7 +135,7 @@ function Honorarios() {
       // Total = costo unitario × (laborados + viaje/2 + extras/10.5 + feriados×2 + inducción).
       const bruto = Math.round(unitario * (dias + viaje / 2 + extras / 10.5 + feriados * 2 + induccion) * 100) / 100;
       const descuentos = Number(r.adelantos) + Number(r.devolucion_gastos) + Number(r.pagos_a_cuenta_planilla) + Number(r.fondo_pensiones) + Number(r.descuento_herramientas);
-      const retencion = !trabajador?.suspension_cuarta && bruto > 1500 ? Math.round(bruto * 0.08 * 100) / 100 : 0;
+      const retencion = !suspensionVigente(trabajador, String(r.fecha_emision ?? "")) && bruto > 1500 ? Math.round(bruto * 0.08 * 100) / 100 : 0;
       campos.monto_bruto = bruto;
       campos.retencion = retencion;
       campos.monto_neto = Math.round((bruto - retencion - descuentos) * 100) / 100;
@@ -162,7 +163,7 @@ function Honorarios() {
     setError("");
     if (!form.trabajador_id) return setError("Selecciona al prestador.");
     const trabajador = trabajadores.find((item) => item.id === form.trabajador_id);
-    const totales = calcularDetalleHonorario(form, !!trabajador?.suspension_cuarta);
+    const totales = calcularDetalleHonorario(form, suspensionVigente(trabajador, form.fecha_emision));
     if (totales.bruto <= 0) return setError("Ingresa remuneraciones válidas.");
     if (totales.neto < 0) return setError("Los descuentos no pueden superar las remuneraciones.");
     setGuardando(true);

@@ -477,6 +477,13 @@
       "when": 1792821595869,
       "tag": "0067_dependencias_partidas",
       "breakpoints": true
+    },
+    {
+      "idx": 68,
+      "version": "7",
+      "when": 1792852066609,
+      "tag": "0068_suspension_cuarta_vigencia",
+      "breakpoints": true
     }
   ]
 }
