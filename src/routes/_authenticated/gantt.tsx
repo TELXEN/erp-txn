@@ -117,7 +117,7 @@ function Gantt() {
     return () => ro.disconnect();
   });
   const diasTotales = datos ? datos.d1 - datos.d0 : 1;
-  const px = Math.max(0.5, ((anchoVista - ANCHO_FIJO - 2) / diasTotales) * Math.max(1, factor));
+  const px = Math.max(0.5, ((anchoVista - ANCHO_FIJO - RESERVA_DER) / diasTotales) * Math.max(1, factor));
   const cab = useMemo(() => (datos ? cabeceras(datos.d0, datos.d1, zoom) : { superior: [], inferior: [] }), [datos, zoom]);
   const noLaborables = useMemo(() => {
     if (!datos || px < 3) return [] as { dia: number; nombre: string }[];
@@ -329,8 +329,8 @@ function Gantt() {
                   {render.map((r, i) => <div key={i} className={`absolute inset-x-0 border-b border-line ${r.tipo === "grupo" ? "bg-muted/50" : ""}`} style={{ top: i * ALTO, height: ALTO }} />)}
                   {noLaborables.map((n) => <div key={n.dia} title={`${fecha(deDia(n.dia))} · ${n.nombre}`} className={`absolute inset-y-0 ${n.nombre === "Sábado" || n.nombre === "Domingo" ? "bg-muted/70" : "bg-warn/15"}`} style={{ left: x(n.dia), width: px }} />)}
                   {cab.inferior.map((t) => <div key={"l" + t.inicio} className="absolute inset-y-0 border-l border-line/60" style={{ left: x(t.inicio) }} />)}
-                  {proyecto.fecha_inicio && <Marca x={x(aDia(proyecto.fecha_inicio))} texto="Inicio" />}
-                  {proyecto.fecha_fin && <Marca x={x(aDia(proyecto.fecha_fin) + 1)} texto="Fin contrato" />}
+                  {proyecto.fecha_inicio && <Marca x={x(aDia(proyecto.fecha_inicio))} texto="Inicio" anchoTotal={anchoTotal} />}
+                  {proyecto.fecha_fin && <Marca x={x(aDia(proyecto.fecha_fin) + 1)} texto="Fin contrato" anchoTotal={anchoTotal} />}
                   <div className="absolute inset-y-0 z-[5] w-0.5 bg-cta" style={{ left: x(aDia(hoy)) }} title={`Hoy ${fecha(hoy)}`} />
                   {render.map((r, i) => {
                     if (r.tipo === "grupo") {
@@ -411,11 +411,12 @@ function promedio(filas: Fila[]) {
   return filas.reduce((s, f) => s + f.real, 0) / (filas.length || 1);
 }
 
-function Marca({ x, texto }: { x: number; texto: string }) {
+function Marca({ x, texto, anchoTotal }: { x: number; texto: string; anchoTotal: number }) {
+  const haciaIzq = x > anchoTotal - 92;
   return (
     <div className="absolute inset-y-0 z-[4] border-l border-dashed border-primary/60" style={{ left: x }}>
       <span className="absolute -left-[5px] top-1 size-2.5 rotate-45 bg-primary" />
-      <span className="absolute left-2 top-0.5 whitespace-nowrap rounded bg-card/90 px-1 text-[9px] font-semibold text-primary">{texto}</span>
+      <span className={`absolute top-0.5 whitespace-nowrap rounded bg-card/90 px-1 text-[9px] font-semibold text-primary ${haciaIzq ? "right-2" : "left-2"}`}>{texto}</span>
     </div>
   );
 }
