@@ -53,7 +53,7 @@ export function HistorialNormativo() {
           </div>
           <div className="flex flex-wrap items-center gap-3 border-t border-line px-4 py-3">
             <Boton type="submit">{editId ? "Guardar cambios" : "Registrar"}</Boton>
-            {editId && <Boton type="button" variante="secundario" onClick={() => { setEditId(null); setForm(vacio); }}>Cancelar</Boton>}
+            {editId && <Boton type="button" variante="linea" onClick={() => { setEditId(null); setForm(vacio); }}>Cancelar</Boton>}
             {error && <span className="text-xs text-bad">{error}</span>}
           </div>
         </Panel>
