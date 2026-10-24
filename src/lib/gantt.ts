@@ -138,6 +138,15 @@ export function feriadosPeru(anio: number): Map<number, string> {
 /** Día de semana 0=domingo … 6=sábado. */
 export const diaSemana = (dia: number) => (((dia + 4) % 7) + 7) % 7;
 
+/** Número de semana ISO 8601 (la semana 1 contiene el primer jueves del año). */
+export function numeroSemana(dia: number) {
+  const f = new Date(dia * DIA);
+  const jueves = new Date(Date.UTC(f.getUTCFullYear(), f.getUTCMonth(), f.getUTCDate()));
+  jueves.setUTCDate(jueves.getUTCDate() + 3 - ((jueves.getUTCDay() + 6) % 7));
+  const primera = new Date(Date.UTC(jueves.getUTCFullYear(), 0, 4));
+  return 1 + Math.round((jueves.getTime() - primera.getTime()) / (7 * DIA));
+}
+
 const MESES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
 export type Tramo = { inicio: number; fin: number; etiqueta: string }; // fin exclusivo
 
@@ -160,8 +169,8 @@ export function cabeceras(d0: number, d1: number, zoom: "dia" | "semana" | "quin
     let sig: number;
     let etiqueta: string;
     if (zoom === "dia") { sig = cur + 1; etiqueta = String(f.getUTCDate()); }
-    else if (zoom === "semana") { sig = cur + (7 - ((diaSemana(cur) + 6) % 7)); etiqueta = String(f.getUTCDate()); }
-    else if (zoom === "quincena") { const pri = f.getUTCDate() <= 15; sig = pri ? diaDe(f.getUTCFullYear(), f.getUTCMonth(), 16) : diaDe(f.getUTCFullYear(), f.getUTCMonth() + 1, 1); etiqueta = pri ? "Q1" : "Q2"; }
+    else if (zoom === "semana") { sig = cur + (7 - ((diaSemana(cur) + 6) % 7)); etiqueta = `Sem ${numeroSemana(cur)}`; }
+    else if (zoom === "quincena") { const pri = f.getUTCDate() <= 15; sig = pri ? diaDe(f.getUTCFullYear(), f.getUTCMonth(), 16) : diaDe(f.getUTCFullYear(), f.getUTCMonth() + 1, 1); etiqueta = `${pri ? "Q1" : "Q2"} ${MESES[f.getUTCMonth()]}`; }
     else { sig = diaDe(f.getUTCFullYear(), f.getUTCMonth() + 1, 1); etiqueta = MESES[f.getUTCMonth()] ?? ""; }
     inferior.push({ inicio: cur, fin: Math.min(sig, d1), etiqueta });
     cur = sig;
