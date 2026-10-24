@@ -470,6 +470,13 @@
       "when": 1792818576922,
       "tag": "0066_valorizaciones_obra",
       "breakpoints": true
+    },
+    {
+      "idx": 67,
+      "version": "7",
+      "when": 1792821595869,
+      "tag": "0067_dependencias_partidas",
+      "breakpoints": true
     }
   ]
 }
