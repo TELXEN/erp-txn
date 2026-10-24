@@ -51,6 +51,7 @@ import { Route as AuthenticatedTesoreriaRouteImport } from './routes/_authentica
 import { Route as AuthenticatedTransportistasRouteImport } from './routes/_authenticated/transportistas'
 import { Route as AuthenticatedUsuariosRouteImport } from './routes/_authenticated/usuarios'
 import { Route as AuthenticatedValorizacionesRouteImport } from './routes/_authenticated/valorizaciones'
+import { Route as AuthenticatedValorizacionesObraRouteImport } from './routes/_authenticated/valorizaciones-obra'
 import { Route as AuthenticatedVehiculosRouteImport } from './routes/_authenticated/vehiculos'
 import { Route as ApiMigrateHelperRouteImport } from './routes/api/migrate-helper'
 
@@ -281,6 +282,12 @@ const AuthenticatedValorizacionesRoute =
     path: '/valorizaciones',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedValorizacionesObraRoute =
+  AuthenticatedValorizacionesObraRouteImport.update({
+    id: '/valorizaciones-obra',
+    path: '/valorizaciones-obra',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedVehiculosRoute = AuthenticatedVehiculosRouteImport.update({
   id: '/vehiculos',
   path: '/vehiculos',
@@ -334,6 +341,7 @@ export interface FileRoutesByFullPath {
   '/transportistas': typeof AuthenticatedTransportistasRoute
   '/usuarios': typeof AuthenticatedUsuariosRoute
   '/valorizaciones': typeof AuthenticatedValorizacionesRoute
+  '/valorizaciones-obra': typeof AuthenticatedValorizacionesObraRoute
   '/vehiculos': typeof AuthenticatedVehiculosRoute
   '/api/migrate-helper': typeof ApiMigrateHelperRoute
 }
@@ -379,6 +387,7 @@ export interface FileRoutesByTo {
   '/transportistas': typeof AuthenticatedTransportistasRoute
   '/usuarios': typeof AuthenticatedUsuariosRoute
   '/valorizaciones': typeof AuthenticatedValorizacionesRoute
+  '/valorizaciones-obra': typeof AuthenticatedValorizacionesObraRoute
   '/vehiculos': typeof AuthenticatedVehiculosRoute
   '/api/migrate-helper': typeof ApiMigrateHelperRoute
 }
@@ -426,6 +435,7 @@ export interface FileRoutesById {
   '/_authenticated/transportistas': typeof AuthenticatedTransportistasRoute
   '/_authenticated/usuarios': typeof AuthenticatedUsuariosRoute
   '/_authenticated/valorizaciones': typeof AuthenticatedValorizacionesRoute
+  '/_authenticated/valorizaciones-obra': typeof AuthenticatedValorizacionesObraRoute
   '/_authenticated/vehiculos': typeof AuthenticatedVehiculosRoute
   '/api/migrate-helper': typeof ApiMigrateHelperRoute
 }
@@ -473,6 +483,7 @@ export interface FileRouteTypes {
     | '/transportistas'
     | '/usuarios'
     | '/valorizaciones'
+    | '/valorizaciones-obra'
     | '/vehiculos'
     | '/api/migrate-helper'
   fileRoutesByTo: FileRoutesByTo
@@ -518,6 +529,7 @@ export interface FileRouteTypes {
     | '/transportistas'
     | '/usuarios'
     | '/valorizaciones'
+    | '/valorizaciones-obra'
     | '/vehiculos'
     | '/api/migrate-helper'
   id:
@@ -564,6 +576,7 @@ export interface FileRouteTypes {
     | '/_authenticated/transportistas'
     | '/_authenticated/usuarios'
     | '/_authenticated/valorizaciones'
+    | '/_authenticated/valorizaciones-obra'
     | '/_authenticated/vehiculos'
     | '/api/migrate-helper'
   fileRoutesById: FileRoutesById
@@ -870,6 +883,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedValorizacionesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/valorizaciones-obra': {
+      id: '/_authenticated/valorizaciones-obra'
+      path: '/valorizaciones-obra'
+      fullPath: '/valorizaciones-obra'
+      preLoaderRoute: typeof AuthenticatedValorizacionesObraRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/vehiculos': {
       id: '/_authenticated/vehiculos'
       path: '/vehiculos'
@@ -928,6 +948,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedTransportistasRoute: typeof AuthenticatedTransportistasRoute
   AuthenticatedUsuariosRoute: typeof AuthenticatedUsuariosRoute
   AuthenticatedValorizacionesRoute: typeof AuthenticatedValorizacionesRoute
+  AuthenticatedValorizacionesObraRoute: typeof AuthenticatedValorizacionesObraRoute
   AuthenticatedVehiculosRoute: typeof AuthenticatedVehiculosRoute
 }
 
@@ -974,6 +995,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedTransportistasRoute: AuthenticatedTransportistasRoute,
   AuthenticatedUsuariosRoute: AuthenticatedUsuariosRoute,
   AuthenticatedValorizacionesRoute: AuthenticatedValorizacionesRoute,
+  AuthenticatedValorizacionesObraRoute: AuthenticatedValorizacionesObraRoute,
   AuthenticatedVehiculosRoute: AuthenticatedVehiculosRoute,
 }
 

@@ -463,6 +463,13 @@
       "when": 1792809956504,
       "tag": "0065_terceros_cuentas_bancarias",
       "breakpoints": true
+    },
+    {
+      "idx": 66,
+      "version": "7",
+      "when": 1792818576922,
+      "tag": "0066_valorizaciones_obra",
+      "breakpoints": true
     }
   ]
 }

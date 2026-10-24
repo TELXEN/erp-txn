@@ -5466,6 +5466,150 @@ export type Database = {
         }
         Relationships: []
       }
+      valorizacion_items: {
+        Row: {
+          codigo: string
+          descripcion: string
+          id: string
+          metrado_actual: number
+          metrado_contratado: number
+          orden: number
+          partida_id: string | null
+          precio_unitario: number
+          unidad: string
+          valorizacion_id: string
+        }
+        Insert: {
+          codigo?: string
+          descripcion?: string
+          id?: string
+          metrado_actual?: number
+          metrado_contratado?: number
+          orden?: number
+          partida_id?: string | null
+          precio_unitario?: number
+          unidad?: string
+          valorizacion_id: string
+        }
+        Update: {
+          codigo?: string
+          descripcion?: string
+          id?: string
+          metrado_actual?: number
+          metrado_contratado?: number
+          orden?: number
+          partida_id?: string | null
+          precio_unitario?: number
+          unidad?: string
+          valorizacion_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "valorizacion_items_partida_id_fkey"
+            columns: ["partida_id"]
+            isOneToOne: false
+            referencedRelation: "partidas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "valorizacion_items_valorizacion_id_fkey"
+            columns: ["valorizacion_id"]
+            isOneToOne: false
+            referencedRelation: "valorizaciones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      valorizaciones: {
+        Row: {
+          aprobado_en: string | null
+          aprobado_por: string | null
+          costo_directo: number
+          created_at: string
+          created_by: string | null
+          estado: string
+          firma_cargo: string
+          firma_fecha: string | null
+          firma_nombre: string
+          id: string
+          neto: number
+          numero: number
+          observacion: string
+          pct_adelanto: number
+          pct_gg: number
+          pct_retencion: number
+          pct_utilidad: number
+          periodo_fin: string
+          periodo_inicio: string
+          preliquidacion_id: string | null
+          proyecto_id: string
+          updated_at: string
+        }
+        Insert: {
+          aprobado_en?: string | null
+          aprobado_por?: string | null
+          costo_directo?: number
+          created_at?: string
+          created_by?: string | null
+          estado?: string
+          firma_cargo?: string
+          firma_fecha?: string | null
+          firma_nombre?: string
+          id?: string
+          neto?: number
+          numero: number
+          observacion?: string
+          pct_adelanto?: number
+          pct_gg?: number
+          pct_retencion?: number
+          pct_utilidad?: number
+          periodo_fin: string
+          periodo_inicio: string
+          preliquidacion_id?: string | null
+          proyecto_id: string
+          updated_at?: string
+        }
+        Update: {
+          aprobado_en?: string | null
+          aprobado_por?: string | null
+          costo_directo?: number
+          created_at?: string
+          created_by?: string | null
+          estado?: string
+          firma_cargo?: string
+          firma_fecha?: string | null
+          firma_nombre?: string
+          id?: string
+          neto?: number
+          numero?: number
+          observacion?: string
+          pct_adelanto?: number
+          pct_gg?: number
+          pct_retencion?: number
+          pct_utilidad?: number
+          periodo_fin?: string
+          periodo_inicio?: string
+          preliquidacion_id?: string | null
+          proyecto_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "valorizaciones_preliquidacion_id_fkey"
+            columns: ["preliquidacion_id"]
+            isOneToOne: false
+            referencedRelation: "preliquidaciones"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "valorizaciones_proyecto_id_fkey"
+            columns: ["proyecto_id"]
+            isOneToOne: false
+            referencedRelation: "proyectos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vehiculos: {
         Row: {
           anio: number | null
