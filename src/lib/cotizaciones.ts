@@ -455,14 +455,75 @@ export function revisionesDeCodigo(lista: Cotizacion[], codigo: string | null | 
  * revisión correlativa, estado Borrador), sus partidas y el detalle APU de cada una.
  * Devuelve el id de la nueva revisión.
  */
-export async function crearRevision(cot: Cotizacion): Promise<string> {
-  const { data: hermanas, error: e0 } = await supabase
-    .from("cotizaciones")
-    .select("revision")
-    .eq("codigo", cot.codigo ?? "");
-  if (e0) throw e0;
-  const siguiente = Math.max(0, ...(hermanas ?? []).map((h) => Number(h.revision) || 0)) + 1;
-  const revision = String(siguiente).padStart(2, "0");
+/** Una cotización de un año anterior, no aprobada ni convertida, puede retomarse con código del año actual. */
+export function puedeRetomar(
+  c: Pick<Cotizacion, "fecha_emision" | "estado" | "proyecto_id">,
+  hoy: Date = new Date(),
+) {
+  const anio = Number(String(c.fecha_emision ?? "").slice(0, 4));
+  if (!anio || anio >= hoy.getFullYear()) return false;
+  return c.estado !== "Aprobada" && c.estado !== "Retomada" && !c.proyecto_id;
+}
+
+/** P.U. actual de cada partida del Banco APU (clave: descripción en minúsculas), en PEN. */
+async function preciosBancoApu() {
+  const [rPartidas, rDetalle, rMat, rMo, rEq, rSc] = await Promise.all([
+    supabase.from("partidas_apu").select("*"),
+    supabase.from("partida_detalle").select("*"),
+    supabase.from("materiales").select("*").eq("estado", "Activo"),
+    supabase.from("mano_obra").select("*").eq("estado", "Activo"),
+    supabase.from("equipos_herramientas").select("*").eq("estado", "Activo"),
+    supabase.from("subcontratos").select("*").eq("estado", "Activo"),
+  ]);
+  type Fila = Record<string, unknown>;
+  const detalle = (rDetalle.data ?? []) as Fila[];
+  const recursos = {
+    materiales: (rMat.data ?? []) as Fila[],
+    mano_obra: (rMo.data ?? []) as Fila[],
+    equipos_herramientas: (rEq.data ?? []) as Fila[],
+    subcontratos: (rSc.data ?? []) as Fila[],
+  };
+  return new Map(
+    ((rPartidas.data ?? []) as Fila[]).map((p) => [
+      String(p["descripcion"]).trim().toLowerCase(),
+      costoReceta(detalle.filter((d) => d["partida_padre_id"] === p["id"]), recursos, Number(p["rendimiento_diario"]) || 1, 8).total,
+    ]),
+  );
+}
+
+/**
+ * Retoma una cotización de un año anterior: crea una cotización nueva con código del año
+ * actual (Rev. 00) copiando todo, y marca la original como «Retomada» (congelada).
+ */
+export async function retomarCotizacion(cot: Cotizacion, actualizarPrecios: boolean) {
+  const codigo = await generarCodigoCotizacion();
+  const id = await crearRevision(cot, { codigo, actualizarPrecios });
+  const { error } = await supabase.from("cotizaciones").update({ estado: "Retomada" } as never).eq("id", cot.id);
+  if (error) throw error;
+  return { id, codigo };
+}
+
+/**
+ * Crea la siguiente revisión de una cotización: clona la cabecera (mismo código,
+ * revisión correlativa, estado Borrador), sus partidas y el detalle APU de cada una.
+ * Con `codigo` crea en cambio una cotización nueva (Rev. 00) que retoma la original.
+ * Devuelve el id de la nueva revisión.
+ */
+export async function crearRevision(
+  cot: Cotizacion,
+  opciones: { codigo?: string; actualizarPrecios?: boolean } = {},
+): Promise<string> {
+  let revision = "00";
+  if (!opciones.codigo) {
+    const { data: hermanas, error: e0 } = await supabase
+      .from("cotizaciones")
+      .select("revision")
+      .eq("codigo", cot.codigo ?? "");
+    if (e0) throw e0;
+    const siguiente = Math.max(0, ...(hermanas ?? []).map((h) => Number(h.revision) || 0)) + 1;
+    revision = String(siguiente).padStart(2, "0");
+  }
+  const precios = opciones.actualizarPrecios ? await preciosBancoApu() : null;
 
   const { data: nueva, error: e1 } = await supabase
     .from("cotizaciones")
