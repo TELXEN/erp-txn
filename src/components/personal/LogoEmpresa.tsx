@@ -3,7 +3,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { DOC } from "@/lib/documento-tema";
 
 const ESLOGAN_POR_DEFECTO =
-  "SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL";
+  "\n";
 
 export type EmpresaDoc = {
   razon_social?: string | null;
