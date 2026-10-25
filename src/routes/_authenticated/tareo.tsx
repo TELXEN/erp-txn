@@ -290,6 +290,19 @@ function TareoPage() {
     setGuardandoEdicion(false);
   }
 
+  async function eliminarSeleccion() {
+    const c = consolidado.find((x) => x.id === sel);
+    if (!c) return;
+    const registros = tareos.filter((t) => t.trabajador_id === c.id && t.fecha.slice(0, 7) === mes);
+    if (registros.length === 0) return setError("Ese trabajador no tiene registros en este mes.");
+    const fechas = [...new Set(registros.map((t) => t.fecha))];
+    if (!window.confirm(`¿Eliminar la asistencia de ${c.nombre} en ${mes}? Se borrarán ${registros.length} registro(s). Esta acción no se puede deshacer.`)) return;
+    const { error: err } = await supabase.from("tareos").delete().eq("trabajador_id", c.id).in("fecha", fechas);
+    if (err) return setError(err.message);
+    await qc.invalidateQueries({ queryKey: ["tareos"] });
+    setSel("");
+  }
+
   function exportar() {
     exportarExcel(`tareo-${mes}`, [
       {
@@ -497,7 +510,7 @@ function TareoPage() {
             </table>
           </div>
         )}
-      </Panel>{consolidadoAbierto && <BarraIconosHoja objeto="asistencia" haySeleccion={consolidado.some((c) => c.id === sel)} onEditar={() => { if (consolidado.some((c) => c.id === sel)) iniciarEdicion(sel); }} extras={<BotonIcono etiqueta="Ver días trabajados" disabled={!consolidado.some((c) => c.id === sel)} onClick={() => verCalendario(sel)}><Eye size={15} /></BotonIcono>} />}</div>
+      </Panel>{consolidadoAbierto && <BarraIconosHoja objeto="asistencia" haySeleccion={consolidado.some((c) => c.id === sel)} onEditar={() => { if (consolidado.some((c) => c.id === sel)) iniciarEdicion(sel); }} onEliminar={eliminarSeleccion} extras={<BotonIcono etiqueta="Ver días trabajados" disabled={!consolidado.some((c) => c.id === sel)} onClick={() => verCalendario(sel)}><Eye size={15} /></BotonIcono>} />}</div>
 
       {trabajadorVisible && (
         <VentanaFlotante
