@@ -158,9 +158,26 @@ function Personal() {
   const [sel, setSel] = useState("");
   const [form, setForm] = useState<FormPersonal>(FORM_INICIAL);
   const [busqueda, setBusqueda] = useRecordado("personal:busqueda", "");
+  const [estadoVista, setEstadoVista] = useRecordado<"activos" | "cesados" | "todos">("personal:estado", "activos");
   const trabajadoresFiltrados = trabajadores.filter((t) =>
+    (estadoVista === "todos" || (estadoVista === "cesados" ? t.activo === false : t.activo !== false)) &&
     coincide(busqueda, t.nombre, t.dni, t.cargo),
   );
+  const [reingreso, setReingreso] = useState<{ id: string; nombre: string; fecha: string; cargo: string; sueldo: string; cese: string } | null>(null);
+  const selCesado = trabajadores.find((t) => t.id === sel && t.activo === false);
+  async function confirmarReingreso() {
+    if (!reingreso) return;
+    const { error: err } = await supabase.rpc("reingresar_trabajador", { _trabajador: reingreso.id, _fecha: reingreso.fecha, _cargo: reingreso.cargo, _sueldo: Number(reingreso.sueldo) || (null as never) });
+    if (err) return setError(err.message);
+    setReingreso(null);
+    await qc.invalidateQueries({ queryKey: ["trabajadores"] });
+  }
+  async function anularCese(id: string, nombre: string) {
+    if (!window.confirm(`¿Anular el cese de ${nombre}? Vuelve a activo con su fecha de ingreso original y se borra la liquidación pendiente.`)) return;
+    const { error: err } = await supabase.rpc("anular_cese", { _trabajador: id });
+    if (err) return setError(err.message);
+    await Promise.all([qc.invalidateQueries({ queryKey: ["trabajadores"] }), qc.invalidateQueries({ queryKey: ["beneficios"] })]);
+  }
   const [editando, setEditando] = useState<{ id: string; datos: FormPersonal } | null>(null);
   const [error, setError] = useState("");
   const [pestana, setPestana] = useState<"personal" | "emo">("personal");
