@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Check, Printer, Save } from "lucide-react";
-import { LogoEmpresa } from "@/components/personal/LogoEmpresa";
+import { EncabezadoDocumento } from "@/components/personal/LogoEmpresa";
 import { Boton, VentanaFlotante } from "@/components/ui-kit";
 import type { Trabajador } from "@/lib/datos";
 import { fecha, soles } from "@/lib/format";
@@ -58,17 +58,10 @@ function Hoja({ boleta: b, trabajador: t, empresa, periodo, editable, cambiar, n
   const essaludEt = b.regimen_laboral === "MYPE Micro" ? "SIS" : b.regimen_laboral === "Agrario" ? "EsSalud 6%" : "EsSalud 9%";
   return <article className="honorario-print-sheet relative mx-auto w-[184mm] max-w-full border border-line bg-paper p-5 text-ink shadow-sm" style={{ fontFamily: fuente.css, breakAfter: "page" }}>
     {copia && <span className="absolute right-5 top-1 text-[8px] font-bold uppercase text-muted-foreground">Copia trabajador</span>}
-    <header className="mb-3 flex items-stretch justify-between gap-3 border-b-2 pb-3" style={{ borderColor: DOC.dark }}>
-      <LogoEmpresa empresa={empresa} className="w-[120px] shrink-0 justify-center" imgClassName="h-12 w-24 object-contain" iconSize={30} />
-      <div className="flex min-w-0 flex-1 flex-col justify-start pt-0.5 text-right"><p className="text-sm font-bold uppercase leading-tight">{empresa?.razon_social || "—"}</p>{empresa?.eslogan && <p className="whitespace-pre-line text-[7.5px] uppercase leading-tight text-muted-foreground">{empresa.eslogan.replace(", ", ", \n")}</p>}<p className="text-[8px] leading-tight text-muted-foreground">{empresa?.direccion}</p></div>
-      <div className="w-[190px] shrink-0 border text-center" style={{ borderColor: DOC.dark }}>
-        <p className="py-1 text-[11px] font-bold uppercase text-paper" style={{ background: DOC.dark }}>Boleta de pago</p>
-        <p className="pt-0.5 text-[8px]">RUC {empresa?.ruc || "—"}</p>
-        <p className="text-[11px] font-bold tabular-nums">N° {numero || "—"}</p>
-        <p className="text-[9px]">{periodo}{desde && ` · ${desde} – ${hasta}`}</p>
-        <p className="pb-1 text-[9px]">Fecha de pago: {fecha(b.fecha_pago)}</p>
-      </div>
-    </header>
+    <EncabezadoDocumento empresa={empresa} titulo="Boleta de pago" numero={numero || "—"} lineas={<>
+      <p className="text-[9px]">{periodo}{desde && ` · ${desde} – ${hasta}`}</p>
+      <p className="pb-1 text-[9px]">Fecha de pago: {fecha(b.fecha_pago)}</p>
+    </>} />
     <section className="mb-3 border-l border-t border-line">
       {banda("Datos del trabajador")}
       <div className="grid grid-cols-3"><Dato nombre="Apellidos y nombres" valor={t?.nombre} /><Dato nombre="DNI" valor={t?.dni} /><Dato nombre="Cargo" valor={t?.cargo} />

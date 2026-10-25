@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Printer } from "lucide-react";
-import { LogoEmpresa } from "@/components/personal/LogoEmpresa";
+import { EncabezadoDocumento } from "@/components/personal/LogoEmpresa";
 import { Boton, VentanaFlotante } from "@/components/ui-kit";
 import { fecha, soles } from "@/lib/format";
 import { montoEnLetras } from "@/lib/facturacion";
@@ -37,15 +37,10 @@ function Hoja({ registro: r, trabajador: t, banco, gratificacion = false, liquid
   const tasa = Number(d["tasa_bonificacion"] ?? (Number(r.monto) > 0 ? bonificacion / Number(r.monto) : 0));
   const nombre = liquidacion ? "Liquidación" : gratificacion ? "Gratificación" : "CTS";
   return <article className="honorario-print-sheet mx-auto w-[184mm] max-w-full border border-line bg-paper p-5 text-ink shadow-sm print:break-inside-avoid print:break-after-page print:last:break-after-auto" style={{ fontFamily: fuente.css }}>
-    <header className="mb-3 flex items-center justify-between gap-4 border-b-2 border-primary pb-3">
-      <LogoEmpresa empresa={empresa} className="w-[150px]" imgClassName="h-12 w-24 object-contain" iconSize={30} />
-      <div className="min-w-0 text-center"><h1 className={`font-bold uppercase ${gratificacion || liquidacion ? "text-base" : "text-lg"}`}>Boleta de pago {nombre}</h1><p className="text-[8px] font-semibold uppercase text-muted-foreground">{liquidacion ? "Liquidación de beneficios sociales por cese" : gratificacion ? "Liquidación de gratificación legal" : "Compensación por tiempo de servicios"}</p><p className="mt-1 text-[10px]">{liquidacion ? `Cese: ${fecha(r.fecha_hasta)}` : `${r.periodo} ${r.anio}`}{r.regularizacion ? " · Regularización" : ""}</p></div>
-    </header>
-    <section className="mb-3 border border-line">
-      {grupo("Datos de la empresa")}
-      <div className="grid grid-cols-2 divide-x divide-line"><Dato nombre="RUC" valor={empresa?.ruc} /><Dato nombre="Razón social" valor={empresa?.razon_social} /></div>
-      <Dato nombre="Dirección fiscal" valor={empresa?.direccion} sinLinea />
-    </section>
+    <EncabezadoDocumento empresa={empresa} titulo={`Boleta de pago ${nombre}`} tituloClase="text-[10px] leading-tight" lineas={<>
+      <p className="pt-0.5 text-[7.5px] font-semibold uppercase text-muted-foreground">{liquidacion ? "Liquidación de beneficios sociales por cese" : gratificacion ? "Liquidación de gratificación legal" : "Compensación por tiempo de servicios"}</p>
+      <p className="pb-1 text-[9px]">{liquidacion ? `Cese: ${fecha(r.fecha_hasta)}` : `${r.periodo} ${r.anio}`}{r.regularizacion ? " · Regularización" : ""}</p>
+    </>} />
     <section className="mb-3 border border-line">
       {grupo("Datos del trabajador")}
       <Dato nombre="Apellidos y nombres" valor={t?.nombre} />

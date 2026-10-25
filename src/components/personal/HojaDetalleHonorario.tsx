@@ -1,5 +1,5 @@
 import { firmanteLaboral } from "@/lib/empresa";
-import { LogoEmpresa } from "@/components/personal/LogoEmpresa";
+import { EncabezadoDocumento } from "@/components/personal/LogoEmpresa";
 import { DOC, DOC_FUENTE_CSS } from "@/lib/documento-tema";
 import { montoEnLetras } from "@/lib/facturacion";
 import { MESES, soles } from "@/lib/format";
@@ -136,29 +136,15 @@ export function HojaDetalleHonorario({ empresa, trabajador, proyecto, detalle, t
 
   return (
     <article className="honorario-print-sheet mx-auto flex min-h-[297mm] w-[248mm] max-w-none flex-col bg-paper p-[12mm] text-ink shadow-lg print:min-h-0 print:p-[6mm] print:shadow-none" style={{ fontFamily: DOC_FUENTE_CSS }}>
-      <header className="grid grid-cols-[150px_1fr_150px] items-center border-b-2 pb-2" style={{ borderColor: DOC.dark }}>
-        <LogoEmpresa empresa={empresa} className="w-[150px]" imgClassName="max-h-12 max-w-[140px] object-contain" iconSize={42} iconStyle={{ color: DOC.dark }} tono={DOC.mute} />
-        <div className="text-center">
-          <h1 className="text-xl font-bold uppercase" style={{ color: DOC.dark }}>Detalle de pago</h1>
-          <p className="mt-0.5 text-[8px] leading-none font-semibold uppercase tracking-[0.22em]" style={{ color: DOC.mute }}>Cuarta categoría</p>
-        </div>
-        <div className="text-right text-[9px]">
-          <b>RECIBO</b>
-          {editable ? (
-            <input
-              aria-label="N° de recibo"
-              type="text"
-              maxLength={20}
-              placeholder="Pendiente de N°"
-              className="w-full max-w-[140px] border-0 border-b border-dashed border-primary/40 bg-transparent px-1 py-0 text-right text-[10px] leading-tight font-semibold text-ink outline-none placeholder:text-warn placeholder:font-bold focus:border-primary print:border-0"
-              value={detalle.numero_recibo}
-              onChange={(e) => cambia("numero_recibo")(e.target.value)}
-            />
-          ) : (
-            <p className={detalle.numero_recibo ? "" : "mt-0.5 inline-block rounded-full bg-warn/10 px-2 py-0.5 font-bold text-warn ring-1 ring-warn/25"}>{detalle.numero_recibo || "Pendiente de N°"}</p>
-          )}
-        </div>
-      </header>
+      <EncabezadoDocumento
+        empresa={empresa}
+        titulo="Recibo por honorarios"
+        tituloClase="text-[10px] leading-tight"
+        numero={detalle.numero_recibo}
+        numeroEditable={editable}
+        onNumero={cambia("numero_recibo")}
+        lineas={<p className="pb-1 text-[7.5px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Cuarta categoría</p>}
+      />
 
       <section className="mt-3 border" style={{ borderColor: DOC.line }}>
         <h2 className="px-2 py-1 text-[10px] leading-tight font-bold uppercase text-paper" style={{ background: DOC.dark }}>Datos de la empresa</h2>
