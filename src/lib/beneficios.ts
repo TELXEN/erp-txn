@@ -117,6 +117,17 @@ export function periodoCtsAnterior(t: TrabajadorBeneficio, anio: number, periodo
 }
 
 /** Recalcula los beneficios pendientes de un trabajador (tras cambiar su ficha). Devuelve cuántos pagados quedaron sin cambio. */
+export function filasRegularizacionCts(t: TrabajadorBeneficio, anio: number, periodo: string, existentes: { trabajador_id: string; anio: number; periodo: string }[]) {
+  const anterior = periodoCtsAnterior(t, anio, periodo);
+  if (!anterior) return [];
+  const rango = periodoCts(anio, periodo);
+  const actual = { anio, periodo, ...calcCts(t, rango.desde, rango.hasta) };
+  return [
+    { ...anterior, tipo: "CTS" as const, trabajador_id: t.id, regularizacion: true },
+    { ...actual, tipo: "CTS" as const, trabajador_id: t.id, regularizacion: false },
+  ].filter((f) => f.total > 0 && !existentes.some((r) => r.trabajador_id === t.id && r.anio === f.anio && r.periodo === f.periodo));
+}
+
 export async function recalcularPendientes(t: TrabajadorBeneficio) {
   const { data, error } = await supabase.from("beneficios_sociales").select("*").eq("trabajador_id", t.id);
   if (error) throw error;

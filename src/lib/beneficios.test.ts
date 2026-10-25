@@ -1,9 +1,20 @@
 import { describe, expect, it } from "vitest";
-import { calcCts, periodoCts, periodoCtsAnterior } from "./beneficios";
+import { calcCts, periodoCts, periodoCtsAnterior, filasRegularizacionCts } from "./beneficios";
 
 const t = (fecha_ingreso: string) => ({ id: "x", sueldo_mensual: 3500, asignacion_familiar: false, regimen_laboral: "General", fecha_ingreso });
 
 describe("CTS", () => {
+  it("regularizar noviembre genera dos CTS independientes: mayo y noviembre", () => {
+    const filas = filasRegularizacionCts(t("2026-01-02"), 2026, "Noviembre", []);
+    expect(filas.map((r) => [r.anio, r.periodo, r.regularizacion, r.meses, r.dias])).toEqual([
+      [2026, "Mayo", true, 3, 29], [2026, "Noviembre", false, 6, 0],
+    ]);
+  });
+  it("conserva CTS existentes sin duplicarlas o reescribirlas", () => {
+    const existentes = [{ trabajador_id: "x", anio: 2026, periodo: "Mayo" }];
+    expect(filasRegularizacionCts(t("2026-01-02"), 2026, "Noviembre", existentes).map((r) => r.periodo)).toEqual(["Noviembre"]);
+    expect(filasRegularizacionCts(t("2026-01-02"), 2026, "Noviembre", [...existentes, { trabajador_id: "x", anio: 2026, periodo: "Noviembre" }])).toEqual([]);
+  });
   it("ingreso 02/01/2026: CTS noviembre 2026 = 6 meses", () => {
     const p = periodoCts(2026, "Noviembre");
     const c = calcCts(t("2026-01-02"), p.desde, p.hasta);
