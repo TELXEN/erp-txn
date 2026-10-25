@@ -13,7 +13,7 @@ import type { ComisionAfp } from "@/lib/decolecta.functions";
 
 export type BoletaNomina = {
   id: string; planilla_id: string; trabajador_id: string; regimen_laboral: string;
-  sistema_pensiones: string; dias_laborados: number; sueldo_basico: number;
+  sistema_pensiones: string; dias_laborados: number; dias_motivo?: string | null; sueldo_basico: number;
   asignacion_familiar: number; horas_extra: number; otros_ingresos: number;
   total_ingresos: number; aporte_pension: number; renta_quinta: number; renta_quinta_manual?: boolean;
   otros_descuentos: number; total_descuentos: number; neto_pagar: number;
@@ -68,6 +68,7 @@ function Hoja({ boleta: b, trabajador: t, empresa, periodo, editable, cambiar, n
         <Dato nombre="Régimen laboral" valor={b.regimen_laboral} /><Dato nombre="Fecha de ingreso" valor={fecha(t?.fecha_ingreso ?? null)} /><Dato nombre="Sistema de pensiones" valor={b.sistema_pensiones} />
         <Dato nombre="CUSPP" valor={t?.cuspp} /><Dato nombre="Banco" valor={t?.banco} /><Dato nombre="Cuenta de depósito" valor={t?.numero_cuenta} /></div>
       <div className="grid grid-cols-4 bg-muted/25"><Dato nombre="Días laborados" valor={String(b.dias_laborados)} /><Dato nombre="Días no laborados" valor={String(noLab)} /><Dato nombre="Horas extras (S/)" valor={soles(Number(b.horas_extra))} /><Dato nombre="Días de vacaciones" valor="0" /></div>
+      {b.dias_motivo && <p className="border-t border-line px-2 py-1 text-[9px] text-muted-foreground">Días: {b.dias_motivo}</p>}
     </section>
     <div className="grid grid-cols-2 border border-line">
       <section className="border-r border-line">{banda("Ingresos")}{fila("Sueldo básico", b.sueldo_basico, undefined, `(${b.dias_laborados} días)`)}{fila("Asignación familiar", b.asignacion_familiar)}{fila("Horas extras", b.horas_extra)}{fila("Otros ingresos", b.otros_ingresos, "otros_ingresos")}</section>
