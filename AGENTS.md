@@ -12,7 +12,7 @@
 - Programmed progress stores percentages per leaf item/period; dashboards exclude grouping rows — no double counting.
 - S-curve uses work-item schedules and current physical cut-off; cost progress is money-role-only — truthful history.
 - Preliquidation uses @react-pdf/renderer; quotation/invoice previews use fixed A4 HTML. Quotation pagination uses measured rows/closing heights via paginacion-cotizacion, keeping headings with items — no premature breaks.
-- Project commercial references are copied into preliquidaciones.orden_compra on project selection and saved independently of concepto; previews and exports read the saved reference, not the project's current number, to preserve history.
+- Project commercial refs are copied to preliquidaciones.orden_compra on selection, saved apart from concepto; outputs read the saved ref — history preserved.
 - Electronic invoices use dedicated comprobantes_electronicos/items/cuotas tables, while emitted invoices/receipts mirror into ventas for treasury compatibility; numbering is reserved only by an authenticated server function.
 - Invoice creation chooses its source before opening the editor; keep the selected preliquidation ID in editor state, not the URL, so a later free invoice never inherits an old link.
 - Typography: configuracion_documentos/local catalogue, UI --font-global, PDF embeds chosen font, Excel uses catalogue family — consistent outputs.
@@ -49,9 +49,10 @@
 - Carriers (transportistas + vehiculos/conductores) are a catalogue; guías copy carrier, vehicle and driver data into datos_guia so emitted guides never change when the catalogue does.
 - Quotations from a prior year are resumed via retomarCotizacion (new current-year code, Rev. 00, retoma_de_id link, original frozen as Retomada) — yearly numbering stays clean and history is kept.
 - Payment reports (ReportePagos) are read-only lists built from Tesorería CxP selection; payee accounts come from terceros_cuentas_bancarias (providers) or trabajadores (staff) via reporte-pagos.ts — reports never mark payments.
-- Work valuations (valorizaciones/valorizacion_items) snapshot contracted metrado/P.U.; prior accumulation comes only from approved valuations and approval (DB trigger) requires supervisor signature and freezes the row — history never shifts with live progress.
+- Valuations snapshot contracted metrado/P.U.; prior accumulation only from approved ones; approval (DB trigger) needs supervisor signature and freezes the row — stable history.
 - Gantt uses escalaCalendario for the timeline viewport and useRecordado for project selection — navigation stays legible and restores the last opened project without changing project data.
 - Collapsible sections use Panel's colapsable/abierto/onAbrirCambiar props (header with totals stays visible, body hides) — one folding mechanism instead of per-screen show/hide markup.
 - CTS regularization uses conflict-ignore inserts; grouping keeps period IDs/actions independent. CTS, gratification and settlement share one print sheet using saved amounts; calcGrat snapshots its breakdown, never inventing historical salary.
 
 - Employment periods live in vinculos_laborales; liquidation, rehire and cese annulment go only through registrar_liquidacion/reingresar_trabajador/anular_cese RPCs — cese and liquidation stay atomic and prior periods keep their history.
+- Company regime: dated regimenes_empresa; a worker's regime can't be below the company's at hire (trigger + errorRegimenTrabajador) — changes hit only new hires.

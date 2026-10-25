@@ -131,6 +131,7 @@ export type Trabajador = {
   suspension_cuarta_anio?: number | null;
   suspension_cuarta_constancia?: string | null;
   fecha_cese: string | null;
+  agrario_prorrateado?: boolean;
 };
 
 export type Tareo = {

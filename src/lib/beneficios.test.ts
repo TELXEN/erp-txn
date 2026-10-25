@@ -46,3 +46,34 @@ describe("CTS", () => {
     expect([a?.meses, a?.dias]).toEqual([3, 29]);
   });
 });
+
+import { calcGrat as grat, calcCts as cts, tasaBonificacion } from "./beneficios";
+import { errorRegimenTrabajador, regimenVigente } from "./regimen-empresa";
+const tr = (regimen_laboral: string, extra = {}) => ({ id: "x", sueldo_mensual: 3000, asignacion_familiar: false, regimen_laboral, fecha_ingreso: "2025-01-01", ...extra });
+
+describe("Regímenes laborales", () => {
+  it("General: gratificación de un sueldo y 9 % de bonificación", () => {
+    expect([grat(tr("General"), "2026-01-01", "2026-06-30").monto, grat(tr("General"), "2026-01-01", "2026-06-30").bonificacion]).toEqual([3000, 270]);
+  });
+  it("MYPE Pequeña: media gratificación y media CTS", () => {
+    expect(grat(tr("MYPE Pequeña"), "2026-01-01", "2026-06-30").monto).toBe(1500);
+    expect(cts(tr("MYPE Pequeña"), "2026-05-01", "2026-10-31").monto).toBe(875);
+  });
+  it("MYPE Micro: sin gratificación, CTS ni bonificación", () => {
+    const g = grat(tr("MYPE Micro"), "2026-01-01", "2026-06-30");
+    expect([g.monto, g.bonificacion, cts(tr("MYPE Micro"), "2026-05-01", "2026-10-31").monto]).toEqual([0, 0, 0]);
+  });
+  it("Agrario 2026: gratificación completa con bonificación del 8 %; prorrateado no se paga aparte", () => {
+    expect(grat(tr("Agrario"), "2026-01-01", "2026-06-30").bonificacion).toBe(240);
+    expect(grat(tr("Agrario", { agrario_prorrateado: true }), "2026-01-01", "2026-06-30").total).toBe(0);
+    expect(tasaBonificacion("Agrario", 2027)).toBe(0.09);
+  });
+  it("REMYPE desde 2027: quien ingresó en 2025 sigue en General y no puede pasar a MYPE", () => {
+    const h = [{ regimen: "MYPE Pequeña", fecha_inicio: "2027-01-01" }];
+    expect(regimenVigente(h, "2026-12-31")).toBe("General");
+    expect(regimenVigente(h, "2027-01-01")).toBe("MYPE Pequeña");
+    expect(errorRegimenTrabajador(h, "2025-03-01", "MYPE Pequeña")).not.toBeNull();
+    expect(errorRegimenTrabajador(h, "2027-02-01", "MYPE Pequeña")).toBeNull();
+    expect(errorRegimenTrabajador(h, "2027-02-01", "General")).toBeNull();
+  });
+});

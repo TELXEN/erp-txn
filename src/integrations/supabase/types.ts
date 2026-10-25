@@ -4312,6 +4312,36 @@ export type Database = {
           },
         ]
       }
+      regimenes_empresa: {
+        Row: {
+          created_at: string
+          fecha_inicio: string
+          id: string
+          notas: string | null
+          regimen: string
+          remype_certificado: string | null
+          remype_numero: string | null
+        }
+        Insert: {
+          created_at?: string
+          fecha_inicio: string
+          id?: string
+          notas?: string | null
+          regimen: string
+          remype_certificado?: string | null
+          remype_numero?: string | null
+        }
+        Update: {
+          created_at?: string
+          fecha_inicio?: string
+          id?: string
+          notas?: string | null
+          regimen?: string
+          remype_certificado?: string | null
+          remype_numero?: string | null
+        }
+        Relationships: []
+      }
       requerimiento_item_origenes: {
         Row: {
           cantidad: number
@@ -5151,6 +5181,7 @@ export type Database = {
       trabajadores: {
         Row: {
           activo: boolean
+          agrario_prorrateado: boolean
           asignacion_familiar: boolean
           banco: string
           cargo: string
@@ -5178,6 +5209,7 @@ export type Database = {
         }
         Insert: {
           activo?: boolean
+          agrario_prorrateado?: boolean
           asignacion_familiar?: boolean
           banco?: string
           cargo?: string
@@ -5205,6 +5237,7 @@ export type Database = {
         }
         Update: {
           activo?: boolean
+          agrario_prorrateado?: boolean
           asignacion_familiar?: boolean
           banco?: string
           cargo?: string
@@ -6052,6 +6085,7 @@ export type Database = {
         Args: { _id: string; _tabla: string }
         Returns: string
       }
+      rango_regimen: { Args: { _r: string }; Returns: number }
       recodificar_wbs: { Args: never; Returns: undefined }
       registrar_financiamiento: { Args: { _datos: Json }; Returns: string }
       registrar_liquidacion: {
