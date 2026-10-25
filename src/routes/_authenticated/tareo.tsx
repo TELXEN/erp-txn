@@ -6,7 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Check, Eye, Pencil, Upload, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
+import { Boton, Campo, Input, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, mesActual, soles } from "@/lib/format";
 import { clasificacionDeCargo, useCargos, useProyectos, useTareos, useTrabajadores } from "@/lib/datos";
@@ -500,23 +500,14 @@ function TareoPage() {
       </Panel>{consolidadoAbierto && <BarraIconosHoja objeto="asistencia" haySeleccion={consolidado.some((c) => c.id === sel)} onEditar={() => { if (consolidado.some((c) => c.id === sel)) iniciarEdicion(sel); }} extras={<BotonIcono etiqueta="Ver días trabajados" disabled={!consolidado.some((c) => c.id === sel)} onClick={() => verCalendario(sel)}><Eye size={15} /></BotonIcono>} />}</div>
 
       {trabajadorVisible && (
-        <Panel
+        <VentanaFlotante
           titulo={`Días trabajados — ${nombreTrab(trabajadorVisible)}`}
-          className="mb-4"
-          extra={
-            <button
-              type="button"
-              onClick={() => {
-                setTrabajadorVisible(null);
-                setEditandoCalendario(false);
-              }}
-              title="Cerrar calendario"
-              aria-label="Cerrar calendario"
-              className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:bg-muted"
-            >
-              <X size={14} />
-            </button>
-          }
+          abierta
+          ancho="max-w-2xl"
+          onCerrar={() => {
+            setTrabajadorVisible(null);
+            setEditandoCalendario(false);
+          }}
         >
           <div className="space-y-4 p-5">
             <div className="flex flex-wrap items-end justify-between gap-3">
@@ -567,7 +558,7 @@ function TareoPage() {
               </div>
             )}
           </div>
-        </Panel>
+        </VentanaFlotante>
       )}
 
     </>
