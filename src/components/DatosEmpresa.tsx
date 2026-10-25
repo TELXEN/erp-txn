@@ -88,6 +88,7 @@ export function DatosEmpresa() {
     <form onSubmit={guardar} className="grid gap-4 lg:grid-cols-[1fr_320px]">
       <Panel titulo="Datos de la empresa">
         <div className="grid gap-3 p-4 sm:grid-cols-2">
+          <p className="col-span-full mt-1 text-xs font-semibold uppercase text-muted-foreground">Información legal</p>
           <Campo etiqueta="Razón social">
             <Input
               className="py-1.5"
@@ -95,37 +96,6 @@ export function DatosEmpresa() {
               onChange={(e) => setForm({ ...form, razon_social: e.target.value })}
               maxLength={160}
               required
-            />
-          </Campo>
-          <Campo etiqueta="Eslogan de la empresa">
-            <Input
-              className="py-1.5"
-              value={form.eslogan}
-              onChange={(e) => setForm({ ...form, eslogan: e.target.value })}
-              maxLength={160}
-              placeholder="SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL"
-            />
-          </Campo>
-          <p className="col-span-full mt-2 border-t border-line pt-3 text-xs font-semibold uppercase text-muted-foreground">Firmas de documentos laborales — firma RR. HH. si está registrado; si no, el Gerente General</p>
-          <Campo etiqueta="Gerente General — nombre">
-            <Input className="py-1.5" value={form.gerente_nombre} onChange={(e) => setForm({ ...form, gerente_nombre: e.target.value })} maxLength={120} placeholder="Apellidos y nombres" />
-          </Campo>
-          <Campo etiqueta="Gerente General — DNI">
-            <Input className="py-1.5" value={form.gerente_dni} onChange={(e) => setForm({ ...form, gerente_dni: e.target.value })} maxLength={12} placeholder="8 dígitos" />
-          </Campo>
-          <Campo etiqueta="Jefe de Recursos Humanos — nombre (opcional)">
-            <Input className="py-1.5" value={form.rrhh_nombre} onChange={(e) => setForm({ ...form, rrhh_nombre: e.target.value })} maxLength={120} placeholder="Apellidos y nombres" />
-          </Campo>
-          <Campo etiqueta="Jefe de Recursos Humanos — DNI">
-            <Input className="py-1.5" value={form.rrhh_dni} onChange={(e) => setForm({ ...form, rrhh_dni: e.target.value })} maxLength={12} placeholder="8 dígitos" />
-          </Campo>
-          <Campo etiqueta="Rubro de la empresa">
-            <Input
-              className="py-1.5"
-              value={form.rubro}
-              onChange={(e) => setForm({ ...form, rubro: e.target.value })}
-              maxLength={160}
-              placeholder="Construcción e ingeniería"
             />
           </Campo>
           <Campo etiqueta="RUC">
@@ -136,6 +106,34 @@ export function DatosEmpresa() {
               maxLength={11}
             />
           </Campo>
+          <Campo etiqueta="Rubro de la empresa">
+            <Input
+              className="py-1.5"
+              value={form.rubro}
+              onChange={(e) => setForm({ ...form, rubro: e.target.value })}
+              maxLength={160}
+              placeholder="Construcción e ingeniería"
+            />
+          </Campo>
+          <p className="col-span-full mt-3 text-xs font-semibold uppercase text-muted-foreground">Identidad de marca</p>
+          <Campo etiqueta="Eslogan de la empresa">
+            <Input
+              className="py-1.5"
+              value={form.eslogan}
+              onChange={(e) => setForm({ ...form, eslogan: e.target.value })}
+              maxLength={160}
+              placeholder="SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL"
+            />
+          </Campo>
+          <Campo etiqueta="Color de marca">
+            <input
+              type="color"
+              value={form.color_marca}
+              onChange={(e) => setForm({ ...form, color_marca: e.target.value })}
+              className="h-9 w-full rounded-md border border-line bg-card px-1"
+            />
+          </Campo>
+          <p className="col-span-full mt-3 text-xs font-semibold uppercase text-muted-foreground">Contacto</p>
           <Campo etiqueta="Dirección fiscal">
             <Input
               className="py-1.5"
@@ -169,13 +167,18 @@ export function DatosEmpresa() {
               maxLength={120}
             />
           </Campo>
-          <Campo etiqueta="Color de marca">
-            <input
-              type="color"
-              value={form.color_marca}
-              onChange={(e) => setForm({ ...form, color_marca: e.target.value })}
-              className="h-9 w-full rounded-md border border-line bg-card px-1"
-            />
+          <p className="col-span-full mt-3 border-t border-line pt-3 text-xs font-semibold uppercase text-muted-foreground">Firmas de documentos laborales — firma RR. HH. si está registrado; si no, el Gerente General</p>
+          <Campo etiqueta="Gerente General — nombre">
+            <Input className="py-1.5" value={form.gerente_nombre} onChange={(e) => setForm({ ...form, gerente_nombre: e.target.value })} maxLength={120} placeholder="Apellidos y nombres" />
+          </Campo>
+          <Campo etiqueta="Gerente General — DNI">
+            <Input className="py-1.5" value={form.gerente_dni} onChange={(e) => setForm({ ...form, gerente_dni: e.target.value })} maxLength={12} placeholder="8 dígitos" />
+          </Campo>
+          <Campo etiqueta="Jefe de Recursos Humanos — nombre (opcional)">
+            <Input className="py-1.5" value={form.rrhh_nombre} onChange={(e) => setForm({ ...form, rrhh_nombre: e.target.value })} maxLength={120} placeholder="Apellidos y nombres" />
+          </Campo>
+          <Campo etiqueta="Jefe de Recursos Humanos — DNI">
+            <Input className="py-1.5" value={form.rrhh_dni} onChange={(e) => setForm({ ...form, rrhh_dni: e.target.value })} maxLength={12} placeholder="8 dígitos" />
           </Campo>
         </div>
 
