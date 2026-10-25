@@ -21,14 +21,14 @@ export type BoletaNomina = {
 };
 export type ValoresNomina = Pick<BoletaNomina, "dias_laborados" | "horas_extra" | "otros_ingresos" | "renta_quinta" | "otros_descuentos">;
 type Empresa = { razon_social?: string; ruc?: string; direccion?: string; logo_url?: string; eslogan?: string } | null | undefined;
-type Extra = { numero?: string; periodoAfp?: string; comision?: ComisionAfp | undefined; copia?: boolean };
+type Extra = { numero?: string | undefined; periodoAfp?: string | undefined; comision?: ComisionAfp | undefined; copia?: boolean };
 
 function Dato({ nombre, valor }: { nombre: string; valor?: string | undefined }) {
   return <div className="min-w-0 border-b border-r border-line px-2 py-1"><span className="block text-[7.5px] font-semibold uppercase text-muted-foreground">{nombre}</span><span className="block truncate text-[10px]">{valor || "—"}</span></div>;
 }
 
 const r2 = (n: number) => Math.round(n * 100) / 100;
-const ultimoDia = (p: string) => { const [a, m] = p.split("-").map(Number); return new Date(a, m, 0).getDate(); };
+const ultimoDia = (p: string) => { const [a, m] = p.split("-").map(Number); return new Date(a ?? 2000, m ?? 1, 0).getDate(); };
 
 function Hoja({ boleta: b, trabajador: t, empresa, periodo, editable, cambiar, numero, periodoAfp, comision, copia }: {
   boleta: BoletaNomina; trabajador?: Trabajador | undefined; empresa: Empresa; periodo: string;
