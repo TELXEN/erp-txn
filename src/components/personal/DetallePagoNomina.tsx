@@ -8,6 +8,7 @@ import { fecha, soles } from "@/lib/format";
 import { montoEnLetras } from "@/lib/facturacion";
 import { useFuenteDocumento } from "@/lib/fuentes-documentos";
 import { DOC } from "@/lib/documento-tema";
+import { firmanteLaboral } from "@/lib/empresa";
 import type { ComisionAfp } from "@/lib/decolecta.functions";
 
 export type BoletaNomina = {
@@ -20,7 +21,7 @@ export type BoletaNomina = {
   fecha_pago: string | null; numero_operacion: string;
 };
 export type ValoresNomina = Pick<BoletaNomina, "dias_laborados" | "horas_extra" | "otros_ingresos" | "renta_quinta" | "otros_descuentos">;
-type Empresa = { razon_social?: string; ruc?: string; direccion?: string; logo_url?: string; eslogan?: string } | null | undefined;
+type Empresa = { gerente_nombre?: string | null; gerente_dni?: string | null; rrhh_nombre?: string | null; rrhh_dni?: string | null; razon_social?: string; ruc?: string; direccion?: string; logo_url?: string; eslogan?: string } | null | undefined;
 type Extra = { numero?: string | undefined; periodoAfp?: string | undefined; comision?: ComisionAfp | undefined; copia?: boolean };
 
 function Dato({ nombre, valor }: { nombre: string; valor?: string | undefined }) {
@@ -57,11 +58,13 @@ function Hoja({ boleta: b, trabajador: t, empresa, periodo, editable, cambiar, n
   const essaludEt = b.regimen_laboral === "MYPE Micro" ? "SIS" : b.regimen_laboral === "Agrario" ? "EsSalud 6%" : "EsSalud 9%";
   return <article className="honorario-print-sheet relative mx-auto w-[184mm] max-w-full border border-line bg-paper p-5 text-ink shadow-sm" style={{ fontFamily: fuente.css, breakAfter: "page" }}>
     {copia && <span className="absolute right-5 top-1 text-[8px] font-bold uppercase text-muted-foreground">Copia trabajador</span>}
-    <header className="mb-3 flex items-stretch justify-between gap-4 border-b-2 pb-3" style={{ borderColor: DOC.dark }}>
-      <div className="flex min-w-0 items-center gap-3"><LogoEmpresa empresa={empresa} className="w-[120px]" imgClassName="h-12 w-24 object-contain" iconSize={30} /><div className="min-w-0"><p className="text-sm font-bold uppercase leading-tight">{empresa?.razon_social || "—"}</p><p className="text-[9px]">RUC {empresa?.ruc || "—"}</p><p className="text-[8px] text-muted-foreground">{empresa?.direccion}</p></div></div>
+    <header className="mb-3 flex items-stretch justify-between gap-3 border-b-2 pb-3" style={{ borderColor: DOC.dark }}>
+      <LogoEmpresa empresa={empresa} className="w-[120px] shrink-0" imgClassName="h-12 w-24 object-contain" iconSize={30} />
+      <div className="flex min-w-0 flex-1 flex-col justify-center text-right"><p className="text-sm font-bold uppercase leading-tight">{empresa?.razon_social || "—"}</p>{empresa?.eslogan && <p className="text-[7.5px] uppercase leading-tight text-muted-foreground">{empresa.eslogan}</p>}<p className="text-[8px] leading-tight text-muted-foreground">{empresa?.direccion}</p></div>
       <div className="w-[190px] shrink-0 border text-center" style={{ borderColor: DOC.dark }}>
         <p className="py-1 text-[11px] font-bold uppercase text-paper" style={{ background: DOC.dark }}>Boleta de pago</p>
-        <p className="pt-1 text-[11px] font-bold tabular-nums">N° {numero || "—"}</p>
+        <p className="pt-0.5 text-[8px]">RUC {empresa?.ruc || "—"}</p>
+        <p className="text-[11px] font-bold tabular-nums">N° {numero || "—"}</p>
         <p className="text-[9px]">{periodo}{desde && ` · ${desde} – ${hasta}`}</p>
         <p className="pb-1 text-[9px]">Fecha de pago: {fecha(b.fecha_pago)}</p>
       </div>
@@ -88,7 +91,7 @@ function Hoja({ boleta: b, trabajador: t, empresa, periodo, editable, cambiar, n
     <p className="mt-2 text-[9px] font-semibold">SON: {montoEnLetras(b.neto_pagar, "PEN")}</p>
     <p className="text-[9px] text-muted-foreground">Estado: {b.estado_pago === "Pagado" ? `Pagada${b.numero_operacion ? ` · Operación N° ${b.numero_operacion}` : ""}` : editable ? "Borrador" : "Validada"}</p>
     <div className="mt-12 grid grid-cols-2 gap-16 px-8 text-center text-[9px]">
-      <div className="border-t border-line pt-1.5"><b>EMPLEADOR</b><br />{empresa?.razon_social}<br />RUC {empresa?.ruc}</div>
+      <div className="border-t border-line pt-1.5">{(() => { const f = firmanteLaboral(empresa); return <><b>{f.cargo.toUpperCase()}</b><br />{f.nombre}<br />{f.documento}</>; })()}</div>
       <div className="border-t border-line pt-1.5"><b>TRABAJADOR</b><br />{t?.nombre}<br />DNI {t?.dni}</div>
     </div>
     <p className="mt-3 flex justify-between text-[8px] text-muted-foreground"><span>D.S. 001-98-TR · D.S. 015-2010-TR</span><span>Emitido: {fecha(new Date().toISOString().slice(0, 10))}</span></p>

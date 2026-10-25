@@ -6,7 +6,7 @@ import { Boton, VentanaFlotante } from "@/components/ui-kit";
 import { fecha, soles } from "@/lib/format";
 import { montoEnLetras } from "@/lib/facturacion";
 import { useFuenteDocumento } from "@/lib/fuentes-documentos";
-import { useEmpresa } from "@/lib/empresa";
+import { firmanteLaboral, useEmpresa } from "@/lib/empresa";
 import { DOC } from "@/lib/documento-tema";
 import { factores } from "@/lib/beneficios";
 import type { Trabajador } from "@/lib/datos";
@@ -101,7 +101,7 @@ function Hoja({ registro: r, trabajador: t, banco, gratificacion = false, liquid
       <div className="grid grid-cols-2 divide-x divide-line"><Dato nombre={gratificacion || liquidacion ? "Fecha de pago" : "Fecha de depósito"} valor={fecha(r.fecha_pago)} /><Dato nombre="N° operación" valor={r.numero_operacion} /></div>
       <Dato nombre="Estado" valor={r.estado_pago} sinLinea />
     </section>
-    <div className="mt-12 grid grid-cols-2 gap-16 px-8 text-center text-[10px]"><div className="border-t border-line pt-2">Empleador</div><div className="border-t border-line pt-2">Trabajador</div></div>
+    <div className="mt-12 grid grid-cols-2 gap-16 px-8 text-center text-[10px]"><div className="border-t border-line pt-2">{(() => { const f = firmanteLaboral(empresa); return <><b>{f.cargo.toUpperCase()}</b><br />{f.nombre}<br />{f.documento}</>; })()}</div><div className="border-t border-line pt-2">Trabajador</div></div>
   </article>;
 }
 

@@ -1,3 +1,4 @@
+import { firmanteLaboral } from "@/lib/empresa";
 import { LogoEmpresa } from "@/components/personal/LogoEmpresa";
 import { DOC, DOC_FUENTE_CSS } from "@/lib/documento-tema";
 import { montoEnLetras } from "@/lib/facturacion";
@@ -35,7 +36,7 @@ export type SelectoresHonorario = {
 };
 
 type Props = {
-  empresa: { razon_social?: string; ruc?: string; rubro?: string; direccion?: string; logo_url?: string; eslogan?: string } | null;
+  empresa: { gerente_nombre?: string | null; gerente_dni?: string | null; rrhh_nombre?: string | null; rrhh_dni?: string | null; razon_social?: string; ruc?: string; rubro?: string; direccion?: string; logo_url?: string; eslogan?: string } | null;
   trabajador: { dni?: string; nombre?: string; numero_cuenta?: string; banco?: string } | null;
   proyecto: string;
   detalle: DetalleHonorario;
@@ -250,7 +251,7 @@ export function HojaDetalleHonorario({ empresa, trabajador, proyecto, detalle, t
       <footer className="mt-6 print:mt-3">
         <p className="text-right text-[10px]">{fechaLarga(detalle.fecha_emision, detalle.lugar_emision || "Huancayo")}</p>
         <div className="mt-10 grid grid-cols-2 gap-24 px-10 text-center text-[9px] font-bold print:mt-6">
-          <div className="border-t pt-2" style={{ borderColor: DOC.ink }}>EMPLEADOR</div>
+          <div className="border-t pt-2 font-normal" style={{ borderColor: DOC.ink }}>{(() => { const f = firmanteLaboral(empresa); return <><b>{f.cargo.toUpperCase()}</b><br />{f.nombre}<br />{f.documento}</>; })()}</div>
           <div className="border-t pt-2" style={{ borderColor: DOC.ink }}>TRABAJADOR</div>
         </div>
       </footer>
