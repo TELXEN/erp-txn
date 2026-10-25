@@ -24,7 +24,7 @@ export function resumenTareoHonorario(tareos: Tareo[], trabajadorId: string, pro
   for (const t of filas) {
     const asistencia = Number(t.asistencia) || 0;
     if (t.tipo === "extras") extras += Number(t.horas) || 0;
-    else if (t.tipo === "viaje") viaje += asistencia || 1;
+    else if (t.tipo === "viaje") viaje += 1; // el tareo guarda asistencia 0.5; aquí cuenta 1 unidad y se valora /2
     else if (t.tipo === "feriado") feriados += 1; // el tareo guarda asistencia 2 en feriados; aquí cuenta 1 día y se valora ×2
     else if (t.tipo === "induccion") induccion += asistencia || 1;
     else dias += asistencia;
