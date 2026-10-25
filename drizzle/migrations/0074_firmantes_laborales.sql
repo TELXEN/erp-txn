@@ -1,0 +1,1 @@
+ALTER TABLE public.empresa_config ADD COLUMN IF NOT EXISTS gerente_nombre text, ADD COLUMN IF NOT EXISTS gerente_dni text, ADD COLUMN IF NOT EXISTS rrhh_nombre text, ADD COLUMN IF NOT EXISTS rrhh_dni text;

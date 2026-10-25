@@ -1857,9 +1857,13 @@ export type Database = {
           direccion: string
           email: string
           eslogan: string
+          gerente_dni: string | null
+          gerente_nombre: string | null
           id: string
           logo_url: string
           razon_social: string
+          rrhh_dni: string | null
+          rrhh_nombre: string | null
           rubro: string
           ruc: string
           telefono: string
@@ -1872,9 +1876,13 @@ export type Database = {
           direccion?: string
           email?: string
           eslogan?: string
+          gerente_dni?: string | null
+          gerente_nombre?: string | null
           id?: string
           logo_url?: string
           razon_social?: string
+          rrhh_dni?: string | null
+          rrhh_nombre?: string | null
           rubro?: string
           ruc?: string
           telefono?: string
@@ -1887,9 +1895,13 @@ export type Database = {
           direccion?: string
           email?: string
           eslogan?: string
+          gerente_dni?: string | null
+          gerente_nombre?: string | null
           id?: string
           logo_url?: string
           razon_social?: string
+          rrhh_dni?: string | null
+          rrhh_nombre?: string | null
           rubro?: string
           ruc?: string
           telefono?: string

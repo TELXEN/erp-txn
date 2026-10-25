@@ -519,6 +519,13 @@
       "when": 1792897121511,
       "tag": "0073_reingreso_sueldo_fix",
       "breakpoints": true
+    },
+    {
+      "idx": 74,
+      "version": "7",
+      "when": 1792898323785,
+      "tag": "0074_firmantes_laborales",
+      "breakpoints": true
     }
   ]
 }
