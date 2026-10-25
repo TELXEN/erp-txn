@@ -512,6 +512,13 @@
       "when": 1792897095687,
       "tag": "0072_vinculos_laborales",
       "breakpoints": true
+    },
+    {
+      "idx": 73,
+      "version": "7",
+      "when": 1792897121511,
+      "tag": "0073_reingreso_sueldo_fix",
+      "breakpoints": true
     }
   ]
 }
