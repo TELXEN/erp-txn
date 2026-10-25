@@ -203,6 +203,7 @@ export type Database = {
           monto: number
           numero_operacion: string
           periodo: string
+          regularizacion: boolean
           remuneracion_computable: number
           tipo: string
           total: number
@@ -225,6 +226,7 @@ export type Database = {
           monto?: number
           numero_operacion?: string
           periodo: string
+          regularizacion?: boolean
           remuneracion_computable?: number
           tipo: string
           total?: number
@@ -247,6 +249,7 @@ export type Database = {
           monto?: number
           numero_operacion?: string
           periodo?: string
+          regularizacion?: boolean
           remuneracion_computable?: number
           tipo?: string
           total?: number

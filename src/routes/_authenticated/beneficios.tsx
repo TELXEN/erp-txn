@@ -3,7 +3,7 @@ import { BotonIcono } from "@/components/ui-kit";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, RefreshCw, Trash2, Upload } from "lucide-react";
+import { Check, FileText, RefreshCw, Trash2, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
@@ -11,6 +11,8 @@ import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha, hoy, soles } from "@/lib/format";
 import { type Trabajador, useTrabajadores } from "@/lib/datos";
 import { exportarExcel } from "@/lib/exportar";
+import { calcCts, calcGrat, calcLiquidacion, periodoCts, periodoCtsAnterior, periodoGrat, type TipoBeneficio } from "@/lib/beneficios";
+import { HojaCts } from "@/components/personal/HojaCts";
 
 export const Route = createFileRoute("/_authenticated/beneficios")({
   head: () => ({
@@ -26,121 +28,15 @@ export const Route = createFileRoute("/_authenticated/beneficios")({
   component: Beneficios,
 });
 
-const RMV = 1230; // vigente desde 01/10/2026
-type Tipo = "CTS" | "Gratificación" | "Liquidación";
-
-// Factores por régimen: gratificación, CTS, vacaciones (proporción del beneficio completo)
-const FACTORES: Record<string, { grat: number; cts: number; vac: number }> = {
-  General: { grat: 1, cts: 1, vac: 1 },
-  "Construcción Civil": { grat: 1, cts: 1, vac: 1 },
-  "MYPE Pequeña": { grat: 0.5, cts: 0.5, vac: 0.5 },
-  "MYPE Micro": { grat: 0, cts: 0, vac: 0.5 },
-  Agrario: { grat: 0, cts: 0, vac: 1 },
-};
-const BASE_FACT = { grat: 1, cts: 1, vac: 1 };
-const factores = (r: string) => FACTORES[r] ?? BASE_FACT;
+type Tipo = TipoBeneficio;
 
 type Beneficio = {
-  id: string;
-  tipo: Tipo;
-  anio: number;
-  periodo: string;
-  trabajador_id: string;
-  fecha_desde: string;
-  fecha_hasta: string;
-  meses: number;
-  dias: number;
-  remuneracion_computable: number;
-  monto: number;
-  bonificacion: number;
-  total: number;
-  detalle: Record<string, number>;
-  estado_pago: string;
-  fecha_pago: string | null;
-  numero_operacion: string;
+  id: string; tipo: Tipo; anio: number; periodo: string; trabajador_id: string;
+  fecha_desde: string; fecha_hasta: string; meses: number; dias: number;
+  remuneracion_computable: number; monto: number; bonificacion: number; total: number;
+  detalle: Record<string, number>; estado_pago: string; fecha_pago: string | null;
+  numero_operacion: string; banco_id: string | null; regularizacion: boolean;
 };
-
-const r2 = (n: number) => Math.round(n * 100) / 100;
-const iso = (d: Date) => d.toISOString().slice(0, 10);
-const D = (s: string) => new Date(`${s}T00:00:00Z`);
-const maxF = (a: string, b: string) => (a > b ? a : b);
-
-/** Meses y días completos entre desde y hasta (ambos inclusive), base 30. */
-function computo(desde: string, hasta: string) {
-  if (desde > hasta) return { meses: 0, dias: 0 };
-  const a = D(desde);
-  const b = D(hasta);
-  b.setUTCDate(b.getUTCDate() + 1);
-  let meses = (b.getUTCFullYear() - a.getUTCFullYear()) * 12 + (b.getUTCMonth() - a.getUTCMonth());
-  let dias = b.getUTCDate() - a.getUTCDate();
-  if (dias < 0) { meses -= 1; dias += 30; }
-  return { meses: Math.max(meses, 0), dias: Math.max(dias, 0) };
-}
-
-const remuneracionBase = (t: Trabajador) =>
-  Number(t.sueldo_mensual) + (t.asignacion_familiar && !t.regimen_laboral.startsWith("MYPE") ? RMV * 0.1 : 0);
-const tasaBonif = (t: Trabajador) => (t.regimen_laboral === "Agrario" ? 0.06 : 0.09);
-
-function periodoGrat(anio: number, p: string) {
-  return p === "Julio" ? { desde: `${anio}-01-01`, hasta: `${anio}-06-30` } : { desde: `${anio}-07-01`, hasta: `${anio}-12-31` };
-}
-function periodoCts(anio: number, p: string) {
-  return p === "Mayo" ? { desde: `${anio - 1}-11-01`, hasta: `${anio}-04-30` } : { desde: `${anio}-05-01`, hasta: `${anio}-10-31` };
-}
-
-function calcGrat(t: Trabajador, desde: string, hasta: string) {
-  const inicio = maxF(desde, t.fecha_ingreso ?? desde);
-  const { meses } = computo(inicio, hasta);
-  const rc = r2(remuneracionBase(t));
-  const monto = r2((rc / 6) * meses * factores(t.regimen_laboral).grat);
-  const bonificacion = r2(monto * tasaBonif(t));
-  return { fecha_desde: inicio, fecha_hasta: hasta, meses, dias: 0, remuneracion_computable: rc, monto, bonificacion, total: r2(monto + bonificacion), detalle: {} };
-}
-
-function calcCts(t: Trabajador, desde: string, hasta: string) {
-  const inicio = maxF(desde, t.fecha_ingreso ?? desde);
-  const { meses, dias } = computo(inicio, hasta);
-  const base = remuneracionBase(t);
-  const sextoGrat = factores(t.regimen_laboral).grat > 0 ? base / 6 : 0;
-  const rc = r2(base + sextoGrat);
-  const monto = r2(((rc / 12) * meses + (rc / 360) * dias) * factores(t.regimen_laboral).cts);
-  return { fecha_desde: inicio, fecha_hasta: hasta, meses, dias, remuneracion_computable: rc, monto, bonificacion: 0, total: monto, detalle: { sexto_gratificacion: r2(sextoGrat) } };
-}
-
-function calcLiquidacion(t: Trabajador, cese: string) {
-  const y = Number(cese.slice(0, 4));
-  const m = Number(cese.slice(5, 7));
-  const ingreso = t.fecha_ingreso ?? cese;
-  // CTS trunca desde el último 1 de mayo / 1 de noviembre
-  const inicioCts = m >= 11 ? `${y}-11-01` : m >= 5 ? `${y}-05-01` : `${y - 1}-11-01`;
-  const cts = calcCts(t, inicioCts, cese);
-  // Gratificación trunca del semestre en curso (meses completos)
-  const grat = calcGrat(t, m <= 6 ? `${y}-01-01` : `${y}-07-01`, cese);
-  // Vacaciones truncas desde el último aniversario de ingreso
-  let aniv = `${y}${ingreso.slice(4)}`;
-  if (aniv > cese) aniv = `${y - 1}${ingreso.slice(4)}`;
-  if (aniv < ingreso) aniv = ingreso;
-  const v = computo(aniv, cese);
-  const base = r2(remuneracionBase(t));
-  const vac = r2(((base / 12) * v.meses + (base / 360) * v.dias) * factores(t.regimen_laboral).vac);
-  const monto = r2(cts.monto + grat.monto + vac);
-  return {
-    fecha_desde: ingreso,
-    fecha_hasta: cese,
-    meses: v.meses,
-    dias: v.dias,
-    remuneracion_computable: base,
-    monto,
-    bonificacion: grat.bonificacion,
-    total: r2(monto + grat.bonificacion),
-    detalle: {
-      cts_trunca: cts.monto, cts_meses: cts.meses, cts_dias: cts.dias,
-      gratificacion_trunca: grat.monto, grat_meses: grat.meses,
-      bonificacion_extraordinaria: grat.bonificacion,
-      vacaciones_truncas: vac, vac_meses: v.meses, vac_dias: v.dias,
-    },
-  };
-}
 
 function Beneficios() {
   const { rol } = useAuth();
@@ -154,6 +50,8 @@ function Beneficios() {
   const [liq, setLiq] = useState({ trabajador_id: "", fecha_cese: hoy() });
   const [pago, setPago] = useState<{ id: string; banco_id: string; fecha_pago: string; numero_operacion: string } | null>(null);
   const [error, setError] = useState("");
+  const [hoja, setHoja] = useState<Beneficio | null>(null);
+  const [faltantes, setFaltantes] = useState<{ t: Trabajador; anio: number; periodo: string }[]>([]);
 
   const { data: registros = [] } = useQuery({
     queryKey: ["beneficios", tipo, anio, periodo],
@@ -205,9 +103,27 @@ function Beneficios() {
       const { error: err } = await supabase.from("beneficios_sociales").upsert(filas, { onConflict: "tipo,anio,periodo,trabajador_id" });
       if (err) return setError(err.message);
     }
+    if (tipo === "CTS") {
+      const ant = periodo === "Noviembre" ? { anio, periodo: "Mayo" } : { anio: anio - 1, periodo: "Noviembre" };
+      const { data: prev } = await supabase.from("beneficios_sociales").select("trabajador_id, estado_pago").eq("tipo", "CTS").eq("anio", ant.anio).eq("periodo", ant.periodo);
+      const pagadosAnt = new Set((prev ?? []).filter((x) => x.estado_pago === "Pagado").map((x) => x.trabajador_id));
+      setFaltantes(planilla.filter((t) => t.activo && !pagadosAnt.has(t.id) && periodoCtsAnterior(t, anio, periodo)).map((t) => ({ t, ...ant })));
+    }
     if (omitidos.length) setError(`Sin fecha de ingreso o sueldo (no calculados): ${omitidos.join(", ")}. Complétalo en Personal.`);
     else if (!filas.length) setError("No hay trabajadores nuevos con derecho en este periodo.");
     await refrescar();
+  }
+
+  async function regularizar() {
+    const filas = faltantes.map(({ t }) => {
+      const a = periodoCtsAnterior(t, anio, periodo)!;
+      return { ...a, tipo: "CTS", trabajador_id: t.id, regularizacion: true };
+    });
+    const { error: err } = await supabase.from("beneficios_sociales").upsert(filas, { onConflict: "tipo,anio,periodo,trabajador_id" });
+    if (err) return setError(err.message);
+    setFaltantes([]);
+    await refrescar();
+    setError(`Regularización registrada en CTS ${filas[0]?.periodo} ${filas[0]?.anio}. Págala desde ese periodo.`);
   }
 
   const tLiq = tDe(liq.trabajador_id);
@@ -273,7 +189,7 @@ function Beneficios() {
                     filas: registros.map((r) => {
                       const t = tDe(r.trabajador_id);
                       return {
-                        DNI: t?.dni ?? "", Trabajador: t?.nombre ?? "", Régimen: t?.regimen_laboral ?? "",
+                        DNI: t?.dni ?? "", Trabajador: t?.nombre ?? "", Régimen: t?.regimen_laboral ?? "", "Fecha de ingreso": fecha(t?.fecha_ingreso ?? null), Regularización: r.regularizacion ? "Sí" : "",
                         Desde: fecha(r.fecha_desde), Hasta: fecha(r.fecha_hasta), Meses: r.meses, Días: r.dias,
                         "Rem. computable (S/)": Number(r.remuneracion_computable),
                         ...Object.fromEntries(Object.entries(nombreDetalle).filter(([k]) => r.detalle?.[k] !== undefined).map(([k, n]) => [`${n} (S/)`, Number(r.detalle[k])])),
@@ -349,6 +265,17 @@ function Beneficios() {
         {error && <p className="px-3 pb-3 font-mono text-xs text-bad">{error}</p>}
       </Panel>
 
+      {faltantes.length > 0 && (
+        <div role="alert" className="mb-4 flex flex-wrap items-center gap-3 rounded-md border border-warn/40 bg-warn/10 p-3 text-xs">
+          <p className="min-w-0 flex-1">
+            {faltantes.map((f) => f.t.nombre).join(", ")} no {faltantes.length > 1 ? "tienen" : "tiene"} depositada la CTS de {faltantes[0]!.periodo.toLowerCase()} {faltantes[0]!.anio}.
+            <span className="block text-[11px] text-muted-foreground">Un depósito fuera de plazo puede generar intereses según la ley; el sistema no los calcula.</span>
+          </p>
+          <Boton onClick={regularizar}>Regularizar</Boton>
+          <Boton variante="linea" onClick={() => setFaltantes([])}>Omitir</Boton>
+        </div>
+      )}
+
       {registros.length > 0 && (
         <div className="mb-4 grid gap-3 sm:grid-cols-2">
           <div className="panel p-4"><p className="label-mono">Total calculado</p><p className="mt-1 text-lg font-semibold">{soles(total)}</p></div>
@@ -364,7 +291,7 @@ function Beneficios() {
             <table className="w-full min-w-[1100px] font-mono text-xs">
               <thead>
                 <tr className="border-b border-line text-left text-[10px] uppercase text-muted-foreground">
-                  <th className="px-4 py-2">Trabajador</th><th className="px-2 py-2">{tipo === "Liquidación" ? "Ingreso – Cese" : "Cómputo"}</th>
+                  <th className="px-4 py-2">Trabajador</th><th className="px-2 py-2">Ingreso</th><th className="px-2 py-2">{tipo === "Liquidación" ? "Ingreso – Cese" : "Periodo computado"}</th>
                   <th className="px-2 py-2 text-right">Tiempo</th><th className="px-2 py-2 text-right">Rem. computable</th>
                   <th className="px-2 py-2 text-right">Monto</th><th className="px-2 py-2 text-right">Bonificación</th>
                   <th className="px-2 py-2 text-right">Total</th><th className="px-2 py-2">Estado / Pago</th>
@@ -375,7 +302,8 @@ function Beneficios() {
                   const t = tDe(r.trabajador_id);
                   return (
                     <tr key={r.id} onClick={() => setSel(r.id)} className={`cursor-pointer border-b border-line/60 align-top last:border-0 hover:bg-muted/40 ${sel === r.id ? "bg-primary/10" : ""}`}>
-                      <td className="px-4 py-2 font-semibold text-ink">{t?.nombre}<span className="block text-[10px] font-normal text-muted-foreground">{t?.regimen_laboral}</span></td>
+                      <td className="px-4 py-2 font-semibold text-ink">{t?.nombre}<span className="block text-[10px] font-normal text-muted-foreground">{t?.regimen_laboral}</span>{r.regularizacion && <Etiqueta tono="warn">Regularización</Etiqueta>}</td>
+                      <td className="px-2 py-2">{fecha(t?.fecha_ingreso ?? null)}</td>
                       <td className="px-2 py-2">{fecha(r.fecha_desde)} – {fecha(r.fecha_hasta)}</td>
                       <td className="px-2 py-2 text-right">
                         {r.meses} m{r.dias ? ` ${r.dias} d` : ""}
@@ -425,10 +353,12 @@ function Beneficios() {
                               {r.estado_pago === "Pendiente" && (
                                 <BotonIcono etiqueta={tipo === "CTS" ? "Registrar depósito" : "Registrar pago"} onClick={() => setPago({ id: r.id, banco_id: "", fecha_pago: hoy(), numero_operacion: "" })}><Check size={15} /></BotonIcono>
                               )}
+                              {tipo === "CTS" && <BotonIcono etiqueta="Hoja de liquidación CTS" onClick={() => setHoja(r)}><FileText size={15} /></BotonIcono>}
                               <BotonIcono etiqueta="Eliminar" onClick={() => eliminar(r)}><Trash2 size={15} /></BotonIcono>
                             </>
                           )}
                         </div></div>)} /></div>
+      {hoja && (() => { const b = bancos.find((x) => x.id === hoja.banco_id); return <HojaCts registro={hoja} trabajador={tDe(hoja.trabajador_id)} banco={b ? `${b.nombre} · ${b.numero_cuenta}` : undefined} onCerrar={() => setHoja(null)} />; })()}
     </>
   );
 }
