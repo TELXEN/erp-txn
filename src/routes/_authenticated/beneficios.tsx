@@ -160,12 +160,9 @@ function Beneficios() {
     setError("");
     if (!tLiq || !previa) return setError("Selecciona un trabajador con fecha de ingreso y una fecha de cese válida.");
     if (!window.confirm(`¿Registrar la liquidación de ${tLiq.nombre}? El trabajador quedará inactivo con fecha de cese ${fecha(liq.fecha_cese)}.`)) return;
-    const { error: err } = await supabase.from("beneficios_sociales").upsert(
-      { tipo: "Liquidación", anio: Number(liq.fecha_cese.slice(0, 4)), periodo: liq.fecha_cese, trabajador_id: tLiq.id, ...previa },
-      { onConflict: "tipo,anio,periodo,trabajador_id" },
-    );
+    // Liquidación + cese + cierre del vínculo en una sola operación: si algo falla, el trabajador no queda inactivo.
+    const { error: err } = await supabase.rpc("registrar_liquidacion", { _trabajador: tLiq.id, _fecha_cese: liq.fecha_cese, _datos: previa as never });
     if (err) return setError(err.message);
-    await supabase.from("trabajadores").update({ fecha_cese: liq.fecha_cese, activo: false }).eq("id", tLiq.id);
     setLiq({ trabajador_id: "", fecha_cese: hoy() });
     await Promise.all([refrescar(), qc.invalidateQueries({ queryKey: ["trabajadores"] })]);
   }
