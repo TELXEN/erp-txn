@@ -11,9 +11,9 @@
 - Reserve project/quotation codes via reservarCodigo only; SQL functions are service_role-only — no browser numbering.
 - Programmed progress stores percentages per leaf item/period; dashboards exclude grouping rows — no double counting.
 - S-curve uses work-item schedules and current physical cut-off; cost progress is money-role-only — truthful history.
-- Preliquidation uses @react-pdf/renderer; quotation/invoice previews use fixed A4 HTML. Quotation pagination uses measured rows/closing heights via paginacion-cotizacion, keeping headings with items — no premature breaks.
+- Preliquidation uses @react-pdf/renderer; quotation/invoice previews use fixed A4 HTML. Quotation pagination measures row/closing heights via paginacion-cotizacion, keeping headings with items.
 - Project commercial refs are copied to preliquidaciones.orden_compra on selection, saved apart from concepto; outputs read the saved ref — history preserved.
-- Electronic invoices use dedicated comprobantes_electronicos/items/cuotas tables, while emitted invoices/receipts mirror into ventas for treasury compatibility; numbering is reserved only by an authenticated server function.
+- Electronic invoices use comprobantes_electronicos/items/cuotas; emitted invoices/receipts mirror into ventas for treasury; numbering reserved only by an authenticated server function.
 - Invoice creation chooses its source before opening the editor; keep the selected preliquidation ID in editor state, not the URL, so a later free invoice never inherits an old link.
 - Typography: configuracion_documentos/local catalogue, UI --font-global, PDF embeds chosen font, Excel uses catalogue family — consistent outputs.
 - Document codes use codificacion_documentos and siguiente_codigo_documento (free code + padded correlative) — one numbering source.
@@ -22,14 +22,14 @@
 - Sidebar has dedicated theme tokens; primary/action buttons use its base color without altering business screens.
 - Invoice/quotation/preliquidation colors and font come from src/lib/documento-tema.ts; preliquidation uses one sheet (HojaPreliquidacion.tsx) with amounts in src/lib/preliquidacion-montos.ts — outputs never diverge.
 - SUNAT purchase invoices archive in comprobantes_recibidos(+_items) and the private comprobantes-compra bucket; only the authenticated descargarComprobantesSire server fn downloads, in batches of 10 — SOL credentials stay server-side.
-- SIRE owns RCE end to end: one persistent period selector and sync control for both books, with the purchase XML/PDF/CDR download and ERP register merged into the RCE conciliation table — Facturación Electrónica is sales-only.
+- SIRE owns RCE end to end: one period selector and sync control for both books; purchase XML/PDF/CDR download and ERP register merged into the RCE conciliation table — Facturación Electrónica is sales-only.
 - On desktop, AppShell owns viewport height; sidebar and workspace scroll independently — navigation stays fixed.
 - Quotation rows: flat `orden`+`nivel` (niveles-cotizacion.ts); moves keep descendants. Bank inserts copy recipes; APU inserts snapshot via filaRecursoCotizacion; PEN master prices.
 - Banco APU codes come only from banco-apu.ts (alphabetical, Spanish collator, renumbered per especialidad) — no hand-assigned codes.
 - EMO validity is computed in src/lib/emo.ts from each worker's latest exam (emos_trabajador, admin/gerente-only) — one rule feeds every EMO alert.
-- Primary creation uses VentanaFlotante (optional hidden scrollbars) with consecutive saves and explicit close; cost eligibility, overrun lock and CD ceiling are DB triggers (Gerencia overrides via solicitudes_desbloqueo).
+- Primary creation uses VentanaFlotante (optional hidden scrollbars) with consecutive saves; cost eligibility, overrun lock and CD ceiling are DB triggers (Gerencia overrides via solicitudes_desbloqueo).
 - Detraction collections store the BN account in ventas.banco_detraccion_id; treasury splits the sale between both banks — no duplicate sale rows.
-- Paid Decolecta data is cached and shared ERP-wide: exchange rate via useTipoCambioHoy (tipo_cambio_diario, per Lima date), AFP commissions via useComisionesAfp (afp_comisiones_mensuales, per month) — one paid call per period.
+- Paid Decolecta data is cached ERP-wide: rate via useTipoCambioHoy (tipo_cambio_diario, per Lima date), AFP commissions via useComisionesAfp (afp_comisiones_mensuales, per month) — one paid call per period.
 - Honoraria (recibos_honorarios) and payroll (DetallePagoNomina) each use one WYSIWYG preview/print sheet; Cerrada gates payroll payments — aligned outputs.
 - BEFORE triggers round amounts (2 dp), qtys/prices (4 dp) and percentages (2 dp) on gastos_directos, gastos_generales, ventas, cotizaciones, proyectos, plantillas.
 - Real project cost comes only from useCostoObras (src/lib/costo-obra.ts) — every panel shows the same figure; GG charts only regroup by scope.
@@ -51,8 +51,9 @@
 - Payment reports (ReportePagos) are read-only lists built from Tesorería CxP selection; payee accounts come from terceros_cuentas_bancarias (providers) or trabajadores (staff) via reporte-pagos.ts — reports never mark payments.
 - Valuations snapshot contracted metrado/P.U.; prior accumulation only from approved ones; approval (DB trigger) needs supervisor signature and freezes the row — stable history.
 - Gantt uses escalaCalendario for the timeline viewport and useRecordado for project selection — navigation stays legible and restores the last opened project without changing project data.
-- Collapsible sections use Panel's colapsable/abierto/onAbrirCambiar props (header with totals stays visible, body hides) — one folding mechanism instead of per-screen show/hide markup.
+- Collapsible sections use Panel's colapsable/abierto/onAbrirCambiar props (header with totals stays visible, body hides) — one folding mechanism, not per-screen show/hide markup.
 - CTS regularization uses conflict-ignore inserts; grouping keeps period IDs/actions independent. CTS, gratification and settlement share one print sheet using saved amounts; calcGrat snapshots its breakdown, never inventing historical salary.
 
 - Employment periods live in vinculos_laborales; liquidation, rehire and cese annulment go only through registrar_liquidacion/reingresar_trabajador/anular_cese RPCs — cese and liquidation stay atomic and prior periods keep their history.
 - Company regime: dated regimenes_empresa; a worker's regime can't be below the company's at hire (trigger + errorRegimenTrabajador) — changes hit only new hires.
+- Configuración del Sistema → «Datos de la empresa» renders DatosEmpresaTabs with three sub-tabs (company form, regime, bank accounts) — never separate top-level tabs.
