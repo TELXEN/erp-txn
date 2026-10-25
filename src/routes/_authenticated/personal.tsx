@@ -1,3 +1,4 @@
+import { recalcularPendientes } from "@/lib/beneficios";
 import { anioVigencia, estadoSuspension } from "@/lib/suspension-cuarta";
 import { useRecordado } from "@/lib/recordado";
 import { BarraIconosHoja } from "@/components/BarraIconosHoja";
