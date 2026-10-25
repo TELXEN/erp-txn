@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Building2, Landmark, Scale } from "lucide-react";
+import { ClipboardList, Landmark, Scale } from "lucide-react";
 import { Pestanas } from "@/components/ui-kit";
 import { DatosEmpresa } from "@/components/DatosEmpresa";
 import { RegimenEmpresaPanel } from "@/components/RegimenEmpresaPanel";
@@ -19,7 +19,7 @@ export function DatosEmpresaTabs() {
         onCambiar={setPestana}
         variante="texto"
         opciones={[
-          { id: "datos", texto: "Datos generales", icono: <Building2 className="size-4" /> },
+          { id: "datos", texto: "Datos generales", icono: <ClipboardList className="size-4" /> },
           { id: "regimen", texto: "Régimen laboral de la empresa", icono: <Scale className="size-4" /> },
           { id: "cuentas", texto: "Cuentas bancarias", icono: <Landmark className="size-4" /> },
         ]}
