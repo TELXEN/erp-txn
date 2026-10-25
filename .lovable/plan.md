@@ -23,7 +23,7 @@ Lo que falta:
 5. **Pruebas**: un caso por régimen con montos fijos (General, Pequeña, Micro, Agrario 2026).
 
 ## Detalles técnicos
-- Migración: columnas `regimen_laboral`, `remype_numero`, `remype_fecha` en la configuración de la empresa; `agrario_prorrateado boolean default false` en trabajadores.
+- Migración: tabla `regimenes_empresa` (régimen, fecha de inicio, N° y certificado REMYPE; con grants y RLS, escritura solo Gerencia/Administración); régimen guardado en `vinculos_laborales` al ingresar/reingresar; trigger que impide pasar a MYPE a un trabajador con ingreso anterior a la fecha REMYPE; `agrario_prorrateado boolean default false` en trabajadores.
 - `src/lib/beneficios.ts`: tabla de factores por régimen y año (bonificación agraria 6/7/8/9 %), bonificación 0 para Micro, prorrateo agrario.
 - Personal: valor por defecto del régimen desde `useEmpresa`, aviso de discrepancia.
 - `HojaCts.tsx`: leyenda del régimen y "no corresponde".
