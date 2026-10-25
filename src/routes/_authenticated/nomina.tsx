@@ -580,7 +580,7 @@ function Nomina() {
                         </div></div>)} /></div>
         </>
       )}
-      {detalle && <DetallePagoNomina key={detalle.id} boleta={boletas.find((b) => b.id === detalle.id) ?? detalle} trabajador={tDe(detalle.trabajador_id)} empresa={empresa} periodo={periodo} bloqueada={cerrada || detalle.estado_pago === "Pagado"} recalcular={(valores) => { const t = tDe(detalle.trabajador_id); return t ? calcularBoleta(t, valores, comisiones, rmvDe(periodoAfp)) : {}; }} onGuardar={(valores) => guardarDetalle(detalle, valores)} onCerrar={() => setDetalle(null)} />}
+      {detalle && <DetallePagoNomina key={detalle.id} numero={`BP-${periodoAfp}-${String(Math.max(1, boletas.findIndex((x) => x.id === detalle.id) + 1)).padStart(3, "0")}`} periodoAfp={periodoAfp} comisiones={comisiones} boleta={boletas.find((b) => b.id === detalle.id) ?? detalle} trabajador={tDe(detalle.trabajador_id)} empresa={empresa} periodo={periodo} bloqueada={cerrada || detalle.estado_pago === "Pagado"} recalcular={(valores) => { const t = tDe(detalle.trabajador_id); return t ? calcularBoleta(t, valores, comisiones, rmvDe(periodoAfp)) : {}; }} onGuardar={(valores) => guardarDetalle(detalle, valores)} onCerrar={() => setDetalle(null)} />}
     </>
   );
 }
