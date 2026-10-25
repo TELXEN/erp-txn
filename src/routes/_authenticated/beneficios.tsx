@@ -251,6 +251,7 @@ function Beneficios() {
                 </Select>
               </Campo>
               <Campo etiqueta="Fecha de cese"><Input type="date" value={liq.fecha_cese} onChange={(e) => setLiq({ ...liq, fecha_cese: e.target.value })} className="py-1.5" /></Campo>
+              <Boton variante="linea" disabled={!previa} onClick={() => previa && setHojas([{ ...previa, id: "vista-previa", tipo: "Liquidación", trabajador_id: liq.trabajador_id, periodo: "Liquidación", anio: Number(liq.fecha_cese.slice(0, 4)), estado_pago: "Pendiente", fecha_pago: null, numero_operacion: "", banco_id: null } as unknown as Beneficio])}><FileText size={13} /> Vista previa de boleta</Boton>
               <Boton onClick={guardarLiquidacion} disabled={!previa}>Registrar liquidación</Boton>
             </div>
             {tLiq && !tLiq.fecha_ingreso && <p className="font-mono text-xs text-bad">Este trabajador no tiene fecha de ingreso. Complétala en Personal.</p>}
