@@ -117,7 +117,7 @@ function Nomina() {
   const [msgAfp, setMsgAfp] = useState("");
   const esGestor = rol === "gerente" || rol === "administrador";
 
-  const { data: planilla = null } = useQuery({
+  const { data: planilla = null, isFetched: planillaLista } = useQuery({
     queryKey: ["planilla", anio, mes],
     queryFn: async () => {
       const { data, error } = await supabase.from("planillas").select("*").eq("anio", anio).eq("mes", mes).maybeSingle();
@@ -125,7 +125,7 @@ function Nomina() {
       return data as Planilla | null;
     },
   });
-  const { data: boletas = [] } = useQuery({
+  const { data: boletas = [], isFetched: boletasListas } = useQuery({
     queryKey: ["boletas", planilla?.id],
     enabled: !!planilla,
     queryFn: async () => {
@@ -248,12 +248,12 @@ function Nomina() {
   const [autoHecho, setAutoHecho] = useState("");
   useEffect(() => {
     if (!esGestor || cerrada || !personalListo || !cargosListos || autoHecho === claveMes) return;
-    if (planilla && boletas === undefined) return;
+    if (!planillaLista || (planilla && !boletasListas)) return;
     const faltan = enPlanilla.some((t) => esStaff(t) && Number(t.sueldo_mensual) > 0 && datosTareo(t).dias_laborados > 0 && !boletas.some((b) => b.trabajador_id === t.id));
     setAutoHecho(claveMes);
     if (faltan) void generar(true);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [esGestor, cerrada, personalListo, cargosListos, claveMes, planilla?.id, boletas.length]);
+  }, [esGestor, cerrada, personalListo, cargosListos, claveMes, planillaLista, boletasListas, planilla?.id, boletas.length]);
 
   // Recalcula únicamente boletas pendientes; no crea filas ni modifica las validadas.
   useEffect(() => {
