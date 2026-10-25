@@ -1,23 +1,23 @@
-# Pago por día pactado sin mostrar S/ 4,800 como sueldo
+# RMV y UIT con historiales separados
 
-## Caso
-Sueldo en planilla S/ 3,500. Acuerdo: S/ 200 por día. 24 días = S/ 4,800. El trabajador no quiere que la boleta muestre S/ 4,800 porque le descontarían más.
+## Qué cambia para el usuario
+En Configuración del Sistema → Valores normativos habrá dos listas independientes:
+- **RMV (Remuneración Mínima Vital)**: monto, vigente desde (día exacto, p. ej. 01/05/2022 o 01/10/2026), base legal, observaciones.
+- **UIT**: monto, año fiscal (siempre rige desde el 1 de enero), base legal (D.S. del MEF), observaciones.
 
-## Límite legal
-Si los S/ 1,300 extra son pago por su trabajo, la ley los cuenta como remuneración, se paguen como se paguen. Llevan AFP/ONP, EsSalud y renta de quinta. Pagarlos sin boleta o como "otra cosa" puede generar multas de SUNAFIL y deudas con SUNAT para la empresa. El ERP no va a ocultar ese pago. Sí puede registrar bien los conceptos que la ley deja sin descuentos.
+Registrar una RMV nueva ya no obliga a repetir la UIT, y viceversa. Cada lista tiene su propia ventana para agregar/editar/eliminar (solo Gerencia/Administración).
 
-## Opciones en el ERP
-1. **Conceptos sin descuentos (solo si son reales)**: movilidad que depende de la asistencia, alimentación o viáticos con sustento, o una condición de trabajo. Se ponen en la boleta como «No afecto». No pagan AFP, EsSalud ni quinta, pero tienen que tener sustento y una política escrita.
-2. **Complemento afecto**: los S/ 1,300 se pagan en la misma boleta o en una complementaria, con sus descuentos. Es la opción sin riesgo.
-3. **Combinación**: una parte con sustento como «No afecto» y el resto como complemento afecto.
+## Datos actuales que se trasladan
+```text
+RMV: 1,025 desde 01/05/2022 | 1,130 desde 01/01/2025 | 1,230 desde 01/10/2026
+UIT: 4,600 (2022) | 5,350 (2025) | 5,500 (2026)
+```
+Las filas repetidas (p. ej. UIT 5,500 en octubre 2026) desaparecen porque solo existían para acompañar el cambio de RMV. Nota: hoy no hay UIT 2023 ni 2024 (4,950 y 5,150); se pueden añadir.
 
-## Cómo funcionará
-- En Personal: «Tarifa pactada por día» opcional.
-- En la boleta del mes: el sistema calcula días × tarifa − sueldo (24 × 200 − 3,500 = 1,300). Tú repartes ese monto entre los conceptos permitidos: movilidad por asistencia y alimentación (sin descuentos, se pide el sustento) o complemento (con descuentos).
-- La boleta muestra el sueldo de S/ 3,500 y cada concepto en su propia línea. Los descuentos se calculan solo sobre lo afecto.
-- Si días × tarifa no llega al sueldo, no se agrega nada.
+## Cálculos
+Renta de 5ta, asignación familiar y demás siguen dando los mismos resultados: RMV se busca por el período y UIT por el año fiscal, ahora cada uno en su lista. Tests existentes deben seguir pasando; se añade uno que confirme que una RMV nueva en octubre no altera la UIT del año.
 
 ## Detalles técnicos
-- Migración: `trabajadores.tarifa_dia numeric null`; tabla `boleta_conceptos` (boleta_id, concepto, monto, afecto bool, sustento text), con RLS de nómina.
-- `src/lib/nomina-complemento.ts`: `montoComplemento(dias, tarifa, sueldo)` y suma de afectos/no afectos; tests (24×200−3,500 = 1,300; 15 días → 0; los no afectos no cambian AFP/quinta).
-- `nomina.tsx` / `DetallePagoNomina.tsx`: editor y líneas por concepto con la marca «No afecto».
+- Migración: tablas `normativa_rmv` (vigencia_desde date unique, monto, base_legal, observaciones) y `normativa_uit` (anio int unique, monto, base_legal, observaciones), con GRANT, RLS igual a `historial_normativo` (lectura personal, escritura admin/gerente) y backfill desde `historial_normativo` (RMV en cada cambio de valor; UIT por año desde la fila vigente al 1 de enero/más antigua del año). `historial_normativo` queda marcada DEPRECATED, sin borrar.
+- `src/lib/normativa.ts`: `useRmv`, `useUit`, `rmvEn(listaRmv, periodo)`, `uitEn(listaUit, anio)`, `rmvNuevaEn` para la alerta de cambio; respaldos separados.
+- `HistorialNormativo.tsx` dividido en dos paneles; actualizar usos en `nomina.tsx`.
