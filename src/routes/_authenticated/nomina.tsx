@@ -9,7 +9,8 @@ import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Etiqueta, Input, Panel, Pestanas, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha, hoy, MESES, soles } from "@/lib/format";
-import { type Trabajador, useTareos, useTrabajadores } from "@/lib/datos";
+import { clasificacionDeCargo, type Trabajador, useCargos, useTareos, useTrabajadores } from "@/lib/datos";
+import { diasStaffMes, motivoDiasStaff, MOTIVO_MANUAL } from "@/lib/nomina-staff";
 import { resumenTareoHonorario } from "@/components/personal/DetallePagoHonorario";
 import { useEmpresa } from "@/lib/empresa";
 import { DetallePagoNomina, type BoletaNomina, type ValoresNomina } from "@/components/personal/DetallePagoNomina";
@@ -97,6 +98,7 @@ function Nomina() {
   const { data: trabajadores = [], isFetched: personalListo } = useTrabajadores();
   const { data: tareos = [], isFetched: tareoListo } = useTareos();
   const { data: empresa } = useEmpresa();
+  const { data: cargos = [], isFetched: cargosListos } = useCargos();
   const ahora = new Date();
   const [sel, setSel] = useState("");
   const [anio, setAnio] = useState(ahora.getFullYear());
@@ -115,7 +117,7 @@ function Nomina() {
   const [msgAfp, setMsgAfp] = useState("");
   const esGestor = rol === "gerente" || rol === "administrador";
 
-  const { data: planilla = null } = useQuery({
+  const { data: planilla = null, isFetched: planillaLista } = useQuery({
     queryKey: ["planilla", anio, mes],
     queryFn: async () => {
       const { data, error } = await supabase.from("planillas").select("*").eq("anio", anio).eq("mes", mes).maybeSingle();
@@ -123,7 +125,7 @@ function Nomina() {
       return data as Planilla | null;
     },
   });
-  const { data: boletas = [] } = useQuery({
+  const { data: boletas = [], isFetched: boletasListas } = useQuery({
     queryKey: ["boletas", planilla?.id],
     enabled: !!planilla,
     queryFn: async () => {
@@ -168,7 +170,10 @@ function Nomina() {
     },
   });
 
-  const enPlanilla = trabajadores.filter((t) => t.tipo_contratacion !== "Honorarios" && t.activo);
+  const esStaff = (t: Trabajador) => clasificacionDeCargo(t.cargo, cargos) === "Indirecto";
+  const claveMes = `${anio}-${String(mes).padStart(2, "0")}`;
+  // Activos, más el Staff que cesó dentro del mes (cobra hasta su fecha de cese).
+  const enPlanilla = trabajadores.filter((t) => t.tipo_contratacion !== "Honorarios" && (t.activo || (esStaff(t) && t.fecha_cese?.slice(0, 7) === claveMes)));
   const tDe = (id: string) => trabajadores.find((t) => t.id === id);
   const cerrada = planilla?.estado === "Cerrada";
   const periodo = `${MESES[mes - 1]} ${anio}`;
@@ -179,15 +184,16 @@ function Nomina() {
 
   /** Días y horas extra del trabajador según el tareo del período (todas las obras). */
   const datosTareo = (t: Trabajador) => {
+    if (esStaff(t)) return { dias_laborados: diasStaffMes(t.fecha_ingreso, t.fecha_cese, anio, mes), horas_extra: 0, conTareo: true, dias_motivo: motivoDiasStaff(t.fecha_ingreso, t.fecha_cese, anio, mes) };
     const r = resumenTareoHonorario(tareos, t.id, "", mes, anio, 0);
-    if (!r.filas) return { dias_laborados: 30, horas_extra: 0, conTareo: false };
+    if (!r.filas) return { dias_laborados: 30, horas_extra: 0, conTareo: false, dias_motivo: null as string | null };
     const dias = Math.min(30, r.dias + r.viaje + r.feriados + r.induccion);
     // Horas extra valorizadas: hora = sueldo/240, recargo legal 25%.
     const horas_extra = r2(r.extras * (Number(t.sueldo_mensual) / 240) * 1.25);
-    return { dias_laborados: dias, horas_extra, conTareo: true };
+    return { dias_laborados: dias, horas_extra, conTareo: true, dias_motivo: null as string | null };
   };
 
-  async function generar() {
+  async function generar(soloStaff = false) {
     setError("");
     const sinSueldo = enPlanilla.filter((t) => !(Number(t.sueldo_mensual) > 0));
     if (enPlanilla.length === 0) return setError("No hay personal activo en Planilla.");
@@ -201,12 +207,13 @@ function Nomina() {
     const planillaId = p.id;
     const existentes = new Set(boletas.map((b) => b.trabajador_id));
     const nuevas = enPlanilla
-      .filter((t) => !existentes.has(t.id) && Number(t.sueldo_mensual) > 0)
+      .filter((t) => !existentes.has(t.id) && Number(t.sueldo_mensual) > 0 && (!soloStaff || esStaff(t)) && !(esStaff(t) && datosTareo(t).dias_laborados === 0))
       .map((t) => {
         const dt = datosTareo(t);
         return {
           planilla_id: planillaId,
           trabajador_id: t.id,
+          dias_motivo: dt.dias_motivo,
           ...calcConQuinta(t, { dias_laborados: dt.dias_laborados, horas_extra: dt.horas_extra, otros_ingresos: 0, renta_quinta: 0, otros_descuentos: 0 }, false),
         };
       });
@@ -220,7 +227,7 @@ function Nomina() {
       const t = tDe(b.trabajador_id);
       if (!t) continue;
       const dt = datosTareo(t);
-      if (!dt.conTareo) continue;
+      if (!dt.conTareo || (esStaff(t) && b.dias_motivo === MOTIVO_MANUAL)) continue;
       if (dt.dias_laborados === Number(b.dias_laborados) && dt.horas_extra === Number(b.horas_extra)) continue;
       const calc = calcConQuinta(t, {
         dias_laborados: dt.dias_laborados,
@@ -237,6 +244,17 @@ function Nomina() {
     await refrescar();
   }
 
+  // Genera automáticamente, una vez por mes y sesión, las boletas del Staff que falten.
+  const [autoHecho, setAutoHecho] = useState("");
+  useEffect(() => {
+    if (!esGestor || cerrada || !personalListo || !cargosListos || autoHecho === claveMes) return;
+    if (!planillaLista || (planilla && !boletasListas)) return;
+    const faltan = enPlanilla.some((t) => esStaff(t) && Number(t.sueldo_mensual) > 0 && datosTareo(t).dias_laborados > 0 && !boletas.some((b) => b.trabajador_id === t.id));
+    setAutoHecho(claveMes);
+    if (faltan) void generar(true);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [esGestor, cerrada, personalListo, cargosListos, claveMes, planillaLista, boletasListas, planilla?.id, boletas.length]);
+
   // Recalcula únicamente boletas pendientes; no crea filas ni modifica las validadas.
   useEffect(() => {
     if (!puedeVerDinero(rol) || !planilla || cerrada || !personalListo || !tareoListo) return;
@@ -249,6 +267,7 @@ function Nomina() {
         const t = tDe(b.trabajador_id);
         if (!t) continue;
         const dt = datosTareo(t);
+        if (esStaff(t) && b.dias_motivo === MOTIVO_MANUAL) dt.dias_laborados = Number(b.dias_laborados);
         const calc = calcConQuinta(t, { dias_laborados: dt.dias_laborados, horas_extra: dt.horas_extra, otros_ingresos: Number(b.otros_ingresos), renta_quinta: Number(b.renta_quinta), otros_descuentos: Number(b.otros_descuentos) }, !!b.renta_quinta_manual);
         const difiere = Object.entries(calc).some(([campo, valor]) => String(b[campo as keyof Boleta]) !== String(valor));
         if (!difiere) continue;
@@ -279,7 +298,8 @@ function Nomina() {
     const manual = !!b.renta_quinta_manual || Number(valores.renta_quinta) !== Number(b.renta_quinta);
     const calc = calcConQuinta(t, valores, manual);
     if (calc.neto_pagar < 0) return false;
-    const { error: err } = await supabase.from("boletas").update({ ...calc, renta_quinta_manual: manual }).eq("id", b.id).eq("estado_pago", "Pendiente");
+    const diasMotivo = Number(valores.dias_laborados) !== Number(b.dias_laborados) ? MOTIVO_MANUAL : b.dias_motivo ?? null;
+    const { error: err } = await supabase.from("boletas").update({ ...calc, renta_quinta_manual: manual, dias_motivo: diasMotivo }).eq("id", b.id).eq("estado_pago", "Pendiente");
     if (err) { setError(err.message); return false; }
     await refrescar();
     return true;
@@ -329,7 +349,7 @@ function Nomina() {
           pestana === "planilla" && (
             <div className="flex gap-2">
               {!cerrada && (
-                <Boton variante="linea" onClick={generar}><Wand2 size={13} /> Generar boletas de pago</Boton>
+                <Boton variante="linea" onClick={() => generar()}><Wand2 size={13} /> Generar boletas de pago</Boton>
               )}
               {boletas.length > 0 && (
               <Boton
@@ -505,7 +525,7 @@ function Nomina() {
           <div className="flex flex-col items-center gap-3 py-2">
             <Vacio texto="Aún no se ha generado la planilla de este mes." />
             {!cerrada && (
-              <Boton variante="linea" onClick={generar}><Wand2 size={13} /> Generar boletas de pago</Boton>
+              <Boton variante="linea" onClick={() => generar()}><Wand2 size={13} /> Generar boletas de pago</Boton>
             )}
           </div>
         ) : (

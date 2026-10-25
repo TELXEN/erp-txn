@@ -280,6 +280,7 @@ export type Database = {
           banco_id: string | null
           created_at: string
           dias_laborados: number
+          dias_motivo: string | null
           essalud: number
           estado_pago: string
           fecha_pago: string | null
@@ -306,6 +307,7 @@ export type Database = {
           banco_id?: string | null
           created_at?: string
           dias_laborados?: number
+          dias_motivo?: string | null
           essalud?: number
           estado_pago?: string
           fecha_pago?: string | null
@@ -332,6 +334,7 @@ export type Database = {
           banco_id?: string | null
           created_at?: string
           dias_laborados?: number
+          dias_motivo?: string | null
           essalud?: number
           estado_pago?: string
           fecha_pago?: string | null

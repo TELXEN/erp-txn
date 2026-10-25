@@ -1,0 +1,1 @@
+ALTER TABLE public.boletas ADD COLUMN IF NOT EXISTS dias_motivo text;
