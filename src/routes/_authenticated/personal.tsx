@@ -7,7 +7,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { Fragment, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Check, Pencil, Plus, Stethoscope, Trash2, Upload, Users, X, UserRound, Briefcase, Wallet, Landmark, Search } from "lucide-react";
+import { Check, Pencil, Plus, Stethoscope, Trash2, Upload, Users, X, UserRound, Briefcase, Wallet, Landmark, Search, UserPlus, Undo2 } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { consultarDocumentoSunat } from "@/lib/decolecta.functions";
 import { EmoPanel } from "@/components/personal/EmoPanel";
@@ -649,7 +649,17 @@ function Personal() {
             </table>
           </div>
         )}
-      </Panel><BarraIconosHoja objeto="trabajador" filtros={<MenuFiltros activos={busqueda ? 1 : 0} onLimpiar={() => setBusqueda("")}><Buscador valor={busqueda} onChange={setBusqueda} total={trabajadoresFiltrados.length} placeholder="Buscar por nombre, DNI o cargo..." /></MenuFiltros>} haySeleccion={!!trabajadoresFiltrados.find((t) => t.id === sel)} onEditar={() => { const t = trabajadoresFiltrados.find((t) => t.id === sel); if (t) iniciarEdicion(t); }} onEliminar={() => { if (trabajadoresFiltrados.some((t) => t.id === sel)) void eliminar(sel); }} extras={editando && <><BotonIcono etiqueta="Guardar" onClick={actualizar}><Check size={15} /></BotonIcono><BotonIcono etiqueta="Cancelar" onClick={() => setEditando(null)}><X size={15} /></BotonIcono></>} /></div>
+      </Panel><BarraIconosHoja objeto="trabajador" filtros={<MenuFiltros activos={(busqueda ? 1 : 0) + (estadoVista !== "activos" ? 1 : 0)} onLimpiar={() => { setBusqueda(""); setEstadoVista("activos"); }}><Buscador valor={busqueda} onChange={setBusqueda} total={trabajadoresFiltrados.length} placeholder="Buscar por nombre, DNI o cargo..." /><Campo etiqueta="Estado"><Select value={estadoVista} onChange={(e) => setEstadoVista(e.target.value as "activos")} className="py-1.5"><option value="activos">Activos</option><option value="cesados">Cesados</option><option value="todos">Todos</option></Select></Campo></MenuFiltros>} haySeleccion={!!trabajadoresFiltrados.find((t) => t.id === sel)} onEditar={() => { const t = trabajadoresFiltrados.find((t) => t.id === sel); if (t) iniciarEdicion(t); }} onEliminar={() => { if (trabajadoresFiltrados.some((t) => t.id === sel)) void eliminar(sel); }} extras={<>{editando && <><BotonIcono etiqueta="Guardar" onClick={actualizar}><Check size={15} /></BotonIcono><BotonIcono etiqueta="Cancelar" onClick={() => setEditando(null)}><X size={15} /></BotonIcono></>}{selCesado && !editando && <><BotonIcono etiqueta="Reingresar" tono="primario" onClick={() => setReingreso({ id: selCesado.id, nombre: selCesado.nombre, fecha: "", cargo: selCesado.cargo ?? "", sueldo: String(selCesado.sueldo_mensual ?? ""), cese: selCesado.fecha_cese ?? "" })}><UserPlus size={15} /></BotonIcono>{rol === "gerente" && <BotonIcono etiqueta="Anular cese" onClick={() => void anularCese(selCesado.id, selCesado.nombre)}><Undo2 size={15} /></BotonIcono>}</>}</>} /></div>
+      <VentanaFlotante abierta={!!reingreso} onCerrar={() => setReingreso(null)} titulo={`Reingresar — ${reingreso?.nombre ?? ""}`} className="max-w-md">
+        {reingreso && <div className="grid gap-3 p-4">
+          <p className="text-xs text-muted-foreground">Se abre un nuevo vínculo laboral. CTS, gratificación y liquidación se calcularán desde la nueva fecha; lo pagado antes queda en su historial.</p>
+          <Campo etiqueta={`Nueva fecha de ingreso${reingreso.cese ? ` (posterior al ${reingreso.cese.split("-").reverse().join("/")})` : ""}`}><Input type="date" min={reingreso.cese || undefined} value={reingreso.fecha} onChange={(e) => setReingreso({ ...reingreso, fecha: e.target.value })} /></Campo>
+          <Campo etiqueta="Cargo"><Select value={reingreso.cargo} onChange={(e) => setReingreso({ ...reingreso, cargo: e.target.value })}>{cargosActivos.map((c) => <option key={c.id} value={c.nombre}>{c.nombre}</option>)}</Select></Campo>
+          <Campo etiqueta="Sueldo mensual"><Input inputMode="decimal" value={reingreso.sueldo} onChange={(e) => setReingreso({ ...reingreso, sueldo: e.target.value })} /></Campo>
+          {error && <p className="text-xs text-bad">{error}</p>}
+          <div className="flex justify-end gap-2"><Boton variante="linea" onClick={() => setReingreso(null)}>Cancelar</Boton><Boton onClick={confirmarReingreso} disabled={!reingreso.fecha || (!!reingreso.cese && reingreso.fecha <= reingreso.cese)}>Reingresar</Boton></div>
+        </div>}
+      </VentanaFlotante>
       </>}
     </>
   );
