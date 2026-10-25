@@ -39,9 +39,9 @@ function Hoja({ r, t, banco }: { r: RegistroCts; t?: Trabajador | undefined; ban
       <Fila n="Desde – hasta" v={`${fecha(r.fecha_desde)} – ${fecha(r.fecha_hasta)}`} /><Fila n="Tiempo computable" v={`${r.meses} meses ${r.dias} días`} />
     </section>
     <section className="mb-3 border border-line">{grupo("Remuneración computable")}
-      {d.sueldo !== undefined && <Fila n="Remuneración básica" v={soles(d.sueldo)} />}
-      {d.asignacion_familiar !== undefined && <Fila n="Asignación familiar" v={soles(d.asignacion_familiar)} />}
-      <Fila n="1/6 de gratificación" v={soles(Number(d.sexto_gratificacion ?? 0))} />
+      {d["sueldo"] !== undefined && <Fila n="Remuneración básica" v={soles(d["sueldo"])} />}
+      {d["asignacion_familiar"] !== undefined && <Fila n="Asignación familiar" v={soles(d["asignacion_familiar"])} />}
+      <Fila n="1/6 de gratificación" v={soles(Number(d["sexto_gratificacion"] ?? 0))} />
       <Fila n="Total remuneración computable" v={soles(rc)} />
     </section>
     <section className="mb-3 border border-line">{grupo("Cálculo")}

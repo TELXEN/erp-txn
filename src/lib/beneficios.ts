@@ -95,7 +95,7 @@ export function calcLiquidacion(t: TrabajadorBeneficio, cese: string) {
       gratificacion_trunca: grat.monto, grat_meses: grat.meses,
       bonificacion_extraordinaria: grat.bonificacion,
       vacaciones_truncas: vac, vac_meses: v.meses, vac_dias: v.dias,
-    } as Record<string, number>,
+    },
   };
 }
 
