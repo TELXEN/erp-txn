@@ -1,5 +1,6 @@
 import { recalcularPendientes } from "@/lib/beneficios";
 import { anioVigencia, estadoSuspension } from "@/lib/suspension-cuarta";
+import { errorRegimenTrabajador, regimenVigente, useRegimenesEmpresa } from "@/lib/regimen-empresa";
 import { useRecordado } from "@/lib/recordado";
 import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { BotonIcono } from "@/components/ui-kit";
@@ -103,6 +104,7 @@ type FormPersonal = {
   fecha_ingreso: string;
   sueldo_mensual: string;
   asignacion_familiar: boolean;
+  agrario_prorrateado: boolean;
   suspension_cuarta: boolean;
   suspension_cuarta_fecha: string;
   suspension_cuarta_anio: string;
@@ -126,6 +128,7 @@ const FORM_INICIAL: FormPersonal = {
   fecha_ingreso: "",
   sueldo_mensual: "",
   asignacion_familiar: false,
+  agrario_prorrateado: false,
   suspension_cuarta: false,
   suspension_cuarta_fecha: "",
   suspension_cuarta_anio: "",
@@ -153,6 +156,8 @@ function Personal() {
   const qc = useQueryClient();
   const { data: trabajadores = [] } = useTrabajadores();
   const { data: cargos = [] } = useCargos();
+  const { data: regimenesEmpresa = [] } = useRegimenesEmpresa();
+  const regimenOk = (f: FormPersonal) => f.tipo_contratacion === "Planilla" ? errorRegimenTrabajador(regimenesEmpresa, f.fecha_ingreso || null, f.regimen_laboral) ?? "" : "";
   const cargosActivos = cargos.filter((c) => c.activo);
   const clasifDe = (nombre: string) => clasificacionDeCargo(nombre, cargos);
   const [sel, setSel] = useState("");
@@ -233,6 +238,7 @@ function Personal() {
       fecha_ingreso: datos.fecha_ingreso || null,
       sueldo_mensual: Number(datos.sueldo_mensual || 0),
       asignacion_familiar: planilla && datos.asignacion_familiar,
+      agrario_prorrateado: planilla && datos.regimen_laboral === "Agrario" && datos.agrario_prorrateado,
       suspension_cuarta: !planilla && datos.suspension_cuarta,
       suspension_cuarta_fecha: !planilla && datos.suspension_cuarta ? datos.suspension_cuarta_fecha || null : null,
       suspension_cuarta_anio: !planilla && datos.suspension_cuarta ? anio : null,
@@ -245,7 +251,7 @@ function Personal() {
     if (guardandoRef.current || consultando) return;
     setError("");
     setRegistrado("");
-    const mensaje = dniDuplicado ? "Ya existe un trabajador con ese DNI." : validar(form);
+    const mensaje = dniDuplicado ? "Ya existe un trabajador con ese DNI." : validar(form) || regimenOk(form);
     if (mensaje) { cerrarTrasGuardar.current = false; setError(mensaje); return; }
     const cerrar = cerrarTrasGuardar.current;
     let guardado = false;
@@ -291,6 +297,7 @@ function Personal() {
         fecha_ingreso: trabajador.fecha_ingreso ?? "",
         sueldo_mensual: String(trabajador.sueldo_mensual ?? 0),
         asignacion_familiar: !!trabajador.asignacion_familiar,
+        agrario_prorrateado: !!trabajador.agrario_prorrateado,
         suspension_cuarta: !!trabajador.suspension_cuarta,
         suspension_cuarta_fecha: trabajador.suspension_cuarta_fecha ?? "",
         suspension_cuarta_anio: trabajador.suspension_cuarta_anio
@@ -350,6 +357,10 @@ function Personal() {
         <CampoF etiqueta="Fecha de ingreso">
           <FechaPeru valor={f.fecha_ingreso} onChange={(v) => set("fecha_ingreso", v)} />
         </CampoF>
+        {planilla && f.fecha_ingreso && (() => { const err = errorRegimenTrabajador(regimenesEmpresa, f.fecha_ingreso, f.regimen_laboral); return <p className={`col-span-full text-[11px] ${err ? "text-bad" : "text-muted-foreground"}`}>{err ?? `Régimen de la empresa al ingreso: ${regimenVigente(regimenesEmpresa, f.fecha_ingreso)}.`}</p>; })()}
+        {planilla && f.regimen_laboral === "Agrario" && (
+          <label className="col-span-full flex items-center gap-2 text-xs"><input type="checkbox" checked={f.agrario_prorrateado} onChange={(e) => set("agrario_prorrateado", e.target.checked)} /> Gratificación y CTS prorrateadas en el jornal (Ley 31110)</label>
+        )}
       </>
     );
   };
@@ -430,7 +441,7 @@ function Personal() {
     e?.preventDefault();
     if (!editando) return;
     setError("");
-    const mensaje = validar(editando.datos);
+    const mensaje = validar(editando.datos) || regimenOk(editando.datos);
     if (mensaje) return setError(mensaje);
     const previo = trabajadores.find((t) => t.id === editando.id);
     const datos = datosGuardar(editando.datos, previo);
@@ -580,7 +591,7 @@ function Personal() {
         extra={
           <div className="flex items-center gap-2">
             <span className="font-mono text-[11px] text-muted-foreground">{trabajadores.length} trabajadores</span>
-             <Boton variante="accion" onClick={() => { setRegistrado(""); setMsgReniec(""); setError(""); cerrarTrasGuardar.current = false; setFormAbierto(true); }}><Plus size={13} /> Nuevo trabajador</Boton>
+             <Boton variante="accion" onClick={() => { setRegistrado(""); setMsgReniec(""); setError(""); cerrarTrasGuardar.current = false; setForm({ ...FORM_INICIAL, regimen_laboral: regimenVigente(regimenesEmpresa, hoy()) }); setFormAbierto(true); }}><Plus size={13} /> Nuevo trabajador</Boton>
           </div>
         }>
         {error && <p className="border-b border-line px-5 py-2 font-mono text-xs text-bad">{error}</p>}
