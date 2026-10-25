@@ -11,7 +11,7 @@ import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha, hoy, soles } from "@/lib/format";
 import { type Trabajador, useTrabajadores } from "@/lib/datos";
 import { exportarExcel } from "@/lib/exportar";
-import { calcCts, calcGrat, calcLiquidacion, periodoCts, periodoCtsAnterior, periodoGrat, type TipoBeneficio } from "@/lib/beneficios";
+import { calcCts, calcGrat, calcLiquidacion, filasRegularizacionCts, periodoCts, periodoCtsAnterior, periodoGrat, type TipoBeneficio } from "@/lib/beneficios";
 import { HojaCts } from "@/components/personal/HojaCts";
 
 export const Route = createFileRoute("/_authenticated/beneficios")({
@@ -50,7 +50,8 @@ function Beneficios() {
   const [liq, setLiq] = useState({ trabajador_id: "", fecha_cese: hoy() });
   const [pago, setPago] = useState<{ id: string; banco_id: string; fecha_pago: string; numero_operacion: string } | null>(null);
   const [error, setError] = useState("");
-  const [hoja, setHoja] = useState<Beneficio | null>(null);
+  const [hojas, setHojas] = useState<Beneficio[]>([]);
+  const [regularizando, setRegularizando] = useState(false);
   const [omitirReg, setOmitirReg] = useState("");
 
   const { data: registros = [] } = useQuery({
@@ -74,7 +75,7 @@ function Beneficios() {
 
   const ant = periodo === "Noviembre" ? { anio, periodo: "Mayo" } : { anio: anio - 1, periodo: "Noviembre" };
   const { data: previos } = useQuery({
-    queryKey: ["beneficios", "CTS", ant.anio, ant.periodo],
+    queryKey: ["beneficios", "previos", "CTS", ant.anio, ant.periodo],
     enabled: tipo === "CTS",
     queryFn: async () => {
       const { data, error } = await supabase.from("beneficios_sociales").select("trabajador_id, estado_pago").eq("tipo", "CTS").eq("anio", ant.anio).eq("periodo", ant.periodo);
@@ -84,7 +85,7 @@ function Beneficios() {
   });
   const claveReg = `${anio}-${periodo}`;
   const faltantes = tipo !== "CTS" || !previos || omitirReg === claveReg ? [] : trabajadores
-    .filter((t) => t.tipo_contratacion !== "Honorarios" && t.activo && !previos.some((x) => x.trabajador_id === t.id) && periodoCtsAnterior(t, anio, periodo))
+    .filter((t) => t.tipo_contratacion !== "Honorarios" && t.activo && !previos.some((x) => x.trabajador_id === t.id && x.estado_pago === "Pagado") && periodoCtsAnterior(t, anio, periodo))
     .map((t) => ({ t, ...ant }));
   const setFaltantes = (_: unknown[]) => setOmitirReg(claveReg);
 
@@ -125,15 +126,27 @@ function Beneficios() {
   }
 
   async function regularizar() {
-    const filas = faltantes.map(({ t }) => {
-      const a = periodoCtsAnterior(t, anio, periodo)!;
-      return { ...a, tipo: "CTS", trabajador_id: t.id, regularizacion: true };
-    });
-    const { error: err } = await supabase.from("beneficios_sociales").upsert(filas, { onConflict: "tipo,anio,periodo,trabajador_id" });
-    if (err) return setError(err.message);
-    setFaltantes([]);
-    await refrescar();
-    setError(`Regularización registrada en CTS ${filas[0]?.periodo} ${filas[0]?.anio}. Págala desde ese periodo.`);
+    if (regularizando || !faltantes.length) return;
+    setRegularizando(true);
+    setError("");
+    try {
+      const ids = faltantes.map(({ t }) => t.id);
+      const { data: existentes, error: lecturaError } = await supabase.from("beneficios_sociales").select("trabajador_id,anio,periodo").eq("tipo", "CTS").in("trabajador_id", ids).in("anio", [anio, ant.anio]);
+      if (lecturaError) throw lecturaError;
+      const filas = faltantes.flatMap(({ t }) => filasRegularizacionCts(t, anio, periodo, existentes ?? []));
+      if (filas.length) {
+        const { error: err } = await supabase.from("beneficios_sociales").upsert(filas, { onConflict: "tipo,anio,periodo,trabajador_id", ignoreDuplicates: true });
+        if (err) throw err;
+      }
+      const { data: guardadas, error: hojasError } = await supabase.from("beneficios_sociales").select("*").eq("tipo", "CTS").in("trabajador_id", ids).in("anio", [anio, ant.anio]);
+      if (hojasError) throw hojasError;
+      const ambas = (guardadas ?? []).filter((r) => (r.anio === anio && r.periodo === periodo) || (r.anio === ant.anio && r.periodo === ant.periodo));
+      setHojas((ambas as unknown as Beneficio[]).sort((a, b) => a.trabajador_id.localeCompare(b.trabajador_id) || a.fecha_hasta.localeCompare(b.fecha_hasta)));
+      setFaltantes([]);
+      await refrescar();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "No se pudo completar la regularización. Inténtalo nuevamente.");
+    } finally { setRegularizando(false); }
   }
 
   const tLiq = tDe(liq.trabajador_id);
@@ -278,11 +291,11 @@ function Beneficios() {
       {faltantes.length > 0 && (
         <div role="alert" className="mb-4 flex flex-wrap items-center gap-3 rounded-md border border-warn/40 bg-warn/10 p-3 text-xs">
           <p className="min-w-0 flex-1">
-            {faltantes.map((f) => f.t.nombre).join(", ")} no {faltantes.length > 1 ? "tienen" : "tiene"} depositada la CTS de {faltantes[0]!.periodo.toLowerCase()} {faltantes[0]!.anio}.
+            {faltantes.map((f) => f.t.nombre).join(", ")} no {faltantes.length > 1 ? "tienen" : "tiene"} depositada la CTS de {faltantes[0]?.periodo.toLowerCase()} {faltantes[0]?.anio}.
             <span className="block text-[11px] text-muted-foreground">Un depósito fuera de plazo puede generar intereses según la ley; el sistema no los calcula.</span>
           </p>
-          <Boton onClick={regularizar}>Regularizar</Boton>
-          <Boton variante="linea" onClick={() => setFaltantes([])}>Omitir</Boton>
+          <Boton onClick={regularizar} disabled={regularizando}>{regularizando ? "Generando boletas…" : "Regularizar"}</Boton>
+          <Boton variante="linea" disabled={regularizando} onClick={() => setFaltantes([])}>Omitir</Boton>
         </div>
       )}
 
@@ -363,12 +376,12 @@ function Beneficios() {
                               {r.estado_pago === "Pendiente" && (
                                 <BotonIcono etiqueta={tipo === "CTS" ? "Registrar depósito" : "Registrar pago"} onClick={() => setPago({ id: r.id, banco_id: "", fecha_pago: hoy(), numero_operacion: "" })}><Check size={15} /></BotonIcono>
                               )}
-                              {tipo === "CTS" && <BotonIcono etiqueta="Hoja de liquidación CTS" onClick={() => setHoja(r)}><FileText size={15} /></BotonIcono>}
+                              {tipo === "CTS" && <BotonIcono etiqueta="Hoja de liquidación CTS" onClick={() => setHojas([r])}><FileText size={15} /></BotonIcono>}
                               <BotonIcono etiqueta="Eliminar" onClick={() => eliminar(r)}><Trash2 size={15} /></BotonIcono>
                             </>
                           )}
                         </div></div>)} /></div>
-      {hoja && (() => { const b = bancos.find((x) => x.id === hoja.banco_id); return <HojaCts registro={hoja} trabajador={tDe(hoja.trabajador_id)} banco={b ? `${b.nombre} · ${b.numero_cuenta}` : undefined} onCerrar={() => setHoja(null)} />; })()}
+      {hojas.length > 0 && <HojaCts boletas={hojas.map((r) => { const b = bancos.find((x) => x.id === r.banco_id); return { registro: r, trabajador: tDe(r.trabajador_id), banco: b ? `${b.nombre} · ${b.numero_cuenta}` : undefined }; })} onCerrar={() => setHojas([])} />}
     </>
   );
 }
