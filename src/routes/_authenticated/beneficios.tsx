@@ -12,7 +12,7 @@ import { fecha, hoy, soles } from "@/lib/format";
 import { type Trabajador, useTrabajadores } from "@/lib/datos";
 import { exportarExcel } from "@/lib/exportar";
 import { agruparBoletasPorTrabajador, calcCts, calcGrat, calcLiquidacion, filasRegularizacionCts, periodoCts, periodoCtsAnterior, periodoGrat, type TipoBeneficio } from "@/lib/beneficios";
-import { HojaCts } from "@/components/personal/HojaCts";
+import { HojaCts, HojaGratificacion } from "@/components/personal/HojaCts";
 
 export const Route = createFileRoute("/_authenticated/beneficios")({
   head: () => ({
@@ -384,11 +384,12 @@ function Beneficios() {
                                 <BotonIcono etiqueta={tipo === "CTS" ? "Registrar depósito" : "Registrar pago"} onClick={() => setPago({ id: r.id, banco_id: "", fecha_pago: hoy(), numero_operacion: "" })}><Check size={15} /></BotonIcono>
                               )}
                               {tipo === "CTS" && <BotonIcono etiqueta="Hoja de liquidación CTS" onClick={() => setHojas([r])}><FileText size={15} /></BotonIcono>}
+                              {tipo === "Gratificación" && <BotonIcono etiqueta="Boleta de gratificación" onClick={() => setHojas([r])}><FileText size={15} /></BotonIcono>}
                               <BotonIcono etiqueta="Eliminar" onClick={() => eliminar(r)}><Trash2 size={15} /></BotonIcono>
                             </>
                           )}
                         </div></div>)} /></div>
-      {hojas.length > 0 && <HojaCts boletas={hojas.map((r) => { const b = bancos.find((x) => x.id === r.banco_id); return { registro: r, trabajador: tDe(r.trabajador_id), banco: b ? `${b.nombre} · ${b.numero_cuenta}` : undefined }; })} onCerrar={() => setHojas([])} />}
+      {hojas.length > 0 && (() => { const HojaBeneficio = hojas[0]?.tipo === "Gratificación" ? HojaGratificacion : HojaCts; return <HojaBeneficio boletas={hojas.map((r) => { const b = bancos.find((x) => x.id === r.banco_id); return { registro: r, trabajador: tDe(r.trabajador_id), banco: b ? `${b.nombre} · ${b.numero_cuenta}` : undefined }; })} onCerrar={() => setHojas([])} />; })()}
     </>
   );
 }

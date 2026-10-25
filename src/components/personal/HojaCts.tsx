@@ -13,7 +13,7 @@ import type { Trabajador } from "@/lib/datos";
 
 export type RegistroCts = {
   periodo: string; anio: number; fecha_desde: string; fecha_hasta: string; meses: number; dias: number;
-  remuneracion_computable: number; monto: number; total: number; detalle: Record<string, number>;
+  remuneracion_computable: number; monto: number; total: number; bonificacion?: number; detalle: Record<string, number>;
   estado_pago: string; fecha_pago: string | null; numero_operacion: string; banco_id?: string | null; regularizacion?: boolean;
 };
 type BoletaCts = { registro: RegistroCts; trabajador?: Trabajador | undefined; banco?: string | undefined };
@@ -27,16 +27,19 @@ function Fila({ n, v }: { n: string; v: string }) {
 const grupo = (titulo: string) => <h2 className="border-b border-line px-2 py-1 text-center text-[9px] leading-tight font-bold uppercase text-paper" style={{ background: DOC.dark }}>{titulo}</h2>;
 const cabecera = (titulo: string) => <>{grupo(titulo)}<div className="flex justify-between border-b border-line bg-muted/35 px-2 py-0.5 text-[8px] font-bold uppercase"><span>Concepto</span><span>Monto</span></div></>;
 
-function Hoja({ registro: r, trabajador: t, banco }: BoletaCts) {
+function Hoja({ registro: r, trabajador: t, banco, gratificacion = false }: BoletaCts & { gratificacion?: boolean }) {
   const { fuente } = useFuenteDocumento();
   const { data: empresa } = useEmpresa();
   const d = r.detalle ?? {};
   const rc = Number(r.remuneracion_computable);
-  const factor = factores(t?.regimen_laboral ?? "General").cts;
+  const factor = gratificacion ? Number(d["factor_regimen"] ?? factores(t?.regimen_laboral ?? "General").grat) : factores(t?.regimen_laboral ?? "General").cts;
+  const bonificacion = Number(r.bonificacion ?? 0);
+  const tasa = Number(d["tasa_bonificacion"] ?? (Number(r.monto) > 0 ? bonificacion / Number(r.monto) : 0));
+  const nombre = gratificacion ? "Gratificación" : "CTS";
   return <article className="honorario-print-sheet mx-auto w-[184mm] max-w-full border border-line bg-paper p-5 text-ink shadow-sm print:break-inside-avoid print:break-after-page print:last:break-after-auto" style={{ fontFamily: fuente.css }}>
     <header className="mb-3 flex items-center justify-between gap-4 border-b-2 border-primary pb-3">
       <LogoEmpresa empresa={empresa} className="w-[150px]" imgClassName="h-12 w-24 object-contain" iconSize={30} />
-      <div className="shrink-0 text-center"><h1 className="text-lg font-bold uppercase">Boleta de pago CTS</h1><p className="text-[8px] font-semibold uppercase text-muted-foreground">Compensación por tiempo de servicios</p><p className="mt-1 text-[10px]">{r.periodo} {r.anio}{r.regularizacion ? " · Regularización" : ""}</p></div>
+      <div className="min-w-0 text-center"><h1 className={`font-bold uppercase ${gratificacion ? "text-base" : "text-lg"}`}>Boleta de pago {nombre}</h1><p className="text-[8px] font-semibold uppercase text-muted-foreground">{gratificacion ? "Liquidación de gratificación legal" : "Compensación por tiempo de servicios"}</p><p className="mt-1 text-[10px]">{r.periodo} {r.anio}{r.regularizacion ? " · Regularización" : ""}</p></div>
     </header>
     <section className="mb-3 border border-line">
       {grupo("Datos de la empresa")}
@@ -52,38 +55,53 @@ function Hoja({ registro: r, trabajador: t, banco }: BoletaCts) {
       <section className="border-r border-line">{cabecera("Remuneración computable")}
         <Fila n="Sueldo básico" v={d["sueldo"] !== undefined ? soles(d["sueldo"]) : "—"} />
         <Fila n="Asignación familiar" v={d["asignacion_familiar"] !== undefined ? soles(d["asignacion_familiar"]) : "—"} />
-        <Fila n="1/6 de gratificación" v={soles(Number(d["sexto_gratificacion"] ?? 0))} />
+        {gratificacion ? <Fila n="Base registrada para el cálculo" v={soles(rc)} /> : <Fila n="1/6 de gratificación" v={soles(Number(d["sexto_gratificacion"] ?? 0))} />}
       </section>
-      <section>{cabecera("Cálculo de CTS")}
+      <section>{cabecera(`Cálculo de ${nombre}`)}
+        {gratificacion ? <>
+          <Fila n={`R.C. / 6 × ${r.meses} meses × ${factor.toFixed(2)}`} v={soles(Number(r.monto))} />
+          <Fila n={`Bonificación extraordinaria (${(tasa * 100).toFixed(2)} %)`} v={soles(bonificacion)} />
+          <Fila n="Factor del régimen" v={`${(factor * 100).toFixed(2)} %`} />
+        </> : <>
         <Fila n={`Por meses: R.C. / 12 × ${r.meses}`} v={soles(rc / 12 * r.meses * factor)} />
         <Fila n={`Por días: R.C. / 360 × ${r.dias}`} v={soles(rc / 360 * r.dias * factor)} />
         <Fila n="Factor del régimen" v={`${(factor * 100).toFixed(2)} %`} />
+        </>}
       </section>
       <div className="border-r border-t border-line bg-muted/35 font-bold"><Fila n="Total remuneración computable" v={soles(rc)} /></div>
-      <div className="border-t border-line bg-muted/35 font-bold"><Fila n="Total CTS" v={soles(Number(r.total))} /></div>
+      <div className="border-t border-line bg-muted/35 font-bold"><Fila n={`Total ${nombre}`} v={soles(Number(r.total))} /></div>
     </div>
-    <div className="mt-3 flex justify-between border border-primary bg-primary/5 px-3 py-2 text-sm font-bold"><span>CTS A DEPOSITAR</span><span>{soles(Number(r.total))}</span></div>
+    {gratificacion && <p className="mt-2 text-[9px] text-muted-foreground">Remuneración computable ÷ 6 × meses computados × factor del régimen. Bonificación extraordinaria = gratificación × {(tasa * 100).toFixed(2)} %. Total = gratificación + bonificación.{d["sueldo"] === undefined ? " El registro histórico conserva la base total, sin desglose de sueldo y asignación familiar." : ""}</p>}
+    <div className="mt-3 flex justify-between border border-primary bg-primary/5 px-3 py-2 text-sm font-bold"><span>{gratificacion ? "GRATIFICACIÓN A PAGAR" : "CTS A DEPOSITAR"}</span><span>{soles(Number(r.total))}</span></div>
     <p className="mt-2 text-[9px] font-semibold">{montoEnLetras(Number(r.total), "PEN")}</p>
-    <section className="mt-3 border border-line">{grupo("Datos del depósito")}
+    <section className="mt-3 border border-line">{grupo(gratificacion ? "Datos del pago" : "Datos del depósito")}
       <Dato nombre="Entidad / cuenta" valor={banco} />
-      <div className="grid grid-cols-2 divide-x divide-line"><Dato nombre="Fecha de depósito" valor={fecha(r.fecha_pago)} /><Dato nombre="N° operación" valor={r.numero_operacion} /></div>
+      <div className="grid grid-cols-2 divide-x divide-line"><Dato nombre={gratificacion ? "Fecha de pago" : "Fecha de depósito"} valor={fecha(r.fecha_pago)} /><Dato nombre="N° operación" valor={r.numero_operacion} /></div>
       <Dato nombre="Estado" valor={r.estado_pago} sinLinea />
     </section>
     <div className="mt-12 grid grid-cols-2 gap-16 px-8 text-center text-[10px]"><div className="border-t border-line pt-2">Empleador</div><div className="border-t border-line pt-2">Trabajador</div></div>
   </article>;
 }
 
-export function HojaCts({ boletas, onCerrar }: { boletas: BoletaCts[]; onCerrar: () => void }) {
+function BoletasBeneficio({ boletas, onCerrar, gratificacion = false }: { boletas: BoletaCts[]; onCerrar: () => void; gratificacion?: boolean }) {
   const [montado, setMontado] = useState(false);
   const [indice, setIndice] = useState(0);
   useEffect(() => setMontado(true), []);
   const activa = boletas[indice];
-  return <VentanaFlotante titulo={boletas.length > 1 ? `Boletas de CTS (${boletas.length})` : "Boleta de pago CTS"} abierta onCerrar={onCerrar} ancho="max-w-[1100px]" ocultarBarra>
+  const nombre = gratificacion ? "gratificación" : "CTS";
+  return <VentanaFlotante titulo={boletas.length > 1 ? `Boletas de ${nombre} (${boletas.length})` : `Boleta de pago ${nombre}`} abierta onCerrar={onCerrar} ancho="max-w-[1100px]" ocultarBarra>
     <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line bg-muted/25 px-4 py-2.5">
-      {boletas.length > 1 ? <select aria-label="Boleta de CTS" value={indice} onChange={(e) => setIndice(Number(e.target.value))} className="min-w-0 max-w-full rounded border border-line bg-background px-2 py-1 text-xs">{boletas.map((b, i) => <option key={i} value={i}>{b.trabajador?.nombre} · {b.registro.periodo} {b.registro.anio}</option>)}</select> : <span className="text-xs text-muted-foreground">{activa?.registro.estado_pago}</span>}
+      {boletas.length > 1 ? <select aria-label={`Boleta de ${nombre}`} value={indice} onChange={(e) => setIndice(Number(e.target.value))} className="min-w-0 max-w-full rounded border border-line bg-background px-2 py-1 text-xs">{boletas.map((b, i) => <option key={i} value={i}>{b.trabajador?.nombre} · {b.registro.periodo} {b.registro.anio}</option>)}</select> : <span className="text-xs text-muted-foreground">{activa?.registro.estado_pago}</span>}
       <Boton variante="linea" onClick={() => window.print()}><Printer size={14} /> {boletas.length > 1 ? "Imprimir ambas / Guardar PDF" : "Imprimir / Guardar PDF"}</Boton>
     </div>
-    <div className="overflow-auto bg-muted/40 p-4">{activa && <Hoja {...activa} />}</div>
-    {montado && createPortal(<div className="honorario-print-root hidden print:block">{boletas.map((b, i) => <Hoja key={i} {...b} />)}</div>, document.body)}
+    <div className="overflow-auto bg-muted/40 p-4">{activa && <Hoja {...activa} gratificacion={gratificacion} />}</div>
+    {montado && createPortal(<div className="honorario-print-root hidden print:block">{boletas.map((b, i) => <Hoja key={i} {...b} gratificacion={gratificacion} />)}</div>, document.body)}
   </VentanaFlotante>;
+}
+
+export function HojaCts(props: { boletas: BoletaCts[]; onCerrar: () => void }) {
+  return <BoletasBeneficio {...props} />;
+}
+export function HojaGratificacion(props: { boletas: BoletaCts[]; onCerrar: () => void }) {
+  return <BoletasBeneficio {...props} gratificacion />;
 }
