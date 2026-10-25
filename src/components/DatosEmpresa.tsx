@@ -18,6 +18,10 @@ const vacio = {
   rubro: "",
   color_marca: "#1F6F54",
   logo_url: "",
+  gerente_nombre: "",
+  gerente_dni: "",
+  rrhh_nombre: "",
+  rrhh_dni: "",
 };
 
 export function DatosEmpresa() {
@@ -38,7 +42,7 @@ export function DatosEmpresa() {
       void id;
       void created_at;
       void updated_at;
-      setForm({ ...vacio, ...campos });
+      setForm({ ...vacio, ...Object.fromEntries(Object.entries(campos).map(([k, v]) => [k, v ?? ""])) } as typeof vacio);
     }
   }, [empresa]);
 
@@ -100,6 +104,19 @@ export function DatosEmpresa() {
               maxLength={160}
               placeholder="SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL"
             />
+          </Campo>
+          <p className="col-span-full mt-2 border-t border-line pt-3 text-xs font-semibold uppercase text-muted-foreground">Firmas de documentos laborales — firma RR. HH. si está registrado; si no, el Gerente General</p>
+          <Campo etiqueta="Gerente General — nombre">
+            <Input className="py-1.5" value={form.gerente_nombre} onChange={(e) => setForm({ ...form, gerente_nombre: e.target.value })} maxLength={120} placeholder="Apellidos y nombres" />
+          </Campo>
+          <Campo etiqueta="Gerente General — DNI">
+            <Input className="py-1.5" value={form.gerente_dni} onChange={(e) => setForm({ ...form, gerente_dni: e.target.value })} maxLength={12} placeholder="8 dígitos" />
+          </Campo>
+          <Campo etiqueta="Jefe de Recursos Humanos — nombre (opcional)">
+            <Input className="py-1.5" value={form.rrhh_nombre} onChange={(e) => setForm({ ...form, rrhh_nombre: e.target.value })} maxLength={120} placeholder="Apellidos y nombres" />
+          </Campo>
+          <Campo etiqueta="Jefe de Recursos Humanos — DNI">
+            <Input className="py-1.5" value={form.rrhh_dni} onChange={(e) => setForm({ ...form, rrhh_dni: e.target.value })} maxLength={12} placeholder="8 dígitos" />
           </Campo>
           <Campo etiqueta="Rubro de la empresa">
             <Input
