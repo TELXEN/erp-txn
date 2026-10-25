@@ -2,12 +2,13 @@
 
 ## 1. Encabezado
 ```text
-[LOGO]  TELXEN S.A.C.                     | BOLETA DE PAGO      |
-        eslogan (pequeño)                 | RUC 20xxxxxxxxx     |
-        dirección (pequeña)               | N° BP-2026-10-001   |
-                                          | Octubre 2026 · fechas · pago |
+[LOGO]                        TELXEN S.A.C. | BOLETA DE PAGO               |
+                          eslogan (pequeño) | RUC 20xxxxxxxxx              |
+                        dirección (pequeña) | N° BP-2026-10-001            |
+                                            | Octubre 2026 · fechas · pago |
 ```
-- A la izquierda, junto al recuadro: razón social en negrita, y debajo el eslogan y la dirección en letra pequeña. Se quita de ahí el RUC.
+- Logo solo, en el extremo izquierdo.
+- Razón social, eslogan y dirección **alineados a la derecha**, pegados al recuadro (eslogan y dirección en letra pequeña). Se quita de ahí el RUC.
 - Dentro del recuadro: el RUC va justo debajo de «BOLETA DE PAGO», en letra pequeña, y siguen el N°, el periodo y la fecha de pago.
 
 ## 2. Firmante de la boleta
