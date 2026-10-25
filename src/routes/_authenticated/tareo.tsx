@@ -500,23 +500,14 @@ function TareoPage() {
       </Panel>{consolidadoAbierto && <BarraIconosHoja objeto="asistencia" haySeleccion={consolidado.some((c) => c.id === sel)} onEditar={() => { if (consolidado.some((c) => c.id === sel)) iniciarEdicion(sel); }} extras={<BotonIcono etiqueta="Ver días trabajados" disabled={!consolidado.some((c) => c.id === sel)} onClick={() => verCalendario(sel)}><Eye size={15} /></BotonIcono>} />}</div>
 
       {trabajadorVisible && (
-        <Panel
+        <VentanaFlotante
           titulo={`Días trabajados — ${nombreTrab(trabajadorVisible)}`}
-          className="mb-4"
-          extra={
-            <button
-              type="button"
-              onClick={() => {
-                setTrabajadorVisible(null);
-                setEditandoCalendario(false);
-              }}
-              title="Cerrar calendario"
-              aria-label="Cerrar calendario"
-              className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:bg-muted"
-            >
-              <X size={14} />
-            </button>
-          }
+          abierta
+          ancho="max-w-2xl"
+          onCerrar={() => {
+            setTrabajadorVisible(null);
+            setEditandoCalendario(false);
+          }}
         >
           <div className="space-y-4 p-5">
             <div className="flex flex-wrap items-end justify-between gap-3">
