@@ -6,6 +6,7 @@
 - No hay forma de volver a contratar: la única salida sería editar la ficha a mano, lo que mezclaría el periodo antiguo con el nuevo (CTS, gratificación y vacaciones se calcularían desde 02/01/2026).
 
 ## Qué se construye
+0. **Restablecer a Eder Garay ahora**: volver a activo, borrar la fecha de cese 25/10/2026 y conservar su ingreso 02/01/2026 (no tiene liquidación guardada, así que no hay nada más que deshacer).
 1. **Filtro «Activos / Cesados / Todos»** en Personal (en la lupa). Los cesados se ven en gris con su fecha de cese; sus boletas, recibos, CTS y liquidaciones siguen consultables.
 2. **Botón «Reingresar»** en la barra derecha al seleccionar un cesado. Pide nueva fecha de ingreso (posterior al cese), cargo y sueldo. El trabajador vuelve a activo con esa fecha; se borra la fecha de cese.
 3. **Historial de vínculos laborales**: cada periodo (ingreso → cese) se guarda aparte. La ficha muestra «Vínculos anteriores» con fechas y la liquidación de cada uno.
@@ -19,4 +20,3 @@
 - `beneficios.ts` filtra periodos por vínculo vigente (`fecha_ingreso` del vínculo).
 - Pruebas: reingreso 01/03/2027 tras cese 25/10/2026 → CTS mayo 2027 cuenta desde 01/03/2027; anular cese restaura ingreso 02/01/2026.
 
-¿Para Eder Garay prefieres «Anular cese» (era prueba) en lugar de reingreso? El plan asume anular.
