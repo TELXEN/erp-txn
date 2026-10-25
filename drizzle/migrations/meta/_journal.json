@@ -505,6 +505,13 @@
       "when": 1792890096573,
       "tag": "0071_beneficios_regularizacion",
       "breakpoints": true
+    },
+    {
+      "idx": 72,
+      "version": "7",
+      "when": 1792897095687,
+      "tag": "0072_vinculos_laborales",
+      "breakpoints": true
     }
   ]
 }
