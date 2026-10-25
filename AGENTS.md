@@ -54,3 +54,4 @@
 - Collapsible sections use Panel's colapsable/abierto/onAbrirCambiar props (header with totals stays visible, body hides) — one folding mechanism instead of per-screen show/hide markup.
 - CTS regularization uses conflict-ignore inserts; grouping keeps period IDs/actions independent. CTS, gratification and settlement share one print sheet using saved amounts; calcGrat snapshots its breakdown, never inventing historical salary.
 
+- Employment periods live in vinculos_laborales; liquidation, rehire and cese annulment go only through registrar_liquidacion/reingresar_trabajador/anular_cese RPCs — cese and liquidation stay atomic and prior periods keep their history.
