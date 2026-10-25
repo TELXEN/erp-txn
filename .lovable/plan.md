@@ -17,10 +17,10 @@
   - Jefe de Recursos Humanos: nombre y DNI (opcional).
 - Regla de firma: si hay un Jefe de RR. HH. registrado, firma la boleta él, con el rótulo «Jefe de Recursos Humanos». Si no, firma el gerente, con el rótulo «Gerente General». Si no hay ninguno, se mantiene la razón social y el RUC.
 - Al cambiar de gerente o jefe, las boletas nuevas y las reimpresiones muestran al firmante vigente.
-- Se aplica también a las boletas de CTS, gratificación y liquidación, para que todas firmen igual.
+- Se aplica también a las boletas de CTS, gratificación y liquidación, y al detalle de pago de Recibos por Honorarios, para que todos firmen igual.
 
 ## Detalles técnicos
 - Migración: cuatro columnas opcionales de texto en `empresa_config`: `gerente_nombre`, `gerente_dni`, `rrhh_nombre`, `rrhh_dni`.
 - `DatosEmpresa.tsx`: cuatro campos nuevos. `src/lib/empresa.ts`: una función `firmanteLaboral(empresa)` que devuelve el nombre, el DNI y el cargo.
-- `DetallePagoNomina.tsx` y `HojaCts.tsx` usan `firmanteLaboral`.
+- `DetallePagoNomina.tsx`, `HojaCts.tsx` y `DetallePagoHonorario.tsx` usan `firmanteLaboral`.
 - Prueba unitaria: con RR. HH. firma RR. HH.; sin RR. HH. firma el gerente.
