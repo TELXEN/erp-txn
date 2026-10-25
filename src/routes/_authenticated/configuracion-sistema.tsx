@@ -2,8 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Building2, Plug, FileText, Scale, ShieldCheck, SlidersHorizontal } from "lucide-react";
 import { CabeceraModulo, Panel, Pestanas } from "@/components/ui-kit";
-import { DatosEmpresa } from "@/components/DatosEmpresa";
-import { CuentasBancarias } from "@/components/CuentasBancarias";
+import { DatosEmpresaTabs } from "@/components/DatosEmpresaTabs";
 import { TipografiaDocumentosPanel } from "@/components/TipografiaDocumentos";
 import { UsuariosPanel } from "@/components/UsuariosPanel";
 import { ConfigDecolecta } from "@/components/facturacion/ConfigDecolecta";
@@ -48,7 +47,7 @@ function ConfiguracionSistema() {
           ...(rol === "gerente" || rol === "administrador" ? [{ id: "normativa" as const, texto: "Valores normativos (RMV / UIT)", icono: <Scale className="size-4" /> }, { id: "integraciones" as const, texto: "Integraciones", icono: <Plug className="size-4" /> }] : []),
         ]}
       />
-      {pestana === "normativa" ? <HistorialNormativo /> : pestana === "tipografia" ? <TipografiaDocumentosPanel /> : pestana === "empresa" ? <div className="space-y-4"><DatosEmpresa /><CuentasBancarias /></div> : pestana === "integraciones" ? <div className="grid gap-4 xl:grid-cols-2"><ConfigDecolecta enLinea />{rol === "gerente" ? <ConfigSol /> : <Panel titulo="SUNAT SIRE · API SOL"><p className="p-5 text-sm text-muted-foreground">Solo Gerencia puede ver o cambiar las credenciales SOL.</p></Panel>}</div> : <UsuariosPanel />}
+      {pestana === "normativa" ? <HistorialNormativo /> : pestana === "tipografia" ? <TipografiaDocumentosPanel /> : pestana === "empresa" ? <DatosEmpresaTabs /> : pestana === "integraciones" ? <div className="grid gap-4 xl:grid-cols-2"><ConfigDecolecta enLinea />{rol === "gerente" ? <ConfigSol /> : <Panel titulo="SUNAT SIRE · API SOL"><p className="p-5 text-sm text-muted-foreground">Solo Gerencia puede ver o cambiar las credenciales SOL.</p></Panel>}</div> : <UsuariosPanel />}
     </div>
   );
 }
