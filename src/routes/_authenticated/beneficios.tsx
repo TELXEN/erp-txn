@@ -78,9 +78,9 @@ function Beneficios() {
     queryKey: ["beneficios", "previos", "CTS", ant.anio, ant.periodo],
     enabled: tipo === "CTS",
     queryFn: async () => {
-      const { data, error } = await supabase.from("beneficios_sociales").select("trabajador_id, estado_pago").eq("tipo", "CTS").eq("anio", ant.anio).eq("periodo", ant.periodo);
+      const { data, error } = await supabase.from("beneficios_sociales").select("*").eq("tipo", "CTS").eq("anio", ant.anio).eq("periodo", ant.periodo);
       if (error) throw error;
-      return data;
+      return data as unknown as Beneficio[];
     },
   });
   const claveReg = `${anio}-${periodo}`;
@@ -88,6 +88,10 @@ function Beneficios() {
     .filter((t) => t.tipo_contratacion !== "Honorarios" && t.activo && !previos.some((x) => x.trabajador_id === t.id && x.estado_pago === "Pagado") && periodoCtsAnterior(t, anio, periodo))
     .map((t) => ({ t, ...ant }));
   const setFaltantes = (_: unknown[]) => setOmitirReg(claveReg);
+  const visibles = tipo === "CTS"
+    ? [...registros, ...(previos ?? []).filter((r) => r.regularizacion)]
+      .sort((a, b) => a.trabajador_id.localeCompare(b.trabajador_id) || a.fecha_hasta.localeCompare(b.fecha_hasta))
+    : registros;
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
@@ -189,8 +193,8 @@ function Beneficios() {
 
   const periodos = tipo === "CTS" ? ["Mayo", "Noviembre"] : ["Julio", "Diciembre"];
   const rango = tipo === "CTS" ? periodoCts(anio, periodo) : periodoGrat(anio, periodo);
-  const total = registros.reduce((s, r) => s + Number(r.total), 0);
-  const pendiente = registros.filter((r) => r.estado_pago === "Pendiente").reduce((s, r) => s + Number(r.total), 0);
+  const total = visibles.reduce((s, r) => s + Number(r.total), 0);
+  const pendiente = visibles.filter((r) => r.estado_pago === "Pendiente").reduce((s, r) => s + Number(r.total), 0);
   const nombreDetalle: Record<string, string> = {
     cts_trunca: "CTS trunca", gratificacion_trunca: "Gratificación trunca",
     bonificacion_extraordinaria: "Bonif. extraordinaria", vacaciones_truncas: "Vacaciones truncas",
@@ -202,18 +206,18 @@ function Beneficios() {
         titulo="Beneficios Sociales"
         subtitulo="CTS (mayo/noviembre), gratificaciones (julio/diciembre) y liquidaciones por cese"
         acciones={
-          registros.length > 0 && (
+          visibles.length > 0 && (
             <Boton
               variante="linea"
               onClick={() =>
                 exportarExcel(`${tipo.toLowerCase()}-${tipo === "Liquidación" ? "cesados" : `${periodo.toLowerCase()}-${anio}`}`, [
                   {
                     nombre: tipo,
-                    filas: registros.map((r) => {
+                    filas: visibles.map((r) => {
                       const t = tDe(r.trabajador_id);
                       return {
                         DNI: t?.dni ?? "", Trabajador: t?.nombre ?? "", Régimen: t?.regimen_laboral ?? "", "Fecha de ingreso": fecha(t?.fecha_ingreso ?? null), Regularización: r.regularizacion ? "Sí" : "",
-                        Desde: fecha(r.fecha_desde), Hasta: fecha(r.fecha_hasta), Meses: r.meses, Días: r.dias,
+                        Periodo: `${r.periodo} ${r.anio}`, Desde: fecha(r.fecha_desde), Hasta: fecha(r.fecha_hasta), Meses: r.meses, Días: r.dias,
                         "Rem. computable (S/)": Number(r.remuneracion_computable),
                         ...Object.fromEntries(Object.entries(nombreDetalle).filter(([k]) => r.detalle?.[k] !== undefined).map(([k, n]) => [`${n} (S/)`, Number(r.detalle[k])])),
                         "Monto (S/)": Number(r.monto), "Bonificación (S/)": Number(r.bonificacion), "Total (S/)": Number(r.total),
@@ -299,15 +303,15 @@ function Beneficios() {
         </div>
       )}
 
-      {registros.length > 0 && (
+      {visibles.length > 0 && (
         <div className="mb-4 grid gap-3 sm:grid-cols-2">
           <div className="panel p-4"><p className="label-mono">Total calculado</p><p className="mt-1 text-lg font-semibold">{soles(total)}</p></div>
           <div className="panel p-4"><p className="label-mono">Pendiente de pago / depósito</p><p className="mt-1 text-lg font-semibold">{soles(pendiente)}</p></div>
         </div>
       )}
 
-      <div className="flex items-start gap-3"><Panel className="min-w-0 flex-1" titulo={tipo === "Liquidación" ? "Liquidaciones registradas" : `${tipo} ${periodo} ${anio}`}>
-        {registros.length === 0 ? (
+      <div className="flex items-start gap-3"><Panel className="min-w-0 flex-1" titulo={tipo === "Liquidación" ? "Liquidaciones registradas" : `${tipo} ${periodo} ${anio}${visibles.some((r) => r.anio !== anio || r.periodo !== periodo) ? " y regularizaciones" : ""}`}>
+        {visibles.length === 0 ? (
           <Vacio texto="Aún no hay cálculos para este periodo." />
         ) : (
           <div className="overflow-x-auto">
@@ -321,11 +325,11 @@ function Beneficios() {
                 </tr>
               </thead>
               <tbody>
-                {registros.map((r) => {
+                {visibles.map((r) => {
                   const t = tDe(r.trabajador_id);
                   return (
                     <tr key={r.id} onClick={() => setSel(r.id)} className={`cursor-pointer border-b border-line/60 align-top last:border-0 hover:bg-muted/40 ${sel === r.id ? "bg-primary/10" : ""}`}>
-                      <td className="px-4 py-2 font-semibold text-ink">{t?.nombre}<span className="block text-[10px] font-normal text-muted-foreground">{t?.regimen_laboral}</span>{r.regularizacion && <Etiqueta tono="warn">Regularización</Etiqueta>}</td>
+                      <td className="px-4 py-2 font-semibold text-ink">{t?.nombre}<span className="block text-[10px] font-normal text-muted-foreground">{t?.regimen_laboral}</span>{tipo === "CTS" && <span className="block text-[10px] font-normal">{r.periodo} {r.anio}</span>}{r.regularizacion && <Etiqueta tono="warn">Regularización</Etiqueta>}</td>
                       <td className="px-2 py-2">{fecha(t?.fecha_ingreso ?? null)}</td>
                       <td className="px-2 py-2">{fecha(r.fecha_desde)} – {fecha(r.fecha_hasta)}</td>
                       <td className="px-2 py-2 text-right">
@@ -365,7 +369,7 @@ function Beneficios() {
             </table>
           </div>
         )}
-      </Panel><BarraIconosHoja objeto="registro" haySeleccion={!!registros.find((x) => x.id === sel)} extras={registros.filter((x) => x.id === sel).map((r) => <div key={r.id}><div>
+      </Panel><BarraIconosHoja objeto="registro" haySeleccion={!!visibles.find((x) => x.id === sel)} extras={visibles.filter((x) => x.id === sel).map((r) => <div key={r.id}><div>
                           {pago?.id === r.id ? (
                             <>
                               <BotonIcono etiqueta="Confirmar" onClick={confirmarPago}><Check size={15} /></BotonIcono>
