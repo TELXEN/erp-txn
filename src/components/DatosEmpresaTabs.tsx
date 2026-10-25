@@ -20,8 +20,8 @@ export function DatosEmpresaTabs() {
         variante="texto"
         opciones={[
           { id: "datos", texto: "Datos generales", icono: <ClipboardList className="size-4" /> },
-          { id: "regimen", texto: "Régimen laboral de la empresa", icono: <Scale className="size-4" /> },
           { id: "cuentas", texto: "Cuentas bancarias", icono: <Landmark className="size-4" /> },
+          { id: "regimen", texto: "Régimen laboral de la empresa", icono: <Scale className="size-4" />, derecha: true },
         ]}
       />
       {pestana === "datos" ? <DatosEmpresa /> : pestana === "regimen" ? <RegimenEmpresaPanel /> : <CuentasBancarias />}

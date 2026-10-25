@@ -255,7 +255,7 @@ export function Pestanas<T extends string>({
   etiqueta,
   variante = "linea",
 }: {
-  opciones: { id: T; texto: ReactNode; icono?: ReactNode }[];
+  opciones: { id: T; texto: ReactNode; icono?: ReactNode; derecha?: boolean }[];
   valor: T;
   onCambiar: (v: T) => void;
   etiqueta: string;
@@ -292,6 +292,7 @@ export function Pestanas<T extends string>({
               variante === "texto" && "inline-flex items-center gap-1.5 py-2 text-xs font-medium transition-colors",
               variante === "linea" &&
                 "-mb-px inline-flex min-h-9 items-center gap-2 border-b-2 px-3 py-2 text-xs font-medium transition-colors",
+              o.derecha && "ml-auto",
               activa
                 ? variante === "capsula"
                   ? "bg-card text-primary shadow-sm"
