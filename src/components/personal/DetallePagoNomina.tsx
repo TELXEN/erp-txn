@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Check, Printer, Save } from "lucide-react";
-import { LogoEmpresa } from "@/components/personal/LogoEmpresa";
+import { EncabezadoDocumento } from "@/components/personal/LogoEmpresa";
 import { Boton, VentanaFlotante } from "@/components/ui-kit";
 import type { Trabajador } from "@/lib/datos";
 import { fecha, soles } from "@/lib/format";
