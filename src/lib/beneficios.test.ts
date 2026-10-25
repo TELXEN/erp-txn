@@ -12,7 +12,7 @@ describe("CTS", () => {
   it("ingreso 15/06/2026: 4 meses 16 días", () => {
     const p = periodoCts(2026, "Noviembre");
     const c = calcCts(t("2026-06-15"), p.desde, p.hasta);
-    expect([c.meses, c.dias]).toEqual([4, 17]);
+    expect([c.meses, c.dias]).toEqual([4, 16]);
   });
   it("ingreso 02/01/2026 tiene derecho a CTS mayo 2026 (3 m 29 d)", () => {
     const a = periodoCtsAnterior(t("2026-01-02"), 2026, "Noviembre");
