@@ -1,9 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { calcCts, periodoCts, periodoCtsAnterior, filasRegularizacionCts } from "./beneficios";
+import { calcCts, periodoCts, periodoCtsAnterior, filasRegularizacionCts, agruparBoletasPorTrabajador } from "./beneficios";
 
 const t = (fecha_ingreso: string) => ({ id: "x", sueldo_mensual: 3500, asignacion_familiar: false, regimen_laboral: "General", fecha_ingreso });
 
 describe("CTS", () => {
+  it("agrupa dos boletas del mismo trabajador sin mezclarlas con otro trabajador", () => {
+    const mayo = { id: "mayo", trabajador_id: "eder", periodo: "Mayo", total: 1397.20 };
+    const otro = { id: "otro", trabajador_id: "otro", periodo: "Noviembre", total: 500 };
+    const noviembre = { id: "noviembre", trabajador_id: "eder", periodo: "Noviembre", total: 2113.42 };
+    expect(agruparBoletasPorTrabajador([mayo, otro, noviembre])).toEqual([[mayo, noviembre], [otro]]);
+  });
   it("regularizar noviembre genera dos CTS independientes: mayo y noviembre", () => {
     const filas = filasRegularizacionCts(t("2026-01-02"), 2026, "Noviembre", []);
     expect(filas.map((r) => [r.anio, r.periodo, r.regularizacion, r.meses, r.dias])).toEqual([

@@ -14,6 +14,17 @@ export type TrabajadorBeneficio = {
 export const RMV = 1230; // vigente desde 01/10/2026
 export type TipoBeneficio = "CTS" | "Gratificación" | "Liquidación";
 
+/** Agrupa la presentación por trabajador sin fusionar sus registros ni importes. */
+export function agruparBoletasPorTrabajador<T extends { trabajador_id: string }>(boletas: T[]): T[][] {
+  const grupos = new Map<string, T[]>();
+  for (const boleta of boletas) {
+    const grupo = grupos.get(boleta.trabajador_id);
+    if (grupo) grupo.push(boleta);
+    else grupos.set(boleta.trabajador_id, [boleta]);
+  }
+  return [...grupos.values()];
+}
+
 const FACTORES: Record<string, { grat: number; cts: number; vac: number }> = {
   General: { grat: 1, cts: 1, vac: 1 },
   "Construcción Civil": { grat: 1, cts: 1, vac: 1 },
