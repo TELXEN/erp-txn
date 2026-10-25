@@ -51,7 +51,7 @@ function Beneficios() {
   const [pago, setPago] = useState<{ id: string; banco_id: string; fecha_pago: string; numero_operacion: string } | null>(null);
   const [error, setError] = useState("");
   const [hoja, setHoja] = useState<Beneficio | null>(null);
-  const [faltantes, setFaltantes] = useState<{ t: Trabajador; anio: number; periodo: string }[]>([]);
+  const [omitirReg, setOmitirReg] = useState("");
 
   const { data: registros = [] } = useQuery({
     queryKey: ["beneficios", tipo, anio, periodo],
@@ -71,6 +71,22 @@ function Beneficios() {
       return data;
     },
   });
+
+  const ant = periodo === "Noviembre" ? { anio, periodo: "Mayo" } : { anio: anio - 1, periodo: "Noviembre" };
+  const { data: previos } = useQuery({
+    queryKey: ["beneficios", "CTS", ant.anio, ant.periodo],
+    enabled: tipo === "CTS",
+    queryFn: async () => {
+      const { data, error } = await supabase.from("beneficios_sociales").select("trabajador_id, estado_pago").eq("tipo", "CTS").eq("anio", ant.anio).eq("periodo", ant.periodo);
+      if (error) throw error;
+      return data;
+    },
+  });
+  const claveReg = `${anio}-${periodo}`;
+  const faltantes = tipo !== "CTS" || !previos || omitirReg === claveReg ? [] : trabajadores
+    .filter((t) => t.tipo_contratacion !== "Honorarios" && t.activo && !previos.some((x) => x.trabajador_id === t.id) && periodoCtsAnterior(t, anio, periodo))
+    .map((t) => ({ t, ...ant }));
+  const setFaltantes = (_: unknown[]) => setOmitirReg(claveReg);
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
@@ -102,12 +118,6 @@ function Beneficios() {
     if (filas.length) {
       const { error: err } = await supabase.from("beneficios_sociales").upsert(filas, { onConflict: "tipo,anio,periodo,trabajador_id" });
       if (err) return setError(err.message);
-    }
-    if (tipo === "CTS") {
-      const ant = periodo === "Noviembre" ? { anio, periodo: "Mayo" } : { anio: anio - 1, periodo: "Noviembre" };
-      const { data: prev } = await supabase.from("beneficios_sociales").select("trabajador_id, estado_pago").eq("tipo", "CTS").eq("anio", ant.anio).eq("periodo", ant.periodo);
-      const pagadosAnt = new Set((prev ?? []).filter((x) => x.estado_pago === "Pagado").map((x) => x.trabajador_id));
-      setFaltantes(planilla.filter((t) => t.activo && !pagadosAnt.has(t.id) && periodoCtsAnterior(t, anio, periodo)).map((t) => ({ t, ...ant })));
     }
     if (omitidos.length) setError(`Sin fecha de ingreso o sueldo (no calculados): ${omitidos.join(", ")}. Complétalo en Personal.`);
     else if (!filas.length) setError("No hay trabajadores nuevos con derecho en este periodo.");
