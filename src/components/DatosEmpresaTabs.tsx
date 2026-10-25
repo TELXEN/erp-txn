@@ -17,7 +17,7 @@ export function DatosEmpresaTabs() {
         etiqueta="Datos de la empresa"
         valor={pestana}
         onCambiar={setPestana}
-        variante="capsula"
+        variante="texto"
         opciones={[
           { id: "datos", texto: "Datos generales", icono: <Building2 className="size-4" /> },
           { id: "regimen", texto: "Régimen laboral de la empresa", icono: <Scale className="size-4" /> },

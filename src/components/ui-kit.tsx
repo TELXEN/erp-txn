@@ -245,7 +245,9 @@ export function CabeceraModulo({
   );
 }
 
-/** Pestañas internas uniformes: línea inferior con el color del menú. */
+/** Pestañas internas uniformes. Variantes: "linea" subrayado, "boton" botones
+ *  (activa rellena del color primario, inactivas con borde), "texto" solo texto,
+ *  "capsula" pastillas para sub-pestañas dentro de una sección. */
 export function Pestanas<T extends string>({
   opciones,
   valor,
@@ -257,15 +259,21 @@ export function Pestanas<T extends string>({
   valor: T;
   onCambiar: (v: T) => void;
   etiqueta: string;
-  /** "capsula" = sub-pestañas tipo pastilla, distintas de la barra principal. */
-  variante?: "linea" | "capsula";
+  variante?: "linea" | "capsula" | "boton" | "texto";
 }) {
-  const capsula = variante === "capsula";
   return (
     <div
       role="tablist"
       aria-label={etiqueta}
-      className={capsula ? "inline-flex flex-wrap gap-1 rounded-lg border border-line bg-muted/50 p-1" : "flex flex-wrap gap-1 border-b border-line"}
+      className={
+        variante === "capsula"
+          ? "inline-flex flex-wrap gap-1 rounded-lg border border-line bg-muted/50 p-1"
+          : variante === "boton"
+            ? "flex flex-wrap gap-2"
+            : variante === "texto"
+              ? "flex flex-wrap items-center gap-3 border-b border-line"
+              : "flex flex-wrap gap-1 border-b border-line"
+      }
     >
       {opciones.map((o) => {
         const activa = o.id === valor;
@@ -277,12 +285,28 @@ export function Pestanas<T extends string>({
             aria-selected={activa}
             onClick={() => onCambiar(o.id)}
             className={cn(
-              capsula
-                ? "inline-flex min-h-8 items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-colors"
-                : "-mb-px inline-flex min-h-9 items-center gap-2 border-b-2 px-3 py-2 text-xs font-medium transition-colors",
-              capsula
-                ? activa ? "bg-card text-primary shadow-sm" : "text-muted-foreground hover:bg-card/60 hover:text-ink"
-                : activa ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:border-line hover:text-ink",
+              variante === "capsula" &&
+                "inline-flex min-h-8 items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
+              variante === "boton" &&
+                "inline-flex min-h-9 items-center gap-2 rounded-lg border px-4 py-2 text-xs font-medium transition-colors",
+              variante === "texto" && "py-2 text-xs font-medium transition-colors",
+              variante === "linea" &&
+                "-mb-px inline-flex min-h-9 items-center gap-2 border-b-2 px-3 py-2 text-xs font-medium transition-colors",
+              activa
+                ? variante === "capsula"
+                  ? "bg-card text-primary shadow-sm"
+                  : variante === "boton"
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : variante === "texto"
+                      ? "text-ink"
+                      : "border-primary text-primary"
+                : variante === "capsula"
+                  ? "text-muted-foreground hover:bg-card/60 hover:text-ink"
+                  : variante === "boton"
+                    ? "border-primary/40 bg-card text-primary hover:bg-primary/10"
+                    : variante === "texto"
+                      ? "text-muted-foreground hover:text-ink"
+                      : "border-transparent text-muted-foreground hover:border-line hover:text-ink",
             )}
           >
             {o.icono}

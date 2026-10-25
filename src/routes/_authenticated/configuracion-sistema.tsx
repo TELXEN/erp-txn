@@ -40,6 +40,7 @@ function ConfiguracionSistema() {
         etiqueta="Configuración del sistema"
         valor={pestana}
         onCambiar={setPestana}
+        variante="boton"
         opciones={[
           { id: "empresa", texto: "Datos de la empresa", icono: <Building2 className="size-4" /> },
           { id: "tipografia", texto: "Tipografía de documentos", icono: <FileText className="size-4" /> },
