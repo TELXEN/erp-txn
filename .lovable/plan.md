@@ -1,22 +1,23 @@
-# Boletas para Staff en mina (régimen atípico 20x10)
+# Pago por día pactado con boleta complementaria
 
-## Idea
-El sueldo mensual de un Staff en jornada 20x10 ya paga los 30 días del mes (20 trabajados + 10 de descanso). Por eso la boleta normal no cambia. Solo cuando se quedan más días de los pactados (ej. 28), los días adicionales se pagan como **descanso trabajado**.
+## Caso
+Sueldo en planilla S/ 3,500. Acuerdo: S/ 200 por día trabajado. 24 días = S/ 4,800. Se paga S/ 3,500 en la boleta normal y la diferencia (S/ 1,300) en una segunda boleta del mismo mes.
 
 ## Cómo funcionará
-1. **En Personal**: nuevo campo «Jornada atípica» en el trabajador (ej. 20x10 = 20 días de trabajo por ciclo). Vacío = Staff normal.
-2. **En Control de Asistencia**: para esos trabajadores se marcan los días en mina, como ya se hace en obra.
-3. **En la boleta automática**:
-   - Se pagan 30 días (con las mismas excepciones de ingreso o cese a mitad de mes).
-   - Días en mina por encima de los pactados = «Días de descanso trabajados».
-   - Se pagan a sueldo/30 por día con recargo del 100 % (pago doble, como manda la ley para descanso trabajado). Este pago se suma a los ingresos afectos a AFP/ONP, EsSalud y renta de quinta.
-   - Nota en la boleta: «Jornada 20x10 · 28 días en mina · 8 días de descanso trabajados».
-   - Si en el mes trabajaron menos de 20 días porque el ciclo cae entre dos meses, no se descuenta nada.
-4. Los cambios manuales en boletas pendientes se respetan; las validadas o pagadas no se tocan.
+1. **En Personal**: nuevo campo opcional «Tarifa pactada por día» (ej. S/ 200). Vacío = trabajador normal.
+2. **Días trabajados**: se toman de Control de Asistencia (24 en el ejemplo).
+3. **Boleta de Pago normal**: igual que hoy, con el sueldo de S/ 3,500.
+4. **Boleta complementaria** (nueva, mismo mes): se crea sola cuando días × tarifa supera el sueldo.
+   - Ingreso: «Complemento por días trabajados (24 × S/ 200 − S/ 3,500) = S/ 1,300».
+   - Si días × tarifa no supera el sueldo, no se crea (nunca se paga menos que el sueldo).
+   - Se puede editar mientras esté pendiente, validar y pagar igual que las demás boletas.
+5. **Descuentos**: la ley obliga a que todo pago al trabajador aporte AFP/ONP, EsSalud y renta de quinta. La complementaria calcula sus descuentos para que, sumados a la boleta normal, den lo mismo que si fuera un solo pago de S/ 4,800. Así no queda deuda con SUNAT.
+6. **Beneficios**: el complemento cuenta para CTS y gratificación cuando se repite en el semestre (como un pago variable regular).
+7. **En Tesorería**: aparecen dos pagos separados del mes, uno por cada boleta.
 
 ## Detalles técnicos
-- Migración: `trabajadores.jornada_dias_trabajo int null` y `jornada_dias_descanso int null`.
-- `src/lib/nomina-staff.ts`: `diasDescansoTrabajados(diasTareo, pactados, diasMes)`, prorrateando lo pactado si hay ingreso o cese en el mes; tests en `nomina-staff.test.ts` (28 días → 8 extra; 20 → 0; 15 → 0).
-- `nomina.tsx`: para Staff con jornada, leer días del tareo y generar el concepto de descanso trabajado; `dias_motivo` con la nota.
-- `DetallePagoNomina.tsx`: línea de ingreso «Descanso trabajado (N días)».
-- Se puede cambiar el recargo a día simple si así lo pactaron.
+- Migración: `trabajadores.tarifa_dia numeric null`; `boletas.tipo text default 'Normal'` ('Normal' | 'Complementaria') con única por planilla+trabajador+tipo.
+- `src/lib/nomina-complemento.ts`: `montoComplemento(dias, tarifa, sueldo)` y reparto de descuentos (total del mes − boleta normal); tests: 24×200 con 3,500 → 1,300; 15×200 → 0.
+- `nomina.tsx`: generar la complementaria junto con las boletas; listado agrupado por trabajador.
+- `DetallePagoNomina.tsx`: título «BOLETA DE PAGO COMPLEMENTARIA».
+- Remuneración variable para CTS/gratificación en `src/lib/beneficios.ts` (promedio si aparece en 3 de 6 meses).
