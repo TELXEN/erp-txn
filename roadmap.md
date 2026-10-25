@@ -1,4 +1,5 @@
 # Roadmap
+- [ ] Agrupar las boletas CTS del mismo trabajador en el listado, conservando periodos y acciones independientes; verificar con registros existentes.
 - [x] Regularizar CTS: ambos periodos creados y abiertos para Eder Garay; cinco pruebas pasan, registros existentes protegidos.
 - [x] Boletas CTS con formato de Boletas de Pago; vista mayo/noviembre y PDF de dos páginas completas verificados.
 - [x] Añadir documento de referencia al proyecto (Orden de Compra, Orden de Servicio o Contrato y número opcional) y cargarlo en la preliquidación; cinco pruebas pasan, guardado y vista previa verificados, datos de prueba retirados.

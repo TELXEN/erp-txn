@@ -1,7 +1,7 @@
 import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { BotonIcono } from "@/components/ui-kit";
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, FileText, RefreshCw, Trash2, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,7 +11,7 @@ import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha, hoy, soles } from "@/lib/format";
 import { type Trabajador, useTrabajadores } from "@/lib/datos";
 import { exportarExcel } from "@/lib/exportar";
-import { calcCts, calcGrat, calcLiquidacion, filasRegularizacionCts, periodoCts, periodoCtsAnterior, periodoGrat, type TipoBeneficio } from "@/lib/beneficios";
+import { agruparBoletasPorTrabajador, calcCts, calcGrat, calcLiquidacion, filasRegularizacionCts, periodoCts, periodoCtsAnterior, periodoGrat, type TipoBeneficio } from "@/lib/beneficios";
 import { HojaCts } from "@/components/personal/HojaCts";
 
 export const Route = createFileRoute("/_authenticated/beneficios")({
@@ -195,6 +195,7 @@ function Beneficios() {
   const rango = tipo === "CTS" ? periodoCts(anio, periodo) : periodoGrat(anio, periodo);
   const total = visibles.reduce((s, r) => s + Number(r.total), 0);
   const pendiente = visibles.filter((r) => r.estado_pago === "Pendiente").reduce((s, r) => s + Number(r.total), 0);
+  const grupos = tipo === "CTS" ? agruparBoletasPorTrabajador(visibles) : visibles.map((r) => [r]);
   const nombreDetalle: Record<string, string> = {
     cts_trunca: "CTS trunca", gratificacion_trunca: "Gratificación trunca",
     bonificacion_extraordinaria: "Bonif. extraordinaria", vacaciones_truncas: "Vacaciones truncas",
@@ -325,13 +326,15 @@ function Beneficios() {
                 </tr>
               </thead>
               <tbody>
-                {visibles.map((r) => {
+                {grupos.map((grupo) => <Fragment key={grupo[0]?.trabajador_id + ":" + grupo[0]?.id}>{grupo.map((r, indice) => {
                   const t = tDe(r.trabajador_id);
                   return (
                     <tr key={r.id} onClick={() => setSel(r.id)} className={`cursor-pointer border-b border-line/60 align-top last:border-0 hover:bg-muted/40 ${sel === r.id ? "bg-primary/10" : ""}`}>
-                      <td className="px-4 py-2 font-semibold text-ink">{t?.nombre}<span className="block text-[10px] font-normal text-muted-foreground">{t?.regimen_laboral}</span>{tipo === "CTS" && <span className="block text-[10px] font-normal">{r.periodo} {r.anio}</span>}{r.regularizacion && <Etiqueta tono="warn">Regularización</Etiqueta>}</td>
-                      <td className="px-2 py-2">{fecha(t?.fecha_ingreso ?? null)}</td>
-                      <td className="px-2 py-2">{fecha(r.fecha_desde)} – {fecha(r.fecha_hasta)}</td>
+                      {indice === 0 && <>
+                        <td rowSpan={grupo.length} className="px-4 py-2 align-middle font-semibold text-ink">{t?.nombre}<span className="block text-[10px] font-normal text-muted-foreground">{t?.regimen_laboral}</span>{grupo.length > 1 && <span className="mt-1 block text-[10px] font-normal text-primary">{grupo.length} boletas · {soles(grupo.reduce((s, b) => s + Number(b.total), 0))}</span>}</td>
+                        <td rowSpan={grupo.length} className="px-2 py-2 align-middle">{fecha(t?.fecha_ingreso ?? null)}</td>
+                      </>}
+                      <td className="px-2 py-2">{tipo === "CTS" && <span className="mb-1 flex flex-wrap items-center gap-1">{r.periodo} {r.anio}{r.regularizacion && <Etiqueta tono="warn">Regularización</Etiqueta>}</span>}{fecha(r.fecha_desde)} – {fecha(r.fecha_hasta)}</td>
                       <td className="px-2 py-2 text-right">
                         {r.meses} m{r.dias ? ` ${r.dias} d` : ""}
                         {tipo === "Liquidación" && (
@@ -364,7 +367,7 @@ function Beneficios() {
                       
                     </tr>
                   );
-                })}
+                })}</Fragment>)}
               </tbody>
             </table>
           </div>
