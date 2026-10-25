@@ -540,6 +540,13 @@
       "when": 1792901509542,
       "tag": "0076_boletas_dias_motivo",
       "breakpoints": true
+    },
+    {
+      "idx": 77,
+      "version": "7",
+      "when": 1792903611995,
+      "tag": "0077_normativa_rmv_uit_separadas",
+      "breakpoints": true
     }
   ]
 }

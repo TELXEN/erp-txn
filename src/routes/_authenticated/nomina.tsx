@@ -18,7 +18,7 @@ import { exportarExcel } from "@/lib/exportar";
 import { aporteAfp, useComisionesAfp } from "@/lib/afp";
 import type { ComisionAfp } from "@/lib/decolecta.functions";
 import { acumuladoAnterior, calcularRentaQuinta, type DetalleQuinta } from "@/lib/renta-quinta";
-import { normaEn, normaNuevaEn, rmvEn, uitEn, useNormativa, type FilaNormativa } from "@/lib/normativa";
+import { rmvVigente, rmvNuevaEn, rmvEn, uitEn, useRmv, useUit, type FilaRmv, type FilaUit } from "@/lib/normativa";
 
 export const Route = createFileRoute("/_authenticated/nomina")({
   head: () => ({
@@ -37,9 +37,10 @@ export const Route = createFileRoute("/_authenticated/nomina")({
 // Parámetros legales vigentes (Perú). Las tasas AFP vienen de Decolecta (useComisionesAfp).
 /** RMV vigente por período (S/ 1,230 desde octubre 2026). */
 /** Historial normativo cargado desde Configuración del Sistema (se asigna al renderizar Nómina). */
-let NORMATIVA: FilaNormativa[] = [];
-const rmvDe = (periodo: string) => rmvEn(NORMATIVA, periodo);
-const uitDe = (anio: number) => uitEn(NORMATIVA, anio);
+let LISTA_RMV: FilaRmv[] = [];
+let LISTA_UIT: FilaUit[] = [];
+const rmvDe = (periodo: string) => rmvEn(LISTA_RMV, periodo);
+const uitDe = (anio: number) => uitEn(LISTA_UIT, anio);
 const TASA_ONP = 0.13;
 const SIS_MICRO = 15;
 
@@ -92,8 +93,10 @@ const fechaHora = (iso: string) => {
 
 function Nomina() {
   const { rol } = useAuth();
-  const { data: normativa = [] } = useNormativa();
-  NORMATIVA = normativa;
+  const { data: listaRmv = [] } = useRmv();
+  const { data: listaUit = [] } = useUit();
+  LISTA_RMV = listaRmv;
+  LISTA_UIT = listaUit;
   const qc = useQueryClient();
   const { data: trabajadores = [], isFetched: personalListo } = useTrabajadores();
   const { data: tareos = [], isFetched: tareoListo } = useTareos();
@@ -382,10 +385,10 @@ function Nomina() {
         }
       />
 
-      {normaNuevaEn(normativa, periodoAfp) && (
+      {rmvNuevaEn(listaRmv, periodoAfp) && (
         <div className="mb-3 rounded-md border border-warn/40 bg-warn/10 px-3 py-2 text-[12px]">
-          Nuevo valor legal activo en este período: RMV <strong>{soles(rmvDe(periodoAfp))}</strong> · UIT <strong>{soles(uitDe(anio))}</strong>
-          {normaNuevaEn(normativa, periodoAfp)!.base_legal ? ` según ${normaNuevaEn(normativa, periodoAfp)!.base_legal}` : ""}, vigente desde {fecha(normaNuevaEn(normativa, periodoAfp)!.vigencia_desde)}.
+          Nueva RMV activa en este período: <strong>{soles(rmvDe(periodoAfp))}</strong>
+          {rmvNuevaEn(listaRmv, periodoAfp)!.base_legal ? ` según ${rmvNuevaEn(listaRmv, periodoAfp)!.base_legal}` : ""}, vigente desde {fecha(rmvNuevaEn(listaRmv, periodoAfp)!.vigencia_desde)}.
         </div>
       )}
       <div className="mb-4">
@@ -446,7 +449,7 @@ function Nomina() {
         <table className="w-full text-sm">
           <tbody>
             {[
-              ["Remuneración Mínima Vital (RMV)", `S/ ${rmvDe(periodoAfp).toLocaleString("es-PE", { minimumFractionDigits: 2 })} · vigente desde ${fecha(normaEn(NORMATIVA, periodoAfp).vigencia_desde)}${normaEn(NORMATIVA, periodoAfp).base_legal ? ` · ${normaEn(NORMATIVA, periodoAfp).base_legal}` : ""}`],
+              ["Remuneración Mínima Vital (RMV)", `S/ ${rmvDe(periodoAfp).toLocaleString("es-PE", { minimumFractionDigits: 2 })} · vigente desde ${fecha(rmvVigente(LISTA_RMV, periodoAfp).vigencia_desde)}${rmvVigente(LISTA_RMV, periodoAfp).base_legal ? ` · ${rmvVigente(LISTA_RMV, periodoAfp).base_legal}` : ""}`],
               ["ONP", "13% de la remuneración"],
               ["EsSalud", "9% de la remuneración · Agrario 6%"],
               ["SIS Microempresa", "S/ 15.00 mensual"],

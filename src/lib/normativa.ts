@@ -1,35 +1,52 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-/** Fila del historial normativo (RMV/UIT por fecha de vigencia). */
-export type FilaNormativa = { id: string; vigencia_desde: string; rmv: number; uit: number; base_legal: string; observaciones: string | null };
+/** RMV: cada decreto rige desde un día exacto. */
+export type FilaRmv = { id: string; vigencia_desde: string; monto: number; base_legal: string; observaciones: string | null };
+/** UIT: un valor por año fiscal (rige desde el 1 de enero). */
+export type FilaUit = { id: string; anio: number; monto: number; base_legal: string; observaciones: string | null };
 
-/** Valores de respaldo si la tabla aún no carga. */
-export const NORMATIVA_RESPALDO: FilaNormativa[] = [
-  { id: "r1", vigencia_desde: "2025-01-01", rmv: 1130, uit: 5350, base_legal: "", observaciones: null },
-  { id: "r2", vigencia_desde: "2026-01-01", rmv: 1130, uit: 5500, base_legal: "", observaciones: null },
-  { id: "r3", vigencia_desde: "2026-10-01", rmv: 1230, uit: 5500, base_legal: "", observaciones: null },
+export const RMV_RESPALDO: FilaRmv[] = [
+  { id: "r1", vigencia_desde: "2025-01-01", monto: 1130, base_legal: "", observaciones: null },
+  { id: "r2", vigencia_desde: "2026-10-01", monto: 1230, base_legal: "", observaciones: null },
+];
+export const UIT_RESPALDO: FilaUit[] = [
+  { id: "u1", anio: 2025, monto: 5350, base_legal: "", observaciones: null },
+  { id: "u2", anio: 2026, monto: 5500, base_legal: "", observaciones: null },
 ];
 
-/** Norma vigente en una fecha (YYYY-MM-DD) o período (YYYY-MM): la más reciente con vigencia_desde <= fecha. */
-export function normaEn(lista: FilaNormativa[], fecha: string): FilaNormativa {
+/** RMV vigente en una fecha (YYYY-MM-DD) o período (YYYY-MM). */
+export function rmvVigente(lista: FilaRmv[], fecha: string): FilaRmv {
   const f = fecha.length === 7 ? `${fecha}-31` : fecha;
-  const orden = [...(lista.length ? lista : NORMATIVA_RESPALDO)].sort((a, b) => a.vigencia_desde.localeCompare(b.vigencia_desde));
+  const orden = [...(lista.length ? lista : RMV_RESPALDO)].sort((a, b) => a.vigencia_desde.localeCompare(b.vigencia_desde));
   return orden.filter((n) => n.vigencia_desde <= f).pop() ?? orden[0]!;
 }
-/** RMV del período (YYYY-MM). */
-export const rmvEn = (lista: FilaNormativa[], periodo: string) => Number(normaEn(lista, periodo).rmv);
-/** UIT del año fiscal: la vigente al 1 de enero de ese año. */
-export const uitEn = (lista: FilaNormativa[], anio: number) => Number(normaEn(lista, `${anio}-01-01`).uit);
-/** Norma que empieza dentro del período (YYYY-MM), para alertar del cambio. */
-export const normaNuevaEn = (lista: FilaNormativa[], periodo: string) => lista.find((n) => n.vigencia_desde.slice(0, 7) === periodo);
+export const rmvEn = (lista: FilaRmv[], periodo: string) => Number(rmvVigente(lista, periodo).monto);
+/** UIT del año fiscal: la del año o, si falta, la del último año registrado anterior. */
+export function uitVigente(lista: FilaUit[], anio: number): FilaUit {
+  const orden = [...(lista.length ? lista : UIT_RESPALDO)].sort((a, b) => a.anio - b.anio);
+  return orden.filter((u) => u.anio <= anio).pop() ?? orden[0]!;
+}
+export const uitEn = (lista: FilaUit[], anio: number) => Number(uitVigente(lista, anio).monto);
+/** RMV que empieza dentro del período (YYYY-MM), para alertar del cambio. */
+export const rmvNuevaEn = (lista: FilaRmv[], periodo: string) => lista.find((n) => n.vigencia_desde.slice(0, 7) === periodo);
 
-export const useNormativa = () =>
+const db = supabase as unknown as { from: (t: string) => any };
+export const useRmv = () =>
   useQuery({
-    queryKey: ["historial_normativo"],
+    queryKey: ["normativa_rmv"],
     queryFn: async () => {
-      const { data, error } = await (supabase as unknown as { from: (t: string) => any }).from("historial_normativo").select("*").order("vigencia_desde");
+      const { data, error } = await db.from("normativa_rmv").select("*").order("vigencia_desde");
       if (error) throw error;
-      return (data ?? []) as FilaNormativa[];
+      return (data ?? []) as FilaRmv[];
+    },
+  });
+export const useUit = () =>
+  useQuery({
+    queryKey: ["normativa_uit"],
+    queryFn: async () => {
+      const { data, error } = await db.from("normativa_uit").select("*").order("anio");
+      if (error) throw error;
+      return (data ?? []) as FilaUit[];
     },
   });
