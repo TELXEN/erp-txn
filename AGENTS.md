@@ -52,4 +52,5 @@
 - Work valuations (valorizaciones/valorizacion_items) snapshot contracted metrado/P.U.; prior accumulation comes only from approved valuations and approval (DB trigger) requires supervisor signature and freezes the row — history never shifts with live progress.
 - Gantt uses escalaCalendario for the timeline viewport and useRecordado for project selection — navigation stays legible and restores the last opened project without changing project data.
 - Collapsible sections use Panel's colapsable/abierto/onAbrirCambiar props (header with totals stays visible, body hides) — one folding mechanism instead of per-screen show/hide markup.
+- CTS regularization creates missing previous/current records with conflict-ignore inserts and reads both back for a single preview/print packet; existing records are never overwritten, preserving payment history.
 
