@@ -125,14 +125,6 @@ export function DatosEmpresa() {
               placeholder="SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL"
             />
           </Campo>
-          <Campo etiqueta="Color de marca">
-            <input
-              type="color"
-              value={form.color_marca}
-              onChange={(e) => setForm({ ...form, color_marca: e.target.value })}
-              className="h-9 w-full rounded-md border border-line bg-card px-1"
-            />
-          </Campo>
           <p className="col-span-full mt-3 text-xs font-semibold uppercase text-muted-foreground">Contacto</p>
           <Campo etiqueta="Dirección fiscal">
             <Input
