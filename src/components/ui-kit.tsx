@@ -251,14 +251,22 @@ export function Pestanas<T extends string>({
   valor,
   onCambiar,
   etiqueta,
+  variante = "linea",
 }: {
   opciones: { id: T; texto: ReactNode; icono?: ReactNode }[];
   valor: T;
   onCambiar: (v: T) => void;
   etiqueta: string;
+  /** "capsula" = sub-pestañas tipo pastilla, distintas de la barra principal. */
+  variante?: "linea" | "capsula";
 }) {
+  const capsula = variante === "capsula";
   return (
-    <div role="tablist" aria-label={etiqueta} className="flex flex-wrap gap-1 border-b border-line">
+    <div
+      role="tablist"
+      aria-label={etiqueta}
+      className={capsula ? "inline-flex flex-wrap gap-1 rounded-lg border border-line bg-muted/50 p-1" : "flex flex-wrap gap-1 border-b border-line"}
+    >
       {opciones.map((o) => {
         const activa = o.id === valor;
         return (
@@ -269,8 +277,12 @@ export function Pestanas<T extends string>({
             aria-selected={activa}
             onClick={() => onCambiar(o.id)}
             className={cn(
-              "-mb-px inline-flex min-h-9 items-center gap-2 border-b-2 px-3 py-2 text-xs font-medium transition-colors",
-              activa ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:border-line hover:text-ink",
+              capsula
+                ? "inline-flex min-h-8 items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-colors"
+                : "-mb-px inline-flex min-h-9 items-center gap-2 border-b-2 px-3 py-2 text-xs font-medium transition-colors",
+              capsula
+                ? activa ? "bg-card text-primary shadow-sm" : "text-muted-foreground hover:bg-card/60 hover:text-ink"
+                : activa ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:border-line hover:text-ink",
             )}
           >
             {o.icono}
