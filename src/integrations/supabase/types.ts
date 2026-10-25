@@ -3180,6 +3180,66 @@ export type Database = {
           },
         ]
       }
+      normativa_rmv: {
+        Row: {
+          base_legal: string
+          created_at: string
+          id: string
+          monto: number
+          observaciones: string | null
+          updated_at: string
+          vigencia_desde: string
+        }
+        Insert: {
+          base_legal?: string
+          created_at?: string
+          id?: string
+          monto: number
+          observaciones?: string | null
+          updated_at?: string
+          vigencia_desde: string
+        }
+        Update: {
+          base_legal?: string
+          created_at?: string
+          id?: string
+          monto?: number
+          observaciones?: string | null
+          updated_at?: string
+          vigencia_desde?: string
+        }
+        Relationships: []
+      }
+      normativa_uit: {
+        Row: {
+          anio: number
+          base_legal: string
+          created_at: string
+          id: string
+          monto: number
+          observaciones: string | null
+          updated_at: string
+        }
+        Insert: {
+          anio: number
+          base_legal?: string
+          created_at?: string
+          id?: string
+          monto: number
+          observaciones?: string | null
+          updated_at?: string
+        }
+        Update: {
+          anio?: number
+          base_legal?: string
+          created_at?: string
+          id?: string
+          monto?: number
+          observaciones?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       orden_compra_items: {
         Row: {
           cantidad: number
