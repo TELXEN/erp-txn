@@ -4,7 +4,6 @@ import { Download, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Boton, Campo, Input, Panel } from "@/components/ui-kit";
 import { useEmpresa, type Empresa } from "@/lib/empresa";
-import { RegimenEmpresaPanel } from "@/components/RegimenEmpresaPanel";
 
 const LIMITE_LOGO = 300 * 1024;
 
@@ -226,7 +225,6 @@ export function DatosEmpresa() {
           </p>
         </div>
       </Panel>
-      <div className="lg:col-span-2"><RegimenEmpresaPanel /></div>
     </form>
   );
 }
