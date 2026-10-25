@@ -1,6 +1,6 @@
 # Roadmap
-- [ ] Regularizar CTS: crear ambos periodos sin duplicar ni modificar pagos y abrir las dos boletas.
-- [ ] Adoptar formato de Boletas de Pago en CTS y verificar vista e impresión.
+- [x] Regularizar CTS: ambos periodos creados y abiertos para Eder Garay; cinco pruebas pasan, registros existentes protegidos.
+- [x] Boletas CTS con formato de Boletas de Pago; vista mayo/noviembre y PDF de dos páginas completas verificados.
 - [x] Añadir documento de referencia al proyecto (Orden de Compra, Orden de Servicio o Contrato y número opcional) y cargarlo en la preliquidación; cinco pruebas pasan, guardado y vista previa verificados, datos de prueba retirados.
 - [x] Separadores de acciones, barra derecha en Caja chica, controles GG e IGV editable (18.00/0.00) y quitar Codificación de insumos de Configuración. Pantallas y guardado de IGV verificados; Caja chica no tiene filas para probar rendiciones.
 - [x] Corregir saltos prematuros en la cotización vertical: grupos y cierre en una hoja; pantalla y PDF verificados sin modificar datos.
