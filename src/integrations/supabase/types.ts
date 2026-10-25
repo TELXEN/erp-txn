@@ -5935,11 +5935,57 @@ export type Database = {
           },
         ]
       }
+      vinculos_laborales: {
+        Row: {
+          created_at: string
+          fecha_cese: string | null
+          fecha_ingreso: string
+          id: string
+          liquidacion_id: string | null
+          motivo: string | null
+          trabajador_id: string
+        }
+        Insert: {
+          created_at?: string
+          fecha_cese?: string | null
+          fecha_ingreso: string
+          id?: string
+          liquidacion_id?: string | null
+          motivo?: string | null
+          trabajador_id: string
+        }
+        Update: {
+          created_at?: string
+          fecha_cese?: string | null
+          fecha_ingreso?: string
+          id?: string
+          liquidacion_id?: string | null
+          motivo?: string | null
+          trabajador_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vinculos_laborales_liquidacion_id_fkey"
+            columns: ["liquidacion_id"]
+            isOneToOne: false
+            referencedRelation: "beneficios_sociales"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vinculos_laborales_trabajador_id_fkey"
+            columns: ["trabajador_id"]
+            isOneToOne: false
+            referencedRelation: "trabajadores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      anular_cese: { Args: { _trabajador: string }; Returns: undefined }
       eliminar_proyecto: { Args: { _id: string }; Returns: Json }
       es_personal: { Args: { _user_id: string }; Returns: boolean }
       guardar_especialidad: {
@@ -5996,6 +6042,10 @@ export type Database = {
       }
       recodificar_wbs: { Args: never; Returns: undefined }
       registrar_financiamiento: { Args: { _datos: Json }; Returns: string }
+      registrar_liquidacion: {
+        Args: { _datos: Json; _fecha_cese: string; _trabajador: string }
+        Returns: string
+      }
       registrar_movimiento_detraccion: {
         Args: {
           _banco: string
@@ -6020,6 +6070,15 @@ export type Database = {
           _tc: number
         }
         Returns: string
+      }
+      reingresar_trabajador: {
+        Args: {
+          _cargo: string
+          _fecha: string
+          _sueldo: number
+          _trabajador: string
+        }
+        Returns: undefined
       }
       siguiente_codigo_cotizacion: { Args: never; Returns: string }
       siguiente_codigo_documento: { Args: { _nombre: string }; Returns: string }
