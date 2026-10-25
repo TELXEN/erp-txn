@@ -138,7 +138,7 @@ export function HojaDetalleHonorario({ empresa, trabajador, proyecto, detalle, t
     <article className="honorario-print-sheet mx-auto flex min-h-[297mm] w-[248mm] max-w-none flex-col bg-paper p-[12mm] text-ink shadow-lg print:min-h-0 print:p-[6mm] print:shadow-none" style={{ fontFamily: DOC_FUENTE_CSS }}>
       <EncabezadoDocumento
         empresa={empresa}
-        titulo="Recibo por honorarios"
+        titulo="DETALLE DE PAGO"
         tituloClase="text-[10px] leading-tight"
         numero={detalle.numero_recibo}
         numeroEditable={editable}
