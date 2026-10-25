@@ -50,9 +50,9 @@ function Hoja({ registro: r, trabajador: t, banco }: BoletaCts) {
     </section>
     <div className="grid grid-cols-2 border border-line">
       <section className="border-r border-line">{cabecera("Remuneración computable")}
-        <Fila n="Sueldo básico" v={d.sueldo !== undefined ? soles(d.sueldo) : "—"} />
-        <Fila n="Asignación familiar" v={d.asignacion_familiar !== undefined ? soles(d.asignacion_familiar) : "—"} />
-        <Fila n="1/6 de gratificación" v={soles(Number(d.sexto_gratificacion ?? 0))} />
+        <Fila n="Sueldo básico" v={d["sueldo"] !== undefined ? soles(d["sueldo"]) : "—"} />
+        <Fila n="Asignación familiar" v={d["asignacion_familiar"] !== undefined ? soles(d["asignacion_familiar"]) : "—"} />
+        <Fila n="1/6 de gratificación" v={soles(Number(d["sexto_gratificacion"] ?? 0))} />
       </section>
       <section>{cabecera("Cálculo de CTS")}
         <Fila n={`Por meses: R.C. / 12 × ${r.meses}`} v={soles(rc / 12 * r.meses * factor)} />
