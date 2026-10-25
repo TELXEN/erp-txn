@@ -9,6 +9,7 @@ export type TrabajadorBeneficio = {
   regimen_laboral: string;
   fecha_ingreso: string | null;
   fecha_cese?: string | null;
+  agrario_prorrateado?: boolean | null;
 };
 
 export const RMV = 1230; // vigente desde 01/10/2026
@@ -30,9 +31,28 @@ const FACTORES: Record<string, { grat: number; cts: number; vac: number }> = {
   "Construcción Civil": { grat: 1, cts: 1, vac: 1 },
   "MYPE Pequeña": { grat: 0.5, cts: 0.5, vac: 0.5 },
   "MYPE Micro": { grat: 0, cts: 0, vac: 0.5 },
-  Agrario: { grat: 0, cts: 0, vac: 1 },
+  // Ley 31110: el trabajador agrario percibe gratificación y CTS como el General, salvo que se prorrateen en su jornal.
+  Agrario: { grat: 1, cts: 1, vac: 1 },
 };
-export const factores = (r: string) => FACTORES[r] ?? { grat: 1, cts: 1, vac: 1 };
+export const factores = (r: string, prorrateado = false) =>
+  r === "Agrario" && prorrateado ? { grat: 0, cts: 0, vac: 1 } : FACTORES[r] ?? { grat: 1, cts: 1, vac: 1 };
+const fac = (t: TrabajadorBeneficio) => factores(t.regimen_laboral, !!t.agrario_prorrateado);
+
+/** Bonificación extraordinaria (Ley 30334) = aporte de salud: Agrario escalonado por año (Ley 31110); Micro va al SIS, sin bonificación. */
+export function tasaBonificacion(regimen: string, anio: number) {
+  if (regimen === "MYPE Micro") return 0;
+  if (regimen !== "Agrario") return 0.09;
+  return anio <= 2022 ? 0.06 : anio <= 2024 ? 0.07 : anio <= 2026 ? 0.08 : 0.09;
+}
+
+/** Regla del régimen en palabras, para el sustento de las boletas. */
+export const reglaRegimen: Record<string, string> = {
+  General: "Régimen General: gratificación de un sueldo por semestre, CTS de un sueldo por año y 30 días de vacaciones.",
+  "Construcción Civil": "Construcción Civil: gratificación y CTS como el Régimen General.",
+  "MYPE Pequeña": "MYPE Pequeña: gratificación de medio sueldo por semestre, CTS de 15 remuneraciones diarias por año y 15 días de vacaciones; sin asignación familiar obligatoria.",
+  "MYPE Micro": "MYPE Micro: no corresponde gratificación ni CTS; 15 días de vacaciones; sin bonificación extraordinaria (SIS).",
+  Agrario: "Agrario (Ley 31110): gratificación y CTS como el Régimen General, salvo que se paguen prorrateadas en el jornal; bonificación extraordinaria según el aporte agrario del año.",
+};
 
 const r2 = (n: number) => Math.round(n * 100) / 100;
 const D = (s: string) => new Date(`${s}T00:00:00Z`);
@@ -53,7 +73,6 @@ export function computo(desde: string, hasta: string) {
 export const asignacionFamiliar = (t: TrabajadorBeneficio) =>
   t.asignacion_familiar && !t.regimen_laboral.startsWith("MYPE") ? RMV * 0.1 : 0;
 export const remuneracionBase = (t: TrabajadorBeneficio) => Number(t.sueldo_mensual) + asignacionFamiliar(t);
-const tasaBonif = (t: TrabajadorBeneficio) => (t.regimen_laboral === "Agrario" ? 0.06 : 0.09);
 
 export function periodoGrat(anio: number, p: string) {
   return p === "Julio" ? { desde: `${anio}-01-01`, hasta: `${anio}-06-30` } : { desde: `${anio}-07-01`, hasta: `${anio}-12-31` };
@@ -66,18 +85,19 @@ export function calcGrat(t: TrabajadorBeneficio, desde: string, hasta: string) {
   const inicio = maxF(desde, t.fecha_ingreso ?? desde);
   const { meses } = computo(inicio, hasta);
   const rc = r2(remuneracionBase(t));
-  const monto = r2((rc / 6) * meses * factores(t.regimen_laboral).grat);
-  const bonificacion = r2(monto * tasaBonif(t));
-  return { fecha_desde: inicio, fecha_hasta: hasta, meses, dias: 0, remuneracion_computable: rc, monto, bonificacion, total: r2(monto + bonificacion), detalle: { sueldo: r2(Number(t.sueldo_mensual)), asignacion_familiar: r2(asignacionFamiliar(t)), factor_regimen: factores(t.regimen_laboral).grat, tasa_bonificacion: tasaBonif(t) } as Record<string, number> };
+  const tasa = tasaBonificacion(t.regimen_laboral, Number(hasta.slice(0, 4)));
+  const monto = r2((rc / 6) * meses * fac(t).grat);
+  const bonificacion = r2(monto * tasa);
+  return { fecha_desde: inicio, fecha_hasta: hasta, meses, dias: 0, remuneracion_computable: rc, monto, bonificacion, total: r2(monto + bonificacion), detalle: { sueldo: r2(Number(t.sueldo_mensual)), asignacion_familiar: r2(asignacionFamiliar(t)), factor_regimen: fac(t).grat, tasa_bonificacion: tasa } as Record<string, number> };
 }
 
 export function calcCts(t: TrabajadorBeneficio, desde: string, hasta: string) {
   const inicio = maxF(desde, t.fecha_ingreso ?? desde);
   const { meses, dias } = computo(inicio, hasta);
   const base = remuneracionBase(t);
-  const sextoGrat = factores(t.regimen_laboral).grat > 0 ? base / 6 : 0;
+  const sextoGrat = fac(t).grat > 0 ? base / 6 : 0;
   const rc = r2(base + sextoGrat);
-  const monto = r2(((rc / 12) * meses + (rc / 360) * dias) * factores(t.regimen_laboral).cts);
+  const monto = r2(((rc / 12) * meses + (rc / 360) * dias) * fac(t).cts);
   return {
     fecha_desde: inicio, fecha_hasta: hasta, meses, dias, remuneracion_computable: rc, monto, bonificacion: 0, total: monto,
     detalle: { sueldo: r2(Number(t.sueldo_mensual)), asignacion_familiar: r2(asignacionFamiliar(t)), sexto_gratificacion: r2(sextoGrat) } as Record<string, number>,
@@ -96,7 +116,7 @@ export function calcLiquidacion(t: TrabajadorBeneficio, cese: string) {
   if (aniv < ingreso) aniv = ingreso;
   const v = computo(aniv, cese);
   const base = r2(remuneracionBase(t));
-  const vac = r2(((base / 12) * v.meses + (base / 360) * v.dias) * factores(t.regimen_laboral).vac);
+  const vac = r2(((base / 12) * v.meses + (base / 360) * v.dias) * fac(t).vac);
   const monto = r2(cts.monto + grat.monto + vac);
   return {
     fecha_desde: ingreso, fecha_hasta: cese, meses: v.meses, dias: v.dias, remuneracion_computable: base, monto,
