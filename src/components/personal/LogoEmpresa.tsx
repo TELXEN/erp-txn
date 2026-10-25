@@ -55,8 +55,8 @@ export function LogoEmpresa({
         }`}
         style={tono ? { color: tono } : undefined}
       >
-        <span className="block">{linea1}</span>
-        {linea2 ? <span className="block">{linea2}</span> : null}
+        <span className="block">{"\n"}</span>
+        {linea2 ? <span className="block">{"\n"}</span> : null}
       </span>
     </div>
   );
