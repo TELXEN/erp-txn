@@ -52,5 +52,5 @@
 - Work valuations (valorizaciones/valorizacion_items) snapshot contracted metrado/P.U.; prior accumulation comes only from approved valuations and approval (DB trigger) requires supervisor signature and freezes the row — history never shifts with live progress.
 - Gantt uses escalaCalendario for the timeline viewport and useRecordado for project selection — navigation stays legible and restores the last opened project without changing project data.
 - Collapsible sections use Panel's colapsable/abierto/onAbrirCambiar props (header with totals stays visible, body hides) — one folding mechanism instead of per-screen show/hide markup.
-- CTS regularization uses conflict-ignore inserts and a shared print packet; agruparBoletasPorTrabajador groups list cells only, keeping period IDs, actions and payment history independent.
+- CTS regularization uses conflict-ignore inserts; worker grouping keeps period IDs/actions independent. CTS and gratification share one print sheet; calcGrat snapshots its breakdown, never deriving missing historical salary from today's profile.
 
