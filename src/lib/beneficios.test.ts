@@ -1,7 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { calcCts, periodoCts, periodoCtsAnterior, filasRegularizacionCts, agruparBoletasPorTrabajador } from "./beneficios";
+import { calcCts, calcGrat, periodoCts, periodoCtsAnterior, filasRegularizacionCts, agruparBoletasPorTrabajador } from "./beneficios";
 
 const t = (fecha_ingreso: string) => ({ id: "x", sueldo_mensual: 3500, asignacion_familiar: false, regimen_laboral: "General", fecha_ingreso });
+
+describe("Sustento de gratificación", () => {
+  it("conserva base, factor y bonificación para sustentar seis meses de gratificación", () => {
+    const g = calcGrat(t("2025-01-01"), "2026-01-01", "2026-06-30");
+    expect(g.meses).toBe(6);
+    expect(g.detalle).toEqual({ sueldo: 3500, asignacion_familiar: 0, factor_regimen: 1, tasa_bonificacion: 0.09 });
+    expect([g.remuneracion_computable, g.monto, g.bonificacion, g.total]).toEqual([3500, 3500, 315, 3815]);
+  });
+});
 
 describe("CTS", () => {
   it("agrupa dos boletas del mismo trabajador sin mezclarlas con otro trabajador", () => {

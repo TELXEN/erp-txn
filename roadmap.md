@@ -1,4 +1,5 @@
 # Roadmap
+- [ ] Boleta sustentatoria de gratificación con formato de CTS, vista e impresión y desglose del cálculo; verificar sin modificar registros reales.
 - [x] Agrupar las boletas CTS del mismo trabajador: Eder aparece una sola vez con ambas boletas; apertura independiente y recarga verificadas, seis pruebas pasan.
 - [x] Regularizar CTS: ambos periodos creados y abiertos para Eder Garay; cinco pruebas pasan, registros existentes protegidos.
 - [x] Boletas CTS con formato de Boletas de Pago; vista mayo/noviembre y PDF de dos páginas completas verificados.

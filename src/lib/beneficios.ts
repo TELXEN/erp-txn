@@ -68,7 +68,7 @@ export function calcGrat(t: TrabajadorBeneficio, desde: string, hasta: string) {
   const rc = r2(remuneracionBase(t));
   const monto = r2((rc / 6) * meses * factores(t.regimen_laboral).grat);
   const bonificacion = r2(monto * tasaBonif(t));
-  return { fecha_desde: inicio, fecha_hasta: hasta, meses, dias: 0, remuneracion_computable: rc, monto, bonificacion, total: r2(monto + bonificacion), detalle: {} as Record<string, number> };
+  return { fecha_desde: inicio, fecha_hasta: hasta, meses, dias: 0, remuneracion_computable: rc, monto, bonificacion, total: r2(monto + bonificacion), detalle: { sueldo: r2(Number(t.sueldo_mensual)), asignacion_familiar: r2(asignacionFamiliar(t)), factor_regimen: factores(t.regimen_laboral).grat, tasa_bonificacion: tasaBonif(t) } as Record<string, number> };
 }
 
 export function calcCts(t: TrabajadorBeneficio, desde: string, hasta: string) {
