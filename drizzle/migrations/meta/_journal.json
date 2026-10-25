@@ -526,6 +526,13 @@
       "when": 1792898323785,
       "tag": "0074_firmantes_laborales",
       "breakpoints": true
+    },
+    {
+      "idx": 75,
+      "version": "7",
+      "when": 1792900933311,
+      "tag": "0075_regimenes_empresa",
+      "breakpoints": true
     }
   ]
 }
