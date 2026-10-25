@@ -414,13 +414,19 @@ function Personal() {
     setError("");
     const mensaje = validar(editando.datos);
     if (mensaje) return setError(mensaje);
-    const { error: err } = await supabase
-      .from("trabajadores")
-      .update(datosGuardar(editando.datos, trabajadores.find((t) => t.id === editando.id)))
-      .eq("id", editando.id);
+    const previo = trabajadores.find((t) => t.id === editando.id);
+    const datos = datosGuardar(editando.datos, previo);
+    const { error: err } = await supabase.from("trabajadores").update(datos).eq("id", editando.id);
     if (err) return setError(err.message);
     setEditando(null);
-    await qc.invalidateQueries({ queryKey: ["trabajadores"] });
+    if (previo) {
+      try {
+        const pagados = await recalcularPendientes({ ...previo, ...datos, id: previo.id });
+        if (pagados && previo.fecha_ingreso !== datos.fecha_ingreso)
+          setError(`Fecha de ingreso actualizada. ${pagados} beneficio(s) ya pagado(s) de ${previo.nombre} no se modificaron.`);
+      } catch { setError("Se guardó la ficha, pero no se pudieron recalcular sus beneficios pendientes."); }
+    }
+    await Promise.all(["trabajadores", "beneficios", "boletas", "recibos_honorarios"].map((k) => qc.invalidateQueries({ queryKey: [k] })));
   }
 
   async function eliminar(id: string) {
