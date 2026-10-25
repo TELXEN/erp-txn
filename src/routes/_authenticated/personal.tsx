@@ -288,7 +288,7 @@ function Personal() {
   type Setter = (campo: keyof FormPersonal, valor: string | boolean) => void;
 
   /** Fecha, constancia y año de vigencia en una sola línea horizontal. */
-  const BloqueSuspension = ({ f, set }: { f: FormPersonal; set: Setter }) => (
+  const bloqueSuspension = (f: FormPersonal, set: Setter) => (
     <div className="col-span-full grid grid-cols-3 gap-3">
       <CampoF etiqueta="Fecha de la suspensión" req>
         <Input type="date" value={f.suspension_cuarta_fecha} onChange={(e) => { set("suspension_cuarta_fecha", e.target.value); if (e.target.value) set("suspension_cuarta_anio", String(new Date().getFullYear())); }} required className="py-1.5" />
@@ -373,7 +373,7 @@ function Personal() {
             <><input type="checkbox" checked={f.suspension_cuarta} onChange={(e) => { set("suspension_cuarta", e.target.checked); if (e.target.checked) set("suspension_cuarta_anio", String(new Date().getFullYear())); }} /> Suspensión de retención 4ta (se renueva cada año)</>
           )}
         </label>
-        {!planilla && f.suspension_cuarta && bloqueAqui && <BloqueSuspension f={f} set={set} />}
+        {!planilla && f.suspension_cuarta && bloqueAqui && bloqueSuspension(f, set)}
       </>
     );
   };
@@ -614,7 +614,7 @@ function Personal() {
                       <tr className="border-b border-line/60 bg-muted/30">
                         <td colSpan={10} className="px-2 py-2">
                           <div className="grid gap-3 sm:grid-cols-3"><div className="grid grid-cols-2 gap-3 content-start">{seccionLaboral(d, actualizarCampo, false)}</div><div className="grid grid-cols-2 gap-3 content-start">{seccionSalario(d, actualizarCampo, false, false)}</div><div className="grid grid-cols-2 gap-3 content-start">{seccionPrevision(d, actualizarCampo)}</div></div>
-                          {d.tipo_contratacion !== "Planilla" && d.suspension_cuarta && <div className="mt-2"><BloqueSuspension f={d} set={actualizarCampo} /></div>}
+                          {d.tipo_contratacion !== "Planilla" && d.suspension_cuarta && <div className="mt-2">{bloqueSuspension(d, actualizarCampo)}</div>}
                         </td>
                       </tr>
                     )}
