@@ -8,7 +8,7 @@ import { montoEnLetras } from "@/lib/facturacion";
 import { useFuenteDocumento } from "@/lib/fuentes-documentos";
 import { firmanteLaboral, useEmpresa } from "@/lib/empresa";
 import { DOC } from "@/lib/documento-tema";
-import { factores } from "@/lib/beneficios";
+import { factores, reglaRegimen } from "@/lib/beneficios";
 import type { Trabajador } from "@/lib/datos";
 
 export type RegistroCts = {
@@ -32,7 +32,9 @@ function Hoja({ registro: r, trabajador: t, banco, gratificacion = false, liquid
   const { data: empresa } = useEmpresa();
   const d = r.detalle ?? {};
   const rc = Number(r.remuneracion_computable);
-  const factor = gratificacion ? Number(d["factor_regimen"] ?? factores(t?.regimen_laboral ?? "General").grat) : factores(t?.regimen_laboral ?? "General").cts;
+  const factor = gratificacion ? Number(d["factor_regimen"] ?? factores(t?.regimen_laboral ?? "General", !!t?.agrario_prorrateado).grat) : factores(t?.regimen_laboral ?? "General", !!t?.agrario_prorrateado).cts;
+  const regimen = t?.regimen_laboral ?? "General";
+  const sinDerecho = !liquidacion && factor === 0;
   const bonificacion = Number(r.bonificacion ?? 0);
   const tasa = Number(d["tasa_bonificacion"] ?? (Number(r.monto) > 0 ? bonificacion / Number(r.monto) : 0));
   const nombre = liquidacion ? "Liquidación" : gratificacion ? "Gratificación" : "CTS";
@@ -89,6 +91,8 @@ function Hoja({ registro: r, trabajador: t, banco, gratificacion = false, liquid
       <div className="border-t border-line bg-muted/35 font-bold"><Fila n={`Total ${nombre}`} v={soles(Number(r.total))} /></div>
     </div>}
     {gratificacion && <p className="mt-2 text-[9px] text-muted-foreground">Remuneración computable ÷ 6 × meses computados × factor del régimen. Bonificación extraordinaria = gratificación × {(tasa * 100).toFixed(2)} %. Total = gratificación + bonificación.{d["sueldo"] === undefined ? " El registro histórico conserva la base total, sin desglose de sueldo y asignación familiar." : ""}</p>}
+    <p className="mt-2 text-[9px] text-muted-foreground"><b>Régimen:</b> {reglaRegimen[regimen] ?? regimen}{regimen === "Agrario" && t?.agrario_prorrateado ? " Este trabajador cobra gratificación y CTS prorrateadas en su jornal." : ""}</p>
+    {sinDerecho && <p className="mt-2 border border-warn/40 bg-warn/10 px-3 py-2 text-[10px] font-semibold">No corresponde {nombre === "CTS" ? "CTS" : "gratificación"} en el régimen {regimen}{regimen === "Agrario" ? " con pago prorrateado" : ""}.</p>}
     <div className="mt-3 flex justify-between border border-primary bg-primary/5 px-3 py-2 text-sm font-bold"><span>{liquidacion ? "LIQUIDACIÓN A PAGAR" : gratificacion ? "GRATIFICACIÓN A PAGAR" : "CTS A DEPOSITAR"}</span><span>{soles(Number(r.total))}</span></div>
     <p className="mt-2 text-[9px] font-semibold">{montoEnLetras(Number(r.total), "PEN")}</p>
     <section className="mt-3 border border-line">{grupo(gratificacion || liquidacion ? "Datos del pago" : "Datos del depósito")}

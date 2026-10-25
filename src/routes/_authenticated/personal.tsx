@@ -17,7 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Input, MenuFiltros, Panel, Pestanas, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
-import { soles } from "@/lib/format";
+import { hoy, soles } from "@/lib/format";
 import { clasificacionDeCargo, type Trabajador, useCargos, useTrabajadores } from "@/lib/datos";
 import { exportarExcel } from "@/lib/exportar";
 import { FechaPeru } from "./gastos-directos";
