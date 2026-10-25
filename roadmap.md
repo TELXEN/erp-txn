@@ -1,5 +1,5 @@
 # Roadmap
-- [ ] Boleta de pago de liquidación con formato CTS, desglose e impresión; verificar el registro existente sin cambiar pagos ni personal.
+- [x] Boleta de liquidación con formato CTS: vista e impresión de Eder verificadas con total S/ 6,988.03, sin modificar pagos ni personal; siete pruebas pasan.
 - [x] Boleta de gratificación con formato CTS: vista e impresión de Eder verificadas, siete pruebas pasan; registros antiguos muestran su base guardada y advierten si no tienen desglose histórico.
 - [x] Agrupar las boletas CTS del mismo trabajador: Eder aparece una sola vez con ambas boletas; apertura independiente y recarga verificadas, seis pruebas pasan.
 - [x] Regularizar CTS: ambos periodos creados y abiertos para Eder Garay; cinco pruebas pasan, registros existentes protegidos.
