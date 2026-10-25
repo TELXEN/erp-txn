@@ -1,0 +1,1 @@
+ALTER TABLE public.beneficios_sociales ADD COLUMN IF NOT EXISTS regularizacion boolean NOT NULL DEFAULT false;

@@ -498,6 +498,13 @@
       "when": 1792863763911,
       "tag": "0070_historial_normativo",
       "breakpoints": true
+    },
+    {
+      "idx": 71,
+      "version": "7",
+      "when": 1792890096573,
+      "tag": "0071_beneficios_regularizacion",
+      "breakpoints": true
     }
   ]
 }
