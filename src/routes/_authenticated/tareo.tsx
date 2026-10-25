@@ -558,7 +558,7 @@ function TareoPage() {
               </div>
             )}
           </div>
-        </Panel>
+        </VentanaFlotante>
       )}
 
     </>
