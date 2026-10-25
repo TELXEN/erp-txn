@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Building2, Landmark, Scale } from "lucide-react";
+import { ClipboardList, Landmark, Scale } from "lucide-react";
 import { Pestanas } from "@/components/ui-kit";
 import { DatosEmpresa } from "@/components/DatosEmpresa";
 import { RegimenEmpresaPanel } from "@/components/RegimenEmpresaPanel";

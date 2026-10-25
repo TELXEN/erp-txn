@@ -289,7 +289,7 @@ export function Pestanas<T extends string>({
                 "inline-flex min-h-8 items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
               variante === "boton" &&
                 "inline-flex min-h-9 items-center gap-2 rounded-lg border px-4 py-2 text-xs font-medium transition-colors",
-              variante === "texto" && "py-2 text-xs font-medium transition-colors",
+              variante === "texto" && "inline-flex items-center gap-1.5 py-2 text-xs font-medium transition-colors",
               variante === "linea" &&
                 "-mb-px inline-flex min-h-9 items-center gap-2 border-b-2 px-3 py-2 text-xs font-medium transition-colors",
               activa
