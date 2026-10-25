@@ -219,7 +219,16 @@ export function DatosEmpresa() {
               </Boton>
             )}
           </div>
+          <Campo etiqueta="Color de marca">
+            <input
+              type="color"
+              value={form.color_marca}
+              onChange={(e) => setForm({ ...form, color_marca: e.target.value })}
+              className="h-9 w-full rounded-md border border-line bg-card px-1"
+            />
+          </Campo>
           <p className="font-mono text-[10px] leading-relaxed text-muted-foreground">
+
             PNG, JPG, WEBP o SVG. Tamaño máximo 300 KB. Se usará en el membrete de los reportes exportados.
             Recuerda pulsar «Guardar datos» para conservar el cambio.
           </p>
