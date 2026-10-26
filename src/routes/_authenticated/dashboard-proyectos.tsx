@@ -11,7 +11,7 @@ import { useFuenteDocumento } from "@/lib/fuentes-documentos";
 import { type Proyecto } from "@/lib/datos";
 
 import { puedeVerDinero, useAuth } from "@/lib/auth";
-import { fecha, pct, soles } from "@/lib/format";
+import { fecha, pct, soles, solesPunto } from "@/lib/format";
 import {
   esContractual,
   ofertaProyecto,
@@ -446,12 +446,13 @@ function DashboardProyectos() {
           </div>
 
 
-          <div className="dash-tarjeta dash-degradado p-3" data-tono="violeta">
+          <div className="dash-tarjeta dash-suave p-3" data-tono="violeta">
             <div className="flex items-center gap-3">
-              <span className="dash-icono dash-icono-claro"><CalendarClock size={18} /></span>
-              <p className="text-lg">Línea de tiempo</p>
+              <span className="dash-icono"><CalendarClock size={18} /></span>
+              <p className="text-lg text-ink">Línea de tiempo</p>
+
             </div>
-            <div className="mt-2 flex justify-between font-mono text-xs opacity-90">
+            <div className="mt-2 flex justify-between font-mono text-xs text-muted-foreground">
               <span>{fecha(obraSel?.proyecto.fecha_inicio ?? null)}</span>
               <span>{fecha(obraSel?.proyecto.fecha_fin ?? null)}</span>
             </div>
@@ -459,10 +460,10 @@ function DashboardProyectos() {
               <BarraTiempo etiqueta="Real" valor={obraSel?.avance ?? 0} />
               <BarraTiempo etiqueta="Programado" valor={programadoSel ?? 0} tenue />
             </div>
-            <div className="mt-1 flex justify-between font-mono text-[10px] opacity-80">
+            <div className="mt-1 flex justify-between font-mono text-[10px] text-muted-foreground">
               {[0, 20, 40, 60, 80, 100].map((n) => <span key={n}>{n}%</span>)}
             </div>
-            <p className="mt-1.5 font-mono text-[11px] opacity-90">
+            <p className="mt-1.5 font-mono text-[11px] text-muted-foreground">
               {obraSel?.usaCalendario
                 ? `Corte al: ${fecha(hoyISO())}`
                 : obraSel?.proyecto.fecha_corte_programado
@@ -485,9 +486,10 @@ function DashboardProyectos() {
               <div className="mt-1.5 flex items-center gap-4">
                 <Anillo valor={(obraSel?.gastado ?? 0)} alerta={!!obraSel && (obraSel.cdReal > obraSel.cdPres + 0.005 || obraSel.ggReal > obraSel.ggPres + 0.005)} />
                 <div className="min-w-0 flex-1 space-y-1">
-                  <div className="flex items-baseline justify-between gap-2"><p className="text-xs text-muted-foreground">Presupuesto</p><p className="font-mono text-base font-semibold text-ink">{soles(obraSel?.presupuesto ?? 0)}</p></div>
-                  <div className="flex items-baseline justify-between gap-2"><p className="text-xs text-muted-foreground">Gastado</p><p className="font-mono text-base font-semibold text-ink">{soles(obraSel?.costoReal ?? 0)}</p></div>
-                  <div className="flex items-baseline justify-between gap-2 border-t border-line pt-1"><p className="text-xs text-muted-foreground">Disponible</p><p className="font-mono text-base font-semibold text-ink">{soles((obraSel?.presupuesto ?? 0) - (obraSel?.costoReal ?? 0))}</p></div>
+                  <div className="flex items-baseline justify-between gap-2"><p className="text-xs text-muted-foreground">Presupuesto</p><p className="font-mono text-base font-semibold text-ink">{solesPunto(obraSel?.presupuesto ?? 0)}</p></div>
+                  <div className="flex items-baseline justify-between gap-2"><p className="text-xs text-muted-foreground">Gastado</p><p className="font-mono text-base font-semibold text-ink">{solesPunto(obraSel?.costoReal ?? 0)}</p></div>
+                  <div className="flex items-baseline justify-between gap-2 border-t border-line pt-1"><p className="text-xs text-muted-foreground">Disponible</p><p className="font-mono text-base font-semibold text-ink">{solesPunto((obraSel?.presupuesto ?? 0) - (obraSel?.costoReal ?? 0))}</p></div>
+
                 </div>
               </div>
               <div className="mt-1.5 grid grid-cols-[minmax(0,auto)_1fr_1fr_auto] items-center gap-x-2 gap-y-0.5 rounded-lg bg-muted/50 px-2 py-1.5">
@@ -630,8 +632,9 @@ function FilaSemaforo({ etiqueta, real, base }: { etiqueta: string; real: number
         <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${punto}`} />
         {etiqueta}
       </span>
-      <span title={`Real: ${soles(real)}`} className="border-l border-line pl-2 text-right font-mono text-xs tabular-nums text-ink">{soles(real)}</span>
-      <span title={`Presupuestado: ${soles(base)}`} className="border-l border-line pl-2 text-right font-mono text-xs tabular-nums text-muted-foreground">{soles(base)}</span>
+      <span title={`Real: ${solesPunto(real)}`} className="border-l border-line pl-2 text-right font-mono text-xs tabular-nums text-ink">{solesPunto(real)}</span>
+      <span title={`Presupuestado: ${solesPunto(base)}`} className="border-l border-line pl-2 text-right font-mono text-xs tabular-nums text-muted-foreground">{solesPunto(base)}</span>
+
       <span className="border-l border-line pl-2 text-right">
         <span title="% usado" className={`rounded-full px-1.5 py-px font-mono text-[10px] font-semibold tabular-nums ${pildora}`}>{pct(p)}</span>
       </span>
@@ -696,11 +699,12 @@ function BarraTiempo({ etiqueta, valor, tenue }: { etiqueta: string; valor: numb
   const v = Math.min(Math.max(valor, 0), 100);
   return (
     <div className="flex items-center gap-2">
-      <span className="w-20 shrink-0 text-[11px] opacity-90">{etiqueta}</span>
-      <div className="h-3 flex-1 overflow-hidden rounded-sm bg-card/25">
-        <div className={`h-full rounded-sm ${tenue ? "bg-card/60" : "bg-card"}`} style={{ width: `${v}%` }} />
+      <span className="w-20 shrink-0 text-[11px] text-muted-foreground">{etiqueta}</span>
+      <div className="dash-barra h-3 flex-1 overflow-hidden rounded-sm">
+        <div className={`h-full rounded-sm ${tenue ? "dash-barra-tenue" : "dash-barra-relleno"}`} style={{ width: `${v}%` }} />
       </div>
-      <span className="w-12 text-right font-mono text-[11px]">{pct(valor)}</span>
+      <span className="w-12 text-right font-mono text-[11px] text-ink">{pct(valor)}</span>
+
     </div>
   );
 }

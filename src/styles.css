@@ -440,6 +440,14 @@ aside .md\:overflow-y-auto:hover::-webkit-scrollbar-thumb { background: color-mi
 .dash-degradado { color: var(--primary-foreground); --tono: var(--primary); background: linear-gradient(135deg, var(--tono), color-mix(in oklab, var(--tono) 55%, var(--card))); }
 .dash-degradado[data-tono="good"] { --tono: var(--good); }
 .dash-degradado[data-tono="violeta"] { --tono: color-mix(in oklab, var(--primary) 55%, rgb(108 84 200)); }
+/* Tarjeta suave: fondo claro teñido y texto oscuro (menos contraste que dash-degradado) */
+.dash-suave { --tono: var(--primary); color: var(--ink); background: color-mix(in oklab, var(--tono) 7%, var(--card)); border: 1px solid color-mix(in oklab, var(--tono) 18%, var(--border)); box-shadow: none; }
+.dash-suave[data-tono="violeta"] { --tono: color-mix(in oklab, var(--primary) 55%, rgb(108 84 200)); }
+.dash-suave .dash-icono { background: color-mix(in oklab, var(--tono) 15%, var(--card)); color: var(--tono); }
+.dash-barra { background: color-mix(in oklab, var(--tono) 14%, var(--card)); }
+.dash-barra-relleno { background: var(--tono); }
+.dash-barra-tenue { background: color-mix(in oklab, var(--tono) 40%, var(--card)); }
+
 .dash-icono { display: inline-flex; height: 2.75rem; width: 2.75rem; flex-shrink: 0; align-items: center; justify-content: center; border-radius: 9999px; color: var(--primary-foreground); background: var(--primary); }
 .dash-icono-sm { height: 2.25rem; width: 2.25rem; }
 .dash-icono[data-tono="accent"] { background: var(--accent); color: var(--accent-foreground); }

@@ -5,6 +5,10 @@ export const soles = (n: number) =>
     maximumFractionDigits: 2,
   });
 
+// Variante con el punto de la abreviatura («S/. 1,234.56»): la usan las tarjetas de presupuesto.
+export const solesPunto = (n: number) => soles(n).replace("S/ ", "S/. ");
+
+
 export const pct = (n: number) => `${(Number.isFinite(n) ? n : 0).toFixed(1)}%`;
 
 export const fecha = (f: string | null) => (f ? f.split("-").reverse().join("/") : "—");
