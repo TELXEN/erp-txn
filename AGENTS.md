@@ -20,7 +20,7 @@
 - Read tipos_insumo via useTiposInsumo; only five system keys may be hardcoded — users can add types.
 - HT type is hidden (tipos_insumo.oculto); calcularApu auto-adds it last in EQ using Márgenes APU % — never manual.
 - Sidebar has dedicated theme tokens; primary/action buttons use its base color without altering business screens.
-- Invoice/quotation/preliquidation colors and font come from src/lib/documento-tema.ts; preliquidation uses one sheet (HojaPreliquidacion.tsx) with amounts in src/lib/preliquidacion-montos.ts — outputs never diverge.
+- Document colors/font: documento-tema.ts; preliquidation: one sheet + preliquidacion-montos.ts — outputs never diverge.
 - SUNAT purchases archive in comprobantes_recibidos(+_items) + private bucket; only authenticated descargarComprobantesSire downloads (batches of 10) — SOL creds server-side.
 - SIRE owns RCE end to end: one period selector and sync control for both books; purchase XML/PDF/CDR download and ERP register merged into the RCE conciliation table — Facturación Electrónica is sales-only.
 - On desktop, AppShell owns viewport height; sidebar and workspace scroll independently — navigation stays fixed.
@@ -43,7 +43,7 @@
 - Specialties: explicit editable codes; archive removals. Rename via guardar_especialidad for atomic catalog links; preserve history.
 - TanStack routes: api/ protected, api/public/ verified external callers; no Edge Functions.
 - Quotation incidence uses incidenciaPartidaApu: HT belongs to EQ; missing APU means no resources, not a price adjustment.
-- banco_saldos is maintained atomically by source triggers; debits reject insufficient funds. Role-checked loan RPCs preserve posted history and prevent duplicate payments — concurrent writers cannot overspend.
+- banco_saldos kept atomically by triggers; debits reject insufficient funds; role-checked loan RPCs block duplicates.
 - Module screens use ui-kit CabeceraModulo, Pestanas, TarjetaResumen, FilasCargando and Vacio — one visual language across modules.
 - List filters live in MenuFiltros (lupa) at the top of the right icon bar (BarraIconosHoja `filtros`), or `flotante` when a page has no bar — status tabs and data-loading period selectors stay visible.
 - Carriers (transportistas + vehiculos/conductores) are a catalogue; guías copy carrier, vehicle and driver data into datos_guia so emitted guides never change when the catalogue does.
