@@ -430,7 +430,7 @@ function DashboardProyectos() {
         <section className={`grid gap-3 ${verDinero ? "lg:grid-cols-[0.7fr_1.3fr_1.5fr]" : "lg:grid-cols-[0.8fr_1.6fr]"}`}>
           <div className="dash-tarjeta p-3">
             <div className="flex items-center gap-3">
-              <span className="dash-icono"><Gauge size={18} /></span>
+              <span className="dash-icono dash-icono-suave"><Gauge size={18} /></span>
               <p className="text-lg text-ink">Progreso</p>
             </div>
             {!obraSel ? <Vacio texto="Registra una obra para visualizar el avance." /> : (
