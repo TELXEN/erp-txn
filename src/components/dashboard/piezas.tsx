@@ -135,6 +135,7 @@ export function DonaLeyenda({
           </li>
         ))}
       </ul>
+      </div>
     </div>
   );
 }
