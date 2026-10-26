@@ -26,6 +26,9 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedDashboardProyectosRouteImport } from './routes/_authenticated/dashboard-proyectos'
 import { Route as AuthenticatedDatosRouteImport } from './routes/_authenticated/datos'
 import { Route as AuthenticatedDatosApuRouteImport } from './routes/_authenticated/datos-apu'
+import { Route as AuthenticatedEppBancoRouteImport } from './routes/_authenticated/epp-banco'
+import { Route as AuthenticatedEppEntregasRouteImport } from './routes/_authenticated/epp-entregas'
+import { Route as AuthenticatedEppHistorialRouteImport } from './routes/_authenticated/epp-historial'
 import { Route as AuthenticatedFacturacionElectronicaRouteImport } from './routes/_authenticated/facturacion-electronica'
 import { Route as AuthenticatedFlujoCajaRouteImport } from './routes/_authenticated/flujo-caja'
 import { Route as AuthenticatedGanttRouteImport } from './routes/_authenticated/gantt'
@@ -146,6 +149,23 @@ const AuthenticatedDatosApuRoute = AuthenticatedDatosApuRouteImport.update({
   path: '/datos-apu',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedEppBancoRoute = AuthenticatedEppBancoRouteImport.update({
+  id: '/epp-banco',
+  path: '/epp-banco',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedEppEntregasRoute =
+  AuthenticatedEppEntregasRouteImport.update({
+    id: '/epp-entregas',
+    path: '/epp-entregas',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedEppHistorialRoute =
+  AuthenticatedEppHistorialRouteImport.update({
+    id: '/epp-historial',
+    path: '/epp-historial',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedFacturacionElectronicaRoute =
   AuthenticatedFacturacionElectronicaRouteImport.update({
     id: '/facturacion-electronica',
@@ -322,6 +342,9 @@ export interface FileRoutesByFullPath {
   '/dashboard-proyectos': typeof AuthenticatedDashboardProyectosRoute
   '/datos': typeof AuthenticatedDatosRoute
   '/datos-apu': typeof AuthenticatedDatosApuRoute
+  '/epp-banco': typeof AuthenticatedEppBancoRoute
+  '/epp-entregas': typeof AuthenticatedEppEntregasRoute
+  '/epp-historial': typeof AuthenticatedEppHistorialRoute
   '/facturacion-electronica': typeof AuthenticatedFacturacionElectronicaRoute
   '/flujo-caja': typeof AuthenticatedFlujoCajaRoute
   '/gantt': typeof AuthenticatedGanttRoute
@@ -369,6 +392,9 @@ export interface FileRoutesByTo {
   '/dashboard-proyectos': typeof AuthenticatedDashboardProyectosRoute
   '/datos': typeof AuthenticatedDatosRoute
   '/datos-apu': typeof AuthenticatedDatosApuRoute
+  '/epp-banco': typeof AuthenticatedEppBancoRoute
+  '/epp-entregas': typeof AuthenticatedEppEntregasRoute
+  '/epp-historial': typeof AuthenticatedEppHistorialRoute
   '/facturacion-electronica': typeof AuthenticatedFacturacionElectronicaRoute
   '/flujo-caja': typeof AuthenticatedFlujoCajaRoute
   '/gantt': typeof AuthenticatedGanttRoute
@@ -418,6 +444,9 @@ export interface FileRoutesById {
   '/_authenticated/dashboard-proyectos': typeof AuthenticatedDashboardProyectosRoute
   '/_authenticated/datos': typeof AuthenticatedDatosRoute
   '/_authenticated/datos-apu': typeof AuthenticatedDatosApuRoute
+  '/_authenticated/epp-banco': typeof AuthenticatedEppBancoRoute
+  '/_authenticated/epp-entregas': typeof AuthenticatedEppEntregasRoute
+  '/_authenticated/epp-historial': typeof AuthenticatedEppHistorialRoute
   '/_authenticated/facturacion-electronica': typeof AuthenticatedFacturacionElectronicaRoute
   '/_authenticated/flujo-caja': typeof AuthenticatedFlujoCajaRoute
   '/_authenticated/gantt': typeof AuthenticatedGanttRoute
@@ -467,6 +496,9 @@ export interface FileRouteTypes {
     | '/dashboard-proyectos'
     | '/datos'
     | '/datos-apu'
+    | '/epp-banco'
+    | '/epp-entregas'
+    | '/epp-historial'
     | '/facturacion-electronica'
     | '/flujo-caja'
     | '/gantt'
@@ -514,6 +546,9 @@ export interface FileRouteTypes {
     | '/dashboard-proyectos'
     | '/datos'
     | '/datos-apu'
+    | '/epp-banco'
+    | '/epp-entregas'
+    | '/epp-historial'
     | '/facturacion-electronica'
     | '/flujo-caja'
     | '/gantt'
@@ -562,6 +597,9 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard-proyectos'
     | '/_authenticated/datos'
     | '/_authenticated/datos-apu'
+    | '/_authenticated/epp-banco'
+    | '/_authenticated/epp-entregas'
+    | '/_authenticated/epp-historial'
     | '/_authenticated/facturacion-electronica'
     | '/_authenticated/flujo-caja'
     | '/_authenticated/gantt'
@@ -718,6 +756,27 @@ declare module '@tanstack/react-router' {
       path: '/datos-apu'
       fullPath: '/datos-apu'
       preLoaderRoute: typeof AuthenticatedDatosApuRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/epp-banco': {
+      id: '/_authenticated/epp-banco'
+      path: '/epp-banco'
+      fullPath: '/epp-banco'
+      preLoaderRoute: typeof AuthenticatedEppBancoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/epp-entregas': {
+      id: '/_authenticated/epp-entregas'
+      path: '/epp-entregas'
+      fullPath: '/epp-entregas'
+      preLoaderRoute: typeof AuthenticatedEppEntregasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/epp-historial': {
+      id: '/_authenticated/epp-historial'
+      path: '/epp-historial'
+      fullPath: '/epp-historial'
+      preLoaderRoute: typeof AuthenticatedEppHistorialRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/facturacion-electronica': {
@@ -942,6 +1001,9 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardProyectosRoute: typeof AuthenticatedDashboardProyectosRoute
   AuthenticatedDatosRoute: typeof AuthenticatedDatosRoute
   AuthenticatedDatosApuRoute: typeof AuthenticatedDatosApuRoute
+  AuthenticatedEppBancoRoute: typeof AuthenticatedEppBancoRoute
+  AuthenticatedEppEntregasRoute: typeof AuthenticatedEppEntregasRoute
+  AuthenticatedEppHistorialRoute: typeof AuthenticatedEppHistorialRoute
   AuthenticatedFacturacionElectronicaRoute: typeof AuthenticatedFacturacionElectronicaRoute
   AuthenticatedFlujoCajaRoute: typeof AuthenticatedFlujoCajaRoute
   AuthenticatedGanttRoute: typeof AuthenticatedGanttRoute
@@ -989,6 +1051,9 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardProyectosRoute: AuthenticatedDashboardProyectosRoute,
   AuthenticatedDatosRoute: AuthenticatedDatosRoute,
   AuthenticatedDatosApuRoute: AuthenticatedDatosApuRoute,
+  AuthenticatedEppBancoRoute: AuthenticatedEppBancoRoute,
+  AuthenticatedEppEntregasRoute: AuthenticatedEppEntregasRoute,
+  AuthenticatedEppHistorialRoute: AuthenticatedEppHistorialRoute,
   AuthenticatedFacturacionElectronicaRoute:
     AuthenticatedFacturacionElectronicaRoute,
   AuthenticatedFlujoCajaRoute: AuthenticatedFlujoCajaRoute,

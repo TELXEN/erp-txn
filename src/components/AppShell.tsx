@@ -66,6 +66,8 @@ import {
   Wallet,
   ShieldCheck,
   FolderClosed,
+  HardHat,
+  PackageCheck,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ETIQUETA_ROL, useAuth, type Rol } from "@/lib/auth";
@@ -73,7 +75,7 @@ import { aplicarTema, leerTema } from "@/lib/temas";
 import { aplicarFuenteGlobal, useFuenteDocumento } from "@/lib/fuentes-documentos";
 
 
-type Item = { a: string; texto: string; roles: Rol[]; icono: React.ElementType };
+type Item = { a: string; texto: string; roles: Rol[]; icono: React.ElementType; hijos?: Item[] };
 type Categoria = { titulo: string; items: Item[] };
 
 const MENU: Categoria[] = [
@@ -129,6 +131,14 @@ const MENU: Categoria[] = [
     titulo: "Recursos Humanos",
     items: [
       { a: "/personal", texto: "Personal", roles: ["administrador", "gerente"], icono: Users },
+      {
+        a: "#epp", texto: "Gestión de EPP", roles: ["administrador", "gerente"], icono: HardHat,
+        hijos: [
+          { a: "/epp-banco", texto: "Banco de Datos de EPP", roles: ["administrador", "gerente"], icono: ClipboardList },
+          { a: "/epp-entregas", texto: "Asignación y Entrega", roles: ["administrador", "gerente"], icono: PackageCheck },
+          { a: "/epp-historial", texto: "Historial por Empleado", roles: ["administrador", "gerente"], icono: BarChart3 },
+        ],
+      },
       { a: "/tareo", texto: "Control de Asistencia", roles: ["administrador", "gerente"], icono: CalendarDays },
       { a: "/nomina", texto: "Boletas de Pago", roles: ["administrador", "gerente"], icono: NominaBoletas },
       { a: "/honorarios", texto: "Recibos por Honorarios", roles: ["administrador", "gerente"], icono: ReceiptText },
@@ -152,6 +162,38 @@ const MENU: Categoria[] = [
 
 
 const LS_KEY = "erp-telxen-menu-abierta";
+
+function SubgrupoMenu({ item, pathname }: { item: Item; pathname: string }) {
+  const contieneActiva = !!item.hijos?.some((h) => h.a === pathname);
+  const [abierto, setAbierto] = useState(contieneActiva);
+  useEffect(() => { if (contieneActiva) setAbierto(true); }, [contieneActiva]);
+  const Icono = item.icono;
+  return (
+    <div>
+      <button type="button" onClick={() => setAbierto((v) => !v)} aria-expanded={abierto}
+        className={`flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sidebar-foreground transition-colors hover:bg-sidebar-hover ${contieneActiva ? "font-semibold" : ""}`}>
+        <Icono className="size-4 shrink-0 opacity-90" />
+        <span className="flex-1">{item.texto}</span>
+        <ChevronDown className={`size-3.5 shrink-0 transition-transform ${abierto ? "" : "-rotate-90"}`} />
+      </button>
+      {abierto && (
+        <div className="ml-4 mt-1 space-y-1 border-l border-sidebar-border pl-2">
+          {item.hijos!.map((h) => {
+            const activo = pathname === h.a;
+            const IH = h.icono;
+            return (
+              <Link key={h.a} to={h.a}
+                className={`flex items-center gap-2 rounded-md px-2.5 py-1.5 text-[13px] transition-colors ${activo ? "bg-cta font-semibold text-cta-foreground" : "text-sidebar-foreground hover:bg-sidebar-hover"}`}>
+                <IH className="size-3.5 shrink-0 opacity-90" />
+                <span>{h.texto}</span>
+              </Link>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function leerAbierta(): string | null {
   try {
@@ -215,7 +257,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   }
 
   function estaAbierta(c: Categoria): boolean {
-    if (c.items.some((m) => pathname === m.a)) return true;
+    if (c.items.some((m) => pathname === m.a || m.hijos?.some((h) => h.a === pathname))) return true;
     return abierta === c.titulo;
   }
 
@@ -257,7 +299,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
           {colapsado ? (
             <nav className="hidden flex-col items-center gap-1 md:flex">
-              {categorias.flatMap((c) => c.items).map((m) => {
+              {categorias.flatMap((c) => c.items).flatMap((m) => m.hijos ?? [m]).map((m) => {
                 const Icono = m.icono;
                 const activo = pathname === m.a;
                 return (
@@ -292,6 +334,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                       {c.items.map((m) => {
                         const activo = pathname === m.a;
                         const Icono = m.icono;
+                        if (m.hijos) return <SubgrupoMenu key={m.a} item={m} pathname={pathname} />;
                         return (
                           <Link
                             key={m.a}
