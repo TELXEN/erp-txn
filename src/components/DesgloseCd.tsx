@@ -18,9 +18,8 @@ export function DesgloseCd({ proyectoId }: { proyectoId?: string | null }) {
   if (!proyectoId) return null;
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-md border border-line bg-card">
-      <div className="border-b border-line px-3 py-1.5">
+      <div className="border-b border-line px-3 py-1">
         <p className="text-[11px] font-bold uppercase tracking-wider text-ink">Desglose del costo directo</p>
-        <p className="text-[10px] text-muted-foreground">Cada rubro se compara solo con su propio gasto real</p>
       </div>
       <div className="grid grid-cols-12 gap-2 border-b border-line bg-muted/40 px-3 py-1 text-[9px] font-semibold uppercase tracking-wide text-muted-foreground">
         <span className="col-span-4">Rubro</span>

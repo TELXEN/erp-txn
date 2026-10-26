@@ -31,9 +31,8 @@ export function DesgloseGg({ proyectoId, base }: { proyectoId?: string | null; b
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-md border border-line bg-card">
-      <div className="border-b border-line px-3 py-1.5">
+      <div className="border-b border-line px-3 py-1">
         <p className="text-[11px] font-bold uppercase tracking-wider text-ink">Desglose de gastos generales</p>
-        <p className="text-[10px] text-muted-foreground">Gasto real por categoría y su peso sobre el GG presupuestado de la obra</p>
       </div>
       <div className="grid min-h-0 flex-1 grid-cols-1 divide-y divide-line md:grid-cols-2 md:divide-x md:divide-y-0">
         {[0, 1].map((col) => {
