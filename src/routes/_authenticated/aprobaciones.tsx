@@ -9,6 +9,7 @@ import { useAuth } from "@/lib/auth";
 import { usePartidas, useProyectos } from "@/lib/datos";
 import { soles } from "@/lib/format";
 import { useSolicitudesDesbloqueo, useToleranciaAvance } from "@/lib/sobrecosto";
+import { useItemsReq, useRequerimientos } from "@/lib/logistica";
 
 export const Route = createFileRoute("/_authenticated/aprobaciones")({
   head: () => ({
@@ -36,8 +37,23 @@ function Aprobaciones() {
   const [tol, setTol] = useState("15");
   const [msg, setMsg] = useState("");
   useEffect(() => setTol(String(tolerancia)), [tolerancia]);
+  const { data: reqs = [] } = useRequerimientos();
+  const { data: itemsReq = [] } = useItemsReq();
+  const [verReq, setVerReq] = useState<string | null>(null);
 
   if (rol !== "gerente" && rol !== "administrador") return <SinAcceso />;
+
+  const reqPendientes = reqs.filter((r) => r.estado === "Enviado a Gerencia");
+  async function resolverReq(id: string, aprobar: boolean) {
+    let motivo = "";
+    if (!aprobar) {
+      motivo = window.prompt("Motivo del rechazo") ?? "";
+      if (!motivo.trim()) return;
+    }
+    const { error } = await db.from("requerimientos").update({ estado: aprobar ? "Aprobado" : "Rechazado", motivo_rechazo: motivo.trim() }).eq("id", id);
+    setMsg(error ? error.message : aprobar ? "Requerimiento aprobado: pasó a la Bandeja de Requerimientos de Logística." : "Requerimiento rechazado.");
+    qc.invalidateQueries({ queryKey: ["requerimientos"] });
+  }
 
   const obra = (id: string) => {
     const p = proyectos.find((x) => x.id === id);
@@ -84,7 +100,52 @@ function Aprobaciones() {
         </div>
       </Panel>
 
-      <Panel titulo={`Pendientes (${pendientes.length})`} className="mb-4">
+      <Panel titulo={`Requerimientos de obra por aprobar (${reqPendientes.length})`} className="mb-4">
+        {reqPendientes.length === 0 ? <Vacio texto="No hay requerimientos enviados a Gerencia." /> : (
+          <div className="divide-y divide-line">
+            {reqPendientes.map((r) => {
+              const its = itemsReq.filter((i) => i.requerimiento_id === r.id);
+              const tdr = (r as { clase?: string; tdr?: Record<string, string> });
+              return (
+                <div key={r.id} className="px-4 py-3 text-xs">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <button type="button" className="min-w-0 flex-1 text-left" onClick={() => setVerReq(verReq === r.id ? null : r.id)}>
+                      <p className="font-semibold text-ink">{r.codigo} · {obra(r.proyecto_id)}</p>
+                      <p className="text-muted-foreground">{tdr.clase === "tdr" ? `Términos de referencia · ${tdr.tdr?.tipo ?? ""}` : "Materiales del APU"} · {its.length} ítem(s) · {r.fecha} · {r.observacion}</p>
+                    </button>
+                    <p className="text-sm font-bold tabular-nums text-ink">{soles(its.reduce((s, i) => s + Number(i.cantidad) * Number(i.precio_referencial), 0))}</p>
+                    {rol === "gerente" ? (
+                      <>
+                        <Boton onClick={() => resolverReq(r.id, true)}><Check size={13} /> Aprobar</Boton>
+                        <Boton variante="linea" onClick={() => resolverReq(r.id, false)}><X size={13} /> Rechazar</Boton>
+                      </>
+                    ) : <span className="text-muted-foreground">Solo Gerencia aprueba</span>}
+                  </div>
+                  {verReq === r.id && (
+                    <table className="mt-2 w-full font-mono text-[11px]">
+                      <tbody>
+                        {its.map((i) => (
+                          <tr key={i.id} className="border-t border-line/30">
+                            <td className="py-1">{i.descripcion}</td>
+                            <td className="py-1 text-muted-foreground">{i.unidad}</td>
+                            <td className="py-1 text-right">{Number(i.cantidad).toLocaleString("es-PE", { maximumFractionDigits: 4 })}</td>
+                            <td className="py-1 text-right">{soles(Number(i.cantidad) * Number(i.precio_referencial))}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                  {verReq === r.id && tdr.clase === "tdr" && (
+                    <p className="mt-1 text-muted-foreground">Alcance: {tdr.tdr?.alcance || "—"} · Entregables: {tdr.tdr?.entregables || "—"} · Plazo: {tdr.tdr?.plazo || "—"}</p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </Panel>
+
+      <Panel titulo={`Desbloqueos pendientes (${pendientes.length})`} className="mb-4">
         {pendientes.length === 0 ? <Vacio texto="No hay solicitudes pendientes." /> : (
           <div className="divide-y divide-line">
             {pendientes.map((s) => (
