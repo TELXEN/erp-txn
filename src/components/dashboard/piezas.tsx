@@ -44,13 +44,13 @@ export function FilaSemaforo({ etiqueta, real, base }: { etiqueta: string; real:
   );
 }
 
-export function Anillo({ valor, alerta, rotulo = "gastado" }: { valor: number; alerta?: boolean; rotulo?: string }) {
+export function Anillo({ valor, alerta, rotulo = "gastado", clase = "h-24 w-24" }: { valor: number; alerta?: boolean; rotulo?: string; clase?: string }) {
   const v = Math.min(Math.max(valor, 0), 100);
   const r = 50;
   const c = 2 * Math.PI * r;
   const tono = alerta || valor > 100 ? "text-bad" : valor >= 85 ? "text-warn" : "text-good";
   return (
-    <div className={`relative h-24 w-24 shrink-0 ${tono}`}>
+    <div className={`relative shrink-0 ${clase} ${tono}`}>
       <svg viewBox="0 0 120 120" className="h-full w-full -rotate-90" aria-hidden="true">
         <circle cx="60" cy="60" r={r} fill="none" stroke="currentColor" strokeOpacity="0.15" strokeWidth="10" />
         <circle cx="60" cy="60" r={r} fill="none" stroke="currentColor" strokeWidth="10" strokeLinecap="round" strokeDasharray={`${(v / 100) * c} ${c}`} />
