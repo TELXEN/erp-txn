@@ -198,7 +198,7 @@ export function EntregasEpp() {
         <TarjetaResumen etiqueta="Por renovar (30 días)" valor={String(porVencer)} alerta={porVencer ? "warn" : undefined} />
         <TarjetaResumen etiqueta="Vencidos" valor={String(vencidas)} alerta={vencidas ? "bad" : undefined} />
       </div>
-      <Panel titulo="Asignación y Entrega" extra={<Boton onClick={() => setForm({ trabajador_id: "", epp_id: "", fecha_entrega: hoy, cantidad: 1, talla: "", motivo: MOTIVOS_ENTREGA[0], observaciones: "" })}><Plus size={14} /> Registrar entrega</Boton>}>
+      <Panel titulo="Asignación y Entrega" extra={<Boton onClick={() => setForm({ trabajador_id: "", epp_id: "", fecha_entrega: hoy, cantidad: 1, talla: "", motivo: MOTIVOS_ENTREGA[0] ?? "Dotación inicial", observaciones: "" })}><Plus size={14} /> Registrar entrega</Boton>}>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="border-b border-line"><tr>
