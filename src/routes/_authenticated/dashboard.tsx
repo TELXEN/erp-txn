@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AlertTriangle, HandCoins, Receipt, TrendingUp, Upload } from "lucide-react";
-import { Anillo, DonaLeyenda, FajoBilletes, FilaSemaforo, TarjetaKpi } from "@/components/dashboard/piezas";
+import { BarrasComparativa, DonaLeyenda, FajoBilletes, FilaSemaforo, TarjetaKpi } from "@/components/dashboard/piezas";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Pestanas, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
@@ -521,27 +521,33 @@ function Dashboard() {
               <p className="flex-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Saldo disponible por ejecutar</p>
               {(saldoCD < 0 || saldoGG < 0) && <span className="inline-flex items-center gap-1 rounded-full bg-bad/10 px-2 py-0.5 text-[10px] font-semibold text-bad"><AlertTriangle size={11} /> Sobregirado</span>}
             </div>
-            <div className="mt-1 flex min-h-0 flex-1 items-center gap-3">
-              <Anillo clase="h-28 w-28" valor={datos.cdPrevisto + datos.ggPresupuestado > 0 ? ((datos.costoDirectoReal + datos.ggReal) / (datos.cdPrevisto + datos.ggPresupuestado)) * 100 : 0} alerta={saldoCD < 0 || saldoGG < 0} rotulo="consumido" />
-              <div className="min-w-0 flex-1">
-                <p className="text-[11px] text-muted-foreground">Saldo operativo</p>
-                <p className={`font-mono text-xl font-semibold tabular-nums ${datos.saldoOperativo < 0 ? "text-bad" : "text-ink"}`}>{solesPunto(datos.saldoOperativo)}</p>
-                <p className="text-[10px] text-muted-foreground">Cada presupuesto se controla por separado</p>
+            <div className="mt-1 flex min-h-0 flex-1 items-stretch gap-3">
+              <BarrasComparativa
+                datos={[
+                  { nombre: "Costo directo", real: datos.costoDirectoReal, presupuestado: datos.cdPrevisto },
+                  { nombre: "Gastos generales", real: datos.ggReal, presupuestado: datos.ggPresupuestado },
+                ]}
+              />
+              <div className="flex w-64 shrink-0 flex-col justify-center gap-2 border-l border-line pl-3">
+                <div>
+                  <p className="text-[11px] text-muted-foreground">Saldo operativo</p>
+                  <p className={`font-mono text-xl font-semibold tabular-nums ${datos.saldoOperativo < 0 ? "text-bad" : "text-ink"}`}>{solesPunto(datos.saldoOperativo)}</p>
+                  <p className="text-[10px] text-muted-foreground">Cada presupuesto se controla por separado</p>
+                </div>
+                <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-1.5 gap-y-1">
+                  <span />
+                  <span className="text-right text-[9px] uppercase tracking-wide text-muted-foreground">Real</span>
+                  <span className="text-right text-[9px] uppercase tracking-wide text-muted-foreground">% usado</span>
+                  <FilaSemaforo ocultarBase etiqueta="Costo directo" real={datos.costoDirectoReal} base={datos.cdPrevisto} />
+                  <FilaSemaforo ocultarBase etiqueta="Gastos generales" real={datos.ggReal} base={datos.ggPresupuestado} />
+                </div>
+                <p className="text-[10px] leading-snug text-muted-foreground">
+                  {desvGGTotal > 0
+                    ? `El sobregiro de GG (${soles(desvGGTotal)}) ya se descuenta de la Utilidad Real.`
+                    : "Sin sobregiro de GG; la utilidad real mantiene su valor previsto."}
+                </p>
               </div>
             </div>
-            <div className="mt-2 grid grid-cols-[minmax(0,1fr)_auto_auto_auto] items-center gap-x-2 gap-y-1">
-              <span />
-              <span className="pl-2 text-right text-[9px] uppercase tracking-wide text-muted-foreground">Real</span>
-              <span className="pl-2 text-right text-[9px] uppercase tracking-wide text-muted-foreground">Presupuestado</span>
-              <span className="pl-2 text-right text-[9px] uppercase tracking-wide text-muted-foreground">% usado</span>
-              <FilaSemaforo etiqueta="Costo directo" real={datos.costoDirectoReal} base={datos.cdPrevisto} />
-              <FilaSemaforo etiqueta="Gastos generales" real={datos.ggReal} base={datos.ggPresupuestado} />
-            </div>
-            <p className="mt-auto pt-2 text-[10px] leading-snug text-muted-foreground">
-              {desvGGTotal > 0
-                ? `El sobregiro de GG (${soles(desvGGTotal)}) ya se descuenta de la Utilidad Real.`
-                : "Sin sobregiro de GG; la utilidad real mantiene su valor previsto."}
-            </p>
           </div>
           <div className="dash-tarjeta flex min-w-0 flex-col px-3 py-2.5">
             <p className="mb-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Composición del costo real</p>
