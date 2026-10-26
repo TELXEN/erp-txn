@@ -14,7 +14,7 @@ import { TIPOS_INSUMO, apuDb, cantidadComponente, nombreTipo, useInsumos, type C
 import { BANCOS_RECURSO, dbBanco, useRecursosApu } from "@/lib/banco-apu";
 import { exportarExcel } from "@/lib/exportar";
 
-export const Route = createFileRoute("/_authenticated/requerimientos")({
+export const Route = createFileRoute("/_authenticated/generar-requerimiento")({
   head: () => ({
     meta: [
       { title: "Requerimientos — ERP TELXEN SAC" },

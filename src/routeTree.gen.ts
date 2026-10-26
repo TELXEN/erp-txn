@@ -34,6 +34,7 @@ import { Route as AuthenticatedFlujoCajaRouteImport } from './routes/_authentica
 import { Route as AuthenticatedGanttRouteImport } from './routes/_authenticated/gantt'
 import { Route as AuthenticatedGastosDirectosRouteImport } from './routes/_authenticated/gastos-directos'
 import { Route as AuthenticatedGastosGeneralesRouteImport } from './routes/_authenticated/gastos-generales'
+import { Route as AuthenticatedGenerarRequerimientoRouteImport } from './routes/_authenticated/generar-requerimiento'
 import { Route as AuthenticatedGgVistaRouteImport } from './routes/_authenticated/gg-vista'
 import { Route as AuthenticatedHonorariosRouteImport } from './routes/_authenticated/honorarios'
 import { Route as AuthenticatedImportacionesRouteImport } from './routes/_authenticated/importaciones'
@@ -194,6 +195,12 @@ const AuthenticatedGastosGeneralesRoute =
     path: '/gastos-generales',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedGenerarRequerimientoRoute =
+  AuthenticatedGenerarRequerimientoRouteImport.update({
+    id: '/generar-requerimiento',
+    path: '/generar-requerimiento',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedGgVistaRoute = AuthenticatedGgVistaRouteImport.update({
   id: '/gg-vista',
   path: '/gg-vista',
@@ -350,6 +357,7 @@ export interface FileRoutesByFullPath {
   '/gantt': typeof AuthenticatedGanttRoute
   '/gastos-directos': typeof AuthenticatedGastosDirectosRoute
   '/gastos-generales': typeof AuthenticatedGastosGeneralesRoute
+  '/generar-requerimiento': typeof AuthenticatedGenerarRequerimientoRoute
   '/gg-vista': typeof AuthenticatedGgVistaRoute
   '/honorarios': typeof AuthenticatedHonorariosRoute
   '/importaciones': typeof AuthenticatedImportacionesRoute
@@ -400,6 +408,7 @@ export interface FileRoutesByTo {
   '/gantt': typeof AuthenticatedGanttRoute
   '/gastos-directos': typeof AuthenticatedGastosDirectosRoute
   '/gastos-generales': typeof AuthenticatedGastosGeneralesRoute
+  '/generar-requerimiento': typeof AuthenticatedGenerarRequerimientoRoute
   '/gg-vista': typeof AuthenticatedGgVistaRoute
   '/honorarios': typeof AuthenticatedHonorariosRoute
   '/importaciones': typeof AuthenticatedImportacionesRoute
@@ -452,6 +461,7 @@ export interface FileRoutesById {
   '/_authenticated/gantt': typeof AuthenticatedGanttRoute
   '/_authenticated/gastos-directos': typeof AuthenticatedGastosDirectosRoute
   '/_authenticated/gastos-generales': typeof AuthenticatedGastosGeneralesRoute
+  '/_authenticated/generar-requerimiento': typeof AuthenticatedGenerarRequerimientoRoute
   '/_authenticated/gg-vista': typeof AuthenticatedGgVistaRoute
   '/_authenticated/honorarios': typeof AuthenticatedHonorariosRoute
   '/_authenticated/importaciones': typeof AuthenticatedImportacionesRoute
@@ -504,6 +514,7 @@ export interface FileRouteTypes {
     | '/gantt'
     | '/gastos-directos'
     | '/gastos-generales'
+    | '/generar-requerimiento'
     | '/gg-vista'
     | '/honorarios'
     | '/importaciones'
@@ -554,6 +565,7 @@ export interface FileRouteTypes {
     | '/gantt'
     | '/gastos-directos'
     | '/gastos-generales'
+    | '/generar-requerimiento'
     | '/gg-vista'
     | '/honorarios'
     | '/importaciones'
@@ -605,6 +617,7 @@ export interface FileRouteTypes {
     | '/_authenticated/gantt'
     | '/_authenticated/gastos-directos'
     | '/_authenticated/gastos-generales'
+    | '/_authenticated/generar-requerimiento'
     | '/_authenticated/gg-vista'
     | '/_authenticated/honorarios'
     | '/_authenticated/importaciones'
@@ -814,6 +827,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGastosGeneralesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/generar-requerimiento': {
+      id: '/_authenticated/generar-requerimiento'
+      path: '/generar-requerimiento'
+      fullPath: '/generar-requerimiento'
+      preLoaderRoute: typeof AuthenticatedGenerarRequerimientoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/gg-vista': {
       id: '/_authenticated/gg-vista'
       path: '/gg-vista'
@@ -1009,6 +1029,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedGanttRoute: typeof AuthenticatedGanttRoute
   AuthenticatedGastosDirectosRoute: typeof AuthenticatedGastosDirectosRoute
   AuthenticatedGastosGeneralesRoute: typeof AuthenticatedGastosGeneralesRoute
+  AuthenticatedGenerarRequerimientoRoute: typeof AuthenticatedGenerarRequerimientoRoute
   AuthenticatedGgVistaRoute: typeof AuthenticatedGgVistaRoute
   AuthenticatedHonorariosRoute: typeof AuthenticatedHonorariosRoute
   AuthenticatedImportacionesRoute: typeof AuthenticatedImportacionesRoute
@@ -1060,6 +1081,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedGanttRoute: AuthenticatedGanttRoute,
   AuthenticatedGastosDirectosRoute: AuthenticatedGastosDirectosRoute,
   AuthenticatedGastosGeneralesRoute: AuthenticatedGastosGeneralesRoute,
+  AuthenticatedGenerarRequerimientoRoute:
+    AuthenticatedGenerarRequerimientoRoute,
   AuthenticatedGgVistaRoute: AuthenticatedGgVistaRoute,
   AuthenticatedHonorariosRoute: AuthenticatedHonorariosRoute,
   AuthenticatedImportacionesRoute: AuthenticatedImportacionesRoute,
