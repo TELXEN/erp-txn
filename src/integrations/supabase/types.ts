@@ -4617,6 +4617,9 @@ export type Database = {
       }
       requerimientos: {
         Row: {
+          aprobado_en: string | null
+          aprobado_por: string | null
+          clase: string
           codigo: string
           cotizacion_id: string | null
           creado_por: string | null
@@ -4624,12 +4627,17 @@ export type Database = {
           estado: string
           fecha: string
           id: string
+          motivo_rechazo: string
           observacion: string
           origen: string
           proyecto_id: string
+          tdr: Json
           updated_at: string
         }
         Insert: {
+          aprobado_en?: string | null
+          aprobado_por?: string | null
+          clase?: string
           codigo?: string
           cotizacion_id?: string | null
           creado_por?: string | null
@@ -4637,12 +4645,17 @@ export type Database = {
           estado?: string
           fecha?: string
           id?: string
+          motivo_rechazo?: string
           observacion?: string
           origen?: string
           proyecto_id: string
+          tdr?: Json
           updated_at?: string
         }
         Update: {
+          aprobado_en?: string | null
+          aprobado_por?: string | null
+          clase?: string
           codigo?: string
           cotizacion_id?: string | null
           creado_por?: string | null
@@ -4650,9 +4663,11 @@ export type Database = {
           estado?: string
           fecha?: string
           id?: string
+          motivo_rechazo?: string
           observacion?: string
           origen?: string
           proyecto_id?: string
+          tdr?: Json
           updated_at?: string
         }
         Relationships: [
@@ -4866,6 +4881,118 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      solicitud_cotizacion_items: {
+        Row: {
+          cantidad: number
+          created_at: string
+          id: string
+          precio_unitario: number
+          requerimiento_item_id: string
+          solicitud_id: string
+        }
+        Insert: {
+          cantidad?: number
+          created_at?: string
+          id?: string
+          precio_unitario?: number
+          requerimiento_item_id: string
+          solicitud_id: string
+        }
+        Update: {
+          cantidad?: number
+          created_at?: string
+          id?: string
+          precio_unitario?: number
+          requerimiento_item_id?: string
+          solicitud_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "solicitud_cotizacion_items_requerimiento_item_id_fkey"
+            columns: ["requerimiento_item_id"]
+            isOneToOne: false
+            referencedRelation: "requerimiento_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "solicitud_cotizacion_items_solicitud_id_fkey"
+            columns: ["solicitud_id"]
+            isOneToOne: false
+            referencedRelation: "solicitudes_cotizacion"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      solicitudes_cotizacion: {
+        Row: {
+          codigo: string
+          condiciones: string
+          creado_por: string | null
+          created_at: string
+          estado: string
+          fecha: string
+          id: string
+          moneda: string
+          observacion: string
+          orden_id: string | null
+          plazo_entrega: string
+          proveedor_id: string
+          requerimiento_id: string
+        }
+        Insert: {
+          codigo?: string
+          condiciones?: string
+          creado_por?: string | null
+          created_at?: string
+          estado?: string
+          fecha?: string
+          id?: string
+          moneda?: string
+          observacion?: string
+          orden_id?: string | null
+          plazo_entrega?: string
+          proveedor_id: string
+          requerimiento_id: string
+        }
+        Update: {
+          codigo?: string
+          condiciones?: string
+          creado_por?: string | null
+          created_at?: string
+          estado?: string
+          fecha?: string
+          id?: string
+          moneda?: string
+          observacion?: string
+          orden_id?: string | null
+          plazo_entrega?: string
+          proveedor_id?: string
+          requerimiento_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "solicitudes_cotizacion_orden_id_fkey"
+            columns: ["orden_id"]
+            isOneToOne: false
+            referencedRelation: "ordenes_compra"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "solicitudes_cotizacion_proveedor_id_fkey"
+            columns: ["proveedor_id"]
+            isOneToOne: false
+            referencedRelation: "terceros"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "solicitudes_cotizacion_requerimiento_id_fkey"
+            columns: ["requerimiento_id"]
+            isOneToOne: false
+            referencedRelation: "requerimientos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       solicitudes_desbloqueo: {
         Row: {
@@ -6257,6 +6384,10 @@ export type Database = {
         Returns: string
       }
       rango_regimen: { Args: { _r: string }; Returns: number }
+      recepcionar_orden_obra: {
+        Args: { _fecha: string; _items: Json; _obs: string; _orden: string }
+        Returns: undefined
+      }
       recodificar_wbs: { Args: never; Returns: undefined }
       registrar_financiamiento: { Args: { _datos: Json }; Returns: string }
       registrar_liquidacion: {
