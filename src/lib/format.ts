@@ -9,7 +9,7 @@ export const soles = (n: number) =>
 export const solesPunto = (n: number) => soles(n).replace("S/ ", "S/. ");
 
 
-export const pct = (n: number) => `${(Number.isFinite(n) ? n : 0).toFixed(1)}%`;
+export const pct = (n: number) => `${(Number.isFinite(n) ? n : 0).toFixed(2)}%`;
 
 export const fecha = (f: string | null) => (f ? f.split("-").reverse().join("/") : "—");
 
