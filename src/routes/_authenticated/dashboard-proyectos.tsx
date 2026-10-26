@@ -369,7 +369,7 @@ function DashboardProyectos() {
   );
 
   return (
-    <div className="tablero-proyectos flex flex-col">
+    <div className="tablero-proyectos flex h-full flex-col">
       <Encabezado
         titulo="Dashboard de Proyectos"
         subtitulo="Centro de control operativo"
@@ -387,7 +387,7 @@ function DashboardProyectos() {
       />
 
 
-      <div className="dash-lienzo mb-3 space-y-3 p-3">
+      <div className="dash-lienzo mb-3 flex-none space-y-3 p-3">
         {/* Fila superior: proyecto elegido con estados de cartera y datos clave */}
         <section className="grid gap-3 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
           <div className="dash-tarjeta flex flex-col p-3">
@@ -508,7 +508,7 @@ function DashboardProyectos() {
         const cdR = resumen.cdReal;
         const ggR = resumen.ggReal;
         return (
-        <section className="mb-3 grid gap-3 md:grid-cols-2 xl:grid-cols-4" aria-label="Control presupuestal">
+        <section className="mb-3 flex-none grid gap-3 md:grid-cols-2 xl:grid-cols-4" aria-label="Control presupuestal">
           <div className="kpi-tarjeta">
             <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Presupuesto vigente</p>
             <p className="mt-1.5 text-xl font-bold tabular-nums text-ink">{soles(pres)}</p>
@@ -531,7 +531,7 @@ function DashboardProyectos() {
         const cdR = f?.cdReal ?? 0, ggR = f?.ggReal ?? 0;
         return (
         <section className="flex min-h-0 flex-1 flex-col gap-3" aria-label="Control presupuestal y desglose">
-          <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+          <div className="flex-none grid grid-cols-2 gap-3 xl:grid-cols-4">
             <div className="kpi-tarjeta">
               <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Presupuesto vigente</p>
               <p className="mt-1.5 text-xl font-bold tabular-nums text-ink">{soles(f?.presupuesto ?? 0)}</p>
