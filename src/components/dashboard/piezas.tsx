@@ -49,7 +49,7 @@ export function BarrasComparativa({ datos }: { datos: { nombre: string; real: nu
       <div className="min-h-0 flex-1">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={datos} margin={{ top: 14, right: 4, left: 4, bottom: 0 }}>
-            <XAxis dataKey="nombre" tickLine={false} axisLine={false} interval={0} tick={{ fontSize: 9.5, fill: "var(--muted-foreground)" }} />
+            <XAxis dataKey="nombre" tickLine={false} axisLine={false} interval={0} tick={{ fontSize: 9.5, fill: "var(--muted-foreground)" }} tickFormatter={(v: string) => (v.length > 11 ? `${v.split(" ")[0].slice(0, 1)}. ${v.split(" ").slice(1).join(" ")}` : v)} />
             <Tooltip formatter={(v: number) => soles(Number(v))} contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid var(--line)", background: "var(--card)", color: "var(--ink)" }} cursor={{ fill: "rgb(0 0 0 / 0.04)" }} />
             <Bar dataKey="presupuestado" name="Presupuestado" fill="var(--muted-foreground)" fillOpacity={0.35} radius={[3, 3, 0, 0]} maxBarSize={18} />
             <Bar dataKey="real" name="Real" radius={[3, 3, 0, 0]} maxBarSize={18}>
