@@ -78,6 +78,13 @@ function Bandeja() {
     itemsOC
       .filter((i) => (i as { requerimiento_item_id?: string | null }).requerimiento_item_id === reqItemId && ordenes.find((o) => o.id === i.orden_id)?.estado !== "Anulada")
       .reduce((s, i) => s + Number(i.cantidad), 0);
+  const conPrecios = (s: Solicitud) => itemsSol.some((x) => x.solicitud_id === s.id && Number(x.precio_unitario) > 0);
+  const pendientesSol = (s: Solicitud) =>
+    itemsSol.filter((x) => {
+      if (x.solicitud_id !== s.id) return false;
+      const it = itsActual.find((i) => i.id === x.requerimiento_item_id);
+      return it && Math.min(Number(x.cantidad), Number(it.cantidad) - ordenado(it.id)) > 0.0001;
+    });
   const precio = (solId: string, itemId: string) => itemsSol.find((x) => x.solicitud_id === solId && x.requerimiento_item_id === itemId);
   const mejores = useMemo(
     () => mejoresPrecios(itemsSol.filter((x) => solsActual.some((s) => s.id === x.solicitud_id && s.estado !== "Descartada")).map((x) => ({ solicitudId: x.solicitud_id, requerimientoItemId: x.requerimiento_item_id, precio: Number(x.precio_unitario) }))),
