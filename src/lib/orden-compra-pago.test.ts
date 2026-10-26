@@ -1,5 +1,5 @@
-import { diasCreditoOrden, vencimientoPagoOrden, describe, expect, it } from "vitest";
-import { condicionPagoOrden, detallePagoOrden } from "./orden-compra-pago";
+import { describe, expect, it } from "vitest";
+import { condicionPagoOrden, detallePagoOrden, diasCreditoOrden, vencimientoPagoOrden } from "./orden-compra-pago";
 
 describe("forma y plazo de pago de orden de compra", () => {
   it("contado no conserva un plazo de crédito", () => {
