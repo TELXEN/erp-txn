@@ -4,8 +4,7 @@ import { Pencil, Plus, Printer, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Boton, BotonIcono, Campo, Etiqueta, FilasCargando, Input, Panel, Select, TarjetaResumen, Vacio, VentanaFlotante } from "@/components/ui-kit";
-import { fechaCorta } from "@/lib/epp";
-import { CATEGORIAS_EPP, CRITICIDADES, MOTIVOS_ENTREGA, estadoEntrega, sumarDias } from "@/lib/epp";
+import { CATEGORIAS_EPP, fechaCorta, CRITICIDADES, MOTIVOS_ENTREGA, estadoEntrega, sumarDias } from "@/lib/epp";
 
 export type Epp = {
   id: string; codigo: string; nombre: string; categoria: string; marca: string; norma: string;
