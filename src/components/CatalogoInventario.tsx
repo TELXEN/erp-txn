@@ -31,6 +31,13 @@ export function CatalogoInventario() {
     .filter((r) => coincide(buscar, r.codigo, r.descripcion, r.marca))
     .sort((a, b) => String(a.descripcion).localeCompare(String(b.descripcion), "es", { sensitivity: "base" }));
   const selFila = lista.find((r) => r.id === selId) ?? null;
+  const { data: movs = [] } = useMovimientos();
+  const stockPorInsumo = new Map<string, number>();
+  for (const m of movs) {
+    if (!m.insumo_id) continue;
+    const d = m.tipo === "Ingreso" ? Number(m.cantidad) : -Number(m.cantidad);
+    stockPorInsumo.set(m.insumo_id, (stockPorInsumo.get(m.insumo_id) ?? 0) + d);
+  }
   const nombreGrupo = grupo === "materiales" ? "Materiales" : grupo === "equipos" ? "Equipos" : "Herramientas";
   const objeto = grupo === "materiales" ? "material" : grupo === "equipos" ? "equipo" : "herramienta";
   async function clasificar(id: string, valor: string) {
