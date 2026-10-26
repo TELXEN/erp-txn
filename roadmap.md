@@ -1,5 +1,5 @@
 # Roadmap
-- [ ] Cambiar el icono de la tarjeta «Presupuesto» por un fajo de billetes y aclarar el color del icono de «Progreso» (Dashboard de Proyectos).
+- [x] Cambiar el icono de la tarjeta «Presupuesto» por un fajo de billetes y aclarar el color del icono de «Progreso» (Dashboard de Proyectos).
 - [x] Suavizar el contraste de la tarjeta «Línea de tiempo» y escribir «S/.» en los importes de la tarjeta «Presupuesto» (Dashboard de Proyectos).
 - [x] Mover Curva S del Dashboard de Proyectos a una pestaña junto a Gantt; selector compartido, obra real y cartera verificados, 32 pruebas pasan y compilación OK.
 - [x] Boleta de liquidación con formato CTS: vista e impresión de Eder verificadas con total S/ 6,988.03, sin modificar pagos ni personal; siete pruebas pasan.
