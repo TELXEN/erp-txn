@@ -511,11 +511,29 @@ function Tesoreria() {
 
       {pestana === "resumen" && (
         <>
-          <div className="mb-4 grid gap-3 sm:grid-cols-4">
+          <div className="mb-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+          <div className="panel flex flex-col justify-between gap-3 border-primary/30 bg-primary/5 p-4">
+        <div>
+          <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">Balance consolidado en PEN</p>
+          <p className="mt-1 text-[13px] text-muted-foreground">
+
+            {tcHoy > 0 ? `TC venta ${tcHoy.toFixed(3)}${tcInfo?.venta ? ` · ${fmtFecha(tcInfo.fecha)} · ${tcInfo.fuente}` : " · referencial"}` : "Sin tipo de cambio"}
+          </p>
+          {tcInfo?.aviso && !(tcInfo.venta > 0) && tcHoy > 0 && <p className="mt-1 text-[11px] text-warn">Se usa el TC de la última factura en USD como referencia.</p>}
+          {tcInfo?.aviso && !(tcHoy > 0) && <p className="mt-1 flex items-center gap-1 text-[11px] text-warn"><AlertTriangle size={12} /> {tcInfo.aviso}</p>}
+        </div>
+        <div data-distintivo={consolidado < 0 ? "bad" : "monto"} className="panel flex flex-col justify-center gap-1 px-5 py-4">
+          <p className={`text-3xl font-bold tabular-nums tracking-tight ${consolidado < 0 ? "text-bad" : "text-ink"}`}>{soles(consolidado)}</p>
+          <p className="text-[13px] tabular-nums text-muted-foreground">PEN {dinero(saldoPEN, "PEN")} · USD {dinero(saldoUSD, "USD")}</p>
+        </div>
+
+
+      </div>
+          <div className="grid gap-3 sm:grid-cols-2">
             {[
               { t: "Total por cobrar", v: kc.total, tono: "text-good", d: "cxc" as const, f: null },
-              { t: "Vencido por cobrar", v: kc.vencido, tono: kc.vencido > 0 ? "text-bad" : "text-ink", d: "cxc" as const, f: "vencido" as const },
               { t: "Total por pagar", v: kp.total, tono: "text-warn", d: "cxp" as const, f: null },
+              { t: "Vencido por cobrar", v: kc.vencido, tono: kc.vencido > 0 ? "text-bad" : "text-ink", d: "cxc" as const, f: "vencido" as const },
               { t: "Vencido por pagar", v: kp.vencido, tono: kp.vencido > 0 ? "text-bad" : "text-ink", d: "cxp" as const, f: "vencido" as const },
             ].map((c) => {
               const abrir = () => { setPestana(c.d); setAccion(null); setTercero(""); setSeleccion(new Set()); setFiltroVence(c.f); };
@@ -531,23 +549,8 @@ function Tesoreria() {
             })}
           </div>
 
-          <div className="panel mb-4 flex flex-wrap items-center justify-between gap-4 border-primary/30 bg-primary/5 p-4">
-        <div>
-          <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">Balance consolidado en PEN</p>
-          <p className="mt-1 text-[13px] text-muted-foreground">
 
-            {tcHoy > 0 ? `TC venta ${tcHoy.toFixed(3)}${tcInfo?.venta ? ` · ${fmtFecha(tcInfo.fecha)} · ${tcInfo.fuente}` : " · referencial"}` : "Sin tipo de cambio"}
-          </p>
-          {tcInfo?.aviso && !(tcInfo.venta > 0) && tcHoy > 0 && <p className="mt-1 text-[11px] text-warn">Se usa el TC de la última factura en USD como referencia.</p>}
-          {tcInfo?.aviso && !(tcHoy > 0) && <p className="mt-1 flex items-center gap-1 text-[11px] text-warn"><AlertTriangle size={12} /> {tcInfo.aviso}</p>}
-        </div>
-        <div data-distintivo={consolidado < 0 ? "bad" : "monto"} className="panel flex flex-col justify-center gap-1 self-stretch px-7 py-5 text-right">
-          <p className={`text-4xl font-bold tabular-nums tracking-tight ${consolidado < 0 ? "text-bad" : "text-ink"}`}>{soles(consolidado)}</p>
-          <p className="text-[13px] tabular-nums text-muted-foreground">PEN {dinero(saldoPEN, "PEN")} · USD {dinero(saldoUSD, "USD")}</p>
-        </div>
-
-
-      </div>
+          </div>
 
       <Panel
         titulo="Saldos bancarios"
