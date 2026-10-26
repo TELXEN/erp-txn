@@ -2,7 +2,7 @@ import { DesgloseCd } from "@/components/DesgloseCd";
 import { DesgloseGg } from "@/components/DesgloseGg";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { AlertTriangle, CalendarClock, CircleDollarSign, ClipboardList, Gauge, Hourglass, Layers3, ListTodo, Upload } from "lucide-react";
+import { AlertTriangle, CalendarClock, ClipboardList, Gauge, Hourglass, Layers3, ListTodo, Upload } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Pestanas, Select, Vacio } from "@/components/ui-kit";
 import { InsigniaPrioridad, InsigniaSituacion } from "@/components/estado-ui";
@@ -430,7 +430,7 @@ function DashboardProyectos() {
         <section className={`grid gap-3 ${verDinero ? "lg:grid-cols-[0.7fr_1.3fr_1.5fr]" : "lg:grid-cols-[0.8fr_1.6fr]"}`}>
           <div className="dash-tarjeta p-3">
             <div className="flex items-center gap-3">
-              <span className="dash-icono" data-tono="muted"><Gauge size={18} /></span>
+              <span className="dash-icono"><Gauge size={18} /></span>
               <p className="text-lg text-ink">Progreso</p>
             </div>
             {!obraSel ? <Vacio texto="Registra una obra para visualizar el avance." /> : (
@@ -475,7 +475,7 @@ function DashboardProyectos() {
           {verDinero && (
             <div className="dash-tarjeta px-3 py-2.5">
               <div className="flex items-center gap-3">
-                <span className="dash-icono" data-tono="good"><CircleDollarSign size={18} /></span>
+                <span className="dash-icono" data-tono="good"><FajoBilletes size={18} /></span>
                 <p className="text-lg text-ink">Presupuesto</p>
                 {obraSel && (obraSel.cdReal > obraSel.cdPres + 0.005 || obraSel.ggReal > obraSel.ggPres + 0.005) && (
                   <span className="ml-auto flex items-center gap-1 rounded-full bg-warn/10 px-2 py-0.5 text-[10px] font-semibold text-warn ring-1 ring-warn/40">
