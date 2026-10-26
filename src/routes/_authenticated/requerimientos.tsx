@@ -453,7 +453,7 @@ function Bandeja() {
                 ))}
               </tbody>
             </table>
-            <div className="mt-3 flex justify-end gap-2 border-t border-line pt-3">
+            <div className="mt-3 flex justify-end gap-2 border-t border-line px-5 pt-3">
               <Boton type="button" variante="linea" onClick={() => setRegistro(null)}>Cancelar</Boton>
               <Boton type="submit">Guardar cotización</Boton>
             </div>
