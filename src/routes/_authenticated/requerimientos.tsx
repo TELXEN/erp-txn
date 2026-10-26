@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, Printer, Send } from "lucide-react";
+import { Check, ClipboardList, Printer, Send } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
 import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { Boton, BotonIcono, Campo, Etiqueta, Input, MenuFiltros, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
@@ -80,6 +80,23 @@ function Bandeja() {
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
+  function abrirSolicitud(r: Req) {
+    const pendientes = items.filter((i) => i.requerimiento_id === r.id && Number(i.cantidad) - ordenado(i.id) > 0.0001);
+    setSel(r.id);
+    setMarcados(new Set(pendientes.map((i) => i.id)));
+    setProveedores([]);
+    setError("");
+    setVentanaSol(true);
+  }
+
+  function gestionar(r: Req) {
+    setSel(r.id);
+    setMarcados(new Set());
+    setError("");
+    if (!sols.some((s) => s.requerimiento_id === r.id)) abrirSolicitud(r);
+    else requestAnimationFrame(() => document.getElementById("cotizaciones-requerimiento")?.scrollIntoView({ behavior: "smooth", block: "start" }));
+  }
+
   const refrescar = () => { for (const k of ["requerimientos", "solicitudes_cotizacion", "solicitud_cotizacion_items", "ordenes_compra", "orden_compra_items"]) qc.invalidateQueries({ queryKey: [k] }); };
 
   async function solicitar() {
@@ -134,7 +151,10 @@ function Bandeja() {
     if (!actual) return;
     const lineas = itemsSol
       .filter((x) => x.solicitud_id === s.id && Number(x.precio_unitario) > 0)
-      .map((x) => ({ x, it: itsActual.find((i) => i.id === x.requerimiento_item_id)! }))
+      .flatMap((x) => {
+        const it = itsActual.find((i) => i.id === x.requerimiento_item_id);
+        return it ? [{ x, it }] : [];
+      })
       .filter(({ x, it }) => it && Math.min(Number(x.cantidad), Number(it.cantidad) - ordenado(it.id)) > 0.0001);
     if (!lineas.length) return setError("La cotización no tiene precios o sus ítems ya están ordenados.");
     if (!window.confirm(`Aprobar la cotización de ${nombreProv(s.proveedor_id)} y generar la orden de compra?`)) return;
@@ -174,7 +194,7 @@ function Bandeja() {
     if (!actual) return;
     const its = itemsSol.filter((x) => x.solicitud_id === s.id).map((x) => ({ x, it: itsActual.find((i) => i.id === x.requerimiento_item_id) }));
     const tdr = actual.clase === "tdr" ? actual.tdr : null;
-    const esc = (t: string) => String(t ?? "").replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]!);
+    const esc = (t: string) => String(t ?? "").replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c] ?? c);
     const w = window.open("", "_blank");
     if (!w) return;
     w.document.write(`<html><head><title>${esc(s.codigo)}</title><style>body{font-family:sans-serif;font-size:12px;margin:32px}table{width:100%;border-collapse:collapse}td,th{border:1px solid #999;padding:4px 6px;text-align:left}h1{font-size:16px}</style></head><body>
@@ -209,6 +229,7 @@ function Bandeja() {
                   <th className="px-3 py-2 text-right font-medium">Ítems</th>
                   <th className="px-3 py-2 text-right font-medium">Cotizaciones</th>
                   <th className="px-3 py-2 font-medium">Estado</th>
+                  <th className="px-3 py-2 text-right font-medium">Cotizaciones de proveedores</th>
                 </tr>
               </thead>
               <tbody>
@@ -221,6 +242,11 @@ function Bandeja() {
                     <td className="px-3 py-1.5 text-right">{items.filter((i) => i.requerimiento_id === r.id).length}</td>
                     <td className="px-3 py-1.5 text-right">{sols.filter((s) => s.requerimiento_id === r.id).length}</td>
                     <td className="px-3 py-1.5"><Etiqueta tono={tonoEstadoReq(r.estado)}>{r.estado}</Etiqueta></td>
+                    <td className="px-3 py-1.5 text-right">
+                      <Boton variante="linea" className="px-2 py-1" onClick={(e) => { e.stopPropagation(); gestionar(r); }}>
+                        <ClipboardList size={14} />Gestionar cotizaciones
+                      </Boton>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -232,7 +258,7 @@ function Bandeja() {
           filtros={<MenuFiltros activos={busqueda ? 1 : 0} onLimpiar={() => setBusqueda("")}><Buscador valor={busqueda} onChange={setBusqueda} total={bandeja.length} placeholder="Buscar por código, obra u observación..." /></MenuFiltros>}
           haySeleccion={!!actual}
           extras={
-            <BotonIcono etiqueta="Solicitar cotización" disabled={!actual || !marcados.size} onClick={() => setVentanaSol(true)}>
+            <BotonIcono etiqueta="Solicitar cotización" disabled={!actual || !itsActual.some((i) => Number(i.cantidad) - ordenado(i.id) > 0.0001)} onClick={() => { if (actual) { if (marcados.size) { setError(""); setProveedores([]); setVentanaSol(true); } else abrirSolicitud(actual); } }}>
               <Send size={15} />
             </BotonIcono>
           }
@@ -241,14 +267,14 @@ function Bandeja() {
 
       {actual && (
         <>
-          <Panel className="mt-5" titulo={`Ítems de ${actual.codigo} · cuadro comparativo`}>
+          <div id="cotizaciones-requerimiento" className="mt-5 scroll-mt-3">
+          <Panel titulo={`Ítems de ${actual.codigo} · cuadro comparativo`} extra={<span className="text-xs text-muted-foreground">{solsActual.length} cotizaciones · {marcados.size} ítems seleccionados</span>}>
             {actual.clase === "tdr" && (
               <div className="border-b border-line px-5 py-2 text-xs">
                 <b>Términos de referencia:</b> {actual.tdr?.objeto} {actual.tdr?.plazo && `· Plazo ${actual.tdr.plazo}`} {actual.tdr?.lugar && `· ${actual.tdr.lugar}`}
                 {actual.tdr?.alcance && <p className="text-muted-foreground">{actual.tdr.alcance}</p>}
               </div>
             )}
-            <p className="px-5 pt-2 font-mono text-[11px] text-muted-foreground">Marca los ítems y usa «Solicitar cotización» en la barra derecha. El menor precio por ítem aparece resaltado.</p>
             <div className="overflow-x-auto">
               <table className="mt-2 w-full font-mono text-xs">
                 <thead>
@@ -300,8 +326,10 @@ function Bandeja() {
               </table>
             </div>
           </Panel>
+          </div>
 
-          <Panel className="mt-5" titulo="Solicitudes de cotización">
+          <div className="mt-5 flex items-start gap-3">
+          <Panel className="min-w-0 flex-1" titulo="Cotizaciones de proveedores">
             {solsActual.length === 0 ? (
               <Vacio texto="Aún no se solicitaron cotizaciones para este requerimiento." />
             ) : (
@@ -345,11 +373,30 @@ function Bandeja() {
               </table>
             )}
           </Panel>
+          <BarraIconosHoja objeto="cotización" haySeleccion={!!actual} extras={
+            <BotonIcono etiqueta="Nueva solicitud de cotización" tono="primario" disabled={!itsActual.some((i) => Number(i.cantidad) - ordenado(i.id) > 0.0001)} onClick={() => abrirSolicitud(actual)}><Send size={15} /></BotonIcono>
+          } />
+          </div>
         </>
       )}
 
-      <VentanaFlotante abierta={ventanaSol} onCerrar={() => setVentanaSol(false)} titulo="Solicitar cotización" subtitulo={`${marcados.size} ítem(s) de ${actual?.codigo ?? ""} · se crea una solicitud por proveedor`} ancho="max-w-xl">
-        <div className="max-h-80 overflow-y-auto p-5 text-xs">
+      <VentanaFlotante abierta={ventanaSol} onCerrar={() => setVentanaSol(false)} titulo="Solicitar cotización" subtitulo={`${actual?.codigo ?? ""} · ${actual ? nombreProy(actual.proyecto_id) : ""}`} ancho="max-w-4xl">
+        <div className="grid gap-5 p-5 text-xs md:grid-cols-2">
+        <div>
+          <h3 className="mb-2 font-semibold">Ítems a cotizar · {marcados.size}</h3>
+          <div className="max-h-80 overflow-y-auto">
+          {itsActual.map((i) => {
+            const saldo = Math.max(0, Number(i.cantidad) - ordenado(i.id));
+            return <label key={i.id} className="flex items-start gap-2 border-b border-line/30 py-2">
+              <input type="checkbox" aria-label={`Cotizar ${i.descripcion}`} disabled={saldo <= 0.0001} className="mt-0.5 size-3.5 shrink-0 accent-[var(--color-primary)]" checked={marcados.has(i.id)} onChange={(e) => { const n = new Set(marcados); if (e.target.checked) n.add(i.id); else n.delete(i.id); setMarcados(n); }} />
+              <span className="min-w-0 flex-1">{i.descripcion}<span className="mt-1 block text-muted-foreground">{num(saldo, 4)} {i.unidad} pendientes</span></span>
+            </label>;
+          })}
+          </div>
+        </div>
+        <div>
+        <h3 className="mb-2 font-semibold">Proveedores · {proveedores.length}</h3>
+        <div className="max-h-80 overflow-y-auto">
           {provs.length === 0 ? <Vacio texto="No hay proveedores activos registrados." /> : provs.map((p) => (
             <label key={p.id} className="flex items-center gap-2 border-b border-line/30 py-1.5">
               <input type="checkbox" className="size-3.5 accent-[var(--color-primary)]" checked={proveedores.includes(p.id)} onChange={(e) => setProveedores(e.target.checked ? [...proveedores, p.id] : proveedores.filter((x) => x !== p.id))} />
@@ -357,6 +404,9 @@ function Bandeja() {
             </label>
           ))}
         </div>
+        </div>
+        </div>
+        {error && <p role="alert" className="px-5 pb-3 text-xs text-bad">{error}</p>}
         <div className="flex justify-end gap-2 border-t border-line px-5 py-3">
           <Boton variante="linea" onClick={() => setVentanaSol(false)}>Cancelar</Boton>
           <Boton onClick={() => void solicitar()}><Send size={13} className="mr-1 inline" />Crear solicitudes</Boton>
@@ -366,6 +416,7 @@ function Bandeja() {
       <VentanaFlotante abierta={!!registro} onCerrar={() => setRegistro(null)} titulo="Registrar cotización del proveedor" subtitulo={nombreProv(sols.find((s) => s.id === registro?.id)?.proveedor_id ?? null)} ancho="max-w-2xl">
         {registro && (
           <form className="p-5 text-xs" onSubmit={(e) => { e.preventDefault(); void guardarRegistro(); }}>
+            {error && <p role="alert" className="mb-3 text-bad">{error}</p>}
             <div className="mb-3 grid grid-cols-3 gap-3">
               <Campo etiqueta="Moneda"><Select value={registro.moneda} onChange={(e) => setRegistro({ ...registro, moneda: e.target.value })}><option value="PEN">PEN</option><option value="USD">USD</option></Select></Campo>
               <Campo etiqueta="Plazo de entrega"><Input value={registro.plazo} onChange={(e) => setRegistro({ ...registro, plazo: e.target.value })} placeholder="Ej. 5 días" /></Campo>

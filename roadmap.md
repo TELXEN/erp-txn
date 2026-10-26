@@ -1,4 +1,5 @@
 # Roadmap
+- [x] Gestión de cotizaciones accesible desde cada requerimiento: ventana conjunta de ítems/proveedores y acceso al comparativo/registro/OC; apertura y selección probadas con el requerimiento real sin modificarlo, cuatro pruebas pasan.
 - [x] Catálogo dentro de Inventario: Materiales, Equipos, Herramientas y EPPs; stock conservado, clasificación guardada/restaurada en pantalla, dos pruebas y compilación OK.
 - [x] Cambiar el icono de la tarjeta «Presupuesto» por un fajo de billetes y aclarar el color del icono de «Progreso» (Dashboard de Proyectos).
 - [x] Suavizar el contraste de la tarjeta «Línea de tiempo» y escribir «S/.» en los importes de la tarjeta «Presupuesto» (Dashboard de Proyectos).
