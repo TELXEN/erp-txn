@@ -59,7 +59,7 @@ export function Anillo({ valor, alerta, rotulo = "gastado", clase = "h-24 w-24" 
         <span className="font-mono text-lg font-semibold leading-none">{pct(valor)}</span>
         <span className="text-[8px] uppercase tracking-wide opacity-80">{rotulo}</span>
       </span>
-      {alerta && <AlertTriangle size={14} className="absolute -right-1 -top-1 rounded-full bg-warn p-0.5 text-warn-foreground" />}
+      {alerta && <span className="absolute -right-1 -top-1 rounded-full bg-card p-0.5 shadow-sm ring-1 ring-bad/40"><AlertTriangle size={12} className="text-bad" /></span>}
     </div>
   );
 }
