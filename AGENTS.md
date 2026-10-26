@@ -59,6 +59,6 @@
 - Company regime: dated regimenes_empresa; a worker's regime can't be below the company's at hire (trigger + errorRegimenTrabajador) — changes hit only new hires.
 - Company settings use DatosEmpresaTabs (general, banks, regime), not top-level tabs.
 - Insumo codes renumber via AFTER DELETE trigger per 5-digit prefix — no gaps; inactive rows keep codes.
-- Requerimientos: obra generates (APU saldo or TDR) → only gerente approves (trigger) → Bandeja quotes via solicitudes_cotizacion → approved quote creates OC → obra receives via recepcionar_orden_obra RPC — one status trail.
+- Requerimientos: obra → gerente approves (trigger) → Bandeja quotes → approved quote creates OC → recepcionar_orden_obra RPC receives in obra. «Aprobar y generar OC» shows only with prices and pending qty; registering a quote requires ≥1 price.
 - Supplier quotation management opens from each inbox requirement; its request dialog selects outstanding items and suppliers together — purchasing actions must not depend on discovering hidden item-selection steps.
 - Purchase orders use HojaOrdenCompra, DOC and A4 printing; orden-compra-montos shares tax totals, orden-compra-pago encodes terms in the existing field — costs/history unchanged.
