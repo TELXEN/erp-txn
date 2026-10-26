@@ -4,7 +4,7 @@ import { Boxes, Pencil, Plus, ShieldCheck, Wrench, Package } from "lucide-react"
 import { toast } from "sonner";
 import { BancoEpp } from "@/components/epp/epp";
 import { VentanaInsumo, type SelInsumo } from "@/components/InsumoVentana";
-import { Boton, BotonIcono, Campo, FilasCargando, MenuFiltros, Panel, Pestanas, Select, Vacio } from "@/components/ui-kit";
+import { Boton, BotonIcono, FilasCargando, MenuFiltros, Panel, Pestanas, Select, Vacio } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { useBancoTabla } from "@/lib/banco-apu";
 import { perteneceCatalogo, type CategoriaInventario } from "@/lib/catalogo-inventario";
@@ -61,6 +61,6 @@ export function CatalogoInventario() {
         {!consulta.isLoading && !lista.length && <Vacio texto={buscar ? "Sin coincidencias." : "No hay registros en este catálogo."} />}
       </div>}
     </Panel>}
-    {editor && <VentanaInsumo modo={editor.sel ? "editar" : "nuevo"} sel={editor.sel} soloTabla={tabla} categoriaInventario={editor.categoria} onCerrar={() => setEditor(null)} />}
+    {editor && <VentanaInsumo modo={editor.sel ? "editar" : "nuevo"} sel={editor.sel} soloTabla={tabla} {...(editor.categoria ? { categoriaInventario: editor.categoria } : {})} onCerrar={() => setEditor(null)} />}
   </div>;
 }
