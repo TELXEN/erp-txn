@@ -1,5 +1,5 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 
@@ -205,6 +205,24 @@ function leerAbierta(): string | null {
   } catch {
     return null;
   }
+}
+
+const dbShell = supabase as unknown as { from: (t: string) => any };
+
+/** Total de pendientes en Aprobaciones: requerimientos enviados a Gerencia + solicitudes de desbloqueo. */
+function usePendientesAprobacion(rol: Rol | null) {
+  return useQuery({
+    queryKey: ["aprobaciones-pendientes"],
+    enabled: rol === "gerente" || rol === "administrador",
+    refetchInterval: 30_000,
+    queryFn: async () => {
+      const [req, sol] = await Promise.all([
+        dbShell.from("requerimientos").select("id", { count: "exact", head: true }).eq("estado", "Enviado a Gerencia"),
+        dbShell.from("solicitudes_desbloqueo").select("id", { count: "exact", head: true }).eq("estado", "Pendiente"),
+      ]);
+      return (req.count ?? 0) + (sol.count ?? 0);
+    },
+  });
 }
 
 export function AppShell({ children }: { children: ReactNode }) {
