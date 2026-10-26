@@ -456,5 +456,8 @@ aside .md\:overflow-y-auto:hover::-webkit-scrollbar-thumb { background: color-mi
 .dash-icono[data-tono="bad"] { background: var(--bad); }
 .dash-icono[data-tono="muted"] { background: var(--muted-foreground); }
 .dash-icono-claro { background: color-mix(in oklab, var(--card) 25%, transparent); }
+/* Icono suave: círculo claro con el glifo en el color del tema (para tarjetas claras) */
+.dash-icono-suave { background: color-mix(in oklab, var(--primary) 14%, var(--card)); color: var(--primary); }
+
 .dash-chip { display: block; border-radius: 0.25rem; padding: 0.3rem 0.5rem; font-size: 0.75rem; background: color-mix(in oklab, var(--card) 22%, transparent); }
 .dash-chip-activo { background: var(--card); color: var(--primary); font-weight: 600; }
