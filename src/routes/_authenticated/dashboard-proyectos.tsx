@@ -446,23 +446,23 @@ function DashboardProyectos() {
           </div>
 
 
-          <div className="dash-tarjeta dash-degradado p-4" data-tono="violeta">
+          <div className="dash-tarjeta dash-degradado p-3" data-tono="violeta">
             <div className="flex items-center gap-3">
               <span className="dash-icono dash-icono-claro"><CalendarClock size={18} /></span>
               <p className="text-lg">Línea de tiempo</p>
             </div>
-            <div className="mt-3 flex justify-between font-mono text-xs opacity-90">
+            <div className="mt-2 flex justify-between font-mono text-xs opacity-90">
               <span>{fecha(obraSel?.proyecto.fecha_inicio ?? null)}</span>
               <span>{fecha(obraSel?.proyecto.fecha_fin ?? null)}</span>
             </div>
-            <div className="mt-2 space-y-2">
+            <div className="mt-1.5 space-y-1.5">
               <BarraTiempo etiqueta="Real" valor={obraSel?.avance ?? 0} />
               <BarraTiempo etiqueta="Programado" valor={programadoSel ?? 0} tenue />
             </div>
-            <div className="mt-1.5 flex justify-between font-mono text-[10px] opacity-80">
+            <div className="mt-1 flex justify-between font-mono text-[10px] opacity-80">
               {[0, 20, 40, 60, 80, 100].map((n) => <span key={n}>{n}%</span>)}
             </div>
-            <p className="mt-2 font-mono text-[11px] opacity-90">
+            <p className="mt-1.5 font-mono text-[11px] opacity-90">
               {obraSel?.usaCalendario
                 ? `Corte al: ${fecha(hoyISO())}`
                 : obraSel?.proyecto.fecha_corte_programado
@@ -472,25 +472,25 @@ function DashboardProyectos() {
           </div>
 
           {verDinero && (
-            <div className="dash-tarjeta dash-degradado p-4" data-tono="good">
+            <div className="dash-tarjeta p-3">
               <div className="flex items-center gap-3">
-                <span className="dash-icono dash-icono-claro"><CircleDollarSign size={18} /></span>
-                <p className="text-lg">Presupuesto</p>
+                <span className="dash-icono" data-tono="good"><CircleDollarSign size={18} /></span>
+                <p className="text-lg text-ink">Presupuesto</p>
                 {obraSel && (obraSel.cdReal > obraSel.cdPres + 0.005 || obraSel.ggReal > obraSel.ggPres + 0.005) && (
-                  <span className="ml-auto flex items-center gap-1 rounded-full bg-warn px-2 py-0.5 text-[10px] font-semibold text-warn-foreground">
+                  <span className="ml-auto flex items-center gap-1 rounded-full bg-warn/10 px-2 py-0.5 text-[10px] font-semibold text-warn ring-1 ring-warn/40">
                     <AlertTriangle size={11} /> Sobrecosto
                   </span>
                 )}
               </div>
               <div className="mt-2 flex items-center gap-4">
                 <Anillo valor={(obraSel?.gastado ?? 0)} alerta={!!obraSel && (obraSel.cdReal > obraSel.cdPres + 0.005 || obraSel.ggReal > obraSel.ggPres + 0.005)} />
-                <div className="min-w-0 flex-1 space-y-1.5">
-                  <div className="flex items-baseline justify-between gap-2"><p className="text-xs opacity-90">Presupuesto</p><p className="font-mono text-base font-semibold">{soles(obraSel?.presupuesto ?? 0)}</p></div>
-                  <div className="flex items-baseline justify-between gap-2"><p className="text-xs opacity-90">Gastado</p><p className="font-mono text-base font-semibold">{soles(obraSel?.costoReal ?? 0)}</p></div>
-                  <div className="flex items-baseline justify-between gap-2 border-t border-card/30 pt-1.5"><p className="text-xs opacity-90">Disponible</p><p className="font-mono text-base font-semibold">{soles((obraSel?.presupuesto ?? 0) - (obraSel?.costoReal ?? 0))}</p></div>
+                <div className="min-w-0 flex-1 space-y-1">
+                  <div className="flex items-baseline justify-between gap-2"><p className="text-xs text-muted-foreground">Presupuesto</p><p className="font-mono text-base font-semibold text-ink">{soles(obraSel?.presupuesto ?? 0)}</p></div>
+                  <div className="flex items-baseline justify-between gap-2"><p className="text-xs text-muted-foreground">Gastado</p><p className="font-mono text-base font-semibold text-ink">{soles(obraSel?.costoReal ?? 0)}</p></div>
+                  <div className="flex items-baseline justify-between gap-2 border-t border-line pt-1"><p className="text-xs text-muted-foreground">Disponible</p><p className="font-mono text-base font-semibold text-ink">{soles((obraSel?.presupuesto ?? 0) - (obraSel?.costoReal ?? 0))}</p></div>
                 </div>
               </div>
-              <div className="mt-2 space-y-1.5 rounded-lg bg-card p-2.5 text-ink">
+              <div className="mt-2 space-y-1 rounded-lg bg-muted/50 p-2">
                 <FilaSemaforo etiqueta="Costo directo" real={obraSel?.cdReal ?? 0} base={obraSel?.cdPres ?? 0} />
                 <FilaSemaforo etiqueta="Gastos generales" real={obraSel?.ggReal ?? 0} base={obraSel?.ggPres ?? 0} />
               </div>
@@ -498,6 +498,7 @@ function DashboardProyectos() {
           )}
         </section>
       </div>
+
 
       {verDinero && (() => {
         const f = esTodos ? null : obraSel;
