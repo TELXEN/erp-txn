@@ -686,20 +686,6 @@ function DashboardProyectos() {
   );
 }
 
-function DatoFinanciero({ etiqueta, valor, tono }: { etiqueta: string; valor: string; tono?: "good" | "bad" | "primary" }) {
-  return (
-    <div className="flex min-h-20 items-center justify-between gap-3 px-4 py-3">
-      <p className="label-mono">{etiqueta}</p>
-      <p
-        className={`text-right font-mono text-lg font-bold ${
-          tono === "bad" ? "text-bad" : tono === "good" ? "text-good" : tono === "primary" ? "text-primary" : "text-ink"
-        }`}
-      >
-        {valor}
-      </p>
-    </div>
-  );
-}
 
 
 function PildoraEstado({
@@ -731,21 +717,6 @@ function PildoraEstado({
   );
 }
 
-function IndicadorCompacto({ icono, etiqueta, valor, detalle, tono }: { icono: ReactNode; etiqueta: string; valor: string; detalle?: string; tono?: "good" | "bad" }) {
-
-  return (
-    <div className="flex min-h-20 items-center gap-3 px-4 py-3">
-      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-muted [&>svg]:h-4 [&>svg]:w-4 ${tono === "bad" ? "text-bad" : tono === "good" ? "text-good" : "text-primary"}`}>
-        {icono}
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className="label-mono">{etiqueta}</p>
-        {detalle && <p className="mt-1 font-mono text-[10px] text-muted-foreground">{detalle}</p>}
-      </div>
-      <strong className={`font-mono text-xl ${tono === "bad" ? "text-bad" : tono === "good" ? "text-good" : "text-ink"}`}>{valor}</strong>
-    </div>
-  );
-}
 
 function Barra({ etiqueta, valor, clase }: { etiqueta: string; valor: number | null; clase: string }) {
   return (
