@@ -80,6 +80,14 @@ function RequerimientosPage() {
   const [aviso, setAviso] = useState("");
   const [busqueda, setBusqueda] = useRecordado("requerimientos:busqueda", "");
   const [sel, setSel] = useState("");
+  const [pedir, setPedir] = useState<Record<string, string>>({});
+  const [ventanaTdr, setVentanaTdr] = useState(false);
+  const [tdr, setTdr] = useState(TDR_VACIO);
+  const [recepcion, setRecepcion] = useState<{ orden: string; fecha: string; obs: string; cant: Record<string, string> } | null>(null);
+  const { data: ordenes = [] } = useOrdenesCompra();
+  const { data: itemsOC = [] } = useItemsOC();
+  const { data: movs = [] } = useMovimientos();
+  const recibidoOC = (id: string) => movs.filter((m) => m.orden_item_id === id && m.tipo === "Ingreso").reduce((s, m) => s + Number(m.cantidad), 0);
 
   const { data: cotizaciones = [] } = useQuery({
     queryKey: ["cotizaciones_aprobadas"],
