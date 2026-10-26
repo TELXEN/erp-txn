@@ -7,7 +7,7 @@ import { ChevronDown, ChevronRight, PackageCheck, Plus, Printer, Trash2, Truck, 
 import { HojaOrdenCompra, imprimirOrdenCompra } from "@/components/HojaOrdenCompra";
 import { useEmpresa } from "@/lib/empresa";
 import { montosOrdenCompra } from "@/lib/orden-compra-montos";
-import { condicionPagoOrden, detallePagoOrden } from "@/lib/orden-compra-pago";
+import { condicionPagoOrden, detallePagoOrden, diasCreditoOrden, vencimientoPagoOrden } from "@/lib/orden-compra-pago";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, BotonIcono, Campo, Input, MenuFiltros, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
@@ -261,10 +261,8 @@ function OrdenesCompraPage() {
           .sort((a, b) => Number(b.cantidad) - Number(a.cantidad))[0];
         return c?.partida_id ?? hojas[0];
       };
-      const m = oc.condicion_pago.match(/(\d+)/);
-      const dias = m ? Number(m[1]) : 0;
-      const venc = new Date(hoy());
-      venc.setDate(venc.getDate() + dias);
+      const dias = diasCreditoOrden(oc.condicion_pago);
+      const venc = vencimientoPagoOrden(hoy(), oc.condicion_pago);
       const prov = terceros.find((t) => t.id === oc.proveedor_id);
       const rubroDe = (id: string | null) => {
         const t = insumos.find((x) => x.id === id)?.tipo;
@@ -273,7 +271,8 @@ function OrdenesCompraPage() {
       const { error: e2 } = await apuDb.from("gastos_directos").insert(
         porCostear.map(({ i, saldo }) => {
           const cant = Math.round(saldo * 10000) / 10000;
-          const monto = cant * Number(i.precio_unitario);
+          const conIgv = insumos.find((x) => x.id === i.insumo_id)?.tipo === "MAT" ? 1.18 : 1;
+          const monto = Math.round(cant * Number(i.precio_unitario) * conIgv * 100) / 100;
           return {
             proyecto_id: oc.proyecto_id,
             orden_compra_item_id: i.id,
@@ -292,7 +291,7 @@ function OrdenesCompraPage() {
             fecha: hoy(),
             condicion_pago: dias > 0 ? "Crédito" : "Contado",
             dias_credito: dias,
-            fecha_vencimiento: venc.toISOString().slice(0, 10),
+            fecha_vencimiento: venc,
             estado_pago: "Pendiente",
             numero_operacion: "",
           };
