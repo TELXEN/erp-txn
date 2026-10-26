@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AlertTriangle, Briefcase, CalendarClock, CalendarDays, CircleDollarSign, ClipboardList, Clock3, Flag, Gauge, Hourglass, Layers3, ListTodo, Upload } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, Panel, Select, Vacio } from "@/components/ui-kit";
+import { Boton, Select, Vacio } from "@/components/ui-kit";
 import { InsigniaPrioridad, InsigniaSituacion } from "@/components/estado-ui";
 import { tonoSituacion } from "@/lib/configuracion";
 import { useFuenteDocumento } from "@/lib/fuentes-documentos";
