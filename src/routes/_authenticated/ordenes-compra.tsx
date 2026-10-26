@@ -3,7 +3,7 @@ import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { createFileRoute } from "@tanstack/react-router";
 import React, { useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { ChevronDown, ChevronRight, PackageCheck, Plus, Trash2, Upload } from "lucide-react";
+import { ChevronDown, ChevronRight, PackageCheck, Plus, Trash2, Truck, Upload } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, BotonIcono, Campo, Input, MenuFiltros, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
