@@ -61,7 +61,7 @@ export function CatalogoInventario() {
       { id: "epp", texto: "EPPs", icono: <ShieldCheck size={15} /> },
     ]} />
     {grupo === "epp" ? <BancoEpp /> : (
-      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[minmax(0,1fr)_auto]">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4">
         <Panel titulo={`Catálogo de ${nombreGrupo}`}>
           {consulta.error ? <Vacio texto="No se pudo cargar el catálogo." accion={<Boton variante="linea" onClick={() => consulta.refetch()}>Reintentar</Boton>} /> : <div className="overflow-x-auto">
             <table className="w-full text-xs"><thead className="border-b border-line text-left text-muted-foreground"><tr>
