@@ -347,43 +347,50 @@ function DashboardProyectos() {
     });
   }
 
+  const selector = (
+    <Select
+      aria-label="Seleccione proyecto"
+      title="Seleccione proyecto"
+      className="w-44 sm:w-56 lg:w-64"
+      value={esTodos ? "todos" : (obraSel?.proyecto.id ?? "")}
+      onChange={(e) => setObraId(e.target.value)}
+    >
+      {filas.length === 0 ? (
+        <option value="todos">Sin obras registradas</option>
+      ) : (
+        <>
+          <option value="todos">Todos los proyectos</option>
+          {filas.map((f) => (
+            <option key={f.proyecto.id} value={f.proyecto.id}>{f.proyecto.nombre}</option>
+          ))}
+        </>
+      )}
+    </Select>
+  );
+
   return (
-    <div className="tablero-proyectos">
+    <div className="tablero-proyectos flex flex-col">
       <Encabezado
         titulo="Dashboard de Proyectos"
         subtitulo="Centro de control operativo"
         acciones={
-          verDinero && <>
-            <Boton variante="linea" onClick={excel}>
-              <Upload size={13} /> Exportar a Excel
-            </Boton>
-            <Boton onClick={pdf}>Exportar a PDF</Boton>
+          <>
+            {selector}
+            {verDinero && <>
+              <Boton variante="linea" onClick={excel}>
+                <Upload size={13} /> Exportar a Excel
+              </Boton>
+              <Boton onClick={pdf}>Exportar a PDF</Boton>
+            </>}
           </>
         }
       />
 
-      <div className="mb-3 flex justify-end">
-        <div className="w-full sm:w-80">
-          <p className="label-mono mb-1">Seleccione proyecto</p>
-          <Select value={esTodos ? "todos" : (obraSel?.proyecto.id ?? "")} onChange={(e) => setObraId(e.target.value)}>
-            {filas.length === 0 ? (
-              <option value="todos">Sin obras registradas</option>
-            ) : (
-              <>
-                <option value="todos">Todos los proyectos</option>
-                {filas.map((f) => (
-                  <option key={f.proyecto.id} value={f.proyecto.id}>{f.proyecto.nombre}</option>
-                ))}
-              </>
-            )}
-          </Select>
-        </div>
-      </div>
 
-      <div className="dash-lienzo mb-4 space-y-4 p-4">
+      <div className="dash-lienzo mb-3 space-y-3 p-3">
         {/* Fila superior: proyecto elegido con estados de cartera y datos clave */}
-        <section className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-          <div className="dash-tarjeta flex flex-col p-4">
+        <section className="grid gap-3 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+          <div className="dash-tarjeta flex flex-col p-3">
             <div className="flex items-start gap-3">
               <span className="dash-icono" data-tono="warn"><ClipboardList size={20} /></span>
               <div className="min-w-0 flex-1">
@@ -394,16 +401,16 @@ function DashboardProyectos() {
               </div>
               {!esTodos && obraSel && <InsigniaSituacion valor={obraSel.proyecto.situacion} />}
             </div>
-            <div className="mt-4 grid flex-1 grid-cols-2 gap-2 sm:grid-cols-4">
+            <div className="mt-3 grid flex-1 grid-cols-2 gap-2 sm:grid-cols-4">
               {TARJETAS_ESTADO.map(({ etiqueta, situacion }) => {
                 // «Retrasados» refleja la desviación real frente al cronograma, no solo el estado manual de la obra.
                 const cantidad = situacion === "Retrasado"
                   ? filas.filter((f) => f.proyecto.situacion === "Retrasado" || (f.desviacion !== null && f.desviacion < -0.05)).length
                   : proyectos.filter((p) => p.situacion === situacion).length;
                 return (
-                  <div key={situacion} className="flex flex-col justify-center rounded-lg px-2 py-2 text-center text-primary-foreground shadow-sm" style={{ backgroundColor: tonoSituacion(situacion).borde }}>
+                  <div key={situacion} className="flex flex-col justify-center rounded-lg px-2 py-1.5 text-center text-primary-foreground shadow-sm" style={{ backgroundColor: tonoSituacion(situacion).borde }}>
                     <p className="text-[10px] opacity-90">{etiqueta}</p>
-                    <p className="font-mono text-2xl font-semibold leading-tight">{cantidad}</p>
+                    <p className="font-mono text-xl font-semibold leading-tight">{cantidad}</p>
                   </div>
                 );
               })}
@@ -420,8 +427,8 @@ function DashboardProyectos() {
         </section>
 
         {/* Fila inferior: progreso, línea de tiempo y presupuesto */}
-        <section className={`grid gap-4 ${verDinero ? "lg:grid-cols-[1fr_1.3fr_1.2fr]" : "lg:grid-cols-[1fr_1.6fr]"}`}>
-          <div className="dash-tarjeta p-4">
+        <section className={`grid gap-3 ${verDinero ? "lg:grid-cols-[1fr_1.3fr_1.2fr]" : "lg:grid-cols-[1fr_1.6fr]"}`}>
+          <div className="dash-tarjeta p-3">
             <div className="flex items-center gap-3">
               <span className="dash-icono" data-tono="muted"><Gauge size={18} /></span>
               <p className="text-lg text-ink">Progreso</p>
@@ -438,23 +445,24 @@ function DashboardProyectos() {
             )}
           </div>
 
-          <div className="dash-tarjeta dash-degradado p-4" data-tono="violeta">
+
+          <div className="dash-tarjeta dash-degradado p-3" data-tono="violeta">
             <div className="flex items-center gap-3">
               <span className="dash-icono dash-icono-claro"><CalendarClock size={18} /></span>
               <p className="text-lg">Línea de tiempo</p>
             </div>
-            <div className="mt-3 flex justify-between font-mono text-xs opacity-90">
+            <div className="mt-2 flex justify-between font-mono text-xs opacity-90">
               <span>{fecha(obraSel?.proyecto.fecha_inicio ?? null)}</span>
               <span>{fecha(obraSel?.proyecto.fecha_fin ?? null)}</span>
             </div>
-            <div className="mt-2 space-y-2">
+            <div className="mt-1.5 space-y-1.5">
               <BarraTiempo etiqueta="Real" valor={obraSel?.avance ?? 0} />
               <BarraTiempo etiqueta="Programado" valor={programadoSel ?? 0} tenue />
             </div>
-            <div className="mt-1.5 flex justify-between font-mono text-[10px] opacity-80">
+            <div className="mt-1 flex justify-between font-mono text-[10px] opacity-80">
               {[0, 20, 40, 60, 80, 100].map((n) => <span key={n}>{n}%</span>)}
             </div>
-            <p className="mt-2 font-mono text-[11px] opacity-90">
+            <p className="mt-1.5 font-mono text-[11px] opacity-90">
               {obraSel?.usaCalendario
                 ? `Corte al: ${fecha(hoyISO())}`
                 : obraSel?.proyecto.fecha_corte_programado
@@ -464,25 +472,25 @@ function DashboardProyectos() {
           </div>
 
           {verDinero && (
-            <div className="dash-tarjeta dash-degradado p-4" data-tono="good">
+            <div className="dash-tarjeta p-3">
               <div className="flex items-center gap-3">
-                <span className="dash-icono dash-icono-claro"><CircleDollarSign size={18} /></span>
-                <p className="text-lg">Presupuesto</p>
+                <span className="dash-icono" data-tono="good"><CircleDollarSign size={18} /></span>
+                <p className="text-lg text-ink">Presupuesto</p>
                 {obraSel && (obraSel.cdReal > obraSel.cdPres + 0.005 || obraSel.ggReal > obraSel.ggPres + 0.005) && (
-                  <span className="ml-auto flex items-center gap-1 rounded-full bg-warn px-2 py-0.5 text-[10px] font-semibold text-warn-foreground">
+                  <span className="ml-auto flex items-center gap-1 rounded-full bg-warn/10 px-2 py-0.5 text-[10px] font-semibold text-warn ring-1 ring-warn/40">
                     <AlertTriangle size={11} /> Sobrecosto
                   </span>
                 )}
               </div>
               <div className="mt-2 flex items-center gap-4">
                 <Anillo valor={(obraSel?.gastado ?? 0)} alerta={!!obraSel && (obraSel.cdReal > obraSel.cdPres + 0.005 || obraSel.ggReal > obraSel.ggPres + 0.005)} />
-                <div className="min-w-0 flex-1 space-y-1.5">
-                  <div className="flex items-baseline justify-between gap-2"><p className="text-xs opacity-90">Presupuesto</p><p className="font-mono text-base font-semibold">{soles(obraSel?.presupuesto ?? 0)}</p></div>
-                  <div className="flex items-baseline justify-between gap-2"><p className="text-xs opacity-90">Gastado</p><p className="font-mono text-base font-semibold">{soles(obraSel?.costoReal ?? 0)}</p></div>
-                  <div className="flex items-baseline justify-between gap-2 border-t border-card/30 pt-1.5"><p className="text-xs opacity-90">Disponible</p><p className="font-mono text-base font-semibold">{soles((obraSel?.presupuesto ?? 0) - (obraSel?.costoReal ?? 0))}</p></div>
+                <div className="min-w-0 flex-1 space-y-1">
+                  <div className="flex items-baseline justify-between gap-2"><p className="text-xs text-muted-foreground">Presupuesto</p><p className="font-mono text-base font-semibold text-ink">{soles(obraSel?.presupuesto ?? 0)}</p></div>
+                  <div className="flex items-baseline justify-between gap-2"><p className="text-xs text-muted-foreground">Gastado</p><p className="font-mono text-base font-semibold text-ink">{soles(obraSel?.costoReal ?? 0)}</p></div>
+                  <div className="flex items-baseline justify-between gap-2 border-t border-line pt-1"><p className="text-xs text-muted-foreground">Disponible</p><p className="font-mono text-base font-semibold text-ink">{soles((obraSel?.presupuesto ?? 0) - (obraSel?.costoReal ?? 0))}</p></div>
                 </div>
               </div>
-              <div className="mt-2 space-y-1.5 rounded-lg bg-card p-2.5 text-ink">
+              <div className="mt-2 space-y-1 rounded-lg bg-muted/50 p-2">
                 <FilaSemaforo etiqueta="Costo directo" real={obraSel?.cdReal ?? 0} base={obraSel?.cdPres ?? 0} />
                 <FilaSemaforo etiqueta="Gastos generales" real={obraSel?.ggReal ?? 0} base={obraSel?.ggPres ?? 0} />
               </div>
@@ -491,16 +499,16 @@ function DashboardProyectos() {
         </section>
       </div>
 
-      {verDinero && (() => {
-        const f = esTodos ? null : obraSel;
-        const pres = f ? f.presupuesto : resumen.presupuesto;
-        const cdP = f ? f.cdPres : resumen.cdPres;
-        const ggP = f ? f.ggPres : resumen.ggPres;
-        const utP = f ? f.utPres : resumen.utPres;
-        const cdR = f ? f.cdReal : resumen.cdReal;
-        const ggR = f ? f.ggReal : resumen.ggReal;
+
+      {verDinero && esTodos && (() => {
+        const pres = resumen.presupuesto;
+        const cdP = resumen.cdPres;
+        const ggP = resumen.ggPres;
+        const utP = resumen.utPres;
+        const cdR = resumen.cdReal;
+        const ggR = resumen.ggReal;
         return (
-        <section className="mb-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4" aria-label="Control presupuestal">
+        <section className="mb-3 grid gap-3 md:grid-cols-2 xl:grid-cols-4" aria-label="Control presupuestal">
           <div className="kpi-tarjeta">
             <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Presupuesto vigente</p>
             <p className="mt-1.5 text-xl font-bold tabular-nums text-ink">{soles(pres)}</p>
@@ -517,17 +525,39 @@ function DashboardProyectos() {
         );
       })()}
 
-      {verDinero && !esTodos && (
-        <div className="mb-4 space-y-2">
-          <Pestanas
-            etiqueta="Desglose del presupuesto"
-            valor={desglose}
-            onCambiar={setDesglose}
-            opciones={[{ id: "cd", texto: "Desglose de costo directo" }, { id: "gg", texto: "Desglose de gastos generales" }]}
-          />
-          {desglose === "cd" ? <DesgloseCd proyectoId={obraId} /> : <DesgloseGg proyectoId={obraId} base={obraSel?.ggPres ?? 0} />}
-        </div>
-      )}
+      {verDinero && !esTodos && (() => {
+        const f = obraSel;
+        const cdP = f?.cdPres ?? 0, ggP = f?.ggPres ?? 0, utP = f?.utPres ?? 0;
+        const cdR = f?.cdReal ?? 0, ggR = f?.ggReal ?? 0;
+        return (
+        <section className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]" aria-label="Control presupuestal y desglose">
+          <div className="grid grid-cols-2 content-start gap-3">
+            <div className="kpi-tarjeta">
+              <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Presupuesto vigente</p>
+              <p className="mt-1.5 text-xl font-bold tabular-nums text-ink">{soles(f?.presupuesto ?? 0)}</p>
+              <div className="mt-1.5 space-y-0.5 pr-2 text-[11px] tabular-nums text-muted-foreground">
+                <p className="flex justify-between"><span>Costo directo</span><span>{soles(cdP)}</span></p>
+                <p className="flex justify-between"><span>Gastos generales</span><span>{soles(ggP)}</span></p>
+                <p className="flex justify-between"><span>Utilidad proyectada 🔒</span><span>{soles(utP)}</span></p>
+              </div>
+            </div>
+            <BolsaEjecutada etiqueta="Costo directo ejecutado" real={cdR} base={cdP} />
+            <BolsaEjecutada etiqueta="Gastos generales ejecutados" real={ggR} base={ggP} />
+            <UtilidadReal proyectada={utP} real={utP + (cdP - cdR) + (ggP - ggR)} />
+          </div>
+          <div className="flex min-h-0 flex-col gap-2">
+            <Pestanas
+              etiqueta="Desglose del presupuesto"
+              valor={desglose}
+              onCambiar={setDesglose}
+              opciones={[{ id: "cd", texto: "Desglose de costo directo" }, { id: "gg", texto: "Desglose de gastos generales" }]}
+            />
+            {desglose === "cd" ? <DesgloseCd proyectoId={obraId} /> : <DesgloseGg proyectoId={obraId} base={obraSel?.ggPres ?? 0} />}
+          </div>
+        </section>
+        );
+      })()}
+
 
     </div>
   );
@@ -542,7 +572,7 @@ function MedidorCompacto({ valor }: { valor: number }) {
   const tramo = (desde: number, hasta: number) =>
     Math.max(0, Math.min(limitado, hasta) - desde) / 100 * largo;
   return (
-    <div className="relative mx-auto h-28 w-full max-w-52 overflow-hidden" aria-label={`Avance físico ${pct(valor)}`}>
+    <div className="relative mx-auto h-24 w-full max-w-44 overflow-hidden" aria-label={`Avance físico ${pct(valor)}`}>
       <svg viewBox="0 0 180 110" className="h-full w-full" aria-hidden="true">
         <path d="M 18 92 A 72 72 0 0 1 162 92" fill="none" className="stroke-muted" strokeWidth="14" strokeLinecap="round" />
         <path
@@ -648,7 +678,7 @@ function UtilidadReal({ proyectada, real }: { proyectada: number; real: number }
 
 function MiniDato({ icono, etiqueta, valor, detalle, tono }: { icono: ReactNode; etiqueta: string; valor: string; detalle?: string; tono: "good" | "warn" | "bad" | "primary" }) {
   return (
-    <div className="dash-tarjeta dash-pastilla flex items-center gap-3 px-3 py-2.5">
+    <div className="dash-tarjeta dash-pastilla flex items-center gap-3 px-3 py-2">
       <span className="dash-icono dash-icono-sm" data-tono={tono}>{icono}</span>
       <div className="min-w-0 flex-1 text-center">
         <p className="truncate text-xs text-muted-foreground">{etiqueta}</p>
@@ -664,7 +694,7 @@ function BarraTiempo({ etiqueta, valor, tenue }: { etiqueta: string; valor: numb
   return (
     <div className="flex items-center gap-2">
       <span className="w-20 shrink-0 text-[11px] opacity-90">{etiqueta}</span>
-      <div className="h-4 flex-1 overflow-hidden rounded-sm bg-card/25">
+      <div className="h-3 flex-1 overflow-hidden rounded-sm bg-card/25">
         <div className={`h-full rounded-sm ${tenue ? "bg-card/60" : "bg-card"}`} style={{ width: `${v}%` }} />
       </div>
       <span className="w-12 text-right font-mono text-[11px]">{pct(valor)}</span>
@@ -678,7 +708,7 @@ function Anillo({ valor, alerta }: { valor: number; alerta?: boolean }) {
   const c = 2 * Math.PI * r;
   const tono = alerta ? "text-warn" : valor >= 85 ? "text-warn" : "";
   return (
-    <div className={`relative h-24 w-24 shrink-0 ${tono}`}>
+    <div className={`relative h-20 w-20 shrink-0 ${tono}`}>
       <svg viewBox="0 0 120 120" className="h-full w-full -rotate-90" aria-hidden="true">
         <circle cx="60" cy="60" r={r} fill="none" stroke="currentColor" strokeOpacity="0.25" strokeWidth="14" />
         <circle cx="60" cy="60" r={r} fill="none" stroke="currentColor" strokeWidth="14" strokeLinecap="round" strokeDasharray={`${(v / 100) * c} ${c}`} />
