@@ -553,13 +553,9 @@ function RequerimientosPage() {
                         </td>
                       )}
                       <td className="px-3 py-2">
-                        {gestiona ? (
-                          <Select className="py-0.5 text-xs" value={r.estado} onChange={(e) => void cambiarEstado(r.id, e.target.value)}>
-                            {ESTADOS.map((s) => <option key={s}>{s}</option>)}
-                          </Select>
-                        ) : (
-                          r.estado
-                        )}
+                        <Etiqueta tono={tonoEstadoReq(r.estado)}>{r.estado}</Etiqueta>
+                        {r.clase === "tdr" && <span className="ml-1 text-[10px] text-muted-foreground">TDR</span>}
+                        {r.estado === "Rechazado" && r.motivo_rechazo && <span className="ml-1 text-[10px] text-bad" title={r.motivo_rechazo}>· {r.motivo_rechazo}</span>}
                       </td>
 
                     </tr>
@@ -590,8 +586,130 @@ function RequerimientosPage() {
           </table>
         )}
       </Panel>
-      <BarraIconosHoja objeto="requerimiento" filtros={<MenuFiltros activos={busqueda ? 1 : 0} onLimpiar={() => setBusqueda("")}><Buscador valor={busqueda} onChange={setBusqueda} total={reqsVisibles.length} placeholder="Buscar por código, obra u observación..." /></MenuFiltros>} haySeleccion={!!actual} onEliminar={gestiona || actual?.estado === "Pendiente" ? () => { if (actual) void eliminar(actual.id); } : undefined} />
+      <BarraIconosHoja
+        objeto="requerimiento"
+        filtros={<MenuFiltros activos={busqueda ? 1 : 0} onLimpiar={() => setBusqueda("")}><Buscador valor={busqueda} onChange={setBusqueda} total={reqsVisibles.length} placeholder="Buscar por código, obra u observación..." /></MenuFiltros>}
+        haySeleccion={!!actual}
+        onEliminar={actual && (gestiona || ["Enviado a Gerencia", "Rechazado"].includes(actual.estado)) ? () => void eliminar(actual.id) : undefined}
+        extras={
+          <BotonIcono etiqueta="Nuevo requerimiento con términos de referencia" disabled={!proyectoId} onClick={() => { setTdr(TDR_VACIO); setVentanaTdr(true); }}>
+            <FileText size={15} />
+          </BotonIcono>
+        }
+      />
       </div>
+
+      <div className="mt-5 flex items-start gap-3">
+        <Panel className="min-w-0 flex-1" titulo="Recepción en obra">
+          {ocsObra.length === 0 ? (
+            <Vacio texto={proyectoId ? "No hay órdenes de compra enviadas a esta obra." : "Selecciona una obra para ver las compras enviadas."} />
+          ) : (
+            <table className="w-full font-mono text-xs">
+              <thead>
+                <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+                  <th className="px-5 py-2 font-medium">Orden</th>
+                  <th className="px-3 py-2 font-medium">Requerimiento</th>
+                  <th className="px-3 py-2 font-medium">Fecha entrega</th>
+                  <th className="px-3 py-2 text-right font-medium">Ítems</th>
+                  <th className="px-3 py-2 font-medium">Estado</th>
+                  <th className="px-5 py-2 text-right font-medium">Acción</th>
+                </tr>
+              </thead>
+              <tbody>
+                {ocsObra.map((o) => (
+                  <tr key={o.id} className="border-b border-line/40">
+                    <td className="px-5 py-1.5 text-primary">{o.codigo}</td>
+                    <td className="px-3 py-1.5">{reqs.find((r) => r.id === o.requerimiento_id)?.codigo ?? "—"}</td>
+                    <td className="px-3 py-1.5">{o.fecha_entrega ?? "—"}</td>
+                    <td className="px-3 py-1.5 text-right">{itemsOC.filter((i) => i.orden_id === o.id).length}</td>
+                    <td className="px-3 py-1.5"><Etiqueta tono={o.estado === "Recibida" ? "good" : o.estado === "Recibida parcial" ? "warn" : "neutro"}>{o.estado}</Etiqueta></td>
+                    <td className="px-5 py-1.5 text-right">
+                      {(o.estado === "Enviado a obra" || o.estado === "Recibida parcial") && (
+                        <Boton variante="linea" className="py-0.5 text-xs" onClick={() => abrirRecepcion(o.id)}>
+                          <PackageCheck size={13} className="mr-1 inline" /> Recepcionar
+                        </Boton>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </Panel>
+      </div>
+
+      <VentanaFlotante abierta={ventanaTdr} onCerrar={() => setVentanaTdr(false)} titulo="Términos de Referencia" subtitulo={`Subcontratos, servicios y alquileres · ${proyecto ? nombreProy(proyecto.id) : ""}`} ancho="max-w-3xl">
+        <form className="grid grid-cols-2 gap-3 p-5 text-xs" onSubmit={(e) => { e.preventDefault(); void guardarTdr(); }}>
+          <Campo etiqueta="Tipo">
+            <Select value={tdr.tipo} onChange={(e) => setTdr({ ...tdr, tipo: e.target.value })}>
+              {["Subcontrato", "Servicio", "Alquiler"].map((t) => <option key={t}>{t}</option>)}
+            </Select>
+          </Campo>
+          <Campo etiqueta="Partida vinculada">
+            <Select value={tdr.partida} onChange={(e) => setTdr({ ...tdr, partida: e.target.value })}>
+              <option value="">Sin partida</option>
+              {hojasObra.map((h) => <option key={h.id} value={`${h.codigo} ${h.nombre}`.trim()}>{h.codigo} {h.nombre}</option>)}
+            </Select>
+          </Campo>
+          <div className="col-span-2"><Campo etiqueta="Objeto de la contratación"><Input required value={tdr.objeto} onChange={(e) => setTdr({ ...tdr, objeto: e.target.value })} /></Campo></div>
+          {([["alcance", "Alcance"], ["entregables", "Entregables"], ["condiciones", "Condiciones y requisitos"]] as const).map(([k, t]) => (
+            <div key={k} className="col-span-2">
+              <Campo etiqueta={t}>
+                <textarea className="min-h-16 w-full rounded border border-line bg-background px-2 py-1.5 text-xs" value={tdr[k]} onChange={(e) => setTdr({ ...tdr, [k]: e.target.value })} />
+              </Campo>
+            </div>
+          ))}
+          <Campo etiqueta="Plazo de ejecución"><Input value={tdr.plazo} onChange={(e) => setTdr({ ...tdr, plazo: e.target.value })} placeholder="Ej. 15 días calendario" /></Campo>
+          <Campo etiqueta="Lugar"><Input value={tdr.lugar} onChange={(e) => setTdr({ ...tdr, lugar: e.target.value })} /></Campo>
+          {gestiona && <Campo etiqueta="Monto referencial (S/)"><Input type="number" step="0.01" value={tdr.referencial} onChange={(e) => setTdr({ ...tdr, referencial: e.target.value })} /></Campo>}
+          <div className="col-span-2 flex justify-end gap-2 border-t border-line pt-3">
+            <Boton type="button" variante="linea" onClick={() => setVentanaTdr(false)}>Cancelar</Boton>
+            <Boton type="submit">Enviar a Gerencia</Boton>
+          </div>
+        </form>
+      </VentanaFlotante>
+
+      <VentanaFlotante abierta={!!recepcion} onCerrar={() => setRecepcion(null)} titulo={`Recepción en obra · ${ordenes.find((o) => o.id === recepcion?.orden)?.codigo ?? ""}`} subtitulo="Registra lo que llegó físicamente a la obra; admite recepción parcial." ancho="max-w-3xl">
+        {recepcion && (
+          <form className="p-5 text-xs" onSubmit={(e) => { e.preventDefault(); void guardarRecepcion(); }}>
+            <div className="mb-3 grid grid-cols-2 gap-3">
+              <Campo etiqueta="Fecha de recepción"><Input type="date" value={recepcion.fecha} onChange={(e) => setRecepcion({ ...recepcion, fecha: e.target.value })} /></Campo>
+              <Campo etiqueta="Observaciones"><Input value={recepcion.obs} onChange={(e) => setRecepcion({ ...recepcion, obs: e.target.value })} /></Campo>
+            </div>
+            <table className="w-full font-mono text-xs">
+              <thead>
+                <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+                  <th className="px-2 py-1.5 font-medium">Ítem</th>
+                  <th className="px-2 py-1.5 font-medium">Und.</th>
+                  <th className="px-2 py-1.5 text-right font-medium">Ordenado</th>
+                  <th className="px-2 py-1.5 text-right font-medium">Recibido</th>
+                  <th className="px-2 py-1.5 text-right font-medium">Recibir ahora</th>
+                </tr>
+              </thead>
+              <tbody>
+                {itemsOC.filter((i) => i.orden_id === recepcion.orden).map((i) => {
+                  const rec = recibidoOC(i.id);
+                  return (
+                    <tr key={i.id} className="border-b border-line/40">
+                      <td className="px-2 py-1">{i.descripcion}</td>
+                      <td className="px-2 py-1 text-muted-foreground">{i.unidad}</td>
+                      <td className="px-2 py-1 text-right">{num(Number(i.cantidad))}</td>
+                      <td className="px-2 py-1 text-right text-muted-foreground">{num(rec)}</td>
+                      <td className="px-2 py-1 text-right">
+                        <Input type="number" step="0.0001" min="0" max={saldoRecepcion(Number(i.cantidad), rec)} className="w-28 py-0.5 text-right text-xs" value={recepcion.cant[i.id] ?? ""} onChange={(e) => setRecepcion({ ...recepcion, cant: { ...recepcion.cant, [i.id]: e.target.value } })} />
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+            <div className="mt-3 flex justify-end gap-2 border-t border-line pt-3">
+              <Boton type="button" variante="linea" onClick={() => setRecepcion(null)}>Cancelar</Boton>
+              <Boton type="submit">Registrar recepción</Boton>
+            </div>
+          </form>
+        )}
+      </VentanaFlotante>
     </>
   );
 }
