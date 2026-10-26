@@ -78,6 +78,13 @@ function Bandeja() {
     itemsOC
       .filter((i) => (i as { requerimiento_item_id?: string | null }).requerimiento_item_id === reqItemId && ordenes.find((o) => o.id === i.orden_id)?.estado !== "Anulada")
       .reduce((s, i) => s + Number(i.cantidad), 0);
+  const conPrecios = (s: Solicitud) => itemsSol.some((x) => x.solicitud_id === s.id && Number(x.precio_unitario) > 0);
+  const pendientesSol = (s: Solicitud) =>
+    itemsSol.filter((x) => {
+      if (x.solicitud_id !== s.id) return false;
+      const it = itsActual.find((i) => i.id === x.requerimiento_item_id);
+      return it && Math.min(Number(x.cantidad), Number(it.cantidad) - ordenado(it.id)) > 0.0001;
+    });
   const precio = (solId: string, itemId: string) => itemsSol.find((x) => x.solicitud_id === solId && x.requerimiento_item_id === itemId);
   const mejores = useMemo(
     () => mejoresPrecios(itemsSol.filter((x) => solsActual.some((s) => s.id === x.solicitud_id && s.estado !== "Descartada")).map((x) => ({ solicitudId: x.solicitud_id, requerimientoItemId: x.requerimiento_item_id, precio: Number(x.precio_unitario) }))),
@@ -141,6 +148,8 @@ function Bandeja() {
 
   async function guardarRegistro() {
     if (!registro) return;
+    if (!Object.values(registro.precios).some((p) => Number(p) > 0))
+      return setError("Ingresa al menos un precio para registrar la cotización.");
     for (const [id, p] of Object.entries(registro.precios)) {
       const { error: e } = await apuDb.from("solicitud_cotizacion_items").update({ precio_unitario: Number(p) || 0 }).eq("id", id);
       if (e) return setError(e.message);
@@ -184,7 +193,8 @@ function Bandeja() {
         return it ? [{ x, it }] : [];
       })
       .filter(({ x, it }) => it && Math.min(Number(x.cantidad), Number(it.cantidad) - ordenado(it.id)) > 0.0001);
-    if (!lineas.length) return setError("La cotización no tiene precios o sus ítems ya están ordenados.");
+    if (!conPrecios(s)) return setError(`La cotización ${s.codigo} no tiene precios registrados; usa «Registrar cotización» para anotarlos del proveedor.`);
+    if (!lineas.length) return setError(`Todos los ítems de ${s.codigo} ya están ordenados; el requerimiento no tiene cantidad pendiente.`);
     const proy = proyectos.find((p) => p.id === actual.proyecto_id);
     const n = ordenes.filter((o) => o.proyecto_id === actual.proyecto_id).length + 1;
     const codigo = `OC-${proy?.codigo || "OBRA"}-${String(n).padStart(3, "0")}`;
@@ -372,7 +382,7 @@ function Bandeja() {
                           {s.estado !== "Aprobada" && s.estado !== "Descartada" && (
                             <>
                               <Boton variante="linea" className="py-0.5 text-xs" onClick={() => abrirRegistro(s)}>Registrar cotización</Boton>
-                              {s.estado === "Recibida" && <Boton className="py-0.5 text-xs" onClick={() => void aprobar(s)}><Check size={13} className="mr-1 inline" />Aprobar y generar OC</Boton>}
+                              {s.estado === "Recibida" && conPrecios(s) && pendientesSol(s).length > 0 && <Boton className="py-0.5 text-xs" onClick={() => void aprobar(s)}><Check size={13} className="mr-1 inline" />Aprobar y generar OC</Boton>}
                               <Boton variante="linea" className="py-0.5 text-xs" onClick={() => void descartar(s)}>Descartar</Boton>
                             </>
                           )}
