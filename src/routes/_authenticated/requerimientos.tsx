@@ -15,6 +15,7 @@ import { apuDb, nombreTipo } from "@/lib/apu";
 import { useItemsOC, useOrdenesCompra } from "@/lib/logistica";
 import { useRecordado } from "@/lib/recordado";
 import { ESTADOS_BANDEJA, estadoTrasOrden, mejoresPrecios, tonoEstadoReq } from "@/lib/requerimientos-flujo";
+import { condicionPagoOrden, detallePagoOrden } from "@/lib/orden-compra-pago";
 
 export const Route = createFileRoute("/_authenticated/requerimientos")({
   head: () => ({
@@ -151,7 +152,29 @@ function Bandeja() {
     refrescar();
   }
 
-  async function aprobar(s: Solicitud) {
+  const [pagoOC, setPagoOC] = useState<{ s: Solicitud; forma: string; dias: string; error: string } | null>(null);
+
+  function aprobar(s: Solicitud) {
+    setError("");
+    const d = detallePagoOrden(s.condiciones || "");
+    const dias = String(s.condiciones?.match(/(\d+)/)?.[1] ?? "30");
+    setPagoOC({ s, forma: d.forma === "Crédito" ? "Crédito" : "Contado", dias, error: "" });
+  }
+
+  async function confirmarPagoOC() {
+    if (!pagoOC) return;
+    let condicion: string;
+    try {
+      condicion = condicionPagoOrden(pagoOC.forma, Number(pagoOC.dias));
+    } catch (e) {
+      return setPagoOC({ ...pagoOC, error: (e as Error).message });
+    }
+    const s = pagoOC.s;
+    setPagoOC(null);
+    await generarOC(s, condicion);
+  }
+
+  async function generarOC(s: Solicitud, condicion: string) {
     setError("");
     if (!actual) return;
     const lineas = itemsSol
@@ -162,13 +185,12 @@ function Bandeja() {
       })
       .filter(({ x, it }) => it && Math.min(Number(x.cantidad), Number(it.cantidad) - ordenado(it.id)) > 0.0001);
     if (!lineas.length) return setError("La cotización no tiene precios o sus ítems ya están ordenados.");
-    if (!window.confirm(`Aprobar la cotización de ${nombreProv(s.proveedor_id)} y generar la orden de compra?`)) return;
     const proy = proyectos.find((p) => p.id === actual.proyecto_id);
     const n = ordenes.filter((o) => o.proyecto_id === actual.proyecto_id).length + 1;
     const codigo = `OC-${proy?.codigo || "OBRA"}-${String(n).padStart(3, "0")}`;
     const { data: oc, error: e1 } = await apuDb
       .from("ordenes_compra")
-      .insert({ codigo, proyecto_id: actual.proyecto_id, proveedor_id: s.proveedor_id, requerimiento_id: actual.id, condicion_pago: s.condiciones || "Contado", observacion: `Cotización ${s.codigo}${s.plazo_entrega ? ` · plazo ${s.plazo_entrega}` : ""}${s.moneda !== "PEN" ? ` · ${s.moneda}` : ""}` })
+      .insert({ codigo, proyecto_id: actual.proyecto_id, proveedor_id: s.proveedor_id, requerimiento_id: actual.id, condicion_pago: condicion, observacion: `Cotización ${s.codigo}${s.plazo_entrega ? ` · plazo ${s.plazo_entrega}` : ""}${s.moneda !== "PEN" ? ` · ${s.moneda}` : ""}` })
       .select("id")
       .single();
     if (e1) return setError(e1.message);
