@@ -18,10 +18,10 @@
 - Typography: configuracion_documentos/local catalogue, UI --font-global, PDF embeds chosen font, Excel uses catalogue family — consistent outputs.
 - Document codes use codificacion_documentos and siguiente_codigo_documento (free code + padded correlative) — one numbering source.
 - Read tipos_insumo via useTiposInsumo; only five system keys may be hardcoded — users can add types.
-- The HT (herramientas manuales) type is hidden (tipos_insumo.oculto); calcularApu adds it automatically as the last row of the EQ group using the HT percentage from Márgenes APU — users never attach it manually.
+- HT type is hidden (tipos_insumo.oculto); calcularApu auto-adds it last in EQ using Márgenes APU % — never manual.
 - Sidebar has dedicated theme tokens; primary/action buttons use its base color without altering business screens.
 - Invoice/quotation/preliquidation colors and font come from src/lib/documento-tema.ts; preliquidation uses one sheet (HojaPreliquidacion.tsx) with amounts in src/lib/preliquidacion-montos.ts — outputs never diverge.
-- SUNAT purchase invoices archive in comprobantes_recibidos(+_items) and the private comprobantes-compra bucket; only the authenticated descargarComprobantesSire server fn downloads, in batches of 10 — SOL credentials stay server-side.
+- SUNAT purchases archive in comprobantes_recibidos(+_items) + private bucket; only authenticated descargarComprobantesSire downloads (batches of 10) — SOL creds server-side.
 - SIRE owns RCE end to end: one period selector and sync control for both books; purchase XML/PDF/CDR download and ERP register merged into the RCE conciliation table — Facturación Electrónica is sales-only.
 - On desktop, AppShell owns viewport height; sidebar and workspace scroll independently — navigation stays fixed.
 - Quotation rows: flat `orden`+`nivel` (niveles-cotizacion.ts); moves keep descendants. Bank inserts copy recipes; APU inserts snapshot via filaRecursoCotizacion; PEN master prices.
@@ -48,14 +48,14 @@
 - List filters live in MenuFiltros (lupa) at the top of the right icon bar (BarraIconosHoja `filtros`), or `flotante` when a page has no bar — status tabs and data-loading period selectors stay visible.
 - Carriers (transportistas + vehiculos/conductores) are a catalogue; guías copy carrier, vehicle and driver data into datos_guia so emitted guides never change when the catalogue does.
 - Quotations from a prior year are resumed via retomarCotizacion (new current-year code, Rev. 00, retoma_de_id link, original frozen as Retomada) — yearly numbering stays clean and history is kept.
-- Payment reports (ReportePagos) are read-only lists built from Tesorería CxP selection; payee accounts come from terceros_cuentas_bancarias (providers) or trabajadores (staff) via reporte-pagos.ts — reports never mark payments.
+- ReportePagos: read-only from CxP selection; payee accounts via reporte-pagos.ts — never marks payments.
 - Valuations snapshot contracted metrado/P.U.; prior accumulation only from approved ones; approval (DB trigger) needs supervisor signature and freezes the row — stable history.
 - Gantt uses escalaCalendario and useRecordado for the timeline and last project.
 - Inventory reuses materiales, equipos_herramientas and BancoEpp; categoria_inventario splits equipment/tools only in logistics. Unclassified rows stay under equipment; APU stays combined.
 - Collapsible sections use Panel's colapsable/abierto/onAbrirCambiar props (header with totals stays visible, body hides) — one folding mechanism, not per-screen show/hide markup.
-- CTS regularization uses conflict-ignore inserts; grouping keeps period IDs/actions independent. CTS, gratification and settlement share one print sheet using saved amounts; calcGrat snapshots its breakdown, never inventing historical salary.
+- CTS regularization: conflict-ignore inserts, independent period IDs. CTS/gratification/settlement share one sheet with saved amounts; calcGrat snapshots breakdown — no invented history.
 
-- Employment periods live in vinculos_laborales; liquidation, rehire and cese annulment go only through registrar_liquidacion/reingresar_trabajador/anular_cese RPCs — cese and liquidation stay atomic and prior periods keep their history.
+- Employment periods: vinculos_laborales; liquidation/rehire/cese annulment only via their RPCs — atomic, history kept.
 - Company regime: dated regimenes_empresa; a worker's regime can't be below the company's at hire (trigger + errorRegimenTrabajador) — changes hit only new hires.
 - Company settings use DatosEmpresaTabs (general, banks, regime), not top-level tabs.
-- Insumo codes (materiales, mano_obra, equipos_herramientas, subcontratos) are renumbered by an AFTER DELETE DB trigger within their 5-digit prefix — no gaps after real deletions; inactivated rows keep their code.
+- Insumo codes renumber via AFTER DELETE trigger per 5-digit prefix — no gaps; inactive rows keep codes.
