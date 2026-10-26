@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, Printer, Send } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
@@ -401,4 +401,3 @@ function Bandeja() {
   );
 }
 
-export default React.memo(Bandeja);
