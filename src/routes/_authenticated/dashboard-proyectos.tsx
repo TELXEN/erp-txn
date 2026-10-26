@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AlertTriangle, Briefcase, CalendarClock, CalendarDays, CircleDollarSign, ClipboardList, Clock3, Flag, Gauge, Hourglass, Layers3, ListTodo, Upload } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Panel, Select, Vacio } from "@/components/ui-kit";
-import { CurvaS } from "@/components/CurvaS";
 import { InsigniaPrioridad, InsigniaSituacion } from "@/components/estado-ui";
 import { tonoSituacion } from "@/lib/configuracion";
 import { useFuenteDocumento } from "@/lib/fuentes-documentos";
@@ -25,7 +24,6 @@ import {
   hoyISO,
   useTiposPresupuesto,
 } from "@/lib/datos";
-import { useTareoVehiculos } from "@/lib/vehiculos";
 import { useCostoObras } from "@/lib/costo-obra";
 import { exportarExcel, exportarPdf } from "@/lib/exportar";
 
@@ -63,7 +61,6 @@ function DashboardProyectos() {
   const { data: gastosG = [] } = useGastosGenerales();
   const { data: tareos = [] } = useTareos();
   const { costoDe } = useCostoObras();
-  const { data: tareoVeh = [] } = useTareoVehiculos();
   const { data: tiposPresupuesto = [] } = useTiposPresupuesto();
   const { data: cronograma = [] } = useCronograma();
   const [obraId, setObraId] = useState("todos");
@@ -257,39 +254,6 @@ function DashboardProyectos() {
     const dias = Math.ceil((fin.getTime() - hoy.getTime()) / 86_400_000);
     return { dias, vencido: dias < 0 };
   }, [obraSel]);
-
-  // Movimientos fechados de la Curva S: el total acumulado coincide con costoDe() (fuente única).
-  const movimientos = useMemo(() => {
-    const id = obraSel?.proyecto.id;
-    if (!esTodos && (!id || id === "todos")) return [];
-    const ids = esTodos ? Array.from(new Set(proyectos.map((p) => p.id))) : [id as string];
-    const out: { fecha: string; monto: number }[] = [];
-    ids.forEach((pid) => {
-      const c = costoDe(pid);
-      gastosD.filter((g) => g.proyecto_id === pid).forEach((g) => out.push({ fecha: g.fecha, monto: Number(g.monto_soles) }));
-      gastosG.filter((g) => g.proyecto_id === pid).forEach((g) => out.push({ fecha: g.fecha, monto: Number(g.monto_soles) }));
-      tareoVeh.filter((t: { proyecto_id: string }) => t.proyecto_id === pid).forEach((t: { fecha: string; costo_soles: number }) => out.push({ fecha: t.fecha, monto: Number(t.costo_soles) }));
-      // Personal (boletas/recibos repartidos por tareo): se distribuye en las fechas del tareo.
-      const personal = c.mod + c.honorarios + c.staff;
-      const tar = tareos.filter((t) => t.proyecto_id === pid);
-      const base = tar.reduce((s, t) => s + Number(t.costo_soles || 0), 0);
-      if (personal > 0 && tar.length > 0) {
-        tar.forEach((t) => out.push({ fecha: t.fecha, monto: base > 0 ? (personal * Number(t.costo_soles || 0)) / base : personal / tar.length }));
-      }
-    });
-    return out;
-  }, [esTodos, obraSel, proyectos, costoDe, gastosD, gastosG, tareos, tareoVeh]);
-
-  const partidasHoja = useMemo(() => {
-    if (!obraSel) return [];
-    if (esTodos) {
-      const padres = new Set(partidas.map((x) => x.padre_id).filter(Boolean));
-      return partidas.filter((p) => !padres.has(p.id));
-    }
-    const propias = partidas.filter((p) => p.proyecto_id === obraSel.proyecto.id);
-    const padres = new Set(propias.map((x) => x.padre_id).filter(Boolean));
-    return propias.filter((p) => !padres.has(p.id));
-  }, [esTodos, obraSel, partidas]);
 
   const prioridadAlta = useMemo(() => {
     if (!obraSel) return 0;
@@ -577,32 +541,6 @@ function DashboardProyectos() {
       })()}
 
       {verDinero && !esTodos && <div className="mb-4"><DesgloseCd proyectoId={obraId} /></div>}
-
-      <Panel
-        titulo={verDinero ? "Curva S — Avance programado, real y costo" : "Curva S — Avance programado versus real"}
-        className="mb-4"
-      >
-        {!obraSel ? (
-          <Vacio texto="Registra una obra para visualizar su curva S." />
-        ) : (
-          <CurvaS
-            fechaInicio={obraSel.proyecto.fecha_inicio}
-            fechaFin={obraSel.proyecto.fecha_fin}
-            presupuesto={obraSel.presupuesto}
-            presupuestoCosto={obraSel.cdPres + obraSel.ggPres}
-            presupuestoContractual={obraSel.presupuestoContractual}
-            adicionales={obraSel.adicionales}
-            avanceFisico={obraSel.avance}
-            avanceProgramadoOficial={obraSel.programado}
-            fechaCorteProgramado={obraSel.proyecto.fecha_corte_programado}
-            movimientos={movimientos}
-            partidas={partidasHoja}
-            cronograma={cronograma}
-            periodicidad={esTodos ? "mes" : (obraSel.proyecto.periodicidad_cronograma ?? "mes")}
-            mostrarDinero={verDinero}
-          />
-        )}
-      </Panel>
 
       <Panel
         titulo="Cartera de proyectos"
