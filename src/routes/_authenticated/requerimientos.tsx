@@ -460,7 +460,19 @@ function Bandeja() {
           </form>
         )}
       </VentanaFlotante>
+      <VentanaFlotante abierta={!!pagoOC} onCerrar={() => setPagoOC(null)} titulo="Generar orden de compra" subtitulo={pagoOC ? `${pagoOC.s.codigo} · ${nombreProv(pagoOC.s.proveedor_id)}` : ""} ancho="max-w-md">
+        {pagoOC && (
+          <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); void confirmarPagoOC(); }}>
+            <Campo etiqueta="Forma de pago"><Select value={pagoOC.forma} onChange={(e) => setPagoOC({ ...pagoOC, forma: e.target.value, error: "" })}><option value="Contado">Contado</option><option value="Crédito">Crédito</option></Select></Campo>
+            {pagoOC.forma === "Crédito" && <Campo etiqueta="Plazo de pago (días)"><Input type="number" min={1} step={1} value={pagoOC.dias} onChange={(e) => setPagoOC({ ...pagoOC, dias: e.target.value, error: "" })} /></Campo>}
+            <p className="text-xs text-muted-foreground">La deuda quedará en Tesorería · Pagos a proveedores al recibir la orden.</p>
+            {pagoOC.error && <p className="text-xs text-bad">{pagoOC.error}</p>}
+            <div className="flex justify-end gap-2"><Boton type="button" variante="secundario" onClick={() => setPagoOC(null)}>Cancelar</Boton><Boton type="submit"><Check size={13} className="mr-1 inline" />Generar OC</Boton></div>
+          </form>
+        )}
+      </VentanaFlotante>
       <VentanaFlotante abierta={!!vista} onCerrar={() => setVista(null)} titulo="Solicitud de cotización" subtitulo={vista ? `${vista.codigo} · ${nombreProv(vista.proveedor_id)}` : ""} ancho="max-w-6xl">
+
         {vista && actual && (() => {
           const prov = terceros.find((t) => t.id === vista.proveedor_id);
           const its = itemsSol.filter((x) => x.solicitud_id === vista.id).map((x) => ({ x, it: itsActual.find((i) => i.id === x.requerimiento_item_id) }));
