@@ -501,8 +501,8 @@ function DashboardProyectos() {
         <section className="mb-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4" aria-label="Control presupuestal">
           <div className="kpi-tarjeta">
             <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Presupuesto vigente</p>
-            <p className="mt-2 text-2xl font-bold tabular-nums text-ink">{soles(pres)}</p>
-            <div className="mt-2 space-y-0.5 pr-2 text-[11px] tabular-nums text-muted-foreground">
+            <p className="mt-1.5 text-xl font-bold tabular-nums text-ink">{soles(pres)}</p>
+            <div className="mt-1.5 space-y-0.5 pr-2 text-[11px] tabular-nums text-muted-foreground">
               <p className="flex justify-between"><span>Costo directo</span><span>{soles(cdP)}</span></p>
               <p className="flex justify-between"><span>Gastos generales</span><span>{soles(ggP)}</span></p>
               <p className="flex justify-between"><span>Utilidad proyectada 🔒</span><span>{soles(utP)}</span></p>
@@ -606,8 +606,8 @@ function BolsaEjecutada({ etiqueta, real, base }: { etiqueta: string; real: numb
         <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{etiqueta}</p>
         <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold tabular-nums ${excedido ? "bg-bad/10 text-bad" : cerca ? "bg-warn/10 text-warn" : "bg-good/10 text-good"}`}>{pct(p)}</span>
       </div>
-      <p className={`mt-2 text-2xl font-bold tabular-nums ${excedido ? "text-bad" : "text-ink"}`}>{soles(real)}</p>
-      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
+      <p className={`mt-1.5 text-xl font-bold tabular-nums ${excedido ? "text-bad" : "text-ink"}`}>{soles(real)}</p>
+      <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-muted">
         <div className={`h-full rounded-full ${excedido ? "bg-bad" : cerca ? "bg-warn" : "bg-good"}`} style={{ width: `${Math.min(p, 100)}%` }} />
       </div>
       <p className={`mt-1 text-[11px] tabular-nums ${excedido ? "font-semibold text-bad" : "text-muted-foreground"}`}>
@@ -626,7 +626,7 @@ function UtilidadReal({ proyectada, real }: { proyectada: number; real: number }
         <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Utilidad real</p>
         <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold tabular-nums ${critico ? "bg-bad/10 text-bad" : real < proyectada ? "bg-warn/10 text-warn" : "bg-good/10 text-good"}`}>{pct(p)} de la proyectada</span>
       </div>
-      <p className={`mt-2 text-2xl font-bold tabular-nums ${critico ? "text-bad" : real < proyectada ? "text-warn" : "text-good"}`}>{soles(real)}</p>
+      <p className={`mt-1.5 text-xl font-bold tabular-nums ${critico ? "text-bad" : real < proyectada ? "text-warn" : "text-good"}`}>{soles(real)}</p>
       <p className={`mt-1 text-[11px] ${critico ? "font-semibold text-bad" : "text-muted-foreground"}`}>
         {critico ? "⚠ Alerta crítica: la obra ya no deja utilidad" : real < proyectada ? `Excesos de costo restan ${soles(proyectada - real)}` : real > proyectada ? `Ahorros en costos suman ${soles(real - proyectada)}` : `Utilidad proyectada intacta (${soles(proyectada)})`}
       </p>
