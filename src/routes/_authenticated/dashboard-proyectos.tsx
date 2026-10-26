@@ -446,12 +446,13 @@ function DashboardProyectos() {
           </div>
 
 
-          <div className="dash-tarjeta dash-degradado p-3" data-tono="violeta">
+          <div className="dash-tarjeta dash-suave p-3" data-tono="violeta">
             <div className="flex items-center gap-3">
-              <span className="dash-icono dash-icono-claro"><CalendarClock size={18} /></span>
-              <p className="text-lg">Línea de tiempo</p>
+              <span className="dash-icono"><CalendarClock size={18} /></span>
+              <p className="text-lg text-ink">Línea de tiempo</p>
+
             </div>
-            <div className="mt-2 flex justify-between font-mono text-xs opacity-90">
+            <div className="mt-2 flex justify-between font-mono text-xs text-muted-foreground">
               <span>{fecha(obraSel?.proyecto.fecha_inicio ?? null)}</span>
               <span>{fecha(obraSel?.proyecto.fecha_fin ?? null)}</span>
             </div>
@@ -459,10 +460,10 @@ function DashboardProyectos() {
               <BarraTiempo etiqueta="Real" valor={obraSel?.avance ?? 0} />
               <BarraTiempo etiqueta="Programado" valor={programadoSel ?? 0} tenue />
             </div>
-            <div className="mt-1 flex justify-between font-mono text-[10px] opacity-80">
+            <div className="mt-1 flex justify-between font-mono text-[10px] text-muted-foreground">
               {[0, 20, 40, 60, 80, 100].map((n) => <span key={n}>{n}%</span>)}
             </div>
-            <p className="mt-1.5 font-mono text-[11px] opacity-90">
+            <p className="mt-1.5 font-mono text-[11px] text-muted-foreground">
               {obraSel?.usaCalendario
                 ? `Corte al: ${fecha(hoyISO())}`
                 : obraSel?.proyecto.fecha_corte_programado
@@ -696,11 +697,12 @@ function BarraTiempo({ etiqueta, valor, tenue }: { etiqueta: string; valor: numb
   const v = Math.min(Math.max(valor, 0), 100);
   return (
     <div className="flex items-center gap-2">
-      <span className="w-20 shrink-0 text-[11px] opacity-90">{etiqueta}</span>
-      <div className="h-3 flex-1 overflow-hidden rounded-sm bg-card/25">
-        <div className={`h-full rounded-sm ${tenue ? "bg-card/60" : "bg-card"}`} style={{ width: `${v}%` }} />
+      <span className="w-20 shrink-0 text-[11px] text-muted-foreground">{etiqueta}</span>
+      <div className="dash-barra h-3 flex-1 overflow-hidden rounded-sm">
+        <div className={`h-full rounded-sm ${tenue ? "dash-barra-tenue" : "dash-barra-relleno"}`} style={{ width: `${v}%` }} />
       </div>
-      <span className="w-12 text-right font-mono text-[11px]">{pct(valor)}</span>
+      <span className="w-12 text-right font-mono text-[11px] text-ink">{pct(valor)}</span>
+
     </div>
   );
 }
