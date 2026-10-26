@@ -373,7 +373,9 @@ function ModalTercero({
           </Boton>
         </div>
 
-        <form onSubmit={guardar} className="grid gap-3 p-5 sm:grid-cols-2">
+        <form onSubmit={guardar} onKeyDown={(e) => {
+          if (e.key === "Enter" && !e.nativeEvent.isComposing && e.target instanceof HTMLInputElement && e.target.type !== "checkbox") e.preventDefault();
+        }} className="grid gap-3 p-5 sm:grid-cols-2">
           <Campo etiqueta="Tipo documento">
             <Select
               value={form.tipo_documento}

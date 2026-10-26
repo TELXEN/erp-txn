@@ -28,6 +28,7 @@ async def main():
             await page.mouse.click(10, 10)
             assert await dialog.is_visible(), "Un clic fuera no debe cerrar el registro"
             assert await fields.nth(0).input_value() == "12345"
+            entered_name = await fields.nth(1).input_value()
             confirmations = []
 
             async def keep_changes(prompt):
@@ -44,7 +45,9 @@ async def main():
             await dialog.get_by_role("button", name="Cerrar", exact=True).click()
             assert await dialog.is_visible()
             assert len(confirmations) == 3
-            assert await fields.nth(1).input_value() == "Registro sin terminar"
+            assert await fields.nth(1).input_value() == entered_name
+            await fields.nth(0).press("Enter")
+            assert await dialog.get_by_text("El RUC debe tener 11 dígitos.", exact=True).count() == 0, "Enter en un campo no debe guardar anticipadamente"
             await dialog.get_by_role("button", name="Guardar", exact=True).click()
             assert await dialog.get_by_text("El RUC debe tener 11 dígitos.", exact=True).is_visible()
             assert await fields.nth(0).input_value() == "12345"
