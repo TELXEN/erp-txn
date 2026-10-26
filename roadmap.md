@@ -99,3 +99,4 @@
 
 - [x] Quitar del Dashboard de Proyectos las tarjetas «Resumen financiero», «Aprobaciones» y «Partidas de la obra y su límite de compra»; obra seleccionada y «Todos los proyectos» verificados en pantalla, compilación OK.
 - [x] Quitar el panel «Cartera de proyectos» del Dashboard de Proyectos; contadores por estado quedan como solo lectura, pantalla y compilación verificadas.
+- [ ] Dashboard de Proyectos: fondo del icono de Presupuesto más claro (verde claro con billete en verde)
