@@ -467,7 +467,7 @@ function Bandeja() {
             {pagoOC.forma === "Crédito" && <Campo etiqueta="Plazo de pago (días)"><Input type="number" min={1} step={1} value={pagoOC.dias} onChange={(e) => setPagoOC({ ...pagoOC, dias: e.target.value, error: "" })} /></Campo>}
             <p className="text-xs text-muted-foreground">La deuda quedará en Tesorería · Pagos a proveedores al recibir la orden.</p>
             {pagoOC.error && <p className="text-xs text-bad">{pagoOC.error}</p>}
-            <div className="flex justify-end gap-2"><Boton type="button" variante="secundario" onClick={() => setPagoOC(null)}>Cancelar</Boton><Boton type="submit"><Check size={13} className="mr-1 inline" />Generar OC</Boton></div>
+            <div className="flex justify-end gap-2"><Boton type="button" variante="linea" onClick={() => setPagoOC(null)}>Cancelar</Boton><Boton type="submit"><Check size={13} className="mr-1 inline" />Generar OC</Boton></div>
           </form>
         )}
       </VentanaFlotante>
