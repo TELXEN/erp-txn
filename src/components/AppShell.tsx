@@ -363,6 +363,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                         const activo = pathname === m.a;
                         const Icono = m.icono;
                         if (m.hijos) return <SubgrupoMenu key={m.a} item={m} pathname={pathname} />;
+                        const distintivo = m.a === "/aprobaciones" ? pendientesAprobacion : 0;
                         return (
                           <Link
                             key={m.a}
@@ -372,7 +373,12 @@ export function AppShell({ children }: { children: ReactNode }) {
                             }`}
                           >
                             <Icono className="size-4 shrink-0 opacity-90" />
-                            <span>{m.texto}</span>
+                            <span className="flex-1">{m.texto}</span>
+                            {distintivo > 0 && (
+                              <span className="grid min-w-4 place-items-center rounded-full bg-bad px-1 text-[9px] font-bold leading-[14px] text-destructive-foreground" title="Pendientes de aprobación">
+                                {distintivo}
+                              </span>
+                            )}
                           </Link>
                         );
                       })}
