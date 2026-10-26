@@ -1,7 +1,7 @@
 import { DesgloseCd } from "@/components/DesgloseCd";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { AlertTriangle, CalendarDays, Clock3, Flag, Layers3, ListTodo, Lock, Upload } from "lucide-react";
+import { AlertTriangle, Briefcase, CalendarClock, CalendarDays, CircleDollarSign, ClipboardList, Clock3, Flag, Gauge, Hourglass, Layers3, ListTodo, Lock, Upload } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Panel, Select, Vacio } from "@/components/ui-kit";
 import { CurvaS } from "@/components/CurvaS";
@@ -341,6 +341,11 @@ function DashboardProyectos() {
 
   const verDinero = puedeVerDinero(rol);
   const programadoSel = obraSel?.programado ?? null;
+  const hoyTexto = useMemo(() => {
+    const d = new Date();
+    const f = (o: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat("es-PE", { timeZone: "America/Lima", ...o }).format(d);
+    return { dia: f({ weekday: "long" }), numero: f({ day: "numeric" }), mes: f({ month: "long" }) };
+  }, []);
 
   function excel() {
     exportarExcel("dashboard-proyectos", [
