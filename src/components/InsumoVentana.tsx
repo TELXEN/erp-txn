@@ -188,15 +188,28 @@ export function VentanaInsumo({
     qc.invalidateQueries({ queryKey: ["banco_apu"] });
     const stockN = conStock ? Number(stockIni || 0) : 0;
     if (conStock && stockN > 0) {
+      // El almacén trabaja con la ficha unificada `insumos`: se busca o crea la equivalente.
+      const tipoAlm = tipo === "materiales" ? "MAT" : "EQ";
+      const nombre = String(d["descripcion"]);
+      const unidad = String(d["unidad"] ?? "");
+      const precio = Number(d["precio_base"] ?? d["costo_hora"] ?? d["costo"] ?? 0);
+      const { data: existentes } = await db.from("insumos").select("id").eq("tipo", tipoAlm).eq("unidad", unidad).ilike("nombre", nombre);
+      let insumoAlmId: string | null = existentes?.[0]?.id ?? null;
+      if (!insumoAlmId) {
+        const { data: creado, error: ei } = await db.from("insumos").insert({ tipo: tipoAlm, codigo: String(d["codigo"] ?? ""), nombre, unidad, precio }).select("id").single();
+        if (ei) return setAviso(`El insumo se guardó, pero no se pudo crear su ficha de almacén: ${ei.message}`);
+        insumoAlmId = creado.id;
+        qc.invalidateQueries({ queryKey: ["insumos"] });
+      }
       const { error: em } = await db.from("movimientos_almacen").insert({
         tipo: "Ingreso",
         fecha: new Date().toISOString().slice(0, 10),
         proyecto_id: null,
-        insumo_id: nueva.id,
-        descripcion: String(d["descripcion"]),
-        unidad: String(d["unidad"] ?? ""),
+        insumo_id: insumoAlmId,
+        descripcion: nombre,
+        unidad,
         cantidad: stockN,
-        costo_unitario: Number(d["precio_base"] ?? d["costo_hora"] ?? d["costo"] ?? 0),
+        costo_unitario: precio,
         orden_item_id: null,
         documento: "Saldo inicial",
         observacion: "Registro de inventario",
