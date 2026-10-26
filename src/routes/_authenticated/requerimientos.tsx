@@ -148,6 +148,8 @@ function Bandeja() {
 
   async function guardarRegistro() {
     if (!registro) return;
+    if (!Object.values(registro.precios).some((p) => Number(p) > 0))
+      return setError("Ingresa al menos un precio para registrar la cotización.");
     for (const [id, p] of Object.entries(registro.precios)) {
       const { error: e } = await apuDb.from("solicitud_cotizacion_items").update({ precio_unitario: Number(p) || 0 }).eq("id", id);
       if (e) return setError(e.message);
