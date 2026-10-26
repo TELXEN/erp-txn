@@ -6,6 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, ChevronRight, PackageCheck, Plus, Printer, Trash2, Truck, Upload } from "lucide-react";
 import { HojaOrdenCompra, imprimirOrdenCompra } from "@/components/HojaOrdenCompra";
 import { useEmpresa } from "@/lib/empresa";
+import { montosOrdenCompra } from "@/lib/orden-compra-montos";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, BotonIcono, Campo, Input, MenuFiltros, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
@@ -140,6 +141,8 @@ function OrdenesCompraPage() {
   }
 
   const totalForm = lineas.reduce((s, l) => s + Number(l.cantidad || 0) * Number(l.precio_unitario || 0), 0);
+  const desglosar = (filas: { insumo_id: string | null; cantidad: string | number; precio_unitario: string | number; requerimiento_item_id?: string | null }[], reqId?: string | null) => montosOrdenCompra(filas.map((i) => ({ cantidad: Number(i.cantidad || 0), precio_unitario: Number(i.precio_unitario || 0), tipo: itemsReq.find((r) => r.id === i.requerimiento_item_id || (reqId && r.requerimiento_id === reqId && i.insumo_id && r.insumo_id === i.insumo_id))?.tipo ?? insumos.find((ins) => ins.id === i.insumo_id)?.tipo ?? "" })));
+  const montosForm = desglosar(lineas, form.requerimiento_id);
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
@@ -313,6 +316,7 @@ function OrdenesCompraPage() {
   const visibles = ordenes.filter((o) => (!filtro || o.proyecto_id === filtro) && coincide(busqueda, o.codigo, nombreProy(o.proyecto_id), nombreProv(o.proveedor_id), o.observacion));
   const totalOC = (id: string) =>
     itemsOC.filter((i) => i.orden_id === id).reduce((s, i) => s + Number(i.cantidad) * Number(i.precio_unitario), 0);
+  const desgloseOC = (id: string) => desglosar(itemsOC.filter((i) => i.orden_id === id), ordenes.find((o) => o.id === id)?.requerimiento_id);
 
   function exportar() {
     exportarExcel("ordenes-compra", [
@@ -327,7 +331,9 @@ function OrdenesCompraPage() {
           "Fecha de entrega": o.fecha_entrega ?? "",
           "Condición de pago": o.condicion_pago,
           Estado: o.estado,
-          "Total (S/)": Math.round(totalOC(o.id) * 100) / 100,
+          "Subtotal (S/)": desgloseOC(o.id).subtotal,
+          "IGV (S/)": desgloseOC(o.id).igv,
+          "Total (S/)": desgloseOC(o.id).total,
         })),
       },
       {
@@ -427,6 +433,10 @@ function OrdenesCompraPage() {
                   <td className="px-2 py-2 text-right font-semibold text-primary">{soles(totalForm)}</td>
                   <td />
                 </tr>
+                {montosForm.materiales && <>
+                  <tr><td colSpan={4} className="py-1 text-right">IGV (18.00 %)</td><td className="px-2 py-1 text-right">{soles(montosForm.igv)}</td><td /></tr>
+                  <tr><td colSpan={4} className="py-2 text-right font-semibold">TOTAL CON IGV</td><td className="px-2 py-2 text-right font-semibold">{soles(montosForm.total)}</td><td /></tr>
+                </>}
               </tbody>
             </table>
           )}
@@ -460,7 +470,13 @@ function OrdenesCompraPage() {
               <table><colgroup><col className="w-[5%]" /><col className="w-[39%]" /><col className="w-[10%]" /><col className="w-[14%]" /><col className="w-[15%]" /><col className="w-[17%]" /></colgroup><thead><tr><th>#</th><th>DESCRIPCIÓN</th><th>UNIDAD</th><th className="oc-number">CANTIDAD</th><th className="oc-number">VALOR UNITARIO</th><th className="oc-number">IMPORTE</th></tr></thead><tbody>
                 {itemsOC.filter((i) => i.orden_id === actual.id).map((i, n) => <tr key={i.id}><td>{n + 1}</td><td>{i.descripcion}</td><td>{i.unidad}</td><td className="oc-number">{num(Number(i.cantidad), 4)}</td><td className="oc-number">{num(Number(i.precio_unitario), 4)}</td><td className="oc-number">{soles(Number(i.cantidad) * Number(i.precio_unitario))}</td></tr>)}
               </tbody></table>
-              <div className="oc-totals"><span>TOTAL (SIN IGV)</span><span>{soles(totalOC(actual.id))}</span></div>
+              <div className="oc-totals flex-col">
+                <div className="flex justify-between gap-3"><span>SUBTOTAL (SIN IGV)</span><span>{soles(totalOC(actual.id))}</span></div>
+                {desgloseOC(actual.id).materiales && <>
+                  <div className="flex justify-between gap-3"><span>IGV (18.00 %)</span><span>{soles(desgloseOC(actual.id).igv)}</span></div>
+                  <div className="flex justify-between gap-3"><span>TOTAL CON IGV</span><span>{soles(desgloseOC(actual.id).total)}</span></div>
+                </>}
+              </div>
               <div className="oc-conditions"><h3>FORMA DE PAGO</h3>{actual.condicion_pago || "—"}</div>
               {actual.observacion && <div className="oc-conditions"><h3>OBSERVACIONES</h3>{actual.observacion}</div>}
             </HojaOrdenCompra>
@@ -509,7 +525,7 @@ function OrdenesCompraPage() {
                       <td className="px-3 py-2"><Resaltar texto={nombreProv(o.proveedor_id)} termino={busqueda} /></td>
                       <td className="px-3 py-2">{o.fecha}</td>
                       <td className="px-3 py-2">{o.fecha_entrega ?? "—"}</td>
-                      <td className="px-3 py-2 text-right">{soles(totalOC(o.id))}</td>
+                      <td className="px-3 py-2 text-right">{soles(desgloseOC(o.id).total)}</td>
                       <td className="px-3 py-2">
                         <Select className="py-0.5 text-xs" value={o.estado} onChange={(e) => void cambiarEstado(o.id, e.target.value)}>
                           {ESTADOS_OC.map((s) => <option key={s}>{s}</option>)}
@@ -528,6 +544,11 @@ function OrdenesCompraPage() {
                           <td colSpan={1} className="px-3 py-1.5 text-muted-foreground">P.U. {num(Number(i.precio_unitario))} · {estadoCompra(i.id)}</td>
                         </tr>
                       ))}
+                    {ver && desgloseOC(o.id).materiales && <>
+                      <tr className="border-b border-line/30"><td colSpan={5} className="px-3 py-1 text-right">Subtotal (sin IGV)</td><td className="px-3 py-1 text-right">{soles(desgloseOC(o.id).subtotal)}</td><td /></tr>
+                      <tr className="border-b border-line/30"><td colSpan={5} className="px-3 py-1 text-right">IGV (18.00 %)</td><td className="px-3 py-1 text-right">{soles(desgloseOC(o.id).igv)}</td><td /></tr>
+                      <tr className="border-b border-line/30"><td colSpan={5} className="px-3 py-1 text-right font-semibold">Total con IGV</td><td className="px-3 py-1 text-right font-semibold">{soles(desgloseOC(o.id).total)}</td><td /></tr>
+                    </>}
                   </React.Fragment>
                 );
               })}
