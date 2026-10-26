@@ -382,7 +382,7 @@ function Bandeja() {
                           {s.estado !== "Aprobada" && s.estado !== "Descartada" && (
                             <>
                               <Boton variante="linea" className="py-0.5 text-xs" onClick={() => abrirRegistro(s)}>Registrar cotización</Boton>
-                              {s.estado === "Recibida" && <Boton className="py-0.5 text-xs" onClick={() => void aprobar(s)}><Check size={13} className="mr-1 inline" />Aprobar y generar OC</Boton>}
+                              {s.estado === "Recibida" && conPrecios(s) && pendientesSol(s).length > 0 && <Boton className="py-0.5 text-xs" onClick={() => void aprobar(s)}><Check size={13} className="mr-1 inline" />Aprobar y generar OC</Boton>}
                               <Boton variante="linea" className="py-0.5 text-xs" onClick={() => void descartar(s)}>Descartar</Boton>
                             </>
                           )}
