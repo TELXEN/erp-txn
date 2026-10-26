@@ -71,7 +71,7 @@ export const useMovimientos = () => lista<Movimiento>("movimientos_almacen");
 export const useRequerimientos = () => lista<Requerimiento>("requerimientos");
 export const useItemsReq = () => lista<ItemReq>("requerimiento_items");
 
-export const ESTADOS_OC = ["Emitida", "Recibida parcial", "Recibida", "Anulada"];
+export const ESTADOS_OC = ["Emitida", "Enviado a obra", "Recibida parcial", "Recibida", "Anulada"];
 
 /** Recalcula el estado de una OC según lo recibido en almacén (no toca Anulada). */
 export async function sincronizarEstadoOC(ordenId: string) {
@@ -87,7 +87,8 @@ export async function sincronizarEstadoOC(ordenId: string) {
   for (const m of movsRaw ?? []) recibido.set(m.orden_item_id, (recibido.get(m.orden_item_id) ?? 0) + Number(m.cantidad));
   const total = items.reduce((s, i) => s + Number(i.cantidad), 0);
   const rec = items.reduce((s, i) => s + Math.min(Number(i.cantidad), recibido.get(i.id) ?? 0), 0);
-  const estado = rec <= 0.0001 ? "Emitida" : rec >= total - 0.0001 ? "Recibida" : "Recibida parcial";
+  const sinRecibir = oc.estado === "Enviado a obra" ? "Enviado a obra" : "Emitida";
+  const estado = rec <= 0.0001 ? sinRecibir : rec >= total - 0.0001 ? "Recibida" : "Recibida parcial";
   if (estado !== oc.estado) await apuDb.from("ordenes_compra").update({ estado }).eq("id", ordenId);
 }
 export const num = (n: number, d = 2) =>

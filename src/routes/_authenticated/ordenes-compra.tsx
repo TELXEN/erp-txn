@@ -100,7 +100,7 @@ function OrdenesCompraPage() {
     movs.filter((m) => m.orden_item_id === itemId && m.tipo === "Ingreso").reduce((s, m) => s + Number(m.cantidad), 0);
 
   const reqsDisponibles = reqs.filter(
-    (r) => r.proyecto_id === form.proyecto_id && (r.estado === "Aprobado" || r.estado === "Pendiente"),
+    (r) => r.proyecto_id === form.proyecto_id && (r.estado === "Aprobado" || r.estado === "En cotización"),
   );
 
   function cargarRequerimiento(reqId: string) {
@@ -183,7 +183,7 @@ function OrdenesCompraPage() {
           const nuevo = validas.filter((l) => (l.insumo_id ?? l.descripcion) === clave).reduce((s, l) => s + Number(l.cantidad), 0);
           return Number(i.cantidad) - ordenado(form.requerimiento_id, clave) - nuevo > 0.0001;
         });
-      if (!pendiente) await apuDb.from("requerimientos").update({ estado: "Atendido" }).eq("id", form.requerimiento_id);
+      await apuDb.from("requerimientos").update({ estado: pendiente ? "En cotización" : "Orden emitida" }).eq("id", form.requerimiento_id);
     }
     setAviso(`Orden ${codigo} emitida.`);
     setLineas([]);
@@ -206,25 +206,32 @@ function OrdenesCompraPage() {
       .filter((i) => i.orden_id === ocId)
       .map((i) => ({ i, saldo: Number(i.cantidad) - recibido(i.id) }))
       .filter((x) => x.saldo > 0.0001);
-    if (!pendientes.length) return setError("Esta orden ya fue recibida por completo.");
-    if (!window.confirm(`Se registrará el ingreso a almacén de ${pendientes.length} ítem(s) pendientes de ${oc.codigo}. ¿Continuar?`)) return;
+    // Ítems ya recepcionados en obra pero aún sin cargar a Costos Directos.
+    const conGasto = new Set((gastos as unknown as { orden_compra_item_id?: string | null }[]).map((g) => g.orden_compra_item_id).filter(Boolean));
+    const porCostear = itemsOC
+      .filter((i) => i.orden_id === ocId && !conGasto.has(i.id))
+      .map((i) => ({ i, saldo: Number(i.cantidad) }));
+    if (!pendientes.length && !porCostear.length) return setError("Esta orden ya fue recibida y cargada a costos por completo.");
+    if (!window.confirm(pendientes.length ? `Se registrará el ingreso a almacén de ${pendientes.length} ítem(s) pendientes de ${oc.codigo}. ¿Continuar?` : `${oc.codigo} ya fue recepcionada en obra. ¿Cargarla a Costos Directos y cuentas por pagar?`)) return;
     setError("");
-    const { error: err } = await apuDb.from("movimientos_almacen").insert(
-      pendientes.map(({ i, saldo }) => ({
-        fecha: hoy(),
-        tipo: "Ingreso",
-        proyecto_id: oc.proyecto_id,
-        insumo_id: i.insumo_id,
-        descripcion: i.descripcion,
-        unidad: i.unidad,
-        cantidad: Math.round(saldo * 10000) / 10000,
-        costo_unitario: Number(i.precio_unitario),
-        orden_item_id: i.id,
-        documento: oc.codigo,
-        observacion: "Recepción de orden de compra",
-      })),
-    );
-    if (err) return setError(err.message);
+    if (pendientes.length) {
+      const { error: err } = await apuDb.from("movimientos_almacen").insert(
+        pendientes.map(({ i, saldo }) => ({
+          fecha: hoy(),
+          tipo: "Ingreso",
+          proyecto_id: oc.proyecto_id,
+          insumo_id: i.insumo_id,
+          descripcion: i.descripcion,
+          unidad: i.unidad,
+          cantidad: Math.round(saldo * 10000) / 10000,
+          costo_unitario: Number(i.precio_unitario),
+          orden_item_id: i.id,
+          documento: oc.codigo,
+          observacion: "Recepción de orden de compra",
+        })),
+      );
+      if (err) return setError(err.message);
+    }
 
     // Compra en Costos Directos + cuenta por pagar (el pago se registra en Tesorería).
     const { data: parts } = await apuDb.from("partidas").select("id,padre_id").eq("proyecto_id", oc.proyecto_id);
