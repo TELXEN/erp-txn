@@ -361,7 +361,7 @@ function OrdenesCompraPage() {
 
       <VentanaFlotante abierta={modalNueva} onCerrar={() => setModalNueva(false)} titulo="Nueva orden de compra" subtitulo="Emite varias órdenes consecutivamente y cierra cuando termines." ancho="max-w-7xl">
         <form onSubmit={guardar} className="space-y-3 px-5 py-4">
-          <HojaOrdenCompra empresa={empresa} codigo="POR EMITIR" estado="Borrador">
+          <HojaOrdenCompra empresa={empresa ?? null} codigo="POR EMITIR" estado="Borrador">
           <div className="oc-data grid gap-3 sm:grid-cols-3">
             <Campo etiqueta="Obra">
               <Select autoFocus value={form.proyecto_id} onChange={(e) => { setForm({ ...form, proyecto_id: e.target.value, requerimiento_id: "" }); setLineas([]); }}>
@@ -449,10 +449,10 @@ function OrdenesCompraPage() {
         </form>
       </VentanaFlotante>
 
-      <VentanaFlotante abierta={verDocumento && !!actual} onCerrar={() => setVerDocumento(false)} titulo="Orden de compra" subtitulo={actual?.codigo} ancho="max-w-5xl">
+      <VentanaFlotante abierta={verDocumento && !!actual} onCerrar={() => setVerDocumento(false)} titulo="Orden de compra" subtitulo={actual?.codigo ?? ""} ancho="max-w-5xl">
         {actual && <div className="flex items-start gap-3 p-4">
           <div ref={documentoRef} className="min-w-0 flex-1">
-            <HojaOrdenCompra empresa={empresa} codigo={actual.codigo} estado={actual.estado}>
+            <HojaOrdenCompra empresa={empresa ?? null} codigo={actual.codigo} estado={actual.estado}>
               <div className="oc-data">
                 <div><h3>PROVEEDOR</h3><p><b>Razón social:</b> {nombreProv(actual.proveedor_id)}</p><p><b>RUC / DNI:</b> {terceros.find((t) => t.id === actual.proveedor_id)?.numero_documento || "—"}</p><p><b>Dirección:</b> {terceros.find((t) => t.id === actual.proveedor_id)?.direccion || "—"}</p></div>
                 <div><h3>PROYECTO / REFERENCIA</h3><p>{nombreProy(actual.proyecto_id)}</p><p><b>Requerimiento:</b> {reqs.find((r) => r.id === actual.requerimiento_id)?.codigo || "—"}</p><p><b>Emisión:</b> {actual.fecha}</p><p><b>Entrega:</b> {actual.fecha_entrega || "—"}</p></div>
