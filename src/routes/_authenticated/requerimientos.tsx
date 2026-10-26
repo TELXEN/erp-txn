@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
+import { HojaOrdenCompra, imprimirOrdenCompra } from "@/components/HojaOrdenCompra";
+import { useEmpresa } from "@/lib/empresa";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, ClipboardList, Printer, Send } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
@@ -57,6 +59,9 @@ function Bandeja() {
   const [registro, setRegistro] = useState<{ id: string; moneda: string; plazo: string; condiciones: string; precios: Record<string, string> } | null>(null);
   const [error, setError] = useState("");
   const [aviso, setAviso] = useState("");
+  const [vista, setVista] = useState<Solicitud | null>(null);
+  const hojaSol = useRef<HTMLElement | null>(null);
+  const { data: empresa } = useEmpresa();
 
   const provs = terceros.filter((t) => t.es_proveedor && t.activo);
   const nombreProv = (id: string | null) => terceros.find((t) => t.id === id)?.razon_social ?? "—";
@@ -190,23 +195,7 @@ function Bandeja() {
     refrescar();
   }
 
-  function imprimir(s: Solicitud) {
-    if (!actual) return;
-    const its = itemsSol.filter((x) => x.solicitud_id === s.id).map((x) => ({ x, it: itsActual.find((i) => i.id === x.requerimiento_item_id) }));
-    const tdr = actual.clase === "tdr" ? actual.tdr : null;
-    const esc = (t: string) => String(t ?? "").replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c] ?? c);
-    const w = window.open("", "_blank");
-    if (!w) return;
-    w.document.write(`<html><head><title>${esc(s.codigo)}</title><style>body{font-family:sans-serif;font-size:12px;margin:32px}table{width:100%;border-collapse:collapse}td,th{border:1px solid #999;padding:4px 6px;text-align:left}h1{font-size:16px}</style></head><body>
-      <h1>SOLICITUD DE COTIZACIÓN ${esc(s.codigo)}</h1>
-      <p><b>TELXEN SAC</b> · Fecha: ${esc(s.fecha)}<br/>Proveedor: ${esc(nombreProv(s.proveedor_id))}<br/>Obra: ${esc(nombreProy(actual.proyecto_id))} · Requerimiento ${esc(actual.codigo)}</p>
-      ${tdr ? `<h3>Términos de Referencia (${esc(tdr.tipo ?? "")})</h3><p><b>Objeto:</b> ${esc(tdr.objeto ?? "")}</p><p><b>Alcance:</b> ${esc(tdr.alcance ?? "")}</p><p><b>Entregables:</b> ${esc(tdr.entregables ?? "")}</p><p><b>Plazo:</b> ${esc(tdr.plazo ?? "")} · <b>Lugar:</b> ${esc(tdr.lugar ?? "")}</p><p><b>Condiciones:</b> ${esc(tdr.condiciones ?? "")}</p>` : ""}
-      <table><thead><tr><th>#</th><th>Descripción</th><th>Und.</th><th>Cantidad</th><th>P. Unit.</th><th>Total</th></tr></thead><tbody>
-      ${its.map(({ x, it }, i) => `<tr><td>${i + 1}</td><td>${esc(it?.descripcion ?? "")}</td><td>${esc(it?.unidad ?? "")}</td><td>${num(Number(x.cantidad), 4)}</td><td></td><td></td></tr>`).join("")}
-      </tbody></table><p>Indicar moneda, plazo de entrega, condiciones de pago y validez de la oferta.</p></body></html>`);
-    w.document.close();
-    w.print();
-  }
+  function imprimir(s: Solicitud) { setVista(s); }
 
   return (
     <>
@@ -449,7 +438,35 @@ function Bandeja() {
           </form>
         )}
       </VentanaFlotante>
+      <VentanaFlotante abierta={!!vista} onCerrar={() => setVista(null)} titulo="Solicitud de cotización" subtitulo={vista ? `${vista.codigo} · ${nombreProv(vista.proveedor_id)}` : ""} ancho="max-w-6xl">
+        {vista && actual && (() => {
+          const prov = terceros.find((t) => t.id === vista.proveedor_id);
+          const its = itemsSol.filter((x) => x.solicitud_id === vista.id).map((x) => ({ x, it: itsActual.find((i) => i.id === x.requerimiento_item_id) }));
+          const tdr = actual.clase === "tdr" ? actual.tdr : null;
+          return (
+            <div className="flex gap-3 p-4">
+              <div className="min-w-0 flex-1" ref={(el) => { hojaSol.current = el?.querySelector(".oc-sheet") ?? null; }}>
+                <HojaOrdenCompra empresa={empresa ?? null} codigo={vista.codigo} estado={vista.estado} titulo="SOLICITUD DE COTIZACIÓN">
+                  <div className="oc-data">
+                    <div><h3>PROVEEDOR</h3><p><b>{prov?.razon_social ?? "—"}</b></p><p>RUC: {prov?.ruc || "—"}</p><p>{prov?.direccion || ""}</p></div>
+                    <div><h3>DATOS DE LA SOLICITUD</h3><p><b>Fecha:</b> {vista.fecha}</p><p><b>Requerimiento:</b> {actual.codigo}</p><p><b>Obra:</b> {nombreProy(actual.proyecto_id)}</p></div>
+                  </div>
+                  {tdr && <div className="oc-conditions" style={{ marginTop: 0, marginBottom: 14 }}><h3>TÉRMINOS DE REFERENCIA {tdr.tipo ? `(${tdr.tipo})` : ""}</h3><p><b>Objeto:</b> {tdr.objeto}</p><p><b>Alcance:</b> {tdr.alcance}</p><p><b>Entregables:</b> {tdr.entregables}</p><p><b>Plazo:</b> {tdr.plazo} · <b>Lugar:</b> {tdr.lugar}</p><p><b>Condiciones:</b> {tdr.condiciones}</p></div>}
+                  <table>
+                    <thead><tr><th style={{ width: 32 }}>N°</th><th>DESCRIPCIÓN</th><th style={{ width: 60 }}>UND.</th><th className="oc-number" style={{ width: 90 }}>CANTIDAD</th><th className="oc-number" style={{ width: 90 }}>P. UNIT.</th><th className="oc-number" style={{ width: 90 }}>TOTAL</th></tr></thead>
+                    <tbody>{its.map(({ x, it }, i) => <tr key={x.id}><td>{i + 1}</td><td>{it?.descripcion}</td><td>{it?.unidad}</td><td className="oc-number">{num(Number(x.cantidad), 4)}</td><td className="oc-number">{Number(x.precio_unitario) > 0 ? num(Number(x.precio_unitario)) : ""}</td><td className="oc-number">{Number(x.precio_unitario) > 0 ? num(Number(x.cantidad) * Number(x.precio_unitario)) : ""}</td></tr>)}</tbody>
+                  </table>
+                  <div className="oc-conditions"><h3>SE SOLICITA INDICAR</h3>Moneda, plazo de entrega, condiciones de pago (contado o crédito y plazo) y validez de la oferta.</div>
+                  {(vista.plazo_entrega || vista.condiciones) && <div className="oc-conditions"><h3>OFERTA DEL PROVEEDOR</h3>{vista.moneda && <p><b>Moneda:</b> {vista.moneda}</p>}{vista.plazo_entrega && <p><b>Plazo de entrega:</b> {vista.plazo_entrega}</p>}{vista.condiciones && <p><b>Condiciones:</b> {vista.condiciones}</p>}</div>}
+                </HojaOrdenCompra>
+              </div>
+              <div className="flex flex-col gap-1">
+                <BotonIcono etiqueta="Imprimir o guardar en PDF" tono="primario" onClick={() => imprimirOrdenCompra(hojaSol.current, vista.codigo)}><Printer size={15} /></BotonIcono>
+              </div>
+            </div>
+          );
+        })()}
+      </VentanaFlotante>
     </>
   );
 }
-

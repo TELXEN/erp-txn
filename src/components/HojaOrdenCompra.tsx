@@ -3,13 +3,13 @@ import type { Empresa } from "@/lib/empresa";
 import { DOC } from "@/lib/documento-tema";
 import "./hoja-orden-compra.css";
 
-export function HojaOrdenCompra({ empresa, codigo, estado, children }: { empresa?: Empresa | null; codigo: string; estado: string; children: ReactNode }) {
+export function HojaOrdenCompra({ empresa, codigo, estado, titulo = "ORDEN DE COMPRA", children }: { empresa?: Empresa | null; codigo: string; estado: string; titulo?: string; children: ReactNode }) {
   const tema = { "--oc-ink": DOC.ink, "--oc-line": DOC.line, "--oc-soft": DOC.soft, "--oc-total": DOC.total, "--oc-brand": DOC.green, "--oc-paper": DOC.white, "--oc-accent": DOC.accent, "--oc-accent-soft": DOC.accentSoft, "--oc-accent-text": DOC.accentText } as CSSProperties;
-  return <section className="oc-sheet" style={tema} aria-label={`Orden de compra ${codigo}`}>
+  return <section className="oc-sheet" style={tema} aria-label={`${titulo} ${codigo}`}>
     <header className="oc-header">
       <div className="oc-logo">{empresa?.logo_url ? <img src={empresa.logo_url} alt={empresa.razon_social} /> : <strong>TX</strong>}</div>
       <div className="oc-company"><b>{empresa?.razon_social || "TELXEN SAC"}</b><span>{empresa?.eslogan}</span><span>{empresa?.direccion || "—"}</span><span>{empresa?.web || "—"}</span></div>
-      <div className="oc-title"><div><h2>ORDEN DE COMPRA</h2><p>RUC: {empresa?.ruc || "—"}</p><strong>{codigo}</strong></div><span>{estado}</span></div>
+      <div className="oc-title"><div><h2>{titulo}</h2><p>RUC: {empresa?.ruc || "—"}</p><strong>{codigo}</strong></div><span>{estado}</span></div>
     </header>
     {children}
     <footer className="oc-footer">{empresa?.razon_social || "TELXEN SAC"} · {codigo}</footer>
