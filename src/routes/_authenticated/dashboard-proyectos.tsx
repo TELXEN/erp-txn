@@ -381,7 +381,7 @@ function DashboardProyectos() {
       <div className="dash-lienzo mb-4 space-y-4 p-4">
         {/* Fila superior: proyecto elegido con estados de cartera y datos clave */}
         <section className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-          <div className="dash-tarjeta flex flex-col p-5">
+          <div className="dash-tarjeta flex flex-col p-4">
             <div className="flex items-start gap-3">
               <span className="dash-icono" data-tono="warn"><ClipboardList size={20} /></span>
               <div className="min-w-0 flex-1">
@@ -419,15 +419,15 @@ function DashboardProyectos() {
 
         {/* Fila inferior: progreso, línea de tiempo y presupuesto */}
         <section className={`grid gap-4 ${verDinero ? "lg:grid-cols-[1fr_1.3fr_1.2fr]" : "lg:grid-cols-[1fr_1.6fr]"}`}>
-          <div className="dash-tarjeta p-5">
+          <div className="dash-tarjeta p-4">
             <div className="flex items-center gap-3">
               <span className="dash-icono" data-tono="muted"><Gauge size={18} /></span>
               <p className="text-lg text-ink">Progreso</p>
             </div>
             {!obraSel ? <Vacio texto="Registra una obra para visualizar el avance." /> : (
               <>
-                <div className="mt-3"><MedidorCompacto valor={obraSel.avance} /></div>
-                <p className="mt-2 text-center text-xs text-muted-foreground">
+                <div className="mt-1"><MedidorCompacto valor={obraSel.avance} /></div>
+                <p className="text-center text-xs text-muted-foreground">
                   {programadoSel === null || obraSel.desviacion === null ? "Sin avance programado oficial"
                     : obraSel.desviacion < -0.05 ? <span className="font-semibold text-warn">-{pct(-obraSel.desviacion)} · Retraso</span>
                     : <span className="font-semibold text-good">+{pct(obraSel.desviacion)} · En plazo o adelantada</span>}
@@ -436,12 +436,12 @@ function DashboardProyectos() {
             )}
           </div>
 
-          <div className="dash-tarjeta dash-degradado p-5" data-tono="violeta">
+          <div className="dash-tarjeta dash-degradado p-4" data-tono="violeta">
             <div className="flex items-center gap-3">
               <span className="dash-icono dash-icono-claro"><CalendarClock size={18} /></span>
               <p className="text-lg">Línea de tiempo</p>
             </div>
-            <div className="mt-6 flex justify-between font-mono text-xs opacity-90">
+            <div className="mt-3 flex justify-between font-mono text-xs opacity-90">
               <span>{fecha(obraSel?.proyecto.fecha_inicio ?? null)}</span>
               <span>{fecha(obraSel?.proyecto.fecha_fin ?? null)}</span>
             </div>
@@ -449,10 +449,10 @@ function DashboardProyectos() {
               <BarraTiempo etiqueta="Real" valor={obraSel?.avance ?? 0} />
               <BarraTiempo etiqueta="Programado" valor={programadoSel ?? 0} tenue />
             </div>
-            <div className="mt-2 flex justify-between font-mono text-[10px] opacity-80">
+            <div className="mt-1.5 flex justify-between font-mono text-[10px] opacity-80">
               {[0, 20, 40, 60, 80, 100].map((n) => <span key={n}>{n}%</span>)}
             </div>
-            <p className="mt-3 font-mono text-[11px] opacity-90">
+            <p className="mt-2 font-mono text-[11px] opacity-90">
               {obraSel?.usaCalendario
                 ? `Corte al: ${fecha(hoyISO())}`
                 : obraSel?.proyecto.fecha_corte_programado
@@ -462,24 +462,25 @@ function DashboardProyectos() {
           </div>
 
           {verDinero && (
-            <div className="dash-tarjeta dash-degradado p-5" data-tono="good">
-            <div className="flex items-center gap-3">
-              <span className="dash-icono dash-icono-claro"><CircleDollarSign size={18} /></span>
-              <p className="text-lg">Presupuesto</p>
-              {obraSel && (obraSel.cdReal > obraSel.cdPres + 0.005 || obraSel.ggReal > obraSel.ggPres + 0.005) && (
-                <span className="ml-auto flex items-center gap-1 rounded-full bg-warn px-2 py-0.5 text-[10px] font-semibold text-warn-foreground">
-                  <AlertTriangle size={11} /> Sobrecosto
-                </span>
-              )}
-            </div>
-            <div className="mt-3 flex items-center gap-4">
+            <div className="dash-tarjeta dash-degradado p-4" data-tono="good">
+              <div className="flex items-center gap-3">
+                <span className="dash-icono dash-icono-claro"><CircleDollarSign size={18} /></span>
+                <p className="text-lg">Presupuesto</p>
+                {obraSel && (obraSel.cdReal > obraSel.cdPres + 0.005 || obraSel.ggReal > obraSel.ggPres + 0.005) && (
+                  <span className="ml-auto flex items-center gap-1 rounded-full bg-warn px-2 py-0.5 text-[10px] font-semibold text-warn-foreground">
+                    <AlertTriangle size={11} /> Sobrecosto
+                  </span>
+                )}
+              </div>
+              <div className="mt-2 flex items-center gap-4">
                 <Anillo valor={(obraSel?.gastado ?? 0)} alerta={!!obraSel && (obraSel.cdReal > obraSel.cdPres + 0.005 || obraSel.ggReal > obraSel.ggPres + 0.005)} />
-                <div className="min-w-0 space-y-2">
-                  <div><p className="font-mono text-lg font-semibold">{soles(obraSel?.presupuesto ?? 0)}</p><p className="text-sm opacity-90">Total presupuesto</p></div>
-                  <div><p className="font-mono text-lg font-semibold">{soles(obraSel?.costoReal ?? 0)}</p><p className="text-sm opacity-90">Total gastado</p></div>
+                <div className="min-w-0 flex-1 space-y-1.5">
+                  <div className="flex items-baseline justify-between gap-2"><p className="text-xs opacity-90">Presupuesto</p><p className="font-mono text-base font-semibold">{soles(obraSel?.presupuesto ?? 0)}</p></div>
+                  <div className="flex items-baseline justify-between gap-2"><p className="text-xs opacity-90">Gastado</p><p className="font-mono text-base font-semibold">{soles(obraSel?.costoReal ?? 0)}</p></div>
+                  <div className="flex items-baseline justify-between gap-2 border-t border-card/30 pt-1.5"><p className="text-xs opacity-90">Disponible</p><p className="font-mono text-base font-semibold">{soles((obraSel?.presupuesto ?? 0) - (obraSel?.costoReal ?? 0))}</p></div>
                 </div>
               </div>
-              <div className="mt-3 space-y-1.5 rounded-lg bg-card p-3 text-ink">
+              <div className="mt-2 space-y-1.5 rounded-lg bg-card p-2.5 text-ink">
                 <FilaSemaforo etiqueta="Costo directo" real={obraSel?.cdReal ?? 0} base={obraSel?.cdPres ?? 0} />
                 <FilaSemaforo etiqueta="Gastos generales" real={obraSel?.ggReal ?? 0} base={obraSel?.ggPres ?? 0} />
               </div>
@@ -529,7 +530,7 @@ function MedidorCompacto({ valor }: { valor: number }) {
   const tramo = (desde: number, hasta: number) =>
     Math.max(0, Math.min(limitado, hasta) - desde) / 100 * largo;
   return (
-    <div className="relative mx-auto h-36 w-full max-w-60 overflow-hidden" aria-label={`Avance físico ${pct(valor)}`}>
+    <div className="relative mx-auto h-28 w-full max-w-52 overflow-hidden" aria-label={`Avance físico ${pct(valor)}`}>
       <svg viewBox="0 0 180 110" className="h-full w-full" aria-hidden="true">
         <path d="M 18 92 A 72 72 0 0 1 162 92" fill="none" className="stroke-muted" strokeWidth="14" strokeLinecap="round" />
         <path
@@ -558,7 +559,7 @@ function MedidorCompacto({ valor }: { valor: number }) {
         />
       </svg>
       <div className="absolute inset-x-0 bottom-0 text-center">
-        <p className="font-mono text-3xl font-bold" style={{ color }}>{pct(valor)}</p>
+        <p className="font-mono text-2xl font-bold" style={{ color }}>{pct(valor)}</p>
         <p className="label-mono text-[10px]">Ejecutado</p>
       </div>
     </div>
@@ -663,13 +664,17 @@ function Anillo({ valor, alerta }: { valor: number; alerta?: boolean }) {
   const v = Math.min(Math.max(valor, 0), 100);
   const r = 46;
   const c = 2 * Math.PI * r;
+  const tono = alerta ? "text-warn" : valor >= 85 ? "text-warn" : "";
   return (
-    <div className={`relative h-32 w-32 shrink-0 ${alerta ? "text-warn" : ""}`}>
+    <div className={`relative h-24 w-24 shrink-0 ${tono}`}>
       <svg viewBox="0 0 120 120" className="h-full w-full -rotate-90" aria-hidden="true">
-        <circle cx="60" cy="60" r={r} fill="none" stroke="currentColor" strokeOpacity="0.25" strokeWidth="12" />
-        <circle cx="60" cy="60" r={r} fill="none" stroke="currentColor" strokeWidth="12" strokeLinecap="round" strokeDasharray={`${(v / 100) * c} ${c}`} />
+        <circle cx="60" cy="60" r={r} fill="none" stroke="currentColor" strokeOpacity="0.25" strokeWidth="14" />
+        <circle cx="60" cy="60" r={r} fill="none" stroke="currentColor" strokeWidth="14" strokeLinecap="round" strokeDasharray={`${(v / 100) * c} ${c}`} />
       </svg>
-      <span className="absolute inset-0 flex items-center justify-center font-mono text-2xl font-light">{pct(valor)}</span>
+      <span className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="font-mono text-lg font-semibold leading-none">{pct(valor)}</span>
+        <span className="text-[8px] uppercase tracking-wide opacity-80">gastado</span>
+      </span>
       {alerta && <AlertTriangle size={14} className="absolute -right-1 -top-1 rounded-full bg-warn p-0.5 text-warn-foreground" />}
     </div>
   );
