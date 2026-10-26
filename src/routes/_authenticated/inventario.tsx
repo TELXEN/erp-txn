@@ -3,7 +3,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import React, { useState } from "react";
 import { Upload } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, Campo, MenuFiltros, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
+import { Boton, Campo, MenuFiltros, Panel, Pestanas, Select, SinAcceso, Vacio } from "@/components/ui-kit";
+import { CatalogoInventario } from "@/components/CatalogoInventario";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { soles } from "@/lib/format";
@@ -16,9 +17,9 @@ export const Route = createFileRoute("/_authenticated/inventario")({
   head: () => ({
     meta: [
       { title: "Inventario — ERP TELXEN SAC" },
-      { name: "description", content: "Stock valorizado por obra al costo promedio." },
+      { name: "description", content: "Stock valorizado por obra y catálogo de materiales, equipos, herramientas y EPPs." },
       { property: "og:title", content: "Inventario — ERP TELXEN SAC" },
-      { property: "og:description", content: "Stock valorizado de materiales y equipos por obra." },
+      { property: "og:description", content: "Inventario y catálogo de materiales, equipos, herramientas y EPPs de TELXEN SAC." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -34,6 +35,7 @@ function InventarioPage() {
   const [filtro, setFiltro] = useRecordado("inventario:obra", "");
   const [soloConStock, setSoloConStock] = useState(true);
   const [busqueda, setBusqueda] = useRecordado("inventario:busqueda", "");
+  const [vista, setVista] = useState<"stock" | "catalogo">("stock");
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
@@ -74,11 +76,13 @@ function InventarioPage() {
         titulo="Inventario"
         subtitulo="Logística"
         acciones={
-          <Boton variante="linea" onClick={exportar}>
+          vista === "stock" && <Boton variante="linea" onClick={exportar}>
             <Upload size={14} className="mr-1 inline" /> Exportar a Excel
           </Boton>
         }
       />
+      <div className="mb-4"><Pestanas etiqueta="Vistas de Inventario" valor={vista} onCambiar={setVista} opciones={[{ id: "stock", texto: "Stock por obra" }, { id: "catalogo", texto: "Catálogo" }]} /></div>
+      {vista === "catalogo" ? <CatalogoInventario /> : <>
       <div className="mb-5 grid gap-3 sm:grid-cols-3">
         <div data-distintivo="monto" className="panel px-5 py-3">
           <p className="label-mono">Valor del inventario</p>
@@ -156,6 +160,7 @@ function InventarioPage() {
           </table>
         )}
       </Panel>
+      </>}
     </>
   );
 }
