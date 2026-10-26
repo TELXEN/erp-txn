@@ -96,3 +96,4 @@
 - [x] Suspensión de 4ta: fecha obligatoria, año de vigencia automático del año actual (no se escribe a mano), regla de dos días y aviso de renovación anual; 7 pruebas pasan y se verificó en pantalla.
 
 - [x] Quitar del Dashboard de Proyectos las tarjetas «Resumen financiero», «Aprobaciones» y «Partidas de la obra y su límite de compra»; obra seleccionada y «Todos los proyectos» verificados en pantalla, compilación OK.
+- [x] Quitar el panel «Cartera de proyectos» del Dashboard de Proyectos; contadores por estado quedan como solo lectura, pantalla y compilación verificadas.
