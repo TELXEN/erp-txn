@@ -3,7 +3,9 @@ import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { createFileRoute } from "@tanstack/react-router";
 import React, { useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { ChevronDown, ChevronRight, PackageCheck, Plus, Trash2, Truck, Upload } from "lucide-react";
+import { ChevronDown, ChevronRight, PackageCheck, Plus, Printer, Trash2, Truck, Upload } from "lucide-react";
+import { HojaOrdenCompra, imprimirOrdenCompra } from "@/components/HojaOrdenCompra";
+import { useEmpresa } from "@/lib/empresa";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, BotonIcono, Campo, Input, MenuFiltros, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
@@ -41,6 +43,7 @@ const hoy = () => new Date().toISOString().slice(0, 10);
 
 function OrdenesCompraPage() {
   const { rol } = useAuth();
+  const { data: empresa } = useEmpresa();
   const qc = useQueryClient();
   const { data: proyectos = [] } = useProyectos();
   const { data: terceros = [] } = useTerceros();
@@ -78,6 +81,8 @@ function OrdenesCompraPage() {
   const [sel, setSel] = useState("");
   const actual = ordenes.find((x) => x.id === sel);
   const [modalNueva, setModalNueva] = useState(false);
+  const [verDocumento, setVerDocumento] = useState(false);
+  const documentoRef = useRef<HTMLDivElement>(null);
   const cerrarTrasGuardar = useRef(false);
 
   const proveedores = terceros.filter((t) => t.es_proveedor && t.activo);
@@ -189,6 +194,7 @@ function OrdenesCompraPage() {
     setLineas([]);
     setForm({ ...form, requerimiento_id: "", observacion: "", fecha_entrega: "" });
     setAbierto(oc.id);
+    setSel(oc.id);
     if (cerrarTrasGuardar.current) setModalNueva(false);
     for (const k of ["ordenes_compra", "orden_compra_items", "requerimientos"]) qc.invalidateQueries({ queryKey: [k] });
   }
@@ -355,7 +361,8 @@ function OrdenesCompraPage() {
 
       <VentanaFlotante abierta={modalNueva} onCerrar={() => setModalNueva(false)} titulo="Nueva orden de compra" subtitulo="Emite varias órdenes consecutivamente y cierra cuando termines." ancho="max-w-7xl">
         <form onSubmit={guardar} className="space-y-3 px-5 py-4">
-          <div className="grid gap-3 sm:grid-cols-3">
+          <HojaOrdenCompra empresa={empresa ?? null} codigo="POR EMITIR" estado="Borrador">
+          <div className="oc-data grid gap-3 sm:grid-cols-3">
             <Campo etiqueta="Obra">
               <Select autoFocus value={form.proyecto_id} onChange={(e) => { setForm({ ...form, proyecto_id: e.target.value, requerimiento_id: "" }); setLineas([]); }}>
                 <option value="">Seleccionar…</option>
@@ -438,7 +445,28 @@ function OrdenesCompraPage() {
           </div>
           {error && <p className="font-mono text-xs text-bad">{error}</p>}
           {aviso && <p className="font-mono text-xs text-primary">{aviso}</p>}
+          </HojaOrdenCompra>
         </form>
+      </VentanaFlotante>
+
+      <VentanaFlotante abierta={verDocumento && !!actual} onCerrar={() => setVerDocumento(false)} titulo="Orden de compra" subtitulo={actual?.codigo ?? ""} ancho="max-w-5xl">
+        {actual && <div className="flex items-start gap-3 p-4">
+          <div ref={documentoRef} className="min-w-0 flex-1">
+            <HojaOrdenCompra empresa={empresa ?? null} codigo={actual.codigo} estado={actual.estado}>
+              <div className="oc-data">
+                <div><h3>PROVEEDOR</h3><p><b>Razón social:</b> {nombreProv(actual.proveedor_id)}</p><p><b>RUC / DNI:</b> {terceros.find((t) => t.id === actual.proveedor_id)?.numero_documento || "—"}</p><p><b>Dirección:</b> {terceros.find((t) => t.id === actual.proveedor_id)?.direccion || "—"}</p></div>
+                <div><h3>PROYECTO / REFERENCIA</h3><p>{nombreProy(actual.proyecto_id)}</p><p><b>Requerimiento:</b> {reqs.find((r) => r.id === actual.requerimiento_id)?.codigo || "—"}</p><p><b>Emisión:</b> {actual.fecha}</p><p><b>Entrega:</b> {actual.fecha_entrega || "—"}</p></div>
+              </div>
+              <table><colgroup><col className="w-[5%]" /><col className="w-[39%]" /><col className="w-[10%]" /><col className="w-[14%]" /><col className="w-[15%]" /><col className="w-[17%]" /></colgroup><thead><tr><th>#</th><th>DESCRIPCIÓN</th><th>UNIDAD</th><th className="oc-number">CANTIDAD</th><th className="oc-number">VALOR UNITARIO</th><th className="oc-number">IMPORTE</th></tr></thead><tbody>
+                {itemsOC.filter((i) => i.orden_id === actual.id).map((i, n) => <tr key={i.id}><td>{n + 1}</td><td>{i.descripcion}</td><td>{i.unidad}</td><td className="oc-number">{num(Number(i.cantidad), 4)}</td><td className="oc-number">{num(Number(i.precio_unitario), 4)}</td><td className="oc-number">{soles(Number(i.cantidad) * Number(i.precio_unitario))}</td></tr>)}
+              </tbody></table>
+              <div className="oc-totals"><span>TOTAL (SIN IGV)</span><span>{soles(totalOC(actual.id))}</span></div>
+              <div className="oc-conditions"><h3>FORMA DE PAGO</h3>{actual.condicion_pago || "—"}</div>
+              {actual.observacion && <div className="oc-conditions"><h3>OBSERVACIONES</h3>{actual.observacion}</div>}
+            </HojaOrdenCompra>
+          </div>
+          <BotonIcono etiqueta="Imprimir o guardar en PDF" tono="primario" onClick={() => imprimirOrdenCompra(documentoRef.current?.querySelector<HTMLElement>(".oc-sheet") ?? null, actual.codigo)}><Printer size={15} /></BotonIcono>
+        </div>}
       </VentanaFlotante>
 
       <div className="flex items-start gap-3">
@@ -517,6 +545,7 @@ function OrdenesCompraPage() {
             </Select>
           </Campo>
         </MenuFiltros>} haySeleccion={!!actual} onAgregar={() => { setError(""); setAviso(""); setModalNueva(true); }} onEliminar={() => { if (actual) void eliminar(actual.id); }} extras={<>
+          <BotonIcono etiqueta="Imprimir o guardar en PDF" disabled={!actual} onClick={() => setVerDocumento(true)}><Printer size={15} /></BotonIcono>
           <BotonIcono etiqueta="Enviar a obra (la obra registra la recepción)" disabled={!actual || actual.estado !== "Emitida"} onClick={() => { if (actual) void cambiarEstado(actual.id, "Enviado a obra"); }}><Truck size={15} /></BotonIcono>
           <BotonIcono etiqueta="Recibir en almacén / cargar a costos" disabled={!actual || actual.estado === "Anulada"} onClick={() => { if (actual) void recibir(actual.id); }}><PackageCheck size={15} /></BotonIcono>
         </>} />
