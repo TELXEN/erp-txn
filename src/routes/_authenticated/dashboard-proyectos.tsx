@@ -387,10 +387,10 @@ function DashboardProyectos() {
       />
 
 
-      <div className="dash-lienzo mb-4 space-y-4 p-4">
+      <div className="dash-lienzo mb-3 space-y-3 p-3">
         {/* Fila superior: proyecto elegido con estados de cartera y datos clave */}
-        <section className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-          <div className="dash-tarjeta flex flex-col p-4">
+        <section className="grid gap-3 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+          <div className="dash-tarjeta flex flex-col p-3">
             <div className="flex items-start gap-3">
               <span className="dash-icono" data-tono="warn"><ClipboardList size={20} /></span>
               <div className="min-w-0 flex-1">
@@ -401,16 +401,16 @@ function DashboardProyectos() {
               </div>
               {!esTodos && obraSel && <InsigniaSituacion valor={obraSel.proyecto.situacion} />}
             </div>
-            <div className="mt-4 grid flex-1 grid-cols-2 gap-2 sm:grid-cols-4">
+            <div className="mt-3 grid flex-1 grid-cols-2 gap-2 sm:grid-cols-4">
               {TARJETAS_ESTADO.map(({ etiqueta, situacion }) => {
                 // «Retrasados» refleja la desviación real frente al cronograma, no solo el estado manual de la obra.
                 const cantidad = situacion === "Retrasado"
                   ? filas.filter((f) => f.proyecto.situacion === "Retrasado" || (f.desviacion !== null && f.desviacion < -0.05)).length
                   : proyectos.filter((p) => p.situacion === situacion).length;
                 return (
-                  <div key={situacion} className="flex flex-col justify-center rounded-lg px-2 py-2 text-center text-primary-foreground shadow-sm" style={{ backgroundColor: tonoSituacion(situacion).borde }}>
+                  <div key={situacion} className="flex flex-col justify-center rounded-lg px-2 py-1.5 text-center text-primary-foreground shadow-sm" style={{ backgroundColor: tonoSituacion(situacion).borde }}>
                     <p className="text-[10px] opacity-90">{etiqueta}</p>
-                    <p className="font-mono text-2xl font-semibold leading-tight">{cantidad}</p>
+                    <p className="font-mono text-xl font-semibold leading-tight">{cantidad}</p>
                   </div>
                 );
               })}
@@ -427,8 +427,8 @@ function DashboardProyectos() {
         </section>
 
         {/* Fila inferior: progreso, línea de tiempo y presupuesto */}
-        <section className={`grid gap-4 ${verDinero ? "lg:grid-cols-[1fr_1.3fr_1.2fr]" : "lg:grid-cols-[1fr_1.6fr]"}`}>
-          <div className="dash-tarjeta p-4">
+        <section className={`grid gap-3 ${verDinero ? "lg:grid-cols-[1fr_1.3fr_1.2fr]" : "lg:grid-cols-[1fr_1.6fr]"}`}>
+          <div className="dash-tarjeta p-3">
             <div className="flex items-center gap-3">
               <span className="dash-icono" data-tono="muted"><Gauge size={18} /></span>
               <p className="text-lg text-ink">Progreso</p>
@@ -444,6 +444,7 @@ function DashboardProyectos() {
               </>
             )}
           </div>
+
 
           <div className="dash-tarjeta dash-degradado p-4" data-tono="violeta">
             <div className="flex items-center gap-3">
