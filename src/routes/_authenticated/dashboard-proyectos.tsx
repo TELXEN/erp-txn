@@ -196,7 +196,15 @@ function DashboardProyectos() {
     const inicios = filas.map((f) => f.proyecto.fecha_inicio).filter((x): x is string => !!x).sort();
     const fines = filas.map((f) => f.proyecto.fecha_fin).filter((x): x is string => !!x).sort();
     const gastado = presupuesto > 0 ? (costoReal / presupuesto) * 100 : 0;
-    const desviacion = programado === null ? null : avance - programado;
+    // La desviación compara avance y programado sobre la MISMA base (solo obras con cronograma),
+    // para no mezclar el avance ponderado de toda la cartera con el programado de un subconjunto.
+    const avanceComparable =
+      baseProg > 0
+        ? conProgramado.reduce((s, f) => s + f.avance * f.presupuesto, 0) / baseProg
+        : conProgramado.length > 0
+          ? conProgramado.reduce((s, f) => s + f.avance, 0) / conProgramado.length
+          : 0;
+    const desviacion = programado === null ? null : avanceComparable - programado;
     const proyectoCartera: Proyecto = {
       id: "todos",
       codigo: null,
