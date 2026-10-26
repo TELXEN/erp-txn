@@ -1913,6 +1913,111 @@ export type Database = {
         }
         Relationships: []
       }
+      epp_catalogo: {
+        Row: {
+          activo: boolean
+          categoria: string
+          codigo: string
+          costo_unitario: number
+          created_at: string
+          criticidad: string
+          id: string
+          marca: string
+          nombre: string
+          norma: string
+          stock: number
+          tallas: string
+          vida_util_dias: number
+        }
+        Insert: {
+          activo?: boolean
+          categoria?: string
+          codigo?: string
+          costo_unitario?: number
+          created_at?: string
+          criticidad?: string
+          id?: string
+          marca?: string
+          nombre: string
+          norma?: string
+          stock?: number
+          tallas?: string
+          vida_util_dias?: number
+        }
+        Update: {
+          activo?: boolean
+          categoria?: string
+          codigo?: string
+          costo_unitario?: number
+          created_at?: string
+          criticidad?: string
+          id?: string
+          marca?: string
+          nombre?: string
+          norma?: string
+          stock?: number
+          tallas?: string
+          vida_util_dias?: number
+        }
+        Relationships: []
+      }
+      epp_entregas: {
+        Row: {
+          cantidad: number
+          created_at: string
+          epp_id: string
+          fecha_devolucion: string | null
+          fecha_entrega: string
+          fecha_renovacion: string | null
+          id: string
+          motivo: string
+          observaciones: string
+          talla: string
+          trabajador_id: string
+        }
+        Insert: {
+          cantidad?: number
+          created_at?: string
+          epp_id: string
+          fecha_devolucion?: string | null
+          fecha_entrega?: string
+          fecha_renovacion?: string | null
+          id?: string
+          motivo?: string
+          observaciones?: string
+          talla?: string
+          trabajador_id: string
+        }
+        Update: {
+          cantidad?: number
+          created_at?: string
+          epp_id?: string
+          fecha_devolucion?: string | null
+          fecha_entrega?: string
+          fecha_renovacion?: string | null
+          id?: string
+          motivo?: string
+          observaciones?: string
+          talla?: string
+          trabajador_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "epp_entregas_epp_id_fkey"
+            columns: ["epp_id"]
+            isOneToOne: false
+            referencedRelation: "epp_catalogo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "epp_entregas_trabajador_id_fkey"
+            columns: ["trabajador_id"]
+            isOneToOne: false
+            referencedRelation: "trabajadores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       equipos_herramientas: {
         Row: {
           codigo: string
