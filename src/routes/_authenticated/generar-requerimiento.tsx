@@ -253,22 +253,33 @@ function RequerimientosPage() {
   const actual = reqs.find((x) => x.id === sel);
   const reqsVisibles = reqs.filter((r) => (!proyectoId || r.proyecto_id === proyectoId) && coincide(busqueda, r.codigo, nombreProy(r.proyecto_id), r.observacion));
 
+  const pedidaDe = (e: (typeof explosion)[number]) =>
+    pedir[e.clave] === undefined ? Math.round(e.saldo * 10000) / 10000 : cantidadPermitida(Number(pedir[e.clave]), e.saldo);
+  const siguienteCodigo = () => {
+    const n = reqs.filter((r) => r.proyecto_id === proyectoId).length + 1;
+    return `REQ-${proyecto?.codigo || "OBRA"}-${String(n).padStart(3, "0")}`;
+  };
+
   async function generar() {
     setError("");
     setAviso("");
     if (!proyectoId) return setError("La cotización aprobada no está vinculada a una obra; conviértela en proyecto primero.");
-    const filas = explosion.filter((e) => tipos.includes(e.tipo as TipoInsumo) && e.saldo > 0.0001);
-    if (!filas.length) return setError("No hay saldo por requerir para los tipos seleccionados.");
-    const n = reqs.filter((r) => r.proyecto_id === proyectoId).length + 1;
-    const codigo = `REQ-${proyecto?.codigo || "OBRA"}-${String(n).padStart(3, "0")}`;
+    const filas = explosion
+      .filter((e) => tipos.includes(e.tipo as TipoInsumo) && e.saldo > 0.0001)
+      .map((e) => ({ ...e, pedida: pedidaDe(e) }))
+      .filter((e) => e.pedida > 0);
+    if (!filas.length) return setError("No hay cantidades por requerir para los tipos seleccionados.");
+    const codigo = siguienteCodigo();
     const { data: req, error: e1 } = await apuDb
       .from("requerimientos")
       .insert({
         proyecto_id: proyectoId,
         codigo,
         origen,
+        clase: "materiales",
+        estado: "Enviado a Gerencia",
         cotizacion_id: origen === "cotizacion" ? cotizacionId : null,
-        observacion: origen === "cotizacion" ? `Desdoblamiento de APU de ${cotizacion?.codigo ?? "cotización"}` : "Generado por explosión de insumos",
+        observacion: origen === "cotizacion" ? `Desdoblamiento de APU de ${cotizacion?.codigo ?? "cotización"}` : "Insumos del APU de la obra",
       })
       .select("id")
       .single();
@@ -280,37 +291,78 @@ function RequerimientosPage() {
         tipo: e.tipo,
         descripcion: e.nombre,
         unidad: e.unidad,
-        cantidad: Math.round(e.saldo * 10000) / 10000,
+        cantidad: e.pedida,
         precio_referencial: e.precio,
       })),
     ).select("id");
     if (e2) return setError(e2.message);
-    const origenesFilas = (creados ?? []).flatMap((it: { id: string }, idx: number) =>
-      (filas[idx]?.origenes ?? []).map((o) => ({
+    const origenesFilas = (creados ?? []).flatMap((it: { id: string }, idx: number) => {
+      const f = filas[idx];
+      const factor = f && f.total > 0 ? f.pedida / f.total : 1;
+      return (f?.origenes ?? []).map((o) => ({
         requerimiento_item_id: it.id,
         cotizacion_item_id: origen === "cotizacion" ? o.partidaId : null,
         partida_codigo: o.codigo,
         partida_nombre: o.nombre,
         metrado: o.metrado,
         cantidad_unitaria: Math.round(o.unitaria * 1e6) / 1e6,
-        cantidad: Math.round(o.cantidad * 1e4) / 1e4,
-      })),
-    );
+        cantidad: Math.round(o.cantidad * factor * 1e4) / 1e4,
+      }));
+    });
     if (origenesFilas.length) {
       const { error: e3 } = await apuDb.from("requerimiento_item_origenes").insert(origenesFilas);
       if (e3) return setError(e3.message);
     }
-    qc.invalidateQueries({ queryKey: ["requerimiento_item_origenes"] });
-    setAviso(`Requerimiento ${codigo} generado con ${filas.length} insumos.`);
+    setPedir({});
+    setAviso(`Requerimiento ${codigo} enviado a Gerencia con ${filas.length} insumos.`);
     setAbierto(req.id);
+    for (const k of ["requerimiento_item_origenes", "requerimientos", "requerimiento_items"]) qc.invalidateQueries({ queryKey: [k] });
+  }
+
+  async function guardarTdr() {
+    setError("");
+    if (!proyectoId) return setError("Selecciona la obra.");
+    if (!tdr.objeto.trim()) return setError("Indica el objeto de la contratación.");
+    const codigo = siguienteCodigo();
+    const { referencial, ...datos } = tdr;
+    const { data: req, error: e1 } = await apuDb
+      .from("requerimientos")
+      .insert({ proyecto_id: proyectoId, codigo, origen: "obra", clase: "tdr", estado: "Enviado a Gerencia", observacion: `${tdr.tipo}: ${tdr.objeto.trim()}`, tdr: datos })
+      .select("id")
+      .single();
+    if (e1) return setError(e1.message);
+    const { error: e2 } = await apuDb.from("requerimiento_items").insert({
+      requerimiento_id: req.id,
+      tipo: "SC",
+      descripcion: tdr.objeto.trim(),
+      unidad: "GLB",
+      cantidad: 1,
+      precio_referencial: Number(referencial) || 0,
+    });
+    if (e2) return setError(e2.message);
+    setVentanaTdr(false);
+    setAviso(`Requerimiento ${codigo} (términos de referencia) enviado a Gerencia.`);
     qc.invalidateQueries({ queryKey: ["requerimientos"] });
     qc.invalidateQueries({ queryKey: ["requerimiento_items"] });
   }
 
-  async function cambiarEstado(id: string, estado: string) {
-    const { error: err } = await apuDb.from("requerimientos").update({ estado }).eq("id", id);
+  function abrirRecepcion(ordenId: string) {
+    const cant: Record<string, string> = {};
+    for (const i of itemsOC.filter((x) => x.orden_id === ordenId)) cant[i.id] = String(saldoRecepcion(Number(i.cantidad), recibidoOC(i.id)));
+    setRecepcion({ orden: ordenId, fecha: new Date().toISOString().slice(0, 10), obs: "", cant });
+  }
+
+  async function guardarRecepcion() {
+    if (!recepcion) return;
+    const items = Object.entries(recepcion.cant).map(([orden_item_id, c]) => ({ orden_item_id, cantidad: Number(c) || 0 })).filter((x) => x.cantidad > 0);
+    if (!items.length) return setError("Indica al menos una cantidad recibida.");
+    const { error: err } = await (supabase.rpc as unknown as (f: string, a: Record<string, unknown>) => Promise<{ error: { message: string } | null }>)("recepcionar_orden_obra", {
+      _orden: recepcion.orden, _items: items, _fecha: recepcion.fecha, _obs: recepcion.obs,
+    });
     if (err) return setError(err.message);
-    qc.invalidateQueries({ queryKey: ["requerimientos"] });
+    setRecepcion(null);
+    setAviso("Recepción registrada en el almacén de la obra.");
+    for (const k of ["movimientos_almacen", "ordenes_compra", "requerimientos"]) qc.invalidateQueries({ queryKey: [k] });
   }
 
   async function eliminar(id: string) {
