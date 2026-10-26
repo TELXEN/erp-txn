@@ -137,7 +137,7 @@ export function GananciaPerdida() {
     <div className="mb-4 rounded-lg bg-card p-4">
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <div className="flex w-full max-w-md text-sm">
-          <span className="flex items-center gap-1.5 bg-ink px-3 py-1.5 font-semibold text-background">
+          <span className="flex items-center gap-1.5 bg-primary px-3 py-1.5 font-semibold text-primary-foreground">
             Selecciona un año <ArrowRight size={14} />
           </span>
           <select
@@ -156,7 +156,7 @@ export function GananciaPerdida() {
               role="tab"
               aria-selected={modo === k}
               onClick={() => setModo(k)}
-              className={`px-3 py-1.5 font-semibold ${modo === k ? "bg-ink text-background" : "bg-background text-muted-foreground hover:text-foreground"}`}
+              className={`px-3 py-1.5 font-semibold ${modo === k ? "bg-primary text-primary-foreground" : "bg-background text-muted-foreground hover:text-foreground"}`}
             >
               {l}
             </button>
@@ -167,7 +167,7 @@ export function GananciaPerdida() {
       <div className="grid gap-4 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
         <div className="min-w-0">
           <div className="overflow-hidden border border-line">
-            <div className="bg-ink px-4 py-3 text-base font-semibold text-background">{T.titulo}</div>
+            <div className="bg-primary px-4 py-3 text-base font-semibold text-primary-foreground">{T.titulo}</div>
             <div className="py-8 text-center text-4xl font-bold">{soles(neto)}</div>
             <div className={`py-4 text-center text-3xl font-bold text-background ${positivo ? "bg-good" : "bg-bad"}`}>
               {margen.toFixed(1)}%
@@ -177,7 +177,7 @@ export function GananciaPerdida() {
           <ol className="border border-line">
             {insights.map((t, i) => (
               <li key={i} className="flex border-b border-line last:border-b-0">
-                <span className="grid w-14 shrink-0 place-items-center bg-ink py-3 text-sm font-semibold text-background">{i + 1}</span>
+                <span className="grid w-14 shrink-0 place-items-center bg-primary py-3 text-sm font-semibold text-primary-foreground">{i + 1}</span>
                 <span className="min-w-0 px-3 py-2.5 text-sm font-semibold">{t}</span>
               </li>
             ))}
