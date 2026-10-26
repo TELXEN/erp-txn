@@ -1055,7 +1055,7 @@ function HojaInsumos() {
                         className={`cursor-pointer border-b border-line/60 hover:bg-muted/40 ${sel?.fila.id === f.id ? "bg-primary/10" : ""}`}>
                         {cfg.columnas.map(([k, , tp]) => (
                           <td key={k} className={`px-2 py-0.5 ${tp !== "txt" ? "whitespace-nowrap text-right font-mono" : k === "descripcion" ? "w-full" : "whitespace-nowrap"}`}>
-                            {tp === "sol" ? soles(Number(f[k] ?? 0)) : tp === "num" ? Number(f[k] ?? 0).toLocaleString("es-PE") : <><Resaltar texto={k === "descripcion" || k === "marca" ? primeraMayuscula(f[k]) : f[k]} termino={busqueda} />{k === "codigo" && (!f.especialidad_id || (t === "materiales" && !f.subfamilia_id)) && <span className="ml-1 rounded bg-destructive/10 px-1 text-[10px] font-semibold text-destructive">Sin clasificar</span>}</>}
+                            {tp === "sol" ? Number(f[k] ?? 0).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : tp === "num" ? Number(f[k] ?? 0).toLocaleString("es-PE") : <><Resaltar texto={k === "descripcion" || k === "marca" ? primeraMayuscula(f[k]) : f[k]} termino={busqueda} />{k === "codigo" && (!f.especialidad_id || (t === "materiales" && !f.subfamilia_id)) && <span className="ml-1 rounded bg-destructive/10 px-1 text-[10px] font-semibold text-destructive">Sin clasificar</span>}</>}
                           </td>
                         ))}
                       </tr>
