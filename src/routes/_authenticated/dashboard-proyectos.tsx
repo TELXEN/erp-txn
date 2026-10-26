@@ -1,9 +1,10 @@
 import { DesgloseCd } from "@/components/DesgloseCd";
+import { DesgloseGg } from "@/components/DesgloseGg";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AlertTriangle, CalendarClock, CircleDollarSign, ClipboardList, Gauge, Hourglass, Layers3, ListTodo, Upload } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, Select, Vacio } from "@/components/ui-kit";
+import { Boton, Pestanas, Select, Vacio } from "@/components/ui-kit";
 import { InsigniaPrioridad, InsigniaSituacion } from "@/components/estado-ui";
 import { tonoSituacion } from "@/lib/configuracion";
 import { useFuenteDocumento } from "@/lib/fuentes-documentos";
@@ -63,6 +64,7 @@ function DashboardProyectos() {
   const { data: tiposPresupuesto = [] } = useTiposPresupuesto();
   const { data: cronograma = [] } = useCronograma();
   const [obraId, setObraId] = useState("todos");
+  const [desglose, setDesglose] = useState<"cd" | "gg">("cd");
 
   // Recupera la última obra seleccionada: persiste al cerrar la pestaña o cambiar de ventana.
   useEffect(() => {
@@ -515,7 +517,17 @@ function DashboardProyectos() {
         );
       })()}
 
-      {verDinero && !esTodos && <div className="mb-4"><DesgloseCd proyectoId={obraId} /></div>}
+      {verDinero && !esTodos && (
+        <div className="mb-4 space-y-2">
+          <Pestanas
+            etiqueta="Desglose del presupuesto"
+            valor={desglose}
+            onCambiar={setDesglose}
+            opciones={[{ id: "cd", texto: "Desglose de costo directo" }, { id: "gg", texto: "Desglose de gastos generales" }]}
+          />
+          {desglose === "cd" ? <DesgloseCd proyectoId={obraId} /> : <DesgloseGg proyectoId={obraId} base={obraSel?.ggPres ?? 0} />}
+        </div>
+      )}
 
     </div>
   );
