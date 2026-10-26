@@ -75,6 +75,7 @@ function Aprobaciones() {
     }).eq("id", id);
     setMsg(error ? error.message : aprobar ? "Aprobada: la compra puede registrarse una vez en las próximas 48 h." : "Solicitud rechazada.");
     qc.invalidateQueries({ queryKey: ["solicitudes_desbloqueo"] });
+    qc.invalidateQueries({ queryKey: ["aprobaciones-pendientes"] });
   }
 
   async function guardarTol() {
