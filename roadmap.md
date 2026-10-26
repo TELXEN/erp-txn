@@ -93,3 +93,5 @@
 - [x] Gantt: barras horizontales/verticales en obras de más de un mes; desplazamiento horizontal y último proyecto al volver/recargar verificados. La obra actual tiene solo una partida, sin recorrido vertical necesario.
 - [x] Gantt: fila de letras del día (L M M J V S D) sobre los números, domingo en rojo; verificado en vista por días.
 - [x] Suspensión de 4ta: fecha obligatoria, año de vigencia automático del año actual (no se escribe a mano), regla de dos días y aviso de renovación anual; 7 pruebas pasan y se verificó en pantalla.
+
+- [x] Quitar del Dashboard de Proyectos las tarjetas «Resumen financiero», «Aprobaciones» y «Partidas de la obra y su límite de compra»; obra seleccionada y «Todos los proyectos» verificados en pantalla, compilación OK.

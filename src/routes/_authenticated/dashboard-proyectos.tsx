@@ -1,7 +1,7 @@
 import { DesgloseCd } from "@/components/DesgloseCd";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { AlertTriangle, Briefcase, CalendarClock, CalendarDays, CircleDollarSign, ClipboardList, Clock3, Flag, Gauge, Hourglass, Layers3, ListTodo, Lock, Upload } from "lucide-react";
+import { AlertTriangle, Briefcase, CalendarClock, CalendarDays, CircleDollarSign, ClipboardList, Clock3, Flag, Gauge, Hourglass, Layers3, ListTodo, Upload } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Panel, Select, Vacio } from "@/components/ui-kit";
 import { CurvaS } from "@/components/CurvaS";
@@ -27,7 +27,6 @@ import {
 } from "@/lib/datos";
 import { useTareoVehiculos } from "@/lib/vehiculos";
 import { useCostoObras } from "@/lib/costo-obra";
-import { limiteCompra, useSolicitudesDesbloqueo, useToleranciaAvance } from "@/lib/sobrecosto";
 import { exportarExcel, exportarPdf } from "@/lib/exportar";
 
 export const Route = createFileRoute("/_authenticated/dashboard-proyectos")({
@@ -67,8 +66,6 @@ function DashboardProyectos() {
   const { data: tareoVeh = [] } = useTareoVehiculos();
   const { data: tiposPresupuesto = [] } = useTiposPresupuesto();
   const { data: cronograma = [] } = useCronograma();
-  const { data: solicitudes = [] } = useSolicitudesDesbloqueo();
-  const { data: tolerancia = 15 } = useToleranciaAvance();
   const [obraId, setObraId] = useState("todos");
   const [filtroEstado, setFiltroEstado] = useState<string>("Todos");
 
@@ -299,45 +296,6 @@ function DashboardProyectos() {
     if (esTodos) return partidas.filter((p) => p.prioridad === "Alta").length;
     return partidas.filter((p) => p.proyecto_id === obraSel.proyecto.id && p.prioridad === "Alta").length;
   }, [esTodos, obraSel, partidas]);
-
-  /** Estado del candado por partida: real acumulado frente a presupuesto × (1 + tolerancia). */
-  const filasPartidas = useMemo(() => {
-    const hoy = new Date().toISOString();
-    const autorizadas = new Set(
-      solicitudes
-        .filter((s) => s.estado === "Aprobada" && !s.usada_en && s.vence_en && s.vence_en > hoy && s.partida_id)
-        .map((s) => s.partida_id as string),
-    );
-    const gastoPorPartida = new Map<string, number>();
-    for (const g of gastosD) {
-      if (!g.partida_id) continue;
-      gastoPorPartida.set(g.partida_id, (gastoPorPartida.get(g.partida_id) ?? 0) + Number(g.monto_soles));
-    }
-    return partidasHoja
-      .filter((p) => Number(p.presupuesto_inicial) > 0)
-      .map((p) => {
-        const presupuesto = Number(p.presupuesto_inicial);
-        const avance = Number(p.avance_pct);
-        const limite = limiteCompra(presupuesto, avance, Number(tolerancia));
-        const real = gastoPorPartida.get(p.id) ?? 0;
-        return {
-          id: p.id,
-          codigo: p.codigo,
-          nombre: p.nombre,
-          obra: proyectos.find((x) => x.id === p.proyecto_id)?.nombre ?? "—",
-          avance,
-          presupuesto,
-          real,
-          limite,
-          consumo: limite > 0 ? (real / limite) * 100 : 0,
-          bloqueada: !autorizadas.has(p.id) && real >= limite - 0.005,
-        };
-      })
-      .sort((a, b) => Number(b.bloqueada) - Number(a.bloqueada) || b.consumo - a.consumo);
-  }, [gastosD, partidasHoja, proyectos, solicitudes, tolerancia]);
-
-  const bloqueadas = filasPartidas.filter((r) => r.bloqueada).length;
-  const solicitudesPendientes = solicitudes.filter((s) => s.estado === "Pendiente").length;
 
   const verDinero = puedeVerDinero(rol);
   const programadoSel = obraSel?.programado ?? null;
@@ -618,96 +576,7 @@ function DashboardProyectos() {
         );
       })()}
 
-      {verDinero && (
-        <section className="mb-4 grid gap-3 lg:grid-cols-2">
-          <div className="panel overflow-hidden">
-            <div className="border-b border-line px-4 py-3"><p className="label-mono">{esTodos ? "Resumen financiero de la cartera" : "Resumen financiero del proyecto"}</p></div>
-            <div className="divide-y divide-line">
-              <DatoFinanciero etiqueta="Presupuesto contractual total" valor={soles(obraSel?.presupuesto ?? 0)} />
-              <DatoFinanciero etiqueta="(−) Costo directo presupuestado" valor={soles(obraSel?.cdPres ?? 0)} />
-              <DatoFinanciero etiqueta="(−) Gastos generales presupuestados" valor={soles(obraSel?.ggPres ?? 0)} />
-              <DatoFinanciero etiqueta="(=) Utilidad objetivo protegida" valor={soles(obraSel?.utPres ?? 0)} tono="good" />
-              {(obraSel?.adicionales ?? 0) > 0 && <DatoFinanciero etiqueta="Incluye adicionales de obra" valor={soles(obraSel?.adicionales ?? 0)} tono="primary" />}
-            </div>
-          </div>
-          <div className="panel overflow-hidden">
-            <div className="border-b border-line px-4 py-3"><p className="label-mono">Aprobaciones</p></div>
-            <IndicadorCompacto
-              icono={<Lock />}
-              etiqueta="Solicitudes de desbloqueo"
-              valor={String(solicitudesPendientes)}
-              detalle={solicitudesPendientes > 0 ? "Pendientes de respuesta de Gerencia" : "Sin solicitudes pendientes"}
-              tono={solicitudesPendientes > 0 ? "bad" : "good"}
-            />
-          </div>
-        </section>
-      )}
-
-
       {verDinero && !esTodos && <div className="mb-4"><DesgloseCd proyectoId={obraId} /></div>}
-
-      {verDinero && (
-        <Panel
-          titulo={esTodos ? "Partidas de la cartera y su límite de compra" : "Partidas de la obra y su límite de compra"}
-          className="mb-4"
-          extra={
-            <span className={`rounded-full px-2 py-0.5 font-mono text-[10px] font-semibold ${bloqueadas > 0 ? "bg-bad/10 text-bad" : "bg-good/10 text-good"}`}>
-              {bloqueadas} bloqueada{bloqueadas === 1 ? "" : "s"}
-            </span>
-          }
-        >
-          {filasPartidas.length === 0 ? (
-            <Vacio texto="Aún no hay partidas con presupuesto asignado." />
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs">
-                <thead>
-                  <tr className="border-b border-line text-left font-mono text-[10px] uppercase tracking-wide text-muted-foreground">
-                    <th className="px-4 py-2">Partida</th>
-                    {esTodos && <th className="px-4 py-2">Obra</th>}
-                    <th className="px-4 py-2 text-right">Avance</th>
-                    <th className="px-4 py-2 text-right">Presupuesto</th>
-                    <th className="px-4 py-2 text-right">Costo real</th>
-                    <th className="px-4 py-2 text-right">Límite</th>
-                    <th className="px-4 py-2 text-right">Consumo</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filasPartidas.map((r) => (
-                    <tr key={r.id} className="border-b border-line/60 last:border-0">
-                      <td className="px-4 py-2">
-                        <p className="font-mono text-[11px] text-muted-foreground">{r.codigo}</p>
-                        <p className="font-medium text-ink">{r.nombre}</p>
-                      </td>
-                      {esTodos && <td className="px-4 py-2 text-muted-foreground">{r.obra}</td>}
-                      <td className="px-4 py-2 text-right font-mono">{pct(r.avance)}</td>
-                      <td className="px-4 py-2 text-right font-mono">{soles(r.presupuesto)}</td>
-                      <td className={`px-4 py-2 text-right font-mono ${r.bloqueada ? "font-semibold text-bad" : ""}`}>{soles(r.real)}</td>
-                      <td className="px-4 py-2 text-right font-mono text-muted-foreground">{soles(r.limite)}</td>
-                      <td className="px-4 py-2 text-right">
-                        {r.bloqueada ? (
-                          <span className="inline-flex items-center gap-1 rounded-md bg-bad/10 px-2 py-0.5 font-mono text-[10px] font-semibold text-bad">
-                            <Lock size={11} /> Bloqueada
-                          </span>
-                        ) : r.consumo >= 80 ? (
-                          <span className="rounded-md bg-warn/10 px-2 py-0.5 font-mono text-[10px] font-semibold text-warn">
-                            {pct(r.consumo)} del límite
-                          </span>
-                        ) : (
-                          <span className="font-mono text-[10px] text-muted-foreground">{pct(r.consumo)}</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-          <p className="border-t border-line px-4 py-2 font-mono text-[10px] leading-relaxed text-muted-foreground">
-            Límite = presupuesto ofertado × 110% (por partida y por rubro: materiales, equipos, subcontratos; herramientas manuales hasta su % de la mano de obra). Una partida bloqueada no admite más compras hasta que Gerencia apruebe una solicitud de desbloqueo.
-          </p>
-        </Panel>
-      )}
 
       <Panel
         titulo={verDinero ? "Curva S — Avance programado, real y costo" : "Curva S — Avance programado versus real"}
@@ -817,20 +686,6 @@ function DashboardProyectos() {
   );
 }
 
-function DatoFinanciero({ etiqueta, valor, tono }: { etiqueta: string; valor: string; tono?: "good" | "bad" | "primary" }) {
-  return (
-    <div className="flex min-h-20 items-center justify-between gap-3 px-4 py-3">
-      <p className="label-mono">{etiqueta}</p>
-      <p
-        className={`text-right font-mono text-lg font-bold ${
-          tono === "bad" ? "text-bad" : tono === "good" ? "text-good" : tono === "primary" ? "text-primary" : "text-ink"
-        }`}
-      >
-        {valor}
-      </p>
-    </div>
-  );
-}
 
 
 function PildoraEstado({
@@ -862,21 +717,6 @@ function PildoraEstado({
   );
 }
 
-function IndicadorCompacto({ icono, etiqueta, valor, detalle, tono }: { icono: ReactNode; etiqueta: string; valor: string; detalle?: string; tono?: "good" | "bad" }) {
-
-  return (
-    <div className="flex min-h-20 items-center gap-3 px-4 py-3">
-      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-muted [&>svg]:h-4 [&>svg]:w-4 ${tono === "bad" ? "text-bad" : tono === "good" ? "text-good" : "text-primary"}`}>
-        {icono}
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className="label-mono">{etiqueta}</p>
-        {detalle && <p className="mt-1 font-mono text-[10px] text-muted-foreground">{detalle}</p>}
-      </div>
-      <strong className={`font-mono text-xl ${tono === "bad" ? "text-bad" : tono === "good" ? "text-good" : "text-ink"}`}>{valor}</strong>
-    </div>
-  );
-}
 
 function Barra({ etiqueta, valor, clase }: { etiqueta: string; valor: number | null; clase: string }) {
   return (
