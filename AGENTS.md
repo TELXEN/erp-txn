@@ -60,3 +60,4 @@
 - Company settings use DatosEmpresaTabs (general, banks, regime), not top-level tabs.
 - Insumo codes renumber via AFTER DELETE trigger per 5-digit prefix — no gaps; inactive rows keep codes.
 - Requerimientos: obra generates (APU saldo or TDR) → only gerente approves (trigger) → Bandeja quotes via solicitudes_cotizacion → approved quote creates OC → obra receives via recepcionar_orden_obra RPC — one status trail.
+- Supplier quotation management opens from each inbox requirement; its request dialog selects outstanding items and suppliers together — purchasing actions must not depend on discovering hidden item-selection steps.
