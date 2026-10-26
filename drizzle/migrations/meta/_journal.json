@@ -568,6 +568,13 @@
       "when": 1793035818842,
       "tag": "0080_renumerar_codigos_insumo",
       "breakpoints": true
+    },
+    {
+      "idx": 81,
+      "version": "7",
+      "when": 1793039335669,
+      "tag": "0081_almacen_central_sin_obra",
+      "breakpoints": true
     }
   ]
 }
