@@ -1,0 +1,2 @@
+ALTER TABLE public.movimientos_almacen ALTER COLUMN proyecto_id DROP NOT NULL;
+COMMENT ON COLUMN public.movimientos_almacen.proyecto_id IS 'Obra destino del movimiento; NULL = almacén central (existencias propias no asignadas a una obra).';

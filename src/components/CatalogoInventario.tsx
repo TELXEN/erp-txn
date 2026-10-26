@@ -8,6 +8,7 @@ import { Boton, BotonIcono, FilasCargando, MenuFiltros, Panel, Pestanas, Select,
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { useBancoTabla } from "@/lib/banco-apu";
 import { num, useMovimientos } from "@/lib/logistica";
+import { useInsumos } from "@/lib/apu";
 import { perteneceCatalogo, type CategoriaInventario } from "@/lib/catalogo-inventario";
 import { supabase } from "@/integrations/supabase/client";
 import { soles } from "@/lib/format";
@@ -32,12 +33,20 @@ export function CatalogoInventario() {
     .sort((a, b) => String(a.descripcion).localeCompare(String(b.descripcion), "es", { sensitivity: "base" }));
   const selFila = lista.find((r) => r.id === selId) ?? null;
   const { data: movs = [] } = useMovimientos();
+  const { data: fichasAlm = [] } = useInsumos();
+  // El stock vive en la ficha unificada de almacén; se enlaza por descripción + unidad.
+  const fichaId = new Map<string, string>();
+  for (const f of fichasAlm) fichaId.set(`${String(f.nombre).toLowerCase().trim()}|${f.unidad}`, f.id);
   const stockPorInsumo = new Map<string, number>();
   for (const m of movs) {
     if (!m.insumo_id) continue;
     const d = m.tipo === "Ingreso" ? Number(m.cantidad) : -Number(m.cantidad);
     stockPorInsumo.set(m.insumo_id, (stockPorInsumo.get(m.insumo_id) ?? 0) + d);
   }
+  const stockDe = (r: { descripcion?: string; unidad?: string }) => {
+    const id = fichaId.get(`${String(r.descripcion ?? "").toLowerCase().trim()}|${r.unidad ?? ""}`);
+    return id ? stockPorInsumo.get(id) : undefined;
+  };
   const nombreGrupo = grupo === "materiales" ? "Materiales" : grupo === "equipos" ? "Equipos" : "Herramientas";
   const objeto = grupo === "materiales" ? "material" : grupo === "equipos" ? "equipo" : "herramienta";
   async function clasificar(id: string, valor: string) {
@@ -77,7 +86,7 @@ export function CatalogoInventario() {
             </tr></thead><tbody>{consulta.isLoading ? <FilasCargando columnas={7} /> : lista.map((r) => <tr key={r.id} onClick={() => setSelId(r.id)} className={`cursor-pointer border-b border-line/50 transition-colors ${selId === r.id ? "bg-primary/10" : "hover:bg-muted/60"}`}>
               <td className="px-3 py-1.5 font-mono text-muted-foreground">{r.codigo}</td><td className="px-3 py-1.5"><Resaltar texto={r.descripcion} termino={buscar} /></td>
               <td className="px-3 py-1.5" onClick={(e) => e.stopPropagation()}>{grupo === "materiales" ? r.marca || "—" : <Select aria-label={`Clasificación de ${r.descripcion}`} className="h-7 py-0 text-xs" value={r.categoria_inventario ?? ""} disabled={guardando === r.id} onChange={(e) => void clasificar(r.id, e.target.value)}><option value="">Sin clasificar</option><option value="Equipo">Equipo</option><option value="Herramienta">Herramienta</option></Select>}</td>
-              <td className="px-3 py-1.5">{r.unidad}</td><td className="px-3 py-1.5 text-right font-mono">{(() => { const c = stockPorInsumo.get(r.id); return c === undefined ? "—" : num(c); })()}</td><td className="px-3 py-1.5 text-right font-mono">{soles(Number(grupo === "materiales" ? r.precio_base : r.costo_hora))}</td><td className="px-3 py-1.5 text-muted-foreground">{r.estado === "inactivo" ? "Inactivo" : "Activo"}</td>
+              <td className="px-3 py-1.5">{r.unidad}</td><td className="px-3 py-1.5 text-right font-mono">{(() => { const c = stockDe(r); return c === undefined ? "—" : num(c); })()}</td><td className="px-3 py-1.5 text-right font-mono">{soles(Number(grupo === "materiales" ? r.precio_base : r.costo_hora))}</td><td className="px-3 py-1.5 text-muted-foreground">{r.estado === "inactivo" ? "Inactivo" : "Activo"}</td>
             </tr>)}</tbody></table>
             {!consulta.isLoading && !lista.length && <Vacio texto={buscar ? "Sin coincidencias." : "No hay registros en este catálogo."} />}
           </div>}
@@ -94,6 +103,6 @@ export function CatalogoInventario() {
         </div>
       </div>
     )}
-    {editor && <VentanaInsumo modo={editor.modo ?? (editor.sel ? "editar" : "nuevo")} sel={editor.sel} soloTabla={tabla} conStock stockActual={editor.sel ? stockPorInsumo.get(editor.sel.fila.id) ?? null : null} {...(editor.categoria ? { categoriaInventario: editor.categoria } : {})} onGuardado={() => qc.invalidateQueries({ queryKey: ["movimientos_almacen"] })} onCerrar={() => setEditor(null)} />}
+    {editor && <VentanaInsumo modo={editor.modo ?? (editor.sel ? "editar" : "nuevo")} sel={editor.sel} soloTabla={tabla} conStock stockActual={editor.sel ? stockDe(editor.sel.fila) ?? null : null} {...(editor.categoria ? { categoriaInventario: editor.categoria } : {})} onGuardado={() => qc.invalidateQueries({ queryKey: ["movimientos_almacen"] })} onCerrar={() => setEditor(null)} />}
   </div>;
 }

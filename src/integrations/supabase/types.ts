@@ -3178,7 +3178,7 @@ export type Database = {
           insumo_id: string | null
           observacion: string
           orden_item_id: string | null
-          proyecto_id: string
+          proyecto_id: string | null
           tipo: string
           unidad: string
         }
@@ -3194,7 +3194,7 @@ export type Database = {
           insumo_id?: string | null
           observacion?: string
           orden_item_id?: string | null
-          proyecto_id: string
+          proyecto_id?: string | null
           tipo: string
           unidad?: string
         }
@@ -3210,7 +3210,7 @@ export type Database = {
           insumo_id?: string | null
           observacion?: string
           orden_item_id?: string | null
-          proyecto_id?: string
+          proyecto_id?: string | null
           tipo?: string
           unidad?: string
         }
