@@ -78,6 +78,8 @@ export function VentanaInsumo({
   soloTabla,
   alAgregar,
   categoriaInventario,
+  conStock,
+  stockActual,
 }: {
   modo: ModoInsumo;
   sel?: SelInsumo | null;
@@ -88,6 +90,9 @@ export function VentanaInsumo({
   /** Restringe la lista del selector a un solo grupo (elegido en el menú +). */
   soloTabla?: TablaInsumo;
   categoriaInventario?: "Equipo" | "Herramienta";
+  /** Inventario: pide el stock inicial al crear y muestra el stock actual al editar. */
+  conStock?: boolean;
+  stockActual?: number | null;
   /** Inserta el insumo en la receta; devuelve null si agregó, un mensaje si falló. */
   alAgregar?: (s: SelInsumo, cant: number) => Promise<string | null>;
 }) {
@@ -125,6 +130,7 @@ export function VentanaInsumo({
   const [q, setQ] = useState("");
   const [elegido, setElegido] = useState<SelInsumo | null>(null);
   const [cant, setCant] = useState("1");
+  const [stockIni, setStockIni] = useState("");
 
   /** Catálogo para el selector: activos, ordenados A→Z y filtrados por la búsqueda. */
   const tablas = useMemo<Record<TablaInsumo, FilaInsumo[]>>(
@@ -180,6 +186,24 @@ export function VentanaInsumo({
     const { data: nueva, error } = await db.from(tipo).insert(d).select("*").single();
     if (error) return setAviso(error.message);
     qc.invalidateQueries({ queryKey: ["banco_apu"] });
+    const stockN = conStock ? Number(stockIni || 0) : 0;
+    if (conStock && stockN > 0) {
+      const { error: em } = await db.from("movimientos_almacen").insert({
+        tipo: "Ingreso",
+        fecha: new Date().toISOString().slice(0, 10),
+        proyecto_id: null,
+        insumo_id: nueva.id,
+        descripcion: String(d["descripcion"]),
+        unidad: String(d["unidad"] ?? ""),
+        cantidad: stockN,
+        costo_unitario: Number(d["precio_base"] ?? d["costo_hora"] ?? d["costo"] ?? 0),
+        orden_item_id: null,
+        documento: "Saldo inicial",
+        observacion: "Registro de inventario",
+      });
+      if (em) return setAviso(`El insumo se guardó, pero no se pudo asentar el stock: ${em.message}`);
+      qc.invalidateQueries({ queryKey: ["movimientos_almacen"] });
+    }
     if (alAgregar) {
       onGuardado?.();
       setElegido({ tabla: tipo, fila: nueva });
@@ -230,6 +254,15 @@ export function VentanaInsumo({
             <Input type={c.tipo === "num" ? "number" : "text"} step="any" value={form[c.k] ?? ""} autoFocus={c.k === "descripcion"}
               onChange={(e) => setForm({ ...form, [c.k]: e.target.value })} />
           )}
+        </Campo>
+      ))}
+      {conStock && (modo === "editar" ? (
+        <Campo etiqueta="Stock actual (almacén)">
+          <Input value={stockActual == null ? "—" : String(stockActual)} disabled />
+        </Campo>
+      ) : (
+        <Campo etiqueta="Stock inicial (almacén central)">
+          <Input type="number" step="any" min={0} value={stockIni} onChange={(e) => setStockIni(e.target.value)} placeholder="0" />
         </Campo>
       ))}
       {aviso && <p className="text-xs text-destructive sm:col-span-2">{aviso}</p>}
