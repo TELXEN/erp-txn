@@ -310,7 +310,11 @@ export function Pestanas<T extends string>({
                       : "border-transparent text-muted-foreground hover:border-line hover:text-ink",
             )}
           >
-            {o.icono}
+            {o.icono && (
+              <span className={cn("inline-flex items-center", activa && variante === "texto" && "text-primary")}>
+                {o.icono}
+              </span>
+            )}
             {o.texto}
           </button>
         );
