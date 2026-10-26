@@ -11,7 +11,7 @@ import { useFuenteDocumento } from "@/lib/fuentes-documentos";
 import { type Proyecto } from "@/lib/datos";
 
 import { puedeVerDinero, useAuth } from "@/lib/auth";
-import { fecha, pct, soles } from "@/lib/format";
+import { fecha, pct, soles, solesPunto } from "@/lib/format";
 import {
   esContractual,
   ofertaProyecto,
@@ -486,9 +486,10 @@ function DashboardProyectos() {
               <div className="mt-1.5 flex items-center gap-4">
                 <Anillo valor={(obraSel?.gastado ?? 0)} alerta={!!obraSel && (obraSel.cdReal > obraSel.cdPres + 0.005 || obraSel.ggReal > obraSel.ggPres + 0.005)} />
                 <div className="min-w-0 flex-1 space-y-1">
-                  <div className="flex items-baseline justify-between gap-2"><p className="text-xs text-muted-foreground">Presupuesto</p><p className="font-mono text-base font-semibold text-ink">{soles(obraSel?.presupuesto ?? 0)}</p></div>
-                  <div className="flex items-baseline justify-between gap-2"><p className="text-xs text-muted-foreground">Gastado</p><p className="font-mono text-base font-semibold text-ink">{soles(obraSel?.costoReal ?? 0)}</p></div>
-                  <div className="flex items-baseline justify-between gap-2 border-t border-line pt-1"><p className="text-xs text-muted-foreground">Disponible</p><p className="font-mono text-base font-semibold text-ink">{soles((obraSel?.presupuesto ?? 0) - (obraSel?.costoReal ?? 0))}</p></div>
+                  <div className="flex items-baseline justify-between gap-2"><p className="text-xs text-muted-foreground">Presupuesto</p><p className="font-mono text-base font-semibold text-ink">{solesPunto(obraSel?.presupuesto ?? 0)}</p></div>
+                  <div className="flex items-baseline justify-between gap-2"><p className="text-xs text-muted-foreground">Gastado</p><p className="font-mono text-base font-semibold text-ink">{solesPunto(obraSel?.costoReal ?? 0)}</p></div>
+                  <div className="flex items-baseline justify-between gap-2 border-t border-line pt-1"><p className="text-xs text-muted-foreground">Disponible</p><p className="font-mono text-base font-semibold text-ink">{solesPunto((obraSel?.presupuesto ?? 0) - (obraSel?.costoReal ?? 0))}</p></div>
+
                 </div>
               </div>
               <div className="mt-1.5 grid grid-cols-[minmax(0,auto)_1fr_1fr_auto] items-center gap-x-2 gap-y-0.5 rounded-lg bg-muted/50 px-2 py-1.5">
@@ -631,8 +632,9 @@ function FilaSemaforo({ etiqueta, real, base }: { etiqueta: string; real: number
         <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${punto}`} />
         {etiqueta}
       </span>
-      <span title={`Real: ${soles(real)}`} className="border-l border-line pl-2 text-right font-mono text-xs tabular-nums text-ink">{soles(real)}</span>
-      <span title={`Presupuestado: ${soles(base)}`} className="border-l border-line pl-2 text-right font-mono text-xs tabular-nums text-muted-foreground">{soles(base)}</span>
+      <span title={`Real: ${solesPunto(real)}`} className="border-l border-line pl-2 text-right font-mono text-xs tabular-nums text-ink">{solesPunto(real)}</span>
+      <span title={`Presupuestado: ${solesPunto(base)}`} className="border-l border-line pl-2 text-right font-mono text-xs tabular-nums text-muted-foreground">{solesPunto(base)}</span>
+
       <span className="border-l border-line pl-2 text-right">
         <span title="% usado" className={`rounded-full px-1.5 py-px font-mono text-[10px] font-semibold tabular-nums ${pildora}`}>{pct(p)}</span>
       </span>
