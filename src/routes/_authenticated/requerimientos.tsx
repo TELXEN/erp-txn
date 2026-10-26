@@ -448,7 +448,7 @@ function Bandeja() {
               <div className="min-w-0 flex-1" ref={(el) => { hojaSol.current = el?.querySelector(".oc-sheet") ?? null; }}>
                 <HojaOrdenCompra empresa={empresa ?? null} codigo={vista.codigo} estado={vista.estado} titulo="SOLICITUD DE COTIZACIÓN">
                   <div className="oc-data">
-                    <div><h3>PROVEEDOR</h3><p><b>{prov?.razon_social ?? "—"}</b></p><p>RUC: {prov?.ruc || "—"}</p><p>{prov?.direccion || ""}</p></div>
+                    <div><h3>PROVEEDOR</h3><p><b>{prov?.razon_social ?? "—"}</b></p><p>{prov?.tipo_documento || "RUC"}: {prov?.numero_documento || "—"}</p><p>{prov?.direccion || ""}</p></div>
                     <div><h3>DATOS DE LA SOLICITUD</h3><p><b>Fecha:</b> {vista.fecha}</p><p><b>Requerimiento:</b> {actual.codigo}</p><p><b>Obra:</b> {nombreProy(actual.proyecto_id)}</p></div>
                   </div>
                   {tdr && <div className="oc-conditions" style={{ marginTop: 0, marginBottom: 14 }}><h3>TÉRMINOS DE REFERENCIA {tdr.tipo ? `(${tdr.tipo})` : ""}</h3><p><b>Objeto:</b> {tdr.objeto}</p><p><b>Alcance:</b> {tdr.alcance}</p><p><b>Entregables:</b> {tdr.entregables}</p><p><b>Plazo:</b> {tdr.plazo} · <b>Lugar:</b> {tdr.lugar}</p><p><b>Condiciones:</b> {tdr.condiciones}</p></div>}
