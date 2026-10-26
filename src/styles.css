@@ -432,3 +432,21 @@ aside .md\:overflow-y-auto:hover::-webkit-scrollbar-thumb { background: color-mi
 @media (min-width: 768px) {
   .con-barra-filtros main { padding-right: 3.25rem; }
 }
+
+/* Dashboard de Proyectos: tarjetas con color derivadas del tema */
+.dash-lienzo { border-radius: 1.25rem; background: linear-gradient(135deg, color-mix(in oklab, var(--primary) 6%, var(--card)), color-mix(in oklab, var(--primary) 12%, var(--background))); }
+.dash-tarjeta { border-radius: 1rem; background: var(--card); box-shadow: 0 8px 24px -14px color-mix(in oklab, var(--primary) 45%, transparent); }
+.dash-pastilla { border-radius: 9999px; }
+.dash-degradado { color: var(--primary-foreground); --tono: var(--primary); background: linear-gradient(135deg, var(--tono), color-mix(in oklab, var(--tono) 55%, var(--card))); }
+.dash-degradado[data-tono="good"] { --tono: var(--good); }
+.dash-degradado[data-tono="violeta"] { --tono: color-mix(in oklab, var(--primary) 55%, rgb(108 84 200)); }
+.dash-icono { display: inline-flex; height: 2.75rem; width: 2.75rem; flex-shrink: 0; align-items: center; justify-content: center; border-radius: 9999px; color: var(--primary-foreground); background: var(--primary); }
+.dash-icono-sm { height: 2.25rem; width: 2.25rem; }
+.dash-icono[data-tono="accent"] { background: var(--accent); color: var(--accent-foreground); }
+.dash-icono[data-tono="warn"] { background: var(--warn); }
+.dash-icono[data-tono="good"] { background: var(--good); }
+.dash-icono[data-tono="bad"] { background: var(--bad); }
+.dash-icono[data-tono="muted"] { background: var(--muted-foreground); }
+.dash-icono-claro { background: color-mix(in oklab, var(--card) 25%, transparent); }
+.dash-chip { display: block; border-radius: 0.25rem; padding: 0.3rem 0.5rem; font-size: 0.75rem; background: color-mix(in oklab, var(--card) 22%, transparent); }
+.dash-chip-activo { background: var(--card); color: var(--primary); font-weight: 600; }
