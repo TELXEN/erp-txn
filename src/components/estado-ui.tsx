@@ -70,7 +70,30 @@ export function tonoCategoriaGasto(valor: string): Tono {
   return PALETA_CATEGORIA[suma % PALETA_CATEGORIA.length]!;
 }
 
-export function InsigniaCategoriaGasto({ valor }: { valor: string }) {
-  return <Insignia tono={tonoCategoriaGasto(valor)}>{valor || "Sin categoría"}</Insignia>;
+/** Asigna un tono distinto a cada categoría de la lista, sin repetir colores. */
+export function tonosCategoriaGasto(nombres: string[]): Map<string, Tono> {
+  const usados = new Set<string>();
+  const mapa = new Map<string, Tono>();
+  for (const nombre of [...nombres].sort(new Intl.Collator("es").compare)) {
+    const base = tonoCategoriaGasto(nombre);
+    let tono = base;
+    if (usados.has(base.borde)) {
+      const idx = PALETA_CATEGORIA.findIndex((t) => t.borde === base.borde);
+      for (let k = 1; k <= PALETA_CATEGORIA.length; k += 1) {
+        const cand = PALETA_CATEGORIA[(idx + k) % PALETA_CATEGORIA.length]!;
+        if (!usados.has(cand.borde)) {
+          tono = cand;
+          break;
+        }
+      }
+    }
+    usados.add(tono.borde);
+    mapa.set(nombre, tono);
+  }
+  return mapa;
+}
+
+export function InsigniaCategoriaGasto({ valor, tono }: { valor: string; tono?: Tono }) {
+  return <Insignia tono={tono ?? tonoCategoriaGasto(valor)}>{valor || "Sin categoría"}</Insignia>;
 }
 
