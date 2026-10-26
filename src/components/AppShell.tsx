@@ -68,6 +68,8 @@ import {
   FolderClosed,
   HardHat,
   PackageCheck,
+  ClipboardPen,
+  Inbox,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ETIQUETA_ROL, useAuth, type Rol } from "@/lib/auth";
@@ -98,6 +100,7 @@ const MENU: Categoria[] = [
       { a: "/partidas", texto: "Partidas", roles: ["administrador", "gerente"], icono: Layers },
       { a: "/gantt", texto: "Gantt y Curva S", roles: ["ingeniero", "administrador", "gerente"], icono: ChartGantt },
       { a: "/avance", texto: "Avance Físico", roles: ["ingeniero", "gerente"], icono: Activity },
+      { a: "/generar-requerimiento", texto: "Generar Requerimiento", roles: ["ingeniero", "administrador", "gerente"], icono: ClipboardPen },
       { a: "/valorizaciones-obra", texto: "Valorizaciones", roles: ["ingeniero", "administrador", "gerente"], icono: ClipboardCheck },
       { a: "/aprobaciones", texto: "Aprobaciones", roles: ["administrador", "gerente"], icono: ShieldCheck },
     ],
@@ -105,7 +108,7 @@ const MENU: Categoria[] = [
   {
     titulo: "Logística",
     items: [
-      { a: "/requerimientos", texto: "Requerimientos", roles: ["ingeniero", "administrador", "gerente"], icono: ClipboardList },
+      { a: "/requerimientos", texto: "Bandeja de Requerimientos", roles: ["administrador", "gerente"], icono: Inbox },
       { a: "/proveedores", texto: "Proveedores", roles: ["administrador", "gerente"], icono: Handshake },
       { a: "/ordenes-compra", texto: "Órdenes de Compra", roles: ["administrador", "gerente"], icono: ShoppingCart },
       { a: "/importaciones", texto: "Importaciones", roles: ["administrador", "gerente"], icono: Plane },

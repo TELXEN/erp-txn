@@ -575,6 +575,20 @@
       "when": 1793039335669,
       "tag": "0081_almacen_central_sin_obra",
       "breakpoints": true
+    },
+    {
+      "idx": 82,
+      "version": "7",
+      "when": 1793045239224,
+      "tag": "0082_flujo_requerimientos",
+      "breakpoints": true
+    },
+    {
+      "idx": 83,
+      "version": "7",
+      "when": 1793045879725,
+      "tag": "0083_recepcion_estado_requerimiento",
+      "breakpoints": true
     }
   ]
 }
