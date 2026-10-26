@@ -58,3 +58,4 @@
 - Employment periods live in vinculos_laborales; liquidation, rehire and cese annulment go only through registrar_liquidacion/reingresar_trabajador/anular_cese RPCs — cese and liquidation stay atomic and prior periods keep their history.
 - Company regime: dated regimenes_empresa; a worker's regime can't be below the company's at hire (trigger + errorRegimenTrabajador) — changes hit only new hires.
 - Company settings use DatosEmpresaTabs (general, banks, regime), not top-level tabs.
+- Insumo codes (materiales, mano_obra, equipos_herramientas, subcontratos) are renumbered by an AFTER DELETE DB trigger within their 5-digit prefix — no gaps after real deletions; inactivated rows keep their code.
