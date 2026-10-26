@@ -530,8 +530,8 @@ function DashboardProyectos() {
         const cdP = f?.cdPres ?? 0, ggP = f?.ggPres ?? 0, utP = f?.utPres ?? 0;
         const cdR = f?.cdReal ?? 0, ggR = f?.ggReal ?? 0;
         return (
-        <section className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]" aria-label="Control presupuestal y desglose">
-          <div className="grid grid-cols-2 content-start gap-3">
+        <section className="flex min-h-0 flex-1 flex-col gap-3" aria-label="Control presupuestal y desglose">
+          <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
             <div className="kpi-tarjeta">
               <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Presupuesto vigente</p>
               <p className="mt-1.5 text-xl font-bold tabular-nums text-ink">{soles(f?.presupuesto ?? 0)}</p>
@@ -545,7 +545,7 @@ function DashboardProyectos() {
             <BolsaEjecutada etiqueta="Gastos generales ejecutados" real={ggR} base={ggP} />
             <UtilidadReal proyectada={utP} real={utP + (cdP - cdR) + (ggP - ggR)} />
           </div>
-          <div className="flex min-h-0 flex-col gap-2">
+          <div className="flex min-h-0 flex-1 flex-col gap-2">
             <Pestanas
               etiqueta="Desglose del presupuesto"
               valor={desglose}
