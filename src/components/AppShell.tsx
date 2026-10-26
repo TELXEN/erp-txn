@@ -231,6 +231,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { data: configuracionDocumentos } = useFuenteDocumento();
+  const { data: pendientesAprobacion = 0 } = usePendientesAprobacion(rol);
 
 
   const categorias = MENU.map((c) => ({
@@ -323,10 +324,16 @@ export function AppShell({ children }: { children: ReactNode }) {
               {categorias.flatMap((c) => c.items).flatMap((m) => m.hijos ?? [m]).map((m) => {
                 const Icono = m.icono;
                 const activo = pathname === m.a;
+                const distintivo = m.a === "/aprobaciones" ? pendientesAprobacion : 0;
                 return (
                   <Link key={m.a} to={m.a} title={m.texto} aria-label={m.texto}
-                    className={`grid size-9 place-items-center rounded-md ${activo ? "bg-cta text-cta-foreground" : "text-sidebar-foreground hover:bg-sidebar-hover"}`}>
+                    className={`relative grid size-9 place-items-center rounded-md ${activo ? "bg-cta text-cta-foreground" : "text-sidebar-foreground hover:bg-sidebar-hover"}`}>
                     <Icono className="size-4" />
+                    {distintivo > 0 && (
+                      <span className="absolute -top-0.5 right-0 grid min-w-4 place-items-center rounded-full bg-bad px-1 text-[9px] font-bold leading-[14px] text-destructive-foreground">
+                        {distintivo}
+                      </span>
+                    )}
                   </Link>
                 );
               })}
