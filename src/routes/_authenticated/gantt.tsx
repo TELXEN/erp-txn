@@ -1,10 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { CalendarCheck, ChartGantt, ChevronDown, ChevronRight, FileDown, FileSpreadsheet, Plus, Trash2, ZoomIn, ZoomOut } from "lucide-react";
+import { CalendarCheck, ChartGantt, ChartSpline, ChevronDown, ChevronRight, FileDown, FileSpreadsheet, Plus, Trash2, ZoomIn, ZoomOut } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Boton, BotonIcono, CabeceraModulo, Campo, FilasCargando, FranjaResumen, Input, MenuFiltros, Panel, Select, Vacio } from "@/components/ui-kit";
+import { Boton, BotonIcono, CabeceraModulo, Campo, FilasCargando, FranjaResumen, Input, MenuFiltros, Panel, Pestanas, Select, Vacio } from "@/components/ui-kit";
+import { CurvaSObra } from "@/components/CurvaSObra";
 import { useRecordado } from "@/lib/recordado";
 import {
   PERIODICIDADES, generarPeriodos, hoyISO, programadoPartida, useCronograma, usePartidas, useProyectos,
@@ -18,9 +19,9 @@ export const Route = createFileRoute("/_authenticated/gantt")({
   head: () => ({
     meta: [
       { title: "Diagrama Gantt — ERP TELXEN" },
-      { name: "description", content: "Calendario de partidas por obra con dependencias y ruta crítica." },
+      { name: "description", content: "Gantt y Curva S por obra: calendario, dependencias, ruta crítica y avance acumulado." },
       { property: "og:title", content: "Diagrama Gantt — ERP TELXEN" },
-      { property: "og:description", content: "Gantt de obra con ruta crítica." },
+      { property: "og:description", content: "Gantt y Curva S de obra con ruta crítica y avance acumulado." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -58,6 +59,7 @@ function Gantt() {
   const { data: cron = [] } = useCronograma();
   const { data: deps = [] } = useDependencias();
   const [proyectoId, setProyectoId] = useRecordado<string>("gantt:proyecto", "");
+  const [pestana, setPestana] = useState<"gantt" | "curva">("gantt");
   const [zoomGuardado, setZoom] = useRecordado<Periodicidad | "">("gantt:zoom", "");
   const [plegados, setPlegados] = useRecordado<string[]>("gantt:plegados", []);
   const [verCritica, setVerCritica] = useRecordado("gantt:critica", true);
@@ -222,7 +224,7 @@ function Gantt() {
           </Select>
         }
         acciones={
-          proyecto && (
+          proyecto && pestana === "gantt" && (
             <>
               <div className="flex rounded-md border border-line p-0.5">
                 {PERIODICIDADES.map((z) => (
@@ -244,6 +246,14 @@ function Gantt() {
         }
       />
 
+      <Pestanas etiqueta="Vistas del cronograma" valor={pestana} onCambiar={setPestana} variante="boton"
+        opciones={[
+          { id: "gantt", texto: "Gantt", icono: <ChartGantt size={15} /> },
+          { id: "curva", texto: "Curva S", icono: <ChartSpline size={15} /> },
+        ]}
+      />
+
+      {pestana === "curva" ? <div role="tabpanel" aria-label="Curva S"><CurvaSObra proyectoId={proyectoId} /></div> : <div role="tabpanel" aria-label="Gantt" className="space-y-4">
       {proyecto && (
         <MenuFiltros flotante activos={filtrosActivos} onLimpiar={() => { setFiltroEsp(""); setSoloAtrasadas(false); setSoloCriticas(false); }}>
           <Campo etiqueta="Especialidad">
@@ -424,6 +434,7 @@ function Gantt() {
           )}
         </>
       )}
+      </div>}
     </div>
   );
 }

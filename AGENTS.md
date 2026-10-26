@@ -10,7 +10,7 @@
 <!-- LOVABLE:END -->
 - Reserve project/quotation codes via reservarCodigo only; SQL functions are service_role-only — no browser numbering.
 - Programmed progress stores percentages per leaf item/period; dashboards exclude grouping rows — no double counting.
-- S-curve uses work-item schedules and current physical cut-off; cost progress is money-role-only — truthful history.
+- S-curve lives in CurvaSObra on the Gantt tab route, not the dashboard; shared project selector, leaf schedules, physical cut-off and money-role-only costs preserve history.
 - Preliquidation uses @react-pdf/renderer; quotation/invoice previews use fixed A4 HTML. Quotation pagination measures row/closing heights via paginacion-cotizacion, keeping headings with items.
 - Project commercial refs are copied to preliquidaciones.orden_compra on selection, saved apart from concepto; outputs read the saved ref — history preserved.
 - Electronic invoices use comprobantes_electronicos/items/cuotas; emitted invoices/receipts mirror into ventas for treasury; numbering reserved only by an authenticated server function.
