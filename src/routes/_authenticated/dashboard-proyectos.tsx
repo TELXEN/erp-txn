@@ -695,16 +695,24 @@ function MiniDato({ icono, etiqueta, valor, detalle, tono }: { icono: ReactNode;
   );
 }
 
-// Fajo de billetes: dos billetes superpuestos, con el trazo de los iconos del ERP.
+// Fajo de billetes: billetes rellenos (no contorno fino) para que se lean sobre el círculo de color.
 function FajoBilletes({ size = 18 }: { size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M4 13V6a1.5 1.5 0 0 1 1.5-1.5h11A1.5 1.5 0 0 1 18 6v7" opacity=".55" />
-      <rect x="6" y="11" width="15" height="9" rx="1.5" />
-      <circle cx="13.5" cy="15.5" r="2" />
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d="M4.6 3.5h11.8A1.6 1.6 0 0 1 18 5.1v6.4H4.6V5.1a1.6 1.6 0 0 1 1.6-1.6Z"
+        fill="currentColor"
+        opacity=".45"
+      />
+      <path
+        fill="currentColor"
+        fillRule="evenodd"
+        d="M7.6 10h11.8A1.6 1.6 0 0 1 21 11.6v6.8a1.6 1.6 0 0 1-1.6 1.6H7.6A1.6 1.6 0 0 1 6 18.4v-6.8A1.6 1.6 0 0 1 7.6 10Zm5.9 2.4a2.7 2.7 0 1 0 0 5.4 2.7 2.7 0 0 0 0-5.4Z"
+      />
     </svg>
   );
 }
+
 
 function BarraTiempo({ etiqueta, valor, tenue }: { etiqueta: string; valor: number; tenue?: boolean }) {
 
