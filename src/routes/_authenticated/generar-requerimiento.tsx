@@ -69,7 +69,7 @@ function RequerimientosPage() {
   const { data: partidas = [] } = usePartidas();
   const { data: insumos = [] } = useInsumos();
   const recursos = useRecursosApu();
-  const [origen, setOrigen] = useState<"obra" | "cotizacion">("cotizacion");
+  const [origen, setOrigen] = useState<"obra" | "cotizacion">("obra");
   const [cotizacionId, setCotizacionId] = useState("");
   const [vista, setVista] = useState<"tipo" | "consolidada">("tipo");
   const [expandidos, setExpandidos] = useState<Set<string>>(new Set());
@@ -260,6 +260,10 @@ function RequerimientosPage() {
   };
   const actual = reqs.find((x) => x.id === sel);
   const reqsVisibles = reqs.filter((r) => (!proyectoId || r.proyecto_id === proyectoId) && coincide(busqueda, r.codigo, nombreProy(r.proyecto_id), r.observacion));
+  const ocsObra = ordenes.filter((o) => o.proyecto_id === proyectoId && ["Enviado a obra", "Recibida parcial", "Recibida"].includes(o.estado));
+  const hojasObra = partidas
+    .filter((p) => p.proyecto_id === proyectoId && !partidas.some((h) => h.padre_id === p.id))
+    .map((p) => ({ id: p.id, codigo: (p as { codigo?: string }).codigo ?? "", nombre: (p as { nombre?: string }).nombre ?? "" }));
 
   const pedidaDe = (e: (typeof explosion)[number]) =>
     pedir[e.clave] === undefined ? Math.round(e.saldo * 10000) / 10000 : cantidadPermitida(Number(pedir[e.clave]), e.saldo);
@@ -417,7 +421,7 @@ function RequerimientosPage() {
     ]);
   }
 
-  const cols = gestiona ? 8 : 6;
+  const cols = gestiona ? 9 : 7;
   const filaInsumo = (e: (typeof explosion)[number], incluido: boolean, conTipo: boolean) => {
     const ver = expandidos.has(e.clave);
     return (
@@ -435,6 +439,23 @@ function RequerimientosPage() {
           <td className="px-2 py-1.5 text-right">{num(e.total)}</td>
           <td className="px-2 py-1.5 text-right text-muted-foreground">{num(e.requerido)}</td>
           <td className={`px-2 py-1.5 text-right font-semibold ${e.saldo > 0 ? "text-ink" : "text-muted-foreground"}`}>{num(e.saldo)}</td>
+          <td className="px-2 py-1">
+            {e.saldo > 0.0001 && incluido ? (
+              <Input
+                type="number"
+                step="0.0001"
+                min="0"
+                max={e.saldo}
+                aria-label={`Cantidad a pedir de ${e.nombre}`}
+                className="w-full py-0.5 text-right text-xs"
+                value={pedir[e.clave] ?? String(Math.round(e.saldo * 10000) / 10000)}
+                onChange={(ev) => setPedir({ ...pedir, [e.clave]: ev.target.value })}
+                onBlur={() => setPedir({ ...pedir, [e.clave]: String(pedidaDe(e)) })}
+              />
+            ) : (
+              <span className="block text-right text-muted-foreground">—</span>
+            )}
+          </td>
           {gestiona && <td className="px-2 py-1.5 text-right">{num(e.precio)}</td>}
           {gestiona && <td className="px-5 py-1.5 text-right">{soles(e.total * e.precio)}</td>}
         </tr>
@@ -447,7 +468,7 @@ function RequerimientosPage() {
               <td className="px-2 py-1 text-right" colSpan={2}>
                 {num(o.metrado)} × {num(o.unitaria, 4)} = <span className="text-ink">{num(o.cantidad)}</span>
               </td>
-              <td colSpan={cols - 4} />
+              <td colSpan={cols - 3} />
             </tr>
           ))}
       </React.Fragment>
@@ -457,8 +478,8 @@ function RequerimientosPage() {
   return (
     <>
       <Encabezado
-        titulo="Requerimientos"
-        subtitulo="Logística"
+        titulo="Generar Requerimiento"
+        subtitulo="Operaciones · el responsable de obra lo envía a Gerencia para aprobación"
         acciones={
           listo && explosion.length > 0 ? (
             <Boton variante="linea" onClick={exportar}>
@@ -543,6 +564,7 @@ function RequerimientosPage() {
                   <th className="w-[11%] px-2 py-2 text-right font-medium">Cantidad total</th>
                   <th className="w-[11%] px-2 py-2 text-right font-medium">Ya requerido</th>
                   <th className="w-[11%] px-2 py-2 text-right font-medium">Saldo</th>
+                  <th className="w-[11%] px-2 py-2 text-right font-medium">A pedir</th>
                   {gestiona && <th className="w-[9%] px-2 py-2 text-right font-medium">Precio</th>}
                   {gestiona && <th className="w-[13%] px-5 py-2 text-right font-medium">Parcial</th>}
                 </tr>
