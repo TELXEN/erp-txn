@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Boxes, Pencil, Plus, ShieldCheck, Wrench, Package } from "lucide-react";
+import { Boxes, Pencil, Plus, ShieldCheck, Trash2, Wrench, Package } from "lucide-react";
 import { toast } from "sonner";
 import { BancoEpp } from "@/components/epp/epp";
 import { VentanaInsumo, type SelInsumo } from "@/components/InsumoVentana";
@@ -35,6 +35,15 @@ export function CatalogoInventario() {
     if (error) { toast.error(error.message); return; }
     await qc.invalidateQueries({ queryKey: ["banco_apu", "equipos_herramientas"] });
   }
+  async function eliminar(id: string, descripcion: string) {
+    if (!confirm(`¿Eliminar «${descripcion}» del catálogo? Quedará como inactivo.`)) return;
+    setGuardando(id);
+    const { error } = await supabase.from(tabla).update({ estado: "inactivo" }).eq("id", id);
+    setGuardando(null);
+    if (error) { toast.error(error.message); return; }
+    toast.success(`«${descripcion}» eliminado del catálogo.`);
+    await qc.invalidateQueries({ queryKey: ["banco_apu", tabla] });
+  }
   return <div className="space-y-4">
     <Pestanas etiqueta="Catálogo de Inventario" valor={grupo} onCambiar={(g) => { setGrupo(g); setBuscar(""); }} opciones={[
       { id: "materiales", texto: "Materiales", icono: <Package size={15} /> },
@@ -47,16 +56,16 @@ export function CatalogoInventario() {
         <Buscador valor={buscar} onChange={setBuscar} placeholder="Buscar código, descripción o marca…" total={lista.length} />
         <label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={inactivos} onChange={(e) => setInactivos(e.target.checked)} /> Incluir inactivos</label>
       </MenuFiltros>
-      <Boton onClick={() => setEditor({ sel: null, ...(grupo !== "materiales" ? { categoria } : {}) })}><Plus size={14} /> {grupo === "materiales" ? "Nuevo material" : grupo === "equipos" ? "Nuevo equipo" : "Nueva herramienta"}</Boton>
+      <BotonIcono etiqueta={grupo === "materiales" ? "Nuevo material" : grupo === "equipos" ? "Nuevo equipo" : "Nueva herramienta"} tono="primario" onClick={() => setEditor({ sel: null, ...(grupo !== "materiales" ? { categoria } : {}) })}><Plus size={14} /></BotonIcono>
     </div>}>
       {consulta.error ? <Vacio texto="No se pudo cargar el catálogo." accion={<Boton variante="linea" onClick={() => consulta.refetch()}>Reintentar</Boton>} /> : <div className="overflow-x-auto">
         <table className="w-full text-xs"><thead className="border-b border-line text-left text-muted-foreground"><tr>
-          <th className="px-3 py-2">Código</th><th className="px-3 py-2">Descripción</th><th className="px-3 py-2">{grupo === "materiales" ? "Marca" : "Clasificación"}</th><th className="px-3 py-2">Und.</th><th className="px-3 py-2 text-right">{grupo === "materiales" ? "Precio base" : "Costo hora"}</th><th className="px-3 py-2">Estado</th><th className="w-10 px-3 py-2" />
+          <th className="px-3 py-2">Código</th><th className="px-3 py-2">Descripción</th><th className="px-3 py-2">{grupo === "materiales" ? "Marca" : "Clasificación"}</th><th className="px-3 py-2">Und.</th><th className="px-3 py-2 text-right">{grupo === "materiales" ? "Precio base" : "Costo hora"}</th><th className="px-3 py-2">Estado</th><th className="w-20 px-3 py-2" />
         </tr></thead><tbody>{consulta.isLoading ? <FilasCargando columnas={7} /> : lista.map((r) => <tr key={r.id} className="border-b border-line/50">
           <td className="px-3 py-1.5 font-mono text-muted-foreground">{r.codigo}</td><td className="px-3 py-1.5"><Resaltar texto={r.descripcion} termino={buscar} /></td>
           <td className="px-3 py-1.5">{grupo === "materiales" ? r.marca || "—" : <Select aria-label={`Clasificación de ${r.descripcion}`} className="h-7 py-0 text-xs" value={r.categoria_inventario ?? ""} disabled={guardando === r.id} onChange={(e) => void clasificar(r.id, e.target.value)}><option value="">Sin clasificar</option><option value="Equipo">Equipo</option><option value="Herramienta">Herramienta</option></Select>}</td>
           <td className="px-3 py-1.5">{r.unidad}</td><td className="px-3 py-1.5 text-right font-mono">{soles(Number(grupo === "materiales" ? r.precio_base : r.costo_hora))}</td><td className="px-3 py-1.5 text-muted-foreground">{r.estado === "inactivo" ? "Inactivo" : "Activo"}</td>
-          <td className="px-3 py-1.5"><BotonIcono etiqueta={`Editar ${r.descripcion}`} onClick={() => setEditor({ sel: { tabla, fila: r }, ...(r.categoria_inventario ? { categoria: r.categoria_inventario as CategoriaInventario } : {}) })}><Pencil size={13} /></BotonIcono></td>
+          <td className="px-3 py-1.5"><div className="flex items-center justify-end gap-1"><BotonIcono etiqueta={`Editar ${r.descripcion}`} disabled={guardando === r.id} onClick={() => setEditor({ sel: { tabla, fila: r }, ...(r.categoria_inventario ? { categoria: r.categoria_inventario as CategoriaInventario } : {}) })}><Pencil size={13} /></BotonIcono><BotonIcono etiqueta={`Eliminar ${r.descripcion}`} tono="peligro" disabled={guardando === r.id} onClick={() => void eliminar(r.id, r.descripcion)}><Trash2 size={13} /></BotonIcono></div></td>
         </tr>)}</tbody></table>
         {!consulta.isLoading && !lista.length && <Vacio texto={buscar ? "Sin coincidencias." : "No hay registros en este catálogo."} />}
       </div>}
