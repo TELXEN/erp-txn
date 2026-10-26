@@ -193,7 +193,8 @@ function Bandeja() {
         return it ? [{ x, it }] : [];
       })
       .filter(({ x, it }) => it && Math.min(Number(x.cantidad), Number(it.cantidad) - ordenado(it.id)) > 0.0001);
-    if (!lineas.length) return setError("La cotización no tiene precios o sus ítems ya están ordenados.");
+    if (!conPrecios(s)) return setError(`La cotización ${s.codigo} no tiene precios registrados; usa «Registrar cotización» para anotarlos del proveedor.`);
+    if (!lineas.length) return setError(`Todos los ítems de ${s.codigo} ya están ordenados; el requerimiento no tiene cantidad pendiente.`);
     const proy = proyectos.find((p) => p.id === actual.proyecto_id);
     const n = ordenes.filter((o) => o.proyecto_id === actual.proyecto_id).length + 1;
     const codigo = `OC-${proy?.codigo || "OBRA"}-${String(n).padStart(3, "0")}`;
