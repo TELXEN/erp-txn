@@ -68,6 +68,8 @@ import {
   FolderClosed,
   HardHat,
   PackageCheck,
+  ClipboardPen,
+  Inbox,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ETIQUETA_ROL, useAuth, type Rol } from "@/lib/auth";
