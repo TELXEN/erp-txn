@@ -288,6 +288,7 @@ function ModalTercero({
   const [error, setError] = useState("");
   const [guardando, setGuardando] = useState(false);
   const formRef = useRef(form); formRef.current = form;
+  const formInicialRef = useRef(JSON.stringify(form));
   const [buscando, setBuscando] = useState(false);
   const [aviso, setAviso] = useState("");
   const buscarDoc = useServerFn(consultarDocumentoSunat);
@@ -304,34 +305,53 @@ function ModalTercero({
     } catch { setAviso("No se pudo completar la consulta."); } finally { setBuscando(false); }
   }
 
+  function solicitarCierre() {
+    if (guardando || buscando) return;
+    const hayCambios = JSON.stringify(formRef.current) !== formInicialRef.current;
+    if (hayCambios && !window.confirm("Hay datos sin guardar. ¿Cerrar y descartar los cambios?")) return;
+    onCerrar();
+  }
+
   useEffect(() => {
     const fn = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onCerrar();
+      if (e.key === "Escape") {
+        e.preventDefault();
+        solicitarCierre();
+      }
     };
     window.addEventListener("keydown", fn);
     return () => window.removeEventListener("keydown", fn);
-  }, [onCerrar]);
+  }, [onCerrar, guardando, buscando]);
 
   async function guardar(e: React.FormEvent) {
     e.preventDefault();
+    if (guardando || buscando) return;
     setGuardando(true);
-    const msg = await onGuardar();
-    setGuardando(false);
-    setError(msg ?? "");
+    try {
+      const msg = await onGuardar();
+      setError(msg ?? "");
+      if (!msg) formInicialRef.current = JSON.stringify(formRef.current);
+    } catch {
+      setError("No se pudo guardar. Tus datos siguen en la ventana; vuelve a intentarlo.");
+    } finally {
+      setGuardando(false);
+    }
   }
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/40 p-4"
-      onClick={onCerrar}
     >
       <div
         className="panel my-8 w-full max-w-3xl"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="titulo-tercero"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-3 border-b border-line px-5 py-3">
           <div>
-            <h2 className="text-sm font-bold text-ink">
+            <h2 id="titulo-tercero" className="text-sm font-bold text-ink">
               {editando ? "Editar" : "Registrar"} {nombreSingular}
             </h2>
             <p className="text-xs text-muted-foreground">
@@ -340,14 +360,17 @@ function ModalTercero({
                 : "Se guardará en el catálogo y quedará disponible para cotizaciones, proyectos y compras."}
             </p>
           </div>
-          <button
+          <Boton
             type="button"
-            onClick={onCerrar}
+            variante="linea"
+            onClick={solicitarCierre}
+            disabled={guardando || buscando}
             className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:bg-muted"
             title="Cerrar"
+            aria-label="Cerrar"
           >
             <X size={14} />
-          </button>
+          </Boton>
         </div>
 
         <form onSubmit={guardar} className="grid gap-3 p-5 sm:grid-cols-2">
@@ -481,10 +504,10 @@ function ModalTercero({
           {ok && !error && <p className="font-mono text-xs text-ok sm:col-span-2">{ok}</p>}
 
           <div className="flex items-center justify-end gap-2 border-t border-line pt-3 sm:col-span-2">
-            <Boton type="button" variante="linea" onClick={onCerrar}>
+            <Boton type="button" variante="linea" onClick={solicitarCierre} disabled={guardando || buscando}>
               Cancelar
             </Boton>
-            <Boton type="submit" variante="accion" disabled={guardando}>
+            <Boton type="submit" variante="accion" disabled={guardando || buscando}>
               <Check size={14} /> {guardando ? "Guardando…" : editando ? "Guardar cambios" : "Guardar"}
             </Boton>
           </div>
