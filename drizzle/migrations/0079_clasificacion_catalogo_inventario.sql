@@ -1,0 +1,3 @@
+ALTER TABLE public.equipos_herramientas ADD COLUMN IF NOT EXISTS categoria_inventario text;
+COMMENT ON COLUMN public.equipos_herramientas.categoria_inventario IS 'Clasificación logística Equipo o Herramienta; NULL indica pendiente de clasificación. El grupo APU permanece combinado.';
+ALTER TABLE public.equipos_herramientas ADD CONSTRAINT equipos_categoria_inventario_valida CHECK (categoria_inventario IS NULL OR categoria_inventario IN ('Equipo', 'Herramienta'));

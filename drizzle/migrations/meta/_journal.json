@@ -554,6 +554,13 @@
       "when": 1793023901741,
       "tag": "0078_gestion_epp",
       "breakpoints": true
+    },
+    {
+      "idx": 79,
+      "version": "7",
+      "when": 1793030648214,
+      "tag": "0079_clasificacion_catalogo_inventario",
+      "breakpoints": true
     }
   ]
 }
