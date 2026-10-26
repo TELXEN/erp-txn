@@ -3,9 +3,9 @@ import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { createFileRoute } from "@tanstack/react-router";
 import React, { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronDown, ChevronRight, Upload, Zap } from "lucide-react";
+import { ChevronDown, ChevronRight, FileText, PackageCheck, Upload, Zap } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, MenuFiltros, Panel, Select, Vacio } from "@/components/ui-kit";
+import { Boton, BotonIcono, Campo, Etiqueta, Input, MenuFiltros, Panel, Select, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { useAuth, puedeVerDinero } from "@/lib/auth";
 import { soles } from "@/lib/format";
@@ -13,14 +13,17 @@ import { usePartidas, useProyectos } from "@/lib/datos";
 import { TIPOS_INSUMO, apuDb, cantidadComponente, nombreTipo, useInsumos, type ComponenteApu, type TipoInsumo } from "@/lib/apu";
 import { BANCOS_RECURSO, dbBanco, useRecursosApu } from "@/lib/banco-apu";
 import { exportarExcel } from "@/lib/exportar";
+import { useItemsOC, useMovimientos, useOrdenesCompra } from "@/lib/logistica";
+import { cantidadPermitida, saldoRecepcion, tonoEstadoReq } from "@/lib/requerimientos-flujo";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/generar-requerimiento")({
   head: () => ({
     meta: [
-      { title: "Requerimientos — ERP TELXEN SAC" },
-      { name: "description", content: "Explosión de insumos por obra y requerimientos de materiales, equipos y servicios." },
-      { property: "og:title", content: "Requerimientos — ERP TELXEN SAC" },
-      { property: "og:description", content: "Explosión de insumos desde el análisis de precios y requerimientos por obra." },
+      { title: "Generar Requerimiento — ERP TELXEN SAC" },
+      { name: "description", content: "El responsable de obra genera requerimientos desde los insumos del APU o con términos de referencia." },
+      { property: "og:title", content: "Generar Requerimiento — ERP TELXEN SAC" },
+      { property: "og:description", content: "Requerimientos de obra desde el APU y términos de referencia, con recepción en obra." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -28,6 +31,7 @@ export const Route = createFileRoute("/_authenticated/generar-requerimiento")({
   component: RequerimientosPage,
 });
 
+type Tdr = { objeto?: string; alcance?: string; entregables?: string; plazo?: string; lugar?: string; condiciones?: string; tipo?: string; partida?: string };
 type Requerimiento = {
   id: string;
   proyecto_id: string;
@@ -38,6 +42,9 @@ type Requerimiento = {
   creado_por: string | null;
   cotizacion_id: string | null;
   origen: string;
+  clase: string;
+  motivo_rechazo: string;
+  tdr: Tdr;
 };
 type ItemReq = {
   id: string;
@@ -50,9 +57,9 @@ type ItemReq = {
   precio_referencial: number;
 };
 
-const ESTADOS = ["Pendiente", "Aprobado", "Atendido", "Rechazado"];
 const num = (n: number, d = 2) =>
   Number(n || 0).toLocaleString("es-PE", { minimumFractionDigits: d, maximumFractionDigits: d });
+const TDR_VACIO = { tipo: "Subcontrato", partida: "", objeto: "", alcance: "", entregables: "", plazo: "", lugar: "", condiciones: "", referencial: "" };
 
 function RequerimientosPage() {
   const { rol } = useAuth();
