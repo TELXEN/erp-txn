@@ -35,7 +35,7 @@
 - Real project cost comes only from useCostoObras (src/lib/costo-obra.ts) — every panel shows the same figure; GG charts only regroup by scope.
 - UI buttons merge classes with cn() so a passed className beats base utilities; table row actions use BotonIcono (tones neutro/primario/peligro).
 - Right action bars share barra-iconos separators; Caja Chica targets selected boxes or receipts, and quotation IGV edits reuse aplica_igv (18%/0%) so previews and exports stay aligned.
-- Banco APU: five resource tables + partida_detalle (one FK per row); quitar_recurso_apu deactivates used resources; specs on partidas_apu.especificaciones, metrado on partidas_apu_metrado — preserves history.
+- Banco APU: five resource tables + partida_detalle (one FK/row); quitar_recurso_apu deactivates used ones; specs/metrado in own tables — history kept.
 - APU dossier is a read-only A4 rendering of the quotation APU grid, preserving its resource columns, group order, quantity semantics and manual-tools row so exports match the editor.
 - Text: data-formato/FormatoGlobal; claveNombre folds case/accents for uniqueness.
 - Editable catalogues can opt into a shared text-format mode applied both on blur and before saving — brand spelling stays consistent without changing other catalogues.
