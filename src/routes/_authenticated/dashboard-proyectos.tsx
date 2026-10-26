@@ -7,7 +7,7 @@ import { Boton, Panel, Select, Vacio } from "@/components/ui-kit";
 import { InsigniaPrioridad, InsigniaSituacion } from "@/components/estado-ui";
 import { tonoSituacion } from "@/lib/configuracion";
 import { useFuenteDocumento } from "@/lib/fuentes-documentos";
-import { nombresEstados, useEstadosProyecto, type Proyecto } from "@/lib/datos";
+import { type Proyecto } from "@/lib/datos";
 
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha, pct, soles } from "@/lib/format";
@@ -55,7 +55,6 @@ function DashboardProyectos() {
   const { rol } = useAuth();
   const { fuente } = useFuenteDocumento();
   const { data: proyectos = [] } = useProyectos();
-  const estadosQ = useEstadosProyecto();
   const { data: partidas = [] } = usePartidas();
   const { data: gastosD = [] } = useGastosDirectos();
   const { data: gastosG = [] } = useGastosGenerales();
@@ -64,7 +63,6 @@ function DashboardProyectos() {
   const { data: tiposPresupuesto = [] } = useTiposPresupuesto();
   const { data: cronograma = [] } = useCronograma();
   const [obraId, setObraId] = useState("todos");
-  const [filtroEstado, setFiltroEstado] = useState<string>("Todos");
 
   // Recupera la última obra seleccionada: persiste al cerrar la pestaña o cambiar de ventana.
   useEffect(() => {
@@ -242,11 +240,6 @@ function DashboardProyectos() {
 
   const obraSel = esTodos ? vistaTodos : obraIndividual;
 
-  const cartera = useMemo(
-    () => (filtroEstado === "Todos" ? filas : filas.filter((f) => f.proyecto.situacion === filtroEstado)),
-    [filas, filtroEstado],
-  );
-
   const plazo = useMemo(() => {
     if (!obraSel?.proyecto.fecha_fin) return null;
     const fin = new Date(`${obraSel.proyecto.fecha_fin}T23:59:59`);
@@ -400,18 +393,11 @@ function DashboardProyectos() {
             <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
               {TARJETAS_ESTADO.map(({ etiqueta, situacion }) => {
                 const cantidad = proyectos.filter((p) => p.situacion === situacion).length;
-                const activa = filtroEstado === situacion;
                 return (
-                  <button
-                    key={situacion}
-                    type="button"
-                    aria-pressed={activa}
-                    onClick={() => setFiltroEstado(activa ? "Todos" : situacion)}
-                    className="flex flex-col items-center gap-2 focus:outline-none"
-                  >
+                  <div key={situacion} className="flex flex-col items-center gap-2">
                     <span className="font-mono text-4xl font-light tabular-nums">{cantidad}</span>
-                    <span className={`dash-chip w-full ${activa ? "dash-chip-activo" : ""}`}>{etiqueta}</span>
-                  </button>
+                    <span className="dash-chip w-full">{etiqueta}</span>
+                  </div>
                 );
               })}
             </div>
