@@ -521,8 +521,8 @@ function Dashboard() {
               <p className="flex-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Saldo disponible por ejecutar</p>
               {(saldoCD < 0 || saldoGG < 0) && <span className="inline-flex items-center gap-1 rounded-full bg-bad/10 px-2 py-0.5 text-[10px] font-semibold text-bad"><AlertTriangle size={11} /> Sobregirado</span>}
             </div>
-            <div className="mt-2 flex items-center gap-3">
-              <Anillo valor={datos.cdPrevisto + datos.ggPresupuestado > 0 ? ((datos.costoDirectoReal + datos.ggReal) / (datos.cdPrevisto + datos.ggPresupuestado)) * 100 : 0} alerta={saldoCD < 0 || saldoGG < 0} rotulo="consumido" />
+            <div className="mt-1 flex min-h-0 flex-1 items-center gap-3">
+              <Anillo clase="h-28 w-28" valor={datos.cdPrevisto + datos.ggPresupuestado > 0 ? ((datos.costoDirectoReal + datos.ggReal) / (datos.cdPrevisto + datos.ggPresupuestado)) * 100 : 0} alerta={saldoCD < 0 || saldoGG < 0} rotulo="consumido" />
               <div className="min-w-0 flex-1">
                 <p className="text-[11px] text-muted-foreground">Saldo operativo</p>
                 <p className={`font-mono text-xl font-semibold tabular-nums ${datos.saldoOperativo < 0 ? "text-bad" : "text-ink"}`}>{solesPunto(datos.saldoOperativo)}</p>
