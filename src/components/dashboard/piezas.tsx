@@ -110,7 +110,8 @@ export function DonaLeyenda({
   if (datos.length === 0) return <p className="py-6 text-center text-xs text-muted-foreground">{vacio}</p>;
   const total = datos.reduce((s, c) => s + c.valor, 0);
   return (
-    <div className="flex min-h-0 flex-1 items-center gap-3">
+    <div className="flex min-h-0 flex-1 items-center">
+      <div className="flex h-28 w-full items-center gap-3">
       <div className="relative h-28 w-28 shrink-0">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
