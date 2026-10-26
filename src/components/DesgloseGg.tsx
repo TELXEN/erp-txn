@@ -43,12 +43,12 @@ export function DesgloseGg({ proyectoId, base }: { proyectoId?: string | null; b
               {filas.slice(col ? mitad : 0, col ? undefined : mitad).map((f) => {
                 const pct = base > 0 ? (f.real / base) * 100 : 0;
                 return (
-                  <div key={f.nombre} className="grid grid-cols-12 items-center gap-2 px-3 py-1.5 text-xs">
-                    <p className="col-span-7 flex min-w-0 items-center gap-1.5 font-semibold text-ink">
+                  <div key={f.nombre} className="grid grid-cols-12 items-center gap-1.5 px-3 py-1.5 text-xs">
+                    <p className="col-span-6 flex min-w-0 items-center gap-1.5 font-semibold text-ink">
                       <span className={`h-2 w-2 shrink-0 rounded-full ${f.real > 0 ? "bg-primary" : "bg-muted"}`} />
                       <span className="truncate">{f.nombre}</span>
                     </p>
-                    <p className="col-span-2 text-right tabular-nums text-muted-foreground">{soles(f.real)}</p>
+                    <p className="col-span-3 whitespace-nowrap text-right tabular-nums text-muted-foreground">{soles(f.real)}</p>
                     <div className="col-span-3 flex items-center gap-1">
                       <div className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-muted">
                         <div className="h-full bg-primary" style={{ width: `${Math.min(100, pct)}%` }} />
@@ -62,11 +62,12 @@ export function DesgloseGg({ proyectoId, base }: { proyectoId?: string | null; b
           );
         })}
       </div>
-      <div className="grid grid-cols-12 items-center gap-2 border-t border-line bg-muted/40 px-3 py-1.5 text-xs font-semibold">
-        <p className="col-span-12 flex items-center gap-1.5 text-ink sm:col-span-7"><span className={`h-2 w-2 rounded-full bg-${nivel}`} />Total gastos generales</p>
-        <p className="col-span-4 text-right tabular-nums sm:col-span-2">Base {soles(base)}</p>
-        <p className={`col-span-4 text-right tabular-nums sm:col-span-2 ${saldo < 0 ? "text-bad" : "text-ink"}`}>Real {soles(real)} · {saldo < 0 ? `excedes ${soles(Math.abs(saldo))}` : `te quedan ${soles(saldo)}`}</p>
-        <div className="col-span-4 flex items-center justify-end gap-1 sm:col-span-3">
+      <div className="grid grid-cols-12 items-center gap-1.5 border-t border-line bg-muted/40 px-3 py-1.5 text-xs font-semibold">
+        <p className="col-span-3 flex min-w-0 items-center gap-1.5 text-ink"><span className={`h-2 w-2 shrink-0 rounded-full bg-${nivel}`} /><span className="truncate">Total gastos generales</span></p>
+        <div className="col-span-2 text-right"><p className="text-[9px] uppercase text-muted-foreground">Base</p><p className="whitespace-nowrap tabular-nums">{soles(base)}</p></div>
+        <div className="col-span-2 text-right"><p className="text-[9px] uppercase text-muted-foreground">Real</p><p className="whitespace-nowrap tabular-nums">{soles(real)}</p></div>
+        <div className="col-span-2 text-right"><p className="text-[9px] uppercase text-muted-foreground">Te quedan</p><p className={`whitespace-nowrap tabular-nums ${saldo < 0 ? "text-bad" : "text-ink"}`}>{soles(saldo)}</p></div>
+        <div className="col-span-3 flex items-center gap-1">
           <div className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-muted"><div className={`h-full bg-${nivel}`} style={{ width: `${Math.min(100, pctTotal)}%` }} /></div>
           <span className={`shrink-0 text-right text-[10px] tabular-nums text-${nivel}`}>{pctTotal.toFixed(1)}%</span>
         </div>
