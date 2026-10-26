@@ -11,6 +11,7 @@
 - **Filas Costo directo / Gastos generales**: cada una pasa a una cuadrícula con columnas alineadas y barras verticales finas como separador:
   `● Costo directo | S/ real | S/ presupuesto | 87.8%`
   Los importes van alineados a la derecha y en números de ancho fijo, para que los soles de ambas filas coincidan en vertical.
+- **Rótulos**: encima de las columnas, una fila pequeña con «Real» y «Presupuestado» (y «% usado»), ya que con el espacio extra caben. Además, al pasar el cursor por cada importe aparece «Real: S/ …» o «Presupuestado: S/ …».
 
 ## Detalles técnicos
 - Archivo: `src/routes/_authenticated/dashboard-proyectos.tsx` (columnas de la sección, `Anillo`, `FilaSemaforo`).
