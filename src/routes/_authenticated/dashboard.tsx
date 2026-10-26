@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AlertTriangle, HandCoins, Receipt, TrendingUp, Upload } from "lucide-react";
-import { Anillo, DonaLeyenda, FajoBilletes, FilaSemaforo, TarjetaKpi } from "@/components/dashboard/piezas";
+import { BarrasComparativa, DonaLeyenda, FajoBilletes, FilaSemaforo, TarjetaKpi } from "@/components/dashboard/piezas";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Pestanas, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { puedeVerDinero, useAuth } from "@/lib/auth";

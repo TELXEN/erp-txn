@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
-import { AlertTriangle } from "lucide-react";
-import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
+import { Bar, BarChart, Cell, LabelList, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import { pct, soles, solesPunto } from "@/lib/format";
 
 /** Piezas visuales compartidas por los dashboards (mismo lenguaje que el Dashboard de Proyectos). */
@@ -24,19 +23,19 @@ export function nivelConsumo(real: number, base: number): "ok" | "cerca" | "exce
   return p >= 85 ? "cerca" : "ok";
 }
 
-export function FilaSemaforo({ etiqueta, real, base }: { etiqueta: string; real: number; base: number }) {
+export function FilaSemaforo({ etiqueta, real, base, ocultarBase = false }: { etiqueta: string; real: number; base: number; ocultarBase?: boolean }) {
   const nivel = nivelConsumo(real, base);
   const p = base > 0 ? (real / base) * 100 : real > 0 ? 100 : 0;
   const punto = nivel === "excedido" ? "bg-bad" : nivel === "cerca" ? "bg-warn" : "bg-good";
   const pildora = nivel === "excedido" ? "bg-bad/10 text-bad" : nivel === "cerca" ? "bg-warn/10 text-warn" : "bg-good/10 text-good";
   return (
     <>
-      <span className="flex items-center gap-1.5 truncate font-mono text-xs text-muted-foreground">
+      <span className={`flex items-center gap-1.5 truncate text-muted-foreground ${ocultarBase ? "text-[11px]" : "font-mono text-xs"}`}>
         <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${punto}`} />
         {etiqueta}
       </span>
       <span title={`Real: ${solesPunto(real)}`} className="border-l border-line pl-2 text-right font-mono text-xs tabular-nums text-ink">{solesPunto(real)}</span>
-      <span title={`Presupuestado: ${solesPunto(base)}`} className="border-l border-line pl-2 text-right font-mono text-xs tabular-nums text-muted-foreground">{solesPunto(base)}</span>
+      {!ocultarBase && <span title={`Presupuestado: ${solesPunto(base)}`} className="border-l border-line pl-2 text-right font-mono text-xs tabular-nums text-muted-foreground">{solesPunto(base)}</span>}
       <span className="border-l border-line pl-2 text-right">
         <span title="% usado" className={`rounded-full px-1.5 py-px font-mono text-[10px] font-semibold tabular-nums ${pildora}`}>{pct(p)}</span>
       </span>
@@ -44,22 +43,29 @@ export function FilaSemaforo({ etiqueta, real, base }: { etiqueta: string; real:
   );
 }
 
-export function Anillo({ valor, alerta, rotulo = "gastado", clase = "h-24 w-24" }: { valor: number; alerta?: boolean; rotulo?: string; clase?: string }) {
-  const v = Math.min(Math.max(valor, 0), 100);
-  const r = 50;
-  const c = 2 * Math.PI * r;
-  const tono = alerta || valor > 100 ? "text-bad" : valor >= 85 ? "text-warn" : "text-good";
+export function BarrasComparativa({ datos }: { datos: { nombre: string; real: number; presupuestado: number }[] }) {
   return (
-    <div className={`relative shrink-0 ${clase} ${tono}`}>
-      <svg viewBox="0 0 120 120" className="h-full w-full -rotate-90" aria-hidden="true">
-        <circle cx="60" cy="60" r={r} fill="none" stroke="currentColor" strokeOpacity="0.15" strokeWidth="10" />
-        <circle cx="60" cy="60" r={r} fill="none" stroke="currentColor" strokeWidth="10" strokeLinecap="round" strokeDasharray={`${(v / 100) * c} ${c}`} />
-      </svg>
-      <span className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="font-mono text-lg font-semibold leading-none">{pct(valor)}</span>
-        <span className="text-[8px] uppercase tracking-wide opacity-80">{rotulo}</span>
-      </span>
-      {alerta && <span className="absolute -right-1 -top-1 rounded-full bg-card p-0.5 shadow-sm ring-1 ring-bad/40"><AlertTriangle size={12} className="text-bad" /></span>}
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+      <div className="min-h-0 flex-1">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={datos} margin={{ top: 14, right: 4, left: 4, bottom: 0 }}>
+            <XAxis dataKey="nombre" tickLine={false} axisLine={false} interval={0} tick={{ fontSize: 9.5, fill: "var(--muted-foreground)" }} />
+            <Tooltip formatter={(v: number) => soles(Number(v))} contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid var(--line)", background: "var(--card)", color: "var(--ink)" }} cursor={{ fill: "rgb(0 0 0 / 0.04)" }} />
+            <Bar dataKey="presupuestado" name="Presupuestado" fill="var(--muted-foreground)" fillOpacity={0.35} radius={[3, 3, 0, 0]} maxBarSize={18} />
+            <Bar dataKey="real" name="Real" radius={[3, 3, 0, 0]} maxBarSize={18}>
+              {datos.map((d) => {
+                const nivel = nivelConsumo(d.real, d.presupuestado);
+                return <Cell key={d.nombre} fill={nivel === "excedido" ? "var(--bad)" : nivel === "cerca" ? "var(--warn)" : "var(--good)"} />;
+              })}
+              <LabelList dataKey="real" position="top" formatter={(v: number) => Math.round(v).toLocaleString("es-PE")} style={{ fontSize: 8, fill: "var(--ink)" }} />
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+      <div className="flex items-center justify-center gap-3 text-[9px] text-muted-foreground">
+        <span className="flex items-center gap-1"><span className="h-2 w-2.5 rounded-sm" style={{ background: "var(--muted-foreground)", opacity: 0.35 }} />Presupuestado</span>
+        <span className="flex items-center gap-1"><span className="h-2 w-2.5 rounded-sm bg-good" />Real</span>
+      </div>
     </div>
   );
 }
@@ -110,7 +116,7 @@ export function DonaLeyenda({
   if (datos.length === 0) return <p className="py-6 text-center text-xs text-muted-foreground">{vacio}</p>;
   const total = datos.reduce((s, c) => s + c.valor, 0);
   return (
-    <div className="flex min-h-0 flex-1 items-center pb-[74px]">
+    <div className="flex min-h-0 flex-1 items-center">
       <div className="flex h-28 w-full items-center gap-3">
       <div className="relative h-28 w-28 shrink-0">
         <ResponsiveContainer width="100%" height="100%">
