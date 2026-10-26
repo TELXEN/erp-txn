@@ -257,7 +257,7 @@ function OrdenesCompraPage() {
         return t === "EQ" ? "Equipos" : t === "SC" ? "Subcontratos" : t === "MO" ? "Servicios" : "Materiales";
       };
       const { error: e2 } = await apuDb.from("gastos_directos").insert(
-        pendientes.map(({ i, saldo }) => {
+        porCostear.map(({ i, saldo }) => {
           const cant = Math.round(saldo * 10000) / 10000;
           const monto = cant * Number(i.precio_unitario);
           return {
@@ -516,7 +516,10 @@ function OrdenesCompraPage() {
               {proyectos.map((p) => <option key={p.id} value={p.id}>{nombreProy(p.id)}</option>)}
             </Select>
           </Campo>
-        </MenuFiltros>} haySeleccion={!!actual} onAgregar={() => { setError(""); setAviso(""); setModalNueva(true); }} onEliminar={() => { if (actual) void eliminar(actual.id); }} extras={<BotonIcono etiqueta="Recibir en almacén" disabled={!actual || actual.estado === "Anulada" || actual.estado === "Recibida"} onClick={() => { if (actual) void recibir(actual.id); }}><PackageCheck size={15} /></BotonIcono>} />
+        </MenuFiltros>} haySeleccion={!!actual} onAgregar={() => { setError(""); setAviso(""); setModalNueva(true); }} onEliminar={() => { if (actual) void eliminar(actual.id); }} extras={<>
+          <BotonIcono etiqueta="Enviar a obra (la obra registra la recepción)" disabled={!actual || actual.estado !== "Emitida"} onClick={() => { if (actual) void cambiarEstado(actual.id, "Enviado a obra"); }}><Truck size={15} /></BotonIcono>
+          <BotonIcono etiqueta="Recibir en almacén / cargar a costos" disabled={!actual || actual.estado === "Anulada"} onClick={() => { if (actual) void recibir(actual.id); }}><PackageCheck size={15} /></BotonIcono>
+        </>} />
       </div>
     </>
   );
