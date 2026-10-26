@@ -475,7 +475,7 @@ function DashboardProyectos() {
           {verDinero && (
             <div className="dash-tarjeta px-3 py-2.5">
               <div className="flex items-center gap-3">
-                <span className="dash-icono" data-tono="good"><FajoBilletes size={18} /></span>
+                <span className="dash-icono" data-tono="good"><FajoBilletes size={20} /></span>
                 <p className="text-lg text-ink">Presupuesto</p>
                 {obraSel && (obraSel.cdReal > obraSel.cdPres + 0.005 || obraSel.ggReal > obraSel.ggPres + 0.005) && (
                   <span className="ml-auto flex items-center gap-1 rounded-full bg-warn/10 px-2 py-0.5 text-[10px] font-semibold text-warn ring-1 ring-warn/40">
