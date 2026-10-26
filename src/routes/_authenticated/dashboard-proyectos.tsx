@@ -500,16 +500,15 @@ function DashboardProyectos() {
       </div>
 
 
-      {verDinero && (() => {
-        const f = esTodos ? null : obraSel;
-        const pres = f ? f.presupuesto : resumen.presupuesto;
-        const cdP = f ? f.cdPres : resumen.cdPres;
-        const ggP = f ? f.ggPres : resumen.ggPres;
-        const utP = f ? f.utPres : resumen.utPres;
-        const cdR = f ? f.cdReal : resumen.cdReal;
-        const ggR = f ? f.ggReal : resumen.ggReal;
+      {verDinero && esTodos && (() => {
+        const pres = resumen.presupuesto;
+        const cdP = resumen.cdPres;
+        const ggP = resumen.ggPres;
+        const utP = resumen.utPres;
+        const cdR = resumen.cdReal;
+        const ggR = resumen.ggReal;
         return (
-        <section className="mb-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4" aria-label="Control presupuestal">
+        <section className="mb-3 grid gap-3 md:grid-cols-2 xl:grid-cols-4" aria-label="Control presupuestal">
           <div className="kpi-tarjeta">
             <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Presupuesto vigente</p>
             <p className="mt-1.5 text-xl font-bold tabular-nums text-ink">{soles(pres)}</p>
@@ -526,17 +525,39 @@ function DashboardProyectos() {
         );
       })()}
 
-      {verDinero && !esTodos && (
-        <div className="mb-4 space-y-2">
-          <Pestanas
-            etiqueta="Desglose del presupuesto"
-            valor={desglose}
-            onCambiar={setDesglose}
-            opciones={[{ id: "cd", texto: "Desglose de costo directo" }, { id: "gg", texto: "Desglose de gastos generales" }]}
-          />
-          {desglose === "cd" ? <DesgloseCd proyectoId={obraId} /> : <DesgloseGg proyectoId={obraId} base={obraSel?.ggPres ?? 0} />}
-        </div>
-      )}
+      {verDinero && !esTodos && (() => {
+        const f = obraSel;
+        const cdP = f?.cdPres ?? 0, ggP = f?.ggPres ?? 0, utP = f?.utPres ?? 0;
+        const cdR = f?.cdReal ?? 0, ggR = f?.ggReal ?? 0;
+        return (
+        <section className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]" aria-label="Control presupuestal y desglose">
+          <div className="grid grid-cols-2 content-start gap-3">
+            <div className="kpi-tarjeta">
+              <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Presupuesto vigente</p>
+              <p className="mt-1.5 text-xl font-bold tabular-nums text-ink">{soles(f?.presupuesto ?? 0)}</p>
+              <div className="mt-1.5 space-y-0.5 pr-2 text-[11px] tabular-nums text-muted-foreground">
+                <p className="flex justify-between"><span>Costo directo</span><span>{soles(cdP)}</span></p>
+                <p className="flex justify-between"><span>Gastos generales</span><span>{soles(ggP)}</span></p>
+                <p className="flex justify-between"><span>Utilidad proyectada 🔒</span><span>{soles(utP)}</span></p>
+              </div>
+            </div>
+            <BolsaEjecutada etiqueta="Costo directo ejecutado" real={cdR} base={cdP} />
+            <BolsaEjecutada etiqueta="Gastos generales ejecutados" real={ggR} base={ggP} />
+            <UtilidadReal proyectada={utP} real={utP + (cdP - cdR) + (ggP - ggR)} />
+          </div>
+          <div className="flex min-h-0 flex-col gap-2">
+            <Pestanas
+              etiqueta="Desglose del presupuesto"
+              valor={desglose}
+              onCambiar={setDesglose}
+              opciones={[{ id: "cd", texto: "Desglose de costo directo" }, { id: "gg", texto: "Desglose de gastos generales" }]}
+            />
+            {desglose === "cd" ? <DesgloseCd proyectoId={obraId} /> : <DesgloseGg proyectoId={obraId} base={obraSel?.ggPres ?? 0} />}
+          </div>
+        </section>
+        );
+      })()}
+
 
     </div>
   );
