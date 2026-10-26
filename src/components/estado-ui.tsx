@@ -93,7 +93,7 @@ export function tonosCategoriaGasto(nombres: string[]): Map<string, Tono> {
   return mapa;
 }
 
-export function InsigniaCategoriaGasto({ valor, tono }: { valor: string; tono?: Tono }) {
+export function InsigniaCategoriaGasto({ valor, tono }: { valor: string; tono?: Tono | undefined }) {
   return <Insignia tono={tono ?? tonoCategoriaGasto(valor)}>{valor || "Sin categoría"}</Insignia>;
 }
 
