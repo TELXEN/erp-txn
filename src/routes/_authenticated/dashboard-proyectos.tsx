@@ -3,11 +3,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AlertTriangle, Briefcase, CalendarClock, CalendarDays, CircleDollarSign, ClipboardList, Clock3, Flag, Gauge, Hourglass, Layers3, ListTodo, Upload } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, Panel, Select, Vacio } from "@/components/ui-kit";
+import { Boton, Select, Vacio } from "@/components/ui-kit";
 import { InsigniaPrioridad, InsigniaSituacion } from "@/components/estado-ui";
 import { tonoSituacion } from "@/lib/configuracion";
 import { useFuenteDocumento } from "@/lib/fuentes-documentos";
-import { nombresEstados, useEstadosProyecto, type Proyecto } from "@/lib/datos";
+import { type Proyecto } from "@/lib/datos";
 
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha, pct, soles } from "@/lib/format";
@@ -55,7 +55,6 @@ function DashboardProyectos() {
   const { rol } = useAuth();
   const { fuente } = useFuenteDocumento();
   const { data: proyectos = [] } = useProyectos();
-  const estadosQ = useEstadosProyecto();
   const { data: partidas = [] } = usePartidas();
   const { data: gastosD = [] } = useGastosDirectos();
   const { data: gastosG = [] } = useGastosGenerales();
@@ -64,7 +63,6 @@ function DashboardProyectos() {
   const { data: tiposPresupuesto = [] } = useTiposPresupuesto();
   const { data: cronograma = [] } = useCronograma();
   const [obraId, setObraId] = useState("todos");
-  const [filtroEstado, setFiltroEstado] = useState<string>("Todos");
 
   // Recupera la última obra seleccionada: persiste al cerrar la pestaña o cambiar de ventana.
   useEffect(() => {
@@ -242,11 +240,6 @@ function DashboardProyectos() {
 
   const obraSel = esTodos ? vistaTodos : obraIndividual;
 
-  const cartera = useMemo(
-    () => (filtroEstado === "Todos" ? filas : filas.filter((f) => f.proyecto.situacion === filtroEstado)),
-    [filas, filtroEstado],
-  );
-
   const plazo = useMemo(() => {
     if (!obraSel?.proyecto.fecha_fin) return null;
     const fin = new Date(`${obraSel.proyecto.fecha_fin}T23:59:59`);
@@ -400,18 +393,11 @@ function DashboardProyectos() {
             <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
               {TARJETAS_ESTADO.map(({ etiqueta, situacion }) => {
                 const cantidad = proyectos.filter((p) => p.situacion === situacion).length;
-                const activa = filtroEstado === situacion;
                 return (
-                  <button
-                    key={situacion}
-                    type="button"
-                    aria-pressed={activa}
-                    onClick={() => setFiltroEstado(activa ? "Todos" : situacion)}
-                    className="flex flex-col items-center gap-2 focus:outline-none"
-                  >
+                  <div key={situacion} className="flex flex-col items-center gap-2">
                     <span className="font-mono text-4xl font-light tabular-nums">{cantidad}</span>
-                    <span className={`dash-chip w-full ${activa ? "dash-chip-activo" : ""}`}>{etiqueta}</span>
-                  </button>
+                    <span className="dash-chip w-full">{etiqueta}</span>
+                  </div>
                 );
               })}
             </div>
@@ -542,141 +528,10 @@ function DashboardProyectos() {
 
       {verDinero && !esTodos && <div className="mb-4"><DesgloseCd proyectoId={obraId} /></div>}
 
-      <Panel
-        titulo="Cartera de proyectos"
-        extra={
-          <div className="flex flex-wrap items-center gap-1.5">
-            <PildoraEstado
-              etiqueta="Todos"
-              cantidad={proyectos.length}
-              activa={filtroEstado === "Todos"}
-              onClick={() => setFiltroEstado("Todos")}
-            />
-            {nombresEstados(estadosQ.data).map((situacion) => (
-              <PildoraEstado
-                key={situacion}
-                etiqueta={situacion}
-                cantidad={proyectos.filter((p) => p.situacion === situacion).length}
-                color={tonoSituacion(situacion).borde}
-                activa={filtroEstado === situacion}
-                onClick={() => setFiltroEstado(situacion)}
-              />
-            ))}
-          </div>
-        }
-      >
-        {cartera.length === 0 ? (
-          <Vacio texto={filtroEstado === "Todos" ? "Aún no hay proyectos registrados." : `No hay obras con status "${filtroEstado}".`} />
-        ) : (
-          <ul className="grid gap-3 p-4 lg:grid-cols-2">
-            {cartera.map((f) => (
-              <li
-                key={f.proyecto.id}
-                className={`proyecto-tarjeta ${f.proyecto.id === obraSel?.proyecto.id ? "ring-2 ring-primary" : ""}`}
-                style={{ borderLeftColor: tonoSituacion(f.proyecto.situacion).borde, backgroundImage: `linear-gradient(90deg, ${tonoSituacion(f.proyecto.situacion).fondo}55, transparent 40%)` }}
-              >
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div className="min-w-64 flex-1">
-                    <button type="button" onClick={() => setObraId(f.proyecto.id)} className="text-left text-sm font-semibold hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">{f.proyecto.nombre}</button>
-                    <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">
-                      {f.proyecto.cliente} · {f.partidas} partidas
-                    </p>
-                    <div className="mt-2 flex flex-wrap items-center gap-2">
-                      <InsigniaSituacion valor={f.proyecto.situacion} />
-                    </div>
-                  </div>
-                  {verDinero && <div className="text-right">
-                    <p className="label-mono">Contractual + adicionales</p>
-                    <p className="font-mono text-xs text-muted-foreground">{soles(f.presupuestoContractual)} + <span className="text-primary">{soles(f.adicionales)}</span></p>
-                    <p className="font-mono text-sm font-semibold">Vigente {soles(f.presupuesto)}</p>
-                    <p className={`font-mono text-[11px] ${f.desviado ? "text-bad" : "text-good"}`}>Costo ejecutado {soles(f.costoReal)}</p>
-                    <p className={`font-mono ${f.diferencia < 0 ? "mt-1 text-[12px] font-semibold text-bad" : "text-[11px] text-muted-foreground"}`}>
-                      Diferencia {soles(f.diferencia)}
-                    </p>
-                  </div>}
-                </div>
-                <div className="mt-3 space-y-1.5">
-                  <Barra etiqueta="Avance Físico" valor={f.avance} clase="bg-primary" />
-                  <Barra
-                    etiqueta="Avance Programado"
-                    valor={f.programado}
-                    clase="bg-muted-foreground"
-                  />
-                  {verDinero && (
-                    <Barra
-                      etiqueta="Presupuesto Gastado"
-                      valor={f.gastado}
-                      clase={f.desviado ? "bg-bad" : "bg-good"}
-                    />
-                  )}
-                  {f.desviacion !== null && (
-                    <p className={`text-right font-mono font-semibold ${f.desviacion < -0.05 ? "ml-auto w-fit rounded-md bg-bad/10 px-2 py-0.5 text-[13px] text-bad" : "text-[10px] text-good"}`}>
-                      {f.desviacion < -0.05 ? `${pct(Math.abs(f.desviacion))} de retraso` : `${pct(f.desviacion)} en plazo o adelantada`}
-                    </p>
-                  )}
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Panel>
     </div>
   );
 }
 
-
-
-function PildoraEstado({
-  etiqueta,
-  cantidad,
-  color,
-  activa,
-  onClick,
-}: {
-  etiqueta: string;
-  cantidad: number;
-  color?: string;
-  activa: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={activa}
-      className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-wide transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-        activa ? "border-primary bg-primary/10 text-primary" : "border-line bg-card text-muted-foreground hover:text-ink"
-      } ${cantidad === 0 && !activa ? "opacity-50" : ""}`}
-    >
-      {color && <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: color }} />}
-      <span>{etiqueta}</span>
-      <span className={`rounded-full px-1.5 ${activa ? "bg-primary/15 text-primary" : cantidad === 0 ? "bg-muted text-muted-foreground" : "bg-muted text-ink"}`}>{cantidad}</span>
-    </button>
-  );
-}
-
-
-function Barra({ etiqueta, valor, clase }: { etiqueta: string; valor: number | null; clase: string }) {
-  return (
-    <div className="flex items-center gap-3">
-      <span className="w-40 shrink-0 font-mono text-[10px] uppercase tracking-wide text-muted-foreground">
-        {etiqueta}
-      </span>
-      {valor === null ? (
-        <div
-          className="h-2.5 flex-1 rounded-full opacity-60"
-          style={{ backgroundImage: "repeating-linear-gradient(45deg, color-mix(in oklab, var(--muted-foreground) 35%, transparent) 0 4px, transparent 4px 8px)" }}
-          title="Sin dato"
-        />
-      ) : (
-        <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-muted">
-          <div className={`h-full growx rounded-full ${clase}`} style={{ width: `${Math.min(valor, 100)}%` }} />
-        </div>
-      )}
-      <span className={`w-14 text-right font-mono text-[11px] ${valor === null ? "text-muted-foreground/70" : ""}`}>{valor === null ? "Sin dato" : pct(valor)}</span>
-    </div>
-  );
-}
 
 function MedidorCompacto({ valor }: { valor: number }) {
   const limitado = Math.min(Math.max(valor, 0), 100);
