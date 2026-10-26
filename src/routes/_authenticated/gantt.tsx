@@ -214,7 +214,7 @@ function Gantt() {
     <div className="space-y-4">
       <CabeceraModulo
         ruta="Operaciones"
-        titulo="Diagrama Gantt"
+        titulo="Diagrama Gantt y Curva S"
         descripcion="Calendario de partidas, dependencias y ruta crítica"
         icono={<ChartGantt size={20} />}
         contexto={
