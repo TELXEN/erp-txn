@@ -475,7 +475,7 @@ function DashboardProyectos() {
           {verDinero && (
             <div className="dash-tarjeta px-3 py-2.5">
               <div className="flex items-center gap-3">
-                <span className="dash-icono" data-tono="good"><FajoBilletes size={18} /></span>
+                <span className="dash-icono dash-icono-suave" data-tono="good"><FajoBilletes size={22} /></span>
                 <p className="text-lg text-ink">Presupuesto</p>
                 {obraSel && (obraSel.cdReal > obraSel.cdPres + 0.005 || obraSel.ggReal > obraSel.ggPres + 0.005) && (
                   <span className="ml-auto flex items-center gap-1 rounded-full bg-warn/10 px-2 py-0.5 text-[10px] font-semibold text-warn ring-1 ring-warn/40">
@@ -695,16 +695,21 @@ function MiniDato({ icono, etiqueta, valor, detalle, tono }: { icono: ReactNode;
   );
 }
 
-// Fajo de billetes: dos billetes superpuestos, con el trazo de los iconos del ERP.
+// Billetes: uno grande y macizo (con huecos, no con líneas finas) para que se lea sobre el círculo de color.
 function FajoBilletes({ size = 18 }: { size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M4 13V6a1.5 1.5 0 0 1 1.5-1.5h11A1.5 1.5 0 0 1 18 6v7" opacity=".55" />
-      <rect x="6" y="11" width="15" height="9" rx="1.5" />
-      <circle cx="13.5" cy="15.5" r="2" />
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <rect x="3" y="3.5" width="16" height="9" rx="2" opacity=".4" />
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M5 8h16a2.5 2.5 0 0 1 2.5 2.5v5A2.5 2.5 0 0 1 21 18H5a2.5 2.5 0 0 1-2.5-2.5v-5A2.5 2.5 0 0 1 5 8Zm7 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6Zm-6.6.8h2.2v4.4H5.4v-4.4Zm11 0h2.2v4.4h-2.2v-4.4Z"
+      />
     </svg>
   );
 }
+
+
 
 function BarraTiempo({ etiqueta, valor, tenue }: { etiqueta: string; valor: number; tenue?: boolean }) {
 
