@@ -428,9 +428,9 @@ function DashboardProyectos() {
               <>
                 <div className="mt-3"><MedidorCompacto valor={obraSel.avance} /></div>
                 <p className="mt-2 text-center text-xs text-muted-foreground">
-                  {programadoSel === null ? "Sin avance programado oficial"
-                    : obraSel.avance + 0.05 < programadoSel ? <span className="font-semibold text-warn">-{pct(programadoSel - obraSel.avance)} · Retraso</span>
-                    : <span className="font-semibold text-good">+{pct(obraSel.avance - programadoSel)} · En plazo o adelantada</span>}
+                  {programadoSel === null || obraSel.desviacion === null ? "Sin avance programado oficial"
+                    : obraSel.desviacion < -0.05 ? <span className="font-semibold text-warn">-{pct(-obraSel.desviacion)} · Retraso</span>
+                    : <span className="font-semibold text-good">+{pct(obraSel.desviacion)} · En plazo o adelantada</span>}
                 </p>
               </>
             )}
