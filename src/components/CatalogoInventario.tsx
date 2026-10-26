@@ -7,6 +7,7 @@ import { VentanaInsumo, type SelInsumo } from "@/components/InsumoVentana";
 import { Boton, BotonIcono, FilasCargando, MenuFiltros, Panel, Pestanas, Select, Vacio } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { useBancoTabla } from "@/lib/banco-apu";
+import { num, useMovimientos } from "@/lib/logistica";
 import { perteneceCatalogo, type CategoriaInventario } from "@/lib/catalogo-inventario";
 import { supabase } from "@/integrations/supabase/client";
 import { soles } from "@/lib/format";
