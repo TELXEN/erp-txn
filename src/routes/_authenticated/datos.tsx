@@ -12,6 +12,7 @@ import {
   InsigniaPrioridad,
   InsigniaSituacion,
   InsigniaTipoPresupuesto,
+  tonosCategoriaGasto,
 } from "@/components/estado-ui";
 import {
   type ClasificacionCargo,
@@ -533,6 +534,7 @@ function CategoriasGastoGeneral() {
   const qc = useQueryClient();
   const { data: categorias = [] } = useCategoriasGastoGeneral();
   const { data: gastos = [] } = useGastosGenerales();
+  const tonosCat = tonosCategoriaGasto(categorias.map((c) => c.nombre));
   const [nombre, setNombre] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [editando, setEditando] = useState<{
@@ -666,7 +668,7 @@ function CategoriasGastoGeneral() {
                 ) : (
                   <>
                     <span className="flex-1 basis-full sm:basis-auto">
-                      <InsigniaCategoriaGasto valor={c.nombre} />
+                      <InsigniaCategoriaGasto valor={c.nombre} tono={tonosCat.get(c.nombre)} />
                       {c.descripcion && (
                         <span className="mt-1 block text-[11px] leading-snug text-muted-foreground">
                           {c.descripcion}

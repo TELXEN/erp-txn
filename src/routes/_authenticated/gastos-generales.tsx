@@ -7,7 +7,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, BotonIcono, Etiqueta, Input, MenuFiltros, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
-import { InsigniaCategoriaGasto } from "@/components/estado-ui";
+import { InsigniaCategoriaGasto, tonosCategoriaGasto } from "@/components/estado-ui";
+import type { Tono } from "@/lib/configuracion";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { CalendarDays, Check, ChevronDown, ChevronRight, Info, Paperclip, Pencil, Plus, Search, Trash2, Upload, X } from "lucide-react";
 import { toast } from "sonner";
@@ -85,6 +86,7 @@ function GastosGenerales() {
   const { data: terceros = [] } = useTerceros();
   const { data: proyectos = [] } = useProyectos();
   const { data: categorias = [] } = useCategoriasGastoGeneral();
+  const tonosCategoria = tonosCategoriaGasto(categorias.map((c) => c.nombre));
   const { data: cuentas = [] } = useQuery({
     queryKey: ["bancos"],
     queryFn: async () => {
@@ -709,7 +711,7 @@ function GastosGenerales() {
                         >
                           <span className="flex items-center gap-2">
                             {abierto ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                            <InsigniaCategoriaGasto valor={cat} />
+                            <InsigniaCategoriaGasto valor={cat} tono={tonosCategoria.get(cat)} />
                             <span className="text-[11px] text-muted-foreground">
                               {filas.length} {filas.length === 1 ? "comprobante" : "comprobantes"}
                             </span>
@@ -849,6 +851,7 @@ function GastosGenerales() {
           setForm={setForm}
           proveedores={proveedores}
           categorias={categoriasActivas}
+          tonos={tonosCategoria}
           ayudaCategoria={ayudaCategoria}
           proyectos={proyectos}
           cuentas={cuentasActivas}
@@ -866,6 +869,7 @@ function ModalGasto({
   setForm,
   proveedores,
   categorias,
+  tonos,
   ayudaCategoria,
   proyectos,
   cuentas,
@@ -876,6 +880,7 @@ function ModalGasto({
   setForm: (f: FormGasto) => void;
   proveedores: { id: string; razon_social: string }[];
   categorias: { id: string; nombre: string; descripcion: string | null }[];
+  tonos: Map<string, Tono>;
   ayudaCategoria: string;
   proyectos: { id: string; nombre: string; codigo?: string | null }[];
   cuentas: Cuenta[];
@@ -937,7 +942,7 @@ function ModalGasto({
             <ul className="grid gap-2 sm:grid-cols-2">
               {categorias.map((c) => (
                 <li key={c.id} className="flex flex-col gap-1 rounded-md border border-line bg-card px-3 py-2">
-                  <InsigniaCategoriaGasto valor={c.nombre} />
+                  <InsigniaCategoriaGasto valor={c.nombre} tono={tonos.get(c.nombre)} />
                   <span className="text-[11px] leading-snug text-primary">
                     {c.descripcion || "Sin descripción registrada. Agrégala en Datos > Catálogos Maestros."}
                   </span>
