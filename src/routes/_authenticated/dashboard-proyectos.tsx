@@ -387,7 +387,7 @@ function DashboardProyectos() {
       />
 
 
-      <div className="dash-lienzo mb-3 flex-none space-y-3 p-3">
+      <div className="dash-lienzo mb-3 flex-none space-y-2.5 p-3">
         {/* Fila superior: proyecto elegido con estados de cartera y datos clave */}
         <section className="grid gap-3 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
           <div className="dash-tarjeta flex flex-col p-3">
@@ -472,7 +472,7 @@ function DashboardProyectos() {
           </div>
 
           {verDinero && (
-            <div className="dash-tarjeta p-3">
+            <div className="dash-tarjeta px-3 py-2.5">
               <div className="flex items-center gap-3">
                 <span className="dash-icono" data-tono="good"><CircleDollarSign size={18} /></span>
                 <p className="text-lg text-ink">Presupuesto</p>
@@ -482,7 +482,7 @@ function DashboardProyectos() {
                   </span>
                 )}
               </div>
-              <div className="mt-2 flex items-center gap-4">
+              <div className="mt-1.5 flex items-center gap-4">
                 <Anillo valor={(obraSel?.gastado ?? 0)} alerta={!!obraSel && (obraSel.cdReal > obraSel.cdPres + 0.005 || obraSel.ggReal > obraSel.ggPres + 0.005)} />
                 <div className="min-w-0 flex-1 space-y-1">
                   <div className="flex items-baseline justify-between gap-2"><p className="text-xs text-muted-foreground">Presupuesto</p><p className="font-mono text-base font-semibold text-ink">{soles(obraSel?.presupuesto ?? 0)}</p></div>
@@ -490,7 +490,7 @@ function DashboardProyectos() {
                   <div className="flex items-baseline justify-between gap-2 border-t border-line pt-1"><p className="text-xs text-muted-foreground">Disponible</p><p className="font-mono text-base font-semibold text-ink">{soles((obraSel?.presupuesto ?? 0) - (obraSel?.costoReal ?? 0))}</p></div>
                 </div>
               </div>
-              <div className="mt-2 space-y-1 rounded-lg bg-muted/50 p-2">
+              <div className="mt-1.5 space-y-0.5 rounded-lg bg-muted/50 px-2 py-1.5">
                 <FilaSemaforo etiqueta="Costo directo" real={obraSel?.cdReal ?? 0} base={obraSel?.cdPres ?? 0} />
                 <FilaSemaforo etiqueta="Gastos generales" real={obraSel?.ggReal ?? 0} base={obraSel?.ggPres ?? 0} />
               </div>
