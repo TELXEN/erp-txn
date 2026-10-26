@@ -572,7 +572,7 @@ function MedidorCompacto({ valor }: { valor: number }) {
   const tramo = (desde: number, hasta: number) =>
     Math.max(0, Math.min(limitado, hasta) - desde) / 100 * largo;
   return (
-    <div className="relative mx-auto h-24 w-full max-w-44 overflow-hidden" aria-label={`Avance físico ${pct(valor)}`}>
+    <div className="relative mx-auto h-20 w-full max-w-40 overflow-hidden" aria-label={`Avance físico ${pct(valor)}`}>
       <svg viewBox="0 0 180 110" className="h-full w-full" aria-hidden="true">
         <path d="M 18 92 A 72 72 0 0 1 162 92" fill="none" className="stroke-muted" strokeWidth="14" strokeLinecap="round" />
         <path
