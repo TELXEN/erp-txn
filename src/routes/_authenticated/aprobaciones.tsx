@@ -105,7 +105,7 @@ function Aprobaciones() {
           <div className="divide-y divide-line">
             {reqPendientes.map((r) => {
               const its = itemsReq.filter((i) => i.requerimiento_id === r.id);
-              const tdr = (r as { clase?: string; tdr?: Record<string, string> });
+              const tdr = (r as { clase?: string; tdr?: { tipo?: string; alcance?: string; entregables?: string; plazo?: string } });
               return (
                 <div key={r.id} className="px-4 py-3 text-xs">
                   <div className="flex flex-wrap items-center gap-3">

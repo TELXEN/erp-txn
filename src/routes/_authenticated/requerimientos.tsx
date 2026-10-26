@@ -28,7 +28,8 @@ export const Route = createFileRoute("/_authenticated/requerimientos")({
   component: Bandeja,
 });
 
-type Req = { id: string; proyecto_id: string; codigo: string; fecha: string; estado: string; observacion: string; clase: string; tdr: Record<string, string> };
+type Req = { id: string; proyecto_id: string; codigo: string; fecha: string; estado: string; observacion: string; clase: string; tdr: Tdr };
+type Tdr = { tipo?: string; objeto?: string; alcance?: string; entregables?: string; plazo?: string; lugar?: string; condiciones?: string };
 type ItemReq = { id: string; requerimiento_id: string; insumo_id: string | null; tipo: string; descripcion: string; unidad: string; cantidad: number; precio_referencial: number };
 type Solicitud = { id: string; requerimiento_id: string; proveedor_id: string; codigo: string; fecha: string; estado: string; moneda: string; plazo_entrega: string; condiciones: string; orden_id: string | null };
 type ItemSol = { id: string; solicitud_id: string; requerimiento_item_id: string; cantidad: number; precio_unitario: number };
