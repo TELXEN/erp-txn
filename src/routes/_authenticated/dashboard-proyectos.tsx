@@ -196,7 +196,15 @@ function DashboardProyectos() {
     const inicios = filas.map((f) => f.proyecto.fecha_inicio).filter((x): x is string => !!x).sort();
     const fines = filas.map((f) => f.proyecto.fecha_fin).filter((x): x is string => !!x).sort();
     const gastado = presupuesto > 0 ? (costoReal / presupuesto) * 100 : 0;
-    const desviacion = programado === null ? null : avance - programado;
+    // La desviación compara avance y programado sobre la MISMA base (solo obras con cronograma),
+    // para no mezclar el avance ponderado de toda la cartera con el programado de un subconjunto.
+    const avanceComparable =
+      baseProg > 0
+        ? conProgramado.reduce((s, f) => s + f.avance * f.presupuesto, 0) / baseProg
+        : conProgramado.length > 0
+          ? conProgramado.reduce((s, f) => s + f.avance, 0) / conProgramado.length
+          : 0;
+    const desviacion = programado === null ? null : avanceComparable - programado;
     const proyectoCartera: Proyecto = {
       id: "todos",
       codigo: null,
@@ -386,7 +394,10 @@ function DashboardProyectos() {
             </div>
             <div className="mt-4 grid flex-1 grid-cols-2 gap-2 sm:grid-cols-4">
               {TARJETAS_ESTADO.map(({ etiqueta, situacion }) => {
-                const cantidad = proyectos.filter((p) => p.situacion === situacion).length;
+                // «Retrasados» refleja la desviación real frente al cronograma, no solo el estado manual de la obra.
+                const cantidad = situacion === "Retrasado"
+                  ? filas.filter((f) => f.proyecto.situacion === "Retrasado" || (f.desviacion !== null && f.desviacion < -0.05)).length
+                  : proyectos.filter((p) => p.situacion === situacion).length;
                 return (
                   <div key={situacion} className="flex flex-col justify-center rounded-lg px-2 py-2 text-center text-primary-foreground shadow-sm" style={{ backgroundColor: tonoSituacion(situacion).borde }}>
                     <p className="text-[10px] opacity-90">{etiqueta}</p>
@@ -417,9 +428,9 @@ function DashboardProyectos() {
               <>
                 <div className="mt-3"><MedidorCompacto valor={obraSel.avance} /></div>
                 <p className="mt-2 text-center text-xs text-muted-foreground">
-                  {programadoSel === null ? "Sin avance programado oficial"
-                    : obraSel.avance + 0.05 < programadoSel ? <span className="font-semibold text-bad">-{pct(programadoSel - obraSel.avance)} · Retraso</span>
-                    : <span className="font-semibold text-good">+{pct(obraSel.avance - programadoSel)} · En plazo o adelantada</span>}
+                  {programadoSel === null || obraSel.desviacion === null ? "Sin avance programado oficial"
+                    : obraSel.desviacion < -0.05 ? <span className="font-semibold text-warn">-{pct(-obraSel.desviacion)} · Retraso</span>
+                    : <span className="font-semibold text-good">+{pct(obraSel.desviacion)} · En plazo o adelantada</span>}
                 </p>
               </>
             )}
@@ -442,24 +453,33 @@ function DashboardProyectos() {
               {[0, 20, 40, 60, 80, 100].map((n) => <span key={n}>{n}%</span>)}
             </div>
             <p className="mt-3 font-mono text-[11px] opacity-90">
-              Corte: {obraSel?.usaCalendario ? fecha(hoyISO()) : obraSel?.proyecto.fecha_corte_programado ? fecha(obraSel.proyecto.fecha_corte_programado) : "Sin registrar"}
+              {obraSel?.usaCalendario
+                ? `Corte al: ${fecha(hoyISO())}`
+                : obraSel?.proyecto.fecha_corte_programado
+                  ? `Corte: ${fecha(obraSel.proyecto.fecha_corte_programado)}`
+                  : `Última actualización: ${fecha(hoyISO())}`}
             </p>
           </div>
 
           {verDinero && (
             <div className="dash-tarjeta dash-degradado p-5" data-tono="good">
-              <div className="flex items-center gap-3">
-                <span className="dash-icono dash-icono-claro"><CircleDollarSign size={18} /></span>
-                <p className="text-lg">Presupuesto</p>
-              </div>
-              <div className="mt-3 flex items-center gap-4">
-                <Anillo valor={(obraSel?.gastado ?? 0)} />
+            <div className="flex items-center gap-3">
+              <span className="dash-icono dash-icono-claro"><CircleDollarSign size={18} /></span>
+              <p className="text-lg">Presupuesto</p>
+              {obraSel && (obraSel.cdReal > obraSel.cdPres + 0.005 || obraSel.ggReal > obraSel.ggPres + 0.005) && (
+                <span className="ml-auto flex items-center gap-1 rounded-full bg-warn px-2 py-0.5 text-[10px] font-semibold text-warn-foreground">
+                  <AlertTriangle size={11} /> Sobrecosto
+                </span>
+              )}
+            </div>
+            <div className="mt-3 flex items-center gap-4">
+                <Anillo valor={(obraSel?.gastado ?? 0)} alerta={!!obraSel && (obraSel.cdReal > obraSel.cdPres + 0.005 || obraSel.ggReal > obraSel.ggPres + 0.005)} />
                 <div className="min-w-0 space-y-2">
-                  <div><p className="font-mono text-lg font-semibold">{soles(obraSel?.presupuesto ?? 0)}</p><p className="text-xs opacity-90">Total presupuesto</p></div>
-                  <div><p className="font-mono text-lg font-semibold">{soles(obraSel?.costoReal ?? 0)}</p><p className="text-xs opacity-90">Total gastado</p></div>
+                  <div><p className="font-mono text-lg font-semibold">{soles(obraSel?.presupuesto ?? 0)}</p><p className="text-sm opacity-90">Total presupuesto</p></div>
+                  <div><p className="font-mono text-lg font-semibold">{soles(obraSel?.costoReal ?? 0)}</p><p className="text-sm opacity-90">Total gastado</p></div>
                 </div>
               </div>
-              <div className="mt-3 space-y-1 rounded-lg bg-card p-2 text-ink">
+              <div className="mt-3 space-y-1.5 rounded-lg bg-card p-3 text-ink">
                 <FilaSemaforo etiqueta="Costo directo" real={obraSel?.cdReal ?? 0} base={obraSel?.cdPres ?? 0} />
                 <FilaSemaforo etiqueta="Gastos generales" real={obraSel?.ggReal ?? 0} base={obraSel?.ggPres ?? 0} />
               </div>
@@ -481,7 +501,7 @@ function DashboardProyectos() {
           <div className="kpi-tarjeta">
             <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Presupuesto vigente</p>
             <p className="mt-2 text-2xl font-bold tabular-nums text-ink">{soles(pres)}</p>
-            <div className="mt-2 space-y-0.5 text-[11px] tabular-nums text-muted-foreground">
+            <div className="mt-2 space-y-0.5 pr-2 text-[11px] tabular-nums text-muted-foreground">
               <p className="flex justify-between"><span>Costo directo</span><span>{soles(cdP)}</span></p>
               <p className="flex justify-between"><span>Gastos generales</span><span>{soles(ggP)}</span></p>
               <p className="flex justify-between"><span>Utilidad proyectada 🔒</span><span>{soles(utP)}</span></p>
@@ -559,15 +579,15 @@ function FilaSemaforo({ etiqueta, real, base }: { etiqueta: string; real: number
   const pildora = nivel === "excedido" ? "bg-bad/10 text-bad" : nivel === "cerca" ? "bg-warn/10 text-warn" : "bg-good/10 text-good";
   return (
     <div className="flex items-center justify-between gap-2">
-      <span className="flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground">
+      <span className="flex items-center gap-1.5 font-mono text-xs text-muted-foreground">
         <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${punto}`} />
         {etiqueta}
       </span>
       <span className="flex items-center gap-1.5">
-        <span className="font-mono text-[10px] text-ink">
+        <span className="font-mono text-xs text-ink">
           {soles(real)} <span className="text-muted-foreground">/ {soles(base)}</span>
         </span>
-        <span className={`rounded-full px-1.5 py-px font-mono text-[9px] font-semibold tabular-nums ${pildora}`}>{pct(p)}</span>
+        <span className={`rounded-full px-1.5 py-px font-mono text-[10px] font-semibold tabular-nums ${pildora}`}>{pct(p)}</span>
       </span>
     </div>
   );
@@ -639,17 +659,18 @@ function BarraTiempo({ etiqueta, valor, tenue }: { etiqueta: string; valor: numb
   );
 }
 
-function Anillo({ valor }: { valor: number }) {
+function Anillo({ valor, alerta }: { valor: number; alerta?: boolean }) {
   const v = Math.min(Math.max(valor, 0), 100);
   const r = 46;
   const c = 2 * Math.PI * r;
   return (
-    <div className="relative h-32 w-32 shrink-0">
+    <div className={`relative h-32 w-32 shrink-0 ${alerta ? "text-warn" : ""}`}>
       <svg viewBox="0 0 120 120" className="h-full w-full -rotate-90" aria-hidden="true">
         <circle cx="60" cy="60" r={r} fill="none" stroke="currentColor" strokeOpacity="0.25" strokeWidth="12" />
         <circle cx="60" cy="60" r={r} fill="none" stroke="currentColor" strokeWidth="12" strokeLinecap="round" strokeDasharray={`${(v / 100) * c} ${c}`} />
       </svg>
       <span className="absolute inset-0 flex items-center justify-center font-mono text-2xl font-light">{pct(valor)}</span>
+      {alerta && <AlertTriangle size={14} className="absolute -right-1 -top-1 rounded-full bg-warn p-0.5 text-warn-foreground" />}
     </div>
   );
 }
