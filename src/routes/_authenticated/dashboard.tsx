@@ -3,12 +3,12 @@ import { estadoEmo, ultimoEmoPorTrabajador, useEmos } from "@/lib/emo";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
-import { Upload } from "lucide-react";
+import { AlertTriangle, HandCoins, Receipt, TrendingUp, Upload } from "lucide-react";
+import { Anillo, DonaLeyenda, FajoBilletes, FilaSemaforo, TarjetaKpi } from "@/components/dashboard/piezas";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
+import { Boton, Pestanas, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
-import { MESES, pct, soles } from "@/lib/format";
+import { MESES, pct, soles, solesPunto } from "@/lib/format";
 import { SIN_ASIGNAR } from "@/lib/pagos-rrhh";
 import { useCostoObras } from "@/lib/costo-obra";
 import { GananciaPerdida } from "@/components/dashboard/GananciaPerdida";
@@ -81,6 +81,7 @@ function Dashboard() {
   const { data: cargos = [] } = useCargos();
   const [seleccion, setSeleccion] = useState("global");
   const [exportandoPdf, setExportandoPdf] = useState(false);
+  const [detalle, setDetalle] = useState<"obras" | "indicadores" | "partidas">("obras");
 
   const global = seleccion === "global";
   const nombreVista = global ? "Consolidado Global" : (proyectos.find((p) => p.id === seleccion)?.nombre ?? "");
@@ -469,238 +470,125 @@ function Dashboard() {
         ) : (
         <>
         {/* Nivel 1: KPIs ejecutivos */}
-        <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-        <Kpi
-          etiqueta="Presupuesto Ofertado"
-          valor={datos.ofertado}
-          lineas={[
-            `Contractual ${soles(datos.contractual)} · Adicionales ${soles(datos.adicionales)}`,
-            `GG ${soles(datos.ggPresupuestado)} · Utilidad ${soles(datos.utilidadPrevista)}`,
-          ]}
-        />
-        <Kpi
-          etiqueta="Ventas y Cobranza"
-          valor={datos.cobrado}
-          lineas={[
-            `Por cobrar ${soles(datos.pendiente)}`,
-            `Efectividad de cobranza ${pct(datos.cobranzaPct)}`,
-          ]}
-        />
-        <Kpi
-          etiqueta="Costo Real Consolidado"
-          valor={datos.costoReal}
-          lineas={[
-            `Directos ${soles(datos.materiales + datos.subcontratos + datos.equipos + datos.servicios)} · MOD ${soles(
-              datos.mod,
-            )}`,
-            `Honorarios ${soles(datos.honorarios)}`,
-            `GG + Staff ${soles(datos.ggReal)}`,
-            "Personal valorizado desde boletas y recibos, repartido por tareo",
-            ...avisoPendientes,
-          ]}
-        />
-        <Kpi
-          etiqueta="Utilidad Real"
-          valor={datos.margen}
-          tono={datos.margen < datos.utilidadPrevista - 0.005 ? "bad" : "good"}
-          lineas={[
-            `Prevista ${soles(datos.utilidadPrevista)} − Desv. C. directo ${soles(datos.desvCD)} − Desv. GG ${soles(datos.desvGG)}`,
-            datos.margen <= 0 ? "⚠ Alerta crítica: utilidad agotada" : `Margen ${pct(datos.margenPct)} s/ ofertado`,
-          ]}
-        />
-        <div className="kpi-tarjeta flex flex-col">
-          <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Saldo Disponible por Ejecutar</p>
-          <p className={`mt-2 text-2xl font-bold tabular-nums ${datos.saldoOperativo < 0 ? "text-bad" : "text-ink"}`}>
-            {soles(datos.saldoOperativo)}
-          </p>
-          <p className="font-mono text-[10px] text-muted-foreground">Cada presupuesto se controla por separado</p>
-          <div className="mt-3 space-y-3">
-            <div>
-              <div className="flex items-center justify-between gap-2">
-                <span className="font-mono text-[10px] uppercase tracking-wide text-muted-foreground">Disp. Costo Directo</span>
-                {saldoCD < 0 ? (
-                  <span className="rounded bg-bad/10 px-1.5 py-0.5 font-mono text-[9px] font-bold whitespace-nowrap uppercase text-bad">⚠ Sobregirado</span>
-                ) : (
-                  <span className="font-mono text-[12px] font-bold whitespace-nowrap text-good">{soles(saldoCD)}</span>
-                )}
-              </div>
-              {saldoCD < 0 && (
-                <p className="text-right font-mono text-[12px] font-bold text-bad">{soles(saldoCD)}</p>
-              )}
-              <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-muted">
-                <div
-                  className={`growx h-full rounded-full ${consumoCD > 100 ? "bg-bad" : "bg-good"}`}
-                  style={{ width: `${Math.min(consumoCD, 100)}%` }}
-                />
-              </div>
-              <p className="mt-0.5 font-mono text-[10px] text-muted-foreground">
-                {soles(datos.costoDirectoReal)} de {soles(datos.cdPrevisto)} · {pct(consumoCD)}
-              </p>
+        <div className="mb-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <TarjetaKpi
+            icono={<FajoBilletes size={18} />}
+            tono="primary"
+            etiqueta="Presupuesto ofertado"
+            valor={soles(datos.ofertado)}
+            lineas={[
+              `Contractual ${soles(datos.contractual)} · Adicionales ${soles(datos.adicionales)}`,
+              `GG ${soles(datos.ggPresupuestado)} · Utilidad ${soles(datos.utilidadPrevista)}`,
+            ]}
+          />
+          <TarjetaKpi
+            icono={<HandCoins size={16} />}
+            tono={datos.facturado > 0 && datos.cobranzaPct < 70 ? "warn" : "good"}
+            etiqueta="Ventas y cobranza"
+            valor={soles(datos.cobrado)}
+            lineas={[`Por cobrar ${soles(datos.pendiente)}`, `Efectividad de cobranza ${pct(datos.cobranzaPct)}`]}
+          />
+          <TarjetaKpi
+            icono={<Receipt size={16} />}
+            tono="warn"
+            etiqueta="Costo real consolidado"
+            valor={soles(datos.costoReal)}
+            lineas={[
+              `Directos ${soles(datos.materiales + datos.subcontratos + datos.equipos + datos.servicios)} · MOD ${soles(datos.mod)}`,
+              `Honorarios ${soles(datos.honorarios)} · GG + Staff ${soles(datos.ggReal)}`,
+              ...avisoPendientes,
+            ]}
+          />
+          <TarjetaKpi
+            icono={<TrendingUp size={16} />}
+            tono={datos.margen < datos.utilidadPrevista - 0.005 ? "bad" : "good"}
+            etiqueta="Utilidad real"
+            valor={soles(datos.margen)}
+            claseValor={datos.margen < datos.utilidadPrevista - 0.005 ? "text-bad" : "text-good"}
+            insignia={datos.margen <= 0 && datos.utilidadPrevista > 0 ? <span className="rounded-full bg-bad/10 px-2 py-0.5 text-[10px] font-semibold text-bad">Crítico</span> : undefined}
+            lineas={[
+              `Prevista ${soles(datos.utilidadPrevista)} − Desv. CD ${soles(datos.desvCD)} − Desv. GG ${soles(datos.desvGG)}`,
+              datos.margen <= 0 ? "⚠ Alerta crítica: utilidad agotada" : `Margen ${pct(datos.margenPct)} s/ ofertado`,
+            ]}
+          />
+        </div>
+
+        {/* Nivel 2: saldo y composición */}
+        <div className="mb-3 grid items-stretch gap-3 lg:grid-cols-2 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)_minmax(0,1fr)]">
+          <div className="dash-tarjeta flex min-w-0 flex-col px-3 py-2.5">
+            <div className="flex items-center gap-2">
+              <span className="dash-icono dash-icono-sm dash-icono-suave" data-tono="good"><FajoBilletes size={18} /></span>
+              <p className="flex-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Saldo disponible por ejecutar</p>
+              {(saldoCD < 0 || saldoGG < 0) && <span className="inline-flex items-center gap-1 rounded-full bg-bad/10 px-2 py-0.5 text-[10px] font-semibold text-bad"><AlertTriangle size={11} /> Sobregirado</span>}
             </div>
-            <div>
-              <div className="flex items-center justify-between gap-2">
-                <span className="font-mono text-[10px] uppercase tracking-wide text-muted-foreground">Disp. Gastos Generales</span>
-                {saldoGG < 0 && (
-                  <span className="shrink-0 rounded bg-bad/10 px-1.5 py-0.5 font-mono text-[9px] font-bold whitespace-nowrap uppercase text-bad">⚠ Sobregirado</span>
-                )}
+            <div className="mt-2 flex items-center gap-3">
+              <Anillo valor={datos.cdPrevisto + datos.ggPresupuestado > 0 ? ((datos.costoDirectoReal + datos.ggReal) / (datos.cdPrevisto + datos.ggPresupuestado)) * 100 : 0} alerta={saldoCD < 0 || saldoGG < 0} rotulo="consumido" />
+              <div className="min-w-0 flex-1">
+                <p className="text-[11px] text-muted-foreground">Saldo operativo</p>
+                <p className={`font-mono text-xl font-semibold tabular-nums ${datos.saldoOperativo < 0 ? "text-bad" : "text-ink"}`}>{solesPunto(datos.saldoOperativo)}</p>
+                <p className="text-[10px] text-muted-foreground">Cada presupuesto se controla por separado</p>
               </div>
-              <p className={`text-right font-mono text-[12px] font-bold whitespace-nowrap ${saldoGG < 0 ? "text-bad" : "text-good"}`}>{soles(saldoGG)}</p>
-              <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-muted">
-                <div
-                  className={`growx h-full rounded-full ${consumoGG > 100 ? "bg-bad" : "bg-good"}`}
-                  style={{ width: `${Math.min(consumoGG, 100)}%` }}
-                />
-              </div>
-              <p className="mt-0.5 font-mono text-[10px] text-muted-foreground">
-                {soles(datos.ggReal)} de {soles(datos.ggPresupuestado)} · {pct(consumoGG)}
-              </p>
             </div>
+            <div className="mt-2 grid grid-cols-[minmax(0,1fr)_auto_auto_auto] items-center gap-x-2 gap-y-1">
+              <span />
+              <span className="pl-2 text-right text-[9px] uppercase tracking-wide text-muted-foreground">Real</span>
+              <span className="pl-2 text-right text-[9px] uppercase tracking-wide text-muted-foreground">Presupuestado</span>
+              <span className="pl-2 text-right text-[9px] uppercase tracking-wide text-muted-foreground">% usado</span>
+              <FilaSemaforo etiqueta="Costo directo" real={datos.costoDirectoReal} base={datos.cdPrevisto} />
+              <FilaSemaforo etiqueta="Gastos generales" real={datos.ggReal} base={datos.ggPresupuestado} />
+            </div>
+            <p className="mt-auto pt-2 text-[10px] leading-snug text-muted-foreground">
+              {desvGGTotal > 0
+                ? `El sobregiro de GG (${soles(desvGGTotal)}) ya se descuenta de la Utilidad Real.`
+                : "Sin sobregiro de GG; la utilidad real mantiene su valor previsto."}
+            </p>
           </div>
-          <p className="mt-3 border-t pt-2 font-mono text-[10px] leading-snug text-muted-foreground">
-            {desvGGTotal > 0
-              ? `Nota: El sobregiro de GG (${soles(desvGGTotal)}) ya se encuentra descontado de la Utilidad Real en tiempo real.`
-              : "Nota: Sin sobregiro de GG; la utilidad real mantiene su valor previsto."}
-          </p>
-        </div>
-      </div>
-
-      {/* Nivel 2: composición y termómetros */}
-      <div className="grid items-stretch gap-4 lg:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(240px,0.8fr)]">
-        <div className="min-w-0">
-          <Panel titulo="Composición del costo real" className="flex h-full flex-col">
-            {composicion.length === 0 ? (
-              <Vacio texto="Aún no hay costos registrados." />
-            ) : (
-              <div className="flex flex-1 flex-col items-center gap-4 px-5 py-4">
-                <div className="relative h-40 w-40 shrink-0">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={composicion}
-                        dataKey="valor"
-                        nameKey="nombre"
-                        innerRadius={50}
-                        outerRadius={72}
-                        paddingAngle={2}
-                        stroke="none"
-                      >
-                        {composicion.map((c) => (
-                          <Cell key={c.nombre} fill={c.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip
-                        formatter={(v: number) => soles(Number(v))}
-                        contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid var(--line)" }}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="label-mono text-[10px]">Costo total</span>
-                    <span className="font-mono text-[13px] font-bold text-ink">{soles(datos.costoReal)}</span>
-                  </div>
-                </div>
-                <ul className="my-auto flex min-w-0 flex-1 flex-col justify-center space-y-2 self-stretch">
-                  {composicion.map((c) => (
-                    <li key={c.nombre} className="flex items-center gap-2 text-[12px] leading-tight">
-                      <span
-                        className="h-2.5 w-2.5 shrink-0 rounded-sm"
-                        style={{ background: c.color }}
-                      />
-
-                      <span className="min-w-0 flex-1">
-                        <span className="block break-words">{c.nombre}</span>
-                        <span className="block font-mono text-[11px] text-muted-foreground">
-                          {soles(c.valor)} · {pct(c.porcentaje)}
-                        </span>
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </Panel>
+          <div className="dash-tarjeta flex min-w-0 flex-col px-3 py-2.5">
+            <p className="mb-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Composición del costo real</p>
+            <DonaLeyenda datos={composicion} centro="Costo total" vacio="Aún no hay costos registrados." />
+          </div>
+          <div className="dash-tarjeta flex min-w-0 flex-col px-3 py-2.5">
+            <p className="mb-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Gastos generales por categoría</p>
+            <DonaLeyenda datos={categoriasGG} centro="Gastos generales" vacio="Sin gastos generales registrados." />
+          </div>
         </div>
 
-
-        <div className="min-w-0">
-          <Panel titulo="Gastos generales por categoría" className="flex h-full flex-col">
-            {categoriasGG.length === 0 ? (
-              <Vacio texto="Sin gastos generales registrados." />
-            ) : (
-              <div className="flex flex-1 flex-col items-center gap-4 px-5 py-4">
-                <div className="relative h-40 w-40 shrink-0" role="img" aria-label="Distribución de gastos generales por categoría">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie data={categoriasGG} dataKey="valor" nameKey="nombre" innerRadius={50} outerRadius={72} paddingAngle={2} stroke="none">
-                        {categoriasGG.map((c) => <Cell key={c.nombre} fill={c.color} />)}
-                      </Pie>
-                      <Tooltip formatter={(v: number) => soles(Number(v))} contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid var(--line)", background: "var(--card)", color: "var(--ink)" }} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="label-mono text-[10px]">Gastos generales</span>
-                    <span className="font-mono text-[13px] font-bold text-ink">{soles(categoriasGG.reduce((s, c) => s + c.valor, 0))}</span>
-                  </div>
-                </div>
-                <ul className="flex w-full min-w-0 flex-col space-y-2">
-                  {categoriasGG.map((c) => (
-                    <li key={c.nombre} className="flex items-center gap-2 text-[12px] leading-tight">
-                      <span className="h-2.5 w-2.5 shrink-0 rounded-sm" style={{ background: c.color }} />
-                      <span className="min-w-0 flex-1">
-                        <span className="block break-words">{c.nombre}</span>
-                        <span className="block font-mono text-[11px] text-muted-foreground">{soles(c.valor)} · {pct(c.porcentaje)}</span>
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </Panel>
-        </div>
-
-        <div className="min-w-0 lg:col-span-2 xl:col-span-1">
-          <Panel titulo="Indicadores de control" className="h-full">
-            <div className="space-y-4 px-5 py-4">
-              <Termometro
-                etiqueta="Consumo del presupuesto ofertado"
-                actual={datos.costoReal}
-                meta={datos.ofertado}
-                invertido
-              />
-              <Termometro
-                etiqueta="Consumo de gastos generales"
-                actual={datos.ggReal}
-                meta={datos.ggPresupuestado}
-                invertido
-              />
+        {/* Nivel 3: detalle en pestañas */}
+        <div className="dash-tarjeta min-w-0 px-3 py-2">
+          <Pestanas
+            etiqueta="Detalle financiero"
+            opciones={[
+              { id: "obras", texto: "Resumen por obra" },
+              { id: "indicadores", texto: "Indicadores de control" },
+              { id: "partidas", texto: "Rendimiento por partida" },
+            ]}
+            valor={detalle}
+            onCambiar={setDetalle}
+          />
+          <div className="mt-2 max-h-[17rem] overflow-y-auto">
+          {detalle === "indicadores" ? (
+            <div className="grid gap-4 px-2 py-2 md:grid-cols-3">
+              <Termometro etiqueta="Consumo del presupuesto ofertado" actual={datos.costoReal} meta={datos.ofertado} invertido />
+              <Termometro etiqueta="Consumo de gastos generales" actual={datos.ggReal} meta={datos.ggPresupuestado} invertido />
               <Termometro etiqueta="Efectividad de cobranza" actual={datos.cobrado} meta={datos.facturado} />
             </div>
-          </Panel>
-        </div>
-      </div>
-
-      {/* Tabla por obra con semáforos */}
-      <div className="mt-4">
-        <Panel
-          titulo="Resumen financiero por obra"
-          extra={<span className="label-mono">Importes en soles (S/)</span>}
-        >
-          {filasTabla.length === 0 ? (
+          ) : detalle === "obras" ? (
+          filasTabla.length === 0 ? (
             <Vacio texto="No hay obras registradas." />
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-[13px]">
-                <thead>
+              <table className="w-full text-[12px]">
+                <thead className="sticky top-0 bg-card">
                   <tr className="border-b border-(--line-60) text-left">
-                    <th className="label-mono px-2 py-2">Obra</th>
-                    <th className="label-mono px-2 py-2 text-right">Ofertado total</th>
-                    <th className="label-mono px-2 py-2 text-right">C. directo previsto</th>
-                    <th className="label-mono px-2 py-2 text-right">GG previsto</th>
-                    <th className="label-mono px-2 py-2 text-right">Utilidad prevista</th>
-                    <th className="label-mono px-2 py-2 text-right">C. directo real</th>
-                    <th className="label-mono px-2 py-2 text-right">GG real</th>
-                    <th className="label-mono px-2 py-2 text-right">Utilidad real</th>
-                    <th className="label-mono px-2 py-2">Condición</th>
+                    <th className="label-mono px-2 py-1.5">Obra</th>
+                    <th className="label-mono px-2 py-1.5 text-right">Ofertado total</th>
+                    <th className="label-mono px-2 py-1.5 text-right">C. directo previsto</th>
+                    <th className="label-mono px-2 py-1.5 text-right">GG previsto</th>
+                    <th className="label-mono px-2 py-1.5 text-right">Utilidad prevista</th>
+                    <th className="label-mono px-2 py-1.5 text-right">C. directo real</th>
+                    <th className="label-mono px-2 py-1.5 text-right">GG real</th>
+                    <th className="label-mono px-2 py-1.5 text-right">Utilidad real</th>
+                    <th className="label-mono px-2 py-1.5">Condición</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-(--line-60)">
@@ -708,24 +596,22 @@ function Dashboard() {
                     const s = salud(f);
                     return (
                       <tr key={f.id}>
-                        <td className="px-2 py-2 font-medium whitespace-nowrap">{f.nombre}</td>
-                        <td className="px-2 py-2 text-right font-mono font-semibold whitespace-nowrap">
+                        <td className="px-2 py-1.5 font-medium whitespace-nowrap">{f.nombre}</td>
+                        <td className="px-2 py-1.5 text-right font-mono font-semibold whitespace-nowrap">
                           {monto(f.ofertado)}
                           {f.adicionales !== 0 && <span className="block text-[10px] font-normal text-muted-foreground">incl. adic. {monto(f.adicionales)}</span>}
                         </td>
-                        <td className="px-2 py-2 text-right font-mono whitespace-nowrap">{monto(f.cdPrevisto)}</td>
-                        <td className="px-2 py-2 text-right font-mono whitespace-nowrap">
+                        <td className="px-2 py-1.5 text-right font-mono whitespace-nowrap">{monto(f.cdPrevisto)}</td>
+                        <td className="px-2 py-1.5 text-right font-mono whitespace-nowrap">
                           {monto(f.ggPresupuestado)}<span className="ml-1 text-[10px] text-muted-foreground">({f.pctGG}%)</span>
                         </td>
-                        <td className="px-2 py-2 text-right font-mono whitespace-nowrap">
+                        <td className="px-2 py-1.5 text-right font-mono whitespace-nowrap">
                           {monto(f.utilidadPrevista)}<span className="ml-1 text-[10px] text-muted-foreground">({f.pctUtilidad}%)</span>
                         </td>
-                        <td className={`px-2 py-2 text-right font-mono whitespace-nowrap ${f.desvCD > 0 ? "text-bad" : ""}`}>{monto(f.costoDirectoReal)}</td>
-                        <td className={`px-2 py-2 text-right font-mono whitespace-nowrap ${f.desvGG > 0 ? "text-bad" : ""}`}>{monto(f.ggReal)}</td>
-                        <td className={`px-2 py-2 text-right font-mono font-semibold whitespace-nowrap ${f.margen < f.utilidadPrevista - 0.005 ? "text-bad" : "text-good"}`}>
-                          {monto(f.margen)}
-                        </td>
-                        <td className="px-2 py-2">
+                        <td className={`px-2 py-1.5 text-right font-mono whitespace-nowrap ${f.desvCD > 0 ? "text-bad" : ""}`}>{monto(f.costoDirectoReal)}</td>
+                        <td className={`px-2 py-1.5 text-right font-mono whitespace-nowrap ${f.desvGG > 0 ? "text-bad" : ""}`}>{monto(f.ggReal)}</td>
+                        <td className={`px-2 py-1.5 text-right font-mono font-semibold whitespace-nowrap ${f.margen < f.utilidadPrevista - 0.005 ? "text-bad" : "text-good"}`}>{monto(f.margen)}</td>
+                        <td className="px-2 py-1.5">
                           <span className="inline-flex items-center gap-2 whitespace-nowrap text-[11px]">
                             <span className="h-2.5 w-2.5 rounded-full" style={{ background: s.color }} />
                             {s.texto}
@@ -737,13 +623,8 @@ function Dashboard() {
                 </tbody>
               </table>
             </div>
-          )}
-        </Panel>
-      </div>
-
-      <div className="mt-4">
-        <Panel titulo={global ? "Rendimiento por Partida" : `Rendimiento por Partida — ${nombreVista}`}>
-          {global ? (
+          )
+          ) : global ? (
             <Vacio texto="Selecciona un proyecto específico para ver el rendimiento por partida." />
           ) : barras.length === 0 ? (
             <Vacio texto="Este proyecto aún no tiene partidas registradas." />
@@ -752,27 +633,25 @@ function Dashboard() {
               {barras.map((b) => {
                 const sobre = b.gastado > b.avance;
                 return (
-                  <li key={b.partida} className="flex flex-wrap items-center gap-4 px-5 py-4">
+                  <li key={b.partida} className="flex flex-wrap items-center gap-4 px-2 py-2">
                     <div className="min-w-64 flex-1">
-                      <p className="text-sm font-semibold">{b.partida}</p>
-                      <div className="mt-2 space-y-1.5">
+                      <p className="text-xs font-semibold">{b.partida}</p>
+                      <div className="mt-1 space-y-1">
                         <Barra etiqueta="Avance Físico" valor={b.avance} clase="bg-primary" />
                         <Barra etiqueta="Presupuesto Gastado" valor={b.gastado} clase={sobre ? "bg-bad" : "bg-good"} />
                       </div>
                     </div>
                     <div className="text-right">
                       <p className="label-mono">Diferencia</p>
-                      <p className={`font-mono text-sm font-semibold ${b.diferencia < 0 ? "text-bad" : "text-good"}`}>
-                        {soles(b.diferencia)}
-                      </p>
+                      <p className={`font-mono text-sm font-semibold ${b.diferencia < 0 ? "text-bad" : "text-good"}`}>{soles(b.diferencia)}</p>
                     </div>
                   </li>
                 );
               })}
             </ul>
           )}
-        </Panel>
-      </div>
+          </div>
+        </div>
         </>
         )}
       </div>
@@ -800,38 +679,6 @@ function salud(f: {
   const cobranzaEnRiesgo = f.facturado > 0 && f.cobranzaPct < 70;
   if (cobranzaEnRiesgo) return { color: "#F59E0B", texto: "Alerta" };
   return { color: "#10B981", texto: "Saludable" };
-}
-
-function Kpi({
-  etiqueta,
-  valor,
-  lineas,
-  tono,
-}: {
-  etiqueta: string;
-  valor: number;
-  lineas: string[];
-  tono?: "good" | "bad";
-}) {
-  return (
-    <div data-distintivo={tono === "bad" ? "bad" : "monto"} className="kpi-tarjeta flex flex-col">
-      <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{etiqueta}</p>
-      <p
-        className={`mt-2 text-2xl font-bold tabular-nums ${
-          tono === "bad" ? "text-bad" : tono === "good" ? "text-good" : "text-ink"
-        }`}
-      >
-        {soles(valor)}
-      </p>
-      <div className="mt-2 space-y-1 border-t border-line pt-2">
-        {lineas.map((l) => (
-          <p key={l} className="text-[11px] leading-snug tabular-nums text-muted-foreground">
-            {l}
-          </p>
-        ))}
-      </div>
-    </div>
-  );
 }
 
 function Termometro({
