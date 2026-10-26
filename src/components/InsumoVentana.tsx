@@ -77,6 +77,7 @@ export function VentanaInsumo({
   agregarA,
   soloTabla,
   alAgregar,
+  categoriaInventario,
 }: {
   modo: ModoInsumo;
   sel?: SelInsumo | null;
@@ -86,6 +87,7 @@ export function VentanaInsumo({
   agregarA?: { titulo: string };
   /** Restringe la lista del selector a un solo grupo (elegido en el menú +). */
   soloTabla?: TablaInsumo;
+  categoriaInventario?: "Equipo" | "Herramienta";
   /** Inserta el insumo en la receta; devuelve null si agregó, un mensaje si falló. */
   alAgregar?: (s: SelInsumo, cant: number) => Promise<string | null>;
 }) {
@@ -159,6 +161,7 @@ export function VentanaInsumo({
     const conSub = tipo === "materiales";
     if (!form.especialidad_id || (conSub && !form.subfamilia_id)) return setAviso(conSub ? "Elige la especialidad y la subfamilia: con ellas se genera el código." : "Elige la especialidad: con ella se genera el código.");
     d["especialidad_id"] = form.especialidad_id; d["subfamilia_id"] = conSub ? form.subfamilia_id : null;
+    if (categoriaInventario && tipo === "equipos_herramientas") d["categoria_inventario"] = categoriaInventario;
     const [oe, os, oc] = String(form._orig ?? "").split("|");
     if (modo === "editar" && oe === form.especialidad_id && (conSub ? os === form.subfamilia_id : true) && /^\d{8}$/.test(oc ?? "")) d["codigo"] = oc;
     else {
@@ -198,7 +201,7 @@ export function VentanaInsumo({
   const formulario = (
     <form className="grid gap-3 p-5 sm:grid-cols-2" onSubmit={(e) => { e.preventDefault(); guardar(); }}>
       <Campo etiqueta="Tipo de insumo">
-        <Select value={tipo} disabled={modo === "editar"} onChange={(e) => { const t = e.target.value as TablaInsumo; setTipo(t); setForm({ ...base(t), descripcion: form.descripcion, especialidad_id: form.especialidad_id, subfamilia_id: form.subfamilia_id }); }}>
+        <Select value={tipo} disabled={modo === "editar" || !!categoriaInventario} onChange={(e) => { const t = e.target.value as TablaInsumo; setTipo(t); setForm({ ...base(t), descripcion: form.descripcion, especialidad_id: form.especialidad_id, subfamilia_id: form.subfamilia_id }); }}>
           {(Object.keys(CONFIG) as TablaInsumo[]).map((t) => <option key={t} value={t}>{CONFIG[t].titulo}</option>)}
         </Select>
       </Campo>

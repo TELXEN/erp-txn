@@ -2020,6 +2020,7 @@ export type Database = {
       }
       equipos_herramientas: {
         Row: {
+          categoria_inventario: string | null
           codigo: string
           costo_hora: number
           costo_unitario: number | null
@@ -2035,6 +2036,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          categoria_inventario?: string | null
           codigo?: string
           costo_hora?: number
           costo_unitario?: number | null
@@ -2050,6 +2052,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          categoria_inventario?: string | null
           codigo?: string
           costo_hora?: number
           costo_unitario?: number | null

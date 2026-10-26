@@ -50,10 +50,11 @@
 - Quotations from a prior year are resumed via retomarCotizacion (new current-year code, Rev. 00, retoma_de_id link, original frozen as Retomada) — yearly numbering stays clean and history is kept.
 - Payment reports (ReportePagos) are read-only lists built from Tesorería CxP selection; payee accounts come from terceros_cuentas_bancarias (providers) or trabajadores (staff) via reporte-pagos.ts — reports never mark payments.
 - Valuations snapshot contracted metrado/P.U.; prior accumulation only from approved ones; approval (DB trigger) needs supervisor signature and freezes the row — stable history.
-- Gantt uses escalaCalendario for the timeline viewport and useRecordado for project selection — navigation stays legible and restores the last opened project without changing project data.
+- Gantt uses escalaCalendario and useRecordado for the timeline and last project.
+- Inventory reuses materiales, equipos_herramientas and BancoEpp; categoria_inventario splits equipment/tools only in logistics. Unclassified rows stay under equipment; APU stays combined.
 - Collapsible sections use Panel's colapsable/abierto/onAbrirCambiar props (header with totals stays visible, body hides) — one folding mechanism, not per-screen show/hide markup.
 - CTS regularization uses conflict-ignore inserts; grouping keeps period IDs/actions independent. CTS, gratification and settlement share one print sheet using saved amounts; calcGrat snapshots its breakdown, never inventing historical salary.
 
 - Employment periods live in vinculos_laborales; liquidation, rehire and cese annulment go only through registrar_liquidacion/reingresar_trabajador/anular_cese RPCs — cese and liquidation stay atomic and prior periods keep their history.
 - Company regime: dated regimenes_empresa; a worker's regime can't be below the company's at hire (trigger + errorRegimenTrabajador) — changes hit only new hires.
-- Configuración del Sistema → «Datos de la empresa» renders DatosEmpresaTabs with three sub-tabs (company form, regime, bank accounts) — never separate top-level tabs.
+- Company settings use DatosEmpresaTabs (general, banks, regime), not top-level tabs.
