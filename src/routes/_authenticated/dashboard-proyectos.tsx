@@ -519,7 +519,7 @@ function DashboardProyectos() {
                 })}
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 2xl:grid-cols-4">
               <MiniDato icono={<Layers3 size={16} />} tono="good" etiqueta="Total partidas" valor={String(obraSel?.partidas ?? 0)}
                 detalle={`${obraSel?.partidasContractuales ?? 0} contr. · ${obraSel?.partidasAdicionales ?? 0} adic.`} />
               <MiniDato icono={<ListTodo size={16} />} tono="warn" etiqueta="Partidas pendientes" valor={String(obraSel?.partidasPendientes ?? 0)} />
