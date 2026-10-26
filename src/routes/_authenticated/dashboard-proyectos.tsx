@@ -1024,3 +1024,44 @@ function UtilidadReal({ proyectada, real }: { proyectada: number; real: number }
     </div>
   );
 }
+
+function MiniDato({ icono, etiqueta, valor, detalle, tono }: { icono: ReactNode; etiqueta: string; valor: string; detalle?: string; tono: "good" | "warn" | "bad" | "primary" }) {
+  return (
+    <div className="dash-tarjeta dash-pastilla flex items-center gap-3 px-3 py-2.5">
+      <span className="dash-icono dash-icono-sm" data-tono={tono}>{icono}</span>
+      <div className="min-w-0 flex-1 text-center">
+        <p className="truncate text-xs text-muted-foreground">{etiqueta}</p>
+        <p className="font-mono text-lg font-semibold leading-tight text-ink">{valor}</p>
+        {detalle && <p className="truncate text-[10px] text-muted-foreground">{detalle}</p>}
+      </div>
+    </div>
+  );
+}
+
+function BarraTiempo({ etiqueta, valor, tenue }: { etiqueta: string; valor: number; tenue?: boolean }) {
+  const v = Math.min(Math.max(valor, 0), 100);
+  return (
+    <div className="flex items-center gap-2">
+      <span className="w-20 shrink-0 text-[11px] opacity-90">{etiqueta}</span>
+      <div className="h-4 flex-1 overflow-hidden rounded-sm bg-card/25">
+        <div className={`h-full rounded-sm ${tenue ? "bg-card/60" : "bg-card"}`} style={{ width: `${v}%` }} />
+      </div>
+      <span className="w-12 text-right font-mono text-[11px]">{pct(valor)}</span>
+    </div>
+  );
+}
+
+function Anillo({ valor }: { valor: number }) {
+  const v = Math.min(Math.max(valor, 0), 100);
+  const r = 46;
+  const c = 2 * Math.PI * r;
+  return (
+    <div className="relative h-32 w-32 shrink-0">
+      <svg viewBox="0 0 120 120" className="h-full w-full -rotate-90" aria-hidden="true">
+        <circle cx="60" cy="60" r={r} fill="none" stroke="currentColor" strokeOpacity="0.25" strokeWidth="12" />
+        <circle cx="60" cy="60" r={r} fill="none" stroke="currentColor" strokeWidth="12" strokeLinecap="round" strokeDasharray={`${(v / 100) * c} ${c}`} />
+      </svg>
+      <span className="absolute inset-0 flex items-center justify-center font-mono text-2xl font-light">{pct(valor)}</span>
+    </div>
+  );
+}
