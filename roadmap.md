@@ -102,3 +102,4 @@
 - [x] Quitar el panel «Cartera de proyectos» del Dashboard de Proyectos; contadores por estado quedan como solo lectura, pantalla y compilación verificadas.
 - [x] Dashboard de Proyectos: fondo del icono de Presupuesto más claro (verde claro con billete en verde)
 - [x] Costos Directos: quitar el desglose de costo directo y las pestañas; quedan las cinco tarjetas y Control por partida
+- [x] Flujo de requerimientos: Generar Requerimiento (APU/TDR) → aprobación de Gerencia → Bandeja de Requerimientos (cotizaciones, comparativo, OC) → envío y recepción en obra; probado de punta a punta y datos de prueba retirados.
