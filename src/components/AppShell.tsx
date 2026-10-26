@@ -1,5 +1,5 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 
@@ -207,12 +207,31 @@ function leerAbierta(): string | null {
   }
 }
 
+const dbShell = supabase as unknown as { from: (t: string) => any };
+
+/** Total de pendientes en Aprobaciones: requerimientos enviados a Gerencia + solicitudes de desbloqueo. */
+function usePendientesAprobacion(rol: Rol | null) {
+  return useQuery({
+    queryKey: ["aprobaciones-pendientes"],
+    enabled: rol === "gerente" || rol === "administrador",
+    refetchInterval: 30_000,
+    queryFn: async () => {
+      const [req, sol] = await Promise.all([
+        dbShell.from("requerimientos").select("id", { count: "exact", head: true }).eq("estado", "Enviado a Gerencia"),
+        dbShell.from("solicitudes_desbloqueo").select("id", { count: "exact", head: true }).eq("estado", "Pendiente"),
+      ]);
+      return (req.count ?? 0) + (sol.count ?? 0);
+    },
+  });
+}
+
 export function AppShell({ children }: { children: ReactNode }) {
   const { nombre, email, rol } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { data: configuracionDocumentos } = useFuenteDocumento();
+  const { data: pendientesAprobacion = 0 } = usePendientesAprobacion(rol);
 
 
   const categorias = MENU.map((c) => ({
@@ -305,10 +324,16 @@ export function AppShell({ children }: { children: ReactNode }) {
               {categorias.flatMap((c) => c.items).flatMap((m) => m.hijos ?? [m]).map((m) => {
                 const Icono = m.icono;
                 const activo = pathname === m.a;
+                const distintivo = m.a === "/aprobaciones" ? pendientesAprobacion : 0;
                 return (
                   <Link key={m.a} to={m.a} title={m.texto} aria-label={m.texto}
-                    className={`grid size-9 place-items-center rounded-md ${activo ? "bg-cta text-cta-foreground" : "text-sidebar-foreground hover:bg-sidebar-hover"}`}>
+                    className={`relative grid size-9 place-items-center rounded-md ${activo ? "bg-cta text-cta-foreground" : "text-sidebar-foreground hover:bg-sidebar-hover"}`}>
                     <Icono className="size-4" />
+                    {distintivo > 0 && (
+                      <span className="absolute -top-0.5 right-0 grid min-w-4 place-items-center rounded-full bg-bad px-1 text-[9px] font-bold leading-[14px] text-destructive-foreground">
+                        {distintivo}
+                      </span>
+                    )}
                   </Link>
                 );
               })}
@@ -338,6 +363,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                         const activo = pathname === m.a;
                         const Icono = m.icono;
                         if (m.hijos) return <SubgrupoMenu key={m.a} item={m} pathname={pathname} />;
+                        const distintivo = m.a === "/aprobaciones" ? pendientesAprobacion : 0;
                         return (
                           <Link
                             key={m.a}
@@ -347,7 +373,12 @@ export function AppShell({ children }: { children: ReactNode }) {
                             }`}
                           >
                             <Icono className="size-4 shrink-0 opacity-90" />
-                            <span>{m.texto}</span>
+                            <span className="flex-1">{m.texto}</span>
+                            {distintivo > 0 && (
+                              <span className="grid min-w-4 place-items-center rounded-full bg-bad px-1 text-[9px] font-bold leading-[14px] text-destructive-foreground" title="Pendientes de aprobación">
+                                {distintivo}
+                              </span>
+                            )}
                           </Link>
                         );
                       })}

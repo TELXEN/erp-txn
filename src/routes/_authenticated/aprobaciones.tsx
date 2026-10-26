@@ -53,6 +53,7 @@ function Aprobaciones() {
     const { error } = await db.from("requerimientos").update({ estado: aprobar ? "Aprobado" : "Rechazado", motivo_rechazo: motivo.trim() }).eq("id", id);
     setMsg(error ? error.message : aprobar ? "Requerimiento aprobado: pasó a la Bandeja de Requerimientos de Logística." : "Requerimiento rechazado.");
     qc.invalidateQueries({ queryKey: ["requerimientos"] });
+    qc.invalidateQueries({ queryKey: ["aprobaciones-pendientes"] });
   }
 
   const obra = (id: string) => {
@@ -74,6 +75,7 @@ function Aprobaciones() {
     }).eq("id", id);
     setMsg(error ? error.message : aprobar ? "Aprobada: la compra puede registrarse una vez en las próximas 48 h." : "Solicitud rechazada.");
     qc.invalidateQueries({ queryKey: ["solicitudes_desbloqueo"] });
+    qc.invalidateQueries({ queryKey: ["aprobaciones-pendientes"] });
   }
 
   async function guardarTol() {
