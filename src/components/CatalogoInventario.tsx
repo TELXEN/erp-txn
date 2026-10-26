@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Boxes, Pencil, Plus, ShieldCheck, Wrench, Package } from "lucide-react";
+import { Boxes, Pencil, Plus, ShieldCheck, Trash2, Wrench, Package } from "lucide-react";
 import { toast } from "sonner";
 import { BancoEpp } from "@/components/epp/epp";
 import { VentanaInsumo, type SelInsumo } from "@/components/InsumoVentana";
@@ -34,6 +34,15 @@ export function CatalogoInventario() {
     setGuardando(null);
     if (error) { toast.error(error.message); return; }
     await qc.invalidateQueries({ queryKey: ["banco_apu", "equipos_herramientas"] });
+  }
+  async function eliminar(id: string, descripcion: string) {
+    if (!confirm(`¿Eliminar «${descripcion}» del catálogo? Quedará como inactivo.`)) return;
+    setGuardando(id);
+    const { error } = await supabase.from(tabla).update({ estado: "inactivo" }).eq("id", id);
+    setGuardando(null);
+    if (error) { toast.error(error.message); return; }
+    toast.success(`«${descripcion}» eliminado del catálogo.`);
+    await qc.invalidateQueries({ queryKey: ["banco_apu", tabla] });
   }
   return <div className="space-y-4">
     <Pestanas etiqueta="Catálogo de Inventario" valor={grupo} onCambiar={(g) => { setGrupo(g); setBuscar(""); }} opciones={[
