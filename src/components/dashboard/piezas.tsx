@@ -115,13 +115,18 @@ export function DonaLeyenda({
 }) {
   if (datos.length === 0) return <p className="py-6 text-center text-xs text-muted-foreground">{vacio}</p>;
   const total = datos.reduce((s, c) => s + c.valor, 0);
+  const cifras = Math.max(1, Math.floor(Math.abs(total)).toString().length);
+  const lado = cifras <= 5 ? 112 : cifras === 6 ? 124 : cifras === 7 ? 136 : 150;
+  const rExt = lado / 2 - 2;
+  const rInt = rExt - 16;
+  const fuente = cifras >= 8 ? 11 : 10;
   return (
     <div className="flex min-h-0 flex-1 items-center">
-      <div className="flex h-28 w-full items-center gap-3">
-      <div className="relative h-28 w-28 shrink-0">
+      <div className="flex w-full items-center gap-3" style={{ height: lado }}>
+      <div className="relative shrink-0" style={{ width: lado, height: lado }}>
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
-            <Pie data={datos} dataKey="valor" nameKey="nombre" innerRadius={38} outerRadius={54} paddingAngle={2} stroke="none">
+            <Pie data={datos} dataKey="valor" nameKey="nombre" innerRadius={rInt} outerRadius={rExt} paddingAngle={2} stroke="none">
               {datos.map((c) => <Cell key={c.nombre} fill={c.color} />)}
             </Pie>
             <Tooltip formatter={(v: number) => soles(Number(v))} contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid var(--line)", background: "var(--card)", color: "var(--ink)" }} />
@@ -129,7 +134,7 @@ export function DonaLeyenda({
         </ResponsiveContainer>
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
           <span className="text-[8px] uppercase tracking-wide text-muted-foreground">{centro}</span>
-          <span className="font-mono text-[10px] font-semibold text-ink">{soles(total)}</span>
+          <span className="whitespace-nowrap font-mono font-semibold text-ink" style={{ fontSize: fuente }}>{soles(total)}</span>
         </div>
       </div>
       <ul className="min-w-0 flex-1 space-y-1 overflow-y-auto pr-1" style={{ maxHeight: "7rem" }}>
