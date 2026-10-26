@@ -1,7 +1,7 @@
 import { DesgloseCd } from "@/components/DesgloseCd";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { AlertTriangle, Briefcase, CalendarClock, CalendarDays, CircleDollarSign, ClipboardList, Clock3, Flag, Gauge, Hourglass, Layers3, ListTodo, Lock, Upload } from "lucide-react";
+import { AlertTriangle, Briefcase, CalendarClock, CalendarDays, CircleDollarSign, ClipboardList, Clock3, Flag, Gauge, Hourglass, Layers3, ListTodo, Upload } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Panel, Select, Vacio } from "@/components/ui-kit";
 import { CurvaS } from "@/components/CurvaS";
@@ -27,7 +27,6 @@ import {
 } from "@/lib/datos";
 import { useTareoVehiculos } from "@/lib/vehiculos";
 import { useCostoObras } from "@/lib/costo-obra";
-import { limiteCompra, useSolicitudesDesbloqueo, useToleranciaAvance } from "@/lib/sobrecosto";
 import { exportarExcel, exportarPdf } from "@/lib/exportar";
 
 export const Route = createFileRoute("/_authenticated/dashboard-proyectos")({
@@ -67,8 +66,6 @@ function DashboardProyectos() {
   const { data: tareoVeh = [] } = useTareoVehiculos();
   const { data: tiposPresupuesto = [] } = useTiposPresupuesto();
   const { data: cronograma = [] } = useCronograma();
-  const { data: solicitudes = [] } = useSolicitudesDesbloqueo();
-  const { data: tolerancia = 15 } = useToleranciaAvance();
   const [obraId, setObraId] = useState("todos");
   const [filtroEstado, setFiltroEstado] = useState<string>("Todos");
 
@@ -299,45 +296,6 @@ function DashboardProyectos() {
     if (esTodos) return partidas.filter((p) => p.prioridad === "Alta").length;
     return partidas.filter((p) => p.proyecto_id === obraSel.proyecto.id && p.prioridad === "Alta").length;
   }, [esTodos, obraSel, partidas]);
-
-  /** Estado del candado por partida: real acumulado frente a presupuesto × (1 + tolerancia). */
-  const filasPartidas = useMemo(() => {
-    const hoy = new Date().toISOString();
-    const autorizadas = new Set(
-      solicitudes
-        .filter((s) => s.estado === "Aprobada" && !s.usada_en && s.vence_en && s.vence_en > hoy && s.partida_id)
-        .map((s) => s.partida_id as string),
-    );
-    const gastoPorPartida = new Map<string, number>();
-    for (const g of gastosD) {
-      if (!g.partida_id) continue;
-      gastoPorPartida.set(g.partida_id, (gastoPorPartida.get(g.partida_id) ?? 0) + Number(g.monto_soles));
-    }
-    return partidasHoja
-      .filter((p) => Number(p.presupuesto_inicial) > 0)
-      .map((p) => {
-        const presupuesto = Number(p.presupuesto_inicial);
-        const avance = Number(p.avance_pct);
-        const limite = limiteCompra(presupuesto, avance, Number(tolerancia));
-        const real = gastoPorPartida.get(p.id) ?? 0;
-        return {
-          id: p.id,
-          codigo: p.codigo,
-          nombre: p.nombre,
-          obra: proyectos.find((x) => x.id === p.proyecto_id)?.nombre ?? "—",
-          avance,
-          presupuesto,
-          real,
-          limite,
-          consumo: limite > 0 ? (real / limite) * 100 : 0,
-          bloqueada: !autorizadas.has(p.id) && real >= limite - 0.005,
-        };
-      })
-      .sort((a, b) => Number(b.bloqueada) - Number(a.bloqueada) || b.consumo - a.consumo);
-  }, [gastosD, partidasHoja, proyectos, solicitudes, tolerancia]);
-
-  const bloqueadas = filasPartidas.filter((r) => r.bloqueada).length;
-  const solicitudesPendientes = solicitudes.filter((s) => s.estado === "Pendiente").length;
 
   const verDinero = puedeVerDinero(rol);
   const programadoSel = obraSel?.programado ?? null;
