@@ -538,7 +538,7 @@ function RequerimientosPage() {
           </div>
           {listo && (
             <Boton onClick={() => void generar()}>
-              <Zap size={14} className="mr-1 inline" /> Generar requerimiento
+              <Zap size={14} className="mr-1 inline" /> Generar y enviar a Gerencia
             </Boton>
           )}
         </div>
