@@ -81,6 +81,7 @@ function Dashboard() {
   const { data: cargos = [] } = useCargos();
   const [seleccion, setSeleccion] = useState("global");
   const [exportandoPdf, setExportandoPdf] = useState(false);
+  const [detalle, setDetalle] = useState<"obras" | "indicadores" | "partidas">("obras");
 
   const global = seleccion === "global";
   const nombreVista = global ? "Consolidado Global" : (proyectos.find((p) => p.id === seleccion)?.nombre ?? "");
@@ -678,38 +679,6 @@ function salud(f: {
   const cobranzaEnRiesgo = f.facturado > 0 && f.cobranzaPct < 70;
   if (cobranzaEnRiesgo) return { color: "#F59E0B", texto: "Alerta" };
   return { color: "#10B981", texto: "Saludable" };
-}
-
-function Kpi({
-  etiqueta,
-  valor,
-  lineas,
-  tono,
-}: {
-  etiqueta: string;
-  valor: number;
-  lineas: string[];
-  tono?: "good" | "bad";
-}) {
-  return (
-    <div data-distintivo={tono === "bad" ? "bad" : "monto"} className="kpi-tarjeta flex flex-col">
-      <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{etiqueta}</p>
-      <p
-        className={`mt-2 text-2xl font-bold tabular-nums ${
-          tono === "bad" ? "text-bad" : tono === "good" ? "text-good" : "text-ink"
-        }`}
-      >
-        {soles(valor)}
-      </p>
-      <div className="mt-2 space-y-1 border-t border-line pt-2">
-        {lineas.map((l) => (
-          <p key={l} className="text-[11px] leading-snug tabular-nums text-muted-foreground">
-            {l}
-          </p>
-        ))}
-      </div>
-    </div>
-  );
 }
 
 function Termometro({
