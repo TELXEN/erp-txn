@@ -47,6 +47,8 @@ async def main():
             assert len(confirmations) == 3
             assert await fields.nth(1).input_value() == entered_name
             await fields.nth(0).focus()
+            page.on("console", lambda msg: print(msg.text) if msg.text.startswith("KEY:") else None)
+            await page.evaluate("""document.querySelector([role=dialog]
             await fields.nth(0).press("Enter")
             assert await dialog.get_by_text("El RUC debe tener 11 dígitos.", exact=True).count() == 0, "Enter en un campo no debe guardar anticipadamente"
             await dialog.get_by_role("button", name="Guardar", exact=True).click()
