@@ -103,7 +103,7 @@ export function DonaLeyenda({
   centro,
   vacio,
 }: {
-  datos: { nombre: string; valor: number; porcentaje: number; color: string }[];
+  datos: { nombre: string; valor: number; porcentaje: number; color?: string }[];
   centro: string;
   vacio: string;
 }) {
