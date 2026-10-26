@@ -1,7 +1,7 @@
 import { DesgloseCd } from "@/components/DesgloseCd";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { AlertTriangle, CalendarClock, CircleDollarSign, ClipboardList, Clock3, Flag, Gauge, Hourglass, Layers3, ListTodo, Upload } from "lucide-react";
+import { AlertTriangle, CalendarClock, CircleDollarSign, ClipboardList, Gauge, Hourglass, Layers3, ListTodo, Upload } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Select, Vacio } from "@/components/ui-kit";
 import { InsigniaPrioridad, InsigniaSituacion } from "@/components/estado-ui";
@@ -544,19 +544,6 @@ function MedidorCompacto({ valor }: { valor: number }) {
     </div>
   );
 }
-
-function DatoIcono({ icono, etiqueta, valor, tono }: { icono: ReactNode; etiqueta: string; valor: string; tono?: "good" | "bad" }) {
-  return (
-    <div className="flex min-h-32 items-center gap-4 border-b border-line p-5 last:border-b-0 sm:border-r sm:[&:nth-child(2n)]:border-r-0 sm:[&:nth-child(n+3)]:border-b-0">
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-primary [&>svg]:h-5 [&>svg]:w-5">{icono}</span>
-      <div className="min-w-0">
-        <p className="label-mono">{etiqueta}</p>
-        <p className={`mt-1 font-mono text-sm font-semibold ${tono === "bad" ? "text-bad" : tono === "good" ? "text-good" : "text-ink"}`}>{valor}</p>
-      </div>
-    </div>
-  );
-}
-
 
 /** Semáforo suave de consumo contra la base: verde normal, ámbar al acercarse (≥85%), rojo al superar. */
 function nivelConsumo(real: number, base: number): "ok" | "cerca" | "excedido" {
