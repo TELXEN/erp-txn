@@ -7,6 +7,7 @@ import { ChevronDown, ChevronRight, PackageCheck, Plus, Printer, Trash2, Truck, 
 import { HojaOrdenCompra, imprimirOrdenCompra } from "@/components/HojaOrdenCompra";
 import { useEmpresa } from "@/lib/empresa";
 import { montosOrdenCompra } from "@/lib/orden-compra-montos";
+import { condicionPagoOrden, detallePagoOrden } from "@/lib/orden-compra-pago";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, BotonIcono, Campo, Input, MenuFiltros, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
@@ -70,6 +71,7 @@ function OrdenesCompraPage() {
     requerimiento_id: "",
     fecha_entrega: "",
     condicion_pago: "Contado",
+    dias_pago: "30",
     observacion: "",
   });
   const [lineas, setLineas] = useState<Linea[]>([]);
@@ -150,6 +152,9 @@ function OrdenesCompraPage() {
     e.preventDefault();
     setError("");
     setAviso("");
+    let condicion: string;
+    try { condicion = condicionPagoOrden(form.condicion_pago, Number(form.dias_pago)); }
+    catch (e) { return setError(e instanceof Error ? e.message : "Revisa el plazo de pago."); }
     if (!form.proyecto_id) return setError("Selecciona la obra.");
     if (!form.proveedor_id) return setError("Selecciona el proveedor.");
     const validas = lineas.filter((l) => Number(l.cantidad) > 0 && l.descripcion.trim());
@@ -165,7 +170,7 @@ function OrdenesCompraPage() {
         proveedor_id: form.proveedor_id,
         requerimiento_id: form.requerimiento_id || null,
         fecha_entrega: form.fecha_entrega || null,
-        condicion_pago: form.condicion_pago,
+        condicion_pago: condicion,
         observacion: form.observacion.trim(),
       })
       .select("id")
@@ -390,11 +395,14 @@ function OrdenesCompraPage() {
             <Campo etiqueta="Fecha de entrega">
               <Input type="date" value={form.fecha_entrega} onChange={(e) => setForm({ ...form, fecha_entrega: e.target.value })} />
             </Campo>
-            <Campo etiqueta="Condición de pago">
+            <Campo etiqueta="Forma de pago">
               <Select value={form.condicion_pago} onChange={(e) => setForm({ ...form, condicion_pago: e.target.value })}>
-                {["Contado", "Crédito 15 días", "Crédito 30 días", "Crédito 45 días", "Crédito 60 días"].map((c) => <option key={c}>{c}</option>)}
+                <option>Contado</option><option>Crédito</option>
               </Select>
             </Campo>
+            {form.condicion_pago === "Crédito" && <Campo etiqueta="Plazo de pago (días)">
+              <Input type="number" min="1" step="1" required value={form.dias_pago} onChange={(e) => setForm({ ...form, dias_pago: e.target.value })} />
+            </Campo>}
             <Campo etiqueta="Observación">
               <Input value={form.observacion} onChange={(e) => setForm({ ...form, observacion: e.target.value })} />
             </Campo>
@@ -477,7 +485,7 @@ function OrdenesCompraPage() {
                   <div className="flex justify-between gap-3"><span>TOTAL CON IGV</span><span>{soles(desgloseOC(actual.id).total)}</span></div>
                 </>}
               </div>
-              <div className="oc-conditions"><h3>FORMA DE PAGO</h3>{actual.condicion_pago || "—"}</div>
+              <div className="oc-conditions"><h3>FORMA DE PAGO</h3><p>{detallePagoOrden(actual.condicion_pago).forma}</p>{detallePagoOrden(actual.condicion_pago).forma === "Crédito" && <p><b>Plazo de pago:</b> {detallePagoOrden(actual.condicion_pago).plazo}</p>}</div>
               {actual.observacion && <div className="oc-conditions"><h3>OBSERVACIONES</h3>{actual.observacion}</div>}
             </HojaOrdenCompra>
           </div>
