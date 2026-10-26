@@ -572,7 +572,7 @@ function MedidorCompacto({ valor }: { valor: number }) {
   const tramo = (desde: number, hasta: number) =>
     Math.max(0, Math.min(limitado, hasta) - desde) / 100 * largo;
   return (
-    <div className="relative mx-auto h-28 w-full max-w-52 overflow-hidden" aria-label={`Avance físico ${pct(valor)}`}>
+    <div className="relative mx-auto h-24 w-full max-w-44 overflow-hidden" aria-label={`Avance físico ${pct(valor)}`}>
       <svg viewBox="0 0 180 110" className="h-full w-full" aria-hidden="true">
         <path d="M 18 92 A 72 72 0 0 1 162 92" fill="none" className="stroke-muted" strokeWidth="14" strokeLinecap="round" />
         <path
@@ -678,7 +678,7 @@ function UtilidadReal({ proyectada, real }: { proyectada: number; real: number }
 
 function MiniDato({ icono, etiqueta, valor, detalle, tono }: { icono: ReactNode; etiqueta: string; valor: string; detalle?: string; tono: "good" | "warn" | "bad" | "primary" }) {
   return (
-    <div className="dash-tarjeta dash-pastilla flex items-center gap-3 px-3 py-2.5">
+    <div className="dash-tarjeta dash-pastilla flex items-center gap-3 px-3 py-2">
       <span className="dash-icono dash-icono-sm" data-tono={tono}>{icono}</span>
       <div className="min-w-0 flex-1 text-center">
         <p className="truncate text-xs text-muted-foreground">{etiqueta}</p>
@@ -694,7 +694,7 @@ function BarraTiempo({ etiqueta, valor, tenue }: { etiqueta: string; valor: numb
   return (
     <div className="flex items-center gap-2">
       <span className="w-20 shrink-0 text-[11px] opacity-90">{etiqueta}</span>
-      <div className="h-4 flex-1 overflow-hidden rounded-sm bg-card/25">
+      <div className="h-3 flex-1 overflow-hidden rounded-sm bg-card/25">
         <div className={`h-full rounded-sm ${tenue ? "bg-card/60" : "bg-card"}`} style={{ width: `${v}%` }} />
       </div>
       <span className="w-12 text-right font-mono text-[11px]">{pct(valor)}</span>
@@ -708,7 +708,7 @@ function Anillo({ valor, alerta }: { valor: number; alerta?: boolean }) {
   const c = 2 * Math.PI * r;
   const tono = alerta ? "text-warn" : valor >= 85 ? "text-warn" : "";
   return (
-    <div className={`relative h-24 w-24 shrink-0 ${tono}`}>
+    <div className={`relative h-20 w-20 shrink-0 ${tono}`}>
       <svg viewBox="0 0 120 120" className="h-full w-full -rotate-90" aria-hidden="true">
         <circle cx="60" cy="60" r={r} fill="none" stroke="currentColor" strokeOpacity="0.25" strokeWidth="14" />
         <circle cx="60" cy="60" r={r} fill="none" stroke="currentColor" strokeWidth="14" strokeLinecap="round" strokeDasharray={`${(v / 100) * c} ${c}`} />
