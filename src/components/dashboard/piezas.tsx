@@ -110,7 +110,8 @@ export function DonaLeyenda({
   if (datos.length === 0) return <p className="py-6 text-center text-xs text-muted-foreground">{vacio}</p>;
   const total = datos.reduce((s, c) => s + c.valor, 0);
   return (
-    <div className="flex min-h-0 flex-1 items-center gap-3">
+    <div className="flex min-h-0 flex-1 items-center">
+      <div className="flex h-28 w-full items-center gap-3">
       <div className="relative h-28 w-28 shrink-0">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
@@ -125,7 +126,7 @@ export function DonaLeyenda({
           <span className="font-mono text-[10px] font-semibold text-ink">{soles(total)}</span>
         </div>
       </div>
-      <ul className="min-w-0 flex-1 space-y-1 overflow-y-auto pr-1" style={{ maxHeight: "7.5rem" }}>
+      <ul className="min-w-0 flex-1 space-y-1 overflow-y-auto pr-1" style={{ maxHeight: "7rem" }}>
         {datos.map((c) => (
           <li key={c.nombre} className="flex items-center gap-1.5 text-[11px] leading-tight">
             <span className="h-2 w-2 shrink-0 rounded-sm" style={{ background: c.color }} />
@@ -134,6 +135,7 @@ export function DonaLeyenda({
           </li>
         ))}
       </ul>
+      </div>
     </div>
   );
 }
