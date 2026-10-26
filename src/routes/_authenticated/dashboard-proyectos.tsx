@@ -437,12 +437,9 @@ function DashboardProyectos() {
         }
       />
 
-      <div className="mb-4 flex flex-col gap-3 border-y border-line bg-card px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="label-mono">{esTodos ? "Vista general" : "Obra analizada"}</p>
-          <p className="mt-1 text-sm font-semibold">{obraSel?.proyecto.nombre ?? "Sin obras registradas"}</p>
-        </div>
+      <div className="mb-3 flex justify-end">
         <div className="w-full sm:w-80">
+          <p className="label-mono mb-1">Seleccione proyecto</p>
           <Select value={esTodos ? "todos" : (obraSel?.proyecto.id ?? "")} onChange={(e) => setObraId(e.target.value)}>
             {filas.length === 0 ? (
               <option value="todos">Sin obras registradas</option>
@@ -458,35 +455,139 @@ function DashboardProyectos() {
         </div>
       </div>
 
-      <section className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4" aria-label="Estado de los proyectos">
-        {TARJETAS_ESTADO.map(({ etiqueta, situacion }) => {
-          const cantidad = proyectos.filter((p) => p.situacion === situacion).length;
-          const activa = filtroEstado === situacion;
-          const alerta = situacion === "Retrasado" && cantidad > 0;
-          return (
-            <button
-              key={situacion}
-              type="button"
-              aria-pressed={activa}
-              data-distintivo={alerta ? "bad" : "cantidad"}
-              onClick={() => setFiltroEstado(activa ? "Todos" : situacion)}
-              className={`kpi-tarjeta text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${activa ? "ring-2 ring-primary" : ""}`}
-            >
-              <span className="flex items-center justify-between gap-2">
-                <span className="flex items-center gap-1.5">
-                  <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: tonoSituacion(situacion).borde }} />
-                  <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{etiqueta}</span>
-                </span>
-                {alerta && <span className="rounded-full bg-bad/10 px-1.5 py-0.5 text-[10px] font-semibold text-bad">Atención</span>}
-              </span>
-              <p className="mt-2 text-3xl font-bold tabular-nums text-ink">{cantidad}</p>
-            </button>
-          );
-        })}
-      </section>
+      <div className="dash-lienzo mb-4 space-y-4 p-4">
+        {/* Fila superior: fecha, total de proyectos y proyecto elegido */}
+        <section className="grid gap-4 xl:grid-cols-[200px_minmax(0,1fr)_minmax(0,1.6fr)]">
+          <div className="dash-tarjeta flex flex-col justify-center p-5">
+            <span className="dash-icono" data-tono="accent"><CalendarDays size={20} /></span>
+            <p className="mt-3 text-xl capitalize text-primary">{hoyTexto.dia}</p>
+            <p className="font-mono text-5xl font-light leading-none text-ink">{hoyTexto.numero}</p>
+            <p className="mt-1 text-lg uppercase tracking-wide text-muted-foreground">{hoyTexto.mes}</p>
+          </div>
+
+          <div className="dash-tarjeta dash-degradado p-5" data-tono="primary">
+            <div className="flex items-center gap-3">
+              <span className="dash-icono dash-icono-claro"><Briefcase size={18} /></span>
+              <p className="text-lg">Total proyectos · {proyectos.length}</p>
+            </div>
+            <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {TARJETAS_ESTADO.map(({ etiqueta, situacion }) => {
+                const cantidad = proyectos.filter((p) => p.situacion === situacion).length;
+                const activa = filtroEstado === situacion;
+                return (
+                  <button
+                    key={situacion}
+                    type="button"
+                    aria-pressed={activa}
+                    onClick={() => setFiltroEstado(activa ? "Todos" : situacion)}
+                    className="flex flex-col items-center gap-2 focus:outline-none"
+                  >
+                    <span className="font-mono text-4xl font-light tabular-nums">{cantidad}</span>
+                    <span className={`dash-chip w-full ${activa ? "dash-chip-activo" : ""}`}>{etiqueta}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <div className="dash-tarjeta p-4">
+              <div className="flex items-start gap-3">
+                <span className="dash-icono" data-tono="warn"><ClipboardList size={20} /></span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-lg text-ink">{esTodos ? "Cartera completa" : (obraSel?.proyecto.nombre ?? "Sin obras registradas")}</p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {esTodos ? `${filas.length} obras en cartera` : [obraSel?.proyecto.codigo, obraSel?.proyecto.cliente].filter(Boolean).join(" | ")}
+                  </p>
+                </div>
+                {!esTodos && obraSel && <InsigniaSituacion valor={obraSel.proyecto.situacion} />}
+              </div>
+              <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                {TARJETAS_ESTADO.map(({ etiqueta, situacion }) => {
+                  const cantidad = proyectos.filter((p) => p.situacion === situacion).length;
+                  return (
+                    <div key={situacion} className="rounded-lg px-2 py-1.5 text-center text-primary-foreground shadow-sm" style={{ backgroundColor: tonoSituacion(situacion).borde }}>
+                      <p className="text-[10px] opacity-90">{etiqueta}</p>
+                      <p className="font-mono text-2xl font-semibold leading-tight">{cantidad}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+              <MiniDato icono={<Layers3 size={16} />} tono="good" etiqueta="Total partidas" valor={String(obraSel?.partidas ?? 0)}
+                detalle={`${obraSel?.partidasContractuales ?? 0} contr. · ${obraSel?.partidasAdicionales ?? 0} adic.`} />
+              <MiniDato icono={<ListTodo size={16} />} tono="warn" etiqueta="Partidas pendientes" valor={String(obraSel?.partidasPendientes ?? 0)} />
+              <MiniDato icono={<AlertTriangle size={16} />} tono="bad" etiqueta="Prioridad alta" valor={String(prioridadAlta)} />
+              <MiniDato icono={<Hourglass size={16} />} tono="primary" etiqueta={plazo?.vencido ? "Plazo vencido" : "Días restantes"}
+                valor={plazo ? String(Math.abs(plazo.dias)) : "—"} />
+            </div>
+          </div>
+        </section>
+
+        {/* Fila inferior: progreso, línea de tiempo y presupuesto */}
+        <section className={`grid gap-4 ${verDinero ? "lg:grid-cols-[1fr_1.3fr_1.2fr]" : "lg:grid-cols-[1fr_1.6fr]"}`}>
+          <div className="dash-tarjeta p-5">
+            <div className="flex items-center gap-3">
+              <span className="dash-icono" data-tono="muted"><Gauge size={18} /></span>
+              <p className="text-lg text-ink">Progreso</p>
+            </div>
+            {!obraSel ? <Vacio texto="Registra una obra para visualizar el avance." /> : (
+              <>
+                <div className="mt-3"><MedidorCompacto valor={obraSel.avance} /></div>
+                <p className="mt-2 text-center text-xs text-muted-foreground">
+                  {programadoSel === null ? "Sin avance programado oficial"
+                    : obraSel.avance + 0.05 < programadoSel ? <span className="font-semibold text-bad">-{pct(programadoSel - obraSel.avance)} · Retraso</span>
+                    : <span className="font-semibold text-good">+{pct(obraSel.avance - programadoSel)} · En plazo o adelantada</span>}
+                </p>
+              </>
+            )}
+          </div>
+
+          <div className="dash-tarjeta dash-degradado p-5" data-tono="violeta">
+            <div className="flex items-center gap-3">
+              <span className="dash-icono dash-icono-claro"><CalendarClock size={18} /></span>
+              <p className="text-lg">Línea de tiempo</p>
+            </div>
+            <div className="mt-6 flex justify-between font-mono text-xs opacity-90">
+              <span>{fecha(obraSel?.proyecto.fecha_inicio ?? null)}</span>
+              <span>{fecha(obraSel?.proyecto.fecha_fin ?? null)}</span>
+            </div>
+            <div className="mt-2 space-y-2">
+              <BarraTiempo etiqueta="Real" valor={obraSel?.avance ?? 0} />
+              <BarraTiempo etiqueta="Programado" valor={programadoSel ?? 0} tenue />
+            </div>
+            <div className="mt-2 flex justify-between font-mono text-[10px] opacity-80">
+              {[0, 20, 40, 60, 80, 100].map((n) => <span key={n}>{n}%</span>)}
+            </div>
+            <p className="mt-3 font-mono text-[11px] opacity-90">
+              Corte: {obraSel?.usaCalendario ? fecha(hoyISO()) : obraSel?.proyecto.fecha_corte_programado ? fecha(obraSel.proyecto.fecha_corte_programado) : "Sin registrar"}
+            </p>
+          </div>
+
+          {verDinero && (
+            <div className="dash-tarjeta dash-degradado p-5" data-tono="good">
+              <div className="flex items-center gap-3">
+                <span className="dash-icono dash-icono-claro"><CircleDollarSign size={18} /></span>
+                <p className="text-lg">Presupuesto</p>
+              </div>
+              <div className="mt-3 flex items-center gap-4">
+                <Anillo valor={(obraSel?.gastado ?? 0)} />
+                <div className="min-w-0 space-y-2">
+                  <div><p className="font-mono text-lg font-semibold">{soles(obraSel?.presupuesto ?? 0)}</p><p className="text-xs opacity-90">Total presupuesto</p></div>
+                  <div><p className="font-mono text-lg font-semibold">{soles(obraSel?.costoReal ?? 0)}</p><p className="text-xs opacity-90">Total gastado</p></div>
+                </div>
+              </div>
+              <div className="mt-3 space-y-1 rounded-lg bg-card p-2 text-ink">
+                <FilaSemaforo etiqueta="Costo directo" real={obraSel?.cdReal ?? 0} base={obraSel?.cdPres ?? 0} />
+                <FilaSemaforo etiqueta="Gastos generales" real={obraSel?.ggReal ?? 0} base={obraSel?.ggPres ?? 0} />
+              </div>
+            </div>
+          )}
+        </section>
+      </div>
 
       {verDinero && (() => {
-        // Con una obra seleccionada las tarjetas muestran esa obra; con «Todos», la cartera.
         const f = esTodos ? null : obraSel;
         const pres = f ? f.presupuesto : resumen.presupuesto;
         const cdP = f ? f.cdPres : resumen.cdPres;
@@ -495,7 +596,7 @@ function DashboardProyectos() {
         const cdR = f ? f.cdReal : resumen.cdReal;
         const ggR = f ? f.ggReal : resumen.ggReal;
         return (
-        <section className="mb-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4" aria-label={esTodos ? "Control presupuestal de la cartera" : "Control presupuestal de la obra seleccionada"}>
+        <section className="mb-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4" aria-label="Control presupuestal">
           <div className="kpi-tarjeta">
             <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Presupuesto vigente</p>
             <p className="mt-2 text-2xl font-bold tabular-nums text-ink">{soles(pres)}</p>
@@ -512,135 +613,30 @@ function DashboardProyectos() {
         );
       })()}
 
-      <section className={`mb-4 grid gap-3 ${verDinero ? "lg:grid-cols-3" : "lg:grid-cols-2"}`} aria-label="Resumen del proyecto seleccionado">
-        <div className="panel rise flex flex-col justify-between p-4">
-          {!obraSel ? (
-            <Vacio texto="Registra una obra para visualizar el avance." />
-          ) : (
-            <>
-              <div className="flex items-start justify-between gap-2">
-                <p className="label-mono">Avance general</p>
-                {esTodos ? (
-                  <span className="rounded-full border border-line px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Cartera completa</span>
-                ) : (
-                  <InsigniaSituacion valor={obraSel.proyecto.situacion} />
-                )}
-              </div>
-
-              <div className="my-2 grid grid-cols-3 gap-1 rounded-lg border border-line bg-muted/30 p-2 text-center">
-                <div>
-                  <p className="label-mono text-[9px]">Inicio</p>
-                  <p className={`mt-0.5 font-mono text-[11px] ${obraSel.proyecto.fecha_inicio ? "font-semibold" : "text-muted-foreground/60"}`}>{fecha(obraSel.proyecto.fecha_inicio)}</p>
-                </div>
-                <div className="border-x border-line px-1">
-                  <p className="label-mono text-[9px]">Fin previsto</p>
-                  <p className={`mt-0.5 font-mono text-[11px] ${obraSel.proyecto.fecha_fin ? "font-semibold" : "text-muted-foreground/60"}`}>{fecha(obraSel.proyecto.fecha_fin)}</p>
-                </div>
-                <div>
-                  <p className="label-mono text-[9px]">{plazo?.vencido ? "Plazo vencido" : "Días restantes"}</p>
-                  <p className={`mt-0.5 font-mono text-[11px] ${!plazo ? "text-muted-foreground/60" : plazo.vencido ? "font-semibold text-bad" : "font-semibold"}`}>
-                    {plazo ? `${Math.abs(plazo.dias)} días` : "Sin fecha"}
-                  </p>
-                </div>
-              </div>
-
-              <MedidorCompacto valor={obraSel.avance} />
-              {verDinero && (
-                <div className="mb-2 rounded-md border border-line bg-muted/30 px-3 py-2 text-center">
-                  <p className="label-mono text-[9px]">Costo ejecutado</p>
-                  <p className={`font-mono text-sm font-semibold ${obraSel.desviado ? "text-bad" : "text-ink"}`}>{soles(obraSel.costoReal)}</p>
-                  <p className="font-mono text-[10px] text-muted-foreground">{pct(obraSel.gastado ?? 0)} avance financiero · independiente del físico</p>
-                  <div className="mt-1.5 space-y-1 border-t border-line pt-1.5 text-left">
-                    <FilaSemaforo etiqueta="Costo directo" real={obraSel.cdReal} base={obraSel.cdPres} />
-                    <FilaSemaforo etiqueta="Gastos generales" real={obraSel.ggReal} base={obraSel.ggPres} />
-                  </div>
-                </div>
-              )}
-
-              <div className="flex items-center justify-between border-t border-line pt-2">
-                {esTodos ? (
-                  <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">{filas.length} obras en cartera</span>
-                ) : (
-                  <InsigniaSituacion valor={obraSel.proyecto.situacion} />
-                )}
-                <span className="font-mono text-[10px] text-muted-foreground">{obraSel.partidas} partidas</span>
-              </div>
-            </>
-          )}
-        </div>
-
-        <div className="panel rise overflow-hidden">
-
-          <div className="border-b border-line px-4 py-3"><p className="label-mono">Partidas y prioridad</p></div>
-          <div className="divide-y divide-line">
+      {verDinero && (
+        <section className="mb-4 grid gap-3 lg:grid-cols-2">
+          <div className="panel overflow-hidden">
+            <div className="border-b border-line px-4 py-3"><p className="label-mono">{esTodos ? "Resumen financiero de la cartera" : "Resumen financiero del proyecto"}</p></div>
+            <div className="divide-y divide-line">
+              <DatoFinanciero etiqueta="Presupuesto contractual total" valor={soles(obraSel?.presupuesto ?? 0)} />
+              <DatoFinanciero etiqueta="(−) Costo directo presupuestado" valor={soles(obraSel?.cdPres ?? 0)} />
+              <DatoFinanciero etiqueta="(−) Gastos generales presupuestados" valor={soles(obraSel?.ggPres ?? 0)} />
+              <DatoFinanciero etiqueta="(=) Utilidad objetivo protegida" valor={soles(obraSel?.utPres ?? 0)} tono="good" />
+              {(obraSel?.adicionales ?? 0) > 0 && <DatoFinanciero etiqueta="Incluye adicionales de obra" valor={soles(obraSel?.adicionales ?? 0)} tono="primary" />}
+            </div>
+          </div>
+          <div className="panel overflow-hidden">
+            <div className="border-b border-line px-4 py-3"><p className="label-mono">Aprobaciones</p></div>
             <IndicadorCompacto
-              icono={<Layers3 />}
-              etiqueta="Total partidas"
-              valor={String(obraSel?.partidas ?? 0)}
-              detalle={`${obraSel?.partidasContractuales ?? 0} contractual · ${obraSel?.partidasAdicionales ?? 0} adicionales`}
+              icono={<Lock />}
+              etiqueta="Solicitudes de desbloqueo"
+              valor={String(solicitudesPendientes)}
+              detalle={solicitudesPendientes > 0 ? "Pendientes de respuesta de Gerencia" : "Sin solicitudes pendientes"}
+              tono={solicitudesPendientes > 0 ? "bad" : "good"}
             />
-            <IndicadorCompacto
-              icono={<ListTodo />}
-              etiqueta="Partidas pendientes"
-              valor={String(obraSel?.partidasPendientes ?? 0)}
-              tono={(obraSel?.partidasPendientes ?? 0) > 0 ? "bad" : "good"}
-            />
-            <IndicadorCompacto
-              icono={<AlertTriangle />}
-              etiqueta="Partidas de prioridad alta"
-              valor={String(prioridadAlta)}
-              {...(prioridadAlta > 0 ? { tono: "bad" as const } : {})}
-            />
-            {verDinero && (
-              <IndicadorCompacto
-                icono={<Lock />}
-                etiqueta="Solicitudes de desbloqueo"
-                valor={String(solicitudesPendientes)}
-                detalle={solicitudesPendientes > 0 ? "Pendientes de respuesta de Gerencia" : "Sin solicitudes pendientes"}
-                {...(solicitudesPendientes > 0 ? { tono: "bad" as const } : { tono: "good" as const })}
-              />
-            )}
           </div>
-        </div>
-
-        {verDinero && (
-        <div className="panel rise overflow-hidden">
-          <div className="border-b border-line px-4 py-3"><p className="label-mono">{esTodos ? "Resumen financiero de la cartera" : "Resumen financiero del proyecto"}</p></div>
-          <div className="divide-y divide-line">
-            <DatoFinanciero etiqueta="Presupuesto contractual total" valor={soles(obraSel?.presupuesto ?? 0)} />
-            <DatoFinanciero etiqueta="(−) Costo directo presupuestado" valor={soles(obraSel?.cdPres ?? 0)} />
-            <DatoFinanciero etiqueta="(−) Gastos generales presupuestados" valor={soles(obraSel?.ggPres ?? 0)} />
-            <DatoFinanciero etiqueta="(=) Utilidad objetivo protegida" valor={soles(obraSel?.utPres ?? 0)} tono="good" />
-            {(obraSel?.adicionales ?? 0) > 0 && <DatoFinanciero etiqueta="Incluye adicionales de obra" valor={soles(obraSel?.adicionales ?? 0)} tono="primary" />}
-          </div>
-        </div>
-        )}
-      </section>
-
-      <Panel titulo="Control de cronograma oficial" className="mb-4">
-        <div className="grid gap-4 p-5 lg:grid-cols-[1fr_220px] lg:items-center">
-          <div className="space-y-3">
-            <Barra etiqueta="Avance físico real" valor={obraSel?.avance ?? null} clase="bg-primary" />
-            <Barra etiqueta="Avance programado" valor={programadoSel} clase="bg-muted-foreground" />
-          </div>
-          <div className="space-y-1.5 rounded-lg border border-line bg-muted/30 p-4">
-            <p className="label-mono">Desviación a la fecha de corte</p>
-            {programadoSel === null ? (
-              <>
-                <p className="font-mono text-sm font-semibold text-muted-foreground">Sin avance programado oficial</p>
-                <p className="text-xs leading-relaxed text-muted-foreground">Regístralo en el cronograma de la obra (Proyectos) para comparar con el avance real.</p>
-              </>
-            ) : (obraSel?.avance ?? 0) + 0.05 < programadoSel ? (
-              <p className="rounded-md bg-bad/10 px-2 py-1 font-mono text-sm font-semibold text-bad">-{pct(programadoSel - (obraSel?.avance ?? 0))} · Retraso</p>
-            ) : (
-              <p className="font-mono text-sm font-semibold text-good">+{pct((obraSel?.avance ?? 0) - programadoSel)} · En plazo o adelantada</p>
-            )}
-            <p className="font-mono text-xs text-muted-foreground">
-              Corte: {obraSel?.usaCalendario ? fecha(hoyISO()) : obraSel?.proyecto.fecha_corte_programado ? fecha(obraSel.proyecto.fecha_corte_programado) : "Sin registrar"}
-            </p>
-          </div>
-        </div>
-      </Panel>
+        </section>
+      )}
 
 
       {verDinero && !esTodos && <div className="mb-4"><DesgloseCd proyectoId={obraId} /></div>}
