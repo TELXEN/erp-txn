@@ -347,38 +347,45 @@ function DashboardProyectos() {
     });
   }
 
+  const selector = (
+    <Select
+      aria-label="Seleccione proyecto"
+      title="Seleccione proyecto"
+      className="w-44 sm:w-56 lg:w-64"
+      value={esTodos ? "todos" : (obraSel?.proyecto.id ?? "")}
+      onChange={(e) => setObraId(e.target.value)}
+    >
+      {filas.length === 0 ? (
+        <option value="todos">Sin obras registradas</option>
+      ) : (
+        <>
+          <option value="todos">Todos los proyectos</option>
+          {filas.map((f) => (
+            <option key={f.proyecto.id} value={f.proyecto.id}>{f.proyecto.nombre}</option>
+          ))}
+        </>
+      )}
+    </Select>
+  );
+
   return (
-    <div className="tablero-proyectos">
+    <div className="tablero-proyectos flex flex-col">
       <Encabezado
         titulo="Dashboard de Proyectos"
         subtitulo="Centro de control operativo"
         acciones={
-          verDinero && <>
-            <Boton variante="linea" onClick={excel}>
-              <Upload size={13} /> Exportar a Excel
-            </Boton>
-            <Boton onClick={pdf}>Exportar a PDF</Boton>
+          <>
+            {selector}
+            {verDinero && <>
+              <Boton variante="linea" onClick={excel}>
+                <Upload size={13} /> Exportar a Excel
+              </Boton>
+              <Boton onClick={pdf}>Exportar a PDF</Boton>
+            </>}
           </>
         }
       />
 
-      <div className="mb-3 flex justify-end">
-        <div className="w-full sm:w-80">
-          <p className="label-mono mb-1">Seleccione proyecto</p>
-          <Select value={esTodos ? "todos" : (obraSel?.proyecto.id ?? "")} onChange={(e) => setObraId(e.target.value)}>
-            {filas.length === 0 ? (
-              <option value="todos">Sin obras registradas</option>
-            ) : (
-              <>
-                <option value="todos">Todos los proyectos</option>
-                {filas.map((f) => (
-                  <option key={f.proyecto.id} value={f.proyecto.id}>{f.proyecto.nombre}</option>
-                ))}
-              </>
-            )}
-          </Select>
-        </div>
-      </div>
 
       <div className="dash-lienzo mb-4 space-y-4 p-4">
         {/* Fila superior: proyecto elegido con estados de cartera y datos clave */}
