@@ -651,17 +651,18 @@ function BarraTiempo({ etiqueta, valor, tenue }: { etiqueta: string; valor: numb
   );
 }
 
-function Anillo({ valor }: { valor: number }) {
+function Anillo({ valor, alerta }: { valor: number; alerta?: boolean }) {
   const v = Math.min(Math.max(valor, 0), 100);
   const r = 46;
   const c = 2 * Math.PI * r;
   return (
-    <div className="relative h-32 w-32 shrink-0">
+    <div className={`relative h-32 w-32 shrink-0 ${alerta ? "text-warn" : ""}`}>
       <svg viewBox="0 0 120 120" className="h-full w-full -rotate-90" aria-hidden="true">
         <circle cx="60" cy="60" r={r} fill="none" stroke="currentColor" strokeOpacity="0.25" strokeWidth="12" />
         <circle cx="60" cy="60" r={r} fill="none" stroke="currentColor" strokeWidth="12" strokeLinecap="round" strokeDasharray={`${(v / 100) * c} ${c}`} />
       </svg>
       <span className="absolute inset-0 flex items-center justify-center font-mono text-2xl font-light">{pct(valor)}</span>
+      {alerta && <AlertTriangle size={14} className="absolute -right-1 -top-1 rounded-full bg-warn p-0.5 text-warn-foreground" />}
     </div>
   );
 }
