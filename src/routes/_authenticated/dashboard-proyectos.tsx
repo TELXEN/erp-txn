@@ -618,32 +618,6 @@ function DashboardProyectos() {
         );
       })()}
 
-      {verDinero && (
-        <section className="mb-4 grid gap-3 lg:grid-cols-2">
-          <div className="panel overflow-hidden">
-            <div className="border-b border-line px-4 py-3"><p className="label-mono">{esTodos ? "Resumen financiero de la cartera" : "Resumen financiero del proyecto"}</p></div>
-            <div className="divide-y divide-line">
-              <DatoFinanciero etiqueta="Presupuesto contractual total" valor={soles(obraSel?.presupuesto ?? 0)} />
-              <DatoFinanciero etiqueta="(−) Costo directo presupuestado" valor={soles(obraSel?.cdPres ?? 0)} />
-              <DatoFinanciero etiqueta="(−) Gastos generales presupuestados" valor={soles(obraSel?.ggPres ?? 0)} />
-              <DatoFinanciero etiqueta="(=) Utilidad objetivo protegida" valor={soles(obraSel?.utPres ?? 0)} tono="good" />
-              {(obraSel?.adicionales ?? 0) > 0 && <DatoFinanciero etiqueta="Incluye adicionales de obra" valor={soles(obraSel?.adicionales ?? 0)} tono="primary" />}
-            </div>
-          </div>
-          <div className="panel overflow-hidden">
-            <div className="border-b border-line px-4 py-3"><p className="label-mono">Aprobaciones</p></div>
-            <IndicadorCompacto
-              icono={<Lock />}
-              etiqueta="Solicitudes de desbloqueo"
-              valor={String(solicitudesPendientes)}
-              detalle={solicitudesPendientes > 0 ? "Pendientes de respuesta de Gerencia" : "Sin solicitudes pendientes"}
-              tono={solicitudesPendientes > 0 ? "bad" : "good"}
-            />
-          </div>
-        </section>
-      )}
-
-
       {verDinero && !esTodos && <div className="mb-4"><DesgloseCd proyectoId={obraId} /></div>}
 
       {verDinero && (
