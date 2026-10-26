@@ -1,7 +1,7 @@
 import { DesgloseCd } from "@/components/DesgloseCd";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { AlertTriangle, Briefcase, CalendarClock, CalendarDays, CircleDollarSign, ClipboardList, Clock3, Flag, Gauge, Hourglass, Layers3, ListTodo, Upload } from "lucide-react";
+import { AlertTriangle, CalendarClock, CircleDollarSign, ClipboardList, Clock3, Flag, Gauge, Hourglass, Layers3, ListTodo, Upload } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Select, Vacio } from "@/components/ui-kit";
 import { InsigniaPrioridad, InsigniaSituacion } from "@/components/estado-ui";
@@ -256,11 +256,6 @@ function DashboardProyectos() {
 
   const verDinero = puedeVerDinero(rol);
   const programadoSel = obraSel?.programado ?? null;
-  const hoyTexto = useMemo(() => {
-    const d = new Date();
-    const f = (o: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat("es-PE", { timeZone: "America/Lima", ...o }).format(d);
-    return { dia: f({ weekday: "long" }), numero: f({ day: "numeric" }), mes: f({ month: "long" }) };
-  }, []);
 
   function excel() {
     exportarExcel("dashboard-proyectos", [
@@ -376,65 +371,38 @@ function DashboardProyectos() {
       </div>
 
       <div className="dash-lienzo mb-4 space-y-4 p-4">
-        {/* Fila superior: fecha, total de proyectos y proyecto elegido */}
-        <section className="grid gap-4 xl:grid-cols-[200px_minmax(0,1fr)_minmax(0,1.6fr)]">
-          <div className="dash-tarjeta flex flex-col justify-center p-5">
-            <span className="dash-icono" data-tono="accent"><CalendarDays size={20} /></span>
-            <p className="mt-3 text-xl capitalize text-primary">{hoyTexto.dia}</p>
-            <p className="font-mono text-5xl font-light leading-none text-ink">{hoyTexto.numero}</p>
-            <p className="mt-1 text-lg uppercase tracking-wide text-muted-foreground">{hoyTexto.mes}</p>
-          </div>
-
-          <div className="dash-tarjeta dash-degradado p-5" data-tono="primary">
-            <div className="flex items-center gap-3">
-              <span className="dash-icono dash-icono-claro"><Briefcase size={18} /></span>
-              <p className="text-lg">Total proyectos · {proyectos.length}</p>
+        {/* Fila superior: proyecto elegido con estados de cartera y datos clave */}
+        <section className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+          <div className="dash-tarjeta flex flex-col p-5">
+            <div className="flex items-start gap-3">
+              <span className="dash-icono" data-tono="warn"><ClipboardList size={20} /></span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-lg text-ink">{esTodos ? "Cartera completa" : (obraSel?.proyecto.nombre ?? "Sin obras registradas")}</p>
+                <p className="truncate text-xs text-muted-foreground">
+                  {esTodos ? `${filas.length} obras en cartera` : [obraSel?.proyecto.codigo, obraSel?.proyecto.cliente].filter(Boolean).join(" | ")}
+                </p>
+              </div>
+              {!esTodos && obraSel && <InsigniaSituacion valor={obraSel.proyecto.situacion} />}
             </div>
-            <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="mt-4 grid flex-1 grid-cols-2 gap-2 sm:grid-cols-4">
               {TARJETAS_ESTADO.map(({ etiqueta, situacion }) => {
                 const cantidad = proyectos.filter((p) => p.situacion === situacion).length;
                 return (
-                  <div key={situacion} className="flex flex-col items-center gap-2">
-                    <span className="font-mono text-4xl font-light tabular-nums">{cantidad}</span>
-                    <span className="dash-chip w-full">{etiqueta}</span>
+                  <div key={situacion} className="flex flex-col justify-center rounded-lg px-2 py-2 text-center text-primary-foreground shadow-sm" style={{ backgroundColor: tonoSituacion(situacion).borde }}>
+                    <p className="text-[10px] opacity-90">{etiqueta}</p>
+                    <p className="font-mono text-2xl font-semibold leading-tight">{cantidad}</p>
                   </div>
                 );
               })}
             </div>
           </div>
-
-          <div className="space-y-3">
-            <div className="dash-tarjeta p-4">
-              <div className="flex items-start gap-3">
-                <span className="dash-icono" data-tono="warn"><ClipboardList size={20} /></span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-lg text-ink">{esTodos ? "Cartera completa" : (obraSel?.proyecto.nombre ?? "Sin obras registradas")}</p>
-                  <p className="truncate text-xs text-muted-foreground">
-                    {esTodos ? `${filas.length} obras en cartera` : [obraSel?.proyecto.codigo, obraSel?.proyecto.cliente].filter(Boolean).join(" | ")}
-                  </p>
-                </div>
-                {!esTodos && obraSel && <InsigniaSituacion valor={obraSel.proyecto.situacion} />}
-              </div>
-              <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-                {TARJETAS_ESTADO.map(({ etiqueta, situacion }) => {
-                  const cantidad = proyectos.filter((p) => p.situacion === situacion).length;
-                  return (
-                    <div key={situacion} className="rounded-lg px-2 py-1.5 text-center text-primary-foreground shadow-sm" style={{ backgroundColor: tonoSituacion(situacion).borde }}>
-                      <p className="text-[10px] opacity-90">{etiqueta}</p>
-                      <p className="font-mono text-2xl font-semibold leading-tight">{cantidad}</p>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3 2xl:grid-cols-4">
-              <MiniDato icono={<Layers3 size={16} />} tono="good" etiqueta="Total partidas" valor={String(obraSel?.partidas ?? 0)}
-                detalle={`${obraSel?.partidasContractuales ?? 0} contr. · ${obraSel?.partidasAdicionales ?? 0} adic.`} />
-              <MiniDato icono={<ListTodo size={16} />} tono="warn" etiqueta="Partidas pendientes" valor={String(obraSel?.partidasPendientes ?? 0)} />
-              <MiniDato icono={<AlertTriangle size={16} />} tono="bad" etiqueta="Prioridad alta" valor={String(prioridadAlta)} />
-              <MiniDato icono={<Hourglass size={16} />} tono="primary" etiqueta={plazo?.vencido ? "Plazo vencido" : "Días restantes"}
-                valor={plazo ? String(Math.abs(plazo.dias)) : "—"} />
-            </div>
+          <div className="grid grid-cols-2 gap-3">
+            <MiniDato icono={<Layers3 size={16} />} tono="good" etiqueta="Total partidas" valor={String(obraSel?.partidas ?? 0)}
+              detalle={`${obraSel?.partidasContractuales ?? 0} contr. · ${obraSel?.partidasAdicionales ?? 0} adic.`} />
+            <MiniDato icono={<ListTodo size={16} />} tono="warn" etiqueta="Partidas pendientes" valor={String(obraSel?.partidasPendientes ?? 0)} />
+            <MiniDato icono={<AlertTriangle size={16} />} tono="bad" etiqueta="Prioridad alta" valor={String(prioridadAlta)} />
+            <MiniDato icono={<Hourglass size={16} />} tono="primary" etiqueta={plazo?.vencido ? "Plazo vencido" : "Días restantes"}
+              valor={plazo ? String(Math.abs(plazo.dias)) : "—"} />
           </div>
         </section>
 
