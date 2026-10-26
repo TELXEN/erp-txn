@@ -427,7 +427,7 @@ function DashboardProyectos() {
         </section>
 
         {/* Fila inferior: progreso, línea de tiempo y presupuesto */}
-        <section className={`grid gap-3 ${verDinero ? "lg:grid-cols-[1fr_1.3fr_1.2fr]" : "lg:grid-cols-[1fr_1.6fr]"}`}>
+        <section className={`grid gap-3 ${verDinero ? "lg:grid-cols-[0.7fr_1.3fr_1.5fr]" : "lg:grid-cols-[0.8fr_1.6fr]"}`}>
           <div className="dash-tarjeta p-3">
             <div className="flex items-center gap-3">
               <span className="dash-icono" data-tono="muted"><Gauge size={18} /></span>
@@ -490,7 +490,11 @@ function DashboardProyectos() {
                   <div className="flex items-baseline justify-between gap-2 border-t border-line pt-1"><p className="text-xs text-muted-foreground">Disponible</p><p className="font-mono text-base font-semibold text-ink">{soles((obraSel?.presupuesto ?? 0) - (obraSel?.costoReal ?? 0))}</p></div>
                 </div>
               </div>
-              <div className="mt-1.5 space-y-0.5 rounded-lg bg-muted/50 px-2 py-1.5">
+              <div className="mt-1.5 grid grid-cols-[minmax(0,auto)_1fr_1fr_auto] items-center gap-x-2 gap-y-0.5 rounded-lg bg-muted/50 px-2 py-1.5">
+                <span />
+                <span className="border-l border-line pl-2 text-right text-[10px] uppercase tracking-wide text-muted-foreground">Real</span>
+                <span className="border-l border-line pl-2 text-right text-[10px] uppercase tracking-wide text-muted-foreground">Presupuestado</span>
+                <span className="border-l border-line pl-2 text-right text-[10px] uppercase tracking-wide text-muted-foreground">% usado</span>
                 <FilaSemaforo etiqueta="Costo directo" real={obraSel?.cdReal ?? 0} base={obraSel?.cdPres ?? 0} />
                 <FilaSemaforo etiqueta="Gastos generales" real={obraSel?.ggReal ?? 0} base={obraSel?.ggPres ?? 0} />
               </div>
@@ -621,18 +625,17 @@ function FilaSemaforo({ etiqueta, real, base }: { etiqueta: string; real: number
   const punto = nivel === "excedido" ? "bg-bad" : nivel === "cerca" ? "bg-warn" : "bg-good";
   const pildora = nivel === "excedido" ? "bg-bad/10 text-bad" : nivel === "cerca" ? "bg-warn/10 text-warn" : "bg-good/10 text-good";
   return (
-    <div className="flex items-center justify-between gap-2">
-      <span className="flex items-center gap-1.5 font-mono text-xs text-muted-foreground">
+    <>
+      <span className="flex items-center gap-1.5 truncate font-mono text-xs text-muted-foreground">
         <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${punto}`} />
         {etiqueta}
       </span>
-      <span className="flex items-center gap-1.5">
-        <span className="font-mono text-xs text-ink">
-          {soles(real)} <span className="text-muted-foreground">/ {soles(base)}</span>
-        </span>
-        <span className={`rounded-full px-1.5 py-px font-mono text-[10px] font-semibold tabular-nums ${pildora}`}>{pct(p)}</span>
+      <span title={`Real: ${soles(real)}`} className="border-l border-line pl-2 text-right font-mono text-xs tabular-nums text-ink">{soles(real)}</span>
+      <span title={`Presupuestado: ${soles(base)}`} className="border-l border-line pl-2 text-right font-mono text-xs tabular-nums text-muted-foreground">{soles(base)}</span>
+      <span className="border-l border-line pl-2 text-right">
+        <span title="% usado" className={`rounded-full px-1.5 py-px font-mono text-[10px] font-semibold tabular-nums ${pildora}`}>{pct(p)}</span>
       </span>
-    </div>
+    </>
   );
 }
 
@@ -704,14 +707,14 @@ function BarraTiempo({ etiqueta, valor, tenue }: { etiqueta: string; valor: numb
 
 function Anillo({ valor, alerta }: { valor: number; alerta?: boolean }) {
   const v = Math.min(Math.max(valor, 0), 100);
-  const r = 46;
+  const r = 50;
   const c = 2 * Math.PI * r;
-  const tono = alerta ? "text-warn" : valor >= 85 ? "text-warn" : "";
+  const tono = alerta || valor > 100 ? "text-bad" : valor >= 85 ? "text-warn" : "text-good";
   return (
-    <div className={`relative h-20 w-20 shrink-0 ${tono}`}>
+    <div className={`relative h-24 w-24 shrink-0 ${tono}`}>
       <svg viewBox="0 0 120 120" className="h-full w-full -rotate-90" aria-hidden="true">
-        <circle cx="60" cy="60" r={r} fill="none" stroke="currentColor" strokeOpacity="0.25" strokeWidth="14" />
-        <circle cx="60" cy="60" r={r} fill="none" stroke="currentColor" strokeWidth="14" strokeLinecap="round" strokeDasharray={`${(v / 100) * c} ${c}`} />
+        <circle cx="60" cy="60" r={r} fill="none" stroke="currentColor" strokeOpacity="0.15" strokeWidth="10" />
+        <circle cx="60" cy="60" r={r} fill="none" stroke="currentColor" strokeWidth="10" strokeLinecap="round" strokeDasharray={`${(v / 100) * c} ${c}`} />
       </svg>
       <span className="absolute inset-0 flex flex-col items-center justify-center">
         <span className="font-mono text-lg font-semibold leading-none">{pct(valor)}</span>
