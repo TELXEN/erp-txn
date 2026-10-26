@@ -531,9 +531,9 @@ function Tesoreria() {
       </div>
           <div className="grid gap-3 sm:grid-cols-2">
             {[
-              { t: "Vencido por cobrar", v: kc.vencido, tono: kc.vencido > 0 ? "text-bad" : "text-ink", d: "cxc" as const, f: "vencido" as const },
               { t: "Total por cobrar", v: kc.total, tono: "text-good", d: "cxc" as const, f: null },
               { t: "Total por pagar", v: kp.total, tono: "text-warn", d: "cxp" as const, f: null },
+              { t: "Vencido por cobrar", v: kc.vencido, tono: kc.vencido > 0 ? "text-bad" : "text-ink", d: "cxc" as const, f: "vencido" as const },
               { t: "Vencido por pagar", v: kp.vencido, tono: kp.vencido > 0 ? "text-bad" : "text-ink", d: "cxp" as const, f: "vencido" as const },
             ].map((c) => {
               const abrir = () => { setPestana(c.d); setAccion(null); setTercero(""); setSeleccion(new Set()); setFiltroVence(c.f); };
