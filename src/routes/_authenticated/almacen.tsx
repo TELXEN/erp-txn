@@ -1,3 +1,4 @@
+import { supabase } from "@/integrations/supabase/client";
 import { useRecordado } from "@/lib/recordado";
 import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { createFileRoute } from "@tanstack/react-router";
@@ -87,7 +88,7 @@ function AlmacenPage() {
     const cant = Number(tr.cantidad);
     if (!tr.insumo_id || !(cant > 0)) return setTr({ ...tr, error: "Elige el insumo y una cantidad mayor que cero." });
     if (cant > (stockTr?.stock ?? 0) + 0.0001) return setTr({ ...tr, error: `Stock insuficiente: disponible ${num(stockTr?.stock ?? 0)}.` });
-    const { error: err } = await apuDb.rpc("transferir_almacen", {
+    const { error: err } = await (supabase as any).rpc("transferir_almacen", {
       _origen: pidTrOrigen, _destino: almacenDeValor(tr.destino),
       _items: [{ insumo_id: tr.insumo_id, cantidad: cant }],
       _fecha: hoy(), _documento: tr.documento.trim(), _obs: tr.observacion.trim(),
@@ -97,7 +98,7 @@ function AlmacenPage() {
     qc.invalidateQueries({ queryKey: ["movimientos_almacen"] });
   }
   async function recibirTr(id: string) {
-    const { error: err } = await apuDb.rpc("recibir_transferencia", { _transferencia: id, _fecha: hoy() });
+    const { error: err } = await (supabase as any).rpc("recibir_transferencia", { _transferencia: id, _fecha: hoy() });
     if (err) return setError(err.message);
     qc.invalidateQueries({ queryKey: ["movimientos_almacen"] });
   }
