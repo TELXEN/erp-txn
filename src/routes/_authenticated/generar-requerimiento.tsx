@@ -10,7 +10,7 @@ import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { useAuth, puedeVerDinero } from "@/lib/auth";
 import { soles } from "@/lib/format";
 import { usePartidas, useProyectos } from "@/lib/datos";
-import { TIPOS_INSUMO, apuDb, cantidadComponente, nombreTipo, useInsumos, type ComponenteApu, type TipoInsumo } from "@/lib/apu";
+import { apuDb, cantidadComponente, nombreTipo, tiposVisibles, useInsumos, type ComponenteApu, type TipoInsumo } from "@/lib/apu";
 import { BANCOS_RECURSO, dbBanco, useRecursosApu } from "@/lib/banco-apu";
 import { exportarExcel } from "@/lib/exportar";
 import { useItemsOC, useMovimientos, useOrdenesCompra } from "@/lib/logistica";
@@ -530,7 +530,7 @@ function RequerimientosPage() {
             ))}
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            {TIPOS_INSUMO.map(([k, t]) => (
+            {tiposVisibles().map(([k, t]) => (
               <label key={k} className="flex items-center gap-1.5">
                 <input
                   type="checkbox"
@@ -578,7 +578,7 @@ function RequerimientosPage() {
               <tbody>
                 {vista === "consolidada"
                   ? explosion.map((e) => filaInsumo(e, tipos.includes(e.tipo as TipoInsumo), true))
-                  : TIPOS_INSUMO.map(([k, t]) => {
+                  : tiposVisibles().map(([k, t]) => {
                       const filas = explosion.filter((e) => e.tipo === k);
                       if (!filas.length) return null;
                       const incluido = tipos.includes(k);
