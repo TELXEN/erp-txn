@@ -50,6 +50,7 @@ function AlmacenPage() {
   const [sel, setSel] = useState("");
   const actual = movs.find((x) => x.id === sel);
 
+  const [consumo, setConsumo] = useState<{ clave: string; cantidad: string; documento: string; observacion: string; error: string } | null>(null);
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
   const stock = calcularStock(movs);
@@ -95,7 +96,6 @@ function AlmacenPage() {
   }
   const pidStock = almacenDeValor(almStock);
   const stockVista = stock.filter((s) => s.stock > 0.0001 && (!almStock || (s.proyecto_id ?? null) === pidStock));
-  const [consumo, setConsumo] = useState<{ clave: string; cantidad: string; documento: string; observacion: string; error: string } | null>(null);
   const filaConsumo = consumo ? stock.find((s) => s.clave === consumo.clave) : undefined;
   async function consumir(e: React.FormEvent) {
     e.preventDefault();
