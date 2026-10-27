@@ -213,7 +213,8 @@ function OrdenesCompraPage() {
     qc.invalidateQueries({ queryKey: ["ordenes_compra"] });
   }
 
-  async function recibir(ocId: string) {
+  const [recep, setRecep] = useState<{ id: string; destino: "obra" | "central" } | null>(null);
+  async function recibir(ocId: string, destino: "obra" | "central" = "obra") {
     const oc = ordenes.find((o) => o.id === ocId);
     if (!oc) return;
     const pendientes = itemsOC
@@ -226,14 +227,15 @@ function OrdenesCompraPage() {
       .filter((i) => i.orden_id === ocId && !conGasto.has(i.id))
       .map((i) => ({ i, saldo: Number(i.cantidad) }));
     if (!pendientes.length && !porCostear.length) return setError("Esta orden ya fue recibida y cargada a costos por completo.");
-    if (!window.confirm(pendientes.length ? `Se registrará el ingreso a almacén de ${pendientes.length} ítem(s) pendientes de ${oc.codigo}. ¿Continuar?` : `${oc.codigo} ya fue recepcionada en obra. ¿Cargarla a Costos Directos y cuentas por pagar?`)) return;
+    if (!pendientes.length && !window.confirm(pendientes.length ? `Se registrará el ingreso a almacén de ${pendientes.length} ítem(s) pendientes de ${oc.codigo}. ¿Continuar?` : `${oc.codigo} ya fue recepcionada en obra. ¿Cargarla a Costos Directos y cuentas por pagar?`)) return;
     setError("");
     if (pendientes.length) {
       const { error: err } = await apuDb.from("movimientos_almacen").insert(
         pendientes.map(({ i, saldo }) => ({
           fecha: hoy(),
           tipo: "Ingreso",
-          proyecto_id: oc.proyecto_id,
+          proyecto_id: destino === "central" ? null : oc.proyecto_id,
+          motivo: "Compra",
           insumo_id: i.insumo_id,
           descripcion: i.descripcion,
           unidad: i.unidad,
@@ -369,6 +371,23 @@ function OrdenesCompraPage() {
         }
       />
 
+      <VentanaFlotante abierta={!!recep} onCerrar={() => setRecep(null)} titulo="Recibir en almacén" subtitulo={ordenes.find((o) => o.id === recep?.id)?.codigo ?? ""} ancho="max-w-md">
+        {recep && (
+          <div className="space-y-4 p-5 text-xs">
+            <Campo etiqueta="Almacén de destino">
+              <Select value={recep.destino} onChange={(e) => setRecep({ ...recep, destino: e.target.value as "obra" | "central" })}>
+                <option value="obra">Almacén de la obra · {nombreProy(ordenes.find((o) => o.id === recep.id)?.proyecto_id ?? "")}</option>
+                <option value="central">Almacén Central</option>
+              </Select>
+            </Campo>
+            <p className="text-muted-foreground">Ingresa lo pendiente de la orden al almacén elegido y la carga a Costos Directos y cuentas por pagar.</p>
+            <div className="flex justify-end gap-2">
+              <Boton variante="linea" onClick={() => setRecep(null)}>Cancelar</Boton>
+              <Boton onClick={() => { const r = recep; setRecep(null); void recibir(r.id, r.destino); }}>Recibir</Boton>
+            </div>
+          </div>
+        )}
+      </VentanaFlotante>
       <VentanaFlotante abierta={modalNueva} onCerrar={() => setModalNueva(false)} titulo="Nueva orden de compra" subtitulo="Emite varias órdenes consecutivamente y cierra cuando termines." ancho="max-w-7xl">
         <form onSubmit={guardar} className="space-y-3 px-5 py-4">
           <HojaOrdenCompra empresa={empresa ?? null} codigo="POR EMITIR" estado="Borrador">
@@ -575,7 +594,7 @@ function OrdenesCompraPage() {
         </MenuFiltros>} haySeleccion={!!actual} onAgregar={() => { setError(""); setAviso(""); setModalNueva(true); }} onEliminar={() => { if (actual) void eliminar(actual.id); }} extras={<>
           <BotonIcono etiqueta="Imprimir o guardar en PDF" disabled={!actual} onClick={() => setVerDocumento(true)}><Printer size={15} /></BotonIcono>
           <BotonIcono etiqueta="Enviar a obra (la obra registra la recepción)" disabled={!actual || actual.estado !== "Emitida"} onClick={() => { if (actual) void cambiarEstado(actual.id, "Enviado a obra"); }}><Truck size={15} /></BotonIcono>
-          <BotonIcono etiqueta="Recibir en almacén / cargar a costos" disabled={!actual || actual.estado === "Anulada"} onClick={() => { if (actual) void recibir(actual.id); }}><PackageCheck size={15} /></BotonIcono>
+          <BotonIcono etiqueta="Recibir en almacén / cargar a costos" disabled={!actual || actual.estado === "Anulada"} onClick={() => { if (actual) setRecep({ id: actual.id, destino: "obra" }); }}><PackageCheck size={15} /></BotonIcono>
         </>} />
       </div>
     </>
