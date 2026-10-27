@@ -175,7 +175,7 @@ export function CodificacionInsumos({ onAgregarTipo }: { onAgregarTipo?: (tipo: 
                   <td className="py-2 pr-3 text-muted-foreground">{r.clave}</td>
                   <td className="px-3 py-2 text-center text-sm font-semibold">{r.digito}</td>
                   <td className="px-3 py-2 text-muted-foreground">{r.ss ? "Especialidad + subfamilia" : "Especialidad + 00"}</td>
-                  <td className="py-2 pl-3 font-semibold text-primary">{r.digito}EE{r.ss ? "SS" : "00"}NNN</td>
+                  <td className="py-2 pl-3 font-semibold text-primary">{r.digito}EESSNNN</td>
                   <td />
                 </tr>
               ))}

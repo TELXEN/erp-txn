@@ -123,6 +123,7 @@ export function VentanaInsumo({
   const dual = Boolean(alAgregar);
   const [pestana, setPestana] = useState<"sel" | "crear">(dual ? "sel" : "crear");
   const [tipo, setTipo] = useState<TablaInsumo>(modo === "nuevo" ? soloTabla ?? "materiales" : sel!.tabla);
+  const conSubfamilia = tipo === "materiales";
   const [form, setForm] = useState<FilaInsumo>(() => {
     if (modo === "nuevo") return base(soloTabla ?? "materiales");
     const b = base(sel!.tabla, sel!.fila);
@@ -170,13 +171,13 @@ export function VentanaInsumo({
     if (typeof d["marca"] === "string" && d["marca"]) d["marca"] = primeraMayuscula(d["marca"]);
     const conSub = tipo === "materiales";
     if (!form.especialidad_id || (conSub && !form.subfamilia_id)) return setAviso(conSub ? "Elige la especialidad y la subfamilia: con ellas se genera el código." : "Elige la especialidad: con ella se genera el código.");
-    d["especialidad_id"] = form.especialidad_id; d["subfamilia_id"] = conSub ? form.subfamilia_id : null;
+    d["especialidad_id"] = form.especialidad_id; d["subfamilia_id"] = form.subfamilia_id || null;
     if (categoriaInventario && tipo === "equipos_herramientas") d["categoria_inventario"] = categoriaInventario;
     const [oe, os, oc] = String(form._orig ?? "").split("|");
     const digito = digitoTipoInsumo(tipo, categoriaInventario);
-    if (modo === "editar" && oe === form.especialidad_id && (conSub ? os === form.subfamilia_id : true) && /^\d{8}$/.test(oc ?? "") && (!digito || oc!.startsWith(digito))) d["codigo"] = oc;
+    if (modo === "editar" && oe === form.especialidad_id && (os ?? "") === (form.subfamilia_id ?? "") && /^\d{8}$/.test(oc ?? "") && (!digito || oc!.startsWith(digito))) d["codigo"] = oc;
     else {
-      const { data: cod, error: ec } = await db.rpc("siguiente_codigo_insumo_modular", { _especialidad: form.especialidad_id, _tipo: tipo, _subfamilia: conSub ? form.subfamilia_id : null, _categoria: categoriaInventario ?? null });
+      const { data: cod, error: ec } = await db.rpc("siguiente_codigo_insumo_modular", { _especialidad: form.especialidad_id, _tipo: tipo, _subfamilia: form.subfamilia_id || null, _categoria: categoriaInventario ?? null });
       if (ec) return setAviso(ec.message);
       d["codigo"] = cod;
     }
@@ -246,13 +247,13 @@ export function VentanaInsumo({
           {espCod.map((e) => <option key={e.id} value={e.id}>{e.codigo_modular} · {e.nombre}</option>)}
         </Select>
       </Campo>
-      {tipo === "materiales" && <Campo etiqueta="Subfamilia">
+      <Campo etiqueta={conSubfamilia ? "Subfamilia" : "Subfamilia (opcional)"}>
         <Select value={form.subfamilia_id ?? ""} onChange={(e) => setForm({ ...form, subfamilia_id: e.target.value })} disabled={!form.especialidad_id}>
-          <option value="">— Elegir —</option>
+          <option value="">{conSubfamilia ? "— Elegir —" : "Sin subfamilia (00)"}</option>
           {subfamilias.filter((s) => s.especialidad_id === form.especialidad_id && s.activo).map((s) => <option key={s.id} value={s.id}>{s.codigo} · {s.nombre}{s.bloque ? ` (${s.bloque})` : ""}</option>)}
         </Select>
-      </Campo>}
-      <p className="text-[11px] text-muted-foreground sm:col-span-2">Código: <span className="font-mono">{form.codigo && modo === "editar" ? form.codigo : "se genera al guardar"}</span> (tipo + especialidad + {tipo === "materiales" ? "subfamilia" : "00"} + correlativo).</p>
+      </Campo>
+      <p className="text-[11px] text-muted-foreground sm:col-span-2">Código: <span className="font-mono">{form.codigo && modo === "editar" ? form.codigo : "se genera al guardar"}</span> (tipo + especialidad + subfamilia o 00 + correlativo).</p>
       {CONFIG[tipo].campos.filter((c) => c.k !== "codigo" && (!c.soloSi || c.soloSi(form))).map((c) => (
         <Campo key={c.k} etiqueta={c.t}>
           {c.k === "unidad" ? (

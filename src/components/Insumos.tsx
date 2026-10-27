@@ -4,6 +4,7 @@ import { Boxes, Check, ChevronDown, ChevronRight, Pencil, SlidersHorizontal, Tra
 import { Boton, Input, Panel, Select } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { SelectorBuscable } from "@/components/SelectorBuscable";
+import { CeldaSubfamilia } from "@/components/CeldaSubfamilia";
 import { MargenesApuPanel } from "@/components/MargenesApu";
 import { ParametrosLaboralesPanel } from "@/components/ParametrosLaborales";
 import { CodificacionInsumos } from "@/components/CodificacionInsumos";
@@ -309,6 +310,7 @@ function ManoObraWysiwyg({
         <thead>
           <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
             <th className="w-[8%] px-5 py-2 font-medium">Código</th>
+            <th className="w-[10%] px-3 py-2 font-medium">Subfamilia</th>
             <th className="w-[26%] px-3 py-2 font-medium">Descripción</th>
             <th className="w-[14%] px-3 py-2 font-medium">Régimen</th>
             <th className="w-[12%] px-3 py-2 text-right font-medium">Sueldo mensual</th>
@@ -323,6 +325,7 @@ function ManoObraWysiwyg({
           {/* Fila fantasma de creación rápida (siempre visible arriba) */}
           <tr className="border-b border-dashed border-line/60 bg-muted/20">
             <td className="px-5 py-2 text-muted-foreground/60">auto</td>
+            <td className="px-3 py-2 text-muted-foreground/60">—</td>
             <td className="px-3 py-2">
               <input
                 className={inputCls}
@@ -384,7 +387,7 @@ function ManoObraWysiwyg({
           {/* Vista previa del cálculo de la fila fantasma */}
           {(Number(nueva.sueldo || 0) > 0 || nueva.regimen === "Construcción Civil") && (
             <tr className="border-b border-dashed border-line/60 bg-muted/20">
-              <td colSpan={9} className="px-5 py-2">
+              <td colSpan={10} className="px-5 py-2">
                 <DetalleCostoHH lineas={calculoNueva.lineas} horas={calculoNueva.horasEfectivas} />
               </td>
             </tr>
@@ -420,6 +423,7 @@ function ManoObraWysiwyg({
                 {esEdicion ? (
                   <>
                     <td className="px-5 py-2 text-muted-foreground">{editando.codigo || "—"}</td>
+                    <CeldaSubfamilia insumo={i} refrescar={refrescar} />
                     <td className="px-3 py-2"><Input className="py-1 text-xs" value={editando.nombre} data-formato="cargo" onChange={(e) => setEditando({ ...editando, nombre: e.target.value })} /></td>
                     <td className="px-3 py-2">
                       <select className={selCls} value={editando.regimen} onChange={(e) => setEditando({ ...editando, regimen: e.target.value as RegimenLaboral })}>
@@ -452,6 +456,7 @@ function ManoObraWysiwyg({
                 ) : (
                   <>
                     <td className="px-5 py-2.5 text-muted-foreground"><Resaltar texto={i.codigo || "—"} termino={busqueda} /></td>
+                    <CeldaSubfamilia insumo={i} refrescar={refrescar} />
                     <td className="px-3 py-2.5 text-ink"><Resaltar texto={i.nombre} termino={busqueda} /></td>
                     <td className="px-3 py-2.5 text-muted-foreground">{i.regimen_laboral ?? "General"}</td>
                     <td className="px-3 py-2.5 text-right">{i.regimen_laboral === "Construcción Civil" ? `${i.categoria_obrero ?? "Operario"} (jornal)` : soles(Number(i.sueldo_mensual || 0))}</td>
@@ -617,6 +622,7 @@ function MaterialesWysiwyg({
         <thead>
           <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
             <th className="w-[10%] px-5 py-2 font-medium">Código</th>
+            <th className="w-[10%] px-3 py-2 font-medium">Subfamilia</th>
             <th className={`${esSC ? "w-[36%]" : "w-[24%]"} px-3 py-2 font-medium`}>Descripción</th>
             {!esSC && <th className="w-[12%] px-3 py-2 font-medium">Marca</th>}
             <th className="w-[9%] px-3 py-2 font-medium">Unidad</th>
@@ -630,6 +636,7 @@ function MaterialesWysiwyg({
           {/* Fila fantasma de creación rápida (siempre visible arriba) */}
           <tr className="border-b border-dashed border-line/60 bg-muted/20">
             <td className="px-5 py-2 text-muted-foreground/60">auto</td>
+            <td className="px-3 py-2 text-muted-foreground/60">—</td>
             <td className="px-3 py-2">
               <input
                 className={inputCls}
@@ -688,6 +695,7 @@ function MaterialesWysiwyg({
                 {esEdicion ? (
                   <>
                     <td className="px-5 py-2 text-muted-foreground">{editando.codigo || "—"}</td>
+                    <CeldaSubfamilia insumo={i} refrescar={refrescar} />
                     <td className="px-3 py-2"><Input className="py-1 text-xs" value={editando.nombre} data-formato="oracion" onChange={(e) => setEditando({ ...editando, nombre: e.target.value })} /></td>
                     {!esSC && (
                       <td className="px-3 py-2">
@@ -710,6 +718,7 @@ function MaterialesWysiwyg({
                 ) : (
                   <>
                     <td className="px-5 py-2.5 text-muted-foreground"><Resaltar texto={i.codigo || "—"} termino={busqueda} /></td>
+                    <CeldaSubfamilia insumo={i} refrescar={refrescar} />
                     <td className="px-3 py-2.5 text-ink"><Resaltar texto={i.nombre} termino={busqueda} /></td>
                     {!esSC && <td className="px-3 py-2.5 text-muted-foreground">{nombreMarca(i.marca_id)}</td>}
                     <td className="px-3 py-2.5 text-center text-muted-foreground">{i.unidad}</td>
@@ -921,6 +930,7 @@ function EquiposWysiwyg({
         <thead>
           <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
             <th className="w-[9%] px-5 py-2 font-medium">Código</th>
+            <th className="w-[10%] px-3 py-2 font-medium">Subfamilia</th>
             <th className="w-[27%] px-3 py-2 font-medium">Descripción</th>
             <th className="w-[10%] px-3 py-2 font-medium">Clase</th>
             <th className="w-[10%] px-3 py-2 font-medium">Tipo</th>
@@ -934,6 +944,7 @@ function EquiposWysiwyg({
         <tbody>
           <tr className="border-b border-dashed border-line/60 bg-muted/20">
             <td className="px-5 py-2 text-muted-foreground/60">auto</td>
+            <td className="px-3 py-2 text-muted-foreground/60">—</td>
             {celdas(fila, setFila, teclaNueva)}
             <td className="px-5 py-2">
               <div className="flex justify-end">
@@ -946,6 +957,7 @@ function EquiposWysiwyg({
               return (
                 <tr key={i.id} className="border-b border-line/40">
                   <td className="px-5 py-2 text-muted-foreground">{editando.codigo || "—"}</td>
+                  <CeldaSubfamilia insumo={i} refrescar={refrescar} />
                   {celdas(editando, (f) => setEditando({ ...editando, ...f }))}
                   <td className="px-5 py-2">
                     <div className="flex justify-end gap-1">
@@ -961,6 +973,7 @@ function EquiposWysiwyg({
             return (
               <tr key={i.id} className="border-b border-line/40 last:border-0">
                 <td className="px-5 py-2.5 text-muted-foreground"><Resaltar texto={i.codigo || "—"} termino={busqueda} /></td>
+                  <CeldaSubfamilia insumo={i} refrescar={refrescar} />
                 <td className="px-3 py-2.5 text-ink"><Resaltar texto={i.nombre} termino={busqueda} /></td>
                 <td className="px-3 py-2.5">{claseDe(i)}</td>
                 <td className="px-3 py-2.5">{prop}</td>
@@ -1149,7 +1162,7 @@ function FragmentFila({
     <>
       <tr className="border-b border-line/20">{children}</tr>
       <tr className="border-b border-line/40">
-        <td colSpan={9} className="px-5 pb-1 pt-0">
+        <td colSpan={10} className="px-5 pb-1 pt-0">
           <button type="button" onClick={onToggle} className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wide text-muted-foreground hover:text-primary">
             {abierto ? <ChevronDown size={11} /> : <ChevronRight size={11} />} Cómo se calcula el Costo Base
           </button>

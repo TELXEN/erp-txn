@@ -83,6 +83,8 @@ export type Insumo = {
   clase_equipo?: "Equipo" | "Herramienta";
   categoria_inventario?: string | null;
   marca_id?: string | null;
+  especialidad_id?: string | null;
+  subfamilia_id?: string | null;
 };
 
 export type RegimenLaboral = "General" | "MYPE Pequeña" | "Construcción Civil";
