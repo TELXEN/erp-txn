@@ -107,9 +107,17 @@ function AlmacenPage() {
       const destino = m.tipo === "Ingreso" ? m.proyecto_id : pareja?.proyecto_id ?? null;
       return { origen: nombreProy(origen ?? null), destino: nombreProy(destino ?? null) };
     }
+    if (m.tipo === "Ingreso" && m.orden_item_id) return { origen: proveedorDe(m), destino: nombreProy(m.proyecto_id ?? null) };
     return m.tipo === "Ingreso"
       ? { origen: "—", destino: nombreProy(m.proyecto_id ?? null) }
       : { origen: nombreProy(m.proyecto_id ?? null), destino: "—" };
+  };
+  /** En una compra, el almacén de origen es el proveedor que entrega. */
+  const proveedorDe = (m: Movimiento) => {
+    const it = itemsOC.find((i) => i.id === m.orden_item_id);
+    const oc = it ? ordenes.find((o) => o.id === it.orden_id) : undefined;
+    const ter = oc?.proveedor_id ? terceros.find((t) => t.id === oc.proveedor_id) : undefined;
+    return ter?.razon_social || oc?.codigo || "Proveedor";
   };
   const detallePartida = (m: Movimiento) =>
     [partidas.find((p) => p.id === (m as { partida_id?: string | null }).partida_id)?.codigo, trabajadores.find((t) => t.id === (m as { trabajador_id?: string | null }).trabajador_id)?.nombre].filter(Boolean).join(" · ") || "—";
