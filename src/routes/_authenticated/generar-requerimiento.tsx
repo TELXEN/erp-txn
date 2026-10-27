@@ -493,6 +493,8 @@ function RequerimientosPage() {
         }
       />
 
+      <div className="flex items-start gap-3">
+      <div className="min-w-0 flex-1">
       <Panel titulo="Desdoblamiento de APU en insumos" className="mb-5">
         <div className="flex flex-wrap items-end gap-3 border-b border-line px-5 py-3 font-mono text-xs">
           <label>
@@ -673,20 +675,6 @@ function RequerimientosPage() {
           </table>
         )}
       </Panel>
-      <BarraIconosHoja
-        objeto="requerimiento"
-        filtros={<MenuFiltros activos={busqueda ? 1 : 0} onLimpiar={() => setBusqueda("")}><Buscador valor={busqueda} onChange={setBusqueda} total={reqsVisibles.length} placeholder="Buscar por código, obra u observación..." /></MenuFiltros>}
-        haySeleccion={!!actual}
-        onEliminar={actual && (gestiona || ["Enviado a Gerencia", "Rechazado"].includes(actual.estado)) ? () => void eliminar(actual.id) : undefined}
-        extras={
-          <><BotonIcono etiqueta="Nuevo requerimiento por rubro (materiales, equipos, herramientas o EPP)" disabled={!proyectoId} onClick={() => setVentanaRubro(true)}>
-            <PackagePlus size={15} />
-          </BotonIcono>
-          <BotonIcono etiqueta="Nuevo requerimiento con términos de referencia" disabled={!proyectoId} onClick={() => { setTdr(TDR_VACIO); setVentanaTdr(true); }}>
-            <FileText size={15} />
-          </BotonIcono></>
-        }
-      />
       </div>
 
       <div className="mt-5 flex items-start gap-3">
@@ -728,7 +716,24 @@ function RequerimientosPage() {
         </Panel>
       </div>
 
-      <VentanaRequerimientoRubro abierta={ventanaRubro} onCerrar={() => setVentanaRubro(false)} proyectoId={proyectoId || null} codigo={siguienteCodigo()} subtitulo={proyecto ? nombreProy(proyecto.id) : ""} onCreado={(m) => { setAviso(m); for (const k of ["requerimientos", "requerimiento_items"]) qc.invalidateQueries({ queryKey: [k] }); }} />
+      </div>
+      <BarraIconosHoja
+        objeto="requerimiento"
+        filtros={<MenuFiltros activos={busqueda ? 1 : 0} onLimpiar={() => setBusqueda("")}><Buscador valor={busqueda} onChange={setBusqueda} total={reqsVisibles.length} placeholder="Buscar por código, obra u observación..." /></MenuFiltros>}
+        haySeleccion={!!actual}
+        onEliminar={actual && (gestiona || ["Enviado a Gerencia", "Rechazado"].includes(actual.estado)) ? () => void eliminar(actual.id) : undefined}
+        extras={
+          <><BotonIcono etiqueta="Nuevo requerimiento por rubro (materiales, equipos, herramientas o EPP)" tono="primario" onClick={() => setVentanaRubro(true)}>
+            <PackagePlus size={15} />
+          </BotonIcono>
+          <BotonIcono etiqueta={proyectoId ? "Nuevo requerimiento con términos de referencia" : "Selecciona una obra para crear términos de referencia"} disabled={!proyectoId} onClick={() => { setTdr(TDR_VACIO); setVentanaTdr(true); }}>
+            <FileText size={15} />
+          </BotonIcono></>
+        }
+      />
+      </div>
+
+      <VentanaRequerimientoRubro abierta={ventanaRubro} onCerrar={() => setVentanaRubro(false)} proyectoId={proyectoId || null} proyectos={proyectos} onSeleccionarProyecto={(id) => { setOrigen("obra"); setProyectoSel(id); }} codigo={siguienteCodigo()} subtitulo={proyecto ? nombreProy(proyecto.id) : ""} onCreado={(m) => { setAviso(m); for (const k of ["requerimientos", "requerimiento_items"]) qc.invalidateQueries({ queryKey: [k] }); }} />
 
       <VentanaFlotante abierta={ventanaTdr} onCerrar={() => setVentanaTdr(false)} titulo="Términos de Referencia" subtitulo={`Subcontratos, servicios y alquileres · ${proyecto ? nombreProy(proyecto.id) : ""}`} ancho="max-w-3xl">
         <form className="grid grid-cols-2 gap-3 p-5 text-xs" onSubmit={(e) => { e.preventDefault(); void guardarTdr(); }}>

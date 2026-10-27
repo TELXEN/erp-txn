@@ -1,4 +1,5 @@
 # Roadmap
+- [ ] Habilitar y mantener visible el icono de requerimiento en Operaciones; elegir obra dentro de la ventana cuando falta seleccionarla.
 - [x] Órdenes de compra con hoja de Facturación en creación y documento, e icono derecho de imprimir/PDF; orden real abierta y PDF A4 generado sin alterar compras, compilación OK.
 - [x] Gestión de cotizaciones accesible desde cada requerimiento: ventana conjunta de ítems/proveedores y acceso al comparativo/registro/OC; apertura y selección probadas con el requerimiento real sin modificarlo, cuatro pruebas pasan.
 - [x] Catálogo dentro de Inventario: Materiales, Equipos, Herramientas y EPPs; stock conservado, clasificación guardada/restaurada en pantalla, dos pruebas y compilación OK.

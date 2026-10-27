@@ -10,8 +10,10 @@ type Linea = ArticuloRubro & { cantidad: string };
  * Requerimiento de un solo rubro (Materiales, Equipos, Herramientas o EPP).
  * Con obra: lo emite el ingeniero y va a Gerencia. Sin obra (`proyectoId` null): Logística pide stock para el Almacén Central.
  */
-export function VentanaRequerimientoRubro({ abierta, onCerrar, proyectoId, codigo, subtitulo, onCreado }: {
+export function VentanaRequerimientoRubro({ abierta, onCerrar, proyectoId, codigo, subtitulo, onCreado, proyectos, onSeleccionarProyecto }: {
   abierta: boolean; onCerrar: () => void; proyectoId: string | null; codigo: string; subtitulo: string; onCreado: (msg: string) => void;
+  proyectos?: Array<{ id: string; codigo?: string | null; nombre: string }>;
+  onSeleccionarProyecto?: (id: string) => void;
 }) {
   const [rubro, setRubro] = useState<RubroCompra | "">("");
   const [sel, setSel] = useState("");
@@ -35,6 +37,7 @@ export function VentanaRequerimientoRubro({ abierta, onCerrar, proyectoId, codig
 
   async function guardar() {
     setError("");
+    if (proyectos && !proyectoId) return setError("Selecciona la obra del requerimiento.");
     const msg = validarRubroUnico(rubro, lineas);
     if (msg) return setError(msg);
     const validas = lineas.filter((l) => Number(l.cantidad) > 0);
@@ -63,8 +66,14 @@ export function VentanaRequerimientoRubro({ abierta, onCerrar, proyectoId, codig
   }
 
   return (
-    <VentanaFlotante abierta={abierta} onCerrar={cerrar} titulo={proyectoId ? "Requerimiento por rubro" : "Requerimiento para stock"} subtitulo={subtitulo} ancho="max-w-3xl">
+    <VentanaFlotante abierta={abierta} onCerrar={cerrar} titulo={proyectos || proyectoId ? "Requerimiento por rubro" : "Requerimiento para stock"} subtitulo={subtitulo} ancho="max-w-3xl">
       <form className="grid gap-3 p-5 text-xs" onSubmit={(e) => { e.preventDefault(); void guardar(); }}>
+        {proyectos && <Campo etiqueta="Obra">
+          <Select required value={proyectoId ?? ""} onChange={(e) => onSeleccionarProyecto?.(e.target.value)}>
+            <option value="">Seleccionar obra…</option>
+            {proyectos.map((p) => <option key={p.id} value={p.id}>{p.codigo ? `${p.codigo} · ${p.nombre}` : p.nombre}</option>)}
+          </Select>
+        </Campo>}
         <div className="grid gap-3 sm:grid-cols-2">
           <Campo etiqueta="¿Qué vas a comprar?">
             <Select autoFocus value={rubro} onChange={(e) => cambiarRubro(e.target.value as RubroCompra | "")}>
