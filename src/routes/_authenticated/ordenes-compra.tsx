@@ -108,7 +108,8 @@ function OrdenesCompraPage() {
   const cerrarTrasGuardar = useRef(false);
 
   const proveedores = terceros.filter((t) => t.es_proveedor && t.activo);
-  const nombreProy = (id: string) => {
+  const nombreProy = (id: string | null) => {
+    if (!id) return "Stock · Almacén Central";
     const p = proyectos.find((x) => x.id === id);
     return p ? (p.codigo ? `${p.codigo} · ${p.nombre}` : p.nombre) : "—";
   };
