@@ -3,7 +3,7 @@ import { useRecordado } from "@/lib/recordado";
 import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowDownToLine, ArrowLeftRight, ArrowUpFromLine, PackageCheck, Upload } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Input, MenuFiltros, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
@@ -33,7 +33,16 @@ export const Route = createFileRoute("/_authenticated/almacen")({
 const hoy = () => new Date().toISOString().slice(0, 10);
 
 function AlmacenPage() {
-  const { rol } = useAuth();
+  const { rol, session } = useAuth();
+  const yo = session?.user.id ?? "";
+  const { data: encargados = [] } = useQuery({
+    queryKey: ["almacen_encargados"],
+    queryFn: async () => ((await (supabase as any).from("almacen_encargados").select("id,almacen_id,user_id")).data ?? []) as { id: string; almacen_id: string; user_id: string }[],
+  });
+  const { data: usuarios = [] } = useQuery({
+    queryKey: ["perfiles-encargados"],
+    queryFn: async () => ((await supabase.from("profiles").select("id,nombre,email")).data ?? []) as { id: string; nombre: string; email: string }[],
+  });
   const qc = useQueryClient();
   const { data: proyectos = [] } = useProyectos();
   const { data: insumos = [] } = useInsumos();
@@ -51,7 +60,32 @@ function AlmacenPage() {
   const actual = movs.find((x) => x.id === sel);
 
   const [consumo, setConsumo] = useState<{ clave: string; cantidad: string; documento: string; observacion: string; error: string } | null>(null);
-  if (!puedeVerDinero(rol)) return <SinAcceso />;
+  const gestion = puedeVerDinero(rol);
+  const esGerente = rol === "gerente";
+  const almacenDe = (pid: string | null) => almacenes.find((a) => (a.proyecto_id ?? null) === (pid ?? null));
+  const encDe = (almId?: string) => encargados.filter((e) => e.almacen_id === almId);
+  const nombreUsuario = (id: string) => { const u = usuarios.find((x) => x.id === id); return u ? (u.nombre || u.email) : "Usuario"; };
+  /** Central: gerente o encargado. Obra: encargado; sin encargados asignados, el gerente. */
+  const puedeRecibir = (pid: string | null) => {
+    const enc = encDe(almacenDe(pid)?.id);
+    if (enc.some((e) => e.user_id === yo)) return true;
+    return esGerente && (pid === null || enc.length === 0);
+  };
+  const quienRecibe = (pid: string | null) => {
+    const n = encDe(almacenDe(pid)?.id).map((e) => nombreUsuario(e.user_id));
+    return pid === null ? ["Gerente/Dueño", ...n].join(", ") : n.length ? n.join(", ") : "Gerente/Dueño (la obra no tiene encargado)";
+  };
+  async function agregarEnc(almId: string, uid: string) {
+    if (!uid) return;
+    const { error: err } = await (supabase as any).from("almacen_encargados").insert({ almacen_id: almId, user_id: uid });
+    if (err) return window.alert(err.message);
+    qc.invalidateQueries({ queryKey: ["almacen_encargados"] });
+  }
+  async function quitarEnc(id: string) {
+    await (supabase as any).from("almacen_encargados").delete().eq("id", id);
+    qc.invalidateQueries({ queryKey: ["almacen_encargados"] });
+  }
+  if (!gestion && !encargados.some((e) => e.user_id === yo)) return <SinAcceso />;
 
   const stock = calcularStock(movs);
   const stockDe = (pid: string | null, insumoId: string) =>
@@ -163,7 +197,7 @@ function AlmacenPage() {
       />
 
       <div className="mb-5 grid gap-5 lg:grid-cols-2">
-        <Panel titulo="Transferir entre almacenes">
+        {gestion && <Panel titulo="Transferir entre almacenes">
           <form onSubmit={transferir} className="grid gap-3 px-5 py-4 sm:grid-cols-2">
             <Campo etiqueta="Origen">
               <Select value={tr.origen} onChange={(e) => setTr({ ...tr, origen: e.target.value, destino: tr.destino === e.target.value ? "" : tr.destino, insumo_id: "", error: "" })}>{opcionesAlmacen}</Select>
@@ -198,7 +232,7 @@ function AlmacenPage() {
           <p className="border-t border-line px-5 py-2 font-mono text-[10px] text-muted-foreground">
             Sale del origen al instante y queda «En tránsito» hasta que el destino la recibe. Las transferencias no cargan costo a la obra; solo el consumo.
           </p>
-        </Panel>
+        </Panel>}
         <Panel titulo={`En tránsito (${enTransito.length})`}>
           {enTransito.length === 0 ? <Vacio texto="No hay transferencias por recibir." /> : (
             <table className="w-full font-mono text-xs">
@@ -210,7 +244,7 @@ function AlmacenPage() {
                     <td className="px-3 py-2 text-right">{num(Number(m.cantidad))} {m.unidad}</td>
                     <td className="px-3 py-2 text-ink">→ {nombreProy(m.proyecto_id)}</td>
                     <td className="px-3 py-2 text-right">
-                      <Boton variante="linea" onClick={() => m.transferencia_id && void recibirTr(m.transferencia_id)}><PackageCheck size={13} className="mr-1 inline" /> Recibir</Boton>
+                      <Boton variante="linea" disabled={!puedeRecibir(m.proyecto_id)} title={puedeRecibir(m.proyecto_id) ? "Recibir en el almacén de destino" : `Recibe: ${quienRecibe(m.proyecto_id)}`} onClick={() => m.transferencia_id && void recibirTr(m.transferencia_id)}><PackageCheck size={13} className="mr-1 inline" /> Recibir</Boton>
                     </td>
                   </tr>
                 ))}
@@ -254,15 +288,27 @@ function AlmacenPage() {
             </table>
           )}
         </Panel>
-        <Panel titulo="Almacenes">
+        {gestion && <Panel titulo="Almacenes · encargados de recibir">
           <table className="w-full font-mono text-xs">
             <tbody>
               {almacenes.slice().sort((a, b) => (a.tipo === "central" ? -1 : b.tipo === "central" ? 1 : 0)).map((a) => (
                 <tr key={a.id} className="border-b border-line/40">
                   <td className="px-5 py-2 text-ink">{a.tipo === "central" ? "Almacén Central" : nombreProy(a.proyecto_id)}</td>
                   <td className="px-3 py-1">
-                    <Input className="h-7 text-xs" placeholder="Responsable" defaultValue={a.responsable}
-                      onBlur={(e) => e.target.value !== a.responsable && void cambiarAlmacen(a.id, { responsable: e.target.value.trim() })} />
+                    <div className="flex flex-wrap items-center gap-1">
+                      {encDe(a.id).map((e) => (
+                        <span key={e.id} className="inline-flex items-center gap-1 rounded border border-line px-1.5 py-0.5">
+                          {nombreUsuario(e.user_id)}
+                          {esGerente && <button type="button" className="text-bad" aria-label="Quitar encargado" onClick={() => void quitarEnc(e.id)}>×</button>}
+                        </span>
+                      ))}
+                      {esGerente && (
+                        <Select className="h-7 w-32 py-0 text-xs" value="" onChange={(e) => void agregarEnc(a.id, e.target.value)}>
+                          <option value="">+ Encargado</option>
+                          {usuarios.filter((u) => !encDe(a.id).some((e) => e.user_id === u.id)).map((u) => <option key={u.id} value={u.id}>{u.nombre || u.email}</option>)}
+                        </Select>
+                      )}
+                    </div>
                   </td>
                   <td className="px-3 py-2 text-right">
                     {a.tipo === "central" ? <span className="text-muted-foreground">Fijo</span> : (
@@ -274,7 +320,7 @@ function AlmacenPage() {
               ))}
             </tbody>
           </table>
-        </Panel>
+        </Panel>}
       </div>
 
       <VentanaFlotante abierta={!!consumo} onCerrar={() => setConsumo(null)} titulo="Consumo en obra" subtitulo={filaConsumo ? `${nombreProy(filaConsumo.proyecto_id)} · ${filaConsumo.descripcion}` : ""} ancho="max-w-md">
@@ -354,7 +400,7 @@ function AlmacenPage() {
               <option>Salida</option>
             </Select>
           </Campo>
-        </MenuFiltros>} haySeleccion={!!actual} onEliminar={() => { if (actual) void eliminar(actual.id); }} />
+        </MenuFiltros>} haySeleccion={gestion && !!actual} onEliminar={() => { if (actual) void eliminar(actual.id); }} />
       </div>
     </>
   );
