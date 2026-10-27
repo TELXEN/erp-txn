@@ -13,7 +13,7 @@ Volumen actual (bajo, buen momento para migrar): 3 materiales, 1 equipo, 5 mano 
 | Descripción | Única sin contar mayúsculas ni tildes |
 | Rubro | Material, Equipo, Herramienta, EPP, Mano de obra, Subcontrato |
 | Especialidad | De las 10 disciplinas |
-| Unidad | Solo de Unidades de medida (H-H, H-M, %, GLB, und…) |
+| Unidad | Enlazada a la tabla Unidades de medida (selector, nunca texto libre; incluye H-H, H-M, %, GLB, und…). Las unidades viejas escritas a mano se emparejan con esa tabla al migrar |
 | Precio base (PEN) | Costo referencial del APU |
 | Inventariable | Automático: Sí para Material, Equipo, Herramienta, EPP; No para Mano de obra y Subcontrato |
 | Estado | Activo / Inactivo (inactivo conserva código e historial) |
