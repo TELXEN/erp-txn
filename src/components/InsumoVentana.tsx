@@ -102,7 +102,6 @@ export function VentanaInsumo({
   const qc = useQueryClient();
   const { data: espLista = [] } = useEspecialidadesPartida();
   const { data: subfamilias = [] } = useSubfamilias();
-  const conSubfamilia = tipo === "materiales";
   const { data: unidades = [] } = useUnidadesMedida();
   const { data: marcas = [] } = useMarcas();
   const { data: mats = [] } = useBancoTabla("materiales");
@@ -124,6 +123,7 @@ export function VentanaInsumo({
   const dual = Boolean(alAgregar);
   const [pestana, setPestana] = useState<"sel" | "crear">(dual ? "sel" : "crear");
   const [tipo, setTipo] = useState<TablaInsumo>(modo === "nuevo" ? soloTabla ?? "materiales" : sel!.tabla);
+  const conSubfamilia = tipo === "materiales";
   const [form, setForm] = useState<FilaInsumo>(() => {
     if (modo === "nuevo") return base(soloTabla ?? "materiales");
     const b = base(sel!.tabla, sel!.fila);
