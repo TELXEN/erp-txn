@@ -14,8 +14,8 @@ import { apuDb, nombreTipo } from "@/lib/apu";
 import { useItemsOC, useMovimientos, useOrdenesCompra } from "@/lib/logistica";
 import { saldoRecepcion, tonoEstadoReq } from "@/lib/requerimientos-flujo";
 import { supabase } from "@/integrations/supabase/client";
-import { VentanaRequerimientoRubro } from "@/components/VentanaRequerimientoRubro";
-import { nombreRubro } from "@/lib/rubros-compra";
+import { VentanaRequerimientoRubro, type ReqEditable } from "@/components/VentanaRequerimientoRubro";
+import { nombreRubro, type RubroCompra } from "@/lib/rubros-compra";
 
 export const Route = createFileRoute("/_authenticated/generar-requerimiento")({
   head: () => ({
@@ -77,6 +77,8 @@ function RequerimientosPage() {
   const [ventanaTdr, setVentanaTdr] = useState(false);
   const [tdr, setTdr] = useState(TDR_VACIO);
   const [ventanaRubro, setVentanaRubro] = useState(false);
+  const [editRubro, setEditRubro] = useState<ReqEditable | null>(null);
+  const [editTdr, setEditTdr] = useState<{ id: string; codigo: string } | null>(null);
   const [recepcion, setRecepcion] = useState<{ orden: string; fecha: string; obs: string; cant: Record<string, string> } | null>(null);
   const { data: ordenes = [] } = useOrdenesCompra();
   const { data: itemsOC = [] } = useItemsOC();
@@ -129,18 +131,26 @@ function RequerimientosPage() {
     return `REQ-${proyecto?.codigo || "OBRA"}-${String(n).padStart(3, "0")}`;
   };
 
-  async function guardarTdr() {
+  async function guardarTdr(enviar: boolean) {
     setError("");
     if (!proyectoId) return setError("Selecciona la obra.");
     if (!tdr.objeto.trim()) return setError("Indica el objeto de la contratación.");
-    const codigo = siguienteCodigo();
+    const codigo = editTdr?.codigo ?? siguienteCodigo();
+    if (enviar && !window.confirm(`¿Estás seguro de enviar el requerimiento ${codigo} a Gerencia?\nUna vez enviado ya no podrás editarlo.`)) return;
     const { referencial, ...datos } = tdr;
-    const { data: req, error: e1 } = await apuDb
-      .from("requerimientos")
-      .insert({ proyecto_id: proyectoId, codigo, origen: "obra", clase: "tdr", estado: "Enviado a Gerencia", observacion: `${tdr.tipo}: ${tdr.objeto.trim()}`, tdr: datos })
-      .select("id")
-      .single();
-    if (e1) return setError(e1.message);
+    const cab = { proyecto_id: proyectoId, origen: "obra", clase: "tdr", observacion: `${tdr.tipo}: ${tdr.objeto.trim()}`, tdr: datos };
+    let req: { id: string };
+    if (editTdr) {
+      const { error: e0 } = await apuDb.from("requerimientos").update({ ...cab, estado: "Borrador", motivo_rechazo: "" }).eq("id", editTdr.id);
+      if (e0) return setError(e0.message);
+      const { error: eDel } = await apuDb.from("requerimiento_items").delete().eq("requerimiento_id", editTdr.id);
+      if (eDel) return setError(eDel.message);
+      req = { id: editTdr.id };
+    } else {
+      const { data, error: e1 } = await apuDb.from("requerimientos").insert({ ...cab, codigo, estado: "Borrador" }).select("id").single();
+      if (e1) return setError(e1.message);
+      req = data;
+    }
     const { error: e2 } = await apuDb.from("requerimiento_items").insert({
       requerimiento_id: req.id,
       tipo: "SC",
@@ -150,8 +160,12 @@ function RequerimientosPage() {
       precio_referencial: Number(referencial) || 0,
     });
     if (e2) return setError(e2.message);
-    setVentanaTdr(false);
-    setAviso(`Requerimiento ${codigo} (términos de referencia) enviado a Gerencia.`);
+    if (enviar) {
+      const { error: e3 } = await apuDb.from("requerimientos").update({ estado: "Enviado a Gerencia" }).eq("id", req.id);
+      if (e3) return setError(e3.message);
+    }
+    setVentanaTdr(false); setEditTdr(null);
+    setAviso(enviar ? `Requerimiento ${codigo} (términos de referencia) enviado a Gerencia.` : `Requerimiento ${codigo} guardado como borrador.`);
     qc.invalidateQueries({ queryKey: ["requerimientos"] });
     qc.invalidateQueries({ queryKey: ["requerimiento_items"] });
   }
@@ -173,6 +187,23 @@ function RequerimientosPage() {
     setRecepcion(null);
     setAviso("Recepción registrada en el almacén de la obra.");
     for (const k of ["movimientos_almacen", "ordenes_compra", "requerimientos"]) qc.invalidateQueries({ queryKey: [k] });
+  }
+
+  const editable = !!actual && ["Borrador", "Rechazado"].includes(actual.estado) && !actual.cotizacion_id;
+  const eliminable = !!actual && (gestiona || ["Borrador", "Enviado a Gerencia", "Rechazado"].includes(actual.estado));
+
+  function editarActual() {
+    if (!actual || !editable) return;
+    const its = reqItems.filter((i) => i.requerimiento_id === actual.id);
+    setProyectoSel(actual.proyecto_id ?? "");
+    if (actual.clase === "tdr") {
+      setTdr({ ...TDR_VACIO, ...actual.tdr, referencial: String(its[0]?.precio_referencial ?? "") } as typeof TDR_VACIO);
+      setEditTdr({ id: actual.id, codigo: actual.codigo });
+      setVentanaTdr(true);
+    } else {
+      setEditRubro({ id: actual.id, codigo: actual.codigo, rubro: (actual.rubro ?? "MAT") as RubroCompra, observacion: actual.observacion ?? "", items: its });
+      setVentanaRubro(true);
+    }
   }
 
   async function eliminar(id: string) {
@@ -309,22 +340,25 @@ function RequerimientosPage() {
         objeto="requerimiento"
         filtros={<MenuFiltros activos={busqueda ? 1 : 0} onLimpiar={() => setBusqueda("")}><Buscador valor={busqueda} onChange={setBusqueda} total={reqsVisibles.length} placeholder="Buscar por código, obra u observación..." /></MenuFiltros>}
         haySeleccion={!!actual}
-        onEliminar={actual && (gestiona || ["Enviado a Gerencia", "Rechazado"].includes(actual.estado)) ? () => void eliminar(actual.id) : undefined}
+        onEditar={editarActual}
+        editarHabilitado={editable}
+        onEliminar={() => { if (actual && eliminable) void eliminar(actual.id); }}
+        eliminarHabilitado={eliminable}
         extras={
-          <><BotonIcono etiqueta="Nuevo requerimiento por rubro (materiales, equipos, herramientas o EPP)" tono="primario" onClick={() => setVentanaRubro(true)}>
+          <><BotonIcono etiqueta="Nuevo requerimiento por rubro (materiales, equipos, herramientas o EPP)" tono="primario" onClick={() => { setEditRubro(null); setVentanaRubro(true); }}>
             <PackagePlus size={15} />
           </BotonIcono>
-          <BotonIcono etiqueta="Nuevo requerimiento con términos de referencia" onClick={() => { setTdr(TDR_VACIO); setVentanaTdr(true); }}>
+          <BotonIcono etiqueta="Nuevo requerimiento con términos de referencia" onClick={() => { setTdr(TDR_VACIO); setEditTdr(null); setVentanaTdr(true); }}>
             <FileText size={15} />
           </BotonIcono></>
         }
       />
       </div>
 
-      <VentanaRequerimientoRubro abierta={ventanaRubro} onCerrar={() => setVentanaRubro(false)} proyectoId={proyectoId || null} proyectos={proyectos} onSeleccionarProyecto={(id) => setProyectoSel(id)} codigo={siguienteCodigo()} subtitulo={proyecto ? nombreProy(proyecto.id) : ""} onCreado={(m) => { setAviso(m); for (const k of ["requerimientos", "requerimiento_items"]) qc.invalidateQueries({ queryKey: [k] }); }} />
+      <VentanaRequerimientoRubro editar={editRubro} abierta={ventanaRubro} onCerrar={() => { setVentanaRubro(false); setEditRubro(null); }} proyectoId={proyectoId || null} proyectos={proyectos} onSeleccionarProyecto={(id) => setProyectoSel(id)} codigo={siguienteCodigo()} subtitulo={proyecto ? nombreProy(proyecto.id) : ""} onCreado={(m) => { setAviso(m); for (const k of ["requerimientos", "requerimiento_items"]) qc.invalidateQueries({ queryKey: [k] }); }} />
 
-      <VentanaFlotante abierta={ventanaTdr} onCerrar={() => setVentanaTdr(false)} titulo="Términos de Referencia" subtitulo={`Subcontratos, servicios y alquileres · ${proyecto ? nombreProy(proyecto.id) : ""}`} ancho="max-w-3xl">
-        <form className="grid grid-cols-2 gap-3 p-5 text-xs" onSubmit={(e) => { e.preventDefault(); void guardarTdr(); }}>
+      <VentanaFlotante abierta={ventanaTdr} onCerrar={() => { setVentanaTdr(false); setEditTdr(null); }} titulo={editTdr ? `Editar ${editTdr.codigo}` : "Términos de Referencia"} subtitulo={`Subcontratos, servicios y alquileres · ${proyecto ? nombreProy(proyecto.id) : ""}`} ancho="max-w-3xl">
+        <form className="grid grid-cols-2 gap-3 p-5 text-xs" onSubmit={(e) => { e.preventDefault(); void guardarTdr(true); }}>
           <div className="col-span-2"><Campo etiqueta="Obra">
             <Select required value={proyectoId} onChange={(e) => setProyectoSel(e.target.value)}>
               <option value="">Seleccionar obra…</option>
@@ -354,7 +388,8 @@ function RequerimientosPage() {
           <Campo etiqueta="Lugar"><Input value={tdr.lugar} onChange={(e) => setTdr({ ...tdr, lugar: e.target.value })} /></Campo>
           {gestiona && <Campo etiqueta="Monto referencial (S/)"><Input type="number" step="0.01" value={tdr.referencial} onChange={(e) => setTdr({ ...tdr, referencial: e.target.value })} /></Campo>}
           <div className="col-span-2 flex justify-end gap-2 border-t border-line pt-3">
-            <Boton type="button" variante="linea" onClick={() => setVentanaTdr(false)}>Cancelar</Boton>
+            <Boton type="button" variante="linea" onClick={() => { setVentanaTdr(false); setEditTdr(null); }}>Cancelar</Boton>
+            <Boton type="button" variante="linea" onClick={() => void guardarTdr(false)}>Guardar borrador</Boton>
             <Boton type="submit">Enviar a Gerencia</Boton>
           </div>
         </form>
