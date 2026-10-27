@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { imputaGastosGenerales, validarRubroUnico } from "./rubros-compra";
+import { imputaGastosGenerales, tipoFichaRubro, validarRubroUnico } from "./rubros-compra";
 
 describe("rubros de compra", () => {
   it("exige elegir el rubro antes de cargar artículos", () => {
