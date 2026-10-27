@@ -1,5 +1,6 @@
 /** Flujo de requerimientos: obra → Gerencia → Bandeja de Requerimientos → OC → recepción en obra. */
 export const ESTADOS_REQ = [
+  "Borrador",
   "Enviado a Gerencia",
   "Aprobado",
   "Rechazado",
@@ -12,8 +13,17 @@ export const ESTADOS_REQ = [
 /** Estados que Logística ve en la Bandeja de Requerimientos (ya aprobados por Gerencia). */
 export const ESTADOS_BANDEJA = ["Aprobado", "En cotización", "Orden emitida", "Recibido parcial", "Recibido"];
 
-export const tonoEstadoReq = (e: string): "good" | "bad" | "warn" | "neutro" =>
-  e === "Rechazado" ? "bad" : e === "Recibido" ? "good" : e === "Enviado a Gerencia" ? "warn" : "neutro";
+export type TonoEstado = "good" | "bad" | "warn" | "info" | "doc" | "neutro" | "apagado";
+
+/** Color del estado: borrador apagado, en trámite ámbar, aprobado verde, orden emitida azul marino. */
+export const tonoEstadoReq = (e: string): TonoEstado =>
+  e === "Borrador" ? "apagado"
+    : e === "Rechazado" || e === "Anulada" ? "bad"
+    : e === "Enviado a Gerencia" || e === "Recibido parcial" || e === "Recibida parcial" ? "warn"
+    : e === "Aprobado" || e === "Recibido" || e === "Recibida" ? "good"
+    : e === "En cotización" || e === "Enviado a obra" ? "info"
+    : e === "Orden emitida" || e === "Emitida" ? "doc"
+    : "neutro";
 
 /** Cantidad a pedir: nunca más que el saldo del APU ni negativa. */
 export function cantidadPermitida(pedida: number, saldo: number): number {

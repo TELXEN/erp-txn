@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cantidadPermitida, estadoTrasOrden, mejoresPrecios, saldoRecepcion } from "./requerimientos-flujo";
+import { cantidadPermitida, estadoTrasOrden, mejoresPrecios, saldoRecepcion, tonoEstadoReq } from "./requerimientos-flujo";
 
 describe("flujo de requerimientos", () => {
   it("no permite pedir más que el saldo del APU", () => {
