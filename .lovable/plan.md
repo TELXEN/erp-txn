@@ -58,6 +58,11 @@ Stock, costo promedio, último precio de compra y "por llegar" salen siempre de 
 
 Permisos: alta y edición del precio base para Comercial/Gerencia; datos logísticos para Logística; ingeniero solo lectura.
 
+### Desviación de precios (compra vs. precio base)
+- Al aprobar la cotización y generar la OC, cada ítem compara su precio unitario (en soles, sin IGV) con el precio base del maestro. Si la diferencia supera el umbral (por defecto ±10 %, editable en Configuración), la fila se marca en ámbar y la OC se emite igual — nunca bloquea.
+- Cada desviación queda registrada y suma a la alerta roja de **Aprobaciones** como «Precio por revisar».
+- Reporte **Desviaciones de precio** en Datos › Maestro de Insumos: insumo, precio base, último precio de compra, % de diferencia, OC y proveedor. Comercial/Gerencia puede **Actualizar precio base** (queda en historial con fecha y usuario) o **Descartar**. Los APU y cotizaciones ya emitidos no cambian.
+
 ## 3. Plan de migración (sin perder historial)
 
 1. **Ampliar la ficha actual de almacén** para que sea el maestro: agregar rubro, especialidad, subfamilia, marca, costo hora, inventariable y los campos de EPP. Nada se borra.
@@ -71,6 +76,7 @@ Se ejecuta por etapas (1-2, luego 3, luego 4-5) para que el sistema funcione en 
 
 ## Detalles técnicos
 - Unicidad: índice único funcional en `insumos (rubro, unidad_id, clave_descripcion)` donde `clave_descripcion` es columna generada (unaccent + lower + espacios colapsados); la UI usa `claveNombre` con la misma regla y avisa antes de guardar. Antes de crear el índice se listan los posibles choques de la migración para resolverlos.
+- Desviaciones: tabla `desviaciones_precio` (insumo_id, orden_item_id, precio_base, precio_compra, pct, estado Pendiente/Actualizado/Descartado, resuelto_por/en) llenada por trigger AFTER INSERT en `orden_compra_items`; umbral en `empresa_config`; historial en `insumos_precio_historial`. Regla de cálculo en un helper con prueba unitaria.
 - Base: `insumos` (ya es FK del kardex y de compras) se amplía con `rubro`, `especialidad_id`, `subfamilia_id`, `marca_id` (FK marcas), `unidad_id` (FK unidades_medida), `inventariable` (generada desde rubro), `origen_tabla`/`origen_id`. `subfamilias_insumo` gana una familia padre por rubro (`familias_insumo`).
 - `partida_detalle` y `apu_componentes` ganan `insumo_id` nullable; backfill desde las FK por tabla; luego el código lee solo `insumo_id`. Las columnas viejas se marcan `DEPRECATED`, no se eliminan.
 - Extensiones 1:1 con PK = `insumo_id` (FK insumos ON DELETE CASCADE): `insumos_atributos_epp` (norma, tallas, criticidad, vida_util_dias) y `insumos_atributos_equipo` (costo_hora, propiedad, clase_equipo); trigger exige fila EPP cuando rubro = EPP. Columnas sueltas actuales de `insumos` (sueldo_mensual, regimen_laboral, categoria_obrero, asignacion_familiar, propiedad, clase_equipo) se copian a su extensión y se marcan DEPRECATED. Se descarta JSONB para conservar tipos y validación.
