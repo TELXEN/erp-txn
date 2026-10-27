@@ -185,7 +185,7 @@ export function BotonIcono({
   );
 }
 
-export function Etiqueta({ tono, children }: { tono: "good" | "bad" | "warn" | "neutro"; children: ReactNode }) {
+export function Etiqueta({ tono, children }: { tono: "good" | "bad" | "warn" | "info" | "doc" | "neutro" | "apagado"; children: ReactNode }) {
   const c =
     tono === "good"
       ? "text-good bg-good/10 ring-good/20"
@@ -193,7 +193,13 @@ export function Etiqueta({ tono, children }: { tono: "good" | "bad" | "warn" | "
         ? "text-bad bg-bad/10 ring-bad/20"
         : tono === "warn"
           ? "text-warn bg-warn/10 ring-warn/25"
-          : "text-muted-foreground bg-muted ring-line";
+          : tono === "info"
+            ? "text-info bg-info/10 ring-info/20"
+            : tono === "doc"
+              ? "text-primary bg-primary/10 ring-primary/25"
+              : tono === "apagado"
+                ? "text-muted-foreground bg-transparent ring-line/70 border border-dashed border-line"
+                : "text-muted-foreground bg-muted ring-line";
   return (
     <span className={`inline-flex items-center whitespace-nowrap rounded-full px-2 py-0.5 font-mono text-[11px] ring-1 ${c}`}>
       {children}
