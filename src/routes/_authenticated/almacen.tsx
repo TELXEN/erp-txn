@@ -105,7 +105,7 @@ function AlmacenPage() {
   const enTransito = movs.filter((m) => m.tipo === "Ingreso" && m.estado === "En tránsito");
   const origenValido = misAlmacenes.some((a) => valorDeAlmacen(a.proyecto_id) === tr.origen);
   useEffect(() => {
-    if (!origenValido && misAlmacenes.length) setTr((t) => ({ ...t, origen: valorDeAlmacen(misAlmacenes[0].proyecto_id), destino: "", insumo_id: "" }));
+    if (!origenValido && misAlmacenes.length) setTr((t) => ({ ...t, origen: valorDeAlmacen(misAlmacenes[0]!.proyecto_id), destino: "", insumo_id: "" }));
   }, [origenValido, misAlmacenes.length]);
   const pidTrOrigen = almacenDeValor(tr.origen);
   const insumosOrigen = insumos.filter((i) => (stockDe(pidTrOrigen, i.id)?.stock ?? 0) > 0.0001);
