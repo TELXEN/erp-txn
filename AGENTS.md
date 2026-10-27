@@ -46,12 +46,10 @@
 - banco_saldos kept atomically by triggers; debits reject insufficient funds; role-checked loan RPCs block duplicates.
 - Module screens use ui-kit CabeceraModulo, Pestanas, TarjetaResumen, FilasCargando and Vacio — one visual language across modules.
 - List filters live in MenuFiltros (lupa) at the top of the right icon bar (BarraIconosHoja `filtros`), or `flotante` when a page has no bar — tabs/period selectors stay visible.
-- Carriers (transportistas + vehiculos/conductores) are a catalogue; guías copy carrier, vehicle and driver data into datos_guia so emitted guides never change when the catalogue does.
 - Quotations from a prior year are resumed via retomarCotizacion (new current-year code, Rev. 00, retoma_de_id link, original frozen as Retomada) — clean yearly numbering.
 - ReportePagos: read-only from CxP selection; payee accounts via reporte-pagos.ts — never marks payments.
 - Valuations snapshot contracted metrado/P.U.; prior accumulation only from approved ones; approval (DB trigger) needs supervisor signature and freezes the row — stable history.
 - Gantt uses escalaCalendario and useRecordado for the timeline and last project.
-- Inventory reuses materiales, equipos_herramientas and BancoEpp; categoria_inventario splits equipment/tools only in logistics. Unclassified rows stay under equipment; APU stays combined.
 - Collapsible sections use Panel's colapsable/abierto/onAbrirCambiar props (header with totals stays visible, body hides) — one folding mechanism, not per-screen show/hide markup.
 - CTS regularization: conflict-ignore inserts, independent period IDs. CTS/gratification/settlement share one sheet with saved amounts; calcGrat snapshots breakdown — no invented history.
 
@@ -59,8 +57,6 @@
 - Company regime: dated regimenes_empresa; a worker's regime can't be below the company's at hire (trigger + errorRegimenTrabajador) — changes hit only new hires.
 - Company settings use DatosEmpresaTabs (general, banks, regime), not top-level tabs.
 - Insumo codes renumber via AFTER DELETE trigger per 5-digit prefix — no gaps; inactive rows keep codes.
-- Requerimientos: obra → gerente approves (trigger) → Bandeja quotes → approved quote creates OC → recepcionar_orden_obra RPC receives in obra. «Aprobar y generar OC» shows only with prices and pending qty; registering a quote requires ≥1 price.
-- Supplier quotes open per inbox requirement. Operations has no APU-unfolding header: the icon windows pick their own obra; reception lists every obra's pending orders.
 - Purchase orders use HojaOrdenCompra, DOC and A4 printing; orden-compra-montos shares tax totals, orden-compra-pago encodes terms in the existing field — costs/history unchanged.
 - Field consumption: Consumir needs a partida; vales via registrar_vale_salida RPC; budget check in consumo-partida.ts warns, never blocks.
-- Insumos master: public.insumos is the single item record; materiales/mano_obra/equipos_herramientas/subcontratos/epp_catalogo are security-invoker views with INSTEAD OF triggers over it (EPP extras in insumos_atributos_epp) — one code and one row per item across APU, logistics and stock.
+- Insumos master: public.insumos is the only item row; materiales/mano_obra/equipos_herramientas/subcontratos/epp_catalogo are INSTEAD-OF views over it (EPP extras in insumos_atributos_epp; categoria_inventario splits equipment/tools) — one code per item everywhere.
