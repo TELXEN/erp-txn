@@ -55,7 +55,7 @@ Permisos: alta y edición del precio base para Comercial/Gerencia; datos logíst
 2. **Copiar los bancos al maestro**: cada material, equipo, mano de obra, subcontrato y EPP se une con su ficha existente por nombre + unidad + rubro (las 7 fichas actuales) o crea una nueva. Se guarda el enlace de origen para trazabilidad.
 3. **Reapuntar referencias**: APU, cotizaciones, plantillas, requerimientos, OC, movimientos y entregas de EPP pasan a usar la ficha única. Las cotizaciones emitidas conservan su foto de precios (no cambian).
 4. **Pantallas**: Banco APU, Inventario, Catálogo EPP y los selectores de compras leen el maestro. El Catálogo EPP pasa a ser una vista filtrada del maestro.
-5. **Retirar lo viejo**: las tablas antiguas quedan solo de lectura y marcadas como retiradas; se elimina la sincronización automática por nombre.
+5. **Eliminar las tablas antiguas**: una vez que ninguna pantalla las usa y la verificación pasa, se borran los bancos viejos (materiales, equipos/herramientas, mano de obra, subcontratos y catálogo EPP) y la sincronización automática por nombre. Para hacerlo, primero debes cambiar en las preferencias de Lovable Cloud el permiso «Ejecutar migraciones incompatibles» a «Preguntar cada vez»; te pediré confirmación antes de borrar.
 6. **Verificación**: conteo antes/después por rubro, precio de una partida APU idéntico antes y después, stock y kardex sin cambios, y pruebas automáticas de código único, inventariable por rubro y no duplicados.
 
 Se ejecuta por etapas (1-2, luego 3, luego 4-5) para que el sistema funcione en todo momento.
@@ -63,7 +63,7 @@ Se ejecuta por etapas (1-2, luego 3, luego 4-5) para que el sistema funcione en 
 ## Detalles técnicos
 - Base: `insumos` (ya es FK del kardex y de compras) se amplía con `rubro`, `especialidad_id`, `subfamilia_id`, `marca`, `costo_hora`, `inventariable` (generada desde rubro), `atributos jsonb` para EPP/MO, `origen_tabla`/`origen_id`.
 - `partida_detalle` y `apu_componentes` ganan `insumo_id` nullable; backfill desde las FK por tabla; luego el código lee solo `insumo_id`. Las columnas viejas se marcan `DEPRECATED`, no se eliminan.
-- `epp_catalogo`, `materiales`, `equipos_herramientas`, `mano_obra`, `subcontratos` quedan como vistas de compatibilidad o solo lectura.
+- Tras publicar el código que ya no las referencia: `DROP TABLE` de `epp_catalogo`, `materiales`, `equipos_herramientas`, `mano_obra`, `subcontratos` y de las columnas FK viejas en `partida_detalle`/`apu_componentes` (requiere permiso de migraciones incompatibles).
 - `asegurarFichaAlmacen` y la sincronización por nombre se retiran; `quitar_recurso_apu` desactiva en el maestro.
 - Codificación sigue en `siguiente_codigo_insumo_modular`; renumeración por prefijo se mantiene.
 - Se actualiza AGENTS.md (regla de maestro único) y memoria de código de insumos.
