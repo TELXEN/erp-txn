@@ -99,6 +99,20 @@ function AlmacenPage() {
     const p = proyectos.find((x) => x.id === id);
     return p ? (p.codigo ? `${p.codigo} · ${p.nombre}` : p.nombre) : "—";
   };
+  /** Origen y destino de cada movimiento: los traslados se emparejan por transferencia_id. */
+  const tramoDe = (m: Movimiento) => {
+    if (m.motivo === "Transferencia" && m.transferencia_id) {
+      const pareja = movs.find((x) => x.transferencia_id === m.transferencia_id && x.tipo !== m.tipo);
+      const origen = m.tipo === "Salida" ? m.proyecto_id : pareja?.proyecto_id ?? null;
+      const destino = m.tipo === "Ingreso" ? m.proyecto_id : pareja?.proyecto_id ?? null;
+      return { origen: nombreProy(origen ?? null), destino: nombreProy(destino ?? null) };
+    }
+    return m.tipo === "Ingreso"
+      ? { origen: "—", destino: nombreProy(m.proyecto_id ?? null) }
+      : { origen: nombreProy(m.proyecto_id ?? null), destino: "—" };
+  };
+  const detallePartida = (m: Movimiento) =>
+    [partidas.find((p) => p.id === (m as { partida_id?: string | null }).partida_id)?.codigo, trabajadores.find((t) => t.id === (m as { trabajador_id?: string | null }).trabajador_id)?.nombre].filter(Boolean).join(" · ") || "—";
   const activos = almacenes.filter((a) => a.activo).sort((a, b) => (a.tipo === "central" ? -1 : b.tipo === "central" ? 1 : a.nombre.localeCompare(b.nombre, "es")));
   const misAlmacenes = activos.filter((a) => gestion || encDe(a.id).some((e) => e.user_id === yo));
   const opcionesAlmacen = misAlmacenes.map((a) => <option key={a.id} value={valorDeAlmacen(a.proyecto_id)}>{a.tipo === "central" ? "Almacén Central" : nombreProy(a.proyecto_id)}</option>);
