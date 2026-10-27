@@ -666,6 +666,13 @@
       "when": 1793122412956,
       "tag": "0094_codigo_insumo_equipo_herramienta",
       "breakpoints": true
+    },
+    {
+      "idx": 95,
+      "version": "7",
+      "when": 1793124141611,
+      "tag": "0095_clase_equipo_herramienta",
+      "breakpoints": true
     }
   ]
 }

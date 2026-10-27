@@ -80,7 +80,8 @@ export type Insumo = {
   categoria_obrero?: string | null;
   asignacion_familiar?: boolean;
   propiedad?: "Propio" | "Alquilado";
-  clase_equipo?: "Máquina" | "Equipo";
+  clase_equipo?: "Equipo" | "Herramienta";
+  categoria_inventario?: string | null;
   marca_id?: string | null;
 };
 

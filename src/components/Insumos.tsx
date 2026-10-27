@@ -769,7 +769,7 @@ function MaterialesWysiwyg({
 // ================= Equipos / Herramientas: edición WYSIWYG =================
 
 type Propiedad = "Propio" | "Alquilado";
-type Clase = "Máquina" | "Equipo";
+type Clase = "Equipo" | "Herramienta";
 type FilaEq = { nombre: string; clase: Clase; propiedad: Propiedad; unidad: string; precio: string };
 
 function EquiposWysiwyg({
