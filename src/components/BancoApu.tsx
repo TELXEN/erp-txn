@@ -9,7 +9,7 @@ import { soles } from "@/lib/format";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
 import { useUnidadesMedida } from "@/lib/unidades";
 import { alfabetizarPartidas, codigoAlfabeticoSugerido, guardarPartidaEnBanco, ordenarPartidasAlfabetico, renumerarApu, siguienteCodigoJerarquico } from "@/lib/banco-apu";
-import { VentanaInsumo, primeraMayuscula, CANCELADO, type ModoInsumo, type TablaInsumo, type SelInsumo } from "@/components/InsumoVentana";
+import { VentanaInsumo, CANCELADO, type TablaInsumo, type SelInsumo } from "@/components/InsumoVentana";
 import { r2, r4, sumar2 } from "@/lib/decimal";
 import { PCT_HERRAMIENTAS_DEFECTO } from "@/lib/apu";
 
@@ -74,6 +74,16 @@ const CONFIG: Record<Tabla, { titulo: string; campos: CampoDef[]; columnas: [str
     columnas: [["codigo", "Código", "txt"], ["descripcion", "Descripción", "txt"], ["unidad", "Und", "txt"], ["costo", "Costo", "sol"], ["margen", "Margen %", "num"], ["costo_unitario", "C. unitario", "sol"]],
   },
 };
+
+const useTabla = (t: Tabla | "partida_detalle") =>
+  useQuery({
+    queryKey: ["banco_apu", t],
+    queryFn: async () => {
+      const { data, error } = await (t === "partida_detalle" ? db.from(t).select("*").order("orden") : db.from(t).select("*")).order("created_at");
+      if (error) throw error;
+      return (data ?? []) as Fila[];
+    },
+  });
 
 export function BancoApu() {
   return <SplitPartidas />;
