@@ -400,7 +400,7 @@ function AlmacenPage() {
               <option>Salida</option>
             </Select>
           </Campo>
-        </MenuFiltros>} haySeleccion={!!actual} onEliminar={() => { if (actual) void eliminar(actual.id); }} />
+        </MenuFiltros>} haySeleccion={gestion && !!actual} onEliminar={() => { if (actual) void eliminar(actual.id); }} />
       </div>
     </>
   );
