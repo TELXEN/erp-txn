@@ -50,6 +50,47 @@ export type Database = {
         }
         Relationships: []
       }
+      almacenes: {
+        Row: {
+          activo: boolean
+          created_at: string
+          direccion: string
+          id: string
+          nombre: string
+          proyecto_id: string | null
+          responsable: string
+          tipo: string
+        }
+        Insert: {
+          activo?: boolean
+          created_at?: string
+          direccion?: string
+          id?: string
+          nombre: string
+          proyecto_id?: string | null
+          responsable?: string
+          tipo?: string
+        }
+        Update: {
+          activo?: boolean
+          created_at?: string
+          direccion?: string
+          id?: string
+          nombre?: string
+          proyecto_id?: string | null
+          responsable?: string
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "almacenes_proyecto_id_fkey"
+            columns: ["proyecto_id"]
+            isOneToOne: true
+            referencedRelation: "proyectos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       apu_componentes: {
         Row: {
           cantidad: number
@@ -3173,13 +3214,16 @@ export type Database = {
           created_at: string
           descripcion: string
           documento: string
+          estado: string
           fecha: string
           id: string
           insumo_id: string | null
+          motivo: string
           observacion: string
           orden_item_id: string | null
           proyecto_id: string | null
           tipo: string
+          transferencia_id: string | null
           unidad: string
         }
         Insert: {
@@ -3189,13 +3233,16 @@ export type Database = {
           created_at?: string
           descripcion: string
           documento?: string
+          estado?: string
           fecha?: string
           id?: string
           insumo_id?: string | null
+          motivo?: string
           observacion?: string
           orden_item_id?: string | null
           proyecto_id?: string | null
           tipo: string
+          transferencia_id?: string | null
           unidad?: string
         }
         Update: {
@@ -3205,13 +3252,16 @@ export type Database = {
           created_at?: string
           descripcion?: string
           documento?: string
+          estado?: string
           fecha?: string
           id?: string
           insumo_id?: string | null
+          motivo?: string
           observacion?: string
           orden_item_id?: string | null
           proyecto_id?: string | null
           tipo?: string
+          transferencia_id?: string | null
           unidad?: string
         }
         Relationships: [
@@ -6329,6 +6379,10 @@ export type Database = {
     }
     Functions: {
       anular_cese: { Args: { _trabajador: string }; Returns: undefined }
+      costo_promedio_almacen: {
+        Args: { _insumo: string; _proyecto: string }
+        Returns: number
+      }
       eliminar_proyecto: { Args: { _id: string }; Returns: Json }
       es_personal: { Args: { _user_id: string }; Returns: boolean }
       guardar_especialidad: {
@@ -6388,6 +6442,10 @@ export type Database = {
         Args: { _fecha: string; _items: Json; _obs: string; _orden: string }
         Returns: undefined
       }
+      recibir_transferencia: {
+        Args: { _fecha: string; _transferencia: string }
+        Returns: undefined
+      }
       recodificar_wbs: { Args: never; Returns: undefined }
       registrar_financiamiento: { Args: { _datos: Json }; Returns: string }
       registrar_liquidacion: {
@@ -6443,6 +6501,21 @@ export type Database = {
           correlativo: number
           numero: string
         }[]
+      }
+      stock_insumo_almacen: {
+        Args: { _insumo: string; _proyecto: string }
+        Returns: number
+      }
+      transferir_almacen: {
+        Args: {
+          _destino: string
+          _documento: string
+          _fecha: string
+          _items: Json
+          _obs: string
+          _origen: string
+        }
+        Returns: string
       }
     }
     Enums: {
