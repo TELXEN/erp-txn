@@ -811,6 +811,7 @@ function EquiposWysiwyg({
     return p === "Propio" ? n : n * (1 + mgTipo / 100);
   };
   const etiqueta = tipo === "EQ" ? "equipo" : "herramienta";
+  const claseDe = (i: Insumo): Clase => (i.categoria_inventario as Clase | undefined) || (i.clase_equipo as Clase | undefined) || "Equipo";
 
   async function crearDesdeFila() {
     if (guardando) return;
@@ -972,7 +973,7 @@ function EquiposWysiwyg({
               <tr key={i.id} className="border-b border-line/40 last:border-0">
                 <td className="px-5 py-2.5 text-muted-foreground"><Resaltar texto={i.codigo || "—"} termino={busqueda} /></td>
                 <td className="px-3 py-2.5 text-ink"><Resaltar texto={i.nombre} termino={busqueda} /></td>
-                <td className="px-3 py-2.5">{i.clase_equipo ?? "Equipo"}</td>
+                <td className="px-3 py-2.5">{claseDe(i)}</td>
                 <td className="px-3 py-2.5">{prop}</td>
                 <td className="px-3 py-2.5 text-center text-muted-foreground">{i.unidad}</td>
                 <td className="px-3 py-2.5 text-right">{alq ? soles(Number(i.precio)) : "—"}</td>
@@ -982,7 +983,7 @@ function EquiposWysiwyg({
                   <div className="flex justify-end gap-1">
                     <button
                       type="button"
-                      onClick={() => setEditando({ id: i.id, codigo: i.codigo, nombre: i.nombre, clase: (i.clase_equipo ?? "Equipo") as Clase, propiedad: prop, unidad: i.unidad, precio: String(i.precio || "") })}
+                      onClick={() => setEditando({ id: i.id, codigo: i.codigo, nombre: i.nombre, clase: claseDe(i), propiedad: prop, unidad: i.unidad, precio: String(i.precio || "") })}
                       title="Editar"
                       className={`${btn} border-line text-muted-foreground hover:border-primary hover:text-primary`}
                     >
@@ -999,7 +1000,7 @@ function EquiposWysiwyg({
       {error && <p className="px-5 py-2 font-mono text-xs text-bad">{error}</p>}
       <p className="border-t border-line px-5 py-3 font-mono text-[10px] leading-relaxed text-muted-foreground">
         Propio: se ingresa el C. Unitario directamente (sin margen). Alquilado: se ingresa el P. Alquiler y el C. Unitario = P. Alquiler + margen del tipo.
-        Máquina usa la unidad hm (Horas máquina) y Equipo la unidad he (Horas equipo). Precios sin IGV.
+        El Equipo usa la unidad he (Horas equipo); la Herramienta se cuenta en und. Precios sin IGV.
       </p>
     </Panel>
   );
