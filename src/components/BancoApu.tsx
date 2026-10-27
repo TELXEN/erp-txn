@@ -9,7 +9,7 @@ import { soles } from "@/lib/format";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
 import { useUnidadesMedida } from "@/lib/unidades";
 import { alfabetizarPartidas, codigoAlfabeticoSugerido, guardarPartidaEnBanco, ordenarPartidasAlfabetico, renumerarApu, siguienteCodigoJerarquico } from "@/lib/banco-apu";
-import { VentanaInsumo, primeraMayuscula, CANCELADO, type ModoInsumo, type TablaInsumo, type SelInsumo } from "@/components/InsumoVentana";
+import { VentanaInsumo, CANCELADO, type TablaInsumo, type SelInsumo } from "@/components/InsumoVentana";
 import { r2, r4, sumar2 } from "@/lib/decimal";
 import { PCT_HERRAMIENTAS_DEFECTO } from "@/lib/apu";
 
@@ -75,11 +75,6 @@ const CONFIG: Record<Tabla, { titulo: string; campos: CampoDef[]; columnas: [str
   },
 };
 
-// Pestañas visibles: Partidas e Insumos (los cuatro recursos agrupados en una sola lista).
-type Vista = "partidas_apu" | "insumos";
-const TABS: [Vista, string][] = [["partidas_apu", "Partidas"], ["insumos", "Insumos"]];
-const GRUPOS_INSUMO: TablaInsumo[] = ["materiales", "mano_obra", "equipos_herramientas", "subcontratos"];
-
 const useTabla = (t: Tabla | "partida_detalle") =>
   useQuery({
     queryKey: ["banco_apu", t],
@@ -91,27 +86,7 @@ const useTabla = (t: Tabla | "partida_detalle") =>
   });
 
 export function BancoApu() {
-  const [tab, setTab] = useState<Vista>(() =>
-    typeof window !== "undefined" && localStorage.getItem("banco-apu:tab") === "partidas_apu" ? "partidas_apu" : typeof window !== "undefined" && localStorage.getItem("banco-apu:tab") ? "insumos" : "partidas_apu",
-  );
-  const cambiar = (t: Vista) => { setTab(t); localStorage.setItem("banco-apu:tab", t); };
-  return (
-    <>
-      <div className="mb-3 flex flex-wrap gap-1 border-b border-line pb-2">
-        {TABS.map(([t, titulo]) => (
-          <button key={t} type="button" onClick={() => cambiar(t)}
-            className={`rounded-md border-b-2 px-3 py-1.5 text-xs transition-colors ${tab === t ? "border-cta bg-primary/10 font-semibold text-primary" : "border-transparent text-muted-foreground hover:bg-muted hover:text-primary"}`}>
-            {titulo}
-          </button>
-        ))}
-      </div>
-      {tab === "partidas_apu" ? (
-        <SplitPartidas />
-      ) : (
-        <HojaInsumos />
-      )}
-    </>
-  );
+  return <SplitPartidas />;
 }
 
 const PIE = ["analisis", "especificaciones"] as const;
@@ -998,86 +973,3 @@ function PanelConsolidado({ partida }: { partida: Fila }) {
   );
 }
 
-
-// ================= Hoja limpia de insumos con barra de acciones =================
-
-const ordenEs = new Intl.Collator("es", { sensitivity: "base", numeric: true });
-
-function HojaInsumos() {
-  const qc = useQueryClient();
-  const mat = useTabla("materiales").data ?? [];
-  const mo = useTabla("mano_obra").data ?? [];
-  const eq = useTabla("equipos_herramientas").data ?? [];
-  const sc = useTabla("subcontratos").data ?? [];
-  const datos: Record<string, Fila[]> = { materiales: mat, mano_obra: mo, equipos_herramientas: eq, subcontratos: sc };
-  const [busqueda, setBusqueda] = useState("");
-  const [sel, setSel] = useState<{ tabla: TablaInsumo; fila: Fila } | null>(null);
-  const [modo, setModo] = useState<ModoInsumo | null>(null);
-  const refrescar = () => qc.invalidateQueries({ queryKey: ["banco_apu"] });
-  const total = GRUPOS_INSUMO.reduce((n, t) => n + datos[t]!.filter((f) => f.estado === "activo").length, 0);
-
-  function abrir(m: ModoInsumo, objetivo = sel) {
-    if (m === "nuevo") { setSel(null); setModo(m); return; }
-    if (!objetivo) return;
-    setSel(objetivo); setModo(m);
-  }
-  async function quitar() {
-    if (!sel || !window.confirm(`¿Eliminar «${sel.fila.descripcion}»?`)) return;
-    const { data, error } = await db.rpc("quitar_recurso_apu", { _tabla: sel.tabla, _id: sel.fila.id });
-    if (error) return window.alert(error.message);
-    if (data === "inactivado") window.alert("Está en uso en una o más partidas: se marcó como Inactivo en lugar de eliminarse.");
-    setSel(null); refrescar();
-  }
-
-  return (
-    <div className="flex gap-3">
-      <div className="min-w-0 flex-1 rounded-md border border-line bg-card">
-        <div className="flex items-center justify-between border-b border-line px-3 py-2">
-          <span className="text-xs font-semibold">Insumos</span>
-          <Buscador valor={busqueda} onChange={setBusqueda} total={total} />
-        </div>
-        {GRUPOS_INSUMO.map((t) => {
-          const cfg = CONFIG[t];
-          const filas = datos[t]!
-            .filter((f) => f.estado === "activo" && coincide(busqueda, ...cfg.columnas.map(([k]) => f[k])))
-            .sort((a, b) => ordenEs.compare(String(a.descripcion ?? ""), String(b.descripcion ?? "")));
-          return (
-            <div key={t}>
-              <div className="border-b border-line bg-muted/50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide">{cfg.titulo} <span className="font-normal text-muted-foreground">({filas.length})</span></div>
-              {filas.length === 0 ? <p className="px-3 py-1.5 text-xs text-muted-foreground">Sin insumos</p> : (
-                <table className="w-full text-xs">
-                  <thead><tr className="border-b border-line text-left label-mono">
-                    {cfg.columnas.map(([k, tt, tp]) => <th key={k} className={`px-2 py-0.5 ${tp !== "txt" ? "text-right" : ""}`}>{tt}</th>)}
-                  </tr></thead>
-                  <tbody>
-                    {filas.map((f) => (
-                      <tr key={f.id} onClick={() => setSel({ tabla: t, fila: f })} onDoubleClick={() => { setSel({ tabla: t, fila: f }); abrir("editar", { tabla: t, fila: f }); }}
-                        className={`cursor-pointer border-b border-line/60 hover:bg-muted/40 ${sel?.fila.id === f.id ? "bg-primary/10" : ""}`}>
-                        {cfg.columnas.map(([k, , tp]) => (
-                          <td key={k} className={`px-2 py-0.5 ${tp !== "txt" ? "whitespace-nowrap text-right font-mono" : k === "descripcion" ? "w-full" : "whitespace-nowrap"}`}>
-                            {tp === "sol" ? Number(f[k] ?? 0).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : tp === "num" ? Number(f[k] ?? 0).toLocaleString("es-PE") : <><Resaltar texto={k === "descripcion" || k === "marca" ? primeraMayuscula(f[k]) : f[k]} termino={busqueda} />{k === "codigo" && (!f.especialidad_id || (t === "materiales" && !f.subfamilia_id)) && <span className="ml-1 rounded bg-destructive/10 px-1 text-[10px] font-semibold text-destructive">Sin clasificar</span>}</>}
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="sticky top-2 flex h-fit flex-col gap-1.5 rounded-md border p-1.5 barra-iconos">
-        <BotonIcono etiqueta="Agregar nuevo insumo" title="Agregar nuevo insumo" tono="primario" onClick={() => abrir("nuevo")}><Plus size={15} /></BotonIcono>
-        <BotonIcono etiqueta="Editar insumo" title="Editar insumo" disabled={!sel} onClick={() => abrir("editar")}><Pencil size={15} /></BotonIcono>
-        <BotonIcono etiqueta="Copiar insumo" title="Copiar insumo" disabled={!sel} onClick={() => abrir("copiar")}><Copy size={15} /></BotonIcono>
-        <BotonIcono etiqueta="Eliminar insumo" title="Eliminar insumo" tono="peligro" disabled={!sel} onClick={quitar}><Trash2 size={15} /></BotonIcono>
-      </div>
-
-      {modo && (
-        <VentanaInsumo modo={modo} sel={sel} onCerrar={() => setModo(null)} />
-      )}
-    </div>
-  );
-}
