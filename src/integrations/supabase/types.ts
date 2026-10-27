@@ -3250,12 +3250,15 @@ export type Database = {
           motivo: string
           observacion: string
           orden_item_id: string | null
+          partida_id: string | null
           proyecto_id: string | null
           recibido_en: string | null
           recibido_por: string | null
           tipo: string
+          trabajador_id: string | null
           transferencia_id: string | null
           unidad: string
+          vale_id: string | null
         }
         Insert: {
           cantidad: number
@@ -3271,12 +3274,15 @@ export type Database = {
           motivo?: string
           observacion?: string
           orden_item_id?: string | null
+          partida_id?: string | null
           proyecto_id?: string | null
           recibido_en?: string | null
           recibido_por?: string | null
           tipo: string
+          trabajador_id?: string | null
           transferencia_id?: string | null
           unidad?: string
+          vale_id?: string | null
         }
         Update: {
           cantidad?: number
@@ -3292,12 +3298,15 @@ export type Database = {
           motivo?: string
           observacion?: string
           orden_item_id?: string | null
+          partida_id?: string | null
           proyecto_id?: string | null
           recibido_en?: string | null
           recibido_por?: string | null
           tipo?: string
+          trabajador_id?: string | null
           transferencia_id?: string | null
           unidad?: string
+          vale_id?: string | null
         }
         Relationships: [
           {
@@ -3315,10 +3324,31 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "movimientos_almacen_partida_id_fkey"
+            columns: ["partida_id"]
+            isOneToOne: false
+            referencedRelation: "partidas"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "movimientos_almacen_proyecto_id_fkey"
             columns: ["proyecto_id"]
             isOneToOne: false
             referencedRelation: "proyectos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "movimientos_almacen_trabajador_id_fkey"
+            columns: ["trabajador_id"]
+            isOneToOne: false
+            referencedRelation: "trabajadores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "movimientos_almacen_vale_fk"
+            columns: ["vale_id"]
+            isOneToOne: false
+            referencedRelation: "vales_salida"
             referencedColumns: ["id"]
           },
         ]
@@ -5997,6 +6027,109 @@ export type Database = {
         }
         Relationships: []
       }
+      vales_salida: {
+        Row: {
+          codigo: string
+          creado_por: string | null
+          created_at: string
+          fecha: string
+          id: string
+          observacion: string
+          partida_id: string | null
+          proyecto_id: string
+          trabajador_id: string
+        }
+        Insert: {
+          codigo: string
+          creado_por?: string | null
+          created_at?: string
+          fecha?: string
+          id?: string
+          observacion?: string
+          partida_id?: string | null
+          proyecto_id: string
+          trabajador_id: string
+        }
+        Update: {
+          codigo?: string
+          creado_por?: string | null
+          created_at?: string
+          fecha?: string
+          id?: string
+          observacion?: string
+          partida_id?: string | null
+          proyecto_id?: string
+          trabajador_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vales_salida_partida_id_fkey"
+            columns: ["partida_id"]
+            isOneToOne: false
+            referencedRelation: "partidas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vales_salida_proyecto_id_fkey"
+            columns: ["proyecto_id"]
+            isOneToOne: false
+            referencedRelation: "proyectos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vales_salida_trabajador_id_fkey"
+            columns: ["trabajador_id"]
+            isOneToOne: false
+            referencedRelation: "trabajadores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vales_salida_items: {
+        Row: {
+          cantidad: number
+          costo_unitario: number
+          descripcion: string
+          id: string
+          insumo_id: string | null
+          unidad: string
+          vale_id: string
+        }
+        Insert: {
+          cantidad: number
+          costo_unitario?: number
+          descripcion: string
+          id?: string
+          insumo_id?: string | null
+          unidad?: string
+          vale_id: string
+        }
+        Update: {
+          cantidad?: number
+          costo_unitario?: number
+          descripcion?: string
+          id?: string
+          insumo_id?: string | null
+          unidad?: string
+          vale_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vales_salida_items_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "insumos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vales_salida_items_vale_id_fkey"
+            columns: ["vale_id"]
+            isOneToOne: false
+            referencedRelation: "vales_salida"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       valorizacion_items: {
         Row: {
           codigo: string
@@ -6519,6 +6652,17 @@ export type Database = {
           _tc: number
         }
         Returns: string
+      }
+      registrar_vale_salida: {
+        Args: {
+          _fecha: string
+          _items: Json
+          _obs: string
+          _partida: string
+          _proyecto: string
+          _trabajador: string
+        }
+        Returns: Json
       }
       reingresar_trabajador: {
         Args: {

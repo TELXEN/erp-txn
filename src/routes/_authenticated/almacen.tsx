@@ -6,11 +6,13 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowDownToLine, ArrowLeftRight, ArrowUpFromLine, PackageCheck, Upload } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, Campo, Input, MenuFiltros, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
+import { Boton, Campo, Input, MenuFiltros, Panel, Pestanas, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
+import { ValesSalida } from "@/components/ValesSalida";
+import { consumidoPorPartida, estadoConsumoPartida, useMaterialPresupuestado } from "@/lib/consumo-partida";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { soles } from "@/lib/format";
-import { useProyectos } from "@/lib/datos";
+import { usePartidas, useProyectos, useTrabajadores } from "@/lib/datos";
 import { apuDb, useInsumos } from "@/lib/apu";
 import { exportarExcel } from "@/lib/exportar";
 import { calcularStock, claveStock, num, sincronizarEstadoOC, useAlmacenes, useItemsOC, useMovimientos, useOrdenesCompra } from "@/lib/logistica";
@@ -59,7 +61,10 @@ function AlmacenPage() {
   const [sel, setSel] = useState("");
   const actual = movs.find((x) => x.id === sel);
 
-  const [consumo, setConsumo] = useState<{ clave: string; cantidad: string; documento: string; observacion: string; error: string } | null>(null);
+  const [consumo, setConsumo] = useState<{ clave: string; cantidad: string; partida: string; observacion: string; error: string } | null>(null);
+  const [pestana, setPestana] = useRecordado<"almacen" | "vales">("almacen:pestana", "almacen");
+  const { data: partidas = [] } = usePartidas();
+  const { data: trabajadores = [] } = useTrabajadores();
   const gestion = puedeVerDinero(rol);
   const esGerente = rol === "gerente";
   const almacenDe = (pid: string | null) => almacenes.find((a) => (a.proyecto_id ?? null) === (pid ?? null));
@@ -85,7 +90,6 @@ function AlmacenPage() {
     await (supabase as any).from("almacen_encargados").delete().eq("id", id);
     qc.invalidateQueries({ queryKey: ["almacen_encargados"] });
   }
-  if (!gestion && !encargados.some((e) => e.user_id === yo)) return <SinAcceso />;
 
   const stock = calcularStock(movs);
   const stockDe = (pid: string | null, insumoId: string) =>
@@ -131,18 +135,27 @@ function AlmacenPage() {
   const pidStock = almacenDeValor(almStock);
   const stockVista = stock.filter((s) => s.stock > 0.0001 && (!almStock || (s.proyecto_id ?? null) === pidStock));
   const filaConsumo = consumo ? stock.find((s) => s.clave === consumo.clave) : undefined;
+  const hojasObra = filaConsumo?.proyecto_id ? partidas.filter((p) => p.proyecto_id === filaConsumo.proyecto_id && !partidas.some((h) => h.padre_id === p.id)) : [];
+  const presupMat = useMaterialPresupuestado(hojasObra, insumos);
+  const consumidoMat = consumidoPorPartida(movs);
+  const alerta = consumo?.partida && filaConsumo
+    ? estadoConsumoPartida(presupMat.get(consumo.partida) ?? 0, consumidoMat.get(consumo.partida) ?? 0, (Number(consumo.cantidad) || 0) * filaConsumo.costoPromedio)
+    : null;
+  const gruposPartida = [...new Set(hojasObra.map((p) => p.categoria || "Sin título"))];
   async function consumir(e: React.FormEvent) {
     e.preventDefault();
     if (!consumo || !filaConsumo) return;
     const cant = Number(consumo.cantidad);
     if (!(cant > 0)) return setConsumo({ ...consumo, error: "La cantidad debe ser mayor que cero." });
     if (cant > filaConsumo.stock + 0.0001) return setConsumo({ ...consumo, error: `Stock insuficiente: disponible ${num(filaConsumo.stock)} ${filaConsumo.unidad}.` });
+    if (!consumo.partida) return setConsumo({ ...consumo, error: "Elige la partida donde se consume." });
+    if (!consumo.observacion.trim()) return setConsumo({ ...consumo, error: "Indica el frente de trabajo." });
     const { error: err } = await apuDb.from("movimientos_almacen").insert({
       tipo: "Salida", motivo: "Consumo", fecha: hoy(), proyecto_id: filaConsumo.proyecto_id,
       insumo_id: filaConsumo.insumo_id, descripcion: filaConsumo.descripcion, unidad: filaConsumo.unidad,
       cantidad: cant, costo_unitario: Math.round(filaConsumo.costoPromedio * 10000) / 10000,
-      documento: consumo.documento.trim(), observacion: consumo.observacion.trim(),
-    });
+      documento: "", observacion: consumo.observacion.trim(), partida_id: consumo.partida,
+    } as never);
     if (err) return setConsumo({ ...consumo, error: err.message });
     setConsumo(null);
     qc.invalidateQueries({ queryKey: ["movimientos_almacen"] });
@@ -184,6 +197,7 @@ function AlmacenPage() {
     ]);
   }
 
+  if (!gestion && !encargados.some((e) => e.user_id === yo)) return <SinAcceso />;
   return (
     <>
       <Encabezado
@@ -196,6 +210,12 @@ function AlmacenPage() {
         }
       />
 
+      <div className="mb-4">
+        <Pestanas etiqueta="Secciones de almacén" valor={pestana} onCambiar={setPestana} opciones={[{ id: "almacen", texto: "Stock y movimientos" }, { id: "vales", texto: "Vales de Salida" }]} />
+      </div>
+      {pestana === "vales" ? (
+        <ValesSalida obras={activos.filter((a) => a.proyecto_id).map((a) => a.proyecto_id as string)} nombreProy={nombreProy} stock={stock} puedeEmitir={(pid) => gestion || encDe(almacenDe(pid)?.id).some((e) => e.user_id === yo)} />
+      ) : (<>
       <div className="mb-5 grid gap-5 lg:grid-cols-2">
         {gestion && <Panel titulo="Transferir entre almacenes">
           <form onSubmit={transferir} className="grid gap-3 px-5 py-4 sm:grid-cols-2">
@@ -280,7 +300,7 @@ function AlmacenPage() {
                     <td className="px-3 py-2 text-right">{soles(s.costoPromedio)}</td>
                     <td className="px-3 py-2 text-right">{soles(s.valor)}</td>
                     <td className="px-3 py-1 text-right">
-                      {s.proyecto_id && <Boton variante="linea" onClick={() => setConsumo({ clave: s.clave, cantidad: "", documento: "", observacion: "", error: "" })}>Consumir</Boton>}
+                      {s.proyecto_id && <Boton variante="linea" onClick={() => setConsumo({ clave: s.clave, cantidad: "", partida: "", observacion: "", error: "" })}>Consumir</Boton>}
                     </td>
                   </tr>
                 ))}
@@ -329,12 +349,25 @@ function AlmacenPage() {
             <Campo etiqueta={`Cantidad · stock ${num(filaConsumo.stock)} ${filaConsumo.unidad}`}>
               <Input autoFocus type="number" step="0.0001" min="0" value={consumo.cantidad} onChange={(e) => setConsumo({ ...consumo, cantidad: e.target.value })} />
             </Campo>
-            <Campo etiqueta="Vale de salida">
-              <Input value={consumo.documento} onChange={(e) => setConsumo({ ...consumo, documento: e.target.value })} />
+            <Campo etiqueta="Partida">
+              <Select value={consumo.partida} onChange={(e) => setConsumo({ ...consumo, partida: e.target.value, error: "" })}>
+                <option value="">{hojasObra.length ? "Seleccionar…" : "Esta obra no tiene partidas"}</option>
+                {gruposPartida.map((g) => (
+                  <optgroup key={g} label={g}>
+                    {hojasObra.filter((p) => (p.categoria || "Sin título") === g).map((p) => <option key={p.id} value={p.id}>{p.codigo} {p.nombre}</option>)}
+                  </optgroup>
+                ))}
+              </Select>
             </Campo>
-            <Campo etiqueta="Observación">
+            <Campo etiqueta="Frente de trabajo / observación">
               <Input value={consumo.observacion} onChange={(e) => setConsumo({ ...consumo, observacion: e.target.value })} />
             </Campo>
+            {alerta && (
+              <div className={`rounded border px-3 py-2 font-mono ${alerta.sobrecosto ? "border-warn/40 bg-warn/10 text-warn" : "border-line text-muted-foreground"}`}>
+                <p>Material presupuestado: {soles(alerta.presupuestado)} · consumido: {soles(alerta.consumido)} · tras este consumo: {soles(alerta.tras)}</p>
+                {alerta.sobrecosto && <p className="mt-1 font-semibold">Sobrecosto en esta partida: excede en {soles(alerta.exceso)}. Puedes registrarlo igual.</p>}
+              </div>
+            )}
             {consumo.error && <p className="font-mono text-bad">{consumo.error}</p>}
             <div className="flex justify-end gap-2">
               <Boton type="button" variante="linea" onClick={() => setConsumo(null)}>Cancelar</Boton>
@@ -360,6 +393,7 @@ function AlmacenPage() {
                 <th className="px-3 py-2 font-medium">Insumo</th>
                 <th className="px-3 py-2 text-right font-medium">Cantidad</th>
                 <th className="px-3 py-2 text-right font-medium">Importe</th>
+                <th className="px-3 py-2 font-medium">Partida / trabajador</th>
                 <th className="px-3 py-2 font-medium">Documento</th>
               </tr>
             </thead>
@@ -369,13 +403,14 @@ function AlmacenPage() {
                   <td className="px-5 py-2">{m.fecha}</td>
                   <td className="px-3 py-2">
                     <span className={`inline-flex items-center gap-1 ${m.tipo === "Ingreso" ? "text-primary" : "text-muted-foreground"}`}>
-                      {m.tipo === "Ingreso" ? <ArrowDownToLine size={12} /> : <ArrowUpFromLine size={12} />} {m.motivo === "Transferencia" ? `Transf. ${m.tipo === "Ingreso" ? "entrada" : "salida"}` : m.tipo}{m.estado === "En tránsito" ? " · en tránsito" : ""}
+                      {m.tipo === "Ingreso" ? <ArrowDownToLine size={12} /> : <ArrowUpFromLine size={12} />} {m.motivo === "Transferencia" ? `Transf. ${m.tipo === "Ingreso" ? "entrada" : "salida"}` : m.motivo === "Consumo" || m.motivo === "Vale de salida" ? m.motivo : m.tipo}{m.estado === "En tránsito" ? " · en tránsito" : ""}
                     </span>
                   </td>
                   <td className="px-3 py-2 text-ink"><Resaltar texto={nombreProy(m.proyecto_id)} termino={busqueda} /></td>
                   <td className="px-3 py-2"><Resaltar texto={m.descripcion} termino={busqueda} /></td>
                   <td className="px-3 py-2 text-right">{num(Number(m.cantidad))} {m.unidad}</td>
                   <td className="px-3 py-2 text-right">{soles(Number(m.cantidad) * Number(m.costo_unitario))}</td>
+                  <td className="px-3 py-2 text-muted-foreground">{[partidas.find((p) => p.id === (m as { partida_id?: string | null }).partida_id)?.codigo, trabajadores.find((t) => t.id === (m as { trabajador_id?: string | null }).trabajador_id)?.nombre].filter(Boolean).join(" · ") || "—"}</td>
                   <td className="px-3 py-2 text-muted-foreground"><Resaltar texto={m.documento || "—"} termino={busqueda} /></td>
 
                 </tr>
@@ -402,6 +437,7 @@ function AlmacenPage() {
           </Campo>
         </MenuFiltros>} haySeleccion={gestion && !!actual} onEliminar={() => { if (actual) void eliminar(actual.id); }} />
       </div>
+      </>)}
     </>
   );
 }

@@ -27,6 +27,9 @@ import { InsigniaRubro } from "@/components/estado-ui";
 import { exportarExcel } from "@/lib/exportar";
 import { esSobrecosto, solicitarDesbloqueo, textoSobrecosto, useSolicitudesDesbloqueo } from "@/lib/sobrecosto";
 import { agruparSoloPorCategoria } from "@/lib/categorias";
+import { consumidoPorPartida, useMaterialPresupuestado } from "@/lib/consumo-partida";
+import { useMovimientos } from "@/lib/logistica";
+import { useInsumos } from "@/lib/apu";
 import { CampoDetraccion, InsigniaDetraccion, InsigniaPago, PLAZOS, condicionVacia, datosCondicion, estadoDetraccion } from "@/components/CondicionPago";
 
 type Compra = GastoDirecto & { cantidad?: number; precio_unitario?: number; comprobante?: string; condicion_pago?: string; dias_credito?: number; fecha_vencimiento?: string | null; estado_pago?: string; fecha_pago?: string | null; banco_id?: string | null; numero_operacion?: string; insumo_id?: string | null; detraccion_estado?: string };
@@ -169,6 +172,10 @@ function GastosDirectos() {
         .sort((a, b) => (a.codigo ?? "").localeCompare(b.codigo ?? "", undefined, { numeric: true })),
     [partidas, proyectoId, busqueda],
   );
+  const { data: movsAlm = [] } = useMovimientos();
+  const { data: insumosApu = [] } = useInsumos();
+  const presupMat = useMaterialPresupuestado(partidasProy, insumosApu);
+  const consumidoMat = consumidoPorPartida(movsAlm);
   const comprasProy = gastos.filter((g) => g.proyecto_id === proyectoId);
   const actual = comprasProy.find((x) => x.id === sel);
   const costoDe = (pid: string) => sumar(comprasProy.filter((g) => g.partida_id === pid).map((g) => Number(g.monto_soles)));
@@ -341,6 +348,7 @@ function GastosDirectos() {
             "Presupuesto (S/)": Number(p.presupuesto_inicial),
             "Cant. comprada": cantDe(p.id),
             "Costo real (S/)": c,
+            "Material consumido (S/)": Math.round((consumidoMat.get(p.id) ?? 0) * 100) / 100,
             "Saldo (S/)": Number(p.presupuesto_inicial) - c,
           };
         }),
@@ -453,6 +461,7 @@ function GastosDirectos() {
                   <th className="px-3 py-2 text-right font-medium">Presupuesto</th>
                   <th className="px-2 py-2 text-right font-medium">Cant. real</th>
                   <th className="px-3 py-2 text-right font-medium">Costo real</th>
+                  <th className="px-3 py-2 text-right font-medium" title="Material consumido en obra (almacén) frente al material del APU">Material consumido</th>
                   <th className="px-3 py-2 text-right font-medium">Saldo</th>
                   <th className="px-3 py-2 text-right font-medium">Consumo</th>
                   <th className="px-5 py-2"></th>
@@ -466,7 +475,7 @@ function GastosDirectos() {
                   return (
                   <React.Fragment key={grupo.categoria}>
                     <tr className="border-b border-line/40 bg-muted/40">
-                      <td colSpan={11} className="px-5 py-1.5">
+                      <td colSpan={12} className="px-5 py-1.5">
                         <div className="flex items-center justify-between gap-4">
                           <button type="button" onClick={() => setGruposCerrados((g) => ({ ...g, [grupo.categoria]: !g[grupo.categoria] }))} className="inline-flex items-center gap-1 label-mono text-left">
                             {cerrado ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
@@ -507,6 +516,10 @@ function GastosDirectos() {
                             <td className="px-3 py-2.5 text-right">{soles(presu)}</td>
                             <td className="px-2 py-2.5 text-right">{num(cantDe(p.id))}</td>
                             <td className="px-3 py-2.5 text-right font-semibold text-ink">{soles(costo)}</td>
+                            {(() => { const mc = consumidoMat.get(p.id) ?? 0; const mp = presupMat.get(p.id) ?? 0; const exc = mc > mp + 0.005 && mc > 0; return (
+                              <td className={`px-3 py-2.5 text-right ${exc ? "bg-warn/10 text-warn" : ""}`} title={`Presupuestado en APU: ${soles(mp)}`}>
+                                {soles(mc)}{exc && <div className="text-[9px] uppercase tracking-wide">Sobre APU</div>}
+                              </td>); })()}
                             <td className={`px-3 py-2.5 text-right font-semibold ${presu - costo < 0 ? "bg-bad/10 text-bad" : "text-good"}`}>
                               {solesSaldo(presu - costo)}
                               {presu - costo < 0 && <div className="text-[9px] font-normal uppercase tracking-wide">Sobregiro</div>}
@@ -526,7 +539,7 @@ function GastosDirectos() {
                           </tr>
                           {abierta && (
                             <tr className="border-b border-line/40">
-                              <td colSpan={11} className="px-8 py-3">
+                              <td colSpan={12} className="px-8 py-3">
                                 {autorizadasDe(p.id).map((s) => (
                                   <div key={s.id} className="mb-2 flex flex-wrap items-center gap-3 rounded-md border border-good/40 bg-good/10 px-3 py-2">
                                     <Check size={13} className="shrink-0 text-good" />

@@ -45,9 +45,9 @@
 - Quotation incidence uses incidenciaPartidaApu: HT belongs to EQ; missing APU means no resources, not a price adjustment.
 - banco_saldos kept atomically by triggers; debits reject insufficient funds; role-checked loan RPCs block duplicates.
 - Module screens use ui-kit CabeceraModulo, Pestanas, TarjetaResumen, FilasCargando and Vacio — one visual language across modules.
-- List filters live in MenuFiltros (lupa) at the top of the right icon bar (BarraIconosHoja `filtros`), or `flotante` when a page has no bar — status tabs and data-loading period selectors stay visible.
+- List filters live in MenuFiltros (lupa) at the top of the right icon bar (BarraIconosHoja `filtros`), or `flotante` when a page has no bar — tabs/period selectors stay visible.
 - Carriers (transportistas + vehiculos/conductores) are a catalogue; guías copy carrier, vehicle and driver data into datos_guia so emitted guides never change when the catalogue does.
-- Quotations from a prior year are resumed via retomarCotizacion (new current-year code, Rev. 00, retoma_de_id link, original frozen as Retomada) — yearly numbering stays clean and history is kept.
+- Quotations from a prior year are resumed via retomarCotizacion (new current-year code, Rev. 00, retoma_de_id link, original frozen as Retomada) — clean yearly numbering.
 - ReportePagos: read-only from CxP selection; payee accounts via reporte-pagos.ts — never marks payments.
 - Valuations snapshot contracted metrado/P.U.; prior accumulation only from approved ones; approval (DB trigger) needs supervisor signature and freezes the row — stable history.
 - Gantt uses escalaCalendario and useRecordado for the timeline and last project.
@@ -60,5 +60,6 @@
 - Company settings use DatosEmpresaTabs (general, banks, regime), not top-level tabs.
 - Insumo codes renumber via AFTER DELETE trigger per 5-digit prefix — no gaps; inactive rows keep codes.
 - Requerimientos: obra → gerente approves (trigger) → Bandeja quotes → approved quote creates OC → recepcionar_orden_obra RPC receives in obra. «Aprobar y generar OC» shows only with prices and pending qty; registering a quote requires ≥1 price.
-- Supplier quotation management opens from each inbox requirement; its request dialog selects outstanding items and suppliers together — purchasing actions must not depend on discovering hidden item-selection steps.
+- Supplier quotes open per inbox requirement; one dialog picks pending items and suppliers — no hidden steps.
 - Purchase orders use HojaOrdenCompra, DOC and A4 printing; orden-compra-montos shares tax totals, orden-compra-pago encodes terms in the existing field — costs/history unchanged.
+- Field consumption: Consumir needs a partida; vales via registrar_vale_salida RPC; budget check in consumo-partida.ts warns, never blocks.
