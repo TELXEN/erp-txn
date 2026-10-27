@@ -343,7 +343,7 @@ function AlmacenPage() {
       </div>
 
       <div className="mb-5 grid gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-        <Panel titulo="Stock por almacén" acciones={
+        <Panel titulo="Stock por almacén" extra={
           <Select className="h-7 py-0 text-xs" value={almStock} onChange={(e) => setAlmStock(e.target.value)}>
             <option value="">Consolidado (todos)</option>{opcionesAlmacen}
           </Select>}>
