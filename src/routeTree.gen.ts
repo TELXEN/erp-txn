@@ -17,6 +17,7 @@ import { Route as AuthenticatedApuVistaRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedAvanceRouteImport } from './routes/_authenticated/avance'
 import { Route as AuthenticatedBeneficiosRouteImport } from './routes/_authenticated/beneficios'
 import { Route as AuthenticatedCajaChicaRouteImport } from './routes/_authenticated/caja-chica'
+import { Route as AuthenticatedCatalogoTecnicoRouteImport } from './routes/_authenticated/catalogo-tecnico'
 import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticated/clientes'
 import { Route as AuthenticatedComprobanteVistaRouteImport } from './routes/_authenticated/comprobante-vista'
 import { Route as AuthenticatedConfiguracionSistemaRouteImport } from './routes/_authenticated/configuracion-sistema'
@@ -101,6 +102,12 @@ const AuthenticatedCajaChicaRoute = AuthenticatedCajaChicaRouteImport.update({
   path: '/caja-chica',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCatalogoTecnicoRoute =
+  AuthenticatedCatalogoTecnicoRouteImport.update({
+    id: '/catalogo-tecnico',
+    path: '/catalogo-tecnico',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedClientesRoute = AuthenticatedClientesRouteImport.update({
   id: '/clientes',
   path: '/clientes',
@@ -347,6 +354,7 @@ export interface FileRoutesByFullPath {
   '/avance': typeof AuthenticatedAvanceRoute
   '/beneficios': typeof AuthenticatedBeneficiosRoute
   '/caja-chica': typeof AuthenticatedCajaChicaRoute
+  '/catalogo-tecnico': typeof AuthenticatedCatalogoTecnicoRoute
   '/clientes': typeof AuthenticatedClientesRoute
   '/comprobante-vista': typeof AuthenticatedComprobanteVistaRoute
   '/configuracion-sistema': typeof AuthenticatedConfiguracionSistemaRoute
@@ -399,6 +407,7 @@ export interface FileRoutesByTo {
   '/avance': typeof AuthenticatedAvanceRoute
   '/beneficios': typeof AuthenticatedBeneficiosRoute
   '/caja-chica': typeof AuthenticatedCajaChicaRoute
+  '/catalogo-tecnico': typeof AuthenticatedCatalogoTecnicoRoute
   '/clientes': typeof AuthenticatedClientesRoute
   '/comprobante-vista': typeof AuthenticatedComprobanteVistaRoute
   '/configuracion-sistema': typeof AuthenticatedConfiguracionSistemaRoute
@@ -453,6 +462,7 @@ export interface FileRoutesById {
   '/_authenticated/avance': typeof AuthenticatedAvanceRoute
   '/_authenticated/beneficios': typeof AuthenticatedBeneficiosRoute
   '/_authenticated/caja-chica': typeof AuthenticatedCajaChicaRoute
+  '/_authenticated/catalogo-tecnico': typeof AuthenticatedCatalogoTecnicoRoute
   '/_authenticated/clientes': typeof AuthenticatedClientesRoute
   '/_authenticated/comprobante-vista': typeof AuthenticatedComprobanteVistaRoute
   '/_authenticated/configuracion-sistema': typeof AuthenticatedConfiguracionSistemaRoute
@@ -507,6 +517,7 @@ export interface FileRouteTypes {
     | '/avance'
     | '/beneficios'
     | '/caja-chica'
+    | '/catalogo-tecnico'
     | '/clientes'
     | '/comprobante-vista'
     | '/configuracion-sistema'
@@ -559,6 +570,7 @@ export interface FileRouteTypes {
     | '/avance'
     | '/beneficios'
     | '/caja-chica'
+    | '/catalogo-tecnico'
     | '/clientes'
     | '/comprobante-vista'
     | '/configuracion-sistema'
@@ -612,6 +624,7 @@ export interface FileRouteTypes {
     | '/_authenticated/avance'
     | '/_authenticated/beneficios'
     | '/_authenticated/caja-chica'
+    | '/_authenticated/catalogo-tecnico'
     | '/_authenticated/clientes'
     | '/_authenticated/comprobante-vista'
     | '/_authenticated/configuracion-sistema'
@@ -719,6 +732,13 @@ declare module '@tanstack/react-router' {
       path: '/caja-chica'
       fullPath: '/caja-chica'
       preLoaderRoute: typeof AuthenticatedCajaChicaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/catalogo-tecnico': {
+      id: '/_authenticated/catalogo-tecnico'
+      path: '/catalogo-tecnico'
+      fullPath: '/catalogo-tecnico'
+      preLoaderRoute: typeof AuthenticatedCatalogoTecnicoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/clientes': {
@@ -1032,6 +1052,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAvanceRoute: typeof AuthenticatedAvanceRoute
   AuthenticatedBeneficiosRoute: typeof AuthenticatedBeneficiosRoute
   AuthenticatedCajaChicaRoute: typeof AuthenticatedCajaChicaRoute
+  AuthenticatedCatalogoTecnicoRoute: typeof AuthenticatedCatalogoTecnicoRoute
   AuthenticatedClientesRoute: typeof AuthenticatedClientesRoute
   AuthenticatedComprobanteVistaRoute: typeof AuthenticatedComprobanteVistaRoute
   AuthenticatedConfiguracionSistemaRoute: typeof AuthenticatedConfiguracionSistemaRoute
@@ -1083,6 +1104,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAvanceRoute: AuthenticatedAvanceRoute,
   AuthenticatedBeneficiosRoute: AuthenticatedBeneficiosRoute,
   AuthenticatedCajaChicaRoute: AuthenticatedCajaChicaRoute,
+  AuthenticatedCatalogoTecnicoRoute: AuthenticatedCatalogoTecnicoRoute,
   AuthenticatedClientesRoute: AuthenticatedClientesRoute,
   AuthenticatedComprobanteVistaRoute: AuthenticatedComprobanteVistaRoute,
   AuthenticatedConfiguracionSistemaRoute:
