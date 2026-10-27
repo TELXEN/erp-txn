@@ -53,7 +53,6 @@ function AlmacenPage() {
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
   const stock = calcularStock(movs);
-  const ins = insumos.find((i) => i.id === form.insumo_id);
   const stockDe = (pid: string | null, insumoId: string) =>
     stock.find((s) => s.clave === claveStock({ proyecto_id: pid as string, insumo_id: insumoId, descripcion: "" }));
   const nombreProy = (id: string | null) => {
