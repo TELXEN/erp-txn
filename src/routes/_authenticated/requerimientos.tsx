@@ -96,8 +96,6 @@ function Bandeja() {
     [itemsSol, solsActual],
   );
 
-  if (!puedeVerDinero(rol)) return <SinAcceso />;
-
   function abrirSolicitud(r: Req) {
     const pendientes = items.filter((i) => i.requerimiento_id === r.id && Number(i.cantidad) - ordenado(i.id) > 0.0001);
     setSel(r.id);
@@ -233,6 +231,8 @@ function Bandeja() {
   }
 
   function imprimir(s: Solicitud) { setVista(s); }
+
+  if (!puedeVerDinero(rol)) return <SinAcceso />;
 
   return (
     <>
