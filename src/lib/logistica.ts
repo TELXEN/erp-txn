@@ -13,6 +13,7 @@ export type OrdenCompra = {
   estado: string;
   condicion_pago: string;
   observacion: string;
+  almacen_destino_id?: string | null;
 };
 export type ItemOC = {
   id: string;

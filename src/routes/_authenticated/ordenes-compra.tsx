@@ -3,9 +3,11 @@ import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { createFileRoute } from "@tanstack/react-router";
 import React, { useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { ChevronDown, ChevronRight, PackageCheck, Plus, Printer, Trash2, Truck, Upload } from "lucide-react";
+import { ChevronDown, ChevronRight, MapPinned, PackageCheck, Plus, Printer, Trash2, Truck, Upload } from "lucide-react";
 import { HojaOrdenCompra, imprimirOrdenCompra } from "@/components/HojaOrdenCompra";
 import { useEmpresa } from "@/lib/empresa";
+import { destinoOrden } from "@/lib/almacenes";
+import { supabase } from "@/integrations/supabase/client";
 import { montosOrdenCompra } from "@/lib/orden-compra-montos";
 import { condicionPagoOrden, detallePagoOrden, diasCreditoOrden, vencimientoPagoOrden } from "@/lib/orden-compra-pago";
 import { Encabezado } from "@/components/AppShell";
@@ -22,6 +24,7 @@ import {
   useItemsOC,
   useItemsReq,
   useMovimientos,
+  useAlmacenes,
   useOrdenesCompra,
   useRequerimientos,
 } from "@/lib/logistica";
@@ -85,6 +88,21 @@ function OrdenesCompraPage() {
   const actual = ordenes.find((x) => x.id === sel);
   const [modalNueva, setModalNueva] = useState(false);
   const [verDocumento, setVerDocumento] = useState(false);
+  const { data: almacenes = [] } = useAlmacenes();
+  const { rol: rolDestino } = useAuth();
+  const nombreDestino = (o: { proyecto_id: string; almacen_destino_id?: string | null }) => { const d = destinoOrden(o, almacenes); return d === null ? "Almacén Central" : nombreProy(d); };
+  const [cambioDest, setCambioDest] = useState<{ id: string; almacen: string; motivo: string; error: string } | null>(null);
+  const recibidoAlgo = (ocId: string) => itemsOC.some((i) => i.orden_id === ocId && recibido(i.id) > 0);
+  async function guardarDestino() {
+    if (!cambioDest) return;
+    if (!cambioDest.almacen) return setCambioDest({ ...cambioDest, error: "Elige el almacén de destino." });
+    if (!cambioDest.motivo.trim()) return setCambioDest({ ...cambioDest, error: "Indica el motivo del cambio." });
+    const { error: err } = await (supabase.rpc as unknown as (f: string, a: Record<string, unknown>) => Promise<{ error: { message: string } | null }>)("cambiar_destino_orden", { _orden: cambioDest.id, _almacen: cambioDest.almacen, _motivo: cambioDest.motivo });
+    if (err) return setCambioDest({ ...cambioDest, error: err.message });
+    setCambioDest(null);
+    setAviso("Destino de entrega actualizado.");
+    qc.invalidateQueries({ queryKey: ["ordenes_compra"] });
+  }
   const documentoRef = useRef<HTMLDivElement>(null);
   const cerrarTrasGuardar = useRef(false);
 
@@ -234,7 +252,7 @@ function OrdenesCompraPage() {
         pendientes.map(({ i, saldo }) => ({
           fecha: hoy(),
           tipo: "Ingreso",
-          proyecto_id: destino === "central" ? null : oc.proyecto_id,
+          proyecto_id: destino === "central" ? null : destinoOrden(oc, almacenes),
           motivo: "Compra",
           insumo_id: i.insumo_id,
           descripcion: i.descripcion,
@@ -376,7 +394,7 @@ function OrdenesCompraPage() {
           <div className="space-y-4 p-5 text-xs">
             <Campo etiqueta="Almacén de destino">
               <Select value={recep.destino} onChange={(e) => setRecep({ ...recep, destino: e.target.value as "obra" | "central" })}>
-                <option value="obra">Almacén de la obra · {nombreProy(ordenes.find((o) => o.id === recep.id)?.proyecto_id ?? "")}</option>
+                <option value="obra">Destino de la orden · {(() => { const o = ordenes.find((x) => x.id === recep.id); return o ? nombreDestino(o) : ""; })()}</option>
                 <option value="central">Almacén Central</option>
               </Select>
             </Campo>
@@ -503,14 +521,34 @@ function OrdenesCompraPage() {
                   <div className="flex justify-between gap-3"><span>TOTAL CON IGV</span><span>{soles(desgloseOC(actual.id).total)}</span></div>
                 </>}
               </div>
+              <div className="oc-conditions"><h3>ENTREGAR EN</h3><p>{nombreDestino(actual)}</p></div>
               <div className="oc-conditions"><h3>FORMA DE PAGO</h3><p>{detallePagoOrden(actual.condicion_pago).forma}</p>{detallePagoOrden(actual.condicion_pago).forma === "Crédito" && <p><b>Plazo de pago:</b> {detallePagoOrden(actual.condicion_pago).plazo}</p>}</div>
               {actual.observacion && <div className="oc-conditions"><h3>OBSERVACIONES</h3>{actual.observacion}</div>}
             </HojaOrdenCompra>
           </div>
+          <div className="flex flex-col gap-1.5">
+          <BotonIcono etiqueta={actual && recibidoAlgo(actual.id) ? "Ya tiene recepciones: usa Transferir entre almacenes" : "Cambiar destino de entrega"} disabled={!actual || actual.estado === "Anulada" || recibidoAlgo(actual.id) || !puedeVerDinero(rolDestino)} onClick={() => { if (actual) setCambioDest({ id: actual.id, almacen: actual.almacen_destino_id ?? "", motivo: "", error: "" }); }}><MapPinned size={15} /></BotonIcono>
           <BotonIcono etiqueta="Imprimir o guardar en PDF" tono="primario" onClick={() => imprimirOrdenCompra(documentoRef.current?.querySelector<HTMLElement>(".oc-sheet") ?? null, actual.codigo)}><Printer size={15} /></BotonIcono>
+          </div>
         </div>}
       </VentanaFlotante>
 
+
+      <VentanaFlotante abierta={!!cambioDest} onCerrar={() => setCambioDest(null)} titulo="Cambiar destino de entrega" subtitulo={ordenes.find((o) => o.id === cambioDest?.id)?.codigo ?? ""} ancho="max-w-md">
+        {cambioDest && (() => { const o = ordenes.find((x) => x.id === cambioDest.id); return (
+          <div className="space-y-3 p-5 text-xs">
+            <p className="text-muted-foreground">Destino actual: <span className="text-ink">{o ? nombreDestino(o) : "—"}</span></p>
+            <Campo etiqueta="Nuevo almacén de destino">
+              <Select value={cambioDest.almacen} onChange={(e) => setCambioDest({ ...cambioDest, almacen: e.target.value, error: "" })}>
+                <option value="">Seleccionar…</option>
+                {almacenes.filter((a) => a.activo).sort((a, b) => (a.tipo === "central" ? -1 : b.tipo === "central" ? 1 : a.nombre.localeCompare(b.nombre, "es"))).map((a) => <option key={a.id} value={a.id}>{a.tipo === "central" ? "Almacén Central" : nombreProy(a.proyecto_id ?? "")}</option>)}
+              </Select>
+            </Campo>
+            <Campo etiqueta="Motivo"><Input value={cambioDest.motivo} placeholder="Ej.: era para TXN26-P002" onChange={(e) => setCambioDest({ ...cambioDest, motivo: e.target.value, error: "" })} /></Campo>
+            {cambioDest.error && <p className="text-bad">{cambioDest.error}</p>}
+            <div className="flex justify-end gap-2"><Boton variante="linea" onClick={() => setCambioDest(null)}>Cancelar</Boton><Boton onClick={() => void guardarDestino()}>Guardar destino</Boton></div>
+          </div>); })()}
+      </VentanaFlotante>
       <div className="flex items-start gap-3">
       <Panel className="min-w-0 flex-1"
         titulo="Órdenes emitidas"
@@ -550,7 +588,7 @@ function OrdenesCompraPage() {
                       <td className="px-3 py-2 text-ink"><Resaltar texto={nombreProy(o.proyecto_id)} termino={busqueda} /></td>
                       <td className="px-3 py-2"><Resaltar texto={nombreProv(o.proveedor_id)} termino={busqueda} /></td>
                       <td className="px-3 py-2">{o.fecha}</td>
-                      <td className="px-3 py-2">{o.fecha_entrega ?? "—"}</td>
+                      <td className="px-3 py-2">{o.fecha_entrega ?? "—"}<div className="max-w-[12rem] truncate text-[10px] text-muted-foreground" title={nombreDestino(o)}>{nombreDestino(o)}</div></td>
                       <td className="px-3 py-2 text-right">{soles(desgloseOC(o.id).total)}</td>
                       <td className="px-3 py-2">
                         <Select className="py-0.5 text-xs" value={o.estado} onChange={(e) => void cambiarEstado(o.id, e.target.value)}>
@@ -594,6 +632,7 @@ function OrdenesCompraPage() {
         </MenuFiltros>} haySeleccion={!!actual} onAgregar={() => { setError(""); setAviso(""); setModalNueva(true); }} onEliminar={() => { if (actual) void eliminar(actual.id); }} extras={<>
           <BotonIcono etiqueta="Imprimir o guardar en PDF" disabled={!actual} onClick={() => setVerDocumento(true)}><Printer size={15} /></BotonIcono>
           <BotonIcono etiqueta="Enviar a obra (la obra registra la recepción)" disabled={!actual || actual.estado !== "Emitida"} onClick={() => { if (actual) void cambiarEstado(actual.id, "Enviado a obra"); }}><Truck size={15} /></BotonIcono>
+          <BotonIcono etiqueta={actual && recibidoAlgo(actual.id) ? "Ya tiene recepciones: usa Transferir entre almacenes" : "Cambiar destino de entrega"} disabled={!actual || actual.estado === "Anulada" || recibidoAlgo(actual.id) || !puedeVerDinero(rolDestino)} onClick={() => { if (actual) setCambioDest({ id: actual.id, almacen: actual.almacen_destino_id ?? "", motivo: "", error: "" }); }}><MapPinned size={15} /></BotonIcono>
           <BotonIcono etiqueta="Recibir en almacén / cargar a costos" disabled={!actual || actual.estado === "Anulada"} onClick={() => { if (actual) setRecep({ id: actual.id, destino: "obra" }); }}><PackageCheck size={15} /></BotonIcono>
         </>} />
       </div>
