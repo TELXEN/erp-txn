@@ -12,10 +12,10 @@ import { consumidoPorPartida, estadoConsumoPartida, useMaterialPresupuestado } f
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { soles } from "@/lib/format";
-import { usePartidas, useProyectos, useTrabajadores } from "@/lib/datos";
+import { usePartidas, useProyectos, useTerceros, useTrabajadores } from "@/lib/datos";
 import { apuDb, useInsumos } from "@/lib/apu";
 import { exportarExcel } from "@/lib/exportar";
-import { calcularStock, claveStock, num, sincronizarEstadoOC, useAlmacenes, useItemsOC, useMovimientos, useOrdenesCompra } from "@/lib/logistica";
+import { calcularStock, claveStock, num, sincronizarEstadoOC, useAlmacenes, useItemsOC, useMovimientos, useOrdenesCompra, type Movimiento } from "@/lib/logistica";
 import { almacenDeValor, valorDeAlmacen } from "@/lib/almacenes";
 
 export const Route = createFileRoute("/_authenticated/almacen")({
@@ -52,6 +52,7 @@ function AlmacenPage() {
   const { data: ordenes = [] } = useOrdenesCompra();
   const { data: itemsOC = [] } = useItemsOC();
   const { data: almacenes = [] } = useAlmacenes();
+  const { data: terceros = [] } = useTerceros();
   const [tr, setTr] = useState({ origen: "central", destino: "", insumo_id: "", cantidad: "", documento: "", observacion: "", error: "" });
   const [almStock, setAlmStock] = useRecordado("almacen:stock", "");
   const [filtroObra, setFiltroObra] = useRecordado("almacen:obra", "");
@@ -99,6 +100,28 @@ function AlmacenPage() {
     const p = proyectos.find((x) => x.id === id);
     return p ? (p.codigo ? `${p.codigo} · ${p.nombre}` : p.nombre) : "—";
   };
+  /** Origen y destino de cada movimiento: los traslados se emparejan por transferencia_id. */
+  const tramoDe = (m: Movimiento) => {
+    if (m.motivo === "Transferencia" && m.transferencia_id) {
+      const pareja = movs.find((x) => x.transferencia_id === m.transferencia_id && x.tipo !== m.tipo);
+      const origen = m.tipo === "Salida" ? m.proyecto_id : pareja?.proyecto_id ?? null;
+      const destino = m.tipo === "Ingreso" ? m.proyecto_id : pareja?.proyecto_id ?? null;
+      return { origen: nombreProy(origen ?? null), destino: nombreProy(destino ?? null) };
+    }
+    if (m.tipo === "Ingreso" && m.orden_item_id) return { origen: proveedorDe(m), destino: nombreProy(m.proyecto_id ?? null) };
+    return m.tipo === "Ingreso"
+      ? { origen: "—", destino: nombreProy(m.proyecto_id ?? null) }
+      : { origen: nombreProy(m.proyecto_id ?? null), destino: "—" };
+  };
+  /** En una compra, el almacén de origen es el proveedor que entrega. */
+  const proveedorDe = (m: Movimiento) => {
+    const it = itemsOC.find((i) => i.id === m.orden_item_id);
+    const oc = it ? ordenes.find((o) => o.id === it.orden_id) : undefined;
+    const ter = oc?.proveedor_id ? terceros.find((t) => t.id === oc.proveedor_id) : undefined;
+    return ter?.razon_social || oc?.codigo || "Proveedor";
+  };
+  const detallePartida = (m: Movimiento) =>
+    [partidas.find((p) => p.id === (m as { partida_id?: string | null }).partida_id)?.codigo, trabajadores.find((t) => t.id === (m as { trabajador_id?: string | null }).trabajador_id)?.nombre].filter(Boolean).join(" · ") || "—";
   const activos = almacenes.filter((a) => a.activo).sort((a, b) => (a.tipo === "central" ? -1 : b.tipo === "central" ? 1 : a.nombre.localeCompare(b.nombre, "es")));
   const misAlmacenes = activos.filter((a) => gestion || encDe(a.id).some((e) => e.user_id === yo));
   const opcionesAlmacen = misAlmacenes.map((a) => <option key={a.id} value={valorDeAlmacen(a.proyecto_id)}>{a.tipo === "central" ? "Almacén Central" : nombreProy(a.proyecto_id)}</option>);
@@ -179,7 +202,7 @@ function AlmacenPage() {
     qc.invalidateQueries({ queryKey: ["movimientos_almacen"] });
   }
 
-  const visibles = movs.filter((m) => (!filtroObra || (m.proyecto_id ?? null) === almacenDeValor(filtroObra)) && (!filtroTipo || m.tipo === filtroTipo) && coincide(busqueda, m.descripcion, nombreProy(m.proyecto_id), m.documento, m.observacion));
+  const visibles = movs.filter((m) => (!filtroObra || (m.proyecto_id ?? null) === almacenDeValor(filtroObra)) && (!filtroTipo || m.tipo === filtroTipo) && coincide(busqueda, m.descripcion, tramoDe(m).origen, tramoDe(m).destino, m.documento, m.observacion));
 
   function exportar() {
     exportarExcel("almacen-movimientos", [
@@ -188,14 +211,17 @@ function AlmacenPage() {
         filas: visibles.map((m) => ({
           Fecha: m.fecha,
           Tipo: m.tipo,
-          Almacén: nombreProy(m.proyecto_id),
-          Motivo: m.motivo ?? "",
+          "Almacén origen": tramoDe(m).origen,
+          "Almacén destino": tramoDe(m).destino,
           Insumo: m.descripcion,
           Unidad: m.unidad,
           Cantidad: Number(m.cantidad),
           "Costo unitario (S/)": Number(m.costo_unitario),
           "Importe (S/)": Math.round(Number(m.cantidad) * Number(m.costo_unitario) * 100) / 100,
+          Partida: partidas.find((p) => p.id === (m as { partida_id?: string | null }).partida_id)?.codigo ?? "—",
+          Trabajador: trabajadores.find((t) => t.id === (m as { trabajador_id?: string | null }).trabajador_id)?.nombre ?? "—",
           Documento: m.documento,
+          Motivo: m.motivo ?? "",
           Observación: m.observacion,
         })),
       },
@@ -394,16 +420,19 @@ function AlmacenPage() {
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
                 <th className="px-5 py-2 font-medium">Fecha</th>
                 <th className="px-3 py-2 font-medium">Tipo</th>
-                <th className="px-3 py-2 font-medium">Almacén</th>
+                <th className="px-3 py-2 font-medium">Almacén origen</th>
+                <th className="px-3 py-2 font-medium">Almacén destino</th>
                 <th className="px-3 py-2 font-medium">Insumo</th>
                 <th className="px-3 py-2 text-right font-medium">Cantidad</th>
                 <th className="px-3 py-2 text-right font-medium">Importe</th>
-                <th className="px-3 py-2 font-medium">Partida / trabajador</th>
+                <th className="px-3 py-2 font-medium">Partida</th>
                 <th className="px-3 py-2 font-medium">Documento</th>
               </tr>
             </thead>
             <tbody>
-              {visibles.map((m) => (
+              {visibles.map((m) => {
+                const tramo = tramoDe(m);
+                return (
                 <tr key={m.id} onClick={() => setSel(m.id)} className={`cursor-pointer border-b border-line/40 hover:bg-muted/40 ${sel === m.id ? "bg-primary/10" : ""}`}>
                   <td className="px-5 py-2">{m.fecha}</td>
                   <td className="px-3 py-2">
@@ -411,15 +440,16 @@ function AlmacenPage() {
                       {m.tipo === "Ingreso" ? <ArrowDownToLine size={12} /> : <ArrowUpFromLine size={12} />} {m.motivo === "Transferencia" ? `Transf. ${m.tipo === "Ingreso" ? "entrada" : "salida"}` : m.motivo === "Consumo" || m.motivo === "Vale de salida" ? m.motivo : m.tipo}{m.estado === "En tránsito" ? " · en tránsito" : ""}
                     </span>
                   </td>
-                  <td className="px-3 py-2 text-ink"><Resaltar texto={nombreProy(m.proyecto_id)} termino={busqueda} /></td>
+                  <td className="px-3 py-2 text-ink"><span className="block max-w-[11rem] truncate"><Resaltar texto={tramo.origen} termino={busqueda} /></span></td>
+                  <td className="px-3 py-2 text-ink"><span className="block max-w-[11rem] truncate"><Resaltar texto={tramo.destino} termino={busqueda} /></span></td>
                   <td className="px-3 py-2"><Resaltar texto={m.descripcion} termino={busqueda} /></td>
                   <td className="px-3 py-2 text-right">{num(Number(m.cantidad))} {m.unidad}</td>
                   <td className="px-3 py-2 text-right">{soles(Number(m.cantidad) * Number(m.costo_unitario))}</td>
-                  <td className="px-3 py-2 text-muted-foreground">{[partidas.find((p) => p.id === (m as { partida_id?: string | null }).partida_id)?.codigo, trabajadores.find((t) => t.id === (m as { trabajador_id?: string | null }).trabajador_id)?.nombre].filter(Boolean).join(" · ") || "—"}</td>
+                  <td className="px-3 py-2 text-muted-foreground"><span className="block max-w-[12rem] truncate">{detallePartida(m)}</span></td>
                   <td className="px-3 py-2 text-muted-foreground"><Resaltar texto={m.documento || "—"} termino={busqueda} /></td>
-
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         )}
