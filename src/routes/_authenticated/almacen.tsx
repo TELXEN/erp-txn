@@ -43,7 +43,6 @@ function AlmacenPage() {
     queryKey: ["perfiles-encargados"],
     queryFn: async () => ((await supabase.from("profiles").select("id,nombre,email")).data ?? []) as { id: string; nombre: string; email: string }[],
   });
-  const [nuevoEnc, setNuevoEnc] = useState<Record<string, string>>({});
   const qc = useQueryClient();
   const { data: proyectos = [] } = useProyectos();
   const { data: insumos = [] } = useInsumos();
@@ -76,12 +75,10 @@ function AlmacenPage() {
     const n = encDe(almacenDe(pid)?.id).map((e) => nombreUsuario(e.user_id));
     return pid === null ? ["Gerente/Dueño", ...n].join(", ") : n.length ? n.join(", ") : "Gerente/Dueño (la obra no tiene encargado)";
   };
-  async function agregarEnc(almId: string) {
-    const uid = nuevoEnc[almId];
+  async function agregarEnc(almId: string, uid: string) {
     if (!uid) return;
     const { error: err } = await (supabase as any).from("almacen_encargados").insert({ almacen_id: almId, user_id: uid });
     if (err) return window.alert(err.message);
-    setNuevoEnc({ ...nuevoEnc, [almId]: "" });
     qc.invalidateQueries({ queryKey: ["almacen_encargados"] });
   }
   async function quitarEnc(id: string) {
@@ -306,7 +303,7 @@ function AlmacenPage() {
                         </span>
                       ))}
                       {esGerente && (
-                        <Select className="h-7 w-32 py-0 text-xs" value={nuevoEnc[a.id] ?? ""} onChange={(e) => { setNuevoEnc({ ...nuevoEnc, [a.id]: e.target.value }); }} onBlur={() => void agregarEnc(a.id)}>
+                        <Select className="h-7 w-32 py-0 text-xs" value="" onChange={(e) => void agregarEnc(a.id, e.target.value)}>
                           <option value="">+ Encargado</option>
                           {usuarios.filter((u) => !encDe(a.id).some((e) => e.user_id === u.id)).map((u) => <option key={u.id} value={u.id}>{u.nombre || u.email}</option>)}
                         </Select>
