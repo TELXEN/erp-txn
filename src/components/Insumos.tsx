@@ -534,7 +534,8 @@ function MaterialesWysiwyg({
   const { data: marcas = [] } = useMarcas();
   const nombreMarca = (id?: string | null) => marcas.find((m) => m.id === id)?.nombre ?? "-";
   const opcionesMarca = [{ value: "", texto: "-" }, ...marcas.filter((m) => m.activo).map((m) => ({ value: m.id, texto: m.nombre }))];
-  const opcionesUnidad = (actual: string) => [...new Set([actual, ...simbolos])].map((s) => ({ value: s, texto: s }));
+  const descUnidad = (s: string) => unidades.find((u) => u.simbolo === s)?.descripcion;
+  const opcionesUnidad = (actual: string) => [...new Set([actual, ...simbolos])].map((s) => ({ value: s, texto: s, detalle: descUnidad(s) }));
   const [nueva, setNueva] = useState<FilaMat>(vacia);
   const [editando, setEditando] = useState<(FilaMat & { id: string; codigo: string; activo: boolean }) | null>(null);
   const [error, setError] = useState("");
@@ -783,6 +784,7 @@ function EquiposWysiwyg({
     const s = unidades.filter((u) => u.activo).map((u) => u.simbolo);
     return [...new Set(["und", ...s])];
   }, [unidades]);
+  const descUnidad = (s: string) => unidades.find((u) => u.simbolo === s)?.descripcion;
   const unidadDe = (c: Clase) => {
     const sim = c === "Equipo" ? "he" : "und";
     return unidades.some((u) => u.simbolo === sim) ? sim : "und";
@@ -887,7 +889,7 @@ function EquiposWysiwyg({
           </select>
         </td>
         <td className="px-3 py-2">
-          <SelectorBuscable aria-label="Unidad" value={f.unidad} onChange={(v) => set({ ...f, unidad: v })} opciones={[...new Set([f.unidad, ...simbolos])].map((s) => ({ value: s, texto: s }))} />
+          <SelectorBuscable aria-label="Unidad" value={f.unidad} onChange={(v) => set({ ...f, unidad: v })} opciones={[...new Set([f.unidad, ...simbolos])].map((s) => ({ value: s, texto: s, detalle: descUnidad(s) }))} />
         </td>
         <td className="px-3 py-2">
           {alquilado ? (
