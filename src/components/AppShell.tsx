@@ -152,6 +152,7 @@ const MENU: Categoria[] = [
     titulo: "Datos",
     items: [
       { a: "/datos", texto: "Catalogos Maestros", roles: ["administrador", "gerente"], icono: Settings },
+      { a: "/maestro-insumos", texto: "Maestro de Insumos", roles: ["administrador", "gerente"], icono: PackageCheck },
       { a: "/configuracion-sistema", texto: "Configuración del Sistema", roles: ["gerente"], icono: SlidersHorizontal },
     ],
   },
