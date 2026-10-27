@@ -169,9 +169,10 @@ export function VentanaInsumo({
     d["especialidad_id"] = form.especialidad_id; d["subfamilia_id"] = conSub ? form.subfamilia_id : null;
     if (categoriaInventario && tipo === "equipos_herramientas") d["categoria_inventario"] = categoriaInventario;
     const [oe, os, oc] = String(form._orig ?? "").split("|");
-    if (modo === "editar" && oe === form.especialidad_id && (conSub ? os === form.subfamilia_id : true) && /^\d{8}$/.test(oc ?? "")) d["codigo"] = oc;
+    const digito = digitoTipoInsumo(tipo, categoriaInventario);
+    if (modo === "editar" && oe === form.especialidad_id && (conSub ? os === form.subfamilia_id : true) && /^\d{8}$/.test(oc ?? "") && (!digito || oc!.startsWith(digito))) d["codigo"] = oc;
     else {
-      const { data: cod, error: ec } = await db.rpc("siguiente_codigo_insumo_modular", { _especialidad: form.especialidad_id, _tipo: tipo, _subfamilia: conSub ? form.subfamilia_id : null });
+      const { data: cod, error: ec } = await db.rpc("siguiente_codigo_insumo_modular", { _especialidad: form.especialidad_id, _tipo: tipo, _subfamilia: conSub ? form.subfamilia_id : null, _categoria: categoriaInventario ?? null });
       if (ec) return setAviso(ec.message);
       d["codigo"] = cod;
     }
