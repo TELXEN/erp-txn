@@ -6,7 +6,7 @@
 - Quien no tiene permiso ve la transferencia «En tránsito», pero el botón **Recibir** le aparece desactivado. Al pasar el cursor, el botón dice quién puede recibirla.
 
 ## Qué verá el usuario
-1. **Almacenes → Encargados**: cada almacén tiene una lista de usuarios autorizados para recibir, elegidos entre los usuarios del ERP. Solo Gerencia la edita. El Gerente/Dueño siempre puede recibir en el Central.
+1. **Almacenes → Encargados**: cada almacén tiene una lista de usuarios autorizados para recibir, elegidos entre los usuarios del ERP. Solo Gerencia la edita. El Gerente/Dueño siempre puede recibir en el Central. Un mismo almacenero puede quedar asignado a dos o más obras: en ese caso ve y recibe en todas las que tiene asignadas.
 2. **En tránsito**: el botón Recibir se activa solo para los encargados del almacén de destino.
 3. **Ingenieros de campo**: ven el Almacén con solo lo de sus almacenes (stock, lo que tienen en tránsito y Consumir). No ven el Central ni otras obras, y no pueden transferir.
 4. **Compras directas a obra**: la orden de compra queda «Enviado a obra» y la recepciona el encargado de esa obra. Esa recepción ya existe en Generar Requerimiento → Recepción en obra y ahora usa la misma regla de permiso.
