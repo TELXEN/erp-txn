@@ -179,7 +179,7 @@ function AlmacenPage() {
     qc.invalidateQueries({ queryKey: ["movimientos_almacen"] });
   }
 
-  const visibles = movs.filter((m) => (!filtroObra || (m.proyecto_id ?? null) === almacenDeValor(filtroObra)) && (!filtroTipo || m.tipo === filtroTipo) && coincide(busqueda, m.descripcion, nombreProy(m.proyecto_id), m.documento, m.observacion));
+  const visibles = movs.filter((m) => (!filtroObra || (m.proyecto_id ?? null) === almacenDeValor(filtroObra)) && (!filtroTipo || m.tipo === filtroTipo) && coincide(busqueda, m.descripcion, tramoDe(m).origen, tramoDe(m).destino, m.documento, m.observacion));
 
   function exportar() {
     exportarExcel("almacen-movimientos", [
