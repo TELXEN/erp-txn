@@ -15,13 +15,14 @@ export function estadoConsumoPartida(presupuestado: number, consumido: number, n
   return { presupuestado: r(presupuestado), consumido: r(consumido), tras, exceso, sobrecosto: exceso > 0 };
 }
 
-type Mov = { tipo: string; motivo: string | null; partida_id?: string | null; cantidad: number | string; costo_unitario: number | string };
+type Mov = { tipo: string; motivo?: string | null; cantidad: number | string; costo_unitario: number | string };
 /** Σ importe de consumos y vales por partida. */
-export function consumidoPorPartida(movs: Mov[]): Map<string, number> {
+export function consumidoPorPartida(movs: (Mov & { partida_id?: string | null })[] | Mov[]): Map<string, number> {
   const m = new Map<string, number>();
   for (const x of movs) {
-    if (x.tipo !== "Salida" || !x.partida_id || !MOTIVOS_CONSUMO.includes(x.motivo ?? "")) continue;
-    m.set(x.partida_id, (m.get(x.partida_id) ?? 0) + Number(x.cantidad) * Number(x.costo_unitario));
+    const pid = (x as { partida_id?: string | null }).partida_id;
+    if (x.tipo !== "Salida" || !pid || !MOTIVOS_CONSUMO.includes(x.motivo ?? "")) continue;
+    m.set(pid, (m.get(pid) ?? 0) + Number(x.cantidad) * Number(x.costo_unitario));
   }
   return m;
 }
