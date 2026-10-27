@@ -18,12 +18,12 @@ Volumen actual (bajo, buen momento para migrar): 3 materiales, 1 equipo, 5 mano 
 | Inventariable | Automático: Sí para Material, Equipo, Herramienta, EPP; No para Mano de obra y Subcontrato |
 | Estado | Activo / Inactivo (inactivo conserva código e historial) |
 
-### Campos opcionales por rubro
-- **Material**: subfamilia, marca, margen %.
-- **Equipo / Herramienta**: costo por hora (H-M), propiedad (propio/alquilado), clase de equipo.
-- **EPP**: categoría, norma técnica, tallas, criticidad, vida útil en días.
-- **Mano de obra**: categoría (Operario/Oficial/Peón), régimen, sueldo, asignación familiar.
-- **Subcontrato**: solo los campos base.
+### Clasificación (sin campos especiales por rubro)
+Todas las fichas tienen los mismos campos; no hay campos distintos según el rubro. Para agrupar productos se usan dos catálogos editables, siempre con selector:
+- **Familia → Subfamilia**: catálogo propio por rubro (ej. Material › Eléctricos › Cables; EPP › Protección de cabeza). La subfamilia también alimenta el código de 8 dígitos.
+- **Marca**: tabla de Marcas existente, con su escritura respetada (opcional; Mano de obra y Subcontrato no la usan).
+
+En Banco APU, Inventario, Almacén y los selectores de compra se puede **filtrar y agrupar** por Rubro, Familia, Subfamilia y Marca, y exportar a Excel con esas columnas.
 
 ### Datos que NO se guardan en la ficha (se calculan)
 Stock, costo promedio, último precio de compra y "por llegar" salen siempre de los movimientos de Almacén y de las OC.
