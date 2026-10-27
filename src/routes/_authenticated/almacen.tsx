@@ -383,8 +383,6 @@ function AlmacenPage() {
 
       {pestana === "movimientos" && (
       <Panel titulo="Movimientos">
-        titulo="Movimientos"
-      >
         {visibles.length === 0 ? (
           busqueda ? <Vacio texto={`Sin coincidencias para «${busqueda}»`} /> : <Vacio texto="Todavía no hay movimientos de almacén." />
         ) : (
@@ -449,7 +447,7 @@ function AlmacenPage() {
               <option>Salida</option>
             </Select>
           </Campo>
-        </MenuFiltros>} haySeleccion={gestion && !!actual} onEliminar={() => { if (actual) void eliminar(actual.id); }} />) : undefined} haySeleccion={pestana === "movimientos" && gestion && !!actual} onEliminar={pestana === "movimientos" ? () => { if (actual) void eliminar(actual.id); } : undefined}
+        </MenuFiltros>) : undefined} haySeleccion={pestana === "movimientos" && gestion && !!actual} onEliminar={pestana === "movimientos" ? () => { if (actual) void eliminar(actual.id); } : undefined}
         extras={<>
           {misAlmacenes.length > 0 && <BotonIcono etiqueta="Transferir entre almacenes" onClick={() => setVerTr(true)}><ArrowLeftRight size={15} /></BotonIcono>}
           {gestion && <BotonIcono etiqueta="Encargados de almacenes" onClick={() => setVerEnc(true)}><Users size={15} /></BotonIcono>}
