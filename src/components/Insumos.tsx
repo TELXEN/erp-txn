@@ -890,12 +890,7 @@ function EquiposWysiwyg({
         <td className="px-3 py-2">
           <input className={inputCls} autoFocus={enfoqueNueva} placeholder="Escribe la descripción y pulsa Enter…" value={f.nombre} data-formato="oracion" onChange={(e) => set({ ...f, nombre: e.target.value })} onKeyDown={onKey} />
         </td>
-        <td className="px-3 py-2">
-          <select className={selCls} value={f.clase} title="Cambiar de clase mueve la ficha a la otra pestaña y su código pasa a 3 (equipo) o 4 (herramienta)" onChange={(e) => { const c = e.target.value as Clase; set({ ...f, clase: c, unidad: unidadDe(c) }); }}>
-            <option value="Equipo">Equipo</option>
-            <option value="Herramienta">Herramienta</option>
-          </select>
-        </td>
+        <td className="px-3 py-2 text-ink">{f.clase}</td>
         <td className="px-3 py-2">
           <select className={selCls} value={f.propiedad} onChange={(e) => set({ ...f, propiedad: e.target.value as Propiedad })}>
             <option value="Propio">Propio</option>
