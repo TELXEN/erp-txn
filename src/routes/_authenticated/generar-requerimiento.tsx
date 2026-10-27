@@ -119,7 +119,7 @@ function RequerimientosPage() {
   };
   const actual = reqs.find((x) => x.id === sel);
   const reqsVisibles = reqs.filter((r) => coincide(busqueda, r.codigo, nombreProy(r.proyecto_id), r.observacion));
-  const ocsPendientes = ordenes.filter((o) => ["Enviado a obra", "Recibida parcial", "Recibida"].includes(o.estado));
+  const ocsPendientes = ordenes.filter((o) => ["Emitida", "Enviado a obra", "Recibida parcial"].includes(o.estado));
   const hojasObra = partidas
     .filter((p) => p.proyecto_id === proyectoId && !partidas.some((h) => h.padre_id === p.id))
     .map((p) => ({ id: p.id, codigo: (p as { codigo?: string }).codigo ?? "", nombre: (p as { nombre?: string }).nombre ?? "" }));
@@ -292,11 +292,9 @@ function RequerimientosPage() {
                       <td className="px-3 py-1.5 text-right">{itemsOC.filter((i) => i.orden_id === o.id).length}</td>
                       <td className="px-3 py-1.5"><Etiqueta tono={o.estado === "Recibida" ? "good" : o.estado === "Recibida parcial" ? "warn" : "neutro"}>{o.estado}</Etiqueta></td>
                       <td className="px-5 py-1.5 text-right">
-                        {(o.estado === "Enviado a obra" || o.estado === "Recibida parcial") && (
-                          <Boton variante="linea" className="py-0.5 text-xs" onClick={() => abrirRecepcion(o.id)}>
-                            <PackageCheck size={13} className="mr-1 inline" /> Recepcionar
-                          </Boton>
-                        )}
+                        <Boton variante="linea" className="py-0.5 text-xs" onClick={() => abrirRecepcion(o.id)}>
+                          <PackageCheck size={13} className="mr-1 inline" /> Recepcionar
+                        </Boton>
                       </td>
                     </tr>
                   ))}
