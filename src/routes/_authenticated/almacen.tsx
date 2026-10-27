@@ -6,7 +6,7 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowDownToLine, ArrowLeftRight, ArrowUpFromLine, PackageCheck, Upload } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, Campo, Input, MenuFiltros, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
+import { Boton, Campo, Input, MenuFiltros, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { soles } from "@/lib/format";
@@ -43,17 +43,6 @@ function AlmacenPage() {
   const { data: almacenes = [] } = useAlmacenes();
   const [tr, setTr] = useState({ origen: "central", destino: "", insumo_id: "", cantidad: "", documento: "", observacion: "", error: "" });
   const [almStock, setAlmStock] = useRecordado("almacen:stock", "");
-  const [form, setForm] = useState({
-    tipo: "Salida" as "Ingreso" | "Salida",
-    fecha: hoy(),
-    proyecto_id: "",
-    insumo_id: "",
-    orden_item_id: "",
-    cantidad: "",
-    costo_unitario: "",
-    documento: "",
-    observacion: "",
-  });
   const [filtroObra, setFiltroObra] = useRecordado("almacen:obra", "");
   const [filtroTipo, setFiltroTipo] = useRecordado("almacen:tipo", "");
   const [error, setError] = useState("");
@@ -65,10 +54,8 @@ function AlmacenPage() {
 
   const stock = calcularStock(movs);
   const ins = insumos.find((i) => i.id === form.insumo_id);
-  const pidForm = almacenDeValor(form.proyecto_id);
   const stockDe = (pid: string | null, insumoId: string) =>
     stock.find((s) => s.clave === claveStock({ proyecto_id: pid as string, insumo_id: insumoId, descripcion: "" }));
-  const stockSel = ins && form.proyecto_id ? stockDe(pidForm, ins.id) : undefined;
   const nombreProy = (id: string | null) => {
     if (!id) return "Almacén Central";
     const p = proyectos.find((x) => x.id === id);
@@ -109,62 +96,22 @@ function AlmacenPage() {
   }
   const pidStock = almacenDeValor(almStock);
   const stockVista = stock.filter((s) => s.stock > 0.0001 && (!almStock || (s.proyecto_id ?? null) === pidStock));
-  /** En salidas solo se ofrecen insumos con stock en la obra. */
-  const opciones =
-    form.tipo === "Salida"
-      ? insumos.filter((i) => stock.some((s) => (s.proyecto_id ?? null) === pidForm && s.insumo_id === i.id && s.stock > 0))
-      : insumos.filter((i) => i.activo && i.tipo !== "MO");
-
-  /** Ítems de OC (no anuladas) de la obra con saldo pendiente para el insumo elegido. */
-  const recibidoItem = (itemId: string) =>
-    movs.filter((m) => m.orden_item_id === itemId && m.tipo === "Ingreso").reduce((s, m) => s + Number(m.cantidad), 0);
-  const ocPendientes = itemsOC
-    .map((i) => {
-      const oc = ordenes.find((o) => o.id === i.orden_id);
-      const saldo = Number(i.cantidad) - recibidoItem(i.id);
-      return { item: i, oc, saldo };
-    })
-    .filter(
-      (x) =>
-        x.oc &&
-        x.oc.estado !== "Anulada" &&
-        x.oc.proyecto_id === pidForm &&
-        x.item.insumo_id === form.insumo_id &&
-        x.saldo > 0.0001,
-    );
-  const ocSel = ocPendientes.find((x) => x.item.id === form.orden_item_id);
-
-  async function guardar(e: React.FormEvent) {
+  const [consumo, setConsumo] = useState<{ clave: string; cantidad: string; documento: string; observacion: string; error: string } | null>(null);
+  const filaConsumo = consumo ? stock.find((s) => s.clave === consumo.clave) : undefined;
+  async function consumir(e: React.FormEvent) {
     e.preventDefault();
-    setError("");
-    if (!form.proyecto_id || !ins) return setError("Selecciona el almacén y el insumo.");
-    const cant = Number(form.cantidad);
-    if (!(cant > 0)) return setError("La cantidad debe ser mayor que cero.");
-    if (form.tipo === "Salida" && cant > (stockSel?.stock ?? 0) + 0.0001)
-      return setError(`Stock insuficiente: disponible ${num(stockSel?.stock ?? 0)} ${ins.unidad}.`);
-    if (form.tipo === "Ingreso" && ocSel && cant > ocSel.saldo + 0.0001)
-      return setError(`La cantidad supera el saldo pendiente de ${ocSel.oc!.codigo}: ${num(ocSel.saldo)} ${ins.unidad}.`);
+    if (!consumo || !filaConsumo) return;
+    const cant = Number(consumo.cantidad);
+    if (!(cant > 0)) return setConsumo({ ...consumo, error: "La cantidad debe ser mayor que cero." });
+    if (cant > filaConsumo.stock + 0.0001) return setConsumo({ ...consumo, error: `Stock insuficiente: disponible ${num(filaConsumo.stock)} ${filaConsumo.unidad}.` });
     const { error: err } = await apuDb.from("movimientos_almacen").insert({
-      tipo: form.tipo,
-      fecha: form.fecha,
-      proyecto_id: pidForm,
-      insumo_id: ins.id,
-      motivo: form.tipo === "Ingreso" ? (form.orden_item_id ? "Compra" : "Ingreso manual") : "Consumo",
-      descripcion: ins.nombre,
-      unidad: ins.unidad,
-      cantidad: cant,
-      costo_unitario:
-        form.tipo === "Ingreso" ? Number(form.costo_unitario || ins.precio) : Number(stockSel?.costoPromedio ?? 0),
-      orden_item_id: form.tipo === "Ingreso" && form.orden_item_id ? form.orden_item_id : null,
-      documento: form.documento.trim(),
-      observacion: form.observacion.trim(),
+      tipo: "Salida", motivo: "Consumo", fecha: hoy(), proyecto_id: filaConsumo.proyecto_id,
+      insumo_id: filaConsumo.insumo_id, descripcion: filaConsumo.descripcion, unidad: filaConsumo.unidad,
+      cantidad: cant, costo_unitario: Math.round(filaConsumo.costoPromedio * 10000) / 10000,
+      documento: consumo.documento.trim(), observacion: consumo.observacion.trim(),
     });
-    if (err) return setError(err.message);
-    if (form.tipo === "Ingreso" && ocSel?.oc) {
-      await sincronizarEstadoOC(ocSel.oc.id);
-      qc.invalidateQueries({ queryKey: ["ordenes_compra"] });
-    }
-    setForm({ ...form, insumo_id: "", orden_item_id: "", cantidad: "", costo_unitario: "", documento: "", observacion: "" });
+    if (err) return setConsumo({ ...consumo, error: err.message });
+    setConsumo(null);
     qc.invalidateQueries({ queryKey: ["movimientos_almacen"] });
   }
 
@@ -216,77 +163,6 @@ function AlmacenPage() {
         }
       />
 
-      <Panel titulo="Registrar movimiento" className="mb-5">
-        <form onSubmit={guardar} className="grid gap-3 px-5 py-4 sm:grid-cols-4">
-          <Campo etiqueta="Tipo">
-            <Select value={form.tipo} onChange={(e) => setForm({ ...form, tipo: e.target.value as "Ingreso" | "Salida", insumo_id: "", orden_item_id: "" })}>
-              <option value="Salida">Consumo / salida</option>
-              <option value="Ingreso">Ingreso manual</option>
-            </Select>
-          </Campo>
-          <Campo etiqueta="Fecha">
-            <Input type="date" value={form.fecha} onChange={(e) => setForm({ ...form, fecha: e.target.value })} />
-          </Campo>
-          <Campo etiqueta="Almacén">
-            <Select value={form.proyecto_id} onChange={(e) => setForm({ ...form, proyecto_id: e.target.value, insumo_id: "", orden_item_id: "" })}>
-              <option value="">Seleccionar…</option>
-              {opcionesAlmacen}
-            </Select>
-          </Campo>
-          <Campo etiqueta="Insumo">
-            <Select value={form.insumo_id} disabled={!form.proyecto_id} onChange={(e) => setForm({ ...form, insumo_id: e.target.value, orden_item_id: "" })}>
-              <option value="">{form.tipo === "Salida" && opciones.length === 0 ? "Sin stock en este almacén" : "Seleccionar…"}</option>
-              {opciones.map((i) => <option key={i.id} value={i.id}>{i.nombre} ({i.unidad})</option>)}
-            </Select>
-          </Campo>
-          {form.tipo === "Ingreso" && form.insumo_id && ocPendientes.length > 0 && (
-            <Campo etiqueta="Orden de compra (opcional)">
-              <Select
-                value={form.orden_item_id}
-                onChange={(e) => {
-                  const sel = ocPendientes.find((x) => x.item.id === e.target.value);
-                  setForm({
-                    ...form,
-                    orden_item_id: e.target.value,
-                    cantidad: sel ? String(Math.round(sel.saldo * 10000) / 10000) : form.cantidad,
-                    costo_unitario: sel ? String(sel.item.precio_unitario) : form.costo_unitario,
-                    documento: sel ? sel.oc!.codigo : form.documento,
-                  });
-                }}
-              >
-                <option value="">Ingreso libre (sin OC)</option>
-                {ocPendientes.map((x) => (
-                  <option key={x.item.id} value={x.item.id}>
-                    {x.oc!.codigo} · pendiente {num(x.saldo)} {x.item.unidad}
-                  </option>
-                ))}
-              </Select>
-            </Campo>
-          )}
-          <Campo etiqueta={`Cantidad${stockSel ? ` · stock ${num(stockSel.stock)}` : ""}`}>
-            <Input type="number" step="0.0001" min="0" value={form.cantidad} onChange={(e) => setForm({ ...form, cantidad: e.target.value })} />
-          </Campo>
-          {form.tipo === "Ingreso" && (
-            <Campo etiqueta="Costo unitario (S/)">
-              <Input type="number" step="0.01" min="0" placeholder={ins ? String(ins.precio) : ""} value={form.costo_unitario} onChange={(e) => setForm({ ...form, costo_unitario: e.target.value })} />
-            </Campo>
-          )}
-          <Campo etiqueta={form.tipo === "Ingreso" ? "Guía / documento" : "Vale de salida"}>
-            <Input value={form.documento} onChange={(e) => setForm({ ...form, documento: e.target.value })} />
-          </Campo>
-          <Campo etiqueta="Observación">
-            <Input value={form.observacion} onChange={(e) => setForm({ ...form, observacion: e.target.value })} />
-          </Campo>
-          <div className="flex items-end sm:col-span-4">
-            <Boton type="submit">Registrar {form.tipo === "Ingreso" ? "ingreso" : "salida"}</Boton>
-            {error && <p className="ml-3 font-mono text-xs text-bad">{error}</p>}
-          </div>
-        </form>
-        <p className="border-t border-line px-5 py-2 font-mono text-[10px] text-muted-foreground">
-          Los ingresos por compra se registran desde Órdenes de Compra con el botón "Recibir en almacén", o aquí vinculando el ingreso a una orden pendiente: el estado de la orden se actualiza solo. Las salidas se valorizan al costo promedio.
-        </p>
-      </Panel>
-
       <div className="mb-5 grid gap-5 lg:grid-cols-2">
         <Panel titulo="Transferir entre almacenes">
           <form onSubmit={transferir} className="grid gap-3 px-5 py-4 sm:grid-cols-2">
@@ -317,6 +193,7 @@ function AlmacenPage() {
             <div className="flex items-end sm:col-span-2">
               <Boton type="submit"><ArrowLeftRight size={14} className="mr-1 inline" /> Enviar transferencia</Boton>
               {tr.error && <p className="ml-3 font-mono text-xs text-bad">{tr.error}</p>}
+              {error && <p className="ml-3 font-mono text-xs text-bad">{error}</p>}
             </div>
           </form>
           <p className="border-t border-line px-5 py-2 font-mono text-[10px] text-muted-foreground">
@@ -358,6 +235,7 @@ function AlmacenPage() {
                   <th className="px-3 py-2 text-right font-medium">Stock</th>
                   <th className="px-3 py-2 text-right font-medium">C. promedio</th>
                   <th className="px-3 py-2 text-right font-medium">Valor</th>
+                  <th className="px-3 py-2" />
                 </tr>
               </thead>
               <tbody>
@@ -368,6 +246,9 @@ function AlmacenPage() {
                     <td className="px-3 py-2 text-right">{num(s.stock)} {s.unidad}</td>
                     <td className="px-3 py-2 text-right">{soles(s.costoPromedio)}</td>
                     <td className="px-3 py-2 text-right">{soles(s.valor)}</td>
+                    <td className="px-3 py-1 text-right">
+                      {s.proyecto_id && <Boton variante="linea" onClick={() => setConsumo({ clave: s.clave, cantidad: "", documento: "", observacion: "", error: "" })}>Consumir</Boton>}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -396,6 +277,27 @@ function AlmacenPage() {
           </table>
         </Panel>
       </div>
+
+      <VentanaFlotante abierta={!!consumo} onCerrar={() => setConsumo(null)} titulo="Consumo en obra" subtitulo={filaConsumo ? `${nombreProy(filaConsumo.proyecto_id)} · ${filaConsumo.descripcion}` : ""} ancho="max-w-md">
+        {consumo && filaConsumo && (
+          <form onSubmit={consumir} className="space-y-3 p-5 text-xs">
+            <Campo etiqueta={`Cantidad · stock ${num(filaConsumo.stock)} ${filaConsumo.unidad}`}>
+              <Input autoFocus type="number" step="0.0001" min="0" value={consumo.cantidad} onChange={(e) => setConsumo({ ...consumo, cantidad: e.target.value })} />
+            </Campo>
+            <Campo etiqueta="Vale de salida">
+              <Input value={consumo.documento} onChange={(e) => setConsumo({ ...consumo, documento: e.target.value })} />
+            </Campo>
+            <Campo etiqueta="Observación">
+              <Input value={consumo.observacion} onChange={(e) => setConsumo({ ...consumo, observacion: e.target.value })} />
+            </Campo>
+            {consumo.error && <p className="font-mono text-bad">{consumo.error}</p>}
+            <div className="flex justify-end gap-2">
+              <Boton type="button" variante="linea" onClick={() => setConsumo(null)}>Cancelar</Boton>
+              <Boton type="submit">Registrar consumo</Boton>
+            </div>
+          </form>
+        )}
+      </VentanaFlotante>
 
       <div className="flex items-start gap-3">
       <Panel className="min-w-0 flex-1"
