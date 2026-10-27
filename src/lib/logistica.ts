@@ -59,6 +59,10 @@ export type Requerimiento = {
   estado: string;
   observacion: string;
   creado_por: string | null;
+  clase?: string | null;
+  rubro?: string | null;
+  tdr?: { tipo?: string; alcance?: string; entregables?: string; plazo?: string } | null;
+  motivo_rechazo?: string | null;
 };
 export type ItemReq = {
   id: string;
