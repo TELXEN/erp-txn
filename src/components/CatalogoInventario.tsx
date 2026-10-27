@@ -52,7 +52,7 @@ export function CatalogoInventario() {
   async function eliminar(id: string, descripcion: string) {
     if (!confirm(`¿Eliminar «${descripcion}» del catálogo? Quedará como inactivo.`)) return;
     setGuardando(id);
-    const { error } = await supabase.from(tabla).update({ estado: "inactivo" }).eq("id", id);
+    const { error } = await supabase.from("insumos").update({ activo: false }).eq("id", id);
     setGuardando(null);
     if (error) { toast.error(error.message); return; }
     if (selId === id) setSelId("");
