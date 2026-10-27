@@ -394,11 +394,12 @@ function AlmacenPage() {
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
                 <th className="px-5 py-2 font-medium">Fecha</th>
                 <th className="px-3 py-2 font-medium">Tipo</th>
-                <th className="px-3 py-2 font-medium">Almacén</th>
+                <th className="px-3 py-2 font-medium">Almacén origen</th>
+                <th className="px-3 py-2 font-medium">Almacén destino</th>
                 <th className="px-3 py-2 font-medium">Insumo</th>
                 <th className="px-3 py-2 text-right font-medium">Cantidad</th>
                 <th className="px-3 py-2 text-right font-medium">Importe</th>
-                <th className="px-3 py-2 font-medium">Partida / trabajador</th>
+                <th className="px-3 py-2 font-medium">Partida</th>
                 <th className="px-3 py-2 font-medium">Documento</th>
               </tr>
             </thead>
