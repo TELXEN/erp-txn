@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Boxes, Check, ChevronDown, ChevronRight, Pencil, SlidersHorizontal, Trash2, X } from "lucide-react";
 import { Boton, Input, Panel, Select } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
+import { SelectorBuscable } from "@/components/SelectorBuscable";
 import { MargenesApuPanel } from "@/components/MargenesApu";
 import { ParametrosLaboralesPanel } from "@/components/ParametrosLaborales";
 import { CodificacionInsumos } from "@/components/CodificacionInsumos";
