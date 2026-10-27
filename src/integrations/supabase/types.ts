@@ -166,7 +166,42 @@ export type Database = {
             foreignKeyName: "apu_componentes_insumo_id_fkey"
             columns: ["insumo_id"]
             isOneToOne: false
+            referencedRelation: "epp_catalogo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "apu_componentes_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "equipos_herramientas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "apu_componentes_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
             referencedRelation: "insumos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "apu_componentes_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "mano_obra"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "apu_componentes_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "materiales"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "apu_componentes_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "subcontratos"
             referencedColumns: ["id"]
           },
           {
@@ -1410,6 +1445,7 @@ export type Database = {
           descripcion: string
           equipo_id: string | null
           id: string
+          insumo_id: string | null
           mano_obra_id: string | null
           marca: string
           material_id: string | null
@@ -1427,6 +1463,7 @@ export type Database = {
           descripcion?: string
           equipo_id?: string | null
           id?: string
+          insumo_id?: string | null
           mano_obra_id?: string | null
           marca?: string
           material_id?: string | null
@@ -1444,6 +1481,7 @@ export type Database = {
           descripcion?: string
           equipo_id?: string | null
           id?: string
+          insumo_id?: string | null
           mano_obra_id?: string | null
           marca?: string
           material_id?: string | null
@@ -1462,29 +1500,43 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "cotizacion_apu_detalle_equipo_id_fkey"
-            columns: ["equipo_id"]
+            foreignKeyName: "cotizacion_apu_detalle_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "epp_catalogo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cotizacion_apu_detalle_insumo_id_fkey"
+            columns: ["insumo_id"]
             isOneToOne: false
             referencedRelation: "equipos_herramientas"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "cotizacion_apu_detalle_mano_obra_id_fkey"
-            columns: ["mano_obra_id"]
+            foreignKeyName: "cotizacion_apu_detalle_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "insumos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cotizacion_apu_detalle_insumo_id_fkey"
+            columns: ["insumo_id"]
             isOneToOne: false
             referencedRelation: "mano_obra"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "cotizacion_apu_detalle_material_id_fkey"
-            columns: ["material_id"]
+            foreignKeyName: "cotizacion_apu_detalle_insumo_id_fkey"
+            columns: ["insumo_id"]
             isOneToOne: false
             referencedRelation: "materiales"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "cotizacion_apu_detalle_subcontrato_id_fkey"
-            columns: ["subcontrato_id"]
+            foreignKeyName: "cotizacion_apu_detalle_insumo_id_fkey"
+            columns: ["insumo_id"]
             isOneToOne: false
             referencedRelation: "subcontratos"
             referencedColumns: ["id"]
@@ -1983,54 +2035,6 @@ export type Database = {
         }
         Relationships: []
       }
-      epp_catalogo: {
-        Row: {
-          activo: boolean
-          categoria: string
-          codigo: string
-          costo_unitario: number
-          created_at: string
-          criticidad: string
-          id: string
-          marca: string
-          nombre: string
-          norma: string
-          stock: number
-          tallas: string
-          vida_util_dias: number
-        }
-        Insert: {
-          activo?: boolean
-          categoria?: string
-          codigo?: string
-          costo_unitario?: number
-          created_at?: string
-          criticidad?: string
-          id?: string
-          marca?: string
-          nombre: string
-          norma?: string
-          stock?: number
-          tallas?: string
-          vida_util_dias?: number
-        }
-        Update: {
-          activo?: boolean
-          categoria?: string
-          codigo?: string
-          costo_unitario?: number
-          created_at?: string
-          criticidad?: string
-          id?: string
-          marca?: string
-          nombre?: string
-          norma?: string
-          stock?: number
-          tallas?: string
-          vida_util_dias?: number
-        }
-        Relationships: []
-      }
       epp_entregas: {
         Row: {
           cantidad: number
@@ -2080,76 +2084,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "epp_entregas_epp_id_fkey"
+            columns: ["epp_id"]
+            isOneToOne: false
+            referencedRelation: "equipos_herramientas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "epp_entregas_epp_id_fkey"
+            columns: ["epp_id"]
+            isOneToOne: false
+            referencedRelation: "insumos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "epp_entregas_epp_id_fkey"
+            columns: ["epp_id"]
+            isOneToOne: false
+            referencedRelation: "mano_obra"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "epp_entregas_epp_id_fkey"
+            columns: ["epp_id"]
+            isOneToOne: false
+            referencedRelation: "materiales"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "epp_entregas_epp_id_fkey"
+            columns: ["epp_id"]
+            isOneToOne: false
+            referencedRelation: "subcontratos"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "epp_entregas_trabajador_id_fkey"
             columns: ["trabajador_id"]
             isOneToOne: false
             referencedRelation: "trabajadores"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      equipos_herramientas: {
-        Row: {
-          categoria_inventario: string | null
-          codigo: string
-          costo_hora: number
-          costo_unitario: number | null
-          created_at: string
-          descripcion: string
-          especialidad_id: string | null
-          estado: string
-          id: string
-          margen: number
-          subfamilia_id: string | null
-          tipo: string
-          unidad: string
-          updated_at: string
-        }
-        Insert: {
-          categoria_inventario?: string | null
-          codigo?: string
-          costo_hora?: number
-          costo_unitario?: number | null
-          created_at?: string
-          descripcion: string
-          especialidad_id?: string | null
-          estado?: string
-          id?: string
-          margen?: number
-          subfamilia_id?: string | null
-          tipo?: string
-          unidad?: string
-          updated_at?: string
-        }
-        Update: {
-          categoria_inventario?: string | null
-          codigo?: string
-          costo_hora?: number
-          costo_unitario?: number | null
-          created_at?: string
-          descripcion?: string
-          especialidad_id?: string | null
-          estado?: string
-          id?: string
-          margen?: number
-          subfamilia_id?: string | null
-          tipo?: string
-          unidad?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "equipos_herramientas_especialidad_id_fkey"
-            columns: ["especialidad_id"]
-            isOneToOne: false
-            referencedRelation: "especialidades_partida"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "equipos_herramientas_subfamilia_id_fkey"
-            columns: ["subfamilia_id"]
-            isOneToOne: false
-            referencedRelation: "subfamilias_insumo"
             referencedColumns: ["id"]
           },
         ]
@@ -2456,7 +2429,42 @@ export type Database = {
             foreignKeyName: "gastos_directos_insumo_id_fkey"
             columns: ["insumo_id"]
             isOneToOne: false
+            referencedRelation: "epp_catalogo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gastos_directos_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "equipos_herramientas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gastos_directos_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
             referencedRelation: "insumos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gastos_directos_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "mano_obra"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gastos_directos_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "materiales"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gastos_directos_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "subcontratos"
             referencedColumns: ["id"]
           },
           {
@@ -2727,7 +2735,42 @@ export type Database = {
             foreignKeyName: "importacion_items_insumo_id_fkey"
             columns: ["insumo_id"]
             isOneToOne: false
+            referencedRelation: "epp_catalogo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "importacion_items_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "equipos_herramientas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "importacion_items_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
             referencedRelation: "insumos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "importacion_items_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "mano_obra"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "importacion_items_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "materiales"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "importacion_items_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "subcontratos"
             referencedColumns: ["id"]
           },
         ]
@@ -2860,10 +2903,12 @@ export type Database = {
         Row: {
           activo: boolean
           asignacion_familiar: boolean
+          categoria_inventario: string | null
           categoria_obrero: string | null
           clase_equipo: string
           codigo: string
           created_at: string
+          especialidad_id: string | null
           id: string
           marca_id: string | null
           margen_pct: number
@@ -2871,18 +2916,22 @@ export type Database = {
           precio: number
           propiedad: string
           regimen_laboral: string
+          subfamilia_id: string | null
           sueldo_mensual: number
           tipo: string
           unidad: string
+          unidad_id: string | null
           updated_at: string
         }
         Insert: {
           activo?: boolean
           asignacion_familiar?: boolean
+          categoria_inventario?: string | null
           categoria_obrero?: string | null
           clase_equipo?: string
           codigo?: string
           created_at?: string
+          especialidad_id?: string | null
           id?: string
           marca_id?: string | null
           margen_pct?: number
@@ -2890,18 +2939,22 @@ export type Database = {
           precio?: number
           propiedad?: string
           regimen_laboral?: string
+          subfamilia_id?: string | null
           sueldo_mensual?: number
           tipo?: string
           unidad?: string
+          unidad_id?: string | null
           updated_at?: string
         }
         Update: {
           activo?: boolean
           asignacion_familiar?: boolean
+          categoria_inventario?: string | null
           categoria_obrero?: string | null
           clase_equipo?: string
           codigo?: string
           created_at?: string
+          especialidad_id?: string | null
           id?: string
           marca_id?: string | null
           margen_pct?: number
@@ -2909,12 +2962,21 @@ export type Database = {
           precio?: number
           propiedad?: string
           regimen_laboral?: string
+          subfamilia_id?: string | null
           sueldo_mensual?: number
           tipo?: string
           unidad?: string
+          unidad_id?: string | null
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "insumos_especialidad_id_fkey"
+            columns: ["especialidad_id"]
+            isOneToOne: false
+            referencedRelation: "especialidades_partida"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "insumos_marca_id_fkey"
             columns: ["marca_id"]
@@ -2923,11 +2985,98 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "insumos_subfamilia_id_fkey"
+            columns: ["subfamilia_id"]
+            isOneToOne: false
+            referencedRelation: "subfamilias_insumo"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "insumos_tipo_fkey"
             columns: ["tipo"]
             isOneToOne: false
             referencedRelation: "tipos_insumo"
             referencedColumns: ["clave"]
+          },
+          {
+            foreignKeyName: "insumos_unidad_id_fkey"
+            columns: ["unidad_id"]
+            isOneToOne: false
+            referencedRelation: "unidades_medida"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      insumos_atributos_epp: {
+        Row: {
+          categoria: string
+          criticidad: string
+          insumo_id: string
+          norma: string
+          stock: number
+          tallas: string
+          vida_util_dias: number
+        }
+        Insert: {
+          categoria?: string
+          criticidad?: string
+          insumo_id: string
+          norma?: string
+          stock?: number
+          tallas?: string
+          vida_util_dias?: number
+        }
+        Update: {
+          categoria?: string
+          criticidad?: string
+          insumo_id?: string
+          norma?: string
+          stock?: number
+          tallas?: string
+          vida_util_dias?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "insumos_atributos_epp_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: true
+            referencedRelation: "epp_catalogo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "insumos_atributos_epp_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: true
+            referencedRelation: "equipos_herramientas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "insumos_atributos_epp_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: true
+            referencedRelation: "insumos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "insumos_atributos_epp_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: true
+            referencedRelation: "mano_obra"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "insumos_atributos_epp_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: true
+            referencedRelation: "materiales"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "insumos_atributos_epp_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: true
+            referencedRelation: "subcontratos"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -2951,60 +3100,6 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: []
-      }
-      mano_obra: {
-        Row: {
-          codigo: string
-          costo_hora: number
-          created_at: string
-          descripcion: string
-          especialidad_id: string | null
-          estado: string
-          id: string
-          subfamilia_id: string | null
-          unidad: string
-          updated_at: string
-        }
-        Insert: {
-          codigo?: string
-          costo_hora?: number
-          created_at?: string
-          descripcion: string
-          especialidad_id?: string | null
-          estado?: string
-          id?: string
-          subfamilia_id?: string | null
-          unidad?: string
-          updated_at?: string
-        }
-        Update: {
-          codigo?: string
-          costo_hora?: number
-          created_at?: string
-          descripcion?: string
-          especialidad_id?: string | null
-          estado?: string
-          id?: string
-          subfamilia_id?: string | null
-          unidad?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "mano_obra_especialidad_id_fkey"
-            columns: ["especialidad_id"]
-            isOneToOne: false
-            referencedRelation: "especialidades_partida"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "mano_obra_subfamilia_id_fkey"
-            columns: ["subfamilia_id"]
-            isOneToOne: false
-            referencedRelation: "subfamilias_insumo"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       mantenimientos_vehiculo: {
         Row: {
@@ -3139,69 +3234,6 @@ export type Database = {
           },
         ]
       }
-      materiales: {
-        Row: {
-          codigo: string
-          costo_unitario: number | null
-          created_at: string
-          descripcion: string
-          especialidad_id: string | null
-          estado: string
-          id: string
-          marca: string
-          margen: number
-          precio_base: number
-          subfamilia_id: string | null
-          unidad: string
-          updated_at: string
-        }
-        Insert: {
-          codigo?: string
-          costo_unitario?: number | null
-          created_at?: string
-          descripcion: string
-          especialidad_id?: string | null
-          estado?: string
-          id?: string
-          marca?: string
-          margen?: number
-          precio_base?: number
-          subfamilia_id?: string | null
-          unidad?: string
-          updated_at?: string
-        }
-        Update: {
-          codigo?: string
-          costo_unitario?: number | null
-          created_at?: string
-          descripcion?: string
-          especialidad_id?: string | null
-          estado?: string
-          id?: string
-          marca?: string
-          margen?: number
-          precio_base?: number
-          subfamilia_id?: string | null
-          unidad?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "materiales_especialidad_id_fkey"
-            columns: ["especialidad_id"]
-            isOneToOne: false
-            referencedRelation: "especialidades_partida"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "materiales_subfamilia_id_fkey"
-            columns: ["subfamilia_id"]
-            isOneToOne: false
-            referencedRelation: "subfamilias_insumo"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       metas_flujo_caja: {
         Row: {
           anio: number
@@ -3313,7 +3345,42 @@ export type Database = {
             foreignKeyName: "movimientos_almacen_insumo_id_fkey"
             columns: ["insumo_id"]
             isOneToOne: false
+            referencedRelation: "epp_catalogo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "movimientos_almacen_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "equipos_herramientas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "movimientos_almacen_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
             referencedRelation: "insumos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "movimientos_almacen_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "mano_obra"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "movimientos_almacen_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "materiales"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "movimientos_almacen_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "subcontratos"
             referencedColumns: ["id"]
           },
           {
@@ -3502,7 +3569,42 @@ export type Database = {
             foreignKeyName: "orden_compra_items_insumo_id_fkey"
             columns: ["insumo_id"]
             isOneToOne: false
+            referencedRelation: "epp_catalogo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orden_compra_items_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "equipos_herramientas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orden_compra_items_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
             referencedRelation: "insumos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orden_compra_items_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "mano_obra"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orden_compra_items_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "materiales"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orden_compra_items_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "subcontratos"
             referencedColumns: ["id"]
           },
           {
@@ -3711,6 +3813,7 @@ export type Database = {
           created_at: string
           equipo_id: string | null
           id: string
+          insumo_id: string | null
           mano_obra_id: string | null
           material_id: string | null
           orden: number
@@ -3724,6 +3827,7 @@ export type Database = {
           created_at?: string
           equipo_id?: string | null
           id?: string
+          insumo_id?: string | null
           mano_obra_id?: string | null
           material_id?: string | null
           orden?: number
@@ -3737,6 +3841,7 @@ export type Database = {
           created_at?: string
           equipo_id?: string | null
           id?: string
+          insumo_id?: string | null
           mano_obra_id?: string | null
           material_id?: string | null
           orden?: number
@@ -3747,24 +3852,45 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "partida_detalle_equipo_id_fkey"
-            columns: ["equipo_id"]
+            foreignKeyName: "partida_detalle_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "epp_catalogo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partida_detalle_insumo_id_fkey"
+            columns: ["insumo_id"]
             isOneToOne: false
             referencedRelation: "equipos_herramientas"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "partida_detalle_mano_obra_id_fkey"
-            columns: ["mano_obra_id"]
+            foreignKeyName: "partida_detalle_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "insumos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partida_detalle_insumo_id_fkey"
+            columns: ["insumo_id"]
             isOneToOne: false
             referencedRelation: "mano_obra"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "partida_detalle_material_id_fkey"
-            columns: ["material_id"]
+            foreignKeyName: "partida_detalle_insumo_id_fkey"
+            columns: ["insumo_id"]
             isOneToOne: false
             referencedRelation: "materiales"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partida_detalle_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "subcontratos"
             referencedColumns: ["id"]
           },
           {
@@ -3779,13 +3905,6 @@ export type Database = {
             columns: ["partida_padre_id"]
             isOneToOne: false
             referencedRelation: "partidas_apu"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "partida_detalle_subcontrato_id_fkey"
-            columns: ["subcontrato_id"]
-            isOneToOne: false
-            referencedRelation: "subcontratos"
             referencedColumns: ["id"]
           },
           {
@@ -4731,7 +4850,42 @@ export type Database = {
             foreignKeyName: "requerimiento_items_insumo_id_fkey"
             columns: ["insumo_id"]
             isOneToOne: false
+            referencedRelation: "epp_catalogo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "requerimiento_items_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "equipos_herramientas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "requerimiento_items_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
             referencedRelation: "insumos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "requerimiento_items_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "mano_obra"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "requerimiento_items_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "materiales"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "requerimiento_items_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "subcontratos"
             referencedColumns: ["id"]
           },
           {
@@ -5193,66 +5347,6 @@ export type Database = {
             columns: ["proyecto_id"]
             isOneToOne: false
             referencedRelation: "proyectos"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      subcontratos: {
-        Row: {
-          codigo: string
-          costo: number
-          costo_unitario: number | null
-          created_at: string
-          descripcion: string
-          especialidad_id: string | null
-          estado: string
-          id: string
-          margen: number
-          subfamilia_id: string | null
-          unidad: string
-          updated_at: string
-        }
-        Insert: {
-          codigo?: string
-          costo?: number
-          costo_unitario?: number | null
-          created_at?: string
-          descripcion: string
-          especialidad_id?: string | null
-          estado?: string
-          id?: string
-          margen?: number
-          subfamilia_id?: string | null
-          unidad?: string
-          updated_at?: string
-        }
-        Update: {
-          codigo?: string
-          costo?: number
-          costo_unitario?: number | null
-          created_at?: string
-          descripcion?: string
-          especialidad_id?: string | null
-          estado?: string
-          id?: string
-          margen?: number
-          subfamilia_id?: string | null
-          unidad?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "subcontratos_especialidad_id_fkey"
-            columns: ["especialidad_id"]
-            isOneToOne: false
-            referencedRelation: "especialidades_partida"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "subcontratos_subfamilia_id_fkey"
-            columns: ["subfamilia_id"]
-            isOneToOne: false
-            referencedRelation: "subfamilias_insumo"
             referencedColumns: ["id"]
           },
         ]
@@ -6134,7 +6228,42 @@ export type Database = {
             foreignKeyName: "vales_salida_items_insumo_id_fkey"
             columns: ["insumo_id"]
             isOneToOne: false
+            referencedRelation: "epp_catalogo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vales_salida_items_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "equipos_herramientas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vales_salida_items_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
             referencedRelation: "insumos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vales_salida_items_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "mano_obra"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vales_salida_items_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "materiales"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vales_salida_items_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "subcontratos"
             referencedColumns: ["id"]
           },
           {
@@ -6559,7 +6688,283 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      epp_catalogo: {
+        Row: {
+          activo: boolean | null
+          categoria: string | null
+          codigo: string | null
+          costo_unitario: number | null
+          created_at: string | null
+          criticidad: string | null
+          id: string | null
+          marca: string | null
+          nombre: string | null
+          norma: string | null
+          stock: number | null
+          tallas: string | null
+          vida_util_dias: number | null
+        }
+        Relationships: []
+      }
+      equipos_herramientas: {
+        Row: {
+          categoria_inventario: string | null
+          codigo: string | null
+          costo_hora: number | null
+          costo_unitario: number | null
+          created_at: string | null
+          descripcion: string | null
+          especialidad_id: string | null
+          estado: string | null
+          id: string | null
+          margen: number | null
+          subfamilia_id: string | null
+          tipo: string | null
+          unidad: string | null
+          unidad_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          categoria_inventario?: string | null
+          codigo?: string | null
+          costo_hora?: number | null
+          costo_unitario?: never
+          created_at?: string | null
+          descripcion?: string | null
+          especialidad_id?: string | null
+          estado?: never
+          id?: string | null
+          margen?: number | null
+          subfamilia_id?: string | null
+          tipo?: never
+          unidad?: string | null
+          unidad_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          categoria_inventario?: string | null
+          codigo?: string | null
+          costo_hora?: number | null
+          costo_unitario?: never
+          created_at?: string | null
+          descripcion?: string | null
+          especialidad_id?: string | null
+          estado?: never
+          id?: string | null
+          margen?: number | null
+          subfamilia_id?: string | null
+          tipo?: never
+          unidad?: string | null
+          unidad_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "insumos_especialidad_id_fkey"
+            columns: ["especialidad_id"]
+            isOneToOne: false
+            referencedRelation: "especialidades_partida"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "insumos_subfamilia_id_fkey"
+            columns: ["subfamilia_id"]
+            isOneToOne: false
+            referencedRelation: "subfamilias_insumo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "insumos_unidad_id_fkey"
+            columns: ["unidad_id"]
+            isOneToOne: false
+            referencedRelation: "unidades_medida"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mano_obra: {
+        Row: {
+          codigo: string | null
+          costo_hora: number | null
+          created_at: string | null
+          descripcion: string | null
+          especialidad_id: string | null
+          estado: string | null
+          id: string | null
+          subfamilia_id: string | null
+          unidad: string | null
+          unidad_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          codigo?: string | null
+          costo_hora?: number | null
+          created_at?: string | null
+          descripcion?: string | null
+          especialidad_id?: string | null
+          estado?: never
+          id?: string | null
+          subfamilia_id?: string | null
+          unidad?: string | null
+          unidad_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          codigo?: string | null
+          costo_hora?: number | null
+          created_at?: string | null
+          descripcion?: string | null
+          especialidad_id?: string | null
+          estado?: never
+          id?: string | null
+          subfamilia_id?: string | null
+          unidad?: string | null
+          unidad_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "insumos_especialidad_id_fkey"
+            columns: ["especialidad_id"]
+            isOneToOne: false
+            referencedRelation: "especialidades_partida"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "insumos_subfamilia_id_fkey"
+            columns: ["subfamilia_id"]
+            isOneToOne: false
+            referencedRelation: "subfamilias_insumo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "insumos_unidad_id_fkey"
+            columns: ["unidad_id"]
+            isOneToOne: false
+            referencedRelation: "unidades_medida"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      materiales: {
+        Row: {
+          codigo: string | null
+          costo_unitario: number | null
+          created_at: string | null
+          descripcion: string | null
+          especialidad_id: string | null
+          estado: string | null
+          id: string | null
+          marca: string | null
+          marca_id: string | null
+          margen: number | null
+          precio_base: number | null
+          subfamilia_id: string | null
+          unidad: string | null
+          unidad_id: string | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "insumos_especialidad_id_fkey"
+            columns: ["especialidad_id"]
+            isOneToOne: false
+            referencedRelation: "especialidades_partida"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "insumos_marca_id_fkey"
+            columns: ["marca_id"]
+            isOneToOne: false
+            referencedRelation: "marcas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "insumos_subfamilia_id_fkey"
+            columns: ["subfamilia_id"]
+            isOneToOne: false
+            referencedRelation: "subfamilias_insumo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "insumos_unidad_id_fkey"
+            columns: ["unidad_id"]
+            isOneToOne: false
+            referencedRelation: "unidades_medida"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subcontratos: {
+        Row: {
+          codigo: string | null
+          costo: number | null
+          costo_unitario: number | null
+          created_at: string | null
+          descripcion: string | null
+          especialidad_id: string | null
+          estado: string | null
+          id: string | null
+          margen: number | null
+          subfamilia_id: string | null
+          unidad: string | null
+          unidad_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          codigo?: string | null
+          costo?: number | null
+          costo_unitario?: never
+          created_at?: string | null
+          descripcion?: string | null
+          especialidad_id?: string | null
+          estado?: never
+          id?: string | null
+          margen?: number | null
+          subfamilia_id?: string | null
+          unidad?: string | null
+          unidad_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          codigo?: string | null
+          costo?: number | null
+          costo_unitario?: never
+          created_at?: string | null
+          descripcion?: string | null
+          especialidad_id?: string | null
+          estado?: never
+          id?: string | null
+          margen?: number | null
+          subfamilia_id?: string | null
+          unidad?: string | null
+          unidad_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "insumos_especialidad_id_fkey"
+            columns: ["especialidad_id"]
+            isOneToOne: false
+            referencedRelation: "especialidades_partida"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "insumos_subfamilia_id_fkey"
+            columns: ["subfamilia_id"]
+            isOneToOne: false
+            referencedRelation: "subfamilias_insumo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "insumos_unidad_id_fkey"
+            columns: ["unidad_id"]
+            isOneToOne: false
+            referencedRelation: "unidades_medida"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       anular_cese: { Args: { _trabajador: string }; Returns: undefined }
@@ -6603,6 +7008,7 @@ export type Database = {
         Returns: undefined
       }
       is_admin_o_gerente: { Args: { _user_id: string }; Returns: boolean }
+      marca_id_de: { Args: { _nombre: string }; Returns: string }
       mo_presupuestada: { Args: { _proyecto: string }; Returns: number }
       mover_item_wbs: {
         Args: { _direccion: number; _id: string; _tabla: string }

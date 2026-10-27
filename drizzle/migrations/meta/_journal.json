@@ -652,6 +652,13 @@
       "when": 1793110136143,
       "tag": "0092_permitir_anular_cobro_detraccion",
       "breakpoints": true
+    },
+    {
+      "idx": 93,
+      "version": "7",
+      "when": 1793120444113,
+      "tag": "0093_maestro_unico_insumos",
+      "breakpoints": true
     }
   ]
 }

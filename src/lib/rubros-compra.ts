@@ -44,12 +44,12 @@ export function useCatalogoRubro(rubro: RubroCompra | "") {
   return lista.sort((a, b) => a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" }));
 }
 
-/** Busca (o crea) la ficha de almacén del artículo, para que su stock se lleve en el kardex. */
+/** Ficha del maestro único del artículo: su id va en la clave (`mat:<id>`, `eq:<id>`, `epp:<id>`). */
 export async function asegurarFichaAlmacen(a: ArticuloRubro): Promise<string> {
+  const id = a.clave.split(":")[1];
+  if (id) return id;
   const tipo = tipoFichaRubro(a.rubro);
   const { data: ex } = await apuDb.from("insumos").select("id").eq("tipo", tipo).eq("unidad", a.unidad).ilike("nombre", a.nombre);
   if (ex?.[0]?.id) return ex[0].id as string;
-  const { data, error } = await apuDb.from("insumos").insert({ tipo, codigo: a.codigo, nombre: a.nombre, unidad: a.unidad, precio: a.precio }).select("id").single();
-  if (error) throw error;
-  return data.id as string;
+  throw new Error("El artículo no existe en el Maestro de Insumos.");
 }
