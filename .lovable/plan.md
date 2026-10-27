@@ -10,7 +10,7 @@ Volumen actual (bajo, buen momento para migrar): 3 materiales, 1 equipo, 5 mano 
 | Campo | Regla |
 |---|---|
 | Código | 8 dígitos automático (tipo + especialidad + subfamilia + correlativo), nunca manual |
-| Descripción | Única sin contar mayúsculas ni tildes |
+| Descripción | Única por rubro + unidad, sin contar mayúsculas, tildes ni espacios dobles. Números, medidas y signos sí cuentan ("Cable vulcanizado 2x14 AWG" y "3x14 AWG" son distintos). La ventana guía con ejemplo «Nombre + tipo + medida/capacidad + norma» y, si ya existe, muestra la ficha encontrada para usarla en lugar de bloquear sin explicación |
 | Rubro | Material, Equipo, Herramienta, EPP, Mano de obra, Subcontrato |
 | Especialidad | De las 10 disciplinas |
 | Unidad | Enlazada a la tabla Unidades de medida (selector, nunca texto libre; incluye H-H, H-M, %, GLB, und…). Las unidades viejas escritas a mano se emparejan con esa tabla al migrar |
@@ -70,6 +70,7 @@ Permisos: alta y edición del precio base para Comercial/Gerencia; datos logíst
 Se ejecuta por etapas (1-2, luego 3, luego 4-5) para que el sistema funcione en todo momento.
 
 ## Detalles técnicos
+- Unicidad: índice único funcional en `insumos (rubro, unidad_id, clave_descripcion)` donde `clave_descripcion` es columna generada (unaccent + lower + espacios colapsados); la UI usa `claveNombre` con la misma regla y avisa antes de guardar. Antes de crear el índice se listan los posibles choques de la migración para resolverlos.
 - Base: `insumos` (ya es FK del kardex y de compras) se amplía con `rubro`, `especialidad_id`, `subfamilia_id`, `marca_id` (FK marcas), `unidad_id` (FK unidades_medida), `inventariable` (generada desde rubro), `origen_tabla`/`origen_id`. `subfamilias_insumo` gana una familia padre por rubro (`familias_insumo`).
 - `partida_detalle` y `apu_componentes` ganan `insumo_id` nullable; backfill desde las FK por tabla; luego el código lee solo `insumo_id`. Las columnas viejas se marcan `DEPRECATED`, no se eliminan.
 - Extensiones 1:1 con PK = `insumo_id` (FK insumos ON DELETE CASCADE): `insumos_atributos_epp` (norma, tallas, criticidad, vida_util_dias) y `insumos_atributos_equipo` (costo_hora, propiedad, clase_equipo); trigger exige fila EPP cuando rubro = EPP. Columnas sueltas actuales de `insumos` (sueldo_mensual, regimen_laboral, categoria_obrero, asignacion_familiar, propiedad, clase_equipo) se copian a su extensión y se marcan DEPRECATED. Se descarta JSONB para conservar tipos y validación.
