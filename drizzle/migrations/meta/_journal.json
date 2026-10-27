@@ -631,6 +631,13 @@
       "when": 1793073105921,
       "tag": "0089_destino_orden_compra",
       "breakpoints": true
+    },
+    {
+      "idx": 90,
+      "version": "7",
+      "when": 1793077144823,
+      "tag": "0090_rubro_requerimientos_stock",
+      "breakpoints": true
     }
   ]
 }
