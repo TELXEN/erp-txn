@@ -33,20 +33,14 @@ export function CatalogoInventario() {
     .sort((a, b) => String(a.descripcion).localeCompare(String(b.descripcion), "es", { sensitivity: "base" }));
   const selFila = lista.find((r) => r.id === selId) ?? null;
   const { data: movs = [] } = useMovimientos();
-  const { data: fichasAlm = [] } = useInsumos();
-  // El stock vive en la ficha unificada de almacén; se enlaza por descripción + unidad.
-  const fichaId = new Map<string, string>();
-  for (const f of fichasAlm) fichaId.set(`${String(f.nombre).toLowerCase().trim()}|${f.unidad}`, f.id);
+  // Maestro único: la ficha del catálogo es la misma que lleva el kardex.
   const stockPorInsumo = new Map<string, number>();
   for (const m of movs) {
     if (!m.insumo_id) continue;
     const d = m.tipo === "Ingreso" ? Number(m.cantidad) : -Number(m.cantidad);
     stockPorInsumo.set(m.insumo_id, (stockPorInsumo.get(m.insumo_id) ?? 0) + d);
   }
-  const stockDe = (r: { descripcion?: string; unidad?: string }) => {
-    const id = fichaId.get(`${String(r.descripcion ?? "").toLowerCase().trim()}|${r.unidad ?? ""}`);
-    return id ? stockPorInsumo.get(id) : undefined;
-  };
+  const stockDe = (r: { id?: string }) => (r.id ? stockPorInsumo.get(r.id) : undefined);
   const nombreGrupo = grupo === "materiales" ? "Materiales" : grupo === "equipos" ? "Equipos" : "Herramientas";
   const objeto = grupo === "materiales" ? "material" : grupo === "equipos" ? "equipo" : "herramienta";
   async function clasificar(id: string, valor: string) {
