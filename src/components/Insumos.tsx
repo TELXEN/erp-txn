@@ -795,7 +795,7 @@ function EquiposWysiwyg({
     return [...new Set(["und", ...s])];
   }, [unidades]);
   const unidadDe = (c: Clase) => {
-    const sim = c === "Máquina" ? "hm" : "he";
+    const sim = c === "Equipo" ? "he" : "und";
     return unidades.some((u) => u.simbolo === sim) ? sim : "und";
   };
   const vacia = (): FilaEq => ({ nombre: "", clase: "Equipo", propiedad: "Propio", unidad: unidadDe("Equipo"), precio: "" });
@@ -827,6 +827,7 @@ function EquiposWysiwyg({
         precio: Number(fila.precio || 0),
         propiedad: fila.propiedad,
         clase_equipo: fila.clase,
+        categoria_inventario: fila.clase,
       } as never);
       if (err) throw new Error(err.message);
       setNueva(null);
@@ -849,6 +850,7 @@ function EquiposWysiwyg({
         precio: Number(editando.precio || 0),
         propiedad: editando.propiedad,
         clase_equipo: editando.clase,
+        categoria_inventario: editando.clase,
       } as never)
       .eq("id", editando.id);
     if (err) return setError(err.message);
@@ -884,8 +886,8 @@ function EquiposWysiwyg({
         </td>
         <td className="px-3 py-2">
           <select className={selCls} value={f.clase} onChange={(e) => { const c = e.target.value as Clase; set({ ...f, clase: c, unidad: unidadDe(c) }); }}>
-            <option value="Máquina">Máquina</option>
             <option value="Equipo">Equipo</option>
+            <option value="Herramienta">Herramienta</option>
           </select>
         </td>
         <td className="px-3 py-2">
