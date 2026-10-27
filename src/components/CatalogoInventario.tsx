@@ -8,7 +8,6 @@ import { Boton, BotonIcono, FilasCargando, MenuFiltros, Panel, Pestanas, Select,
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { useBancoTabla } from "@/lib/banco-apu";
 import { num, useMovimientos } from "@/lib/logistica";
-import { useInsumos } from "@/lib/apu";
 import { perteneceCatalogo, type CategoriaInventario } from "@/lib/catalogo-inventario";
 import { supabase } from "@/integrations/supabase/client";
 import { soles } from "@/lib/format";
