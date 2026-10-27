@@ -257,7 +257,7 @@ export function VentanaInsumo({
         <Campo key={c.k} etiqueta={c.t}>
           {c.k === "unidad" ? (
             <SelectorBuscable aria-label={c.t} value={form[c.k] ?? ""} onChange={(v) => setForm({ ...form, [c.k]: v })}
-              opciones={unds.map((u) => ({ value: u.simbolo, texto: `${u.simbolo} · ${u.descripcion}` }))} />
+              opciones={unds.map((u) => ({ value: u.simbolo, texto: u.simbolo, detalle: u.descripcion }))} />
           ) : c.k === "marca" ? (
             <SelectorBuscable aria-label={c.t} permitirLibre value={form[c.k] ?? ""} onChange={(v) => setForm({ ...form, [c.k]: v })}
               opciones={[{ value: "", texto: "Sin marca" }, ...marcas.filter((m) => m.activo).map((m) => ({ value: m.nombre, texto: m.nombre }))]} />
