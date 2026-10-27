@@ -680,6 +680,13 @@
       "when": 1793125259894,
       "tag": "0096_codigo_insumo_mo_1_mat_2",
       "breakpoints": true
+    },
+    {
+      "idx": 97,
+      "version": "7",
+      "when": 1793126139864,
+      "tag": "0097_renumerar_codigos_insumo_sin_huecos",
+      "breakpoints": true
     }
   ]
 }
