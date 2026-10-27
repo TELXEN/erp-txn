@@ -39,6 +39,7 @@ import { Route as AuthenticatedGgVistaRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedHonorariosRouteImport } from './routes/_authenticated/honorarios'
 import { Route as AuthenticatedImportacionesRouteImport } from './routes/_authenticated/importaciones'
 import { Route as AuthenticatedInventarioRouteImport } from './routes/_authenticated/inventario'
+import { Route as AuthenticatedMaestroInsumosRouteImport } from './routes/_authenticated/maestro-insumos'
 import { Route as AuthenticatedNominaRouteImport } from './routes/_authenticated/nomina'
 import { Route as AuthenticatedOrdenesCompraRouteImport } from './routes/_authenticated/ordenes-compra'
 import { Route as AuthenticatedPanelRouteImport } from './routes/_authenticated/panel'
@@ -222,6 +223,12 @@ const AuthenticatedInventarioRoute = AuthenticatedInventarioRouteImport.update({
   path: '/inventario',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMaestroInsumosRoute =
+  AuthenticatedMaestroInsumosRouteImport.update({
+    id: '/maestro-insumos',
+    path: '/maestro-insumos',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedNominaRoute = AuthenticatedNominaRouteImport.update({
   id: '/nomina',
   path: '/nomina',
@@ -362,6 +369,7 @@ export interface FileRoutesByFullPath {
   '/honorarios': typeof AuthenticatedHonorariosRoute
   '/importaciones': typeof AuthenticatedImportacionesRoute
   '/inventario': typeof AuthenticatedInventarioRoute
+  '/maestro-insumos': typeof AuthenticatedMaestroInsumosRoute
   '/nomina': typeof AuthenticatedNominaRoute
   '/ordenes-compra': typeof AuthenticatedOrdenesCompraRoute
   '/panel': typeof AuthenticatedPanelRoute
@@ -413,6 +421,7 @@ export interface FileRoutesByTo {
   '/honorarios': typeof AuthenticatedHonorariosRoute
   '/importaciones': typeof AuthenticatedImportacionesRoute
   '/inventario': typeof AuthenticatedInventarioRoute
+  '/maestro-insumos': typeof AuthenticatedMaestroInsumosRoute
   '/nomina': typeof AuthenticatedNominaRoute
   '/ordenes-compra': typeof AuthenticatedOrdenesCompraRoute
   '/panel': typeof AuthenticatedPanelRoute
@@ -466,6 +475,7 @@ export interface FileRoutesById {
   '/_authenticated/honorarios': typeof AuthenticatedHonorariosRoute
   '/_authenticated/importaciones': typeof AuthenticatedImportacionesRoute
   '/_authenticated/inventario': typeof AuthenticatedInventarioRoute
+  '/_authenticated/maestro-insumos': typeof AuthenticatedMaestroInsumosRoute
   '/_authenticated/nomina': typeof AuthenticatedNominaRoute
   '/_authenticated/ordenes-compra': typeof AuthenticatedOrdenesCompraRoute
   '/_authenticated/panel': typeof AuthenticatedPanelRoute
@@ -519,6 +529,7 @@ export interface FileRouteTypes {
     | '/honorarios'
     | '/importaciones'
     | '/inventario'
+    | '/maestro-insumos'
     | '/nomina'
     | '/ordenes-compra'
     | '/panel'
@@ -570,6 +581,7 @@ export interface FileRouteTypes {
     | '/honorarios'
     | '/importaciones'
     | '/inventario'
+    | '/maestro-insumos'
     | '/nomina'
     | '/ordenes-compra'
     | '/panel'
@@ -622,6 +634,7 @@ export interface FileRouteTypes {
     | '/_authenticated/honorarios'
     | '/_authenticated/importaciones'
     | '/_authenticated/inventario'
+    | '/_authenticated/maestro-insumos'
     | '/_authenticated/nomina'
     | '/_authenticated/ordenes-compra'
     | '/_authenticated/panel'
@@ -862,6 +875,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedInventarioRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/maestro-insumos': {
+      id: '/_authenticated/maestro-insumos'
+      path: '/maestro-insumos'
+      fullPath: '/maestro-insumos'
+      preLoaderRoute: typeof AuthenticatedMaestroInsumosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/nomina': {
       id: '/_authenticated/nomina'
       path: '/nomina'
@@ -1034,6 +1054,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedHonorariosRoute: typeof AuthenticatedHonorariosRoute
   AuthenticatedImportacionesRoute: typeof AuthenticatedImportacionesRoute
   AuthenticatedInventarioRoute: typeof AuthenticatedInventarioRoute
+  AuthenticatedMaestroInsumosRoute: typeof AuthenticatedMaestroInsumosRoute
   AuthenticatedNominaRoute: typeof AuthenticatedNominaRoute
   AuthenticatedOrdenesCompraRoute: typeof AuthenticatedOrdenesCompraRoute
   AuthenticatedPanelRoute: typeof AuthenticatedPanelRoute
@@ -1087,6 +1108,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedHonorariosRoute: AuthenticatedHonorariosRoute,
   AuthenticatedImportacionesRoute: AuthenticatedImportacionesRoute,
   AuthenticatedInventarioRoute: AuthenticatedInventarioRoute,
+  AuthenticatedMaestroInsumosRoute: AuthenticatedMaestroInsumosRoute,
   AuthenticatedNominaRoute: AuthenticatedNominaRoute,
   AuthenticatedOrdenesCompraRoute: AuthenticatedOrdenesCompraRoute,
   AuthenticatedPanelRoute: AuthenticatedPanelRoute,
