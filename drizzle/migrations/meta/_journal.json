@@ -624,6 +624,13 @@
       "when": 1793070695528,
       "tag": "0088_encargado_transfiere",
       "breakpoints": true
+    },
+    {
+      "idx": 89,
+      "version": "7",
+      "when": 1793073105921,
+      "tag": "0089_destino_orden_compra",
+      "breakpoints": true
     }
   ]
 }

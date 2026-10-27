@@ -3523,6 +3523,7 @@ export type Database = {
       }
       ordenes_compra: {
         Row: {
+          almacen_destino_id: string | null
           codigo: string
           condicion_pago: string
           created_at: string
@@ -3537,6 +3538,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          almacen_destino_id?: string | null
           codigo?: string
           condicion_pago?: string
           created_at?: string
@@ -3551,6 +3553,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          almacen_destino_id?: string | null
           codigo?: string
           condicion_pago?: string
           created_at?: string
@@ -3565,6 +3568,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "ordenes_compra_almacen_destino_id_fkey"
+            columns: ["almacen_destino_id"]
+            isOneToOne: false
+            referencedRelation: "almacenes"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "ordenes_compra_proveedor_id_fkey"
             columns: ["proveedor_id"]
@@ -6547,6 +6557,10 @@ export type Database = {
     }
     Functions: {
       anular_cese: { Args: { _trabajador: string }; Returns: undefined }
+      cambiar_destino_orden: {
+        Args: { _almacen: string; _motivo: string; _orden: string }
+        Returns: undefined
+      }
       costo_promedio_almacen: {
         Args: { _insumo: string; _proyecto: string }
         Returns: number
