@@ -60,6 +60,6 @@
 - Company settings use DatosEmpresaTabs (general, banks, regime), not top-level tabs.
 - Insumo codes renumber via AFTER DELETE trigger per 5-digit prefix — no gaps; inactive rows keep codes.
 - Requerimientos: obra → gerente approves (trigger) → Bandeja quotes → approved quote creates OC → recepcionar_orden_obra RPC receives in obra. «Aprobar y generar OC» shows only with prices and pending qty; registering a quote requires ≥1 price.
-- Supplier quotes open per inbox requirement. Operations uses VentanaRequerimientoRubro with an in-dialog project selector — creation stays accessible before choosing a project.
+- Supplier quotes open per inbox requirement. Operations has no APU-unfolding header: the icon windows pick their own obra; reception lists every obra's pending orders.
 - Purchase orders use HojaOrdenCompra, DOC and A4 printing; orden-compra-montos shares tax totals, orden-compra-pago encodes terms in the existing field — costs/history unchanged.
 - Field consumption: Consumir needs a partida; vales via registrar_vale_salida RPC; budget check in consumo-partida.ts warns, never blocks.
