@@ -12,7 +12,7 @@ const REGLA = [
   { nombre: "MANO DE OBRA", clave: "MO", digito: 1, ss: false },
   { nombre: "MATERIALES", clave: "MAT", digito: 2, ss: true },
   { nombre: "EQUIPOS", clave: "EQ", digito: 3, ss: false },
-  { nombre: "HERRAMIENTAS", clave: "EQ", digito: 4, ss: false },
+  { nombre: "HERRAMIENTAS", clave: "HE", digito: 4, ss: false },
   { nombre: "SUBCONTRATOS", clave: "SC", digito: 5, ss: false },
   { nombre: "EQUIPO DE PROTECCIÓN PERSONAL", clave: "EPP", digito: 6, ss: false },
 ];
