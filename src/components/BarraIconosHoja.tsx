@@ -2,9 +2,9 @@ import type { ReactNode } from "react";
 import { Copy, Pencil, Plus, Trash2 } from "lucide-react";
 import { BotonIcono } from "@/components/ui-kit";
 
-/** Columna vertical de iconos (Agregar, Editar, Copiar, Eliminar) igual a la hoja de Insumos.
- *  `filtros` (la lupa MenuFiltros) va primero, separada; las acciones omitidas no se muestran;
- *  `extras` va en un bloque inferior. */
+/** Columna vertical de iconos igual a la hoja de Insumos: filtros (la lupa MenuFiltros) primero y separada,
+ *  luego Agregar/Editar/Copiar, después `extras` y al final Eliminar (nunca encima de las acciones nuevas);
+ *  las acciones omitidas no se muestran. */
 export function BarraIconosHoja({ objeto, haySeleccion, onAgregar, onEditar, onCopiar, onEliminar, extras, filtros }: {
   objeto: string; haySeleccion: boolean;
   onAgregar?: (() => void) | undefined; onEditar?: (() => void) | undefined; onCopiar?: (() => void) | undefined; onEliminar?: (() => void) | undefined;
@@ -17,8 +17,12 @@ export function BarraIconosHoja({ objeto, haySeleccion, onAgregar, onEditar, onC
       {onAgregar && <BotonIcono etiqueta={`Agregar ${objeto}`} tono="primario" onClick={onAgregar}><Plus size={15} /></BotonIcono>}
       {onEditar && <BotonIcono etiqueta={`Editar ${objeto}`} disabled={!haySeleccion} onClick={onEditar}><Pencil size={15} /></BotonIcono>}
       {onCopiar && <BotonIcono etiqueta={`Copiar ${objeto}`} disabled={!haySeleccion} onClick={onCopiar}><Copy size={15} /></BotonIcono>}
-      {onEliminar && <BotonIcono etiqueta={`Eliminar ${objeto}`} tono="peligro" disabled={!haySeleccion} onClick={onEliminar}><Trash2 size={15} /></BotonIcono>}
       {extras && <div className="mt-1 flex flex-col gap-1.5 border-t pt-2.5">{extras}</div>}
+      {onEliminar && (
+        <div className={`mt-1 ${filtros || onAgregar || onEditar || onCopiar || extras ? "border-t pt-2.5" : ""}`}>
+          <BotonIcono etiqueta={`Eliminar ${objeto}`} tono="peligro" disabled={!haySeleccion} onClick={onEliminar}><Trash2 size={15} /></BotonIcono>
+        </div>
+      )}
     </div>
   );
 }
