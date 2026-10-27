@@ -769,7 +769,7 @@ function MaterialesWysiwyg({
 // ================= Equipos / Herramientas: edición WYSIWYG =================
 
 type Propiedad = "Propio" | "Alquilado";
-type Clase = "Máquina" | "Equipo";
+type Clase = "Equipo" | "Herramienta";
 type FilaEq = { nombre: string; clase: Clase; propiedad: Propiedad; unidad: string; precio: string };
 
 function EquiposWysiwyg({
@@ -795,7 +795,7 @@ function EquiposWysiwyg({
     return [...new Set(["und", ...s])];
   }, [unidades]);
   const unidadDe = (c: Clase) => {
-    const sim = c === "Máquina" ? "hm" : "he";
+    const sim = c === "Equipo" ? "he" : "und";
     return unidades.some((u) => u.simbolo === sim) ? sim : "und";
   };
   const vacia = (): FilaEq => ({ nombre: "", clase: "Equipo", propiedad: "Propio", unidad: unidadDe("Equipo"), precio: "" });
@@ -811,6 +811,7 @@ function EquiposWysiwyg({
     return p === "Propio" ? n : n * (1 + mgTipo / 100);
   };
   const etiqueta = tipo === "EQ" ? "equipo" : "herramienta";
+  const claseDe = (i: Insumo): Clase => (i.categoria_inventario as Clase | undefined) || (i.clase_equipo as Clase | undefined) || "Equipo";
 
   async function crearDesdeFila() {
     if (guardando) return;
@@ -827,6 +828,7 @@ function EquiposWysiwyg({
         precio: Number(fila.precio || 0),
         propiedad: fila.propiedad,
         clase_equipo: fila.clase,
+        categoria_inventario: fila.clase,
       } as never);
       if (err) throw new Error(err.message);
       setNueva(null);
@@ -849,6 +851,7 @@ function EquiposWysiwyg({
         precio: Number(editando.precio || 0),
         propiedad: editando.propiedad,
         clase_equipo: editando.clase,
+        categoria_inventario: editando.clase,
       } as never)
       .eq("id", editando.id);
     if (err) return setError(err.message);
@@ -884,8 +887,8 @@ function EquiposWysiwyg({
         </td>
         <td className="px-3 py-2">
           <select className={selCls} value={f.clase} onChange={(e) => { const c = e.target.value as Clase; set({ ...f, clase: c, unidad: unidadDe(c) }); }}>
-            <option value="Máquina">Máquina</option>
             <option value="Equipo">Equipo</option>
+            <option value="Herramienta">Herramienta</option>
           </select>
         </td>
         <td className="px-3 py-2">
@@ -970,7 +973,7 @@ function EquiposWysiwyg({
               <tr key={i.id} className="border-b border-line/40 last:border-0">
                 <td className="px-5 py-2.5 text-muted-foreground"><Resaltar texto={i.codigo || "—"} termino={busqueda} /></td>
                 <td className="px-3 py-2.5 text-ink"><Resaltar texto={i.nombre} termino={busqueda} /></td>
-                <td className="px-3 py-2.5">{i.clase_equipo ?? "Equipo"}</td>
+                <td className="px-3 py-2.5">{claseDe(i)}</td>
                 <td className="px-3 py-2.5">{prop}</td>
                 <td className="px-3 py-2.5 text-center text-muted-foreground">{i.unidad}</td>
                 <td className="px-3 py-2.5 text-right">{alq ? soles(Number(i.precio)) : "—"}</td>
@@ -980,7 +983,7 @@ function EquiposWysiwyg({
                   <div className="flex justify-end gap-1">
                     <button
                       type="button"
-                      onClick={() => setEditando({ id: i.id, codigo: i.codigo, nombre: i.nombre, clase: (i.clase_equipo ?? "Equipo") as Clase, propiedad: prop, unidad: i.unidad, precio: String(i.precio || "") })}
+                      onClick={() => setEditando({ id: i.id, codigo: i.codigo, nombre: i.nombre, clase: claseDe(i), propiedad: prop, unidad: i.unidad, precio: String(i.precio || "") })}
                       title="Editar"
                       className={`${btn} border-line text-muted-foreground hover:border-primary hover:text-primary`}
                     >
@@ -997,7 +1000,7 @@ function EquiposWysiwyg({
       {error && <p className="px-5 py-2 font-mono text-xs text-bad">{error}</p>}
       <p className="border-t border-line px-5 py-3 font-mono text-[10px] leading-relaxed text-muted-foreground">
         Propio: se ingresa el C. Unitario directamente (sin margen). Alquilado: se ingresa el P. Alquiler y el C. Unitario = P. Alquiler + margen del tipo.
-        Máquina usa la unidad hm (Horas máquina) y Equipo la unidad he (Horas equipo). Precios sin IGV.
+        El Equipo usa la unidad he (Horas equipo); la Herramienta se cuenta en und. Precios sin IGV.
       </p>
     </Panel>
   );
