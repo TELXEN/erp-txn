@@ -12,7 +12,7 @@ import { consumidoPorPartida, estadoConsumoPartida, useMaterialPresupuestado } f
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { soles } from "@/lib/format";
-import { usePartidas, useProyectos, useTrabajadores } from "@/lib/datos";
+import { usePartidas, useProyectos, useTerceros, useTrabajadores } from "@/lib/datos";
 import { apuDb, useInsumos } from "@/lib/apu";
 import { exportarExcel } from "@/lib/exportar";
 import { calcularStock, claveStock, num, sincronizarEstadoOC, useAlmacenes, useItemsOC, useMovimientos, useOrdenesCompra, type Movimiento } from "@/lib/logistica";
@@ -52,6 +52,7 @@ function AlmacenPage() {
   const { data: ordenes = [] } = useOrdenesCompra();
   const { data: itemsOC = [] } = useItemsOC();
   const { data: almacenes = [] } = useAlmacenes();
+  const { data: terceros = [] } = useTerceros();
   const [tr, setTr] = useState({ origen: "central", destino: "", insumo_id: "", cantidad: "", documento: "", observacion: "", error: "" });
   const [almStock, setAlmStock] = useRecordado("almacen:stock", "");
   const [filtroObra, setFiltroObra] = useRecordado("almacen:obra", "");
