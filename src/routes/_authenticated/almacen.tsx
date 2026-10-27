@@ -344,7 +344,7 @@ function AlmacenPage() {
         </Panel>
       </div>
       {recOC && (
-        <VentanaFlotante titulo={`Recibir ${ordenes.find((o) => o.id === recOC.orden)?.codigo ?? "compra"}`} onCerrar={() => setRecOC(null)}>
+        <VentanaFlotante abierta ancho="max-w-lg" titulo={`Recibir ${ordenes.find((o) => o.id === recOC.orden)?.codigo ?? "compra"}`} onCerrar={() => setRecOC(null)}>
           <div className="space-y-3 p-5">
             <Campo etiqueta="Fecha de recepción"><Input type="date" value={recOC.fecha} onChange={(e) => setRecOC({ ...recOC, fecha: e.target.value })} /></Campo>
             {porRecibir.filter((x) => x.oc.id === recOC.orden).map((x) => (
