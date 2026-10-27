@@ -15,7 +15,7 @@ export function SelectorBuscable({
   placeholder = "— Elegir —",
   buscarEn = "Escribe para filtrar…",
   permitirLibre = false,
-  ariaLabel,
+  ["aria-label"]: ariaLabel,
   className = "",
 }: {
   value: string;
@@ -25,7 +25,7 @@ export function SelectorBuscable({
   buscarEn?: string;
   /** Permite aceptar un texto que no está en la lista (Enter o «Usar…»). */
   permitirLibre?: boolean;
-  ariaLabel?: string;
+  "aria-label"?: string;
   className?: string;
 }) {
   const [abierto, setAbierto] = useState(false);
