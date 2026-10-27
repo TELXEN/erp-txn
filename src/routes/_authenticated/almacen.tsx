@@ -2,11 +2,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useRecordado } from "@/lib/recordado";
 import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowDownToLine, ArrowLeftRight, ArrowUpFromLine, PackageCheck, Upload } from "lucide-react";
+import { ArrowDownToLine, ArrowLeftRight, ArrowUpFromLine, ChevronDown, ChevronRight, PackageCheck, PackageMinus, Upload, Users } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, Campo, Input, MenuFiltros, Panel, Pestanas, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
+import { Boton, BotonIcono, Campo, TarjetaResumen, Input, MenuFiltros, Panel, Pestanas, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { ValesSalida } from "@/components/ValesSalida";
 import { consumidoPorPartida, estadoConsumoPartida, useMaterialPresupuestado } from "@/lib/consumo-partida";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
@@ -33,6 +33,9 @@ export const Route = createFileRoute("/_authenticated/almacen")({
 });
 
 const hoy = () => new Date().toISOString().slice(0, 10);
+/** Fecha corta dd/mm para listas. */
+const corta = (f: string) => (f ? `${f.slice(8, 10)}/${f.slice(5, 7)}` : "—");
+const Und = ({ u }: { u: string }) => <span className="text-muted-foreground/70"> {u}</span>;
 
 function AlmacenPage() {
   const { rol, session } = useAuth();
@@ -63,7 +66,15 @@ function AlmacenPage() {
   const actual = movs.find((x) => x.id === sel);
 
   const [consumo, setConsumo] = useState<{ clave: string; cantidad: string; partida: string; observacion: string; error: string } | null>(null);
-  const [pestana, setPestana] = useRecordado<"almacen" | "vales">("almacen:pestana", "almacen");
+  const [pestana, setPestana] = useRecordado<"stock" | "recibir" | "movimientos" | "vales">("almacen:seccion", "stock");
+  const [verTr, setVerTr] = useState(false);
+  const [verEnc, setVerEnc] = useState(false);
+  const [abiertoStock, setAbiertoStock] = useState("");
+  const [grupoCerrado, setGrupoCerrado] = useState<Record<string, boolean>>({});
+  const { data: valesMes = 0 } = useQuery({
+    queryKey: ["vales_salida", "mes"],
+    queryFn: async () => (await (supabase as any).from("vales_salida").select("id", { count: "exact", head: true }).gte("fecha", hoy().slice(0, 8) + "01")).count ?? 0,
+  });
   const { data: partidas = [] } = usePartidas();
   const { data: trabajadores = [] } = useTrabajadores();
   const gestion = puedeVerDinero(rol);
@@ -248,6 +259,12 @@ function AlmacenPage() {
     ]);
   }
 
+  const valorStock = stock.reduce((a, x) => a + (x.stock > 0.0001 ? x.valor : 0), 0);
+  const mesActual = hoy().slice(0, 7);
+  const movsMes = movs.filter((m) => m.fecha?.startsWith(mesActual)).length;
+  const pendientes = enTransito.length + porRecibir.length;
+  const destinos = Array.from(new Set([...enTransito.map((m) => m.proyecto_id ?? null), ...porRecibir.map((x) => x.oc.proyecto_id ?? null)]));
+
   if (!gestion && !encargados.some((e) => e.user_id === yo)) return <SinAcceso />;
   return (
     <>
@@ -261,14 +278,185 @@ function AlmacenPage() {
         }
       />
 
-      <div className="mb-4">
-        <Pestanas etiqueta="Secciones de almacén" valor={pestana} onCambiar={setPestana} opciones={[{ id: "almacen", texto: "Stock y movimientos" }, { id: "vales", texto: "Vales de Salida" }]} />
+      <div className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {gestion && <TarjetaResumen etiqueta="Valor en stock" valor={soles(valorStock)} activa={pestana === "stock"} onClick={() => setPestana("stock")} />}
+        <TarjetaResumen etiqueta="Por recibir" valor={String(pendientes)} alerta={pendientes ? "warn" : undefined} activa={pestana === "recibir"} onClick={() => setPestana("recibir")} />
+        <TarjetaResumen etiqueta="Movimientos del mes" valor={String(movsMes)} activa={pestana === "movimientos"} onClick={() => setPestana("movimientos")} />
+        <TarjetaResumen etiqueta="Vales del mes" valor={String(valesMes)} activa={pestana === "vales"} onClick={() => setPestana("vales")} />
       </div>
-      {pestana === "vales" ? (
+      <div className="mb-4">
+        <Pestanas etiqueta="Secciones de almacén" valor={pestana} onCambiar={setPestana} opciones={[{ id: "stock", texto: "Stock" }, { id: "recibir", texto: `Por recibir${pendientes ? ` (${pendientes})` : ""}` }, { id: "movimientos", texto: "Movimientos" }, { id: "vales", texto: "Vales de salida" }]} />
+      </div>
+
+      <div className="flex items-start gap-3">
+      <div className="min-w-0 flex-1">
+      {pestana === "vales" && (
         <ValesSalida obras={activos.filter((a) => a.proyecto_id).map((a) => a.proyecto_id as string)} nombreProy={nombreProy} stock={stock} puedeEmitir={(pid) => gestion || encDe(almacenDe(pid)?.id).some((e) => e.user_id === yo)} />
-      ) : (<>
-      <div className="mb-5 grid gap-5 lg:grid-cols-2">
-        {misAlmacenes.length > 0 && <Panel titulo="Transferir entre almacenes">
+      )}
+
+      {pestana === "stock" && (
+        <Panel titulo="Stock por almacén" extra={
+          <Select className="h-7 py-0 text-xs" value={almStock} onChange={(e) => setAlmStock(e.target.value)}>
+            <option value="">Consolidado (todos)</option>{opcionesAlmacen}
+          </Select>}>
+          {stockVista.length === 0 ? <Vacio texto="Sin existencias." /> : (
+            <table className="w-full font-mono text-xs">
+              <thead>
+                <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+                  <th className="px-5 py-2 font-medium">Almacén</th>
+                  <th className="px-3 py-2 font-medium">Insumo</th>
+                  <th className="px-3 py-2 text-right font-medium">Stock</th>
+                  <th className="px-3 py-2 text-right font-medium">Por llegar</th>
+                  <th className="px-3 py-2" />
+                </tr>
+              </thead>
+              <tbody>
+                {stockVista.map((s) => {
+                  const llega = s.insumo_id ? porLlegar(s.proyecto_id ?? null, s.insumo_id) : 0;
+                  return (
+                  <Fragment key={s.clave}>
+                  <tr onClick={() => setAbiertoStock(abiertoStock === s.clave ? "" : s.clave)} className={`cursor-pointer border-b border-line/40 hover:bg-muted/40 ${abiertoStock === s.clave ? "bg-primary/10" : ""}`}>
+                    <td className="px-5 py-2 text-ink"><span className="block max-w-[14rem] truncate">{nombreProy(s.proyecto_id)}</span></td>
+                    <td className="px-3 py-2">{s.descripcion}</td>
+                    <td className="px-3 py-2 text-right">{num(s.stock)}<Und u={s.unidad} /></td>
+                    <td className="px-3 py-2 text-right">{llega > 0 ? <>{num(llega)}<Und u={s.unidad} /></> : <span className="text-muted-foreground/60">—</span>}</td>
+                    <td className="px-3 py-1 text-right" onClick={(e) => e.stopPropagation()}>
+                      {s.proyecto_id && <BotonIcono etiqueta="Consumir en obra" onClick={() => setConsumo({ clave: s.clave, cantidad: "", partida: "", observacion: "", error: "" })}><PackageMinus size={14} /></BotonIcono>}
+                    </td>
+                  </tr>
+                  {abiertoStock === s.clave && gestion && (
+                    <tr className="border-b border-line/40 bg-muted/30 text-muted-foreground">
+                      <td colSpan={5} className="px-5 py-1.5">Costo promedio: <span className="text-ink">{soles(s.costoPromedio)}</span> · Valor: <span className="text-ink">{soles(s.valor)}</span></td>
+                    </tr>
+                  )}
+                  </Fragment>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </Panel>
+      )}
+
+      {pestana === "recibir" && (
+        destinos.length === 0 ? <Panel titulo="Por recibir"><Vacio texto="No hay nada pendiente de llegar." /></Panel> : (
+          <div className="space-y-3">
+            {destinos.map((pid) => {
+              const k = pid ?? "central";
+              const trs = enTransito.filter((m) => (m.proyecto_id ?? null) === pid);
+              const cps = porRecibir.filter((x) => (x.oc.proyecto_id ?? null) === pid);
+              const abierto = !grupoCerrado[k];
+              const puede = puedeRecibir(pid);
+              const tit = puede ? "Recibir" : `Recibe: ${quienRecibe(pid)}`;
+              return (
+                <Panel key={k} titulo={`${nombreProy(pid)} · ${trs.length + cps.length} pendiente${trs.length + cps.length === 1 ? "" : "s"}`} colapsable abierto={abierto} onAbrirCambiar={(v: boolean) => setGrupoCerrado({ ...grupoCerrado, [k]: !v })}>
+                  <table className="w-full font-mono text-xs">
+                    <tbody>
+                      {trs.map((m) => (
+                        <tr key={m.id} className="border-b border-line/40">
+                          <td className="w-16 px-5 py-2" title={m.fecha}>{corta(m.fecha)}</td>
+                          <td className="px-3 py-2">{m.descripcion}<div className="text-[10px] text-muted-foreground">Transferencia</div></td>
+                          <td className="px-3 py-2 text-right">{num(Number(m.cantidad))}<Und u={m.unidad} /></td>
+                          <td className="w-12 px-3 py-1 text-right">
+                            <BotonIcono etiqueta={tit} tono="primario" disabled={!puede} onClick={() => m.transferencia_id && void recibirTr(m.transferencia_id)}><PackageCheck size={14} /></BotonIcono>
+                          </td>
+                        </tr>
+                      ))}
+                      {cps.map((x, n) => (
+                        <tr key={x.it.id} className="border-b border-line/40">
+                          <td className="w-16 px-5 py-2" title={x.oc.fecha}>{corta(x.oc.fecha)}</td>
+                          <td className="px-3 py-2">{x.it.descripcion}<div className="text-[10px] text-muted-foreground">{x.oc.codigo} · {terceros.find((t) => t.id === x.oc.proveedor_id)?.razon_social ?? "Proveedor"}</div></td>
+                          <td className="px-3 py-2 text-right">{num(x.pendiente)}<Und u={x.it.unidad} /></td>
+                          <td className="w-12 px-3 py-1 text-right">
+                            {cps.findIndex((y) => y.oc.id === x.oc.id) === n && <BotonIcono etiqueta={puede ? `Recibir ${x.oc.codigo}` : tit} tono="primario" disabled={!puede} onClick={() => abrirRecOC(x.oc.id)}><PackageCheck size={14} /></BotonIcono>}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </Panel>
+              );
+            })}
+          </div>
+        )
+      )}
+
+      {pestana === "movimientos" && (
+      <Panel titulo="Movimientos">
+        titulo="Movimientos"
+      >
+        {visibles.length === 0 ? (
+          busqueda ? <Vacio texto={`Sin coincidencias para «${busqueda}»`} /> : <Vacio texto="Todavía no hay movimientos de almacén." />
+        ) : (
+          <table className="w-full font-mono text-xs">
+            <thead>
+              <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+                <th className="px-5 py-2 font-medium">Fecha</th>
+                <th className="px-3 py-2 font-medium">Tipo</th>
+                <th className="px-3 py-2 font-medium">Almacén origen</th>
+                <th className="px-3 py-2 font-medium">Almacén destino</th>
+                <th className="px-3 py-2 font-medium">Insumo</th>
+                <th className="px-3 py-2 text-right font-medium">Cantidad</th>
+                                                <th className="px-3 py-2 font-medium">Documento</th>
+              </tr>
+            </thead>
+            <tbody>
+              {visibles.map((m) => {
+                const tramo = tramoDe(m);
+                return (
+                <Fragment key={m.id}><tr onClick={() => setSel(m.id)} className={`cursor-pointer border-b border-line/40 hover:bg-muted/40 ${sel === m.id ? "bg-primary/10" : ""}`}>
+                  <td className="px-5 py-2" title={m.fecha}>{corta(m.fecha)}</td>
+                  <td className="px-3 py-2">
+                    <span className={`inline-flex items-center gap-1 ${m.tipo === "Ingreso" ? "text-primary" : "text-muted-foreground"}`}>
+                      {m.tipo === "Ingreso" ? <ArrowDownToLine size={12} /> : <ArrowUpFromLine size={12} />} {m.motivo === "Transferencia" ? `Transf. ${m.tipo === "Ingreso" ? "entrada" : "salida"}` : m.motivo === "Consumo" || m.motivo === "Vale de salida" ? m.motivo : m.tipo}{m.estado === "En tránsito" ? " · en tránsito" : ""}
+                    </span>
+                  </td>
+                  <td className="px-3 py-2 text-ink"><span className="block max-w-[11rem] truncate"><Resaltar texto={tramo.origen} termino={busqueda} /></span></td>
+                  <td className="px-3 py-2 text-ink"><span className="block max-w-[11rem] truncate"><Resaltar texto={tramo.destino} termino={busqueda} /></span></td>
+                  <td className="px-3 py-2"><Resaltar texto={m.descripcion} termino={busqueda} /></td>
+                  <td className="px-3 py-2 text-right">{num(Number(m.cantidad))}<Und u={m.unidad} /></td>
+                  <td className="px-3 py-2 text-muted-foreground"><Resaltar texto={m.documento || "—"} termino={busqueda} /></td>
+                </tr>
+                {sel === m.id && (
+                  <tr className="border-b border-line/40 bg-muted/30 text-muted-foreground">
+                    <td colSpan={7} className="px-5 py-1.5">
+                      {gestion && <>Importe: <span className="text-ink">{soles(Number(m.cantidad) * Number(m.costo_unitario))}</span> · </>}Partida: <span className="text-ink">{detallePartida(m)}</span>{m.observacion ? <> · {m.observacion}</> : null}
+                    </td>
+                  </tr>
+                )}
+                </Fragment>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+      </Panel>
+      )}
+      </div>
+      <BarraIconosHoja objeto="movimiento" filtros={pestana === "movimientos" ? (
+        <MenuFiltros activos={[busqueda, filtroObra, filtroTipo].filter(Boolean).length} onLimpiar={() => { setBusqueda(""); setFiltroObra(""); setFiltroTipo(""); }}>
+          <Buscador valor={busqueda} onChange={setBusqueda} placeholder="Buscar por insumo, obra, documento..." total={visibles.length} />
+          <Campo etiqueta="Almacén">
+            <Select className="h-8 py-0 text-xs" value={filtroObra} onChange={(e) => setFiltroObra(e.target.value)}>
+              <option value="">Todos los almacenes</option>
+              {opcionesAlmacen}
+            </Select>
+          </Campo>
+          <Campo etiqueta="Tipo">
+            <Select className="h-8 py-0 text-xs" value={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value)}>
+              <option value="">Todos</option>
+              <option>Ingreso</option>
+              <option>Salida</option>
+            </Select>
+          </Campo>
+        </MenuFiltros>} haySeleccion={gestion && !!actual} onEliminar={() => { if (actual) void eliminar(actual.id); }} />) : undefined} haySeleccion={pestana === "movimientos" && gestion && !!actual} onEliminar={pestana === "movimientos" ? () => { if (actual) void eliminar(actual.id); } : undefined}
+        extras={<>
+          {misAlmacenes.length > 0 && <BotonIcono etiqueta="Transferir entre almacenes" onClick={() => setVerTr(true)}><ArrowLeftRight size={15} /></BotonIcono>}
+          {gestion && <BotonIcono etiqueta="Encargados de almacenes" onClick={() => setVerEnc(true)}><Users size={15} /></BotonIcono>}
+        </>} />
+      </div>
+
+      <VentanaFlotante abierta={verTr} onCerrar={() => setVerTr(false)} titulo="Transferir entre almacenes" subtitulo="Sale del origen al instante y queda «En tránsito» hasta que el destino la recibe." ancho="max-w-2xl">
           <form onSubmit={transferir} className="grid gap-3 px-5 py-4 sm:grid-cols-2">
             <Campo etiqueta="Origen">
               <Select value={tr.origen} onChange={(e) => setTr({ ...tr, origen: e.target.value, destino: tr.destino === e.target.value ? "" : tr.destino, insumo_id: "", error: "" })}>{opcionesAlmacen}</Select>
@@ -303,98 +491,8 @@ function AlmacenPage() {
           <p className="border-t border-line px-5 py-2 font-mono text-[10px] text-muted-foreground">
             Sale del origen al instante y queda «En tránsito» hasta que el destino la recibe. Las transferencias no cargan costo a la obra; solo el consumo.
           </p>
-        </Panel>}
-        <Panel titulo={`En tránsito (${enTransito.length + porRecibir.length})`}>
-          {enTransito.length === 0 ? <Vacio texto="No hay transferencias por recibir." /> : (
-            <table className="w-full font-mono text-xs">
-              <tbody>
-                {enTransito.map((m) => (
-                  <tr key={m.id} className="border-b border-line/40">
-                    <td className="px-5 py-2">{m.fecha}</td>
-                    <td className="px-3 py-2">{m.descripcion}</td>
-                    <td className="px-3 py-2 text-right">{num(Number(m.cantidad))} {m.unidad}</td>
-                    <td className="px-3 py-2 text-ink">→ {nombreProy(m.proyecto_id)}</td>
-                    <td className="px-3 py-2 text-right">
-                      <Boton variante="linea" disabled={!puedeRecibir(m.proyecto_id)} title={puedeRecibir(m.proyecto_id) ? "Recibir en el almacén de destino" : `Recibe: ${quienRecibe(m.proyecto_id)}`} onClick={() => m.transferencia_id && void recibirTr(m.transferencia_id)}><PackageCheck size={13} className="mr-1 inline" /> Recibir</Boton>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-          <div className="border-t border-line px-5 pb-1 pt-3 text-[10px] uppercase tracking-[0.1em] text-muted-foreground">Compras por recibir ({porRecibir.length})</div>
-          {porRecibir.length === 0 ? <Vacio texto="No hay compras pendientes de llegar." /> : (
-            <table className="w-full font-mono text-xs">
-              <tbody>
-                {porRecibir.map((x, n) => (
-                  <tr key={x.it.id} className="border-b border-line/40">
-                    <td className="px-5 py-2">{x.oc.codigo}<div className="text-[10px] text-muted-foreground">{terceros.find((t) => t.id === x.oc.proveedor_id)?.razon_social ?? "Proveedor"}</div></td>
-                    <td className="px-3 py-2">{x.it.descripcion}</td>
-                    <td className="px-3 py-2 text-right">{num(x.pendiente)} {x.it.unidad}</td>
-                    {gestion && <td className="px-3 py-2 text-right">{soles(x.pendiente * Number(x.it.precio_unitario))}</td>}
-                    <td className="px-3 py-2 text-ink">→ {nombreProy(x.oc.proyecto_id)}</td>
-                    <td className="px-3 py-2 text-right">
-                      {porRecibir.findIndex((y) => y.oc.id === x.oc.id) === n && <Boton variante="linea" disabled={!puedeRecibir(x.oc.proyecto_id)} title={puedeRecibir(x.oc.proyecto_id) ? "Recibir la compra en el almacén de la obra" : `Recibe: ${quienRecibe(x.oc.proyecto_id)}`} onClick={() => abrirRecOC(x.oc.id)}><PackageCheck size={13} className="mr-1 inline" /> Recibir</Boton>}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </Panel>
-      </div>
-      {recOC && (
-        <VentanaFlotante abierta ancho="max-w-lg" titulo={`Recibir ${ordenes.find((o) => o.id === recOC.orden)?.codigo ?? "compra"}`} onCerrar={() => setRecOC(null)}>
-          <div className="space-y-3 p-5">
-            <Campo etiqueta="Fecha de recepción"><Input type="date" value={recOC.fecha} onChange={(e) => setRecOC({ ...recOC, fecha: e.target.value })} /></Campo>
-            {porRecibir.filter((x) => x.oc.id === recOC.orden).map((x) => (
-              <Campo key={x.it.id} etiqueta={`${x.it.descripcion} (pendiente ${num(x.pendiente)} ${x.it.unidad})`}>
-                <Input type="number" min="0" max={x.pendiente} step="any" value={recOC.cant[x.it.id] ?? ""} onChange={(e) => setRecOC({ ...recOC, cant: { ...recOC.cant, [x.it.id]: e.target.value } })} />
-              </Campo>
-            ))}
-            {recOC.error && <p className="text-xs text-destructive">{recOC.error}</p>}
-            <div className="flex justify-end gap-2"><Boton variante="linea" onClick={() => setRecOC(null)}>Cancelar</Boton><Boton onClick={() => void guardarRecOC()}>Recibir</Boton></div>
-          </div>
-        </VentanaFlotante>
-      )}
-
-      <div className="mb-5 grid gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-        <Panel titulo="Stock por almacén" extra={
-          <Select className="h-7 py-0 text-xs" value={almStock} onChange={(e) => setAlmStock(e.target.value)}>
-            <option value="">Consolidado (todos)</option>{opcionesAlmacen}
-          </Select>}>
-          {stockVista.length === 0 ? <Vacio texto="Sin existencias." /> : (
-            <table className="w-full font-mono text-xs">
-              <thead>
-                <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                  <th className="px-5 py-2 font-medium">Almacén</th>
-                  <th className="px-3 py-2 font-medium">Insumo</th>
-                  <th className="px-3 py-2 text-right font-medium">Stock</th>
-                  <th className="px-3 py-2 text-right font-medium">Por llegar</th>
-                  <th className="px-3 py-2 text-right font-medium">C. promedio</th>
-                  <th className="px-3 py-2 text-right font-medium">Valor</th>
-                  <th className="px-3 py-2" />
-                </tr>
-              </thead>
-              <tbody>
-                {stockVista.map((s) => (
-                  <tr key={s.clave} className="border-b border-line/40">
-                    <td className="px-5 py-2 text-ink">{nombreProy(s.proyecto_id)}</td>
-                    <td className="px-3 py-2">{s.descripcion}</td>
-                    <td className="px-3 py-2 text-right">{num(s.stock)} {s.unidad}</td>
-                    <td className="px-3 py-2 text-right">{s.insumo_id && porLlegar(s.proyecto_id ?? null, s.insumo_id) > 0 ? `${num(porLlegar(s.proyecto_id ?? null, s.insumo_id))} ${s.unidad}` : "—"}</td>
-                    <td className="px-3 py-2 text-right">{soles(s.costoPromedio)}</td>
-                    <td className="px-3 py-2 text-right">{soles(s.valor)}</td>
-                    <td className="px-3 py-1 text-right">
-                      {s.proyecto_id && <Boton variante="linea" onClick={() => setConsumo({ clave: s.clave, cantidad: "", partida: "", observacion: "", error: "" })}>Consumir</Boton>}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </Panel>
-        {gestion && <Panel titulo="Almacenes · encargados de recibir">
+      </VentanaFlotante>
+      <VentanaFlotante abierta={verEnc} onCerrar={() => setVerEnc(false)} titulo="Encargados de recibir" ancho="max-w-2xl">
           <table className="w-full font-mono text-xs">
             <tbody>
               {almacenes.slice().sort((a, b) => (a.tipo === "central" ? -1 : b.tipo === "central" ? 1 : 0)).map((a) => (
@@ -426,9 +524,21 @@ function AlmacenPage() {
               ))}
             </tbody>
           </table>
-        </Panel>}
-      </div>
-
+      </VentanaFlotante>
+      {recOC && (
+        <VentanaFlotante abierta ancho="max-w-lg" titulo={`Recibir ${ordenes.find((o) => o.id === recOC.orden)?.codigo ?? "compra"}`} onCerrar={() => setRecOC(null)}>
+          <div className="space-y-3 p-5">
+            <Campo etiqueta="Fecha de recepción"><Input type="date" value={recOC.fecha} onChange={(e) => setRecOC({ ...recOC, fecha: e.target.value })} /></Campo>
+            {porRecibir.filter((x) => x.oc.id === recOC.orden).map((x) => (
+              <Campo key={x.it.id} etiqueta={`${x.it.descripcion} (pendiente ${num(x.pendiente)} ${x.it.unidad})`}>
+                <Input type="number" min="0" max={x.pendiente} step="any" value={recOC.cant[x.it.id] ?? ""} onChange={(e) => setRecOC({ ...recOC, cant: { ...recOC.cant, [x.it.id]: e.target.value } })} />
+              </Campo>
+            ))}
+            {recOC.error && <p className="text-xs text-destructive">{recOC.error}</p>}
+            <div className="flex justify-end gap-2"><Boton variante="linea" onClick={() => setRecOC(null)}>Cancelar</Boton><Boton onClick={() => void guardarRecOC()}>Recibir</Boton></div>
+          </div>
+        </VentanaFlotante>
+      )}
       <VentanaFlotante abierta={!!consumo} onCerrar={() => setConsumo(null)} titulo="Consumo en obra" subtitulo={filaConsumo ? `${nombreProy(filaConsumo.proyecto_id)} · ${filaConsumo.descripcion}` : ""} ancho="max-w-md">
         {consumo && filaConsumo && (
           <form onSubmit={consumir} className="space-y-3 p-5 text-xs">
@@ -462,72 +572,6 @@ function AlmacenPage() {
           </form>
         )}
       </VentanaFlotante>
-
-      <div className="flex items-start gap-3">
-      <Panel className="min-w-0 flex-1"
-        titulo="Movimientos"
-      >
-        {visibles.length === 0 ? (
-          busqueda ? <Vacio texto={`Sin coincidencias para «${busqueda}»`} /> : <Vacio texto="Todavía no hay movimientos de almacén." />
-        ) : (
-          <table className="w-full font-mono text-xs">
-            <thead>
-              <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                <th className="px-5 py-2 font-medium">Fecha</th>
-                <th className="px-3 py-2 font-medium">Tipo</th>
-                <th className="px-3 py-2 font-medium">Almacén origen</th>
-                <th className="px-3 py-2 font-medium">Almacén destino</th>
-                <th className="px-3 py-2 font-medium">Insumo</th>
-                <th className="px-3 py-2 text-right font-medium">Cantidad</th>
-                <th className="px-3 py-2 text-right font-medium">Importe</th>
-                <th className="px-3 py-2 font-medium">Partida</th>
-                <th className="px-3 py-2 font-medium">Documento</th>
-              </tr>
-            </thead>
-            <tbody>
-              {visibles.map((m) => {
-                const tramo = tramoDe(m);
-                return (
-                <tr key={m.id} onClick={() => setSel(m.id)} className={`cursor-pointer border-b border-line/40 hover:bg-muted/40 ${sel === m.id ? "bg-primary/10" : ""}`}>
-                  <td className="px-5 py-2">{m.fecha}</td>
-                  <td className="px-3 py-2">
-                    <span className={`inline-flex items-center gap-1 ${m.tipo === "Ingreso" ? "text-primary" : "text-muted-foreground"}`}>
-                      {m.tipo === "Ingreso" ? <ArrowDownToLine size={12} /> : <ArrowUpFromLine size={12} />} {m.motivo === "Transferencia" ? `Transf. ${m.tipo === "Ingreso" ? "entrada" : "salida"}` : m.motivo === "Consumo" || m.motivo === "Vale de salida" ? m.motivo : m.tipo}{m.estado === "En tránsito" ? " · en tránsito" : ""}
-                    </span>
-                  </td>
-                  <td className="px-3 py-2 text-ink"><span className="block max-w-[11rem] truncate"><Resaltar texto={tramo.origen} termino={busqueda} /></span></td>
-                  <td className="px-3 py-2 text-ink"><span className="block max-w-[11rem] truncate"><Resaltar texto={tramo.destino} termino={busqueda} /></span></td>
-                  <td className="px-3 py-2"><Resaltar texto={m.descripcion} termino={busqueda} /></td>
-                  <td className="px-3 py-2 text-right">{num(Number(m.cantidad))} {m.unidad}</td>
-                  <td className="px-3 py-2 text-right">{soles(Number(m.cantidad) * Number(m.costo_unitario))}</td>
-                  <td className="px-3 py-2 text-muted-foreground"><span className="block max-w-[12rem] truncate">{detallePartida(m)}</span></td>
-                  <td className="px-3 py-2 text-muted-foreground"><Resaltar texto={m.documento || "—"} termino={busqueda} /></td>
-                </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        )}
-      </Panel>
-      <BarraIconosHoja objeto="movimiento" filtros={
-        <MenuFiltros activos={[busqueda, filtroObra, filtroTipo].filter(Boolean).length} onLimpiar={() => { setBusqueda(""); setFiltroObra(""); setFiltroTipo(""); }}>
-          <Buscador valor={busqueda} onChange={setBusqueda} placeholder="Buscar por insumo, obra, documento..." total={visibles.length} />
-          <Campo etiqueta="Almacén">
-            <Select className="h-8 py-0 text-xs" value={filtroObra} onChange={(e) => setFiltroObra(e.target.value)}>
-              <option value="">Todos los almacenes</option>
-              {opcionesAlmacen}
-            </Select>
-          </Campo>
-          <Campo etiqueta="Tipo">
-            <Select className="h-8 py-0 text-xs" value={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value)}>
-              <option value="">Todos</option>
-              <option>Ingreso</option>
-              <option>Salida</option>
-            </Select>
-          </Campo>
-        </MenuFiltros>} haySeleccion={gestion && !!actual} onEliminar={() => { if (actual) void eliminar(actual.id); }} />
-      </div>
-      </>)}
     </>
   );
 }
