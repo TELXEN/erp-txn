@@ -610,6 +610,13 @@
       "when": 1793068750768,
       "tag": "0086_recibir_obra_solo_encargado",
       "breakpoints": true
+    },
+    {
+      "idx": 87,
+      "version": "7",
+      "when": 1793070030935,
+      "tag": "0087_vales_salida_consumo_partida",
+      "breakpoints": true
     }
   ]
 }
