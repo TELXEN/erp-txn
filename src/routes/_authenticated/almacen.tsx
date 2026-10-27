@@ -403,7 +403,9 @@ function AlmacenPage() {
               </tr>
             </thead>
             <tbody>
-              {visibles.map((m) => (
+              {visibles.map((m) => {
+                const tramo = tramoDe(m);
+                return (
                 <tr key={m.id} onClick={() => setSel(m.id)} className={`cursor-pointer border-b border-line/40 hover:bg-muted/40 ${sel === m.id ? "bg-primary/10" : ""}`}>
                   <td className="px-5 py-2">{m.fecha}</td>
                   <td className="px-3 py-2">
@@ -411,15 +413,16 @@ function AlmacenPage() {
                       {m.tipo === "Ingreso" ? <ArrowDownToLine size={12} /> : <ArrowUpFromLine size={12} />} {m.motivo === "Transferencia" ? `Transf. ${m.tipo === "Ingreso" ? "entrada" : "salida"}` : m.motivo === "Consumo" || m.motivo === "Vale de salida" ? m.motivo : m.tipo}{m.estado === "En tránsito" ? " · en tránsito" : ""}
                     </span>
                   </td>
-                  <td className="px-3 py-2 text-ink"><Resaltar texto={nombreProy(m.proyecto_id)} termino={busqueda} /></td>
+                  <td className="px-3 py-2 text-ink"><span className="block max-w-[11rem] truncate"><Resaltar texto={tramo.origen} termino={busqueda} /></span></td>
+                  <td className="px-3 py-2 text-ink"><span className="block max-w-[11rem] truncate"><Resaltar texto={tramo.destino} termino={busqueda} /></span></td>
                   <td className="px-3 py-2"><Resaltar texto={m.descripcion} termino={busqueda} /></td>
                   <td className="px-3 py-2 text-right">{num(Number(m.cantidad))} {m.unidad}</td>
                   <td className="px-3 py-2 text-right">{soles(Number(m.cantidad) * Number(m.costo_unitario))}</td>
-                  <td className="px-3 py-2 text-muted-foreground">{[partidas.find((p) => p.id === (m as { partida_id?: string | null }).partida_id)?.codigo, trabajadores.find((t) => t.id === (m as { trabajador_id?: string | null }).trabajador_id)?.nombre].filter(Boolean).join(" · ") || "—"}</td>
+                  <td className="px-3 py-2 text-muted-foreground"><span className="block max-w-[12rem] truncate">{detallePartida(m)}</span></td>
                   <td className="px-3 py-2 text-muted-foreground"><Resaltar texto={m.documento || "—"} termino={busqueda} /></td>
-
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         )}
