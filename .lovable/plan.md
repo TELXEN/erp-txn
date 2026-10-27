@@ -19,7 +19,12 @@ Volumen actual (bajo, buen momento para migrar): 3 materiales, 1 equipo, 5 mano 
 | Estado | Activo / Inactivo (inactivo conserva código e historial) |
 
 ### Clasificación (sin campos especiales por rubro)
-Todas las fichas tienen los mismos campos; no hay campos distintos según el rubro. Para agrupar productos se usan dos catálogos editables, siempre con selector:
+La ficha base tiene los mismos campos para todos los rubros, sin columnas vacías. Los datos propios de un rubro van en una **ficha complementaria uno a uno**, que solo existe cuando aplica:
+- **EPP**: norma técnica, tallas, criticidad y vida útil en días (obligatoria para todo insumo de rubro EPP).
+- **Equipos / Herramientas**: costo por hora, propiedad (propio/alquilado) y clase de equipo, solo si se requiere.
+- Mano de obra conserva sus datos de planilla en sus propias tablas laborales, no en la ficha.
+
+Para agrupar productos se usan dos catálogos editables, siempre con selector:
 - **Familia → Subfamilia**: catálogo propio por rubro (ej. Material › Eléctricos › Cables; EPP › Protección de cabeza). La subfamilia también alimenta el código de 8 dígitos.
 - **Marca**: tabla de Marcas existente, con su escritura respetada (opcional; Mano de obra y Subcontrato no la usan).
 
@@ -48,7 +53,7 @@ Stock, costo promedio, último precio de compra y "por llegar" salen siempre de 
 
 - **Comercial – Banco APU**: misma hoja actual con sus pestañas por rubro; edita descripción, unidad, precio base, margen y costo hora. Muestra en gris "último precio de compra" como referencia.
 - **Logística – Requerimientos, cotizaciones y OC**: el selector de rubro carga solo fichas de ese rubro que sean inventariables. No permite crear ni cambiar precios base; si un artículo no existe, abre la ventana de alta del maestro.
-- **Inventario – Catálogo**: lista de fichas inventariables con stock, columnas propias del EPP (norma, tallas, vida útil) y el saldo inicial. Edita los datos logísticos (marca, tallas, norma), no el precio base.
+- **Inventario – Catálogo**: lista de fichas inventariables con stock y saldo inicial. Al filtrar por EPP se agregan las columnas de su ficha complementaria (norma, tallas, vida útil). Edita marca y datos complementarios, no el precio base.
 - **Almacén**: sin cambios visibles; ahora cada movimiento apunta a la misma ficha que el APU.
 
 Permisos: alta y edición del precio base para Comercial/Gerencia; datos logísticos para Logística; ingeniero solo lectura.
@@ -67,6 +72,7 @@ Se ejecuta por etapas (1-2, luego 3, luego 4-5) para que el sistema funcione en 
 ## Detalles técnicos
 - Base: `insumos` (ya es FK del kardex y de compras) se amplía con `rubro`, `especialidad_id`, `subfamilia_id`, `marca_id` (FK marcas), `unidad_id` (FK unidades_medida), `inventariable` (generada desde rubro), `origen_tabla`/`origen_id`. `subfamilias_insumo` gana una familia padre por rubro (`familias_insumo`).
 - `partida_detalle` y `apu_componentes` ganan `insumo_id` nullable; backfill desde las FK por tabla; luego el código lee solo `insumo_id`. Las columnas viejas se marcan `DEPRECATED`, no se eliminan.
+- Extensiones 1:1 con PK = `insumo_id` (FK insumos ON DELETE CASCADE): `insumos_atributos_epp` (norma, tallas, criticidad, vida_util_dias) y `insumos_atributos_equipo` (costo_hora, propiedad, clase_equipo); trigger exige fila EPP cuando rubro = EPP. Columnas sueltas actuales de `insumos` (sueldo_mensual, regimen_laboral, categoria_obrero, asignacion_familiar, propiedad, clase_equipo) se copian a su extensión y se marcan DEPRECATED. Se descarta JSONB para conservar tipos y validación.
 - Tras publicar el código que ya no las referencia: `DROP TABLE` de `epp_catalogo`, `materiales`, `equipos_herramientas`, `mano_obra`, `subcontratos` y de las columnas FK viejas en `partida_detalle`/`apu_componentes` (requiere permiso de migraciones incompatibles).
 - `asegurarFichaAlmacen` y la sincronización por nombre se retiran; `quitar_recurso_apu` desactiva en el maestro.
 - Codificación sigue en `siguiente_codigo_insumo_modular`; renumeración por prefijo se mantiene.
