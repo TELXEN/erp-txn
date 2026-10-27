@@ -10,6 +10,7 @@ import { usePartidas, useProyectos } from "@/lib/datos";
 import { soles } from "@/lib/format";
 import { useSolicitudesDesbloqueo, useToleranciaAvance } from "@/lib/sobrecosto";
 import { useItemsReq, useRequerimientos } from "@/lib/logistica";
+import { nombreRubro } from "@/lib/rubros-compra";
 
 export const Route = createFileRoute("/_authenticated/aprobaciones")({
   head: () => ({
@@ -113,7 +114,7 @@ function Aprobaciones() {
                   <div className="flex flex-wrap items-center gap-3">
                     <button type="button" className="min-w-0 flex-1 text-left" onClick={() => setVerReq(verReq === r.id ? null : r.id)}>
                       <p className="font-semibold text-ink">{r.codigo} · {proyectos.find((p) => p.id === r.proyecto_id)?.nombre ?? "Stock · Almacén Central"}</p>
-                      <p className="text-muted-foreground">{tdr.clase === "tdr" ? `Términos de referencia · ${tdr.tdr?.tipo ?? ""}` : "Materiales del APU"} · {its.length} ítem(s) · {r.fecha} · {r.observacion}</p>
+                      <p className="text-muted-foreground">{tdr.clase === "tdr" ? `Términos de referencia · ${tdr.tdr?.tipo ?? ""}` : r.rubro ? nombreRubro(r.rubro) : "Materiales del APU"} · {its.length} ítem(s) · {r.fecha} · {r.observacion}</p>
                     </button>
                     <p className="text-sm font-bold tabular-nums text-ink">{soles(its.reduce((s, i) => s + Number(i.cantidad) * Number(i.precio_referencial), 0))}</p>
                     {rol === "gerente" ? (
