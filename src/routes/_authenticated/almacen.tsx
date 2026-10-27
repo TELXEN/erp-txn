@@ -2,7 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useRecordado } from "@/lib/recordado";
 import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowDownToLine, ArrowLeftRight, ArrowUpFromLine, PackageCheck, Upload } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
@@ -100,8 +100,13 @@ function AlmacenPage() {
     return p ? (p.codigo ? `${p.codigo} · ${p.nombre}` : p.nombre) : "—";
   };
   const activos = almacenes.filter((a) => a.activo).sort((a, b) => (a.tipo === "central" ? -1 : b.tipo === "central" ? 1 : a.nombre.localeCompare(b.nombre, "es")));
-  const opcionesAlmacen = activos.map((a) => <option key={a.id} value={valorDeAlmacen(a.proyecto_id)}>{a.tipo === "central" ? "Almacén Central" : nombreProy(a.proyecto_id)}</option>);
+  const misAlmacenes = activos.filter((a) => gestion || encDe(a.id).some((e) => e.user_id === yo));
+  const opcionesAlmacen = misAlmacenes.map((a) => <option key={a.id} value={valorDeAlmacen(a.proyecto_id)}>{a.tipo === "central" ? "Almacén Central" : nombreProy(a.proyecto_id)}</option>);
   const enTransito = movs.filter((m) => m.tipo === "Ingreso" && m.estado === "En tránsito");
+  const origenValido = misAlmacenes.some((a) => valorDeAlmacen(a.proyecto_id) === tr.origen);
+  useEffect(() => {
+    if (!origenValido && misAlmacenes.length) setTr((t) => ({ ...t, origen: valorDeAlmacen(misAlmacenes[0]!.proyecto_id), destino: "", insumo_id: "" }));
+  }, [origenValido, misAlmacenes.length]);
   const pidTrOrigen = almacenDeValor(tr.origen);
   const insumosOrigen = insumos.filter((i) => (stockDe(pidTrOrigen, i.id)?.stock ?? 0) > 0.0001);
   const stockTr = tr.insumo_id ? stockDe(pidTrOrigen, tr.insumo_id) : undefined;
@@ -217,7 +222,7 @@ function AlmacenPage() {
         <ValesSalida obras={activos.filter((a) => a.proyecto_id).map((a) => a.proyecto_id as string)} nombreProy={nombreProy} stock={stock} puedeEmitir={(pid) => gestion || encDe(almacenDe(pid)?.id).some((e) => e.user_id === yo)} />
       ) : (<>
       <div className="mb-5 grid gap-5 lg:grid-cols-2">
-        {gestion && <Panel titulo="Transferir entre almacenes">
+        {misAlmacenes.length > 0 && <Panel titulo="Transferir entre almacenes">
           <form onSubmit={transferir} className="grid gap-3 px-5 py-4 sm:grid-cols-2">
             <Campo etiqueta="Origen">
               <Select value={tr.origen} onChange={(e) => setTr({ ...tr, origen: e.target.value, destino: tr.destino === e.target.value ? "" : tr.destino, insumo_id: "", error: "" })}>{opcionesAlmacen}</Select>
