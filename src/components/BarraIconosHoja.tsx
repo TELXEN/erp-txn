@@ -2,9 +2,9 @@ import type { ReactNode } from "react";
 import { Copy, Pencil, Plus, Trash2 } from "lucide-react";
 import { BotonIcono } from "@/components/ui-kit";
 
-/** Columna vertical de iconos (Agregar, Editar, Copiar, Eliminar) igual a la hoja de Insumos.
- *  `filtros` (la lupa MenuFiltros) va primero, separada; las acciones omitidas no se muestran;
- *  `extras` va en un bloque inferior. */
+/** Columna vertical de iconos igual a la hoja de Insumos: filtros (la lupa MenuFiltros) primero y separada,
+ *  luego Agregar/Editar/Copiar, después `extras` y al final Eliminar (nunca encima de las acciones nuevas);
+ *  las acciones omitidas no se muestran. */
 export function BarraIconosHoja({ objeto, haySeleccion, onAgregar, onEditar, onCopiar, onEliminar, extras, filtros }: {
   objeto: string; haySeleccion: boolean;
   onAgregar?: (() => void) | undefined; onEditar?: (() => void) | undefined; onCopiar?: (() => void) | undefined; onEliminar?: (() => void) | undefined;
