@@ -263,9 +263,9 @@ function RequerimientosPage() {
                         )}
                         <td className="px-3 py-2">
                           <Etiqueta tono={tonoEstadoReq(r.estado)}>{r.estado}</Etiqueta>
-                          {r.clase === "tdr" && <span className="ml-1 text-[10px] text-muted-foreground">TDR</span>}
-                          {r.rubro && <span className="ml-1 text-[10px] text-muted-foreground">{nombreRubro(r.rubro)}</span>}
-                          {r.estado === "Rechazado" && r.motivo_rechazo && <span className="ml-1 text-[10px] text-bad" title={r.motivo_rechazo}>· {r.motivo_rechazo}</span>}
+                          {r.clase === "tdr" && <span className="ml-2 text-[10px] text-muted-foreground">TDR</span>}
+                          {r.rubro && <span className="ml-2 text-[10px] text-muted-foreground">{nombreRubro(r.rubro)}</span>}
+                          {r.estado === "Rechazado" && r.motivo_rechazo && <span className="ml-2 text-[10px] text-bad" title={r.motivo_rechazo}>· {r.motivo_rechazo}</span>}
                         </td>
                       </tr>
                       {ver &&
