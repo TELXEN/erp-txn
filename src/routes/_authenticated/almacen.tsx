@@ -90,7 +90,6 @@ function AlmacenPage() {
     await (supabase as any).from("almacen_encargados").delete().eq("id", id);
     qc.invalidateQueries({ queryKey: ["almacen_encargados"] });
   }
-  if (!gestion && !encargados.some((e) => e.user_id === yo)) return <SinAcceso />;
 
   const stock = calcularStock(movs);
   const stockDe = (pid: string | null, insumoId: string) =>
@@ -198,6 +197,7 @@ function AlmacenPage() {
     ]);
   }
 
+  if (!gestion && !encargados.some((e) => e.user_id === yo)) return <SinAcceso />;
   return (
     <>
       <Encabezado
