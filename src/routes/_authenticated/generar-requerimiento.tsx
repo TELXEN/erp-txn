@@ -321,7 +321,7 @@ function RequerimientosPage() {
                       <td className="px-3 py-1.5">{reqs.find((r) => r.id === o.requerimiento_id)?.codigo ?? "—"}</td>
                       <td className="px-3 py-1.5">{o.fecha_entrega ?? "—"}</td>
                       <td className="px-3 py-1.5 text-right">{itemsOC.filter((i) => i.orden_id === o.id).length}</td>
-                      <td className="px-3 py-1.5"><Etiqueta tono={o.estado === "Recibida" ? "good" : o.estado === "Recibida parcial" ? "warn" : "neutro"}>{o.estado}</Etiqueta></td>
+                      <td className="px-3 py-1.5"><Etiqueta tono={tonoEstadoReq(o.estado)}>{o.estado}</Etiqueta></td>
                       <td className="px-5 py-1.5 text-right">
                         <Boton variante="linea" className="py-0.5 text-xs" onClick={() => abrirRecepcion(o.id)}>
                           <PackageCheck size={13} className="mr-1 inline" /> Recepcionar
