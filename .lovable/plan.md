@@ -15,4 +15,5 @@
 ## Detalle técnico
 - Migración: `siguiente_codigo_insumo_modular` usa `_subfamilia` en cualquier tipo; renumeración por prefijo ya cierra huecos.
 - `Insumos.tsx`: columna con `SelectorBuscable` usando `useSubfamilias`; `InsumoVentana.tsx`: quitar condición `tipo === "materiales"` del campo y del RPC.
-- Ajustar `CodificacionInsumos.tsx`, prueba de `digito-insumo` y memoria de código de insumos.
+- Ajustar `CodificacionInsumos.tsx`, prueba de `digito-insumo` (casos con SS ≠ 00 en rubros no materiales) y memoria de código de insumos.
+- Verificar que cambiar el código no rompe APUs ni cotizaciones (se enlazan por id del insumo, no por código).
