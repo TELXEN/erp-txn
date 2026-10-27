@@ -1,18 +1,18 @@
-# Codificación T+EE+SS+NNN en todos los rubros
+# Codificación T+EE+SS+NNN y subfamilias visibles
 
 ## Situación encontrada
-- Hoy solo los materiales usan la subfamilia en el código; mano de obra, equipos, herramientas y EPP llevan siempre «00» en esas dos cifras.
-- Instrumentista (05 Instrumentación) se mantiene como **10500001**, sin cambios.
+- Solo los materiales usan la subfamilia en el código; los demás rubros llevan «00».
+- Las hojas del Maestro de Insumos no tienen columna Subfamilia; solo la ventana de nuevo material permite elegirla.
+- Instrumentista se mantiene como **10500001**.
 
 ## Cambios
-1. **Patrón único para todos los rubros:**
-   - Cifra 1: rubro (1 MO, 2 MAT, 3 Equipos, 4 Herramientas, 5 Subcontratos, 6 EPP).
-   - Cifras 2–3: especialidad (01 Arquitectura … 05 Instrumentación, 06 Eléctrica…).
-   - Cifras 4–5: subfamilia, ahora en **todos** los rubros; sin subfamilia va «00».
-   - Cifras 6–8: correlativo de 3 cifras, sin huecos, por rubro+especialidad+subfamilia.
-2. **Recodificación automática** de fichas existentes con el nuevo patrón (las que no tienen subfamilia conservan su código actual).
-3. **Pantalla de Codificación de insumos:** formato `TEESSNNN` en todos los rubros.
+1. **Patrón único para todos los rubros:** cifra 1 rubro (1 MO, 2 MAT, 3 Equipos, 4 Herramientas, 5 Subcontratos, 6 EPP); cifras 2–3 especialidad; cifras 4–5 subfamilia (sin subfamilia «00»); cifras 6–8 correlativo sin huecos.
+2. **Columna Subfamilia** en todas las hojas del Maestro (mano de obra, materiales, equipos y herramientas, subcontratos, EPP), con desplegable buscable filtrado por la especialidad de la fila; al cambiarla se regenera el código.
+3. **Ventana de nuevo insumo:** campo Subfamilia opcional para todos los rubros (obligatorio solo en materiales).
+4. **Recodificación automática** de fichas existentes (sin subfamilia conservan su código).
+5. **Pantalla de Codificación:** formato `TEESSNNN` en todos los rubros.
 
 ## Detalle técnico
-- Migración: `siguiente_codigo_insumo_modular` usa la subfamilia para cualquier tipo (no solo MAT); el trigger de renumeración por prefijo de 5 dígitos ya cierra huecos.
-- Ajustar `CodificacionInsumos.tsx` y la prueba de `digito-insumo`; actualizar la memoria de código de insumos.
+- Migración: `siguiente_codigo_insumo_modular` usa `_subfamilia` en cualquier tipo; renumeración por prefijo ya cierra huecos.
+- `Insumos.tsx`: columna con `SelectorBuscable` usando `useSubfamilias`; `InsumoVentana.tsx`: quitar condición `tipo === "materiales"` del campo y del RPC.
+- Ajustar `CodificacionInsumos.tsx`, prueba de `digito-insumo` y memoria de código de insumos.
