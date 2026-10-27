@@ -7099,6 +7099,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      renumerar_prefijo_insumo: { Args: { _pref: string }; Returns: undefined }
       siguiente_codigo_cotizacion: { Args: never; Returns: string }
       siguiente_codigo_documento: { Args: { _nombre: string }; Returns: string }
       siguiente_codigo_insumo: { Args: { _tipo: string }; Returns: string }
