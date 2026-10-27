@@ -56,7 +56,7 @@
 - Employment periods: vinculos_laborales; liquidation/rehire/cese annulment only via their RPCs — atomic, history kept.
 - Company regime: dated regimenes_empresa; a worker's regime can't be below the company's at hire (trigger + errorRegimenTrabajador) — changes hit only new hires.
 - Company settings use DatosEmpresaTabs (general, banks, regime), not top-level tabs.
-- Insumo codes renumber via AFTER DELETE trigger per 5-digit prefix — no gaps; inactive rows keep codes.
+- Insumo codes renumber on delete per prefix; inactive codes stay. MO display uses orden-mano-obra, not specialty sorting.
 - Purchase orders use HojaOrdenCompra, DOC and A4 printing; orden-compra-montos shares tax totals, orden-compra-pago encodes terms in the existing field — costs/history unchanged.
 - Field consumption: Consumir needs a partida; vales via registrar_vale_salida RPC; budget check in consumo-partida.ts warns, never blocks.
 - Insumos master: public.insumos is the only item row; materiales/mano_obra/equipos_herramientas/subcontratos/epp_catalogo are INSTEAD-OF views over it (EPP extras in insumos_atributos_epp; categoria_inventario splits equipment/tools) — one code per item everywhere.
