@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { ChevronDown } from "lucide-react";
 
 export type OpcionLista = { value: string; texto: string };
@@ -7,7 +8,9 @@ export type OpcionLista = { value: string; texto: string };
 const limpiar = (t: string) => t.toLocaleLowerCase("es").normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
 /** Lista desplegable con buscador: al escribir, la lista se filtra.
- *  Se usa para Marca y Unidad en el maestro de insumos y en la ventana de insumo. */
+ *  La lista se monta en un portal fijo (no la cortan contenedores con overflow,
+ *  como las filas de una tabla). Se usa para Marca y Unidad en el maestro de
+ *  insumos y en la ventana de insumo. */
 export function SelectorBuscable({
   value,
   onChange,
@@ -31,16 +34,44 @@ export function SelectorBuscable({
   const [abierto, setAbierto] = useState(false);
   const [q, setQ] = useState("");
   const [activo, setActivo] = useState(0);
+  const [pos, setPos] = useState<{ top: number; left: number; width: number; arriba: boolean } | null>(null);
   const caja = useRef<HTMLDivElement>(null);
+  const panel = useRef<HTMLDivElement>(null);
+
+  const colocar = useCallback(() => {
+    const el = caja.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const ALTO = 260; // alto máx. aproximado de la lista
+    const arriba = r.bottom + ALTO > window.innerHeight && r.top > ALTO;
+    setPos({
+      top: arriba ? r.top - 8 : r.bottom + 4,
+      left: Math.max(8, Math.min(r.left, window.innerWidth - Math.max(r.width, 160) - 8)),
+      width: r.width,
+      arriba,
+    });
+  }, []);
+
+  useLayoutEffect(() => {
+    if (abierto) colocar();
+  }, [abierto, colocar]);
 
   useEffect(() => {
     if (!abierto) return;
     const fuera = (e: MouseEvent) => {
-      if (!caja.current?.contains(e.target as Node)) setAbierto(false);
+      if (caja.current?.contains(e.target as Node) || panel.current?.contains(e.target as Node)) return;
+      setAbierto(false);
     };
+    const mover = () => colocar();
     document.addEventListener("mousedown", fuera);
-    return () => document.removeEventListener("mousedown", fuera);
-  }, [abierto]);
+    window.addEventListener("scroll", mover, true);
+    window.addEventListener("resize", mover);
+    return () => {
+      document.removeEventListener("mousedown", fuera);
+      window.removeEventListener("scroll", mover, true);
+      window.removeEventListener("resize", mover);
+    };
+  }, [abierto, colocar]);
 
   const lista = useMemo(() => {
     const n = limpiar(q.trim());
@@ -67,56 +98,70 @@ export function SelectorBuscable({
       <button
         type="button"
         aria-label={ariaLabel}
+        aria-expanded={abierto}
         onClick={abierto ? () => setAbierto(false) : abrir}
         className="flex h-7 w-full items-center justify-between gap-1 rounded-md border border-line bg-background px-1.5 py-1 text-xs outline-none focus:border-primary"
       >
         <span className={`min-w-0 truncate ${texto ? "" : "text-muted-foreground"}`}>{texto || placeholder}</span>
         <ChevronDown size={12} className="shrink-0 text-muted-foreground" />
       </button>
-      {abierto && (
-        <div className="absolute left-0 top-full z-50 mt-1 w-full min-w-[10rem] overflow-hidden rounded-md border border-line bg-background shadow-lg">
-          <input
-            autoFocus
-            className="w-full border-b border-line bg-transparent px-2 py-1.5 text-xs outline-none"
-            placeholder={buscarEn}
-            value={q}
-            onChange={(e) => {
-              setQ(e.target.value);
-              setActivo(0);
+      {abierto && pos &&
+        createPortal(
+          <div
+            ref={panel}
+            style={{
+              position: "fixed",
+              top: pos.arriba ? undefined : pos.top,
+              bottom: pos.arriba ? window.innerHeight - pos.top : undefined,
+              left: pos.left,
+              width: Math.max(pos.width, 160),
+              zIndex: 9999,
             }}
-            onKeyDown={(e) => {
-              if (e.key === "Escape") {
-                e.preventDefault();
-                setAbierto(false);
-              } else if (e.key === "ArrowDown") {
-                e.preventDefault();
-                setActivo((a) => Math.min(a + 1, lista.length - 1));
-              } else if (e.key === "ArrowUp") {
-                e.preventDefault();
-                setActivo((a) => Math.max(a - 1, 0));
-              } else if (e.key === "Enter") {
-                e.preventDefault();
-                const o = lista[activo];
-                if (o) elegir(o.value);
-              }
-            }}
-          />
-          <div className="max-h-60 overflow-y-auto py-0.5">
-            {lista.map((o, ix) => (
-              <button
-                key={`${o.value}-${ix}`}
-                type="button"
-                onMouseEnter={() => setActivo(ix)}
-                onClick={() => elegir(o.value)}
-                className={`block w-full truncate px-2 py-1 text-left text-xs ${ix === activo ? "bg-primary/10 text-primary" : "hover:bg-muted"}`}
-              >
-                {o.texto}
-              </button>
-            ))}
-            {lista.length === 0 && <p className="px-2 py-1.5 text-xs text-muted-foreground">Sin coincidencias.</p>}
-          </div>
-        </div>
-      )}
+            className="overflow-hidden rounded-md border border-line bg-background shadow-lg"
+          >
+            <input
+              autoFocus
+              className="w-full border-b border-line bg-transparent px-2 py-1.5 text-xs outline-none"
+              placeholder={buscarEn}
+              value={q}
+              onChange={(e) => {
+                setQ(e.target.value);
+                setActivo(0);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") {
+                  e.preventDefault();
+                  setAbierto(false);
+                } else if (e.key === "ArrowDown") {
+                  e.preventDefault();
+                  setActivo((a) => Math.min(a + 1, lista.length - 1));
+                } else if (e.key === "ArrowUp") {
+                  e.preventDefault();
+                  setActivo((a) => Math.max(a - 1, 0));
+                } else if (e.key === "Enter") {
+                  e.preventDefault();
+                  const o = lista[activo];
+                  if (o) elegir(o.value);
+                }
+              }}
+            />
+            <div className="max-h-60 overflow-y-auto py-0.5">
+              {lista.map((o, ix) => (
+                <button
+                  key={`${o.value}-${ix}`}
+                  type="button"
+                  onMouseEnter={() => setActivo(ix)}
+                  onClick={() => elegir(o.value)}
+                  className={`block w-full truncate px-2 py-1 text-left text-xs ${ix === activo ? "bg-primary/10 text-primary" : "hover:bg-muted"}`}
+                >
+                  {o.texto}
+                </button>
+              ))}
+              {lista.length === 0 && <p className="px-2 py-1.5 text-xs text-muted-foreground">Sin coincidencias.</p>}
+            </div>
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }
