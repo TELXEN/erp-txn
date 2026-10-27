@@ -673,6 +673,13 @@
       "when": 1793124141611,
       "tag": "0095_clase_equipo_herramienta",
       "breakpoints": true
+    },
+    {
+      "idx": 96,
+      "version": "7",
+      "when": 1793125259894,
+      "tag": "0096_codigo_insumo_mo_1_mat_2",
+      "breakpoints": true
     }
   ]
 }
