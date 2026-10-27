@@ -3,7 +3,7 @@ import { useMemo, useRef, useState } from "react";
 import { HojaOrdenCompra, imprimirOrdenCompra } from "@/components/HojaOrdenCompra";
 import { useEmpresa } from "@/lib/empresa";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, ClipboardList, Printer, Send } from "lucide-react";
+import { Check, ClipboardList, PackagePlus, Printer, Send } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
 import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { Boton, BotonIcono, Campo, Etiqueta, Input, MenuFiltros, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
@@ -16,6 +16,8 @@ import { useItemsOC, useOrdenesCompra } from "@/lib/logistica";
 import { useRecordado } from "@/lib/recordado";
 import { ESTADOS_BANDEJA, estadoTrasOrden, mejoresPrecios, tonoEstadoReq } from "@/lib/requerimientos-flujo";
 import { condicionPagoOrden, detallePagoOrden } from "@/lib/orden-compra-pago";
+import { VentanaRequerimientoRubro } from "@/components/VentanaRequerimientoRubro";
+import { nombreRubro } from "@/lib/rubros-compra";
 
 export const Route = createFileRoute("/_authenticated/requerimientos")({
   head: () => ({
@@ -31,7 +33,7 @@ export const Route = createFileRoute("/_authenticated/requerimientos")({
   component: Bandeja,
 });
 
-type Req = { id: string; proyecto_id: string; codigo: string; fecha: string; estado: string; observacion: string; clase: string; tdr: Tdr };
+type Req = { id: string; proyecto_id: string | null; rubro?: string | null; codigo: string; fecha: string; estado: string; observacion: string; clase: string; tdr: Tdr };
 type Tdr = { tipo?: string; objeto?: string; alcance?: string; entregables?: string; plazo?: string; lugar?: string; condiciones?: string };
 type ItemReq = { id: string; requerimiento_id: string; insumo_id: string | null; tipo: string; descripcion: string; unidad: string; cantidad: number; precio_referencial: number };
 type Solicitud = { id: string; requerimiento_id: string; proveedor_id: string; codigo: string; fecha: string; estado: string; moneda: string; plazo_entrega: string; condiciones: string; orden_id: string | null };
@@ -61,12 +63,15 @@ function Bandeja() {
   const [error, setError] = useState("");
   const [aviso, setAviso] = useState("");
   const [vista, setVista] = useState<Solicitud | null>(null);
+  const [ventanaStock, setVentanaStock] = useState(false);
+  const codigoStock = `REQ-ALM-${String(reqs.filter((r) => !r.proyecto_id).length + 1).padStart(3, "0")}`;
   const hojaSol = useRef<HTMLElement | null>(null);
   const { data: empresa } = useEmpresa();
 
   const provs = terceros.filter((t) => t.es_proveedor && t.activo);
   const nombreProv = (id: string | null) => terceros.find((t) => t.id === id)?.razon_social ?? "—";
-  const nombreProy = (id: string) => {
+  const nombreProy = (id: string | null) => {
+    if (!id) return "Stock · Almacén Central";
     const p = proyectos.find((x) => x.id === id);
     return p ? (p.codigo ? `${p.codigo} · ${p.nombre}` : p.nombre) : "—";
   };
@@ -90,8 +95,6 @@ function Bandeja() {
     () => mejoresPrecios(itemsSol.filter((x) => solsActual.some((s) => s.id === x.solicitud_id && s.estado !== "Descartada")).map((x) => ({ solicitudId: x.solicitud_id, requerimientoItemId: x.requerimiento_item_id, precio: Number(x.precio_unitario) }))),
     [itemsSol, solsActual],
   );
-
-  if (!puedeVerDinero(rol)) return <SinAcceso />;
 
   function abrirSolicitud(r: Req) {
     const pendientes = items.filter((i) => i.requerimiento_id === r.id && Number(i.cantidad) - ordenado(i.id) > 0.0001);
@@ -197,10 +200,10 @@ function Bandeja() {
     if (!lineas.length) return setError(`Todos los ítems de ${s.codigo} ya están ordenados; el requerimiento no tiene cantidad pendiente.`);
     const proy = proyectos.find((p) => p.id === actual.proyecto_id);
     const n = ordenes.filter((o) => o.proyecto_id === actual.proyecto_id).length + 1;
-    const codigo = `OC-${proy?.codigo || "OBRA"}-${String(n).padStart(3, "0")}`;
+    const codigo = `OC-${actual.proyecto_id ? proy?.codigo || "OBRA" : "ALM"}-${String(n).padStart(3, "0")}`;
     const { data: oc, error: e1 } = await apuDb
       .from("ordenes_compra")
-      .insert({ codigo, proyecto_id: actual.proyecto_id, proveedor_id: s.proveedor_id, requerimiento_id: actual.id, condicion_pago: condicion, observacion: `Cotización ${s.codigo}${s.plazo_entrega ? ` · plazo ${s.plazo_entrega}` : ""}${s.moneda !== "PEN" ? ` · ${s.moneda}` : ""}` })
+      .insert({ codigo, proyecto_id: actual.proyecto_id, proveedor_id: s.proveedor_id, requerimiento_id: actual.id, rubro: (actual.rubro ?? null) as "MAT" | null, condicion_pago: condicion, observacion: `Cotización ${s.codigo}${s.plazo_entrega ? ` · plazo ${s.plazo_entrega}` : ""}${s.moneda !== "PEN" ? ` · ${s.moneda}` : ""}` })
       .select("id")
       .single();
     if (e1) return setError(e1.message);
@@ -229,6 +232,8 @@ function Bandeja() {
 
   function imprimir(s: Solicitud) { setVista(s); }
 
+  if (!puedeVerDinero(rol)) return <SinAcceso />;
+
   return (
     <>
       <Encabezado titulo="Bandeja de Requerimientos" subtitulo="Logística · requerimientos aprobados por Gerencia" />
@@ -245,7 +250,7 @@ function Bandeja() {
                 <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
                   <th className="px-5 py-2 font-medium">Código</th>
                   <th className="px-3 py-2 font-medium">Obra</th>
-                  <th className="px-3 py-2 font-medium">Clase</th>
+                  <th className="px-3 py-2 font-medium">Rubro</th>
                   <th className="px-3 py-2 font-medium">Fecha</th>
                   <th className="px-3 py-2 text-right font-medium">Ítems</th>
                   <th className="px-3 py-2 text-right font-medium">Cotizaciones</th>
@@ -258,7 +263,7 @@ function Bandeja() {
                   <tr key={r.id} onClick={() => { setSel(r.id); setMarcados(new Set()); }} className={`cursor-pointer border-b border-line/40 hover:bg-muted/40 ${sel === r.id ? "bg-primary/10" : ""}`}>
                     <td className="px-5 py-1.5 text-primary"><Resaltar texto={r.codigo} termino={busqueda} /></td>
                     <td className="px-3 py-1.5"><Resaltar texto={nombreProy(r.proyecto_id)} termino={busqueda} /></td>
-                    <td className="px-3 py-1.5">{r.clase === "tdr" ? `TDR · ${r.tdr?.tipo ?? "Servicio"}` : "Materiales (APU)"}</td>
+                    <td className="px-3 py-1.5">{r.clase === "tdr" ? `TDR · ${r.tdr?.tipo ?? "Servicio"}` : r.rubro ? nombreRubro(r.rubro) : "Materiales (APU)"}</td>
                     <td className="px-3 py-1.5">{r.fecha}</td>
                     <td className="px-3 py-1.5 text-right">{items.filter((i) => i.requerimiento_id === r.id).length}</td>
                     <td className="px-3 py-1.5 text-right">{sols.filter((s) => s.requerimiento_id === r.id).length}</td>
@@ -278,13 +283,18 @@ function Bandeja() {
           objeto="requerimiento"
           filtros={<MenuFiltros activos={busqueda ? 1 : 0} onLimpiar={() => setBusqueda("")}><Buscador valor={busqueda} onChange={setBusqueda} total={bandeja.length} placeholder="Buscar por código, obra u observación..." /></MenuFiltros>}
           haySeleccion={!!actual}
-          extras={
+          extras={<>
+            <BotonIcono etiqueta="Nuevo requerimiento para stock del Almacén Central" onClick={() => setVentanaStock(true)}>
+              <PackagePlus size={15} />
+            </BotonIcono>
             <BotonIcono etiqueta="Solicitar cotización" disabled={!actual || !itsActual.some((i) => Number(i.cantidad) - ordenado(i.id) > 0.0001)} onClick={() => { if (actual) { if (marcados.size) { setError(""); setProveedores([]); setVentanaSol(true); } else abrirSolicitud(actual); } }}>
               <Send size={15} />
             </BotonIcono>
-          }
+          </>}
         />
       </div>
+
+      <VentanaRequerimientoRubro abierta={ventanaStock} onCerrar={() => setVentanaStock(false)} proyectoId={null} codigo={codigoStock} subtitulo="Compra de Logística sin pedido de obra · pasa por Gerencia y cotización" onCreado={(m) => { setAviso(`${m} Tras la aprobación aparecerá en esta bandeja.`); refrescar(); }} />
 
       {actual && (
         <>

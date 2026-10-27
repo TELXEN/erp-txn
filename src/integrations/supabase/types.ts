@@ -3533,8 +3533,9 @@ export type Database = {
           id: string
           observacion: string
           proveedor_id: string | null
-          proyecto_id: string
+          proyecto_id: string | null
           requerimiento_id: string | null
+          rubro: string | null
           updated_at: string
         }
         Insert: {
@@ -3548,8 +3549,9 @@ export type Database = {
           id?: string
           observacion?: string
           proveedor_id?: string | null
-          proyecto_id: string
+          proyecto_id?: string | null
           requerimiento_id?: string | null
+          rubro?: string | null
           updated_at?: string
         }
         Update: {
@@ -3563,8 +3565,9 @@ export type Database = {
           id?: string
           observacion?: string
           proveedor_id?: string | null
-          proyecto_id?: string
+          proyecto_id?: string | null
           requerimiento_id?: string | null
+          rubro?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -4755,7 +4758,8 @@ export type Database = {
           motivo_rechazo: string
           observacion: string
           origen: string
-          proyecto_id: string
+          proyecto_id: string | null
+          rubro: string | null
           tdr: Json
           updated_at: string
         }
@@ -4773,7 +4777,8 @@ export type Database = {
           motivo_rechazo?: string
           observacion?: string
           origen?: string
-          proyecto_id: string
+          proyecto_id?: string | null
+          rubro?: string | null
           tdr?: Json
           updated_at?: string
         }
@@ -4791,7 +4796,8 @@ export type Database = {
           motivo_rechazo?: string
           observacion?: string
           origen?: string
-          proyecto_id?: string
+          proyecto_id?: string | null
+          rubro?: string | null
           tdr?: Json
           updated_at?: string
         }

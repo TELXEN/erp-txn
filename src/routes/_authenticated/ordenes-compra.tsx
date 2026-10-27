@@ -1,6 +1,7 @@
 import { useRecordado } from "@/lib/recordado";
 import { BarraIconosHoja } from "@/components/BarraIconosHoja";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { imputaGastosGenerales, nombreRubro } from "@/lib/rubros-compra";
 import React, { useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, ChevronRight, MapPinned, PackageCheck, Plus, Printer, Trash2, Truck, Upload } from "lucide-react";
@@ -107,7 +108,8 @@ function OrdenesCompraPage() {
   const cerrarTrasGuardar = useRef(false);
 
   const proveedores = terceros.filter((t) => t.es_proveedor && t.activo);
-  const nombreProy = (id: string) => {
+  const nombreProy = (id: string | null) => {
+    if (!id) return "Stock · Almacén Central";
     const p = proyectos.find((x) => x.id === id);
     return p ? (p.codigo ? `${p.codigo} · ${p.nombre}` : p.nombre) : "—";
   };
@@ -265,6 +267,29 @@ function OrdenesCompraPage() {
         })),
       );
       if (err) return setError(err.message);
+    }
+
+    const rubroOC = (oc as { rubro?: string | null }).rubro ?? null;
+    if (!oc.proyecto_id || imputaGastosGenerales(rubroOC)) {
+      // Stock central o EPP/equipos/herramientas de obra: Gastos Generales + cuenta por pagar.
+      if (pendientes.length) {
+        const dias = diasCreditoOrden(oc.condicion_pago);
+        const prov = terceros.find((t) => t.id === oc.proveedor_id);
+        const base = pendientes.reduce((s, { i, saldo }) => s + saldo * Number(i.precio_unitario), 0);
+        const monto = Math.round(base * (rubroOC === "EQ" || rubroOC === "HE" ? 1 : 1.18) * 100) / 100;
+        const { error: eg } = await apuDb.from("gastos_generales").insert({
+          descripcion: `${oc.codigo} · ${nombreRubro(rubroOC)}${oc.proyecto_id ? "" : " para stock del Almacén Central"}`,
+          proveedor: prov?.razon_social ?? "", proveedor_id: oc.proveedor_id, proyecto_id: oc.proyecto_id ?? null,
+          monto, monto_soles: monto, moneda: "PEN", tipo_cambio: 1, fecha: hoy(), comprobante: oc.codigo,
+          categoria: rubroOC === "EPP" ? "Seguridad y Salud (EPP)" : "Servicios y Suministros",
+          condicion_pago: dias > 0 ? "Crédito" : "Contado", dias_credito: dias, fecha_vencimiento: vencimientoPagoOrden(hoy(), oc.condicion_pago), estado_pago: "Pendiente",
+        });
+        if (eg) setError(`Recibida en almacén, pero no se pudo registrar en Gastos Generales: ${eg.message}`);
+      }
+      await apuDb.from("ordenes_compra").update({ estado: "Recibida" }).eq("id", ocId);
+      setAviso(`${oc.codigo} recibida en almacén y registrada en Gastos Generales como cuenta por pagar en Tesorería.`);
+      for (const k of ["gastos_generales", "movimientos_almacen", "ordenes_compra"]) qc.invalidateQueries({ queryKey: [k] });
+      return;
     }
 
     // Compra en Costos Directos + cuenta por pagar (el pago se registra en Tesorería).
@@ -554,7 +579,8 @@ function OrdenesCompraPage() {
         titulo="Órdenes emitidas"
         extra={
           <div className="flex flex-wrap items-center gap-2">
-          <Boton variante="accion" onClick={() => { setError(""); setAviso(""); setModalNueva(true); }}><Plus size={13} /> Nueva orden de compra</Boton>
+          <span className="text-xs text-muted-foreground">Las órdenes nacen de una cotización aprobada en</span>
+          <Link to="/requerimientos" className="text-xs font-semibold text-primary underline">Bandeja de Requerimientos</Link>
           </div>
         }
       >
@@ -629,7 +655,7 @@ function OrdenesCompraPage() {
               {proyectos.map((p) => <option key={p.id} value={p.id}>{nombreProy(p.id)}</option>)}
             </Select>
           </Campo>
-        </MenuFiltros>} haySeleccion={!!actual} onAgregar={() => { setError(""); setAviso(""); setModalNueva(true); }} onEliminar={() => { if (actual) void eliminar(actual.id); }} extras={<>
+        </MenuFiltros>} haySeleccion={!!actual} onEliminar={() => { if (actual) void eliminar(actual.id); }} extras={<>
           <BotonIcono etiqueta="Imprimir o guardar en PDF" disabled={!actual} onClick={() => setVerDocumento(true)}><Printer size={15} /></BotonIcono>
           <BotonIcono etiqueta="Enviar a obra (la obra registra la recepción)" disabled={!actual || actual.estado !== "Emitida"} onClick={() => { if (actual) void cambiarEstado(actual.id, "Enviado a obra"); }}><Truck size={15} /></BotonIcono>
           <BotonIcono etiqueta={actual && recibidoAlgo(actual.id) ? "Ya tiene recepciones: usa Transferir entre almacenes" : "Cambiar destino de entrega"} disabled={!actual || actual.estado === "Anulada" || recibidoAlgo(actual.id) || !puedeVerDinero(rolDestino)} onClick={() => { if (actual) setCambioDest({ id: actual.id, almacen: actual.almacen_destino_id ?? "", motivo: "", error: "" }); }}><MapPinned size={15} /></BotonIcono>
