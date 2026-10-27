@@ -63,3 +63,4 @@
 - Supplier quotes open per inbox requirement. Operations has no APU-unfolding header: the icon windows pick their own obra; reception lists every obra's pending orders.
 - Purchase orders use HojaOrdenCompra, DOC and A4 printing; orden-compra-montos shares tax totals, orden-compra-pago encodes terms in the existing field — costs/history unchanged.
 - Field consumption: Consumir needs a partida; vales via registrar_vale_salida RPC; budget check in consumo-partida.ts warns, never blocks.
+- Insumos master: public.insumos is the single item record; materiales/mano_obra/equipos_herramientas/subcontratos/epp_catalogo are security-invoker views with INSTEAD OF triggers over it (EPP extras in insumos_atributos_epp) — one code and one row per item across APU, logistics and stock.
