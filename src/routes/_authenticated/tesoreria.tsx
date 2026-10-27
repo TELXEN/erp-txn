@@ -60,6 +60,8 @@ type Mov = {
 };
 
 type R = {
+  fecha_pago?: string | null;
+  numero_operacion?: string | null;
   id?: string | number | null;
   cliente_id?: string | number | null;
   numero_factura?: string | number | null;
