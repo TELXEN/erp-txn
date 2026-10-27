@@ -13,8 +13,8 @@ export const RUBROS_COMPRA: { id: RubroCompra; texto: string }[] = [
 ];
 export const nombreRubro = (r: string | null | undefined) => RUBROS_COMPRA.find((x) => x.id === r)?.texto ?? "—";
 
-/** Tipo de la ficha de almacén (`insumos`) que corresponde al rubro. EPP y materiales son bienes con IGV. */
-export const tipoFichaRubro = (r: RubroCompra) => (r === "EQ" || r === "HE" ? "EQ" : "MAT");
+/** Tipo de la ficha de almacén (`insumos`) que corresponde al rubro. El EPP tiene su propio tipo (oculto en el APU); nunca es Material. */
+export const tipoFichaRubro = (r: RubroCompra) => (r === "EQ" || r === "HE" ? "EQ" : r === "EPP" ? "EPP" : "MAT");
 
 /** EPP, equipos y herramientas de soporte en obra se imputan a Gastos Generales; los materiales a la partida. */
 export const imputaGastosGenerales = (r: string | null | undefined) => r === "EPP" || r === "EQ" || r === "HE";

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { imputaGastosGenerales, validarRubroUnico } from "./rubros-compra";
+import { imputaGastosGenerales, tipoFichaRubro, validarRubroUnico } from "./rubros-compra";
 
 describe("rubros de compra", () => {
   it("exige elegir el rubro antes de cargar artículos", () => {
@@ -15,5 +15,11 @@ describe("rubros de compra", () => {
     expect(imputaGastosGenerales("EPP")).toBe(true);
     expect(imputaGastosGenerales("HE")).toBe(true);
     expect(imputaGastosGenerales("MAT")).toBe(false);
+  });
+  it("la ficha de almacén del EPP nunca es Material", () => {
+    expect(tipoFichaRubro("EPP")).toBe("EPP");
+    expect(tipoFichaRubro("MAT")).toBe("MAT");
+    expect(tipoFichaRubro("EQ")).toBe("EQ");
+    expect(tipoFichaRubro("HE")).toBe("EQ");
   });
 });
