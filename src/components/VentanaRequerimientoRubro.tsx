@@ -79,7 +79,7 @@ export function VentanaRequerimientoRubro({ abierta, onCerrar, proyectoId, codig
         {rubro && proyectoId && imputaGastosGenerales(rubro) && <p className="text-muted-foreground">Se imputa a Gastos Generales de la obra; no necesita partida.</p>}
         <div className="flex items-center gap-2">
           <Select className="min-w-0 flex-1" value={sel} disabled={!rubro} onChange={(e) => setSel(e.target.value)}>
-            <option value="">{rubro ? `Agregar ${nombreRubro(rubro).toLowerCase()} del catálogo…` : "Primero elige el rubro"}</option>
+            <option value="">{rubro ? `Agregar ${rubro === "EPP" ? "EPP" : nombreRubro(rubro).toLowerCase()} del catálogo…` : "Primero elige el rubro"}</option>
             {catalogo.map((a) => <option key={a.clave} value={a.clave}>{a.nombre} ({a.unidad})</option>)}
           </Select>
           <Boton type="button" variante="linea" disabled={!sel} onClick={agregar}><Plus size={14} className="mr-1 inline" />Agregar</Boton>

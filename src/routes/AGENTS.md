@@ -1,1 +1,2 @@
 - Protected routes check the session locally (getSession) in beforeLoad and every route has a pending screen (PantallaCarga) — navigation never waits on the network with a blank page.
+- Purchases are single-rubro (MAT/EQ/HE/EPP via rubros-compra.ts) and every OC is generated from an approved supplier quote in the Bandeja; stock requests use proyecto_id null — traceable, unmixed purchasing.
