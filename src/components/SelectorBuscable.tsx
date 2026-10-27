@@ -2,7 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { createPortal } from "react-dom";
 import { ChevronDown } from "lucide-react";
 
-export type OpcionLista = { value: string; texto: string };
+export type OpcionLista = { value: string; texto: string; /** Comentario a la derecha, p. ej. «m» → «Metro lineal». */ detalle?: string };
 
 /** Quita mayúsculas, tildes y signos para filtrar sin sensibilidad. */
 const limpiar = (t: string) => t.toLocaleLowerCase("es").normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -150,11 +150,13 @@ export function SelectorBuscable({
                 <button
                   key={`${o.value}-${ix}`}
                   type="button"
+                  title={o.detalle ? `${o.texto} — ${o.detalle}` : o.texto}
                   onMouseEnter={() => setActivo(ix)}
                   onClick={() => elegir(o.value)}
-                  className={`block w-full truncate px-2 py-1 text-left text-xs ${ix === activo ? "bg-primary/10 text-primary" : "hover:bg-muted"}`}
+                  className={`flex w-full items-baseline justify-between gap-2 truncate px-2 py-1 text-left text-xs ${ix === activo ? "bg-primary/10 text-primary" : "hover:bg-muted"}`}
                 >
-                  {o.texto}
+                  <span className="min-w-0 truncate">{o.texto}</span>
+                  {o.detalle && <span className="shrink-0 text-[10px] text-muted-foreground">{o.detalle}</span>}
                 </button>
               ))}
               {lista.length === 0 && <p className="px-2 py-1.5 text-xs text-muted-foreground">Sin coincidencias.</p>}
