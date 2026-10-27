@@ -69,7 +69,7 @@ export function Insumos() {
     "MAT", "MO", "EQ", "HE", "SC",
     ...tiposDb.filter((t) => !t.oculto && !(TIPOS_SISTEMA as readonly string[]).includes(t.clave)).map((t) => t.clave),
   ];
-  const etiquetaTipo = (t: TipoInsumo) => t === "EQ" ? "Equipos" : t === "HE" ? "Herramientas" : TIPOS_INSUMO.find(([k]) => k === t)?.[1] ?? t;
+  const etiquetaTipo = (t: TipoInsumo) => t === "EQ" ? "EQUIPOS" : t === "HE" ? "HERRAMIENTAS" : TIPOS_INSUMO.find(([k]) => k === t)?.[1] ?? t;
 
   // Grupos con el mismo estilo de navegación de la pantalla Datos (Catálogos maestros).
   const GRUPOS_INSUMOS: { titulo: string; icono: React.ElementType; items: [SeccionInsumos, string][] }[] = [
