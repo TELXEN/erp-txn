@@ -291,11 +291,12 @@ function AlmacenPage() {
         <Panel titulo="Transferir entre almacenes">
           <form onSubmit={transferir} className="grid gap-3 px-5 py-4 sm:grid-cols-2">
             <Campo etiqueta="Origen">
-              <Select value={tr.origen} onChange={(e) => setTr({ ...tr, origen: e.target.value, insumo_id: "", error: "" })}>{opcionesAlmacen}</Select>
+              <Select value={tr.origen} onChange={(e) => setTr({ ...tr, origen: e.target.value, destino: tr.destino === e.target.value ? "" : tr.destino, insumo_id: "", error: "" })}>{opcionesAlmacen}</Select>
             </Campo>
             <Campo etiqueta="Destino">
               <Select value={tr.destino} onChange={(e) => setTr({ ...tr, destino: e.target.value, error: "" })}>
-                <option value="">Seleccionar…</option>{opcionesAlmacen}
+                <option value="">Seleccionar…</option>
+                {activos.map((a) => { const v = valorDeAlmacen(a.proyecto_id); return <option key={a.id} value={v} disabled={v === tr.origen}>{a.tipo === "central" ? "Almacén Central" : nombreProy(a.proyecto_id)}</option>; })}
               </Select>
             </Campo>
             <Campo etiqueta="Insumo">
