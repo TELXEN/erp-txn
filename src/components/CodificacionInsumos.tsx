@@ -8,6 +8,15 @@ import { recodificarWbs } from "@/lib/wbs";
 
 const db = supabase as unknown as { from: (t: string) => any };
 
+const REGLA = [
+  { nombre: "MANO DE OBRA", clave: "MO", digito: 1, ss: false },
+  { nombre: "MATERIALES", clave: "MAT", digito: 2, ss: true },
+  { nombre: "EQUIPOS", clave: "EQ", digito: 3, ss: false },
+  { nombre: "HERRAMIENTAS", clave: "EQ", digito: 4, ss: false },
+  { nombre: "SUBCONTRATOS", clave: "SC", digito: 5, ss: false },
+  { nombre: "EQUIPO DE PROTECCIÓN PERSONAL", clave: "EPP", digito: 6, ss: false },
+];
+
 type Edicion = Record<string, { nombre: string; digito: number; correlativo: number }>;
 
 /** Clave corta única derivada del nombre (ej. «MANO DE OBRA ESPECIAL» → MOE). */
@@ -131,8 +140,8 @@ export function CodificacionInsumos({ onAgregarTipo }: { onAgregarTipo?: (tipo: 
                 <th className="py-2 pr-3 font-medium">Tipo de insumo</th>
                 <th className="w-16 py-2 pr-3 font-medium">Clave</th>
                 <th className="w-24 px-3 py-2 font-medium">Dígito</th>
-                <th className="w-32 px-3 py-2 font-medium">Último correlativo</th>
-                <th className="py-2 pl-3 font-medium">Próximo código</th>
+                <th className="w-32 px-3 py-2 font-medium">Estructura</th>
+                <th className="py-2 pl-3 font-medium">Formato del código</th>
                 <th className="py-2 pl-2 font-medium"></th>
               </tr>
             </thead>
@@ -160,67 +169,20 @@ export function CodificacionInsumos({ onAgregarTipo }: { onAgregarTipo?: (tipo: 
                   </td>
                 </tr>
               )}
-              {tipos.filter((t) => !t.oculto).map((t) => {
-                const f = form[t.id] ?? { nombre: t.nombre, digito: t.digito, correlativo: Number(t.correlativo) };
-                return (
-                  <tr key={t.id} className="border-b border-line/40 last:border-0">
-                    <td className="py-2 pr-3 text-ink">
-                      {t.es_sistema ? (
-                        t.nombre
-                      ) : (
-                        <Input
-                          className="py-1 uppercase"
-                          value={f.nombre}
-                          onChange={(e) => setForm({ ...form, [t.id]: { ...f, nombre: e.target.value.toUpperCase() } })}
-                        />
-                      )}
-                    </td>
-                    <td className="py-2 pr-3 text-muted-foreground">{t.clave}</td>
-                    <td className="px-3 py-2">
-                      <Input
-                        className="py-1 text-center"
-                        type="number"
-                        min={0}
-                        max={9}
-                        value={f.digito}
-                        onChange={(e) => setForm({ ...form, [t.id]: { ...f, digito: Number(e.target.value) } })}
-                      />
-                    </td>
-                    <td className="px-3 py-2">
-                      <Input
-                        className="py-1 text-center"
-                        type="number"
-                        min={0}
-                        value={f.correlativo}
-                        onChange={(e) => setForm({ ...form, [t.id]: { ...f, correlativo: Number(e.target.value) } })}
-                      />
-                    </td>
-                    <td className="py-2 pl-3 font-semibold text-primary">
-                      {String(f.digito)}
-                      {String(f.correlativo + 1).padStart(7, "0")}
-                    </td>
-                    <td className="py-2 pl-2">
-                      {!t.es_sistema && (
-                        <button
-                          type="button"
-                          title={`Eliminar tipo ${t.nombre}`}
-                          onClick={() => void eliminarTipo(t)}
-                          className="grid h-6 w-6 place-items-center rounded-md border border-line text-bad transition-colors hover:bg-bad/10"
-                        >
-                          <Trash2 size={12} />
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
+              {REGLA.map((r) => (
+                <tr key={r.digito} className="border-b border-line/40 last:border-0">
+                  <td className="py-2 pr-3 text-ink">{r.nombre}</td>
+                  <td className="py-2 pr-3 text-muted-foreground">{r.clave}</td>
+                  <td className="px-3 py-2 text-center text-sm font-semibold">{r.digito}</td>
+                  <td className="px-3 py-2 text-muted-foreground">{r.ss ? "Especialidad + subfamilia" : "Especialidad + 00"}</td>
+                  <td className="py-2 pl-3 font-semibold text-primary">{r.digito}EE{r.ss ? "SS" : "00"}NNN</td>
+                  <td />
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
         <div className="flex flex-wrap items-center gap-3 border-t border-line px-4 py-3">
-          <Boton type="submit" disabled={guardando}>
-            {guardando ? "Guardando…" : "Guardar regla"}
-          </Boton>
           {error && <span className="font-mono text-xs text-bad">{error}</span>}
           {aviso && <span className="font-mono text-xs text-good">{aviso}</span>}
         </div>
@@ -228,26 +190,11 @@ export function CodificacionInsumos({ onAgregarTipo }: { onAgregarTipo?: (tipo: 
 
       <Panel titulo="Cómo funciona">
         <div className="space-y-3 p-4">
-          {fMo && (
-            <div className="grid place-items-center rounded-md border border-dashed border-line bg-muted/40 p-5">
-              <p className="font-mono text-lg font-semibold text-primary">
-                {fMo.digito}
-                {String(fMo.correlativo + 1).padStart(7, "0")}
-              </p>
-              <p className="mt-1 font-mono text-[10px] text-muted-foreground">Ejemplo: próximo código de mano de obra</p>
-            </div>
-          )}
           <p className="font-mono text-[10px] leading-relaxed text-muted-foreground">
-            El botón + junto al título crea un tipo de insumo nuevo (al mismo nivel que mano de obra o materiales): recibe
-            el siguiente dígito libre, su propia pestaña en el Maestro de insumos, su margen en Márgenes APU y su propio
-            grupo en los análisis de precios unitarios. El dígito y el último correlativo de cada tipo se editan
-            directamente en la tabla.
-            Los cinco tipos del sistema no se pueden eliminar; un tipo nuevo solo se elimina si no tiene insumos.
-          </p>
-          <p className="font-mono text-[10px] leading-relaxed text-muted-foreground">
-            Cada insumo nuevo recibe un código de 8 dígitos: el primero identifica el tipo y los siete restantes son el
-            correlativo. El código se reserva en el servidor al guardar, por lo que nunca se repite. Las partidas usan el
-            dígito de su tipo (T) seguido del orden de especialidad, categoría y correlativo (ej. 20302005).
+            Cada insumo recibe un código de 8 dígitos: tipo (1 dígito) + especialidad (2) + subfamilia (2, solo
+            materiales; el resto 00) + correlativo (3). Ejemplo: Capataz 10600001. Equipos y herramientas se separan
+            solo en el código (3 y 4); en el APU siguen juntos. El EPP no entra al APU. Herramientas manuales no lleva
+            código. El código se genera solo al guardar la ficha y nunca se repite.
           </p>
         </div>
       </Panel>
