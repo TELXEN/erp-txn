@@ -638,6 +638,13 @@
       "when": 1793077144823,
       "tag": "0090_rubro_requerimientos_stock",
       "breakpoints": true
+    },
+    {
+      "idx": 91,
+      "version": "7",
+      "when": 1793080251437,
+      "tag": "0091_tipo_insumo_epp",
+      "breakpoints": true
     }
   ]
 }
