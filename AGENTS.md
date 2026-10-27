@@ -62,3 +62,4 @@
 - Requerimientos: obra → gerente approves (trigger) → Bandeja quotes → approved quote creates OC → recepcionar_orden_obra RPC receives in obra. «Aprobar y generar OC» shows only with prices and pending qty; registering a quote requires ≥1 price.
 - Supplier quotation management opens from each inbox requirement; its request dialog selects outstanding items and suppliers together — purchasing actions must not depend on discovering hidden item-selection steps.
 - Purchase orders use HojaOrdenCompra, DOC and A4 printing; orden-compra-montos shares tax totals, orden-compra-pago encodes terms in the existing field — costs/history unchanged.
+- Field consumption: Consumir needs a partida; vales via registrar_vale_salida RPC; budget check in consumo-partida.ts warns, never blocks.
