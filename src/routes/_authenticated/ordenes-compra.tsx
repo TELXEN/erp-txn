@@ -371,7 +371,7 @@ function OrdenesCompraPage() {
         }
       />
 
-      <VentanaFlotante abierta={!!recep} onCerrar={() => setRecep(null)} titulo="Recibir en almacén" subtitulo={ordenes.find((o) => o.id === recep?.id)?.codigo} ancho="max-w-md">
+      <VentanaFlotante abierta={!!recep} onCerrar={() => setRecep(null)} titulo="Recibir en almacén" subtitulo={ordenes.find((o) => o.id === recep?.id)?.codigo ?? ""} ancho="max-w-md">
         {recep && (
           <div className="space-y-4 p-5 text-xs">
             <Campo etiqueta="Almacén de destino">
