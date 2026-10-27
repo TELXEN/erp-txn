@@ -3,7 +3,7 @@ import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowDownToLine, ArrowUpFromLine, Upload } from "lucide-react";
+import { ArrowDownToLine, ArrowLeftRight, ArrowUpFromLine, PackageCheck, Upload } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Input, MenuFiltros, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
@@ -12,7 +12,8 @@ import { soles } from "@/lib/format";
 import { useProyectos } from "@/lib/datos";
 import { apuDb, useInsumos } from "@/lib/apu";
 import { exportarExcel } from "@/lib/exportar";
-import { calcularStock, claveStock, num, sincronizarEstadoOC, useItemsOC, useMovimientos, useOrdenesCompra } from "@/lib/logistica";
+import { calcularStock, claveStock, num, sincronizarEstadoOC, useAlmacenes, useItemsOC, useMovimientos, useOrdenesCompra } from "@/lib/logistica";
+import { almacenDeValor, valorDeAlmacen } from "@/lib/almacenes";
 
 export const Route = createFileRoute("/_authenticated/almacen")({
   head: () => ({
@@ -38,6 +39,9 @@ function AlmacenPage() {
   const { data: movs = [] } = useMovimientos();
   const { data: ordenes = [] } = useOrdenesCompra();
   const { data: itemsOC = [] } = useItemsOC();
+  const { data: almacenes = [] } = useAlmacenes();
+  const [tr, setTr] = useState({ origen: "central", destino: "", insumo_id: "", cantidad: "", documento: "", observacion: "", error: "" });
+  const [almStock, setAlmStock] = useRecordado("almacen:stock", "");
   const [form, setForm] = useState({
     tipo: "Salida" as "Ingreso" | "Salida",
     fecha: hoy(),
@@ -60,17 +64,54 @@ function AlmacenPage() {
 
   const stock = calcularStock(movs);
   const ins = insumos.find((i) => i.id === form.insumo_id);
-  const stockSel = ins && form.proyecto_id
-    ? stock.find((s) => s.clave === claveStock({ proyecto_id: form.proyecto_id, insumo_id: ins.id, descripcion: ins.nombre }))
-    : undefined;
-  const nombreProy = (id: string) => {
+  const pidForm = almacenDeValor(form.proyecto_id);
+  const stockDe = (pid: string | null, insumoId: string) =>
+    stock.find((s) => s.clave === claveStock({ proyecto_id: pid as string, insumo_id: insumoId, descripcion: "" }));
+  const stockSel = ins && form.proyecto_id ? stockDe(pidForm, ins.id) : undefined;
+  const nombreProy = (id: string | null) => {
+    if (!id) return "Almacén Central";
     const p = proyectos.find((x) => x.id === id);
     return p ? (p.codigo ? `${p.codigo} · ${p.nombre}` : p.nombre) : "—";
   };
+  const activos = almacenes.filter((a) => a.activo).sort((a, b) => (a.tipo === "central" ? -1 : b.tipo === "central" ? 1 : a.nombre.localeCompare(b.nombre, "es")));
+  const opcionesAlmacen = activos.map((a) => <option key={a.id} value={valorDeAlmacen(a.proyecto_id)}>{a.tipo === "central" ? "Almacén Central" : nombreProy(a.proyecto_id)}</option>);
+  const enTransito = movs.filter((m) => m.tipo === "Ingreso" && m.estado === "En tránsito");
+  const pidTrOrigen = almacenDeValor(tr.origen);
+  const insumosOrigen = insumos.filter((i) => (stockDe(pidTrOrigen, i.id)?.stock ?? 0) > 0.0001);
+  const stockTr = tr.insumo_id ? stockDe(pidTrOrigen, tr.insumo_id) : undefined;
+
+  async function transferir(e: React.FormEvent) {
+    e.preventDefault();
+    if (!tr.destino) return setTr({ ...tr, error: "Elige el almacén de destino." });
+    if (tr.origen === tr.destino) return setTr({ ...tr, error: "Origen y destino deben ser distintos." });
+    const cant = Number(tr.cantidad);
+    if (!tr.insumo_id || !(cant > 0)) return setTr({ ...tr, error: "Elige el insumo y una cantidad mayor que cero." });
+    if (cant > (stockTr?.stock ?? 0) + 0.0001) return setTr({ ...tr, error: `Stock insuficiente: disponible ${num(stockTr?.stock ?? 0)}.` });
+    const { error: err } = await apuDb.rpc("transferir_almacen", {
+      _origen: pidTrOrigen, _destino: almacenDeValor(tr.destino),
+      _items: [{ insumo_id: tr.insumo_id, cantidad: cant }],
+      _fecha: hoy(), _documento: tr.documento.trim(), _obs: tr.observacion.trim(),
+    });
+    if (err) return setTr({ ...tr, error: err.message });
+    setTr({ ...tr, insumo_id: "", cantidad: "", documento: "", observacion: "", error: "" });
+    qc.invalidateQueries({ queryKey: ["movimientos_almacen"] });
+  }
+  async function recibirTr(id: string) {
+    const { error: err } = await apuDb.rpc("recibir_transferencia", { _transferencia: id, _fecha: hoy() });
+    if (err) return setError(err.message);
+    qc.invalidateQueries({ queryKey: ["movimientos_almacen"] });
+  }
+  async function cambiarAlmacen(id: string, cambios: Record<string, unknown>) {
+    const { error: err } = await apuDb.from("almacenes").update(cambios).eq("id", id);
+    if (err) return window.alert(err.message);
+    qc.invalidateQueries({ queryKey: ["almacenes"] });
+  }
+  const pidStock = almacenDeValor(almStock);
+  const stockVista = stock.filter((s) => s.stock > 0.0001 && (!almStock || (s.proyecto_id ?? null) === pidStock));
   /** En salidas solo se ofrecen insumos con stock en la obra. */
   const opciones =
     form.tipo === "Salida"
-      ? insumos.filter((i) => stock.some((s) => s.proyecto_id === form.proyecto_id && s.insumo_id === i.id && s.stock > 0))
+      ? insumos.filter((i) => stock.some((s) => (s.proyecto_id ?? null) === pidForm && s.insumo_id === i.id && s.stock > 0))
       : insumos.filter((i) => i.activo && i.tipo !== "MO");
 
   /** Ítems de OC (no anuladas) de la obra con saldo pendiente para el insumo elegido. */
@@ -86,7 +127,7 @@ function AlmacenPage() {
       (x) =>
         x.oc &&
         x.oc.estado !== "Anulada" &&
-        x.oc.proyecto_id === form.proyecto_id &&
+        x.oc.proyecto_id === pidForm &&
         x.item.insumo_id === form.insumo_id &&
         x.saldo > 0.0001,
     );
@@ -95,7 +136,7 @@ function AlmacenPage() {
   async function guardar(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    if (!form.proyecto_id || !ins) return setError("Selecciona la obra y el insumo.");
+    if (!form.proyecto_id || !ins) return setError("Selecciona el almacén y el insumo.");
     const cant = Number(form.cantidad);
     if (!(cant > 0)) return setError("La cantidad debe ser mayor que cero.");
     if (form.tipo === "Salida" && cant > (stockSel?.stock ?? 0) + 0.0001)
@@ -105,8 +146,9 @@ function AlmacenPage() {
     const { error: err } = await apuDb.from("movimientos_almacen").insert({
       tipo: form.tipo,
       fecha: form.fecha,
-      proyecto_id: form.proyecto_id,
+      proyecto_id: pidForm,
       insumo_id: ins.id,
+      motivo: form.tipo === "Ingreso" ? (form.orden_item_id ? "Compra" : "Ingreso manual") : "Consumo",
       descripcion: ins.nombre,
       unidad: ins.unidad,
       cantidad: cant,
@@ -138,7 +180,7 @@ function AlmacenPage() {
     qc.invalidateQueries({ queryKey: ["movimientos_almacen"] });
   }
 
-  const visibles = movs.filter((m) => (!filtroObra || m.proyecto_id === filtroObra) && (!filtroTipo || m.tipo === filtroTipo) && coincide(busqueda, m.descripcion, nombreProy(m.proyecto_id), m.documento, m.observacion));
+  const visibles = movs.filter((m) => (!filtroObra || (m.proyecto_id ?? null) === almacenDeValor(filtroObra)) && (!filtroTipo || m.tipo === filtroTipo) && coincide(busqueda, m.descripcion, nombreProy(m.proyecto_id), m.documento, m.observacion));
 
   function exportar() {
     exportarExcel("almacen-movimientos", [
@@ -147,7 +189,8 @@ function AlmacenPage() {
         filas: visibles.map((m) => ({
           Fecha: m.fecha,
           Tipo: m.tipo,
-          Obra: nombreProy(m.proyecto_id),
+          Almacén: nombreProy(m.proyecto_id),
+          Motivo: m.motivo ?? "",
           Insumo: m.descripcion,
           Unidad: m.unidad,
           Cantidad: Number(m.cantidad),
@@ -176,22 +219,22 @@ function AlmacenPage() {
         <form onSubmit={guardar} className="grid gap-3 px-5 py-4 sm:grid-cols-4">
           <Campo etiqueta="Tipo">
             <Select value={form.tipo} onChange={(e) => setForm({ ...form, tipo: e.target.value as "Ingreso" | "Salida", insumo_id: "", orden_item_id: "" })}>
-              <option value="Salida">Salida a obra (consumo)</option>
+              <option value="Salida">Consumo / salida</option>
               <option value="Ingreso">Ingreso manual</option>
             </Select>
           </Campo>
           <Campo etiqueta="Fecha">
             <Input type="date" value={form.fecha} onChange={(e) => setForm({ ...form, fecha: e.target.value })} />
           </Campo>
-          <Campo etiqueta="Obra">
+          <Campo etiqueta="Almacén">
             <Select value={form.proyecto_id} onChange={(e) => setForm({ ...form, proyecto_id: e.target.value, insumo_id: "", orden_item_id: "" })}>
               <option value="">Seleccionar…</option>
-              {proyectos.map((p) => <option key={p.id} value={p.id}>{nombreProy(p.id)}</option>)}
+              {opcionesAlmacen}
             </Select>
           </Campo>
           <Campo etiqueta="Insumo">
             <Select value={form.insumo_id} disabled={!form.proyecto_id} onChange={(e) => setForm({ ...form, insumo_id: e.target.value, orden_item_id: "" })}>
-              <option value="">{form.tipo === "Salida" && opciones.length === 0 ? "Sin stock en esta obra" : "Seleccionar…"}</option>
+              <option value="">{form.tipo === "Salida" && opciones.length === 0 ? "Sin stock en este almacén" : "Seleccionar…"}</option>
               {opciones.map((i) => <option key={i.id} value={i.id}>{i.nombre} ({i.unidad})</option>)}
             </Select>
           </Campo>
@@ -243,6 +286,115 @@ function AlmacenPage() {
         </p>
       </Panel>
 
+      <div className="mb-5 grid gap-5 lg:grid-cols-2">
+        <Panel titulo="Transferir entre almacenes">
+          <form onSubmit={transferir} className="grid gap-3 px-5 py-4 sm:grid-cols-2">
+            <Campo etiqueta="Origen">
+              <Select value={tr.origen} onChange={(e) => setTr({ ...tr, origen: e.target.value, insumo_id: "", error: "" })}>{opcionesAlmacen}</Select>
+            </Campo>
+            <Campo etiqueta="Destino">
+              <Select value={tr.destino} onChange={(e) => setTr({ ...tr, destino: e.target.value, error: "" })}>
+                <option value="">Seleccionar…</option>{opcionesAlmacen}
+              </Select>
+            </Campo>
+            <Campo etiqueta="Insumo">
+              <Select value={tr.insumo_id} onChange={(e) => setTr({ ...tr, insumo_id: e.target.value, error: "" })}>
+                <option value="">{insumosOrigen.length ? "Seleccionar…" : "Sin stock en el origen"}</option>
+                {insumosOrigen.map((i) => <option key={i.id} value={i.id}>{i.nombre} ({i.unidad})</option>)}
+              </Select>
+            </Campo>
+            <Campo etiqueta={`Cantidad${stockTr ? ` · stock ${num(stockTr.stock)}` : ""}`}>
+              <Input type="number" step="0.0001" min="0" value={tr.cantidad} onChange={(e) => setTr({ ...tr, cantidad: e.target.value })} />
+            </Campo>
+            <Campo etiqueta="Guía interna">
+              <Input value={tr.documento} onChange={(e) => setTr({ ...tr, documento: e.target.value })} />
+            </Campo>
+            <Campo etiqueta="Observación">
+              <Input value={tr.observacion} onChange={(e) => setTr({ ...tr, observacion: e.target.value })} />
+            </Campo>
+            <div className="flex items-end sm:col-span-2">
+              <Boton type="submit"><ArrowLeftRight size={14} className="mr-1 inline" /> Enviar transferencia</Boton>
+              {tr.error && <p className="ml-3 font-mono text-xs text-bad">{tr.error}</p>}
+            </div>
+          </form>
+          <p className="border-t border-line px-5 py-2 font-mono text-[10px] text-muted-foreground">
+            Sale del origen al instante y queda «En tránsito» hasta que el destino la recibe. Las transferencias no cargan costo a la obra; solo el consumo.
+          </p>
+        </Panel>
+        <Panel titulo={`En tránsito (${enTransito.length})`}>
+          {enTransito.length === 0 ? <Vacio texto="No hay transferencias por recibir." /> : (
+            <table className="w-full font-mono text-xs">
+              <tbody>
+                {enTransito.map((m) => (
+                  <tr key={m.id} className="border-b border-line/40">
+                    <td className="px-5 py-2">{m.fecha}</td>
+                    <td className="px-3 py-2">{m.descripcion}</td>
+                    <td className="px-3 py-2 text-right">{num(Number(m.cantidad))} {m.unidad}</td>
+                    <td className="px-3 py-2 text-ink">→ {nombreProy(m.proyecto_id)}</td>
+                    <td className="px-3 py-2 text-right">
+                      <Boton variante="linea" onClick={() => m.transferencia_id && void recibirTr(m.transferencia_id)}><PackageCheck size={13} className="mr-1 inline" /> Recibir</Boton>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </Panel>
+      </div>
+
+      <div className="mb-5 grid gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+        <Panel titulo="Stock por almacén" acciones={
+          <Select className="h-7 py-0 text-xs" value={almStock} onChange={(e) => setAlmStock(e.target.value)}>
+            <option value="">Consolidado (todos)</option>{opcionesAlmacen}
+          </Select>}>
+          {stockVista.length === 0 ? <Vacio texto="Sin existencias." /> : (
+            <table className="w-full font-mono text-xs">
+              <thead>
+                <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+                  <th className="px-5 py-2 font-medium">Almacén</th>
+                  <th className="px-3 py-2 font-medium">Insumo</th>
+                  <th className="px-3 py-2 text-right font-medium">Stock</th>
+                  <th className="px-3 py-2 text-right font-medium">C. promedio</th>
+                  <th className="px-3 py-2 text-right font-medium">Valor</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stockVista.map((s) => (
+                  <tr key={s.clave} className="border-b border-line/40">
+                    <td className="px-5 py-2 text-ink">{nombreProy(s.proyecto_id)}</td>
+                    <td className="px-3 py-2">{s.descripcion}</td>
+                    <td className="px-3 py-2 text-right">{num(s.stock)} {s.unidad}</td>
+                    <td className="px-3 py-2 text-right">{soles(s.costoPromedio)}</td>
+                    <td className="px-3 py-2 text-right">{soles(s.valor)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </Panel>
+        <Panel titulo="Almacenes">
+          <table className="w-full font-mono text-xs">
+            <tbody>
+              {almacenes.slice().sort((a, b) => (a.tipo === "central" ? -1 : b.tipo === "central" ? 1 : 0)).map((a) => (
+                <tr key={a.id} className="border-b border-line/40">
+                  <td className="px-5 py-2 text-ink">{a.tipo === "central" ? "Almacén Central" : nombreProy(a.proyecto_id)}</td>
+                  <td className="px-3 py-1">
+                    <Input className="h-7 text-xs" placeholder="Responsable" defaultValue={a.responsable}
+                      onBlur={(e) => e.target.value !== a.responsable && void cambiarAlmacen(a.id, { responsable: e.target.value.trim() })} />
+                  </td>
+                  <td className="px-3 py-2 text-right">
+                    {a.tipo === "central" ? <span className="text-muted-foreground">Fijo</span> : (
+                      <button type="button" className={a.activo ? "text-primary" : "text-muted-foreground"}
+                        onClick={() => void cambiarAlmacen(a.id, { activo: !a.activo })}>{a.activo ? "Activo" : "Cerrado"}</button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Panel>
+      </div>
+
       <div className="flex items-start gap-3">
       <Panel className="min-w-0 flex-1"
         titulo="Movimientos"
@@ -255,7 +407,7 @@ function AlmacenPage() {
               <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
                 <th className="px-5 py-2 font-medium">Fecha</th>
                 <th className="px-3 py-2 font-medium">Tipo</th>
-                <th className="px-3 py-2 font-medium">Obra</th>
+                <th className="px-3 py-2 font-medium">Almacén</th>
                 <th className="px-3 py-2 font-medium">Insumo</th>
                 <th className="px-3 py-2 text-right font-medium">Cantidad</th>
                 <th className="px-3 py-2 text-right font-medium">Importe</th>
@@ -268,7 +420,7 @@ function AlmacenPage() {
                   <td className="px-5 py-2">{m.fecha}</td>
                   <td className="px-3 py-2">
                     <span className={`inline-flex items-center gap-1 ${m.tipo === "Ingreso" ? "text-primary" : "text-muted-foreground"}`}>
-                      {m.tipo === "Ingreso" ? <ArrowDownToLine size={12} /> : <ArrowUpFromLine size={12} />} {m.tipo}
+                      {m.tipo === "Ingreso" ? <ArrowDownToLine size={12} /> : <ArrowUpFromLine size={12} />} {m.motivo === "Transferencia" ? `Transf. ${m.tipo === "Ingreso" ? "entrada" : "salida"}` : m.tipo}{m.estado === "En tránsito" ? " · en tránsito" : ""}
                     </span>
                   </td>
                   <td className="px-3 py-2 text-ink"><Resaltar texto={nombreProy(m.proyecto_id)} termino={busqueda} /></td>
@@ -286,10 +438,10 @@ function AlmacenPage() {
       <BarraIconosHoja objeto="movimiento" filtros={
         <MenuFiltros activos={[busqueda, filtroObra, filtroTipo].filter(Boolean).length} onLimpiar={() => { setBusqueda(""); setFiltroObra(""); setFiltroTipo(""); }}>
           <Buscador valor={busqueda} onChange={setBusqueda} placeholder="Buscar por insumo, obra, documento..." total={visibles.length} />
-          <Campo etiqueta="Obra">
+          <Campo etiqueta="Almacén">
             <Select className="h-8 py-0 text-xs" value={filtroObra} onChange={(e) => setFiltroObra(e.target.value)}>
-              <option value="">Todas las obras</option>
-              {proyectos.map((p) => <option key={p.id} value={p.id}>{nombreProy(p.id)}</option>)}
+              <option value="">Todos los almacenes</option>
+              {opcionesAlmacen}
             </Select>
           </Campo>
           <Campo etiqueta="Tipo">
