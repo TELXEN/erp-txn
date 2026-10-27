@@ -21,18 +21,18 @@ export function CeldaSubfamilia({ insumo, refrescar }: { insumo: Insumo; refresc
       .map((s) => ({ value: s.id, texto: s.nombre, detalle: s.codigo })),
   ];
 
-  async function cambiar(v: string) {
+  async function cambiar(v: string): Promise<void> {
     if (v === (insumo.subfamilia_id ?? "")) return;
-    if (!esp) return toast.error("Primero asigna una especialidad a este insumo.");
-    if (esMat && !v) return toast.error("Los materiales requieren subfamilia.");
+    if (!esp) { toast.error("Primero asigna una especialidad a este insumo."); return; }
+    if (esMat && !v) { toast.error("Los materiales requieren subfamilia."); return; }
     setGuardando(true);
     const { data: codigo, error } = await db.rpc("siguiente_codigo_insumo_modular", {
       _especialidad: esp, _tipo: insumo.tipo, _subfamilia: v || null, _categoria: insumo.categoria_inventario ?? null,
     });
-    if (error) { setGuardando(false); return toast.error(error.message); }
+    if (error) { setGuardando(false); toast.error(error.message); return; }
     const { error: e2 } = await db.from("insumos").update({ subfamilia_id: v || null, codigo }).eq("id", insumo.id);
     setGuardando(false);
-    if (e2) return toast.error(e2.message);
+    if (e2) { toast.error(e2.message); return; }
     toast.success(`Código actualizado: ${codigo}`);
     refrescar();
   }
