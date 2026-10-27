@@ -603,6 +603,13 @@
       "when": 1793068581656,
       "tag": "0085_almacen_encargados",
       "breakpoints": true
+    },
+    {
+      "idx": 86,
+      "version": "7",
+      "when": 1793068750768,
+      "tag": "0086_recibir_obra_solo_encargado",
+      "breakpoints": true
     }
   ]
 }

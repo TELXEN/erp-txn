@@ -65,15 +65,15 @@ function AlmacenPage() {
   const almacenDe = (pid: string | null) => almacenes.find((a) => (a.proyecto_id ?? null) === (pid ?? null));
   const encDe = (almId?: string) => encargados.filter((e) => e.almacen_id === almId);
   const nombreUsuario = (id: string) => { const u = usuarios.find((x) => x.id === id); return u ? (u.nombre || u.email) : "Usuario"; };
-  /** Central: gerente o encargado. Obra: encargado; sin encargados asignados, el gerente. */
+  /** Central: gerente o encargado. Obra: solo sus encargados. */
   const puedeRecibir = (pid: string | null) => {
     const enc = encDe(almacenDe(pid)?.id);
     if (enc.some((e) => e.user_id === yo)) return true;
-    return esGerente && (pid === null || enc.length === 0);
+    return esGerente && pid === null;
   };
   const quienRecibe = (pid: string | null) => {
     const n = encDe(almacenDe(pid)?.id).map((e) => nombreUsuario(e.user_id));
-    return pid === null ? ["Gerente/Dueño", ...n].join(", ") : n.length ? n.join(", ") : "Gerente/Dueño (la obra no tiene encargado)";
+    return pid === null ? ["Gerente/Dueño", ...n].join(", ") : n.length ? n.join(", ") : "nadie aún: asigna un encargado a esta obra";
   };
   async function agregarEnc(almId: string, uid: string) {
     if (!uid) return;
