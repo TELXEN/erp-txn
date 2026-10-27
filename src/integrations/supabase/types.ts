@@ -50,6 +50,35 @@ export type Database = {
         }
         Relationships: []
       }
+      almacen_encargados: {
+        Row: {
+          almacen_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          almacen_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          almacen_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "almacen_encargados_almacen_id_fkey"
+            columns: ["almacen_id"]
+            isOneToOne: false
+            referencedRelation: "almacenes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       almacenes: {
         Row: {
           activo: boolean
@@ -3222,6 +3251,8 @@ export type Database = {
           observacion: string
           orden_item_id: string | null
           proyecto_id: string | null
+          recibido_en: string | null
+          recibido_por: string | null
           tipo: string
           transferencia_id: string | null
           unidad: string
@@ -3241,6 +3272,8 @@ export type Database = {
           observacion?: string
           orden_item_id?: string | null
           proyecto_id?: string | null
+          recibido_en?: string | null
+          recibido_por?: string | null
           tipo: string
           transferencia_id?: string | null
           unidad?: string
@@ -3260,6 +3293,8 @@ export type Database = {
           observacion?: string
           orden_item_id?: string | null
           proyecto_id?: string | null
+          recibido_en?: string | null
+          recibido_por?: string | null
           tipo?: string
           transferencia_id?: string | null
           unidad?: string
@@ -6384,6 +6419,10 @@ export type Database = {
         Returns: number
       }
       eliminar_proyecto: { Args: { _id: string }; Returns: Json }
+      es_encargado_almacen: {
+        Args: { _proyecto: string; _user: string }
+        Returns: boolean
+      }
       es_personal: { Args: { _user_id: string }; Returns: boolean }
       guardar_especialidad: {
         Args: {
@@ -6432,6 +6471,10 @@ export type Database = {
           _operacion: string
         }
         Returns: undefined
+      }
+      puede_recibir_almacen: {
+        Args: { _proyecto: string; _user: string }
+        Returns: boolean
       }
       quitar_recurso_apu: {
         Args: { _id: string; _tabla: string }
