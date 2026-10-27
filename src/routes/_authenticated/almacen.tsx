@@ -15,7 +15,7 @@ import { soles } from "@/lib/format";
 import { usePartidas, useProyectos, useTrabajadores } from "@/lib/datos";
 import { apuDb, useInsumos } from "@/lib/apu";
 import { exportarExcel } from "@/lib/exportar";
-import { calcularStock, claveStock, num, sincronizarEstadoOC, useAlmacenes, useItemsOC, useMovimientos, useOrdenesCompra } from "@/lib/logistica";
+import { calcularStock, claveStock, num, sincronizarEstadoOC, useAlmacenes, useItemsOC, useMovimientos, useOrdenesCompra, type Movimiento } from "@/lib/logistica";
 import { almacenDeValor, valorDeAlmacen } from "@/lib/almacenes";
 
 export const Route = createFileRoute("/_authenticated/almacen")({
