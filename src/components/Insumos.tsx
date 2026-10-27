@@ -33,7 +33,7 @@ import {
   MARGENES_DEFECTO,
 } from "@/lib/apu";
 
-type SeccionInsumos = TipoInsumo | "margenes" | "laboral" | "codificacion";
+type SeccionInsumos = TipoInsumo | "HE" | "margenes" | "laboral" | "codificacion";
 
 export function Insumos() {
   const qc = useQueryClient();
@@ -49,12 +49,13 @@ export function Insumos() {
 
   const visibles = lista
     .filter((i) => i.tipo === filtro)
+    .filter((i) => filtro !== "EQ" || (claseInsumo(i) === "Herramienta") === (seccion === "HE"))
     .filter((i) => coincide(busqueda, i.codigo, i.nombre))
     .sort((a, b) => filtro === "MO" ? compararManoObra(a, b) : 0);
 
   function cambiarPestana(t: TipoInsumo) {
     setSeccion(t);
-    setFiltro(t);
+    setFiltro(t === "HE" ? "EQ" : t);
   }
 
   function agregarInsumo(t: TipoInsumo) {
@@ -65,10 +66,10 @@ export function Insumos() {
   // Orden de pestañas del maestro: Materiales antes de Mano de obra.
   const { data: tiposDb = [] } = useTiposInsumo();
   const ORDEN_PESTANAS: TipoInsumo[] = [
-    "MAT", "MO", "EQ", "SC",
+    "MAT", "MO", "EQ", "HE", "SC",
     ...tiposDb.filter((t) => !t.oculto && !(TIPOS_SISTEMA as readonly string[]).includes(t.clave)).map((t) => t.clave),
   ];
-  const etiquetaTipo = (t: TipoInsumo) => TIPOS_INSUMO.find(([k]) => k === t)?.[1] ?? t;
+  const etiquetaTipo = (t: TipoInsumo) => t === "EQ" ? "EQUIPOS" : t === "HE" ? "HERRAMIENTAS" : TIPOS_INSUMO.find(([k]) => k === t)?.[1] ?? t;
 
   // Grupos con el mismo estilo de navegación de la pantalla Datos (Catálogos maestros).
   const GRUPOS_INSUMOS: { titulo: string; icono: React.ElementType; items: [SeccionInsumos, string][] }[] = [
@@ -158,11 +159,13 @@ export function Insumos() {
       ) : filtro === "HT" ? (
         <HerramientasWysiwyg enfoqueNueva={crearEn === "HT"} lista={visibles} busqueda={busqueda} setBusqueda={setBusqueda} refrescar={refrescar} />
       ) : (
-        <EquiposWysiwyg key={filtro} tipo={filtro as "EQ"} enfoqueNueva={crearEn === filtro} lista={visibles} busqueda={busqueda} setBusqueda={setBusqueda} refrescar={refrescar} />
+        <EquiposWysiwyg key={seccion} tipo={filtro as "EQ"} claseFija={seccion === "HE" ? "Herramienta" : "Equipo"} enfoqueNueva={crearEn === seccion} lista={visibles} busqueda={busqueda} setBusqueda={setBusqueda} refrescar={refrescar} />
       )}
     </>
   );
 }
+
+const claseInsumo = (i: Insumo) => (i.categoria_inventario || i.clase_equipo || "Equipo") as string;
 
 // ================= Mano de obra: edición WYSIWYG con Costo HH =================
 
@@ -773,6 +776,7 @@ type FilaEq = { nombre: string; clase: Clase; propiedad: Propiedad; unidad: stri
 
 function EquiposWysiwyg({
   tipo,
+  claseFija,
   enfoqueNueva,
   lista,
   busqueda,
@@ -780,6 +784,7 @@ function EquiposWysiwyg({
   refrescar,
 }: {
   tipo: "EQ" | "HT";
+  claseFija: Clase;
   enfoqueNueva?: boolean;
   lista: Insumo[];
   busqueda: string;
@@ -798,7 +803,7 @@ function EquiposWysiwyg({
     const sim = c === "Equipo" ? "he" : "und";
     return unidades.some((u) => u.simbolo === sim) ? sim : "und";
   };
-  const vacia = (): FilaEq => ({ nombre: "", clase: "Equipo", propiedad: "Propio", unidad: unidadDe("Equipo"), precio: "" });
+  const vacia = (): FilaEq => ({ nombre: "", clase: claseFija, propiedad: "Propio", unidad: unidadDe(claseFija), precio: "" });
   const [nueva, setNueva] = useState<FilaEq | null>(null);
   const fila = nueva ?? vacia();
   const setFila = (f: FilaEq) => setNueva(f);
@@ -810,7 +815,7 @@ function EquiposWysiwyg({
     const n = Number(precio || 0);
     return p === "Propio" ? n : n * (1 + mgTipo / 100);
   };
-  const etiqueta = tipo === "EQ" ? "equipo" : "herramienta";
+  const etiqueta = claseFija === "Herramienta" ? "herramienta" : "equipo";
   const claseDe = (i: Insumo): Clase => (i.categoria_inventario as Clase | undefined) || (i.clase_equipo as Clase | undefined) || "Equipo";
 
   async function crearDesdeFila() {
@@ -886,7 +891,7 @@ function EquiposWysiwyg({
           <input className={inputCls} autoFocus={enfoqueNueva} placeholder="Escribe la descripción y pulsa Enter…" value={f.nombre} data-formato="oracion" onChange={(e) => set({ ...f, nombre: e.target.value })} onKeyDown={onKey} />
         </td>
         <td className="px-3 py-2">
-          <select className={selCls} value={f.clase} onChange={(e) => { const c = e.target.value as Clase; set({ ...f, clase: c, unidad: unidadDe(c) }); }}>
+          <select className={selCls} value={f.clase} title="Cambiar de clase mueve la ficha a la otra pestaña y su código pasa a 3 (equipo) o 4 (herramienta)" onChange={(e) => { const c = e.target.value as Clase; set({ ...f, clase: c, unidad: unidadDe(c) }); }}>
             <option value="Equipo">Equipo</option>
             <option value="Herramienta">Herramienta</option>
           </select>
@@ -923,7 +928,7 @@ function EquiposWysiwyg({
 
   return (
     <Panel
-      titulo={`Maestro de insumos — ${nombreTipo(tipo)}`}
+      titulo={`Maestro de insumos — ${claseFija === "Herramienta" ? "Herramientas" : "Equipos"}`}
       extra={<Buscador valor={busqueda} onChange={setBusqueda} total={lista.length} placeholder="Buscar por código o descripción..." />}
     >
       <table className="w-full table-fixed font-mono text-xs">

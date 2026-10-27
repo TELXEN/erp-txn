@@ -694,6 +694,13 @@
       "when": 1793135725321,
       "tag": "0098_subfamilia_todos_rubros",
       "breakpoints": true
+    },
+    {
+      "idx": 99,
+      "version": "7",
+      "when": 1793136169278,
+      "tag": "0099_digito_equipo_herramienta",
+      "breakpoints": true
     }
   ]
 }
