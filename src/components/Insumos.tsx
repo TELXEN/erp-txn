@@ -533,12 +533,8 @@ function MaterialesWysiwyg({
   }, [unidades]);
   const { data: marcas = [] } = useMarcas();
   const nombreMarca = (id?: string | null) => marcas.find((m) => m.id === id)?.nombre ?? "-";
-  const opcionesMarca = (
-    <>
-      <option value="">-</option>
-      {marcas.filter((m) => m.activo).map((m) => <option key={m.id} value={m.id}>{m.nombre}</option>)}
-    </>
-  );
+  const opcionesMarca = [{ value: "", texto: "-" }, ...marcas.filter((m) => m.activo).map((m) => ({ value: m.id, texto: m.nombre }))];
+  const opcionesUnidad = (actual: string) => [...new Set([actual, ...simbolos])].map((s) => ({ value: s, texto: s }));
   const [nueva, setNueva] = useState<FilaMat>(vacia);
   const [editando, setEditando] = useState<(FilaMat & { id: string; codigo: string; activo: boolean }) | null>(null);
   const [error, setError] = useState("");
@@ -645,15 +641,11 @@ function MaterialesWysiwyg({
             </td>
             {!esSC && (
               <td className="px-3 py-2">
-                <select className={selCls} value={nueva.marca_id} onChange={(e) => setNueva({ ...nueva, marca_id: e.target.value })}>
-                  {opcionesMarca}
-                </select>
+                <SelectorBuscable aria-label="Marca" value={nueva.marca_id} onChange={(v) => setNueva({ ...nueva, marca_id: v })} opciones={opcionesMarca} placeholder="-" />
               </td>
             )}
             <td className="px-3 py-2">
-              <select className={selCls} value={nueva.unidad} onChange={(e) => setNueva({ ...nueva, unidad: e.target.value })}>
-                {simbolos.map((s) => <option key={s} value={s}>{s}</option>)}
-              </select>
+              <SelectorBuscable aria-label="Unidad" value={nueva.unidad} onChange={(v) => setNueva({ ...nueva, unidad: v })} opciones={opcionesUnidad(nueva.unidad)} />
             </td>
             <td className="px-3 py-2">
               <input
@@ -698,15 +690,11 @@ function MaterialesWysiwyg({
                     <td className="px-3 py-2"><Input className="py-1 text-xs" value={editando.nombre} data-formato="oracion" onChange={(e) => setEditando({ ...editando, nombre: e.target.value })} /></td>
                     {!esSC && (
                       <td className="px-3 py-2">
-                        <select className={selCls} value={editando.marca_id} onChange={(e) => setEditando({ ...editando, marca_id: e.target.value })}>
-                          {opcionesMarca}
-                        </select>
+                        <SelectorBuscable aria-label="Marca" value={editando.marca_id} onChange={(v) => setEditando({ ...editando, marca_id: v })} opciones={opcionesMarca} placeholder="-" />
                       </td>
                     )}
                     <td className="px-3 py-2">
-                      <select className={selCls} value={editando.unidad} onChange={(e) => setEditando({ ...editando, unidad: e.target.value })}>
-                        {[...new Set([editando.unidad, ...simbolos])].map((s) => <option key={s} value={s}>{s}</option>)}
-                      </select>
+                      <SelectorBuscable aria-label="Unidad" value={editando.unidad} onChange={(v) => setEditando({ ...editando, unidad: v })} opciones={opcionesUnidad(editando.unidad)} />
                     </td>
                     <td className="px-3 py-2"><Input className="py-1 text-right text-xs" type="number" step="0.01" min={0} value={editando.precio} onChange={(e) => setEditando({ ...editando, precio: e.target.value })} /></td>
                     <td className="px-3 py-2 text-right text-muted-foreground" title="Margen único del tipo (Configuración del Sistema)">{mgTipo.toFixed(2)}%</td>
