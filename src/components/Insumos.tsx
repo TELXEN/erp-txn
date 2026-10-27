@@ -887,9 +887,7 @@ function EquiposWysiwyg({
           </select>
         </td>
         <td className="px-3 py-2">
-          <select className={selCls} value={f.unidad} onChange={(e) => set({ ...f, unidad: e.target.value })}>
-            {[...new Set([f.unidad, ...simbolos])].map((s) => <option key={s} value={s}>{s}</option>)}
-          </select>
+          <SelectorBuscable aria-label="Unidad" value={f.unidad} onChange={(v) => set({ ...f, unidad: v })} opciones={[...new Set([f.unidad, ...simbolos])].map((s) => ({ value: s, texto: s }))} />
         </td>
         <td className="px-3 py-2">
           {alquilado ? (
