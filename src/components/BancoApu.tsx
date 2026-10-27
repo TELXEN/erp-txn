@@ -75,43 +75,8 @@ const CONFIG: Record<Tabla, { titulo: string; campos: CampoDef[]; columnas: [str
   },
 };
 
-// Pestañas visibles: Partidas e Insumos (los cuatro recursos agrupados en una sola lista).
-type Vista = "partidas_apu" | "insumos";
-const TABS: [Vista, string][] = [["partidas_apu", "Partidas"], ["insumos", "Insumos"]];
-const GRUPOS_INSUMO: TablaInsumo[] = ["materiales", "mano_obra", "equipos_herramientas", "subcontratos"];
-
-const useTabla = (t: Tabla | "partida_detalle") =>
-  useQuery({
-    queryKey: ["banco_apu", t],
-    queryFn: async () => {
-      const { data, error } = await (t === "partida_detalle" ? db.from(t).select("*").order("orden") : db.from(t).select("*")).order("created_at");
-      if (error) throw error;
-      return (data ?? []) as Fila[];
-    },
-  });
-
 export function BancoApu() {
-  const [tab, setTab] = useState<Vista>(() =>
-    typeof window !== "undefined" && localStorage.getItem("banco-apu:tab") === "partidas_apu" ? "partidas_apu" : typeof window !== "undefined" && localStorage.getItem("banco-apu:tab") ? "insumos" : "partidas_apu",
-  );
-  const cambiar = (t: Vista) => { setTab(t); localStorage.setItem("banco-apu:tab", t); };
-  return (
-    <>
-      <div className="mb-3 flex flex-wrap gap-1 border-b border-line pb-2">
-        {TABS.map(([t, titulo]) => (
-          <button key={t} type="button" onClick={() => cambiar(t)}
-            className={`rounded-md border-b-2 px-3 py-1.5 text-xs transition-colors ${tab === t ? "border-cta bg-primary/10 font-semibold text-primary" : "border-transparent text-muted-foreground hover:bg-muted hover:text-primary"}`}>
-            {titulo}
-          </button>
-        ))}
-      </div>
-      {tab === "partidas_apu" ? (
-        <SplitPartidas />
-      ) : (
-        <HojaInsumos />
-      )}
-    </>
-  );
+  return <SplitPartidas />;
 }
 
 const PIE = ["analisis", "especificaciones"] as const;
