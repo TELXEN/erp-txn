@@ -3,6 +3,8 @@ import { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Boton, Campo, Input, Select, VentanaFlotante } from "@/components/ui-kit";
+import { SelectorBuscable } from "@/components/SelectorBuscable";
+import { useMarcas } from "@/lib/datos";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
 import { useUnidadesMedida } from "@/lib/unidades";
 import { useSubfamilias } from "@/lib/codigo-insumo";
@@ -101,6 +103,7 @@ export function VentanaInsumo({
   const { data: espLista = [] } = useEspecialidadesPartida();
   const { data: subfamilias = [] } = useSubfamilias();
   const { data: unidades = [] } = useUnidadesMedida();
+  const { data: marcas = [] } = useMarcas();
   const { data: mats = [] } = useBancoTabla("materiales");
   const { data: mob = [] } = useBancoTabla("mano_obra");
   const { data: eqs = [] } = useBancoTabla("equipos_herramientas");
@@ -252,11 +255,15 @@ export function VentanaInsumo({
       <p className="text-[11px] text-muted-foreground sm:col-span-2">Código: <span className="font-mono">{form.codigo && modo === "editar" ? form.codigo : "se genera al guardar"}</span> (tipo + especialidad + {tipo === "materiales" ? "subfamilia" : "00"} + correlativo).</p>
       {CONFIG[tipo].campos.filter((c) => c.k !== "codigo" && (!c.soloSi || c.soloSi(form))).map((c) => (
         <Campo key={c.k} etiqueta={c.t}>
-          {c.tipo === "sel" ? (
+          {c.k === "unidad" ? (
+            <SelectorBuscable aria-label={c.t} value={form[c.k] ?? ""} onChange={(v) => setForm({ ...form, [c.k]: v })}
+              opciones={unds.map((u) => ({ value: u.simbolo, texto: `${u.simbolo} · ${u.descripcion}` }))} />
+          ) : c.k === "marca" ? (
+            <SelectorBuscable aria-label={c.t} permitirLibre value={form[c.k] ?? ""} onChange={(v) => setForm({ ...form, [c.k]: v })}
+              opciones={[{ value: "", texto: "Sin marca" }, ...marcas.filter((m) => m.activo).map((m) => ({ value: m.nombre, texto: m.nombre }))]} />
+          ) : c.tipo === "sel" ? (
             <Select value={form[c.k] ?? ""} onChange={(e) => setForm({ ...form, [c.k]: e.target.value })}>
-              {c.k === "unidad"
-                ? unds.map((u) => <option key={u.id} value={u.simbolo}>{u.simbolo} · {u.descripcion}</option>)
-                : (c.opciones ?? []).map((o) => <option key={o}>{o}</option>)}
+              {(c.opciones ?? []).map((o) => <option key={o}>{o}</option>)}
             </Select>
           ) : (
             <Input type={c.tipo === "num" ? "number" : "text"} step="any" value={form[c.k] ?? ""} autoFocus={c.k === "descripcion"}
