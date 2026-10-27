@@ -16,7 +16,7 @@ import { usePartidas, useProyectos, useTerceros, useTrabajadores } from "@/lib/d
 import { apuDb, useInsumos } from "@/lib/apu";
 import { exportarExcel } from "@/lib/exportar";
 import { calcularStock, claveStock, num, sincronizarEstadoOC, useAlmacenes, useItemsOC, useMovimientos, useOrdenesCompra, type Movimiento } from "@/lib/logistica";
-import { almacenDeValor, valorDeAlmacen } from "@/lib/almacenes";
+import { almacenDeValor, destinoOrden, valorDeAlmacen } from "@/lib/almacenes";
 
 export const Route = createFileRoute("/_authenticated/almacen")({
   head: () => ({
@@ -141,7 +141,7 @@ function AlmacenPage() {
   const recibidoItem = (id: string) => movs.filter((m) => m.tipo === "Ingreso" && m.orden_item_id === id).reduce((a, m) => a + Number(m.cantidad), 0);
   const porRecibir = ordenes.filter((o) => ["Emitida", "Enviado a obra", "Recibida parcial"].includes(o.estado)).flatMap((o) =>
     itemsOC.filter((i) => i.orden_id === o.id).map((i) => ({ oc: o, it: i, pendiente: Math.max(0, Number(i.cantidad) - recibidoItem(i.id)) })).filter((x) => x.pendiente > 0.0001));
-  const porLlegar = (pid: string | null, insumoId: string) => porRecibir.filter((x) => x.oc.proyecto_id === pid && x.it.insumo_id === insumoId).reduce((a, x) => a + x.pendiente, 0);
+  const porLlegar = (pid: string | null, insumoId: string) => porRecibir.filter((x) => destinoOrden(x.oc, almacenes) === pid && x.it.insumo_id === insumoId).reduce((a, x) => a + x.pendiente, 0);
   const [recOC, setRecOC] = useState<{ orden: string; fecha: string; cant: Record<string, string>; error: string } | null>(null);
   function abrirRecOC(ordenId: string, itemId?: string) {
     const cant: Record<string, string> = {};
@@ -263,7 +263,7 @@ function AlmacenPage() {
   const mesActual = hoy().slice(0, 7);
   const movsMes = movs.filter((m) => m.fecha?.startsWith(mesActual)).length;
   const pendientes = enTransito.length + porRecibir.length;
-  const destinos = Array.from(new Set([...enTransito.map((m) => m.proyecto_id ?? null), ...porRecibir.map((x) => x.oc.proyecto_id ?? null)]));
+  const destinos = Array.from(new Set([...enTransito.map((m) => m.proyecto_id ?? null), ...porRecibir.map((x) => destinoOrden(x.oc, almacenes))]));
 
   if (!gestion && !encargados.some((e) => e.user_id === yo)) return <SinAcceso />;
   return (
@@ -344,7 +344,7 @@ function AlmacenPage() {
             {destinos.map((pid) => {
               const k = pid ?? "central";
               const trs = enTransito.filter((m) => (m.proyecto_id ?? null) === pid);
-              const cps = porRecibir.filter((x) => (x.oc.proyecto_id ?? null) === pid);
+              const cps = porRecibir.filter((x) => destinoOrden(x.oc, almacenes) === pid);
               const abierto = !grupoCerrado[k];
               const puede = puedeRecibir(pid);
               const tit = puede ? "Recibir" : `Recibe: ${quienRecibe(pid)}`;
