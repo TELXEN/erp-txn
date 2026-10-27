@@ -3,7 +3,7 @@ import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { createFileRoute } from "@tanstack/react-router";
 import React, { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronDown, ChevronRight, FileText, PackageCheck, Upload, Zap } from "lucide-react";
+import { ChevronDown, ChevronRight, FileText, PackagePlus, PackageCheck, Upload, Zap } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, BotonIcono, Campo, Etiqueta, Input, MenuFiltros, Panel, Select, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
@@ -16,6 +16,8 @@ import { exportarExcel } from "@/lib/exportar";
 import { useItemsOC, useMovimientos, useOrdenesCompra } from "@/lib/logistica";
 import { cantidadPermitida, saldoRecepcion, tonoEstadoReq } from "@/lib/requerimientos-flujo";
 import { supabase } from "@/integrations/supabase/client";
+import { VentanaRequerimientoRubro } from "@/components/VentanaRequerimientoRubro";
+import { nombreRubro } from "@/lib/rubros-compra";
 
 export const Route = createFileRoute("/_authenticated/generar-requerimiento")({
   head: () => ({
@@ -45,6 +47,7 @@ type Requerimiento = {
   clase: string;
   motivo_rechazo: string;
   tdr: Tdr;
+  rubro?: string | null;
 };
 type ItemReq = {
   id: string;
@@ -83,6 +86,7 @@ function RequerimientosPage() {
   const [pedir, setPedir] = useState<Record<string, string>>({});
   const [ventanaTdr, setVentanaTdr] = useState(false);
   const [tdr, setTdr] = useState(TDR_VACIO);
+  const [ventanaRubro, setVentanaRubro] = useState(false);
   const [recepcion, setRecepcion] = useState<{ orden: string; fecha: string; obs: string; cant: Record<string, string> } | null>(null);
   const { data: ordenes = [] } = useOrdenesCompra();
   const { data: itemsOC = [] } = useItemsOC();
@@ -637,6 +641,7 @@ function RequerimientosPage() {
                       <td className="px-3 py-2">
                         <Etiqueta tono={tonoEstadoReq(r.estado)}>{r.estado}</Etiqueta>
                         {r.clase === "tdr" && <span className="ml-1 text-[10px] text-muted-foreground">TDR</span>}
+                        {r.rubro && <span className="ml-1 text-[10px] text-muted-foreground">{nombreRubro(r.rubro)}</span>}
                         {r.estado === "Rechazado" && r.motivo_rechazo && <span className="ml-1 text-[10px] text-bad" title={r.motivo_rechazo}>· {r.motivo_rechazo}</span>}
                       </td>
 
@@ -674,9 +679,12 @@ function RequerimientosPage() {
         haySeleccion={!!actual}
         onEliminar={actual && (gestiona || ["Enviado a Gerencia", "Rechazado"].includes(actual.estado)) ? () => void eliminar(actual.id) : undefined}
         extras={
+          <><BotonIcono etiqueta="Nuevo requerimiento por rubro (materiales, equipos, herramientas o EPP)" disabled={!proyectoId} onClick={() => setVentanaRubro(true)}>
+            <PackagePlus size={15} />
+          </BotonIcono>
           <BotonIcono etiqueta="Nuevo requerimiento con términos de referencia" disabled={!proyectoId} onClick={() => { setTdr(TDR_VACIO); setVentanaTdr(true); }}>
             <FileText size={15} />
-          </BotonIcono>
+          </BotonIcono></>
         }
       />
       </div>
@@ -719,6 +727,8 @@ function RequerimientosPage() {
           )}
         </Panel>
       </div>
+
+      <VentanaRequerimientoRubro abierta={ventanaRubro} onCerrar={() => setVentanaRubro(false)} proyectoId={proyectoId || null} codigo={siguienteCodigo()} subtitulo={proyecto ? nombreProy(proyecto.id) : ""} onCreado={(m) => { setAviso(m); for (const k of ["requerimientos", "requerimiento_items"]) qc.invalidateQueries({ queryKey: [k] }); }} />
 
       <VentanaFlotante abierta={ventanaTdr} onCerrar={() => setVentanaTdr(false)} titulo="Términos de Referencia" subtitulo={`Subcontratos, servicios y alquileres · ${proyecto ? nombreProy(proyecto.id) : ""}`} ancho="max-w-3xl">
         <form className="grid grid-cols-2 gap-3 p-5 text-xs" onSubmit={(e) => { e.preventDefault(); void guardarTdr(); }}>
