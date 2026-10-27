@@ -27,6 +27,7 @@ export type Movimiento = {
   id: string;
   fecha: string;
   tipo: "Ingreso" | "Salida";
+  /** null = Almacén Central */
   proyecto_id: string;
   insumo_id: string | null;
   descripcion: string;
@@ -36,6 +37,18 @@ export type Movimiento = {
   orden_item_id: string | null;
   documento: string;
   observacion: string;
+  motivo?: string;
+  estado?: string;
+  transferencia_id?: string | null;
+};
+export type Almacen = {
+  id: string;
+  tipo: "central" | "obra";
+  proyecto_id: string | null;
+  nombre: string;
+  responsable: string;
+  direccion: string;
+  activo: boolean;
 };
 export type Requerimiento = {
   id: string;
@@ -67,6 +80,7 @@ const lista = <T,>(tabla: string, orden = "created_at") =>
 
 export const useOrdenesCompra = () => lista<OrdenCompra>("ordenes_compra");
 export const useItemsOC = () => lista<ItemOC>("orden_compra_items");
+export const useAlmacenes = () => lista<Almacen>("almacenes");
 export const useMovimientos = () => lista<Movimiento>("movimientos_almacen");
 export const useRequerimientos = () => lista<Requerimiento>("requerimientos");
 export const useItemsReq = () => lista<ItemReq>("requerimiento_items");
@@ -105,6 +119,7 @@ export function calcularStock(movs: Movimiento[]) {
     { proyecto_id: string; insumo_id: string | null; descripcion: string; unidad: string; ingresos: number; salidas: number; valorIngresos: number }
   >();
   for (const m of movs) {
+    if (m.tipo === "Ingreso" && m.estado === "En tránsito") continue;
     const k = claveStock(m);
     const s = mapa.get(k) ?? {
       proyecto_id: m.proyecto_id,
