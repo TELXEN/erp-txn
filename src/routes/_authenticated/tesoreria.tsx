@@ -28,6 +28,7 @@ import { exportarExcel } from "@/lib/exportar";
 import { pagarRRHH, usePagosRRHH, type DocRRHH } from "@/lib/pagos-rrhh";
 import { FinanciamientoPanel } from "@/components/FinanciamientoPanel";
 import { ReportePagos } from "@/components/ReportePagos";
+import { anularCobroVenta } from "@/lib/anular-cobro";
 import { useSaldosBancarios } from "@/lib/financiamiento";
 import { saldoTrasPago } from "@/lib/financiamiento-calculos";
 
@@ -163,6 +164,7 @@ function Tesoreria() {
   const [lote, setLote] = useState<{ banco_id: string; fecha: string; operacion: string } | null>(null);
   const [errorLote, setErrorLote] = useState("");
   const [procesando, setProcesando] = useState(false);
+  const [verCobrados, setVerCobrados] = useState(false);
   const { data: saldosRegistrados = [], error: errorSaldos } = useSaldosBancarios();
 
   const { data: cuentas = [] } = useQuery({
@@ -192,6 +194,14 @@ function Tesoreria() {
     return { c, ingresos: Number(r?.ingresos ?? 0), egresos: Number(r?.egresos ?? 0), saldo: Number(r?.saldo ?? c.saldo_inicial) };
   }), [cuentas, saldosRegistrados]);
 
+  const cobrados = (ventas as unknown as R[]).filter((x) => String(x.estado) === "Pagado")
+    .sort((a, b) => String(b.fecha_pago ?? "").localeCompare(String(a.fecha_pago ?? "")));
+  async function anularCobro(x: R) {
+    if (!window.confirm(`¿Anular el cobro de ${String(x.numero_factura)}? La factura vuelve a «Pendiente de Pago» y se revierte el ingreso en la cuenta bancaria.`)) return;
+    const e = await anularCobroVenta(String(x.id));
+    if (e) { setError(e); return; }
+    qc.invalidateQueries();
+  }
   const cxc: Pendiente[] = (ventas as unknown as (Mov & Record<string, never>)[])
     .filter((v) => (v as unknown as { estado: string }).estado !== "Pagado")
     .map((v) => {
@@ -622,6 +632,12 @@ function Tesoreria() {
           <div className="mb-3 flex items-center justify-between gap-2">
             <h2 className="text-sm font-semibold text-ink">{pestana === "cxc" ? `Cuentas por cobrar (${cxc.length})` : "Cuentas por pagar"}</h2>
             <div className="flex items-center gap-2">
+              {pestana === "cxc" && (
+                <button type="button" onClick={() => setVerCobrados((v) => !v)}
+                  className={`rounded-full border px-3 py-1 text-xs ${verCobrados ? "border-primary bg-primary/10 text-primary" : "border-line text-muted-foreground hover:text-ink"}`}>
+                  Cobros realizados ({cobrados.length})
+                </button>
+              )}
               {pestana !== "cxc" && (["cxp", "personal"] as const).map((t) => (
                 <button key={t} type="button" onClick={() => { setPestana(t); setAccion(null); setFiltroVence(null); setTercero(""); setSeleccion(new Set()); }}
                   className={`rounded-full border px-3 py-1 text-xs ${pestana === t ? "border-primary bg-primary/10 text-primary" : "border-line text-muted-foreground hover:text-ink"}`}>
@@ -631,6 +647,27 @@ function Tesoreria() {
               <button type="button" onClick={() => setPestana("resumen")} className="rounded-md p-1 text-muted-foreground hover:bg-muted" title="Cerrar"><X size={16} /></button>
             </div>
           </div>
+      {pestana === "cxc" && verCobrados && (
+        <Panel titulo="Cobros realizados" className="mb-4">
+          {!cobrados.length ? <Vacio texto="Aún no hay cobros registrados." /> : (
+            <table className="w-full text-xs">
+              <thead><tr className="border-b text-left text-muted-foreground"><th className="px-2 py-1.5">Factura</th><th className="px-2">Cliente</th><th className="px-2">Cobrado</th><th className="px-2">Operación</th><th className="px-2 text-right">Monto</th><th className="px-2" /></tr></thead>
+              <tbody>
+                {cobrados.map((x) => (
+                  <tr key={String(x.id)} className="border-b">
+                    <td className="px-2 py-1 font-mono">{String(x.numero_factura || "—")}</td>
+                    <td className="px-2">{nombreTercero(x.cliente_id as string | null)}</td>
+                    <td className="px-2">{x.fecha_pago ? fmtFecha(String(x.fecha_pago)) : "—"}</td>
+                    <td className="px-2">{String(x.numero_operacion || "—")}</td>
+                    <td className="px-2 text-right tabular-nums">{String(x.moneda) === "USD" ? `US$ ${Number(x.monto).toFixed(2)}` : soles(Number(x.monto))}</td>
+                    <td className="px-2 text-right"><Boton variante="peligro" onClick={() => void anularCobro(x)}>Anular cobro</Boton></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </Panel>
+      )}
       <div className="mb-4 grid gap-3 sm:grid-cols-4">
         {tarjeta(pestana === "cxc" ? "Total por cobrar" : "Total por pagar", k.total, null)}
         {tarjeta("Vencido", k.vencido, "vencido", k.vencido > 0 ? "text-bad" : "text-ink")}
