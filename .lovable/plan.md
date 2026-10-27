@@ -28,7 +28,11 @@ En Banco APU, Inventario, Almacén y los selectores de compra se puede **filtrar
 ### Datos que NO se guardan en la ficha (se calculan)
 Stock, costo promedio, último precio de compra y "por llegar" salen siempre de los movimientos de Almacén y de las OC.
 
-## 2. Cómo se ve en cada área
+## 2. Dónde se almacena y cómo se ve en cada área
+
+**Dónde se guarda**: en la base de datos del ERP, en una sola tabla de insumos (la ficha que hoy usa Almacén, ampliada). No hay copias en otros módulos: todos leen esa misma tabla.
+
+**Dónde se administra**: nueva pantalla **Configuración › Maestro de Insumos** (alta, edición, familias, marcas, desactivar). Banco APU, Inventario y Almacén muestran la misma ficha con las columnas que cada área necesita.
 
 ```text
                  MAESTRO ÚNICO DE INSUMOS
@@ -61,7 +65,7 @@ Permisos: alta y edición del precio base para Comercial/Gerencia; datos logíst
 Se ejecuta por etapas (1-2, luego 3, luego 4-5) para que el sistema funcione en todo momento.
 
 ## Detalles técnicos
-- Base: `insumos` (ya es FK del kardex y de compras) se amplía con `rubro`, `especialidad_id`, `subfamilia_id`, `marca`, `costo_hora`, `inventariable` (generada desde rubro), `atributos jsonb` para EPP/MO, `origen_tabla`/`origen_id`.
+- Base: `insumos` (ya es FK del kardex y de compras) se amplía con `rubro`, `especialidad_id`, `subfamilia_id`, `marca_id` (FK marcas), `unidad_id` (FK unidades_medida), `inventariable` (generada desde rubro), `origen_tabla`/`origen_id`. `subfamilias_insumo` gana una familia padre por rubro (`familias_insumo`).
 - `partida_detalle` y `apu_componentes` ganan `insumo_id` nullable; backfill desde las FK por tabla; luego el código lee solo `insumo_id`. Las columnas viejas se marcan `DEPRECATED`, no se eliminan.
 - Tras publicar el código que ya no las referencia: `DROP TABLE` de `epp_catalogo`, `materiales`, `equipos_herramientas`, `mano_obra`, `subcontratos` y de las columnas FK viejas en `partida_detalle`/`apu_componentes` (requiere permiso de migraciones incompatibles).
 - `asegurarFichaAlmacen` y la sincronización por nombre se retiran; `quitar_recurso_apu` desactiva en el maestro.
