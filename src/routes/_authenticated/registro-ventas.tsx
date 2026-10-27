@@ -10,6 +10,7 @@ import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { RegistrarVentaExterna, ventaCobrada, type VentaEditable } from "@/components/facturacion/RegistrarVentaExterna";
 import { fecha, soles } from "@/lib/format";
 import { useRecordado } from "@/lib/recordado";
+import { anularCobroVenta } from "@/lib/anular-cobro";
 
 export const Route = createFileRoute("/_authenticated/registro-ventas")({
   head: () => ({ meta: [{ title: "Registro de Ventas · ERP TELXEN" }, { name: "description", content: "Facturas y boletas emitidas por fuera del ERP." }] }),
@@ -22,8 +23,12 @@ function RegistroVentas() {
   const [sel, setSel] = useState<string | null>(null);
   const qc = useQueryClient();
   async function eliminar(v: any) {
-    if (ventaCobrada(v)) { toast.error(`${v.numero_factura} ya fue cobrada: primero anula el cobro en Tesorería.`); return; }
-    if (!window.confirm(`¿Eliminar la venta ${v.numero_factura} de ${v.terceros?.razon_social ?? "—"}? Esta acción no se puede deshacer.`)) return;
+    if (ventaCobrada(v)) {
+      if (!window.confirm(`La venta ${v.numero_factura} ya fue cobrada. ¿Deseas anular el cobro bancario y eliminar la venta? El saldo de la cuenta se revertirá.`)) return;
+      const e = await anularCobroVenta(v.id);
+      if (e) { toast.error(e); return; }
+      qc.invalidateQueries({ queryKey: ["banco-saldos"] });
+    } else if (!window.confirm(`¿Eliminar la venta ${v.numero_factura} de ${v.terceros?.razon_social ?? "—"}? Esta acción no se puede deshacer.`)) return;
     const { error } = await supabase.from("ventas").delete().eq("id", v.id);
     if (error) { toast.error(error.message); return; }
     toast.success(`Venta ${v.numero_factura} eliminada`);
