@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { Boton, BotonIcono, Campo, Input, Select, VentanaFlotante } from "@/components/ui-kit";
 import { apuDb } from "@/lib/apu";
@@ -10,7 +10,10 @@ type Linea = ArticuloRubro & { cantidad: string };
  * Requerimiento de un solo rubro (Materiales, Equipos, Herramientas o EPP).
  * Con obra: lo emite el ingeniero y va a Gerencia. Sin obra (`proyectoId` null): Logística pide stock para el Almacén Central.
  */
-export function VentanaRequerimientoRubro({ abierta, onCerrar, proyectoId, codigo, subtitulo, onCreado, proyectos, onSeleccionarProyecto }: {
+export type ReqEditable = { id: string; codigo: string; rubro: RubroCompra; observacion: string; items: Array<{ descripcion: string; unidad: string; cantidad: number; precio_referencial: number }> };
+
+export function VentanaRequerimientoRubro({ abierta, onCerrar, proyectoId, codigo: codigoNuevo, subtitulo, onCreado, proyectos, onSeleccionarProyecto, editar }: {
+  editar?: ReqEditable | null;
   abierta: boolean; onCerrar: () => void; proyectoId: string | null; codigo: string; subtitulo: string; onCreado: (msg: string) => void;
   proyectos?: Array<{ id: string; codigo?: string | null; nombre: string }>;
   onSeleccionarProyecto?: (id: string) => void;
@@ -22,6 +25,16 @@ export function VentanaRequerimientoRubro({ abierta, onCerrar, proyectoId, codig
   const [error, setError] = useState("");
   const [guardando, setGuardando] = useState(false);
   const catalogo = useCatalogoRubro(rubro);
+  const codigo = editar?.codigo ?? codigoNuevo;
+
+  useEffect(() => {
+    if (!abierta || !editar) return;
+    setRubro(editar.rubro);
+    setLineas(editar.items.map((i, n) => ({ clave: `ed-${n}-${i.descripcion}`, codigo: "", nombre: i.descripcion, unidad: i.unidad, precio: Number(i.precio_referencial) || 0, rubro: editar.rubro, cantidad: String(i.cantidad) })));
+    const partes = editar.observacion.split(" · ");
+    const resto = partes.filter((x, k) => !(k === 0 && x === nombreRubro(editar.rubro)) && x !== "Gastos Generales" && x !== "Stock Almacén Central");
+    setObs(resto.join(" · "));
+  }, [abierta, editar]);
 
   const cerrar = () => { setRubro(""); setLineas([]); setObs(""); setError(""); setSel(""); onCerrar(); };
   const cambiarRubro = (r: RubroCompra | "") => {
@@ -35,21 +48,33 @@ export function VentanaRequerimientoRubro({ abierta, onCerrar, proyectoId, codig
     setLineas([...lineas, { ...a, cantidad: "1" }]); setSel(""); setError("");
   };
 
-  async function guardar() {
+  async function guardar(enviar: boolean) {
     setError("");
     if (proyectos && !proyectoId) return setError("Selecciona la obra del requerimiento.");
     const msg = validarRubroUnico(rubro, lineas);
     if (msg) return setError(msg);
     const validas = lineas.filter((l) => Number(l.cantidad) > 0);
     if (!validas.length) return setError("Agrega al menos un artículo con cantidad.");
+    if (enviar && !window.confirm(`¿Estás seguro de enviar el requerimiento ${codigo} a Gerencia?\nUna vez enviado ya no podrás editarlo.`)) return;
     setGuardando(true);
     try {
       const destino = proyectoId ? (imputaGastosGenerales(rubro) ? " · Gastos Generales" : "") : " · Stock Almacén Central";
-      const { data: req, error: e1 } = await apuDb.from("requerimientos").insert({
-        proyecto_id: proyectoId, codigo, origen: proyectoId ? "obra" : "stock", clase: rubro === "MAT" ? "materiales" : rubro.toLowerCase(), rubro: rubro as RubroCompra,
-        estado: "Enviado a Gerencia", observacion: `${nombreRubro(rubro)}${destino}${obs.trim() ? ` · ${obs.trim()}` : ""}`,
-      }).select("id").single();
-      if (e1) throw e1;
+      const cab = {
+        proyecto_id: proyectoId, origen: proyectoId ? "obra" : "stock", clase: rubro === "MAT" ? "materiales" : rubro.toLowerCase(), rubro: rubro as RubroCompra,
+        observacion: `${nombreRubro(rubro)}${destino}${obs.trim() ? ` · ${obs.trim()}` : ""}`,
+      };
+      let req: { id: string };
+      if (editar) {
+        const { error: e0 } = await apuDb.from("requerimientos").update({ ...cab, estado: "Borrador", motivo_rechazo: "" }).eq("id", editar.id);
+        if (e0) throw e0;
+        const { error: eDel } = await apuDb.from("requerimiento_items").delete().eq("requerimiento_id", editar.id);
+        if (eDel) throw eDel;
+        req = { id: editar.id };
+      } else {
+        const { data, error: e1 } = await apuDb.from("requerimientos").insert({ ...cab, codigo, estado: "Borrador" }).select("id").single();
+        if (e1) throw e1;
+        req = data;
+      }
       const filas = [];
       for (const l of validas) {
         let insumo: string | null = null;
@@ -58,7 +83,11 @@ export function VentanaRequerimientoRubro({ abierta, onCerrar, proyectoId, codig
       }
       const { error: e2 } = await apuDb.from("requerimiento_items").insert(filas);
       if (e2) throw e2;
-      onCreado(`Requerimiento ${codigo} (${nombreRubro(rubro)}) enviado a Gerencia con ${filas.length} artículos.`);
+      if (enviar) {
+        const { error: e3 } = await apuDb.from("requerimientos").update({ estado: "Enviado a Gerencia" }).eq("id", req.id);
+        if (e3) throw e3;
+      }
+      onCreado(enviar ? `Requerimiento ${codigo} (${nombreRubro(rubro)}) enviado a Gerencia con ${filas.length} artículos.` : `Requerimiento ${codigo} guardado como borrador.`);
       cerrar();
     } catch (e) {
       setError(e instanceof Error ? e.message : "No se pudo guardar.");
@@ -66,8 +95,8 @@ export function VentanaRequerimientoRubro({ abierta, onCerrar, proyectoId, codig
   }
 
   return (
-    <VentanaFlotante abierta={abierta} onCerrar={cerrar} titulo={proyectos || proyectoId ? "Requerimiento por rubro" : "Requerimiento para stock"} subtitulo={subtitulo} ancho="max-w-3xl">
-      <form className="grid gap-3 p-5 text-xs" onSubmit={(e) => { e.preventDefault(); void guardar(); }}>
+    <VentanaFlotante abierta={abierta} onCerrar={cerrar} titulo={editar ? `Editar ${codigo}` : proyectos || proyectoId ? "Requerimiento por rubro" : "Requerimiento para stock"} subtitulo={subtitulo} ancho="max-w-3xl">
+      <form className="grid gap-3 p-5 text-xs" onSubmit={(e) => { e.preventDefault(); void guardar(true); }}>
         {proyectos && <Campo etiqueta="Obra">
           <Select required value={proyectoId ?? ""} onChange={(e) => onSeleccionarProyecto?.(e.target.value)}>
             <option value="">Seleccionar obra…</option>
@@ -113,6 +142,7 @@ export function VentanaRequerimientoRubro({ abierta, onCerrar, proyectoId, codig
         {error && <p className="text-bad">{error}</p>}
         <div className="flex justify-end gap-2 border-t border-line pt-3">
           <Boton type="button" variante="linea" onClick={cerrar}>Cancelar</Boton>
+          <Boton type="button" variante="linea" disabled={guardando} onClick={() => void guardar(false)}>Guardar borrador</Boton>
           <Boton type="submit" disabled={guardando}>Enviar a Gerencia</Boton>
         </div>
       </form>
