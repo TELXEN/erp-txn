@@ -16,4 +16,10 @@ describe("rubros de compra", () => {
     expect(imputaGastosGenerales("HE")).toBe(true);
     expect(imputaGastosGenerales("MAT")).toBe(false);
   });
+  it("la ficha de almacén del EPP nunca es Material", () => {
+    expect(tipoFichaRubro("EPP")).toBe("EPP");
+    expect(tipoFichaRubro("MAT")).toBe("MAT");
+    expect(tipoFichaRubro("EQ")).toBe("EQ");
+    expect(tipoFichaRubro("HE")).toBe("EQ");
+  });
 });
