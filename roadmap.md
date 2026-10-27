@@ -1,4 +1,5 @@
 # Roadmap
+- [x] Icono Eliminar al final (abajo) de la barra derecha en todas las pantallas; orden comprobado en Generar Requerimiento y Proyectos, compilación OK.
 - [x] Quitar la cabecera de desdoblamiento de APU de Generar Requerimiento: quedan la lista, la recepción de todas las obras y los dos iconos de nuevo requerimiento; verificado en pantalla sin guardar datos.
 - [x] Icono de requerimiento visible arriba a la derecha y habilitado; elección de obra y catálogo EPP comprobados en ventana sin guardar datos reales, cuatro pruebas pasan.
 - [x] Órdenes de compra con hoja de Facturación en creación y documento, e icono derecho de imprimir/PDF; orden real abierta y PDF A4 generado sin alterar compras, compilación OK.
