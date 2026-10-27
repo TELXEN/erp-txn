@@ -32,7 +32,7 @@ Stock, costo promedio, último precio de compra y "por llegar" salen siempre de 
 
 **Dónde se guarda**: en la base de datos del ERP, en una sola tabla de insumos (la ficha que hoy usa Almacén, ampliada). No hay copias en otros módulos: todos leen esa misma tabla.
 
-**Dónde se administra**: nueva pantalla **Configuración › Maestro de Insumos** (alta, edición, familias, marcas, desactivar). Banco APU, Inventario y Almacén muestran la misma ficha con las columnas que cada área necesita.
+**Dónde se administra**: nueva pantalla **Datos › Maestro de Insumos** (alta, edición, familias, marcas, desactivar). Banco APU, Inventario y Almacén muestran la misma ficha con las columnas que cada área necesita.
 
 ```text
                  MAESTRO ÚNICO DE INSUMOS
