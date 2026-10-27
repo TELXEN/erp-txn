@@ -2,7 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { createPortal } from "react-dom";
 import { ChevronDown } from "lucide-react";
 
-export type OpcionLista = { value: string; texto: string; /** Comentario a la derecha, p. ej. «m» → «Metro lineal». */ detalle?: string };
+export type OpcionLista = { value: string; texto: string; /** Comentario a la derecha, p. ej. «m» → «Metro lineal». */ detalle?: string | undefined };
 
 /** Quita mayúsculas, tildes y signos para filtrar sin sensibilidad. */
 const limpiar = (t: string) => t.toLocaleLowerCase("es").normalize("NFD").replace(/[\u0300-\u036f]/g, "");
