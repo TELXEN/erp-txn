@@ -589,6 +589,13 @@
       "when": 1793045879725,
       "tag": "0083_recepcion_estado_requerimiento",
       "breakpoints": true
+    },
+    {
+      "idx": 84,
+      "version": "7",
+      "when": 1793067056803,
+      "tag": "0084_almacenes_central_obra",
+      "breakpoints": true
     }
   ]
 }
