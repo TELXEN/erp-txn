@@ -7103,7 +7103,12 @@ export type Database = {
       siguiente_codigo_documento: { Args: { _nombre: string }; Returns: string }
       siguiente_codigo_insumo: { Args: { _tipo: string }; Returns: string }
       siguiente_codigo_insumo_modular: {
-        Args: { _especialidad: string; _subfamilia: string; _tipo: string }
+        Args: {
+          _categoria?: string
+          _especialidad: string
+          _subfamilia: string
+          _tipo: string
+        }
         Returns: string
       }
       siguiente_codigo_preliquidacion: { Args: never; Returns: string }

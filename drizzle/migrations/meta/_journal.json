@@ -659,6 +659,13 @@
       "when": 1793120444113,
       "tag": "0093_maestro_unico_insumos",
       "breakpoints": true
+    },
+    {
+      "idx": 94,
+      "version": "7",
+      "when": 1793122412956,
+      "tag": "0094_codigo_insumo_equipo_herramienta",
+      "breakpoints": true
     }
   ]
 }
