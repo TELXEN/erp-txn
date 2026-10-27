@@ -26,6 +26,7 @@
 - On desktop, AppShell owns viewport height; sidebar and workspace scroll independently — navigation stays fixed.
 - Quotation rows: flat `orden`+`nivel` (niveles-cotizacion.ts); moves keep descendants. Bank inserts copy recipes; APU inserts snapshot via filaRecursoCotizacion; PEN master prices.
 - Banco APU codes come only from banco-apu.ts (alphabetical, Spanish collator, renumbered per especialidad) — no hand-assigned codes.
+- The APU screen is the partidas bank only (no insumos tab); insumo masters live in Maestro de Insumos under Datos, and APU only links a resource into a partida.
 - EMO validity is computed in src/lib/emo.ts from each worker's latest exam (emos_trabajador, admin/gerente-only) — one rule feeds every EMO alert.
 - Primary creation uses VentanaFlotante (optional hidden scrollbars) with consecutive saves; cost eligibility, overrun lock and CD ceiling are DB triggers (Gerencia overrides via solicitudes_desbloqueo).
 - Detraction collections store the BN account in ventas.banco_detraccion_id; treasury splits the sale between both banks — no duplicate sale rows.
