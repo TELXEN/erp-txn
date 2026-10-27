@@ -126,6 +126,26 @@ function AlmacenPage() {
   const misAlmacenes = activos.filter((a) => gestion || encDe(a.id).some((e) => e.user_id === yo));
   const opcionesAlmacen = misAlmacenes.map((a) => <option key={a.id} value={valorDeAlmacen(a.proyecto_id)}>{a.tipo === "central" ? "Almacén Central" : nombreProy(a.proyecto_id)}</option>);
   const enTransito = movs.filter((m) => m.tipo === "Ingreso" && m.estado === "En tránsito");
+  /** Compras emitidas o enviadas a obra con saldo por recibir. */
+  const recibidoItem = (id: string) => movs.filter((m) => m.tipo === "Ingreso" && m.orden_item_id === id).reduce((a, m) => a + Number(m.cantidad), 0);
+  const porRecibir = ordenes.filter((o) => ["Emitida", "Enviado a obra", "Recibida parcial"].includes(o.estado)).flatMap((o) =>
+    itemsOC.filter((i) => i.orden_id === o.id).map((i) => ({ oc: o, it: i, pendiente: Math.max(0, Number(i.cantidad) - recibidoItem(i.id)) })).filter((x) => x.pendiente > 0.0001));
+  const porLlegar = (pid: string | null, insumoId: string) => porRecibir.filter((x) => x.oc.proyecto_id === pid && x.it.insumo_id === insumoId).reduce((a, x) => a + x.pendiente, 0);
+  const [recOC, setRecOC] = useState<{ orden: string; fecha: string; cant: Record<string, string>; error: string } | null>(null);
+  function abrirRecOC(ordenId: string) {
+    const cant: Record<string, string> = {};
+    for (const x of porRecibir.filter((y) => y.oc.id === ordenId)) cant[x.it.id] = String(x.pendiente);
+    setRecOC({ orden: ordenId, fecha: hoy(), cant, error: "" });
+  }
+  async function guardarRecOC() {
+    if (!recOC) return;
+    const items = Object.entries(recOC.cant).map(([orden_item_id, c]) => ({ orden_item_id, cantidad: Number(c) || 0 })).filter((x) => x.cantidad > 0);
+    if (!items.length) return setRecOC({ ...recOC, error: "Indica al menos una cantidad recibida." });
+    const { error: err } = await (supabase.rpc as unknown as (f: string, a: Record<string, unknown>) => Promise<{ error: { message: string } | null }>)("recepcionar_orden_obra", { _orden: recOC.orden, _items: items, _fecha: recOC.fecha, _obs: "" });
+    if (err) return setRecOC({ ...recOC, error: err.message });
+    setRecOC(null);
+    for (const k of ["movimientos_almacen", "ordenes_compra", "requerimientos"]) qc.invalidateQueries({ queryKey: [k] });
+  }
   const origenValido = misAlmacenes.some((a) => valorDeAlmacen(a.proyecto_id) === tr.origen);
   useEffect(() => {
     if (!origenValido && misAlmacenes.length) setTr((t) => ({ ...t, origen: valorDeAlmacen(misAlmacenes[0]!.proyecto_id), destino: "", insumo_id: "" }));
@@ -284,7 +304,7 @@ function AlmacenPage() {
             Sale del origen al instante y queda «En tránsito» hasta que el destino la recibe. Las transferencias no cargan costo a la obra; solo el consumo.
           </p>
         </Panel>}
-        <Panel titulo={`En tránsito (${enTransito.length})`}>
+        <Panel titulo={`En tránsito (${enTransito.length + porRecibir.length})`}>
           {enTransito.length === 0 ? <Vacio texto="No hay transferencias por recibir." /> : (
             <table className="w-full font-mono text-xs">
               <tbody>
@@ -302,8 +322,41 @@ function AlmacenPage() {
               </tbody>
             </table>
           )}
+          <div className="border-t border-line px-5 pb-1 pt-3 text-[10px] uppercase tracking-[0.1em] text-muted-foreground">Compras por recibir ({porRecibir.length})</div>
+          {porRecibir.length === 0 ? <Vacio texto="No hay compras pendientes de llegar." /> : (
+            <table className="w-full font-mono text-xs">
+              <tbody>
+                {porRecibir.map((x, n) => (
+                  <tr key={x.it.id} className="border-b border-line/40">
+                    <td className="px-5 py-2">{x.oc.codigo}<div className="text-[10px] text-muted-foreground">{terceros.find((t) => t.id === x.oc.proveedor_id)?.razon_social ?? "Proveedor"}</div></td>
+                    <td className="px-3 py-2">{x.it.descripcion}</td>
+                    <td className="px-3 py-2 text-right">{num(x.pendiente)} {x.it.unidad}</td>
+                    {gestion && <td className="px-3 py-2 text-right">{soles(x.pendiente * Number(x.it.precio_unitario))}</td>}
+                    <td className="px-3 py-2 text-ink">→ {nombreProy(x.oc.proyecto_id)}</td>
+                    <td className="px-3 py-2 text-right">
+                      {porRecibir.findIndex((y) => y.oc.id === x.oc.id) === n && <Boton variante="linea" disabled={!puedeRecibir(x.oc.proyecto_id)} title={puedeRecibir(x.oc.proyecto_id) ? "Recibir la compra en el almacén de la obra" : `Recibe: ${quienRecibe(x.oc.proyecto_id)}`} onClick={() => abrirRecOC(x.oc.id)}><PackageCheck size={13} className="mr-1 inline" /> Recibir</Boton>}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </Panel>
       </div>
+      {recOC && (
+        <VentanaFlotante titulo={`Recibir ${ordenes.find((o) => o.id === recOC.orden)?.codigo ?? "compra"}`} onCerrar={() => setRecOC(null)}>
+          <div className="space-y-3 p-5">
+            <Campo etiqueta="Fecha de recepción"><Input type="date" value={recOC.fecha} onChange={(e) => setRecOC({ ...recOC, fecha: e.target.value })} /></Campo>
+            {porRecibir.filter((x) => x.oc.id === recOC.orden).map((x) => (
+              <Campo key={x.it.id} etiqueta={`${x.it.descripcion} (pendiente ${num(x.pendiente)} ${x.it.unidad})`}>
+                <Input type="number" min="0" max={x.pendiente} step="any" value={recOC.cant[x.it.id] ?? ""} onChange={(e) => setRecOC({ ...recOC, cant: { ...recOC.cant, [x.it.id]: e.target.value } })} />
+              </Campo>
+            ))}
+            {recOC.error && <p className="text-xs text-destructive">{recOC.error}</p>}
+            <div className="flex justify-end gap-2"><Boton variante="linea" onClick={() => setRecOC(null)}>Cancelar</Boton><Boton onClick={() => void guardarRecOC()}>Recibir</Boton></div>
+          </div>
+        </VentanaFlotante>
+      )}
 
       <div className="mb-5 grid gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <Panel titulo="Stock por almacén" extra={
@@ -317,6 +370,7 @@ function AlmacenPage() {
                   <th className="px-5 py-2 font-medium">Almacén</th>
                   <th className="px-3 py-2 font-medium">Insumo</th>
                   <th className="px-3 py-2 text-right font-medium">Stock</th>
+                  <th className="px-3 py-2 text-right font-medium">Por llegar</th>
                   <th className="px-3 py-2 text-right font-medium">C. promedio</th>
                   <th className="px-3 py-2 text-right font-medium">Valor</th>
                   <th className="px-3 py-2" />
@@ -328,6 +382,7 @@ function AlmacenPage() {
                     <td className="px-5 py-2 text-ink">{nombreProy(s.proyecto_id)}</td>
                     <td className="px-3 py-2">{s.descripcion}</td>
                     <td className="px-3 py-2 text-right">{num(s.stock)} {s.unidad}</td>
+                    <td className="px-3 py-2 text-right">{s.insumo_id && porLlegar(s.proyecto_id ?? null, s.insumo_id) > 0 ? `${num(porLlegar(s.proyecto_id ?? null, s.insumo_id))} ${s.unidad}` : "—"}</td>
                     <td className="px-3 py-2 text-right">{soles(s.costoPromedio)}</td>
                     <td className="px-3 py-2 text-right">{soles(s.valor)}</td>
                     <td className="px-3 py-1 text-right">
