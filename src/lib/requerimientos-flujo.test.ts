@@ -23,4 +23,14 @@ describe("flujo de requerimientos", () => {
     expect(saldoRecepcion(1000, 400)).toBe(600);
     expect(saldoRecepcion(10, 12)).toBe(0);
   });
+  it("cada estado tiene su color", () => {
+    expect(tonoEstadoReq("Borrador")).toBe("apagado");
+    expect(tonoEstadoReq("Enviado a Gerencia")).toBe("warn");
+    expect(tonoEstadoReq("Aprobado")).toBe("good");
+    expect(tonoEstadoReq("Rechazado")).toBe("bad");
+    expect(tonoEstadoReq("En cotización")).toBe("info");
+    expect(tonoEstadoReq("Orden emitida")).toBe("doc");
+    expect(tonoEstadoReq("Recibido parcial")).toBe("warn");
+    expect(tonoEstadoReq("Recibido")).toBe("good");
+  });
 });
