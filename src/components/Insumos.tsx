@@ -7,6 +7,7 @@ import { MargenesApuPanel } from "@/components/MargenesApu";
 import { ParametrosLaboralesPanel } from "@/components/ParametrosLaborales";
 import { CodificacionInsumos } from "@/components/CodificacionInsumos";
 import { soles } from "@/lib/format";
+import { compararManoObra } from "@/lib/orden-mano-obra";
 import { useUnidadesMedida } from "@/lib/unidades";
 import { useMarcas } from "@/lib/datos";
 import { reservarCodigoInsumo } from "@/lib/codigos.functions";
@@ -46,7 +47,8 @@ export function Insumos() {
 
   const visibles = lista
     .filter((i) => i.tipo === filtro)
-    .filter((i) => coincide(busqueda, i.codigo, i.nombre));
+    .filter((i) => coincide(busqueda, i.codigo, i.nombre))
+    .sort((a, b) => filtro === "MO" ? compararManoObra(a, b) : 0);
 
   function cambiarPestana(t: TipoInsumo) {
     setSeccion(t);
