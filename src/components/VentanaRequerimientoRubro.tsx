@@ -44,8 +44,13 @@ export function VentanaRequerimientoRubro({ abierta, onCerrar, proyectoId, codig
   const agregar = () => {
     const a = catalogo.find((x) => x.clave === sel);
     if (!a) return;
-    if (lineas.some((l) => l.clave === a.clave)) return setError("Ese artículo ya está en la lista.");
-    setLineas([...lineas, { ...a, cantidad: "1" }]); setSel(""); setError("");
+    // Si el artículo ya está en la lista, se suma la cantidad en lugar de duplicar la fila.
+    if (lineas.some((l) => l.clave === a.clave)) {
+      setLineas(lineas.map((l) => (l.clave === a.clave ? { ...l, cantidad: String(Number(l.cantidad || 0) + 1) } : l)));
+    } else {
+      setLineas([...lineas, { ...a, cantidad: "1" }]);
+    }
+    setSel(""); setError("");
   };
 
   async function guardar(enviar: boolean) {
