@@ -11,4 +11,7 @@ describe("IGV documental en órdenes de materiales", () => {
   it("en órdenes mixtas grava solamente la base de materiales y redondea a céntimos", () => {
     expect(montosOrdenCompra([{ tipo: "MAT", cantidad: 1, precio_unitario: 2 }, { tipo: "SC", cantidad: 1, precio_unitario: 10 }])).toEqual({ subtotal: 12, igv: 0.36, total: 12.36, materiales: true });
   });
+  it("el EPP es un bien gravado con IGV, nunca material", () => {
+    expect(montosOrdenCompra([{ tipo: "EPP", cantidad: 10, precio_unitario: 25 }])).toEqual({ subtotal: 250, igv: 45, total: 295, materiales: true });
+  });
 });
