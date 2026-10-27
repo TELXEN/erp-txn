@@ -24,8 +24,8 @@ Nueva pestaña **Vales de Salida** en Almacén:
 ## 4. Movimientos
 La tabla inferior sigue en orden cronológico (lo más reciente arriba) y muestra la partida, el trabajador y el número de vale cuando corresponda.
 
-## Sobre la letra Roboto
-El ERP usa la fuente que eliges en Configuración para todo el sistema. Si quieres Roboto, la selecciono allí como fuente global en vez de forzarla solo en esta pantalla.
+## Tipografía
+No se cambia: se mantiene la fuente actual del ERP.
 
 ## Detalles técnicos
 - Migración: `movimientos_almacen` + `partida_id` (nullable), `trabajador_id`, `vale_id`; tablas `vales_salida` y `vales_salida_items` con GRANT/RLS (encargados del almacén, admin/gerente); código vía `siguiente_codigo_documento`.
