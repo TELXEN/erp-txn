@@ -357,8 +357,8 @@ function AlmacenPage() {
                           <td className="w-16 px-5 py-2" title={m.fecha}>{corta(m.fecha)}</td>
                           <td className="px-3 py-2">{m.descripcion}<div className="text-[10px] text-muted-foreground">Transferencia</div></td>
                           <td className="px-3 py-2 text-right">{num(Number(m.cantidad))}<Und u={m.unidad} /></td>
-                          <td className="w-12 px-3 py-1 text-right">
-                            <BotonIcono etiqueta={tit} tono="primario" disabled={!puede} onClick={() => m.transferencia_id && void recibirTr(m.transferencia_id)}><PackageCheck size={14} /></BotonIcono>
+                          <td className="w-28 px-3 py-1 text-right">
+                            <Boton variante="linea" disabled={!puede} title={tit} onClick={() => m.transferencia_id && void recibirTr(m.transferencia_id)}><PackageCheck size={13} className="mr-1 inline" />Recibir</Boton>
                           </td>
                         </tr>
                       ))}
@@ -367,8 +367,8 @@ function AlmacenPage() {
                           <td className="w-16 px-5 py-2" title={x.oc.fecha}>{corta(x.oc.fecha)}</td>
                           <td className="px-3 py-2">{x.it.descripcion}<div className="text-[10px] text-muted-foreground">{x.oc.codigo} · {terceros.find((t) => t.id === x.oc.proveedor_id)?.razon_social ?? "Proveedor"}</div></td>
                           <td className="px-3 py-2 text-right">{num(x.pendiente)}<Und u={x.it.unidad} /></td>
-                          <td className="w-12 px-3 py-1 text-right">
-                            {cps.findIndex((y) => y.oc.id === x.oc.id) === n && <BotonIcono etiqueta={puede ? `Recibir ${x.oc.codigo}` : tit} tono="primario" disabled={!puede} onClick={() => abrirRecOC(x.oc.id)}><PackageCheck size={14} /></BotonIcono>}
+                          <td className="w-28 px-3 py-1 text-right">
+                            {cps.findIndex((y) => y.oc.id === x.oc.id) === n && <Boton variante="linea" disabled={!puede} title={puede ? `Recibir ${x.oc.codigo}` : tit} onClick={() => abrirRecOC(x.oc.id)}><PackageCheck size={13} className="mr-1 inline" />Recibir</Boton>}
                           </td>
                         </tr>
                       ))}
