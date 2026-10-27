@@ -155,10 +155,15 @@ function OrdenesCompraPage() {
   function agregarInsumo() {
     const ins = insumos.find((i) => i.id === insumoSel);
     if (!ins) return;
-    setLineas([
-      ...lineas,
-      { insumo_id: ins.id, descripcion: ins.nombre, unidad: ins.unidad, cantidad: "1", precio_unitario: String(ins.precio) },
-    ]);
+    // Si el insumo ya está en la lista, se suma la cantidad en lugar de duplicar la fila.
+    if (lineas.some((l) => l.insumo_id === ins.id)) {
+      setLineas(lineas.map((l) => (l.insumo_id === ins.id ? { ...l, cantidad: String(Number(l.cantidad || 0) + 1) } : l)));
+    } else {
+      setLineas([
+        ...lineas,
+        { insumo_id: ins.id, descripcion: ins.nombre, unidad: ins.unidad, cantidad: "1", precio_unitario: String(ins.precio) },
+      ]);
+    }
     setInsumoSel("");
   }
 
