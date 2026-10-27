@@ -143,9 +143,9 @@ function AlmacenPage() {
     itemsOC.filter((i) => i.orden_id === o.id).map((i) => ({ oc: o, it: i, pendiente: Math.max(0, Number(i.cantidad) - recibidoItem(i.id)) })).filter((x) => x.pendiente > 0.0001));
   const porLlegar = (pid: string | null, insumoId: string) => porRecibir.filter((x) => x.oc.proyecto_id === pid && x.it.insumo_id === insumoId).reduce((a, x) => a + x.pendiente, 0);
   const [recOC, setRecOC] = useState<{ orden: string; fecha: string; cant: Record<string, string>; error: string } | null>(null);
-  function abrirRecOC(ordenId: string) {
+  function abrirRecOC(ordenId: string, itemId?: string) {
     const cant: Record<string, string> = {};
-    for (const x of porRecibir.filter((y) => y.oc.id === ordenId)) cant[x.it.id] = String(x.pendiente);
+    for (const x of porRecibir.filter((y) => y.oc.id === ordenId)) cant[x.it.id] = !itemId || itemId === x.it.id ? String(x.pendiente) : "0";
     setRecOC({ orden: ordenId, fecha: hoy(), cant, error: "" });
   }
   async function guardarRecOC() {
@@ -368,7 +368,7 @@ function AlmacenPage() {
                           <td className="px-3 py-2">{x.it.descripcion}<div className="text-[10px] text-muted-foreground">{x.oc.codigo} · {terceros.find((t) => t.id === x.oc.proveedor_id)?.razon_social ?? "Proveedor"}</div></td>
                           <td className="px-3 py-2 text-right">{num(x.pendiente)}<Und u={x.it.unidad} /></td>
                           <td className="w-28 px-3 py-1 text-right">
-                            {<Boton variante="linea" disabled={!puede} title={puede ? `Recibir ${x.oc.codigo}` : tit} onClick={() => abrirRecOC(x.oc.id)}><PackageCheck size={13} className="mr-1 inline" />Recibir</Boton>}
+                            {<Boton variante="linea" disabled={!puede} title={puede ? `Recibir ${x.oc.codigo}` : tit} onClick={() => abrirRecOC(x.oc.id, x.it.id)}><PackageCheck size={13} className="mr-1 inline" />Recibir</Boton>}
                           </td>
                         </tr>
                       ))}
