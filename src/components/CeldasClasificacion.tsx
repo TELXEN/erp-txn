@@ -26,7 +26,7 @@ export function CeldasClasificacion({
 
   return (
     <>
-      <td className="px-3 py-2">
+      <td className="px-2 py-2">
         <SelectorBuscable
           aria-label="Especialidad"
           value={valor.especialidad_id}
@@ -35,7 +35,7 @@ export function CeldasClasificacion({
           placeholder="— Elegir —"
         />
       </td>
-      <td className="px-3 py-2">
+      <td className="px-2 py-2">
         {valor.especialidad_id ? (
           <SelectorBuscable
             aria-label="Subfamilia"

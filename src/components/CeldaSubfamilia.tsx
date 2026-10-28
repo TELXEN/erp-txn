@@ -38,7 +38,7 @@ export function CeldaSubfamilia({ insumo, refrescar }: { insumo: Insumo; refresc
   }
 
   return (
-    <td className="px-3 py-2">
+    <td className="px-2 py-2">
       {esp ? (
         <SelectorBuscable aria-label="Subfamilia" value={insumo.subfamilia_id ?? ""} onChange={(v) => void cambiar(v)} opciones={opciones} placeholder={guardando ? "Guardando…" : esMat ? "— Elegir —" : "Sin subfamilia"} />
       ) : (
