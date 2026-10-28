@@ -36,3 +36,24 @@ export const useSubfamilias = () =>
       return (data ?? []) as Subfamilia[];
     },
   });
+
+/** Reserva el siguiente código T+EE+SS+NNN. La función de la base es la única que numera:
+ *  valida que quien llama sea personal de la empresa y que la subfamilia pertenezca a la especialidad. */
+export async function codigoInsumoModular(a: {
+  especialidad: string;
+  tipo: string;
+  subfamilia?: string | null;
+  categoria?: string | null;
+}): Promise<string> {
+  const rpc = supabase as unknown as {
+    rpc: (f: string, args: Record<string, unknown>) => PromiseLike<{ data: unknown; error: { message: string } | null }>;
+  };
+  const { data, error } = await rpc.rpc("siguiente_codigo_insumo_modular", {
+    _especialidad: a.especialidad,
+    _tipo: a.tipo,
+    _subfamilia: a.subfamilia || null,
+    _categoria: a.categoria ?? null,
+  });
+  if (error) throw new Error(error.message);
+  return String(data);
+}

@@ -110,3 +110,6 @@
 - [x] Flujo de requerimientos: Generar Requerimiento (APU/TDR) → aprobación de Gerencia → Bandeja de Requerimientos (cotizaciones, comparativo, OC) → envío y recepción en obra; probado de punta a punta y datos de prueba retirados.
 - [x] Movimientos de almacén: columnas en el orden Fecha, Tipo, Almacén origen, Almacén destino, Insumo, Cantidad, Importe, Partida, Documento; en compras el origen muestra el proveedor.
 - [x] Estados de requerimientos y órdenes con color: borrador gris punteado, aprobado verde, orden emitida azul marino, en cotización azul, rechazado rojo, enviado a Gerencia ámbar; verificado en pantalla y con 5 pruebas.
+
+## Maestro de Insumos
+- [x] Completar especialidad y subfamilia desde la propia hoja (captura del usuario): columna Especialidad, selectores buscables, código TEESSNNN regenerado; verificado creando y borrando una ficha de prueba.
