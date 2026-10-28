@@ -802,7 +802,7 @@ function MaterialesWysiwyg({
 
 type Propiedad = "Propio" | "Alquilado";
 type Clase = "Equipo" | "Herramienta";
-type FilaEq = { nombre: string; clase: Clase; propiedad: Propiedad; unidad: string; precio: string };
+type FilaEq = { nombre: string; clase: Clase; propiedad: Propiedad; unidad: string; precio: string; especialidad_id: string; subfamilia_id: string };
 
 function EquiposWysiwyg({
   tipo,
@@ -833,7 +833,7 @@ function EquiposWysiwyg({
     const sim = c === "Equipo" ? "he" : "und";
     return unidades.some((u) => u.simbolo === sim) ? sim : "und";
   };
-  const vacia = (): FilaEq => ({ nombre: "", clase: claseFija, propiedad: "Propio", unidad: unidadDe(claseFija), precio: "" });
+  const vacia = (): FilaEq => ({ nombre: "", clase: claseFija, propiedad: "Propio", unidad: unidadDe(claseFija), precio: "", especialidad_id: "", subfamilia_id: "" });
   const [nueva, setNueva] = useState<FilaEq | null>(null);
   const fila = nueva ?? vacia();
   const setFila = (f: FilaEq) => setNueva(f);
@@ -851,10 +851,17 @@ function EquiposWysiwyg({
   async function crearDesdeFila() {
     if (guardando) return;
     if (!fila.nombre.trim()) return setError(`Escribe la descripción del ${etiqueta}.`);
+    const aviso = validarClasificacion("EQ", fila.especialidad_id, fila.subfamilia_id);
+    if (aviso) return setError(aviso);
     setError("");
     setGuardando(true);
     try {
-      const codigo = await reservarCodigoInsumo({ data: { tipo } });
+      const codigo = await codigoInsumoModular({
+        especialidad: fila.especialidad_id,
+        tipo,
+        subfamilia: fila.subfamilia_id || null,
+        categoria: fila.clase,
+      });
       const { error: err } = await apuDb.from("insumos").insert({
         tipo,
         codigo,
@@ -864,6 +871,8 @@ function EquiposWysiwyg({
         propiedad: fila.propiedad,
         clase_equipo: fila.clase,
         categoria_inventario: fila.clase,
+        especialidad_id: fila.especialidad_id,
+        subfamilia_id: fila.subfamilia_id || null,
       } as never);
       if (err) throw new Error(err.message);
       setNueva(null);
@@ -960,8 +969,9 @@ function EquiposWysiwyg({
         <thead>
           <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
             <th className="w-[9%] px-5 py-2 font-medium">Código</th>
+            <th className="w-[10%] px-3 py-2 font-medium">Especialidad</th>
             <th className="w-[10%] px-3 py-2 font-medium">Subfamilia</th>
-            <th className="w-[27%] px-3 py-2 font-medium">Descripción</th>
+            <th className="w-[20%] px-3 py-2 font-medium">Descripción</th>
             <th className="w-[10%] px-3 py-2 font-medium">Clase</th>
             <th className="w-[10%] px-3 py-2 font-medium">Tipo</th>
             <th className="w-[8%] px-3 py-2 font-medium">Unidad</th>
@@ -974,7 +984,7 @@ function EquiposWysiwyg({
         <tbody>
           <tr className="border-b border-dashed border-line/60 bg-muted/20">
             <td className="px-5 py-2 text-muted-foreground/60">auto</td>
-            <td className="px-3 py-2 text-muted-foreground/60">—</td>
+            <CeldasClasificacion tipo="EQ" valor={fila} onChange={(v) => setFila({ ...fila, ...v })} />
             {celdas(fila, setFila, teclaNueva)}
             <td className="px-5 py-2">
               <div className="flex justify-end">
@@ -987,6 +997,7 @@ function EquiposWysiwyg({
               return (
                 <tr key={i.id} className="border-b border-line/40">
                   <td className="px-5 py-2 text-muted-foreground">{editando.codigo || "—"}</td>
+                  <CeldaEspecialidad insumo={i} refrescar={refrescar} />
                   <CeldaSubfamilia insumo={i} refrescar={refrescar} />
                   {celdas(editando, (f) => setEditando({ ...editando, ...f }))}
                   <td className="px-5 py-2">
@@ -1003,6 +1014,7 @@ function EquiposWysiwyg({
             return (
               <tr key={i.id} className="border-b border-line/40 last:border-0">
                 <td className="px-5 py-2.5 text-muted-foreground"><Resaltar texto={i.codigo || "—"} termino={busqueda} /></td>
+                  <CeldaEspecialidad insumo={i} refrescar={refrescar} />
                   <CeldaSubfamilia insumo={i} refrescar={refrescar} />
                 <td className="px-3 py-2.5 text-ink"><Resaltar texto={i.nombre} termino={busqueda} /></td>
                 <td className="px-3 py-2.5">{claseDe(i)}</td>
@@ -1015,7 +1027,7 @@ function EquiposWysiwyg({
                   <div className="flex justify-end gap-1">
                     <button
                       type="button"
-                      onClick={() => setEditando({ id: i.id, codigo: i.codigo, nombre: i.nombre, clase: claseDe(i), propiedad: prop, unidad: i.unidad, precio: String(i.precio || "") })}
+                      onClick={() => setEditando({ id: i.id, codigo: i.codigo, nombre: i.nombre, clase: claseDe(i), propiedad: prop, unidad: i.unidad, precio: String(i.precio || ""), especialidad_id: i.especialidad_id ?? "", subfamilia_id: i.subfamilia_id ?? "" })}
                       title="Editar"
                       className={`${btn} border-line text-muted-foreground hover:border-primary hover:text-primary`}
                     >
