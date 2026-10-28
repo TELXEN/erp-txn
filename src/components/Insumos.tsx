@@ -322,17 +322,17 @@ function ManoObraWysiwyg({
       <table className="w-full table-fixed font-mono text-xs">
         <thead>
           <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-            <th className="w-[8%] px-5 py-2 font-medium">Código</th>
-            <th className="w-[10%] px-3 py-2 font-medium">Especialidad</th>
-            <th className="w-[10%] px-3 py-2 font-medium">Subfamilia</th>
+            <th className="w-[7%] px-5 py-2 font-medium">Código</th>
+            <th className="w-[13%] px-3 py-2 font-medium">Especialidad</th>
+            <th className="w-[14%] px-3 py-2 font-medium">Subfamilia</th>
             <th className="w-[18%] px-3 py-2 font-medium">Descripción</th>
-            <th className="w-[14%] px-3 py-2 font-medium">Régimen</th>
-            <th className="w-[12%] px-3 py-2 text-right font-medium">Sueldo mensual</th>
-            <th className="w-[5%] px-3 py-2 font-medium">Und.</th>
-            <th className="w-[10%] px-3 py-2 text-right font-medium">Costo Base</th>
-            <th className="w-[7%] px-3 py-2 text-right font-medium">Margen %</th>
-            <th className="w-[10%] px-3 py-2 text-right font-medium">Costo HH</th>
-            <th className="w-[8%] px-5 py-2 text-right font-medium">Acciones</th>
+            <th className="w-[11%] px-3 py-2 font-medium">Régimen</th>
+            <th className="w-[9%] px-3 py-2 text-right font-medium">Sueldo mensual</th>
+            <th className="w-[4%] px-3 py-2 font-medium">Und.</th>
+            <th className="w-[9%] px-3 py-2 text-right font-medium">Costo Base</th>
+            <th className="w-[6%] px-3 py-2 text-right font-medium">Margen %</th>
+            <th className="w-[9%] px-3 py-2 text-right font-medium">Costo HH</th>
+            <th className="w-[7%] px-5 py-2 text-right font-medium">Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -647,16 +647,16 @@ function MaterialesWysiwyg({
       <table className="w-full table-fixed font-mono text-xs">
         <thead>
           <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-            <th className="w-[10%] px-5 py-2 font-medium">Código</th>
-            <th className="w-[10%] px-3 py-2 font-medium">Especialidad</th>
-            <th className="w-[10%] px-3 py-2 font-medium">Subfamilia</th>
-            <th className={`${esSC ? "w-[30%]" : "w-[18%]"} px-3 py-2 font-medium`}>Descripción</th>
-            {!esSC && <th className="w-[12%] px-3 py-2 font-medium">Marca</th>}
-            <th className="w-[9%] px-3 py-2 font-medium">Unidad</th>
-            <th className="w-[12%] px-3 py-2 text-right font-medium">{esSC ? "Costo" : "P. Compra"}</th>
-            <th className="w-[9%] px-3 py-2 text-right font-medium">Margen %</th>
-            <th className="w-[12%] px-3 py-2 text-right font-medium">C. Unitario</th>
-            <th className="w-[12%] px-5 py-2 text-right font-medium">Acciones</th>
+            <th className="w-[8%] px-5 py-2 font-medium">Código</th>
+            <th className="w-[14%] px-3 py-2 font-medium">Especialidad</th>
+            <th className="w-[15%] px-3 py-2 font-medium">Subfamilia</th>
+            <th className={`${esSC ? "w-[26%]" : "w-[19%]"} px-3 py-2 font-medium`}>Descripción</th>
+            {!esSC && <th className="w-[9%] px-3 py-2 font-medium">Marca</th>}
+            <th className="w-[6%] px-3 py-2 font-medium">Unidad</th>
+            <th className="w-[10%] px-3 py-2 text-right font-medium">{esSC ? "Costo" : "P. Compra"}</th>
+            <th className="w-[7%] px-3 py-2 text-right font-medium">Margen %</th>
+            <th className="w-[10%] px-3 py-2 text-right font-medium">C. Unitario</th>
+            <th className="w-[9%] px-5 py-2 text-right font-medium">Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -968,17 +968,17 @@ function EquiposWysiwyg({
       <table className="w-full table-fixed font-mono text-xs">
         <thead>
           <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-            <th className="w-[9%] px-5 py-2 font-medium">Código</th>
-            <th className="w-[10%] px-3 py-2 font-medium">Especialidad</th>
-            <th className="w-[10%] px-3 py-2 font-medium">Subfamilia</th>
-            <th className="w-[20%] px-3 py-2 font-medium">Descripción</th>
-            <th className="w-[10%] px-3 py-2 font-medium">Clase</th>
-            <th className="w-[10%] px-3 py-2 font-medium">Tipo</th>
-            <th className="w-[8%] px-3 py-2 font-medium">Unidad</th>
-            <th className="w-[10%] px-3 py-2 text-right font-medium">P. Alquiler</th>
-            <th className="w-[7%] px-3 py-2 text-right font-medium">Margen</th>
-            <th className="w-[10%] px-3 py-2 text-right font-medium">C. Unitario</th>
-            <th className="w-[9%] px-5 py-2 text-right font-medium">Acciones</th>
+            <th className="w-[7%] px-5 py-2 font-medium">Código</th>
+            <th className="w-[13%] px-3 py-2 font-medium">Especialidad</th>
+            <th className="w-[14%] px-3 py-2 font-medium">Subfamilia</th>
+            <th className="w-[18%] px-3 py-2 font-medium">Descripción</th>
+            <th className="w-[8%] px-3 py-2 font-medium">Clase</th>
+            <th className="w-[8%] px-3 py-2 font-medium">Tipo</th>
+            <th className="w-[5%] px-3 py-2 font-medium">Unidad</th>
+            <th className="w-[9%] px-3 py-2 text-right font-medium">P. Alquiler</th>
+            <th className="w-[6%] px-3 py-2 text-right font-medium">Margen</th>
+            <th className="w-[9%] px-3 py-2 text-right font-medium">C. Unitario</th>
+            <th className="w-[8%] px-5 py-2 text-right font-medium">Acciones</th>
           </tr>
         </thead>
         <tbody>
