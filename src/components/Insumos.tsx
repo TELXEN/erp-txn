@@ -650,9 +650,9 @@ function MaterialesWysiwyg({
             <th className="w-[8%] px-5 py-2 font-medium">Código</th>
             <th className="w-[14%] px-3 py-2 font-medium">Especialidad</th>
             <th className="w-[15%] px-3 py-2 font-medium">Subfamilia</th>
-            <th className={`${esSC ? "w-[26%]" : "w-[18%]"} px-3 py-2 font-medium`}>Descripción</th>
+            <th className={`${esSC ? "w-[26%]" : "w-[16%]"} px-3 py-2 font-medium`}>Descripción</th>
             {!esSC && <th className="w-[9%] px-3 py-2 font-medium">Marca</th>}
-            <th className="w-[7%] px-3 py-2 font-medium">Unidad</th>
+            <th className="w-[9%] px-3 py-2 font-medium">Unidad</th>
             <th className="w-[10%] px-3 py-2 text-right font-medium">{esSC ? "Costo" : "P. Compra"}</th>
             <th className="w-[7%] px-3 py-2 text-right font-medium">Margen %</th>
             <th className="w-[10%] px-3 py-2 text-right font-medium">C. Unitario</th>
@@ -971,10 +971,10 @@ function EquiposWysiwyg({
             <th className="w-[7%] px-5 py-2 font-medium">Código</th>
             <th className="w-[13%] px-3 py-2 font-medium">Especialidad</th>
             <th className="w-[14%] px-3 py-2 font-medium">Subfamilia</th>
-            <th className="w-[17%] px-3 py-2 font-medium">Descripción</th>
+            <th className="w-[15%] px-3 py-2 font-medium">Descripción</th>
             <th className="w-[8%] px-3 py-2 font-medium">Clase</th>
             <th className="w-[8%] px-3 py-2 font-medium">Tipo</th>
-            <th className="w-[6%] px-3 py-2 font-medium">Unidad</th>
+            <th className="w-[8%] px-3 py-2 font-medium">Unidad</th>
             <th className="w-[9%] px-3 py-2 text-right font-medium">P. Alquiler</th>
             <th className="w-[6%] px-3 py-2 text-right font-medium">Margen</th>
             <th className="w-[9%] px-3 py-2 text-right font-medium">C. Unitario</th>
