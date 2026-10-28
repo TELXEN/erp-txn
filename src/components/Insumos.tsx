@@ -5,6 +5,8 @@ import { Boton, Input, Panel, Select } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { SelectorBuscable } from "@/components/SelectorBuscable";
 import { CeldaSubfamilia } from "@/components/CeldaSubfamilia";
+import { CeldaEspecialidad } from "@/components/CeldaEspecialidad";
+import { CeldasClasificacion } from "@/components/CeldasClasificacion";
 import { MargenesApuPanel } from "@/components/MargenesApu";
 import { ParametrosLaboralesPanel } from "@/components/ParametrosLaborales";
 import { CodificacionInsumos } from "@/components/CodificacionInsumos";
@@ -13,6 +15,8 @@ import { compararManoObra } from "@/lib/orden-mano-obra";
 import { useUnidadesMedida } from "@/lib/unidades";
 import { useMarcas } from "@/lib/datos";
 import { reservarCodigoInsumo } from "@/lib/codigos.functions";
+import { codigoInsumoModular } from "@/lib/codigo-insumo";
+import { validarClasificacion } from "@/lib/clasificacion-insumo";
 import {
   CATEGORIAS_OBRERO,
   REGIMENES_LABORALES,
