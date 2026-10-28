@@ -746,6 +746,7 @@ function MaterialesWysiwyg({
                 ) : (
                   <>
                     <td className="px-5 py-2.5 text-muted-foreground"><Resaltar texto={i.codigo || "—"} termino={busqueda} /></td>
+                    <CeldaEspecialidad insumo={i} refrescar={refrescar} />
                     <CeldaSubfamilia insumo={i} refrescar={refrescar} />
                     <td className="px-3 py-2.5 text-ink"><Resaltar texto={i.nombre} termino={busqueda} /></td>
                     {!esSC && <td className="px-3 py-2.5 text-muted-foreground">{nombreMarca(i.marca_id)}</td>}
@@ -767,6 +768,8 @@ function MaterialesWysiwyg({
                               precio: String(i.precio || ""),
                               margen: String(i.margen_pct || ""),
                               marca_id: i.marca_id ?? "",
+                              especialidad_id: i.especialidad_id ?? "",
+                              subfamilia_id: i.subfamilia_id ?? "",
                             })
                           }
                           title="Editar"
