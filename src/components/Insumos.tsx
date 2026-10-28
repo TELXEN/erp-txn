@@ -471,6 +471,7 @@ function ManoObraWysiwyg({
                 ) : (
                   <>
                     <td className="px-5 py-2.5 text-muted-foreground"><Resaltar texto={i.codigo || "—"} termino={busqueda} /></td>
+                    <CeldaEspecialidad insumo={i} refrescar={refrescar} />
                     <CeldaSubfamilia insumo={i} refrescar={refrescar} />
                     <td className="px-3 py-2.5 text-ink"><Resaltar texto={i.nombre} termino={busqueda} /></td>
                     <td className="px-3 py-2.5 text-muted-foreground">{i.regimen_laboral ?? "General"}</td>
@@ -494,6 +495,8 @@ function ManoObraWysiwyg({
                               sueldo: String(i.sueldo_mensual || ""),
                               margen: String(i.margen_pct || ""),
                               asignacion: !!i.asignacion_familiar,
+                              especialidad_id: i.especialidad_id ?? "",
+                              subfamilia_id: i.subfamilia_id ?? "",
                             })
                           }
                           title="Editar"
@@ -1174,7 +1177,7 @@ function FragmentFila({
     <>
       <tr className="border-b border-line/20">{children}</tr>
       <tr className="border-b border-line/40">
-        <td colSpan={10} className="px-5 pb-1 pt-0">
+        <td colSpan={11} className="px-5 pb-1 pt-0">
           <button type="button" onClick={onToggle} className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wide text-muted-foreground hover:text-primary">
             {abierto ? <ChevronDown size={11} /> : <ChevronRight size={11} />} Cómo se calcula el Costo Base
           </button>
