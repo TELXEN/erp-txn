@@ -569,10 +569,16 @@ function MaterialesWysiwyg({
   async function crearDesdeFila() {
     if (guardando) return;
     if (!nueva.nombre.trim()) return setError(esSC ? "Escribe la descripción del subcontrato." : "Escribe la descripción del material.");
+    const aviso = validarClasificacion(tipo, nueva.especialidad_id, nueva.subfamilia_id);
+    if (aviso) return setError(aviso);
     setError("");
     setGuardando(true);
     try {
-      const codigo = await reservarCodigoInsumo({ data: { tipo } });
+      const codigo = await codigoInsumoModular({
+        especialidad: nueva.especialidad_id,
+        tipo,
+        subfamilia: nueva.subfamilia_id || null,
+      });
       const { error: err } = await apuDb.from("insumos").insert({
         tipo,
         codigo,
@@ -580,6 +586,8 @@ function MaterialesWysiwyg({
         unidad: nueva.unidad || uDef,
         precio: Number(nueva.precio || 0),
         margen_pct: Number(nueva.margen || 0),
+        especialidad_id: nueva.especialidad_id,
+        subfamilia_id: nueva.subfamilia_id || null,
         ...(esSC ? {} : { marca_id: nueva.marca_id || null }),
       });
       if (err) throw new Error(err.message);
@@ -714,6 +722,7 @@ function MaterialesWysiwyg({
                 {esEdicion ? (
                   <>
                     <td className="px-5 py-2 text-muted-foreground">{editando.codigo || "—"}</td>
+                    <CeldaEspecialidad insumo={i} refrescar={refrescar} />
                     <CeldaSubfamilia insumo={i} refrescar={refrescar} />
                     <td className="px-3 py-2"><Input className="py-1 text-xs" value={editando.nombre} data-formato="oracion" onChange={(e) => setEditando({ ...editando, nombre: e.target.value })} /></td>
                     {!esSC && (
@@ -779,6 +788,8 @@ function MaterialesWysiwyg({
       <p className="border-t border-line px-5 py-3 font-mono text-[10px] leading-relaxed text-muted-foreground">
         El C. Unitario —el que usan los análisis de precios unitarios— es el {esSC ? "Costo" : "P. Compra"} más el margen. Los precios se registran sin IGV.
         La unidad se elige del catálogo de Unidades de medida (por defecto {uDef}).
+        La Especialidad y la Subfamilia definen el código (rubro + especialidad + subfamilia + correlativo): se eligen en la fila de captura
+        y se pueden corregir en cada fila. {esSC ? "En subcontratos la subfamilia es opcional." : "Los materiales siempre necesitan subfamilia."}
       </p>
     </Panel>
   );
