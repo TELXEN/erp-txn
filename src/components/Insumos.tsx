@@ -180,9 +180,11 @@ type FilaMO = {
   sueldo: string;
   margen: string;
   asignacion: boolean;
+  especialidad_id: string;
+  subfamilia_id: string;
 };
 
-const filaVacia: FilaMO = { nombre: "", regimen: "General", categoria: "Operario", sueldo: "", margen: "", asignacion: false };
+const filaVacia: FilaMO = { nombre: "", regimen: "General", categoria: "Operario", sueldo: "", margen: "", asignacion: false, especialidad_id: "", subfamilia_id: "" };
 
 function ManoObraWysiwyg({
   enfoqueNueva,
@@ -240,10 +242,12 @@ function ManoObraWysiwyg({
   async function crearDesdeFila() {
     if (guardando) return;
     if (!nueva.nombre.trim()) return setError("Escribe la descripción del trabajador u oficio.");
+    const aviso = validarClasificacion("MO", nueva.especialidad_id, nueva.subfamilia_id);
+    if (aviso) return setError(aviso);
     setError("");
     setGuardando(true);
     try {
-      const codigo = await reservarCodigoInsumo({ data: { tipo: "MO" } });
+      const codigo = await codigoInsumoModular({ especialidad: nueva.especialidad_id, tipo: "MO", subfamilia: nueva.subfamilia_id || null });
       const { error: err } = await apuDb.from("insumos").insert({
         tipo: "MO",
         codigo,
@@ -255,6 +259,8 @@ function ManoObraWysiwyg({
         regimen_laboral: nueva.regimen,
         categoria_obrero: nueva.regimen === "Construcción Civil" ? nueva.categoria : null,
         asignacion_familiar: nueva.asignacion,
+        especialidad_id: nueva.especialidad_id,
+        subfamilia_id: nueva.subfamilia_id || null,
       });
       if (err) throw new Error(err.message);
       setNueva(filaVacia);
@@ -317,8 +323,9 @@ function ManoObraWysiwyg({
         <thead>
           <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
             <th className="w-[8%] px-5 py-2 font-medium">Código</th>
+            <th className="w-[10%] px-3 py-2 font-medium">Especialidad</th>
             <th className="w-[10%] px-3 py-2 font-medium">Subfamilia</th>
-            <th className="w-[26%] px-3 py-2 font-medium">Descripción</th>
+            <th className="w-[18%] px-3 py-2 font-medium">Descripción</th>
             <th className="w-[14%] px-3 py-2 font-medium">Régimen</th>
             <th className="w-[12%] px-3 py-2 text-right font-medium">Sueldo mensual</th>
             <th className="w-[5%] px-3 py-2 font-medium">Und.</th>
@@ -332,7 +339,7 @@ function ManoObraWysiwyg({
           {/* Fila fantasma de creación rápida (siempre visible arriba) */}
           <tr className="border-b border-dashed border-line/60 bg-muted/20">
             <td className="px-5 py-2 text-muted-foreground/60">auto</td>
-            <td className="px-3 py-2 text-muted-foreground/60">—</td>
+            <CeldasClasificacion tipo="MO" valor={nueva} onChange={(v) => setNueva({ ...nueva, ...v })} />
             <td className="px-3 py-2">
               <input
                 className={inputCls}
@@ -394,7 +401,7 @@ function ManoObraWysiwyg({
           {/* Vista previa del cálculo de la fila fantasma */}
           {(Number(nueva.sueldo || 0) > 0 || nueva.regimen === "Construcción Civil") && (
             <tr className="border-b border-dashed border-line/60 bg-muted/20">
-              <td colSpan={10} className="px-5 py-2">
+              <td colSpan={11} className="px-5 py-2">
                 <DetalleCostoHH lineas={calculoNueva.lineas} horas={calculoNueva.horasEfectivas} />
               </td>
             </tr>
@@ -430,6 +437,7 @@ function ManoObraWysiwyg({
                 {esEdicion ? (
                   <>
                     <td className="px-5 py-2 text-muted-foreground">{editando.codigo || "—"}</td>
+                    <CeldaEspecialidad insumo={i} refrescar={refrescar} />
                     <CeldaSubfamilia insumo={i} refrescar={refrescar} />
                     <td className="px-3 py-2"><Input className="py-1 text-xs" value={editando.nombre} data-formato="cargo" onChange={(e) => setEditando({ ...editando, nombre: e.target.value })} /></td>
                     <td className="px-3 py-2">
