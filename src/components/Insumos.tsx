@@ -525,9 +525,9 @@ function ManoObraWysiwyg({
 
 // ================= Materiales: edición WYSIWYG =================
 
-type FilaMat = { nombre: string; unidad: string; precio: string; margen: string; marca_id: string };
+type FilaMat = { nombre: string; unidad: string; precio: string; margen: string; marca_id: string; especialidad_id: string; subfamilia_id: string };
 
-const filaMatVacia: FilaMat = { nombre: "", unidad: "und", precio: "", margen: "", marca_id: "" };
+const filaMatVacia: FilaMat = { nombre: "", unidad: "und", precio: "", margen: "", marca_id: "", especialidad_id: "", subfamilia_id: "" };
 
 function MaterialesWysiwyg({
   tipo = "MAT",
@@ -640,8 +640,9 @@ function MaterialesWysiwyg({
         <thead>
           <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
             <th className="w-[10%] px-5 py-2 font-medium">Código</th>
+            <th className="w-[10%] px-3 py-2 font-medium">Especialidad</th>
             <th className="w-[10%] px-3 py-2 font-medium">Subfamilia</th>
-            <th className={`${esSC ? "w-[36%]" : "w-[24%]"} px-3 py-2 font-medium`}>Descripción</th>
+            <th className={`${esSC ? "w-[30%]" : "w-[18%]"} px-3 py-2 font-medium`}>Descripción</th>
             {!esSC && <th className="w-[12%] px-3 py-2 font-medium">Marca</th>}
             <th className="w-[9%] px-3 py-2 font-medium">Unidad</th>
             <th className="w-[12%] px-3 py-2 text-right font-medium">{esSC ? "Costo" : "P. Compra"}</th>
@@ -654,7 +655,7 @@ function MaterialesWysiwyg({
           {/* Fila fantasma de creación rápida (siempre visible arriba) */}
           <tr className="border-b border-dashed border-line/60 bg-muted/20">
             <td className="px-5 py-2 text-muted-foreground/60">auto</td>
-            <td className="px-3 py-2 text-muted-foreground/60">—</td>
+            <CeldasClasificacion tipo={tipo} valor={nueva} onChange={(v) => setNueva({ ...nueva, ...v })} />
             <td className="px-3 py-2">
               <input
                 className={inputCls}
