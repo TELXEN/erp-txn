@@ -344,7 +344,7 @@ function ManoObraWysiwyg({
               <input
                 className={inputCls}
                 autoFocus={enfoqueNueva}
-                placeholder="Escribe la descripción y pulsa Enter…"
+                placeholder="Escribe y pulsa Enter…"
                 value={nueva.nombre} data-formato="cargo"
                 onChange={(e) => setNueva({ ...nueva, nombre: e.target.value })}
                 onKeyDown={teclaNueva}
@@ -650,9 +650,9 @@ function MaterialesWysiwyg({
             <th className="w-[8%] px-5 py-2 font-medium">Código</th>
             <th className="w-[14%] px-3 py-2 font-medium">Especialidad</th>
             <th className="w-[15%] px-3 py-2 font-medium">Subfamilia</th>
-            <th className={`${esSC ? "w-[26%]" : "w-[19%]"} px-3 py-2 font-medium`}>Descripción</th>
+            <th className={`${esSC ? "w-[26%]" : "w-[18%]"} px-3 py-2 font-medium`}>Descripción</th>
             {!esSC && <th className="w-[9%] px-3 py-2 font-medium">Marca</th>}
-            <th className="w-[6%] px-3 py-2 font-medium">Unidad</th>
+            <th className="w-[7%] px-3 py-2 font-medium">Unidad</th>
             <th className="w-[10%] px-3 py-2 text-right font-medium">{esSC ? "Costo" : "P. Compra"}</th>
             <th className="w-[7%] px-3 py-2 text-right font-medium">Margen %</th>
             <th className="w-[10%] px-3 py-2 text-right font-medium">C. Unitario</th>
@@ -668,7 +668,7 @@ function MaterialesWysiwyg({
               <input
                 className={inputCls}
                 autoFocus={enfoqueNueva}
-                placeholder="Escribe la descripción y pulsa Enter…"
+                placeholder="Escribe y pulsa Enter…"
                 value={nueva.nombre} data-formato="oracion"
                 onChange={(e) => setNueva({ ...nueva, nombre: e.target.value })}
                 onKeyDown={teclaNueva}
@@ -927,7 +927,7 @@ function EquiposWysiwyg({
     return (
       <>
         <td className="px-3 py-2">
-          <input className={inputCls} autoFocus={enfoqueNueva} placeholder="Escribe la descripción y pulsa Enter…" value={f.nombre} data-formato="oracion" onChange={(e) => set({ ...f, nombre: e.target.value })} onKeyDown={onKey} />
+          <input className={inputCls} autoFocus={enfoqueNueva} placeholder="Escribe y pulsa Enter…" value={f.nombre} data-formato="oracion" onChange={(e) => set({ ...f, nombre: e.target.value })} onKeyDown={onKey} />
         </td>
         <td className="px-3 py-2 text-ink">{f.clase}</td>
         <td className="px-3 py-2">
@@ -971,10 +971,10 @@ function EquiposWysiwyg({
             <th className="w-[7%] px-5 py-2 font-medium">Código</th>
             <th className="w-[13%] px-3 py-2 font-medium">Especialidad</th>
             <th className="w-[14%] px-3 py-2 font-medium">Subfamilia</th>
-            <th className="w-[18%] px-3 py-2 font-medium">Descripción</th>
+            <th className="w-[17%] px-3 py-2 font-medium">Descripción</th>
             <th className="w-[8%] px-3 py-2 font-medium">Clase</th>
             <th className="w-[8%] px-3 py-2 font-medium">Tipo</th>
-            <th className="w-[5%] px-3 py-2 font-medium">Unidad</th>
+            <th className="w-[6%] px-3 py-2 font-medium">Unidad</th>
             <th className="w-[9%] px-3 py-2 text-right font-medium">P. Alquiler</th>
             <th className="w-[6%] px-3 py-2 text-right font-medium">Margen</th>
             <th className="w-[9%] px-3 py-2 text-right font-medium">C. Unitario</th>
@@ -1134,7 +1134,7 @@ function HerramientasWysiwyg({
           <tr className="border-b border-dashed border-line/60 bg-muted/20">
             <td className="px-5 py-2 text-muted-foreground/60">auto</td>
             <td className="px-3 py-2">
-              <input className={inputCls} autoFocus={enfoqueNueva} placeholder="Escribe la descripción y pulsa Enter…" value={nombre} data-formato="oracion" onChange={(e) => setNombre(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void crear(); } }} />
+              <input className={inputCls} autoFocus={enfoqueNueva} placeholder="Escribe y pulsa Enter…" value={nombre} data-formato="oracion" onChange={(e) => setNombre(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void crear(); } }} />
             </td>
             <td className="px-3 py-2 text-center text-muted-foreground">%MO</td>
             <td className="px-3 py-2">
