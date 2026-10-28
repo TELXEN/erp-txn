@@ -323,9 +323,9 @@ function ManoObraWysiwyg({
         <thead>
           <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
             <th className="w-[7%] px-5 py-2 font-medium">Código</th>
-            <th className="w-[13%] px-3 py-2 font-medium">Especialidad</th>
+            <th className="w-[14%] px-3 py-2 font-medium">Especialidad</th>
             <th className="w-[14%] px-3 py-2 font-medium">Subfamilia</th>
-            <th className="w-[18%] px-3 py-2 font-medium">Descripción</th>
+            <th className="w-[17%] px-3 py-2 font-medium">Descripción</th>
             <th className="w-[11%] px-3 py-2 font-medium">Régimen</th>
             <th className="w-[9%] px-3 py-2 text-right font-medium">Sueldo mensual</th>
             <th className="w-[4%] px-3 py-2 font-medium">Und.</th>
@@ -648,9 +648,9 @@ function MaterialesWysiwyg({
         <thead>
           <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
             <th className="w-[8%] px-5 py-2 font-medium">Código</th>
-            <th className="w-[14%] px-3 py-2 font-medium">Especialidad</th>
+            <th className="w-[15%] px-3 py-2 font-medium">Especialidad</th>
             <th className="w-[15%] px-3 py-2 font-medium">Subfamilia</th>
-            <th className={`${esSC ? "w-[26%]" : "w-[16%]"} px-3 py-2 font-medium`}>Descripción</th>
+            <th className={`${esSC ? "w-[26%]" : "w-[15%]"} px-3 py-2 font-medium`}>Descripción</th>
             {!esSC && <th className="w-[9%] px-3 py-2 font-medium">Marca</th>}
             <th className="w-[9%] px-3 py-2 font-medium">Unidad</th>
             <th className="w-[10%] px-3 py-2 text-right font-medium">{esSC ? "Costo" : "P. Compra"}</th>
@@ -969,9 +969,9 @@ function EquiposWysiwyg({
         <thead>
           <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
             <th className="w-[7%] px-5 py-2 font-medium">Código</th>
-            <th className="w-[13%] px-3 py-2 font-medium">Especialidad</th>
+            <th className="w-[14%] px-3 py-2 font-medium">Especialidad</th>
             <th className="w-[14%] px-3 py-2 font-medium">Subfamilia</th>
-            <th className="w-[15%] px-3 py-2 font-medium">Descripción</th>
+            <th className="w-[14%] px-3 py-2 font-medium">Descripción</th>
             <th className="w-[8%] px-3 py-2 font-medium">Clase</th>
             <th className="w-[8%] px-3 py-2 font-medium">Tipo</th>
             <th className="w-[8%] px-3 py-2 font-medium">Unidad</th>
