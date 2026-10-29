@@ -120,17 +120,19 @@ export function HojaSubfamilias() {
           <Campo etiqueta="Nombre">
             <Input autoFocus value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} />
           </Campo>
-          <Campo etiqueta="Comentario">
-            <Area
-              value={form.descripcion}
-              rows={3}
-              placeholder="Ej. Tipo escalerilla pesada de aluminio/fierro galvanizado"
-              onChange={(e) => setForm({ ...form, descripcion: e.target.value })}
-            />
-            <span className="mt-1 block text-[11px] leading-snug text-muted-foreground">
-              Guía que se ve en gris junto al nombre y al recorrer la lista de subfamilias. Sirve para complementar, cambiar o dejar vacío para quitarlo.
-            </span>
-          </Campo>
+          <div className="sm:col-span-2">
+            <Campo etiqueta="Comentario">
+              <Area
+                value={form.descripcion}
+                rows={3}
+                placeholder="Ej. Tipo escalerilla pesada de aluminio/fierro galvanizado"
+                onChange={(e) => setForm({ ...form, descripcion: e.target.value })}
+              />
+              <span className="mt-1 block text-[11px] leading-snug text-muted-foreground">
+                Guía que se ve en gris junto al nombre y al recorrer la lista de subfamilias. Sirve para complementar, cambiar o dejar vacío para quitarlo.
+              </span>
+            </Campo>
+          </div>
           {aviso && <p className="text-xs text-destructive sm:col-span-2">{aviso}</p>}
           <div className="flex justify-end gap-2 sm:col-span-2">
             <Boton type="button" variante="linea" onClick={() => setModo(null)}>Cerrar</Boton>
