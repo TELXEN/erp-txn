@@ -729,6 +729,13 @@
       "when": 1793246734650,
       "tag": "0103_subfamilias_electrica_maestra",
       "breakpoints": true
+    },
+    {
+      "idx": 104,
+      "version": "7",
+      "when": 1793246916028,
+      "tag": "0104_scada_a_instrumentacion",
+      "breakpoints": true
     }
   ]
 }

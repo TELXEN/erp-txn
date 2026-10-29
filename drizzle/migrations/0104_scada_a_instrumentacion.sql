@@ -1,0 +1,8 @@
+UPDATE public.subfamilias_insumo s SET especialidad_id=(SELECT id FROM public.especialidades_partida WHERE codigo_modular='06' AND activo LIMIT 1),
+ codigo=lpad((s.codigo::int-39)::text,2,'0'), bloque='Automatización, SCADA y Control de Procesos'
+ FROM public.especialidades_partida e WHERE e.id=s.especialidad_id AND e.codigo_modular='05' AND e.activo AND s.codigo BETWEEN '40' AND '43';
+UPDATE public.subfamilias_insumo s SET codigo=lpad((s.codigo::int-10)::text,2,'0') FROM public.especialidades_partida e WHERE e.id=s.especialidad_id AND e.codigo_modular='05' AND e.activo AND s.codigo BETWEEN '50' AND '59';
+UPDATE public.subfamilias_insumo s SET codigo=lpad((s.codigo::int-10)::text,2,'0') FROM public.especialidades_partida e WHERE e.id=s.especialidad_id AND e.codigo_modular='05' AND e.activo AND s.codigo BETWEEN '60' AND '69';
+UPDATE public.subfamilias_insumo s SET codigo=lpad((s.codigo::int-10)::text,2,'0') FROM public.especialidades_partida e WHERE e.id=s.especialidad_id AND e.codigo_modular='05' AND e.activo AND s.codigo BETWEEN '70' AND '79';
+UPDATE public.subfamilias_insumo s SET codigo=lpad((s.codigo::int-10)::text,2,'0') FROM public.especialidades_partida e WHERE e.id=s.especialidad_id AND e.codigo_modular='05' AND e.activo AND s.codigo BETWEEN '80' AND '89';
+UPDATE public.subfamilias_insumo s SET codigo=lpad((s.codigo::int-10)::text,2,'0') FROM public.especialidades_partida e WHERE e.id=s.especialidad_id AND e.codigo_modular='05' AND e.activo AND s.codigo BETWEEN '90' AND '99';
