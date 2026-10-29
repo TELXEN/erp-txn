@@ -715,6 +715,13 @@
       "when": 1793241396412,
       "tag": "0101_subcontratos_sin_subfamilia",
       "breakpoints": true
+    },
+    {
+      "idx": 102,
+      "version": "7",
+      "when": 1793242267138,
+      "tag": "0102_mover_especialidad",
+      "breakpoints": true
     }
   ]
 }
