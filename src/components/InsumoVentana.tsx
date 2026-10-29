@@ -8,6 +8,7 @@ import { useMarcas } from "@/lib/datos";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
 import { useUnidadesMedida } from "@/lib/unidades";
 import { useSubfamilias } from "@/lib/codigo-insumo";
+import { usaSubfamilia } from "@/lib/clasificacion-insumo";
 import { buscarInsumoDuplicado } from "@/lib/insumo-duplicado";
 import { useBancoTabla } from "@/lib/banco-apu";
 
@@ -116,14 +117,14 @@ export function VentanaInsumo({
     if (!f && t === "mano_obra") b.unidad = "H-H";
     if (!f && !b.unidad) b.unidad = unidades.find((u) => u.activo)?.simbolo ?? "";
     b.especialidad_id = f?.especialidad_id ?? "";
-    b.subfamilia_id = f?.subfamilia_id ?? "";
+    b.subfamilia_id = usaSubfamilia(t) ? f?.subfamilia_id ?? "" : "";
     return b;
   }
 
   const dual = Boolean(alAgregar);
   const [pestana, setPestana] = useState<"sel" | "crear">(dual ? "sel" : "crear");
   const [tipo, setTipo] = useState<TablaInsumo>(modo === "nuevo" ? soloTabla ?? "materiales" : sel!.tabla);
-  const conSubfamilia = tipo === "materiales";
+  const conSubfamilia = usaSubfamilia(tipo);
   const [form, setForm] = useState<FilaInsumo>(() => {
     if (modo === "nuevo") return base(soloTabla ?? "materiales");
     const b = base(sel!.tabla, sel!.fila);
@@ -171,7 +172,7 @@ export function VentanaInsumo({
     if (typeof d["marca"] === "string" && d["marca"]) d["marca"] = primeraMayuscula(d["marca"]);
     const conSub = tipo === "materiales";
     if (!form.especialidad_id || (conSub && !form.subfamilia_id)) return setAviso(conSub ? "Elige la especialidad y la subfamilia: con ellas se genera el código." : "Elige la especialidad: con ella se genera el código.");
-    d["especialidad_id"] = form.especialidad_id; d["subfamilia_id"] = form.subfamilia_id || null;
+    d["especialidad_id"] = form.especialidad_id; d["subfamilia_id"] = usaSubfamilia(tipo) ? form.subfamilia_id || null : null;
     if (categoriaInventario && tipo === "equipos_herramientas") d["categoria_inventario"] = categoriaInventario;
     const [oe, os, oc] = String(form._orig ?? "").split("|");
     const digito = digitoTipoInsumo(tipo, categoriaInventario);
