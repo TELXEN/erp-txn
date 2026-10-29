@@ -5,7 +5,8 @@
 - Seleccionas una especialidad y, al pulsar una flecha, intercambia su lugar y su número con la vecina (ej. 05 INSTRUMENTACIÓN baja → pasa a 06 y ELÉCTRICA sube a 05).
 - La especialidad sigue seleccionada tras moverla, para poder pulsar varias veces seguidas.
 - Flecha arriba desactivada en la primera; flecha abajo desactivada en la última. Solo Gerencia/Administración puede moverlas (igual que editar).
-- Al mismo tiempo se actualizan los códigos de los insumos de ambas especialidades (las dos cifras de especialidad): por ejemplo Instrumentista `10500001` pasaría a `10600001` y los de Eléctrica `106…` a `105…`. Correlativos y subfamilias se conservan.
+- Al mismo tiempo se actualizan los códigos de los insumos de ambas especialidades (las dos cifras de especialidad): por ejemplo Instrumentista `10500001` pasaría a `10600001` y los de Eléctrica `106…` a `105…`. Correlativos se conservan.
+- Las subfamilias acompañan a su especialidad: su numeración visible (especialidad + subfamilia, ej. 06-01 → 05-01) se actualiza en Catálogo Técnico y en Maestro de Insumos, sin perder a qué subfamilia pertenece cada insumo.
 
 ## Cuidados
 - El intercambio es atómico: si algo falla, nada cambia (ni especialidades ni insumos).
