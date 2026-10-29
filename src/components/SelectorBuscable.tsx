@@ -18,6 +18,7 @@ export function SelectorBuscable({
   placeholder = "— Elegir —",
   buscarEn = "Escribe para filtrar…",
   permitirLibre = false,
+  codigoIzquierda = false,
   ["aria-label"]: ariaLabel,
   className = "",
 }: {
@@ -28,6 +29,8 @@ export function SelectorBuscable({
   buscarEn?: string;
   /** Permite aceptar un texto que no está en la lista (Enter o «Usar…»). */
   permitirLibre?: boolean;
+  /** Pone el código del catálogo a la izquierda del nombre (subfamilias, especialidades). */
+  codigoIzquierda?: boolean;
   "aria-label"?: string;
   className?: string;
 }) {
@@ -42,11 +45,11 @@ export function SelectorBuscable({
     const el = caja.current;
     if (!el) return;
     const r = el.getBoundingClientRect();
-    const ALTO = 260; // alto máx. aproximado de la lista
+    const ALTO = 300; // alto máx. aproximado de la lista
     const arriba = r.bottom + ALTO > window.innerHeight && r.top > ALTO;
     setPos({
       top: arriba ? r.top - 8 : r.bottom + 4,
-      left: Math.max(8, Math.min(r.left, window.innerWidth - Math.max(r.width, 160) - 8)),
+      left: Math.max(8, Math.min(r.left, window.innerWidth - Math.max(r.width, 240) - 8)),
       width: r.width,
       arriba,
     });
@@ -93,6 +96,16 @@ export function SelectorBuscable({
     setAbierto(true);
   }
 
+  // La lista se ensancha para leer el texto completo: si se sale de la pantalla, se corre a la izquierda.
+  useLayoutEffect(() => {
+    if (!abierto || !pos) return;
+    const el = panel.current;
+    if (!el) return;
+    const maxIzq = window.innerWidth - el.getBoundingClientRect().width - 8;
+    if (maxIzq < 8 || pos.left <= maxIzq) return;
+    setPos((p) => (p ? { ...p, left: maxIzq } : p));
+  }, [abierto, pos, lista]);
+
   return (
     <div ref={caja} className={`relative ${className}`}>
       <button
@@ -114,7 +127,9 @@ export function SelectorBuscable({
               top: pos.arriba ? undefined : pos.top,
               bottom: pos.arriba ? window.innerHeight - pos.top : undefined,
               left: pos.left,
-              width: Math.max(pos.width, 160),
+              width: "max-content",
+              minWidth: Math.max(pos.width, 240),
+              maxWidth: Math.max(window.innerWidth - pos.left - 8, 240),
               zIndex: 9999,
             }}
             className="overflow-hidden rounded-md border border-line bg-background shadow-lg"
@@ -145,18 +160,23 @@ export function SelectorBuscable({
                 }
               }}
             />
-            <div className="max-h-60 overflow-y-auto py-0.5">
+            <div className="max-h-72 overflow-y-auto py-0.5">
               {lista.map((o, ix) => (
                 <button
                   key={`${o.value}-${ix}`}
                   type="button"
-                  title={o.detalle ? `${o.texto} — ${o.detalle}` : o.texto}
+                  title={o.detalle ? `${o.detalle} — ${o.texto}` : o.texto}
                   onMouseEnter={() => setActivo(ix)}
                   onClick={() => elegir(o.value)}
-                  className={`flex w-full items-baseline justify-between gap-2 truncate px-2 py-1 text-left text-xs ${ix === activo ? "bg-primary/10 text-primary" : "hover:bg-muted"}`}
+                  className={`flex w-full items-center gap-2 whitespace-nowrap px-2 py-1 text-left text-xs ${ix === activo ? "bg-primary/10 text-primary" : "hover:bg-muted"}`}
                 >
-                  <span className="min-w-0 truncate">{o.texto}</span>
-                  {o.detalle && <span className="shrink-0 text-[10px] text-muted-foreground">{o.detalle}</span>}
+                  {codigoIzquierda && o.detalle && (
+                    <span className="w-8 shrink-0 text-[10px] tabular-nums text-muted-foreground">{o.detalle}</span>
+                  )}
+                  <span className="min-w-0">{o.texto}</span>
+                  {!codigoIzquierda && o.detalle && (
+                    <span className="shrink-0 text-[10px] text-muted-foreground">{o.detalle}</span>
+                  )}
                 </button>
               ))}
               {lista.length === 0 && <p className="px-2 py-1.5 text-xs text-muted-foreground">Sin coincidencias.</p>}
