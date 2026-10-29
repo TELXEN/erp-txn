@@ -402,12 +402,21 @@ function ManoObraWysiwyg({
           {(Number(nueva.sueldo || 0) > 0 || nueva.regimen === "Construcción Civil") && (
             <tr className="border-b border-dashed border-line/60 bg-muted/20">
               <td colSpan={11} className="px-5 py-2">
-                <DetalleCostoHH lineas={calculoNueva.lineas} horas={calculoNueva.horasEfectivas} />
+                <DetalleCostoHH calculo={calculoNueva} parametros={params} margen={mgTipo} />
               </td>
             </tr>
           )}
           {lista.map((i) => {
             const esEdicion = editando?.id === i.id;
+            const calculo = esEdicion && calculoEdicion ? calculoEdicion : calcularCostoHH(
+              {
+                sueldo_mensual: Number(i.sueldo_mensual || 0),
+                regimen_laboral: i.regimen_laboral ?? "General",
+                categoria_obrero: i.categoria_obrero ?? null,
+                asignacion_familiar: !!i.asignacion_familiar,
+              },
+              params,
+            );
             const costoHH = esEdicion && calculoEdicion ? calculoEdicion.costoHH : Number(i.precio);
             const pv = costoHH * (1 + mg.MO / 100);
             return (
@@ -417,20 +426,9 @@ function ManoObraWysiwyg({
                 onToggle={() => setDetalleAbierto(detalleAbierto === i.id ? null : i.id)}
                 detalle={
                   <DetalleCostoHH
-                    lineas={
-                      esEdicion && calculoEdicion
-                        ? calculoEdicion.lineas
-                        : calcularCostoHH(
-                            {
-                              sueldo_mensual: Number(i.sueldo_mensual || 0),
-                              regimen_laboral: i.regimen_laboral ?? "General",
-                              categoria_obrero: i.categoria_obrero ?? null,
-                              asignacion_familiar: !!i.asignacion_familiar,
-                            },
-                            params,
-                          ).lineas
-                    }
-                    horas={calculoEdicion && esEdicion ? calculoEdicion.horasEfectivas : undefined}
+                    calculo={calculo}
+                    parametros={params}
+                    margen={mgTipo}
                   />
                 }
               >
@@ -1215,8 +1213,15 @@ function FragmentFila({
   );
 }
 
-function DetalleCostoHH({ lineas, horas }: { lineas: { concepto: string; monto: number }[]; horas?: number | undefined }) {
-  const total = lineas.reduce((a, l) => a + l.monto, 0);
+function DetalleCostoHH({ calculo, parametros, margen }: {
+  calculo: ReturnType<typeof calcularCostoHH>;
+  parametros: Omit<import("@/lib/apu").ParametrosLaborales, "id">;
+  margen: number;
+}) {
+  const { lineas, costoAnual, horasEfectivas, costoHH } = calculo;
+  const horasSemana = Number(parametros.horas_semanales || 48);
+  const feriados = Number(parametros.feriados_anuales || 0);
+  const numero = (valor: number) => valor.toLocaleString("es-PE", { maximumFractionDigits: 2 });
   return (
     <div className="rounded-md border border-line/60 bg-muted/30 px-3 py-2">
       <div className="grid gap-0.5">
@@ -1227,8 +1232,24 @@ function DetalleCostoHH({ lineas, horas }: { lineas: { concepto: string; monto: 
           </div>
         ))}
         <div className="mt-1 flex items-baseline justify-between gap-4 border-t border-line/60 pt-1 text-[11px] font-semibold">
-          <span>Costo anual total{horas ? ` ÷ ${horas.toLocaleString("es-PE")} h efectivas` : ""}</span>
-          <span className="text-primary">{soles(total)}</span>
+          <span>Costo anual total</span>
+          <span className="text-primary">{soles(costoAnual)}</span>
+        </div>
+      </div>
+      <div className="mt-2 grid gap-1 border-t border-line/60 pt-2 text-[11px]">
+        <div className="font-semibold text-ink">Cálculo de horas efectivas anuales</div>
+        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 text-muted-foreground">
+          <span>52 semanas × {numero(horasSemana)} h/semana − {numero(feriados)} feriados × 8 h − 30 días de vacaciones × 8 h</span>
+          <span className="text-ink">{numero(52 * horasSemana)} − {numero(feriados * 8)} − 240 = {numero(horasEfectivas)} h/año</span>
+        </div>
+        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-t border-line/60 pt-1 font-semibold">
+          <span>Costo base por hora hombre = costo anual ÷ horas efectivas</span>
+          <span className="text-primary">{horasEfectivas > 0 ? `${soles(costoAnual)} ÷ ${numero(horasEfectivas)} h = ${soles(costoHH)}/hh` : "Sin horas efectivas disponibles"}</span>
+        </div>
+        {horasEfectivas > 0 && <div className="text-muted-foreground">Resultado redondeado a dos decimales.</div>}
+        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+          <span className="text-muted-foreground">Costo HH con margen ({margen.toFixed(2)}%)</span>
+          <span className="text-ink">{soles(costoHH)} × (1 + {margen.toFixed(2)} / 100) = {soles(costoHH * (1 + margen / 100))}/hh</span>
         </div>
       </div>
     </div>
