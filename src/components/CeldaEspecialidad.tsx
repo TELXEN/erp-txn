@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { SelectorBuscable } from "@/components/SelectorBuscable";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
 import { useSubfamilias, codigoInsumoModular } from "@/lib/codigo-insumo";
-import { opcionesEspecialidad } from "@/lib/clasificacion-insumo";
+import { opcionesEspecialidad, usaSubfamilia } from "@/lib/clasificacion-insumo";
 import type { Insumo } from "@/lib/apu";
 
 const db = supabase as unknown as { from: (t: string) => any };
@@ -24,7 +24,7 @@ export function CeldaEspecialidad({ insumo, refrescar }: { insumo: Insumo; refre
       return;
     }
     const subValida =
-      insumo.subfamilia_id && subfamilias.some((s) => s.id === insumo.subfamilia_id && s.especialidad_id === v)
+      usaSubfamilia(insumo.tipo) && insumo.subfamilia_id && subfamilias.some((s) => s.id === insumo.subfamilia_id && s.especialidad_id === v)
         ? insumo.subfamilia_id
         : null;
     setGuardando(true);
