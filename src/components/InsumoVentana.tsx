@@ -238,7 +238,7 @@ export function VentanaInsumo({
   const formulario = (
     <form className="grid gap-3 p-5 sm:grid-cols-2" onSubmit={(e) => { e.preventDefault(); guardar(); }}>
       <Campo etiqueta="Tipo de insumo">
-        <Select value={tipo} disabled={modo === "editar" || !!categoriaInventario} onChange={(e) => { const t = e.target.value as TablaInsumo; setTipo(t); setForm({ ...base(t), descripcion: form.descripcion, especialidad_id: form.especialidad_id, subfamilia_id: form.subfamilia_id }); }}>
+        <Select value={tipo} disabled={modo === "editar" || !!categoriaInventario} onChange={(e) => { const t = e.target.value as TablaInsumo; setTipo(t); setForm({ ...base(t), descripcion: form.descripcion, especialidad_id: form.especialidad_id, subfamilia_id: usaSubfamilia(t) ? form.subfamilia_id : "" }); }}>
           {(Object.keys(CONFIG) as TablaInsumo[]).map((t) => <option key={t} value={t}>{CONFIG[t].titulo}</option>)}
         </Select>
       </Campo>
@@ -248,12 +248,14 @@ export function VentanaInsumo({
           {espCod.map((e) => <option key={e.id} value={e.id}>{e.codigo_modular} · {e.nombre}</option>)}
         </Select>
       </Campo>
-      <Campo etiqueta={conSubfamilia ? "Subfamilia" : "Subfamilia (opcional)"}>
-        <Select value={form.subfamilia_id ?? ""} onChange={(e) => setForm({ ...form, subfamilia_id: e.target.value })} disabled={!form.especialidad_id}>
-          <option value="">{conSubfamilia ? "— Elegir —" : "Sin subfamilia (00)"}</option>
-          {subfamilias.filter((s) => s.especialidad_id === form.especialidad_id && s.activo).map((s) => <option key={s.id} value={s.id}>{s.codigo} · {s.nombre}{s.bloque ? ` (${s.bloque})` : ""}</option>)}
-        </Select>
-      </Campo>
+      {conSubfamilia && (
+        <Campo etiqueta={tipo === "materiales" ? "Subfamilia" : "Subfamilia (opcional)"}>
+          <Select value={form.subfamilia_id ?? ""} onChange={(e) => setForm({ ...form, subfamilia_id: e.target.value })} disabled={!form.especialidad_id}>
+            <option value="">{tipo === "materiales" ? "— Elegir —" : "Sin subfamilia (00)"}</option>
+            {subfamilias.filter((s) => s.especialidad_id === form.especialidad_id && s.activo).map((s) => <option key={s.id} value={s.id}>{s.codigo} · {s.nombre}{s.bloque ? ` (${s.bloque})` : ""}</option>)}
+          </Select>
+        </Campo>
+      )}
       <p className="text-[11px] text-muted-foreground sm:col-span-2">Código: <span className="font-mono">{form.codigo && modo === "editar" ? form.codigo : "se genera al guardar"}</span> (tipo + especialidad + subfamilia o 00 + correlativo).</p>
       {CONFIG[tipo].campos.filter((c) => c.k !== "codigo" && (!c.soloSi || c.soloSi(form))).map((c) => (
         <Campo key={c.k} etiqueta={c.t}>
