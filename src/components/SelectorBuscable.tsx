@@ -79,6 +79,14 @@ export function SelectorBuscable({
     };
   }, [abierto, colocar]);
 
+  const lista = useMemo(() => {
+    const n = limpiar(q.trim());
+    const f = n ? opciones.filter((o) => limpiar(o.texto).includes(n) || limpiar(o.value).includes(n)) : opciones;
+    if (permitirLibre && q.trim() && !f.some((o) => limpiar(o.value) === limpiar(q.trim())))
+      return [...f, { value: q.trim(), texto: `Usar «${q.trim()}»` }];
+    return f;
+  }, [opciones, q, permitirLibre]);
+
   // La nota del catálogo flota a un costado de la lista, alineada con la fila activa.
   useLayoutEffect(() => {
     if (!abierto || !pos) {
@@ -115,14 +123,6 @@ export function SelectorBuscable({
     const maxTop = window.innerHeight - 8 - el.getBoundingClientRect().height;
     if (nota.top > maxTop) setNota((p) => (p ? { ...p, top: Math.max(8, maxTop) } : p));
   }, [nota]);
-
-  const lista = useMemo(() => {
-    const n = limpiar(q.trim());
-    const f = n ? opciones.filter((o) => limpiar(o.texto).includes(n) || limpiar(o.value).includes(n)) : opciones;
-    if (permitirLibre && q.trim() && !f.some((o) => limpiar(o.value) === limpiar(q.trim())))
-      return [...f, { value: q.trim(), texto: `Usar «${q.trim()}»` }];
-    return f;
-  }, [opciones, q, permitirLibre]);
 
   const texto = opciones.find((o) => o.value === value)?.texto ?? (permitirLibre && value ? value : "");
 
