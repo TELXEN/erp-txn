@@ -1,4 +1,4 @@
-import type { ReactNode, InputHTMLAttributes, SelectHTMLAttributes, ButtonHTMLAttributes } from "react";
+import type { ReactNode, InputHTMLAttributes, SelectHTMLAttributes, TextareaHTMLAttributes, ButtonHTMLAttributes } from "react";
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown, Inbox, Info, Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -126,6 +126,10 @@ export function Input(props: InputHTMLAttributes<HTMLInputElement> & { ref?: Rea
 
 export function Select(props: SelectHTMLAttributes<HTMLSelectElement>) {
   return <select {...props} className={cn(baseInput, props.className)} />;
+}
+
+export function Area(props: TextareaHTMLAttributes<HTMLTextAreaElement> & { ref?: React.Ref<HTMLTextAreaElement> }) {
+  return <textarea {...props} className={cn(baseInput, "min-h-20 resize-none leading-snug", props.className)} />;
 }
 
 export function Boton({

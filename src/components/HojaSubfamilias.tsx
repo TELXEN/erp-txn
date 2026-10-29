@@ -2,13 +2,13 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Copy, Pencil, Plus, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { Boton, BotonIcono, Campo, Input, Select, VentanaFlotante } from "@/components/ui-kit";
+import { Area, Boton, BotonIcono, Campo, Input, Select, VentanaFlotante } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
 import { useSubfamilias, type Subfamilia } from "@/lib/codigo-insumo";
 import { claveNombre } from "@/lib/formato-texto";
 
-type Form = { especialidad_id: string; bloque: string; codigo: string; nombre: string };
+type Form = { especialidad_id: string; bloque: string; codigo: string; nombre: string; descripcion: string };
 
 /** Hoja limpia de subfamilias agrupadas por especialidad y bloque, con barra de iconos a la derecha (igual que Insumos). */
 export function HojaSubfamilias() {
@@ -18,7 +18,7 @@ export function HojaSubfamilias() {
   const [busqueda, setBusqueda] = useState("");
   const [sel, setSel] = useState<Subfamilia | null>(null);
   const [modo, setModo] = useState<"nuevo" | "editar" | "copiar" | null>(null);
-  const [form, setForm] = useState<Form>({ especialidad_id: "", bloque: "", codigo: "", nombre: "" });
+  const [form, setForm] = useState<Form>({ especialidad_id: "", bloque: "", codigo: "", nombre: "", descripcion: "" });
   const [aviso, setAviso] = useState("");
   const refrescar = () => qc.invalidateQueries({ queryKey: ["subfamilias_insumo"] });
 
@@ -27,8 +27,8 @@ export function HojaSubfamilias() {
 
   function abrir(m: "nuevo" | "editar" | "copiar", objetivo = sel) {
     setAviso("");
-    if (m === "nuevo") setForm({ especialidad_id: sel?.especialidad_id ?? especialidades[0]?.id ?? "", bloque: sel?.bloque ?? "", codigo: "", nombre: "" });
-    else if (objetivo) setForm({ especialidad_id: objetivo.especialidad_id, bloque: objetivo.bloque, codigo: m === "copiar" ? "" : objetivo.codigo, nombre: m === "copiar" ? `${objetivo.nombre} (copia)` : objetivo.nombre });
+    if (m === "nuevo") setForm({ especialidad_id: sel?.especialidad_id ?? especialidades[0]?.id ?? "", bloque: sel?.bloque ?? "", codigo: "", nombre: "", descripcion: "" });
+    else if (objetivo) setForm({ especialidad_id: objetivo.especialidad_id, bloque: objetivo.bloque, codigo: m === "copiar" ? "" : objetivo.codigo, nombre: m === "copiar" ? `${objetivo.nombre} (copia)` : objetivo.nombre, descripcion: objetivo.descripcion ?? "" });
     else return;
     setModo(m);
   }
@@ -41,7 +41,7 @@ export function HojaSubfamilias() {
     const mismas = subs.filter((s) => s.especialidad_id === form.especialidad_id && !(modo === "editar" && s.id === sel?.id));
     if (mismas.some((s) => s.codigo === codigo)) return setAviso(`El código ${codigo} ya existe en esta especialidad.`);
     if (mismas.some((s) => claveNombre(s.nombre) === claveNombre(nombre))) return setAviso(`La subfamilia «${nombre}» ya existe.`);
-    const d = { especialidad_id: form.especialidad_id, bloque: form.bloque.trim(), codigo, nombre };
+    const d = { especialidad_id: form.especialidad_id, bloque: form.bloque.trim(), codigo, nombre, descripcion: form.descripcion.trim() || null };
     const { error } = modo === "editar" && sel
       ? await supabase.from("subfamilias_insumo").update(d).eq("id", sel.id)
       : await supabase.from("subfamilias_insumo").insert(d);
@@ -120,6 +120,19 @@ export function HojaSubfamilias() {
           <Campo etiqueta="Nombre">
             <Input autoFocus value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} />
           </Campo>
+          <div className="sm:col-span-2">
+            <Campo etiqueta="Comentario">
+              <Area
+                value={form.descripcion}
+                rows={3}
+                placeholder="Ej. Tipo escalerilla pesada de aluminio/fierro galvanizado"
+                onChange={(e) => setForm({ ...form, descripcion: e.target.value })}
+              />
+              <span className="mt-1 block text-[11px] leading-snug text-muted-foreground">
+                Guía que se ve en gris junto al nombre y al recorrer la lista de subfamilias. Sirve para complementar, cambiar o dejar vacío para quitarlo.
+              </span>
+            </Campo>
+          </div>
           {aviso && <p className="text-xs text-destructive sm:col-span-2">{aviso}</p>}
           <div className="flex justify-end gap-2 sm:col-span-2">
             <Boton type="button" variante="linea" onClick={() => setModo(null)}>Cerrar</Boton>
