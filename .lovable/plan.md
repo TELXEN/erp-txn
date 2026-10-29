@@ -7,6 +7,7 @@
 - Flecha arriba desactivada en la primera; flecha abajo desactivada en la última. Solo Gerencia/Administración puede moverlas (igual que editar).
 - Al mismo tiempo se actualizan los códigos de los insumos de ambas especialidades (las dos cifras de especialidad): por ejemplo Instrumentista `10500001` pasaría a `10600001` y los de Eléctrica `106…` a `105…`. Correlativos se conservan.
 - Las subfamilias acompañan a su especialidad: su numeración visible (especialidad + subfamilia, ej. 06-01 → 05-01) se actualiza en Catálogo Técnico y en Maestro de Insumos, sin perder a qué subfamilia pertenece cada insumo.
+- Toda numeración del sistema que dependa del número de especialidad se actualiza en el mismo paso, en cualquier estado (activos, inactivos, usados en cotizaciones u obras): códigos de insumos, numeración de subfamilias, códigos de partidas del Banco APU que lleven el número de especialidad, orden de especialidades en cotizaciones/plantillas y en la tabla de Codificación de insumos. El primer paso de la implementación es inventariar en la base de datos cada código que contenga el número de especialidad y añadirlo al intercambio.
 
 ## Cuidados
 - El intercambio es atómico: si algo falla, nada cambia (ni especialidades ni insumos).
