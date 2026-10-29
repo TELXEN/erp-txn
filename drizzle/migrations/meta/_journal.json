@@ -708,6 +708,13 @@
       "when": 1793241076755,
       "tag": "0100_mano_obra_sin_subfamilia",
       "breakpoints": true
+    },
+    {
+      "idx": 101,
+      "version": "7",
+      "when": 1793241396412,
+      "tag": "0101_subcontratos_sin_subfamilia",
+      "breakpoints": true
     }
   ]
 }
