@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Copy, Pencil, Plus, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, Copy, Pencil, Plus, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Boton, BotonIcono, Campo, Input, VentanaFlotante } from "@/components/ui-kit";
@@ -23,9 +23,22 @@ export function EspecialidadesPartida() {
   const activas = lista.filter((e) => e.activo).sort((a, b) => a.codigo.localeCompare(b.codigo));
   const visibles = activas.filter((e) => coincide(busqueda, e.codigo, e.nombre, e.descripcion));
   const refrescar = () => {
-    for (const key of ["especialidades_partida", "categorias_partida", "partidas", "partidas_maestras", "banco_apu", "subfamilias_insumo"])
+    for (const key of ["especialidades_partida", "categorias_partida", "partidas", "partidas_maestras", "banco_apu", "subfamilias_insumo", "insumos", "maestro_insumos", "partidas_apu"])
+      void qc.invalidateQueries();
       void qc.invalidateQueries({ queryKey: [key] });
   };
+  const idx = sel ? activas.findIndex((e) => e.id === sel.id) : -1;
+  const [moviendo, setMoviendo] = useState(false);
+  async function mover(dir: -1 | 1) {
+    if (!sel || moviendo) return;
+    setMoviendo(true);
+    const { data, error } = await supabase.rpc("mover_especialidad", { _id: sel.id, _direccion: dir });
+    setMoviendo(false);
+    if (error) return void toast.error(error.message);
+    const r = data as { insumos: number; partidas: number; codigo: string };
+    toast.success(`Especialidad movida a ${r.codigo}: ${r.insumos} insumos y ${r.partidas} partidas recodificados.`);
+    refrescar();
+  }
   function abrir(m: "nuevo" | "editar" | "copiar", objetivo: EspecialidadPartida | undefined = sel) {
     setAviso("");
     if (m === "nuevo") setForm({ codigo: "", nombre: "", descripcion: "" });
@@ -81,6 +94,8 @@ export function EspecialidadesPartida() {
       </div>
       <div className="sticky top-2 flex h-fit flex-col gap-1.5 rounded-md border p-1.5 barra-iconos">
         <BotonIcono etiqueta="Agregar nueva especialidad" tono="primario" onClick={() => abrir("nuevo")}><Plus size={15} /></BotonIcono>
+        <BotonIcono etiqueta="Subir especialidad" disabled={!sel || idx <= 0 || moviendo} onClick={() => mover(-1)}><ArrowUp size={15} /></BotonIcono>
+        <BotonIcono etiqueta="Bajar especialidad" disabled={!sel || idx < 0 || idx >= activas.length - 1 || moviendo} onClick={() => mover(1)}><ArrowDown size={15} /></BotonIcono>
         <BotonIcono etiqueta="Editar especialidad" disabled={!sel} onClick={() => abrir("editar")}><Pencil size={15} /></BotonIcono>
         <BotonIcono etiqueta="Copiar especialidad" disabled={!sel} onClick={() => abrir("copiar")}><Copy size={15} /></BotonIcono>
         <BotonIcono etiqueta="Eliminar especialidad" tono="peligro" disabled={!sel} onClick={() => void quitar()}><Trash2 size={15} /></BotonIcono>
