@@ -2,7 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { createPortal } from "react-dom";
 import { ChevronDown } from "lucide-react";
 
-export type OpcionLista = { value: string; texto: string; /** Comentario a la derecha, p. ej. «m» → «Metro lineal». */ detalle?: string | undefined };
+export type OpcionLista = { value: string; texto: string; /** Comentario a la derecha, p. ej. «m» → «Metro lineal». */ detalle?: string | undefined; /** Guía que se muestra en amarillo al recorrer la lista. */ nota?: string | null | undefined };
 
 /** Quita mayúsculas, tildes y signos para filtrar sin sensibilidad. */
 const limpiar = (t: string) => t.toLocaleLowerCase("es").normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -112,6 +112,7 @@ export function SelectorBuscable({
         type="button"
         aria-label={ariaLabel}
         aria-expanded={abierto}
+        title={opciones.find((o) => o.value === value)?.nota ?? undefined}
         onClick={abierto ? () => setAbierto(false) : abrir}
         className="flex h-7 w-full items-center justify-between gap-1 rounded-md border border-line bg-background px-1.5 py-1 text-xs outline-none focus:border-primary"
       >
@@ -181,6 +182,10 @@ export function SelectorBuscable({
               ))}
               {lista.length === 0 && <p className="px-2 py-1.5 text-xs text-muted-foreground">Sin coincidencias.</p>}
             </div>
+            {(() => {
+              const n = (lista[activo] ?? opciones.find((o) => o.value === value))?.nota;
+              return n ? <p className="max-w-md whitespace-normal border-t border-line bg-nota px-2 py-1.5 text-[11px] text-muted-foreground">{n}</p> : null;
+            })()}
           </div>,
           document.body,
         )}

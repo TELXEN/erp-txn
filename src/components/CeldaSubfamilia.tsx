@@ -18,7 +18,7 @@ export function CeldaSubfamilia({ insumo, refrescar }: { insumo: Insumo; refresc
     ...(esMat ? [] : [{ value: "", texto: "Sin subfamilia", detalle: "00" }]),
     ...subfamilias
       .filter((s) => s.especialidad_id === esp && (s.activo || s.id === insumo.subfamilia_id))
-      .map((s) => ({ value: s.id, texto: s.nombre, detalle: s.codigo })),
+      .map((s) => ({ value: s.id, texto: s.nombre, detalle: s.codigo, nota: s.descripcion })),
   ];
 
   async function cambiar(v: string): Promise<void> {

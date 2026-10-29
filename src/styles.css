@@ -64,6 +64,7 @@
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
+  --color-nota: var(--nota);
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
@@ -137,6 +138,7 @@
   --secondary: rgb(242 240 233);
   --secondary-foreground: var(--ink);
   --muted: rgb(242 240 233);
+  --nota: rgb(255 249 219);
   --muted-foreground: rgb(107 105 97);
   --accent: #FFC709;
   --accent-foreground: #003352;

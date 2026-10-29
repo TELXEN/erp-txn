@@ -15,14 +15,14 @@ export function opcionesEspecialidad(
 
 /** Subfamilias de una especialidad. Sin especialidad no hay opciones; la asignada se mantiene aunque esté inactiva. */
 export function opcionesSubfamilia(
-  subfamilias: { id: string; especialidad_id: string; codigo: string; nombre: string; activo: boolean }[],
+  subfamilias: { id: string; especialidad_id: string; codigo: string; nombre: string; activo: boolean; descripcion?: string | null }[],
   especialidadId: string | null | undefined,
   actualId?: string | null,
 ): OpcionClasificacion[] {
   if (!especialidadId) return [];
   return subfamilias
     .filter((s) => s.especialidad_id === especialidadId && (s.activo || s.id === actualId))
-    .map((s) => ({ value: s.id, texto: s.nombre, detalle: s.codigo }));
+    .map((s) => ({ value: s.id, texto: s.nombre, detalle: s.codigo, nota: s.descripcion }));
 }
 
 /** Tipos cuyo código lleva subfamilia (SS). Mano de obra y subcontratos no la usan nunca: sus dos dígitos van en 00. */
