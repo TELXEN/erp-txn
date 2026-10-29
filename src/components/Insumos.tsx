@@ -336,7 +336,7 @@ function ManoObraWysiwyg({
           {/* Fila fantasma de creación rápida (siempre visible arriba) */}
           <tr className="border-b border-dashed border-line/60 bg-muted/20">
             <td className="px-5 py-2 text-muted-foreground/60">auto</td>
-            <CeldasClasificacion tipo="MO" valor={nueva} onChange={(v) => setNueva({ ...nueva, ...v })} />
+            <CeldasClasificacion tipo="MO" valor={{ especialidad_id: nueva.especialidad_id, subfamilia_id: "" }} onChange={(v) => setNueva({ ...nueva, especialidad_id: v.especialidad_id })} />
             <td className="px-3 py-2">
               <input
                 className={inputCls}
