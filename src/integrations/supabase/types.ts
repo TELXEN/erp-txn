@@ -7010,6 +7010,10 @@ export type Database = {
       is_admin_o_gerente: { Args: { _user_id: string }; Returns: boolean }
       marca_id_de: { Args: { _nombre: string }; Returns: string }
       mo_presupuestada: { Args: { _proyecto: string }; Returns: number }
+      mover_especialidad: {
+        Args: { _direccion: number; _id: string }
+        Returns: Json
+      }
       mover_item_wbs: {
         Args: { _direccion: number; _id: string; _tabla: string }
         Returns: undefined
