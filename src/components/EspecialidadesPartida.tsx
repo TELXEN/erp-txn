@@ -23,9 +23,7 @@ export function EspecialidadesPartida() {
   const activas = lista.filter((e) => e.activo).sort((a, b) => a.codigo.localeCompare(b.codigo));
   const visibles = activas.filter((e) => coincide(busqueda, e.codigo, e.nombre, e.descripcion));
   const refrescar = () => {
-    for (const key of ["especialidades_partida", "categorias_partida", "partidas", "partidas_maestras", "banco_apu", "subfamilias_insumo", "insumos", "maestro_insumos", "partidas_apu"])
-      void qc.invalidateQueries();
-      void qc.invalidateQueries({ queryKey: [key] });
+    void qc.invalidateQueries();
   };
   const idx = sel ? activas.findIndex((e) => e.id === sel.id) : -1;
   const [moviendo, setMoviendo] = useState(false);
