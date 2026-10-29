@@ -16,7 +16,7 @@ import { useUnidadesMedida } from "@/lib/unidades";
 import { useMarcas } from "@/lib/datos";
 import { reservarCodigoInsumo } from "@/lib/codigos.functions";
 import { codigoInsumoModular } from "@/lib/codigo-insumo";
-import { validarClasificacion } from "@/lib/clasificacion-insumo";
+import { usaSubfamilia, validarClasificacion } from "@/lib/clasificacion-insumo";
 import {
   CATEGORIAS_OBRERO,
   REGIMENES_LABORALES,
@@ -181,10 +181,9 @@ type FilaMO = {
   margen: string;
   asignacion: boolean;
   especialidad_id: string;
-  subfamilia_id: string;
 };
 
-const filaVacia: FilaMO = { nombre: "", regimen: "General", categoria: "Operario", sueldo: "", margen: "", asignacion: false, especialidad_id: "", subfamilia_id: "" };
+const filaVacia: FilaMO = { nombre: "", regimen: "General", categoria: "Operario", sueldo: "", margen: "", asignacion: false, especialidad_id: "" };
 
 function ManoObraWysiwyg({
   enfoqueNueva,
@@ -242,12 +241,12 @@ function ManoObraWysiwyg({
   async function crearDesdeFila() {
     if (guardando) return;
     if (!nueva.nombre.trim()) return setError("Escribe la descripción del trabajador u oficio.");
-    const aviso = validarClasificacion("MO", nueva.especialidad_id, nueva.subfamilia_id);
+    const aviso = validarClasificacion("MO", nueva.especialidad_id, "");
     if (aviso) return setError(aviso);
     setError("");
     setGuardando(true);
     try {
-      const codigo = await codigoInsumoModular({ especialidad: nueva.especialidad_id, tipo: "MO", subfamilia: nueva.subfamilia_id || null });
+      const codigo = await codigoInsumoModular({ especialidad: nueva.especialidad_id, tipo: "MO" });
       const { error: err } = await apuDb.from("insumos").insert({
         tipo: "MO",
         codigo,
@@ -260,7 +259,6 @@ function ManoObraWysiwyg({
         categoria_obrero: nueva.regimen === "Construcción Civil" ? nueva.categoria : null,
         asignacion_familiar: nueva.asignacion,
         especialidad_id: nueva.especialidad_id,
-        subfamilia_id: nueva.subfamilia_id || null,
       });
       if (err) throw new Error(err.message);
       setNueva(filaVacia);
@@ -322,24 +320,23 @@ function ManoObraWysiwyg({
       <table className="w-full table-fixed font-mono text-xs">
         <thead>
           <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-            <th className="w-[7%] px-5 py-2 font-medium">Código</th>
-            <th className="w-[14%] px-3 py-2 font-medium">Especialidad</th>
-            <th className="w-[14%] px-3 py-2 font-medium">Subfamilia</th>
-            <th className="w-[17%] px-3 py-2 font-medium">Descripción</th>
+            <th className="w-[8%] px-5 py-2 font-medium">Código</th>
+            <th className="w-[16%] px-3 py-2 font-medium">Especialidad</th>
+            <th className="w-[19%] px-3 py-2 font-medium">Descripción</th>
             <th className="w-[11%] px-3 py-2 font-medium">Régimen</th>
             <th className="w-[9%] px-3 py-2 text-right font-medium">Sueldo mensual</th>
-            <th className="w-[4%] px-3 py-2 font-medium">Und.</th>
+            <th className="w-[5%] px-3 py-2 font-medium">Und.</th>
             <th className="w-[9%] px-3 py-2 text-right font-medium">Costo Base</th>
             <th className="w-[6%] px-3 py-2 text-right font-medium">Margen %</th>
             <th className="w-[9%] px-3 py-2 text-right font-medium">Costo HH</th>
-            <th className="w-[7%] px-5 py-2 text-right font-medium">Acciones</th>
+            <th className="w-[8%] px-5 py-2 text-right font-medium">Acciones</th>
           </tr>
         </thead>
         <tbody>
           {/* Fila fantasma de creación rápida (siempre visible arriba) */}
           <tr className="border-b border-dashed border-line/60 bg-muted/20">
             <td className="px-5 py-2 text-muted-foreground/60">auto</td>
-            <CeldasClasificacion tipo="MO" valor={nueva} onChange={(v) => setNueva({ ...nueva, ...v })} />
+            <CeldasClasificacion tipo="MO" valor={{ especialidad_id: nueva.especialidad_id, subfamilia_id: "" }} onChange={(v) => setNueva({ ...nueva, especialidad_id: v.especialidad_id })} />
             <td className="px-3 py-2">
               <input
                 className={inputCls}
@@ -401,7 +398,7 @@ function ManoObraWysiwyg({
           {/* Vista previa del cálculo de la fila fantasma */}
           {(Number(nueva.sueldo || 0) > 0 || nueva.regimen === "Construcción Civil") && (
             <tr className="border-b border-dashed border-line/60 bg-muted/20">
-              <td colSpan={11} className="px-5 py-2">
+              <td colSpan={10} className="px-5 py-2">
                 <DetalleCostoHH calculo={calculoNueva} parametros={params} margen={mgTipo} />
               </td>
             </tr>
@@ -436,7 +433,6 @@ function ManoObraWysiwyg({
                   <>
                     <td className="px-5 py-2 text-muted-foreground">{editando.codigo || "—"}</td>
                     <CeldaEspecialidad insumo={i} refrescar={refrescar} />
-                    <CeldaSubfamilia insumo={i} refrescar={refrescar} />
                     <td className="px-3 py-2"><Input className="py-1 text-xs" value={editando.nombre} data-formato="cargo" onChange={(e) => setEditando({ ...editando, nombre: e.target.value })} /></td>
                     <td className="px-3 py-2">
                       <select className={selCls} value={editando.regimen} onChange={(e) => setEditando({ ...editando, regimen: e.target.value as RegimenLaboral })}>
@@ -470,7 +466,6 @@ function ManoObraWysiwyg({
                   <>
                     <td className="px-5 py-2.5 text-muted-foreground"><Resaltar texto={i.codigo || "—"} termino={busqueda} /></td>
                     <CeldaEspecialidad insumo={i} refrescar={refrescar} />
-                    <CeldaSubfamilia insumo={i} refrescar={refrescar} />
                     <td className="px-3 py-2.5 text-ink"><Resaltar texto={i.nombre} termino={busqueda} /></td>
                     <td className="px-3 py-2.5 text-muted-foreground">{i.regimen_laboral ?? "General"}</td>
                     <td className="px-3 py-2.5 text-right">{i.regimen_laboral === "Construcción Civil" ? `${i.categoria_obrero ?? "Operario"} (jornal)` : soles(Number(i.sueldo_mensual || 0))}</td>
@@ -494,7 +489,6 @@ function ManoObraWysiwyg({
                               margen: String(i.margen_pct || ""),
                               asignacion: !!i.asignacion_familiar,
                               especialidad_id: i.especialidad_id ?? "",
-                              subfamilia_id: i.subfamilia_id ?? "",
                             })
                           }
                           title="Editar"
@@ -545,6 +539,7 @@ function MaterialesWysiwyg({
   const { data: mg = MARGENES_DEFECTO } = useMargenesInsumo();
   const mgTipo = mg[tipo] ?? 0;
   const esSC = tipo === "SC";
+  const conSub = usaSubfamilia(tipo);
   const uDef = esSC ? "GLB" : "und";
   const vacia: FilaMat = { ...filaMatVacia, unidad: uDef };
   const { data: unidades = [] } = useUnidadesMedida();
@@ -647,8 +642,8 @@ function MaterialesWysiwyg({
           <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
             <th className="w-[8%] px-5 py-2 font-medium">Código</th>
             <th className="w-[15%] px-3 py-2 font-medium">Especialidad</th>
-            <th className="w-[15%] px-3 py-2 font-medium">Subfamilia</th>
-            <th className={`${esSC ? "w-[26%]" : "w-[15%]"} px-3 py-2 font-medium`}>Descripción</th>
+            {conSub && <th className="w-[15%] px-3 py-2 font-medium">Subfamilia</th>}
+            <th className={`${esSC ? "w-[41%]" : "w-[15%]"} px-3 py-2 font-medium`}>Descripción</th>
             {!esSC && <th className="w-[9%] px-3 py-2 font-medium">Marca</th>}
             <th className="w-[9%] px-3 py-2 font-medium">Unidad</th>
             <th className="w-[10%] px-3 py-2 text-right font-medium">{esSC ? "Costo" : "P. Compra"}</th>
@@ -721,7 +716,7 @@ function MaterialesWysiwyg({
                   <>
                     <td className="px-5 py-2 text-muted-foreground">{editando.codigo || "—"}</td>
                     <CeldaEspecialidad insumo={i} refrescar={refrescar} />
-                    <CeldaSubfamilia insumo={i} refrescar={refrescar} />
+                    {conSub && <CeldaSubfamilia insumo={i} refrescar={refrescar} />}
                     <td className="px-3 py-2"><Input className="py-1 text-xs" value={editando.nombre} data-formato="oracion" onChange={(e) => setEditando({ ...editando, nombre: e.target.value })} /></td>
                     {!esSC && (
                       <td className="px-3 py-2">
@@ -745,7 +740,7 @@ function MaterialesWysiwyg({
                   <>
                     <td className="px-5 py-2.5 text-muted-foreground"><Resaltar texto={i.codigo || "—"} termino={busqueda} /></td>
                     <CeldaEspecialidad insumo={i} refrescar={refrescar} />
-                    <CeldaSubfamilia insumo={i} refrescar={refrescar} />
+                    {conSub && <CeldaSubfamilia insumo={i} refrescar={refrescar} />}
                     <td className="px-3 py-2.5 text-ink"><Resaltar texto={i.nombre} termino={busqueda} /></td>
                     {!esSC && <td className="px-3 py-2.5 text-muted-foreground">{nombreMarca(i.marca_id)}</td>}
                     <td className="px-3 py-2.5 text-center text-muted-foreground">{i.unidad}</td>
@@ -789,8 +784,8 @@ function MaterialesWysiwyg({
       <p className="border-t border-line px-5 py-3 font-mono text-[10px] leading-relaxed text-muted-foreground">
         El C. Unitario —el que usan los análisis de precios unitarios— es el {esSC ? "Costo" : "P. Compra"} más el margen. Los precios se registran sin IGV.
         La unidad se elige del catálogo de Unidades de medida (por defecto {uDef}).
-        La Especialidad y la Subfamilia definen el código (rubro + especialidad + subfamilia + correlativo): se eligen en la fila de captura
-        y se pueden corregir en cada fila. {esSC ? "En subcontratos la subfamilia es opcional." : "Los materiales siempre necesitan subfamilia."}
+        La Especialidad {conSub ? "y la Subfamilia " : ""}definen el código (rubro + especialidad + subfamilia o 00 + correlativo): se eligen en la fila de captura
+        y se pueden corregir en cada fila. {esSC ? "Los subcontratos no usan subfamilia: sus dos dígitos van en 00." : "Los materiales siempre necesitan subfamilia."}
       </p>
     </Panel>
   );
@@ -1202,7 +1197,7 @@ function FragmentFila({
     <>
       <tr className="border-b border-line/20">{children}</tr>
       <tr className="border-b border-line/40">
-        <td colSpan={11} className="px-5 pb-1 pt-0">
+        <td colSpan={10} className="px-5 pb-1 pt-0">
           <button type="button" onClick={onToggle} className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wide text-muted-foreground hover:text-primary">
             {abierto ? <ChevronDown size={11} /> : <ChevronRight size={11} />} Cómo se calcula el Costo Base
           </button>

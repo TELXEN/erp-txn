@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { opcionesEspecialidad, opcionesSubfamilia, validarClasificacion } from "./clasificacion-insumo";
+import { opcionesEspecialidad, opcionesSubfamilia, usaSubfamilia, validarClasificacion } from "./clasificacion-insumo";
 import type { EspecialidadPartida } from "./especialidades";
 
 const sub = (p: { id: string; especialidad_id?: string; codigo?: string; nombre?: string; activo?: boolean }) => ({
@@ -29,9 +29,24 @@ describe("clasificación para el código T+EE+SS+NNN", () => {
   it("el material exige subfamilia", () =>
     expect(validarClasificacion("MAT", "e-elec", "")).toBe("Elige la subfamilia: los materiales la requieren."));
 
-  it("el subcontrato puede ir sin subfamilia", () => expect(validarClasificacion("SC", "e-elec", "")).toBeNull());
+  it("el subcontrato no usa subfamilia", () => {
+    expect(usaSubfamilia("SC")).toBe(false);
+    expect(usaSubfamilia("subcontratos")).toBe(false);
+    expect(validarClasificacion("SC", "e-elec", "s1")).toBeNull();
+  });
 
-  it("la mano de obra puede ir sin subfamilia", () => expect(validarClasificacion("MO", "e-elec", "")).toBeNull());
+  it("la mano de obra nunca usa subfamilia", () => {
+    expect(usaSubfamilia("MO")).toBe(false);
+    expect(usaSubfamilia("mano_obra")).toBe(false);
+    expect(validarClasificacion("MO", "e-elec", "s1")).toBeNull();
+  });
+
+  it("materiales, equipos y EPP sí usan subfamilia", () => {
+    expect(usaSubfamilia("MAT")).toBe(true);
+    expect(usaSubfamilia("materiales")).toBe(true);
+    expect(usaSubfamilia("EQ")).toBe(true);
+    expect(usaSubfamilia("EPP")).toBe(true);
+  });
 
   it("solo ofrece subfamilias de la especialidad del insumo", () => {
     const subs = [sub({ id: "s1" }), sub({ id: "s2", especialidad_id: "e-civ", codigo: "02", nombre: "Otros" })];

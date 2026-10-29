@@ -25,9 +25,15 @@ export function opcionesSubfamilia(
     .map((s) => ({ value: s.id, texto: s.nombre, detalle: s.codigo }));
 }
 
+/** Tipos cuyo código lleva subfamilia (SS). Mano de obra y subcontratos no la usan nunca: sus dos dígitos van en 00. */
+export function usaSubfamilia(tipo: string): boolean {
+  return tipo !== "MO" && tipo !== "mano_obra" && tipo !== "SC" && tipo !== "subcontratos";
+}
+
 /** Reglas del código T+EE+SS+NNN: la especialidad siempre hace falta; la subfamilia, solo en materiales. */
 export function validarClasificacion(tipo: string, especialidadId: string, subfamiliaId: string): string | null {
   if (!especialidadId) return "Elige la especialidad: con ella se genera el código.";
+  if (!usaSubfamilia(tipo)) return null;
   if ((tipo === "MAT" || tipo === "materiales") && !subfamiliaId)
     return "Elige la subfamilia: los materiales la requieren.";
   return null;
