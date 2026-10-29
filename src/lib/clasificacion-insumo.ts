@@ -1,7 +1,7 @@
 import type { EspecialidadPartida } from "@/lib/especialidades";
 
 /** Opción de un catálogo (especialidad o subfamilia) para los selectores con buscador. */
-export type OpcionClasificacion = { value: string; texto: string; detalle?: string | undefined };
+export type OpcionClasificacion = { value: string; texto: string; detalle?: string | undefined; nota?: string | null | undefined };
 
 /** Especialidades que pueden formar un código: activas y con sus 2 dígitos. Conserva la asignada aunque se haya inactivado. */
 export function opcionesEspecialidad(
