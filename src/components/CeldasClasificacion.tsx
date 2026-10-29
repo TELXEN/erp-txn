@@ -3,7 +3,7 @@ import { useEspecialidadesPartida } from "@/lib/especialidades";
 import { opcionesEspecialidad, opcionesSubfamilia, usaSubfamilia } from "@/lib/clasificacion-insumo";
 import { useSubfamilias } from "@/lib/codigo-insumo";
 
-export type Clasificacion = { especialidad_id: string; subfamilia_id?: string | undefined };
+export type Clasificacion = { especialidad_id: string; subfamilia_id: string };
 
 /** Celdas Especialidad + Subfamilia de la fila de captura rápida del Maestro de Insumos.
  *  La subfamilia se filtra por la especialidad elegida; en materiales es obligatoria.
