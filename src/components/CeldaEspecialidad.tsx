@@ -67,6 +67,7 @@ export function CeldaEspecialidad({ insumo, refrescar }: { insumo: Insumo; refre
     <td className="px-2 py-2">
       <SelectorBuscable
         aria-label="Especialidad"
+        codigoIzquierda
         value={insumo.especialidad_id ?? ""}
         onChange={(v) => void cambiar(v)}
         opciones={opcionesEspecialidad(especialidades, insumo.especialidad_id)}
