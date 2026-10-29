@@ -181,10 +181,9 @@ type FilaMO = {
   margen: string;
   asignacion: boolean;
   especialidad_id: string;
-  subfamilia_id: string;
 };
 
-const filaVacia: FilaMO = { nombre: "", regimen: "General", categoria: "Operario", sueldo: "", margen: "", asignacion: false, especialidad_id: "", subfamilia_id: "" };
+const filaVacia: FilaMO = { nombre: "", regimen: "General", categoria: "Operario", sueldo: "", margen: "", asignacion: false, especialidad_id: "" };
 
 function ManoObraWysiwyg({
   enfoqueNueva,
@@ -242,12 +241,12 @@ function ManoObraWysiwyg({
   async function crearDesdeFila() {
     if (guardando) return;
     if (!nueva.nombre.trim()) return setError("Escribe la descripción del trabajador u oficio.");
-    const aviso = validarClasificacion("MO", nueva.especialidad_id, nueva.subfamilia_id);
+    const aviso = validarClasificacion("MO", nueva.especialidad_id, "");
     if (aviso) return setError(aviso);
     setError("");
     setGuardando(true);
     try {
-      const codigo = await codigoInsumoModular({ especialidad: nueva.especialidad_id, tipo: "MO", subfamilia: nueva.subfamilia_id || null });
+      const codigo = await codigoInsumoModular({ especialidad: nueva.especialidad_id, tipo: "MO" });
       const { error: err } = await apuDb.from("insumos").insert({
         tipo: "MO",
         codigo,
@@ -260,7 +259,6 @@ function ManoObraWysiwyg({
         categoria_obrero: nueva.regimen === "Construcción Civil" ? nueva.categoria : null,
         asignacion_familiar: nueva.asignacion,
         especialidad_id: nueva.especialidad_id,
-        subfamilia_id: nueva.subfamilia_id || null,
       });
       if (err) throw new Error(err.message);
       setNueva(filaVacia);
@@ -322,17 +320,16 @@ function ManoObraWysiwyg({
       <table className="w-full table-fixed font-mono text-xs">
         <thead>
           <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-            <th className="w-[7%] px-5 py-2 font-medium">Código</th>
-            <th className="w-[14%] px-3 py-2 font-medium">Especialidad</th>
-            <th className="w-[14%] px-3 py-2 font-medium">Subfamilia</th>
-            <th className="w-[17%] px-3 py-2 font-medium">Descripción</th>
+            <th className="w-[8%] px-5 py-2 font-medium">Código</th>
+            <th className="w-[16%] px-3 py-2 font-medium">Especialidad</th>
+            <th className="w-[19%] px-3 py-2 font-medium">Descripción</th>
             <th className="w-[11%] px-3 py-2 font-medium">Régimen</th>
             <th className="w-[9%] px-3 py-2 text-right font-medium">Sueldo mensual</th>
-            <th className="w-[4%] px-3 py-2 font-medium">Und.</th>
+            <th className="w-[5%] px-3 py-2 font-medium">Und.</th>
             <th className="w-[9%] px-3 py-2 text-right font-medium">Costo Base</th>
             <th className="w-[6%] px-3 py-2 text-right font-medium">Margen %</th>
             <th className="w-[9%] px-3 py-2 text-right font-medium">Costo HH</th>
-            <th className="w-[7%] px-5 py-2 text-right font-medium">Acciones</th>
+            <th className="w-[8%] px-5 py-2 text-right font-medium">Acciones</th>
           </tr>
         </thead>
         <tbody>
