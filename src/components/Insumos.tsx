@@ -16,7 +16,7 @@ import { useUnidadesMedida } from "@/lib/unidades";
 import { useMarcas } from "@/lib/datos";
 import { reservarCodigoInsumo } from "@/lib/codigos.functions";
 import { codigoInsumoModular } from "@/lib/codigo-insumo";
-import { validarClasificacion } from "@/lib/clasificacion-insumo";
+import { usaSubfamilia, validarClasificacion } from "@/lib/clasificacion-insumo";
 import {
   CATEGORIAS_OBRERO,
   REGIMENES_LABORALES,
@@ -539,6 +539,7 @@ function MaterialesWysiwyg({
   const { data: mg = MARGENES_DEFECTO } = useMargenesInsumo();
   const mgTipo = mg[tipo] ?? 0;
   const esSC = tipo === "SC";
+  const conSub = usaSubfamilia(tipo);
   const uDef = esSC ? "GLB" : "und";
   const vacia: FilaMat = { ...filaMatVacia, unidad: uDef };
   const { data: unidades = [] } = useUnidadesMedida();
@@ -641,8 +642,8 @@ function MaterialesWysiwyg({
           <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
             <th className="w-[8%] px-5 py-2 font-medium">Código</th>
             <th className="w-[15%] px-3 py-2 font-medium">Especialidad</th>
-            <th className="w-[15%] px-3 py-2 font-medium">Subfamilia</th>
-            <th className={`${esSC ? "w-[26%]" : "w-[15%]"} px-3 py-2 font-medium`}>Descripción</th>
+            {conSub && <th className="w-[15%] px-3 py-2 font-medium">Subfamilia</th>}
+            <th className={`${esSC ? "w-[41%]" : "w-[15%]"} px-3 py-2 font-medium`}>Descripción</th>
             {!esSC && <th className="w-[9%] px-3 py-2 font-medium">Marca</th>}
             <th className="w-[9%] px-3 py-2 font-medium">Unidad</th>
             <th className="w-[10%] px-3 py-2 text-right font-medium">{esSC ? "Costo" : "P. Compra"}</th>
@@ -715,7 +716,7 @@ function MaterialesWysiwyg({
                   <>
                     <td className="px-5 py-2 text-muted-foreground">{editando.codigo || "—"}</td>
                     <CeldaEspecialidad insumo={i} refrescar={refrescar} />
-                    <CeldaSubfamilia insumo={i} refrescar={refrescar} />
+                    {conSub && <CeldaSubfamilia insumo={i} refrescar={refrescar} />}
                     <td className="px-3 py-2"><Input className="py-1 text-xs" value={editando.nombre} data-formato="oracion" onChange={(e) => setEditando({ ...editando, nombre: e.target.value })} /></td>
                     {!esSC && (
                       <td className="px-3 py-2">
@@ -739,7 +740,7 @@ function MaterialesWysiwyg({
                   <>
                     <td className="px-5 py-2.5 text-muted-foreground"><Resaltar texto={i.codigo || "—"} termino={busqueda} /></td>
                     <CeldaEspecialidad insumo={i} refrescar={refrescar} />
-                    <CeldaSubfamilia insumo={i} refrescar={refrescar} />
+                    {conSub && <CeldaSubfamilia insumo={i} refrescar={refrescar} />}
                     <td className="px-3 py-2.5 text-ink"><Resaltar texto={i.nombre} termino={busqueda} /></td>
                     {!esSC && <td className="px-3 py-2.5 text-muted-foreground">{nombreMarca(i.marca_id)}</td>}
                     <td className="px-3 py-2.5 text-center text-muted-foreground">{i.unidad}</td>
@@ -783,8 +784,8 @@ function MaterialesWysiwyg({
       <p className="border-t border-line px-5 py-3 font-mono text-[10px] leading-relaxed text-muted-foreground">
         El C. Unitario —el que usan los análisis de precios unitarios— es el {esSC ? "Costo" : "P. Compra"} más el margen. Los precios se registran sin IGV.
         La unidad se elige del catálogo de Unidades de medida (por defecto {uDef}).
-        La Especialidad y la Subfamilia definen el código (rubro + especialidad + subfamilia + correlativo): se eligen en la fila de captura
-        y se pueden corregir en cada fila. {esSC ? "En subcontratos la subfamilia es opcional." : "Los materiales siempre necesitan subfamilia."}
+        La Especialidad {conSub ? "y la Subfamilia " : ""}definen el código (rubro + especialidad + subfamilia o 00 + correlativo): se eligen en la fila de captura
+        y se pueden corregir en cada fila. {esSC ? "Los subcontratos no usan subfamilia: sus dos dígitos van en 00." : "Los materiales siempre necesitan subfamilia."}
       </p>
     </Panel>
   );
