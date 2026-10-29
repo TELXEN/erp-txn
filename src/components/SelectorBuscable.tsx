@@ -40,6 +40,9 @@ export function SelectorBuscable({
   const [pos, setPos] = useState<{ top: number; left: number; width: number; arriba: boolean } | null>(null);
   const caja = useRef<HTMLDivElement>(null);
   const panel = useRef<HTMLDivElement>(null);
+  const notaRef = useRef<HTMLDivElement>(null);
+  /** Nota flotante colocada a un costado de la lista. */
+  const [nota, setNota] = useState<{ top: number; left: number; width: number; texto: string } | null>(null);
 
   const colocar = useCallback(() => {
     const el = caja.current;
@@ -62,7 +65,7 @@ export function SelectorBuscable({
   useEffect(() => {
     if (!abierto) return;
     const fuera = (e: MouseEvent) => {
-      if (caja.current?.contains(e.target as Node) || panel.current?.contains(e.target as Node)) return;
+      if (caja.current?.contains(e.target as Node) || panel.current?.contains(e.target as Node) || notaRef.current?.contains(e.target as Node)) return;
       setAbierto(false);
     };
     const mover = () => colocar();
@@ -83,6 +86,43 @@ export function SelectorBuscable({
       return [...f, { value: q.trim(), texto: `Usar «${q.trim()}»` }];
     return f;
   }, [opciones, q, permitirLibre]);
+
+  // La nota del catálogo flota a un costado de la lista, alineada con la fila activa.
+  useLayoutEffect(() => {
+    if (!abierto || !pos) {
+      setNota(null);
+      return;
+    }
+    const el = panel.current;
+    const fila = el?.querySelectorAll<HTMLElement>("[data-fila]")[activo];
+    const texto = lista[activo]?.nota ?? "";
+    if (!el || !fila || !texto) {
+      setNota(null);
+      return;
+    }
+    const pr = el.getBoundingClientRect();
+    const fr = fila.getBoundingClientRect();
+    const ancho = Math.min(320, Math.max(200, Math.round(window.innerWidth * 0.25)));
+    let left = pr.right + 8;
+    if (left + ancho > window.innerWidth - 8) {
+      const aIzq = pr.left - 8 - ancho;
+      left = aIzq >= 8 ? aIzq : -1;
+    }
+    if (left < 0) {
+      setNota(null);
+      return;
+    }
+    const top = Math.max(8, fr.top - 2);
+    setNota((p) => (p && p.texto === texto && p.left === left && p.width === ancho && Math.abs(p.top - top) < 0.5 ? p : { top, left, width: ancho, texto }));
+  }, [abierto, activo, lista, pos]);
+
+  // Si la nota flotante se sale por abajo de la pantalla, se sube hasta caber.
+  useLayoutEffect(() => {
+    const el = notaRef.current;
+    if (!el || !nota) return;
+    const maxTop = window.innerHeight - 8 - el.getBoundingClientRect().height;
+    if (nota.top > maxTop) setNota((p) => (p ? { ...p, top: Math.max(8, maxTop) } : p));
+  }, [nota]);
 
   const texto = opciones.find((o) => o.value === value)?.texto ?? (permitirLibre && value ? value : "");
 
@@ -121,6 +161,7 @@ export function SelectorBuscable({
       </button>
       {abierto && pos &&
         createPortal(
+          <>
           <div
             ref={panel}
             style={{
@@ -164,6 +205,7 @@ export function SelectorBuscable({
             <div className="max-h-72 overflow-y-auto py-0.5">
               {lista.map((o, ix) => (
                 <button
+                  data-fila
                   key={`${o.value}-${ix}`}
                   type="button"
                   title={o.detalle ? `${o.detalle} — ${o.texto}` : o.texto}
@@ -182,11 +224,22 @@ export function SelectorBuscable({
               ))}
               {lista.length === 0 && <p className="px-2 py-1.5 text-xs text-muted-foreground">Sin coincidencias.</p>}
             </div>
-            {(() => {
-              const n = (lista[activo] ?? opciones.find((o) => o.value === value))?.nota;
-              return n ? <p className="max-w-md whitespace-normal border-t border-line bg-nota px-2 py-1.5 text-[11px] text-muted-foreground">{n}</p> : null;
-            })()}
-          </div>,
+            {!nota &&
+              (() => {
+                const n = (lista[activo] ?? opciones.find((o) => o.value === value))?.nota;
+                return n ? <p className="max-w-md whitespace-normal border-t border-line bg-nota px-2 py-1.5 text-[11px] text-muted-foreground">{n}</p> : null;
+              })()}
+          </div>
+          {nota && (
+            <div
+              ref={notaRef}
+              style={{ position: "fixed", top: nota.top, left: nota.left, width: nota.width, maxHeight: 260, zIndex: 9999 }}
+              className="overflow-y-auto whitespace-normal rounded-md border border-line bg-nota px-2.5 py-2 text-[11px] leading-snug text-muted-foreground shadow-lg"
+            >
+              {nota.texto}
+            </div>
+          )}
+          </>,
           document.body,
         )}
     </div>
