@@ -722,6 +722,13 @@
       "when": 1793242267138,
       "tag": "0102_mover_especialidad",
       "breakpoints": true
+    },
+    {
+      "idx": 103,
+      "version": "7",
+      "when": 1793246734650,
+      "tag": "0103_subfamilias_electrica_maestra",
+      "breakpoints": true
     }
   ]
 }

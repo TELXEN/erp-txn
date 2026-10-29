@@ -60,7 +60,7 @@ export function HojaSubfamilias() {
     <div className="flex gap-3">
       <div className="min-w-0 flex-1 rounded-md border border-line bg-card">
         <div className="flex items-center justify-between border-b border-line px-3 py-2">
-          <span className="text-xs font-semibold">Subfamilias de insumos</span>
+          <span className="text-xs font-semibold">Subfamilia de materiales</span>
           <Buscador valor={busqueda} onChange={setBusqueda} total={subs.length} />
         </div>
         {especialidades.map((e) => {
@@ -84,7 +84,7 @@ export function HojaSubfamilias() {
                         <tr key={s.id} onClick={() => setSel(s)} onDoubleClick={() => { setSel(s); abrir("editar", s); }}
                           className={`cursor-pointer border-b border-line/60 hover:bg-muted/40 ${sel?.id === s.id ? "bg-primary/10" : ""}`}>
                           <td className="whitespace-nowrap px-2 py-0.5 font-mono">{s.codigo}</td>
-                          <td className="w-full px-2 py-0.5"><Resaltar texto={s.nombre} termino={busqueda} /></td>
+                          <td className="w-full px-2 py-0.5"><Resaltar texto={s.nombre} termino={busqueda} />{s.descripcion && <span className="ml-2 text-muted-foreground">{s.descripcion}</span>}</td>
                         </tr>
                       )),
                     ])}

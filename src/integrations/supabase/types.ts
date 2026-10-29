@@ -5357,6 +5357,7 @@ export type Database = {
           bloque: string
           codigo: string
           created_at: string
+          descripcion: string | null
           especialidad_id: string
           id: string
           nombre: string
@@ -5366,6 +5367,7 @@ export type Database = {
           bloque?: string
           codigo: string
           created_at?: string
+          descripcion?: string | null
           especialidad_id: string
           id?: string
           nombre: string
@@ -5375,6 +5377,7 @@ export type Database = {
           bloque?: string
           codigo?: string
           created_at?: string
+          descripcion?: string | null
           especialidad_id?: string
           id?: string
           nombre?: string

@@ -28,7 +28,7 @@ type Pestana = "especialidades" | "grupos" | "subfamilias" | "unidades";
 const PESTANAS: [Pestana, string][] = [
   ["especialidades", "Especialidades"],
   ["grupos", "Títulos WBS"],
-  ["subfamilias", "Subfamilias de insumos"],
+  ["subfamilias", "Subfamilia de materiales"],
   ["unidades", "Unidades de medida"],
 ];
 

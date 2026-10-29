@@ -25,7 +25,7 @@ export function armarCodigoInsumo(tipo: keyof typeof DIGITO_TIPO_INSUMO, especia
   return `${DIGITO_TIPO_INSUMO[tipo]}${especialidad}${ss}${String(correlativo).padStart(3, "0")}`;
 }
 
-export type Subfamilia = { id: string; especialidad_id: string; bloque: string; codigo: string; nombre: string; activo: boolean };
+export type Subfamilia = { id: string; especialidad_id: string; bloque: string; codigo: string; nombre: string; activo: boolean; descripcion?: string | null };
 
 export const useSubfamilias = () =>
   useQuery({
