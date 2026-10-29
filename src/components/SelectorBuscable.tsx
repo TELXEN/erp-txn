@@ -40,6 +40,9 @@ export function SelectorBuscable({
   const [pos, setPos] = useState<{ top: number; left: number; width: number; arriba: boolean } | null>(null);
   const caja = useRef<HTMLDivElement>(null);
   const panel = useRef<HTMLDivElement>(null);
+  const notaRef = useRef<HTMLDivElement>(null);
+  /** Nota flotante colocada a un costado de la lista. */
+  const [nota, setNota] = useState<{ top: number; left: number; width: number; texto: string } | null>(null);
 
   const colocar = useCallback(() => {
     const el = caja.current;
@@ -62,7 +65,7 @@ export function SelectorBuscable({
   useEffect(() => {
     if (!abierto) return;
     const fuera = (e: MouseEvent) => {
-      if (caja.current?.contains(e.target as Node) || panel.current?.contains(e.target as Node)) return;
+      if (caja.current?.contains(e.target as Node) || panel.current?.contains(e.target as Node) || notaRef.current?.contains(e.target as Node)) return;
       setAbierto(false);
     };
     const mover = () => colocar();
@@ -164,6 +167,7 @@ export function SelectorBuscable({
             <div className="max-h-72 overflow-y-auto py-0.5">
               {lista.map((o, ix) => (
                 <button
+                  data-fila
                   key={`${o.value}-${ix}`}
                   type="button"
                   title={o.detalle ? `${o.detalle} — ${o.texto}` : o.texto}
