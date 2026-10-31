@@ -662,7 +662,7 @@ function MaterialesWysiwyg({
           <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
             <th className="w-[8%] px-5 py-2 font-medium">Código</th>
             <th className="w-[15%] px-3 py-2 font-medium">Especialidad</th>
-            {conSub && <th className="w-[15%] px-3 py-2 font-medium">Subfamilia</th>}
+            {conSub && <th className="w-[15%] px-3 py-2 font-medium">Subcategoría</th>}
             <th className={`${esSC ? "w-[50%]" : "w-[24%]"} px-3 py-2 font-medium`}>Descripción</th>
             {!esSC && <th className="w-[9%] px-3 py-2 font-medium">Marca</th>}
             <th className="w-[9%] px-3 py-2 font-medium">Unidad</th>
@@ -779,8 +779,8 @@ function MaterialesWysiwyg({
       <p className="border-t border-line px-5 py-3 font-mono text-[10px] leading-relaxed text-muted-foreground">
         El C. Unitario —el que usan los análisis de precios unitarios— es el {esSC ? "Costo" : "P. Compra"} más el margen. Los precios se registran sin IGV.
         La unidad se elige del catálogo de Unidades de medida (por defecto {uDef}).
-        La Especialidad {conSub ? "y la Subfamilia " : ""}definen el código (rubro + especialidad + subfamilia o 00 + correlativo): se eligen en la fila de captura
-        y se pueden corregir en cada fila. {esSC ? "Los subcontratos no usan subfamilia: sus dos dígitos van en 00." : "Los materiales siempre necesitan subfamilia."}
+        La Especialidad {conSub ? "y la Subcategoría " : ""}definen el código (rubro + especialidad + subcategoría o 00 + correlativo): se eligen en la fila de captura
+        y se pueden corregir en cada fila. {esSC ? "Los subcontratos no usan subcategoría: sus dos dígitos van en 00." : "Los materiales siempre necesitan subcategoría. Doble clic en una fila abre su ficha completa."}
       </p>
       </Panel>
       <BarraIconosHoja
@@ -977,7 +977,7 @@ function EquiposWysiwyg({
           <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
             <th className="w-[7%] px-5 py-2 font-medium">Código</th>
             <th className="w-[14%] px-3 py-2 font-medium">Especialidad</th>
-            <th className="w-[14%] px-3 py-2 font-medium">Subfamilia</th>
+            <th className="w-[14%] px-3 py-2 font-medium">Subcategoría</th>
             <th className="w-[22%] px-3 py-2 font-medium">Descripción</th>
             <th className="w-[8%] px-3 py-2 font-medium">Clase</th>
             <th className="w-[8%] px-3 py-2 font-medium">Tipo</th>
