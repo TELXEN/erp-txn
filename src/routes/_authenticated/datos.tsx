@@ -968,8 +968,10 @@ function MarcasPanel() {
   const [editando, setEditando] = useState(false);
   const [textoEdicion, setTextoEdicion] = useState("");
   const [error, setError] = useState("");
+  const [busqueda, setBusqueda] = useState("");
   const puedeGestionar = rol === "administrador" || rol === "gerente";
-  const seleccionada = data.find((m) => m.id === sel);
+  const visibles = busqueda.trim() ? data.filter((m) => coincide(busqueda, m.nombre)) : data;
+  const seleccionada = visibles.find((m) => m.id === sel);
   const refrescar = () => {
     qc.invalidateQueries({ queryKey: ["marcas"] });
     qc.invalidateQueries({ queryKey: ["insumos"] });
