@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { useRecordado } from "@/lib/recordado";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Etiqueta, Input, MenuFiltros, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
-import { Check, Coins, FolderKanban, HardHat, Pencil, Plus, SlidersHorizontal, Tag, Trash2, Upload, X } from "lucide-react";
+import { Check, Coins, FolderKanban, HardHat, Pencil, Plus, SlidersHorizontal, Trash2, Upload, X } from "lucide-react";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { exportarExcel } from "@/lib/exportar";
 import {
@@ -86,7 +87,7 @@ const ETIQUETA_MONEDA: Record<string, string> = {
 function Datos() {
   const { rol } = useAuth();
   const qc = useQueryClient();
-  const [pestana, setPestana] = useState<Pestana>("codificacion");
+  const [pestana, setPestana] = useRecordado<Pestana>("erp-datos-pestana", "codificacion");
   const [error, setError] = useState("");
 
   const { data: bancos = [] } = useQuery({
