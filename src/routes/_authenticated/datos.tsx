@@ -1081,6 +1081,8 @@ function MarcasPanel() {
         )}
         {data.length === 0 ? (
           <Vacio texto="Aún no hay marcas registradas." />
+        ) : visibles.length === 0 ? (
+          <Vacio texto={`Sin marcas que coincidan con «${busqueda}».`} />
         ) : (
           <table className="w-full table-fixed font-mono text-xs">
             <thead>
@@ -1090,7 +1092,7 @@ function MarcasPanel() {
               </tr>
             </thead>
             <tbody>
-              {data.map((m) => (
+              {visibles.map((m) => (
                 <tr
                   key={m.id}
                   onClick={() => setSel(m.id)}
@@ -1106,15 +1108,14 @@ function MarcasPanel() {
         )}
         {error && <p className="px-5 py-2 font-mono text-xs text-bad">{error}</p>}
       </Panel>
-      {puedeGestionar && (
-        <BarraIconosHoja
-          objeto="marca"
-          haySeleccion={!!seleccionada}
-          onAgregar={() => { setEditando(false); setNuevo(""); setAgregando(true); setError(""); }}
-          onEditar={abrirEdicion}
-          onEliminar={eliminar}
-        />
-      )}
+      <BarraIconosHoja
+        objeto="marca"
+        filtros={<MenuFiltros activos={busqueda.trim() ? 1 : 0} onLimpiar={() => setBusqueda("")}><Buscador valor={busqueda} onChange={setBusqueda} total={visibles.length} placeholder="Buscar por marca..." /></MenuFiltros>}
+        haySeleccion={!!seleccionada}
+        onAgregar={puedeGestionar ? () => { setEditando(false); setNuevo(""); setAgregando(true); setError(""); } : undefined}
+        onEditar={puedeGestionar ? abrirEdicion : undefined}
+        onEliminar={puedeGestionar ? eliminar : undefined}
+      />
     </div>
   );
 }
