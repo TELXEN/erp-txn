@@ -7,7 +7,7 @@ import { PantallaCarga } from "./components/PantallaCarga";
 const RELOAD_KEY = "chunk-reload-at";
 function recargarSiModuloFalla(err: unknown) {
   const msg = String((err as { message?: string })?.message ?? err ?? "");
-  const moduloDesactualizado = /Failed to fetch dynamically imported module|Importing a module script failed|error loading dynamically imported module/i.test(msg);
+  const moduloDesactualizado = /Failed to fetch dynamically imported module|Importing a module script failed|error loading dynamically imported module|Cannot read properties of undefined \(reading ['"]component['"]\)/i.test(msg);
   const reactDesactualizado = /Cannot read properties of null \(reading ['"](?:useContext|useState|useEffect)['"]\)|Invalid hook call/i.test(msg);
   if (!moduloDesactualizado && !reactDesactualizado) return false;
   // Permite hasta 2 recargas en 60 s: una sola recarga a veces no basta si el
