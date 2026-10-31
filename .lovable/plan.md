@@ -56,6 +56,10 @@ Se registra y edita en una **ventana flotante** (no en la fila): la tabla queda 
 - **Breve descripción**: nueva columna `insumos.descripcion_breve` (texto corto), visible en la ficha y como ayuda al pasar el cursor en la tabla.
 - **Historial de compras**: solo lectura, leído de las órdenes de compra existentes que incluyen el insumo; sin datos nuevos. Muestra las 5 últimas y el aviso de desviación ±10% respecto al precio base.
 - **Registro de autor**: nuevas columnas `creado_por` y `creado_en`, y una tabla `insumos_modificaciones` (insumo, usuario, fecha) que llena un trigger en cada cambio; la ficha muestra el creador y las dos últimas modificaciones con nombre del usuario. Los insumos ya existentes mostrarán «Creador no registrado».
+- **Precio promedio de compra**: en el bloque de historial, junto a las últimas OC, se muestra el P.U. promedio (en S/, convirtiendo USD con el TC de cada orden) y la cantidad total comprada.
+- **Consumo de los últimos 6 meses**: tabla por mes (cantidad y monto) con total, leída de las salidas de almacén y vales ya registrados; solo lectura.
+- **Estado de compra**: interruptor «Compra activa / desactivada» (`insumos.compra_activa`, por defecto activa). Desactivado: sigue en el Maestro y en APU/historial, pero no aparece para nuevos requerimientos ni órdenes de compra. Chip de color en la tabla.
+- **Aprobación de insumos nuevos**: un insumo nuevo nace «Pendiente de aprobación» y no puede usarse en compras hasta que Gerencia/Administración lo apruebe o rechace (con motivo). Se guarda en `insumos_aprobaciones` (acción, usuario, fecha, motivo) y la ficha muestra ese registro. Quienes aprueban ven un filtro «Pendientes» en el Maestro. Los insumos actuales quedan como aprobados.
 - **No se fusiona** con `categorias_partida` (es de partidas). La fusión necesaria es «bloque» → categoría real.
 - **Código T+EE+SS+NNN se conserva**: el primer dígito de SS es la categoría y el segundo la subcategoría (ya ocurre: Iluminación 40-45, Puesta a Tierra 50-54). Ningún código existente cambia.
 
