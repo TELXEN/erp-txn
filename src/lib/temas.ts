@@ -5,7 +5,9 @@ export type TemaId =
   | "obsidiana"
   | "word"
   | "excel"
-  | "powerpoint";
+  | "powerpoint"
+  | "office-gris"
+  | "office-negro";
 
 function temaOffice(
   id: TemaId,
@@ -120,6 +122,22 @@ export const TEMAS: Tema[] = [
     borde: "#DB7457",
     muted: "#F8D6CB",
     tinte: "oklch(0.975 0.01 40)",
+  }),
+  temaOffice("office-gris", "Microsoft 365 Gris oscuro", "Gris carbón del tema Gris oscuro de Office", {
+    base: "#444444",
+    panel: "#333333",
+    hover: "#555555",
+    borde: "#666666",
+    muted: "#D0D0D0",
+    tinte: "oklch(0.975 0 0)",
+  }),
+  temaOffice("office-negro", "Microsoft 365 Negro", "Negro del tema Negro de Office", {
+    base: "#262626",
+    panel: "#1A1A1A",
+    hover: "#3A3A3A",
+    borde: "#4A4A4A",
+    muted: "#C8C8C8",
+    tinte: "oklch(0.975 0 0)",
   }),
 ];
 
