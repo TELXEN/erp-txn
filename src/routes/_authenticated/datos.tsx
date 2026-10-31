@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
+import { Boton, Campo, Etiqueta, Input, MenuFiltros, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { Check, Coins, FolderKanban, HardHat, Pencil, Plus, SlidersHorizontal, Tag, Trash2, Upload, X } from "lucide-react";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { exportarExcel } from "@/lib/exportar";
@@ -31,6 +31,7 @@ import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { type CuentaBancaria } from "@/components/CuentasBancarias";
 import { RubrosIngreso } from "@/components/RubrosIngreso";
 import { formatearTexto, type ModoFormato } from "@/lib/formato-texto";
+import { Buscador, coincide } from "@/components/Buscador";
 
 export const Route = createFileRoute("/_authenticated/datos")({
   head: () => ({
@@ -967,8 +968,10 @@ function MarcasPanel() {
   const [editando, setEditando] = useState(false);
   const [textoEdicion, setTextoEdicion] = useState("");
   const [error, setError] = useState("");
+  const [busqueda, setBusqueda] = useState("");
   const puedeGestionar = rol === "administrador" || rol === "gerente";
-  const seleccionada = data.find((m) => m.id === sel);
+  const visibles = busqueda.trim() ? data.filter((m) => coincide(busqueda, m.nombre)) : data;
+  const seleccionada = visibles.find((m) => m.id === sel);
   const refrescar = () => {
     qc.invalidateQueries({ queryKey: ["marcas"] });
     qc.invalidateQueries({ queryKey: ["insumos"] });
@@ -1078,6 +1081,8 @@ function MarcasPanel() {
         )}
         {data.length === 0 ? (
           <Vacio texto="Aún no hay marcas registradas." />
+        ) : visibles.length === 0 ? (
+          <Vacio texto={`Sin marcas que coincidan con «${busqueda}».`} />
         ) : (
           <table className="w-full table-fixed font-mono text-xs">
             <thead>
@@ -1087,7 +1092,7 @@ function MarcasPanel() {
               </tr>
             </thead>
             <tbody>
-              {data.map((m) => (
+              {visibles.map((m) => (
                 <tr
                   key={m.id}
                   onClick={() => setSel(m.id)}
@@ -1103,15 +1108,14 @@ function MarcasPanel() {
         )}
         {error && <p className="px-5 py-2 font-mono text-xs text-bad">{error}</p>}
       </Panel>
-      {puedeGestionar && (
-        <BarraIconosHoja
-          objeto="marca"
-          haySeleccion={!!seleccionada}
-          onAgregar={() => { setEditando(false); setNuevo(""); setAgregando(true); setError(""); }}
-          onEditar={abrirEdicion}
-          onEliminar={eliminar}
-        />
-      )}
+      <BarraIconosHoja
+        objeto="marca"
+        filtros={<MenuFiltros activos={busqueda.trim() ? 1 : 0} onLimpiar={() => setBusqueda("")}><Buscador valor={busqueda} onChange={setBusqueda} total={visibles.length} placeholder="Buscar por marca..." /></MenuFiltros>}
+        haySeleccion={!!seleccionada}
+        onAgregar={puedeGestionar ? () => { setEditando(false); setNuevo(""); setAgregando(true); setError(""); } : undefined}
+        onEditar={puedeGestionar ? abrirEdicion : undefined}
+        onEliminar={puedeGestionar ? eliminar : undefined}
+      />
     </div>
   );
 }
