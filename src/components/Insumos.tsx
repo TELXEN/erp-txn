@@ -8,6 +8,7 @@ import { SelectorBuscable } from "@/components/SelectorBuscable";
 import { CeldaSubfamilia } from "@/components/CeldaSubfamilia";
 import { CeldaEspecialidad } from "@/components/CeldaEspecialidad";
 import { CeldasClasificacion } from "@/components/CeldasClasificacion";
+import { FichaInsumoMaestro } from "@/components/InsumoVentana";
 import { MargenesApuPanel } from "@/components/MargenesApu";
 import { ParametrosLaboralesPanel } from "@/components/ParametrosLaborales";
 import { CodificacionInsumos } from "@/components/CodificacionInsumos";
@@ -561,6 +562,7 @@ function MaterialesWysiwyg({
   const [sel, setSel] = useState("");
   const [agregando, setAgregando] = useState(!!enfoqueNueva);
   const seleccionado = lista.find((i) => i.id === sel);
+  const [ficha, setFicha] = useState<{ id: string | null } | null>(null);
   const iniciarEdicion = (i: Insumo) => {
     setAgregando(false);
     setEditando({
@@ -730,7 +732,7 @@ function MaterialesWysiwyg({
             const margen = mgTipo;
             const cu = compra * (1 + margen / 100);
             return (
-              <tr key={i.id} onClick={() => setSel(i.id)} onDoubleClick={() => iniciarEdicion(i)} className={`cursor-pointer border-b border-line/40 last:border-0 ${sel === i.id ? "bg-primary/10" : ""}`}>
+              <tr key={i.id} onClick={() => setSel(i.id)} onDoubleClick={() => setFicha({ id: i.id })} className={`cursor-pointer border-b border-line/40 last:border-0 ${sel === i.id ? "bg-primary/10" : ""}`}>
                 {esEdicion ? (
                   <>
                     <td className="px-5 py-2 text-muted-foreground">{editando.codigo || "—"}</td>
@@ -785,10 +787,11 @@ function MaterialesWysiwyg({
         objeto={esSC ? "subcontrato" : "material"}
         filtros={<MenuFiltros activos={busqueda.trim() ? 1 : 0} onLimpiar={() => setBusqueda("")}><Buscador valor={busqueda} onChange={setBusqueda} total={lista.length} placeholder="Buscar por código o descripción..." /></MenuFiltros>}
         haySeleccion={!!seleccionado}
-        onAgregar={() => { setEditando(null); setAgregando((v) => !v); }}
-        onEditar={() => seleccionado && iniciarEdicion(seleccionado)}
+        onAgregar={() => { setEditando(null); setAgregando(false); setFicha({ id: null }); }}
+        onEditar={() => seleccionado && setFicha({ id: seleccionado.id })}
         onEliminar={() => seleccionado && eliminar(seleccionado.id)}
       />
+      {ficha && <FichaInsumoMaestro id={ficha.id} tipo={tipo} onCerrar={() => setFicha(null)} onGuardado={refrescar} />}
     </div>
   );
 }
@@ -838,6 +841,7 @@ function EquiposWysiwyg({
   const [sel, setSel] = useState("");
   const [agregando, setAgregando] = useState(!!enfoqueNueva);
   const seleccionado = lista.find((i) => i.id === sel);
+  const [ficha, setFicha] = useState<{ id: string | null } | null>(null);
   const iniciarEdicion = (i: Insumo) => {
     setAgregando(false);
     setEditando({ id: i.id, codigo: i.codigo, nombre: i.nombre, clase: claseDe(i), propiedad: (i.propiedad ?? "Propio") as Propiedad, unidad: i.unidad, precio: String(i.precio || ""), especialidad_id: i.especialidad_id ?? "", subfamilia_id: i.subfamilia_id ?? "" });
@@ -1012,7 +1016,7 @@ function EquiposWysiwyg({
             const prop = (i.propiedad ?? "Propio") as Propiedad;
             const alq = prop === "Alquilado";
             return (
-              <tr key={i.id} onClick={() => setSel(i.id)} onDoubleClick={() => iniciarEdicion(i)} className={`cursor-pointer border-b border-line/40 last:border-0 ${sel === i.id ? "bg-primary/10" : ""}`}>
+              <tr key={i.id} onClick={() => setSel(i.id)} onDoubleClick={() => setFicha({ id: i.id })} className={`cursor-pointer border-b border-line/40 last:border-0 ${sel === i.id ? "bg-primary/10" : ""}`}>
                 <td className="px-5 py-2.5 text-muted-foreground"><Resaltar texto={i.codigo || "—"} termino={busqueda} /></td>
                   <CeldaEspecialidad insumo={i} refrescar={refrescar} />
                   <CeldaSubfamilia insumo={i} refrescar={refrescar} />
@@ -1038,10 +1042,11 @@ function EquiposWysiwyg({
         objeto={etiqueta}
         filtros={<MenuFiltros activos={busqueda.trim() ? 1 : 0} onLimpiar={() => setBusqueda("")}><Buscador valor={busqueda} onChange={setBusqueda} total={lista.length} placeholder="Buscar por código o descripción..." /></MenuFiltros>}
         haySeleccion={!!seleccionado}
-        onAgregar={() => { setEditando(null); setAgregando((v) => !v); }}
-        onEditar={() => seleccionado && iniciarEdicion(seleccionado)}
+        onAgregar={() => { setEditando(null); setAgregando(false); setFicha({ id: null }); }}
+        onEditar={() => seleccionado && setFicha({ id: seleccionado.id })}
         onEliminar={() => seleccionado && eliminar(seleccionado.id)}
       />
+      {ficha && <FichaInsumoMaestro id={ficha.id} tipo={"EQ"} clase={claseFija} onCerrar={() => setFicha(null)} onGuardado={refrescar} />}
     </div>
   );
 }
