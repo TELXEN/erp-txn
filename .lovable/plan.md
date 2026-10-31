@@ -34,6 +34,28 @@ Decisiones:
 - Ambos opcionales; se muestran como columnas en el Maestro y en la ventana de registro, después de la subcategoría.
 - Se permite repetir una descripción si cambian marca o número de parte (mismo artículo de distinto fabricante); se avisa si se repite la combinación marca + número de parte.
 - La búsqueda del Maestro también encuentra por número de parte.
+
+## Ficha del insumo en ventana flotante
+Se registra y edita en una **ventana flotante** (no en la fila): la tabla queda compacta y la ficha tiene espacio para todo. Doble clic en una fila abre su ficha.
+
+```text
++--------------------------------------------------------------+
+| Especialidad > Categoría > Subcategoría      Código 20540001 |
+| Descripción (nombre)                                         |
+| Breve descripción (texto corto, opcional)                    |
+| Unidad | Marca | N.º de parte | Precio base                  |
+|--------------------------------------------------------------|
+| Últimas órdenes de compra (5 más recientes)                  |
+|  Fecha | N.º OC | Proveedor | Cantidad | P.U. | Moneda       |
+|--------------------------------------------------------------|
+| Creado por Juan P. · 12/10/2026 10:30                        |
+| Modificado por Ana R. · 30/10/2026 · Luis T. · 31/10/2026    |
++--------------------------------------------------------------+
+```
+
+- **Breve descripción**: nueva columna `insumos.descripcion_breve` (texto corto), visible en la ficha y como ayuda al pasar el cursor en la tabla.
+- **Historial de compras**: solo lectura, leído de las órdenes de compra existentes que incluyen el insumo; sin datos nuevos. Muestra las 5 últimas y el aviso de desviación ±10% respecto al precio base.
+- **Registro de autor**: nuevas columnas `creado_por` y `creado_en`, y una tabla `insumos_modificaciones` (insumo, usuario, fecha) que llena un trigger en cada cambio; la ficha muestra el creador y las dos últimas modificaciones con nombre del usuario. Los insumos ya existentes mostrarán «Creador no registrado».
 - **No se fusiona** con `categorias_partida` (es de partidas). La fusión necesaria es «bloque» → categoría real.
 - **Código T+EE+SS+NNN se conserva**: el primer dígito de SS es la categoría y el segundo la subcategoría (ya ocurre: Iluminación 40-45, Puesta a Tierra 50-54). Ningún código existente cambia.
 
