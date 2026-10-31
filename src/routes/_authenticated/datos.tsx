@@ -27,6 +27,7 @@ import {
 } from "@/lib/datos";
 import { PRIORIDADES, SITUACIONES, tonoPrioridad, tonoSituacion } from "@/lib/configuracion";
 import { CodificacionDocumentos } from "@/components/CodificacionDocumentos";
+import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { type CuentaBancaria } from "@/components/CuentasBancarias";
 import { RubrosIngreso } from "@/components/RubrosIngreso";
 import { formatearTexto, type ModoFormato } from "@/lib/formato-texto";
