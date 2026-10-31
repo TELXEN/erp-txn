@@ -750,6 +750,13 @@
       "when": 1793463471134,
       "tag": "0106_ficha_insumo_sin_duplicar_cambios",
       "breakpoints": true
+    },
+    {
+      "idx": 107,
+      "version": "7",
+      "when": 1793464907311,
+      "tag": "0107_numeracion_alfabetica_categorias",
+      "breakpoints": true
     }
   ]
 }

@@ -7,10 +7,11 @@ import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
 import { useCategoriasInsumo, useSubfamilias, type CategoriaInsumo } from "@/lib/codigo-insumo";
 import { claveNombre } from "@/lib/formato-texto";
+import { numerarCategorias } from "@/lib/orden-categorias";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = supabase as unknown as { from: (t: string) => any };
-type Form = { especialidad_id: string; codigo: string; nombre: string; descripcion: string };
+type Form = { especialidad_id: string; nombre: string; descripcion: string };
 
 /** Categorías de insumo por especialidad: nivel intermedio de la cascada Especialidad → Categoría → Subcategoría. */
 export function HojaCategorias() {
@@ -21,34 +22,35 @@ export function HojaCategorias() {
   const [busqueda, setBusqueda] = useState("");
   const [sel, setSel] = useState<CategoriaInsumo | null>(null);
   const [modo, setModo] = useState<"nuevo" | "editar" | null>(null);
-  const [form, setForm] = useState<Form>({ especialidad_id: "", codigo: "", nombre: "", descripcion: "" });
+  const [form, setForm] = useState<Form>({ especialidad_id: "", nombre: "", descripcion: "" });
   const [aviso, setAviso] = useState("");
   const refrescar = () => { qc.invalidateQueries({ queryKey: ["categorias_insumo"] }); qc.invalidateQueries({ queryKey: ["subfamilias_insumo"] }); };
 
   const especialidades = esp.filter((e) => e.codigo_modular).sort((a, b) => String(a.codigo_modular).localeCompare(String(b.codigo_modular)));
   const visibles = cats.filter((c) => coincide(busqueda, c.codigo, c.nombre));
   const nSubs = (id: string) => subs.filter((s) => s.categoria_id === id).length;
+  const codigoPrevisto = form.nombre.trim() ? numerarCategorias([
+    ...cats.filter((c) => c.especialidad_id === form.especialidad_id && !(modo === "editar" && c.id === sel?.id)),
+    { id: "vista-previa", especialidad_id: form.especialidad_id, nombre: form.nombre.trim() },
+  ]).find((c) => c.id === "vista-previa")?.codigo ?? "" : "";
 
   function abrir(m: "nuevo" | "editar", objetivo: CategoriaInsumo | null = sel) {
     setAviso("");
     if (m === "nuevo") {
       const espId = sel?.especialidad_id ?? especialidades[0]?.id ?? "";
-      const max = Math.max(0, ...cats.filter((c) => c.especialidad_id === espId).map((c) => Number(c.codigo) || 0));
-      setForm({ especialidad_id: espId, codigo: String(max + 1).padStart(2, "0"), nombre: "", descripcion: "" });
-    } else if (objetivo) setForm({ especialidad_id: objetivo.especialidad_id, codigo: objetivo.codigo, nombre: objetivo.nombre, descripcion: objetivo.descripcion ?? "" });
+      setForm({ especialidad_id: espId, nombre: "", descripcion: "" });
+    } else if (objetivo) setForm({ especialidad_id: objetivo.especialidad_id, nombre: objetivo.nombre, descripcion: objetivo.descripcion ?? "" });
     else return;
     setModo(m);
   }
 
   async function guardar() {
-    const codigo = form.codigo.trim(), nombre = form.nombre.trim();
+    const nombre = form.nombre.trim();
     if (!form.especialidad_id) return setAviso("Elige la especialidad.");
-    if (!/^\d{2}$/.test(codigo)) return setAviso("El código debe tener 2 dígitos (01–99).");
     if (!nombre) return setAviso("Escribe el nombre.");
     const mismas = cats.filter((c) => c.especialidad_id === form.especialidad_id && !(modo === "editar" && c.id === sel?.id));
-    if (mismas.some((c) => c.codigo === codigo)) return setAviso(`El código ${codigo} ya existe en esta especialidad.`);
     if (mismas.some((c) => claveNombre(c.nombre) === claveNombre(nombre))) return setAviso(`La categoría «${nombre}» ya existe.`);
-    const d = { especialidad_id: form.especialidad_id, codigo, nombre, descripcion: form.descripcion.trim() || null, orden: Number(codigo) };
+    const d = { especialidad_id: form.especialidad_id, nombre, descripcion: form.descripcion.trim() || null };
     const { error } = modo === "editar" && sel ? await db.from("categorias_insumo").update(d).eq("id", sel.id) : await db.from("categorias_insumo").insert(d);
     if (error) return setAviso(error.message);
     if (modo === "editar" && sel) await db.from("subfamilias_insumo").update({ categoria_id: sel.id }).eq("categoria_id", sel.id); // refresca el nombre legado
@@ -114,8 +116,8 @@ export function HojaCategorias() {
               {especialidades.map((e) => <option key={e.id} value={e.id}>{e.codigo_modular} · {e.nombre}</option>)}
             </Select>
           </Campo>
-          <Campo etiqueta="Código (2 dígitos)">
-            <Input maxLength={2} value={form.codigo} onChange={(e) => setForm({ ...form, codigo: e.target.value.replace(/\D/g, "") })} />
+          <Campo etiqueta="Código">
+            <Input readOnly value={codigoPrevisto} />
           </Campo>
           <div className="sm:col-span-2">
             <Campo etiqueta="Nombre"><Input autoFocus value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} /></Campo>
