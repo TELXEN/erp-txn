@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { ordenarCategorias } from "@/lib/orden-categorias";
 
 /** Dígito fijo de cada tipo de insumo en el código modular (EE T SS NNN). */
 export const DIGITO_TIPO_INSUMO = {
@@ -47,7 +48,7 @@ export const useCategoriasInsumo = () =>
     queryFn: async () => {
       const { data, error } = await supabase.from("categorias_insumo").select("*").order("codigo");
       if (error) throw error;
-      return (data ?? []) as CategoriaInsumo[];
+      return ordenarCategorias((data ?? []) as CategoriaInsumo[]);
     },
   });
 
