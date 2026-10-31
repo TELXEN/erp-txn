@@ -8,6 +8,7 @@ import { SelectorBuscable } from "@/components/SelectorBuscable";
 import { CeldaSubfamilia } from "@/components/CeldaSubfamilia";
 import { CeldaEspecialidad } from "@/components/CeldaEspecialidad";
 import { CeldasClasificacion } from "@/components/CeldasClasificacion";
+import { FichaInsumoMaestro } from "@/components/InsumoVentana";
 import { MargenesApuPanel } from "@/components/MargenesApu";
 import { ParametrosLaboralesPanel } from "@/components/ParametrosLaborales";
 import { CodificacionInsumos } from "@/components/CodificacionInsumos";
@@ -55,7 +56,7 @@ export function Insumos() {
   const visibles = lista
     .filter((i) => i.tipo === filtro)
     .filter((i) => filtro !== "EQ" || (claseInsumo(i) === "Herramienta") === (seccion === "HE"))
-    .filter((i) => coincide(busqueda, i.codigo, i.nombre))
+    .filter((i) => coincide(busqueda, i.codigo, i.nombre, extraInsumo(i).numero_parte ?? "", extraInsumo(i).especificaciones ?? ""))
     .sort((a, b) => filtro === "MO" ? compararManoObra(a, b) : 0);
 
   function cambiarPestana(t: TipoInsumo) {
@@ -485,7 +486,7 @@ function ManoObraWysiwyg({
                   <>
                     <td className="px-5 py-2.5 text-muted-foreground"><Resaltar texto={i.codigo || "—"} termino={busqueda} /></td>
                     <CeldaEspecialidad insumo={i} refrescar={refrescar} />
-                    <td className="px-3 py-2.5 text-ink"><Resaltar texto={i.nombre} termino={busqueda} /></td>
+                    <td className="px-3 py-2.5 text-ink" title={extraInsumo(i).descripcion_breve ?? undefined}><Resaltar texto={i.nombre} termino={busqueda} /><ChipsInsumo i={i} /></td>
                     <td className="px-3 py-2.5 text-muted-foreground">{i.regimen_laboral ?? "General"}</td>
                     <td className="px-3 py-2.5 text-right">{i.regimen_laboral === "Construcción Civil" ? `${i.categoria_obrero ?? "Operario"} (jornal)` : soles(Number(i.sueldo_mensual || 0))}</td>
                     <td className="px-3 py-2.5 text-center text-muted-foreground">hh</td>
@@ -561,6 +562,7 @@ function MaterialesWysiwyg({
   const [sel, setSel] = useState("");
   const [agregando, setAgregando] = useState(!!enfoqueNueva);
   const seleccionado = lista.find((i) => i.id === sel);
+  const [ficha, setFicha] = useState<{ id: string | null } | null>(null);
   const iniciarEdicion = (i: Insumo) => {
     setAgregando(false);
     setEditando({
@@ -660,7 +662,7 @@ function MaterialesWysiwyg({
           <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
             <th className="w-[8%] px-5 py-2 font-medium">Código</th>
             <th className="w-[15%] px-3 py-2 font-medium">Especialidad</th>
-            {conSub && <th className="w-[15%] px-3 py-2 font-medium">Subfamilia</th>}
+            {conSub && <th className="w-[15%] px-3 py-2 font-medium">Subcategoría</th>}
             <th className={`${esSC ? "w-[50%]" : "w-[24%]"} px-3 py-2 font-medium`}>Descripción</th>
             {!esSC && <th className="w-[9%] px-3 py-2 font-medium">Marca</th>}
             <th className="w-[9%] px-3 py-2 font-medium">Unidad</th>
@@ -730,7 +732,7 @@ function MaterialesWysiwyg({
             const margen = mgTipo;
             const cu = compra * (1 + margen / 100);
             return (
-              <tr key={i.id} onClick={() => setSel(i.id)} onDoubleClick={() => iniciarEdicion(i)} className={`cursor-pointer border-b border-line/40 last:border-0 ${sel === i.id ? "bg-primary/10" : ""}`}>
+              <tr key={i.id} onClick={() => setSel(i.id)} onDoubleClick={() => setFicha({ id: i.id })} className={`cursor-pointer border-b border-line/40 last:border-0 ${sel === i.id ? "bg-primary/10" : ""}`}>
                 {esEdicion ? (
                   <>
                     <td className="px-5 py-2 text-muted-foreground">{editando.codigo || "—"}</td>
@@ -760,7 +762,7 @@ function MaterialesWysiwyg({
                     <td className="px-5 py-2.5 text-muted-foreground"><Resaltar texto={i.codigo || "—"} termino={busqueda} /></td>
                     <CeldaEspecialidad insumo={i} refrescar={refrescar} />
                     {conSub && <CeldaSubfamilia insumo={i} refrescar={refrescar} />}
-                    <td className="px-3 py-2.5 text-ink"><Resaltar texto={i.nombre} termino={busqueda} /></td>
+                    <td className="px-3 py-2.5 text-ink" title={extraInsumo(i).descripcion_breve ?? undefined}><Resaltar texto={i.nombre} termino={busqueda} /><ChipsInsumo i={i} /></td>
                     {!esSC && <td className="px-3 py-2.5 text-muted-foreground">{nombreMarca(i.marca_id)}</td>}
                     <td className="px-3 py-2.5 text-center text-muted-foreground">{i.unidad}</td>
                     <td className="px-3 py-2.5 text-right">{soles(compra)}</td>
@@ -777,18 +779,19 @@ function MaterialesWysiwyg({
       <p className="border-t border-line px-5 py-3 font-mono text-[10px] leading-relaxed text-muted-foreground">
         El C. Unitario —el que usan los análisis de precios unitarios— es el {esSC ? "Costo" : "P. Compra"} más el margen. Los precios se registran sin IGV.
         La unidad se elige del catálogo de Unidades de medida (por defecto {uDef}).
-        La Especialidad {conSub ? "y la Subfamilia " : ""}definen el código (rubro + especialidad + subfamilia o 00 + correlativo): se eligen en la fila de captura
-        y se pueden corregir en cada fila. {esSC ? "Los subcontratos no usan subfamilia: sus dos dígitos van en 00." : "Los materiales siempre necesitan subfamilia."}
+        La Especialidad {conSub ? "y la Subcategoría " : ""}definen el código (rubro + especialidad + subcategoría o 00 + correlativo): se eligen en la fila de captura
+        y se pueden corregir en cada fila. {esSC ? "Los subcontratos no usan subcategoría: sus dos dígitos van en 00." : "Los materiales siempre necesitan subcategoría. Doble clic en una fila abre su ficha completa."}
       </p>
       </Panel>
       <BarraIconosHoja
         objeto={esSC ? "subcontrato" : "material"}
         filtros={<MenuFiltros activos={busqueda.trim() ? 1 : 0} onLimpiar={() => setBusqueda("")}><Buscador valor={busqueda} onChange={setBusqueda} total={lista.length} placeholder="Buscar por código o descripción..." /></MenuFiltros>}
         haySeleccion={!!seleccionado}
-        onAgregar={() => { setEditando(null); setAgregando((v) => !v); }}
-        onEditar={() => seleccionado && iniciarEdicion(seleccionado)}
+        onAgregar={() => { setEditando(null); setAgregando(false); setFicha({ id: null }); }}
+        onEditar={() => seleccionado && setFicha({ id: seleccionado.id })}
         onEliminar={() => seleccionado && eliminar(seleccionado.id)}
       />
+      {ficha && <FichaInsumoMaestro id={ficha.id} tipo={tipo} onCerrar={() => setFicha(null)} onGuardado={refrescar} />}
     </div>
   );
 }
@@ -838,6 +841,7 @@ function EquiposWysiwyg({
   const [sel, setSel] = useState("");
   const [agregando, setAgregando] = useState(!!enfoqueNueva);
   const seleccionado = lista.find((i) => i.id === sel);
+  const [ficha, setFicha] = useState<{ id: string | null } | null>(null);
   const iniciarEdicion = (i: Insumo) => {
     setAgregando(false);
     setEditando({ id: i.id, codigo: i.codigo, nombre: i.nombre, clase: claseDe(i), propiedad: (i.propiedad ?? "Propio") as Propiedad, unidad: i.unidad, precio: String(i.precio || ""), especialidad_id: i.especialidad_id ?? "", subfamilia_id: i.subfamilia_id ?? "" });
@@ -973,7 +977,7 @@ function EquiposWysiwyg({
           <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
             <th className="w-[7%] px-5 py-2 font-medium">Código</th>
             <th className="w-[14%] px-3 py-2 font-medium">Especialidad</th>
-            <th className="w-[14%] px-3 py-2 font-medium">Subfamilia</th>
+            <th className="w-[14%] px-3 py-2 font-medium">Subcategoría</th>
             <th className="w-[22%] px-3 py-2 font-medium">Descripción</th>
             <th className="w-[8%] px-3 py-2 font-medium">Clase</th>
             <th className="w-[8%] px-3 py-2 font-medium">Tipo</th>
@@ -1012,11 +1016,11 @@ function EquiposWysiwyg({
             const prop = (i.propiedad ?? "Propio") as Propiedad;
             const alq = prop === "Alquilado";
             return (
-              <tr key={i.id} onClick={() => setSel(i.id)} onDoubleClick={() => iniciarEdicion(i)} className={`cursor-pointer border-b border-line/40 last:border-0 ${sel === i.id ? "bg-primary/10" : ""}`}>
+              <tr key={i.id} onClick={() => setSel(i.id)} onDoubleClick={() => setFicha({ id: i.id })} className={`cursor-pointer border-b border-line/40 last:border-0 ${sel === i.id ? "bg-primary/10" : ""}`}>
                 <td className="px-5 py-2.5 text-muted-foreground"><Resaltar texto={i.codigo || "—"} termino={busqueda} /></td>
                   <CeldaEspecialidad insumo={i} refrescar={refrescar} />
                   <CeldaSubfamilia insumo={i} refrescar={refrescar} />
-                <td className="px-3 py-2.5 text-ink"><Resaltar texto={i.nombre} termino={busqueda} /></td>
+                <td className="px-3 py-2.5 text-ink" title={extraInsumo(i).descripcion_breve ?? undefined}><Resaltar texto={i.nombre} termino={busqueda} /><ChipsInsumo i={i} /></td>
                 <td className="px-3 py-2.5">{claseDe(i)}</td>
                 <td className="px-3 py-2.5">{prop}</td>
                 <td className="px-3 py-2.5 text-center text-muted-foreground">{i.unidad}</td>
@@ -1038,10 +1042,11 @@ function EquiposWysiwyg({
         objeto={etiqueta}
         filtros={<MenuFiltros activos={busqueda.trim() ? 1 : 0} onLimpiar={() => setBusqueda("")}><Buscador valor={busqueda} onChange={setBusqueda} total={lista.length} placeholder="Buscar por código o descripción..." /></MenuFiltros>}
         haySeleccion={!!seleccionado}
-        onAgregar={() => { setEditando(null); setAgregando((v) => !v); }}
-        onEditar={() => seleccionado && iniciarEdicion(seleccionado)}
+        onAgregar={() => { setEditando(null); setAgregando(false); setFicha({ id: null }); }}
+        onEditar={() => seleccionado && setFicha({ id: seleccionado.id })}
         onEliminar={() => seleccionado && eliminar(seleccionado.id)}
       />
+      {ficha && <FichaInsumoMaestro id={ficha.id} tipo={"EQ"} clase={claseFija} onCerrar={() => setFicha(null)} onGuardado={refrescar} />}
     </div>
   );
 }
@@ -1165,7 +1170,7 @@ function HerramientasWysiwyg({
             ) : (
               <tr key={i.id} onClick={() => setSel(i.id)} onDoubleClick={() => iniciarEdicion(i)} className={`cursor-pointer border-b border-line/40 last:border-0 ${sel === i.id ? "bg-primary/10" : ""}`}>
                 <td className="px-5 py-2.5 text-muted-foreground"><Resaltar texto={i.codigo || "—"} termino={busqueda} /></td>
-                <td className="px-3 py-2.5 text-ink"><Resaltar texto={i.nombre} termino={busqueda} /></td>
+                <td className="px-3 py-2.5 text-ink" title={extraInsumo(i).descripcion_breve ?? undefined}><Resaltar texto={i.nombre} termino={busqueda} /><ChipsInsumo i={i} /></td>
                 <td className="px-3 py-2.5 text-center text-muted-foreground">%MO</td>
                 <td className="px-3 py-2.5 text-right font-semibold text-primary">{pctDe(i).toFixed(2)}%</td>
               </tr>
@@ -1268,5 +1273,23 @@ function DetalleCostoHH({ calculo, parametros, margen }: {
         </div>
       </div>
     </div>
+  );
+}
+
+type ExtraInsumo = { numero_parte?: string | null; descripcion_breve?: string | null; especificaciones?: string | null; compra_activa?: boolean; estado_aprobacion?: string };
+/** Campos de la ficha ampliada (la lista lee la tabla completa de insumos). */
+const extraInsumo = (i: Insumo) => i as unknown as ExtraInsumo;
+
+/** N.º de parte y avisos de estado bajo la descripción: pendiente/rechazado y compra desactivada. */
+function ChipsInsumo({ i }: { i: Insumo }) {
+  const x = extraInsumo(i);
+  const chip = "ml-1.5 inline-block rounded px-1 py-px align-middle text-[10px] font-medium";
+  return (
+    <>
+      {x.numero_parte && <span className="ml-1.5 font-mono text-[10px] text-muted-foreground">P/N {x.numero_parte}</span>}
+      {x.estado_aprobacion === "Pendiente" && <span className={`${chip} bg-nota text-foreground`}>Pendiente de aprobación</span>}
+      {x.estado_aprobacion === "Rechazado" && <span className={`${chip} bg-destructive/10 text-destructive`}>Rechazado</span>}
+      {x.compra_activa === false && <span className={`${chip} bg-muted text-muted-foreground`}>Compra desactivada</span>}
+    </>
   );
 }

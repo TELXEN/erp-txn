@@ -25,7 +25,8 @@ export function armarCodigoInsumo(tipo: keyof typeof DIGITO_TIPO_INSUMO, especia
   return `${DIGITO_TIPO_INSUMO[tipo]}${especialidad}${ss}${String(correlativo).padStart(3, "0")}`;
 }
 
-export type Subfamilia = { id: string; especialidad_id: string; bloque: string; codigo: string; nombre: string; activo: boolean; descripcion?: string | null };
+/** Subcategoría de insumo (tabla subfamilias_insumo). `bloque` es legado: lo rellena la base con el nombre de la categoría. */
+export type Subfamilia = { id: string; especialidad_id: string; categoria_id: string | null; bloque: string; codigo: string; nombre: string; activo: boolean; descripcion?: string | null };
 
 export const useSubfamilias = () =>
   useQuery({
@@ -34,6 +35,19 @@ export const useSubfamilias = () =>
       const { data, error } = await supabase.from("subfamilias_insumo").select("*").order("codigo");
       if (error) throw error;
       return (data ?? []) as Subfamilia[];
+    },
+  });
+
+/** Categoría de insumo: nivel entre la especialidad y la subcategoría. */
+export type CategoriaInsumo = { id: string; especialidad_id: string; codigo: string; nombre: string; descripcion: string | null; orden: number; activo: boolean };
+
+export const useCategoriasInsumo = () =>
+  useQuery({
+    queryKey: ["categorias_insumo"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("categorias_insumo").select("*").order("codigo");
+      if (error) throw error;
+      return (data ?? []) as CategoriaInsumo[];
     },
   });
 

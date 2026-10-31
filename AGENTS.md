@@ -60,5 +60,5 @@
 - Insumo codes renumber on delete per prefix; inactive codes stay. MO display uses orden-mano-obra, not specialty sorting.
 - Purchase orders use HojaOrdenCompra, DOC and A4 printing; orden-compra-montos shares tax totals, orden-compra-pago encodes terms in the existing field — costs/history unchanged.
 - Field consumption: Consumir needs a partida; vales via registrar_vale_salida RPC; budget check in consumo-partida.ts warns, never blocks.
-- Insumos master: public.insumos is the only item row; materiales/mano_obra/equipos_herramientas/subcontratos/epp_catalogo are INSTEAD-OF views over it (EPP extras in insumos_atributos_epp; categoria_inventario splits equipment/tools) — one code per item everywhere.
+- Insumos: public.insumos is the only item row; type views are INSTEAD-OF over it (EPP extras in insumos_atributos_epp). Ficha-only fields go straight to insumos; cascade especialidad→categorias_insumo→subfamilias_insumo; approvals/history via aprobar_insumo/ficha_insumo RPCs — one code, one rule source.
 - Subdirectories have their own AGENTS.md (e.g. src/routes); read it before changing files there.

@@ -1,13 +1,14 @@
 import { digitoTipoInsumo } from "@/lib/digito-insumo";
-import { useMemo, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { FichaInsumoHistorial } from "@/components/FichaInsumoHistorial";
 import { supabase } from "@/integrations/supabase/client";
-import { Boton, Campo, Input, Select, VentanaFlotante } from "@/components/ui-kit";
+import { Area, Boton, Campo, Input, Select, VentanaFlotante } from "@/components/ui-kit";
 import { SelectorBuscable } from "@/components/SelectorBuscable";
 import { useMarcas } from "@/lib/datos";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
 import { useUnidadesMedida } from "@/lib/unidades";
-import { useSubfamilias } from "@/lib/codigo-insumo";
+import { useCategoriasInsumo, useSubfamilias } from "@/lib/codigo-insumo";
 import { usaSubfamilia } from "@/lib/clasificacion-insumo";
 import { buscarInsumoDuplicado } from "@/lib/insumo-duplicado";
 import { useBancoTabla } from "@/lib/banco-apu";
@@ -103,6 +104,7 @@ export function VentanaInsumo({
   const qc = useQueryClient();
   const { data: espLista = [] } = useEspecialidadesPartida();
   const { data: subfamilias = [] } = useSubfamilias();
+  const { data: categorias = [] } = useCategoriasInsumo();
   const { data: unidades = [] } = useUnidadesMedida();
   const { data: marcas = [] } = useMarcas();
   const { data: mats = [] } = useBancoTabla("materiales");
@@ -118,6 +120,8 @@ export function VentanaInsumo({
     if (!f && !b.unidad) b.unidad = unidades.find((u) => u.activo)?.simbolo ?? "";
     b.especialidad_id = f?.especialidad_id ?? "";
     b.subfamilia_id = usaSubfamilia(t) ? f?.subfamilia_id ?? "" : "";
+    b.categoria_id = usaSubfamilia(t) ? f?.categoria_id ?? "" : "";
+    b.numero_parte = ""; b.descripcion_breve = ""; b.especificaciones = ""; b.compra_activa = true;
     return b;
   }
 
@@ -133,6 +137,28 @@ export function VentanaInsumo({
     return b;
   });
   const [aviso, setAviso] = useState("");
+  /** Campos de la ficha que viven solo en el maestro (no en las vistas por tipo). */
+  const idFicha: string | undefined = modo !== "nuevo" ? sel?.fila.id : undefined;
+  const { data: extra } = useQuery({
+    queryKey: ["insumo_ficha_extra", idFicha],
+    enabled: Boolean(idFicha),
+    queryFn: async () => {
+      const { data, error } = await db.from("insumos").select("categoria_id, numero_parte, descripcion_breve, especificaciones, compra_activa, estado_aprobacion, marca_id").eq("id", idFicha).maybeSingle();
+      if (error) throw error;
+      return data as { categoria_id: string | null; numero_parte: string | null; descripcion_breve: string | null; especificaciones: string | null; compra_activa: boolean; estado_aprobacion: string; marca_id: string | null } | null;
+    },
+  });
+  const [extraCargado, setExtraCargado] = useState(false);
+  useEffect(() => {
+    if (!extra || extraCargado) return;
+    setExtraCargado(true);
+    setForm((f: FilaInsumo) => ({
+      ...f,
+      categoria_id: usaSubfamilia(tipo) ? (extra.categoria_id ?? subfamilias.find((s) => s.id === f.subfamilia_id)?.categoria_id ?? "") : "",
+      numero_parte: extra.numero_parte ?? "", descripcion_breve: extra.descripcion_breve ?? "",
+      especificaciones: extra.especificaciones ?? "", compra_activa: extra.compra_activa,
+    }));
+  }, [extra, extraCargado, subfamilias, tipo]);
   const [q, setQ] = useState("");
   const [elegido, setElegido] = useState<SelInsumo | null>(null);
   const [cant, setCant] = useState("1");
@@ -163,7 +189,8 @@ export function VentanaInsumo({
 
   async function guardar() {
     if (!form.descripcion?.trim()) return setAviso("Escribe la descripción.");
-    const dup = buscarInsumoDuplicado(tablas[tipo] ?? [], String(form.descripcion), modo === "editar" ? sel?.fila.id : undefined, true);
+    const np = String(form.numero_parte ?? "").trim();
+    const dup = np ? null : buscarInsumoDuplicado(tablas[tipo] ?? [], String(form.descripcion), modo === "editar" ? sel?.fila.id : undefined, true);
     if (dup) return setAviso(dup.estado === "inactivo" ? `El insumo «${primeraMayuscula(form.descripcion.trim())}» ya existe pero está inactivo.` : `El insumo «${primeraMayuscula(form.descripcion.trim())}» ya existe en ${CONFIG[tipo].titulo}.`);
     const d: Record<string, unknown> = {};
     for (const c of CONFIG[tipo].campos) d[c.k] = c.tipo === "num" ? Number(form[c.k] || 0) : String(form[c.k] ?? "").trim();
@@ -171,7 +198,20 @@ export function VentanaInsumo({
     d["descripcion"] = primeraMayuscula(String(d["descripcion"]));
     if (typeof d["marca"] === "string" && d["marca"]) d["marca"] = primeraMayuscula(d["marca"]);
     const conSub = tipo === "materiales";
-    if (!form.especialidad_id || (conSub && !form.subfamilia_id)) return setAviso(conSub ? "Elige la especialidad y la subfamilia: con ellas se genera el código." : "Elige la especialidad: con ella se genera el código.");
+    if (!form.especialidad_id || (conSub && (!form.categoria_id || !form.subfamilia_id))) return setAviso(conSub ? "Elige especialidad, categoría y subcategoría: con ellas se genera el código." : "Elige la especialidad: con ella se genera el código.");
+    if (np) {
+      const { data: rep } = await db.from("insumos").select("id, nombre").ilike("numero_parte", np).neq("id", modo === "editar" ? sel?.fila.id ?? "" : "00000000-0000-0000-0000-000000000000");
+      const marcaTxt = String(form.marca ?? "").trim().toLowerCase();
+      const mismo = (rep ?? []).find((x: { id: string }) => { const f = (tablas[tipo] ?? []).find((y) => y.id === x.id); return !f || String(f.marca ?? "").trim().toLowerCase() === marcaTxt; });
+      if (mismo) return setAviso(`El N.º de parte «${np}»${marcaTxt ? " con esa marca" : ""} ya está registrado en «${mismo.nombre}».`);
+    }
+    const extras = {
+      categoria_id: usaSubfamilia(tipo) ? form.categoria_id || null : null,
+      numero_parte: np || null,
+      descripcion_breve: String(form.descripcion_breve ?? "").trim() || null,
+      especificaciones: String(form.especificaciones ?? "").trim() || null,
+      compra_activa: form.compra_activa !== false,
+    };
     d["especialidad_id"] = form.especialidad_id; d["subfamilia_id"] = usaSubfamilia(tipo) ? form.subfamilia_id || null : null;
     if (categoriaInventario && tipo === "equipos_herramientas") d["categoria_inventario"] = categoriaInventario;
     const [oe, os, oc] = String(form._orig ?? "").split("|");
@@ -185,6 +225,10 @@ export function VentanaInsumo({
     if (modo === "editar" && sel) {
       const { error } = await db.from(tipo).update(d).eq("id", sel.fila.id);
       if (error) return setAviso(error.message);
+      const { error: ex } = await db.from("insumos").update(extras).eq("id", sel.fila.id);
+      if (ex) return setAviso(ex.message);
+      qc.invalidateQueries({ queryKey: ["insumo_ficha_extra"] });
+      qc.invalidateQueries({ queryKey: ["insumos_estado"] });
       qc.invalidateQueries({ queryKey: ["banco_apu"] });
       onGuardado?.();
       onCerrar();
@@ -192,6 +236,9 @@ export function VentanaInsumo({
     }
     const { data: nueva, error } = await db.from(tipo).insert(d).select("*").single();
     if (error) return setAviso(error.message);
+    const { error: ex } = await db.from("insumos").update(extras).eq("id", nueva.id);
+    if (ex) return setAviso(`El insumo se guardó, pero no sus datos adicionales: ${ex.message}`);
+    qc.invalidateQueries({ queryKey: ["insumos_estado"] });
     qc.invalidateQueries({ queryKey: ["banco_apu"] });
     const stockN = conStock ? Number(stockIni || 0) : 0;
     if (conStock && stockN > 0) {
@@ -243,21 +290,29 @@ export function VentanaInsumo({
         </Select>
       </Campo>
       <Campo etiqueta="Especialidad (código)">
-        <Select value={form.especialidad_id ?? ""} onChange={(e) => setForm({ ...form, especialidad_id: e.target.value, subfamilia_id: "" })}>
+        <Select value={form.especialidad_id ?? ""} onChange={(e) => setForm({ ...form, especialidad_id: e.target.value, categoria_id: "", subfamilia_id: "" })}>
           <option value="">— Elegir —</option>
           {espCod.map((e) => <option key={e.id} value={e.id}>{e.codigo_modular} · {e.nombre}</option>)}
         </Select>
       </Campo>
       {conSubfamilia && (
-        <Campo etiqueta={tipo === "materiales" ? "Subfamilia" : "Subfamilia (opcional)"}>
-          <Select value={form.subfamilia_id ?? ""} onChange={(e) => setForm({ ...form, subfamilia_id: e.target.value })} disabled={!form.especialidad_id}>
-            <option value="">{tipo === "materiales" ? "— Elegir —" : "Sin subfamilia (00)"}</option>
-            {subfamilias.filter((s) => s.especialidad_id === form.especialidad_id && s.activo).map((s) => <option key={s.id} value={s.id}>{s.codigo} · {s.nombre}{s.bloque ? ` (${s.bloque})` : ""}</option>)}
+        <Campo etiqueta={tipo === "materiales" ? "Categoría" : "Categoría (opcional)"}>
+          <Select value={form.categoria_id ?? ""} onChange={(e) => setForm({ ...form, categoria_id: e.target.value, subfamilia_id: "" })} disabled={!form.especialidad_id}>
+            <option value="">{form.especialidad_id ? "— Elegir —" : "Elige primero la especialidad"}</option>
+            {categorias.filter((c) => c.especialidad_id === form.especialidad_id && (c.activo || c.id === form.categoria_id)).map((c) => <option key={c.id} value={c.id}>{c.codigo} · {c.nombre}</option>)}
+          </Select>
+        </Campo>
+      )}
+      {conSubfamilia && (
+        <Campo etiqueta={tipo === "materiales" ? "Subcategoría" : "Subcategoría (opcional)"}>
+          <Select value={form.subfamilia_id ?? ""} onChange={(e) => setForm({ ...form, subfamilia_id: e.target.value })} disabled={!form.categoria_id}>
+            <option value="">{!form.categoria_id ? "Elige primero la categoría" : tipo === "materiales" ? "— Elegir —" : "Sin subcategoría (00)"}</option>
+            {subfamilias.filter((s) => s.categoria_id === form.categoria_id && (s.activo || s.id === form.subfamilia_id)).map((s) => <option key={s.id} value={s.id}>{s.codigo} · {s.nombre}</option>)}
           </Select>
           {(() => { const n = subfamilias.find((s) => s.id === form.subfamilia_id)?.descripcion; return n ? <p className="mt-1 rounded-md bg-nota px-2 py-1 text-[11px] text-muted-foreground">{n}</p> : null; })()}
         </Campo>
       )}
-      <p className="text-[11px] text-muted-foreground sm:col-span-2">Código: <span className="font-mono">{form.codigo && modo === "editar" ? form.codigo : "se genera al guardar"}</span> (tipo + especialidad + subfamilia o 00 + correlativo).</p>
+      <p className="text-[11px] text-muted-foreground sm:col-span-2">Código: <span className="font-mono">{form.codigo && modo === "editar" ? form.codigo : "se genera al guardar"}</span> (tipo + especialidad + subcategoría o 00 + correlativo).</p>
       {CONFIG[tipo].campos.filter((c) => c.k !== "codigo" && (!c.soloSi || c.soloSi(form))).map((c) => (
         <Campo key={c.k} etiqueta={c.t}>
           {c.k === "unidad" ? (
@@ -276,6 +331,25 @@ export function VentanaInsumo({
           )}
         </Campo>
       ))}
+      <Campo etiqueta="N.º de parte del fabricante">
+        <Input value={form.numero_parte ?? ""} placeholder="Ej. 3RT2016-1AP01" onChange={(e) => setForm({ ...form, numero_parte: e.target.value })} />
+      </Campo>
+      <Campo etiqueta="Estado de compra">
+        <label className="flex h-8 items-center gap-2 text-xs">
+          <input type="checkbox" checked={form.compra_activa !== false} onChange={(e) => setForm({ ...form, compra_activa: e.target.checked })} />
+          {form.compra_activa !== false ? "Compra activa" : "Compra desactivada (no aparece en requerimientos ni OC)"}
+        </label>
+      </Campo>
+      <div className="sm:col-span-2">
+        <Campo etiqueta="Breve descripción">
+          <Input maxLength={200} value={form.descripcion_breve ?? ""} placeholder="Resumen corto del insumo (opcional)" onChange={(e) => setForm({ ...form, descripcion_breve: e.target.value })} />
+        </Campo>
+      </div>
+      <div className="sm:col-span-2">
+        <Campo etiqueta="Especificaciones técnicas">
+          <Area rows={4} value={form.especificaciones ?? ""} placeholder="Material, norma, dimensiones, capacidad, tensión, certificaciones…" onChange={(e) => setForm({ ...form, especificaciones: e.target.value })} />
+        </Campo>
+      </div>
       {conStock && (modo === "editar" ? (
         <Campo etiqueta="Stock actual (almacén)">
           <Input value={stockActual == null ? "—" : String(stockActual)} disabled />
@@ -334,7 +408,7 @@ export function VentanaInsumo({
   );
 
   return (
-    <VentanaFlotante abierta onCerrar={onCerrar} ancho="max-w-2xl"
+    <VentanaFlotante abierta onCerrar={onCerrar} ancho={modo === "editar" ? "max-w-5xl" : "max-w-2xl"}
       titulo={dual ? "Agregar insumo" : modo === "editar" ? "Editar insumo" : modo === "copiar" ? "Copiar insumo" : "Nuevo insumo"}
       {...(agregarA ? { subtitulo: agregarA.titulo } : {})}>
       {dual && (
@@ -344,6 +418,37 @@ export function VentanaInsumo({
         </div>
       )}
       {(!dual || pestana === "crear") ? formulario : selector}
+      {modo === "editar" && idFicha && (!dual || pestana === "crear") && (
+        <FichaInsumoHistorial id={idFicha} estado={extra?.estado_aprobacion ?? "Aprobado"}
+          precioBase={Number(sel?.fila.precio_base ?? sel?.fila.costo_hora ?? sel?.fila.costo ?? 0)} />
+      )}
     </VentanaFlotante>
+  );
+}
+
+const TABLA_DE_TIPO: Record<string, TablaInsumo> = { MAT: "materiales", EQ: "equipos_herramientas", SC: "subcontratos", MO: "mano_obra" };
+
+/** Abre la ficha flotante (editar o nuevo) desde el Maestro de Insumos, que trabaja con la tabla única. */
+export function FichaInsumoMaestro({ id, tipo, clase, onCerrar, onGuardado }: {
+  id?: string | null;
+  tipo: string;
+  clase?: "Equipo" | "Herramienta";
+  onCerrar: () => void;
+  onGuardado?: () => void;
+}) {
+  const tabla = TABLA_DE_TIPO[tipo] ?? "materiales";
+  const { data: fila, isLoading } = useQuery({
+    queryKey: ["ficha_vista", tabla, id],
+    enabled: Boolean(id),
+    queryFn: async () => {
+      const { data, error } = await db.from(tabla).select("*").eq("id", id).maybeSingle();
+      if (error) throw error;
+      return data as FilaInsumo;
+    },
+  });
+  if (id && (isLoading || !fila)) return null;
+  return (
+    <VentanaInsumo modo={id ? "editar" : "nuevo"} sel={id ? { tabla, fila } : null} soloTabla={tabla}
+      {...(clase ? { categoriaInventario: clase } : {})} onCerrar={onCerrar} {...(onGuardado ? { onGuardado } : {})} />
   );
 }
