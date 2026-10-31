@@ -835,6 +835,13 @@ function EquiposWysiwyg({
   const [editando, setEditando] = useState<(FilaEq & { id: string; codigo: string }) | null>(null);
   const [error, setError] = useState("");
   const [guardando, setGuardando] = useState(false);
+  const [sel, setSel] = useState("");
+  const [agregando, setAgregando] = useState(!!enfoqueNueva);
+  const seleccionado = lista.find((i) => i.id === sel);
+  const iniciarEdicion = (i: Insumo) => {
+    setAgregando(false);
+    setEditando({ id: i.id, codigo: i.codigo, nombre: i.nombre, clase: claseDe(i), propiedad: (i.propiedad ?? "Propio") as Propiedad, unidad: i.unidad, precio: String(i.precio || ""), especialidad_id: i.especialidad_id ?? "", subfamilia_id: i.subfamilia_id ?? "" });
+  };
 
   const cu = (p: Propiedad, precio: string | number) => {
     const n = Number(precio || 0);
@@ -917,12 +924,12 @@ function EquiposWysiwyg({
   const selCls = "w-full rounded-md border border-line bg-background px-1.5 py-1 text-xs outline-none focus:border-primary";
 
   // Celdas editables comunes para la fila nueva y la de edición
-  function celdas(f: FilaEq, set: (f: FilaEq) => void, onKey?: (e: React.KeyboardEvent) => void) {
+  function celdas(f: FilaEq, set: (f: FilaEq) => void, onKey?: (e: React.KeyboardEvent) => void, accion?: React.ReactNode) {
     const alquilado = f.propiedad === "Alquilado";
     return (
       <>
         <td className="px-3 py-2">
-          <input className={inputCls} autoFocus={enfoqueNueva} placeholder="Escribe y pulsa Enter…" value={f.nombre} data-formato="oracion" onChange={(e) => set({ ...f, nombre: e.target.value })} onKeyDown={onKey} />
+          <input className={inputCls} autoFocus placeholder="Escribe y pulsa Enter…" value={f.nombre} data-formato="oracion" onChange={(e) => set({ ...f, nombre: e.target.value })} onKeyDown={onKey} />
         </td>
         <td className="px-3 py-2 text-ink">{f.clase}</td>
         <td className="px-3 py-2">
@@ -943,11 +950,14 @@ function EquiposWysiwyg({
         </td>
         <td className="px-3 py-2 text-right text-muted-foreground">{alquilado ? `${mgTipo.toFixed(2)}%` : "—"}</td>
         <td className="px-3 py-2">
-          {alquilado ? (
-            <p className="text-right font-semibold text-primary">{soles(cu(f.propiedad, f.precio))}</p>
-          ) : (
-            <input className={`${inputCls} text-right`} type="number" step="0.01" min={0} placeholder="0.00" value={f.precio} onChange={(e) => set({ ...f, precio: e.target.value })} onKeyDown={onKey} />
-          )}
+          <div className="flex items-center justify-end gap-1">
+            {alquilado ? (
+              <p className="text-right font-semibold text-primary">{soles(cu(f.propiedad, f.precio))}</p>
+            ) : (
+              <input className={`${inputCls} text-right`} type="number" step="0.01" min={0} placeholder="0.00" value={f.precio} onChange={(e) => set({ ...f, precio: e.target.value })} onKeyDown={onKey} />
+            )}
+            {accion}
+          </div>
         </td>
       </>
     );
@@ -956,37 +966,33 @@ function EquiposWysiwyg({
   const btn = "inline-flex h-7 w-7 items-center justify-center rounded-md border";
 
   return (
-    <Panel
-      titulo={`Maestro de insumos — ${claseFija === "Herramienta" ? "Herramientas" : "Equipos"}`}
-      extra={<Buscador valor={busqueda} onChange={setBusqueda} total={lista.length} placeholder="Buscar por código o descripción..." />}
-    >
+    <div className="flex items-start gap-2">
+      <Panel titulo={`Maestro de insumos — ${claseFija === "Herramienta" ? "Herramientas" : "Equipos"}`}>
       <table className="w-full table-fixed font-mono text-xs">
         <thead>
           <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
             <th className="w-[7%] px-5 py-2 font-medium">Código</th>
             <th className="w-[14%] px-3 py-2 font-medium">Especialidad</th>
             <th className="w-[14%] px-3 py-2 font-medium">Subfamilia</th>
-            <th className="w-[14%] px-3 py-2 font-medium">Descripción</th>
+            <th className="w-[22%] px-3 py-2 font-medium">Descripción</th>
             <th className="w-[8%] px-3 py-2 font-medium">Clase</th>
             <th className="w-[8%] px-3 py-2 font-medium">Tipo</th>
             <th className="w-[8%] px-3 py-2 font-medium">Unidad</th>
             <th className="w-[9%] px-3 py-2 text-right font-medium">P. Alquiler</th>
             <th className="w-[6%] px-3 py-2 text-right font-medium">Margen</th>
             <th className="w-[9%] px-3 py-2 text-right font-medium">C. Unitario</th>
-            <th className="w-[8%] px-5 py-2 text-right font-medium">Acciones</th>
           </tr>
         </thead>
         <tbody>
+          {agregando && (
           <tr className="border-b border-dashed border-line/60 bg-muted/20">
             <td className="px-5 py-2 text-muted-foreground/60">auto</td>
             <CeldasClasificacion tipo="EQ" valor={fila} onChange={(v) => setFila({ ...fila, ...v })} />
-            {celdas(fila, setFila, teclaNueva)}
-            <td className="px-5 py-2">
-              <div className="flex justify-end">
-                <button type="button" onClick={() => void crearDesdeFila()} disabled={guardando} title="Registrar" className={`${btn} border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground disabled:opacity-50`}><Check size={14} /></button>
-              </div>
-            </td>
+            {celdas(fila, setFila, teclaNueva, (
+              <button type="button" onClick={() => void crearDesdeFila()} disabled={guardando} title="Registrar" className={`${btn} shrink-0 border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground disabled:opacity-50`}><Check size={14} /></button>
+            ))}
           </tr>
+          )}
           {lista.map((i) => {
             if (editando?.id === i.id) {
               return (
@@ -994,20 +1000,19 @@ function EquiposWysiwyg({
                   <td className="px-5 py-2 text-muted-foreground">{editando.codigo || "—"}</td>
                   <CeldaEspecialidad insumo={i} refrescar={refrescar} />
                   <CeldaSubfamilia insumo={i} refrescar={refrescar} />
-                  {celdas(editando, (f) => setEditando({ ...editando, ...f }))}
-                  <td className="px-5 py-2">
-                    <div className="flex justify-end gap-1">
-                      <button type="button" onClick={guardarEdicion} title="Guardar" className={`${btn} border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground`}><Check size={14} /></button>
-                      <button type="button" onClick={() => setEditando(null)} title="Cancelar" className={`${btn} border-line hover:bg-muted`}><X size={14} /></button>
-                    </div>
-                  </td>
+                  {celdas(editando, (f) => setEditando({ ...editando, ...f }), undefined, (
+                    <>
+                      <button type="button" onClick={guardarEdicion} title="Guardar" className={`${btn} shrink-0 border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground`}><Check size={14} /></button>
+                      <button type="button" onClick={() => setEditando(null)} title="Cancelar" className={`${btn} shrink-0 border-line hover:bg-muted`}><X size={14} /></button>
+                    </>
+                  ))}
                 </tr>
               );
             }
             const prop = (i.propiedad ?? "Propio") as Propiedad;
             const alq = prop === "Alquilado";
             return (
-              <tr key={i.id} className="border-b border-line/40 last:border-0">
+              <tr key={i.id} onClick={() => setSel(i.id)} onDoubleClick={() => iniciarEdicion(i)} className={`cursor-pointer border-b border-line/40 last:border-0 ${sel === i.id ? "bg-primary/10" : ""}`}>
                 <td className="px-5 py-2.5 text-muted-foreground"><Resaltar texto={i.codigo || "—"} termino={busqueda} /></td>
                   <CeldaEspecialidad insumo={i} refrescar={refrescar} />
                   <CeldaSubfamilia insumo={i} refrescar={refrescar} />
@@ -1018,19 +1023,6 @@ function EquiposWysiwyg({
                 <td className="px-3 py-2.5 text-right">{alq ? soles(Number(i.precio)) : "—"}</td>
                 <td className="px-3 py-2.5 text-right text-muted-foreground">{alq ? `${mgTipo.toFixed(2)}%` : "—"}</td>
                 <td className="px-3 py-2.5 text-right font-semibold text-primary">{soles(cu(prop, i.precio))}</td>
-                <td className="px-5 py-2.5">
-                  <div className="flex justify-end gap-1">
-                    <button
-                      type="button"
-                      onClick={() => setEditando({ id: i.id, codigo: i.codigo, nombre: i.nombre, clase: claseDe(i), propiedad: prop, unidad: i.unidad, precio: String(i.precio || ""), especialidad_id: i.especialidad_id ?? "", subfamilia_id: i.subfamilia_id ?? "" })}
-                      title="Editar"
-                      className={`${btn} border-line text-muted-foreground hover:border-primary hover:text-primary`}
-                    >
-                      <Pencil size={14} />
-                    </button>
-                    <button type="button" onClick={() => eliminar(i.id)} title="Eliminar" className={`${btn} border-bad/40 text-bad hover:border-bad`}><Trash2 size={14} /></button>
-                  </div>
-                </td>
               </tr>
             );
           })}
@@ -1041,7 +1033,16 @@ function EquiposWysiwyg({
         Propio: se ingresa el C. Unitario directamente (sin margen). Alquilado: se ingresa el P. Alquiler y el C. Unitario = P. Alquiler + margen del tipo.
         El Equipo usa la unidad he (Horas equipo); la Herramienta se cuenta en und. Precios sin IGV.
       </p>
-    </Panel>
+      </Panel>
+      <BarraIconosHoja
+        objeto={etiqueta}
+        filtros={<MenuFiltros activos={busqueda.trim() ? 1 : 0} onLimpiar={() => setBusqueda("")}><Buscador valor={busqueda} onChange={setBusqueda} total={lista.length} placeholder="Buscar por código o descripción..." /></MenuFiltros>}
+        haySeleccion={!!seleccionado}
+        onAgregar={() => { setEditando(null); setAgregando((v) => !v); }}
+        onEditar={() => seleccionado && iniciarEdicion(seleccionado)}
+        onEliminar={() => seleccionado && eliminar(seleccionado.id)}
+      />
+    </div>
   );
 }
 
@@ -1067,6 +1068,13 @@ function HerramientasWysiwyg({
   const [editando, setEditando] = useState<{ id: string; codigo: string; nombre: string; pct: string } | null>(null);
   const [error, setError] = useState("");
   const [guardando, setGuardando] = useState(false);
+  const [sel, setSel] = useState("");
+  const [agregando, setAgregando] = useState(!!enfoqueNueva);
+  const seleccionado = lista.find((i) => i.id === sel);
+  const iniciarEdicion = (i: Insumo) => {
+    setAgregando(false);
+    setEditando({ id: i.id, codigo: i.codigo, nombre: i.nombre, pct: String(pctDe(i)) });
+  };
 
   async function crear() {
     if (guardando) return;
@@ -1111,36 +1119,33 @@ function HerramientasWysiwyg({
   const btn = "inline-flex h-7 w-7 items-center justify-center rounded-md border";
 
   return (
-    <Panel
-      titulo="Maestro de insumos — Herramientas manuales"
-      extra={<Buscador valor={busqueda} onChange={setBusqueda} total={lista.length} placeholder="Buscar por código o descripción..." />}
-    >
+    <div className="flex items-start gap-2">
+      <Panel titulo="Maestro de insumos — Herramientas manuales">
       <table className="w-full table-fixed font-mono text-xs">
         <thead>
           <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
             <th className="w-[14%] px-5 py-2 font-medium">Código</th>
-            <th className="w-[42%] px-3 py-2 font-medium">Descripción</th>
+            <th className="w-[60%] px-3 py-2 font-medium">Descripción</th>
             <th className="w-[10%] px-3 py-2 text-center font-medium">Unidad</th>
             <th className="w-[16%] px-3 py-2 text-right font-medium">C. Unitario</th>
-            <th className="w-[18%] px-5 py-2 text-right font-medium">Acciones</th>
           </tr>
         </thead>
         <tbody>
+          {agregando && (
           <tr className="border-b border-dashed border-line/60 bg-muted/20">
             <td className="px-5 py-2 text-muted-foreground/60">auto</td>
             <td className="px-3 py-2">
-              <input className={inputCls} autoFocus={enfoqueNueva} placeholder="Escribe y pulsa Enter…" value={nombre} data-formato="oracion" onChange={(e) => setNombre(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void crear(); } }} />
+              <input className={inputCls} autoFocus placeholder="Escribe y pulsa Enter…" value={nombre} data-formato="oracion" onChange={(e) => setNombre(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void crear(); } }} />
             </td>
             <td className="px-3 py-2 text-center text-muted-foreground">%MO</td>
             <td className="px-3 py-2">
-              <input className={`${inputCls} text-right`} type="number" step="0.01" min="0" placeholder={pctGlobal ? pctGlobal.toFixed(2) : "%"} value={pct} onChange={(e) => setPct(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void crear(); } }} />
-            </td>
-            <td className="px-5 py-2">
-              <div className="flex justify-end">
-                <button type="button" onClick={() => void crear()} disabled={guardando} title="Registrar" className={`${btn} border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground disabled:opacity-50`}><Check size={14} /></button>
+              <div className="flex items-center justify-end gap-1">
+                <input className={`${inputCls} text-right`} type="number" step="0.01" min="0" placeholder={pctGlobal ? pctGlobal.toFixed(2) : "%"} value={pct} onChange={(e) => setPct(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void crear(); } }} />
+                <button type="button" onClick={() => void crear()} disabled={guardando} title="Registrar" className={`${btn} shrink-0 border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground disabled:opacity-50`}><Check size={14} /></button>
               </div>
             </td>
           </tr>
+          )}
           {lista.map((i) =>
             editando?.id === i.id ? (
               <tr key={i.id} className="border-b border-line/40">
@@ -1150,27 +1155,19 @@ function HerramientasWysiwyg({
                 </td>
                 <td className="px-3 py-2 text-center text-muted-foreground">%MO</td>
                 <td className="px-3 py-2">
-                  <input className={`${inputCls} text-right`} type="number" step="0.01" min="0" value={editando.pct} onChange={(e) => setEditando({ ...editando, pct: e.target.value })} onKeyDown={(e) => { if (e.key === "Enter") void guardarEdicion(); if (e.key === "Escape") setEditando(null); }} />
-                </td>
-                <td className="px-5 py-2">
-                  <div className="flex justify-end gap-1">
-                    <button type="button" onClick={guardarEdicion} title="Guardar" className={`${btn} border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground`}><Check size={14} /></button>
-                    <button type="button" onClick={() => setEditando(null)} title="Cancelar" className={`${btn} border-line hover:bg-muted`}><X size={14} /></button>
+                  <div className="flex items-center justify-end gap-1">
+                    <input className={`${inputCls} text-right`} type="number" step="0.01" min="0" value={editando.pct} onChange={(e) => setEditando({ ...editando, pct: e.target.value })} onKeyDown={(e) => { if (e.key === "Enter") void guardarEdicion(); if (e.key === "Escape") setEditando(null); }} />
+                    <button type="button" onClick={guardarEdicion} title="Guardar" className={`${btn} shrink-0 border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground`}><Check size={14} /></button>
+                    <button type="button" onClick={() => setEditando(null)} title="Cancelar" className={`${btn} shrink-0 border-line hover:bg-muted`}><X size={14} /></button>
                   </div>
                 </td>
               </tr>
             ) : (
-              <tr key={i.id} className="border-b border-line/40 last:border-0">
+              <tr key={i.id} onClick={() => setSel(i.id)} onDoubleClick={() => iniciarEdicion(i)} className={`cursor-pointer border-b border-line/40 last:border-0 ${sel === i.id ? "bg-primary/10" : ""}`}>
                 <td className="px-5 py-2.5 text-muted-foreground"><Resaltar texto={i.codigo || "—"} termino={busqueda} /></td>
                 <td className="px-3 py-2.5 text-ink"><Resaltar texto={i.nombre} termino={busqueda} /></td>
                 <td className="px-3 py-2.5 text-center text-muted-foreground">%MO</td>
                 <td className="px-3 py-2.5 text-right font-semibold text-primary">{pctDe(i).toFixed(2)}%</td>
-                <td className="px-5 py-2.5">
-                  <div className="flex justify-end gap-1">
-                    <button type="button" onClick={() => setEditando({ id: i.id, codigo: i.codigo, nombre: i.nombre, pct: String(pctDe(i)) })} title="Editar" className={`${btn} border-line text-muted-foreground hover:border-primary hover:text-primary`}><Pencil size={14} /></button>
-                    <button type="button" onClick={() => eliminar(i.id)} title="Eliminar" className={`${btn} border-bad/40 text-bad hover:border-bad`}><Trash2 size={14} /></button>
-                  </div>
-                </td>
               </tr>
             ),
           )}
@@ -1180,7 +1177,16 @@ function HerramientasWysiwyg({
       <p className="border-t border-line px-5 py-3 font-mono text-[10px] leading-relaxed text-muted-foreground">
         Cada herramienta tiene su propio C. Unitario expresado en % de la mano de obra total de cada precio unitario; se vincula al APU desde el buscador de insumos (Herramientas manuales). Si se deja vacío se usa el % global de Márgenes APU.
       </p>
-    </Panel>
+      </Panel>
+      <BarraIconosHoja
+        objeto="herramienta"
+        filtros={<MenuFiltros activos={busqueda.trim() ? 1 : 0} onLimpiar={() => setBusqueda("")}><Buscador valor={busqueda} onChange={setBusqueda} total={lista.length} placeholder="Buscar por código o descripción..." /></MenuFiltros>}
+        haySeleccion={!!seleccionado}
+        onAgregar={() => { setEditando(null); setAgregando((v) => !v); }}
+        onEditar={() => seleccionado && iniciarEdicion(seleccionado)}
+        onEliminar={() => seleccionado && eliminar(seleccionado.id)}
+      />
+    </div>
   );
 }
 
@@ -1189,17 +1195,29 @@ function FragmentFila({
   abierto,
   onToggle,
   detalle,
+  seleccionada,
+  onSeleccionar,
+  onDobleClic,
 }: {
   children: React.ReactNode;
   abierto: boolean;
   onToggle: () => void;
   detalle: React.ReactNode;
+  seleccionada?: boolean;
+  onSeleccionar?: () => void;
+  onDobleClic?: () => void;
 }) {
   return (
     <>
-      <tr className="border-b border-line/20">{children}</tr>
+      <tr
+        onClick={onSeleccionar}
+        onDoubleClick={onDobleClic}
+        className={`border-b border-line/20 ${onSeleccionar ? "cursor-pointer" : ""} ${seleccionada ? "bg-primary/10" : ""}`}
+      >
+        {children}
+      </tr>
       <tr className="border-b border-line/40">
-        <td colSpan={10} className="px-5 pb-1 pt-0">
+        <td colSpan={9} className="px-5 pb-1 pt-0">
           <button type="button" onClick={onToggle} className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wide text-muted-foreground hover:text-primary">
             {abierto ? <ChevronDown size={11} /> : <ChevronRight size={11} />} Cómo se calcula el Costo Base
           </button>
