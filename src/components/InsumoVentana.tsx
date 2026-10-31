@@ -425,3 +425,30 @@ export function VentanaInsumo({
     </VentanaFlotante>
   );
 }
+
+const TABLA_DE_TIPO: Record<string, TablaInsumo> = { MAT: "materiales", EQ: "equipos_herramientas", SC: "subcontratos", MO: "mano_obra" };
+
+/** Abre la ficha flotante (editar o nuevo) desde el Maestro de Insumos, que trabaja con la tabla única. */
+export function FichaInsumoMaestro({ id, tipo, clase, onCerrar, onGuardado }: {
+  id?: string | null;
+  tipo: string;
+  clase?: "Equipo" | "Herramienta";
+  onCerrar: () => void;
+  onGuardado?: () => void;
+}) {
+  const tabla = TABLA_DE_TIPO[tipo] ?? "materiales";
+  const { data: fila, isLoading } = useQuery({
+    queryKey: ["ficha_vista", tabla, id],
+    enabled: Boolean(id),
+    queryFn: async () => {
+      const { data, error } = await db.from(tabla).select("*").eq("id", id).maybeSingle();
+      if (error) throw error;
+      return data as FilaInsumo;
+    },
+  });
+  if (id && (isLoading || !fila)) return null;
+  return (
+    <VentanaInsumo modo={id ? "editar" : "nuevo"} sel={id ? { tabla, fila } : null} soloTabla={tabla}
+      {...(clase ? { categoriaInventario: clase } : {})} onCerrar={onCerrar} {...(onGuardado ? { onGuardado } : {})} />
+  );
+}
