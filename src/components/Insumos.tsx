@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Boxes, Check, ChevronDown, ChevronRight, Pencil, SlidersHorizontal, Trash2, X } from "lucide-react";
-import { Boton, Input, Panel, Select } from "@/components/ui-kit";
+import { Boxes, Check, ChevronDown, ChevronRight, SlidersHorizontal, X } from "lucide-react";
+import { Boton, Input, MenuFiltros, Panel, Select } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
+import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { SelectorBuscable } from "@/components/SelectorBuscable";
 import { CeldaSubfamilia } from "@/components/CeldaSubfamilia";
 import { CeldaEspecialidad } from "@/components/CeldaEspecialidad";
@@ -207,6 +208,24 @@ function ManoObraWysiwyg({
   const [detalleAbierto, setDetalleAbierto] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [guardando, setGuardando] = useState(false);
+  const [sel, setSel] = useState("");
+  const [agregando, setAgregando] = useState(!!enfoqueNueva);
+  const seleccionado = lista.find((i) => i.id === sel);
+  const iniciarEdicion = (i: Insumo) => {
+    setAgregando(false);
+    setEditando({
+      id: i.id,
+      codigo: i.codigo,
+      activo: i.activo,
+      nombre: i.nombre,
+      regimen: i.regimen_laboral ?? "General",
+      categoria: i.categoria_obrero ?? "Operario",
+      sueldo: String(i.sueldo_mensual || ""),
+      margen: String(i.margen_pct || ""),
+      asignacion: !!i.asignacion_familiar,
+      especialidad_id: i.especialidad_id ?? "",
+    });
+  };
 
   const calculoNueva = useMemo(
     () =>
@@ -313,34 +332,32 @@ function ManoObraWysiwyg({
   const selCls = "w-full rounded-md border border-line bg-background px-1.5 py-1 text-xs outline-none focus:border-primary";
 
   return (
-    <Panel
-      titulo="Maestro de insumos — Mano de obra"
-      extra={<Buscador valor={busqueda} onChange={setBusqueda} total={lista.length} placeholder="Buscar por código o descripción..." />}
-    >
+    <div className="flex items-start gap-2">
+      <Panel titulo="Maestro de insumos — Mano de obra">
       <table className="w-full table-fixed font-mono text-xs">
         <thead>
           <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
             <th className="w-[8%] px-5 py-2 font-medium">Código</th>
             <th className="w-[16%] px-3 py-2 font-medium">Especialidad</th>
-            <th className="w-[19%] px-3 py-2 font-medium">Descripción</th>
+            <th className="w-[27%] px-3 py-2 font-medium">Descripción</th>
             <th className="w-[11%] px-3 py-2 font-medium">Régimen</th>
             <th className="w-[9%] px-3 py-2 text-right font-medium">Sueldo mensual</th>
             <th className="w-[5%] px-3 py-2 font-medium">Und.</th>
             <th className="w-[9%] px-3 py-2 text-right font-medium">Costo Base</th>
             <th className="w-[6%] px-3 py-2 text-right font-medium">Margen %</th>
             <th className="w-[9%] px-3 py-2 text-right font-medium">Costo HH</th>
-            <th className="w-[8%] px-5 py-2 text-right font-medium">Acciones</th>
           </tr>
         </thead>
         <tbody>
-          {/* Fila fantasma de creación rápida (siempre visible arriba) */}
+          {/* Fila fantasma de creación rápida (se muestra con el botón Agregar) */}
+          {agregando && (
           <tr className="border-b border-dashed border-line/60 bg-muted/20">
             <td className="px-5 py-2 text-muted-foreground/60">auto</td>
             <CeldasClasificacion tipo="MO" valor={{ especialidad_id: nueva.especialidad_id, subfamilia_id: "" }} onChange={(v) => setNueva({ ...nueva, especialidad_id: v.especialidad_id })} />
             <td className="px-3 py-2">
               <input
                 className={inputCls}
-                autoFocus={enfoqueNueva}
+                autoFocus
                 placeholder="Escribe y pulsa Enter…"
                 value={nueva.nombre} data-formato="cargo"
                 onChange={(e) => setNueva({ ...nueva, nombre: e.target.value })}
@@ -378,11 +395,9 @@ function ManoObraWysiwyg({
             <td className="px-3 py-2">
               <p className="text-right text-muted-foreground">{mgTipo.toFixed(2)}%</p>
             </td>
-            <td className="px-3 py-2 text-right text-ink">
-              {soles(calculoNueva.costoHH * (1 + mg.MO / 100))}
-            </td>
-            <td className="px-5 py-2">
-              <div className="flex justify-end">
+            <td className="px-3 py-2">
+              <div className="flex items-center justify-end gap-1">
+                <span className="text-ink">{soles(calculoNueva.costoHH * (1 + mg.MO / 100))}</span>
                 <button
                   type="button"
                   onClick={() => void crearDesdeFila()}
@@ -395,10 +410,11 @@ function ManoObraWysiwyg({
               </div>
             </td>
           </tr>
+          )}
           {/* Vista previa del cálculo de la fila fantasma */}
-          {(Number(nueva.sueldo || 0) > 0 || nueva.regimen === "Construcción Civil") && (
+          {agregando && (Number(nueva.sueldo || 0) > 0 || nueva.regimen === "Construcción Civil") && (
             <tr className="border-b border-dashed border-line/60 bg-muted/20">
-              <td colSpan={10} className="px-5 py-2">
+              <td colSpan={9} className="px-5 py-2">
                 <DetalleCostoHH calculo={calculoNueva} parametros={params} margen={mgTipo} />
               </td>
             </tr>
@@ -421,6 +437,9 @@ function ManoObraWysiwyg({
                 key={i.id}
                 abierto={detalleAbierto === i.id}
                 onToggle={() => setDetalleAbierto(detalleAbierto === i.id ? null : i.id)}
+                seleccionada={sel === i.id}
+                onSeleccionar={() => setSel(i.id)}
+                onDobleClic={() => iniciarEdicion(i)}
                 detalle={
                   <DetalleCostoHH
                     calculo={calculo}
@@ -454,9 +473,9 @@ function ManoObraWysiwyg({
                     <td className="px-3 py-2 text-center text-muted-foreground">hh</td>
                     <td className="px-3 py-2 text-right font-semibold text-primary">{soles(costoHH)}</td>
                     <td className="px-3 py-2 text-right text-muted-foreground" title="Margen único del tipo (Configuración del Sistema)">{mgTipo.toFixed(2)}%</td>
-                    <td className="px-3 py-2 text-right text-ink">{soles(pv)}</td>
-                    <td className="px-5 py-2">
-                      <div className="flex justify-end gap-1">
+                    <td className="px-3 py-2">
+                      <div className="flex items-center justify-end gap-1">
+                        <span className="text-ink">{soles(pv)}</span>
                         <button type="button" onClick={guardarEdicion} title="Guardar" className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground"><Check size={14} /></button>
                         <button type="button" onClick={() => setEditando(null)} title="Cancelar" className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line hover:bg-muted"><X size={14} /></button>
                       </div>
@@ -473,32 +492,6 @@ function ManoObraWysiwyg({
                     <td className="px-3 py-2.5 text-right font-semibold text-primary">{soles(Number(i.precio))}</td>
                     <td className="px-3 py-2.5 text-right text-muted-foreground">{Number(i.margen_pct || 0).toFixed(2)}%</td>
                     <td className="px-3 py-2.5 text-right text-ink">{soles(precioVenta(i))}</td>
-                    <td className="px-5 py-2.5">
-                      <div className="flex justify-end gap-1">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setEditando({
-                              id: i.id,
-                              codigo: i.codigo,
-                              activo: i.activo,
-                              nombre: i.nombre,
-                              regimen: i.regimen_laboral ?? "General",
-                              categoria: i.categoria_obrero ?? "Operario",
-                              sueldo: String(i.sueldo_mensual || ""),
-                              margen: String(i.margen_pct || ""),
-                              asignacion: !!i.asignacion_familiar,
-                              especialidad_id: i.especialidad_id ?? "",
-                            })
-                          }
-                          title="Editar"
-                          className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"
-                        >
-                          <Pencil size={14} />
-                        </button>
-                        <button type="button" onClick={() => eliminar(i.id)} title="Eliminar" className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-bad/40 text-bad hover:border-bad"><Trash2 size={14} /></button>
-                      </div>
-                    </td>
                   </>
                 )}
               </FragmentFila>
@@ -511,7 +504,16 @@ function ManoObraWysiwyg({
         El Costo Base se calcula con el régimen laboral (sueldo o jornal, gratificaciones, vacaciones, CTS, EsSalud, SCTR, Vida Ley, BUC) dividido entre las horas
          efectivas anuales. El Costo HH —el que usan los análisis de precios unitarios— es el Costo Base más el margen. Los parámetros se ajustan en Maestro de insumos › Parámetros laborales. La unidad es siempre hh.
       </p>
-    </Panel>
+      </Panel>
+      <BarraIconosHoja
+        objeto="insumo"
+        filtros={<MenuFiltros activos={busqueda.trim() ? 1 : 0} onLimpiar={() => setBusqueda("")}><Buscador valor={busqueda} onChange={setBusqueda} total={lista.length} placeholder="Buscar por código o descripción..." /></MenuFiltros>}
+        haySeleccion={!!seleccionado}
+        onAgregar={() => { setEditando(null); setAgregando((v) => !v); }}
+        onEditar={() => seleccionado && iniciarEdicion(seleccionado)}
+        onEliminar={() => seleccionado && eliminar(seleccionado.id)}
+      />
+    </div>
   );
 }
 
