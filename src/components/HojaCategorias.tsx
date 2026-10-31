@@ -77,7 +77,7 @@ export function HojaCategorias() {
           <Buscador valor={busqueda} onChange={setBusqueda} total={cats.length} />
         </div>
         {especialidades.map((e) => {
-          const propias = visibles.filter((c) => c.especialidad_id === e.id).sort((a, b) => a.codigo.localeCompare(b.codigo));
+          const propias = visibles.filter((c) => c.especialidad_id === e.id);
           if (propias.length === 0 && busqueda) return null;
           return (
             <div key={e.id}>
