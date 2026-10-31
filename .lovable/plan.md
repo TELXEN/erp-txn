@@ -55,6 +55,7 @@ Se registra y edita en una **ventana flotante** (no en la fila): la tabla queda 
 
 - **Breve descripción**: nueva columna `insumos.descripcion_breve` (texto corto), visible en la ficha y como ayuda al pasar el cursor en la tabla.
 - **Historial de compras**: solo lectura, leído de las órdenes de compra existentes que incluyen el insumo; sin datos nuevos. Muestra las 5 últimas y el aviso de desviación ±10% respecto al precio base.
+- **Especificaciones técnicas**: nueva columna `insumos.especificaciones` (texto largo, varias líneas) en una sección propia de la ficha, debajo de la breve descripción; opcional y buscable desde el Maestro.
 - **Registro de autor**: nuevas columnas `creado_por` y `creado_en`, y una tabla `insumos_modificaciones` (insumo, usuario, fecha) que llena un trigger en cada cambio; la ficha muestra el creador y las dos últimas modificaciones con nombre del usuario. Los insumos ya existentes mostrarán «Creador no registrado».
 - **Precio promedio de compra**: en el bloque de historial, junto a las últimas OC, se muestra el P.U. promedio (en S/, convirtiendo USD con el TC de cada orden) y la cantidad total comprada.
 - **Consumo de los últimos 6 meses**: tabla por mes (cantidad y monto) con total, leída de las salidas de almacén y vales ya registrados; solo lectura.
