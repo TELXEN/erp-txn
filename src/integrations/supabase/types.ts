@@ -647,6 +647,47 @@ export type Database = {
         }
         Relationships: []
       }
+      categorias_insumo: {
+        Row: {
+          activo: boolean
+          codigo: string
+          created_at: string
+          descripcion: string | null
+          especialidad_id: string
+          id: string
+          nombre: string
+          orden: number
+        }
+        Insert: {
+          activo?: boolean
+          codigo?: string
+          created_at?: string
+          descripcion?: string | null
+          especialidad_id: string
+          id?: string
+          nombre: string
+          orden?: number
+        }
+        Update: {
+          activo?: boolean
+          codigo?: string
+          created_at?: string
+          descripcion?: string | null
+          especialidad_id?: string
+          id?: string
+          nombre?: string
+          orden?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "categorias_insumo_especialidad_id_fkey"
+            columns: ["especialidad_id"]
+            isOneToOne: false
+            referencedRelation: "especialidades_partida"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categorias_partida: {
         Row: {
           activo: boolean
@@ -2903,16 +2944,24 @@ export type Database = {
         Row: {
           activo: boolean
           asignacion_familiar: boolean
+          categoria_id: string | null
           categoria_inventario: string | null
           categoria_obrero: string | null
           clase_equipo: string
           codigo: string
+          compra_activa: boolean
+          creado_en: string | null
+          creado_por: string | null
           created_at: string
+          descripcion_breve: string | null
           especialidad_id: string | null
+          especificaciones: string | null
+          estado_aprobacion: string
           id: string
           marca_id: string | null
           margen_pct: number
           nombre: string
+          numero_parte: string | null
           precio: number
           propiedad: string
           regimen_laboral: string
@@ -2926,16 +2975,24 @@ export type Database = {
         Insert: {
           activo?: boolean
           asignacion_familiar?: boolean
+          categoria_id?: string | null
           categoria_inventario?: string | null
           categoria_obrero?: string | null
           clase_equipo?: string
           codigo?: string
+          compra_activa?: boolean
+          creado_en?: string | null
+          creado_por?: string | null
           created_at?: string
+          descripcion_breve?: string | null
           especialidad_id?: string | null
+          especificaciones?: string | null
+          estado_aprobacion?: string
           id?: string
           marca_id?: string | null
           margen_pct?: number
           nombre: string
+          numero_parte?: string | null
           precio?: number
           propiedad?: string
           regimen_laboral?: string
@@ -2949,16 +3006,24 @@ export type Database = {
         Update: {
           activo?: boolean
           asignacion_familiar?: boolean
+          categoria_id?: string | null
           categoria_inventario?: string | null
           categoria_obrero?: string | null
           clase_equipo?: string
           codigo?: string
+          compra_activa?: boolean
+          creado_en?: string | null
+          creado_por?: string | null
           created_at?: string
+          descripcion_breve?: string | null
           especialidad_id?: string | null
+          especificaciones?: string | null
+          estado_aprobacion?: string
           id?: string
           marca_id?: string | null
           margen_pct?: number
           nombre?: string
+          numero_parte?: string | null
           precio?: number
           propiedad?: string
           regimen_laboral?: string
@@ -2970,6 +3035,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "insumos_categoria_id_fkey"
+            columns: ["categoria_id"]
+            isOneToOne: false
+            referencedRelation: "categorias_insumo"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "insumos_especialidad_id_fkey"
             columns: ["especialidad_id"]
@@ -3003,6 +3075,76 @@ export type Database = {
             columns: ["unidad_id"]
             isOneToOne: false
             referencedRelation: "unidades_medida"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      insumos_aprobaciones: {
+        Row: {
+          accion: string
+          fecha: string
+          id: string
+          insumo_id: string
+          motivo: string | null
+          usuario_id: string | null
+        }
+        Insert: {
+          accion: string
+          fecha?: string
+          id?: string
+          insumo_id: string
+          motivo?: string | null
+          usuario_id?: string | null
+        }
+        Update: {
+          accion?: string
+          fecha?: string
+          id?: string
+          insumo_id?: string
+          motivo?: string | null
+          usuario_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "insumos_aprobaciones_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "epp_catalogo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "insumos_aprobaciones_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "equipos_herramientas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "insumos_aprobaciones_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "insumos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "insumos_aprobaciones_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "mano_obra"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "insumos_aprobaciones_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "materiales"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "insumos_aprobaciones_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "subcontratos"
             referencedColumns: ["id"]
           },
         ]
@@ -3075,6 +3217,70 @@ export type Database = {
             foreignKeyName: "insumos_atributos_epp_insumo_id_fkey"
             columns: ["insumo_id"]
             isOneToOne: true
+            referencedRelation: "subcontratos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      insumos_modificaciones: {
+        Row: {
+          fecha: string
+          id: string
+          insumo_id: string
+          usuario_id: string | null
+        }
+        Insert: {
+          fecha?: string
+          id?: string
+          insumo_id: string
+          usuario_id?: string | null
+        }
+        Update: {
+          fecha?: string
+          id?: string
+          insumo_id?: string
+          usuario_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "insumos_modificaciones_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "epp_catalogo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "insumos_modificaciones_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "equipos_herramientas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "insumos_modificaciones_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "insumos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "insumos_modificaciones_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "mano_obra"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "insumos_modificaciones_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "materiales"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "insumos_modificaciones_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
             referencedRelation: "subcontratos"
             referencedColumns: ["id"]
           },
@@ -5355,6 +5561,7 @@ export type Database = {
         Row: {
           activo: boolean
           bloque: string
+          categoria_id: string | null
           codigo: string
           created_at: string
           descripcion: string | null
@@ -5365,6 +5572,7 @@ export type Database = {
         Insert: {
           activo?: boolean
           bloque?: string
+          categoria_id?: string | null
           codigo: string
           created_at?: string
           descripcion?: string | null
@@ -5375,6 +5583,7 @@ export type Database = {
         Update: {
           activo?: boolean
           bloque?: string
+          categoria_id?: string | null
           codigo?: string
           created_at?: string
           descripcion?: string | null
@@ -5383,6 +5592,13 @@ export type Database = {
           nombre?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "subfamilias_insumo_categoria_id_fkey"
+            columns: ["categoria_id"]
+            isOneToOne: false
+            referencedRelation: "categorias_insumo"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "subfamilias_insumo_especialidad_id_fkey"
             columns: ["especialidad_id"]
@@ -6971,6 +7187,10 @@ export type Database = {
     }
     Functions: {
       anular_cese: { Args: { _trabajador: string }; Returns: undefined }
+      aprobar_insumo: {
+        Args: { _aprobar: boolean; _id: string; _motivo: string }
+        Returns: undefined
+      }
       cambiar_destino_orden: {
         Args: { _almacen: string; _motivo: string; _orden: string }
         Returns: undefined
@@ -6985,6 +7205,7 @@ export type Database = {
         Returns: boolean
       }
       es_personal: { Args: { _user_id: string }; Returns: boolean }
+      ficha_insumo: { Args: { _id: string }; Returns: Json }
       guardar_especialidad: {
         Args: {
           _codigo: string

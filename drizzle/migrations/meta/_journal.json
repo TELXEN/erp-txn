@@ -736,6 +736,13 @@
       "when": 1793246916028,
       "tag": "0104_scada_a_instrumentacion",
       "breakpoints": true
+    },
+    {
+      "idx": 105,
+      "version": "7",
+      "when": 1793463358834,
+      "tag": "0105_categorias_y_ficha_insumo",
+      "breakpoints": true
     }
   ]
 }
