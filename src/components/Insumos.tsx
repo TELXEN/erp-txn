@@ -56,7 +56,7 @@ export function Insumos() {
   const visibles = lista
     .filter((i) => i.tipo === filtro)
     .filter((i) => filtro !== "EQ" || (claseInsumo(i) === "Herramienta") === (seccion === "HE"))
-    .filter((i) => coincide(busqueda, i.codigo, i.nombre))
+    .filter((i) => coincide(busqueda, i.codigo, i.nombre, extraInsumo(i).numero_parte ?? "", extraInsumo(i).especificaciones ?? ""))
     .sort((a, b) => filtro === "MO" ? compararManoObra(a, b) : 0);
 
   function cambiarPestana(t: TipoInsumo) {
@@ -486,7 +486,7 @@ function ManoObraWysiwyg({
                   <>
                     <td className="px-5 py-2.5 text-muted-foreground"><Resaltar texto={i.codigo || "—"} termino={busqueda} /></td>
                     <CeldaEspecialidad insumo={i} refrescar={refrescar} />
-                    <td className="px-3 py-2.5 text-ink"><Resaltar texto={i.nombre} termino={busqueda} /></td>
+                    <td className="px-3 py-2.5 text-ink" title={extraInsumo(i).descripcion_breve ?? undefined}><Resaltar texto={i.nombre} termino={busqueda} /><ChipsInsumo i={i} /></td>
                     <td className="px-3 py-2.5 text-muted-foreground">{i.regimen_laboral ?? "General"}</td>
                     <td className="px-3 py-2.5 text-right">{i.regimen_laboral === "Construcción Civil" ? `${i.categoria_obrero ?? "Operario"} (jornal)` : soles(Number(i.sueldo_mensual || 0))}</td>
                     <td className="px-3 py-2.5 text-center text-muted-foreground">hh</td>
@@ -762,7 +762,7 @@ function MaterialesWysiwyg({
                     <td className="px-5 py-2.5 text-muted-foreground"><Resaltar texto={i.codigo || "—"} termino={busqueda} /></td>
                     <CeldaEspecialidad insumo={i} refrescar={refrescar} />
                     {conSub && <CeldaSubfamilia insumo={i} refrescar={refrescar} />}
-                    <td className="px-3 py-2.5 text-ink"><Resaltar texto={i.nombre} termino={busqueda} /></td>
+                    <td className="px-3 py-2.5 text-ink" title={extraInsumo(i).descripcion_breve ?? undefined}><Resaltar texto={i.nombre} termino={busqueda} /><ChipsInsumo i={i} /></td>
                     {!esSC && <td className="px-3 py-2.5 text-muted-foreground">{nombreMarca(i.marca_id)}</td>}
                     <td className="px-3 py-2.5 text-center text-muted-foreground">{i.unidad}</td>
                     <td className="px-3 py-2.5 text-right">{soles(compra)}</td>
@@ -1020,7 +1020,7 @@ function EquiposWysiwyg({
                 <td className="px-5 py-2.5 text-muted-foreground"><Resaltar texto={i.codigo || "—"} termino={busqueda} /></td>
                   <CeldaEspecialidad insumo={i} refrescar={refrescar} />
                   <CeldaSubfamilia insumo={i} refrescar={refrescar} />
-                <td className="px-3 py-2.5 text-ink"><Resaltar texto={i.nombre} termino={busqueda} /></td>
+                <td className="px-3 py-2.5 text-ink" title={extraInsumo(i).descripcion_breve ?? undefined}><Resaltar texto={i.nombre} termino={busqueda} /><ChipsInsumo i={i} /></td>
                 <td className="px-3 py-2.5">{claseDe(i)}</td>
                 <td className="px-3 py-2.5">{prop}</td>
                 <td className="px-3 py-2.5 text-center text-muted-foreground">{i.unidad}</td>
@@ -1170,7 +1170,7 @@ function HerramientasWysiwyg({
             ) : (
               <tr key={i.id} onClick={() => setSel(i.id)} onDoubleClick={() => iniciarEdicion(i)} className={`cursor-pointer border-b border-line/40 last:border-0 ${sel === i.id ? "bg-primary/10" : ""}`}>
                 <td className="px-5 py-2.5 text-muted-foreground"><Resaltar texto={i.codigo || "—"} termino={busqueda} /></td>
-                <td className="px-3 py-2.5 text-ink"><Resaltar texto={i.nombre} termino={busqueda} /></td>
+                <td className="px-3 py-2.5 text-ink" title={extraInsumo(i).descripcion_breve ?? undefined}><Resaltar texto={i.nombre} termino={busqueda} /><ChipsInsumo i={i} /></td>
                 <td className="px-3 py-2.5 text-center text-muted-foreground">%MO</td>
                 <td className="px-3 py-2.5 text-right font-semibold text-primary">{pctDe(i).toFixed(2)}%</td>
               </tr>
@@ -1273,5 +1273,23 @@ function DetalleCostoHH({ calculo, parametros, margen }: {
         </div>
       </div>
     </div>
+  );
+}
+
+type ExtraInsumo = { numero_parte?: string | null; descripcion_breve?: string | null; especificaciones?: string | null; compra_activa?: boolean; estado_aprobacion?: string };
+/** Campos de la ficha ampliada (la lista lee la tabla completa de insumos). */
+const extraInsumo = (i: Insumo) => i as unknown as ExtraInsumo;
+
+/** N.º de parte y avisos de estado bajo la descripción: pendiente/rechazado y compra desactivada. */
+function ChipsInsumo({ i }: { i: Insumo }) {
+  const x = extraInsumo(i);
+  const chip = "ml-1.5 inline-block rounded px-1 py-px align-middle text-[10px] font-medium";
+  return (
+    <>
+      {x.numero_parte && <span className="ml-1.5 font-mono text-[10px] text-muted-foreground">P/N {x.numero_parte}</span>}
+      {x.estado_aprobacion === "Pendiente" && <span className={`${chip} bg-nota text-foreground`}>Pendiente de aprobación</span>}
+      {x.estado_aprobacion === "Rechazado" && <span className={`${chip} bg-destructive/10 text-destructive`}>Rechazado</span>}
+      {x.compra_activa === false && <span className={`${chip} bg-muted text-muted-foreground`}>Compra desactivada</span>}
+    </>
   );
 }
