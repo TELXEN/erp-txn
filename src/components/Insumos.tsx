@@ -558,6 +558,24 @@ function MaterialesWysiwyg({
   const [editando, setEditando] = useState<(FilaMat & { id: string; codigo: string; activo: boolean }) | null>(null);
   const [error, setError] = useState("");
   const [guardando, setGuardando] = useState(false);
+  const [sel, setSel] = useState("");
+  const [agregando, setAgregando] = useState(!!enfoqueNueva);
+  const seleccionado = lista.find((i) => i.id === sel);
+  const iniciarEdicion = (i: Insumo) => {
+    setAgregando(false);
+    setEditando({
+      id: i.id,
+      codigo: i.codigo,
+      activo: i.activo,
+      nombre: i.nombre,
+      unidad: i.unidad,
+      precio: String(i.precio || ""),
+      margen: String(i.margen_pct || ""),
+      marca_id: i.marca_id ?? "",
+      especialidad_id: i.especialidad_id ?? "",
+      subfamilia_id: i.subfamilia_id ?? "",
+    });
+  };
 
   const cUnitario = (precio: string) => Number(precio || 0) * (1 + mgTipo / 100);
 
@@ -635,34 +653,32 @@ function MaterialesWysiwyg({
   const selCls = "w-full rounded-md border border-line bg-background px-1.5 py-1 text-xs outline-none focus:border-primary";
 
   return (
-    <Panel
-      titulo={esSC ? "Maestro de insumos — Subcontratos / Servicios" : "Maestro de insumos — Materiales"}
-      extra={<Buscador valor={busqueda} onChange={setBusqueda} total={lista.length} placeholder="Buscar por código o descripción..." />}
-    >
+    <div className="flex items-start gap-2">
+      <Panel titulo={esSC ? "Maestro de insumos — Subcontratos / Servicios" : "Maestro de insumos — Materiales"}>
       <table className="w-full table-fixed font-mono text-xs">
         <thead>
           <tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
             <th className="w-[8%] px-5 py-2 font-medium">Código</th>
             <th className="w-[15%] px-3 py-2 font-medium">Especialidad</th>
             {conSub && <th className="w-[15%] px-3 py-2 font-medium">Subfamilia</th>}
-            <th className={`${esSC ? "w-[41%]" : "w-[15%]"} px-3 py-2 font-medium`}>Descripción</th>
+            <th className={`${esSC ? "w-[50%]" : "w-[24%]"} px-3 py-2 font-medium`}>Descripción</th>
             {!esSC && <th className="w-[9%] px-3 py-2 font-medium">Marca</th>}
             <th className="w-[9%] px-3 py-2 font-medium">Unidad</th>
             <th className="w-[10%] px-3 py-2 text-right font-medium">{esSC ? "Costo" : "P. Compra"}</th>
             <th className="w-[7%] px-3 py-2 text-right font-medium">Margen %</th>
             <th className="w-[10%] px-3 py-2 text-right font-medium">C. Unitario</th>
-            <th className="w-[9%] px-5 py-2 text-right font-medium">Acciones</th>
           </tr>
         </thead>
         <tbody>
-          {/* Fila fantasma de creación rápida (siempre visible arriba) */}
+          {/* Fila fantasma de creación rápida (se muestra con el botón Agregar) */}
+          {agregando && (
           <tr className="border-b border-dashed border-line/60 bg-muted/20">
             <td className="px-5 py-2 text-muted-foreground/60">auto</td>
             <CeldasClasificacion tipo={tipo} valor={nueva} onChange={(v) => setNueva({ ...nueva, ...v })} />
             <td className="px-3 py-2">
               <input
                 className={inputCls}
-                autoFocus={enfoqueNueva}
+                autoFocus
                 placeholder="Escribe y pulsa Enter…"
                 value={nueva.nombre} data-formato="oracion"
                 onChange={(e) => setNueva({ ...nueva, nombre: e.target.value })}
@@ -692,28 +708,29 @@ function MaterialesWysiwyg({
             <td className="px-3 py-2">
               <p className="text-right text-muted-foreground">{mgTipo.toFixed(2)}%</p>
             </td>
-            <td className="px-3 py-2 text-right font-semibold text-primary">{soles(cUnitario(nueva.precio))}</td>
-            <td className="px-5 py-2">
-              <div className="flex justify-end">
+            <td className="px-3 py-2">
+              <div className="flex items-center justify-end gap-1">
+                <span className="font-semibold text-primary">{soles(cUnitario(nueva.precio))}</span>
                 <button
                   type="button"
                   onClick={() => void crearDesdeFila()}
                   disabled={guardando}
                   title="Registrar material"
-                  className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground disabled:opacity-50"
+                  className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground disabled:opacity-50"
                 >
                   <Check size={14} />
                 </button>
               </div>
             </td>
           </tr>
+          )}
           {lista.map((i) => {
             const esEdicion = editando?.id === i.id;
             const compra = esEdicion ? Number(editando.precio || 0) : Number(i.precio);
             const margen = mgTipo;
             const cu = compra * (1 + margen / 100);
             return (
-              <tr key={i.id} className="border-b border-line/40 last:border-0">
+              <tr key={i.id} onClick={() => setSel(i.id)} onDoubleClick={() => iniciarEdicion(i)} className={`cursor-pointer border-b border-line/40 last:border-0 ${sel === i.id ? "bg-primary/10" : ""}`}>
                 {esEdicion ? (
                   <>
                     <td className="px-5 py-2 text-muted-foreground">{editando.codigo || "—"}</td>
@@ -730,11 +747,11 @@ function MaterialesWysiwyg({
                     </td>
                     <td className="px-3 py-2"><Input className="py-1 text-right text-xs" type="number" step="0.01" min={0} value={editando.precio} onChange={(e) => setEditando({ ...editando, precio: e.target.value })} /></td>
                     <td className="px-3 py-2 text-right text-muted-foreground" title="Margen único del tipo (Configuración del Sistema)">{mgTipo.toFixed(2)}%</td>
-                    <td className="px-3 py-2 text-right text-ink">{soles(cu)}</td>
-                    <td className="px-5 py-2">
-                      <div className="flex justify-end gap-1">
-                        <button type="button" onClick={guardarEdicion} title="Guardar" className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground"><Check size={14} /></button>
-                        <button type="button" onClick={() => setEditando(null)} title="Cancelar" className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line hover:bg-muted"><X size={14} /></button>
+                    <td className="px-3 py-2">
+                      <div className="flex items-center justify-end gap-1">
+                        <span className="text-ink">{soles(cu)}</span>
+                        <button type="button" onClick={guardarEdicion} title="Guardar" className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground"><Check size={14} /></button>
+                        <button type="button" onClick={() => setEditando(null)} title="Cancelar" className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-line hover:bg-muted"><X size={14} /></button>
                       </div>
                     </td>
                   </>
@@ -749,32 +766,6 @@ function MaterialesWysiwyg({
                     <td className="px-3 py-2.5 text-right">{soles(compra)}</td>
                     <td className="px-3 py-2.5 text-right text-muted-foreground">{margen.toFixed(2)}%</td>
                     <td className="px-3 py-2.5 text-right font-semibold text-primary">{soles(cu)}</td>
-                    <td className="px-5 py-2.5">
-                      <div className="flex justify-end gap-1">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setEditando({
-                              id: i.id,
-                              codigo: i.codigo,
-                              activo: i.activo,
-                              nombre: i.nombre,
-                              unidad: i.unidad,
-                              precio: String(i.precio || ""),
-                              margen: String(i.margen_pct || ""),
-                              marca_id: i.marca_id ?? "",
-                              especialidad_id: i.especialidad_id ?? "",
-                              subfamilia_id: i.subfamilia_id ?? "",
-                            })
-                          }
-                          title="Editar"
-                          className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"
-                        >
-                          <Pencil size={14} />
-                        </button>
-                        <button type="button" onClick={() => eliminar(i.id)} title="Eliminar" className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-bad/40 text-bad hover:border-bad"><Trash2 size={14} /></button>
-                      </div>
-                    </td>
                   </>
                 )}
               </tr>
@@ -789,7 +780,16 @@ function MaterialesWysiwyg({
         La Especialidad {conSub ? "y la Subfamilia " : ""}definen el código (rubro + especialidad + subfamilia o 00 + correlativo): se eligen en la fila de captura
         y se pueden corregir en cada fila. {esSC ? "Los subcontratos no usan subfamilia: sus dos dígitos van en 00." : "Los materiales siempre necesitan subfamilia."}
       </p>
-    </Panel>
+      </Panel>
+      <BarraIconosHoja
+        objeto={esSC ? "subcontrato" : "material"}
+        filtros={<MenuFiltros activos={busqueda.trim() ? 1 : 0} onLimpiar={() => setBusqueda("")}><Buscador valor={busqueda} onChange={setBusqueda} total={lista.length} placeholder="Buscar por código o descripción..." /></MenuFiltros>}
+        haySeleccion={!!seleccionado}
+        onAgregar={() => { setEditando(null); setAgregando((v) => !v); }}
+        onEditar={() => seleccionado && iniciarEdicion(seleccionado)}
+        onEliminar={() => seleccionado && eliminar(seleccionado.id)}
+      />
+    </div>
   );
 }
 
