@@ -6,9 +6,10 @@ import { UnidadesMedida } from "@/components/UnidadesMedida";
 import { EspecialidadesPartida } from "@/components/EspecialidadesPartida";
 import { GruposCotizacion } from "@/components/GruposCotizacion";
 import { HojaSubfamilias } from "@/components/HojaSubfamilias";
+import { HojaCategorias } from "@/components/HojaCategorias";
 
 const TITULO = "Catálogo Técnico — ERP TELXEN";
-const DESC = "Especialidades, títulos de partidas WBS, subfamilias, marcas y unidades de medida del ERP.";
+const DESC = "Especialidades, categorías y subcategorías de insumos, títulos de partidas WBS, marcas y unidades de medida del ERP.";
 
 export const Route = createFileRoute("/_authenticated/catalogo-tecnico")({
   head: () => ({
@@ -24,12 +25,13 @@ export const Route = createFileRoute("/_authenticated/catalogo-tecnico")({
   component: CatalogoTecnico,
 });
 
-type Pestana = "especialidades" | "grupos" | "subfamilias" | "unidades" | "marcas";
+type Pestana = "especialidades" | "categorias" | "grupos" | "subfamilias" | "unidades" | "marcas";
 
 const PESTANAS: [Pestana, string][] = [
   ["unidades", "Unidades de medida"],
   ["especialidades", "Especialidades"],
-  ["subfamilias", "Subfamilia de materiales"],
+  ["categorias", "Categorías"],
+  ["subfamilias", "Subcategorías"],
   ["marcas", "Marcas"],
   ["grupos", "Títulos WBS"],
 ];
@@ -61,6 +63,8 @@ function CatalogoTecnico() {
         <GruposCotizacion />
       ) : pestana === "marcas" ? (
         <MarcasPanel />
+      ) : pestana === "categorias" ? (
+        <HojaCategorias />
       ) : pestana === "subfamilias" ? (
         <HojaSubfamilias />
       ) : (

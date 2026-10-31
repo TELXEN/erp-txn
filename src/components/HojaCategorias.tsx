@@ -29,13 +29,13 @@ export function HojaCategorias() {
   const visibles = cats.filter((c) => coincide(busqueda, c.codigo, c.nombre));
   const nSubs = (id: string) => subs.filter((s) => s.categoria_id === id).length;
 
-  function abrir(m: "nuevo" | "editar") {
+  function abrir(m: "nuevo" | "editar", objetivo: CategoriaInsumo | null = sel) {
     setAviso("");
     if (m === "nuevo") {
       const espId = sel?.especialidad_id ?? especialidades[0]?.id ?? "";
       const max = Math.max(0, ...cats.filter((c) => c.especialidad_id === espId).map((c) => Number(c.codigo) || 0));
       setForm({ especialidad_id: espId, codigo: String(max + 1).padStart(2, "0"), nombre: "", descripcion: "" });
-    } else if (sel) setForm({ especialidad_id: sel.especialidad_id, codigo: sel.codigo, nombre: sel.nombre, descripcion: sel.descripcion ?? "" });
+    } else if (objetivo) setForm({ especialidad_id: objetivo.especialidad_id, codigo: objetivo.codigo, nombre: objetivo.nombre, descripcion: objetivo.descripcion ?? "" });
     else return;
     setModo(m);
   }
@@ -87,7 +87,7 @@ export function HojaCategorias() {
               {propias.length === 0 ? <p className="px-3 py-1.5 text-xs text-muted-foreground">Sin categorías</p> : (
                 <table className="w-full text-xs"><tbody>
                   {propias.map((c) => (
-                    <tr key={c.id} onClick={() => setSel(c)} onDoubleClick={() => { setSel(c); setTimeout(() => abrir("editar")); }}
+                    <tr key={c.id} onClick={() => setSel(c)} onDoubleClick={() => { setSel(c); abrir("editar", c); }}
                       className={`cursor-pointer border-b border-line/60 hover:bg-muted/40 ${sel?.id === c.id ? "bg-primary/10" : ""} ${c.activo ? "" : "text-muted-foreground line-through"}`}>
                       <td className="w-16 whitespace-nowrap px-2 py-0.5 font-mono">{c.codigo}</td>
                       <td className="px-2 py-0.5"><Resaltar texto={c.nombre} termino={busqueda} />{c.descripcion && <span className="ml-2 text-muted-foreground">{c.descripcion}</span>}</td>
