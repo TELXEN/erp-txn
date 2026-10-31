@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
+import { Boton, Campo, Etiqueta, Input, MenuFiltros, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { Check, Coins, FolderKanban, HardHat, Pencil, Plus, SlidersHorizontal, Tag, Trash2, Upload, X } from "lucide-react";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { exportarExcel } from "@/lib/exportar";
@@ -31,6 +31,7 @@ import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { type CuentaBancaria } from "@/components/CuentasBancarias";
 import { RubrosIngreso } from "@/components/RubrosIngreso";
 import { formatearTexto, type ModoFormato } from "@/lib/formato-texto";
+import { Buscador, coincide } from "@/components/Buscador";
 
 export const Route = createFileRoute("/_authenticated/datos")({
   head: () => ({
