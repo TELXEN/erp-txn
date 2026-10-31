@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRecordado } from "@/lib/recordado";
+import { MarcasPanel } from "@/components/MarcasPanel";
 import { Encabezado } from "@/components/AppShell";
 import { UnidadesMedida } from "@/components/UnidadesMedida";
 import { EspecialidadesPartida } from "@/components/EspecialidadesPartida";
@@ -7,7 +8,7 @@ import { GruposCotizacion } from "@/components/GruposCotizacion";
 import { HojaSubfamilias } from "@/components/HojaSubfamilias";
 
 const TITULO = "Catálogo Técnico — ERP TELXEN";
-const DESC = "Especialidades, títulos de partidas WBS, subfamilias de insumos y unidades de medida del ERP.";
+const DESC = "Especialidades, títulos de partidas WBS, subfamilias, marcas y unidades de medida del ERP.";
 
 export const Route = createFileRoute("/_authenticated/catalogo-tecnico")({
   head: () => ({
@@ -23,17 +24,18 @@ export const Route = createFileRoute("/_authenticated/catalogo-tecnico")({
   component: CatalogoTecnico,
 });
 
-type Pestana = "especialidades" | "grupos" | "subfamilias" | "unidades";
+type Pestana = "especialidades" | "grupos" | "subfamilias" | "unidades" | "marcas";
 
 const PESTANAS: [Pestana, string][] = [
-  ["especialidades", "Especialidades"],
-  ["grupos", "Títulos WBS"],
-  ["subfamilias", "Subfamilia de materiales"],
   ["unidades", "Unidades de medida"],
+  ["especialidades", "Especialidades"],
+  ["subfamilias", "Subfamilia de materiales"],
+  ["marcas", "Marcas"],
+  ["grupos", "Títulos WBS"],
 ];
 
 function CatalogoTecnico() {
-  const [pestana, setPestana] = useState<Pestana>("especialidades");
+  const [pestana, setPestana] = useRecordado<Pestana>("erp-catalogo-tecnico-pestana", "unidades");
   return (
     <>
       <Encabezado titulo="Catálogo Técnico" subtitulo="Clasificadores de ingeniería usados por APU, cotizaciones e insumos" />
@@ -57,6 +59,8 @@ function CatalogoTecnico() {
         <EspecialidadesPartida />
       ) : pestana === "grupos" ? (
         <GruposCotizacion />
+      ) : pestana === "marcas" ? (
+        <MarcasPanel />
       ) : pestana === "subfamilias" ? (
         <HojaSubfamilias />
       ) : (
