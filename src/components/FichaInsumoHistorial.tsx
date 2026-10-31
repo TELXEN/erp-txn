@@ -115,7 +115,7 @@ export function FichaInsumoHistorial({ id, precioBase, estado }: { id: string; p
       </section>
 
       <section className="text-xs">
-        <p className={titulo}>Aprobación de ingreso · <span className={estado === "Aprobado" ? "text-success" : estado === "Rechazado" ? "text-destructive" : "text-warning"}>{estado}</span></p>
+        <p className={titulo}>Aprobación de ingreso · <span className={estado === "Aprobado" ? "text-primary" : estado === "Rechazado" ? "text-destructive" : "text-foreground"}>{estado}</span></p>
         {f.aprobaciones.length === 0 && <p className="text-muted-foreground">Insumo registrado antes del control de aprobaciones.</p>}
         {f.aprobaciones.map((a, i) => (
           <p key={i}><b>{a.accion}</b> por {a.usuario ?? "—"} · {fechaHora(a.fecha)}{a.motivo ? ` — ${a.motivo}` : ""}</p>
