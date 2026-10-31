@@ -125,7 +125,7 @@ function Datos() {
   return (
     <>
       <Encabezado
-        titulo="Datos"
+        titulo="Parámetros Generales"
         subtitulo="Catálogos maestros"
         acciones={
           <Boton
