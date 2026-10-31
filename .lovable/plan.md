@@ -21,13 +21,19 @@ Mano de Obra y Subcontratos siguen sin subcategoría (regla vigente): para ellos
 ```text
 especialidades_partida  (se mantiene, es compartida con APU/WBS)
    └─ categorias_insumo       NUEVA: id, especialidad_id, codigo (1 dígito), nombre, descripcion, orden, activo
-        └─ subfamilias_insumo  se le agrega categoria_id (pasará a llamarse «Subcategoría» en pantalla)
-             └─ insumos         se le agrega categoria_id; conserva especialidad_id y subfamilia_id
+        └─ subcategorias_insumo  RENOMBRADA desde subfamilias_insumo, con categoria_id
+             └─ insumos           + categoria_id, subcategoria_id (renombrada), marca_id, numero_parte
 ```
 
 Decisiones:
-- **Nueva tabla de categorías** a partir de los valores de `bloque`: cada bloque distinto por especialidad se convierte en una categoría. `bloque` queda marcado como retirado (no se borra).
-- **Renombrar solo en pantalla**: «Subfamilia» → «Subcategoría». Las tablas no se renombran físicamente para no romper la app publicada, las vistas de insumos, triggers ni el generador de códigos.
+- **Nueva tabla de categorías** a partir de los valores de `bloque`: cada bloque distinto por especialidad se convierte en una categoría. Luego se elimina la columna `bloque`.
+- **Renombrado real**: `subfamilias_insumo` → `subcategorias_insumo` y `insumos.subfamilia_id` → `subcategoria_id`, actualizando vistas de insumos, triggers, generador de códigos y pantallas. Como la app publicada es solo de prueba, se hace el cambio directo (puede pedir permiso de cambio incompatible en la base).
+
+## Marca y número de parte del fabricante
+- Cada insumo tendrá **Marca** (lista del catálogo de Marcas, con buscador) y **N.º de parte** (texto libre, ej. 3RT2016-1AP01).
+- Ambos opcionales; se muestran como columnas en el Maestro y en la ventana de registro, después de la subcategoría.
+- Se permite repetir una descripción si cambian marca o número de parte (mismo artículo de distinto fabricante); se avisa si se repite la combinación marca + número de parte.
+- La búsqueda del Maestro también encuentra por número de parte.
 - **No se fusiona** con `categorias_partida` (es de partidas). La fusión necesaria es «bloque» → categoría real.
 - **Código T+EE+SS+NNN se conserva**: el primer dígito de SS es la categoría y el segundo la subcategoría (ya ocurre: Iluminación 40-45, Puesta a Tierra 50-54). Ningún código existente cambia.
 
