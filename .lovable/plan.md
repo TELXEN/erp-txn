@@ -1,16 +1,16 @@
-# Subcategories grouped under each category
+# Subcategorías agrupadas por categoría
 
-## What changes for you
-1. **Categories as headings in Subcategorías:** in Catálogo Técnico → Subcategorías, each specialty lists **all** its categories as headings (all 17 for ELÉCTRICA), in alphabetical order with their number. That includes categories with no subcategories yet. Each heading gets a "+" to add a subcategory directly under that category.
-2. **New categories appear on their own:** when you create a category, it shows up right away as a new heading, in its alphabetical spot. Renaming or deleting a category updates the headings too. Nothing gets copied, so nothing can fall out of sync.
-3. **Up/down arrows for subcategories:** the right-hand icon bar gets "Subir" and "Bajar" buttons. They move the selected subcategory within its category. The numbers (01, 02, 03…) follow the new position right away, and the codes of the items in that subcategory change to match. Their links to APU, quotations and purchase orders stay the same, because those links don't depend on the code.
-4. **Categories stay A to Z:** no arrows on categories. They keep sorting themselves alphabetically and renumbering automatically, as they do today.
-5. **Delete protection for categories:** a category that still has subcategories can't be deleted. You get the message "Esta categoría tiene N subcategorías; muévelas o elimínalas primero."
-6. **Delete protection for subcategories:** a subcategory that has items can't be deleted. You get the message "Esta subcategoría tiene N insumos." Empty subcategories delete normally, and the ones left in their category are renumbered with no gaps.
+## Lo que verás
+1. **Categorías como títulos en Subcategorías:** en Catálogo Técnico → Subcategorías, cada especialidad muestra **todas** sus categorías como títulos de grupo, en orden de la A a la Z y con su número, también las que aún no tienen subcategorías (las 17 de ELÉCTRICA). Cada título tiene un «+» para añadir una subcategoría en ese grupo.
+2. **Las categorías nuevas aparecen solas:** al crear una categoría, aparece de inmediato como título nuevo en su lugar alfabético. Si la renombras o la eliminas, el título también se actualiza. No se copia nada, así que nunca se desordena.
+3. **Flechas subir/bajar en subcategorías:** en la barra de iconos de la derecha habrá «Subir» y «Bajar» para mover la subcategoría seleccionada dentro de su categoría. La numeración (01, 02, 03…) sigue la nueva posición al instante, y los códigos de los insumos de esa subcategoría cambian para coincidir. Sus vínculos con APU, cotizaciones y órdenes de compra se mantienen.
+4. **Categorías siempre de la A a la Z:** las categorías no llevan flechas; siguen ordenándose y numerándose solas por orden alfabético, como hoy.
+5. **Protección al borrar categorías:** una categoría que tiene subcategorías no se puede borrar. Aparecerá el aviso: «Esta categoría tiene N subcategorías; muévelas o elimínalas primero».
+6. **Protección al borrar subcategorías:** una subcategoría que tiene insumos no se puede borrar. Aparecerá el aviso: «Esta subcategoría tiene N insumos». Las vacías se borran normalmente, y las demás de su categoría se renumeran sin huecos.
 
-## Technical details
-- HojaSubfamilias: group by `useCategoriasInsumo` (already alphabetical) instead of the existing `categoria_id` values, so empty categories render as headings; heading "+" opens the window with especialidad/categoría preset.
-- Migration: RPC `mover_subcategoria(_id, _direccion)` (security definer, admin/gerente check via is_admin_o_gerente) swaps position with its neighbour inside the same categoria_id, renumbers codes contiguously per category under an advisory lock, and recodes affected insumos (replace SS segment, preserving the T+EE prefix and NNN) — temporary codes avoid unique collisions.
-- BEFORE DELETE triggers: categorias_insumo blocks when subfamilias exist; subfamilias_insumo blocks when insumos reference it (friendly Spanish RAISE). AFTER DELETE renumbers remaining subcategories in that category.
-- UI: BarraIconosHoja gets ChevronUp/ChevronDown, disabled at the edges or without selection; delete errors are shown in the existing notice.
-- Tests: pure helper for the SS code replacement plus a test for the delete-block message.
+## Detalles técnicos
+- HojaSubfamilias: agrupar por `useCategoriasInsumo` (ya alfabético) en lugar de los `categoria_id` existentes, para mostrar también las categorías vacías; el «+» del título abre la ventana con especialidad y categoría precargadas.
+- Migración: función `mover_subcategoria(_id, _direccion)` (security definer, valida is_admin_o_gerente). Intercambia la posición con la vecina dentro de la misma categoría, renumera los códigos de forma correlativa con un bloqueo advisory y recodifica los insumos afectados (reemplaza el segmento SS y conserva T+EE y NNN), usando códigos temporales para evitar choques de unicidad.
+- Triggers BEFORE DELETE: en categorias_insumo bloquea si hay subcategorías; en subfamilias_insumo bloquea si hay insumos, con mensaje en español. AFTER DELETE renumera las subcategorías restantes de la categoría.
+- Interfaz: BarraIconosHoja con ChevronUp/ChevronDown, desactivados en los extremos o sin selección; los errores al borrar se muestran en el aviso actual.
+- Pruebas: función pura de reemplazo del segmento SS y prueba del mensaje de bloqueo al borrar.
