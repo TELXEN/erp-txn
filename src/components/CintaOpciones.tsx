@@ -83,20 +83,18 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
     const act = pathname === m.a;
     const I = m.icono;
     const tono = act ? "bg-cta text-cta-foreground font-semibold" : "text-sidebar-foreground hover:bg-sidebar-hover";
-    const baldosa = tonoBaldosa(cat?.titulo ?? "", act);
     if (modo === "simplificada") {
       return (
         <Link key={m.a} to={m.a} title={m.texto} onClick={() => contraida && setPestana(pestana)}
-          className={`relative flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-2 text-xs ${tono}`}>
-          <span className={`grid size-6 shrink-0 place-items-center rounded-md border ${baldosa}`}><I className="size-3.5" /></span>
-          {m.texto}<Insignia a={m.a} />
+          className={`relative flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 text-xs ${tono}`}>
+          <I className="size-4 shrink-0" /> {m.texto}<Insignia a={m.a} />
         </Link>
       );
     }
     return (
       <Link key={m.a} to={m.a} title={m.texto}
         className={`relative flex w-[76px] shrink-0 flex-col items-center gap-1 rounded-md px-1 py-1.5 text-center text-[11px] leading-tight ${tono}`}>
-        <span className={`grid size-9 shrink-0 place-items-center rounded-md border ${baldosa}`}><I className="size-5" /></span>
+        <I className="size-6 shrink-0" />
         <span className="line-clamp-2">{m.texto}</span><Insignia a={m.a} />
       </Link>
     );
