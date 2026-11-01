@@ -112,5 +112,6 @@
 - [x] Estados de requerimientos y órdenes con color: borrador gris punteado, aprobado verde, orden emitida azul marino, en cotización azul, rechazado rojo, enviado a Gerencia ámbar; verificado en pantalla y con 5 pruebas.
 
 ## Maestro de Insumos
+- [ ] Numeración automática continua de subcategorías por especialidad, siguiendo grupos A–Z y recodificando insumos; comprobar altas y movimientos.
 - [x] Completar especialidad y subfamilia desde la propia hoja (captura del usuario): columna Especialidad, selectores buscables, código TEESSNNN regenerado; verificado creando y borrando una ficha de prueba.
 - [x] Subcontratos sin subfamilia: columna fuera del maestro, código forzado a 00 y regla en la base; verificado en pantalla.
