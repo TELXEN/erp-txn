@@ -12,22 +12,6 @@ const CORTO: Record<string, string> = {
   "Temas de colores": "Temas",
 };
 
-// Color distintivo de la baldosa del icono según el módulo (pestaña) activo.
-const TONO_CINTA: Record<string, string> = {
-  "Comercial": "border-blue-500/40 bg-blue-500/10 text-blue-600 dark:text-blue-300",
-  "Operaciones": "border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-300",
-  "Logística": "border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-300",
-  "Finanzas y Contabilidad": "border-violet-500/40 bg-violet-500/10 text-violet-600 dark:text-violet-300",
-  "Recursos Humanos": "border-rose-500/40 bg-rose-500/10 text-rose-600 dark:text-rose-300",
-  "Datos": "border-cyan-500/40 bg-cyan-500/10 text-cyan-600 dark:text-cyan-300",
-  "Temas de colores": "border-slate-500/40 bg-slate-500/10 text-slate-600 dark:text-slate-300",
-};
-const TONO_BASE = "border-border bg-muted/50 text-muted-foreground";
-
-function tonoBaldosa(titulo: string, activo: boolean) {
-  return activo ? "border-cta-foreground/30 bg-cta-foreground/15 text-cta-foreground" : (TONO_CINTA[titulo] ?? TONO_BASE);
-}
-
 function contiene(c: CategoriaCinta, p: string) {
   return c.items.some((m) => m.a === p || m.hijos?.some((h) => h.a === p));
 }
