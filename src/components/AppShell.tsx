@@ -9,7 +9,7 @@ import { CintaOpciones, SelectorModoLateral, type ModoNavegacion } from "@/compo
 import { ReciboCodigoBarras, NominaBoletas } from "@/components/icons";
 import { Calculator, ChevronDown, PanelLeftClose, PanelLeftOpen, Maximize2, Minimize2 } from "lucide-react";
 
-function BotonPantallaCompleta() {
+function BotonPantallaCompleta({ className = "grid size-7 place-items-center rounded-md text-brand-foreground/70 transition-colors hover:bg-brand-foreground/10 hover:text-brand-foreground" }: { className?: string }) {
   const [activa, setActiva] = useState(false);
   useEffect(() => {
     const actualizar = () => setActiva(!!document.fullscreenElement);
@@ -28,7 +28,7 @@ function BotonPantallaCompleta() {
       onClick={alternar}
       title={etiqueta}
       aria-label={etiqueta}
-      className="grid size-7 place-items-center rounded-md text-brand-foreground/70 transition-colors hover:bg-brand-foreground/10 hover:text-brand-foreground"
+      className={className}
     >
       {activa ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
     </button>
@@ -442,6 +442,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 </button>
               </div>
             }
+            pantallaCompleta={<BotonPantallaCompleta className="grid size-7 place-items-center rounded-md text-sidebar-muted transition-colors hover:bg-sidebar-hover hover:text-sidebar-foreground" />}
           />
         )}
         <header className="no-print sticky top-0 z-20 flex min-h-12 shrink-0 items-center gap-3 border-b border-brand bg-brand px-4 py-1.5 text-brand-foreground">
@@ -467,7 +468,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               </button>
             </>
           )}
-          <BotonPantallaCompleta />
+          {!conCinta && <BotonPantallaCompleta />}
           {!conCinta && <div className="hidden md:block [&_button]:text-brand-foreground/80"><SelectorModoLateral modo={modoNav} onModo={cambiarModo} /></div>}
         </header>
 

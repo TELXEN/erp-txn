@@ -35,7 +35,7 @@ function SelectorModo({ modo, onModo, contraida, onContraer }: {
   return (
     <div ref={ref} className="relative flex items-center gap-1">
       {modo !== "lateral" && (
-        <button type="button" onClick={onContraer} title={contraida ? "Mostrar cinta" : "Contraer cinta"} aria-label={contraida ? "Mostrar cinta" : "Contraer cinta"}
+        <button type="button" onClick={onContraer} title={contraida ? "Expandir cinta" : "Contraer cinta"} aria-label={contraida ? "Expandir cinta" : "Contraer cinta"}
           className="grid size-7 place-items-center rounded-md text-sidebar-muted hover:bg-sidebar-hover hover:text-sidebar-foreground">
           {contraida ? <ChevronDown className="size-4" /> : <ChevronUp className="size-4" />}
         </button>
@@ -62,10 +62,10 @@ export function SelectorModoLateral(props: { modo: ModoNavegacion; onModo: (m: M
   return <SelectorModo {...props} contraida={false} onContraer={() => {}} />;
 }
 
-export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, logo, usuario }: {
+export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, logo, usuario, pantallaCompleta }: {
   categorias: CategoriaCinta[]; pathname: string; modo: Exclude<ModoNavegacion, "lateral">;
   onModo: (m: ModoNavegacion) => void; distintivo: (a: string) => number; logo: React.ReactNode;
-  usuario?: React.ReactNode;
+  usuario?: React.ReactNode; pantallaCompleta?: React.ReactNode;
 }) {
   const activa = categorias.find((c) => contiene(c, pathname))?.titulo ?? categorias[0]?.titulo;
   const [pestana, setPestana] = useState(activa);
@@ -123,6 +123,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
           })}
         </nav>
         {usuario}
+        {pantallaCompleta}
         <SelectorModo modo={modo} onModo={onModo} contraida={contraida} onContraer={alternarContraer} />
       </div>
       {!contraida && cat && (
