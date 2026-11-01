@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, Maximize2, Minimize2, PanelLeft, Rows2, Rows3 } from "lucide-react";
+import { ChevronDown, ChevronUp, PanelLeft, Rows2, Rows3 } from "lucide-react";
 
 export type ModoNavegacion = "lateral" | "simplificada" | "clasica";
 export type ItemCinta = { a: string; texto: string; icono: React.ElementType; hijos?: ItemCinta[] };
@@ -37,7 +37,7 @@ function SelectorModo({ modo, onModo, contraida, onContraer }: {
       {modo !== "lateral" && (
         <button type="button" onClick={onContraer} title={contraida ? "Expandir cinta" : "Contraer cinta"} aria-label={contraida ? "Expandir cinta" : "Contraer cinta"}
           className="grid size-7 place-items-center rounded-md text-sidebar-muted hover:bg-sidebar-hover hover:text-sidebar-foreground">
-          {contraida ? <Maximize2 className="size-4" /> : <Minimize2 className="size-4" />}
+          {contraida ? <ChevronDown className="size-4" /> : <ChevronUp className="size-4" />}
         </button>
       )}
       <button type="button" onClick={() => setAbierto((v) => !v)} title="Opciones de navegación" aria-label="Opciones de navegación" aria-expanded={abierto}
@@ -62,10 +62,10 @@ export function SelectorModoLateral(props: { modo: ModoNavegacion; onModo: (m: M
   return <SelectorModo {...props} contraida={false} onContraer={() => {}} />;
 }
 
-export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, logo, usuario }: {
+export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, logo, usuario, pantallaCompleta }: {
   categorias: CategoriaCinta[]; pathname: string; modo: Exclude<ModoNavegacion, "lateral">;
   onModo: (m: ModoNavegacion) => void; distintivo: (a: string) => number; logo: React.ReactNode;
-  usuario?: React.ReactNode;
+  usuario?: React.ReactNode; pantallaCompleta?: React.ReactNode;
 }) {
   const activa = categorias.find((c) => contiene(c, pathname))?.titulo ?? categorias[0]?.titulo;
   const [pestana, setPestana] = useState(activa);
@@ -123,6 +123,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
           })}
         </nav>
         {usuario}
+        {pantallaCompleta}
         <SelectorModo modo={modo} onModo={onModo} contraida={contraida} onContraer={alternarContraer} />
       </div>
       {!contraida && cat && (
