@@ -771,6 +771,13 @@
       "when": 1793506819003,
       "tag": "0109_subcategorias_correlativo_continuo",
       "breakpoints": true
+    },
+    {
+      "idx": 110,
+      "version": "7",
+      "when": 1793507090347,
+      "tag": "0110_subcategorias_alfabeticas_por_categoria",
+      "breakpoints": true
     }
   ]
 }
