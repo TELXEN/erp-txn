@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { ChevronDown, ChevronUp, Copy, Pencil, Plus, Trash2 } from "lucide-react";
+import { Copy, Pencil, Plus, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Area, Boton, BotonIcono, Campo, Input, Select, VentanaFlotante } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
@@ -58,17 +58,10 @@ export function HojaSubfamilias() {
     setSel(null); refrescar(); qc.invalidateQueries({ queryKey: ["insumos"] });
   }
 
-  const hermanos = sel ? subs.filter((s) => s.especialidad_id === sel.especialidad_id && s.categoria_id === sel.categoria_id).sort((a, b) => a.codigo.localeCompare(b.codigo)) : [];
-  const pos = sel ? hermanos.findIndex((s) => s.id === sel.id) : -1;
-
-  async function mover(dir: -1 | 1) {
-    if (!sel) return;
-    const { error } = await supabase.rpc("mover_subcategoria", { _id: sel.id, _direccion: dir });
-    if (error) return window.alert(error.message);
-    const destino = hermanos[pos + dir];
-    if (destino) setSel({ ...sel, codigo: destino.codigo });
-    refrescar(); qc.invalidateQueries();
-  }
+  const propuesta = numerarSubcategorias([
+    ...subs.filter((s) => !(modo === "editar" && s.id === sel?.id)),
+    { id: "nuevo", especialidad_id: form.especialidad_id, categoria_id: form.categoria_id || null, codigo: "00", nombre: form.nombre },
+  ], cats).find((s) => s.id === "nuevo")?.codigo ?? "";
 
   return (
     <div className="flex gap-3">
@@ -132,8 +125,6 @@ export function HojaSubfamilias() {
         <BotonIcono etiqueta="Agregar nueva subcategoría" title="Agregar nueva subcategoría" tono="primario" onClick={() => abrir("nuevo")}><Plus size={15} /></BotonIcono>
         <BotonIcono etiqueta="Editar subcategoría" title="Editar subcategoría" disabled={!sel} onClick={() => abrir("editar")}><Pencil size={15} /></BotonIcono>
         <BotonIcono etiqueta="Copiar subcategoría" title="Copiar subcategoría" disabled={!sel} onClick={() => abrir("copiar")}><Copy size={15} /></BotonIcono>
-        <BotonIcono etiqueta="Subir subcategoría" title="Subir subcategoría" disabled={!sel || pos <= 0} onClick={() => mover(-1)}><ChevronUp size={15} /></BotonIcono>
-        <BotonIcono etiqueta="Bajar subcategoría" title="Bajar subcategoría" disabled={!sel || pos < 0 || pos >= hermanos.length - 1} onClick={() => mover(1)}><ChevronDown size={15} /></BotonIcono>
         <BotonIcono etiqueta="Eliminar subcategoría" title="Eliminar subcategoría" tono="peligro" disabled={!sel} onClick={quitar}><Trash2 size={15} /></BotonIcono>
       </div>
 
@@ -152,10 +143,7 @@ export function HojaSubfamilias() {
             </Select>
           </Campo>
           <Campo etiqueta="Código (2 dígitos)">
-            <Input readOnly value={modo === "editar" ? subs.find((s) => s.id === sel?.id)?.codigo ?? "" : numerarSubcategorias([
-              ...subs.filter((s) => s.especialidad_id === form.especialidad_id),
-              { id: "nuevo", especialidad_id: form.especialidad_id, categoria_id: form.categoria_id, codigo: "99" },
-            ].slice(0, 99), cats).find((s) => s.id === "nuevo")?.codigo ?? ""} />
+            <Input readOnly value={form.categoria_id ? propuesta : ""} />
           </Campo>
           <Campo etiqueta="Nombre">
             <Input autoFocus value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} />
