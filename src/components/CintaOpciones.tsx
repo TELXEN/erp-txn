@@ -122,6 +122,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
             );
           })}
         </nav>
+        {usuario}
         <SelectorModo modo={modo} onModo={onModo} contraida={contraida} onContraer={alternarContraer} />
       </div>
       {!contraida && cat && (
