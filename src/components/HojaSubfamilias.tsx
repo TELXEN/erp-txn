@@ -41,8 +41,8 @@ export function HojaSubfamilias() {
     if (!form.especialidad_id) return setAviso("Elige la especialidad.");
     if (!form.categoria_id) return setAviso("Elige la categoría.");
     if (!nombre) return setAviso("Escribe el nombre.");
-    const mismas = subs.filter((s) => s.especialidad_id === form.especialidad_id && !(modo === "editar" && s.id === sel?.id));
-    if (mismas.some((s) => claveNombre(s.nombre) === claveNombre(nombre))) return setAviso(`La subcategoría «${nombre}» ya existe.`);
+    const mismas = subs.filter((s) => s.especialidad_id === form.especialidad_id && s.categoria_id === form.categoria_id && !(modo === "editar" && s.id === sel?.id));
+    if (mismas.some((s) => claveNombre(s.nombre) === claveNombre(nombre))) return setAviso(`La subcategoría «${nombre}» ya existe en esta categoría.`);
     const d = { especialidad_id: form.especialidad_id, categoria_id: form.categoria_id, nombre, descripcion: form.descripcion.trim() || null };
     const { error } = modo === "editar" && sel
       ? await supabase.from("subfamilias_insumo").update(d).eq("id", sel.id)
