@@ -5568,6 +5568,7 @@ export type Database = {
           especialidad_id: string
           id: string
           nombre: string
+          orden: number
         }
         Insert: {
           activo?: boolean
@@ -5579,6 +5580,7 @@ export type Database = {
           especialidad_id: string
           id?: string
           nombre: string
+          orden?: number
         }
         Update: {
           activo?: boolean
@@ -5590,6 +5592,7 @@ export type Database = {
           especialidad_id?: string
           id?: string
           nombre?: string
+          orden?: number
         }
         Relationships: [
           {
@@ -7336,6 +7339,10 @@ export type Database = {
         Returns: undefined
       }
       renumerar_prefijo_insumo: { Args: { _pref: string }; Returns: undefined }
+      renumerar_subcategorias: {
+        Args: { _especialidad: string }
+        Returns: undefined
+      }
       siguiente_codigo_cotizacion: { Args: never; Returns: string }
       siguiente_codigo_documento: { Args: { _nombre: string }; Returns: string }
       siguiente_codigo_insumo: { Args: { _tipo: string }; Returns: string }
