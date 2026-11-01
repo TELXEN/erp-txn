@@ -127,7 +127,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
       </div>
       {!contraida && cat && (
         modo === "simplificada" ? (
-          <div className="flex h-11 items-center gap-1 overflow-x-auto border-t border-sidebar-border bg-sidebar-panel px-2">
+          <div className="flex h-11 items-center gap-1 overflow-x-auto border-t border-sidebar-border bg-sidebar-cinta-inf px-2">
             {simples.map(boton)}
             {grupos.map((g) => (
               <div key={g.a} className="flex items-center gap-1 border-l border-sidebar-border pl-1">
@@ -136,7 +136,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
             ))}
           </div>
         ) : (
-          <div className="flex items-stretch overflow-x-auto border-t border-sidebar-border bg-sidebar-panel px-2 pt-1">
+          <div className="flex items-stretch overflow-x-auto border-t border-sidebar-border bg-sidebar-cinta-inf px-2 pt-1">
             {[{ titulo: CORTO[cat.titulo] ?? cat.titulo, items: simples }, ...grupos.map((g) => ({ titulo: g.texto, items: g.hijos! }))]
               .filter((g) => g.items.length)
               .map((g, i) => (
