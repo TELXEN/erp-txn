@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Copy, Pencil, Plus, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp, Copy, Pencil, Plus, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Area, Boton, BotonIcono, Campo, Input, Select, VentanaFlotante } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
@@ -53,10 +53,22 @@ export function HojaSubfamilias() {
   }
 
   async function quitar() {
-    if (!sel || !window.confirm(`¿Eliminar «${sel.nombre}»? Los insumos que la usan quedarán sin clasificar.`)) return;
+    if (!sel || !window.confirm(`¿Eliminar «${sel.nombre}»?`)) return;
     const { error } = await supabase.from("subfamilias_insumo").delete().eq("id", sel.id);
     if (error) return window.alert(error.message);
-    setSel(null); refrescar();
+    setSel(null); refrescar(); qc.invalidateQueries({ queryKey: ["insumos"] });
+  }
+
+  const hermanos = sel ? subs.filter((s) => s.especialidad_id === sel.especialidad_id && s.categoria_id === sel.categoria_id).sort((a, b) => a.codigo.localeCompare(b.codigo)) : [];
+  const pos = sel ? hermanos.findIndex((s) => s.id === sel.id) : -1;
+
+  async function mover(dir: -1 | 1) {
+    if (!sel) return;
+    const { error } = await supabase.rpc("mover_subcategoria", { _id: sel.id, _direccion: dir });
+    if (error) return window.alert(error.message);
+    const destino = hermanos[pos + dir];
+    if (destino) setSel({ ...sel, codigo: destino.codigo });
+    refrescar(); qc.invalidateQueries();
   }
 
   return (
@@ -69,24 +81,43 @@ export function HojaSubfamilias() {
         {especialidades.map((e) => {
           const propias = visibles.filter((s) => s.especialidad_id === e.id).sort((a, b) => a.codigo.localeCompare(b.codigo));
           if (propias.length === 0 && busqueda) return null;
-          const bloques = [...new Set(propias.map((s) => s.categoria_id))];
+          const catsEsp = cats.filter((c) => c.especialidad_id === e.id && (c.activo || propias.some((s) => s.categoria_id === c.id)));
+          const sinCat = propias.filter((s) => !s.categoria_id || !catsEsp.some((c) => c.id === s.categoria_id));
+          const grupos: { id: string | null; titulo: string; filas: Subfamilia[] }[] = [
+            ...catsEsp.map((c) => ({ id: c.id, titulo: `${c.codigo} · ${c.nombre}`, filas: propias.filter((s) => s.categoria_id === c.id) }))
+              .filter((g) => !busqueda || g.filas.length > 0),
+            ...(sinCat.length ? [{ id: null, titulo: "Sin categoría", filas: sinCat }] : []),
+          ];
           return (
             <div key={e.id}>
               <div className="border-b border-line bg-muted/50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide">
                 <span className="font-mono">{e.codigo_modular}</span> · {e.nombre} <span className="font-normal text-muted-foreground">({propias.length})</span>
               </div>
-              {propias.length === 0 ? <p className="px-3 py-1.5 text-xs text-muted-foreground">Sin subcategorías</p> : (
+              {grupos.length === 0 ? <p className="px-3 py-1.5 text-xs text-muted-foreground">Sin categorías</p> : (
                 <table className="w-full text-xs">
                   <thead><tr className="border-b border-line text-left label-mono">
                     <th className="w-16 px-2 py-0.5">Código</th><th className="px-2 py-0.5">Subcategoría</th>
                   </tr></thead>
                   <tbody>
-                    {bloques.map((b) => [
-                      <tr key={`b-${b ?? "x"}`} className="border-b border-line/60"><td colSpan={2} className="px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">{b ? `${cats.find((c) => c.id === b)?.codigo ?? ""} · ${nombreCat(b)}` : "Sin categoría"}</td></tr>,
-                      ...propias.filter((s) => s.categoria_id === b).map((s) => (
+                    {grupos.map((g) => [
+                      <tr key={`b-${g.id ?? "x"}`} className="border-b border-line/60 bg-muted/20">
+                        <td colSpan={2} className="px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
+                          <div className="flex items-center justify-between">
+                            <span>{g.titulo} <span className="font-normal">({g.filas.length})</span></span>
+                            {g.id && (
+                              <button type="button" title="Añadir subcategoría en esta categoría" aria-label={`Añadir subcategoría en ${g.titulo}`}
+                                className="rounded p-0.5 hover:bg-primary/10 hover:text-primary"
+                                onClick={() => { setAviso(""); setForm({ especialidad_id: e.id, categoria_id: g.id!, codigo: "", nombre: "", descripcion: "" }); setModo("nuevo"); }}>
+                                <Plus size={13} />
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>,
+                      ...g.filas.map((s) => (
                         <tr key={s.id} onClick={() => setSel(s)} onDoubleClick={() => { setSel(s); abrir("editar", s); }}
                           className={`cursor-pointer border-b border-line/60 hover:bg-muted/40 ${sel?.id === s.id ? "bg-primary/10" : ""}`}>
-                          <td className="whitespace-nowrap px-2 py-0.5 font-mono">{s.codigo}</td>
+                          <td className="whitespace-nowrap px-2 py-0.5 pl-4 font-mono">{s.codigo}</td>
                           <td className="w-full px-2 py-0.5"><Resaltar texto={s.nombre} termino={busqueda} />{s.descripcion && <span className="ml-2 text-muted-foreground">{s.descripcion}</span>}</td>
                         </tr>
                       )),
@@ -103,6 +134,8 @@ export function HojaSubfamilias() {
         <BotonIcono etiqueta="Agregar nueva subcategoría" title="Agregar nueva subcategoría" tono="primario" onClick={() => abrir("nuevo")}><Plus size={15} /></BotonIcono>
         <BotonIcono etiqueta="Editar subcategoría" title="Editar subcategoría" disabled={!sel} onClick={() => abrir("editar")}><Pencil size={15} /></BotonIcono>
         <BotonIcono etiqueta="Copiar subcategoría" title="Copiar subcategoría" disabled={!sel} onClick={() => abrir("copiar")}><Copy size={15} /></BotonIcono>
+        <BotonIcono etiqueta="Subir subcategoría" title="Subir subcategoría" disabled={!sel || pos <= 0} onClick={() => mover(-1)}><ChevronUp size={15} /></BotonIcono>
+        <BotonIcono etiqueta="Bajar subcategoría" title="Bajar subcategoría" disabled={!sel || pos < 0 || pos >= hermanos.length - 1} onClick={() => mover(1)}><ChevronDown size={15} /></BotonIcono>
         <BotonIcono etiqueta="Eliminar subcategoría" title="Eliminar subcategoría" tono="peligro" disabled={!sel} onClick={quitar}><Trash2 size={15} /></BotonIcono>
       </div>
 

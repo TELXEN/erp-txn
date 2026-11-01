@@ -7242,6 +7242,10 @@ export type Database = {
         Args: { _direccion: number; _id: string; _tabla: string }
         Returns: undefined
       }
+      mover_subcategoria: {
+        Args: { _direccion: number; _id: string }
+        Returns: undefined
+      }
       movimiento_bancario: {
         Args: { _fila: Json; _tabla: string }
         Returns: {
@@ -7274,6 +7278,10 @@ export type Database = {
       }
       recibir_transferencia: {
         Args: { _fecha: string; _transferencia: string }
+        Returns: undefined
+      }
+      recodificar_insumos_subcategoria: {
+        Args: { _nuevo: string; _sub: string }
         Returns: undefined
       }
       recodificar_wbs: { Args: never; Returns: undefined }
