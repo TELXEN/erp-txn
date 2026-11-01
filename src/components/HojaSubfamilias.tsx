@@ -7,6 +7,7 @@ import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
 import { useCategoriasInsumo, useSubfamilias, type Subfamilia } from "@/lib/codigo-insumo";
 import { claveNombre } from "@/lib/formato-texto";
+import { numerarSubcategorias } from "@/lib/orden-subcategorias";
 
 type Form = { especialidad_id: string; categoria_id: string; codigo: string; nombre: string; descripcion: string };
 
@@ -36,20 +37,18 @@ export function HojaSubfamilias() {
   }
 
   async function guardar() {
-    const codigo = form.codigo.trim(), nombre = form.nombre.trim();
+    const nombre = form.nombre.trim();
     if (!form.especialidad_id) return setAviso("Elige la especialidad.");
-    if (!/^\d{2}$/.test(codigo)) return setAviso("El código debe tener 2 dígitos (01–99).");
     if (!form.categoria_id) return setAviso("Elige la categoría.");
     if (!nombre) return setAviso("Escribe el nombre.");
     const mismas = subs.filter((s) => s.especialidad_id === form.especialidad_id && !(modo === "editar" && s.id === sel?.id));
-    if (mismas.some((s) => s.codigo === codigo)) return setAviso(`El código ${codigo} ya existe en esta especialidad.`);
     if (mismas.some((s) => claveNombre(s.nombre) === claveNombre(nombre))) return setAviso(`La subcategoría «${nombre}» ya existe.`);
-    const d = { especialidad_id: form.especialidad_id, categoria_id: form.categoria_id, codigo, nombre, descripcion: form.descripcion.trim() || null };
+    const d = { especialidad_id: form.especialidad_id, categoria_id: form.categoria_id, nombre, descripcion: form.descripcion.trim() || null };
     const { error } = modo === "editar" && sel
       ? await supabase.from("subfamilias_insumo").update(d).eq("id", sel.id)
-      : await supabase.from("subfamilias_insumo").insert(d);
+      : await supabase.from("subfamilias_insumo").insert({ ...d, codigo: "00" });
     if (error) return setAviso(error.message);
-    refrescar(); setModo(null);
+    qc.invalidateQueries(); setModo(null);
   }
 
   async function quitar() {
@@ -105,11 +104,10 @@ export function HojaSubfamilias() {
                           <div className="flex items-center justify-between">
                             <span>{g.titulo} <span className="font-normal">({g.filas.length})</span></span>
                             {g.id && (
-                              <button type="button" title="Añadir subcategoría en esta categoría" aria-label={`Añadir subcategoría en ${g.titulo}`}
-                                className="rounded p-0.5 hover:bg-primary/10 hover:text-primary"
-                                onClick={() => { setAviso(""); setForm({ especialidad_id: e.id, categoria_id: g.id!, codigo: "", nombre: "", descripcion: "" }); setModo("nuevo"); }}>
+                              <BotonIcono etiqueta={`Añadir subcategoría en ${g.titulo}`} title="Añadir subcategoría en esta categoría"
+                                onClick={() => { if (!g.id) return; setAviso(""); setForm({ especialidad_id: e.id, categoria_id: g.id, codigo: "", nombre: "", descripcion: "" }); setModo("nuevo"); }}>
                                 <Plus size={13} />
-                              </button>
+                              </BotonIcono>
                             )}
                           </div>
                         </td>
@@ -154,7 +152,10 @@ export function HojaSubfamilias() {
             </Select>
           </Campo>
           <Campo etiqueta="Código (2 dígitos)">
-            <Input maxLength={2} value={form.codigo} onChange={(e) => setForm({ ...form, codigo: e.target.value.replace(/\D/g, "") })} />
+            <Input readOnly value={modo === "editar" ? subs.find((s) => s.id === sel?.id)?.codigo ?? "" : numerarSubcategorias([
+              ...subs.filter((s) => s.especialidad_id === form.especialidad_id),
+              { id: "nuevo", especialidad_id: form.especialidad_id, categoria_id: form.categoria_id, codigo: "99" },
+            ].slice(0, 99), cats).find((s) => s.id === "nuevo")?.codigo ?? ""} />
           </Campo>
           <Campo etiqueta="Nombre">
             <Input autoFocus value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} />
