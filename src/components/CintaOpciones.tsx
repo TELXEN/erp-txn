@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, ChevronUp, PanelLeft, Rows2, Rows3 } from "lucide-react";
+import { ChevronDown, Maximize2, Minimize2, PanelLeft, Rows2, Rows3 } from "lucide-react";
 
 export type ModoNavegacion = "lateral" | "simplificada" | "clasica";
 export type ItemCinta = { a: string; texto: string; icono: React.ElementType; hijos?: ItemCinta[] };
@@ -35,9 +35,9 @@ function SelectorModo({ modo, onModo, contraida, onContraer }: {
   return (
     <div ref={ref} className="relative flex items-center gap-1">
       {modo !== "lateral" && (
-        <button type="button" onClick={onContraer} title={contraida ? "Mostrar cinta" : "Contraer cinta"} aria-label={contraida ? "Mostrar cinta" : "Contraer cinta"}
+        <button type="button" onClick={onContraer} title={contraida ? "Expandir cinta" : "Contraer cinta"} aria-label={contraida ? "Expandir cinta" : "Contraer cinta"}
           className="grid size-7 place-items-center rounded-md text-sidebar-muted hover:bg-sidebar-hover hover:text-sidebar-foreground">
-          {contraida ? <ChevronDown className="size-4" /> : <ChevronUp className="size-4" />}
+          {contraida ? <Maximize2 className="size-4" /> : <Minimize2 className="size-4" />}
         </button>
       )}
       <button type="button" onClick={() => setAbierto((v) => !v)} title="Opciones de navegación" aria-label="Opciones de navegación" aria-expanded={abierto}
