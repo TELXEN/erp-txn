@@ -63,3 +63,4 @@
 - Insumos: public.insumos is the only item row; type views are INSTEAD-OF over it (EPP extras in insumos_atributos_epp). Ficha-only fields go straight to insumos; cascade especialidad→categorias_insumo→subfamilias_insumo; approvals/history via aprobar_insumo/ficha_insumo RPCs — one code, one rule source.
 - Category alphabetical order is shared through orden-categorias.ts/useCategoriasInsumo; database triggers assign consecutive codes per specialty on changes, while forms only preview them and ID links remain stable.
 - Subdirectories have their own AGENTS.md (e.g. src/routes); read it before changing files there.
+- Subcategory order/codes change only via mover_subcategoria (swaps codes within a category, recodes insumos' SS); delete triggers block categories with subcategories and subcategories with insumos — codes stay consistent.
