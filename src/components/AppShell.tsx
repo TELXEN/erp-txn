@@ -423,27 +423,50 @@ export function AppShell({ children }: { children: ReactNode }) {
             onModo={cambiarModo}
             distintivo={(a) => (a === "/aprobaciones" ? pendientesAprobacion : 0)}
             logo={<span className="mr-1 grid size-6 shrink-0 place-items-center rounded bg-cta font-mono text-[10px] font-bold text-cta-foreground" title="ERP TELXEN SAC">TXN</span>}
+            usuario={
+              <div className="ml-auto flex items-center gap-2 pl-2">
+                <span className="grid size-6 place-items-center rounded-full bg-cta text-[10px] font-semibold text-cta-foreground">
+                  {iniciales}
+                </span>
+                <div className="hidden leading-tight lg:block">
+                  <p className="text-[11px] font-semibold">{nombre || email}</p>
+                  <p className="font-mono text-[9px] uppercase tracking-wide text-sidebar-muted">
+                    {rol ? ETIQUETA_ROL[rol] : "Sin rol"}
+                  </p>
+                </div>
+                <button
+                  onClick={cerrarSesion}
+                  className="rounded-md border border-sidebar-border px-2.5 py-1 font-mono text-[11px] text-sidebar-foreground transition-colors hover:border-primary hover:bg-primary hover:text-primary-foreground"
+                >
+                  Cerrar Sesión
+                </button>
+              </div>
+            }
           />
         )}
         <header className="no-print sticky top-0 z-20 flex min-h-12 shrink-0 items-center gap-3 border-b border-brand bg-brand px-4 py-1.5 text-brand-foreground">
           <div ref={setRanura} className="flex min-w-0 flex-1 items-center" />
-          <div className="flex items-center gap-2">
-            <span className="grid size-7 place-items-center rounded-full bg-cta text-xs font-semibold text-cta-foreground">
-              {iniciales}
-            </span>
-            <div className="hidden leading-tight sm:block">
-              <p className="text-xs font-semibold">{nombre || email}</p>
-              <p className="font-mono text-[10px] uppercase tracking-wide text-brand-foreground/70">
-                {rol ? ETIQUETA_ROL[rol] : "Sin rol"}
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={cerrarSesion}
-            className="rounded-md border border-brand-foreground/25 px-3 py-1.5 font-mono text-xs text-brand-foreground transition-colors hover:border-primary hover:bg-primary hover:text-primary-foreground"
-          >
-            Cerrar Sesión
-          </button>
+          {!conCinta && (
+            <>
+              <div className="flex items-center gap-2">
+                <span className="grid size-7 place-items-center rounded-full bg-cta text-xs font-semibold text-cta-foreground">
+                  {iniciales}
+                </span>
+                <div className="hidden leading-tight sm:block">
+                  <p className="text-xs font-semibold">{nombre || email}</p>
+                  <p className="font-mono text-[10px] uppercase tracking-wide text-brand-foreground/70">
+                    {rol ? ETIQUETA_ROL[rol] : "Sin rol"}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={cerrarSesion}
+                className="rounded-md border border-brand-foreground/25 px-3 py-1.5 font-mono text-xs text-brand-foreground transition-colors hover:border-primary hover:bg-primary hover:text-primary-foreground"
+              >
+                Cerrar Sesión
+              </button>
+            </>
+          )}
           <BotonPantallaCompleta />
           {!conCinta && <div className="hidden md:block [&_button]:text-brand-foreground/80"><SelectorModoLateral modo={modoNav} onModo={cambiarModo} /></div>}
         </header>
