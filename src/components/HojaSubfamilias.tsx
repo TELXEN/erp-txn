@@ -109,7 +109,7 @@ export function HojaSubfamilias() {
                         <tr key={s.id} onClick={() => setSel(s)} onDoubleClick={() => { setSel(s); abrir("editar", s); }}
                           className={`cursor-pointer border-b border-line/60 hover:bg-muted/40 ${sel?.id === s.id ? "bg-primary/10" : ""}`}>
                           <td className="whitespace-nowrap px-2 py-0.5 pl-4 font-mono">{s.codigo}</td>
-                          <td className="w-full px-2 py-0.5"><Resaltar texto={s.nombre} termino={busqueda} />{s.descripcion && <span className="ml-2 text-muted-foreground">{s.descripcion}</span>}</td>
+                          <td className="w-full px-2 py-0.5"><Resaltar texto={s.nombre} termino={busqueda} /></td>
                         </tr>
                       )),
                     ])}
@@ -157,7 +157,7 @@ export function HojaSubfamilias() {
                 onChange={(e) => setForm({ ...form, descripcion: e.target.value })}
               />
               <span className="mt-1 block text-[11px] leading-snug text-muted-foreground">
-                Guía que se ve en gris junto al nombre y al recorrer la lista de subcategorías. Sirve para complementar, cambiar o dejar vacío para quitarlo.
+                No se muestra en el listado; aparece en el campo Comentario al registrar un insumo con esta subcategoría. Déjalo vacío para quitarlo.
               </span>
             </Campo>
           </div>

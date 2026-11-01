@@ -309,7 +309,15 @@ export function VentanaInsumo({
             <option value="">{!form.categoria_id ? "Elige primero la categoría" : tipo === "materiales" ? "— Elegir —" : "Sin subcategoría (00)"}</option>
             {subfamilias.filter((s) => s.categoria_id === form.categoria_id && (s.activo || s.id === form.subfamilia_id)).map((s) => <option key={s.id} value={s.id}>{s.codigo} · {s.nombre}</option>)}
           </Select>
-          {(() => { const n = subfamilias.find((s) => s.id === form.subfamilia_id)?.descripcion; return n ? <p className="mt-1 rounded-md bg-nota px-2 py-1 text-[11px] text-muted-foreground">{n}</p> : null; })()}
+        </Campo>
+      )}
+      {conSubfamilia && (() => { const n = subfamilias.find((s) => s.id === form.subfamilia_id)?.descripcion; return n ? (
+        <Campo etiqueta="Comentario">
+          <p className="min-h-8 whitespace-pre-wrap rounded-md border bg-nota px-2 py-1.5 text-xs text-muted-foreground">{n}</p>
+        </Campo>
+      ) : null; })()}
+      {false && (
+        <Campo etiqueta="">
         </Campo>
       )}
       <p className="text-[11px] text-muted-foreground sm:col-span-2">Código: <span className="font-mono">{form.codigo && modo === "editar" ? form.codigo : "se genera al guardar"}</span> (tipo + especialidad + subcategoría o 00 + correlativo).</p>
