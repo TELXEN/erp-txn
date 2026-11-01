@@ -33,7 +33,7 @@ function SelectorModo({ modo, onModo, contraida, onContraer }: {
     { m: "lateral", t: "Menú lateral", I: PanelLeft },
   ];
   return (
-    <div ref={ref} className="relative ml-auto flex items-center gap-1">
+    <div ref={ref} className="relative flex items-center gap-1">
       {modo !== "lateral" && (
         <button type="button" onClick={onContraer} title={contraida ? "Mostrar cinta" : "Contraer cinta"} aria-label={contraida ? "Mostrar cinta" : "Contraer cinta"}
           className="grid size-7 place-items-center rounded-md text-sidebar-muted hover:bg-sidebar-hover hover:text-sidebar-foreground">
