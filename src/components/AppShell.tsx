@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 
 const RanuraEncabezado = createContext<HTMLElement | null>(null);
 import { FormatoGlobal } from "@/components/FormatoGlobal";
+import { CintaOpciones, SelectorModoLateral, type ModoNavegacion } from "@/components/CintaOpciones";
 import { ReciboCodigoBarras, NominaBoletas } from "@/components/icons";
 import { Calculator, ChevronDown, PanelLeftClose, PanelLeftOpen, Maximize2, Minimize2 } from "lucide-react";
 
@@ -244,6 +245,18 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [abierta, setAbierta] = useState<string | null>(null);
   const [ranura, setRanura] = useState<HTMLDivElement | null>(null);
   const [colapsado, setColapsado] = useState(false);
+  const [modoNav, setModoNav] = useState<ModoNavegacion>("lateral");
+  useEffect(() => {
+    try {
+      const m = window.localStorage.getItem("erp-telxen-navegacion");
+      if (m === "simplificada" || m === "clasica" || m === "lateral") setModoNav(m);
+    } catch { /* */ }
+  }, []);
+  function cambiarModo(m: ModoNavegacion) {
+    setModoNav(m);
+    try { window.localStorage.setItem("erp-telxen-navegacion", m); } catch { /* */ }
+  }
+  const conCinta = modoNav !== "lateral";
   useEffect(() => {
     try { setColapsado(window.localStorage.getItem("erp-telxen-sidebar-colapsado") === "1"); } catch { /* */ }
   }, []);
@@ -295,9 +308,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className={`min-h-screen w-full text-ink md:h-screen md:overflow-hidden ${colapsado ? "md:[--app-sidebar-width:56px]" : "md:[--app-sidebar-width:236px]"}`}>
+    <div className={`min-h-screen w-full text-ink md:h-screen md:overflow-hidden ${conCinta ? "md:[--app-sidebar-width:0px]" : colapsado ? "md:[--app-sidebar-width:56px]" : "md:[--app-sidebar-width:236px]"}`}>
       <FormatoGlobal />
-      <aside className="no-print flex min-h-full flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground md:fixed md:inset-y-0 md:left-0 md:z-30 md:h-screen md:min-h-0 md:w-[var(--app-sidebar-width)] md:overflow-hidden">
+      <aside className={`no-print ${conCinta ? "hidden" : "flex"} min-h-full flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground md:fixed md:inset-y-0 md:left-0 md:z-30 md:h-screen md:min-h-0 md:w-[var(--app-sidebar-width)] md:overflow-hidden`}>
         <div className={`flex h-12 shrink-0 items-center gap-2.5 border-b border-sidebar-border ${colapsado ? "justify-center px-2" : "px-5"}`}>
           <span className="grid size-8 shrink-0 place-items-center rounded-md bg-cta font-mono text-sm font-bold text-cta-foreground">
             TXN
@@ -402,6 +415,16 @@ export function AppShell({ children }: { children: ReactNode }) {
       </aside>
 
       <div className="flex min-h-screen min-w-0 flex-col md:ml-[var(--app-sidebar-width)] md:h-screen md:min-h-0 md:w-[calc(100%-var(--app-sidebar-width))] md:overflow-hidden">
+        {conCinta && (
+          <CintaOpciones
+            categorias={categorias}
+            pathname={pathname}
+            modo={modoNav as "simplificada" | "clasica"}
+            onModo={cambiarModo}
+            distintivo={(a) => (a === "/aprobaciones" ? pendientesAprobacion : 0)}
+            logo={<span className="mr-1 grid size-6 shrink-0 place-items-center rounded bg-cta font-mono text-[10px] font-bold text-cta-foreground" title="ERP TELXEN SAC">TXN</span>}
+          />
+        )}
         <header className="no-print sticky top-0 z-20 flex min-h-12 shrink-0 items-center gap-3 border-b border-brand bg-brand px-4 py-1.5 text-brand-foreground">
           <div ref={setRanura} className="flex min-w-0 flex-1 items-center" />
           <div className="flex items-center gap-2">
@@ -422,6 +445,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             Cerrar Sesión
           </button>
           <BotonPantallaCompleta />
+          {!conCinta && <div className="hidden md:block [&_button]:text-brand-foreground/80"><SelectorModoLateral modo={modoNav} onModo={cambiarModo} /></div>}
         </header>
 
         <main className="min-w-0 flex-1 px-3 py-3 sm:px-4 md:min-h-0 md:overflow-y-auto md:overscroll-contain"><div className="mx-auto h-full w-full max-w-[1600px]"><RanuraEncabezado.Provider value={ranura}>{children}</RanuraEncabezado.Provider></div></main>
