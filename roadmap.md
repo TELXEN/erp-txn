@@ -116,3 +116,4 @@
 - [x] Subcategorías con correlativo continuo por especialidad y grupos A–Z; altas, movimientos, borrado y recarga comprobados, cuatro pruebas pasan y registros temporales retirados.
 - [x] Completar especialidad y subfamilia desde la propia hoja (captura del usuario): columna Especialidad, selectores buscables, código TEESSNNN regenerado; verificado creando y borrando una ficha de prueba.
 - [x] Subcontratos sin subfamilia: columna fuera del maestro, código forzado a 00 y regla en la base; verificado en pantalla.
+- [x] Cinta de opciones estilo Office (clásica y simplificada) con selector «Diseño», contraer cinta y opción de volver al menú lateral; ambas verificadas en pantalla.
