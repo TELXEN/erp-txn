@@ -106,8 +106,8 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
   const grupos = cat?.items.filter((m) => m.hijos) ?? [];
 
   return (
-    <div className="no-print shrink-0 border-b border-sidebar-border bg-sidebar text-sidebar-foreground">
-      <div className="flex h-9 items-center gap-1 px-2">
+    <div className="no-print shrink-0 border-b border-sidebar-border bg-sidebar-cinta-inf text-sidebar-foreground">
+      <div className="flex h-9 items-center gap-1 bg-sidebar-cinta-sup px-2">
         {logo}
         <nav className="flex min-w-0 items-center gap-0.5 overflow-x-auto" role="tablist">
           {categorias.map((c) => {
@@ -127,7 +127,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
       </div>
       {!contraida && cat && (
         modo === "simplificada" ? (
-          <div className="flex h-11 items-center gap-1 overflow-x-auto border-t border-sidebar-border bg-sidebar-panel px-2">
+          <div className="flex h-11 items-center gap-1 overflow-x-auto border-t border-sidebar-border bg-sidebar-cinta-inf px-2">
             {simples.map(boton)}
             {grupos.map((g) => (
               <div key={g.a} className="flex items-center gap-1 border-l border-sidebar-border pl-1">
@@ -136,7 +136,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
             ))}
           </div>
         ) : (
-          <div className="flex items-stretch overflow-x-auto border-t border-sidebar-border bg-sidebar-panel px-2 pt-1">
+          <div className="flex items-stretch overflow-x-auto border-t border-sidebar-border bg-sidebar-cinta-inf px-2 pt-1">
             {[{ titulo: CORTO[cat.titulo] ?? cat.titulo, items: simples }, ...grupos.map((g) => ({ titulo: g.texto, items: g.hijos! }))]
               .filter((g) => g.items.length)
               .map((g, i) => (
