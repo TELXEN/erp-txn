@@ -62,9 +62,10 @@ export function SelectorModoLateral(props: { modo: ModoNavegacion; onModo: (m: M
   return <SelectorModo {...props} contraida={false} onContraer={() => {}} />;
 }
 
-export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, logo }: {
+export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, logo, usuario }: {
   categorias: CategoriaCinta[]; pathname: string; modo: Exclude<ModoNavegacion, "lateral">;
   onModo: (m: ModoNavegacion) => void; distintivo: (a: string) => number; logo: React.ReactNode;
+  usuario?: React.ReactNode;
 }) {
   const activa = categorias.find((c) => contiene(c, pathname))?.titulo ?? categorias[0]?.titulo;
   const [pestana, setPestana] = useState(activa);
