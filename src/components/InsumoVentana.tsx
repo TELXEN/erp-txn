@@ -316,10 +316,6 @@ export function VentanaInsumo({
           <p className="min-h-8 whitespace-pre-wrap rounded-md border bg-nota px-2 py-1.5 text-xs text-muted-foreground">{n}</p>
         </Campo>
       ) : null; })()}
-      {false && (
-        <Campo etiqueta="">
-        </Campo>
-      )}
       <p className="text-[11px] text-muted-foreground sm:col-span-2">Código: <span className="font-mono">{form.codigo && modo === "editar" ? form.codigo : "se genera al guardar"}</span> (tipo + especialidad + subcategoría o 00 + correlativo).</p>
       {CONFIG[tipo].campos.filter((c) => c.k !== "codigo" && (!c.soloSi || c.soloSi(form))).map((c) => (
         <Campo key={c.k} etiqueta={c.t}>
