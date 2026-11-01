@@ -33,7 +33,7 @@ function SelectorModo({ modo, onModo, contraida, onContraer }: {
     { m: "lateral", t: "Menú lateral", I: PanelLeft },
   ];
   return (
-    <div ref={ref} className="relative ml-auto flex items-center gap-1">
+    <div ref={ref} className="relative flex items-center gap-1">
       {modo !== "lateral" && (
         <button type="button" onClick={onContraer} title={contraida ? "Mostrar cinta" : "Contraer cinta"} aria-label={contraida ? "Mostrar cinta" : "Contraer cinta"}
           className="grid size-7 place-items-center rounded-md text-sidebar-muted hover:bg-sidebar-hover hover:text-sidebar-foreground">
@@ -62,9 +62,10 @@ export function SelectorModoLateral(props: { modo: ModoNavegacion; onModo: (m: M
   return <SelectorModo {...props} contraida={false} onContraer={() => {}} />;
 }
 
-export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, logo }: {
+export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, logo, usuario }: {
   categorias: CategoriaCinta[]; pathname: string; modo: Exclude<ModoNavegacion, "lateral">;
   onModo: (m: ModoNavegacion) => void; distintivo: (a: string) => number; logo: React.ReactNode;
+  usuario?: React.ReactNode;
 }) {
   const activa = categorias.find((c) => contiene(c, pathname))?.titulo ?? categorias[0]?.titulo;
   const [pestana, setPestana] = useState(activa);
@@ -121,6 +122,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
             );
           })}
         </nav>
+        {usuario}
         <SelectorModo modo={modo} onModo={onModo} contraida={contraida} onContraer={alternarContraer} />
       </div>
       {!contraida && cat && (
