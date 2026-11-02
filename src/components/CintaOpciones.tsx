@@ -295,6 +295,11 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
   useEffect(() => { setPestana(activa); }, [activa]);
   // Las acciones de la pantalla abierta se muestran siempre a la derecha de la cinta, junto a los botones de su categoría.
   const enCtx = !!contextual && pestana === activa;
+  /** Con una pantalla propia abierta (p. ej. una cotización), la cinta muestra solo su categoría. */
+  const solo = enCtx ? contextual?.solo : undefined;
+  const categoriasVistas = solo
+    ? categorias.filter((c) => c.items.some((m) => solo.includes(m.a) || m.rutas?.some((r) => solo.includes(r))))
+    : categorias;
   const alternarContraer = () => setContraida((v) => { try { localStorage.setItem("erp-telxen-cinta-contraida", v ? "0" : "1"); } catch { /* */ } return !v; });
   const enInicio = pestana === INICIO;
   const clicPestana = (t: string) => {
@@ -414,7 +419,6 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
   };
   const buscar = (a: string) => plano.find((m) => m.a === a);
   /** Con una pantalla propia abierta (p. ej. una cotización), la categoría muestra solo los botones que conserva. */
-  const solo = enCtx ? contextual?.solo : undefined;
   // Los botones conservados pierden sus opciones laterales (p. ej. APU y Plantillas junto a Cotizaciones).
   const itemsVistos = cat && solo && cat.items.some((m) => solo.includes(m.a))
     ? cat.items.filter((m) => solo.includes(m.a)).map(({ sub, subGrupos, ...r }) => r)
@@ -439,7 +443,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
       <div className="cinta-barra flex h-9 items-center gap-1 bg-cinta-pestanas px-2 text-cinta-texto">
         {logo}
         <nav className="flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" role="tablist">
-          {categorias.map((c) => {
+          {categoriasVistas.map((c) => {
             const sel = c.titulo === pestana;
             return (
               <button key={c.titulo} type="button" role="tab" aria-selected={sel}
