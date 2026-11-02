@@ -85,7 +85,7 @@ function Manual() {
             ["Abastecer", "Genere el requerimiento desde obra; el gerente lo aprueba, la bandeja de cotizaciones de proveedores produce la orden de compra y el almacén la recibe."],
             ["Controlar el dinero", "En Finanzas revise costos directos y generales, caja y bancos, cuentas por cobrar y por pagar, préstamos y el flujo de caja."],
             ["Pagar al personal", "En Personal valide las boletas de pago y los recibos por honorarios, y liquide beneficios sociales: AFP, CTS, gratificaciones y liquidaciones."],
-            ["Mantener los catálogos", "En Datos y en Inicio estão los parámetros que alimentan todo lo anterior: codificación, unidades, especialidades, insumos y márgenes de APU."],
+            ["Mantener los catálogos", "En Datos y en Inicio están los parámetros que alimentan todo lo anterior: codificación, unidades, especialidades, insumos y márgenes de APU."],
           ].map(([t, d], i) => (
             <li key={t} className="flex gap-3">
               <span className="grid size-6 shrink-0 place-items-center rounded-full bg-primary/10 font-mono text-[11px] font-bold text-primary">{i + 1}</span>
