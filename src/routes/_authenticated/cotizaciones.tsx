@@ -10,25 +10,20 @@ import { BotonGrande, BotonPequeno, Columna, GrupoVista } from "@/components/cot
 import { Building2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ApuBanco, ORIGEN_COTIZACION } from "@/components/ApuCotizacion";
-import { dbBanco, guardarPartidaEnBanco, useCatalogoCotizacion } from "@/lib/banco-apu";
-import { AutoMaestra } from "@/components/CotizacionHoja";
+import { dbBanco } from "@/lib/banco-apu";
 import { HojaNiveles } from "@/components/cotizaciones/HojaNiveles";
 import { PanelApuCotizacion, ResumenCotizacion } from "@/components/cotizaciones/PanelApuCotizacion";
 import { HojaCotizacion } from "@/components/cotizaciones/HojaCotizacion";
 
-import { Boton, BotonIcono, Campo, Etiqueta, Input, MenuFiltros, Panel, Select, SinAcceso, TarjetaResumen, Vacio, VentanaFlotante } from "@/components/ui-kit";
+import { Boton, BotonIcono, Etiqueta, MenuFiltros, Panel, SinAcceso, TarjetaResumen, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { cn } from "@/lib/utils";
 import { useTipoCambioActual } from "@/lib/cotizaciones";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
-import { useEspecialidadesPartida } from "@/lib/especialidades";
 import {
   agruparPorCategoria,
-  categoriasDe,
-  codigoContextual,
   prefijosWBS,
   cambiosNumeracion,
-  useCategoriasPartida,
 } from "@/lib/categorias";
 import { useUnidadesMedida } from "@/lib/unidades";
 import { generarCodigoProyecto } from "@/lib/codificacion";
@@ -46,7 +41,6 @@ import {
   usePlantillasCotizacion,
   ESTADOS_COTIZACION,
   generarCodigoCotizacion,
-  precioMaestroEnMoneda,
   previsualizarCodigoCotizacion,
   simboloMoneda,
   totalesCotizacion,
@@ -58,7 +52,7 @@ import {
   type CotizacionItem,
   type EstadoCotizacion,
 } from "@/lib/cotizaciones";
-import { Check, Calculator, ChevronDown, CornerDownRight, Upload, FileSpreadsheet, X, Eye, EyeOff, Trash2, ArrowLeft, Library, Plus, Pencil, Copy, FileText, History, Receipt, RotateCcw } from "lucide-react";
+import { Check, Calculator, ChevronDown, CornerDownRight, Upload, FileSpreadsheet, Eye, EyeOff, Trash2, ArrowLeft, Library, Plus, Pencil, Copy, FileText, History, Receipt, RotateCcw } from "lucide-react";
 import { GastosGeneralesCotizacion } from "@/components/cotizaciones/GastosGeneralesCotizacion";
 
 export const Route = createFileRoute("/_authenticated/cotizaciones")({
@@ -94,11 +88,7 @@ function Cotizaciones() {
   const { data: cotizaciones = [] } = useCotizaciones();
   /** Una fila por código: la revisión más reciente de cada cotización. */
   const vigentes = ultimasRevisiones(cotizaciones);
-  const { data: especialidades = [] } = useEspecialidadesPartida();
   const { data: unidades = [] } = useUnidadesMedida();
-  // Catálogo de la cotización: partidas del Banco APU con su P.U. calculado desde la receta.
-  const maestras = useCatalogoCotizacion();
-  const { data: categorias = [] } = useCategoriasPartida();
   const { data: clientes = [] } = useQuery({
     queryKey: ["terceros", "clientes-activos"],
     queryFn: async () => {
@@ -178,24 +168,8 @@ function Cotizaciones() {
     condiciones_pago: "50% adelanto.\n50% contra entrega.",
     aplica_igv: "si",
   });
-
-  const [maestraSel, setMaestraSel] = useState("");
-  const [item, setItem] = useState({
-    codigo: "",
-    nombre: "",
-    especialidad: "",
-    categoria: "",
-    marca: "",
-    unidad: "GLB",
-    metrado: "1",
-    precio_unitario: "",
-  });
-
-  /** Código contextual de la cotización: capítulo y categoría según lo ya agregado. */
-  const sugerirCodigo = (especialidad: string, categoria = "") =>
-    codigoContextual(especialidad, categoria, items);
-
   const cot = cotizaciones.find((c) => c.id === seleccion) ?? null;
+
   const totales = cot
     ? totalesCotizacion(items, Number(cot.pct_gastos_generales), Number(cot.pct_utilidad))
     : null;
@@ -228,7 +202,6 @@ function Cotizaciones() {
   const [apu, setApu] = useState<(typeof items)[number] | null>(null);
 
   const [pestana, setPestana] = useState<"Todas" | EstadoCotizacion | "En Obra">("Todas");
-  const [verCatalogo, setVerCatalogo] = useState(false);
   const { data: totalesLista = {} } = useQuery({
     queryKey: ["cotizacion_items", "totales", cotizaciones.map((c) => `${c.id}:${c.pct_gastos_generales}:${c.pct_utilidad}`).join(",")],
     enabled: cotizaciones.length > 0,
@@ -298,7 +271,6 @@ function Cotizaciones() {
         if (err.code === "23505") throw new Error("Ese código ya está asignado a otra cotización.");
         throw err;
       }
-      setVerCatalogo(false);
       qc.invalidateQueries({ queryKey: ["cotizaciones"] });
       setPidiendoMoneda(false);
       setMonedaNueva("");
@@ -309,66 +281,6 @@ function Cotizaciones() {
     }
   }
 
-  async function agregarItem(e: React.FormEvent) {
-    e.preventDefault();
-    if (!cot) return;
-    setError("");
-    const { error: err } = await supabase.from("cotizacion_items").insert({
-      cotizacion_id: cot.id,
-      codigo: item.codigo.trim() || sugerirCodigo(item.especialidad, item.categoria),
-      nombre: item.nombre.trim(),
-      especialidad: item.especialidad,
-      categoria: item.categoria,
-      marca: item.marca.trim(),
-      unidad: item.unidad,
-      metrado: Number(item.metrado || 0),
-      precio_unitario: Number(item.precio_unitario || 0),
-      orden: items.length + 1,
-      partida_apu_id: maestraSel && maestraSel !== "manual" ? maestraSel : null,
-    });
-    if (err) return setError(err.message);
-    setMaestraSel("");
-    setItem({ ...item, codigo: "", nombre: "", marca: "", metrado: "1", precio_unitario: "" });
-    qc.invalidateQueries({ queryKey: ["cotizacion_items", cot.id] });
-  }
-
-  function cargarMaestraEnFormulario(m: { id: string; codigo: string; nombre: string; especialidad: string; categoria?: string; marca?: string; unidad: string; precio_unitario: number }, metrado: string) {
-    if (!cot) return;
-    setError("");
-    try {
-      setMaestraSel(m.id);
-      setItem({
-        codigo: sugerirCodigo(m.especialidad, m.categoria ?? ""),
-        nombre: m.nombre,
-        especialidad: m.especialidad,
-        categoria: m.categoria ?? "",
-        marca: m.marca ?? "",
-        unidad: m.unidad,
-        metrado,
-        precio_unitario: String(precioMaestroEnMoneda(m.precio_unitario, cot.moneda, cot.tipo_cambio)),
-      });
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "No se pudo convertir el precio de la partida.");
-    }
-  }
-
-  async function guardarEnBanco() {
-    setError("");
-    setAviso("");
-    if (!item.nombre.trim()) return setError("Escribe la descripción antes de guardarla en el banco.");
-    // La partida entra al banco por orden alfabético: el código se asigna solo.
-    const { error: err } = await guardarPartidaEnBanco({
-      codigo_jerarquico: "",
-      descripcion: item.nombre.trim(),
-      especialidad: item.especialidad,
-      unidad: item.unidad,
-      rendimiento_diario: 1,
-      estado: "activo",
-    }, especialidades);
-    if (err) return setError(err);
-    qc.invalidateQueries({ queryKey: ["banco_apu"] });
-    setAviso("Partida guardada en el Banco APU. Define su receta en Datos APU.");
-  }
 
   async function borrarItem(id: string) {
     await supabase.from("cotizacion_items").delete().eq("id", id);
@@ -731,83 +643,6 @@ function Cotizaciones() {
         {error && <p className="mb-2 font-mono text-xs text-bad">{error}</p>}
         {aviso && <p className="mb-2 font-mono text-xs text-good">{aviso}</p>}
 
-        {verCatalogo && (
-          <Panel titulo="Insertar partida desde el catálogo maestro" className="mb-3">
-            <form onSubmit={agregarItem} className="grid gap-3 p-4 sm:grid-cols-6">
-              <div className="sm:col-span-3">
-                <Campo etiqueta="Partida del catálogo">
-                  <Select
-                    value={maestraSel}
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      setMaestraSel(v);
-                      const m = maestras.find((x) => x.id === v);
-                      if (!m) {
-                        setItem({ codigo: "", nombre: "", especialidad: "", categoria: "", marca: "", unidad: item.unidad, metrado: "1", precio_unitario: "" });
-                        return;
-                      }
-                      cargarMaestraEnFormulario(m, "1");
-                    }}
-                  >
-                    <option value="">Elige una partida...</option>
-                    <option value="manual">Partida libre</option>
-                    {maestras.filter((m) => m.activo).map((m) => (
-                      <option key={m.id} value={m.id}>{m.nombre} · {m.unidad} · {soles(Number(m.precio_unitario))}</option>
-                    ))}
-                  </Select>
-                </Campo>
-              </div>
-              <div className="sm:col-span-3">
-                <Campo etiqueta="Descripción">
-                  <AutoMaestra
-                    value={item.nombre}
-                    maestras={maestras}
-                    onChange={(v) => setItem({ ...item, nombre: v })}
-                    onElegir={(m) => {
-                      cargarMaestraEnFormulario(m, item.metrado);
-                    }}
-                    placeholder="Escribe o elige una partida del banco…"
-                    className="w-full rounded-md border border-line bg-card px-2.5 py-1.5 text-[13px] outline-none focus:border-primary"
-                  />
-                </Campo>
-              </div>
-              <Campo etiqueta="Especialidad">
-                <Select value={item.especialidad} onChange={(e) => setItem({ ...item, especialidad: e.target.value, categoria: "", codigo: sugerirCodigo(e.target.value) })}>
-                  <option value="">Selecciona...</option>
-                  {especialidades.filter((e) => e.activo).map((e) => <option key={e.id} value={e.nombre}>{e.nombre}</option>)}
-                </Select>
-              </Campo>
-              <Campo etiqueta="Categoría">
-                <Select value={item.categoria} onChange={(e) => setItem({ ...item, categoria: e.target.value, codigo: sugerirCodigo(item.especialidad, e.target.value) })}>
-                  <option value="">Sin categoría</option>
-                  {categoriasDe(item.especialidad, categorias).map((c) => <option key={c.id} value={c.nombre}>{c.nombre}</option>)}
-                </Select>
-              </Campo>
-              <Campo etiqueta="Código">
-                <Input value={item.codigo} onChange={(e) => setItem({ ...item, codigo: e.target.value })} maxLength={20} />
-              </Campo>
-              <Campo etiqueta="Unidad">
-                <Select value={item.unidad} onChange={(e) => setItem({ ...item, unidad: e.target.value })}>
-                  {item.unidad && !unidades.some((u) => u.activo && u.simbolo === item.unidad) && (
-                    <option value={item.unidad}>{item.unidad}</option>
-                  )}
-                  {unidades.filter((u) => u.activo).map((u) => <option key={u.id} value={u.simbolo}>{u.simbolo} · {u.descripcion}</option>)}
-                </Select>
-              </Campo>
-              <Campo etiqueta="Metrado">
-                <Input type="number" step="0.01" min="0" value={item.metrado} onChange={(e) => setItem({ ...item, metrado: e.target.value })} required />
-              </Campo>
-              <Campo etiqueta={`P. unitario (${simboloMoneda(cot?.moneda)})`}>
-                <Input type="number" step="0.01" min="0" value={item.precio_unitario} onChange={(e) => setItem({ ...item, precio_unitario: e.target.value })} required />
-              </Campo>
-              <div className="flex items-end gap-2 sm:col-span-6">
-                <Boton type="submit">Insertar en la hoja</Boton>
-                <Boton type="button" variante="linea" onClick={guardarEnBanco}>Guardar en el banco</Boton>
-                <Boton type="button" variante="linea" onClick={() => setVerCatalogo(false)}><X size={13} /> Cerrar</Boton>
-              </div>
-            </form>
-          </Panel>
-        )}
 
         <div className="flex flex-col gap-2 bg-muted/60 px-2 py-2 lg:h-auto lg:min-h-0 lg:flex-1 lg:flex-row lg:overflow-hidden lg:pr-1">
           <div className="flex min-h-0 min-w-0 flex-col lg:w-[58%]">
