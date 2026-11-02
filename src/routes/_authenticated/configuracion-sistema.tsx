@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useNavigate } from "@tanstack/react-router";
 import { Encabezado, useEnCinta } from "@/components/AppShell";
-import { GrupoCinta } from "@/components/CintaOpciones";
 import { Building2, Plug, FileText, Scale, ShieldCheck, SlidersHorizontal } from "lucide-react";
 import { CabeceraModulo, Panel, Pestanas } from "@/components/ui-kit";
 import { DatosEmpresaTabs } from "@/components/DatosEmpresaTabs";
@@ -55,16 +54,7 @@ function ConfiguracionSistema() {
         icono={<SlidersHorizontal className="h-5 w-5" />}
       />
       {enCinta ? (
-        <Encabezado titulo="Configuración del Sistema" subtitulo="Sistema › Configuración" acciones={
-          <GrupoCinta titulo="Secciones">
-            {opciones.map((o) => (
-              <button key={o.id} type="button" onClick={() => setPestana(o.id)} aria-pressed={pestana === o.id}
-                className={`flex h-8 items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 text-xs ${pestana === o.id ? "bg-cinta-acento font-semibold text-cinta-acento-foreground" : "text-cinta-texto hover:bg-cinta-hover"}`}>
-                {o.icono}{o.texto}
-              </button>
-            ))}
-          </GrupoCinta>
-        } />
+        <Encabezado titulo="Configuración del Sistema" subtitulo="Sistema › Configuración" />
       ) : (
         <Pestanas etiqueta="Configuración del sistema" valor={pestana} onCambiar={setPestana} variante="boton" opciones={opciones} />
       )}
