@@ -178,3 +178,9 @@
 - [ ] Icono de «Aprobaciones»: la palomita en verde `#029a56`.
 - [ ] Icono de «Valorizaciones»: la palomita en verde `#029a56`.
 - [ ] Icono de «Requerimientos»: el lápiz en azul `#0077b6`.
+- [ ] Icono de «Gantt»: las líneas horizontales en rojo y verde.
+- [ ] Icono de «Curva S»: la línea que dibuja la curva en azul.
+- [ ] Cinta: «Costos Directos» queda como grupo propio (solo).
+- [ ] Iconos de «Cuentas por pagar» en rojo y «Cuentas por cobrar» en verde.
+- [ ] Iconos pequeños de «CTS» en verde, «Gratificaciones» en azul y «Liquidaciones» en rojo.
+- [ ] Icono de «Banco de datos»: el punto y las líneas del centro en azul.
