@@ -91,14 +91,15 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-hover: var(--sidebar-hover);
   --color-sidebar-panel: var(--sidebar-panel);
-  --color-cinta-sup: color-mix(in oklab, var(--sidebar) 88%, var(--cinta-suavizado));
-  --color-cinta-inf: color-mix(in oklab, var(--sidebar) 80%, var(--cinta-suavizado));
+  /* Cinta fija: fondo gris ultra suave con texto e iconos gris oscuro, en todos los temas. */
+  --color-cinta-sup: #ebebeb;
+  --color-cinta-inf: #f5f5f5;
   --color-sidebar-cinta-sup: var(--color-cinta-sup);
   --color-sidebar-cinta-inf: var(--color-cinta-inf);
-  --color-cinta-texto: var(--sidebar-foreground);
-  --color-cinta-tenue: color-mix(in oklab, var(--sidebar-foreground) 85%, var(--sidebar));
-  --color-cinta-hover: color-mix(in oklab, var(--sidebar-foreground) 16%, var(--color-cinta-inf));
-  --color-cinta-borde: color-mix(in oklab, var(--sidebar-foreground) 22%, var(--sidebar));
+  --color-cinta-texto: #333333;
+  --color-cinta-tenue: color-mix(in oklab, #333333 68%, #f5f5f5);
+  --color-cinta-hover: color-mix(in oklab, #333333 10%, #f5f5f5);
+  --color-cinta-borde: color-mix(in oklab, #333333 18%, #f5f5f5);
   --color-cinta-acento: var(--cta);
   --color-cinta-acento-foreground: var(--cta-foreground);
   /* Dorado fijo para iconos que el usuario quiere siempre en ese color, sin importar el tema. */
