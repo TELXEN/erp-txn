@@ -243,9 +243,9 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
     }
     const link = (
       <Link key={m.a} to={m.a} title={`${m.texto} — clic derecho: ${favoritos.includes(m.a) ? "quitar de" : "anclar a"} Inicio`} onContextMenu={(e) => { e.preventDefault(); alternarFav(m.a); }}
-        className={`relative flex min-w-[72px] max-w-[112px] shrink-0 flex-col items-center gap-1 rounded-md px-1 py-1.5 text-center text-[11px] leading-tight ${tono}`}>
+        className={`relative flex w-[72px] shrink-0 flex-col items-center gap-1 rounded-md px-1 py-1.5 text-center text-[11px] leading-tight ${tono}`}>
         <I className="size-6 shrink-0" />
-        <span className="line-clamp-2">{m.texto}</span><Insignia a={m.a} />
+        <span lang="es" className="line-clamp-2 hyphens-auto [hyphenate-limit-chars:6_3_3]">{m.texto}</span><Insignia a={m.a} />
         {favoritos.includes(m.a) && <Star className="absolute left-1 top-1 size-2.5 fill-current text-cinta-acento" />}
       </Link>
     );
