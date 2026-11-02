@@ -331,22 +331,20 @@ function Partidas() {
         subtitulo="Organizadas por proyecto y especialidad"
         acciones={
           <div className="flex flex-wrap items-center gap-1.5">
-            <div className="flex items-center gap-0.5 rounded-md border border-line bg-card p-0.5">
+            <div className="flex items-center gap-1 rounded-md border border-line bg-card p-1">
               <button
                 type="button"
-                title="Tabla"
                 onClick={() => setVista("tabla")}
-                className={`inline-flex items-center rounded px-1.5 py-1 ${vista === "tabla" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-ink"}`}
+                className={`inline-flex items-center gap-1.5 rounded px-2.5 py-1.5 font-mono text-[11px] ${vista === "tabla" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-ink"}`}
               >
-                <Table2 size={13} />
+                <Table2 size={13} /> Tabla
               </button>
               <button
                 type="button"
-                title="Kanban"
                 onClick={() => setVista("kanban")}
-                className={`inline-flex items-center rounded px-1.5 py-1 ${vista === "kanban" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-ink"}`}
+                className={`inline-flex items-center gap-1.5 rounded px-2.5 py-1.5 font-mono text-[11px] ${vista === "kanban" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-ink"}`}
               >
-                <LayoutGrid size={13} />
+                <LayoutGrid size={13} /> Kanban
               </button>
             </div>
             <ImportarExcel />
