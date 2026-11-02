@@ -423,7 +423,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
 
   return (
     <div className="cinta-opciones no-print shrink-0 border-b border-cinta-borde bg-cinta-inf text-cinta-texto">
-      <div className="flex h-9 items-center gap-1 bg-cinta-sup px-2">
+      <div className="cinta-barra flex h-9 items-center gap-1 bg-cinta-pestanas px-2 text-cinta-texto">
         {logo}
         <nav className="flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" role="tablist">
           <button type="button" role="tab" aria-selected={enInicio} title="Favoritos y recientes"
