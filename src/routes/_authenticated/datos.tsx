@@ -4,7 +4,6 @@ import { useRecordado } from "@/lib/recordado";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
-import { GrupoCinta } from "@/components/CintaOpciones";
 import { Boton, Campo, Etiqueta, Input, MenuFiltros, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { Check, Coins, FolderKanban, HardHat, Pencil, Plus, SlidersHorizontal, Trash2, Upload, X } from "lucide-react";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
@@ -129,27 +128,6 @@ function Datos() {
         titulo="Parámetros Generales"
         subtitulo="Catálogos maestros"
         acciones={
-          <>
-      <GrupoCinta titulo="Parámetros"><div className="flex flex-wrap gap-1">
-        {GRUPOS_CONFIG.map((g) => {
-          const Icono = g.icono;
-          const activo = g.items.some(([p]) => p === pestana);
-          return (
-            <Boton
-              key={g.titulo}
-              variante={activo ? "primario" : "linea"}
-              onClick={() => {
-                const primero = g.items[0];
-                if (primero) setPestana(primero[0]);
-                setError("");
-              }}
-            >
-              <Icono size={13} /> {g.titulo}
-            </Boton>
-          );
-        })}
-      </div></GrupoCinta>
-          <GrupoCinta titulo="Exportar">
           <Boton
             variante="linea"
             onClick={() =>
@@ -188,12 +166,29 @@ function Datos() {
           >
             <Upload size={13} /> Exportar a Excel
           </Boton>
-          </GrupoCinta>
-          </>
         }
       />
 
 
+      <div className="mb-3 flex flex-wrap gap-1">
+        {GRUPOS_CONFIG.map((g) => {
+          const Icono = g.icono;
+          const activo = g.items.some(([p]) => p === pestana);
+          return (
+            <Boton
+              key={g.titulo}
+              variante={activo ? "primario" : "linea"}
+              onClick={() => {
+                const primero = g.items[0];
+                if (primero) setPestana(primero[0]);
+                setError("");
+              }}
+            >
+              <Icono size={13} /> {g.titulo}
+            </Boton>
+          );
+        })}
+      </div>
 
       <div className="mb-4 flex flex-wrap items-center gap-5 border-b border-line pb-2">
         {(GRUPOS_CONFIG.find((g) => g.items.some(([p]) => p === pestana)) ?? GRUPOS_CONFIG[0]!).items.map(([p, texto]) => (
