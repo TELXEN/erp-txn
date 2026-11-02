@@ -243,9 +243,9 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
     }
     const link = (
       <Link key={m.a} to={m.a} title={`${m.texto} — clic derecho: ${favoritos.includes(m.a) ? "quitar de" : "anclar a"} Inicio`} onContextMenu={(e) => { e.preventDefault(); alternarFav(m.a); }}
-        className={`relative flex w-[76px] shrink-0 flex-col items-center gap-1 rounded-md px-1 py-1.5 text-center text-[11px] leading-tight ${tono}`}>
+        className={`relative flex w-[72px] shrink-0 flex-col items-center gap-1 rounded-md px-1 py-1.5 text-center text-[11px] leading-tight ${tono}`}>
         <I className="size-6 shrink-0" />
-        <span className="line-clamp-2">{m.texto}</span><Insignia a={m.a} />
+        <span lang="es" className="line-clamp-2 hyphens-auto [hyphenate-limit-chars:6_3_3]">{m.texto}</span><Insignia a={m.a} />
         {favoritos.includes(m.a) && <Star className="absolute left-1 top-1 size-2.5 fill-current text-cinta-acento" />}
       </Link>
     );
@@ -277,7 +277,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
         const sitio = hayGrande ? (grande ? { gridColumn: rGrande + 1, gridRow: `1 / span ${filasPeq}` }
           : nPeq === 1 ? { gridColumn: nGrande + 1, gridRow: `1 / span ${filasPeq}` }
           : { gridColumn: nGrande + 1 + (j % colsPeq), gridRow: 1 + Math.floor(j / colsPeq) }) : undefined;
-        const cls = `whitespace-nowrap rounded text-[11px] ${grande ? "flex h-full min-w-[84px] flex-col items-center justify-center gap-1 px-1.5" : "flex h-full min-w-[76px] items-center gap-1.5 px-1.5"}`;
+        const cls = `whitespace-nowrap rounded text-[11px] ${grande ? "flex h-full min-w-[80px] flex-col items-center justify-center gap-1 px-1" : "flex h-full min-w-[70px] items-center gap-1 px-1"}`;
         const contenido = grande ? <><SI className="size-6 shrink-0" /><span>{o.corto ?? o.texto}</span></> : <><SI className="size-3.5 shrink-0" /> {o.corto ?? o.texto}</>;
 
         if (o.a) {
@@ -296,7 +296,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
         );
       };
       return (
-        <div key={m.a} className={`grid shrink-0 content-center ${padBloque}`} style={{ gridTemplateColumns: `repeat(${cols}, auto)`, gridAutoRows: `${alto}px`, columnGap: 6 }}>
+        <div key={m.a} className={`grid shrink-0 content-center ${padBloque}`} style={{ gridTemplateColumns: `repeat(${cols}, auto)`, gridAutoRows: `${alto}px`, columnGap: 4 }}>
           {subs.map(celda)}
         </div>
       );
@@ -339,7 +339,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
   const clasesGrupo = (g: { titulo: string; items: ItemCinta[]; sub?: boolean }, i: number) => {
     const izq = g.sub ? !visibles[i - 1]?.sub : i > 0;
     const der = g.sub || i === visibles.length - 1;
-    return `flex shrink-0 flex-col ${izq ? "border-l border-cinta-tenue/70" : ""} ${der ? "border-r border-cinta-tenue/70" : ""} ${g.sub ? "px-1.5" : "px-1"}`;
+    return `flex min-w-max shrink-0 flex-col ${izq ? "border-l border-cinta-tenue/70" : ""} ${der ? "border-r border-cinta-tenue/70" : ""} ${g.sub ? "px-1" : "px-0.5"}`;
   };
 
 
@@ -384,7 +384,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
           ) : (
             <div key={g.titulo} className={clasesGrupo(g, i)}>
               <div className={`flex flex-1 gap-0.5 ${g.sub ? "items-center" : "items-start"}`}>{g.items.map(boton)}</div>
-              <p className="flex items-center justify-center gap-1 whitespace-nowrap py-0.5 text-center text-[10px] text-cinta-tenue">
+              <p className="flex items-center justify-center gap-1 whitespace-nowrap px-1 py-0.5 text-center text-[10px] text-cinta-tenue">
                 {g.titulo === "Recientes" && <Clock className="size-2.5" />}{g.titulo === "Favoritos" && <Star className="size-2.5" />}{g.titulo}
               </p>
             </div>

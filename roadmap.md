@@ -150,3 +150,4 @@
 
 - [x] Cinta Personal: «Boletas de Pago» grande abre la planilla y «Datos de AFP» (alcancía) pequeño a su derecha abre las comisiones AFP; la vista viaja en ?pestana= y F5 la conserva, sin fila interna de pestañas. Cinta Datos: «Empresa» grande con Tipografía/Usuarios/Normativa/Integraciones pequeñas a su derecha. Probado en clásica (ambas vistas navegan y se resaltan) y compilación OK.
 - [x] Separar los cinco grupos de la pestaña Datos en la cinta (Configuración del Sistema, Parámetros Generales, Catálogo Técnico, Maestro de Insumos, Configuración del maestro), cada uno con su rótulo y líneas finas a los lados; verificado en pantalla y en las demás pestañas.
+- [x] Ajustar los espacios horizontales de todas las cintas (grupos, columnas y botones) sin apretar ni separar de más; anchos medidos en pantalla en ocho pestañas, rótulos con aire a ambos lados de las líneas y palabras largas partidas con guion.
