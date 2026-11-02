@@ -186,15 +186,17 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
 }) {
   categorias = categorias.filter((c) => c.titulo !== "Temas de colores");
   const plano = categorias.flatMap((c) => c.items.flatMap((m) => (m.hijos ?? [m]).map((h) => ({ ...h, cat: CORTO[c.titulo] ?? c.titulo }))));
+  // Rutas del menú, incluidas las que una opción de submenú lleva a otra pantalla.
+  const rutas = plano.flatMap((m) => [m.a, ...(m.sub ?? []).map((o) => o.a ?? m.a)]);
   const resultados: Resultado[] = plano.flatMap((m) => [
     { a: m.a, texto: m.texto, ruta: m.cat, icono: m.icono },
-    ...(m.sub ?? []).map((o) => ({ a: m.a, texto: o.texto, ruta: `${m.cat} › ${m.texto}`, icono: m.icono, search: { [o.campo ?? "seccion"]: o.seccion } })),
+    ...(m.sub ?? []).map((o) => ({ a: o.a ?? m.a, texto: o.texto, ruta: `${m.cat} › ${m.texto}`, icono: m.icono, search: o.a ? undefined : { [o.campo ?? "seccion"]: o.seccion } })),
   ]);
   const [recientes, setRecientes] = useState<string[]>([]);
   const [favoritos, setFavoritos] = useState<string[]>([]);
   useEffect(() => { setRecientes(leerLista(LS_REC)); setFavoritos(leerLista(LS_FAV)); }, []);
   useEffect(() => {
-    if (!plano.some((m) => m.a === pathname)) return;
+    if (!rutas.includes(pathname)) return;
     setRecientes((r) => { const n = [pathname, ...r.filter((x) => x !== pathname)].slice(0, 5); try { localStorage.setItem(LS_REC, JSON.stringify(n)); } catch { /* */ } return n; });
   }, [pathname]);
   const alternarFav = (a: string) => setFavoritos((f) => { const n = f.includes(a) ? f.filter((x) => x !== a) : [...f, a]; try { localStorage.setItem(LS_FAV, JSON.stringify(n)); } catch { /* */ } return n; });
@@ -246,15 +248,19 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
       // Con dos opciones van lado a lado; con más, se reparten en dos filas.
       const filas = subs.length > 2 ? 2 : 1;
       const cols = Math.min(4, Math.ceil(subs.length / filas));
+      // Con tres: dos apiladas (la primera arriba) y la tercera a la derecha, ocupando las dos filas.
+      const apilada = subs.length === 3;
       // Cada columna mide lo que mide su etiqueta más larga: así las opciones cortas no arrastran huecos.
-      const celda = (o: NonNullable<ItemCinta["sub"]>[number]) => {
+      const celda = (o: NonNullable<ItemCinta["sub"]>[number], i: number) => {
         const SI = o.icono!;
+        const sitio = apilada ? (i === 0 ? { gridColumn: 1, gridRow: 1 } : i === 1 ? { gridColumn: 1, gridRow: 2 } : { gridColumn: 2, gridRow: "1 / span 2" }) : undefined;
         return (
-          <Link key={o.seccion} to={m.a} search={{ [o.campo ?? "seccion"]: o.seccion } as never} title={o.texto}
+          <Link key={o.a ?? o.seccion} to={o.a ?? m.a} search={o.a ? undefined : ({ [o.campo ?? "seccion"]: o.seccion } as never)} title={o.texto}
             activeOptions={{ includeSearch: true }}
             activeProps={{ className: "bg-cinta-acento text-cinta-acento-foreground font-semibold" }}
             inactiveProps={{ className: "text-cinta-texto hover:bg-cinta-hover" }}
-            className="flex h-6 min-w-[76px] items-center gap-1.5 whitespace-nowrap rounded px-1.5 text-[11px]">
+            style={sitio}
+            className={`flex min-w-[76px] items-center gap-1.5 whitespace-nowrap rounded px-1.5 text-[11px] ${apilada && i === 2 ? "h-full" : "h-6"}`}>
             <SI className="size-3.5 shrink-0" /> {o.corto ?? o.texto}
           </Link>
         );
