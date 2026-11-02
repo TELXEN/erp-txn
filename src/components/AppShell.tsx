@@ -219,7 +219,7 @@ const MENU: Categoria[] = [
   {
     titulo: "Comercial",
     items: [
-      { a: "/clientes", texto: "Clientes", roles: ["administrador", "gerente"], icono: ContactRound },
+      { a: "/clientes", texto: "Clientes", roles: ["administrador", "gerente"], icono: ContactRound, iconoClase: "text-cinta-azul" },
       { a: "/cotizaciones", texto: "Cotizaciones", roles: ["administrador", "gerente"], icono: FileText, sub: SECCIONES_COTIZ, subFilas: 3 },
       { a: "/valorizaciones", texto: "Preliquidaciones", roles: ["administrador", "gerente"], icono: Banknote },
       { a: "/facturacion-electronica", texto: "Facturación Electrónica", roles: ["administrador", "gerente"], icono: ReciboCodigoBarras, sub: SECCIONES_FACTURACION, subFilas: 3, subGrupos: [{ titulo: "Guías de Remisión", opciones: SECCIONES_GUIAS }, { titulo: "Operaciones especiales", opciones: SECCIONES_OP_ESP }] },
