@@ -1,5 +1,5 @@
 import { LogOut, Binary, FileBadge, FolderKanban, Scale, Plug, Ruler, Shapes, FolderTree, Network, Tag, ListTree, Wrench, Hammer, Percent, LayoutTemplate } from "lucide-react";
-import { ContactRound, Factory, Type, UserRoundCheck, Coins, Barcode, Drill, FileSignature, BadgeDollarSign, Boxes, BookOpen, History, LayoutDashboard, Vault, CircleDollarSign, Receipt, CalendarClock, Route, UserCog, Database, Pickaxe, PackagePlus, ScrollText, ToolCase, Fuel, PiggyBank } from "lucide-react";
+import { ContactRound, Factory, Type, UserRoundCheck, Coins, Barcode, Drill, FileSignature, BadgeDollarSign, Boxes, BookOpen, History, LayoutDashboard, Vault, CircleDollarSign, Receipt, CalendarClock, Route, UserCog, Database, Pickaxe, PackagePlus, ScrollText, ToolCase, Fuel, PiggyBank, ArrowDownLeft, ArrowUpRight, BadgePercent } from "lucide-react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
@@ -172,6 +172,14 @@ const SECCIONES_FLUJO = [
   { texto: "Matriz anual", corto: "Matriz anual", seccion: "matriz", campo: "pestana", icono: Grid3x3 },
 ];
 
+// Caja y bancos: el icono grande abre las tarjetas de resumen; al lado, en una sola columna, las tres gestiones.
+const SECCIONES_TESORERIA = [
+  { texto: "Tesorería", corto: "Tesorería", seccion: "resumen", campo: "pestana", icono: Landmark, grande: true },
+  { texto: "Cuentas por cobrar", corto: "Cuentas por cobrar", seccion: "cxc", campo: "pestana", icono: ArrowDownLeft },
+  { texto: "Cuentas por pagar", corto: "Cuentas por pagar", seccion: "cxp", campo: "pestana", icono: ArrowUpRight },
+  { texto: "Préstamos", corto: "Préstamos", seccion: "financiamiento", campo: "pestana", icono: BadgePercent },
+];
+
 // Vistas del cronograma: cada opción abre el Gantt o la Curva S en pantalla.
 const SECCIONES_VISTAS = [
   { texto: "Diagrama de Gantt", corto: "Gantt", a: "/gantt", search: { vista: "gantt" }, icono: ChartGantt },
@@ -239,7 +247,7 @@ const MENU: Categoria[] = [
       { a: "/gastos-directos", texto: "Costos Directos", roles: ["administrador", "gerente"], icono: ShoppingBag },
       { a: "/gastos-generales", texto: "Gastos Generales", roles: ["administrador", "gerente"], icono: Briefcase, sub: SECCIONES_GG, subFilas: 3 },
       { a: "/caja-chica", texto: "Caja Chica", roles: ["administrador", "gerente"], icono: Wallet },
-      { a: "/tesoreria", texto: "Tesorería", roles: ["administrador", "gerente"], icono: Landmark },
+      { a: "/tesoreria", texto: "Tesorería", roles: ["administrador", "gerente"], icono: Landmark, sub: SECCIONES_TESORERIA, subFilas: 3 },
       { a: "/facturacion-electronica", texto: "Facturación", roles: ["administrador", "gerente"], icono: ReciboCodigoBarras, sub: SECCIONES_FACTURACION },
 
       { a: "/flujo-caja", texto: "Flujo de Caja", roles: ["administrador", "gerente"], icono: TrendingUp, sub: SECCIONES_FLUJO, subFilas: 3 },
