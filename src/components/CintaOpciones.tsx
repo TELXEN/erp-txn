@@ -54,9 +54,9 @@ function Buscador({ items }: { items: Resultado[] }) {
   const ir = (r: Resultado) => { navigate({ to: r.a, search: (r.search ?? {}) as never }); setQ(""); ref.current?.blur(); };
   return (
     <div className="relative hidden shrink-0 md:block">
-      <div className="flex h-7 w-52 items-center gap-1.5 rounded-md border border-cinta-borde bg-cinta-inf px-2 text-cinta-tenue focus-within:border-cinta-acento lg:w-64">
+      <div className="flex h-7 w-44 items-center gap-1.5 rounded-md border border-cinta-borde bg-cinta-inf px-2 text-cinta-tenue focus-within:border-cinta-acento lg:w-48">
         <Search className="size-3.5 shrink-0" />
-        <input ref={ref} value={q} placeholder="¿Qué desea hacer? (Alt+Q)" aria-label="Buscar módulo"
+        <input ref={ref} value={q} placeholder="¿Qué desea hacer?" title="¿Qué desea hacer? (Alt+Q)" aria-label="Buscar módulo"
           onChange={(e) => { setQ(e.target.value); setSel(0); }} onFocus={() => setFoco(true)} onBlur={() => setTimeout(() => setFoco(false), 150)}
           onKeyDown={(e) => {
             if (e.key === "ArrowDown") { e.preventDefault(); setSel((s) => Math.min(s + 1, res.length - 1)); }
@@ -304,7 +304,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
             <button type="button" role="tab" aria-selected={enCtx}
               onClick={() => { if (contraida && enCtx) alternarContraer(); setPestana(CTX); }}
               title={`${contextual.titulo} — ${contextual.subtitulo}`}
-              className={`relative ml-1 h-9 max-w-[240px] shrink-0 truncate whitespace-nowrap border-l border-cinta-borde px-3 text-[13px] font-semibold text-cinta-acento transition-colors hover:bg-cinta-hover`}>
+              className={`relative ml-1 h-9 min-w-0 max-w-[240px] truncate whitespace-nowrap border-l border-cinta-borde px-3 text-[13px] font-semibold text-cinta-acento transition-colors hover:bg-cinta-hover`}>
               {contextual.titulo.replace(/\s*\(.*\)\s*$/, "")}
               {enCtx && <span className="absolute inset-x-2 bottom-0 h-0.5 rounded bg-cinta-acento" />}
             </button>
