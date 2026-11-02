@@ -202,6 +202,9 @@ const MENU: Categoria[] = [
     items: [
       { a: "/personal", texto: "Personal", roles: ["administrador", "gerente"], icono: Users },
       { a: "/tareo", texto: "Control de Asistencia", roles: ["administrador", "gerente"], icono: CalendarDays },
+      { a: "/nomina", texto: "Boletas de Pago", roles: ["administrador", "gerente"], icono: NominaBoletas },
+      { a: "/honorarios", texto: "Recibos por Honorarios", roles: ["administrador", "gerente"], icono: ReceiptText },
+      { a: "/beneficios", texto: "Beneficios Sociales", roles: ["administrador", "gerente"], icono: HandCoins },
       {
         a: "#epp", texto: "Gestión de EPP", roles: ["administrador", "gerente"], icono: HardHat,
         hijos: [
@@ -210,9 +213,6 @@ const MENU: Categoria[] = [
           { a: "/epp-historial", texto: "Historial por Empleado", roles: ["administrador", "gerente"], icono: BarChart3 },
         ],
       },
-      { a: "/nomina", texto: "Boletas de Pago", roles: ["administrador", "gerente"], icono: NominaBoletas },
-      { a: "/honorarios", texto: "Recibos por Honorarios", roles: ["administrador", "gerente"], icono: ReceiptText },
-      { a: "/beneficios", texto: "Beneficios Sociales", roles: ["administrador", "gerente"], icono: HandCoins },
     ],
   },
   {
