@@ -114,6 +114,8 @@
   --color-icono-verde: #029a56;
   /* Azul de la palomita del icono de Guías de Remisión. */
   --color-icono-azul: #0077b6;
+  /* Rojo de las barras del icono de Gantt. */
+  --color-icono-rojo: #c1121f;
   --color-chip-mat: var(--chip-mat);
   --color-chip-mo: var(--chip-mo);
   --color-chip-eq: var(--chip-eq);

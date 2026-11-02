@@ -225,8 +225,7 @@ export function EscudoVerificado({ className, ...props }: SVGProps<SVGSVGElement
  * Diagrama de Gantt con barras de color.
  *
  * Icono propio de «Gantt»: ejes en el color del texto y tres barras horizontales
- * alternando verde (--color-icono-verde) y rojo (--color-icono-rojo)... perdón,
- * los tonos fijos de la cinta: verde #029a56 y rojo #c1121f.
+ * en verde (--color-icono-verde) y rojo (--color-icono-rojo).
  */
 export function GanttLineas({ className, ...props }: SVGProps<SVGSVGElement>) {
   return (
