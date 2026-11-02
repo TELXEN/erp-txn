@@ -176,3 +176,4 @@
 - [ ] Icono de «SIRE SUNAT» (Finanzas): la palomita dentro de la hoja en verde `#029a56` (token `--color-check-sire`).
 - [ ] Icono de «Guías de Remisión» (Comercial): la palomita de la caja en azul `#0077b6`.
 - [ ] Icono de «Aprobaciones»: la palomita en verde `#029a56`.
+- [ ] Icono de «Valorizaciones»: la palomita en verde `#029a56`.
