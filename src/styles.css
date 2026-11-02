@@ -91,8 +91,8 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-hover: var(--sidebar-hover);
   --color-sidebar-panel: var(--sidebar-panel);
-  --color-cinta-sup: var(--sidebar);
-  --color-cinta-inf: color-mix(in oklab, var(--sidebar) 88%, white);
+  --color-cinta-sup: color-mix(in oklab, var(--sidebar) 80%, var(--cinta-suavizado));
+  --color-cinta-inf: color-mix(in oklab, var(--sidebar) 65%, var(--cinta-suavizado));
   --color-sidebar-cinta-sup: var(--color-cinta-sup);
   --color-sidebar-cinta-inf: var(--color-cinta-inf);
   --color-cinta-texto: var(--sidebar-foreground);
@@ -123,6 +123,7 @@
   --radius: 0.5rem;
   --font-global: Carlito, Calibri, sans-serif;
   --font-cifras: var(--font-global);
+  --cinta-suavizado: #737373;
 
   --paper: rgb(251 250 246);
   --ink: rgb(19 19 22);
@@ -350,6 +351,10 @@ button.kpi-tarjeta:hover { border-color: color-mix(in oklab, var(--color-primary
   background-color: var(--color-card);
   padding: 1rem 1.25rem;
 }
+
+/* Trazo fino exclusivo de la cinta, incluidos iconos propios y controles. */
+.cinta-opciones svg { stroke-width: 1.5; }
+.cinta-opciones svg [stroke-width] { stroke-width: 1.1; }
 
 /* Menú lateral: barra de desplazamiento delgada visible solo al pasar el mouse */
 aside .md\:overflow-y-auto { scrollbar-width: thin; scrollbar-color: transparent transparent; }
