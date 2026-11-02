@@ -130,6 +130,14 @@ const SECCIONES_FACTURACION = [
   { texto: "Guías de remisión", corto: "Guías", seccion: "09", campo: "tipo", icono: Truck },
 ];
 
+const SECCIONES_VEHICULOS = [
+  { texto: "Resumen", corto: "Resumen", seccion: "resumen", campo: "pestana", icono: Gauge, grande: true },
+  { texto: "Flota", corto: "Flota", seccion: "flota", campo: "pestana", icono: Car },
+  { texto: "Tareo vehicular", corto: "Tareo", seccion: "tareo", campo: "pestana", icono: CalendarDays },
+  { texto: "Traslados", corto: "Traslados", seccion: "traslados", campo: "pestana", icono: Truck },
+  { texto: "Mantenimiento", corto: "Mantenim.", seccion: "mantenimiento", campo: "pestana", icono: Wrench },
+];
+
 const SECCIONES_OP_ESP = [
   { texto: "Retenciones", corto: "Retenciones", seccion: "20", campo: "tipo", icono: Landmark, grande: true },
   { texto: "Percepciones", corto: "Percepciones", seccion: "40", campo: "tipo", icono: HandCoins },
@@ -174,7 +182,7 @@ const MENU: Categoria[] = [
       { a: "/transportistas", texto: "Transportistas", roles: ["administrador", "gerente"], icono: Truck },
       { a: "/almacen", texto: "Almacén", roles: ["ingeniero", "administrador", "gerente"], icono: Warehouse },
       { a: "/inventario", texto: "Inventario", roles: ["administrador", "gerente"], icono: Package },
-      { a: "/vehiculos", texto: "Vehículos", roles: ["ingeniero", "administrador", "gerente"], icono: Car },
+      { a: "/vehiculos", texto: "Vehículos", roles: ["ingeniero", "administrador", "gerente"], icono: Car, sub: SECCIONES_VEHICULOS },
     ],
   },
   {

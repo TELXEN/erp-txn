@@ -1,11 +1,11 @@
 import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { BotonIcono } from "@/components/ui-kit";
-import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, ClipboardList, Eye, Pencil, Plus, Settings, Trash2, Truck, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { Encabezado } from "@/components/AppShell";
+import { Encabezado, useEnCinta } from "@/components/AppShell";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { useAuth } from "@/lib/auth";
 import { soles as fmtSoles } from "@/lib/format";
@@ -25,6 +25,12 @@ import {
 } from "@/lib/vehiculos";
 
 export const Route = createFileRoute("/_authenticated/vehiculos")({
+  validateSearch: (s: Record<string, unknown>): { pestana?: Pestaña } => {
+    const r: { pestana?: Pestaña } = {};
+    const v = s["pestana"];
+    if (v === "flota" || v === "tareo" || v === "traslados" || v === "mantenimiento" || v === "resumen") r.pestana = v;
+    return r;
+  },
   head: () => ({
     meta: [
       { title: "Vehículos — ERP TELXEN SAC" },
@@ -79,12 +85,22 @@ const VACIO_VEHICULO = {
 };
 
 function PaginaVehiculos() {
+  const navigate = useNavigate();
+  const enCinta = useEnCinta();
   const [sel, setSel] = useState("");
   const { rol } = useAuth();
   const qc = useQueryClient();
   const esDinero = rol === "administrador" || rol === "gerente";
-  const [pestaña, setPestaña] = useState<Pestaña>("flota");
+  const { pestana: pestanaQ } = Route.useSearch();
+  const [pestaña, setPestaña] = useState<Pestaña>(pestanaQ ?? "flota");
   const grupoActivo = GRUPOS_VEHICULOS.find((g) => g.items.includes(pestaña)) ?? GRUPOS_VEHICULOS[0];
+
+  useEffect(() => { if (pestanaQ && pestanaQ !== pestaña) setPestaña(pestanaQ); }, [pestanaQ, pestaña]);
+
+  function cambiarPestana(p: Pestaña) {
+    setPestaña(p);
+    void navigate({ to: "/vehiculos", search: { pestana: p }, replace: true });
+  }
 
   const { data: vehiculos = [] } = useVehiculos();
   const { data: tareo = [] } = useTareoVehiculos();
