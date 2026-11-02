@@ -6,7 +6,7 @@ import { ChevronDown, ChevronUp, Clock, Home, Palette, PanelLeft, Pin, Rows2, Ro
 import { claveNombre } from "@/lib/formato-texto";
 
 export type ModoNavegacion = "lateral" | "simplificada" | "clasica";
-export type ItemCinta = { a: string; texto: string; icono: React.ElementType; hijos?: ItemCinta[]; sub?: { texto: string; seccion: string; campo?: string; icono?: React.ElementType; corto?: string }[] };
+export type ItemCinta = { a: string; texto: string; icono: React.ElementType; hijos?: ItemCinta[]; sub?: { texto: string; seccion?: string; campo?: string; icono?: React.ElementType; corto?: string; a?: string }[] };
 export type CategoriaCinta = { titulo: string; items: ItemCinta[] };
 
 const CORTO: Record<string, string> = {
@@ -38,7 +38,7 @@ const LS_REC = "erp-telxen-recientes";
 const LS_FAV = "erp-telxen-favoritos";
 function leerLista(k: string): string[] { try { const v = JSON.parse(localStorage.getItem(k) || "[]"); return Array.isArray(v) ? v : []; } catch { return []; } }
 
-type Resultado = { a: string; texto: string; ruta: string; icono: React.ElementType; search?: Record<string, string> };
+type Resultado = { a: string; texto: string; ruta: string; icono: React.ElementType; search?: Record<string, string> | undefined };
 function Buscador({ items }: { items: Resultado[] }) {
   const [q, setQ] = useState("");
   const [sel, setSel] = useState(0);
@@ -81,7 +81,7 @@ function Buscador({ items }: { items: Resultado[] }) {
   );
 }
 
-function SubMenu({ a, sub }: { a: string; sub: { texto: string; seccion: string; campo?: string }[] }) {
+function SubMenu({ a, sub }: { a: string; sub: { texto: string; seccion?: string; campo?: string; a?: string }[] }) {
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const ref = useRef<HTMLButtonElement>(null);
   useEffect(() => {
@@ -103,17 +103,21 @@ function SubMenu({ a, sub }: { a: string; sub: { texto: string; seccion: string;
       {pos && createPortal(
         <div data-submenu-cinta style={{ left: pos.x, top: pos.y }}
           className="fixed z-[100] min-w-56 rounded-md border border-border bg-popover py-1 text-xs text-popover-foreground shadow-lg">
-          {sub.map((o) => (
-            <Link key={o.seccion} to={a} search={{ [o.campo ?? "seccion"]: o.seccion } as never} onClick={() => setPos(null)}
-              className="block px-3 py-1.5 hover:bg-accent hover:text-accent-foreground">{o.texto}</Link>
-          ))}
+          {sub.map((o) => {
+            const cls = "block px-3 py-1.5 hover:bg-accent hover:text-accent-foreground";
+            return o.a ? (
+              <Link key={o.a} to={o.a} onClick={() => setPos(null)} className={cls}>{o.texto}</Link>
+            ) : (
+              <Link key={o.seccion} to={a} search={{ [o.campo ?? "seccion"]: o.seccion } as never} onClick={() => setPos(null)} className={cls}>{o.texto}</Link>
+            );
+          })}
         </div>, document.body)}
     </>
   );
 }
 
 function contiene(c: CategoriaCinta, p: string) {
-  return c.items.some((m) => m.a === p || m.hijos?.some((h) => h.a === p));
+  return c.items.some((m) => m.a === p || m.hijos?.some((h) => h.a === p) || m.sub?.some((o) => (o.a ?? m.a) === p));
 }
 
 function SelectorModo({ modo, onModo, contraida, onContraer }: {
@@ -186,15 +190,17 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
 }) {
   categorias = categorias.filter((c) => c.titulo !== "Temas de colores");
   const plano = categorias.flatMap((c) => c.items.flatMap((m) => (m.hijos ?? [m]).map((h) => ({ ...h, cat: CORTO[c.titulo] ?? c.titulo }))));
+  // Rutas del menú, incluidas las que una opción de submenú lleva a otra pantalla.
+  const rutas = plano.flatMap((m) => [m.a, ...(m.sub ?? []).map((o) => o.a ?? m.a)]);
   const resultados: Resultado[] = plano.flatMap((m) => [
     { a: m.a, texto: m.texto, ruta: m.cat, icono: m.icono },
-    ...(m.sub ?? []).map((o) => ({ a: m.a, texto: o.texto, ruta: `${m.cat} › ${m.texto}`, icono: m.icono, search: { [o.campo ?? "seccion"]: o.seccion } })),
+    ...(m.sub ?? []).map((o) => ({ a: o.a ?? m.a, texto: o.texto, ruta: `${m.cat} › ${m.texto}`, icono: m.icono, search: o.a ? undefined : ({ [o.campo ?? "seccion"]: o.seccion ?? "" } as Record<string, string>) })),
   ]);
   const [recientes, setRecientes] = useState<string[]>([]);
   const [favoritos, setFavoritos] = useState<string[]>([]);
   useEffect(() => { setRecientes(leerLista(LS_REC)); setFavoritos(leerLista(LS_FAV)); }, []);
   useEffect(() => {
-    if (!plano.some((m) => m.a === pathname)) return;
+    if (!rutas.includes(pathname)) return;
     setRecientes((r) => { const n = [pathname, ...r.filter((x) => x !== pathname)].slice(0, 5); try { localStorage.setItem(LS_REC, JSON.stringify(n)); } catch { /* */ } return n; });
   }, [pathname]);
   const alternarFav = (a: string) => setFavoritos((f) => { const n = f.includes(a) ? f.filter((x) => x !== a) : [...f, a]; try { localStorage.setItem(LS_FAV, JSON.stringify(n)); } catch { /* */ } return n; });
@@ -246,17 +252,27 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
       // Con dos opciones van lado a lado; con más, se reparten en dos filas.
       const filas = subs.length > 2 ? 2 : 1;
       const cols = Math.min(4, Math.ceil(subs.length / filas));
+      // Con tres: dos apiladas (la primera arriba) y la tercera a la derecha, ocupando las dos filas.
+      const apilada = subs.length === 3;
       // Cada columna mide lo que mide su etiqueta más larga: así las opciones cortas no arrastran huecos.
-      const celda = (o: NonNullable<ItemCinta["sub"]>[number]) => {
+      const celda = (o: NonNullable<ItemCinta["sub"]>[number], i: number) => {
         const SI = o.icono!;
+        const sitio = apilada ? (i === 0 ? { gridColumn: 1, gridRow: 1 } : i === 1 ? { gridColumn: 1, gridRow: 2 } : { gridColumn: 2, gridRow: "1 / span 2" }) : undefined;
+        const cls = `flex min-w-[76px] items-center gap-1.5 whitespace-nowrap rounded px-1.5 text-[11px] ${apilada && i === 2 ? "h-full" : "h-6"}`;
+        const contenido = <><SI className="size-3.5 shrink-0" /> {o.corto ?? o.texto}</>;
+        if (o.a) {
+          return (
+            <Link key={o.a} to={o.a} title={o.texto} className={cls} {...(sitio ? { style: sitio } : {})}
+              activeOptions={{ includeSearch: true }}
+              activeProps={{ className: "bg-cinta-acento text-cinta-acento-foreground font-semibold" }}
+              inactiveProps={{ className: "text-cinta-texto hover:bg-cinta-hover" }}>{contenido}</Link>
+          );
+        }
         return (
-          <Link key={o.seccion} to={m.a} search={{ [o.campo ?? "seccion"]: o.seccion } as never} title={o.texto}
+          <Link key={o.seccion} to={m.a} search={{ [o.campo ?? "seccion"]: o.seccion } as never} title={o.texto} className={cls} {...(sitio ? { style: sitio } : {})}
             activeOptions={{ includeSearch: true }}
             activeProps={{ className: "bg-cinta-acento text-cinta-acento-foreground font-semibold" }}
-            inactiveProps={{ className: "text-cinta-texto hover:bg-cinta-hover" }}
-            className="flex h-6 min-w-[76px] items-center gap-1.5 whitespace-nowrap rounded px-1.5 text-[11px]">
-            <SI className="size-3.5 shrink-0" /> {o.corto ?? o.texto}
-          </Link>
+            inactiveProps={{ className: "text-cinta-texto hover:bg-cinta-hover" }}>{contenido}</Link>
         );
       };
       return (
