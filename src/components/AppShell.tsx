@@ -1,5 +1,5 @@
 import { LogOut, Hash, FolderKanban, Scale, Plug, Ruler, Shapes, FolderTree, Network, Tag, ListTree, Wrench, Hammer, Percent, LayoutTemplate } from "lucide-react";
-import { ContactRound, Factory, Type, UserRoundCheck, Coins, Barcode, Drill, FileSignature, BadgeDollarSign, Boxes, BookOpen, History, LayoutDashboard, Vault, CircleDollarSign, Receipt, CalendarClock, Route, UserCog, Database, Pickaxe, PackagePlus, ScrollText, ToolCase, Fuel } from "lucide-react";
+import { ContactRound, Factory, Type, UserRoundCheck, Coins, Barcode, Drill, FileSignature, BadgeDollarSign, Boxes, BookOpen, History, LayoutDashboard, Vault, CircleDollarSign, Receipt, CalendarClock, Route, UserCog, Database, Pickaxe, PackagePlus, ScrollText, ToolCase, Fuel, PiggyBank } from "lucide-react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
@@ -10,7 +10,7 @@ const RanuraEncabezado = createContext<Ranura | null>(null);
 /** true cuando las acciones de pantalla viven en la cinta. */
 export function useEnCinta() { return !!useContext(RanuraEncabezado)?.cinta; }
 const SECCIONES_CONFIG = [
-  { texto: "Datos de la empresa", corto: "Empresa", seccion: "empresa", icono: Building2 },
+  { texto: "Datos de la empresa", corto: "Empresa", seccion: "empresa", icono: Building2, grande: true },
   { texto: "Tipografía de documentos", corto: "Tipografía", seccion: "tipografia", icono: Type },
   { texto: "Usuarios y Roles", corto: "Usuarios", seccion: "usuarios", icono: UserRoundCheck },
   { texto: "Valores normativos (RMV / UIT)", corto: "Normativa", seccion: "normativa", icono: Scale },
@@ -166,6 +166,10 @@ const SECCIONES_FLUJO = [
   { texto: "Flujo de Caja", corto: "Flujo de Caja", seccion: "resumen", campo: "pestana", icono: TrendingUp, grande: true },
   { texto: "Matriz anual", corto: "Matriz anual", seccion: "matriz", campo: "pestana", icono: Grid3x3 },
 ];
+const SECCIONES_NOMINA = [
+  { texto: "Boletas de Pago", corto: "Boletas de Pago", seccion: "planilla", campo: "pestana", icono: NominaBoletas, grande: true },
+  { texto: "Datos de AFP", corto: "Datos de AFP", seccion: "datos", campo: "pestana", icono: PiggyBank },
+];
 
 
 type SubOpcion = { texto: string; seccion?: string; campo?: string; icono?: React.ElementType; corto?: string; a?: string; grande?: boolean };
@@ -226,7 +230,7 @@ const MENU: Categoria[] = [
     items: [
       { a: "/personal", texto: "Personal", roles: ["administrador", "gerente"], icono: Users },
       { a: "/tareo", texto: "Control de Asistencia", roles: ["administrador", "gerente"], icono: CalendarDays },
-      { a: "/nomina", texto: "Boletas de Pago", roles: ["administrador", "gerente"], icono: NominaBoletas },
+      { a: "/nomina", texto: "Boletas de Pago", roles: ["administrador", "gerente"], icono: NominaBoletas, sub: SECCIONES_NOMINA },
       { a: "/honorarios", texto: "Recibos por Honorarios", roles: ["administrador", "gerente"], icono: ReceiptText },
       { a: "/beneficios", texto: "Beneficios Sociales", roles: ["administrador", "gerente"], icono: HandCoins },
       {

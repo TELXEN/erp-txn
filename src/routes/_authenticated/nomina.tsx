@@ -1,12 +1,12 @@
 import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { BotonIcono } from "@/components/ui-kit";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, ClipboardList, Database, Lock, FileText, RefreshCw, Trash2, Unlock, Upload, Wand2 } from "lucide-react";
+import { Check, Lock, FileText, RefreshCw, Trash2, Unlock, Upload, Wand2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { Encabezado } from "@/components/AppShell";
-import { Boton, Campo, Etiqueta, Input, Panel, Pestanas, Select, SinAcceso, Vacio } from "@/components/ui-kit";
+import { Encabezado, useEnCinta } from "@/components/AppShell";
+import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha, hoy, MESES, soles } from "@/lib/format";
 import { clasificacionDeCargo, type Trabajador, useCargos, useTareos, useTrabajadores } from "@/lib/datos";
@@ -20,7 +20,15 @@ import type { ComisionAfp } from "@/lib/decolecta.functions";
 import { acumuladoAnterior, calcularRentaQuinta, type DetalleQuinta } from "@/lib/renta-quinta";
 import { rmvVigente, rmvNuevaEn, rmvEn, uitEn, useRmv, useUit, type FilaRmv, type FilaUit } from "@/lib/normativa";
 
+type PestañaNomina = "planilla" | "datos";
+
 export const Route = createFileRoute("/_authenticated/nomina")({
+  validateSearch: (s: Record<string, unknown>): { pestana?: PestañaNomina } => {
+    const r: { pestana?: PestañaNomina } = {};
+    const v = s["pestana"];
+    if (v === "planilla" || v === "datos") r.pestana = v;
+    return r;
+  },
   head: () => ({
     meta: [
       { title: "Boletas de Pago — ERP TELXEN" },
@@ -107,7 +115,16 @@ function Nomina() {
   const [anio, setAnio] = useState(ahora.getFullYear());
   const [mes, setMes] = useState(ahora.getMonth() + 1);
   const [detalle, setDetalle] = useState<Boleta | null>(null);
-  const [pestana, setPestana] = useState<"planilla" | "datos">("planilla");
+  const enCinta = useEnCinta();
+  const navigate = useNavigate();
+  const { pestana: pestanaQ } = Route.useSearch();
+  const [pestana, setPestana] = useState<PestañaNomina>(() => (localStorage.getItem("nomina:pestana") === "datos" ? "datos" : "planilla"));
+  useEffect(() => { localStorage.setItem("nomina:pestana", pestana); }, [pestana]);
+  // La cinta y la URL mandan sobre lo que se muestra; al llegar sin parámetro se fija la última vista.
+  useEffect(() => {
+    if (pestanaQ && pestanaQ !== pestana) setPestana(pestanaQ);
+    else if (!pestanaQ && enCinta) void navigate({ to: "/nomina", search: { pestana }, replace: true });
+  }, [pestanaQ, pestana, enCinta, navigate]);
   const [pago, setPago] = useState<{ boleta_id?: string; banco_id: string; fecha_pago: string; numero_operacion: string } | null>(null);
   const [error, setError] = useState("");
   useEffect(() => {
@@ -391,17 +408,6 @@ function Nomina() {
           {rmvNuevaEn(listaRmv, periodoAfp)!.base_legal ? ` según ${rmvNuevaEn(listaRmv, periodoAfp)!.base_legal}` : ""}, vigente desde {fecha(rmvNuevaEn(listaRmv, periodoAfp)!.vigencia_desde)}.
         </div>
       )}
-      <div className="mb-4">
-        <Pestanas
-          etiqueta="Nómina"
-          valor={pestana}
-          onCambiar={setPestana}
-          opciones={[
-            { id: "planilla", texto: "Planilla", icono: <ClipboardList size={13} /> },
-            { id: "datos", texto: "Datos de AFP", icono: <Database size={13} /> },
-          ]}
-        />
-      </div>
 
       {pestana === "datos" ? (
         <>
