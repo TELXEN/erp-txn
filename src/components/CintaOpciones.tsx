@@ -426,12 +426,6 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
       <div className="cinta-barra flex h-9 items-center gap-1 bg-cinta-pestanas px-2 text-cinta-texto">
         {logo}
         <nav className="flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" role="tablist">
-          <button type="button" role="tab" aria-selected={enInicio} title="Favoritos y recientes"
-            onClick={() => clicPestana(INICIO)}
-            className={`relative flex h-9 shrink-0 items-center gap-1 whitespace-nowrap px-2.5 text-[13px] transition-colors hover:bg-cinta-hover ${enInicio ? "font-semibold" : "text-cinta-tenue"}`}>
-            <Home className="size-3.5" /> Inicio
-            {enInicio && <span className="absolute inset-x-2 bottom-0 h-0.5 rounded bg-cinta-acento" />}
-          </button>
           {categorias.map((c) => {
             const sel = c.titulo === pestana;
             return (
@@ -454,9 +448,6 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
       </div>
       {!contraida && (
         <div className={`flex ${modo === "simplificada" ? "h-11 items-center gap-1" : "items-stretch pt-1"} overflow-x-auto border-t border-cinta-borde bg-cinta-inf px-2`}>
-          {enInicio && !favoritos.length && !recientes.length && (
-            <p className="flex items-center gap-2 px-2 py-3 text-xs text-cinta-tenue"><Pin className="size-4" /> Haz clic derecho en cualquier botón para anclarlo aquí.</p>
-          )}
           {visibles.map((g, i) => modo === "simplificada" ? (
             <div key={g.titulo} className={`flex items-center gap-1 ${i ? "border-l border-cinta-borde pl-1" : ""}`}>{g.items.map(boton)}</div>
           ) : (
