@@ -91,8 +91,8 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-hover: var(--sidebar-hover);
   --color-sidebar-panel: var(--sidebar-panel);
-  --color-cinta-sup: color-mix(in oklab, var(--sidebar) 80%, var(--cinta-suavizado));
-  --color-cinta-inf: color-mix(in oklab, var(--sidebar) 65%, var(--cinta-suavizado));
+  --color-cinta-sup: color-mix(in oklab, var(--sidebar) 88%, var(--cinta-suavizado));
+  --color-cinta-inf: color-mix(in oklab, var(--sidebar) 80%, var(--cinta-suavizado));
   --color-sidebar-cinta-sup: var(--color-cinta-sup);
   --color-sidebar-cinta-inf: var(--color-cinta-inf);
   --color-cinta-texto: var(--sidebar-foreground);
@@ -123,7 +123,7 @@
   --radius: 0.5rem;
   --font-global: Carlito, Calibri, sans-serif;
   --font-cifras: var(--font-global);
-  --cinta-suavizado: #737373;
+  --cinta-suavizado: #ffffff;
 
   --paper: rgb(251 250 246);
   --ink: rgb(19 19 22);
