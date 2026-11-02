@@ -242,7 +242,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
             const SI = o.icono!;
             return (
               <Fragment key={o.seccion}>
-                {i > 0 && <span aria-hidden className="mx-1 h-6 w-px shrink-0 bg-cinta-borde" />}
+                {i > 0 && <span aria-hidden className="mx-1 h-6 w-px shrink-0 bg-cinta-tenue/70" />}
                 <Link to={m.a} search={{ [o.campo ?? "seccion"]: o.seccion } as never} title={o.texto}
                   activeOptions={{ includeSearch: true }}
                   activeProps={{ className: "bg-cinta-acento text-cinta-acento-foreground font-semibold" }}
