@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useNavigate } from "@tanstack/react-router";
 import { Encabezado, useEnCinta } from "@/components/AppShell";
-import { GrupoCinta } from "@/components/CintaOpciones";
 import { Building2, Plug, FileText, Scale, ShieldCheck, SlidersHorizontal } from "lucide-react";
 import { CabeceraModulo, Panel, Pestanas } from "@/components/ui-kit";
 import { DatosEmpresaTabs } from "@/components/DatosEmpresaTabs";
