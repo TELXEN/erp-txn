@@ -160,6 +160,12 @@ const SECCIONES_GG = [
   { texto: "Combustible de flota", corto: "Combustible", seccion: "combustible", campo: "pestana", icono: Fuel },
 ];
 
+const SECCIONES_FLUJO = [
+  { texto: "Flujo de Caja", corto: "Flujo de Caja", seccion: "resumen", campo: "pestana", icono: TrendingUp, grande: true },
+  { texto: "Matriz anual", corto: "Matriz anual", seccion: "matriz", campo: "pestana", icono: Grid3x3 },
+];
+
+
 type SubOpcion = { texto: string; seccion?: string; campo?: string; icono?: React.ElementType; corto?: string; a?: string; grande?: boolean };
 type Item = { a: string; texto: string; roles: Rol[]; icono: React.ElementType; hijos?: Item[]; sub?: SubOpcion[]; sub2?: { titulo: string; opciones: SubOpcion[] }; subFilas?: number };
 type Categoria = { titulo: string; items: Item[] };
@@ -209,7 +215,7 @@ const MENU: Categoria[] = [
       { a: "/gastos-generales", texto: "Gastos Generales", roles: ["administrador", "gerente"], icono: Briefcase, sub: SECCIONES_GG, subFilas: 3 },
       { a: "/caja-chica", texto: "Caja Chica", roles: ["administrador", "gerente"], icono: Wallet },
       { a: "/tesoreria", texto: "Tesorería", roles: ["administrador", "gerente"], icono: Landmark },
-      { a: "/flujo-caja", texto: "Flujo de Caja", roles: ["administrador", "gerente"], icono: TrendingUp },
+      { a: "/flujo-caja", texto: "Flujo de Caja", roles: ["administrador", "gerente"], icono: TrendingUp, sub: SECCIONES_FLUJO },
       { a: "/sire", texto: "SIRE SUNAT", roles: ["administrador", "gerente"], icono: FileCheck },
     ],
   },

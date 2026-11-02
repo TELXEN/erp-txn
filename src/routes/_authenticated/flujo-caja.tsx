@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Area,
@@ -68,7 +68,16 @@ function MetaCelda({ valor, etiqueta, onGuardar }: { valor: number; etiqueta: st
   );
 }
 
+type PestañaFC = "resumen" | "matriz";
+
 export const Route = createFileRoute("/_authenticated/flujo-caja")({
+  validateSearch: (s: Record<string, unknown>): { pestana?: PestañaFC } => {
+    const r: { pestana?: PestañaFC } = {};
+    const v = s["pestana"];
+    if (v === "resumen" || v === "matriz") r.pestana = v;
+    return r;
+  },
+
   head: () => ({
     meta: [
       { title: "Flujo de Caja — ERP TELXEN" },
@@ -112,14 +121,14 @@ function FlujoCaja() {
   const [obra, setObra] = useState("global");
   const [costoAbierto, setCostoAbierto] = useState(false);
   const [verTendencia, setVerTendencia] = useState(true);
-  const [pestana, setPestana] = useState<"resumen" | "matriz">(() => {
+  const { pestana: pestanaQ } = Route.useSearch();
+  const [pestana, setPestana] = useState<PestañaFC>(() => {
     const g = localStorage.getItem("flujo-caja:pestana");
     return g === "matriz" ? "matriz" : "resumen";
   });
-  const cambiarPestana = (p: "resumen" | "matriz") => {
-    setPestana(p);
-    localStorage.setItem("flujo-caja:pestana", p);
-  };
+  useEffect(() => { if (pestanaQ && pestanaQ !== pestana) setPestana(pestanaQ); }, [pestanaQ, pestana]);
+  useEffect(() => { localStorage.setItem("flujo-caja:pestana", pestana); }, [pestana]);
+
   const global = obra === "global";
   const { data: proyectos = [] } = useProyectos();
   const { data: bancos = [] } = useQuery({
@@ -499,25 +508,6 @@ function FlujoCaja() {
         }
       />
 
-      <div className="mb-4 flex gap-1 border-b border-line">
-        {([
-          { id: "resumen" as const, etiqueta: "Resumen" },
-          { id: "matriz" as const, etiqueta: "Matriz anual" },
-        ]).map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            onClick={() => cambiarPestana(t.id)}
-            className={`-mb-px border-b-2 px-3 py-2 text-[12px] font-semibold transition-colors ${
-              pestana === t.id
-                ? "border-primary text-primary"
-                : "border-transparent text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {t.etiqueta}
-          </button>
-        ))}
-      </div>
 
       {pestana === "resumen" && (<>
       <div className={`mb-5 grid gap-4 ${global ? "xl:grid-cols-4" : "xl:grid-cols-3"}`}>
