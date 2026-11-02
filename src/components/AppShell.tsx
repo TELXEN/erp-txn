@@ -488,7 +488,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   onClick={cerrarSesion} title="Cerrar Sesión" aria-label="Cerrar Sesión"
                   className="flex h-7 items-center gap-1 whitespace-nowrap rounded-md border border-cinta-borde px-2 text-[11px] text-cinta-texto transition-colors hover:border-cinta-acento hover:bg-cinta-acento hover:text-cinta-acento-foreground"
                 >
-                  <LogOut className="size-3.5" /><span className="hidden xl:inline">Cerrar Sesión</span>
+                  <LogOut className="size-3.5" /><span className="hidden 2xl:inline">Cerrar Sesión</span>
                 </button>
               </div>
             }

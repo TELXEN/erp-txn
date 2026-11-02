@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "@tanstack/react-router";
 import { ChevronDown, ChevronUp, Clock, Home, Palette, PanelLeft, Pin, Rows2, Rows3, Search, Star } from "lucide-react";
@@ -54,9 +54,9 @@ function Buscador({ items }: { items: Resultado[] }) {
   const ir = (r: Resultado) => { navigate({ to: r.a, search: (r.search ?? {}) as never }); setQ(""); ref.current?.blur(); };
   return (
     <div className="relative hidden shrink-0 md:block">
-      <div className="flex h-7 w-52 items-center gap-1.5 rounded-md border border-cinta-borde bg-cinta-inf px-2 text-cinta-tenue focus-within:border-cinta-acento lg:w-64">
+      <div className="flex h-7 w-44 items-center gap-1.5 rounded-md border border-cinta-borde bg-cinta-inf px-2 text-cinta-tenue focus-within:border-cinta-acento lg:w-48">
         <Search className="size-3.5 shrink-0" />
-        <input ref={ref} value={q} placeholder="¿Qué desea hacer? (Alt+Q)" aria-label="Buscar módulo"
+        <input ref={ref} value={q} placeholder="¿Qué desea hacer?" title="¿Qué desea hacer? (Alt+Q)" aria-label="Buscar módulo"
           onChange={(e) => { setQ(e.target.value); setSel(0); }} onFocus={() => setFoco(true)} onBlur={() => setTimeout(() => setFoco(false), 150)}
           onKeyDown={(e) => {
             if (e.key === "ArrowDown") { e.preventDefault(); setSel((s) => Math.min(s + 1, res.length - 1)); }
@@ -237,22 +237,22 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
     );
     if (m.sub && m.sub.every((o) => o.icono)) {
       return (
-        <div key={m.a} className="flex shrink-0 items-center gap-1">
-          {link}
-          <div className="grid grid-cols-2 gap-x-1 gap-y-0.5">
-            {m.sub.map((o) => {
-              const SI = o.icono!;
-              return (
-                <Link key={o.seccion} to={m.a} search={{ [o.campo ?? "seccion"]: o.seccion } as never} title={o.texto}
+        <div key={m.a} className="flex shrink-0 items-center">
+          {m.sub.map((o, i) => {
+            const SI = o.icono!;
+            return (
+              <Fragment key={o.seccion}>
+                {i > 0 && <span aria-hidden className="mx-1 h-6 w-px shrink-0 bg-cinta-tenue/70" />}
+                <Link to={m.a} search={{ [o.campo ?? "seccion"]: o.seccion } as never} title={o.texto}
                   activeOptions={{ includeSearch: true }}
                   activeProps={{ className: "bg-cinta-acento text-cinta-acento-foreground font-semibold" }}
                   inactiveProps={{ className: "text-cinta-texto hover:bg-cinta-hover" }}
                   className="flex h-7 items-center gap-1.5 whitespace-nowrap rounded-md px-2 text-xs">
                   <SI className="size-4 shrink-0" /> {o.corto ?? o.texto}
                 </Link>
-              );
-            })}
-          </div>
+              </Fragment>
+            );
+          })}
         </div>
       );
     }
@@ -261,9 +261,10 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
 
   // En la clásica: los ítems simples forman un grupo con el nombre de la pestaña; cada submenú es su propio grupo.
   const porGrupo = (lista: ItemCinta[], defecto: string) => {
-    const g: { titulo: string; items: ItemCinta[] }[] = [];
+    const g: { titulo: string; items: ItemCinta[]; sub?: boolean }[] = [];
     for (const m of lista) {
       if (m.hijos) { g.push({ titulo: m.texto, items: m.hijos }); continue; }
+      if (m.sub && m.sub.every((o) => o.icono)) { g.push({ titulo: m.texto, items: [m], sub: true }); continue; }
       const t = GRUPO[m.a] ?? defecto; const e = g.find((x) => x.titulo === t);
       e ? e.items.push(m) : g.push({ titulo: t, items: [m] });
     }
@@ -272,8 +273,8 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
   const buscar = (a: string) => plano.find((m) => m.a === a);
   const gruposVista = enInicio
     ? [
-        { titulo: "Favoritos", items: favoritos.map(buscar).filter(Boolean) as ItemCinta[] },
-        { titulo: "Recientes", items: recientes.filter((a) => !favoritos.includes(a)).map(buscar).filter(Boolean) as ItemCinta[] },
+        { titulo: "Favoritos", items: favoritos.map(buscar).filter(Boolean) as ItemCinta[], sub: false },
+        { titulo: "Recientes", items: recientes.filter((a) => !favoritos.includes(a)).map(buscar).filter(Boolean) as ItemCinta[], sub: false },
       ]
     : cat ? porGrupo(cat.items, CORTO[cat.titulo] ?? cat.titulo) : [];
 
@@ -303,7 +304,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
             <button type="button" role="tab" aria-selected={enCtx}
               onClick={() => { if (contraida && enCtx) alternarContraer(); setPestana(CTX); }}
               title={`${contextual.titulo} — ${contextual.subtitulo}`}
-              className={`relative ml-1 h-9 max-w-[240px] shrink-0 truncate whitespace-nowrap border-l border-cinta-borde px-3 text-[13px] font-semibold text-cinta-acento transition-colors hover:bg-cinta-hover`}>
+              className={`relative ml-1 h-9 min-w-0 max-w-[240px] truncate whitespace-nowrap border-l border-cinta-borde px-3 text-[13px] font-semibold text-cinta-acento transition-colors hover:bg-cinta-hover`}>
               {contextual.titulo.replace(/\s*\(.*\)\s*$/, "")}
               {enCtx && <span className="absolute inset-x-2 bottom-0 h-0.5 rounded bg-cinta-acento" />}
             </button>
@@ -327,7 +328,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
             <div key={g.titulo} className={`flex items-center gap-1 ${i ? "border-l border-cinta-borde pl-1" : ""}`}>{g.items.map(boton)}</div>
           ) : (
             <div key={g.titulo} className={`flex flex-col ${i ? "border-l border-cinta-borde pl-1" : ""} pr-1`}>
-              <div className="flex flex-1 items-start gap-0.5">{g.items.map(boton)}</div>
+              <div className={`flex flex-1 gap-0.5 ${g.sub ? "items-center" : "items-start"}`}>{g.items.map(boton)}</div>
               <p className="flex items-center justify-center gap-1 whitespace-nowrap py-0.5 text-center text-[10px] text-cinta-tenue">
                 {g.titulo === "Recientes" && <Clock className="size-2.5" />}{g.titulo === "Favoritos" && <Star className="size-2.5" />}{g.titulo}
               </p>
