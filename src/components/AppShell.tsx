@@ -149,7 +149,7 @@ const SECCIONES_VEHICULOS = [
 
 const SECCIONES_ALMACEN = [
   { texto: "Almacén", corto: "Almacén", a: "/almacen", icono: Warehouse, grande: true },
-  { texto: "Inventario", corto: "Inventario", a: "/inventario", icono: Boxes },
+  { texto: "Inventario", corto: "Inventario", a: "/inventario", icono: Boxes, grande: true },
 ];
 
 
