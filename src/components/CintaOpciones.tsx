@@ -250,7 +250,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
           <I className="size-4 shrink-0" /> {m.texto}<Insignia a={m.a} />
         </Link>
       );
-      return m.sub ? <div key={m.a} className="relative flex shrink-0 pr-3">{link}<SubMenu a={m.a} sub={[...m.sub, ...(m.sub2?.opciones ?? [])]} /></div> : link;
+      return m.sub ? <div key={m.a} className="relative flex shrink-0 pr-3">{link}<SubMenu a={m.a} sub={[...m.sub, ...(m.sub2?.opciones ?? [])]} onIr={(d) => { gridNav.current = d; }} /></div> : link;
     }
     const link = (
       <Link key={m.a} to={m.a} title={`${m.texto} — clic derecho: ${favoritos.includes(m.a) ? "quitar de" : "anclar a"} Inicio`} onClick={() => { gridNav.current = m.a; }} onContextMenu={(e) => { e.preventDefault(); alternarFav(m.a); }}
@@ -303,7 +303,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
         </div>
       );
     }
-    return m.sub ? <div key={m.a} className="relative flex shrink-0">{link}<SubMenu a={m.a} sub={[...m.sub, ...(m.sub2?.opciones ?? [])]} /></div> : link;
+    return m.sub ? <div key={m.a} className="relative flex shrink-0">{link}<SubMenu a={m.a} sub={[...m.sub, ...(m.sub2?.opciones ?? [])]} onIr={(d) => { gridNav.current = d; }} /></div> : link;
   };
 
   // En la clásica: los ítems simples forman un grupo con el nombre de la pestaña; cada submenú es su propio grupo.
