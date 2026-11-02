@@ -443,7 +443,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
       <div className="cinta-barra flex h-9 items-center gap-1 bg-cinta-pestanas px-2 text-cinta-texto">
         {logo}
         <nav className="flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" role="tablist">
-          {categorias.map((c) => {
+          {categoriasVistas.map((c) => {
             const sel = c.titulo === pestana;
             return (
               <button key={c.titulo} type="button" role="tab" aria-selected={sel}
