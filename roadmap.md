@@ -173,14 +173,14 @@
 - [x] Cinta Operaciones: «Gantt» subió a la fila de arriba (y=45) y «Curva S» a la segunda (y=65) con `subFilas: 3` en el ítem /gantt, igual que APU/Plantillas; cinta de 129 px; clic en «Curva S» abre ?vista=curva; compilación OK.
 - [x] Corregido el aviso de React «two children with the same key» en la cinta y el menú lateral: las opciones que comparten destino (Gantt y Curva S apuntan a /gantt) ahora se claves con destino + rótulo (`${o.a}|${o.texto}`) en CintaOpciones y AppShell; verificado en /gantt sin errores de consola.
 - [x] Icono de «Facturas» (Comercial › Facturación Electrónica): componente propio `FacturaSello` en `src/components/icons.tsx` — hoja con esquina doblada, cuatro renglones de detalle y sello de goma con cintas cuyo contorno va en azul `#0077b6` (token `--color-sello-factura` en `src/styles.css`). Probado en pantalla: sello `#0077b6` a 1.5 px tanto sin seleccionar (gris) como seleccionado (dorado), hoja y renglones nítidos, sin errores de consola; compilación OK.
-- [ ] Icono de «SIRE SUNAT» (Finanzas): la palomita dentro de la hoja en verde `#029a56` (token `--color-check-sire`).
-- [ ] Icono de «Guías de Remisión» (Comercial): la palomita de la caja en azul `#0077b6`.
-- [ ] Icono de «Aprobaciones»: la palomita en verde `#029a56`.
-- [ ] Icono de «Valorizaciones»: la palomita en verde `#029a56`.
-- [ ] Icono de «Requerimientos»: el lápiz en azul `#0077b6`.
-- [ ] Icono de «Gantt»: las líneas horizontales en rojo y verde.
-- [ ] Icono de «Curva S»: la línea que dibuja la curva en azul.
-- [ ] Cinta: «Costos Directos» queda como grupo propio (solo).
-- [ ] Iconos de «Cuentas por pagar» en rojo y «Cuentas por cobrar» en verde.
-- [ ] Iconos pequeños de «CTS» en verde, «Gratificaciones» en azul y «Liquidaciones» en rojo.
-- [ ] Icono de «Banco de datos»: el punto y las líneas del centro en azul.
+- [x] Icono de «SIRE SUNAT» (Finanzas): la palomita dentro de la hoja en verde `#029a56` (token `--color-check-sire`).
+- [x] Icono de «Guías de Remisión» (Comercial): la palomita de la caja en azul `#0077b6`.
+- [x] Icono de «Aprobaciones»: la palomita en verde `#029a56`.
+- [x] Icono de «Valorizaciones»: la palomita en verde `#029a56`.
+- [x] Icono de «Requerimientos»: el lápiz en azul `#0077b6`.
+- [x] Icono de «Gantt»: las líneas horizontales en rojo y verde.
+- [x] Icono de «Curva S»: la línea que dibuja la curva en azul.
+- [x] Cinta: «Costos Directos» queda como grupo propio (solo).
+- [x] Iconos de «Cuentas por pagar» en rojo y «Cuentas por cobrar» en verde.
+- [x] Iconos pequeños de «CTS» en verde, «Gratificaciones» en azul y «Liquidaciones» en rojo.
+- [x] Icono de «Banco de datos»: el punto y las líneas del centro en azul.
