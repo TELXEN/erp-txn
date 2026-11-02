@@ -157,3 +157,4 @@
 - [ ] Facturación Electrónica: cambiar el icono de «Facturas».
 - [ ] Finanzas › Flujo de Caja: subir «Matriz anual» a la altura de «Detalle de Gastos».
 - [ ] Logística › Almacén e Inventario: «Inventario» con icono grande.
+- [ ] Operaciones › Ejecutar y controlar: «Avance físico» a la izquierda con icono grande; «Gantt» y «Curva S» como dos iconos pequeños que abren su vista en pantalla.
