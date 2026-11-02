@@ -56,12 +56,16 @@ import {
   type CotizacionItem,
   type EstadoCotizacion,
 } from "@/lib/cotizaciones";
-import { Check, Calculator, ChevronDown, CornerDownRight, Upload, FileSpreadsheet, X, Eye, EyeOff, Trash2, ArrowLeft, Library, Plus, Pencil, Copy, FileText, LayoutTemplate, History, Receipt, RotateCcw } from "lucide-react";
+import { Check, Calculator, ChevronDown, CornerDownRight, Upload, FileSpreadsheet, X, Eye, EyeOff, Trash2, ArrowLeft, Library, Plus, Pencil, Copy, FileText, History, Receipt, RotateCcw } from "lucide-react";
 import { GastosGeneralesCotizacion } from "@/components/cotizaciones/GastosGeneralesCotizacion";
 
 export const Route = createFileRoute("/_authenticated/cotizaciones")({
-  validateSearch: (s: Record<string, unknown>): { abrir?: string } =>
-    typeof s["abrir"] === "string" && s["abrir"] ? { abrir: s["abrir"] } : {},
+  validateSearch: (s: Record<string, unknown>): { abrir?: string; seccion?: string } => {
+    const r: { abrir?: string; seccion?: string } = {};
+    if (typeof s["abrir"] === "string" && s["abrir"]) r.abrir = s["abrir"];
+    if (s["seccion"] === "plantillas") r.seccion = "plantillas";
+    return r;
+  },
   head: () => ({
     meta: [
       { title: "Cotizaciones — ERP TELXEN" },
@@ -110,7 +114,8 @@ function Cotizaciones() {
   const { data: plantillas = [] } = usePlantillasCotizacion();
   const [plantillaSel, setPlantillaSel] = useState("");
 
-  const { abrir } = Route.useSearch();
+  const { abrir, seccion: seccionQ } = Route.useSearch();
+  const seccion: "cotizaciones" | "plantillas" = seccionQ === "plantillas" ? "plantillas" : "cotizaciones";
   const [seleccion, setSeleccion] = useState<string | null>(abrir ?? null);
   const { data: items = [] } = useCotizacionItems(seleccion);
   const { data: itemsHoja = [] } = useCotizacionItems(seleccion, true);
@@ -119,7 +124,14 @@ function Cotizaciones() {
   const [busqueda, setBusqueda] = useRecordado("cotizaciones:busqueda", "");
   /** Fila seleccionada en «Cotizaciones registradas»: activa la barra vertical de iconos. */
   const [filaSel, setFilaSel] = useState<string | null>(null);
-  const [seccion, setSeccion] = useState<"cotizaciones" | "plantillas">("cotizaciones");
+  // La sección vive en la URL: así la cinta resalta la opción activa y F5 la conserva.
+  useEffect(() => {
+    if (!seccionQ) {
+      void navigate({ to: "/cotizaciones", search: abrir ? { abrir, seccion: "cotizaciones" } : { seccion: "cotizaciones" }, replace: true });
+    } else if (seccion === "plantillas") {
+      setSeleccion(null);
+    }
+  }, [seccionQ, seccion, abrir, navigate]);
   /** Cotización de un año anterior que se va a retomar con código del año actual. */
   const [aRetomar, setARetomar] = useState<Cotizacion | null>(null);
   const [actualizarPrecios, setActualizarPrecios] = useState(false);
@@ -884,10 +896,6 @@ function Cotizaciones() {
           </div> : undefined
         }
       />
-      <div className="mb-3 flex flex-wrap gap-1">
-        <Boton variante={seccion === "cotizaciones" ? "primario" : "linea"} onClick={() => setSeccion("cotizaciones")}><FileText size={13} />Cotizaciones</Boton>
-        <Boton variante={seccion === "plantillas" ? "primario" : "linea"} onClick={() => setSeccion("plantillas")}><LayoutTemplate size={13} />Plantillas</Boton>
-      </div>
 
       {seccion === "plantillas" ? (
         <PlantillasCotizacion />

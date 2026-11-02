@@ -1,4 +1,4 @@
-import { LogOut, Hash, FolderKanban, Scale, Plug, Ruler, Shapes, FolderTree, Network, Tag, ListTree, Wrench, Hammer, Percent } from "lucide-react";
+import { LogOut, Hash, FolderKanban, Scale, Plug, Ruler, Shapes, FolderTree, Network, Tag, ListTree, Wrench, Hammer, Percent, LayoutTemplate } from "lucide-react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
@@ -113,7 +113,12 @@ import { aplicarTema, leerTema } from "@/lib/temas";
 import { aplicarFuenteGlobal, useFuenteDocumento } from "@/lib/fuentes-documentos";
 
 
-type Item = { a: string; texto: string; roles: Rol[]; icono: React.ElementType; hijos?: Item[]; sub?: { texto: string; seccion: string; campo?: string }[] };
+const SECCIONES_COTIZ = [
+  { texto: "Cotizaciones", corto: "Cotizaciones", seccion: "cotizaciones", icono: FileText },
+  { texto: "Plantillas", corto: "Plantillas", seccion: "plantillas", icono: LayoutTemplate },
+];
+
+type Item = { a: string; texto: string; roles: Rol[]; icono: React.ElementType; hijos?: Item[]; sub?: { texto: string; seccion: string; campo?: string; icono?: React.ElementType; corto?: string }[] };
 type Categoria = { titulo: string; items: Item[] };
 
 const MENU: Categoria[] = [
@@ -122,7 +127,7 @@ const MENU: Categoria[] = [
     items: [
       { a: "/clientes", texto: "Clientes", roles: ["administrador", "gerente"], icono: Users },
       { a: "/datos-apu", texto: "Análisis de Precios Unitarios (APU)", roles: ["administrador", "gerente"], icono: Calculator },
-      { a: "/cotizaciones", texto: "Cotizaciones", roles: ["administrador", "gerente"], icono: FileText },
+      { a: "/cotizaciones", texto: "Cotizaciones", roles: ["administrador", "gerente"], icono: FileText, sub: SECCIONES_COTIZ },
       { a: "/valorizaciones", texto: "Preliquidaciones", roles: ["administrador", "gerente"], icono: Banknote },
       { a: "/facturacion-electronica", texto: "Facturación Electrónica", roles: ["administrador", "gerente"], icono: ReciboCodigoBarras },
       { a: "/registro-ventas", texto: "Registro de Ventas", roles: ["administrador", "gerente"], icono: FolderClosed },
