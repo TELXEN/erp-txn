@@ -670,7 +670,7 @@ export function Encabezado({
   const setCtx = r?.setCtx;
   useEffect(() => {
     if (!enCinta || !setCtx || !acciones) return;
-    setCtx({ titulo, subtitulo, solo: soloCinta });
+    setCtx({ titulo, subtitulo, ...(soloCinta ? { solo: soloCinta } : {}) });
     return () => setCtx(null);
   }, [enCinta, setCtx, titulo, subtitulo, !!acciones, soloCinta]);
   if (enCinta) {
