@@ -106,10 +106,10 @@
   --color-cinta-oro: oklch(0.66 0.14 85);
   /* Azul del sello de goma del icono de Facturas. */
   --color-sello-factura: #0077b6;
-  /* Verde de la palomita del icono de SIRE. */
-  --color-check-sire: #029a56;
+  /* Verde de las palomitas de verificación (SIRE, Aprobaciones). */
+  --color-check-verde: #029a56;
   /* Azul de la palomita del icono de Guías de Remisión. */
-  --color-check-guia: #0077b6;
+  --color-check-azul: #0077b6;
   --color-chip-mat: var(--chip-mat);
   --color-chip-mo: var(--chip-mo);
   --color-chip-eq: var(--chip-eq);
