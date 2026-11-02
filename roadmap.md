@@ -196,4 +196,4 @@
 - [x] Icono APU con contorno verde (#029a56) en la cinta; verificado en pantalla.
 - [x] Icono Clientes (personita) en azul (#0077b6) en la cinta; verificado en pantalla.
 - [x] Icono Retenciones: disco central en naranja (#e85d04) con icono propio BovedaRetenciones; verificado en pantalla.
-- [ ] Icono Partidas: contorno superior azul, línea media verde y línea inferior roja
+- [x] Icono Partidas = PartidasTresColores: contorno superior azul, línea media verde, línea inferior roja; verificado en pantalla.
