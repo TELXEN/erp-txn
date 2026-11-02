@@ -112,6 +112,7 @@ function construirFilas(items: ItemCot[], _opts: { multi?: boolean; alcance?: st
 
 
 function VistaCotizacion() {
+  const navigate = useNavigate();
   const { id } = Route.useSearch();
   const { data: cotizaciones = [], isLoading: cargandoCotizaciones } = useCotizaciones();
   const { data: items = [], isLoading: cargandoItems } = useCotizacionItems(id || null, true);
