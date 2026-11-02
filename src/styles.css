@@ -118,6 +118,9 @@
   --color-icono-verde: #029a56;
   /* Azul de la palomita del icono de Guías de Remisión. */
   --color-icono-azul: #0077b6;
+  /* Naranja de los detalles de icono (símbolo central de Retenciones). */
+  --color-icono-naranja: #e85d04;
+
   /* Rojo de las barras del icono de Gantt. */
   --color-icono-rojo: #c1121f;
   /* Negro del frontón y la línea de base del icono de Tesorería. */
