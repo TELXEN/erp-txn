@@ -10,6 +10,17 @@ export type SubOpcionCinta = { texto: string; seccion?: string; campo?: string; 
 export type ItemCinta = { a: string; texto: string; icono: React.ElementType; hijos?: ItemCinta[]; sub?: SubOpcionCinta[]; sub2?: { titulo: string; opciones: SubOpcionCinta[] }; subFilas?: number };
 export type CategoriaCinta = { titulo: string; items: ItemCinta[] };
 
+/** Ancho del botón: lo justo para leer la etiqueta completa en dos renglones, sin partir palabras. */
+const PX_POR_CHAR = 5.5; // px por carácter a 11 px con la tipografía global
+function anchoEtiqueta(t: string) {
+  const forzado = t.split("\n").map((x) => x.trim()).filter(Boolean);
+  if (forzado.length > 1) return Math.max(...forzado.map((x) => x.length)) * PX_POR_CHAR + 14;
+  const w = t.trim().split(/\s+/);
+  let mejor = t.trim().length;
+  for (let i = 1; i < w.length; i++) mejor = Math.min(mejor, Math.max(w.slice(0, i).join(" ").length, w.slice(i).join(" ").length));
+  return Math.max(mejor, ...w.map((x) => x.length)) * PX_POR_CHAR + 14;
+}
+
 const CORTO: Record<string, string> = {
   "Finanzas y Contabilidad": "Finanzas",
   "Recursos Humanos": "Personal",
@@ -243,9 +254,10 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
     }
     const link = (
       <Link key={m.a} to={m.a} title={`${m.texto} — clic derecho: ${favoritos.includes(m.a) ? "quitar de" : "anclar a"} Inicio`} onContextMenu={(e) => { e.preventDefault(); alternarFav(m.a); }}
-        className={`relative flex w-[72px] shrink-0 flex-col items-center gap-1 rounded-md px-1 py-1.5 text-center text-[11px] leading-tight ${tono}`}>
+        className={`relative flex w-auto max-w-[118px] min-w-[62px] shrink-0 flex-col items-center gap-1 rounded-md px-1.5 py-1.5 text-center text-[11px] leading-tight ${tono}`}
+        style={{ width: anchoEtiqueta(m.texto) }}>
         <I className="size-6 shrink-0" />
-        <span lang="es" className="line-clamp-2 hyphens-auto [hyphenate-limit-chars:6_3_3]">{m.texto}</span><Insignia a={m.a} />
+        <span lang="es" className="line-clamp-2 w-full whitespace-pre-line break-words">{m.texto}</span><Insignia a={m.a} />
         {favoritos.includes(m.a) && <Star className="absolute left-1 top-1 size-2.5 fill-current text-cinta-acento" />}
       </Link>
     );
