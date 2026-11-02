@@ -31,8 +31,6 @@ const GRUPO: Record<string, string> = {
   "/tesoreria": "Caja y bancos", "/caja-chica": "Caja y bancos", "/sire": "SUNAT",
   "/personal": "Personal", "/tareo": "Personal",
   "/nomina": "Remuneraciones", "/honorarios": "Remuneraciones", "/beneficios": "Beneficios Sociales",
-  "/configuracion-sistema": "Configuración", "/datos": "Configuración",
-  "/catalogo-tecnico": "Catálogos", "/maestro-insumos": "Catálogos",
 };
 const INICIO = "__inicio";
 const LS_REC = "erp-telxen-recientes";
