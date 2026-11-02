@@ -5,6 +5,8 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
+import { GrupoCinta } from "@/components/CintaOpciones";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ApuBanco, ORIGEN_COTIZACION } from "@/components/ApuCotizacion";
 import { dbBanco, guardarPartidaEnBanco, useCatalogoCotizacion } from "@/lib/banco-apu";
 import { AutoMaestra } from "@/components/CotizacionHoja";
@@ -54,7 +56,7 @@ import {
   type CotizacionItem,
   type EstadoCotizacion,
 } from "@/lib/cotizaciones";
-import { Check, Calculator, CornerDownRight, Upload, FileSpreadsheet, X, Eye, EyeOff, Trash2, ArrowLeft, Library, Plus, Pencil, Copy, FileText, LayoutTemplate, History, Receipt, RotateCcw } from "lucide-react";
+import { Check, Calculator, ChevronDown, CornerDownRight, Upload, FileSpreadsheet, X, Eye, EyeOff, Trash2, ArrowLeft, Library, Plus, Pencil, Copy, FileText, LayoutTemplate, History, Receipt, RotateCcw } from "lucide-react";
 import { GastosGeneralesCotizacion } from "@/components/cotizaciones/GastosGeneralesCotizacion";
 
 export const Route = createFileRoute("/_authenticated/cotizaciones")({
@@ -841,20 +843,26 @@ function Cotizaciones() {
         subtitulo="Propuestas comerciales a clientes"
         acciones={
           seccion === "cotizaciones" ? <div className="flex items-center gap-2">
-            <select
-              value={plantillaSel}
-              onChange={(e) => setPlantillaSel(e.target.value)}
-              title="Plantilla por tipo de obra"
-              className="h-9 rounded-md border border-line bg-card px-2 text-xs text-ink"
-            >
-              <option value="">En blanco</option>
-              {plantillas.map((p) => (
-                <option key={p.id} value={p.id}>Plantilla: {p.nombre}</option>
-              ))}
-            </select>
-            <Boton onClick={() => { setMonedaNueva(""); setError(""); setPidiendoMoneda(true); }}>
-              <Plus size={14} /> Nueva cotización
-            </Boton>
+            <GrupoCinta titulo="Crear">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button type="button" className="flex h-8 items-center gap-1.5 whitespace-nowrap rounded-md bg-cinta-acento px-2.5 text-xs font-semibold text-cinta-acento-foreground transition-colors hover:brightness-95">
+                    <Plus size={14} /> Nueva cotización <ChevronDown size={13} aria-hidden />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-64">
+                  <DropdownMenuItem onClick={() => { setPlantillaSel(""); setMonedaNueva(""); setError(""); setPidiendoMoneda(true); }}>
+                    <FileText size={14} /> En blanco
+                  </DropdownMenuItem>
+                  {plantillas.length > 0 && <DropdownMenuSeparator />}
+                  {plantillas.map((p) => (
+                    <DropdownMenuItem key={p.id} onClick={() => { setPlantillaSel(p.id); setMonedaNueva(""); setError(""); setPidiendoMoneda(true); }}>
+                      <Library size={14} /> Plantilla: {p.nombre}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </GrupoCinta>
             <VentanaFlotante titulo="Nueva cotización" subtitulo="Elige la moneda; luego completarás el encabezado" abierta={pidiendoMoneda} onCerrar={() => setPidiendoMoneda(false)} ancho="max-w-md">
               <div className="space-y-4 p-5">
                 <p className="text-xs font-semibold text-ink">Moneda de la cotización <span className="text-bad">*</span></p>
