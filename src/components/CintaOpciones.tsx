@@ -82,7 +82,7 @@ function Buscador({ items }: { items: Resultado[] }) {
   );
 }
 
-function SubMenu({ a, sub }: { a: string; sub: SubOpcionCinta[] }) {
+function SubMenu({ a, sub, onIr }: { a: string; sub: SubOpcionCinta[]; onIr?: (destino: string) => void }) {
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const ref = useRef<HTMLButtonElement>(null);
   useEffect(() => {
@@ -107,9 +107,9 @@ function SubMenu({ a, sub }: { a: string; sub: SubOpcionCinta[] }) {
           {sub.map((o) => {
             const cls = "block px-3 py-1.5 hover:bg-accent hover:text-accent-foreground";
             return o.a ? (
-              <Link key={o.a} to={o.a} onClick={() => setPos(null)} className={cls}>{o.texto}</Link>
+              <Link key={o.a} to={o.a} onClick={() => { setPos(null); onIr?.(o.a ?? a); }} className={cls}>{o.texto}</Link>
             ) : (
-              <Link key={o.seccion} to={a} search={{ [o.campo ?? "seccion"]: o.seccion } as never} onClick={() => setPos(null)} className={cls}>{o.texto}</Link>
+              <Link key={o.seccion} to={a} search={{ [o.campo ?? "seccion"]: o.seccion } as never} onClick={() => { setPos(null); onIr?.(a); }} className={cls}>{o.texto}</Link>
             );
           })}
         </div>, document.body)}
@@ -215,14 +215,22 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
   const [verAcciones, setVerAcciones] = useState(false);
   const [contraida, setContraida] = useState(false);
   useEffect(() => { try { setContraida(localStorage.getItem("erp-telxen-cinta-contraida") === "1"); } catch { /* */ } }, []);
-  useEffect(() => { setPestana(activa); setVerAcciones(!!contextual); }, [activa, pathname, !!contextual]);
+  // Navegar desde la cuadrícula conserva la vista de botones; llegar por otro camino (menú lateral, buscador, recarga) muestra las acciones de la pantalla.
+  const gridNav = useRef<string | null>(null);
+  useEffect(() => {
+    setPestana(activa);
+    if (gridNav.current === pathname) return;
+    gridNav.current = null;
+    setVerAcciones(!!contextual);
+  }, [activa, pathname, !!contextual]);
   const enCtx = !!contextual && pestana === activa && verAcciones;
   const alternarContraer = () => setContraida((v) => { try { localStorage.setItem("erp-telxen-cinta-contraida", v ? "0" : "1"); } catch { /* */ } return !v; });
   const enInicio = pestana === INICIO;
   const clicPestana = (t: string) => {
     if (contraida && pestana === t) alternarContraer();
     if (t === pestana) { if (t === activa && contextual) setVerAcciones((v) => !v); return; }
-    setPestana(t); setVerAcciones(t === activa && !!contextual);
+    // Venir de otra pestaña muestra los botones de la categoría; las acciones de la pantalla quedan a un toque más.
+    setPestana(t); setVerAcciones(false);
   };
   const cat = enInicio ? null : categorias.find((c) => c.titulo === pestana) ?? categorias[0];
 
@@ -237,15 +245,15 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
     const tono = act ? "bg-cinta-acento text-cinta-acento-foreground font-semibold" : "text-cinta-texto hover:bg-cinta-hover";
     if (modo === "simplificada") {
       const link = (
-        <Link key={m.a} to={m.a} title={`${m.texto} — clic derecho: ${favoritos.includes(m.a) ? "quitar de" : "anclar a"} Inicio`} onClick={() => contraida && setPestana(pestana)} onContextMenu={(e) => { e.preventDefault(); alternarFav(m.a); }}
+        <Link key={m.a} to={m.a} title={`${m.texto} — clic derecho: ${favoritos.includes(m.a) ? "quitar de" : "anclar a"} Inicio`} onClick={() => { gridNav.current = m.a; if (contraida) setPestana(pestana); }} onContextMenu={(e) => { e.preventDefault(); alternarFav(m.a); }}
           className={`relative flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 text-xs ${tono}`}>
           <I className="size-4 shrink-0" /> {m.texto}<Insignia a={m.a} />
         </Link>
       );
-      return m.sub ? <div key={m.a} className="relative flex shrink-0 pr-3">{link}<SubMenu a={m.a} sub={[...m.sub, ...(m.sub2?.opciones ?? [])]} /></div> : link;
+      return m.sub ? <div key={m.a} className="relative flex shrink-0 pr-3">{link}<SubMenu a={m.a} sub={[...m.sub, ...(m.sub2?.opciones ?? [])]} onIr={(d) => { gridNav.current = d; }} /></div> : link;
     }
     const link = (
-      <Link key={m.a} to={m.a} title={`${m.texto} — clic derecho: ${favoritos.includes(m.a) ? "quitar de" : "anclar a"} Inicio`} onContextMenu={(e) => { e.preventDefault(); alternarFav(m.a); }}
+      <Link key={m.a} to={m.a} title={`${m.texto} — clic derecho: ${favoritos.includes(m.a) ? "quitar de" : "anclar a"} Inicio`} onClick={() => { gridNav.current = m.a; }} onContextMenu={(e) => { e.preventDefault(); alternarFav(m.a); }}
         className={`relative flex w-[76px] shrink-0 flex-col items-center gap-1 rounded-md px-1 py-1.5 text-center text-[11px] leading-tight ${tono}`}>
         <I className="size-6 shrink-0" />
         <span className="line-clamp-2">{m.texto}</span><Insignia a={m.a} />
@@ -275,6 +283,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
         if (o.a) {
           return (
             <Link key={o.a} to={o.a} title={o.texto} className={cls} {...(sitio ? { style: sitio } : {})}
+              onClick={() => { gridNav.current = o.a ?? m.a; }}
               activeOptions={{ includeSearch: true }}
               activeProps={{ className: "bg-cinta-acento text-cinta-acento-foreground font-semibold" }}
               inactiveProps={{ className: "text-cinta-texto hover:bg-cinta-hover" }}>{contenido}</Link>
@@ -282,6 +291,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
         }
         return (
           <Link key={o.seccion} to={m.a} search={{ [o.campo ?? "seccion"]: o.seccion } as never} title={o.texto} className={cls} {...(sitio ? { style: sitio } : {})}
+            onClick={() => { gridNav.current = m.a; }}
             activeOptions={{ includeSearch: true }}
             activeProps={{ className: "bg-cinta-acento text-cinta-acento-foreground font-semibold" }}
             inactiveProps={{ className: "text-cinta-texto hover:bg-cinta-hover" }}>{contenido}</Link>
@@ -293,7 +303,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
         </div>
       );
     }
-    return m.sub ? <div key={m.a} className="relative flex shrink-0">{link}<SubMenu a={m.a} sub={[...m.sub, ...(m.sub2?.opciones ?? [])]} /></div> : link;
+    return m.sub ? <div key={m.a} className="relative flex shrink-0">{link}<SubMenu a={m.a} sub={[...m.sub, ...(m.sub2?.opciones ?? [])]} onIr={(d) => { gridNav.current = d; }} /></div> : link;
   };
 
   // En la clásica: los ítems simples forman un grupo con el nombre de la pestaña; cada submenú es su propio grupo.
