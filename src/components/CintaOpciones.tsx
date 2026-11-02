@@ -292,7 +292,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
         );
       };
       return (
-        <div key={m.a} className="grid shrink-0 content-center py-2.5" style={{ gridTemplateColumns: `repeat(${cols}, auto)`, gridAutoRows: "24px", columnGap: 6 }}>
+        <div key={m.a} className={`grid shrink-0 content-center ${padBloque}`} style={{ gridTemplateColumns: `repeat(${cols}, auto)`, gridAutoRows: `${alto}px`, columnGap: 6 }}>
           {subs.map(celda)}
         </div>
       );
@@ -302,11 +302,18 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
 
   // En la clásica: los ítems simples forman un grupo con el nombre de la pestaña; cada submenú es su propio grupo.
   const porGrupo = (lista: ItemCinta[], defecto: string) => {
-    const g: { titulo: string; items: ItemCinta[]; sub?: boolean }[] = [];
+    const g: { titulo: string; items: ItemCinta[]; sub?: boolean; mezcla?: boolean }[] = [];
     for (const m of lista) {
       if (m.hijos) { g.push({ titulo: m.texto, items: m.hijos }); continue; }
       if (m.sub && m.sub.every((o) => o.icono)) {
-        g.push({ titulo: m.texto, items: [m], sub: true });
+        const t = GRUPO[m.a];
+        if (t) {
+          // El ítem se integra en el grupo que le corresponde (p. ej. Gastos Generales dentro de Costos).
+          const e = g.find((x) => x.titulo === t);
+          if (e) { e.items.push(m); e.mezcla = true; } else g.push({ titulo: t, items: [m], mezcla: true });
+        } else {
+          g.push({ titulo: m.texto, items: [m], sub: true });
+        }
         // Un ítem puede aportar un segundo grupo (p. ej. Operaciones especiales junto a Facturación Electrónica).
         if (m.sub2) { const { sub2, ...resto } = m; g.push({ titulo: sub2.titulo, items: [{ ...resto, sub: sub2.opciones }], sub: true }); }
         continue;
