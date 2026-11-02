@@ -7,7 +7,7 @@ import { claveNombre } from "@/lib/formato-texto";
 
 export type ModoNavegacion = "lateral" | "simplificada" | "clasica";
 export type SubOpcionCinta = { texto: string; seccion?: string; campo?: string; icono?: React.ElementType; corto?: string; a?: string; grande?: boolean; search?: Record<string, string>; iconoClase?: string };
-export type ItemCinta = { a: string; texto: string; icono: React.ElementType; hijos?: ItemCinta[]; sub?: SubOpcionCinta[]; sub2?: { titulo: string; opciones: SubOpcionCinta[] }; subFilas?: number };
+export type ItemCinta = { a: string; texto: string; icono: React.ElementType; hijos?: ItemCinta[]; sub?: SubOpcionCinta[]; subGrupos?: { titulo: string; opciones: SubOpcionCinta[]; subFilas?: number }[]; subFilas?: number };
 export type CategoriaCinta = { titulo: string; items: ItemCinta[] };
 
 /** Ancho del botón: lo justo para leer la etiqueta completa en dos renglones, sin partir palabras. */
@@ -127,7 +127,8 @@ function SubMenu({ a, sub, onIr }: { a: string; sub: SubOpcionCinta[]; onIr?: (d
 }
 
 function contiene(c: CategoriaCinta, p: string) {
-  return c.items.some((m) => m.a === p || m.hijos?.some((h) => h.a === p) || m.sub?.some((o) => (o.a ?? m.a) === p) || m.sub2?.opciones.some((o) => (o.a ?? m.a) === p));
+  return c.items.some((m) => m.a === p || m.hijos?.some((h) => h.a === p) || m.sub?.some((o) => (o.a ?? m.a) === p)
+    || m.subGrupos?.some((g) => g.opciones.some((o) => (o.a ?? m.a) === p)));
 }
 
 function SelectorModo({ modo, onModo, contraida, onContraer }: {
@@ -201,14 +202,13 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
   categorias = categorias.filter((c) => c.titulo !== "Temas de colores");
   const plano = categorias.flatMap((c) => c.items.flatMap((m) => (m.hijos ?? [m]).map((h) => ({ ...h, cat: CORTO[c.titulo] ?? c.titulo }))));
   // Rutas del menú, incluidas las que una opción de submenú lleva a otra pantalla.
-  const rutas = plano.flatMap((m) => [m.a, ...(m.sub ?? []).map((o) => o.a ?? m.a), ...(m.sub2?.opciones ?? []).map((o) => o.a ?? m.a)]);
+  const rutas = plano.flatMap((m) => [m.a, ...(m.sub ?? []).map((o) => o.a ?? m.a), ...(m.subGrupos ?? []).flatMap((g) => g.opciones.map((o) => o.a ?? m.a))]);
   const vistos = new Set<string>();
   const resultados: Resultado[] = plano.flatMap((m) => {
-    const s2 = m.sub2;
     return [
       { a: m.a, texto: m.texto, ruta: m.cat, icono: m.icono },
       ...(m.sub ?? []).map((o) => ({ a: o.a ?? m.a, texto: o.texto, ruta: `${m.cat} › ${m.texto}`, icono: o.icono ?? m.icono, search: o.a ? o.search : ({ [o.campo ?? "seccion"]: o.seccion ?? "" } as Record<string, string>) })),
-      ...(s2 ? s2.opciones.map((o) => ({ a: o.a ?? m.a, texto: o.texto, ruta: `${m.cat} › ${s2.titulo}`, icono: o.icono ?? m.icono, search: o.a ? undefined : ({ [o.campo ?? "seccion"]: o.seccion ?? "" } as Record<string, string>) })) : []),
+      ...(m.subGrupos ?? []).flatMap((s2) => s2.opciones.map((o) => ({ a: o.a ?? m.a, texto: o.texto, ruta: `${m.cat} › ${s2.titulo}`, icono: o.icono ?? m.icono, search: o.a ? undefined : ({ [o.campo ?? "seccion"]: o.seccion ?? "" } as Record<string, string>) }))),
     ];
   }).filter((r) => { const k = `${r.a}|${r.texto}`; if (vistos.has(k)) return false; vistos.add(k); return true; });
 
@@ -252,7 +252,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
           <I className="size-4 shrink-0" /> {m.texto}<Insignia a={m.a} />
         </Link>
       );
-      return m.sub ? <div key={m.a} className="relative flex shrink-0 pr-3">{link}<SubMenu a={m.a} sub={[...m.sub, ...(m.sub2?.opciones ?? [])]} /></div> : link;
+      return m.sub ? <div key={m.a} className="relative flex shrink-0 pr-3">{link}<SubMenu a={m.a} sub={[...m.sub, ...(m.subGrupos ?? []).flatMap((g) => g.opciones)]} /></div> : link;
     }
     const link = (
       <Link key={m.a} to={m.a} title={`${m.texto} — clic derecho: ${favoritos.includes(m.a) ? "quitar de" : "anclar a"} Inicio`} onContextMenu={(e) => { e.preventDefault(); alternarFav(m.a); }}
@@ -315,7 +315,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
         </div>
       );
     }
-    return m.sub ? <div key={m.a} className="relative flex shrink-0">{link}<SubMenu a={m.a} sub={[...m.sub, ...(m.sub2?.opciones ?? [])]} /></div> : link;
+    return m.sub ? <div key={m.a} className="relative flex shrink-0">{link}<SubMenu a={m.a} sub={[...m.sub, ...(m.subGrupos ?? []).flatMap((g) => g.opciones)]} /></div> : link;
   };
 
   // En la clásica: los ítems simples forman un grupo con el nombre de la pestaña; cada submenú es su propio grupo.
@@ -333,7 +333,8 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
           g.push({ titulo: m.texto, items: [m], sub: true });
         }
         // Un ítem puede aportar un segundo grupo (p. ej. Operaciones especiales junto a Facturación Electrónica).
-        if (m.sub2) { const { sub2, ...resto } = m; g.push({ titulo: sub2.titulo, items: [{ ...resto, sub: sub2.opciones }], sub: true }); }
+        // Un ítem puede aportar varios grupos propios (p. ej. Guías de Remisión y Operaciones especiales junto a Facturación).
+        for (const sg of m.subGrupos ?? []) { const { subGrupos, ...resto } = m; g.push({ titulo: sg.titulo, items: [{ ...resto, sub: sg.opciones, subFilas: sg.subFilas }], sub: true }); }
         continue;
       }
       const t = GRUPO[m.a] ?? defecto; const e = g.find((x) => x.titulo === t);
