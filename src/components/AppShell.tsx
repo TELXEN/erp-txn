@@ -11,7 +11,6 @@ const RanuraEncabezado = createContext<Ranura | null>(null);
 export function useEnCinta() { return !!useContext(RanuraEncabezado)?.cinta; }
 const SECCIONES_CONFIG = [
   { texto: "Datos de la empresa", corto: "Empresa", seccion: "empresa", icono: Building2, grande: true },
-  { texto: "Tipografía de documentos", corto: "Tipografía", seccion: "tipografia", icono: Type },
   { texto: "Usuarios y Roles", corto: "Usuarios", seccion: "usuarios", icono: UserRoundCheck },
   { texto: "Valores normativos (RMV / UIT)", corto: "Normativa", seccion: "normativa", icono: Scale },
   { texto: "Integraciones", corto: "Integraciones", seccion: "integraciones", icono: Plug },
@@ -19,8 +18,8 @@ const SECCIONES_CONFIG = [
 const SECCIONES_DATOS = [
   { texto: "Codificación", corto: "Codificación", seccion: "codificacion", campo: "pestana", icono: Binary, grande: true },
   { texto: "Parámetros de proyectos", corto: "Proyectos", seccion: "configuracion", campo: "pestana", icono: FolderKanban },
+  { texto: "Recursos Humanos", corto: "Recursos Humanos", seccion: "cargos", campo: "pestana", icono: UserCog },
   { texto: "Costos y Finanzas", corto: "Costos", seccion: "categoriasgg", campo: "pestana", icono: Coins },
-  { texto: "Recursos Humanos", corto: "RR. HH.", seccion: "cargos", campo: "pestana", icono: UserCog },
 ];
 const SECCIONES_CATALOGO = [
   { texto: "Unidades de medida", corto: "Unidades", seccion: "unidades", campo: "pestana", icono: Ruler, grande: true },
@@ -265,18 +264,21 @@ const MENU: Categoria[] = [
     ],
   },
   {
-    titulo: "Datos",
+    titulo: "Inicio",
     items: [
-      { a: "/configuracion-sistema", texto: "Configuración del Sistema", roles: ["gerente"], icono: SlidersHorizontal, sub: SECCIONES_CONFIG },
-      { a: "/datos", texto: "Parámetros Generales", roles: ["administrador", "gerente"], icono: Settings, sub: SECCIONES_DATOS },
-      { a: "/catalogo-tecnico", texto: "Catálogo Técnico", roles: ["administrador", "gerente"], icono: BookOpen, sub: SECCIONES_CATALOGO, subFilas: 3, subColumnas: true },
-      { a: "/maestro-insumos", texto: "Maestro de Insumos", roles: ["administrador", "gerente"], icono: Database, sub: SECCIONES_MAESTRO, subGrupos: [{ titulo: "Configuración del maestro", opciones: SECCIONES_MAESTRO_CFG }] },
+      { a: "/configuracion-sistema", texto: "Configuración del Sistema", roles: ["gerente"], icono: SlidersHorizontal, sub: SECCIONES_CONFIG, subFilas: 3, subColumnas: true },
+      { a: "/datos", texto: "Parámetros Generales", roles: ["administrador", "gerente"], icono: Settings, sub: SECCIONES_DATOS, subFilas: 3, subColumnas: true },
+      { a: "/tema-colores", texto: "Diseño", roles: ["ingeniero", "administrador", "gerente"], icono: Palette, subFilas: 3, sub: [
+        { texto: "Temas de colores", corto: "Tema", a: "/tema-colores", icono: Palette, grande: true },
+        { texto: "Tipografía de documentos", corto: "Tipografía", a: "/configuracion-sistema", search: { seccion: "tipografia" }, icono: Type },
+      ] },
     ],
   },
   {
-    titulo: "Temas de colores",
+    titulo: "Datos",
     items: [
-      { a: "/tema-colores", texto: "Temas de colores", roles: ["ingeniero", "administrador", "gerente"], icono: Palette },
+      { a: "/catalogo-tecnico", texto: "Catálogo Técnico", roles: ["administrador", "gerente"], icono: BookOpen, sub: SECCIONES_CATALOGO, subFilas: 3, subColumnas: true },
+      { a: "/maestro-insumos", texto: "Maestro de Insumos", roles: ["administrador", "gerente"], icono: Database, sub: SECCIONES_MAESTRO, subGrupos: [{ titulo: "Configuración del maestro", opciones: SECCIONES_MAESTRO_CFG }] },
     ],
   },
 ];
