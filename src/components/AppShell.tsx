@@ -198,6 +198,17 @@ type Categoria = { titulo: string; items: Item[] };
 
 const MENU: Categoria[] = [
   {
+    titulo: "Inicio",
+    items: [
+      { a: "/configuracion-sistema", texto: "Configuración del Sistema", roles: ["gerente"], icono: SlidersHorizontal, sub: SECCIONES_CONFIG, subFilas: 3, subColumnas: true },
+      { a: "/datos", texto: "Parámetros Generales", roles: ["administrador", "gerente"], icono: Settings, sub: SECCIONES_DATOS, subFilas: 3, subColumnas: true },
+      { a: "/tema-colores", texto: "Diseño", roles: ["ingeniero", "administrador", "gerente"], icono: Palette, subFilas: 3, sub: [
+        { texto: "Temas de colores", corto: "Tema", a: "/tema-colores", icono: Palette, grande: true },
+        { texto: "Tipografía de documentos", corto: "Tipografía", a: "/configuracion-sistema", search: { seccion: "tipografia" }, icono: Type },
+      ] },
+    ],
+  },
+  {
     titulo: "Comercial",
     items: [
       { a: "/clientes", texto: "Clientes", roles: ["administrador", "gerente"], icono: ContactRound },
@@ -261,17 +272,6 @@ const MENU: Categoria[] = [
           { a: "/epp-historial", texto: "Historial por Empleado", roles: ["administrador", "gerente"], icono: History },
         ],
       },
-    ],
-  },
-  {
-    titulo: "Inicio",
-    items: [
-      { a: "/configuracion-sistema", texto: "Configuración del Sistema", roles: ["gerente"], icono: SlidersHorizontal, sub: SECCIONES_CONFIG, subFilas: 3, subColumnas: true },
-      { a: "/datos", texto: "Parámetros Generales", roles: ["administrador", "gerente"], icono: Settings, sub: SECCIONES_DATOS, subFilas: 3, subColumnas: true },
-      { a: "/tema-colores", texto: "Diseño", roles: ["ingeniero", "administrador", "gerente"], icono: Palette, subFilas: 3, sub: [
-        { texto: "Temas de colores", corto: "Tema", a: "/tema-colores", icono: Palette, grande: true },
-        { texto: "Tipografía de documentos", corto: "Tipografía", a: "/configuracion-sistema", search: { seccion: "tipografia" }, icono: Type },
-      ] },
     ],
   },
   {

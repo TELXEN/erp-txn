@@ -433,7 +433,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
                 title={c.titulo === activa && contextual ? contextual.titulo : undefined}
                 onClick={() => clicPestana(c.titulo)}
                 className={`relative h-9 shrink-0 whitespace-nowrap px-2.5 text-[13px] transition-colors hover:bg-cinta-hover ${sel ? "font-semibold" : "text-cinta-tenue"}`}>
-                {CORTO[c.titulo] ?? c.titulo}
+                {c.titulo === "Inicio" ? <span className="flex items-center gap-1"><Home className="size-3.5" /> Inicio</span> : (CORTO[c.titulo] ?? c.titulo)}
                 {sel && <span className="absolute inset-x-2 bottom-0 h-0.5 rounded bg-cinta-acento" />}
               </button>
             );
