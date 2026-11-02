@@ -357,9 +357,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
           <SelectorModo modo={modo} onModo={onModo} contraida={contraida} onContraer={alternarContraer} />
         </div>
       </div>
-      <div ref={onRanuraContextual}
-        className={`${!contraida && enCtx ? "flex" : "hidden"} min-h-11 items-stretch gap-2 overflow-x-auto border-t border-cinta-borde bg-cinta-inf px-2 py-1.5 text-xs [&>div]:flex [&>div]:flex-wrap [&>div]:items-center [&>div]:gap-2 [&_.grupo-cinta+.grupo-cinta]:border-l [&_.grupo-cinta+.grupo-cinta]:border-cinta-borde [&_.grupo-cinta+.grupo-cinta]:pl-2`} />
-      {!contraida && !enCtx && (
+      {!contraida && (
         <div className={`flex ${modo === "simplificada" ? "h-11 items-center gap-1" : "items-stretch pt-1"} overflow-x-auto border-t border-cinta-borde bg-cinta-inf px-2`}>
           {enInicio && !favoritos.length && !recientes.length && (
             <p className="flex items-center gap-2 px-2 py-3 text-xs text-cinta-tenue"><Pin className="size-4" /> Haz clic derecho en cualquier botón para anclarlo aquí.</p>
@@ -374,6 +372,10 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
               </p>
             </div>
           ))}
+          {enCtx && (
+            <div ref={onRanuraContextual}
+              className="ml-auto flex min-h-11 shrink-0 items-stretch gap-2 border-l border-cinta-borde py-1.5 pl-2 text-xs [&>div]:flex [&>div]:flex-wrap [&>div]:items-center [&>div]:gap-2 [&_.grupo-cinta+.grupo-cinta]:border-l [&_.grupo-cinta+.grupo-cinta]:border-cinta-borde [&_.grupo-cinta+.grupo-cinta]:pl-2" />
+          )}
         </div>
       )}
     </div>
