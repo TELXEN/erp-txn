@@ -1,4 +1,4 @@
-import { LogOut, Hash, FolderKanban, Scale, Plug } from "lucide-react";
+import { LogOut, Hash, FolderKanban, Scale, Plug, Ruler, Shapes, FolderTree, Network, Tag, ListTree, Package, Wrench, Hammer, Percent, Briefcase } from "lucide-react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
@@ -20,6 +20,24 @@ const SECCIONES_DATOS = [
   { texto: "Parámetros de proyectos", corto: "Proyectos", seccion: "configuracion", campo: "pestana", icono: FolderKanban },
   { texto: "Costos y Finanzas", corto: "Costos", seccion: "categoriasgg", campo: "pestana", icono: Calculator },
   { texto: "Recursos Humanos", corto: "RR. HH.", seccion: "cargos", campo: "pestana", icono: Users },
+];
+const SECCIONES_CATALOGO = [
+  { texto: "Unidades de medida", corto: "Unidades", seccion: "unidades", campo: "pestana", icono: Ruler },
+  { texto: "Especialidades", corto: "Especialid.", seccion: "especialidades", campo: "pestana", icono: Shapes },
+  { texto: "Categorías", corto: "Categorías", seccion: "categorias", campo: "pestana", icono: FolderTree },
+  { texto: "Subcategorías", corto: "Subcateg.", seccion: "subfamilias", campo: "pestana", icono: Network },
+  { texto: "Marcas", corto: "Marcas", seccion: "marcas", campo: "pestana", icono: Tag },
+  { texto: "Títulos WBS", corto: "Títulos WBS", seccion: "grupos", campo: "pestana", icono: ListTree },
+];
+const SECCIONES_MAESTRO = [
+  { texto: "Materiales", corto: "Materiales", seccion: "MAT", campo: "seccion", icono: Package },
+  { texto: "Mano de obra", corto: "Mano de obra", seccion: "MO", campo: "seccion", icono: HardHat },
+  { texto: "Equipos", corto: "Equipos", seccion: "EQ", campo: "seccion", icono: Wrench },
+  { texto: "Herramientas", corto: "Herram.", seccion: "HE", campo: "seccion", icono: Hammer },
+  { texto: "Subcontratos", corto: "Subcontratos", seccion: "SC", campo: "seccion", icono: Handshake },
+  { texto: "Márgenes APU", corto: "Márgenes", seccion: "margenes", campo: "seccion", icono: Percent },
+  { texto: "Parámetros laborales", corto: "Laboral", seccion: "laboral", campo: "seccion", icono: Briefcase },
+  { texto: "Codificación de insumos", corto: "Codificación", seccion: "codificacion", campo: "seccion", icono: Hash },
 ];
 import { FormatoGlobal } from "@/components/FormatoGlobal";
 import { CintaOpciones, SelectorModoLateral, type ModoNavegacion, type ContextoCinta } from "@/components/CintaOpciones";
@@ -171,8 +189,8 @@ const MENU: Categoria[] = [
     items: [
       { a: "/configuracion-sistema", texto: "Configuración del Sistema", roles: ["gerente"], icono: SlidersHorizontal, sub: SECCIONES_CONFIG },
       { a: "/datos", texto: "Parámetros Generales", roles: ["administrador", "gerente"], icono: Settings, sub: SECCIONES_DATOS },
-      { a: "/catalogo-tecnico", texto: "Catálogo Técnico", roles: ["administrador", "gerente"], icono: Layers },
-      { a: "/maestro-insumos", texto: "Maestro de Insumos", roles: ["administrador", "gerente"], icono: PackageCheck },
+      { a: "/catalogo-tecnico", texto: "Catálogo Técnico", roles: ["administrador", "gerente"], icono: Layers, sub: SECCIONES_CATALOGO },
+      { a: "/maestro-insumos", texto: "Maestro de Insumos", roles: ["administrador", "gerente"], icono: PackageCheck, sub: SECCIONES_MAESTRO },
     ],
   },
   {

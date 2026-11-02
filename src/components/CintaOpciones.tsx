@@ -236,10 +236,10 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
       </Link>
     );
     if (m.sub && m.sub.every((o) => o.icono)) {
-      const subs = m.sub.slice(0, 6);
-      const cols = Math.min(3, Math.ceil(subs.length / 2));
+      const subs = m.sub.slice(0, 8);
+      const cols = Math.min(4, Math.ceil(subs.length / 2));
       const largo = Math.max(...subs.map((o) => (o.corto ?? o.texto).length));
-      const ancho = largo <= 12 ? 92 : Math.min(120, Math.round(largo * 6.4) + 26);
+      const ancho = largo <= 11 ? 92 : Math.min(112, Math.round(largo * 6.6) + 22);
       const celda = (o: NonNullable<ItemCinta["sub"]>[number]) => {
         const SI = o.icono!;
         return (
