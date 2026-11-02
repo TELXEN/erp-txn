@@ -290,7 +290,7 @@ const MENU: Categoria[] = [
     titulo: "Datos",
     items: [
       { a: "/catalogo-tecnico", texto: "Catálogo Técnico", roles: ["administrador", "gerente"], icono: BookOpen, sub: SECCIONES_CATALOGO, subFilas: 3, subColumnas: true },
-      { a: "/maestro-insumos", texto: "Maestro de Insumos", roles: ["administrador", "gerente"], icono: Database, sub: SECCIONES_MAESTRO, subGrupos: [{ titulo: "Recursos", opciones: SECCIONES_MAESTRO_RECURSOS, subFilas: 3 }, { titulo: "Configuración del maestro", opciones: SECCIONES_MAESTRO_CFG }] },
+      { a: "/maestro-insumos", texto: "Maestro de Insumos", roles: ["administrador", "gerente"], icono: Database, sub: SECCIONES_MAESTRO, subGrupos: [{ titulo: "Recursos", opciones: SECCIONES_MAESTRO_RECURSOS, subFilas: 3 }, { titulo: "Configuración del maestro", opciones: SECCIONES_MAESTRO_CFG, subFilas: 3 }] },
     ],
   },
 ];
