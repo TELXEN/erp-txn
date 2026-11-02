@@ -49,6 +49,10 @@ function Beneficios() {
   const qc = useQueryClient();
   const { data: trabajadores = [] } = useTrabajadores();
   const ahora = new Date();
+  const enCinta = useEnCinta();
+  const navigate = useNavigate();
+  const { tipo: tipoQ } = Route.useSearch();
+
   const [sel, setSel] = useState("");
   const [tipo, setTipo] = useState<Tipo>("CTS");
   const [anio, setAnio] = useState(ahora.getFullYear());
