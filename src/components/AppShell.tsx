@@ -260,7 +260,7 @@ const MENU: Categoria[] = [
       { a: "/personal", texto: "Personal", roles: ["administrador", "gerente"], icono: Users },
       { a: "/tareo", texto: "Control de Asistencia", roles: ["administrador", "gerente"], icono: CalendarDays },
       { a: "/nomina", texto: "Boletas de Pago", roles: ["administrador", "gerente"], icono: NominaBoletas, sub: SECCIONES_NOMINA },
-      { a: "/beneficios", texto: "Beneficios Sociales", roles: ["administrador", "gerente"], icono: HandCoins, sub: SECCIONES_BENEFICIOS },
+      { a: "/beneficios", texto: "Beneficios Sociales", roles: ["administrador", "gerente"], icono: HandCoins, sub: SECCIONES_BENEFICIOS, subFilas: 3 },
       {
         a: "#epp", texto: "Gestión de EPP", roles: ["administrador", "gerente"], icono: HardHat,
         hijos: [
