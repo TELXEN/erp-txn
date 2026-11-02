@@ -151,3 +151,10 @@
 - [x] Cinta Personal: «Boletas de Pago» grande abre la planilla y «Datos de AFP» (alcancía) pequeño a su derecha abre las comisiones AFP; la vista viaja en ?pestana= y F5 la conserva, sin fila interna de pestañas. Cinta Datos: «Empresa» grande con Tipografía/Usuarios/Normativa/Integraciones pequeñas a su derecha. Probado en clásica (ambas vistas navegan y se resaltan) y compilación OK.
 - [x] Separar los cinco grupos de la pestaña Datos en la cinta (Configuración del Sistema, Parámetros Generales, Catálogo Técnico, Maestro de Insumos, Configuración del maestro), cada uno con su rótulo y líneas finas a los lados; verificado en pantalla y en las demás pestañas.
 - [x] Ajustar los espacios horizontales de todas las cintas (grupos, columnas y botones) sin apretar ni separar de más; anchos medidos en pantalla en ocho pestañas, rótulos con aire a ambos lados de las líneas y palabras largas partidas con guion.
+
+## Cinta: iconos y alineación (2026-11-02)
+- [x] Datos: «Codificación» pasa de almohadilla a código binario (01/10); verificado en pantalla.
+- [x] Facturación Electrónica: «Facturas» pasa de recibo con código de barras a documento con sello (el recibo queda solo en la entrada del módulo); verificado en pantalla.
+- [x] Finanzas › Flujo de Caja: «Matriz anual» queda en la fila de arriba, a la misma altura que «Detalle de Gastos» (y 45, alto 20 en ambos); verificado con cinta clásica.
+- [x] Logística › Almacén e Inventario: «Inventario» con icono grande (24 px, igual que Almacén); verificado en pantalla.
+- [x] Operaciones › Ejecutar y controlar: «Avance Físico» a la izquierda con icono grande (24 px) y «Gantt»/«Curva S» pequeños (14 px) que abren su vista; cambio de vista probado en ambos sentidos (panel Gantt y panel Curva S) y F5 conservado.

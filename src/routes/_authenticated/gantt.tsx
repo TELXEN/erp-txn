@@ -85,6 +85,12 @@ function Gantt() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [proyectoQ]);
 
+  // Si la cinta elige otra vista, la hoja la sigue sin recargar la página.
+  useEffect(() => {
+    if (vistaQ === "curva") setPestana("curva");
+    else if (vistaQ === "gantt") setPestana("gantt");
+  }, [vistaQ]);
+
   // Cambiar de vista escribe la elección en la URL para que F5 la conserve.
   const cambiarPestana = (v: "gantt" | "curva") => {
     setPestana(v);

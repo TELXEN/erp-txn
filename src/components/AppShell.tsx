@@ -1,4 +1,4 @@
-import { LogOut, Hash, FolderKanban, Scale, Plug, Ruler, Shapes, FolderTree, Network, Tag, ListTree, Wrench, Hammer, Percent, LayoutTemplate } from "lucide-react";
+import { LogOut, Binary, FileBadge, FolderKanban, Scale, Plug, Ruler, Shapes, FolderTree, Network, Tag, ListTree, Wrench, Hammer, Percent, LayoutTemplate } from "lucide-react";
 import { ContactRound, Factory, Type, UserRoundCheck, Coins, Barcode, Drill, FileSignature, BadgeDollarSign, Boxes, BookOpen, History, LayoutDashboard, Vault, CircleDollarSign, Receipt, CalendarClock, Route, UserCog, Database, Pickaxe, PackagePlus, ScrollText, ToolCase, Fuel, PiggyBank } from "lucide-react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -17,7 +17,7 @@ const SECCIONES_CONFIG = [
   { texto: "Integraciones", corto: "Integraciones", seccion: "integraciones", icono: Plug },
 ];
 const SECCIONES_DATOS = [
-  { texto: "Codificación", corto: "Codificación", seccion: "codificacion", campo: "pestana", icono: Hash, grande: true },
+  { texto: "Codificación", corto: "Codificación", seccion: "codificacion", campo: "pestana", icono: Binary, grande: true },
   { texto: "Parámetros de proyectos", corto: "Proyectos", seccion: "configuracion", campo: "pestana", icono: FolderKanban },
   { texto: "Costos y Finanzas", corto: "Costos", seccion: "categoriasgg", campo: "pestana", icono: Coins },
   { texto: "Recursos Humanos", corto: "RR. HH.", seccion: "cargos", campo: "pestana", icono: UserCog },
@@ -75,6 +75,7 @@ function BotonPantallaCompleta({ className = "grid size-7 place-items-center rou
 import {
   Activity,
   ChartGantt,
+  ChartSpline,
   Banknote,
   BarChart3,
   Briefcase,
@@ -132,7 +133,7 @@ const SECCIONES_COTIZ = [
 ];
 
 const SECCIONES_FACTURACION = [
-  { texto: "Facturas", corto: "Facturas", seccion: "01", campo: "tipo", icono: ReciboCodigoBarras, grande: true },
+  { texto: "Facturas", corto: "Facturas", seccion: "01", campo: "tipo", icono: FileBadge, grande: true },
   { texto: "Boletas de venta", corto: "Boletas", seccion: "03", campo: "tipo", icono: Receipt },
   { texto: "Notas de crédito", corto: "Nota de crédito", seccion: "07", campo: "tipo", icono: FileMinus2 },
   { texto: "Notas de débito", corto: "Nota de débito", seccion: "08", campo: "tipo", icono: FilePlus2 },
@@ -149,7 +150,7 @@ const SECCIONES_VEHICULOS = [
 
 const SECCIONES_ALMACEN = [
   { texto: "Almacén", corto: "Almacén", a: "/almacen", icono: Warehouse, grande: true },
-  { texto: "Inventario", corto: "Inventario", a: "/inventario", icono: Boxes },
+  { texto: "Inventario", corto: "Inventario", a: "/inventario", icono: Boxes, grande: true },
 ];
 
 
@@ -169,6 +170,12 @@ const SECCIONES_GG = [
 const SECCIONES_FLUJO = [
   { texto: "Flujo de Caja", corto: "Flujo de Caja", seccion: "resumen", campo: "pestana", icono: TrendingUp, grande: true },
   { texto: "Matriz anual", corto: "Matriz anual", seccion: "matriz", campo: "pestana", icono: Grid3x3 },
+];
+
+// Vistas del cronograma: cada opción abre el Gantt o la Curva S en pantalla.
+const SECCIONES_VISTAS = [
+  { texto: "Diagrama de Gantt", corto: "Gantt", a: "/gantt", search: { vista: "gantt" }, icono: ChartGantt },
+  { texto: "Curva S", a: "/gantt", search: { vista: "curva" }, icono: ChartSpline },
 ];
 const SECCIONES_NOMINA = [
   { texto: "Boletas de Pago", corto: "Boletas de Pago", seccion: "planilla", campo: "pestana", icono: NominaBoletas, grande: true },
@@ -205,8 +212,8 @@ const MENU: Categoria[] = [
       { a: "/dashboard-proyectos", texto: "Dashboard Proyectos", roles: ["ingeniero", "administrador", "gerente"], icono: Gauge },
       { a: "/proyectos", texto: "Proyectos", roles: ["administrador", "gerente"], icono: Factory },
       { a: "/partidas", texto: "Partidas", roles: ["administrador", "gerente"], icono: Layers },
-      { a: "/gantt", texto: "Gantt\nCurva S", roles: ["ingeniero", "administrador", "gerente"], icono: ChartGantt },
       { a: "/avance", texto: "Avance Físico", roles: ["ingeniero", "gerente"], icono: Activity },
+      { a: "/gantt", texto: "Gantt\nCurva S", roles: ["ingeniero", "administrador", "gerente"], icono: ChartGantt, sub: SECCIONES_VISTAS },
       { a: "/generar-requerimiento", texto: "Generar Requerimiento", roles: ["ingeniero", "administrador", "gerente"], icono: ClipboardPen },
       { a: "/valorizaciones-obra", texto: "Valorizaciones", roles: ["ingeniero", "administrador", "gerente"], icono: ClipboardCheck },
       { a: "/aprobaciones", texto: "Aprobaciones", roles: ["administrador", "gerente"], icono: ShieldCheck },
@@ -233,7 +240,7 @@ const MENU: Categoria[] = [
       { a: "/gastos-generales", texto: "Gastos Generales", roles: ["administrador", "gerente"], icono: Briefcase, sub: SECCIONES_GG, subFilas: 3 },
       { a: "/caja-chica", texto: "Caja Chica", roles: ["administrador", "gerente"], icono: Wallet },
       { a: "/tesoreria", texto: "Tesorería", roles: ["administrador", "gerente"], icono: Landmark },
-      { a: "/flujo-caja", texto: "Flujo de Caja", roles: ["administrador", "gerente"], icono: TrendingUp, sub: SECCIONES_FLUJO },
+      { a: "/flujo-caja", texto: "Flujo de Caja", roles: ["administrador", "gerente"], icono: TrendingUp, sub: SECCIONES_FLUJO, subFilas: 3 },
       { a: "/sire", texto: "SIRE SUNAT", roles: ["administrador", "gerente"], icono: FileCheck },
     ],
   },

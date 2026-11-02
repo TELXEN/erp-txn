@@ -285,9 +285,9 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
         const grande = rGrande >= 0;
         // Las pequeñas se leen por filas: primero la fila de arriba, luego la de abajo.
         const j = subs.slice(0, i).filter((x) => !x.grande).length;
-        // Con una sola pequeña, ocupa todo el alto para quedar centrada junto a los grandes.
+        // Con una sola pequeña, va en la fila de arriba: queda a la altura de las demás opciones pequeñas.
         const sitio = hayGrande ? (grande ? { gridColumn: rGrande + 1, gridRow: `1 / span ${filasPeq}` }
-          : nPeq === 1 ? { gridColumn: nGrande + 1, gridRow: `1 / span ${filasPeq}` }
+          : nPeq === 1 ? { gridColumn: nGrande + 1, gridRow: 1 }
           : { gridColumn: nGrande + 1 + (j % colsPeq), gridRow: 1 + Math.floor(j / colsPeq) }) : undefined;
         const cls = `whitespace-nowrap rounded text-[11px] ${grande ? "flex h-full min-w-[80px] flex-col items-center justify-center gap-1 px-1" : "flex h-full min-w-[70px] items-center gap-1 px-1"}`;
         const contenido = grande ? <><SI className="size-6 shrink-0" /><span>{o.corto ?? o.texto}</span></> : <><SI className="size-3.5 shrink-0" /> {o.corto ?? o.texto}</>;
