@@ -257,9 +257,12 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
       // Cada columna mide lo que mide su etiqueta más larga: así las opciones cortas no arrastran huecos.
       const celda = (o: NonNullable<ItemCinta["sub"]>[number], i: number) => {
         const SI = o.icono!;
-        const sitio = apilada ? (i === 0 ? { gridColumn: 1, gridRow: 1 } : i === 1 ? { gridColumn: 1, gridRow: 2 } : { gridColumn: 2, gridRow: "1 / span 2" }) : undefined;
-        const cls = `flex min-w-[76px] items-center gap-1.5 whitespace-nowrap rounded px-1.5 text-[11px] ${apilada && i === 2 ? "h-full" : "h-6"}`;
-        const contenido = <><SI className="size-3.5 shrink-0" /> {o.corto ?? o.texto}</>;
+        // La tercera opción (A.P.U.) va a la izquierda, ocupando las dos filas, con icono grande.
+        const grande = apilada && i === 2;
+        const sitio = apilada ? (grande ? { gridColumn: 1, gridRow: "1 / span 2" } : i === 0 ? { gridColumn: 2, gridRow: 1 } : { gridColumn: 2, gridRow: 2 }) : undefined;
+        const cls = `whitespace-nowrap rounded text-[11px] ${grande ? "flex h-full min-w-[84px] flex-col items-center justify-center gap-1 px-1.5" : "flex h-6 min-w-[76px] items-center gap-1.5 px-1.5"}`;
+        const contenido = grande ? <><SI className="size-6 shrink-0" /><span>{o.corto ?? o.texto}</span></> : <><SI className="size-3.5 shrink-0" /> {o.corto ?? o.texto}</>;
+
         if (o.a) {
           return (
             <Link key={o.a} to={o.a} title={o.texto} className={cls} {...(sitio ? { style: sitio } : {})}
