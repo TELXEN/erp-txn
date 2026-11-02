@@ -51,22 +51,24 @@ function CatalogoTecnico() {
   return (
     <>
       <Encabezado titulo="Catálogo Técnico" subtitulo="Clasificadores de ingeniería usados por APU, cotizaciones e insumos" />
-      <div className="mb-4 flex flex-wrap gap-1 border-b border-line pb-3">
-        {PESTANAS.map(([p, texto]) => (
-          <button
-            key={p}
-            type="button"
-            onClick={() => setPestana(p)}
-            className={`rounded-md border-b-2 px-3 py-1.5 text-xs transition-colors ${
-              pestana === p
-                ? "border-cta bg-primary/10 font-semibold text-primary"
-                : "border-transparent text-muted-foreground hover:bg-muted hover:text-primary"
-            }`}
-          >
-            {texto}
-          </button>
-        ))}
-      </div>
+      {!enCinta && (
+        <div className="mb-4 flex flex-wrap gap-1 border-b border-line pb-3">
+          {PESTANAS.map(([p, texto]) => (
+            <button
+              key={p}
+              type="button"
+              onClick={() => setPestana(p)}
+              className={`rounded-md border-b-2 px-3 py-1.5 text-xs transition-colors ${
+                pestana === p
+                  ? "border-cta bg-primary/10 font-semibold text-primary"
+                  : "border-transparent text-muted-foreground hover:bg-muted hover:text-primary"
+              }`}
+            >
+              {texto}
+            </button>
+          ))}
+        </div>
+      )}
       {pestana === "especialidades" ? (
         <EspecialidadesPartida />
       ) : pestana === "grupos" ? (
