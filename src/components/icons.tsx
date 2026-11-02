@@ -459,3 +459,39 @@ export function NotaDebitoAzul({ className, ...props }: SVGProps<SVGSVGElement>)
     </svg>
   );
 }
+
+/**
+ * Edificio de tesorería.
+ *
+ * Icono propio de «Tesorería»: el frontón triangular de arriba y la línea
+ * horizontal de abajo van en negro (--color-cinta-negro), y las columnas siguen
+ * el color del botón (dorado). Así el edificio se distingue bien incluso cuando
+ * el botón queda seleccionado y el dorado pasa al color de contraste.
+ */
+export function TesoreriaEdificio({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+      {...props}
+    >
+      {/* Frontón triangular, en negro */}
+      <path className="text-cinta-negro" fill="currentColor" d="M11.12 2.198a2 2 0 0 1 1.76.006l7.866 3.847c.476.233.31.949-.22.949H3.474c-.53 0-.695-.716-.22-.949z" />
+      {/* Columnas, en el color del botón (dorado) */}
+      <path d="M6 18v-7" />
+      <path d="M10 18v-7" />
+      <path d="M14 18v-7" />
+      <path d="M18 18v-7" />
+      {/* Línea horizontal de la base, en negro */}
+      <path className="text-cinta-negro" d="M3 22h18" />
+    </svg>
+  );
+}
+

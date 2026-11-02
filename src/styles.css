@@ -120,6 +120,9 @@
   --color-icono-azul: #0077b6;
   /* Rojo de las barras del icono de Gantt. */
   --color-icono-rojo: #c1121f;
+  /* Negro del frontón y la línea de base del icono de Tesorería. */
+  --color-cinta-negro: #000000;
+
   --color-chip-mat: var(--chip-mat);
   --color-chip-mo: var(--chip-mo);
   --color-chip-eq: var(--chip-eq);
@@ -520,4 +523,6 @@ aside .md\:overflow-y-auto:hover::-webkit-scrollbar-thumb { background: color-mi
 .cinta-opciones a.cinta-activo .text-cinta-oro,
 .cinta-opciones a.cinta-activo .text-cinta-verde,
 .cinta-opciones a.cinta-activo .text-cinta-rojo,
-.cinta-opciones a.cinta-activo .text-cinta-azul { color: var(--cta-foreground); }
+.cinta-opciones a.cinta-activo .text-cinta-azul,
+.cinta-opciones a.cinta-activo .text-cinta-negro { color: var(--cta-foreground); }
+
