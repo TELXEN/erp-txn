@@ -252,7 +252,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
         );
       };
       return (
-        <div key={m.a} className="grid shrink-0" style={{ gridTemplateColumns: `repeat(${cols}, auto)`, gridAutoRows: "24px", columnGap: 6 }}>
+        <div key={m.a} className="grid shrink-0 content-center py-2.5" style={{ gridTemplateColumns: `repeat(${cols}, auto)`, gridAutoRows: "24px", columnGap: 6 }}>
           {subs.map(celda)}
         </div>
       );
