@@ -243,15 +243,13 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
             activeOptions={{ includeSearch: true }}
             activeProps={{ className: "bg-cinta-acento text-cinta-acento-foreground font-semibold" }}
             inactiveProps={{ className: "text-cinta-texto hover:bg-cinta-hover" }}
-            className={`flex h-6 w-[92px] items-center gap-1.5 whitespace-nowrap rounded px-1.5 text-[11px] ${i < 2 ? "row-start-1" : "row-start-3"} ${i % 2 ? "col-start-3" : "col-start-1"}`}>
+            className={`flex h-6 w-[92px] items-center gap-1.5 whitespace-nowrap rounded px-1.5 text-[11px] ${i < 2 ? "row-start-1" : "row-start-2"} ${i % 2 ? "col-start-2" : "col-start-1"}`}>
             <SI className="size-3.5 shrink-0" /> {o.corto ?? o.texto}
           </Link>
         );
       };
       return (
-        <div key={m.a} className="grid shrink-0 grid-cols-[92px_1px_92px] grid-rows-[24px_1px_24px]">
-          <span aria-hidden className="col-start-2 row-start-1 row-span-3 w-px self-stretch bg-cinta-tenue/70" />
-          <span aria-hidden className="col-start-1 col-span-3 row-start-2 h-px bg-cinta-tenue/70" />
+        <div key={m.a} className="grid shrink-0 grid-cols-[92px_92px] grid-rows-[24px_24px]">
           {m.sub.slice(0, 4).map(celda)}
         </div>
       );
