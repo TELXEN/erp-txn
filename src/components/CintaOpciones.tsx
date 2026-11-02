@@ -339,7 +339,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
   const clasesGrupo = (g: { titulo: string; items: ItemCinta[]; sub?: boolean }, i: number) => {
     const izq = g.sub ? !visibles[i - 1]?.sub : i > 0;
     const der = g.sub || i === visibles.length - 1;
-    return `flex shrink-0 flex-col ${izq ? "border-l border-cinta-tenue/70" : ""} ${der ? "border-r border-cinta-tenue/70" : ""} ${g.sub ? "px-1" : "px-0.5"}`;
+    return `flex min-w-max shrink-0 flex-col ${izq ? "border-l border-cinta-tenue/70" : ""} ${der ? "border-r border-cinta-tenue/70" : ""} ${g.sub ? "px-1" : "px-0.5"}`;
   };
 
 
@@ -384,7 +384,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
           ) : (
             <div key={g.titulo} className={clasesGrupo(g, i)}>
               <div className={`flex flex-1 gap-0.5 ${g.sub ? "items-center" : "items-start"}`}>{g.items.map(boton)}</div>
-              <p className="flex items-center justify-center gap-1 whitespace-nowrap py-0.5 text-center text-[10px] text-cinta-tenue">
+              <p className="flex items-center justify-center gap-1 whitespace-nowrap px-1 py-0.5 text-center text-[10px] text-cinta-tenue">
                 {g.titulo === "Recientes" && <Clock className="size-2.5" />}{g.titulo === "Favoritos" && <Star className="size-2.5" />}{g.titulo}
               </p>
             </div>
