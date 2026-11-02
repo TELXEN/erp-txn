@@ -6,7 +6,8 @@ import { ChevronDown, ChevronUp, Clock, Home, Palette, PanelLeft, Pin, Rows2, Ro
 import { claveNombre } from "@/lib/formato-texto";
 
 export type ModoNavegacion = "lateral" | "simplificada" | "clasica";
-export type ItemCinta = { a: string; texto: string; icono: React.ElementType; hijos?: ItemCinta[]; sub?: { texto: string; seccion?: string; campo?: string; icono?: React.ElementType; corto?: string; a?: string }[] };
+export type SubOpcionCinta = { texto: string; seccion?: string; campo?: string; icono?: React.ElementType; corto?: string; a?: string; grande?: boolean };
+export type ItemCinta = { a: string; texto: string; icono: React.ElementType; hijos?: ItemCinta[]; sub?: SubOpcionCinta[]; sub2?: { titulo: string; opciones: SubOpcionCinta[] } };
 export type CategoriaCinta = { titulo: string; items: ItemCinta[] };
 
 const CORTO: Record<string, string> = {
@@ -18,7 +19,7 @@ const CORTO: Record<string, string> = {
 /** Subgrupos de cada pestaña, en el orden del flujo de trabajo. */
 const GRUPO: Record<string, string> = {
   "/clientes": "Clientes", "/datos-apu": "Presupuestar", "/cotizaciones": "Presupuestar",
-  "/valorizaciones": "Cobrar", "/facturacion-electronica": "Cobrar", "/registro-ventas": "Cobrar",
+  "/valorizaciones": "Preliquidaciones", "/registro-ventas": "Registro de Ventas",
   "/dashboard-proyectos": "Planificar", "/proyectos": "Planificar", "/partidas": "Planificar",
   "/gantt": "Ejecutar y controlar", "/avance": "Ejecutar y controlar", "/valorizaciones-obra": "Ejecutar y controlar",
   "/generar-requerimiento": "Solicitar", "/aprobaciones": "Solicitar",
@@ -81,7 +82,7 @@ function Buscador({ items }: { items: Resultado[] }) {
   );
 }
 
-function SubMenu({ a, sub }: { a: string; sub: { texto: string; seccion?: string; campo?: string; a?: string }[] }) {
+function SubMenu({ a, sub }: { a: string; sub: SubOpcionCinta[] }) {
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const ref = useRef<HTMLButtonElement>(null);
   useEffect(() => {
@@ -117,7 +118,7 @@ function SubMenu({ a, sub }: { a: string; sub: { texto: string; seccion?: string
 }
 
 function contiene(c: CategoriaCinta, p: string) {
-  return c.items.some((m) => m.a === p || m.hijos?.some((h) => h.a === p) || m.sub?.some((o) => (o.a ?? m.a) === p));
+  return c.items.some((m) => m.a === p || m.hijos?.some((h) => h.a === p) || m.sub?.some((o) => (o.a ?? m.a) === p) || m.sub2?.opciones.some((o) => (o.a ?? m.a) === p));
 }
 
 function SelectorModo({ modo, onModo, contraida, onContraer }: {
@@ -191,11 +192,15 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
   categorias = categorias.filter((c) => c.titulo !== "Temas de colores");
   const plano = categorias.flatMap((c) => c.items.flatMap((m) => (m.hijos ?? [m]).map((h) => ({ ...h, cat: CORTO[c.titulo] ?? c.titulo }))));
   // Rutas del menú, incluidas las que una opción de submenú lleva a otra pantalla.
-  const rutas = plano.flatMap((m) => [m.a, ...(m.sub ?? []).map((o) => o.a ?? m.a)]);
-  const resultados: Resultado[] = plano.flatMap((m) => [
-    { a: m.a, texto: m.texto, ruta: m.cat, icono: m.icono },
-    ...(m.sub ?? []).map((o) => ({ a: o.a ?? m.a, texto: o.texto, ruta: `${m.cat} › ${m.texto}`, icono: m.icono, search: o.a ? undefined : ({ [o.campo ?? "seccion"]: o.seccion ?? "" } as Record<string, string>) })),
-  ]);
+  const rutas = plano.flatMap((m) => [m.a, ...(m.sub ?? []).map((o) => o.a ?? m.a), ...(m.sub2?.opciones ?? []).map((o) => o.a ?? m.a)]);
+  const resultados: Resultado[] = plano.flatMap((m) => {
+    const s2 = m.sub2;
+    return [
+      { a: m.a, texto: m.texto, ruta: m.cat, icono: m.icono },
+      ...(m.sub ?? []).map((o) => ({ a: o.a ?? m.a, texto: o.texto, ruta: `${m.cat} › ${m.texto}`, icono: m.icono, search: o.a ? undefined : ({ [o.campo ?? "seccion"]: o.seccion ?? "" } as Record<string, string>) })),
+      ...(s2 ? s2.opciones.map((o) => ({ a: o.a ?? m.a, texto: o.texto, ruta: `${m.cat} › ${s2.titulo}`, icono: m.icono, search: o.a ? undefined : ({ [o.campo ?? "seccion"]: o.seccion ?? "" } as Record<string, string>) })) : []),
+    ];
+  });
   const [recientes, setRecientes] = useState<string[]>([]);
   const [favoritos, setFavoritos] = useState<string[]>([]);
   useEffect(() => { setRecientes(leerLista(LS_REC)); setFavoritos(leerLista(LS_FAV)); }, []);
