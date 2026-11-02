@@ -146,10 +146,6 @@ function GastosGenerales() {
     if (pestanaQ && pestanaQ !== pestana) setPestana(pestanaQ);
     else if (!pestanaQ && enCinta) void navigate({ to: "/gastos-generales", search: { pestana }, replace: true });
   }, [pestanaQ, pestana, enCinta, navigate]);
-  function cambiarPestana(p: PestañaGG) {
-    setPestana(p);
-    void navigate({ to: "/gastos-generales", search: { pestana: p }, replace: true });
-  }
   const ayudaCategoria = categorias.find((c) => c.nombre === form.categoria)?.descripcion ?? "";
   const [editando, setEditando] = useState<{
     id: string;
@@ -455,27 +451,6 @@ function GastosGenerales() {
           ))}
         </Select>
       </div>
-      {!enCinta && (
-      <div className="mb-4 flex flex-wrap items-center gap-1 overflow-x-auto border-b border-line pb-3">
-        {(
-          [
-            ["resumen", "Resumen"],
-            ["gastos", "Gastos generales"],
-            ["mantenimiento", "Mantenimiento"],
-            ["combustible", "Combustible"],
-          ] as const
-        ).map(([id, txt]) => (
-          <button
-            key={id}
-            type="button"
-            onClick={() => cambiarPestana(id)}
-            className={`whitespace-nowrap rounded-md border-b-2 px-3 py-1.5 text-xs transition-colors ${pestana === id ? "border-cta bg-primary/10 font-semibold text-primary" : "border-transparent text-muted-foreground hover:bg-muted hover:text-primary"}`}
-          >
-            {txt}
-          </button>
-        ))}
-      </div>
-      )}
 
       {pestana === "resumen" && (
         <>

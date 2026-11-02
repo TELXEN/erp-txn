@@ -3,9 +3,9 @@ import { BotonIcono } from "@/components/ui-kit";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Car, CalendarClock, Wrench, Check, ClipboardList, Eye, Pencil, Plus, Settings, Trash2, Truck, X } from "lucide-react";
+import { Check, ClipboardList, Eye, Pencil, Plus, Settings, Trash2, Truck, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { Encabezado, useEnCinta } from "@/components/AppShell";
+import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { useAuth } from "@/lib/auth";
 import { soles as fmtSoles } from "@/lib/format";
@@ -52,18 +52,6 @@ const PAGO_VACIO: PagoForm = { origen_pago: "Banco", banco_id: "", caja_chica_id
 
 type Pestaña = "flota" | "tareo" | "traslados" | "mantenimiento" | "resumen";
 
-const PESTAÑAS: { id: Pestaña; texto: string }[] = [
-  { id: "flota", texto: "Flota" },
-  { id: "tareo", texto: "Tareo vehicular" },
-  { id: "traslados", texto: "Traslados" },
-  { id: "mantenimiento", texto: "Mantenimiento" },
-  { id: "resumen", texto: "Resumen" },
-];
-const GRUPOS_VEHICULOS: { titulo: string; icono: React.ElementType; items: Pestaña[] }[] = [
-  { titulo: "Flota", icono: Car, items: ["flota", "resumen"] },
-  { titulo: "Operaciones", icono: CalendarClock, items: ["tareo", "traslados"] },
-  { titulo: "Mantenimiento", icono: Wrench, items: ["mantenimiento"] },
-];
 const DIAS_SEMANA = ["L", "M", "M", "J", "V", "S", "D"];
 
 function cambiarMes(mes: string, delta: number) {
@@ -86,21 +74,15 @@ const VACIO_VEHICULO = {
 
 function PaginaVehiculos() {
   const navigate = useNavigate();
-  const enCinta = useEnCinta();
   const [sel, setSel] = useState("");
   const { rol } = useAuth();
   const qc = useQueryClient();
   const esDinero = rol === "administrador" || rol === "gerente";
   const { pestana: pestanaQ } = Route.useSearch();
   const [pestaña, setPestaña] = useState<Pestaña>(pestanaQ ?? "flota");
-  const grupoActivo = GRUPOS_VEHICULOS.find((g) => g.items.includes(pestaña)) ?? GRUPOS_VEHICULOS[0];
 
   useEffect(() => { if (pestanaQ && pestanaQ !== pestaña) setPestaña(pestanaQ); }, [pestanaQ, pestaña]);
 
-  function cambiarPestana(p: Pestaña) {
-    setPestaña(p);
-    void navigate({ to: "/vehiculos", search: { pestana: p }, replace: true });
-  }
 
   const { data: vehiculos = [] } = useVehiculos();
   const { data: tareo = [] } = useTareoVehiculos();
@@ -569,28 +551,6 @@ function PaginaVehiculos() {
         }
       />
 
-      {!enCinta && (
-        <>
-          <div className="mb-3 flex flex-wrap gap-1">
-            {GRUPOS_VEHICULOS.map((g) => { const Icono = g.icono; return (
-              <Boton key={g.titulo} variante={g === grupoActivo ? "primario" : "linea"} onClick={() => { const primero = g.items[0]; if (primero) cambiarPestana(primero); }}><Icono size={13} />{g.titulo}</Boton>
-            ); })}
-          </div>
-          <div className="mb-4 flex flex-wrap gap-1 border-b border-line pb-3">
-            {PESTAÑAS.filter((p) => grupoActivo?.items.includes(p.id)).map((p) => (
-              <button
-                key={p.id}
-                onClick={() => cambiarPestana(p.id)}
-                className={`rounded-md border-b-2 px-3 py-1.5 text-xs transition-colors ${
-                  pestaña === p.id ? "border-cta bg-primary/10 font-semibold text-primary" : "border-transparent text-muted-foreground hover:bg-muted hover:text-primary"
-                }`}
-              >
-                {p.texto}
-              </button>
-            ))}
-          </div>
-        </>
-      )}
 
       {pestaña === "flota" && (
         <div className="space-y-4">
