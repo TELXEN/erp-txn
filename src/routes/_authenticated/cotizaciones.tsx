@@ -670,9 +670,6 @@ function Cotizaciones() {
           subtitulo={`Cotización ${cot.codigo ?? ""} · ${etiquetaRevision(cot.revision)}${cot.retoma_de_id ? ` · Retoma de ${codigoDe(cot.retoma_de_id)}` : ""} · modo edición`}
           acciones={
             <div className="flex flex-wrap items-center gap-2">
-              <Boton variante="linea" className={enBarra} onClick={() => { setSeleccion(null); setError(""); setAviso(""); }}>
-                <ArrowLeft size={13} /> Volver
-              </Boton>
               <Vigencia c={cot} />
               {hermanas.length > 1 && (
                 <select
@@ -701,21 +698,31 @@ function Cotizaciones() {
               >
                 {ESTADOS_COTIZACION.map((e) => <option key={e} value={e}>{e}</option>)}
               </select>
-              <Boton variante="linea" className={enBarra} onClick={() => setEncabezado(true)} title="Completar los datos del encabezado">
-                <Pencil size={13} /> Encabezado
-              </Boton>
-              <Boton variante="linea" className={enBarra} onClick={() => setVentanaGG(true)} title="Desagregado de gastos generales">
-                <Receipt size={13} /> Gastos generales
-              </Boton>
-              <Link to="/cotizacion-vista" search={{ id: cot.id }}>
-                <Boton variante="linea" className={enBarra}><Eye size={13} /> Vista previa A4</Boton>
-              </Link>
               <Boton onClick={convertirEnObra} disabled={Boolean(cot.proyecto_id) || cot.estado !== "Aprobada"} title={cot.estado !== "Aprobada" && !cot.proyecto_id ? "Solo disponible para cotizaciones aprobadas" : undefined}>
                 {cot.proyecto_id ? "Obra generada" : "Convertir en obra"}
               </Boton>
             </div>
           }
         />
+        <div role="tablist" className="flex items-end gap-1 border-b border-border px-3 sm:px-4">
+          {([
+            { k: "volver", t: "Volver", activo: false, fn: () => { setSeleccion(null); setError(""); setAviso(""); } },
+            { k: "enc", t: "Encabezado", activo: encabezado, fn: () => setEncabezado(true) },
+            { k: "gg", t: "Gastos generales", activo: ventanaGG, fn: () => setVentanaGG(true) },
+            { k: "vp", t: "Vista previa", activo: false, fn: () => void navigate({ to: "/cotizacion-vista", search: { id: cot.id } }) },
+          ]).map((p) => (
+            <button
+              key={p.k}
+              type="button"
+              role="tab"
+              aria-selected={p.activo}
+              onClick={p.fn}
+              className={`-mb-px border-b-2 px-3 py-1.5 text-xs transition-colors ${p.activo ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"}`}
+            >
+              {p.t}
+            </button>
+          ))}
+        </div>
         {error && <p className="mb-2 font-mono text-xs text-bad">{error}</p>}
         {aviso && <p className="mb-2 font-mono text-xs text-good">{aviso}</p>}
 
