@@ -7,16 +7,18 @@ import { claveNombre } from "@/lib/formato-texto";
 
 export type ModoNavegacion = "lateral" | "simplificada" | "clasica";
 export type SubOpcionCinta = { texto: string; seccion?: string; campo?: string; icono?: React.ElementType; corto?: string; a?: string; grande?: boolean; search?: Record<string, string>; iconoClase?: string };
-export type ItemCinta = { a: string; texto: string; icono: React.ElementType; hijos?: ItemCinta[]; sub?: SubOpcionCinta[]; subGrupos?: { titulo: string; opciones: SubOpcionCinta[]; subFilas?: number }[]; subFilas?: number; subColumnas?: boolean };
+export type ItemCinta = { a: string; texto: string; icono: React.ElementType; hijos?: ItemCinta[]; sub?: SubOpcionCinta[]; subGrupos?: { titulo: string; opciones: SubOpcionCinta[]; subFilas?: number }[]; subFilas?: number; subColumnas?: boolean; unaLinea?: boolean };
 export type CategoriaCinta = { titulo: string; items: ItemCinta[] };
 
 /** Ancho del botón: lo justo para leer la etiqueta completa en dos renglones, sin partir palabras. */
 const PX_POR_CHAR = 5.5; // estimación del primer pintado; se corrige midiendo con la tipografía real
 const PAD_ROTULO = 14; // px-1.5 a cada lado
 
-/** Reparte la etiqueta en dos renglones equilibrados, o respeta los saltos escritos a mano. */
-function renglones(t: string) {
+/** Reparte la etiqueta en dos renglones equilibrados, o respeta los saltos escritos a mano. Con unaLinea se lee entera en una sola. */
+function renglones(t: string, unaLinea?: boolean) {
+  if (unaLinea) return [t.trim()];
   const forzado = t.split("\n").map((x) => x.trim()).filter(Boolean);
+
   if (forzado.length > 1) return forzado;
   const w = t.trim().split(/\s+/);
   if (w.length < 2) return [t.trim()];
@@ -29,9 +31,10 @@ function renglones(t: string) {
   return mejor;
 }
 
-function anchoEtiqueta(t: string) {
-  return Math.max(...renglones(t).map((x) => x.length)) * PX_POR_CHAR + PAD_ROTULO;
+function anchoEtiqueta(t: string, unaLinea?: boolean) {
+  return Math.max(...renglones(t, unaLinea).map((x) => x.length)) * PX_POR_CHAR + PAD_ROTULO;
 }
+
 
 type Rotulo = { ancho: number; texto: string };
 
@@ -39,9 +42,10 @@ type Rotulo = { ancho: number; texto: string };
  * Mide con la tipografía activa el ancho justo para leer cada etiqueta completa en dos renglones.
  * Se mide en negrita (700): es el peso del botón seleccionado y el más ancho de los dos.
  */
-function useRotulos(textos: string[]) {
+function useRotulos(items: { texto: string; unaLinea?: boolean }[]) {
   const [rotulos, setRotulos] = useState<Record<string, Rotulo>>({});
-  const clave = textos.join("|");
+  const clave = items.map((i) => `${i.texto}${i.unaLinea ? "\u0001" : ""}`).join("|");
+
   useEffect(() => {
     let vivo = true;
     const medir = () => {
@@ -51,10 +55,12 @@ function useRotulos(textos: string[]) {
       const familia = getComputedStyle(host).fontFamily;
       const px = (s: string) => { c.font = `700 11px ${familia}`; return c.measureText(s).width; };
       const nuevo: Record<string, Rotulo> = {};
-      for (const t of textos) {
+      for (const it of items) {
+        const t = it.texto;
         const w = t.trim().split(/\s+/);
-        let partes = renglones(t);
-        if (partes.length === 2 && w.length > 1) {
+        let partes = renglones(t, it.unaLinea);
+        if (!it.unaLinea && partes.length === 2 && w.length > 1) {
+
           // El corte más equilibrado se elige midiendo, no contando letras.
           let costo = Infinity;
           for (let i = 1; i < w.length; i++) {
@@ -273,7 +279,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
   }).filter((r) => { const k = `${r.a}|${r.texto}`; if (vistos.has(k)) return false; vistos.add(k); return true; });
 
   // Ancho real de cada rótulo, medido con la tipografía que se está usando.
-  const rotulos = useRotulos(plano.map((m) => m.texto));
+  const rotulos = useRotulos(plano.map((m) => ({ texto: m.texto, unaLinea: m.unaLinea })));
   const [recientes, setRecientes] = useState<string[]>([]);
   const [favoritos, setFavoritos] = useState<string[]>([]);
   useEffect(() => { setRecientes(leerLista(LS_REC)); setFavoritos(leerLista(LS_FAV)); }, []);
@@ -319,9 +325,10 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
     const link = (
       <Link key={m.a} to={m.a} title={`${m.texto} — clic derecho: ${favoritos.includes(m.a) ? "quitar de" : "anclar a"} Inicio`} onContextMenu={(e) => { e.preventDefault(); alternarFav(m.a); }}
         className={`relative flex w-auto max-w-none min-w-[62px] shrink-0 flex-col items-center gap-1 rounded-md px-1.5 py-1.5 text-center text-[11px] leading-tight ${tono}`}
-        style={{ width: rotulos[m.texto]?.ancho ?? anchoEtiqueta(m.texto) }}>
+        style={{ width: rotulos[m.texto]?.ancho ?? anchoEtiqueta(m.texto, m.unaLinea) }}>
         <I className="size-6 shrink-0" />
-        <span lang="es" className="line-clamp-2 w-full whitespace-pre-line break-words">{rotulos[m.texto]?.texto ?? renglones(m.texto).join("\n")}</span><Insignia a={m.a} />
+        <span lang="es" className={`line-clamp-2 w-full break-words${m.unaLinea ? " whitespace-nowrap" : " whitespace-pre-line"}`}>{rotulos[m.texto]?.texto ?? renglones(m.texto, m.unaLinea).join("\n")}</span><Insignia a={m.a} />
+
         {favoritos.includes(m.a) && <Star className="absolute left-1 top-1 size-2.5 fill-current text-cinta-acento" />}
       </Link>
     );
