@@ -137,3 +137,4 @@
 - [x] Proyectos deja solo Tabla y Kanban en su conmutador; los iconos Gantt y Curva S pasan a la derecha de la ventana en la pantalla del cronograma; cambio de vista y F5 verificados, compilación OK.
 - [x] Partidas: el conmutador Tabla/Kanban adopta el estilo de Proyectos (icono + la palabra, activa resaltada); cambio de vista y F5 verificados, compilación OK.
 - [x] Vehículos como grupo propio en la cinta: Resumen con icono grande y Flota/Tareo/Traslados/Mantenim. en 2×2; la sección viaja en ?pestana= y F5 la conserva. Probado en clásica y lateral; compilación OK.
+- [x] Cinta Personal: el grupo «Remuneraciones» ocupa el lugar de «Gestión de EPP» y este pasa al final (derecha); el orden del menú lateral sigue igual. Probado en clásica y lateral, compilación OK.
