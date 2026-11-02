@@ -1,8 +1,8 @@
 import { useRecordado } from "@/lib/recordado";
 import { useMantenimientos, useTraslados } from "@/lib/vehiculos";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { coincide, Resaltar } from "@/components/Buscador";
-import { Fragment, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, ArrowLeftRight, ArrowUpRight, Landmark, Search, Upload, X } from "lucide-react";
 import { TransferenciaCuentas } from "@/components/TransferenciaCuentas";
@@ -10,7 +10,7 @@ import { MovimientoDetraccion } from "@/components/MovimientoDetraccion";
 import { useServerFn } from "@tanstack/react-start";
 import { useTipoCambioHoy } from "@/lib/tipo-cambio";
 import { supabase } from "@/integrations/supabase/client";
-import { Encabezado } from "@/components/AppShell";
+import { Encabezado, useEnCinta } from "@/components/AppShell";
 import { Boton, Campo, Input, MenuFiltros, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
@@ -32,7 +32,16 @@ import { anularCobroVenta } from "@/lib/anular-cobro";
 import { useSaldosBancarios } from "@/lib/financiamiento";
 import { saldoTrasPago } from "@/lib/financiamiento-calculos";
 
+type PestanaTesoreria = "resumen" | "cxc" | "cxp" | "personal" | "financiamiento";
+
 export const Route = createFileRoute("/_authenticated/tesoreria")({
+  // La sección mostrada vive en la URL para que la cinta la resalte y F5 la conserve.
+  validateSearch: (s: Record<string, unknown>): { pestana?: PestanaTesoreria } => {
+    const r: { pestana?: PestanaTesoreria } = {};
+    const v = s["pestana"];
+    if (v === "resumen" || v === "cxc" || v === "cxp" || v === "personal" || v === "financiamiento") r.pestana = v;
+    return r;
+  },
   head: () => ({
     meta: [
       { title: "Tesorería — ERP TELXEN" },
@@ -134,15 +143,24 @@ const diasA = (f: string | null) =>
 function Tesoreria() {
   const { rol } = useAuth();
   const qc = useQueryClient();
-  type Pestana = "resumen" | "cxc" | "cxp" | "personal" | "financiamiento";
+  type Pestana = PestanaTesoreria;
+  const navigate = useNavigate();
+  const enCinta = useEnCinta();
+  const { pestana: pestanaQ } = Route.useSearch();
   const [pestana, setPestanaBase] = useState<Pestana>(() => {
     const g = localStorage.getItem("tesoreria:pestana");
-    return g === "financiamiento" ? g : "resumen";
+    return g === "cxc" || g === "cxp" || g === "personal" || g === "financiamiento" ? g : "resumen";
   });
   const setPestana = (t: Pestana) => {
     setPestanaBase(t);
-    if (t === "resumen" || t === "financiamiento") localStorage.setItem("tesoreria:pestana", t);
+    localStorage.setItem("tesoreria:pestana", t);
+    void navigate({ to: "/tesoreria", search: { pestana: t }, replace: true });
   };
+  // La cinta y la URL mandan sobre la sección mostrada; al llegar sin parámetro se fija la recordada.
+  useEffect(() => {
+    if (pestanaQ && pestanaQ !== pestana) setPestanaBase(pestanaQ);
+    else if (!pestanaQ && enCinta) void navigate({ to: "/tesoreria", search: { pestana }, replace: true });
+  }, [pestanaQ, pestana, enCinta, navigate]);
   const [busqueda, setBusqueda] = useRecordado("tesoreria:busqueda", "");
   const [cerrados, setCerrados] = useState<Set<string>>(new Set());
   const [accion, setAccion] = useState<{
