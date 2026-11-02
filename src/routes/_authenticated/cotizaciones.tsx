@@ -845,7 +845,7 @@ function Cotizaciones() {
               value={plantillaSel}
               onChange={(e) => setPlantillaSel(e.target.value)}
               title="Plantilla por tipo de obra"
-              className="h-9 rounded-md border border-line bg-card px-2 text-xs"
+              className="h-9 rounded-md border border-line bg-card px-2 text-xs text-ink"
             >
               <option value="">En blanco</option>
               {plantillas.map((p) => (
