@@ -195,3 +195,4 @@
 - [x] Icono Préstamos con contorno azul (#0077b6) en la cinta; verificado en pantalla.
 - [ ] Icono APU: contorno en verde
 - [ ] Icono Clientes: la personita en azul
+- [ ] Icono Retenciones: el símbolo dentro del cuadrado en naranja
