@@ -640,7 +640,7 @@ function Tesoreria() {
                   {t === "cxp" ? `Proveedores y compras (${cxpProv.length})` : `Personal y planilla (${cxpPer.length})`}
                 </button>
               ))}
-              <button type="button" onClick={() => setPestana("resumen")} className="rounded-md p-1 text-muted-foreground hover:bg-muted" title="Cerrar"><X size={16} /></button>
+              <button type="button" onClick={() => setPestana("resumen")} className="rounded-md p-1 text-muted-foreground hover:bg-muted" title="Volver al resumen"><X size={16} /></button>
             </div>
           </div>
       {pestana === "cxc" && verCobrados && (
