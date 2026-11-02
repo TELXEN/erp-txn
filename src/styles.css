@@ -91,8 +91,14 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-hover: var(--sidebar-hover);
   --color-sidebar-panel: var(--sidebar-panel);
-  --color-sidebar-cinta-sup: color-mix(in oklab, var(--sidebar) 78%, black);
-  --color-sidebar-cinta-inf: var(--sidebar);
+  --color-sidebar-cinta-sup: #e1dfdd;
+  --color-sidebar-cinta-inf: #ffffff;
+  --color-cinta-texto: #252423;
+  --color-cinta-tenue: #605e5c;
+  --color-cinta-hover: #edebe9;
+  --color-cinta-borde: #d2d0ce;
+  --color-cinta-acento: #107c41;
+  --color-cinta-acento-foreground: #ffffff;
   --color-chip-mat: var(--chip-mat);
   --color-chip-mo: var(--chip-mo);
   --color-chip-eq: var(--chip-eq);
