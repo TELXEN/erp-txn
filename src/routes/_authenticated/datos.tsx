@@ -36,7 +36,7 @@ import { Buscador, coincide } from "@/components/Buscador";
 
 export const Route = createFileRoute("/_authenticated/datos")({
   validateSearch: (search: Record<string, unknown>) => ({
-    pestana: typeof search.pestana === "string" ? (search.pestana as string) : undefined,
+    pestana: typeof search["pestana"] === "string" ? (search["pestana"] as string) : undefined,
   }),
   head: () => ({
     meta: [

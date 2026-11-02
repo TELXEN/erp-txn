@@ -896,7 +896,7 @@ function Cotizaciones() {
       {error && <p className="mb-2 font-mono text-xs text-bad">{error}</p>}
       <p className="mb-3 font-mono text-[10px] text-muted-foreground">
         Siguiente código: <strong className="text-ink">{codificacionCot ? previsualizarCodigoCotizacion(codificacionCot) : "—"}</strong>{" "}
-        <Link to="/datos" className="text-primary underline">configurar en Catálogos Maestros</Link>
+        <Link to="/datos" search={{}} className="text-primary underline">configurar en Catálogos Maestros</Link>
       </p>
 
       <div className="mb-4 grid gap-3 sm:grid-cols-3">
