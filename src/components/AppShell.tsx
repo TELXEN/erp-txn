@@ -24,7 +24,7 @@ const SECCIONES_DATOS = [
 ];
 const SECCIONES_CATALOGO = [
   { texto: "Unidades de medida", corto: "Unidades", seccion: "unidades", campo: "pestana", icono: Ruler },
-  { texto: "Especialidades", corto: "Especialid.", seccion: "especialidades", campo: "pestana", icono: Shapes },
+  { texto: "Especialidades", corto: "Especialidades", seccion: "especialidades", campo: "pestana", icono: Shapes },
   { texto: "Categorías", corto: "Categorías", seccion: "categorias", campo: "pestana", icono: FolderTree },
   { texto: "Subcategorías", corto: "Subcateg.", seccion: "subfamilias", campo: "pestana", icono: Network },
   { texto: "Marcas", corto: "Marcas", seccion: "marcas", campo: "pestana", icono: Tag },
