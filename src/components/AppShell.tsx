@@ -218,6 +218,34 @@ function SubgrupoMenu({ item, pathname }: { item: Item; pathname: string }) {
   );
 }
 
+/** Ítem con menú desplegable de secciones en el menú lateral (p. ej. Parámetros Generales). */
+function ItemSubMenu({ item, pathname }: { item: Item; pathname: string }) {
+  const activo = pathname === item.a;
+  const [abierto, setAbierto] = useState(activo);
+  useEffect(() => { if (activo) setAbierto(true); }, [activo]);
+  const Icono = item.icono;
+  return (
+    <div>
+      <button type="button" onClick={() => setAbierto((v) => !v)} aria-expanded={abierto}
+        className={`flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sidebar-foreground transition-colors hover:bg-sidebar-hover ${activo ? "font-semibold" : ""}`}>
+        <Icono className="size-4 shrink-0 opacity-90" />
+        <span className="flex-1">{item.texto}</span>
+        <ChevronDown className={`size-3.5 shrink-0 transition-transform ${abierto ? "" : "-rotate-90"}`} />
+      </button>
+      {abierto && (
+        <div className="ml-4 mt-1 space-y-1 border-l border-sidebar-border pl-2">
+          {item.sub!.map((o) => (
+            <Link key={o.seccion} to={item.a} search={{ [o.campo ?? "seccion"]: o.seccion } as never}
+              className="flex rounded-md px-2.5 py-1.5 text-[13px] text-sidebar-foreground transition-colors hover:bg-sidebar-hover">
+              {o.texto}
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function leerAbierta(): string | null {
   try {
     const raw = window.localStorage.getItem(LS_KEY);
@@ -397,6 +425,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                         const activo = pathname === m.a;
                         const Icono = m.icono;
                         if (m.hijos) return <SubgrupoMenu key={m.a} item={m} pathname={pathname} />;
+                        if (m.sub) return <ItemSubMenu key={m.a} item={m} pathname={pathname} />;
                         const distintivo = m.a === "/aprobaciones" ? pendientesAprobacion : 0;
                         return (
                           <Link
