@@ -150,7 +150,7 @@ const SECCIONES_OP_ESP = [
 const SECCIONES_GG = [
   { texto: "Gastos Generales", corto: "Gastos Generales", seccion: "resumen", campo: "pestana", icono: Briefcase, grande: true },
   { texto: "Gastos generales", corto: "Detalle de Gastos", seccion: "gastos", campo: "pestana", icono: ScrollText },
-  { texto: "Mantenimiento de flota", corto: "Mantenim.", seccion: "mantenimiento", campo: "pestana", icono: ToolCase },
+  { texto: "Mantenimiento de flota", corto: "Mantenimiento de Flota", seccion: "mantenimiento", campo: "pestana", icono: ToolCase },
   { texto: "Combustible de flota", corto: "Combustible", seccion: "combustible", campo: "pestana", icono: Fuel },
 ];
 
