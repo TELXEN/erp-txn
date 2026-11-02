@@ -261,9 +261,10 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
 
   // En la clásica: los ítems simples forman un grupo con el nombre de la pestaña; cada submenú es su propio grupo.
   const porGrupo = (lista: ItemCinta[], defecto: string) => {
-    const g: { titulo: string; items: ItemCinta[] }[] = [];
+    const g: { titulo: string; items: ItemCinta[]; sub?: boolean }[] = [];
     for (const m of lista) {
       if (m.hijos) { g.push({ titulo: m.texto, items: m.hijos }); continue; }
+      if (m.sub && m.sub.every((o) => o.icono)) { g.push({ titulo: m.texto, items: [m], sub: true }); continue; }
       const t = GRUPO[m.a] ?? defecto; const e = g.find((x) => x.titulo === t);
       e ? e.items.push(m) : g.push({ titulo: t, items: [m] });
     }
@@ -272,8 +273,8 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
   const buscar = (a: string) => plano.find((m) => m.a === a);
   const gruposVista = enInicio
     ? [
-        { titulo: "Favoritos", items: favoritos.map(buscar).filter(Boolean) as ItemCinta[] },
-        { titulo: "Recientes", items: recientes.filter((a) => !favoritos.includes(a)).map(buscar).filter(Boolean) as ItemCinta[] },
+        { titulo: "Favoritos", items: favoritos.map(buscar).filter(Boolean) as ItemCinta[], sub: false },
+        { titulo: "Recientes", items: recientes.filter((a) => !favoritos.includes(a)).map(buscar).filter(Boolean) as ItemCinta[], sub: false },
       ]
     : cat ? porGrupo(cat.items, CORTO[cat.titulo] ?? cat.titulo) : [];
 
@@ -327,7 +328,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
             <div key={g.titulo} className={`flex items-center gap-1 ${i ? "border-l border-cinta-borde pl-1" : ""}`}>{g.items.map(boton)}</div>
           ) : (
             <div key={g.titulo} className={`flex flex-col ${i ? "border-l border-cinta-borde pl-1" : ""} pr-1`}>
-              <div className="flex flex-1 items-start gap-0.5">{g.items.map(boton)}</div>
+              <div className={`flex flex-1 gap-0.5 ${g.sub ? "items-center" : "items-start"}`}>{g.items.map(boton)}</div>
               <p className="flex items-center justify-center gap-1 whitespace-nowrap py-0.5 text-center text-[10px] text-cinta-tenue">
                 {g.titulo === "Recientes" && <Clock className="size-2.5" />}{g.titulo === "Favoritos" && <Star className="size-2.5" />}{g.titulo}
               </p>
