@@ -97,7 +97,7 @@ export function FacturaSello({ className, ...props }: SVGProps<SVGSVGElement>) {
       <path strokeWidth={1.4} d="M13.5 17.5h3.5" />
       {/* Sello de goma con cintas, en azul claro */}
       <g stroke="var(--color-sello-factura)">
-        <circle cx="6" cy="14" r="3" strokeWidth={1.8} />
+        <circle cx="6" cy="14" r="3" />
         <path strokeWidth={1.6} d="m7.69 16.479 1.29 4.88a.5.5 0 0 1-.698.591l-1.843-.849a1 1 0 0 0-.879.001l-1.846.85a.5.5 0 0 1-.692-.593l1.29-4.88" />
       </g>
     </svg>
