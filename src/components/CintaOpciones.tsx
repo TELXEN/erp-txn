@@ -6,7 +6,7 @@ import { ChevronDown, ChevronUp, Clock, Home, Palette, PanelLeft, Pin, Rows2, Ro
 import { claveNombre } from "@/lib/formato-texto";
 
 export type ModoNavegacion = "lateral" | "simplificada" | "clasica";
-export type ItemCinta = { a: string; texto: string; icono: React.ElementType; hijos?: ItemCinta[]; sub?: { texto: string; seccion: string; campo?: string }[] };
+export type ItemCinta = { a: string; texto: string; icono: React.ElementType; hijos?: ItemCinta[]; sub?: { texto: string; seccion: string; campo?: string; icono?: React.ElementType; corto?: string }[] };
 export type CategoriaCinta = { titulo: string; items: ItemCinta[] };
 
 const CORTO: Record<string, string> = {
@@ -235,6 +235,27 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
         {favoritos.includes(m.a) && <Star className="absolute left-1 top-1 size-2.5 fill-current text-cinta-acento" />}
       </Link>
     );
+    if (m.sub && m.sub.every((o) => o.icono)) {
+      return (
+        <div key={m.a} className="flex shrink-0 items-center gap-1">
+          {link}
+          <div className="grid grid-cols-2 gap-x-1 gap-y-0.5">
+            {m.sub.map((o) => {
+              const SI = o.icono!;
+              return (
+                <Link key={o.seccion} to={m.a} search={{ [o.campo ?? "seccion"]: o.seccion } as never} title={o.texto}
+                  activeOptions={{ includeSearch: true }}
+                  activeProps={{ className: "bg-cinta-acento text-cinta-acento-foreground font-semibold" }}
+                  inactiveProps={{ className: "text-cinta-texto hover:bg-cinta-hover" }}
+                  className="flex h-7 items-center gap-1.5 whitespace-nowrap rounded-md px-2 text-xs">
+                  <SI className="size-4 shrink-0" /> {o.corto ?? o.texto}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      );
+    }
     return m.sub ? <div key={m.a} className="relative flex shrink-0">{link}<SubMenu a={m.a} sub={m.sub} /></div> : link;
   };
 
