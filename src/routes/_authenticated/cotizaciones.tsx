@@ -168,6 +168,7 @@ function Cotizaciones() {
     condiciones_pago: "50% adelanto.\n50% contra entrega.",
     aplica_igv: "si",
   });
+  const cot = cotizaciones.find((c) => c.id === seleccion) ?? null;
 
   const totales = cot
     ? totalesCotizacion(items, Number(cot.pct_gastos_generales), Number(cot.pct_utilidad))
