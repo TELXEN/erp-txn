@@ -334,7 +334,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
         }
         // Un ítem puede aportar un segundo grupo (p. ej. Operaciones especiales junto a Facturación Electrónica).
         // Un ítem puede aportar varios grupos propios (p. ej. Guías de Remisión y Operaciones especiales junto a Facturación).
-        for (const sg of m.subGrupos ?? []) { const { subGrupos, ...resto } = m; g.push({ titulo: sg.titulo, items: [{ ...resto, sub: sg.opciones, subFilas: sg.subFilas }], sub: true }); }
+        for (const sg of m.subGrupos ?? []) { const { subGrupos, ...resto } = m; g.push({ titulo: sg.titulo, items: [{ ...resto, sub: sg.opciones, ...(sg.subFilas ? { subFilas: sg.subFilas } : {}) }], sub: true }); }
         continue;
       }
       const t = GRUPO[m.a] ?? defecto; const e = g.find((x) => x.titulo === t);
