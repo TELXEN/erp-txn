@@ -103,11 +103,6 @@ function Beneficios() {
       .sort((a, b) => a.trabajador_id.localeCompare(b.trabajador_id) || a.fecha_hasta.localeCompare(b.fecha_hasta))
     : registros;
 
-  if (!puedeVerDinero(rol)) return <SinAcceso />;
-
-  const tDe = (id: string) => trabajadores.find((t) => t.id === id);
-  const planilla = trabajadores.filter((t) => t.tipo_contratacion !== "Honorarios");
-  const refrescar = () => qc.invalidateQueries({ queryKey: ["beneficios"] });
   const cambiarTipo = (t: Tipo) => {
     setTipo(t);
     setError("");
@@ -117,10 +112,18 @@ function Beneficios() {
   };
 
   // La cinta y la URL mandan sobre lo que se muestra; al llegar sin parámetro se fija la vista actual.
+  // Va antes del acceso denegado: los hooks no pueden quedar detrás de un return anticipado.
   useEffect(() => {
     if (tipoQ && tipoQ !== tipo) cambiarTipo(tipoQ);
     else if (!tipoQ && enCinta) void navigate({ to: "/beneficios", search: { tipo }, replace: true });
   }, [tipoQ, tipo, enCinta, navigate]);
+
+  if (!puedeVerDinero(rol)) return <SinAcceso />;
+
+  const tDe = (id: string) => trabajadores.find((t) => t.id === id);
+  const planilla = trabajadores.filter((t) => t.tipo_contratacion !== "Honorarios");
+  const refrescar = () => qc.invalidateQueries({ queryKey: ["beneficios"] });
+
 
 
   async function calcularPeriodo(recalcular: boolean) {
