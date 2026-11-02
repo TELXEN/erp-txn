@@ -3,9 +3,10 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 
-const RanuraEncabezado = createContext<HTMLElement | null>(null);
+type Ranura = { el: HTMLElement | null; cinta: boolean; setCtx: (c: ContextoCinta | null) => void };
+const RanuraEncabezado = createContext<Ranura | null>(null);
 import { FormatoGlobal } from "@/components/FormatoGlobal";
-import { CintaOpciones, SelectorModoLateral, type ModoNavegacion } from "@/components/CintaOpciones";
+import { CintaOpciones, SelectorModoLateral, type ModoNavegacion, type ContextoCinta } from "@/components/CintaOpciones";
 import { ReciboCodigoBarras, NominaBoletas } from "@/components/icons";
 import { Calculator, ChevronDown, PanelLeftClose, PanelLeftOpen, Maximize2, Minimize2 } from "lucide-react";
 
@@ -244,6 +245,8 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const [abierta, setAbierta] = useState<string | null>(null);
   const [ranura, setRanura] = useState<HTMLDivElement | null>(null);
+  const [ranuraCinta, setRanuraCinta] = useState<HTMLDivElement | null>(null);
+  const [ctxCinta, setCtxCinta] = useState<ContextoCinta | null>(null);
   const [colapsado, setColapsado] = useState(false);
   const [modoNav, setModoNav] = useState<ModoNavegacion>("lateral");
   useEffect(() => {
@@ -417,6 +420,8 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="flex min-h-screen min-w-0 flex-col md:ml-[var(--app-sidebar-width)] md:h-screen md:min-h-0 md:w-[calc(100%-var(--app-sidebar-width))] md:overflow-hidden">
         {conCinta && (
           <CintaOpciones
+            contextual={ctxCinta}
+            onRanuraContextual={setRanuraCinta}
             categorias={categorias}
             pathname={pathname}
             modo={modoNav as "simplificada" | "clasica"}
@@ -445,7 +450,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             pantallaCompleta={<BotonPantallaCompleta className="grid size-7 place-items-center rounded-md text-cinta-tenue transition-colors hover:bg-cinta-hover hover:text-cinta-texto" />}
           />
         )}
-        <header className="no-print sticky top-0 z-20 flex min-h-12 shrink-0 items-center gap-3 border-b border-brand bg-brand px-4 py-1.5 text-brand-foreground">
+        <header className={`no-print sticky ${conCinta ? "hidden" : ""} top-0 z-20 flex min-h-12 shrink-0 items-center gap-3 border-b border-brand bg-brand px-4 py-1.5 text-brand-foreground`}>
           <div ref={setRanura} className="flex min-w-0 flex-1 items-center" />
           {!conCinta && (
             <>
@@ -472,7 +477,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           {!conCinta && <div className="hidden md:block [&_button]:text-brand-foreground/80"><SelectorModoLateral modo={modoNav} onModo={cambiarModo} /></div>}
         </header>
 
-        <main className="min-w-0 flex-1 px-3 py-3 sm:px-4 md:min-h-0 md:overflow-y-auto md:overscroll-contain"><div className="mx-auto h-full w-full max-w-[1600px]"><RanuraEncabezado.Provider value={ranura}>{children}</RanuraEncabezado.Provider></div></main>
+        <main className="min-w-0 flex-1 px-3 py-3 sm:px-4 md:min-h-0 md:overflow-y-auto md:overscroll-contain"><div className="mx-auto h-full w-full max-w-[1600px]"><RanuraEncabezado.Provider value={{ el: conCinta ? ranuraCinta : ranura, cinta: conCinta, setCtx: setCtxCinta }}>{children}</RanuraEncabezado.Provider></div></main>
       </div>
     </div>
   );
@@ -489,7 +494,19 @@ export function Encabezado({
   acciones?: ReactNode;
   className?: string;
 }) {
-  const ranura = useContext(RanuraEncabezado);
+  const r = useContext(RanuraEncabezado);
+  const enCinta = !!r?.cinta;
+  const setCtx = r?.setCtx;
+  useEffect(() => {
+    if (!enCinta || !setCtx) return;
+    setCtx({ titulo, subtitulo });
+    return () => setCtx(null);
+  }, [enCinta, setCtx, titulo, subtitulo]);
+  if (enCinta) {
+    if (!r?.el || !acciones) return null;
+    return createPortal(<div>{acciones}</div>, r.el);
+  }
+  const ranura = r?.el;
   if (ranura) {
     return createPortal(
       <div className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-x-4 gap-y-1">
