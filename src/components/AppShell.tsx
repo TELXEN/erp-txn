@@ -113,6 +113,10 @@ import {
   ClipboardPen,
   Inbox,
   Grid3x3,
+  Sprout,
+  Gift,
+  UserMinus,
+
 
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -168,11 +172,19 @@ const SECCIONES_FLUJO = [
 ];
 const SECCIONES_NOMINA = [
   { texto: "Boletas de Pago", corto: "Boletas de Pago", seccion: "planilla", campo: "pestana", icono: NominaBoletas, grande: true },
-  { texto: "Datos de AFP", corto: "Datos de AFP", seccion: "datos", campo: "pestana", icono: PiggyBank },
+  { texto: "Recibos por Honorarios", corto: "Recibos por Honorarios", a: "/honorarios", icono: ReceiptText },
+];
+// Opciones del grupo Beneficios Sociales: todas pequeñas, repartidas en dos filas y dos columnas.
+const SECCIONES_BENEFICIOS = [
+  { texto: "Datos de AFP", corto: "Datos de AFP", a: "/nomina", search: { pestana: "datos" }, icono: PiggyBank },
+  { texto: "CTS", corto: "CTS", seccion: "CTS", campo: "tipo", icono: Sprout },
+  { texto: "Gratificaciones", corto: "Gratificaciones", seccion: "Gratificación", campo: "tipo", icono: Gift },
+  { texto: "Liquidaciones", corto: "Liquidaciones", seccion: "Liquidación", campo: "tipo", icono: UserMinus },
 ];
 
 
-type SubOpcion = { texto: string; seccion?: string; campo?: string; icono?: React.ElementType; corto?: string; a?: string; grande?: boolean };
+
+type SubOpcion = { texto: string; seccion?: string; campo?: string; icono?: React.ElementType; corto?: string; a?: string; grande?: boolean; search?: Record<string, string> };
 type Item = { a: string; texto: string; roles: Rol[]; icono: React.ElementType; hijos?: Item[]; sub?: SubOpcion[]; sub2?: { titulo: string; opciones: SubOpcion[] }; subFilas?: number };
 type Categoria = { titulo: string; items: Item[] };
 
@@ -231,8 +243,7 @@ const MENU: Categoria[] = [
       { a: "/personal", texto: "Personal", roles: ["administrador", "gerente"], icono: Users },
       { a: "/tareo", texto: "Control de Asistencia", roles: ["administrador", "gerente"], icono: CalendarDays },
       { a: "/nomina", texto: "Boletas de Pago", roles: ["administrador", "gerente"], icono: NominaBoletas, sub: SECCIONES_NOMINA },
-      { a: "/honorarios", texto: "Recibos por Honorarios", roles: ["administrador", "gerente"], icono: ReceiptText },
-      { a: "/beneficios", texto: "Beneficios Sociales", roles: ["administrador", "gerente"], icono: HandCoins },
+      { a: "/beneficios", texto: "Beneficios Sociales", roles: ["administrador", "gerente"], icono: HandCoins, sub: SECCIONES_BENEFICIOS },
       {
         a: "#epp", texto: "Gestión de EPP", roles: ["administrador", "gerente"], icono: HardHat,
         hijos: [
@@ -304,7 +315,7 @@ function ItemSubMenu({ item, pathname }: { item: Item; pathname: string }) {
   const enlaceSeccion = (o: SubOpcion) => {
     const cls = "flex rounded-md px-2.5 py-1.5 text-[13px] text-sidebar-foreground transition-colors hover:bg-sidebar-hover";
     return o.a ? (
-      <Link key={o.a} to={o.a} className={cls}>{o.texto}</Link>
+      <Link key={o.a} to={o.a} {...(o.search ? { search: o.search as never } : {})} className={cls}>{o.texto}</Link>
     ) : (
       <Link key={o.seccion} to={item.a} search={{ [o.campo ?? "seccion"]: o.seccion } as never} className={cls}>{o.texto}</Link>
     );
