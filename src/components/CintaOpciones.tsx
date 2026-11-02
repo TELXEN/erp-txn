@@ -167,7 +167,6 @@ export function SelectorModoLateral(props: { modo: ModoNavegacion; onModo: (m: M
 }
 
 export type ContextoCinta = { titulo: string; subtitulo: string };
-const CTX = "__pantalla";
 
 /** Grupo de botones con título opcional dentro de la pestaña contextual de la cinta. */
 export function GrupoCinta({ titulo, children }: { titulo?: string; children: React.ReactNode }) {
@@ -201,12 +200,19 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
   const alternarFav = (a: string) => setFavoritos((f) => { const n = f.includes(a) ? f.filter((x) => x !== a) : [...f, a]; try { localStorage.setItem(LS_FAV, JSON.stringify(n)); } catch { /* */ } return n; });
   const activa = categorias.find((c) => contiene(c, pathname))?.titulo ?? categorias[0]?.titulo;
   const [pestana, setPestana] = useState(activa);
+  // Con una pantalla abierta, su pestaña de categoría muestra las acciones de la pantalla o, al tocarla otra vez, los botones de la categoría.
+  const [verAcciones, setVerAcciones] = useState(false);
   const [contraida, setContraida] = useState(false);
   useEffect(() => { try { setContraida(localStorage.getItem("erp-telxen-cinta-contraida") === "1"); } catch { /* */ } }, []);
-  useEffect(() => { setPestana(contextual ? CTX : activa); }, [activa, pathname, !!contextual]);
-  const enCtx = pestana === CTX && !!contextual;
+  useEffect(() => { setPestana(activa); setVerAcciones(!!contextual); }, [activa, pathname, !!contextual]);
+  const enCtx = !!contextual && pestana === activa && verAcciones;
   const alternarContraer = () => setContraida((v) => { try { localStorage.setItem("erp-telxen-cinta-contraida", v ? "0" : "1"); } catch { /* */ } return !v; });
   const enInicio = pestana === INICIO;
+  const clicPestana = (t: string) => {
+    if (contraida && pestana === t) alternarContraer();
+    if (t === pestana) { if (t === activa && contextual) setVerAcciones((v) => !v); return; }
+    setPestana(t); setVerAcciones(t === activa && !!contextual);
+  };
   const cat = enInicio ? null : categorias.find((c) => c.titulo === pestana) ?? categorias[0];
 
   const Insignia = ({ a }: { a: string }) => {
@@ -292,7 +298,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
         {logo}
         <nav className="flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" role="tablist">
           <button type="button" role="tab" aria-selected={enInicio} title="Favoritos y recientes"
-            onClick={() => { if (contraida && enInicio) alternarContraer(); setPestana(INICIO); }}
+            onClick={() => clicPestana(INICIO)}
             className={`relative flex h-9 shrink-0 items-center gap-1 whitespace-nowrap px-2.5 text-[13px] transition-colors hover:bg-cinta-hover ${enInicio ? "font-semibold" : "text-cinta-tenue"}`}>
             <Home className="size-3.5" /> Inicio
             {enInicio && <span className="absolute inset-x-2 bottom-0 h-0.5 rounded bg-cinta-acento" />}
@@ -301,22 +307,14 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
             const sel = c.titulo === pestana;
             return (
               <button key={c.titulo} type="button" role="tab" aria-selected={sel}
-                onClick={() => { if (contraida && sel) alternarContraer(); setPestana(c.titulo); }}
+                title={c.titulo === activa && contextual ? `${contextual.titulo} — toca ${CORTO[c.titulo] ?? c.titulo} para ver sus botones` : undefined}
+                onClick={() => clicPestana(c.titulo)}
                 className={`relative h-9 shrink-0 whitespace-nowrap px-2.5 text-[13px] transition-colors hover:bg-cinta-hover ${sel ? "font-semibold" : "text-cinta-tenue"}`}>
                 {CORTO[c.titulo] ?? c.titulo}
                 {sel && <span className="absolute inset-x-2 bottom-0 h-0.5 rounded bg-cinta-acento" />}
               </button>
             );
           })}
-          {contextual && (
-            <button type="button" role="tab" aria-selected={enCtx}
-              onClick={() => { if (contraida && enCtx) alternarContraer(); setPestana(CTX); }}
-              title={`${contextual.titulo} — ${contextual.subtitulo}`}
-              className={`relative ml-1 h-9 min-w-0 max-w-[240px] truncate whitespace-nowrap border-l border-cinta-borde px-3 text-[13px] font-semibold text-cinta-acento transition-colors hover:bg-cinta-hover`}>
-              {contextual.titulo.replace(/\s*\(.*\)\s*$/, "")}
-              {enCtx && <span className="absolute inset-x-2 bottom-0 h-0.5 rounded bg-cinta-acento" />}
-            </button>
-          )}
         </nav>
         <div className="flex shrink-0 items-center gap-1">
           <Buscador items={resultados} />
