@@ -3,7 +3,7 @@ import { BotonIcono } from "@/components/ui-kit";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, ClipboardList, Eye, Pencil, Plus, Settings, Trash2, Truck, X } from "lucide-react";
+import { Car, CalendarClock, Wrench, Check, ClipboardList, Eye, Pencil, Plus, Settings, Trash2, Truck, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado, useEnCinta } from "@/components/AppShell";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, Vacio, VentanaFlotante } from "@/components/ui-kit";
@@ -60,9 +60,9 @@ const PESTAÑAS: { id: Pestaña; texto: string }[] = [
   { id: "resumen", texto: "Resumen" },
 ];
 const GRUPOS_VEHICULOS: { titulo: string; icono: React.ElementType; items: Pestaña[] }[] = [
-  { titulo: "Flota", icono: Truck, items: ["flota", "resumen"] },
-  { titulo: "Operaciones", icono: ClipboardList, items: ["tareo", "traslados"] },
-  { titulo: "Mantenimiento", icono: Settings, items: ["mantenimiento"] },
+  { titulo: "Flota", icono: Car, items: ["flota", "resumen"] },
+  { titulo: "Operaciones", icono: CalendarClock, items: ["tareo", "traslados"] },
+  { titulo: "Mantenimiento", icono: Wrench, items: ["mantenimiento"] },
 ];
 const DIAS_SEMANA = ["L", "M", "M", "J", "V", "S", "D"];
 

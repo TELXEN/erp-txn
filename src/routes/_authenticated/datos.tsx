@@ -5,7 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Etiqueta, Input, MenuFiltros, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
-import { Check, Coins, FolderKanban, HardHat, Pencil, Plus, SlidersHorizontal, Trash2, Upload, X } from "lucide-react";
+import { Check, Coins, FolderKanban, Hash, UserCog, Pencil, Plus, Trash2, Upload, X } from "lucide-react";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { exportarExcel } from "@/lib/exportar";
 import {
@@ -73,10 +73,10 @@ type Pestana =
   | "codificacion";
 
 const GRUPOS_CONFIG: { titulo: string; icono: React.ElementType; items: [Pestana, string][] }[] = [
-  { titulo: "Codificación", icono: FolderKanban, items: [["codificacion", "Codificación de Documentos"]] },
-  { titulo: "Parámetros de proyectos", icono: SlidersHorizontal, items: [["configuracion", "Parámetros de proyectos"]] },
+  { titulo: "Codificación", icono: Hash, items: [["codificacion", "Codificación de Documentos"]] },
+  { titulo: "Parámetros de proyectos", icono: FolderKanban, items: [["configuracion", "Parámetros de proyectos"]] },
   { titulo: "Costos y Finanzas", icono: Coins, items: [["categoriasgg", "Categorías de gastos generales"], ["centros", "Centros de costos"], ["costos", "Rubros de costos"], ["ingresos", "Rubros de ingresos"]] },
-  { titulo: "Recursos Humanos", icono: HardHat, items: [["cargos", "Cargos del personal"]] },
+  { titulo: "Recursos Humanos", icono: UserCog, items: [["cargos", "Cargos del personal"]] },
 ];
 
 const MONEDAS = ["PEN", "USD", "PEN/USD"];
