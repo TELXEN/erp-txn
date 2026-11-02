@@ -215,14 +215,17 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
   const [verAcciones, setVerAcciones] = useState(false);
   const [contraida, setContraida] = useState(false);
   useEffect(() => { try { setContraida(localStorage.getItem("erp-telxen-cinta-contraida") === "1"); } catch { /* */ } }, []);
-  useEffect(() => { setPestana(activa); setVerAcciones(!!contextual); }, [activa, pathname, !!contextual]);
+  // Solo al cambiar de categoría se vuelve a mostrar la fila de acciones; navegando dentro de la misma categoría se conserva lo que el usuario eligió ver.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { setPestana(activa); setVerAcciones(!!contextual); }, [activa]);
   const enCtx = !!contextual && pestana === activa && verAcciones;
   const alternarContraer = () => setContraida((v) => { try { localStorage.setItem("erp-telxen-cinta-contraida", v ? "0" : "1"); } catch { /* */ } return !v; });
   const enInicio = pestana === INICIO;
   const clicPestana = (t: string) => {
     if (contraida && pestana === t) alternarContraer();
     if (t === pestana) { if (t === activa && contextual) setVerAcciones((v) => !v); return; }
-    setPestana(t); setVerAcciones(t === activa && !!contextual);
+    // Venir de otra pestaña muestra los botones de la categoría; las acciones de la pantalla quedan a un toque más.
+    setPestana(t); setVerAcciones(false);
   };
   const cat = enInicio ? null : categorias.find((c) => c.titulo === pestana) ?? categorias[0];
 
