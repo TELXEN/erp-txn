@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRecordado } from "@/lib/recordado";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -35,6 +35,9 @@ import { formatearTexto, type ModoFormato } from "@/lib/formato-texto";
 import { Buscador, coincide } from "@/components/Buscador";
 
 export const Route = createFileRoute("/_authenticated/datos")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    pestana: typeof search.pestana === "string" ? (search.pestana as string) : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Parámetros Generales — ERP TELXEN" },
