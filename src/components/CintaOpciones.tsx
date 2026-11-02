@@ -295,6 +295,11 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
   useEffect(() => { setPestana(activa); }, [activa]);
   // Las acciones de la pantalla abierta se muestran siempre a la derecha de la cinta, junto a los botones de su categoría.
   const enCtx = !!contextual && pestana === activa;
+  /** Con una pantalla propia abierta (p. ej. una cotización), la cinta muestra solo su categoría. */
+  const solo = enCtx ? contextual?.solo : undefined;
+  const categoriasVistas = solo
+    ? categorias.filter((c) => c.items.some((m) => solo.includes(m.a) || m.rutas?.some((r) => solo.includes(r))))
+    : categorias;
   const alternarContraer = () => setContraida((v) => { try { localStorage.setItem("erp-telxen-cinta-contraida", v ? "0" : "1"); } catch { /* */ } return !v; });
   const enInicio = pestana === INICIO;
   const clicPestana = (t: string) => {
