@@ -16,6 +16,13 @@ import { exportarExcel, exportarPdf } from "@/lib/exportar";
 import { leerTodo } from "@/lib/datos";
 
 export const Route = createFileRoute("/_authenticated/gantt")({
+  // La vista (Gantt o Curva S) y la obra elegida viven en la URL para que la cinta las resalte y F5 las conserve.
+  validateSearch: (s: Record<string, unknown>): { vista?: "gantt" | "curva"; proyecto?: string } => {
+    const r: { vista?: "gantt" | "curva"; proyecto?: string } = {};
+    if (s["vista"] === "gantt" || s["vista"] === "curva") r.vista = s["vista"];
+    if (typeof s["proyecto"] === "string" && s["proyecto"]) r.proyecto = s["proyecto"];
+    return r;
+  },
   head: () => ({
     meta: [
       { title: "Diagrama Gantt — ERP TELXEN" },
@@ -58,8 +65,9 @@ function Gantt() {
   const { data: partidas = [], isLoading } = usePartidas();
   const { data: cron = [] } = useCronograma();
   const { data: deps = [] } = useDependencias();
+  const { vista: vistaQ, proyecto: proyectoQ } = Route.useSearch();
   const [proyectoId, setProyectoId] = useRecordado<string>("gantt:proyecto", "");
-  const [pestana, setPestana] = useState<"gantt" | "curva">("gantt");
+  const [pestana, setPestana] = useState<"gantt" | "curva">(vistaQ === "curva" ? "curva" : "gantt");
   const [zoomGuardado, setZoom] = useRecordado<Periodicidad | "">("gantt:zoom", "");
   const [plegados, setPlegados] = useRecordado<string[]>("gantt:plegados", []);
   const [verCritica, setVerCritica] = useRecordado("gantt:critica", true);
@@ -67,6 +75,20 @@ function Gantt() {
   const [soloAtrasadas, setSoloAtrasadas] = useState(false);
   const [soloCriticas, setSoloCriticas] = useState(false);
   const [seleccion, setSeleccion] = useState<string | null>(null);
+
+  // Si la cinta o el listado de obras llega con una obra en la URL, se abre esa obra.
+  useEffect(() => {
+    if (proyectoQ && proyectoQ !== proyectoId) setProyectoId(proyectoQ);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [proyectoQ]);
+
+  // Cambiar de vista escribe la elección en la URL para que F5 la conserve.
+  const cambiarPestana = (v: "gantt" | "curva") => {
+    setPestana(v);
+    const s: { vista: "gantt" | "curva"; proyecto?: string } = { vista: v };
+    if (proyectoQ) s.proyecto = proyectoQ;
+    void navigate({ to: "/gantt", search: s, replace: true });
+  };
 
   const proyecto = proyectos.find((p) => p.id === proyectoId) ?? null;
   const per: Periodicidad = proyecto?.periodicidad_cronograma ?? "mes";
@@ -246,7 +268,7 @@ function Gantt() {
         }
       />
 
-      <Pestanas etiqueta="Vistas del cronograma" valor={pestana} onCambiar={setPestana} variante="boton"
+      <Pestanas etiqueta="Vistas del cronograma" valor={pestana} onCambiar={cambiarPestana} variante="boton"
         opciones={[
           { id: "gantt", texto: "Gantt", icono: <ChartGantt size={15} /> },
           { id: "curva", texto: "Curva S", icono: <ChartSpline size={15} /> },
