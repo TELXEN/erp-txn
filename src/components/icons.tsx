@@ -222,6 +222,98 @@ export function EscudoVerificado({ className, ...props }: SVGProps<SVGSVGElement
 }
 
 /**
+ * Diagrama de Gantt con barras de color.
+ *
+ * Icono propio de «Gantt»: ejes en el color del texto y tres barras horizontales
+ * alternando verde (--color-icono-verde) y rojo (--color-icono-rojo)... perdón,
+ * los tonos fijos de la cinta: verde #029a56 y rojo #c1121f.
+ */
+export function GanttLineas({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+      {...props}
+    >
+      {/* Ejes */}
+      <path d="M3 3v16a2 2 0 0 0 2 2h16" />
+      {/* Barras de planificación, en verde y rojo */}
+      <path stroke="var(--color-icono-verde)" d="M10 6h8" />
+      <path stroke="var(--color-icono-rojo)" d="M8 11h7" />
+      <path stroke="var(--color-icono-verde)" d="M12 16h6" />
+    </svg>
+  );
+}
+
+/**
+ * Curva S en azul.
+ *
+ * Icono propio de «Curva S»: ejes en el color del texto y la línea que dibuja la
+ * curva en azul (--color-icono-azul).
+ */
+export function CurvaAzul({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+      {...props}
+    >
+      {/* Ejes */}
+      <path d="M3 3v16a2 2 0 0 0 2 2h16" />
+      {/* La curva, en azul */}
+      <path stroke="var(--color-icono-azul)" d="M7 16c.5-2 1.5-7 4-7 2 0 2 3 4 3 2.5 0 4.5-5 5-7" />
+    </svg>
+  );
+}
+
+/**
+ * Portapapeles con listado en azul.
+ *
+ * Icono propio de «Banco de Datos de EPP»: portapapeles cuyo listado central
+ * (los dos puntos y las dos líneas) va en azul (--color-icono-azul); el resto
+ * sigue el color del texto.
+ */
+export function PortapapelesDatos({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+      {...props}
+    >
+      {/* Portapapeles */}
+      <rect x="8" y="2" width="8" height="4" rx="1" />
+      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+      {/* Listado, en azul */}
+      <path stroke="var(--color-icono-azul)" d="M12 11h4" />
+      <path stroke="var(--color-icono-azul)" d="M12 16h4" />
+      <path stroke="var(--color-icono-azul)" d="M8 11h.01" />
+      <path stroke="var(--color-icono-azul)" d="M8 16h.01" />
+    </svg>
+  );
+}
+
+/**
  * Portapapeles con verificación.
  *
  * Icono propio de «Valorizaciones»: portapapeles con una palomita dentro. La
