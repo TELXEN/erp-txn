@@ -6,6 +6,15 @@ import { createPortal } from "react-dom";
 
 type Ranura = { el: HTMLElement | null; cinta: boolean; setCtx: (c: ContextoCinta | null) => void };
 const RanuraEncabezado = createContext<Ranura | null>(null);
+/** true cuando las acciones de pantalla viven en la cinta. */
+export function useEnCinta() { return !!useContext(RanuraEncabezado)?.cinta; }
+const SECCIONES_CONFIG = [
+  { texto: "Datos de la empresa", seccion: "empresa" },
+  { texto: "Tipografía de documentos", seccion: "tipografia" },
+  { texto: "Usuarios y Roles", seccion: "usuarios" },
+  { texto: "Valores normativos (RMV / UIT)", seccion: "normativa" },
+  { texto: "Integraciones", seccion: "integraciones" },
+];
 import { FormatoGlobal } from "@/components/FormatoGlobal";
 import { CintaOpciones, SelectorModoLateral, type ModoNavegacion, type ContextoCinta } from "@/components/CintaOpciones";
 import { ReciboCodigoBarras, NominaBoletas } from "@/components/icons";
@@ -80,7 +89,7 @@ import { aplicarTema, leerTema } from "@/lib/temas";
 import { aplicarFuenteGlobal, useFuenteDocumento } from "@/lib/fuentes-documentos";
 
 
-type Item = { a: string; texto: string; roles: Rol[]; icono: React.ElementType; hijos?: Item[] };
+type Item = { a: string; texto: string; roles: Rol[]; icono: React.ElementType; hijos?: Item[]; sub?: { texto: string; seccion: string }[] };
 type Categoria = { titulo: string; items: Item[] };
 
 const MENU: Categoria[] = [
@@ -154,7 +163,7 @@ const MENU: Categoria[] = [
   {
     titulo: "Datos",
     items: [
-      { a: "/configuracion-sistema", texto: "Configuración del Sistema", roles: ["gerente"], icono: SlidersHorizontal },
+      { a: "/configuracion-sistema", texto: "Configuración del Sistema", roles: ["gerente"], icono: SlidersHorizontal, sub: SECCIONES_CONFIG },
       { a: "/datos", texto: "Parámetros Generales", roles: ["administrador", "gerente"], icono: Settings },
       { a: "/catalogo-tecnico", texto: "Catálogo Técnico", roles: ["administrador", "gerente"], icono: Layers },
       { a: "/maestro-insumos", texto: "Maestro de Insumos", roles: ["administrador", "gerente"], icono: PackageCheck },
