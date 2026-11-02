@@ -134,3 +134,4 @@
 - [x] Cinta: navegar desde la cuadrícula de una categoría conserva los iconos visibles (antes se ocultaban al llegar a otra pantalla con acciones); llegar por menú lateral, buscador o recarga sigue mostrando las acciones de la pantalla
 - [x] Acciones de pantalla siempre visibles a la derecha de la cinta (Crear Factura, etc.), junto a los botones de la categoría y separadas por línea vertical; ya no se ocultan ni alternan. Verificado en Facturas y Boletas; compilación OK.
 - [x] Gantt y Curva S en la cinta de Proyectos, a la derecha junto a Tabla y Kanban: cada uno abre su vista en /gantt llevándose la obra seleccionada; la vista y la obra viajan en la URL (?vista= y ?proyecto=) y F5 las conserva. Probado en cinta clásica y con recarga; compilación OK.
+- [x] Proyectos deja solo Tabla y Kanban en su conmutador; los iconos Gantt y Curva S pasan a la derecha de la ventana en la pantalla del cronograma; cambio de vista y F5 verificados, compilación OK.

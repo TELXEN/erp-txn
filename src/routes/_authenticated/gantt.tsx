@@ -5,6 +5,8 @@ import { CalendarCheck, ChartGantt, ChartSpline, ChevronDown, ChevronRight, File
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Boton, BotonIcono, CabeceraModulo, Campo, FilasCargando, FranjaResumen, Input, MenuFiltros, Panel, Pestanas, Select, Vacio } from "@/components/ui-kit";
+import { Encabezado, useEnCinta } from "@/components/AppShell";
+import { GrupoCinta } from "@/components/CintaOpciones";
 import { CurvaSObra } from "@/components/CurvaSObra";
 import { useRecordado } from "@/lib/recordado";
 import {
@@ -61,6 +63,7 @@ type Fila = {
 function Gantt() {
   const qc = useQueryClient();
   const navigate = useNavigate();
+  const enCinta = useEnCinta();
   const { data: proyectos = [] } = useProyectos();
   const { data: partidas = [], isLoading } = usePartidas();
   const { data: cron = [] } = useCronograma();
@@ -268,12 +271,33 @@ function Gantt() {
         }
       />
 
-      <Pestanas etiqueta="Vistas del cronograma" valor={pestana} onCambiar={cambiarPestana} variante="boton"
-        opciones={[
-          { id: "gantt", texto: "Gantt", icono: <ChartGantt size={15} /> },
-          { id: "curva", texto: "Curva S", icono: <ChartSpline size={15} /> },
-        ]}
-      />
+      {/* Con cinta, el cambio de vista vive a la derecha de la ventana; sin ella, son pestañas dentro de la hoja. */}
+      {enCinta ? (
+        <Encabezado
+          titulo="Diagrama Gantt y Curva S"
+          subtitulo="Calendario de partidas, dependencias y ruta crítica"
+          acciones={
+            <GrupoCinta titulo="Vistas del cronograma">
+              {([
+                { id: "gantt" as const, texto: "Gantt", icono: <ChartGantt size={14} /> },
+                { id: "curva" as const, texto: "Curva S", icono: <ChartSpline size={14} /> },
+              ]).map((o) => (
+                <button key={o.id} type="button" onClick={() => cambiarPestana(o.id)} aria-pressed={pestana === o.id}
+                  className={`flex h-8 items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 text-xs ${pestana === o.id ? "bg-cinta-acento font-semibold text-cinta-acento-foreground" : "text-cinta-texto hover:bg-cinta-hover"}`}>
+                  {o.icono}{o.texto}
+                </button>
+              ))}
+            </GrupoCinta>
+          }
+        />
+      ) : (
+        <Pestanas etiqueta="Vistas del cronograma" valor={pestana} onCambiar={cambiarPestana} variante="boton"
+          opciones={[
+            { id: "gantt", texto: "Gantt", icono: <ChartGantt size={15} /> },
+            { id: "curva", texto: "Curva S", icono: <ChartSpline size={15} /> },
+          ]}
+        />
+      )}
 
       {pestana === "curva" ? <div role="tabpanel" aria-label="Curva S"><CurvaSObra proyectoId={proyectoId} /></div> : <div role="tabpanel" aria-label="Gantt" className="space-y-4">
       {proyecto && (
