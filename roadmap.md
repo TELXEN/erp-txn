@@ -205,3 +205,5 @@
 ## Cinta de cotización
 - [x] Quitar el botón «Vista previa» de la cinta cuando ya se está en la vista previa; verificado en edición y vista previa.
 - [x] Ocultar APU y Plantillas del grupo Presupuestar en modo edición y vista previa; verificado en listado, edición y vista previa.
+- [x] Ocultar las demás pestañas (Inicio, Operaciones, Logística, Finanzas, Personal, Datos) en edición y vista previa de cotización; verificado: solo Comercial.
+- [ ] Cambiar el icono del botón «Volver» en la cinta de cotización.
