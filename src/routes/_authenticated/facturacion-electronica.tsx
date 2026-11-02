@@ -5,7 +5,7 @@ import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-r
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Eye, FilePlus2, Landmark, Pencil, ReceiptText, Trash2 } from "lucide-react";
+import { Eye, FilePlus2, Pencil, ReceiptText, Trash2 } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Etiqueta, MenuFiltros, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
@@ -178,35 +178,9 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
   }
 
   const tiposVisibles = esGuias ? PESTANAS_CPE.filter((p) => p.tipo === "09") : PESTANAS_CPE;
-  const gruposFacturacion = [
-    { titulo: "Comprobantes emitidos", icono: ReceiptText, tipos: tiposVisibles.filter((p) => ["01", "03", "07", "08", "09"].includes(p.tipo)) },
-    { titulo: "Operaciones especiales", icono: Landmark, tipos: tiposVisibles.filter((p) => ["20", "40", "RA"].includes(p.tipo)) },
-  ].filter((g) => g.tipos.length > 0);
-  const grupoActivo = gruposFacturacion.find((g) => g.tipos.some((p) => p.tipo === pestana)) ?? gruposFacturacion[0];
   const ETIQUETA_BOTON: Record<string, string> = { "01": "Crear Factura", "03": "Crear Boleta", "07": "Crear Notas de Crédito", "08": "Crear Notas de Débito", "20": "Crear Retenciones", "40": "Crear Percepciones", RA: "Nueva comunicación de baja" };
   return <><Encabezado titulo={esGuias ? "Guías de Remisión" : "Facturación Electrónica"} subtitulo={esGuias ? "Logística · guías de remisión remitente y traslados" : "Comercial · comprobantes, estados SUNAT y cobranza"} acciones={<div className="flex items-center gap-2">{abierto ? <Boton variante="linea" onClick={cerrar}>Cerrar editor</Boton> : <Boton onClick={() => abrirNuevo(pestana)}><FilePlus2 size={14} />{esGuias ? "Crear Guía de Remisión" : ETIQUETA_BOTON[pestana] ?? "Nuevo comprobante"}</Boton>}</div>} />
     <div className={`flex flex-col ${abierto ? "md:h-[calc(100dvh-3rem)] md:-my-3 md:min-h-0 md:overflow-hidden" : ""}`}>
-    {!esGuias && <>
-      <div className="mb-3 flex flex-wrap gap-1">
-        {gruposFacturacion.map((g) => {
-          const Icono = g.icono;
-          const activo = g === grupoActivo;
-          return <Boton key={g.titulo} variante={activo ? "primario" : "linea"} onClick={() => {
-            const primero = g.tipos[0];
-            if (!primero) return;
-            setPestana(primero.tipo as TipoComprobante); if (abierto) cambiarTipo(primero.tipo as TipoComprobante);
-          }}><Icono size={13} />{g.titulo}</Boton>;
-        })}
-      </div>
-      <div className="mb-4 flex flex-wrap gap-1 border-b border-line pb-3">
-        {grupoActivo?.tipos.map((p) => {
-          const activo = pestana === p.tipo;
-          return <button key={p.tipo} type="button" onClick={() => {
-            setPestana(p.tipo as TipoComprobante); if (abierto) cambiarTipo(p.tipo as TipoComprobante);
-          }} className={`rounded-md border-b-2 px-3 py-1.5 text-xs transition-colors ${activo ? "border-cta bg-primary/10 font-semibold text-primary" : "border-transparent text-muted-foreground hover:bg-muted hover:text-primary"}`}>{p.etiqueta}</button>;
-        })}
-      </div>
-    </>}
 
 
     <VentanaFlotante titulo="Crear factura" abierta={origenAbierto} onCerrar={() => setOrigenAbierto(false)} ancho="max-w-xl">
