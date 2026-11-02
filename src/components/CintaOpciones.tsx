@@ -98,7 +98,7 @@ const GRUPO: Record<string, string> = {
   "/requerimientos": "Comprar", "/ordenes-compra": "Comprar", "/importaciones": "Comprar",
   "/vehiculos": "Vehículos",
   "/dashboard": "Análisis",
-  "/gastos-directos": "Costos", "/gastos-generales": "Costos",
+  "/gastos-directos": "Costos Directos", "/gastos-generales": "Costos",
   "/tesoreria": "Caja y bancos", "/caja-chica": "Caja y bancos", "/sire": "SUNAT",
   "/personal": "Personal", "/tareo": "Personal",
   "/nomina": "Remuneraciones", "/honorarios": "Remuneraciones", "/beneficios": "Beneficios Sociales",

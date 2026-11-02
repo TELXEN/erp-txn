@@ -130,3 +130,244 @@ export function GraficoFinanciero({ className, ...props }: SVGProps<SVGSVGElemen
     </svg>
   );
 }
+
+/**
+ * Hoja con verificación.
+ *
+ * Icono propio de «SIRE SUNAT»: hoja con esquina doblada y una palomita
+ * dentro. La palomita va en verde (--color-icono-verde); el resto sigue el
+ * color del texto para que el icono siga legible sobre el fondo de la cinta.
+ */
+export function HojaVerificada({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+      {...props}
+    >
+      {/* Hoja con esquina doblada */}
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+      {/* Palomita de verificación, en verde */}
+      <path stroke="var(--color-icono-verde)" d="m8.5 14.2 2.6 2.6 4.6-5.2" />
+    </svg>
+  );
+}
+
+/**
+ * Caja de traslado con verificación.
+ *
+ * Icono propio de «Guías de Remisión»: caja isométrica con la palomita dentro
+ * de la cara frontal. La palomita va en azul (--color-icono-azul); el resto
+ * sigue el color del texto para que el icono siga legible sobre la cinta.
+ */
+export function CajaVerificada({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+      {...props}
+    >
+      {/* Caja de traslado */}
+      <path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z" />
+      <path strokeWidth={1.4} d="M12 22V12" />
+      <path strokeWidth={1.4} d="m3.29 7 8.71 5 8.71-5" />
+      {/* Palomita de verificación, en azul */}
+      <path stroke="var(--color-icono-azul)" d="m13.6 15.4 1.9 1.9 3.6-3.6" />
+    </svg>
+  );
+}
+
+/**
+ * Escudo con verificación.
+ *
+ * Icono propio de «Aprobaciones»: escudo con una palomita dentro. La palomita
+ * va en verde (--color-icono-verde); el escudo sigue el color del texto para
+ * que el icono siga legible sobre el fondo de la cinta.
+ */
+export function EscudoVerificado({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+      {...props}
+    >
+      {/* Escudo */}
+      <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
+      {/* Palomita de aprobación, en verde */}
+      <path stroke="var(--color-icono-verde)" d="m9 12 2 2 4-4" />
+    </svg>
+  );
+}
+
+/**
+ * Diagrama de Gantt con barras de color.
+ *
+ * Icono propio de «Gantt»: ejes en el color del texto y tres barras horizontales
+ * en verde (--color-icono-verde) y rojo (--color-icono-rojo).
+ */
+export function GanttLineas({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+      {...props}
+    >
+      {/* Ejes */}
+      <path d="M3 3v16a2 2 0 0 0 2 2h16" />
+      {/* Barras de planificación, en verde y rojo */}
+      <path stroke="var(--color-icono-verde)" d="M10 6h8" />
+      <path stroke="var(--color-icono-rojo)" d="M8 11h7" />
+      <path stroke="var(--color-icono-verde)" d="M12 16h6" />
+    </svg>
+  );
+}
+
+/**
+ * Curva S en azul.
+ *
+ * Icono propio de «Curva S»: ejes en el color del texto y la línea que dibuja la
+ * curva en azul (--color-icono-azul).
+ */
+export function CurvaAzul({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+      {...props}
+    >
+      {/* Ejes */}
+      <path d="M3 3v16a2 2 0 0 0 2 2h16" />
+      {/* La curva, en azul */}
+      <path stroke="var(--color-icono-azul)" d="M7 16c.5-2 1.5-7 4-7 2 0 2 3 4 3 2.5 0 4.5-5 5-7" />
+    </svg>
+  );
+}
+
+/**
+ * Portapapeles con listado en azul.
+ *
+ * Icono propio de «Banco de Datos de EPP»: portapapeles cuyo listado central
+ * (los dos puntos y las dos líneas) va en azul (--color-icono-azul); el resto
+ * sigue el color del texto.
+ */
+export function PortapapelesDatos({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+      {...props}
+    >
+      {/* Portapapeles */}
+      <rect x="8" y="2" width="8" height="4" rx="1" />
+      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+      {/* Listado, en azul */}
+      <path stroke="var(--color-icono-azul)" d="M12 11h4" />
+      <path stroke="var(--color-icono-azul)" d="M12 16h4" />
+      <path stroke="var(--color-icono-azul)" d="M8 11h.01" />
+      <path stroke="var(--color-icono-azul)" d="M8 16h.01" />
+    </svg>
+  );
+}
+
+/**
+ * Portapapeles con verificación.
+ *
+ * Icono propio de «Valorizaciones»: portapapeles con una palomita dentro. La
+ * palomita va en verde (--color-icono-verde); el resto sigue el color del texto.
+ */
+export function PortapapelesVerificado({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+      {...props}
+    >
+      {/* Portapapeles */}
+      <rect x="8" y="2" width="8" height="4" rx="1" />
+      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+      {/* Palomita de conformidad, en verde */}
+      <path stroke="var(--color-icono-verde)" d="m9 14 2 2 4-4" />
+    </svg>
+  );
+}
+
+/**
+ * Portapapeles con lápiz.
+ *
+ * Icono propio de «Generar Requerimiento»: portapapeles con un lápiz escribiendo
+ * sobre él. El lápiz va en azul (--color-icono-azul); el resto sigue el color
+ * del texto para que el icono siga legible sobre el fondo de la cinta.
+ */
+export function PortapapelesLapiz({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+      {...props}
+    >
+      {/* Portapapeles */}
+      <path d="M16 4h2a2 2 0 0 1 2 2v2" />
+      <path d="M8 22H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+      <rect x="8" y="2" width="8" height="4" rx="1" />
+      {/* Lápiz, en azul */}
+      <path stroke="var(--color-icono-azul)" d="M21.34 15.664a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z" />
+    </svg>
+  );
+}

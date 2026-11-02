@@ -104,8 +104,18 @@
   --color-cinta-acento-foreground: var(--cta-foreground);
   /* Dorado fijo para iconos que el usuario quiere siempre en ese color, sin importar el tema. */
   --color-cinta-oro: oklch(0.66 0.14 85);
+  /* Verde, rojo y azul fijos para iconos de la cinta (cobros, pagos, beneficios). */
+  --color-cinta-verde: #029a56;
+  --color-cinta-rojo: #c1121f;
+  --color-cinta-azul: #0077b6;
   /* Azul del sello de goma del icono de Facturas. */
   --color-sello-factura: #0077b6;
+  /* Verde de las palomitas de verificación (SIRE, Aprobaciones). */
+  --color-icono-verde: #029a56;
+  /* Azul de la palomita del icono de Guías de Remisión. */
+  --color-icono-azul: #0077b6;
+  /* Rojo de las barras del icono de Gantt. */
+  --color-icono-rojo: #c1121f;
   --color-chip-mat: var(--chip-mat);
   --color-chip-mo: var(--chip-mo);
   --color-chip-eq: var(--chip-eq);
@@ -491,4 +501,7 @@ aside .md\:overflow-y-auto:hover::-webkit-scrollbar-thumb { background: color-mi
 .dash-chip-activo { background: var(--card); color: var(--primary); font-weight: 600; }
 
 /* Iconos dorados: sobre el botón seleccionado (fondo dorado) pasan al color del texto activo para no perderse. */
-.cinta-opciones a.cinta-activo .text-cinta-oro { color: var(--cta-foreground); }
+.cinta-opciones a.cinta-activo .text-cinta-oro,
+.cinta-opciones a.cinta-activo .text-cinta-verde,
+.cinta-opciones a.cinta-activo .text-cinta-rojo,
+.cinta-opciones a.cinta-activo .text-cinta-azul { color: var(--cta-foreground); }
