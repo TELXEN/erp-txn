@@ -257,12 +257,14 @@ function ItemSubMenu({ item, pathname }: { item: Item; pathname: string }) {
       </button>
       {abierto && (
         <div className="ml-4 mt-1 space-y-1 border-l border-sidebar-border pl-2">
-          {item.sub!.map((o) => (
-            <Link key={o.a ?? o.seccion} to={o.a ?? item.a} search={o.a ? undefined : ({ [o.campo ?? "seccion"]: o.seccion } as never)}
-              className="flex rounded-md px-2.5 py-1.5 text-[13px] text-sidebar-foreground transition-colors hover:bg-sidebar-hover">
-              {o.texto}
-            </Link>
-          ))}
+          {item.sub!.map((o) => {
+            const cls = "flex rounded-md px-2.5 py-1.5 text-[13px] text-sidebar-foreground transition-colors hover:bg-sidebar-hover";
+            return o.a ? (
+              <Link key={o.a} to={o.a} className={cls}>{o.texto}</Link>
+            ) : (
+              <Link key={o.seccion} to={item.a} search={{ [o.campo ?? "seccion"]: o.seccion } as never} className={cls}>{o.texto}</Link>
+            );
+          })}
         </div>
       )}
     </div>

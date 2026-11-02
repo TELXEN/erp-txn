@@ -38,7 +38,7 @@ const LS_REC = "erp-telxen-recientes";
 const LS_FAV = "erp-telxen-favoritos";
 function leerLista(k: string): string[] { try { const v = JSON.parse(localStorage.getItem(k) || "[]"); return Array.isArray(v) ? v : []; } catch { return []; } }
 
-type Resultado = { a: string; texto: string; ruta: string; icono: React.ElementType; search?: Record<string, string> };
+type Resultado = { a: string; texto: string; ruta: string; icono: React.ElementType; search?: Record<string, string> | undefined };
 function Buscador({ items }: { items: Resultado[] }) {
   const [q, setQ] = useState("");
   const [sel, setSel] = useState(0);
@@ -103,10 +103,14 @@ function SubMenu({ a, sub }: { a: string; sub: { texto: string; seccion?: string
       {pos && createPortal(
         <div data-submenu-cinta style={{ left: pos.x, top: pos.y }}
           className="fixed z-[100] min-w-56 rounded-md border border-border bg-popover py-1 text-xs text-popover-foreground shadow-lg">
-          {sub.map((o) => (
-            <Link key={o.a ?? o.seccion} to={o.a ?? a} search={o.a ? undefined : ({ [o.campo ?? "seccion"]: o.seccion } as never)} onClick={() => setPos(null)}
-              className="block px-3 py-1.5 hover:bg-accent hover:text-accent-foreground">{o.texto}</Link>
-          ))}
+          {sub.map((o) => {
+            const cls = "block px-3 py-1.5 hover:bg-accent hover:text-accent-foreground";
+            return o.a ? (
+              <Link key={o.a} to={o.a} onClick={() => setPos(null)} className={cls}>{o.texto}</Link>
+            ) : (
+              <Link key={o.seccion} to={a} search={{ [o.campo ?? "seccion"]: o.seccion } as never} onClick={() => setPos(null)} className={cls}>{o.texto}</Link>
+            );
+          })}
         </div>, document.body)}
     </>
   );
