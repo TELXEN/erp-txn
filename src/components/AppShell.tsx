@@ -17,13 +17,13 @@ const SECCIONES_CONFIG = [
   { texto: "Integraciones", corto: "Integraciones", seccion: "integraciones", icono: Plug },
 ];
 const SECCIONES_DATOS = [
-  { texto: "Codificación", corto: "Codificación", seccion: "codificacion", campo: "pestana", icono: Hash },
+  { texto: "Codificación", corto: "Codificación", seccion: "codificacion", campo: "pestana", icono: Hash, grande: true },
   { texto: "Parámetros de proyectos", corto: "Proyectos", seccion: "configuracion", campo: "pestana", icono: FolderKanban },
   { texto: "Costos y Finanzas", corto: "Costos", seccion: "categoriasgg", campo: "pestana", icono: Coins },
   { texto: "Recursos Humanos", corto: "RR. HH.", seccion: "cargos", campo: "pestana", icono: UserCog },
 ];
 const SECCIONES_CATALOGO = [
-  { texto: "Unidades de medida", corto: "Unidades", seccion: "unidades", campo: "pestana", icono: Ruler },
+  { texto: "Unidades de medida", corto: "Unidades", seccion: "unidades", campo: "pestana", icono: Ruler, grande: true },
   { texto: "Especialidades", corto: "Especialidades", seccion: "especialidades", campo: "pestana", icono: Shapes },
   { texto: "Categorías", corto: "Categorías", seccion: "categorias", campo: "pestana", icono: FolderTree },
   { texto: "Subcategorías", corto: "Subcateg.", seccion: "subfamilias", campo: "pestana", icono: Network },
@@ -31,14 +31,14 @@ const SECCIONES_CATALOGO = [
   { texto: "Títulos WBS", corto: "Títulos WBS", seccion: "grupos", campo: "pestana", icono: ListTree },
 ];
 const SECCIONES_MAESTRO = [
-  { texto: "Materiales", corto: "Materiales", seccion: "MAT", campo: "seccion", icono: Package },
+  { texto: "Materiales", corto: "Materiales", seccion: "MAT", campo: "seccion", icono: Package, grande: true },
   { texto: "Mano de obra", corto: "Mano de obra", seccion: "MO", campo: "seccion", icono: Pickaxe },
   { texto: "Equipos", corto: "Equipos", seccion: "EQ", campo: "seccion", icono: Drill },
   { texto: "Herramientas", corto: "Herramientas", seccion: "HE", campo: "seccion", icono: Hammer },
   { texto: "Subcontratos", corto: "Subcontratos", seccion: "SC", campo: "seccion", icono: FileSignature },
 ];
 const SECCIONES_MAESTRO_CFG = [
-  { texto: "Márgenes APU", corto: "Márgenes", seccion: "margenes", campo: "seccion", icono: Percent },
+  { texto: "Márgenes APU", corto: "Márgenes", seccion: "margenes", campo: "seccion", icono: Percent, grande: true },
   { texto: "Parámetros laborales", corto: "Laboral", seccion: "laboral", campo: "seccion", icono: BadgeDollarSign },
   { texto: "Codificación de insumos", corto: "Codificación", seccion: "codificacion", campo: "seccion", icono: Barcode },
 ];
