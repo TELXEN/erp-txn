@@ -1,7 +1,9 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { ChevronDown, ChevronUp, PanelLeft, Rows2, Rows3 } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
+import { ChevronDown, ChevronUp, Clock, Home, Palette, PanelLeft, Pin, Rows2, Rows3, Search, Star } from "lucide-react";
+import { claveNombre } from "@/lib/formato-texto";
 
 export type ModoNavegacion = "lateral" | "simplificada" | "clasica";
 export type ItemCinta = { a: string; texto: string; icono: React.ElementType; hijos?: ItemCinta[]; sub?: { texto: string; seccion: string; campo?: string }[] };
@@ -12,6 +14,72 @@ const CORTO: Record<string, string> = {
   "Recursos Humanos": "Personal",
   "Temas de colores": "Temas",
 };
+
+/** Subgrupos de cada pestaña, en el orden del flujo de trabajo. */
+const GRUPO: Record<string, string> = {
+  "/clientes": "Clientes", "/datos-apu": "Presupuestar", "/cotizaciones": "Presupuestar",
+  "/valorizaciones": "Cobrar", "/facturacion-electronica": "Cobrar", "/registro-ventas": "Cobrar",
+  "/dashboard-proyectos": "Planificar", "/proyectos": "Planificar", "/partidas": "Planificar",
+  "/gantt": "Ejecutar y controlar", "/avance": "Ejecutar y controlar", "/valorizaciones-obra": "Ejecutar y controlar",
+  "/generar-requerimiento": "Solicitar", "/aprobaciones": "Solicitar",
+  "/proveedores": "Socios", "/transportistas": "Socios",
+  "/requerimientos": "Comprar", "/ordenes-compra": "Comprar", "/importaciones": "Comprar",
+  "/almacen": "Existencias", "/inventario": "Existencias", "/vehiculos": "Existencias",
+  "/dashboard": "Análisis", "/flujo-caja": "Análisis",
+  "/gastos-directos": "Costos", "/gastos-generales": "Costos",
+  "/tesoreria": "Caja y bancos", "/caja-chica": "Caja y bancos", "/sire": "SUNAT",
+  "/personal": "Personal", "/tareo": "Personal",
+  "/nomina": "Remuneraciones", "/honorarios": "Remuneraciones", "/beneficios": "Remuneraciones",
+  "/configuracion-sistema": "Configuración", "/datos": "Configuración",
+  "/catalogo-tecnico": "Catálogos", "/maestro-insumos": "Catálogos",
+};
+const INICIO = "__inicio";
+const LS_REC = "erp-telxen-recientes";
+const LS_FAV = "erp-telxen-favoritos";
+function leerLista(k: string): string[] { try { const v = JSON.parse(localStorage.getItem(k) || "[]"); return Array.isArray(v) ? v : []; } catch { return []; } }
+
+type Resultado = { a: string; texto: string; ruta: string; icono: React.ElementType; search?: Record<string, string> };
+function Buscador({ items }: { items: Resultado[] }) {
+  const [q, setQ] = useState("");
+  const [sel, setSel] = useState(0);
+  const [foco, setFoco] = useState(false);
+  const ref = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
+  useEffect(() => {
+    const k = (e: KeyboardEvent) => { if (e.altKey && e.key.toLowerCase() === "q") { e.preventDefault(); ref.current?.focus(); } };
+    window.addEventListener("keydown", k); return () => window.removeEventListener("keydown", k);
+  }, []);
+  const c = claveNombre(q);
+  const res = c ? items.filter((r) => claveNombre(`${r.texto} ${r.ruta}`).includes(c)).slice(0, 8) : [];
+  const ir = (r: Resultado) => { navigate({ to: r.a, search: (r.search ?? {}) as never }); setQ(""); ref.current?.blur(); };
+  return (
+    <div className="relative hidden shrink-0 md:block">
+      <div className="flex h-7 w-52 items-center gap-1.5 rounded-md border border-cinta-borde bg-cinta-inf px-2 text-cinta-tenue focus-within:border-cinta-acento lg:w-64">
+        <Search className="size-3.5 shrink-0" />
+        <input ref={ref} value={q} placeholder="¿Qué desea hacer? (Alt+Q)" aria-label="Buscar módulo"
+          onChange={(e) => { setQ(e.target.value); setSel(0); }} onFocus={() => setFoco(true)} onBlur={() => setTimeout(() => setFoco(false), 150)}
+          onKeyDown={(e) => {
+            if (e.key === "ArrowDown") { e.preventDefault(); setSel((s) => Math.min(s + 1, res.length - 1)); }
+            else if (e.key === "ArrowUp") { e.preventDefault(); setSel((s) => Math.max(s - 1, 0)); }
+            else if (e.key === "Enter" && res[sel]) ir(res[sel]);
+            else if (e.key === "Escape") { setQ(""); ref.current?.blur(); }
+          }}
+          className="min-w-0 flex-1 bg-transparent text-[12px] text-cinta-texto outline-none placeholder:text-cinta-tenue" />
+      </div>
+      {foco && c && (
+        <div className="absolute left-0 top-8 z-[100] w-80 rounded-md border border-border bg-popover py-1 text-xs text-popover-foreground shadow-lg">
+          {res.length === 0 && <p className="px-3 py-2 text-muted-foreground">Sin resultados</p>}
+          {res.map((r, i) => { const I = r.icono; return (
+            <button key={r.a + r.texto} type="button" onMouseDown={(e) => { e.preventDefault(); ir(r); }} onMouseEnter={() => setSel(i)}
+              className={`flex w-full items-center gap-2 px-3 py-1.5 text-left ${i === sel ? "bg-accent text-accent-foreground" : ""}`}>
+              <I className="size-4 shrink-0" /><span className="flex-1 truncate">{r.texto}</span>
+              <span className="truncate text-[10px] text-muted-foreground">{r.ruta}</span>
+            </button>); })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function SubMenu({ a, sub }: { a: string; sub: { texto: string; seccion: string; campo?: string }[] }) {
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
@@ -84,6 +152,10 @@ function SelectorModo({ modo, onModo, contraida, onContraer }: {
               <I className="size-4" /> {t}{modo === m && <span className="ml-auto">✓</span>}
             </button>
           ))}
+          <div className="my-1 border-t border-border" />
+          <Link to="/tema-colores" onClick={() => setAbierto(false)} className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-xs hover:bg-muted">
+            <Palette className="size-4" /> Temas de colores
+          </Link>
         </div>
       )}
     </div>
@@ -113,6 +185,20 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
   usuario?: React.ReactNode; pantallaCompleta?: React.ReactNode;
   contextual?: ContextoCinta | null; onRanuraContextual?: (el: HTMLDivElement | null) => void;
 }) {
+  categorias = categorias.filter((c) => c.titulo !== "Temas de colores");
+  const plano = categorias.flatMap((c) => c.items.flatMap((m) => (m.hijos ?? [m]).map((h) => ({ ...h, cat: CORTO[c.titulo] ?? c.titulo }))));
+  const resultados: Resultado[] = plano.flatMap((m) => [
+    { a: m.a, texto: m.texto, ruta: m.cat, icono: m.icono },
+    ...(m.sub ?? []).map((o) => ({ a: m.a, texto: o.texto, ruta: `${m.cat} › ${m.texto}`, icono: m.icono, search: { [o.campo ?? "seccion"]: o.seccion } })),
+  ]);
+  const [recientes, setRecientes] = useState<string[]>([]);
+  const [favoritos, setFavoritos] = useState<string[]>([]);
+  useEffect(() => { setRecientes(leerLista(LS_REC)); setFavoritos(leerLista(LS_FAV)); }, []);
+  useEffect(() => {
+    if (!plano.some((m) => m.a === pathname)) return;
+    setRecientes((r) => { const n = [pathname, ...r.filter((x) => x !== pathname)].slice(0, 5); try { localStorage.setItem(LS_REC, JSON.stringify(n)); } catch { /* */ } return n; });
+  }, [pathname]);
+  const alternarFav = (a: string) => setFavoritos((f) => { const n = f.includes(a) ? f.filter((x) => x !== a) : [...f, a]; try { localStorage.setItem(LS_FAV, JSON.stringify(n)); } catch { /* */ } return n; });
   const activa = categorias.find((c) => contiene(c, pathname))?.titulo ?? categorias[0]?.titulo;
   const [pestana, setPestana] = useState(activa);
   const [contraida, setContraida] = useState(false);
@@ -120,7 +206,8 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
   useEffect(() => { setPestana(contextual ? CTX : activa); }, [activa, pathname, !!contextual]);
   const enCtx = pestana === CTX && !!contextual;
   const alternarContraer = () => setContraida((v) => { try { localStorage.setItem("erp-telxen-cinta-contraida", v ? "0" : "1"); } catch { /* */ } return !v; });
-  const cat = categorias.find((c) => c.titulo === pestana) ?? categorias[0];
+  const enInicio = pestana === INICIO;
+  const cat = enInicio ? null : categorias.find((c) => c.titulo === pestana) ?? categorias[0];
 
   const Insignia = ({ a }: { a: string }) => {
     const n = distintivo(a);
@@ -133,7 +220,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
     const tono = act ? "bg-cinta-acento text-cinta-acento-foreground font-semibold" : "text-cinta-texto hover:bg-cinta-hover";
     if (modo === "simplificada") {
       const link = (
-        <Link key={m.a} to={m.a} title={m.texto} onClick={() => contraida && setPestana(pestana)}
+        <Link key={m.a} to={m.a} title={`${m.texto} — clic derecho: ${favoritos.includes(m.a) ? "quitar de" : "anclar a"} Inicio`} onClick={() => contraida && setPestana(pestana)} onContextMenu={(e) => { e.preventDefault(); alternarFav(m.a); }}
           className={`relative flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 text-xs ${tono}`}>
           <I className="size-4 shrink-0" /> {m.texto}<Insignia a={m.a} />
         </Link>
@@ -141,24 +228,45 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
       return m.sub ? <div key={m.a} className="relative flex shrink-0 pr-3">{link}<SubMenu a={m.a} sub={m.sub} /></div> : link;
     }
     const link = (
-      <Link key={m.a} to={m.a} title={m.texto}
+      <Link key={m.a} to={m.a} title={`${m.texto} — clic derecho: ${favoritos.includes(m.a) ? "quitar de" : "anclar a"} Inicio`} onContextMenu={(e) => { e.preventDefault(); alternarFav(m.a); }}
         className={`relative flex w-[76px] shrink-0 flex-col items-center gap-1 rounded-md px-1 py-1.5 text-center text-[11px] leading-tight ${tono}`}>
         <I className="size-6 shrink-0" />
         <span className="line-clamp-2">{m.texto}</span><Insignia a={m.a} />
+        {favoritos.includes(m.a) && <Star className="absolute left-1 top-1 size-2.5 fill-current text-cinta-acento" />}
       </Link>
     );
     return m.sub ? <div key={m.a} className="relative flex shrink-0">{link}<SubMenu a={m.a} sub={m.sub} /></div> : link;
   };
 
   // En la clásica: los ítems simples forman un grupo con el nombre de la pestaña; cada submenú es su propio grupo.
-  const simples = cat?.items.filter((m) => !m.hijos) ?? [];
-  const grupos = cat?.items.filter((m) => m.hijos) ?? [];
+  const porGrupo = (lista: ItemCinta[], defecto: string) => {
+    const g: { titulo: string; items: ItemCinta[] }[] = [];
+    for (const m of lista) {
+      if (m.hijos) { g.push({ titulo: m.texto, items: m.hijos }); continue; }
+      const t = GRUPO[m.a] ?? defecto; const e = g.find((x) => x.titulo === t);
+      e ? e.items.push(m) : g.push({ titulo: t, items: [m] });
+    }
+    return g;
+  };
+  const buscar = (a: string) => plano.find((m) => m.a === a);
+  const gruposVista = enInicio
+    ? [
+        { titulo: "Favoritos", items: favoritos.map(buscar).filter(Boolean) as ItemCinta[] },
+        { titulo: "Recientes", items: recientes.filter((a) => !favoritos.includes(a)).map(buscar).filter(Boolean) as ItemCinta[] },
+      ]
+    : cat ? porGrupo(cat.items, CORTO[cat.titulo] ?? cat.titulo) : [];
 
   return (
     <div className="cinta-opciones no-print shrink-0 border-b border-cinta-borde bg-cinta-inf text-cinta-texto">
       <div className="flex h-9 items-center gap-1 bg-cinta-sup px-2">
         {logo}
         <nav className="flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" role="tablist">
+          <button type="button" role="tab" aria-selected={enInicio} title="Favoritos y recientes"
+            onClick={() => { if (contraida && enInicio) alternarContraer(); setPestana(INICIO); }}
+            className={`relative flex h-9 shrink-0 items-center gap-1 whitespace-nowrap px-2.5 text-[13px] transition-colors hover:bg-cinta-hover ${enInicio ? "font-semibold" : "text-cinta-tenue"}`}>
+            <Home className="size-3.5" /> Inicio
+            {enInicio && <span className="absolute inset-x-2 bottom-0 h-0.5 rounded bg-cinta-acento" />}
+          </button>
           {categorias.map((c) => {
             const sel = c.titulo === pestana;
             return (
@@ -181,6 +289,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
           )}
         </nav>
         <div className="flex shrink-0 items-center gap-1">
+          <Buscador items={resultados} />
           {usuario}
           {pantallaCompleta}
           <SelectorModo modo={modo} onModo={onModo} contraida={contraida} onContraer={alternarContraer} />
@@ -188,28 +297,22 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
       </div>
       <div ref={onRanuraContextual}
         className={`${!contraida && enCtx ? "flex" : "hidden"} min-h-11 items-stretch gap-2 overflow-x-auto border-t border-cinta-borde bg-cinta-inf px-2 py-1.5 text-xs [&>div]:flex [&>div]:flex-wrap [&>div]:items-center [&>div]:gap-2 [&_.grupo-cinta+.grupo-cinta]:border-l [&_.grupo-cinta+.grupo-cinta]:border-cinta-borde [&_.grupo-cinta+.grupo-cinta]:pl-2`} />
-      {!contraida && !enCtx && cat && (
-        modo === "simplificada" ? (
-          <div className="flex h-11 items-center gap-1 overflow-x-auto border-t border-cinta-borde bg-cinta-inf px-2">
-            {simples.map(boton)}
-            {grupos.map((g) => (
-              <div key={g.a} className="flex items-center gap-1 border-l border-cinta-borde pl-1">
-                {g.hijos!.map(boton)}
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="flex items-stretch overflow-x-auto border-t border-cinta-borde bg-cinta-inf px-2 pt-1">
-            {[{ titulo: CORTO[cat.titulo] ?? cat.titulo, items: simples }, ...grupos.map((g) => ({ titulo: g.texto, items: g.hijos! }))]
-              .filter((g) => g.items.length)
-              .map((g, i) => (
-                <div key={g.titulo} className={`flex flex-col ${i ? "border-l border-cinta-borde pl-1" : ""} pr-1`}>
-                  <div className="flex flex-1 items-start gap-0.5">{g.items.map(boton)}</div>
-                  <p className="whitespace-nowrap py-0.5 text-center text-[10px] text-cinta-tenue">{g.titulo}</p>
-                </div>
-              ))}
-          </div>
-        )
+      {!contraida && !enCtx && (
+        <div className={`flex ${modo === "simplificada" ? "h-11 items-center gap-1" : "items-stretch pt-1"} overflow-x-auto border-t border-cinta-borde bg-cinta-inf px-2`}>
+          {enInicio && !favoritos.length && !recientes.length && (
+            <p className="flex items-center gap-2 px-2 py-3 text-xs text-cinta-tenue"><Pin className="size-4" /> Haz clic derecho en cualquier botón para anclarlo aquí.</p>
+          )}
+          {gruposVista.filter((g) => g.items.length).map((g, i) => modo === "simplificada" ? (
+            <div key={g.titulo} className={`flex items-center gap-1 ${i ? "border-l border-cinta-borde pl-1" : ""}`}>{g.items.map(boton)}</div>
+          ) : (
+            <div key={g.titulo} className={`flex flex-col ${i ? "border-l border-cinta-borde pl-1" : ""} pr-1`}>
+              <div className="flex flex-1 items-start gap-0.5">{g.items.map(boton)}</div>
+              <p className="flex items-center justify-center gap-1 whitespace-nowrap py-0.5 text-center text-[10px] text-cinta-tenue">
+                {g.titulo === "Recientes" && <Clock className="size-2.5" />}{g.titulo === "Favoritos" && <Star className="size-2.5" />}{g.titulo}
+              </p>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
