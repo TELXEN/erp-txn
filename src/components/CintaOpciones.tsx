@@ -6,7 +6,7 @@ import { ChevronDown, ChevronUp, Clock, Home, Palette, PanelLeft, Pin, Rows2, Ro
 import { claveNombre } from "@/lib/formato-texto";
 
 export type ModoNavegacion = "lateral" | "simplificada" | "clasica";
-export type SubOpcionCinta = { texto: string; seccion?: string; campo?: string; icono?: React.ElementType; corto?: string; a?: string; grande?: boolean };
+export type SubOpcionCinta = { texto: string; seccion?: string; campo?: string; icono?: React.ElementType; corto?: string; a?: string; grande?: boolean; search?: Record<string, string> };
 export type ItemCinta = { a: string; texto: string; icono: React.ElementType; hijos?: ItemCinta[]; sub?: SubOpcionCinta[]; sub2?: { titulo: string; opciones: SubOpcionCinta[] }; subFilas?: number };
 export type CategoriaCinta = { titulo: string; items: ItemCinta[] };
 
@@ -30,7 +30,7 @@ const GRUPO: Record<string, string> = {
   "/gastos-directos": "Costos", "/gastos-generales": "Costos",
   "/tesoreria": "Caja y bancos", "/caja-chica": "Caja y bancos", "/sire": "SUNAT",
   "/personal": "Personal", "/tareo": "Personal",
-  "/nomina": "Remuneraciones", "/honorarios": "Remuneraciones", "/beneficios": "Remuneraciones",
+  "/nomina": "Remuneraciones", "/honorarios": "Remuneraciones", "/beneficios": "Beneficios Sociales",
   "/configuracion-sistema": "Configuración", "/datos": "Configuración",
   "/catalogo-tecnico": "Catálogos", "/maestro-insumos": "Catálogos",
 };
@@ -107,7 +107,7 @@ function SubMenu({ a, sub, onIr }: { a: string; sub: SubOpcionCinta[]; onIr?: (d
           {sub.map((o) => {
             const cls = "block px-3 py-1.5 hover:bg-accent hover:text-accent-foreground";
             return o.a ? (
-              <Link key={o.a} to={o.a} onClick={() => { setPos(null); onIr?.(o.a ?? a); }} className={cls}>{o.texto}</Link>
+              <Link key={o.a} to={o.a} {...(o.search ? { search: o.search as never } : {})} onClick={() => { setPos(null); onIr?.(o.a ?? a); }} className={cls}>{o.texto}</Link>
             ) : (
               <Link key={o.seccion} to={a} search={{ [o.campo ?? "seccion"]: o.seccion } as never} onClick={() => { setPos(null); onIr?.(a); }} className={cls}>{o.texto}</Link>
             );
@@ -197,7 +197,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
     const s2 = m.sub2;
     return [
       { a: m.a, texto: m.texto, ruta: m.cat, icono: m.icono },
-      ...(m.sub ?? []).map((o) => ({ a: o.a ?? m.a, texto: o.texto, ruta: `${m.cat} › ${m.texto}`, icono: o.icono ?? m.icono, search: o.a ? undefined : ({ [o.campo ?? "seccion"]: o.seccion ?? "" } as Record<string, string>) })),
+      ...(m.sub ?? []).map((o) => ({ a: o.a ?? m.a, texto: o.texto, ruta: `${m.cat} › ${m.texto}`, icono: o.icono ?? m.icono, search: o.a ? o.search : ({ [o.campo ?? "seccion"]: o.seccion ?? "" } as Record<string, string>) })),
       ...(s2 ? s2.opciones.map((o) => ({ a: o.a ?? m.a, texto: o.texto, ruta: `${m.cat} › ${s2.titulo}`, icono: o.icono ?? m.icono, search: o.a ? undefined : ({ [o.campo ?? "seccion"]: o.seccion ?? "" } as Record<string, string>) })) : []),
     ];
   });
@@ -281,7 +281,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
 
         if (o.a) {
           return (
-            <Link key={o.a} to={o.a} title={o.texto} className={cls} {...(sitio ? { style: sitio } : {})}
+            <Link key={o.a} to={o.a} title={o.texto} className={cls} {...(sitio ? { style: sitio } : {})} {...(o.search ? { search: o.search as never } : {})}
               activeOptions={{ includeSearch: true }}
               activeProps={{ className: "bg-cinta-acento text-cinta-acento-foreground font-semibold" }}
               inactiveProps={{ className: "text-cinta-texto hover:bg-cinta-hover" }}>{contenido}</Link>
