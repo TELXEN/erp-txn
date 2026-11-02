@@ -4,7 +4,7 @@ import { ArrowLeft, Eye, PencilRuler } from "lucide-react";
 import { GrupoCinta } from "@/components/CintaOpciones";
 import { cn } from "@/lib/utils";
 
-type Base = { icono: ReactNode; texto: string; onClick?: () => void; disabled?: boolean; activo?: boolean; title?: string };
+type Base = { icono: ReactNode; texto: string; onClick?: () => void; disabled?: boolean; activo?: boolean; title?: string | undefined };
 
 /** Botón grande de la cinta de cotización (icono arriba, rótulo en hasta dos líneas). */
 export function BotonGrande({ icono, texto, onClick, disabled, activo, title }: Base) {
