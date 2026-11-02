@@ -101,6 +101,8 @@
   --color-cinta-borde: color-mix(in oklab, var(--sidebar-foreground) 22%, var(--sidebar));
   --color-cinta-acento: var(--cta);
   --color-cinta-acento-foreground: var(--cta-foreground);
+  /* Dorado fijo para iconos que el usuario quiere siempre en ese color, sin importar el tema. */
+  --color-cinta-oro: oklch(0.66 0.14 85);
   --color-chip-mat: var(--chip-mat);
   --color-chip-mo: var(--chip-mo);
   --color-chip-eq: var(--chip-eq);
