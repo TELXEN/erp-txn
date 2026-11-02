@@ -200,7 +200,7 @@ const SECCIONES_BENEFICIOS = [
 
 
 type SubOpcion = { texto: string; seccion?: string; campo?: string; icono?: React.ElementType; corto?: string; a?: string; grande?: boolean; search?: Record<string, string>; iconoClase?: string };
-type Item = { a: string; texto: string; roles: Rol[]; icono: React.ElementType; hijos?: Item[]; sub?: SubOpcion[]; subGrupos?: { titulo: string; opciones: SubOpcion[]; subFilas?: number }[]; subFilas?: number; subColumnas?: boolean; unaLinea?: boolean };
+type Item = { a: string; texto: string; roles: Rol[]; icono: React.ElementType; hijos?: Item[]; sub?: SubOpcion[]; subGrupos?: { titulo: string; opciones: SubOpcion[]; subFilas?: number }[]; subFilas?: number; subColumnas?: boolean; unaLinea?: boolean; iconoClase?: string };
 type Categoria = { titulo: string; items: Item[] };
 
 const MENU: Categoria[] = [
