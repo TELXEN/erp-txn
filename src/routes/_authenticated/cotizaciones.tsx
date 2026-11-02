@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { GrupoCinta } from "@/components/CintaOpciones";
 import { BotonGrande, BotonPequeno, Columna, GrupoVista } from "@/components/cotizaciones/CintaCotizacion";
-import { Building2, BookOpen, PackagePlus } from "lucide-react";
+import { Building2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ApuBanco, ORIGEN_COTIZACION } from "@/components/ApuCotizacion";
 import { dbBanco, guardarPartidaEnBanco, useCatalogoCotizacion } from "@/lib/banco-apu";
@@ -716,15 +716,6 @@ function Cotizaciones() {
                   <BotonPequeno icono={<Receipt />} texto="Gastos generales" onClick={() => setVentanaGG(true)} />
                   <BotonPequeno icono={<History />} texto="Nueva revisión" disabled={!esUltimaRevision || Boolean(cot.proyecto_id)}
                     onClick={() => { if (confirm("¿Crear una nueva revisión clonando esta cotización?")) void nuevaRevision(); }} />
-                </Columna>
-              </GrupoCinta>
-              <GrupoCinta titulo="Partidas">
-                <Columna>
-                  <BotonPequeno icono={<BookOpen />} texto="Insertar del catálogo" onClick={() => setVerCatalogo(true)} />
-                  <BotonPequeno icono={<PackagePlus />} texto="Agregar insumo" onClick={() => {
-                    if (!partidaActiva) return setError("Selecciona una partida de la hoja para agregar un insumo a su APU.");
-                    setCmdInsumo({ grupo: "INSUMO", n: Date.now() });
-                  }} />
                 </Columna>
               </GrupoCinta>
               <GrupoCinta titulo="Salida">
