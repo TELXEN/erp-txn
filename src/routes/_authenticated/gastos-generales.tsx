@@ -455,6 +455,7 @@ function GastosGenerales() {
           ))}
         </Select>
       </div>
+      {!enCinta && (
       <div className="mb-4 flex flex-wrap items-center gap-1 overflow-x-auto border-b border-line pb-3">
         {(
           [
@@ -467,13 +468,14 @@ function GastosGenerales() {
           <button
             key={id}
             type="button"
-            onClick={() => setPestana(id)}
+            onClick={() => cambiarPestana(id)}
             className={`whitespace-nowrap rounded-md border-b-2 px-3 py-1.5 text-xs transition-colors ${pestana === id ? "border-cta bg-primary/10 font-semibold text-primary" : "border-transparent text-muted-foreground hover:bg-muted hover:text-primary"}`}
           >
             {txt}
           </button>
         ))}
       </div>
+      )}
 
       {pestana === "resumen" && (
         <>
