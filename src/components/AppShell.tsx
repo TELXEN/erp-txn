@@ -1,4 +1,4 @@
-import { LogOut, Binary, FolderKanban, Scale, Plug, Ruler, Shapes, FolderTree, Network, Tag, ListTree, Wrench, Hammer, Percent, LayoutTemplate } from "lucide-react";
+import { LogOut, Binary, FileDigit, FolderKanban, Scale, Plug, Ruler, Shapes, FolderTree, Network, Tag, ListTree, Wrench, Hammer, Percent, LayoutTemplate } from "lucide-react";
 import { ContactRound, Factory, Type, UserRoundCheck, Coins, Barcode, Drill, FileSignature, BadgeDollarSign, Boxes, BookOpen, History, LayoutDashboard, Vault, CircleDollarSign, CalendarClock, Route, UserCog, Database, Pickaxe, PackagePlus, ScrollText, ToolCase, Fuel, PiggyBank, ArrowDownLeft, ArrowUpRight, BadgePercent } from "lucide-react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -16,7 +16,7 @@ const SECCIONES_CONFIG = [
   { texto: "Integraciones", corto: "Integraciones", seccion: "integraciones", icono: Plug },
 ];
 const SECCIONES_DATOS = [
-  { texto: "Codificación", corto: "Codificación", seccion: "codificacion", campo: "pestana", icono: Binary, grande: true },
+  { texto: "Codificación", corto: "Codificación", seccion: "codificacion", campo: "pestana", icono: FileDigit, grande: true },
   { texto: "Parámetros de proyectos", corto: "Proyectos", seccion: "configuracion", campo: "pestana", icono: FolderKanban },
   { texto: "Recursos Humanos", corto: "Recursos Humanos", seccion: "cargos", campo: "pestana", icono: UserCog },
   { texto: "Costos y Finanzas", corto: "Costos", seccion: "categoriasgg", campo: "pestana", icono: Coins },
