@@ -1,11 +1,11 @@
 import { useRecordado } from "@/lib/recordado";
 import { BarraIconosHoja } from "@/components/BarraIconosHoja";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { Fragment, useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Encabezado } from "@/components/AppShell";
+import { Encabezado, useEnCinta } from "@/components/AppShell";
 import { Boton, BotonIcono, Etiqueta, Input, MenuFiltros, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { InsigniaCategoriaGasto, tonosCategoriaGasto } from "@/components/estado-ui";
 import type { Tono } from "@/lib/configuracion";
@@ -21,7 +21,15 @@ import { CampoDetraccion, InsigniaDetraccion, InsigniaPago, PLAZOS, condicionVac
 import { FechaPeru } from "./gastos-directos";
 import { useMantenimientos, useTraslados, useVehiculos } from "@/lib/vehiculos";
 
+type PestañaGG = "resumen" | "gastos" | "mantenimiento" | "combustible";
+
 export const Route = createFileRoute("/_authenticated/gastos-generales")({
+  validateSearch: (s: Record<string, unknown>): { pestana?: PestañaGG } => {
+    const r: { pestana?: PestañaGG } = {};
+    const v = s["pestana"];
+    if (v === "resumen" || v === "gastos" || v === "mantenimiento" || v === "combustible") r.pestana = v;
+    return r;
+  },
   head: () => ({
     meta: [
       { title: "Gastos Generales — ERP TELXEN" },
