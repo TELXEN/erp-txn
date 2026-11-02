@@ -248,7 +248,6 @@ const MENU: Categoria[] = [
       { a: "/gastos-generales", texto: "Gastos Generales", roles: ["administrador", "gerente"], icono: Briefcase, sub: SECCIONES_GG, subFilas: 3 },
       { a: "/caja-chica", texto: "Caja Chica", roles: ["administrador", "gerente"], icono: Wallet },
       { a: "/tesoreria", texto: "Tesorería", roles: ["administrador", "gerente"], icono: Landmark, sub: SECCIONES_TESORERIA, subFilas: 3 },
-      { a: "/facturacion-electronica", texto: "Facturación", roles: ["administrador", "gerente"], icono: ReciboCodigoBarras, sub: SECCIONES_FACTURACION },
 
       { a: "/flujo-caja", texto: "Flujo de Caja", roles: ["administrador", "gerente"], icono: TrendingUp, sub: SECCIONES_FLUJO, subFilas: 3 },
       { a: "/sire", texto: "SIRE SUNAT", roles: ["administrador", "gerente"], icono: FileCheck },
