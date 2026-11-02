@@ -10,6 +10,17 @@ export type SubOpcionCinta = { texto: string; seccion?: string; campo?: string; 
 export type ItemCinta = { a: string; texto: string; icono: React.ElementType; hijos?: ItemCinta[]; sub?: SubOpcionCinta[]; sub2?: { titulo: string; opciones: SubOpcionCinta[] }; subFilas?: number };
 export type CategoriaCinta = { titulo: string; items: ItemCinta[] };
 
+/** Ancho del botón: lo justo para leer la etiqueta completa en dos renglones, sin partir palabras. */
+const PX_POR_CHAR = 5.5; // px por carácter a 11 px con la tipografía global
+function anchoEtiqueta(t: string) {
+  const forzado = t.split("\n").map((x) => x.trim()).filter(Boolean);
+  if (forzado.length > 1) return Math.max(...forzado.map((x) => x.length)) * PX_POR_CHAR + 14;
+  const w = t.trim().split(/\s+/);
+  let mejor = t.trim().length;
+  for (let i = 1; i < w.length; i++) mejor = Math.min(mejor, Math.max(w.slice(0, i).join(" ").length, w.slice(i).join(" ").length));
+  return Math.max(mejor, ...w.map((x) => x.length)) * PX_POR_CHAR + 14;
+}
+
 const CORTO: Record<string, string> = {
   "Finanzas y Contabilidad": "Finanzas",
   "Recursos Humanos": "Personal",
