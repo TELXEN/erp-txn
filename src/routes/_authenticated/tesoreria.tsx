@@ -517,28 +517,6 @@ function Tesoreria() {
         }
       />
 
-      <div className="mb-4 flex flex-wrap gap-1 border-b border-line">
-        {(["resumen", "financiamiento"] as const).map((t) => {
-          const activa = pestana === t || (t === "resumen" && pestana !== "financiamiento");
-          const etiqueta =
-            t === "resumen" ? "Resumen" : t === "financiamiento" ? "Préstamos / Financiamiento" : t === "cxc" ? `Cuentas por cobrar (${cxc.length})` : t === "cxp" ? `Pagos a proveedores (${cxpProv.length})` : `Pagos de personal (${cxpPer.length})`;
-          return (
-            <button
-              key={t}
-              type="button"
-              role="tab"
-              aria-selected={activa}
-              onClick={() => { setPestana(t); setAccion(null); setFiltroVence(null); setTercero(""); setSeleccion(new Set()); }}
-              className={`-mb-px min-h-9 border-b-2 px-4 py-2 text-xs font-medium transition-colors ${
-                activa ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:border-line hover:text-ink"
-              }`}
-            >
-              {etiqueta}
-            </button>
-          );
-        })}
-      </div>
-
       {pestana === "resumen" && (
         <>
           <div className="mb-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
@@ -646,9 +624,7 @@ function Tesoreria() {
       {errorSaldos && <p role="alert" className="mb-3 text-xs text-bad">No se pudieron actualizar los saldos; los pagos requieren verificar fondos.</p>}
       {pestana === "financiamiento" && <FinanciamientoPanel cuentas={cuentas} />}
       {pestana !== "resumen" && pestana !== "financiamiento" && (
-        <div className="fixed inset-0 z-40 flex items-start justify-center overflow-y-auto bg-foreground/40 p-4"
-          onMouseDown={(e) => { if (e.target === e.currentTarget) setPestana("resumen"); }}>
-        <div className="my-8 w-full max-w-6xl rounded-lg border border-line bg-background p-4 shadow-xl">
+        <div className="space-y-4">
           <div className="mb-3 flex items-center justify-between gap-2">
             <h2 className="text-sm font-semibold text-ink">{pestana === "cxc" ? `Cuentas por cobrar (${cxc.length})` : "Cuentas por pagar"}</h2>
             <div className="flex items-center gap-2">
