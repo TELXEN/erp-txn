@@ -31,7 +31,7 @@ const SECCIONES_CATALOGO = [
   { texto: "Títulos WBS", corto: "Títulos WBS", seccion: "grupos", campo: "pestana", icono: ListTree },
 ];
 const SECCIONES_MAESTRO = [
-  { texto: "Materiales", corto: "Materiales", seccion: "MAT", campo: "seccion", icono: Package },
+  { texto: "Materiales", corto: "Materiales", seccion: "MAT", campo: "seccion", icono: Package, grande: true },
   { texto: "Mano de obra", corto: "Mano de obra", seccion: "MO", campo: "seccion", icono: Pickaxe },
   { texto: "Equipos", corto: "Equipos", seccion: "EQ", campo: "seccion", icono: Drill },
   { texto: "Herramientas", corto: "Herramientas", seccion: "HE", campo: "seccion", icono: Hammer },
