@@ -20,7 +20,7 @@
 - Read tipos_insumo via useTiposInsumo; only five system keys may be hardcoded — users can add types.
 - HT type is hidden (tipos_insumo.oculto); calcularApu auto-adds it last in EQ using Márgenes APU % — never manual.
 - Sidebar has dedicated theme tokens; primary/action buttons use its base color without altering business screens.
-- Ribbons derive colors from sidebar/action tokens (upper row darker); page actions portal into the screen's category tab, not a screen tab; header strip is sidebar-only.
+- Ribbon: sidebar/action tokens, darker top; actions in category, never screen tabs; header sidebar-only. Icons from AppShell; search uses section icons.
 - Document colors/font: documento-tema.ts; preliquidation: one sheet + preliquidacion-montos.ts — outputs never diverge.
 - SUNAT purchases archive in comprobantes_recibidos(+_items) + private bucket; only authenticated descargarComprobantesSire downloads (batches of 10) — SOL creds server-side.
 - SIRE owns RCE: one period/sync control for both books; purchase XML/PDF/CDR + ERP register in the RCE table — Facturación Electrónica is sales-only.

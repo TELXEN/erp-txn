@@ -1,4 +1,5 @@
 import { LogOut, Hash, FolderKanban, Scale, Plug, Ruler, Shapes, FolderTree, Network, Tag, ListTree, Wrench, Hammer, Percent, LayoutTemplate } from "lucide-react";
+import { ContactRound, Construction, Type, UserRoundCheck, Coins, Barcode, Drill, FileSignature, BadgeDollarSign, Boxes, BookOpen, History, LayoutDashboard, Vault, CircleDollarSign, Receipt, CalendarClock, Route, UserCog, Database, Pickaxe, PackagePlus } from "lucide-react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
@@ -10,16 +11,16 @@ const RanuraEncabezado = createContext<Ranura | null>(null);
 export function useEnCinta() { return !!useContext(RanuraEncabezado)?.cinta; }
 const SECCIONES_CONFIG = [
   { texto: "Datos de la empresa", corto: "Empresa", seccion: "empresa", icono: Building2 },
-  { texto: "Tipografía de documentos", corto: "Tipografía", seccion: "tipografia", icono: FileText },
-  { texto: "Usuarios y Roles", corto: "Usuarios", seccion: "usuarios", icono: ShieldCheck },
+  { texto: "Tipografía de documentos", corto: "Tipografía", seccion: "tipografia", icono: Type },
+  { texto: "Usuarios y Roles", corto: "Usuarios", seccion: "usuarios", icono: UserRoundCheck },
   { texto: "Valores normativos (RMV / UIT)", corto: "Normativa", seccion: "normativa", icono: Scale },
   { texto: "Integraciones", corto: "Integraciones", seccion: "integraciones", icono: Plug },
 ];
 const SECCIONES_DATOS = [
   { texto: "Codificación", corto: "Codificación", seccion: "codificacion", campo: "pestana", icono: Hash },
   { texto: "Parámetros de proyectos", corto: "Proyectos", seccion: "configuracion", campo: "pestana", icono: FolderKanban },
-  { texto: "Costos y Finanzas", corto: "Costos", seccion: "categoriasgg", campo: "pestana", icono: Calculator },
-  { texto: "Recursos Humanos", corto: "RR. HH.", seccion: "cargos", campo: "pestana", icono: Users },
+  { texto: "Costos y Finanzas", corto: "Costos", seccion: "categoriasgg", campo: "pestana", icono: Coins },
+  { texto: "Recursos Humanos", corto: "RR. HH.", seccion: "cargos", campo: "pestana", icono: UserCog },
 ];
 const SECCIONES_CATALOGO = [
   { texto: "Unidades de medida", corto: "Unidades", seccion: "unidades", campo: "pestana", icono: Ruler },
@@ -31,13 +32,13 @@ const SECCIONES_CATALOGO = [
 ];
 const SECCIONES_MAESTRO = [
   { texto: "Materiales", corto: "Materiales", seccion: "MAT", campo: "seccion", icono: Package },
-  { texto: "Mano de obra", corto: "Mano de obra", seccion: "MO", campo: "seccion", icono: HardHat },
-  { texto: "Equipos", corto: "Equipos", seccion: "EQ", campo: "seccion", icono: Wrench },
+  { texto: "Mano de obra", corto: "Mano de obra", seccion: "MO", campo: "seccion", icono: Pickaxe },
+  { texto: "Equipos", corto: "Equipos", seccion: "EQ", campo: "seccion", icono: Drill },
   { texto: "Herramientas", corto: "Herram.", seccion: "HE", campo: "seccion", icono: Hammer },
-  { texto: "Subcontratos", corto: "Subcontratos", seccion: "SC", campo: "seccion", icono: Handshake },
+  { texto: "Subcontratos", corto: "Subcontratos", seccion: "SC", campo: "seccion", icono: FileSignature },
   { texto: "Márgenes APU", corto: "Márgenes", seccion: "margenes", campo: "seccion", icono: Percent },
-  { texto: "Parámetros laborales", corto: "Laboral", seccion: "laboral", campo: "seccion", icono: Briefcase },
-  { texto: "Codificación de insumos", corto: "Codificación", seccion: "codificacion", campo: "seccion", icono: Hash },
+  { texto: "Parámetros laborales", corto: "Laboral", seccion: "laboral", campo: "seccion", icono: BadgeDollarSign },
+  { texto: "Codificación de insumos", corto: "Codificación", seccion: "codificacion", campo: "seccion", icono: Barcode },
 ];
 import { FormatoGlobal } from "@/components/FormatoGlobal";
 import { CintaOpciones, SelectorModoLateral, type ModoNavegacion, type ContextoCinta } from "@/components/CintaOpciones";
@@ -124,23 +125,23 @@ const SECCIONES_COTIZ = [
 
 const SECCIONES_FACTURACION = [
   { texto: "Facturas", corto: "Facturas", seccion: "01", campo: "tipo", icono: ReciboCodigoBarras, grande: true },
-  { texto: "Boletas de venta", corto: "Boletas", seccion: "03", campo: "tipo", icono: ReceiptText },
+  { texto: "Boletas de venta", corto: "Boletas", seccion: "03", campo: "tipo", icono: Receipt },
   { texto: "Notas de crédito", corto: "N. crédito", seccion: "07", campo: "tipo", icono: FileMinus2 },
   { texto: "Notas de débito", corto: "N. débito", seccion: "08", campo: "tipo", icono: FilePlus2 },
-  { texto: "Guías de remisión", corto: "Guías", seccion: "09", campo: "tipo", icono: Truck },
+  { texto: "Guías de remisión", corto: "Guías", seccion: "09", campo: "tipo", icono: PackageCheck },
 ];
 
 const SECCIONES_VEHICULOS = [
-  { texto: "Resumen", corto: "Resumen", seccion: "resumen", campo: "pestana", icono: Gauge, grande: true },
+  { texto: "Resumen", corto: "Resumen", seccion: "resumen", campo: "pestana", icono: LayoutDashboard, grande: true },
   { texto: "Flota", corto: "Flota", seccion: "flota", campo: "pestana", icono: Car },
-  { texto: "Tareo vehicular", corto: "Tareo", seccion: "tareo", campo: "pestana", icono: CalendarDays },
-  { texto: "Traslados", corto: "Traslados", seccion: "traslados", campo: "pestana", icono: Truck },
+  { texto: "Tareo vehicular", corto: "Tareo", seccion: "tareo", campo: "pestana", icono: CalendarClock },
+  { texto: "Traslados", corto: "Traslados", seccion: "traslados", campo: "pestana", icono: Route },
   { texto: "Mantenimiento", corto: "Mantenim.", seccion: "mantenimiento", campo: "pestana", icono: Wrench },
 ];
 
 const SECCIONES_OP_ESP = [
-  { texto: "Retenciones", corto: "Retenciones", seccion: "20", campo: "tipo", icono: Landmark, grande: true },
-  { texto: "Percepciones", corto: "Percepciones", seccion: "40", campo: "tipo", icono: HandCoins },
+  { texto: "Retenciones", corto: "Retenciones", seccion: "20", campo: "tipo", icono: Vault, grande: true },
+  { texto: "Percepciones", corto: "Percepciones", seccion: "40", campo: "tipo", icono: CircleDollarSign },
   { texto: "Comunicaciones de baja", corto: "Bajas", seccion: "RA", campo: "tipo", icono: FileX2 },
 ];
 
@@ -152,7 +153,7 @@ const MENU: Categoria[] = [
   {
     titulo: "Comercial",
     items: [
-      { a: "/clientes", texto: "Clientes", roles: ["administrador", "gerente"], icono: Users },
+      { a: "/clientes", texto: "Clientes", roles: ["administrador", "gerente"], icono: ContactRound },
       { a: "/cotizaciones", texto: "Cotizaciones", roles: ["administrador", "gerente"], icono: FileText, sub: SECCIONES_COTIZ },
       { a: "/valorizaciones", texto: "Preliquidaciones", roles: ["administrador", "gerente"], icono: Banknote },
       { a: "/facturacion-electronica", texto: "Facturación Electrónica", roles: ["administrador", "gerente"], icono: ReciboCodigoBarras, sub: SECCIONES_FACTURACION, sub2: { titulo: "Operaciones especiales", opciones: SECCIONES_OP_ESP } },
@@ -163,7 +164,7 @@ const MENU: Categoria[] = [
     titulo: "Operaciones",
     items: [
       { a: "/dashboard-proyectos", texto: "Dashboard Proyectos", roles: ["ingeniero", "administrador", "gerente"], icono: Gauge },
-      { a: "/proyectos", texto: "Proyectos", roles: ["administrador", "gerente"], icono: Building2 },
+      { a: "/proyectos", texto: "Proyectos", roles: ["administrador", "gerente"], icono: Construction },
       { a: "/partidas", texto: "Partidas", roles: ["administrador", "gerente"], icono: Layers },
       { a: "/gantt", texto: "Gantt y Curva S", roles: ["ingeniero", "administrador", "gerente"], icono: ChartGantt },
       { a: "/avance", texto: "Avance Físico", roles: ["ingeniero", "gerente"], icono: Activity },
@@ -181,7 +182,7 @@ const MENU: Categoria[] = [
       { a: "/importaciones", texto: "Importaciones", roles: ["administrador", "gerente"], icono: Plane },
       { a: "/transportistas", texto: "Transportistas", roles: ["administrador", "gerente"], icono: Truck },
       { a: "/almacen", texto: "Almacén", roles: ["ingeniero", "administrador", "gerente"], icono: Warehouse },
-      { a: "/inventario", texto: "Inventario", roles: ["administrador", "gerente"], icono: Package },
+      { a: "/inventario", texto: "Inventario", roles: ["administrador", "gerente"], icono: Boxes },
       { a: "/vehiculos", texto: "Vehículos", roles: ["ingeniero", "administrador", "gerente"], icono: Car, sub: SECCIONES_VEHICULOS },
     ],
   },
@@ -209,8 +210,8 @@ const MENU: Categoria[] = [
         a: "#epp", texto: "Gestión de EPP", roles: ["administrador", "gerente"], icono: HardHat,
         hijos: [
           { a: "/epp-banco", texto: "Banco de Datos de EPP", roles: ["administrador", "gerente"], icono: ClipboardList },
-          { a: "/epp-entregas", texto: "Asignación y Entrega", roles: ["administrador", "gerente"], icono: PackageCheck },
-          { a: "/epp-historial", texto: "Historial por Empleado", roles: ["administrador", "gerente"], icono: BarChart3 },
+          { a: "/epp-entregas", texto: "Asignación y Entrega", roles: ["administrador", "gerente"], icono: PackagePlus },
+          { a: "/epp-historial", texto: "Historial por Empleado", roles: ["administrador", "gerente"], icono: History },
         ],
       },
     ],
@@ -220,8 +221,8 @@ const MENU: Categoria[] = [
     items: [
       { a: "/configuracion-sistema", texto: "Configuración del Sistema", roles: ["gerente"], icono: SlidersHorizontal, sub: SECCIONES_CONFIG },
       { a: "/datos", texto: "Parámetros Generales", roles: ["administrador", "gerente"], icono: Settings, sub: SECCIONES_DATOS },
-      { a: "/catalogo-tecnico", texto: "Catálogo Técnico", roles: ["administrador", "gerente"], icono: Layers, sub: SECCIONES_CATALOGO },
-      { a: "/maestro-insumos", texto: "Maestro de Insumos", roles: ["administrador", "gerente"], icono: PackageCheck, sub: SECCIONES_MAESTRO },
+      { a: "/catalogo-tecnico", texto: "Catálogo Técnico", roles: ["administrador", "gerente"], icono: BookOpen, sub: SECCIONES_CATALOGO },
+      { a: "/maestro-insumos", texto: "Maestro de Insumos", roles: ["administrador", "gerente"], icono: Database, sub: SECCIONES_MAESTRO },
     ],
   },
   {

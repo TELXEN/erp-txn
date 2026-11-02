@@ -197,8 +197,8 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
     const s2 = m.sub2;
     return [
       { a: m.a, texto: m.texto, ruta: m.cat, icono: m.icono },
-      ...(m.sub ?? []).map((o) => ({ a: o.a ?? m.a, texto: o.texto, ruta: `${m.cat} › ${m.texto}`, icono: m.icono, search: o.a ? undefined : ({ [o.campo ?? "seccion"]: o.seccion ?? "" } as Record<string, string>) })),
-      ...(s2 ? s2.opciones.map((o) => ({ a: o.a ?? m.a, texto: o.texto, ruta: `${m.cat} › ${s2.titulo}`, icono: m.icono, search: o.a ? undefined : ({ [o.campo ?? "seccion"]: o.seccion ?? "" } as Record<string, string>) })) : []),
+      ...(m.sub ?? []).map((o) => ({ a: o.a ?? m.a, texto: o.texto, ruta: `${m.cat} › ${m.texto}`, icono: o.icono ?? m.icono, search: o.a ? undefined : ({ [o.campo ?? "seccion"]: o.seccion ?? "" } as Record<string, string>) })),
+      ...(s2 ? s2.opciones.map((o) => ({ a: o.a ?? m.a, texto: o.texto, ruta: `${m.cat} › ${s2.titulo}`, icono: o.icono ?? m.icono, search: o.a ? undefined : ({ [o.campo ?? "seccion"]: o.seccion ?? "" } as Record<string, string>) })) : []),
     ];
   });
   const [recientes, setRecientes] = useState<string[]>([]);
@@ -263,7 +263,8 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
       // Cada columna mide lo que mide su etiqueta más larga: así las opciones cortas no arrastran huecos.
       const colsPeq = Math.ceil(nPeq / 2);
       const celda = (o: NonNullable<ItemCinta["sub"]>[number], i: number) => {
-        const SI = o.icono!;
+        const SI = o.icono;
+        if (!SI) return null;
         const grande = hayGrande && i === iGrande;
         const j = hayGrande && !grande ? i - (i > iGrande ? 1 : 0) : 0;
         // Las pequeñas se leen por filas: primero la fila de arriba, luego la de abajo.

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useNavigate } from "@tanstack/react-router";
 import { Encabezado, useEnCinta } from "@/components/AppShell";
-import { Building2, Plug, FileText, Scale, ShieldCheck, SlidersHorizontal } from "lucide-react";
+import { Building2, Plug, Type, Scale, UserRoundCheck, SlidersHorizontal } from "lucide-react";
 import { CabeceraModulo, Panel, Pestanas } from "@/components/ui-kit";
 import { DatosEmpresaTabs } from "@/components/DatosEmpresaTabs";
 import { TipografiaDocumentosPanel } from "@/components/TipografiaDocumentos";
@@ -40,8 +40,8 @@ function ConfiguracionSistema() {
   const setPestana = (v: Seccion) => navigate({ search: { seccion: v }, replace: true });
   const opciones = [
     { id: "empresa" as const, texto: "Datos de la empresa", icono: <Building2 className="size-4" /> },
-    { id: "tipografia" as const, texto: "Tipografía de documentos", icono: <FileText className="size-4" /> },
-    { id: "usuarios" as const, texto: "Usuarios y Roles", icono: <ShieldCheck className="size-4" /> },
+    { id: "tipografia" as const, texto: "Tipografía de documentos", icono: <Type className="size-4" /> },
+    { id: "usuarios" as const, texto: "Usuarios y Roles", icono: <UserRoundCheck className="size-4" /> },
     ...(admin ? [{ id: "normativa" as const, texto: "Valores normativos (RMV / UIT)", icono: <Scale className="size-4" /> }, { id: "integraciones" as const, texto: "Integraciones", icono: <Plug className="size-4" /> }] : []),
   ];
 
