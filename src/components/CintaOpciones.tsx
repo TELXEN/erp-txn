@@ -272,7 +272,10 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
         const grande = hayGrande && i === iGrande;
         const j = hayGrande && !grande ? i - (i > iGrande ? 1 : 0) : 0;
         // Las pequeñas se leen por filas: primero la fila de arriba, luego la de abajo.
-        const sitio = hayGrande ? (grande ? { gridColumn: 1, gridRow: `1 / span ${filasPeq}` } : { gridColumn: 2 + (j % colsPeq), gridRow: 1 + Math.floor(j / colsPeq) }) : undefined;
+        // Con una sola pequeña, ocupa todo el alto para quedar centrada junto a la grande.
+        const sitio = hayGrande ? (grande ? { gridColumn: 1, gridRow: `1 / span ${filasPeq}` }
+          : nPeq === 1 ? { gridColumn: 2, gridRow: `1 / span ${filasPeq}` }
+          : { gridColumn: 2 + (j % colsPeq), gridRow: 1 + Math.floor(j / colsPeq) }) : undefined;
         const cls = `whitespace-nowrap rounded text-[11px] ${grande ? "flex h-full min-w-[84px] flex-col items-center justify-center gap-1 px-1.5" : "flex h-full min-w-[76px] items-center gap-1.5 px-1.5"}`;
         const contenido = grande ? <><SI className="size-6 shrink-0" /><span>{o.corto ?? o.texto}</span></> : <><SI className="size-3.5 shrink-0" /> {o.corto ?? o.texto}</>;
 
