@@ -211,26 +211,17 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
   const alternarFav = (a: string) => setFavoritos((f) => { const n = f.includes(a) ? f.filter((x) => x !== a) : [...f, a]; try { localStorage.setItem(LS_FAV, JSON.stringify(n)); } catch { /* */ } return n; });
   const activa = categorias.find((c) => contiene(c, pathname))?.titulo ?? categorias[0]?.titulo;
   const [pestana, setPestana] = useState(activa);
-  // Con una pantalla abierta, su pestaña de categoría muestra las acciones de la pantalla o, al tocarla otra vez, los botones de la categoría.
-  const [verAcciones, setVerAcciones] = useState(false);
   const [contraida, setContraida] = useState(false);
   useEffect(() => { try { setContraida(localStorage.getItem("erp-telxen-cinta-contraida") === "1"); } catch { /* */ } }, []);
-  // Navegar desde la cuadrícula conserva la vista de botones; llegar por otro camino (menú lateral, buscador, recarga) muestra las acciones de la pantalla.
-  const gridNav = useRef<string | null>(null);
-  useEffect(() => {
-    setPestana(activa);
-    if (gridNav.current === pathname) return;
-    gridNav.current = null;
-    setVerAcciones(!!contextual);
-  }, [activa, pathname, !!contextual]);
-  const enCtx = !!contextual && pestana === activa && verAcciones;
+  useEffect(() => { setPestana(activa); }, [activa]);
+  // Las acciones de la pantalla abierta se muestran siempre a la derecha de la cinta, junto a los botones de su categoría.
+  const enCtx = !!contextual && pestana === activa;
   const alternarContraer = () => setContraida((v) => { try { localStorage.setItem("erp-telxen-cinta-contraida", v ? "0" : "1"); } catch { /* */ } return !v; });
   const enInicio = pestana === INICIO;
   const clicPestana = (t: string) => {
     if (contraida && pestana === t) alternarContraer();
-    if (t === pestana) { if (t === activa && contextual) setVerAcciones((v) => !v); return; }
-    // Venir de otra pestaña muestra los botones de la categoría; las acciones de la pantalla quedan a un toque más.
-    setPestana(t); setVerAcciones(false);
+    if (t === pestana) return;
+    setPestana(t);
   };
   const cat = enInicio ? null : categorias.find((c) => c.titulo === pestana) ?? categorias[0];
 
