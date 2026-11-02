@@ -1,4 +1,4 @@
-import { LogOut, Hash, FolderKanban, Calculator, Users } from "lucide-react";
+import { LogOut, Hash, FolderKanban } from "lucide-react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
