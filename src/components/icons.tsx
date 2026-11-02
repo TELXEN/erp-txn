@@ -135,7 +135,7 @@ export function GraficoFinanciero({ className, ...props }: SVGProps<SVGSVGElemen
  * Hoja con verificación.
  *
  * Icono propio de «SIRE SUNAT»: hoja con esquina doblada y una palomita
- * dentro. La palomita va en verde (--color-check-verde); el resto sigue el
+ * dentro. La palomita va en verde (--color-icono-verde); el resto sigue el
  * color del texto para que el icono siga legible sobre el fondo de la cinta.
  */
 export function HojaVerificada({ className, ...props }: SVGProps<SVGSVGElement>) {
@@ -156,7 +156,7 @@ export function HojaVerificada({ className, ...props }: SVGProps<SVGSVGElement>)
       <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
       <path d="M14 2v4a2 2 0 0 0 2 2h4" />
       {/* Palomita de verificación, en verde */}
-      <path stroke="var(--color-check-verde)" d="m8.5 14.2 2.6 2.6 4.6-5.2" />
+      <path stroke="var(--color-icono-verde)" d="m8.5 14.2 2.6 2.6 4.6-5.2" />
     </svg>
   );
 }
@@ -165,7 +165,7 @@ export function HojaVerificada({ className, ...props }: SVGProps<SVGSVGElement>)
  * Caja de traslado con verificación.
  *
  * Icono propio de «Guías de Remisión»: caja isométrica con la palomita dentro
- * de la cara frontal. La palomita va en azul (--color-check-azul); el resto
+ * de la cara frontal. La palomita va en azul (--color-icono-azul); el resto
  * sigue el color del texto para que el icono siga legible sobre la cinta.
  */
 export function CajaVerificada({ className, ...props }: SVGProps<SVGSVGElement>) {
@@ -187,7 +187,7 @@ export function CajaVerificada({ className, ...props }: SVGProps<SVGSVGElement>)
       <path strokeWidth={1.4} d="M12 22V12" />
       <path strokeWidth={1.4} d="m3.29 7 8.71 5 8.71-5" />
       {/* Palomita de verificación, en azul */}
-      <path stroke="var(--color-check-azul)" d="m13.6 15.4 1.9 1.9 3.6-3.6" />
+      <path stroke="var(--color-icono-azul)" d="m13.6 15.4 1.9 1.9 3.6-3.6" />
     </svg>
   );
 }
@@ -196,7 +196,7 @@ export function CajaVerificada({ className, ...props }: SVGProps<SVGSVGElement>)
  * Escudo con verificación.
  *
  * Icono propio de «Aprobaciones»: escudo con una palomita dentro. La palomita
- * va en verde (--color-check-verde); el escudo sigue el color del texto para
+ * va en verde (--color-icono-verde); el escudo sigue el color del texto para
  * que el icono siga legible sobre el fondo de la cinta.
  */
 export function EscudoVerificado({ className, ...props }: SVGProps<SVGSVGElement>) {
@@ -216,7 +216,7 @@ export function EscudoVerificado({ className, ...props }: SVGProps<SVGSVGElement
       {/* Escudo */}
       <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
       {/* Palomita de aprobación, en verde */}
-      <path stroke="var(--color-check-verde)" d="m9 12 2 2 4-4" />
+      <path stroke="var(--color-icono-verde)" d="m9 12 2 2 4-4" />
     </svg>
   );
 }

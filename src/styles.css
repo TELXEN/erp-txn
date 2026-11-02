@@ -107,9 +107,9 @@
   /* Azul del sello de goma del icono de Facturas. */
   --color-sello-factura: #0077b6;
   /* Verde de las palomitas de verificación (SIRE, Aprobaciones). */
-  --color-check-verde: #029a56;
+  --color-icono-verde: #029a56;
   /* Azul de la palomita del icono de Guías de Remisión. */
-  --color-check-azul: #0077b6;
+  --color-icono-azul: #0077b6;
   --color-chip-mat: var(--chip-mat);
   --color-chip-mo: var(--chip-mo);
   --color-chip-eq: var(--chip-eq);
