@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowLeft, Eye, PencilRuler } from "lucide-react";
+import { ArrowLeftFromLine, Eye, PencilRuler } from "lucide-react";
 import { GrupoCinta } from "@/components/CintaOpciones";
 import { cn } from "@/lib/utils";
 
