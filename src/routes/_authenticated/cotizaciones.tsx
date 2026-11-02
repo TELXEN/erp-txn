@@ -10,25 +10,20 @@ import { BotonGrande, BotonPequeno, Columna, GrupoVista } from "@/components/cot
 import { Building2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ApuBanco, ORIGEN_COTIZACION } from "@/components/ApuCotizacion";
-import { dbBanco, guardarPartidaEnBanco, useCatalogoCotizacion } from "@/lib/banco-apu";
-import { AutoMaestra } from "@/components/CotizacionHoja";
+import { dbBanco } from "@/lib/banco-apu";
 import { HojaNiveles } from "@/components/cotizaciones/HojaNiveles";
 import { PanelApuCotizacion, ResumenCotizacion } from "@/components/cotizaciones/PanelApuCotizacion";
 import { HojaCotizacion } from "@/components/cotizaciones/HojaCotizacion";
 
-import { Boton, BotonIcono, Campo, Etiqueta, Input, MenuFiltros, Panel, Select, SinAcceso, TarjetaResumen, Vacio, VentanaFlotante } from "@/components/ui-kit";
+import { Boton, BotonIcono, Etiqueta, MenuFiltros, Panel, SinAcceso, TarjetaResumen, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { cn } from "@/lib/utils";
 import { useTipoCambioActual } from "@/lib/cotizaciones";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
-import { useEspecialidadesPartida } from "@/lib/especialidades";
 import {
   agruparPorCategoria,
-  categoriasDe,
-  codigoContextual,
   prefijosWBS,
   cambiosNumeracion,
-  useCategoriasPartida,
 } from "@/lib/categorias";
 import { useUnidadesMedida } from "@/lib/unidades";
 import { generarCodigoProyecto } from "@/lib/codificacion";
@@ -46,7 +41,6 @@ import {
   usePlantillasCotizacion,
   ESTADOS_COTIZACION,
   generarCodigoCotizacion,
-  precioMaestroEnMoneda,
   previsualizarCodigoCotizacion,
   simboloMoneda,
   totalesCotizacion,
@@ -58,7 +52,7 @@ import {
   type CotizacionItem,
   type EstadoCotizacion,
 } from "@/lib/cotizaciones";
-import { Check, Calculator, ChevronDown, CornerDownRight, Upload, FileSpreadsheet, X, Eye, EyeOff, Trash2, ArrowLeft, Library, Plus, Pencil, Copy, FileText, History, Receipt, RotateCcw } from "lucide-react";
+import { Check, Calculator, ChevronDown, CornerDownRight, Upload, FileSpreadsheet, Eye, EyeOff, Trash2, ArrowLeft, Library, Plus, Pencil, Copy, FileText, History, Receipt, RotateCcw } from "lucide-react";
 import { GastosGeneralesCotizacion } from "@/components/cotizaciones/GastosGeneralesCotizacion";
 
 export const Route = createFileRoute("/_authenticated/cotizaciones")({
@@ -94,11 +88,7 @@ function Cotizaciones() {
   const { data: cotizaciones = [] } = useCotizaciones();
   /** Una fila por código: la revisión más reciente de cada cotización. */
   const vigentes = ultimasRevisiones(cotizaciones);
-  const { data: especialidades = [] } = useEspecialidadesPartida();
   const { data: unidades = [] } = useUnidadesMedida();
-  // Catálogo de la cotización: partidas del Banco APU con su P.U. calculado desde la receta.
-  const maestras = useCatalogoCotizacion();
-  const { data: categorias = [] } = useCategoriasPartida();
   const { data: clientes = [] } = useQuery({
     queryKey: ["terceros", "clientes-activos"],
     queryFn: async () => {
@@ -179,23 +169,6 @@ function Cotizaciones() {
     aplica_igv: "si",
   });
 
-  const [maestraSel, setMaestraSel] = useState("");
-  const [item, setItem] = useState({
-    codigo: "",
-    nombre: "",
-    especialidad: "",
-    categoria: "",
-    marca: "",
-    unidad: "GLB",
-    metrado: "1",
-    precio_unitario: "",
-  });
-
-  /** Código contextual de la cotización: capítulo y categoría según lo ya agregado. */
-  const sugerirCodigo = (especialidad: string, categoria = "") =>
-    codigoContextual(especialidad, categoria, items);
-
-  const cot = cotizaciones.find((c) => c.id === seleccion) ?? null;
   const totales = cot
     ? totalesCotizacion(items, Number(cot.pct_gastos_generales), Number(cot.pct_utilidad))
     : null;
@@ -228,7 +201,6 @@ function Cotizaciones() {
   const [apu, setApu] = useState<(typeof items)[number] | null>(null);
 
   const [pestana, setPestana] = useState<"Todas" | EstadoCotizacion | "En Obra">("Todas");
-  const [verCatalogo, setVerCatalogo] = useState(false);
   const { data: totalesLista = {} } = useQuery({
     queryKey: ["cotizacion_items", "totales", cotizaciones.map((c) => `${c.id}:${c.pct_gastos_generales}:${c.pct_utilidad}`).join(",")],
     enabled: cotizaciones.length > 0,
@@ -298,7 +270,6 @@ function Cotizaciones() {
         if (err.code === "23505") throw new Error("Ese código ya está asignado a otra cotización.");
         throw err;
       }
-      setVerCatalogo(false);
       qc.invalidateQueries({ queryKey: ["cotizaciones"] });
       setPidiendoMoneda(false);
       setMonedaNueva("");
