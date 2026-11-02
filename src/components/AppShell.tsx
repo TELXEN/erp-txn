@@ -1,5 +1,5 @@
 import { LogOut, FileDigit, FolderKanban, Scale, Plug, Ruler, Shapes, FolderTree, Network, Tag, ListTree, Wrench, Hammer, Percent, LayoutTemplate } from "lucide-react";
-import { ContactRound, Factory, Type, UserRoundCheck, Coins, Barcode, Drill, FileSignature, BadgeDollarSign, Boxes, BookOpen, History, LayoutDashboard, Vault, CircleDollarSign, CalendarClock, Route, UserCog, Database, Pickaxe, PackagePlus, ScrollText, ToolCase, Fuel, PiggyBank, ArrowDownLeft, ArrowUpRight, BadgePercent } from "lucide-react";
+import { ContactRound, Factory, Type, UserRoundCheck, Coins, Barcode, Drill, FileSignature, BadgeDollarSign, Boxes, BookOpen, History, LayoutDashboard, Vault, CircleDollarSign, CalendarClock, Route, UserCog, Database, Pickaxe, PackagePlus, ScrollText, ToolCase, Fuel, PiggyBank, ArrowDownLeft, ArrowUpRight, BadgePercent, CircleHelp, NotebookText, BadgeInfo, Stamp } from "lucide-react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
@@ -9,6 +9,13 @@ type Ranura = { el: HTMLElement | null; cinta: boolean; setCtx: (c: ContextoCint
 const RanuraEncabezado = createContext<Ranura | null>(null);
 /** true cuando las acciones de pantalla viven en la cinta. */
 export function useEnCinta() { return !!useContext(RanuraEncabezado)?.cinta; }
+// Grupo Ayuda: el botón grande abre el centro de ayuda y las tres opciones pequeñas van apiladas a su derecha.
+const SECCIONES_AYUDA = [
+  { texto: "Ayuda", corto: "Ayuda", a: "/ayuda", icono: CircleHelp, grande: true },
+  { texto: "Manual de usuario", corto: "Manual de usuario", a: "/ayuda", search: { seccion: "manual" }, icono: NotebookText },
+  { texto: "Acerca de", corto: "Acerca de", a: "/ayuda", search: { seccion: "acerca" }, icono: BadgeInfo },
+  { texto: "Licencia", corto: "Licencia", a: "/ayuda", search: { seccion: "licencia" }, icono: Stamp },
+];
 const SECCIONES_CONFIG = [
   { texto: "Datos de la empresa", corto: "Empresa", seccion: "empresa", icono: Building2, grande: true },
   { texto: "Usuarios y Roles", corto: "Usuarios", seccion: "usuarios", icono: UserRoundCheck },
@@ -206,6 +213,7 @@ const MENU: Categoria[] = [
         { texto: "Temas de colores", corto: "Tema", a: "/tema-colores", icono: Palette, grande: true },
         { texto: "Tipografía de documentos", corto: "Tipografía", a: "/configuracion-sistema", search: { seccion: "tipografia" }, icono: Type },
       ] },
+      { a: "/ayuda", texto: "Ayuda", roles: ["ingeniero", "administrador", "gerente"], icono: CircleHelp, sub: SECCIONES_AYUDA, subFilas: 3 },
     ],
   },
   {
