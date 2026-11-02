@@ -7,7 +7,7 @@ import { claveNombre } from "@/lib/formato-texto";
 
 export type ModoNavegacion = "lateral" | "simplificada" | "clasica";
 export type SubOpcionCinta = { texto: string; seccion?: string; campo?: string; icono?: React.ElementType; corto?: string; a?: string; grande?: boolean };
-export type ItemCinta = { a: string; texto: string; icono: React.ElementType; hijos?: ItemCinta[]; sub?: SubOpcionCinta[]; sub2?: { titulo: string; opciones: SubOpcionCinta[] } };
+export type ItemCinta = { a: string; texto: string; icono: React.ElementType; hijos?: ItemCinta[]; sub?: SubOpcionCinta[]; sub2?: { titulo: string; opciones: SubOpcionCinta[] }; subFilas?: number };
 export type CategoriaCinta = { titulo: string; items: ItemCinta[] };
 
 const CORTO: Record<string, string> = {
@@ -258,18 +258,22 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
       const nPeq = subs.length - (hayGrande ? 1 : 0);
       // Con dos opciones van lado a lado; con más, se reparten en dos filas.
       const filas = subs.length > 2 || hayGrande ? 2 : 1;
-      // La opción grande ocupa las dos filas a la izquierda; las demás se reparten en columnas de dos filas a su derecha.
-      const cols = hayGrande ? 1 + Math.ceil(nPeq / 2) : Math.min(4, Math.ceil(subs.length / filas));
+      // Con más filas (p. ej. tres opciones pequeñas bajo el botón grande) las filas se afinan para no agrandar la cinta.
+      const filasPeq = m.subFilas ?? 2;
+      const alto = filasPeq > 2 ? 20 : 24;
+      const padBloque = filasPeq > 2 ? "py-1" : "py-2.5";
+      // La opción grande ocupa todas las filas a la izquierda; las demás se reparten en columnas a su derecha.
+      const cols = hayGrande ? 1 + Math.ceil(nPeq / filasPeq) : Math.min(4, Math.ceil(subs.length / filas));
       // Cada columna mide lo que mide su etiqueta más larga: así las opciones cortas no arrastran huecos.
-      const colsPeq = Math.ceil(nPeq / 2);
+      const colsPeq = Math.ceil(nPeq / filasPeq);
       const celda = (o: NonNullable<ItemCinta["sub"]>[number], i: number) => {
         const SI = o.icono;
         if (!SI) return null;
         const grande = hayGrande && i === iGrande;
         const j = hayGrande && !grande ? i - (i > iGrande ? 1 : 0) : 0;
         // Las pequeñas se leen por filas: primero la fila de arriba, luego la de abajo.
-        const sitio = hayGrande ? (grande ? { gridColumn: 1, gridRow: "1 / span 2" } : { gridColumn: 2 + (j % colsPeq), gridRow: 1 + Math.floor(j / colsPeq) }) : undefined;
-        const cls = `whitespace-nowrap rounded text-[11px] ${grande ? "flex h-full min-w-[84px] flex-col items-center justify-center gap-1 px-1.5" : "flex h-6 min-w-[76px] items-center gap-1.5 px-1.5"}`;
+        const sitio = hayGrande ? (grande ? { gridColumn: 1, gridRow: `1 / span ${filasPeq}` } : { gridColumn: 2 + (j % colsPeq), gridRow: 1 + Math.floor(j / colsPeq) }) : undefined;
+        const cls = `whitespace-nowrap rounded text-[11px] ${grande ? "flex h-full min-w-[84px] flex-col items-center justify-center gap-1 px-1.5" : "flex h-full min-w-[76px] items-center gap-1.5 px-1.5"}`;
         const contenido = grande ? <><SI className="size-6 shrink-0" /><span>{o.corto ?? o.texto}</span></> : <><SI className="size-3.5 shrink-0" /> {o.corto ?? o.texto}</>;
 
         if (o.a) {
@@ -288,7 +292,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
         );
       };
       return (
-        <div key={m.a} className="grid shrink-0 content-center py-2.5" style={{ gridTemplateColumns: `repeat(${cols}, auto)`, gridAutoRows: "24px", columnGap: 6 }}>
+        <div key={m.a} className={`grid shrink-0 content-center ${padBloque}`} style={{ gridTemplateColumns: `repeat(${cols}, auto)`, gridAutoRows: `${alto}px`, columnGap: 6 }}>
           {subs.map(celda)}
         </div>
       );
@@ -298,11 +302,18 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
 
   // En la clásica: los ítems simples forman un grupo con el nombre de la pestaña; cada submenú es su propio grupo.
   const porGrupo = (lista: ItemCinta[], defecto: string) => {
-    const g: { titulo: string; items: ItemCinta[]; sub?: boolean }[] = [];
+    const g: { titulo: string; items: ItemCinta[]; sub?: boolean; mezcla?: boolean }[] = [];
     for (const m of lista) {
       if (m.hijos) { g.push({ titulo: m.texto, items: m.hijos }); continue; }
       if (m.sub && m.sub.every((o) => o.icono)) {
-        g.push({ titulo: m.texto, items: [m], sub: true });
+        const t = GRUPO[m.a];
+        if (t) {
+          // El ítem se integra en el grupo que le corresponde (p. ej. Gastos Generales dentro de Costos).
+          const e = g.find((x) => x.titulo === t);
+          if (e) { e.items.push(m); e.mezcla = true; } else g.push({ titulo: t, items: [m], mezcla: true });
+        } else {
+          g.push({ titulo: m.texto, items: [m], sub: true });
+        }
         // Un ítem puede aportar un segundo grupo (p. ej. Operaciones especiales junto a Facturación Electrónica).
         if (m.sub2) { const { sub2, ...resto } = m; g.push({ titulo: sub2.titulo, items: [{ ...resto, sub: sub2.opciones }], sub: true }); }
         continue;

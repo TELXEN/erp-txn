@@ -1,11 +1,11 @@
 import { useRecordado } from "@/lib/recordado";
 import { BarraIconosHoja } from "@/components/BarraIconosHoja";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { Fragment, useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Encabezado } from "@/components/AppShell";
+import { Encabezado, useEnCinta } from "@/components/AppShell";
 import { Boton, BotonIcono, Etiqueta, Input, MenuFiltros, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { InsigniaCategoriaGasto, tonosCategoriaGasto } from "@/components/estado-ui";
 import type { Tono } from "@/lib/configuracion";
@@ -21,7 +21,15 @@ import { CampoDetraccion, InsigniaDetraccion, InsigniaPago, PLAZOS, condicionVac
 import { FechaPeru } from "./gastos-directos";
 import { useMantenimientos, useTraslados, useVehiculos } from "@/lib/vehiculos";
 
+type PestañaGG = "resumen" | "gastos" | "mantenimiento" | "combustible";
+
 export const Route = createFileRoute("/_authenticated/gastos-generales")({
+  validateSearch: (s: Record<string, unknown>): { pestana?: PestañaGG } => {
+    const r: { pestana?: PestañaGG } = {};
+    const v = s["pestana"];
+    if (v === "resumen" || v === "gastos" || v === "mantenimiento" || v === "combustible") r.pestana = v;
+    return r;
+  },
   head: () => ({
     meta: [
       { title: "Gastos Generales — ERP TELXEN" },
@@ -123,13 +131,25 @@ function GastosGenerales() {
   const [hasta, setHasta] = useState("");
   const [filtroCategoria, setFiltroCategoria] = useState("Todas");
   const [cerrados, setCerrados] = useState<Set<string>>(new Set());
-  const [pestana, setPestana] = useState<"resumen" | "gastos" | "mantenimiento" | "combustible">(() => {
+  const navigate = useNavigate();
+  const enCinta = useEnCinta();
+  const { pestana: pestanaQ } = Route.useSearch();
+  const [pestana, setPestana] = useState<PestañaGG>(() => {
     const v = localStorage.getItem("gastos-generales:pestana");
     return v === "gastos" || v === "mantenimiento" || v === "combustible" ? v : "resumen";
   });
   useEffect(() => {
     localStorage.setItem("gastos-generales:pestana", pestana);
   }, [pestana]);
+  // La cinta y la URL mandan sobre la pestaña mostrada; al llegar sin parámetro se fija la recordada.
+  useEffect(() => {
+    if (pestanaQ && pestanaQ !== pestana) setPestana(pestanaQ);
+    else if (!pestanaQ && enCinta) void navigate({ to: "/gastos-generales", search: { pestana }, replace: true });
+  }, [pestanaQ, pestana, enCinta, navigate]);
+  function cambiarPestana(p: PestañaGG) {
+    setPestana(p);
+    void navigate({ to: "/gastos-generales", search: { pestana: p }, replace: true });
+  }
   const ayudaCategoria = categorias.find((c) => c.nombre === form.categoria)?.descripcion ?? "";
   const [editando, setEditando] = useState<{
     id: string;
@@ -435,6 +455,7 @@ function GastosGenerales() {
           ))}
         </Select>
       </div>
+      {!enCinta && (
       <div className="mb-4 flex flex-wrap items-center gap-1 overflow-x-auto border-b border-line pb-3">
         {(
           [
@@ -447,13 +468,14 @@ function GastosGenerales() {
           <button
             key={id}
             type="button"
-            onClick={() => setPestana(id)}
+            onClick={() => cambiarPestana(id)}
             className={`whitespace-nowrap rounded-md border-b-2 px-3 py-1.5 text-xs transition-colors ${pestana === id ? "border-cta bg-primary/10 font-semibold text-primary" : "border-transparent text-muted-foreground hover:bg-muted hover:text-primary"}`}
           >
             {txt}
           </button>
         ))}
       </div>
+      )}
 
       {pestana === "resumen" && (
         <>
