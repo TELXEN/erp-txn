@@ -141,6 +141,12 @@ const SECCIONES_VEHICULOS = [
   { texto: "Mantenimiento", corto: "Mantenimiento", seccion: "mantenimiento", campo: "pestana", icono: Wrench },
 ];
 
+const SECCIONES_ALMACEN = [
+  { texto: "Almacén", corto: "Almacén", a: "/almacen", icono: Warehouse, grande: true },
+  { texto: "Inventario", corto: "Inventario", a: "/inventario", icono: Boxes },
+];
+
+
 const SECCIONES_OP_ESP = [
   { texto: "Retenciones", corto: "Retenciones", seccion: "20", campo: "tipo", icono: Vault, grande: true },
   { texto: "Percepciones", corto: "Percepciones", seccion: "40", campo: "tipo", icono: CircleDollarSign },
@@ -190,8 +196,8 @@ const MENU: Categoria[] = [
       { a: "/ordenes-compra", texto: "Órdenes de Compra", roles: ["administrador", "gerente"], icono: ShoppingCart },
       { a: "/importaciones", texto: "Importaciones", roles: ["administrador", "gerente"], icono: Plane },
       { a: "/transportistas", texto: "Transportistas", roles: ["administrador", "gerente"], icono: Truck },
-      { a: "/almacen", texto: "Almacén", roles: ["ingeniero", "administrador", "gerente"], icono: Warehouse },
-      { a: "/inventario", texto: "Inventario", roles: ["administrador", "gerente"], icono: Boxes },
+      { a: "/almacen", texto: "Almacén e Inventario", roles: ["administrador", "gerente"], icono: Warehouse, sub: SECCIONES_ALMACEN },
+
       { a: "/vehiculos", texto: "Vehículos", roles: ["ingeniero", "administrador", "gerente"], icono: Car, sub: SECCIONES_VEHICULOS },
     ],
   },
@@ -409,9 +415,11 @@ export function AppShell({ children }: { children: ReactNode }) {
   }
 
   function estaAbierta(c: Categoria): boolean {
-    if (c.items.some((m) => pathname === m.a || m.hijos?.some((h) => h.a === pathname))) return true;
+    if (c.items.some((m) => pathname === m.a || m.hijos?.some((h) => h.a === pathname)
+      || m.sub?.some((o) => (o.a ?? m.a) === pathname) || m.sub2?.opciones.some((o) => (o.a ?? m.a) === pathname))) return true;
     return abierta === c.titulo;
   }
+
 
   const iniciales = (nombre || email || "??").slice(0, 2).toUpperCase();
 
