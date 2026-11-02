@@ -532,4 +532,36 @@ export function BovedaRetenciones({ className, ...props }: SVGProps<SVGSVGElemen
   );
 }
 
+/**
+ * Partidas en tres colores.
+ *
+ * Icono propio de «Partidas»: tres niveles apilados, cada uno con su color fijo
+ * —el contorno de arriba en azul, la línea del medio en verde y la de abajo en
+ * rojo— para que la pila se lea de un vistazo.
+ */
+export function PartidasTresColores({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+      {...props}
+    >
+      {/* Contorno superior, en azul */}
+      <path stroke="var(--color-icono-azul)" d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z" />
+      {/* Línea media, en verde */}
+      <path stroke="var(--color-icono-verde)" d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12" />
+      {/* Línea inferior, en rojo */}
+      <path stroke="var(--color-icono-rojo)" d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17" />
+    </svg>
+  );
+}
+
+
 
