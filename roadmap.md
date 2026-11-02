@@ -206,4 +206,6 @@
 - [x] Quitar el botón «Vista previa» de la cinta cuando ya se está en la vista previa; verificado en edición y vista previa.
 - [x] Ocultar APU y Plantillas del grupo Presupuestar en modo edición y vista previa; verificado en listado, edición y vista previa.
 - [x] Ocultar las demás pestañas (Inicio, Operaciones, Logística, Finanzas, Personal, Datos) en edición y vista previa de cotización; verificado: solo Comercial.
-- [x] Cambiar el icono del botón «Volver» en la cinta de cotización: flecha que sale de una línea vertical; verificado en edición y vista previa.
+- [x] Cambiar el icono del botón «Volver» en la cinta de cotización: aro con flecha de retorno que apunta a la izquierda (icono propio RetornoCirculo); verificado en edición y vista previa.
+- [x] Cinta de cotización: la flecha de «Volver» en azul y el lápiz de «Edición» en naranja.
+
