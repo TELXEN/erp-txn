@@ -42,7 +42,7 @@ type Rotulo = { ancho: number; texto: string };
  * Mide con la tipografía activa el ancho justo para leer cada etiqueta completa en dos renglones.
  * Se mide en negrita (700): es el peso del botón seleccionado y el más ancho de los dos.
  */
-function useRotulos(items: { texto: string; unaLinea?: boolean }[]) {
+function useRotulos(items: { texto: string; unaLinea?: boolean | undefined }[]) {
   const [rotulos, setRotulos] = useState<Record<string, Rotulo>>({});
   const clave = items.map((i) => `${i.texto}${i.unaLinea ? "\u0001" : ""}`).join("|");
 
