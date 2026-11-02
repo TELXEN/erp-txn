@@ -11,14 +11,74 @@ export type ItemCinta = { a: string; texto: string; icono: React.ElementType; hi
 export type CategoriaCinta = { titulo: string; items: ItemCinta[] };
 
 /** Ancho del botón: lo justo para leer la etiqueta completa en dos renglones, sin partir palabras. */
-const PX_POR_CHAR = 5.5; // px por carácter a 11 px con la tipografía global
-function anchoEtiqueta(t: string) {
+const PX_POR_CHAR = 5.5; // estimación del primer pintado; se corrige midiendo con la tipografía real
+const PAD_ROTULO = 14; // px-1.5 a cada lado
+
+/** Reparte la etiqueta en dos renglones equilibrados, o respeta los saltos escritos a mano. */
+function renglones(t: string) {
   const forzado = t.split("\n").map((x) => x.trim()).filter(Boolean);
-  if (forzado.length > 1) return Math.max(...forzado.map((x) => x.length)) * PX_POR_CHAR + 14;
+  if (forzado.length > 1) return forzado;
   const w = t.trim().split(/\s+/);
-  let mejor = t.trim().length;
-  for (let i = 1; i < w.length; i++) mejor = Math.min(mejor, Math.max(w.slice(0, i).join(" ").length, w.slice(i).join(" ").length));
-  return Math.max(mejor, ...w.map((x) => x.length)) * PX_POR_CHAR + 14;
+  if (w.length < 2) return [t.trim()];
+  let mejor = [t.trim()];
+  let costo = Infinity;
+  for (let i = 1; i < w.length; i++) {
+    const a = w.slice(0, i).join(" "), b = w.slice(i).join(" ");
+    if (Math.max(a.length, b.length) < costo) { costo = Math.max(a.length, b.length); mejor = [a, b]; }
+  }
+  return mejor;
+}
+
+function anchoEtiqueta(t: string) {
+  return Math.max(...renglones(t).map((x) => x.length)) * PX_POR_CHAR + PAD_ROTULO;
+}
+
+type Rotulo = { ancho: number; texto: string };
+
+/**
+ * Mide con la tipografía activa el ancho justo para leer cada etiqueta completa en dos renglones.
+ * Se mide en negrita (700): es el peso del botón seleccionado y el más ancho de los dos.
+ */
+function useRotulos(textos: string[]) {
+  const [rotulos, setRotulos] = useState<Record<string, Rotulo>>({});
+  const clave = textos.join("|");
+  useEffect(() => {
+    let vivo = true;
+    const medir = () => {
+      const host = document.querySelector(".cinta-opciones") as HTMLElement | null;
+      const c = document.createElement("canvas").getContext("2d");
+      if (!host || !c) return;
+      const familia = getComputedStyle(host).fontFamily;
+      const px = (s: string) => { c.font = `700 11px ${familia}`; return c.measureText(s).width; };
+      const nuevo: Record<string, Rotulo> = {};
+      for (const t of textos) {
+        const w = t.trim().split(/\s+/);
+        let partes = renglones(t);
+        if (partes.length === 2 && w.length > 1) {
+          // El corte más equilibrado se elige midiendo, no contando letras.
+          let costo = Infinity;
+          for (let i = 1; i < w.length; i++) {
+            const a = w.slice(0, i).join(" "), b = w.slice(i).join(" ");
+            const m = Math.max(px(a), px(b));
+            if (m < costo) { costo = m; partes = [a, b]; }
+          }
+        }
+        nuevo[t] = { ancho: Math.ceil(Math.max(...partes.map(px))) + PAD_ROTULO, texto: partes.join("\n") };
+      }
+      if (vivo) setRotulos((prev) => {
+        const k = Object.keys(nuevo);
+        const igual = k.length === Object.keys(prev).length && k.every((x) => prev[x]?.ancho === nuevo[x]?.ancho && prev[x]?.texto === nuevo[x]?.texto);
+        return igual ? prev : nuevo;
+      });
+    };
+    medir();
+    // La tipografía puede llegar más tarde (carga diferida) o cambiarse desde Tipografía de documentos.
+    document.fonts?.ready.then(medir).catch(() => { /* */ });
+    const obs = new MutationObserver(medir);
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ["style", "data-fuente-documento"] });
+    return () => { vivo = false; obs.disconnect(); };
+  }, [clave]);
+  return rotulos;
 }
 
 const CORTO: Record<string, string> = {
@@ -212,6 +272,8 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
     ];
   }).filter((r) => { const k = `${r.a}|${r.texto}`; if (vistos.has(k)) return false; vistos.add(k); return true; });
 
+  // Ancho real de cada rótulo, medido con la tipografía que se está usando.
+  const rotulos = useRotulos(plano.map((m) => m.texto));
   const [recientes, setRecientes] = useState<string[]>([]);
   const [favoritos, setFavoritos] = useState<string[]>([]);
   useEffect(() => { setRecientes(leerLista(LS_REC)); setFavoritos(leerLista(LS_FAV)); }, []);
@@ -256,10 +318,10 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
     }
     const link = (
       <Link key={m.a} to={m.a} title={`${m.texto} — clic derecho: ${favoritos.includes(m.a) ? "quitar de" : "anclar a"} Inicio`} onContextMenu={(e) => { e.preventDefault(); alternarFav(m.a); }}
-        className={`relative flex w-auto max-w-[118px] min-w-[62px] shrink-0 flex-col items-center gap-1 rounded-md px-1.5 py-1.5 text-center text-[11px] leading-tight ${tono}`}
-        style={{ width: anchoEtiqueta(m.texto) }}>
+        className={`relative flex w-auto max-w-none min-w-[62px] shrink-0 flex-col items-center gap-1 rounded-md px-1.5 py-1.5 text-center text-[11px] leading-tight ${tono}`}
+        style={{ width: rotulos[m.texto]?.ancho ?? anchoEtiqueta(m.texto) }}>
         <I className="size-6 shrink-0" />
-        <span lang="es" className="line-clamp-2 w-full whitespace-pre-line break-words">{m.texto}</span><Insignia a={m.a} />
+        <span lang="es" className="line-clamp-2 w-full whitespace-pre-line break-words">{rotulos[m.texto]?.texto ?? renglones(m.texto).join("\n")}</span><Insignia a={m.a} />
         {favoritos.includes(m.a) && <Star className="absolute left-1 top-1 size-2.5 fill-current text-cinta-acento" />}
       </Link>
     );
