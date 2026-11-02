@@ -210,7 +210,7 @@ const MENU: Categoria[] = [
       { a: "/configuracion-sistema", texto: "Configuración del Sistema", roles: ["gerente"], icono: SlidersHorizontal, sub: SECCIONES_CONFIG, subFilas: 3, subColumnas: true },
       { a: "/datos", texto: "Parámetros Generales", roles: ["administrador", "gerente"], icono: Settings, sub: SECCIONES_DATOS, subFilas: 3, subColumnas: true },
       { a: "/tema-colores", texto: "Diseño", roles: ["ingeniero", "administrador", "gerente"], icono: Palette, subFilas: 3, sub: [
-        { texto: "Temas de colores", corto: "Tema", a: "/tema-colores", icono: Palette, grande: true },
+        { texto: "Temas de colores", corto: "Temas", a: "/tema-colores", icono: Palette, grande: true },
         { texto: "Tipografía de documentos", corto: "Tipografía", a: "/configuracion-sistema", search: { seccion: "tipografia" }, icono: Type },
       ] },
       { a: "/ayuda", texto: "Ayuda", roles: ["ingeniero", "administrador", "gerente"], icono: CircleHelp, sub: SECCIONES_AYUDA, subFilas: 3 },
