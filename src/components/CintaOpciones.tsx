@@ -7,7 +7,7 @@ import { claveNombre } from "@/lib/formato-texto";
 
 export type ModoNavegacion = "lateral" | "simplificada" | "clasica";
 export type SubOpcionCinta = { texto: string; seccion?: string; campo?: string; icono?: React.ElementType; corto?: string; a?: string; grande?: boolean; search?: Record<string, string>; iconoClase?: string };
-export type ItemCinta = { a: string; texto: string; icono: React.ElementType; hijos?: ItemCinta[]; sub?: SubOpcionCinta[]; subGrupos?: { titulo: string; opciones: SubOpcionCinta[]; subFilas?: number }[]; subFilas?: number; subColumnas?: boolean; unaLinea?: boolean; iconoClase?: string };
+export type ItemCinta = { a: string; texto: string; icono: React.ElementType; /** Rutas hermanas que también pertenecen a este botón (p. ej. la vista previa de una cotización). */ rutas?: string[]; hijos?: ItemCinta[]; sub?: SubOpcionCinta[]; subGrupos?: { titulo: string; opciones: SubOpcionCinta[]; subFilas?: number }[]; subFilas?: number; subColumnas?: boolean; unaLinea?: boolean; iconoClase?: string };
 export type CategoriaCinta = { titulo: string; items: ItemCinta[] };
 
 /** Ancho del botón: lo justo para leer la etiqueta completa en dos renglones, sin partir palabras. */
@@ -193,7 +193,7 @@ function SubMenu({ a, sub, onIr }: { a: string; sub: SubOpcionCinta[]; onIr?: (d
 }
 
 function contiene(c: CategoriaCinta, p: string) {
-  return c.items.some((m) => m.a === p || m.hijos?.some((h) => h.a === p) || m.sub?.some((o) => (o.a ?? m.a) === p)
+  return c.items.some((m) => m.a === p || m.rutas?.includes(p) || m.hijos?.some((h) => h.a === p) || m.sub?.some((o) => (o.a ?? m.a) === p)
     || m.subGrupos?.some((g) => g.opciones.some((o) => (o.a ?? m.a) === p)));
 }
 
