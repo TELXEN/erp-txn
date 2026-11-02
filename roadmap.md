@@ -158,5 +158,5 @@
 - [x] Finanzas › Flujo de Caja: «Matriz anual» queda en la fila de arriba, a la misma altura que «Detalle de Gastos» (y 45, alto 20 en ambos); verificado con cinta clásica.
 - [x] Logística › Almacén e Inventario: «Inventario» con icono grande (24 px, igual que Almacén); verificado en pantalla.
 - [x] Operaciones › Ejecutar y controlar: «Avance Físico» a la izquierda con icono grande (24 px) y «Gantt»/«Curva S» pequeños (14 px) que abren su vista; cambio de vista probado en ambos sentidos (panel Gantt y panel Curva S) y F5 conservado.
-- [ ] Cinta Operaciones › Ejecutar y controlar: «Curva S» debajo de «Gantt» (una columna, dos filas); verificar en pantalla.
-- [ ] Tesorería: mostrar los iconos de Facturación (pendiente de precisar qué iconos y dónde).
+- [x] Cinta Operaciones › Ejecutar y controlar: «Curva S» debajo de «Gantt» (una columna, dos filas); medido en pantalla (Gantt y=51, Curva S y=75, misma columna x=272) y verificado con captura; compilación OK.
+- [x] Cinta Finanzas: grupo «Facturación» junto a Caja y bancos — Facturas grande y Boletas/Nota de crédito/Nota de débito/Guías de Remisión en 2×2; desde Tesorería el clic abre el comprobante (?tipo=03) y la pestaña activa sigue siendo Comercial; buscador sin resultados repetidos; compilación OK.
