@@ -194,7 +194,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
   const rutas = plano.flatMap((m) => [m.a, ...(m.sub ?? []).map((o) => o.a ?? m.a)]);
   const resultados: Resultado[] = plano.flatMap((m) => [
     { a: m.a, texto: m.texto, ruta: m.cat, icono: m.icono },
-    ...(m.sub ?? []).map((o) => ({ a: o.a ?? m.a, texto: o.texto, ruta: `${m.cat} › ${m.texto}`, icono: m.icono, search: o.a ? undefined : { [o.campo ?? "seccion"]: o.seccion } })),
+    ...(m.sub ?? []).map((o) => ({ a: o.a ?? m.a, texto: o.texto, ruta: `${m.cat} › ${m.texto}`, icono: m.icono, search: o.a ? undefined : ({ [o.campo ?? "seccion"]: o.seccion ?? "" } as Record<string, string>) })),
   ]);
   const [recientes, setRecientes] = useState<string[]>([]);
   const [favoritos, setFavoritos] = useState<string[]>([]);
