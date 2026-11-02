@@ -92,8 +92,8 @@ import {
   ShoppingBag,
   Palette,
 
-  Layers,
   Package,
+
   ShoppingCart,
   Plane,
   Warehouse,
@@ -231,7 +231,7 @@ const MENU: Categoria[] = [
     items: [
       { a: "/dashboard-proyectos", texto: "Dashboard Proyectos", roles: ["ingeniero", "administrador", "gerente"], icono: Gauge },
       { a: "/proyectos", texto: "Proyectos", roles: ["administrador", "gerente"], icono: Factory },
-      { a: "/partidas", texto: "Partidas", roles: ["administrador", "gerente"], icono: Layers },
+      { a: "/partidas", texto: "Partidas", roles: ["administrador", "gerente"], icono: PartidasTresColores },
       { a: "/avance", texto: "Avance Físico", roles: ["ingeniero", "gerente"], icono: Activity },
       { a: "/gantt", texto: "Gantt\nCurva S", roles: ["ingeniero", "administrador", "gerente"], icono: GanttLineas, sub: SECCIONES_VISTAS, subFilas: 3 },
       { a: "/generar-requerimiento", texto: "Generar Requerimiento", roles: ["ingeniero", "administrador", "gerente"], icono: PortapapelesLapiz },
