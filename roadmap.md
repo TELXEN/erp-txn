@@ -177,3 +177,4 @@
 - [ ] Icono de «Guías de Remisión» (Comercial): la palomita de la caja en azul `#0077b6`.
 - [ ] Icono de «Aprobaciones»: la palomita en verde `#029a56`.
 - [ ] Icono de «Valorizaciones»: la palomita en verde `#029a56`.
+- [ ] Icono de «Requerimientos»: el lápiz en azul `#0077b6`.
