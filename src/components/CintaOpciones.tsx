@@ -82,7 +82,7 @@ function Buscador({ items }: { items: Resultado[] }) {
   );
 }
 
-function SubMenu({ a, sub }: { a: string; sub: SubOpcionCinta[] }) {
+function SubMenu({ a, sub, onIr }: { a: string; sub: SubOpcionCinta[]; onIr?: (destino: string) => void }) {
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const ref = useRef<HTMLButtonElement>(null);
   useEffect(() => {
@@ -107,9 +107,9 @@ function SubMenu({ a, sub }: { a: string; sub: SubOpcionCinta[] }) {
           {sub.map((o) => {
             const cls = "block px-3 py-1.5 hover:bg-accent hover:text-accent-foreground";
             return o.a ? (
-              <Link key={o.a} to={o.a} onClick={() => setPos(null)} className={cls}>{o.texto}</Link>
+              <Link key={o.a} to={o.a} onClick={() => { setPos(null); onIr?.(o.a ?? a); }} className={cls}>{o.texto}</Link>
             ) : (
-              <Link key={o.seccion} to={a} search={{ [o.campo ?? "seccion"]: o.seccion } as never} onClick={() => setPos(null)} className={cls}>{o.texto}</Link>
+              <Link key={o.seccion} to={a} search={{ [o.campo ?? "seccion"]: o.seccion } as never} onClick={() => { setPos(null); onIr?.(a); }} className={cls}>{o.texto}</Link>
             );
           })}
         </div>, document.body)}
@@ -283,6 +283,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
         if (o.a) {
           return (
             <Link key={o.a} to={o.a} title={o.texto} className={cls} {...(sitio ? { style: sitio } : {})}
+              onClick={() => { gridNav.current = o.a ?? m.a; }}
               activeOptions={{ includeSearch: true }}
               activeProps={{ className: "bg-cinta-acento text-cinta-acento-foreground font-semibold" }}
               inactiveProps={{ className: "text-cinta-texto hover:bg-cinta-hover" }}>{contenido}</Link>
@@ -290,6 +291,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
         }
         return (
           <Link key={o.seccion} to={m.a} search={{ [o.campo ?? "seccion"]: o.seccion } as never} title={o.texto} className={cls} {...(sitio ? { style: sitio } : {})}
+            onClick={() => { gridNav.current = m.a; }}
             activeOptions={{ includeSearch: true }}
             activeProps={{ className: "bg-cinta-acento text-cinta-acento-foreground font-semibold" }}
             inactiveProps={{ className: "text-cinta-texto hover:bg-cinta-hover" }}>{contenido}</Link>
