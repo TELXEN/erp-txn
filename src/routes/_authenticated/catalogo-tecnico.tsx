@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useRecordado } from "@/lib/recordado";
 import { MarcasPanel } from "@/components/MarcasPanel";
-import { Encabezado } from "@/components/AppShell";
+import { Encabezado, useEnCinta } from "@/components/AppShell";
 import { UnidadesMedida } from "@/components/UnidadesMedida";
 import { EspecialidadesPartida } from "@/components/EspecialidadesPartida";
 import { GruposCotizacion } from "@/components/GruposCotizacion";
@@ -39,6 +39,7 @@ export const Route = createFileRoute("/_authenticated/catalogo-tecnico")({
 });
 
 function CatalogoTecnico() {
+  const enCinta = useEnCinta();
   const { pestana: enUrl } = Route.useSearch();
   const [recordada, setRecordada] = useRecordado<Pestana>("erp-catalogo-tecnico-pestana", "unidades");
   const navigate = useNavigate();
