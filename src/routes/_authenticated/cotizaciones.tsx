@@ -309,66 +309,6 @@ function Cotizaciones() {
     }
   }
 
-  async function agregarItem(e: React.FormEvent) {
-    e.preventDefault();
-    if (!cot) return;
-    setError("");
-    const { error: err } = await supabase.from("cotizacion_items").insert({
-      cotizacion_id: cot.id,
-      codigo: item.codigo.trim() || sugerirCodigo(item.especialidad, item.categoria),
-      nombre: item.nombre.trim(),
-      especialidad: item.especialidad,
-      categoria: item.categoria,
-      marca: item.marca.trim(),
-      unidad: item.unidad,
-      metrado: Number(item.metrado || 0),
-      precio_unitario: Number(item.precio_unitario || 0),
-      orden: items.length + 1,
-      partida_apu_id: maestraSel && maestraSel !== "manual" ? maestraSel : null,
-    });
-    if (err) return setError(err.message);
-    setMaestraSel("");
-    setItem({ ...item, codigo: "", nombre: "", marca: "", metrado: "1", precio_unitario: "" });
-    qc.invalidateQueries({ queryKey: ["cotizacion_items", cot.id] });
-  }
-
-  function cargarMaestraEnFormulario(m: { id: string; codigo: string; nombre: string; especialidad: string; categoria?: string; marca?: string; unidad: string; precio_unitario: number }, metrado: string) {
-    if (!cot) return;
-    setError("");
-    try {
-      setMaestraSel(m.id);
-      setItem({
-        codigo: sugerirCodigo(m.especialidad, m.categoria ?? ""),
-        nombre: m.nombre,
-        especialidad: m.especialidad,
-        categoria: m.categoria ?? "",
-        marca: m.marca ?? "",
-        unidad: m.unidad,
-        metrado,
-        precio_unitario: String(precioMaestroEnMoneda(m.precio_unitario, cot.moneda, cot.tipo_cambio)),
-      });
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "No se pudo convertir el precio de la partida.");
-    }
-  }
-
-  async function guardarEnBanco() {
-    setError("");
-    setAviso("");
-    if (!item.nombre.trim()) return setError("Escribe la descripción antes de guardarla en el banco.");
-    // La partida entra al banco por orden alfabético: el código se asigna solo.
-    const { error: err } = await guardarPartidaEnBanco({
-      codigo_jerarquico: "",
-      descripcion: item.nombre.trim(),
-      especialidad: item.especialidad,
-      unidad: item.unidad,
-      rendimiento_diario: 1,
-      estado: "activo",
-    }, especialidades);
-    if (err) return setError(err);
-    qc.invalidateQueries({ queryKey: ["banco_apu"] });
-    setAviso("Partida guardada en el Banco APU. Define su receta en Datos APU.");
-  }
 
   async function borrarItem(id: string) {
     await supabase.from("cotizacion_items").delete().eq("id", id);
