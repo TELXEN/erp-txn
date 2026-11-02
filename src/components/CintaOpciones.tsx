@@ -4,7 +4,7 @@ import { createPortal } from "react-dom";
 import { ChevronDown, ChevronUp, PanelLeft, Rows2, Rows3 } from "lucide-react";
 
 export type ModoNavegacion = "lateral" | "simplificada" | "clasica";
-export type ItemCinta = { a: string; texto: string; icono: React.ElementType; hijos?: ItemCinta[]; sub?: { texto: string; seccion: string }[] };
+export type ItemCinta = { a: string; texto: string; icono: React.ElementType; hijos?: ItemCinta[]; sub?: { texto: string; seccion: string; campo?: string }[] };
 export type CategoriaCinta = { titulo: string; items: ItemCinta[] };
 
 const CORTO: Record<string, string> = {
@@ -13,7 +13,7 @@ const CORTO: Record<string, string> = {
   "Temas de colores": "Temas",
 };
 
-function SubMenu({ a, sub }: { a: string; sub: { texto: string; seccion: string }[] }) {
+function SubMenu({ a, sub }: { a: string; sub: { texto: string; seccion: string; campo?: string }[] }) {
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const ref = useRef<HTMLButtonElement>(null);
   useEffect(() => {
@@ -36,7 +36,7 @@ function SubMenu({ a, sub }: { a: string; sub: { texto: string; seccion: string 
         <div data-submenu-cinta style={{ left: pos.x, top: pos.y }}
           className="fixed z-[100] min-w-56 rounded-md border border-border bg-popover py-1 text-xs text-popover-foreground shadow-lg">
           {sub.map((o) => (
-            <Link key={o.seccion} to={a} search={{ seccion: o.seccion } as never} onClick={() => setPos(null)}
+            <Link key={o.seccion} to={a} search={{ [o.campo ?? "seccion"]: o.seccion } as never} onClick={() => setPos(null)}
               className="block px-3 py-1.5 hover:bg-accent hover:text-accent-foreground">{o.texto}</Link>
           ))}
         </div>, document.body)}
