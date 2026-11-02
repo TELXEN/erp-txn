@@ -409,7 +409,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [ranuraCinta, setRanuraCinta] = useState<HTMLDivElement | null>(null);
   const [ctxCinta, setCtxCinta] = useState<ContextoCinta | null>(null);
   const [colapsado, setColapsado] = useState(false);
-  const [modoNav, setModoNav] = useState<ModoNavegacion>("lateral");
+  const [modoNav, setModoNav] = useState<ModoNavegacion>("clasica");
   useEffect(() => {
     try {
       const m = window.localStorage.getItem("erp-telxen-navegacion");
