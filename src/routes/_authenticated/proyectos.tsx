@@ -1,8 +1,8 @@
 import { BarraIconosHoja } from "@/components/BarraIconosHoja";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useRef, useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Archive, Calculator, ChartGantt, ChartSpline, Eye, Info, LayoutGrid, Plus, Table2 } from "lucide-react";
+import { Archive, Calculator, Eye, Info, LayoutGrid, Plus, Table2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, BotonIcono, Campo, FranjaResumen, InfoTooltip, MenuFiltros, Input, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
@@ -133,13 +133,6 @@ function Proyectos() {
   const [busqueda, setBusqueda] = useState("");
   const [sel, setSel] = useState("");
   const actual = todosProyectos.find((x) => x.id === sel);
-  const navigate = useNavigate();
-  // Gantt y Curva S se abren en su pantalla; si hay una obra seleccionada en la lista, se le lleva esa obra.
-  const irCronograma = (v: "gantt" | "curva") => {
-    const s: { vista: "gantt" | "curva"; proyecto?: string } = { vista: v };
-    if (sel) s.proyecto = sel;
-    void navigate({ to: "/gantt", search: s });
-  };
   const [segmento, setSegmento] = useState<"Todos" | "Borradores" | "En Ejecución" | "Finalizados" | "Archivados">(() => {
     const s = localStorage.getItem("proyectos:segmento");
     return s === "Borradores" || s === "En Ejecución" || s === "Finalizados" || s === "Archivados" ? s : "Todos";
@@ -381,23 +374,6 @@ function Proyectos() {
               className={`inline-flex items-center gap-1.5 rounded px-2.5 py-1.5 font-mono text-[11px] ${vista === "kanban" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-ink"}`}
             >
               <LayoutGrid size={13} /> Kanban
-            </button>
-            <span aria-hidden className="mx-0.5 h-4 w-px bg-line" />
-            <button
-              type="button"
-              onClick={() => irCronograma("gantt")}
-              title="Cronograma de la obra seleccionada"
-              className="inline-flex items-center gap-1.5 rounded px-2.5 py-1.5 font-mono text-[11px] text-muted-foreground hover:bg-muted hover:text-ink"
-            >
-              <ChartGantt size={13} /> Gantt
-            </button>
-            <button
-              type="button"
-              onClick={() => irCronograma("curva")}
-              title="Curva S de la obra seleccionada"
-              className="inline-flex items-center gap-1.5 rounded px-2.5 py-1.5 font-mono text-[11px] text-muted-foreground hover:bg-muted hover:text-ink"
-            >
-              <ChartSpline size={13} /> Curva S
             </button>
           </div>
           <Boton variante="accion" onClick={() => { setError(""); setFormAbierto(true); }}><Plus size={13} /> Nuevo proyecto</Boton>
