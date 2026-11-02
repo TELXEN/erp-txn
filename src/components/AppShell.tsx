@@ -138,7 +138,7 @@ const SECCIONES_VEHICULOS = [
   { texto: "Flota", corto: "Flota", seccion: "flota", campo: "pestana", icono: Car },
   { texto: "Tareo vehicular", corto: "Tareo", seccion: "tareo", campo: "pestana", icono: CalendarClock },
   { texto: "Traslados", corto: "Traslados", seccion: "traslados", campo: "pestana", icono: Route },
-  { texto: "Mantenimiento", corto: "Mantenim.", seccion: "mantenimiento", campo: "pestana", icono: Wrench },
+  { texto: "Mantenimiento", corto: "Mantenimiento", seccion: "mantenimiento", campo: "pestana", icono: Wrench },
 ];
 
 const SECCIONES_OP_ESP = [
@@ -149,7 +149,7 @@ const SECCIONES_OP_ESP = [
 
 const SECCIONES_GG = [
   { texto: "Gastos Generales", corto: "Gastos Generales", seccion: "resumen", campo: "pestana", icono: Briefcase, grande: true },
-  { texto: "Gastos generales", corto: "Gastos", seccion: "gastos", campo: "pestana", icono: ScrollText },
+  { texto: "Gastos generales", corto: "Detalle de Gastos", seccion: "gastos", campo: "pestana", icono: ScrollText },
   { texto: "Mantenimiento de flota", corto: "Mantenim.", seccion: "mantenimiento", campo: "pestana", icono: ToolCase },
   { texto: "Combustible de flota", corto: "Combustible", seccion: "combustible", campo: "pestana", icono: Fuel },
 ];
