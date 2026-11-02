@@ -202,6 +202,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
   const plano = categorias.flatMap((c) => c.items.flatMap((m) => (m.hijos ?? [m]).map((h) => ({ ...h, cat: CORTO[c.titulo] ?? c.titulo }))));
   // Rutas del menú, incluidas las que una opción de submenú lleva a otra pantalla.
   const rutas = plano.flatMap((m) => [m.a, ...(m.sub ?? []).map((o) => o.a ?? m.a), ...(m.sub2?.opciones ?? []).map((o) => o.a ?? m.a)]);
+  const vistos = new Set<string>();
   const resultados: Resultado[] = plano.flatMap((m) => {
     const s2 = m.sub2;
     return [
@@ -209,7 +210,8 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
       ...(m.sub ?? []).map((o) => ({ a: o.a ?? m.a, texto: o.texto, ruta: `${m.cat} › ${m.texto}`, icono: o.icono ?? m.icono, search: o.a ? o.search : ({ [o.campo ?? "seccion"]: o.seccion ?? "" } as Record<string, string>) })),
       ...(s2 ? s2.opciones.map((o) => ({ a: o.a ?? m.a, texto: o.texto, ruta: `${m.cat} › ${s2.titulo}`, icono: o.icono ?? m.icono, search: o.a ? undefined : ({ [o.campo ?? "seccion"]: o.seccion ?? "" } as Record<string, string>) })) : []),
     ];
-  });
+  }).filter((r) => { const k = `${r.a}|${r.texto}`; if (vistos.has(k)) return false; vistos.add(k); return true; });
+
   const [recientes, setRecientes] = useState<string[]>([]);
   const [favoritos, setFavoritos] = useState<string[]>([]);
   useEffect(() => { setRecientes(leerLista(LS_REC)); setFavoritos(leerLista(LS_FAV)); }, []);
